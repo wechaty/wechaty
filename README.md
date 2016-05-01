@@ -7,3 +7,4 @@ If you are interested in wechaty, please come back 4 weeks later. ;-p
 
 https://news.ycombinator.com/item?id=5388444
 https://github.com/KostyaKow/shell_matrix
+http://hackertyper.com/
