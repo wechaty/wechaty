@@ -1,0 +1,33 @@
+{
+  "name": "wechaty-lib",
+  "version": "0.0.1",
+  "description": "wechat robot api sdk for personal account",
+  "main": "index.js",
+  "scripts": {
+    "test": "tape tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zixia/wechaty-lib.git"
+  },
+  "keywords": [
+    "wechat",
+    "robot",
+    "api",
+    "sdk",
+    "weixin"
+  ],
+  "author": "Zhuohuan LI <zixia@zixia.net>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/zixia/wechaty-lib/issues"
+  },
+  "homepage": "https://github.com/zixia/wechaty-lib#readme",
+  "dependencies": {
+    "selenium-webdriver": ""
+  },
+  "devDependencies": {
+    "tape": "^4.5.1"
+  }
+
+}
