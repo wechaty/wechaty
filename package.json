@@ -26,7 +26,8 @@
   "dependencies": {
     "body-parser": "^1.15.0",
     "express": "^4.13.4",
-    "selenium-webdriver": ""
+    "selenium-webdriver": "",
+    "socket.io": "^1.4.5"
   },
   "devDependencies": {
     "tape": "^4.5.1"
