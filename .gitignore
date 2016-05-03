@@ -36,3 +36,5 @@ cert.pem
 key.pem
 t.js
 t
+socket.io.min.js
+
