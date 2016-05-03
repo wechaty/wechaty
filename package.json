@@ -29,6 +29,14 @@
     "selenium-webdriver": "",
     "socket.io": "^1.4.5"
   },
+  "eslintConfig": {
+    "env": {
+      "browser": true,
+      "node": true,
+      "es6": true,
+      "shared-node-browser": true
+    }
+  },
   "devDependencies": {
     "tape": "^4.5.1"
   }
