@@ -1,12 +1,10 @@
 const test = require('tape')
-const PuppetWeb = require('../lib/puppet-web')
+const Browser = require('../lib/puppet-web-browser')
 
-const WebBrowser = PuppetWeb.WebBrowser
-
-test('WebBrowser class tests', function (t) {
+test('Browser class smoking tests', function (t) {
   //t.plan(5)
-  const b = new WebBrowser({browser: 'chrome'})
-  t.ok(b, 'WebBrowser instance created')
+  const b = new Browser()
+  t.ok(b, 'Browser instance created')
 
   b.open()
   .then(() => {
@@ -25,10 +23,9 @@ test('WebBrowser class tests', function (t) {
       b.execute('return Wechaty && Wechaty.isReady()')
       .then(r => t.notEqual(typeof r, 'bool', 'Wechaty.isReady() returns bool'))
 
+      b.quit()
       t.end()
     })
   })
-
-  b.quit()
 
 })

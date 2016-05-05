@@ -1,29 +1,27 @@
 const https = require('https')
 
 const test = require('tape')
-const PuppetWeb = require('../lib/puppet-web')
+const Server = require('../lib/puppet-web-server')
 
-const WebServer = PuppetWeb.WebServer
-
-test('WebServer basic tests', function (t) {
+test('Server basic tests', function (t) {
   t.plan(9)
 
   const PORT = 58788
-  const s = new WebServer()
-  t.equal(typeof s      , 'object', 'WebServer instance created')
+  const s = new Server(PORT)
+  t.equal(typeof s      , 'object', 'Server instance created')
 
-  const express = s.initExpress()
-  t.equal(typeof express, 'function', 'init express')
+  const express = s.createExpress()
+  t.equal(typeof express, 'function', 'create express')
   delete express
 
-  const server = s.initHttpsServer(express, PORT)
-  t.equal(typeof server, 'object', 'init server')
+  const server = s.createHttpsServer(express, PORT)
+  t.equal(typeof server, 'object', 'create server')
   server.on('close', () => t.ok(true, 'HttpsServer quited'))
   server.close(() => t.ok(true, 'HttpsServer closed'))
   delete server
 
-  const socketio = s.initSocketIo()
-  t.equal(typeof socketio, 'object', 'init socket io')
+  const socketio = s.createSocketIo()
+  t.equal(typeof socketio, 'object', 'create socket io')
   delete socketio
 
   t.equal(s.isLogined() , false  , 'instance not logined')
@@ -37,25 +35,34 @@ test('WebServer basic tests', function (t) {
   //t.end()
 })
 
-test('WebServer smoking tests', function (t) {
+test('Server smoking tests', function (t) {
   const PORT = 58788
-  const s = new WebServer()
+  const s = new Server(PORT)
 
   t.plan(1)
-  console.log(`s.init(${PORT})`)
-  s.init(PORT)
+  console.log(`s.init()`)
+  s.init().then(() => {
+    console.error('s.inited')
+    
+    const options = require('url').parse(`https://localhost:${PORT}/ping`)
+    options.rejectUnauthorized = false // permit self-signed CA
 
-  const options = require('url').parse(`https://localhost:${PORT}/ping`)
-  Object.assign(options, {rejectUnauthorized: false}) // permit self-signed CA
+    https.get(options, (res) => {
+      console.error('server inited')
 
-  https.get(options, (res) => {
-    res.on('data', chunk => {
-      t.equal(chunk.toString(), 'pong', 'https get /ping return pong')
+      res.on('data', chunk => {
+        t.equal(chunk.toString(), 'pong', 'https get /ping return pong')
+      })
+    }).on('error', e => {
+      console.error(e)
+      t.ok(false, 'https get error')
     })
-  }).on('error', e => {
-    console.error(e)
-    t.ok(false, 'https get fail')
-  })
 
-}) 
+    s.socketClient.on('pong', (data) => {
+      console.error('received event pong from socket: ' + data)
+      t.equal(data, 'pong', 'socket io sent ping got pong')
+    })
+    s.socketClient.emit('ping')
+  })
+})
 
