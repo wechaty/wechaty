@@ -3,7 +3,8 @@ const Browser = require('../lib/puppet-web-browser')
 
 test('Browser class smoking tests', function (t) {
   //t.plan(5)
-  const b = new Browser()
+  const PORT = 58788
+  const b = new Browser('firefox', PORT)
   t.ok(b, 'Browser instance created')
 
   b.open()
