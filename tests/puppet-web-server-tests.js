@@ -4,7 +4,7 @@ const test = require('tape')
 const Server = require('../lib/puppet-web-server')
 
 test('Server basic tests', function (t) {
-  t.plan(9)
+  //t.plan(9)
 
   const PORT = 58788
   const s = new Server(PORT)
@@ -30,39 +30,49 @@ test('Server basic tests', function (t) {
   s.emit('logout')
   t.equal(s.isLogined() , false  , 'logouted after logout event')
 
-  s.quit()
-  delete s
-  //t.end()
+  s.quit() + t.end()
 })
 
 test('Server smoking tests', function (t) {
   const PORT = 58788
-  const s = new Server(PORT)
+  const server = new Server(PORT)
 
-  t.plan(1)
-  console.log(`s.init()`)
-  s.init().then(() => {
-    console.error('s.inited')
+  server.init()
+  .then(() => {
+    t.ok(true, 'server:' + PORT + ' inited')
     
-    const options = require('url').parse(`https://localhost:${PORT}/ping`)
+    const options = require('url').parse(`https://localhost:${PORT}/ding`)
     options.rejectUnauthorized = false // permit self-signed CA
 
     https.get(options, (res) => {
-      console.error('server inited')
+      t.pass('https server inited')
 
       res.on('data', chunk => {
-        t.equal(chunk.toString(), 'pong', 'https get /ping return pong')
+        t.equal(chunk.toString(), 'dong', 'https get /ding return dong')
       })
     }).on('error', e => {
-      console.error(e)
-      t.ok(false, 'https get error')
+      t.fail('https get error:' + e)
     })
 
-    s.socketClient.on('pong', (data) => {
-      console.error('received event pong from socket: ' + data)
-      t.equal(data, 'pong', 'socket io sent ping got pong')
-    })
-    s.socketClient.emit('ping')
+    function testDing() {
+      if (!server.socketClient) {
+        console.error('waiting socketClient to connect for 500ms...')
+        setTimeout(testDing, 500)
+        return
+      }
+      server.socketClient.on('dong', (data) => {
+        t.equal(data, 'dong', 'socket io sent ding got dong')
+
+        server.quit()
+        t.end()
+      })
+      server.socketClient.emit('ding')
+    }
+    testDing()
+
+  }).catch((e) => {
+    t.fail('server init promise rejected:' + e)
   })
+  console.error('here')
 })
 
