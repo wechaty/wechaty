@@ -4,7 +4,5 @@ const PuppetWeb = require('../lib/puppet-web')
 test('test', function (t) {
   t.plan(1)
 
-  t.ok(ret, 'test')
+  t.pass('test')
 })
-
-console.log('ok')

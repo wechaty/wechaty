@@ -29,14 +29,15 @@ test('WebDriver smoking test', function(t) {
 
       t.end()
       driver.quit()
+    }).catch(e => {
+      t.ok(false, 'promise rejected. e:' + e)
+      t.end()
+      driver.quit()
+    })/* .finally(() => {
+      console.log('final')
     })
+   */
   })
-
-  function verifyJson(expected) {
-    return function(actual) {
-      assert(JSON.stringify(actual)).equalTo(JSON.stringify(expected))
-    };
-  }
 
   function execute() {
     return driver.executeScript.apply(driver, arguments)
