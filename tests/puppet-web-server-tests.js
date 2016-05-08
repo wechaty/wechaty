@@ -1,7 +1,7 @@
 const https = require('https')
 
 const test = require('tape')
-const Server = require('../lib/puppet-web-server')
+const Server = require('../src/puppet-web-server')
 
 test('Server basic tests', function (t) {
   //t.plan(9)

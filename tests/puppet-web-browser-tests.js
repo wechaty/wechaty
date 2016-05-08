@@ -1,5 +1,5 @@
 const test = require('tape')
-const Browser = require('../lib/puppet-web-browser')
+const Browser = require('../src/puppet-web-browser')
 
 test('Browser class smoking tests', function (t) {
   //t.plan(5)

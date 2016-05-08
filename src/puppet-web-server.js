@@ -45,7 +45,7 @@ class Server extends EventEmitter {
   }
 
   createBrowser() {
-    const b = new Browser('chrome', this.port)
+    const b = new Browser({port: this.port})
 
     /**
      * `unload` event is sent from js@browser to webserver via socketio

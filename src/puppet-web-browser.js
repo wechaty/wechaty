@@ -16,9 +16,11 @@ const path      = require('path')
 const WebDriver = require('selenium-webdriver')
 
 class Browser {
-  constructor(browser, port) {
-    this.browser  = browser || 'chrome'
-    this.port     = port    || 8788
+  constructor(options) {
+    options = options || {}
+
+    this.browser  = options.browser || 'phantomjs'
+    this.port     = options.port    || 8788 // 'W' 'X' Ascii Code
   }
 
   toString() { return `Class Wechaty.Puppet.Browser(${this.browser}, ${this.port})` }
