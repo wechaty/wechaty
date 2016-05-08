@@ -35,6 +35,7 @@ class Wechaty extends EventEmitter {
   currentUser()   { return this.puppet.currentUser() }
   send(message)   { return this.puppet.send(message) }
 
+  ding()          { return 'dong' }
 }
 
 Puppet.Web = PuppetWeb
