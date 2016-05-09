@@ -32,7 +32,9 @@ class Puppet extends EventEmitter {
   logout()      { throw new Error('To Be Implementsd') }
   alive()       { throw new Error('To Be Implementsd') }
 
-  getContact()  { throw new Error('To Be Implementsd') }
+  getContact()  { // for unit testing
+    return new Promise((rs, rj) => rs({}))
+  }
 
   // () { throw new Error('To Be Implemented')  }
 
