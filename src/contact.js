@@ -5,7 +5,7 @@ class Contact {
   }
 
   toString() {
-    return `Class Contact({id:${this.id})`
+    return `Contact({id:${this.id})`
   }
 
   getId() { return this.id }

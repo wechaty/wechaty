@@ -27,10 +27,10 @@ class Message {
     // Contact
     const from  = this.m.from.getId()
     const to    = this.m.to.getId()
-    //return `Class Message({id:${id}, from:${from}, to:${to})`
-    const content = this.m.content
+    //return `Message({id:${id}, from:${from}, to:${to})`
+    let content = this.m.content
     if (content.length > 20) content = content.substring(0,17) + '...';
-    return `Class Message("${content}")`
+    return `Message("${content}")`
   }
 
   get(prop) {

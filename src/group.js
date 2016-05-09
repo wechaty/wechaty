@@ -3,7 +3,7 @@ class Group {
     this.id = id
   }
 
-  toString() { return `Class Group({id=${this.id}})` }
+  toString() { return `Group({id=${this.id}})` }
 
   getId() { return this.id }
 

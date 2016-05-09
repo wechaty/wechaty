@@ -1,4 +1,4 @@
-const Wechaty = require('../wechaty')
+const Wechaty = require('../src/wechaty')
 const log = require('npmlog')
 //log.level = 'verbose'
 
