@@ -1,3 +1,12 @@
+/**
+ *
+ * wechaty: Wechat for Bot. and for human who talk to bot/robot
+ *
+ * Licenst: ISC
+ * https://github.com/zixia/wechaty
+ *
+ */
+
 const EventEmitter = require('events')
 //const Util = require('util');
 
@@ -23,6 +32,7 @@ class Wechaty extends EventEmitter {
         throw new Error('Puppet unknown: ' + puppet)
         break
     }
+    Contact.attach(this.puppet)
 
     this.puppet.on('message', (e) => {
       this.emit('message', e)

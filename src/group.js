@@ -1,3 +1,12 @@
+/**
+ *
+ * wechaty: Wechat for Bot. and for human who talk to bot/robot
+ *
+ * Licenst: ISC
+ * https://github.com/zixia/wechaty
+ *
+ */
+
 class Group {
   constructor(id) {
     this.id = id

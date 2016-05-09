@@ -57,16 +57,14 @@ if (typeof Wechaty!=='undefined') return 'Wechaty already injected?';
     , slog: slog // log throw Socket IO
     , ding: ding
     , quit: quit
+
+    , getContact: getContact
   }
 
   function isReady() { 
     return !!((typeof angular)!=='undefined' && angular.element && angular.element("body"))
   }
   function init() {
-    // XXX
-    // return 'init skiped in browser'
-
-
     if (!isReady()) {
       clog('angular not ready. wait 500ms...')
       setTimeout(init, 500)
@@ -87,8 +85,9 @@ if (typeof Wechaty!=='undefined') return 'Wechaty already injected?';
     var injector  = angular.element(document).injector()
     var rootScope = injector.get("$rootScope")
     var http      = injector.get("$http")
-    var chatFactory = injector.get("chatFactory")
-    var confFactory = injector.get("confFactory")
+    var chatFactory     = injector.get("chatFactory")
+    var confFactory     = injector.get("confFactory")
+    var contactFactory  = injector.get('contactFactory')
     var loginScope  = angular.element(".login_box").scope()
 
     // get all we need from wx in browser(angularjs)
@@ -96,8 +95,9 @@ if (typeof Wechaty!=='undefined') return 'Wechaty already injected?';
       injector:       injector
       , rootScope:    rootScope
       , http:         http
-      , chatFactory:  chatFactory
-      , confFactory:  confFactory
+      , chatFactory:    chatFactory
+      , confFactory:    confFactory
+      , contactFactory: contactFactory
       , loginScope:   loginScope
     }
   }
@@ -122,6 +122,7 @@ if (typeof Wechaty!=='undefined') return 'Wechaty already injected?';
     chat.appendMessage(m)
     return chat.sendMessage(m)
   }
+  function getContact(id) { return Wechaty.glue.contactFactory.getContact(id) }
   function hookMessage() {
     var rootScope = Wechaty.glue.rootScope
     rootScope.$on("message:add:success", function (event, data) { 
@@ -174,7 +175,7 @@ if (typeof Wechaty!=='undefined') return 'Wechaty already injected?';
 
   var callback = arguments[arguments.length - 1]
   if (typeof callback==='function')
-    callback('Wechaty')
+    return callback('Wechaty')
 
   return 'Wechaty'
 
