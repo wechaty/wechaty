@@ -57,6 +57,7 @@ class Server extends EventEmitter {
       log.verbose('Server', 'server received unload event')
       this.browser.inject()
       .then(() => log.verbose('Server', 're-injected'))
+      .catch((e) => log.error('Server', 'inject err: ' + e))
     })
 
     return b

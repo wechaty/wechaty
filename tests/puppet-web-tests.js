@@ -1,8 +1,8 @@
 const test = require('tape')
 const PuppetWeb = require('../src/puppet-web')
 
-test('test', function (t) {
+test('PuppetWeb smoke testing', function (t) {
   t.plan(1)
 
-  t.pass('test')
+  t.pass('test tbw')
 })

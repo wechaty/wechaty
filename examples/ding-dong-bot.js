@@ -32,13 +32,13 @@ bot.init()
 .then(login)
 
 bot.on('message', (m) => {
-	log.info('Bot', 'recv message: %s', m)
+	log.info('Bot', 'recv: %s', m)
 	if (/^ding$/.test(m.get('content'))) {
 		const r = new Wechaty.Message()
 		r.set('to', m.get('from'))
 		r.set('content', 'dong')
 		bot.send(r)
-		.then(() => { log.info('Bot', 'auto replied') })
+		.then(() => { log.info('Bot', 'REPLY: dong') })
 	}
 })
 

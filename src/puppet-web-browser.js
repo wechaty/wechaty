@@ -58,8 +58,12 @@ class Browser {
   inject() {
     const injectio = this.getInjectio()
     log.verbose('Browser', 'injecting')
-    return this.execute(injectio, this.port)
-    .then(() => {
+    try {
+      var p = this.execute(injectio, this.port)
+    } catch (e) {
+      return new Promise((rs, rj) => rj('execute exception: ' + e))
+    }
+    return p.then(() => {
       log.verbose('Browser', 'injected / try Wechaty.init()')
       return this.execute('return (typeof Wechaty)==="undefined" ? false : Wechaty.init()')
     }).then((data) => {

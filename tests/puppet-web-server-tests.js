@@ -75,7 +75,7 @@ test('Server smoke testing', function (t) {
       return new Promise((resolve, reject) => {
         https.get(options, res => {
           res.on('data', chunk => {
-            log.info('TestingServer', 'https on data got: ' + chunk.toString())
+            log.verbose('TestingServer', 'https on data got: ' + chunk.toString())
             resolve(chunk.toString())
           })
         }).on('error', e => reject('https get error:' + e))
@@ -90,19 +90,19 @@ test('Server smoke testing', function (t) {
         setTimeout(testDing, waitTime)
 
         function testDing() {
-          //log.info('TestingServer', server.socketio)
+          //log.verbose('TestingServer', server.socketio)
           if (!server.socketClient) {
             totalTime += waitTime
             if (totalTime > maxTime) 
               return reject('timeout after ' + totalTime + 'ms');
 
-            log.info('TestingServer', 'waiting socketClient to connect for ' + totalTime + '/' + maxTime + ' ms...')
+            log.verbose('TestingServer', 'waiting socketClient to connect for ' + totalTime + '/' + maxTime + ' ms...')
             setTimeout(testDing, waitTime)
             return
           }
-          //log.info('TestingServer', server.socketClient)
+          //log.verbose('TestingServer', server.socketClient)
           server.socketClient.on  ('dong', data => {
-            log.info('TestingServer', 'socket on dong got: ' + data)
+            log.verbose('TestingServer', 'socket on dong got: ' + data)
             resolve(data)
           })
           server.socketClient.emit('ding')
