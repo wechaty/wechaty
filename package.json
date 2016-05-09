@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "tape tests/*.js",
-    "build": "src -d lib",
-    "lint": "eslint lib"
+    "build": "src -d src",
+    "lint": "eslint src"
   },
   "repository": {
     "type": "git",

@@ -10,8 +10,8 @@ test('Message constructor parser test', t => {
   }
   const m = new Message(rawData)
 
-  t.equal(m.get('id')   , EXPECTED.id, 'id right')
-  t.equal(m.get('from') , EXPECTED.from, 'from right')
+  t.equal(m.get('id')           , EXPECTED.id, 'id right')
+  t.equal(m.get('from').getId() , EXPECTED.from, 'from right')
 
   t.end()
 })

@@ -14,12 +14,14 @@ DeviceId
 const fs        = require('fs')
 const path      = require('path')
 const WebDriver = require('selenium-webdriver')
+const log       = require('npmlog')
+//log.disableColor()
 
 class Browser {
   constructor(options) {
     options = options || {}
 
-    this.browser  = options.browser || 'phantomjs'
+    this.browser  = options.browser || 'chrome' //'phantomjs'
     this.port     = options.port    || 8788 // 'W' 'X' Ascii Code
   }
 
@@ -33,8 +35,16 @@ class Browser {
   open() {
     const WX_URL = 'https://wx.qq.com'
 
-    console.error(`browser init ${this.browser}:${this.port}`)
+    log.verbose('Browser', `init ${this.browser}:${this.port}`)
     this.driver = new WebDriver.Builder().forBrowser(this.browser).build()
+
+    /*
+    this.driver = new WebDriver.Builder()//.forBrowser(this.browser).build()
+    .withCapabilities(
+      WebDriver.Capabilities.phantomjs()
+      .set('phantomjs.binary.path', 'D:\\cygwin64\\home\\zixia\\git\\wechaty\\node_modules\\phantomjs-prebuilt\\lib\\phantom\\bin\\phantomjs.exe')
+    ).build()
+   */
 
     return this.driver.get(WX_URL)
   }
@@ -47,36 +57,36 @@ class Browser {
   }
   inject() {
     const injectio = this.getInjectio()
-    console.error('injecting')
+    log.verbose('Browser', 'injecting')
     return this.execute(injectio, this.port)
     .then(() => {
-      console.error('injected / call Wechaty.init()')
-      return this.execute('return Wechaty.init()')
+      log.verbose('Browser', 'injected / try Wechaty.init()')
+      return this.execute('return (typeof Wechaty)==="undefined" ? false : Wechaty.init()')
     }).then((data) => {
-      console.error('Wechaty.init() return: ' + data)
+      log.verbose('Browser', 'Wechaty.init() return: ' + data)
       return new Promise((resolve, reject) => resolve(data))
     })
   }
 
   quit() { 
-    console.error('Browser.quit')
+    log.verbose('Browser', 'Browser.quit')
     if (!this.driver) {
-      console.error('no need to quite because no driver')
+      log.verbose('Browser', 'no need to quite because no driver')
       return new Promise((resolve, reject) => resolve('no driver'))
     }
-    console.error('Browser.driver.quit')
-    this.execute('return (typeof Wechaty)!=="undefined" && Wechaty.quit()').then(() => {
-      this.driver.quit(true) 
-      delete this.driver
+    log.verbose('Browser', 'Browser.driver.quit')
+    return this.execute('return (typeof Wechaty)!=="undefined" && Wechaty.quit()').then(() => {
+      this.driver.quit() 
+      this.driver = null
       return new Promise((resolve, reject) => resolve())
     })
   }
 
   execute(script, ...args) {
-    // console.error(`Browser.execute(${script})`)
+    //log.verbose('Browser', `Browser.execute(${script})`)
     if (!this.driver) 
       throw new Error('driver not found')
-    // a promise
+    // return promise
     return this.driver.executeScript.apply(this.driver, arguments)
   }
 }

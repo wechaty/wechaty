@@ -1,20 +1,20 @@
 const https = require('https')
-
-const test = require('tape')
+const log   = require('npmlog')
+const test  = require('tape')
 const Server = require('../src/puppet-web-server')
 
 test('Server basic tests', function (t) {
   //t.plan(9)
 
   const PORT = 58788
-  const s = new Server(PORT)
+  const s = new Server({port: PORT})
   t.equal(typeof s      , 'object', 'Server instance created')
 
   const express = s.createExpress()
   t.equal(typeof express, 'function', 'create express')
   delete express
 
-  const server = s.createHttpsServer(express, PORT)
+  const server = s.createHttpsServer(express)
   t.equal(typeof server, 'object', 'create server')
   server.on('close', () => t.ok(true, 'HttpsServer quited'))
   server.close(() => t.ok(true, 'HttpsServer closed'))
@@ -33,9 +33,9 @@ test('Server basic tests', function (t) {
   s.quit() + t.end()
 })
 
-test('Server smoking tests', function (t) {
+test('Server smoke testing', function (t) {
   const PORT = 58788
-  const server = new Server(PORT)
+  const server = new Server({port: PORT})
 
   server.init()
   .then(() => {
@@ -59,6 +59,7 @@ test('Server smoking tests', function (t) {
       t.equal(retBrowser, 'dong', 'ding browser got dong')
       t.equal(retProxy,   'dong', 'ding proxy   got dong')
 
+      // XXX sometimes object? 201605
       t.equal(typeof retStatus, 'number', 'status is number')
 
       t.end() + server.quit()
@@ -74,7 +75,7 @@ test('Server smoking tests', function (t) {
       return new Promise((resolve, reject) => {
         https.get(options, res => {
           res.on('data', chunk => {
-            console.log('https on data got: ' + chunk.toString())
+            log.info('TestingServer', 'https on data got: ' + chunk.toString())
             resolve(chunk.toString())
           })
         }).on('error', e => reject('https get error:' + e))
@@ -89,19 +90,23 @@ test('Server smoking tests', function (t) {
         setTimeout(testDing, waitTime)
 
         function testDing() {
+          //log.info('TestingServer', server.socketio)
           if (!server.socketClient) {
             totalTime += waitTime
             if (totalTime > maxTime) 
               return reject('timeout after ' + totalTime + 'ms');
 
-            console.error('waiting socketClient to connect for ' + totalTime + '/' + maxTime + ' ms...')
+            log.info('TestingServer', 'waiting socketClient to connect for ' + totalTime + '/' + maxTime + ' ms...')
             setTimeout(testDing, waitTime)
             return
           }
+          //log.info('TestingServer', server.socketClient)
           server.socketClient.on  ('dong', data => {
-            console.log('socket on dong got: ' + data)
+            log.info('TestingServer', 'socket on dong got: ' + data)
             resolve(data)
           })
+          server.socketClient.emit('ding')
+          server.socketClient.emit('ding')
           server.socketClient.emit('ding')
         }
       })
@@ -116,7 +121,7 @@ test('Server smoking tests', function (t) {
     }
 
     function getLoginStatusCode() {
-      return server.Wechaty_getLoginStatusCode()
+      return server.proxyWechaty('getLoginStatusCode')
     }
 
   }).catch((e) => {

@@ -9,8 +9,13 @@ const WebBrowser = require('../src/puppet-web-browser')
 
 test('WebDriver smoke testing', function(t) {
   const driver = new WebDriver.Builder()
-  //.withCapabilities(WebDriver.Capabilities.chrome()).build()
-  .withCapabilities(WebDriver.Capabilities.phantomjs()).build()
+  .withCapabilities(WebDriver.Capabilities.chrome()).build()
+  /*
+  .withCapabilities(
+    WebDriver.Capabilities.phantomjs()
+    //.set('phantomjs.binary.path', 'D:\\cygwin64\\home\\zixia\\git\\wechaty\\node_modules\\phantomjs-prebuilt\\lib\\phantom\\bin\\phantomjs.exe')
+  ).build()
+ */
     // .set('webdriver.load.strategy', 'unstable') 
     // https://stackoverflow.com/questions/37071807/how-to-executescript-before-page-load-by-webdriver-in-selenium
 

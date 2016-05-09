@@ -11,14 +11,18 @@ const Group       = require('./group')
 
 class Wechaty extends EventEmitter {
   // cookie，Uin, Sid，SKey
-  constructor() {
+  constructor(puppet) {
     super()
-    this.puppet   = new Puppet.Web()
-    /*
-    this.contact  = new Contact(this.puppet)
-    this.group    = new Group(this.puppet)
-    this.message  = new Message(this.puppet)
-    */
+    puppet = puppet || 'web'
+
+    switch(puppet) {
+      case 'web':
+        this.puppet   = new Puppet.Web()
+        break
+      default:
+        throw new Error('Puppet unknown: ' + puppet)
+        break
+    }
 
     this.puppet.on('message', (e) => {
       this.emit('message', e)

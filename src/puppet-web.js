@@ -1,12 +1,12 @@
 /**
  *
- * wechaty-lib: Wechat for Bot. and for human who can talk with bot/robot
+ * wechaty: Wechat for Bot. and for human who talk to bot/robot
  *
- * Web Soul of Puppet
+ * Web Puppet
  * use to control wechat web.
  *
- * Licenst: MIT
- * https://github.com/zixia/wechaty-lib
+ * Licenst: ISC
+ * https://github.com/zixia/wechaty
  *
  */
 
@@ -17,43 +17,59 @@
  *
  ***************************************/
 const Puppet = require('./puppet')
+const Message = require('./message')
 
 const WebServer  = require('./puppet-web-server')
 
 class PuppetWeb extends Puppet {
-  constructor(port) {
+  constructor(options) {
     super()
-    this.port = port || 8788 // W(87) X(88), ascii char code ;-]
+    options = options || {}
+    this.port = options.port || 8788 // W(87) X(88), ascii char code ;-]
   }
 
-  init() { 
-    this.server = new WebServer(this.port)
+  toString() { return `Class PuppetWeb({port:${this.port}})` }
 
-    const EVENTS_IN  = [
-      'message'
-      , 'login'
+  init() { 
+    this.server = new WebServer({port: this.port})
+
+    ;[  // events. ';' for seprate from the last code line
+      'login'
       , 'logout'
-    ]
-    EVENTS_IN.map( event => 
+    ].map( event => 
       this.server.on(event, data => this.emit(event, data) ) 
     )
     
-    return this.server.init(this.port) 
+    this.server.on('message', data => {
+      const m = new Message(data)
+      this.emit('message', m) 
+    })
+
+    return this.server.init() 
   }
 
   send(message) {
-    if (!this.browser) throw new Error('browser not exist!');
+    const toContact = message.get('to')
+    const content   = message.get('content')
 
-    const ToUserName   = message.get('to')
-    const Content      = message.get('content')
-
-    const script = `return Wechaty.send('${ToUserName}', '${Content}')`
-    return this.browser.execte(script)
+    return this.server.proxyWechaty('send', toContact.getId(), content)
   }
 
   logout() { 
-    if (!this.browser) throw new Error('browser not exist!');
-    return this.browser.execte('return Wechaty.logout()')
+    return this.server.proxyWechaty('logout')
+  }
+
+  getLoginStatusCode() {
+    log.verbose('PuppetWeb', 'getLoginStatusCode')
+    return this.server.proxyWechaty('getLoginStatusCode')
+  }
+  getLoginQrImgUrl()   { return this.server.proxyWechaty('getLoginQrImgUrl')   }
+
+  debugLoop() {
+    this.getLoginStatusCode().then((c) => {
+      log.verbose('PuppetWeb', `login status code: ${c}`)
+      setTimeout(this.debugLoop.bind(this), 3000)
+    })
   }
 
   /*
@@ -80,8 +96,12 @@ class PuppetWeb extends Puppet {
    *  Public Methods
    *
    */
-  getLoginQrImgUrl()   { return this.server.Wechaty_getLoginQrImgUrl()   }
-  getLoginStatusCode() { return this.server.Wechaty_getLoginStatusCode() }
+  getLoginQrImgUrl()   { 
+    return this.server.proxyWechaty('getLoginQrImgUrl')
+  }
+  getLoginStatusCode() { 
+    return this.server.proxyWechaty('getLoginStatusCode') 
+  }
 }
 
 module.exports = PuppetWeb

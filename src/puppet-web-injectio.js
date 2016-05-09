@@ -19,6 +19,8 @@
 408: 未确认
 
  */
+if (typeof Wechaty!=='undefined') return 'Wechaty already injected?';
+
 ;return (function (port) {
   port = port || 8788
 
@@ -38,7 +40,7 @@
   }
 
   var Wechaty = {
-    glue: {} // see glueAngular() function
+    glue: {} // will be initialized by glueAngular() function
     // glue funcs
     , getLoginStatusCode: function () { return Wechaty.glue.loginScope.code }
     , getLoginQrImgUrl:   function () { return Wechaty.glue.loginScope.qrcodeUrl }
@@ -52,7 +54,7 @@
     , init: init
     , send: send
     , clog: clog // Console log
-    , slog: slog // Socket IO log
+    , slog: slog // log throw Socket IO
     , ding: ding
     , quit: quit
   }
@@ -110,22 +112,21 @@
   function slog(data) { return Wechaty.socket && Wechaty.socket.emit('log', data) }
   function ding()     { return 'dong' }
   function send(ToUserName, Content) {
-    var c = Wechaty.glue.chatFactory
-    var m = c.createMessage({
+    var chat = Wechaty.glue.chatFactory
+    var conf = Wechaty.glue.confFactory
+    var m = chat.createMessage({
       ToUserName: ToUserName
       , Content: Content
+      , MsgType: conf.MSGTYPE_TEXT
     })
-    c.appendMessage(m)
-    return c.sendMessage(m)
+    chat.appendMessage(m)
+    return chat.sendMessage(m)
   }
   function hookMessage() {
     var rootScope = Wechaty.glue.rootScope
     rootScope.$on("message:add:success", function (event, data) { 
-      Wechaty.socket.emit('message', data)
-      .catch(function (e) { 
-        clog('socket.emit(message, data) fail:')
-        clog(e) 
-      })
+      if (Wechaty.socket) Wechaty.socket.emit('message', data);
+      else clog('Wechaty.socket not ready');
     })
   }
   function hookUnload() {
@@ -151,28 +152,22 @@
     // Wechaty global variable: socket
     var socket  = Wechaty.socket = io.connect('https://127.0.0.1:' + port)
 
-    socket.on('connect', function() {
-      clog('on connect entried')
-      // new message
-      Wechaty.glue.rootScope.$on("message:add:success", function (event, data) { 
-        socket.emit('message', data)
-      })
-      // ding -> dong. for test & live check purpose
-      // ping/pong are reserved by socket.io https://github.com/socketio/socket.io/issues/2414
-      socket.on('ding', function (e) {
-        clog('received socket io event: ding. emit dong...')
-        socket.emit('dong', 'dong')
-      })
-      // re-connect XXX will socketio library auto re-connect by itself???
-      // socket.on('disconnect', function(e) {
-      //   clog('event: socket disconnect')
-      //   // Reconnect...
-      //   setTimeout(function () {
-      //     clog('starting initSocket after disconnect')
-      //     initSocket()
-      //   }, 1000)
-      // })
+    // ding -> dong. for test & live check purpose
+    // ping/pong are reserved by socket.io https://github.com/socketio/socket.io/issues/2414
+    socket.on('ding', function (e) {
+      clog('received socket io event: ding. emit dong...')
+      socket.emit('dong', 'dong')
     })
+
+    socket.on('connect'   , function(e) { clog('connected to server:' + e) })
+    socket.on('disconnect', function(e) { clog('socket disconnect:' + e) })
+
+    //   // Reconnect...
+    //   setTimeout(function () {
+    //     clog('starting initSocket after disconnect')
+    //     initSocket()
+    //   }, 1000)
+    // })
   }
 
   window.Wechaty = Wechaty

@@ -1,23 +1,36 @@
 //const EventEmitter = require('events')
+const Contact = require('./contact')
+const Group   = require('./group')
 
 class Message {
   constructor(rawObj) {
-    this.rawObj = rawObj
+    this.rawObj = rawObj = rawObj || {}
 
     // Transform rawObj to local m
     this.m = {
       id:         rawObj.MsgId
       , type:     rawObj.MsgType
-      , from:     rawObj.MMActualSender
+      , from:     new Contact(rawObj.MMActualSender)
+      , to:       new Contact(rawObj.MMPeerUserName)
+      , group:    rawObj.MMIsChatRoom ? new Group(rawObj.FromUserName) : null
       , content:  rawObj.MMActualContent
       , status:   rawObj.Status
 
       , digest:   rawObj.MMDigest
-      , to:       rawObj.MMPeerUserName
       , actual_content: rawObj.MMActualContent
-      , group:    rawObj.MMIsChatRoom ? rawObj.FromUserName : null
       , date:     new Date(rawObj.MMDisplayTime*1000)
     }
+  }
+
+  toString() {
+    const id    = this.m.id
+    // Contact
+    const from  = this.m.from.getId()
+    const to    = this.m.to.getId()
+    //return `Class Message({id:${id}, from:${from}, to:${to})`
+    const content = this.m.content
+    if (content.length > 20) content = content.substring(0,17) + '...';
+    return `Class Message("${content}")`
   }
 
   get(prop) {
@@ -28,13 +41,17 @@ class Message {
     return this.m[prop]
   }
 
+  set(prop, value) {
+    this.m[prop] = value
+  }
+
   dump() { 
-    console.log('======= dump message =======') 
-    Object.keys(this.m).forEach(k => console.log(`${k}: ${this.m[k]}`)) 
+    console.error('======= dump message =======') 
+    Object.keys(this.m).forEach(k => console.error(`${k}: ${this.m[k]}`)) 
   }
   dumpRaw() { 
-    console.log('======= dump raw message =======')
-    Object.keys(this.rawObj).forEach(k => console.log(`${k}: ${this.rawObj[k]}`)) 
+    console.error('======= dump raw message =======')
+    Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj[k]}`)) 
   }
 
   static find(selector, option) {

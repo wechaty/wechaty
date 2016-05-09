@@ -1,13 +1,16 @@
-/* jshint node:true, unused:true */
-
 class Group {
-  constructor() {
+  constructor(id) {
+    this.id = id
   }
 
-  find() {
+  toString() { return `Class Group({id=${this.id}})` }
+
+  getId() { return this.id }
+
+  static find() {
   }
 
-  findAll() {
+  static findAll() {
   }
 }
 module.exports = Group
