@@ -9,19 +9,22 @@
 
 const Contact = require('./contact')
 const Group   = require('./group')
+const log     = require('npmlog')
 
 class Message {
   constructor(rawObj) {
     this.rawObj = rawObj = rawObj || {}
+
+    Message.counter++
 
     // Transform rawObj to local m
     this.obj = {
       id:         rawObj.MsgId
       , type:     rawObj.MsgType
       , from:     Contact.load(rawObj.MMActualSender)
-      , to:       Contact.load(rawObj.MMPeerUserName)
-      , group:    rawObj.MMIsChatRoom ? new Group(rawObj.FromUserName) : null
-      , content:  rawObj.MMActualContent
+      , to:       Contact.load(rawObj.ToUserName)
+      , group:    rawObj.MMIsChatRoom ? new Group(rawObj.FromUserName) : null // MMPeerUserName always eq FromUserName ?
+      , content:  rawObj.MMActualContent // Content has @id prefix added by wx
       , status:   rawObj.Status
 
       , digest:   rawObj.MMDigest
@@ -32,9 +35,20 @@ class Message {
 
   toString() {
     const name  = this.obj.from.get('name')
+    const group = this.obj.group
     let content = this.obj.content
     if (content.length > 20) content = content.substring(0,17) + '...';
-    return `Message("${name}: ${content}")`
+    if (group)  return `Message(${name}@${group}: ${content})`
+    else        return `Message(${name}: ${content})`
+  }
+
+  ready() {
+    return new Promise((resolve, reject) => {
+      this.obj.from.ready()           // Contact from
+      .then(r => this.obj.to.ready()) // Contact to
+      .then(r => resolve(this))
+      .catch(e => reject(e))
+    })
   }
 
   get(prop) {
@@ -58,6 +72,8 @@ class Message {
     Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj[k]}`)) 
   }
 
+  getCount() { return Message.counter }
+
   static find(selector, option) {
     return new Message({MsgId: '-1'})
   }
@@ -69,5 +85,7 @@ class Message {
     ]
   }
 }
+
+Message.counter = 0
 
 module.exports = Message

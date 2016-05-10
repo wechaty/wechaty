@@ -73,7 +73,7 @@ class Server extends EventEmitter {
       key   : require('./ssl-key-cert').key
       , cert: require('./ssl-key-cert').cert
     }, express).listen(this.port, () => {
-      log.verbose('Server', `createHttpsServer listening on port ${this.port}!`)
+      log.verbose('Server', `createHttpsServer port ${this.port}`)
     })
   }
 
@@ -111,7 +111,7 @@ class Server extends EventEmitter {
     })
 
     socketServer.sockets.on('connection', (s) => {
-      log.verbose('Server', 'socket.on connection entried')
+      log.verbose('Server', 'got connection from browser')
       // save to instance: socketClient
       this.socketClient = s
 

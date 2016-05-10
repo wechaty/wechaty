@@ -33,6 +33,7 @@ class Wechaty extends EventEmitter {
         break
     }
     Contact.attach(this.puppet)
+    Group.attach(this.puppet)
 
     this.puppet.on('message', (e) => {
       this.emit('message', e)

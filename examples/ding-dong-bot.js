@@ -1,6 +1,7 @@
 const Wechaty = require('../src/wechaty')
 const log = require('npmlog')
-//log.level = 'verbose'
+log.level = 'verbose'
+log.level = 'silly'
 
 const welcome = `
 | __        __        _           _         
@@ -26,14 +27,19 @@ Please wait... I'm trying to login in...
 `
 
 console.log(welcome)
-
 const bot = new Wechaty()
+
 bot.init()
 .then(login)
 
 bot.on('message', (m) => {
+  m
+  .ready()
+  .then(msg => log.warn('Bot', 'recv: %s', msg))
+  .catch(e => log.err('Bot', 'ready: ' + e))
+
 	log.info('Bot', 'recv: %s', m)
-	if (/^ding$/.test(m.get('content'))) {
+	if (/^ding|ping$/.test(m.get('content'))) {
 		const r = new Wechaty.Message()
 		r.set('to', m.get('from'))
 		r.set('content', 'dong')
@@ -54,4 +60,3 @@ function login() {
 
 bot.on('login'	, () => npm.info('Bot', 'logined'))
 bot.on('logout'	, () => npm.info('Bot', 'logouted'))
-

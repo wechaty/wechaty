@@ -2,6 +2,9 @@ const test = require('tape')
 const Message = require('../src/message')
 const Contact = require('../src/contact')
 const Puppet = require('../src/puppet')
+const log = require('npmlog')
+log.level = 'verbose'
+log.enableColor()
 
 Contact.attach(new Puppet())
 
@@ -14,13 +17,78 @@ test('Message constructor parser test', t => {
   }
   const m = new Message(rawData)
 
-  t.equal(m.get('id')           , EXPECTED.id, 'id right')
-  t.equal(m.get('from').getId() , EXPECTED.from, 'from right')
+  t.equal(m.get('id')           , EXPECTED.id   , 'id right')
+  t.equal(m.get('from').getId() , EXPECTED.from , 'from right')
 
   t.end()
 })
 
+test('Message ready() promise testing', t => {
+  // must different with other rawData, because Contact class with load() will cache the result. or use Contact.resetPool()
+  const rawData = JSON.parse('{"MsgId":"3009511950433684462","FromUserName":"@0748ee480711bf20af91c298a0d7dcc77c30a680c1004157386b81cf13474823","ToUserName":"@b58f91e0c5c9e841e290d862ddb63c14","MsgType":1,"Content":"哈哈","Status":3,"ImgStatus":1,"CreateTime":1462887888,"VoiceLength":0,"PlayLength":0,"FileName":"","FileSize":"","MediaId":"","Url":"","AppMsgType":0,"StatusNotifyCode":0,"StatusNotifyUserName":"","RecommendInfo":{"UserName":"","NickName":"","QQNum":0,"Province":"","City":"","Content":"","Signature":"","Alias":"","Scene":0,"VerifyFlag":0,"AttrStatus":0,"Sex":0,"Ticket":"","OpCode":0},"ForwardFlag":0,"AppInfo":{"AppID":"","Type":0},"HasProductId":0,"Ticket":"","ImgHeight":0,"ImgWidth":0,"SubMsgType":0,"NewMsgId":3009511950433684500,"MMPeerUserName":"@0748ee480711bf20af91c298a0d7dcc77c30a680c1004157386b81cf13474823","MMDigest":"哈哈","MMIsSend":false,"MMIsChatRoom":false,"MMUnread":false,"LocalID":"3009511950433684462","ClientMsgId":"3009511950433684462","MMActualContent":"哈哈","MMActualSender":"@0748ee480711bf20af91c298a0d7dcc77c30a680c1004157386b81cf13474823","MMDigestTime":"21:44","MMDisplayTime":1462887888,"MMTime":"21:44","_h":104,"_index":0,"_offsetTop":0,"$$hashKey":"098"}')
+  
+  const expectedFromUserName  = '@0748ee480711bf20af91c298a0d7dcc77c30a680c1004157386b81cf13474823'
+  const expectedToUserName    = '@b58f91e0c5c9e841e290d862ddb63c14'
+  const expectedFromNickName  = 'From Nick Name Test'
+  const expectedToNickName    = 'To Nick Name Test'
+  const expectedMsgId        = '3009511950433684462'
+
+  Contact.init()
+
+  // Mock
+  Contact.puppet.getContact = function (id) {
+    log.silly('MessageTesting', `mocked getContact(${id})`)
+    return new Promise((resolve,reject) => {
+      let obj = {}
+      switch (id) {
+        case expectedFromUserName: 
+          obj = {
+            UserName: expectedFromUserName
+            , NickName: expectedFromNickName
+          }
+          break
+        case expectedToUserName: 
+          obj = {
+            UserName: expectedToUserName
+            , NickName: expectedToNickName
+          }
+          break
+        default:
+          log.error('MessageTesting', `mocked getContact(${id}) unknown`)
+          break
+      }
+      log.silly('MessageTesting', 'setTimeout mocked getContact')
+      setTimeout(r => {
+        log.silly('MessageTesting', 'mocked getContact resolved')
+        return resolve(obj)
+      }, 200)
+    })
+  }
+
+  const m = new Message(rawData)
+
+  t.equal(m.get('id'), expectedMsgId, 'id/MsgId right')
+
+  m.ready()
+  .then(r => {
+    /*
+    const fromC = m.get('from')
+    const toC   = m.get('to')
+    fromC.dump()
+    toC.dump()
+    */
+    t.equal(m.get('from').get('id')   , expectedFromUserName, 'contact ready for FromUserName')
+    t.equal(m.get('from').get('name') , expectedFromNickName, 'contact ready for FromNickName')
+    t.equal(m.get('to').get('id')     , expectedToUserName  , 'contact ready for ToUserName')
+    t.equal(m.get('to').get('name')   , expectedToNickName  , 'contact ready for ToNickName')
+  })
+  .catch(e => t.fail('m.ready() rejected: ' + e))
+  .then(t.end) // test end
+})
+
 test('TBW: Message static method', t => {
+  Contact.attach(new Puppet())
+
   const m = Message.find({
     id: 'xxx'
   }, {

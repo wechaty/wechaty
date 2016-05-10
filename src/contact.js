@@ -6,20 +6,45 @@
  * https://github.com/zixia/wechaty
  *
  */
+const log = require('npmlog')
 
 class Contact {
   constructor(id) {
     if (!Contact.puppet) throw new Error('no puppet attached to Contact');
+    log.silly('Contact', `constructor(${id})`)
 
     this.id = id
     this.obj = {}
 
-    Contact.puppet.getContact(id)
+    this.loading = Contact.puppet.getContact(id)
     .then(data => {
+      log.silly('Contact', `Contact.puppet.getContact(${id}) resolved`)
       this.rawObj = data
-      this.obj = this.parse(this.rawObj)
+      this.obj    = this.parse(data)
+      return new Promise(r => r())
     }).catch(e => { 
+      log.error('Contact', `Contact.puppet.getContact(${id}) rejected: ` + e)
       throw new Error('getContact: ' + e) 
+    })
+  }
+
+  ready() {
+    const timeout   = 1 * 1000  // 1 seconds
+    const sleepTime = 500       // 100 ms
+    let   spentTime = 0
+
+    return new Promise((resolve, reject) => {
+      return readyChecker.apply(this)
+      function readyChecker() {
+        log.verbose('Contact', `readyChecker(${spentTime})`)
+        if (this.obj.id) return resolve(this);
+
+        spentTime += sleepTime
+        if (spentTime > timeout) 
+          return reject('Contact.ready() timeout after ' + timeout + ' ms');
+
+        return setTimeout(readyChecker.bind(this), sleepTime)
+      }
     })
   }
 
@@ -46,9 +71,8 @@ class Contact {
   }
 
   toString() {
-    return `Contact({id:${this.id})`
+    return `Contact(${this.id})`
   }
-
 
   getId() { return this.id }
 
@@ -56,7 +80,7 @@ class Contact {
 
 
   send(message) {
-    
+
   }
 
   static find() {
@@ -66,7 +90,8 @@ class Contact {
   }
 }
 
-Contact.pool = {}
+Contact.init = function () { Contact.pool = {} } 
+Contact.init()
 Contact.load = function (id) {
   if (id in Contact.pool) {
     return Contact.pool[id]

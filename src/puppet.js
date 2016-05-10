@@ -9,6 +9,7 @@
  */
 
 const EventEmitter = require('events')
+const log = require('npmlog')
 
 class Puppet extends EventEmitter {
   constructor() {
@@ -32,8 +33,9 @@ class Puppet extends EventEmitter {
   logout()      { throw new Error('To Be Implementsd') }
   alive()       { throw new Error('To Be Implementsd') }
 
-  getContact()  { // for unit testing
-    return new Promise((rs, rj) => rs({}))
+  getContact(id)  { // for unit testing
+    log.silly('Puppet', `Interface method getContact(${id})`)
+    return Promise.resolve({UserName: 'WeChaty', NickName: 'Puppet'})
   }
 
   // () { throw new Error('To Be Implemented')  }
