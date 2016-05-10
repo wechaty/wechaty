@@ -38,24 +38,24 @@ bot.on('message', (m) => {
   .then(msg => log.warn('Bot', 'recv: %s', msg))
   .catch(e => log.err('Bot', 'ready: ' + e))
 
-	log.info('Bot', 'recv: %s', m)
-	if (/^ding|ping$/.test(m.get('content'))) {
-		const r = new Wechaty.Message()
-		r.set('to', m.get('from'))
-		r.set('content', 'dong')
-		bot.send(r)
-		.then(() => { log.info('Bot', 'REPLY: dong') })
-	}
+  log.info('Bot', 'recv: %s', m)
+  if (/^ding|ping$/.test(m.get('content'))) {
+    const r = new Wechaty.Message()
+    r.set('to', m.get('from'))
+    r.set('content', 'dong')
+    bot.send(r)
+    .then(() => { log.info('Bot', 'REPLY: dong') })
+  }
 })
 
 function login() {
-	log.info('Bot', 'Welcome to Wechaty')
+  log.info('Bot', 'Welcome to Wechaty')
 
-	bot.puppet
-	.getLoginQrImgUrl()
-	.then(url =>
-		console.log(`\n\nAction needed. Scan the belowing QRCode to login:\n\n${url}\n\nTip: You can copy/paste it to a web browser.\n`) 
-	).catch(e => log.error('Bot', 'promise rejected'))
+  bot.puppet
+  .getLoginQrImgUrl()
+  .then(url =>
+        console.log(`\n\nAction needed. Scan the belowing QRCode to login:\n\n${url}\n\nTip: You can copy/paste it to a web browser.\n`) 
+       ).catch(e => log.error('Bot', 'promise rejected'))
 }
 
 bot.on('login'	, () => npm.info('Bot', 'logined'))
