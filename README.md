@@ -212,7 +212,8 @@ Know more about tape: [Why I use Tape Instead of Mocha & So Should You](https://
 # Todo List
 1. Deal with friend request
 1. Manage contacts(send friend request/delete contact etc.)
-1. You are welcome to issue your needs.
+
+Everybody is welcome to issue your needs.
 
 # Known Issues & Support
 1. phantomjs not work(no socket.io connect from browser)
