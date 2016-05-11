@@ -13,12 +13,15 @@ const log     = require('npmlog')
 
 class Message {
   constructor(rawObj) {
+    Message.counter++;
+
     this.rawObj = rawObj = rawObj || {}
+    this.obj = this.parse(rawObj)
+  }
 
-    Message.counter++
-
-    // Transform rawObj to local m
-    this.obj = {
+  // Transform rawObj to local m
+  parse(rawObj) {
+    return {
       id:         rawObj.MsgId
       , type:     rawObj.MsgType
       , from:     Contact.load(rawObj.MMActualSender)
@@ -31,25 +34,38 @@ class Message {
       , actual_content: rawObj.MMActualContent
       , date:     new Date(rawObj.MMDisplayTime*1000)
     }
-  }
 
-  toString() {
-    const name  = this.obj.from.get('name')
-    const group = this.obj.group
-    let content = this.obj.content
-    if (content.length > 20) content = content.substring(0,17) + '...';
-    if (group)  return `Message(${name}@${group}: ${content})`
-    else        return `Message(${name}: ${content})`
   }
+  toString() {
+    const name  = html2str(this.obj.from.get('name'))
+    const group = this.obj.group
+    let content = html2str(this.obj.content)
+    if (content.length > 20) content = content.substring(0,17) + '...';
+		let groupStr = group ? html2str(group) : ''
+    let fromStr = '<' + name + (groupStr ? `@[${groupStr}]` : '') + '>'
+    return `Message#${Message.counter}(${fromStr}: ${content})`
+
+		function html2str(html) {
+			return html.replace(/(<([^>]+)>)/ig,'')
+			.replace(/&apos;/g, "'")
+			.replace(/&quot;/g, '"')
+			.replace(/&gt;/g, '>')
+			.replace(/&lt;/g, '<')
+			.replace(/&amp;/g, '&')
+		}
+	}
 
   ready() {
     return new Promise((resolve, reject) => {
       this.obj.from.ready()           // Contact from
       .then(r => this.obj.to.ready()) // Contact to
-      .then(r => resolve(this))
-      .catch(e => reject(e))
+      .then(r => this.obj.group && this.obj.group.ready())  // Group member list
+      .then(r => resolve(this)) // RESOLVE
+      .catch(e => reject(e))    // REJECT
     })
   }
+
+  inGroup() { return !!(this.obj.group) }
 
   get(prop) {
     if (!prop || !(prop in this.obj)) {

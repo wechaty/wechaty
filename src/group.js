@@ -12,52 +12,35 @@ const Contact = require('./contact')
 class Group {
   constructor(id) {
     this.id = id
-
-    if (!Group.puppet) throw new Error('no puppet attached to Group');
-    log.silly('Group', `constructor(${id})`)
-
-    this.id = id
     this.obj = {}
-
-    this.loading = Group.puppet.getContact(id)
-    .then(data => {
-      log.silly('Group', `Group.puppet.getContact(${id}) resolved`)
-      this.rawObj = data
-      this.obj    = this.parse(data)
-    }).catch(e => { 
-      log.error('Group', `Group.puppet.getContact(${id}) rejected: ` + e)
-      throw new Error('getContact: ' + e) 
-    })
-
+    log.silly('Group', `constructor(${id})`)
+    if (!Group.puppet) throw new Error('no puppet attached to Group');
   }
 
-  toString() { return this.obj.name ? this.obj.name : this.id }
+  toString()  { return this.obj.name ? this.obj.name : this.id }
+  getId()     { return this.id }
 
-  getId() { return this.id }
+  ready(contactGetter) {
+    log.silly('Group', 'ready()')
+    if (this.obj.id) return resolve(this);
 
-  ready() {
-    const timeout   = 1 * 1000  // 1 seconds
-    const sleepTime = 100       // 100 ms
-    let   spentTime = 0
-
-    return new Promise((resolve, reject) => {
-      return readyChecker.apply(this)
-      function readyChecker() {
-        log.verbose('Group', `readyChecker(${spentTime})`)
-        if (this.obj.id) return resolve(this);
-
-        spentTime += sleepTime
-        if (spentTime > timeout) 
-          return reject('Group.ready() timeout after ' + timeout + ' ms');
-
-        return setTimeout(readyChecker.bind(this), sleepTime)
-      }
+    contactGetter = contactGetter || Group.puppet.getContact.bind(Group.puppet)
+    return Group.puppet.getContact(this.id)
+    .then(data => {
+      log.silly('Group', `Group.puppet.getContact(${this.id}) resolved`)
+      this.rawObj = data
+      this.obj    = this.parse(data)
+      return this
+    }).catch(e => { 
+      log.error('Group', `Group.puppet.getContact(${this.id}) rejected: ` + e)
+      throw new Error('getContact: ' + e) 
     })
   }
 
   parse(rawObj) {
     return !rawObj ? {} : {
       id:         rawObj.UserName
+      , encryId:  rawObj.EncryChatRoomId // ???
       , name:     rawObj.NickName
       , members:  rawObj.MemberList.map(m => {
         return {
@@ -75,10 +58,6 @@ class Group {
   dump()    { 
     console.error('======= dump group =======')
     Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj[k]}`)) 
-  }
-
-  toString() {
-    return `Group(${this.id})`
   }
 
   getId() { return this.id }

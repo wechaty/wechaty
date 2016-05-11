@@ -1,7 +1,7 @@
 const Wechaty = require('../src/wechaty')
 const log = require('npmlog')
 log.level = 'verbose'
-log.level = 'silly'
+//log.level = 'silly'
 
 const welcome = `
 | __        __        _           _         
@@ -33,18 +33,16 @@ bot.init()
 .then(login)
 
 bot.on('message', (m) => {
-  m
-  .ready()
-  .then(msg => log.warn('Bot', 'recv: %s', msg))
-  .catch(e => log.err('Bot', 'ready: ' + e))
+  m.ready()
+  .then (msg  => log.info ('Bot', 'recv: %s'  , msg))
+  .catch(e    => log.error('Bot', 'ready: %s' , e))
 
-  log.info('Bot', 'recv: %s', m)
-  if (/^ding|ping$/.test(m.get('content'))) {
+  if (/^ding|ping$/i.test(m.get('content'))) {
     const r = new Wechaty.Message()
     r.set('to', m.get('from'))
     r.set('content', 'dong')
     bot.send(r)
-    .then(() => { log.info('Bot', 'REPLY: dong') })
+    .then(() => { log.warn('Bot', 'REPLY: dong') })
   }
 })
 

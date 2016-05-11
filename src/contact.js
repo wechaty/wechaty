@@ -16,35 +16,21 @@ class Contact {
     this.id = id
     this.obj = {}
 
-    this.loading = Contact.puppet.getContact(id)
-    .then(data => {
-      log.silly('Contact', `Contact.puppet.getContact(${id}) resolved`)
-      this.rawObj = data
-      this.obj    = this.parse(data)
-      return new Promise(r => r())
-    }).catch(e => { 
-      log.error('Contact', `Contact.puppet.getContact(${id}) rejected: ` + e)
-      throw new Error('getContact: ' + e) 
-    })
   }
 
-  ready() {
-    const timeout   = 1 * 1000  // 1 seconds
-    const sleepTime = 500       // 100 ms
-    let   spentTime = 0
+  ready(contactGetter) {
+    if (this.obj.id) return Promise.resolve(this);
 
-    return new Promise((resolve, reject) => {
-      return readyChecker.apply(this)
-      function readyChecker() {
-        log.verbose('Contact', `readyChecker(${spentTime})`)
-        if (this.obj.id) return resolve(this);
-
-        spentTime += sleepTime
-        if (spentTime > timeout) 
-          return reject('Contact.ready() timeout after ' + timeout + ' ms');
-
-        return setTimeout(readyChecker.bind(this), sleepTime)
-      }
+    contactGetter = contactGetter || Contact.puppet.getContact.bind(Contact.puppet)
+    return contactGetter(this.id)
+    .then(data => {
+      log.silly('Contact', `Contact.puppet.getContact(${this.id}) resolved`)
+      this.rawObj = data
+      this.obj    = this.parse(data)
+      return this
+    }).catch(e => { 
+      log.error('Contact', `Contact.puppet.getContact(${this.id}) rejected: ` + e)
+      throw new Error('getContact: ' + e) 
     })
   }
 

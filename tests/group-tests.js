@@ -37,7 +37,7 @@ false && test('Message ready() promise testing', t => {
   Contact.init()
 
   // Mock
-  Contact.puppet.getContact = function (id) {
+  const mockContactGetter = function (id) {
     log.silly('MessageTesting', `mocked getContact(${id})`)
     return new Promise((resolve,reject) => {
       let obj = {}
@@ -70,7 +70,7 @@ false && test('Message ready() promise testing', t => {
 
   t.equal(m.get('id'), expectedMsgId, 'id/MsgId right')
 
-  m.ready()
+  m.ready(mockContactGetter)
   .then(r => {
     /*
     const fromC = m.get('from')

@@ -11,7 +11,7 @@ test('Contact smoke testing', t => {
   const NickName = 'Nick Name Test'
 
   // Mock
-  Contact.puppet.getContact = function (id) {
+  const mockContactGetter = function (id) {
     return new Promise((resolve,reject) => {
       if (id!=UserName) return resolve({});
       setTimeout(() => {
@@ -26,7 +26,7 @@ test('Contact smoke testing', t => {
   const c = new Contact(UserName)
 
   t.equal(c.getId(), UserName, 'id/UserName right')
-  c.ready()
+  c.ready(mockContactGetter)
   .then(r => {
     t.equal(c.get('id')   , UserName, 'UserName set')
     t.equal(c.get('name') , NickName, 'NickName set')

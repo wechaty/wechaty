@@ -54,9 +54,9 @@ class Server extends EventEmitter {
      * after received `unload`, we re-inject the Wechaty js code into browser.
      */
     this.on('unload', () => {
-      log.verbose('Server', 'server received unload event')
+      log.warn('Server', 'server received unload event')
       this.browser.inject()
-      .then(() => log.verbose('Server', 're-injected'))
+      .then(() => log.warn('Server', 're-injected'))
       .catch((e) => log.error('Server', 'inject err: ' + e))
     })
 
@@ -93,7 +93,7 @@ class Server extends EventEmitter {
     })
 
     app.get('/ding', function (req, res) {
-      log.verbose('Server', '%s GET /ding', new Date())
+      log.silly('Server', '%s GET /ding', new Date())
       res.end('dong')
     })
 
@@ -116,7 +116,7 @@ class Server extends EventEmitter {
       this.socketClient = s
 
       s.on('disconnect', function() {
-        log.verbose('Server', 'socket.io disconnected')
+        log.warn('Server', 'socket.io disconnected')
         /**
          * Possible conditions:
          * 1. Browser reload
@@ -134,7 +134,7 @@ class Server extends EventEmitter {
         , 'unload'
       ].map(e => { 
         s.on(e, data => { 
-          log.verbose('Server', `recv event[${e}] from browser`)
+          log.silly('Server', `recv event[${e}] from browser`)
           this.emit(e, data) 
         })
       })
@@ -192,7 +192,7 @@ class Server extends EventEmitter {
     const argsJson  = JSON.stringify(args)
     const wechatyScript = `return (Wechaty && Wechaty.${wechatyFunc}.apply(undefined, JSON.parse('${argsJson}')))`
 
-    log.verbose('Server', 'proxyWechaty: ' + wechatyScript)
+    log.silly('Server', 'proxyWechaty: ' + wechatyScript)
     return this.browserExecute(wechatyScript)
   }
 }
