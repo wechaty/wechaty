@@ -33,6 +33,7 @@
     "body-parser": "^1.15.0",
     "co": "^4.6.0",
     "express": "^4.13.4",
+    "npmlog": "^2.0.3",
     "selenium-webdriver": "",
     "socket.io": "^1.4.5"
   },
