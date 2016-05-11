@@ -1,11 +1,11 @@
 {
   "name": "wechaty",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Wechat for Bot",
   "main": "index.js",
   "scripts": {
+    "start": "node examples/ding-dong-bot.js",
     "test": "tape tests/*.js",
-    "build": "src -d src",
     "lint": "eslint src"
   },
   "repository": {

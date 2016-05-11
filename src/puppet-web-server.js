@@ -54,9 +54,9 @@ class Server extends EventEmitter {
      * after received `unload`, we re-inject the Wechaty js code into browser.
      */
     this.on('unload', () => {
-      log.warn('Server', 'server received unload event')
+      log.verbose('Server', 'server received unload event')
       this.browser.inject()
-      .then(() => log.warn('Server', 're-injected'))
+      .then(() => log.verbose('Server', 're-injected'))
       .catch((e) => log.error('Server', 'inject err: ' + e))
     })
 
@@ -116,7 +116,7 @@ class Server extends EventEmitter {
       this.socketClient = s
 
       s.on('disconnect', function() {
-        log.warn('Server', 'socket.io disconnected')
+        log.verbose('Server', 'socket.io disconnected')
         /**
          * Possible conditions:
          * 1. Browser reload

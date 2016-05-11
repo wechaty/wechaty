@@ -4,5 +4,3 @@ machine:
 
 dependencies:
   post:
-  override:
-    - npm install --dev
