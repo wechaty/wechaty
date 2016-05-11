@@ -13,7 +13,7 @@ My daily life/work depends on too much wechat.
 
 Can you image that? I'm dying...
 
-So a tireless bot working for me 24x7 on wechat, moniting/filtering the most important messages is badly needed. For example: highlights the messages which contains some KEYWORDS(especialy in a noisy group). ;-)
+So a tireless bot working for me 24x7 on wechat, moniting/filtering the most important messages is badly needed. For example: highlights discusstion which contains the KEYWORDS I want to track(especialy in a noisy group). ;-)
 
 # Installation and Usage
 The recommended installation method is a local NPM install for your project:
