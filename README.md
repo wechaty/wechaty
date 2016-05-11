@@ -10,7 +10,7 @@ My daily life/work is depends on wechat too heavy.
 * I have almost 14,000 wechat friends at May 2014, before new rule of 5000 friends max limit is set by wechat team.
 * I have almost 400 wechat groups that almost all of them have more than 400 members.
 
-So I need a tireless bot working on wechat 24/7, moniting the most important message for me. for example: highlights the messages which contain my name(especialy in a noisy group). ;-)
+So I need a tireless bot working on wechat 24/7, moniting the most important message for me. for example: highlights the messages which contains my name(especialy in a noisy group). ;-)
 
 # Installation and Usage
 The recommended installation method is a local NPM install for your project:
@@ -19,9 +19,9 @@ $ npm install --save wechaty
 ```
 
 # Example
-Wechaty is very easy to use. The following 10 lines code demoed a bot who can reply message for you:
+Wechaty is very easy to use. The following 10 lines code will implement a bot who can auto reply message for you:
 ```javascript
-const Wechaty = require('../wechaty')
+const Wechaty = require('wechaty')
 const bot = new Wechaty()
 
 bot.init()
@@ -49,18 +49,19 @@ After that, bot will on duty.
 # API
 
 ## Class Wechaty
+Main bot class.
 
 ```javascript
-const bot = new Wechaty(options)
+const bot = new Wechaty()
 ```
-
-* `options.port`
-* `options.puppet` 
 
 ### Wechaty.init()
 Initialize the bot, return Promise.
 ```javascript
 bot.init()
+.then(() => {
+  // do other staff with bot here
+}
 ```
 
 ### Wechaty.getLoginQrImgUrl()
@@ -83,11 +84,10 @@ Callback will get a instance of Message Class. (see `Class Message`)
 
 ### Event: `login` & `logout`
 
-To-Be-Support
+To-Be-Supported
 
 ## Class Message
-
-The class that all messages will be encaped in.
+All messages will be encaped in Message.
 
 ### Message.ready()
 A message may be not fully initialized yet. Call `ready()` to confirm we get all the data needed. 
@@ -104,6 +104,7 @@ message.ready()
 Get prop from a message. 
 
 Supported prop list:
+
 1. `id` :String
 1. `from` :Contact
 1. `to` :Contact
@@ -140,6 +141,7 @@ contact.ready()
 Get prop from a contact. 
 
 Supported prop list:
+
 1. `id` :String
 1. `weixin` :String
 1. `name` :String
@@ -171,6 +173,7 @@ group.ready()
 Get prop from a group. 
 
 Supported prop list:
+
 1. `id` :String
 1. `name` :String
 1. `members` :Array
@@ -191,11 +194,11 @@ $ npm test
 # Version History
 
 ## v0.0.5 (2016/5/11)
-* receive & send message 
-* show contacts info
-* show groups info
-* 1st usable version
-* start coding from 1st May 2016
+1. receive & send message 
+1. show contacts info
+1. show groups info
+1. 1st usable version
+1. start coding from 1st May 2016
 
 # Todo List
 1. Deal with friend request
@@ -213,7 +216,7 @@ Github Issue - https://github.com/zixia/wechaty/issues
     ```bash
     $ npm lint
     ```
-* Create a issue, then send me a pull request.
+* Create a issue, then send me a pull request(with unit test please).
 
 Author
 -----------------
