@@ -23,6 +23,10 @@ The recommended installation method is a local NPM install for your project:
 $ npm install --save wechaty
 ```
 
+# Requirement
+
+ECMAScript2015/ES6. I develop and test wechaty under nodejs6.0.
+
 # Example
 Wechaty is very easy to use. The following 10 lines code will implement a bot who can auto reply message for you:
 ```javascript
