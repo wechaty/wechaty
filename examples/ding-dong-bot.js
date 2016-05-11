@@ -39,7 +39,7 @@ bot.on('message', m => {
   })
   .catch(e    => log.error('Bot', 'ready: %s' , e))
 
-  if (/^(ding|ping)$/i.test(m.get('content'))) {
+  if (/^(ding|ping|bing)$/i.test(m.get('content'))) {
     const r = new Wechaty.Message()
     r.set('to', m.inGroup() ? m.get('group') : m.get('from'))
     r.set('content', 'dong')
