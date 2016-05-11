@@ -4,6 +4,7 @@ Wechaty is Wechat for Bot.
 It's a library/framework for easy creating wechat bot in 10 lines of code.
 
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+[![npm version](https://badge.fury.io/js/wechaty@2x.png)](https://badge.fury.io/js/wechaty)
 
 
 # Why

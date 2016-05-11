@@ -15,7 +15,6 @@ const bodyParser  = require('body-parser')
 const Express       = require('express')
 const EventEmitter  = require('events')
 const log           = require('npmlog')
-//const co            = require('co')
 
 class Server extends EventEmitter {
   constructor(options) {
