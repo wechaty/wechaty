@@ -34,12 +34,16 @@ bot.init()
 
 bot.on('message', (m) => {
   m.ready()
-  .then (msg  => log.info ('Bot', 'recv: %s'  , msg))
+  .then (msg  => {
+    log.info ('Bot', 'recv: %s'  , msg)
+    log.info ('Bot', 'weixin from id: %s'  , msg.get('from').get('weixin'))
+    log.info ('Bot', 'weixin to id: %s'  , msg.get('to').get('weixin'))
+  })
   .catch(e    => log.error('Bot', 'ready: %s' , e))
 
-  if (/^ding|ping$/i.test(m.get('content'))) {
+  if (/^(ding|ping)$/i.test(m.get('content'))) {
     const r = new Wechaty.Message()
-    r.set('to', m.get('from'))
+    r.set('to', m.inGroup() ? m.get('group') : m.get('from'))
     r.set('content', 'dong')
     bot.send(r)
     .then(() => { log.warn('Bot', 'REPLY: dong') })

@@ -20,13 +20,14 @@ const Group       = require('./group')
 
 class Wechaty extends EventEmitter {
   // cookie，Uin, Sid，SKey
-  constructor(puppet) {
+  constructor(options) {
     super()
-    puppet = puppet || 'web'
+    options = options || {}
+    puppet  = options.puppet || 'web'
 
     switch(puppet) {
       case 'web':
-        this.puppet   = new Puppet.Web()
+        this.puppet = new Puppet.Web({port: options.port})
         break
       default:
         throw new Error('Puppet unknown: ' + puppet)

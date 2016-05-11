@@ -46,7 +46,8 @@ class Message {
     return `Message#${Message.counter}(${fromStr}: ${content})`
 
 		function html2str(html) {
-			return html.replace(/(<([^>]+)>)/ig,'')
+			return html.toString()
+      .replace(/(<([^>]+)>)/ig,'')
 			.replace(/&apos;/g, "'")
 			.replace(/&quot;/g, '"')
 			.replace(/&gt;/g, '>')
