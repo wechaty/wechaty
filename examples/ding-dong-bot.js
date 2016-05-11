@@ -1,6 +1,6 @@
 const Wechaty = require('../src/wechaty')
 const log = require('npmlog')
-log.level = 'verbose'
+//log.level = 'verbose'
 //log.level = 'silly'
 
 const welcome = `
@@ -36,8 +36,6 @@ bot.on('message', m => {
   m.ready()
   .then (msg  => {
     log.info ('Bot', 'recv: %s'  , msg)
-    log.info ('Bot', 'weixin from id: %s'  , msg.get('from').get('weixin'))
-    log.info ('Bot', 'weixin to id: %s'  , msg.get('to').get('weixin'))
   })
   .catch(e    => log.error('Bot', 'ready: %s' , e))
 
