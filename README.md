@@ -49,7 +49,7 @@ As soon as the bot got login QRCode url, he will print url out. You need to scan
 
 After that, bot will on duty.
 
-There's another demo bot [here](https://github.com/zixia/wechaty/blob/master/examples/ding-dong-bot.js), will reply `dong` when you send `ding`.
+There's another demo bot [here](https://github.com/zixia/wechaty/blob/master/examples/ding-dong-bot.js), will reply `dong` when he received message `ding`.
 
 # API
 
