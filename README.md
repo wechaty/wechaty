@@ -16,7 +16,7 @@ Can you image that? I'm dying...
 
 So a tireless bot working for me 24x7 on wechat, moniting/filtering the most important messages is badly needed. For example: highlights discusstion which contains the KEYWORDS I want to follow up(especialy in a noisy group). ;-)
 
-# Installation and Usage
+# Installation
 The recommended installation method is a local NPM install for your project:
 ```bash
 $ npm install --save wechaty
@@ -222,6 +222,7 @@ Github Issue - https://github.com/zixia/wechaty/issues
 
 # Contributing
 * Lint: eslint
+
     ```bash
     $ npm lint
     ```
