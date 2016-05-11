@@ -1,4 +1,4 @@
-# Wechaty
+# Wechaty [![Circle CI](https://circleci.com/gh/zixia/wechaty/tree/master.svg?style=svg)](https://circleci.com/gh/zixia/wechaty/)
 Wechaty is Wechat for Bot.
 
 It's a library/framework for easy creating wechat bot in 10 lines of code.
