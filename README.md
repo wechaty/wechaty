@@ -1,4 +1,6 @@
 # wechaty-lib
+
+[![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 Robot API/SDK Library for WeChat/微信 Personal Account
 
 Under construction... not usable now. 
