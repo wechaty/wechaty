@@ -7,11 +7,13 @@ It's a library/framework for easy creating wechat bot in 10 lines of code.
 
 
 # Why
-My daily life/work is depends on wechat too heavy. 
-* I have almost 14,000 wechat friends at May 2014, before new rule of 5000 friends max limit is set by wechat team.
-* I have almost 400 wechat groups that almost all of them have more than 400 members.
+My daily life/work depends on too much wechat.
+* I almost have 14,000 wechat friends till May 2014, before wechat restricting total number of friends to 5,000.
+* I almost have 400 wechat groups that most of them have more than 400 members.
 
-So I need a tireless bot working for me on wechat 24/7, moniting/filtering the most important message. for example: highlights the messages which contains my name(especialy in a noisy group). ;-)
+Can you image that? I'm dying...
+
+So a tireless bot working for me 24x7 on wechat, moniting/filtering the most important messages is badly needed. For example: highlights the messages which contains some KEYWORDS(especialy in a noisy group). ;-)
 
 # Installation and Usage
 The recommended installation method is a local NPM install for your project:
