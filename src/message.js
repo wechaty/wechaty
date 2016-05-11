@@ -31,7 +31,6 @@ class Message {
       , status:   rawObj.Status
 
       , digest:   rawObj.MMDigest
-      , actual_content: rawObj.MMActualContent
       , date:     new Date(rawObj.MMDisplayTime*1000)
     }
 
@@ -46,7 +45,7 @@ class Message {
     return `Message#${Message.counter}(${fromStr}: ${content})`
 
 		function html2str(html) {
-			return html.toString()
+			return String(html)
       .replace(/(<([^>]+)>)/ig,'')
 			.replace(/&apos;/g, "'")
 			.replace(/&quot;/g, '"')
@@ -78,6 +77,7 @@ class Message {
 
   set(prop, value) {
     this.obj[prop] = value
+    return this
   }
 
   dump() { 

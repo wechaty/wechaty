@@ -32,7 +32,7 @@ const bot = new Wechaty()
 bot.init()
 .then(login)
 
-bot.on('message', (m) => {
+bot.on('message', m => {
   m.ready()
   .then (msg  => {
     log.info ('Bot', 'recv: %s'  , msg)
