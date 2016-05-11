@@ -1,5 +1,6 @@
 # Wechaty
 Wechaty is Wechat for Bot.
+
 It's a library/framework for easy creating wechat bot in 10 lines of code.
 
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
@@ -10,7 +11,7 @@ My daily life/work is depends on wechat too heavy.
 * I have almost 14,000 wechat friends at May 2014, before new rule of 5000 friends max limit is set by wechat team.
 * I have almost 400 wechat groups that almost all of them have more than 400 members.
 
-So I need a tireless bot working on wechat 24/7, moniting the most important message for me. for example: highlights the messages which contains my name(especialy in a noisy group). ;-)
+So I need a tireless bot working for me on wechat 24/7, moniting/filtering the most important message. for example: highlights the messages which contains my name(especialy in a noisy group). ;-)
 
 # Installation and Usage
 The recommended installation method is a local NPM install for your project:
@@ -185,11 +186,14 @@ group.get('members').length
 ```
 
 # Test
-Wechaty use TAP protocol to test itself by tape.
+Wechaty use [TAP protocol](http://testanything.org/) to test itself by [tape](https://github.com/substack/tape).
 
+To test Wechaty, run:
 ```bash
 $ npm test
 ```
+
+Know more about tape: [Why I use Tape Instead of Mocha & So Should You](https://medium.com/javascript-scene/why-i-use-tape-instead-of-mocha-so-should-you-6aa105d8eaf4#.qxrrf2938)
 
 # Version History
 
