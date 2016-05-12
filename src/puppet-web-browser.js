@@ -36,22 +36,40 @@ class Browser {
     const WX_URL = 'https://wx.qq.com'
 
     log.verbose('Browser', `init ${this.browser}:${this.port}`)
-    this.driver = new WebDriver.Builder().forBrowser(this.browser).build()
-
-    /*
-    this.driver = new WebDriver.Builder()//.forBrowser(this.browser).build()
-    .withCapabilities(
-      WebDriver.Capabilities.phantomjs()
-      .set('phantomjs.binary.path', 'D:\\cygwin64\\home\\zixia\\git\\wechaty\\node_modules\\phantomjs-prebuilt\\lib\\phantom\\bin\\phantomjs.exe')
-    ).build()
-   */
+    this.driver = this.getDriver()
 
     return this.driver.get(WX_URL)
   }
 
-  getInjectio() {
-    return fs.readFileSync(
-      path.join(path.dirname(__filename), 'puppet-web-injectio.js')
+	getDriver() {
+		var driver
+		switch(this.browser) {
+			case 'phantomjs':
+				driver = getPhantomJsPreBuilt()
+				break
+			default:
+				driver = new WebDriver.Builder().forBrowser(this.browser).build()
+				break
+		}
+		return driver
+
+		function getPhantomJsPreBuilt() {
+			// https://github.com/SeleniumHQ/selenium/issues/2069
+			//setup custom phantomJS capability
+			const phantomjs_exe = require('phantomjs-prebuilt').path
+			var customPhantom = selenium.Capabilities.phantomjs()
+			.set("phantomjs.binary.path", phantomjs_exe)
+
+			//build custom phantomJS driver
+			return new selenium.Builder()
+			.withCapabilities(customPhantom)
+			.build()
+		}
+	}
+
+	getInjectio() {
+		return fs.readFileSync(
+			path.join(path.dirname(__filename), 'puppet-web-injectio.js')
       , 'utf8'
     )    
   }
@@ -72,16 +90,16 @@ class Browser {
     })
   }
 
-  quit() { 
-    log.verbose('Browser', 'Browser.quit')
-    if (!this.driver) {
-      log.verbose('Browser', 'no need to quite because no driver')
-      return new Promise((resolve, reject) => resolve('no driver'))
-    }
-    log.verbose('Browser', 'Browser.driver.quit')
-    return this.execute('return (typeof Wechaty)!=="undefined" && Wechaty.quit()').then(() => {
-      this.driver.quit() 
-      this.driver = null
+	quit() { 
+		log.verbose('Browser', 'Browser.quit')
+		if (!this.driver) {
+			log.verbose('Browser', 'no need to quite because no driver')
+			return new Promise((resolve, reject) => resolve('no driver'))
+		}
+		log.verbose('Browser', 'Browser.driver.quit')
+		return this.execute('return (typeof Wechaty)!=="undefined" && Wechaty.quit()').then(() => {
+			this.driver.quit() 
+			this.driver = null
       return new Promise((resolve, reject) => resolve())
     })
   }
