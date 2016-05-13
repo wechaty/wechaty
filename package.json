@@ -49,6 +49,7 @@
     "node": ">= 6.1.0"
   },
   "devDependencies": {
+    "co": "^4.6.0",
     "eslint": "^2.9.0",
     "tape": "^4.5.1"
   }
