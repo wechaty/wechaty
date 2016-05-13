@@ -31,6 +31,7 @@
   "homepage": "https://github.com/zixia/wechaty#readme",
   "dependencies": {
     "body-parser": "^1.15.0",
+    "chromedriver": "^2.21.2",
     "express": "^4.13.4",
     "npmlog": "^2.0.3",
     "selenium-webdriver": "",
@@ -44,7 +45,7 @@
     }
   },
   "engines": {
-    "node": ">= 6.0.0"
+    "node": ">= 6.1.0"
   },
   "devDependencies": {
     "eslint": "^2.9.0",
