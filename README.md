@@ -7,28 +7,11 @@ Wechaty is Wechat for Bot.
 [![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![npm version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty)
 
-
-# Why
-My daily life/work depends on too much wechat.
-* I almost have 14,000 wechat friends till May 2014, before wechat restricting total number of friends to 5,000.
-* I almost have 400 wechat groups that most of them have more than 400 members.
-
-Can you image that? I'm dying...
-
-So a tireless bot working for me 24x7 on wechat, moniting/filtering the most important messages is badly needed. For example: highlights discusstion which contains the KEYWORDS I want to follow up(especialy in a noisy group). ;-)
-
-# Installation
-The recommended installation method is a local NPM install for your project:
-```bash
-$ npm install --save wechaty
-```
-
-# Requirement
-
-ECMAScript2015/ES6. I develop and test wechaty under nodejs6.0.
-
 # Example
-Wechaty is very easy to use. The following 10 lines code will implement a bot who can auto reply message for you:
+Wechaty is unbelievable easy to use. 
+
+## Shortest: Code in 10 lines
+The following shortest 10 lines code will implement a bot who can auto reply message for you:
 ```javascript
 const Wechaty = require('wechaty')
 const bot = new Wechaty()
@@ -55,9 +38,34 @@ As soon as the bot got login QRCode url, he will print url out. You need to scan
 
 After that, bot will on duty.
 
-There's another demo bot [here](https://github.com/zixia/wechaty/blob/master/examples/ding-dong-bot.js), will reply `dong` when he received message `ding`.
+## Basic: Code in 100 lines
+There's another basic usage demo bot at [here](https://github.com/zixia/wechaty/blob/master/examples/ding-dong-bot.js), who can reply `dong` when receive a message `ding`.
 
-# API
+## Advanced: Cood in 1000 lines
+To Be Wroten.
+
+Plan to glued with Machine Learning/Deep Learning/Neural Network/Natural Language Processing.
+
+# Why
+My daily life/work depends on too much wechat.
+* I almost have 14,000 wechat friends till May 2014, before wechat restricting total number of friends to 5,000.
+* I almost have 400 wechat groups that most of them have more than 400 members.
+
+Can you image that? I'm dying...
+
+So a tireless bot working for me 24x7 on wechat, moniting/filtering the most important messages is badly needed. For example: highlights discusstion which contains the KEYWORDS I want to follow up(especialy in a noisy group). ;-)
+
+# Installation
+The recommended installation method is a local NPM install for your project:
+```bash
+$ npm install --save wechaty
+```
+
+# Requirement
+
+ECMAScript2015/ES6. I develop and test wechaty under nodejs6.0.
+
+# API Refference
 
 ## Class Wechaty
 Main bot class.
