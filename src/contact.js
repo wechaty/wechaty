@@ -19,18 +19,20 @@ class Contact {
   }
 
   ready(contactGetter) {
-    if (this.obj.id) return Promise.resolve(this);
-
+    log.silly('Contact', `ready(${contactGetter})`)
+    if (this.obj.id) {
+      return Promise.resolve(this)
+    }
     contactGetter = contactGetter || Contact.puppet.getContact.bind(Contact.puppet)
     return contactGetter(this.id)
     .then(data => {
-      log.silly('Contact', `Contact.puppet.getContact(${this.id}) resolved`)
+      log.silly('Contact', `contactGetter(${this.id}) resolved`)
       this.rawObj = data
       this.obj    = this.parse(data)
       return this
     }).catch(e => { 
-      log.error('Contact', `Contact.puppet.getContact(${this.id}) rejected: ` + e)
-      throw new Error('getContact: ' + e) 
+      log.error('Contact', `contactGetter(${this.id}) rejected: ` + e)
+      throw new Error('contactGetter: ' + e) 
     })
   }
 

@@ -21,19 +21,20 @@ class Group {
   getId()     { return this.id }
 
   ready(contactGetter) {
-    log.silly('Group', 'ready()')
-    if (this.obj.id) return resolve(this);
-
+    log.silly('Group', `ready(${contactGetter})`)
+    if (this.obj.id) {
+      return Promise.resolve(this)
+    }
     contactGetter = contactGetter || Group.puppet.getContact.bind(Group.puppet)
-    return Group.puppet.getContact(this.id)
+    return contactGetter(this.id)
     .then(data => {
-      log.silly('Group', `Group.puppet.getContact(${this.id}) resolved`)
+      log.silly('Group', `contactGetter(${this.id}) resolved`)
       this.rawObj = data
       this.obj    = this.parse(data)
       return this
     }).catch(e => { 
-      log.error('Group', `Group.puppet.getContact(${this.id}) rejected: ` + e)
-      throw new Error('getContact: ' + e) 
+      log.error('Group', `contactGetter(${this.id}) rejected: ` + e)
+      throw new Error('contactGetter: ' + e) 
     })
   }
 
