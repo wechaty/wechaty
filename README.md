@@ -20,7 +20,8 @@ So a tireless bot working for me 24x7 on wechat, moniting/filtering the most imp
 Wechaty is unbelievable easy to use: 10 lines of javascript is enough for your first wechat robot.
 
 ## 1. Basic: 10 lines
-The following shortest 10 lines code will implement a bot who can auto reply message for you:
+The following shortest 10 lines code will implement a roger bot who can auto reply message(roger) for you:
+
 ```javascript
 const Wechaty = require('wechaty')
 const bot = new Wechaty()
@@ -41,14 +42,12 @@ bot.on('message', m => {
 })
 ```
 
-Notice that you need to wait a moment while bot trying to get the login QRCode from Wechat. 
+Notice that you need to wait a moment while bot trying to get the login QRCode from Wechat. As soon as the bot got login QRCode url, he will print url out. You need to scan the qrcode in wechat, and confirm login.
 
-As soon as the bot got login QRCode url, he will print url out. You need to scan the qrcode in wechat, and confirm login.
-
-After that, bot will on duty.
+After that, bot will on duty. (roger-bot source can be found at [here](https://github.com/zixia/wechaty/blob/master/examples/roger-bot.js))
 
 ## 2. Advanced: 100 lines
-There's another basic usage demo bot at [here](https://github.com/zixia/wechaty/blob/master/examples/ding-dong-bot.js), who can reply `dong` when receive a message `ding`.
+There's another basic usage demo bot named ding-dong-bot can be found at [here](https://github.com/zixia/wechaty/blob/master/examples/ding-dong-bot.js), who can reply `dong` when receive a message `ding`.
 
 ## 3. Hardcore: 1000 lines
 To Be Wroten.
