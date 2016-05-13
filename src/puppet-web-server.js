@@ -1,31 +1,33 @@
-const Browser = require('./puppet-web-browser')
-
-/****************************************
+/**
+ * Wechat for Bot. and for human who can talk with bot/robot
  *
- * Class Server
+ * Interface for puppet
  *
- ***************************************/
-
+ * Licenst: ISC
+ * https://github.com/zixia/wechaty
+ *
+ */
 const fs          = require('fs')
 const io          = require('socket.io')
-const path			  = require('path')
+const path        = require('path')
 const https       = require('https')
 const bodyParser  = require('body-parser')
+const log           = require('npmlog')
 
 const Express       = require('express')
 const EventEmitter  = require('events')
-const log           = require('npmlog')
 
+const Browser = require('./puppet-web-browser')
 class Server extends EventEmitter {
   constructor(options) {
     super()
     options       = options || {}
     this.port     = options.port || 8788 // W(87) X(88), ascii char code ;-]
-    
+
     this.logined  = false
 
-    this.on('login' , () => this.logined = true  )
-    this.on('logout', () => this.logined = false )
+    this.on('login' , () => this.logined = true)
+    this.on('logout', () => this.logined = false)
 
   }
 
@@ -69,7 +71,7 @@ class Server extends EventEmitter {
    */
   createHttpsServer(express) {
     return https.createServer({
-      key   : require('./ssl-key-cert').key
+      key:    require('./ssl-key-cert').key
       , cert: require('./ssl-key-cert').cert
     }, express).listen(this.port, () => {
       log.verbose('Server', `createHttpsServer port ${this.port}`)
@@ -86,12 +88,12 @@ class Server extends EventEmitter {
 
     app.use(bodyParser.json())
     app.use(function(req, res, next) {
-      res.header("Access-Control-Allow-Origin", "*")
-      res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+      res.header('Access-Control-Allow-Origin', '*')
+      res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
       next()
     })
 
-    app.get('/ding', function (req, res) {
+    app.get('/ding', function(req, res) {
       log.silly('Server', '%s GET /ding', new Date())
       res.end('dong')
     })
@@ -120,7 +122,7 @@ class Server extends EventEmitter {
          * Possible conditions:
          * 1. Browser reload
          * 2. Lost connection(Bad network
-         * 3. 
+         * 3.
          */
         this.socketClient = null
       })
@@ -131,10 +133,10 @@ class Server extends EventEmitter {
         , 'login'
         , 'logout'
         , 'unload'
-      ].map(e => { 
-        s.on(e, data => { 
+      ].map(e => {
+        s.on(e, data => {
           log.silly('Server', `recv event[${e}] from browser`)
-          this.emit(e, data) 
+          this.emit(e, data)
         })
       })
 
@@ -181,8 +183,9 @@ class Server extends EventEmitter {
    *
    */
   browserExecute(script) {
-    if (!this.browser) 
+    if (!this.browser) {
       throw new Error('no browser!')
+    }
     return this.browser.execute(script)
   }
 

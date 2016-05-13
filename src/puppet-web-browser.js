@@ -1,16 +1,13 @@
-/****************************************
+/**
+ * Wechat for Bot. and for human who can talk with bot/robot
  *
- * Class Browser
+ * Interface for puppet
  *
-header cookie
+ * Licenst: ISC
+ * https://github.com/zixia/wechaty
+ *
+ */
 
-BaseRequest
-Uin
-Sid
-Skey
-DeviceId
-
- ***************************************/
 const fs        = require('fs')
 const path      = require('path')
 const WebDriver = require('selenium-webdriver')
@@ -41,40 +38,40 @@ class Browser {
     return this.driver.get(WX_URL)
   }
 
-	getDriver() {
-		var driver
-		switch(this.browser) {
-			case 'phantomjs':
-				driver = getPhantomJsPreBuilt()
-				break
-			default:
-				driver = new WebDriver.Builder().forBrowser(this.browser).build()
-				break
-		}
-		return driver
+  getDriver() {
+    var driver
+    switch (this.browser) {
+      case 'phantomjs':
+        driver = getPhantomJsDriver()
+        break
+      default:
+        driver = new WebDriver.Builder().forBrowser(this.browser).build()
+        break
+    }
+    return driver
+  }
 
-		function getPhantomJsPreBuilt() {
-			// https://github.com/SeleniumHQ/selenium/issues/2069
-			//setup custom phantomJS capability
-			const phantomjs_exe = require('phantomjs-prebuilt').path
-			var customPhantom = selenium.Capabilities.phantomjs()
-			.set("phantomjs.binary.path", phantomjs_exe)
+  static getPhantomJsDriver() {
+    // https://github.com/SeleniumHQ/selenium/issues/2069
+    //setup custom phantomJS capability
+    const phantomjsExe = require('phantomjs-prebuilt').path
+    const customPhantom = WebDriver.Capabilities.phantomjs()
+    .set('phantomjs.binary.path', phantomjsExe)
 
-			//build custom phantomJS driver
-			return new selenium.Builder()
-			.withCapabilities(customPhantom)
-			.build()
-		}
-	}
+    //build custom phantomJS driver
+    return new WebDriver.Builder()
+    .withCapabilities(customPhantom)
+    .build()
+  }
 
-	getInjectio() {
-		return fs.readFileSync(
-			path.join(path.dirname(__filename), 'puppet-web-injectio.js')
+  static getInjectio() {
+    return fs.readFileSync(
+      path.join(path.dirname(__filename), 'puppet-web-injectio.js')
       , 'utf8'
-    )    
+    )
   }
   inject() {
-    const injectio = this.getInjectio()
+    const injectio = Browser.getInjectio()
     log.verbose('Browser', 'injecting')
     try {
       var p = this.execute(injectio, this.port)
@@ -90,24 +87,25 @@ class Browser {
     })
   }
 
-	quit() { 
-		log.verbose('Browser', 'Browser.quit')
-		if (!this.driver) {
-			log.verbose('Browser', 'no need to quite because no driver')
-			return new Promise((resolve, reject) => resolve('no driver'))
-		}
-		log.verbose('Browser', 'Browser.driver.quit')
-		return this.execute('return (typeof Wechaty)!=="undefined" && Wechaty.quit()').then(() => {
-			this.driver.quit() 
-			this.driver = null
+  quit() {
+    log.verbose('Browser', 'Browser.quit')
+    if (!this.driver) {
+      log.verbose('Browser', 'no need to quite because no driver')
+      return new Promise((resolve, reject) => resolve('no driver'))
+    }
+    log.verbose('Browser', 'Browser.driver.quit')
+    return this.execute('return (typeof Wechaty)!=="undefined" && Wechaty.quit()').then(() => {
+      this.driver.quit()
+      this.driver = null
       return new Promise((resolve, reject) => resolve())
     })
   }
 
   execute(script, ...args) {
     //log.verbose('Browser', `Browser.execute(${script})`)
-    if (!this.driver) 
+    if (!this.driver) {
       throw new Error('driver not found')
+    }
     // return promise
     return this.driver.executeScript.apply(this.driver, arguments)
   }

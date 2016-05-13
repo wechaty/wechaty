@@ -8,30 +8,35 @@ const By = WebDriver.By
 const WebBrowser = require('../src/puppet-web-browser')
 
 test('WebDriver smoke testing', function(t) {
+  /*
   const driver = new WebDriver.Builder()
   .withCapabilities(WebDriver.Capabilities.chrome()).build()
+  */
+
+  const driver = WebBrowser.getPhantomJsDriver()
+
   /*
   .withCapabilities(
     WebDriver.Capabilities.phantomjs()
     //.set('phantomjs.binary.path', 'D:\\cygwin64\\home\\zixia\\git\\wechaty\\node_modules\\phantomjs-prebuilt\\lib\\phantom\\bin\\phantomjs.exe')
   ).build()
  */
-    // .set('webdriver.load.strategy', 'unstable') 
-    // https://stackoverflow.com/questions/37071807/how-to-executescript-before-page-load-by-webdriver-in-selenium
+  // .set('webdriver.load.strategy', 'unstable')
+  // https://stackoverflow.com/questions/37071807/how-to-executescript-before-page-load-by-webdriver-in-selenium
 
-  const injectio = new WebBrowser().getInjectio()
-  
+  const injectio = WebBrowser.getInjectio()
+
   driver.get('https://wx.qq.com/')
   .then(() => {
     Promise.all([
       execute('return 1+1')     // ret_add
       , execute(injectio, 8788) // ret_inject
     ]).then(([
-      ret_add
-      , ret_inject
+      retAdd
+      , retInject
     ]) => {
-      t.equal(ret_add   , 2         , 'execute js in browser')
-      t.equal(ret_inject, 'Wechaty' , 'injected wechaty')
+      t.equal(retAdd   , 2         , 'execute js in browser')
+      t.equal(retInject, 'Wechaty' , 'injected wechaty')
 
       t.end()
       driver.quit()

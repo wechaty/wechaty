@@ -3,7 +3,7 @@ const log   = require('npmlog')
 const test  = require('tape')
 const Server = require('../src/puppet-web-server')
 
-test('Server basic tests', function (t) {
+test('Server basic tests', function(t) {
   //t.plan(9)
 
   const PORT = 58788
@@ -33,7 +33,7 @@ test('Server basic tests', function (t) {
   s.quit() + t.end()
 })
 
-test('Server smoke testing', function (t) {
+test('Server smoke testing', function(t) {
   const PORT = 58788
   const server = new Server({port: PORT})
 
@@ -90,18 +90,19 @@ test('Server smoke testing', function (t) {
         setTimeout(testDing, waitTime)
 
         function testDing() {
-          //log.verbose('TestingServer', server.socketio)
+          log.silly('TestingServer', server.socketio)
           if (!server.socketClient) {
             totalTime += waitTime
-            if (totalTime > maxTime) 
-              return reject('timeout after ' + totalTime + 'ms');
+            if (totalTime > maxTime) {
+              return reject('timeout after ' + totalTime + 'ms')
+            }
 
             log.verbose('TestingServer', 'waiting socketClient to connect for ' + totalTime + '/' + maxTime + ' ms...')
             setTimeout(testDing, waitTime)
             return
           }
-          //log.verbose('TestingServer', server.socketClient)
-          server.socketClient.on  ('dong', data => {
+          log.silly('TestingServer', server.socketClient)
+          server.socketClient.on('dong', data => {
             log.verbose('TestingServer', 'socket on dong got: ' + data)
             resolve(data)
           })

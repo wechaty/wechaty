@@ -31,11 +31,12 @@
   "homepage": "https://github.com/zixia/wechaty#readme",
   "dependencies": {
     "body-parser": "^1.15.0",
-    "chromedriver": "^2.21.2",
+    "socket.io": "^1.4.5",
     "express": "^4.13.4",
-    "npmlog": "^2.0.3",
     "selenium-webdriver": "",
-    "socket.io": "^1.4.5"
+    "phantomjs-prebuilt": "^2.1.7",
+    "chromedriver": "^2.21.2",
+    "npmlog": "^2.0.3"
   },
   "eslintConfig": {
     "env": {
