@@ -18,7 +18,7 @@ class Browser {
   constructor(options) {
     options = options || {}
 
-    this.browser  = options.browser || 'chrome' //'phantomjs'
+    this.browser  = options.browser || 'phantomjs'
     this.port     = options.port    || 8788 // 'W' 'X' Ascii Code
   }
 
@@ -41,11 +41,13 @@ class Browser {
   getDriver() {
     var driver
     switch (this.browser) {
-      case 'phantomjs':
-        driver = getPhantomJsDriver()
-        break
-      default:
+      case 'chrome':
         driver = new WebDriver.Builder().forBrowser(this.browser).build()
+        break
+
+      default:
+      case 'phantomjs':
+        driver = Browser.getPhantomJsDriver()
         break
     }
     return driver

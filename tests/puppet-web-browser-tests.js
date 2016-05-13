@@ -4,7 +4,7 @@ const Browser = require('../src/puppet-web-browser')
 test('Browser class smoking tests', function (t) {
   //t.plan(5)
   const PORT = 58788
-  const b = new Browser({browser: 'chrome', port: PORT})
+  const b = new Browser({browser: 'phantomjs', port: PORT})
   t.ok(b, 'Browser instance created')
 
   b.open()
