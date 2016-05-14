@@ -5,9 +5,9 @@ Wechaty is Wechat for Bot.
 > Easy creating wechat robot code in 10 lines.
 
 [![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![npm version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty)
 [![Build Status](https://travis-ci.org/zixia/wechaty.svg?branch=master)](https://travis-ci.org/zixia/wechaty)
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=2592000)]()
+[![npm version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty)
 [![Downloads][downloads-image]][downloads-url]
 
 
