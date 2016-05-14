@@ -2,7 +2,7 @@
  *
  * Wechaty - Wechat for Bot, and human who talk to bot.
  *
- * Inject this js code to browser, 
+ * Inject this js code to browser,
  * in order to interactive with wechat web program.
  *
  * Licenst: MIT
@@ -19,9 +19,11 @@
 408: 未确认
 
  */
-if (typeof Wechaty!=='undefined') return 'Wechaty already injected?';
+if (typeof Wechaty !== 'undefined') {
+  return 'Wechaty already injected?'
+}
 
-;return (function (port) {
+;return (function(port) {
   port = port || 8788
 
   /**
@@ -36,21 +38,21 @@ if (typeof Wechaty!=='undefined') return 'Wechaty already injected?';
     i.style.display = 'none'
     document.body.appendChild(i)
     i.contentWindow.console.log(s)
-    i.parentNode.removeChild(i) 
+    i.parentNode.removeChild(i)
   }
 
   var Wechaty = {
     glue: {} // will be initialized by glueAngular() function
     // glue funcs
-    , getLoginStatusCode: function () { return Wechaty.glue.loginScope.code }
-    , getLoginQrImgUrl:   function () { return Wechaty.glue.loginScope.qrcodeUrl }
-    , isLogined:          function () { return 200===Wechaty.glue.loginScope.code /* MMCgi.isLogin ??? */}
+    , getLoginStatusCode: function() { return Wechaty.glue.loginScope.code }
+    , getLoginQrImgUrl:   function() { return Wechaty.glue.loginScope.qrcodeUrl }
+    , isLogined:          function() { return 200 === Wechaty.glue.loginScope.code /* MMCgi.isLogin ??? */}
     , isReady:            isReady
 
-  // variable
+    // variable
     , socket:   null
 
-  // funcs
+    // funcs
     , init: init
     , send: send
     , clog: clog // Console log
@@ -61,8 +63,8 @@ if (typeof Wechaty!=='undefined') return 'Wechaty already injected?';
     , getContact: getContact
   }
 
-  function isReady() { 
-    return !!((typeof angular)!=='undefined' && angular.element && angular.element("body"))
+  function isReady() {
+    return !!((typeof angular) !== 'undefined' && angular.element && angular.element('body'))
   }
   function init() {
     if (!isReady()) {
@@ -74,7 +76,7 @@ if (typeof Wechaty!=='undefined') return 'Wechaty already injected?';
     clog('init on port:' + port)
     glueAngular()
     connectSocket()
-    hookUnload()  
+    hookUnload()
     hookMessage()
 
     clog('inited!. ;-D')
@@ -83,12 +85,12 @@ if (typeof Wechaty!=='undefined') return 'Wechaty already injected?';
 
   function glueAngular() {
     var injector  = angular.element(document).injector()
-    var rootScope = injector.get("$rootScope")
-    var http      = injector.get("$http")
-    var chatFactory     = injector.get("chatFactory")
-    var confFactory     = injector.get("confFactory")
+    var rootScope = injector.get('$rootScope')
+    var http      = injector.get('$http')
+    var chatFactory     = injector.get('chatFactory')
+    var confFactory     = injector.get('confFactory')
     var contactFactory  = injector.get('contactFactory')
-    var loginScope  = angular.element(".login_box").scope()
+    var loginScope  = angular.element('.login_box').scope()
 
     // get all we need from wx in browser(angularjs)
     Wechaty.glue = {
@@ -104,8 +106,8 @@ if (typeof Wechaty!=='undefined') return 'Wechaty already injected?';
 
   function quit() {
     if (Wechaty.socket) {
-     Wechaty.socket.close()
-     Wechaty.socket = undefined
+      Wechaty.socket.close()
+      Wechaty.socket = undefined
     }
     clog('quit()')
   }
@@ -125,19 +127,22 @@ if (typeof Wechaty!=='undefined') return 'Wechaty already injected?';
   function getContact(id) { return Wechaty.glue.contactFactory.getContact(id) }
   function hookMessage() {
     var rootScope = Wechaty.glue.rootScope
-    rootScope.$on("message:add:success", function (event, data) { 
-      if (Wechaty.socket) Wechaty.socket.emit('message', data);
-      else clog('Wechaty.socket not ready');
+    rootScope.$on('message:add:success', function(event, data) {
+      if (Wechaty.socket) {
+        Wechaty.socket.emit('message', data)
+      } else {
+        clog('Wechaty.socket not ready')
+      }
     })
   }
   function hookUnload() {
-    window.addEventListener ('unload', function (e) {
-      Wechaty.socket.emit('unload') 
+    window.addEventListener('unload', function(e) {
+      Wechaty.socket.emit('unload')
     })
   }
   function connectSocket() {
     clog('connectSocket()')
-    if (typeof io!=='function') {
+    if (typeof io !== 'function') {
       clog('connectSocket: io not found. loading lib...')
       // http://stackoverflow.com/a/3248500/1123955
       var script = document.createElement('script')
@@ -145,8 +150,8 @@ if (typeof Wechaty!=='undefined') return 'Wechaty already injected?';
         clog('socket io lib loaded.')
         setTimeout(connectSocket, 50)
       }
-      script.src = "https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"
-      document.getElementsByTagName('head')[0].appendChild(script);
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js'
+      document.getElementsByTagName('head')[0].appendChild(script)
       return // wait to be called via script.onload()
     }
 
@@ -155,7 +160,7 @@ if (typeof Wechaty!=='undefined') return 'Wechaty already injected?';
 
     // ding -> dong. for test & live check purpose
     // ping/pong are reserved by socket.io https://github.com/socketio/socket.io/issues/2414
-    socket.on('ding', function (e) {
+    socket.on('ding', function(e) {
       clog('received socket io event: ding. emit dong...')
       socket.emit('dong', 'dong')
     })
@@ -174,8 +179,9 @@ if (typeof Wechaty!=='undefined') return 'Wechaty already injected?';
   window.Wechaty = Wechaty
 
   var callback = arguments[arguments.length - 1]
-  if (typeof callback==='function')
+  if (typeof callback === 'function') {
     return callback('Wechaty')
+  }
 
   return 'Wechaty'
 
