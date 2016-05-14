@@ -260,5 +260,5 @@ Copyright & License
 * Code released under the ISC license
 * Docs released under Creative Commons
 
-[downloads-image]: http://img.shields.io/npm/dm/co.svg?style=flat-square
-[downloads-url]: https://npmjs.org/package/co
+[downloads-image]: http://img.shields.io/npm/dm/wechaty.svg?style=flat-square
+[downloads-url]: https://npmjs.org/package/wechaty
