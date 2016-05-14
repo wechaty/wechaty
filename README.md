@@ -7,6 +7,10 @@ Wechaty is Wechat for Bot.
 [![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![npm version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty)
 [![Build Status](https://travis-ci.org/zixia/wechaty.svg?branch=master)](https://travis-ci.org/zixia/wechaty)
+[![node](https://img.shields.io/node/v/wechaty.svg?maxAge=2592000)]()
+[![Downloads][downloads-image]][downloads-url]
+
+
 
 # Why
 My daily life/work depends on too much wechat.
@@ -255,3 +259,6 @@ Copyright & License
 * Code & Docs 2016© zixia
 * Code released under the ISC license
 * Docs released under Creative Commons
+
+[downloads-image]: http://img.shields.io/npm/dm/co.svg?style=flat-square
+[downloads-url]: https://npmjs.org/package/co

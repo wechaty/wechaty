@@ -28,22 +28,21 @@ class Server extends EventEmitter {
 
     this.on('login' , () => this.logined = true)
     this.on('logout', () => this.logined = false)
-
   }
 
   init() {
-    this.express  = this.createExpress()
-    this.server   = this.createHttpsServer(this.express, this.port)
-    this.socketio = this.createSocketIo(this.server)
-
-    this.browser  = this.createBrowser()
-
     return new Promise((resolve, reject) => {
+      this.express  = this.createExpress()
+      this.server   = this.createHttpsServer(this.express, this.port)
+      this.socketio = this.createSocketIo(this.server)
+
+      this.browser  = this.createBrowser()
       this.browser.init()
       .then(() => {
         log.verbose('Server',`browser init finished with port: ${this.port}`)
-        resolve() // after init success
+        resolve(true)
       })
+      .catch(e => reject(e))
     })
   }
 
@@ -71,8 +70,8 @@ class Server extends EventEmitter {
    */
   createHttpsServer(express) {
     return https.createServer({
-      key:    require('./ssl-key-cert').key
-      , cert: require('./ssl-key-cert').cert
+      key:    require('./ssl-pem').key
+      , cert: require('./ssl-pem').cert
     }, express).listen(this.port, () => {
       log.verbose('Server', `createHttpsServer port ${this.port}`)
     })
@@ -113,6 +112,8 @@ class Server extends EventEmitter {
 
     socketServer.sockets.on('connection', (s) => {
       log.verbose('Server', 'got connection from browser')
+      // kick off the old one
+      if (this.socketClient) { this.socketClient.destroy() }
       // save to instance: socketClient
       this.socketClient = s
 
@@ -168,7 +169,7 @@ class Server extends EventEmitter {
       delete this.socketServer
     }
     if (this.socketClient) {
-      this.socketClient.disconnect()
+      this.socketClient.distroy()
       delete this.socketClient
     }
     if (this.server) {

@@ -22,7 +22,7 @@ class Browser {
     this.port     = options.port    || 8788 // 'W' 'X' Ascii Code
   }
 
-  toString() { return `Class Wechaty.Puppet.Browser(${this.browser}, ${this.port})` }
+  toString() { return `Class Wechaty.Puppet.Browser({browser:${this.browser}, port:${this.port}})` }
 
   init() {
     return this.open()
@@ -32,7 +32,7 @@ class Browser {
   open() {
     const WX_URL = 'https://wx.qq.com'
 
-    log.verbose('Browser', `init ${this.browser}:${this.port}`)
+    log.verbose('Browser', `init ${this.browser}(${this.port})`)
     this.driver = this.getDriver()
 
     return this.driver.get(WX_URL)
