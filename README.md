@@ -9,8 +9,6 @@ Wechaty is Wechat for Bot.(Personal Account Robot, NOT Official Account)
 [![npm version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty)
 [![Downloads][downloads-image]][downloads-url]
 
-
-
 # Why
 My daily life/work depends on too much wechat.
 * I almost have 14,000 wechat friends till May 2014, before wechat restricting total number of friends to 5,000.
