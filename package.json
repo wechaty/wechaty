@@ -4,8 +4,8 @@
   "description": "Wechat for Bot",
   "main": "index.js",
   "scripts": {
-    "start": "node examples/ding-dong-bot.js",
-    "test": "tape tests/*.js",
+    "start": "node example/ding-dong-bot.js",
+    "test": "tape test/*.js",
     "lint": "eslint src"
   },
   "repository": {

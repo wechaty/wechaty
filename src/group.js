@@ -14,7 +14,9 @@ class Group {
     this.id = id
     this.obj = {}
     log.silly('Group', `constructor(${id})`)
-    if (!Group.puppet) throw new Error('no puppet attached to Group');
+    if (!Group.puppet) {
+      throw new Error('no puppet attached to Group')
+    }
   }
 
   toString()  { return this.obj.name ? this.obj.name : this.id }
@@ -32,9 +34,9 @@ class Group {
       this.rawObj = data
       this.obj    = this.parse(data)
       return this
-    }).catch(e => { 
+    }).catch(e => {
       log.error('Group', `contactGetter(${this.id}) rejected: ` + e)
-      throw new Error('contactGetter: ' + e) 
+      throw new Error('contactGetter: ' + e)
     })
   }
 
@@ -52,20 +54,17 @@ class Group {
     }
   }
 
-  dumpRaw() { 
+  dumpRaw() {
     console.error('======= dump raw group =======')
-    Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj[k]}`)) 
+    Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj[k]}`))
   }
-  dump()    { 
+  dump()    {
     console.error('======= dump group =======')
-    Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj[k]}`)) 
+    Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj[k]}`))
   }
 
   getId() { return this.id }
-
   get(prop) { return this.obj[prop] }
-
-
 
   static find() {
   }
@@ -73,14 +72,14 @@ class Group {
   static findAll() {
   }
 }
-Group.init = function () { Group.pool = {} } 
+Group.init = function() { Group.pool = {} }
 Group.init()
-Group.load = function (id) {
+Group.load = function(id) {
   if (id in Group.pool) {
     return Group.pool[id]
   }
   return Group.pool[id] = new Group(id)
 }
-Group.attach = function (puppet) { Group.puppet = puppet }
+Group.attach = function(puppet) { Group.puppet = puppet }
 
 module.exports = Group

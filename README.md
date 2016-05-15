@@ -48,10 +48,10 @@ bot.on('message', m => {
 
 Notice that you need to wait a moment while bot trying to get the login QRCode from Wechat. As soon as the bot got login QRCode url, he will print url out. You need to scan the qrcode in wechat, and confirm login.
 
-After that, bot will on duty. (roger-bot source can be found at [here](https://github.com/zixia/wechaty/blob/master/examples/roger-bot.js))
+After that, bot will on duty. (roger-bot source can be found at [here](https://github.com/zixia/wechaty/blob/master/example/roger-bot.js))
 
 ## 2. Advanced: 100 lines
-There's another basic usage demo bot named (ding-dong-bot)(https://github.com/zixia/wechaty/blob/master/examples/ding-dong-bot.js), who can reply `dong` when receive a message `ding`.
+There's another basic usage demo bot named [ding-dong-bot](https://github.com/zixia/wechaty/blob/master/example/ding-dong-bot.js), who can reply `dong` when receive a message `ding`.
 
 ## 3. Hardcore: 1000 lines
 To Be Wroten.
@@ -243,7 +243,7 @@ Github Issue - https://github.com/zixia/wechaty/issues
     ```bash
     $ npm lint
     ```
-* Create a issue, then send me a pull request(with unit test please).
+* Create a issue, fork, then send a pull request(with unit test please).
 
 Author
 -----------------
