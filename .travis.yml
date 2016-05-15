@@ -3,9 +3,10 @@ node_js:
   - "6.1"
   - "6"
 before_install:
+  - env
   - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
-  - ./.travis.chrome.sh
+  - curl -Lo chrome.zip https://download-chromium.appspot.com/dl/Linux_x64 && unzip chrome.zip
 cache:
   directories:
     - node_modules
