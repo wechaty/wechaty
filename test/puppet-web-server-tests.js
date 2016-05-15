@@ -2,7 +2,7 @@ const https = require('https')
 const test  = require('tape')
 const co    = require('co')
 const log   = require('npmlog')
-log.level = 'silly'
+//log.level = 'silly'
 
 const PuppetWebServer = require('../src/puppet-web-server')
 const PORT = 58788

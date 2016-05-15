@@ -1,7 +1,7 @@
 const path  = require('path')
 const test  = require('tape')
 const log   = require('npmlog')
-log.level = 'silly'
+//log.level = 'silly'
 
 const WebDriver = require('selenium-webdriver')
 const Browser = WebDriver.Browser

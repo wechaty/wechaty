@@ -1,6 +1,6 @@
 ![Wechaty](https://raw.githubusercontent.com/zixia/wechaty/master/images/wechaty-logo-en.png)
 # Wechaty [![Circle CI](https://circleci.com/gh/zixia/wechaty.svg?style=svg)](https://circleci.com/gh/zixia/wechaty) [![Build Status](https://travis-ci.org/zixia/wechaty.svg?branch=master)](https://travis-ci.org/zixia/wechaty)
-Wechaty is Wechat for Bot.
+Wechaty is Wechat for Bot.(Personal Account Robot, NOT Official Account)
 
 > Easy creating wechat robot code in 10 lines.
 
@@ -21,7 +21,7 @@ Can you image that? I'm dying...
 So a tireless bot working for me 24x7 on wechat, moniting/filtering the most important messages is badly needed. For example: highlights discusstion which contains the KEYWORDS I want to follow up(especialy in a noisy group). ;-)
 
 # Examples
-Wechaty is unbelievable easy to use: 10 lines of javascript is enough for your first wechat robot.
+Wechaty is super easy to use: 10 lines of javascript is enough for your first wechat robot.
 
 ## 1. Basic: 10 lines
 The following 10 lines of code will implement a bot who will reply message automaticaly for you:
