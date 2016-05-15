@@ -25,27 +25,31 @@ class PuppetWeb extends Puppet {
   constructor(options) {
     super()
     options = options || {}
-    this.port = options.port || 8788 // W(87) X(88), ascii char code ;-]
+    this.port     = options.port || 8788 // W(87) X(88), ascii char code ;-]
+    this.browser  = options.browser
   }
 
-  toString() { return `Class PuppetWeb({port:${this.port}})` }
+  toString() { return `Class PuppetWeb({browser:${this.browser},port:${this.port}})` }
 
-  init() { 
-    this.server = new WebServer({port: this.port})
-
-    ;[  // events. ';' for seprate from the last code line
-      'login'
-      , 'logout'
-    ].map( event => 
-      this.server.on(event, data => this.emit(event, data) ) 
-    )
-    
-    this.server.on('message', data => {
-      const m = new Message(data)
-      this.emit('message', m) 
+  init() {
+    this.server = new WebServer({
+      browser: this.browser
+      , port: this.port
     })
 
-    return this.server.init() 
+    ;[// events. ';' for seprate from the last code line
+      'login'
+      , 'logout'
+    ].map(event =>
+      this.server.on(event, data => this.emit(event, data))
+    )
+
+    this.server.on('message', data => {
+      const m = new Message(data)
+      this.emit('message', m)
+    })
+
+    return this.server.init()
   }
 
   send(message) {
@@ -55,7 +59,7 @@ class PuppetWeb extends Puppet {
     return this.server.proxyWechaty('send', toContact.getId(), content)
   }
 
-  logout() { 
+  logout() {
     return this.server.proxyWechaty('logout')
   }
 

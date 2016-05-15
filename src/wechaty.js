@@ -21,12 +21,15 @@ class Wechaty extends EventEmitter {
     options         = options || {}
     options.puppet  = options.puppet || 'web'
 
-    switch(options.puppet) {
+    switch (options.puppet) {
       case 'web':
-        this.puppet = new Puppet.Web({port: options.port})
+        this.puppet = new Puppet.Web({
+          browser: options.browser
+          , port: options.port
+        })
         break
       default:
-        throw new Error('Puppet unknown: ' + puppet)
+        throw new Error('Puppet unsupport(yet): ' + puppet)
         break
     }
     Contact.attach(this.puppet)

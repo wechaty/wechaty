@@ -50,10 +50,10 @@ Notice that you need to wait a moment while bot trying to get the login QRCode f
 
 After that, bot will on duty. (roger-bot source can be found at [here](https://github.com/zixia/wechaty/blob/master/example/roger-bot.js))
 
-## 2. Advanced: 100 lines
+## 2. Advanced: 50 lines
 There's another basic usage demo bot named [ding-dong-bot](https://github.com/zixia/wechaty/blob/master/example/ding-dong-bot.js), who can reply `dong` when receive a message `ding`.
 
-## 3. Hardcore: 1000 lines
+## 3. Hardcore: 100 lines
 To Be Wroten.
 
 Plan to glued with Machine Learning/Deep Learning/Neural Network/Natural Language Processing.

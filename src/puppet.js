@@ -18,7 +18,7 @@ class Puppet extends EventEmitter {
 
   /**
    * Get current logined user
-   * @return <Contact> 
+   * @return <Contact>
    */
   currentUser() { throw new Error('To Be Implemented')  }
 
@@ -26,7 +26,7 @@ class Puppet extends EventEmitter {
    * let puppet send message
    *
    * @param <Message> message - the message to be sent
-   * @return <Promise> 
+   * @return <Promise>
    */
   send(message) { throw new Error('To Be Implemented') }
 
@@ -44,9 +44,9 @@ class Puppet extends EventEmitter {
    *
    * Events .on(...)
    *
-   * login   - 
-   * logout  -  
-   * 
+   * login   -
+   * logout  -
+   *
    *
    */
   debug(cb) {

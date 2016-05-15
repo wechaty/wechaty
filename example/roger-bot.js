@@ -1,8 +1,10 @@
-const Wechaty = require('../wechaty')
-const bot = new Wechaty()
+const log = require('npmlog')
+log.level = 'silly'
+const Wechaty = require('../src/wechaty')
+const bot = new Wechaty({browser: 'chrome'})
 
 bot.init()
-.then(bot.puppet.getLoginQrImgUrl.bind(bot.puppet))
+.then(bot.getLoginQrImgUrl.bind(bot))
 .then(url => console.log(`Scan qrcode in url to login: \n${url}`))
 
 bot.on('message', m => {

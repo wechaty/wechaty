@@ -23,6 +23,7 @@ class Server extends EventEmitter {
     super()
     options       = options || {}
     this.port     = options.port || 8788 // W(87) X(88), ascii char code ;-]
+    this.browser  = options.browser
 
     this.logined  = false
 
@@ -46,8 +47,8 @@ class Server extends EventEmitter {
     })
   }
 
-  createBrowser() {
-    const b = new Browser({port: this.port})
+  createBrowser(options) {
+    const b = new Browser({browser: this.browser, port: this.port})
 
     /**
      * `unload` event is sent from js@browser to webserver via socketio

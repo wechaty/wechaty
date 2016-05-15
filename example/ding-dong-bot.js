@@ -4,12 +4,12 @@ const log = require('npmlog')
 //log.level = 'silly'
 
 const welcome = `
-| __        __        _           _         
-| \\ \\      / /__  ___| |__   __ _| |_ _   _ 
+| __        __        _           _
+| \\ \\      / /__  ___| |__   __ _| |_ _   _
 |  \\ \\ /\\ / / _ \\/ __| '_ \\ / _\` | __| | | |
 |   \\ V  V /  __/ (__| | | | (_| | |_| |_| |
 |    \\_/\\_/ \\___|\\___|_| |_|\\__,_|\\__|\\__, |
-|                                     |___/ 
+|                                     |___/
 
 =============== Powered by Wechaty ===============
 -------- https://github.com/zixia/wechaty --------
@@ -19,7 +19,7 @@ I'm a bot, my super power is talk in Wechat.
 If you send me a 'ding', I will reply you a 'dong'!
 __________________________________________________
 
-Hope you like it, and you are very welcome to 
+Hope you like it, and you are very welcome to
 upgrade me for more super powers!
 
 Please wait... I'm trying to login in...
@@ -27,15 +27,15 @@ Please wait... I'm trying to login in...
 `
 
 console.log(welcome)
-const bot = new Wechaty()
+const bot = new Wechaty({browser: 'chrome'})
 
 bot.init()
 .then(login)
 
 bot.on('message', m => {
   m.ready()
-  .then (msg  => {
-    log.info ('Bot', 'recv: %s'  , msg)
+  .then(msg  => {
+    log.info('Bot', 'recv: %s'  , msg)
   })
   .catch(e    => log.error('Bot', 'ready: %s' , e))
 
@@ -54,7 +54,7 @@ function login() {
   bot.puppet
   .getLoginQrImgUrl()
   .then(url =>
-        console.log(`\n\nAction needed. Scan the belowing QRCode to login:\n\n${url}\n\nTip: You can copy/paste it to a web browser.\n`) 
+        console.log(`\n\nAction needed. Scan the belowing QRCode to login:\n\n${url}\n\nTip: You can copy/paste it to a web browser.\n`)
        ).catch(e => log.error('Bot', 'promise rejected'))
 }
 
