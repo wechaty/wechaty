@@ -10,7 +10,9 @@ const log = require('npmlog')
 
 class Contact {
   constructor(id) {
-    if (!Contact.puppet) throw new Error('no puppet attached to Contact');
+    if (!Contact.puppet) {
+      throw new Error('no puppet attached to Contact')
+    }
     log.silly('Contact', `constructor(${id})`)
 
     this.id = id
@@ -19,7 +21,7 @@ class Contact {
   }
 
   ready(contactGetter) {
-    log.silly('Contact', `ready(${contactGetter})`)
+    log.silly('Contact', 'ready(' + typeof contactGetter + ')')
     if (this.obj.id) {
       return Promise.resolve(this)
     }
@@ -30,9 +32,9 @@ class Contact {
       this.rawObj = data
       this.obj    = this.parse(data)
       return this
-    }).catch(e => { 
+    }).catch(e => {
       log.error('Contact', `contactGetter(${this.id}) rejected: ` + e)
-      throw new Error('contactGetter: ' + e) 
+      throw new Error('contactGetter: ' + e)
     })
   }
 
@@ -49,13 +51,13 @@ class Contact {
     }
   }
 
-  dumpRaw() { 
+  dumpRaw() {
     console.error('======= dump raw contact =======')
-    Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj[k]}`)) 
+    Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj[k]}`))
   }
-  dump()    { 
+  dump()    {
     console.error('======= dump contact =======')
-    Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj[k]}`)) 
+    Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj[k]}`))
   }
 
   toString() {
@@ -65,7 +67,6 @@ class Contact {
   getId() { return this.id }
 
   get(prop) { return this.obj[prop] }
-
 
   send(message) {
 
@@ -78,15 +79,15 @@ class Contact {
   }
 }
 
-Contact.init = function () { Contact.pool = {} } 
+Contact.init = function() { Contact.pool = {} }
 Contact.init()
-Contact.load = function (id) {
+Contact.load = function(id) {
   if (id in Contact.pool) {
     return Contact.pool[id]
   }
   return Contact.pool[id] = new Contact(id)
 }
 
-Contact.attach = function (puppet) { Contact.puppet = puppet }
+Contact.attach = function(puppet) { Contact.puppet = puppet }
 
 module.exports = Contact

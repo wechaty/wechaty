@@ -24,7 +24,7 @@ class Wechaty extends EventEmitter {
     switch (options.puppet) {
       case 'web':
         this.puppet = new Puppet.Web({
-          browser: options.browser
+          head: options.head
           , port: options.port
         })
         break

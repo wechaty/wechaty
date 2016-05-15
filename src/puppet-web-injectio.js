@@ -23,7 +23,7 @@ if (typeof Wechaty !== 'undefined') {
   return 'Wechaty already injected?'
 }
 
-;return (function(port) {
+return (function(port) {
   port = port || 8788
 
   /**

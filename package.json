@@ -1,7 +1,7 @@
 {
   "name": "wechaty",
-  "version": "0.0.5",
-  "description": "Wechat for Bot",
+  "version": "0.0.6",
+  "description": "Wechat for Bot. (Personal Account, NOT Official Account)",
   "main": "index.js",
   "scripts": {
     "start": "node example/ding-dong-bot.js",

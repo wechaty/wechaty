@@ -17,57 +17,25 @@ const log           = require('npmlog')
 const Express       = require('express')
 const EventEmitter  = require('events')
 
-const Browser = require('./puppet-web-browser')
 class Server extends EventEmitter {
   constructor(options) {
     super()
     options       = options || {}
     this.port     = options.port || 8788 // W(87) X(88), ascii char code ;-]
-    this.browser  = options.browser
-
-    this.logined  = false
-
-    this.on('login' , () => this.logined = true)
-    this.on('logout', () => this.logined = false)
   }
+
+  toString() { return `Class Wechaty.Puppet.Web.Server({port:${this.port}})` }
 
   init() {
-    return new Promise((resolve, reject) => {
-      this.express  = this.createExpress()
-      this.server   = this.createHttpsServer(this.express, this.port)
-      this.socketio = this.createSocketIo(this.server)
-
-      this.browser  = this.createBrowser()
-      this.browser.init()
-      .then(() => {
-        log.verbose('Server',`browser init finished with port: ${this.port}`)
-        resolve(true)
-      })
-      .catch(e => reject(e))
-    })
-  }
-
-  createBrowser(options) {
-    const b = new Browser({browser: this.browser, port: this.port})
-
-    /**
-     * `unload` event is sent from js@browser to webserver via socketio
-     * after received `unload`, we re-inject the Wechaty js code into browser.
-     */
-    this.on('unload', () => {
-      log.verbose('Server', 'server received unload event')
-      this.browser.inject()
-      .then(() => log.verbose('Server', 're-injected'))
-      .catch((e) => log.error('Server', 'inject err: ' + e))
-    })
-
-    return b
+    this.express      = this.createExpress()
+    this.httpsServer  = this.createHttpsServer(this.express, this.port)
+    this.socketio     = this.createSocketIo(this.httpsServer)
+    log.verbose('Server', 'inited: ' + this)
+    return Promise.resolve(this)
   }
 
   /**
-   *
    * Https Server
-   *
    */
   createHttpsServer(express) {
     return https.createServer({
@@ -79,45 +47,40 @@ class Server extends EventEmitter {
   }
 
   /**
-   *
    * Express Middleware
-   *
    */
   createExpress() {
-    const app = new Express()
-
-    app.use(bodyParser.json())
-    app.use(function(req, res, next) {
+    const e = new Express()
+    e.use(bodyParser.json())
+    e.use(function(req, res, next) {
       res.header('Access-Control-Allow-Origin', '*')
       res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
       next()
     })
-
-    app.get('/ding', function(req, res) {
+    e.get('/ding', function(req, res) {
       log.silly('Server', '%s GET /ding', new Date())
       res.end('dong')
     })
-
-    return app
+    return e
   }
 
   /**
-   *
    * Socket IO
-   *
    */
-  createSocketIo(server) {
-    const socketServer = io.listen(server, {
-      log: true
+  createSocketIo(httpsServer) {
+    const socketServer = io.listen(httpsServer, {
+      // log: true
     })
 
     socketServer.sockets.on('connection', (s) => {
       log.verbose('Server', 'got connection from browser')
       // kick off the old one
-      if (this.socketClient) { this.socketClient.destroy() }
+      if (this.socketClient) {
+        // this.socketClient.destroy()
+        this.socketClient = null
+      }
       // save to instance: socketClient
       this.socketClient = s
-
       s.on('disconnect', function() {
         log.verbose('Server', 'socket.io disconnected')
         /**
@@ -128,7 +91,6 @@ class Server extends EventEmitter {
          */
         this.socketClient = null
       })
-
       // Events from Wechaty@Broswer --to--> Server
       ;[
         'message'
@@ -141,63 +103,28 @@ class Server extends EventEmitter {
           this.emit(e, data)
         })
       })
-
       s.on('error', e => log.error('Server', 'socket error: %s', e))
-      /**
-       * prevent lost event: buffer new event received when socket disconnected
-       while (buff.length) {
-       let e = buff.shift()
-       socket.emit(e.event, e.data)
-       }
-       */
     })
-
     return socketServer
   }
 
-  isLogined() {
-    return this.logined
-  }
-
   quit() {
-    if (this.browser) {
-      this.browser.quit()
-      delete this.browser
-    }
+    log.verbose('Server', 'quit()')
     if (this.socketServer) {
+      log.verbose('Server', 'close socketServer')
       socketServer.httpsServer.close()
       socketServer.close()
-      delete this.socketServer
+      this.socketServer = null
     }
     if (this.socketClient) {
-      this.socketClient.distroy()
-      delete this.socketClient
+      log.verbose('Server', 'close socketClient')
+      this.socketClient = null
     }
-    if (this.server) {
-      this.server.close()
-      delete this.server
+    if (this.httpsServer) {
+      log.verbose('Server', 'close httpsServer')
+      this.httpsServer.close()
+      this.httpsServer = null
     }
-  }
-
-  /**
-   *
-   * Proxy Call to Wechaty in Browser
-   *
-   */
-  browserExecute(script) {
-    if (!this.browser) {
-      throw new Error('no browser!')
-    }
-    return this.browser.execute(script)
-  }
-
-  proxyWechaty(wechatyFunc, ...args) {
-    //const args      = Array.prototype.slice.call(arguments, 1)
-    const argsJson  = JSON.stringify(args)
-    const wechatyScript = `return (Wechaty && Wechaty.${wechatyFunc}.apply(undefined, JSON.parse('${argsJson}')))`
-
-    log.silly('Server', 'proxyWechaty: ' + wechatyScript)
-    return this.browserExecute(wechatyScript)
   }
 }
 

@@ -27,7 +27,7 @@ Please wait... I'm trying to login in...
 `
 
 console.log(welcome)
-const bot = new Wechaty({browser: 'chrome'})
+const bot = new Wechaty({head: true})
 
 bot.init()
 .then(login)

@@ -1,7 +1,7 @@
 const log = require('npmlog')
 log.level = 'silly'
 const Wechaty = require('../src/wechaty')
-const bot = new Wechaty({browser: 'chrome'})
+const bot = new Wechaty({head: true})
 
 bot.init()
 .then(bot.getLoginQrImgUrl.bind(bot))

@@ -1,41 +1,37 @@
+const co = require('co')
 const test = require('tape')
-const Browser = require('../src/puppet-web-browser')
 
-test('Browser class smoking tests', function (t) {
-  //t.plan(5)
-  const PORT = 58788
-  const b = new Browser({browser: 'phantomjs', port: PORT})
+const Browser = require('../src/puppet-web-browser')
+const PORT = 58788
+
+test('Browser class smoking tests', function(t) {
+  const b = new Browser({head: true, port: PORT})
   t.ok(b, 'Browser instance created')
 
-  b.open()
-  .then(() => {
-    t.ok(true, 'url opened')
-    b.inject()
-    .then(() => {
-      t.ok(true, 'wechaty injected')
+  co(function* () {
+    yield b.init()
+    t.pass('inited')
 
-      Promise.all([
-        b.execute('return Wechaty && Wechaty.ding()')       // ret_ding
-        , b.execute('return Wechaty && Wechaty.isReady()')  // ret_ready
-      ]).then(([
-        ret_ding
-        , ret_ready
-      ]) => {
-        t.equal(ret_ding        , 'dong', 'Wechaty.ding() returns dong'           )
-        t.equal(typeof ret_ready, 'boolean', 'Wechaty.isReady() returns boollean' )
+    yield b.open()
+    t.pass('opened')
 
-        b.quit() + t.end()
-      }).catch((e) => { // Promise.all
-        t.ok(false, 'Promise.all promise rejected:' + e)
-        b.quit() + t.end()
-      })
+    yield b.inject()
+    t.pass('wechaty injected')
 
-    }).catch((e) => { // b.inject
-      t.ok(false, 'b.inject promise rejected:' + e)
-      b.quit() + t.end()
-    })
-  }).catch((e) => { // b.open
-    t.ok(false, 'open promise rejected:' + e)
-    t.end() + b.quit()
+    const retDing = yield b.execute('return Wechaty && Wechaty.ding()')
+    t.equal(retDing, 'dong', 'execute Wechaty.ding()')
+
+    const retReady = yield b.execute('return Wechaty && Wechaty.isReady()')
+    t.equal(typeof retReady, 'boolean', 'execute Wechaty.isReady()')
+  })
+  .catch((e) => { // Catch
+    t.fail('co promise rejected:' + e)
+  })
+  .then(r => {    // Finally
+    b.quit()
+    t.end()
+  })
+  .catch(e => { // Exception
+    t.fail('Exception:' + e)
   })
 })
