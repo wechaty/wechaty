@@ -24,7 +24,7 @@ So a tireless bot working for me 24x7 on wechat, moniting/filtering the most imp
 Wechaty is unbelievable easy to use: 10 lines of javascript is enough for your first wechat robot.
 
 ## 1. Basic: 10 lines
-The following shortest 10 lines code will implement a roger bot who can auto reply message(roger) for you:
+The following 10 lines of code will implement a bot who will reply message automaticaly for you:
 
 ```javascript
 const Wechaty = require('wechaty')
