@@ -27,22 +27,35 @@ class Server extends EventEmitter {
   toString() { return `Class Wechaty.Puppet.Web.Server({port:${this.port}})` }
 
   init() {
-    this.express      = this.createExpress()
-    this.httpsServer  = this.createHttpsServer(this.express, this.port)
-    this.socketio     = this.createSocketIo(this.httpsServer)
-    log.verbose('Server', 'inited: ' + this)
-    return Promise.resolve(this)
+    log.verbose('Server', 'initing: ' + this)
+    return new Promise((resolve, reject) => {
+      this.express      = this.createExpress()
+      this.httpsServer  = this.createHttpsServer(this.express
+        , r => resolve(r), e => reject(e)
+      )
+      this.socketio     = this.createSocketIo(this.httpsServer)
+    })
   }
 
   /**
    * Https Server
    */
-  createHttpsServer(express) {
+  createHttpsServer(express, resolve, reject) {
     return https.createServer({
       key:    require('./ssl-pem').key
       , cert: require('./ssl-pem').cert
-    }, express).listen(this.port, () => {
+    }, express)
+    .listen(this.port, () => {
       log.verbose('Server', `createHttpsServer port ${this.port}`)
+      if (typeof resolve === 'function') {
+        resolve(this)
+      }
+    })
+    .on('error', e => {
+      log.error('Server', 'createHttpsServer:' + e)
+      if (typeof reject === 'function') {
+        reject(e)
+      }
     })
   }
 

@@ -5,7 +5,7 @@ const Browser = require('../src/puppet-web-browser')
 const PORT = 58788
 
 test('Browser class smoking tests', function(t) {
-  const b = new Browser({head: true, port: PORT})
+  const b = new Browser({port: PORT})
   t.ok(b, 'Browser instance created')
 
   co(function* () {
@@ -24,14 +24,14 @@ test('Browser class smoking tests', function(t) {
     const retReady = yield b.execute('return Wechaty && Wechaty.isReady()')
     t.equal(typeof retReady, 'boolean', 'execute Wechaty.isReady()')
   })
-  .catch((e) => { // Catch
+  .catch((e) => { // Rejected
     t.fail('co promise rejected:' + e)
   })
   .then(r => {    // Finally
     b.quit()
     t.end()
   })
-  .catch(e => { // Exception
+  .catch(e => {   // Exception
     t.fail('Exception:' + e)
   })
 })

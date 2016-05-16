@@ -107,7 +107,7 @@ return (function(port) {
   function quit() {
     if (Wechaty.socket) {
       Wechaty.socket.close()
-      Wechaty.socket = undefined
+      Wechaty.socket = null
     }
     clog('quit()')
   }

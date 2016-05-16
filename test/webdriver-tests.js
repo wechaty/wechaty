@@ -8,9 +8,10 @@ const Browser = WebDriver.Browser
 const By = WebDriver.By
 
 const PuppetWebBrowser = require('../src/puppet-web-browser')
+const PORT = 58788
 
 test('WebDriver smoke testing', function(t) {
-  const wb = new PuppetWebBrowser({head: true})
+  const wb = new PuppetWebBrowser({port: PORT})
   const driver = wb.getDriver()
 
   const injectio = PuppetWebBrowser.getInjectio()

@@ -1,7 +1,7 @@
 const Wechaty = require('../src/wechaty')
 const log = require('npmlog')
 //log.level = 'verbose'
-//log.level = 'silly'
+log.level = 'silly'
 
 const welcome = `
 | __        __        _           _
@@ -31,6 +31,11 @@ const bot = new Wechaty({head: true})
 
 bot.init()
 .then(login)
+.catch(e => {
+  log.error('Bot', 'init() fail:' + e)
+  bot.quit()
+  process.exit(-1)
+})
 
 bot.on('message', m => {
   m.ready()

@@ -49,8 +49,12 @@ class Wechaty extends EventEmitter {
   init()          { return this.puppet.init() }
   currentUser()   { return this.puppet.currentUser() }
   send(message)   { return this.puppet.send(message) }
+  quit()          { return this.puppet.quit() }
 
-  ding()          { return 'dong' }
+  ding()          {
+    // TODO: test through the server & browser
+    return 'dong'
+  }
 
   getLoginQrImgUrl() { return puppet.getLoginQrImgUrl() }
 }
