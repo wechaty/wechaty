@@ -14,14 +14,16 @@
   },
   "keywords": [
     "wechat",
+    "微信",
+    "weixin",
+    "personal",
+    "account",
     "bot",
     "robot",
     "framework",
     "library",
     "api",
-    "sdk",
-    "weixin",
-    "微信"
+    "sdk"
   ],
   "author": "Zhuohuan LI <zixia@zixia.net>",
   "license": "ISC",
