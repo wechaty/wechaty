@@ -11,18 +11,18 @@ Wechaty is Wechat for Bot.(Personal Account Robot, NOT Official Account)
 
 # Why
 My daily life/work depends on too much wechat.
-* I almost have 14,000 wechat friends till May 2014, before wechat restricting total number of friends to 5,000.
+* I almost have 14,000 wechat friends till May 2014, before wechat restricts a total number of friends to 5,000.
 * I almost have 400 wechat groups that most of them have more than 400 members.
 
 Can you image that? I'm dying...
 
-So a tireless bot working for me 24x7 on wechat, moniting/filtering the most important messages is badly needed. For example: highlights discusstion which contains the KEYWORDS I want to follow up(especialy in a noisy group). ;-)
+So a tireless bot working for me 24x7 on wechat, moniting/filtering the most important message is badly needed. For example: highlights discusstion which contains the KEYWORDS I want to follow up(especially in a noisy group). ;-)
 
 # Examples
 Wechaty is super easy to use: 10 lines of javascript is enough for your first wechat robot.
 
 ## 1. Basic: 10 lines
-The following 10 lines of code will implement a bot who will reply message automaticaly for you:
+The following 10 lines of code will implement a bot that will reply a message automatically to you:
 
 ```javascript
 const Wechaty = require('wechaty')
@@ -44,17 +44,17 @@ bot.on('message', m => {
 })
 ```
 
-Notice that you need to wait a moment while bot trying to get the login QRCode from Wechat. As soon as the bot got login QRCode url, he will print url out. You need to scan the qrcode in wechat, and confirm login.
+Notice that you need to wait a moment while bot trys to get the login QRCode from Wechat. As soon as the bot gets login QRCode url, he will print url out. You need to scan the qrcode on wechat, and confirm login.
 
-After that, bot will on duty. (roger-bot source can be found at [here](https://github.com/zixia/wechaty/blob/master/example/roger-bot.js))
+After that, bot will be on duty. (roger-bot source can be found at [here](https://github.com/zixia/wechaty/blob/master/example/roger-bot.js))
 
 ## 2. Advanced: 50 lines
-There's another basic usage demo bot named [ding-dong-bot](https://github.com/zixia/wechaty/blob/master/example/ding-dong-bot.js), who can reply `dong` when receive a message `ding`.
+There's another basic usage demo bot named [ding-dong-bot](https://github.com/zixia/wechaty/blob/master/example/ding-dong-bot.js), who can reply _dong_ when bot receives a message _ding_.
 
 ## 3. Hardcore: 100 lines
-To Be Wroten.
+To Be Written.
 
-Plan to glued with Machine Learning/Deep Learning/Neural Network/Natural Language Processing.
+Plan to glue with Machine Learning/Deep Learning/Neural Network/Natural Language Processing.
 
 # Installation
 The recommended installation method is a local NPM install for your project:
@@ -100,7 +100,7 @@ Emit when there's a new message.
 ```javascript
 bot.on('message', callback)
 ```
-Callback will get a instance of Message Class. (see `Class Message`)
+Callback will get an instance of Message Class. (see `Class Message`)
 
 ### Event: `login` & `logout`
 
@@ -217,11 +217,11 @@ Know more about tape: [Why I use Tape Instead of Mocha & So Should You](https://
 # Version History
 
 ## v0.0.5 (2016/5/11)
-1. receive & send message 
-1. show contacts info
-1. show groups info
+1. Receive & send message 
+1. Show contacts info
+1. Show groups info
 1. 1st usable version
-1. start coding from 1st May 2016
+1. Start coding from May 1st 2016
 
 # Todo List
 1. Deal with friend request
@@ -230,9 +230,6 @@ Know more about tape: [Why I use Tape Instead of Mocha & So Should You](https://
 Everybody is welcome to issue your needs.
 
 # Known Issues & Support
-1. phantomjs not work(no socket.io connect from browser)
-2. firefox need to use unstable mode(or inject will be blocked almost forever)
-
 Github Issue - https://github.com/zixia/wechaty/issues
 
 # Contributing
@@ -241,7 +238,7 @@ Github Issue - https://github.com/zixia/wechaty/issues
     ```bash
     $ npm lint
     ```
-* Create a issue, fork, then send a pull request(with unit test please).
+* Create an issue, fork, then send a pull request(with unit test please).
 
 Author
 -----------------
