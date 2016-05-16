@@ -1,11 +1,10 @@
-const log = require('npmlog')
-log.level = 'silly'
 const Wechaty = require('../src/wechaty')
-const bot = new Wechaty({head: true})
+const bot = new Wechaty()
 
 bot.init()
 .then(bot.getLoginQrImgUrl.bind(bot))
 .then(url => console.log(`Scan qrcode in url to login: \n${url}`))
+.catch(e => console.error(e))
 
 bot.on('message', m => {
   console.log('RECV: ' + m.get('content'))  // 1. print received message
@@ -16,4 +15,5 @@ bot.on('message', m => {
 
   bot.send(reply)                           // 3. do reply!
   .then(() => console.log('REPLY: roger.')) // 4. print reply message
+  .catch(e => console.error(e))
 })
