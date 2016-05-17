@@ -1,8 +1,10 @@
 ![Wechaty](https://raw.githubusercontent.com/zixia/wechaty/master/images/wechaty-logo-en.png)
 # Wechaty [![Circle CI](https://circleci.com/gh/zixia/wechaty.svg?style=svg)](https://circleci.com/gh/zixia/wechaty) [![Build Status](https://travis-ci.org/zixia/wechaty.svg?branch=master)](https://travis-ci.org/zixia/wechaty)
-Wechaty is Wechat for Bot.(Personal Account Robot, NOT Official Account)
+Wechaty is a Bot-Enable Framework/Library for Personal Account of Wechat.
 
-> Easy creating wechat robot code in 10 lines.
+> Easy creating personal account wechat robot code in 10 lines.
+
+**Connecting Bots**
 
 [![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=2592000)](https://nodejs.org/)
@@ -10,7 +12,7 @@ Wechaty is Wechat for Bot.(Personal Account Robot, NOT Official Account)
 [![Downloads][downloads-image]][downloads-url]
 
 # Why
-My daily life/work depends on too much wechat.
+My daily life/work depends on too much chat on wechat.
 * I almost have 14,000 wechat friends till May 2014, before wechat restricts a total number of friends to 5,000.
 * I almost have 400 wechat groups that most of them have more than 400 members.
 

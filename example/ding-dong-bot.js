@@ -63,5 +63,5 @@ function login() {
        ).catch(e => log.error('Bot', 'promise rejected'))
 }
 
-bot.on('login'	, () => npm.info('Bot', 'logined'))
-bot.on('logout'	, () => npm.info('Bot', 'logouted'))
+bot.on('login'  , e => log.info('Bot', 'logined:'   + JSON.stringify(e)))
+bot.on('logout' , e => log.info('Bot', 'logouted:'  + e))

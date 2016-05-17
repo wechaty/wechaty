@@ -61,12 +61,15 @@ class PuppetWeb extends Puppet {
      * `unload` event is sent from js@browser to webserver via socketio
      * after received `unload`, we re-inject the Wechaty js code into browser.
      */
-    this.server.on('unload', () => {
+    this.server.on('unload', data => {
       log.verbose('PuppetWeb', 'server received unload event')
+      this.emit('logout', data)
       this.browser.inject()
       .then(() => log.verbose('PuppetWeb', 're-injected'))
       .catch((e) => log.error('PuppetWeb', 'inject err: ' + e))
     })
+
+    this.server.on('log', s => log.verbose('PuppetWeb', 'log event:' + s))
 
     return this.server.init()
   }

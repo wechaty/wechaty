@@ -109,6 +109,7 @@ class Server extends EventEmitter {
         'message'
         , 'login'
         , 'logout'
+        , 'log'
         , 'unload'
       ].map(e => {
         s.on(e, data => {

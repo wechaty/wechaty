@@ -48,7 +48,7 @@
     }
   },
   "engines": {
-    "node": ">= 6.1.0"
+    "node": ">= 6.0.0"
   },
   "devDependencies": {
     "co": "^4.6.0",
