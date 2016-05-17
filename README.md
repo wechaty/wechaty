@@ -242,6 +242,10 @@ Github Issue - https://github.com/zixia/wechaty/issues
     ```
 * Create an issue, fork, then send a pull request(with unit test please).
 
+# See Also
+* [wxBot](https://github.com/liuwons/wxBot): Wechat Bot API in Python
+* [ItChat](https://github.com/littlecodersh/ItChat): Command line talks through Wechat in Python
+
 Author
 -----------------
 Zhuohuan LI <zixia@zixia.net> (http://linkedin.com/in/zixia)

@@ -2,7 +2,6 @@ language: node_js
 node_js:
   - "6.1"
   - "6"
-sudo: required
 dist: trusty
 before_install:
   - export DISPLAY=:99.0
