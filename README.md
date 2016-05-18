@@ -279,7 +279,7 @@ Github Issue - https://github.com/zixia/wechaty/issues
 
 # See Also
 * [wxBot](https://github.com/liuwons/wxBot): Wechat Bot API in Python
-* [ItChat](https://github.com/littlecodersh/ItChat): Command line talks through Wechat in Python
+* [ItChat](https://github.com/littlecodersh/ItChat): 微信个人号接口（支持文件、图片上下载）、微信机器人及命令行微信。三十行即可自定义个人号机器人 in Python
 
 Author
 -----------------
