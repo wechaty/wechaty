@@ -58,10 +58,44 @@ To Be Written.
 
 Plan to glue with Machine Learning/Deep Learning/Neural Network/Natural Language Processing.
 
-# Installation
-The recommended installation method is a local NPM install for your project:
+# Installation & Usage
+Use NPM is recommended to install Wechaty for you:
 ```bash
 $ npm install --save wechaty
+```
+
+## Start from strach
+In case that you do not know anything about nodejs, the follow instructions would help you to run Wechaty bot on your machine.
+
+## 1. Install NodeJS
+NodeJS Version 6.0 & above is required.
+1. Visit [NodeJS](https://nodejs.org)
+1. Download NodeJS Installer(i.e. "v6.2.0 Current")
+1. Run Installer to install NodeJS to your machine
+
+## 2. Checkout Wechaty
+Use `git` to checkout Wechaty source code from [Github.com](https://github.com)
+```shell
+git clone git@github.com:zixia/wechaty.git
+# git clone https://github.com/zixia/wechaty.git
+```
+
+## 3. Install Dependents
+```shell
+cd wechaty
+npm install
+```
+
+## 4. Run Demo Bot
+```shell
+npm start
+# node example/ding-dong-bot.js
+```
+
+# Trouble Shooting
+If wechaty is not run as expected, run unit test maybe help to find some useful message.
+```shell
+npm test
 ```
 
 # Requirement
@@ -112,7 +146,7 @@ To-Be-Supported
 All messages will be encaped in Message.
 
 ### Message.ready()
-A message may be not fully initialized yet. Call `ready()` to confirm we get all the data needed. 
+A message may be not fully initialized yet. Call `ready()` to confirm we get all the data needed.
 
 Return a Promise, will be resolved when all data is ready.
 
@@ -123,7 +157,7 @@ message.ready()
 })
 ```
 ### Message.get(prop)
-Get prop from a message. 
+Get prop from a message.
 
 Supported prop list:
 
@@ -149,7 +183,7 @@ message.set('content', 'Hello, World!')
 ## Class Contact
 
 ### Contact.ready()
-A Contact may be not fully initialized yet. Call `ready()` to confirm we get all the data needed. 
+A Contact may be not fully initialized yet. Call `ready()` to confirm we get all the data needed.
 
 Return a Promise, will be resolved when all data is ready.
 
@@ -160,7 +194,7 @@ contact.ready()
 })
 ```
 ### Contact.get(prop)
-Get prop from a contact. 
+Get prop from a contact.
 
 Supported prop list:
 
@@ -180,7 +214,7 @@ contact.get('name')
 ## Class Group
 
 ### Group.ready()
-A group may be not fully initialized yet. Call `ready()` to confirm we get all the data needed. 
+A group may be not fully initialized yet. Call `ready()` to confirm we get all the data needed.
 
 Return a Promise, will be resolved when all data is ready.
 
@@ -192,7 +226,7 @@ group.ready()
 ```
 
 ### Group.get(prop)
-Get prop from a group. 
+Get prop from a group.
 
 Supported prop list:
 
@@ -219,7 +253,7 @@ Know more about tape: [Why I use Tape Instead of Mocha & So Should You](https://
 # Version History
 
 ## v0.0.5 (2016/5/11)
-1. Receive & send message 
+1. Receive & send message
 1. Show contacts info
 1. Show groups info
 1. 1st usable version

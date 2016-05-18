@@ -33,12 +33,13 @@
   "homepage": "https://github.com/zixia/wechaty#readme",
   "dependencies": {
     "body-parser": "^1.15.0",
-    "socket.io": "^1.4.5",
-    "express": "^4.13.4",
-    "selenium-webdriver": "",
-    "phantomjs-prebuilt": "^2.1.7",
     "chromedriver": "^2.21.2",
-    "npmlog": "^2.0.3"
+    "co": "^4.6.0",
+    "express": "^4.13.4",
+    "npmlog": "^2.0.3",
+    "phantomjs-prebuilt": "^2.1.7",
+    "selenium-webdriver": "",
+    "socket.io": "^1.4.5"
   },
   "eslintConfig": {
     "env": {
@@ -51,8 +52,8 @@
     "node": ">= 6.0.0"
   },
   "devDependencies": {
-    "co": "^4.6.0",
     "eslint": "^2.9.0",
-    "tape": "^4.5.1"
+    "tape": "^4.5.1",
+    "tuling123-client": "0.0.1"
   }
 }
