@@ -1,7 +1,7 @@
-const Wechaty = require('../src/wechaty')
 const log = require('npmlog')
 //log.level = 'verbose'
 //log.level = 'silly'
+const Wechaty = require('../src/wechaty')
 
 const welcome = `
 | __        __        _           _
@@ -30,14 +30,16 @@ console.log(welcome)
 const bot = new Wechaty({head: true})
 
 bot.init()
-.then(login)
+.then(bot.getLoginQrImgUrl.bind(bot))
+.then(url => console.log(`Scan qrcode in url to login: \n${url}`))
+.catch(e => log.error('Bot', 'bot.init() fail: ' + e))
 
 bot.on('message', m => {
   m.ready()
-  .then(msg  => {
+  .then(msg => {
     log.info('Bot', 'recv: %s'  , msg)
   })
-  .catch(e    => log.error('Bot', 'ready: %s' , e))
+  .catch(e => log.error('Bot', 'ready: %s' , e))
 
   if (/^(ding|ping|bing)$/i.test(m.get('content'))) {
     const r = new Wechaty.Message()
@@ -47,16 +49,6 @@ bot.on('message', m => {
     .then(() => { log.warn('Bot', 'REPLY: dong') })
   }
 })
-
-function login() {
-  log.info('Bot', 'Welcome to Wechaty')
-
-  bot.puppet
-  .getLoginQrImgUrl()
-  .then(url =>
-        console.log(`\n\nAction needed. Scan the belowing QRCode to login:\n\n${url}\n\nTip: You can copy/paste it to a web browser.\n`)
-       ).catch(e => log.error('Bot', 'promise rejected'))
-}
 
 bot.on('login'	, () => npm.info('Bot', 'logined'))
 bot.on('logout'	, () => npm.info('Bot', 'logouted'))

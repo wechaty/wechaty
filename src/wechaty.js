@@ -52,7 +52,7 @@ class Wechaty extends EventEmitter {
 
   ding()          { return 'dong' }
 
-  getLoginQrImgUrl() { return puppet.getLoginQrImgUrl() }
+  getLoginQrImgUrl() { return this.puppet.getLoginQrImgUrl() }
 }
 
 Puppet.Web = PuppetWeb

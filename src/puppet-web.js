@@ -136,7 +136,10 @@ class PuppetWeb extends Puppet {
    *  Public Methods
    *
    */
-  getLoginQrImgUrl()    { return this.proxyWechaty('getLoginQrImgUrl') }
+  getLoginQrImgUrl()    { 
+    log.silly('PuppetWeb', 'getLoginQrImgUrl()')
+    return this.proxyWechaty('getLoginQrImgUrl') 
+  }
   getLoginStatusCode()  { return this.proxyWechaty('getLoginStatusCode') }
   getContact(id)        { return this.proxyWechaty('getContact', id) }
   isLogined()           { return !!(this.logined) }

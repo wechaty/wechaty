@@ -1,6 +1,5 @@
-const log = require('npmlog')
-log.level = 'silly'
 const Wechaty = require('../src/wechaty')
+const log = require('npmlog')
 const bot = new Wechaty({head: true})
 
 bot.init()
