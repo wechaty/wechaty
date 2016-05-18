@@ -45,13 +45,20 @@ class Group {
       id:         rawObj.UserName
       , encryId:  rawObj.EncryChatRoomId // ???
       , name:     rawObj.NickName
-      , members:  rawObj.MemberList.map(m => {
-        return {
-          contact:  Contact.load(m.UserName)
-          , name:   m.DisplayName
-        }
-      })
+      , members:  this.parseMemberList(rawObj.MemberList)
     }
+  }
+
+  parseMemberList(memberList) {
+    if (!memberList || !memberList.map) {
+      return []
+    }
+    return memberList.map(m => {
+      return {
+        contact:  Contact.load(m.UserName)
+        , name:   m.DisplayName
+      }
+    })
   }
 
   dumpRaw() {

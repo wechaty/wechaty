@@ -47,7 +47,8 @@ bot.on('message', m => {
       const r = new Wechaty.Message()
       .set('to', m.get('from'))
 
-      const answer = brain.ask(m.get('content'))
+      const content = m.get('content').toString()
+      const answer = brain.ask(content, {userid: msg.get('from')})
       r.set('content', answer)
 
       yield bot.send(r)

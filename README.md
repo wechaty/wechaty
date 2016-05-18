@@ -140,7 +140,8 @@ Callback will get an instance of Message Class. (see `Class Message`)
 
 ### Event: `login` & `logout`
 
-To-Be-Supported
+1. After the bot login full successful, the event `login` will be emitted.
+1. After the bot logout, the event `logout` will be emitted.
 
 ## Class Message
 All messages will be encaped in Message.
