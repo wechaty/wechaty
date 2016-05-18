@@ -1,4 +1,5 @@
 const path  = require('path')
+const co    = require('co')
 const test  = require('tape')
 const log   = require('npmlog')
 //log.level = 'silly'
@@ -14,31 +15,28 @@ test('WebDriver smoke testing', function(t) {
   const wb = new PuppetWebBrowser({port: PORT})
   const driver = wb.getDriver()
 
-  const injectio = PuppetWebBrowser.getInjectio()
+  co(function* () {
+    const injectio = PuppetWebBrowser.getInjectio()
+    yield driver.get('https://wx.qq.com/')
 
-  driver.get('https://wx.qq.com/')
-  .then(() => {
-    Promise.all([
-      execute('return 1+1')     // ret_add
-      , execute(injectio, 8788) // ret_inject
-    ]).then(([
-      retAdd
-      , retInject
-    ]) => {
-      t.equal(retAdd   , 2         , 'execute js in browser')
-      t.equal(retInject, 'Wechaty' , 'injected wechaty')
+    const retAdd = yield execute('return 1+1')
+    t.equal(retAdd, 2, 'execute js in browser')
+    
+    const retInject = yield execute(injectio, 8788)
+    t.equal(retInject, 'Wechaty', 'injected wechaty')
 
-      t.end()
-      driver.quit()
-    }).catch(e => {
-      t.ok(false, 'promise rejected. e:' + e)
-      t.end()
-      driver.quit()
-    })/* .finally(() => {
-      console.log('final')
-    })
-   */
   })
+  .catch(e => { // REJECTED
+    t.ok(false, 'promise rejected. e:' + e)
+  })
+  .then(() => { // FINALLY
+    t.end()
+    driver.quit()
+  })
+
+  return
+
+  //////////////////////////////////
 
   function execute() {
     return driver.executeScript.apply(driver, arguments)

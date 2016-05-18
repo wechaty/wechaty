@@ -60,8 +60,8 @@ Plan to glue with Machine Learning/Deep Learning/Neural Network/Natural Language
 
 # Installation & Usage
 Use NPM is recommended to install Wechaty for you:
-```bash
-$ npm install --save wechaty
+```shell
+npm install --save wechaty
 ```
 
 ## Start from strach
@@ -69,6 +69,7 @@ In case that you do not know anything about nodejs, the follow instructions woul
 
 ## 1. Install NodeJS
 NodeJS Version 6.0 & above is required.
+
 1. Visit [NodeJS](https://nodejs.org)
 1. Download NodeJS Installer(i.e. "v6.2.0 Current")
 1. Run Installer to install NodeJS to your machine
@@ -76,8 +77,7 @@ NodeJS Version 6.0 & above is required.
 ## 2. Checkout Wechaty
 Use `git` to checkout Wechaty source code from [Github.com](https://github.com)
 ```shell
-git clone git@github.com:zixia/wechaty.git
-# git clone https://github.com/zixia/wechaty.git
+git clone https://github.com/zixia/wechaty.git
 ```
 
 ## 3. Install Dependents
@@ -89,8 +89,8 @@ npm install
 ## 4. Run Demo Bot
 ```shell
 npm start
-# node example/ding-dong-bot.js
 ```
+This will run `node example/ding-dong-bot.js`
 
 # Trouble Shooting
 If wechaty is not run as expected, run unit test maybe help to find some useful message.
@@ -100,7 +100,7 @@ npm test
 
 # Requirement
 
-ECMAScript2015/ES6. I develop and test wechaty under nodejs6.0.
+ECMAScript2015(ES6). I develop and test wechaty with Node.js v6.0.
 
 # API Refference
 
@@ -278,8 +278,14 @@ Github Issue - https://github.com/zixia/wechaty/issues
 * Create an issue, fork, then send a pull request(with unit test please).
 
 # See Also
-* [wxBot](https://github.com/liuwons/wxBot): Wechat Bot API in Python
-* [ItChat](https://github.com/littlecodersh/ItChat): 微信个人号接口（支持文件、图片上下载）、微信机器人及命令行微信。三十行即可自定义个人号机器人 in Python
+
+## Javascript
+1. [Weixinbot](https://github.com/feit/Weixinbot) Nodejs 封装网页版微信的接口，可编程控制微信消息
+
+## Python
+1. [WeixinBot](https://github.com/Urinx/WeixinBot) *Very well documented* 网页版微信API，包含终端版微信及微信机器人
+1. [wxBot](https://github.com/liuwons/wxBot): Wechat Bot API
+1. [ItChat](https://github.com/littlecodersh/ItChat): 微信个人号接口（支持文件、图片上下载）、微信机器人及命令行微信。三十行即可自定义个人号机器人
 
 Author
 -----------------
