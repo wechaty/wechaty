@@ -46,11 +46,12 @@ return (function(port) {
     // glue funcs
     , getLoginStatusCode: function() { return Wechaty.glue.loginScope.code }
     , getLoginQrImgUrl:   function() { return Wechaty.glue.loginScope.qrcodeUrl }
-    , isLogined:          function() { return 200 === Wechaty.glue.loginScope.code /* MMCgi.isLogin ??? */}
+    , isLogin:            function() { return !!(window.MMCgi && window.MMCgi.isLogin) }
     , isReady:            isReady
 
     // variable
-    , socket:   null
+    , socket:     null
+    , eventsBuf:  []
 
     // funcs
     , init: init
@@ -59,6 +60,7 @@ return (function(port) {
     , slog: slog // log throw Socket IO
     , ding: ding
     , quit: quit
+    , emit: emit
 
     , getContact: getContact
   }
@@ -85,21 +87,29 @@ return (function(port) {
 
   function glueAngular() {
     var injector  = angular.element(document).injector()
-    var rootScope = injector.get('$rootScope')
-    var http      = injector.get('$http')
+
+    var http            = injector.get('$http')
+    var accountFactory  = injector.get('accountFactory')
     var chatFactory     = injector.get('chatFactory')
     var confFactory     = injector.get('confFactory')
     var contactFactory  = injector.get('contactFactory')
-    var loginScope  = angular.element('.login_box').scope()
+
+    var rootScope   = injector.get('$rootScope')
+    var appScope    = angular.element('[ng-controller="appController"]').scope()
+    var loginScope  = angular.element('[ng-controller="loginController"]').scope()
 
     // get all we need from wx in browser(angularjs)
     Wechaty.glue = {
       injector:       injector
-      , rootScope:    rootScope
       , http:         http
+
+      , accountFactory: accountFactory
       , chatFactory:    chatFactory
       , confFactory:    confFactory
       , contactFactory: contactFactory
+
+      , rootScope:    rootScope
+      , appScope:     appScope
       , loginScope:   loginScope
     }
   }
@@ -107,38 +117,65 @@ return (function(port) {
   function quit() {
     if (Wechaty.socket) {
       Wechaty.socket.close()
-      Wechaty.socket = undefined
+      Wechaty.socket = null
     }
     clog('quit()')
   }
-  function slog(data) { return Wechaty.socket && Wechaty.socket.emit('log', data) }
+  function slog(msg) { return Wechaty.socket && Wechaty.socket.emit('log', msg) }
   function ding()     { return 'dong' }
   function send(ToUserName, Content) {
     var chat = Wechaty.glue.chatFactory
-    var conf = Wechaty.glue.confFactory
     var m = chat.createMessage({
       ToUserName: ToUserName
       , Content: Content
-      , MsgType: conf.MSGTYPE_TEXT
+      , MsgType: Wechaty.glue.confFactory.MSGTYPE_TEXT
     })
     chat.appendMessage(m)
     return chat.sendMessage(m)
   }
   function getContact(id) { return Wechaty.glue.contactFactory.getContact(id) }
   function hookMessage() {
-    var rootScope = Wechaty.glue.rootScope
-    rootScope.$on('message:add:success', function(event, data) {
-      if (Wechaty.socket) {
-        Wechaty.socket.emit('message', data)
-      } else {
-        clog('Wechaty.socket not ready')
-      }
+    Wechaty.glue.rootScope.$on('message:add:success', function(event, data) {
+      Wechaty.emit('message', data)
     })
+    Wechaty.glue.appScope.$on("newLoginPage", function(event, data) {
+      Wechaty.emit('login', data)
+    })
+    Wechaty.glue.rootScope.$on('root:pageInit:success'), function (event, data) {
+      Wechaty.emit('login', data)
+    }
   }
   function hookUnload() {
     window.addEventListener('unload', function(e) {
-      Wechaty.socket.emit('unload')
+      // XXX only 1 event can be emitted here???
+      Wechaty.emit('unload', e)
+      // Wechaty.slog('emit unload')
+      // Wechaty.emit('logout', e)
+      // Wechaty.slog('emit logout')
+      // Wechaty.slog('emit logout&unload over')
     })
+  }
+  // Wechaty.emit, will save event & data when there's no socket io connection to prevent event lost
+  function emit(event, data) {
+    if (!Wechaty.socket) {
+      clog('Wechaty.socket not ready')
+      if (event) {
+        Wechaty.eventsBuf.push([event, data])
+      }
+      setTimeout(emit, 1000) // resent eventsBuf after 1000ms
+      return
+    }
+    if (Wechaty.eventsBuf.length) {
+      clog('Wechaty.eventsBuf has ' + Wechaty.eventsBuf.length + ' unsend events')
+      var eventData
+      while (eventData = Wechaty.eventsBuf.pop()) {
+        Wechaty.socket.emit(eventData[0], eventData[1])
+      }
+      clog('Wechaty.eventsBuf all sent')
+    }
+    if (event) {
+      Wechaty.socket.emit(event, data)
+    }
   }
   function connectSocket() {
     clog('connectSocket()')
@@ -178,6 +215,9 @@ return (function(port) {
 
   window.Wechaty = Wechaty
 
+  if (Wechaty.isLogin()) {
+    Wechaty.emit('login', 'page refresh')
+  }
   var callback = arguments[arguments.length - 1]
   if (typeof callback === 'function') {
     return callback('Wechaty')

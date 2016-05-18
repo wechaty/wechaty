@@ -1,6 +1,7 @@
 const log = require('npmlog')
 //log.level = 'verbose'
-//log.level = 'silly'
+log.level = 'silly'
+
 const Wechaty = require('../src/wechaty')
 
 const welcome = `
@@ -32,7 +33,11 @@ const bot = new Wechaty({head: true})
 bot.init()
 .then(bot.getLoginQrImgUrl.bind(bot))
 .then(url => console.log(`Scan qrcode in url to login: \n${url}`))
-.catch(e => log.error('Bot', 'bot.init() fail: ' + e))
+.catch(e => {
+  log.error('Bot', 'init() fail:' + e)
+  bot.quit()
+  process.exit(-1)
+})
 
 bot.on('message', m => {
   m.ready()
@@ -52,3 +57,4 @@ bot.on('message', m => {
 
 bot.on('login'	, () => npm.info('Bot', 'logined'))
 bot.on('logout'	, () => npm.info('Bot', 'logouted'))
+

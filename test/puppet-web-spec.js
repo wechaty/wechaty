@@ -1,12 +1,13 @@
 const co = require('co')
-const log = require('npmlog')
 const test = require('tape')
+const log = require('npmlog')
+log.level = 'silly'
+
 const PuppetWeb = require('../src/puppet-web')
 const PORT = 58788
-const HEAD = true
 
 test('PuppetWeb smoke testing', function(t) {
-  const pw = new PuppetWeb({head: HEAD, port: PORT})
+  const pw = new PuppetWeb({port: PORT})
 
   co(function* () {
     yield pw.init()
@@ -24,15 +25,15 @@ test('PuppetWeb smoke testing', function(t) {
     const retCode = yield pw.proxyWechaty('getLoginStatusCode')
     t.equal(typeof retCode, 'number', 'getLoginStatusCode')
   })
-  .catch(e => t.fail(e))
-  .then(r => {
+  .catch(e => t.fail(e))  // Reject
+  .then(r => {            // Finally
     pw.quit()
     t.end()
   })
 })
 
 test('Puppet Web server/browser communication', function(t) {
-  const pw = new PuppetWeb({head: HEAD, port: PORT})
+  const pw = new PuppetWeb({port: PORT})
 
   co(function* () {
     yield pw.init()
@@ -41,15 +42,10 @@ test('Puppet Web server/browser communication', function(t) {
     const retSocket = yield dingSocket(pw.server)
     t.equal(retSocket,  'dong', 'dingSocket got dong')
   })
-  .catch(e => { // Reject
-    t.fail('co promise rejected:' + e)
-  })
-  .then(r => {  // Finally
+  .catch(e => t.fail(e))  // Reject
+  .then(r => {            // Finally
     pw.quit()
     t.end()
-  })
-  .catch(e => { // Exception
-    log.error('TestingPuppetWeb', 'Exception:' + e)
   })
 
   return // The following is help functions only

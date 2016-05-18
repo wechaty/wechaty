@@ -52,8 +52,13 @@ class Browser {
     // const phantomjsExe = require('phantomjs2').path
     const customPhantom = WebDriver.Capabilities.phantomjs()
     .set('phantomjs.binary.path', phantomjsExe)
+    .set('phantomjs.cli.args', [
+      '--ignore-ssl-errors=true' // this help socket.io connect with localhost
+      , '--load-images=false'
+      , '--remote-debugger-port=9000'
+    ])
 
-    log.verbose('Browser', 'phantomjs path:' + phantomjsExe)
+    log.silly('Browser', 'phantomjs path:' + phantomjsExe)
 
     //build custom phantomJS driver
     return new WebDriver.Builder()
@@ -69,19 +74,20 @@ class Browser {
   }
   inject() {
     const injectio = Browser.getInjectio()
-    log.verbose('Browser', 'injecting')
+    log.verbose('Browser', 'inject()')
     try {
-      var p = this.execute(injectio, this.port)
+      return this.execute(injectio, this.port)
+      .then(r => {
+        log.verbose('Browser', 'init() after inject()')
+        return this.execute('return (typeof Wechaty)==="undefined" ? false : Wechaty.init()')
+      })
+      .then(r => {
+        log.verbose('Browser', 'Wechaty.init() return: ' + r)
+        return r
+      })
     } catch (e) {
-      return new Promise((rs, rj) => rj('execute exception: ' + e))
+      return Promise.reject('execute exception: ' + e)
     }
-    return p.then(() => {
-      log.verbose('Browser', 'injected / try Wechaty.init()')
-      return this.execute('return (typeof Wechaty)==="undefined" ? false : Wechaty.init()')
-    }).then((data) => {
-      log.verbose('Browser', 'Wechaty.init() return: ' + data)
-      return new Promise((resolve, reject) => resolve(data))
-    })
   }
 
   quit() {
