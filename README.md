@@ -24,14 +24,14 @@ So a tireless bot working for me 24x7 on wechat, moniting/filtering the most imp
 Wechaty is super easy to use: 10 lines of javascript is enough for your first wechat robot.
 
 ## 1. Basic: 10 lines
-The following 10 lines of code will implement a bot that will reply a message automatically to you:
+The following 10 lines of code implement a bot who reply "roger" for every message received:
 
 ```javascript
 const Wechaty = require('wechaty')
 const bot = new Wechaty()
 
 bot.init()
-.then(bot.getLoginQrImgUrl.bind(bot.puppet))
+.then(bot.getLoginQrImgUrl.bind(bot))
 .then(url => console.log(`Scan qrcode in url to login: \n${url}`))
 
 bot.on('message', m => {
@@ -58,7 +58,7 @@ To Be Written.
 
 Plan to glue with Machine Learning/Deep Learning/Neural Network/Natural Language Processing.
 
-# Installation & Usage
+# Installation
 Use NPM is recommended to install Wechaty for you:
 ```bash
 $ npm install --save wechaty
@@ -77,7 +77,7 @@ NodeJS Version 6.0 & above is required.
 Use `git` to checkout Wechaty source code from [Github.com](https://github.com)
 ```shell
 git clone git@github.com:zixia/wechaty.git
-# git clone https://github.com/zixia/wechaty.git
+# or use https: git clone https://github.com/zixia/wechaty.git
 ```
 
 ## 3. Install Dependents
@@ -89,7 +89,7 @@ npm install
 ## 4. Run Demo Bot
 ```shell
 npm start
-# node example/ding-dong-bot.js
+# this will run: node example/ding-dong-bot.js
 ```
 
 # Trouble Shooting

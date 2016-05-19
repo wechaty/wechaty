@@ -1,5 +1,5 @@
 /**
- * 
+ *
  * Wechaty bot use a Tuling123.com brain
  *
  * Apply your own tuling123.com API_KEY
@@ -43,17 +43,19 @@ bot.on('message', m => {
     const msg = yield m.ready()
     log.info('Bot', 'recv: %s'  , msg)
 
-    if (!m.inGroup()) {
-      const r = new Wechaty.Message()
-      .set('to', m.get('from'))
-
-      const content = m.get('content').toString()
-      const answer = brain.ask(content, {userid: msg.get('from')})
-      r.set('content', answer)
-
-      yield bot.send(r)
-      log.info('Bot', `REPLY: ${answer}`)
+    if (m.inGroup()) {
+      return
     }
+
+    const r = new Wechaty.Message()
+    .set('to', m.get('from'))
+
+    const content = m.get('content')
+    const {code, text} = yield brain.ask(content, {userid: msg.get('from')})
+    r.set('content', text)
+
+    yield bot.send(r)
+    log.info('Bot', `REPLY: {code:${code}, text:${text}}`)
   })
   .catch(e => log.error('Bot', 'on message rejected: %s' , e))
 })

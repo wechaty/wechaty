@@ -22,22 +22,25 @@ class Message {
   // Transform rawObj to local m
   parse(rawObj) {
     return {
-      id:         rawObj.MsgId
-      , type:     rawObj.MsgType
-      , from:     Contact.load(rawObj.MMActualSender)
-      , to:       Contact.load(rawObj.ToUserName)
-      , group:    rawObj.MMIsChatRoom ? new Group(rawObj.FromUserName) : null // MMPeerUserName always eq FromUserName ?
-      , content:  rawObj.MMActualContent // Content has @id prefix added by wx
-      , status:   rawObj.Status
+      id:             rawObj.MsgId
+      , type:         rawObj.MsgType
+      , from:         rawObj.MMActualSender
+      , to:           rawObj.ToUserName
+      , group:        !!(rawObj.MMIsChatRoom) // MMPeerUserName always eq FromUserName ?
+      , content:      rawObj.MMActualContent // Content has @id prefix added by wx
+      , status:       rawObj.Status
+      , digest:       rawObj.MMDigest
+      , date:         new Date(rawObj.MMDisplayTime*1000)
 
-      , digest:   rawObj.MMDigest
-      , date:     new Date(rawObj.MMDisplayTime*1000)
+      , fromContact:  Contact.load(rawObj.MMActualSender)
+      , toContact:    Contact.load(rawObj.ToUserName)
+      , inGroup:      rawObj.MMIsChatRoom ? Group.load(rawObj.FromUserName) : null
     }
 
   }
   toString() {
     const name  = html2str(this.obj.from.get('name'))
-    const group = this.obj.group
+    const group = this.obj.inGroup
     let content = html2str(this.obj.content)
     if (content.length > 20) content = content.substring(0,17) + '...';
 		let groupStr = group ? html2str(group) : ''
@@ -57,11 +60,14 @@ class Message {
 
   ready() {
     return new Promise((resolve, reject) => {
-      this.obj.from.ready()           // Contact from
-      .then(r => this.obj.to.ready()) // Contact to
-      .then(r => this.obj.group && this.obj.group.ready())  // Group member list
+      this.obj.fromContact.ready()           // Contact from
+      .then(r => this.obj.toContact.ready()) // Contact to
+      .then(r => this.obj.inGroup && this.obj.inGroup.ready())  // Group member list
       .then(r => resolve(this)) // RESOLVE
-      .catch(e => reject(e))    // REJECT
+      .catch(e => {             // REJECT
+        log.error('Message', 'ready() rejected:' + e)
+        reject(e)
+      })
     })
   }
 
@@ -80,13 +86,13 @@ class Message {
     return this
   }
 
-  dump() { 
-    console.error('======= dump message =======') 
-    Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj[k]}`)) 
+  dump() {
+    console.error('======= dump message =======')
+    Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj[k]}`))
   }
-  dumpRaw() { 
+  dumpRaw() {
     console.error('======= dump raw message =======')
-    Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj[k]}`)) 
+    Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj[k]}`))
   }
 
   getCount() { return Message.counter }

@@ -38,6 +38,8 @@ class PuppetWeb extends Puppet {
     this.on('login' , () => this.logined = true)
     this.on('logout', () => this.logined = false)
 
+    this.userId = null
+
     return Promise.all([
       this.initServer()
       , this.initBrowser()
@@ -53,10 +55,7 @@ class PuppetWeb extends Puppet {
     ].map(event =>
       this.server.on(event, data => this.emit(event, data))
     )
-    this.server.on('message', data => {
-      const m = new Message(data)
-      this.emit('message', m)
-    })
+    this.server.on('message', data => this.forwardMessage(data))
     /**
      * `unload` event is sent from js@browser to webserver via socketio
      * after received `unload`, we re-inject the Wechaty js code into browser.
@@ -82,11 +81,19 @@ class PuppetWeb extends Puppet {
     return this.browser.init()
   }
 
+  forwardMessage(data) {
+    const m = new Message(data)
+    const fromId = m.get('from')
+    if (this.userId)
+    this.emit('message', m)
+  }
   send(message) {
-    const toContact = message.get('to')
-    const content   = message.get('content')
+    const toContact   = message.get('to')
+    const toContactId = toContact.getId()
+    const content     = message.get('content')
 
-    return this.proxyWechaty('send', toContact.getId(), content)
+    log.silly('PuppetWeb', `send(${toContactId}, ${content})`)
+    return this.proxyWechaty('send', toContactId, content)
   }
 
   logout() {
