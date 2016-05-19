@@ -1,5 +1,5 @@
-const Wechaty = require('../src/wechaty')
-const bot = new Wechaty()
+const log = require('npmlog')
+const bot = new Wechaty({head: true})
 
 bot.init()
 .then(bot.getLoginQrImgUrl.bind(bot))
