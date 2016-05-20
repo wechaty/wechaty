@@ -15,10 +15,17 @@ class Message {
   constructor(rawObj) {
     Message.counter++
 
+    this.logToFile(JSON.stringify(rawObj))
+
     this.rawObj = rawObj = rawObj || {}
     this.obj = this.parse(rawObj)
   }
 
+  logToFile(data) {
+    require('fs').appendFile('message.log', data + '\n\n#############################\n\n', err => {
+      if (err) { log.error('Message', 'logToFile: ' + err) }
+    })
+  }
   // Transform rawObj to local m
   parse(rawObj) {
     return {
@@ -35,13 +42,15 @@ class Message {
     }
 
   }
-  toString() { return `Message#${Message.counter}(` + this.getFromString() + `: ${content})` }
-
+  toString() { return `Message#${Message.counter}(` + this.getFromString() + ':' + this.getContentString() + ')' }
+  getContentString() {
+    let content = this.unescapeHtml(this.stripHtml(this.obj.content))
+    if (content.length > 20) { content = content.substring(0,17) + '...' }
+    return content
+  }
   getFromString() {
     const name  = this.obj.from.get('name')
     const group = this.obj.group
-    let content = this.unescapeHtml(this.stripHtml(this.obj.content))
-    if (content.length > 20) { content = content.substring(0,17) + '...' }
     return '<' + name + (group ? `@[${group}]` : '') + '>'
   }
   stripHtml(str) { return String(str).replace(/(<([^>]+)>)/ig,'') }

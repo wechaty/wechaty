@@ -20,6 +20,9 @@ false && test('Group constructor parser test', t => {
   t.equal(m.get('id')           , EXPECTED.id   , 'id right')
   t.equal(m.get('from').getId() , EXPECTED.from , 'from right')
 
+  const s = g.toString()
+  t.equal(typeof s, 'string', 'toString()')
+
   t.end()
 })
 

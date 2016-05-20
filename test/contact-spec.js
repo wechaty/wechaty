@@ -30,6 +30,10 @@ test('Contact smoke testing', t => {
   .then(r => {
     t.equal(c.get('id')   , UserName, 'UserName set')
     t.equal(c.get('name') , NickName, 'NickName set')
+
+    const s = c.toString()
+    t.equal(typeof s, 'string', 'toString()')
+
   })
   .catch(e => t.fail('ready() rejected: ' + e))
   .then(t.end) // test end
