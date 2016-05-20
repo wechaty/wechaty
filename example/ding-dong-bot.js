@@ -55,6 +55,6 @@ bot.on('message', m => {
   }
 })
 
-bot.on('login'	, () => npm.info('Bot', 'logined'))
-bot.on('logout'	, () => npm.info('Bot', 'logouted'))
+bot.on('login'	, () => log.info('Bot', 'logined'))
+bot.on('logout'	, () => log.info('Bot', 'logouted'))
 
