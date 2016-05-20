@@ -13,7 +13,7 @@ const log     = require('npmlog')
 
 class Message {
   constructor(rawObj) {
-    Message.counter++;
+    Message.counter++
 
     this.rawObj = rawObj = rawObj || {}
     this.obj = this.parse(rawObj)
@@ -35,25 +35,24 @@ class Message {
     }
 
   }
-  toString() {
-    const name  = html2str(this.obj.from.get('name'))
-    const group = this.obj.group
-    let content = html2str(this.obj.content)
-    if (content.length > 20) content = content.substring(0,17) + '...';
-		let groupStr = group ? html2str(group) : ''
-    let fromStr = '<' + name + (groupStr ? `@[${groupStr}]` : '') + '>'
-    return `Message#${Message.counter}(${fromStr}: ${content})`
+  toString() { return `Message#${Message.counter}(` + this.getFromString() + `: ${content})` }
 
-		function html2str(html) {
-			return String(html)
-      .replace(/(<([^>]+)>)/ig,'')
-			.replace(/&apos;/g, "'")
-			.replace(/&quot;/g, '"')
-			.replace(/&gt;/g, '>')
-			.replace(/&lt;/g, '<')
-			.replace(/&amp;/g, '&')
-		}
-	}
+  getFromString() {
+    const name  = this.obj.from.get('name')
+    const group = this.obj.group
+    let content = this.unescapeHtml(this.stripHtml(this.obj.content))
+    if (content.length > 20) { content = content.substring(0,17) + '...' }
+    return '<' + name + (group ? `@[${group}]` : '') + '>'
+  }
+  stripHtml(str) { return String(str).replace(/(<([^>]+)>)/ig,'') }
+  unescapeHtml(str) {
+    return String(str)
+    .replace(/&apos;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&gt;/g, '>')
+    .replace(/&lt;/g, '<')
+    .replace(/&amp;/g, '&')
+  }
 
   ready() {
     return new Promise((resolve, reject) => {
@@ -80,16 +79,16 @@ class Message {
     return this
   }
 
-  dump() { 
-    console.error('======= dump message =======') 
-    Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj[k]}`)) 
+  dump() {
+    console.error('======= dump message =======')
+    Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj[k]}`))
   }
-  dumpRaw() { 
+  dumpRaw() {
     console.error('======= dump raw message =======')
-    Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj[k]}`)) 
+    Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj[k]}`))
   }
 
-  getCount() { return Message.counter }
+  count() { return Message.counter }
 
   static find(selector, option) {
     return new Message({MsgId: '-1'})
@@ -104,5 +103,29 @@ class Message {
 }
 
 Message.counter = 0
+Message.Type = {
+  TEXT: 1,
+  IMAGE: 3,
+  VOICE: 34,
+  VIDEO: 43,
+  MICROVIDEO: 62,
+  EMOTICON: 47,
+  APP: 49,
+  VOIPMSG: 50,
+  VOIPNOTIFY: 52,
+  VOIPINVITE: 53,
+  LOCATION: 48,
+  STATUSNOTIFY: 51,
+  SYSNOTICE: 9999,
+  POSSIBLEFRIEND_MSG: 40,
+  VERIFYMSG: 37,
+  SHARECARD: 42,
+  SYS: 1e4,
+  RECALLED: 10002
+}
+Object.keys(Message.Type).forEach(k => {
+  const v = Message.Type[k]
+  Message.Type[v] = k // Message.Type[1] = 'TEXT'
+})
 
 module.exports = Message
