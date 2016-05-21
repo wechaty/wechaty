@@ -30,17 +30,16 @@ class Message {
       , content:      rawObj.MMActualContent // Content has @id prefix added by wx
       , status:       rawObj.Status
       , digest:       rawObj.MMDigest
-      , date:         new Date(rawObj.MMDisplayTime*1000)
 
+      , date:         new Date(rawObj.MMDisplayTime*1000)
       , fromContact:  Contact.load(rawObj.MMActualSender)
       , toContact:    Contact.load(rawObj.ToUserName)
-      , inGroup:      rawObj.MMIsChatRoom ? Group.load(rawObj.FromUserName) : null
+      , fromGroup:    rawObj.MMIsChatRoom ? Group.load(rawObj.FromUserName) : null
     }
-
   }
   toString() {
     const name  = html2str(this.obj.from.get('name'))
-    const group = this.obj.inGroup
+    const group = this.obj.fromGroup
     let content = html2str(this.obj.content)
     if (content.length > 20) content = content.substring(0,17) + '...';
 		let groupStr = group ? html2str(group) : ''
@@ -62,7 +61,7 @@ class Message {
     return new Promise((resolve, reject) => {
       this.obj.fromContact.ready()           // Contact from
       .then(r => this.obj.toContact.ready()) // Contact to
-      .then(r => this.obj.inGroup && this.obj.inGroup.ready())  // Group member list
+      .then(r => this.obj.fromGroup && this.obj.fromGroup.ready())  // Group member list
       .then(r => resolve(this)) // RESOLVE
       .catch(e => {             // REJECT
         log.error('Message', 'ready() rejected:' + e)
@@ -71,7 +70,7 @@ class Message {
     })
   }
 
-  inGroup() { return !!(this.obj.group) }
+  fromGroup() { return !!(this.obj.fromGroup) }
 
   get(prop) {
     if (!prop || !(prop in this.obj)) {

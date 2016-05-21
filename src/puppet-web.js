@@ -29,14 +29,19 @@ class PuppetWeb extends Puppet {
     options = options || {}
     this.port = options.port || 8788 // W(87) X(88), ascii char code ;-]
     this.head = options.head
+
+    this.logined  = false
+    this.user = null
   }
 
   toString() { return `Class PuppetWeb({browser:${this.browser},port:${this.port}})` }
 
   init() {
-    this.logined  = false
-    this.on('login' , () => this.logined = true)
-    this.on('logout', () => this.logined = false)
+    this.on('login' , e => {
+      this.logined = true
+      // TODO: save currentUser to this.user as a Contact
+    })
+    this.on('logout', e => this.logined = false)
 
     this.userId = null
 
@@ -55,7 +60,7 @@ class PuppetWeb extends Puppet {
     ].map(event =>
       this.server.on(event, data => this.emit(event, data))
     )
-    this.server.on('message', data => this.forwardMessage(data))
+    this.server.on('message', data => this.recvMessage(data))
     /**
      * `unload` event is sent from js@browser to webserver via socketio
      * after received `unload`, we re-inject the Wechaty js code into browser.
@@ -81,10 +86,16 @@ class PuppetWeb extends Puppet {
     return this.browser.init()
   }
 
-  forwardMessage(data) {
+  recvMessage(data) {
     const m = new Message(data)
+    if (!this.user) {
+      log.warn('PuppetWeb', 'recvMessage() without this.user')
+      return
+    }
     const fromId = m.get('from')
-    if (this.userId)
+    if (fromId==this.user.id) {
+      return
+    }
     this.emit('message', m)
   }
   send(message) {
@@ -146,9 +157,9 @@ class PuppetWeb extends Puppet {
    *  Public Methods
    *
    */
-  getLoginQrImgUrl()    { 
+  getLoginQrImgUrl()    {
     log.silly('PuppetWeb', 'getLoginQrImgUrl()')
-    return this.proxyWechaty('getLoginQrImgUrl') 
+    return this.proxyWechaty('getLoginQrImgUrl')
   }
   getLoginStatusCode()  { return this.proxyWechaty('getLoginStatusCode') }
   getContact(id)        { return this.proxyWechaty('getContact', id) }
