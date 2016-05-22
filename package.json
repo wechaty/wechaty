@@ -53,7 +53,7 @@
   },
   "devDependencies": {
     "eslint": "^2.9.0",
-    "tape": "^4.5.1",
+    "tap": "^5.7.1",
     "tuling123-client": "0.0.1"
   }
 }
