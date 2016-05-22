@@ -1,4 +1,4 @@
-const test = require('tape')
+const test = require('tap').test
 const Message = require('../src/message')
 const Contact = require('../src/contact')
 const Puppet = require('../src/puppet')
@@ -17,8 +17,11 @@ test('Message constructor parser test', t => {
   }
   const m = new Message(rawData)
 
-  t.equal(m.get('id')           , EXPECTED.id   , 'id right')
-  t.equal(m.get('from').getId() , EXPECTED.from , 'from right')
+  t.equal(m.id        , EXPECTED.id   , 'id right')
+  t.equal(m.from().id , EXPECTED.from , 'from right')
+
+  const s = m.toString()
+  t.equal(typeof s, 'string', 'toString()')
 
   t.end()
 })
@@ -26,7 +29,7 @@ test('Message constructor parser test', t => {
 test('Message ready() promise testing', t => {
   // must different with other rawData, because Contact class with load() will cache the result. or use Contact.resetPool()
   const rawData = JSON.parse('{"MsgId":"3009511950433684462","FromUserName":"@0748ee480711bf20af91c298a0d7dcc77c30a680c1004157386b81cf13474823","ToUserName":"@b58f91e0c5c9e841e290d862ddb63c14","MsgType":1,"Content":"哈哈","Status":3,"ImgStatus":1,"CreateTime":1462887888,"VoiceLength":0,"PlayLength":0,"FileName":"","FileSize":"","MediaId":"","Url":"","AppMsgType":0,"StatusNotifyCode":0,"StatusNotifyUserName":"","RecommendInfo":{"UserName":"","NickName":"","QQNum":0,"Province":"","City":"","Content":"","Signature":"","Alias":"","Scene":0,"VerifyFlag":0,"AttrStatus":0,"Sex":0,"Ticket":"","OpCode":0},"ForwardFlag":0,"AppInfo":{"AppID":"","Type":0},"HasProductId":0,"Ticket":"","ImgHeight":0,"ImgWidth":0,"SubMsgType":0,"NewMsgId":3009511950433684500,"MMPeerUserName":"@0748ee480711bf20af91c298a0d7dcc77c30a680c1004157386b81cf13474823","MMDigest":"哈哈","MMIsSend":false,"MMIsChatRoom":false,"MMUnread":false,"LocalID":"3009511950433684462","ClientMsgId":"3009511950433684462","MMActualContent":"哈哈","MMActualSender":"@0748ee480711bf20af91c298a0d7dcc77c30a680c1004157386b81cf13474823","MMDigestTime":"21:44","MMDisplayTime":1462887888,"MMTime":"21:44","_h":104,"_index":0,"_offsetTop":0,"$$hashKey":"098"}')
-  
+
   const expectedFromUserName  = '@0748ee480711bf20af91c298a0d7dcc77c30a680c1004157386b81cf13474823'
   const expectedToUserName    = '@b58f91e0c5c9e841e290d862ddb63c14'
   const expectedFromNickName  = 'From Nick Name Test'
@@ -41,13 +44,13 @@ test('Message ready() promise testing', t => {
     return new Promise((resolve,reject) => {
       let obj = {}
       switch (id) {
-        case expectedFromUserName: 
+        case expectedFromUserName:
           obj = {
             UserName: expectedFromUserName
             , NickName: expectedFromNickName
           }
           break
-        case expectedToUserName: 
+        case expectedToUserName:
           obj = {
             UserName: expectedToUserName
             , NickName: expectedToNickName
@@ -67,10 +70,10 @@ test('Message ready() promise testing', t => {
 
   const m = new Message(rawData)
 
-  t.equal(m.get('id'), expectedMsgId, 'id/MsgId right')
+  t.equal(m.id, expectedMsgId, 'id/MsgId right')
 
-  m.ready()
-  .then(r => {
+  const p = m.ready()
+  p.then(r => {
     /*
     const fromC = m.get('from')
     const toC   = m.get('to')

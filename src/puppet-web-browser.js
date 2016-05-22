@@ -16,36 +16,44 @@ const log       = require('npmlog')
 
 class Browser {
   constructor(options) {
-    options = options || {}
-
+    options   = options       || {}
     this.head = options.head  || false // default to headless
-    this.port = options.port  || 8788 // 'W' 'X' Ascii Code
   }
 
-  toString() { return `Class Wechaty.Puppet.Web.Browser({head:${this.head}, port:${this.port}})` }
+  toString() { return `Class Browser({head:${this.head})` }
 
   init() {
-    this.driver = this.getDriver()
-
-    return this.open()
-    .then(this.inject.bind(this))
-    .then(r => log.verbose('Browser', 'inited: ' + this.toString()))
+    log.verbose('Browser', 'init()')
+    return this.initDriver()
+    .then(this.open.bind(this))
+    .then(r => {
+      log.verbose('Browser', 'inited: ' + this.toString())
+    })
   }
 
   open() {
     const WX_URL = 'https://wx.qq.com'
-    log.verbose('Browser', `open: ${WX_URL}`)
-    return this.driver.get(WX_URL)
-  }
-
-  getDriver() {
-    if (this.head) {
-      return new WebDriver.Builder().forBrowser('chrome').build()
+    log.verbose('Browser', `open() at ${WX_URL}`)
+    try {
+      return this.driver.get(WX_URL)
+    } catch (e) { // WebDriver exception
+      // TODO: try to fix this by re-open webdriver 3 times
+      log.error('Browser', 'open be rejected: %s', e)
+      return Promise.reject(e)
     }
-    return Browser.getPhantomJsDriver()
   }
 
-  static getPhantomJsDriver() {
+  initDriver() {
+    log.verbose('Browser', 'initDriver()')
+    if (this.head) {
+      this.driver = new WebDriver.Builder().forBrowser('chrome').build()
+    } else {
+      this.driver = this.getPhantomJsDriver()
+    }
+    return Promise.resolve(this.driver)
+  }
+
+  getPhantomJsDriver() {
     // https://github.com/SeleniumHQ/selenium/issues/2069
     // setup custom phantomJS capability
     const phantomjsExe = require('phantomjs-prebuilt').path
@@ -55,40 +63,21 @@ class Browser {
     .set('phantomjs.cli.args', [
       '--ignore-ssl-errors=true' // this help socket.io connect with localhost
       , '--load-images=false'
-      , '--remote-debugger-port=9000'
+      // , '--webdriver-logfile=/tmp/wd.log'
+      // , '--webdriver-loglevel=DEBUG'
+      // , '--remote-debugger-port=9000'
     ])
 
-    log.silly('Browser', 'phantomjs path:' + phantomjsExe)
+    log.silly('Browser', 'phantomjs binary: ' + phantomjsExe)
 
-    //build custom phantomJS driver
     return new WebDriver.Builder()
     .withCapabilities(customPhantom)
     .build()
   }
 
-  static getInjectio() {
-    return fs.readFileSync(
-      path.join(path.dirname(__filename), 'puppet-web-injectio.js')
-      , 'utf8'
-    )
-  }
-  inject() {
-    const injectio = Browser.getInjectio()
-    log.verbose('Browser', 'inject()')
-    try {
-      return this.execute(injectio, this.port)
-      .then(r => {
-        log.verbose('Browser', 'init() after inject()')
-        return this.execute('return (typeof Wechaty)==="undefined" ? false : Wechaty.init()')
-      })
-      .then(r => {
-        log.verbose('Browser', 'Wechaty.init() return: ' + r)
-        return r
-      })
-    } catch (e) {
-      return Promise.reject('execute exception: ' + e)
-    }
-  }
+  // selenium-webdriver/lib/capabilities.js
+  //  66   BROWSER_NAME: 'browserName',
+  // name() { return this.driver.getCapabilities().get('browserName') }
 
   quit() {
     log.verbose('Browser', 'quit()')
@@ -96,11 +85,11 @@ class Browser {
       log.verbose('Browser', 'no need to quite because no driver')
       return Promise.resolve('no driver')
     }
-    return this.execute('return (typeof Wechaty)!=="undefined" && Wechaty.quit()').then(() => {
-      log.verbose('Browser', 'Browser.driver.quit')
-      this.driver.quit()
-      this.driver = null
-    })
+    log.verbose('Browser', 'driver.quit')
+    this.driver.close() // http://stackoverflow.com/a/32341885/1123955
+    this.driver.quit()
+    this.driver = null
+    return Promise.resolve()
   }
 
   execute(script, ...args) {

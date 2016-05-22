@@ -1,11 +1,11 @@
 {
   "name": "wechaty",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Wechat for Bot. (Personal Account, NOT Official Account)",
   "main": "index.js",
   "scripts": {
     "start": "node example/ding-dong-bot.js",
-    "test": "tape test/*.js",
+    "test": "TAP_TIMEOUT=120 tap test/*-spec.js",
     "lint": "eslint src"
   },
   "repository": {
@@ -53,7 +53,6 @@
   },
   "devDependencies": {
     "eslint": "^2.9.0",
-    "tape": "^4.5.1",
     "tuling123-client": "0.0.1"
   }
 }

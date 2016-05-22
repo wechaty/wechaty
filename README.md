@@ -65,7 +65,7 @@ Use NPM is recommended to install Wechaty for you:
 npm install --save wechaty
 ```
 
-## Start from strach
+## Start from scratch
 In case that you do not know anything about nodejs, the follow instructions would help you to run Wechaty bot on your machine.
 
 ## 1. Install NodeJS
@@ -75,20 +75,16 @@ NodeJS Version 6.0 & above is required.
 1. Download NodeJS Installer(i.e. "v6.2.0 Current")
 1. Run Installer to install NodeJS to your machine
 
-## 2. Checkout Wechaty
-Use `git` to checkout Wechaty source code from [Github.com](https://github.com)
+## 2. Install Wechaty
+Use `npm` to install Wechaty
 ```shell
-git clone https://github.com/zixia/wechaty.git
+npm install wechaty
 ```
+This will install the last version of wechaty and all the dependents(dev).
 
-## 3. Install Dependents
+## 3. Run Demo Bot
 ```shell
-cd wechaty
-npm install
-```
-
-## 4. Run Demo Bot
-```shell
+cd node_modules/wechaty
 npm start
 ```
 This will run `node example/ding-dong-bot.js`

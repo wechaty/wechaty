@@ -12,7 +12,7 @@ const io          = require('socket.io')
 const path        = require('path')
 const https       = require('https')
 const bodyParser  = require('body-parser')
-const log           = require('npmlog')
+const log         = require('npmlog')
 
 const Express       = require('express')
 const EventEmitter  = require('events')
@@ -27,13 +27,14 @@ class Server extends EventEmitter {
   toString() { return `Class Wechaty.Puppet.Web.Server({port:${this.port}})` }
 
   init() {
-    log.verbose('Server', 'initing: ' + this)
+    log.verbose('Server', 'init()')
+    this.initEventsToClient()
     return new Promise((resolve, reject) => {
       this.express      = this.createExpress()
       this.httpsServer  = this.createHttpsServer(this.express
         , r => resolve(r), e => reject(e)
       )
-      this.socketio     = this.createSocketIo(this.httpsServer)
+      this.socketServer = this.createSocketIo(this.httpsServer)
     })
   }
 
@@ -46,7 +47,7 @@ class Server extends EventEmitter {
       , cert: require('./ssl-pem').cert
     }, express)
     .listen(this.port, () => {
-      log.verbose('Server', `createHttpsServer port ${this.port}`)
+      log.verbose('Server', `createHttpsServer listen on port ${this.port}`)
       if (typeof resolve === 'function') {
         resolve(this)
       }
@@ -84,50 +85,62 @@ class Server extends EventEmitter {
     const socketServer = io.listen(httpsServer, {
       // log: true
     })
-
     socketServer.sockets.on('connection', (s) => {
       log.verbose('Server', 'got connection from browser')
-      // kick off the old one
-      if (this.socketClient) {
-        // this.socketClient.destroy()
-        this.socketClient = null
-      }
-      // save to instance: socketClient
+      if (this.socketClient) { this.socketClient = null } // close() ???
       this.socketClient = s
-      s.on('disconnect', function() {
-        log.verbose('Server', 'socket.io disconnected')
-        /**
-         * Possible conditions:
-         * 1. Browser reload
-         * 2. Lost connection(Bad network
-         * 3.
-         */
-        this.socketClient = null
-      })
-      // Events from Wechaty@Broswer --to--> Server
-      ;[
-        'message'
-        , 'login'
-        , 'logout'
-        , 'log'
-        , 'unload'
-      ].map(e => {
-        s.on(e, data => {
-          log.silly('Server', `recv event[${e}] from browser`)
-          this.emit(e, data)
-        })
-      })
-      s.on('error', e => log.error('Server', 'socket error: %s', e))
+      this.initEventsFromClient(s)
     })
     return socketServer
+  }
+
+  initEventsFromClient(client) {
+    log.verbose('Server', 'initEventFromClient()')
+
+    this.emit('connection', client)
+
+    client.on('disconnect', e => {
+      log.verbose('Server', 'socket.io disconnected: ' + e)
+      /**
+       * 1. Browser reload / 2. Lost connection(Bad network)
+       */
+      this.socketClient = null
+      this.emit('disconnect', 'server re-emit from socketio')
+    })
+
+    client.on('error', e => log.error('Server', 'socketio client error: %s', e))
+
+    // Events from Wechaty@Broswer --to--> Server
+    ;[
+      'message'
+      , 'scan'
+      , 'login'
+      , 'logout'
+      , 'log'
+      , 'unload'
+      , 'dong'
+    ].map(e => {
+      client.on(e, data => {
+        log.silly('Server', `recv event[${e}](${data}) from browser`)
+        this.emit(e, data)
+      })
+    })
+  }
+
+  initEventsToClient() {
+    log.verbose('Server', 'initEventToClient()')
+    this.on('ding', data => {
+      log.silly('Server', `recv event[ding](${data}), sending to client`)
+      if (this.socketClient)  { this.socketClient.emit('ding', data) }
+      else                    { log.warn('Server', 'this.socketClient not exist')}
+    })
   }
 
   quit() {
     log.verbose('Server', 'quit()')
     if (this.socketServer) {
       log.verbose('Server', 'close socketServer')
-      socketServer.httpsServer.close()
-      socketServer.close()
+      this.socketServer.close()
       this.socketServer = null
     }
     if (this.socketClient) {

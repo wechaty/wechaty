@@ -32,11 +32,14 @@ node_modules
 # Optional REPL history
 .node_repl_history
 
-cert.pem
-key.pem
-t.js
-t
-socket.io.min.js
 
 .*.swp
+
+# TAP Coverage
+coverage
+.nyc_output
+
+# Other staff
 0
+t.js
+t

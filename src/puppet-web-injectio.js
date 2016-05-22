@@ -46,27 +46,42 @@ return (function(port) {
     // glue funcs
     , getLoginStatusCode: function() { return Wechaty.glue.loginScope.code }
     , getLoginQrImgUrl:   function() { return Wechaty.glue.loginScope.qrcodeUrl }
-    , isLogin:            function() { return !!(window.MMCgi && window.MMCgi.isLogin) }
     , isReady:            isReady
 
     // variable
-    , socket:     null
-    , eventsBuf:  []
+    , vars: {
+      login:      false
+      , socket:     null
+      , eventsBuf:  []
+      , scanCode:   null
+    }
 
     // funcs
     , init: init
     , send: send
     , clog: clog // Console log
     , slog: slog // log throw Socket IO
+    , log:  log
     , ding: ding
     , quit: quit
     , emit: emit
 
     , getContact: getContact
+    , getUserName: getUserName
   }
 
+  /**
+  *
+  * Functions that Glued with AngularJS
+  *
+  */
+  function isWxLogin() { return !!(window.MMCgi && window.MMCgi.isLogin) }
   function isReady() {
-    return !!((typeof angular) !== 'undefined' && angular.element && angular.element('body'))
+    return !!(
+      (typeof angular) !== 'undefined'
+      && angular.element
+      && angular.element('body')
+    )
   }
   function init() {
     if (!isReady()) {
@@ -78,8 +93,9 @@ return (function(port) {
     clog('init on port:' + port)
     glueAngular()
     connectSocket()
-    hookUnload()
-    hookMessage()
+    hookEvents()
+
+    checkScan()
 
     clog('inited!. ;-D')
     return true
@@ -114,14 +130,56 @@ return (function(port) {
     }
   }
 
-  function quit() {
-    if (Wechaty.socket) {
-      Wechaty.socket.close()
-      Wechaty.socket = null
+  function checkScan() {
+    clog('checkScan()')
+    if (isLogin()) {
+      log('checkScan() - already login, no more check')
+      return
     }
-    clog('quit()')
+    if (!Wechaty.glue.loginScope) {
+      log('checkScan() - loginScope disappeared, no more check')
+      login('loginScope disappeared')
+      return
+    }
+
+    var code  = +Wechaty.glue.loginScope.code
+    var url   =  Wechaty.glue.loginScope.qrcodeUrl
+    if (code !== Wechaty.vars.scanCode) {
+      log('checkScan() - code change detected. from '
+        + Wechaty.vars.scanCode
+        + ' to '
+        + code
+      )
+      Wechaty.emit('scan', {
+        code:   code
+        , url:  url
+      })
+      Wechaty.vars.scanCode = code
+    }
+    setTimeout(checkScan, 100)
+    return
   }
-  function slog(msg) { return Wechaty.socket && Wechaty.socket.emit('log', msg) }
+
+  function isLogin() { return !!Wechaty.vars.login }
+  function login(data) {
+    clog('login()')
+    Wechaty.vars.login = true
+    Wechaty.emit('login', data)
+  }
+  function logout(data) {
+    clog('logout()')
+    Wechaty.vars.login = false
+    Wechaty.emit('logout', data)
+  }
+  function quit() {
+    clog('quit()')
+    if (Wechaty.vars.socket) {
+      Wechaty.vars.socket.close()
+      Wechaty.vars.socket = null
+    }
+  }
+  function log(s)     { clog(s); slog(s) }
+  function slog(msg)  { return Wechaty.vars.socket && Wechaty.vars.socket.emit('log', msg) }
   function ding()     { return 'dong' }
   function send(ToUserName, Content) {
     var chat = Wechaty.glue.chatFactory
@@ -133,19 +191,29 @@ return (function(port) {
     chat.appendMessage(m)
     return chat.sendMessage(m)
   }
-  function getContact(id) { return Wechaty.glue.contactFactory.getContact(id) }
-  function hookMessage() {
+  function getContact(id) {
+    return Wechaty.glue.contactFactory
+    ? Wechaty.glue.contactFactory.getContact(id)
+    : null
+  }
+  function getUserName() {
+    return Wechaty.glue.accountFactory
+    ? Wechaty.glue.accountFactory.getUserName()
+    : null
+  }
+  function hookEvents() {
     Wechaty.glue.rootScope.$on('message:add:success', function(event, data) {
+      if (!isLogin()) { // in case of we missed the pageInit event
+        login('by event[message:add:success]')
+      }
       Wechaty.emit('message', data)
     })
     Wechaty.glue.appScope.$on("newLoginPage", function(event, data) {
-      Wechaty.emit('login', data)
+      login('by event[newLoginPage]')
     })
     Wechaty.glue.rootScope.$on('root:pageInit:success'), function (event, data) {
-      Wechaty.emit('login', data)
+      login('by event[root:pageInit:success]')
     }
-  }
-  function hookUnload() {
     window.addEventListener('unload', function(e) {
       // XXX only 1 event can be emitted here???
       Wechaty.emit('unload', e)
@@ -157,24 +225,24 @@ return (function(port) {
   }
   // Wechaty.emit, will save event & data when there's no socket io connection to prevent event lost
   function emit(event, data) {
-    if (!Wechaty.socket) {
-      clog('Wechaty.socket not ready')
+    if (!Wechaty.vars.socket) {
+      clog('Wechaty.vars.socket not ready')
       if (event) {
-        Wechaty.eventsBuf.push([event, data])
+        Wechaty.vars.eventsBuf.push([event, data])
       }
       setTimeout(emit, 1000) // resent eventsBuf after 1000ms
       return
     }
-    if (Wechaty.eventsBuf.length) {
-      clog('Wechaty.eventsBuf has ' + Wechaty.eventsBuf.length + ' unsend events')
+    if (Wechaty.vars.eventsBuf.length) {
+      clog('Wechaty.vars.eventsBuf has ' + Wechaty.vars.eventsBuf.length + ' unsend events')
       var eventData
-      while (eventData = Wechaty.eventsBuf.pop()) {
-        Wechaty.socket.emit(eventData[0], eventData[1])
+      while (eventData = Wechaty.vars.eventsBuf.pop()) {
+        Wechaty.vars.socket.emit(eventData[0], eventData[1])
       }
-      clog('Wechaty.eventsBuf all sent')
+      clog('Wechaty.vars.eventsBuf all sent')
     }
     if (event) {
-      Wechaty.socket.emit(event, data)
+      Wechaty.vars.socket.emit(event, data)
     }
   }
   function connectSocket() {
@@ -193,7 +261,7 @@ return (function(port) {
     }
 
     // Wechaty global variable: socket
-    var socket  = Wechaty.socket = io.connect('https://127.0.0.1:' + port)
+    var socket  = Wechaty.vars.socket = io.connect('https://127.0.0.1:' + port)
 
     // ding -> dong. for test & live check purpose
     // ping/pong are reserved by socket.io https://github.com/socketio/socket.io/issues/2414
@@ -215,8 +283,8 @@ return (function(port) {
 
   window.Wechaty = Wechaty
 
-  if (Wechaty.isLogin()) {
-    Wechaty.emit('login', 'page refresh')
+  if (isWxLogin()) {
+    login('page refresh')
   }
   var callback = arguments[arguments.length - 1]
   if (typeof callback === 'function') {

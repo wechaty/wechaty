@@ -20,7 +20,6 @@ class Group {
   }
 
   toString()  { return this.obj.name ? this.obj.name : this.id }
-  getId()     { return this.id }
 
   ready(contactGetter) {
     log.silly('Group', `ready(${contactGetter})`)
@@ -70,7 +69,6 @@ class Group {
     Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj[k]}`))
   }
 
-  getId() { return this.id }
   get(prop) { return this.obj[prop] }
 
   static find() {
@@ -79,6 +77,7 @@ class Group {
   static findAll() {
   }
 }
+
 Group.init = function() { Group.pool = {} }
 Group.init()
 Group.load = function(id) {

@@ -1,4 +1,4 @@
-const test = require('tape')
+const test = require('tap').test
 const Contact = require('../src/contact')
 const Puppet = require('../src/puppet')
 const log = require('npmlog')
@@ -15,8 +15,8 @@ test('Contact smoke testing', t => {
     return new Promise((resolve,reject) => {
       if (id!=UserName) return resolve({});
       setTimeout(() => {
-        return resolve({ 
-          UserName: UserName 
+        return resolve({
+          UserName: UserName
           , NickName: NickName
         })
       }, 200)
@@ -25,11 +25,14 @@ test('Contact smoke testing', t => {
 
   const c = new Contact(UserName)
 
-  t.equal(c.getId(), UserName, 'id/UserName right')
+  t.equal(c.id, UserName, 'id/UserName right')
   c.ready(mockContactGetter)
   .then(r => {
-    t.equal(c.get('id')   , UserName, 'UserName set')
-    t.equal(c.get('name') , NickName, 'NickName set')
+    t.equal(r.get('id')   , UserName, 'UserName set')
+    t.equal(r.get('name') , NickName, 'NickName set')
+
+    const s = r.toString()
+    t.equal(typeof s, 'string', 'toString()')
   })
   .catch(e => t.fail('ready() rejected: ' + e))
   .then(t.end) // test end

@@ -18,23 +18,34 @@ const Group       = require('./group')
 class Wechaty extends EventEmitter {
   constructor(options) {
     super()
-    options         = options || {}
-    options.puppet  = options.puppet || 'web'
-
-    switch (options.puppet) {
+    this.options = options || {}
+    this.options.puppet = this.options.puppet || 'web'
+  }
+  toString() { return 'Class Wechaty(' + this.puppet + ')'}
+  init() {
+    this.initPuppet()
+    this.initEventHook()
+    return this.puppet.init()
+  }
+  initPuppet() {
+    switch (this.options.puppet) {
       case 'web':
         this.puppet = new Puppet.Web({
-          head: options.head
-          , port: options.port
+          head:   this.options.head
+          , port: this.options.port
         })
         break
       default:
         throw new Error('Puppet unsupport(yet): ' + puppet)
         break
     }
-    Contact.attach(this.puppet)
-    Group.attach(this.puppet)
-
+    return Promise.resolve(this.puppet)
+  }
+  initEventHook() {
+    // scan qrCode
+    this.puppet.on('scan', (e) => {
+      this.emit('scan', e)
+    })
     this.puppet.on('message', (e) => {
       this.emit('message', e)
     })
@@ -44,9 +55,9 @@ class Wechaty extends EventEmitter {
     this.puppet.on('logout', (e) => {
       this.emit('logout', e)
     })
+    return Promise.resolve()
   }
 
-  init()          { return this.puppet.init() }
   currentUser()   { return this.puppet.currentUser() }
   send(message)   { return this.puppet.send(message) }
   quit()          { return this.puppet.quit() }

@@ -436,7 +436,27 @@ angular.module("Controllers", []),
 }(),
 !function() {
     "use strict";
-    angular.module("Controllers").controller("contentChatController", ["$scope", "$timeout", "$state", "$log", "$document", "$compile", "chatFactory", "accountFactory", "contactFactory", "appFactory", "confFactory", "utilFactory", "chatroomFactory", "mmpop", "ngDialog", "preview", "reportService", "mmHttp", "emojiFactory", function(e, t, o, n, r, a, i, c, s, l, u, f, d, g, m, p, h, M, y) {
+    angular.module("Controllers").controller("contentChatController", ["$scope", "$timeout", "$state", "$log", "$document", "$compile", "chatFactory", "accountFactory", "contactFactory", "appFactory", "confFactory", "utilFactory", "chatroomFactory", "mmpop", "ngDialog", "preview", "reportService", "mmHttp", "emojiFactory", function(
+      e   // $scope of contentChatController
+      , t // $timeout
+      , o // $state
+      , n // $log
+      , r // $document
+      , a // $compile
+      , i // chatFactory
+      , c // accountFactory
+      , s // contactFactory
+      , l // appFactory
+      , u // confFactory
+      , f // utilFactory
+      , d // chatroomFactory
+      , g // mmpop
+      , m // ngDialog
+      , p // preview
+      , h // reportService
+      , M // mmHttp
+      , y // emojiFactory
+    ) {
         function C(o) {
             var n = e.currentContact = s.getContact(o);
             if (e.currentUser = o,
@@ -3247,7 +3267,19 @@ angular.module("Services", []),
 }(),
 !function() {
     "use strict";
-    angular.module("Services").factory("contactFactory", ["$rootScope", "$http", "$q", "$timeout", "confFactory", "accountFactory", "emojiFactory", "utilFactory", "resourceService", "reportService", "mmHttp", function(e, t, o, n, r, a, i, c, s, l, u) {
+    angular.module("Services").factory("contactFactory", ["$rootScope", "$http", "$q", "$timeout", "confFactory", "accountFactory", "emojiFactory", "utilFactory", "resourceService", "reportService", "mmHttp", function(
+      e   // $rootScope
+      , t // $http
+      , o // $q
+      , n // $timeout
+      , r // confFactory
+      , a // accountFactory
+      , i // emojiFactory
+      , c // utilFactory
+      , s // resourceService
+      , l // reportService
+      , u // mmHttp
+    ) {
         function f(e) {
             return e = angular.extend({
                 RemarkPYQuanPin: "",
@@ -7455,7 +7487,20 @@ angular.module("Directives").directive("searchListDirective", [function() {
     }
 }
 ]),
-angular.module("Directives").directive("navChatDirective", ["$timeout", "$log", "$document", "$stateParams", "$rootScope", "chatFactory", "accountFactory", "contactFactory", "appFactory", "confFactory", "utilFactory", "stateManageService", function(e, t, o, n, r, a, i, c, s, l, u, f) {
+angular.module("Directives").directive("navChatDirective", ["$timeout", "$log", "$document", "$stateParams", "$rootScope", "chatFactory", "accountFactory", "contactFactory", "appFactory", "confFactory", "utilFactory", "stateManageService", function(
+  e   // $timeout
+  , t // $log
+  , o // $document
+  , n // $stateParams
+  , r // $rootScope
+  , a // chatFactory
+  , i // accountFactory
+  , c // contactFactory
+  , s // appFactory
+  , l // confFactory
+  , u // utilFactory
+  , f // stateManageService
+) {
     return {
         restrict: "EA",
         scope: !0,

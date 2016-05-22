@@ -17,7 +17,6 @@ class Contact {
 
     this.id = id
     this.obj = {}
-
   }
 
   ready(contactGetter) {
@@ -25,7 +24,11 @@ class Contact {
     if (this.obj.id) {
       return Promise.resolve(this)
     }
-    contactGetter = contactGetter || Contact.puppet.getContact.bind(Contact.puppet)
+
+    if (!contactGetter) {
+      log.silly('Contact', 'get contact via ' + Contact.puppet.constructor.name)
+      contactGetter = Contact.puppet.getContact.bind(Contact.puppet)
+    }
     return contactGetter(this.id)
     .then(data => {
       log.silly('Contact', `contactGetter(${this.id}) resolved`)
@@ -33,7 +36,7 @@ class Contact {
       this.obj    = this.parse(data)
       return this
     }).catch(e => {
-      log.error('Contact', `contactGetter(${this.id}) rejected: ` + e)
+      log.error('Contact', `contactGetter(${this.id}) rejected: `, e)
       throw new Error('contactGetter: ' + e)
     })
   }
@@ -41,6 +44,7 @@ class Contact {
   parse(rawObj) {
     return !rawObj ? {} : {
       id:       rawObj.UserName
+      , uin:    rawObj.Uin  // stable id? 4763975
       , weixin: rawObj.Alias
       , name:   rawObj.NickName
       , remark: rawObj.RemarkName
@@ -50,6 +54,7 @@ class Contact {
       , signature:  rawObj.Signature
     }
   }
+  name() { return this.obj.name }
 
   dumpRaw() {
     console.error('======= dump raw contact =======')
@@ -63,8 +68,6 @@ class Contact {
   toString() {
     return `Contact(${this.id})`
   }
-
-  getId() { return this.id }
 
   get(prop) { return this.obj[prop] }
 

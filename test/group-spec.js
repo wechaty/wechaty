@@ -1,4 +1,4 @@
-const test = require('tape')
+const test = require('tap').test
 const Message = require('../src/message')
 const Group = require('../src/group')
 const Puppet = require('../src/puppet')
@@ -8,20 +8,58 @@ const log = require('npmlog')
 
 Group.attach(new Puppet())
 
-false && test('Group constructor parser test', t => {
-  const rawData = JSON.parse('{"MsgId":"1120003476579027592","FromUserName":"@@4aa0ae1e1ebc568b613fa43ce93b478df0339f73340d87083822c2016d2e53d9","ToUserName":"@94e4b0db79ccc844d7bb4a2b1efac3ff","MsgType":1,"Content":"@9ad4ba13fac52c55d323521b67f7cc39:<br/>[Strong]","Status":3,"ImgStatus":1,"CreateTime":1462889712,"VoiceLength":0,"PlayLength":0,"FileName":"","FileSize":"","MediaId":"","Url":"","AppMsgType":0,"StatusNotifyCode":0,"StatusNotifyUserName":"","RecommendInfo":{"UserName":"","NickName":"","QQNum":0,"Province":"","City":"","Content":"","Signature":"","Alias":"","Scene":0,"VerifyFlag":0,"AttrStatus":0,"Sex":0,"Ticket":"","OpCode":0},"ForwardFlag":0,"AppInfo":{"AppID":"","Type":0},"HasProductId":0,"Ticket":"","ImgHeight":0,"ImgWidth":0,"SubMsgType":0,"NewMsgId":1120003476579027600,"MMPeerUserName":"@@4aa0ae1e1ebc568b613fa43ce93b478df0339f73340d87083822c2016d2e53d9","MMDigest":"感恩的心 <img class=\"emoji emoji1f42e\" text=\"_web\" src=\"/zh_CN/htmledition/v2/images/spacer.gif\" />:<img class=\"qqemoji qqemoji79\" text=\"[Strong]_web\" src=\"/zh_CN/htmledition/v2/images/spacer.gif\" />","MMIsSend":false,"MMIsChatRoom":true,"MMUnread":false,"LocalID":"1120003476579027592","ClientMsgId":"1120003476579027592","MMActualContent":"<img class=\"qqemoji qqemoji79\" text=\"[Strong]_web\" src=\"/zh_CN/htmledition/v2/images/spacer.gif\" />","MMActualSender":"@9ad4ba13fac52c55d323521b67f7cc39","MMDigestTime":"22:15","MMDisplayTime":1462889712,"MMTime":"22:15","_h":126,"_index":0,"_offsetTop":0,"$$hashKey":"0QK", "MemberList": [{"Uin":0,"UserName":"@94e4b0db79ccc844d7bb4a2b1efac3ff","NickName":"李卓桓","AttrStatus":37996631,"PYInitial":"","PYQuanPin":"","RemarkPYInitial":"","RemarkPYQuanPin":"","MemberStatus":0,"DisplayName":"北京阿布","KeyWord":"liz"},{"Uin":0,"UserName":"@34887973779b7dd827366a31772cd83df223e6f71d9a79e44fe619aafe2901a4","NickName":"Tiger","AttrStatus":4292711,"PYInitial":"","PYQuanPin":"","RemarkPYInitial":"","RemarkPYQuanPin":"","MemberStatus":0,"DisplayName":"DisplayNameTiger","KeyWord":"","HeadImgUrl":"/cgi-bin/mmwebwx-bin/webwxgeticon?seq=0&username=@34887973779b7dd827366a31772cd83df223e6f71d9a79e44fe619aafe2901a4&skey=@crypt_f9cec94b_8517b7f9fec85f5a78a804c4f45f5536&chatroomid=@7b3dcd218431d79045cda3493c3179ae"}]}')
+test('Group smoke testing', t => {
+  const UserName = '@0bb3e4dd746fdbd4a80546aef66f4085'
+  const NickName = 'Nick Name Test'
+  const EncryChatRoomId = '123456abcdef'
+
+  // Mock
+  const mockContactGetter = function (id) {
+    return new Promise((resolve,reject) => {
+      if (id!=UserName) return resolve({});
+      setTimeout(() => {
+        return resolve({
+          UserName: UserName
+          , NickName: NickName
+          , EncryChatRoomId: EncryChatRoomId
+        })
+      }, 200)
+    })
+  }
+
+  const g = new Group(UserName)
+
+  t.equal(g.id, UserName, 'id/UserName right')
+  g.ready(mockContactGetter)
+  .then(r => {
+    t.equal(r.get('id')   , UserName, 'UserName set')
+    t.equal(r.get('name') , NickName, 'NickName set')
+    t.equal(r.get('encryId') , EncryChatRoomId, 'EncryChatRoomId set')
+
+    const s = r.toString()
+    t.equal(typeof s, 'string', 'toString()')
+  })
+  .catch(e => t.fail('ready() rejected: ' + e))
+  .then(t.end) // test end
+})
+/*
+  const rawData = JSON.parse('{"MsgId":"1120003476579027592","FromUserName":"@@4aa0ae1e1ebc568b613fa43ce93b478df0339f73340d87083822c2016d2e53d9","ToUserName":"@94e4b0db79ccc844d7bb4a2b1efac3ff","MsgType":1,"Content":"@9ad4ba13fac52c55d323521b67f7cc39:<br/>[Strong]","Status":3,"ImgStatus":1,"CreateTime":1462889712,"VoiceLength":0,"PlayLength":0,"FileName":"","FileSize":"","MediaId":"","Url":"","AppMsgType":0,"StatusNotifyCode":0,"StatusNotifyUserName":"","RecommendInfo":{"UserName":"","NickName":"","QQNum":0,"Province":"","City":"","Content":"","Signature":"","Alias":"","Scene":0,"VerifyFlag":0,"AttrStatus":0,"Sex":0,"Ticket":"","OpCode":0},"ForwardFlag":0,"AppInfo":{"AppID":"","Type":0},"HasProductId":0,"Ticket":"","ImgHeight":0,"ImgWidth":0,"SubMsgType":0,"NewMsgId":1120003476579027600,"MMPeerUserName":"@@4aa0ae1e1ebc568b613fa43ce93b478df0339f73340d87083822c2016d2e53d9","MMDigest":"感恩的心 ","MMIsSend":false,"MMIsChatRoom":true,"MMUnread":false,"LocalID":"1120003476579027592","ClientMsgId":"1120003476579027592","MMActualContent":"HTML-CODE","MMActualSender":"@9ad4ba13fac52c55d323521b67f7cc39","MMDigestTime":"22:15","MMDisplayTime":1462889712,"MMTime":"22:15","_h":126,"_index":0,"_offsetTop":0,"$$hashKey":"0QK", "MemberList": [{"Uin":0,"UserName":"@94e4b0db79ccc844d7bb4a2b1efac3ff","NickName":"李卓桓","AttrStatus":37996631,"PYInitial":"","PYQuanPin":"","RemarkPYInitial":"","RemarkPYQuanPin":"","MemberStatus":0,"DisplayName":"北京阿布","KeyWord":"liz"},{"Uin":0,"UserName":"@34887973779b7dd827366a31772cd83df223e6f71d9a79e44fe619aafe2901a4","NickName":"Tiger","AttrStatus":4292711,"PYInitial":"","PYQuanPin":"","RemarkPYInitial":"","RemarkPYQuanPin":"","MemberStatus":0,"DisplayName":"DisplayNameTiger","KeyWord":"","HeadImgUrl":"/cgi-bin/mmwebwx-bin/webwxgeticon?seq=0&username=@34887973779b7dd827366a31772cd83df223e6f71d9a79e44fe619aafe2901a4&skey=@crypt_f9cec94b_8517b7f9fec85f5a78a804c4f45f5536&chatroomid=@7b3dcd218431d79045cda3493c3179ae"}]}')
 
   const EXPECTED = {
-    id:       '179242112323992762'
+    id:       '1120003476579027592'
     , from:   '@0bb3e4dd746fdbd4a80546aef66f4085'
   }
   const g = new Group(rawData)
 
-  t.equal(m.get('id')           , EXPECTED.id   , 'id right')
-  t.equal(m.get('from').getId() , EXPECTED.from , 'from right')
+  t.equal(g.id      , EXPECTED.id   , 'id right')
+  t.equal(g.from.id , EXPECTED.from , 'from right')
+
+  const s = g.toString()
+  t.equal(typeof s, 'string', 'toString()')
 
   t.end()
 })
+*/
 
 false && test('Message ready() promise testing', t => {
   // must different with other rawData, because Contact class with load() will cache the result. or use Contact.resetPool()

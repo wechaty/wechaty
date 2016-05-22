@@ -13,64 +13,80 @@ const log     = require('npmlog')
 
 class Message {
   constructor(rawObj) {
-    Message.counter++;
+    Message.counter++
+
+    this.logToFile(JSON.stringify(rawObj))
 
     this.rawObj = rawObj = rawObj || {}
     this.obj = this.parse(rawObj)
+    this.id = this.obj.id
   }
 
+  logToFile(data) {
+    require('fs').appendFile('message.log', data + '\n\n#############################\n\n', err => {
+      if (err) { log.error('Message', 'logToFile: ' + err) }
+    })
+  }
   // Transform rawObj to local m
   parse(rawObj) {
     return {
       id:             rawObj.MsgId
       , type:         rawObj.MsgType
-      , from:         rawObj.MMActualSender
-      , to:           rawObj.ToUserName
-      , group:        !!(rawObj.MMIsChatRoom) // MMPeerUserName always eq FromUserName ?
+      // , from:         rawObj.MMActualSender
+      // , to:           rawObj.ToUserName
+      // , group:        !!(rawObj.MMIsChatRoom) // MMPeerUserName always eq FromUserName ?
       , content:      rawObj.MMActualContent // Content has @id prefix added by wx
       , status:       rawObj.Status
       , digest:       rawObj.MMDigest
 
+      , from:         Contact.load(rawObj.MMActualSender)
+      , to:           Contact.load(rawObj.ToUserName)
+      , group:        rawObj.MMIsChatRoom ? Group.load(rawObj.FromUserName) : null
       , date:         new Date(rawObj.MMDisplayTime*1000)
-      , fromContact:  Contact.load(rawObj.MMActualSender)
-      , toContact:    Contact.load(rawObj.ToUserName)
-      , fromGroup:    rawObj.MMIsChatRoom ? Group.load(rawObj.FromUserName) : null
     }
   }
   toString() {
-    const name  = html2str(this.obj.from.get('name'))
-    const group = this.obj.fromGroup
-    let content = html2str(this.obj.content)
-    if (content.length > 20) content = content.substring(0,17) + '...';
-		let groupStr = group ? html2str(group) : ''
-    let fromStr = '<' + name + (groupStr ? `@[${groupStr}]` : '') + '>'
-    return `Message#${Message.counter}(${fromStr}: ${content})`
+    var s = `${this.constructor.name}#${Message.counter}`
+    s += '(' + this.getSenderString()
+    s += ':' + this.getContentString() + ')'
+    return s
+  }
+  getSenderString() {
+    const name  = this.obj.from.get('name')
+    const group = this.obj.group
+    return '<' + name + (group ? `@[${group}]` : '') + '>'
+  }
+  getContentString() {
+    let content = this.unescapeHtml(this.stripHtml(this.obj.content))
+    if (content.length > 20) { content = content.substring(0,17) + '...' }
+    return '{' + this.type() + '}' + content
+  }
+  stripHtml(str) { return String(str).replace(/(<([^>]+)>)/ig,'') }
+  unescapeHtml(str) {
+    return String(str)
+    .replace(/&apos;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&gt;/g, '>')
+    .replace(/&lt;/g, '<')
+    .replace(/&amp;/g, '&')
+  }
 
-		function html2str(html) {
-			return String(html)
-      .replace(/(<([^>]+)>)/ig,'')
-			.replace(/&apos;/g, "'")
-			.replace(/&quot;/g, '"')
-			.replace(/&gt;/g, '>')
-			.replace(/&lt;/g, '<')
-			.replace(/&amp;/g, '&')
-		}
-	}
+  from()    { return this.obj.from }
+  to()      { return this.obj.to }
+  content() { return this.obj.content }
 
   ready() {
-    return new Promise((resolve, reject) => {
-      this.obj.fromContact.ready()           // Contact from
-      .then(r => this.obj.toContact.ready()) // Contact to
-      .then(r => this.obj.fromGroup && this.obj.fromGroup.ready())  // Group member list
-      .then(r => resolve(this)) // RESOLVE
-      .catch(e => {             // REJECT
-        log.error('Message', 'ready() rejected:' + e)
-        reject(e)
-      })
+    return this.obj.from.ready()           // Contact from
+    .then(r => this.obj.to.ready()) // Contact to
+    .then(r => this.obj.group && this.obj.group.ready())  // Group member list
+    .then(r => this)
+    .catch(e => { // REJECT
+      log.error('Message', 'ready() rejected:' + e)
+      throw new Error(e)
     })
   }
 
-  fromGroup() { return !!(this.obj.fromGroup) }
+  group() { return !!(this.obj.group) }
 
   get(prop) {
     if (!prop || !(prop in this.obj)) {
@@ -84,6 +100,7 @@ class Message {
     this.obj[prop] = value
     return this
   }
+  type () { return Message.Type[this.obj.type] }
 
   dump() {
     console.error('======= dump message =======')
@@ -94,7 +111,7 @@ class Message {
     Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj[k]}`))
   }
 
-  getCount() { return Message.counter }
+  count() { return Message.counter }
 
   static find(selector, option) {
     return new Message({MsgId: '-1'})
@@ -109,5 +126,29 @@ class Message {
 }
 
 Message.counter = 0
+Message.Type = {
+  TEXT: 1,
+  IMAGE: 3,
+  VOICE: 34,
+  VIDEO: 43,
+  MICROVIDEO: 62,
+  EMOTICON: 47,
+  APP: 49,
+  VOIPMSG: 50,
+  VOIPNOTIFY: 52,
+  VOIPINVITE: 53,
+  LOCATION: 48,
+  STATUSNOTIFY: 51,
+  SYSNOTICE: 9999,
+  POSSIBLEFRIEND_MSG: 40,
+  VERIFYMSG: 37,
+  SHARECARD: 42,
+  SYS: 1e4,
+  RECALLED: 10002
+}
+Object.keys(Message.Type).forEach(k => {
+  const v = Message.Type[k]
+  Message.Type[v] = k // Message.Type[1] = 'TEXT'
+})
 
 module.exports = Message

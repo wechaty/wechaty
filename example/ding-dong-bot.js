@@ -1,6 +1,6 @@
 const log = require('npmlog')
-//log.level = 'verbose'
-log.level = 'silly'
+log.level = 'verbose'
+// log.level = 'silly'
 
 const Wechaty = require('../src/wechaty')
 
@@ -30,31 +30,33 @@ Please wait... I'm trying to login in...
 console.log(welcome)
 const bot = new Wechaty({head: true})
 
-bot.init()
-.then(bot.getLoginQrImgUrl.bind(bot))
-.then(url => console.log(`Scan qrcode in url to login: \n${url}`))
-.catch(e => {
-  log.error('Bot', 'init() fail:' + e)
-  bot.quit()
-  process.exit(-1)
+bot.on('scan', ({url, code}) => {
+  console.log(`Scan qrcode in url to login: \n${url}`)
+  console.log(code)
 })
 
-bot.on('message', m => {
+bot
+.on('login'	,   () => log.info('Bot', 'logined'))
+.on('logout'	, () => log.info('Bot', 'logouted'))
+.on('message', m => {
   m.ready()
   .then(msg => {
-    log.info('Bot', 'recv: %s'  , msg)
+    log.info('Bot', 'recv: %s', msg)
   })
   .catch(e => log.error('Bot', 'ready: %s' , e))
 
   if (/^(ding|ping|bing)$/i.test(m.get('content'))) {
-    const r = new Wechaty.Message()
-    r.set('to', m.inGroup() ? m.get('group') : m.get('from'))
-    r.set('content', 'dong')
-    bot.send(r)
+    const reply = new Wechaty.Message()
+    reply.set('to', m.group() ? m.get('group') : m.get('from'))
+    reply.set('content', 'dong')
+    bot.send(reply)
     .then(() => { log.warn('Bot', 'REPLY: dong') })
   }
 })
 
-bot.on('login'	, () => npm.info('Bot', 'logined'))
-bot.on('logout'	, () => npm.info('Bot', 'logouted'))
-
+bot.init()
+.catch(e => {
+  log.error('Bot', 'init() fail: %s', e)
+  bot.quit()
+  process.exit(-1)
+})

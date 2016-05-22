@@ -16,12 +16,16 @@
  *
  ***************************************/
 const log = require('npmlog')
+const co  = require('co')
 
 const Puppet = require('./puppet')
 const Message = require('./message')
+const Contact = require('./contact')
+const Group   = require('./group')
 
 const Server  = require('./puppet-web-server')
 const Browser = require('./puppet-web-browser')
+const Bridge  = require('./puppet-web-bridge')
 
 class PuppetWeb extends Puppet {
   constructor(options) {
@@ -30,141 +34,143 @@ class PuppetWeb extends Puppet {
     this.port = options.port || 8788 // W(87) X(88), ascii char code ;-]
     this.head = options.head
 
-    this.logined  = false
-    this.user = null
+    this.user = null  // <Contact> currentUser
   }
 
   toString() { return `Class PuppetWeb({browser:${this.browser},port:${this.port}})` }
 
   init() {
-    this.on('login' , e => {
-      this.logined = true
-      // TODO: save currentUser to this.user as a Contact
+    log.verbose('PuppetWeb', 'init()')
+    return this.initAttach()
+    .then(this.initBrowser.bind(this))
+    .then(this.initBridge.bind(this))
+    .then(this.initServer.bind(this))
+    .catch(e => {
+      log.error('PuppetWeb', e)
+      throw e
     })
-    this.on('logout', e => this.logined = false)
-
-    this.userId = null
-
-    return Promise.all([
-      this.initServer()
-      , this.initBrowser()
-    ])
   }
-
+  initAttach() {
+    log.verbose('PuppetWeb', 'initAttach()')
+    Contact.attach(this)
+    Group.attach(this)
+    return Promise.resolve()
+  }
+  initBrowser() {
+    log.verbose('PuppetWeb', 'initBrowser')
+    this.browser  = new Browser({ head: this.head })
+    return this.browser.init()
+  }
+  initBridge() {
+    log.verbose('PuppetWeb', 'initBridge()')
+    this.bridge = new Bridge({
+      browser:  this.browser
+      , port:   this.port
+    })
+    return this.bridge.init()
+  }
   initServer() {
-    this.server   = new Server({port: this.port})
+    log.verbose('PuppetWeb', 'initServer()')
+    const server = new Server({port: this.port})
 
-    ;[// events. ';' for seprate from the last code line
-      'login'
-      , 'logout'
-    ].map(event =>
-      this.server.on(event, data => this.emit(event, data))
-    )
-    this.server.on('message', data => this.recvMessage(data))
-    /**
-     * `unload` event is sent from js@browser to webserver via socketio
-     * after received `unload`, we re-inject the Wechaty js code into browser.
-     */
-    this.server.on('unload', data => {
-      log.verbose('PuppetWeb', 'server received unload event')
-      this.emit('logout', data)
-      this.browser.inject()
-      .then(() => log.verbose('PuppetWeb', 're-injected'))
-      .catch((e) => log.error('PuppetWeb', 'inject err: ' + e))
+    server.on('login',   this.onServerLogin.bind(this))
+    server.on('logout',  this.onServerLogout.bind(this))
+    server.on('message', this.onServerMessage.bind(this))
+    server.on('unload',  this.onServerUnload.bind(this))
+
+    ;[  // simple server events forwarding
+      'connection'
+      , 'disconnect'
+      , 'scan'
+      , 'log'
+      , 'dong'
+    ].map(e => {
+      server.on(e, data => {
+        log.verbose('PuppetWeb', 'Server event[%s]: %s', e, data)
+        this.emit(e, data)
+      })
     })
 
-    this.server.on('log', s => log.verbose('PuppetWeb', 'log event:' + s))
-
+    this.server = server
     return this.server.init()
   }
 
-  initBrowser() {
-    this.browser  = new Browser({
-      head: this.head
-      , port:   this.port
-    })
-    return this.browser.init()
+  onServerLogin(data) {
+    co(function* () {
+      const userName = yield this.bridge.getUserName()
+      if (!userName) {
+        log.silly('PuppetWeb', 'onServerLogin: browser not full loaded, retry later.')
+        setTimeout(this.onServerLogin.bind(this), 100)
+        return
+      }
+      log.silly('PuppetWeb', 'userName: %s', userName)
+      this.user = yield Contact.load(userName).ready()
+      log.verbose('PuppetWeb', `user ${this.user.name()} logined`)
+      this.emit('login', this.user)
+    }.bind(this))
+    .catch(e => log.error('PuppetWeb', 'onServerLogin rejected: %s', e))
   }
-
-  recvMessage(data) {
+  onServerLogout(data) {
+    this.user = null
+    this.emit('logout', data)
+  }
+  onServerMessage(data) {
     const m = new Message(data)
     if (!this.user) {
-      log.warn('PuppetWeb', 'recvMessage() without this.user')
-      return
-    }
-    const fromId = m.get('from')
-    if (fromId==this.user.id) {
+      log.warn('PuppetWeb', 'onServerMessage() without this.user')
+    } else if (this.user.id==m.from().id) {
+      log.silly('PuppetWeb', 'onServerMessage skip msg send by self')
       return
     }
     this.emit('message', m)
   }
-  send(message) {
-    const toContact   = message.get('to')
-    const toContactId = toContact.getId()
-    const content     = message.get('content')
-
-    log.silly('PuppetWeb', `send(${toContactId}, ${content})`)
-    return this.proxyWechaty('send', toContactId, content)
+  onServerUnload(data) {
+    /**
+     * `unload` event is sent from js@browser to webserver via socketio
+     * after received `unload`, we re-inject the Wechaty js code into browser.
+     */
+    log.verbose('PuppetWeb', 'server received unload event')
+    this.emit('logout', data) // XXX: should emit event[logout] from browser
+    this.bridge.inject()
+    .then(r  => log.verbose('PuppetWeb', 're-injected:' + r))
+    .catch(e => log.error('PuppetWeb', 'inject err: ' + e))
   }
 
-  logout() {
-    return this.proxyWechaty('logout')
+  send(message) {
+    const userName    = message.get('to').id
+    const content     = message.content()
+
+    log.silly('PuppetWeb', `send(${userName}, ${content})`)
+    return this.bridge.send(userName, content)
+  }
+  logout()        { return this.bridge.logout() }
+  getContact(id)  { return this.bridge.getContact(id) }
+  getLoginQrImgUrl() {
+    if (!this.bridge) {
+      log.error('PuppetWeb', 'bridge not found')
+      return
+    }
+    return this.bridge.getLoginQrImgUrl()
   }
 
   debugLoop() {
     // XXX
-    this.getLoginStatusCode().then((c) => {
+    this.bridge.getLoginStatusCode().then((c) => {
       log.verbose('PuppetWeb', `login status code: ${c}`)
       setTimeout(this.debugLoop.bind(this), 3000)
     })
   }
 
   /**
-   *
    *  Interface Methods
-   *
    */
   quit() {
     log.verbose('PuppetWeb', 'quit()')
-    if (this.server) {
-      log.verbose('PuppetWeb', 'server.quit()')
-      this.server.quit()
-      this.server = null
-    }
-    if (this.browser) {
-      log.verbose('PuppetWeb', 'browser.quit()')
-      this.browser.quit()
-      this.browser = null
-    }
+    if (this.server)  { this.server.quit() }
+    if (this.bridge)  { this.bridge.quit() }
+    if (this.browser) { this.browser.quit() }
   }
-
-  /**
-   *
-   * Proxy Call to Wechaty in Browser
-   *
-   */
-  proxyWechaty(wechatyFunc, ...args) {
-    //const args      = Array.prototype.slice.call(arguments, 1)
-    const argsJson  = JSON.stringify(args)
-    const wechatyScript = `return (Wechaty && Wechaty.${wechatyFunc}.apply(undefined, JSON.parse('${argsJson}')))`
-
-    log.silly('PuppetWeb', 'proxyWechaty: ' + wechatyScript)
-    return this.browser.execute(wechatyScript)
-  }
-
-  /**
-   *
-   *  Public Methods
-   *
-   */
-  getLoginQrImgUrl()    {
-    log.silly('PuppetWeb', 'getLoginQrImgUrl()')
-    return this.proxyWechaty('getLoginQrImgUrl')
-  }
-  getLoginStatusCode()  { return this.proxyWechaty('getLoginStatusCode') }
-  getContact(id)        { return this.proxyWechaty('getContact', id) }
-  isLogined()           { return !!(this.logined) }
-
+  isLogined()           { return !!(this.user) }
 }
 
 module.exports = PuppetWeb
