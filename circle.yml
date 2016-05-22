@@ -5,5 +5,5 @@ notify:
   webhooks:
     # A list of hook hashes, containing the url field
     # gitter hook
-    - url: https://webhooks.gitter.im/e/537e61e880e78bc0b271
+    - url: $GITTER_IM_URL
 
