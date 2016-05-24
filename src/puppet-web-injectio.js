@@ -192,9 +192,11 @@ return (function(port) {
     return chat.sendMessage(m)
   }
   function getContact(id) {
-    return Wechaty.glue.contactFactory
-    ? Wechaty.glue.contactFactory.getContact(id)
-    : null
+    if (Wechaty.glue.contactFactory) {
+        return Wechaty.glue.contactFactory.getContact(id)
+    }
+    log('contactFactory not inited')
+    return null
   }
   function getUserName() {
     return Wechaty.glue.accountFactory

@@ -19,26 +19,9 @@ class Contact {
     this.obj = {}
   }
 
-  ready(contactGetter) {
-    log.silly('Contact', 'ready(' + typeof contactGetter + ')')
-    if (this.obj.id) {
-      return Promise.resolve(this)
-    }
-
-    if (!contactGetter) {
-      log.silly('Contact', 'get contact via ' + Contact.puppet.constructor.name)
-      contactGetter = Contact.puppet.getContact.bind(Contact.puppet)
-    }
-    return contactGetter(this.id)
-    .then(data => {
-      log.silly('Contact', `contactGetter(${this.id}) resolved`)
-      this.rawObj = data
-      this.obj    = this.parse(data)
-      return this
-    }).catch(e => {
-      log.error('Contact', `contactGetter(${this.id}) rejected: `, e)
-      throw new Error('contactGetter: ' + e)
-    })
+  toString() {
+    var name = this.obj.name ? `${this.obj.name}@${this.id}` : this.id
+    return `Contact(${name})`
   }
 
   parse(rawObj) {
@@ -56,6 +39,26 @@ class Contact {
   }
   name() { return this.obj.name }
 
+  ready(contactGetter) {
+    log.silly('Contact', 'ready(' + typeof contactGetter + ')')
+    if (this.obj.id) { return Promise.resolve(this) }
+
+    if (!contactGetter) {
+      log.silly('Contact', 'get contact via ' + Contact.puppet.constructor.name)
+      contactGetter = Contact.puppet.getContact.bind(Contact.puppet)
+    }
+    return contactGetter(this.id)
+    .then(data => {
+      log.silly('Contact', `contactGetter(${this.id}) resolved`)
+      this.rawObj = data
+      this.obj    = this.parse(data)
+      return this
+    }).catch(e => {
+      log.error('Contact', `contactGetter(${this.id}) rejected: %s`, e)
+      throw e
+    })
+  }
+
   dumpRaw() {
     console.error('======= dump raw contact =======')
     Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj[k]}`))
@@ -63,10 +66,6 @@ class Contact {
   dump()    {
     console.error('======= dump contact =======')
     Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj[k]}`))
-  }
-
-  toString() {
-    return `Contact(${this.id})`
   }
 
   get(prop) { return this.obj[prop] }

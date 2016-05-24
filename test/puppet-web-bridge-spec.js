@@ -5,7 +5,61 @@ const Browser = require('../src/puppet-web-browser')
 const Bridge  = require('../src/puppet-web-bridge')
 const PORT = 58788
 
-test('Bridge class smoking tests', function(t) {
+const log = require('npmlog')
+// log.level = 'silly'
+
+test('Bridge functional testing', function(t) {
+  const browser = new Browser({port: PORT})
+  t.ok(browser, 'Browser instance created')
+
+  const b = new Bridge({browser: browser})
+  t.ok(b, 'Bridge instance creted')
+
+  co(function* () {
+
+    const EXPECTED_RETURN = 'Okey'
+    function delayedFactory(timeout) {
+      const startTime = Date.now()
+      return function() {
+        const nowTime = Date.now()
+        if (nowTime - startTime > timeout) {
+          return Promise.resolve(EXPECTED_RETURN)
+        }
+        return Promise.resolve()
+      }
+    }
+
+    yield b.waitData(delayedFactory(100), 10)
+    .then(r => {
+      t.notOk(r, 'waitData got none when wait 10ms')
+    })
+    .catch(e => {
+      t.fail(e)
+    })
+
+    yield b.waitData(delayedFactory(100), 100)
+    .then(r => {
+      t.equal(r, EXPECTED_RETURN, `waitData got "${EXPECTED_RETURN}" when wait 100ms`)
+    })
+    .catch(e => {
+      t.fail(e)
+    })
+
+  })
+  .catch(e => { // REJECTED
+    t.fail(e)
+  })
+  .then(r => {  // FINALLY
+    browser.quit()
+    b.quit()
+    t.end()
+  })
+  .catch(e => { // EXCEPTION
+    t.fail(e)
+  })
+})
+
+test('Bridge smoke testing', function(t) {
   const browser = new Browser({port: PORT})
   t.ok(browser, 'Browser instance created')
 

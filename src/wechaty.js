@@ -59,8 +59,9 @@ class Wechaty extends EventEmitter {
   }
 
   currentUser()   { return this.puppet.currentUser() }
-  send(message)   { return this.puppet.send(message) }
   quit()          { return this.puppet.quit() }
+  send(message)   { return this.puppet.say(message) }
+  reply(message, reply) { return this.puppet.reply(message, reply) }
 
   ding()          {
     // TODO: test through the server & browser

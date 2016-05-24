@@ -19,13 +19,15 @@ class Group {
     }
   }
 
-  toString()  { return this.obj.name ? this.obj.name : this.id }
+  toString()  {
+    var name = this.obj.name ? `[${this.obj.name}]${this.id}` : this.id
+    return `Group(${name})`
+  }
 
   ready(contactGetter) {
     log.silly('Group', `ready(${contactGetter})`)
-    if (this.obj.id) {
-      return Promise.resolve(this)
-    }
+    if (this.obj.id) { return Promise.resolve(this) }
+
     contactGetter = contactGetter || Group.puppet.getContact.bind(Group.puppet)
     return contactGetter(this.id)
     .then(data => {
@@ -38,6 +40,8 @@ class Group {
       throw new Error('contactGetter: ' + e)
     })
   }
+
+  name() { return this.obj.name }
 
   parse(rawObj) {
     return !rawObj ? {} : {

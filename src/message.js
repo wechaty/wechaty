@@ -15,18 +15,11 @@ class Message {
   constructor(rawObj) {
     Message.counter++
 
-    this.logToFile(JSON.stringify(rawObj))
-
     this.rawObj = rawObj = rawObj || {}
     this.obj = this.parse(rawObj)
     this.id = this.obj.id
   }
 
-  logToFile(data) {
-    require('fs').appendFile('message.log', data + '\n\n#############################\n\n', err => {
-      if (err) { log.error('Message', 'logToFile: ' + err) }
-    })
-  }
   // Transform rawObj to local m
   parse(rawObj) {
     return {
@@ -52,9 +45,9 @@ class Message {
     return s
   }
   getSenderString() {
-    const name  = this.obj.from.get('name')
+    const name  = this.obj.from.get('remark') || this.obj.from.get('name')
     const group = this.obj.group
-    return '<' + name + (group ? `@[${group}]` : '') + '>'
+    return '<' + name + (group ? `@${group}` : '') + '>'
   }
   getContentString() {
     let content = this.unescapeHtml(this.stripHtml(this.obj.content))
@@ -74,19 +67,18 @@ class Message {
   from()    { return this.obj.from }
   to()      { return this.obj.to }
   content() { return this.obj.content }
+  group()   { return this.obj.group }
 
   ready() {
-    return this.obj.from.ready()           // Contact from
+    return this.obj.from.ready()    // Contact from
     .then(r => this.obj.to.ready()) // Contact to
     .then(r => this.obj.group && this.obj.group.ready())  // Group member list
-    .then(r => this)
-    .catch(e => { // REJECT
-      log.error('Message', 'ready() rejected:' + e)
+    .then(r => this)  // ready return this for chain
+    .catch(e => {     // REJECTED
+      log.error('Message', 'ready() rejected: %s', e)
       throw new Error(e)
     })
   }
-
-  group() { return !!(this.obj.group) }
 
   get(prop) {
     if (!prop || !(prop in this.obj)) {

@@ -30,18 +30,17 @@ Please wait... I'm trying to login in...
 console.log(welcome)
 const bot = new Wechaty({head: true})
 
-bot.on('scan', ({url, code}) => {
-  console.log(`Scan qrcode in url to login: \n${url}`)
-  console.log(code)
-})
-
 bot
 .on('login'	,   () => log.info('Bot', 'logined'))
 .on('logout'	, () => log.info('Bot', 'logouted'))
+.on('scan', ({url, code}) => {
+  console.log(`Scan qrcode in url to login: ${code}\n${url}`)
+})
 .on('message', m => {
   m.ready()
   .then(msg => {
     log.info('Bot', 'recv: %s', msg)
+    logToFile(JSON.stringify(msg.rawObj))
   })
   .catch(e => log.error('Bot', 'ready: %s' , e))
 
@@ -60,3 +59,9 @@ bot.init()
   bot.quit()
   process.exit(-1)
 })
+
+function logToFile(data) {
+require('fs').appendFile('message.log', data + '\n\n#############################\n\n', err => {
+  if (err) { log.error('LogToFile: %s', err) }
+})
+}

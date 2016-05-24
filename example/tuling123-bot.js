@@ -39,21 +39,13 @@ bot
 .on('message', m => {
   co(function* () {
     const msg = yield m.ready()
-    log.info('Bot', 'recv: %s'  , msg)
 
-    if (m.group()) {
-      return
+    if (m.group() && /Wechaty/i.test(m.group().name())) {
+      log.info('Bot', 'talk: %s'  , msg)
+      talk(m)
+    } else {
+      log.info('Bot', 'recv: %s'  , msg)
     }
-
-    const reply = new Wechaty.Message()
-    .set('to', m.get('from'))
-
-    const content = m.get('content')
-    const {code, text} = yield brain.ask(content, {userid: msg.get('from')})
-    reply.set('content', text)
-
-    yield bot.send(reply)
-    log.info('Bot', `REPLY: {code:${code}, text:${text}}`)
   })
   .catch(e => log.error('Bot', 'on message rejected: %s' , e))
 })
@@ -65,3 +57,17 @@ bot.init()
   process.exit(-1)
 })
 
+function talk(m) {
+  co(function* () {
+    const fromId = m.from().id
+    const content = m.content()
+    const {code, text} = yield brain.ask(content, {userid: fromId})
+
+    const minDelayTime = 5000
+    const maxDelayTime = 15000
+    const delayTime = Math.floor(Math.random() * (maxDelayTime - minDelayTime)) + minDelayTime
+
+    log.info('Bot', `REPLY(after ${Math.floor(delayTime/1000)}s): {code:${code}, text:${text}}`)
+    setTimeout(r => { bot.reply(m, text) }, delayTime)
+  })
+}
