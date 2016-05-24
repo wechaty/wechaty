@@ -21,7 +21,7 @@ log.level = 'silly'
 const TULING123_API_KEY = '18f25157e0446df58ade098479f74b21'
 const brain = new Tuling123(TULING123_API_KEY)
 
-const bot = new Wechaty({head: true})
+const bot = new Wechaty({head: false})
 
 console.log(`
 Welcome to Tuling Wechaty Bot.
