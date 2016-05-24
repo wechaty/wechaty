@@ -33,8 +33,7 @@ bot
 .on('login'  , e => log.info('Bot', 'bot login.'))
 .on('logout' , e => log.info('Bot', 'bot logout.'))
 .on('scan', ({url, code}) => {
-  console.log(`Scan qrcode in url to login: \n${url}`)
-  console.log(code)
+  console.log(`[${code}]Scan qrcode in url to login:\n${url}`)
 })
 .on('message', m => {
   co(function* () {

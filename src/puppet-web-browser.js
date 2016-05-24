@@ -67,9 +67,9 @@ class Browser {
     .set('phantomjs.cli.args', [
       '--ignore-ssl-errors=true' // this help socket.io connect with localhost
       , '--load-images=false'
+      , '--remote-debugger-port=9000'
       // , '--webdriver-logfile=/tmp/wd.log'
       // , '--webdriver-loglevel=DEBUG'
-      // , '--remote-debugger-port=9000'
     ])
 
     log.silly('Browser', 'phantomjs binary: ' + phantomjsExe)
