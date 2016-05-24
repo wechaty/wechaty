@@ -12,7 +12,6 @@ const fs        = require('fs')
 const path      = require('path')
 const WebDriver = require('selenium-webdriver')
 const log       = require('npmlog')
-//log.disableColor()
 
 class Browser {
   constructor(options) {

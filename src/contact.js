@@ -10,19 +10,14 @@ const log = require('npmlog')
 
 class Contact {
   constructor(id) {
-    if (!Contact.puppet) {
-      throw new Error('no puppet attached to Contact')
-    }
     log.silly('Contact', `constructor(${id})`)
+    if (!Contact.puppet) { throw new Error('no puppet attached to Contact') }
 
     this.id = id
     this.obj = {}
   }
 
-  toString() {
-    var name = this.obj.name ? `${this.obj.name}@${this.id}` : this.id
-    return `Contact(${name})`
-  }
+  toString() { return `Contact(${this.obj.name}[${this.id}])` }
 
   parse(rawObj) {
     return !rawObj ? {} : {

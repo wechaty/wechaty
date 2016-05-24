@@ -35,6 +35,7 @@
     "body-parser": "^1.15.0",
     "chromedriver": "^2.21.2",
     "co": "^4.6.0",
+    "eventemitter2": "^1.0.3",
     "express": "^4.13.4",
     "npmlog": "^2.0.3",
     "phantomjs-prebuilt": "^2.1.7",

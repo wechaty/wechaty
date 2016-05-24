@@ -70,6 +70,7 @@ class Message {
   group()   { return this.obj.group }
 
   ready() {
+    log.silly('Message', 'ready()')
     return this.obj.from.ready()    // Contact from
     .then(r => this.obj.to.ready()) // Contact to
     .then(r => this.obj.group && this.obj.group.ready())  // Group member list

@@ -18,11 +18,7 @@ class Group {
       throw new Error('no puppet attached to Group')
     }
   }
-
-  toString()  {
-    var name = this.obj.name ? `[${this.obj.name}]${this.id}` : this.id
-    return `Group(${name})`
-  }
+  toString()  { return `Group(${this.obj.name}[${this.id}])` }
 
   ready(contactGetter) {
     log.silly('Group', `ready(${contactGetter})`)

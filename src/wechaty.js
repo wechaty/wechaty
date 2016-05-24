@@ -68,6 +68,10 @@ class Wechaty extends EventEmitter {
     return 'dong'
   }
 
+  /**
+   * @deprecated
+   * use on('scan', ({code, url}) => {}) instead.
+   */
   getLoginQrImgUrl() { return this.puppet.getLoginQrImgUrl() }
 }
 
