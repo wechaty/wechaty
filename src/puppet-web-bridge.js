@@ -32,7 +32,50 @@ class Bridge {
   getLoginQrImgUrl()        { return this.proxyWechaty('getLoginQrImgUrl') }
   getUserName()             { return this.proxyWechaty('getUserName') }
 
-  getContact(id)            { return this.proxyWechaty('getContact', id) }
+  getContact(id)            {
+    return this.waitData(r => {
+      return this.proxyWechaty('getContact', id)
+    }, 3000)
+  }
+
+  /**
+  * Call a function repeatly untill it return a value
+  *
+  * @param <function> pfunc
+  * @param <number>   timeout
+  *
+  */
+  waitData(pfunc, timeout) {
+    log.silly('Bridge', 'waitData()')
+    const waitTime  = 50
+    let totalTime   = 0
+    return new Promise((resolve, reject) => {
+      function retry() {
+        log.silly('Bridge', 'retry()@waitData()')
+        try {
+          pfunc().then(data => {
+            if (data) {
+              log.silly('Bridge', `waitData(${totalTime}/${timeout}) succ`)
+              return resolve(data)
+            } else if (totalTime > timeout) {
+              log.silly('Bridge', `waitData(${totalTime}/${timeout}) timeout`)
+              return resolve()
+            } else {
+              log.silly('Bridge', `waitData(${totalTime}/${timeout}) retry`)
+              totalTime += waitTime
+              return setTimeout(retry, waitTime)
+            }
+            throw new Error('should not run to here')
+          })
+        } catch (e) {
+          log.silly('Bridge', `waitData(${totalTime}/${timeout}) exception: %s`, e)
+          return reject(e)
+        }
+      }
+      return retry()
+    })
+  }
+
   send(toUserName, content) { return this.proxyWechaty('send', toUserName, content) }
 
   getInjectio() {
@@ -54,10 +97,11 @@ class Bridge {
       })
       .then(r => {
         if (true===r) { log.verbose('Bridge', 'Wechaty.init() return: ' + r) }
-        else          { throw new Error('Wechaty.init() return not true') }
+        else          { throw new Error('Wechaty.init() return not true： ' + r) }
         return r
       })
     } catch (e) {
+      log.error('Bridge', 'inject() exception: %s', e)
       return Promise.reject('inject exception: ' + e)
     }
     throw new Error('should not run to here')

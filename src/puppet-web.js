@@ -137,12 +137,21 @@ class PuppetWeb extends Puppet {
   }
 
   send(message) {
-    const userName    = message.get('to').id
+    const userName    = message.to().id
     const content     = message.content()
 
-    log.silly('PuppetWeb', `send(${userName}, ${content})`)
+    log.silly('PuppetWeb', `say(${userName}, ${content})`)
     return this.bridge.send(userName, content)
   }
+  reply(recvMsg, replyMsg) {
+    var contact = recvMsg.group()
+    if (!contact) { contact = recvMsg.from() }
+    const contactId = contact.id
+
+    log.silly('PuppetWeb', `reply(${contact}, ${replyMsg})`)
+    return this.bridge.send(contactId, replyMsg)
+  }
+
   logout()        { return this.bridge.logout() }
   getContact(id)  { return this.bridge.getContact(id) }
   getLoginQrImgUrl() {
@@ -151,14 +160,6 @@ class PuppetWeb extends Puppet {
       return
     }
     return this.bridge.getLoginQrImgUrl()
-  }
-
-  debugLoop() {
-    // XXX
-    this.bridge.getLoginStatusCode().then((c) => {
-      log.verbose('PuppetWeb', `login status code: ${c}`)
-      setTimeout(this.debugLoop.bind(this), 3000)
-    })
   }
 
   /**

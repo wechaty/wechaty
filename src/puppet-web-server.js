@@ -100,12 +100,10 @@ class Server extends EventEmitter {
     this.emit('connection', client)
 
     client.on('disconnect', e => {
-      log.verbose('Server', 'socket.io disconnected: ' + e)
-      /**
-       * 1. Browser reload / 2. Lost connection(Bad network)
-       */
+      log.verbose('Server', 'socket.io disconnect: %s', e)
+      // 1. Browser reload / 2. Lost connection(Bad network)
       this.socketClient = null
-      this.emit('disconnect', 'server re-emit from socketio')
+      this.emit('disconnect', e)
     })
 
     client.on('error', e => log.error('Server', 'socketio client error: %s', e))

@@ -46,7 +46,10 @@ class Browser {
   initDriver() {
     log.verbose('Browser', 'initDriver()')
     if (this.head) {
-      this.driver = new WebDriver.Builder().forBrowser('chrome').build()
+      this.driver = new WebDriver.Builder()
+      .setAlertBehavior('ignore')
+      .forBrowser('chrome')
+      .build()
     } else {
       this.driver = this.getPhantomJsDriver()
     }
@@ -59,6 +62,7 @@ class Browser {
     const phantomjsExe = require('phantomjs-prebuilt').path
     // const phantomjsExe = require('phantomjs2').path
     const customPhantom = WebDriver.Capabilities.phantomjs()
+    .setAlertBehavior('ignore')
     .set('phantomjs.binary.path', phantomjsExe)
     .set('phantomjs.cli.args', [
       '--ignore-ssl-errors=true' // this help socket.io connect with localhost
@@ -95,10 +99,18 @@ class Browser {
   execute(script, ...args) {
     //log.verbose('Browser', `Browser.execute(${script})`)
     if (!this.driver) {
-      throw new Error('driver not found')
+      // throw new Error('driver not found')
+      const errMsg = 'execute() called without driver'
+      log.verbose('Browser', errMsg)
+      return Promise.reject(errMsg)
     }
     // return promise
-    return this.driver.executeScript.apply(this.driver, arguments)
+    try {
+      return this.driver.executeScript.apply(this.driver, arguments)
+    } catch (e) {
+      log.error('Browser', e)
+      return Promise.reject(e)
+    }
   }
 }
 
