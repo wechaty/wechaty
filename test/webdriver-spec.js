@@ -2,7 +2,8 @@ const path  = require('path')
 const co    = require('co')
 const test   = require('tap').test
 const log   = require('npmlog')
-//log.level = 'silly'
+log.level = 'verbose'
+log.level = 'silly'
 
 const WebDriver = require('selenium-webdriver')
 const Browser = WebDriver.Browser
@@ -12,24 +13,86 @@ const PuppetWebBrowser  = require('../src/puppet-web-browser')
 const PuppetWebBridge   = require('../src/puppet-web-bridge')
 const PORT = 58788
 
-test('WebDriver smoke testing', function(t) {
-  const wb = new PuppetWebBrowser({port: PORT})
+function driverProcessNum() {
+  return new Promise((resolve, reject) => {
+    
+    // require('ps-tree')(process.pid, (err, data) => {
+    //   if (err) { return reject(err) }
+    //   data.forEach(c => console.log(c))
+    //   const num = data.filter(obj => /phantomjs/i.test(obj.COMMAND)).length
+    //   return resolve(num)
+    // })
+  
+  
+    const exec = require('child_process').exec
+    exec('ps axf >> /tmp/ps.log', r=>r)
+    exec('ps axf | grep phantomjs | grep -v grep | wc -l >> /tmp/ps.log', r=>r)
+    
+    exec('ps axf | grep phantomjs | grep -v grep | wc -l', function(err, stdout, stderr) {
+      if (err) {
+        return reject(err)
+      }
+      return resolve(parseInt(stdout[0]))
+    })
+    
+  })    
+}
+
+test('WebDriver process create & quit test', function(t) {
+  co(function* () {
+    const b = new PuppetWebBrowser({port: PORT})
+    t.ok(b, 'Browser instnace')
+
+    yield b.init()
+    t.pass('inited')
+
+    let n = yield driverProcessNum()
+    t.ok(n > 0, 'driver process exist')
+
+// console.log(b.driver.getSession())
+    
+    yield b.quit()
+    t.pass('quited')
+    
+    n = yield driverProcessNum()
+    t.equal(n, 0, 'no driver process after quit')
+  })
+  .catch(e => { t.fail(e) })
+  .then(t.end.bind(t))
+
+  return
+})
+
+// XXX WTF with co module???
+false && test('WebDriver smoke testing', function(t) {
+  const wb = new PuppetWebBrowser()
   t.ok(wb, 'Browser instnace')
 
-  const bridge = new PuppetWebBridge({browser: wb})
+  const bridge = new PuppetWebBridge({browser: wb, port: PORT})
   t.ok(bridge, 'Bridge instnace')
 
   var driver // for help function `execute`
 
   co(function* () {
+    const m = yield driverProcessNum()
+    t.equal(m, 0, 'driver process not exist before get()')
+
     driver = yield wb.initDriver()
     t.ok(driver, 'driver inited')
+
 
     const injectio = bridge.getInjectio()
     t.ok(injectio.length > 10, 'got injectio')
 
+    // XXX: if get rid of this dummy, 
+    // driver.get() will fail due to cant start phantomjs process
+    // yield Promise.resolve()
+
     yield driver.get('https://wx.qq.com/')
-    t.pass('driver got url')
+    t.pass('driver url opened')
+
+    const n = yield driverProcessNum()
+    t.ok(n > 0, 'driver process exist after get()')
 
     const retAdd = yield execute('return 1+1')
     t.equal(retAdd, 2, 'execute js in browser')
@@ -38,21 +101,73 @@ test('WebDriver smoke testing', function(t) {
     t.equal(retInject, 'Wechaty', 'injected wechaty')
 
   })
-  .catch(e => { // REJECTED
-    t.ok(false, 'promise rejected. e:' + e)
-  })
-  .then(() => { // FINALLY
-    t.end()
-    driver.quit()
-  })
-  .catch(e => { // EXCEPTION
-    t.fail('exception got:' + e)
-  })
+  .catch(e => t.fail('promise rejected. e:' + e)) // Rejected
+  .then(r => wb.quit())                           // Finally 1
+  .then(r => t.end())                             // Finally 2
+  .catch(e => t.fail('exception got:' + e))       // Exception
 
   return
 
   //////////////////////////////////
+  function execute() {
+    return driver.executeScript.apply(driver, arguments)
+  }
+})
 
+test('WebDriver WTF testing', function(t) {
+  const wb = new PuppetWebBrowser()
+  t.ok(wb, 'Browser instnace')
+
+  const bridge = new PuppetWebBridge({browser: wb, port: PORT})
+  t.ok(bridge, 'Bridge instnace')
+
+  var driver // for help function `execute`
+
+  driverProcessNum()
+  .then(n => {
+    t.equal(n, 0, 'driver process not exist before get()')
+    
+    return wb.initDriver()
+  })
+  .then(d => {
+    driver = d
+    t.ok(driver, 'driver inited')
+    
+    return bridge.getInjectio()
+  })
+  .then(r => {
+    injectio = r
+    t.ok(injectio.length > 10, 'got injectio')
+    
+    return driver.get('https://wx.qq.com/')
+  })
+  .then(r => {
+    t.pass('driver url opened')
+    
+    return driverProcessNum()
+  })
+  .then(n => {
+    t.ok(n > 0, 'driver process exist after get()')
+    
+    return execute('return 1+1')
+  })
+  .then(retAdd => {
+    t.equal(retAdd, 2, 'execute js in browser')
+    
+    return execute(injectio, PORT)
+  })
+  .then(retInject => {
+    t.equal(retInject, 'Wechaty', 'injected wechaty')
+    
+  })
+  .catch(e => t.fail('promise rejected. e:' + e)) // Rejected
+  .then(r => wb.quit())                           // Finally 1
+  .then(r => t.end())                             // Finally 2
+  .catch(e => t.fail('exception got:' + e))       // Exception
+
+  return
+
+  //////////////////////////////////
   function execute() {
     return driver.executeScript.apply(driver, arguments)
   }

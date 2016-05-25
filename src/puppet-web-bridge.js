@@ -19,7 +19,7 @@ class Bridge {
     this.browser  = options.browser
     this.port     = options.port || 8788 // W(87) X(88), ascii char code ;-]
   }
-  toString() { return `Class Bridge({browser: ${options.browser}, port: ${options.port}})` }
+  toString() { return `Class Bridge({browser: ${this.options.browser}, port: ${this.options.port}})` }
 
   init() {
     log.verbose('Bridge', 'init()')
@@ -27,9 +27,15 @@ class Bridge {
   }
 
   logout()                  { return this.proxyWechaty('logout') }
-  quit()                    { return this.proxyWechaty('quit') }
-  getLoginStatusCode()      { return this.proxyWechaty('getLoginStatusCode') }
-  getLoginQrImgUrl()        { return this.proxyWechaty('getLoginQrImgUrl') }
+  quit()                    {
+    log.verbose('Bridge', 'quit()')
+    return this.proxyWechaty('quit')
+  }
+  
+  // @Deprecated
+  // getLoginStatusCode()      { return this.proxyWechaty('getLoginStatusCode') }
+  // getLoginQrImgUrl()        { return this.proxyWechaty('getLoginQrImgUrl') }
+  
   getUserName()             { return this.proxyWechaty('getUserName') }
 
   getContact(id)            {
@@ -39,11 +45,11 @@ class Bridge {
   }
 
   /**
-  * Call a function repeatly untill it return a value
+  * Call a function repeatly untill it return a resolved promise
   *
-  * @param <function> pfunc
-  * @param <number>   timeout
-  *
+  * @param {Function} pfunc
+  * @param {Number}   timeout
+  * @TODO: change waitData to retry-promise
   */
   waitData(pfunc, timeout) {
     log.silly('Bridge', 'waitData()')
@@ -135,3 +141,12 @@ class Bridge {
 }
 
 module.exports = Bridge
+
+/*
+*
+ac = Wechaty.glue.contactFactory.getAllContacts();
+Object.keys(ac).filter(function(k) { return /李/.test(ac[k].NickName) }).map(function(k) { var c = ac[k]; return {NickName: c.NickName, Alias: c.Alias, Uin: c.Uin, MMInChatRoom: c.MMInChatRoom} })
+
+Object.keys(window._chatContent).filter(function (k) { return window._chatContent[k].length > 0 }).map(function (k) { return window._chatContent[k].map(function (v) {return v.MMDigestTime}) })
+*
+*/

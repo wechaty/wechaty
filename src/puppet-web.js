@@ -41,20 +41,39 @@ class PuppetWeb extends Puppet {
 
   init() {
     log.verbose('PuppetWeb', 'init()')
+    
     return this.initAttach()
-    .then(this.initBrowser.bind(this))
-    .then(this.initBridge.bind(this))
-    .then(this.initServer.bind(this))
-    .catch(e => {
+    .then(r => {
+      log.verbose('PuppetWeb', 'initAttach done: %s', r)
+      return this.initBrowser()
+    })
+    .then(r => {
+      log.verbose('PuppetWeb', 'initBrowser done: %s', r)
+      return this.initBridge() 
+    })
+    .then(r => {
+      log.verbose('PuppetWeb', 'initBridge done: %s', r)
+      return this.initServer()
+    })
+    .then(r => {
+      log.verbose('PuppetWeb', 'initServer done: %s', r)
+      return r
+    })
+    .catch(e => {                 // Reject
       log.error('PuppetWeb', e)
       throw e
     })
+    .then(r => {                  // Finally
+      log.verbose('PuppetWeb', 'all initXXX done.')
+      return true
+    })
   }
+  
   initAttach() {
     log.verbose('PuppetWeb', 'initAttach()')
     Contact.attach(this)
     Group.attach(this)
-    return Promise.resolve()
+    return Promise.resolve(true)
   }
   initBrowser() {
     log.verbose('PuppetWeb', 'initBrowser')
@@ -77,12 +96,13 @@ class PuppetWeb extends Puppet {
     server.on('logout',  this.onServerLogout.bind(this))
     server.on('message', this.onServerMessage.bind(this))
     server.on('unload',  this.onServerUnload.bind(this))
+    
+    server.on('connection', this.onServerConnection.bind(this))
+    server.on('disconnect', this.onServerDisconnect.bind(this))
+    server.on('log', this.onServerLog.bind(this))
 
-    ;[  // simple server events forwarding
-      'connection'
-      , 'disconnect'
+    ;[  // Public events to end user
       , 'scan'
-      , 'log'
       , 'dong'
     ].map(e => {
       server.on(e, data => {
@@ -95,8 +115,22 @@ class PuppetWeb extends Puppet {
     return this.server.init()
   }
 
+  onServerConnection(data) {
+    log.verbose('PuppetWeb', 'onServerConnection: %s', data)
+  }
+  onServerDisconnect(data) {
+    log.verbose('PuppetWeb', 'onServerDisconnect: %s', data)
+    log.verbose('PuppetWeb', 'onServerDisconnect: unloaded? call onServerUnload to try to fix connection')
+    this.onServerUnload(data)
+  }
+  onServerLog(data) {
+    log.verbose('PuppetWeb', 'onServerLog: %s', data)
+  }
+  
   onServerLogin(data) {
-    co(function* () {
+    co.call(this, function* () { 
+      // co.call to make `this` context work inside generator.
+      // See also: https://github.com/tj/co/issues/274
       const userName = yield this.bridge.getUserName()
       if (!userName) {
         log.silly('PuppetWeb', 'onServerLogin: browser not full loaded, retry later.')
@@ -107,7 +141,7 @@ class PuppetWeb extends Puppet {
       this.user = yield Contact.load(userName).ready()
       log.verbose('PuppetWeb', `user ${this.user.name()} logined`)
       this.emit('login', this.user)
-    }.bind(this))
+    })
     .catch(e => log.error('PuppetWeb', 'onServerLogin rejected: %s', e))
   }
   onServerLogout(data) {
@@ -167,10 +201,20 @@ class PuppetWeb extends Puppet {
    */
   quit() {
     log.verbose('PuppetWeb', 'quit()')
-    if (this.server)  { this.server.quit() }
-    if (this.bridge)  { this.bridge.quit() }
-    if (this.browser) { this.browser.quit() }
+    let p = Promise.resolve(true)
+    
+    if (this.server)  { p.then(this.server.quit.bind(this)) }
+    else              { log.warn('PuppetWeb', 'quit() without server') }
+    
+    if (this.bridge)  { p.then(this.bridge.quit.bind(this)) }
+    else              { log.warn('PuppetWeb', 'quit() without bridge') }
+    
+    if (this.browser) { p.then(this.browser.quit.bind(this)) }
+    else              { log.warn('PuppetWeb', 'quit() without browser') }
+    
+    return p // return Promise
   }
+  
   isLogined()           { return !!(this.user) }
 }
 

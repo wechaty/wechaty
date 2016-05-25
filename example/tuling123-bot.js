@@ -17,8 +17,14 @@ const EventEmitter2 = require('eventemitter2')
 
 const Wechaty = require('../src/wechaty')
 //log.level = 'verbose'
-log.level = 'silly'
+// log.level = 'silly'
 
+/**
+ * 
+ * Apply Your Own Tuling123 Developer API_KEY at: 
+ * http://www.tuling123.com
+ * 
+ */
 const TULING123_API_KEY = '18f25157e0446df58ade098479f74b21'
 const brain = new Tuling123(TULING123_API_KEY)
 
@@ -27,6 +33,10 @@ const bot = new Wechaty({head: false})
 console.log(`
 Welcome to Tuling Wechaty Bot.
 Tuling API: http://www.tuling123.com/html/doc/api.html
+
+Notice: This bot will only active in the group whose name contains 'wechaty'.
+/* if (m.group() && /Wechaty/i.test(m.group().name())) { */
+
 Loading...
 `)
 
@@ -121,9 +131,11 @@ function talk(m) {
     const talkerName = fromId + groupId
     if (!Talkers[talkerName]) {
       Talkers[talkerName] = new Talker(function(text) {
-        log.info('Tuling123', 'Talker is thinking how to reply: %s', text)
         return brain.ask(text, {userid: talkerName})
-        .then(r => r.text)
+        .then(r => {
+          log.info('Tuling123', 'Talker reply:"%s" for "%s" ', r.text, text)
+          return r.text
+        })
       })
       Talkers[talkerName].on('say', reply => bot.reply(m, reply))
     }

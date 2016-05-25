@@ -23,23 +23,23 @@ class Browser {
 
   init() {
     log.verbose('Browser', 'init()')
+    
     return this.initDriver()
-    .then(this.open.bind(this))
     .then(r => {
-      log.verbose('Browser', 'inited: ' + this.toString())
+      log.verbose('Browser', 'initDriver() done')
+      return this.open()
+    })
+    .then(r => {
+      log.verbose('Browser', 'open() done')
+      return true
     })
   }
 
   open() {
     const WX_URL = 'https://wx.qq.com'
     log.verbose('Browser', `open() at ${WX_URL}`)
-    try {
-      return this.driver.get(WX_URL)
-    } catch (e) { // WebDriver exception
-      // TODO: try to fix this by re-open webdriver 3 times
-      log.error('Browser', 'open be rejected: %s', e)
-      return Promise.reject(e)
-    }
+    
+    return this.driver.get(WX_URL)
   }
 
   initDriver() {
@@ -85,16 +85,60 @@ class Browser {
   quit() {
     log.verbose('Browser', 'quit()')
     if (!this.driver) {
-      log.verbose('Browser', 'no need to quite because no driver')
+      log.verbose('Browser', 'driver.quit() skipped because no driver')
       return Promise.resolve('no driver')
+    } else if (!this.driver.getSession()) {
+      log.verbose('Browser', 'driver.quit() skipped because no driver session')
+      return Promise.resolve('no driver session')
     }
     log.verbose('Browser', 'driver.quit')
     this.driver.close() // http://stackoverflow.com/a/32341885/1123955
     this.driver.quit()
     this.driver = null
-    return Promise.resolve()
+    
+    return this.waitClean()
   }
 
+  waitClean() {
+    const retry = require('retry-promise').default // https://github.com/olalonde/retry-promise
+    return retry({ max: 5, backoff: 300 }, function (attempt) {
+      log.verbose('Browser', `waitClean() retryPromise: Attempt ${attempt}`)
+      return driverProcessNum()
+      .then(n => {
+        if (n > 0) throw new Error('reject because there has driver process not exited')
+        log.verbose('Browser', 'waitClean hit')
+        return n
+      })
+    })
+    .catch(e => {
+      log.error('Browser', 'waitClean() retryPromise failed: %s', e)
+    })
+
+    ///////////////////////////////////////
+    function driverProcessNum() {
+      return new Promise((resolve, reject) => {
+        require('ps-tree')(process.pid, (err, data) => {
+          if (err) { return reject(err) }
+          const num = data.filter(obj => /phantomjs/i.test(obj.COMMAND)).length
+          resolve(num)
+        })
+        /**
+         * 
+         * raw ps & grep
+         * 
+        const exec = require('child_process').exec
+        exec('ps axf | grep phantomjs | grep -v grep | wc -l', function(err, stdout, stderr) {
+          if (err) {
+            return reject(err)
+          }
+          return resolve(stdout[0])
+        })
+         *
+         **/
+      })
+    }
+  }
+  
   execute(script, ...args) {
     //log.verbose('Browser', `Browser.execute(${script})`)
     if (!this.driver) {

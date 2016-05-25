@@ -6,7 +6,8 @@
  * https://github.com/zixia/wechaty
  *
  */
-const EventEmitter = require('events')
+const log           = require('npmlog')
+const EventEmitter  = require('events')
 
 const Puppet      = require('./puppet')
 const PuppetWeb   = require('./puppet-web')
@@ -20,9 +21,12 @@ class Wechaty extends EventEmitter {
     super()
     this.options = options || {}
     this.options.puppet = this.options.puppet || 'web'
+    
+    this.VERSION = require('../package.json').version
   }
   toString() { return 'Class Wechaty(' + this.puppet + ')'}
   init() {
+    log.verbose('Wechaty', 'init() with version: %s', this.VERSION)
     this.initPuppet()
     this.initEventHook()
     return this.puppet.init()
@@ -36,8 +40,7 @@ class Wechaty extends EventEmitter {
         })
         break
       default:
-        throw new Error('Puppet unsupport(yet): ' + puppet)
-        break
+        throw new Error('Puppet unsupport(yet): ' + this.options.puppet)
     }
     return Promise.resolve(this.puppet)
   }

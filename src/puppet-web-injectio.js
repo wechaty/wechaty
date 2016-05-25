@@ -8,16 +8,6 @@
  * Licenst: MIT
  * https://github.com/zixia/wechaty-lib
  *
-
- MMCgi.isLogin
- loginScope.qrcodeUrl
-
- loginScope.code:
-0:   显示二维码
-201: 扫描，未确认
-200: 登录成功
-408: 未确认
-
  */
 if (typeof Wechaty !== 'undefined') {
   return 'Wechaty already injected?'
@@ -142,6 +132,11 @@ return (function(port) {
       return
     }
 
+    // loginScope.code:
+    // 0:   显示二维码
+    // 201: 扫描，未确认
+    // 200: 登录成功
+    // 408: 未确认
     var code  = +Wechaty.glue.loginScope.code
     var url   =  Wechaty.glue.loginScope.qrcodeUrl
     if (code !== Wechaty.vars.scanCode) {

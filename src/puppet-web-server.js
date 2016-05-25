@@ -35,6 +35,9 @@ class Server extends EventEmitter {
         , r => resolve(r), e => reject(e)
       )
       this.socketServer = this.createSocketIo(this.httpsServer)
+    }).then(r => {
+      log.verbose('Server', 'full init()-ed')
+      return true
     })
   }
 
@@ -150,6 +153,7 @@ class Server extends EventEmitter {
       this.httpsServer.close()
       this.httpsServer = null
     }
+    return Promise.resolve(true)
   }
 }
 

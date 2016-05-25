@@ -41,6 +41,7 @@ test('PuppetWebServer basic tests', function(t) {
 
 test('PuppetWebServer smoke testing', function(t) {
   const server = new PuppetWebServer({port: PORT})
+  t.ok(server, 'new server instance')
 
   co(function* () {
     const retInit = yield server.init()
