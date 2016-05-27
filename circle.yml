@@ -1,9 +1,8 @@
 machine:
   node:
     version: 6.1.0
-notify:
-  webhooks:
+#notify:
+#  webhooks:
     # A list of hook hashes, containing the url field
     # gitter hook
-    - url: $GITTER_IM_URL
-
+#    - url: $GITTER_IM_URL
