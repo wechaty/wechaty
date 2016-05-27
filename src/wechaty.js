@@ -26,7 +26,7 @@ class Wechaty extends EventEmitter {
   }
   toString() { return 'Class Wechaty(' + this.puppet + ')'}
   init() {
-    log.verbose('Wechaty', 'init() with version: %s', this.VERSION)
+    log.info('Wechaty', 'init() with version: %s', this.VERSION)
     this.initPuppet()
     this.initEventHook()
     return this.puppet.init()

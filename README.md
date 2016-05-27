@@ -33,10 +33,10 @@ const Wechaty = require('wechaty')
 const bot = new Wechaty()
 
 bot.init()
-.then(bot.getLoginQrImgUrl.bind(bot))
-.then(url => console.log(`Scan qrcode in url to login: \n${url}`))
-
-bot.on('message', m => {
+.on('scan', ({url, code}) => {
+  console.log(`Scan qrcode in url to login: ${code}\n${url}`)
+})
+.on('message', m => {
   console.log('RECV: ' + m.get('content'))  // 1. print received message
 
   const reply = new Wechaty.Message()       // 2. create reply message
@@ -61,34 +61,47 @@ To Be Written.
 Plan to glue with Machine Learning/Deep Learning/Neural Network/Natural Language Processing.
 
 # Installation
-Use NPM is recommended to install Wechaty for you:
+
+# Use NPM - to Use in Production
+Use NPM is recommended to install a stable version of Wechaty published on NPM.com
 ```shell
 npm install --save wechaty
 ```
 
-## Start from scratch
-In case that you do not know anything about nodejs, the follow instructions would help you to run Wechaty bot on your machine.
+Then you are set.
 
-## 1. Install NodeJS
-NodeJS Version 6.0 & above is required.
+# Start from source - to Hack / Development
+In case that you want to dive into Wechaty, then follow instructions would help you to run Wechaty bot on your machine, and easy to hack.
 
-1. Visit [NodeJS](https://nodejs.org)
+## 1. Install Node.js
+Node.js Version 6.0 or above is required.
+
+1. Visit [Node.js](https://nodejs.org)
 1. Download NodeJS Installer(i.e. "v6.2.0 Current")
 1. Run Installer to install NodeJS to your machine
 
-## 2. Install Wechaty
-Use `npm` to install Wechaty
+## 2. Fork & Clone Wechaty
+
+If you have no github account, you can just clone it via https:
 ```shell
-npm install wechaty
+git clone https://github.com/zixia/wechaty.git
 ```
-This will install the last version of wechaty and all the dependents(dev).
+This will clone wechaty source code to your current directory.
 
 ## 3. Run Demo Bot
 ```shell
-cd node_modules/wechaty
+cd wechaty
+npm install
 npm start
 ```
 This will run `node example/ding-dong-bot.js`
+
+After a little while, bot will show you a message of a url for Login QrCode. You need to scan this qrcode in your wechat in order to permit your bot login.
+
+## 4. Done
+
+Enjoy hacking Wechaty!
+Please submit your issue if you have any, and a fork & pull is very welcome for showing your idea.
 
 # Trouble Shooting
 If wechaty is not run as expected, run unit test maybe help to find some useful message.
@@ -101,6 +114,49 @@ npm test
 ECMAScript2015(ES6). I develop and test wechaty with Node.js v6.0.
 
 # API Refference
+
+I'll try my best to keep the api as sample as it can be.
+
+## Events
+
+### 1. Event: `scan`
+
+A `scan` event will be emitted when the bot need to show you a QrCode for scaning.
+
+```javascript
+bot.on('scan', ({code, url}) => {
+  console.log(`[${code}] Scan ${url} to login.` )
+})
+```
+
+1. url: {String} the qrcode image url
+2. code: {Number} the scan status code. some known status of the code list here is:
+    1. 0    initial
+    2. 408  wait for scan
+    3. 201  scaned, wait for confirm
+    4. 200  login confirmed
+
+`scan` event will be emit when it will detect a new code status change.
+
+### 2. Event: `login`
+
+After the bot login full successful, the event `login` will be emitted, with a [Contact](#class-contact) of current logined user.
+```javascript
+bot.on('login', user => {
+  console.log(`user ${user} logined`)
+})
+```
+### 3. Event: `logout`
+`logout` will be emitted when bot detected it is logout.
+
+### 4. Event: `message`
+Emit when there's a new message.
+```javascript
+bot.on('message', message => {
+  console.log('message ${message} received')
+})
+```
+The `message` here is a [Message](#class-message).
 
 ## Class Wechaty
 Main bot class.
@@ -118,43 +174,9 @@ bot.init()
 }
 ```
 
-### Wechaty.getLoginQrImgUrl()
-Get the login QrCode image url. Must be called after init().  
-
-Return a Promise, for url link.
-
-```javascript
-bot.getLoginQrImgUrl()
-.then(url => {
-  // show url
-})
-```
-### Event: `message`
-Emit when there's a new message.
-```javascript
-bot.on('message', callback)
-```
-Callback will get an instance of Message Class. (see `Class Message`)
-
-### Event: `login` & `logout`
-
-1. After the bot login full successful, the event `login` will be emitted.
-1. After the bot logout, the event `logout` will be emitted.
-
 ## Class Message
-All messages will be encaped in Message.
+All wechat messages will be encaped as a Message.
 
-### Message.ready()
-A message may be not fully initialized yet. Call `ready()` to confirm we get all the data needed.
-
-Return a Promise, will be resolved when all data is ready.
-
-```javascript
-message.ready()
-.then(() => {
-  // Here we can be sure all the data is ready for use.
-})
-```
 ### Message.get(prop)
 Get prop from a message.
 
@@ -179,19 +201,21 @@ Supported prop list: the same as `get(prop)`
 ```javascript
 message.set('content', 'Hello, World!')
 ```
-## Class Contact
 
-### Contact.ready()
-A Contact may be not fully initialized yet. Call `ready()` to confirm we get all the data needed.
+### Message.ready()
+A message may be not fully initialized yet. Call `ready()` to confirm we get all the data needed.
 
 Return a Promise, will be resolved when all data is ready.
 
 ```javascript
-contact.ready()
+message.ready()
 .then(() => {
   // Here we can be sure all the data is ready for use.
 })
 ```
+
+## Class Contact
+
 ### Contact.get(prop)
 Get prop from a contact.
 
@@ -210,19 +234,20 @@ Supported prop list:
 contact.get('name')
 ```
 
-## Class Group
-
-### Group.ready()
-A group may be not fully initialized yet. Call `ready()` to confirm we get all the data needed.
+### Contact.ready()
+A Contact may be not fully initialized yet. Call `ready()` to confirm we get all the data needed.
 
 Return a Promise, will be resolved when all data is ready.
 
 ```javascript
-group.ready()
+contact.ready()
 .then(() => {
   // Here we can be sure all the data is ready for use.
 })
 ```
+
+## Class Group
+
 
 ### Group.get(prop)
 Get prop from a group.
@@ -238,18 +263,35 @@ Supported prop list:
 ```javascript
 group.get('members').length
 ```
+### Group.ready()
+A group may be not fully initialized yet. Call `ready()` to confirm we get all the data needed.
 
-# Test
-Wechaty use [TAP protocol](http://testanything.org/) to test itself by [tape](https://github.com/substack/tape).
+Return a Promise, will be resolved when all data is ready.
 
-To test Wechaty, run:
-```bash
-$ npm test
+```javascript
+group.ready()
+.then(() => {
+  // Here we can be sure all the data is ready for use.
+})
 ```
 
-Know more about tape: [Why I use Tape Instead of Mocha & So Should You](https://medium.com/javascript-scene/why-i-use-tape-instead-of-mocha-so-should-you-6aa105d8eaf4#.qxrrf2938)
+# Test
+Wechaty use [TAP protocol](http://testanything.org/) to test itself by [tap](http://www.node-tap.org/).
+
+To test Wechaty, run:
+```shell
+npm test
+```
+
+Know more about TAP: [Why I use Tape Instead of Mocha & So Should You](https://medium.com/javascript-scene/why-i-use-tape-instead-of-mocha-so-should-you-6aa105d8eaf4#.qxrrf2938)
 
 # Version History
+
+## v0.1.0 (2016/???)
+1. use event `scan` to show login qrcode image url(and detect state change)
+2. new example: Tuling123 bot
+3. more unit tests
+4. ...
 
 ## v0.0.5 (2016/5/11)
 1. Receive & send message
@@ -259,8 +301,9 @@ Know more about tape: [Why I use Tape Instead of Mocha & So Should You](https://
 1. Start coding from May 1st 2016
 
 # Todo List
-1. Deal with friend request
-1. Manage contacts(send friend request/delete contact etc.)
+[ ] Deal with friend request
+[ ] Manage contacts(send friend request/delete contact etc.)
+[ ] Create a new chat group, invite people to join
 
 Everybody is welcome to issue your needs.
 
@@ -269,7 +312,6 @@ Github Issue - https://github.com/zixia/wechaty/issues
 
 # Contributing
 * Lint: eslint
-
     ```bash
     $ npm lint
     ```
@@ -284,6 +326,9 @@ Github Issue - https://github.com/zixia/wechaty/issues
 1. [WeixinBot](https://github.com/Urinx/WeixinBot) *Very well documented* 网页版微信API，包含终端版微信及微信机器人
 1. [wxBot](https://github.com/liuwons/wxBot): Wechat Bot API
 1. [ItChat](https://github.com/littlecodersh/ItChat): 微信个人号接口（支持文件、图片上下载）、微信机器人及命令行微信。三十行即可自定义个人号机器人
+
+## Apps
+1. [助手管家](http://72c.me/a/m/yhmhrh) It's a Official Account of wechat, which can manage your personal wechat account as a robot assistant.
 
 Author
 -----------------
