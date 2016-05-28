@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node example/ding-dong-bot.js",
-    "test": "TAP_TIMEOUT=120 tap --strict test/*-spec.js",
+    "test": "TAP_TIMEOUT=120 tap test/*-spec.js",
     "lint": "eslint src"
   },
   "repository": {
