@@ -294,37 +294,17 @@ Know more about TAP: [Why I use Tape Instead of Mocha & So Should You](https://m
 4. ...
 
 ## v0.0.5 (2016/5/11)
-1. Receive & send text message
+1. Receive & send message
 1. Show contacts info
 1. Show groups info
 1. 1st usable version
-
-## v0.0.1 (2016/5/1)
-1. Start coding
-2. Publish the very first npm module `wechaty`
+1. Start coding from May 1st 2016
 
 # Todo List
-[ ] Contact
-    [ ] Accept a friend request
-    [ ] Send a friend request
-    [ ] Delete a contact
-[ ] Chat Group
-    [ ] Create a new chat group
-    [ ] Invite people to join a existing chat group
-    [ ] Rename a Chat Group
-[ ] Events
-    [ ] Use EventEmitter2 to emit message events, so we can use wildcard
-        1. `message`
-        2. `message.recv`
-        3. `message.sent`
-        4. `message.recv.image`
-        5. `message.sent.image`
-        6. `message.recv.sys`
-        1. `message.**.image`
-        1. `message.recv.*`
-[ ] Message
-    [ ] Send/Reply image message
-    
+[ ] Deal with friend request
+[ ] Manage contacts(send friend request/delete contact etc.)
+[ ] Create a new chat group, invite people to join
+
 Everybody is welcome to issue your needs.
 
 # Known Issues & Support
@@ -349,6 +329,11 @@ Github Issue - https://github.com/zixia/wechaty/issues
 
 ## Apps
 1. [助手管家](http://72c.me/a/m/yhmhrh) It's a Official Account of wechat, which can manage your personal wechat account as a robot assistant.
+
+## Bot API Service
+1. [IBM Watson Dialog Service](http://www.ibm.com/smarterplanet/us/en/ibmwatson/developercloud/doc/dialog/) a comprehensive, robust, platform for managing conversations between virtual agents and users through an application programming interface (API)
+2. [API.ai](https://api.ai) Build conversational user interfaces
+1. [Wit.ai](https://wit.ai) Turn user input into action
 
 Author
 -----------------
