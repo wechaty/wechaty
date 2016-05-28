@@ -303,25 +303,25 @@ Know more about TAP: [Why I use Tape Instead of Mocha & So Should You](https://m
 # Todo List
 
 - [ ] Contact
--    [ ] Accept a friend request
--    [ ] Send a friend request
--    [ ] Delete a contact
+    - [ ] Accept a friend request
+    - [ ] Send a friend request
+    - [ ] Delete a contact
 - [ ] Chat Group
--    [ ] Create a new chat group
--    [ ] Invite people to join a existing chat group
--    [ ] Rename a Chat Group
+    - [ ] Create a new chat group
+    - [ ] Invite people to join a existing chat group
+    - [ ] Rename a Chat Group
 - [ ] Events
--    [ ] Use EventEmitter2 to emit message events, so we can use wildcard
--        1. `message`
--        2. `message.recv`
--        3. `message.sent`
--        4. `message.recv.image`
--        5. `message.sent.image`
--        6. `message.recv.sys`
--        1. `message.**.image`
--        1. `message.recv.*`
+    - [ ] Use EventEmitter2 to emit message events, so we can use wildcard
+        1. `message`
+        2. `message.recv`
+        3. `message.sent`
+        4. `message.recv.image`
+        5. `message.sent.image`
+        6. `message.recv.sys`
+        1. `message.**.image`
+        1. `message.recv.*`
 - [ ] Message
--    [ ] Send/Reply image message
+    - [ ] Send/Reply image message
     
 Everybody is welcome to issue your needs.
 
