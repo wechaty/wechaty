@@ -18,24 +18,24 @@ const PORT = 58788
 function driverProcessNum() {
   return new Promise((resolve, reject) => {
     
-    // require('ps-tree')(process.pid, (err, data) => {
-    //   if (err) { return reject(err) }
-    //   data.forEach(c => console.log(c))
-    //   const num = data.filter(obj => /phantomjs/i.test(obj.COMMAND)).length
-    //   return resolve(num)
-    // })
-  
-  
-    const exec = require('child_process').exec
-    exec('ps axf >> /tmp/ps.log', r=>r)
-    exec('ps axf | grep phantomjs | grep -v grep | wc -l >> /tmp/ps.log', r=>r)
-    
-    exec('ps axf | grep phantomjs | grep -v grep | wc -l', function(err, stdout, stderr) {
-      if (err) {
-        return reject(err)
-      }
-      return resolve(parseInt(stdout[0]))
+    require('ps-tree')(process.pid, (err, children) => {
+      if (err) { return reject(err) }
+      children.forEach(child => log.silly('TestingWebDriver', 'ps-tree: %s %s', child.PID, child.COMMAND))
+      const num = children.filter(child => /phantomjs/i.test(child.COMMAND)).length
+      return resolve(num)
     })
+  
+  
+    // const exec = require('child_process').exec
+    // exec('ps axf >> /tmp/ps.log', r=>r)
+    // exec('ps axf | grep phantomjs | grep -v grep | wc -l >> /tmp/ps.log', r=>r)
+    
+    // exec('ps axf | grep phantomjs | grep -v grep | wc -l', function(err, stdout, stderr) {
+    //   if (err) {
+    //     return reject(err)
+    //   }
+    //   return resolve(parseInt(stdout[0]))
+    // })
     
   })    
 }
@@ -88,7 +88,7 @@ test('WebDriver smoke testing', function(t) {
 
     // XXX: if get rid of this dummy, 
     // driver.get() will fail due to cant start phantomjs process
-    // yield Promise.resolve()
+    yield Promise.resolve()
 
     yield driver.get('https://wx.qq.com/')
     t.pass('driver url opened')

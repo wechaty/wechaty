@@ -2,7 +2,7 @@ const co    = require('co')
 const test  = require('tap').test
 const log   = require('npmlog')
 log.level = 'verbose'
-// log.level = 'silly'
+log.level = 'silly'
 
 const PuppetWeb = require('../src/puppet-web')
 const PORT = 58788

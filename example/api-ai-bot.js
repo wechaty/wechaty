@@ -2,8 +2,8 @@
  *
  * Wechaty bot use a ApiAi.com brain
  *
- * Apply your own tuling123.com API_KEY
- * at: http://www.tuling123.com/html/doc/api.html
+ * Apply Your Own ApiAi Developer API_KEY at: 
+ * http://www.api.ai
  *
  * Enjoy!
  *
@@ -21,9 +21,6 @@ const Wechaty = require('../src/wechaty')
 
 /**
  * 
- * Apply Your Own ApiAi Developer API_KEY at: 
- * http://www.api.ai
- * 
  * `7217d7bce18c4bcfbe04ba7bdfaf9c08` for Wechaty demo
  * 
  */
@@ -33,7 +30,7 @@ const brainApiAi = ApiAi(APIAI_API_KEY)
 const bot = new Wechaty({head: false})
 
 console.log(`
-Welcome to Tuling Wechaty Bot.
+Welcome to api.AI Wechaty Bot.
 Api.AI Doc: https://docs.api.ai/v16/docs/get-started
 
 Notice: This bot will only active in the group which name contains 'wechaty'.

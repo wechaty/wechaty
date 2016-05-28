@@ -166,16 +166,21 @@ class PuppetWeb extends Puppet {
      */
     log.verbose('PuppetWeb', 'server received unload event')
     this.emit('logout', data) // XXX: should emit event[logout] from browser
-    this.bridge.inject()
-    .then(r  => log.verbose('PuppetWeb', 're-injected:' + r))
-    .catch(e => log.error('PuppetWeb', 'inject err: ' + e))
+    
+    if (this.bridge) {
+      this.bridge.inject()
+      .then(r  => log.verbose('PuppetWeb', 're-injected:' + r))
+      .catch(e => log.error('PuppetWeb', 'inject err: ' + e))
+    } else {
+      log.verbose('PuppetWeb', 'bridge gone, should be quiting now')
+    }
   }
 
   send(message) {
     const userName    = message.to().id
     const content     = message.content()
 
-    log.silly('PuppetWeb', `say(${userName}, ${content})`)
+    log.silly('PuppetWeb', `send(${userName}, ${content})`)
     return this.bridge.send(userName, content)
   }
   reply(recvMsg, replyMsg) {
@@ -204,14 +209,26 @@ class PuppetWeb extends Puppet {
     log.verbose('PuppetWeb', 'quit()')
     let p = Promise.resolve(true)
     
-    if (this.server)  { p.then(this.server.quit.bind(this)) }
-    else              { log.warn('PuppetWeb', 'quit() without server') }
-    
-    if (this.bridge)  { p.then(this.bridge.quit.bind(this)) }
-    else              { log.warn('PuppetWeb', 'quit() without bridge') }
-    
-    if (this.browser) { p.then(this.browser.quit.bind(this)) }
-    else              { log.warn('PuppetWeb', 'quit() without browser') }
+    if (this.bridge)  { 
+      p.then(this.bridge.quit.bind(this.bridge)) 
+      this.bridge = null
+    } else {
+      log.warn('PuppetWeb', 'quit() without bridge')
+    }
+
+    if (this.browser) {
+      p.then(this.browser.quit.bind(this.browser))
+      this.browser = null
+    } else {
+      log.warn('PuppetWeb', 'quit() without browser')
+    }
+
+    if (this.server) {
+      p.then(this.server.quit.bind(this.server))
+      this.server = null
+    } else {
+      log.warn('PuppetWeb', 'quit() without server')
+    }
     
     return p // return Promise
   }
