@@ -1,4 +1,4 @@
-![Wechaty](https://raw.githubusercontent.com/zixia/wechaty/master/images/wechaty-logo-en.png)
+![Wechaty](https://raw.githubusercontent.com/zixia/wechaty/master/image/wechaty-logo-en.png)
 # Wechaty [![Circle CI](https://circleci.com/gh/zixia/wechaty.svg?style=svg)](https://circleci.com/gh/zixia/wechaty) [![Build Status](https://travis-ci.org/zixia/wechaty.svg?branch=master)](https://travis-ci.org/zixia/wechaty)
 Wechaty is a Bot-Enable Framework/Library for Personal Account of Wechat.
 
