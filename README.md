@@ -287,11 +287,11 @@ Know more about TAP: [Why I use Tape Instead of Mocha & So Should You](https://m
 
 # Version History
 
-## v0.1.0 (2016/???)
+## v0.0.9 (2016/5/28)
 1. use event `scan` to show login qrcode image url(and detect state change)
-2. new example: Tuling123 bot
+2. new examples: Tuling123 bot & api.AI bot
 3. more unit tests
-4. ...
+4. code coverage status
 
 ## v0.0.5 (2016/5/11)
 1. Receive & send message
