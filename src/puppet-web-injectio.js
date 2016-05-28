@@ -2,6 +2,8 @@
  *
  * Wechaty - Wechat for Bot, and human who talk to bot.
  *
+ * Class PuppetWebInjectio
+ * 
  * Inject this js code to browser,
  * in order to interactive with wechat web program.
  *
@@ -9,6 +11,9 @@
  * https://github.com/zixia/wechaty-lib
  *
  */
+
+/*global angular*/
+
 if (typeof Wechaty !== 'undefined') {
   return 'Wechaty already injected?'
 }
@@ -188,7 +193,9 @@ return (function(port) {
   }
   function getContact(id) {
     if (Wechaty.glue.contactFactory) {
-        return Wechaty.glue.contactFactory.getContact(id)
+      var c = Wechaty.glue.contactFactory.getContact(id)
+      c.stranger = !(c.isContact())
+      return c
     }
     log('contactFactory not inited')
     return null
@@ -232,8 +239,8 @@ return (function(port) {
     }
     if (Wechaty.vars.eventsBuf.length) {
       clog('Wechaty.vars.eventsBuf has ' + Wechaty.vars.eventsBuf.length + ' unsend events')
-      var eventData
-      while (eventData = Wechaty.vars.eventsBuf.pop()) {
+      while (Wechaty.vars.eventsBuf.length) {
+        var eventData = Wechaty.vars.eventsBuf.pop()
         Wechaty.vars.socket.emit(eventData[0], eventData[1])
       }
       clog('Wechaty.vars.eventsBuf all sent')
@@ -257,7 +264,7 @@ return (function(port) {
       return // wait to be called via script.onload()
     }
 
-    // Wechaty global variable: socket
+    /*global io*/ // Wechaty global variable: socket
     var socket  = Wechaty.vars.socket = io.connect('https://127.0.0.1:' + port)
 
     // ding -> dong. for test & live check purpose

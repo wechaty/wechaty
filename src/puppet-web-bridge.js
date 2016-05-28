@@ -39,6 +39,7 @@ class Bridge {
   getUserName()             { return this.proxyWechaty('getUserName') }
 
   getContact(id)            {
+    // TODO: use retry-promise instead of waitData
     return this.waitData(r => {
       return this.proxyWechaty('getContact', id)
     }, 3000)
@@ -49,6 +50,7 @@ class Bridge {
   *
   * @param {Function} pfunc
   * @param {Number}   timeout
+  * 
   * @TODO: change waitData to retry-promise
   */
   waitData(pfunc, timeout) {
@@ -66,12 +68,10 @@ class Bridge {
             } else if (totalTime > timeout) {
               log.silly('Bridge', `waitData(${totalTime}/${timeout}) timeout`)
               return resolve()
-            } else {
-              log.silly('Bridge', `waitData(${totalTime}/${timeout}) retry`)
-              totalTime += waitTime
-              return setTimeout(retry, waitTime)
             }
-            throw new Error('should not run to here')
+            log.silly('Bridge', `waitData(${totalTime}/${timeout}) retry`)
+            totalTime += waitTime
+            return setTimeout(retry, waitTime)
           })
         } catch (e) {
           log.silly('Bridge', `waitData(${totalTime}/${timeout}) exception: %s`, e)
@@ -148,5 +148,8 @@ ac = Wechaty.glue.contactFactory.getAllContacts();
 Object.keys(ac).filter(function(k) { return /李/.test(ac[k].NickName) }).map(function(k) { var c = ac[k]; return {NickName: c.NickName, Alias: c.Alias, Uin: c.Uin, MMInChatRoom: c.MMInChatRoom} })
 
 Object.keys(window._chatContent).filter(function (k) { return window._chatContent[k].length > 0 }).map(function (k) { return window._chatContent[k].map(function (v) {return v.MMDigestTime}) })
+
+.web_wechat_tab_add
+.web_wechat_tab_launch-chat
 *
 */

@@ -1572,7 +1572,20 @@ angular.module("Controllers", []),
 }(),
 !function() {
     "use strict";
-    angular.module("Controllers").controller("contextMenuController", ["$rootScope", "$scope", "$state", "contextMenuFactory", "accountFactory", "confFactory", "contactFactory", "ngDialog", "chatroomFactory", "emojiFactory", "utilFactory", "chatFactory", function(e, t, o, n, r, a, i, c, s, l, u, f) {
+    angular.module("Controllers").controller("contextMenuController", ["$rootScope", "$scope", "$state", "contextMenuFactory", "accountFactory", "confFactory", "contactFactory", "ngDialog", "chatroomFactory", "emojiFactory", "utilFactory", "chatFactory", function(
+        e   // $rootScope
+        , t // $scope
+        , o // $state
+        , n // contextMenuFactory
+        , r // accountFactory
+        , a // confFactory
+        , i // contactFactory
+        , c // ngDialog
+        , s // chatroomFactory
+        , l // emojiFactory
+        , u // utilFactory
+        , f // chatFactory
+        ) {
         function d(e) {
             function o(e) {
                 return e.parentNode != e.document ? (n.push(e.parentNode),
@@ -3974,7 +3987,11 @@ angular.module("Services", []),
 }(),
 !function() {
     "use strict";
-    angular.module("Services").factory("utilFactory", ["$q", "$rootScope", "confFactory", function(e, t, o) {
+    angular.module("Services").factory("utilFactory", ["$q", "$rootScope", "confFactory", function(
+        e   // $q
+        , t // $rootScope
+        , o // $confFactory
+        ) {
         function n(e, t, o, n) {
             var r;
             (r = l[e]) ? (r.intervalSum += o,

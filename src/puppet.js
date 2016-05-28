@@ -2,6 +2,8 @@
  * Wechat for Bot. and for human who can talk with bot/robot
  *
  * Interface for puppet
+ * 
+ * Class Puppet
  *
  * Licenst: ISC
  * https://github.com/zixia/wechaty

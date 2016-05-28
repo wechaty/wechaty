@@ -30,6 +30,8 @@ class Contact {
       , province:   rawObj.Province
       , city:       rawObj.City
       , signature:  rawObj.Signature
+      
+      , stranger: rawObj.stranger // assign by injectio.js
     }
   }
   name() { return this.obj.name }
@@ -65,15 +67,17 @@ class Contact {
 
   get(prop) { return this.obj[prop] }
 
-  send(message) {
-
+  send(message) { 
+    const msg = new Contact.puppet.Message() // create a empty message
+    msg.set('from', this)
+    msg.set('content', message)
+    
+    return Contact.puppet.send(message) 
   }
-
-  static find() {
-  }
-
-  static findAll() {
-  }
+  stranger()    { return this.obj.stranger }
+  
+  static find() {  }
+  static findAll() {  }
 }
 
 Contact.init = function() { Contact.pool = {} }

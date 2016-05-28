@@ -2,7 +2,8 @@
  *
  * wechaty: Wechat for Bot. and for human who talk to bot/robot
  *
- * Web Puppet
+ * Class PuppetWeb
+ * 
  * use to control wechat web.
  *
  * Licenst: ISC

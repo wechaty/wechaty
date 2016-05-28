@@ -41,7 +41,7 @@ Loading...
 `)
 
 bot
-.on('login'  , e => log.info('Bot', 'bot login.'))
+.on('login'  , user => log.info('Bot', `bot login: ${user}`))
 .on('logout' , e => log.info('Bot', 'bot logout.'))
 .on('scan', ({url, code}) => {
   console.log(`[${code}]Scan qrcode in url to login:\n${url}`)
@@ -124,20 +124,20 @@ class Talker extends EventEmitter2 {
 var Talkers = []
 
 function talk(m) {
-    const fromId  = m.from().id
-    const groupId = m.group().id
-    const content = m.content()
-    
-    const talkerName = fromId + groupId
-    if (!Talkers[talkerName]) {
-      Talkers[talkerName] = new Talker(function(text) {
-        return brain.ask(text, {userid: talkerName})
-        .then(r => {
-          log.info('Tuling123', 'Talker reply:"%s" for "%s" ', r.text, text)
-          return r.text
-        })
+  const fromId  = m.from().id
+  const groupId = m.group().id
+  const content = m.content()
+  
+  const talkerName = fromId + groupId
+  if (!Talkers[talkerName]) {
+    Talkers[talkerName] = new Talker(function(text) {
+      return brain.ask(text, {userid: talkerName})
+      .then(r => {
+        log.info('Tuling123', 'Talker reply:"%s" for "%s" ', r.text, text)
+        return r.text
       })
-      Talkers[talkerName].on('say', reply => bot.reply(m, reply))
-    }
-    Talkers[talkerName].hear(content)
+    })
+    Talkers[talkerName].on('say', reply => bot.reply(m, reply))
+  }
+  Talkers[talkerName].hear(content)
 }

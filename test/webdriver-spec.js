@@ -1,3 +1,5 @@
+'use strict'
+
 const path  = require('path')
 const co    = require('co')
 const test   = require('tap').test
@@ -64,7 +66,7 @@ test('WebDriver process create & quit test', function(t) {
 })
 
 // XXX WTF with co module???
-false && test('WebDriver smoke testing', function(t) {
+test('WebDriver smoke testing', function(t) {
   const wb = new PuppetWebBrowser()
   t.ok(wb, 'Browser instnace')
 
@@ -122,6 +124,7 @@ test('WebDriver WTF testing', function(t) {
   t.ok(bridge, 'Bridge instnace')
 
   var driver // for help function `execute`
+  var injectio
 
   driverProcessNum()
   .then(n => {

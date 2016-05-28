@@ -2,10 +2,13 @@
  *
  * wechaty: Wechat for Bot. and for human who talk to bot/robot
  *
+ * Class Wechaty
+ * 
  * Licenst: ISC
  * https://github.com/zixia/wechaty
  *
  */
+
 const log           = require('npmlog')
 const EventEmitter  = require('events')
 
@@ -87,4 +90,7 @@ Object.assign(Wechaty, {
   , Group:    Group
 })
 
-module.exports = Wechaty
+/**
+ * Expose `Wechaty`.
+ */
+module.exports = Wechaty['default'] = Wechaty.Wechaty = Wechaty

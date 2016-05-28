@@ -62,7 +62,7 @@ Plan to glue with Machine Learning/Deep Learning/Neural Network/Natural Language
 
 # Installation
 
-# Use NPM - to Use in Production
+# Install from NPM
 Use NPM is recommended to install a stable version of Wechaty published on NPM.com
 ```shell
 npm install --save wechaty
@@ -70,8 +70,8 @@ npm install --save wechaty
 
 Then you are set.
 
-# Start from source - to Hack / Development
-In case that you want to dive into Wechaty, then follow instructions would help you to run Wechaty bot on your machine, and easy to hack.
+# Install from Github(for hack)
+In case that you want to dive deeper into Wechaty, fork & clone to run Wechaty bot on your machine, and start hacking.
 
 ## 1. Install Node.js
 Node.js Version 6.0 or above is required.
@@ -294,17 +294,37 @@ Know more about TAP: [Why I use Tape Instead of Mocha & So Should You](https://m
 4. ...
 
 ## v0.0.5 (2016/5/11)
-1. Receive & send message
+1. Receive & send text message
 1. Show contacts info
 1. Show groups info
 1. 1st usable version
-1. Start coding from May 1st 2016
+
+## v0.0.1 (2016/5/1)
+1. Start coding
+2. Publish the very first npm module `wechaty`
 
 # Todo List
-[ ] Deal with friend request
-[ ] Manage contacts(send friend request/delete contact etc.)
-[ ] Create a new chat group, invite people to join
-
+[ ] Contact
+    [ ] Accept a friend request
+    [ ] Send a friend request
+    [ ] Delete a contact
+[ ] Chat Group
+    [ ] Create a new chat group
+    [ ] Invite people to join a existing chat group
+    [ ] Rename a Chat Group
+[ ] Events
+    [ ] Use EventEmitter2 to emit message events, so we can use wildcard
+        1. `message`
+        2. `message.recv`
+        3. `message.sent`
+        4. `message.recv.image`
+        5. `message.sent.image`
+        6. `message.recv.sys`
+        1. `message.**.image`
+        1. `message.recv.*`
+[ ] Message
+    [ ] Send/Reply image message
+    
 Everybody is welcome to issue your needs.
 
 # Known Issues & Support
