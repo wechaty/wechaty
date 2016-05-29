@@ -8,41 +8,43 @@ const PORT = 58788
 const log = require('npmlog')
 // log.level = 'silly'
 
-test('Bridge functional testing', function(t) {
-  const browser = new Browser({port: PORT})
-  t.ok(browser, 'Browser instance created')
-
-  const b = new Bridge({browser: browser})
-  t.ok(b, 'Bridge instance creted')
-
+test('Bridge retry-promise testing', function(t) {
   co(function* () {
-
-    const EXPECTED_RETURN = 'Okey'
+    const EXPECTED_RESOLVE = 'Okey'
+    const EXPECTED_REJECT  = 'NotTheTime'
     function delayedFactory(timeout) {
       const startTime = Date.now()
       return function() {
         const nowTime = Date.now()
         if (nowTime - startTime > timeout) {
-          return Promise.resolve(EXPECTED_RETURN)
+          return Promise.resolve(EXPECTED_RESOLVE)
         }
-        return Promise.resolve()
+        return Promise.reject(EXPECTED_REJECT)
       }
     }
 
-    yield b.waitData(delayedFactory(100), 10)
+    const retryPromise = require('retry-promise').default
+    
+    var delay50 = delayedFactory(50)
+    yield retryPromise({max:1, backoff: 10}, function() {
+      return delay50()
+    })
     .then(r => {
-      t.notOk(r, 'waitData got none when wait 10ms')
+      t.fail('retry-promise should not be resolved here')
     })
     .catch(e => {
-      t.fail(e)
+      t.equal(e, EXPECTED_REJECT, `retry-promise got ${EXPECTED_REJECT} when wait not enough`)
     })
 
-    yield b.waitData(delayedFactory(100), 100)
+    var anotherDelay50 = delayedFactory(50)
+    yield retryPromise({max:6, backoff: 10}, function() {
+      return anotherDelay50()
+    })
     .then(r => {
-      t.equal(r, EXPECTED_RETURN, `waitData got "${EXPECTED_RETURN}" when wait 100ms`)
+      t.equal(r, EXPECTED_RESOLVE, `retryPromise got "${EXPECTED_RESOLVE}" when wait enough`)
     })
     .catch(e => {
-      t.fail(e)
+      t.fail(`should not be rejected(with ${e}) when there is enough wait`)
     })
 
   })
@@ -50,8 +52,6 @@ test('Bridge functional testing', function(t) {
     t.fail(e)
   })
   .then(r => {  // FINALLY
-    browser.quit()
-    b.quit()
     t.end()
   })
   .catch(e => { // EXCEPTION
@@ -59,7 +59,7 @@ test('Bridge functional testing', function(t) {
   })
 })
 
-test('Bridge smoke testing', function(t) {
+test('Bridge smoking test', function(t) {
   const browser = new Browser({port: PORT})
   t.ok(browser, 'Browser instance created')
 
@@ -86,9 +86,14 @@ test('Bridge smoke testing', function(t) {
     t.fail('co promise rejected:' + e)
   })
   .then(r => {    // Finally
-    b.quit()
-    browser.quit()
-    t.end()
+    co(function* () {
+      yield b.quit()
+      t.pass('b.quit()')
+      yield browser.quit()
+      t.pass('browser.quit()')
+      
+      t.end()
+    })
   })
   .catch(e => {   // Exception
     t.fail('Exception:' + e)

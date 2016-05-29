@@ -194,7 +194,9 @@ return (function(port) {
   function getContact(id) {
     if (Wechaty.glue.contactFactory) {
       var c = Wechaty.glue.contactFactory.getContact(id)
-      c.stranger = !(c.isContact())
+      if (c && c.isContact) {
+        c.stranger = !(c.isContact())
+      }
       return c
     }
     log('contactFactory not inited')

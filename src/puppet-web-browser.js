@@ -8,10 +8,11 @@
  *
  */
 
-const fs        = require('fs')
-const path      = require('path')
-const WebDriver = require('selenium-webdriver')
-const log       = require('npmlog')
+const fs            = require('fs')
+const path          = require('path')
+const WebDriver     = require('selenium-webdriver')
+const log           = require('npmlog')
+const retryPromise  = require('retry-promise').default // https://github.com/olalonde/retry-promise
 
 class Browser {
   constructor(options) {
@@ -96,47 +97,44 @@ class Browser {
     this.driver.quit()
     this.driver = null
     
-    return this.waitClean()
+    return this.clean()
   }
+  
+  clean() {
+    const max = 5
+    const backoff = 100
+    
+    // max = (2*totalTime/backoff) ^ (1/2)
+    const timeout = max * (backoff * max) / 2
 
-  waitClean() {
-    const retry = require('retry-promise').default // https://github.com/olalonde/retry-promise
-    return retry({ max: 5, backoff: 300 }, function (attempt) {
-      log.verbose('Browser', `waitClean() retryPromise: Attempt ${attempt}`)
-      return driverProcessNum()
+    return retryPromise({ max: max, backoff: backoff }, resolveAfterClean.bind(this))
+    .catch(e => {
+      log.error('Browser', 'waitClean() retryPromise failed: %s', e)
+      throw e
+    })
+    ////////////////////////////////////////////////
+    function resolveAfterClean(attempt) {
+      log.verbose('Browser', 'clean() retryPromise: attampt %s time for timeout %s'
+        , attempt,  timeout)
+      return this.numProcess()
       .then(n => {
         if (n > 0) throw new Error('reject because there has driver process not exited')
         log.verbose('Browser', 'waitClean hit')
         return n
       })
-    })
-    .catch(e => {
-      log.error('Browser', 'waitClean() retryPromise failed: %s', e)
-    })
-
-    ///////////////////////////////////////
-    function driverProcessNum() {
-      return new Promise((resolve, reject) => {
-        require('ps-tree')(process.pid, (err, data) => {
-          if (err) { return reject(err) }
-          const num = data.filter(obj => /phantomjs/i.test(obj.COMMAND)).length
-          resolve(num)
-        })
-        /**
-         * 
-         * raw ps & grep
-         * 
-        const exec = require('child_process').exec
-        exec('ps axf | grep phantomjs | grep -v grep | wc -l', function(err, stdout, stderr) {
-          if (err) {
-            return reject(err)
-          }
-          return resolve(stdout[0])
-        })
-         *
-         **/
-      })
     }
+  }
+  
+  numProcess() {
+    return new Promise((resolve, reject) => {
+      require('ps-tree')(process.pid, (err, children) => {
+        if (err) {
+          return reject(err)
+        }
+        const num = children.filter(child => /phantomjs/i.test(child.COMMAND)).length
+        return resolve(num)
+      })
+    })
   }
   
   execute(script, ...args) {

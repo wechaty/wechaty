@@ -21,17 +21,18 @@ class Contact {
 
   parse(rawObj) {
     return !rawObj ? {} : {
-      id:       rawObj.UserName
-      , uin:    rawObj.Uin  // stable id? 4763975
-      , weixin: rawObj.Alias
-      , name:   rawObj.NickName
-      , remark: rawObj.RemarkName
-      , sex:    rawObj.Sex
+      id:           rawObj.UserName
+      , uin:        rawObj.Uin  // stable id? 4763975
+      , weixin:     rawObj.Alias
+      , name:       rawObj.NickName
+      , remark:     rawObj.RemarkName
+      , sex:        rawObj.Sex
       , province:   rawObj.Province
       , city:       rawObj.City
       , signature:  rawObj.Signature
-      
-      , stranger: rawObj.stranger // assign by injectio.js
+
+      , star:       !!rawObj.StarFriend
+      , stranger:   !!rawObj.stranger // assign by injectio.js
     }
   }
   name() { return this.obj.name }
@@ -75,6 +76,7 @@ class Contact {
     return Contact.puppet.send(message) 
   }
   stranger()    { return this.obj.stranger }
+  star()        { return this.obj.star }
   
   static find() {  }
   static findAll() {  }

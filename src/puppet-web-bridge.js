@@ -9,7 +9,8 @@
 * https://github.com/zixia/wechaty-lib
 *
 */
-const log = require('npmlog')
+const retryPromise  = require('retry-promise').default
+const log           = require('npmlog')
 
 class Bridge {
   constructor(options) {
@@ -26,60 +27,40 @@ class Bridge {
     return this.inject()
   }
 
-  logout()                  { return this.proxyWechaty('logout') }
+  logout()                  { 
+    log.verbose('Bridge', 'quit()')
+    return this.proxyWechaty('logout')
+  }
   quit()                    {
     log.verbose('Bridge', 'quit()')
     return this.proxyWechaty('quit')
   }
   
-  // @Deprecated
-  // getLoginStatusCode()      { return this.proxyWechaty('getLoginStatusCode') }
-  // getLoginQrImgUrl()        { return this.proxyWechaty('getLoginQrImgUrl') }
+  // @Deprecated: use `scan` event instead
+  getLoginStatusCode()      { return this.proxyWechaty('getLoginStatusCode') }
+  // @Deprecated: use `scan` event instead
+  getLoginQrImgUrl()        { return this.proxyWechaty('getLoginQrImgUrl') }
   
   getUserName()             { return this.proxyWechaty('getUserName') }
 
-  getContact(id)            {
-    // TODO: use retry-promise instead of waitData
-    return this.waitData(r => {
+  getContact(id) {
+    const max = 15
+    const backoff = 100
+    
+    // max = (2*totalTime/backoff) ^ (1/2)
+    // timeout = 10500 for {max: 15, backoff: 100}
+    const timeout = max * (backoff * max) / 2
+    
+    return retryPromise({ max: max, backoff: backoff }, function (attempt) {
+      log.verbose('Bridge', 'getContact() retryPromise: attampt %s/%s time for timeout %s'
+        , attempt, max, timeout)
       return this.proxyWechaty('getContact', id)
-    }, 3000)
-  }
-
-  /**
-  * Call a function repeatly untill it return a resolved promise
-  *
-  * @param {Function} pfunc
-  * @param {Number}   timeout
-  * 
-  * @TODO: change waitData to retry-promise
-  */
-  waitData(pfunc, timeout) {
-    log.silly('Bridge', 'waitData()')
-    const waitTime  = 50
-    let totalTime   = 0
-    return new Promise((resolve, reject) => {
-      function retry() {
-        log.silly('Bridge', 'retry()@waitData()')
-        try {
-          pfunc().then(data => {
-            if (data) {
-              log.silly('Bridge', `waitData(${totalTime}/${timeout}) succ`)
-              return resolve(data)
-            } else if (totalTime > timeout) {
-              log.silly('Bridge', `waitData(${totalTime}/${timeout}) timeout`)
-              return resolve()
-            }
-            log.silly('Bridge', `waitData(${totalTime}/${timeout}) retry`)
-            totalTime += waitTime
-            return setTimeout(retry, waitTime)
-          })
-        } catch (e) {
-          log.silly('Bridge', `waitData(${totalTime}/${timeout}) exception: %s`, e)
-          return reject(e)
-        }
-      }
-      return retry()
+    }.bind(this))
+    .catch(e => {
+      log.error('Bridge', 'getContact() retryPromise FAIL: %s', e)
+      throw e
     })
+    /////////////////////////////////
   }
 
   send(toUserName, content) { return this.proxyWechaty('send', toUserName, content) }

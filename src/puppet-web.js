@@ -201,6 +201,7 @@ class PuppetWeb extends Puppet {
     }
     return this.bridge.getLoginQrImgUrl()
   }
+  logined() { return !!(this.user) }
 
   /**
    *  Interface Methods
@@ -232,8 +233,6 @@ class PuppetWeb extends Puppet {
     
     return p // return Promise
   }
-  
-  isLogined()           { return !!(this.user) }
 }
 
 module.exports = PuppetWeb
