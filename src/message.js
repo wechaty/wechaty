@@ -69,6 +69,14 @@ class Message {
   content() { return this.obj.content }
   group()   { return this.obj.group }
 
+  reply(content) {
+    const from = this.from()
+
+    return new Message()
+    .set('to', from)
+    .set('content', content)
+  }
+  
   ready() {
     log.silly('Message', 'ready()')
     return this.obj.from.ready()    // Contact from

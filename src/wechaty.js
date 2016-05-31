@@ -94,4 +94,4 @@ Object.assign(Wechaty, {
 /**
  * Expose `Wechaty`.
  */
-module.exports = Wechaty['default'] = Wechaty.Wechaty = Wechaty
+module.exports = Wechaty.default = Wechaty.Wechaty = Wechaty
