@@ -7,7 +7,7 @@
     "lint": "eslint src test",
     "pretest": "npm run lint",
     "start": "node example/ding-dong-bot.js",
-    "test": "TAP_TIMEOUT=180 tap test/*-spec.js"
+    "test": "cross-env TAP_TIMEOUT=180 tap test/*-spec.js"
   },
   "repository": {
     "type": "git",
@@ -40,7 +40,7 @@
     "express": "^4.13.4",
     "npmlog": "^2.0.3",
     "phantomjs-prebuilt": "^2.1.7",
-    "ps-tree": "^1.0.1",
+    "ps-tree": "^1.1.0",
     "retry-promise": "^1.0.0",
     "selenium-webdriver": "",
     "socket.io": "^1.4.5"
@@ -57,6 +57,7 @@
   },
   "devDependencies": {
     "apiai": "^2.0.5",
+    "cross-env": "^1.0.8",
     "eslint": "^2.9.0",
     "tap": "^5.7.1",
     "tuling123-client": "0.0.1"
