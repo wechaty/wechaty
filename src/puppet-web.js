@@ -3,7 +3,7 @@
  * wechaty: Wechat for Bot. and for human who talk to bot/robot
  *
  * Class PuppetWeb
- * 
+ *
  * use to control wechat web.
  *
  * Licenst: ISC
@@ -16,6 +16,7 @@
  * Class PuppetWeb
  *
  ***************************************/
+const util = require('util')
 const log = require('npmlog')
 const co  = require('co')
 
@@ -35,14 +36,14 @@ class PuppetWeb extends Puppet {
     this.port = options.port || 8788 // W(87) X(88), ascii char code ;-]
     this.head = options.head
 
-    this.user = null  // <Contact> currentUser
+    this.user = null  // <Contact>
   }
 
   toString() { return `Class PuppetWeb({browser:${this.browser},port:${this.port}})` }
 
   init() {
     log.verbose('PuppetWeb', 'init()')
-    
+
     return this.initAttach()
     .then(r => {
       log.verbose('PuppetWeb', 'initAttach done: %s', r)
@@ -50,7 +51,7 @@ class PuppetWeb extends Puppet {
     })
     .then(r => {
       log.verbose('PuppetWeb', 'initBrowser done: %s', r)
-      return this.initBridge() 
+      return this.initBridge()
     })
     .then(r => {
       log.verbose('PuppetWeb', 'initBridge done: %s', r)
@@ -66,10 +67,10 @@ class PuppetWeb extends Puppet {
     })
     .then(r => {                  // Finally
       log.verbose('PuppetWeb', 'all initXXX done.')
-      return true
+      return this   // for Chaining
     })
   }
-  
+
   initAttach() {
     log.verbose('PuppetWeb', 'initAttach()')
     Contact.attach(this)
@@ -97,7 +98,7 @@ class PuppetWeb extends Puppet {
     server.on('logout',  this.onServerLogout.bind(this))
     server.on('message', this.onServerMessage.bind(this))
     server.on('unload',  this.onServerUnload.bind(this))
-    
+
     server.on('connection', this.onServerConnection.bind(this))
     server.on('disconnect', this.onServerDisconnect.bind(this))
     server.on('log', this.onServerLog.bind(this))
@@ -117,7 +118,7 @@ class PuppetWeb extends Puppet {
   }
 
   onServerConnection(data) {
-    log.verbose('PuppetWeb', 'onServerConnection: %s', data)
+    log.verbose('PuppetWeb', 'onServerConnection: %s', data.constructor.name)
   }
   onServerDisconnect(data) {
     log.verbose('PuppetWeb', 'onServerDisconnect: %s', data)
@@ -127,9 +128,9 @@ class PuppetWeb extends Puppet {
   onServerLog(data) {
     log.verbose('PuppetWeb', 'onServerLog: %s', data)
   }
-  
+
   onServerLogin(data) {
-    co.call(this, function* () { 
+    co.call(this, function* () {
       // co.call to make `this` context work inside generator.
       // See also: https://github.com/tj/co/issues/274
       const userName = yield this.bridge.getUserName()
@@ -166,14 +167,19 @@ class PuppetWeb extends Puppet {
      */
     log.verbose('PuppetWeb', 'server received unload event')
     this.emit('logout', data) // XXX: should emit event[logout] from browser
-    
-    if (this.bridge) {
-      this.bridge.inject()
-      .then(r  => log.verbose('PuppetWeb', 're-injected:' + r))
-      .catch(e => log.error('PuppetWeb', 'inject err: ' + e))
-    } else {
-      log.verbose('PuppetWeb', 'bridge gone, should be quiting now')
+
+    if (!this.browser || !this.bridge) {
+      log.warn('PuppetWeb', 'bridge gone, should be quiting now')
+      return
     }
+
+    return this.browser.quit()
+    .then(r  => log.verbose('PuppetWeb', 'browser.quit()ed:' + r))
+    .then(r => this.browser.init())
+    .then(r  => log.verbose('PuppetWeb', 'browser.re-init()ed:' + r))
+    .then(r => this.bridge.init())
+    .then(r  => log.verbose('PuppetWeb', 'bridge.re-init()ed:' + r))
+    .catch(e => log.error('PuppetWeb', 'onServerUnload() err: ' + e))
   }
 
   send(message) {
@@ -209,9 +215,9 @@ class PuppetWeb extends Puppet {
   quit() {
     log.verbose('PuppetWeb', 'quit()')
     let p = Promise.resolve(true)
-    
-    if (this.bridge)  { 
-      p.then(this.bridge.quit.bind(this.bridge)) 
+
+    if (this.bridge)  {
+      p.then(this.bridge.quit.bind(this.bridge))
       this.bridge = null
     } else {
       log.warn('PuppetWeb', 'quit() without bridge')
@@ -230,7 +236,7 @@ class PuppetWeb extends Puppet {
     } else {
       log.warn('PuppetWeb', 'quit() without server')
     }
-    
+
     return p // return Promise
   }
 }

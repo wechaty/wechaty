@@ -53,30 +53,19 @@ class Bridge {
     const timeout = max * (backoff * max) / 2
 
     return retryPromise({ max: max, backoff: backoff }, function (attempt) {
-      log.verbose('Bridge', 'getContact() retryPromise: attampt %s/%s time for timeout %s'
+      log.silly('Bridge', 'getContact() retryPromise: attampt %s/%s time for timeout %s'
         , attempt, max, timeout)
-      /**
-       * This promise is MUST have here,
-       * the reason is as the following NOTICE explained
-       */
-      return new Promise((resolve, reject) => {
-        this.proxyWechaty('getContact', id)
-        .then(r => {
-          if (r) {
-            resolve(r)
-          }
-          /**
-           * NOTICE: the promise that this.proxyWechaty returned will be resolved but be `undefined`
-           * which should be treat as `rejected`
-           */
-          return reject('got empty')
-        }).catch(e => {
-          reject(e)
-        })
+
+      return this.proxyWechaty('getContact', id)
+      .then(r => {
+        if (!r) {
+          throw ('got empty return')
+        }
+        return r
       })
     }.bind(this))
     .catch(e => {
-      log.error('Bridge', 'getContact() retryPromise FAIL: %s', e)
+      log.error('Bridge', 'getContact() retryPromise finally FAIL: %s', e)
       throw e
     })
     /////////////////////////////////
@@ -98,12 +87,12 @@ class Bridge {
     try {
       return this.execute(injectio, this.port)
       .then(r => {
-        log.verbose('Bridge', 'injected. initing...')
+        log.verbose('Bridge', `injected, got [${r}]. now initing...`)
         return this.proxyWechaty('init')
       })
       .then(r => {
-        if (true===r) { log.verbose('Bridge', 'Wechaty.init() return: ' + r) }
-        else          { throw new Error('Wechaty.init() return not true： ' + r) }
+        if (true!==r) { throw new Error('Wechaty.init() failed： ' + r) }
+        log.verbose('Bridge', 'Wechaty.init() successful')
         return r
       })
     } catch (e) {
@@ -142,8 +131,10 @@ class Bridge {
 
 module.exports = Bridge
 
-/*
-*
+/**
+ *
+ * some handy browser javascript snips
+ *
 ac = Wechaty.glue.contactFactory.getAllContacts();
 Object.keys(ac).filter(function(k) { return /李/.test(ac[k].NickName) }).map(function(k) { var c = ac[k]; return {NickName: c.NickName, Alias: c.Alias, Uin: c.Uin, MMInChatRoom: c.MMInChatRoom} })
 
@@ -151,5 +142,5 @@ Object.keys(window._chatContent).filter(function (k) { return window._chatConten
 
 .web_wechat_tab_add
 .web_wechat_tab_launch-chat
-*
-*/
+ *
+ */

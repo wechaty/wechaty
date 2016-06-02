@@ -26,26 +26,18 @@ So a tireless bot working for me 24x7 on wechat, moniting/filtering the most imp
 # Examples
 Wechaty is super easy to use: 10 lines of javascript is enough for your first wechat robot.
 
-## 1. Basic: 10 lines
-The following 10 lines of code implement a bot who reply "roger" for every message received:
+## 1. Basic: 9 lines
+The following 9 lines of code implement a bot who reply "roger" for every message received:
 
 ```javascript
 const Wechaty = require('wechaty')
 const bot = new Wechaty()
-
-bot.init()
-.on('scan', ({url, code}) => {
-  console.log(`Scan qrcode in url to login: ${code}\n${url}`)
-})
-.on('message', m => {
-  console.log('RECV: ' + m.get('content'))  // 1. print received message
-
-  const reply = new Wechaty.Message()       // 2. create reply message
-  .set('to', m.get('from'))                 //    1) set receipt
-  .set('content', 'roger.')                 //    2) set content
-
-  bot.send(reply)                           // 3. do reply!
-  .then(() => console.log('REPLY: roger.')) // 4. print reply message
+bot.init().on('scan', ({url, code}) => {
+  console.log(`Use Wechat to scan qrcode in url to login: ${code}\n${url}`)
+}).on('message', m => {
+  bot.send(m.reply('roger'))                              // 1. reply
+  .then(() => console.log(`RECV: ${m}, REPLY: "roger"`))  // 2. log message
+  .catch(e => console.error(e))                           // 3. catch exception
 })
 ```
 
@@ -133,9 +125,9 @@ bot.on('scan', ({code, url}) => {
 1. url: {String} the qrcode image url
 2. code: {Number} the scan status code. some known status of the code list here is:
     1. 0    initial
-    2. 408  wait for scan
-    3. 201  scaned, wait for confirm
-    4. 200  login confirmed
+    1. 200  login confirmed
+    1. 201  scaned, wait for confirm
+    1. 408  wait for scan
 
 `scan` event will be emit when it will detect a new code status change.
 
@@ -213,6 +205,14 @@ message.ready()
 .then(() => {
   // Here we can be sure all the data is ready for use.
 })
+```
+
+### Message.reply()
+Create a new Message instance that reply the original one. which means: the `to` field of the reply message is the `from` of origin message.
+
+```javascript
+const replyMessage = message.reply('roger!')
+bot.send(replyMessage)
 ```
 
 ## Class Contact
@@ -324,7 +324,7 @@ Know more about TAP: [Why I use Tape Instead of Mocha & So Should You](https://m
 - [ ] Message
     - [ ] Send/Reply image message
 - [ ] Session save/load
-    
+
 Everybody is welcome to issue your needs.
 
 # Known Issues & Support

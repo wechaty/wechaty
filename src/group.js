@@ -11,18 +11,25 @@ const Contact = require('./contact')
 
 class Group {
   constructor(id) {
+    log.silly('Group', `constructor(${id})`)
     this.id = id
     this.obj = {}
-    log.silly('Group', `constructor(${id})`)
     if (!Group.puppet) {
       throw new Error('no puppet attached to Group')
     }
   }
-  toString()  { return `Group(${this.obj.name}[${this.id}])` }
+
+  toString() { return this.id }
+  toStringEx() { return `Group(${this.obj.name}[${this.id}])` }
 
   ready(contactGetter) {
     log.silly('Group', `ready(${contactGetter})`)
-    if (this.obj.id) { return Promise.resolve(this) }
+    if (!this.id) {
+      log.warn('Group', 'ready() on a un-inited group')
+      return Promise.resolve(this)
+    } else if (this.obj.id) {
+      return Promise.resolve(this)
+    }
 
     contactGetter = contactGetter || Group.puppet.getContact.bind(Group.puppet)
     return contactGetter(this.id)

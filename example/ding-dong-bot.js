@@ -1,6 +1,6 @@
 const log = require('npmlog')
 log.level = 'verbose'
-// log.level = 'silly'
+log.level = 'silly'
 
 const Wechaty = require('../src/wechaty')
 
@@ -39,16 +39,14 @@ bot
 .on('message', m => {
   m.ready()
   .then(msg => {
-    log.info('Bot', 'recv: %s', msg)
-    logToFile(JSON.stringify(msg.rawObj))
+    log.info('Bot', 'recv: %s', msg.toStringEx())
+    // logToFile(JSON.stringify(msg.rawObj))
   })
   .catch(e => log.error('Bot', 'ready: %s' , e))
 
   if (/^(ding|ping|bing)$/i.test(m.get('content'))) {
-    const reply = new Wechaty.Message()
-    reply.set('to', m.group() ? m.get('group') : m.get('from'))
-    reply.set('content', 'dong')
-    bot.send(reply)
+    const replyMsg = m.reply('dong')
+    bot.send(replyMsg)
     .then(() => { log.warn('Bot', 'REPLY: dong') })
   }
 })

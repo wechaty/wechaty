@@ -25,28 +25,30 @@ class Message {
     return {
       id:             rawObj.MsgId
       , type:         rawObj.MsgType
-      // , from:         rawObj.MMActualSender
-      // , to:           rawObj.ToUserName
-      // , group:        !!(rawObj.MMIsChatRoom) // MMPeerUserName always eq FromUserName ?
+      , from:         rawObj.MMActualSender
+      , to:           rawObj.ToUserName
+      , group:        rawObj.MMIsChatRoom ? rawObj.FromUserName : null // MMPeerUserName always eq FromUserName ?
       , content:      rawObj.MMActualContent // Content has @id prefix added by wx
       , status:       rawObj.Status
       , digest:       rawObj.MMDigest
+      , date:         rawObj.MMDisplayTime  // Javascript timestamp of milliseconds
 
-      , from:         Contact.load(rawObj.MMActualSender)
-      , to:           Contact.load(rawObj.ToUserName)
-      , group:        rawObj.MMIsChatRoom ? Group.load(rawObj.FromUserName) : null
-      , date:         new Date(rawObj.MMDisplayTime*1000)
+      // , from:         Contact.load(rawObj.MMActualSender)
+      // , to:           Contact.load(rawObj.ToUserName)
+      // , group:        rawObj.MMIsChatRoom ? Group.load(rawObj.FromUserName) : null
+      // , date:         new Date(rawObj.MMDisplayTime*1000)
     }
   }
-  toString() {
+  toString() { return this.obj.content }
+  toStringEx() {
     var s = `${this.constructor.name}#${Message.counter}`
     s += '(' + this.getSenderString()
     s += ':' + this.getContentString() + ')'
     return s
   }
   getSenderString() {
-    const name  = this.obj.from.get('remark') || this.obj.from.get('name')
-    const group = this.obj.group
+    const name  = Contact.load(this.obj.from).toStringEx()
+    const group = this.obj.group ? Contact.load(this.obj.group).toStringEx() : null
     return '<' + name + (group ? `@${group}` : '') + '>'
   }
   getContentString() {
@@ -69,24 +71,36 @@ class Message {
   content() { return this.obj.content }
   group()   { return this.obj.group }
 
-  reply(content) {
-    const from = this.from()
-
+  reply(replyContent) {
     return new Message()
-    .set('to', from)
-    .set('content', content)
+    .set('to'     , this.group() ? this.group() : this.from())
+    .set('content', replyContent)
   }
-  
+
   ready() {
     log.silly('Message', 'ready()')
-    return this.obj.from.ready()    // Contact from
-    .then(r => this.obj.to.ready()) // Contact to
-    .then(r => this.obj.group && this.obj.group.ready())  // Group member list
-    .then(r => this)  // ready return this for chain
+
+    const f = Contact.load(this.obj.from)
+    const t = Contact.load(this.obj.to)
+    const g = this.obj.group ? Contact.load(this.obj.group) : null
+
+    return f.ready()    // Contact from
+    .then(r => t.ready()) // Contact to
+    .then(r => g && g.ready())  // Group member list
+    .then(r => this)  // return this for chain
     .catch(e => {     // REJECTED
       log.error('Message', 'ready() rejected: %s', e)
-      throw new Error(e)
+      throw e
     })
+
+    // return this.obj.from.ready()    // Contact from
+    // .then(r => this.obj.to.ready()) // Contact to
+    // .then(r => this.obj.group && this.obj.group.ready())  // Group member list
+    // .then(r => this)  // return this for chain
+    // .catch(e => {     // REJECTED
+    //   log.error('Message', 'ready() rejected: %s', e)
+    //   throw new Error(e)
+    // })
   }
 
   get(prop) {

@@ -4,7 +4,7 @@
  * Web Server for puppet
  *
  * Class PuppetWebServer
- * 
+ *
  * Licenst: ISC
  * https://github.com/zixia/wechaty
  *
@@ -111,7 +111,8 @@ class Server extends EventEmitter {
       this.emit('disconnect', e)
     })
 
-    client.on('error', e => log.error('Server', 'socketio client error: %s', e))
+    client.on('error' , e => log.error('Server', 'socketio client error: %s', e))
+    client.on('ding'  , e => log.silly('Server', 'got ding: %s', e))
 
     // Events from Wechaty@Broswer --to--> Server
     ;[

@@ -3,7 +3,7 @@
  * wechaty: Wechat for Bot. and for human who talk to bot/robot
  *
  * Class Wechaty
- * 
+ *
  * Licenst: ISC
  * https://github.com/zixia/wechaty
  *
@@ -24,7 +24,7 @@ class Wechaty extends EventEmitter {
     super()
     this.options = options || {}
     this.options.puppet = this.options.puppet || 'web'
-    
+
     this.VERSION = require('../package.json').version
   }
   toString() { return 'Class Wechaty(' + this.puppet + ')'}
@@ -32,7 +32,11 @@ class Wechaty extends EventEmitter {
     log.info('Wechaty', 'init() with version: %s', this.VERSION)
     this.initPuppet()
     this.initEventHook()
+
     return this.puppet.init()
+    .then(r => {
+      return this // for chaining
+    })
   }
   initPuppet() {
     switch (this.options.puppet) {
@@ -61,12 +65,21 @@ class Wechaty extends EventEmitter {
     this.puppet.on('logout', (e) => {
       this.emit('logout', e)
     })
+
+    /**
+     * TODO: support more events:
+     * 1. error
+     * 2. send
+     * 3. reply
+     * 4. quit
+     * 5. ...
+     */
+
     return Promise.resolve()
   }
 
-  currentUser()   { return this.puppet.currentUser() }
-  quit()          { return this.puppet.quit() }
-  
+  quit()   { return this.puppet.quit() }
+
   send(message)   { return this.puppet.send(message) }
   reply(message, reply) { return this.puppet.reply(message, reply) }
 

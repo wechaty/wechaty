@@ -1,21 +1,13 @@
 const Wechaty = require('..')
-const bot = new Wechaty({head: true})
-
-bot
-.on('scan', ({url, code}) => {
-  console.log(`Scan qrcode in url to login: ${code}\n${url}`)
-})
-.on('message', m => {
-  console.log('RECV: ' + m.get('content'))  // 1. print received message
-
-  const reply = new Wechaty.Message()       // 2. create reply message
-  .set('to', m.get('from'))                 //    1) set receipt
-  .set('content', 'roger.')                 //    2) set content
-
-  bot.send(reply)                           // 3. do reply!
-  .then(() => console.log('REPLY: roger.')) // 4. print reply message
-  .catch(e => console.error(e))
-})
+const bot = new Wechaty()
 
 bot.init()
+.on('scan', ({url, code}) => {
+  console.log(`Use Wechat to scan qrcode in url to login: ${code}\n${url}`)
+})
+.on('message', m => {
+  bot.send(m.reply('roger'))                              // 1. reply
+  .then(() => console.log(`RECV: ${m}, REPLY: "roger"`))  // 2. log message
+  .catch(e => console.error(e))                           // 3. catch exception
+})
 .catch(e => console.error(e))

@@ -3,7 +3,7 @@
  * Wechaty - Wechat for Bot, and human who talk to bot.
  *
  * Class PuppetWebInjectio
- * 
+ *
  * Inject this js code to browser,
  * in order to interactive with wechat web program.
  *
@@ -14,30 +14,17 @@
 
 /*global angular*/
 
-if (typeof Wechaty !== 'undefined') {
-  return 'Wechaty already injected?'
-}
-
 return (function(port) {
   port = port || 8788
 
-  /**
-  * Log to console
-  * http://stackoverflow.com/a/7089553/1123955
-  */
-  function clog(s) {
-    var d = new Date()
-    s = d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds() + ' <Wechaty> ' + s
-
-    var i = document.createElement('iframe')
-    i.style.display = 'none'
-    document.body.appendChild(i)
-    i.contentWindow.console.log(s)
-    i.parentNode.removeChild(i)
+  if (typeof Wechaty !== 'undefined') {
+    return 'Wechaty already injected?'
   }
 
   var Wechaty = {
-    glue: {} // will be initialized by glueAngular() function
+    glue: {
+    } // will be initialized by glueAngular() function
+
     // glue funcs
     , getLoginStatusCode: function() { return Wechaty.glue.loginScope.code }
     , getLoginQrImgUrl:   function() { return Wechaty.glue.loginScope.qrcodeUrl }
@@ -45,7 +32,9 @@ return (function(port) {
 
     // variable
     , vars: {
-      login:      false
+      logined:      false
+      , inited:     false
+
       , socket:     null
       , eventsBuf:  []
       , scanCode:   null
@@ -65,6 +54,28 @@ return (function(port) {
     , getUserName: getUserName
   }
 
+  window.Wechaty = Wechaty
+
+  if (isWxLogin()) {
+    login('page refresh')
+  }
+
+  /**
+   * Two return mode of WebDriver (should be one of them at a time)
+   * 1. a callback. return a value by call callback with args
+   * 2. direct return
+   */
+  var callback = arguments[arguments.length - 1]
+  if (typeof callback === 'function') {
+    return callback('Wechaty')
+  } else {
+    return 'Wechaty'
+  }
+
+  return 'Should not run to here'
+
+  /////////////////////////////////////////////////////////////////////////////
+
   /**
   *
   * Functions that Glued with AngularJS
@@ -79,6 +90,11 @@ return (function(port) {
     )
   }
   function init() {
+    if (Wechaty.vars.inited === true) {
+      log('Wechaty.init() called twice: already inited')
+      return
+    }
+
     if (!isReady()) {
       clog('angular not ready. wait 500ms...')
       setTimeout(init, 500)
@@ -92,8 +108,15 @@ return (function(port) {
 
     checkScan()
 
+    heartBeat()
+
     clog('inited!. ;-D')
-    return true
+    return Wechaty.vars.inited = true
+  }
+
+  function heartBeat() {
+    Wechaty.emit('ding', 'heartbeat in browser')
+    setTimeout(heartBeat, 15000)
   }
 
   function glueAngular() {
@@ -160,16 +183,17 @@ return (function(port) {
     return
   }
 
-  function isLogin() { return !!Wechaty.vars.login }
+  function isLogin() { return !!Wechaty.vars.logined }
   function login(data) {
     clog('login()')
-    Wechaty.vars.login = true
+    Wechaty.vars.logined = true
     Wechaty.emit('login', data)
   }
   function logout(data) {
     clog('logout()')
-    Wechaty.vars.login = false
+    Wechaty.vars.logined = false
     Wechaty.emit('logout', data)
+    checkScan()
   }
   function quit() {
     clog('quit()')
@@ -231,13 +255,12 @@ return (function(port) {
   }
   // Wechaty.emit, will save event & data when there's no socket io connection to prevent event lost
   function emit(event, data) {
+    if (event) {
+      Wechaty.vars.eventsBuf.push([event, data])
+    }
     if (!Wechaty.vars.socket) {
       clog('Wechaty.vars.socket not ready')
-      if (event) {
-        Wechaty.vars.eventsBuf.push([event, data])
-      }
-      setTimeout(emit, 1000) // resent eventsBuf after 1000ms
-      return
+      return setTimeout(emit, 1000) // resent eventsBuf after 1000ms
     }
     if (Wechaty.vars.eventsBuf.length) {
       clog('Wechaty.vars.eventsBuf has ' + Wechaty.vars.eventsBuf.length + ' unsend events')
@@ -247,9 +270,9 @@ return (function(port) {
       }
       clog('Wechaty.vars.eventsBuf all sent')
     }
-    if (event) {
-      Wechaty.vars.socket.emit(event, data)
-    }
+    // if (event) {
+    //   Wechaty.vars.socket.emit(event, data)
+    // }
   }
   function connectSocket() {
     clog('connectSocket()')
@@ -287,16 +310,20 @@ return (function(port) {
     // })
   }
 
-  window.Wechaty = Wechaty
 
-  if (isWxLogin()) {
-    login('page refresh')
-  }
-  var callback = arguments[arguments.length - 1]
-  if (typeof callback === 'function') {
-    return callback('Wechaty')
-  }
+  /**
+  * Log to console
+  * http://stackoverflow.com/a/7089553/1123955
+  */
+  function clog(s) {
+    var d = new Date()
+    s = d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds() + ' <Wechaty> ' + s
 
-  return 'Wechaty'
+    var i = document.createElement('iframe')
+    i.style.display = 'none'
+    document.body.appendChild(i)
+    i.contentWindow.console.log(s)
+    i.parentNode.removeChild(i)
+  }
 
 }.apply(window, arguments))

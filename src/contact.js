@@ -13,11 +13,13 @@ class Contact {
     log.silly('Contact', `constructor(${id})`)
     if (!Contact.puppet) { throw new Error('no puppet attached to Contact') }
 
-    this.id = id
-    this.obj = {}
+    if (id && typeof id !== 'string') { throw new Error('id must be string if provided. we got: ' + typeof id) }
+    this.id   = id
+    this.obj  = {}
   }
 
-  toString() { return `Contact(${this.obj.name}[${this.id}])` }
+  toString() { return this.id }
+  toStringEx() { return `Contact(${this.obj.name}[${this.id}])` }
 
   parse(rawObj) {
     return !rawObj ? {} : {
@@ -31,15 +33,24 @@ class Contact {
       , city:       rawObj.City
       , signature:  rawObj.Signature
 
+      , address:    rawObj.Alias // XXX: need a stable address for user
+
       , star:       !!rawObj.StarFriend
       , stranger:   !!rawObj.stranger // assign by injectio.js
     }
   }
-  name() { return this.obj.name }
+
+  name()    { return this.obj.name }
+  remark()  { return this.obj.remark }
 
   ready(contactGetter) {
     log.silly('Contact', 'ready(' + typeof contactGetter + ')')
-    if (this.obj.id) { return Promise.resolve(this) }
+    if (!this.id) {
+      log.warn('Contact', 'ready() call on an un-inited contact')
+      return Promise.resolve(this)
+    } else if (this.obj.id) {
+      return Promise.resolve(this)
+    }
 
     if (!contactGetter) {
       log.silly('Contact', 'get contact via ' + Contact.puppet.constructor.name)
@@ -68,16 +79,17 @@ class Contact {
 
   get(prop) { return this.obj[prop] }
 
-  send(message) { 
-    const msg = new Contact.puppet.Message() // create a empty message
-    msg.set('from', this)
-    msg.set('content', message)
-    
-    return Contact.puppet.send(message) 
-  }
+  // KISS: don't cross reference
+  // send(message) {
+  //   const msg = new Contact.puppet.Message() // create a empty message
+  //   msg.set('from', this)
+  //   msg.set('content', message)
+
+  //   return Contact.puppet.send(message)
+  // }
   stranger()    { return this.obj.stranger }
   star()        { return this.obj.star }
-  
+
   static find() {  }
   static findAll() {  }
 }

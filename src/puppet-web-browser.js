@@ -24,7 +24,7 @@ class Browser {
 
   init() {
     log.verbose('Browser', 'init()')
-    
+
     return this.initDriver()
     .then(r => {
       log.verbose('Browser', 'initDriver() done')
@@ -38,8 +38,8 @@ class Browser {
 
   open() {
     const WX_URL = 'https://wx.qq.com'
-    log.verbose('Browser', `open() at ${WX_URL}`)
-    
+    log.verbose('Browser', `open()ing at ${WX_URL}`)
+
     return this.driver.get(WX_URL)
   }
 
@@ -93,50 +93,45 @@ class Browser {
       return Promise.resolve('no driver session')
     }
     log.verbose('Browser', 'driver.quit')
-    this.driver.close() // http://stackoverflow.com/a/32341885/1123955
-    this.driver.quit()
-    this.driver = null
-    
-    return this.clean()
+    return this.driver.close() // http://stackoverflow.com/a/32341885/1123955
+    .then(r => this.driver.quit())
+    .then(r => this.driver = null)
+    .then(r => this.clean())
   }
-  
+
   clean() {
-    const max = 5
+    const max = 15
     const backoff = 100
-    
+
     // max = (2*totalTime/backoff) ^ (1/2)
+    // timeout = 11250 for {max: 15, backoff: 100}
+    // timeout = 45000 for {max: 30, backoff: 100}
     const timeout = max * (backoff * max) / 2
 
-    return retryPromise({ max: max, backoff: backoff }, resolveAfterClean.bind(this))
+    return retryPromise({ max: max, backoff: backoff }, attempt => {
+      log.silly('Browser', 'clean() retryPromise: attampt %s time for timeout %s'
+        , attempt,  timeout)
+
+      return new Promise((resolve, reject) => {
+        require('ps-tree')(process.pid, (err, children) => {
+          if (err) {
+            return reject(err)
+          }
+          const num = children.filter(child => /phantomjs/i.test(child.COMMAND)).length
+          if (num==0) {
+            return resolve('clean')
+          } else {
+            return reject('dirty')
+          }
+        })
+      })
+    })
     .catch(e => {
-      log.error('Browser', 'waitClean() retryPromise failed: %s', e)
+      log.error('Browser', 'retryPromise failed: %s', e)
       throw e
     })
-    ////////////////////////////////////////////////
-    function resolveAfterClean(attempt) {
-      log.verbose('Browser', 'clean() retryPromise: attampt %s time for timeout %s'
-        , attempt,  timeout)
-      return this.numProcess()
-      .then(n => {
-        if (n > 0) throw new Error('reject because there has driver process not exited')
-        log.verbose('Browser', 'waitClean hit')
-        return n
-      })
-    }
   }
-  
-  numProcess() {
-    return new Promise((resolve, reject) => {
-      require('ps-tree')(process.pid, (err, children) => {
-        if (err) {
-          return reject(err)
-        }
-        const num = children.filter(child => /phantomjs/i.test(child.COMMAND)).length
-        return resolve(num)
-      })
-    })
-  }
-  
+
   execute(script, ...args) {
     //log.verbose('Browser', `Browser.execute(${script})`)
     if (!this.driver) {

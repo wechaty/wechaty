@@ -5,9 +5,7 @@ node_js:
   - "6"
 os:
   - linux
-  - centos
   - macosx
-  - windows
 dist: trusty
 before_install:
   - export DISPLAY=:99.0
