@@ -82,7 +82,7 @@ class Message {
 
     const f = Contact.load(this.obj.from)
     const t = Contact.load(this.obj.to)
-    const g = this.obj.group ? Contact.load(this.obj.group) : null
+    const g = this.obj.group ? Group.load(this.obj.group) : null
 
     return f.ready()    // Contact from
     .then(r => t.ready()) // Contact to

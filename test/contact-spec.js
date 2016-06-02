@@ -2,7 +2,7 @@ const test = require('tap').test
 const Contact = require('../src/contact')
 const Puppet = require('../src/puppet')
 const log = require('npmlog')
-log.level = 'verbose'
+// log.level = 'verbose'
 
 Contact.attach(new Puppet())
 

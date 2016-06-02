@@ -31,7 +31,7 @@ console.log(welcome)
 const bot = new Wechaty({head: false})
 
 bot
-.on('login'	,   () => log.info('Bot', 'logined'))
+.on('login'	,   user => log.info('Bot', 'logined'))
 .on('logout'	, () => log.info('Bot', 'logouted'))
 .on('scan', ({url, code}) => {
   console.log(`Scan qrcode in url to login: ${code}\n${url}`)

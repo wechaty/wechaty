@@ -106,23 +106,8 @@ class Bridge {
    * Proxy Call to Wechaty in Bridge
    */
   proxyWechaty(wechatyFunc, ...args) {
-    function escape (key, val) {
-     if (typeof(val)!="string") return val;
-      return val
-        .replace(/[\\]/g, '\\\\')
-        .replace(/[\/]/g, '\\/')
-        .replace(/[\b]/g, '\\b')
-        .replace(/[\f]/g, '\\f')
-        .replace(/[\n]/g, '\\n')
-        .replace(/[\r]/g, '\\r')
-        .replace(/[\t]/g, '\\t')
-        .replace(/[\"]/g, '\\"')
-        .replace(/\\'/g, "\\'")
-    } // http://stackoverflow.com/a/14137856/1123955
-    const argsJson  = JSON.stringify(args, escape)
-
-    const wechatyScript = `return (Wechaty && Wechaty.${wechatyFunc}.apply(undefined, JSON.parse('${argsJson}')))`
-
+    const argsBase64Json  = new Buffer(JSON.stringify(args)).toString('base64')
+    const wechatyScript   = `return (Wechaty && Wechaty.${wechatyFunc}.apply(undefined, JSON.parse(atob('${argsBase64Json}'))))`
     log.silly('Bridge', 'proxyWechaty: ' + wechatyScript)
     return this.execute(wechatyScript)
   }
