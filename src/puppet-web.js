@@ -154,7 +154,7 @@ class PuppetWeb extends Puppet {
     const m = new Message(data)
     if (!this.user) {
       log.warn('PuppetWeb', 'onServerMessage() without this.user')
-    } else if (this.user.id===m.from) {
+    } else if (this.user.id===m.get('from')) {
       log.silly('PuppetWeb', 'onServerMessage skip msg send by self')
       return
     }

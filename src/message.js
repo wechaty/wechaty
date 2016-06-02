@@ -48,7 +48,7 @@ class Message {
   }
   getSenderString() {
     const name  = Contact.load(this.obj.from).toStringEx()
-    const group = this.obj.group ? Contact.load(this.obj.group).toStringEx() : null
+    const group = this.obj.group ? Group.load(this.obj.group).toStringEx() : null
     return '<' + name + (group ? `@${group}` : '') + '>'
   }
   getContentString() {
@@ -72,9 +72,15 @@ class Message {
   group()   { return this.obj.group }
 
   reply(replyContent) {
-    return new Message()
-    .set('to'     , this.group() ? this.group() : this.from())
-    .set('content', replyContent)
+    const m = new Message()
+    .set('from'     , this.to())
+    .set('group'    , this.group())
+    .set('to'       , (this.group() ? this.group() : this.from()))
+    .set('content'  , replyContent)
+
+console.log(m)
+
+    return m
   }
 
   ready() {
