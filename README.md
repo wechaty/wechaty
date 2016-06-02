@@ -112,6 +112,14 @@ I'll try my best to keep the api as sample as it can be.
 
 ## Events
 
+Wechaty support the following 5 events:
+
+1. scan
+2. login
+3. logout
+4. message
+5. error
+
 ### 1. Event: `scan`
 
 A `scan` event will be emitted when the bot need to show you a QrCode for scaning.
@@ -150,6 +158,9 @@ bot.on('message', message => {
 })
 ```
 The `message` here is a [Message](#class-message).
+
+### 5. Event: `error`
+To be support.
 
 ## Class Wechaty
 Main bot class.
@@ -343,6 +354,9 @@ Github Issue - https://github.com/zixia/wechaty/issues
 
 ### Javascript
 1. [Weixinbot](https://github.com/feit/Weixinbot) Nodejs 封装网页版微信的接口，可编程控制微信消息
+
+### Perl
+1. [MojoWeixin](https://github.com/sjdy521/Mojo-Weixin] 使用Perl语言编写的微信客户端框架，基于Mojolicious，要求Perl版本5.10+，可通过插件提供基于HTTP协议的api接口供其他语言或系统调用
 
 ### Python
 1. [WeixinBot](https://github.com/Urinx/WeixinBot) *Very well documented* 网页版微信API，包含终端版微信及微信机器人

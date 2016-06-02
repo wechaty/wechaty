@@ -106,8 +106,15 @@ class Bridge {
    * Proxy Call to Wechaty in Bridge
    */
   proxyWechaty(wechatyFunc, ...args) {
-    const argsBase64Json  = new Buffer(JSON.stringify(args)).toString('base64')
-    const wechatyScript   = `return (Wechaty && Wechaty.${wechatyFunc}.apply(undefined, JSON.parse(atob('${argsBase64Json}'))))`
+    const argsEncoded = new Buffer(
+      encodeURIComponent(
+        JSON.stringify(args)
+      )
+    ).toString('base64')
+    // see: http://blog.sqrtthree.com/2015/08/29/utf8-to-b64/
+    const argsDecoded = `JSON.parse(decodeURIComponent(atob('${argsEncoded}')))`
+
+    const wechatyScript   = `return (Wechaty && Wechaty.${wechatyFunc}.apply(undefined, ${argsDecoded}))`
     log.silly('Bridge', 'proxyWechaty: ' + wechatyScript)
     return this.execute(wechatyScript)
   }
