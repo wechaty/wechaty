@@ -41,14 +41,14 @@ bot
   .then(msg => {
     log.info('Bot', 'recv: %s', msg.toStringEx())
     // logToFile(JSON.stringify(msg.rawObj))
+
+    if (/^(ding|ping|bing)$/i.test(m.get('content'))) {
+      const replyMsg = m.reply('dong')
+      bot.send(replyMsg)
+      .then(() => { log.warn('Bot', 'REPLY: dong') })
+    }
   })
   .catch(e => log.error('Bot', 'ready: %s' , e))
-
-  if (/^(ding|ping|bing)$/i.test(m.get('content'))) {
-    const replyMsg = m.reply('dong')
-    bot.send(replyMsg)
-    .then(() => { log.warn('Bot', 'REPLY: dong') })
-  }
 })
 
 bot.init()

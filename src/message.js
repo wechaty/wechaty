@@ -115,7 +115,9 @@ class Message {
     this.obj[prop] = value
     return this
   }
-  type () { return Message.Type[this.obj.type] }
+
+  type() { return Message.Type[this.obj.type] }
+  count() { return Message.counter }
 
   dump() {
     console.error('======= dump message =======')
@@ -125,8 +127,6 @@ class Message {
     console.error('======= dump raw message =======')
     Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj[k]}`))
   }
-
-  count() { return Message.counter }
 
   static find(selector, option) {
     return new Message({MsgId: '-1'})

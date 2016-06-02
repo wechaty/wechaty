@@ -183,8 +183,8 @@ class PuppetWeb extends Puppet {
   }
 
   send(message) {
-    const userName    = message.to().id
-    const content     = message.content()
+    const userName    = message.get('to')
+    const content     = message.get('content')
 
     log.silly('PuppetWeb', `send(${userName}, ${content})`)
     return this.bridge.send(userName, content)
