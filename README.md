@@ -3,7 +3,7 @@
 
 Wechaty is a Chatbot Library for Wechat **Personal** Account.
 
-> Easy creating personal account wechat robot in 10 lines of code.
+> Easy creating personal account wechat robot in 9 lines of code.
 
 **Connecting Bots**
 
