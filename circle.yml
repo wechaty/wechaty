@@ -1,14 +1,8 @@
 machine:
-  environment:
-    XCODE_SCHEME: "test"
-    XCODE_WORKSPACE: "platforms/ios"
-    XCODE_PROJECT: "YourProject.xcodeproj"
-  xcode:
-    version: "7.3"
-dependencies:
-  override:
-    - brew install node
-    - npm install
-test:
-  override:
-    - npm test
+  node:
+    version: 6.2
+#notify:
+#  webhooks:
+    # A list of hook hashes, containing the url field
+    # gitter hook
+#    - url: $GITTER_IM_URL
