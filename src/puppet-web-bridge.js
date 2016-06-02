@@ -27,7 +27,7 @@ class Bridge {
     return this.inject()
   }
 
-  logout()                  { 
+  logout()                  {
     log.verbose('Bridge', 'quit()')
     return this.proxyWechaty('logout')
   }
@@ -35,26 +35,45 @@ class Bridge {
     log.verbose('Bridge', 'quit()')
     return this.proxyWechaty('quit')
   }
-  
+
   // @Deprecated: use `scan` event instead
   getLoginStatusCode()      { return this.proxyWechaty('getLoginStatusCode') }
   // @Deprecated: use `scan` event instead
   getLoginQrImgUrl()        { return this.proxyWechaty('getLoginQrImgUrl') }
-  
+
   getUserName()             { return this.proxyWechaty('getUserName') }
 
   getContact(id) {
-    const max = 15
+    const max = 30
     const backoff = 100
-    
+
     // max = (2*totalTime/backoff) ^ (1/2)
-    // timeout = 10500 for {max: 15, backoff: 100}
+    // timeout = 11250 for {max: 15, backoff: 100}
+    // timeout = 45000 for {max: 30, backoff: 100}
     const timeout = max * (backoff * max) / 2
-    
+
     return retryPromise({ max: max, backoff: backoff }, function (attempt) {
       log.verbose('Bridge', 'getContact() retryPromise: attampt %s/%s time for timeout %s'
         , attempt, max, timeout)
-      return this.proxyWechaty('getContact', id)
+      /**
+       * This promise is MUST have here,
+       * the reason is as the following NOTICE explained
+       */
+      return new Promise((resolve, reject) => {
+        this.proxyWechaty('getContact', id)
+        .then(r => {
+          if (r) {
+            resolve(r)
+          }
+          /**
+           * NOTICE: the promise that this.proxyWechaty returned will be resolved but be `undefined`
+           * which should be treat as `rejected`
+           */
+          return reject('got empty')
+        }).catch(e => {
+          reject(e)
+        })
+      })
     }.bind(this))
     .catch(e => {
       log.error('Bridge', 'getContact() retryPromise FAIL: %s', e)
@@ -100,7 +119,7 @@ class Bridge {
   proxyWechaty(wechatyFunc, ...args) {
     function escape (key, val) {
      if (typeof(val)!="string") return val;
-      return val      
+      return val
         .replace(/[\\]/g, '\\\\')
         .replace(/[\/]/g, '\\/')
         .replace(/[\b]/g, '\\b')
@@ -112,7 +131,7 @@ class Bridge {
         .replace(/\\'/g, "\\'")
     } // http://stackoverflow.com/a/14137856/1123955
     const argsJson  = JSON.stringify(args, escape)
-    
+
     const wechatyScript = `return (Wechaty && Wechaty.${wechatyFunc}.apply(undefined, JSON.parse('${argsJson}')))`
 
     log.silly('Bridge', 'proxyWechaty: ' + wechatyScript)
