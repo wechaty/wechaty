@@ -17,26 +17,12 @@ const PORT = 58788
 
 function driverProcessNum() {
   return new Promise((resolve, reject) => {
-
     require('ps-tree')(process.pid, (err, children) => {
       if (err) { return reject(err) }
       children.forEach(child => log.silly('TestingWebDriver', 'ps-tree: %s %s', child.PID, child.COMMAND))
       const num = children.filter(child => /phantomjs/i.test(child.COMMAND)).length
       return resolve(num)
     })
-
-
-    // const exec = require('child_process').exec
-    // exec('ps axf >> /tmp/ps.log', r=>r)
-    // exec('ps axf | grep phantomjs | grep -v grep | wc -l >> /tmp/ps.log', r=>r)
-
-    // exec('ps axf | grep phantomjs | grep -v grep | wc -l', function(err, stdout, stderr) {
-    //   if (err) {
-    //     return reject(err)
-    //   }
-    //   return resolve(parseInt(stdout[0]))
-    // })
-
   })
 }
 
