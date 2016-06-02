@@ -169,7 +169,7 @@ class PuppetWeb extends Puppet {
     this.emit('logout', data) // XXX: should emit event[logout] from browser
 
     if (!this.browser || !this.bridge) {
-      log.warn('PuppetWeb', 'bridge gone, should be quiting now')
+      log.verbose('PuppetWeb', 'bridge gone, should be quiting now')
       return
     }
 

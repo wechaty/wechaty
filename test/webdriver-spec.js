@@ -4,8 +4,8 @@ const path  = require('path')
 const co    = require('co')
 const test   = require('tap').test
 const log   = require('npmlog')
-log.level = 'verbose'
-log.level = 'silly'
+// log.level = 'verbose'
+// log.level = 'silly'
 
 const WebDriver = require('selenium-webdriver')
 const Browser = WebDriver.Browser
@@ -17,27 +17,27 @@ const PORT = 58788
 
 function driverProcessNum() {
   return new Promise((resolve, reject) => {
-    
+
     require('ps-tree')(process.pid, (err, children) => {
       if (err) { return reject(err) }
       children.forEach(child => log.silly('TestingWebDriver', 'ps-tree: %s %s', child.PID, child.COMMAND))
       const num = children.filter(child => /phantomjs/i.test(child.COMMAND)).length
       return resolve(num)
     })
-  
-  
+
+
     // const exec = require('child_process').exec
     // exec('ps axf >> /tmp/ps.log', r=>r)
     // exec('ps axf | grep phantomjs | grep -v grep | wc -l >> /tmp/ps.log', r=>r)
-    
+
     // exec('ps axf | grep phantomjs | grep -v grep | wc -l', function(err, stdout, stderr) {
     //   if (err) {
     //     return reject(err)
     //   }
     //   return resolve(parseInt(stdout[0]))
     // })
-    
-  })    
+
+  })
 }
 
 test('WebDriver process create & quit test', function(t) {
@@ -52,10 +52,10 @@ test('WebDriver process create & quit test', function(t) {
     t.ok(n > 0, 'driver process exist')
 
 // console.log(b.driver.getSession())
-    
+
     yield b.quit()
     t.pass('quited')
-    
+
     n = yield driverProcessNum()
     t.equal(n, 0, 'no driver process after quit')
   })
@@ -86,7 +86,7 @@ test('WebDriver smoke testing', function(t) {
     const injectio = bridge.getInjectio()
     t.ok(injectio.length > 10, 'got injectio')
 
-    // XXX: if get rid of this dummy, 
+    // XXX: if get rid of this dummy,
     // driver.get() will fail due to cant start phantomjs process
     yield Promise.resolve()
 
@@ -129,39 +129,39 @@ test('WebDriver WTF testing', function(t) {
   driverProcessNum()
   .then(n => {
     t.equal(n, 0, 'driver process not exist before get()')
-    
+
     return wb.initDriver()
   })
   .then(d => {
     driver = d
     t.ok(driver, 'driver inited')
-    
+
     return bridge.getInjectio()
   })
   .then(r => {
     injectio = r
     t.ok(injectio.length > 10, 'got injectio')
-    
+
     return driver.get('https://wx.qq.com/')
   })
   .then(r => {
     t.pass('driver url opened')
-    
+
     return driverProcessNum()
   })
   .then(n => {
     t.ok(n > 0, 'driver process exist after get()')
-    
+
     return execute('return 1+1')
   })
   .then(retAdd => {
     t.equal(retAdd, 2, 'execute js in browser')
-    
+
     return execute(injectio, PORT)
   })
   .then(retInject => {
     t.equal(retInject, 'Wechaty', 'injected wechaty')
-    
+
   })
   .catch(e => t.fail('promise rejected. e:' + e)) // Rejected
   .then(r => wb.quit())                           // Finally 1

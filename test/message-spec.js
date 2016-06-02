@@ -17,8 +17,8 @@ test('Message constructor parser test', t => {
   }
   const m = new Message(rawData)
 
-  t.equal(m.id        , EXPECTED.id   , 'id right')
-  t.equal(m.from().id , EXPECTED.from , 'from right')
+  t.equal(m.id      , EXPECTED.id   , 'id right')
+  t.equal(m.from()  , EXPECTED.from , 'from right')
 
   const s = m.toString()
   t.equal(typeof s, 'string', 'toString()')
@@ -74,16 +74,12 @@ test('Message ready() promise testing', t => {
 
   const p = m.ready()
   p.then(r => {
-    /*
-    const fromC = m.get('from')
-    const toC   = m.get('to')
-    fromC.dump()
-    toC.dump()
-    */
-    t.equal(m.get('from').get('id')   , expectedFromUserName, 'contact ready for FromUserName')
-    t.equal(m.get('from').get('name') , expectedFromNickName, 'contact ready for FromNickName')
-    t.equal(m.get('to').get('id')     , expectedToUserName  , 'contact ready for ToUserName')
-    t.equal(m.get('to').get('name')   , expectedToNickName  , 'contact ready for ToNickName')
+    const fc = Contact.load(m.get('from'))
+    const tc = Contact.load(m.get('to'))
+    t.equal(fc.get('id')   , expectedFromUserName, 'contact ready for FromUserName')
+    t.equal(fc.get('name') , expectedFromNickName, 'contact ready for FromNickName')
+    t.equal(tc.get('id')   , expectedToUserName  , 'contact ready for ToUserName')
+    t.equal(tc.get('name') , expectedToNickName  , 'contact ready for ToNickName')
   })
   .catch(e => t.fail('m.ready() rejected: ' + e))
   .then(t.end) // test end

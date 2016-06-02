@@ -1,8 +1,8 @@
 const co    = require('co')
 const test  = require('tap').test
 const log   = require('npmlog')
-log.level = 'verbose'
-log.level = 'silly'
+// log.level = 'verbose'
+// log.level = 'silly'
 
 const PuppetWeb = require('../src/puppet-web')
 const PORT = 58788
@@ -86,7 +86,7 @@ false && test('Puppet Web server/browser communication', function(t) {
     t.ok(pw2, 'new PuppetWeb')
 
     yield Promise.resolve()
-    
+
     yield pw2.init()
     t.pass('pw2 inited')
 
@@ -109,22 +109,22 @@ false && test('Puppet Web server/browser communication', function(t) {
 test('Puppet Web WTF server/browser communication', function(t) {
     const pw = new PuppetWeb({port: PORT})
     t.ok(pw, 'new PuppetWeb')
-    
+
     pw.init()
     .then(r => {
-      t.pass('pw inited') 
-      
+      t.pass('pw inited')
+
       return dingSocket(pw.server)
     })
     .then(retSocket => {
-      t.equal(retSocket,  'dong', 'dingSocket got dong') 
+      t.equal(retSocket,  'dong', 'dingSocket got dong')
       return true
     })
     .catch(e => {               // Reject
       log.warn('TestingPuppetWeb', 'error: %s', e)
       t.fail(e)
       throw e
-    })      
+    })
     .then(r => {                // Finally 1
       t.pass('dingSocket resolved')
       return pw.quit()
@@ -134,7 +134,7 @@ test('Puppet Web WTF server/browser communication', function(t) {
       t.end()
     })
     .catch(e => {
-      t.fail(e) 
+      t.fail(e)
       throw e
     })  // Exception
 })
