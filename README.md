@@ -45,13 +45,13 @@ Notice that you need to wait a moment while bot trys to get the login QRCode fro
 
 After that, bot will be on duty. (roger-bot source can be found at [here](https://github.com/zixia/wechaty/blob/master/example/roger-bot.js))
 
-## 2. Advanced: 50 lines
-There's another basic usage demo bot named [ding-dong-bot](https://github.com/zixia/wechaty/blob/master/example/ding-dong-bot.js), who can reply _dong_ when bot receives a message _ding_.
+## 2. Advanced: dozens of lines
+Here's an chatbot [ding-dong-bot](https://github.com/zixia/wechaty/blob/master/example/ding-dong-bot.js) who can reply _dong_ when receives a message _ding_.
 
-## 3. Hardcore: 100 lines
-To Be Written.
+## 3. Hardcore: hundreds of lines
+Here's a chatbot [api-ai-bot](https://github.com/zixia/wechaty/blob/master/example/api-ai-bot.js), who can slightly understand NLP.
 
-Plan to glue with Machine Learning/Deep Learning/Neural Network/Natural Language Processing.
+Natual Language Understanding enabled by [api.AI](https://api.ai), you can get your module on api.AI by it's free plan.
 
 # Installation
 

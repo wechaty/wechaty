@@ -112,7 +112,7 @@ class Bridge {
       )
     ).toString('base64')
     // see: http://blog.sqrtthree.com/2015/08/29/utf8-to-b64/
-    const argsDecoded = `JSON.parse(decodeURIComponent(atob('${argsEncoded}')))`
+    const argsDecoded = `JSON.parse(decodeURIComponent(window.atob('${argsEncoded}')))`
 
     const wechatyScript   = `return (Wechaty && Wechaty.${wechatyFunc}.apply(undefined, ${argsDecoded}))`
     log.silly('Bridge', 'proxyWechaty: ' + wechatyScript)
