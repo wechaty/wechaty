@@ -23,7 +23,7 @@ const co  = require('co')
 const Puppet = require('./puppet')
 const Message = require('./message')
 const Contact = require('./contact')
-const Group   = require('./group')
+const Room    = require('./room')
 
 const Server  = require('./puppet-web-server')
 const Browser = require('./puppet-web-browser')
@@ -36,7 +36,7 @@ class PuppetWeb extends Puppet {
     this.port = options.port || 8788 // W(87) X(88), ascii char code ;-]
     this.head = options.head
 
-    this.user = null  // <Contact>
+    this.user = null  // <Contact> of user self
   }
 
   toString() { return `Class PuppetWeb({browser:${this.browser},port:${this.port}})` }
@@ -74,7 +74,7 @@ class PuppetWeb extends Puppet {
   initAttach() {
     log.verbose('PuppetWeb', 'initAttach()')
     Contact.attach(this)
-    Group.attach(this)
+    Room.attach(this)
     return Promise.resolve(true)
   }
   initBrowser() {
@@ -147,17 +147,15 @@ class PuppetWeb extends Puppet {
     .catch(e => log.error('PuppetWeb', 'onServerLogin rejected: %s', e))
   }
   onServerLogout(data) {
+    this.emit('logout', this.user)
     this.user = null
-    this.emit('logout', data)
   }
   onServerMessage(data) {
     const m = new Message(data)
     if (!this.user) {
       log.warn('PuppetWeb', 'onServerMessage() without this.user')
-    } else if (this.user.id===m.get('from')) {
-      log.silly('PuppetWeb', 'onServerMessage skip msg send by self')
-      return
     }
+    m.set('self', this.user.id)
     this.emit('message', m)
   }
   onServerUnload(data) {
@@ -183,19 +181,21 @@ class PuppetWeb extends Puppet {
   }
 
   send(message) {
-    const userName    = message.get('to')
-    const content     = message.get('content')
+    const to      = message.get('to')
+    const room    = message.get('room')
 
-    log.silly('PuppetWeb', `send(${userName}, ${content})`)
-    return this.bridge.send(userName, content)
-  }
-  reply(recvMsg, replyMsg) {
-    var contact = recvMsg.group()
-    if (!contact) { contact = recvMsg.from() }
-    const contactId = contact.id
+    let content     = message.get('content')
+    let destination = to
 
-    log.silly('PuppetWeb', `reply(${contact}, ${replyMsg})`)
-    return this.bridge.send(contactId, replyMsg)
+    if (room) {
+      destination = room
+      if (to && to!==room) {
+        content = `@[${to}] ${content}`
+      }
+    }
+
+    log.silly('PuppetWeb', `send(${destination}, ${content})`)
+    return this.bridge.send(destination, content)
   }
 
   logout()        { return this.bridge.logout() }

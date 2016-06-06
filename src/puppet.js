@@ -2,7 +2,7 @@
  * Wechat for Bot. and for human who can talk with bot/robot
  *
  * Interface for puppet
- * 
+ *
  * Class Puppet
  *
  * Licenst: ISC
@@ -40,7 +40,7 @@ class Puppet extends EventEmitter {
 Object.assign(Puppet, {
   Message:    require('./message')
   , Contact:  require('./contact')
-  , Group:    require('./group')
+  , Room:     require('./room')
 })
 
 module.exports = Puppet

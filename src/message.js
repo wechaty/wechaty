@@ -8,7 +8,7 @@
  */
 
 const Contact = require('./contact')
-const Group   = require('./group')
+const Room    = require('./room')
 const log     = require('npmlog')
 
 class Message {
@@ -27,15 +27,17 @@ class Message {
       , type:         rawObj.MsgType
       , from:         rawObj.MMActualSender
       , to:           rawObj.ToUserName
-      , group:        rawObj.MMIsChatRoom ? rawObj.FromUserName : null // MMPeerUserName always eq FromUserName ?
+      , room:         rawObj.MMIsChatRoom ? rawObj.FromUserName : null // MMPeerUserName always eq FromUserName ?
       , content:      rawObj.MMActualContent // Content has @id prefix added by wx
       , status:       rawObj.Status
       , digest:       rawObj.MMDigest
       , date:         rawObj.MMDisplayTime  // Javascript timestamp of milliseconds
 
+      , self:         undefined // to store the logined user id
+
       // , from:         Contact.load(rawObj.MMActualSender)
       // , to:           Contact.load(rawObj.ToUserName)
-      // , group:        rawObj.MMIsChatRoom ? Group.load(rawObj.FromUserName) : null
+      // , room:        rawObj.MMIsChatRoom ? Room.load(rawObj.FromUserName) : null
       // , date:         new Date(rawObj.MMDisplayTime*1000)
     }
   }
@@ -48,8 +50,8 @@ class Message {
   }
   getSenderString() {
     const name  = Contact.load(this.obj.from).toStringEx()
-    const group = this.obj.group ? Group.load(this.obj.group).toStringEx() : null
-    return '<' + name + (group ? `@${group}` : '') + '>'
+    const room = this.obj.room ? Room.load(this.obj.room).toStringEx() : null
+    return '<' + name + (room ? `@${room}` : '') + '>'
   }
   getContentString() {
     let content = this.unescapeHtml(this.stripHtml(this.obj.content))
@@ -69,44 +71,50 @@ class Message {
   from()    { return this.obj.from }
   to()      { return this.obj.to }
   content() { return this.obj.content }
-  group()   { return this.obj.group }
+  room()    { return this.obj.room }
+
+  self()    {
+    if (!this.obj.self) {
+      log.warn('Message', 'self not set')
+      return false
+    } else {
+      return this.obj.self === this.obj.from
+    }
+  }
 
   reply(replyContent) {
+    if (this.self()) {
+      throw new Error('dont reply message send by myself')
+    }
     const m = new Message()
-    .set('from'     , this.to())
-    .set('group'    , this.group())
-    .set('to'       , (this.group() ? this.group() : this.from()))
     .set('content'  , replyContent)
 
-console.log(m)
+    .set('from'     , this.obj.to)
+    .set('to'       , this.obj.from)
+    .set('room'     , this.obj.room)
 
+    // FIXME: find a alternate way to check a message create by `self`
+    .set('self'     , this.obj.self)
+
+    // console.log(m)
     return m
   }
 
   ready() {
     log.silly('Message', 'ready()')
 
-    const f = Contact.load(this.obj.from)
-    const t = Contact.load(this.obj.to)
-    const g = this.obj.group ? Group.load(this.obj.group) : null
+    const from  = Contact.load(this.obj.from)
+    const to    = Contact.load(this.obj.to)
+    const room  = this.obj.room ? Room.load(this.obj.room) : null
 
-    return f.ready()    // Contact from
-    .then(r => t.ready()) // Contact to
-    .then(r => g && g.ready())  // Group member list
-    .then(r => this)  // return this for chain
+    return from.ready()    // Contact from
+    .then(() => to.ready()) // Contact to
+    .then(() => room && room.ready())  // Room member list
+    .then(() => this)  // return this for chain
     .catch(e => {     // REJECTED
       log.error('Message', 'ready() rejected: %s', e)
       throw e
     })
-
-    // return this.obj.from.ready()    // Contact from
-    // .then(r => this.obj.to.ready()) // Contact to
-    // .then(r => this.obj.group && this.obj.group.ready())  // Group member list
-    // .then(r => this)  // return this for chain
-    // .catch(e => {     // REJECTED
-    //   log.error('Message', 'ready() rejected: %s', e)
-    //   throw new Error(e)
-    // })
   }
 
   get(prop) {

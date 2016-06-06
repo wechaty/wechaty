@@ -6,7 +6,7 @@ bot.init()
   console.log(`Use Wechat to scan qrcode in url to login: ${code}\n${url}`)
 })
 .on('message', m => {
-  bot.send(m.reply('roger'))                              // 1. reply
+  (!m.self()) && bot.send(m.reply('roger'))               // 1. reply others' msg
   .then(() => console.log(`RECV: ${m}, REPLY: "roger"`))  // 2. log message
   .catch(e => console.error(e))                           // 3. catch exception
 })

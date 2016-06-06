@@ -1,14 +1,14 @@
 const test = require('tap').test
 const Message = require('../src/message')
-const Group = require('../src/group')
+const Room = require('../src/room')
 const Puppet = require('../src/puppet')
 const log = require('npmlog')
 //log.level = 'silly'
 //log.enableColor()
 
-Group.attach(new Puppet())
+Room.attach(new Puppet())
 
-test('Group smoke testing', t => {
+test('Room smoke testing', t => {
   const UserName = '@0bb3e4dd746fdbd4a80546aef66f4085'
   const NickName = 'Nick Name Test'
   const EncryChatRoomId = '123456abcdef'
@@ -27,7 +27,7 @@ test('Group smoke testing', t => {
     })
   }
 
-  const g = new Group(UserName)
+  const g = new Room(UserName)
 
   t.equal(g.id, UserName, 'id/UserName right')
   g.ready(mockContactGetter)
@@ -49,7 +49,7 @@ test('Group smoke testing', t => {
     id:       '1120003476579027592'
     , from:   '@0bb3e4dd746fdbd4a80546aef66f4085'
   }
-  const g = new Group(rawData)
+  const g = new Room(rawData)
 
   t.equal(g.id      , EXPECTED.id   , 'id right')
   t.equal(g.from.id , EXPECTED.from , 'from right')

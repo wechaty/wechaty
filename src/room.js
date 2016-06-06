@@ -9,37 +9,37 @@
 const log = require('npmlog')
 const Contact = require('./contact')
 
-class Group {
+class Room {
   constructor(id) {
-    log.silly('Group', `constructor(${id})`)
+    log.silly('Room', `constructor(${id})`)
     this.id = id
     this.obj = {}
-    if (!Group.puppet) {
-      throw new Error('no puppet attached to Group')
+    if (!Room.puppet) {
+      throw new Error('no puppet attached to Room')
     }
   }
 
   toString() { return this.id }
-  toStringEx() { return `Group(${this.obj.name}[${this.id}])` }
+  toStringEx() { return `Room(${this.obj.name}[${this.id}])` }
 
   ready(contactGetter) {
-    log.silly('Group', `ready(${contactGetter})`)
+    log.silly('Room', `ready(${contactGetter})`)
     if (!this.id) {
-      log.warn('Group', 'ready() on a un-inited group')
+      log.warn('Room', 'ready() on a un-inited Room')
       return Promise.resolve(this)
     } else if (this.obj.id) {
       return Promise.resolve(this)
     }
 
-    contactGetter = contactGetter || Group.puppet.getContact.bind(Group.puppet)
+    contactGetter = contactGetter || Room.puppet.getContact.bind(Room.puppet)
     return contactGetter(this.id)
     .then(data => {
-      log.silly('Group', `contactGetter(${this.id}) resolved`)
+      log.silly('Room', `contactGetter(${this.id}) resolved`)
       this.rawObj = data
       this.obj    = this.parse(data)
       return this
     }).catch(e => {
-      log.error('Group', `contactGetter(${this.id}) rejected: ` + e)
+      log.error('Room', `contactGetter(${this.id}) rejected: ` + e)
       throw new Error('contactGetter: ' + e)
     })
   }
@@ -68,11 +68,11 @@ class Group {
   }
 
   dumpRaw() {
-    console.error('======= dump raw group =======')
+    console.error('======= dump raw Room =======')
     Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj[k]}`))
   }
   dump()    {
-    console.error('======= dump group =======')
+    console.error('======= dump Room =======')
     Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj[k]}`))
   }
 
@@ -85,14 +85,16 @@ class Group {
   }
 }
 
-Group.init = function() { Group.pool = {} }
-Group.init()
-Group.load = function(id) {
-  if (id in Group.pool) {
-    return Group.pool[id]
-  }
-  return Group.pool[id] = new Group(id)
-}
-Group.attach = function(puppet) { Group.puppet = puppet }
+Room.init = function() { Room.pool = {} }
+Room.init()
+Room.load = function(id) {
+  if (!id) { return null }
 
-module.exports = Group
+  if (id in Room.pool) {
+    return Room.pool[id]
+  }
+  return Room.pool[id] = new Room(id)
+}
+Room.attach = function(puppet) { Room.puppet = puppet }
+
+module.exports = Room

@@ -2,7 +2,7 @@
  *
  * Wechaty bot use a ApiAi.com brain
  *
- * Apply Your Own ApiAi Developer API_KEY at: 
+ * Apply Your Own ApiAi Developer API_KEY at:
  * http://www.api.ai
  *
  * Enjoy!
@@ -20,9 +20,9 @@ const Wechaty = require('../src/wechaty')
 // log.level = 'silly'
 
 /**
- * 
+ *
  * `7217d7bce18c4bcfbe04ba7bdfaf9c08` for Wechaty demo
- * 
+ *
  */
 const APIAI_API_KEY = '7217d7bce18c4bcfbe04ba7bdfaf9c08'
 const brainApiAi = ApiAi(APIAI_API_KEY)
@@ -33,8 +33,8 @@ console.log(`
 Welcome to api.AI Wechaty Bot.
 Api.AI Doc: https://docs.api.ai/v16/docs/get-started
 
-Notice: This bot will only active in the group which name contains 'wechaty'.
-/* if (m.group() && /Wechaty/i.test(m.group().name())) { */
+Notice: This bot will only active in the room which name contains 'wechaty'.
+/* if (m.room() && /Wechaty/i.test(m.room().name())) { */
 
 Loading... please wait for QrCode Image Url and then scan to login.
 `)
@@ -46,10 +46,13 @@ bot
 .on('login'  , user => log.info('Bot', `bot login: ${user}`))
 .on('logout' , e => log.info('Bot', 'bot logout.'))
 .on('message', m => {
+  if (m.self()) { return }
+
   co(function* () {
     const msg = yield m.ready()
+    const room = Wechaty.Room.load(m.room())
 
-    if (m.group() && /Wechaty/i.test(m.group().name())) {
+    if (room && /Wechaty/i.test(room.name())) {
       log.info('Bot', 'talk: %s'  , msg)
       talk(m)
     } else {
@@ -90,15 +93,15 @@ class Talker extends EventEmitter2 {
     this.obj.time = []
     return text
   }
-  
+
   updateTimer(delayTime) {
     delayTime = delayTime || this.delayTime()
     log.verbose('Talker', 'updateTimer(%s)', delayTime)
-    
+
     if (this.timer) { clearTimeout(this.timer) }
     this.timer = setTimeout(this.say.bind(this), delayTime)
   }
-  
+
   hear(text) {
     log.verbose('Talker', `hear(${text})`)
     this.save(text)
@@ -111,7 +114,7 @@ class Talker extends EventEmitter2 {
     .then(reply => this.emit('say', reply))
     this.timer = null
   }
-  
+
   delayTime() {
     const minDelayTime = 5000
     const maxDelayTime = 15000
@@ -123,11 +126,11 @@ class Talker extends EventEmitter2 {
 var Talkers = []
 
 function talk(m) {
-  const fromId  = m.from().id
-  const groupId = m.group().id
-  const content = m.content()
-  
-  const talkerName = fromId + groupId
+  const fromId  = m.get('from')
+  const roomId = m.get('room')
+  const content = m.get('content')
+
+  const talkerName = fromId + roomId
   if (!Talkers[talkerName]) {
     Talkers[talkerName] = new Talker(function(text) {
       return new Promise((resolve, reject) => {
@@ -137,11 +140,11 @@ function talk(m) {
           /*
 { id: 'a09381bb-8195-4139-b49c-a2d03ad5e014',
   timestamp: '2016-05-27T17:22:46.597Z',
-  result: 
+  result:
    { source: 'domains',
      resolvedQuery: 'hi',
      action: 'smalltalk.greetings',
-     parameters: { simplified: 'hello' },
+     parameters: { simplified: 'hello' },w
      metadata: {},
      fulfillment: { speech: 'Hi there.' },
      score: 0 },

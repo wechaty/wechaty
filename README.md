@@ -1,11 +1,11 @@
 ![Wechaty](https://raw.githubusercontent.com/zixia/wechaty/master/image/wechaty-logo-en.png)
-# Wechaty [![Circle CI](https://circleci.com/gh/zixia/wechaty.svg?style=svg)](https://circleci.com/gh/zixia/wechaty) [![Build Status](https://travis-ci.org/zixia/wechaty.svg?branch=master)](https://travis-ci.org/zixia/wechaty) [![Build status](https://ci.appveyor.com/api/projects/status/60fgkemki7e6upb9?svg=true)](https://ci.appveyor.com/project/zixia/wechaty)
+# Wechaty [![Linux Circle CI](https://circleci.com/gh/zixia/wechaty.svg?style=svg)](https://circleci.com/gh/zixia/wechaty) [![Linux Build Status](https://travis-ci.org/zixia/wechaty.svg?branch=master)](https://travis-ci.org/zixia/wechaty) [![Win32 Build status](https://ci.appveyor.com/api/projects/status/60fgkemki7e6upb9?svg=true)](https://ci.appveyor.com/project/zixia/wechaty)
 
 Wechaty is a Chatbot Library for Wechat **Personal** Account.
 
 > Easy creating personal account wechat robot in 9 lines of code.
 
-**Connecting Bots**
+**Connecting ChatBots**. Support [Linux](https://travis-ci.org/zixia/wechaty), [Win32](https://ci.appveyor.com/project/zixia/wechaty) and OSX(mac).
 
 [![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=2592000)](https://nodejs.org/)
@@ -17,11 +17,11 @@ Wechaty is a Chatbot Library for Wechat **Personal** Account.
 # Why
 My daily life/work depends on too much chat on wechat.
 * I almost have 14,000 wechat friends till May 2014, before wechat restricts a total number of friends to 5,000.
-* I almost have 400 wechat groups that most of them have more than 400 members.
+* I almost have 400 wechat rooms that most of them have more than 400 members.
 
 Can you image that? I'm dying...
 
-So a tireless bot working for me 24x7 on wechat, moniting/filtering the most important message is badly needed. For example: highlights discusstion which contains the KEYWORDS I want to follow up(especially in a noisy group). ;-)
+So a tireless bot working for me 24x7 on wechat, moniting/filtering the most important message is badly needed. For example: highlights discusstion which contains the KEYWORDS I want to follow up(especially in a noisy room). ;-)
 
 # Examples
 Wechaty is super easy to use: 10 lines of javascript is enough for your first wechat robot.
@@ -35,9 +35,9 @@ const bot = new Wechaty()
 bot.init().on('scan', ({url, code}) => {
   console.log(`Use Wechat to scan qrcode in url to login: ${code}\n${url}`)
 }).on('message', m => {
-  bot.send(m.reply('roger'))                              // 1. reply
-  .then(() => console.log(`RECV: ${m}, REPLY: "roger"`))  // 2. log message
-  .catch(e => console.error(e))                           // 3. catch exception
+  !m.self() && bot.send(m.reply('roger')) // 1. reply
+  .then(() => console.log(`RECV: ${m}, REPLY: "roger"`)) // 2. log message
+  .catch(e => console.error(e)) // 3. catch exception
 })
 ```
 
@@ -190,7 +190,7 @@ Supported prop list:
 1. `from` :Contact
 1. `to` :Contact
 1. `content` :String
-1. `group` :Group
+1. `room` :Room
 1. `date` :Date
 
 ```javascript
@@ -226,6 +226,17 @@ const replyMessage = message.reply('roger!')
 bot.send(replyMessage)
 ```
 
+### Message.self()
+Check if message is send by self.
+
+Return `true` for send from self, `false` for send from others.
+
+```javascript
+if (m.self()) {
+  console.log('this message is sent by myself!')
+}
+```
+
 ## Class Contact
 
 ### Contact.get(prop)
@@ -258,11 +269,11 @@ contact.ready()
 })
 ```
 
-## Class Group
+## Class Room
 
 
-### Group.get(prop)
-Get prop from a group.
+### Room.get(prop)
+Get prop from a room.
 
 Supported prop list:
 
@@ -273,15 +284,15 @@ Supported prop list:
     1. `name` :String
 
 ```javascript
-group.get('members').length
+room.get('members').length
 ```
-### Group.ready()
-A group may be not fully initialized yet. Call `ready()` to confirm we get all the data needed.
+### Room.ready()
+A room may be not fully initialized yet. Call `ready()` to confirm we get all the data needed.
 
 Return a Promise, will be resolved when all data is ready.
 
 ```javascript
-group.ready()
+room.ready()
 .then(() => {
   // Here we can be sure all the data is ready for use.
 })
@@ -308,7 +319,7 @@ Know more about TAP: [Why I use Tape Instead of Mocha & So Should You](https://m
 ## v0.0.5 (2016/5/11)
 1. Receive & send message
 1. Show contacts info
-1. Show groups info
+1. Show rooms info
 1. 1st usable version
 1. Start coding from May 1st 2016
 
@@ -318,10 +329,10 @@ Know more about TAP: [Why I use Tape Instead of Mocha & So Should You](https://m
     - [ ] Accept a friend request
     - [ ] Send a friend request
     - [ ] Delete a contact
-- [ ] Chat Group
-    - [ ] Create a new chat group
-    - [ ] Invite people to join a existing chat group
-    - [ ] Rename a Chat Group
+- [ ] Chat Room
+    - [ ] Create a new chat room
+    - [ ] Invite people to join a existing chat room
+    - [ ] Rename a Chat Room
 - [ ] Events
     - [ ] Use EventEmitter2 to emit message events, so we can use wildcard
         1. `message`

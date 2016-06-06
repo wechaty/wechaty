@@ -17,7 +17,7 @@ const PuppetWeb   = require('./puppet-web')
 
 const Message     = require('./message')
 const Contact     = require('./contact')
-const Group       = require('./group')
+const Room        = require('./room')
 
 class Wechaty extends EventEmitter {
   constructor(options) {
@@ -101,7 +101,7 @@ Object.assign(Wechaty, {
   Puppet:     Puppet
   , Message:  Message
   , Contact:  Contact
-  , Group:    Group
+  , Room:     Room
 })
 
 /**

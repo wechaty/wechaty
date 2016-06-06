@@ -97,6 +97,8 @@ class Contact {
 Contact.init = function() { Contact.pool = {} }
 Contact.init()
 Contact.load = function(id) {
+  if (!id) { return null }
+
   if (id in Contact.pool) {
     return Contact.pool[id]
   }
