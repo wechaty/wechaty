@@ -44,37 +44,120 @@ class PuppetWeb extends Puppet {
   init() {
     log.verbose('PuppetWeb', 'init()')
 
-    return this.initAttach()
-    .then(r => {
-      log.verbose('PuppetWeb', 'initAttach done: %s', r)
-      return this.initBrowser()
-    })
-    .then(r => {
-      log.verbose('PuppetWeb', 'initBrowser done: %s', r)
-      return this.initBridge()
-    })
-    .then(r => {
-      log.verbose('PuppetWeb', 'initBridge done: %s', r)
-      return this.initServer()
-    })
-    .then(r => {
-      log.verbose('PuppetWeb', 'initServer done: %s', r)
-      return r
+    return co.call(this, function* () {
+
+      yield this.initAttach(this)
+      log.verbose('PuppetWeb', 'initAttach() done')
+
+      yield this.initServer()
+      log.verbose('PuppetWeb', 'initServer() done')
+
+      yield this.initBrowser()
+      log.verbose('PuppetWeb', 'initBrowser() done')
+
+      yield this.initBridge()
+      log.verbose('PuppetWeb', 'initBridge() done')
+
+      return this
     })
     .catch(e => {                 // Reject
       log.error('PuppetWeb', e)
       throw e
     })
-    .then(r => {                  // Finally
-      log.verbose('PuppetWeb', 'all initXXX done.')
+    .then(() => {                  // Finally
+      log.verbose('PuppetWeb', 'init() done')
       return this   // for Chaining
     })
+
+
+    // return this.initAttach()
+    // .then(r => {
+    //   log.verbose('PuppetWeb', 'initAttach done: %s', r)
+    //   return this.initBrowser()
+    // })
+    // .then(r => {
+    //   log.verbose('PuppetWeb', 'initBrowser done: %s', r)
+    //   return this.initBridge()
+    // })
+    // .then(r => {
+    //   log.verbose('PuppetWeb', 'initBridge done: %s', r)
+    //   return this.initServer()
+    // })
+    // .then(r => {
+    //   log.verbose('PuppetWeb', 'initServer done: %s', r)
+    //   return r
+    // })
+    // .catch(e => {                 // Reject
+    //   log.error('PuppetWeb', e)
+    //   throw e
+    // })
+    // .then(r => {                  // Finally
+    //   log.verbose('PuppetWeb', 'all initXXX done.')
+    //   return this   // for Chaining
+    // })
   }
 
-  initAttach() {
+  quit() {
+    log.verbose('PuppetWeb', 'quit()')
+
+    return co.call(this, function* () {
+
+      if (this.bridge)  {
+        yield this.bridge.quit()
+        this.bridge = null
+      } else { log.warn('PuppetWeb', 'quit() without bridge') }
+
+      if (this.browser) {
+        yield this.browser.quit()
+        this.browser = null
+      } else { log.warn('PuppetWeb', 'quit() without browser') }
+
+      if (this.server) {
+        yield this.server.quit()
+        this.server = null
+      } else { log.warn('PuppetWeb', 'quit() without server') }
+
+      yield this.initAttach(null)
+    })
+    .catch(e => {                 // Reject
+      log.error('PuppetWeb', e)
+      throw e
+    })
+    .then(() => {                  // Finally
+      log.verbose('PuppetWeb', 'quit() done')
+      return this   // for Chaining
+    })
+
+    // let p = Promise.resolve(true)
+
+    // if (this.bridge)  {
+    //   p.then(this.bridge.quit.bind(this.bridge))
+    //   this.bridge = null
+    // } else {
+    //   log.warn('PuppetWeb', 'quit() without bridge')
+    // }
+
+    // if (this.browser) {
+    //   p.then(this.browser.quit.bind(this.browser))
+    //   this.browser = null
+    // } else {
+    //   log.warn('PuppetWeb', 'quit() without browser')
+    // }
+
+    // if (this.server) {
+    //   p.then(this.server.quit.bind(this.server))
+    //   this.server = null
+    // } else {
+    //   log.warn('PuppetWeb', 'quit() without server')
+    // }
+
+    // return p // return Promise
+  }
+
+  initAttach(puppet) {
     log.verbose('PuppetWeb', 'initAttach()')
-    Contact.attach(this)
-    Room.attach(this)
+    Contact.attach(puppet)
+    Room.attach(puppet)
     return Promise.resolve(true)
   }
   initBrowser() {
@@ -208,37 +291,6 @@ class PuppetWeb extends Puppet {
     return this.bridge.getLoginQrImgUrl()
   }
   logined() { return !!(this.user) }
-
-  /**
-   *  Interface Methods
-   */
-  quit() {
-    log.verbose('PuppetWeb', 'quit()')
-    let p = Promise.resolve(true)
-
-    if (this.bridge)  {
-      p.then(this.bridge.quit.bind(this.bridge))
-      this.bridge = null
-    } else {
-      log.warn('PuppetWeb', 'quit() without bridge')
-    }
-
-    if (this.browser) {
-      p.then(this.browser.quit.bind(this.browser))
-      this.browser = null
-    } else {
-      log.warn('PuppetWeb', 'quit() without browser')
-    }
-
-    if (this.server) {
-      p.then(this.server.quit.bind(this.server))
-      this.server = null
-    } else {
-      log.warn('PuppetWeb', 'quit() without server')
-    }
-
-    return p // return Promise
-  }
 }
 
 module.exports = PuppetWeb
