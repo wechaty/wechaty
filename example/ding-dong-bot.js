@@ -34,7 +34,7 @@ bot
 .on('login'	,   user => log.info('Bot', 'logined'))
 .on('logout'	, () => log.info('Bot', 'logouted'))
 .on('scan', ({url, code}) => {
-  console.log(`Scan qrcode in url to login: ${code}\n${url}`)
+  console.log(`Scan QR Code in url to login: ${code}\n${url}`)
 })
 .on('message', m => {
   m.ready()

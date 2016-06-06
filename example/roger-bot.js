@@ -3,7 +3,7 @@ const bot = new Wechaty()
 
 bot.init()
 .on('scan', ({url, code}) => {
-  console.log(`Use Wechat to scan qrcode in url to login: ${code}\n${url}`)
+  console.log(`Use Wechat to Scan QR Code in url to login: ${code}\n${url}`)
 })
 .on('message', m => {
   (!m.self()) && bot.send(m.reply('roger'))               // 1. reply others' msg

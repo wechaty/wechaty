@@ -3,7 +3,7 @@
 
 Connecting ChatBots.
 
-Wechaty is a Chatbot Library for Wechat **Personal** Account. (Support [Linux](https://travis-ci.org/zixia/wechaty), [Win32](https://ci.appveyor.com/project/zixia/wechaty) and OSX)
+Wechaty is a Chatbot Library for Wechat **Personal** Account. (Supports [Linux](https://travis-ci.org/zixia/wechaty), [Win32](https://ci.appveyor.com/project/zixia/wechaty) and OSX)
 
 > Easy creating personal account wechat robot in 9 lines of code.
 
@@ -70,9 +70,10 @@ Then you are set.
 
 ### 1. Open Cloud9 IDE
 
-Just one click: [![Open in Cloud9 IDE][c9ide-image]][c9ide-url]
+Just one click here: <a href="https://c9.io/open/?name=Wechaty&type=nodejs&clone_url=https://github.com/zixia/wechaty.git&description=Wechat%20for%20Bot&selection_file=/example/ding-dong-bot.js" target="_blank"><img src="https://img.shields.io/badge/open%20in-Cloud9%20IDE-blue.svg" alt="Open Wechaty in Cloud9 IDE"></a>
 
-### 2. Set IDE default to Node.js v6
+### 2. Set default to Node.js v6
+Open Terminal in Cloud9 IDE, use nvm to install nodejs v6, which is required by Wechaty.
 
 ```bash
 $ nvm install 6
@@ -87,7 +88,14 @@ $ node --version
 v6.2.1
 ```
 
-### 3. Enjoy Cloud9 IDE
+### 3. Run
+```bash
+$ npm install
+
+$ node example/ding-dong-bot.js
+```
+
+### 4. Enjoy Cloud9 IDE
 You are set.
 
 ## Install from Github
@@ -112,9 +120,8 @@ This will clone wechaty source code to your current directory.
 ```shell
 cd wechaty
 npm install
-npm start
+node example/ding-dong-bot.js
 ```
-This will run `node example/ding-dong-bot.js`
 
 After a little while, bot will show you a message of a url for Login QrCode. You need to scan this qrcode in your wechat in order to permit your bot login.
 
@@ -435,5 +442,3 @@ Copyright & License
 
 [downloads-image]: http://img.shields.io/npm/dm/wechaty.svg?style=flat-square
 [downloads-url]: https://npmjs.org/package/wechaty
-[c9ide-image]: https://img.shields.io/badge/open%20in-Cloud9%20IDE-blue.svg
-[c9ide-url]: https://c9.io/open/?name=Wechaty&type=nodejs&clone_url=https://github.com/zixia/wechaty.git&description=Wechat%20for%20Bot&selection_file=/example/ding-dong-bot.js

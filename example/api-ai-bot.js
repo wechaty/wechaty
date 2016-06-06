@@ -41,7 +41,7 @@ Loading... please wait for QrCode Image Url and then scan to login.
 
 bot
 .on('scan', ({url, code}) => {
-  console.log(`[${code}]Scan qrcode in url to login:\n${url}`)
+  console.log(`[${code}]Scan QR Code in url to login:\n${url}`)
 })
 .on('login'  , user => log.info('Bot', `bot login: ${user}`))
 .on('logout' , e => log.info('Bot', 'bot logout.'))

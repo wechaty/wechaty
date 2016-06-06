@@ -230,8 +230,9 @@ class PuppetWeb extends Puppet {
     .catch(e => log.error('PuppetWeb', 'onServerLogin rejected: %s', e))
   }
   onServerLogout(data) {
-    this.emit('logout', this.user)
+    const tmpUser = this.user
     this.user = null
+    this.emit('logout', tmpUser)
   }
   onServerMessage(data) {
     const m = new Message(data)
