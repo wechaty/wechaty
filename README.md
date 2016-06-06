@@ -1,11 +1,11 @@
 ![Wechaty](https://raw.githubusercontent.com/zixia/wechaty/master/image/wechaty-logo-en.png)
 # Wechaty [![Linux Circle CI](https://circleci.com/gh/zixia/wechaty.svg?style=svg)](https://circleci.com/gh/zixia/wechaty) [![Linux Build Status](https://travis-ci.org/zixia/wechaty.svg?branch=master)](https://travis-ci.org/zixia/wechaty) [![Win32 Build status](https://ci.appveyor.com/api/projects/status/60fgkemki7e6upb9?svg=true)](https://ci.appveyor.com/project/zixia/wechaty)
 
-Wechaty is a Chatbot Library for Wechat **Personal** Account.
+Connecting ChatBots.
+
+Wechaty is a Chatbot Library for Wechat **Personal** Account. (Support [Linux](https://travis-ci.org/zixia/wechaty), [Win32](https://ci.appveyor.com/project/zixia/wechaty) and OSX)
 
 > Easy creating personal account wechat robot in 9 lines of code.
-
-**Connecting ChatBots**. Support [Linux](https://travis-ci.org/zixia/wechaty), [Win32](https://ci.appveyor.com/project/zixia/wechaty) and OSX(mac).
 
 [![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=2592000)](https://nodejs.org/)
@@ -55,7 +55,7 @@ Natual Language Understanding enabled by [api.AI](https://api.ai), you can get y
 
 # Installation
 
-# Install from NPM
+## Install from NPM
 Use NPM is recommended to install a stable version of Wechaty published on NPM.com
 ```shell
 npm install --save wechaty
@@ -63,17 +63,44 @@ npm install --save wechaty
 
 Then you are set.
 
-# Install from Github(for hack) [![Open in Cloud9 IDE][c9ide-image]][c9ide-url]
+## Install to Cloud9 IDE
+[Cloud9 IDE](https://c9.io/) is Google Docs for Code.
+
+> Cloud9 IDE written in JavaScript, uses Node.js on the back-end. It uses Docker containers for its workspaces, and hosted on Google Compute Engine.
+
+### 1. Open Cloud9 IDE
+
+Just one click: [![Open in Cloud9 IDE][c9ide-image]][c9ide-url]
+
+### 2. Set IDE default to Node.js v6
+
+```bash
+$ nvm install 6
+Downloading https://nodejs.org/dist/v6.2.1/node-v6.2.1-linux-x64.tar.xz...
+######################################################################## 100.0%
+Now using node v6.2.1 (npm v3.9.3)
+
+$ nvm alias default 6
+default -> 6 (-> v6.2.1)
+
+$ node --version
+v6.2.1
+```
+
+### 3. Enjoy Cloud9 IDE
+You are set.
+
+## Install from Github
 In case that you want to dive deeper into Wechaty, fork & clone to run Wechaty bot on your machine, and start hacking.
 
-## 1. Install Node.js
+### 1. Install Node.js
 Node.js Version 6.0 or above is required.
 
 1. Visit [Node.js](https://nodejs.org)
 1. Download NodeJS Installer(i.e. "v6.2.0 Current")
 1. Run Installer to install NodeJS to your machine
 
-## 2. Fork & Clone Wechaty
+### 2. Fork & Clone Wechaty
 
 If you have no github account, you can just clone it via https:
 ```shell
@@ -81,7 +108,7 @@ git clone https://github.com/zixia/wechaty.git
 ```
 This will clone wechaty source code to your current directory.
 
-## 3. Run Demo Bot
+### 3. Run Demo Bot
 ```shell
 cd wechaty
 npm install
@@ -91,7 +118,7 @@ This will run `node example/ding-dong-bot.js`
 
 After a little while, bot will show you a message of a url for Login QrCode. You need to scan this qrcode in your wechat in order to permit your bot login.
 
-## 4. Done
+### 4. Done
 
 Enjoy hacking Wechaty!
 Please submit your issue if you have any, and a fork & pull is very welcome for showing your idea.
@@ -408,5 +435,5 @@ Copyright & License
 
 [downloads-image]: http://img.shields.io/npm/dm/wechaty.svg?style=flat-square
 [downloads-url]: https://npmjs.org/package/wechaty
-[c9ide-image]: https://img.shields.io/badge/open%20in-Cloud9%20IDE-green.svg
+[c9ide-image]: https://img.shields.io/badge/open%20in-Cloud9%20IDE-blue.svg
 [c9ide-url]: https://c9.io/open/?name=Wechaty&type=nodejs&clone_url=https://github.com/zixia/wechaty.git&description=Wechat%20for%20Bot&selection_file=/example/ding-dong-bot.js
