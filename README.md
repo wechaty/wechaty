@@ -63,7 +63,7 @@ npm install --save wechaty
 
 Then you are set.
 
-# Install from Github(for hack)
+# Install from Github(for hack) [![Open in Cloud9 IDE][c9ide-image]][c9ide-url]
 In case that you want to dive deeper into Wechaty, fork & clone to run Wechaty bot on your machine, and start hacking.
 
 ## 1. Install Node.js
@@ -408,3 +408,5 @@ Copyright & License
 
 [downloads-image]: http://img.shields.io/npm/dm/wechaty.svg?style=flat-square
 [downloads-url]: https://npmjs.org/package/wechaty
+[c9ide-image]: https://img.shields.io/badge/open%20in-Cloud9%20IDE-green.svg
+[c9ide-url]: https://c9.io/open/?name=Wechaty&type=nodejs&clone_url=https://github.com/zixia/wechaty.git&description=Wechat%20for%20Bot&selection_file=/example/ding-dong-bot.js
