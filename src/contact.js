@@ -25,7 +25,7 @@ class Contact {
     return !rawObj ? {} : {
       id:           rawObj.UserName
       , uin:        rawObj.Uin  // stable id? 4763975
-      , weixin:     rawObj.Alias
+      , weixin:     rawObj.Alias  // Wechat ID
       , name:       rawObj.NickName
       , remark:     rawObj.RemarkName
       , sex:        rawObj.Sex

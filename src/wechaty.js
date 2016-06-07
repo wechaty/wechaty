@@ -24,6 +24,7 @@ class Wechaty extends EventEmitter {
     super()
     this.options = options || {}
     this.options.puppet = this.options.puppet || 'web'
+    this.options.name   = this.options.name // no name, no session restore
 
     this.VERSION = require('../package.json').version
   }
@@ -44,6 +45,7 @@ class Wechaty extends EventEmitter {
         this.puppet = new Puppet.Web({
           head:   this.options.head
           , port: this.options.port
+          , name: this.options.name
         })
         break
       default:

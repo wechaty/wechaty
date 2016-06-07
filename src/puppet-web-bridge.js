@@ -118,6 +118,7 @@ class Bridge {
     log.silly('Bridge', 'proxyWechaty: ' + wechatyScript)
     return this.execute(wechatyScript)
   }
+
   execute(script, ...args) { return this.browser.execute(script, ...args) }
 }
 

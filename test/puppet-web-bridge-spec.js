@@ -24,7 +24,7 @@ test('Bridge retry-promise testing', function(t) {
     }
 
     const retryPromise = require('retry-promise').default
-    
+
     var delay50 = delayedFactory(50)
     yield retryPromise({max:1, backoff: 10}, function() {
       return delay50()
@@ -68,7 +68,8 @@ test('Bridge smoking test', function(t) {
 
   co(function* () {
     yield browser.init()
-    t.pass('inited')
+    yield browser.open()
+    t.pass('inited & opened')
 
     yield b.inject()
     t.pass('wechaty injected')
@@ -91,7 +92,7 @@ test('Bridge smoking test', function(t) {
       t.pass('b.quit()')
       yield browser.quit()
       t.pass('browser.quit()')
-      
+
       t.end()
     })
   })

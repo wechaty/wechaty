@@ -23,28 +23,16 @@ class Browser {
   toString() { return `Class Browser({head:${this.head})` }
 
   init() {
-    log.verbose('Browser', 'init()')
-
     return this.initDriver()
-    .then(r => {
-      log.verbose('Browser', 'initDriver() done')
-      return this.open()
+    .then(() => this)
+    .catch(e => {   // XXX: must has a `.catch` here, or promise will hang! 2016/6/7
+      log.error('Browser', 'init() rejectec: %s', e)
+      throw e
     })
-    .then(r => {
-      log.verbose('Browser', 'open() done')
-      return true
-    })
-  }
-
-  open() {
-    const WX_URL = 'https://wx.qq.com'
-    log.verbose('Browser', `open()ing at ${WX_URL}`)
-
-    return this.driver.get(WX_URL)
   }
 
   initDriver() {
-    log.verbose('Browser', 'initDriver()')
+    log.verbose('Browser', 'init()')
     if (this.head) {
       this.driver = new WebDriver.Builder()
       .setAlertBehavior('ignore')
@@ -54,6 +42,13 @@ class Browser {
       this.driver = this.getPhantomJsDriver()
     }
     return Promise.resolve(this.driver)
+  }
+
+  open() {
+    const WX_URL = 'https://wx.qq.com'
+    log.verbose('Browser', `open()ing at ${WX_URL}`)
+
+    return this.driver.get(WX_URL)
   }
 
   getPhantomJsDriver() {
@@ -89,6 +84,7 @@ class Browser {
       log.verbose('Browser', 'driver.quit() skipped because no driver')
       return Promise.resolve('no driver')
     } else if (!this.driver.getSession()) {
+      this.driver = null
       log.verbose('Browser', 'driver.quit() skipped because no driver session')
       return Promise.resolve('no driver session')
     }
@@ -147,6 +143,35 @@ class Browser {
       log.error('Browser', e)
       return Promise.reject(e)
     }
+  }
+
+  getCookies() {
+    log.silly('Browser', 'getCookies()')
+// console.trace("#################")
+
+    if (!this.driver || !this.driver.getSession()) {
+      return Promise.reject('no driver or no session')
+    }
+
+    return this.driver.manage().getCookies()
+    .then(cookies => {
+      log.silly('Browser', 'getCookies() got %s cookies', cookies.length)
+      return cookies
+    })
+    .catch(e => {
+      log.error('Browser', 'getCookies %s', e)
+      throw e
+    })
+  }
+
+  setCookies(cookies) { return this.setCookie(cookies) }
+  setCookie(cookie) {
+    if (cookie.map) {
+      return cookie.map(c => {
+        return this.setCookie(c)
+      })
+    }
+    return this.driver.manage().addCookie(cookie.name, cookie.value, cookie.path, cookie.domain, cookie.secure, cookie.expiry)
   }
 }
 

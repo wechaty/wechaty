@@ -43,8 +43,7 @@ bot
     // logToFile(JSON.stringify(msg.rawObj))
 
     if (/^(ding|ping|bing)$/i.test(m.get('content')) && !m.self()) {
-      const replyMsg = m.reply('dong')
-      bot.send(replyMsg)
+      bot.reply(m, 'dong')
       .then(() => { log.warn('Bot', 'REPLY: dong') })
     }
   })

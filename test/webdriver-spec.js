@@ -32,7 +32,8 @@ test('WebDriver process create & quit test', function(t) {
     t.ok(b, 'Browser instnace')
 
     yield b.init()
-    t.pass('inited')
+    yield b.open()
+    t.pass('inited & opened')
 
     let n = yield driverProcessNum()
     t.ok(n > 0, 'driver process exist')
@@ -67,7 +68,6 @@ test('WebDriver smoke testing', function(t) {
 
     driver = yield wb.initDriver()
     t.ok(driver, 'driver inited')
-
 
     const injectio = bridge.getInjectio()
     t.ok(injectio.length > 10, 'got injectio')

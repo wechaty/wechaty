@@ -81,24 +81,6 @@ class Message {
     return this.obj.self === this.obj.from
   }
 
-  reply(replyContent) {
-    if (this.self()) {
-      throw new Error('dont reply message send by myself')
-    }
-    const m = new Message()
-    .set('content'  , replyContent)
-
-    .set('from'     , this.obj.to)
-    .set('to'       , this.obj.from)
-    .set('room'     , this.obj.room)
-
-    // FIXME: find a alternate way to check a message create by `self`
-    .set('self'     , this.obj.self)
-
-    // console.log(m)
-    return m
-  }
-
   ready() {
     log.silly('Message', 'ready()')
 

@@ -17,6 +17,7 @@
  *
  ***************************************/
 const util = require('util')
+const fs  = require('fs')
 const log = require('npmlog')
 const co  = require('co')
 
@@ -35,6 +36,7 @@ class PuppetWeb extends Puppet {
     options = options || {}
     this.port = options.port || 8788 // W(87) X(88), ascii char code ;-]
     this.head = options.head
+    this.name = options.name  // if not set name, then dont store session.
 
     this.user = null  // <Contact> of user self
   }
@@ -68,54 +70,26 @@ class PuppetWeb extends Puppet {
       log.verbose('PuppetWeb', 'init() done')
       return this   // for Chaining
     })
-
-
-    // return this.initAttach()
-    // .then(r => {
-    //   log.verbose('PuppetWeb', 'initAttach done: %s', r)
-    //   return this.initBrowser()
-    // })
-    // .then(r => {
-    //   log.verbose('PuppetWeb', 'initBrowser done: %s', r)
-    //   return this.initBridge()
-    // })
-    // .then(r => {
-    //   log.verbose('PuppetWeb', 'initBridge done: %s', r)
-    //   return this.initServer()
-    // })
-    // .then(r => {
-    //   log.verbose('PuppetWeb', 'initServer done: %s', r)
-    //   return r
-    // })
-    // .catch(e => {                 // Reject
-    //   log.error('PuppetWeb', e)
-    //   throw e
-    // })
-    // .then(r => {                  // Finally
-    //   log.verbose('PuppetWeb', 'all initXXX done.')
-    //   return this   // for Chaining
-    // })
   }
 
   quit() {
     log.verbose('PuppetWeb', 'quit()')
 
     return co.call(this, function* () {
-
       if (this.bridge)  {
         yield this.bridge.quit()
         this.bridge = null
       } else { log.warn('PuppetWeb', 'quit() without bridge') }
 
-      if (this.browser) {
-        yield this.browser.quit()
-        this.browser = null
-      } else { log.warn('PuppetWeb', 'quit() without browser') }
-
       if (this.server) {
         yield this.server.quit()
         this.server = null
       } else { log.warn('PuppetWeb', 'quit() without server') }
+
+      if (this.browser) {
+        yield this.browser.quit()
+        this.browser = null
+      } else { log.warn('PuppetWeb', 'quit() without browser') }
 
       yield this.initAttach(null)
     })
@@ -123,35 +97,10 @@ class PuppetWeb extends Puppet {
       log.error('PuppetWeb', e)
       throw e
     })
-    .then(() => {                  // Finally
+    .then(() => {                  // Finally, Fall Safe
       log.verbose('PuppetWeb', 'quit() done')
       return this   // for Chaining
     })
-
-    // let p = Promise.resolve(true)
-
-    // if (this.bridge)  {
-    //   p.then(this.bridge.quit.bind(this.bridge))
-    //   this.bridge = null
-    // } else {
-    //   log.warn('PuppetWeb', 'quit() without bridge')
-    // }
-
-    // if (this.browser) {
-    //   p.then(this.browser.quit.bind(this.browser))
-    //   this.browser = null
-    // } else {
-    //   log.warn('PuppetWeb', 'quit() without browser')
-    // }
-
-    // if (this.server) {
-    //   p.then(this.server.quit.bind(this.server))
-    //   this.server = null
-    // } else {
-    //   log.warn('PuppetWeb', 'quit() without server')
-    // }
-
-    // return p // return Promise
   }
 
   initAttach(puppet) {
@@ -163,7 +112,14 @@ class PuppetWeb extends Puppet {
   initBrowser() {
     log.verbose('PuppetWeb', 'initBrowser')
     this.browser  = new Browser({ head: this.head })
+
     return this.browser.init()
+    .then(() => this.loadSession()).catch(e => { /* fail safe */ })
+    .then(() => this.browser.open())
+    .catch(e => {
+      log.error('PuppetWeb', 'initBrowser rejected: %s', e)
+      throw e
+    })
   }
   initBridge() {
     log.verbose('PuppetWeb', 'initBridge()')
@@ -201,6 +157,7 @@ class PuppetWeb extends Puppet {
   }
 
   onServerConnection(data) {
+    this.saveSession()
     log.verbose('PuppetWeb', 'onServerConnection: %s', data.constructor.name)
   }
   onServerDisconnect(data) {
@@ -213,6 +170,8 @@ class PuppetWeb extends Puppet {
   }
 
   onServerLogin(data) {
+    this.saveSession()
+
     co.call(this, function* () {
       // co.call to make `this` context work inside generator.
       // See also: https://github.com/tj/co/issues/274
@@ -233,7 +192,7 @@ class PuppetWeb extends Puppet {
     if (this.user) {
       this.emit('logout', this.user)
       this.user = null
-    } else { log.warn('PuppetWeb', 'onServerLogout without this.user. still not logined?') }
+    } else { log.verbose('PuppetWeb', 'onServerLogout without this.user. still not logined?') }
   }
   onServerMessage(data) {
     const m = new Message(data)
@@ -275,16 +234,34 @@ class PuppetWeb extends Puppet {
 
     if (room) {
       destination = room
-      if (to && to!==room) {
-        content = `@[${to}] ${content}`
-      }
+      // if (to && to!==room) {
+      //   content = `@[${to}] ${content}`
+      // }
     }
 
     log.silly('PuppetWeb', `send(${destination}, ${content})`)
     return this.bridge.send(destination, content)
   }
+  reply(message, replyContent) {
+    if (message.self()) {
+      throw new Error('dont reply message send by myself')
+    }
+    const m = new Message()
+    .set('content'  , replyContent)
 
-  logout()        { return this.bridge.logout() }
+    .set('from'     , message.obj.to)
+    .set('to'       , message.obj.from)
+    .set('room'     , message.obj.room)
+
+    // FIXME: find a alternate way to check a message create by `self`
+    .set('self'     , this.user.id)
+
+    console.log(m)
+    return this.send(m)
+  }
+
+  logout() { return this.bridge.logout() }
+
   getContact(id)  { return this.bridge.getContact(id) }
   getLoginQrImgUrl() {
     if (!this.bridge) {
@@ -294,6 +271,49 @@ class PuppetWeb extends Puppet {
     return this.bridge.getLoginQrImgUrl()
   }
   logined() { return !!(this.user) }
+
+  saveSession() {
+    if (!this.name) { return Promise.reject('saveSession() no name') }
+    const filename = this.name
+
+    return new Promise((resolve, reject) => {
+      this.browser.getCookies()
+      .then(cookies => {
+        // console.log(cookies)
+        const jsonStr = JSON.stringify(cookies)
+
+        fs.writeFile(filename, jsonStr, function(err) {
+          if(err) {
+            log.error('PuppetWeb', 'saveSession() fail to write file %s: %s', filename, err.Error)
+            return reject(err)
+          }
+          return resolve(cookies)
+        })
+      })
+    })
+  }
+
+  loadSession() {
+    if (!this.name) { return Promise.reject('loadSession() no name') }
+    const filename = this.name
+
+    return new Promise((resolve, reject) => {
+      fs.readFile(filename, (err, jsonStr) => {
+        if (err) {
+          if (err.code == 'ENOENT') {
+            log.verbose('PuppetWeb', 'loadSession() skipped coz no saved session')
+          } else {
+            log.verbose('PuppetWeb', 'loadSession() fail: %s', err.Error)
+          }
+          return reject(err.Error)
+        }
+        const cookies = JSON.parse(jsonStr)
+        return Promise.all(this.browser.setCookies(cookies))
+        .then(() => resolve(cookies))
+        .catch(e => reject(e))
+      })
+    })
+  }
 }
 
 module.exports = PuppetWeb
