@@ -28,7 +28,7 @@ Please wait... I'm trying to login in...
 `
 
 console.log(welcome)
-const bot = new Wechaty({head: false})
+const bot = new Wechaty({head: true})
 
 bot
 .on('login'	,   user => log.info('Bot', 'logined'))
