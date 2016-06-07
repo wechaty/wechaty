@@ -6,6 +6,7 @@ const log   = require('npmlog')
 
 const PuppetWeb = require('../src/puppet-web')
 const PORT = 58788
+const NAME = 'tmp-chatbot-name-for-unit-testing.wechaty'
 
 function dingSocket(server) {
   const maxTime   = 9000
@@ -105,36 +106,83 @@ false && test('Puppet Web server/browser communication', function(t) {
 
 })
 
-
 test('Puppet Web WTF server/browser communication', function(t) {
-    const pw = new PuppetWeb({port: PORT})
-    t.ok(pw, 'new PuppetWeb')
+  const pw = new PuppetWeb({port: PORT})
+  t.ok(pw, 'new PuppetWeb')
 
-    pw.init()
-    .then(r => {
-      t.pass('pw inited')
+  pw.init()
+  .then(r => {
+    t.pass('pw inited')
 
-      return dingSocket(pw.server)
-    })
-    .then(retSocket => {
-      t.equal(retSocket,  'dong', 'dingSocket got dong')
-      return true
-    })
-    .catch(e => {               // Reject
-      log.warn('TestingPuppetWeb', 'error: %s', e)
-      t.fail(e)
-      throw e
-    })
-    .then(r => {                // Finally 1
-      t.pass('dingSocket resolved')
-      return pw.quit()
-    })
-    .then(r => {                // Finally 2
-      t.pass('pw.quit() resolved')
-      t.end()
-    })
-    .catch(e => {
-      t.fail(e)
-      throw e
-    })  // Exception
+    return dingSocket(pw.server)
+  })
+  .then(retSocket => {
+    t.equal(retSocket,  'dong', 'dingSocket got dong')
+    return true
+  })
+  .catch(e => {               // Reject
+    log.warn('TestingPuppetWeb', 'error: %s', e)
+    t.fail(e)
+    throw e
+  })
+  .then(r => {                // Finally 1
+    t.pass('dingSocket resolved')
+    return pw.quit()
+  })
+  .then(r => {                // Finally 2
+    t.pass('pw.quit() resolved')
+    t.end()
+  })
+  .catch(e => {
+    t.fail(e)
+    throw e
+  })  // Exception
+})
+
+test('Puppet Web browser session save & load', function(t) {
+  let pw
+  pw = new PuppetWeb({port: PORT, name: NAME})
+  t.ok(pw, 'create PuppetWeb')
+
+  co(function* () {
+    yield pw.init()
+    t.pass('pw inited')
+
+    const EXPECTED_COOKIE = {
+      name: 'wechaty'
+      , value: '8788'
+      , path: '/'
+      , domain: '.qq.com'
+      , secure: false
+      , expiry: 99999999999999
+    }
+
+    pw.browser.setCookies(EXPECTED_COOKIE)
+    const cookies = yield pw.saveSession()
+    t.ok(cookies, 'saveSession should resolve cookies')
+    t.ok(cookies.length, 'cookies length should more than 0')
+
+    const cookiesLoad = yield pw.loadSession()
+    const cookiesFiltered = cookiesLoad.filter(c => /wechaty/i.test(c.name))
+    t.ok(cookiesLoad.length, 'pw session loaded')
+
+    yield pw.quit()
+
+    pw = new PuppetWeb({port: PORT, name: NAME})
+    yield pw.init()
+
+    const cookiesAfterQuit = yield pw.loadSession()
+    const cookiesFiltered2 = cookiesLoad.filter(c => /wechaty/i.test(c.name))
+    t.ok(cookiesFiltered2.length, 'should get old cookie after browser re-opened')
+  })
+  .catch(e => {               // Reject
+    log.warn('TestingPuppetWeb', 'error: %s', e)
+    t.fail(e)
+  })
+  .then(r => {                // Finally
+    pw.quit()
+    t.end()
+  })
+  .catch(e => { t.fail(e) })  // Exception
+
 })
