@@ -227,20 +227,22 @@ class PuppetWeb extends Puppet {
       log.verbose('PuppetWeb', `user ${this.user.name()} logined`)
       this.emit('login', this.user)
     })
-    .catch(e => log.error('PuppetWeb', 'onServerLogin rejected: %s', e))
+    .catch(e => log.error('PuppetWeb', 'onServerLogin co rejected: %s', e))
   }
   onServerLogout(data) {
-    const tmpUser = this.user
-    this.user = null
-    this.emit('logout', tmpUser)
+    if (this.user) {
+      this.emit('logout', this.user)
+      this.user = null
+    } else { log.warn('PuppetWeb', 'onServerLogout without this.user. still not logined?') }
   }
   onServerMessage(data) {
     const m = new Message(data)
-    if (!this.user) {
+    if (this.user) {
+      m.set('self', this.user.id)
+    } else {
       log.warn('PuppetWeb', 'onServerMessage() without this.user')
     }
-    m.set('self', this.user.id)
-    this.emit('message', m)
+    m.ready().then(() => this.emit('message', m))
   }
   onServerUnload(data) {
     /**
@@ -248,7 +250,7 @@ class PuppetWeb extends Puppet {
      * after received `unload`, we re-inject the Wechaty js code into browser.
      */
     log.verbose('PuppetWeb', 'server received unload event')
-    this.emit('logout', data) // XXX: should emit event[logout] from browser
+    this.onServerLogout(data) // XXX: should emit event[logout] from browser
 
     if (!this.browser || !this.bridge) {
       log.verbose('PuppetWeb', 'bridge gone, should be quiting now')

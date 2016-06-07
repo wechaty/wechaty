@@ -77,9 +77,8 @@ class Message {
     if (!this.obj.self) {
       log.warn('Message', 'self not set')
       return false
-    } else {
-      return this.obj.self === this.obj.from
     }
+    return this.obj.self === this.obj.from
   }
 
   reply(replyContent) {
