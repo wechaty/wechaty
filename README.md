@@ -228,8 +228,13 @@ const bot = new Wechaty(options)
 
 options:
 
-1. `session`: session name. if a session name is provided, the login status will be saved to it, and automatically restored on next time of wechaty start(restart).
+1. `session`(OPTIONAL): session name. if a session name is provided, the login status will be saved to it, and automatically restored on next time of wechaty start(restart).
     * can be set by environment variable: `WECHATY_SESSION`
+1. `head`(OPTIONAL): specify the browser name for webdriver.
+    * can be set by environment variable: `WECHATY_HEAD`
+    * values:
+        * `phantomjs`: it's the default behaviour if head is not set.
+        * `chrome`
 
 ### Wechaty.init()
 Initialize the bot, return Promise.

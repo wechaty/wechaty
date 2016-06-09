@@ -13,8 +13,9 @@ const By = WebDriver.By
 
 const PuppetWebBrowser  = require('../src/puppet-web-browser')
 const PuppetWebBridge   = require('../src/puppet-web-bridge')
-const PORT = 58788
-const HEAD = 'chrome' // undefined
+
+const PORT = process.env.WECHATY_PORT || 58788
+const HEAD = process.env.WECHATY_HEAD || false
 
 function driverProcessNum() {
   return new Promise((resolve, reject) => {
