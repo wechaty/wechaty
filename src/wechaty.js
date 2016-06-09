@@ -31,12 +31,11 @@ class Wechaty extends EventEmitter {
   }
   toString() { return 'Class Wechaty(' + this.puppet + ')'}
   init() {
-    log.info('Wechaty', 'init() with version: %s, puppet: %s, head: %s, session: %s'
-      , this.VERSION
-      , this.options.puppet
-      , this.options.head
-      , this.options.session
-    )
+    log.info('Wechaty', 'v%s initializing...', this.VERSION)
+    log.verbose('Wechaty', 'puppet: %s' , this.options.puppet)
+    log.verbose('Wechaty', 'head: %s'   , this.options.head)
+    log.verbose('Wechaty', 'session: %s', this.options.session)
+
     this.initPuppet()
     this.initEventHook()
 

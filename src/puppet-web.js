@@ -276,20 +276,13 @@ class PuppetWeb extends Puppet {
   logout() { return this.bridge.logout() }
 
   getContact(id)  { return this.bridge.getContact(id) }
-  getLoginQrImgUrl() {
-    if (!this.bridge) {
-      log.error('PuppetWeb', 'bridge not found')
-      return
-    }
-    return this.bridge.getLoginQrImgUrl()
-  }
   logined() { return !!(this.user) }
 
   checkSession() {
     log.verbose('PuppetWeb', `checkSession(${this.session})`)
     return this.browser.driver.manage().getCookies()
     .then(cookies => {
-      log.verbose('PuppetWeb', 'checkSession %s', require('util').inspect(cookies.map(c => { return {name: c.name, value: c.value} })))
+      log.silly('PuppetWeb', 'checkSession %s', require('util').inspect(cookies.map(c => { return {name: c.name, value: c.value} })))
       return cookies
     })
   }
@@ -305,7 +298,7 @@ class PuppetWeb extends Puppet {
           if (/ChromeDriver/i.test(c.name)) { return false }
           else                              { return true }
         })
-        log.verbose('PuppetWeb', 'saving %d cookies for session: %s', cookies.length
+        log.silly('PuppetWeb', 'saving %d cookies for session: %s', cookies.length
           , util.inspect(filteredCookies.map(c => c.name))
         )
 
@@ -329,8 +322,8 @@ class PuppetWeb extends Puppet {
     return new Promise((resolve, reject) => {
       fs.readFile(filename, (err, jsonStr) => {
         if (err) {
-          if (err) { log.verbose('PuppetWeb', 'loadSession(%s) skipped because: %s', this.session, err) }
-          return reject(err.toString())
+          if (err) { log.silly('PuppetWeb', 'loadSession(%s) skipped because error code: %s', this.session, err.code) }
+          return reject('error code:' + err.code)
         }
         const cookies = JSON.parse(jsonStr)
         log.verbose('PuppetWeb', 'loading %d cookies for session', cookies.length )

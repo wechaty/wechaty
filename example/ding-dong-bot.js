@@ -1,6 +1,4 @@
 const log = require('npmlog')
-log.level = 'verbose'
-log.level = 'silly'
 
 const Wechaty = require('../src/wechaty')
 
@@ -28,14 +26,11 @@ Please wait... I'm trying to login in...
 `
 
 console.log(welcome)
-const bot = new Wechaty({
-  head: 'chrome'
-  , session: 'ding-dong-bot.wechaty'
-})
+const bot = new Wechaty({ session: 'ding-dong-bot.json' })
 
 bot
-.on('login'	,   user => log.info('Bot', 'logined'))
-.on('logout'	, () => log.info('Bot', 'logouted'))
+.on('login'	  , user => log.info('Bot', `${user.name()} logined`))
+.on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
 .on('scan', ({url, code}) => {
   console.log(`Scan QR Code in url to login: ${code}\n${url}`)
 })

@@ -136,6 +136,28 @@ If wechaty is not run as expected, run unit test maybe help to find some useful 
 npm test
 ```
 
+## DEBUG output
+Wechaty use [npmlog](https://www.npmjs.com/package/npmlog) to output debug message. You can set log level by environment variable `WECHATY_DEBUG` to show debug message.
+
+environment variable `WECHATY_DEBUG` values:
+1. `silly`
+1. `verbose`
+1. `info`
+1. `warn`
+1. `error`
+
+Linux/OSX(Mac):
+
+```bash
+$ export WECHATY_DEBUG=verbose
+```
+
+Win32:
+
+```shell
+set WECHATY_DEBUG=verbose
+```
+
 # Requirement
 
 ECMAScript2015(ES6). I develop and test wechaty with Node.js v6.0.
@@ -200,11 +222,17 @@ To be support.
 Main bot class.
 
 ```javascript
-const bot = new Wechaty()
+const bot = new Wechaty(options)
 ```
+
+options:
+
+1. `session`: session name. if a session name is provided, the login status will be saved to it, and automatically restored on next time of wechaty start(restart).
+    * can be set by environment variable: `WECHATY_SESSION`
 
 ### Wechaty.init()
 Initialize the bot, return Promise.
+
 ```javascript
 bot.init()
 .then(() => {
@@ -379,7 +407,7 @@ Know more about TAP: [Why I use Tape Instead of Mocha & So Should You](https://m
         1. `message.recv.*`
 - [ ] Message
     - [ ] Send/Reply image message
-- [ ] Session save/load
+- [x] Session save/load
 
 Everybody is welcome to issue your needs.
 
