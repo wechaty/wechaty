@@ -31,11 +31,11 @@ The following 9 lines of code implement a bot who reply "roger" for every messag
 
 ```javascript
 const Wechaty = require('wechaty')
-const bot = new Wechaty()
-bot.init().on('scan', ({url, code}) => {
+const wechaty = new Wechaty()
+wechaty.init().on('scan', ({url, code}) => {
   console.log(`Use Wechat to scan qrcode in url to login: ${code}\n${url}`)
 }).on('message', m => {
-  !m.self() && bot.send(m.reply('roger')) // 1. reply
+  !m.self() && wechaty.reply(m, 'roger') // 1. reply
   .then(() => console.log(`RECV: ${m}, REPLY: "roger"`)) // 2. log message
   .catch(e => console.error(e)) // 3. catch exception
 })
@@ -182,7 +182,7 @@ Wechaty support the following 5 events:
 A `scan` event will be emitted when the bot need to show you a QrCode for scaning.
 
 ```javascript
-bot.on('scan', ({code, url}) => {
+wechaty.on('scan', ({code, url}) => {
   console.log(`[${code}] Scan ${url} to login.` )
 })
 ```
@@ -200,7 +200,7 @@ bot.on('scan', ({code, url}) => {
 
 After the bot login full successful, the event `login` will be emitted, with a [Contact](#class-contact) of current logined user.
 ```javascript
-bot.on('login', user => {
+wechaty.on('login', user => {
   console.log(`user ${user} logined`)
 })
 ```
@@ -210,7 +210,7 @@ bot.on('login', user => {
 ### 4. Event: `message`
 Emit when there's a new message.
 ```javascript
-bot.on('message', message => {
+wechaty.on('message', message => {
   console.log('message ${message} received')
 })
 ```
@@ -223,7 +223,7 @@ To be support.
 Main bot class.
 
 ```javascript
-const bot = new Wechaty(options)
+const wechaty = new Wechaty(options)
 ```
 
 options:
@@ -240,10 +240,19 @@ options:
 Initialize the bot, return Promise.
 
 ```javascript
-bot.init()
+wechaty.init()
 .then(() => {
   // do other staff with bot here
 }
+```
+
+### Wechaty.reply(message: Message, reply: String)
+Reply a `message` with `reply`.
+
+That means: the `to` field of the reply message is the `from` of origin message.
+
+```javascript
+wechaty.reply(message, 'roger')
 ```
 
 ## Class Message
@@ -284,14 +293,6 @@ message.ready()
 .then(() => {
   // Here we can be sure all the data is ready for use.
 })
-```
-
-### Message.reply()
-Create a new Message instance that reply the original one. which means: the `to` field of the reply message is the `from` of origin message.
-
-```javascript
-const replyMessage = message.reply('roger!')
-bot.send(replyMessage)
 ```
 
 ### Message.self()
