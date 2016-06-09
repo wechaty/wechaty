@@ -116,7 +116,7 @@ class PuppetWeb extends Puppet {
 
     return co.call(this, function* () {
       yield this.browser.init()
-      yield this.browser.open()
+      yield this.browser.open('https://res.wx.qq.com/zh_CN/htmledition/v2/images/icon/ico_loading28a2f7.gif')
       yield this.checkSession()
       yield this.loadSession().catch(e => { log.verbose('PuppetWeb', 'loadSession rejected: %s', e) /* fail safe */ })
       yield this.checkSession()
@@ -270,6 +270,9 @@ class PuppetWeb extends Puppet {
     return this.send(m)
   }
 
+  /**
+   * logout from browser, then server will emit `logout` event
+   */
   logout() { return this.bridge.logout() }
 
   getContact(id)  { return this.bridge.getContact(id) }

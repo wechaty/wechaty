@@ -40,22 +40,22 @@ function dingSocket(server) {
   })
 }
 
-false && test('PuppetWeb smoke testing', function(t) {
-  let pw
-  co(function* () {
-    pw = new PuppetWeb({port: PORT, head: HEAD, session: SESSION})
-    t.ok(pw, 'new PuppetWeb')
+test('PuppetWeb smoke testing', function(t) {
+  let pw = new PuppetWeb({port: PORT, head: HEAD, session: SESSION})
+  t.ok(pw, 'new PuppetWeb')
 
+  co(function* () {
     yield pw.init()
     t.pass('pw full inited')
-    t.equal(pw.isLogined() , false  , 'instance not logined')
+    t.equal(pw.logined() , false  , 'should be not logined')
 
     // XXX find a better way to mock...
-    pw.bridge.getUserName = function () { return Promise.resolve('mockedUserName') }
+    pw.bridge.getUserName = function() { return Promise.resolve('mockedUserName') }
+    pw.getContact = function() { return Promise.resolve('dummy') }
 
     const p1 = new Promise((resolve) => {
       pw.once('login', r => {
-        t.equal(pw.isLogined() , true   , 'logined after login event')
+        t.equal(pw.logined() , true   , 'should be logined after emit login event')
         resolve()
       })
     })
@@ -64,51 +64,49 @@ false && test('PuppetWeb smoke testing', function(t) {
 
     const p2 = new Promise((resolve) => {
       pw.once('logout', r => {
-        t.equal(pw.isLogined() , false  , 'logouted after logout event')
-        resolve()
+        process.nextTick(() => { // wait to next tick for pw clean logined user status
+          // log.verbose('TestPuppetWeb', 'on(logout) received %s, islogined: %s', r, pw.logined())
+          t.equal(pw.logined() , false  , 'logouted after logout event')
+          resolve()
+        })
       })
     })
     pw.server.emit('logout')
     yield p2
-
   })
   .catch(e => t.fail(e))  // Reject
   .then(r => {            // Finally 1
-    log.warn('TestPuppetWeb', 'finally()')
-    return pw.quit()
+    // log.warn('TestPuppetWeb', 'finally()')
+    pw.quit()
+    .then(t.end)
   })
-  .then(r => { t.end() }) // Finally 2
   .catch(e => t.fail(e))  // Exception
 })
 
-// WTF?
-false && test('Puppet Web server/browser communication', function(t) {
-  let pw2
+test('Puppet Web server/browser communication', function(t) {
+  let pw = new PuppetWeb({port: PORT, head: HEAD, session: SESSION})
+  t.ok(pw, 'new PuppetWeb')
+
   co(function* () {
-    pw = new PuppetWeb({port: PORT, head: HEAD, session: SESSION})
-    t.ok(pw2, 'new PuppetWeb')
+    yield pw.init()
+    t.pass('pw inited')
 
-    yield Promise.resolve()
-
-    yield pw2.init()
-    t.pass('pw2 inited')
-
-    const retSocket = yield dingSocket(pw2.server)
+    const retSocket = yield dingSocket(pw.server)
     t.equal(retSocket,  'dong', 'dingSocket got dong')
   })
-  .catch(e => {
+  .catch(e => {               // Reject
     log.warn('TestPuppetWeb', 'error: %s', e)
     t.fail(e)
-  })      // Reject
+  })
   .then(r => {                // Finally
-    pw2.quit()
-    t.end()
+    pw.quit()
+    .then(t.end)
   })
   .catch(e => { t.fail(e) })  // Exception
-
 })
 
-false && test('Puppet Web WTF server/browser communication', function(t) {
+/*
+false && test('Puppet Web promise version of server/browser communication', function(t) {
   pw = new PuppetWeb({port: PORT, head: HEAD, session: SESSION})
   t.ok(pw, 'new PuppetWeb')
 
@@ -140,6 +138,7 @@ false && test('Puppet Web WTF server/browser communication', function(t) {
     throw e
   })  // Exception
 })
+*/
 
 test('Puppet Web browser session save & load', function(t) {
   let pw = new PuppetWeb({port: PORT, head: HEAD, session: SESSION})
@@ -203,14 +202,6 @@ test('Puppet Web browser session save & load', function(t) {
     const cookieAfterQuit = yield pw.browser.driver.manage().getCookie(EXPECTED_COOKIE.name)
     t.equal(cookieAfterQuit.name, EXPECTED_COOKIE.name, 'cookie from getCookie() after browser quit, should load the right cookie back')
 
-  })
-  .catch(e => {               // Reject
-    log.warn('TestPuppetWeb', 'error: %s', e)
-    t.fail(e)
-  })
-  .then(r => {                // Finally
-    pw.quit()
-    t.end()
     // clean
     require('fs').unlink(SESSION, err => {
       if (err) {
@@ -218,6 +209,12 @@ test('Puppet Web browser session save & load', function(t) {
       }
     })
   })
+  .catch(e => {               // Reject
+    log.warn('TestPuppetWeb', 'error: %s', e)
+    t.fail(e)
+  })
+  .then(r => {                // Finally
+    pw.quit().then(t.end)
+  })
   .catch(e => { t.fail(e) })  // Exception
-
 })
