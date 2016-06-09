@@ -1,12 +1,14 @@
 const co    = require('co')
+const util  = require('util')
 const test  = require('tap').test
-const log   = require('npmlog')
-// log.level = 'verbose'
-// log.level = 'silly'
+
+const log = require('../src/npmlog-env')
+
+const PORT = process.env.WECHATY_PORT || 58788
+const HEAD = process.env.WECHATY_HEAD || false
+const SESSION = process.env.WECHATY_SESSION || 'unit-test-session.wechaty.' + process.pid
 
 const PuppetWeb = require('../src/puppet-web')
-const PORT = 58788
-const NAME = 'tmp-chatbot-name-for-unit-testing.wechaty'
 
 function dingSocket(server) {
   const maxTime   = 9000
@@ -41,7 +43,7 @@ function dingSocket(server) {
 false && test('PuppetWeb smoke testing', function(t) {
   let pw
   co(function* () {
-    pw = new PuppetWeb({port: PORT})
+    pw = new PuppetWeb({port: PORT, head: HEAD, session: SESSION})
     t.ok(pw, 'new PuppetWeb')
 
     yield pw.init()
@@ -83,7 +85,7 @@ false && test('PuppetWeb smoke testing', function(t) {
 false && test('Puppet Web server/browser communication', function(t) {
   let pw2
   co(function* () {
-    pw2 = new PuppetWeb({port: PORT})
+    pw = new PuppetWeb({port: PORT, head: HEAD, session: SESSION})
     t.ok(pw2, 'new PuppetWeb')
 
     yield Promise.resolve()
@@ -106,8 +108,8 @@ false && test('Puppet Web server/browser communication', function(t) {
 
 })
 
-test('Puppet Web WTF server/browser communication', function(t) {
-  const pw = new PuppetWeb({port: PORT})
+false && test('Puppet Web WTF server/browser communication', function(t) {
+  pw = new PuppetWeb({port: PORT, head: HEAD, session: SESSION})
   t.ok(pw, 'new PuppetWeb')
 
   pw.init()
@@ -139,44 +141,96 @@ test('Puppet Web WTF server/browser communication', function(t) {
   })  // Exception
 })
 
-test('Puppet Web browser session save & load', function(t) {
-  let pw
-  pw = new PuppetWeb({port: PORT, name: NAME})
-  t.ok(pw, 'create PuppetWeb')
+false && test('Puppet Web browser session save & load', function(t) {
+  let pw = new PuppetWeb({port: PORT, head: HEAD, session: SESSION})
+  t.ok(pw, 'new PuppetWeb')
 
   co(function* () {
     yield pw.init()
     t.pass('pw inited')
 
     const EXPECTED_COOKIE = {
-      name: 'wechaty'
-      , value: '8788'
+      name: 'wechaty_save_to_session'
+      , value: '### This cookie should be saved to session file, and load back at next PuppetWeb init  ###'
       , path: '/'
       , domain: '.qq.com'
       , secure: false
       , expiry: 99999999999999
     }
+    /*
+    {
+      name: 'wechaty0'
+      , value: '8788-0'
+      , path: '/'
+      , domain: '.qq.com'
+      , secure: false
+      , expiry: 99999999999999
+    }
+    */
 
-    pw.browser.setCookies(EXPECTED_COOKIE)
-    const cookies = yield pw.saveSession()
-    t.ok(cookies, 'saveSession should resolve cookies')
-    t.ok(cookies.length, 'cookies length should more than 0')
+    const EXPECTED_NAME_REGEX = new RegExp('^' + EXPECTED_COOKIE.name + '$')
 
-    const cookiesLoad = yield pw.loadSession()
-    const cookiesFiltered = cookiesLoad.filter(c => /wechaty/i.test(c.name))
-    t.ok(cookiesLoad.length, 'pw session loaded')
+    yield pw.browser.driver.manage().deleteAllCookies()
+    let cookies = yield pw.browser.driver.manage().getCookies()
+    t.equal(cookies.length, 0, 'should no cookie after deleteAllCookies()')
+
+    yield pw.browser.addCookies(EXPECTED_COOKIE)
+    const cookieFromBrowser = yield pw.browser.driver.manage().getCookie(EXPECTED_COOKIE.name)
+    t.equal(cookieFromBrowser.name, EXPECTED_COOKIE.name, 'cookie from getCookie() should be same as we just set')
+
+    let cookiesFromCheck = yield pw.checkSession()
+    t.ok(cookiesFromCheck.length, 'should get cookies from checkSession() after addCookies()')
+    let cookieFromCheck  = cookiesFromCheck.filter(c => EXPECTED_NAME_REGEX.test(c.name))
+    t.equal(cookieFromCheck[0].name, EXPECTED_COOKIE.name, 'cookie from checkSession() return should be same as we just set by addCookies()')
+
+    const cookiesFromSave = yield pw.saveSession()
+    t.ok(cookiesFromSave.length, 'should get cookies from saveSession()')
+    const cookieFromSave  = cookiesFromSave.filter(c => EXPECTED_NAME_REGEX.test(c.name))
+    t.equal(cookieFromSave.length, 1, 'should has the cookie we just set')
+    t.equal(cookieFromSave[0].name, EXPECTED_COOKIE.name, 'cookie from saveSession() return should be same as we just set')
+
+    yield pw.browser.driver.manage().deleteAllCookies()
+    cookiesFromCheck = yield pw.checkSession()
+    t.equal(cookiesFromCheck.length, 0, 'should no cookie from checkSession() after deleteAllCookies()')
+
+    const cookiesFromLoad = yield pw.loadSession()
+    t.ok(cookiesFromLoad.length, 'should get cookies after loadSession()')
+    const cookieFromLoad = cookiesFromLoad.filter(c => EXPECTED_NAME_REGEX.test(c.name))
+    t.equal(cookieFromLoad[0].name, EXPECTED_COOKIE.name, 'cookie from loadSession() should has expected cookie')
+
+// setTimeout(function() {
+//   co(function* () {
+    cookiesFromCheck = yield pw.checkSession()
+    t.ok(cookiesFromCheck.length, 'should get cookies from checkSession()')
+    cookieFromCheck  = cookiesFromCheck.filter(c => EXPECTED_NAME_REGEX.test(c.name))
+    t.ok(cookieFromCheck.length, 'should has cookie after filtered')
+    t.equal(cookieFromCheck[0].name, EXPECTED_COOKIE.name, 'cookie from checkSession() return should has expected cookie')
+
+    t.end()
+    process.exit()
+//   })
+// }, 100)
 
     yield pw.quit()
+    t.pass('quited')
 
-    pw = new PuppetWeb({port: PORT, name: NAME})
+    pw = new PuppetWeb({port: PORT, head: HEAD, session: SESSION})
     yield pw.init()
+    t.pass('re-new/init/open PuppetWeb')
 
-    const cookiesAfterQuit = yield pw.loadSession()
-    const cookiesFiltered2 = cookiesLoad.filter(c => /wechaty/i.test(c.name))
-    t.ok(cookiesFiltered2.length, 'should get old cookie after browser re-opened')
+    const cookieAfterQuit = (yield pw.browser.driver.manage().getCookie(EXPECTED_COOKIE.name))
+    t.equal(cookieAfterQuit.name, EXPECTED_COOKIE.name, 'cookie from getCookie() after browser quite, should load the right cookie back')
+
+    // clean
+    if (/^unit-test-session\.wechaty\.\d+/.test(SESSION)) {
+      require('fs').unlink(SESSION, err => {
+        if (err) { t.fail('unlink err: ' + err) }
+        else     { t.pass('should unlinked wechaty session file before end') }
+      })
+    }
   })
   .catch(e => {               // Reject
-    log.warn('TestingPuppetWeb', 'error: %s', e)
+    log.warn('TestPuppetWeb', 'error: %s', e)
     t.fail(e)
   })
   .then(r => {                // Finally

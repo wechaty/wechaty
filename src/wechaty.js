@@ -8,9 +8,9 @@
  * https://github.com/zixia/wechaty
  *
  */
-
-const log           = require('npmlog')
 const EventEmitter  = require('events')
+
+const log         = require('./npmlog-env')
 
 const Puppet      = require('./puppet')
 const PuppetWeb   = require('./puppet-web')
@@ -23,14 +23,20 @@ class Wechaty extends EventEmitter {
   constructor(options) {
     super()
     this.options = options || {}
-    this.options.puppet = this.options.puppet || 'web'
-    this.options.name   = this.options.name // no name, no session restore
+    this.options.puppet     = this.options.puppet   || process.env.WECHATY_PUPPET || 'web'
+    this.options.head       = this.options.head     || process.env.WECHATY_HEAD || false
+    this.options.session    = this.options.session  || process.env.WECHATY_SESSION // no session, no session restore
 
     this.VERSION = require('../package.json').version
   }
   toString() { return 'Class Wechaty(' + this.puppet + ')'}
   init() {
-    log.info('Wechaty', 'init() with version: %s', this.VERSION)
+    log.info('Wechaty', 'init() with version: %s, puppet: %s, head: %s, session: %s'
+      , this.VERSION
+      , this.options.puppet
+      , this.options.head
+      , this.options.session
+    )
     this.initPuppet()
     this.initEventHook()
 
@@ -45,7 +51,7 @@ class Wechaty extends EventEmitter {
         this.puppet = new Puppet.Web({
           head:   this.options.head
           , port: this.options.port
-          , name: this.options.name
+          , session: this.options.session
         })
         break
       default:
@@ -89,12 +95,6 @@ class Wechaty extends EventEmitter {
     // TODO: test through the server & browser
     return 'dong'
   }
-
-  /**
-   * @deprecated
-   * use on('scan', ({code, url}) => {}) instead.
-   */
-  getLoginQrImgUrl() { return this.puppet.getLoginQrImgUrl() }
 }
 
 Puppet.Web = PuppetWeb

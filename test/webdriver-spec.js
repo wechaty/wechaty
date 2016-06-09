@@ -56,7 +56,7 @@ test('WebDriver process create & quit test', function(t) {
 
 // XXX WTF with co module???
 test('WebDriver smoke testing', function(t) {
-  const wb = new PuppetWebBrowser()
+  const wb = new PuppetWebBrowser({port: PORT, head: HEAD})
   t.ok(wb, 'Browser instnace')
 
   const bridge = new PuppetWebBridge({browser: wb, port: PORT})
@@ -105,7 +105,7 @@ test('WebDriver smoke testing', function(t) {
 })
 
 test('WebDriver WTF testing', function(t) {
-  const wb = new PuppetWebBrowser()
+  const wb = new PuppetWebBrowser({port: PORT, head: HEAD})
   t.ok(wb, 'Browser instnace')
 
   const bridge = new PuppetWebBridge({browser: wb, port: PORT})

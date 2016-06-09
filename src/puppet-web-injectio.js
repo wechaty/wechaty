@@ -179,7 +179,7 @@ return (function(port) {
       })
       Wechaty.vars.scanCode = code
     }
-    setTimeout(checkScan, 100)
+    setTimeout(checkScan, 300)
     return
   }
 

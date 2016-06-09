@@ -32,7 +32,7 @@ class Browser {
     .then(() => this)
     // XXX: if no `.catch` here, promise will hang!
     // XXX: https://github.com/SeleniumHQ/selenium/issues/2233
-    .catch(e => throw e)
+    .catch(e => { throw e })
 
     // console.log(p)
     // return p.catch()
@@ -68,11 +68,11 @@ class Browser {
     })
   }
 
-  open() {
-    const WX_URL = 'https://wx.qq.com'
-    log.verbose('Browser', `open()ing at ${WX_URL}`)
+  open(url) {
+    url = url || 'https://wx.qq.com'
+    log.verbose('Browser', `open()ing at ${url}`)
 
-    return this.driver.get(WX_URL)
+    return this.driver.get(url)
   }
 
   getPhantomJsDriver() {
@@ -114,9 +114,9 @@ class Browser {
     }
     log.verbose('Browser', 'driver.quit')
     return this.driver.close() // http://stackoverflow.com/a/32341885/1123955
-    .then(r => this.driver.quit())
-    .then(r => this.driver = null)
-    .then(r => this.clean())
+    .then(() => this.driver.quit())
+    .then(() => { this.driver = null })
+    .then(() => this.clean())
   }
 
   clean() {
@@ -169,33 +169,29 @@ class Browser {
     }
   }
 
-  getCookies() {
-    log.silly('Browser', 'getCookies()')
-// console.trace("#################")
-
-    if (!this.driver || !this.driver.getSession()) {
-      return Promise.reject('no driver or no session')
-    }
-
-    return this.driver.manage().getCookies()
-    .then(cookies => {
-      log.silly('Browser', 'getCookies() got %s cookies', cookies.length)
-      return cookies
-    })
-    .catch(e => {
-      log.error('Browser', 'getCookies %s', e)
-      throw e
-    })
-  }
-
-  setCookies(cookies) { return this.setCookie(cookies) }
-  setCookie(cookie) {
+  /**
+   * only wrap addCookies for convinience
+   *
+   * use this.driver.manage() to call other functions like:
+   * deleteCookie / getCookie / getCookies
+   */
+  addCookies(cookie) {
     if (cookie.map) {
       return cookie.map(c => {
-        return this.setCookie(c)
+        return this.addCookies(c)
       })
     }
-    return this.driver.manage().addCookie(cookie.name, cookie.value, cookie.path, cookie.domain, cookie.secure, cookie.expiry)
+    // convert expiry from seconds to milliseconds. https://github.com/SeleniumHQ/selenium/issues/2245
+    if (cookie.expiry) { cookie.expiry = cookie.expiry * 1000 }
+
+    log.silly('Browser', 'addCookies("%s", "%s", "%s", "%s", "%s", "%s")'
+      , cookie.name, cookie.value, cookie.path, cookie.domain, cookie.secure, cookie.expiry
+    )
+
+    return this.driver.manage()
+    .addCookie(cookie.name, cookie.value, cookie.path
+      , cookie.domain, cookie.secure, cookie.expiry
+    )
   }
 }
 

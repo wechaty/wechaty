@@ -18,8 +18,9 @@
  ***************************************/
 const util = require('util')
 const fs  = require('fs')
-const log = require('npmlog')
 const co  = require('co')
+
+const log = require('./npmlog-env')
 
 const Puppet = require('./puppet')
 const Message = require('./message')
@@ -36,7 +37,7 @@ class PuppetWeb extends Puppet {
     options = options || {}
     this.port = options.port || 8788 // W(87) X(88), ascii char code ;-]
     this.head = options.head
-    this.name = options.name  // if not set name, then dont store session.
+    this.session = options.session  // if not set session, then dont store session.
 
     this.user = null  // <Contact> of user self
   }
@@ -44,7 +45,7 @@ class PuppetWeb extends Puppet {
   toString() { return `Class PuppetWeb({browser:${this.browser},port:${this.port}})` }
 
   init() {
-    log.verbose('PuppetWeb', 'init()')
+    log.verbose('PuppetWeb', `init() with port:${this.port}, head:${this.head}, session:${this.session}`)
 
     return co.call(this, function* () {
 
@@ -113,10 +114,15 @@ class PuppetWeb extends Puppet {
     log.verbose('PuppetWeb', 'initBrowser')
     this.browser  = new Browser({ head: this.head })
 
-    return this.browser.init()
-    .then(() => this.loadSession()).catch(e => { /* fail safe */ })
-    .then(() => this.browser.open())
-    .catch(e => {
+    return co.call(this, function* () {
+      yield this.browser.init()
+      yield this.browser.open()
+      yield this.checkSession()
+      yield this.loadSession().catch(e => { log.verbose('PuppetWeb', 'loadSession rejected: %s', e) /* fail safe */ })
+      yield this.checkSession()
+      yield this.browser.open()
+      yield this.checkSession()
+    }).catch(e => {
       log.error('PuppetWeb', 'initBrowser rejected: %s', e)
       throw e
     })
@@ -157,7 +163,6 @@ class PuppetWeb extends Puppet {
   }
 
   onServerConnection(data) {
-    this.saveSession()
     log.verbose('PuppetWeb', 'onServerConnection: %s', data.constructor.name)
   }
   onServerDisconnect(data) {
@@ -170,23 +175,23 @@ class PuppetWeb extends Puppet {
   }
 
   onServerLogin(data) {
-    this.saveSession()
-
     co.call(this, function* () {
       // co.call to make `this` context work inside generator.
       // See also: https://github.com/tj/co/issues/274
       const userName = yield this.bridge.getUserName()
       if (!userName) {
-        log.silly('PuppetWeb', 'onServerLogin: browser not full loaded, retry later.')
-        setTimeout(this.onServerLogin.bind(this), 100)
+        log.verbose('PuppetWeb', 'onServerLogin: browser not full loaded, retry later.')
+        setTimeout(this.onServerLogin.bind(this), 300)
         return
       }
       log.silly('PuppetWeb', 'userName: %s', userName)
       this.user = yield Contact.load(userName).ready()
       log.verbose('PuppetWeb', `user ${this.user.name()} logined`)
       this.emit('login', this.user)
-    })
-    .catch(e => log.error('PuppetWeb', 'onServerLogin co rejected: %s', e))
+
+      yield this.saveSession()
+
+    }).catch(e => log.error('PuppetWeb', 'onServerLogin co rejected: %s', e))
   }
   onServerLogout(data) {
     if (this.user) {
@@ -203,11 +208,14 @@ class PuppetWeb extends Puppet {
     }
     m.ready().then(() => this.emit('message', m))
   }
+  /**
+   * `unload` event is sent from js@browser to webserver via socketio
+   * after received `unload`, we re-inject the Wechaty js code into browser.
+   */
   onServerUnload(data) {
-    /**
-     * `unload` event is sent from js@browser to webserver via socketio
-     * after received `unload`, we re-inject the Wechaty js code into browser.
-     */
+    //XXX
+    return
+
     log.verbose('PuppetWeb', 'server received unload event')
     this.onServerLogout(data) // XXX: should emit event[logout] from browser
 
@@ -220,6 +228,8 @@ class PuppetWeb extends Puppet {
     .then(r  => log.verbose('PuppetWeb', 'browser.quit()ed:' + r))
     .then(r => this.browser.init())
     .then(r  => log.verbose('PuppetWeb', 'browser.re-init()ed:' + r))
+    .then(r => this.browser.open())
+    .then(r  => log.verbose('PuppetWeb', 'browser.re-open()ed:' + r))
     .then(r => this.bridge.init())
     .then(r  => log.verbose('PuppetWeb', 'bridge.re-init()ed:' + r))
     .catch(e => log.error('PuppetWeb', 'onServerUnload() err: ' + e))
@@ -256,7 +266,7 @@ class PuppetWeb extends Puppet {
     // FIXME: find a alternate way to check a message create by `self`
     .set('self'     , this.user.id)
 
-    console.log(m)
+    log.verbose('PuppetWeb', 'reply() not sending message: %s', util.inspect(m))
     return this.send(m)
   }
 
@@ -272,45 +282,78 @@ class PuppetWeb extends Puppet {
   }
   logined() { return !!(this.user) }
 
+  checkSession() {
+    log.verbose('PuppetWeb', `checkSession(${this.session})`)
+    return this.browser.driver.manage().getCookies()
+    .then(cookies => {
+      log.verbose('PuppetWeb', 'checkSession %s', require('util').inspect(cookies.map(c => { return {name: c.name, value: c.value} })))
+      return cookies
+    })
+  }
   saveSession() {
-    if (!this.name) { return Promise.reject('saveSession() no name') }
-    const filename = this.name
+    log.verbose('PuppetWeb', `saveSession(${this.session})`)
+    if (!this.session) { return Promise.reject('saveSession() no session') }
+    const filename = this.session
 
     return new Promise((resolve, reject) => {
-      this.browser.getCookies()
+      this.browser.driver.manage().getCookies()
       .then(cookies => {
-        // console.log(cookies)
-        const jsonStr = JSON.stringify(cookies)
+        const filteredCookies = cookies.filter(c => {
+          if (/ChromeDriver/i.test(c.name)) { return false }
+          else                              { return true }
+        })
+        log.verbose('PuppetWeb', 'saving %d cookies for session: %s', cookies.length
+          , util.inspect(filteredCookies.map(c => c.name))
+        )
 
+        const jsonStr = JSON.stringify(filteredCookies)
         fs.writeFile(filename, jsonStr, function(err) {
           if(err) {
             log.error('PuppetWeb', 'saveSession() fail to write file %s: %s', filename, err.Error)
             return reject(err)
           }
-          return resolve(cookies)
+          return resolve(filteredCookies)
         })
       })
     })
   }
 
   loadSession() {
-    if (!this.name) { return Promise.reject('loadSession() no name') }
-    const filename = this.name
+    log.verbose('PuppetWeb', `loadSession(${this.session})`)
+    if (!this.session) { return Promise.resolve('loadSession() no session') }
+    const filename = this.session
 
     return new Promise((resolve, reject) => {
       fs.readFile(filename, (err, jsonStr) => {
         if (err) {
-          if (err.code == 'ENOENT') {
-            log.verbose('PuppetWeb', 'loadSession() skipped coz no saved session')
-          } else {
-            log.verbose('PuppetWeb', 'loadSession() fail: %s', err.Error)
-          }
-          return reject(err.Error)
+          if (err) { log.verbose('PuppetWeb', 'loadSession(%s) skipped because: %s', this.session, err) }
+          return resolve(err.toString()) // resolve promise even there no session
         }
         const cookies = JSON.parse(jsonStr)
-        return Promise.all(this.browser.setCookies(cookies))
-        .then(() => resolve(cookies))
-        .catch(e => reject(e))
+        log.verbose('PuppetWeb', 'loading %d cookies for session', cookies.length )
+
+        const p = Promise.resolve()
+        log.verbose('PuppetWeb', 'cookies loaded from session:')
+        cookies.forEach(cookie => {
+          log.verbose('PuppetWeb', 'set cookie to browser: %s', cookie.name)
+          p.then(() => {
+            return this.browser.addCookies(cookie)
+          })
+        })
+        log.verbose('PuppetWeb', 'set cookies to browser end')
+
+        return p
+        .then(() => {
+          log.verbose('PuppetWeb', 'addCookies() all resolved')
+          resolve(cookies)
+        })
+        .catch(e => {
+          log.error('PuppetWeb', 'addCookies() rejected: %s', e)
+          reject(e)
+        )
+        // return Promise.all()
+        // .then(() => resolve(cookies))
+        // .catch(e => reject(e))
       })
     })
   }
