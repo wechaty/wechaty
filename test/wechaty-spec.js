@@ -1,5 +1,5 @@
 const test = require('tap').test
-const log = require('./npmlog-env')
+const log = require('../src/npmlog-env')
 
 test('Wechaty Library', function(t) {
   const Wechaty = require('../')
