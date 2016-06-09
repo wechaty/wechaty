@@ -6,7 +6,7 @@ const log = require('../src/npmlog-env')
 
 const PORT = process.env.WECHATY_PORT || 58788
 const HEAD = process.env.WECHATY_HEAD || false
-const SESSION = process.env.WECHATY_SESSION || 'unit-test-session.wechaty.' + process.pid
+const SESSION = 'unit-test-session.json'
 
 const PuppetWeb = require('../src/puppet-web')
 
@@ -15,24 +15,24 @@ function dingSocket(server) {
   const waitTime  = 500
   let   totalTime = 0
   return new Promise((resolve, reject) => {
-    log.verbose('TestingPuppetWeb', 'dingSocket()')
+    log.verbose('TestPuppetWeb', 'dingSocket()')
     return testDing()
 
     function testDing() {
-      // log.silly('TestingPuppetWeb', server.socketio)
+      // log.silly('TestPuppetWeb', server.socketio)
       if (!server.socketClient) {
         totalTime += waitTime
         if (totalTime > maxTime) {
           return reject('timeout after ' + totalTime + 'ms')
         }
 
-        log.silly('TestingPuppetWeb', 'waiting socketClient to connect for ' + totalTime + '/' + maxTime + ' ms...')
+        log.silly('TestPuppetWeb', 'waiting socketClient to connect for ' + totalTime + '/' + maxTime + ' ms...')
         setTimeout(testDing, waitTime)
         return
       }
-      //log.silly('TestingPuppetWebServer', server.socketClient)
+      //log.silly('TestPuppetWebServer', server.socketClient)
       server.socketClient.once('dong', data => {
-        log.verbose('TestingPuppetWeb', 'socket recv event dong: ' + data)
+        log.verbose('TestPuppetWeb', 'socket recv event dong: ' + data)
         return resolve(data)
       })
       server.socketClient.emit('ding')
@@ -74,7 +74,7 @@ false && test('PuppetWeb smoke testing', function(t) {
   })
   .catch(e => t.fail(e))  // Reject
   .then(r => {            // Finally 1
-    log.warn('TestingPuppetWeb', 'finally()')
+    log.warn('TestPuppetWeb', 'finally()')
     return pw.quit()
   })
   .then(r => { t.end() }) // Finally 2
@@ -97,7 +97,7 @@ false && test('Puppet Web server/browser communication', function(t) {
     t.equal(retSocket,  'dong', 'dingSocket got dong')
   })
   .catch(e => {
-    log.warn('TestingPuppetWeb', 'error: %s', e)
+    log.warn('TestPuppetWeb', 'error: %s', e)
     t.fail(e)
   })      // Reject
   .then(r => {                // Finally
@@ -123,7 +123,7 @@ false && test('Puppet Web WTF server/browser communication', function(t) {
     return true
   })
   .catch(e => {               // Reject
-    log.warn('TestingPuppetWeb', 'error: %s', e)
+    log.warn('TestPuppetWeb', 'error: %s', e)
     t.fail(e)
     throw e
   })
@@ -141,7 +141,7 @@ false && test('Puppet Web WTF server/browser communication', function(t) {
   })  // Exception
 })
 
-false && test('Puppet Web browser session save & load', function(t) {
+test('Puppet Web browser session save & load', function(t) {
   let pw = new PuppetWeb({port: PORT, head: HEAD, session: SESSION})
   t.ok(pw, 'new PuppetWeb')
 
@@ -157,17 +157,6 @@ false && test('Puppet Web browser session save & load', function(t) {
       , secure: false
       , expiry: 99999999999999
     }
-    /*
-    {
-      name: 'wechaty0'
-      , value: '8788-0'
-      , path: '/'
-      , domain: '.qq.com'
-      , secure: false
-      , expiry: 99999999999999
-    }
-    */
-
     const EXPECTED_NAME_REGEX = new RegExp('^' + EXPECTED_COOKIE.name + '$')
 
     yield pw.browser.driver.manage().deleteAllCookies()
@@ -193,23 +182,16 @@ false && test('Puppet Web browser session save & load', function(t) {
     cookiesFromCheck = yield pw.checkSession()
     t.equal(cookiesFromCheck.length, 0, 'should no cookie from checkSession() after deleteAllCookies()')
 
-    const cookiesFromLoad = yield pw.loadSession()
+    const cookiesFromLoad = yield pw.loadSession().catch(() => {}) // fall safe
     t.ok(cookiesFromLoad.length, 'should get cookies after loadSession()')
     const cookieFromLoad = cookiesFromLoad.filter(c => EXPECTED_NAME_REGEX.test(c.name))
     t.equal(cookieFromLoad[0].name, EXPECTED_COOKIE.name, 'cookie from loadSession() should has expected cookie')
 
-// setTimeout(function() {
-//   co(function* () {
     cookiesFromCheck = yield pw.checkSession()
-    t.ok(cookiesFromCheck.length, 'should get cookies from checkSession()')
+    t.ok(cookiesFromCheck.length, 'should get cookies from checkSession() after loadSession()')
     cookieFromCheck  = cookiesFromCheck.filter(c => EXPECTED_NAME_REGEX.test(c.name))
-    t.ok(cookieFromCheck.length, 'should has cookie after filtered')
-    t.equal(cookieFromCheck[0].name, EXPECTED_COOKIE.name, 'cookie from checkSession() return should has expected cookie')
-
-    t.end()
-    process.exit()
-//   })
-// }, 100)
+    t.ok(cookieFromCheck.length, 'should has cookie after filtered after loadSession()')
+    t.equal(cookieFromCheck[0].name, EXPECTED_COOKIE.name, 'cookie from checkSession() return should has expected cookie after loadSession')
 
     yield pw.quit()
     t.pass('quited')
@@ -218,16 +200,9 @@ false && test('Puppet Web browser session save & load', function(t) {
     yield pw.init()
     t.pass('re-new/init/open PuppetWeb')
 
-    const cookieAfterQuit = (yield pw.browser.driver.manage().getCookie(EXPECTED_COOKIE.name))
-    t.equal(cookieAfterQuit.name, EXPECTED_COOKIE.name, 'cookie from getCookie() after browser quite, should load the right cookie back')
+    const cookieAfterQuit = yield pw.browser.driver.manage().getCookie(EXPECTED_COOKIE.name)
+    t.equal(cookieAfterQuit.name, EXPECTED_COOKIE.name, 'cookie from getCookie() after browser quit, should load the right cookie back')
 
-    // clean
-    if (/^unit-test-session\.wechaty\.\d+/.test(SESSION)) {
-      require('fs').unlink(SESSION, err => {
-        if (err) { t.fail('unlink err: ' + err) }
-        else     { t.pass('should unlinked wechaty session file before end') }
-      })
-    }
   })
   .catch(e => {               // Reject
     log.warn('TestPuppetWeb', 'error: %s', e)
@@ -236,6 +211,12 @@ false && test('Puppet Web browser session save & load', function(t) {
   .then(r => {                // Finally
     pw.quit()
     t.end()
+    // clean
+    require('fs').unlink(SESSION, err => {
+      if (err) {
+        log.warn('TestPuppetWeb', 'unlink session file %s fail: %s', SESSION, err)
+      }
+    })
   })
   .catch(e => { t.fail(e) })  // Exception
 

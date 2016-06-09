@@ -320,40 +320,25 @@ class PuppetWeb extends Puppet {
 
   loadSession() {
     log.verbose('PuppetWeb', `loadSession(${this.session})`)
-    if (!this.session) { return Promise.resolve('loadSession() no session') }
+    if (!this.session) { return Promise.reject('loadSession() no session') }
     const filename = this.session
 
     return new Promise((resolve, reject) => {
       fs.readFile(filename, (err, jsonStr) => {
         if (err) {
           if (err) { log.verbose('PuppetWeb', 'loadSession(%s) skipped because: %s', this.session, err) }
-          return resolve(err.toString()) // resolve promise even there no session
+          return reject(err.toString())
         }
         const cookies = JSON.parse(jsonStr)
         log.verbose('PuppetWeb', 'loading %d cookies for session', cookies.length )
 
-        const p = Promise.resolve()
-        log.verbose('PuppetWeb', 'cookies loaded from session:')
-        cookies.forEach(cookie => {
-          log.verbose('PuppetWeb', 'set cookie to browser: %s', cookie.name)
-          p.then(() => {
-            return this.browser.addCookies(cookie)
-          })
-        })
-        log.verbose('PuppetWeb', 'set cookies to browser end')
-
-        return p
-        .then(() => {
-          log.verbose('PuppetWeb', 'addCookies() all resolved')
-          resolve(cookies)
-        })
+        const ps = this.browser.addCookies(cookies)
+        return Promise.all(ps)
+        .then(() => resolve(cookies))
         .catch(e => {
-          log.error('PuppetWeb', 'addCookies() rejected: %s', e)
+          log.error('PuppetWeb', 'loadSession2 rejected: %s', e)
           reject(e)
-        )
-        // return Promise.all()
-        // .then(() => resolve(cookies))
-        // .catch(e => reject(e))
+        })
       })
     })
   }
