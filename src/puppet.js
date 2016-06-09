@@ -11,7 +11,7 @@
  */
 
 const EventEmitter = require('events')
-const log = require('npmlog')
+const log = require('./npmlog-env')
 
 class Puppet extends EventEmitter {
   constructor() {

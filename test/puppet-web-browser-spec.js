@@ -1,5 +1,6 @@
 const co = require('co')
 const test = require('tap').test
+
 const log = require('../src/npmlog-env')
 
 const Browser = require('../src/puppet-web-browser')

@@ -189,7 +189,7 @@ class PuppetWeb extends Puppet {
       log.verbose('PuppetWeb', `user ${this.user.name()} logined`)
       this.emit('login', this.user)
 
-      yield this.saveSession()
+      yield this.saveSession().catch(() => {/* fall safe */})
 
     }).catch(e => log.error('PuppetWeb', 'onServerLogin co rejected: %s', e))
   }
@@ -213,9 +213,6 @@ class PuppetWeb extends Puppet {
    * after received `unload`, we re-inject the Wechaty js code into browser.
    */
   onServerUnload(data) {
-    //XXX
-    return
-
     log.verbose('PuppetWeb', 'server received unload event')
     this.onServerLogout(data) // XXX: should emit event[logout] from browser
 
@@ -282,7 +279,7 @@ class PuppetWeb extends Puppet {
     log.verbose('PuppetWeb', `checkSession(${this.session})`)
     return this.browser.driver.manage().getCookies()
     .then(cookies => {
-      log.silly('PuppetWeb', 'checkSession %s', require('util').inspect(cookies.map(c => { return {name: c.name, value: c.value} })))
+      log.silly('PuppetWeb', 'checkSession %s', require('util').inspect(cookies/*.map(c => { return {name: c.name, value: c.value, expiresType: typeof c.expires, expires: c.expires} })*/))
       return cookies
     })
   }
@@ -294,13 +291,19 @@ class PuppetWeb extends Puppet {
     return new Promise((resolve, reject) => {
       this.browser.driver.manage().getCookies()
       .then(cookies => {
+        const skipNames = [
+          'ChromeDriver'
+          , 'MM_WX_SOUND_STATE'
+          , 'MM_WX_NOTIFY_STATE'
+        ]
+        const skipNamesRegex = new RegExp(skipNames.join('|'), 'i')
         const filteredCookies = cookies.filter(c => {
-          if (/ChromeDriver/i.test(c.name)) { return false }
-          else                              { return true }
+          if (skipNamesRegex.test(c.name)) { return false }
+          // else if (!/wx\.qq\.com/i.test(c.domain))  { return false }
+          else                        { return true }
         })
         log.silly('PuppetWeb', 'saving %d cookies for session: %s', cookies.length
-          , util.inspect(filteredCookies.map(c => c.name))
-        )
+          , util.inspect(filteredCookies/*.map(c => { return {name: c.name, value: c.value, expiresType: typeof c.expires, expires: c.expires} })*/))
 
         const jsonStr = JSON.stringify(filteredCookies)
         fs.writeFile(filename, jsonStr, function(err) {
@@ -326,13 +329,13 @@ class PuppetWeb extends Puppet {
           return reject('error code:' + err.code)
         }
         const cookies = JSON.parse(jsonStr)
-        log.verbose('PuppetWeb', 'loading %d cookies for session', cookies.length )
+        log.info('PuppetWeb', 'loading %d cookies for session %s', cookies.length, this.session )
 
         const ps = this.browser.addCookies(cookies)
         return Promise.all(ps)
         .then(() => resolve(cookies))
         .catch(e => {
-          log.error('PuppetWeb', 'loadSession2 rejected: %s', e)
+          log.error('PuppetWeb', 'loadSession rejected: %s', e)
           reject(e)
         })
       })

@@ -9,7 +9,8 @@
 
 const Contact = require('./contact')
 const Room    = require('./room')
-const log     = require('npmlog')
+
+const log = require('./npmlog-env')
 
 class Message {
   constructor(rawObj) {

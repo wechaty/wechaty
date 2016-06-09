@@ -2,9 +2,7 @@ const test = require('tap').test
 const Message = require('../src/message')
 const Room = require('../src/room')
 const Puppet = require('../src/puppet')
-const log = require('npmlog')
-//log.level = 'silly'
-//log.enableColor()
+const log = require('../src/npmlog-env')
 
 Room.attach(new Puppet())
 

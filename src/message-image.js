@@ -6,6 +6,7 @@
  * https://github.com/zixia/wechaty
  *
  */
+const log = require('./npmlog-env')
 
 const Message = require('./message')
 

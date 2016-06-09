@@ -5,8 +5,7 @@ const Browser = require('../src/puppet-web-browser')
 const Bridge  = require('../src/puppet-web-bridge')
 const PORT = 58788
 
-const log = require('npmlog')
-// log.level = 'silly'
+const log = require('./npmlog-env')
 
 test('Bridge retry-promise testing', function(t) {
   co(function* () {

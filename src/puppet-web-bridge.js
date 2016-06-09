@@ -10,7 +10,8 @@
 *
 */
 const retryPromise  = require('retry-promise').default
-const log           = require('npmlog')
+
+const log = require('./npmlog-env')
 
 class Bridge {
   constructor(options) {

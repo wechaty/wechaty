@@ -11,8 +11,9 @@
 const fs            = require('fs')
 const path          = require('path')
 const WebDriver     = require('selenium-webdriver')
-const log           = require('npmlog')
 const retryPromise  = require('retry-promise').default // https://github.com/olalonde/retry-promise
+
+const log = require('./npmlog-env')
 
 class Browser {
   constructor(options) {
@@ -190,8 +191,7 @@ class Browser {
 
     return this.driver.manage()
     .addCookie(cookie.name, cookie.value, cookie.path
-      , cookie.domain, cookie.secure, cookie.expiry
-    )
+      , cookie.domain, cookie.secure, cookie.expiry)
   }
 }
 

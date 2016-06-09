@@ -6,7 +6,7 @@
  * https://github.com/zixia/wechaty
  *
  */
-const log = require('npmlog')
+const log = require('./npmlog-env')
 
 class Contact {
   constructor(id) {

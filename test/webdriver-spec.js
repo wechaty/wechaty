@@ -3,9 +3,8 @@
 const path  = require('path')
 const co    = require('co')
 const test   = require('tap').test
-const log   = require('npmlog')
-// log.level = 'verbose'
-log.level = 'silly'
+
+const log   = require('../src/npmlog-env')
 
 const WebDriver = require('selenium-webdriver')
 const Browser = WebDriver.Browser
