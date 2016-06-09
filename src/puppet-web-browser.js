@@ -16,8 +16,13 @@ const retryPromise  = require('retry-promise').default // https://github.com/ola
 
 class Browser {
   constructor(options) {
+    log.verbose('Browser', 'constructor()')
     options   = options       || {}
-    this.head = options.head  || false // default to headless
+    if (typeof options.head === 'undefined') {
+      this.head = false // default
+    } else {
+      this.head = options.head
+    }
   }
 
   toString() { return `Class Browser({head:${this.head})` }
@@ -25,23 +30,42 @@ class Browser {
   init() {
     return this.initDriver()
     .then(() => this)
-    .catch(e => {   // XXX: must has a `.catch` here, or promise will hang! 2016/6/7
-      log.error('Browser', 'init() rejectec: %s', e)
-      throw e
-    })
+    // XXX: if no `.catch` here, promise will hang!
+    // XXX: https://github.com/SeleniumHQ/selenium/issues/2233
+    .catch(e => throw e)
+
+    // console.log(p)
+    // return p.catch()
+    // .catch(e => {   // XXX: must has a `.catch` here, or promise will hang! 2016/6/7
+    //   log.error('Browser', 'init() rejectec: %s', e)
+    //   throw e
+    // })
   }
 
   initDriver() {
-    log.verbose('Browser', 'init()')
+    log.verbose('Browser', 'initDriver(head: %s)', this.head)
     if (this.head) {
-      this.driver = new WebDriver.Builder()
-      .setAlertBehavior('ignore')
-      .forBrowser('chrome')
-      .build()
+      if (/firefox/i.test(this.head)) {
+        this.driver = new WebDriver.Builder()
+        .setAlertBehavior('ignore')
+        .forBrowser('firefox')
+        .build()
+      } else { // default to chrome
+        this.driver = new WebDriver.Builder()
+        .setAlertBehavior('ignore')
+        .forBrowser('chrome')
+        .build()
+      }
     } else {
       this.driver = this.getPhantomJsDriver()
     }
-    return Promise.resolve(this.driver)
+    // console.log(this.driver)
+    return new Promise((resolve, reject) => {
+      // XXX: if no `setTimeout()` here, promise will hang!
+      // XXX: https://github.com/SeleniumHQ/selenium/issues/2233
+      setTimeout(() => { resolve(this.driver) }, 0)
+      // resolve(this.driver)
+    })
   }
 
   open() {

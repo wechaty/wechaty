@@ -5,7 +5,7 @@ const co    = require('co')
 const test   = require('tap').test
 const log   = require('npmlog')
 // log.level = 'verbose'
-// log.level = 'silly'
+log.level = 'silly'
 
 const WebDriver = require('selenium-webdriver')
 const Browser = WebDriver.Browser
@@ -14,6 +14,7 @@ const By = WebDriver.By
 const PuppetWebBrowser  = require('../src/puppet-web-browser')
 const PuppetWebBridge   = require('../src/puppet-web-bridge')
 const PORT = 58788
+const HEAD = 'chrome' // undefined
 
 function driverProcessNum() {
   return new Promise((resolve, reject) => {
@@ -28,12 +29,13 @@ function driverProcessNum() {
 
 test('WebDriver process create & quit test', function(t) {
   co(function* () {
-    const b = new PuppetWebBrowser({port: PORT})
+    const b = new PuppetWebBrowser({port: PORT, head: HEAD})
     t.ok(b, 'Browser instnace')
 
     yield b.init()
+    t.pass('inited')
     yield b.open()
-    t.pass('inited & opened')
+    t.pass('opened')
 
     let n = yield driverProcessNum()
     t.ok(n > 0, 'driver process exist')
