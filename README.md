@@ -140,6 +140,7 @@ npm test
 Wechaty use [npmlog](https://www.npmjs.com/package/npmlog) to output debug message. You can set log level by environment variable `WECHATY_DEBUG` to show debug message.
 
 environment variable `WECHATY_DEBUG` values:
+
 1. `silly`
 1. `verbose`
 1. `info`
