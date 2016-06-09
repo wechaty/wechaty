@@ -311,7 +311,7 @@ class PuppetWeb extends Puppet {
             log.error('PuppetWeb', 'saveSession() fail to write file %s: %s', filename, err.Error)
             return reject(err)
           }
-          log.verbose('PuppetWeb', 'saved session to %s(%d cookies)', this.session, filteredCookies.length)
+          log.verbose('PuppetWeb', 'saved session(%d cookies) to %s', filteredCookies.length, this.session)
           return resolve(filteredCookies)
         }.bind(this))
       })
@@ -334,7 +334,7 @@ class PuppetWeb extends Puppet {
         const ps = this.browser.addCookies(cookies)
         return Promise.all(ps)
         .then(() => {
-          log.verbose('PuppetWeb', 'loaded session from %s(%d cookies)', this.session, cookies.length)
+          log.verbose('PuppetWeb', 'loaded session(%d cookies) from %s', cookies.length, this.session)
           resolve(cookies)
         })
         .catch(e => {
