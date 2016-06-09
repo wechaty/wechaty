@@ -108,4 +108,5 @@ Object.assign(Wechaty, {
 /**
  * Expose `Wechaty`.
  */
+Wechaty.log = log
 module.exports = Wechaty.default = Wechaty.Wechaty = Wechaty

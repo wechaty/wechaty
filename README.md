@@ -379,6 +379,11 @@ Know more about TAP: [Why I use Tape Instead of Mocha & So Should You](https://m
 
 # Version History
 
+## v0.1.1 (2016/6/10)
+1. add support session save & restore
+1. add continious integration tests on Win32 platform. (powered by [AppVeyor](https://www.appveyor.com/))
+1. add use environment variables to config HEAD/PORT/SESSION/DEBUG
+
 ## v0.0.10 (2016/5/28)
 1. use event `scan` to show login qrcode image url(and detect state change)
 2. new examples: Tuling123 bot & api.AI bot
