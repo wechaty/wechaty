@@ -7,7 +7,6 @@
  *
  */
 const log = require('./npmlog-env')
-const Contact = require('./contact')
 
 class Room {
   constructor(id) {
@@ -61,7 +60,7 @@ class Room {
     }
     return memberList.map(m => {
       return {
-        contact:  Contact.load(m.UserName)
+        id:       m.UserName
         , name:   m.DisplayName
       }
     })

@@ -9,6 +9,7 @@
  *
  */
 const EventEmitter  = require('events')
+const co            = require('co')
 
 const log         = require('./npmlog-env')
 
@@ -25,7 +26,7 @@ class Wechaty extends EventEmitter {
     this.options = options || {}
     this.options.puppet     = this.options.puppet   || process.env.WECHATY_PUPPET || 'web'
     this.options.head       = this.options.head     || process.env.WECHATY_HEAD || false
-    this.options.session    = this.options.session  || process.env.WECHATY_SESSION // no session, no session restore
+    this.options.session    = this.options.session  || process.env.WECHATY_SESSION // no session, no session save/estore
 
     this.VERSION = require('../package.json').version
   }
@@ -36,12 +37,16 @@ class Wechaty extends EventEmitter {
     log.verbose('Wechaty', 'head: %s'   , this.options.head)
     log.verbose('Wechaty', 'session: %s', this.options.session)
 
-    this.initPuppet()
-    this.initEventHook()
+    return co.call(this, function* () {
+      yield this.initPuppet()
+      yield this.initEventHook()
+      yield this.puppet.init()
 
-    return this.puppet.init()
-    .then(r => {
       return this // for chaining
+
+    }).catch(e => {
+      log.error('Wechaty', 'init() be rejected: %s', e)
+      throw e
     })
   }
   initPuppet() {
@@ -85,7 +90,8 @@ class Wechaty extends EventEmitter {
     return Promise.resolve()
   }
 
-  quit()   { return this.puppet.quit() }
+  quit()    { return this.puppet.quit() }
+  logout()  { return this.puppet.logout() }
 
   send(message)   { return this.puppet.send(message) }
   reply(message, reply) { return this.puppet.reply(message, reply) }

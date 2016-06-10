@@ -203,7 +203,11 @@ class PuppetWeb extends Puppet {
 
   onServerScan(data) {
     log.verbose('PuppetWeb', 'onServerScan: %s', Object.keys(data).join(','))
-    this.browser.cleanSession().catch(() => {/* fall safe */})
+
+    if (this.session) {
+      this.browser.cleanSession(this.session)
+      .catch(() => {/* fall safe */})
+    }
     this.emit('scan', data)
   }
 
@@ -264,14 +268,23 @@ class PuppetWeb extends Puppet {
     log.warn('PuppetWeb', 'server received unload event')
     // this.onServerLogout(data) // XXX: should emit event[logout] from browser
 
-    if (!this.browser || !this.bridge) {
-      log.verbose('PuppetWeb', 'bridge gone, should be quiting now')
+    if (!this.browser) {
+      log.verbose('PuppetWeb', 'onServerUnload() found browser gone, should be quiting now')
       return
     }
 
+    if (this.browser.dead()) {
+      log.warn('PuppetWeb', 'onServerUnload() found browser dead. wait deadguard to restore')
+      return
+    }
+
+    if (!this.bridge) {
+      log.verbose('PuppetWeb', 'onServerUnload() found bridge gone, should be quiting now')
+      return
+    }
     return process.nextTick(() => {
       this.bridge.init()
-      .then(r  => log.verbose('PuppetWeb', 'bridge.re-init()ed:' + r))
+      .then(r  => log.verbose('PuppetWeb', 'onServerUnload() bridge.re-init()ed:' + r))
       .catch(e => log.error('PuppetWeb', 'onServerUnload() err: ' + e.message))
     })
 

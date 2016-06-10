@@ -260,9 +260,9 @@ class Browser extends EventEmitter{
 
   cleanSession(session) {
     log.verbose('Browser', `cleanSession(${session})`)
-    if (this.dead()) { return Promise.reject('cleanSession() - browser dead')}
+    if (this.dead())  { return Promise.reject('cleanSession() - browser dead')}
+    if (!session)     { return Promise.reject('cleanSession() no session') }
 
-    if (!session) { return Promise.reject('cleanSession() no session') }
     const filename = session
     return new Promise((resolve, reject) => {
       require('fs').unlink(filename, err => {
