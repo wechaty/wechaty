@@ -78,7 +78,9 @@ class PuppetWeb extends Puppet {
 
     return co.call(this, function* () {
       if (this.bridge)  {
-        yield this.bridge.quit()
+        yield this.bridge.quit().catch(e => {
+          log.warn('PuppetWeb', 'quite() bridge.quite() rejected: %s', e)
+        })
         this.bridge = null
       } else { log.warn('PuppetWeb', 'quit() without bridge') }
 
@@ -88,14 +90,16 @@ class PuppetWeb extends Puppet {
       } else { log.warn('PuppetWeb', 'quit() without server') }
 
       if (this.browser) {
-        yield this.browser.quit()
+        yield (this.browser.quit().catch(e => { // fall safe
+          log.warn('PuppetWeb', 'quit() browser.quit() fail: %s', e)
+        }))
         this.browser = null
       } else { log.warn('PuppetWeb', 'quit() without browser') }
 
       yield this.initAttach(null)
     })
     .catch(e => {                 // Reject
-      log.error('PuppetWeb', e)
+      log.error('PuppetWeb', 'quit() co rejected: %s', e)
       throw e
     })
     .then(() => {                  // Finally, Fall Safe
@@ -114,6 +118,8 @@ class PuppetWeb extends Puppet {
     log.verbose('PuppetWeb', 'initBrowser')
     this.browser  = new Browser({ head: this.head })
 
+    this.browser.on('dead', this.onBrowserDead.bind(this))
+
     return co.call(this, function* () {
       yield this.browser.init()
       yield this.browser.open('https://res.wx.qq.com/zh_CN/htmledition/v2/images/icon/ico_loading28a2f7.gif')
@@ -130,27 +136,28 @@ class PuppetWeb extends Puppet {
   initBridge() {
     log.verbose('PuppetWeb', 'initBridge()')
     this.bridge = new Bridge({
-      browser:  this.browser
+      puppet:   this // use puppet instead of browser, is because browser might be changed duaring run time
       , port:   this.port
     })
+
     return this.bridge.init()
   }
   initServer() {
     log.verbose('PuppetWeb', 'initServer()')
     const server = new Server({port: this.port})
 
-    server.on('login',   this.onServerLogin.bind(this))
-    server.on('logout',  this.onServerLogout.bind(this))
-    server.on('message', this.onServerMessage.bind(this))
-    server.on('unload',  this.onServerUnload.bind(this))
+    server.on('scan'    , this.onServerScan.bind(this))
+    server.on('login'   , this.onServerLogin.bind(this))
+    server.on('logout'  , this.onServerLogout.bind(this))
+    server.on('message' , this.onServerMessage.bind(this))
+    server.on('unload'  , this.onServerUnload.bind(this))
 
     server.on('connection', this.onServerConnection.bind(this))
     server.on('disconnect', this.onServerDisconnect.bind(this))
     server.on('log', this.onServerLog.bind(this))
 
     ;[  // Public events to end user
-      , 'scan'
-      , 'dong'
+      'dong'
     ].map(e => {
       server.on(e, data => {
         log.verbose('PuppetWeb', 'Server event[%s]: %s', e, data)
@@ -160,6 +167,40 @@ class PuppetWeb extends Puppet {
 
     this.server = server
     return this.server.init()
+  }
+
+  onBrowserDead(data) {
+    log.verbose('PuppetWeb', 'onBrowserDead(%s)', data)
+
+    return co.call(this, function* () {
+      log.verbose('PuppetWeb', 'onBrowserDead() try to fix browser')
+
+      yield this.browser.quit()
+      .then(() => {
+        log.verbose('PuppetWeb', 'onBrowserDead() browser quited')
+      })
+      .catch(e => { // fall safe
+        log.warn('PuppetWeb', 'quit() browser.quit() fail: %s', e)
+      })
+
+      yield this.initBrowser()
+      log.verbose('PuppetWeb', 'onBrowserDead() browser inited')
+
+      yield this.bridge.init()
+      log.verbose('PuppetWeb', 'onBrowserDead() bridge inited')
+    })
+    .then(() => {
+      log.verbose('PuppetWeb', 'onBrowserDead fixed browser')
+    })
+    .catch(e => {
+      log.error('PuppetWeb', 'onBrowserDead rejected: %s', e)
+    })
+  }
+
+  onServerScan(data) {
+    log.verbose('PuppetWeb', 'onServerScan: %s', Object.keys(data).join(','))
+    this.cleanSession()
+    .then(() => this.emit('scan', data))
   }
 
   onServerConnection(data) {
@@ -198,6 +239,7 @@ class PuppetWeb extends Puppet {
       this.emit('logout', this.user)
       this.user = null
     } else { log.verbose('PuppetWeb', 'onServerLogout without this.user. still not logined?') }
+    // this.cleanSession()
   }
   onServerMessage(data) {
     const m = new Message(data)
@@ -213,14 +255,27 @@ class PuppetWeb extends Puppet {
    * after received `unload`, we re-inject the Wechaty js code into browser.
    */
   onServerUnload(data) {
-    log.verbose('PuppetWeb', 'server received unload event')
-    this.onServerLogout(data) // XXX: should emit event[logout] from browser
+    log.warn('PuppetWeb', 'server received unload event')
+    // this.onServerLogout(data) // XXX: should emit event[logout] from browser
 
     if (!this.browser || !this.bridge) {
       log.verbose('PuppetWeb', 'bridge gone, should be quiting now')
       return
     }
 
+    return process.nextTick(() => {
+      this.bridge.init()
+      .then(r  => log.verbose('PuppetWeb', 'bridge.re-init()ed:' + r))
+      .catch(e => log.error('PuppetWeb', 'onServerUnload() err: ' + e.message))
+    })
+
+    // return this.quit()
+    // .then(this.init.bind(this))
+    // .catch(e => {
+    //   log.warn('PuppetWeb', 'onServerUnload fail: %s', e)
+    //   throw e
+    // })
+/*
     return this.browser.quit()
     .then(r  => log.verbose('PuppetWeb', 'browser.quit()ed:' + r))
     .then(r => this.browser.init())
@@ -230,6 +285,7 @@ class PuppetWeb extends Puppet {
     .then(r => this.bridge.init())
     .then(r  => log.verbose('PuppetWeb', 'bridge.re-init()ed:' + r))
     .catch(e => log.error('PuppetWeb', 'onServerUnload() err: ' + e))
+*/
   }
 
   send(message) {
@@ -279,8 +335,22 @@ class PuppetWeb extends Puppet {
     log.verbose('PuppetWeb', `checkSession(${this.session})`)
     return this.browser.driver.manage().getCookies()
     .then(cookies => {
-      log.silly('PuppetWeb', 'checkSession %s', require('util').inspect(cookies/*.map(c => { return {name: c.name, value: c.value, expiresType: typeof c.expires, expires: c.expires} })*/))
+      // log.silly('PuppetWeb', 'checkSession %s', require('util').inspect(cookies.map(c => { return {name: c.name/*, value: c.value, expiresType: typeof c.expires, expires: c.expires*/} })))
+      log.silly('PuppetWeb', 'checkSession %s', cookies.map(c => c.name).join(','))
       return cookies
+    })
+  }
+  cleanSession() {
+    log.verbose('PuppetWeb', `cleanSession(${this.session})`)
+    if (!this.session) { return Promise.reject('cleanSession() no session') }
+    const filename = this.session
+    return new Promise((resolve, reject) => {
+      require('fs').unlink(filename, err => {
+        if (err && err.code!=='ENOENT') {
+          log.silly('PuppetWeb', 'cleanSession() unlink session file %s fail: %s', filename, err.message)
+        }
+        resolve()
+      })
     })
   }
   saveSession() {
@@ -290,29 +360,30 @@ class PuppetWeb extends Puppet {
 
     return new Promise((resolve, reject) => {
       this.browser.driver.manage().getCookies()
-      .then(cookies => {
+      .then(allCookies => {
         const skipNames = [
           'ChromeDriver'
           , 'MM_WX_SOUND_STATE'
           , 'MM_WX_NOTIFY_STATE'
         ]
         const skipNamesRegex = new RegExp(skipNames.join('|'), 'i')
-        const filteredCookies = cookies.filter(c => {
+        const cookies = allCookies.filter(c => {
           if (skipNamesRegex.test(c.name)) { return false }
           // else if (!/wx\.qq\.com/i.test(c.domain))  { return false }
           else                        { return true }
         })
-        log.silly('PuppetWeb', 'saving %d cookies for session: %s', cookies.length
-          , util.inspect(filteredCookies/*.map(c => { return {name: c.name, value: c.value, expiresType: typeof c.expires, expires: c.expires} })*/))
+        // log.silly('PuppetWeb', 'saving %d cookies for session: %s', cookies.length
+        //   , util.inspect(cookies.map(c => { return {name: c.name /*, value: c.value, expiresType: typeof c.expires, expires: c.expires*/} })))
+        log.silly('PuppetWeb', 'saving %d cookies for session: %s', cookies.length, cookies.map(c => c.name).join(','))
 
-        const jsonStr = JSON.stringify(filteredCookies)
+        const jsonStr = JSON.stringify(cookies)
         fs.writeFile(filename, jsonStr, function(err) {
           if(err) {
             log.error('PuppetWeb', 'saveSession() fail to write file %s: %s', filename, err.Error)
             return reject(err)
           }
-          log.verbose('PuppetWeb', 'saved session(%d cookies) to %s', filteredCookies.length, this.session)
-          return resolve(filteredCookies)
+          log.verbose('PuppetWeb', 'saved session(%d cookies) to %s', cookies.length, this.session)
+          return resolve(cookies)
         }.bind(this))
       })
     })

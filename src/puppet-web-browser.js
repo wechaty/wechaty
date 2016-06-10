@@ -10,13 +10,16 @@
 
 const fs            = require('fs')
 const path          = require('path')
+const util          = require('util')
+const EventEmitter  = require('events')
 const WebDriver     = require('selenium-webdriver')
 const retryPromise  = require('retry-promise').default // https://github.com/olalonde/retry-promise
 
 const log = require('./npmlog-env')
 
-class Browser {
+class Browser extends EventEmitter{
   constructor(options) {
+    super()
     log.verbose('Browser', 'constructor()')
     options   = options       || {}
     if (typeof options.head === 'undefined') {
@@ -24,13 +27,18 @@ class Browser {
     } else {
       this.head = options.head
     }
+
+    this.live = false
   }
 
   toString() { return `Class Browser({head:${this.head})` }
 
   init() {
     return this.initDriver()
-    .then(() => this)
+    .then(() => {
+      this.live = true
+      return this
+    })
     // XXX: if no `.catch` here, promise will hang!
     // XXX: https://github.com/SeleniumHQ/selenium/issues/2233
     .catch(e => { throw e })
@@ -105,6 +113,7 @@ class Browser {
 
   quit() {
     log.verbose('Browser', 'quit()')
+    this.live = false
     if (!this.driver) {
       log.verbose('Browser', 'driver.quit() skipped because no driver')
       return Promise.resolve('no driver')
@@ -116,6 +125,12 @@ class Browser {
     log.verbose('Browser', 'driver.quit')
     return this.driver.close() // http://stackoverflow.com/a/32341885/1123955
     .then(() => this.driver.quit())
+    .catch(e => {
+      // console.log(e)
+      // log.warn('Browser', 'err: %s %s %s %s', e.code, e.errno, e.syscall, e.message)
+      if (/ECONNREFUSED/.test(e.message)) { log.warn('Browser', 'driver.quit() browser crashed') }
+      else                                { log.warn('Browser', 'driver.quit() rejected: %s', e) }
+    })
     .then(() => { this.driver = null })
     .then(() => this.clean())
   }
@@ -153,23 +168,6 @@ class Browser {
     })
   }
 
-  execute(script, ...args) {
-    //log.verbose('Browser', `Browser.execute(${script})`)
-    if (!this.driver) {
-      // throw new Error('driver not found')
-      const errMsg = 'execute() called without driver'
-      log.verbose('Browser', errMsg)
-      return Promise.reject(errMsg)
-    }
-    // return promise
-    try {
-      return this.driver.executeScript.apply(this.driver, arguments)
-    } catch (e) {
-      log.error('Browser', e)
-      return Promise.reject(e)
-    }
-  }
-
   /**
    * only wrap addCookies for convinience
    *
@@ -192,6 +190,35 @@ class Browser {
     return this.driver.manage()
     .addCookie(cookie.name, cookie.value, cookie.path
       , cookie.domain, cookie.secure, cookie.expiry)
+  }
+
+  execute(script, ...args) {
+    //log.verbose('Browser', `Browser.execute(${script})`)
+    // log.verbose('Browser', `Browser.execute() driver.getSession: %s`, util.inspect(this.driver.getSession()))
+    if (!this.live) {
+      const errMsg = 'execute() cant be ran because browser not live'
+      log.error('Browser', errMsg)
+      this.emit('dead', 'browser not live')
+      return Promise.reject(errMsg)
+    }
+    if (!this.driver || !this.driver.getSession()) {
+      this.live = false
+
+      const errMsg = 'execute() called without driver or session'
+      log.verbose('Browser', errMsg)
+      this.emit('dead', 'no driver or session')
+      return Promise.reject(errMsg)
+    }
+    // return promise
+    return this.driver.executeScript.apply(this.driver, arguments)
+    .catch(e => {
+      // must use nextTick here, or promise will hang... 2016/6/10
+      process.nextTick(() => {
+        this.live = false
+        this.emit('dead', 'driver execute fail: ' + e.message)
+      })
+      throw e
+    })
   }
 }
 

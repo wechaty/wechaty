@@ -15,10 +15,10 @@ const log = require('./npmlog-env')
 
 class Bridge {
   constructor(options) {
-    if (!options || !options.browser) { throw new Error('Bridge need a browser')}
-    log.verbose('Bridge', `new Bridge({browser: ${options.browser}, port: ${options.port}})`)
+    if (!options || !options.puppet) { throw new Error('Bridge need a puppet')}
+    log.verbose('Bridge', `new Bridge({puppet: ${options.puppet.constructor.name}, port: ${options.port}})`)
 
-    this.browser  = options.browser
+    this.puppet   = options.puppet
     this.port     = options.port || 8788 // W(87) X(88), ascii char code ;-]
   }
   toString() { return `Class Bridge({browser: ${this.options.browser}, port: ${this.options.port}})` }
@@ -85,22 +85,20 @@ class Bridge {
   inject() {
     log.verbose('Bridge', 'inject()')
     const injectio = this.getInjectio()
-    try {
-      return this.execute(injectio, this.port)
-      .then(r => {
-        log.verbose('Bridge', `injected, got [${r}]. now initing...`)
-        return this.proxyWechaty('init')
-      })
-      .then(r => {
-        if (true!==r) { throw new Error('Wechaty.init() failed： ' + r) }
-        log.verbose('Bridge', 'Wechaty.init() successful')
-        return r
-      })
-    } catch (e) {
-      log.error('Bridge', 'inject() exception: %s', e)
-      return Promise.reject('inject exception: ' + e)
-    }
-    throw new Error('should not run to here')
+    return this.execute(injectio, this.port)
+    .then(r => {
+      log.verbose('Bridge', `injected, got [${r}]. now initing...`)
+      return this.proxyWechaty('init')
+    })
+    .then(r => {
+      if (true!==r) { throw new Error('Wechaty.init() failed： ' + r) }
+      log.verbose('Bridge', 'Wechaty.init() successful: %s', r)
+      return r
+    })
+    .catch (e => {
+      log.error('Bridge', 'inject() exception: %s', e.message)
+      throw e
+    })
   }
 
   /**
@@ -115,12 +113,12 @@ class Bridge {
     // see: http://blog.sqrtthree.com/2015/08/29/utf8-to-b64/
     const argsDecoded = `JSON.parse(decodeURIComponent(window.atob('${argsEncoded}')))`
 
-    const wechatyScript   = `return (Wechaty && Wechaty.${wechatyFunc}.apply(undefined, ${argsDecoded}))`
+    const wechatyScript   = `return (typeof Wechaty !== 'undefined' && Wechaty.${wechatyFunc}.apply(undefined, ${argsDecoded}))`
     log.silly('Bridge', 'proxyWechaty: ' + wechatyScript)
     return this.execute(wechatyScript)
   }
 
-  execute(script, ...args) { return this.browser.execute(script, ...args) }
+  execute(script, ...args) { return this.puppet.browser.execute(script, ...args) }
 }
 
 module.exports = Bridge

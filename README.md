@@ -3,7 +3,7 @@
 
 Connecting ChatBots.
 
-Wechaty is a Chatbot Library for Wechat **Personal** Account. (Supports [Linux](https://travis-ci.org/zixia/wechaty), [Win32](https://ci.appveyor.com/project/zixia/wechaty) and OSX)
+Wechaty is a Chatbot Library for Wechat **Personal** Account. Supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.appveyor.com/project/zixia/wechaty) and darwin(OSX/Mac).
 
 > Easy creating personal account wechat robot in 9 lines of code.
 
@@ -147,7 +147,7 @@ environment variable `WECHATY_DEBUG` values:
 1. `warn`
 1. `error`
 
-Linux/OSX(Mac):
+Linux/Darwin(OSX/Mac):
 
 ```bash
 $ export WECHATY_DEBUG=verbose
@@ -381,7 +381,7 @@ Know more about TAP: [Why I use Tape Instead of Mocha & So Should You](https://m
 
 ## v0.1.1 (2016/6/10)
 1. add support to save & restore wechat login session
-1. add continious integration tests on Win32 platform. (powered by [AppVeyor](https://www.appveyor.com/))
+1. add continious integration tests on win32 platform. (powered by [AppVeyor](https://www.appveyor.com/))
 1. add environment variables HEAD/PORT/SESSION/DEBUG to config Wechaty
 
 ## v0.0.10 (2016/5/28)
