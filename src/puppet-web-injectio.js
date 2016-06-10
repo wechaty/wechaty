@@ -97,7 +97,7 @@ return (function(port) {
 
     if (!isReady()) {
       clog('angular not ready. wait 500ms...')
-      setTimeout(init, 500)
+      setTimeout(init, 1000)
       return // AngularJS not ready, wait 500ms then try again.
     }
 
@@ -115,8 +115,8 @@ return (function(port) {
   }
 
   function heartBeat() {
-    Wechaty.emit('ding', 'heartbeat in browser')
-    setTimeout(heartBeat, 15000)
+    Wechaty.emit('ding', 'heartbeat@browser')
+    setTimeout(heartBeat, 60000)
   }
 
   function glueAngular() {
@@ -149,7 +149,7 @@ return (function(port) {
   }
 
   function checkScan() {
-    clog('checkScan()')
+    // clog('checkScan()')
     if (isLogin()) {
       log('checkScan() - already login, no more check')
       return
@@ -179,7 +179,7 @@ return (function(port) {
       })
       Wechaty.vars.scanCode = code
     }
-    setTimeout(checkScan, 300)
+    setTimeout(checkScan, 1000)
     return
   }
 
