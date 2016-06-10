@@ -149,7 +149,7 @@ return (function(port) {
   }
 
   function checkScan() {
-    // clog('checkScan()')
+    clog('checkScan()')
     if (isLogin()) {
       log('checkScan() - already login, no more check')
       return
@@ -185,18 +185,19 @@ return (function(port) {
 
   function isLogin() { return !!Wechaty.vars.logined }
   function login(data) {
-    clog('login()')
+    clog('login(' + data + ')')
     Wechaty.vars.logined = true
     Wechaty.emit('login', data)
   }
   function logout(data) {
-    clog('logout()')
+    clog('logout(' + data + ')')
     Wechaty.vars.logined = false
     Wechaty.emit('logout', data)
     checkScan()
   }
   function quit() {
     clog('quit()')
+    logout('quit')
     if (Wechaty.vars.socket) {
       Wechaty.vars.socket.close()
       Wechaty.vars.socket = null

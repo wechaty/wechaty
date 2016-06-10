@@ -120,14 +120,18 @@ class PuppetWeb extends Puppet {
 
     this.browser.on('dead', this.onBrowserDead.bind(this))
 
+    // fastUrl is used to open in browser for we can set cookies.
+    const fastUrl = 'https://res.wx.qq.com/zh_CN/htmledition/v2/images/icon/ico_loading28a2f7.gif'
+    // const fastUrl = 'https://t.qq.com' // domain??? ssl ca name not match
+
     return co.call(this, function* () {
       yield this.browser.init()
-      yield this.browser.open('https://res.wx.qq.com/zh_CN/htmledition/v2/images/icon/ico_loading28a2f7.gif')
-      yield this.checkSession()
-      yield this.loadSession().catch(e => { log.verbose('PuppetWeb', 'loadSession rejected: %s', e) /* fail safe */ })
-      yield this.checkSession()
+      yield this.browser.open(fastUrl)
+      if (this.session) {
+        yield this.browser.loadSession(this.session)
+        .catch(e => { log.verbose('PuppetWeb', 'loadSession rejected: %s', e) /* fail safe */ })
+      }
       yield this.browser.open()
-      yield this.checkSession()
     }).catch(e => {
       log.error('PuppetWeb', 'initBrowser rejected: %s', e)
       throw e
@@ -199,8 +203,8 @@ class PuppetWeb extends Puppet {
 
   onServerScan(data) {
     log.verbose('PuppetWeb', 'onServerScan: %s', Object.keys(data).join(','))
-    this.cleanSession()
-    .then(() => this.emit('scan', data))
+    this.browser.cleanSession().catch(() => {/* fall safe */})
+    this.emit('scan', data)
   }
 
   onServerConnection(data) {
@@ -222,7 +226,7 @@ class PuppetWeb extends Puppet {
       const userName = yield this.bridge.getUserName()
       if (!userName) {
         log.verbose('PuppetWeb', 'onServerLogin: browser not full loaded, retry later.')
-        setTimeout(this.onServerLogin.bind(this), 300)
+        setTimeout(this.onServerLogin.bind(this), 500)
         return
       }
       log.silly('PuppetWeb', 'userName: %s', userName)
@@ -230,7 +234,9 @@ class PuppetWeb extends Puppet {
       log.verbose('PuppetWeb', `user ${this.user.name()} logined`)
       this.emit('login', this.user)
 
-      yield this.saveSession().catch(() => {/* fall safe */})
+      if (this.session) {
+        yield this.browser.saveSession(this.session).catch(() => {/* fall safe */})
+      }
 
     }).catch(e => log.error('PuppetWeb', 'onServerLogin co rejected: %s', e))
   }
@@ -239,7 +245,7 @@ class PuppetWeb extends Puppet {
       this.emit('logout', this.user)
       this.user = null
     } else { log.verbose('PuppetWeb', 'onServerLogout without this.user. still not logined?') }
-    // this.cleanSession()
+    // this.browser.cleanSession()
   }
   onServerMessage(data) {
     const m = new Message(data)
@@ -331,90 +337,6 @@ class PuppetWeb extends Puppet {
   getContact(id)  { return this.bridge.getContact(id) }
   logined() { return !!(this.user) }
 
-  checkSession() {
-    log.verbose('PuppetWeb', `checkSession(${this.session})`)
-    return this.browser.driver.manage().getCookies()
-    .then(cookies => {
-      // log.silly('PuppetWeb', 'checkSession %s', require('util').inspect(cookies.map(c => { return {name: c.name/*, value: c.value, expiresType: typeof c.expires, expires: c.expires*/} })))
-      log.silly('PuppetWeb', 'checkSession %s', cookies.map(c => c.name).join(','))
-      return cookies
-    })
-  }
-  cleanSession() {
-    log.verbose('PuppetWeb', `cleanSession(${this.session})`)
-    if (!this.session) { return Promise.reject('cleanSession() no session') }
-    const filename = this.session
-    return new Promise((resolve, reject) => {
-      require('fs').unlink(filename, err => {
-        if (err && err.code!=='ENOENT') {
-          log.silly('PuppetWeb', 'cleanSession() unlink session file %s fail: %s', filename, err.message)
-        }
-        resolve()
-      })
-    })
-  }
-  saveSession() {
-    log.verbose('PuppetWeb', `saveSession(${this.session})`)
-    if (!this.session) { return Promise.reject('saveSession() no session') }
-    const filename = this.session
-
-    return new Promise((resolve, reject) => {
-      this.browser.driver.manage().getCookies()
-      .then(allCookies => {
-        const skipNames = [
-          'ChromeDriver'
-          , 'MM_WX_SOUND_STATE'
-          , 'MM_WX_NOTIFY_STATE'
-        ]
-        const skipNamesRegex = new RegExp(skipNames.join('|'), 'i')
-        const cookies = allCookies.filter(c => {
-          if (skipNamesRegex.test(c.name)) { return false }
-          // else if (!/wx\.qq\.com/i.test(c.domain))  { return false }
-          else                        { return true }
-        })
-        // log.silly('PuppetWeb', 'saving %d cookies for session: %s', cookies.length
-        //   , util.inspect(cookies.map(c => { return {name: c.name /*, value: c.value, expiresType: typeof c.expires, expires: c.expires*/} })))
-        log.silly('PuppetWeb', 'saving %d cookies for session: %s', cookies.length, cookies.map(c => c.name).join(','))
-
-        const jsonStr = JSON.stringify(cookies)
-        fs.writeFile(filename, jsonStr, function(err) {
-          if(err) {
-            log.error('PuppetWeb', 'saveSession() fail to write file %s: %s', filename, err.Error)
-            return reject(err)
-          }
-          log.verbose('PuppetWeb', 'saved session(%d cookies) to %s', cookies.length, this.session)
-          return resolve(cookies)
-        }.bind(this))
-      })
-    })
-  }
-
-  loadSession() {
-    log.verbose('PuppetWeb', `loadSession(${this.session})`)
-    if (!this.session) { return Promise.reject('loadSession() no session') }
-    const filename = this.session
-
-    return new Promise((resolve, reject) => {
-      fs.readFile(filename, (err, jsonStr) => {
-        if (err) {
-          if (err) { log.silly('PuppetWeb', 'loadSession(%s) skipped because error code: %s', this.session, err.code) }
-          return reject('error code:' + err.code)
-        }
-        const cookies = JSON.parse(jsonStr)
-
-        const ps = this.browser.addCookies(cookies)
-        return Promise.all(ps)
-        .then(() => {
-          log.verbose('PuppetWeb', 'loaded session(%d cookies) from %s', cookies.length, this.session)
-          resolve(cookies)
-        })
-        .catch(e => {
-          log.error('PuppetWeb', 'loadSession rejected: %s', e)
-          reject(e)
-        })
-      })
-    })
-  }
 }
 
 module.exports = PuppetWeb

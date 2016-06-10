@@ -82,6 +82,10 @@ class Browser extends EventEmitter{
     log.verbose('Browser', `open()ing at ${url}`)
 
     return this.driver.get(url)
+    .catch(e => {
+      this.dead(e.message)
+      throw e.message
+    })
   }
 
   getPhantomJsDriver() {
@@ -128,8 +132,14 @@ class Browser extends EventEmitter{
     .catch(e => {
       // console.log(e)
       // log.warn('Browser', 'err: %s %s %s %s', e.code, e.errno, e.syscall, e.message)
-      if (/ECONNREFUSED/.test(e.message)) { log.warn('Browser', 'driver.quit() browser crashed') }
-      else                                { log.warn('Browser', 'driver.quit() rejected: %s', e) }
+      const crashMsgs = [
+        'ECONNREFUSED'
+        , 'WebDriverError: .* not reachable'
+        , 'NoSuchWindowError: no such window: target window already closed'
+      ]
+      const crashRegex = new RegExp(crashMsgs.join('|'), 'i')
+      if (crashRegex.test(e.message)) { log.warn('Browser', 'driver.quit() browser crashed') }
+      else                            { log.warn('Browser', 'driver.quit() rejected: %s', e.message) }
     })
     .then(() => { this.driver = null })
     .then(() => this.clean())
@@ -175,6 +185,8 @@ class Browser extends EventEmitter{
    * deleteCookie / getCookie / getCookies
    */
   addCookies(cookie) {
+    if (this.dead()) { return Promise.reject('addCookies() - browser dead')}
+
     if (cookie.map) {
       return cookie.map(c => {
         return this.addCookies(c)
@@ -190,34 +202,141 @@ class Browser extends EventEmitter{
     return this.driver.manage()
     .addCookie(cookie.name, cookie.value, cookie.path
       , cookie.domain, cookie.secure, cookie.expiry)
+    .catch(e => {
+      log.warn('Browser', 'addCookies() rejected: %s', e.message)
+      throw e
+    })
   }
 
   execute(script, ...args) {
     //log.verbose('Browser', `Browser.execute(${script})`)
     // log.verbose('Browser', `Browser.execute() driver.getSession: %s`, util.inspect(this.driver.getSession()))
-    if (!this.live) {
-      const errMsg = 'execute() cant be ran because browser not live'
-      log.error('Browser', errMsg)
-      this.emit('dead', 'browser not live')
-      return Promise.reject(errMsg)
-    }
-    if (!this.driver || !this.driver.getSession()) {
-      this.live = false
+    if (this.dead()) { return Promise.reject('browser dead') }
 
-      const errMsg = 'execute() called without driver or session'
-      log.verbose('Browser', errMsg)
-      this.emit('dead', 'no driver or session')
-      return Promise.reject(errMsg)
-    }
-    // return promise
     return this.driver.executeScript.apply(this.driver, arguments)
     .catch(e => {
-      // must use nextTick here, or promise will hang... 2016/6/10
-      process.nextTick(() => {
-        this.live = false
-        this.emit('dead', 'driver execute fail: ' + e.message)
-      })
+      this.dead(e.message)
       throw e
+    })
+  }
+
+  dead(forceReason) {
+    let errMsg
+    let dead = false
+
+    if (forceReason) {
+      dead = true
+      errMsg = forceReason
+    } else if (!this.live) {
+      dead = true
+      errMsg = 'browser not live'
+    } else if (!this.driver || !this.driver.getSession()) {
+      dead = true
+      errMsg = 'no driver or session'
+    }
+
+    if (dead) {
+      log.warn('Browser', 'dead() because %s', errMsg)
+      // must use nextTick here, or promise will hang... 2016/6/10
+      this.live = false
+      process.nextTick(() => {
+        this.emit('dead', errMsg)
+      })
+    }
+    return dead
+  }
+
+  checkSession(session) {
+    log.verbose('Browser', `checkSession(${session})`)
+    if (this.dead()) { return Promise.reject('checkSession() - browser dead')}
+
+    return this.driver.manage().getCookies()
+    .then(cookies => {
+      // log.silly('PuppetWeb', 'checkSession %s', require('util').inspect(cookies.map(c => { return {name: c.name/*, value: c.value, expiresType: typeof c.expires, expires: c.expires*/} })))
+      log.silly('Browser', 'checkSession %s', cookies.map(c => c.name).join(','))
+      return cookies
+    })
+  }
+
+  cleanSession(session) {
+    log.verbose('Browser', `cleanSession(${session})`)
+    if (this.dead()) { return Promise.reject('cleanSession() - browser dead')}
+
+    if (!session) { return Promise.reject('cleanSession() no session') }
+    const filename = session
+    return new Promise((resolve, reject) => {
+      require('fs').unlink(filename, err => {
+        if (err && err.code!=='ENOENT') {
+          log.silly('Browser', 'cleanSession() unlink session file %s fail: %s', filename, err.message)
+        }
+        resolve()
+      })
+    })
+  }
+  saveSession(session) {
+    log.verbose('Browser', `saveSession(${session})`)
+    if (this.dead()) { return Promise.reject('saveSession() - browser dead')}
+
+    if (!session) { return Promise.reject('saveSession() no session') }
+    const filename = session
+
+    return new Promise((resolve, reject) => {
+      this.driver.manage().getCookies()
+      .then(allCookies => {
+        const skipNames = [
+          'ChromeDriver'
+          , 'MM_WX_SOUND_STATE'
+          , 'MM_WX_NOTIFY_STATE'
+        ]
+        const skipNamesRegex = new RegExp(skipNames.join('|'), 'i')
+        const cookies = allCookies.filter(c => {
+          if (skipNamesRegex.test(c.name)) { return false }
+          // else if (!/wx\.qq\.com/i.test(c.domain))  { return false }
+          else                             { return true }
+        })
+        // log.silly('PuppetWeb', 'saving %d cookies for session: %s', cookies.length
+        //   , util.inspect(cookies.map(c => { return {name: c.name /*, value: c.value, expiresType: typeof c.expires, expires: c.expires*/} })))
+        log.silly('Browser', 'saving %d cookies for session: %s', cookies.length, cookies.map(c => c.name).join(','))
+
+        const jsonStr = JSON.stringify(cookies)
+        fs.writeFile(filename, jsonStr, function(err) {
+          if(err) {
+            log.error('Browser', 'saveSession() fail to write file %s: %s', filename, err.Error)
+            return reject(err)
+          }
+          log.verbose('Browser', 'saved session(%d cookies) to %s', cookies.length, session)
+          return resolve(cookies)
+        }.bind(this))
+      })
+    })
+  }
+
+  loadSession(session) {
+    log.verbose('Browser', `loadSession(${session})`)
+    if (this.dead()) { return Promise.reject('loadSession() - browser dead')}
+
+    if (!session) { return Promise.reject('loadSession() no session') }
+    const filename = session
+
+    return new Promise((resolve, reject) => {
+      fs.readFile(filename, (err, jsonStr) => {
+        if (err) {
+          if (err) { log.silly('Browser', 'loadSession(%s) skipped because error code: %s', session, err.code) }
+          return reject('error code:' + err.code)
+        }
+        const cookies = JSON.parse(jsonStr)
+
+        const ps = this.addCookies(cookies)
+        return Promise.all(ps)
+        .then(() => {
+          log.verbose('Browser', 'loaded session(%d cookies) from %s', cookies.length, session)
+          resolve(cookies)
+        })
+        .catch(e => {
+          log.error('Browser', 'loadSession rejected: %s', e)
+          reject(e)
+        })
+      })
     })
   }
 }

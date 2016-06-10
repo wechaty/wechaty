@@ -59,7 +59,8 @@ test('WebDriver smoke testing', function(t) {
   const wb = new PuppetWebBrowser({port: PORT, head: HEAD})
   t.ok(wb, 'Browser instnace')
 
-  const bridge = new PuppetWebBridge({browser: wb, port: PORT})
+  const mockPuppet = {browser: wb}
+  const bridge = new PuppetWebBridge({puppet: mockPuppet, port: PORT})
   t.ok(bridge, 'Bridge instnace')
 
   var driver // for help function `execute`
@@ -108,7 +109,8 @@ test('WebDriver WTF testing', function(t) {
   const wb = new PuppetWebBrowser({port: PORT, head: HEAD})
   t.ok(wb, 'Browser instnace')
 
-  const bridge = new PuppetWebBridge({browser: wb, port: PORT})
+  const mockPuppet = {browser: wb}
+  const bridge = new PuppetWebBridge({puppet: mockPuppet, port: PORT})
   t.ok(bridge, 'Bridge instnace')
 
   var driver // for help function `execute`

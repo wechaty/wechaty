@@ -62,7 +62,8 @@ test('Bridge smoking test', function(t) {
   const browser = new Browser({port: PORT})
   t.ok(browser, 'Browser instance created')
 
-  const b = new Bridge({browser: browser})
+  const mockPuppet = {browser: browser}
+  const b = new Bridge({puppet: mockPuppet})
   t.ok(b, 'Bridge instance creted')
 
   co(function* () {
