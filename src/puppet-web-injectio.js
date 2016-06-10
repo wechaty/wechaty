@@ -92,13 +92,13 @@ return (function(port) {
   function init() {
     if (Wechaty.vars.inited === true) {
       log('Wechaty.init() called twice: already inited')
-      return
+      return 'init: already inited'
     }
 
     if (!isReady()) {
       clog('angular not ready. wait 500ms...')
       setTimeout(init, 1000)
-      return // AngularJS not ready, wait 500ms then try again.
+      return 'init: entered waiting angular loop'// AngularJS not ready, wait 500ms then try again.
     }
 
     clog('init on port:' + port)
@@ -111,7 +111,8 @@ return (function(port) {
     heartBeat()
 
     clog('inited!. ;-D')
-    return Wechaty.vars.inited = true
+    Wechaty.vars.inited = true
+    return 'init: success'
   }
 
   function heartBeat() {

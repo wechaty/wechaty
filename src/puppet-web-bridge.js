@@ -91,8 +91,7 @@ class Bridge {
       return this.proxyWechaty('init')
     })
     .then(r => {
-      if (true!==r) { throw new Error('Wechaty.init() failed： ' + r) }
-      log.verbose('Bridge', 'Wechaty.init() successful: %s', r)
+      log.verbose('Bridge', 'Wechaty.init() return: %s', r)
       return r
     })
     .catch (e => {

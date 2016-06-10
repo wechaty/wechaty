@@ -145,6 +145,14 @@ class PuppetWeb extends Puppet {
     })
 
     return this.bridge.init()
+    .catch(e => {
+      if (this.browser.dead()) {
+        log.warn('PuppetWeb', 'initBridge() found browser dead, wait to restore')
+      } else {
+        log.error('PuppetWeb', 'initBridge() init fail: %s', e.message)
+        throw e
+      }
+    })
   }
   initServer() {
     log.verbose('PuppetWeb', 'initServer()')
