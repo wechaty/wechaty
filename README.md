@@ -3,9 +3,11 @@
 
 Connecting ChatBots.
 
-Wechaty is a Chatbot Library for Wechat **Personal** Account. Supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.appveyor.com/project/zixia/wechaty) and darwin(OSX/Mac).
+Wechaty is a Chatbot Library for Wechat **Personal** Account.
 
 > Easy creating personal account wechat robot in 9 lines of code.
+
+Supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.appveyor.com/project/zixia/wechaty) and darwin(OSX/Mac).
 
 [![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=2592000)](https://nodejs.org/)
@@ -22,6 +24,8 @@ My daily life/work depends on too much chat on wechat.
 Can you image that? I'm dying...
 
 So a tireless bot working for me 24x7 on wechat, moniting/filtering the most important message is badly needed. For example: highlights discusstion which contains the KEYWORDS I want to follow up(especially in a noisy room). ;-)
+
+At last, It's also built for my personal Automatically Testing study purpose.
 
 # Examples
 Wechaty is super easy to use: 10 lines of javascript is enough for your first wechat robot.

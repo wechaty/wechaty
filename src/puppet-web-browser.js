@@ -9,6 +9,7 @@
  */
 
 const fs            = require('fs')
+const co            = require('co')
 const path          = require('path')
 const util          = require('util')
 const EventEmitter  = require('events')
@@ -17,10 +18,10 @@ const retryPromise  = require('retry-promise').default // https://github.com/ola
 
 const log = require('./npmlog-env')
 
-class Browser extends EventEmitter{
+class Browser extends EventEmitter {
   constructor(options) {
     super()
-    log.verbose('Browser', 'constructor()')
+    log.verbose('PuppetWebBrowser', 'constructor()')
     options   = options       || {}
     if (typeof options.head === 'undefined') {
       this.head = false // default
@@ -31,7 +32,7 @@ class Browser extends EventEmitter{
     this.live = false
   }
 
-  toString() { return `Class Browser({head:${this.head})` }
+  toString() { return `Browser({head:${this.head})` }
 
   init() {
     return this.initDriver()
@@ -39,37 +40,36 @@ class Browser extends EventEmitter{
       this.live = true
       return this
     })
-    // XXX: if no `.catch` here, promise will hang!
-    // XXX: https://github.com/SeleniumHQ/selenium/issues/2233
-    .catch(e => { throw e })
-
-    // console.log(p)
-    // return p.catch()
-    // .catch(e => {   // XXX: must has a `.catch` here, or promise will hang! 2016/6/7
-    //   log.error('Browser', 'init() rejectec: %s', e)
-    //   throw e
-    // })
+    .catch(e => {
+      // XXX: must has a `.catch` here, or promise will hang! 2016/6/7
+      // XXX: if no `.catch` here, promise will hang!
+      // XXX: https://github.com/SeleniumHQ/selenium/issues/2233
+      log.error('PuppetWebBrowser', 'init() exception: %s', e.message)
+      throw e
+    })
   }
 
   initDriver() {
-    log.verbose('Browser', 'initDriver(head: %s)', this.head)
-    if (this.head) {
-      if (/firefox/i.test(this.head)) {
-        this.driver = new WebDriver.Builder()
-        .setAlertBehavior('ignore')
-        .forBrowser('firefox')
-        .build()
-      } else { // default to chrome
-        this.driver = new WebDriver.Builder()
-        .setAlertBehavior('ignore')
-        .forBrowser('chrome')
-        .build()
-      }
-    } else {
-      this.driver = this.getPhantomJsDriver()
-    }
-    // console.log(this.driver)
+    log.verbose('PuppetWebBrowser', 'initDriver(head: %s)', this.head)
     return new Promise((resolve, reject) => {
+      if (this.head) {
+        if (/firefox/i.test(this.head)) {
+          this.driver = new WebDriver.Builder()
+          .setAlertBehavior('ignore')
+          .forBrowser('firefox')
+          .build()
+        } else if (/chrome/i.test(this.head)) {
+          this.driver = new WebDriver.Builder()
+          .setAlertBehavior('ignore')
+          .forBrowser('chrome')
+          .build()
+        } else {  // unsupported browser head
+          throw new Error('unsupported head: ' + this.head)
+        }
+      } else { // no head default to phantomjs
+        this.driver = this.getPhantomJsDriver()
+      }
+
       // XXX: if no `setTimeout()` here, promise will hang!
       // XXX: https://github.com/SeleniumHQ/selenium/issues/2233
       setTimeout(() => { resolve(this.driver) }, 0)
@@ -79,10 +79,11 @@ class Browser extends EventEmitter{
 
   open(url) {
     url = url || 'https://wx.qq.com'
-    log.verbose('Browser', `open()ing at ${url}`)
+    log.verbose('PuppetWebBrowser', `open(${url})`)
 
     return this.driver.get(url)
     .catch(e => {
+      log.error('PuppetWebBrowser', 'open() exception: %s', e.message)
       this.dead(e.message)
       throw e.message
     })
@@ -99,50 +100,49 @@ class Browser extends EventEmitter{
     .set('phantomjs.cli.args', [
       '--ignore-ssl-errors=true' // this help socket.io connect with localhost
       , '--load-images=false'
-      , '--remote-debugger-port=9000'
+      , '--remote-debugger-port=8080'
       // , '--webdriver-logfile=/tmp/wd.log'
       // , '--webdriver-loglevel=DEBUG'
     ])
 
-    log.silly('Browser', 'phantomjs binary: ' + phantomjsExe)
+    log.silly('PuppetWebBrowser', 'phantomjs binary: ' + phantomjsExe)
 
     return new WebDriver.Builder()
     .withCapabilities(customPhantom)
     .build()
   }
 
-  // selenium-webdriver/lib/capabilities.js
-  //  66   BROWSER_NAME: 'browserName',
-  // name() { return this.driver.getCapabilities().get('browserName') }
-
   quit() {
-    log.verbose('Browser', 'quit()')
+    log.verbose('PuppetWebBrowser', 'quit()')
     this.live = false
     if (!this.driver) {
-      log.verbose('Browser', 'driver.quit() skipped because no driver')
+      log.verbose('PuppetWebBrowser', 'driver.quit() skipped because no driver')
       return Promise.resolve('no driver')
     } else if (!this.driver.getSession()) {
       this.driver = null
-      log.verbose('Browser', 'driver.quit() skipped because no driver session')
+      log.verbose('PuppetWebBrowser', 'driver.quit() skipped because no driver session')
       return Promise.resolve('no driver session')
     }
-    log.verbose('Browser', 'driver.quit')
     return this.driver.close() // http://stackoverflow.com/a/32341885/1123955
     .then(() => this.driver.quit())
     .catch(e => {
       // console.log(e)
-      // log.warn('Browser', 'err: %s %s %s %s', e.code, e.errno, e.syscall, e.message)
+      // log.warn('PuppetWebBrowser', 'err: %s %s %s %s', e.code, e.errno, e.syscall, e.message)
       const crashMsgs = [
         'ECONNREFUSED'
         , 'WebDriverError: .* not reachable'
         , 'NoSuchWindowError: no such window: target window already closed'
       ]
       const crashRegex = new RegExp(crashMsgs.join('|'), 'i')
-      if (crashRegex.test(e.message)) { log.warn('Browser', 'driver.quit() browser crashed') }
-      else                            { log.warn('Browser', 'driver.quit() rejected: %s', e.message) }
+      if (crashRegex.test(e.message)) { log.warn('PuppetWebBrowser', 'driver.quit() browser crashed') }
+      else                            { log.warn('PuppetWebBrowser', 'driver.quit() exception: %s', e.message) }
     })
     .then(() => { this.driver = null })
     .then(() => this.clean())
+    .catch(e => {
+      log.error('PuppetWebBrowser', 'quit() exception: %s', e.message)
+      throw e
+    })
   }
 
   clean() {
@@ -155,7 +155,7 @@ class Browser extends EventEmitter{
     const timeout = max * (backoff * max) / 2
 
     return retryPromise({ max: max, backoff: backoff }, attempt => {
-      log.silly('Browser', 'clean() retryPromise: attampt %s time for timeout %s'
+      log.silly('PuppetWebBrowser', 'clean() retryPromise: attampt %s time for timeout %s'
         , attempt,  timeout)
 
       return new Promise((resolve, reject) => {
@@ -173,7 +173,7 @@ class Browser extends EventEmitter{
       })
     })
     .catch(e => {
-      log.error('Browser', 'retryPromise failed: %s', e)
+      log.error('PuppetWebBrowser', 'retryPromise failed: %s', e)
       throw e
     })
   }
@@ -195,7 +195,7 @@ class Browser extends EventEmitter{
     // convert expiry from seconds to milliseconds. https://github.com/SeleniumHQ/selenium/issues/2245
     if (cookie.expiry) { cookie.expiry = cookie.expiry * 1000 }
 
-    log.silly('Browser', 'addCookies("%s", "%s", "%s", "%s", "%s", "%s")'
+    log.silly('PuppetWebBrowser', 'addCookies("%s", "%s", "%s", "%s", "%s", "%s")'
       , cookie.name, cookie.value, cookie.path, cookie.domain, cookie.secure, cookie.expiry
     )
 
@@ -203,14 +203,14 @@ class Browser extends EventEmitter{
     .addCookie(cookie.name, cookie.value, cookie.path
       , cookie.domain, cookie.secure, cookie.expiry)
     .catch(e => {
-      log.warn('Browser', 'addCookies() rejected: %s', e.message)
+      log.warn('PuppetWebBrowser', 'addCookies() exception: %s', e.message)
       throw e
     })
   }
 
   execute(script, ...args) {
-    //log.verbose('Browser', `Browser.execute(${script})`)
-    // log.verbose('Browser', `Browser.execute() driver.getSession: %s`, util.inspect(this.driver.getSession()))
+    //log.verbose('PuppetWebBrowser', `Browser.execute(${script})`)
+    // log.verbose('PuppetWebBrowser', `Browser.execute() driver.getSession: %s`, util.inspect(this.driver.getSession()))
     if (this.dead()) { return Promise.reject('browser dead') }
 
     return this.driver.executeScript.apply(this.driver, arguments)
@@ -236,9 +236,9 @@ class Browser extends EventEmitter{
     }
 
     if (dead) {
-      log.warn('Browser', 'dead() because %s', errMsg)
-      // must use nextTick here, or promise will hang... 2016/6/10
+      log.warn('PuppetWebBrowser', 'dead() because %s', errMsg)
       this.live = false
+      // must use nextTick here, or promise will hang... 2016/6/10
       process.nextTick(() => {
         this.emit('dead', errMsg)
       })
@@ -247,19 +247,23 @@ class Browser extends EventEmitter{
   }
 
   checkSession(session) {
-    log.verbose('Browser', `checkSession(${session})`)
+    log.verbose('PuppetWebBrowser', `checkSession(${session})`)
     if (this.dead()) { return Promise.reject('checkSession() - browser dead')}
 
     return this.driver.manage().getCookies()
     .then(cookies => {
       // log.silly('PuppetWeb', 'checkSession %s', require('util').inspect(cookies.map(c => { return {name: c.name/*, value: c.value, expiresType: typeof c.expires, expires: c.expires*/} })))
-      log.silly('Browser', 'checkSession %s', cookies.map(c => c.name).join(','))
+      log.silly('PuppetWebBrowser', 'checkSession %s', cookies.map(c => c.name).join(','))
       return cookies
+    })
+    .catch(e => {
+      log.error('PuppetWebBrowser', 'checkSession() getCookies() exception: %s', e.message)
+      throw e
     })
   }
 
   cleanSession(session) {
-    log.verbose('Browser', `cleanSession(${session})`)
+    log.verbose('PuppetWebBrowser', `cleanSession(${session})`)
     if (this.dead())  { return Promise.reject('cleanSession() - browser dead')}
     if (!session)     { return Promise.reject('cleanSession() no session') }
 
@@ -267,14 +271,14 @@ class Browser extends EventEmitter{
     return new Promise((resolve, reject) => {
       require('fs').unlink(filename, err => {
         if (err && err.code!=='ENOENT') {
-          log.silly('Browser', 'cleanSession() unlink session file %s fail: %s', filename, err.message)
+          log.silly('PuppetWebBrowser', 'cleanSession() unlink session file %s fail: %s', filename, err.message)
         }
         resolve()
       })
     })
   }
   saveSession(session) {
-    log.verbose('Browser', `saveSession(${session})`)
+    log.verbose('PuppetWebBrowser', `saveSession(${session})`)
     if (this.dead()) { return Promise.reject('saveSession() - browser dead')}
 
     if (!session) { return Promise.reject('saveSession() no session') }
@@ -296,23 +300,27 @@ class Browser extends EventEmitter{
         })
         // log.silly('PuppetWeb', 'saving %d cookies for session: %s', cookies.length
         //   , util.inspect(cookies.map(c => { return {name: c.name /*, value: c.value, expiresType: typeof c.expires, expires: c.expires*/} })))
-        log.silly('Browser', 'saving %d cookies for session: %s', cookies.length, cookies.map(c => c.name).join(','))
+        log.silly('PuppetWebBrowser', 'saving %d cookies for session: %s', cookies.length, cookies.map(c => c.name).join(','))
 
         const jsonStr = JSON.stringify(cookies)
         fs.writeFile(filename, jsonStr, function(err) {
           if(err) {
-            log.error('Browser', 'saveSession() fail to write file %s: %s', filename, err.Error)
+            log.error('PuppetWebBrowser', 'saveSession() fail to write file %s: %s', filename, err.Error)
             return reject(err)
           }
-          log.verbose('Browser', 'saved session(%d cookies) to %s', cookies.length, session)
+          log.verbose('PuppetWebBrowser', 'saved session(%d cookies) to %s', cookies.length, session)
           return resolve(cookies)
-        }.bind(this))
+        })
+      })
+      .catch(e => {
+        log.error('PuppetWebBrowser', 'saveSession() getCookies() exception: %s', e.message)
+        reject(e)
       })
     })
   }
 
   loadSession(session) {
-    log.verbose('Browser', `loadSession(${session})`)
+    log.verbose('PuppetWebBrowser', `loadSession(${session})`)
     if (this.dead()) { return Promise.reject('loadSession() - browser dead')}
 
     if (!session) { return Promise.reject('loadSession() no session') }
@@ -321,19 +329,19 @@ class Browser extends EventEmitter{
     return new Promise((resolve, reject) => {
       fs.readFile(filename, (err, jsonStr) => {
         if (err) {
-          if (err) { log.silly('Browser', 'loadSession(%s) skipped because error code: %s', session, err.code) }
+          if (err) { log.silly('PuppetWebBrowser', 'loadSession(%s) skipped because error code: %s', session, err.code) }
           return reject('error code:' + err.code)
         }
         const cookies = JSON.parse(jsonStr)
 
         const ps = this.addCookies(cookies)
-        return Promise.all(ps)
+        Promise.all(ps)
         .then(() => {
-          log.verbose('Browser', 'loaded session(%d cookies) from %s', cookies.length, session)
+          log.verbose('PuppetWebBrowser', 'loaded session(%d cookies) from %s', cookies.length, session)
           resolve(cookies)
         })
         .catch(e => {
-          log.error('Browser', 'loadSession rejected: %s', e)
+          log.error('PuppetWebBrowser', 'loadSession() addCookies() exception: %s', e.message)
           reject(e)
         })
       })

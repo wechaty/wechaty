@@ -6,6 +6,7 @@
  * https://github.com/zixia/wechaty
  *
  */
+const co = require('co')
 
 const Contact = require('./contact')
 const Room    = require('./room')
@@ -35,11 +36,6 @@ class Message {
       , date:         rawObj.MMDisplayTime  // Javascript timestamp of milliseconds
 
       , self:         undefined // to store the logined user id
-
-      // , from:         Contact.load(rawObj.MMActualSender)
-      // , to:           Contact.load(rawObj.ToUserName)
-      // , room:        rawObj.MMIsChatRoom ? Room.load(rawObj.FromUserName) : null
-      // , date:         new Date(rawObj.MMDisplayTime*1000)
     }
   }
   toString() { return this.obj.content }
@@ -74,6 +70,9 @@ class Message {
   content() { return this.obj.content }
   room()    { return this.obj.room }
 
+  type()  { return Message.Type[this.obj.type] }
+  count() { return Message.counter }
+
   self()    {
     if (!this.obj.self) {
       log.warn('Message', 'self not set')
@@ -85,17 +84,20 @@ class Message {
   ready() {
     log.silly('Message', 'ready()')
 
-    const from  = Contact.load(this.obj.from)
-    const to    = Contact.load(this.obj.to)
-    const room  = this.obj.room ? Room.load(this.obj.room) : null
+    return co.call(this, function* () {
+      const from  = Contact.load(this.obj.from)
+      const to    = Contact.load(this.obj.to)
+      const room  = this.obj.room ? Room.load(this.obj.room) : null
 
-    return from.ready()    // Contact from
-    .then(() => to.ready()) // Contact to
-    .then(() => room && room.ready())  // Room member list
-    .then(() => this)  // return this for chain
-    .catch(e => {     // REJECTED
-      log.error('Message', 'ready() rejected: %s', e)
-      throw e
+      yield from.ready()  // Contact from
+      yield to.ready()    // Contact to
+      if (room) {         // Room member list
+        yield room.ready()
+      }
+      return this         // return this for chain
+    }).catch(e => { // Exception
+        log.error('Message', 'ready() exception: %s', e.message)
+        throw e
     })
   }
 
@@ -111,9 +113,6 @@ class Message {
     this.obj[prop] = value
     return this
   }
-
-  type() { return Message.Type[this.obj.type] }
-  count() { return Message.counter }
 
   dump() {
     console.error('======= dump message =======')

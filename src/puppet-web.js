@@ -4,7 +4,7 @@
  *
  * Class PuppetWeb
  *
- * use to control wechat web.
+ * use to control wechat in web browser.
  *
  * Licenst: ISC
  * https://github.com/zixia/wechaty
@@ -16,13 +16,13 @@
  * Class PuppetWeb
  *
  ***************************************/
-const util = require('util')
-const fs  = require('fs')
-const co  = require('co')
+const util  = require('util')
+const fs    = require('fs')
+const co    = require('co')
 
 const log = require('./npmlog-env')
 
-const Puppet = require('./puppet')
+const Puppet  = require('./puppet')
 const Message = require('./message')
 const Contact = require('./contact')
 const Room    = require('./room')
@@ -35,9 +35,9 @@ class PuppetWeb extends Puppet {
   constructor(options) {
     super()
     options = options || {}
-    this.port = options.port || 8788 // W(87) X(88), ascii char code ;-]
-    this.head = options.head
-    this.session = options.session  // if not set session, then dont store session.
+    this.port     = options.port || 8788 // W(87) X(88), ascii char code ;-]
+    this.head     = options.head
+    this.session  = options.session  // if not set session, then dont store session.
 
     this.user = null  // <Contact> of user self
   }
@@ -60,14 +60,12 @@ class PuppetWeb extends Puppet {
 
       yield this.initBridge()
       log.verbose('PuppetWeb', 'initBridge() done')
-
-      return this
     })
-    .catch(e => {                 // Reject
-      log.error('PuppetWeb', e)
+    .catch(e => {   // Reject
+      log.error('PuppetWeb', 'init exception: %s', e.message)
       throw e
     })
-    .then(() => {                  // Finally
+    .then(() => {   // Finally
       log.verbose('PuppetWeb', 'init() done')
       return this   // for Chaining
     })
@@ -78,31 +76,31 @@ class PuppetWeb extends Puppet {
 
     return co.call(this, function* () {
       if (this.bridge)  {
-        yield this.bridge.quit().catch(e => {
-          log.warn('PuppetWeb', 'quite() bridge.quite() rejected: %s', e)
+        yield this.bridge.quit().catch(e => { // fail safe
+          log.warn('PuppetWeb', 'quite() bridge.quit() exception: %s', e.message)
         })
         this.bridge = null
-      } else { log.warn('PuppetWeb', 'quit() without bridge') }
+      } else { log.warn('PuppetWeb', 'quit() without a bridge') }
 
       if (this.server) {
         yield this.server.quit()
         this.server = null
-      } else { log.warn('PuppetWeb', 'quit() without server') }
+      } else { log.warn('PuppetWeb', 'quit() without a server') }
 
       if (this.browser) {
-        yield (this.browser.quit().catch(e => { // fall safe
-          log.warn('PuppetWeb', 'quit() browser.quit() fail: %s', e)
+        yield (this.browser.quit().catch(e => { // fail safe
+          log.warn('PuppetWeb', 'quit() browser.quit() exception: %s', e.message)
         }))
         this.browser = null
-      } else { log.warn('PuppetWeb', 'quit() without browser') }
+      } else { log.warn('PuppetWeb', 'quit() without a browser') }
 
       yield this.initAttach(null)
     })
-    .catch(e => {                 // Reject
-      log.error('PuppetWeb', 'quit() co rejected: %s', e)
+    .catch(e => { // Reject
+      log.error('PuppetWeb', 'quit() exception: %s', e.message)
       throw e
     })
-    .then(() => {                  // Finally, Fall Safe
+    .then(() => { // Finally, Fail Safe
       log.verbose('PuppetWeb', 'quit() done')
       return this   // for Chaining
     })
@@ -112,12 +110,11 @@ class PuppetWeb extends Puppet {
     log.verbose('PuppetWeb', 'initAttach()')
     Contact.attach(puppet)
     Room.attach(puppet)
-    return Promise.resolve(true)
+    return Promise.resolve(!!puppet)
   }
   initBrowser() {
-    log.verbose('PuppetWeb', 'initBrowser')
-    this.browser  = new Browser({ head: this.head })
-
+    log.verbose('PuppetWeb', 'initBrowser()')
+    this.browser  = new Browser({head: this.head})
     this.browser.on('dead', this.onBrowserDead.bind(this))
 
     // fastUrl is used to open in browser for we can set cookies.
@@ -128,28 +125,29 @@ class PuppetWeb extends Puppet {
       yield this.browser.init()
       yield this.browser.open(fastUrl)
       if (this.session) {
-        yield this.browser.loadSession(this.session)
-        .catch(e => { log.verbose('PuppetWeb', 'loadSession rejected: %s', e) /* fail safe */ })
+        yield this.browser.loadSession(this.session).catch(e => { // fail safe
+          log.verbose('PuppetWeb', 'browser.loadSession() exception: %s', e.message)
+        })
       }
       yield this.browser.open()
     }).catch(e => {
-      log.error('PuppetWeb', 'initBrowser rejected: %s', e)
+      log.error('PuppetWeb', 'initBrowser() exception: %s', e.message)
       throw e
     })
   }
   initBridge() {
     log.verbose('PuppetWeb', 'initBridge()')
     this.bridge = new Bridge({
-      puppet:   this // use puppet instead of browser, is because browser might be changed duaring run time
+      puppet:   this // use puppet instead of browser, is because browser might change(die) duaring run time
       , port:   this.port
     })
 
     return this.bridge.init()
     .catch(e => {
       if (this.browser.dead()) {
-        log.warn('PuppetWeb', 'initBridge() found browser dead, wait to restore')
+        log.warn('PuppetWeb', 'initBridge() found browser dead, wait it to restore')
       } else {
-        log.error('PuppetWeb', 'initBridge() init fail: %s', e.message)
+        log.error('PuppetWeb', 'initBridge() exception: %s', e.message)
         throw e
       }
     })
@@ -172,60 +170,113 @@ class PuppetWeb extends Puppet {
       'dong'
     ].map(e => {
       server.on(e, data => {
-        log.verbose('PuppetWeb', 'Server event[%s]: %s', e, data)
+        log.verbose('PuppetWeb', 'Server event[%s]: %s', e, typeof data)
         this.emit(e, data)
       })
     })
 
     this.server = server
     return this.server.init()
+    .catch(e => {
+      log.error('PuppetWeb', 'initServer() exception: %s', e.message)
+      throw e
+    })
   }
 
   onBrowserDead(data) {
     log.verbose('PuppetWeb', 'onBrowserDead(%s)', data)
 
     return co.call(this, function* () {
-      log.verbose('PuppetWeb', 'onBrowserDead() try to fix browser')
+      log.verbose('PuppetWeb', 'try to reborn browser')
 
       yield this.browser.quit()
-      .then(() => {
-        log.verbose('PuppetWeb', 'onBrowserDead() browser quited')
+      .catch(e => { // fail safe
+        log.warn('PuppetWeb', 'browser.quit() exception: %s', e.message)
       })
-      .catch(e => { // fall safe
-        log.warn('PuppetWeb', 'quit() browser.quit() fail: %s', e)
-      })
+      log.verbose('PuppetWeb', 'old browser quited')
 
       yield this.initBrowser()
-      log.verbose('PuppetWeb', 'onBrowserDead() browser inited')
+      log.verbose('PuppetWeb', 'new browser inited')
 
       yield this.bridge.init()
-      log.verbose('PuppetWeb', 'onBrowserDead() bridge inited')
+      log.verbose('PuppetWeb', 'bridge re-inited')
     })
     .then(() => {
-      log.verbose('PuppetWeb', 'onBrowserDead fixed browser')
+      log.verbose('PuppetWeb', 'onBrowserDead() new browser borned')
     })
     .catch(e => {
-      log.error('PuppetWeb', 'onBrowserDead rejected: %s', e)
+      log.error('PuppetWeb', 'onBrowserDead() exception: %s', e.message)
+      throw e
     })
   }
 
   onServerScan(data) {
-    log.verbose('PuppetWeb', 'onServerScan: %s', Object.keys(data).join(','))
-
+    log.verbose('PuppetWeb', 'onServerScan(%d)', data && data.code)
     if (this.session) {
       this.browser.cleanSession(this.session)
-      .catch(() => {/* fall safe */})
+      .catch(() => {/* fail safe */})
     }
     this.emit('scan', data)
   }
 
   onServerConnection(data) {
-    log.verbose('PuppetWeb', 'onServerConnection: %s', data.constructor.name)
+    log.verbose('PuppetWeb', 'onServerConnection: %s', typeof data)
   }
   onServerDisconnect(data) {
     log.verbose('PuppetWeb', 'onServerDisconnect: %s', data)
-    log.verbose('PuppetWeb', 'onServerDisconnect: unloaded? call onServerUnload to try to fix connection')
-    this.onServerUnload(data)
+    /**
+     * conditions:
+     * 1. browser crash(i.e.: be killed)
+     * 2. quiting
+     */
+    if (!this.browser) {                // no browser, quiting?
+      log.verbose('PuppetWeb', 'onServerDisconnect() no browser. maybe Im quiting, do nothing')
+      return
+    } else if (this.browser.dead()) {   // browser is dead
+      log.verbose('PuppetWeb', 'onServerDisconnect() found dead browser. wait it to restore')
+      return
+    } else if (!this.bridge) {          // no bridge, quiting???
+      log.verbose('PuppetWeb', 'onServerDisconnect() no bridge. maybe Im quiting, do nothing')
+      return
+    } else {                            // browser is alive, and we have a bridge to it
+      log.verbose('PuppetWeb', 'onServerDisconnect() re-initing bridge')
+      process.nextTick(() => {
+        this.bridge.init()
+        .then(r  => log.verbose('PuppetWeb', 'onServerDisconnect() bridge re-inited: %s', r))
+        .catch(e => log.error('PuppetWeb', 'onServerDisconnect() exception: %s', e.message))
+      })
+      return
+    }
+  }
+  /**
+   * `unload` event is sent from js@browser to webserver via socketio
+   * after received `unload`, we should re-inject the Wechaty js code into browser.
+   * possible conditions:
+   * 1. browser refresh
+   * 2. browser navigated to a new url
+   * 3. browser quit(crash?)
+   * 4. ...
+   */
+  onServerUnload(data) {
+    log.warn('PuppetWeb', 'onServerUnload(%s)', typeof data)
+    // this.onServerLogout(data) // XXX: should emit event[logout] from browser
+
+    if (!this.browser) {
+      log.warn('PuppetWeb', 'onServerUnload() found browser gone, should be quiting now')
+      return
+    } else if (!this.bridge) {
+      log.warn('PuppetWeb', 'onServerUnload() found bridge gone, should be quiting now')
+      return
+    } else if (this.browser.dead()) {
+      log.error('PuppetWeb', 'onServerUnload() found browser dead. wait it to restore itself')
+      return
+    }
+    // re-init bridge
+    return process.nextTick(() => {
+      this.bridge.init()
+      .then(r  => log.verbose('PuppetWeb', 'onServerUnload() bridge.init() done: %s', r))
+      .catch(e => log.error('PuppetWeb', 'onServerUnload() bridge.init() exceptoin: %s', e.message))
+    })
   }
   onServerLog(data) {
     log.verbose('PuppetWeb', 'onServerLog: %s', data)
@@ -241,23 +292,33 @@ class PuppetWeb extends Puppet {
         setTimeout(this.onServerLogin.bind(this), 500)
         return
       }
-      log.silly('PuppetWeb', 'userName: %s', userName)
+      log.verbose('PuppetWeb', 'bridge.getUserName: %s', userName)
       this.user = yield Contact.load(userName).ready()
-      log.verbose('PuppetWeb', `user ${this.user.name()} logined`)
+      log.verbose('PuppetWeb', `onServerLogin() user ${this.user.name()} logined`)
       this.emit('login', this.user)
 
       if (this.session) {
-        yield this.browser.saveSession(this.session).catch(() => {/* fall safe */})
+        yield this.browser.saveSession(this.session)
+        .catch(e => { // fail safe
+          log.warn('PuppetWeb', 'browser.saveSession exception: %s', e.message)
+        })
       }
-
-    }).catch(e => log.error('PuppetWeb', 'onServerLogin co rejected: %s', e))
+    }).catch(e => {
+      log.error('PuppetWeb', 'onServerLogin() exception: %s', e.message)
+    })
   }
   onServerLogout(data) {
     if (this.user) {
       this.emit('logout', this.user)
       this.user = null
-    } else { log.verbose('PuppetWeb', 'onServerLogout without this.user. still not logined?') }
-    // this.browser.cleanSession()
+    } else { log.verbose('PuppetWeb', 'onServerLogout() without this.user initialized') }
+
+    if (this.session) {
+      this.browser.cleanSession(this.session)
+      .catch(e => {
+        log.warn('PuppetWeb', 'onServerLogout() browser.cleanSession() exception: %s', e.message)
+      })
+    }
   }
   onServerMessage(data) {
     const m = new Message(data)
@@ -266,53 +327,11 @@ class PuppetWeb extends Puppet {
     } else {
       log.warn('PuppetWeb', 'onServerMessage() without this.user')
     }
-    m.ready().then(() => this.emit('message', m))
-  }
-  /**
-   * `unload` event is sent from js@browser to webserver via socketio
-   * after received `unload`, we re-inject the Wechaty js code into browser.
-   */
-  onServerUnload(data) {
-    log.warn('PuppetWeb', 'server received unload event')
-    // this.onServerLogout(data) // XXX: should emit event[logout] from browser
-
-    if (!this.browser) {
-      log.verbose('PuppetWeb', 'onServerUnload() found browser gone, should be quiting now')
-      return
-    }
-
-    if (this.browser.dead()) {
-      log.warn('PuppetWeb', 'onServerUnload() found browser dead. wait deadguard to restore')
-      return
-    }
-
-    if (!this.bridge) {
-      log.verbose('PuppetWeb', 'onServerUnload() found bridge gone, should be quiting now')
-      return
-    }
-    return process.nextTick(() => {
-      this.bridge.init()
-      .then(r  => log.verbose('PuppetWeb', 'onServerUnload() bridge.re-init()ed:' + r))
-      .catch(e => log.error('PuppetWeb', 'onServerUnload() err: ' + e.message))
+    m.ready() // TODO: EventEmitter2 for video/audio/app/sys....
+    .then(() => this.emit('message', m))
+    .catch(e => {
+      log.error('PuppetWeb', 'onServerMessage() message ready exception: %s', e.message)
     })
-
-    // return this.quit()
-    // .then(this.init.bind(this))
-    // .catch(e => {
-    //   log.warn('PuppetWeb', 'onServerUnload fail: %s', e)
-    //   throw e
-    // })
-/*
-    return this.browser.quit()
-    .then(r  => log.verbose('PuppetWeb', 'browser.quit()ed:' + r))
-    .then(r => this.browser.init())
-    .then(r  => log.verbose('PuppetWeb', 'browser.re-init()ed:' + r))
-    .then(r => this.browser.open())
-    .then(r  => log.verbose('PuppetWeb', 'browser.re-open()ed:' + r))
-    .then(r => this.bridge.init())
-    .then(r  => log.verbose('PuppetWeb', 'bridge.re-init()ed:' + r))
-    .catch(e => log.error('PuppetWeb', 'onServerUnload() err: ' + e))
-*/
   }
 
   send(message) {
@@ -320,8 +339,8 @@ class PuppetWeb extends Puppet {
     const room    = message.get('room')
 
     let content     = message.get('content')
-    let destination = to
 
+    let destination = to
     if (room) {
       destination = room
       // if (to && to!==room) {
@@ -331,33 +350,59 @@ class PuppetWeb extends Puppet {
 
     log.silly('PuppetWeb', `send(${destination}, ${content})`)
     return this.bridge.send(destination, content)
+    .catch(e => {
+      log.error('PuppetWeb', 'send() exception: %s', e.message)
+      throw e
+    })
   }
   reply(message, replyContent) {
     if (message.self()) {
-      throw new Error('dont reply message send by myself')
+      return Promise.reject('will not to reply message of myself')
     }
+
     const m = new Message()
     .set('content'  , replyContent)
 
     .set('from'     , message.obj.to)
     .set('to'       , message.obj.from)
     .set('room'     , message.obj.room)
-
     // FIXME: find a alternate way to check a message create by `self`
     .set('self'     , this.user.id)
 
-    log.verbose('PuppetWeb', 'reply() not sending message: %s', util.inspect(m))
+    // log.verbose('PuppetWeb', 'reply() by message: %s', util.inspect(m))
     return this.send(m)
+    .catch(e => {
+      log.error('PuppetWeb', 'reply() exception: %s', e.message)
+      throw e
+    })
   }
 
   /**
    * logout from browser, then server will emit `logout` event
    */
-  logout() { return this.bridge.logout() }
+  logout() {
+    return this.bridge.logout()
+    .catch(e => {
+      log.error('PuppetWeb', 'logout() exception: %s', e.message)
+      throw e
+    })
+  }
 
-  getContact(id)  { return this.bridge.getContact(id) }
+  getContact(id) {
+    return this.bridge.getContact(id)
+    .catch(e => {
+      log.error('PuppetWeb', 'getContact(%d) exception: %s', id, e.message)
+      throw e
+    })
+  }
   logined() { return !!(this.user) }
-
+  ding(data) {
+    return this.bridge.proxyWechaty('ding', data)
+    .catch(e => {
+      log.warn('PuppetWeb', 'ding(%s) rejected: %s', data, e.message)
+      throw e
+    })
+  }
 }
 
 module.exports = PuppetWeb

@@ -42,6 +42,9 @@ class Contact {
 
   name()    { return this.obj.name }
   remark()  { return this.obj.remark }
+  stranger()    { return this.obj.stranger }
+  star()        { return this.obj.star }
+  get(prop) { return this.obj[prop] }
 
   ready(contactGetter) {
     log.silly('Contact', 'ready(' + typeof contactGetter + ')')
@@ -63,7 +66,7 @@ class Contact {
       this.obj    = this.parse(data)
       return this
     }).catch(e => {
-      log.error('Contact', `contactGetter(${this.id}) rejected: %s`, e)
+      log.error('Contact', `contactGetter(${this.id}) exception: %s`, e.message)
       throw e
     })
   }
@@ -76,19 +79,6 @@ class Contact {
     console.error('======= dump contact =======')
     Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj[k]}`))
   }
-
-  get(prop) { return this.obj[prop] }
-
-  // KISS: don't cross reference
-  // send(message) {
-  //   const msg = new Contact.puppet.Message() // create a empty message
-  //   msg.set('from', this)
-  //   msg.set('content', message)
-
-  //   return Contact.puppet.send(message)
-  // }
-  stranger()    { return this.obj.stranger }
-  star()        { return this.obj.star }
 
   static find() {  }
   static findAll() {  }

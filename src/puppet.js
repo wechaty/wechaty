@@ -24,10 +24,11 @@ class Puppet extends EventEmitter {
    * @param <Message> message - the message to be sent
    * @return <Promise>
    */
-  send(message) { throw new Error('To Be Implemented') }
+  send(message)         { throw new Error('To Be Implemented') }
   reply(message, reply) { throw new Error('To Be Implemented') }
 
   logout()      { throw new Error('To Be Implementsd') }
+  quit()        { throw new Error('To Be Implementsd') }
   ding()        { throw new Error('To Be Implementsd') }
 
   getContact(id)  { // for unit testing

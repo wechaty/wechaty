@@ -27,20 +27,24 @@ class Server extends EventEmitter {
     this.port     = options.port || 8788 // W(87) X(88), ascii char code ;-]
   }
 
-  toString() { return `Class Wechaty.Puppet.Web.Server({port:${this.port}})` }
+  toString() { return `Server({port:${this.port}})` }
 
   init() {
-    log.verbose('Server', 'init()')
-    this.initEventsToClient()
+    log.verbose('PuppetwebServer', 'init()')
     return new Promise((resolve, reject) => {
+      // this.initEventsToClient()
+
       this.express      = this.createExpress()
       this.httpsServer  = this.createHttpsServer(this.express
         , r => resolve(r), e => reject(e)
       )
       this.socketServer = this.createSocketIo(this.httpsServer)
     }).then(r => {
-      log.verbose('Server', 'full init()-ed')
+      log.verbose('PuppetWebServer', 'full init()-ed')
       return true
+    }).catch(e => {
+      log.error('PuppetWebServer', 'init() exception: %s', e.message)
+      throw e
     })
   }
 
@@ -51,17 +55,18 @@ class Server extends EventEmitter {
     return https.createServer({
       key:    require('./ssl-pem').key
       , cert: require('./ssl-pem').cert
-    }, express)
-    .listen(this.port, () => {
-      log.verbose('Server', `createHttpsServer listen on port ${this.port}`)
+    }, express) // XXX: is express must exist here? try to get rid it later. 2016/6/11
+    .listen(this.port, err => {
+      if (err) {
+        log.error('PuppetWebServer', 'createHttpsServer() exception: %s', err)
+        if (typeof reject === 'function') {
+          reject(err)
+        }
+        return
+      }
+      log.verbose('PuppetwebServer', `createHttpsServer() listen on port ${this.port}`)
       if (typeof resolve === 'function') {
         resolve(this)
-      }
-    })
-    .on('error', e => {
-      log.error('Server', 'createHttpsServer:' + e)
-      if (typeof reject === 'function') {
-        reject(e)
       }
     })
   }
@@ -78,7 +83,7 @@ class Server extends EventEmitter {
       next()
     })
     e.get('/ding', function(req, res) {
-      log.silly('Server', '%s GET /ding', new Date())
+      log.silly('PuppetwebServer', 'createExpress() %s GET /ding', new Date())
       res.end('dong')
     })
     return e
@@ -92,7 +97,7 @@ class Server extends EventEmitter {
       // log: true
     })
     socketServer.sockets.on('connection', (s) => {
-      log.verbose('Server', 'got connection from browser')
+      log.verbose('PuppetWebServer', 'createSocketIo() got connection from browser')
       if (this.socketClient) { this.socketClient = null } // close() ???
       this.socketClient = s
       this.initEventsFromClient(s)
@@ -101,19 +106,19 @@ class Server extends EventEmitter {
   }
 
   initEventsFromClient(client) {
-    log.verbose('Server', 'initEventFromClient()')
+    log.verbose('PuppetWebServer', 'initEventFromClient()')
 
     this.emit('connection', client)
 
     client.on('disconnect', e => {
-      log.verbose('Server', 'socket.io disconnect: %s', e)
+      log.verbose('PuppetwebServer', 'socket.io disconnect: %s', e)
       // 1. Browser reload / 2. Lost connection(Bad network)
       this.socketClient = null
       this.emit('disconnect', e)
     })
 
-    client.on('error' , e => log.error('Server', 'socketio client error: %s', e))
-    client.on('ding'  , e => log.silly('Server', 'got ding: %s', e))
+    client.on('error' , e => log.error('PuppetwebServer', 'initEventsFromClient() client on error: %s', e.message))
+    client.on('ding'  , e => log.silly('PuppetwebServer', 'initEventsFromClient() client on ding: %s', e))
 
     // Events from Wechaty@Broswer --to--> Server
     ;[
@@ -126,34 +131,34 @@ class Server extends EventEmitter {
       , 'dong'
     ].map(e => {
       client.on(e, data => {
-        log.silly('Server', `recv event[${e}](${data}) from browser`)
+        log.silly('PuppetwebServer', `initEventsFromClient() client on event[${e}](${data}) from browser, emit it`)
         this.emit(e, data)
       })
     })
   }
 
-  initEventsToClient() {
-    log.verbose('Server', 'initEventToClient()')
-    this.on('ding', data => {
-      log.silly('Server', `recv event[ding](${data}), sending to client`)
-      if (this.socketClient)  { this.socketClient.emit('ding', data) }
-      else                    { log.warn('Server', 'this.socketClient not exist')}
-    })
-  }
+  // initEventsToClient() {
+  //   log.verbose('PuppetwebServer', 'initEventToClient()')
+  //   this.on('ding', data => {
+  //     log.silly('PuppetwebServer', `recv event[ding](${data}), sending to client`)
+  //     if (this.socketClient)  { this.socketClient.emit('ding', data) }
+  //     else                    { log.warn('PuppetwebServer', 'this.socketClient not exist')}
+  //   })
+  // }
 
   quit() {
-    log.verbose('Server', 'quit()')
+    log.verbose('PuppetwebServer', 'quit()')
     if (this.socketServer) {
-      log.verbose('Server', 'close socketServer')
+      log.verbose('PuppetwebServer', 'closing socketServer')
       this.socketServer.close()
       this.socketServer = null
     }
     if (this.socketClient) {
-      log.verbose('Server', 'close socketClient')
+      log.verbose('PuppetwebServer', 'closing socketClient')
       this.socketClient = null
     }
     if (this.httpsServer) {
-      log.verbose('Server', 'close httpsServer')
+      log.verbose('PuppetwebServer', 'closing httpsServer')
       this.httpsServer.close()
       this.httpsServer = null
     }

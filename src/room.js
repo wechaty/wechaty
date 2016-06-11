@@ -22,7 +22,7 @@ class Room {
   toStringEx() { return `Room(${this.obj.name}[${this.id}])` }
 
   ready(contactGetter) {
-    log.silly('Room', `ready(${contactGetter})`)
+    log.silly('Room', 'ready(%s)', contactGetter ? contactGetter.constructor.name : '')
     if (!this.id) {
       log.warn('Room', 'ready() on a un-inited Room')
       return Promise.resolve(this)
@@ -38,12 +38,13 @@ class Room {
       this.obj    = this.parse(data)
       return this
     }).catch(e => {
-      log.error('Room', `contactGetter(${this.id}) rejected: ` + e)
-      throw new Error('contactGetter: ' + e)
+      log.error('Room', 'contactGetter(%s) exception: %s', this.id, e.message)
+      throw e
     })
   }
 
   name() { return this.obj.name }
+  get(prop) { return this.obj[prop] }
 
   parse(rawObj) {
     return !rawObj ? {} : {
@@ -61,7 +62,7 @@ class Room {
     return memberList.map(m => {
       return {
         id:       m.UserName
-        , name:   m.DisplayName
+        , name:   m.DisplayName // nick name for this room?
       }
     })
   }
@@ -74,8 +75,6 @@ class Room {
     console.error('======= dump Room =======')
     Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj[k]}`))
   }
-
-  get(prop) { return this.obj[prop] }
 
   static find() {
   }

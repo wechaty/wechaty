@@ -45,7 +45,7 @@ class Wechaty extends EventEmitter {
       return this // for chaining
 
     }).catch(e => {
-      log.error('Wechaty', 'init() be rejected: %s', e)
+      log.error('Wechaty', 'init() exception: %s', e.message)
       throw e
     })
   }
@@ -53,9 +53,9 @@ class Wechaty extends EventEmitter {
     switch (this.options.puppet) {
       case 'web':
         this.puppet = new Puppet.Web({
-          head:   this.options.head
-          , port: this.options.port
-          , session: this.options.session
+          head:       this.options.head
+          , port:     this.options.port
+          , session:  this.options.session
         })
         break
       default:
@@ -64,12 +64,11 @@ class Wechaty extends EventEmitter {
     return Promise.resolve(this.puppet)
   }
   initEventHook() {
-    // scan qrCode
     this.puppet.on('scan', (e) => {
-      this.emit('scan', e)
+      this.emit('scan', e)    // Scan QRCode
     })
     this.puppet.on('message', (e) => {
-      this.emit('message', e)
+      this.emit('message', e) // Receive Message
     })
     this.puppet.on('login', (e) => {
       this.emit('login', e)
@@ -90,15 +89,42 @@ class Wechaty extends EventEmitter {
     return Promise.resolve()
   }
 
-  quit()    { return this.puppet.quit() }
-  logout()  { return this.puppet.logout() }
+  quit()    {
+    return this.puppet.quit()
+    .catch(e => {
+      log.error('Wechaty', 'quit() exception: %s', e.message)
+      throw e
+    })
+  }
+  logout()  {
+    return this.puppet.logout()
+    .catch(e => {
+      log.error('Wechaty', 'logout() exception: %s', e.message)
+      throw e
+    })
 
-  send(message)   { return this.puppet.send(message) }
-  reply(message, reply) { return this.puppet.reply(message, reply) }
+  }
 
-  ding()          {
-    // TODO: test through the server & browser
-    return 'dong'
+  send(message)   {
+    return this.puppet.send(message)
+    .catch(e => {
+      log.error('Wechaty', 'send() exception: %s', e.message)
+      throw e
+    })
+  }
+  reply(message, reply) {
+    return this.puppet.reply(message, reply)
+    .catch(e => {
+      log.error('Wechaty', 'reply() exception: %s', e.message)
+      throw e
+    })
+  }
+  ding(data)          {
+    return this.puppet.ding(data)
+    .catch(e => {
+      log.error('Wechaty', 'ding() exception: %s', e.message)
+      throw e
+    })
   }
 }
 
@@ -114,5 +140,5 @@ Object.assign(Wechaty, {
 /**
  * Expose `Wechaty`.
  */
-Wechaty.log = log
+Wechaty.log = log // for convenionce use npmlog with environment variable LEVEL
 module.exports = Wechaty.default = Wechaty.Wechaty = Wechaty
