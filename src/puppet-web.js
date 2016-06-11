@@ -318,12 +318,12 @@ class PuppetWeb extends Puppet {
       log.error('PuppetWeb', 'onServerUnload() found browser dead. wait it to restore itself')
       return
     }
-    // re-init bridge
-    return process.nextTick(() => {
+    // re-init bridge after 1 second XXX: better method to confirm unload/reload finished?
+    return setTimeout(() => {
       this.bridge.init()
       .then(r  => log.verbose('PuppetWeb', 'onServerUnload() bridge.init() done: %s', r))
       .catch(e => log.error('PuppetWeb', 'onServerUnload() bridge.init() exceptoin: %s', e.message))
-    })
+    }, 1000)
   }
   onServerLog(data) {
     log.verbose('PuppetWeb', 'onServerLog: %s', data)
@@ -377,7 +377,7 @@ class PuppetWeb extends Puppet {
     m.ready() // TODO: EventEmitter2 for video/audio/app/sys....
     .then(() => this.emit('message', m))
     .catch(e => {
-      log.error('PuppetWeb', 'onServerMessage() message ready exception: %s', e.message)
+      log.error('PuppetWeb', 'onServerMessage() message ready exception: %s', e)
     })
   }
 

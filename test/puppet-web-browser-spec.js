@@ -6,7 +6,7 @@ const log = require('../src/npmlog-env')
 const Browser = require('../src/puppet-web-browser')
 const PORT = process.env.WECHATY_PORT || 58788
 const HEAD = process.env.WECHATY_HEAD || false
-const SESSION = 'unit-test-session.json'
+const SESSION = 'unit-test-session.wechaty.json'
 
 test('Browser class cookie smoking tests', function(t) {
   const b = new Browser({port: PORT, head: HEAD})

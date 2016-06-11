@@ -24,9 +24,10 @@ class Wechaty extends EventEmitter {
   constructor(options) {
     super()
     this.options = options || {}
-    this.options.puppet     = this.options.puppet   || process.env.WECHATY_PUPPET || 'web'
-    this.options.head       = this.options.head     || process.env.WECHATY_HEAD || false
-    this.options.session    = this.options.session  || process.env.WECHATY_SESSION // no session, no session save/estore
+    this.options.puppet     = this.options.puppet   || process.env.WECHATY_PUPPET   || 'web'
+    this.options.head       = this.options.head     || process.env.WECHATY_HEAD     || false
+    this.options.port       = this.options.port     || process.env.WECHATY_PORT     || 8788 // W(87) X(88), ascii char code ;-]
+    this.options.session    = this.options.session  || process.env.WECHATY_SESSION          // no session, no session save/restore
 
     this.VERSION = require('../package.json').version
   }
@@ -38,6 +39,15 @@ class Wechaty extends EventEmitter {
     log.verbose('Wechaty', 'session: %s', this.options.session)
 
     return co.call(this, function* () {
+      const okPort = yield this.getPort(this.options.port)
+
+      if (okPort != this.options.port) {
+        log.verbose('Wechaty', 'port: %d not available, changed to %d', this.options.port, okPort)
+        this.options.port = okPort
+      } else {
+        log.verbose('Wechaty', 'port: %d', this.options.port)
+      }
+
       yield this.initPuppet()
       yield this.initEventHook()
       yield this.puppet.init()
@@ -124,6 +134,30 @@ class Wechaty extends EventEmitter {
     .catch(e => {
       log.error('Wechaty', 'ding() exception: %s', e.message)
       throw e
+    })
+  }
+
+  getPort(port) {
+    return new Promise((resolve, reject) => {
+      port = port || 8788
+      // https://gist.github.com/mikeal/1840641
+      function getPort (cb) {
+        var tryPort = port
+        port += 1
+        var server = require('net').createServer()
+        server.on('error', function (err) {
+          if (err) {}
+          getPort(cb)
+        })
+        server.listen(tryPort, function (err) {
+          if (err) {}
+          server.once('close', function () {
+            cb(tryPort)
+          })
+          server.close()
+        })
+      }
+      getPort(okPort => resolve(okPort))
     })
   }
 }

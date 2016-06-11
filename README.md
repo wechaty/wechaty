@@ -25,7 +25,7 @@ Can you image that? I'm dying...
 
 So a tireless bot working for me 24x7 on wechat, moniting/filtering the most important message is badly needed. For example: highlights discusstion which contains the KEYWORDS I want to follow up(especially in a noisy room). ;-)
 
-At last, It's also built for my personal Automatically Testing study purpose.
+At last, It's built for my personal study purpose of Automatically Testing.
 
 # Examples
 Wechaty is super easy to use: 10 lines of javascript is enough for your first wechat robot.

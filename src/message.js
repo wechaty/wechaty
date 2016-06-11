@@ -38,7 +38,13 @@ class Message {
       , self:         undefined // to store the logined user id
     }
   }
-  toString() { return this.obj.content }
+  toString() {
+    const text = this.digestEmoji(this.obj.digest)
+    const from = this.unescapeHtml(this.digestEmoji(Contact.load(this.obj.from).name()))
+    const room = this.obj.room ? this.unescapeHtml(this.digestEmoji(Room.load(this.obj.room).name())) : ''
+    return '<' + from + (room ? ('@'+room) : '') + '>: ' + '{' + this.type() + '}' + text
+  }
+
   toStringEx() {
     var s = `${this.constructor.name}#${Message.counter}`
     s += '(' + this.getSenderString()
@@ -63,6 +69,12 @@ class Message {
     .replace(/&gt;/g, '>')
     .replace(/&lt;/g, '<')
     .replace(/&amp;/g, '&')
+  }
+  digestEmoji(str) {
+    // <img class="emoji emoji1f4a4" text="[流汗]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />
+    return str
+    .replace(/<img class="\w*?emoji (\w*?emoji[^"]+?)" text="(.*?)_web" src=[^>]+>/g
+      , '($1$2)')
   }
 
   from()    { return this.obj.from }
