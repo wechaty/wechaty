@@ -117,7 +117,7 @@ return (function(port) {
 
   function heartBeat() {
     Wechaty.emit('ding', 'heartbeat@browser')
-    setTimeout(heartBeat, 60000)
+    setTimeout(heartBeat, 15000)
   }
 
   function glueAngular() {

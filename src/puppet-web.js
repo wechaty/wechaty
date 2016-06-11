@@ -164,16 +164,17 @@ class PuppetWeb extends Puppet {
 
     server.on('connection', this.onServerConnection.bind(this))
     server.on('disconnect', this.onServerDisconnect.bind(this))
-    server.on('log', this.onServerLog.bind(this))
+    server.on('log'       , this.onServerLog.bind(this))
+    server.on('ding'      , this.onServerDing.bind(this))
 
-    ;[  // Public events to end user
-      'dong'
-    ].map(e => {
-      server.on(e, data => {
-        log.verbose('PuppetWeb', 'Server event[%s]: %s', e, typeof data)
-        this.emit(e, data)
-      })
-    })
+    // ;[  // Public events to end user
+    //   'dong'
+    // ].map(e => {
+    //   server.on(e, data => {
+    //     log.verbose('PuppetWeb', 'Server event[%s]: %s', e, typeof data)
+    //     this.emit(e, data)
+    //   })
+    // })
 
     this.server = server
     return this.server.init()
@@ -210,6 +211,73 @@ class PuppetWeb extends Puppet {
     })
   }
 
+  // feed me in time(after 1st feed), or I'll restart system
+  watchDog(data) {
+    log.verbose('PuppetWeb', 'watchDog(%s)', data)
+    const TIMEOUT = 60000 // 60s
+    if (this.watchDogTimer) {
+      clearTimeout(this.watchDogTimer)
+    }
+    this.watchDogTimer = setTimeout(this.recoverFromUnknownState.bind(this), TIMEOUT)
+    this.watchDogTimer.unref() // dont block quit
+  }
+  // recover system from unknown state
+  recoverFromUnknownState()
+  {
+    log.warn('PuppetWeb', 'recoverFromUnknownState()')
+
+    if (!this.browser || !this.bridge) {
+      log.error('PuppetWeb', 'recoverFromUnknownState() browser or bridge not found!')
+      return
+    }
+
+    // 1. check & reset browser(if needed)
+    if (this.browser.dead()) {
+      log.verbose('PuppetWeb', 'watchDogReset() browser.dead(), wait it to restore...')
+      return
+    }
+
+    // 2. check bridge
+    this.ding()
+    .then(dong => {
+      if (dong==='dong') {
+        log.warn('PuppetWeb', 'watchDogReset() ding() works well, whats wrong?')
+      }
+    })
+    .catch(e => {
+      log.error('PuppetWeb', 'watchDogReset() ding() exception: %s', e.message)
+      throw e
+    })
+
+    // 3. re-init bridge
+    this.bridge.inject()
+    .then(() => {
+      log.verbose('PuppetWeb', 'watchDogReset() bridge.inject() done')
+    })
+    .catch(e => {
+      log.error('PuppetWeb', 'watchDogReset() bridge.inject() exception: %s', e.message)
+      throw e
+    })
+
+    // 4. confirm bridge works well
+    this.ding()
+    .then(dong => {
+      if (dong!=='dong') {
+        log.error('PuppetWeb', 'watchDogReset() ding() return[%s] not `dong`', dong)
+      } else {
+        log.verbose('PuppetWeb', 'watchDogReset() ding() works well after reset')
+      }
+    })
+    .catch(e => {
+      log.error('PuppetWeb', 'watchDogReset() ding() after reset exception: %s', e.message)
+      throw e
+    })
+  }
+
+  onServerDing(data) {
+    log.verbose('PuppetWeb', 'onServerDing(%s)', data)
+    this.watchDog(data)
+  }
   onServerScan(data) {
     log.verbose('PuppetWeb', 'onServerScan(%d)', data && data.code)
     if (this.session) {

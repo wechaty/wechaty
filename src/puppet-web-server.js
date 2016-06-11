@@ -118,7 +118,7 @@ class Server extends EventEmitter {
     })
 
     client.on('error' , e => log.error('PuppetwebServer', 'initEventsFromClient() client on error: %s', e.message))
-    client.on('ding'  , e => log.silly('PuppetwebServer', 'initEventsFromClient() client on ding: %s', e))
+    // client.on('ding'  , e => log.silly('PuppetwebServer', 'initEventsFromClient() client on ding: %s', e))
 
     // Events from Wechaty@Broswer --to--> Server
     ;[
@@ -128,7 +128,7 @@ class Server extends EventEmitter {
       , 'logout'
       , 'log'
       , 'unload'
-      , 'dong'
+      , 'ding'
     ].map(e => {
       client.on(e, data => {
         log.silly('PuppetwebServer', `initEventsFromClient() client on event[${e}](${data}) from browser, emit it`)
