@@ -23,7 +23,8 @@ return (function(port) {
 
   var Wechaty = {
     glue: {
-    } // will be initialized by glueAngular() function
+      // will be initialized by glueAngular() function
+    }
 
     // glue funcs
     , getLoginStatusCode: function() { return Wechaty.glue.loginScope.code }
@@ -41,14 +42,14 @@ return (function(port) {
     }
 
     // funcs
-    , init: init
-    , send: send
-    , clog: clog // Console log
-    , slog: slog // log throw Socket IO
-    , log:  log
-    , ding: ding
-    , quit: quit
-    , emit: emit
+    , init: init  // initialize Wechaty @ Browser
+    , send: send  // send message to wechat user
+    , clog: clog  // log to Console
+    , slog: slog  // log to SocketIO
+    , log:  log   // log to both Console & SocketIO
+    , ding: ding  // simple return 'dong'
+    , quit: quit  // quit wechat
+    , emit: emit  // send event to server
 
     , getContact: getContact
     , getUserName: getUserName
@@ -116,8 +117,9 @@ return (function(port) {
   }
 
   function heartBeat() {
+    var TIMEOUT = 15000 // 15s
     Wechaty.emit('ding', 'heartbeat@browser')
-    setTimeout(heartBeat, 15000)
+    setTimeout(heartBeat, TIMEOUT)
   }
 
   function glueAngular() {

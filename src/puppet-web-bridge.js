@@ -17,7 +17,7 @@ const log = require('./npmlog-env')
 class Bridge {
   constructor(options) {
     if (!options || !options.puppet) { throw new Error('Bridge need a puppet')}
-    log.verbose('PuppetwebBridge', 'new Bridge({puppet: %s, port: %s})'
+    log.verbose('PuppetWebBridge', 'new Bridge({puppet: %s, port: %s})'
       , options.puppet.constructor.name
       , options.port)
 
@@ -27,23 +27,31 @@ class Bridge {
   toString() { return `Bridge({puppet: ${this.options.puppet.constructor.name}, port: ${this.options.port}})` }
 
   init() {
-    log.verbose('PuppetwebBridge', 'init()')
+    log.verbose('PuppetWebBridge', 'init()')
     return this.inject()
+    .then(r => {
+      log.verbose('PuppetWebBridge', 'init() inject() return %s', r)
+      return this
+    })
+    .catch(e => {
+      log.error('PuppetWebBridge', 'init() inject() exception: %s', e.message)
+      throw e
+    })
   }
 
   logout() {
-    log.verbose('PuppetwebBridge', 'quit()')
+    log.verbose('PuppetWebBridge', 'quit()')
     return this.proxyWechaty('logout')
     .catch(e => {
-      log.error('PuppetwebBridge', 'logout() exception: %s', e.message)
+      log.error('PuppetWebBridge', 'logout() exception: %s', e.message)
       throw e
     })
   }
   quit()                    {
-    log.verbose('PuppetwebBridge', 'quit()')
+    log.verbose('PuppetWebBridge', 'quit()')
     return this.proxyWechaty('quit')
     .catch(e => {
-      log.error('PuppetwebBridge', 'quit() exception: %s', e.message)
+      log.error('PuppetWebBridge', 'quit() exception: %s', e.message)
       throw e
     })
   }
@@ -56,7 +64,7 @@ class Bridge {
   getUserName() {
     return this.proxyWechaty('getUserName')
     .catch(e => {
-      log.error('PuppetwebBridge', 'getUserName() exception: %s', e.message)
+      log.error('PuppetWebBridge', 'getUserName() exception: %s', e.message)
       throw e
     })
   }
@@ -64,7 +72,7 @@ class Bridge {
   send(toUserName, content) {
     return this.proxyWechaty('send', toUserName, content)
     .catch(e => {
-      log.error('PuppetwebBridge', 'send() exception: %s', e.message)
+      log.error('PuppetWebBridge', 'send() exception: %s', e.message)
       throw e
     })
   }
@@ -79,23 +87,23 @@ class Bridge {
     const timeout = max * (backoff * max) / 2
 
     return retryPromise({ max: max, backoff: backoff }, function (attempt) {
-      log.silly('PuppetwebBridge', 'getContact() retryPromise: attampt %s/%s time for timeout %s'
+      log.silly('PuppetWebBridge', 'getContact() retryPromise: attampt %s/%s time for timeout %s'
         , attempt, max, timeout)
 
       return this.proxyWechaty('getContact', id)
       .then(r => {
         if (!r) {
-          throw ('got empty return')
+          throw new Error('got empty return')
         }
         return r
       })
       .catch(e => {
-        log.error('PuppetwebBridge', 'proxyWechaty(getContact, %s) exception: %s', id, e.message)
+        log.error('PuppetWebBridge', 'proxyWechaty(getContact, %s) exception: %s', id, e.message)
         throw e
       })
     }.bind(this))
     .catch(e => {
-      log.error('PuppetwebBridge', 'retryPromise() getContact() finally FAIL: %s', e.message)
+      log.error('PuppetWebBridge', 'retryPromise() getContact() finally FAIL: %s', e.message)
       throw e
     })
     /////////////////////////////////
@@ -110,17 +118,17 @@ class Bridge {
     )
   }
   inject() {
-    log.verbose('PuppetwebBridge', 'inject()')
+    log.verbose('PuppetWebBridge', 'inject()')
     return co.call(this, function* () {
       const injectio = this.getInjectio()
       let r = yield this.execute(injectio, this.port)
-      log.verbose('PuppetwebBridge', 'inject() injected, got [%s]', r)
+      log.verbose('PuppetWebBridge', 'inject() injected, got [%s]', r)
       r = yield this.proxyWechaty('init')
-      log.verbose('PuppetwebBridge', 'inject() Wechaty.init() return: %s', r)
+      log.verbose('PuppetWebBridge', 'inject() Wechaty.init() return: %s', r)
       return r
     })
     .catch (e => {
-      log.error('PuppetwebBridge', 'inject() exception: %s', e.message)
+      log.error('PuppetWebBridge', 'inject() exception: %s', e.message)
       throw e
     })
   }
@@ -138,10 +146,10 @@ class Bridge {
     const argsDecoded = `JSON.parse(decodeURIComponent(window.atob('${argsEncoded}')))`
 
     const wechatyScript   = `return (typeof Wechaty !== 'undefined' && Wechaty.${wechatyFunc}.apply(undefined, ${argsDecoded}))`
-    log.silly('PuppetwebBridge', 'proxyWechaty(%s, ...args) %s', wechatyFunc, wechatyScript)
+    log.silly('PuppetWebBridge', 'proxyWechaty(%s, ...args) %s', wechatyFunc, wechatyScript)
     return this.execute(wechatyScript)
     .catch(e => {
-      log.error('PuppetwebBridge', 'proxyWechaty() exception: %s', e.message)
+      log.warn('PuppetWebBridge', 'proxyWechaty() exception: %s', e.message || e)
       throw e
     })
   }
@@ -149,7 +157,7 @@ class Bridge {
   execute(script, ...args) {
     return this.puppet.browser.execute(script, ...args)
     .catch(e => {
-      log.error('PuppetwebBridge', 'execute() exception: %s', e.message)
+      log.warn('PuppetWebBridge', 'execute() exception: %s', e.message || e)
       throw e
     })
   }

@@ -125,11 +125,13 @@ class PuppetWeb extends Puppet {
       yield this.browser.init()
       yield this.browser.open(fastUrl)
       if (this.session) {
-        yield this.browser.loadSession(this.session).catch(e => { // fail safe
-          log.verbose('PuppetWeb', 'browser.loadSession() exception: %s', e.message)
+        yield this.browser.loadSession(this.session)
+        .catch(e => { // fail safe
+          log.verbose('PuppetWeb', 'browser.loadSession() exception: %s', e.message || e)
         })
       }
       yield this.browser.open()
+      return this.browser // follow func name meaning
     }).catch(e => {
       log.error('PuppetWeb', 'initBrowser() exception: %s', e.message)
       throw e
@@ -184,11 +186,23 @@ class PuppetWeb extends Puppet {
     })
   }
 
-  onBrowserDead(data) {
-    log.verbose('PuppetWeb', 'onBrowserDead(%s)', data)
+  onBrowserDead(e) {
+    // because this function is async, so maybe entry more than one times.
+    // guard by variable: onBrowserDeadBusy to prevent entrance the 2nd time.
+    if (this.onBrowserDeadBusy) {
+      log.warn('PuppetWeb', 'onBrowserDead() Im busy, dont call me again before I return. this time will return and do nothing')
+      return
+    }
+    this.onBrowserDeadBusy = true
+
+    log.verbose('PuppetWeb', 'onBrowserDead(%s)', e.message || e)
+    if (!this.browser || !this.bridge) {
+      log.error('PuppetWeb', 'onBrowserDead() browser or bridge not found. do nothing')
+      return
+    }
 
     return co.call(this, function* () {
-      log.verbose('PuppetWeb', 'try to reborn browser')
+      log.verbose('PuppetWeb', 'onBrowserDead() try to reborn browser')
 
       yield this.browser.quit()
       .catch(e => { // fail safe
@@ -201,81 +215,43 @@ class PuppetWeb extends Puppet {
 
       yield this.bridge.init()
       log.verbose('PuppetWeb', 'bridge re-inited')
+
+      const dong = yield this.ding()
+      if (/dong/i.test(dong)) {
+        log.verbose('PuppetWeb', 'ding() works well after reset')
+      } else {
+        log.warn('PuppetWeb', 'ding() get error return after reset: ' + dong)
+      }
     })
-    .then(() => {
-      log.verbose('PuppetWeb', 'onBrowserDead() new browser borned')
-    })
-    .catch(e => {
+    .catch(e => { // Exception
       log.error('PuppetWeb', 'onBrowserDead() exception: %s', e.message)
       throw e
+    })
+    .then(() => { // Finally
+      log.verbose('PuppetWeb', 'onBrowserDead() new browser borned')
+      this.onBrowserDeadBusy = false
     })
   }
 
   // feed me in time(after 1st feed), or I'll restart system
-  watchDog(data) {
-    log.verbose('PuppetWeb', 'watchDog(%s)', data)
-    const TIMEOUT = 60000 // 60s
+  watchDog(data, options) {
+    log.silly('PuppetWeb', 'watchDog(%s)', data)
+    options = options || {}
+    const TIMEOUT = options.timeout || 60000 // 60s default. can be override in options
+
     if (this.watchDogTimer) {
       clearTimeout(this.watchDogTimer)
     }
-    this.watchDogTimer = setTimeout(this.recoverFromUnknownState.bind(this), TIMEOUT)
+    this.watchDogTimer = setTimeout(() => {
+      const err = new Error('watchdog timeout after ' + Math.floor(TIMEOUT/1000) + ' seconds')
+      this.emit('error', err)
+      this.onBrowserDead(err)
+    }, TIMEOUT)
     this.watchDogTimer.unref() // dont block quit
-  }
-  // recover system from unknown state
-  recoverFromUnknownState()
-  {
-    log.warn('PuppetWeb', 'recoverFromUnknownState()')
-
-    if (!this.browser || !this.bridge) {
-      log.error('PuppetWeb', 'recoverFromUnknownState() browser or bridge not found!')
-      return
-    }
-
-    // 1. check & reset browser(if needed)
-    if (this.browser.dead()) {
-      log.verbose('PuppetWeb', 'watchDogReset() browser.dead(), wait it to restore...')
-      return
-    }
-
-    // 2. check bridge
-    this.ding()
-    .then(dong => {
-      if (dong==='dong') {
-        log.warn('PuppetWeb', 'watchDogReset() ding() works well, whats wrong?')
-      }
-    })
-    .catch(e => {
-      log.error('PuppetWeb', 'watchDogReset() ding() exception: %s', e.message)
-      throw e
-    })
-
-    // 3. re-init bridge
-    this.bridge.inject()
-    .then(() => {
-      log.verbose('PuppetWeb', 'watchDogReset() bridge.inject() done')
-    })
-    .catch(e => {
-      log.error('PuppetWeb', 'watchDogReset() bridge.inject() exception: %s', e.message)
-      throw e
-    })
-
-    // 4. confirm bridge works well
-    this.ding()
-    .then(dong => {
-      if (dong!=='dong') {
-        log.error('PuppetWeb', 'watchDogReset() ding() return[%s] not `dong`', dong)
-      } else {
-        log.verbose('PuppetWeb', 'watchDogReset() ding() works well after reset')
-      }
-    })
-    .catch(e => {
-      log.error('PuppetWeb', 'watchDogReset() ding() after reset exception: %s', e.message)
-      throw e
-    })
   }
 
   onServerDing(data) {
-    log.verbose('PuppetWeb', 'onServerDing(%s)', data)
+    log.silly('PuppetWeb', 'onServerDing(%s)', data)
     this.watchDog(data)
   }
   onServerScan(data) {
@@ -318,7 +294,7 @@ class PuppetWeb extends Puppet {
   }
   /**
    * `unload` event is sent from js@browser to webserver via socketio
-   * after received `unload`, we should re-inject the Wechaty js code into browser.
+   * after received `unload`, we should fix bridge by re-inject the Wechaty js code into browser.
    * possible conditions:
    * 1. browser refresh
    * 2. browser navigated to a new url
@@ -425,7 +401,7 @@ class PuppetWeb extends Puppet {
   }
   reply(message, replyContent) {
     if (message.self()) {
-      return Promise.reject('will not to reply message of myself')
+      return Promise.reject(new Error('will not to reply message of myself'))
     }
 
     const m = new Message()
@@ -467,7 +443,7 @@ class PuppetWeb extends Puppet {
   ding(data) {
     return this.bridge.proxyWechaty('ding', data)
     .catch(e => {
-      log.warn('PuppetWeb', 'ding(%s) rejected: %s', data, e.message)
+      log.warn('PuppetWeb', 'ding(%s) rejected: %s', data, e.message || e)
       throw e
     })
   }

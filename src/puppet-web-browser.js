@@ -85,7 +85,7 @@ class Browser extends EventEmitter {
     .catch(e => {
       log.error('PuppetWebBrowser', 'open() exception: %s', e.message)
       this.dead(e.message)
-      throw e.message
+      throw e
     })
   }
 
@@ -159,22 +159,36 @@ class Browser extends EventEmitter {
         , attempt,  timeout)
 
       return new Promise((resolve, reject) => {
-        require('ps-tree')(process.pid, (err, children) => {
-          if (err) {
-            return reject(err)
-          }
-          const num = children.filter(child => /phantomjs/i.test(child.COMMAND)).length
-          if (num==0) {
-            return resolve('clean')
+        this.getBrowserPids()
+        .then(pids => {
+          if (pids.length === 0) {
+            resolve('clean')
           } else {
-            return reject('dirty')
+            reject(new Error('dirty'))
           }
         })
+        .catch(e => reject(e))
       })
     })
     .catch(e => {
-      log.error('PuppetWebBrowser', 'retryPromise failed: %s', e)
+      log.error('PuppetWebBrowser', 'retryPromise failed: %s', e.message)
       throw e
+    })
+  }
+
+  getBrowserPids() {
+    return new Promise((resolve, reject) => {
+      require('ps-tree')(process.pid, (err, children) => {
+        if (err) {
+          reject(err)
+          return
+        }
+        const pids = children.filter(child => /phantomjs/i.test(child.COMMAND))
+        .map(child => child.PID)
+
+        resolve(pids)
+        return
+      })
     })
   }
 
@@ -185,7 +199,7 @@ class Browser extends EventEmitter {
    * deleteCookie / getCookie / getCookies
    */
   addCookies(cookie) {
-    if (this.dead()) { return Promise.reject('addCookies() - browser dead')}
+    if (this.dead()) { return Promise.reject(new Error('addCookies() - browser dead'))}
 
     if (cookie.map) {
       return cookie.map(c => {
@@ -211,7 +225,7 @@ class Browser extends EventEmitter {
   execute(script, ...args) {
     //log.verbose('PuppetWebBrowser', `Browser.execute(${script})`)
     // log.verbose('PuppetWebBrowser', `Browser.execute() driver.getSession: %s`, util.inspect(this.driver.getSession()))
-    if (this.dead()) { return Promise.reject('browser dead') }
+    if (this.dead()) { return Promise.reject(new Error('browser dead')) }
 
     return this.driver.executeScript.apply(this.driver, arguments)
     .catch(e => {
@@ -248,7 +262,7 @@ class Browser extends EventEmitter {
 
   checkSession(session) {
     log.verbose('PuppetWebBrowser', `checkSession(${session})`)
-    if (this.dead()) { return Promise.reject('checkSession() - browser dead')}
+    if (this.dead()) { return Promise.reject(new Error('checkSession() - browser dead'))}
 
     return this.driver.manage().getCookies()
     .then(cookies => {
@@ -264,8 +278,8 @@ class Browser extends EventEmitter {
 
   cleanSession(session) {
     log.verbose('PuppetWebBrowser', `cleanSession(${session})`)
-    if (this.dead())  { return Promise.reject('cleanSession() - browser dead')}
-    if (!session)     { return Promise.reject('cleanSession() no session') }
+    if (this.dead())  { return Promise.reject(new Error('cleanSession() - browser dead'))}
+    if (!session)     { return Promise.reject(new Error('cleanSession() no session')) }
 
     const filename = session
     return new Promise((resolve, reject) => {
@@ -279,9 +293,9 @@ class Browser extends EventEmitter {
   }
   saveSession(session) {
     log.verbose('PuppetWebBrowser', `saveSession(${session})`)
-    if (this.dead()) { return Promise.reject('saveSession() - browser dead')}
+    if (this.dead()) { return Promise.reject(new Error('saveSession() - browser dead'))}
 
-    if (!session) { return Promise.reject('saveSession() no session') }
+    if (!session) { return Promise.reject(new Error('saveSession() no session')) }
     const filename = session
 
     return new Promise((resolve, reject) => {
@@ -321,16 +335,16 @@ class Browser extends EventEmitter {
 
   loadSession(session) {
     log.verbose('PuppetWebBrowser', `loadSession(${session})`)
-    if (this.dead()) { return Promise.reject('loadSession() - browser dead')}
+    if (this.dead()) { return Promise.reject(new Error('loadSession() - browser dead'))}
 
-    if (!session) { return Promise.reject('loadSession() no session') }
+    if (!session) { return Promise.reject(new Error('loadSession() no session')) }
     const filename = session
 
     return new Promise((resolve, reject) => {
       fs.readFile(filename, (err, jsonStr) => {
         if (err) {
           if (err) { log.silly('PuppetWebBrowser', 'loadSession(%s) skipped because error code: %s', session, err.code) }
-          return reject('error code:' + err.code)
+          return reject(new Error('error code:' + err.code))
         }
         const cookies = JSON.parse(jsonStr)
 
