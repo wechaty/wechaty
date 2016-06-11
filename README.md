@@ -383,6 +383,9 @@ Know more about TAP: [Why I use Tape Instead of Mocha & So Should You](https://m
 
 # Version History
 
+## v0.2.0 (master)
+1. add a watchdog to restore from unknown state
+
 ## v0.1.1 (2016/6/10)
 1. add support to save & restore wechat login session
 1. add continious integration tests on win32 platform. (powered by [AppVeyor](https://www.appveyor.com/))

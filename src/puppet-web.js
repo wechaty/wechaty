@@ -195,6 +195,8 @@ class PuppetWeb extends Puppet {
     }
     this.onBrowserDeadBusy = true
 
+    this.watchDog('onBrowserDead() set a timeout to prevent unknown state change')
+
     log.verbose('PuppetWeb', 'onBrowserDead(%s)', e.message || e)
     if (!this.browser || !this.bridge) {
       log.error('PuppetWeb', 'onBrowserDead() browser or bridge not found. do nothing')
@@ -244,7 +246,7 @@ class PuppetWeb extends Puppet {
     }
     this.watchDogTimer = setTimeout(() => {
       const err = new Error('watchdog timeout after ' + Math.floor(TIMEOUT/1000) + ' seconds')
-      this.emit('error', err)
+      // this.emit('error', err)
       this.onBrowserDead(err)
     }, TIMEOUT)
     this.watchDogTimer.unref() // dont block quit
@@ -287,7 +289,7 @@ class PuppetWeb extends Puppet {
       process.nextTick(() => {
         this.bridge.init()
         .then(r  => log.verbose('PuppetWeb', 'onServerDisconnect() bridge re-inited: %s', r))
-        .catch(e => log.error('PuppetWeb', 'onServerDisconnect() exception: %s', e.message))
+        .catch(e => log.error('PuppetWeb', 'onServerDisconnect() exception: [%s]', e))
       })
       return
     }

@@ -21,8 +21,10 @@ class Bridge {
       , options.puppet.constructor.name
       , options.port)
 
-    this.puppet   = options.puppet
-    this.port     = options.port || 8788 // W(87) X(88), ascii char code ;-]
+    this.options = {
+      puppet: options.puppet
+      , port: options.port || 8788 // W(87) X(88), ascii char code ;-]
+    }
   }
   toString() { return `Bridge({puppet: ${this.options.puppet.constructor.name}, port: ${this.options.port}})` }
 
@@ -98,12 +100,12 @@ class Bridge {
         return r
       })
       .catch(e => {
-        log.error('PuppetWebBridge', 'proxyWechaty(getContact, %s) exception: %s', id, e.message)
+        log.silly('PuppetWebBridge', 'proxyWechaty(getContact, %s) exception: %s', id, e.message)
         throw e
       })
     }.bind(this))
     .catch(e => {
-      log.error('PuppetWebBridge', 'retryPromise() getContact() finally FAIL: %s', e.message)
+      log.warn('PuppetWebBridge', 'retryPromise() getContact() finally FAIL: %s', e.message)
       throw e
     })
     /////////////////////////////////
@@ -121,7 +123,7 @@ class Bridge {
     log.verbose('PuppetWebBridge', 'inject()')
     return co.call(this, function* () {
       const injectio = this.getInjectio()
-      let r = yield this.execute(injectio, this.port)
+      let r = yield this.execute(injectio, this.options.port)
       log.verbose('PuppetWebBridge', 'inject() injected, got [%s]', r)
       r = yield this.proxyWechaty('init')
       log.verbose('PuppetWebBridge', 'inject() Wechaty.init() return: %s', r)
@@ -155,7 +157,7 @@ class Bridge {
   }
 
   execute(script, ...args) {
-    return this.puppet.browser.execute(script, ...args)
+    return this.options.puppet.browser.execute(script, ...args)
     .catch(e => {
       log.warn('PuppetWebBridge', 'execute() exception: %s', e.message || e)
       throw e
