@@ -195,7 +195,8 @@ class PuppetWeb extends Puppet {
     }
     this.onBrowserDeadBusy = true
 
-    this.watchDog('onBrowserDead() set a timeout to prevent unknown state change')
+    const TIMEOUT = 180000 // 180s / 3m
+    this.watchDog('onBrowserDead() set a timeout to prevent unknown state change', {timeout: TIMEOUT})
 
     log.verbose('PuppetWeb', 'onBrowserDead(%s)', e.message || e)
     if (!this.browser || !this.bridge) {

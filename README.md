@@ -383,7 +383,7 @@ Know more about TAP: [Why I use Tape Instead of Mocha & So Should You](https://m
 
 # Version History
 
-## v0.2.0 (master)
+## v0.1.3 (master)
 1. add a watchdog to restore from unknown state
 
 ## v0.1.1 (2016/6/10)
