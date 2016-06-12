@@ -6,7 +6,8 @@
  * https://github.com/zixia/wechaty
  *
  */
-const log = require('./npmlog-env')
+const log       = require('./npmlog-env')
+const htmlUtil  = require('./html-util')
 
 class Room {
   constructor(id) {
@@ -18,7 +19,11 @@ class Room {
     }
   }
 
-  toString() { return this.id }
+  toString()   {
+    return this.obj.name
+    ? htmlUtil.plainText(this.obj.name)
+    : this.obj.id
+  }
   toStringEx() { return `Room(${this.obj.name}[${this.id}])` }
 
   ready(contactGetter) {
@@ -26,8 +31,10 @@ class Room {
     if (!this.id) {
       log.warn('Room', 'ready() on a un-inited Room')
       return Promise.resolve(this)
-    } else if (this.obj.id) {
+    } else if (this.obj.members && this.obj.members.length) {
       return Promise.resolve(this)
+    } else if (this.obj.id) {
+      log.warn('Room', 'ready() on a already ready but members list is empty room. reload')
     }
 
     contactGetter = contactGetter || Room.puppet.getContact.bind(Room.puppet)

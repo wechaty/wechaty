@@ -6,7 +6,8 @@
  * https://github.com/zixia/wechaty
  *
  */
-const log = require('./npmlog-env')
+const log       = require('./npmlog-env')
+const htmlUtil  = require('./html-util')
 
 class Contact {
   constructor(id) {
@@ -18,7 +19,11 @@ class Contact {
     this.obj  = {}
   }
 
-  toString() { return this.id }
+  toString() {
+    return this.obj.name
+    ? htmlUtil.plainText(this.obj.name)
+    : this.obj.id
+  }
   toStringEx() { return `Contact(${this.obj.name}[${this.id}])` }
 
   parse(rawObj) {

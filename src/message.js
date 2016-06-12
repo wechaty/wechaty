@@ -11,7 +11,8 @@ const co = require('co')
 const Contact = require('./contact')
 const Room    = require('./room')
 
-const log = require('./npmlog-env')
+const htmlUtil  = require('./html-util')
+const log       = require('./npmlog-env')
 
 class Message {
   constructor(rawObj) {
@@ -39,10 +40,8 @@ class Message {
     }
   }
   toString() {
-    const text = this.digestEmoji(this.obj.digest)
-    const from = this.unescapeHtml(this.digestEmoji(Contact.load(this.obj.from).name()))
-    const room = this.obj.room ? this.unescapeHtml(this.digestEmoji(Room.load(this.obj.room).name())) : ''
-    return '<' + from + (room ? ('@'+room) : '') + '>: ' + '{' + this.type() + '}' + text
+    const text = htmlUtil.digestEmoji(this.obj.digest)
+    return '{' + this.type() + '}' + text
   }
 
   toStringEx() {
@@ -57,24 +56,9 @@ class Message {
     return '<' + name + (room ? `@${room}` : '') + '>'
   }
   getContentString() {
-    let content = this.unescapeHtml(this.stripHtml(this.obj.content))
+    let content = htmlUtil.plainText(this.obj.content)
     if (content.length > 20) { content = content.substring(0,17) + '...' }
     return '{' + this.type() + '}' + content
-  }
-  stripHtml(str) { return String(str).replace(/(<([^>]+)>)/ig,'') }
-  unescapeHtml(str) {
-    return String(str)
-    .replace(/&apos;/g, "'")
-    .replace(/&quot;/g, '"')
-    .replace(/&gt;/g, '>')
-    .replace(/&lt;/g, '<')
-    .replace(/&amp;/g, '&')
-  }
-  digestEmoji(str) {
-    // <img class="emoji emoji1f4a4" text="[流汗]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />
-    return str && str
-    .replace(/<img class="\w*?emoji (\w*?emoji[^"]+?)" text="(.*?)_web" src=[^>]+>/g
-      , '($1$2)')
   }
 
   from()    { return this.obj.from }
@@ -101,11 +85,10 @@ class Message {
       const to    = Contact.load(this.obj.to)
       const room  = this.obj.room ? Room.load(this.obj.room) : null
 
-      yield from.ready()  // Contact from
-      yield to.ready()    // Contact to
-      if (room) {         // Room member list
-        yield room.ready()
-      }
+      yield from.ready()                // Contact from
+      yield to.ready()                  // Contact to
+      if (room) { yield room.ready() }  // Room member list
+
       return this         // return this for chain
     }).catch(e => { // Exception
         log.error('Message', 'ready() exception: %s', e.message)

@@ -169,15 +169,6 @@ class PuppetWeb extends Puppet {
     server.on('log'       , this.onServerLog.bind(this))
     server.on('ding'      , this.onServerDing.bind(this))
 
-    // ;[  // Public events to end user
-    //   'dong'
-    // ].map(e => {
-    //   server.on(e, data => {
-    //     log.verbose('PuppetWeb', 'Server event[%s]: %s', e, typeof data)
-    //     this.emit(e, data)
-    //   })
-    // })
-
     this.server = server
     return this.server.init()
     .catch(e => {
@@ -188,7 +179,7 @@ class PuppetWeb extends Puppet {
 
   onBrowserDead(e) {
     // because this function is async, so maybe entry more than one times.
-    // guard by variable: onBrowserDeadBusy to prevent entrance the 2nd time.
+    // guard by variable: onBrowserDeadBusy to prevent the 2nd time entrance.
     if (this.onBrowserDeadBusy) {
       log.warn('PuppetWeb', 'onBrowserDead() Im busy, dont call me again before I return. this time will return and do nothing')
       return
@@ -196,7 +187,7 @@ class PuppetWeb extends Puppet {
     this.onBrowserDeadBusy = true
 
     const TIMEOUT = 180000 // 180s / 3m
-    this.watchDog('onBrowserDead() set a timeout to prevent unknown state change', {timeout: TIMEOUT})
+    this.watchDog(`onBrowserDead() set a timeout of ${Math.floor(TIMEOUT/1000)} seconds to prevent unknown state change`, {timeout: TIMEOUT})
 
     log.verbose('PuppetWeb', 'onBrowserDead(%s)', e.message || e)
     if (!this.browser || !this.bridge) {
