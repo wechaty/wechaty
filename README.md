@@ -152,7 +152,7 @@ Win32:
 set WECHATY_DEBUG=verbose
 ```
 
-Tips: You would love to have more scroll buffer size in your CMD window in windows.
+Tips: You may want to have more scroll buffer size in your CMD window in windows.
 ```shell
 mode con lines=32766
 ```
