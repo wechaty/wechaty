@@ -80,12 +80,13 @@ class Bridge {
   }
 
   getContact(id) {
-    const max = 30
-    const backoff = 100
+    const max = 35
+    const backoff = 500
 
     // max = (2*totalTime/backoff) ^ (1/2)
-    // timeout = 11250 for {max: 15, backoff: 100}
-    // timeout = 45000 for {max: 30, backoff: 100}
+    // timeout = 11,250 for {max: 15, backoff: 100}
+    // timeout = 45,000 for {max: 30, backoff: 100}
+    // timeout = 30,6250 for {max: 35, backoff: 500}
     const timeout = max * (backoff * max) / 2
 
     return retryPromise({ max: max, backoff: backoff }, function (attempt) {
