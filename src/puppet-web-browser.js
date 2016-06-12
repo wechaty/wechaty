@@ -89,6 +89,11 @@ class Browser extends EventEmitter {
     })
   }
 
+  refresh() {
+    log.verbose('PuppetWebBrowser', 'refresh()')
+    return this.driver.navigate().refresh()
+  }
+
   getPhantomJsDriver() {
     // https://github.com/SeleniumHQ/selenium/issues/2069
     // setup custom phantomJS capability
@@ -229,7 +234,7 @@ class Browser extends EventEmitter {
 
     return this.driver.executeScript.apply(this.driver, arguments)
     .catch(e => {
-      this.dead(e.message)
+      this.dead(e)
       throw e
     })
   }

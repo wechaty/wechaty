@@ -127,7 +127,7 @@ class PuppetWeb extends Puppet {
       if (this.session) {
         yield this.browser.loadSession(this.session)
         .catch(e => { // fail safe
-          log.verbose('PuppetWeb', 'browser.loadSession() exception: %s', e.message || e)
+          log.verbose('PuppetWeb', 'browser.loadSession(%s) exception: %s', this.session, e.message || e)
         })
       }
       yield this.browser.open()
@@ -243,13 +243,30 @@ class PuppetWeb extends Puppet {
     }, TIMEOUT)
     this.watchDogTimer.unref() // dont block quit
 
-    const SAVE_SESSION_INTERVAL = 5 * 60 * 1000 // 5 min
+    const SAVE_SESSION_INTERVAL = 5 * 60 * 1000 // 5 mins
     if (this.session) {
       if (!this.watchDogLastSaveSession || Date.now() - this.watchDogLastSaveSession > SAVE_SESSION_INTERVAL) {
         log.verbose('PuppetWeb', 'watchDog() saveSession(%s) after %d minutes', this.session, Math.floor(SAVE_SESSION_INTERVAL/1000/60))
         this.browser.saveSession(this.session)
         this.watchDogLastSaveSession = Date.now()
       }
+    }
+
+    // if web browser stay at login qrcode page long time,
+    // sometimes the qrcode will not refresh, leave there expired.
+    // so we need to refresh the page after a while
+    const REFRESH_TIMEOUT = 10 * 60 * 1000 // 10 mins
+    if (!this.logined()) {
+      if (!this.watchDogLastRefresh) {
+        this.watchDogLastRefresh = Date.now()
+      }
+      if (Date.now() - this.watchDogLastRefresh > REFRESH_TIMEOUT) {
+        log.warn('PuppetWeb', 'watchDog() refresh browser for not login for a long time')
+        this.browser.refresh()
+        this.watchDogLastRefresh = Date.now()
+      }
+    } else if (this.watchDogLastRefresh) {
+      this.watchDogLastRefresh = null
     }
   }
 
@@ -287,11 +304,15 @@ class PuppetWeb extends Puppet {
       return
     } else {                            // browser is alive, and we have a bridge to it
       log.verbose('PuppetWeb', 'onServerDisconnect() re-initing bridge')
-      process.nextTick(() => {
+      // must use setTimeout to wait a while.
+      // because the browser has just refreshed, need some time to re-init to ready.
+      // if the browser is not ready, bridge init will fail,
+      // caused browser dead and have to be restarted. 2016/6/12
+      setTimeout(() => {
         this.bridge.init()
         .then(r  => log.verbose('PuppetWeb', 'onServerDisconnect() bridge re-inited: %s', r))
         .catch(e => log.error('PuppetWeb', 'onServerDisconnect() exception: [%s]', e))
-      })
+      }, 1000)
       return
     }
   }
