@@ -34,7 +34,7 @@ class Room {
     } else if (this.obj.members && this.obj.members.length) {
       return Promise.resolve(this)
     } else if (this.obj.id) {
-      log.warn('Room', 'ready() on a already ready but members list is empty room. reload')
+      log.warn('Room', 'ready() ready but members list empty in room %s. reloading', this.obj.name)
     }
 
     contactGetter = contactGetter || Room.puppet.getContact.bind(Room.puppet)

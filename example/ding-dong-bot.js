@@ -33,6 +33,10 @@ bot
 .on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
 .on('scan', ({url, code}) => {
   console.log(`Scan QR Code in url to login: ${code}\n${url}`)
+  if (!/201|200/.test(code)) {
+    let loginUrl = url.replace(/\/qrcode\//, '/l/')
+    require('qrcode-terminal').generate(loginUrl)
+  }
 })
 .on('message', m => {
   m.ready()

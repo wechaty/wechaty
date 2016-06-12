@@ -42,7 +42,7 @@ class Wechaty extends EventEmitter {
       const okPort = yield this.getPort(this.options.port)
 
       if (okPort != this.options.port) {
-        log.verbose('Wechaty', 'port: %d not available, changed to %d', this.options.port, okPort)
+        log.info('Wechaty', 'port: %d not available, changed to %d', this.options.port, okPort)
         this.options.port = okPort
       } else {
         log.verbose('Wechaty', 'port: %d', this.options.port)

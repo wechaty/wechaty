@@ -12,8 +12,14 @@ test('HtmlUtil smoking test', function(t) {
   const HTML_BEFORE_UNESCAPE  = '&apos;|&quot;|&gt;|&lt;|&amp;'
   const HTML_AFTER_UNESCAPE   = `'|"|>|<|&`
 
-  const EMOJI_BEFORE_DIGEST = '<img class="emoji emoji1f4a4" text="[流汗]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />'
-  const EMOJI_AFTER_DIGEST  = '[流汗]'
+  const EMOJI_BEFORE_DIGEST = [
+    '<img class="emoji emoji1f4a4" text="[流汗]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />'
+    , '<span class="emoji emoji1f334"></span>'
+  ]
+  const EMOJI_AFTER_DIGEST  = [
+    '[流汗]'
+    , '[emoji1f334]'
+  ]
 
   const PLAIN_BEFORE  = '&amp;<html>&amp;</html>&amp;<img class="emoji emoji1f4a4" text="[流汗]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />'
   const PLAIN_AFTER   = '&&&[流汗]'
@@ -24,9 +30,10 @@ test('HtmlUtil smoking test', function(t) {
   const unescapedHtml = htmlUtil.unescapeHtml(HTML_BEFORE_UNESCAPE)
   t.equal(unescapedHtml, HTML_AFTER_UNESCAPE, 'should unescape html as expected')
 
-  const emojiDigest = htmlUtil.digestEmoji(EMOJI_BEFORE_DIGEST)
-  t.equal(emojiDigest, EMOJI_AFTER_DIGEST, 'should digest emoji as expected')
-
+  for (let i=0; i<EMOJI_BEFORE_DIGEST.length; i++) {
+    const emojiDigest = htmlUtil.digestEmoji(EMOJI_BEFORE_DIGEST[i])
+    t.equal(emojiDigest, EMOJI_AFTER_DIGEST[i], 'should digest emoji string ' + i + ' as expected')
+  }
   const plainText = htmlUtil.plainText(PLAIN_BEFORE)
   t.equal(plainText, PLAIN_AFTER, 'should convert plain text as expected')
 
