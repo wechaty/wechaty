@@ -468,7 +468,7 @@ Github Issue - https://github.com/zixia/wechaty/issues
 ## Framework
 1. [Bot Framework](https://dev.botframework.com/) Build and connect intelligent bots to interact with your users naturally wherever they are, from text/sms to Skype, Slack, Office 365 mail and other popular services. from Microsoft
 
-Why
+My Story
 ----------------
 My daily life/work depends on too much chat on wechat.
 * I almost have 14,000 wechat friends till May 2014, before wechat restricts a total number of friends to 5,000.
