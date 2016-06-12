@@ -212,7 +212,9 @@ class Browser extends EventEmitter {
       })
     }
     // convert expiry from seconds to milliseconds. https://github.com/SeleniumHQ/selenium/issues/2245
-    if (cookie.expiry) { cookie.expiry = cookie.expiry * 1000 }
+    // NOTICE: the lastest branch of selenium-webdriver for js has changed the interface of addCookie:
+    // https://github.com/SeleniumHQ/selenium/commit/02f407976ca1d516826990f11aca7de3c16ba576
+    if (cookie.expiry) { cookie.expiry = cookie.expiry * 1000 /* XXX: be aware of new version of webdriver */}
 
     log.silly('PuppetWebBrowser', 'addCookies("%s", "%s", "%s", "%s", "%s", "%s")'
       , cookie.name, cookie.value, cookie.path, cookie.domain, cookie.secure, cookie.expiry
