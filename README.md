@@ -57,7 +57,7 @@ npm install --save wechaty
 Then you are set.
 
 ## Install to Cloud9 IDE
-[Cloud9 IDE](https://c9.io/) is Google Docs for Code.
+[Cloud9 IDE](https://c9.io/) is Google Docs for Code, which is my favourite IDE today. Almost all my wechaty development is based on Cloud9.
 
 > Cloud9 IDE written in JavaScript, uses Node.js on the back-end. It uses Docker containers for its workspaces, and hosted on Google Compute Engine.
 
