@@ -99,6 +99,16 @@ Contact.load = function(id) {
   }
   return Contact.pool[id] = new Contact(id)
 }
+// Contact.search = function(options) {
+//   if (options.name) {
+//     const regex = new RegExp(options.name)
+//     return Object.keys(Contact.pool)
+//     .filter(k => regex.test(Contact.pool[k].name()))
+//     .map(k => Contact.pool[k])
+//   }
+
+//   return []
+// }
 
 Contact.attach = function(puppet) { Contact.puppet = puppet }
 

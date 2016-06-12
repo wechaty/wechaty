@@ -208,7 +208,7 @@ return (function(port) {
   }
   function log(s)     { clog(s); slog(s) }
   function slog(msg)  { return Wechaty.vars.socket && Wechaty.vars.socket.emit('log', msg) }
-  function ding()     { return 'dong' }
+  function ding()     { log('recv ding'); return 'dong' }
   function send(ToUserName, Content) {
     var chat = Wechaty.glue.chatFactory
     var m = chat.createMessage({
