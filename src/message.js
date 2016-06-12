@@ -25,12 +25,11 @@ class Message {
 
   // Transform rawObj to local m
   parse(rawObj) {
-    return {
+    const obj = {
       id:             rawObj.MsgId
       , type:         rawObj.MsgType
       , from:         rawObj.MMActualSender
       , to:           rawObj.ToUserName
-      , room:         rawObj.MMIsChatRoom ? rawObj.FromUserName : null // MMPeerUserName always eq FromUserName ?
       , content:      rawObj.MMActualContent // Content has @id prefix added by wx
       , status:       rawObj.Status
       , digest:       rawObj.MMDigest
@@ -38,6 +37,19 @@ class Message {
 
       , self:         undefined // to store the logined user id
     }
+    if (rawObj.MMIsChatRoom) {
+      if (/^@@/.test(rawObj.FromUserName)) {
+        obj.room =  rawObj.FromUserName // MMPeerUserName always eq FromUserName ?
+      } else if (/^@@/.test(rawObj.ToUserName)) {
+        obj.room = rawObj.ToUserName
+      } else {
+        log.error('Message', 'parse found a room message, but neither FromUserName nor ToUserName is a room(/^@@/)')
+        obj.room = null // bug compatible
+      }
+    } else {
+      obj.room = null
+    }
+    return obj
   }
   toString() {
     const text = htmlUtil.digestEmoji(this.obj.digest)

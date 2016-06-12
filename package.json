@@ -21,10 +21,12 @@
     "account",
     "bot",
     "robot",
+    "chatbot",
     "framework",
     "library",
     "api",
-    "sdk"
+    "wechaty",
+    "微信控"
   ],
   "author": "Zhuohuan LI <zixia@zixia.net>",
   "license": "ISC",

@@ -465,6 +465,9 @@ class PuppetWeb extends Puppet {
   }
   logined() { return !!(this.user) }
   ding(data) {
+    if (!this.bridge) {
+      return Promise.reject(new Error('ding fail: no bridge(yet)!'))
+    }
     return this.bridge.proxyWechaty('ding', data)
     .catch(e => {
       log.warn('PuppetWeb', 'ding(%s) rejected: %s', data, e.message || e)

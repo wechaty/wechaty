@@ -16,17 +16,6 @@ Supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.appvey
 [![npm version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty)
 [![Downloads][downloads-image]][downloads-url]
 
-# Why
-My daily life/work depends on too much chat on wechat.
-* I almost have 14,000 wechat friends till May 2014, before wechat restricts a total number of friends to 5,000.
-* I almost have 400 wechat rooms that most of them have more than 400 members.
-
-Can you image that? I'm dying...
-
-So a tireless bot working for me 24x7 on wechat, moniting/filtering the most important message is badly needed. For example: highlights discusstion which contains the KEYWORDS I want to follow up(especially in a noisy room). ;-)
-
-At last, It's built for my personal study purpose of Automatically Testing.
-
 # Examples
 Wechaty is super easy to use: 10 lines of javascript is enough for your first wechat robot.
 
@@ -162,6 +151,12 @@ Win32:
 ```shell
 set WECHATY_DEBUG=verbose
 ```
+
+Tips: You would love to have more scroll buffer size in your CMD window in windows.
+```shell
+mode con lines=32766
+```
+> http://stackoverflow.com/a/8775884/1123955
 
 # Requirement
 
@@ -472,6 +467,18 @@ Github Issue - https://github.com/zixia/wechaty/issues
 
 ## Framework
 1. [Bot Framework](https://dev.botframework.com/) Build and connect intelligent bots to interact with your users naturally wherever they are, from text/sms to Skype, Slack, Office 365 mail and other popular services. from Microsoft
+
+Why
+----------------
+My daily life/work depends on too much chat on wechat.
+* I almost have 14,000 wechat friends till May 2014, before wechat restricts a total number of friends to 5,000.
+* I almost have 400 wechat rooms that most of them have more than 400 members.
+
+Can you image that? I'm dying...
+
+So a tireless bot working for me 24x7 on wechat, moniting/filtering the most important message is badly needed. For example: highlights discusstion which contains the KEYWORDS I want to follow up(especially in a noisy room). ;-)
+
+At last, It's built for my personal study purpose of Automatically Testing.
 
 Author
 -----------------
