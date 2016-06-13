@@ -170,7 +170,9 @@ return (function(port) {
     // 408: 未确认
     var code  = +Wechaty.glue.loginScope.code
     var url   =  Wechaty.glue.loginScope.qrcodeUrl
-    if (code !== Wechaty.vars.scanCode) {
+    if (typeof code !== 'undefined' && code !== null
+      && code !== Wechaty.vars.scanCode) {
+
       log('checkScan() - code change detected. from '
         + Wechaty.vars.scanCode
         + ' to '
@@ -207,7 +209,11 @@ return (function(port) {
     }
   }
   function log(s)     { clog(s); slog(s) }
-  function slog(msg)  { return Wechaty.vars.socket && Wechaty.vars.socket.emit('log', msg) }
+  function slog(msg) {
+    // keep this emit directly to use socket.emit instead of Wechaty.emit
+    // to prevent lost log msg if there has any bug in Wechaty.emit
+    return Wechaty.vars.socket && Wechaty.vars.socket.emit('log', msg)
+  }
   function ding()     { log('recv ding'); return 'dong' }
   function send(ToUserName, Content) {
     var chat = Wechaty.glue.chatFactory
@@ -270,14 +276,16 @@ return (function(port) {
       clog('Wechaty.vars.eventsBuf has ' + Wechaty.vars.eventsBuf.length + ' unsend events')
       while (Wechaty.vars.eventsBuf.length) {
         var eventData = Wechaty.vars.eventsBuf.pop()
-        Wechaty.vars.socket.emit(eventData[0], eventData[1])
+        if (eventData && eventData.map && eventData.length===2) {
+          Wechaty.vars.socket.emit(eventData[0], eventData[1])
+        } else {
+          log('Wechaty.emit() got invalid eventData: ' + eventData[0] + ', ' + eventData[1] + ', length: ' + eventData.length)
+        }
       }
       clog('Wechaty.vars.eventsBuf all sent')
     }
-    // if (event) {
-    //   Wechaty.vars.socket.emit(event, data)
-    // }
   }
+
   function connectSocket() {
     clog('connectSocket()')
     if (typeof io !== 'function') {
@@ -305,16 +313,7 @@ return (function(port) {
 
     socket.on('connect'   , function(e) { clog('connected to server:' + e) })
     socket.on('disconnect', function(e) { clog('socket disconnect:' + e) })
-
-    //   // Reconnect...
-    //   setTimeout(function () {
-    //     clog('starting initSocket after disconnect')
-    //     initSocket()
-    //   }, 1000)
-    // })
   }
-
-
   /**
   * Log to console
   * http://stackoverflow.com/a/7089553/1123955
