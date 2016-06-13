@@ -3,7 +3,7 @@
 
 Connecting ChatBots.
 
-Wechaty is a Chatbot Library for Wechat **Personal** Account.
+Wechaty is a Bot Library for Wechat **Personal** Account.
 
 > Easy creating personal account wechat robot in 9 lines of code.
 
@@ -152,7 +152,7 @@ Win32:
 set WECHATY_DEBUG=verbose
 ```
 
-Tips: You would love to have more scroll buffer size in your CMD window in windows.
+Tips: You may want to have more scroll buffer size in your CMD window in windows.
 ```shell
 mode con lines=32766
 ```
@@ -468,7 +468,7 @@ Github Issue - https://github.com/zixia/wechaty/issues
 ## Framework
 1. [Bot Framework](https://dev.botframework.com/) Build and connect intelligent bots to interact with your users naturally wherever they are, from text/sms to Skype, Slack, Office 365 mail and other popular services. from Microsoft
 
-Why
+My Story
 ----------------
 My daily life/work depends on too much chat on wechat.
 * I almost have 14,000 wechat friends till May 2014, before wechat restricts a total number of friends to 5,000.
