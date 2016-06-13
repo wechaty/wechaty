@@ -21,7 +21,7 @@ function unescapeHtml(str) {
 }
 
 function digestEmoji(html) {
-  return html && html
+  return String(html)
   .replace(/<img class="(\w*?emoji) (\w*?emoji[^"]+?)" text="(.*?)_web" src=[^>]+>/g
     , '$3') // <img class="emoji emoji1f4a4" text="[流汗]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />
   .replace(/<span class="(\w*?emoji) (\w*?emoji[^"]+?)"><\/span>/g
