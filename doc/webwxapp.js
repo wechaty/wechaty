@@ -2833,7 +2833,18 @@ angular.module("Services", []),
 }(),
 !function() {
     "use strict";
-    angular.module("Services").factory("chatroomFactory", ["$rootScope", "$timeout", "$http", "$q", "contactFactory", "accountFactory", "emojiFactory", "confFactory", "utilFactory", "reportService", "mmHttp", function(e, t, o, n, r, a, i, c, s, l) {
+    angular.module("Services").factory("chatroomFactory", ["$rootScope", "$timeout", "$http", "$q", "contactFactory", "accountFactory", "emojiFactory", "confFactory", "utilFactory", "reportService", "mmHttp", function(
+        e
+        , t
+        , o
+        , n
+        , r
+        , a
+        , i
+        , c
+        , s
+        , l
+        ) {
         var u, f = {}, d = {
             setCurrentContact: function(e) {
                 u = e
@@ -8409,7 +8420,14 @@ function() {
             }
         }
     }
-    ]).config(["$sceProvider", "$httpProvider", "$logProvider", "$stateProvider", "$urlRouterProvider", "ngClipProvider", function(e, t, o, n, r, a) {
+    ]).config(["$sceProvider", "$httpProvider", "$logProvider", "$stateProvider", "$urlRouterProvider", "ngClipProvider", function(
+        e       // $sceProvider
+        , t     // $httpProvider
+        , o     // $logProvider
+        , n     // $stateProvider
+        , r     // $urlRouterProvider
+        , a     // $ngClipProvider
+        ) {
         e.enabled(!1),
         o.debugEnabled(!0),
         a.setPath(window.MMSource.copySwfPath),
@@ -8424,7 +8442,13 @@ function() {
             },
             views: {
                 navView: {
-                    controller: ["$stateParams", "chatFactory", "contactFactory", "stateManageService", "$rootScope", function(e, t, o, n, r) {
+                    controller: ["$stateParams", "chatFactory", "contactFactory", "stateManageService", "$rootScope", function(
+                        e   // $stateParams
+                        , t // chatFactory
+                        , o // contactFactory
+                        , n // stateManageService
+                        , r // $rootScope
+                        ) {
                         function a() {
                             var n = o.getContact(e.userName, "", !0);
                             r.$broadcast("root:statechange"),
