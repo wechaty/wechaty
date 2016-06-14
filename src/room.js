@@ -19,11 +19,7 @@ class Room {
     }
   }
 
-  toString()   {
-    return this.obj.name
-    ? htmlUtil.plainText(this.obj.name)
-    : this.obj.id
-  }
+  toString()   { return this.id }
   toStringEx() { return `Room(${this.obj.name}[${this.id}])` }
 
   ready(contactGetter) {
@@ -50,7 +46,7 @@ class Room {
     })
   }
 
-  name() { return this.obj.name }
+  name() { return htmlUtil.plainText(this.obj.name) }
   get(prop) { return this.obj[prop] }
 
   parse(rawObj) {

@@ -109,8 +109,12 @@ class Wechaty extends EventEmitter {
     return Promise.resolve()
   }
 
-  quit()    {
-    return this.puppet.quit()
+  quit() {
+    const puppetBeforeDie = this.puppet
+    this.puppet = null
+    this.inited = false
+
+    return puppetBeforeDie.quit()
     .catch(e => {
       log.error('Wechaty', 'quit() exception: %s', e.message)
       throw e

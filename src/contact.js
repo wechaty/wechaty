@@ -19,11 +19,7 @@ class Contact {
     this.obj  = {}
   }
 
-  toString() {
-    return this.obj.name
-    ? htmlUtil.plainText(this.obj.name)
-    : this.obj.id
-  }
+  toString() { return this.id }
   toStringEx() { return `Contact(${this.obj.name}[${this.id}])` }
 
   parse(rawObj) {
@@ -45,7 +41,7 @@ class Contact {
     }
   }
 
-  name()    { return this.obj.name }
+  name()    { return htmlUtil.plainText(this.obj.name) }
   remark()  { return this.obj.remark }
   stranger()    { return this.obj.stranger }
   star()        { return this.obj.star }
