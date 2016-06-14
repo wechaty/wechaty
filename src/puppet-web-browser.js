@@ -236,7 +236,8 @@ class Browser extends EventEmitter {
 
     return this.driver.executeScript.apply(this.driver, arguments)
     .catch(e => {
-      this.dead(e)
+      // this.dead(e)
+      log.warn('PuppetWebBrowser', 'execute() exception: %s', e.message)
       throw e
     })
   }
