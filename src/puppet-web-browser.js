@@ -97,22 +97,27 @@ class Browser extends EventEmitter {
   }
 
   getPhantomJsDriver() {
-    // https://github.com/SeleniumHQ/selenium/issues/2069
-    // setup custom phantomJS capability
+    // setup custom phantomJS capability https://github.com/SeleniumHQ/selenium/issues/2069
     const phantomjsExe = require('phantomjs-prebuilt').path
     // const phantomjsExe = require('phantomjs2').path
+
+    const phantomjsArgs = [
+      '--ignore-ssl-errors=true' // this help socket.io connect with localhost
+      , '--load-images=false'
+      // , '--webdriver-logfile=/tmp/wd.log'
+      // , '--webdriver-loglevel=DEBUG'
+    ]
+    if (/silly|verbose/i.test(process.env.WECHATY_DEBUG)) {
+          phantomjsArgs.push('--remote-debugger-port=8080') // XXX: be careful when in production usage.
+    }
+
     const customPhantom = WebDriver.Capabilities.phantomjs()
     .setAlertBehavior('ignore')
     .set('phantomjs.binary.path', phantomjsExe)
-    .set('phantomjs.cli.args', [
-      '--ignore-ssl-errors=true' // this help socket.io connect with localhost
-      , '--load-images=false'
-      , '--remote-debugger-port=8080'
-      // , '--webdriver-logfile=/tmp/wd.log'
-      // , '--webdriver-loglevel=DEBUG'
-    ])
+    .set('phantomjs.cli.args', phantomjsArgs)
 
     log.silly('PuppetWebBrowser', 'phantomjs binary: ' + phantomjsExe)
+    log.silly('PuppetWebBrowser', 'phantomjs args: ' + phantomjsArgs.join(' '))
 
     return new WebDriver.Builder()
     .withCapabilities(customPhantom)
@@ -156,9 +161,11 @@ class Browser extends EventEmitter {
     const max = 15
     const backoff = 100
 
-    // max = (2*totalTime/backoff) ^ (1/2)
-    // timeout = 11250 for {max: 15, backoff: 100}
-    // timeout = 45000 for {max: 30, backoff: 100}
+    /**
+     * max = (2*totalTime/backoff) ^ (1/2)
+     * timeout = 11250 for {max: 15, backoff: 100}
+     * timeout = 45000 for {max: 30, backoff: 100}
+     */
     const timeout = max * (backoff * max) / 2
 
     return retryPromise({ max: max, backoff: backoff }, attempt => {
@@ -213,10 +220,12 @@ class Browser extends EventEmitter {
         return this.addCookies(c)
       })
     }
-    // convert expiry from seconds to milliseconds. https://github.com/SeleniumHQ/selenium/issues/2245
-    // with selenium-webdriver v2.53.2
-    // NOTICE: the lastest branch of selenium-webdriver for js has changed the interface of addCookie:
-    // https://github.com/SeleniumHQ/selenium/commit/02f407976ca1d516826990f11aca7de3c16ba576
+    /**
+     * convert expiry from seconds to milliseconds. https://github.com/SeleniumHQ/selenium/issues/2245
+     * with selenium-webdriver v2.53.2
+     * NOTICE: the lastest branch of selenium-webdriver for js has changed the interface of addCookie:
+     * https://github.com/SeleniumHQ/selenium/commit/02f407976ca1d516826990f11aca7de3c16ba576
+     */
     if (cookie.expiry) { cookie.expiry = cookie.expiry * 1000 /* XXX: be aware of new version of webdriver */}
 
     log.silly('PuppetWebBrowser', 'addCookies("%s", "%s", "%s", "%s", "%s", "%s")'
