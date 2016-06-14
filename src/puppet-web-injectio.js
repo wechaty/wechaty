@@ -328,6 +328,12 @@ return (function(port) {
     var d = new Date()
     s = d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds() + ' <Wechaty> ' + s
 
+    /**
+     * FIXME: WARN PuppetWebBridge inject() exception: {"errorMessage":"null is not an object (evaluating 'document.body.appendChild')"
+     * when will document.createElement('iframe') return null?
+     * this will cause the bridge init fail, and retry.
+     * should it be ignored? or keep this exception to retry is better?
+     */
     var i = document.createElement('iframe')
     i.style.display = 'none'
     document.body.appendChild(i)

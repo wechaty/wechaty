@@ -30,13 +30,21 @@ class Wechaty extends EventEmitter {
     this.options.session    = this.options.session  || process.env.WECHATY_SESSION          // no session, no session save/restore
 
     this.VERSION = require('../package.json').version
+
+    this.inited = false
   }
   toString() { return 'Class Wechaty(' + this.puppet + ')'}
+
   init() {
     log.info('Wechaty', 'v%s initializing...', this.VERSION)
     log.verbose('Wechaty', 'puppet: %s' , this.options.puppet)
     log.verbose('Wechaty', 'head: %s'   , this.options.head)
     log.verbose('Wechaty', 'session: %s', this.options.session)
+
+    if (this.inited) {
+      log.error('Wechaty', 'init() already inited. return and do nothing.')
+      return Promise.resolve(this)
+    }
 
     return co.call(this, function* () {
       const okPort = yield this.getPort(this.options.port)
@@ -52,9 +60,11 @@ class Wechaty extends EventEmitter {
       yield this.initEventHook()
       yield this.puppet.init()
 
+      this.inited = true
       return this // for chaining
 
-    }).catch(e => {
+    })
+    .catch(e => {
       log.error('Wechaty', 'init() exception: %s', e.message)
       throw e
     })
@@ -112,7 +122,6 @@ class Wechaty extends EventEmitter {
       log.error('Wechaty', 'logout() exception: %s', e.message)
       throw e
     })
-
   }
 
   send(message)   {
@@ -129,7 +138,11 @@ class Wechaty extends EventEmitter {
       throw e
     })
   }
-  ding(data)          {
+  ding(data) {
+    if (!this.puppet) {
+      return Promise.reject(new Error('wechaty cant ding coz no puppet'))
+    }
+
     return this.puppet.ding(data)
     .catch(e => {
       log.error('Wechaty', 'ding() exception: %s', e.message)
