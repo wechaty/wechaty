@@ -145,7 +145,7 @@ class Bridge {
     .catch (e => {
       log.warn('PuppetWebBridge', 'inject() exception: %s', e.message)
       attempt = attempt || 0
-      if (attempt++ < 3)  {
+      if (attempt++ < 9)  { // if init fail, retry 9 times
         log.warn('PuppetWebBridge', 'inject(%d) retry after 1 second: %s', attempt, e.message)
         setTimeout(() => this.inject(attempt), 1000)
         return

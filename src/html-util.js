@@ -29,10 +29,12 @@ function digestEmoji(html) {
 }
 
 function plainText(html) {
-  return unescapeHtml(
-    stripHtml(
-      digestEmoji(
-        html
+  return stripHtml(
+    unescapeHtml(
+      stripHtml(
+        digestEmoji(
+          html
+        )
       )
     )
   )

@@ -17,7 +17,7 @@ Supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.appvey
 [![Downloads][downloads-image]][downloads-url]
 
 # Examples
-Wechaty is super easy to use: 10 lines of javascript is enough for your first wechat robot.
+Wechaty is super easy to use: 9 lines of javascript is enough for your 1st wechat bot.
 
 ## 1. Basic: 9 lines
 The following 9 lines of code implement a bot who reply "roger" for every message received:

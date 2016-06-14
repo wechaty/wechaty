@@ -457,8 +457,13 @@ class PuppetWeb extends Puppet {
     .set('from'     , message.obj.to)
     .set('to'       , message.obj.from)
     .set('room'     , message.obj.room)
-    // FIXME: find a alternate way to check a message create by `self`
-    .set('self'     , this.user.id)
+
+    if (this.user) {
+      // FIXME: find a alternate way to check a message create by `self`
+      m.set('self', this.user.id)
+    } else {
+      log.warn('PuppetWeb', 'reply() too early before logined user be set')
+    }
 
     // log.verbose('PuppetWeb', 'reply() by message: %s', util.inspect(m))
     return this.send(m)
