@@ -170,8 +170,7 @@ return (function(port) {
     // 408: 未确认
     var code  = +Wechaty.glue.loginScope.code
     var url   =  Wechaty.glue.loginScope.qrcodeUrl
-    if (typeof code !== 'undefined' && code !== null
-      && code !== Wechaty.vars.scanCode) {
+    if (url && code !== Wechaty.vars.scanCode) {
 
       log('checkScan() - code change detected. from '
         + Wechaty.vars.scanCode
