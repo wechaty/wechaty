@@ -1,7 +1,7 @@
 const Wechaty = require('..')
 const bot = new Wechaty()
 
-bot.init()
+bot
 .on('scan', ({url, code}) => {
   console.log(`Use Wechat to Scan QR Code in url to login: ${code}\n${url}`)
 })
@@ -10,4 +10,5 @@ bot.init()
   .then(() => console.log(`RECV: ${m}, REPLY: "roger"`))  // 2. log message
   .catch(e => console.error(e))                           // 3. catch exception
 })
+.init()
 .catch(e => console.error(e))

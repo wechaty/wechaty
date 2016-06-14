@@ -79,7 +79,19 @@ class Bridge {
     })
   }
 
+  getMsgImg(id) {
+    return this.proxyWechaty('getMsgImg', id)
+    .catch(e => {
+      log.silly('PuppetWebBridge', 'proxyWechaty(getMsgImg, %d) exception: %s', id, e.message)
+      throw e
+    })
+  }
   getContact(id) {
+    if (id!==id) { // NaN
+      const err = new Error('NaN! where does it come from?')
+      log.error('PuppetWebBridge', 'getContact(NaN): %s', err)
+      return Promise.reject(err)
+    }
     const max = 35
     const backoff = 500
 
@@ -185,5 +197,25 @@ Object.keys(window._chatContent).filter(function (k) { return window._chatConten
 
 .web_wechat_tab_add
 .web_wechat_tab_launch-chat
+
+contentChatController
+
+e.getMsgImg = function(e, t, o) {
+    return o && "undefined" != typeof o.MMStatus && o.MMStatus != u.MSG_SEND_STATUS_SUCC ? void 0 : u.API_webwxgetmsgimg + "?&MsgID=" + e + "&skey=" + encodeURIComponent(c.getSkey()) + (t ? "&type=" + t : "")
+}
+,
+e.getMsgVideo = function(e) {
+    return u.API_webwxgetvideo + "?msgid=" + e + "&skey=" + encodeURIComponent(c.getSkey())
+}
+
+<div class="picture"
+ng-init="imageInit(message,message.MMPreviewSrc || message.MMThumbSrc || getMsgImg(message.MsgId,'slave'))">
+<img class="msg-img" ng-style="message.MMImgStyle" ng-click="previewImg(message)"
+ng-src="/cgi-bin/mmwebwx-bin/webwxgetmsgimg?&amp;MsgID=6944236226252183282&amp;skey=%40crypt_c117402d_2b2a8c58340c8f4b0a4570cb8f11a1e8&amp;type=slave"
+src="/cgi-bin/mmwebwx-bin/webwxgetmsgimg?&amp;MsgID=6944236226252183282&amp;skey=%40crypt_c117402d_2b2a8c58340c8f4b0a4570cb8f11a1e8&amp;type=slave"
+style="height: 100px; width: 75px;">
+
+
+
  *
  */

@@ -54,6 +54,7 @@ return (function(port) {
 
     , getContact: getContact
     , getUserName: getUserName
+    , getMsgImg: getMsgImg
   }
 
   window.Wechaty = Wechaty
@@ -141,6 +142,17 @@ return (function(port) {
     var appScope    = angular.element('[ng-controller="appController"]').scope()
     var loginScope  = angular.element('[ng-controller="loginController"]').scope()
 
+    /**
+     * generate $scope with a contoller (as it is not assigned in html staticly)
+     * https://github.com/angular/angular.js/blob/a4e60cb6970d8b6fa9e0af4b9f881ee3ba7fdc99/test/ng/controllerSpec.js#L24
+     */
+    var contentChatScope  = rootScope.$new()
+    injector.get('$controller')('contentChatController', {$scope: contentChatScope })
+    /*
+    s =
+
+    */
+
     // get all we need from wx in browser(angularjs)
     Wechaty.glue = {
       injector:       injector
@@ -154,6 +166,8 @@ return (function(port) {
       , rootScope:    rootScope
       , appScope:     appScope
       , loginScope:   loginScope
+
+      , contentChatScope: contentChatScope
     }
   }
 
@@ -277,17 +291,19 @@ return (function(port) {
       clog('Wechaty.vars.socket not ready')
       return setTimeout(emit, 1000) // resent eventsBuf after 1000ms
     }
-    if (Wechaty.vars.eventsBuf.length) {
-      clog('Wechaty.vars.eventsBuf has ' + Wechaty.vars.eventsBuf.length + ' unsend events')
+    var bufLen = Wechaty.vars.eventsBuf.length
+    if (bufLen) {
+      if (bufLen > 1) { clog('Wechaty.vars.eventsBuf has ' + bufLen + ' unsend events') }
+
       while (Wechaty.vars.eventsBuf.length) {
         var eventData = Wechaty.vars.eventsBuf.pop()
         if (eventData && eventData.map && eventData.length===2) {
+          clog('emiting ' + eventData[0])
           Wechaty.vars.socket.emit(eventData[0], eventData[1])
-        } else {
-          log('Wechaty.emit() got invalid eventData: ' + eventData[0] + ', ' + eventData[1] + ', length: ' + eventData.length)
-        }
+        } else { clog('Wechaty.emit() got invalid eventData: ' + eventData[0] + ', ' + eventData[1] + ', length: ' + eventData.length) }
       }
-      clog('Wechaty.vars.eventsBuf all sent')
+
+      if (bufLen > 1) { clog('Wechaty.vars.eventsBuf all sent') }
     }
   }
 
@@ -340,4 +356,9 @@ return (function(port) {
     i.parentNode.removeChild(i)
   }
 
+  function getMsgImg(id) {
+    var location = window.location.href.replace(/\/$/, '')
+    var path = Wechaty.glue.contentChatScope.getMsgImg(id)
+    return location + path
+  }
 }.apply(window, arguments))

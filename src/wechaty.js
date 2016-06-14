@@ -62,7 +62,6 @@ class Wechaty extends EventEmitter {
 
       this.inited = true
       return this // for chaining
-
     })
     .catch(e => {
       log.error('Wechaty', 'init() exception: %s', e.message)

@@ -26,7 +26,7 @@ Please wait... I'm trying to login in...
 `
 
 console.log(welcome)
-const bot = new Wechaty({ session: 'ding-dong-bot.wechaty.json' })
+const bot = new Wechaty({ session: 'example.wechaty.json' })
 
 bot
 .on('login'	  , user => log.info('Bot', `${user.name()} logined`))

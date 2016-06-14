@@ -11,7 +11,7 @@ const co = require('co')
 const Contact = require('./contact')
 const Room    = require('./room')
 
-const htmlUtil  = require('./html-util')
+const webUtil  = require('./web-util')
 const log       = require('./npmlog-env')
 
 class Message {
@@ -54,10 +54,10 @@ class Message {
     return obj
   }
   toString() {
-    return htmlUtil.plainText(this.obj.content)
+    return webUtil.plainText(this.obj.content)
   }
   toStringDigest() {
-    const text = htmlUtil.digestEmoji(this.obj.digest)
+    const text = webUtil.digestEmoji(this.obj.digest)
     return '{' + this.type() + '}' + text
   }
 
@@ -73,7 +73,7 @@ class Message {
     return '<' + name + (room ? `@${room}` : '') + '>'
   }
   getContentString() {
-    let content = htmlUtil.plainText(this.obj.content)
+    let content = webUtil.plainText(this.obj.content)
     if (content.length > 20) { content = content.substring(0,17) + '...' }
     return '{' + this.type() + '}' + content
   }
@@ -83,8 +83,9 @@ class Message {
   content() { return this.obj.content }
   room()    { return this.obj.room }
 
-  type()  { return Message.Type[this.obj.type] }
-  count() { return Message.counter }
+  type()    { return this.obj.type }
+  typeEx()  { return Message.Type[this.obj.type] }
+  count()   { return Message.counter }
 
   self()    {
     if (!this.obj.self) {
@@ -172,5 +173,7 @@ Object.keys(Message.Type).forEach(k => {
   const v = Message.Type[k]
   Message.Type[v] = k // Message.Type[1] = 'TEXT'
 })
+
+Message.attach = function(puppet) { Message.puppet = puppet }
 
 module.exports = Message
