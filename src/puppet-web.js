@@ -23,9 +23,11 @@ const co    = require('co')
 const log = require('./npmlog-env')
 
 const Puppet  = require('./puppet')
-const Message = require('./message')
 const Contact = require('./contact')
 const Room    = require('./room')
+
+const Message = require('./message')
+const ImageMessage = require('./message-image')
 
 const Server  = require('./puppet-web-server')
 const Browser = require('./puppet-web-browser')
@@ -110,6 +112,7 @@ class PuppetWeb extends Puppet {
     log.verbose('PuppetWeb', 'initAttach()')
     Contact.attach(puppet)
     Room.attach(puppet)
+    Message.attach(puppet)
     return Promise.resolve(!!puppet)
   }
   initBrowser() {
@@ -389,7 +392,21 @@ class PuppetWeb extends Puppet {
     }
   }
   onServerMessage(data) {
-    const m = new Message(data)
+    let m
+    log.warn('PuppetWeb', 'MsgType: %s', data.MsgType)
+    switch (data.MsgType) {
+      case Message.Type.IMAGE:
+        log.warn('PuppetWeb', 'onServerMessage() IMAGE message found!')
+        m = new ImageMessage(data)
+        log.warn('PuppetWeb', 'onServerMessage() IMAGE url: %s', m.get('url'))
+        break;
+
+      default:
+      case 'TEXT':
+        m = new Message(data)
+        break;
+    }
+
     if (this.user) {
       m.set('self', this.user.id)
     } else {
@@ -399,6 +416,10 @@ class PuppetWeb extends Puppet {
     .then(() => this.emit('message', m))
     .catch(e => {
       log.error('PuppetWeb', 'onServerMessage() message ready exception: %s', e)
+      /**
+       * FIXME: add retry here...
+       * setTimeout(onServerMessage.bind(this, data, ++attempt), 1000)
+       */
     })
   }
 

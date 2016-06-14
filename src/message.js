@@ -83,8 +83,9 @@ class Message {
   content() { return this.obj.content }
   room()    { return this.obj.room }
 
-  type()  { return Message.Type[this.obj.type] }
-  count() { return Message.counter }
+  type()    { return this.obj.type }
+  typeEx()  { return Message.Type[this.obj.type] }
+  count()   { return Message.counter }
 
   self()    {
     if (!this.obj.self) {
@@ -172,5 +173,7 @@ Object.keys(Message.Type).forEach(k => {
   const v = Message.Type[k]
   Message.Type[v] = k // Message.Type[1] = 'TEXT'
 })
+
+Message.attach = function(puppet) { Message.puppet = puppet }
 
 module.exports = Message
