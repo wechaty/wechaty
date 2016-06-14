@@ -17,11 +17,15 @@ class ImageMessage extends Message {
     this.bridge = Message.puppet.bridge
   }
   ready() {
+    log.silly('ImageMessage', 'ready()')
+
     const parentReady = super.ready.bind(this)
     return co.call(this, function* () {
       yield parentReady()
       const url = yield this.getMsgImg(this.id)
       this.obj.url = url
+
+      return this // IMPORTANT! 
     })
     .catch(e => {
       log.warn('ImageMessage', 'ready() exception: %s', e.message)

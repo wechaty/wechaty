@@ -398,7 +398,9 @@ class PuppetWeb extends Puppet {
       case Message.Type.IMAGE:
         log.warn('PuppetWeb', 'onServerMessage() IMAGE message found!')
         m = new ImageMessage(data)
-        log.warn('PuppetWeb', 'onServerMessage() IMAGE url: %s', m.get('url'))
+        m.ready().then(() => {
+          log.warn('PuppetWeb', 'onServerMessage() IMAGE url: %s', m.get('url'))
+        })
         break;
 
       default:
