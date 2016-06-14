@@ -3,7 +3,7 @@
 const test   = require('tap').test
 
 const log       = require('../src/npmlog-env')
-const htmlUtil  = require('../src/html-util')
+const webUtil  = require('../src/web-util')
 
 test('HtmlUtil smoking test', function(t) {
   const HTML_BEFORE_STRIP = 'Outer<html>Inner</html>'
@@ -24,17 +24,17 @@ test('HtmlUtil smoking test', function(t) {
   const PLAIN_BEFORE  = '&amp;<html>&amp;</html>&amp;<img class="emoji emoji1f4a4" text="[流汗]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />'
   const PLAIN_AFTER   = '&&&[流汗]'
 
-  const strippedHtml = htmlUtil.stripHtml(HTML_BEFORE_STRIP)
+  const strippedHtml = webUtil.stripHtml(HTML_BEFORE_STRIP)
   t.equal(strippedHtml, HTML_AFTER_STRIP, 'should strip html as expected')
 
-  const unescapedHtml = htmlUtil.unescapeHtml(HTML_BEFORE_UNESCAPE)
+  const unescapedHtml = webUtil.unescapeHtml(HTML_BEFORE_UNESCAPE)
   t.equal(unescapedHtml, HTML_AFTER_UNESCAPE, 'should unescape html as expected')
 
   for (let i=0; i<EMOJI_BEFORE_DIGEST.length; i++) {
-    const emojiDigest = htmlUtil.digestEmoji(EMOJI_BEFORE_DIGEST[i])
+    const emojiDigest = webUtil.digestEmoji(EMOJI_BEFORE_DIGEST[i])
     t.equal(emojiDigest, EMOJI_AFTER_DIGEST[i], 'should digest emoji string ' + i + ' as expected')
   }
-  const plainText = htmlUtil.plainText(PLAIN_BEFORE)
+  const plainText = webUtil.plainText(PLAIN_BEFORE)
   t.equal(plainText, PLAIN_AFTER, 'should convert plain text as expected')
 
   t.end()

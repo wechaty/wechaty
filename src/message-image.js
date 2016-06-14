@@ -6,9 +6,10 @@
  * https://github.com/zixia/wechaty
  *
  */
-const log = require('./npmlog-env')
 const co = require('co')
 
+const log = require('./npmlog-env')
+const webUtil = require('./web-util')
 const Message = require('./message')
 
 class ImageMessage extends Message {
@@ -25,7 +26,7 @@ class ImageMessage extends Message {
       const url = yield this.getMsgImg(this.id)
       this.obj.url = url
 
-      return this // IMPORTANT! 
+      return this // IMPORTANT!
     })
     .catch(e => {
       log.warn('ImageMessage', 'ready() exception: %s', e.message)
@@ -36,6 +37,20 @@ class ImageMessage extends Message {
     return this.bridge.getMsgImg(id)
     .catch(e => {
       log.warn('ImageMessage', 'getMsgImg(%d) exception: %s', id, e.message)
+      throw e
+    })
+  }
+
+  readyStream() {
+    return this.ready()
+    .then(() => {
+      return Message.puppet.browser.checkSession()
+    })
+    .then(cookies => {
+      return webUtil.downloadStream(this.obj.url, cookies)
+    })
+    .catch(e => {
+      log.warn('ImageMessage', 'stream() exception: %s', e.message)
       throw e
     })
   }

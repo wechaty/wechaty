@@ -25,13 +25,13 @@ The following 9 lines of code implement a bot who reply "roger" for every messag
 ```javascript
 const Wechaty = require('wechaty')
 const wechaty = new Wechaty()
-wechaty.init().on('scan', ({url, code}) => {
+wechaty.on('scan', ({url, code}) => {
   console.log(`Use Wechat to scan qrcode in url to login: ${code}\n${url}`)
 }).on('message', m => {
   !m.self() && wechaty.reply(m, 'roger') // 1. reply
   .then(() => console.log(`RECV: ${m}, REPLY: "roger"`)) // 2. log message
   .catch(e => console.error(e)) // 3. catch exception
-})
+}).init()
 ```
 
 Notice that you need to wait a moment while bot trys to get the login QRCode from Wechat. As soon as the bot gets login QRCode url, he will print url out. You need to scan the qrcode on wechat, and confirm login.

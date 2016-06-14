@@ -393,18 +393,15 @@ class PuppetWeb extends Puppet {
   }
   onServerMessage(data) {
     let m
-    log.warn('PuppetWeb', 'MsgType: %s', data.MsgType)
+    // log.warn('PuppetWeb', 'MsgType: %s', data.MsgType)
     switch (data.MsgType) {
       case Message.Type.IMAGE:
-        log.warn('PuppetWeb', 'onServerMessage() IMAGE message found!')
+        // log.verbose('PuppetWeb', 'onServerMessage() IMAGE message')
         m = new ImageMessage(data)
-        m.ready().then(() => {
-          log.warn('PuppetWeb', 'onServerMessage() IMAGE url: %s', m.get('url'))
-        })
         break;
 
-      default:
       case 'TEXT':
+      default:
         m = new Message(data)
         break;
     }

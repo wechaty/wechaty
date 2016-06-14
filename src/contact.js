@@ -7,7 +7,7 @@
  *
  */
 const log       = require('./npmlog-env')
-const htmlUtil  = require('./html-util')
+const webUtil  = require('./web-util')
 
 class Contact {
   constructor(id) {
@@ -41,7 +41,7 @@ class Contact {
     }
   }
 
-  name()    { return htmlUtil.plainText(this.obj.name) }
+  name()    { return webUtil.plainText(this.obj.name) }
   remark()  { return this.obj.remark }
   stranger()    { return this.obj.stranger }
   star()        { return this.obj.star }

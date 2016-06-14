@@ -7,7 +7,7 @@
  *
  */
 const log       = require('./npmlog-env')
-const htmlUtil  = require('./html-util')
+const webUtil  = require('./web-util')
 
 class Room {
   constructor(id) {
@@ -46,7 +46,7 @@ class Room {
     })
   }
 
-  name() { return htmlUtil.plainText(this.obj.name) }
+  name() { return webUtil.plainText(this.obj.name) }
   get(prop) { return this.obj[prop] }
 
   parse(rawObj) {
