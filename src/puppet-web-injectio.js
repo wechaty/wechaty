@@ -39,6 +39,7 @@ return (function(port) {
       , socket:     null
       , eventsBuf:  []
       , scanCode:   null
+      , heartBeatTimmer:   null
     }
 
     // funcs
@@ -109,17 +110,22 @@ return (function(port) {
 
     checkScan()
 
-    heartBeat()
+    heartBeat(true)
 
     clog('inited!. ;-D')
     Wechaty.vars.inited = true
     return 'init: success'
   }
 
-  function heartBeat() {
+  function heartBeat(firstTime) {
     var TIMEOUT = 15000 // 15s
+    if (firstTime && Wechaty.vars.heartBeatTimmer) {
+      Wechaty.log('heartBeat timer exist when 1st time is true? return for do nothing')
+      return
+    }
     Wechaty.emit('ding', 'heartbeat@browser')
-    setTimeout(heartBeat, TIMEOUT)
+    Wechaty.vars.heartBeatTimmer = setTimeout(heartBeat, TIMEOUT)
+    return TIMEOUT
   }
 
   function glueAngular() {

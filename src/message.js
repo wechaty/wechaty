@@ -37,6 +37,8 @@ class Message {
 
       , self:         undefined // to store the logined user id
     }
+
+    // FIXME: has ther any better method to know the room ID?
     if (rawObj.MMIsChatRoom) {
       if (/^@@/.test(rawObj.FromUserName)) {
         obj.room =  rawObj.FromUserName // MMPeerUserName always eq FromUserName ?
@@ -52,6 +54,9 @@ class Message {
     return obj
   }
   toString() {
+    return htmlUtil.plainText(this.obj.content)
+  }
+  toStringDigest() {
     const text = htmlUtil.digestEmoji(this.obj.digest)
     return '{' + this.type() + '}' + text
   }
