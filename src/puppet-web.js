@@ -312,7 +312,7 @@ class PuppetWeb extends Puppet {
         this.bridge.init()
         .then(r  => log.verbose('PuppetWeb', 'onServerDisconnect() bridge re-inited: %s', r))
         .catch(e => log.error('PuppetWeb', 'onServerDisconnect() exception: [%s]', e))
-      }, 10000) // 10 seconds should be enough to wait
+      }, 1000) // 1 second instead of 10 seconds? try. (should be enough to wait)
       return
     }
   }

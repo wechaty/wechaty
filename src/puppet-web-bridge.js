@@ -120,7 +120,7 @@ class Bridge {
       , 'utf8'
     )
   }
-  inject() {
+  inject(attempt) {
     log.verbose('PuppetWebBridge', 'inject()')
     return co.call(this, function* () {
       const injectio = this.getInjectio()
@@ -131,7 +131,13 @@ class Bridge {
       return r
     })
     .catch (e => {
-      log.error('PuppetWebBridge', 'inject() exception: %s', e.message)
+      log.warn('PuppetWebBridge', 'inject() exception: %s', e.message)
+      attempt = attempt || 0
+      if (attempt++ < 3)  {
+        log.warn('PuppetWebBridge', 'inject(%d) retry after 1 second: %s', attempt, e.message)
+        setTimeout(() => this.inject(attempt), 1000)
+        return
+      }
       throw e
     })
   }
@@ -148,11 +154,11 @@ class Bridge {
     // see: http://blog.sqrtthree.com/2015/08/29/utf8-to-b64/
     const argsDecoded = `JSON.parse(decodeURIComponent(window.atob('${argsEncoded}')))`
 
-    const wechatyScript   = `return (typeof Wechaty !== 'undefined' && Wechaty.${wechatyFunc}.apply(undefined, ${argsDecoded}))`
+    const wechatyScript   = `return Wechaty.${wechatyFunc}.apply(undefined, ${argsDecoded})`
     log.silly('PuppetWebBridge', 'proxyWechaty(%s, ...args) %s', wechatyFunc, wechatyScript)
     return this.execute(wechatyScript)
     .catch(e => {
-      log.warn('PuppetWebBridge', 'proxyWechaty() exception: %s', e.message || e)
+      log.warn('PuppetWebBridge', 'proxyWechaty() exception: %s', e.message)
       throw e
     })
   }
@@ -160,7 +166,7 @@ class Bridge {
   execute(script, ...args) {
     return this.options.puppet.browser.execute(script, ...args)
     .catch(e => {
-      log.warn('PuppetWebBridge', 'execute() exception: %s', e.message || e)
+      log.warn('PuppetWebBridge', 'execute() exception: %s', e.message)
       throw e
     })
   }
