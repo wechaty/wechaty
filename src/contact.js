@@ -52,7 +52,7 @@ class Contact {
   get(prop) { return this.obj[prop] }
 
   ready(contactGetter) {
-    log.silly('Contact', 'ready(' + typeof contactGetter + ')')
+    log.silly('Contact', 'ready(' + (contactGetter ? typeof contactGetter : '') + ')')
     if (!this.id) {
       log.warn('Contact', 'ready() call on an un-inited contact')
       return Promise.resolve(this)

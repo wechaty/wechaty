@@ -118,7 +118,6 @@ class Server extends EventEmitter {
     })
 
     client.on('error' , e => log.error('PuppetWebServer', 'initEventsFromClient() client on error: %s', e))
-    // client.on('ding'  , e => log.silly('PuppetWebServer', 'initEventsFromClient() client on ding: %s', e))
 
     // Events from Wechaty@Broswer --to--> Server
     ;[
@@ -131,7 +130,7 @@ class Server extends EventEmitter {
       , 'ding'
     ].map(e => {
       client.on(e, data => {
-        log.silly('PuppetWebServer', `initEventsFromClient() client on event[${e}](${data}) from browser, emit it`)
+        log.silly('PuppetWebServer', `initEventsFromClient() forward client event[${e}](${data}) from browser by emit it`)
         this.emit(e, data)
       })
     })

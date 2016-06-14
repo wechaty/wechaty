@@ -43,6 +43,7 @@ class Browser extends EventEmitter {
     .catch(e => {
       // XXX: must has a `.catch` here, or promise will hang! 2016/6/7
       // XXX: if no `.catch` here, promise will hang!
+      // with selenium-webdriver v2.53.2
       // XXX: https://github.com/SeleniumHQ/selenium/issues/2233
       log.error('PuppetWebBrowser', 'init() exception: %s', e.message)
       throw e
@@ -71,6 +72,7 @@ class Browser extends EventEmitter {
       }
 
       // XXX: if no `setTimeout()` here, promise will hang!
+      // with selenium-webdriver v2.53.2
       // XXX: https://github.com/SeleniumHQ/selenium/issues/2233
       setTimeout(() => { resolve(this.driver) }, 0)
       // resolve(this.driver)
@@ -212,6 +214,7 @@ class Browser extends EventEmitter {
       })
     }
     // convert expiry from seconds to milliseconds. https://github.com/SeleniumHQ/selenium/issues/2245
+    // with selenium-webdriver v2.53.2
     // NOTICE: the lastest branch of selenium-webdriver for js has changed the interface of addCookie:
     // https://github.com/SeleniumHQ/selenium/commit/02f407976ca1d516826990f11aca7de3c16ba576
     if (cookie.expiry) { cookie.expiry = cookie.expiry * 1000 /* XXX: be aware of new version of webdriver */}
