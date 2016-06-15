@@ -150,21 +150,26 @@ return (function(port) {
       return true
     }
 
-    var i = document.createElement('iframe')
-    if (i) {
-      // slog('initClog got iframe element')
-      i.style.display = 'none'
-      document.body.appendChild(i)
-      Wechaty.vars.iframe = i
-      // if (!Wechaty.vars.iframe) {
-      //   throw new Error('iframe gone after appendChild, WTF???')
-      // }
-      // slog('initClog done')
-      return true
+    if (!document.body) {
+      log('initClog() not ready because document.body not ready')
+      return false
     }
 
-    // slog('initClog got null iframe element')
-    return false
+    var i = document.createElement('iframe')
+    if (!i) {
+      log('initClog() not ready because document.createElement fail')
+      return false
+    }
+
+    // slog('initClog got iframe element')
+    i.style.display = 'none'
+    document.body.appendChild(i)
+    Wechaty.vars.iframe = i
+    // if (!Wechaty.vars.iframe) {
+    //   throw new Error('iframe gone after appendChild, WTF???')
+    // }
+    // slog('initClog done')
+    return true
   }
 
   function clog(s) {
@@ -180,6 +185,39 @@ return (function(port) {
 
   function slog(msg)  { Wechaty.emit('log', msg) }
   function log(s)     { clog(s); slog(s) }
+
+  /**
+   * Wechaty.emit, will save event & data when there's no socket io connection to prevent event lost
+   * NOTICE: only clog available here, because slog & log will call emit, death loop
+   */
+  function emit(event, data) {
+    var eventsBuf = Wechaty.vars.eventsBuf
+    if (!eventsBuf.map) {
+      throw new Error('Wechaty.vars.eventsBuf must be a Array')
+    }
+    if (event) {
+      eventsBuf.push([event, data])
+    }
+    var socket = Wechaty.vars.socket
+    if (!socket) {
+      clog('Wechaty.vars.socket not ready')
+      return setTimeout(emit, 1000) // resent eventsBuf after 1000ms
+    }
+    var bufLen = eventsBuf.length
+    if (bufLen) {
+      if (bufLen > 1) { clog('Wechaty.vars.eventsBuf has ' + bufLen + ' unsend events') }
+
+      while (eventsBuf.length) {
+        var eventData = eventsBuf.pop()
+        if (eventData && eventData.map && eventData.length===2) {
+          clog('emiting ' + eventData[0])
+          socket.emit(eventData[0], eventData[1])
+        } else { clog('Wechaty.emit() got invalid eventData: ' + eventData[0] + ', ' + eventData[1] + ', length: ' + eventData.length) }
+      }
+
+      if (bufLen > 1) { clog('Wechaty.vars.eventsBuf[' + bufLen + '] all sent') }
+    }
+  }
 
   /**
   *
@@ -335,39 +373,6 @@ return (function(port) {
     })
     return true
   }
-  /**
-   * Wechaty.emit, will save event & data when there's no socket io connection to prevent event lost
-   * NOTICE: only clog available here, because slog & log will call emit, death loop
-   */
-  function emit(event, data) {
-    var eventsBuf = Wechaty.vars.eventsBuf
-    if (!eventsBuf.map) {
-      throw new Error('Wechaty.vars.eventsBuf must be a Array')
-    }
-    if (event) {
-      eventsBuf.push([event, data])
-    }
-    var socket = Wechaty.vars.socket
-    if (!socket) {
-      clog('Wechaty.vars.socket not ready')
-      return setTimeout(emit, 1000) // resent eventsBuf after 1000ms
-    }
-    var bufLen = eventsBuf.length
-    if (bufLen) {
-      if (bufLen > 1) { clog('Wechaty.vars.eventsBuf has ' + bufLen + ' unsend events') }
-
-      while (eventsBuf.length) {
-        var eventData = eventsBuf.pop()
-        if (eventData && eventData.map && eventData.length===2) {
-          clog('emiting ' + eventData[0])
-          socket.emit(eventData[0], eventData[1])
-        } else { clog('Wechaty.emit() got invalid eventData: ' + eventData[0] + ', ' + eventData[1] + ', length: ' + eventData.length) }
-      }
-
-      if (bufLen > 1) { clog('Wechaty.vars.eventsBuf[' + bufLen + '] all sent') }
-    }
-  }
-
   function connectSocket() {
     log('connectSocket()')
     if (typeof io !== 'function') {
