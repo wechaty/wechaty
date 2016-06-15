@@ -2035,7 +2035,16 @@ angular.module("Controllers", []),
 angular.module("Services", []),
 !function() {
     "use strict";
-    angular.module("Services").factory("appFactory", ["$http", "$q", "confFactory", "accountFactory", "loginFactory", "utilFactory", "reportService", "mmHttp", function(e, t, o, n, r, a, i, c) {
+    angular.module("Services").factory("appFactory", ["$http", "$q", "confFactory", "accountFactory", "loginFactory", "utilFactory", "reportService", "mmHttp", function(
+        e   // $http
+        , t // $q
+        , o // confFactory
+        , n // accountFactory
+        , r // loginFactory
+        , a // utilFactory
+        , i // reportService
+        , c // mmHttp
+        ) {
         var s = {
             globalData: {
                 chatList: []

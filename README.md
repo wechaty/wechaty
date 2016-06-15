@@ -438,7 +438,7 @@ Github Issue - https://github.com/zixia/wechaty/issues
 
 # See Also
 
-## Other Library
+## Similar Project
 
 ### Javascript
 1. [Weixinbot](https://github.com/feit/Weixinbot) Nodejs 封装网页版微信的接口，可编程控制微信消息

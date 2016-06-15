@@ -58,7 +58,7 @@ class Message {
   }
   toStringDigest() {
     const text = webUtil.digestEmoji(this.obj.digest)
-    return '{' + this.type() + '}' + text
+    return '{' + this.typeEx() + '}' + text
   }
 
   toStringEx() {

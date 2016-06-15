@@ -30,13 +30,32 @@ class Bridge {
 
   init() {
     log.verbose('PuppetWebBridge', 'init()')
-    return this.inject()
-    .then(r => {
-      log.verbose('PuppetWebBridge', 'init() inject() return %s', r)
-      return this
+
+    const max = 15
+    const backoff = 100
+
+    // max = (2*totalTime/backoff) ^ (1/2)
+    // timeout = 11,250 for {max: 15, backoff: 100}
+    // timeout = 45,000 for {max: 30, backoff: 100}
+    // timeout = 30,6250 for {max: 35, backoff: 500}
+    const timeout = max * (backoff * max) / 2
+
+    return retryPromise({ max: max, backoff: backoff }, attempt => {
+      log.silly('PuppetWebBridge', 'init() retryPromise: attampt %s/%s times for timeout %s'
+        , attempt, max, timeout)
+
+      return this.inject()
+      .then(r => {
+        log.verbose('PuppetWebBridge', 'init() inject() return %s at attempt %d', r, attempt)
+        return r
+      })
+      .catch(e => {
+        log.warn('PuppetWebBridge', 'init() inject() attempt %d exception: %s', attempt, e.message)
+        throw e
+      })
     })
     .catch(e => {
-      log.error('PuppetWebBridge', 'init() inject() exception: %s', e.message)
+      log.warn('PuppetWebBridge', 'init() inject FINAL fail: %s', e.message)
       throw e
     })
   }
@@ -132,24 +151,32 @@ class Bridge {
       , 'utf8'
     )
   }
-  inject(attempt) {
+  inject() {
     log.verbose('PuppetWebBridge', 'inject()')
     return co.call(this, function* () {
+
       const injectio = this.getInjectio()
-      let r = yield this.execute(injectio, this.options.port)
-      log.verbose('PuppetWebBridge', 'inject() injected, got [%s]', r)
-      r = yield this.proxyWechaty('init')
-      log.verbose('PuppetWebBridge', 'inject() Wechaty.init() return: %s', r)
-      return r
+      let retObj = yield this.execute(injectio, this.options.port)
+      if (retObj && /^2/.test(retObj.code)) {
+        log.verbose('PuppetWebBridge', 'inject() injectio injected, with code[%d] message[%s] port[%d]'
+          , retObj.code, retObj.message, retObj.port)
+      } else {
+        throw new Error('execute injectio error: ' + retObj.message)
+      }
+
+      retObj = yield this.proxyWechaty('init')
+      if (retObj && /^2/.test(retObj.code)) {
+        log.verbose('PuppetWebBridge', 'inject() injectio inited, with code[%d] message[%s] port[%d]'
+          , retObj.code, retObj.message, retObj.port)
+      } else {
+        throw new Error('execute proxyWechaty(init) error: ' + retObj.message)
+      }
+
+      return true
+
     })
     .catch (e => {
       log.warn('PuppetWebBridge', 'inject() exception: %s', e.message)
-      attempt = attempt || 0
-      if (attempt++ < 9)  { // if init fail, retry 9 times
-        log.warn('PuppetWebBridge', 'inject(%d) retry after 1 second: %s', attempt, e.message)
-        setTimeout(() => this.inject(attempt), 1000)
-        return
-      }
       throw e
     })
   }
@@ -179,6 +206,14 @@ class Bridge {
     return this.options.puppet.browser.execute(script, ...args)
     .catch(e => {
       log.warn('PuppetWebBridge', 'execute() exception: %s', e.message)
+      throw e
+    })
+  }
+
+  ding(data) {
+    return this.proxyWechaty('ding', data)
+    .catch(e => {
+      log.error('PuppetWebBridge', 'ding(%s) exception: %s', data, e.message)
       throw e
     })
   }
@@ -215,7 +250,22 @@ ng-src="/cgi-bin/mmwebwx-bin/webwxgetmsgimg?&amp;MsgID=6944236226252183282&amp;s
 src="/cgi-bin/mmwebwx-bin/webwxgetmsgimg?&amp;MsgID=6944236226252183282&amp;skey=%40crypt_c117402d_2b2a8c58340c8f4b0a4570cb8f11a1e8&amp;type=slave"
 style="height: 100px; width: 75px;">
 
+ *
+ * check the live status of wxapp method 1
+ *
+appFactory = Wechaty.glue.injector.get('appFactory')
+appFactory.syncOrig = appFactory.sync
+appFactory.syncCheckOrig = appFactory.syncCheck
+appFactory.sync = function() { Wechaty.log('appFactory.sync() !!!'); return appFactory.syncOrig(arguments) }
+appFactory.syncCheck = function() { Wechaty.log('appFactory.syncCheck() !!!'); return appFactory.syncCheckOrig(arguments) }
 
+// method 2
+$.ajaxOrig = $.ajax
+$.ajax = function() { Wechaty.log('$.ajax() !!!'); return $.ajaxOrig(arguments) }
 
+// method 3 - mmHttp
+mmHttp = Wechaty.glue.injector.get('mmHttp')
+mmHttp.getOrig = mmHttp.get
+mmHttp.get = function() { Wechaty.log('mmHttp.get() !!!'); return mmHttp.getOrig(arguments) }
  *
  */

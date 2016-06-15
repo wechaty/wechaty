@@ -17,8 +17,20 @@
 return (function(port) {
   port = port || 8788
 
-  if (typeof Wechaty !== 'undefined') {
-    return 'Wechaty already injected?'
+  /*
+   * Wechaty injectio must return this object.
+   * PuppetWebBridge need this to decide if injection is successful.
+   */
+  retObj = {
+    code: 200 // 2XX ok, 4XX/5XX error. HTTP like
+    , message: 'any message'
+    , port: port
+  }
+
+  if (typeof this.Wechaty !== 'undefined') {
+    retObj.code = 201
+    retObj.message = 'Wechaty already injected?'
+    return retObj
   }
 
   var Wechaty = {
@@ -55,27 +67,35 @@ return (function(port) {
     , getContact: getContact
     , getUserName: getUserName
     , getMsgImg: getMsgImg
-  }
 
-  window.Wechaty = Wechaty
+    // test purpose
+    , isLogin: isLogin
+  }
 
   if (isWxLogin()) {
     login('page refresh')
   }
+
+  this.Wechaty = Wechaty
+  retObj.code = 200
+  retObj.message = 'Wechaty Inject Succ'
+  return retObj
 
   /**
    * Two return mode of WebDriver (should be one of them at a time)
    * 1. a callback. return a value by call callback with args
    * 2. direct return
    */
-  var callback = arguments[arguments.length - 1]
-  if (typeof callback === 'function') {
-    return callback('Wechaty')
-  } else {
-    return 'Wechaty'
-  }
+  // var callback = arguments[arguments.length - 1]
+  // if (typeof callback === 'function') {
+  //   return callback(retObj)
+  // } else {
+  // return retObj
+  // }
 
-  return 'Should not run to here'
+  retObj.code = 500
+  retObj.message = 'SHOULD NOT RUN TO HERE'
+  return retObj
 
   /////////////////////////////////////////////////////////////////////////////
 
@@ -95,13 +115,23 @@ return (function(port) {
   function init() {
     if (Wechaty.vars.inited === true) {
       log('Wechaty.init() called twice: already inited')
-      return 'init: already inited'
+      retObj.code = 201
+      retObj.message = 'init() already inited before. returned with do nothing'
+      return retObj
     }
 
     if (!isReady()) {
       clog('angular not ready. wait 500ms...')
       setTimeout(init, 1000)
-      return 'init: entered waiting angular loop'// AngularJS not ready, wait 500ms then try again.
+      retObj.code = 202
+      retObj.message = 'init() entered waiting angular loop'// AngularJS not ready, wait 500ms then try again.
+      return retObj
+    }
+
+    if (!initClog()) { // make console.log work (wxapp disabled the console.log)
+      retObj.code = 501
+      retObj.message = 'initClog fail'
+      return retObj
     }
 
     clog('init on port:' + port)
@@ -115,7 +145,10 @@ return (function(port) {
 
     clog('inited!. ;-D')
     Wechaty.vars.inited = true
-    return 'init: success'
+
+    retObj.code = 200
+    retObj.message = 'init(): success on port ' + port
+    return retObj
   }
 
   function heartBeat(firstTime) {
@@ -231,7 +264,13 @@ return (function(port) {
   function slog(msg) {
     // keep this emit directly to use socket.emit instead of Wechaty.emit
     // to prevent lost log msg if there has any bug in Wechaty.emit
-    return Wechaty.vars.socket && Wechaty.vars.socket.emit('log', msg)
+    if (!Wechaty.vars.socket) {
+      clog('Wechaty.slog() not usable now coz no Wechaty.vars.socket. use clog instead')
+      clog(msg)
+      return
+    } else {
+      Wechaty.vars.socket.emit('log', msg)
+    }
   }
   function ding()     { log('recv ding'); return 'dong' }
   function send(ToUserName, Content) {
@@ -339,6 +378,17 @@ return (function(port) {
   * Log to console
   * http://stackoverflow.com/a/7089553/1123955
   */
+  function initClog() {
+    var i = document.createElement('iframe')
+    if (!i) {
+      return false
+    }
+    i.style.display = 'none'
+    document.body.appendChild(i)
+    Wechaty.vars.iframe = i
+    clog('initClog done')
+    return true
+  }
   function clog(s) {
     var d = new Date()
     s = d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds() + ' <Wechaty> ' + s
@@ -349,11 +399,11 @@ return (function(port) {
      * this will cause the bridge init fail, and retry.
      * should it be ignored? or keep this exception to retry is better?
      */
-    var i = document.createElement('iframe')
-    i.style.display = 'none'
-    document.body.appendChild(i)
-    i.contentWindow.console.log(s)
-    i.parentNode.removeChild(i)
+    // var i = document.createElement('iframe')
+    // i.style.display = 'none'
+    // document.body.appendChild(i)
+    Wechaty.vars.iframe.contentWindow.console.log(s)
+    // i.parentNode.removeChild(i)
   }
 
   function getMsgImg(id) {
