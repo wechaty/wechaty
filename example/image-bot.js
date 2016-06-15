@@ -1,5 +1,5 @@
 const Wechaty = require('..')
-const bot = new Wechaty({ session: 'example.wechaty.json' })
+const bot = new Wechaty({ session: 'example-bot.wechaty.json' })
 
 bot
 .on('scan', ({url, code}) => {

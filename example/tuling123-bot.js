@@ -15,7 +15,7 @@ const co  = require('co')
 const Tuling123 = require('tuling123-client')
 const EventEmitter2 = require('eventemitter2')
 
-const Wechaty = require('../src/wechaty')
+const Wechaty = require('..')
 //log.level = 'verbose'
 // log.level = 'silly'
 
@@ -28,7 +28,7 @@ const Wechaty = require('../src/wechaty')
 const TULING123_API_KEY = '18f25157e0446df58ade098479f74b21'
 const brain = new Tuling123(TULING123_API_KEY)
 
-const bot = new Wechaty({head: false})
+const bot = new Wechaty({ session: 'example-bot.wechaty.json' })
 
 console.log(`
 Welcome to Tuling Wechaty Bot.

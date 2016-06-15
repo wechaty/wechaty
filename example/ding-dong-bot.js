@@ -1,6 +1,6 @@
 const log = require('npmlog')
 
-const Wechaty = require('../src/wechaty')
+const Wechaty = require('..')
 
 const welcome = `
 | __        __        _           _
@@ -26,7 +26,7 @@ Please wait... I'm trying to login in...
 `
 
 console.log(welcome)
-const bot = new Wechaty({ session: 'example.wechaty.json' })
+const bot = new Wechaty({ session: 'example-bot.wechaty.json' })
 
 bot
 .on('login'	  , user => log.info('Bot', `${user.name()} logined`))
