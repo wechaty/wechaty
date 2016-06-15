@@ -35,13 +35,13 @@ return (function(port) {
 
   var Wechaty = {
     glue: {
-      // will be initialized by glueAngular() function
+      // will be initialized by glueToAngular() function
     }
 
     // glue funcs
     , getLoginStatusCode: function() { return Wechaty.glue.loginScope.code }
     , getLoginQrImgUrl:   function() { return Wechaty.glue.loginScope.qrcodeUrl }
-    , isReady:            isReady
+    , angularIsReady:    angularIsReady
 
     // variable
     , vars: {
@@ -70,10 +70,7 @@ return (function(port) {
 
     // test purpose
     , isLogin: isLogin
-  }
-
-  if (isWxLogin()) {
-    login('page refresh')
+    , initClog: initClog
   }
 
   this.Wechaty = Wechaty
@@ -99,20 +96,13 @@ return (function(port) {
 
   /////////////////////////////////////////////////////////////////////////////
 
-  /**
-  *
-  * Functions that Glued with AngularJS
-  *
-  */
-  function isWxLogin() { return !!(window.MMCgi && window.MMCgi.isLogin) }
-  function isReady() {
-    return !!(
-      (typeof angular) !== 'undefined'
-      && angular.element
-      && angular.element('body')
-    )
-  }
   function init() {
+    if (!initClog()) { // make console.log work (wxapp disabled the console.log)
+      retObj.code = 501
+      retObj.message = 'initClog fail'
+      return retObj
+    }
+
     if (Wechaty.vars.inited === true) {
       log('Wechaty.init() called twice: already inited')
       retObj.code = 201
@@ -120,7 +110,7 @@ return (function(port) {
       return retObj
     }
 
-    if (!isReady()) {
+    if (!angularIsReady()) {
       clog('angular not ready. wait 500ms...')
       setTimeout(init, 1000)
       retObj.code = 202
@@ -128,14 +118,13 @@ return (function(port) {
       return retObj
     }
 
-    if (!initClog()) { // make console.log work (wxapp disabled the console.log)
-      retObj.code = 501
-      retObj.message = 'initClog fail'
-      return retObj
+    clog('init on port:' + port)
+
+    if (MMCgiLogined()) {
+      login('page refresh')
     }
 
-    clog('init on port:' + port)
-    glueAngular()
+    glueToAngular()
     connectSocket()
     hookEvents()
 
@@ -151,6 +140,61 @@ return (function(port) {
     return retObj
   }
 
+  /**
+  * Log to console
+  * http://stackoverflow.com/a/7089553/1123955
+  */
+  function initClog() {
+    if (Wechaty.vars.iframe) {
+      log('initClog() again? there is already a iframe')
+      return true
+    }
+
+    var i = document.createElement('iframe')
+    if (i) {
+      // slog('initClog got iframe element')
+      i.style.display = 'none'
+      document.body.appendChild(i)
+      Wechaty.vars.iframe = i
+      // if (!Wechaty.vars.iframe) {
+      //   throw new Error('iframe gone after appendChild, WTF???')
+      // }
+      // slog('initClog done')
+      return true
+    }
+
+    // slog('initClog got null iframe element')
+    return false
+  }
+
+  function clog(s) {
+    var d = new Date()
+    s = d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds() + ' <Wechaty> ' + s
+
+    if (Wechaty.vars.iframe) {
+      Wechaty.vars.iframe.contentWindow.console.log(s)
+    } else {
+      throw new Error('clog() iframe not found when be invocked')
+    }
+  }
+
+  function slog(msg)  { Wechaty.emit('log', msg) }
+  function log(s)     { clog(s); slog(s) }
+
+  /**
+  *
+  * Functions that Glued with AngularJS
+  *
+  */
+  function MMCgiLogined() { return !!(window.MMCgi && window.MMCgi.isLogin) }
+  function angularIsReady() {
+    return !!(
+      (typeof angular) !== 'undefined'
+      && angular.element
+      && angular.element('body')
+    )
+  }
+
   function heartBeat(firstTime) {
     var TIMEOUT = 15000 // 15s
     if (firstTime && Wechaty.vars.heartBeatTimmer) {
@@ -162,7 +206,7 @@ return (function(port) {
     return TIMEOUT
   }
 
-  function glueAngular() {
+  function glueToAngular() {
     var injector  = angular.element(document).injector()
 
     var http            = injector.get('$http')
@@ -242,76 +286,45 @@ return (function(port) {
 
   function isLogin() { return !!Wechaty.vars.logined }
   function login(data) {
-    clog('login(' + data + ')')
+    log('login(' + data + ')')
     Wechaty.vars.logined = true
     Wechaty.emit('login', data)
   }
   function logout(data) {
-    clog('logout(' + data + ')')
+    log('logout(' + data + ')')
     Wechaty.vars.logined = false
     Wechaty.emit('logout', data)
     checkScan()
   }
   function quit() {
-    clog('quit()')
-    logout('quit')
+    log('quit()')
+    logout('quit()')
     if (Wechaty.vars.socket) {
       Wechaty.vars.socket.close()
       Wechaty.vars.socket = null
     }
   }
-  function log(s)     { clog(s); slog(s) }
-  function slog(msg) {
-    // keep this emit directly to use socket.emit instead of Wechaty.emit
-    // to prevent lost log msg if there has any bug in Wechaty.emit
-    if (!Wechaty.vars.socket) {
-      clog('Wechaty.slog() not usable now coz no Wechaty.vars.socket. use clog instead')
-      clog(msg)
-      return
-    } else {
-      Wechaty.vars.socket.emit('log', msg)
-    }
-  }
-  function ding()     { log('recv ding'); return 'dong' }
-  function send(ToUserName, Content) {
-    var chat = Wechaty.glue.chatFactory
-    var m = chat.createMessage({
-      ToUserName: ToUserName
-      , Content: Content
-      , MsgType: Wechaty.glue.confFactory.MSGTYPE_TEXT
-    })
-    chat.appendMessage(m)
-    return chat.sendMessage(m)
-  }
-  function getContact(id) {
-    if (Wechaty.glue.contactFactory) {
-      var c = Wechaty.glue.contactFactory.getContact(id)
-      if (c && c.isContact) {
-        c.stranger = !(c.isContact())
-      }
-      return c
-    }
-    log('contactFactory not inited')
-    return null
-  }
-  function getUserName() {
-    return Wechaty.glue.accountFactory
-    ? Wechaty.glue.accountFactory.getUserName()
-    : null
-  }
+
+  function ding() { log('recv ding'); return 'dong' }
   function hookEvents() {
-    Wechaty.glue.rootScope.$on('message:add:success', function(event, data) {
+    var rootScope = Wechaty.glue.rootScope
+    var appScope = Wechaty.glue.appScope
+    if (!rootScope || !appScope) {
+      log('hookEvents() no rootScope')
+      return false
+    }
+    rootScope.$on('message:add:success', function(event, data) {
       if (!isLogin()) { // in case of we missed the pageInit event
         login('by event[message:add:success]')
       }
       Wechaty.emit('message', data)
     })
-    Wechaty.glue.appScope.$on("newLoginPage", function(event, data) {
-      login('by event[newLoginPage]')
-    })
-    Wechaty.glue.rootScope.$on('root:pageInit:success'), function (event, data) {
+    rootScope.$on('root:pageInit:success'), function (event, data) {
       login('by event[root:pageInit:success]')
     }
+    appScope.$on("newLoginPage", function(event, data) {
+      login('by event[newLoginPage]')
+    })
     window.addEventListener('unload', function(e) {
       // XXX only 1 event can be emitted here???
       Wechaty.emit('unload', e)
@@ -320,41 +333,50 @@ return (function(port) {
       // Wechaty.slog('emit logout')
       // Wechaty.slog('emit logout&unload over')
     })
+    return true
   }
-  // Wechaty.emit, will save event & data when there's no socket io connection to prevent event lost
+  /**
+   * Wechaty.emit, will save event & data when there's no socket io connection to prevent event lost
+   * NOTICE: only clog available here, because slog & log will call emit, death loop
+   */
   function emit(event, data) {
-    if (event) {
-      Wechaty.vars.eventsBuf.push([event, data])
+    var eventsBuf = Wechaty.vars.eventsBuf
+    if (!eventsBuf.map) {
+      throw new Error('Wechaty.vars.eventsBuf must be a Array')
     }
-    if (!Wechaty.vars.socket) {
+    if (event) {
+      eventsBuf.push([event, data])
+    }
+    var socket = Wechaty.vars.socket
+    if (!socket) {
       clog('Wechaty.vars.socket not ready')
       return setTimeout(emit, 1000) // resent eventsBuf after 1000ms
     }
-    var bufLen = Wechaty.vars.eventsBuf.length
+    var bufLen = eventsBuf.length
     if (bufLen) {
       if (bufLen > 1) { clog('Wechaty.vars.eventsBuf has ' + bufLen + ' unsend events') }
 
-      while (Wechaty.vars.eventsBuf.length) {
-        var eventData = Wechaty.vars.eventsBuf.pop()
+      while (eventsBuf.length) {
+        var eventData = eventsBuf.pop()
         if (eventData && eventData.map && eventData.length===2) {
           clog('emiting ' + eventData[0])
-          Wechaty.vars.socket.emit(eventData[0], eventData[1])
+          socket.emit(eventData[0], eventData[1])
         } else { clog('Wechaty.emit() got invalid eventData: ' + eventData[0] + ', ' + eventData[1] + ', length: ' + eventData.length) }
       }
 
-      if (bufLen > 1) { clog('Wechaty.vars.eventsBuf all sent') }
+      if (bufLen > 1) { clog('Wechaty.vars.eventsBuf[' + bufLen + '] all sent') }
     }
   }
 
   function connectSocket() {
-    clog('connectSocket()')
+    log('connectSocket()')
     if (typeof io !== 'function') {
-      clog('connectSocket: io not found. loading lib...')
+      log('connectSocket: io not found. loading lib...')
       // http://stackoverflow.com/a/3248500/1123955
       var script = document.createElement('script')
       script.onload = function() {
-        clog('socket io lib loaded.')
-        setTimeout(connectSocket, 50)
+        log('socket io lib loaded.')
+        connectSocket()
       }
       script.src = 'https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js'
       document.getElementsByTagName('head')[0].appendChild(script)
@@ -366,49 +388,63 @@ return (function(port) {
 
     // ding -> dong. for test & live check purpose
     // ping/pong are reserved by socket.io https://github.com/socketio/socket.io/issues/2414
-    socket.on('ding', function(e) {
-      clog('received socket io event: ding. emit dong...')
-      socket.emit('dong', 'dong')
+    socket.on('ding', function(data) {
+      log('received socket io event: ding(' + data + '). emit dong...')
+      socket.emit('dong', data)
     })
 
     socket.on('connect'   , function(e) { clog('connected to server:' + e) })
-    socket.on('disconnect', function(e) { clog('socket disconnect:' + e) })
+    socket.on('disconnect', function(e) { clog('socket disconnect:'   + e) })
   }
+
   /**
-  * Log to console
-  * http://stackoverflow.com/a/7089553/1123955
-  */
-  function initClog() {
-    var i = document.createElement('iframe')
-    if (!i) {
-      return false
-    }
-    i.style.display = 'none'
-    document.body.appendChild(i)
-    Wechaty.vars.iframe = i
-    clog('initClog done')
-    return true
-  }
-  function clog(s) {
-    var d = new Date()
-    s = d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds() + ' <Wechaty> ' + s
-
-    /**
-     * FIXME: WARN PuppetWebBridge inject() exception: {"errorMessage":"null is not an object (evaluating 'document.body.appendChild')"
-     * when will document.createElement('iframe') return null?
-     * this will cause the bridge init fail, and retry.
-     * should it be ignored? or keep this exception to retry is better?
-     */
-    // var i = document.createElement('iframe')
-    // i.style.display = 'none'
-    // document.body.appendChild(i)
-    Wechaty.vars.iframe.contentWindow.console.log(s)
-    // i.parentNode.removeChild(i)
-  }
-
+   *
+   * Help Functions which Proxy to WXAPP AngularJS Scope & Factory
+   *
+   */
   function getMsgImg(id) {
+    var contentChatScope = Wechaty.glue.contentChatScope
+    if (!contentChatScope) {
+      throw new Error('getMsgImg() contentChatScope not found')
+    }
     var location = window.location.href.replace(/\/$/, '')
-    var path = Wechaty.glue.contentChatScope.getMsgImg(id)
+    var path = contentChatScope.getMsgImg(id)
     return location + path
   }
+
+  function send(ToUserName, Content) {
+    var chatFactory = Wechaty.glue.chatFactory
+    var confFactory = Wechaty.glue.confFactory
+
+    if (!chatFactory || !confFactory) {
+      log('send() chatFactory or confFactory not exist.')
+      return false
+    }
+    var m = chatFactory.createMessage({
+      ToUserName: ToUserName
+      , Content: Content
+      , MsgType: confFactory.MSGTYPE_TEXT
+    })
+    chatFactory.appendMessage(m)
+    return chatFactory.sendMessage(m)
+  }
+  function getContact(id) {
+    var contactFactory = Wechaty.glue.contactFactory
+    if (!contactFactory) {
+      log('contactFactory not inited')
+      return null
+    }
+    var c = contactFactory.getContact(id)
+    if (c && c.isContact) {
+      c.stranger = !(c.isContact())
+    }
+    return c
+  }
+  function getUserName() {
+    var accountFactory = Wechaty.glue.accountFactory
+    return accountFactory
+    ? accountFactory.getUserName()
+    : null
+  }
+
 }.apply(window, arguments))

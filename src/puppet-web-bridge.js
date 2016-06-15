@@ -60,6 +60,47 @@ class Bridge {
     })
   }
 
+  inject() {
+    log.verbose('PuppetWebBridge', 'inject()')
+    return co.call(this, function* () {
+
+      const injectio = this.getInjectio()
+      let retObj = yield this.execute(injectio, this.options.port)
+      if (retObj && /^2/.test(retObj.code)) {
+        log.verbose('PuppetWebBridge', 'inject() injectio injected, with code[%d] message[%s] port[%d]'
+          , retObj.code, retObj.message, retObj.port)
+      } else {
+        throw new Error('execute injectio error: ' + retObj.message)
+      }
+
+      retObj = yield this.proxyWechaty('init')
+      if (retObj && /^2/.test(retObj.code)) {
+        log.verbose('PuppetWebBridge', 'inject() injectio inited, with code[%d] message[%s] port[%d]'
+          , retObj.code, retObj.message, retObj.port)
+      } else {
+        throw new Error('execute proxyWechaty(init) error: ' + retObj.message)
+      }
+
+      // const r = yield this.proxyWechaty('initClog')
+      // log.warn('PuppetWebBridge', 'initClog(): %s', r)
+
+      return true
+
+    })
+    .catch (e => {
+      log.warn('PuppetWebBridge', 'inject() exception: %s', e.message)
+      throw e
+    })
+  }
+  getInjectio() {
+    const fs = require('fs')
+    const path = require('path')
+    return fs.readFileSync(
+      path.join(path.dirname(__filename), 'puppet-web-injectio.js')
+      , 'utf8'
+    )
+  }
+
   logout() {
     log.verbose('PuppetWebBridge', 'quit()')
     return this.proxyWechaty('logout')
@@ -141,44 +182,6 @@ class Bridge {
       throw e
     })
     /////////////////////////////////
-  }
-
-  getInjectio() {
-    const fs = require('fs')
-    const path = require('path')
-    return fs.readFileSync(
-      path.join(path.dirname(__filename), 'puppet-web-injectio.js')
-      , 'utf8'
-    )
-  }
-  inject() {
-    log.verbose('PuppetWebBridge', 'inject()')
-    return co.call(this, function* () {
-
-      const injectio = this.getInjectio()
-      let retObj = yield this.execute(injectio, this.options.port)
-      if (retObj && /^2/.test(retObj.code)) {
-        log.verbose('PuppetWebBridge', 'inject() injectio injected, with code[%d] message[%s] port[%d]'
-          , retObj.code, retObj.message, retObj.port)
-      } else {
-        throw new Error('execute injectio error: ' + retObj.message)
-      }
-
-      retObj = yield this.proxyWechaty('init')
-      if (retObj && /^2/.test(retObj.code)) {
-        log.verbose('PuppetWebBridge', 'inject() injectio inited, with code[%d] message[%s] port[%d]'
-          , retObj.code, retObj.message, retObj.port)
-      } else {
-        throw new Error('execute proxyWechaty(init) error: ' + retObj.message)
-      }
-
-      return true
-
-    })
-    .catch (e => {
-      log.warn('PuppetWebBridge', 'inject() exception: %s', e.message)
-      throw e
-    })
   }
 
   /**
