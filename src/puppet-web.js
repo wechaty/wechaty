@@ -279,10 +279,14 @@ class PuppetWeb extends Puppet {
   }
   onServerScan(data) {
     log.verbose('PuppetWeb', 'onServerScan(%d)', data && data.code)
+
+    /**
+     * When wx.qq.com push a new QRCode to Scan, there will be cookie updates(?)
+     */
     if (this.session) {
-      this.browser.cleanSession(this.session)
-      .catch(() => {/* fail safe */})
-    }
+       this.browser.saveSession(this.session)
+       .catch(() => {/* fail safe */})
+     }
     this.emit('scan', data)
   }
 
