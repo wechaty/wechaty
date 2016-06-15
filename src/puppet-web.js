@@ -182,12 +182,12 @@ class PuppetWeb extends Puppet {
 
   onBrowserDead(e) {
     // because this function is async, so maybe entry more than one times.
-    // guard by variable: onBrowserDeadBusy to prevent the 2nd time entrance.
-    if (this.onBrowserDeadBusy) {
+    // guard by variable: onBrowserBirthing to prevent the 2nd time entrance.
+    if (this.onBrowserBirthing) {
       log.warn('PuppetWeb', 'onBrowserDead() Im busy, dont call me again before I return. this time will return and do nothing')
       return
     }
-    this.onBrowserDeadBusy = true
+    this.onBrowserBirthing = true
 
     const TIMEOUT = 180000 // 180s / 3m
     this.watchDog(`onBrowserDead() set a timeout of ${Math.floor(TIMEOUT/1000)} seconds to prevent unknown state change`, {timeout: TIMEOUT})
@@ -226,7 +226,7 @@ class PuppetWeb extends Puppet {
     })
     .then(() => { // Finally
       log.verbose('PuppetWeb', 'onBrowserDead() new browser borned')
-      this.onBrowserDeadBusy = false
+      this.onBrowserBirthing = false
     })
   }
 
@@ -309,7 +309,10 @@ class PuppetWeb extends Puppet {
     } else if (!this.bridge) {          // no bridge, quiting???
       log.verbose('PuppetWeb', 'onServerDisconnect() no bridge. maybe Im quiting, do nothing')
       return
-    } else {                            // browser is alive, and we have a bridge to it
+    }
+
+    this.browser.readyLive()
+    .then(r => {  // browser is alive, and we have a bridge to it
       log.verbose('PuppetWeb', 'onServerDisconnect() re-initing bridge')
       // must use setTimeout to wait a while.
       // because the browser has just refreshed, need some time to re-init to ready.
@@ -321,7 +324,11 @@ class PuppetWeb extends Puppet {
         .catch(e => log.error('PuppetWeb', 'onServerDisconnect() exception: [%s]', e))
       }, 1000) // 1 second instead of 10 seconds? try. (should be enough to wait)
       return
-    }
+    })
+    .catch(e => { // browser is in indeed dead, or almost dead. readyLive() will auto recover itself.
+      log.verbose('PuppetWeb', 'onServerDisconnect() browser dead, waiting it recover itself: %s', e.message)
+      return
+    })
   }
   /**
    * `unload` event is sent from js@browser to webserver via socketio

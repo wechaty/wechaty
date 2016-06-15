@@ -13,11 +13,11 @@ const PuppetWeb = require('../src/puppet-web')
 
 test('PuppetWeb smoke testing', function(t) {
   let pw = new PuppetWeb({port: PORT, head: HEAD, session: SESSION})
-  t.ok(pw, 'new PuppetWeb')
+  t.ok(pw, 'should instantiated a PuppetWeb')
 
   co(function* () {
     yield pw.init()
-    t.pass('pw full inited')
+    t.pass('should be inited')
     t.equal(pw.logined() , false  , 'should be not logined')
 
     // XXX find a better way to mock...
@@ -37,7 +37,7 @@ test('PuppetWeb smoke testing', function(t) {
       pw.once('logout', r => {
         process.nextTick(() => { // wait to next tick for pw clean logined user status
           // log.verbose('TestPuppetWeb', 'on(logout) received %s, islogined: %s', r, pw.logined())
-          t.equal(pw.logined() , false  , 'logouted after logout event')
+          t.equal(pw.logined() , false  , 'should be logouted after logout event')
           resolve()
         })
       })
@@ -56,14 +56,16 @@ test('PuppetWeb smoke testing', function(t) {
 
 test('Puppet Web server/browser communication', function(t) {
   let pw = new PuppetWeb({port: PORT, head: HEAD, session: SESSION})
-  t.ok(pw, 'new PuppetWeb')
+  t.ok(pw, 'should instantiated a PuppetWeb')
+
+  const EXPECTED_DING_DATA='dingdong'
 
   co(function* () {
     yield pw.init()
-    t.pass('pw inited')
+    t.pass('should be inited')
 
     const retSocket = yield dingSocket(pw.server)
-    t.equal(retSocket,  'dong', 'dingSocket got dong')
+    t.equal(retSocket,  EXPECTED_DING_DATA, 'should got EXPECTED_DING_DATA after resolved dingSocket()')
   })
   .catch(e => {               // Reject
     log.warn('TestPuppetWeb', 'error: %s', e)
@@ -102,7 +104,7 @@ test('Puppet Web server/browser communication', function(t) {
           log.verbose('TestPuppetWeb', 'socket recv event dong: ' + data)
           return resolve(data)
         })
-        server.socketClient.emit('ding')
+        server.socketClient.emit('ding', EXPECTED_DING_DATA)
       }
     })
   }
@@ -110,32 +112,37 @@ test('Puppet Web server/browser communication', function(t) {
 
 test('Puppet Web watchdog timer', function(t) {
   const pw = new PuppetWeb({port: PORT, head: HEAD, session: SESSION})
-  t.ok(pw, 'new PuppetWeb')
+  t.ok(pw, 'should instantiate a PuppetWeb')
 
   co(function* () {
     yield pw.initBrowser()
+    t.pass('should init the browser')
     yield pw.initBridge()
+    t.pass('should init the bridge')
 
     yield pw.bridge.quit().catch(e => {/* fail safe */})
     yield pw.browser.quit().catch(e => {/* fail safe */})
+    t.pass('should kill both browser & bridge')
 
     pw.once('error', e => {
       t.ok(/watchdog timeout/i.test(e), 'should emit error after watchdog timeout')
     })
 
-    pw.watchDog('test', {timeout: 1})
+    pw.watchDog('feed_and_active_it', {timeout: 10})
+    t.pass('should feed the watchdog and set timeout')
 
-    const dong = yield waitDing()
-    t.equal(dong, 'dong', 'should got dong from ding after watchdog reset')
+    const EXPECTED_DING_DATA = 'dingdong'
+    const dong = yield waitDing(EXPECTED_DING_DATA)
+    t.equal(dong, EXPECTED_DING_DATA, 'should get EXPECTED_DING_DATA from ding after watchdog reset')
   })
   .catch(e => { // Exception
-    t.fail(e.message || e)
+    t.fail('co exception: ' + e.message)
   })
   .then(t.end)  // Finally
 
   return
   /////////////////////////////////////////////////////////////////////////////
-  function waitDing() {
+  function waitDing(data) {
     const max = 30
     const backoff = 100
 
@@ -147,16 +154,16 @@ test('Puppet Web watchdog timer', function(t) {
     return retryPromise({ max: max, backoff: backoff }, function (attempt) {
       log.silly('TestPuppetWeb', 'waitDing() retryPromise: attampt %s/%s time for timeout %s'
         , attempt, max, timeout)
-
-      return pw.ding()
+      return pw.ding(data)
       .then(r => {
         if (!r) {
           throw new Error('got empty return')
+        } else {
+          return r
         }
-        return r
       })
       .catch(e => {
-        log.verbose('TestPuppetWeb', 'waitDing() exception: %s', e.message || e)
+        log.verbose('TestPuppetWeb', 'waitDing() exception: %s', e.message)
         throw e
       })
     })

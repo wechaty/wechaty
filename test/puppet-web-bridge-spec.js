@@ -29,7 +29,7 @@ test('Bridge retry-promise testing', function(t) {
       return delay50()
     })
     .then(r => {
-      t.fail('retry-promise should not be resolved here')
+      t.fail('should not resolved retry-promise here')
     })
     .catch(e => {
       t.equal(e, EXPECTED_REJECT, `retry-promise got ${EXPECTED_REJECT} when wait not enough`)
@@ -60,28 +60,31 @@ test('Bridge retry-promise testing', function(t) {
 
 test('Bridge smoking test', function(t) {
   const browser = new Browser({port: PORT})
-  t.ok(browser, 'Browser instance created')
+  t.ok(browser, 'should instanciated a browser')
 
   const mockPuppet = {browser: browser}
   const b = new Bridge({puppet: mockPuppet})
-  t.ok(b, 'Bridge instance creted')
+  t.ok(b, 'should instanciated a bridge with mocked puppet')
 
   co(function* () {
     yield browser.init()
+    t.pass('should instanciated a browser')
+
     yield browser.open()
-    t.pass('inited & opened')
+    t.pass('should open success')
 
     yield b.inject()
-    t.pass('wechaty injected')
+    t.pass('should injected wechaty')
 
-    const retDing = yield b.execute('return Wechaty && Wechaty.ding()')
-    t.equal(retDing, 'dong', 'execute Wechaty.ding()')
+    const retDing = yield b.execute('return Wechaty.ding()')
+    t.equal(retDing, 'dong', 'should got dong after execute Wechaty.ding()')
 
-    const retReady = yield b.execute('return Wechaty && Wechaty.isReady()')
-    t.equal(typeof retReady, 'boolean', 'execute Wechaty.isReady()')
+    // @deprecated
+    // const retReady = yield b.execute('return Wechaty.isReady()')
+    // t.equal(typeof retReady, 'boolean', 'should got a boolean return after execute Wechaty.isReady()')
 
     const retCode = yield b.proxyWechaty('getLoginStatusCode')
-    t.equal(typeof retCode, 'number', 'getLoginStatusCode')
+    t.equal(typeof retCode, 'number', 'should got a number after call proxyWechaty(getLoginStatusCode)')
   })
   .catch((e) => { // Rejected
     t.fail('co promise rejected:' + e)

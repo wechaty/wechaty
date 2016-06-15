@@ -19,15 +19,15 @@ const HEAD = process.env.WECHATY_HEAD || false
 test('WebDriver process create & quit test', function(t) {
   co(function* () {
     const b = new PuppetWebBrowser({port: PORT, head: HEAD})
-    t.ok(b, 'Browser instnace')
+    t.ok(b, 'should instanciate a browser')
 
     yield b.init()
-    t.pass('inited')
+    t.pass('should be inited successful')
     yield b.open()
-    t.pass('opened')
+    t.pass('should open successful')
 
     let pids = yield b.getBrowserPids()
-    t.ok(pids.length > 0, 'driver process exist')
+    t.ok(pids.length > 0, 'should exist browser process after b.open()')
 
 // console.log(b.driver.getSession())
 
@@ -55,29 +55,30 @@ test('WebDriver smoke testing', function(t) {
 
   co(function* () {
     const m = (yield wb.getBrowserPids()).length
-    t.equal(m, 0, 'driver process not exist before get()')
+    t.equal(m, 0, 'should has no browser process before get()')
 
     driver = yield wb.initDriver()
-    t.ok(driver, 'driver inited')
+    t.ok(driver, 'should init driver success')
 
     const injectio = bridge.getInjectio()
-    t.ok(injectio.length > 10, 'got injectio')
+    t.ok(injectio.length > 10, 'should got injectio script')
 
     // XXX: if get rid of this dummy,
     // driver.get() will fail due to cant start phantomjs process
     yield Promise.resolve()
 
     yield driver.get('https://wx.qq.com/')
-    t.pass('driver url opened')
+    t.pass('should open wx.qq.com')
 
     const n = (yield wb.getBrowserPids()).length
-    t.ok(n > 0, 'driver process exist after get()')
+    t.ok(n > 0, 'should exist browser process after get()')
 
-    const retAdd = yield execute('return 1+1')
-    t.equal(retAdd, 2, 'execute js in browser')
+    const retAdd = yield driverExecute('return 1+1')
+    t.equal(retAdd, 2, 'should return 2 for execute 1+1 in browser')
 
-    const retInject = yield execute(injectio, PORT)
-    t.equal(retInject, 'Wechaty', 'injected wechaty')
+    const retInject = yield driverExecute(injectio, PORT)
+    t.ok(retInject, 'should return a object contains status of inject operation')
+    t.equal(retInject.code, 200, 'should got code 200 for a success wechaty inject')
 
   })
   .catch(e => t.fail('promise rejected. e:' + e)) // Rejected
@@ -88,7 +89,7 @@ test('WebDriver smoke testing', function(t) {
   return
 
   //////////////////////////////////
-  function execute() {
+  function driverExecute() {
     return driver.executeScript.apply(driver, arguments)
   }
 })

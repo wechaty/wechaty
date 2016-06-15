@@ -176,9 +176,9 @@ class Browser extends EventEmitter {
         this.getBrowserPids()
         .then(pids => {
           if (pids.length === 0) {
-            resolve('clean')
+            resolve('clean() no browser process, confirm clean')
           } else {
-            reject(new Error('dirty'))
+            reject(new Error('clean() found browser process, not clean, dirty'))
           }
         })
         .catch(e => reject(e))
@@ -254,6 +254,33 @@ class Browser extends EventEmitter {
     })
   }
 
+  readyLive() {
+    log.verbose('PuppetWebBrowser', 'readyLive()')
+    if (this.dead()) {
+      return Promise.reject(new Error('this.dead() true'))
+    }
+    return new Promise((resolve, reject) => {
+      this.execute('return 1+1')
+      .then(r => {
+        if (r === 2) {
+          resolve(true) // browser ok, living
+          return
+        }
+        const errMsg = 'deadEx() found dead browser coz 1+1 = ' + r + ' (not 2)'
+        log.verbose('PuppetWebBrowser', errMsg)
+        this.dead(errMsg)
+        reject(new Error(errMsg)) // browser not ok, dead
+        return
+      })
+      .catch(e => {
+        const errMsg = 'deadEx() found dead browser coz 1+1 = ' + e.message
+        log.verbose('PuppetWebBrowser', errMsg)
+        this.dead(errMsg)
+        reject(new Error(errMsg)) // browser not live
+        return
+      })
+    })
+  }
   dead(forceReason) {
     let errMsg
     let dead = false

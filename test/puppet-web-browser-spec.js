@@ -10,17 +10,17 @@ const SESSION = 'unit-test-session.wechaty.json'
 
 test('Browser class cookie smoking tests', function(t) {
   const b = new Browser({port: PORT, head: HEAD})
-  t.ok(b, 'Browser instance created')
+  t.ok(b, 'should instanciate a browser instance')
 
   co(function* () {
     yield b.init()
-    t.pass('inited')
+    t.pass('should inited')
 
     yield b.open()
-    t.pass('opened')
+    t.pass('should opened')
 
     const two = yield b.execute('return 1+1')
-    t.equal(two, 2, 'execute script ok')
+    t.equal(two, 2, 'should got 2 after execute script 1+1')
 
     let cookies = yield b.driver.manage().getCookies()
     t.ok(cookies.length, 'should got plenty of cookies')
@@ -58,6 +58,12 @@ test('Browser class cookie smoking tests', function(t) {
     t.pass('re-opened url')
     const cookieAfterOpen = yield b.driver.manage().getCookie(EXPECTED_COOKIES[0].name)
     t.equal(cookieAfterOpen.name, EXPECTED_COOKIES[0].name, 'getCookie() should get expected cookie named after re-open url')
+
+    const dead = b.dead()
+    t.equal(dead, false, 'should be a not dead browser')
+
+    const live = yield b.readyLive()
+    t.equal(live, true, 'should be a live browser')
   })
   .catch((e) => { // Rejected
     t.fail('co promise rejected:' + e)

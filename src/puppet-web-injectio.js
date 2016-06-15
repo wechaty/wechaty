@@ -136,7 +136,7 @@ return (function(port) {
     Wechaty.vars.inited = true
 
     retObj.code = 200
-    retObj.message = 'init(): success on port ' + port
+    retObj.message = 'Wechaty Init Succ on port: ' + port
     return retObj
   }
 
@@ -151,13 +151,13 @@ return (function(port) {
     }
 
     if (!document.body) {
-      log('initClog() not ready because document.body not ready')
+      // log('initClog() not ready because document.body not ready')
       return false
     }
 
     var i = document.createElement('iframe')
     if (!i) {
-      log('initClog() not ready because document.createElement fail')
+      // log('initClog() not ready because document.createElement fail')
       return false
     }
 
@@ -343,7 +343,7 @@ return (function(port) {
     }
   }
 
-  function ding() { log('recv ding'); return 'dong' }
+  function ding(data) { log('recv ding'); return data || 'dong' }
   function hookEvents() {
     var rootScope = Wechaty.glue.rootScope
     var appScope = Wechaty.glue.appScope

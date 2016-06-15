@@ -21,12 +21,10 @@ class Bridge {
       , options.puppet.constructor.name
       , options.port)
 
-    this.options = {
-      puppet: options.puppet
-      , port: options.port || 8788 // W(87) X(88), ascii char code ;-]
-    }
+    this.puppet = options.puppet
+    this.port   = options.port || 8788 // W(87) X(88), ascii char code ;-]
   }
-  toString() { return `Bridge({puppet: ${this.options.puppet.constructor.name}, port: ${this.options.port}})` }
+  toString() { return `Bridge({puppet: ${this.puppet.constructor.name}, port: ${this.port}})` }
 
   init() {
     log.verbose('PuppetWebBridge', 'init()')
@@ -65,7 +63,7 @@ class Bridge {
     return co.call(this, function* () {
 
       const injectio = this.getInjectio()
-      let retObj = yield this.execute(injectio, this.options.port)
+      let retObj = yield this.execute(injectio, this.port)
       if (retObj && /^2/.test(retObj.code)) {
         log.verbose('PuppetWebBridge', 'inject() injectio injected, with code[%d] message[%s] port[%d]'
           , retObj.code, retObj.message, retObj.port)
@@ -198,15 +196,21 @@ class Bridge {
 
     const wechatyScript   = `return Wechaty.${wechatyFunc}.apply(undefined, ${argsDecoded})`
     log.silly('PuppetWebBridge', 'proxyWechaty(%s, ...args) %s', wechatyFunc, wechatyScript)
-    return this.execute(wechatyScript)
-    .catch(e => {
-      log.warn('PuppetWebBridge', 'proxyWechaty() exception: %s', e.message)
-      throw e
-    })
+    return this.execute('return typeof Wechaty === "undefined"')
+      .then(noWechaty => {
+        if (noWechaty) {
+          throw new Error('there is no Wechaty in browser(yet)')
+        }
+      })
+      .then(() => this.execute(wechatyScript))
+      .catch(e => {
+        log.warn('PuppetWebBridge', 'proxyWechaty() exception: %s', e.message)
+        throw e
+      })
   }
 
   execute(script, ...args) {
-    return this.options.puppet.browser.execute(script, ...args)
+    return this.puppet.browser.execute(script, ...args)
     .catch(e => {
       log.warn('PuppetWebBridge', 'execute() exception: %s', e.message)
       throw e
