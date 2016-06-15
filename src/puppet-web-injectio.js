@@ -247,15 +247,41 @@ return (function(port) {
   function glueToAngular() {
     var injector  = angular.element(document).injector()
 
-    var http            = injector.get('$http')
     var accountFactory  = injector.get('accountFactory')
+    var appFactory      = injector.get('appFactory')
     var chatFactory     = injector.get('chatFactory')
-    var confFactory     = injector.get('confFactory')
     var contactFactory  = injector.get('contactFactory')
+    var confFactory     = injector.get('confFactory')
 
-    var rootScope   = injector.get('$rootScope')
+    var http            = injector.get('$http')
+    var mmHttp          = injector.get('mmHttp')
+
     var appScope    = angular.element('[ng-controller="appController"]').scope()
+    var rootScope   = injector.get('$rootScope')
     var loginScope  = angular.element('[ng-controller="loginController"]').scope()
+
+/*
+    // method 1
+    appFactory.syncOrig = appFactory.sync
+    appFactory.syncCheckOrig = appFactory.syncCheck
+    appFactory.sync = function() { Wechaty.log('appFactory.sync() !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'); return appFactory.syncOrig(arguments) }
+    appFactory.syncCheck = function() { Wechaty.log('appFactory.syncCheck() !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'); return appFactory.syncCheckOrig(arguments) }
+
+    // method 2
+    $.ajaxOrig = $.ajax
+    $.ajax = function() { Wechaty.log('$.ajax() !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'); return $.ajaxOrig(arguments) }
+
+    $.ajax({
+      url: "https://wx.qq.com/zh_CN/htmledition/v2/images/webwxgeticon.jpg"
+      , type: "GET"
+    }).done(function (response) {
+      alert("success");
+    })
+
+    // method 3 - mmHttp
+    mmHttp.getOrig = mmHttp.get
+    mmHttp.get = function() { Wechaty.log('mmHttp.get() !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'); return mmHttp.getOrig(arguments) }
+*/
 
     /**
      * generate $scope with a contoller (as it is not assigned in html staticly)

@@ -257,6 +257,30 @@ ng-src="/cgi-bin/mmwebwx-bin/webwxgetmsgimg?&amp;MsgID=6944236226252183282&amp;s
 src="/cgi-bin/mmwebwx-bin/webwxgetmsgimg?&amp;MsgID=6944236226252183282&amp;skey=%40crypt_c117402d_2b2a8c58340c8f4b0a4570cb8f11a1e8&amp;type=slave"
 style="height: 100px; width: 75px;">
 
+
+XMLHttpRequestOrig = XMLHttpRequest
+XMLHttpRequest = function() { return new XMLHttpRequestOrig() }
+
+ *
+.web_wechat_tab_launch-chat
+
+contentChatController
+
+e.getMsgImg = function(e, t, o) {
+    return o && "undefined" != typeof o.MMStatus && o.MMStatus != u.MSG_SEND_STATUS_SUCC ? void 0 : u.API_webwxgetmsgimg + "?&MsgID=" + e + "&skey=" + encodeURIComponent(c.getSkey()) + (t ? "&type=" + t : "")
+}
+,
+e.getMsgVideo = function(e) {
+    return u.API_webwxgetvideo + "?msgid=" + e + "&skey=" + encodeURIComponent(c.getSkey())
+}
+
+<div class="picture"
+ng-init="imageInit(message,message.MMPreviewSrc || message.MMThumbSrc || getMsgImg(message.MsgId,'slave'))">
+<img class="msg-img" ng-style="message.MMImgStyle" ng-click="previewImg(message)"
+ng-src="/cgi-bin/mmwebwx-bin/webwxgetmsgimg?&amp;MsgID=6944236226252183282&amp;skey=%40crypt_c117402d_2b2a8c58340c8f4b0a4570cb8f11a1e8&amp;type=slave"
+src="/cgi-bin/mmwebwx-bin/webwxgetmsgimg?&amp;MsgID=6944236226252183282&amp;skey=%40crypt_c117402d_2b2a8c58340c8f4b0a4570cb8f11a1e8&amp;type=slave"
+style="height: 100px; width: 75px;">
+
  *
  * check the live status of wxapp method 1
  *

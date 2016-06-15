@@ -121,8 +121,8 @@ class PuppetWeb extends Puppet {
     this.browser.on('dead', this.onBrowserDead.bind(this))
 
     // fastUrl is used to open in browser for we can set cookies.
-    const fastUrl = 'https://res.wx.qq.com/zh_CN/htmledition/v2/images/icon/ico_loading28a2f7.gif'
-    // const fastUrl = 'https://t.qq.com' // domain??? ssl ca name not match
+    // backup: 'https://res.wx.qq.com/zh_CN/htmledition/v2/images/icon/ico_loading28a2f7.gif'
+    const fastUrl = 'https://wx.qq.com/zh_CN/htmledition/v2/images/webwxgeticon.jpg'
 
     return co.call(this, function* () {
       yield this.browser.init()

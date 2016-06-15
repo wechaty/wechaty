@@ -138,7 +138,10 @@ test('Puppet Web watchdog timer', function(t) {
   .catch(e => { // Exception
     t.fail('co exception: ' + e.message)
   })
-  .then(t.end)  // Finally
+  .then(() => { // Finally
+    pw.quit()
+    .then(t.end)
+  })
 
   return
   /////////////////////////////////////////////////////////////////////////////
