@@ -216,6 +216,8 @@ src="/cgi-bin/mmwebwx-bin/webwxgetmsgimg?&amp;MsgID=6944236226252183282&amp;skey
 style="height: 100px; width: 75px;">
 
 
+XMLHttpRequestOrig = XMLHttpRequest
+XMLHttpRequest = function() { return new XMLHttpRequestOrig() }
 
  *
  */
