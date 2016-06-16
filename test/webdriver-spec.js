@@ -16,7 +16,7 @@ const PuppetWebBridge   = require('../src/puppet-web-bridge')
 const PORT = process.env.WECHATY_PORT || 58788
 const HEAD = process.env.WECHATY_HEAD || false
 
-test('WebDriver process create & quit test', function(t) {
+false && test('WebDriver process create & quit test', function(t) {
   co(function* () {
     const b = new PuppetWebBrowser({port: PORT, head: HEAD})
     t.ok(b, 'should instanciate a browser')
@@ -71,6 +71,12 @@ test('WebDriver smoke testing', function(t) {
     t.pass('should open wx.qq.com')
 
     const n = (yield wb.getBrowserPids()).length
+    // console.log(n)
+    // yield new Promise((resolve) => {
+    //   setTimeout(() => {
+    //     resolve()
+    //   }, 3000)
+    // })
     t.ok(n > 0, 'should exist browser process after get()')
 
     const retAdd = yield driverExecute('return 1+1')

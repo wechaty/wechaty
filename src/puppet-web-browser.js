@@ -197,9 +197,24 @@ class Browser extends EventEmitter {
           reject(err)
           return
         }
-        const pids = children.filter(child => /phantomjs/i.test(child.COMMAND))
-        .map(child => child.PID)
+        let browserRe
+        switch (this.head) {
+          case true:
+          case 'chrome':
+            browserRe = 'chrome(?!driver)'
+            break
+          case false:
+          case 'phantomjs':
+            browserRe = 'phantomjs'
+            break
 
+          default:
+            log.warn('PuppetWebBrowser', 'getBrowserPids() for unsupported head: %s', this.head)
+            browserRe = this.head
+        }
+        let matchRegex = new RegExp(browserRe, 'i')
+        const pids = children.filter(child => matchRegex.test(child.COMMAND))
+        .map(child => child.PID)
         resolve(pids)
         return
       })
