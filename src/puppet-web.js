@@ -187,6 +187,7 @@ class PuppetWeb extends Puppet {
     log.silly('PuppetWeb', 'watchDog(%s)', data)
     options = options || {}
     const TIMEOUT = options.timeout || 60000 // 60s default. can be override in options
+    const EVENT   = options.event   || 'food'  // just a name
 
     if (this.watchDogTimer) {
       clearTimeout(this.watchDogTimer)
@@ -194,17 +195,17 @@ class PuppetWeb extends Puppet {
     this.watchDogTimer = setTimeout(() => {
       const err = new Error('watchdog timeout after ' + Math.floor(TIMEOUT/1000) + ' seconds')
       // this.emit('error', err)
-      this.onBrowserDead(err)
+      Event.onBrowserDead.call(this, err)
     }, TIMEOUT)
     this.watchDogTimer.unref() // dont block quit
 
     const SAVE_SESSION_INTERVAL = 5 * 60 * 1000 // 5 mins
     if (this.session) {
-      if (!this.watchDogLastSaveSession || Date.now() - this.watchDogLastSaveSession > SAVE_SESSION_INTERVAL) {
+      if (this.watchDogLastSaveSession || Date.now() - this.watchDogLastSaveSession > SAVE_SESSION_INTERVAL) {
         log.verbose('PuppetWeb', 'watchDog() saveSession(%s) after %d minutes', this.session, Math.floor(SAVE_SESSION_INTERVAL/1000/60))
         this.browser.saveSession(this.session)
-        this.watchDogLastSaveSession = Date.now()
       }
+      this.watchDogLastSaveSession = Date.now()
     }
 
     // if web browser stay at login qrcode page long time,

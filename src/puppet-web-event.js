@@ -161,6 +161,7 @@ function onServerDisconnect(data) {
     return
   })
 }
+
 /**
  * `unload` event is sent from js@browser to webserver via socketio
  * after received `unload`, we should fix bridge by re-inject the Wechaty js code into browser.
@@ -172,7 +173,7 @@ function onServerDisconnect(data) {
  */
 function onServerUnload(data) {
   log.warn('PuppetWebEvent', 'onServerUnload(%s)', typeof data)
-  // this.onServerLogout(data) // XXX: should emit event[logout] from browser
+  // onServerLogout.call(this, data) // XXX: should emit event[logout] from browser
 
   if (!this.browser) {
     log.warn('PuppetWebEvent', 'onServerUnload() found browser gone, should be quiting now')
@@ -203,7 +204,7 @@ function onServerLogin(data) {
     const userName = yield this.bridge.getUserName()
     if (!userName) {
       log.verbose('PuppetWebEvent', 'onServerLogin: browser not full loaded, retry later.')
-      setTimeout(this.onServerLogin.bind(this), 500)
+      setTimeout(onServerLogin.bind(this), 500)
       return
     }
     log.verbose('PuppetWebEvent', 'bridge.getUserName: %s', userName)
@@ -221,6 +222,7 @@ function onServerLogin(data) {
     log.error('PuppetWebEvent', 'onServerLogin() exception: %s', e.message)
   })
 }
+
 function onServerLogout(data) {
   if (this.user) {
     this.emit('logout', this.user)

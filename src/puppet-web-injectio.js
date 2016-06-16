@@ -320,7 +320,8 @@ return (function(port) {
   function checkScan() {
     clog('checkScan()')
     if (isLogin()) {
-      log('checkScan() - already login, no more check')
+      log('checkScan() - already login, no more check, but I will emit a login event')
+      login('checkScan found already login')
       return
     }
     if (!Wechaty.glue.loginScope) {
@@ -391,9 +392,10 @@ return (function(port) {
     rootScope.$on('root:pageInit:success'), function (event, data) {
       login('by event[root:pageInit:success]')
     }
-    appScope.$on("newLoginPage", function(event, data) {
-      login('by event[newLoginPage]')
-    })
+    // newLoginPage seems not stand for a user login action
+    // appScope.$on("newLoginPage", function(event, data) {
+    //   login('by event[newLoginPage]')
+    // })
     window.addEventListener('unload', function(e) {
       // XXX only 1 event can be emitted here???
       Wechaty.emit('unload', e)
