@@ -186,45 +186,54 @@ class PuppetWeb extends Puppet {
   watchDog(data, options) {
     log.silly('PuppetWeb', 'watchDog(%s)', data)
     options = options || {}
-    const TIMEOUT = options.timeout || 60000 // 60s default. can be override in options
-    const EVENT   = options.event   || 'food'  // just a name
+    const timeout = options.timeout || 60000 // 60s default. can be override in options
+    const type   =  options.type    || 'food'  // just a name
 
-    if (this.watchDogTimer) {
-      clearTimeout(this.watchDogTimer)
-    }
-    this.watchDogTimer = setTimeout(() => {
-      const err = new Error('watchdog timeout after ' + Math.floor(TIMEOUT/1000) + ' seconds')
-      // this.emit('error', err)
-      Event.onBrowserDead.call(this, err)
-    }, TIMEOUT)
+    if (this.watchDogTimer) { clearTimeout(this.watchDogTimer) }
+    this.watchDogTimer = setTimeout(() => this.watchDogReset(timeout), timeout)
     this.watchDogTimer.unref() // dont block quit
 
     const SAVE_SESSION_INTERVAL = 5 * 60 * 1000 // 5 mins
     if (this.session) {
-      if (this.watchDogLastSaveSession || Date.now() - this.watchDogLastSaveSession > SAVE_SESSION_INTERVAL) {
+      if (this.watchDogLastSaveSession && Date.now() - this.watchDogLastSaveSession > SAVE_SESSION_INTERVAL) {
         log.verbose('PuppetWeb', 'watchDog() saveSession(%s) after %d minutes', this.session, Math.floor(SAVE_SESSION_INTERVAL/1000/60))
         this.browser.saveSession(this.session)
       }
       this.watchDogLastSaveSession = Date.now()
     }
 
-    // if web browser stay at login qrcode page long time,
-    // sometimes the qrcode will not refresh, leave there expired.
-    // so we need to refresh the page after a while
-    const REFRESH_TIMEOUT = 10 * 60 * 1000 // 10 mins
+    /**
+     * if web browser stay at login qrcode page long time,
+     * sometimes the qrcode will not refresh, leave there expired.
+     * so we need to refresh the page after a while
+     */
+    if (type === 'scan') { // watchDog was feed a 'scan' data
+      log.verbose('PuppetWeb', 'watchDog() got a food with type scan')
+      this.lastScanEventTime = Date.now()
+    }
     if (!this.logined()) {
-      if (!this.watchDogLastRefresh) {
-        this.watchDogLastRefresh = Date.now()
+      const scanTimeout = 10 * 60 * 1000 // 10 mins
+      if (!this.lastScanEventTime) { // 1st scan event
+        this.lastScanEventTime = Date.now()
       }
-      if (Date.now() - this.watchDogLastRefresh > REFRESH_TIMEOUT) {
-        log.warn('PuppetWeb', 'watchDog() refresh browser for not login for a long time')
+
+      if (Date.now() - this.lastScanEventTime > scanTimeout) {
+        log.warn('PuppetWeb', 'watchDog() refresh browser for no food of type scan after %s mins', Math.floor(scanTimeout/1000/60))
+        this.watchDogLastRefresh = Date.now()
+        // fix the problem here
         this.browser.refresh()
-        this.watchDogLastRefresh = Date.now()
       }
-    } else if (this.watchDogLastRefresh) {
-      this.watchDogLastRefresh = null
+    } else if (this.lastScanEventTime) {
+      this.lastScanEventTime = null
     }
   }
+
+  watchDogReset(timeout) {
+    const e = new Error('watchdog reset after ' + Math.floor(timeout/1000) + ' seconds')
+    this.emit('error', e)
+    return Event.onBrowserDead.call(this, e)
+  }
+
   send(message) {
     const to      = message.get('to')
     const room    = message.get('room')

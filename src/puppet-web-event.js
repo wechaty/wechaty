@@ -117,6 +117,10 @@ function onServerScan(data) {
      this.browser.saveSession(this.session)
      .catch(() => {/* fail safe */})
    }
+
+  // feed watchDog a `scan` type of food
+  this.watchDog(data, {type: 'scan'})
+
   this.emit('scan', data)
 }
 
