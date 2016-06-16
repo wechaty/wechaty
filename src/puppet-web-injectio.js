@@ -21,7 +21,7 @@ return (function(port) {
    * Wechaty injectio must return this object.
    * PuppetWebBridge need this to decide if injection is successful.
    */
-  retObj = {
+  var retObj = {
     code: 200 // 2XX ok, 4XX/5XX error. HTTP like
     , message: 'any message'
     , port: port
@@ -98,23 +98,21 @@ return (function(port) {
 
   function init() {
     if (!initClog()) { // make console.log work (wxapp disabled the console.log)
-      retObj.code = 501
+      retObj.code = 503 // 503 Service Unavailable http://www.restapitutorial.com/httpstatuscodes.html
       retObj.message = 'initClog fail'
       return retObj
     }
 
     if (Wechaty.vars.inited === true) {
       log('Wechaty.init() called twice: already inited')
-      retObj.code = 201
+      retObj.code = 304 // 304 Not Modified https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.5
       retObj.message = 'init() already inited before. returned with do nothing'
       return retObj
     }
 
     if (!angularIsReady()) {
-      clog('angular not ready. wait 500ms...')
-      setTimeout(init, 1000)
-      retObj.code = 202
-      retObj.message = 'init() entered waiting angular loop'// AngularJS not ready, wait 500ms then try again.
+      retObj.code = 503 // 503 SERVICE UNAVAILABLE https://httpstatuses.com/503
+      retObj.message = 'init() without a ready angular env'
       return retObj
     }
 
@@ -225,11 +223,13 @@ return (function(port) {
   *
   */
   function MMCgiLogined() { return !!(window.MMCgi && window.MMCgi.isLogin) }
+
   function angularIsReady() {
-    return !!(
+    return (
       (typeof angular) !== 'undefined'
       && angular.element
       && angular.element('body')
+      && angular.element(document).injector()
     )
   }
 
@@ -246,6 +246,9 @@ return (function(port) {
 
   function glueToAngular() {
     var injector  = angular.element(document).injector()
+    if (!injector) {
+      throw new Error('glueToAngular cant get injector(right now)')
+    }
 
     var accountFactory  = injector.get('accountFactory')
     var appFactory      = injector.get('appFactory')
@@ -310,6 +313,8 @@ return (function(port) {
 
       , contentChatScope: contentChatScope
     }
+
+    return true
   }
 
   function checkScan() {
