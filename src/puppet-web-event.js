@@ -54,7 +54,7 @@ function onBrowserDead(e) {
   // because this function is async, so maybe entry more than one times.
   // guard by variable: onBrowserBirthing to prevent the 2nd time entrance.
   if (this.onBrowserBirthing) {
-    log.warn('PuppetWeb', 'onBrowserDead() Im busy, dont call me again before I return. this time will return and do nothing')
+    log.warn('PuppetWebEvent', 'onBrowserDead() Im busy, dont call me again before I return. this time will return and do nothing')
     return
   }
   this.onBrowserBirthing = true
@@ -62,53 +62,53 @@ function onBrowserDead(e) {
   const TIMEOUT = 180000 // 180s / 3m
   this.watchDog(`onBrowserDead() set a timeout of ${Math.floor(TIMEOUT/1000)} seconds to prevent unknown state change`, {timeout: TIMEOUT})
 
-  log.verbose('PuppetWeb', 'onBrowserDead(%s)', e.message || e)
+  log.verbose('PuppetWebEvent', 'onBrowserDead(%s)', e.message || e)
   if (!this.browser || !this.bridge) {
-    log.error('PuppetWeb', 'onBrowserDead() browser or bridge not found. do nothing')
+    log.error('PuppetWebEvent', 'onBrowserDead() browser or bridge not found. do nothing')
     return
   }
 
   return co.call(this, function* () {
-    log.verbose('PuppetWeb', 'onBrowserDead() try to reborn browser')
+    log.verbose('PuppetWebEvent', 'onBrowserDead() try to reborn browser')
 
     yield this.browser.quit()
     .catch(e => { // fail safe
-      log.warn('PuppetWeb', 'browser.quit() exception: %s', e.message)
+      log.warn('PuppetWebEvent', 'browser.quit() exception: %s', e.message)
     })
-    log.verbose('PuppetWeb', 'old browser quited')
+    log.verbose('PuppetWebEvent', 'old browser quited')
 
     yield this.initBrowser()
-    log.verbose('PuppetWeb', 'new browser inited')
+    log.verbose('PuppetWebEvent', 'new browser inited')
 
     yield this.bridge.init()
-    log.verbose('PuppetWeb', 'bridge re-inited')
+    log.verbose('PuppetWebEvent', 'bridge re-inited')
 
     const dong = yield this.ding()
     if (/dong/i.test(dong)) {
-      log.verbose('PuppetWeb', 'ding() works well after reset')
+      log.verbose('PuppetWebEvent', 'ding() works well after reset')
     } else {
-      log.warn('PuppetWeb', 'ding() get error return after reset: ' + dong)
+      log.warn('PuppetWebEvent', 'ding() get error return after reset: ' + dong)
     }
   })
   .catch(e => { // Exception
-    log.error('PuppetWeb', 'onBrowserDead() exception: %s', e.message)
+    log.error('PuppetWebEvent', 'onBrowserDead() exception: %s', e.message)
 
-    log.warn('PuppetWeb', 'onBrowserDead() try to re-init PuppetWeb itself')
+    log.warn('PuppetWebEvent', 'onBrowserDead() try to re-init PuppetWeb itself')
     return this.quit().then(() => this.init())
   })
   .then(() => { // Finally
-    log.verbose('PuppetWeb', 'onBrowserDead() new browser borned')
+    log.verbose('PuppetWebEvent', 'onBrowserDead() new browser borned')
     this.onBrowserBirthing = false
   })
 }
 
 function onServerDing(data) {
-  log.silly('PuppetWeb', 'onServerDing(%s)', data)
+  log.silly('PuppetWebEvent', 'onServerDing(%s)', data)
   this.watchDog(data)
 }
 
 function onServerScan(data) {
-  log.verbose('PuppetWeb', 'onServerScan(%d)', data && data.code)
+  log.verbose('PuppetWebEvent', 'onServerScan(%d)', data && data.code)
 
   /**
    * When wx.qq.com push a new QRCode to Scan, there will be cookie updates(?)
@@ -121,43 +121,43 @@ function onServerScan(data) {
 }
 
 function onServerConnection(data) {
-  log.verbose('PuppetWeb', 'onServerConnection: %s', typeof data)
+  log.verbose('PuppetWebEvent', 'onServerConnection: %s', typeof data)
 }
 
 function onServerDisconnect(data) {
-  log.verbose('PuppetWeb', 'onServerDisconnect: %s', data)
+  log.verbose('PuppetWebEvent', 'onServerDisconnect: %s', data)
   /**
    * conditions:
    * 1. browser crash(i.e.: be killed)
    * 2. quiting
    */
   if (!this.browser) {                // no browser, quiting?
-    log.verbose('PuppetWeb', 'onServerDisconnect() no browser. maybe Im quiting, do nothing')
+    log.verbose('PuppetWebEvent', 'onServerDisconnect() no browser. maybe Im quiting, do nothing')
     return
   } else if (this.browser.dead()) {   // browser is dead
-    log.verbose('PuppetWeb', 'onServerDisconnect() found dead browser. wait it to restore')
+    log.verbose('PuppetWebEvent', 'onServerDisconnect() found dead browser. wait it to restore')
     return
   } else if (!this.bridge) {          // no bridge, quiting???
-    log.verbose('PuppetWeb', 'onServerDisconnect() no bridge. maybe Im quiting, do nothing')
+    log.verbose('PuppetWebEvent', 'onServerDisconnect() no bridge. maybe Im quiting, do nothing')
     return
   }
 
   this.browser.readyLive()
   .then(r => {  // browser is alive, and we have a bridge to it
-    log.verbose('PuppetWeb', 'onServerDisconnect() re-initing bridge')
+    log.verbose('PuppetWebEvent', 'onServerDisconnect() re-initing bridge')
     // must use setTimeout to wait a while.
     // because the browser has just refreshed, need some time to re-init to ready.
     // if the browser is not ready, bridge init will fail,
     // caused browser dead and have to be restarted. 2016/6/12
     setTimeout(() => {
       this.bridge.init()
-      .then(r  => log.verbose('PuppetWeb', 'onServerDisconnect() bridge re-inited: %s', r))
-      .catch(e => log.error('PuppetWeb', 'onServerDisconnect() exception: [%s]', e))
+      .then(r  => log.verbose('PuppetWebEvent', 'onServerDisconnect() bridge re-inited: %s', r))
+      .catch(e => log.error('PuppetWebEvent', 'onServerDisconnect() exception: [%s]', e))
     }, 1000) // 1 second instead of 10 seconds? try. (should be enough to wait)
     return
   })
   .catch(e => { // browser is in indeed dead, or almost dead. readyLive() will auto recover itself.
-    log.verbose('PuppetWeb', 'onServerDisconnect() browser dead, waiting it recover itself: %s', e.message)
+    log.verbose('PuppetWebEvent', 'onServerDisconnect() browser dead, waiting it recover itself: %s', e.message)
     return
   })
 }
@@ -171,29 +171,29 @@ function onServerDisconnect(data) {
  * 4. ...
  */
 function onServerUnload(data) {
-  log.warn('PuppetWeb', 'onServerUnload(%s)', typeof data)
+  log.warn('PuppetWebEvent', 'onServerUnload(%s)', typeof data)
   // this.onServerLogout(data) // XXX: should emit event[logout] from browser
 
   if (!this.browser) {
-    log.warn('PuppetWeb', 'onServerUnload() found browser gone, should be quiting now')
+    log.warn('PuppetWebEvent', 'onServerUnload() found browser gone, should be quiting now')
     return
   } else if (!this.bridge) {
-    log.warn('PuppetWeb', 'onServerUnload() found bridge gone, should be quiting now')
+    log.warn('PuppetWebEvent', 'onServerUnload() found bridge gone, should be quiting now')
     return
   } else if (this.browser.dead()) {
-    log.error('PuppetWeb', 'onServerUnload() found browser dead. wait it to restore itself')
+    log.error('PuppetWebEvent', 'onServerUnload() found browser dead. wait it to restore itself')
     return
   }
   // re-init bridge after 1 second XXX: better method to confirm unload/reload finished?
   return setTimeout(() => {
     this.bridge.init()
-    .then(r  => log.verbose('PuppetWeb', 'onServerUnload() bridge.init() done: %s', r))
-    .catch(e => log.error('PuppetWeb', 'onServerUnload() bridge.init() exceptoin: %s', e.message))
+    .then(r  => log.verbose('PuppetWebEvent', 'onServerUnload() bridge.init() done: %s', r))
+    .catch(e => log.error('PuppetWebEvent', 'onServerUnload() bridge.init() exceptoin: %s', e.message))
   }, 1000)
 }
 
 function onServerLog(data) {
-  log.verbose('PuppetWeb', 'onServerLog: %s', data)
+  log.verbose('PuppetWebEvent', 'onServerLog: %s', data)
 }
 
 function onServerLogin(data) {
@@ -202,45 +202,45 @@ function onServerLogin(data) {
     // See also: https://github.com/tj/co/issues/274
     const userName = yield this.bridge.getUserName()
     if (!userName) {
-      log.verbose('PuppetWeb', 'onServerLogin: browser not full loaded, retry later.')
+      log.verbose('PuppetWebEvent', 'onServerLogin: browser not full loaded, retry later.')
       setTimeout(this.onServerLogin.bind(this), 500)
       return
     }
-    log.verbose('PuppetWeb', 'bridge.getUserName: %s', userName)
+    log.verbose('PuppetWebEvent', 'bridge.getUserName: %s', userName)
     this.user = yield Contact.load(userName).ready()
-    log.verbose('PuppetWeb', `onServerLogin() user ${this.user.name()} logined`)
+    log.verbose('PuppetWebEvent', `onServerLogin() user ${this.user.name()} logined`)
     this.emit('login', this.user)
 
     if (this.session) {
       yield this.browser.saveSession(this.session)
       .catch(e => { // fail safe
-        log.warn('PuppetWeb', 'browser.saveSession exception: %s', e.message)
+        log.warn('PuppetWebEvent', 'browser.saveSession exception: %s', e.message)
       })
     }
   }).catch(e => {
-    log.error('PuppetWeb', 'onServerLogin() exception: %s', e.message)
+    log.error('PuppetWebEvent', 'onServerLogin() exception: %s', e.message)
   })
 }
 function onServerLogout(data) {
   if (this.user) {
     this.emit('logout', this.user)
     this.user = null
-  } else { log.verbose('PuppetWeb', 'onServerLogout() without this.user initialized') }
+  } else { log.verbose('PuppetWebEvent', 'onServerLogout() without this.user initialized') }
 
   if (this.session) {
     this.browser.cleanSession(this.session)
     .catch(e => {
-      log.warn('PuppetWeb', 'onServerLogout() browser.cleanSession() exception: %s', e.message)
+      log.warn('PuppetWebEvent', 'onServerLogout() browser.cleanSession() exception: %s', e.message)
     })
   }
 }
 
 function onServerMessage(data) {
   let m
-  // log.warn('PuppetWeb', 'MsgType: %s', data.MsgType)
+  // log.warn('PuppetWebEvent', 'MsgType: %s', data.MsgType)
   switch (data.MsgType) {
     case Message.Type.IMAGE:
-      // log.verbose('PuppetWeb', 'onServerMessage() IMAGE message')
+      // log.verbose('PuppetWebEvent', 'onServerMessage() IMAGE message')
       m = new MediaMessage(data)
       break;
 
@@ -253,12 +253,12 @@ function onServerMessage(data) {
   if (this.user) {
     m.set('self', this.user.id)
   } else {
-    log.warn('PuppetWeb', 'onServerMessage() without this.user')
+    log.warn('PuppetWebEvent', 'onServerMessage() without this.user')
   }
   m.ready() // TODO: EventEmitter2 for video/audio/app/sys....
   .then(() => this.emit('message', m))
   .catch(e => {
-    log.error('PuppetWeb', 'onServerMessage() message ready exception: %s', e)
+    log.error('PuppetWebEvent', 'onServerMessage() message ready exception: %s', e)
     /**
      * FIXME: add retry here...
      * setTimeout(onServerMessage.bind(this, data, ++attempt), 1000)
