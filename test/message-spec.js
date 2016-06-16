@@ -39,7 +39,7 @@ test('Message ready() promise testing', t => {
 
   // Mock
   Contact.puppet.getContact = function (id) {
-    log.silly('MessageTesting', `mocked getContact(${id})`)
+    log.silly('TestMessage', `mocked getContact(${id})`)
     return new Promise((resolve,reject) => {
       let obj = {}
       switch (id) {
@@ -56,12 +56,12 @@ test('Message ready() promise testing', t => {
           }
           break
         default:
-          log.error('MessageTesting', `mocked getContact(${id}) unknown`)
+          log.error('TestMessage', `mocked getContact(${id}) unknown`)
           break
       }
-      log.silly('MessageTesting', 'setTimeout mocked getContact')
+      log.silly('TestMessage', 'setTimeout mocked getContact')
       setTimeout(r => {
-        log.silly('MessageTesting', 'mocked getContact resolved')
+        log.silly('TestMessage', 'mocked getContact resolved')
         return resolve(obj)
       }, 200)
     })

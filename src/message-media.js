@@ -12,13 +12,13 @@ const log = require('./npmlog-env')
 const webUtil = require('./web-util')
 const Message = require('./message')
 
-class ImageMessage extends Message {
+class MediaMessage extends Message {
   constructor(rawObj) {
     super(rawObj)
     this.bridge = Message.puppet.bridge
   }
   ready() {
-    log.silly('ImageMessage', 'ready()')
+    log.silly('MediaMessage', 'ready()')
 
     const parentReady = super.ready.bind(this)
     return co.call(this, function* () {
@@ -29,14 +29,14 @@ class ImageMessage extends Message {
       return this // IMPORTANT!
     })
     .catch(e => {
-      log.warn('ImageMessage', 'ready() exception: %s', e.message)
+      log.warn('MediaMessage', 'ready() exception: %s', e.message)
       throw e
     })
   }
   getMsgImg(id) {
     return this.bridge.getMsgImg(id)
     .catch(e => {
-      log.warn('ImageMessage', 'getMsgImg(%d) exception: %s', id, e.message)
+      log.warn('MediaMessage', 'getMsgImg(%d) exception: %s', id, e.message)
       throw e
     })
   }
@@ -50,10 +50,10 @@ class ImageMessage extends Message {
       return webUtil.downloadStream(this.obj.url, cookies)
     })
     .catch(e => {
-      log.warn('ImageMessage', 'stream() exception: %s', e.message)
+      log.warn('MediaMessage', 'stream() exception: %s', e.message)
       throw e
     })
   }
 }
 
-module.exports = ImageMessage
+module.exports = MediaMessage

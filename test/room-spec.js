@@ -74,7 +74,7 @@ false && test('Message ready() promise testing', t => {
 
   // Mock
   const mockContactGetter = function(id) {
-    log.silly('MessageTesting', `mocked getContact(${id})`)
+    log.silly('TestRoom', `mocked getContact(${id})`)
     return new Promise((resolve,reject) => {
       let obj = {}
       switch (id) {
@@ -91,12 +91,12 @@ false && test('Message ready() promise testing', t => {
           }
           break
         default:
-          log.error('MessageTesting', `mocked getContact(${id}) unknown`)
+          log.error('TestRoom', `mocked getContact(${id}) unknown`)
           break
       }
-      log.silly('MessageTesting', 'setTimeout mocked getContact')
+      log.silly('TestRoom', 'setTimeout mocked getContact')
       setTimeout(r => {
-        log.silly('MessageTesting', 'mocked getContact resolved')
+        log.silly('TestRoom', 'mocked getContact resolved')
         return resolve(obj)
       }, 200)
     })
