@@ -51,6 +51,7 @@ const PuppetWebEvent = {
 }
 
 function onBrowserDead(e) {
+  log.verbose('PuppetWebEvent', 'onBrowserDead()')
   // because this function is async, so maybe entry more than one times.
   // guard by variable: onBrowserBirthing to prevent the 2nd time entrance.
   if (this.onBrowserBirthing) {

@@ -64,7 +64,7 @@ class Bridge {
 
       const injectio = this.getInjectio()
       let retObj = yield this.execute(injectio, this.port)
-      if (retObj && /^2|3/.test(retObj.code)) {   // HTTP Code 2XX & 3XX
+      if (retObj && /^(2|3)/.test(retObj.code)) {   // HTTP Code 2XX & 3XX
         log.verbose('PuppetWebBridge', 'inject() eval(Wechaty) return code[%d] message[%s] port[%d]'
           , retObj.code, retObj.message, retObj.port)
       } else {                                    // HTTP Code 4XX & 5XX
@@ -72,15 +72,18 @@ class Bridge {
       }
 
       retObj = yield this.proxyWechaty('init')
-      if (retObj && /^2|3/.test(retObj.code)) {   // HTTP Code 2XX & 3XX
+      if (retObj && /^(2|3)/.test(retObj.code)) {   // HTTP Code 2XX & 3XX
         log.verbose('PuppetWebBridge', 'inject() Wechaty.init() return code[%d] message[%s] port[%d]'
           , retObj.code, retObj.message, retObj.port)
       } else {                                    // HTTP Code 4XX & 5XX
         throw new Error('execute proxyWechaty(init) error: ' + retObj.code + ', ' + retObj.message)
       }
 
-      // const r = yield this.proxyWechaty('initClog')
-      // log.warn('PuppetWebBridge', 'initClog(): %s', r)
+      const r = yield this.ding('inject()')
+      if (r!=='inject()') {
+        throw new Error('fail to get right return from call ding()')
+      }
+      log.verbose('PuppetWebBridge', 'inject() ding success')
 
       return true
 

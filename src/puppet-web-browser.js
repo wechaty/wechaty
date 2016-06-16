@@ -146,6 +146,7 @@ class Browser extends EventEmitter {
         , 'NoSuchWindowError: no such window: target window already closed'
       ]
       const crashRegex = new RegExp(crashMsgs.join('|'), 'i')
+
       if (crashRegex.test(e.message)) { log.warn('PuppetWebBrowser', 'driver.quit() browser crashed') }
       else                            { log.warn('PuppetWebBrowser', 'driver.quit() exception: %s', e.message) }
     })
@@ -316,6 +317,7 @@ class Browser extends EventEmitter {
       this.live = false
       // must use nextTick here, or promise will hang... 2016/6/10
       process.nextTick(() => {
+        log.verbose('PuppetWebBrowser', 'dead() emit a `dead` event')
         this.emit('dead', errMsg)
       })
     }

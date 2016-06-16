@@ -158,6 +158,31 @@ mode con lines=32766
 ```
 > http://stackoverflow.com/a/8775884/1123955
 
+### NpmLog with Timestamp ###
+Here's a quick and dirty patch, to npmlog/log.js
+
+```javascript
+  m.message.split(/\r?\n/).forEach(function (line) {
+
+    var date = new Date();
+    var min = date.getMinutes()
+    var sec = date.getSeconds()
+    var hour = date.getHours()
+
+    if (sec < 10) { sec = '0' + sec }
+    if (min < 10) { min = '0' + min }
+    if (hour < 10) { hour = '0' + hour }
+
+    this.write(hour + ':' + min + ':' + sec + ' ')
+
+    if (this.heading) {
+      this.write(this.heading, this.headingStyle)
+      this.write(' ')
+    }
+```
+
+And we can looking forward the official support from npmlog: https://github.com/npm/npmlog/pull/24
+
 # Requirement
 
 ECMAScript2015(ES6). I develop and test wechaty with Node.js v6.0.

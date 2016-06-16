@@ -125,13 +125,16 @@ test('Puppet Web watchdog timer', function(t) {
     t.pass('should kill both browser & bridge')
 
     pw.once('error', e => {
-      t.ok(/watchdog timeout/i.test(e), 'should emit error after watchdog timeout')
+      t.ok(/watchdog reset/i.test(e.message), 'should get event[error] after watchdog timeout')
     })
+    pw.watchDog('feed_and_active_it', {timeout: 1})
+    yield new Promise((resolve) => setTimeout(() => resolve(), 2)) // wait untill reset
+    t.pass('should feed the watchdog and had already fireed a reset above')
 
-    pw.watchDog('feed_and_active_it', {timeout: 10})
-    t.pass('should feed the watchdog and set timeout')
+    pw.once('error', e => t.fail('waitDing() triggered watchDogReset()'))
 
     const EXPECTED_DING_DATA = 'dingdong'
+    pw.watchDog('feed to extend the dog life')
     const dong = yield waitDing(EXPECTED_DING_DATA)
     t.equal(dong, EXPECTED_DING_DATA, 'should get EXPECTED_DING_DATA from ding after watchdog reset')
   })
@@ -146,12 +149,13 @@ test('Puppet Web watchdog timer', function(t) {
   return
   /////////////////////////////////////////////////////////////////////////////
   function waitDing(data) {
-    const max = 30
-    const backoff = 100
+    const max = 7
+    const backoff = 2000
 
     // max = (2*totalTime/backoff) ^ (1/2)
-    // timeout = 11250 for {max: 15, backoff: 100}
-    // timeout = 45000 for {max: 30, backoff: 100}
+    // timeout = 11,250 for {max: 15, backoff: 100}
+    // timeout = 45,000 for {max: 30, backoff: 100}
+    // timeout = 49,000 for {max: 7, backoff: 2000}
     const timeout = max * (backoff * max) / 2
 
     return retryPromise({ max: max, backoff: backoff }, function (attempt) {

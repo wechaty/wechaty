@@ -186,7 +186,7 @@ class PuppetWeb extends Puppet {
   watchDog(data, options) {
     log.silly('PuppetWeb', 'watchDog(%s)', data)
     options = options || {}
-    const timeout = options.timeout || 60000 // 60s default. can be override in options
+    const timeout = options.timeout || 60000 // 60s default. can be override in options but be careful about the number zero(0)
     const type   =  options.type    || 'food'  // just a name
 
     if (this.watchDogTimer) { clearTimeout(this.watchDogTimer) }
@@ -229,6 +229,7 @@ class PuppetWeb extends Puppet {
   }
 
   watchDogReset(timeout) {
+    log.warn('PuppetWeb', 'watchDogReset() timeout %d', timeout)
     const e = new Error('watchdog reset after ' + Math.floor(timeout/1000) + ' seconds')
     this.emit('error', e)
     return Event.onBrowserDead.call(this, e)
