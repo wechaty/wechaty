@@ -194,7 +194,7 @@ return (function(port) {
       throw new Error('Wechaty.vars.eventsBuf must be a Array')
     }
     if (event) {
-      eventsBuf.push([event, data])
+      eventsBuf.unshift([event, data])
     }
     var socket = Wechaty.vars.socket
     if (!socket) {
@@ -357,8 +357,10 @@ return (function(port) {
   function isLogin() { return !!Wechaty.vars.logined }
   function login(data) {
     log('login(' + data + ')')
-    Wechaty.vars.logined = true
-    Wechaty.emit('login', data)
+    if (!Wechaty.vars.logined) {
+      Wechaty.vars.logined = true
+      Wechaty.emit('login', data)
+    }
   }
   function logout(data) {
     log('logout(' + data + ')')
