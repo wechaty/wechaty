@@ -1,7 +1,7 @@
 const http  = require('http')
 const log = require('./npmlog-env')
 
-const HtmlUtil = {
+const WebUtil = {
   stripHtml:      stripHtml
   , unescapeHtml: unescapeHtml
   , digestEmoji:  digestEmoji
@@ -43,10 +43,9 @@ function plainText(html) {
   )
 }
 
-
 function downloadStream(url, cookies) {
   // const myurl = 'http://wx.qq.com/cgi-bin/mmwebwx-bin/webwxgetmsgimg?&MsgID=3080011908135131569&skey=%40crypt_c117402d_53a58f8fbb21978167a3fc7d3be7f8c9'
-  url = url.replace(/^https/i, 'http') // https not supported by nodejs http module?
+  url = url.replace(/^https/i, 'http') // use http for better performance
   const options = require('url').parse(url)
 
   options.headers = {
@@ -76,4 +75,4 @@ function downloadStream(url, cookies) {
     req.end()
   })
 }
-module.exports = HtmlUtil
+module.exports = WebUtil

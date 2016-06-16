@@ -27,7 +27,6 @@ const Contact = require('./contact')
 const Room    = require('./room')
 
 const Message = require('./message')
-const ImageMessage = require('./message-image')
 
 const Server  = require('./puppet-web-server')
 const Browser = require('./puppet-web-browser')

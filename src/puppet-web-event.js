@@ -27,13 +27,13 @@ const Contact = require('./contact')
 const Room    = require('./room')
 
 const Message = require('./message')
-const ImageMessage = require('./message-image')
+const MediaMessage = require('./message-media')
 
 const Server  = require('./puppet-web-server')
 const Browser = require('./puppet-web-browser')
 const Bridge  = require('./puppet-web-bridge')
 
-PuppetWebEvent{
+const PuppetWebEvent = {
   onBrowserDead: onBrowserDead
 
   , onServerLogin: onServerLogin
@@ -241,7 +241,7 @@ function onServerMessage(data) {
   switch (data.MsgType) {
     case Message.Type.IMAGE:
       // log.verbose('PuppetWeb', 'onServerMessage() IMAGE message')
-      m = new ImageMessage(data)
+      m = new MediaMessage(data)
       break;
 
     case 'TEXT':
@@ -266,4 +266,4 @@ function onServerMessage(data) {
   })
 }
 
-module.exports = PuppetWebEvents
+module.exports = PuppetWebEvent

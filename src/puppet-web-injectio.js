@@ -150,7 +150,7 @@ return (function(port) {
       return true
     }
 
-    if (!document.body) {
+    if (!document.body) { // Javascript Error Null is not an Object
       // log('initClog() not ready because document.body not ready')
       return false
     }
