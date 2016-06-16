@@ -182,6 +182,48 @@ class PuppetWeb extends Puppet {
     })
   }
 
+  // feed me in time(after 1st feed), or I'll restart system
+  watchDog(data, options) {
+    log.silly('PuppetWeb', 'watchDog(%s)', data)
+    options = options || {}
+    const TIMEOUT = options.timeout || 60000 // 60s default. can be override in options
+
+    if (this.watchDogTimer) {
+      clearTimeout(this.watchDogTimer)
+    }
+    this.watchDogTimer = setTimeout(() => {
+      const err = new Error('watchdog timeout after ' + Math.floor(TIMEOUT/1000) + ' seconds')
+      // this.emit('error', err)
+      this.onBrowserDead(err)
+    }, TIMEOUT)
+    this.watchDogTimer.unref() // dont block quit
+
+    const SAVE_SESSION_INTERVAL = 5 * 60 * 1000 // 5 mins
+    if (this.session) {
+      if (!this.watchDogLastSaveSession || Date.now() - this.watchDogLastSaveSession > SAVE_SESSION_INTERVAL) {
+        log.verbose('PuppetWeb', 'watchDog() saveSession(%s) after %d minutes', this.session, Math.floor(SAVE_SESSION_INTERVAL/1000/60))
+        this.browser.saveSession(this.session)
+        this.watchDogLastSaveSession = Date.now()
+      }
+    }
+
+    // if web browser stay at login qrcode page long time,
+    // sometimes the qrcode will not refresh, leave there expired.
+    // so we need to refresh the page after a while
+    const REFRESH_TIMEOUT = 10 * 60 * 1000 // 10 mins
+    if (!this.logined()) {
+      if (!this.watchDogLastRefresh) {
+        this.watchDogLastRefresh = Date.now()
+      }
+      if (Date.now() - this.watchDogLastRefresh > REFRESH_TIMEOUT) {
+        log.warn('PuppetWeb', 'watchDog() refresh browser for not login for a long time')
+        this.browser.refresh()
+        this.watchDogLastRefresh = Date.now()
+      }
+    } else if (this.watchDogLastRefresh) {
+      this.watchDogLastRefresh = null
+    }
+  }
   send(message) {
     const to      = message.get('to')
     const room    = message.get('room')
