@@ -95,10 +95,12 @@ class Wechaty extends EventEmitter {
     this.puppet.on('logout', (e) => {
       this.emit('logout', e)
     })
+    this.puppet.on('error', (e) => {
+      this.emit('error', e)
+    })
 
     /**
      * TODO: support more events:
-     * 1. error
      * 2. send
      * 3. reply
      * 4. quit

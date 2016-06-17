@@ -45,8 +45,8 @@ return (function(port) {
 
     // variable
     , vars: {
-      logined:      false
-      , inited:     false
+      loginStatus:      false
+      , initStatus:     false
 
       , socket:     null
       , eventsBuf:  []
@@ -103,7 +103,7 @@ return (function(port) {
       return retObj
     }
 
-    if (Wechaty.vars.inited === true) {
+    if (Wechaty.vars.initStatus === true) {
       log('Wechaty.init() called twice: already inited')
       retObj.code = 304 // 304 Not Modified https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.5
       retObj.message = 'init() already inited before. returned with do nothing'
@@ -131,7 +131,7 @@ return (function(port) {
     heartBeat(true)
 
     clog('inited!. ;-D')
-    Wechaty.vars.inited = true
+    Wechaty.vars.initStatus = true
 
     retObj.code = 200
     retObj.message = 'Wechaty Init Succ on port: ' + port
@@ -354,17 +354,17 @@ return (function(port) {
     return
   }
 
-  function isLogin() { return !!Wechaty.vars.logined }
+  function isLogin() { return !!Wechaty.vars.loginStatus }
   function login(data) {
     log('login(' + data + ')')
-    if (!Wechaty.vars.logined) {
-      Wechaty.vars.logined = true
+    if (!Wechaty.vars.loginStatus) {
+      Wechaty.vars.loginStatus = true
       Wechaty.emit('login', data)
     }
   }
   function logout(data) {
     log('logout(' + data + ')')
-    Wechaty.vars.logined = false
+    Wechaty.vars.loginStatus = false
     Wechaty.emit('logout', data)
     checkScan()
   }
