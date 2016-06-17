@@ -97,6 +97,12 @@ return (function(port) {
   /////////////////////////////////////////////////////////////////////////////
 
   function init() {
+    if (!angularIsReady()) {
+      retObj.code = 503 // 503 SERVICE UNAVAILABLE https://httpstatuses.com/503
+      retObj.message = 'init() without a ready angular env'
+      return retObj
+    }
+
     if (!initClog()) { // make console.log work (wxapp disabled the console.log)
       retObj.code = 503 // 503 Service Unavailable http://www.restapitutorial.com/httpstatuscodes.html
       retObj.message = 'initClog fail'
@@ -107,12 +113,6 @@ return (function(port) {
       log('Wechaty.init() called twice: already inited')
       retObj.code = 304 // 304 Not Modified https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.5
       retObj.message = 'init() already inited before. returned with do nothing'
-      return retObj
-    }
-
-    if (!angularIsReady()) {
-      retObj.code = 503 // 503 SERVICE UNAVAILABLE https://httpstatuses.com/503
-      retObj.message = 'init() without a ready angular env'
       return retObj
     }
 
@@ -225,6 +225,7 @@ return (function(port) {
   function MMCgiLogined() { return !!(window.MMCgi && window.MMCgi.isLogin) }
 
   function angularIsReady() {
+    // don't log insite, because we has not init clog here.
     return (
       (typeof angular) !== 'undefined'
       && angular.element
