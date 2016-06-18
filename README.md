@@ -28,7 +28,7 @@ const wechaty = new Wechaty()
 wechaty.on('scan', ({url, code}) => {
   console.log(`Use Wechat to scan qrcode in url to login: ${code}\n${url}`)
 }).on('message', m => {
-  !m.self() && wechaty.reply(m, 'roger') // 1. reply
+  !wechaty.self(m) && wechaty.reply(m, 'roger') // 1. reply
   .then(() => console.log(`RECV: ${m}, REPLY: "roger"`)) // 2. log message
   .catch(e => console.error(e)) // 3. catch exception
 }).init()
