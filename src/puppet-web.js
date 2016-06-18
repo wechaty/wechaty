@@ -270,7 +270,7 @@ class PuppetWeb extends Puppet {
     })
   }
   reply(message, replyContent) {
-    if (message.self()) {
+    if (this.self(message)) {
       return Promise.reject(new Error('will not to reply message of myself'))
     }
 
@@ -280,14 +280,6 @@ class PuppetWeb extends Puppet {
     .set('from'     , message.obj.to)
     .set('to'       , message.obj.from)
     .set('room'     , message.obj.room)
-
-    if (this.userId) {
-      // FIXME: find a alternate way to check a message create by `self`
-      m.set('self', this.userId)
-    }
-    else {
-      log.warn('PuppetWeb', 'reply() too early before logined user be set')
-    }
 
     // log.verbose('PuppetWeb', 'reply() by message: %s', util.inspect(m))
     return this.send(m)
