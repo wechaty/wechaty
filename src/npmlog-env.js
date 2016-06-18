@@ -1,6 +1,6 @@
 const log = require('npmlog')
 
-const level = process.env.WECHATY_DEBUG
+const level = process.env.WECHATY_DEBUG || process.env.WECHATY_LOG
 const levelRegexStr = 'silly|verbose|info|warn|error'
 const levelRegex = new RegExp(levelRegexStr, 'i')
 if (levelRegex.test(level)) {
