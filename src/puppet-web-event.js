@@ -237,8 +237,10 @@ function onServerLogin(data) {
 function onServerLogout(data) {
   if (this.user) {
     this.emit('logout', this.user)
-    this.user = null
   } else { log.verbose('PuppetWebEvent', 'onServerLogout() without this.user initialized') }
+
+  this.user = null
+  this.userId = null
 
   if (this.session) {
     this.browser.cleanSession(this.session)
@@ -266,7 +268,7 @@ function onServerMessage(data) {
   if (this.userId) {
     m.set('self', this.userId)
   } else {
-    log.warn('PuppetWebEvent', 'onServerMessage() without this.user')
+    log.warn('PuppetWebEvent', 'onServerMessage() without this.userId')
   }
   m.ready() // TODO: EventEmitter2 for video/audio/app/sys....
   .then(() => this.emit('message', m))
