@@ -271,7 +271,10 @@ class PuppetWeb extends Puppet {
     if (this.user) {
       // FIXME: find a alternate way to check a message create by `self`
       m.set('self', this.user.id)
-    } else {
+    } else if (this.userId) {
+      m.set('self', this.userId)
+    }
+    else {
       log.warn('PuppetWeb', 'reply() too early before logined user be set')
     }
 

@@ -206,12 +206,18 @@ function onServerLogin(data) {
   co.call(this, function* () {
     // co.call to make `this` context work inside generator.
     // See also: https://github.com/tj/co/issues/274
-    const userName = yield this.bridge.getUserName()
+
+    /**
+     * save login user id to this.userId
+     */
+    const userName = this.userId = yield this.bridge.getUserName()
+
     if (!userName) {
       log.verbose('PuppetWebEvent', 'onServerLogin: browser not full loaded, retry later.')
       setTimeout(onServerLogin.bind(this), 500)
       return
     }
+
     log.verbose('PuppetWebEvent', 'bridge.getUserName: %s', userName)
     this.user = yield Contact.load(userName).ready()
     log.verbose('PuppetWebEvent', `onServerLogin() user ${this.user.name()} logined`)
