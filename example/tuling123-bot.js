@@ -47,7 +47,7 @@ bot
   console.log(`Scan QR Code in url to login: w${code}\n${url}`)
 })
 .on('message', m => {
-  if (m.self()) return
+  if (bot.self(m)) return
 
   co(function* () {
     const msg = yield m.ready()

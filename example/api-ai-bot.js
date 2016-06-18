@@ -46,7 +46,7 @@ bot
 .on('login'  , user => log.info('Bot', `bot login: ${user}`))
 .on('logout' , e => log.info('Bot', 'bot logout.'))
 .on('message', m => {
-  if (m.self()) { return }
+  if (bot.self(m)) { return }
 
   co(function* () {
     const msg = yield m.ready()

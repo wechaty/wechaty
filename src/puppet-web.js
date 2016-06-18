@@ -42,7 +42,8 @@ class PuppetWeb extends Puppet {
     this.head     = options.head
     this.session  = options.session  // if not set session, then dont store session.
 
-    this.user = null  // <Contact> of user self
+    this.userId = null  // user id
+    this.user   = null  // <Contact> of user self
   }
 
   toString() { return `Class PuppetWeb({browser:${this.browser},port:${this.port}})` }
@@ -235,6 +236,17 @@ class PuppetWeb extends Puppet {
     return Event.onBrowserDead.call(this, e)
   }
 
+  self(message) {
+    if (!this.userId) {
+      log.verbose('PuppetWeb', 'self() got no this.userId')
+      return false
+    }
+    if (!message || !message.id) {
+      log.verbose('PuppetWeb', 'self() got no message')
+      return false
+    }
+    return this.userId == message.get('from')
+  }
   send(message) {
     const to      = message.get('to')
     const room    = message.get('room')
@@ -268,10 +280,8 @@ class PuppetWeb extends Puppet {
     .set('to'       , message.obj.from)
     .set('room'     , message.obj.room)
 
-    if (this.user) {
+    if (this.userId) {
       // FIXME: find a alternate way to check a message create by `self`
-      m.set('self', this.user.id)
-    } else if (this.userId) {
       m.set('self', this.userId)
     }
     else {

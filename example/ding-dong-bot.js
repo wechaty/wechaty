@@ -32,11 +32,11 @@ bot
 .on('login'	  , user => log.info('Bot', `${user.name()} logined`))
 .on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
 .on('scan', ({url, code}) => {
-  console.log(`Scan QR Code in url to login: ${code}\n${url}`)
   if (!/201|200/.test(code)) {
     let loginUrl = url.replace(/\/qrcode\//, '/l/')
     require('qrcode-terminal').generate(loginUrl)
   }
+  console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
 })
 .on('message', m => {
   m.ready()
@@ -44,7 +44,7 @@ bot
     log.info('Bot', 'recv: %s', msg.toStringEx())
     // logToFile(JSON.stringify(msg.rawObj))
 
-    if (/^(ding|ping|bing)$/i.test(m.get('content')) && !m.self()) {
+    if (/^(ding|ping|bing)$/i.test(m.get('content')) && !bot.self(m)) {
       bot.reply(m, 'dong')
       .then(() => { log.warn('Bot', 'REPLY: dong') })
     }

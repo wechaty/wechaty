@@ -210,16 +210,16 @@ function onServerLogin(data) {
     /**
      * save login user id to this.userId
      */
-    const userName = this.userId = yield this.bridge.getUserName()
+    this.userId = yield this.bridge.getUserName()
 
-    if (!userName) {
+    if (!this.userId) {
       log.verbose('PuppetWebEvent', 'onServerLogin: browser not full loaded, retry later.')
       setTimeout(onServerLogin.bind(this), 500)
       return
     }
 
-    log.verbose('PuppetWebEvent', 'bridge.getUserName: %s', userName)
-    this.user = yield Contact.load(userName).ready()
+    log.verbose('PuppetWebEvent', 'bridge.getUserName: %s', this.userId)
+    this.user = yield Contact.load(this.userId).ready()
     log.verbose('PuppetWebEvent', `onServerLogin() user ${this.user.name()} logined`)
     this.emit('login', this.user)
 
@@ -263,8 +263,8 @@ function onServerMessage(data) {
       break;
   }
 
-  if (this.user) {
-    m.set('self', this.user.id)
+  if (this.userId) {
+    m.set('self', this.userId)
   } else {
     log.warn('PuppetWebEvent', 'onServerMessage() without this.user')
   }
