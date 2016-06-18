@@ -103,7 +103,7 @@ return (function(port) {
       return retObj
     }
 
-    if (!initClog()) { // make console.log work (wxapp disabled the console.log)
+    if (!initClog(false)) { // make console.log work (wxapp disabled the console.log)
       retObj.code = 503 // 503 Service Unavailable http://www.restapitutorial.com/httpstatuscodes.html
       retObj.message = 'initClog fail'
       return retObj
@@ -142,7 +142,11 @@ return (function(port) {
   * Log to console
   * http://stackoverflow.com/a/7089553/1123955
   */
-  function initClog() {
+  function initClog(enabled) {
+    if (!enabled) {
+      return true
+    }
+
     if (Wechaty.vars.iframe) {
       log('initClog() again? there is already a iframe')
       return true
@@ -171,14 +175,15 @@ return (function(port) {
   }
 
   function clog(s) {
+    if (!Wechaty.vars.iframe) {
+      // throw new Error('clog() iframe not found when be invocked')
+      return
+    }
+
     var d = new Date()
     s = d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds() + ' <Wechaty> ' + s
 
-    if (Wechaty.vars.iframe) {
-      Wechaty.vars.iframe.contentWindow.console.log(s)
-    } else {
-      throw new Error('clog() iframe not found when be invocked')
-    }
+    Wechaty.vars.iframe.contentWindow.console.log(s)
   }
 
   function slog(msg)  { Wechaty.emit('log', msg) }
