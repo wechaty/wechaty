@@ -403,9 +403,10 @@ Know more about TAP: [Why I use Tape Instead of Mocha & So Should You](https://m
 
 # Version History
 
-## v0.1.6 (master)
+## v0.1.7 (master)
 1. add a watchdog to restore from unknown state
 2. add support to download image message by `ImageMessage.readyStream()`
+3. fix lots of stable issues with webdriver exceptions & injection js code compatible
 
 ## v0.1.1 (2016/6/10)
 1. add support to save & restore wechat login session
