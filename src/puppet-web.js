@@ -241,10 +241,11 @@ class PuppetWeb extends Puppet {
       log.verbose('PuppetWeb', 'self() got no this.userId')
       return false
     }
-    if (!message || !message.id) {
+    if (!message || !message.get('from')) {
       log.verbose('PuppetWeb', 'self() got no message')
       return false
     }
+
     return this.userId == message.get('from')
   }
   send(message) {

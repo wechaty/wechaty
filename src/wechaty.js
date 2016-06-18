@@ -131,10 +131,6 @@ class Wechaty extends EventEmitter {
 
   self(message) {
     return this.puppet.self(message)
-    .catch(e => {
-      log.error('Wechaty', 'self() exception: %s', e.message)
-      throw e
-    })
   }
   send(message) {
     return this.puppet.send(message)

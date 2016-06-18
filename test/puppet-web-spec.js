@@ -20,6 +20,14 @@ test('PuppetWeb smoke testing', function(t) {
     t.pass('should be inited')
     t.equal(pw.logined() , false  , 'should be not logined')
 
+    const EXPECTED_USER_ID = 'expected_user_id'
+    pw.userId = EXPECTED_USER_ID
+    const Message = require('../src/message')
+    const m = new Message()
+    m.set('from', EXPECTED_USER_ID)
+    t.ok(pw.self(m), 'should identified self for message which from is self')
+
+
     // XXX find a better way to mock...
     pw.bridge.getUserName = function() { return Promise.resolve('mockedUserName') }
     pw.getContact = function() { return Promise.resolve('dummy') }
@@ -179,4 +187,11 @@ test('Puppet Web watchdog timer', function(t) {
       throw e
     })
   }
+})
+
+test('Puppet Web Self Message Identification', function(t) {
+  const p = new PuppetWeb({port: PORT, head: HEAD, session: SESSION})
+  t.ok(p, 'should instantiated a PuppetWeb')
+
+  t.end()
 })
