@@ -48,7 +48,7 @@ class Bridge {
         return r
       })
       .catch(e => {
-        log.warn('PuppetWebBridge', 'init() inject() attempt %d exception: %s', attempt, e.message)
+        log.verbose('PuppetWebBridge', 'init() inject() attempt %d exception: %s', attempt, e.message)
         throw e
       })
     })
@@ -89,7 +89,7 @@ class Bridge {
 
     })
     .catch (e => {
-      log.warn('PuppetWebBridge', 'inject() exception: %s', e.message)
+      log.verbose('PuppetWebBridge', 'inject() exception: %s', e.message)
       throw e
     })
   }
@@ -198,7 +198,7 @@ class Bridge {
     const argsDecoded = `JSON.parse(decodeURIComponent(window.atob('${argsEncoded}')))`
 
     const wechatyScript   = `return Wechaty.${wechatyFunc}.apply(undefined, ${argsDecoded})`
-    log.silly('PuppetWebBridge', 'proxyWechaty(%s, ...args) %s', wechatyFunc, wechatyScript)
+    // log.silly('PuppetWebBridge', 'proxyWechaty(%s, ...args) %s', wechatyFunc, wechatyScript)
     return this.execute('return typeof Wechaty === "undefined"')
       .then(noWechaty => {
         if (noWechaty) {

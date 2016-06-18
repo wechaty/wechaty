@@ -356,7 +356,7 @@ class Browser extends EventEmitter {
     })
   }
   saveSession(session) {
-    log.verbose('PuppetWebBrowser', `saveSession(${session})`)
+    log.silly('PuppetWebBrowser', `saveSession(${session})`)
     if (this.dead()) { return Promise.reject(new Error('saveSession() - browser dead'))}
 
     if (!session) { return Promise.reject(new Error('saveSession() no session')) }
@@ -386,7 +386,7 @@ class Browser extends EventEmitter {
             log.error('PuppetWebBrowser', 'saveSession() fail to write file %s: %s', filename, err.Error)
             return reject(err)
           }
-          log.verbose('PuppetWebBrowser', 'saved session(%d cookies) to %s', cookies.length, session)
+          log.silly('PuppetWebBrowser', 'saved session(%d cookies) to %s', cookies.length, session)
           return resolve(cookies)
         })
       })

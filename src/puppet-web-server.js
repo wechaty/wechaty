@@ -130,7 +130,7 @@ class Server extends EventEmitter {
       , 'ding'
     ].map(e => {
       client.on(e, data => {
-        log.silly('PuppetWebServer', `initEventsFromClient() forward client event[${e}](${data}) from browser by emit it`)
+        // log.silly('PuppetWebServer', `initEventsFromClient() forward client event[${e}](${data}) from browser by emit it`)
         this.emit(e, data)
       })
     })
