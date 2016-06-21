@@ -16,7 +16,7 @@ const PuppetWebBridge   = require('../src/puppet-web-bridge')
 const PORT = process.env.WECHATY_PORT || 58788
 const HEAD = process.env.WECHATY_HEAD || false
 
-false && test('WebDriver process create & quit test', function(t) {
+test('WebDriver process create & quit test', function(t) {
   co(function* () {
     const b = new PuppetWebBrowser({port: PORT, head: HEAD})
     t.ok(b, 'should instanciate a browser')

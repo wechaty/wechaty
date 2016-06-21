@@ -214,7 +214,10 @@ class Browser extends EventEmitter {
             browserRe = this.head
         }
         let matchRegex = new RegExp(browserRe, 'i')
-        const pids = children.filter(child => matchRegex.test(child.COMMAND))
+        const pids = children.filter(child => {
+          // https://github.com/indexzero/ps-tree/issues/18
+          return matchRegex.test('' + child.COMMAND + child.COMM)
+        })
         .map(child => child.PID)
         resolve(pids)
         return
