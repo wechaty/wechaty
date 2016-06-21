@@ -11,16 +11,10 @@
 const EventEmitter  = require('events')
 const co            = require('co')
 
-const log         = require('./npmlog-env')
-
-const Puppet      = require('./puppet')
-const PuppetWeb   = require('./puppet-web')
-
-const Message     = require('./message')
-const Contact     = require('./contact')
-const Room        = require('./room')
+const log           = require('./npmlog-env')
 
 class Wechaty extends EventEmitter {
+
   constructor(options) {
     super()
     this.options = options || {}
@@ -28,12 +22,15 @@ class Wechaty extends EventEmitter {
     this.options.head       = this.options.head     || process.env.WECHATY_HEAD     || false
     this.options.port       = this.options.port     || process.env.WECHATY_PORT     || 8788 // W(87) X(88), ascii char code ;-]
     this.options.session    = this.options.session  || process.env.WECHATY_SESSION          // no session, no session save/restore
+    this.options.token      = this.options.token    || process.env.WECHATY_TOKEN
 
     this.npmVersion = require('../package.json').version
 
     this.inited = false
   }
+
   toString() { return 'Class Wechaty(' + this.puppet + ')'}
+
   version()  { return this.npmVersion }
 
   init() {
@@ -69,6 +66,7 @@ class Wechaty extends EventEmitter {
       throw e
     })
   }
+
   initPuppet() {
     switch (this.options.puppet) {
       case 'web':
@@ -83,6 +81,7 @@ class Wechaty extends EventEmitter {
     }
     return Promise.resolve(this.puppet)
   }
+
   initEventHook() {
     this.puppet.on('scan', (e) => {
       this.emit('scan', e)    // Scan QRCode
@@ -122,6 +121,7 @@ class Wechaty extends EventEmitter {
       throw e
     })
   }
+
   logout()  {
     return this.puppet.logout()
     .catch(e => {
@@ -133,6 +133,7 @@ class Wechaty extends EventEmitter {
   self(message) {
     return this.puppet.self(message)
   }
+
   send(message) {
     return this.puppet.send(message)
     .catch(e => {
@@ -140,6 +141,7 @@ class Wechaty extends EventEmitter {
       throw e
     })
   }
+
   reply(message, reply) {
     return this.puppet.reply(message, reply)
     .catch(e => {
@@ -147,6 +149,7 @@ class Wechaty extends EventEmitter {
       throw e
     })
   }
+
   ding(data) {
     if (!this.puppet) {
       return Promise.reject(new Error('wechaty cant ding coz no puppet'))
@@ -163,17 +166,17 @@ class Wechaty extends EventEmitter {
     return new Promise((resolve, reject) => {
       port = port || 8788
       // https://gist.github.com/mikeal/1840641
-      function getPort (cb) {
+      function getPort(cb) {
         var tryPort = port
         port += 1
         var server = require('net').createServer()
-        server.on('error', function (err) {
+        server.on('error', function(err) {
           if (err) {}
           getPort(cb)
         })
-        server.listen(tryPort, function (err) {
+        server.listen(tryPort, function(err) {
           if (err) {}
-          server.once('close', function () {
+          server.once('close', function() {
             cb(tryPort)
           })
           server.close()
@@ -184,17 +187,24 @@ class Wechaty extends EventEmitter {
   }
 }
 
-Puppet.Web = PuppetWeb
+const Message = require('./message')
+const Contact = require('./contact')
+const Room    = require('./room')
+
+const Puppet  = require('./puppet')
+Puppet.Web    = require('./puppet-web')
 
 Object.assign(Wechaty, {
-  Puppet:     Puppet
-  , Message:  Message
-  , Contact:  Contact
-  , Room:     Room
+  Puppet
+
+  , Message
+  , Contact
+  , Room
+
+  , log // for convenionce use npmlog with environment variable LEVEL
 })
 
 /**
  * Expose `Wechaty`.
  */
-Wechaty.log = log // for convenionce use npmlog with environment variable LEVEL
 module.exports = Wechaty.default = Wechaty.Wechaty = Wechaty
