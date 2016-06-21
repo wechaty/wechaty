@@ -265,11 +265,13 @@ function onServerMessage(data) {
       break
   }
 
+  // To Be Deleted: set self...
   if (this.userId) {
     m.set('self', this.userId)
   } else {
     log.warn('PuppetWebEvent', 'onServerMessage() without this.userId')
   }
+
   m.ready() // TODO: EventEmitter2 for video/audio/app/sys....
   .then(() => this.emit('message', m))
   .catch(e => {
