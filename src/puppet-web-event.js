@@ -34,20 +34,20 @@ const Browser = require('./puppet-web-browser')
 const Bridge  = require('./puppet-web-bridge')
 
 const PuppetWebEvent = {
-  onBrowserDead: onBrowserDead
+  onBrowserDead
 
-  , onServerLogin: onServerLogin
-  , onServerLogout: onServerLogout
+  , onServerLogin
+  , onServerLogout
 
-  , onServerConnection: onServerConnection
-  , onServerDisconnect: onServerDisconnect
+  , onServerConnection
+  , onServerDisconnect
 
-  , onServerDing: onServerDing
-  , onServerScan: onServerScan
-  , onServerUnload: onServerUnload
-  , onServerLog: onServerLog
+  , onServerDing
+  , onServerScan
+  , onServerUnload
+  , onServerLog
 
-  , onServerMessage: onServerMessage
+  , onServerMessage
 }
 
 function onBrowserDead(e) {
