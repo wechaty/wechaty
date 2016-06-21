@@ -29,14 +29,15 @@ class Wechaty extends EventEmitter {
     this.options.port       = this.options.port     || process.env.WECHATY_PORT     || 8788 // W(87) X(88), ascii char code ;-]
     this.options.session    = this.options.session  || process.env.WECHATY_SESSION          // no session, no session save/restore
 
-    this.VERSION = require('../package.json').version
+    this.npmVersion = require('../package.json').version
 
     this.inited = false
   }
   toString() { return 'Class Wechaty(' + this.puppet + ')'}
+  version()  { return this.npmVersion }
 
   init() {
-    log.info('Wechaty', 'v%s initializing...', this.VERSION)
+    log.info('Wechaty', 'v%s initializing...', this.npmVersion)
     log.verbose('Wechaty', 'puppet: %s' , this.options.puppet)
     log.verbose('Wechaty', 'head: %s'   , this.options.head)
     log.verbose('Wechaty', 'session: %s', this.options.session)
