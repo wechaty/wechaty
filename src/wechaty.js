@@ -15,29 +15,34 @@ const log           = require('./npmlog-env')
 
 class Wechaty extends EventEmitter {
 
-  constructor(options) {
+  constructor({
+    puppetType= process.env.WECHATY_PUPPET   || 'web'
+    , head    = process.env.WECHATY_HEAD     || false
+    , port    = process.env.WECHATY_PORT     || 8788 // W(87) X(88), ascii char code ;-]
+    , session = process.env.WECHATY_SESSION          // no session, no session save/restore
+    , token   = process.env.WECHATY_TOKEN            // token for wechaty.io auth
+  }) {
     super()
-    this.options = options || {}
-    this.options.puppet     = this.options.puppet   || process.env.WECHATY_PUPPET   || 'web'
-    this.options.head       = this.options.head     || process.env.WECHATY_HEAD     || false
-    this.options.port       = this.options.port     || process.env.WECHATY_PORT     || 8788 // W(87) X(88), ascii char code ;-]
-    this.options.session    = this.options.session  || process.env.WECHATY_SESSION          // no session, no session save/restore
-    this.options.token      = this.options.token    || process.env.WECHATY_TOKEN
+    this.puppetType = puppetType
+    this.head       = head
+    this.port       = port
+    this.session    = session
+    this.token      = token
 
     this.npmVersion = require('../package.json').version
 
     this.inited = false
   }
 
-  toString() { return 'Class Wechaty(' + this.puppet + ')'}
+  toString() { return 'Class Wechaty(' + this.puppetType + ')'}
 
   version()  { return this.npmVersion }
 
   init() {
     log.info('Wechaty', 'v%s initializing...', this.npmVersion)
-    log.verbose('Wechaty', 'puppet: %s' , this.options.puppet)
-    log.verbose('Wechaty', 'head: %s'   , this.options.head)
-    log.verbose('Wechaty', 'session: %s', this.options.session)
+    log.verbose('Wechaty', 'puppet: %s' , this.puppetType)
+    log.verbose('Wechaty', 'head: %s'   , this.head)
+    log.verbose('Wechaty', 'session: %s', this.session)
 
     if (this.inited) {
       log.error('Wechaty', 'init() already inited. return and do nothing.')
@@ -45,18 +50,20 @@ class Wechaty extends EventEmitter {
     }
 
     return co.call(this, function* () {
-      const okPort = yield this.getPort(this.options.port)
+      const okPort = yield this.getPort(this.port)
 
-      if (okPort != this.options.port) {
-        log.info('Wechaty', 'port: %d not available, changed to %d', this.options.port, okPort)
-        this.options.port = okPort
+      if (okPort != this.port) {
+        log.info('Wechaty', 'port: %d not available, changed to %d', this.port, okPort)
+        this.port = okPort
       } else {
-        log.verbose('Wechaty', 'port: %d', this.options.port)
+        log.verbose('Wechaty', 'port: %d', this.port)
       }
 
       yield this.initPuppet()
       yield this.initEventHook()
       yield this.puppet.init()
+
+      yield this.initIo(this.token)
 
       this.inited = true
       return this // for chaining
@@ -67,17 +74,33 @@ class Wechaty extends EventEmitter {
     })
   }
 
+  initIo(token) {
+    if (!token) {
+      log.verbose('Wechaty', 'initIo() skiped for no token set')
+      return Promise.resolve('no token')
+    }
+
+    const WechatyIo = require('./wechaty-io')
+    this.io = new WechatyIo({token: token})
+
+    return io.init()
+    .catch(e => {
+      log.verbose('Wechaty', 'Wechaty.IO init fail: %s', e.message)
+      throw e
+    })
+  }
+
   initPuppet() {
-    switch (this.options.puppet) {
+    switch (this.puppetType) {
       case 'web':
         this.puppet = new Puppet.Web({
-          head:       this.options.head
-          , port:     this.options.port
-          , session:  this.options.session
+          head:       this.head
+          , port:     this.port
+          , session:  this.session
         })
         break
       default:
-        throw new Error('Puppet unsupport(yet): ' + this.options.puppet)
+        throw new Error('Puppet unsupport(yet): ' + this.puppetType)
     }
     return Promise.resolve(this.puppet)
   }
