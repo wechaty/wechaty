@@ -27,7 +27,6 @@ test('PuppetWeb smoke testing', function(t) {
     m.set('from', EXPECTED_USER_ID)
     t.ok(pw.self(m), 'should identified self for message which from is self')
 
-
     // XXX find a better way to mock...
     pw.bridge.getUserName = function() { return Promise.resolve('mockedUserName') }
     pw.getContact = function() { return Promise.resolve('dummy') }
@@ -66,7 +65,7 @@ test('Puppet Web server/browser communication', function(t) {
   let pw = new PuppetWeb({port: PORT, head: HEAD, session: SESSION})
   t.ok(pw, 'should instantiated a PuppetWeb')
 
-  const EXPECTED_DING_DATA='dingdong'
+  const EXPECTED_DING_DATA = 'dingdong'
 
   co(function* () {
     yield pw.init()
@@ -143,7 +142,12 @@ test('Puppet Web watchdog timer', function(t) {
 
     const EXPECTED_DING_DATA = 'dingdong'
     pw.watchDog('feed to extend the dog life')
+
+    const origLogLevel = log.level
+    log.level = 'silent'
+    t.ok('set log.level = silent to mute log when watchDog reset wechaty')
     const dong = yield waitDing(EXPECTED_DING_DATA)
+    log.level = origLogLevel
     t.equal(dong, EXPECTED_DING_DATA, 'should get EXPECTED_DING_DATA from ding after watchdog reset')
   })
   .catch(e => { // Exception
@@ -166,7 +170,7 @@ test('Puppet Web watchdog timer', function(t) {
     // timeout = 49,000 for {max: 7, backoff: 2000}
     const timeout = max * (backoff * max) / 2
 
-    return retryPromise({ max: max, backoff: backoff }, function (attempt) {
+    return retryPromise({max: max, backoff: backoff}, function(attempt) {
       log.silly('TestPuppetWeb', 'waitDing() retryPromise: attampt %s/%s time for timeout %s'
         , attempt, max, timeout)
       return pw.ding(data)
