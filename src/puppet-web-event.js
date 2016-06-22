@@ -34,20 +34,20 @@ const Browser = require('./puppet-web-browser')
 const Bridge  = require('./puppet-web-bridge')
 
 const PuppetWebEvent = {
-  onBrowserDead: onBrowserDead
+  onBrowserDead
 
-  , onServerLogin: onServerLogin
-  , onServerLogout: onServerLogout
+  , onServerLogin
+  , onServerLogout
 
-  , onServerConnection: onServerConnection
-  , onServerDisconnect: onServerDisconnect
+  , onServerConnection
+  , onServerDisconnect
 
-  , onServerDing: onServerDing
-  , onServerScan: onServerScan
-  , onServerUnload: onServerUnload
-  , onServerLog: onServerLog
+  , onServerDing
+  , onServerScan
+  , onServerUnload
+  , onServerLog
 
-  , onServerMessage: onServerMessage
+  , onServerMessage
 }
 
 function onBrowserDead(e) {
@@ -61,7 +61,7 @@ function onBrowserDead(e) {
   this.onBrowserBirthing = true
 
   const TIMEOUT = 180000 // 180s / 3m
-  this.watchDog(`onBrowserDead() set a timeout of ${Math.floor(TIMEOUT/1000)} seconds to prevent unknown state change`, {timeout: TIMEOUT})
+  this.watchDog(`onBrowserDead() set a timeout of ${Math.floor(TIMEOUT / 1000)} seconds to prevent unknown state change`, {timeout: TIMEOUT})
 
   log.verbose('PuppetWebEvent', 'onBrowserDead(%s)', e.message || e)
   if (!this.browser || !this.bridge) {
@@ -115,9 +115,9 @@ function onServerScan(data) {
    * When wx.qq.com push a new QRCode to Scan, there will be cookie updates(?)
    */
   if (this.session) {
-     this.browser.saveSession(this.session)
-     .catch(() => {/* fail safe */})
-   }
+    this.browser.saveSession(this.session)
+        .catch(() => {/* fail safe */})
+  }
 
   // feed watchDog a `scan` type of food
   this.watchDog(data, {type: 'scan'})
@@ -257,19 +257,21 @@ function onServerMessage(data) {
     case Message.Type.IMAGE:
       // log.verbose('PuppetWebEvent', 'onServerMessage() IMAGE message')
       m = new MediaMessage(data)
-      break;
+      break
 
     case 'TEXT':
     default:
       m = new Message(data)
-      break;
+      break
   }
 
+  // To Be Deleted: set self...
   if (this.userId) {
     m.set('self', this.userId)
   } else {
     log.warn('PuppetWebEvent', 'onServerMessage() without this.userId')
   }
+
   m.ready() // TODO: EventEmitter2 for video/audio/app/sys....
   .then(() => this.emit('message', m))
   .catch(e => {

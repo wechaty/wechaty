@@ -39,8 +39,10 @@ node_modules
 coverage
 .nyc_output
 
+# Wechaty session file
+*.wechaty.json
+
 # Other staff
 0
 t.js
 t
-*.wechaty.json

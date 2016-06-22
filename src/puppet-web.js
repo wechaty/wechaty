@@ -89,7 +89,7 @@ class PuppetWeb extends Puppet {
       if (this.server) {
         yield this.server.quit()
         this.server = null
-      } else { log.warn('PuppetWeb', 'quit() without a server') }
+      } else { log.verbose('PuppetWeb', 'quit() without a server') }
 
       if (this.browser) {
         yield (this.browser.quit().catch(e => { // fail safe
@@ -230,7 +230,7 @@ class PuppetWeb extends Puppet {
   }
 
   watchDogReset(timeout) {
-    log.warn('PuppetWeb', 'watchDogReset() timeout %d', timeout)
+    log.verbose('PuppetWeb', 'watchDogReset() timeout %d', timeout)
     const e = new Error('watchdog reset after ' + Math.floor(timeout/1000) + ' seconds')
     this.emit('error', e)
     return Event.onBrowserDead.call(this, e)

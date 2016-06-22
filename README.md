@@ -130,7 +130,7 @@ npm test
 ```
 
 ## LOG output
-Wechaty use [npmlog](https://www.npmjs.com/package/npmlog) to log debug message. You can set log level by environment variable `WECHATY_LOG` to show debug message.
+Wechaty use [npmlog](https://www.npmjs.com/package/npmlog) to output log message. You can set log level by environment variable `WECHATY_LOG` to show log message.
 
 environment variable `WECHATY_LOG` values:
 
@@ -139,6 +139,7 @@ environment variable `WECHATY_LOG` values:
 1. `info`
 1. `warn`
 1. `error`
+1. `silent` for disable logging
 
 Linux/Darwin(OSX/Mac):
 
@@ -182,6 +183,13 @@ Here's a quick and dirty patch, to npmlog/log.js
 ```
 
 And we can looking forward the official support from npmlog: https://github.com/npm/npmlog/pull/24
+
+## DEBUG
+
+set environment variable WECHATY_DEBUG to enable DEBUG in Wechaty.
+
+this will:
+1. open phantomjs debugger port on 8080
 
 # Requirement
 

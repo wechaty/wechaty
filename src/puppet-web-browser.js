@@ -107,7 +107,7 @@ class Browser extends EventEmitter {
       // , '--webdriver-logfile=/tmp/wd.log'
       // , '--webdriver-loglevel=DEBUG'
     ]
-    if (/silly|verbose/i.test(process.env.WECHATY_DEBUG)) {
+    if (process.env.WECHATY_DEBUG) {
           phantomjsArgs.push('--remote-debugger-port=8080') // XXX: be careful when in production usage.
     }
 
@@ -214,7 +214,10 @@ class Browser extends EventEmitter {
             browserRe = this.head
         }
         let matchRegex = new RegExp(browserRe, 'i')
-        const pids = children.filter(child => matchRegex.test(child.COMMAND))
+        const pids = children.filter(child => {
+          // https://github.com/indexzero/ps-tree/issues/18
+          return matchRegex.test('' + child.COMMAND + child.COMM)
+        })
         .map(child => child.PID)
         resolve(pids)
         return

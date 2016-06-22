@@ -42,7 +42,8 @@
     "ps-tree": "^1.1.0",
     "retry-promise": "^1.0.0",
     "selenium-webdriver": "^2.53.2",
-    "socket.io": "^1.4.5"
+    "socket.io": "^1.4.5",
+    "ws": "^1.1.0"
   },
   "eslintConfig": {
     "env": {
