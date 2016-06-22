@@ -10,6 +10,7 @@ const HEAD = process.env.WECHATY_HEAD || false
 const SESSION = 'unit-test-session.wechaty.json'
 
 const PuppetWeb = require('../src/puppet-web')
+const Message = require('../src/message')
 
 test('PuppetWeb smoke testing', function(t) {
   let pw = new PuppetWeb({port: PORT, head: HEAD, session: SESSION})
@@ -120,6 +121,12 @@ test('Puppet Web server/browser communication', function(t) {
 test('Puppet Web Self Message Identification', function(t) {
   const p = new PuppetWeb({port: PORT, head: HEAD, session: SESSION})
   t.ok(p, 'should instantiated a PuppetWeb')
+
+  const EXPECTED_USER_ID = 'zixia'
+  p.userId = EXPECTED_USER_ID
+  const m = new Message()
+  m.set('from', EXPECTED_USER_ID)
+  t.ok(p.self(m), 'should return true for a self message')
 
   t.end()
 })
