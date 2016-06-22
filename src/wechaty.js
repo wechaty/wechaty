@@ -16,31 +16,31 @@ const log           = require('./npmlog-env')
 class Wechaty extends EventEmitter {
 
   constructor({
-    puppetType= process.env.WECHATY_PUPPET   || 'web'
+    type      = process.env.WECHATY_PUPPET   || 'web'
     , head    = process.env.WECHATY_HEAD     || false
     , port    = process.env.WECHATY_PORT     || 8788 // W(87) X(88), ascii char code ;-]
     , session = process.env.WECHATY_SESSION          // no session, no session save/restore
     , token   = process.env.WECHATY_TOKEN            // token for wechaty.io auth
   }) {
     super()
-    this.puppetType = puppetType
-    this.head       = head
-    this.port       = port
-    this.session    = session
-    this.token      = token
+    this.type     = type
+    this.head     = head
+    this.port     = port
+    this.session  = session
+    this.token    = token
 
     this.npmVersion = require('../package.json').version
 
     this.inited = false
   }
 
-  toString() { return 'Class Wechaty(' + this.puppetType + ')'}
+  toString() { return 'Class Wechaty(' + this.type + ')'}
 
   version()  { return this.npmVersion }
 
   init() {
     log.info('Wechaty', 'v%s initializing...', this.npmVersion)
-    log.verbose('Wechaty', 'puppet: %s' , this.puppetType)
+    log.verbose('Wechaty', 'puppet: %s' , this.type)
     log.verbose('Wechaty', 'head: %s'   , this.head)
     log.verbose('Wechaty', 'session: %s', this.session)
 
@@ -81,7 +81,10 @@ class Wechaty extends EventEmitter {
     }
 
     const WechatyIo = require('./wechaty-io')
-    this.io = new WechatyIo({token: token})
+    const io = this.io = new WechatyIo({
+      wechaty: this
+      , token
+    })
 
     return io.init()
     .catch(e => {
@@ -91,7 +94,7 @@ class Wechaty extends EventEmitter {
   }
 
   initPuppet() {
-    switch (this.puppetType) {
+    switch (this.type) {
       case 'web':
         this.puppet = new Puppet.Web({
           head:       this.head
@@ -100,26 +103,26 @@ class Wechaty extends EventEmitter {
         })
         break
       default:
-        throw new Error('Puppet unsupport(yet): ' + this.puppetType)
+        throw new Error('Puppet unsupport(yet): ' + this.type)
     }
     return Promise.resolve(this.puppet)
   }
 
   initEventHook() {
-    this.puppet.on('scan', (e) => {
-      this.emit('scan', e)    // Scan QRCode
+    this.puppet.on('scan', data => {
+      this.emit('scan', data)    // Scan QRCode
     })
-    this.puppet.on('message', (e) => {
-      this.emit('message', e) // Receive Message
+    this.puppet.on('message', data => {
+      this.emit('message', data) // Receive Message
     })
-    this.puppet.on('login', (e) => {
-      this.emit('login', e)
+    this.puppet.on('login', data => {
+      this.emit('login', data)
     })
-    this.puppet.on('logout', (e) => {
-      this.emit('logout', e)
+    this.puppet.on('logout', data => {
+      this.emit('logout', data)
     })
-    this.puppet.on('error', (e) => {
-      this.emit('error', e)
+    this.puppet.on('error', data => {
+      this.emit('error', data)
     })
 
     /**
