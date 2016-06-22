@@ -30,7 +30,7 @@ test('Puppet Web watchdog timer', function(t) {
     })
     pw.watchDog('feed_and_active_it', {timeout: 1})
     yield new Promise((resolve) => setTimeout(() => resolve(), 2)) // wait untill reset
-    t.pass('should feed the watchdog and had already fireed a reset above')
+    t.pass('should had already fired a watchdog timeout')
 
     pw.once('error', e => t.fail('waitDing() triggered watchDogReset()'))
 
@@ -39,7 +39,7 @@ test('Puppet Web watchdog timer', function(t) {
 
     const origLogLevel = log.level
     log.level = 'silent'
-    t.ok('set log.level = silent to mute log when watchDog reset wechaty')
+    t.pass('set log.level = silent to mute log when watchDog reset wechaty')
     const dong = yield waitDing(EXPECTED_DING_DATA)
     log.level = origLogLevel
     t.equal(dong, EXPECTED_DING_DATA, 'should get EXPECTED_DING_DATA from ding after watchdog reset')
@@ -86,5 +86,3 @@ test('Puppet Web watchdog timer', function(t) {
     })
   }
 })
-
-
