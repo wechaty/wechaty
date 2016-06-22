@@ -129,10 +129,10 @@ If wechaty is not run as expected, run unit test maybe help to find some useful 
 npm test
 ```
 
-## DEBUG output
-Wechaty use [npmlog](https://www.npmjs.com/package/npmlog) to output debug message. You can set log level by environment variable `WECHATY_DEBUG` to show debug message.
+## LOG output
+Wechaty use [npmlog](https://www.npmjs.com/package/npmlog) to log debug message. You can set log level by environment variable `WECHATY_LOG` to show debug message.
 
-environment variable `WECHATY_DEBUG` values:
+environment variable `WECHATY_LOG` values:
 
 1. `silly`
 1. `verbose`
@@ -143,13 +143,13 @@ environment variable `WECHATY_DEBUG` values:
 Linux/Darwin(OSX/Mac):
 
 ```bash
-$ export WECHATY_DEBUG=verbose
+$ export WECHATY_LOG=verbose
 ```
 
 Win32:
 
 ```shell
-set WECHATY_DEBUG=verbose
+set WECHATY_LOG=verbose
 ```
 
 Tips: You may want to have more scroll buffer size in your CMD window in windows.
@@ -512,7 +512,7 @@ Author
 Zhuohuan LI <zixia@zixia.net> (http://linkedin.com/in/zixia)
 
 <a href="http://stackoverflow.com/users/1123955/zixia">
-<img src="http://stackoverflow.com/users/flair/1123955.png" width="208" height="58" alt="profile for zixia at Stack Overflow, Q&amp;A for professional and enthusiast programmers" title="profile for zixia at Stack Overflow, Q&amp;A for professional and enthusiast programmers">
+  <img src="http://stackoverflow.com/users/flair/1123955.png" width="208" height="58" alt="profile for zixia at Stack Overflow, Q&amp;A for professional and enthusiast programmers" title="profile for zixia at Stack Overflow, Q&amp;A for professional and enthusiast programmers">
 </a>
 
 Copyright & License
