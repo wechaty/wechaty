@@ -107,7 +107,7 @@ class Browser extends EventEmitter {
       // , '--webdriver-logfile=/tmp/wd.log'
       // , '--webdriver-loglevel=DEBUG'
     ]
-    if (/silly|verbose/i.test(process.env.WECHATY_DEBUG)) {
+    if (process.env.WECHATY_DEBUG) {
           phantomjsArgs.push('--remote-debugger-port=8080') // XXX: be careful when in production usage.
     }
 
