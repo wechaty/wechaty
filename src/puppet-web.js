@@ -212,20 +212,15 @@ class PuppetWeb extends Puppet {
       log.verbose('PuppetWeb', 'watchDog() got a food with type scan')
       this.lastScanEventTime = Date.now()
     }
-    if (!this.logined()) {
+    if (this.logined()) { // XXX: login status right?
+      this.lastScanEventTime = null
+    } else if (this.lastScanEventTime) {
       const scanTimeout = 10 * 60 * 1000 // 10 mins
-      if (!this.lastScanEventTime) { // 1st scan event
-        this.lastScanEventTime = Date.now()
-      }
-
       if (Date.now() - this.lastScanEventTime > scanTimeout) {
         log.warn('PuppetWeb', 'watchDog() refresh browser for no food of type scan after %s mins', Math.floor(scanTimeout/1000/60))
-        this.watchDogLastRefresh = Date.now()
-        // fix the problem here
+        // try to fix the problem
         this.browser.refresh()
       }
-    } else if (this.lastScanEventTime) {
-      this.lastScanEventTime = null
     }
   }
 

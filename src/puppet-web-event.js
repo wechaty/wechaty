@@ -119,6 +119,12 @@ function onServerScan(data) {
         .catch(() => {/* fail safe */})
   }
 
+  if (this.userId) {
+    log.verbose('PuppetWebEvent', 'onServerScan() there has userId when got a scan event. emit logout and set userId to null')
+    this.emit('logout', this.user || this.userId)
+    this.userId = this.user = null
+  }
+
   // feed watchDog a `scan` type of food
   this.watchDog(data, {type: 'scan'})
 
@@ -131,6 +137,14 @@ function onServerConnection(data) {
 
 function onServerDisconnect(data) {
   log.verbose('PuppetWebEvent', 'onServerDisconnect: %s', data)
+
+  if (this.userId) {
+    log.verbose('PuppetWebEvent', 'onServerDisconnect() there has userId set. emit a logout event and set userId to null')
+    this.emit('logout', this.user || this.userId ) //'onServerDisconnect(' + data + ')')
+    this.userId = null
+    this.user = null
+  }
+
   /**
    * conditions:
    * 1. browser crash(i.e.: be killed)

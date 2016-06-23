@@ -287,6 +287,17 @@ That means: the `to` field of the reply message is the `from` of origin message.
 wechaty.reply(message, 'roger')
 ```
 
+### Wechaty.self()
+Check if message is send by self.
+
+Return `true` for send from self, `false` for send from others.
+
+```javascript
+if (wechaty.self(message)) {
+  console.log('this message is sent by myself!')
+}
+```
+
 ## Class Message
 All wechat messages will be encaped as a Message.
 
@@ -325,17 +336,6 @@ message.ready()
 .then(() => {
   // Here we can be sure all the data is ready for use.
 })
-```
-
-### Message.self()
-Check if message is send by self.
-
-Return `true` for send from self, `false` for send from others.
-
-```javascript
-if (m.self()) {
-  console.log('this message is sent by myself!')
-}
 ```
 
 ## Class Contact
@@ -455,7 +455,9 @@ Know more about TAP: [Why I use Tape Instead of Mocha & So Should You](https://m
         1. `message.**.image`
         1. `message.recv.*`
 - [ ] Message
-    - [ ] Send/Reply image message
+    - [ ] Send/Reply image/video/attachment message
+    - [ ] Save video message to file
+    - [x] Save image message to file
 - [x] Session save/load
 
 Everybody is welcome to issue your needs.
