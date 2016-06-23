@@ -98,6 +98,7 @@ class Server extends EventEmitter {
     })
     socketServer.sockets.on('connection', (s) => {
       log.verbose('PuppetWebServer', 'createSocketIo() got connection from browser')
+      // console.log(s.handshake)
       if (this.socketClient) { this.socketClient = null } // close() ???
       this.socketClient = s
       this.initEventsFromClient(s)
