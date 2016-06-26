@@ -21,15 +21,17 @@ class WechatyIo {
     wechaty = null
     , token = null
     , endpoint = 'wss://api.wechaty.io/v0/websocket'
+    , protocols = ['io/0.0.1']
   }) {
     // super()
     if (!wechaty || !token) {
       throw new Error('WechatyIo must has wechaty & token set')
     }
-    this.wechaty  = wechaty
-    this.token    = token
-    this.endpoint = endpoint
-    log.verbose('WechatyIo', 'instantiated with endpoint %s with token %s', endpoint, token)
+    this.wechaty    = wechaty
+    this.token      = token
+    this.endpoint   = endpoint
+    this.protocols  = protocols
+    log.verbose('WechatyIo', 'instantiated with endpoint %s, token [%s], protocols [%s]', endpoint, token, protocols.join(','))
   }
 
   toString() { return 'Class WechatyIo(' + this.token + ')'}
@@ -54,11 +56,13 @@ class WechatyIo {
     const auth = 'Basic ' + new Buffer(this.token + ':X').toString('base64')
     const headers = { 'Authorization': auth }
 
-    const ws = this.ws = new WebSocket(this.endpoint, ['v0', 'v1'], { headers })
+    const ws = this.ws = new WebSocket(this.endpoint, ['io_v0'], { headers })
 
     ws.on('open', function open() {
-      log.verbose('WechatyIo', 'initWebSocket() connected')
+      this.protocol = ws.protocol
+      log.verbose('WechatyIo', 'initWebSocket() connected with protocol [%s]', this.protocol)
 
+      this.reconnectTimeout = null
       ws.send('Wechaty version ' + this.wechaty.version())
     }.bind(this))
 
@@ -102,11 +106,16 @@ class WechatyIo {
     } else if (this.reconnectTimer) {
       log.warn('WechatyIo', 'reconnect() on a already re-connecting io')
     } else {
-      log.warn('WechatyIo', 'reconnect() will reconnect after 15s')
+      if (!this.reconnectTimeout) {
+        this.reconnectTimeout = 100
+      } else if (this.reconnectTimeout < 10000) {
+        this.reconnectTimeout *= 2
+      }
+      log.warn('WechatyIo', 'reconnect() will reconnect after %d s', Math.floor(this.reconnectTimeout/1000))
       this.reconnectTimer = setTimeout(_ => {
         this.reconnectTimer = null
         this.initWebSocket()
-      }, 15000)
+      }, this.reconnectTimeout)
     }
   }
 
