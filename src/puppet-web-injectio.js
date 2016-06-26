@@ -481,11 +481,23 @@ return (function(port) {
       return null
     }
     var c = contactFactory.getContact(id)
-    if (c && c.isContact) {
-      c.stranger = !(c.isContact())
+    var contactWithoutFunction = {}
+
+    if (c) {
+      if (c.isContact) {
+        c.stranger = !(c.isContact())
+      }
+
+      Object.keys(c).forEach(function(k) {
+        if (typeof c[k] !== 'function') {
+          contactWithoutFunction[k] = c[k]
+        }
+      })
     }
-    return c
+
+    return contactWithoutFunction
   }
+
   function getUserName() {
     var accountFactory = Wechaty.glue.accountFactory
     return accountFactory
