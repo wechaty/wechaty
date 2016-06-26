@@ -10,7 +10,7 @@
  *
  */
 const EventEmitter  = require('events')
-const WebSocket     = require('ws');
+const WebSocket     = require('ws')
 const co            = require('co')
 
 const log           = require('./npmlog-env')
@@ -20,6 +20,7 @@ class WechatyIo {
   constructor({
     wechaty = null
     , token = null
+    , endpoint = 'wss://api.wechaty.io/v0/websocket'
   }) {
     // super()
     if (!wechaty || !token) {
@@ -27,10 +28,13 @@ class WechatyIo {
     }
     this.wechaty  = wechaty
     this.token    = token
-    log.verbose('WechatyIo', 'instantiated with token: ' + token)
+    this.endpoint = endpoint
+    log.verbose('WechatyIo', 'instantiated with endpoint %s with token %s', endpoint, token)
   }
 
   toString() { return 'Class WechatyIo(' + this.token + ')'}
+
+  connected() { return this.ws && this.ws.readyState === WebSocket.OPEN }
 
   init() {
     log.verbose('WechatyIo', 'init()')
@@ -46,15 +50,17 @@ class WechatyIo {
     })
   }
 
-  initWebSocket(endpoint) {
-    endpoint = endpoint || 'ws://api.wechaty.io/v0/websocket'
-    const ws = this.ws = new WebSocket(endpoint)
+  initWebSocket() {
+    const auth = 'Basic ' + new Buffer(this.token + ':X').toString('base64')
+    const headers = { 'Authorization': auth }
+
+    const ws = this.ws = new WebSocket(this.endpoint, ['v0', 'v1'], { headers })
 
     ws.on('open', function open() {
-      log.verbose('WechatyIo', 'WebSocket connected')
+      log.verbose('WechatyIo', 'initWebSocket() connected')
 
       ws.send('Wechaty version ' + this.wechaty.version())
-    })
+    }.bind(this))
 
     ws.on('message', function(data, flags) {
       log.verbose('WechatyIo', 'WebSocket got message')
@@ -71,9 +77,37 @@ class WechatyIo {
           log.warn('WechatyIo', 'onMessage server push function invalid')
         }
       }
+    }.bind(this))
+
+    ws
+    .on('close', e => {
+      log.verbose('WechatyIo', 'initWebSocket() close event[%s]', e)
+      ws.close()
+      this.reconnect()
+    })
+    .on('error', e => {
+      log.verbose('WechatyIo', 'initWebSocket() error event[%s]', e.message)
+      this.wechaty.emit('error', e)
+
+      this.close()
+      this.reconnect()
     })
 
     return Promise.resolve()
+  }
+
+  reconnect() {
+    if (this.connected()) {
+      log.warn('WechatyIo', 'reconnect() on a already connected io')
+    } else if (this.reconnectTimer) {
+      log.warn('WechatyIo', 'reconnect() on a already re-connecting io')
+    } else {
+      log.warn('WechatyIo', 'reconnect() will reconnect after 15s')
+      this.reconnectTimer = setTimeout(_ => {
+        this.reconnectTimer = null
+        this.initWebSocket()
+      }, 15000)
+    }
   }
 
   initWechaty() {
@@ -86,17 +120,31 @@ class WechatyIo {
       , 'login'
       , 'logout'
       , 'error'
+      , 'heartbeat'
     ]
     ioEvents.map(event => {
       wechaty.on(event, data => {
-        this.ws.send({
-          event
-          , data
-        })
+        if (!this.connected()) {
+          log.verbose('WechatyIo', 'initWechaty() on event[%s] without a connected websocket', event)
+          return
+        }
+        this.ws.send(
+          JSON.stringify(
+            {
+              event
+              , data
+            }
+          )
+        )
       })
     })
 
     return Promise.resolve()
+  }
+
+  close() {
+    this.ws.close()
+    // TODO: remove listener for this.wechaty.on(message )
   }
 
   /**

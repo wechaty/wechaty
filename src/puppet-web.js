@@ -187,6 +187,9 @@ class PuppetWeb extends Puppet {
   watchDog(data, options) {
     log.silly('PuppetWeb', 'watchDog(%s)', data)
     options = options || {}
+
+    this.emit('heartbeat', data)
+
     const timeout = options.timeout || 60000 // 60s default. can be override in options but be careful about the number zero(0)
     const type   =  options.type    || 'food'  // just a name
 

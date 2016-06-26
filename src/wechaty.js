@@ -16,11 +16,12 @@ const log           = require('./npmlog-env')
 class Wechaty extends EventEmitter {
 
   constructor({
-    type      = process.env.WECHATY_PUPPET   || 'web'
-    , head    = process.env.WECHATY_HEAD     || false
-    , port    = process.env.WECHATY_PORT     || 8788 // W(87) X(88), ascii char code ;-]
-    , session = process.env.WECHATY_SESSION          // no session, no session save/restore
-    , token   = process.env.WECHATY_TOKEN            // token for wechaty.io auth
+    type        = process.env.WECHATY_PUPPET   || 'web'
+    , head      = process.env.WECHATY_HEAD     || false
+    , port      = process.env.WECHATY_PORT     || 8788  // W(87) X(88), ascii char code ;-]
+    , session   = process.env.WECHATY_SESSION           // no session, no session save/restore
+    , endpoint  = process.env.WECHATY_ENDPOINT          // wechaty.io api endpoint
+    , token     = process.env.WECHATY_TOKEN             // token for wechaty.io auth
   }) {
     super()
     this.type     = type
@@ -28,6 +29,7 @@ class Wechaty extends EventEmitter {
     this.port     = port
     this.session  = session
     this.token    = token
+    this.endpoint = endpoint
 
     this.npmVersion = require('../package.json').version
 
@@ -63,7 +65,11 @@ class Wechaty extends EventEmitter {
       yield this.initEventHook()
       yield this.puppet.init()
 
-      yield this.initIo(this.token)
+      yield this.initIo()
+      .catch(e => {
+        log.error('WechatyIo', 'initIo failed: %s', e.message)
+        this.emit('error', e)
+      })
 
       this.inited = true
       return this // for chaining
@@ -74,16 +80,19 @@ class Wechaty extends EventEmitter {
     })
   }
 
-  initIo(token) {
-    if (!token) {
+  initIo() {
+    if (!this.token) {
       log.verbose('Wechaty', 'initIo() skiped for no token set')
       return Promise.resolve('no token')
+    } else {
+      log.verbose('Wechaty', 'initIo()')
     }
 
     const WechatyIo = require('./wechaty-io')
     const io = this.io = new WechatyIo({
       wechaty: this
-      , token
+      , token: this.token
+      , endpoint: this.endpoint
     })
 
     return io.init()
@@ -109,21 +118,33 @@ class Wechaty extends EventEmitter {
   }
 
   initEventHook() {
-    this.puppet.on('scan', data => {
-      this.emit('scan', data)    // Scan QRCode
+    ;[
+      'scan'
+      , 'message'
+      , 'login'
+      , 'logout'
+      , 'error'
+      , 'heartbeat'
+    ].map(e => {
+      this.puppet.on(e, data => {
+        this.emit(e, data)
+      })
     })
-    this.puppet.on('message', data => {
-      this.emit('message', data) // Receive Message
-    })
-    this.puppet.on('login', data => {
-      this.emit('login', data)
-    })
-    this.puppet.on('logout', data => {
-      this.emit('logout', data)
-    })
-    this.puppet.on('error', data => {
-      this.emit('error', data)
-    })
+    // this.puppet.on('scan', data => {
+    //   this.emit('scan', data)    // Scan QRCode
+    // })
+    // this.puppet.on('message', data => {
+    //   this.emit('message', data) // Receive Message
+    // })
+    // this.puppet.on('login', data => {
+    //   this.emit('login', data)
+    // })
+    // this.puppet.on('logout', data => {
+    //   this.emit('logout', data)
+    // })
+    // this.puppet.on('error', data => {
+    //   this.emit('error', data)
+    // })
 
     /**
      * TODO: support more events:
