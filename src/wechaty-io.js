@@ -21,17 +21,17 @@ class WechatyIo {
     wechaty = null
     , token = null
     , endpoint = 'wss://api.wechaty.io/v0/websocket'
-    , protocols = ['io/0.0.1']
+    , protocol = 'io|0.0.1'
   }) {
     // super()
     if (!wechaty || !token) {
       throw new Error('WechatyIo must has wechaty & token set')
     }
-    this.wechaty    = wechaty
-    this.token      = token
-    this.endpoint   = endpoint
-    this.protocols  = protocols
-    log.verbose('WechatyIo', 'instantiated with endpoint %s, token [%s], protocols [%s]', endpoint, token, protocols.join(','))
+    this.wechaty  = wechaty
+    this.token    = token
+    this.endpoint = endpoint
+    this.protocol = protocol
+    log.verbose('WechatyIo', 'instantiated with endpoint %s, token [%s], protocols [%s]', endpoint, token, protocol)
   }
 
   toString() { return 'Class WechatyIo(' + this.token + ')'}
@@ -56,11 +56,14 @@ class WechatyIo {
     const auth = 'Basic ' + new Buffer(this.token + ':X').toString('base64')
     const headers = { 'Authorization': auth }
 
-    const ws = this.ws = new WebSocket(this.endpoint, ['io_v0'], { headers })
+    const ws = this.ws = new WebSocket(this.endpoint, this.protocol, { headers })
 
     ws.on('open', function open() {
-      this.protocol = ws.protocol
-      log.verbose('WechatyIo', 'initWebSocket() connected with protocol [%s]', this.protocol)
+      if (this.protocol !== ws.protocol) {
+        log.error('WechatyIo', 'initWebSocket() require protocol[%s] failed', this.protocol)
+        // XXX deal with error?
+      }
+      log.verbose('WechatyIo', 'initWebSocket() connected with protocol [%s]', ws.protocol)
 
       this.reconnectTimeout = null
       ws.send('Wechaty version ' + this.wechaty.version())
