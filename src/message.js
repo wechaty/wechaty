@@ -76,10 +76,10 @@ class Message {
     return '{' + this.type() + '}' + content
   }
 
-  from()    { return this.obj.from }
-  to()      { return this.obj.to }
+  from()    { return Contact.load(this.obj.from) }
+  to()      { return Contact.load(this.obj.to) }
   content() { return this.obj.content }
-  room()    { return this.obj.room }
+  room()    { return Room.load(this.obj.room) }
 
   type()    { return this.obj.type }
   typeEx()  { return Message.Type[this.obj.type] }
