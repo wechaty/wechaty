@@ -53,7 +53,8 @@ class WechatyIo {
   }
 
   initWebSocket() {
-    const auth = 'Basic ' + new Buffer(this.token + ':X').toString('base64')
+    // const auth = 'Basic ' + new Buffer(this.token + ':X').toString('base64')
+    const auth = 'Token ' + this.token
     const headers = { 'Authorization': auth }
 
     const ws = this.ws = new WebSocket(this.endpoint, this.protocol, { headers })
