@@ -119,11 +119,6 @@ class Bridge {
     })
   }
 
-  // @Deprecated: use `scan` event instead
-  // getLoginStatusCode()      { return this.proxyWechaty('getLoginStatusCode') }
-  // @Deprecated: use `scan` event instead
-  // getLoginQrImgUrl()        { return this.proxyWechaty('getLoginQrImgUrl') }
-
   getUserName() {
     return this.proxyWechaty('getUserName')
     .catch(e => {
