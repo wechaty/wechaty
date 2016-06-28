@@ -45,3 +45,18 @@ bot.init()
   bot.quit()
   process.exit(-1)
 })
+
+/**
+ *
+ * To make heroku happy
+ *
+ */
+const app = require('express')()
+
+app.get('/', function (req, res) {
+  res.send('Wechaty Deployed on Heroku Succeed!')
+})
+
+app.listen(process.env.PORT, function () {
+  console.log('Wechaty IO Bot listening on port ' + process.env.PORT + '!')
+})
