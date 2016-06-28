@@ -88,7 +88,7 @@ class Wechaty extends EventEmitter {
       log.verbose('Wechaty', 'initIo() skiped for no token set')
       return Promise.resolve('no token')
     } else {
-      log.verbose('Wechaty', 'initIo()')
+      log.verbose('Wechaty', 'initIo(%s)', this.token)
     }
 
     const WechatyIo = require('./wechaty-io')
