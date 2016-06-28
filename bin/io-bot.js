@@ -51,6 +51,12 @@ const onMessage = function(m) {
                 , from.name()
                 , m.toStringDigest()
           )
+
+  if (/^(ding|ping|bing)$/i.test(m.get('content')) && !bot.self(m)) {
+    bot.reply(m, 'dong')
+        .then(() => { log.info('Bot', 'REPLY: dong') })
+  }
+
 }
 /**
  *
