@@ -35,12 +35,15 @@ const Bridge  = require('./puppet-web-bridge')
 const Event = require('./puppet-web-event')
 
 class PuppetWeb extends Puppet {
-  constructor(options) {
+  constructor({
+    port = 8788 // W(87) X(88), ascii char code ;-]
+    , profile   // if not set profile, then dont store session.
+    , head
+  } = {}) {
     super()
-    options = options || {}
-    this.port     = options.port || 8788 // W(87) X(88), ascii char code ;-]
-    this.head     = options.head
-    this.session  = options.session  // if not set session, then dont store session.
+    this.port     = port
+    this.head     = head
+    this.profile  = profile
 
     this.userId = null  // user id
     this.user   = null  // <Contact> of user self
@@ -49,7 +52,7 @@ class PuppetWeb extends Puppet {
   toString() { return `Class PuppetWeb({browser:${this.browser},port:${this.port}})` }
 
   init() {
-    log.verbose('PuppetWeb', `init() with port:${this.port}, head:${this.head}, session:${this.session}`)
+    log.verbose('PuppetWeb', `init() with port:${this.port}, head:${this.head}, profile:${this.profile}`)
 
     return co.call(this, function* () {
 
@@ -119,7 +122,10 @@ class PuppetWeb extends Puppet {
   }
   initBrowser() {
     log.verbose('PuppetWeb', 'initBrowser()')
-    const browser = this.browser  = new Browser({head: this.head})
+    const browser = this.browser  = new Browser({
+      head: this.head
+      , sessionFile: this.profile
+    })
 
     browser.on('dead', Event.onBrowserDead.bind(this))
 
@@ -130,12 +136,10 @@ class PuppetWeb extends Puppet {
     return co.call(this, function* () {
       yield browser.init()
       yield browser.open(fastUrl)
-      if (this.session) {
-        yield browser.loadSession(this.session)
-        .catch(e => { // fail safe
-          log.verbose('PuppetWeb', 'browser.loadSession(%s) exception: %s', this.session, e.message || e)
-        })
-      }
+      yield browser.loadSession()
+                  .catch(e => { // fail safe
+                   log.verbose('PuppetWeb', 'browser.loadSession(%s) exception: %s', this.profile, e.message || e)
+                  })
       yield browser.open()
       return browser // follow func name meaning
     }).catch(e => {
@@ -198,11 +202,10 @@ class PuppetWeb extends Puppet {
     this.watchDogTimer.unref() // dont block quit
 
     const SAVE_SESSION_INTERVAL = 5 * 60 * 1000 // 5 mins
-    if (this.session) {
-      if (this.watchDogLastSaveSession && Date.now() - this.watchDogLastSaveSession > SAVE_SESSION_INTERVAL) {
-        log.verbose('PuppetWeb', 'watchDog() saveSession(%s) after %d minutes', this.session, Math.floor(SAVE_SESSION_INTERVAL/1000/60))
-        this.browser.saveSession(this.session)
-      }
+    // if no lastSaveSession set(means 1st time), or timeout
+    if (!this.watchDogLastSaveSession ||  Date.now() - this.watchDogLastSaveSession > SAVE_SESSION_INTERVAL) {
+      log.verbose('PuppetWeb', 'watchDog() saveSession(%s) after %d minutes', this.profile, Math.floor(SAVE_SESSION_INTERVAL/1000/60))
+      this.browser.saveSession()
       this.watchDogLastSaveSession = Date.now()
     }
 

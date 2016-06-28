@@ -7,13 +7,13 @@ const log = require('../src/npmlog-env')
 
 const PORT = process.env.WECHATY_PORT || 58788
 const HEAD = process.env.WECHATY_HEAD || false
-const SESSION = 'unit-test-session.wechaty.json'
+const PROFILE = 'unit-test-session.wechaty.json'
 
 const PuppetWeb = require('../src/puppet-web')
 const Message = require('../src/message')
 
 test('PuppetWeb smoke testing', function(t) {
-  let pw = new PuppetWeb({port: PORT, head: HEAD, session: SESSION})
+  let pw = new PuppetWeb({port: PORT, head: HEAD, profile: PROFILE})
   t.ok(pw, 'should instantiated a PuppetWeb')
 
   co(function* () {
@@ -63,7 +63,7 @@ test('PuppetWeb smoke testing', function(t) {
 })
 
 test('Puppet Web server/browser communication', function(t) {
-  let pw = new PuppetWeb({port: PORT, head: HEAD, session: SESSION})
+  let pw = new PuppetWeb({port: PORT, head: HEAD, profile: PROFILE})
   t.ok(pw, 'should instantiated a PuppetWeb')
 
   const EXPECTED_DING_DATA = 'dingdong'
@@ -119,7 +119,7 @@ test('Puppet Web server/browser communication', function(t) {
 })
 
 test('Puppet Web Self Message Identification', function(t) {
-  const p = new PuppetWeb({port: PORT, head: HEAD, session: SESSION})
+  const p = new PuppetWeb({port: PORT, head: HEAD, profile: PROFILE})
   t.ok(p, 'should instantiated a PuppetWeb')
 
   const EXPECTED_USER_ID = 'zixia'

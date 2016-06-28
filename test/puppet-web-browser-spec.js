@@ -6,7 +6,7 @@ const log = require('../src/npmlog-env')
 const Browser = require('../src/puppet-web-browser')
 const PORT = process.env.WECHATY_PORT || 58788
 const HEAD = process.env.WECHATY_HEAD || false
-const SESSION = 'unit-test-session.wechaty.json'
+const PROFILE = 'unit-test-session.wechaty.json'
 
 test('Browser class cookie smoking tests', function(t) {
   const b = new Browser({port: PORT, head: HEAD})
@@ -78,7 +78,11 @@ test('Browser class cookie smoking tests', function(t) {
 })
 
 test('Browser session save & load', function(t) {
-  let b = new Browser({port: PORT, head: HEAD})
+  let b = new Browser({
+    port: PORT
+    , head: HEAD
+    , sessionFile: PROFILE
+  })
   t.ok(b, 'new Browser')
 
   co(function* () {
@@ -106,27 +110,27 @@ test('Browser session save & load', function(t) {
     const cookieFromBrowser = yield b.driver.manage().getCookie(EXPECTED_COOKIE.name)
     t.equal(cookieFromBrowser.name, EXPECTED_COOKIE.name, 'cookie from getCookie() should be same as we just set')
 
-    let cookiesFromCheck = yield b.checkSession(SESSION)
+    let cookiesFromCheck = yield b.checkSession()
     t.ok(cookiesFromCheck.length, 'should get cookies from checkSession() after addCookies()')
     let cookieFromCheck  = cookiesFromCheck.filter(c => EXPECTED_NAME_REGEX.test(c.name))
     t.equal(cookieFromCheck[0].name, EXPECTED_COOKIE.name, 'cookie from checkSession() return should be same as we just set by addCookies()')
 
-    const cookiesFromSave = yield b.saveSession(SESSION)
+    const cookiesFromSave = yield b.saveSession()
     t.ok(cookiesFromSave.length, 'should get cookies from saveSession()')
     const cookieFromSave  = cookiesFromSave.filter(c => EXPECTED_NAME_REGEX.test(c.name))
     t.equal(cookieFromSave.length, 1, 'should has the cookie we just set')
     t.equal(cookieFromSave[0].name, EXPECTED_COOKIE.name, 'cookie from saveSession() return should be same as we just set')
 
     yield b.driver.manage().deleteAllCookies()
-    cookiesFromCheck = yield b.checkSession(SESSION)
+    cookiesFromCheck = yield b.checkSession()
     t.equal(cookiesFromCheck.length, 0, 'should no cookie from checkSession() after deleteAllCookies()')
 
-    const cookiesFromLoad = yield b.loadSession(SESSION).catch(() => {}) // fall safe
+    const cookiesFromLoad = yield b.loadSession().catch(() => {}) // fall safe
     t.ok(cookiesFromLoad.length, 'should get cookies after loadSession()')
     const cookieFromLoad = cookiesFromLoad.filter(c => EXPECTED_NAME_REGEX.test(c.name))
     t.equal(cookieFromLoad[0].name, EXPECTED_COOKIE.name, 'cookie from loadSession() should has expected cookie')
 
-    cookiesFromCheck = yield b.checkSession(SESSION)
+    cookiesFromCheck = yield b.checkSession()
     t.ok(cookiesFromCheck.length, 'should get cookies from checkSession() after loadSession()')
     cookieFromCheck  = cookiesFromCheck.filter(c => EXPECTED_NAME_REGEX.test(c.name))
     t.ok(cookieFromCheck.length, 'should has cookie after filtered after loadSession()')
@@ -135,21 +139,25 @@ test('Browser session save & load', function(t) {
     yield b.quit()
     t.pass('quited')
 
-    b = new Browser({port: PORT, head: HEAD})
+    b = new Browser({
+      port: PORT
+      , head: HEAD
+      , sessionFile: PROFILE
+    })
     yield b.init()
     yield b.open()
     t.pass('re-new/init/open Browser')
 
-    yield b.loadSession(SESSION)
+    yield b.loadSession()
     t.pass('loadSession for new instance of Browser')
 
     const cookieAfterQuit = yield b.driver.manage().getCookie(EXPECTED_COOKIE.name)
     t.equal(cookieAfterQuit.name, EXPECTED_COOKIE.name, 'cookie from getCookie() after browser quit, should load the right cookie back')
 
     // clean
-    require('fs').unlink(SESSION, err => {
+    require('fs').unlink(PROFILE, err => {
       if (err) {
-        log.warn('Browser', 'unlink session file %s fail: %s', SESSION, err)
+        log.warn('Browser', 'unlink session file %s fail: %s', PROFILE, err)
       }
     })
   })

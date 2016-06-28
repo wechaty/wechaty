@@ -7,12 +7,12 @@ const log = require('../src/npmlog-env')
 
 const PORT = process.env.WECHATY_PORT || 58788
 const HEAD = process.env.WECHATY_HEAD || false
-const SESSION = 'unit-test-session.wechaty.json'
+const PROFILE = 'unit-test-session.wechaty.json'
 
 const PuppetWeb = require('../src/puppet-web')
 
 test('Puppet Web watchdog timer', function(t) {
-  const pw = new PuppetWeb({port: PORT, head: HEAD, session: SESSION})
+  const pw = new PuppetWeb({port: PORT, head: HEAD, profile: PROFILE})
   t.ok(pw, 'should instantiate a PuppetWeb')
 
   co(function* () {

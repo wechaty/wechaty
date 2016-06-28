@@ -24,11 +24,11 @@ The following 9 lines of code implement a bot who reply "roger" for every messag
 
 ```javascript
 const Wechaty = require('wechaty')
-const wechaty = new Wechaty()
-wechaty.on('scan', ({url, code}) => {
+const bot = new Wechaty()
+bot.on('scan', ({url, code}) => {
   console.log(`Use Wechat to scan qrcode in url to login: ${code}\n${url}`)
 }).on('message', m => {
-  !wechaty.self(m) && wechaty.reply(m, 'roger') // 1. reply
+  !bot.self(m) && bot.reply(m, 'roger') // 1. reply
   .then(() => console.log(`RECV: ${m}, REPLY: "roger"`)) // 2. log message
   .catch(e => console.error(e)) // 3. catch exception
 }).init()
@@ -255,13 +255,16 @@ To be support.
 Main bot class.
 
 ```javascript
-const wechaty = new Wechaty(options)
+const wechaty = new Wechaty({
+  profile
+  , head
+})
 ```
 
 options:
 
-1. `session`(OPTIONAL): session name. if a session name is provided, the login status will be saved to it, and automatically restored on next time of wechaty start(restart).
-    * can be set by environment variable: `WECHATY_SESSION`
+1. `profile`(OPTIONAL): profile name. if a profile name is provided, the login status will be saved to it, and automatically restored on next time of wechaty start(restart).
+    * can be set by environment variable: `WECHATY_PROFILE`
 1. `head`(OPTIONAL): specify the browser name for webdriver.
     * can be set by environment variable: `WECHATY_HEAD`
     * values:
@@ -413,7 +416,7 @@ Know more about TAP: [Why I use Tape Instead of Mocha & So Should You](https://m
 
 ## v0.2.0 (master)
 1. add wechaty.io cloud management support: set environment variable `WECHATY_TOKEN` to enable io support
-2. tbw
+2. rename `WECHATY_SESSION` to `WECHATY_PROFILE` for better name
 
 ## v0.1.8 (2016/6/25)
 1. add a watchdog to restore from unknown state

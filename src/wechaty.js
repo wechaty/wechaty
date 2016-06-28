@@ -19,17 +19,20 @@ class Wechaty extends EventEmitter {
     type        = process.env.WECHATY_PUPPET   || 'web'
     , head      = process.env.WECHATY_HEAD     || false
     , port      = process.env.WECHATY_PORT     || 8788  // W(87) X(88), ascii char code ;-]
-    , session   = process.env.WECHATY_SESSION           // no session, no session save/restore
     , endpoint  = process.env.WECHATY_ENDPOINT          // wechaty.io api endpoint
     , token     = process.env.WECHATY_TOKEN             // token for wechaty.io auth
-  }) {
+    , profile   = process.env.WECHATY_PROFILE           // no profile, no session save/restore
+  } = {}) {
     super()
     this.type     = type
     this.head     = head
     this.port     = port
-    this.session  = session
     this.token    = token
     this.endpoint = endpoint
+
+    this.profile  = /\.wechaty\.json$/i.test(profile)
+                    ? profile
+                    : profile + '.wechaty.json'
 
     this.npmVersion = require('../package.json').version
 
@@ -44,7 +47,7 @@ class Wechaty extends EventEmitter {
     log.info('Wechaty', 'v%s initializing...', this.npmVersion)
     log.verbose('Wechaty', 'puppet: %s' , this.type)
     log.verbose('Wechaty', 'head: %s'   , this.head)
-    log.verbose('Wechaty', 'session: %s', this.session)
+    log.verbose('Wechaty', 'profile: %s', this.profile)
 
     if (this.inited) {
       log.error('Wechaty', 'init() already inited. return and do nothing.')
@@ -108,7 +111,7 @@ class Wechaty extends EventEmitter {
         this.puppet = new Puppet.Web({
           head:       this.head
           , port:     this.port
-          , session:  this.session
+          , profile:  this.profile
         })
         break
       default:
@@ -251,6 +254,7 @@ Object.assign(Wechaty, {
   , log // for convenionce use npmlog with environment variable LEVEL
 })
 
+Wechaty.version = require('../package.json').version
 /**
  * Expose `Wechaty`.
  */

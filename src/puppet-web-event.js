@@ -114,10 +114,8 @@ function onServerScan(data) {
   /**
    * When wx.qq.com push a new QRCode to Scan, there will be cookie updates(?)
    */
-  if (this.session) {
-    this.browser.saveSession(this.session)
-        .catch(() => {/* fail safe */})
-  }
+  this.browser.saveSession()
+      .catch(() => {/* fail safe */})
 
   if (this.userId) {
     log.verbose('PuppetWebEvent', 'onServerScan() there has userId when got a scan event. emit logout and set userId to null')
@@ -237,12 +235,10 @@ function onServerLogin(data) {
     log.verbose('PuppetWebEvent', `onServerLogin() user ${this.user.name()} logined`)
     this.emit('login', this.user)
 
-    if (this.session) {
-      yield this.browser.saveSession(this.session)
-      .catch(e => { // fail safe
-        log.warn('PuppetWebEvent', 'browser.saveSession exception: %s', e.message)
-      })
-    }
+    yield this.browser.saveSession()
+              .catch(e => { // fail safe
+                log.warn('PuppetWebEvent', 'browser.saveSession exception: %s', e.message)
+              })
   }).catch(e => {
     log.error('PuppetWebEvent', 'onServerLogin() exception: %s', e.message)
   })
@@ -256,12 +252,10 @@ function onServerLogout(data) {
   this.user = null
   this.userId = null
 
-  if (this.session) {
-    this.browser.cleanSession(this.session)
-    .catch(e => {
-      log.warn('PuppetWebEvent', 'onServerLogout() browser.cleanSession() exception: %s', e.message)
-    })
-  }
+  this.browser.cleanSession()
+  .catch(e => { /* fail safe */
+    log.verbose('PuppetWebEvent', 'onServerLogout() browser.cleanSession() exception: %s', e.message)
+  })
 }
 
 function onServerMessage(data) {
