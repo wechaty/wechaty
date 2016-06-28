@@ -83,8 +83,8 @@ test('Bridge smoking test', function(t) {
     // const retReady = yield b.execute('return Wechaty.isReady()')
     // t.equal(typeof retReady, 'boolean', 'should got a boolean return after execute Wechaty.isReady()')
 
-    const retCode = yield b.proxyWechaty('getLoginStatusCode')
-    t.equal(typeof retCode, 'number', 'should got a number after call proxyWechaty(getLoginStatusCode)')
+    const retCode = yield b.proxyWechaty('isLogin')
+    t.equal(typeof retCode, 'boolean', 'should got a boolean after call proxyWechaty(isLogin)')
   })
   .catch((e) => { // Rejected
     t.fail('co promise rejected:' + e)

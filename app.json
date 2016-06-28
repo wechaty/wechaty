@@ -6,15 +6,15 @@
   "keywords": ["wechaty", "wechat", "bot", "chatbot", "framework", "cloudbot"],
   "env": {
     "WECHATY_TOKEN": {
-      "description": "Cloud access token for Wechaty.io (set to 'zixia' to testing)",
-      "value": "zixia"
+      "description": "Cloud access token for Wechaty.io",
+      "value": "wechaty"
     },
     "WECHATY_LOG": {
       "description": "Don't touch this. unless you know what this mean",
-      "value": "verbose"
+      "value": "info"
     }
   },
   "engines": {
-    "node": "6.2.2"
+    "node": "6"
   }
 }

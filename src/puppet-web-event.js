@@ -218,7 +218,7 @@ function onServerLogin(data, attempt = 0) {
   log.verbose('PuppetWebEvent', 'onServerLogin(%s, %d)', data, attempt)
 
   if (this.userId) {
-    log.warn('PuppetWebEvent', 'onServerLogin() be called but with userId set?')
+    log.verbose('PuppetWebEvent', 'onServerLogin() be called but with userId set?')
   }
 
   co.call(this, function* () {

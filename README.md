@@ -16,6 +16,10 @@ Supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.appvey
 [![npm version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty)
 [![Downloads][downloads-image]][downloads-url]
 
+# Voice of the Developer
+
+> @GasLin it may be the best wecaht sdk i have seen in github! [Link](https://github.com/zixia/wechaty/issues/8#issuecomment-228971491)
+
 # Examples
 Wechaty is super easy to use: 9 lines of javascript is enough for your 1st wechat bot.
 

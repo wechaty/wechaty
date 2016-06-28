@@ -52,7 +52,7 @@ const onMessage = function(m) {
                 , m.toStringDigest()
           )
 
-  if (/^(ding|ping|bing)$/i.test(m.get('content')) && !bot.self(m)) {
+  if (/^ding$/i.test(m.get('content')) && !bot.self(m)) {
     bot.reply(m, 'dong')
         .then(() => { log.info('Bot', 'REPLY: dong') })
   }
@@ -66,9 +66,9 @@ const onMessage = function(m) {
 const app = require('express')()
 
 app.get('/', function (req, res) {
-  res.send('Wechaty Deployed on Heroku Succeed!')
+  res.send('Wechaty IO Bot Alive!')
 })
 
-app.listen(process.env.PORT, function () {
+app.listen(process.env.PORT || 8080, function () {
   console.log('Wechaty IO Bot listening on port ' + process.env.PORT + '!')
 })
