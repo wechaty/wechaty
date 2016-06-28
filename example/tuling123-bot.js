@@ -28,7 +28,7 @@ const Wechaty = require('..')
 const TULING123_API_KEY = '18f25157e0446df58ade098479f74b21'
 const brain = new Tuling123(TULING123_API_KEY)
 
-const bot = new Wechaty({ session: 'example-bot.wechaty.json' })
+const bot = new Wechaty({ profile: 'example-bot.wechaty.json' })
 
 console.log(`
 Welcome to Tuling Wechaty Bot.
