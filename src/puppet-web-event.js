@@ -211,10 +211,16 @@ function onServerUnload(data) {
 }
 
 function onServerLog(data) {
-  log.verbose('PuppetWebEvent', 'onServerLog: %s', data)
+  log.verbose('PuppetWebEvent', 'onServerLog(%s)', data)
 }
 
-function onServerLogin(data) {
+function onServerLogin(data, attempt = 0) {
+  log.verbose('PuppetWebEvent', 'onServerLogin(%s, %d)', data, attempt)
+
+  if (this.userId) {
+    log.warn('PuppetWebEvent', 'onServerLogin() be called but with userId set?')
+  }
+
   co.call(this, function* () {
     // co.call to make `this` context work inside generator.
     // See also: https://github.com/tj/co/issues/274
@@ -225,8 +231,8 @@ function onServerLogin(data) {
     this.userId = yield this.bridge.getUserName()
 
     if (!this.userId) {
-      log.verbose('PuppetWebEvent', 'onServerLogin: browser not full loaded, retry later.')
-      setTimeout(onServerLogin.bind(this), 500)
+      log.verbose('PuppetWebEvent', 'onServerLogin: browser not full loaded(%d), retry later', attempt)
+      setTimeout(onServerLogin.bind(this, data, ++attempt), 500)
       return
     }
 
@@ -237,7 +243,7 @@ function onServerLogin(data) {
 
     yield this.browser.saveSession()
               .catch(e => { // fail safe
-                log.warn('PuppetWebEvent', 'browser.saveSession exception: %s', e.message)
+                log.warn('PuppetWebEvent', 'onServerLogin() browser.saveSession exception: %s', e.message)
               })
   }).catch(e => {
     log.error('PuppetWebEvent', 'onServerLogin() exception: %s', e.message)
