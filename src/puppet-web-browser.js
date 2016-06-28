@@ -26,7 +26,7 @@ class Browser extends EventEmitter {
   } = {}) {
     super()
     log.verbose('PuppetWebBrowser', 'constructor()')
-    this.head = head
+    this.head = head || false
     this.sessionFile = sessionFile // a file to save session cookies
 
     this.live = false
@@ -205,6 +205,8 @@ class Browser extends EventEmitter {
             browserRe = 'chrome(?!driver)'
             break
           case false:
+          case undefined:
+          case null:
           case 'phantomjs':
             browserRe = 'phantomjs'
             break
