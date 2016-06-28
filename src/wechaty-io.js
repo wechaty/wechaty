@@ -31,7 +31,7 @@ class WechatyIo {
     this.token    = token
     this.endpoint = endpoint
     this.protocol = protocol
-    log.verbose('WechatyIo', 'instantiated with endpoint %s, token [%s], protocols [%s]', endpoint, token, protocol)
+    log.verbose('WechatyIo', 'instantiated with endpoint[%s], token[%s], protocol[%s]', endpoint, token, protocol)
   }
 
   toString() { return 'Class WechatyIo(' + this.token + ')'}

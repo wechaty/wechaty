@@ -203,7 +203,9 @@ class PuppetWeb extends Puppet {
 
     const SAVE_SESSION_INTERVAL = 5 * 60 * 1000 // 5 mins
     // if no lastSaveSession set(means 1st time), or timeout
-    if (!this.watchDogLastSaveSession ||  Date.now() - this.watchDogLastSaveSession > SAVE_SESSION_INTERVAL) {
+    if (!this.watchDogLastSaveSession) {
+      this.watchDogLastSaveSession = Date.now()
+    } else if (Date.now() - this.watchDogLastSaveSession > SAVE_SESSION_INTERVAL) {
       log.verbose('PuppetWeb', 'watchDog() saveSession(%s) after %d minutes', this.profile, Math.floor(SAVE_SESSION_INTERVAL/1000/60))
       this.browser.saveSession()
       this.watchDogLastSaveSession = Date.now()
