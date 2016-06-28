@@ -39,8 +39,8 @@ return (function(port) {
     }
 
     // glue funcs
-    , getLoginStatusCode: function() { return Wechaty.glue.loginScope.code }
-    , getLoginQrImgUrl:   function() { return Wechaty.glue.loginScope.qrcodeUrl }
+    // , getLoginStatusCode: function() { return Wechaty.glue.loginScope.code }
+    // , getLoginQrImgUrl:   function() { return Wechaty.glue.loginScope.qrcodeUrl }
     , angularIsReady:    angularIsReady
 
     // variable
@@ -356,7 +356,12 @@ return (function(port) {
       })
       Wechaty.vars.scanCode = code
     }
-    setTimeout(checkScan, 1000)
+
+    if (code === 200) {
+      login('scan code 200')
+    } else {
+      setTimeout(checkScan, 1000)
+    }
     return
   }
 
@@ -365,8 +370,8 @@ return (function(port) {
     log('login(' + data + ')')
     if (!Wechaty.vars.loginStatus) {
       Wechaty.vars.loginStatus = true
-      Wechaty.emit('login', data)
     }
+    Wechaty.emit('login', data)
   }
   function logout(data) {
     log('logout(' + data + ')')
