@@ -68,14 +68,19 @@ class Message {
     return s
   }
   getSenderString() {
-    const name  = Contact.load(this.obj.from).toStringEx()
-    const room = this.obj.room ? Room.load(this.obj.room).toStringEx() : null
-    return '<' + name + (room ? `@${room}` : '') + '>'
+    const name  = Contact.load(this.obj.from).toStringEx() + ','
+    const room = this.obj.room ? Room.load(this.obj.room).toStringEx() + ',' : '\"Room\":\"\",'
+    return  name + (room ? `${room}` : '') 
+  }
+  getJumposStringEx() {
+    var s = this.getSenderString()
+    s += this.getContentString()
+    return s
   }
   getContentString() {
     let content = webUtil.plainText(this.obj.content)
-    if (content.length > 20) { content = content.substring(0,17) + '...' }
-    return '{' + this.type() + '}' + content
+    if (content.length > 20) { content = content.substring(0,100) + '...' }
+    return '\"msgtype\":\"' + this.type() + '\",\"msg\":\"' + content + '\"'
   }
 
   from()    { return this.obj.from }

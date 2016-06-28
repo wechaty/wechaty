@@ -20,7 +20,7 @@ class Contact {
   }
 
   toString() { return this.id }
-  toStringEx() { return `Contact(${this.obj.name}[${this.id}])` }
+  toStringEx() { return `\"Contact\":\"${this.obj.name}\"` }
 
   parse(rawObj) {
     return !rawObj ? {} : {
