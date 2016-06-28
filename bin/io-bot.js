@@ -26,7 +26,7 @@ const bot = new Wechaty({ profile: 'io-bot' })
 bot
 .on('login'	  , user => log.info('Bot', `${user.name()} logined`))
 .on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
-.on('scan'    , ({url, code}) => log.info('Bot', `${url}\n[${code}] Scan QR Code in above url to login: `))
+.on('scan'    , ({url, code}) => log.info('Bot', `[${code}] Scan QR Code in url to login: ${url}`))
 .on('message', m => {
   m.ready()
     .then(onMessage)

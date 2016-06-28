@@ -64,15 +64,15 @@ class Wechaty extends EventEmitter {
         log.verbose('Wechaty', 'port: %d', this.port)
       }
 
-      yield this.initPuppet()
-      yield this.initEventHook()
-      yield this.puppet.init()
-
       yield this.initIo()
-      .catch(e => {
+      .catch(e => { // fail safe
         log.error('WechatyIo', 'initIo failed: %s', e.message)
         this.emit('error', e)
       })
+
+      yield this.initPuppet()
+      yield this.initEventHook()
+      yield this.puppet.init()
 
       this.inited = true
       return this // for chaining
