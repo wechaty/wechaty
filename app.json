@@ -1,0 +1,16 @@
+{
+  "name": "Wechaty Cloud Bot",
+  "description": "Wechat for Bot. Get your own cloud bot by deploy me.",
+  "repository": "https://github.com/zixia/wechaty",
+  "logo": "https://raw.githubusercontent.com/zixia/wechaty/master/image/wechaty-icon.png",
+  "keywords": ["wechaty", "wechat", "bot", "chatbot", "framework", "cloudbot"],
+  "env": {
+    "WECHATY_TOKEN": {
+      "description": "Cloud access token for Wechaty.io",
+      "value": ""
+    },
+  },
+  "engines": {
+    "node": "6.2.2"
+  }
+}

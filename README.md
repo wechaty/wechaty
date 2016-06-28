@@ -46,6 +46,18 @@ Here's a chatbot [api-ai-bot](https://github.com/zixia/wechaty/blob/master/examp
 
 Natual Language Understanding enabled by [api.AI](https://api.ai), you can get your module on api.AI by it's free plan.
 
+# Deploy
+
+## Deploy with Heroku
+Follow [these instructions](https://wechaty.readme.io/docs).
+Then,
+[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+
+## Deploy with Docker
+
+TBD
+
+
 # Installation
 
 ## Install from NPM
