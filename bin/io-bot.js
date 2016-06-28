@@ -29,7 +29,7 @@ bot
 .on('scan'    , ({url, code}) => log.info('Bot', `${url}\n[${code}] Scan QR Code in above url to login: `))
 .on('message', m => {
   m.ready()
-    .then(msg => log.info('Bot', 'recv: %s', msg.toStringEx()))
+    .then(onMessage)
     .catch(e => log.error('Bot', 'ready: %s' , e))
 })
 
@@ -40,6 +40,18 @@ bot.init()
   process.exit(-1)
 })
 
+const onMessage = function(m) {
+  const from = m.from()
+  const to = m.to()
+  const content = m.toString()
+  const room = m.room()
+
+  log.info('Bot', '%s<%s>:%s'
+                , (room ? '['+room.name()+']' : '')
+                , from.name()
+                , m.toStringDigest()
+          )
+}
 /**
  *
  * To make heroku happy
