@@ -21,7 +21,10 @@ Starting...
 `
 
 console.log(welcome)
-const bot = new Wechaty({ profile: 'io-bot' })
+const bot = new Wechaty({
+  profile: 'io-bot'
+  , token: process.env.WECHATY_TOKEN || 'wechaty' // token for wechaty.io auth
+})
 
 bot
 .on('login'	  , user => log.info('Bot', `${user.name()} logined`))

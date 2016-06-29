@@ -5,7 +5,7 @@ Connecting ChatBots.
 
 Wechaty is a Bot Framework for Wechat **Personal** Account.
 
-> Easy creating personal account wechat robot in 9 lines of code.
+> Easy creating personal wechat bot in 9 lines of code.
 
 Supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.appveyor.com/project/zixia/wechaty) and darwin(OSX/Mac).
 
@@ -18,7 +18,7 @@ Supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.appvey
 
 # Voice of the Developer
 
-> @GasLin it may be the best wecaht sdk i have seen in github! [Link](https://github.com/zixia/wechaty/issues/8#issuecomment-228971491)
+> @GasLin: it may be the best wecaht sdk i have seen in github! [link](https://github.com/zixia/wechaty/issues/8#issuecomment-228971491)
 
 # Examples
 Wechaty is super easy to use: 9 lines of javascript is enough for your 1st wechat bot.
