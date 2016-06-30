@@ -108,7 +108,7 @@ class Wechaty extends EventEmitter {
   initPuppet() {
     switch (this.type) {
       case 'web':
-        this.puppet = new Puppet.Web({
+        this.puppet = new PuppetWeb( {
           head:       this.head
           , port:     this.port
           , profile:  this.profile
@@ -241,17 +241,16 @@ const Message = require('./message')
 const Contact = require('./contact')
 const Room    = require('./room')
 
-const Puppet  = require('./puppet')
-Puppet.Web    = require('./puppet-web')
+// const Puppet  = require('./puppet')
+const PuppetWeb     = require('./puppet-web')
 
 Object.assign(Wechaty, {
-  Puppet
-
-  , Message
+  Message
   , Contact
   , Room
 
   , log // for convenionce use npmlog with environment variable LEVEL
+  // Puppet
 })
 
 Wechaty.version = require('../package.json').version
