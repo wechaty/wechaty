@@ -8,8 +8,8 @@ test('Wechaty Framework', function(t) {
   t.ok(Wechaty.Contact    , 'should export Wechaty.Contact')
   t.ok(Wechaty.Room       , 'should export Wechaty.Room')
 
-  t.ok(Wechaty.Puppet     , 'should export Wechaty.Puppet')
-  t.ok(Wechaty.Puppet.Web , 'should export Wechaty.Puppet.Web')
+  // t.ok(Wechaty.Puppet     , 'should export Wechaty.Puppet')
+  // t.ok(Wechaty.Puppet.Web , 'should export Wechaty.Puppet.Web')
 
   const bot = new Wechaty()
   t.equal(bot.version(), Wechaty.version, 'should export version in package.json')

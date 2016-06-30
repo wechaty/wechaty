@@ -25,12 +25,11 @@ test('Puppet Web watchdog timer', function(t) {
     yield pw.browser.quit().catch(e => {/* fail safe */})
     t.pass('should kill both browser & bridge')
 
-    pw.once('error', e => {
-      t.ok(/watchdog reset/i.test(e.message), 'should get event[error] after watchdog timeout')
-    })
+    let errorCounter = 0
+    pw.once('error', e => errorCounter = 1)
     pw.watchDog('feed_and_active_it', {timeout: 1})
     yield new Promise((resolve) => setTimeout(() => resolve(), 2)) // wait untill reset
-    t.pass('should had already fired a watchdog timeout')
+    t.equal(errorCounter, 1, 'should get event[error] after watchdog timeout')
 
     pw.once('error', e => t.fail('waitDing() triggered watchDogReset()'))
 
@@ -38,7 +37,7 @@ test('Puppet Web watchdog timer', function(t) {
     pw.watchDog('feed to extend the dog life')
 
     const origLogLevel = log.level
-    log.level = 'silent'
+    // log.level = 'silent'
     t.pass('set log.level = silent to mute log when watchDog reset wechaty')
     const dong = yield waitDing(EXPECTED_DING_DATA)
     log.level = origLogLevel
