@@ -38,10 +38,10 @@ test('Puppet Web watchdog timer', function(t) {
 
     const origLogLevel = log.level
     log.level = 'silly'
-    t.pass('set log.level = silent to mute log when watchDog reset wechaty')
+    t.pass('set log.level = silent to mute log when watchDog reset wechaty temporary')
     const dong = yield waitDing(EXPECTED_DING_DATA)
     log.level = origLogLevel
-    t.equal(dong, EXPECTED_DING_DATA, 'should get EXPECTED_DING_DATA from ding after watchdog reset')
+    t.equal(dong, EXPECTED_DING_DATA, 'should get EXPECTED_DING_DATA from ding after watchdog reset, and restored log level')
   })
   .catch(e => { // Exception
     t.fail('co exception: ' + e.message)

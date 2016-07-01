@@ -60,9 +60,10 @@ class Bridge {
 
   inject() {
     log.verbose('PuppetWebBridge', 'inject()')
-    return co.call(this, function* () {
 
+    return co.call(this, function* () {
       const injectio = this.getInjectio()
+
       let retObj = yield this.execute(injectio, this.port)
       if (retObj && /^(2|3)/.test(retObj.code)) {   // HTTP Code 2XX & 3XX
         log.verbose('PuppetWebBridge', 'inject() eval(Wechaty) return code[%d] message[%s] port[%d]'
@@ -86,7 +87,6 @@ class Bridge {
       log.verbose('PuppetWebBridge', 'inject() ding success')
 
       return true
-
     })
     .catch (e => {
       log.verbose('PuppetWebBridge', 'inject() exception: %s', e.message)
@@ -208,6 +208,9 @@ class Bridge {
   }
 
   execute(script, ...args) {
+    if (!this.puppet || !this.puppet.browser) {
+      throw new Error('execute(): no puppet or no puppet.browser in bridge')
+    }
     return this.puppet.browser.execute(script, ...args)
     .catch(e => {
       log.warn('PuppetWebBridge', 'execute() exception: %s', e.message)
