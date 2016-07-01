@@ -16,14 +16,14 @@ test('Puppet Web watchdog timer', function(t) {
   t.ok(pw, 'should instantiate a PuppetWeb')
 
   co(function* () {
-    yield pw.initBrowser()
-    t.pass('should init the browser')
-    yield pw.initBridge()
-    t.pass('should init the bridge')
+    // pw.browser = yield pw.initBrowser()
+    // t.ok(pw.browser, 'should init the browser')
+    // pw.bridge = yield pw.initBridge()
+    // t.ok(pw.bridge, 'should init the bridge')
 
-    yield pw.bridge.quit().catch(e => {/* fail safe */})
-    yield pw.browser.quit().catch(e => {/* fail safe */})
-    t.pass('should kill both browser & bridge')
+    // yield pw.bridge.quit().catch(e => {/* fail safe */})
+    // yield pw.browser.quit().catch(e => {/* fail safe */})
+    // t.pass('should kill both browser & bridge')
 
     let errorCounter = 0
     pw.once('error', e => errorCounter = 1)
