@@ -220,7 +220,13 @@ class PuppetWeb extends Puppet {
 
     this.emit('heartbeat', data)
 
-
+    /**
+     *
+     * Deal with Sessions(cookies)
+     *
+     * save every 5 mins
+     *
+     */
     const SAVE_SESSION_INTERVAL = 5 * 60 * 1000 // 5 mins
     // if no lastSaveSession set(means 1st time), or timeout
     if (!this.watchDogLastSaveSession) {
@@ -233,9 +239,13 @@ class PuppetWeb extends Puppet {
 
 
     /**
+     *
+     * Deal with SCAN events
+     *
      * if web browser stay at login qrcode page long time,
      * sometimes the qrcode will not refresh, leave there expired.
      * so we need to refresh the page after a while
+     *
      */
     if (type === 'scan') { // watchDog was feed a 'scan' data
       log.verbose('PuppetWeb', 'watchDog() got a food with type scan')
