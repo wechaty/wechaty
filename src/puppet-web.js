@@ -120,6 +120,7 @@ class PuppetWeb extends Puppet {
     Message.attach(puppet)
     return Promise.resolve(!!puppet)
   }
+
   initBrowser() {
     log.verbose('PuppetWeb', 'initBrowser()')
     const browser = this.browser  = new Browser({
@@ -147,6 +148,7 @@ class PuppetWeb extends Puppet {
       throw e
     })
   }
+
   initBridge() {
     log.verbose('PuppetWeb', 'initBridge()')
     this.bridge = new Bridge({
@@ -164,6 +166,7 @@ class PuppetWeb extends Puppet {
       }
     })
   }
+
   initServer() {
     log.verbose('PuppetWeb', 'initServer()')
     const server = new Server({port: this.port})

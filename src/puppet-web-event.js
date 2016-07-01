@@ -53,23 +53,24 @@ const PuppetWebEvent = {
 function onBrowserDead(e) {
   log.verbose('PuppetWebEvent', 'onBrowserDead()')
   // because this function is async, so maybe entry more than one times.
-  // guard by variable: onBrowserBirthing to prevent the 2nd time entrance.
-  if (this.onBrowserBirthing) {
+  // guard by variable: isBrowserBirthing to prevent the 2nd time entrance.
+  if (this.isBrowserBirthing) {
     log.warn('PuppetWebEvent', 'onBrowserDead() Im busy, dont call me again before I return. this time will return and do nothing')
-    return
-  }
-  this.onBrowserBirthing = true
-
-  const TIMEOUT = 180000 // 180s / 3m
-  this.watchDog(`onBrowserDead() set a timeout of ${Math.floor(TIMEOUT / 1000)} seconds to prevent unknown state change`, {timeout: TIMEOUT})
-
-  log.verbose('PuppetWebEvent', 'onBrowserDead(%s)', e.message || e)
-  if (!this.browser || !this.bridge) {
-    log.error('PuppetWebEvent', 'onBrowserDead() browser or bridge not found. do nothing')
     return
   }
 
   return co.call(this, function* () {
+    this.isBrowserBirthing = true
+
+    const TIMEOUT = 180000 // 180s / 3m
+    this.watchDog(`onBrowserDead() set a timeout of ${Math.floor(TIMEOUT / 1000)} seconds to prevent unknown state change`, {timeout: TIMEOUT})
+
+    log.verbose('PuppetWebEvent', 'onBrowserDead(%s)', e.message || e)
+    if (!this.browser || !this.bridge) {
+      log.error('PuppetWebEvent', 'onBrowserDead() browser or bridge not found. do nothing')
+      return
+    }
+
     log.verbose('PuppetWebEvent', 'onBrowserDead() try to reborn browser')
 
     yield this.browser.quit()
@@ -95,11 +96,11 @@ function onBrowserDead(e) {
     log.error('PuppetWebEvent', 'onBrowserDead() exception: %s', e.message)
 
     log.warn('PuppetWebEvent', 'onBrowserDead() try to re-init PuppetWeb itself')
-    return this.quit().then(() => this.init())
+    return this.quit().then(_ => this.init())
   })
   .then(() => { // Finally
     log.verbose('PuppetWebEvent', 'onBrowserDead() new browser borned')
-    this.onBrowserBirthing = false
+    this.isBrowserBirthing = false
   })
 }
 
