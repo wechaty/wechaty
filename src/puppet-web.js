@@ -59,13 +59,13 @@ class PuppetWeb extends Puppet {
       yield this.initAttach(this)
       log.verbose('PuppetWeb', 'initAttach() done')
 
-      yield this.initServer()
+      this.server = yield this.initServer()
       log.verbose('PuppetWeb', 'initServer() done')
 
-      yield this.initBrowser()
+      this.browser = yield this.initBrowser()
       log.verbose('PuppetWeb', 'initBrowser() done')
 
-      yield this.initBridge()
+      this.bridge = yield this.initBridge()
       log.verbose('PuppetWeb', 'initBridge() done')
     })
     .catch(e => {   // Reject
@@ -153,12 +153,12 @@ class PuppetWeb extends Puppet {
 
   initBridge() {
     log.verbose('PuppetWeb', 'initBridge()')
-    this.bridge = new Bridge({
+    const bridge = new Bridge({
       puppet:   this // use puppet instead of browser, is because browser might change(die) duaring run time
       , port:   this.port
     })
 
-    return this.bridge.init()
+    return bridge.init()
     .catch(e => {
       if (this.browser.dead()) {
         log.warn('PuppetWeb', 'initBridge() found browser dead, wait it to restore')
@@ -184,8 +184,7 @@ class PuppetWeb extends Puppet {
     server.on('log'       , Event.onServerLog.bind(this))
     server.on('ding'      , Event.onServerDing.bind(this))
 
-    this.server = server
-    return this.server.init()
+    return server.init()
     .catch(e => {
       log.error('PuppetWeb', 'initServer() exception: %s', e.message)
       throw e

@@ -45,12 +45,16 @@ class Bridge {
       return this.inject()
       .then(r => {
         log.verbose('PuppetWebBridge', 'init() inject() return %s at attempt %d', r, attempt)
-        return r
+        return this
       })
       .catch(e => {
         log.verbose('PuppetWebBridge', 'init() inject() attempt %d exception: %s', attempt, e.message)
         throw e
       })
+    })
+    .then(_ => {
+      log.verbose('PuppetWebBridge', 'init()-ed')
+      return this
     })
     .catch(e => {
       log.warn('PuppetWebBridge', 'init() inject FINAL fail: %s', e.message)
