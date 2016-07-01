@@ -68,7 +68,8 @@ function onBrowserDead(e) {
     log.verbose('PuppetWebEvent', 'onBrowserDead(%s)', e.message || e)
     if (!this.browser || !this.bridge) {
       log.error('PuppetWebEvent', 'onBrowserDead() browser or bridge not found. do nothing')
-      return
+      // should not return here, because we must reset isBrowserBirthing in the final closure
+      throw new Error('no browser & no bridge')
     }
 
     log.verbose('PuppetWebEvent', 'onBrowserDead() try to reborn browser')
@@ -254,15 +255,17 @@ function onServerLogin(data, attempt = 0) {
 function onServerLogout(data) {
   if (this.user) {
     this.emit('logout', this.user)
-  } else { log.verbose('PuppetWebEvent', 'onServerLogout() without this.user initialized') }
+  } else if (this.userId) {
+    this.emit('logout', this.userId)
+  } else { log.verbose('PuppetWebEvent', 'onServerLogout() without this.user or userId initialized') }
 
-  this.user = null
   this.userId = null
+  this.user = null
 
-  this.browser.cleanSession()
-  .catch(e => { /* fail safe */
-    log.verbose('PuppetWebEvent', 'onServerLogout() browser.cleanSession() exception: %s', e.message)
-  })
+  // this.browser.cleanSession()
+  // .catch(e => { /* fail safe */
+  //   log.verbose('PuppetWebEvent', 'onServerLogout() browser.cleanSession() exception: %s', e.message)
+  // })
 }
 
 function onServerMessage(data) {
