@@ -82,6 +82,8 @@ class PuppetWeb extends Puppet {
     log.verbose('PuppetWeb', 'quit()')
 
     return co.call(this, function* () {
+      this.clearWatchDogTimer()
+
       if (this.bridge)  {
         yield this.bridge.quit().catch(e => { // fail safe
           log.warn('PuppetWeb', 'quite() bridge.quit() exception: %s', e.message)
@@ -190,19 +192,34 @@ class PuppetWeb extends Puppet {
     })
   }
 
+  clearWatchDogTimer() {
+    if (this.watchDogTimer) {
+      clearTimeout(this.watchDogTimer)
+      this.watchDogTimer = null
+    }
+  }
+
+  setWatchDogTimer(timeout) {
+    this.clearWatchDogTimer()
+
+    this.watchDogTimer = setTimeout(this.watchDogReset.bind(this, timeout), timeout)
+    this.watchDogTimer.unref() // dont block quit
+  }
+
   // feed me in time(after 1st feed), or I'll restart system
-  watchDog(data, options) {
+  watchDog(data, {
+    timeout
+    , type
+  } = {}) {
     log.silly('PuppetWeb', 'watchDog(%s)', data)
-    options = options || {}
+
+    timeout = timeout || 60000  // 60s default. can be override in options but be careful about the number zero(0)
+    type    = type    || 'food' // just a name
+
+    this.setWatchDogTimer(timeout)
 
     this.emit('heartbeat', data)
 
-    const timeout = options.timeout || 60000 // 60s default. can be override in options but be careful about the number zero(0)
-    const type   =  options.type    || 'food'  // just a name
-
-    if (this.watchDogTimer) { clearTimeout(this.watchDogTimer) }
-    this.watchDogTimer = setTimeout(() => this.watchDogReset(timeout), timeout)
-    this.watchDogTimer.unref() // dont block quit
 
     const SAVE_SESSION_INTERVAL = 5 * 60 * 1000 // 5 mins
     // if no lastSaveSession set(means 1st time), or timeout
@@ -213,6 +230,7 @@ class PuppetWeb extends Puppet {
       this.browser.saveSession()
       this.watchDogLastSaveSession = Date.now()
     }
+
 
     /**
      * if web browser stay at login qrcode page long time,
