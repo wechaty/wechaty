@@ -55,11 +55,16 @@ function onBrowserDead(e) {
   // because this function is async, so maybe entry more than one times.
   // guard by variable: isBrowserBirthing to prevent the 2nd time entrance.
   if (this.isBrowserBirthing) {
-    log.warn('PuppetWebEvent', 'onBrowserDead() Im busy, dont call me again before I return. this time will return and do nothing')
-    return
+    if (this.isBrowserBirthing === true) {
+      log.warn('PuppetWebEvent', 'onBrowserDead() Im busy, dont call me again before I return. this time will return and do nothing')
+      return
+    } else {
+      log.warn('PuppetWebEvent', 'onBrowserDead() Im FAKE busy? isBrowserBirthing is not boolean true!')
+    }
   }
 
   return co.call(this, function* () {
+    log.warn('PuppetWebEvent', 'onBrowserDead() co() set isBrowserBirthing true')
     this.isBrowserBirthing = true
 
     const TIMEOUT = 180000 // 180s / 3m
@@ -68,8 +73,7 @@ function onBrowserDead(e) {
     log.verbose('PuppetWebEvent', 'onBrowserDead(%s)', e.message || e)
     if (!this.browser || !this.bridge) {
       log.error('PuppetWebEvent', 'onBrowserDead() browser or bridge not found. do nothing')
-      // should not return here, because we must reset isBrowserBirthing in the final closure
-      throw new Error('no browser & no bridge')
+      throw new Error('no browser or no bridge')
     }
 
     log.verbose('PuppetWebEvent', 'onBrowserDead() try to reborn browser')
