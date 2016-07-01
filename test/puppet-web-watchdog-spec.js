@@ -37,7 +37,7 @@ test('Puppet Web watchdog timer', function(t) {
     pw.watchDog('feed to extend the dog life')
 
     const origLogLevel = log.level
-    // log.level = 'silent'
+    log.level = 'silent'
     t.pass('set log.level = silent to mute log when watchDog reset wechaty')
     const dong = yield waitDing(EXPECTED_DING_DATA)
     log.level = origLogLevel

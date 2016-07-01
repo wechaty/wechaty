@@ -21,13 +21,6 @@ test('PuppetWeb smoke testing', function(t) {
     t.pass('should be inited')
     t.equal(pw.logined() , false  , 'should be not logined')
 
-    const EXPECTED_USER_ID = 'expected_user_id'
-    pw.userId = EXPECTED_USER_ID
-    const Message = require('../src/message')
-    const m = new Message()
-    m.set('from', EXPECTED_USER_ID)
-    t.ok(pw.self(m), 'should identified self for message which from is self')
-
     // XXX find a better way to mock...
     pw.bridge.getUserName = function() { return Promise.resolve('mockedUserName') }
     pw.getContact = function() { return Promise.resolve('dummy') }
@@ -72,6 +65,7 @@ test('Puppet Web server/browser communication', function(t) {
     yield pw.init()
     t.pass('should be inited')
 
+    log.level = 'silly'
     const retSocket = yield dingSocket(pw.server)
     t.equal(retSocket,  EXPECTED_DING_DATA, 'should got EXPECTED_DING_DATA after resolved dingSocket()')
   })
@@ -82,6 +76,9 @@ test('Puppet Web server/browser communication', function(t) {
   .then(r => {                // Finally
     pw.quit()
     .then(t.end)
+
+log.level = 'info'
+
   })
   .catch(e => { t.fail(e) })  // Exception
 
@@ -126,7 +123,7 @@ test('Puppet Web Self Message Identification', function(t) {
   p.userId = EXPECTED_USER_ID
   const m = new Message()
   m.set('from', EXPECTED_USER_ID)
-  t.ok(p.self(m), 'should return true for a self message')
+  t.ok(p.self(m), 'should identified self for message which from is self')
 
   t.end()
 })
