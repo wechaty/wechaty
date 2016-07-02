@@ -10,6 +10,20 @@
  * Licenst: MIT
  * https://github.com/zixia/wechaty-lib
  *
+ *
+ * ATTENTION:
+ *
+ * JAVASCRIPT IN THIS FILE
+ * IS RUN INSIDE
+ *
+ *    BROWSER
+ *
+ * INSTEAD OF
+ *
+ *    NODE
+ *
+ * read more about this in puppet-web-bridge.js
+ *
  */
 
 /*global angular*/
