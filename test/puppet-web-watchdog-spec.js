@@ -54,13 +54,14 @@ test('Puppet Web watchdog timer', function(t) {
   return
   /////////////////////////////////////////////////////////////////////////////
   function waitDing(data) {
-    const max = 7
-    const backoff = 2000
+    const max = 13
+    const backoff = 1000
 
     // max = (2*totalTime/backoff) ^ (1/2)
     // timeout = 11,250 for {max: 15, backoff: 100}
     // timeout = 45,000 for {max: 30, backoff: 100}
     // timeout = 49,000 for {max: 7, backoff: 2000}
+    // timeout = 84,500 for {max: 13, backoff: 1000}
     const timeout = max * (backoff * max) / 2
 
     return retryPromise({max: max, backoff: backoff}, function(attempt) {
