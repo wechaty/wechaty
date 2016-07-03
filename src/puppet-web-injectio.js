@@ -340,8 +340,8 @@ return (function(port) {
   function checkScan() {
     clog('checkScan()')
     if (isLogin()) {
-      log('checkScan() - already login, no more check, but I will emit a login event')
-      login('checkScan found already login')
+      log('checkScan() - already login, no more check, and return(only)') //but I will emit a login event')
+      // login('checkScan found already login')
       return
     }
     if (!Wechaty.glue.loginScope) {
@@ -352,9 +352,9 @@ return (function(port) {
 
     // loginScope.code:
     // 0:   显示二维码
+    // 408: 未确认（显示二维码后30秒触发）
     // 201: 扫描，未确认
     // 200: 登录成功
-    // 408: 未确认
     var code  = +Wechaty.glue.loginScope.code
     var url   =  Wechaty.glue.loginScope.qrcodeUrl
     if (url && code !== Wechaty.vars.scanCode) {

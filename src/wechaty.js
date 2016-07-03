@@ -64,15 +64,13 @@ class Wechaty extends EventEmitter {
         log.verbose('Wechaty', 'port: %d', this.port)
       }
 
-      yield this.initIo()
+      this.io = yield this.initIo()
       .catch(e => { // fail safe
         log.error('WechatyIo', 'initIo failed: %s', e.message)
         this.emit('error', e)
       })
 
-      yield this.initPuppet()
-      yield this.initEventHook()
-      yield this.puppet.init()
+      this.puppet = yield this.initPuppet()
 
       this.inited = true
       return this // for chaining
@@ -92,7 +90,7 @@ class Wechaty extends EventEmitter {
     }
 
     const WechatyIo = require('./wechaty-io')
-    const io = this.io = new WechatyIo({
+    const io = new WechatyIo({
       wechaty: this
       , token: this.token
       , endpoint: this.endpoint
@@ -106,9 +104,10 @@ class Wechaty extends EventEmitter {
   }
 
   initPuppet() {
+    let puppet
     switch (this.type) {
       case 'web':
-        this.puppet = new PuppetWeb( {
+        puppet = new PuppetWeb( {
           head:       this.head
           , port:     this.port
           , profile:  this.profile
@@ -117,10 +116,7 @@ class Wechaty extends EventEmitter {
       default:
         throw new Error('Puppet unsupport(yet): ' + this.type)
     }
-    return Promise.resolve(this.puppet)
-  }
 
-  initEventHook() {
     ;[
       'scan'
       , 'message'
@@ -129,26 +125,10 @@ class Wechaty extends EventEmitter {
       , 'error'
       , 'heartbeat'
     ].map(e => {
-      this.puppet.on(e, data => {
+      puppet.on(e, data => {
         this.emit(e, data)
       })
     })
-    // this.puppet.on('scan', data => {
-    //   this.emit('scan', data)    // Scan QRCode
-    // })
-    // this.puppet.on('message', data => {
-    //   this.emit('message', data) // Receive Message
-    // })
-    // this.puppet.on('login', data => {
-    //   this.emit('login', data)
-    // })
-    // this.puppet.on('logout', data => {
-    //   this.emit('logout', data)
-    // })
-    // this.puppet.on('error', data => {
-    //   this.emit('error', data)
-    // })
-
     /**
      * TODO: support more events:
      * 2. send
@@ -157,7 +137,7 @@ class Wechaty extends EventEmitter {
      * 5. ...
      */
 
-    return Promise.resolve()
+    return puppet.init()
   }
 
   quit() {
