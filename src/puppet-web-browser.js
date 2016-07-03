@@ -32,6 +32,7 @@ class Browser extends EventEmitter {
     this.live = false
   }
 
+
   toString() { return `Browser({head:${this.head})` }
 
   init() {
@@ -53,27 +54,31 @@ class Browser extends EventEmitter {
   initDriver() {
     log.verbose('PuppetWebBrowser', 'initDriver(head: %s)', this.head)
     return new Promise((resolve, reject) => {
-      if (this.head) {
-        if (/firefox/i.test(this.head)) {
+      switch (true) {
+        case !this.head: // no head default to phantomjs
+        case /phantomjs/i.test(this.head):
+        case /phantom/i.test(this.head):
+          this.driver = this.getPhantomJsDriver()
+          break
+        case /firefox/i.test(this.head):
           this.driver = new WebDriver.Builder()
           .setAlertBehavior('ignore')
           .forBrowser('firefox')
           .build()
-        } else if (/chrome/i.test(this.head)) {
+          break
+        case /chrome/i.test(this.head):
           this.driver = new WebDriver.Builder()
           .setAlertBehavior('ignore')
           .forBrowser('chrome')
           .build()
-        } else {  // unsupported browser head
+          break
+        default: // unsupported browser head
           throw new Error('unsupported head: ' + this.head)
-        }
-      } else { // no head default to phantomjs
-        this.driver = this.getPhantomJsDriver()
       }
 
-      // XXX: if no `setTimeout()` here, promise will hang!
-      // with selenium-webdriver v2.53.2
-      // XXX: https://github.com/SeleniumHQ/selenium/issues/2233
+      // XXX: if no `setTimeout()` here, promise will hang forever!
+      // with a confirmed bug in selenium-webdriver v2.53.2:
+      // https://github.com/SeleniumHQ/selenium/issues/2233
       setTimeout(() => { resolve(this.driver) }, 0)
       // resolve(this.driver)
     })
@@ -108,7 +113,7 @@ class Browser extends EventEmitter {
       // , '--webdriver-loglevel=DEBUG'
     ]
     if (process.env.WECHATY_DEBUG) {
-          phantomjsArgs.push('--remote-debugger-port=8080') // XXX: be careful when in production usage.
+      phantomjsArgs.push('--remote-debugger-port=8080') // XXX: be careful when in production usage.
     }
 
     const customPhantom = WebDriver.Capabilities.phantomjs()
