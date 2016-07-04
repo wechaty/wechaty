@@ -66,6 +66,8 @@ class WechatyIo {
       }
       log.verbose('WechatyIo', 'initWebSocket() connected with protocol [%s]', ws.protocol)
 
+      ws._socket.setKeepAlive(true, 30000)
+
       this.reconnectTimeout = null
       ws.send('Wechaty version ' + this.wechaty.version())
     }.bind(this))
