@@ -67,6 +67,8 @@ class PuppetWeb extends Puppet {
 
       this.bridge = yield this.initBridge()
       log.verbose('PuppetWeb', 'initBridge() done')
+
+      this.watchDog('inited') // start watchdog
     })
     .catch(e => {   // Reject
       log.error('PuppetWeb', 'init exception: %s', e.message)
