@@ -7,7 +7,7 @@ Wechaty is a Bot Framework for Wechat **Personal** Account.
 
 > Easy creating personal wechat bot in 9 lines of code.
 
-Supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.appveyor.com/project/zixia/wechaty) and darwin(OSX/Mac).
+It supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.appveyor.com/project/zixia/wechaty) and darwin(OSX/Mac).
 
 [![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=2592000)](https://nodejs.org/)
@@ -249,11 +249,19 @@ wechaty.on('scan', ({code, url}) => {
 After the bot login full successful, the event `login` will be emitted, with a [Contact](#class-contact) of current logined user.
 ```javascript
 wechaty.on('login', user => {
-  console.log(`user ${user} logined`)
+  console.log(`user ${user} login`)
 })
 ```
+
 ### 3. Event: `logout`
-`logout` will be emitted when bot detected it is logout.
+
+`logout` will be emitted when bot detected it is logout, with a [Contact](#class-contact) of current logined user.
+
+```javascript
+wechaty.on('logout', user => {
+  console.log(`user ${user} logout`)
+})
+```
 
 ### 4. Event: `message`
 Emit when there's a new message.
@@ -271,23 +279,17 @@ To be support.
 Main bot class.
 
 ```javascript
-const wechaty = new Wechaty({
+const bot = new Wechaty({
   profile
-  , head
+  , token
 })
 ```
 
-options:
-
 1. `profile`(OPTIONAL): profile name. if a profile name is provided, the login status will be saved to it, and automatically restored on next time of wechaty start(restart).
     * can be set by environment variable: `WECHATY_PROFILE`
-1. `head`(OPTIONAL): specify the browser name for webdriver.
-    * can be set by environment variable: `WECHATY_HEAD`
-    * values:
-        * `phantomjs`: it's the default behaviour if head is not set.
-        * `chrome`
+1. `token`(OPTIONAL): wechaty io token. Be used to connect to cloud bot manager.
 
-### Wechaty.init()
+### Wechaty.init(): Wechaty
 Initialize the bot, return Promise.
 
 ```javascript
@@ -297,7 +299,7 @@ wechaty.init()
 }
 ```
 
-### Wechaty.reply(message: Message, reply: String)
+### Wechaty.reply(message: Message, reply: String): Wechaty
 Reply a `message` with `reply`.
 
 That means: the `to` field of the reply message is the `from` of origin message.
@@ -306,7 +308,7 @@ That means: the `to` field of the reply message is the `from` of origin message.
 wechaty.reply(message, 'roger')
 ```
 
-### Wechaty.self()
+### Wechaty.self(): boolean
 Check if message is send by self.
 
 Return `true` for send from self, `false` for send from others.
@@ -320,7 +322,7 @@ if (wechaty.self(message)) {
 ## Class Message
 All wechat messages will be encaped as a Message.
 
-### Message.get(prop)
+### Message.get(prop): String|Contact|Room|Date
 Get prop from a message.
 
 Supported prop list:
@@ -336,7 +338,7 @@ Supported prop list:
 message.get('content')
 ```
 
-### Message.set(prop, value)
+### Message.set(prop, value): Message
 Set prop to value for a message.
 
 Supported prop list: the same as `get(prop)`
@@ -345,7 +347,7 @@ Supported prop list: the same as `get(prop)`
 message.set('content', 'Hello, World!')
 ```
 
-### Message.ready()
+### Message.ready(): Message
 A message may be not fully initialized yet. Call `ready()` to confirm we get all the data needed.
 
 Return a Promise, will be resolved when all data is ready.
@@ -359,7 +361,7 @@ message.ready()
 
 ## Class Contact
 
-### Contact.get(prop)
+### Contact.get(prop): String|Number
 Get prop from a contact.
 
 Supported prop list:
@@ -377,7 +379,7 @@ Supported prop list:
 contact.get('name')
 ```
 
-### Contact.ready()
+### Contact.ready(): Contact
 A Contact may be not fully initialized yet. Call `ready()` to confirm we get all the data needed.
 
 Return a Promise, will be resolved when all data is ready.
@@ -392,7 +394,7 @@ contact.ready()
 ## Class Room
 
 
-### Room.get(prop)
+### Room.get(prop): String|Array[{contact: Contact, name: String}]
 Get prop from a room.
 
 Supported prop list:
@@ -406,7 +408,7 @@ Supported prop list:
 ```javascript
 room.get('members').length
 ```
-### Room.ready()
+### Room.ready(): Room
 A room may be not fully initialized yet. Call `ready()` to confirm we get all the data needed.
 
 Return a Promise, will be resolved when all data is ready.
@@ -430,9 +432,10 @@ Know more about TAP: [Why I use Tape Instead of Mocha & So Should You](https://m
 
 # Version History
 
-## v0.2.0 (master)
+## v0.2.2 (master)
 1. add wechaty.io cloud management support: set environment variable `WECHATY_TOKEN` to enable io support
 2. rename `WECHATY_SESSION` to `WECHATY_PROFILE` for better name
+3. fix watchdog timer & reset bug
 
 ## v0.1.8 (2016/6/25)
 1. add a watchdog to restore from unknown state
