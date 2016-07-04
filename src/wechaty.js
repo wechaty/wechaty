@@ -1,6 +1,6 @@
 /**
  *
- * wechaty: Wechat for Bot. and for human who talk to bot/robot
+ * wechaty: Wechat for ChatBots.
  *
  * Class Wechaty
  *
