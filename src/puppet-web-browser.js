@@ -141,26 +141,28 @@ class Browser extends EventEmitter {
       return Promise.resolve('no driver session')
     }
     return this.driver.close() // http://stackoverflow.com/a/32341885/1123955
-    .then(() => this.driver.quit())
-    .catch(e => {
-      // console.log(e)
-      // log.warn('PuppetWebBrowser', 'err: %s %s %s %s', e.code, e.errno, e.syscall, e.message)
-      const crashMsgs = [
-        'ECONNREFUSED'
-        , 'WebDriverError: .* not reachable'
-        , 'NoSuchWindowError: no such window: target window already closed'
-      ]
-      const crashRegex = new RegExp(crashMsgs.join('|'), 'i')
+              .then(_ => this.driver.quit())
+              .catch(e => {
+                // console.log(e)
+                // log.warn('PuppetWebBrowser', 'err: %s %s %s %s', e.code, e.errno, e.syscall, e.message)
+                const crashMsgs = [
+                  'ECONNREFUSED'
+                  , 'WebDriverError: .* not reachable'
+                  , 'NoSuchWindowError: no such window: target window already closed'
+                ]
+                const crashRegex = new RegExp(crashMsgs.join('|'), 'i')
 
-      if (crashRegex.test(e.message)) { log.warn('PuppetWebBrowser', 'driver.quit() browser crashed') }
-      else                            { log.warn('PuppetWebBrowser', 'driver.quit() exception: %s', e.message) }
-    })
-    .then(() => { this.driver = null })
-    .then(() => this.clean())
-    .catch(e => {
-      log.error('PuppetWebBrowser', 'quit() exception: %s', e.message)
-      throw e
-    })
+                if (crashRegex.test(e.message)) { log.warn('PuppetWebBrowser', 'driver.quit() browser crashed') }
+                else                            { log.warn('PuppetWebBrowser', 'driver.quit() exception: %s', e.message) }
+              })
+              .then(_ => {
+                this.driver = null
+                return this.clean()
+              })
+              .catch(e => {
+                log.error('PuppetWebBrowser', 'quit() exception: %s', e.message)
+                throw e
+              })
   }
 
   clean() {
@@ -182,6 +184,7 @@ class Browser extends EventEmitter {
         this.getBrowserPids()
         .then(pids => {
           if (pids.length === 0) {
+            log.verbose('PuppetWebBrowser', 'clean() retryPromise() resolved')
             resolve('clean() no browser process, confirm clean')
           } else {
             reject(new Error('clean() found browser process, not clean, dirty'))
@@ -327,8 +330,8 @@ class Browser extends EventEmitter {
       log.warn('PuppetWebBrowser', 'dead() because %s', errMsg)
       this.live = false
       // must use nextTick here, or promise will hang... 2016/6/10
-      process.nextTick(() => {
-        log.verbose('PuppetWebBrowser', 'dead() emit a `dead` event')
+      process.nextTick(_ => {
+        log.verbose('PuppetWebBrowser', 'dead() emit a `dead` event because %s', errMsg)
         this.emit('dead', errMsg)
       })
     }

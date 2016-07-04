@@ -51,7 +51,7 @@ const PuppetWebEvent = {
 }
 
 function onBrowserDead(e) {
-  log.verbose('PuppetWebEvent', 'onBrowserDead()')
+  log.verbose('PuppetWebEvent', 'onBrowserDead(%s)', e)
   // because this function is async, so maybe entry more than one times.
   // guard by variable: isBrowserBirthing to prevent the 2nd time entrance.
   if (this.isBrowserBirthing) {
@@ -84,10 +84,11 @@ function onBrowserDead(e) {
     })
     log.verbose('PuppetWebEvent', 'old browser quited')
 
-    yield this.initBrowser()
+    this.browser = yield this.initBrowser()
     log.verbose('PuppetWebEvent', 'new browser inited')
 
-    yield this.bridge.init()
+    // this.bridge = yield this.bridge.init()
+    this.bridge = yield this.initBridge()
     log.verbose('PuppetWebEvent', 'bridge re-inited')
 
     const dong = yield this.ding()

@@ -88,7 +88,7 @@ class PuppetWeb extends Puppet {
 
       if (this.bridge)  {
         yield this.bridge.quit().catch(e => { // fail safe
-          log.warn('PuppetWeb', 'quite() bridge.quit() exception: %s', e.message)
+          log.warn('PuppetWeb', 'quit() bridge.quit() exception: %s', e.message)
         })
         this.bridge = null
       } else { log.warn('PuppetWeb', 'quit() without a bridge') }
@@ -99,9 +99,10 @@ class PuppetWeb extends Puppet {
       } else { log.verbose('PuppetWeb', 'quit() without a server') }
 
       if (this.browser) {
-        yield (this.browser.quit().catch(e => { // fail safe
-          log.warn('PuppetWeb', 'quit() browser.quit() exception: %s', e.message)
-        }))
+        yield this.browser.quit()
+                  .catch(e => { // fail safe
+                    log.warn('PuppetWeb', 'quit() browser.quit() exception: %s', e.message)
+                  })
         this.browser = null
       } else { log.warn('PuppetWeb', 'quit() without a browser') }
 
@@ -127,7 +128,7 @@ class PuppetWeb extends Puppet {
 
   initBrowser() {
     log.verbose('PuppetWeb', 'initBrowser()')
-    const browser = this.browser  = new Browser({
+    const browser = new Browser({
       head: this.head
       , sessionFile: this.profile
     })
