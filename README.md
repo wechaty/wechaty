@@ -140,9 +140,17 @@ Enjoy hacking Wechaty!
 Please submit your issue if you have any, and a fork & pull is very welcome for showing your idea.
 
 # Trouble Shooting
+
 If wechaty is not run as expected, run unit test maybe help to find some useful message.
+
 ```shell
-npm test
+$ npm test
+```
+
+To test with full log messages
+
+```shell
+$ WECHATY_LOG=silly npm test
 ```
 
 ## LOG output
