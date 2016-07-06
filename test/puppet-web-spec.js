@@ -66,8 +66,8 @@ test('Puppet Web server/browser communication', function(t) {
     t.pass('should be inited')
 
 log.level = 'silly'
-    const retSocket = yield dingSocket(pw.server)
-    t.equal(retSocket,  EXPECTED_DING_DATA, 'should got EXPECTED_DING_DATA after resolved dingSocket()')
+    const ret = yield dingSocket(pw.server)
+    t.equal(ret,  EXPECTED_DING_DATA, 'should got EXPECTED_DING_DATA after resolved dingSocket()')
   })
   .catch(e => {               // Reject
     log.warn('TestPuppetWeb', 'error: %s', e)

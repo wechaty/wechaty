@@ -153,6 +153,8 @@ To test with full log messages
 $ WECHATY_LOG=silly npm test
 ```
 
+[Details about unit testing](https://github.com/zixia/wechaty/tree/master/test)
+
 ## LOG output
 Wechaty use [npmlog](https://www.npmjs.com/package/npmlog) to output log message. You can set log level by environment variable `WECHATY_LOG` to show log message.
 
