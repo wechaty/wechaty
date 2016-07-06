@@ -51,6 +51,19 @@ class Browser extends EventEmitter {
     })
   }
 
+  open(url) {
+    url = url || 'https://wx.qq.com'
+    log.verbose('PuppetWebBrowser', `open(${url})`)
+
+    // TODO: set a timer to guard driver.get timeout, then retry 3 times 201607
+    return this.driver.get(url)
+    .catch(e => {
+      log.error('PuppetWebBrowser', 'open() exception: %s', e.message)
+      this.dead(e.message)
+      throw e
+    })
+  }
+
   initDriver() {
     log.verbose('PuppetWebBrowser', 'initDriver(head: %s)', this.head)
     return new Promise((resolve, reject) => {
@@ -81,18 +94,6 @@ class Browser extends EventEmitter {
       // https://github.com/SeleniumHQ/selenium/issues/2233
       setTimeout(() => { resolve(this.driver) }, 0)
       // resolve(this.driver)
-    })
-  }
-
-  open(url) {
-    url = url || 'https://wx.qq.com'
-    log.verbose('PuppetWebBrowser', `open(${url})`)
-
-    return this.driver.get(url)
-    .catch(e => {
-      log.error('PuppetWebBrowser', 'open() exception: %s', e.message)
-      this.dead(e.message)
-      throw e
     })
   }
 
