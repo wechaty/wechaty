@@ -16,25 +16,27 @@ test('Puppet Web watchdog timer', function(t) {
   t.ok(pw, 'should instantiate a PuppetWeb')
 
   co(function* () {
-    // pw.browser = yield pw.initBrowser()
-    // t.ok(pw.browser, 'should init the browser')
-    // pw.bridge = yield pw.initBridge()
-    // t.ok(pw.bridge, 'should init the bridge')
 
-    // yield pw.bridge.quit().catch(e => {/* fail safe */})
-    // yield pw.browser.quit().catch(e => {/* fail safe */})
-    // t.pass('should kill both browser & bridge')
+    yield pw.init()
+    pw.quit()
+    // yield pw.bridge.quit()
+    // pw.bridge = null
+    // yield pw.browser.quit()
+    // pw.browser = null
 
     let errorCounter = 0
     pw.once('error', e => errorCounter = 1)
-    pw.watchDog('feed_and_active_it', {timeout: 1})
-    yield new Promise((resolve) => setTimeout(() => resolve(), 2)) // wait untill reset
+    pw.emit('watchdog', {
+      data: 'feed_and_active_it'
+      , timeout: 1
+    })
+    yield new Promise((resolve) => setTimeout(_ => resolve(), 10)) // wait untill reset
     t.equal(errorCounter, 1, 'should get event[error] after watchdog timeout')
 
     pw.once('error', e => t.fail('waitDing() triggered watchDogReset()'))
 
     const EXPECTED_DING_DATA = 'dingdong'
-    pw.watchDog('feed to extend the dog life')
+    pw.emit('watchdog', { data: 'feed to extend the dog life' })
 
     const origLogLevel = log.level
     log.level = 'silly'

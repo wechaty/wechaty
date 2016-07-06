@@ -68,7 +68,11 @@ function onBrowserDead(e) {
     this.isBrowserBirthing = true
 
     const TIMEOUT = 180000 // 180s / 3m
-    this.watchDog(`onBrowserDead() set a timeout of ${Math.floor(TIMEOUT / 1000)} seconds to prevent unknown state change`, {timeout: TIMEOUT})
+    // this.watchDog(`onBrowserDead() set a timeout of ${Math.floor(TIMEOUT / 1000)} seconds to prevent unknown state change`, {timeout: TIMEOUT})
+    this.emit('watchdog', {
+      data: `onBrowserDead() set a timeout of ${Math.floor(TIMEOUT / 1000)} seconds to prevent unknown state change`
+      , timeout: TIMEOUT
+    })
 
     log.verbose('PuppetWebEvent', 'onBrowserDead(%s)', e.message || e)
     if (!this.browser || !this.bridge) {
@@ -112,7 +116,8 @@ function onBrowserDead(e) {
 
 function onServerDing(data) {
   log.silly('PuppetWebEvent', 'onServerDing(%s)', data)
-  this.watchDog(data)
+  // this.watchDog(data)
+  this.emit('watchdog', { data })
 }
 
 function onServerScan(data) {
@@ -131,7 +136,8 @@ function onServerScan(data) {
   }
 
   // feed watchDog a `scan` type of food
-  this.watchDog(data, {type: 'scan'})
+  // this.watchDog(data, {type: 'scan'})
+  this.emit('watchdog', { data, type: 'SCAN' })
 
   this.emit('scan', data)
 }

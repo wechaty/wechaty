@@ -32,7 +32,8 @@ const Server  = require('./puppet-web-server')
 const Browser = require('./puppet-web-browser')
 const Bridge  = require('./puppet-web-bridge')
 
-const Event = require('./puppet-web-event')
+const Event     = require('./puppet-web-event')
+const Watchdog  = require('./puppet-web-watchdog')
 
 class PuppetWeb extends Puppet {
   constructor({
@@ -54,6 +55,8 @@ class PuppetWeb extends Puppet {
   init() {
     log.verbose('PuppetWeb', `init() with port:${this.port}, head:${this.head}, profile:${this.profile}`)
 
+    this.on('watchdog', Watchdog.onFeed.bind(this))
+
     return co.call(this, function* () {
 
       yield this.initAttach(this)
@@ -68,7 +71,8 @@ class PuppetWeb extends Puppet {
       this.bridge = yield this.initBridge()
       log.verbose('PuppetWeb', 'initBridge() done')
 
-      this.watchDog('inited') // start watchdog
+      // this.watchDog('inited') // start watchdog
+      this.emit('watchdog', { data: 'inited' })
     })
     .catch(e => {   // Reject
       log.error('PuppetWeb', 'init exception: %s', e.message)
@@ -83,8 +87,13 @@ class PuppetWeb extends Puppet {
   quit() {
     log.verbose('PuppetWeb', 'quit()')
 
+    // this.clearWatchDogTimer()
+    this.emit('watchdog', {
+      data: 'PuppetWeb.quit()',
+      type: 'POISON'
+    })
+
     return co.call(this, function* () {
-      this.clearWatchDogTimer()
 
       if (this.bridge)  {
         yield this.bridge.quit().catch(e => { // fail safe
@@ -194,83 +203,6 @@ class PuppetWeb extends Puppet {
     })
   }
 
-  clearWatchDogTimer() {
-    if (this.watchDogTimer) {
-      clearTimeout(this.watchDogTimer)
-      this.watchDogTimer = null
-    }
-  }
-
-  setWatchDogTimer(timeout) {
-    this.clearWatchDogTimer()
-
-    this.watchDogTimer = setTimeout(this.watchDogReset.bind(this, timeout), timeout)
-    this.watchDogTimer.unref() // dont block quit
-  }
-
-  // feed me in time(after 1st feed), or I'll restart system
-  watchDog(data, {
-    timeout
-    , type
-  } = {}) {
-    log.silly('PuppetWeb', 'watchDog(%s)', data)
-
-    timeout = timeout || 60000  // 60s default. can be override in options but be careful about the number zero(0)
-    type    = type    || 'food' // just a name
-
-    this.setWatchDogTimer(timeout)
-
-    this.emit('heartbeat', data)
-
-    /**
-     *
-     * Deal with Sessions(cookies)
-     *
-     * save every 5 mins
-     *
-     */
-    const SAVE_SESSION_INTERVAL = 5 * 60 * 1000 // 5 mins
-    // if no lastSaveSession set(means 1st time), or timeout
-    if (!this.watchDogLastSaveSession) {
-      this.watchDogLastSaveSession = Date.now()
-    } else if (Date.now() - this.watchDogLastSaveSession > SAVE_SESSION_INTERVAL) {
-      log.verbose('PuppetWeb', 'watchDog() saveSession(%s) after %d minutes', this.profile, Math.floor(SAVE_SESSION_INTERVAL/1000/60))
-      this.browser.saveSession()
-      this.watchDogLastSaveSession = Date.now()
-    }
-
-
-    /**
-     *
-     * Deal with SCAN events
-     *
-     * if web browser stay at login qrcode page long time,
-     * sometimes the qrcode will not refresh, leave there expired.
-     * so we need to refresh the page after a while
-     *
-     */
-    if (type === 'scan') { // watchDog was feed a 'scan' data
-      log.verbose('PuppetWeb', 'watchDog() got a food with type scan')
-      this.lastScanEventTime = Date.now()
-    }
-    if (this.logined()) { // XXX: login status right?
-      this.lastScanEventTime = null
-    } else if (this.lastScanEventTime) {
-      const scanTimeout = 10 * 60 * 1000 // 10 mins
-      if (Date.now() - this.lastScanEventTime > scanTimeout) {
-        log.warn('PuppetWeb', 'watchDog() refresh browser for no food of type scan after %s mins', Math.floor(scanTimeout/1000/60))
-        // try to fix the problem
-        this.browser.refresh()
-      }
-    }
-  }
-
-  watchDogReset(timeout) {
-    log.verbose('PuppetWeb', 'watchDogReset() timeout %d', timeout)
-    const e = new Error('watchdog reset after ' + Math.floor(timeout/1000) + ' seconds')
-    this.emit('error', e)
-    return Event.onBrowserDead.call(this, e)
-  }
 
   self(message) {
     if (!this.userId) {
