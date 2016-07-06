@@ -198,6 +198,7 @@ class Bridge {
 
     const wechatyScript   = `return Wechaty.${wechatyFunc}.apply(undefined, ${argsDecoded})`
     // log.silly('PuppetWebBridge', 'proxyWechaty(%s, ...args) %s', wechatyFunc, wechatyScript)
+    
     return this.execute('return typeof Wechaty === "undefined"')
       .then(noWechaty => {
         if (noWechaty) {

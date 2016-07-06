@@ -35,13 +35,11 @@ test('PuppetWeb smoke testing', function(t) {
     yield p1
 
     const p2 = new Promise((resolve) => {
-      pw.once('logout', r => {
-        process.nextTick(() => { // wait to next tick for pw clean logined user status
-          // log.verbose('TestPuppetWeb', 'on(logout) received %s, islogined: %s', r, pw.logined())
-          t.equal(pw.logined() , false  , 'should be logouted after logout event')
-          resolve()
-        })
-      })
+      pw.once('logout', r => process.nextTick(() => { // wait to next tick for pw clean logined user status
+        // log.verbose('TestPuppetWeb', 'on(logout) received %s, islogined: %s', r, pw.logined())
+        t.equal(pw.logined() , false  , 'should be logouted after logout event')
+        resolve()
+      }))
     })
     pw.server.emit('logout')
     yield p2
@@ -69,11 +67,11 @@ log.level = 'silly'
     const ret = yield dingSocket(pw.server)
     t.equal(ret,  EXPECTED_DING_DATA, 'should got EXPECTED_DING_DATA after resolved dingSocket()')
   })
-  .catch(e => {               // Reject
+  .catch(e => { // Reject
     log.warn('TestPuppetWeb', 'error: %s', e)
     t.fail(e)
   })
-  .then(r => {                // Finally
+  .then(r => {  // Finally
     pw.quit()
     .then(t.end)
 
@@ -89,6 +87,11 @@ log.level = 'info'
     let   totalTime = 0
     return new Promise((resolve, reject) => {
       log.verbose('TestPuppetWeb', 'dingSocket()')
+
+      setTimeout(_ => {
+        reject('no response timeout after ' + 2 * maxTime)
+      }, 2 * maxTime)
+
       return testDing()
 
       function testDing() {
@@ -119,9 +122,9 @@ test('Puppet Web Self Message Identification', function(t) {
   t.ok(p, 'should instantiated a PuppetWeb')
 
   const EXPECTED_USER_ID = 'zixia'
-  p.userId = EXPECTED_USER_ID
   const m = new Message()
   m.set('from', EXPECTED_USER_ID)
+  p.userId = EXPECTED_USER_ID
   t.ok(p.self(m), 'should identified self for message which from is self')
 
   t.end()
