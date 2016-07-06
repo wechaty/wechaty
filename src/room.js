@@ -20,7 +20,7 @@ class Room {
   }
 
   toString()   { return this.id }
-  toStringEx() { return `Room(${this.obj.name}[${this.id}])` }
+  toStringEx() { return `\"Room\":\"${this.obj.name}\"` }
 
   ready(contactGetter) {
     log.silly('Room', 'ready(%s)', contactGetter ? contactGetter.constructor.name : '')
