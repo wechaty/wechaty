@@ -76,7 +76,7 @@ class WechatyIo {
       log.verbose('WechatyIo', 'WebSocket got message')
       // flags.binary will be set if a binary data is received.
       // flags.masked will be set if the data was masked.
-      console.log('io message: %s', data)
+      log.verbose('WechatyIo', 'onMessage: %s', data)
 
       if (data.onMessage) {
         const script = data.script

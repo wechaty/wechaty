@@ -1,6 +1,6 @@
 {
   "name": "wechaty"
-  , "version": "0.2.3"
+  , "version": "0.2.4"
   , "description": "Wechat for Bot. (Personal Account NOT Official Account)"
   , "main": "index.js"
   , "scripts": {
@@ -65,4 +65,13 @@
     , "tap": "^5.7.1"
     , "tuling123-client": "0.0.1"
   }
+  , "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955"
+  , "files": [
+    "package.json"
+    , "README.md"
+    , "CHANGELOG.md"
+    , "LICENSE"
+    , "src/"
+    , "bin/"
+  ]
 }
