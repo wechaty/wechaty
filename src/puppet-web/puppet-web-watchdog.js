@@ -44,7 +44,7 @@ function onFeed({
       break
 
     default:
-      throw new Error('unsupport type: ' + type)
+      throw new Error('Watchdog onFeed: unsupport type ' + type)
   }
 
   setWatchDogTimer.call(this, timeout)
@@ -61,7 +61,7 @@ function clearWatchDogTimer() {
     this.watchDogTimer = null
     log.warn('PuppetWebWatchdog', 'clearWatchDogTimer() cleared')
   } else {
-    log.warn('PuppetWebWatchdog', 'clearWatchDogTimer() nothing to clear')
+    log.silly('PuppetWebWatchdog', 'clearWatchDogTimer() nothing to clear')
   }
 }
 

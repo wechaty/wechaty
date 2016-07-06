@@ -21,6 +21,7 @@ const fs    = require('fs')
 const co    = require('co')
 
 const log = require('../npmlog-env')
+const Contact = require('../contact')
 
 const PuppetWebEvent = {
   onBrowserDead
