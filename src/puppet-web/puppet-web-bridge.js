@@ -12,7 +12,7 @@
 const co = require('co')
 const retryPromise  = require('retry-promise').default
 
-const log = require('./npmlog-env')
+const log = require('../npmlog-env')
 
 class Bridge {
   constructor(options) {
@@ -198,7 +198,7 @@ class Bridge {
 
     const wechatyScript   = `return Wechaty.${wechatyFunc}.apply(undefined, ${argsDecoded})`
     // log.silly('PuppetWebBridge', 'proxyWechaty(%s, ...args) %s', wechatyFunc, wechatyScript)
-    
+
     return this.execute('return typeof Wechaty === "undefined"')
       .then(noWechaty => {
         if (noWechaty) {

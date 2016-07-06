@@ -15,7 +15,7 @@ const path        = require('path')
 const https       = require('https')
 const bodyParser  = require('body-parser')
 
-const log = require('./npmlog-env')
+const log = require('../npmlog-env')
 
 const Express       = require('express')
 const EventEmitter  = require('events')

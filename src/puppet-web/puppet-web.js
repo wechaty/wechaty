@@ -20,13 +20,11 @@ const util  = require('util')
 const fs    = require('fs')
 const co    = require('co')
 
-const log = require('./npmlog-env')
-
-const Puppet  = require('./puppet')
-const Contact = require('./contact')
-const Room    = require('./room')
-
-const Message = require('./message')
+const log = require('../npmlog-env')
+const Puppet  = require('../puppet')
+const Contact = require('../contact')
+const Room    = require('../room')
+const Message = require('../message')
 
 const Server  = require('./puppet-web-server')
 const Browser = require('./puppet-web-browser')

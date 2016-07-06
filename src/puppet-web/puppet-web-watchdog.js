@@ -18,7 +18,7 @@
  ***************************************/
 const co    = require('co')
 
-const log   = require('./npmlog-env')
+const log   = require('../npmlog-env')
 const Event = require('./puppet-web-event')
 
 const Watchdog = {

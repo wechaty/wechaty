@@ -10,7 +10,7 @@ const HEAD = process.env.WECHATY_HEAD || false
 const PROFILE = 'unit-test-session.wechaty.json'
 
 const PuppetWeb = require('../src/puppet-web')
-const PuppetWebEvent = require('../src/puppet-web-event')
+const PuppetWebEvent = require('../src/puppet-web/puppet-web-event')
 
 test('Puppet Web Event smoking test', function(t) {
   let pw = new PuppetWeb({port: PORT, head: HEAD, profile: PROFILE})
