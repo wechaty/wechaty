@@ -12,7 +12,7 @@ const PROFILE = 'unit-test-session.wechaty.json'
 const PuppetWeb = require('../src/puppet-web')
 const Message = require('../src/message')
 
-false && test('PuppetWeb smoke testing', function(t) {
+test('PuppetWeb smoke testing', function(t) {
   let pw = new PuppetWeb({port: PORT, head: HEAD, profile: PROFILE})
   t.ok(pw, 'should instantiated a PuppetWeb')
 
