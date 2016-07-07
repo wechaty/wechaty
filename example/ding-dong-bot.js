@@ -41,7 +41,16 @@ bot
 .on('message', m => {
   m.ready()
   .then(msg => {
-    log.info('Bot', 'recv: %s', msg.toStringEx())
+
+    const room = m.get('room')
+    const from = m.get('from')
+
+    console.log((room ? '['+room.name()+']' : '')
+                + '<'+from.name()+'>'
+                + ':' + m.toStringDigest()
+    )
+
+    // log.info('Bot', 'recv: %s', msg.toStringEx())
     // logToFile(JSON.stringify(msg.rawObj))
 
     if (/^(ding|ping|bing)$/i.test(m.get('content')) && !bot.self(m)) {
