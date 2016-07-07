@@ -42,8 +42,8 @@ bot
   m.ready()
   .then(msg => {
 
-    const room = m.get('room')
-    const from = m.get('from')
+    const room = m.room()
+    const from = m.from()
 
     console.log((room ? '['+room.name()+']' : '')
                 + '<'+from.name()+'>'
