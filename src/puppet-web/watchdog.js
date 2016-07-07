@@ -72,7 +72,7 @@ function clearWatchDogTimer() {
   if (this.watchDogTimer) {
     clearTimeout(this.watchDogTimer)
     this.watchDogTimer = null
-    log.warn('PuppetWebWatchdog', 'clearWatchDogTimer() cleared')
+    log.silly('PuppetWebWatchdog', 'clearWatchDogTimer() cleared')
   } else {
     log.silly('PuppetWebWatchdog', 'clearWatchDogTimer() nothing to clear')
   }
@@ -82,7 +82,7 @@ function setWatchDogTimer(timeout) {
 
   clearWatchDogTimer.call(this)
 
-  log.warn('PuppetWebWatchdog', 'setWatchDogTimer(%d)', timeout)
+  log.silly('PuppetWebWatchdog', 'setWatchDogTimer(%d)', timeout)
 
   this.watchDogTimer = setTimeout(watchDogReset.bind(this, timeout), timeout)
   // block quit, force to use quit() // this.watchDogTimer.unref() // dont block quit

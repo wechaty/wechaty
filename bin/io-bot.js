@@ -66,12 +66,14 @@ const onMessage = function(m) {
  * To make heroku happy
  *
  */
-const app = require('express')()
+if (process.env.DYNO) {
+  const app = require('express')()
 
-app.get('/', function (req, res) {
-  res.send('Wechaty IO Bot Alive!')
-})
+  app.get('/', function (req, res) {
+    res.send('Wechaty IO Bot Alive!')
+  })
 
-app.listen(process.env.PORT || 8080, function () {
-  console.log('Wechaty IO Bot listening on port ' + process.env.PORT + '!')
-})
+  app.listen(process.env.PORT || 8080, function () {
+    console.log('Wechaty IO Bot listening on port ' + process.env.PORT + '!')
+  })
+}
