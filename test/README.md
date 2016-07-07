@@ -296,3 +296,45 @@ ok 12 - test/wechaty-spec.js # time=967.99ms
 1..12
 # time=36443.146ms
 ```
+
+# BUG
+
+
+## TAP & CI
+
+```
+
+mkdir a
+cd a
+
+npm init --yes
+
+mkdir b
+cd b
+
+cat > bug.js <<__CODE__
+const test  = require('tap').test
+const func = require('../w.js')
+
+test('func param test', function(t) {
+        const type = func({ data: 'direct call' })
+
+        t.equal(type, 'default', 'should be default')
+        t.end()
+})
+__CODE__
+
+cat > ../w.js <<__CODE__
+module.exports = function func(options) {
+        const { type = 'default', data } = options || {}
+        console.log('type=' + type + ', data=' + data)
+        return type
+}
+__CODE__
+
+
+npm install tap --save-dev
+
+node bug.js
+tap bug.js
+```

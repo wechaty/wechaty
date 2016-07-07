@@ -10,10 +10,14 @@ const HEAD = process.env.WECHATY_HEAD || false
 const PROFILE = 'unit-test-session.wechaty.json'
 
 const PuppetWeb = require('../src/puppet-web')
+const Watchdog = require('../src/puppet-web/puppet-web-watchdog.js')
 
 test('Puppet Web watchdog timer', function(t) {
   const pw = new PuppetWeb({port: PORT, head: HEAD, profile: PROFILE})
   t.ok(pw, 'should instantiate a PuppetWeb')
+
+  Watchdog.onFeed.call({}, { data: 'initing directly' })
+  t.pass('should ok with default food type')
 
   co(function* () {
 

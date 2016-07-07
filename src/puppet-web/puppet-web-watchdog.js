@@ -32,27 +32,30 @@ function onFeed({
   , timeout = 60000  // 60s default. can be override in options but be careful about the number zero(0)
 } = {}) {
 
-  log.verbose('PuppetWebWatchdog', 'onFeed: %s, %d, [%s]', type, timeout, data)
+  process.nextTick(_ => {
+    log.verbose('PuppetWebWatchdog', 'onFeed: %s, %d, [%s]', type, timeout, data)
 
-  switch (type) {
-    case 'POISON':
-      clearWatchDogTimer.call(this)
-      return
+    switch (type) {
+      case 'POISON':
+        clearWatchDogTimer.call(this)
+        return
 
-    case 'GARBAGE':
-    case 'SCAN':
-      break
+      case 'GARBAGE':
+      case 'SCAN':
+        break
 
-    default:
-      throw new Error('Watchdog onFeed: unsupport type ' + type)
-  }
+      default:
+        throw new Error('Watchdog onFeed: unsupport type ' + type)
+    }
 
-  setWatchDogTimer.call(this, timeout)
+    setWatchDogTimer.call(this, timeout)
 
-  this.emit('heartbeat', data + '@' + type)
+    this.emit('heartbeat', data + '@' + type)
 
-  monitorScan.call(this, type)
-  autoSaveSession.call(this)
+    monitorScan.call(this, type)
+    autoSaveSession.call(this)
+  })
+
 }
 
 function clearWatchDogTimer() {

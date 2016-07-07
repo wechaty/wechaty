@@ -23,7 +23,7 @@ test('Puppet Web Event smoking test', function(t) {
     yield PuppetWebEvent.onBrowserDead.call(pw, 'test')
   })
   .catch(e => t.fail(e))  // Reject
-  .then(r => {            // Finally 1
+  .then(r => {            // Finally
     pw.quit().then(t.end)
   })
   .catch(e => t.fail(e))  // Exception
