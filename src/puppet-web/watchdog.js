@@ -19,7 +19,7 @@
 const co    = require('co')
 
 const log   = require('../npmlog-env')
-const Event = require('./puppet-web-event')
+const Event = require('./event')
 
 const Watchdog = {
   onFeed
@@ -31,6 +31,16 @@ function onFeed({
   , type = 'GARBAGE'
   , timeout = 60000  // 60s default. can be override in options but be careful about the number zero(0)
 } = {}) {
+
+  if (!this) {
+    throw new Error('onFeed() must has `this`')
+  }
+
+  // console.log('#################')
+  // console.log(typeof this)
+  // console.log(this.constructor.name)
+  // console.log(this)
+  // throw new Error('faint')
 
   process.nextTick(_ => {
     log.verbose('PuppetWebWatchdog', 'onFeed: %s, %d, [%s]', type, timeout, data)

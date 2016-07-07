@@ -1,11 +1,11 @@
 const co = require('co')
 const test = require('tap').test
 
-const Browser = require('../src/puppet-web/puppet-web-browser')
-const Bridge  = require('../src/puppet-web/puppet-web-bridge')
+const Browser = require('../../src/puppet-web/browser')
+const Bridge  = require('../../src/puppet-web/bridge')
 const PORT = 58788
 
-const log = require('../src/npmlog-env')
+const log = require('../../src/npmlog-env')
 
 test('Bridge retry-promise testing', function(t) {
   co(function* () {

@@ -101,7 +101,7 @@ class Bridge {
     const fs = require('fs')
     const path = require('path')
     return fs.readFileSync(
-      path.join(path.dirname(__filename), 'puppet-web-injectio.js')
+      path.join(path.dirname(__filename), 'injectio.js')
       , 'utf8'
     )
   }

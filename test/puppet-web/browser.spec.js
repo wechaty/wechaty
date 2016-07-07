@@ -1,9 +1,9 @@
 const co = require('co')
 const test = require('tap').test
 
-const log = require('../src/npmlog-env')
+const log = require('../../src/npmlog-env')
 
-const Browser = require('../src/puppet-web/puppet-web-browser')
+const Browser = require('../../src/puppet-web/browser')
 const PORT = process.env.WECHATY_PORT || 58788
 const HEAD = process.env.WECHATY_HEAD || false
 const PROFILE = 'unit-test-session.wechaty.json'

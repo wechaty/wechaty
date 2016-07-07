@@ -3,20 +3,20 @@ const util  = require('util')
 const test  = require('tap').test
 const retryPromise = require('retry-promise').default
 
-const log = require('../src/npmlog-env')
+const log = require('../../src/npmlog-env')
 
 const PORT = process.env.WECHATY_PORT || 58788
 const HEAD = process.env.WECHATY_HEAD || false
 const PROFILE = 'unit-test-session.wechaty.json'
 
-const PuppetWeb = require('../src/puppet-web')
-const Watchdog = require('../src/puppet-web/puppet-web-watchdog.js')
+const PuppetWeb = require('../../src/puppet-web')
+const Watchdog = require('../../src/puppet-web/watchdog.js')
 
 test('Puppet Web watchdog timer', function(t) {
   const pw = new PuppetWeb({port: PORT, head: HEAD, profile: PROFILE})
   t.ok(pw, 'should instantiate a PuppetWeb')
 
-  Watchdog.onFeed.call({}, { data: 'initing directly' })
+  Watchdog.onFeed.call(pw, { data: 'initing directly' })
   t.pass('should ok with default food type')
 
   co(function* () {
@@ -31,7 +31,7 @@ test('Puppet Web watchdog timer', function(t) {
     let errorCounter = 0
     pw.once('error', e => errorCounter = 1)
     pw.emit('watchdog', {
-      data: 'feed_and_active_it'
+      data: 'active_for_timeout_1ms'
       , timeout: 1
     })
     yield new Promise((resolve) => setTimeout(_ => resolve(), 10)) // wait untill reset

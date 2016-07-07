@@ -3,14 +3,14 @@ const util  = require('util')
 const test  = require('tap').test
 const retryPromise = require('retry-promise').default
 
-const log = require('../src/npmlog-env')
+const log = require('../../src/npmlog-env')
 
 const PORT = process.env.WECHATY_PORT || 58788
 const HEAD = process.env.WECHATY_HEAD || false
 const PROFILE = 'unit-test-session.wechaty.json'
 
-const PuppetWeb = require('../src/puppet-web')
-const Message = require('../src/message')
+const PuppetWeb = require('../../src/puppet-web')
+const Message = require('../../src/message')
 
 test('PuppetWeb smoke testing', function(t) {
   let pw = new PuppetWeb({port: PORT, head: HEAD, profile: PROFILE})
