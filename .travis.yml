@@ -1,16 +1,16 @@
 language: node_js
+
 node_js:
   - "6"
+
 os:
   - linux
   - osx
-dist: trusty
-before_install:
-  - export DISPLAY=:99.0
-  - sh -e /etc/init.d/xvfb start
+
 cache:
   directories:
     - node_modules
+
 notifications:
   webhooks:
     urls:
