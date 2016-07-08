@@ -8,7 +8,7 @@
     "pretest": "npm run lint",
     "start": "node bin/io-bot.js",
     "demo": "node example/ding-dong-bot.js",
-    "test": "cross-env TAP_TIMEOUT=600 tap --reporter=tap test/**/*.spec.js"
+    "test": "cross-env TAP_TIMEOUT=600 tap --reporter=tap test"
   },
   "repository": {
     "type": "git",
