@@ -28,19 +28,13 @@ const Watchdog = {
 // feed me in time(after 1st feed), or I'll restart system
 function onFeed({
   data
-  , type = 'GARBAGE'
+  , type = 'HEARTBEAT'
   , timeout = 60000  // 60s default. can be override in options but be careful about the number zero(0)
 } = {}) {
 
   if (!this) {
-    throw new Error('onFeed() must has `this`')
+    throw new Error('onFeed() must has `this` of instanceof PuppetWeb')
   }
-
-  // console.log('#################')
-  // console.log(typeof this)
-  // console.log(this.constructor.name)
-  // console.log(this)
-  // throw new Error('faint')
 
   process.nextTick(_ => {
     log.verbose('PuppetWebWatchdog', 'onFeed: %s, %d, [%s]', type, timeout, data)
@@ -50,8 +44,8 @@ function onFeed({
         clearWatchDogTimer.call(this)
         return
 
-      case 'GARBAGE':
       case 'SCAN':
+      case 'HEARTBEAT':
         break
 
       default:
@@ -64,7 +58,7 @@ function onFeed({
 
     monitorScan.call(this, type)
     autoSaveSession.call(this)
-  })
+  }) // end nextTick
 
 }
 
@@ -72,7 +66,7 @@ function clearWatchDogTimer() {
   if (this.watchDogTimer) {
     clearTimeout(this.watchDogTimer)
     this.watchDogTimer = null
-    log.warn('PuppetWebWatchdog', 'clearWatchDogTimer() cleared')
+    log.silly('PuppetWebWatchdog', 'clearWatchDogTimer() cleared')
   } else {
     log.silly('PuppetWebWatchdog', 'clearWatchDogTimer() nothing to clear')
   }
@@ -82,7 +76,7 @@ function setWatchDogTimer(timeout) {
 
   clearWatchDogTimer.call(this)
 
-  log.warn('PuppetWebWatchdog', 'setWatchDogTimer(%d)', timeout)
+  log.silly('PuppetWebWatchdog', 'setWatchDogTimer(%d)', timeout)
 
   this.watchDogTimer = setTimeout(watchDogReset.bind(this, timeout), timeout)
   // block quit, force to use quit() // this.watchDogTimer.unref() // dont block quit
