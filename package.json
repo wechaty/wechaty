@@ -1,77 +1,78 @@
 {
-  "name": "wechaty"
-  , "version": "0.2.6"
-  , "description": "Wechat for Bot. (Personal Account NOT Official Account)"
-  , "main": "index.js"
-  , "scripts": {
-    "lint": "eslint src test"
-    , "pretest": "npm run lint"
-    , "start": "node bin/io-bot.js"
-    , "demo": "node example/ding-dong-bot.js"
-    , "test": "cross-env TAP_TIMEOUT=600 tap --reporter=tap test/**/*.spec.js"
-  }
-  , "repository": {
-    "type": "git"
-    , "url": "git+https://github.com/zixia/wechaty.git"
-  }
-  , "keywords": [
-    "wechat"
-    , "微信"
-    , "weixin"
-    , "personal"
-    , "bot"
-    , "robot"
-    , "chatbot"
-    , "framework"
-    , "wechaty"
-    , "微信控"
-  ]
-  , "author": "Zhuohuan LI <zixia@zixia.net>"
-  , "license": "ISC"
-  , "bugs": {
+  "name": "wechaty",
+  "version": "0.2.7",
+  "description": "Wechat for Bot. (Personal Account NOT Official Account)",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint src test",
+    "pretest": "npm run lint",
+    "start": "node bin/io-bot.js",
+    "demo": "node example/ding-dong-bot.js",
+    "test": "cross-env TAP_TIMEOUT=600 tap --reporter=tap test/**/*.spec.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zixia/wechaty.git"
+  },
+  "keywords": [
+    "wechat",
+    "微信",
+    "weixin",
+    "personal",
+    "bot",
+    "robot",
+    "chatbot",
+    "framework",
+    "wechaty",
+    "微信控"
+  ],
+  "author": "Zhuohuan LI <zixia@zixia.net>",
+  "license": "ISC",
+  "bugs": {
     "url": "https://github.com/zixia/wechaty/issues"
-  }
-  , "homepage": "https://github.com/zixia/wechaty#readme"
-  , "dependencies": {
-    "body-parser": "^1.15.0"
-    , "chromedriver": "^2.21.2"
-    , "co": "^4.6.0"
-    , "eventemitter2": "^1.0.3"
-    , "express": "^4.13.4"
-    , "npmlog": "^2.0.3"
-    , "phantomjs-prebuilt": "^2.1.7"
-    , "ps-tree": "^1.1.0"
-    , "retry-promise": "^1.0.0"
-    , "selenium-webdriver": "^2.53.2"
-    , "socket.io": "^1.4.5"
-    , "ws": "^1.1.0"
-  }
-  , "eslintConfig": {
+  },
+  "homepage": "https://github.com/zixia/wechaty#readme",
+  "eslintConfig": {
     "env": {
-      "browser": true
-      , "node": true
-      , "es6": true
+      "browser": true,
+      "node": true,
+      "es6": true
     }
-  }
-  , "engines": {
+  },
+  "engines": {
     "node": ">= 6.0.0"
-  }
-  , "devDependencies": {
-    "apiai": "^2.0.5"
-    , "cookie-parser": "^1.4.3"
-    , "cross-env": "^1.0.8"
-    , "eslint": "^2.9.0"
-    , "qrcode-terminal": "^0.10.0"
-    , "tap": "^5.7.1"
-    , "tuling123-client": "0.0.1"
-  }
-  , "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955"
-  , "files": [
-    "package.json"
-    , "README.md"
-    , "CHANGELOG.md"
-    , "LICENSE"
-    , "src/"
-    , "bin/"
+  },
+  "dependencies": {
+    "body-parser": "latest",
+    "chromedriver": "latest",
+    "co": "latest",
+    "eventemitter2": "latest",
+    "express": "latest",
+    "npmlog": "latest",
+    "phantomjs-prebuilt": "latest",
+    "ps-tree": "latest",
+    "retry-promise": "latest",
+    "selenium-webdriver": "^2.53.2",
+    "socket.io": "latest",
+    "ws": "latest"
+  },
+  "devDependencies": {
+    "apiai": "latest",
+    "cookie-parser": "latest",
+    "cross-env": "latest",
+    "eslint": "latest",
+    "qrcode-terminal": "latest",
+    "tap": "latest",
+    "tuling123-client": "latest"
+  },
+  "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
+  "files": [
+    "package.json",
+    "npm-shrinkwrap.json",
+    "README.md",
+    "CHANGELOG",
+    "LICENSE",
+    "src/",
+    "bin/"
   ]
 }
