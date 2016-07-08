@@ -3,6 +3,7 @@ node_js:
   - "6"
 os:
   - linux
+  - osx
 dist: trusty
 before_install:
   - export DISPLAY=:99.0
