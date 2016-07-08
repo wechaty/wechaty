@@ -72,7 +72,7 @@ class WechatyIo {
       ws.send('Wechaty version ' + this.wechaty.version())
     }.bind(this))
 
-    ws.on('message', function(data, flags) {
+    ws.on('message', (data, flags) => {
       log.verbose('WechatyIo', 'WebSocket got message')
       // flags.binary will be set if a binary data is received.
       // flags.masked will be set if the data was masked.
@@ -87,7 +87,7 @@ class WechatyIo {
           log.warn('WechatyIo', 'onMessage server push function invalid')
         }
       }
-    }.bind(this))
+    })
 
     ws
     .on('close', e => {
