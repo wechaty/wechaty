@@ -21,7 +21,7 @@ It supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.app
 > @GasLin: it may be the best wecaht sdk i have seen in github! [link](https://github.com/zixia/wechaty/issues/8#issuecomment-228971491)
 
 # Examples
-Wechaty is super easy to use: 9 lines of javascript is enough for your 1st wechat bot.
+Wechaty is dead easy to use: 9 lines javascript for your 1st wechat bot.
 
 ## 1. Basic: 9 lines
 The following 9 lines of code implement a bot who reply "roger" for every message received:
