@@ -1,6 +1,6 @@
 {
   "name": "wechaty"
-  , "version": "0.2.6"
+  , "version": "0.2.5"
   , "description": "Wechat for Bot. (Personal Account NOT Official Account)"
   , "main": "index.js"
   , "scripts": {
@@ -8,7 +8,7 @@
     , "pretest": "npm run lint"
     , "start": "node bin/io-bot.js"
     , "demo": "node example/ding-dong-bot.js"
-    , "test": "cross-env TAP_TIMEOUT=600 tap --reporter=tap test/**/*.spec.js"
+    , "test": "cross-env TAP_TIMEOUT=600 node test/*.spec.js"
   }
   , "repository": {
     "type": "git"
@@ -30,6 +30,9 @@
   , "license": "ISC"
   , "bugs": {
     "url": "https://github.com/zixia/wechaty/issues"
+  }
+  , "bin": {
+    "io-bot": "./bin/io-bot"
   }
   , "homepage": "https://github.com/zixia/wechaty#readme"
   , "dependencies": {
