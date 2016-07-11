@@ -32,6 +32,7 @@ node_modules
 # Optional REPL history
 .node_repl_history
 
+npm-shrinkwrap.json
 
 .*.swp
 
@@ -41,6 +42,9 @@ coverage
 
 # Wechaty session file
 *.wechaty.json
+
+# Cloud 9
+.c9/
 
 # Other staff
 0

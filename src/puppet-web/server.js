@@ -15,7 +15,7 @@ const path        = require('path')
 const https       = require('https')
 const bodyParser  = require('body-parser')
 
-const log = require('./npmlog-env')
+const log = require('../npmlog-env')
 
 const Express       = require('express')
 const EventEmitter  = require('events')
@@ -39,9 +39,10 @@ class Server extends EventEmitter {
         , r => resolve(r), e => reject(e)
       )
       this.socketServer = this.createSocketIo(this.httpsServer)
-    }).then(r => {
+
       log.verbose('PuppetWebServer', 'full init()-ed')
-      return true
+
+      return this
     }).catch(e => {
       log.error('PuppetWebServer', 'init() exception: %s', e.message)
       throw e

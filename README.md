@@ -5,9 +5,9 @@ Connecting ChatBots.
 
 Wechaty is a Bot Framework for Wechat **Personal** Account.
 
-> Easy creating personal account wechat robot in 9 lines of code.
+> Easy creating personal wechat bot in 9 lines of code.
 
-Supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.appveyor.com/project/zixia/wechaty) and darwin(OSX/Mac).
+It supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.appveyor.com/project/zixia/wechaty) and [darwin(OSX/Mac)](https://travis-ci.org/zixia/wechaty).
 
 [![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=2592000)](https://nodejs.org/)
@@ -15,6 +15,10 @@ Supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.appvey
 [![Coverage Status](https://coveralls.io/repos/github/zixia/wechaty/badge.svg?branch=master)](https://coveralls.io/github/zixia/wechaty?branch=master)
 [![npm version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty)
 [![Downloads][downloads-image]][downloads-url]
+
+# Voice of the Developer
+
+> @GasLin: it may be the best wecaht sdk i have seen in github! [link](https://github.com/zixia/wechaty/issues/8#issuecomment-228971491)
 
 # Examples
 Wechaty is super easy to use: 9 lines of javascript is enough for your 1st wechat bot.
@@ -24,11 +28,11 @@ The following 9 lines of code implement a bot who reply "roger" for every messag
 
 ```javascript
 const Wechaty = require('wechaty')
-const wechaty = new Wechaty()
-wechaty.on('scan', ({url, code}) => {
+const bot = new Wechaty()
+bot.on('scan', ({url, code}) => {
   console.log(`Use Wechat to scan qrcode in url to login: ${code}\n${url}`)
 }).on('message', m => {
-  !wechaty.self(m) && wechaty.reply(m, 'roger') // 1. reply
+  !bot.self(m) && bot.reply(m, 'roger') // 1. reply
   .then(() => console.log(`RECV: ${m}, REPLY: "roger"`)) // 2. log message
   .catch(e => console.error(e)) // 3. catch exception
 }).init()
@@ -45,6 +49,18 @@ Here's an chatbot [ding-dong-bot](https://github.com/zixia/wechaty/blob/master/e
 Here's a chatbot [api-ai-bot](https://github.com/zixia/wechaty/blob/master/example/api-ai-bot.js), who can slightly understand NLP.
 
 Natual Language Understanding enabled by [api.AI](https://api.ai), you can get your module on api.AI by it's free plan.
+
+# Deploy
+
+## Deploy with Heroku
+Follow [these instructions](https://wechaty.readme.io/docs).
+Then,
+[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+
+## Deploy with Docker
+
+TBD
+
 
 # Installation
 
@@ -124,10 +140,20 @@ Enjoy hacking Wechaty!
 Please submit your issue if you have any, and a fork & pull is very welcome for showing your idea.
 
 # Trouble Shooting
+
 If wechaty is not run as expected, run unit test maybe help to find some useful message.
+
 ```shell
-npm test
+$ npm test
 ```
+
+To test with full log messages
+
+```shell
+$ WECHATY_LOG=silly npm test
+```
+
+[Details about unit testing](https://github.com/zixia/wechaty/tree/master/test)
 
 ## LOG output
 Wechaty use [npmlog](https://www.npmjs.com/package/npmlog) to output log message. You can set log level by environment variable `WECHATY_LOG` to show log message.
@@ -233,11 +259,19 @@ wechaty.on('scan', ({code, url}) => {
 After the bot login full successful, the event `login` will be emitted, with a [Contact](#class-contact) of current logined user.
 ```javascript
 wechaty.on('login', user => {
-  console.log(`user ${user} logined`)
+  console.log(`user ${user} login`)
 })
 ```
+
 ### 3. Event: `logout`
-`logout` will be emitted when bot detected it is logout.
+
+`logout` will be emitted when bot detected it is logout, with a [Contact](#class-contact) of current logined user.
+
+```javascript
+wechaty.on('logout', user => {
+  console.log(`user ${user} logout`)
+})
+```
 
 ### 4. Event: `message`
 Emit when there's a new message.
@@ -255,20 +289,17 @@ To be support.
 Main bot class.
 
 ```javascript
-const wechaty = new Wechaty(options)
+const bot = new Wechaty({
+  profile
+  , token
+})
 ```
 
-options:
+1. `profile`(OPTIONAL): profile name. if a profile name is provided, the login status will be saved to it, and automatically restored on next time of wechaty start(restart).
+    * can be set by environment variable: `WECHATY_PROFILE`
+1. `token`(OPTIONAL): wechaty io token. Be used to connect to cloud bot manager.
 
-1. `session`(OPTIONAL): session name. if a session name is provided, the login status will be saved to it, and automatically restored on next time of wechaty start(restart).
-    * can be set by environment variable: `WECHATY_SESSION`
-1. `head`(OPTIONAL): specify the browser name for webdriver.
-    * can be set by environment variable: `WECHATY_HEAD`
-    * values:
-        * `phantomjs`: it's the default behaviour if head is not set.
-        * `chrome`
-
-### Wechaty.init()
+### Wechaty.init(): Wechaty
 Initialize the bot, return Promise.
 
 ```javascript
@@ -278,7 +309,7 @@ wechaty.init()
 }
 ```
 
-### Wechaty.reply(message: Message, reply: String)
+### Wechaty.reply(message: Message, reply: String): Wechaty
 Reply a `message` with `reply`.
 
 That means: the `to` field of the reply message is the `from` of origin message.
@@ -287,10 +318,21 @@ That means: the `to` field of the reply message is the `from` of origin message.
 wechaty.reply(message, 'roger')
 ```
 
+### Wechaty.self(): boolean
+Check if message is send by self.
+
+Return `true` for send from self, `false` for send from others.
+
+```javascript
+if (wechaty.self(message)) {
+  console.log('this message is sent by myself!')
+}
+```
+
 ## Class Message
 All wechat messages will be encaped as a Message.
 
-### Message.get(prop)
+### Message.get(prop): String|Contact|Room|Date
 Get prop from a message.
 
 Supported prop list:
@@ -306,7 +348,7 @@ Supported prop list:
 message.get('content')
 ```
 
-### Message.set(prop, value)
+### Message.set(prop, value): Message
 Set prop to value for a message.
 
 Supported prop list: the same as `get(prop)`
@@ -315,7 +357,7 @@ Supported prop list: the same as `get(prop)`
 message.set('content', 'Hello, World!')
 ```
 
-### Message.ready()
+### Message.ready(): Message
 A message may be not fully initialized yet. Call `ready()` to confirm we get all the data needed.
 
 Return a Promise, will be resolved when all data is ready.
@@ -327,20 +369,9 @@ message.ready()
 })
 ```
 
-### Message.self()
-Check if message is send by self.
-
-Return `true` for send from self, `false` for send from others.
-
-```javascript
-if (m.self()) {
-  console.log('this message is sent by myself!')
-}
-```
-
 ## Class Contact
 
-### Contact.get(prop)
+### Contact.get(prop): String|Number
 Get prop from a contact.
 
 Supported prop list:
@@ -358,7 +389,7 @@ Supported prop list:
 contact.get('name')
 ```
 
-### Contact.ready()
+### Contact.ready(): Contact
 A Contact may be not fully initialized yet. Call `ready()` to confirm we get all the data needed.
 
 Return a Promise, will be resolved when all data is ready.
@@ -373,7 +404,7 @@ contact.ready()
 ## Class Room
 
 
-### Room.get(prop)
+### Room.get(prop): String|Array[{contact: Contact, name: String}]
 Get prop from a room.
 
 Supported prop list:
@@ -387,7 +418,7 @@ Supported prop list:
 ```javascript
 room.get('members').length
 ```
-### Room.ready()
+### Room.ready(): Room
 A room may be not fully initialized yet. Call `ready()` to confirm we get all the data needed.
 
 Return a Promise, will be resolved when all data is ready.
@@ -411,7 +442,12 @@ Know more about TAP: [Why I use Tape Instead of Mocha & So Should You](https://m
 
 # Version History
 
-## v0.1.8 (master)
+## v0.2.2 (master)
+1. add wechaty.io cloud management support: set environment variable `WECHATY_TOKEN` to enable io support
+2. rename `WECHATY_SESSION` to `WECHATY_PROFILE` for better name
+3. fix watchdog timer & reset bug
+
+## v0.1.8 (2016/6/25)
 1. add a watchdog to restore from unknown state
 2. add support to download image message by `ImageMessage.readyStream()`
 3. fix lots of stable issues with webdriver exceptions & injection js code compatible
@@ -455,7 +491,9 @@ Know more about TAP: [Why I use Tape Instead of Mocha & So Should You](https://m
         1. `message.**.image`
         1. `message.recv.*`
 - [ ] Message
-    - [ ] Send/Reply image message
+    - [ ] Send/Reply image/video/attachment message
+    - [ ] Save video message to file
+    - [x] Save image message to file
 - [x] Session save/load
 
 Everybody is welcome to issue your needs.

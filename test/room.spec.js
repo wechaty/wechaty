@@ -1,6 +1,7 @@
 const test = require('tap').test
 const Message = require('../src/message')
 const Room = require('../src/room')
+const Contact = require('../src/contact')
 const Puppet = require('../src/puppet')
 const log = require('../src/npmlog-env')
 
@@ -59,71 +60,7 @@ test('Room smoke testing', t => {
 })
 */
 
-false && test('Message ready() promise testing', t => {
-  // must different with other rawData, because Contact class with load() will cache the result. or use Contact.resetPool()
-  const rawData = JSON.parse('{"RemarkPYQuanPin":"","RemarkPYInitial":"","PYInitial":"BJFRHXS","PYQuanPin":"beijingfeirenhuaxiangsan","Uin":0,"UserName":"@@4aa0ae1e1ebc568b613fa43ce93b478df0339f73340d87083822c2016d2e53d9","NickName":"北京飞人滑翔伞","HeadImgUrl":"/cgi-bin/mmwebwx-bin/webwxgetheadimg?seq=649595794&username=@@4aa0ae1e1ebc568b613fa43ce93b478df0339f73340d87083822c2016d2e53d9&skey=","ContactFlag":3,"MemberCount":111,"RemarkName":"","HideInputBarFlag":0,"Sex":0,"Signature":"","VerifyFlag":0,"OwnerUin":2354729644,"StarFriend":0,"AppAccountFlag":0,"Statues":0,"AttrStatus":0,"Province":"","City":"","Alias":"","SnsFlag":0,"UniFriend":0,"DisplayName":"","ChatRoomId":0,"KeyWord":"","EncryChatRoomId":"@7b3dcd218431d79045cda3493c3179ae","MMOrderSymbol":"BEIJINGFEIRENHUAXIANGSAN","MMInChatroom":true,"_index":90,"_h":50,"_offsetTop":4448,"$$hashKey":"01J","MMFromBatchGet":true,"MMFromBatchget":true,"MMBatchgetMember":true,"MMCanCreateChatroom":true}')
-
-
-  const expectedFromUserName  = '@0748ee480711bf20af91c298a0d7dcc77c30a680c1004157386b81cf13474823'
-  const expectedToUserName    = '@b58f91e0c5c9e841e290d862ddb63c14'
-  const expectedFromNickName  = 'From Nick Name Test'
-  const expectedToNickName    = 'To Nick Name Test'
-  const expectedMsgId        = '3009511950433684462'
-
-  Contact.init()
-
-  // Mock
-  const mockContactGetter = function(id) {
-    log.silly('TestRoom', `mocked getContact(${id})`)
-    return new Promise((resolve,reject) => {
-      let obj = {}
-      switch (id) {
-        case expectedFromUserName:
-          obj = {
-            UserName: expectedFromUserName
-            , NickName: expectedFromNickName
-          }
-          break
-        case expectedToUserName:
-          obj = {
-            UserName: expectedToUserName
-            , NickName: expectedToNickName
-          }
-          break
-        default:
-          log.error('TestRoom', `mocked getContact(${id}) unknown`)
-          break
-      }
-      log.silly('TestRoom', 'setTimeout mocked getContact')
-      setTimeout(r => {
-        log.silly('TestRoom', 'mocked getContact resolved')
-        return resolve(obj)
-      }, 200)
-    })
-  }
-
-  const m = new Message(rawData)
-
-  t.equal(m.get('id'), expectedMsgId, 'id/MsgId right')
-
-  m.ready(mockContactGetter)
-  .then(r => {
-    /*
-    const fromC = m.get('from')
-    const toC   = m.get('to')
-    fromC.dump()
-    toC.dump()
-    */
-    t.equal(m.get('from').get('id')   , expectedFromUserName, 'contact ready for FromUserName')
-    t.equal(m.get('from').get('name') , expectedFromNickName, 'contact ready for FromNickName')
-    t.equal(m.get('to').get('id')     , expectedToUserName  , 'contact ready for ToUserName')
-    t.equal(m.get('to').get('name')   , expectedToNickName  , 'contact ready for ToNickName')
-  })
-  .catch(e => t.fail('m.ready() rejected: ' + e))
-  .then(t.end) // test end
-})
-
-false && test('TBW: Message static method', t => {
+test('TBW: Message static method', t => {
   Contact.attach(new Puppet())
 
   const m = Message.find({

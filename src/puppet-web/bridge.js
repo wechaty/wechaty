@@ -12,7 +12,7 @@
 const co = require('co')
 const retryPromise  = require('retry-promise').default
 
-const log = require('./npmlog-env')
+const log = require('../npmlog-env')
 
 class Bridge {
   constructor(options) {
@@ -45,12 +45,16 @@ class Bridge {
       return this.inject()
       .then(r => {
         log.verbose('PuppetWebBridge', 'init() inject() return %s at attempt %d', r, attempt)
-        return r
+        return this
       })
       .catch(e => {
         log.verbose('PuppetWebBridge', 'init() inject() attempt %d exception: %s', attempt, e.message)
         throw e
       })
+    })
+    .then(_ => {
+      log.verbose('PuppetWebBridge', 'init()-ed')
+      return this
     })
     .catch(e => {
       log.warn('PuppetWebBridge', 'init() inject FINAL fail: %s', e.message)
@@ -60,9 +64,10 @@ class Bridge {
 
   inject() {
     log.verbose('PuppetWebBridge', 'inject()')
-    return co.call(this, function* () {
 
+    return co.call(this, function* () {
       const injectio = this.getInjectio()
+
       let retObj = yield this.execute(injectio, this.port)
       if (retObj && /^(2|3)/.test(retObj.code)) {   // HTTP Code 2XX & 3XX
         log.verbose('PuppetWebBridge', 'inject() eval(Wechaty) return code[%d] message[%s] port[%d]'
@@ -86,7 +91,6 @@ class Bridge {
       log.verbose('PuppetWebBridge', 'inject() ding success')
 
       return true
-
     })
     .catch (e => {
       log.verbose('PuppetWebBridge', 'inject() exception: %s', e.message)
@@ -97,7 +101,7 @@ class Bridge {
     const fs = require('fs')
     const path = require('path')
     return fs.readFileSync(
-      path.join(path.dirname(__filename), 'puppet-web-injectio.js')
+      path.join(path.dirname(__filename), 'injectio.js')
       , 'utf8'
     )
   }
@@ -118,11 +122,6 @@ class Bridge {
       throw e
     })
   }
-
-  // @Deprecated: use `scan` event instead
-  // getLoginStatusCode()      { return this.proxyWechaty('getLoginStatusCode') }
-  // @Deprecated: use `scan` event instead
-  // getLoginQrImgUrl()        { return this.proxyWechaty('getLoginQrImgUrl') }
 
   getUserName() {
     return this.proxyWechaty('getUserName')
@@ -199,6 +198,7 @@ class Bridge {
 
     const wechatyScript   = `return Wechaty.${wechatyFunc}.apply(undefined, ${argsDecoded})`
     // log.silly('PuppetWebBridge', 'proxyWechaty(%s, ...args) %s', wechatyFunc, wechatyScript)
+
     return this.execute('return typeof Wechaty === "undefined"')
       .then(noWechaty => {
         if (noWechaty) {
@@ -213,6 +213,9 @@ class Bridge {
   }
 
   execute(script, ...args) {
+    if (!this.puppet || !this.puppet.browser) {
+      throw new Error('execute(): no puppet or no puppet.browser in bridge')
+    }
     return this.puppet.browser.execute(script, ...args)
     .catch(e => {
       log.warn('PuppetWebBridge', 'execute() exception: %s', e.message)

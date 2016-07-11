@@ -26,7 +26,7 @@ Please wait... I'm trying to login in...
 `
 
 console.log(welcome)
-const bot = new Wechaty({ session: 'example-bot.wechaty.json' })
+const bot = new Wechaty({ profile: 'example-bot.wechaty.json' })
 
 bot
 .on('login'	  , user => log.info('Bot', `${user.name()} logined`))
@@ -42,7 +42,16 @@ bot
 .on('message', m => {
   m.ready()
   .then(msg => {
-    log.info('Bot', 'recv: %s', msg.toStringEx())
+
+    const room = m.room()
+    const from = m.from()
+
+    console.log((room ? '['+room.name()+']' : '')
+                + '<'+from.name()+'>'
+                + ':' + m.toStringDigest()
+    )
+
+    // log.info('Bot', 'recv: %s', msg.toStringEx())
     // logToFile(JSON.stringify(msg.rawObj))
 
     if (/^(ding|ping|bing)$/i.test(m.get('content')) && !bot.self(m)) {

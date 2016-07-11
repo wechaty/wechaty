@@ -27,7 +27,7 @@ const Wechaty = require('..')
 const APIAI_API_KEY = '7217d7bce18c4bcfbe04ba7bdfaf9c08'
 const brainApiAi = ApiAi(APIAI_API_KEY)
 
-const bot = new Wechaty({ session: 'example-bot.wechaty.json' })
+const bot = new Wechaty({ profile: 'example-bot.wechaty.json' })
 
 console.log(`
 Welcome to api.AI Wechaty Bot.

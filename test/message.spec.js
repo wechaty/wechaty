@@ -16,8 +16,8 @@ test('Message constructor parser test', t => {
   }
   const m = new Message(rawData)
 
-  t.equal(m.id      , EXPECTED.id   , 'id right')
-  t.equal(m.from()  , EXPECTED.from , 'from right')
+  t.equal(m.id          , EXPECTED.id   , 'id right')
+  t.equal(m.get('from') , EXPECTED.from , 'from right')
 
   const s = m.toString()
   t.equal(typeof s, 'string', 'toString()')

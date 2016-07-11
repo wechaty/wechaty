@@ -1,11 +1,11 @@
 const co = require('co')
 const test = require('tap').test
 
-const Browser = require('../src/puppet-web-browser')
-const Bridge  = require('../src/puppet-web-bridge')
+const Browser = require('../../src/puppet-web/browser')
+const Bridge  = require('../../src/puppet-web/bridge')
 const PORT = 58788
 
-const log = require('../src/npmlog-env')
+const log = require('../../src/npmlog-env')
 
 test('Bridge retry-promise testing', function(t) {
   co(function* () {
@@ -83,8 +83,8 @@ test('Bridge smoking test', function(t) {
     // const retReady = yield b.execute('return Wechaty.isReady()')
     // t.equal(typeof retReady, 'boolean', 'should got a boolean return after execute Wechaty.isReady()')
 
-    const retCode = yield b.proxyWechaty('getLoginStatusCode')
-    t.equal(typeof retCode, 'number', 'should got a number after call proxyWechaty(getLoginStatusCode)')
+    const retCode = yield b.proxyWechaty('isLogin')
+    t.equal(typeof retCode, 'boolean', 'should got a boolean after call proxyWechaty(isLogin)')
   })
   .catch((e) => { // Rejected
     t.fail('co promise rejected:' + e)

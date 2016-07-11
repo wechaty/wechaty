@@ -3,30 +3,23 @@ const util  = require('util')
 const test  = require('tap').test
 const retryPromise = require('retry-promise').default
 
-const log = require('../src/npmlog-env')
+const log = require('../../src/npmlog-env')
 
 const PORT = process.env.WECHATY_PORT || 58788
 const HEAD = process.env.WECHATY_HEAD || false
-const SESSION = 'unit-test-session.wechaty.json'
+const PROFILE = 'unit-test-session.wechaty.json'
 
-const PuppetWeb = require('../src/puppet-web')
-const Message = require('../src/message')
+const PuppetWeb = require('../../src/puppet-web')
+const Message = require('../../src/message')
 
 test('PuppetWeb smoke testing', function(t) {
-  let pw = new PuppetWeb({port: PORT, head: HEAD, session: SESSION})
+  let pw = new PuppetWeb({port: PORT, head: HEAD, profile: PROFILE})
   t.ok(pw, 'should instantiated a PuppetWeb')
 
   co(function* () {
     yield pw.init()
     t.pass('should be inited')
     t.equal(pw.logined() , false  , 'should be not logined')
-
-    const EXPECTED_USER_ID = 'expected_user_id'
-    pw.userId = EXPECTED_USER_ID
-    const Message = require('../src/message')
-    const m = new Message()
-    m.set('from', EXPECTED_USER_ID)
-    t.ok(pw.self(m), 'should identified self for message which from is self')
 
     // XXX find a better way to mock...
     pw.bridge.getUserName = function() { return Promise.resolve('mockedUserName') }
@@ -42,13 +35,11 @@ test('PuppetWeb smoke testing', function(t) {
     yield p1
 
     const p2 = new Promise((resolve) => {
-      pw.once('logout', r => {
-        process.nextTick(() => { // wait to next tick for pw clean logined user status
-          // log.verbose('TestPuppetWeb', 'on(logout) received %s, islogined: %s', r, pw.logined())
-          t.equal(pw.logined() , false  , 'should be logouted after logout event')
-          resolve()
-        })
-      })
+      pw.once('logout', r => process.nextTick(() => { // wait to next tick for pw clean logined user status
+        // log.verbose('TestPuppetWeb', 'on(logout) received %s, islogined: %s', r, pw.logined())
+        t.equal(pw.logined() , false  , 'should be logouted after logout event')
+        resolve()
+      }))
     })
     pw.server.emit('logout')
     yield p2
@@ -63,7 +54,7 @@ test('PuppetWeb smoke testing', function(t) {
 })
 
 test('Puppet Web server/browser communication', function(t) {
-  let pw = new PuppetWeb({port: PORT, head: HEAD, session: SESSION})
+  let pw = new PuppetWeb({port: PORT, head: HEAD, profile: PROFILE})
   t.ok(pw, 'should instantiated a PuppetWeb')
 
   const EXPECTED_DING_DATA = 'dingdong'
@@ -72,16 +63,19 @@ test('Puppet Web server/browser communication', function(t) {
     yield pw.init()
     t.pass('should be inited')
 
-    const retSocket = yield dingSocket(pw.server)
-    t.equal(retSocket,  EXPECTED_DING_DATA, 'should got EXPECTED_DING_DATA after resolved dingSocket()')
+log.level = 'silly'
+    const ret = yield dingSocket(pw.server)
+    t.equal(ret,  EXPECTED_DING_DATA, 'should got EXPECTED_DING_DATA after resolved dingSocket()')
   })
-  .catch(e => {               // Reject
+  .catch(e => { // Reject
     log.warn('TestPuppetWeb', 'error: %s', e)
     t.fail(e)
   })
-  .then(r => {                // Finally
+  .then(r => {  // Finally
     pw.quit()
     .then(t.end)
+
+log.level = 'info'
   })
   .catch(e => { t.fail(e) })  // Exception
 
@@ -93,6 +87,12 @@ test('Puppet Web server/browser communication', function(t) {
     let   totalTime = 0
     return new Promise((resolve, reject) => {
       log.verbose('TestPuppetWeb', 'dingSocket()')
+
+      setTimeout(_ => {
+        reject('no response timeout after ' + 2 * maxTime)
+      }, 2 * maxTime)
+      .unref()
+
       return testDing()
 
       function testDing() {
@@ -119,14 +119,14 @@ test('Puppet Web server/browser communication', function(t) {
 })
 
 test('Puppet Web Self Message Identification', function(t) {
-  const p = new PuppetWeb({port: PORT, head: HEAD, session: SESSION})
+  const p = new PuppetWeb({port: PORT, head: HEAD, profile: PROFILE})
   t.ok(p, 'should instantiated a PuppetWeb')
 
   const EXPECTED_USER_ID = 'zixia'
-  p.userId = EXPECTED_USER_ID
   const m = new Message()
   m.set('from', EXPECTED_USER_ID)
-  t.ok(p.self(m), 'should return true for a self message')
+  p.userId = EXPECTED_USER_ID
+  t.ok(p.self(m), 'should identified self for message which from is self')
 
   t.end()
 })

@@ -10,8 +10,8 @@ const WebDriver = require('selenium-webdriver')
 const Browser = WebDriver.Browser
 const By = WebDriver.By
 
-const PuppetWebBrowser  = require('../src/puppet-web-browser')
-const PuppetWebBridge   = require('../src/puppet-web-bridge')
+const PuppetWebBrowser  = require('../src/puppet-web/browser')
+const PuppetWebBridge   = require('../src/puppet-web/bridge')
 
 const PORT = process.env.WECHATY_PORT || 58788
 const HEAD = process.env.WECHATY_HEAD || false

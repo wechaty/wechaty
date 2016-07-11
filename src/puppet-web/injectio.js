@@ -10,6 +10,20 @@
  * Licenst: MIT
  * https://github.com/zixia/wechaty-lib
  *
+ *
+ * ATTENTION:
+ *
+ * JAVASCRIPT IN THIS FILE
+ * IS RUN INSIDE
+ *
+ *    BROWSER
+ *
+ * INSTEAD OF
+ *
+ *    NODE
+ *
+ * read more about this in puppet-web-bridge.js
+ *
  */
 
 /*global angular*/
@@ -39,8 +53,8 @@ return (function(port) {
     }
 
     // glue funcs
-    , getLoginStatusCode: function() { return Wechaty.glue.loginScope.code }
-    , getLoginQrImgUrl:   function() { return Wechaty.glue.loginScope.qrcodeUrl }
+    // , getLoginStatusCode: function() { return Wechaty.glue.loginScope.code }
+    // , getLoginQrImgUrl:   function() { return Wechaty.glue.loginScope.qrcodeUrl }
     , angularIsReady:    angularIsReady
 
     // variable
@@ -326,8 +340,8 @@ return (function(port) {
   function checkScan() {
     clog('checkScan()')
     if (isLogin()) {
-      log('checkScan() - already login, no more check, but I will emit a login event')
-      login('checkScan found already login')
+      log('checkScan() - already login, no more check, and return(only)') //but I will emit a login event')
+      // login('checkScan found already login')
       return
     }
     if (!Wechaty.glue.loginScope) {
@@ -338,9 +352,9 @@ return (function(port) {
 
     // loginScope.code:
     // 0:   显示二维码
+    // 408: 未确认（显示二维码后30秒触发）
     // 201: 扫描，未确认
     // 200: 登录成功
-    // 408: 未确认
     var code  = +Wechaty.glue.loginScope.code
     var url   =  Wechaty.glue.loginScope.qrcodeUrl
     if (url && code !== Wechaty.vars.scanCode) {
@@ -356,7 +370,12 @@ return (function(port) {
       })
       Wechaty.vars.scanCode = code
     }
-    setTimeout(checkScan, 1000)
+
+    if (code === 200) {
+      login('scan code 200')
+    } else {
+      setTimeout(checkScan, 1000)
+    }
     return
   }
 
@@ -365,8 +384,8 @@ return (function(port) {
     log('login(' + data + ')')
     if (!Wechaty.vars.loginStatus) {
       Wechaty.vars.loginStatus = true
-      Wechaty.emit('login', data)
     }
+    Wechaty.emit('login', data)
   }
   function logout(data) {
     log('logout(' + data + ')')
@@ -481,11 +500,23 @@ return (function(port) {
       return null
     }
     var c = contactFactory.getContact(id)
-    if (c && c.isContact) {
-      c.stranger = !(c.isContact())
+    var contactWithoutFunction = {}
+
+    if (c) {
+      if (c.isContact) {
+        c.stranger = !(c.isContact())
+      }
+
+      Object.keys(c).forEach(function(k) {
+        if (typeof c[k] !== 'function') {
+          contactWithoutFunction[k] = c[k]
+        }
+      })
     }
-    return c
+
+    return contactWithoutFunction
   }
+
   function getUserName() {
     var accountFactory = Wechaty.glue.accountFactory
     return accountFactory
