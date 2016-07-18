@@ -6,7 +6,7 @@
   , "scripts": {
     "lint": "eslint src test"
     , "pretest": "npm run lint"
-    , "start": "node bin/io-bot.js"
+    , "start": "bin/io-bot"
     , "demo": "node example/ding-dong-bot.js"
     , "test": "cross-env TAP_TIMEOUT=600 node test/*.spec.js"
   }
@@ -25,6 +25,7 @@
     , "framework"
     , "wechaty"
     , "微信控"
+    , "zixia"
   ]
   , "author": "Zhuohuan LI <zixia@zixia.net>"
   , "license": "ISC"

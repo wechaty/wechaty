@@ -68,7 +68,7 @@ function clearWatchDogTimer() {
     this.watchDogTimer = null
 
     const timeLeft = this.watchDogTimerTime - Date.now()
-    log.silly('PuppetWebWatchdog', 'clearWatchDogTimer() cleared, before %d seconds left', Math.ceil(timeLeft / 1000))
+    log.silly('PuppetWebWatchdog', 'clearWatchDogTimer() [%d] seconds left', Math.ceil(timeLeft / 1000))
   } else {
     log.silly('PuppetWebWatchdog', 'clearWatchDogTimer() nothing to clear')
   }
