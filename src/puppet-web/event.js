@@ -48,7 +48,7 @@ function onBrowserDead(e) {
   // guard by variable: isBrowserBirthing to prevent the 2nd time entrance.
   if (this.isBrowserBirthing) {
     if (this.isBrowserBirthing === true) {
-      log.warn('PuppetWebEvent', 'onBrowserDead() Im busy, dont call me again before I return. this time will return and do nothing')
+      log.verbose('PuppetWebEvent', 'onBrowserDead() Im busy, dont call me again before I return. this time will return and do nothing')
       return
     } else {
       log.warn('PuppetWebEvent', 'onBrowserDead() Im FAKE busy? isBrowserBirthing is not boolean true!')
