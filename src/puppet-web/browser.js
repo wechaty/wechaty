@@ -26,7 +26,7 @@ class Browser extends EventEmitter {
   } = {}) {
     super()
     log.verbose('PuppetWebBrowser', 'constructor()')
-    this.head = head || false
+    this.head = String(head).toLowerCase() || false
     this.sessionFile = sessionFile // a file to save session cookies
 
     this.live = false
