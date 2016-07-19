@@ -172,6 +172,9 @@ function onServerDisconnect(data) {
     // if the browser is not ready, bridge init will fail,
     // caused browser dead and have to be restarted. 2016/6/12
     setTimeout(_ => {
+      if (!this.bridge) {
+        return // XXX: sometimes this.bridge gone in this timeout. why? what's happend between the last if(!this.bridge) check and the timeout call?
+      }
       this.bridge.init()
       .then(r  => log.verbose('PuppetWebEvent', 'onServerDisconnect() bridge re-inited: %s', r))
       .catch(e => log.error('PuppetWebEvent', 'onServerDisconnect() exception: [%s]', e))
