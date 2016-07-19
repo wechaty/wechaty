@@ -26,7 +26,7 @@ class Browser extends EventEmitter {
   } = {}) {
     super()
     log.verbose('PuppetWebBrowser', 'constructor()')
-    this.head = String(head).toLowerCase() || false
+    this.head = head || false
     this.sessionFile = sessionFile // a file to save session cookies
 
     this.live = false
@@ -208,22 +208,24 @@ class Browser extends EventEmitter {
           return
         }
         let browserRe
-        switch (this.head) {
-          case true:
-          case 'chrome':
-            browserRe = 'chrome(?!driver)'
-            break
-          case false:
-          case undefined:
-          case null:
-          case 'phantomjs':
+
+        switch (true) {
+          case !this.head: // no head default to phantomjs
+          case /phantomjs/i.test(this.head):
+          case /phantom/i.test(this.head):
             browserRe = 'phantomjs'
+            break
+
+          case this.head: // head default to chrome
+          case /chrome/i.test(this.head):
+            browserRe = 'chrome(?!driver)'
             break
 
           default:
             log.warn('PuppetWebBrowser', 'getBrowserPids() for unsupported head: %s', this.head)
             browserRe = this.head
         }
+
         let matchRegex = new RegExp(browserRe, 'i')
         const pids = children.filter(child => {
           // https://github.com/indexzero/ps-tree/issues/18
@@ -284,6 +286,11 @@ class Browser extends EventEmitter {
     })
   }
 
+  /**
+   *
+   * check whether browser is full functional
+   *
+   */
   readyLive() {
     log.verbose('PuppetWebBrowser', 'readyLive()')
     if (this.dead()) {
