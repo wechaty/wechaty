@@ -76,7 +76,6 @@ test('Puppet Web server/browser communication', function(t) {
     yield pw.init()
     t.pass('should be inited')
 
-log.level = 'silly'
     const ret = yield dingSocket(pw.server)
     t.equal(ret,  EXPECTED_DING_DATA, 'should got EXPECTED_DING_DATA after resolved dingSocket()')
   })
@@ -87,8 +86,6 @@ log.level = 'silly'
   .then(r => {  // Finally
     pw.quit()
     .then(t.end)
-
-log.level = 'info'
   })
   .catch(e => { t.fail(e) })  // Exception
 

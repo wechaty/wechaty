@@ -171,7 +171,7 @@ function onServerDisconnect(data) {
     // because the browser has just refreshed, need some time to re-init to ready.
     // if the browser is not ready, bridge init will fail,
     // caused browser dead and have to be restarted. 2016/6/12
-    setTimeout(() => {
+    setTimeout(_ => {
       this.bridge.init()
       .then(r  => log.verbose('PuppetWebEvent', 'onServerDisconnect() bridge re-inited: %s', r))
       .catch(e => log.error('PuppetWebEvent', 'onServerDisconnect() exception: [%s]', e))

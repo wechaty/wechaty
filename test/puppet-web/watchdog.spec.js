@@ -34,7 +34,7 @@ test('Puppet Web watchdog timer', function(t) {
       data: 'active_for_timeout_1ms'
       , timeout: 1
     })
-    yield new Promise((resolve) => setTimeout(_ => resolve(), 10)) // wait untill reset
+    yield new Promise(resolve => setTimeout(resolve, 1000)) // wait untill reset
     t.equal(errorCounter, 1, 'should get event[error] after watchdog timeout')
 
     pw.once('error', e => t.fail('waitDing() triggered watchDogReset()'))
@@ -73,6 +73,7 @@ test('Puppet Web watchdog timer', function(t) {
     return retryPromise({max: max, backoff: backoff}, function(attempt) {
       log.silly('TestPuppetWeb', 'waitDing() retryPromise: attampt %s/%s time for timeout %s'
         , attempt, max, timeout)
+
       return pw.ding(data)
       .then(r => {
         if (!r) {
@@ -85,6 +86,7 @@ test('Puppet Web watchdog timer', function(t) {
         log.verbose('TestPuppetWeb', 'waitDing() exception: %s', e.message)
         throw e
       })
+      
     })
     .catch(e => {
       log.error('TestPuppetWeb', 'retryPromise() waitDing() finally FAIL: %s', e.message)
