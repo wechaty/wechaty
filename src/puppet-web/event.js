@@ -56,7 +56,7 @@ function onBrowserDead(e) {
   }
 
   return co.call(this, function* () {
-    log.warn('PuppetWebEvent', 'onBrowserDead() co() set isBrowserBirthing true')
+    log.verbose('PuppetWebEvent', 'onBrowserDead() co() set isBrowserBirthing true')
     this.isBrowserBirthing = true
 
     const TIMEOUT = 180000 // 180s / 3m
