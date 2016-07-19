@@ -108,13 +108,15 @@ class Browser extends EventEmitter {
     // const phantomjsExe = require('phantomjs2').path
 
     const phantomjsArgs = [
-      '--ignore-ssl-errors=true' // this help socket.io connect with localhost
-      , '--load-images=false'
-      // , '--webdriver-logfile=/tmp/wd.log'
-      // , '--webdriver-loglevel=DEBUG'
+      '--load-images=false'
+      , '--ignore-ssl-errors=true'  // this help socket.io connect with localhost
+      , '--web-security=false'      // https://github.com/ariya/phantomjs/issues/12440#issuecomment-52155299
+      , '--ssl-protocol=TLSv1'      // https://github.com/ariya/phantomjs/issues/11239#issuecomment-42362211
     ]
     if (process.env.WECHATY_DEBUG) {
-      phantomjsArgs.push('--remote-debugger-port=8080') // XXX: be careful when in production usage.
+      phantomjsArgs.push('--remote-debugger-port=8080') // XXX: be careful when in production env.
+      phantomjsArgs.push('--webdriver-loglevel=DEBUG')
+      // phantomjsArgs.push('--webdriver-logfile=webdriver.debug.log')
     }
 
     const customPhantom = WebDriver.Capabilities.phantomjs()
