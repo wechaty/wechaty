@@ -6,7 +6,7 @@
   "scripts": {
     "lint": "eslint src test",
     "pretest": "npm run lint",
-    "start": "node bin/io-bot.js",
+    "start": "node bin/io-bot",
     "demo": "node example/ding-dong-bot.js",
     "test": "cross-env TAP_TIMEOUT=600 tap --reporter=tap test/{*,**/*}.spec.js"
   },
