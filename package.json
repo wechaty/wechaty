@@ -52,7 +52,7 @@
     "phantomjs-prebuilt": "latest",
     "ps-tree": "latest",
     "retry-promise": "latest",
-    "selenium-webdriver": "^2.53.2",
+    "selenium-webdriver": "latest",
     "socket.io": "latest",
     "ws": "latest"
   },

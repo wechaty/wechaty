@@ -32,6 +32,9 @@ function onFeed({
   , timeout = 60000  // 60s default. can be override in options but be careful about the number zero(0)
 } = {}) {
 
+  type = type || 'HEARTBEAT'  // BUG compatible with issue: node-tap strange behaviour cause CircleCI & Travis-CI keep failing #11
+  timeout = timeout || 60000  // BUG compatible with issue: node-tap strange behaviour cause CircleCI & Travis-CI keep failing #11
+
   if (!this) {
     throw new Error('onFeed() must has `this` of instanceof PuppetWeb')
   }
