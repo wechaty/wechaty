@@ -6,8 +6,11 @@
  * so it will not be a security issue.
  *
  * http://blog.mgechev.com/2014/02/19/create-https-tls-ssl-application-with-express-nodejs/
- * openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365
+ * openssl req -x509 -days 3650 -nodes -newkey rsa:2048 -keyout key.pem -out cert.pem
  * openssl rsa -in key.pem -out newkey.pem && mv newkey.pem key.pem
+ * 
+ * Reference:
+ * What is a Pem file - http://serverfault.com/a/9717
  */
 const key = `
 -----BEGIN RSA PRIVATE KEY-----
