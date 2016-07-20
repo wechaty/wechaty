@@ -112,6 +112,11 @@ class Browser extends EventEmitter {
       , '--ignore-ssl-errors=true'  // this help socket.io connect with localhost
       , '--web-security=false'      // https://github.com/ariya/phantomjs/issues/12440#issuecomment-52155299
       , '--ssl-protocol=TLSv1'      // https://github.com/ariya/phantomjs/issues/11239#issuecomment-42362211
+
+      // issue: Secure WebSocket(wss) do not work with Self Signed Certificate in PhantomJS #12 
+      // , '--ssl-certificates-path=D:\\cygwin64\\home\\zixia\\git\\wechaty' // http://stackoverflow.com/a/32690349/1123955
+      // , '--ssl-client-certificate-file=cert.pem' // 
+
     ]
     if (process.env.WECHATY_DEBUG) {
       phantomjsArgs.push('--remote-debugger-port=8080') // XXX: be careful when in production env.
