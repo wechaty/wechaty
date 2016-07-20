@@ -21,6 +21,11 @@ test('Puppet Web watchdog timer', function(t) {
 
   co(function* () {
 
+    const origLogLevel = log.level
+    if (log.level === 'info') {
+      log.level = 'silent'
+    }
+
     yield pw.init()
     pw.quit()
     // yield pw.bridge.quit()
@@ -42,12 +47,12 @@ test('Puppet Web watchdog timer', function(t) {
     const EXPECTED_DING_DATA = 'dingdong'
     pw.emit('watchdog', { data: 'feed to extend the dog life' })
 
-    const origLogLevel = log.level
-    log.level = 'silly'
     t.pass('set log.level = silent to mute log when watchDog reset wechaty temporary')
     const dong = yield waitDing(EXPECTED_DING_DATA)
-    log.level = origLogLevel
     t.equal(dong, EXPECTED_DING_DATA, 'should get EXPECTED_DING_DATA from ding after watchdog reset, and restored log level')
+
+    log.level = origLogLevel
+
   })
   .catch(e => { // Exception
     t.fail('co exception: ' + e.message)
@@ -86,7 +91,7 @@ test('Puppet Web watchdog timer', function(t) {
         log.verbose('TestPuppetWeb', 'waitDing() exception: %s', e.message)
         throw e
       })
-      
+
     })
     .catch(e => {
       log.error('TestPuppetWeb', 'retryPromise() waitDing() finally FAIL: %s', e.message)
