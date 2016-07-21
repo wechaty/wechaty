@@ -1,14 +1,14 @@
 {
   "name": "wechaty",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "Wechat for Bot. (Personal Account NOT Official Account)",
   "main": "index.js",
   "scripts": {
     "lint": "eslint src test",
     "pretest": "npm run lint",
-    "start": "node bin/io-bot.js",
+    "start": "node bin/io-bot",
     "demo": "node example/ding-dong-bot.js",
-    "test": "cross-env TAP_TIMEOUT=600 tap --reporter=tap test"
+    "test": "cross-env TAP_TIMEOUT=600 tap --reporter=tap test/{*,**/*}.spec.js"
   },
   "repository": {
     "type": "git",
@@ -52,7 +52,7 @@
     "phantomjs-prebuilt": "latest",
     "ps-tree": "latest",
     "retry-promise": "latest",
-    "selenium-webdriver": "^2.53.2",
+    "selenium-webdriver": "latest",
     "socket.io": "latest",
     "ws": "latest"
   },

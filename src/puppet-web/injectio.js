@@ -449,7 +449,7 @@ return (function(port) {
     }
 
     /*global io*/ // Wechaty global variable: socket
-    var socket  = Wechaty.vars.socket = io.connect('https://127.0.0.1:' + port)
+    var socket  = Wechaty.vars.socket = io.connect('wss://127.0.0.1:' + port/*, {transports: ['websocket']}*/)
 
     // ding -> dong. for test & live check purpose
     // ping/pong are reserved by socket.io https://github.com/socketio/socket.io/issues/2414

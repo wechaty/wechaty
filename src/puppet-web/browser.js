@@ -108,13 +108,20 @@ class Browser extends EventEmitter {
     // const phantomjsExe = require('phantomjs2').path
 
     const phantomjsArgs = [
-      '--ignore-ssl-errors=true' // this help socket.io connect with localhost
-      , '--load-images=false'
-      // , '--webdriver-logfile=/tmp/wd.log'
-      // , '--webdriver-loglevel=DEBUG'
+      '--load-images=false'
+      , '--ignore-ssl-errors=true'  // this help socket.io connect with localhost
+      , '--web-security=false'      // https://github.com/ariya/phantomjs/issues/12440#issuecomment-52155299
+      , '--ssl-protocol=TLSv1'      // https://github.com/ariya/phantomjs/issues/11239#issuecomment-42362211
+
+      // issue: Secure WebSocket(wss) do not work with Self Signed Certificate in PhantomJS #12 
+      // , '--ssl-certificates-path=D:\\cygwin64\\home\\zixia\\git\\wechaty' // http://stackoverflow.com/a/32690349/1123955
+      // , '--ssl-client-certificate-file=cert.pem' // 
+
     ]
     if (process.env.WECHATY_DEBUG) {
-      phantomjsArgs.push('--remote-debugger-port=8080') // XXX: be careful when in production usage.
+      phantomjsArgs.push('--remote-debugger-port=8080') // XXX: be careful when in production env.
+      phantomjsArgs.push('--webdriver-loglevel=DEBUG')
+      // phantomjsArgs.push('--webdriver-logfile=webdriver.debug.log')
     }
 
     const customPhantom = WebDriver.Capabilities.phantomjs()
@@ -208,22 +215,24 @@ class Browser extends EventEmitter {
           return
         }
         let browserRe
-        switch (this.head) {
-          case true:
-          case 'chrome':
-            browserRe = 'chrome(?!driver)'
-            break
-          case false:
-          case undefined:
-          case null:
-          case 'phantomjs':
+
+        switch (true) {
+          case !this.head: // no head default to phantomjs
+          case /phantomjs/i.test(this.head):
+          case /phantom/i.test(this.head):
             browserRe = 'phantomjs'
+            break
+
+          case this.head: // head default to chrome
+          case /chrome/i.test(this.head):
+            browserRe = 'chrome(?!driver)'
             break
 
           default:
             log.warn('PuppetWebBrowser', 'getBrowserPids() for unsupported head: %s', this.head)
             browserRe = this.head
         }
+
         let matchRegex = new RegExp(browserRe, 'i')
         const pids = children.filter(child => {
           // https://github.com/indexzero/ps-tree/issues/18
@@ -284,6 +293,11 @@ class Browser extends EventEmitter {
     })
   }
 
+  /**
+   *
+   * check whether browser is full functional
+   *
+   */
   readyLive() {
     log.verbose('PuppetWebBrowser', 'readyLive()')
     if (this.dead()) {

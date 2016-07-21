@@ -12,7 +12,20 @@ const PROFILE = 'unit-test-session.wechaty.json'
 const PuppetWeb = require('../../src/puppet-web')
 const Message = require('../../src/message')
 
-test('PuppetWeb smoke testing', function(t) {
+test('Puppet Web Self Message Identification', function(t) {
+  const p = new PuppetWeb({port: PORT, head: HEAD, profile: PROFILE})
+  t.ok(p, 'should instantiated a PuppetWeb')
+
+  const EXPECTED_USER_ID = 'zixia'
+  const m = new Message()
+  m.set('from', EXPECTED_USER_ID)
+  p.userId = EXPECTED_USER_ID
+  t.ok(p.self(m), 'should identified self for message which from is self')
+
+  t.end()
+})
+
+false && test('PuppetWeb smoke testing', function(t) {
   let pw = new PuppetWeb({port: PORT, head: HEAD, profile: PROFILE})
   t.ok(pw, 'should instantiated a PuppetWeb')
 
@@ -63,7 +76,6 @@ test('Puppet Web server/browser communication', function(t) {
     yield pw.init()
     t.pass('should be inited')
 
-log.level = 'silly'
     const ret = yield dingSocket(pw.server)
     t.equal(ret,  EXPECTED_DING_DATA, 'should got EXPECTED_DING_DATA after resolved dingSocket()')
   })
@@ -74,8 +86,6 @@ log.level = 'silly'
   .then(r => {  // Finally
     pw.quit()
     .then(t.end)
-
-log.level = 'info'
   })
   .catch(e => { t.fail(e) })  // Exception
 
@@ -83,7 +93,7 @@ log.level = 'info'
   /////////////////////////////////////////////////////////////////////////////
   function dingSocket(server) {
     const maxTime   = 60000 // 60s
-    const waitTime  = 500
+    const waitTime  = 3000
     let   totalTime = 0
     return new Promise((resolve, reject) => {
       log.verbose('TestPuppetWeb', 'dingSocket()')
@@ -96,7 +106,7 @@ log.level = 'info'
       return testDing()
 
       function testDing() {
-        // log.silly('TestPuppetWeb', server.socketio)
+        log.silly('TestPuppetWeb', 'dingSocket() server.socketServer: %s', server.socketServer)
         if (!server.socketClient) {
           totalTime += waitTime
           if (totalTime > maxTime) {
@@ -107,7 +117,7 @@ log.level = 'info'
           setTimeout(testDing, waitTime)
           return
         }
-        //log.silly('TestPuppetWebServer', server.socketClient)
+        log.silly('TestPuppetWeb', 'dingSocket() server.socketClient: %s', server.socketClient)
         server.socketClient.once('dong', data => {
           log.verbose('TestPuppetWeb', 'socket recv event dong: ' + data)
           return resolve(data)
@@ -116,17 +126,4 @@ log.level = 'info'
       }
     })
   }
-})
-
-test('Puppet Web Self Message Identification', function(t) {
-  const p = new PuppetWeb({port: PORT, head: HEAD, profile: PROFILE})
-  t.ok(p, 'should instantiated a PuppetWeb')
-
-  const EXPECTED_USER_ID = 'zixia'
-  const m = new Message()
-  m.set('from', EXPECTED_USER_ID)
-  p.userId = EXPECTED_USER_ID
-  t.ok(p.self(m), 'should identified self for message which from is self')
-
-  t.end()
 })

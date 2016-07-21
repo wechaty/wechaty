@@ -21,6 +21,12 @@ test('Puppet Web watchdog timer', function(t) {
 
   co(function* () {
 
+    const origLogLevel = log.level
+    if (log.level === 'info') {
+      log.level = 'silent'
+      t.pass('set log.level = silent to mute log when watchDog reset wechaty temporary')
+    }
+
     yield pw.init()
     pw.quit()
     // yield pw.bridge.quit()
@@ -34,7 +40,7 @@ test('Puppet Web watchdog timer', function(t) {
       data: 'active_for_timeout_1ms'
       , timeout: 1
     })
-    yield new Promise((resolve) => setTimeout(_ => resolve(), 10)) // wait untill reset
+    yield new Promise(resolve => setTimeout(resolve, 1000)) // wait untill reset
     t.equal(errorCounter, 1, 'should get event[error] after watchdog timeout')
 
     pw.once('error', e => t.fail('waitDing() triggered watchDogReset()'))
@@ -42,12 +48,11 @@ test('Puppet Web watchdog timer', function(t) {
     const EXPECTED_DING_DATA = 'dingdong'
     pw.emit('watchdog', { data: 'feed to extend the dog life' })
 
-    const origLogLevel = log.level
-    log.level = 'silly'
-    t.pass('set log.level = silent to mute log when watchDog reset wechaty temporary')
     const dong = yield waitDing(EXPECTED_DING_DATA)
-    log.level = origLogLevel
     t.equal(dong, EXPECTED_DING_DATA, 'should get EXPECTED_DING_DATA from ding after watchdog reset, and restored log level')
+
+    log.level = origLogLevel
+
   })
   .catch(e => { // Exception
     t.fail('co exception: ' + e.message)
@@ -73,6 +78,7 @@ test('Puppet Web watchdog timer', function(t) {
     return retryPromise({max: max, backoff: backoff}, function(attempt) {
       log.silly('TestPuppetWeb', 'waitDing() retryPromise: attampt %s/%s time for timeout %s'
         , attempt, max, timeout)
+
       return pw.ding(data)
       .then(r => {
         if (!r) {
@@ -85,6 +91,7 @@ test('Puppet Web watchdog timer', function(t) {
         log.verbose('TestPuppetWeb', 'waitDing() exception: %s', e.message)
         throw e
       })
+
     })
     .catch(e => {
       log.error('TestPuppetWeb', 'retryPromise() waitDing() finally FAIL: %s', e.message)

@@ -48,7 +48,7 @@ function onBrowserDead(e) {
   // guard by variable: isBrowserBirthing to prevent the 2nd time entrance.
   if (this.isBrowserBirthing) {
     if (this.isBrowserBirthing === true) {
-      log.warn('PuppetWebEvent', 'onBrowserDead() Im busy, dont call me again before I return. this time will return and do nothing')
+      log.verbose('PuppetWebEvent', 'onBrowserDead() Im busy, dont call me again before I return. this time will return and do nothing')
       return
     } else {
       log.warn('PuppetWebEvent', 'onBrowserDead() Im FAKE busy? isBrowserBirthing is not boolean true!')
@@ -56,7 +56,7 @@ function onBrowserDead(e) {
   }
 
   return co.call(this, function* () {
-    log.warn('PuppetWebEvent', 'onBrowserDead() co() set isBrowserBirthing true')
+    log.verbose('PuppetWebEvent', 'onBrowserDead() co() set isBrowserBirthing true')
     this.isBrowserBirthing = true
 
     const TIMEOUT = 180000 // 180s / 3m
@@ -171,7 +171,10 @@ function onServerDisconnect(data) {
     // because the browser has just refreshed, need some time to re-init to ready.
     // if the browser is not ready, bridge init will fail,
     // caused browser dead and have to be restarted. 2016/6/12
-    setTimeout(() => {
+    setTimeout(_ => {
+      if (!this.bridge) {
+        return // XXX: sometimes this.bridge gone in this timeout. why? what's happend between the last if(!this.bridge) check and the timeout call?
+      }
       this.bridge.init()
       .then(r  => log.verbose('PuppetWebEvent', 'onServerDisconnect() bridge re-inited: %s', r))
       .catch(e => log.error('PuppetWebEvent', 'onServerDisconnect() exception: [%s]', e))

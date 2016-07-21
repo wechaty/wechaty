@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const Wechaty = require('..')
 
 const log = Wechaty.log

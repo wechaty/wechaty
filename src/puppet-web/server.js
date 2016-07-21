@@ -99,7 +99,8 @@ class Server extends EventEmitter {
     })
     socketServer.sockets.on('connection', (s) => {
       log.verbose('PuppetWebServer', 'createSocketIo() got connection from browser')
-      if (this.socketClient) { this.socketClient = null } // close() ???
+      // console.log(s.handshake)
+      if (this.socketClient) { this.socketClient = undefined } // close() ???
       this.socketClient = s
       this.initEventsFromClient(s)
     })
@@ -112,9 +113,9 @@ class Server extends EventEmitter {
     this.emit('connection', client)
 
     client.on('disconnect', e => {
-      log.verbose('PuppetWebServer', 'socket.io disconnect: %s', e)
+      log.silly('PuppetWebServer', 'socket.io disconnect: %s', e)
       // 1. Browser reload / 2. Lost connection(Bad network)
-      this.socketClient = null
+      this.socketClient = undefined
       this.emit('disconnect', e)
     })
 

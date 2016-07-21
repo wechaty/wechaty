@@ -32,6 +32,9 @@ function onFeed({
   , timeout = 60000  // 60s default. can be override in options but be careful about the number zero(0)
 } = {}) {
 
+  type = type || 'HEARTBEAT'  // BUG compatible with issue: node-tap strange behaviour cause CircleCI & Travis-CI keep failing #11
+  timeout = timeout || 60000  // BUG compatible with issue: node-tap strange behaviour cause CircleCI & Travis-CI keep failing #11
+
   if (!this) {
     throw new Error('onFeed() must has `this` of instanceof PuppetWeb')
   }
@@ -66,7 +69,9 @@ function clearWatchDogTimer() {
   if (this.watchDogTimer) {
     clearTimeout(this.watchDogTimer)
     this.watchDogTimer = null
-    log.silly('PuppetWebWatchdog', 'clearWatchDogTimer() cleared')
+
+    const timeLeft = this.watchDogTimerTime - Date.now()
+    log.silly('PuppetWebWatchdog', 'clearWatchDogTimer() [%d] seconds left', Math.ceil(timeLeft / 1000))
   } else {
     log.silly('PuppetWebWatchdog', 'clearWatchDogTimer() nothing to clear')
   }
@@ -79,6 +84,7 @@ function setWatchDogTimer(timeout) {
   log.silly('PuppetWebWatchdog', 'setWatchDogTimer(%d)', timeout)
 
   this.watchDogTimer = setTimeout(watchDogReset.bind(this, timeout), timeout)
+  this.watchDogTimerTime = Date.now() + timeout
   // block quit, force to use quit() // this.watchDogTimer.unref() // dont block quit
 }
 
