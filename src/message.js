@@ -167,3 +167,7 @@ Object.keys(Message.Type).forEach(k => {
 Message.attach = function(puppet) { Message.puppet = puppet }
 
 module.exports = Message
+
+/*
+ * join room in mac client: https://support.weixin.qq.com/cgi-bin/mmsupport-bin/addchatroombyinvite?ticket=AUbv%2B4GQA1Oo65ozlIqRNw%3D%3D&exportkey=AS9GWEg4L82fl3Y8e2OeDbA%3D&lang=en&pass_ticket=T6dAZXE27Y6R29%2FFppQPqaBlNwZzw9DAN5RJzzzqeBA%3D&wechat_real_lang=en
+ */

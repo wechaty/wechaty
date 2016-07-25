@@ -23,7 +23,7 @@ It supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.app
 > @ak5 : Thanks for this it's quite cool! [link](https://github.com/zixia/wechaty/issues/4)
 
 # Examples
-Wechaty is super easy to use: 9 lines of javascript is enough for your 1st wechat bot.
+Wechaty is dead easy to use: 9 lines javascript for your 1st wechat bot.
 
 ## 1. Basic: 9 lines
 The following 9 lines of code implement a bot log every message to console:
