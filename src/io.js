@@ -147,6 +147,7 @@ class Io {
           , payload:  data
         }
 
+        log.verbose('Io', 'initWechaty() on(event) send ioEvent[%s:%s]', event, data)
         this.ws.send(
           JSON.stringify(
             ioEvent
