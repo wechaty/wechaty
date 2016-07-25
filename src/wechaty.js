@@ -66,7 +66,7 @@ class Wechaty extends EventEmitter {
 
       this.io = yield this.initIo()
       .catch(e => { // fail safe
-        log.error('WechatyIo', 'initIo failed: %s', e.message)
+        log.error('Wechaty', 'initIo failed: %s', e.message)
         this.emit('error', e)
       })
 
@@ -89,8 +89,8 @@ class Wechaty extends EventEmitter {
       log.verbose('Wechaty', 'initIo(%s)', this.token)
     }
 
-    const WechatyIo = require('./wechaty-io')
-    const io = new WechatyIo({
+    const Io = require('./io')
+    const io = new Io({
       wechaty: this
       , token: this.token
       , endpoint: this.endpoint

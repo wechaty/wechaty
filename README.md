@@ -18,23 +18,25 @@ It supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.app
 
 # Voice of the Developer
 
-> @GasLin: it may be the best wecaht sdk i have seen in github! [link](https://github.com/zixia/wechaty/issues/8#issuecomment-228971491)
+> @GasLin : it may be the best wecaht sdk i have seen in github! [link](https://github.com/zixia/wechaty/issues/8#issuecomment-228971491)
+
+> @ak5 : Thanks for this it's quite cool! [link](https://github.com/zixia/wechaty/issues/4)
 
 # Examples
 Wechaty is super easy to use: 9 lines of javascript is enough for your 1st wechat bot.
 
 ## 1. Basic: 9 lines
-The following 9 lines of code implement a bot who reply "roger" for every message received:
+The following 9 lines of code implement a bot log every message to console:
 
 ```javascript
 const Wechaty = require('wechaty')
 const bot = new Wechaty()
 bot.on('scan', ({url, code}) => {
-  console.log(`Use Wechat to scan qrcode in url to login: ${code}\n${url}`)
+  console.log(`Use Wechat to scan QrCode in url to login: ${code}\n${url}`)
+}).on('login', user => {
+  console.log(`user ${user} logined`)
 }).on('message', m => {
-  !bot.self(m) && bot.reply(m, 'roger') // 1. reply
-  .then(() => console.log(`RECV: ${m}, REPLY: "roger"`)) // 2. log message
-  .catch(e => console.error(e)) // 3. catch exception
+  console.log(`Message: ${m}`)
 }).init()
 ```
 
@@ -53,9 +55,10 @@ Natual Language Understanding enabled by [api.AI](https://api.ai), you can get y
 # Deploy
 
 ## Deploy with Heroku
-Follow [these instructions](https://wechaty.readme.io/docs).
-Then,
-[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+
+TBD
+
+~~Follow [these instructions](https://wechaty.readme.io/docs). Then, [![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)~~
 
 ## Deploy with Docker
 

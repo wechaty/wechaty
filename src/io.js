@@ -2,7 +2,7 @@
  *
  * wechaty: Wechat for Bot. and for human who talk to bot/robot
  *
- * Class WechatyIo
+ * Class Io
  * http://www.wechaty.io
  *
  * Licenst: ISC
@@ -15,7 +15,7 @@ const co            = require('co')
 
 const log           = require('./npmlog-env')
 
-class WechatyIo {
+class Io {
 
   constructor({
     wechaty = null
@@ -23,23 +23,22 @@ class WechatyIo {
     , endpoint = 'wss://api.wechaty.io/v0/websocket'
     , protocol = 'io|0.0.1'
   }) {
-    // super()
     if (!wechaty || !token) {
-      throw new Error('WechatyIo must has wechaty & token set')
+      throw new Error('Io must has wechaty & token set')
     }
     this.wechaty  = wechaty
     this.token    = token
     this.endpoint = endpoint
     this.protocol = protocol
-    log.verbose('WechatyIo', 'instantiated with endpoint[%s], token[%s], protocol[%s]', endpoint, token, protocol)
+    log.verbose('Io', 'instantiated with endpoint[%s], token[%s], protocol[%s]', endpoint, token, protocol)
   }
 
-  toString() { return 'Class WechatyIo(' + this.token + ')'}
+  toString() { return 'Class Io(' + this.token + ')'}
 
   connected() { return this.ws && this.ws.readyState === WebSocket.OPEN }
 
   init() {
-    log.verbose('WechatyIo', 'init()')
+    log.verbose('Io', 'init()')
 
     return co.call(this, function* () {
       yield this.initWechaty()
@@ -47,7 +46,7 @@ class WechatyIo {
 
       return this
     }).catch(e => {
-      log.warn('WechatyIo', 'init() exception: %s', e.message)
+      log.warn('Io', 'init() exception: %s', e.message)
       throw e
     })
   }
@@ -61,10 +60,10 @@ class WechatyIo {
 
     ws.on('open', function open() {
       if (this.protocol !== ws.protocol) {
-        log.error('WechatyIo', 'initWebSocket() require protocol[%s] failed', this.protocol)
+        log.error('Io', 'initWebSocket() require protocol[%s] failed', this.protocol)
         // XXX deal with error?
       }
-      log.verbose('WechatyIo', 'initWebSocket() connected with protocol [%s]', ws.protocol)
+      log.verbose('Io', 'initWebSocket() connected with protocol [%s]', ws.protocol)
 
       ws._socket.setKeepAlive(true, 30000)
 
@@ -73,10 +72,10 @@ class WechatyIo {
     }.bind(this))
 
     ws.on('message', (data, flags) => {
-      log.verbose('WechatyIo', 'WebSocket got message')
+      log.verbose('Io', 'WebSocket got message')
       // flags.binary will be set if a binary data is received.
       // flags.masked will be set if the data was masked.
-      log.verbose('WechatyIo', 'onMessage: %s', data)
+      log.verbose('Io', 'onMessage: %s', data)
 
       if (data.onMessage) {
         const script = data.script
@@ -84,19 +83,19 @@ class WechatyIo {
         if (typeof fn === 'function') {
           this.onMessage = fn
         } else {
-          log.warn('WechatyIo', 'onMessage server push function invalid')
+          log.warn('Io', 'onMessage server push function invalid')
         }
       }
     })
 
     ws
     .on('close', e => {
-      log.verbose('WechatyIo', 'initWebSocket() close event[%s]', e)
+      log.verbose('Io', 'initWebSocket() close event[%s]', e)
       ws.close()
       this.reconnect()
     })
     .on('error', e => {
-      log.verbose('WechatyIo', 'initWebSocket() error event[%s]', e.message)
+      log.verbose('Io', 'initWebSocket() error event[%s]', e.message)
       this.wechaty.emit('error', e)
 
       this.close()
@@ -108,16 +107,16 @@ class WechatyIo {
 
   reconnect() {
     if (this.connected()) {
-      log.warn('WechatyIo', 'reconnect() on a already connected io')
+      log.warn('Io', 'reconnect() on a already connected io')
     } else if (this.reconnectTimer) {
-      log.warn('WechatyIo', 'reconnect() on a already re-connecting io')
+      log.warn('Io', 'reconnect() on a already re-connecting io')
     } else {
       if (!this.reconnectTimeout) {
         this.reconnectTimeout = 100
       } else if (this.reconnectTimeout < 10000) {
         this.reconnectTimeout *= 2
       }
-      log.warn('WechatyIo', 'reconnect() will reconnect after %d s', Math.floor(this.reconnectTimeout/1000))
+      log.warn('Io', 'reconnect() will reconnect after %d s', Math.floor(this.reconnectTimeout/1000))
       this.reconnectTimer = setTimeout(_ => {
         this.reconnectTimer = null
         this.initWebSocket()
@@ -140,15 +139,17 @@ class WechatyIo {
     ioEvents.map(event => {
       wechaty.on(event, data => {
         if (!this.connected()) {
-          log.verbose('WechatyIo', 'initWechaty() on event[%s] without a connected websocket', event)
+          log.verbose('Io', 'initWechaty() on event[%s] without a connected websocket', event)
           return
         }
+        const ioEvent = {
+          name:       event
+          , payload:  data
+        }
+
         this.ws.send(
           JSON.stringify(
-            {
-              event
-              , data
-            }
+            ioEvent
           )
         )
       })
@@ -168,14 +169,14 @@ class WechatyIo {
    *
    */
   ioMessage(m) {
-    log.verbose('WechatyIo', 'ioMessage() is a nop function before be overwriten from cloud')
+    log.verbose('Io', 'ioMessage() is a nop function before be overwriten from cloud')
   }
 }
 
 /**
  * Expose `Wechaty`.
  */
-module.exports = WechatyIo.default = WechatyIo.WechatyIo = WechatyIo
+module.exports = Io.default = Io.Io = Io
 /*
 
 www.wechaty.io
