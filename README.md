@@ -23,21 +23,19 @@ It supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.app
 > @ak5 : Thanks for this it's quite cool! [link](https://github.com/zixia/wechaty/issues/4)
 
 # Examples
-Wechaty is dead easy to use: 9 lines javascript for your 1st wechat bot.
+Wechaty is dead easy to use: 7 lines javascript for your 1st wechat bot.
 
-## 1. Basic: 9 lines
-The following 9 lines of code implement a bot log all message to console:
+## 1. Basic: 7 lines
+The following 7 lines of code implement a bot log all message to console:
 
 ```javascript
 const Wechaty = require('wechaty')
 const bot = new Wechaty()
-bot.on('scan', ({url, code}) => {
-  console.log(`Use Wechat to scan QrCode in url to login: ${code}\n${url}`)
-}).on('login', user => {
-  console.log(`user ${user} logined`)
-}).on('message', m => {
-  console.log(`Message: ${m}`)
-}).init()
+bot
+.on('scan', ({url, code}) => console.log(`Scan QrCode to login: ${code}\n${url}`))
+.on('login',         user => console.log(`User ${user} logined`))
+.on('message',          m => console.log(`Message: ${m}`))
+.init()
 ```
 
 Notice that you need to wait a moment while bot trys to get the login QRCode from Wechat. As soon as the bot gets login QRCode url, he will print url out. You need to scan the qrcode on wechat, and confirm login.
