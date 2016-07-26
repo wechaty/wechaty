@@ -14,6 +14,7 @@ const WebSocket     = require('ws')
 const co            = require('co')
 
 const log           = require('./npmlog-env')
+const Contact       = require('./contact')
 
 class Io {
 
@@ -41,7 +42,7 @@ class Io {
     log.verbose('Io', 'init()')
 
     return co.call(this, function* () {
-      yield this.initWechaty()
+      yield this.initEventHook()
       yield this.initWebSocket()
 
       return this
@@ -52,6 +53,7 @@ class Io {
   }
 
   initWebSocket() {
+    log.verbose('Io', 'initWebSocket()')
     // const auth = 'Basic ' + new Buffer(this.token + ':X').toString('base64')
     const auth = 'Token ' + this.token
     const headers = { 'Authorization': auth }
@@ -72,19 +74,61 @@ class Io {
     }.bind(this))
 
     ws.on('message', (data, flags) => {
-      log.verbose('Io', 'WebSocket got message')
+      log.silly('Io', 'initWebSocket() ws.on(message): %s', data)
       // flags.binary will be set if a binary data is received.
       // flags.masked will be set if the data was masked.
-      log.verbose('Io', 'onMessage: %s', data)
+      
+      const ioEvent = {
+        name: 'raw'
+        , payload: data
+      }
+      
+      try {
+        const obj = JSON.parse(data)
+        ioEvent.name    = obj.name
+        ioEvent.payload = obj.payload
+      } catch (e) {
+        log.verbose('Io', 'on(message) recv a non IoEvent data[%s]', data)
+      }
 
-      if (data.onMessage) {
-        const script = data.script
-        const fn = eval(script)
-        if (typeof fn === 'function') {
-          this.onMessage = fn
-        } else {
-          log.warn('Io', 'onMessage server push function invalid')
-        }
+      switch (ioEvent.name) {
+        case 'botie':
+          const payload = ioEvent.payload
+          if (payload.onMessage) {
+            const script = payload.script
+            const fn = eval(script)
+            if (typeof fn === 'function') {
+              this.onMessage = fn
+            } else {
+              log.warn('Io', 'server pushed function is invalid')
+            }
+          }
+          break
+        
+        case 'reset':
+          log.verbose('Io', 'on(reset): %s', ioEvent.payload)
+          this.wechaty.reset()
+          break
+          
+        case 'update':
+          log.verbose('Io', 'on(report): %s', ioEvent.payload)
+          const user = this.wechaty.user()
+          if (user) {
+            const loginEvent = {
+              name:       'login'
+              , payload:  user.obj
+            }
+            this.send(loginEvent)
+          } 
+          break
+          
+        case 'sys':
+          // do nothing
+          break
+          
+        default:
+          log.warn('Io', 'UNKNOWN on(%s): %s', ioEvent.name, ioEvent.payload)
+          break
       }
     })
 
@@ -124,41 +168,57 @@ class Io {
     }
   }
 
-  initWechaty() {
+  initEventHook() {
     const wechaty = this.wechaty
 
     wechaty.on('message', this.ioMessage)
 
-    const ioEvents = [
+    const hookEvents = [
       'scan'
       , 'login'
       , 'logout'
       , 'error'
       , 'heartbeat'
     ]
-    ioEvents.map(event => {
+    hookEvents.map(event => {
       wechaty.on(event, data => {
         if (!this.connected()) {
-          log.verbose('Io', 'initWechaty() on event[%s] without a connected websocket', event)
+          log.verbose('Io', 'initEventHook() on event[%s] without a connected websocket', event)
           return
         }
         const ioEvent = {
           name:       event
           , payload:  data
         }
-
-        log.verbose('Io', 'initWechaty() on(event) send ioEvent[%s:%s]', event, data)
-        this.ws.send(
-          JSON.stringify(
-            ioEvent
-          )
-        )
+        
+        switch (event) {
+          case 'login':
+          case 'logout':
+            if (data instanceof Contact) {
+              ioEvent.payload = data.obj
+            }
+            break
+          
+          default:
+            break
+        }
+      
+        this.send(ioEvent)
       })
     })
 
     return Promise.resolve()
   }
 
+  send(ioEvent) {
+    log.silly('Io', 'send(%s: %s)', ioEvent.name, ioEvent.payload)
+    this.ws.send(
+      JSON.stringify(
+        ioEvent
+      )
+    )
+  }
+  
   close() {
     this.ws.close()
     // TODO: remove listener for this.wechaty.on(message )
@@ -178,12 +238,3 @@ class Io {
  * Expose `Wechaty`.
  */
 module.exports = Io.default = Io.Io = Io
-/*
-
-www.wechaty.io
-
-www
-api
-test
-
-*/

@@ -43,6 +43,17 @@ class Wechaty extends EventEmitter {
 
   version()  { return this.npmVersion }
 
+  user() { return this.puppet && this.puppet.user }
+  
+  reset(reason) {
+    log.verbose('Wechaty', 'reset() because %s', reason)
+    if (this.puppet && this.puppet.browser) {
+      this.puppet.browser.dead('restart required by wechaty reset()')
+    } else {
+      log.warn('Wechaty', 'reset() without browser')
+    }
+  }
+  
   init() {
     log.info('Wechaty', 'v%s initializing...', this.npmVersion)
     log.verbose('Wechaty', 'puppet: %s' , this.type)
