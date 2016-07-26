@@ -120,6 +120,16 @@ class Io {
             }
             this.send(loginEvent)
           } 
+          
+          const scan = this.wechaty.puppet.scan
+          if (scan) {
+            const scanEvent = {
+              name: 'scan'
+              , payload: scan
+            }
+            this.send(scanEvent)
+          }
+          
           break
           
         case 'sys':

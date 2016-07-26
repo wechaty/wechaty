@@ -115,6 +115,8 @@ function onServerDing(data) {
 function onServerScan(data) {
   log.verbose('PuppetWebEvent', 'onServerScan(%d)', data && data.code)
 
+  this.scan = data // ScanInfo
+  
   /**
    * When wx.qq.com push a new QRCode to Scan, there will be cookie updates(?)
    */
@@ -225,6 +227,8 @@ function onServerLog(data) {
 function onServerLogin(data, attempt = 0) {
   log.verbose('PuppetWebEvent', 'onServerLogin(%s, %d)', data, attempt)
 
+  this.scan = null
+  
   if (this.userId) {
     log.verbose('PuppetWebEvent', 'onServerLogin() be called but with userId set?')
   }
