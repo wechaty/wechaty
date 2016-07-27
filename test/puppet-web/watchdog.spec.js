@@ -40,7 +40,7 @@ test('Puppet Web watchdog timer', function(t) {
       data: 'active_for_timeout_1ms'
       , timeout: 1
     })
-    yield new Promise(resolve => setTimeout(resolve, 1000)) // wait untill reset
+    yield new Promise(resolve => setTimeout(resolve, 10)) // wait untill reset
     t.equal(errorCounter, 1, 'should get event[error] after watchdog timeout')
 
     pw.once('error', e => t.fail('waitDing() triggered watchDogReset()'))
