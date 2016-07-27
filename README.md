@@ -443,7 +443,11 @@ Know more about TAP: [Why I use Tape Instead of Mocha & So Should You](https://m
 
 # Version History
 
-## v0.2.2 (master)
+## v0.3.0 (master)
+1. add `reset` & `shutdown` to IO Event
+2. support be managed by https://app.wechaty.io
+
+## v0.2.3 (2016/7/28)
 1. add wechaty.io cloud management support: set environment variable `WECHATY_TOKEN` to enable io support
 2. rename `WECHATY_SESSION` to `WECHATY_PROFILE` for better name
 3. fix watchdog timer & reset bug
