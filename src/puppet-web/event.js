@@ -55,6 +55,8 @@ function onBrowserDead(e) {
     }
   }
 
+  this.scan = null
+  
   return co.call(this, function* () {
     log.verbose('PuppetWebEvent', 'onBrowserDead() co() set isBrowserBirthing true')
     this.isBrowserBirthing = true

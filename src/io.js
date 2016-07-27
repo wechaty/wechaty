@@ -110,6 +110,11 @@ class Io {
           this.wechaty.reset()
           break
           
+        case 'shutdown':
+          log.warn('Io', 'on(shutdown): %s', ioEvent.payload)
+          process.exit(0)
+          break
+
         case 'update':
           log.verbose('Io', 'on(report): %s', ioEvent.payload)
           const user = this.wechaty.user()
@@ -121,7 +126,7 @@ class Io {
             this.send(loginEvent)
           } 
           
-          const scan = this.wechaty.puppet.scan
+          const scan = this.wechaty && this.wechaty.puppet && this.wechaty.puppet.scan
           if (scan) {
             const scanEvent = {
               name: 'scan'
@@ -192,10 +197,6 @@ class Io {
     ]
     hookEvents.map(event => {
       wechaty.on(event, data => {
-        if (!this.connected()) {
-          log.verbose('Io', 'initEventHook() on event[%s] without a connected websocket', event)
-          return
-        }
         const ioEvent = {
           name:       event
           , payload:  data
@@ -217,11 +218,28 @@ class Io {
       })
     })
 
+    wechaty.on('message', m => {
+      const text = (m.room() ? '['+m.room().name()+']' : '')
+                  + '<'+m.from().name()+'>'
+                  + ':' + m.toStringDigest()
+      const messageEvent = {
+        name:       'message'
+        , payload:  text
+      }
+      this.send(messageEvent)
+    })
+    
     return Promise.resolve()
   }
 
   send(ioEvent) {
     log.silly('Io', 'send(%s: %s)', ioEvent.name, ioEvent.payload)
+
+    if (!this.connected()) {
+      log.verbose('Io', 'send() without a connected websocket, dropped(ToBeQueue)')
+      return
+    }
+
     this.ws.send(
       JSON.stringify(
         ioEvent
