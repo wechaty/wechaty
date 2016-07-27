@@ -214,7 +214,7 @@ class Bridge {
 
   execute(script, ...args) {
     if (!this.puppet || !this.puppet.browser) {
-      throw new Error('execute(): no puppet or no puppet.browser in bridge')
+      return Promise.reject(new Error('execute(): no puppet or no puppet.browser in bridge'))
     }
     return this.puppet.browser.execute(script, ...args)
     .catch(e => {
