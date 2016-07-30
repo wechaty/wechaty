@@ -11,16 +11,22 @@ It supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.app
 
 [![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=2592000)](https://nodejs.org/)
-[![Repo Size](https://reposs.herokuapp.com/?path=zixia/wechaty)]()
 [![Coverage Status](https://coveralls.io/repos/github/zixia/wechaty/badge.svg?branch=master)](https://coveralls.io/github/zixia/wechaty?branch=master)
 [![npm version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty)
+[![dependency status][dependency-image]][dependency-url]
+[![dev dependency status][dev-dependency-image]][dev-dependency-url]
+[![Repo Size](https://reposs.herokuapp.com/?path=zixia/wechaty)]()
 [![Downloads][downloads-image]][downloads-url]
+
 
 # Voice of the Developer
 
 > @GasLin : it may be the best wecaht sdk i have seen in github! [link](https://github.com/zixia/wechaty/issues/8#issuecomment-228971491)
 
 > @ak5 : Thanks for this it's quite cool! [link](https://github.com/zixia/wechaty/issues/4)
+
+> @ccaapton : wechaty library looks fantastic! [link](https://github.com/zixia/wechaty/issues/9)
+
 
 # Examples
 Wechaty is dead easy to use: 7 lines javascript for your 1st wechat bot.
@@ -34,7 +40,7 @@ const bot = new Wechaty()
 bot
 .on('scan', ({url, code}) => console.log(`Scan QrCode to login: ${code}\n${url}`))
 .on('login',         user => console.log(`User ${user} logined`))
-.on('message',          m => console.log(`Message: ${m}`))
+.on('message',    message => console.log(`Message: ${message}`))
 .init()
 ```
 
@@ -519,6 +525,8 @@ Github Issue - https://github.com/zixia/wechaty/issues
 
 ### Javascript
 1. [Weixinbot](https://github.com/feit/Weixinbot) Nodejs 封装网页版微信的接口，可编程控制微信消息
+1. [wechatBot](https://github.com/stonexer/wechatBot) 面向个人的微信 wechat 机器人平台 - 使用微信网页版接口wechat4u
+1. [Wechat4U](https://github.com/nodeWechat/wechat4u) 微信 wechat web 网页版接口的 JavaScript 实现，兼容Node和浏览器
 
 ### Perl
 1. [MojoWeixin](https://github.com/sjdy521/Mojo-Weixin) 使用Perl语言编写的微信客户端框架，基于Mojolicious，要求Perl版本5.10+，可通过插件提供基于HTTP协议的api接口供其他语言或系统调用
@@ -574,3 +582,7 @@ Copyright & License
 
 [downloads-image]: http://img.shields.io/npm/dm/wechaty.svg?style=flat-square
 [downloads-url]: https://npmjs.org/package/wechaty
+[dependency-image]: https://img.shields.io/david/zixia/wechaty.svg
+[dependency-url]: https://david-dm.org/zixia/wechaty
+[dev-dependency-image]: https://img.shields.io/david/dev/zixia/wechaty.svg
+[dev-dependency-url]: https://david-dm.org/zixia/wechaty#info=devDependencies

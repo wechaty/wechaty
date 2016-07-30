@@ -114,6 +114,11 @@ class Io {
           log.warn('Io', 'on(shutdown): %s', ioEvent.payload)
           process.exit(0)
           break
+          
+        case 'logout':
+          log.verbose('Io', 'on(logout): %s', ioEvent.payload)
+          this.wechaty.logout()
+          break          
 
         case 'update':
           log.verbose('Io', 'on(report): %s', ioEvent.payload)
@@ -218,16 +223,16 @@ class Io {
       })
     })
 
-    wechaty.on('message', m => {
-      const text = (m.room() ? '['+m.room().name()+']' : '')
-                  + '<'+m.from().name()+'>'
-                  + ':' + m.toStringDigest()
-      const messageEvent = {
-        name:       'message'
-        , payload:  text
-      }
-      this.send(messageEvent)
-    })
+    // wechaty.on('message', m => {
+    //   const text = (m.room() ? '['+m.room().name()+']' : '')
+    //               + '<'+m.from().name()+'>'
+    //               + ':' + m.toStringDigest()
+    //   const messageEvent = {
+    //     name:       'message'
+    //     , payload:  text
+    //   }
+    //   this.send(messageEvent)
+    // })
     
     return Promise.resolve()
   }

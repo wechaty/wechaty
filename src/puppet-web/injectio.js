@@ -77,7 +77,8 @@ return (function(port) {
     , ding: ding  // simple return 'dong'
     , quit: quit  // quit wechat
     , emit: emit  // send event to server
-
+    , logout: logout // logout current logined user
+    
     , getContact: getContact
     , getUserName: getUserName
     , getMsgImg: getMsgImg
@@ -275,6 +276,7 @@ return (function(port) {
     var chatFactory     = injector.get('chatFactory')
     var contactFactory  = injector.get('contactFactory')
     var confFactory     = injector.get('confFactory')
+    var loginFactory    = injector.get('loginFactory')
 
     var http            = injector.get('$http')
     var mmHttp          = injector.get('mmHttp')
@@ -326,6 +328,7 @@ return (function(port) {
       , chatFactory:    chatFactory
       , confFactory:    confFactory
       , contactFactory: contactFactory
+      , loginFactory:   loginFactory
 
       , rootScope:    rootScope
       , appScope:     appScope
@@ -390,7 +393,8 @@ return (function(port) {
   function logout(data) {
     log('logout(' + data + ')')
     Wechaty.vars.loginStatus = false
-    Wechaty.emit('logout', data)
+    // Wechaty.emit('logout', data)
+    Wechaty.glue.loginFactory.loginout()
     checkScan()
   }
   function quit() {
