@@ -27,6 +27,7 @@ It supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.app
 
 > @ccaapton : wechaty library looks fantastic! [link](https://github.com/zixia/wechaty/issues/9)
 
+> @kinhunt : very cool project. [link](https://github.com/zixia/wechaty/issues/6)
 
 # Examples
 Wechaty is dead easy to use: 7 lines javascript for your 1st wechat bot.
