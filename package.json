@@ -4,6 +4,8 @@
   "description": "Wechat for Bot (Personal Account)",
   "main": "index.js",
   "scripts": {
+    "build": "echo empty build",
+    "postinstall": "echo postinstall",
     "lint": "eslint src test",
     "pretest": "npm run lint",
     "start": "node bin/io-bot",
