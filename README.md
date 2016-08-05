@@ -1,5 +1,4 @@
 ![Wechaty](https://raw.githubusercontent.com/zixia/wechaty/master/image/wechaty-logo-en.png)
-
 # Wechaty [![Linux Circle CI](https://circleci.com/gh/zixia/wechaty.svg?style=svg)](https://circleci.com/gh/zixia/wechaty) [![Linux Build Status](https://travis-ci.org/zixia/wechaty.svg?branch=master)](https://travis-ci.org/zixia/wechaty) [![Win32 Build status](https://ci.appveyor.com/api/projects/status/60fgkemki7e6upb9?svg=true)](https://ci.appveyor.com/project/zixia/wechaty)
 
 Connecting ChatBots.
@@ -11,14 +10,19 @@ Wechaty is a Bot Framework for Wechat **Personal** Account.
 It supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.appveyor.com/project/zixia/wechaty) and [darwin(OSX/Mac)](https://travis-ci.org/zixia/wechaty).
 
 [![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![node](https://img.shields.io/node/v/wechaty.svg?maxAge=2592000)](https://nodejs.org/)
 [![Coverage Status](https://coveralls.io/repos/github/zixia/wechaty/badge.svg?branch=master)](https://coveralls.io/github/zixia/wechaty?branch=master)
+[![Repo Size](https://reposs.herokuapp.com/?path=zixia/wechaty)]()
+
+[![node](https://img.shields.io/node/v/wechaty.svg?maxAge=2592000)](https://nodejs.org/)
 [![npm version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty)
 [![dependency status][dependency-image]][dependency-url]
 [![dev dependency status][dev-dependency-image]][dev-dependency-url]
-[![Repo Size](https://reposs.herokuapp.com/?path=zixia/wechaty)]()
 [![Downloads][downloads-image]][downloads-url]
 
+[![Image Layers](https://badge.imagelayers.io/zixia/wechaty:latest.svg)](https://imagelayers.io/?images=zixia/wechaty:latest 'Get your own badge on imagelayers.io')
+[![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg)](https://hub.docker.com/r/zixia/wechaty/)
+![Docker Stars](https://img.shields.io/docker/stars/zixia/wechaty.svg?maxAge=2592000)
+[![Docker Repository on Quay.io](https://quay.io/repository/zixia/wechaty/status "Docker Repository on Quay.io")](https://quay.io/repository/zixia/wechaty)
 
 # Voice of the Developer
 
@@ -28,7 +32,6 @@ It supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.app
 
 > @ccaapton : wechaty library looks fantastic! [link](https://github.com/zixia/wechaty/issues/9)
 
-> @kinhunt : very cool project. [link](https://github.com/zixia/wechaty/issues/6)
 
 # Examples
 Wechaty is dead easy to use: 7 lines javascript for your 1st wechat bot.
@@ -39,11 +42,10 @@ The following 7 lines of code implement a bot log all message to console:
 ```javascript
 const Wechaty = require('wechaty')
 const bot = new Wechaty()
-
 bot
 .on('scan', ({url, code}) => console.log(`Scan QrCode to login: ${code}\n${url}`))
 .on('login',         user => console.log(`User ${user} logined`))
-.on('message',    message => console.log(`Message: ${message}`))
+.on('message',          m => console.log(`Message: ${m}`))
 .init()
 ```
 
