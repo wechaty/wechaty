@@ -11,6 +11,16 @@ cache:
   directories:
     - node_modules
 
+services:
+  - docker
+
+before_install:
+  - docker build -t zixia/wechaty .
+
+script:
+  - npm test
+  - docker run zixia/wechaty test
+
 notifications:
   webhooks:
     urls:
