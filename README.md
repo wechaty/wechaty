@@ -5,7 +5,7 @@ Connecting ChatBots.
 
 Wechaty is a Bot Framework for Wechat **Personal** Account.
 
-> Easy creating personal wechat bot in 9 lines of code.
+> Easy creating personal wechat bot in 7 lines of code.
 
 It supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.appveyor.com/project/zixia/wechaty) and [darwin(OSX/Mac)](https://travis-ci.org/zixia/wechaty).
 
@@ -14,15 +14,14 @@ It supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.app
 [![Repo Size](https://reposs.herokuapp.com/?path=zixia/wechaty)]()
 
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=2592000)](https://nodejs.org/)
-[![npm version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty)
 [![dependency status][dependency-image]][dependency-url]
 [![dev dependency status][dev-dependency-image]][dev-dependency-url]
+
+[![npm version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty)
 [![Downloads][downloads-image]][downloads-url]
 
-[![Image Layers](https://badge.imagelayers.io/zixia/wechaty:latest.svg)](https://imagelayers.io/?images=zixia/wechaty:latest 'Get your own badge on imagelayers.io')
 [![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg)](https://hub.docker.com/r/zixia/wechaty/)
-![Docker Stars](https://img.shields.io/docker/stars/zixia/wechaty.svg?maxAge=2592000)
-[![Docker Repository on Quay.io](https://quay.io/repository/zixia/wechaty/status "Docker Repository on Quay.io")](https://quay.io/repository/zixia/wechaty)
+[![Docker Stars](https://img.shields.io/docker/stars/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
 
 # Voice of the Developer
 
