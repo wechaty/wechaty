@@ -19,7 +19,6 @@ before_install:
 
 script:
   - echo $TRAVIS_OS_NAME
-  - echo $GITTER_IM_URL
   - npm test
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then docker run zixia/wechaty test; fi
 
