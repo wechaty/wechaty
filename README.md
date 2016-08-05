@@ -1,4 +1,5 @@
 ![Wechaty](https://raw.githubusercontent.com/zixia/wechaty/master/image/wechaty-logo-en.png)
+
 # Wechaty [![Linux Circle CI](https://circleci.com/gh/zixia/wechaty.svg?style=svg)](https://circleci.com/gh/zixia/wechaty) [![Linux Build Status](https://travis-ci.org/zixia/wechaty.svg?branch=master)](https://travis-ci.org/zixia/wechaty) [![Win32 Build status](https://ci.appveyor.com/api/projects/status/60fgkemki7e6upb9?svg=true)](https://ci.appveyor.com/project/zixia/wechaty)
 
 Connecting ChatBots.
@@ -38,6 +39,7 @@ The following 7 lines of code implement a bot log all message to console:
 ```javascript
 const Wechaty = require('wechaty')
 const bot = new Wechaty()
+
 bot
 .on('scan', ({url, code}) => console.log(`Scan QrCode to login: ${code}\n${url}`))
 .on('login',         user => console.log(`User ${user} logined`))

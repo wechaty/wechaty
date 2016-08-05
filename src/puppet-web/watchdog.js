@@ -39,7 +39,7 @@ function onFeed({
     throw new Error('onFeed() must has `this` of instanceof PuppetWeb')
   }
 
-  process.nextTick(_ => {
+  // process.nextTick(_ => {
     log.verbose('PuppetWebWatchdog', 'onFeed: %s, %d, [%s]', type, timeout, data)
 
     switch (type) {
@@ -57,11 +57,11 @@ function onFeed({
 
     setWatchDogTimer.call(this, timeout)
 
-    this.emit('heartbeat', data + '@' + type)
+    this.emit('heartbeat', type + ':' + data)
 
     monitorScan.call(this, type)
     autoSaveSession.call(this)
-  }) // end nextTick
+  // }) // end nextTick
 
 }
 

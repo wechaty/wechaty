@@ -3,6 +3,7 @@
 const Wechaty = require('..')
 
 const log = Wechaty.log
+
 const welcome = `
 | __        __        _           _
 | \\ \\      / /__  ___| |__   __ _| |_ _   _
@@ -18,14 +19,23 @@ I'm a bot, my super power is download cloud bot from wechaty.io
 
 __________________________________________________
 
-Starting...
 
 `
 
-console.log(welcome)
+let token = process.env.WECHATY_TOKEN
+if (!token) {
+  log.error('Bot', 'token not found: please set WECHATY_TOKEN in environment before run io-bot')
+  // process.exit(-1)
+  log.error('Bot', 'set token to "DEMO" for demo purpose')
+  token = 'DEMO'
+} else {
+  console.log(welcome)
+  log.info('Bot', 'Starting for WECHATY_TOKEN: %s', token)
+}
+
 const bot = new Wechaty({
   profile: 'io-bot'
-  , token: process.env.WECHATY_TOKEN || 'wechaty' // token for wechaty.io auth
+  , token // token for wechaty.io auth
 })
 
 bot

@@ -1,7 +1,7 @@
 {
   "name": "wechaty",
-  "version": "0.3.0",
-  "description": "Wechat for Bot. (Personal Account NOT Official Account)",
+  "version": "0.3.1",
+  "description": "Wechat for Bot (Personal Account)",
   "main": "index.js",
   "scripts": {
     "lint": "eslint src test",
@@ -13,6 +13,9 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/zixia/wechaty.git"
+  },
+  "bin": {
+    "io-bot": "bin/io-bot.js"
   },
   "keywords": [
     "wechat",
