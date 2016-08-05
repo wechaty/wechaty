@@ -69,7 +69,7 @@ $ export TOKEN="your token here"
 $ docker run -e WECHATY_TOKEN="$TOKEN" zixia/wechaty
 ```
 
-`TOKEN` is required here, because you need this key in the next step, to manage wechaty on the chatbot cloud manager: https://www.wechaty.io
+`WECHATY_TOKEN` is required here, because you need this key to manage wechaty on the chatbot cloud manager: https://www.wechaty.io
 
 ## Deploy with Heroku
 
