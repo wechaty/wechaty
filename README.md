@@ -5,21 +5,18 @@ Connecting ChatBots.
 
 Wechaty is a Bot Framework for Wechat **Personal** Account.
 
-> Easy creating personal wechat bot in 7 lines of code.
+> Easy creating personal wechat bot in 7 lines of javascript code.
 
 It supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.appveyor.com/project/zixia/wechaty) and [darwin(OSX/Mac)](https://travis-ci.org/zixia/wechaty).
 
 [![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Coverage Status](https://coveralls.io/repos/github/zixia/wechaty/badge.svg?branch=master)](https://coveralls.io/github/zixia/wechaty?branch=master)
 [![Repo Size](https://reposs.herokuapp.com/?path=zixia/wechaty)]()
-
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=2592000)](https://nodejs.org/)
 [![dependency status][dependency-image]][dependency-url]
 [![dev dependency status][dev-dependency-image]][dev-dependency-url]
-
 [![npm version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty)
 [![Downloads][downloads-image]][downloads-url]
-
 [![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg)](https://hub.docker.com/r/zixia/wechaty/)
 [![Docker Stars](https://img.shields.io/docker/stars/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
 
@@ -62,16 +59,23 @@ Natual Language Understanding enabled by [api.AI](https://api.ai), you can get y
 
 # Deploy
 
-## Deploy with Heroku
-
-TBD
-
-~~Follow [these instructions](https://wechaty.readme.io/docs). Then, [![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)~~
-
 ## Deploy with Docker
 
-TBD
+Wechaty is fully dockerized. So it will be very easy to be deployed as a MicroService. 
 
+```shell
+$ export TOKEN="your token here"
+
+$ docker run -e WECHATY_TOKEN="$TOKEN" zixia/wechaty
+```
+
+`TOKEN` is required here, because you need this key in the next step, to manage wechaty on the chatbot cloud manager: https://www.wechaty.io
+
+## Deploy with Heroku
+
+To Be Fix
+
+~~Follow [these instructions](https://wechaty.readme.io/docs). Then, [![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)~~
 
 # Installation
 
