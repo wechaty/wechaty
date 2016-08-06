@@ -1,16 +1,14 @@
 {
   "name": "wechaty",
-  "version": "0.3.2",
+  "version": "0.3.1",
   "description": "Wechat for Bot (Personal Account)",
   "main": "index.js",
   "scripts": {
-    "build": "echo empty build",
-    "postinstall": "echo postinstall",
     "lint": "eslint src test",
     "pretest": "npm run lint",
     "start": "node bin/io-bot",
     "demo": "node example/ding-dong-bot.js",
-    "test": "cross-env TAP_TIMEOUT=600 tap --reporter=tap test/{*,**/*}.spec.js"
+    "test": "exit 1; cross-env TAP_TIMEOUT=600 tap --reporter=tap test/{*,**/*}.spec.js"
   },
   "repository": {
     "type": "git",

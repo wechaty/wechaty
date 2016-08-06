@@ -29,5 +29,5 @@ notifications:
       - https://registry.hub.docker.com/u/zixia/wechaty/trigger/01585c2b-175b-4d27-b09d-e380a052c17c/
     on_success: always  # options: [always|never|change] default: always
     on_failure: always  # options: [always|never|change] default: always
-    on_start: always     # options: [always|never|change] default: always
+    on_start: never     # options: [always|never|change] default: always
 
