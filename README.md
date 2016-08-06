@@ -59,15 +59,32 @@ Natual Language Understanding enabled by [api.AI](https://api.ai), you can get y
 
 # Deploy
 
-## Deploy with Heroku
-
-TBD
-
-~~Follow [these instructions](https://wechaty.readme.io/docs). Then, [![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)~~
+Use docker to deploy wechaty is highly recommended.
 
 ## Deploy with Docker
 
-TBD
+Wechaty is fully dockerized. So it will be very easy to be deployed as a MicroService. 
+
+```shell
+$ export TOKEN="your token here"
+
+$ docker run -e WECHATY_TOKEN="$TOKEN" zixia/wechaty
+```
+
+`WECHATY_TOKEN` is required here, because you need this key to manage wechaty on the chatbot cloud manager: https://www.wechaty.io
+
+### Build
+
+```shell
+$ docker build -t wechaty .
+```
+
+## Deploy with Heroku
+
+To Be Fix
+
+~~Follow [these instructions](https://wechaty.readme.io/docs). Then, [![Deploy to Heroku](https://www.herokucdn.com/deploy/button.sv
+g)](https://heroku.com/deploy)~~
 
 
 # Installation
