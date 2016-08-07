@@ -17,8 +17,8 @@ It supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.app
 [![dev dependency status][dev-dependency-image]][dev-dependency-url]
 [![Repo Size](https://reposs.herokuapp.com/?path=zixia/wechaty)]()
 [![Downloads][downloads-image]][downloads-url]
-[![Docker Pulls](https://img.shields.io/docker/pulls/mashape/kong.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
-[![Docker Stars](https://img.shields.io/docker/stars/_/ubuntu.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
+[![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
+[![Docker Stars](https://img.shields.io/docker/stars/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
 
 # Voice of the Developer
 
@@ -64,7 +64,7 @@ Use docker to deploy wechaty is highly recommended.
 
 ## Deploy with Docker
 
-[![dockeri.co](http://dockeri.co/image/zixia/wechaty)](https://hub.docker.com/r/zixia/wechaty/)
+[![dockeri.co](//dockeri.co/image/zixia/wechaty)](https://hub.docker.com/r/zixia/wechaty/)
 
 Wechaty is fully dockerized. So it will be very easy to be deployed as a MicroService. 
 
