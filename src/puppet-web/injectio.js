@@ -429,7 +429,7 @@ return (function(port) {
     // })
     window.addEventListener('unload', function(e) {
       // XXX only 1 event can be emitted here???
-      Wechaty.emit('unload', e)
+      Wechaty.emit('unload', String(e))
       // Wechaty.slog('emit unload')
       // Wechaty.emit('logout', e)
       // Wechaty.slog('emit logout')

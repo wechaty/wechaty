@@ -144,9 +144,11 @@ test('Browser session save & load', function(t) {
       , head: HEAD
       , sessionFile: PROFILE
     })
+    t.pass('re-new Browser')
     yield b.init()
+    t.pass('re-init Browser')
     yield b.open()
-    t.pass('re-new/init/open Browser')
+    t.pass('re-open Browser')
 
     yield b.loadSession()
     t.pass('loadSession for new instance of Browser')
