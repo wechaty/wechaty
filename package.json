@@ -8,9 +8,7 @@
     "pretest": "npm run lint",
     "start": "node bin/io-bot",
     "demo": "node example/ding-dong-bot.js",
-    "prepublish": "in-publish && npm shrinkwrap || in-install",
-    "postpublish": "rimraf npm-shrinkwrap.json",
-    "test": "cross-env TAP_TIMEOUT=600 tap --reporter=tap test/**/*.spec.js"
+    "test": "cross-env TAP_TIMEOUT=600 tap --reporter=tap test/{*,**}/*.spec.js"
   },
   "repository": {
     "type": "git",
@@ -48,33 +46,32 @@
     "node": ">= 6.0.0"
   },
   "dependencies": {
-    "body-parser": "latest",
-    "chromedriver": "latest",
-    "co": "latest",
-    "eventemitter2": "latest",
-    "express": "4.13.4",
-    "npmlog": "latest",
-    "phantomjs-prebuilt": "latest",
-    "ps-tree": "latest",
-    "retry-promise": "latest",
-    "selenium-webdriver": "latest",
-    "socket.io": "latest",
-    "ws": "latest"
+    "body-parser": "^1.15.2",
+    "chromedriver": "^2.22.2",
+    "co": "^4.6.0",
+    "eventemitter2": "^2.1.0",
+    "express": "^4.13.4",
+    "npmlog": "^4.0.0",
+    "phantomjs-prebuilt": "^2.1.10",
+    "ps-tree": "^1.0.1",
+    "retry-promise": "^1.0.0",
+    "selenium-webdriver": "^3.0.0-beta-1",
+    "socket.io": "^1.4.8",
+    "ws": "^1.1.1"
   },
   "devDependencies": {
-    "apiai": "latest",
-    "cookie-parser": "latest",
-    "cross-env": "latest",
-    "eslint": "latest",
-    "qrcode-terminal": "latest",
-    "rimraf": "latest",
-    "tap": "latest",
-    "tuling123-client": "latest"
+    "apiai": "^2.0.1",
+    "cookie-parser": "^1.4.3",
+    "cross-env": "^2.0.0",
+    "eslint": "^3.2.2",
+    "qrcode-terminal": "^0.10.0",
+    "rimraf": "^2.5.4",
+    "tap": "^6.3.0",
+    "tuling123-client": "0.0.1"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [
     "package.json",
-    "npm-shrinkwrap.json",
     "README.md",
     "CHANGELOG",
     "LICENSE",
