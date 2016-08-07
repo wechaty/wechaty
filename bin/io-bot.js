@@ -22,7 +22,9 @@ __________________________________________________
 
 `
 
+const profile = process.env.WECHATY_PROFILE || 'io-bot'
 let token = process.env.WECHATY_TOKEN
+
 if (!token) {
   log.error('Bot', 'token not found: please set WECHATY_TOKEN in environment before run io-bot')
   // process.exit(-1)
@@ -34,7 +36,7 @@ if (!token) {
 }
 
 const bot = new Wechaty({
-  profile: 'io-bot'
+  profile
   , token // token for wechaty.io auth
 })
 
