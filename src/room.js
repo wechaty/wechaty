@@ -96,6 +96,11 @@ Room.load = function(id) {
   }
   return Room.pool[id] = new Room(id)
 }
-Room.attach = function(puppet) { Room.puppet = puppet }
+Room.attach = function(puppet) {
+  // if (!puppet) {
+  //   throw new Error('Room.attach got no puppet to attach!')
+  // }
+  Room.puppet = puppet
+}
 
 module.exports = Room
