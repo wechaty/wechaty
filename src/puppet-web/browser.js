@@ -122,6 +122,8 @@ class Browser extends EventEmitter {
       phantomjsArgs.push('--remote-debugger-port=8080') // XXX: be careful when in production env.
       phantomjsArgs.push('--webdriver-loglevel=DEBUG')
       // phantomjsArgs.push('--webdriver-logfile=webdriver.debug.log')
+    } else {
+      phantomjsArgs.push('--webdriver-loglevel=ERROR')
     }
 
     const customPhantom = WebDriver.Capabilities.phantomjs()
