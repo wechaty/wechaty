@@ -70,7 +70,7 @@ test('Browser class cookie smoking tests', function(t) {
   })
   .then(r => {    // Finally
     b.quit()
-    t.end()
+    .then(_ => t.end())
   })
   .catch(e => {   // Exception
     t.fail('Exception:' + e)
@@ -166,7 +166,8 @@ test('Browser session save & load', function(t) {
     t.fail(e)
   })
   .then(r => {                // Finally
-    b.quit().then(t.end)
+    b.quit()
+    .then(t.end)
   })
   .catch(e => { t.fail(e) })  // Exception
 })
