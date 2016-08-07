@@ -96,7 +96,7 @@ test('Browser session save & load', function(t) {
       name: 'wechaty_save_to_session'
       , value: '### This cookie should be saved to session file, and load back at next PuppetWeb init  ###'
       , path: '/'
-      , domain: '.qq.com'
+      , domain: '.wx.qq.com'
       , secure: false
       , expiry: 99999999999999
     }
