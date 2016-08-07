@@ -52,7 +52,7 @@
     "chromedriver": "latest",
     "co": "latest",
     "eventemitter2": "latest",
-    "express": "latest",
+    "express": "4.13.4",
     "npmlog": "latest",
     "phantomjs-prebuilt": "latest",
     "ps-tree": "latest",
