@@ -17,7 +17,8 @@ It supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.app
 [![dev dependency status][dev-dependency-image]][dev-dependency-url]
 [![Repo Size](https://reposs.herokuapp.com/?path=zixia/wechaty)]()
 [![Downloads][downloads-image]][downloads-url]
-
+[![Docker Pulls](https://img.shields.io/docker/pulls/mashape/kong.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
+[![Docker Stars](https://img.shields.io/docker/stars/_/ubuntu.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
 
 # Voice of the Developer
 

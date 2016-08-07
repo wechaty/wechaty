@@ -26,7 +26,7 @@ let token = process.env.WECHATY_TOKEN
 if (!token) {
   log.error('Bot', 'token not found: please set WECHATY_TOKEN in environment before run io-bot')
   // process.exit(-1)
-  log.error('Bot', 'set token to "DEMO" for demo purpose')
+  log.warn('Bot', 'set token to "DEMO" for demo purpose')
   token = 'DEMO'
 } else {
   console.log(welcome)

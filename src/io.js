@@ -67,10 +67,17 @@ class Io {
       }
       log.verbose('Io', 'initWebSocket() connected with protocol [%s]', ws.protocol)
 
-      ws._socket.setKeepAlive(true, 30000)
+      // FIXME: how to keep alive???
+      ws._socket.setKeepAlive(true, 100)
 
       this.reconnectTimeout = null
-      ws.send('Wechaty version ' + this.wechaty.version())
+
+      const initEvent = {
+        name: 'sys'
+        , payload: 'Wechaty version ' + this.wechaty.version()
+      }
+      this.send(initEvent)
+      
     }.bind(this))
 
     ws.on('message', (data, flags) => {
@@ -114,11 +121,6 @@ class Io {
           log.warn('Io', 'on(shutdown): %s', ioEvent.payload)
           process.exit(0)
           break
-          
-        case 'logout':
-          log.verbose('Io', 'on(logout): %s', ioEvent.payload)
-          this.wechaty.logout()
-          break          
 
         case 'update':
           log.verbose('Io', 'on(report): %s', ioEvent.payload)
@@ -152,17 +154,19 @@ class Io {
       }
     })
 
-    ws
-    .on('close', e => {
-      log.verbose('Io', 'initWebSocket() close event[%s]', e)
-      ws.close()
-      this.reconnect()
-    })
-    .on('error', e => {
-      log.verbose('Io', 'initWebSocket() error event[%s]', e.message)
+    ws.on('error', e => {
+      log.warn('Io', 'initWebSocket() error event[%s]', e.message)
       this.wechaty.emit('error', e)
 
-      this.close()
+      // when `error`, there must have already a `close` event
+      // we should not call this.reconnect() again
+      //
+      // this.close()
+      // this.reconnect()
+    })
+    .on('close', (code, message) => {
+      log.warn('Io', 'initWebSocket() close event[%d: %s]', code, message)
+      ws.close()
       this.reconnect()
     })
 
@@ -172,20 +176,24 @@ class Io {
   reconnect() {
     if (this.connected()) {
       log.warn('Io', 'reconnect() on a already connected io')
-    } else if (this.reconnectTimer) {
-      log.warn('Io', 'reconnect() on a already re-connecting io')
-    } else {
-      if (!this.reconnectTimeout) {
-        this.reconnectTimeout = 100
-      } else if (this.reconnectTimeout < 10000) {
-        this.reconnectTimeout *= 2
-      }
-      log.warn('Io', 'reconnect() will reconnect after %d s', Math.floor(this.reconnectTimeout/1000))
-      this.reconnectTimer = setTimeout(_ => {
-        this.reconnectTimer = null
-        this.initWebSocket()
-      }, this.reconnectTimeout)
+      return
     }
+    if (this.reconnectTimer) {
+      log.warn('Io', 'reconnect() on a already re-connecting io')
+      return
+    }
+
+    if (!this.reconnectTimeout) {
+      this.reconnectTimeout = 1
+    } else if (this.reconnectTimeout < 10000) {
+      this.reconnectTimeout *= 3
+    }
+    
+    log.warn('Io', 'reconnect() will reconnect after %d s', Math.floor(this.reconnectTimeout/1000))
+    this.reconnectTimer = setTimeout(_ => {
+      this.reconnectTimer = null
+      this.initWebSocket()
+    }, this.reconnectTimeout)
   }
 
   initEventHook() {
