@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.3.3",
+  "version": "0.3.5",
   "description": "Wechat for Bot (Personal Account)",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,8 @@
     "pretest": "npm run lint",
     "start": "node bin/io-bot",
     "demo": "node example/ding-dong-bot.js",
-    "test": "cross-env TAP_TIMEOUT=600 tap --reporter=tap test/{*,**/*}.spec.js"
+    "prepublish": "npm shrinkwrap",
+    "test": "cross-env TAP_TIMEOUT=600 tap --reporter=tap test/**/*.spec.js"
   },
   "repository": {
     "type": "git",

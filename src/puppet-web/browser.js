@@ -254,7 +254,7 @@ class Browser extends EventEmitter {
   addCookies(cookie) {
     if (this.dead()) { return Promise.reject(new Error('addCookies() - browser dead'))}
 
-    if (cookie.map) {
+    if (typeof cookie.map === 'function') {
       return cookie.map(c => {
         return this.addCookies(c)
       })
@@ -265,15 +265,16 @@ class Browser extends EventEmitter {
      * NOTICE: the lastest branch of selenium-webdriver for js has changed the interface of addCookie:
      * https://github.com/SeleniumHQ/selenium/commit/02f407976ca1d516826990f11aca7de3c16ba576
      */
-    if (cookie.expiry) { cookie.expiry = cookie.expiry * 1000 /* XXX: be aware of new version of webdriver */}
+    // if (cookie.expiry) { cookie.expiry = cookie.expiry * 1000 /* XXX: be aware of new version of webdriver */}
 
-    log.silly('PuppetWebBrowser', 'addCookies("%s", "%s", "%s", "%s", "%s", "%s")'
-      , cookie.name, cookie.value, cookie.path, cookie.domain, cookie.secure, cookie.expiry
-    )
+    log.silly('PuppetWebBrowser', 'addCookies("%s")', JSON.stringify(cookie))
 
     return this.driver.manage()
-    .addCookie(cookie.name, cookie.value, cookie.path
-      , cookie.domain, cookie.secure, cookie.expiry)
+    // this is old webdriver format
+    // .addCookie(cookie.name, cookie.value, cookie.path
+    //   , cookie.domain, cookie.secure, cookie.expiry)
+    // thisi is new webdriver format
+    .addCookie(cookie)
     .catch(e => {
       log.warn('PuppetWebBrowser', 'addCookies() exception: %s', e.message)
       throw e
@@ -400,20 +401,24 @@ class Browser extends EventEmitter {
 
     const filename = this.sessionFile
 
+    function cookieFilter(cookies) {
+      const skipNames = [
+        'ChromeDriver'
+        , 'MM_WX_SOUND_STATE'
+        , 'MM_WX_NOTIFY_STATE'
+      ]
+      const skipNamesRegex = new RegExp(skipNames.join('|'), 'i')
+      return cookies.filter(c => {
+        if (skipNamesRegex.test(c.name)) { return false }
+        // else if (!/wx\.qq\.com/i.test(c.domain))  { return false }
+        else                             { return true }
+      })
+    }
+  
     return new Promise((resolve, reject) => {
       this.driver.manage().getCookies()
-      .then(allCookies => {
-        const skipNames = [
-          'ChromeDriver'
-          , 'MM_WX_SOUND_STATE'
-          , 'MM_WX_NOTIFY_STATE'
-        ]
-        const skipNamesRegex = new RegExp(skipNames.join('|'), 'i')
-        const cookies = allCookies.filter(c => {
-          if (skipNamesRegex.test(c.name)) { return false }
-          // else if (!/wx\.qq\.com/i.test(c.domain))  { return false }
-          else                             { return true }
-        })
+      .then(cookieFilter)
+      .then(cookies => {
         // log.silly('PuppetWeb', 'saving %d cookies for session: %s', cookies.length
         //   , util.inspect(cookies.map(c => { return {name: c.name /*, value: c.value, expiresType: typeof c.expires, expires: c.expires*/} })))
         log.silly('PuppetWebBrowser', 'saving %d cookies for session: %s', cookies.length, cookies.map(c => c.name).join(','))
