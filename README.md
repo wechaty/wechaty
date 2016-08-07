@@ -549,7 +549,7 @@ Github Issue - https://github.com/zixia/wechaty/issues
 1. [Weixinbot](https://github.com/feit/Weixinbot) Nodejs 封装网页版微信的接口，可编程控制微信消息
 1. [wechatBot](https://github.com/stonexer/wechatBot) 面向个人的微信 wechat 机器人平台 - 使用微信网页版接口wechat4u
 1. [Wechat4U](https://github.com/nodeWechat/wechat4u) 微信 wechat web 网页版接口的 JavaScript 实现，兼容Node和浏览器
-2. [正在组装中的微信机器人](https://github.com/HalfdogStudio/wechat-user-bot)
+2. [wechat-user-bot](https://github.com/HalfdogStudio/wechat-user-bot) 正在组装中的微信机器人
 
 ### Perl
 1. [MojoWeixin](https://github.com/sjdy521/Mojo-Weixin) 使用Perl语言编写的微信客户端框架，基于Mojolicious，要求Perl版本5.10+，可通过插件提供基于HTTP协议的api接口供其他语言或系统调用
