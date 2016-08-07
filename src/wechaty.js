@@ -12,6 +12,7 @@ const EventEmitter  = require('events')
 const co            = require('co')
 
 const log           = require('./npmlog-env')
+const Util          = require('./util')
 
 class Wechaty extends EventEmitter {
 
@@ -36,6 +37,8 @@ class Wechaty extends EventEmitter {
 
     this.npmVersion = require('../package.json').version
 
+    this.uuid = Util.guid()
+    
     this.inited = false
   }
 
@@ -226,6 +229,7 @@ class Wechaty extends EventEmitter {
       getPort(okPort => resolve(okPort))
     })
   }
+
 }
 
 const Message = require('./message')

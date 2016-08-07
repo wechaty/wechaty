@@ -11,8 +11,8 @@ const co = require('co')
 const Contact = require('./contact')
 const Room    = require('./room')
 
-const webUtil  = require('./web-util')
-const log       = require('./npmlog-env')
+const Util  = require('./util')
+const log   = require('./npmlog-env')
 
 class Message {
   constructor(rawObj) {
@@ -52,7 +52,7 @@ class Message {
     return obj
   }
   toString() {
-    return webUtil.plainText(this.obj.content)
+    return Util.plainText(this.obj.content)
   }
   toStringDigest() {
     const text = webUtil.digestEmoji(this.obj.digest)
@@ -71,7 +71,7 @@ class Message {
     return '<' + name + (room ? `@${room}` : '') + '>'
   }
   getContentString() {
-    let content = webUtil.plainText(this.obj.content)
+    let content = Util.plainText(this.obj.content)
     if (content.length > 20) { content = content.substring(0,17) + '...' }
     return '{' + this.type() + '}' + content
   }

@@ -30,8 +30,9 @@ class Io {
     this.wechaty  = wechaty
     this.token    = token
     this.endpoint = endpoint
-    this.protocol = protocol
-    log.verbose('Io', 'instantiated with endpoint[%s], token[%s], protocol[%s]', endpoint, token, protocol)
+    
+    this.protocol = protocol + '|' + wechaty.uuid
+    log.verbose('Io', 'instantiated with endpoint[%s], token[%s], protocol[%s], uuid[%s]', endpoint, token, protocol, this.uuid)
   }
 
   toString() { return 'Class Io(' + this.token + ')'}
@@ -74,7 +75,7 @@ class Io {
 
       const initEvent = {
         name: 'sys'
-        , payload: 'Wechaty version ' + this.wechaty.version()
+        , payload: 'Wechaty version ' + this.wechaty.version() + ` with UUID: ${this.uuid}`
       }
       this.send(initEvent)
       
@@ -227,6 +228,13 @@ class Io {
             ioEvent.payload = data.toString()
             break
 
+          case 'heartbeat':
+            ioEvent.payload = {
+              uuid: this.uuid
+              , data: data
+            }
+            break
+            
           default:
             break
         }
@@ -277,6 +285,7 @@ class Io {
   ioMessage(m) {
     log.verbose('Io', 'ioMessage() is a nop function before be overwriten from cloud')
   }
+  
 }
 
 /**

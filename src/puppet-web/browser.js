@@ -92,8 +92,9 @@ class Browser extends EventEmitter {
       // XXX: if no `setTimeout()` here, promise will hang forever!
       // with a confirmed bug in selenium-webdriver v2.53.2:
       // https://github.com/SeleniumHQ/selenium/issues/2233
-      setTimeout(() => { resolve(this.driver) }, 0)
-      // resolve(this.driver)
+      // FIXED: selenium v3 released 20160807
+      // setTimeout(() => { resolve(this.driver) }, 0)
+      resolve(this.driver)
     })
   }
 
@@ -135,9 +136,14 @@ class Browser extends EventEmitter {
     log.silly('PuppetWebBrowser', 'phantomjs binary: ' + phantomjsExe)
     log.silly('PuppetWebBrowser', 'phantomjs args: ' + phantomjsArgs.join(' '))
 
-    return new WebDriver.Builder()
+    const driver = new WebDriver.Builder()
     .withCapabilities(customPhantom)
     .build()
+    
+    // https://github.com/detro/ghostdriver/blob/f976007a431e634a3ca981eea743a2686ebed38e/src/session.js#L233
+    // driver.manage().timeouts().pageLoadTimeout(2000)
+    
+    return driver
   }
 
   quit() {

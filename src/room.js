@@ -6,8 +6,8 @@
  * https://github.com/zixia/wechaty
  *
  */
-const log       = require('./npmlog-env')
-const webUtil  = require('./web-util')
+const log   = require('./npmlog-env')
+const Util  = require('./util')
 
 class Room {
   constructor(id) {
@@ -46,7 +46,7 @@ class Room {
     })
   }
 
-  name() { return webUtil.plainText(this.obj.name) }
+  name() { return Util.plainText(this.obj.name) }
   get(prop) { return this.obj[prop] }
 
   parse(rawObj) {

@@ -6,8 +6,8 @@
  * https://github.com/zixia/wechaty
  *
  */
-const log       = require('./npmlog-env')
-const webUtil  = require('./web-util')
+const log   = require('./npmlog-env')
+const Util  = require('./util')
 
 class Contact {
   constructor(id) {
@@ -40,8 +40,8 @@ class Contact {
       , stranger:   !!rawObj.stranger // assign by injectio.js
     }
   }
-
-  name()    { return webUtil.plainText(this.obj.name) }
+  
+  name()    { return Util.plainText(this.obj.name) }
   remark()  { return this.obj.remark }
   stranger()    { return this.obj.stranger }
   star()        { return this.obj.star }
