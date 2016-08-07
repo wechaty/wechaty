@@ -64,6 +64,8 @@ Use docker to deploy wechaty is highly recommended.
 
 ## Deploy with Docker
 
+[![dockeri.co](http://dockeri.co/image/zixia/wechaty)](https://hub.docker.com/r/zixia/wechaty/)
+
 Wechaty is fully dockerized. So it will be very easy to be deployed as a MicroService. 
 
 ```shell
