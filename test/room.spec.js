@@ -5,9 +5,10 @@ const Contact = require('../src/contact')
 const Puppet = require('../src/puppet')
 const log = require('../src/npmlog-env')
 
-Room.attach(new Puppet())
 
 test('Room smoke testing', t => {
+  Room.attach(new Puppet())
+
   const UserName = '@0bb3e4dd746fdbd4a80546aef66f4085'
   const NickName = 'Nick Name Test'
   const EncryChatRoomId = '123456abcdef'
@@ -60,24 +61,24 @@ test('Room smoke testing', t => {
 })
 */
 
-test('TBW: Message static method', t => {
-  Contact.attach(new Puppet())
+test('TBW: Room static method', t => {
+  Room.attach(new Puppet())
 
-  const m = Message.find({
+  const r = Room.find({
     id: 'xxx'
   }, {
     limit: 1
   })
 
-  t.ok(m.get('id'), 'Message.find')
+  t.ok(r.id, 'Room.find')
 
-  const ms = Message.findAll({
+  const rs = Room.findAll({
     from: 'yyy'
   }, {
     limit: 2
   })
 
-  t.equal(ms.length, 2, 'Message.findAll with limit 2')
+  t.equal(rs.length, 2, 'Room.findAll with limit 2')
 
   t.end()
 })

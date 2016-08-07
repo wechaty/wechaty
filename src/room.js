@@ -80,9 +80,14 @@ class Room {
   }
 
   static find() {
+    return new Room('-1')
   }
-
+  
   static findAll() {
+    return [
+      new Room('-2')
+      , new Room('-3')
+    ]
   }
 }
 

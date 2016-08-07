@@ -81,8 +81,16 @@ class Contact {
     Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj[k]}`))
   }
 
-  static find() {  }
-  static findAll() {  }
+  static find() {
+    return new Contact('-1')
+  }
+  
+  static findAll() {
+    return [
+      new Contact   ('-2')
+      , new Contact ('-3')
+    ]
+  }
 }
 
 Contact.init = function() { Contact.pool = {} }
