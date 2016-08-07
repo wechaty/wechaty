@@ -179,8 +179,8 @@ class Browser extends EventEmitter {
 
     /**
      * max = (2*totalTime/backoff) ^ (1/2)
-     * timeout = 11250 for {max: 15, backoff: 100}
      * timeout = 45000 for {max: 30, backoff: 100}
+     * timeout = 11250 for {max: 15, backoff: 100}
      */
     const timeout = max * (backoff * max) / 2
 
@@ -208,6 +208,8 @@ class Browser extends EventEmitter {
   }
 
   getBrowserPids() {
+    log.silly('Browser', 'getBrowserPids()')
+    
     return new Promise((resolve, reject) => {
       require('ps-tree')(process.pid, (err, children) => {
         if (err) {
@@ -235,6 +237,7 @@ class Browser extends EventEmitter {
 
         let matchRegex = new RegExp(browserRe, 'i')
         const pids = children.filter(child => {
+          log.verbose('Browser', 'getBrowserPids() child: %s', JSON.stringify(child))
           // https://github.com/indexzero/ps-tree/issues/18
           return matchRegex.test('' + child.COMMAND + child.COMM)
         })
