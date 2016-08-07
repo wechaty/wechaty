@@ -187,7 +187,7 @@ class Browser extends EventEmitter {
     const timeout = max * (backoff * max) / 2
 
     return retryPromise({ max: max, backoff: backoff }, attempt => {
-      log.silly('PuppetWebBrowser', 'clean() retryPromise: attampt %s time for timeout %s'
+      log.silly('PuppetWebBrowser', 'clean() retryPromise: attempt %s time for timeout %s'
         , attempt,  timeout)
 
       return new Promise((resolve, reject) => {
@@ -195,7 +195,7 @@ class Browser extends EventEmitter {
         .then(pids => {
           if (pids.length === 0) {
             log.verbose('PuppetWebBrowser', 'clean() retryPromise() resolved')
-            resolve('clean() no browser process, confirm clean')
+            resolve('clean() browser process not found, at attemp#' + attempt)
           } else {
             reject(new Error('clean() found browser process, not clean, dirty'))
           }

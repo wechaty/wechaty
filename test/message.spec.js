@@ -1,4 +1,4 @@
-const test = require('tap').test
+const test = require('tape')
 const Message = require('../src/message')
 const Contact = require('../src/contact')
 const Puppet = require('../src/puppet')
@@ -81,7 +81,7 @@ test('Message ready() promise testing', t => {
     t.equal(tc.get('name') , expectedToNickName  , 'contact ready for ToNickName')
   })
   .catch(e => t.fail('m.ready() rejected: ' + e))
-  .then(t.end) // test end
+  .then(_ => t.end()) // test end
 })
 
 test('TBW: Message static method', t => {

@@ -1,4 +1,4 @@
-const test = require('tap').test
+const test = require('tape')
 const Contact = require('../src/contact')
 const Puppet = require('../src/puppet')
 
@@ -35,5 +35,5 @@ test('Contact smoke testing', t => {
     t.equal(typeof s, 'string', 'toString()')
   })
   .catch(e => t.fail('ready() rejected: ' + e))
-  .then(t.end) // test end
+  .then(_ => t.end()) // test end
 })

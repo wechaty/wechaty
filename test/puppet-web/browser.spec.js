@@ -1,5 +1,5 @@
 const co = require('co')
-const test = require('tap').test
+const test = require('tape')
 
 const log = require('../../src/npmlog-env')
 
@@ -167,7 +167,7 @@ test('Browser session save & load', function(t) {
   })
   .then(r => {                // Finally
     b.quit()
-    .then(t.end)
+    .then(_ => t.end())
   })
   .catch(e => { t.fail(e) })  // Exception
 })

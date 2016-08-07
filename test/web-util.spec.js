@@ -1,6 +1,6 @@
 'use strict'
 
-const test   = require('tap').test
+const test   = require('tape')
 
 const log       = require('../src/npmlog-env')
 const webUtil  = require('../src/web-util')

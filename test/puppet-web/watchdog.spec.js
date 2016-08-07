@@ -1,6 +1,6 @@
 const co    = require('co')
 const util  = require('util')
-const test  = require('tap').test
+const test  = require('tape')
 const retryPromise = require('retry-promise').default
 
 const log = require('../../src/npmlog-env')
@@ -59,7 +59,7 @@ test('Puppet Web watchdog timer', function(t) {
   })
   .then(() => { // Finally
     pw.quit()
-    .then(t.end)
+    .then(_ => t.end())
   })
 
   return

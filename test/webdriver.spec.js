@@ -2,7 +2,7 @@
 
 const path  = require('path')
 const co    = require('co')
-const test   = require('tap').test
+const test   = require('tape')
 
 const log   = require('../src/npmlog-env')
 
@@ -38,7 +38,7 @@ test('WebDriver process create & quit test', function(t) {
     t.equal(pids.length, 0, 'no driver process after quit')
   })
   .catch(e => { t.fail(e) })
-  .then(t.end.bind(t))
+  .then(_ => t.end())
 
   return
 })

@@ -1,5 +1,5 @@
 const https = require('https')
-const test  = require('tap').test
+const test  = require('tape')
 const co    = require('co')
 
 const log = require('../../src/npmlog-env')

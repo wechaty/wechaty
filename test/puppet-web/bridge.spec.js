@@ -1,5 +1,5 @@
 const co = require('co')
-const test = require('tap').test
+const test = require('tape')
 
 const Browser = require('../../src/puppet-web/browser')
 const Bridge  = require('../../src/puppet-web/bridge')

@@ -1,4 +1,4 @@
-const test = require('tap').test
+const test = require('tape')
 const log = require('../src/npmlog-env')
 
 test('Wechaty Framework', function(t) {

@@ -8,7 +8,7 @@
     "pretest": "npm run lint",
     "start": "node bin/io-bot",
     "demo": "node example/ding-dong-bot.js",
-    "test": "cross-env TAP_TIMEOUT=600 tap --reporter=tap test/{*,**}/*.spec.js"
+    "test": "cross-env LC_ALL=C TAP_TIMEOUT=600 tape test/**/*.spec.js"
   },
   "repository": {
     "type": "git",
@@ -65,8 +65,7 @@
     "cross-env": "^2.0.0",
     "eslint": "^3.2.2",
     "qrcode-terminal": "^0.10.0",
-    "rimraf": "^2.5.4",
-    "tap": "^6.3.0",
+    "tape": "^4.6.0",
     "tuling123-client": "0.0.1"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",

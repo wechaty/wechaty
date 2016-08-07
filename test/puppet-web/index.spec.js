@@ -1,6 +1,6 @@
 const co    = require('co')
 const util  = require('util')
-const test  = require('tap').test
+const test  = require('tape')
 const retryPromise = require('retry-promise').default
 
 const log = require('../../src/npmlog-env')
@@ -61,7 +61,7 @@ false && test('PuppetWeb smoke testing', function(t) {
   .then(r => {            // Finally 1
     // log.warn('TestPuppetWeb', 'finally()')
     pw.quit()
-    .then(t.end)
+    .then(_ => t.end())
   })
   .catch(e => t.fail(e))  // Exception
 })
@@ -85,7 +85,7 @@ test('Puppet Web server/browser communication', function(t) {
   })
   .then(r => {  // Finally
     pw.quit()
-    .then(t.end)
+    .then(_ => t.end())
   })
   .catch(e => { t.fail(e) })  // Exception
 

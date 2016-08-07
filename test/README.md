@@ -313,7 +313,7 @@ mkdir b
 cd b
 
 cat > bug.js <<__CODE__
-const test  = require('tap').test
+const test  = require('tape')
 const func = require('../w.js')
 
 test('func param test', function(t) {
