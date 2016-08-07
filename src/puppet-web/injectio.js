@@ -447,7 +447,7 @@ return (function(port) {
         log('socket io lib loaded.')
         connectSocket()
       }
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js'
+      script.src = '//cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js'
       document.getElementsByTagName('head')[0].appendChild(script)
       return // wait to be called via script.onload()
     }

@@ -205,8 +205,8 @@ class Io {
       'scan'
       , 'login'
       , 'logout'
-      , 'error'
       , 'heartbeat'
+      , 'error'
     ]
     hookEvents.map(event => {
       wechaty.on(event, data => {
@@ -223,6 +223,10 @@ class Io {
             }
             break
           
+          case 'error':
+            ioEvent.payload = data.toString()
+            break
+
           default:
             break
         }

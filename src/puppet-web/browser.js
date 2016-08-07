@@ -239,7 +239,7 @@ class Browser extends EventEmitter {
 
         let matchRegex = new RegExp(browserRe, 'i')
         const pids = children.filter(child => {
-          log.verbose('Browser', 'getBrowserPids() child: %s', JSON.stringify(child))
+          log.silly('Browser', 'getBrowserPids() child: %s', JSON.stringify(child))
           // https://github.com/indexzero/ps-tree/issues/18
           return matchRegex.test('' + child.COMMAND + child.COMM)
         })
