@@ -470,7 +470,7 @@ Know more about TAP: [Why I use Tape Instead of Mocha & So Should You](https://m
 
 # Version History
 
-## v0.3.2 (master)
+## v0.3.9 (master)
 1. Managed by Cloud Manager: https://app.wechaty.io
 1. Dockerized & Published to docker hub as: [zixia/wechaty](https://hub.docker.com/r/zixia/wechaty/)
 1. add `reset` & `shutdown` to IO Event

@@ -48,5 +48,5 @@ coverage
 
 # Other staff
 0
-t.js
+t/
 .DS_Store
