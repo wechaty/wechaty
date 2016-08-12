@@ -61,7 +61,7 @@ function downloadStream(url, cookies) {
 
   // 'pgv_pvi=6639183872; pgv_si=s8359147520; webwxuvid=747895d9dac5a25dd3a78175a5e931d879e026cacaf3ac06de0bd5f071470e7182fa36f7f1f0477ae5ee9266f741999a; mm_lang=zh_CN; MM_WX_NOTIFY_STATE=1; MM_WX_SOUND_STATE=1; wxloadtime=1465928826_expired; wxpluginkey=1465901102; wxuin=1211516682; wxsid=zMT7Gb24aTQzB1rA; webwx_data_ticket=gSeBbuhX+0kFdkXbgeQwr6Ck'
   options.headers.Cookie = cookies.map(c => `${c.name}=${c.value}`).join('; ')
-  // log.verbose('WebUtil', 'Cookie: %s', options.headers.Cookie)
+  // log.verbose('Util', 'Cookie: %s', options.headers.Cookie)
 
   return new Promise((resolve, reject) => {
     const req = http.request(options, (res) => {
