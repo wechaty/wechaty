@@ -63,7 +63,7 @@
     "apiai": "^2.0.1",
     "cookie-parser": "^1.4.3",
     "cross-env": "^2.0.0",
-    "eslint": "^3.2.2",
+    "eslint": "^3.3.0",
     "qrcode-terminal": "^0.10.0",
     "tape": "^4.6.0",
     "tuling123-client": "0.0.1"
