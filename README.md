@@ -610,4 +610,3 @@ Copyright & License
 [dev-dependency-image]: https://img.shields.io/david/dev/zixia/wechaty.svg
 [dev-dependency-url]: https://david-dm.org/zixia/wechaty#info=devDependencies
 
-
