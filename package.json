@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.3.8",
+  "version": "0.3.9",
   "description": "Wechat for Bot (Personal Account)",
   "main": "index.js",
   "scripts": {
@@ -47,12 +47,12 @@
   },
   "dependencies": {
     "body-parser": "^1.15.2",
-    "chromedriver": "^2.22.2",
+    "chromedriver": "^2.23.0",
     "co": "^4.6.0",
     "eventemitter2": "^2.1.0",
     "express": "^4.13.4",
     "npmlog": "^4.0.0",
-    "phantomjs-prebuilt": "^2.1.10",
+    "phantomjs-prebuilt": "^2.1.12",
     "ps-tree": "^1.0.1",
     "retry-promise": "^1.0.0",
     "selenium-webdriver": "^3.0.0-beta-1",
@@ -63,7 +63,7 @@
     "apiai": "^2.0.1",
     "cookie-parser": "^1.4.3",
     "cross-env": "^2.0.0",
-    "eslint": "^3.2.2",
+    "eslint": "^3.3.0",
     "qrcode-terminal": "^0.10.0",
     "tape": "^4.6.0",
     "tuling123-client": "0.0.1"
