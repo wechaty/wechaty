@@ -43,7 +43,7 @@ const bot = new Wechaty({
 bot
 .on('login'	  , user => log.info('Bot', `${user.name()} logined`))
 .on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
-.on('scan'    , ({url, code}) => log.info('Bot', `[${code}] Scan QR Code in url to login: ${url}`))
+.on('scan'    , ({url, code}) => log.info('Bot', '[%d] %s <-- Scan QR Code in url to login', code, url))
 .on('message', m => {
   m.ready()
     .then(onMessage)
@@ -63,17 +63,16 @@ const onMessage = function(m) {
   const content = m.toString()
   const room = m.room()
 
-  log.info('Bot', '%s<%s>:%s'
-                , (room ? '['+room.name()+']' : '')
-                , from.name()
-                , m.toStringDigest()
-          )
+  // log.info('Bot', '%s<%s>:%s'
+  //               , (room ? '['+room.name()+']' : '')
+  //               , from.name()
+  //               , m.toStringDigest()
+  //         )
 
-  if (/^ding$/i.test(m.get('content')) && !bot.self(m)) {
-    bot.reply(m, 'dong')
-        .then(() => { log.info('Bot', 'REPLY: dong') })
+  if (/^wechaty|botie/i.test(m.get('content')) && !bot.self(m)) {
+    bot.reply(m, 'https://www.wechaty.io')
+      .then(_ => log.info('Bot', 'REPLIED to magic word "wechaty"'))
   }
-
 }
 /**
  *
