@@ -124,8 +124,11 @@ class Browser extends EventEmitter {
       phantomjsArgs.push('--webdriver-loglevel=DEBUG')
       // phantomjsArgs.push('--webdriver-logfile=webdriver.debug.log')
     } else {
-      phantomjsArgs.push('--webdriver-loglevel=ERROR')
-      // phantomjsArgs.push('--webdriver-loglevel=NONE')
+      if (log && log.level === 'silent') {
+        phantomjsArgs.push('--webdriver-loglevel=NONE')
+      } else {
+        phantomjsArgs.push('--webdriver-loglevel=ERROR')
+      }
     }
 
     const customPhantom = WebDriver.Capabilities.phantomjs()
