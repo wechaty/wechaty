@@ -7,6 +7,7 @@ test('Wechaty Framework', function(t) {
   t.ok(Wechaty.Message    , 'should export Wechaty.Message')
   t.ok(Wechaty.Contact    , 'should export Wechaty.Contact')
   t.ok(Wechaty.Room       , 'should export Wechaty.Room')
+  t.ok(Wechaty.IoBot      , 'should export Wechaty.IoBot')
 
   // t.ok(Wechaty.Puppet     , 'should export Wechaty.Puppet')
   // t.ok(Wechaty.Puppet.Web , 'should export Wechaty.Puppet.Web')
