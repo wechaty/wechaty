@@ -1,11 +1,11 @@
 ![Wechaty](https://raw.githubusercontent.com/zixia/wechaty/master/image/wechaty-logo-en.png)
-# Wechaty [![Linux Circle CI](https://circleci.com/gh/zixia/wechaty.svg?style=svg)](https://circleci.com/gh/zixia/wechaty) [![Linux Build Status](https://travis-ci.org/zixia/wechaty.svg?branch=master)](https://travis-ci.org/zixia/wechaty) [![Win32 Build status](https://ci.appveyor.com/api/projects/status/60fgkemki7e6upb9?svg=true)](https://ci.appveyor.com/project/zixia/wechaty)
+# Wechaty [![Linux Circle CI](https://circleci.com/gh/zixia/wechaty.svg?style=svg)](https://circleci.com/gh/zixia/wechaty) [![Linux Build Status](https://img.shields.io/travis/zixia/wechaty.svg?maxAge=2592000&label=Linux/Mac%20Tests)](https://travis-ci.org/zixia/wechaty) [![Win32 Build status](https://img.shields.io/appveyor/ci/zixia/wechaty/master.svg?label=Windows%20Tests)](https://ci.appveyor.com/project/zixia/wechaty)
 
 Connecting ChatBots.
 
 Wechaty is a Bot Framework for Wechat **Personal** Account.
 
-> Easy creating personal wechat bot in 9 lines of code.
+> Easy creating personal wechat bot in 7 lines of code.
 
 It supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.appveyor.com/project/zixia/wechaty) and [darwin(OSX/Mac)](https://travis-ci.org/zixia/wechaty).
 
@@ -81,6 +81,14 @@ $ docker run -e WECHATY_TOKEN="$TOKEN" zixia/wechaty
 ```shell
 $ docker build -t wechaty .
 ```
+
+### Ship
+
+Wechaty can be used via: Container as a Service
+
+* [Arukas Cloud](https://arukas.io/en/) - Hosting Docker Containers(Currently in Beta, provide up to 10 **free containers**)
+* [Docker Cloud](https://cloud.docker.com/) - Docker Cloud is a hosted service that provides a Registry with build and testing facilities for Dockerized application images, tools to help you set up and manage your host infrastructure, and deployment features to help you automate deploying your images to your infrastructure.
+* [Dao Cloud](https://www.daocloud.io/) - 容器云平台
 
 ## Deploy with Heroku
 
