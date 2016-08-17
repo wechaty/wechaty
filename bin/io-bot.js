@@ -42,26 +42,16 @@ const ioBot = new IoBot({
 })
 
 ioBot.init()
-.catch(e => {
-  log.error('Bot', 'init() fail: %s', e)
-  bot.quit()
-  process.exit(-1)
-})
+    .catch(e => {
+      log.error('Bot', 'init() fail: %s', e)
+      bot.quit()
+      process.exit(-1)
+    })
 
+ioBot.initWeb()
+    .catch(e => {
+      log.error('Bot', 'initWeb() fail: %s', e)
+      bot.quit()
+      process.exit(-1)
+    })
 
-/**
- *
- * To make heroku happy
- *
- */
-if (process.env.DYNO) {
-  const app = require('express')()
-
-  app.get('/', function (req, res) {
-    res.send('Wechaty IO Bot Alive!')
-  })
-
-  app.listen(process.env.PORT || 8080, function () {
-    console.log('Wechaty IO Bot listening on port ' + process.env.PORT + '!')
-  })
-}

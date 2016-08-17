@@ -239,14 +239,15 @@ const Room    = require('./room')
 // const Puppet  = require('./puppet')
 const PuppetWeb     = require('./puppet-web')
 
-const IoBot = require('./io-bot')
 
 Object.assign(Wechaty, {
   Message
   , Contact
   , Room
   
-  , IoBot
+  // Do not include IoBot here, because it will be a circle dependence
+  // const IoBot = require('./io-bot')
+  //, IoBot
 
   , log // for convenionce use npmlog with environment variable LEVEL
   // Puppet
@@ -257,3 +258,4 @@ Wechaty.version = require('../package.json').version
  * Expose `Wechaty`.
  */
 module.exports = Wechaty.default = Wechaty.Wechaty = Wechaty
+

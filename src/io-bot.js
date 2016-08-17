@@ -62,6 +62,27 @@ class IoBot {
               })
   }
 
+  initWeb(port) {
+    port = port || process.env.PORT || 8080
+
+//    if (process.env.DYNO) {
+//    }
+    const app = require('express')()
+
+    app.get('/', function (req, res) {
+      res.send('Wechaty IO Bot Alive!')
+    })
+
+    return new Promise((resolve, reject) => {
+      app.listen(port, () => {
+        this.log.verbose('IoBot', 'initWeb() Wechaty IO Bot listening on port ' + port + '!')
+
+        return resolve(this)
+
+      })
+    })
+  }
+
   onMessage(m) {
     const from = m.from()
     const to = m.to()
