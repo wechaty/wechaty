@@ -14,6 +14,8 @@ const co            = require('co')
 const log           = require('./npmlog-env')
 const Util          = require('./util')
 
+const PuppetWeb     = require('./puppet-web')
+
 class Wechaty extends EventEmitter {
 
   constructor({
@@ -23,7 +25,7 @@ class Wechaty extends EventEmitter {
     , endpoint  = process.env.WECHATY_ENDPOINT          // wechaty.io api endpoint
     , token     = process.env.WECHATY_TOKEN             // token for wechaty.io auth
     , profile   = process.env.WECHATY_PROFILE           // no profile, no session save/restore
-  } = {}) {
+  }) {
     super()
     this.type     = type
     this.head     = head
@@ -61,6 +63,7 @@ class Wechaty extends EventEmitter {
     log.info('Wechaty', 'v%s initializing...', this.npmVersion)
     log.verbose('Wechaty', 'puppet: %s' , this.type)
     log.verbose('Wechaty', 'head: %s'   , this.head)
+    console.log(process.env.WECHATY_HEAD)
     log.verbose('Wechaty', 'profile: %s', this.profile)
 
     if (this.inited) {
@@ -155,9 +158,14 @@ class Wechaty extends EventEmitter {
   }
 
   quit() {
+    log.verbose('Wechaty', 'quit()')
     const puppetBeforeDie = this.puppet
     this.puppet = null
     this.inited = false
+
+    if (!puppetBeforeDie) {
+      return Promise.resolve()
+    }
 
     return puppetBeforeDie.quit()
     .catch(e => {
@@ -232,28 +240,6 @@ class Wechaty extends EventEmitter {
 
 }
 
-const Message = require('./message')
-const Contact = require('./contact')
-const Room    = require('./room')
-
-// const Puppet  = require('./puppet')
-const PuppetWeb     = require('./puppet-web')
-
-
-Object.assign(Wechaty, {
-  Message
-  , Contact
-  , Room
-  
-  // Do not include IoBot here, because it will be a circle dependence
-  // const IoBot = require('./io-bot')
-  //, IoBot
-
-  , log // for convenionce use npmlog with environment variable LEVEL
-  // Puppet
-})
-
-Wechaty.version = require('../package.json').version
 /**
  * Expose `Wechaty`.
  */

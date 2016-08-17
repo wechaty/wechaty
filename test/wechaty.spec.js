@@ -1,5 +1,4 @@
 const test = require('tape')
-const log = require('../src/npmlog-env')
 
 test('Wechaty Framework', function(t) {
   const Wechaty = require('../')
@@ -7,10 +6,13 @@ test('Wechaty Framework', function(t) {
   t.ok(Wechaty.Message    , 'should export Wechaty.Message')
   t.ok(Wechaty.Contact    , 'should export Wechaty.Contact')
   t.ok(Wechaty.Room       , 'should export Wechaty.Room')
+
   t.ok(Wechaty.IoBot      , 'should export Wechaty.IoBot')
 
-  // t.ok(Wechaty.Puppet     , 'should export Wechaty.Puppet')
-  // t.ok(Wechaty.Puppet.Web , 'should export Wechaty.Puppet.Web')
+  t.ok(Wechaty.log        , 'should export Wechaty.log')
+
+  t.ok(Wechaty.Puppet     , 'should export Wechaty.Puppet')
+  t.ok(Wechaty.PuppetWeb  , 'should export Wechaty.PuppetWeb')
 
   const bot = new Wechaty()
   t.equal(bot.version(), Wechaty.version, 'should export version in package.json')

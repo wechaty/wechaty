@@ -14,6 +14,7 @@ const Wechaty = require('./wechaty')
 class IoBot {
   constructor({
     token = 'EPP'
+    , head = false
     , profile = 'wechaty-epp'
     , log = null
   }) {
@@ -32,17 +33,19 @@ class IoBot {
     this.token = token
 
     this.profile = profile
+    this.head = head
   }
 
   init() {
     this.log.verbose('IoBot', 'init()')
 
-    this.wechaty = new Wechaty({
+    const wechaty = this.wechaty = new Wechaty({
       profile: this.profile
       , token: this.token
+      , head: this.head
     })
 
-    this.wechaty
+    wechaty
     .on('login'	       , user => this.log.info('IoBot', `${user.name} logined`))
     .on('logout'	     , user => this.log.info('IoBot', `${user} logouted`))
     .on('scan', ({url, code}) => this.log.info('IoBot', `[${code}] ${url}`))
@@ -53,11 +56,12 @@ class IoBot {
     })
 
 
-    return this.wechaty.init()
+    return wechaty.init()
               .then(_ => this)
               .catch(e => {
                 this.log.error('IoBot', 'init() init fail: %s', e)
-                bot.quit()
+                console.log(e)
+                wechaty.quit()
                 return e
               })
   }

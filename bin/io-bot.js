@@ -28,8 +28,8 @@ let token = process.env.WECHATY_TOKEN
 if (!token) {
   log.error('Bot', 'token not found: please set WECHATY_TOKEN in environment before run io-bot')
   // process.exit(-1)
-  log.warn('Bot', 'set token to "DEMO" for demo purpose')
   token = 'DEMO'
+  log.warn('Bot', `set token to "${token}" for demo purpose`)
 } else {
   console.log(welcome)
   log.info('Bot', 'Starting for WECHATY_TOKEN: %s', token)
@@ -42,16 +42,14 @@ const ioBot = new IoBot({
 })
 
 ioBot.init()
-    .catch(e => {
-      log.error('Bot', 'init() fail: %s', e)
-      bot.quit()
-      process.exit(-1)
-    })
+    .catch(onError.bind(ioBot))
 
 ioBot.initWeb()
-    .catch(e => {
-      log.error('Bot', 'initWeb() fail: %s', e)
-      bot.quit()
-      process.exit(-1)
-    })
+    .catch(onError.bind(ioBot))
+
+function onError(e) {
+  log.error('Bot', 'initWeb() fail: %s', e)
+  this.quit()
+  process.exit(-1)
+}
 
