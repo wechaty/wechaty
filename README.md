@@ -82,6 +82,14 @@ $ docker run -e WECHATY_TOKEN="$TOKEN" zixia/wechaty
 $ docker build -t wechaty .
 ```
 
+### Ship
+
+Wechaty can be used via: Container as a Service
+
+* [Arukas Cloud](https://arukas.io/en/) - Hosting Docker Containers(Currently in Beta, provide up to 10 **free containers**)
+* [Docker Cloud](https://cloud.docker.com/) - Docker Cloud is a hosted service that provides a Registry with build and testing facilities for Dockerized application images, tools to help you set up and manage your host infrastructure, and deployment features to help you automate deploying your images to your infrastructure.
+* [Dao Cloud](https://www.daocloud.io/) - 容器云平台
+
 ## Deploy with Heroku
 
 To Be Fix
