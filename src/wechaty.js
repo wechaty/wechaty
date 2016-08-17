@@ -239,10 +239,14 @@ const Room    = require('./room')
 // const Puppet  = require('./puppet')
 const PuppetWeb     = require('./puppet-web')
 
+const IoBot = require('./io-bot')
+
 Object.assign(Wechaty, {
   Message
   , Contact
   , Room
+  
+  , IoBot
 
   , log // for convenionce use npmlog with environment variable LEVEL
   // Puppet

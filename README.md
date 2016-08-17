@@ -42,7 +42,7 @@ const bot = new Wechaty()
 bot
 .on('scan', ({url, code}) => console.log(`Scan QrCode to login: ${code}\n${url}`))
 .on('login',         user => console.log(`User ${user} logined`))
-.on('message',          m => console.log(`Message: ${m}`))
+.on('message',    message => console.log(`Message: ${message}`))
 .init()
 ```
 
@@ -536,6 +536,8 @@ Know more about TAP: [Why I use Tape Instead of Mocha & So Should You](https://m
     - [ ] Save video message to file
     - [x] Save image message to file
 - [x] Session save/load
+- [ ] Rewrite to TypeScript
+- [ ] Switch to AVA Test Runner
 
 Everybody is welcome to issue your needs.
 
