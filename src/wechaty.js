@@ -25,7 +25,7 @@ class Wechaty extends EventEmitter {
     , endpoint  = process.env.WECHATY_ENDPOINT          // wechaty.io api endpoint
     , token     = process.env.WECHATY_TOKEN             // token for wechaty.io auth
     , profile   = process.env.WECHATY_PROFILE           // no profile, no session save/restore
-  }) {
+  } = {}) {
     super()
     this.type     = type
     this.head     = head
