@@ -1,8 +1,11 @@
 'use strict'
 
-const test   = require('tape')
+const co      = require('co')
+const test    = require('tape')
+const Express = require('express')
+const http    = require('http')
 
-const log       = require('../src/npmlog-env')
+const log   = require('../src/npmlog-env')
 const Util  = require('../src/util')
 
 test('Html smoking test', t => {
@@ -69,4 +72,25 @@ test('Media download smoking test', t => {
         .catch(e => {
           t.fail('downloadStream() exception: %s', e.message)
         })
+})
+
+test('Util getPort', t => {
+  const PORT = 8788
+
+  co(function* () {
+    let port = yield Util.getPort(PORT)
+    t.equal(port, PORT, 'should equal exactly PORT when it is available')
+
+    const app = new Express()
+    const server = app.listen(PORT)
+    port = yield Util.getPort(PORT)
+    server.close()
+
+    t.equal(port, PORT+1, 'should bigger then PORT when it is not availble')
+
+  }).catch(e => {
+    t.fail(e)
+  }).then(_ => {
+    t.end()
+  })
 })

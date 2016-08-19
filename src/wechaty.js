@@ -26,6 +26,8 @@ class Wechaty extends EventEmitter {
     , token     = process.env.WECHATY_TOKEN             // token for wechaty.io auth
     , profile   = process.env.WECHATY_PROFILE           // no profile, no session save/restore
   } = {}) {
+    log.verbose('Wechaty', 'contructor()')
+
     super()
     this.type     = type
     this.head     = head
@@ -63,7 +65,6 @@ class Wechaty extends EventEmitter {
     log.info('Wechaty', 'v%s initializing...', this.npmVersion)
     log.verbose('Wechaty', 'puppet: %s' , this.type)
     log.verbose('Wechaty', 'head: %s'   , this.head)
-    console.log(process.env.WECHATY_HEAD)
     log.verbose('Wechaty', 'profile: %s', this.profile)
 
     if (this.inited) {
@@ -72,7 +73,7 @@ class Wechaty extends EventEmitter {
     }
 
     return co.call(this, function* () {
-      const okPort = yield this.getPort(this.port)
+      const okPort = yield Util.getPort(this.port)
 
       if (okPort != this.port) {
         log.info('Wechaty', 'port: %d not available, changed to %d', this.port, okPort)
@@ -213,31 +214,6 @@ class Wechaty extends EventEmitter {
       throw e
     })
   }
-
-  getPort(port) {
-    return new Promise((resolve, reject) => {
-      port = port || 8788
-      // https://gist.github.com/mikeal/1840641
-      function getPort(cb) {
-        var tryPort = port
-        port += 1
-        var server = require('net').createServer()
-        server.on('error', function(err) {
-          if (err) {}
-          getPort(cb)
-        })
-        server.listen(tryPort, function(err) {
-          if (err) {}
-          server.once('close', function() {
-            cb(tryPort)
-          })
-          server.close()
-        })
-      }
-      getPort(okPort => resolve(okPort))
-    })
-  }
-
 }
 
 /**

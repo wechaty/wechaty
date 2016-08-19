@@ -8,6 +8,7 @@ const Util = {
   , plainText
 
   , downloadStream
+  , getPort
   
   , guid
 }
@@ -83,6 +84,30 @@ function guid() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
     var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8)
     return v.toString(16)
+  })
+}
+
+function getPort(port) {
+  return new Promise((resolve, reject) => {
+    port = port || 8788
+    // https://gist.github.com/mikeal/1840641
+    function getPort(cb) {
+      var tryPort = port
+      port += 1
+      var server = require('net').createServer()
+      server.on('error', function(err) {
+        if (err) {}
+        getPort(cb)
+      })
+      server.listen(tryPort, function(err) {
+        if (err) {}
+        server.once('close', function() {
+          cb(tryPort)
+        })
+        server.close()
+      })
+    }
+    getPort(okPort => resolve(okPort))
   })
 }
 

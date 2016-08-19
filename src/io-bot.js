@@ -14,7 +14,6 @@ const Wechaty = require('./wechaty')
 class IoBot {
   constructor({
     token = 'EPP'
-    , head = false
     , profile = 'wechaty-epp'
     , log = null
   }) {
@@ -33,7 +32,6 @@ class IoBot {
     this.token = token
 
     this.profile = profile
-    this.head = head
   }
 
   init() {
@@ -42,7 +40,6 @@ class IoBot {
     const wechaty = this.wechaty = new Wechaty({
       profile: this.profile
       , token: this.token
-      , head: this.head
     })
 
     wechaty
