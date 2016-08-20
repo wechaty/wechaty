@@ -5,3 +5,4 @@ Procfile
 .gitignore
 .npmignore
 .travis.yml
+*.wechaty.json

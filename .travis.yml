@@ -14,16 +14,14 @@ cache:
 services:
   - docker
 
-before_install:
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then docker build -t zixia/wechaty .; fi
-
 install:
   - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew install brew-cask && brew cask install google-chrome; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then export DISPLAY=':99.0' && Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then export DISPLAY=':99.0' && (Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &); fi
 
 script:
   - echo $TRAVIS_OS_NAME
   - npm test
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then docker build -t zixia/wechaty .; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then docker run zixia/wechaty test; fi
 
 notifications:
