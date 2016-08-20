@@ -13,12 +13,9 @@ const By = WebDriver.By
 const PuppetWebBrowser  = require('../src/puppet-web/browser')
 const PuppetWebBridge   = require('../src/puppet-web/bridge')
 
-const PORT = process.env.WECHATY_PORT || 58788
-const HEAD = process.env.WECHATY_HEAD || false
-
 test('WebDriver process create & quit test', function(t) {
   co(function* () {
-    const b = new PuppetWebBrowser({port: PORT, head: HEAD})
+    const b = new PuppetWebBrowser()
     t.ok(b, 'should instanciate a browser')
 
     yield b.init()
@@ -44,11 +41,11 @@ test('WebDriver process create & quit test', function(t) {
 })
 
 test('WebDriver smoke testing', function(t) {
-  const wb = new PuppetWebBrowser({port: PORT, head: HEAD})
+  const wb = new PuppetWebBrowser()
   t.ok(wb, 'Browser instnace')
 
   const mockPuppet = {browser: wb}
-  const bridge = new PuppetWebBridge({puppet: mockPuppet, port: PORT})
+  const bridge = new PuppetWebBridge({puppet: mockPuppet})
   t.ok(bridge, 'Bridge instnace')
 
   var driver // for help function `execute`
@@ -82,7 +79,7 @@ test('WebDriver smoke testing', function(t) {
     const retAdd = yield driverExecute('return 1+1')
     t.equal(retAdd, 2, 'should return 2 for execute 1+1 in browser')
 
-    const retInject = yield driverExecute(injectio, PORT)
+    const retInject = yield driverExecute(injectio, 8788)
     t.ok(retInject, 'should return a object contains status of inject operation')
     t.equal(retInject.code, 200, 'should got code 200 for a success wechaty inject')
 

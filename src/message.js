@@ -11,7 +11,7 @@ const co = require('co')
 const Contact = require('./contact')
 const Room    = require('./room')
 
-const Util  = require('./util')
+const UtilLib  = require('./util-lib')
 const log   = require('./npmlog-env')
 
 class Message {
@@ -52,10 +52,10 @@ class Message {
     return obj
   }
   toString() {
-    return Util.plainText(this.obj.content)
+    return UtilLib.plainText(this.obj.content)
   }
   toStringDigest() {
-    const text = Util.digestEmoji(this.obj.digest)
+    const text = UtilLib.digestEmoji(this.obj.digest)
     return '{' + this.typeEx() + '}' + text
   }
 
@@ -71,7 +71,7 @@ class Message {
     return '<' + name + (room ? `@${room}` : '') + '>'
   }
   getContentString() {
-    let content = Util.plainText(this.obj.content)
+    let content = UtilLib.plainText(this.obj.content)
     if (content.length > 20) { content = content.substring(0,17) + '...' }
     return '{' + this.type() + '}' + content
   }

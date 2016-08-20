@@ -6,7 +6,7 @@ const Express = require('express')
 const http    = require('http')
 
 const log   = require('../src/npmlog-env')
-const Util  = require('../src/util')
+const UtilLib  = require('../src/util-lib')
 
 test('Html smoking test', t => {
   const HTML_BEFORE_STRIP = 'Outer<html>Inner</html>'
@@ -27,17 +27,17 @@ test('Html smoking test', t => {
   const PLAIN_BEFORE  = '&amp;<html>&amp;</html>&amp;<img class="emoji emoji1f4a4" text="[流汗]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />'
   const PLAIN_AFTER   = '&&&[流汗]'
 
-  const strippedHtml = Util.stripHtml(HTML_BEFORE_STRIP)
+  const strippedHtml = UtilLib.stripHtml(HTML_BEFORE_STRIP)
   t.equal(strippedHtml, HTML_AFTER_STRIP, 'should strip html as expected')
 
-  const unescapedHtml = Util.unescapeHtml(HTML_BEFORE_UNESCAPE)
+  const unescapedHtml = UtilLib.unescapeHtml(HTML_BEFORE_UNESCAPE)
   t.equal(unescapedHtml, HTML_AFTER_UNESCAPE, 'should unescape html as expected')
 
   for (let i=0; i<EMOJI_BEFORE_DIGEST.length; i++) {
-    const emojiDigest = Util.digestEmoji(EMOJI_BEFORE_DIGEST[i])
+    const emojiDigest = UtilLib.digestEmoji(EMOJI_BEFORE_DIGEST[i])
     t.equal(emojiDigest, EMOJI_AFTER_DIGEST[i], 'should digest emoji string ' + i + ' as expected')
   }
-  const plainText = Util.plainText(PLAIN_BEFORE)
+  const plainText = UtilLib.plainText(PLAIN_BEFORE)
   t.equal(plainText, PLAIN_AFTER, 'should convert plain text as expected')
 
   t.end()
@@ -60,7 +60,7 @@ test('Media download smoking test', t => {
   })
   server.listen(8000)
 
-  Util.downloadStream('http://127.0.0.1:8000/ding', [{name: 'life', value: 42}])
+  UtilLib.downloadStream('http://127.0.0.1:8000/ding', [{name: 'life', value: 42}])
         .then(s => {
           s.on('data', (chunk) => {
             // console.log(`BODY: ${chunk}`)
@@ -78,12 +78,12 @@ test('Util getPort', t => {
   const PORT = 8788
 
   co(function* () {
-    let port = yield Util.getPort(PORT)
+    let port = yield UtilLib.getPort(PORT)
     t.equal(port, PORT, 'should equal exactly PORT when it is available')
 
     const app = new Express()
     const server = app.listen(PORT)
-    port = yield Util.getPort(PORT)
+    port = yield UtilLib.getPort(PORT)
     server.close()
 
     t.equal(port, PORT+1, 'should bigger then PORT when it is not availble')

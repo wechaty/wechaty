@@ -6,14 +6,13 @@ const retryPromise = require('retry-promise').default
 const log = require('../../src/npmlog-env')
 
 const PORT = process.env.WECHATY_PORT || 58788
-const HEAD = process.env.WECHATY_HEAD || false
 const PROFILE = 'unit-test-session.wechaty.json'
 
 const PuppetWeb = require('../../src/puppet-web')
 const Message = require('../../src/message')
 
 test('Puppet Web Self Message Identification', function(t) {
-  const p = new PuppetWeb({port: PORT, head: HEAD, profile: PROFILE})
+  const p = new PuppetWeb({profile: PROFILE})
   t.ok(p, 'should instantiated a PuppetWeb')
 
   const EXPECTED_USER_ID = 'zixia'
@@ -26,7 +25,7 @@ test('Puppet Web Self Message Identification', function(t) {
 })
 
 false && test('PuppetWeb smoke testing', function(t) {
-  let pw = new PuppetWeb({port: PORT, head: HEAD, profile: PROFILE})
+  let pw = new PuppetWeb({profile: PROFILE})
   t.ok(pw, 'should instantiated a PuppetWeb')
 
   co(function* () {
@@ -67,7 +66,7 @@ false && test('PuppetWeb smoke testing', function(t) {
 })
 
 test('Puppet Web server/browser communication', function(t) {
-  let pw = new PuppetWeb({port: PORT, head: HEAD, profile: PROFILE})
+  let pw = new PuppetWeb({profile: PROFILE})
   t.ok(pw, 'should instantiated a PuppetWeb')
 
   const EXPECTED_DING_DATA = 'dingdong'

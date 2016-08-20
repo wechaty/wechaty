@@ -3,15 +3,16 @@
 
 Connecting ChatBots. [![Powered by Wechaty](https://img.shields.io/badge/Wechaty-Powered-green.svg)](https://github.com/zixia/wechaty)
 
-```markdown
-[![Powered by Wechaty](https://img.shields.io/badge/Wechaty-Powered-green.svg)](https://github.com/zixia/wechaty)
-```
-
 Wechaty is a Bot Framework for Wechat **Personal** Account.
 
 > Easy creating personal wechat bot in 7 lines of code.
 
 It supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.appveyor.com/project/zixia/wechaty) and [darwin(OSX/Mac)](https://travis-ci.org/zixia/wechaty).
+
+- :octocat: <https://github.com/zixia/wechaty>
+- :beetle: <https://github.com/zixia/wechaty/issues>
+- :book: <https://github.com/zixia/wechaty/wiki>
+- :whale: <https://hub.docker.com/r/zixia/wechaty>
 
 [![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=2592000)](https://nodejs.org/)
@@ -21,17 +22,14 @@ It supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.app
 [![dev dependency status][dev-dependency-image]][dev-dependency-url]
 [![Repo Size](https://reposs.herokuapp.com/?path=zixia/wechaty)]()
 [![Downloads][downloads-image]][downloads-url]
-[![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
-[![Docker Stars](https://img.shields.io/docker/stars/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
 
-# Voice of the Developer
+## Voice of the Developer
 
 > @GasLin : it may be the best wecaht sdk i have seen in github! [link](https://github.com/zixia/wechaty/issues/8#issuecomment-228971491)
 
 > @ak5 : Thanks for this it's quite cool! [link](https://github.com/zixia/wechaty/issues/4)
 
 > @ccaapton : wechaty library looks fantastic! [link](https://github.com/zixia/wechaty/issues/9)
-
 
 # Examples
 Wechaty is dead easy to use: 7 lines javascript for your 1st wechat bot.
@@ -67,6 +65,10 @@ Natual Language Understanding enabled by [api.AI](https://api.ai), you can get y
 Use docker to deploy wechaty is highly recommended.
 
 ## Deploy with Docker
+
+[![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
+[![Docker Stars](https://img.shields.io/docker/stars/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
+[![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
 
 [![dockeri.co](http://dockeri.co/image/zixia/wechaty)](https://hub.docker.com/r/zixia/wechaty/)
 
@@ -178,6 +180,16 @@ After a little while, bot will show you a message of a url for Login QrCode. You
 
 Enjoy hacking Wechaty!
 Please submit your issue if you have any, and a fork & pull is very welcome for showing your idea.
+
+# Wechaty Badge
+
+[![Powered by Wechaty](https://img.shields.io/badge/Wechaty-Powered-green.svg)](https://github.com/zixia/wechaty)
+
+## Markdown
+
+```markdown
+[![Powered by Wechaty](https://img.shields.io/badge/Wechaty-Powered-green.svg)](https://github.com/zixia/wechaty)
+```
 
 # Trouble Shooting
 

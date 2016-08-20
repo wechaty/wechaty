@@ -7,7 +7,7 @@
  *
  */
 const log   = require('./npmlog-env')
-const Util  = require('./util')
+const UtilLib  = require('./util-lib')
 
 class Contact {
   constructor(id) {
@@ -41,7 +41,7 @@ class Contact {
     }
   }
   
-  name()    { return Util.plainText(this.obj.name) }
+  name()    { return UtilLib.plainText(this.obj.name) }
   remark()  { return this.obj.remark }
   stranger()    { return this.obj.stranger }
   star()        { return this.obj.star }

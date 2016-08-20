@@ -9,7 +9,7 @@
 const co = require('co')
 
 const log = require('./npmlog-env')
-const Util = require('./util')
+const UtilLib = require('./util-lib')
 const Message = require('./message')
 
 class MediaMessage extends Message {
@@ -47,7 +47,7 @@ class MediaMessage extends Message {
       return Message.puppet.browser.checkSession()
     })
     .then(cookies => {
-      return Util.downloadStream(this.obj.url, cookies)
+      return UtilLib.downloadStream(this.obj.url, cookies)
     })
     .catch(e => {
       log.warn('MediaMessage', 'stream() exception: %s', e.message)

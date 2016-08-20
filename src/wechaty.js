@@ -12,16 +12,18 @@ const EventEmitter  = require('events')
 const co            = require('co')
 
 const log           = require('./npmlog-env')
-const Util          = require('./util')
+const UtilLib          = require('./util-lib')
 
 const PuppetWeb     = require('./puppet-web')
+
+const config = require('./config')
 
 class Wechaty extends EventEmitter {
 
   constructor({
-    type        = process.env.WECHATY_PUPPET   || 'web'
-    , head      = process.env.WECHATY_HEAD     || false
-    , port      = process.env.WECHATY_PORT     || 8788  // W(87) X(88), ascii char code ;-]
+    type        = process.env.WECHATY_PUPPET    || config.DEFAULT_PUPPET
+    , head      = process.env.WECHATY_HEAD      || config.DEFAULT_HEAD
+    , port      = process.env.WECHATY_PORT      || 0    // 0 for disable port
     , endpoint  = process.env.WECHATY_ENDPOINT          // wechaty.io api endpoint
     , token     = process.env.WECHATY_TOKEN             // token for wechaty.io auth
     , profile   = process.env.WECHATY_PROFILE           // no profile, no session save/restore
@@ -41,14 +43,14 @@ class Wechaty extends EventEmitter {
 
     this.npmVersion = require('../package.json').version
 
-    this.uuid = Util.guid()
+    this.uuid = UtilLib.guid()
     
     this.inited = false
   }
 
   toString() { return 'Class Wechaty(' + this.type + ')'}
 
-  version()  { return this.npmVersion }
+  version()  { return this.npmVersion } 
 
   user() { return this.puppet && this.puppet.user }
   
@@ -73,15 +75,6 @@ class Wechaty extends EventEmitter {
     }
 
     return co.call(this, function* () {
-      const okPort = yield Util.getPort(this.port)
-
-      if (okPort != this.port) {
-        log.info('Wechaty', 'port: %d not available, changed to %d', this.port, okPort)
-        this.port = okPort
-      } else {
-        log.verbose('Wechaty', 'port: %d', this.port)
-      }
-
       this.io = yield this.initIo()
       .catch(e => { // fail safe
         log.error('Wechaty', 'initIo failed: %s', e.message)
@@ -127,7 +120,6 @@ class Wechaty extends EventEmitter {
       case 'web':
         puppet = new PuppetWeb( {
           head:       this.head
-          , port:     this.port
           , profile:  this.profile
         })
         break

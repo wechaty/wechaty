@@ -6,14 +6,13 @@ const retryPromise = require('retry-promise').default
 const log = require('../../src/npmlog-env')
 
 const PORT = process.env.WECHATY_PORT || 58788
-const HEAD = process.env.WECHATY_HEAD || false
 const PROFILE = 'unit-test-session.wechaty.json'
 
 const PuppetWeb = require('../../src/puppet-web')
 const PuppetWebEvent = require('../../src/puppet-web/event')
 
 test('Puppet Web Event smoking test', function(t) {
-  let pw = new PuppetWeb({port: PORT, head: HEAD, profile: PROFILE})
+  let pw = new PuppetWeb({profile: PROFILE})
   t.ok(pw, 'should instantiated a PuppetWeb')
 
   co(function* () {

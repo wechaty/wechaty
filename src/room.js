@@ -7,7 +7,7 @@
  *
  */
 const log   = require('./npmlog-env')
-const Util  = require('./util')
+const UtilLib  = require('./util-lib')
 
 class Room {
   constructor(id) {
@@ -46,7 +46,7 @@ class Room {
     })
   }
 
-  name() { return Util.plainText(this.obj.name) }
+  name() { return UtilLib.plainText(this.obj.name) }
   get(prop) { return this.obj[prop] }
 
   parse(rawObj) {

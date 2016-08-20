@@ -33,14 +33,16 @@ const Bridge  = require('./bridge')
 const Event     = require('./event')
 const Watchdog  = require('./watchdog')
 
+const UtilLib = require('../util-lib')
+const config  = require('../config')
+
 class PuppetWeb extends Puppet {
   constructor({
-    port = 8788 // W(87) X(88), ascii char code ;-]
-    , profile   // if not set profile, then dont store session.
+    // port = 8788 // W(87) X(88), ascii char code ;-]
+    profile   // if not set profile, then dont store session.
     , head
   } = {}) {
     super()
-    this.port     = port
     this.head     = head
     this.profile  = profile
 
@@ -51,11 +53,14 @@ class PuppetWeb extends Puppet {
   toString() { return `Class PuppetWeb({browser:${this.browser},port:${this.port}})` }
 
   init() {
-    log.verbose('PuppetWeb', `init() with port:${this.port}, head:${this.head}, profile:${this.profile}`)
+    log.verbose('PuppetWeb', `init() with head:${this.head}, profile:${this.profile}`)
 
     this.on('watchdog', Watchdog.onFeed.bind(this))
 
     return co.call(this, function* () {
+
+      this.port = yield UtilLib.getPort(config.DEFAULT_WEB_PORT)
+      log.verbose('PuppetWeb', 'init() getPort %d', this.port)
 
       yield this.initAttach(this)
       log.verbose('PuppetWeb', 'initAttach() done')

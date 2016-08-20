@@ -10,6 +10,7 @@ test('Wechaty Framework', function(t) {
   t.ok(Wechaty.IoBot      , 'should export Wechaty.IoBot')
 
   t.ok(Wechaty.log        , 'should export Wechaty.log')
+  t.ok(Wechaty.config     , 'should export Wechaty.config')
 
   t.ok(Wechaty.Puppet     , 'should export Wechaty.Puppet')
   t.ok(Wechaty.PuppetWeb  , 'should export Wechaty.PuppetWeb')

@@ -18,15 +18,18 @@ const retryPromise  = require('retry-promise').default // https://github.com/ola
 
 const log = require('../npmlog-env')
 
+const config  = require('../config')
+
 class Browser extends EventEmitter {
 
   constructor({
-    head = false // default no head
+    head = process.env.WECHATY_HEAD || config.DEFAULT_HEAD
     , sessionFile
   } = {}) {
+    log.verbose('Browser', 'constructor() with head(%s) sessionFile(%s)', head, sessionFile)
     super()
     log.verbose('PuppetWebBrowser', 'constructor()')
-    this.head = head || false
+    this.head = head
     this.sessionFile = sessionFile // a file to save session cookies
 
     this.live = false

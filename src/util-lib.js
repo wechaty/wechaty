@@ -1,7 +1,7 @@
 const http  = require('http')
 const log = require('./npmlog-env')
 
-const Util = {
+const UtilLib = {
   stripHtml
   , unescapeHtml
   , digestEmoji
@@ -111,4 +111,4 @@ function getPort(port) {
   })
 }
 
-module.exports = Util
+module.exports = UtilLib

@@ -5,15 +5,13 @@ const retryPromise = require('retry-promise').default
 
 const log = require('../../src/npmlog-env')
 
-const PORT = process.env.WECHATY_PORT || 58788
-const HEAD = process.env.WECHATY_HEAD || false
 const PROFILE = 'unit-test-session.wechaty.json'
 
 const PuppetWeb = require('../../src/puppet-web')
 const Watchdog = require('../../src/puppet-web/watchdog.js')
 
 test('Puppet Web watchdog timer', function(t) {
-  const pw = new PuppetWeb({port: PORT, head: HEAD, profile: PROFILE})
+  const pw = new PuppetWeb({profile: PROFILE})
   t.ok(pw, 'should instantiate a PuppetWeb')
 
   Watchdog.onFeed.call(pw, { data: 'initing directly' })

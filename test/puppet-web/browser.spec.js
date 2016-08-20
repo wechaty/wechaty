@@ -4,12 +4,10 @@ const test = require('tape')
 const log = require('../../src/npmlog-env')
 
 const Browser = require('../../src/puppet-web/browser')
-const PORT = process.env.WECHATY_PORT || 58788
-const HEAD = process.env.WECHATY_HEAD || false
 const PROFILE = 'unit-test-session.wechaty.json'
 
 test('Browser class cookie smoking tests', function(t) {
-  const b = new Browser({port: PORT, head: HEAD})
+  const b = new Browser()
   t.ok(b, 'should instanciate a browser instance')
 
   co(function* () {
@@ -79,9 +77,7 @@ test('Browser class cookie smoking tests', function(t) {
 
 test('Browser session save & load', function(t) {
   let b = new Browser({
-    port: PORT
-    , head: HEAD
-    , sessionFile: PROFILE
+    sessionFile: PROFILE
   })
   t.ok(b, 'new Browser')
 
@@ -140,9 +136,7 @@ test('Browser session save & load', function(t) {
     t.pass('quited')
 
     b = new Browser({
-      port: PORT
-      , head: HEAD
-      , sessionFile: PROFILE
+      sessionFile: PROFILE
     })
     t.pass('re-new Browser')
     yield b.init()
