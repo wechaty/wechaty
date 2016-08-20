@@ -3,6 +3,11 @@
 # Credit: https://github.com/cusspvz/node.docker/blob/master/entrypoint
 #
 
+if [[ "$WECHATY_HEAD" != "phantomjs" ]]; then
+  export DISPLAY=':99.0'
+  Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+fi
+
 if [ "$1" == "start" ]; then
     exec npm start
     exit $?

@@ -15,7 +15,7 @@ services:
   - docker
 
 install:
-  - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew install brew-cask && brew cask install google-chrome; fi
+  - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew tap caskroom/cask && brew cask install google-chrome; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then export DISPLAY=':99.0' && (Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &); fi
 
 script:
