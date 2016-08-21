@@ -5,7 +5,7 @@ const co    = require('co')
 const log = require('../../src/npmlog-env')
 
 const PuppetWebServer = require('../../src/puppet-web/server')
-const PORT = 58788
+const PORT = 48788
 
 test('PuppetWebServer basic tests', function(t) {
   const s = new PuppetWebServer({port: PORT})
