@@ -86,7 +86,7 @@ test('Bridge smoking test', function(t) {
     const retCode = yield b.proxyWechaty('isLogin')
     t.equal(typeof retCode, 'boolean', 'should got a boolean after call proxyWechaty(isLogin)')
   })
-  .catch((e) => { // Rejected
+  .catch(e => { // Rejected
     t.fail('co promise rejected:' + e)
   })
   .then(r => {    // Finally
@@ -100,6 +100,7 @@ test('Bridge smoking test', function(t) {
     })
   })
   .catch(e => {   // Exception
-    t.fail('Exception:' + e)
+    t.fail('Test Exception:' + e)
+    t.end()
   })
 })
