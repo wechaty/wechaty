@@ -1,5 +1,5 @@
 ![Wechaty](https://raw.githubusercontent.com/zixia/wechaty/master/image/wechaty-logo-en.png)
-# Wechaty [![Linux Circle CI](https://circleci.com/gh/zixia/wechaty.svg?style=svg)](https://circleci.com/gh/zixia/wechaty) [![Linux Build Status](https://img.shields.io/travis/zixia/wechaty.svg?maxAge=2592000&label=Linux/Mac%20Tests)](https://travis-ci.org/zixia/wechaty) [![Win32 Build status](https://img.shields.io/appveyor/ci/zixia/wechaty/master.svg?label=Windows%20Tests)](https://ci.appveyor.com/project/zixia/wechaty)
+# Wechaty [![Linux Circle CI](https://circleci.com/gh/zixia/wechaty.svg?style=svg)](https://circleci.com/gh/zixia/wechaty) [![Linux Build Status](https://img.shields.io/travis/zixia/wechaty.svg?maxAge=2592000&label=Linux/Mac%20Tests)](https://travis-ci.org/zixia/wechaty) [![Win32 Build status](https://img.shields.io/appveyor/ci/zixia/wechaty/master.svg?label=Windows%20Tests)](https://ci.appveyor.com/project/zixia/wechaty) [![Coverage Status](https://coveralls.io/repos/github/zixia/wechaty/badge.svg?branch=master)](https://coveralls.io/github/zixia/wechaty?branch=master)
 
 Connecting ChatBots. [![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/zixia/wechaty)
 
@@ -16,12 +16,9 @@ It supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.app
 
 [![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=2592000)](https://nodejs.org/)
-[![Coverage Status](https://coveralls.io/repos/github/zixia/wechaty/badge.svg?branch=master)](https://coveralls.io/github/zixia/wechaty?branch=master)
 [![npm version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty)
-[![dependency status][dependency-image]][dependency-url]
-[![dev dependency status][dev-dependency-image]][dev-dependency-url]
-[![Repo Size](https://reposs.herokuapp.com/?path=zixia/wechaty)]()
 [![Downloads][downloads-image]][downloads-url]
+[![Repo Size](https://reposs.herokuapp.com/?path=zixia/wechaty)]()
 
 ## Voice of the Developer
 
@@ -631,9 +628,4 @@ Copyright & License
 
 [downloads-image]: http://img.shields.io/npm/dm/wechaty.svg?style=flat-square
 [downloads-url]: https://npmjs.org/package/wechaty
-[dependency-image]: https://img.shields.io/david/zixia/wechaty.svg
-[dependency-url]: https://david-dm.org/zixia/wechaty
-[dev-dependency-image]: https://img.shields.io/david/dev/zixia/wechaty.svg
-[dev-dependency-url]: https://david-dm.org/zixia/wechaty#info=devDependencies
-
 
