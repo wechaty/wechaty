@@ -74,7 +74,7 @@ test('Media download smoking test', t => {
         })
 })
 
-test('Util getPort', t => {
+test('getPort', t => {
   const PORT = 8788
 
   co(function* () {

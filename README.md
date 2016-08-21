@@ -1,7 +1,7 @@
 ![Wechaty](https://raw.githubusercontent.com/zixia/wechaty/master/image/wechaty-logo-en.png)
 # Wechaty [![Linux Circle CI](https://circleci.com/gh/zixia/wechaty.svg?style=svg)](https://circleci.com/gh/zixia/wechaty) [![Linux Build Status](https://img.shields.io/travis/zixia/wechaty.svg?maxAge=2592000&label=Linux/Mac%20Tests)](https://travis-ci.org/zixia/wechaty) [![Win32 Build status](https://img.shields.io/appveyor/ci/zixia/wechaty/master.svg?label=Windows%20Tests)](https://ci.appveyor.com/project/zixia/wechaty)
 
-Connecting ChatBots. [![Powered by Wechaty](https://img.shields.io/badge/Wechaty-Powered-green.svg)](https://github.com/zixia/wechaty)
+Connecting ChatBots. [![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/zixia/wechaty)
 
 Wechaty is a Bot Framework for Wechat **Personal** Account.
 
@@ -9,10 +9,10 @@ Wechaty is a Bot Framework for Wechat **Personal** Account.
 
 It supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.appveyor.com/project/zixia/wechaty) and [darwin(OSX/Mac)](https://travis-ci.org/zixia/wechaty).
 
-- :octocat: <https://github.com/zixia/wechaty>
-- :beetle: <https://github.com/zixia/wechaty/issues>
-- :book: <https://github.com/zixia/wechaty/wiki>
-- :whale: <https://hub.docker.com/r/zixia/wechaty>
+:octocat: <https://github.com/zixia/wechaty>
+:beetle: <https://github.com/zixia/wechaty/issues>
+:book: <https://github.com/zixia/wechaty/wiki>
+:whale: <https://hub.docker.com/r/zixia/wechaty>
 
 [![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=2592000)](https://nodejs.org/)
@@ -188,7 +188,7 @@ Please submit your issue if you have any, and a fork & pull is very welcome for 
 ## Markdown
 
 ```markdown
-[![Powered by Wechaty](https://img.shields.io/badge/Wechaty-Powered-green.svg)](https://github.com/zixia/wechaty)
+[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/zixia/wechaty)
 ```
 
 # Trouble Shooting
