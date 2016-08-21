@@ -14,8 +14,6 @@ It supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.app
 
 [![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=2592000)](https://nodejs.org/)
-[![npm version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty)
-[![Downloads][downloads-image]][downloads-url]
 [![Repo Size](https://reposs.herokuapp.com/?path=zixia/wechaty)]()
 
 ## Voice of the Developer
@@ -27,7 +25,7 @@ It supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.app
 > @ccaapton : wechaty library looks fantastic! [link](https://github.com/zixia/wechaty/issues/9)
 
 # Examples
-Wechaty is dead easy to use: 7 lines javascript for your 1st wechat bot.
+Wechaty is dead easy to use: 7 lines javascript for your wechat bot.
 
 ## 1. Basic: 7 lines
 The following 7 lines of code implement a bot who can log all message to console:
@@ -102,10 +100,20 @@ g)](https://heroku.com/deploy)~~
 # Installation
 
 ## Install from NPM
+
+[![npm version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty)
+[![Downloads][downloads-image]][downloads-url]
+
 Use NPM is recommended to install a stable version of Wechaty published on NPM.com
 ```shell
 npm install --save wechaty
 ```
+
+
+If you use chrome instead of phantomjs, you should make sure:
+
+1. chrome is installed
+1. if you are under linux, set headless right for `xvfb`
 
 Then you are set.
 
