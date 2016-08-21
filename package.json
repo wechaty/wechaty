@@ -3,6 +3,12 @@
   "version": "0.3.9",
   "description": "Wechat for Bot (Personal Account)",
   "main": "index.js",
+  "wechaty": {
+    "DEFAULT_HEAD": "chrome"
+    , "DEFAULT_PUPPET": "web"
+    , "DEFAULT_PORT": 8788
+    , "DEFAULT_WEB_PORT": 58788
+  },
   "scripts": {
     "lint": "eslint src test",
     "pretest": "npm run lint",
