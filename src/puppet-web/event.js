@@ -216,9 +216,13 @@ function onServerUnload(data) {
   }
   // re-init bridge after 1 second XXX: better method to confirm unload/reload finished?
   return setTimeout(() => {
+    if (!this.bridge) {
+      log.warn('PuppetWebEvent', 'onServerUnload() bridge gone after setTimeout()')
+      return
+    }
     this.bridge.init()
-    .then(r  => log.verbose('PuppetWebEvent', 'onServerUnload() bridge.init() done: %s', r))
-    .catch(e => log.error('PuppetWebEvent', 'onServerUnload() bridge.init() exceptoin: %s', e.message))
+              .then(r  => log.verbose('PuppetWebEvent', 'onServerUnload() bridge.init() done: %s', r))
+              .catch(e => log.error('PuppetWebEvent', 'onServerUnload() bridge.init() exceptoin: %s', e.message))
   }, 1000)
 }
 
