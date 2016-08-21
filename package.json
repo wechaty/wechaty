@@ -8,7 +8,7 @@
     "pretest": "npm run lint",
     "start": "node bin/io-bot",
     "demo": "node example/ding-dong-bot.js",
-    "test": "cross-env LC_ALL=C TAP_TIMEOUT=600 tape test/{*,**/*}.spec.js",
+    "test": "cross-env LC_ALL=C TAP_TIMEOUT=600 tape 'test/**/*.spec.js'",
     "devtest": "cross-env LC_ALL=C TAP_TIMEOUT=600 tape"
   },
   "repository": {
