@@ -163,29 +163,29 @@ class Browser extends EventEmitter {
       log.verbose('PuppetWebBrowser', 'driver.quit() skipped because no driver session')
       return Promise.resolve('no driver session')
     }
-    return this.driver.close() // http://stackoverflow.com/a/32341885/1123955
-              .then(_ => this.driver.quit())
-              .catch(e => {
-                // console.log(e)
-                // log.warn('PuppetWebBrowser', 'err: %s %s %s %s', e.code, e.errno, e.syscall, e.message)
-                const crashMsgs = [
-                  'ECONNREFUSED'
-                  , 'WebDriverError: .* not reachable'
-                  , 'NoSuchWindowError: no such window: target window already closed'
-                ]
-                const crashRegex = new RegExp(crashMsgs.join('|'), 'i')
 
-                if (crashRegex.test(e.message)) { log.warn('PuppetWebBrowser', 'driver.quit() browser crashed') }
-                else                            { log.warn('PuppetWebBrowser', 'driver.quit() exception: %s', e.message) }
-              })
-              .then(_ => {
-                this.driver = null
-                return this.clean()
-              })
-              .catch(e => {
-                log.error('PuppetWebBrowser', 'quit() exception: %s', e.message)
-                throw e
-              })
+    return co(function* () {
+      yield this.driver.close() // http://stackoverflow.com/a/32341885/1123955
+      yield this.driver.quit()
+      this.driver = null
+
+      yield this.clean()
+
+    }).catch(e => {
+      // console.log(e)
+      // log.warn('PuppetWebBrowser', 'err: %s %s %s %s', e.code, e.errno, e.syscall, e.message)
+      log.error('PuppetWebBrowser', 'quit() exception: %s', e.message)
+
+      const crashMsgs = [
+        'ECONNREFUSED'
+        , 'WebDriverError: .* not reachable'
+        , 'NoSuchWindowError: no such window: target window already closed'
+      ]
+      const crashRegex = new RegExp(crashMsgs.join('|'), 'i')
+
+      if (crashRegex.test(e.message)) { log.warn('PuppetWebBrowser', 'driver.quit() browser crashed') }
+      else                            { log.warn('PuppetWebBrowser', 'driver.quit() exception: %s', e.message) }
+    })
   }
 
   clean() {
