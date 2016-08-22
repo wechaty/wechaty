@@ -50,7 +50,18 @@ class Wechaty extends EventEmitter {
 
   toString() { return 'Class Wechaty(' + this.type + ')'}
 
-  version()  { return this.npmVersion } 
+  version(forceNpm) {
+    if (!forceNpm) {
+      try {
+        const revision = require('child_process')
+                          .execSync('git log --oneline -1')
+                          .toString().trim()
+        return `#git[${revision}]`
+      } catch (e) { /* fall safe */ }
+    }
+
+    return this.npmVersion
+  } 
 
   user() { return this.puppet && this.puppet.user }
   
@@ -64,7 +75,7 @@ class Wechaty extends EventEmitter {
   }
   
   init() {
-    log.info('Wechaty', 'v%s initializing...', this.npmVersion)
+    log.info('Wechaty', 'v%s initializing...', this.version())
     log.verbose('Wechaty', 'puppet: %s' , this.type)
     log.verbose('Wechaty', 'head: %s'   , this.head)
     log.verbose('Wechaty', 'profile: %s', this.profile)

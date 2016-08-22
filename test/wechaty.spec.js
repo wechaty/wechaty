@@ -16,7 +16,7 @@ test('Wechaty Framework', function(t) {
   t.ok(Wechaty.PuppetWeb  , 'should export Wechaty.PuppetWeb')
 
   const bot = new Wechaty()
-  t.equal(bot.version(), Wechaty.version, 'should export version in package.json')
+  t.equal(bot.version(true), Wechaty.version, 'should export version in package.json')
 
   t.end()
 })
