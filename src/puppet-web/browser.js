@@ -255,8 +255,8 @@ class Browser extends EventEmitter {
           log.silly('Browser', 'getBrowserPids() child: %s', JSON.stringify(child))
           // https://github.com/indexzero/ps-tree/issues/18
           return matchRegex.test('' + child.COMMAND + child.COMM)
-        })
-        .map(child => child.PID)
+        }).map(child => child.PID)
+
         resolve(pids)
         return
       })
