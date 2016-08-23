@@ -38,9 +38,8 @@ const config  = require('../config')
 
 class PuppetWeb extends Puppet {
   constructor({
-    // port = 8788 // W(87) X(88), ascii char code ;-]
-    profile   // if not set profile, then dont store session.
-    , head
+    head = config.DEFAULT_HEAD
+    , profile   // if not set profile, then do not store session.
   } = {}) {
     super()
     this.head     = head
@@ -59,7 +58,7 @@ class PuppetWeb extends Puppet {
 
     return co.call(this, function* () {
 
-      this.port = yield UtilLib.getPort(config.DEFAULT_WEB_PORT)
+      this.port = yield UtilLib.getPort(config.DEFAULT_PUPPET_PORT)
       log.verbose('PuppetWeb', 'init() getPort %d', this.port)
 
       yield this.initAttach(this)
