@@ -10,6 +10,7 @@
  */
 const EventEmitter  = require('events')
 const co            = require('co')
+const fs            = require('fs')
 
 const log           = require('./npmlog-env')
 const UtilLib          = require('./util-lib')
@@ -51,13 +52,23 @@ class Wechaty extends EventEmitter {
   toString() { return 'Class Wechaty(' + this.type + ')'}
 
   version(forceNpm) {
+    const dotGitPath  = __dirname + '/../.git'
+    const gitLogCmd   = 'cd ' + __dirname + '; git log --oneline -1'
+
     if (!forceNpm) {
       try {
+        fs.accessSync(dotGitPath, fs.F_OK)
         const revision = require('child_process')
-                          .execSync('git log --oneline -1')
+                          .execSync(gitLogCmd)
                           .toString().trim()
         return `#git[${revision}]`
-      } catch (e) { /* fall safe */ }
+      } catch (e) { /* fall safe */ 
+        /**
+         *  1. .git not exist
+         *  2. git log fail
+         */
+        //log.silly('Wechaty', 'version() test %s', e.message)
+      }
     }
 
     return this.npmVersion
