@@ -40,30 +40,28 @@ function onFeed({
     throw new Error('onFeed() must has `this` of instanceof PuppetWeb')
   }
 
-  // process.nextTick(_ => {
-    log.verbose('PuppetWebWatchdog', 'onFeed: %s, %d, [%s]', type, timeout, data)
+  const feed = `${type}:[${data}]`
+  log.verbose('PuppetWebWatchdog', 'onFeed: %d, %s', timeout, feed)
 
-    switch (type) {
-      case 'POISON':
-        clearWatchDogTimer.call(this)
-        return
+  setWatchDogTimer.call(this, timeout, feed)
 
-      case 'SCAN':
-      case 'HEARTBEAT':
-        break
+  this.emit('heartbeat', feed)
 
-      default:
-        throw new Error('Watchdog onFeed: unsupport type ' + type)
-    }
+  monitorScan.call(this, type)
+  autoSaveSession.call(this)
 
-    setWatchDogTimer.call(this, timeout, (type + ':' + data))
+  switch (type) {
+    case 'POISON':
+      clearWatchDogTimer.call(this)
+      break
 
-    this.emit('heartbeat', type + ':' + data)
+    case 'SCAN':
+    case 'HEARTBEAT':
+      break
 
-    monitorScan.call(this, type)
-    autoSaveSession.call(this)
-  // }) // end nextTick
-
+    default:
+      throw new Error('Watchdog onFeed: unsupport type ' + type)
+  }
 }
 
 function clearWatchDogTimer() {
@@ -82,9 +80,9 @@ function setWatchDogTimer(timeout, feed) {
 
   clearWatchDogTimer.call(this)
 
-  log.silly('PuppetWebWatchdog', 'setWatchDogTimer(%d)', timeout)
+  log.silly('PuppetWebWatchdog', 'setWatchDogTimer(%d, %s)', timeout, feed)
 
-  this.watchDogTimer = setTimeout(watchDogReset.bind(this, timeout), timeout)
+  this.watchDogTimer = setTimeout(watchDogReset.bind(this, timeout, feed), timeout)
   this.watchDogTimerTime = Date.now() + timeout
   // block quit, force to use quit() // this.watchDogTimer.unref() // dont block quit
 }
