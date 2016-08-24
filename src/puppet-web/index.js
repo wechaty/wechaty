@@ -54,6 +54,8 @@ class PuppetWeb extends Puppet {
   init() {
     log.verbose('PuppetWeb', `init() with head:${this.head}, profile:${this.profile}`)
 
+    this.readyState('connecting')
+
     this.on('watchdog', Watchdog.onFeed.bind(this))
 
     return co.call(this, function* () {
@@ -82,6 +84,7 @@ class PuppetWeb extends Puppet {
     })
     .then(() => {   // Finally
       log.verbose('PuppetWeb', 'init() done')
+      this.readyState('connected')
       return this   // for Chaining
     })
   }
@@ -105,9 +108,10 @@ class PuppetWeb extends Puppet {
     return co.call(this, function* () {
 
       if (this.bridge)  {
-        yield this.bridge.quit().catch(e => { // fail safe
-          log.warn('PuppetWeb', 'quit() bridge.quit() exception: %s', e.message)
-        })
+        yield this.bridge.quit()
+                        .catch(e => { // fail safe
+                          log.warn('PuppetWeb', 'quit() bridge.quit() exception: %s', e.message)
+                        })
         log.verbose('PuppetWeb', 'quit() bridge.quit() this.bridge = null')
         this.bridge = null
       } else { log.warn('PuppetWeb', 'quit() without a bridge') }
@@ -203,7 +207,13 @@ class PuppetWeb extends Puppet {
     server.on('login'   , Event.onServerLogin.bind(this))
     server.on('logout'  , Event.onServerLogout.bind(this))
     server.on('message' , Event.onServerMessage.bind(this))
-    server.on('unload'  , Event.onServerUnload.bind(this))
+
+    /**
+     * @depreciated 20160825 zixia
+     * 
+     * when `unload` there should always be a `disconnect` event?
+     */ 
+    // server.on('unload'  , Event.onServerUnload.bind(this))
 
     server.on('connection', Event.onServerConnection.bind(this))
     server.on('disconnect', Event.onServerDisconnect.bind(this))

@@ -43,6 +43,13 @@ function onFeed({
   const feed = `${type}:[${data}]`
   log.verbose('PuppetWebWatchdog', 'onFeed: %d, %s', timeout, feed)
 
+  if (this.readyState() === 'disconnecting'
+      || this.readyState() === 'disconnected'
+  ) {
+    log.warn('PuppetWebWatchdog', 'onFeed() is disabled because readyState is `disconnecting`')
+    return
+  }
+
   setWatchDogTimer.call(this, timeout, feed)
 
   this.emit('heartbeat', feed)
