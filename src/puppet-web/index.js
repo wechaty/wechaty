@@ -39,7 +39,7 @@ const config  = require('../config')
 class PuppetWeb extends Puppet {
   constructor({
     head = config.DEFAULT_HEAD
-    , profile   // if not set profile, then do not store session.
+    , profile = null  // if not set profile, then do not store session.
   } = {}) {
     super()
     this.head     = head
@@ -89,6 +89,13 @@ class PuppetWeb extends Puppet {
   quit() {
     log.verbose('PuppetWeb', 'quit()')
 
+    if (this.readyStatus() === 'disconnecting') {
+      log.warn('PuppetWeb', 'quit() is called but readyStatus is `disconnecting`?')
+      throw new Error('do not call quit again when quiting')
+    }
+    
+    this.readyStatus('disconnecting')
+
     // this.clearWatchDogTimer()
     this.emit('watchdog', {
       data: 'PuppetWeb.quit()',
@@ -101,12 +108,14 @@ class PuppetWeb extends Puppet {
         yield this.bridge.quit().catch(e => { // fail safe
           log.warn('PuppetWeb', 'quit() bridge.quit() exception: %s', e.message)
         })
+        log.verbose('PuppetWeb', 'quit() bridge.quit() this.bridge = null')
         this.bridge = null
       } else { log.warn('PuppetWeb', 'quit() without a bridge') }
 
       if (this.server) {
         yield this.server.quit()
         this.server = null
+        log.verbose('PuppetWeb', 'quit() server.quit() this.server = null')
       } else { log.verbose('PuppetWeb', 'quit() without a server') }
 
       if (this.browser) {
@@ -114,9 +123,11 @@ class PuppetWeb extends Puppet {
                   .catch(e => { // fail safe
                     log.warn('PuppetWeb', 'quit() browser.quit() exception: %s', e.message)
                   })
+        log.verbose('PuppetWeb', 'quit() server.quit() this.browser = null')
         this.browser = null
       } else { log.warn('PuppetWeb', 'quit() without a browser') }
 
+      log.verbose('PuppetWeb', 'quit() server.quit() this.initAttach(null)')
       yield this.initAttach(null)
     })
     .catch(e => { // Reject
@@ -125,6 +136,7 @@ class PuppetWeb extends Puppet {
     })
     .then(() => { // Finally, Fail Safe
       log.verbose('PuppetWeb', 'quit() done')
+      this.readyStatus('disconnected')
       return this   // for Chaining
     })
   }

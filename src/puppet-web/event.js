@@ -13,7 +13,9 @@
 
 /**************************************
  *
- * Class PuppetWeb
+ * Events for Class PuppetWeb
+ * 
+ * here `this` is a PuppetWeb Instance
  *
  ***************************************/
 const util  = require('util')
@@ -152,19 +154,23 @@ function onServerDisconnect(data) {
     this.user = null
   }
 
+  if (this.readyStatus() === 'disconnecting') {
+    log.verbose('PuppetWebEvent', 'onServerDisconnect() be called when readyStatus is `disconnecting`')
+    return
+  }
+
+  if (!this.browser || !this.bridge) {
+    const e = new Error('onServerDisconnect() no browser or bridge')
+    log.error('PuppetWebEvent', '%s', e.message)
+    throw e
+  }
+  
   /**
    * conditions:
    * 1. browser crash(i.e.: be killed)
-   * 2. quiting
    */
-  if (!this.browser) {                // no browser, quiting?
-    log.verbose('PuppetWebEvent', 'onServerDisconnect() no browser. maybe Im quiting, do nothing')
-    return
-  } else if (this.browser.dead()) {   // browser is dead
+  if (this.browser.dead()) {   // browser is dead
     log.verbose('PuppetWebEvent', 'onServerDisconnect() found dead browser. wait it to restore')
-    return
-  } else if (!this.bridge) {          // no bridge, quiting???
-    log.verbose('PuppetWebEvent', 'onServerDisconnect() no bridge. maybe Im quiting, do nothing')
     return
   }
 
@@ -172,7 +178,7 @@ function onServerDisconnect(data) {
   .then(r => {  // browser is alive, and we have a bridge to it
     log.verbose('PuppetWebEvent', 'onServerDisconnect() re-initing bridge')
     // must use setTimeout to wait a while.
-    // because the browser has just refreshed, need some time to re-init to ready.
+    // because the browser has just refreshed, need some time to re-init to be ready.
     // if the browser is not ready, bridge init will fail,
     // caused browser dead and have to be restarted. 2016/6/12
     setTimeout(_ => {

@@ -164,7 +164,7 @@ class Browser extends EventEmitter {
       return Promise.resolve('no driver session')
     }
 
-    return co(function* () {
+    return co.call(this, function* () {
       log.silly('PuppetWebBrowser', 'quit() co()')
       yield this.driver.close() // http://stackoverflow.com/a/32341885/1123955
       yield this.driver.quit()
@@ -173,7 +173,7 @@ class Browser extends EventEmitter {
       yield this.clean()
       log.silly('PuppetWebBrowser', 'quit() co() end')
 
-    }.bind(this)).catch(e => {
+    }).catch(e => {
       // console.log(e)
       // log.warn('PuppetWebBrowser', 'err: %s %s %s %s', e.code, e.errno, e.syscall, e.message)
       log.error('PuppetWebBrowser', 'quit() exception: %s', e.message)
@@ -302,7 +302,8 @@ class Browser extends EventEmitter {
   }
 
   execute(script, ...args) {
-    //log.verbose('PuppetWebBrowser', `Browser.execute(${script})`)
+    log.verbose('PuppetWebBrowser', 'Browser.execute(...)')
+    log.silly('PuppetWebBrowser', `Browser.execute(${script.slice(0, 70)})`)
     // log.verbose('PuppetWebBrowser', `Browser.execute() driver.getSession: %s`, util.inspect(this.driver.getSession()))
     if (this.dead()) { return Promise.reject(new Error('browser dead')) }
 

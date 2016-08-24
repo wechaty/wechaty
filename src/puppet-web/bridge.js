@@ -212,6 +212,9 @@ class Bridge {
       })
   }
 
+  /**
+   * call REAL browser excute for other methods
+   */
   execute(script, ...args) {
     if (!this.puppet || !this.puppet.browser) {
       return Promise.reject(new Error('execute(): no puppet or no puppet.browser in bridge'))

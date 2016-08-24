@@ -16,6 +16,20 @@ const log = require('./npmlog-env')
 class Puppet extends EventEmitter {
   constructor() {
     super()
+
+    /*
+     * connected / disconnected
+     * connecting / disconnecting
+     */
+    this._readyStatus = 'disconnected'
+  }
+
+  readyStatus(newStatus) {
+    if (newStatus) {
+      log.verbose('Puppet', 'readyStatus(%s)', newStatus)
+      this._readyStatus = newStatus
+    }
+    return this._readyStatus
   }
 
   /**
