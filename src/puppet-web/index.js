@@ -89,12 +89,12 @@ class PuppetWeb extends Puppet {
   quit() {
     log.verbose('PuppetWeb', 'quit()')
 
-    if (this.readyStatus() === 'disconnecting') {
-      log.warn('PuppetWeb', 'quit() is called but readyStatus is `disconnecting`?')
+    if (this.readyState() === 'disconnecting') {
+      log.warn('PuppetWeb', 'quit() is called but readyState is `disconnecting`?')
       throw new Error('do not call quit again when quiting')
     }
-    
-    this.readyStatus('disconnecting')
+
+    this.readyState('disconnecting')
 
     // this.clearWatchDogTimer()
     this.emit('watchdog', {
@@ -136,7 +136,7 @@ class PuppetWeb extends Puppet {
     })
     .then(() => { // Finally, Fail Safe
       log.verbose('PuppetWeb', 'quit() done')
-      this.readyStatus('disconnected')
+      this.readyState('disconnected')
       return this   // for Chaining
     })
   }

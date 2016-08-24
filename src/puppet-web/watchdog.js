@@ -56,7 +56,7 @@ function onFeed({
         throw new Error('Watchdog onFeed: unsupport type ' + type)
     }
 
-    setWatchDogTimer.call(this, timeout)
+    setWatchDogTimer.call(this, timeout, (type + ':' + data))
 
     this.emit('heartbeat', type + ':' + data)
 
@@ -78,7 +78,7 @@ function clearWatchDogTimer() {
   }
 }
 
-function setWatchDogTimer(timeout) {
+function setWatchDogTimer(timeout, feed) {
 
   clearWatchDogTimer.call(this)
 
@@ -89,9 +89,13 @@ function setWatchDogTimer(timeout) {
   // block quit, force to use quit() // this.watchDogTimer.unref() // dont block quit
 }
 
-function watchDogReset(timeout) {
+function watchDogReset(timeout, lastFeed) {
   log.verbose('PuppetWebWatchdog', 'watchDogReset() timeout %d', timeout)
-  const e = new Error('watchdog reset after ' + Math.floor(timeout/1000) + ' seconds')
+  const e = new Error('watchdog reset after ' 
+                        + Math.floor(timeout/1000) 
+                        + ' seconds, last feed:'
+                        + '[' + lastFeed + ']'
+                    )
   this.emit('error', e)
   return Event.onBrowserDead.call(this, e)
 }

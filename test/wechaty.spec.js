@@ -1,7 +1,7 @@
 const test = require('tape')
+const Wechaty = require('../')
 
-test('Wechaty Framework', function(t) {
-  const Wechaty = require('../')
+test('Wechaty Framework', t => {
   t.ok(Wechaty            , 'should export Wechaty')
   t.ok(Wechaty.Message    , 'should export Wechaty.Message')
   t.ok(Wechaty.Contact    , 'should export Wechaty.Contact')
@@ -21,8 +21,7 @@ test('Wechaty Framework', function(t) {
   t.end()
 })
 
-test('Wechaty config setting', function(t) {
-  const Wechaty = require('../')
+test('Wechaty config setting', t => {
   const config = Wechaty.config
 
   t.ok(config                 , 'should export Wechaty.config')

@@ -16,10 +16,14 @@ const log = require('../npmlog-env')
 
 class Bridge {
   constructor(options) {
-    if (!options || !options.puppet) { throw new Error('Bridge need a puppet')}
+    if (!options || !options.puppet) {
+      throw new Error('Bridge need a puppet')
+    }
+
     log.verbose('PuppetWebBridge', 'new Bridge({puppet: %s, port: %s})'
       , options.puppet.constructor.name
-      , options.port)
+      , options.port
+    )
 
     this.puppet = options.puppet
     this.port   = options.port || 8788 // W(87) X(88), ascii char code ;-]

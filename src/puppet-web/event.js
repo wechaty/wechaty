@@ -154,8 +154,8 @@ function onServerDisconnect(data) {
     this.user = null
   }
 
-  if (this.readyStatus() === 'disconnecting') {
-    log.verbose('PuppetWebEvent', 'onServerDisconnect() be called when readyStatus is `disconnecting`')
+  if (this.readyState() === 'disconnecting') {
+    log.verbose('PuppetWebEvent', 'onServerDisconnect() be called when readyState is `disconnecting`')
     return
   }
 

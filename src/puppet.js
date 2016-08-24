@@ -21,15 +21,15 @@ class Puppet extends EventEmitter {
      * connected / disconnected
      * connecting / disconnecting
      */
-    this._readyStatus = 'disconnected'
+    this._readyState = 'disconnected'
   }
 
-  readyStatus(newStatus) {
-    if (newStatus) {
-      log.verbose('Puppet', 'readyStatus(%s)', newStatus)
-      this._readyStatus = newStatus
+  readyState(newState) {
+    if (newState) {
+      log.verbose('Puppet', 'readyState(%s)', newState)
+      this._readyState = newState
     }
-    return this._readyStatus
+    return this._readyState
   }
 
   /**
