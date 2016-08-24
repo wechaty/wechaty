@@ -45,16 +45,12 @@ const PuppetWebEvent = {
 }
 
 function onBrowserDead(e) {
-  log.verbose('PuppetWebEvent', 'onBrowserDead(%s)', e)
+  log.verbose('PuppetWebEvent', 'onBrowserDead(%s)', e && e.message || e)
   // because this function is async, so maybe entry more than one times.
   // guard by variable: isBrowserBirthing to prevent the 2nd time entrance.
   if (this.isBrowserBirthing) {
-    if (this.isBrowserBirthing === true) {
-      log.verbose('PuppetWebEvent', 'onBrowserDead() Im busy, dont call me again before I return. this time will return and do nothing')
-      return
-    } else {
-      log.warn('PuppetWebEvent', 'onBrowserDead() Im FAKE busy? isBrowserBirthing is not boolean true!')
-    }
+    log.warn('PuppetWebEvent', 'onBrowserDead() Im busy, dont call me again before I return. this time will return and do nothing')
+    return
   }
 
   this.scan = null
@@ -70,39 +66,41 @@ function onBrowserDead(e) {
       , timeout: TIMEOUT
     })
 
-    log.verbose('PuppetWebEvent', 'onBrowserDead(%s)', e.message || e)
     if (!this.browser || !this.bridge) {
-      log.error('PuppetWebEvent', 'onBrowserDead() browser or bridge not found. do nothing')
-      throw new Error('no browser or no bridge')
+      const e = new Error('no browser or no bridge') 
+      log.error('PuppetWebEvent', 'onBrowserDead() %s', e.message)
+      throw e
     }
 
     log.verbose('PuppetWebEvent', 'onBrowserDead() try to reborn browser')
 
     yield this.browser.quit()
-    .catch(e => { // fail safe
-      log.warn('PuppetWebEvent', 'browser.quit() exception: %s', e.message)
-    })
-    log.verbose('PuppetWebEvent', 'old browser quited')
+                      .catch(e => { // fail safe
+                        log.warn('PuppetWebEvent', 'browser.quit() exception: %s', e.message)
+                      })
+    log.verbose('PuppetWebEvent', 'onBrowserDead() old browser quited')
 
     this.browser = yield this.initBrowser()
-    log.verbose('PuppetWebEvent', 'new browser inited')
+    log.verbose('PuppetWebEvent', 'onBrowserDead() new browser inited')
 
     // this.bridge = yield this.bridge.init()
     this.bridge = yield this.initBridge()
-    log.verbose('PuppetWebEvent', 'bridge re-inited')
+    log.verbose('PuppetWebEvent', 'onBrowserDead() bridge re-inited')
 
     const dong = yield this.ding()
     if (/dong/i.test(dong)) {
-      log.verbose('PuppetWebEvent', 'ding() works well after reset')
+      log.verbose('PuppetWebEvent', 'onBrowserDead() ding() works well after reset')
     } else {
-      log.warn('PuppetWebEvent', 'ding() get error return after reset: ' + dong)
+      log.warn('PuppetWebEvent', 'onBrowserDead() ding() get error return after reset: ' + dong)
     }
   })
   .catch(e => { // Exception
     log.error('PuppetWebEvent', 'onBrowserDead() exception: %s', e.message)
 
     log.warn('PuppetWebEvent', 'onBrowserDead() try to re-init PuppetWeb itself')
-    return this.quit().then(_ => this.init())
+    return this.quit()
+              .catch(e => log.warn('PuppetWebEvent', 'onBrowserDead() fail safe for this.quit(): %s', e.message))
+              .then(_ => this.init())
   })
   .then(() => { // Finally
     log.verbose('PuppetWebEvent', 'onBrowserDead() new browser borned')
@@ -146,7 +144,7 @@ function onServerScan(data) {
 }
 
 function onServerConnection(data) {
-  log.verbose('PuppetWebEvent', 'onServerConnection: %s', typeof data)
+  log.verbose('PuppetWebEvent', 'onServerConnection: %s', data)
 }
 
 function onServerDisconnect(data) {
@@ -203,6 +201,10 @@ function onServerDisconnect(data) {
 }
 
 /**
+ *
+ * @depreciated 20160825 zixia
+ * when `unload` there should always be a `disconnect` event?
+ * 
  * `unload` event is sent from js@browser to webserver via socketio
  * after received `unload`, we should fix bridge by re-inject the Wechaty js code into browser.
  * possible conditions:
@@ -212,19 +214,25 @@ function onServerDisconnect(data) {
  * 4. ...
  */
 function onServerUnload(data) {
-  log.warn('PuppetWebEvent', 'onServerUnload(%s)', typeof data)
+  log.warn('PuppetWebEvent', 'onServerUnload(%s)', data)
   // onServerLogout.call(this, data) // XXX: should emit event[logout] from browser
 
-  if (!this.browser) {
-    log.warn('PuppetWebEvent', 'onServerUnload() found browser gone, should be quiting now')
+  if (this.readyState() === 'disconnecting') {
+    log.verbose('PuppetWebEvent', 'onServerUnload() will return because readyState is `disconnecting`')
     return
-  } else if (!this.bridge) {
-    log.warn('PuppetWebEvent', 'onServerUnload() found bridge gone, should be quiting now')
-    return
-  } else if (this.browser.dead()) {
+  }
+
+  if (!this.browser || !this.bridge) {
+    const e = new Error('no bridge or no browser')
+    log.warn('PuppetWebEvent', 'onServerUnload() %s', e.message)
+    throw e
+  }
+  
+  if (this.browser.dead()) {
     log.error('PuppetWebEvent', 'onServerUnload() found browser dead. wait it to restore itself')
     return
   }
+
   // re-init bridge after 1 second XXX: better method to confirm unload/reload finished?
   return setTimeout(() => {
     if (!this.bridge) {

@@ -128,7 +128,8 @@ class Server extends EventEmitter {
       , 'login'
       , 'logout'
       , 'log'
-      , 'unload'
+      , 'unload'  // @depreciated 20160825 zixia
+                  // when `unload` there should always be a `disconnect` event?
       , 'ding'
     ].map(e => {
       client.on(e, data => {

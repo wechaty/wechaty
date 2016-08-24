@@ -19,7 +19,8 @@ test('Puppet Web Event smoking test', function(t) {
     yield pw.init()
     t.pass('should be inited')
 
-    yield PuppetWebEvent.onBrowserDead.call(pw, 'test')
+    yield PuppetWebEvent.onBrowserDead.call(pw, 'event unit test')
+    t.pass('should finish onBrowserDead event process')
   })
   .catch(e => t.fail(e))  // Reject
   .then(r => {            // Finally

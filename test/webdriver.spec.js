@@ -85,9 +85,11 @@ test('WebDriver smoke testing', function(t) {
 
   })
   .catch(e => t.fail('promise rejected. e:' + e)) // Rejected
-  .then(r => wb.quit())                           // Finally 1
-  .then(r => t.end())                             // Finally 2
-  .catch(e => t.fail('exception got:' + e))       // Exception
+  .then(_ => {                                    // Finally
+    wb.quit()
+    .then(_ => t.end())
+  })
+  .catch(e => t.fail(e))                          // Exception
 
   return
 
