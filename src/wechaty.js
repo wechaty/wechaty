@@ -16,13 +16,13 @@ const UtilLib          = require('./util-lib')
 
 const PuppetWeb     = require('./puppet-web')
 
-const config = require('./config')
+const Config = require('./config')
 
 class Wechaty extends EventEmitter {
 
   constructor({
-    type        = process.env.WECHATY_PUPPET    || config.DEFAULT_PUPPET
-    , head      = process.env.WECHATY_HEAD      || config.DEFAULT_HEAD
+    type        = process.env.WECHATY_PUPPET    || Config.DEFAULT_PUPPET
+    , head      = process.env.WECHATY_HEAD      || Config.DEFAULT_HEAD
     , port      = process.env.WECHATY_PORT      || 0    // 0 for disable port
     , endpoint  = process.env.WECHATY_ENDPOINT          // wechaty.io api endpoint
     , token     = process.env.WECHATY_TOKEN             // token for wechaty.io auth

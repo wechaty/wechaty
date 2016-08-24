@@ -18,12 +18,12 @@ const retryPromise  = require('retry-promise').default // https://github.com/ola
 
 const log = require('../npmlog-env')
 
-const config  = require('../config')
+const Config  = require('../config')
 
 class Browser extends EventEmitter {
 
   constructor({
-    head = process.env.WECHATY_HEAD || config.DEFAULT_HEAD
+    head = process.env.WECHATY_HEAD || Config.DEFAULT_HEAD
     , sessionFile
   } = {}) {
     log.verbose('Browser', 'constructor() with head(%s) sessionFile(%s)', head, sessionFile)

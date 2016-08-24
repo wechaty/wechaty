@@ -22,13 +22,13 @@ test('Wechaty Framework', t => {
 })
 
 test('Wechaty config setting', t => {
-  const config = Wechaty.config
+  const Config = Wechaty.Config
 
-  t.ok(config                 , 'should export Wechaty.config')
-  t.ok(config.DEFAULT_HEAD    , 'should has DEFAULT_HEAD')
-  t.ok(config.DEFAULT_PUPPET  , 'should has DEFAULT_PUPPET')
-  t.ok(config.DEFAULT_PORT    , 'should has DEFAULT_PORT')
-  t.ok(config.DEFAULT_PUPPET_PORT, 'should has DEFAULT_PUPPET_PORT')
+  t.ok(Config                 , 'should export Wechaty.Config')
+  t.ok(Config.DEFAULT_HEAD    , 'should has DEFAULT_HEAD')
+  t.ok(Config.DEFAULT_PUPPET  , 'should has DEFAULT_PUPPET')
+  t.ok(Config.DEFAULT_PORT    , 'should has DEFAULT_PORT')
+  t.ok(Config.DEFAULT_PUPPET_PORT, 'should has DEFAULT_PUPPET_PORT')
 
   t.end()
 })

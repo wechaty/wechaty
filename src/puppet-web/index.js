@@ -34,11 +34,11 @@ const Event     = require('./event')
 const Watchdog  = require('./watchdog')
 
 const UtilLib = require('../util-lib')
-const config  = require('../config')
+const Config  = require('../config')
 
 class PuppetWeb extends Puppet {
   constructor({
-    head = config.DEFAULT_HEAD
+    head = Config.DEFAULT_HEAD
     , profile = null  // if not set profile, then do not store session.
   } = {}) {
     super()
@@ -60,7 +60,7 @@ class PuppetWeb extends Puppet {
 
     return co.call(this, function* () {
 
-      this.port = yield UtilLib.getPort(config.DEFAULT_PUPPET_PORT)
+      this.port = yield UtilLib.getPort(Config.DEFAULT_PUPPET_PORT)
       log.verbose('PuppetWeb', 'init() getPort %d', this.port)
 
       yield this.initAttach(this)

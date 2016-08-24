@@ -10,7 +10,7 @@ const PuppetWeb = require('./src/puppet-web')
 const IoBot   = require('./src/io-bot')
 
 const log = require('./src/npmlog-env')
-const config = require('./src/config')
+const Config = require('./src/config')
 
 Object.assign(Wechaty, {
   Message
@@ -24,7 +24,8 @@ Object.assign(Wechaty, {
 
   , version: require('./package.json').version
   , log // for convenionce use npmlog with environment variable LEVEL
-  , config
+  
+  , Config
 })
 
 module.exports = Wechaty
