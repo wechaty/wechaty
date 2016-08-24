@@ -165,13 +165,15 @@ class Browser extends EventEmitter {
     }
 
     return co(function* () {
+      log.silly('PuppetWebBrowser', 'quit() co()')
       yield this.driver.close() // http://stackoverflow.com/a/32341885/1123955
       yield this.driver.quit()
       this.driver = null
 
       yield this.clean()
+      log.silly('PuppetWebBrowser', 'quit() co() end')
 
-    }).catch(e => {
+    }.bind(this)).catch(e => {
       // console.log(e)
       // log.warn('PuppetWebBrowser', 'err: %s %s %s %s', e.code, e.errno, e.syscall, e.message)
       log.error('PuppetWebBrowser', 'quit() exception: %s', e.message)
