@@ -39,11 +39,13 @@ class Server extends EventEmitter {
         , r => resolve(r), e => reject(e)
       )
       this.socketServer = this.createSocketIo(this.httpsServer)
-
-      log.verbose('PuppetWebServer', 'full init()-ed')
-
       return this
-    }).catch(e => {
+    })
+    .then(_ => {
+      log.verbose('PuppetWebServer', 'full init()-ed')
+      return this
+    })
+    .catch(e => {
       log.error('PuppetWebServer', 'init() exception: %s', e.message)
       throw e
     })

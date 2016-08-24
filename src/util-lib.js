@@ -88,6 +88,7 @@ function guid() {
 }
 
 function getPort(port) {
+  log.verbose('UtilLib', 'getPort(%d)', port)
   return new Promise((resolve, reject) => {
     port = port || 8788
     // https://gist.github.com/mikeal/1840641
@@ -107,7 +108,13 @@ function getPort(port) {
         server.close()
       })
     }
-    getPort(okPort => resolve(okPort))
+    getPort(okPort => {
+      log.verbose('UtilLib', 'getPort(%d) return: %d'
+                            , port
+                            , okPort
+                  )
+      resolve(okPort)
+    })
   })
 }
 

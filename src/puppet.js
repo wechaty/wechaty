@@ -26,7 +26,7 @@ class Puppet extends EventEmitter {
 
   readyState(newState) {
     if (newState) {
-      log.verbose('Puppet', 'readyState(%s)', newState)
+      log.verbose('Puppet', 'readyState() set to "%s"', newState)
       this._readyState = newState
     }
     return this._readyState

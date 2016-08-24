@@ -302,8 +302,7 @@ class Browser extends EventEmitter {
   }
 
   execute(script, ...args) {
-    log.verbose('PuppetWebBrowser', 'Browser.execute(...)')
-    log.silly('PuppetWebBrowser', `Browser.execute(${script.slice(0, 70)})`)
+    log.silly('PuppetWebBrowser', `Browser.execute(${script.slice(0, 80)})`)
     // log.verbose('PuppetWebBrowser', `Browser.execute() driver.getSession: %s`, util.inspect(this.driver.getSession()))
     if (this.dead()) { return Promise.reject(new Error('browser dead')) }
 

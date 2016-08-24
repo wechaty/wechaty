@@ -44,7 +44,7 @@ function onFeed({
   log.verbose('PuppetWebWatchdog', 'onFeed: %d, %s', timeout, feed)
 
   if (this.readyState() === 'disconnecting'
-      || this.readyState() === 'disconnected'
+      // || this.readyState() === 'disconnected'
   ) {
     log.warn('PuppetWebWatchdog', 'onFeed() is disabled because readyState is `disconnecting`')
     return

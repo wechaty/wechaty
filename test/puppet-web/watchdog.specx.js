@@ -26,7 +26,7 @@ test('Puppet Web watchdog timer', function(t) {
     }
 
     yield pw.init()
-    pw.quit()
+    yield pw.quit()
     // yield pw.bridge.quit()
     // pw.bridge = null
     // yield pw.browser.quit()
