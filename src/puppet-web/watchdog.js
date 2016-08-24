@@ -90,7 +90,7 @@ function setWatchDogTimer(timeout, feed) {
   log.silly('PuppetWebWatchdog', 'setWatchDogTimer(%d, %s)', timeout, feed)
 
   this.watchDogTimer = setTimeout(watchDogReset.bind(this, timeout, feed), timeout)
-  this.watchDogTimer.unref()
+  // this.watchDogTimer.unref()
   this.watchDogTimerTime = Date.now() + timeout
   // block quit, force to use quit() // this.watchDogTimer.unref() // dont block quit
 }

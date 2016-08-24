@@ -105,6 +105,11 @@ function onBrowserDead(e) {
   .then(() => { // Finally
     log.verbose('PuppetWebEvent', 'onBrowserDead() new browser borned')
     this.isBrowserBirthing = false
+
+    this.emit('watchdog', {
+      data: `onBrowserDead() new browser borned`
+      , type: 'POISON'
+    })
   })
 }
 
