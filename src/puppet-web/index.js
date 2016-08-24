@@ -97,13 +97,13 @@ class PuppetWeb extends Puppet {
       throw new Error('do not call quit again when quiting')
     }
 
-    this.readyState('disconnecting')
-
-    // this.clearWatchDogTimer()
+    // POISON must feed before readyState set to "disconnecting"
     this.emit('watchdog', {
       data: 'PuppetWeb.quit()',
       type: 'POISON'
     })
+
+    this.readyState('disconnecting')
 
     return co.call(this, function* () {
 
