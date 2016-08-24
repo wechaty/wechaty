@@ -49,4 +49,5 @@ coverage
 # Other staff
 0
 t/
+t.*
 .DS_Store
