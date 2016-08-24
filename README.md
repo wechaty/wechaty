@@ -1,5 +1,5 @@
 [![Wechaty](https://raw.githubusercontent.com/zixia/wechaty/master/image/wechaty-logo-en.png)](https://github.com/zixia/wechaty)
-# Wechaty [![Linux Build Status](https://img.shields.io/travis/zixia/wechaty.svg?maxAge=2592000&label=Linux/Mac%20Tests)](https://travis-ci.org/zixia/wechaty) [![Win32 Build status](https://img.shields.io/appveyor/ci/zixia/wechaty/master.svg?label=Windows%20Tests)](https://ci.appveyor.com/project/zixia/wechaty) [![Linux Circle CI](https://circleci.com/gh/zixia/wechaty.svg?style=svg)](https://circleci.com/gh/zixia/wechaty) [![Coverage Status](https://coveralls.io/repos/github/zixia/wechaty/badge.svg?branch=master)](https://coveralls.io/github/zixia/wechaty?branch=master)
+# Wechaty [![Linux Build Status](https://img.shields.io/travis/zixia/wechaty.svg?label=Linux/Mac%20Tests)](https://travis-ci.org/zixia/wechaty) [![Win32 Build status](https://img.shields.io/appveyor/ci/zixia/wechaty/master.svg?label=Windows%20Tests)](https://ci.appveyor.com/project/zixia/wechaty) [![Linux Circle CI](https://circleci.com/gh/zixia/wechaty.svg?style=svg)](https://circleci.com/gh/zixia/wechaty) [![Coverage Status](https://coveralls.io/repos/github/zixia/wechaty/badge.svg?branch=master)](https://coveralls.io/github/zixia/wechaty?branch=master)
 
 Connecting ChatBots.
 

@@ -5,7 +5,6 @@ const retryPromise = require('retry-promise').default
 
 const log = require('../../src/npmlog-env')
 
-const PORT = process.env.WECHATY_PORT || 58788
 const PROFILE = 'unit-test-session.wechaty.json'
 
 const PuppetWeb = require('../../src/puppet-web')
@@ -24,7 +23,7 @@ test('Puppet Web Self Message Identification', function(t) {
   t.end()
 })
 
-false && test('PuppetWeb smoke testing', function(t) {
+test('PuppetWeb smoke testing', function(t) {
   let pw = new PuppetWeb({profile: PROFILE})
   t.ok(pw, 'should instantiated a PuppetWeb')
 
@@ -57,7 +56,7 @@ false && test('PuppetWeb smoke testing', function(t) {
     yield p2
   })
   .catch(e => t.fail(e))  // Reject
-  .then(r => {            // Finally 1
+  .then(r => {            // Finally
     // log.warn('TestPuppetWeb', 'finally()')
     pw.quit()
     .then(_ => t.end())
@@ -86,7 +85,7 @@ test('Puppet Web server/browser communication', function(t) {
     pw.quit()
     .then(_ => t.end())
   })
-  .catch(e => { t.fail(e) })  // Exception
+  .catch(e => t.fail(e))  // Exception
 
   return
   /////////////////////////////////////////////////////////////////////////////
