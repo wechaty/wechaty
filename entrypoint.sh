@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/bin/sh
 #
 # Credit: https://github.com/cusspvz/node.docker/blob/master/entrypoint
 #
 
-if [[ "$WECHATY_HEAD" != "phantomjs" ]]; then
+if [ "$WECHATY_HEAD" != "phantomjs" ]; then
   export DISPLAY=':99.0'
   Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
 fi
@@ -24,7 +24,7 @@ if [ "$1" == "shell" ] || \
    [ "$1" == "/bin/bash" ] || \
    [ "$1" == "/bin/sh" ];
   then
-    exec /bin/sh -s
+    exec /bin/bash -s
     exit $?
 fi
 
