@@ -53,7 +53,7 @@ class Wechaty extends EventEmitter {
 
   version(forceNpm) {
     const dotGitPath  = __dirname + '/../.git'
-    const gitLogCmd   = 'cd ' + __dirname + '; git log --oneline -1'
+    const gitLogCmd   = 'cd ' + __dirname + '; git log --oneline -1 2>/dev/null'
 
     if (!forceNpm) {
       try {
