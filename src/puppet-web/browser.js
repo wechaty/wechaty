@@ -167,9 +167,11 @@ class Browser extends EventEmitter {
     return co.call(this, function* () {
       log.silly('PuppetWebBrowser', 'quit() co()')
       yield this.driver.close() // http://stackoverflow.com/a/32341885/1123955
+      log.silly('PuppetWebBrowser', 'quit() driver.close()-ed')
       yield this.driver.quit()
-      log.silly('PuppetWebBrowser', 'quit() this.driver = null')
+      log.silly('PuppetWebBrowser', 'quit() driver.quit()-ed')
       this.driver = null
+      log.silly('PuppetWebBrowser', 'quit() this.driver = null')
 
       yield this.clean()
       log.silly('PuppetWebBrowser', 'quit() co() end')
