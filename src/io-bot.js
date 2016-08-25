@@ -15,7 +15,7 @@ class IoBot {
   constructor({
     token = 'EPP'
     , profile = 'wechaty-epp'
-    , log = null
+    , log = Wechaty.log
   }) {
     if (!log) {
       const e = new Error('constructor() log(npmlog/brolog) must be set')

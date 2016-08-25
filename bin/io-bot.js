@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 
-const log   = require('../src/npmlog-env')
-const IoBot = require('../src/io-bot')
-
+const { IoBot, log } = require('..')
 
 const welcome = `
 | __        __        _           _
