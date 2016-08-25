@@ -21,7 +21,7 @@ test('Wechaty Framework', t => {
   t.end()
 })
 
-test('Wechaty config setting', t => {
+test('Wechaty Config setting', t => {
   const Config = Wechaty.Config
 
   t.ok(Config                 , 'should export Wechaty.Config')

@@ -64,7 +64,7 @@ test('PuppetWeb smoke testing', function(t) {
   .catch(e => t.fail(e))  // Exception
 })
 
-test('Puppet Web server/browser communication', function(t) {
+test('PuppetWeb server/browser communication', function(t) {
   let pw = new PuppetWeb({profile: PROFILE})
   t.ok(pw, 'should instantiated a PuppetWeb')
 
