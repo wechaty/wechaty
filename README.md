@@ -1,9 +1,9 @@
 [![Wechaty](https://raw.githubusercontent.com/zixia/wechaty/master/image/wechaty-logo-en.png)](https://github.com/zixia/wechaty)
-# Wechaty [![Linux Build Status](https://img.shields.io/travis/zixia/wechaty.svg?maxAge=2592000&label=Linux/Mac%20Tests)](https://travis-ci.org/zixia/wechaty) [![Win32 Build status](https://img.shields.io/appveyor/ci/zixia/wechaty/master.svg?label=Windows%20Tests)](https://ci.appveyor.com/project/zixia/wechaty) [![Linux Circle CI](https://circleci.com/gh/zixia/wechaty.svg?style=svg)](https://circleci.com/gh/zixia/wechaty) [![Coverage Status](https://coveralls.io/repos/github/zixia/wechaty/badge.svg?branch=master)](https://coveralls.io/github/zixia/wechaty?branch=master)
+# Wechaty [![Linux Circle CI](https://circleci.com/gh/zixia/wechaty.svg?style=svg)](https://circleci.com/gh/zixia/wechaty) [![Linux Build Status](https://img.shields.io/travis/zixia/wechaty.svg?label=Linux/Mac%20Tests)](https://travis-ci.org/zixia/wechaty) [![Win32 Build status](https://img.shields.io/appveyor/ci/zixia/wechaty/master.svg?label=Windows%20Tests)](https://ci.appveyor.com/project/zixia/wechaty) [![Coverage Status](https://coveralls.io/repos/github/zixia/wechaty/badge.svg?branch=master)](https://coveralls.io/github/zixia/wechaty?branch=master)
 
-Connecting ChatBots.
+Connecting ChatBots, for Chat as a Service(CaaS).
 
-Wechaty is a Bot Framework for Wechat **Personal** Account. With wechaty, you can easy creating personal wechat bot in 7 lines of javascript code. Supports [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.appveyor.com/project/zixia/wechaty) and [darwin(OSX/Mac)](https://travis-ci.org/zixia/wechaty).
+Wechaty is a Bot Framework for Wechat **Personal** Account, which can help you easy creating personal wechat bot in 7 lines of javascript code, with cross platform  support to [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.appveyor.com/project/zixia/wechaty) and [darwin(OSX/Mac)](https://travis-ci.org/zixia/wechaty).
 
 :octocat: <https://github.com/zixia/wechaty>  
 :beetle: <https://github.com/zixia/wechaty/issues>  
@@ -586,6 +586,13 @@ Github Issue - https://github.com/zixia/wechaty/issues
 1. [Wechat4U](https://github.com/nodeWechat/wechat4u) 微信 wechat web 网页版接口的 JavaScript 实现，兼容Node和浏览器
 2. [wechat-user-bot](https://github.com/HalfdogStudio/wechat-user-bot) 正在组装中的微信机器人
 
+### Electron
+1. [:speech_balloon: A better WeChat on macOS and Linux. Fewer bugs, more features. Built with Electron by Zhongyi Tong.](https://github.com/geeeeeeeeek/electronic-wechat)
+  - [网页版微信抓包+注入实现表情贴纸显示](https://github.com/geeeeeeeeek/electronic-wechat/issues/2)
+  - [新表情方案: 收到消息时修改其内容（及阻止撤回）](https://github.com/geeeeeeeeek/electronic-wechat/pull/13)
+1. [普通个人号 微信机器人/外挂](https://github.com/fritx/wxbot)
+  - [微信个人号/公众号相关项目整理（wechat/weixin/wx）](https://github.com/fritx/awesome-wechat)
+
 ### Perl
 1. [MojoWeixin](https://github.com/sjdy521/Mojo-Weixin) 使用Perl语言编写的微信客户端框架，基于Mojolicious，要求Perl版本5.10+，可通过插件提供基于HTTP协议的api接口供其他语言或系统调用
 
@@ -593,6 +600,7 @@ Github Issue - https://github.com/zixia/wechaty/issues
 1. [WeixinBot](https://github.com/Urinx/WeixinBot) *Very well documented* 网页版微信API，包含终端版微信及微信机器人
 1. [wxBot](https://github.com/liuwons/wxBot): Wechat Bot API
 1. [ItChat](https://github.com/littlecodersh/ItChat): 微信个人号接口（支持文件、图片上下载）、微信机器人及命令行微信。三十行即可自定义个人号机器人
+1. [WechatIrcd](https://github.com/MaskRay/wechatircd): 用IRC客户端控制微信网页版
 
 ## Chat Script
 1. [SuperScript](http://superscriptjs.com/) A dialog system and bot engine for conversational UI's. (Pure Javascript)

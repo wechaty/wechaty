@@ -13,7 +13,7 @@ const By = WebDriver.By
 const PuppetWebBrowser  = require('../src/puppet-web/browser')
 const PuppetWebBridge   = require('../src/puppet-web/bridge')
 
-test('WebDriver process create & quit test', function(t) {
+test('WebDriver process create & quit test', t => {
   co(function* () {
     const b = new PuppetWebBrowser()
     t.ok(b, 'should instanciate a browser')
@@ -34,7 +34,7 @@ test('WebDriver process create & quit test', function(t) {
     pids = yield b.getBrowserPids()
     t.equal(pids.length, 0, 'no driver process after quit')
   })
-  .catch(e => { t.fail(e) })
+  .catch(e => t.fail(e))
   .then(_ => t.end())
 
   return
@@ -85,9 +85,11 @@ test('WebDriver smoke testing', function(t) {
 
   })
   .catch(e => t.fail('promise rejected. e:' + e)) // Rejected
-  .then(r => wb.quit())                           // Finally 1
-  .then(r => t.end())                             // Finally 2
-  .catch(e => t.fail('exception got:' + e))       // Exception
+  .then(_ => {                                    // Finally
+    wb.quit()
+    .then(_ => t.end())
+  })
+  .catch(e => t.fail(e))                          // Exception
 
   return
 

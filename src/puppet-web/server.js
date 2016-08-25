@@ -15,22 +15,24 @@ const path        = require('path')
 const https       = require('https')
 const bodyParser  = require('body-parser')
 
-const log = require('../npmlog-env')
+const Config  = require('../config')
+const log     = require('../npmlog-env')
 
 const Express       = require('express')
 const EventEmitter  = require('events')
 
 class Server extends EventEmitter {
-  constructor(options) {
+  constructor({
+    port = Config.DEFAULT_PUPPET_PORT // W(87) X(88), ascii char code ;-]
+  } = {}) {
     super()
-    options       = options || {}
-    this.port     = options.port || 8788 // W(87) X(88), ascii char code ;-]
+    this.port = port 
   }
 
   toString() { return `Server({port:${this.port}})` }
 
   init() {
-    log.verbose('PuppetWebServer', 'init()')
+    log.verbose('PuppetWebServer', `init() on port ${this.port}`)
     return new Promise((resolve, reject) => {
       // this.initEventsToClient()
 
@@ -39,11 +41,13 @@ class Server extends EventEmitter {
         , r => resolve(r), e => reject(e)
       )
       this.socketServer = this.createSocketIo(this.httpsServer)
-
-      log.verbose('PuppetWebServer', 'full init()-ed')
-
       return this
-    }).catch(e => {
+    })
+    .then(_ => {
+      log.verbose('PuppetWebServer', 'init()-ed')
+      return this
+    })
+    .catch(e => {
       log.error('PuppetWebServer', 'init() exception: %s', e.message)
       throw e
     })
@@ -128,7 +132,8 @@ class Server extends EventEmitter {
       , 'login'
       , 'logout'
       , 'log'
-      , 'unload'
+      , 'unload'  // @depreciated 20160825 zixia
+                  // when `unload` there should always be a `disconnect` event?
       , 'ding'
     ].map(e => {
       client.on(e, data => {
@@ -137,15 +142,6 @@ class Server extends EventEmitter {
       })
     })
   }
-
-  // initEventsToClient() {
-  //   log.verbose('PuppetWebServer', 'initEventToClient()')
-  //   this.on('ding', data => {
-  //     log.silly('PuppetWebServer', `recv event[ding](${data}), sending to client`)
-  //     if (this.socketClient)  { this.socketClient.emit('ding', data) }
-  //     else                    { log.warn('PuppetWebServer', 'this.socketClient not exist')}
-  //   })
-  // }
 
   quit() {
     log.verbose('PuppetWebServer', 'quit()')

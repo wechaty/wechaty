@@ -40,30 +40,35 @@ function onFeed({
     throw new Error('onFeed() must has `this` of instanceof PuppetWeb')
   }
 
-  // process.nextTick(_ => {
-    log.verbose('PuppetWebWatchdog', 'onFeed: %s, %d, [%s]', type, timeout, data)
+  const feed = `${type}:[${data}]`
+  log.verbose('PuppetWebWatchdog', 'onFeed: %d, %s', timeout, feed)
 
-    switch (type) {
-      case 'POISON':
-        clearWatchDogTimer.call(this)
-        return
+  if (this.readyState() === 'disconnecting'
+      // || this.readyState() === 'disconnected'
+  ) {
+    log.warn('PuppetWebWatchdog', 'onFeed() is disabled because readyState is `disconnecting`')
+    return
+  }
 
-      case 'SCAN':
-      case 'HEARTBEAT':
-        break
+  setWatchDogTimer.call(this, timeout, feed)
 
-      default:
-        throw new Error('Watchdog onFeed: unsupport type ' + type)
-    }
+  this.emit('heartbeat', feed)
 
-    setWatchDogTimer.call(this, timeout)
+  monitorScan.call(this, type)
+  autoSaveSession.call(this)
 
-    this.emit('heartbeat', type + ':' + data)
+  switch (type) {
+    case 'POISON':
+      clearWatchDogTimer.call(this)
+      break
 
-    monitorScan.call(this, type)
-    autoSaveSession.call(this)
-  // }) // end nextTick
+    case 'SCAN':
+    case 'HEARTBEAT':
+      break
 
+    default:
+      throw new Error('Watchdog onFeed: unsupport type ' + type)
+  }
 }
 
 function clearWatchDogTimer() {
@@ -78,20 +83,25 @@ function clearWatchDogTimer() {
   }
 }
 
-function setWatchDogTimer(timeout) {
+function setWatchDogTimer(timeout, feed) {
 
   clearWatchDogTimer.call(this)
 
-  log.silly('PuppetWebWatchdog', 'setWatchDogTimer(%d)', timeout)
+  log.silly('PuppetWebWatchdog', 'setWatchDogTimer(%d, %s)', timeout, feed)
 
-  this.watchDogTimer = setTimeout(watchDogReset.bind(this, timeout), timeout)
+  this.watchDogTimer = setTimeout(watchDogReset.bind(this, timeout, feed), timeout)
+  // this.watchDogTimer.unref()
   this.watchDogTimerTime = Date.now() + timeout
   // block quit, force to use quit() // this.watchDogTimer.unref() // dont block quit
 }
 
-function watchDogReset(timeout) {
+function watchDogReset(timeout, lastFeed) {
   log.verbose('PuppetWebWatchdog', 'watchDogReset() timeout %d', timeout)
-  const e = new Error('watchdog reset after ' + Math.floor(timeout/1000) + ' seconds')
+  const e = new Error('watchdog reset after ' 
+                        + Math.floor(timeout/1000) 
+                        + ' seconds, last feed:'
+                        + '[' + lastFeed + ']'
+                    )
   this.emit('error', e)
   return Event.onBrowserDead.call(this, e)
 }

@@ -18,12 +18,12 @@ const retryPromise  = require('retry-promise').default // https://github.com/ola
 
 const log = require('../npmlog-env')
 
-const config  = require('../config')
+const Config  = require('../config')
 
 class Browser extends EventEmitter {
 
   constructor({
-    head = process.env.WECHATY_HEAD || config.DEFAULT_HEAD
+    head = process.env.WECHATY_HEAD || Config.DEFAULT_HEAD
     , sessionFile
   } = {}) {
     log.verbose('Browser', 'constructor() with head(%s) sessionFile(%s)', head, sessionFile)
@@ -164,13 +164,17 @@ class Browser extends EventEmitter {
       return Promise.resolve('no driver session')
     }
 
-    return co(function* () {
+    return co.call(this, function* () {
+      log.silly('PuppetWebBrowser', 'quit() co()')
       yield this.driver.close() // http://stackoverflow.com/a/32341885/1123955
+      log.silly('PuppetWebBrowser', 'quit() driver.close()-ed')
       yield this.driver.quit()
+      log.silly('PuppetWebBrowser', 'quit() driver.quit()-ed')
       this.driver = null
+      log.silly('PuppetWebBrowser', 'quit() this.driver = null')
 
       yield this.clean()
-
+      log.silly('PuppetWebBrowser', 'quit() co() end')
     }).catch(e => {
       // console.log(e)
       // log.warn('PuppetWebBrowser', 'err: %s %s %s %s', e.code, e.errno, e.syscall, e.message)
@@ -300,7 +304,7 @@ class Browser extends EventEmitter {
   }
 
   execute(script, ...args) {
-    //log.verbose('PuppetWebBrowser', `Browser.execute(${script})`)
+    log.silly('PuppetWebBrowser', `Browser.execute(${script.slice(0, 80)})`)
     // log.verbose('PuppetWebBrowser', `Browser.execute() driver.getSession: %s`, util.inspect(this.driver.getSession()))
     if (this.dead()) { return Promise.reject(new Error('browser dead')) }
 

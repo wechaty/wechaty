@@ -34,12 +34,12 @@ const Event     = require('./event')
 const Watchdog  = require('./watchdog')
 
 const UtilLib = require('../util-lib')
-const config  = require('../config')
+const Config  = require('../config')
 
 class PuppetWeb extends Puppet {
   constructor({
-    head = config.DEFAULT_HEAD
-    , profile   // if not set profile, then do not store session.
+    head = Config.DEFAULT_HEAD
+    , profile = null  // if not set profile, then do not store session.
   } = {}) {
     super()
     this.head     = head
@@ -54,11 +54,13 @@ class PuppetWeb extends Puppet {
   init() {
     log.verbose('PuppetWeb', `init() with head:${this.head}, profile:${this.profile}`)
 
+    this.readyState('connecting')
+
     this.on('watchdog', Watchdog.onFeed.bind(this))
 
     return co.call(this, function* () {
 
-      this.port = yield UtilLib.getPort(config.DEFAULT_PUPPET_PORT)
+      this.port = yield UtilLib.getPort(Config.DEFAULT_PUPPET_PORT)
       log.verbose('PuppetWeb', 'init() getPort %d', this.port)
 
       yield this.initAttach(this)
@@ -82,6 +84,7 @@ class PuppetWeb extends Puppet {
     })
     .then(() => {   // Finally
       log.verbose('PuppetWeb', 'init() done')
+      this.readyState('connected')
       return this   // for Chaining
     })
   }
@@ -89,24 +92,34 @@ class PuppetWeb extends Puppet {
   quit() {
     log.verbose('PuppetWeb', 'quit()')
 
-    // this.clearWatchDogTimer()
+    if (this.readyState() === 'disconnecting') {
+      log.warn('PuppetWeb', 'quit() is called but readyState is `disconnecting`?')
+      throw new Error('do not call quit again when quiting')
+    }
+
+    // POISON must feed before readyState set to "disconnecting"
     this.emit('watchdog', {
       data: 'PuppetWeb.quit()',
       type: 'POISON'
     })
 
+    this.readyState('disconnecting')
+
     return co.call(this, function* () {
 
       if (this.bridge)  {
-        yield this.bridge.quit().catch(e => { // fail safe
-          log.warn('PuppetWeb', 'quit() bridge.quit() exception: %s', e.message)
-        })
+        yield this.bridge.quit()
+                        .catch(e => { // fail safe
+                          log.warn('PuppetWeb', 'quit() bridge.quit() exception: %s', e.message)
+                        })
+        log.verbose('PuppetWeb', 'quit() bridge.quit() this.bridge = null')
         this.bridge = null
       } else { log.warn('PuppetWeb', 'quit() without a bridge') }
 
       if (this.server) {
         yield this.server.quit()
         this.server = null
+        log.verbose('PuppetWeb', 'quit() server.quit() this.server = null')
       } else { log.verbose('PuppetWeb', 'quit() without a server') }
 
       if (this.browser) {
@@ -114,9 +127,11 @@ class PuppetWeb extends Puppet {
                   .catch(e => { // fail safe
                     log.warn('PuppetWeb', 'quit() browser.quit() exception: %s', e.message)
                   })
+        log.verbose('PuppetWeb', 'quit() server.quit() this.browser = null')
         this.browser = null
       } else { log.warn('PuppetWeb', 'quit() without a browser') }
 
+      log.verbose('PuppetWeb', 'quit() server.quit() this.initAttach(null)')
       yield this.initAttach(null)
     })
     .catch(e => { // Reject
@@ -125,6 +140,7 @@ class PuppetWeb extends Puppet {
     })
     .then(() => { // Finally, Fail Safe
       log.verbose('PuppetWeb', 'quit() done')
+      this.readyState('disconnected')
       return this   // for Chaining
     })
   }
@@ -191,7 +207,13 @@ class PuppetWeb extends Puppet {
     server.on('login'   , Event.onServerLogin.bind(this))
     server.on('logout'  , Event.onServerLogout.bind(this))
     server.on('message' , Event.onServerMessage.bind(this))
-    server.on('unload'  , Event.onServerUnload.bind(this))
+
+    /**
+     * @depreciated 20160825 zixia
+     * 
+     * when `unload` there should always be a `disconnect` event?
+     */ 
+    // server.on('unload'  , Event.onServerUnload.bind(this))
 
     server.on('connection', Event.onServerConnection.bind(this))
     server.on('disconnect', Event.onServerDisconnect.bind(this))

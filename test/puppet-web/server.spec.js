@@ -1,5 +1,6 @@
 const https = require('https')
 const test  = require('tape')
+const sinon = require('sinon')
 const co    = require('co')
 
 const log = require('../../src/npmlog-env')
@@ -11,28 +12,39 @@ test('PuppetWebServer basic tests', function(t) {
   const s = new PuppetWebServer({port: PORT})
   t.equal(typeof s, 'object', 'PuppetWebServer instance created')
 
+  let httpsServer = null
+
   co(function* () {
+    const spy = sinon.spy()
+    
     const express = s.createExpress()
     t.equal(typeof express, 'function', 'create express')
 
-    const httpsServer = s.createHttpsServer(express)
+    httpsServer = s.createHttpsServer(express)
     t.equal(typeof httpsServer, 'object', 'create https server')
-    httpsServer.on('close', () => t.pass('HttpsServer quited'))
+    httpsServer.on('close', _ => spy('onClose'))
+
+    const socketio = s.createSocketIo(httpsServer)
+    t.equal(typeof socketio, 'object', 'should created socket io instance')
 
     const retClose = yield new Promise((resolve, reject) => {
-      httpsServer.close(() => resolve(true))
+      httpsServer.close(_ => {
+        spy('closed')
+        resolve('closed')
+      })
     })
-    t.ok(retClose, 'HttpsServer closed')
+    t.equal(retClose, 'closed',  'HttpsServer closed')
 
-    const socketio = s.createSocketIo()
-    t.equal(typeof socketio, 'object', 'create socket io')
+    t.ok(spy.calledTwice, 'spy should be called twice after close HttpsServer')
+    t.deepEqual(spy.args[0], ['onClose'], 'should fire event `close` when close HttpsServer')
+    t.deepEqual(spy.args[1], ['closed']  , 'should run callback when close HttpsServer')
   })
   .catch(e => { // Reject
     t.fail('co promise rejected:' + e)
   })
   .then(() => { // Finally
     s.quit()
-    t.end()
+      .then(_ => t.end())
   })
   .catch(e => { // Exception
     t.fail('Exception:' + e)

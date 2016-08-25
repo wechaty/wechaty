@@ -1,7 +1,7 @@
 const test = require('tape')
+const Wechaty = require('../')
 
-test('Wechaty Framework', function(t) {
-  const Wechaty = require('../')
+test('Wechaty Framework', t => {
   t.ok(Wechaty            , 'should export Wechaty')
   t.ok(Wechaty.Message    , 'should export Wechaty.Message')
   t.ok(Wechaty.Contact    , 'should export Wechaty.Contact')
@@ -21,15 +21,14 @@ test('Wechaty Framework', function(t) {
   t.end()
 })
 
-test('Wechaty config setting', function(t) {
-  const Wechaty = require('../')
-  const config = Wechaty.config
+test('Wechaty Config setting', t => {
+  const Config = Wechaty.Config
 
-  t.ok(config                 , 'should export Wechaty.config')
-  t.ok(config.DEFAULT_HEAD    , 'should has DEFAULT_HEAD')
-  t.ok(config.DEFAULT_PUPPET  , 'should has DEFAULT_PUPPET')
-  t.ok(config.DEFAULT_PORT    , 'should has DEFAULT_PORT')
-  t.ok(config.DEFAULT_PUPPET_PORT, 'should has DEFAULT_PUPPET_PORT')
+  t.ok(Config                 , 'should export Wechaty.Config')
+  t.ok(Config.DEFAULT_HEAD    , 'should has DEFAULT_HEAD')
+  t.ok(Config.DEFAULT_PUPPET  , 'should has DEFAULT_PUPPET')
+  t.ok(Config.DEFAULT_PORT    , 'should has DEFAULT_PORT')
+  t.ok(Config.DEFAULT_PUPPET_PORT, 'should has DEFAULT_PUPPET_PORT')
 
   t.end()
 })
