@@ -3,7 +3,7 @@
 
 Connecting ChatBots, for Chat as a Service(CaaS).
 
-Wechaty is a Bot Framework for Wechat **Personal** Account, which can help you easy creating personal wechat bot in 7 lines of javascript code, with cross platform  support to [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.appveyor.com/project/zixia/wechaty) and [darwin(OSX/Mac)](https://travis-ci.org/zixia/wechaty).
+Wechaty is a Bot Framework for Wechat **Personal** Account, It can help you easy creating personal wechat bot in 7 lines of javascript code, with cross platform  support to [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.appveyor.com/project/zixia/wechaty) and [darwin(OSX/Mac)](https://travis-ci.org/zixia/wechaty).
 
 :octocat: <https://github.com/zixia/wechaty>  
 :beetle: <https://github.com/zixia/wechaty/issues>  
