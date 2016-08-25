@@ -88,17 +88,18 @@ function guid() {
 }
 
 function getPort(port) {
+  port = port || 8788
   log.verbose('UtilLib', 'getPort(%d)', port)
+
   return new Promise((resolve, reject) => {
-    port = port || 8788
+    let tryPort = port
     // https://gist.github.com/mikeal/1840641
-    function getPort(cb) {
-      var tryPort = port
-      port += 1
+    function _getPort(cb) {
       var server = require('net').createServer()
       server.on('error', function(err) {
         if (err) {}
-        getPort(cb)
+        tryPort++
+        _getPort(cb)
       })
       server.listen(tryPort, function(err) {
         if (err) {}
@@ -108,7 +109,7 @@ function getPort(port) {
         server.close()
       })
     }
-    getPort(okPort => {
+    _getPort(okPort => {
       log.verbose('UtilLib', 'getPort(%d) return: %d'
                             , port
                             , okPort
