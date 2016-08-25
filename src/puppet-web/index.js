@@ -80,6 +80,7 @@ class PuppetWeb extends Puppet {
     })
     .catch(e => {   // Reject
       log.error('PuppetWeb', 'init exception: %s', e.message)
+      this.quit()
       throw e
     })
     .then(() => {   // Finally
