@@ -11,7 +11,7 @@ const test  = require('tape')
 const UtilLib  = require('../src/util-lib')
 const log   = require('../src/npmlog-env')
 
-false && test('Phantomjs smoking test', t => {
+test('Phantomjs smoking test', t => {
   const phantomjsExe = require('phantomjs-prebuilt').path
 
   const phantomjsArgs = [
@@ -35,6 +35,45 @@ false && test('Phantomjs smoking test', t => {
   .withCapabilities(customPhantom)
   .build()
 
+  // http://stackoverflow.com/questions/24834403/phantomjs-change-webpage-content-before-evaluating
+  driver.executePhantomJS(`
+this.onResourceRequested = function(request, net) {
+  console.log('REQUEST ' + request.url);
+  // blockRe = /wx\.qq\.com\/\?t=v2\/fake/i
+  // https://res.wx.qq.com/zh_CN/htmledition/v2/js/webwxApp2fd632.js
+  var webwxAppRe = /res\.wx\.qq\.com\/zh_CN\/htmledition\/v2\/js\/webwxApp.+\.js$/i
+  alert('################### matching ' + request.url)
+  if (webwxAppRe.test(request.url)) {
+    console.log('Abort ' + request.url);
+    net.abort();
+    alert('################### found ' + request.url)
+    var url = request.url + '?' + Date.now()
+    load(url, function(source) {
+      eval( fix(source) )
+    })
+  }
+
+  function load(url, cb) {
+    var xhr = new XMLHttpRequest()
+    xhr.open('GET', url, true)
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState == 4) {
+        if (xhr.status >= 200 && xhr.status < 300 || xhr.status == 304) {
+          cb(xhr.responseText)
+        }
+      }
+      xhr.send(null)
+    }
+  }
+
+  function fix(source) {
+    // "54c6b762ad3618c9ebfd4b439c8d4bda" !== h && ($.getScript("https://tajs.qq.com/stats?sId=54802481"),
+    //        location.href = "https://wx.qq.com/?t=v2/fake")
+    var fixRe = /"54c6b762ad3618c9ebfd4b439c8d4bda".+?&& \(.+?fake"\)/i
+    return source.replace(fixRe, '')
+  }
+}
+`)
   driver.get('https://wx.qq.com')
 
   t.end()
