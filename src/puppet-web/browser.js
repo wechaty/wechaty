@@ -146,6 +146,25 @@ class Browser extends EventEmitter {
     .withCapabilities(customPhantom)
     .build()
     
+		/**
+		 *  ISSUE #21 - https://github.com/zixia/wechaty/issues/21
+	 	 *
+ 	 	 *	http://phantomjs.org/api/webpage/handler/on-resource-requested.html
+		 *	http://stackoverflow.com/a/29544970/1123955
+		 *  https://github.com/geeeeeeeeek/electronic-wechat/pull/319
+		 *
+		 */
+  	driver.executePhantomJS(`
+this.onResourceRequested = function(request, net) {
+   console.log('REQUEST ' + request.url);
+   blockRe = /wx\.qq\.com\/\?t=v2\/fake/i
+   if (blockRe.test(request.url)) {
+       console.log('Abort ' + request.url);
+       net.abort();
+   }
+}
+`)
+
     // https://github.com/detro/ghostdriver/blob/f976007a431e634a3ca981eea743a2686ebed38e/src/session.js#L233
     // driver.manage().timeouts().pageLoadTimeout(2000)
     
