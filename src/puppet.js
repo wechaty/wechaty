@@ -47,7 +47,8 @@ class Puppet extends EventEmitter {
 
   getContact(id)  { // for unit testing
     log.verbose('Puppet', `Interface method getContact(${id})`)
-    return Promise.resolve({UserName: 'WeChaty', NickName: 'Puppet'})
+    throw new Error('Absolute Interface Method should never to be called')
+    // return Promise.resolve({UserName: 'WeChaty', NickName: 'Puppet'})
   }
 
   // () { throw new Error('To Be Implemented')  }

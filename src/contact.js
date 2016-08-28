@@ -95,13 +95,14 @@ class Contact {
 
 Contact.init = function() { Contact.pool = {} }
 Contact.init()
+
 Contact.load = function(id) {
   if (!id) { return null }
 
-  if (id in Contact.pool) {
-    return Contact.pool[id]
+  if (!(id in Contact.pool)) {
+    Contact.pool[id] = new Contact(id)
   }
-  return Contact.pool[id] = new Contact(id)
+  return Contact.pool[id]
 }
 // Contact.search = function(options) {
 //   if (options.name) {
@@ -114,6 +115,9 @@ Contact.load = function(id) {
 //   return []
 // }
 
-Contact.attach = function(puppet) { Contact.puppet = puppet }
+Contact.attach = function(puppet) {
+  log.verbose('Contact', 'attach() to %s', puppet && puppet.constructor.name)
+  Contact.puppet = puppet
+}
 
 module.exports = Contact

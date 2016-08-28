@@ -313,4 +313,12 @@ class PuppetWeb extends Puppet {
   }
 }
 
+Object.assign(PuppetWeb, {
+  default: PuppetWeb
+  , PuppetWeb
+  , Server
+  , Browser
+  , Bridge
+})
+
 module.exports = PuppetWeb

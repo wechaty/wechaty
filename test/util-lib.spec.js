@@ -1,12 +1,21 @@
-'use strict'
+import { test } from 'ava'
+import {
+  UtilLib
+  , log
+}  from '../'
 
-const co      = require('co')
-const test    = require('tape')
-const Express = require('express')
-const http    = require('http')
+import express from 'express'
+import http from 'http'
 
-const log   = require('../src/npmlog-env')
-const UtilLib  = require('../src/util-lib')
+// 'use strict'
+
+// const co      = require('co')
+// const test    = require('tape')
+// const Express = require('express')
+// const http    = require('http')
+
+// const log   = require('../src/npmlog-env')
+// const UtilLib  = require('../src/util-lib')
 
 test('Html smoking test', t => {
   const HTML_BEFORE_STRIP = 'Outer<html>Inner</html>'
@@ -28,28 +37,28 @@ test('Html smoking test', t => {
   const PLAIN_AFTER   = '&&&[流汗]'
 
   const strippedHtml = UtilLib.stripHtml(HTML_BEFORE_STRIP)
-  t.equal(strippedHtml, HTML_AFTER_STRIP, 'should strip html as expected')
+  t.is(strippedHtml, HTML_AFTER_STRIP, 'should strip html as expected')
 
   const unescapedHtml = UtilLib.unescapeHtml(HTML_BEFORE_UNESCAPE)
-  t.equal(unescapedHtml, HTML_AFTER_UNESCAPE, 'should unescape html as expected')
+  t.is(unescapedHtml, HTML_AFTER_UNESCAPE, 'should unescape html as expected')
 
   for (let i=0; i<EMOJI_BEFORE_DIGEST.length; i++) {
     const emojiDigest = UtilLib.digestEmoji(EMOJI_BEFORE_DIGEST[i])
-    t.equal(emojiDigest, EMOJI_AFTER_DIGEST[i], 'should digest emoji string ' + i + ' as expected')
+    t.is(emojiDigest, EMOJI_AFTER_DIGEST[i], 'should digest emoji string ' + i + ' as expected')
   }
   const plainText = UtilLib.plainText(PLAIN_BEFORE)
-  t.equal(plainText, PLAIN_AFTER, 'should convert plain text as expected')
+  t.is(plainText, PLAIN_AFTER, 'should convert plain text as expected')
 
-  t.end()
+  // t.end()
 })
 
 test('Media download smoking test', t => {
-  const app = new require('express')()
+  const app = express()
   app.use(require('cookie-parser')())
   app.get('/ding', function(req, res) {
     // console.log(req.cookies)
-    t.ok(req.cookies, 'should has cookies in req')
-    t.equal(req.cookies.life, '42', 'should has a cookie named life value 42')
+    t.truthy(req.cookies, 'should has cookies in req')
+    t.is(req.cookies.life, '42', 'should has a cookie named life value 42')
     res.end('dong')
   })
 
@@ -64,9 +73,9 @@ test('Media download smoking test', t => {
         .then(s => {
           s.on('data', (chunk) => {
             // console.log(`BODY: ${chunk}`)
-            t.equal(chunk.toString(), 'dong', 'should success download dong from downloadStream()')
+            t.is(chunk.toString(), 'dong', 'should success download dong from downloadStream()')
             server.close()
-            t.end()
+            // t.end()
           })
         })
         .catch(e => {
@@ -74,23 +83,23 @@ test('Media download smoking test', t => {
         })
 })
 
-test('getPort', t => {
+test('getPort', async t => {
   const PORT = 8788
 
-  co(function* () {
-    let port = yield UtilLib.getPort(PORT)
-    t.equal(port, PORT, 'should equal exactly PORT when it is available')
+  // co(function* () {
+    let port = await UtilLib.getPort(PORT)
+    t.is(port, PORT, 'should equal exactly PORT when it is available')
 
-    const app = new Express()
+    const app = express()
     const server = app.listen(PORT)
-    port = yield UtilLib.getPort(PORT)
+    port = await UtilLib.getPort(PORT)
     server.close()
 
-    t.equal(port, PORT+1, 'should bigger then PORT when it is not availble')
+    t.is(port, PORT+1, 'should bigger then PORT when it is not availble')
 
-  }).catch(e => {
-    t.fail(e)
-  }).then(_ => {
-    t.end()
-  })
+  // }).catch(e => {
+  //   t.fail(e)
+  // }).then(_ => {
+  //   t.end()
+  // })
 })

@@ -14,7 +14,8 @@
     "pretest": "npm run lint",
     "start": "node bin/io-bot",
     "demo": "node example/ding-dong-bot.js",
-    "test": "cross-env LC_ALL=C TAP_TIMEOUT=600 WECHATY_LOG=silly tape \"test/**/*.spec.js\"",
+    "test": "cross-env LC_ALL=C WECHATY_LOG=silly ava --timeout=10m \"test/**/*.spec.js\"",
+    "oldtest": "cross-env LC_ALL=C TAP_TIMEOUT=600 WECHATY_LOG=silly tape \"test/**/*.spec.js\"",
     "devtest": "cross-env LC_ALL=C TAP_TIMEOUT=600 tape"
   },
   "repository": {
@@ -68,6 +69,7 @@
   },
   "devDependencies": {
     "apiai": "^2.0.7",
+    "ava": "^0.16.0",
     "cookie-parser": "^1.4.3",
     "cross-env": "^2.0.0",
     "eslint": "^3.3.1",
