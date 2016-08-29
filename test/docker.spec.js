@@ -8,10 +8,10 @@ import { log } from '../'
 const docker = !!process.env.WECHATY_DOCKER
 
 !docker && test('Docker test skipped', function(t) {
-    t.pass('not in docker, skip docker tests')
+  t.pass('not in docker, skip docker tests')
 })
 
 docker && test('Docker smoking test', function(t) {
-  const n = execSync('ps | grep Xvfb | wc -l')
-  t.is(n, 1, 'should has Xvfb started')
+  const n = execSync('ps a | grep Xvfb | grep -v grep | wc -l').toString().replace(/\n/, '', 'g')
+  t.is(parseInt(n), 1, 'should has Xvfb started')
 })
