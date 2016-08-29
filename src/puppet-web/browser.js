@@ -333,7 +333,7 @@ this.onResourceRequested = function(request, net) {
     // this is old webdriver format
     // .addCookie(cookie.name, cookie.value, cookie.path
     //   , cookie.domain, cookie.secure, cookie.expiry)
-    // thisi is new webdriver format
+    // this is new webdriver format
     .addCookie(cookie)
     .catch(e => {
       log.warn('PuppetWebBrowser', 'addCookies() exception: %s', e.message)

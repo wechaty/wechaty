@@ -19,7 +19,6 @@ cache:
 services:
   - docker
 
-
 install:
   - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew update; brew cleanup; brew cask cleanup; fi 
   - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew uninstall --force brew-cask; brew update; fi
@@ -27,6 +26,8 @@ install:
 
   - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then export DISPLAY=':99.0'; fi
   - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then (Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &); fi
+
+  - npm install
 
 script:
   - echo $TRAVIS_OS_NAME
