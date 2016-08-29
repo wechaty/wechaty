@@ -54,7 +54,7 @@ test('Browser class cookie smoking tests', async t => {
       , expiry: 99999999999999
     }]
 
-    await b.addCookies(EXPECTED_COOKIES)
+    await Preomise.all(b.addCookies(EXPECTED_COOKIES))
 
     cookies = await b.driver.manage().getCookies()
     const cookies0 = cookies.filter(c => { return RegExp(EXPECTED_COOKIES[0].name).test(c.name) })
