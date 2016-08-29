@@ -73,7 +73,6 @@
     "eslint": "^3.3.1",
     "qrcode-terminal": "^0.10.0",
     "sinon": "^1.17.5",
-    "tape": "^4.6.0",
     "tuling123-client": "0.0.1"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
