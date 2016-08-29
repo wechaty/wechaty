@@ -1,9 +1,9 @@
 [![Wechaty](https://raw.githubusercontent.com/wechaty/wechaty/master/image/wechaty-logo-en.png)](https://github.com/wechaty/wechaty)
-# Wechaty [![Linux Circle CI](https://circleci.com/gh/wechaty/wechaty.svg?style=svg)](https://circleci.com/gh/wechaty/wechaty) [![Linux/Mac Build Status](https://img.shields.io/travis/wechaty/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/wechaty/wechaty) [![Win32 Build status](https://img.shields.io/appveyor/ci/wechaty/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/wechaty/wechaty) [![Coverage Status](https://coveralls.io/repos/github/wechaty/wechaty/badge.svg?branch=master)](https://coveralls.io/github/wechaty/wechaty?branch=master)
+# Wechaty [![Linux Circle CI](https://circleci.com/gh/wechaty/wechaty.svg?style=svg)](https://circleci.com/gh/wechaty/wechaty) [![Linux/Mac Build Status](https://img.shields.io/travis/wechaty/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/wechaty/wechaty) [![Win32 Build status](https://img.shields.io/appveyor/ci/zixia/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/zixia/wechaty) [![Coverage Status](https://coveralls.io/repos/github/wechaty/wechaty/badge.svg?branch=master)](https://coveralls.io/github/wechaty/wechaty?branch=master)
 
 Connecting ChatBots, for Chat as a Service(CaaS).
 
-Wechaty is a Bot Framework for Wechat **Personal** Account, It can help you easy creating personal wechat bot in 7 lines of javascript code, with cross platform  support to [linux](https://travis-ci.org/wechaty/wechaty), [win32](https://ci.appveyor.com/project/wechaty/wechaty) and [darwin(OSX/Mac)](https://travis-ci.org/wechaty/wechaty).
+Wechaty is a Bot Framework for Wechat **Personal** Account, It can help you easy creating personal wechat bot in 7 lines of javascript code, with cross platform  support to [linux](https://travis-ci.org/wechaty/wechaty), [win32](https://ci.appveyor.com/project/zixia/wechaty) and [darwin(OSX/Mac)](https://travis-ci.org/wechaty/wechaty).
 
 :octocat: <https://github.com/wechaty/wechaty>  
 :beetle: <https://github.com/wechaty/wechaty/issues>  
@@ -506,8 +506,9 @@ Know more about TAP: [Why I use Tape Instead of Mocha & So Should You](https://m
 ## v0.3.13 (master)
 1. Managed by Cloud Manager: https://app.wechaty.io
 1. Dockerized & Published to docker hub as: [wechaty/wechaty](https://hub.docker.com/r/wechaty/wechaty/)
-1. add `reset` & `shutdown` to IO Event
-1. Unit Test Runner switch from Tape/Tap to AVA <https://github.com/avajs/ava>
+1. Add `reset` & `shutdown` to IO Event
+1. Switch Unit Test Runner from Tape/Tap to [AVA](https://github.com/avajs/ava)
+1. Move git resposity from zixia/wechaty to [wechaty/wechaty](https://github.com/wechaty/wechaty)
 
 ## v0.2.3 (2016/7/28)
 1. add wechaty.io cloud management support: set environment variable `WECHATY_TOKEN` to enable io support
