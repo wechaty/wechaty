@@ -3,6 +3,11 @@
 # Credit: https://github.com/cusspvz/node.docker/blob/master/entrypoint
 #
 
+if [ $CI = "" ]; then
+  # CI will force ava to output use --verbose param, which is fit docker console log
+  CI="$WECHATY_DOCKER"
+fi
+
 if [ "$WECHATY_HEAD" != "phantomjs" ]; then
   export DISPLAY=':99.0'
   Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
