@@ -1,23 +1,33 @@
-const co    = require('co')
-const util  = require('util')
-const test  = require('tape')
-const retryPromise = require('retry-promise').default
+import { test } from 'ava'
 
-const log = require('../../src/npmlog-env')
+import util from 'util'
+import retryPromise from 'retry-promise'
+
+import {
+  PuppetWeb
+  , log
+} from '../../'
+
+// const co    = require('co')
+// const util  = require('util')
+// const test  = require('tape')
+// const retryPromise = require('retry-promise').default
+
+// const log = require('../../src/npmlog-env')
 
 const PROFILE = 'unit-test-session.wechaty.json'
 
-const PuppetWeb = require('../../src/puppet-web')
-const Watchdog = require('../../src/puppet-web/watchdog.js')
+// const PuppetWeb = require('../../src/puppet-web')
+const Watchdog = PuppetWeb.Watchdog // require('../../src/puppet-web/watchdog.js')
 
-test('Puppet Web watchdog timer', function(t) {
+test('Puppet Web watchdog timer', async t => {
   const pw = new PuppetWeb({profile: PROFILE})
-  t.ok(pw, 'should instantiate a PuppetWeb')
+  t.truthy(pw, 'should instantiate a PuppetWeb')
 
   Watchdog.onFeed.call(pw, { data: 'initing directly' })
   t.pass('should ok with default food type')
 
-  co(function* () {
+  // co(function* () {
 
     const origLogLevel = log.level
     if (log.level === 'info') {
@@ -25,11 +35,11 @@ test('Puppet Web watchdog timer', function(t) {
       t.pass('set log.level = silent to mute log when watchDog reset wechaty temporary')
     }
 
-    yield pw.init()
-    yield pw.quit()
-    // yield pw.bridge.quit()
+    await pw.init()
+    await pw.quit()
+    // await pw.bridge.quit()
     // pw.bridge = null
-    // yield pw.browser.quit()
+    // await pw.browser.quit()
     // pw.browser = null
 
     let errorCounter = 0
@@ -38,27 +48,28 @@ test('Puppet Web watchdog timer', function(t) {
       data: 'active_for_timeout_1ms'
       , timeout: 1
     })
-    yield new Promise(resolve => setTimeout(resolve, 10)) // wait untill reset
-    t.equal(errorCounter, 1, 'should get event[error] after watchdog timeout')
+    await new Promise(resolve => setTimeout(resolve, 10)) // wait untill reset
+    t.is(errorCounter, 1, 'should get event[error] after watchdog timeout')
 
     pw.once('error', e => t.fail('waitDing() triggered watchDogReset()'))
 
     const EXPECTED_DING_DATA = 'dingdong'
     pw.emit('watchdog', { data: 'feed to extend the dog life' })
 
-    const dong = yield waitDing(EXPECTED_DING_DATA)
-    t.equal(dong, EXPECTED_DING_DATA, 'should get EXPECTED_DING_DATA from ding after watchdog reset, and restored log level')
+    const dong = await waitDing(EXPECTED_DING_DATA)
+    t.is(dong, EXPECTED_DING_DATA, 'should get EXPECTED_DING_DATA from ding after watchdog reset, and restored log level')
 
     log.level = origLogLevel
 
-  })
-  .catch(e => { // Exception
-    t.fail('co exception: ' + e.message)
-  })
-  .then(() => { // Finally
-    pw.quit()
-    .then(_ => t.end())
-  })
+    await pw.quit()
+  // })
+  // .catch(e => { // Exception
+  //   t.fail('co exception: ' + e.message)
+  // })
+  // .then(() => { // Finally
+  //   pw.quit()
+  //   .then(_ => t.end())
+  // })
 
   return
   /////////////////////////////////////////////////////////////////////////////

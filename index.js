@@ -11,9 +11,13 @@ const IoBot   = require('./src/io-bot')
 
 const log = require('./src/npmlog-env')
 const Config = require('./src/config')
+const UtilLib = require('./src/util-lib')
 
 Object.assign(Wechaty, {
-  Message
+  default: Wechaty
+  , Wechaty
+  
+  , Message
   , Contact
   , Room
 
@@ -26,6 +30,7 @@ Object.assign(Wechaty, {
   , log // for convenionce use npmlog with environment variable LEVEL
   
   , Config
+  , UtilLib
 })
 
 module.exports = Wechaty

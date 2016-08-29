@@ -1,33 +1,38 @@
-'use strict'
+import { test } from 'ava'
+import { log }  from '../'
 
-const sinon = require('sinon')
-const test  = require('tape')
+import { spy } from 'sinon'
 
-const log   = require('../src/npmlog-env')
+// 'use strict'
+
+// const sinon = require('sinon')
+// const test  = require('tape')
+
+// const log   = require('../src/npmlog-env')
 
 test('Node.js function params destructuring behaviour test', function(t) {
   const DEFAULT_N = 1
   const DEFAULT_S = 't'
 
-  const spy = sinon.spy()
+  const paramSpy = spy()
   function paramTest({
     n   = DEFAULT_N
     , s = DEFAULT_S
   } = {}) {
-    spy(n, s)
+    paramSpy(n, s)
   }
 
-  spy.reset()
+  paramSpy.reset()
   paramTest()
-  t.deepEqual(spy.args[0], [DEFAULT_N, DEFAULT_S], 'should be equal to default args')
+  t.deepEqual(paramSpy.args[0], [DEFAULT_N, DEFAULT_S], 'should be equal to default args')
 
-  spy.reset()
+  paramSpy.reset()
   paramTest({n: 42})
-  t.deepEqual(spy.args[0], [42, DEFAULT_S], 'should be equal to default s args')
+  t.deepEqual(paramSpy.args[0], [42, DEFAULT_S], 'should be equal to default s args')
 
-  spy.reset()
+  paramSpy.reset()
   paramTest({s: 'life'})
-  t.deepEqual(spy.args[0], [DEFAULT_N, 'life'], 'should be equal to default n args')
+  t.deepEqual(paramSpy.args[0], [DEFAULT_N, 'life'], 'should be equal to default n args')
 
-  t.end()
+  // t.end()
 })

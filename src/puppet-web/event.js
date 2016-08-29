@@ -276,26 +276,29 @@ function onServerLogin(data, attempt = 0) {
     log.verbose('PuppetWebEvent', 'bridge.getUserName: %s', this.userId)
     this.user = yield Contact.load(this.userId).ready()
     log.verbose('PuppetWebEvent', `onServerLogin() user ${this.user.name()} logined`)
-    this.emit('login', this.user)
 
     yield this.browser.saveSession()
               .catch(e => { // fail safe
                 log.warn('PuppetWebEvent', 'onServerLogin() browser.saveSession exception: %s', e.message)
               })
+
+    this.emit('login', this.user)
+
   }).catch(e => {
     log.error('PuppetWebEvent', 'onServerLogin() exception: %s', e.message)
+    throw e
   })
 }
 
 function onServerLogout(data) {
-  if (this.user) {
-    this.emit('logout', this.user)
-  } else if (this.userId) {
-    this.emit('logout', this.userId)
-  } else { log.verbose('PuppetWebEvent', 'onServerLogout() without this.user or userId initialized') }
+  this.emit('logout', this.user || this.userId)
+
+  if (!this.user && !this.userId) {
+    log.warn('PuppetWebEvent', 'onServerLogout() without this.user or userId initialized')
+  }
 
   this.userId = null
-  this.user = null
+  this.user   = null
 
   // this.browser.cleanSession()
   // .catch(e => { /* fail safe */

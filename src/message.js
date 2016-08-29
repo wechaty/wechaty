@@ -164,7 +164,10 @@ Object.keys(Message.Type).forEach(k => {
   Message.Type[v] = k // Message.Type[1] = 'TEXT'
 })
 
-Message.attach = function(puppet) { Message.puppet = puppet }
+Message.attach = function(puppet) {
+  log.verbose('Message', 'attach() to %s', puppet && puppet.constructor.name)
+  Message.puppet = puppet
+}
 
 module.exports = Message
 

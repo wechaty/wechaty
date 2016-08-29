@@ -8,7 +8,11 @@ echo "Docker Starting Wechaty v$(wechaty-version)"
 # to identify run env (for tests)
 export WECHATY_DOCKER='docker'
 
+# CI will force ava to output use --verbose param, which is fit docker console log
+export CI="$WECHATY_DOCKER"
+
 echo "WECHATY_HEAD=$WECHATY_HEAD"
+
 if [ "$WECHATY_HEAD" != "phantomjs" ]; then
   export DISPLAY=':99.0'
   Xvfb :99 -screen 0 1024x768x24 &
