@@ -88,7 +88,7 @@ test('getPort with free & busy port', async t => {
 
   // co(function* () {
     let port = await UtilLib.getPort(PORT)
-    t.notSame(port, PORT, 'should not be same port even it is available(to provent conflict between concurrency tests in AVA)')
+    t.notDeepEqual(port, PORT, 'should not be same port even it is available(to provent conflict between concurrency tests in AVA)')
 
     const app = express()
     const server = app.listen(PORT)
