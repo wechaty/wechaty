@@ -15,7 +15,7 @@
     "pretest": "npm run lint",
     "start": "node bin/io-bot",
     "demo": "node example/ding-dong-bot.js",
-    "test": "cross-env LC_ALL=C WECHATY_LOG=verbose ava --timeout=10m \"{src,test}/**/*.spec.js\"",
+    "test": "cross-env LC_ALL=C WECHATY_LOG=info ava --timeout=10m \"{src,test}/**/*.spec.js\"",
     "testdev": "cross-env LC_ALL=C WECHATY_LOG=silly ava --verbose --fail-fast --timeout=3m"
   },
   "repository": {
