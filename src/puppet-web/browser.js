@@ -173,7 +173,14 @@ class Browser extends EventEmitter {
       this.driver = null
       log.silly('PuppetWebBrowser', 'quit() this.driver = null')
 
-      yield this.clean()
+      /**
+       * 
+       * if we use AVA to test, then this.clean will cause problems 
+       * because there will be more than one instance of browser with the same nodejs process id
+       * 
+       */
+      // yield this.clean()
+
       log.silly('PuppetWebBrowser', 'quit() co() end')
     }).catch(e => {
       // console.log(e)

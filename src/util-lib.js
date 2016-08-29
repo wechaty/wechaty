@@ -98,7 +98,7 @@ function getPort(port) {
       var server = require('net').createServer()
       server.on('error', function(err) {
         if (err) {}
-        tryPort++
+        tryPort = nextPort(port)
         _getPort(cb)
       })
       server.listen(tryPort, function(err) {
@@ -117,6 +117,12 @@ function getPort(port) {
       resolve(okPort)
     })
   })
+
+  function nextPort(port) {
+    RANDOM_RANGE = 1000
+    const n = Math.floor(Math.random() * RANDOM_RANGE)
+    return port + n
+  }
 }
 
 module.exports = UtilLib

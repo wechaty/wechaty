@@ -284,18 +284,19 @@ function onServerLogin(data, attempt = 0) {
               })
   }).catch(e => {
     log.error('PuppetWebEvent', 'onServerLogin() exception: %s', e.message)
+    throw e
   })
 }
 
 function onServerLogout(data) {
-  if (this.user) {
-    this.emit('logout', this.user)
-  } else if (this.userId) {
-    this.emit('logout', this.userId)
-  } else { log.verbose('PuppetWebEvent', 'onServerLogout() without this.user or userId initialized') }
+  this.emit('logout', this.user || this.userId)
+
+  if (!this.user && !this.userId) {
+    log.warn('PuppetWebEvent', 'onServerLogout() without this.user or userId initialized')
+  }
 
   this.userId = null
-  this.user = null
+  this.user   = null
 
   // this.browser.cleanSession()
   // .catch(e => { /* fail safe */
