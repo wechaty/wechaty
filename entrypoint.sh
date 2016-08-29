@@ -3,7 +3,7 @@
 # Credit: https://github.com/cusspvz/node.docker/blob/master/entrypoint
 #
 
-echo 'Wechaty Docker Starting'
+echo "Docker Starting Wechaty v$(wechaty-version)"
 
 # to identify run env (for tests)
 export WECHATY_DOCKER='docker'

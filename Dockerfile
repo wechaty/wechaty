@@ -14,7 +14,7 @@ RUN groupadd -r wechaty && useradd -m -r -g wechaty wechaty -d /wechaty
 
 WORKDIR /wechaty
 COPY . .
-RUN npm install
+RUN npm install && npm link
 
 COPY entrypoint.sh /entrypoint.sh
 RUN bash -n /entrypoint.sh && chmod a+x /entrypoint.sh
