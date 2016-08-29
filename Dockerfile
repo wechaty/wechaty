@@ -1,4 +1,4 @@
-FROM node:6.4
+FROM node:6
 
 RUN apt-get update && apt-get install -y \
   apt-utils \
@@ -13,13 +13,14 @@ RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key
 RUN groupadd -r wechaty && useradd -m -r -g wechaty wechaty -d /wechaty
 
 WORKDIR /wechaty
+COPY package.json .
+RUN npm install
 COPY . .
-RUN npm install && npm link
+RUN npm link \
+  && bash -n entrypoint.sh \
+  && chmod a+x entrypoint.sh
 
-COPY entrypoint.sh /entrypoint.sh
-RUN bash -n /entrypoint.sh && chmod a+x /entrypoint.sh
-
-ENTRYPOINT [ "/entrypoint.sh" ]
+ENTRYPOINT [ "/wechaty/entrypoint.sh" ]
 CMD [ "start" ]
 
 RUN chown -R wechaty.wechaty /wechaty
