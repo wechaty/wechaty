@@ -1,22 +1,17 @@
-'use strict'
+import { test } from 'ava'
 
-const sinon = require('sinon')
-const test  = require('tape')
+import { execSync } from 'child_process'
+import sinon from 'sinon'
 
-const {execSync} = require('child_process')
-
-const log   = require('../src/npmlog-env')
+import { log } from '../'
 
 const docker = !!process.env.WECHATY_DOCKER
 
 !docker && test('Docker test skipped', function(t) {
     t.pass('not in docker, skip docker tests')
-    t.end()
 })
 
 docker && test('Docker smoking test', function(t) {
   const n = execSync('ps | grep Xvfb | wc -l')
-  t.equal(n, 1, 'should has Xvfb started')
-
-  t.end()
+  t.is(n, 1, 'should has Xvfb started')
 })
