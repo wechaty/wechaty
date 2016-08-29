@@ -22,7 +22,8 @@
     "url": "git+https://github.com/zixia/wechaty.git"
   },
   "bin": {
-    "io-bot": "bin/io-bot.js"
+    "io-bot": "bin/io-bot.js",
+    "wechaty-version": "bin/version.js"
   },
   "keywords": [
     "wechat",
