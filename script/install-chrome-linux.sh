@@ -7,4 +7,4 @@
 	sudo apt-get install -y google-chrome-stable
 }
 
-google-chrome-stable --version
+google-chrome --version

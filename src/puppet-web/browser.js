@@ -83,10 +83,7 @@ class Browser extends EventEmitter {
           .build()
           break
         case /chrome/i.test(this.head):
-          this.driver = new WebDriver.Builder()
-          .setAlertBehavior('ignore')
-          .forBrowser('chrome')
-          .build()
+          this.driver = this.getChromeDriver()
           break
         default: // unsupported browser head
           throw new Error('unsupported head: ' + this.head)
@@ -106,6 +103,17 @@ class Browser extends EventEmitter {
     return this.driver.navigate().refresh()
   }
 
+  getChromeDriver() {
+    const customChrome = WebDriver.Capabilities.chrome()
+                                  .set('webdriver.chrome.args', '--no-sandbox')
+
+    return new WebDriver.Builder()
+                        .setAlertBehavior('ignore')
+                        .forBrowser('chrome')
+                        .withCapabilities(customChrome)
+                        .build()
+  }
+ 
   getPhantomJsDriver() {
     // setup custom phantomJS capability https://github.com/SeleniumHQ/selenium/issues/2069
     const phantomjsExe = require('phantomjs-prebuilt').path
@@ -115,7 +123,8 @@ class Browser extends EventEmitter {
       '--load-images=false'
       , '--ignore-ssl-errors=true'  // this help socket.io connect with localhost
       , '--web-security=false'      // https://github.com/ariya/phantomjs/issues/12440#issuecomment-52155299
-      , '--ssl-protocol=TLSv1'      // https://github.com/ariya/phantomjs/issues/11239#issuecomment-42362211
+      //, '--ssl-protocol=TLSv1'    // https://github.com/ariya/phantomjs/issues/11239#issuecomment-42362211
+      , '--ssl-protocol=any'        // http://stackoverflow.com/a/26503588/1123955
 
       // issue: Secure WebSocket(wss) do not work with Self Signed Certificate in PhantomJS #12 
       // , '--ssl-certificates-path=D:\\cygwin64\\home\\zixia\\git\\wechaty' // http://stackoverflow.com/a/32690349/1123955
