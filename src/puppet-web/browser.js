@@ -104,8 +104,12 @@ class Browser extends EventEmitter {
   }
 
   getChromeDriver() {
+    const options = {
+      args: ['--no-sandbox']
+    }
     const customChrome = WebDriver.Capabilities.chrome()
-                                  .set('webdriver.chrome.args', '--no-sandbox')
+                                  // .set('webdriver.chrome.args', '--no-sandbox')
+                                  .set('chromeOptions', options)
 
     return new WebDriver.Builder()
                         .setAlertBehavior('ignore')
