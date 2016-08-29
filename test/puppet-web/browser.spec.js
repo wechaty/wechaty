@@ -2,6 +2,7 @@ import { test } from 'ava'
 
 import {
   PuppetWeb
+  , Config
   , log
 } from '../../'
 
@@ -12,7 +13,8 @@ import {
 // const log = require('../../src/npmlog-env')
 
 const Browser = PuppetWeb.Browser
-const PROFILE = 'unit-test-session.wechaty.json'
+const PROFILE = Config.DEFAULT_PROFILE + '-' + process.pid + '-'
+let profileCounter = 1
 
 test('Browser class cookie smoking tests', async t => {
   const b = new Browser()
@@ -72,22 +74,12 @@ test('Browser class cookie smoking tests', async t => {
     t.is(live, true, 'should be a live browser')
 
     await b.quit()
-  // })
-  // .catch((e) => { // Rejected
-  //   t.fail('co promise rejected:' + e)
-  // })
-  // .then(r => {    // Finally
-  //   b.quit()
-  //   .then(_ => t.end())
-  // })
-  // .catch(e => {   // Exception
-  //   t.fail('Exception:' + e)
-  // })
 })
 
 test('Browser session save & load', async t => {
+  const profileName = PROFILE + profileCounter++ 
   let b = new Browser({
-    sessionFile: PROFILE
+    sessionFile: profileName
   })
   t.truthy(b, 'new Browser')
 
@@ -146,7 +138,7 @@ test('Browser session save & load', async t => {
     t.pass('quited')
 
     b = new Browser({
-      sessionFile: PROFILE
+      sessionFile: profileName
     })
     t.pass('re-new Browser')
     await b.init()
@@ -158,24 +150,15 @@ test('Browser session save & load', async t => {
     t.pass('loadSession for new instance of Browser')
 
     const cookieAfterQuit = await b.driver.manage().getCookie(EXPECTED_COOKIE.name)
+    t.truthy(cookieAfterQuit, 'should get cookie from getCookie()')
     t.is(cookieAfterQuit.name, EXPECTED_COOKIE.name, 'cookie from getCookie() after browser quit, should load the right cookie back')
 
     // clean
-    require('fs').unlink(PROFILE, err => {
+    require('fs').unlink(profileName, err => {
       if (err) {
         log.warn('Browser', 'unlink session file %s fail: %s', PROFILE, err)
       }
     })
 
     await b.quit()
-  // })
-  // .catch(e => {               // Reject
-  //   log.warn('TestBrowser', 'error: %s', e)
-  //   t.fail(e)
-  // })
-  // .then(r => {                // Finally
-  //   b.quit()
-  //   .then(_ => t.end())
-  // })
-  // .catch(e => { t.fail(e) })  // Exception
 })

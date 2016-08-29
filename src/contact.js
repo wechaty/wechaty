@@ -52,7 +52,9 @@ class Contact {
     if (!this.id) {
       log.warn('Contact', 'ready() call on an un-inited contact')
       return Promise.resolve(this)
-    } else if (this.obj.id) {
+    }
+    
+    if (this.obj.id) { // already ready
       return Promise.resolve(this)
     }
 
@@ -61,15 +63,15 @@ class Contact {
       contactGetter = Contact.puppet.getContact.bind(Contact.puppet)
     }
     return contactGetter(this.id)
-    .then(data => {
-      log.silly('Contact', `contactGetter(${this.id}) resolved`)
-      this.rawObj = data
-      this.obj    = this.parse(data)
-      return this
-    }).catch(e => {
-      log.error('Contact', `contactGetter(${this.id}) exception: %s`, e.message)
-      throw e
-    })
+            .then(data => {
+              log.silly('Contact', `contactGetter(${this.id}) resolved`)
+              this.rawObj = data
+              this.obj    = this.parse(data)
+              return this
+            }).catch(e => {
+              log.error('Contact', `contactGetter(${this.id}) exception: %s`, e.message)
+              throw e
+            })
   }
 
   dumpRaw() {

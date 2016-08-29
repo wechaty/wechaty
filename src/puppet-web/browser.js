@@ -179,7 +179,7 @@ class Browser extends EventEmitter {
        * because there will be more than one instance of browser with the same nodejs process id
        * 
        */
-      // yield this.clean()
+      yield this.clean()
 
       log.silly('PuppetWebBrowser', 'quit() co() end')
     }).catch(e => {

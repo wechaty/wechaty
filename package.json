@@ -6,6 +6,7 @@
   "wechaty": {
     "DEFAULT_HEAD": "chrome",
     "DEFAULT_PUPPET": "web",
+    "DEFAULT_PROFILE": "default-profile-name",
     "DEFAULT_PORT": 8788,
     "DEFAULT_PUPPET_PORT": 58788
   },
@@ -15,8 +16,7 @@
     "start": "node bin/io-bot",
     "demo": "node example/ding-dong-bot.js",
     "test": "cross-env LC_ALL=C WECHATY_LOG=silly ava --timeout=10m \"{src,test}/**/*.spec.js\"",
-    "oldtest": "cross-env LC_ALL=C TAP_TIMEOUT=600 WECHATY_LOG=silly tape \"test/**/*.spec.js\"",
-    "devtest": "cross-env LC_ALL=C TAP_TIMEOUT=600 tape"
+    "testdev": "cross-env LC_ALL=C WECHATY_LOG=silly ava --verbose --fail-fast --timeout=3m"
   },
   "repository": {
     "type": "git",

@@ -83,19 +83,19 @@ test('Media download smoking test', t => {
         })
 })
 
-test('getPort', async t => {
+test('getPort with free & busy port', async t => {
   const PORT = 8788
 
   // co(function* () {
     let port = await UtilLib.getPort(PORT)
-    t.is(port, PORT, 'should equal exactly PORT when it is available')
+    t.notSame(port, PORT, 'should not be same port even it is available(to provent conflict between concurrency tests in AVA)')
 
     const app = express()
     const server = app.listen(PORT)
     port = await UtilLib.getPort(PORT)
     server.close()
 
-    t.is(port, PORT+1, 'should bigger then PORT when it is not availble')
+    t.true(port > PORT, 'should bigger then PORT when it is not availble')
 
   // }).catch(e => {
   //   t.fail(e)

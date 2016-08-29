@@ -276,12 +276,14 @@ function onServerLogin(data, attempt = 0) {
     log.verbose('PuppetWebEvent', 'bridge.getUserName: %s', this.userId)
     this.user = yield Contact.load(this.userId).ready()
     log.verbose('PuppetWebEvent', `onServerLogin() user ${this.user.name()} logined`)
-    this.emit('login', this.user)
 
     yield this.browser.saveSession()
               .catch(e => { // fail safe
                 log.warn('PuppetWebEvent', 'onServerLogin() browser.saveSession exception: %s', e.message)
               })
+
+    this.emit('login', this.user)
+
   }).catch(e => {
     log.error('PuppetWebEvent', 'onServerLogin() exception: %s', e.message)
     throw e

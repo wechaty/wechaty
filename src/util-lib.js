@@ -87,12 +87,16 @@ function guid() {
   })
 }
 
+/**
+ * 
+ * @param port is just a suggestion. 
+ * there's no grantuee for the number
+ */
 function getPort(port) {
-  port = port || 8788
   log.verbose('UtilLib', 'getPort(%d)', port)
+  let tryPort = nextPort(port || 8788)
 
   return new Promise((resolve, reject) => {
-    let tryPort = port
     // https://gist.github.com/mikeal/1840641
     function _getPort(cb) {
       var server = require('net').createServer()
@@ -119,7 +123,7 @@ function getPort(port) {
   })
 
   function nextPort(port) {
-    RANDOM_RANGE = 1000
+    RANDOM_RANGE = 1024
     const n = Math.floor(Math.random() * RANDOM_RANGE)
     return port + n
   }

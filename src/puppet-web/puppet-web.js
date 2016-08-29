@@ -294,6 +294,10 @@ class PuppetWeb extends Puppet {
   }
 
   getContact(id) {
+    if (!this.bridge) {
+      throw new Error('PuppetWeb has no bridge for getContact()')
+    }
+    
     return this.bridge.getContact(id)
     .catch(e => {
       log.error('PuppetWeb', 'getContact(%d) exception: %s', id, e.message)

@@ -12,20 +12,8 @@ import EventEmitter from 'events'
 
 import { spy } from 'sinon'
 
-// const co    = require('co')
-// const util  = require('util')
-// const test  = require('tape')
-// const retryPromise = require('retry-promise').default
-
-// const log = require('../../src/npmlog-env')
-
-// const PROFILE = 'unit-test-session.wechaty.json'
-
-// const PuppetWeb = require('../../src/puppet-web')
-// const Message = require('../../src/message')
-
 test('Puppet Web Self Message Identification', t => {
-  const p = new PuppetWeb({profile: PROFILE})
+  const p = new PuppetWeb()
   t.truthy(p, 'should instantiated a PuppetWeb')
 
   const EXPECTED_USER_ID = 'zixia'
@@ -33,11 +21,9 @@ test('Puppet Web Self Message Identification', t => {
   m.set('from', EXPECTED_USER_ID)
   p.userId = EXPECTED_USER_ID
   t.truthy(p.self(m), 'should identified self for message which from is self')
-
-  // t.end()
 })
 
-test('PuppetWeb login/logout events', async t => {
+test.serial('PuppetWeb login/logout events', async t => {
   let pw = new PuppetWeb()
   t.truthy(pw, 'should instantiated a PuppetWeb')
 
@@ -62,7 +48,7 @@ test('PuppetWeb login/logout events', async t => {
   await pw.quit()
 })
 
-test('PuppetWeb server/browser communication', async t => {
+test.serial('PuppetWeb server/browser communication', async t => {
   let pw = new PuppetWeb()
   t.truthy(pw, 'should instantiated a PuppetWeb')
 
