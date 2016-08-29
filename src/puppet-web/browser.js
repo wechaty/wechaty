@@ -54,8 +54,7 @@ class Browser extends EventEmitter {
     })
   }
 
-  open(url) {
-    url = url || 'https://wx.qq.com'
+  open(url = 'https://wx.qq.com') {
     log.verbose('PuppetWebBrowser', `open(${url})`)
 
     // TODO: set a timer to guard driver.get timeout, then retry 3 times 201607
@@ -324,7 +323,7 @@ this.onResourceRequested = function(request, net) {
      */
     // if (cookie.expiry) { cookie.expiry = cookie.expiry * 1000 /* XXX: be aware of new version of webdriver */}
 
-    log.silly('PuppetWebBrowser', 'addCookies("%s")', JSON.stringify(cookie))
+    log.silly('PuppetWebBrowser', 'addCookies(%s)', JSON.stringify(cookie))
 
     return this.driver.manage()
     // this is old webdriver format
