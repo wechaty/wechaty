@@ -1,5 +1,5 @@
 [![Wechaty](https://raw.githubusercontent.com/zixia/wechaty/master/image/wechaty-logo-en.png)](https://github.com/zixia/wechaty)
-# Wechaty [![Linux Circle CI](https://circleci.com/gh/zixia/wechaty.svg?style=svg)](https://circleci.com/gh/zixia/wechaty) [![Linux Build Status](https://img.shields.io/travis/zixia/wechaty.svg?label=Linux/Mac%20Tests)](https://travis-ci.org/zixia/wechaty) [![Win32 Build status](https://img.shields.io/appveyor/ci/zixia/wechaty/master.svg?label=Windows%20Tests)](https://ci.appveyor.com/project/zixia/wechaty) [![Coverage Status](https://coveralls.io/repos/github/zixia/wechaty/badge.svg?branch=master)](https://coveralls.io/github/zixia/wechaty?branch=master)
+# Wechaty [![Linux Circle CI](https://circleci.com/gh/zixia/wechaty.svg?style=svg)](https://circleci.com/gh/zixia/wechaty) [![Linux/Mac Build Status](https://img.shields.io/travis/zixia/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/zixia/wechaty) [![Win32 Build status](https://img.shields.io/appveyor/ci/zixia/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/zixia/wechaty) [![Coverage Status](https://coveralls.io/repos/github/zixia/wechaty/badge.svg?branch=master)](https://coveralls.io/github/zixia/wechaty?branch=master)
 
 Connecting ChatBots, for Chat as a Service(CaaS).
 
@@ -503,10 +503,11 @@ Know more about TAP: [Why I use Tape Instead of Mocha & So Should You](https://m
 
 # Version History
 
-## v0.3.9 (master)
+## v0.3.13 (master)
 1. Managed by Cloud Manager: https://app.wechaty.io
 1. Dockerized & Published to docker hub as: [zixia/wechaty](https://hub.docker.com/r/zixia/wechaty/)
 1. add `reset` & `shutdown` to IO Event
+1. Unit Test Runner switch from Tape/Tap to AVA <https://github.com/avajs/ava>
 
 ## v0.2.3 (2016/7/28)
 1. add wechaty.io cloud management support: set environment variable `WECHATY_TOKEN` to enable io support

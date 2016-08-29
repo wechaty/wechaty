@@ -52,7 +52,9 @@ class Contact {
     if (!this.id) {
       log.warn('Contact', 'ready() call on an un-inited contact')
       return Promise.resolve(this)
-    } else if (this.obj.id) {
+    }
+    
+    if (this.obj.id) { // already ready
       return Promise.resolve(this)
     }
 
@@ -61,15 +63,15 @@ class Contact {
       contactGetter = Contact.puppet.getContact.bind(Contact.puppet)
     }
     return contactGetter(this.id)
-    .then(data => {
-      log.silly('Contact', `contactGetter(${this.id}) resolved`)
-      this.rawObj = data
-      this.obj    = this.parse(data)
-      return this
-    }).catch(e => {
-      log.error('Contact', `contactGetter(${this.id}) exception: %s`, e.message)
-      throw e
-    })
+            .then(data => {
+              log.silly('Contact', `contactGetter(${this.id}) resolved`)
+              this.rawObj = data
+              this.obj    = this.parse(data)
+              return this
+            }).catch(e => {
+              log.error('Contact', `contactGetter(${this.id}) exception: %s`, e.message)
+              throw e
+            })
   }
 
   dumpRaw() {
@@ -95,13 +97,14 @@ class Contact {
 
 Contact.init = function() { Contact.pool = {} }
 Contact.init()
+
 Contact.load = function(id) {
   if (!id) { return null }
 
-  if (id in Contact.pool) {
-    return Contact.pool[id]
+  if (!(id in Contact.pool)) {
+    Contact.pool[id] = new Contact(id)
   }
-  return Contact.pool[id] = new Contact(id)
+  return Contact.pool[id]
 }
 // Contact.search = function(options) {
 //   if (options.name) {
@@ -114,6 +117,9 @@ Contact.load = function(id) {
 //   return []
 // }
 
-Contact.attach = function(puppet) { Contact.puppet = puppet }
+Contact.attach = function(puppet) {
+  log.verbose('Contact', 'attach() to %s', puppet && puppet.constructor.name)
+  Contact.puppet = puppet
+}
 
 module.exports = Contact

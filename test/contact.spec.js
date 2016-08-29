@@ -1,12 +1,17 @@
-const test = require('tape')
-const Contact = require('../src/contact')
-const Puppet = require('../src/puppet')
-
-const log = require('../src/npmlog-env')
+import { test } from 'ava'
+import {
+  Contact
+  , Puppet
+  , log
+}  from '../'
+// const test = require('tape')
+// const Contact = require('../src/contact')
+// const Puppet = require('../src/puppet')
+// const log = require('../src/npmlog-env')
 
 Contact.attach(new Puppet())
 
-test('Contact smoke testing', t => {
+test('Contact smoke testing', async t => {
   const UserName = '@0bb3e4dd746fdbd4a80546aef66f4085'
   const NickName = 'Nick Name Test'
 
@@ -25,15 +30,15 @@ test('Contact smoke testing', t => {
 
   const c = new Contact(UserName)
 
-  t.equal(c.id, UserName, 'id/UserName right')
-  c.ready(mockContactGetter)
-  .then(r => {
-    t.equal(r.get('id')   , UserName, 'UserName set')
-    t.equal(r.get('name') , NickName, 'NickName set')
+  t.is(c.id, UserName, 'id/UserName right')
+  const r = await c.ready(mockContactGetter)
+  // .then(r => {
+  t.is(r.get('id')   , UserName, 'UserName set')
+  t.is(r.get('name') , NickName, 'NickName set')
 
-    const s = r.toString()
-    t.equal(typeof s, 'string', 'toString()')
-  })
-  .catch(e => t.fail('ready() rejected: ' + e))
-  .then(_ => t.end()) // test end
+  const s = r.toString()
+  t.is(typeof s, 'string', 'toString()')
+  // })
+  // .catch(e => t.fail('ready() rejected: ' + e))
+  // .then(_ => t.end()) // test end
 })

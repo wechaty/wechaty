@@ -1,75 +1,90 @@
-const https = require('https')
-const test  = require('tape')
-const sinon = require('sinon')
-const co    = require('co')
+import { test } from 'ava'
 
-const log = require('../../src/npmlog-env')
+import https from 'https'
+import sinon from 'sinon'
 
-const PuppetWebServer = require('../../src/puppet-web/server')
+import {
+  PuppetWeb
+  , Message
+  , log
+} from '../../'
+
+// const https = require('https')
+// const test  = require('tape')
+// const sinon = require('sinon')
+// const co    = require('co')
+
+// const log = require('../../src/npmlog-env')
+
+const PuppetWebServer = PuppetWeb.Server //require('../../src/puppet-web/server')
 const PORT = 48788
 
-test('PuppetWebServer basic tests', function(t) {
+test('PuppetWebServer basic tests', async t => {
   const s = new PuppetWebServer({port: PORT})
-  t.equal(typeof s, 'object', 'PuppetWebServer instance created')
+  t.is(typeof s, 'object', 'PuppetWebServer instance created')
 
   let httpsServer = null
 
-  co(function* () {
+  // co(function* () {
     const spy = sinon.spy()
     
     const express = s.createExpress()
-    t.equal(typeof express, 'function', 'create express')
+    t.is(typeof express, 'function', 'create express')
 
     httpsServer = s.createHttpsServer(express)
-    t.equal(typeof httpsServer, 'object', 'create https server')
+    t.is(typeof httpsServer, 'object', 'create https server')
     httpsServer.on('close', _ => spy('onClose'))
 
     const socketio = s.createSocketIo(httpsServer)
-    t.equal(typeof socketio, 'object', 'should created socket io instance')
+    t.is(typeof socketio, 'object', 'should created socket io instance')
 
-    const retClose = yield new Promise((resolve, reject) => {
+    const retClose = await new Promise((resolve, reject) => {
       httpsServer.close(_ => {
         spy('closed')
         resolve('closed')
       })
     })
-    t.equal(retClose, 'closed',  'HttpsServer closed')
+    t.is(retClose, 'closed',  'HttpsServer closed')
 
-    t.ok(spy.calledTwice, 'spy should be called twice after close HttpsServer')
+    t.truthy(spy.calledTwice, 'spy should be called twice after close HttpsServer')
     t.deepEqual(spy.args[0], ['onClose'], 'should fire event `close` when close HttpsServer')
     t.deepEqual(spy.args[1], ['closed']  , 'should run callback when close HttpsServer')
-  })
-  .catch(e => { // Reject
-    t.fail('co promise rejected:' + e)
-  })
-  .then(() => { // Finally
-    s.quit()
-      .then(_ => t.end())
-  })
-  .catch(e => { // Exception
-    t.fail('Exception:' + e)
-  })
+
+    await s.quit()
+  // })
+  // .catch(e => { // Reject
+  //   t.fail('co promise rejected:' + e)
+  // })
+  // .then(() => { // Finally
+  //   s.quit()
+  //     .then(_ => t.end())
+  // })
+  // .catch(e => { // Exception
+  //   t.fail('Exception:' + e)
+  // })
 })
 
-test('PuppetWebServer smoke testing', function(t) {
+test('PuppetWebServer smoke testing', async t => {
   const server = new PuppetWebServer({port: PORT})
-  t.ok(server, 'new server instance')
+  t.truthy(server, 'new server instance')
 
-  co(function* () {
-    const retInit = yield server.init()
-    t.ok(retInit, 'server:' + PORT + ' inited')
+  // co(function* () {
+    const retInit = await server.init()
+    t.truthy(retInit, 'server:' + PORT + ' inited')
 
-    const retHttps = yield dingHttps()
-    t.equal(retHttps ,  'dong', 'ding https   got dong')
-  }).catch(e => { // Reject
-    t.fail('co rejected:' + e)
-  }).then(() => { // Finally
-    server.quit()
-    t.end()
-  })
-  .catch(e => { // Exception
-    t.fail('Exception:' + e)
-  })
+    const retHttps = await dingHttps()
+    t.is(retHttps ,  'dong', 'ding https   got dong')
+
+    await server.quit()
+  // }).catch(e => { // Reject
+  //   t.fail('co rejected:' + e)
+  // }).then(() => { // Finally
+  //   server.quit()
+  //   t.end()
+  // })
+  // .catch(e => { // Exception
+  //   t.fail('Exception:' + e)
+  // })
 
   return // The following is help functions only
 

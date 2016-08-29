@@ -1,15 +1,11 @@
-'use strict'
+import WebDriver from 'selenium-webdriver'
+import express from 'express'
+import * as http from 'http'
+import * as url from 'url'
 
-const WebDriver = require('selenium-webdriver')
-const Express   = require('express')
-const http      = require('http')
-const url       = require('url')
-const co = require('co')
+import { test } from 'ava'
 
-const test  = require('tape')
-
-const UtilLib  = require('../src/util-lib')
-const log   = require('../src/npmlog-env')
+import { UtilLib, log } from '../'
 
 test('Phantomjs smoking test', t => {
   const phantomjsExe = require('phantomjs-prebuilt').path
@@ -76,17 +72,17 @@ this.onResourceRequested = function(request, net) {
 `)
   driver.get('https://wx.qq.com')
 
-  t.end()
+  // t.end()
 })
 
-test('Phantomjs http header', t => {
-  co(function* () {
-    const port = yield UtilLib.getPort(8080)
-
-    const app = new Express()
+test('Phantomjs http header', async t => {
+  // co(function* () {
+    const port = await UtilLib.getPort(8080)
+// console.log(express)
+    const app = express()
     app.use((req, res, done) => {
       //console.log(req.headers)
-      t.equal(req.headers.referer, 'https://wx.qq.com/')
+      t.is(req.headers.referer, 'https://wx.qq.com/')
       done()
     })
 
@@ -99,10 +95,10 @@ test('Phantomjs http header', t => {
 
     options.headers = {
       Accept: 'image/webp,image/*,*/*;q=0.8'
-                , 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'
-                  , Referer: 'https://wx.qq.com/'
-                    , 'Accept-Encoding': 'gzip, deflate, sdch'
-                      , 'Accept-Language': 'zh-CN,zh;q=0.8'
+      , 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'
+      , Referer: 'https://wx.qq.com/'
+      , 'Accept-Encoding': 'gzip, deflate, sdch'
+      , 'Accept-Language': 'zh-CN,zh;q=0.8'
     }
     options.agent = http.globalAgent
 
@@ -119,9 +115,9 @@ test('Phantomjs http header', t => {
     })
     req.end()
 
-  }).catch(e => {
-    t.fail(e)
-  }).then(_ => {
-    t.end()
-  })
+  // }).catch(e => {
+  //   t.fail(e)
+  // }).then(_ => {
+    // t.end()
+  // })
 })

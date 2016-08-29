@@ -28,6 +28,8 @@ class Io {
       throw new Error('Io must has wechaty & token set')
     }
     this.wechaty  = wechaty
+    this.uuid     = wechaty.uuid
+
     this.token    = token
     this.endpoint = endpoint
     

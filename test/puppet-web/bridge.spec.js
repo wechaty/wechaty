@@ -1,14 +1,21 @@
-const co = require('co')
-const test = require('tape')
+import { test } from 'ava'
 
-const Browser = require('../../src/puppet-web/browser')
-const Bridge  = require('../../src/puppet-web/bridge')
+import {
+  PuppetWeb
+  , log
+} from '../../'
+
+// const co = require('co')
+// const test = require('tape')
+
+const Browser = PuppetWeb.Browser
+const Bridge  = PuppetWeb.Bridge
 const PORT = 58788
 
-const log = require('../../src/npmlog-env')
+// const log = require('../../src/npmlog-env')
 
-test('Bridge retry-promise testing', function(t) {
-  co(function* () {
+test('Bridge retry-promise testing', async t => {
+  // co(function* () {
     const EXPECTED_RESOLVE = 'Okey'
     const EXPECTED_REJECT  = 'NotTheTime'
     function delayedFactory(timeout) {
@@ -25,82 +32,88 @@ test('Bridge retry-promise testing', function(t) {
     const retryPromise = require('retry-promise').default
 
     var delay50 = delayedFactory(50)
-    yield retryPromise({max:1, backoff: 10}, function() {
+    await retryPromise({max:1, backoff: 10}, function() {
       return delay50()
     })
     .then(r => {
       t.fail('should not resolved retry-promise here')
     })
     .catch(e => {
-      t.equal(e, EXPECTED_REJECT, `retry-promise got ${EXPECTED_REJECT} when wait not enough`)
+      t.is(e, EXPECTED_REJECT, `retry-promise got ${EXPECTED_REJECT} when wait not enough`)
     })
 
     var anotherDelay50 = delayedFactory(50)
-    yield retryPromise({max:6, backoff: 10}, function() {
+    await retryPromise({max:6, backoff: 10}, function() {
       return anotherDelay50()
     })
     .then(r => {
-      t.equal(r, EXPECTED_RESOLVE, `retryPromise got "${EXPECTED_RESOLVE}" when wait enough`)
+      t.is(r, EXPECTED_RESOLVE, `retryPromise got "${EXPECTED_RESOLVE}" when wait enough`)
     })
     .catch(e => {
       t.fail(`should not be rejected(with ${e}) when there is enough wait`)
     })
 
-  })
-  .catch(e => { // REJECTED
-    t.fail(e)
-  })
-  .then(r => {  // FINALLY
-    t.end()
-  })
-  .catch(e => { // EXCEPTION
-    t.fail(e)
-  })
+  // })
+  // .catch(e => { // REJECTED
+  //   t.fail(e)
+  // })
+  // .then(r => {  // FINALLY
+  //   t.end()
+  // })
+  // .catch(e => { // EXCEPTION
+  //   t.fail(e)
+  // })
 })
 
-test('Bridge smoking test', function(t) {
+test('Bridge smoking test', async t => {
   const browser = new Browser({port: PORT})
-  t.ok(browser, 'should instanciated a browser')
+  t.truthy(browser, 'should instanciated a browser')
 
   const mockPuppet = {browser: browser}
-  const b = new Bridge({puppet: mockPuppet})
-  t.ok(b, 'should instanciated a bridge with mocked puppet')
+  const b = new Bridge({puppet: mockPuppet, port: PORT})
+  t.truthy(b, 'should instanciated a bridge with mocked puppet')
 
-  co(function* () {
-    yield browser.init()
+  // co(function* () {
+    await browser.init()
     t.pass('should instanciated a browser')
 
-    yield browser.open()
+    await browser.open()
     t.pass('should open success')
 
-    yield b.inject()
+    await b.inject()
     t.pass('should injected wechaty')
 
-    const retDing = yield b.execute('return Wechaty.ding()')
-    t.equal(retDing, 'dong', 'should got dong after execute Wechaty.ding()')
+    const retDing = await b.execute('return Wechaty.ding()')
+    t.is(retDing, 'dong', 'should got dong after execute Wechaty.ding()')
 
     // @deprecated
-    // const retReady = yield b.execute('return Wechaty.isReady()')
-    // t.equal(typeof retReady, 'boolean', 'should got a boolean return after execute Wechaty.isReady()')
+    // const retReady = await b.execute('return Wechaty.isReady()')
+    // t.is(typeof retReady, 'boolean', 'should got a boolean return after execute Wechaty.isReady()')
 
-    const retCode = yield b.proxyWechaty('isLogin')
-    t.equal(typeof retCode, 'boolean', 'should got a boolean after call proxyWechaty(isLogin)')
-  })
-  .catch(e => {                               // Rejected
-    t.fail('co promise rejected:' + e)
-  })
-  .then(r => {                                // Finally
-    return co(function* () {
-      yield b.quit()
-      t.pass('b.quit()')
-      yield browser.quit()
-      t.pass('browser.quit()')
+    const retCode = await b.proxyWechaty('isLogin')
+    t.is(typeof retCode, 'boolean', 'should got a boolean after call proxyWechaty(isLogin)')
 
-      t.end()
-    })
-  })
-  .catch(e => {                               // Exception
-    t.fail('Test Exception:' + e)
-    t.end()
-  })
+    await b.quit()
+    t.pass('b.quit()')
+    await browser.quit()
+    t.pass('browser.quit()')
+
+  // })
+  // .catch(e => {                               // Rejected
+  //   t.fail('co promise rejected:' + e)
+  // })
+  // .then(r => {                                // Finally
+  //   return co(function* () {
+  //     await b.quit()
+  //     t.pass('b.quit()')
+  //     await browser.quit()
+  //     t.pass('browser.quit()')
+
+  //     t.end()
+  //   })
+  // })
+  // .catch(e => {                               // Exception
+  //   t.fail('Test Exception:' + e)
+  //   t.end()
+  // })
 })

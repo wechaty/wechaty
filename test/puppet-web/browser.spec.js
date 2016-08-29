@@ -1,31 +1,41 @@
-const co = require('co')
-const test = require('tape')
+import { test } from 'ava'
 
-const log = require('../../src/npmlog-env')
+import {
+  PuppetWeb
+  , Config
+  , log
+} from '../../'
 
-const Browser = require('../../src/puppet-web/browser')
-const PROFILE = 'unit-test-session.wechaty.json'
 
-test('Browser class cookie smoking tests', function(t) {
+// const co = require('co')
+// const test = require('tape')
+
+// const log = require('../../src/npmlog-env')
+
+const Browser = PuppetWeb.Browser
+const PROFILE = Config.DEFAULT_PROFILE + '-' + process.pid + '-'
+let profileCounter = 1
+
+test('Browser class cookie smoking tests', async t => {
   const b = new Browser()
-  t.ok(b, 'should instanciate a browser instance')
+  t.truthy(b, 'should instanciate a browser instance')
 
-  co(function* () {
-    yield b.init()
+  // co(function* () {
+    await b.init()
     t.pass('should inited')
 
-    yield b.open()
+    await b.open()
     t.pass('should opened')
 
-    const two = yield b.execute('return 1+1')
-    t.equal(two, 2, 'should got 2 after execute script 1+1')
+    const two = await b.execute('return 1+1')
+    t.is(two, 2, 'should got 2 after execute script 1+1')
 
-    let cookies = yield b.driver.manage().getCookies()
-    t.ok(cookies.length, 'should got plenty of cookies')
+    let cookies = await b.driver.manage().getCookies()
+    t.truthy(cookies.length, 'should got plenty of cookies')
 
-    yield b.driver.manage().deleteAllCookies()
-    cookies = yield b.driver.manage().getCookies()
-    t.equal(cookies.length, 0, 'should no cookie anymore after deleteAllCookies()')
+    await b.driver.manage().deleteAllCookies()
+    cookies = await b.driver.manage().getCookies()
+    t.is(cookies.length, 0, 'should no cookie anymore after deleteAllCookies()')
 
     const EXPECTED_COOKIES = [{
       name: 'wechaty0'
@@ -44,48 +54,40 @@ test('Browser class cookie smoking tests', function(t) {
       , expiry: 99999999999999
     }]
 
-    yield b.addCookies(EXPECTED_COOKIES)
+    await b.addCookies(EXPECTED_COOKIES)
 
-    cookies = yield b.driver.manage().getCookies()
+    cookies = await b.driver.manage().getCookies()
     const cookies0 = cookies.filter(c => { return RegExp(EXPECTED_COOKIES[0].name).test(c.name) })
-    t.equal(cookies0[0].name, EXPECTED_COOKIES[0].name, 'getCookies() should filter out the cookie named wechaty0')
+    t.is(cookies0[0].name, EXPECTED_COOKIES[0].name, 'getCookies() should filter out the cookie named wechaty0')
     const cookies1 = cookies.filter(c => { return RegExp(EXPECTED_COOKIES[1].name).test(c.name) })
-    t.equal(cookies1[0].name, EXPECTED_COOKIES[1].name, 'getCookies() should filter out the cookie named wechaty1')
+    t.is(cookies1[0].name, EXPECTED_COOKIES[1].name, 'getCookies() should filter out the cookie named wechaty1')
 
-    yield b.open()
+    await b.open()
     t.pass('re-opened url')
-    const cookieAfterOpen = yield b.driver.manage().getCookie(EXPECTED_COOKIES[0].name)
-    t.equal(cookieAfterOpen.name, EXPECTED_COOKIES[0].name, 'getCookie() should get expected cookie named after re-open url')
+    const cookieAfterOpen = await b.driver.manage().getCookie(EXPECTED_COOKIES[0].name)
+    t.is(cookieAfterOpen.name, EXPECTED_COOKIES[0].name, 'getCookie() should get expected cookie named after re-open url')
 
     const dead = b.dead()
-    t.equal(dead, false, 'should be a not dead browser')
+    t.is(dead, false, 'should be a not dead browser')
 
-    const live = yield b.readyLive()
-    t.equal(live, true, 'should be a live browser')
-  })
-  .catch((e) => { // Rejected
-    t.fail('co promise rejected:' + e)
-  })
-  .then(r => {    // Finally
-    b.quit()
-    .then(_ => t.end())
-  })
-  .catch(e => {   // Exception
-    t.fail('Exception:' + e)
-  })
+    const live = await b.readyLive()
+    t.is(live, true, 'should be a live browser')
+
+    await b.quit()
 })
 
-test('Browser session save & load', function(t) {
+test('Browser session save & load', async t => {
+  const profileName = PROFILE + profileCounter++ 
   let b = new Browser({
-    sessionFile: PROFILE
+    sessionFile: profileName
   })
-  t.ok(b, 'new Browser')
+  t.truthy(b, 'new Browser')
 
-  co(function* () {
-    yield b.init()
+  // co(function* () {
+    await b.init()
     t.pass('inited')
 
-    yield b.open()
+    await b.open()
     t.pass('opened')
 
     const EXPECTED_COOKIE = {
@@ -98,72 +100,65 @@ test('Browser session save & load', function(t) {
     }
     const EXPECTED_NAME_REGEX = new RegExp('^' + EXPECTED_COOKIE.name + '$')
 
-    yield b.driver.manage().deleteAllCookies()
-    let cookies = yield b.driver.manage().getCookies()
-    t.equal(cookies.length, 0, 'should no cookie after deleteAllCookies()')
+    await b.driver.manage().deleteAllCookies()
+    let cookies = await b.driver.manage().getCookies()
+    t.is(cookies.length, 0, 'should no cookie after deleteAllCookies()')
 
-    yield b.addCookies(EXPECTED_COOKIE)
-    const cookieFromBrowser = yield b.driver.manage().getCookie(EXPECTED_COOKIE.name)
-    t.equal(cookieFromBrowser.name, EXPECTED_COOKIE.name, 'cookie from getCookie() should be same as we just set')
+    await b.addCookies(EXPECTED_COOKIE)
+    const cookieFromBrowser = await b.driver.manage().getCookie(EXPECTED_COOKIE.name)
+    t.is(cookieFromBrowser.name, EXPECTED_COOKIE.name, 'cookie from getCookie() should be same as we just set')
 
-    let cookiesFromCheck = yield b.checkSession()
-    t.ok(cookiesFromCheck.length, 'should get cookies from checkSession() after addCookies()')
+    let cookiesFromCheck = await b.checkSession()
+    t.truthy(cookiesFromCheck.length, 'should get cookies from checkSession() after addCookies()')
     let cookieFromCheck  = cookiesFromCheck.filter(c => EXPECTED_NAME_REGEX.test(c.name))
-    t.equal(cookieFromCheck[0].name, EXPECTED_COOKIE.name, 'cookie from checkSession() return should be same as we just set by addCookies()')
+    t.is(cookieFromCheck[0].name, EXPECTED_COOKIE.name, 'cookie from checkSession() return should be same as we just set by addCookies()')
 
-    const cookiesFromSave = yield b.saveSession()
-    t.ok(cookiesFromSave.length, 'should get cookies from saveSession()')
+    const cookiesFromSave = await b.saveSession()
+    t.truthy(cookiesFromSave.length, 'should get cookies from saveSession()')
     const cookieFromSave  = cookiesFromSave.filter(c => EXPECTED_NAME_REGEX.test(c.name))
-    t.equal(cookieFromSave.length, 1, 'should has the cookie we just set')
-    t.equal(cookieFromSave[0].name, EXPECTED_COOKIE.name, 'cookie from saveSession() return should be same as we just set')
+    t.is(cookieFromSave.length, 1, 'should has the cookie we just set')
+    t.is(cookieFromSave[0].name, EXPECTED_COOKIE.name, 'cookie from saveSession() return should be same as we just set')
 
-    yield b.driver.manage().deleteAllCookies()
-    cookiesFromCheck = yield b.checkSession()
-    t.equal(cookiesFromCheck.length, 0, 'should no cookie from checkSession() after deleteAllCookies()')
+    await b.driver.manage().deleteAllCookies()
+    cookiesFromCheck = await b.checkSession()
+    t.is(cookiesFromCheck.length, 0, 'should no cookie from checkSession() after deleteAllCookies()')
 
-    const cookiesFromLoad = yield b.loadSession().catch(() => {}) // fall safe
-    t.ok(cookiesFromLoad.length, 'should get cookies after loadSession()')
+    const cookiesFromLoad = await b.loadSession().catch(() => {}) // fall safe
+    t.truthy(cookiesFromLoad.length, 'should get cookies after loadSession()')
     const cookieFromLoad = cookiesFromLoad.filter(c => EXPECTED_NAME_REGEX.test(c.name))
-    t.equal(cookieFromLoad[0].name, EXPECTED_COOKIE.name, 'cookie from loadSession() should has expected cookie')
+    t.is(cookieFromLoad[0].name, EXPECTED_COOKIE.name, 'cookie from loadSession() should has expected cookie')
 
-    cookiesFromCheck = yield b.checkSession()
-    t.ok(cookiesFromCheck.length, 'should get cookies from checkSession() after loadSession()')
+    cookiesFromCheck = await b.checkSession()
+    t.truthy(cookiesFromCheck.length, 'should get cookies from checkSession() after loadSession()')
     cookieFromCheck  = cookiesFromCheck.filter(c => EXPECTED_NAME_REGEX.test(c.name))
-    t.ok(cookieFromCheck.length, 'should has cookie after filtered after loadSession()')
-    t.equal(cookieFromCheck[0].name, EXPECTED_COOKIE.name, 'cookie from checkSession() return should has expected cookie after loadSession')
+    t.truthy(cookieFromCheck.length, 'should has cookie after filtered after loadSession()')
+    t.is(cookieFromCheck[0].name, EXPECTED_COOKIE.name, 'cookie from checkSession() return should has expected cookie after loadSession')
 
-    yield b.quit()
+    await b.quit()
     t.pass('quited')
 
     b = new Browser({
-      sessionFile: PROFILE
+      sessionFile: profileName
     })
     t.pass('re-new Browser')
-    yield b.init()
+    await b.init()
     t.pass('re-init Browser')
-    yield b.open()
+    await b.open()
     t.pass('re-open Browser')
 
-    yield b.loadSession()
+    await b.loadSession()
     t.pass('loadSession for new instance of Browser')
 
-    const cookieAfterQuit = yield b.driver.manage().getCookie(EXPECTED_COOKIE.name)
-    t.equal(cookieAfterQuit.name, EXPECTED_COOKIE.name, 'cookie from getCookie() after browser quit, should load the right cookie back')
+    const cookieAfterQuit = await b.driver.manage().getCookie(EXPECTED_COOKIE.name)
+    t.truthy(cookieAfterQuit, 'should get cookie from getCookie()')
+    t.is(cookieAfterQuit.name, EXPECTED_COOKIE.name, 'cookie from getCookie() after browser quit, should load the right cookie back')
 
     // clean
-    require('fs').unlink(PROFILE, err => {
+    require('fs').unlink(profileName, err => {
       if (err) {
         log.warn('Browser', 'unlink session file %s fail: %s', PROFILE, err)
       }
     })
-  })
-  .catch(e => {               // Reject
-    log.warn('TestBrowser', 'error: %s', e)
-    t.fail(e)
-  })
-  .then(r => {                // Finally
-    b.quit()
-    .then(_ => t.end())
-  })
-  .catch(e => { t.fail(e) })  // Exception
+
+    await b.quit()
 })
