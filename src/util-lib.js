@@ -91,10 +91,16 @@ function guid() {
  * 
  * @param port is just a suggestion. 
  * there's no grantuee for the number
+ *
+ * The IANA suggested ephemeral port range.
+ * @see http://en.wikipedia.org/wiki/Ephemeral_ports
+ *
+ * const DEFAULT_IANA_RANGE = {min: 49152, max: 65535}
+ *
  */
 function getPort(port) {
   log.verbose('UtilLib', 'getPort(%d)', port)
-  let tryPort = nextPort(port || 8788)
+  let tryPort = nextPort(port || 38788)
 
   return new Promise((resolve, reject) => {
     // https://gist.github.com/mikeal/1840641

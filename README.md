@@ -1,26 +1,26 @@
-[![Wechaty](https://raw.githubusercontent.com/zixia/wechaty/master/image/wechaty-logo-en.png)](https://github.com/zixia/wechaty)
-# Wechaty [![Linux Circle CI](https://circleci.com/gh/zixia/wechaty.svg?style=svg)](https://circleci.com/gh/zixia/wechaty) [![Linux/Mac Build Status](https://img.shields.io/travis/zixia/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/zixia/wechaty) [![Win32 Build status](https://img.shields.io/appveyor/ci/zixia/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/zixia/wechaty) [![Coverage Status](https://coveralls.io/repos/github/zixia/wechaty/badge.svg?branch=master)](https://coveralls.io/github/zixia/wechaty?branch=master)
+[![Wechaty](https://raw.githubusercontent.com/wechaty/wechaty/master/image/wechaty-logo-en.png)](https://github.com/wechaty/wechaty)
+# Wechaty [![Linux Circle CI](https://circleci.com/gh/wechaty/wechaty.svg?style=svg)](https://circleci.com/gh/wechaty/wechaty) [![Linux/Mac Build Status](https://img.shields.io/travis/wechaty/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/wechaty/wechaty) [![Win32 Build status](https://img.shields.io/appveyor/ci/zixia/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/zixia/wechaty) [![Coverage Status](https://coveralls.io/repos/github/wechaty/wechaty/badge.svg?branch=master)](https://coveralls.io/github/wechaty/wechaty?branch=master)
 
 Connecting ChatBots, for Chat as a Service(CaaS).
 
-Wechaty is a Bot Framework for Wechat **Personal** Account, It can help you easy creating personal wechat bot in 7 lines of javascript code, with cross platform  support to [linux](https://travis-ci.org/zixia/wechaty), [win32](https://ci.appveyor.com/project/zixia/wechaty) and [darwin(OSX/Mac)](https://travis-ci.org/zixia/wechaty).
+Wechaty is a Bot Framework for Wechat **Personal** Account, It can help you easy creating personal wechat bot in 7 lines of javascript code, with cross platform  support to [linux](https://travis-ci.org/wechaty/wechaty), [win32](https://ci.appveyor.com/project/zixia/wechaty) and [darwin(OSX/Mac)](https://travis-ci.org/wechaty/wechaty).
 
-:octocat: <https://github.com/zixia/wechaty>  
-:beetle: <https://github.com/zixia/wechaty/issues>  
-:book: <https://github.com/zixia/wechaty/wiki>  
-:whale: <https://hub.docker.com/r/zixia/wechaty>  
+:octocat: <https://github.com/wechaty/wechaty>  
+:beetle: <https://github.com/wechaty/wechaty/issues>  
+:book: <https://github.com/wechaty/wechaty/wiki>  
+:whale: <https://hub.docker.com/r/wechaty/wechaty>  
 
-[![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Join the chat at https://gitter.im/wechaty/wechaty](https://badges.gitter.im/wechaty/wechaty.svg)](https://gitter.im/wechaty/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=2592000)](https://nodejs.org/)
-[![Repo Size](https://reposs.herokuapp.com/?path=zixia/wechaty)]()
+[![Repo Size](https://reposs.herokuapp.com/?path=wechaty/wechaty)]()
 
 ## Voice of the Developer
 
-> @GasLin : it may be the best wecaht sdk i have seen in github! [link](https://github.com/zixia/wechaty/issues/8#issuecomment-228971491)
+> @GasLin : it may be the best wecaht sdk i have seen in github! [link](https://github.com/wechaty/wechaty/issues/8#issuecomment-228971491)
 
-> @ak5 : Thanks for this it's quite cool! [link](https://github.com/zixia/wechaty/issues/4)
+> @ak5 : Thanks for this it's quite cool! [link](https://github.com/wechaty/wechaty/issues/4)
 
-> @ccaapton : wechaty library looks fantastic! [link](https://github.com/zixia/wechaty/issues/9)
+> @ccaapton : wechaty library looks fantastic! [link](https://github.com/wechaty/wechaty/issues/9)
 
 # Examples
 Wechaty is dead easy to use: 7 lines javascript for your wechat bot.
@@ -41,13 +41,13 @@ bot
 
 Notice that you need to wait a moment while bot trys to get the login QRCode from Wechat. As soon as the bot gets login QRCode url, he will print url out. You need to scan the qrcode on wechat, and confirm login.
 
-After that, bot will be on duty. (roger-bot source can be found at [here](https://github.com/zixia/wechaty/blob/master/example/roger-bot.js))
+After that, bot will be on duty. (roger-bot source can be found at [here](https://github.com/wechaty/wechaty/blob/master/example/roger-bot.js))
 
 ## 2. Advanced: dozens of lines
-Here's an chatbot [ding-dong-bot](https://github.com/zixia/wechaty/blob/master/example/ding-dong-bot.js) who can reply _dong_ when receives a message _ding_.
+Here's an chatbot [ding-dong-bot](https://github.com/wechaty/wechaty/blob/master/example/ding-dong-bot.js) who can reply _dong_ when receives a message _ding_.
 
 ## 3. Hardcore: hundreds of lines
-Here's a chatbot [api-ai-bot](https://github.com/zixia/wechaty/blob/master/example/api-ai-bot.js), who can slightly understand NLP.
+Here's a chatbot [api-ai-bot](https://github.com/wechaty/wechaty/blob/master/example/api-ai-bot.js), who can slightly understand NLP.
 
 Natual Language Understanding enabled by [api.AI](https://api.ai), you can get your module on api.AI by it's free plan.
 
@@ -57,18 +57,18 @@ Use docker to deploy wechaty is highly recommended.
 
 ## Deploy with Docker
 
-[![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
-[![Docker Stars](https://img.shields.io/docker/stars/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
-[![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
+[![Docker Pulls](https://img.shields.io/docker/pulls/wechaty/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/wechaty/wechaty/)
+[![Docker Stars](https://img.shields.io/docker/stars/wechaty/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/wechaty/wechaty/)
+[![Docker Layers](https://images.microbadger.com/badges/image/wechaty/wechaty.svg)](https://microbadger.com/#/images/wechaty/wechaty)
 
-[![dockeri.co](http://dockeri.co/image/zixia/wechaty)](https://hub.docker.com/r/zixia/wechaty/)
+[![dockeri.co](http://dockeri.co/image/wechaty/wechaty)](https://hub.docker.com/r/wechaty/wechaty/)
 
 Wechaty is fully dockerized. So it will be very easy to be deployed as a MicroService. 
 
 ```shell
 $ export TOKEN="your token here"
 
-$ docker run -e WECHATY_TOKEN="$TOKEN" zixia/wechaty
+$ docker run -e WECHATY_TOKEN="$TOKEN" wechaty/wechaty
 ```
 
 `WECHATY_TOKEN` is required here, because you need this key to manage wechaty on the chatbot cloud manager: https://www.wechaty.io
@@ -122,7 +122,7 @@ Then you are set.
 
 ### 1. Open in Cloud9 IDE
 
-Just one click here: <a href="https://c9.io/open/?name=Wechaty&type=nodejs&clone_url=https://github.com/zixia/wechaty.git&description=Wechat%20for%20Bot&selection_file=/example/ding-dong-bot.js" target="_blank"><img src="https://img.shields.io/badge/open%20in-Cloud9%20IDE-blue.svg" alt="Open Wechaty in Cloud9 IDE"></a>
+Just one click here: <a href="https://c9.io/open/?name=Wechaty&type=nodejs&clone_url=https://github.com/wechaty/wechaty.git&description=Wechat%20for%20Bot&selection_file=/example/ding-dong-bot.js" target="_blank"><img src="https://img.shields.io/badge/open%20in-Cloud9%20IDE-blue.svg" alt="Open Wechaty in Cloud9 IDE"></a>
 
 ### 2. Set default to Node.js v6
 Open Terminal in Cloud9 IDE, use nvm to install nodejs v6, which is required by Wechaty.
@@ -164,7 +164,7 @@ Node.js Version 6.0 or above is required.
 
 If you have no github account, you can just clone it via https:
 ```shell
-git clone https://github.com/zixia/wechaty.git
+git clone https://github.com/wechaty/wechaty.git
 ```
 This will clone wechaty source code to your current directory.
 
@@ -184,18 +184,18 @@ Please submit your issue if you have any, and a fork & pull is very welcome for 
 
 # Wechaty Badge
 
-[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg?style=flat)](https://github.com/zixia/wechaty)
+[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg?style=flat)](https://github.com/wechaty/wechaty)
 
 ## Markdown
 
 ```markdown
-[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg?style=flat)](https://github.com/zixia/wechaty)
+[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg?style=flat)](https://github.com/wechaty/wechaty)
 ```
 
 ## Html
 
 ```html
-<a href="https://github.com/zixia/wechaty" target="_blank">
+<a href="https://github.com/wechaty/wechaty" target="_blank">
   <img src="https://img.shields.io/badge/Powered%20By-Wechaty-green.svg?style=flat" alt="Powered by Wechaty" border="0">
 </a>
 ```
@@ -214,7 +214,7 @@ To test with full log messages
 $ WECHATY_LOG=silly npm test
 ```
 
-[Details about unit testing](https://github.com/zixia/wechaty/tree/master/test)
+[Details about unit testing](https://github.com/wechaty/wechaty/tree/master/test)
 
 ## LOG output
 Wechaty use [npmlog](https://www.npmjs.com/package/npmlog) to output log message. You can set log level by environment variable `WECHATY_LOG` to show log message.
@@ -505,9 +505,10 @@ Know more about TAP: [Why I use Tape Instead of Mocha & So Should You](https://m
 
 ## v0.3.13 (master)
 1. Managed by Cloud Manager: https://app.wechaty.io
-1. Dockerized & Published to docker hub as: [zixia/wechaty](https://hub.docker.com/r/zixia/wechaty/)
-1. add `reset` & `shutdown` to IO Event
-1. Unit Test Runner switch from Tape/Tap to AVA <https://github.com/avajs/ava>
+1. Dockerized & Published to docker hub as: [wechaty/wechaty](https://hub.docker.com/r/wechaty/wechaty/)
+1. Add `reset` & `shutdown` to IO Event
+1. Switch Unit Test Runner from Tape/Tap to [AVA](https://github.com/avajs/ava)
+1. Move git resposity from zixia/wechaty to [wechaty/wechaty](https://github.com/wechaty/wechaty)
 
 ## v0.2.3 (2016/7/28)
 1. add wechaty.io cloud management support: set environment variable `WECHATY_TOKEN` to enable io support
@@ -568,7 +569,7 @@ Know more about TAP: [Why I use Tape Instead of Mocha & So Should You](https://m
 Everybody is welcome to issue your needs.
 
 # Known Issues & Support
-Github Issue - https://github.com/zixia/wechaty/issues
+Github Issue <https://github.com/wechaty/wechaty/issues>
 
 # Contributing
 * Lint: eslint
