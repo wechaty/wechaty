@@ -494,20 +494,20 @@ room.ready()
 ```
 
 # Test
-Wechaty use [TAP protocol](http://testanything.org/) to test itself by [tap](http://www.node-tap.org/).
+Wechaty use ~~[TAP protocol](http://testanything.org/)~~ [AVA](https://github.com/avajs/ava) to test itself ~~by [tap](http://www.node-tap.org/)~~.
 
 To test Wechaty, run:
 ```shell
 npm test
 ```
 
-Know more about TAP: [Why I use Tape Instead of Mocha & So Should You](https://medium.com/javascript-scene/why-i-use-tape-instead-of-mocha-so-should-you-6aa105d8eaf4#.qxrrf2938)
+* Know more about TAP: [Why I use Tape Instead of Mocha & So Should You](https://medium.com/javascript-scene/why-i-use-tape-instead-of-mocha-so-should-you-6aa105d8eaf4)
 
 # Version History
 
 ## v0.3.13 (master)
 1. Managed by Cloud Manager: https://app.wechaty.io
-1. Dockerized & Published to docker hub as: [wechaty/wechaty](https://hub.docker.com/r/wechaty/wechaty/)
+1. Dockerized & Published to docker hub as: [zixia/wechaty](https://hub.docker.com/r/zixia/wechaty/)
 1. Add `reset` & `shutdown` to IO Event
 1. Switch Unit Test Runner from Tape/Tap to [AVA](https://github.com/avajs/ava)
 1. Move git resposity from zixia/wechaty to [wechaty/wechaty](https://github.com/wechaty/wechaty)
