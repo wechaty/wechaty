@@ -1,0 +1,32 @@
+#!/bin/bash
+#
+# Wechaty Helper - https://github.com/wechaty/wechaty
+#
+# Credit:
+# https://github.com/mark-adams/docker-chromium-xvfb/blob/master/images/base/xvfb-chromium
+# http://stackoverflow.com/a/30336424/1123955
+#
+set -e
+
+_kill_procs() {
+  kill -TERM $pidXvfbChromium
+  wait $pidXvfbChromium
+}
+
+# Setup a trap to catch SIGTERM and relay it to child processes
+trap _kill_procs SIGTERM
+
+XVFB_WHD=${XVFB_WHD:-640x480x8}
+
+# Start Xvfb
+# Xvfb :99 -ac -screen 0 $XVFB_WHD -nolisten tcp &
+xvfb-run -a chromium --no-sandbox $@ &
+pidXvfbChromium=$!
+
+# export DISPLAY=:99
+
+# chromium --no-sandbox $@ &
+# chromium=$!
+
+wait $pidXvfbChromium
+# wait $xvfb
