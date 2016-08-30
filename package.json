@@ -1,23 +1,23 @@
 {
   "name": "wechaty",
-  "version": "0.3.12",
+  "version": "0.3.13",
   "description": "Wechat for Bot (Personal Account)",
   "main": "index.js",
   "wechaty": {
     "DEFAULT_HEAD": "chrome",
     "DEFAULT_PUPPET": "web",
     "DEFAULT_PROFILE": "default-profile-name",
-    "DEFAULT_PORT": 8788,
-    "DEFAULT_PUPPET_PORT": 58788
+    "DEFAULT_PORT": 18788,
+    "DEFAULT_PUPPET_PORT": 28788
   },
   "scripts": {
     "lint": "eslint src test || echo ok",
     "pretest": "npm run lint",
     "start": "node bin/io-bot",
     "demo": "node example/ding-dong-bot.js",
-    "test": "cross-env LC_ALL=C WECHATY_LOG=info ava --serial --timeout=10m \"{src,test}/**/*.spec.js\"",
+    "test": "cross-env LC_ALL=C WECHATY_LOG=info ava --timeout=10m \"{src,test}/**/*.spec.js\"",
     "ava": "cross-env LC_ALL=C WECHATY_LOG=verbose ava \"{src,test}/**/*.spec.js\"",
-    "testdev": "cross-env LC_ALL=C WECHATY_LOG=silly ava --verbose --fail-fast --timeout=3m"
+    "testdev": "cross-env LC_ALL=C WECHATY_LOG=silly ava --serial --verbose --fail-fast --timeout=3m"
   },
   "repository": {
     "type": "git",
