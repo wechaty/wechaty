@@ -104,10 +104,9 @@ class Browser extends EventEmitter {
 
   getChromeDriver() {
     const options = {
-      args: ['--no-sandbox']
+      args: ['--no-sandbox']  // issue #26 for run inside docker
     }
     const customChrome = WebDriver.Capabilities.chrome()
-                                  // .set('webdriver.chrome.args', '--no-sandbox')
                                   .set('chromeOptions', options)
 
     return new WebDriver.Builder()

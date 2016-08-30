@@ -111,7 +111,9 @@ npm install --save wechaty
 If you use chrome instead of phantomjs, you should make sure:
 
 1. chrome is installed
-1. if you are under linux, set headless right for `xvfb`
+1. if you are under linux, set headless right for `Xvfb`
+
+* [Running a GUI application in a Docker container](https://linuxmeerkat.wordpress.com/2014/10/17/running-a-gui-application-in-a-docker-container/)
 
 Then you are set.
 
