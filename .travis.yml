@@ -33,7 +33,7 @@ script:
   - echo $TRAVIS_OS_NAME
   - npm test
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then docker build -t zixia/wechaty:test .; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then docker run zixia/wechaty:test test; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then docker run --shm-size 256m zixia/wechaty:test test; fi
 
 notifications:
   webhooks:
