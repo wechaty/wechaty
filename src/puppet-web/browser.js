@@ -68,33 +68,35 @@ class Browser extends EventEmitter {
 
   initDriver() {
     log.verbose('PuppetWebBrowser', 'initDriver(head: %s)', this.head)
-    return new Promise((resolve, reject) => {
-      switch (true) {
-        case !this.head: // no head default to phantomjs
-        case /phantomjs/i.test(this.head):
-        case /phantom/i.test(this.head):
-          this.driver = this.getPhantomJsDriver()
-          break
-        case /firefox/i.test(this.head):
-          this.driver = new WebDriver.Builder()
-          .setAlertBehavior('ignore')
-          .forBrowser('firefox')
-          .build()
-          break
-        case /chrome/i.test(this.head):
-          this.driver = this.getChromeDriver()
-          break
-        default: // unsupported browser head
-          throw new Error('unsupported head: ' + this.head)
-      }
 
-      // XXX: if no `setTimeout()` here, promise will hang forever!
-      // with a confirmed bug in selenium-webdriver v2.53.2:
-      // https://github.com/SeleniumHQ/selenium/issues/2233
-      // FIXED: selenium v3 released 20160807
-      // setTimeout(() => { resolve(this.driver) }, 0)
-      resolve(this.driver)
-    })
+    switch (true) {
+      case !this.head: // no head default to phantomjs
+      case /phantomjs/i.test(this.head):
+      case /phantom/i.test(this.head):
+        this.driver = this.getPhantomJsDriver()
+        break
+
+      case /firefox/i.test(this.head):
+        this.driver = new WebDriver.Builder()
+        .setAlertBehavior('ignore')
+        .forBrowser('firefox')
+        .build()
+        break
+
+      case /chrome/i.test(this.head):
+        this.driver = this.getChromeDriver()
+        break
+
+      default: // unsupported browser head
+        throw new Error('unsupported head: ' + this.head)
+    }
+
+    // XXX: if no `setTimeout()` here, promise will hang forever!
+    // with a confirmed bug in selenium-webdriver v2.53.2:
+    // https://github.com/SeleniumHQ/selenium/issues/2233
+    // FIXED: selenium v3 released 20160807
+    // setTimeout(() => { resolve(this.driver) }, 0)
+    return Promise.resolve(this.driver)
   }
 
   refresh() {
@@ -106,6 +108,10 @@ class Browser extends EventEmitter {
     const options = {
       args: ['--no-sandbox']  // issue #26 for run inside docker
     }
+    if (process.env.WECHATY_DOCKER) {
+      options.binary = '/wechaty/bin/xvfb-chromium'
+    }
+
     const customChrome = WebDriver.Capabilities.chrome()
                                   .set('chromeOptions', options)
 
@@ -125,14 +131,14 @@ class Browser extends EventEmitter {
       '--load-images=false'
       , '--ignore-ssl-errors=true'  // this help socket.io connect with localhost
       , '--web-security=false'      // https://github.com/ariya/phantomjs/issues/12440#issuecomment-52155299
-      //, '--ssl-protocol=TLSv1'    // https://github.com/ariya/phantomjs/issues/11239#issuecomment-42362211
       , '--ssl-protocol=any'        // http://stackoverflow.com/a/26503588/1123955
+      //, '--ssl-protocol=TLSv1'    // https://github.com/ariya/phantomjs/issues/11239#issuecomment-42362211
 
       // issue: Secure WebSocket(wss) do not work with Self Signed Certificate in PhantomJS #12 
       // , '--ssl-certificates-path=D:\\cygwin64\\home\\zixia\\git\\wechaty' // http://stackoverflow.com/a/32690349/1123955
       // , '--ssl-client-certificate-file=cert.pem' // 
-
     ]
+
     if (process.env.WECHATY_DEBUG) {
       phantomjsArgs.push('--remote-debugger-port=8080') // XXX: be careful when in production env.
       phantomjsArgs.push('--webdriver-loglevel=DEBUG')
@@ -146,16 +152,16 @@ class Browser extends EventEmitter {
     }
 
     const customPhantom = WebDriver.Capabilities.phantomjs()
-    .setAlertBehavior('ignore')
-    .set('phantomjs.binary.path', phantomjsExe)
-    .set('phantomjs.cli.args', phantomjsArgs)
+                                  .setAlertBehavior('ignore')
+                                  .set('phantomjs.binary.path', phantomjsExe)
+                                  .set('phantomjs.cli.args', phantomjsArgs)
 
     log.silly('PuppetWebBrowser', 'phantomjs binary: ' + phantomjsExe)
     log.silly('PuppetWebBrowser', 'phantomjs args: ' + phantomjsArgs.join(' '))
 
     const driver = new WebDriver.Builder()
-    .withCapabilities(customPhantom)
-    .build()
+                                .withCapabilities(customPhantom)
+                                .build()
     
 		/**
 		 *  ISSUE #21 - https://github.com/zixia/wechaty/issues/21
@@ -283,7 +289,7 @@ this.onResourceRequested = function(request, net) {
 
           case this.head: // head default to chrome
           case /chrome/i.test(this.head):
-            browserRe = 'chrome(?!driver)'
+            browserRe = 'chrome(?!driver)|chromium'
             break
 
           default:
