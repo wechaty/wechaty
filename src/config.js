@@ -1,3 +1,7 @@
-const Config = require('../package.json').wechaty
+const Config = {
+  isDocker: !!process.env.WECHATY_DOCKER
+}
 
-module.exports = Config
+Object.assign(Config, require('../package.json').wechaty)
+
+module.exports = Config.default = Config.Config = Config
