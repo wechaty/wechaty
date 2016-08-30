@@ -1,4 +1,8 @@
 /**
+ * Wechaty
+ *
+ * https://github.com/wechaty/wechaty
+ *
  * Ssl Key & Cert files.
  *
  * Hardcoded here, NO need to re-config.
