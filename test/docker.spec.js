@@ -12,6 +12,6 @@ const docker = !!process.env.WECHATY_DOCKER
 })
 
 docker && test('Docker smoking test', function(t) {
-  const n = execSync('ps | grep Xvfb | wc -l')
+  const n = execSync('ps a | grep Xvfb | grep -v grep | wc -l').toString()
   t.is(n, 1, 'should has Xvfb started')
 })
