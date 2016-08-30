@@ -49,7 +49,7 @@ function onBrowserDead(e) {
   // because this function is async, so maybe entry more than one times.
   // guard by variable: isBrowserBirthing to prevent the 2nd time entrance.
   if (this.isBrowserBirthing) {
-    log.warn('PuppetWebEvent', 'onBrowserDead() Im busy, dont call me again before I return. this time will return and do nothing')
+    log.warn('PuppetWebEvent', 'onBrowserDead() is busy, this call will return now. stack: %s', (new Error()).stack)
     return
   }
 
@@ -279,7 +279,7 @@ function onServerLogin(data, attempt = 0) {
 
     yield this.browser.saveSession()
               .catch(e => { // fail safe
-                log.warn('PuppetWebEvent', 'onServerLogin() browser.saveSession exception: %s', e.message)
+                log.verbose('PuppetWebEvent', 'onServerLogin() browser.saveSession exception: %s', e.message)
               })
 
     this.emit('login', this.user)
