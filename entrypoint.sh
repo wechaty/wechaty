@@ -3,7 +3,9 @@
 # Credit: https://github.com/cusspvz/node.docker/blob/master/entrypoint
 #
 
-echo "Docker Starting Wechaty v$(wechaty-version)"
+echo
+echo "Starting Wechaty v$(wechaty-version) ..."
+echo
 
 # to identify run env (for tests)
 export WECHATY_DOCKER='docker'
@@ -15,7 +17,7 @@ echo "WECHATY_HEAD=$WECHATY_HEAD"
 
 if [ "$WECHATY_HEAD" != "phantomjs" ]; then
   export DISPLAY=':99.0'
-  Xvfb :99 -screen 0 1024x768x24 &
+  Xvfb :99 -ac -screen 0 640x480x8 -nolisten tcp &
   echo "Xvfb started on DISPLAY=$DISPLAY"
 fi
 
