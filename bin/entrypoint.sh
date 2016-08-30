@@ -2,6 +2,7 @@
 #
 # Credit: https://github.com/cusspvz/node.docker/blob/master/entrypoint
 #
+set -e
 
 echo
 echo "Starting Wechaty v$(wechaty-version) ..."
