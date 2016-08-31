@@ -12,7 +12,9 @@
     "BINARY_CHROMIUM": "/wechaty/bin/xvfb-chromium"
   },
   "scripts": {
-    "lint": "eslint src test || echo ok",
+    "lint": "echo skip lint - 'npm run eslint && npm run tslint'",
+    "eslint": "eslint \"{src,test}/**/*.js\"",
+    "tslint": "tslint \"{src,test}/**/*.ts\"",
     "pretest": "npm run lint",
     "start": "node bin/io-bot",
     "demo": "node example/ding-dong-bot.js",
@@ -78,7 +80,9 @@
     "eslint": "^3.3.1",
     "qrcode-terminal": "^0.10.0",
     "sinon": "^1.17.5",
-    "tuling123-client": "0.0.1"
+    "tslint": "^3.15.1",
+    "tuling123-client": "0.0.1",
+    "typescript": "^2.1.0-dev.20160830"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [
