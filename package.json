@@ -8,7 +8,8 @@
     "DEFAULT_PUPPET": "web",
     "DEFAULT_PROFILE": "default-profile-name",
     "DEFAULT_PORT": 18788,
-    "DEFAULT_PUPPET_PORT": 28788
+    "DEFAULT_PUPPET_PORT": 28788,
+    "BINARY_CHROMIUM": "/wechaty/bin/xvfb-chromium"
   },
   "scripts": {
     "lint": "eslint src test || echo ok",

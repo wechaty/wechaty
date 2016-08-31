@@ -108,8 +108,8 @@ class Browser extends EventEmitter {
     const options = {
       args: ['--no-sandbox']  // issue #26 for run inside docker
     }
-    if (process.env.WECHATY_DOCKER) {
-      options.binary = '/wechaty/bin/xvfb-chromium'
+    if (Config.isDocker) {
+      options.binary = Config.BINARY_CHROMIUM
     }
 
     const customChrome = WebDriver.Capabilities.chrome()
