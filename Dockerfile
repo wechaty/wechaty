@@ -14,7 +14,7 @@ RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key
 
 WORKDIR /wechaty
 COPY package.json .
-RUN npm install && rm -fr /tmp/*
+RUN npm install --loglevel warn && rm -fr /tmp/*
 COPY . .
 RUN npm link
 
