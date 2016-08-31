@@ -5,19 +5,16 @@ import {
   , log
 } from '../../'
 
-// const co = require('co')
-// const test = require('tape')
+import { spy } from 'sinon'
 
 const Browser = PuppetWeb.Browser
 const Bridge  = PuppetWeb.Bridge
-const PORT = 58788
-
-// const log = require('../../src/npmlog-env')
 
 test('Bridge retry-promise testing', async t => {
   // co(function* () {
     const EXPECTED_RESOLVE = 'Okey'
     const EXPECTED_REJECT  = 'NotTheTime'
+
     function delayedFactory(timeout) {
       const startTime = Date.now()
       return function() {
@@ -29,29 +26,39 @@ test('Bridge retry-promise testing', async t => {
       }
     }
 
+    const thenSpy = spy()
+
     const retryPromise = require('retry-promise').default
 
-    var delay50 = delayedFactory(50)
-    await retryPromise({max:1, backoff: 10}, function() {
-      return delay50()
+    var delay500 = delayedFactory(500)
+    await retryPromise({max:1, backoff: 1}, function() {
+      return delay500()
     })
     .then(r => {
-      t.fail('should not resolved retry-promise here')
+      thenSpy(r)
+      // t.fail('should not resolved retry-promise here')
     })
     .catch(e => {
-      t.is(e, EXPECTED_REJECT, `retry-promise got ${EXPECTED_REJECT} when wait not enough`)
+      thenSpy(e)
+      console.log(e)
+      // t.is(e, EXPECTED_REJECT, `retry-promise got ${EXPECTED_REJECT} when wait not enough`)
     })
+    t.true(thenSpy.withArgs(EXPECTED_REJECT).calledOnce, 'should got EXPECTED_REJECT when wait not enough')
 
+    thenSpy.reset()
     var anotherDelay50 = delayedFactory(50)
     await retryPromise({max:6, backoff: 10}, function() {
       return anotherDelay50()
     })
     .then(r => {
-      t.is(r, EXPECTED_RESOLVE, `retryPromise got "${EXPECTED_RESOLVE}" when wait enough`)
+      thenSpy(r)
+      // t.is(r, EXPECTED_RESOLVE, `retryPromise got "${EXPECTED_RESOLVE}" when wait enough`)
     })
     .catch(e => {
-      t.fail(`should not be rejected(with ${e}) when there is enough wait`)
+      thenSpy(e)
+      // t.fail(`should not be rejected(with ${e}) when there is enough wait`)
     })
+    t.true(thenSpy.withArgs(EXPECTED_RESOLVE).calledOnce, 'should got EXPECTED_RESOLVE when wait enough')
 
   // })
   // .catch(e => { // REJECTED
@@ -66,6 +73,8 @@ test('Bridge retry-promise testing', async t => {
 })
 
 test('Bridge smoking test', async t => {
+  const PORT = 58788
+
   const browser = new Browser({port: PORT})
   t.truthy(browser, 'should instanciated a browser')
 
