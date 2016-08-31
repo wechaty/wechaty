@@ -12,7 +12,7 @@
     "BINARY_CHROMIUM": "/wechaty/bin/xvfb-chromium"
   },
   "scripts": {
-    "lint": "echo skip lint - 'npm run eslint && npm run tslint'",
+    "lint": "npm run eslint && echo npm run tslint",
     "eslint": "eslint \"{src,test}/**/*.js\"",
     "tslint": "tslint \"{src,test}/**/*.ts\"",
     "pretest": "npm run lint",
@@ -57,7 +57,15 @@
     "plugins": [
       "ava"
     ],
-    "extends": "plugin:ava/recommended"
+    "parser": "babel-eslint",
+    "parserOptions": {
+      "ecmaVersion": 7,
+      "sourceType": "module",
+      "ecmaFeatures": {
+        "impliedStrict": true
+      },
+      "extends": "plugin:ava/recommended"
+    }
   },
   "engines": {
     "node": ">= 6.0.0"
@@ -79,6 +87,7 @@
   "devDependencies": {
     "apiai": "^2.0.7",
     "ava": "^0.16.0",
+    "babel-eslint": "^6.1.2",
     "cookie-parser": "^1.4.3",
     "cross-env": "^2.0.0",
     "eslint": "^3.4.0",

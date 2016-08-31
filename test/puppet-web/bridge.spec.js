@@ -40,7 +40,6 @@ test('Bridge retry-promise testing', async t => {
     })
     .catch(e => {
       thenSpy(e)
-      console.log(e)
       // t.is(e, EXPECTED_REJECT, `retry-promise got ${EXPECTED_REJECT} when wait not enough`)
     })
     t.true(thenSpy.withArgs(EXPECTED_REJECT).calledOnce, 'should got EXPECTED_REJECT when wait not enough')
