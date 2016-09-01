@@ -22,12 +22,12 @@ const Config = require('./config')
 class Wechaty extends EventEmitter {
 
   constructor({
-    type        = process.env.WECHATY_PUPPET    || Config.DEFAULT_PUPPET
-    , head      = process.env.WECHATY_HEAD      || Config.DEFAULT_HEAD
-    , port      = process.env.WECHATY_PORT      || 0    // 0 for disable port
-    , endpoint  = process.env.WECHATY_ENDPOINT          // wechaty.io api endpoint
-    , token     = process.env.WECHATY_TOKEN             // token for wechaty.io auth
-    , profile   = process.env.WECHATY_PROFILE           // no profile, no session save/restore
+    type        = Config.puppet
+    , head      = Config.head
+    , port      = Config.port
+    , endpoint  = Config.endpoint
+    , token     = Config.token    // token for wechaty.io auth. will connect to wechaty.io cloud management if token is set
+    , profile   = Config.profile  // no profile, no session save/restore
   } = {}) {
     log.verbose('Wechaty', 'contructor()')
 

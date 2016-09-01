@@ -15,14 +15,15 @@ const co            = require('co')
 
 const log           = require('./npmlog-env')
 const Contact       = require('./contact')
+const Config        = require('./config')
 
 class Io {
 
   constructor({
     wechaty = null
     , token = null
-    , endpoint = 'wss://api.wechaty.io/v0/websocket'
-    , protocol = 'io|0.0.1'
+    , endpoint = Config.endpoint
+    , protocol = Config.DEFAULT_PROTOCOL
   }) {
     if (!wechaty || !token) {
       throw new Error('Io must has wechaty & token set')

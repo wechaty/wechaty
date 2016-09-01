@@ -7,8 +7,10 @@
     "DEFAULT_HEAD": "phantomjs",
     "DEFAULT_PUPPET": "web",
     "DEFAULT_PROFILE": "default-profile-name",
-    "DEFAULT_PORT": 18788,
-    "DEFAULT_PUPPET_PORT": 28788,
+    "DEFAULT_PORT": 8788,
+    "DEFAULT_PUPPET_PORT": 18788,
+    "DEFAULT_PROTOCOL": "io|0.0.1",
+    "ENDPOINT": "wss://api.wechaty.io/v0/websocket",
     "BINARY_CHROMIUM": "/wechaty/bin/xvfb-chromium"
   },
   "scripts": {
@@ -76,7 +78,6 @@
     "body-parser": "^1.15.2",
     "chromedriver": "^2.23.1",
     "co": "^4.6.0",
-    "eventemitter2": "^2.1.0",
     "express": "^4.13.4",
     "npmlog": "^4.0.0",
     "phantomjs-prebuilt": "^2.1.12",
