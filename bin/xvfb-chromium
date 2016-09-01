@@ -1,8 +1,10 @@
 #!/bin/bash
 #
-# Wechaty Helper - https://github.com/wechaty/wechaty
+# Wechaty Xvfb Browser Loader
 #
-# Credit:
+# https://github.com/wechaty/wechaty
+#
+# Original Code Credit:
 # https://github.com/mark-adams/docker-chromium-xvfb/blob/master/images/base/xvfb-chromium
 # http://stackoverflow.com/a/30336424/1123955
 #
