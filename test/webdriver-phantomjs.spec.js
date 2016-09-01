@@ -9,7 +9,7 @@ import { test } from 'ava'
 
 import { UtilLib, log } from '../'
 
-test.todo('Phantomjs replace javascript source file content test', async t => {
+test.skip('Phantomjs replace javascript source file content test', async t => {
   const phantomjsArgs = [
     '--load-images=false'
     , '--ignore-ssl-errors=true'  // this help socket.io connect with localhost
