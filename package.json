@@ -28,7 +28,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/zixia/wechaty.git"
+    "url": "git+https://github.com/wechaty/wechaty.git"
   },
   "bin": {
     "io-bot": "bin/io-bot.js",
@@ -49,9 +49,9 @@
   "author": "Zhuohuan LI <zixia@zixia.net>",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/zixia/wechaty/issues"
+    "url": "https://github.com/wechaty/wechaty/issues"
   },
-  "homepage": "https://github.com/zixia/wechaty#readme",
+  "homepage": "https://github.com/wechaty/wechaty#readme",
   "eslintConfig": {
     "env": {
       "browser": true,
