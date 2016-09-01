@@ -20,7 +20,7 @@
     "pretest": "npm run lint",
     "test": "npm run test:phantomjs && npm run test:chrome",
     "test:phantomjs": "cross-env LC_ALL=C WECHATY_LOG=info WECHATY_HEAD=phantomjs ava --timeout=10m \"{src,test}/**/*.spec.js\"",
-    "test:chrome": "cross-env LC_ALL=C WECHATY_LOG=info WECHATY_HEAD=chrome ava --timeout=10m \"{src,test}/**/*.spec.js\"",
+    "test:chrome": "cross-env LC_ALL=C WECHATY_LOG=silly WECHATY_HEAD=chrome ava --timeout=10m \"{src,test}/**/*.spec.js\"",
     "testdev": "cross-env LC_ALL=C WECHATY_LOG=silly ava --serial --verbose --fail-fast --timeout=3m",
     "ava": "cross-env LC_ALL=C WECHATY_LOG=verbose ava \"{src,test}/**/*.spec.js\"",
     "start": "node bin/io-bot",
