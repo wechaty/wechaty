@@ -38,7 +38,7 @@ const Config  = require('../config')
 
 class PuppetWeb extends Puppet {
   constructor({
-    head = Config.DEFAULT_HEAD
+    head = Config.head
     , profile = null  // if not set profile, then do not store session.
   } = {}) {
     super()

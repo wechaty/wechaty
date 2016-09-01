@@ -3,38 +3,38 @@ import express from 'express'
 import * as http from 'http'
 import * as url from 'url'
 
+import Phantomjs from 'phantomjs-prebuilt'
+
 import { test } from 'ava'
 
 import { UtilLib, log } from '../'
 
-test('Phantomjs smoking test', t => {
-  const phantomjsExe = require('phantomjs-prebuilt').path
-
+test.todo('Phantomjs replace javascript source file content test', async t => {
   const phantomjsArgs = [
     '--load-images=false'
     , '--ignore-ssl-errors=true'  // this help socket.io connect with localhost
     , '--web-security=false'      // https://github.com/ariya/phantomjs/issues/12440#issuecomment-52155299
     , '--ssl-protocol=TLSv1'      // https://github.com/ariya/phantomjs/issues/11239#issuecomment-42362211
+    , '--webdriver-loglevel=WARN'
+    // , '--webdriver-loglevel=DEBUG'
+    // , '--webdriver-logfile=webdriver.debug.log'
+    // , '--remote-debugger-port=8080'
   ]
 
-  phantomjsArgs.push('--remote-debugger-port=8080') // XXX: be careful when in production env.
-  phantomjsArgs.push('--webdriver-loglevel=DEBUG')
-  // phantomjsArgs.push('--webdriver-logfile=webdriver.debug.log')
-
   const customPhantom = WebDriver.Capabilities.phantomjs()
-  .setAlertBehavior('ignore')
-  .set('phantomjs.binary.path', phantomjsExe)
-  .set('phantomjs.cli.args', phantomjsArgs)
-  .set('phantomjs.page.settings.userAgent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:25.0) Gecko/20100101 Firefox/25.0')
+                                // .setAlertBehavior('ignore')
+                                .set('phantomjs.binary.path', Phantomjs.path)
+                                .set('phantomjs.cli.args', phantomjsArgs)
 
   const driver = new WebDriver.Builder()
-  .withCapabilities(customPhantom)
-  .build()
+                              .withCapabilities(customPhantom)
+                              .build()
 
   // http://stackoverflow.com/questions/24834403/phantomjs-change-webpage-content-before-evaluating
   driver.executePhantomJS(`
 this.onResourceRequested = function(request, net) {
   console.log('REQUEST ' + request.url);
+  alert('REQUEST ' + request.url);
   // blockRe = /wx\.qq\.com\/\?t=v2\/fake/i
   // https://res.wx.qq.com/zh_CN/htmledition/v2/js/webwxApp2fd632.js
   var webwxAppRe = /res\.wx\.qq\.com\/zh_CN\/htmledition\/v2\/js\/webwxApp.+\.js$/i
@@ -70,7 +70,8 @@ this.onResourceRequested = function(request, net) {
   }
 }
 `)
-  driver.get('https://wx.qq.com')
+  await driver.get('https://wx.qq.com')
+  // console.log(await driver.getTitle())
 
   // t.end()
 })

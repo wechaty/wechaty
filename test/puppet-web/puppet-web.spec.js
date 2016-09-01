@@ -23,6 +23,11 @@ test('Puppet Web Self Message Identification', t => {
   t.truthy(p.self(m), 'should identified self for message which from is self')
 })
 
+/**
+ * the reason why use `test.serial` here is: 
+ *  static variable `Contact.puppet` will be changed
+ *  when `PuppteWeb.init()` and `PuppteWeb.quit()`
+ */
 test.serial('PuppetWeb login/logout events', async t => {
   let pw = new PuppetWeb()
   t.truthy(pw, 'should instantiated a PuppetWeb')
