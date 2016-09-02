@@ -1,6 +1,9 @@
 const log = require('npmlog')
 
-const Wechaty = require('..')
+const {
+  Wechaty
+  , Config
+} = require('../')
 
 const welcome = `
 | __        __        _           _
@@ -26,7 +29,7 @@ Please wait... I'm trying to login in...
 `
 
 console.log(welcome)
-const bot = new Wechaty({ profile: 'example-bot.wechaty.json' })
+const bot = new Wechaty({ profile: Config.DEFAULT_PROFILE })
 
 bot
 .on('login'	  , user => log.info('Bot', `${user.name()} logined`))

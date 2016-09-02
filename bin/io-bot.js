@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 
-const { IoBot, log } = require('..')
+const {
+  IoBot
+  , Config
+  , log 
+} = require('../')
 
 const welcome = `
 | __        __        _           _
@@ -20,8 +24,7 @@ __________________________________________________
 
 `
 
-const profile = process.env.WECHATY_PROFILE || 'io-bot'
-let token = process.env.WECHATY_TOKEN
+let   token   = Config.token
 
 if (!token) {
   log.error('Bot', 'token not found: please set WECHATY_TOKEN in environment before run io-bot')
@@ -34,7 +37,7 @@ if (!token) {
 }
 
 const ioBot = new IoBot({
-  profile
+  profile: Config.profile || Config.DEFAULT_PROFILE
   , token
   , log
 })

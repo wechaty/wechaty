@@ -7,8 +7,8 @@
  * Inject this js code to browser,
  * in order to interactive with wechat web program.
  *
- * Licenst: MIT
- * https://github.com/zixia/wechaty-lib
+ * Licenst: ISC
+ * https://github.com/wechaty/wechaty
  *
  *
  * ATTENTION:
@@ -32,7 +32,7 @@
   port = port || 8788
 
   /*
-   * Wechaty injectio must return this object.
+   * WechatyBro injectio must return this object.
    * PuppetWebBridge need this to decide if injection is successful.
    */
   var retObj = {
@@ -41,20 +41,20 @@
     , port: port
   }
 
-  if (typeof this.Wechaty !== 'undefined') {
+  if (typeof this.WechatyBro !== 'undefined') {
     retObj.code = 201
-    retObj.message = 'Wechaty already injected?'
+    retObj.message = 'WechatyBro already injected?'
     return retObj
   }
 
-  var Wechaty = {
+  var WechatyBro = {
     glue: {
       // will be initialized by glueToAngular() function
     }
 
     // glue funcs
-    // , getLoginStatusCode: function() { return Wechaty.glue.loginScope.code }
-    // , getLoginQrImgUrl:   function() { return Wechaty.glue.loginScope.qrcodeUrl }
+    // , getLoginStatusCode: function() { return WechatyBro.glue.loginScope.code }
+    // , getLoginQrImgUrl:   function() { return WechatyBro.glue.loginScope.qrcodeUrl }
     , angularIsReady:    angularIsReady
 
     // variable
@@ -69,7 +69,7 @@
     }
 
     // funcs
-    , init: init  // initialize Wechaty @ Browser
+    , init: init  // initialize WechatyBro @ Browser
     , send: send  // send message to wechat user
     , clog: clog  // log to Console
     , slog: slog  // log to SocketIO
@@ -88,9 +88,9 @@
     , initClog: initClog
   }
 
-  this.Wechaty = Wechaty
+  this.WechatyBro = WechatyBro
   retObj.code = 200
-  retObj.message = 'Wechaty Inject Succ'
+  retObj.message = 'WechatyBro Inject Succ'
   return retObj
 
   /**
@@ -124,8 +124,8 @@
       return retObj
     }
 
-    if (Wechaty.vars.initStatus === true) {
-      log('Wechaty.init() called twice: already inited')
+    if (WechatyBro.vars.initStatus === true) {
+      log('WechatyBro.init() called twice: already inited')
       retObj.code = 304 // 304 Not Modified https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.5
       retObj.message = 'init() already inited before. returned with do nothing'
       return retObj
@@ -146,10 +146,10 @@
     heartBeat(true)
 
     clog('inited!. ;-D')
-    Wechaty.vars.initStatus = true
+    WechatyBro.vars.initStatus = true
 
     retObj.code = 200
-    retObj.message = 'Wechaty Init Succ on port: ' + port
+    retObj.message = 'WechatyBro Init Succ on port: ' + port
     return retObj
   }
 
@@ -162,7 +162,7 @@
       return true
     }
 
-    if (Wechaty.vars.iframe) {
+    if (WechatyBro.vars.iframe) {
       log('initClog() again? there is already a iframe')
       return true
     }
@@ -181,8 +181,8 @@
     // slog('initClog got iframe element')
     i.style.display = 'none'
     document.body.appendChild(i)
-    Wechaty.vars.iframe = i
-    // if (!Wechaty.vars.iframe) {
+    WechatyBro.vars.iframe = i
+    // if (!WechatyBro.vars.iframe) {
     //   throw new Error('iframe gone after appendChild, WTF???')
     // }
     // slog('initClog done')
@@ -190,50 +190,50 @@
   }
 
   function clog(s) {
-    if (!Wechaty.vars.iframe) {
+    if (!WechatyBro.vars.iframe) {
       // throw new Error('clog() iframe not found when be invocked')
       return
     }
 
     var d = new Date()
-    s = d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds() + ' <Wechaty> ' + s
+    s = d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds() + ' <WechatyBro> ' + s
 
-    Wechaty.vars.iframe.contentWindow.console.log(s)
+    WechatyBro.vars.iframe.contentWindow.console.log(s)
   }
 
-  function slog(msg)  { Wechaty.emit('log', msg) }
+  function slog(msg)  { WechatyBro.emit('log', msg) }
   function log(s)     { clog(s); slog(s) }
 
   /**
-   * Wechaty.emit, will save event & data when there's no socket io connection to prevent event lost
+   * WechatyBro.emit, will save event & data when there's no socket io connection to prevent event lost
    * NOTICE: only clog available here, because slog & log will call emit, death loop
    */
   function emit(event, data) {
-    var eventsBuf = Wechaty.vars.eventsBuf
+    var eventsBuf = WechatyBro.vars.eventsBuf
     if (!eventsBuf.map) {
-      throw new Error('Wechaty.vars.eventsBuf must be a Array')
+      throw new Error('WechatyBro.vars.eventsBuf must be a Array')
     }
     if (event) {
       eventsBuf.unshift([event, data])
     }
-    var socket = Wechaty.vars.socket
+    var socket = WechatyBro.vars.socket
     if (!socket) {
-      clog('Wechaty.vars.socket not ready')
+      clog('WechatyBro.vars.socket not ready')
       return setTimeout(emit, 1000) // resent eventsBuf after 1000ms
     }
     var bufLen = eventsBuf.length
     if (bufLen) {
-      if (bufLen > 1) { clog('Wechaty.vars.eventsBuf has ' + bufLen + ' unsend events') }
+      if (bufLen > 1) { clog('WechatyBro.vars.eventsBuf has ' + bufLen + ' unsend events') }
 
       while (eventsBuf.length) {
         var eventData = eventsBuf.pop()
         if (eventData && eventData.map && eventData.length===2) {
           clog('emiting ' + eventData[0])
           socket.emit(eventData[0], eventData[1])
-        } else { clog('Wechaty.emit() got invalid eventData: ' + eventData[0] + ', ' + eventData[1] + ', length: ' + eventData.length) }
+        } else { clog('WechatyBro.emit() got invalid eventData: ' + eventData[0] + ', ' + eventData[1] + ', length: ' + eventData.length) }
       }
 
-      if (bufLen > 1) { clog('Wechaty.vars.eventsBuf[' + bufLen + '] all sent') }
+      if (bufLen > 1) { clog('WechatyBro.vars.eventsBuf[' + bufLen + '] all sent') }
     }
   }
 
@@ -245,8 +245,8 @@
   function MMCgiLogined() { return !!(window.MMCgi && window.MMCgi.isLogin) }
 
   function angularIsReady() {
-    // don't log insite, because we has not init clog here.
-    return (
+    // don't log inside, because we has not yet init clog here.
+    return !!(
       (typeof angular) !== 'undefined'
       && angular.element
       && angular.element('body')
@@ -256,12 +256,12 @@
 
   function heartBeat(firstTime) {
     var TIMEOUT = 15000 // 15s
-    if (firstTime && Wechaty.vars.heartBeatTimmer) {
-      Wechaty.log('heartBeat timer exist when 1st time is true? return for do nothing')
+    if (firstTime && WechatyBro.vars.heartBeatTimmer) {
+      WechatyBro.log('heartBeat timer exist when 1st time is true? return for do nothing')
       return
     }
-    Wechaty.emit('ding', 'heartbeat@browser')
-    Wechaty.vars.heartBeatTimmer = setTimeout(heartBeat, TIMEOUT)
+    WechatyBro.emit('ding', 'heartbeat@browser')
+    WechatyBro.vars.heartBeatTimmer = setTimeout(heartBeat, TIMEOUT)
     return TIMEOUT
   }
 
@@ -289,12 +289,12 @@
     // method 1
     appFactory.syncOrig = appFactory.sync
     appFactory.syncCheckOrig = appFactory.syncCheck
-    appFactory.sync = function() { Wechaty.log('appFactory.sync() !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'); return appFactory.syncOrig(arguments) }
-    appFactory.syncCheck = function() { Wechaty.log('appFactory.syncCheck() !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'); return appFactory.syncCheckOrig(arguments) }
+    appFactory.sync = function() { WechatyBro.log('appFactory.sync() !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'); return appFactory.syncOrig(arguments) }
+    appFactory.syncCheck = function() { WechatyBro.log('appFactory.syncCheck() !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'); return appFactory.syncCheckOrig(arguments) }
 
     // method 2
     $.ajaxOrig = $.ajax
-    $.ajax = function() { Wechaty.log('$.ajax() !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'); return $.ajaxOrig(arguments) }
+    $.ajax = function() { WechatyBro.log('$.ajax() !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'); return $.ajaxOrig(arguments) }
 
     $.ajax({
       url: "https://wx.qq.com/zh_CN/htmledition/v2/images/webwxgeticon.jpg"
@@ -305,7 +305,7 @@
 
     // method 3 - mmHttp
     mmHttp.getOrig = mmHttp.get
-    mmHttp.get = function() { Wechaty.log('mmHttp.get() !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'); return mmHttp.getOrig(arguments) }
+    mmHttp.get = function() { WechatyBro.log('mmHttp.get() !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'); return mmHttp.getOrig(arguments) }
 */
 
     /**
@@ -320,7 +320,7 @@
     */
 
     // get all we need from wx in browser(angularjs)
-    Wechaty.glue = {
+    WechatyBro.glue = {
       injector:       injector
       , http:         http
 
@@ -347,7 +347,7 @@
       // login('checkScan found already login')
       return
     }
-    if (!Wechaty.glue.loginScope) {
+    if (!WechatyBro.glue.loginScope) {
       log('checkScan() - loginScope disappeared, no more check')
       login('loginScope disappeared')
       return
@@ -358,20 +358,20 @@
     // 408: 未确认（显示二维码后30秒触发）
     // 201: 扫描，未确认
     // 200: 登录成功
-    var code  = +Wechaty.glue.loginScope.code
-    var url   =  Wechaty.glue.loginScope.qrcodeUrl
-    if (url && code !== Wechaty.vars.scanCode) {
+    var code  = +WechatyBro.glue.loginScope.code
+    var url   =  WechatyBro.glue.loginScope.qrcodeUrl
+    if (url && code !== WechatyBro.vars.scanCode) {
 
-      log('checkScan() - code change detected. from '
-        + Wechaty.vars.scanCode
+      log('checkScan() - code change detected: from '
+        + WechatyBro.vars.scanCode
         + ' to '
         + code
       )
-      Wechaty.emit('scan', {
+      WechatyBro.emit('scan', {
         code:   code
         , url:  url
       })
-      Wechaty.vars.scanCode = code
+      WechatyBro.vars.scanCode = code
     }
 
     if (code === 200) {
@@ -382,34 +382,34 @@
     return
   }
 
-  function isLogin() { return !!Wechaty.vars.loginStatus }
+  function isLogin() { return !!WechatyBro.vars.loginStatus }
   function login(data) {
     log('login(' + data + ')')
-    if (!Wechaty.vars.loginStatus) {
-      Wechaty.vars.loginStatus = true
+    if (!WechatyBro.vars.loginStatus) {
+      WechatyBro.vars.loginStatus = true
     }
-    Wechaty.emit('login', data)
+    WechatyBro.emit('login', data)
   }
   function logout(data) {
     log('logout(' + data + ')')
-    Wechaty.vars.loginStatus = false
-    // Wechaty.emit('logout', data)
-    Wechaty.glue.loginFactory.loginout()
+    WechatyBro.vars.loginStatus = false
+    // WechatyBro.emit('logout', data)
+    WechatyBro.glue.loginFactory.loginout()
     checkScan()
   }
   function quit() {
     log('quit()')
     logout('quit()')
-    if (Wechaty.vars.socket) {
-      Wechaty.vars.socket.close()
-      Wechaty.vars.socket = null
+    if (WechatyBro.vars.socket) {
+      WechatyBro.vars.socket.close()
+      WechatyBro.vars.socket = null
     }
   }
 
   function ding(data) { log('recv ding'); return data || 'dong' }
   function hookEvents() {
-    var rootScope = Wechaty.glue.rootScope
-    var appScope = Wechaty.glue.appScope
+    var rootScope = WechatyBro.glue.rootScope
+    var appScope = WechatyBro.glue.appScope
     if (!rootScope || !appScope) {
       log('hookEvents() no rootScope')
       return false
@@ -418,7 +418,7 @@
       if (!isLogin()) { // in case of we missed the pageInit event
         login('by event[message:add:success]')
       }
-      Wechaty.emit('message', data)
+      WechatyBro.emit('message', data)
     })
     rootScope.$on('root:pageInit:success'), function (event, data) {
       login('by event[root:pageInit:success]')
@@ -429,11 +429,11 @@
     // })
     window.addEventListener('unload', function(e) {
       // XXX only 1 event can be emitted here???
-      Wechaty.emit('unload', String(e))
-      // Wechaty.slog('emit unload')
-      // Wechaty.emit('logout', e)
-      // Wechaty.slog('emit logout')
-      // Wechaty.slog('emit logout&unload over')
+      WechatyBro.emit('unload', String(e))
+      // WechatyBro.slog('emit unload')
+      // WechatyBro.emit('logout', e)
+      // WechatyBro.slog('emit logout')
+      // WechatyBro.slog('emit logout&unload over')
     })
     return true
   }
@@ -452,8 +452,8 @@
       return // wait to be called via script.onload()
     }
 
-    /*global io*/ // Wechaty global variable: socket
-    var socket  = Wechaty.vars.socket = io.connect('wss://127.0.0.1:' + port/*, {transports: ['websocket']}*/)
+    /*global io*/ // WechatyBro global variable: socket
+    var socket  = WechatyBro.vars.socket = io.connect('wss://127.0.0.1:' + port/*, {transports: ['websocket']}*/)
 
     // ding -> dong. for test & live check purpose
     // ping/pong are reserved by socket.io https://github.com/socketio/socket.io/issues/2414
@@ -472,7 +472,7 @@
    *
    */
   function getMsgImg(id) {
-    var contentChatScope = Wechaty.glue.contentChatScope
+    var contentChatScope = WechatyBro.glue.contentChatScope
     if (!contentChatScope) {
       throw new Error('getMsgImg() contentChatScope not found')
     }
@@ -482,8 +482,8 @@
   }
 
   function send(ToUserName, Content) {
-    var chatFactory = Wechaty.glue.chatFactory
-    var confFactory = Wechaty.glue.confFactory
+    var chatFactory = WechatyBro.glue.chatFactory
+    var confFactory = WechatyBro.glue.confFactory
 
     if (!chatFactory || !confFactory) {
       log('send() chatFactory or confFactory not exist.')
@@ -498,7 +498,7 @@
     return chatFactory.sendMessage(m)
   }
   function getContact(id) {
-    var contactFactory = Wechaty.glue.contactFactory
+    var contactFactory = WechatyBro.glue.contactFactory
     if (!contactFactory) {
       log('contactFactory not inited')
       return null
@@ -522,10 +522,10 @@
   }
 
   function getUserName() {
-    var accountFactory = Wechaty.glue.accountFactory
+    var accountFactory = WechatyBro.glue.accountFactory
     return accountFactory
-    ? accountFactory.getUserName()
-    : null
+            ? accountFactory.getUserName()
+            : null
   }
 
 }.apply(window, arguments))

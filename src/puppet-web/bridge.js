@@ -105,7 +105,7 @@ class Bridge {
     const fs = require('fs')
     const path = require('path')
     return fs.readFileSync(
-      path.join(path.dirname(__filename), 'injectio.js')
+      path.join(__dirname, 'wechaty-bro.js')
       , 'utf8'
     )
   }
@@ -200,13 +200,13 @@ class Bridge {
     // see: http://blog.sqrtthree.com/2015/08/29/utf8-to-b64/
     const argsDecoded = `JSON.parse(decodeURIComponent(window.atob('${argsEncoded}')))`
 
-    const wechatyScript   = `return Wechaty.${wechatyFunc}.apply(undefined, ${argsDecoded})`
+    const wechatyScript   = `return WechatyBro.${wechatyFunc}.apply(undefined, ${argsDecoded})`
     // log.silly('PuppetWebBridge', 'proxyWechaty(%s, ...args) %s', wechatyFunc, wechatyScript)
 
-    return this.execute('return typeof Wechaty === "undefined"')
+    return this.execute('return typeof WechatyBro === "undefined"')
       .then(noWechaty => {
         if (noWechaty) {
-          throw new Error('there is no Wechaty in browser(yet)')
+          throw new Error('there is no WechatyBro in browser(yet)')
         }
       })
       .then(() => this.execute(wechatyScript))

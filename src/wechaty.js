@@ -11,9 +11,10 @@
 const EventEmitter  = require('events')
 const co            = require('co')
 const fs            = require('fs')
+const path          = require('path')
 
 const log           = require('./npmlog-env')
-const UtilLib          = require('./util-lib')
+const UtilLib       = require('./util-lib')
 
 const PuppetWeb     = require('./puppet-web')
 
@@ -52,22 +53,31 @@ class Wechaty extends EventEmitter {
   toString() { return 'Class Wechaty(' + this.type + ')'}
 
   version(forceNpm) {
-    const dotGitPath  = __dirname + '/../.git'
-    const gitLogCmd   = 'cd ' + __dirname + '; git log --oneline -1 2>/dev/null'
+    const dotGitPath  = path.join(__dirname, '..', '.git')
+    const gitLogCmd   = 'git'
+    const gitLogArgs  = ['log', '--oneline', '-1']
 
     if (!forceNpm) {
       try {
+        // Synchronous version of fs.access(). This throws if any accessibility checks fail, and does nothing otherwise.
         fs.accessSync(dotGitPath, fs.F_OK)
-        const revision = require('child_process')
-                          .execSync(gitLogCmd)
-                          .toString().trim()
+
+        const ss = require('child_process')
+                    .spawnSync(gitLogCmd, gitLogArgs, { cwd:  __dirname })
+        if (ss.status !== 0) {
+          throw new Error(ss.error)
+        }
+
+        const revision = ss.stdout
+                          .toString()
+                          .trim()
         return `#git[${revision}]`
       } catch (e) { /* fall safe */ 
         /**
          *  1. .git not exist
          *  2. git log fail
          */
-        //log.silly('Wechaty', 'version() test %s', e.message)
+        log.silly('Wechaty', 'version() test %s', e.message)
       }
     }
 
@@ -86,10 +96,12 @@ class Wechaty extends EventEmitter {
   }
   
   init() {
+
     log.info('Wechaty', 'v%s initializing...', this.version())
     log.verbose('Wechaty', 'puppet: %s' , this.type)
     log.verbose('Wechaty', 'head: %s'   , this.head)
     log.verbose('Wechaty', 'profile: %s', this.profile)
+    log.verbose('Wechaty', 'uuid: %s'   , this.uuid)
 
     if (this.inited) {
       log.error('Wechaty', 'init() already inited. return and do nothing.')
