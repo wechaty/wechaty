@@ -27,7 +27,14 @@ import {
 // const PuppetWebBrowser  = require('../src/puppet-web/browser')
 // const PuppetWebBridge   = require('../src/puppet-web/bridge')
 
-test('WebDriver process create & quit test', async t => {
+/**
+ * WHY USE test.serial
+ * 
+ * serial here is because we are checking browser pids inside test.
+ * if 2 tests run parallel in the same process,
+ * there will have race conditions for the conflict
+ */ 
+test.serial('WebDriver process create & quit test', async t => {
   // co(function* () {
     const b = new PuppetWeb.Browser()
     t.truthy(b, 'should instanciate a browser')
@@ -58,7 +65,7 @@ test('WebDriver process create & quit test', async t => {
   // return
 })
 
-test('WebDriver smoke testing', async t => {
+test.serial('WebDriver smoke testing', async t => {
   const wb = new PuppetWeb.Browser()
   t.truthy(wb, 'Browser instnace')
 
