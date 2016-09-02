@@ -28,7 +28,7 @@
 
 /*global angular*/
 
-return (function(port) {
+(function(port) {
   port = port || 8788
 
   /*

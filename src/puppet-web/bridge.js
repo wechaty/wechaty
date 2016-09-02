@@ -70,7 +70,7 @@ class Bridge {
     log.verbose('PuppetWebBridge', 'inject()')
 
     return co.call(this, function* () {
-      const injectio = this.getInjectio()
+      const injectio = 'return ' + this.getInjectio()
 
       let retObj = yield this.execute(injectio, this.port)
       if (retObj && /^(2|3)/.test(retObj.code)) {   // HTTP Code 2XX & 3XX
@@ -129,18 +129,18 @@ class Bridge {
 
   getUserName() {
     return this.proxyWechaty('getUserName')
-    .catch(e => {
-      log.error('PuppetWebBridge', 'getUserName() exception: %s', e.message)
-      throw e
-    })
+              .catch(e => {
+                log.error('PuppetWebBridge', 'getUserName() exception: %s', e.message)
+                throw e
+              })
   }
 
   send(toUserName, content) {
     return this.proxyWechaty('send', toUserName, content)
-    .catch(e => {
-      log.error('PuppetWebBridge', 'send() exception: %s', e.message)
-      throw e
-    })
+              .catch(e => {
+                log.error('PuppetWebBridge', 'send() exception: %s', e.message)
+                throw e
+              })
   }
 
   getMsgImg(id) {
