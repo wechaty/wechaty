@@ -89,14 +89,14 @@ test('Bridge smoking test', async t => {
     t.pass('should open success')
 
     await b.inject()
-    t.pass('should injected wechaty')
+    t.pass('should injected WechatyBro')
 
-    const retDing = await b.execute('return Wechaty.ding()')
-    t.is(retDing, 'dong', 'should got dong after execute Wechaty.ding()')
+    const retDing = await b.execute('return WechatyBro.ding()')
+    t.is(retDing, 'dong', 'should got dong after execute WechatyBro.ding()')
 
     // @deprecated
-    // const retReady = await b.execute('return Wechaty.isReady()')
-    // t.is(typeof retReady, 'boolean', 'should got a boolean return after execute Wechaty.isReady()')
+    // const retReady = await b.execute('return WechatyBro.isReady()')
+    // t.is(typeof retReady, 'boolean', 'should got a boolean return after execute WechatyBro.isReady()')
 
     const retCode = await b.proxyWechaty('isLogin')
     t.is(typeof retCode, 'boolean', 'should got a boolean after call proxyWechaty(isLogin)')
