@@ -1,21 +1,22 @@
-const Wechaty = require('./src/wechaty')
+const Wechaty   = require('./src/wechaty')
+const Config    = require('./src/config')
 
-const Message = require('./src/message')
-const Contact = require('./src/contact')
-const Room    = require('./src/room')
+const Message   = require('./src/message')
+const Contact   = require('./src/contact')
+const Room      = require('./src/room')
 
-const Puppet  = require('./src/puppet')
+const Puppet    = require('./src/puppet')
 const PuppetWeb = require('./src/puppet-web')
 
-const IoBot   = require('./src/io-bot')
+const IoBot     = require('./src/io-bot')
 
-const log = require('./src/npmlog-env')
-const Config = require('./src/config')
-const UtilLib = require('./src/util-lib')
+const log       = require('./src/npmlog-env')
+const UtilLib   = require('./src/util-lib')
 
 Object.assign(Wechaty, {
   default: Wechaty
   , Wechaty
+  , Config
   
   , Message
   , Contact
@@ -29,7 +30,6 @@ Object.assign(Wechaty, {
   , version: require('./package.json').version
   , log // for convenionce use npmlog with environment variable LEVEL
   
-  , Config
   , UtilLib
 })
 
