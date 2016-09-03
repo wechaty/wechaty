@@ -9,12 +9,11 @@
  * https://github.com/zixia/wechaty
  *
  */
-const Wechaty = require('./wechaty')
+const { Wechaty } = require('./wechaty')
 
 class IoBot {
   constructor({
-    token = 'EPP'
-    , profile = 'wechaty-epp'
+    token
     , log = Wechaty.log
   }) {
     if (!log) {
@@ -30,15 +29,13 @@ class IoBot {
       throw e
     }
     this.token = token
-
-    this.profile = profile
   }
 
   init() {
     this.log.verbose('IoBot', 'init()')
 
     const wechaty = this.wechaty = new Wechaty({
-      profile: this.profile
+      profile: Config.DEFAULT_PROFILE
       , token: this.token
     })
 

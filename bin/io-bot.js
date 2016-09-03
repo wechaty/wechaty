@@ -29,16 +29,15 @@ let   token   = Config.token
 if (!token) {
   log.error('Bot', 'token not found: please set WECHATY_TOKEN in environment before run io-bot')
   // process.exit(-1)
-  token = 'DEMO'
+  token = 'TEST'
   log.warn('Bot', `set token to "${token}" for demo purpose`)
-} else {
-  console.log(welcome)
-  log.info('Bot', 'Starting for WECHATY_TOKEN: %s', token)
 }
 
+console.log(welcome)
+log.info('Bot', 'Starting for WECHATY_TOKEN: %s', token)
+
 const ioBot = new IoBot({
-  profile: Config.profile || Config.DEFAULT_PROFILE
-  , token
+  token
   , log
 })
 
