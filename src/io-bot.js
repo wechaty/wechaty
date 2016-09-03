@@ -9,7 +9,12 @@
  * https://github.com/zixia/wechaty
  *
  */
-const { Wechaty } = require('./wechaty')
+
+/**
+ * do not use `require('../')` here, because it is a loop require
+ */
+const Wechaty = require('./wechaty')
+const Config  = require('./config')
 
 class IoBot {
   constructor({
@@ -51,12 +56,14 @@ class IoBot {
 
 
     return wechaty.init()
-              .then(_ => this)
+              .then(_ => {
+                this.log.verbose('IoBot', 'wechaty.init() succ')
+                return this
+              })
               .catch(e => {
                 this.log.error('IoBot', 'init() init fail: %s', e)
-                console.log(e)
                 wechaty.quit()
-                return e
+                throw e
               })
   }
 

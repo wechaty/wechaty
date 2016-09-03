@@ -29,7 +29,7 @@ let   token   = Config.token
 if (!token) {
   log.error('Bot', 'token not found: please set WECHATY_TOKEN in environment before run io-bot')
   // process.exit(-1)
-  token = 'TEST'
+  token = Config.DEFAULT_TOKEN
   log.warn('Bot', `set token to "${token}" for demo purpose`)
 }
 

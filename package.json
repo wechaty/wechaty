@@ -6,15 +6,16 @@
   "wechaty": {
     "DEFAULT_HEAD": "chrome",
     "DEFAULT_PUPPET": "web",
-    "DEFAULT_PROFILE": "default-profile",
+    "DEFAULT_PROFILE": "profile",
     "DEFAULT_PORT": 8788,
     "DEFAULT_PUPPET_PORT": 18788,
     "DEFAULT_PROTOCOL": "io|0.0.1",
+    "DEFAULT_TOKEN": "WECHATY-TOKEN",
     "ENDPOINT": "wss://api.wechaty.io/v0/websocket",
     "BINARY_CHROMIUM": "/wechaty/bin/xvfb-chromium"
   },
   "scripts": {
-    "lint": "npm run eslint && echo npm run tslint",
+    "lint": "npm run eslint && npm run tslint",
     "eslint": "eslint \"{src,test}/**/*.js\"",
     "tslint": "tslint \"{src,test}/**/*.ts\"",
     "pretest": "npm run lint",
