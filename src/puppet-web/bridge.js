@@ -70,9 +70,16 @@ class Bridge {
     log.verbose('PuppetWebBridge', 'inject()')
 
     return co.call(this, function* () {
-      const injectio = 'return ' + this.getInjectio()
+      /**
+       * Do not insert `return` in front of the code.
+       * because the new line `\n` will cause return nothing at all 
+       */
+      const injectio = 'rejectioReturnValue = ' 
+                        + this.getInjectio()
+                        + '; return rejectioReturnValue'
 
       let retObj = yield this.execute(injectio, this.port)
+
       if (retObj && /^(2|3)/.test(retObj.code)) {   // HTTP Code 2XX & 3XX
         log.verbose('PuppetWebBridge', 'inject() eval(Wechaty) return code[%d] message[%s] port[%d]'
           , retObj.code, retObj.message, retObj.port)
@@ -97,7 +104,7 @@ class Bridge {
       return true
     })
     .catch (e => {
-      log.verbose('PuppetWebBridge', 'inject() exception: %s', e.message)
+      log.verbose('PuppetWebBridge', 'inject() exception: %s. stack: %s', e.message, e.stack)
       throw e
     })
   }
