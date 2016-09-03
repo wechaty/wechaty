@@ -15,7 +15,11 @@ const co  = require('co')
 const Tuling123 = require('tuling123-client')
 const EventEmitter2 = require('eventemitter2')
 
-const Wechaty = require('..')
+const {
+  Wechaty 
+  , Config
+} = require
+('../')
 //log.level = 'verbose'
 // log.level = 'silly'
 
@@ -28,7 +32,9 @@ const Wechaty = require('..')
 const TULING123_API_KEY = '18f25157e0446df58ade098479f74b21'
 const brain = new Tuling123(TULING123_API_KEY)
 
-const bot = new Wechaty({ profile: 'example-bot.wechaty.json' })
+const bot = new Wechaty({
+  profile: Config.DEFAULT_PROFILE
+})
 
 console.log(`
 Welcome to Tuling Wechaty Bot.
@@ -44,7 +50,7 @@ bot
 .on('login'  , user => log.info('Bot', `bot login: ${user}`))
 .on('logout' , e => log.info('Bot', 'bot logout.'))
 .on('scan', ({url, code}) => {
-  console.log(`Scan QR Code in url to login: w${code}\n${url}`)
+  console.log(`Scan QR Code in url to login: ${code}\n${url}`)
 })
 .on('message', m => {
   if (bot.self(m)) return
