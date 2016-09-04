@@ -70,13 +70,7 @@ class Bridge {
     log.verbose('PuppetWebBridge', 'inject()')
 
     return co.call(this, function* () {
-      /**
-       * Do not insert `return` in front of the code.
-       * because the new line `\n` will cause return nothing at all 
-       */
-      const injectio = 'rejectioReturnValue = ' 
-                        + this.getInjectio()
-                        + '; return rejectioReturnValue'
+      const injectio = this.getInjectio()
 
       let retObj = yield this.execute(injectio, this.port)
 
@@ -111,10 +105,17 @@ class Bridge {
   getInjectio() {
     const fs = require('fs')
     const path = require('path')
-    return fs.readFileSync(
-      path.join(__dirname, 'wechaty-bro.js')
-      , 'utf8'
-    )
+
+    /**
+     * Do not insert `return` in front of the code.
+     * because the new line `\n` will cause return nothing at all 
+     */
+    return 'rejectioReturnValue = ' 
+              + fs.readFileSync(
+                path.join(__dirname, 'wechaty-bro.js')
+                , 'utf8'
+              )
+              + '; return rejectioReturnValue'
   }
 
   logout() {
