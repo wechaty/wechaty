@@ -1,3 +1,4 @@
+import fs from 'fs'
 import { test } from 'ava'
 
 import {
@@ -5,12 +6,6 @@ import {
   , Config
   , log
 } from '../../'
-
-
-// const co = require('co')
-// const test = require('tape')
-
-// const log = require('../../src/npmlog-env')
 
 const Browser = PuppetWeb.Browser
 const PROFILE = Config.DEFAULT_PROFILE + '-' + process.pid + '-'
@@ -20,71 +15,75 @@ test('Browser class cookie smoking tests', async t => {
   const b = new Browser()
   t.truthy(b, 'should instanciate a browser instance')
 
-  // co(function* () {
-    await b.init()
-    t.pass('should inited')
+  await b.init()
+  t.pass('should inited')
 
-    await b.open()
-    t.pass('should opened')
+  await b.open()
+  t.pass('should opened')
 
-    const two = await b.execute('return 1+1')
-    t.is(two, 2, 'should got 2 after execute script 1+1')
+  const two = await b.execute('return 1+1')
+  t.is(two, 2, 'should got 2 after execute script 1+1')
 
-    let cookies = await b.driver.manage().getCookies()
-    t.truthy(cookies.length, 'should got plenty of cookies')
+  let cookies = await b.driver.manage().getCookies()
+  t.truthy(cookies.length, 'should got plenty of cookies')
 
-    await b.driver.manage().deleteAllCookies()
-    cookies = await b.driver.manage().getCookies()
-    t.is(cookies.length, 0, 'should no cookie anymore after deleteAllCookies()')
+  await b.driver.manage().deleteAllCookies()
+  cookies = await b.driver.manage().getCookies()
+  t.is(cookies.length, 0, 'should no cookie anymore after deleteAllCookies()')
 
-    const EXPECTED_COOKIES = [{
-      name: 'wechaty0'
-      , value: '8788-0'
-      , path: '/'
-      , domain: '.qq.com'
-      , secure: false
-      , expiry: 99999999999999
-    }
-    , {
-      name: 'wechaty1'
-      , value: '8788-1'
-      , path: '/'
-      , domain: '.qq.com'
-      , secure: false
-      , expiry: 99999999999999
-    }]
+  const EXPECTED_COOKIES = [{
+    name: 'wechaty0'
+    , value: '8788-0'
+    , path: '/'
+    , domain: '.qq.com'
+    , secure: false
+    , expiry: 99999999999999
+  }
+  , {
+    name: 'wechaty1'
+    , value: '8788-1'
+    , path: '/'
+    , domain: '.qq.com'
+    , secure: false
+    , expiry: 99999999999999
+  }]
 
-    await Promise.all(b.addCookies(EXPECTED_COOKIES))
+  await Promise.all(b.addCookies(EXPECTED_COOKIES))
 
-    cookies = await b.driver.manage().getCookies()
-    const cookies0 = cookies.filter(c => { return RegExp(EXPECTED_COOKIES[0].name).test(c.name) })
-    t.is(cookies0[0].name, EXPECTED_COOKIES[0].name, 'getCookies() should filter out the cookie named wechaty0')
-    const cookies1 = cookies.filter(c => { return RegExp(EXPECTED_COOKIES[1].name).test(c.name) })
-    t.truthy(cookies1, 'should get cookies1')
-    t.is(cookies1[0].name, EXPECTED_COOKIES[1].name, 'getCookies() should filter out the cookie named wechaty1')
+  cookies = await b.driver.manage().getCookies()
+  const cookies0 = cookies.filter(c => { return RegExp(EXPECTED_COOKIES[0].name).test(c.name) })
+  t.is(cookies0[0].name, EXPECTED_COOKIES[0].name, 'getCookies() should filter out the cookie named wechaty0')
+  const cookies1 = cookies.filter(c => { return RegExp(EXPECTED_COOKIES[1].name).test(c.name) })
+  t.truthy(cookies1, 'should get cookies1')
+  t.is(cookies1[0].name, EXPECTED_COOKIES[1].name, 'getCookies() should filter out the cookie named wechaty1')
 
-    await b.open()
-    t.pass('re-opened url')
-    const cookieAfterOpen = await b.driver.manage().getCookie(EXPECTED_COOKIES[0].name)
-    t.is(cookieAfterOpen.name, EXPECTED_COOKIES[0].name, 'getCookie() should get expected cookie named after re-open url')
+  await b.open()
+  t.pass('re-opened url')
+  const cookieAfterOpen = await b.driver.manage().getCookie(EXPECTED_COOKIES[0].name)
+  t.is(cookieAfterOpen.name, EXPECTED_COOKIES[0].name, 'getCookie() should get expected cookie named after re-open url')
 
-    const dead = b.dead()
-    t.is(dead, false, 'should be a not dead browser')
+  const dead = b.dead()
+  t.is(dead, false, 'should be a not dead browser')
 
-    const live = await b.readyLive()
-    t.is(live, true, 'should be a live browser')
+  const live = await b.readyLive()
+  t.is(live, true, 'should be a live browser')
 
-    await b.quit()
+  await b.quit()
 })
 
-test('Browser session save & load', async t => {
+test('Browser session save before quit, and load after restart', async t => {
   const profileName = PROFILE + profileCounter++ 
-  let b = new Browser({
-    sessionFile: profileName
-  })
-  t.truthy(b, 'new Browser')
+  let b
+  
+  /**
+   * use exception to call b.quit() to clean up
+   */
+  try {
+    b = new Browser({
+      sessionFile: profileName
+    })
+    t.truthy(b, 'new Browser')
 
-  // co(function* () {
     await b.init()
     t.pass('inited')
 
@@ -124,7 +123,7 @@ test('Browser session save & load', async t => {
     cookiesFromCheck = await b.checkSession()
     t.is(cookiesFromCheck.length, 0, 'should no cookie from checkSession() after deleteAllCookies()')
 
-    const cookiesFromLoad = await b.loadSession().catch(() => {}) // fall safe
+    const cookiesFromLoad = await b.loadSession().catch(() => {}) // fail safe
     t.truthy(cookiesFromLoad.length, 'should get cookies after loadSession()')
     const cookieFromLoad = cookiesFromLoad.filter(c => EXPECTED_NAME_REGEX.test(c.name))
     t.is(cookieFromLoad[0].name, EXPECTED_COOKIE.name, 'cookie from loadSession() should has expected cookie')
@@ -138,28 +137,39 @@ test('Browser session save & load', async t => {
     await b.quit()
     t.pass('quited')
 
+    /**
+     * start new browser process
+     * with the same sessionFile: profileName
+     */
+
     b = new Browser({
       sessionFile: profileName
     })
-    t.pass('re-new Browser')
+    t.pass('should started a new Browser')
     await b.init()
-    t.pass('re-init Browser')
+    t.pass('should inited the new Browser')
     await b.open()
-    t.pass('re-open Browser')
+    t.pass('should opened')
 
     await b.loadSession()
-    t.pass('loadSession for new instance of Browser')
+    t.pass('should loadSession for new Browser(process)')
 
     const cookieAfterQuit = await b.driver.manage().getCookie(EXPECTED_COOKIE.name)
     t.truthy(cookieAfterQuit, 'should get cookie from getCookie()')
     t.is(cookieAfterQuit.name, EXPECTED_COOKIE.name, 'cookie from getCookie() after browser quit, should load the right cookie back')
 
     // clean
-    require('fs').unlink(profileName, err => {
+    fs.unlink(profileName, err => {
       if (err) {
         log.warn('Browser', 'unlink session file %s fail: %s', PROFILE, err)
       }
     })
 
     await b.quit()
+  } catch (e) {
+    if (b) {
+      await b.quit()
+    }
+    t.fail('exception: ' + e.message)
+  }
 })
