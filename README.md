@@ -10,7 +10,7 @@ Wechaty is a Bot Framework for Wechat **Personal** Account, It can help you easy
 :book: <https://github.com/wechaty/wechaty/wiki>  
 :whale: <https://hub.docker.com/r/wechaty/wechaty>  
 
-[![Join the chat at https://gitter.im/wechaty/wechaty](https://badges.gitter.im/wechaty/wechaty.svg)](https://gitter.im/wechaty/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=2592000)](https://nodejs.org/)
 [![Repo Size](https://reposs.herokuapp.com/?path=wechaty/wechaty)]()
 
