@@ -14,7 +14,7 @@ import http from 'http'
 // const Express = require('express')
 // const http    = require('http')
 
-// const log   = require('../src/npmlog-env')
+// const log   = require('../src/brolog-env')
 // const UtilLib  = require('../src/util-lib')
 
 test('Html smoking test', t => {

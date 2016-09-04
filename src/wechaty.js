@@ -13,7 +13,7 @@ const co            = require('co')
 const fs            = require('fs')
 const path          = require('path')
 
-const log           = require('./npmlog-env')
+const log           = require('./brolog-env')
 const UtilLib       = require('./util-lib')
 
 const PuppetWeb     = require('./puppet-web')

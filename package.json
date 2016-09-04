@@ -77,10 +77,10 @@
   },
   "dependencies": {
     "body-parser": "^1.15.2",
+    "brolog": "^0.3.7",
     "chromedriver": "^2.23.1",
     "co": "^4.6.0",
     "express": "^4.13.4",
-    "npmlog": "^4.0.0",
     "phantomjs-prebuilt": "^2.1.12",
     "ps-tree": "^1.0.1",
     "retry-promise": "^1.0.0",

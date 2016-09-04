@@ -22,7 +22,7 @@ const util  = require('util')
 const fs    = require('fs')
 const co    = require('co')
 
-const log = require('../npmlog-env')
+const log = require('../brolog-env')
 const Contact = require('../contact')
 const Message = require('../message')
 const MediaMessage = require('../message-media')

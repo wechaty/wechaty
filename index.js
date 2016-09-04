@@ -10,7 +10,8 @@ const PuppetWeb = require('./src/puppet-web')
 
 const IoBot     = require('./src/io-bot')
 
-const log       = require('./src/npmlog-env')
+const log       = require('./src/brolog-env')
+
 const UtilLib   = require('./src/util-lib')
 
 Object.assign(Wechaty, {

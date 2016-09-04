@@ -10,7 +10,7 @@ import {
 // const Contact = require('../src/contact')
 // const Puppet = require('../src/puppet')
 
-// const log = require('../src/npmlog-env')
+// const log = require('../src/brolog-env')
 
 const puppet = new Puppet()
 Contact.attach(puppet)

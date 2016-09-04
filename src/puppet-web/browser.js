@@ -16,7 +16,7 @@ const EventEmitter  = require('events')
 const WebDriver     = require('selenium-webdriver')
 const retryPromise  = require('retry-promise').default // https://github.com/olalonde/retry-promise
 
-const log = require('../npmlog-env')
+const log = require('../brolog-env')
 
 const Config  = require('../config')
 

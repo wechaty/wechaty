@@ -13,7 +13,7 @@ const EventEmitter  = require('events')
 const WebSocket     = require('ws')
 const co            = require('co')
 
-const log           = require('./npmlog-env')
+const log           = require('./brolog-env')
 const Contact       = require('./contact')
 const Config        = require('./config')
 

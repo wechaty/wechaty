@@ -18,7 +18,7 @@ import {
 // const co    = require('co')
 // const test   = require('tape')
 
-// const log   = require('../src/npmlog-env')
+// const log   = require('../src/brolog-env')
 
 // const WebDriver = require('selenium-webdriver')
 // const Browser = WebDriver.Browser

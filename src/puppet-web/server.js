@@ -16,7 +16,7 @@ const https       = require('https')
 const bodyParser  = require('body-parser')
 
 const Config  = require('../config')
-const log     = require('../npmlog-env')
+const log     = require('../brolog-env')
 
 const Express       = require('express')
 const EventEmitter  = require('events')

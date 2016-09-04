@@ -11,7 +11,7 @@
  */
 
 const EventEmitter = require('events')
-const log = require('./npmlog-env')
+const log = require('./brolog-env')
 
 class Puppet extends EventEmitter {
   constructor() {

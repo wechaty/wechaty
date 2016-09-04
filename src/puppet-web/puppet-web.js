@@ -20,7 +20,7 @@ const util  = require('util')
 const fs    = require('fs')
 const co    = require('co')
 
-const log = require('../npmlog-env')
+const log = require('../brolog-env')
 const Puppet  = require('../puppet')
 const Contact = require('../contact')
 const Room    = require('../room')

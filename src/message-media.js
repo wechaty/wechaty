@@ -8,7 +8,7 @@
  */
 const co = require('co')
 
-const log = require('./npmlog-env')
+const log = require('./brolog-env')
 const UtilLib = require('./util-lib')
 const Message = require('./message')
 

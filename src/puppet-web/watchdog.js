@@ -18,7 +18,7 @@
  ***************************************/
 const co    = require('co')
 
-const log   = require('../npmlog-env')
+const log   = require('../brolog-env')
 const Event = require('./event')
 
 const Watchdog = {
