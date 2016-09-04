@@ -46,7 +46,7 @@ class IoBot {
     })
 
     wechaty
-      .on('login'	       , user => this.log.info('IoBot', `${user.name} logined`))
+      .on('login'	       , user => this.log.info('IoBot', `${user.name()} logined`))
       .on('logout'	     , user => this.log.info('IoBot', `${user} logouted`))
       .on('scan', ({url, code}) => this.log.info('IoBot', `[${code}] ${url}`))
       .on('message'   , message => {
