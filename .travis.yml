@@ -31,6 +31,7 @@ install:
   - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then (Xvfb :99 -screen 0 640x480x8 > /dev/null 2>&1 &); fi
 
   - npm install
+  - echo $TRAVIS_OS_NAME
 
 script:
   - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then npm test; fi
