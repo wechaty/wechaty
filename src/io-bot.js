@@ -11,7 +11,8 @@
  */
 
 /**
- * do not use `require('../')` here, because it is a loop require
+ * DO NOT use `require('../')` here!
+ * because it will casue a LOOP require ERROR
  */
 const Wechaty = require('./wechaty')
 const Config  = require('./config')
@@ -26,7 +27,7 @@ class IoBot {
       throw e
     }
     this.log = log
-    this.log.verbose('IoBot', 'constructor() with token:[%s]', token)
+    this.log.verbose('IoBot', 'constructor() with token: %s', token)
 
     if (!token) {
       const e = new Error('constructor() token must be set')
@@ -45,14 +46,14 @@ class IoBot {
     })
 
     wechaty
-    .on('login'	       , user => this.log.info('IoBot', `${user.name} logined`))
-    .on('logout'	     , user => this.log.info('IoBot', `${user} logouted`))
-    .on('scan', ({url, code}) => this.log.info('IoBot', `[${code}] ${url}`))
-    .on('message'   , message => {
-      message.ready()
-            .then(this.onMessage.bind(this))
-            .catch(e => this.log.error('IoBot', 'message.ready() %s' , e))
-    })
+      .on('login'	       , user => this.log.info('IoBot', `${user.name} logined`))
+      .on('logout'	     , user => this.log.info('IoBot', `${user} logouted`))
+      .on('scan', ({url, code}) => this.log.info('IoBot', `[${code}] ${url}`))
+      .on('message'   , message => {
+        message.ready()
+              .then(this.onMessage.bind(this))
+              .catch(e => this.log.error('IoBot', 'message.ready() %s' , e))
+      })
 
 
     return wechaty.init()
@@ -67,9 +68,7 @@ class IoBot {
               })
   }
 
-  initWeb(port) {
-    port = port || process.env.PORT || 8080
-
+  initWeb(port = Config.httpPort) {
 //    if (process.env.DYNO) {
 //    }
     const app = require('express')()
