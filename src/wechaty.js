@@ -26,8 +26,6 @@ class Wechaty extends EventEmitter {
     type        = Config.puppet
     , head      = Config.head
     , port      = Config.port
-    , endpoint  = Config.endpoint
-    , token     = Config.token    // token for wechaty.io auth. will connect to wechaty.io cloud management if token is set
     , profile   = Config.profile  // no profile, no session save/restore
   } = {}) {
     log.verbose('Wechaty', 'contructor()')
@@ -36,8 +34,6 @@ class Wechaty extends EventEmitter {
     this.type     = type
     this.head     = head
     this.port     = port
-    this.token    = token
-    this.endpoint = endpoint
 
     this.profile  = /\.wechaty\.json$/i.test(profile)
                     ? profile
@@ -59,7 +55,10 @@ class Wechaty extends EventEmitter {
 
     if (!forceNpm) {
       try {
-        // Synchronous version of fs.access(). This throws if any accessibility checks fail, and does nothing otherwise.
+        /**
+         * Synchronous version of fs.access().
+         * This throws if any accessibility checks fail, and does nothing otherwise. 
+         */
         fs.accessSync(dotGitPath, fs.F_OK)
 
         const ss = require('child_process')
@@ -96,12 +95,11 @@ class Wechaty extends EventEmitter {
   }
   
   init() {
-
-    log.info('Wechaty', 'v%s initializing...', this.version())
-    log.verbose('Wechaty', 'puppet: %s' , this.type)
-    log.verbose('Wechaty', 'head: %s'   , this.head)
-    log.verbose('Wechaty', 'profile: %s', this.profile)
-    log.verbose('Wechaty', 'uuid: %s'   , this.uuid)
+    log.info('Wechaty', 'v%s initializing...' , this.version())
+    log.verbose('Wechaty', 'puppet: %s'       , this.type)
+    log.verbose('Wechaty', 'head: %s'         , this.head)
+    log.verbose('Wechaty', 'profile: %s'      , this.profile)
+    log.verbose('Wechaty', 'uuid: %s'         , this.uuid)
 
     if (this.inited) {
       log.error('Wechaty', 'init() already inited. return and do nothing.')
@@ -109,12 +107,6 @@ class Wechaty extends EventEmitter {
     }
 
     return co.call(this, function* () {
-      this.io = yield this.initIo()
-      .catch(e => { // fail safe
-        log.error('Wechaty', 'initIo failed: %s', e.message)
-        this.emit('error', e)
-      })
-
       this.puppet = yield this.initPuppet()
 
       this.inited = true
@@ -122,28 +114,6 @@ class Wechaty extends EventEmitter {
     })
     .catch(e => {
       log.error('Wechaty', 'init() exception: %s', e.message)
-      throw e
-    })
-  }
-
-  initIo() {
-    if (!this.token) {
-      log.verbose('Wechaty', 'initIo() skiped for no token set')
-      return Promise.resolve('no token')
-    } else {
-      log.verbose('Wechaty', 'initIo(%s)', this.token)
-    }
-
-    const Io = require('./io')
-    const io = new Io({
-      wechaty: this
-      , token: this.token
-      , endpoint: this.endpoint
-    })
-
-    return io.init()
-    .catch(e => {
-      log.verbose('Wechaty', 'Wechaty.IO init fail: %s', e.message)
       throw e
     })
   }

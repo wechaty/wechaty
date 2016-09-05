@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const {
-  IoBot
+  IoClient
   , Config
   , log 
 } = require('../')
@@ -27,28 +27,28 @@ __________________________________________________
 let   token   = Config.token
 
 if (!token) {
-  log.error('Bot', 'token not found: please set WECHATY_TOKEN in environment before run io-bot')
+  log.error('Client', 'token not found: please set WECHATY_TOKEN in environment before run io-client')
   // process.exit(-1)
   token = Config.DEFAULT_TOKEN
-  log.warn('Bot', `set token to "${token}" for demo purpose`)
+  log.warn('Client', `set token to "${token}" for demo purpose`)
 }
 
 console.log(welcome)
-log.info('Bot', 'Starting for WECHATY_TOKEN: %s', token)
+log.info('Client', 'Starting for WECHATY_TOKEN: %s', token)
 
-const ioBot = new IoBot({
+const client = new IoClient({
   token
   , log
 })
 
-ioBot.init()
-    .catch(onError.bind(ioBot))
+client.init()
+    .catch(onError.bind(client))
 
-ioBot.initWeb()
-    .catch(onError.bind(ioBot))
+client.initWeb()
+    .catch(onError.bind(client))
 
 function onError(e) {
-  log.error('Bot', 'initWeb() fail: %s', e)
+  log.error('Client', 'initWeb() fail: %s', e)
   this.quit()
   process.exit(-1)
 }

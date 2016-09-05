@@ -24,7 +24,7 @@ class Io {
     , token = null
     , endpoint = Config.endpoint
     , protocol = Config.DEFAULT_PROTOCOL
-  }) {
+  } = {}) {
     if (!wechaty || !token) {
       throw new Error('Io must has wechaty & token set')
     }

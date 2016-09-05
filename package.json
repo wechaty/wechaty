@@ -10,21 +10,21 @@
     "DEFAULT_PORT": 8788,
     "DEFAULT_PUPPET_PORT": 18788,
     "DEFAULT_PROTOCOL": "io|0.0.1",
-    "DEFAULT_TOKEN": "WECHATY-TOKEN",
+    "DEFAULT_TOKEN": "TEST_TOKEN",
     "ENDPOINT": "wss://api.wechaty.io/v0/websocket",
     "BINARY_CHROMIUM": "/wechaty/bin/xvfb-chromium"
   },
   "scripts": {
     "lint": "npm run eslint && npm run tslint",
-    "eslint": "eslint \"{src,test}/**/*.js\"",
-    "tslint": "tslint \"{src,test}/**/*.ts\"",
+    "eslint": "eslint \"{src,test,bin}/**/*.js\"",
+    "tslint": "tslint \"{src,test,bin}/**/*.ts\"",
     "pretest": "npm run lint",
     "test": "npm run test:phantomjs && npm run test:chrome",
     "test:phantomjs": "cross-env LC_ALL=C WECHATY_LOG=info WECHATY_HEAD=phantomjs ava --timeout=10m \"{src,test}/**/*.spec.js\"",
     "test:chrome": "cross-env LC_ALL=C WECHATY_LOG=silly WECHATY_HEAD=chrome ava --timeout=10m \"{src,test}/**/*.spec.js\"",
     "testdev": "cross-env LC_ALL=C WECHATY_LOG=silly ava --serial --verbose --fail-fast --timeout=3m",
     "ava": "cross-env LC_ALL=C WECHATY_LOG=verbose ava \"{src,test}/**/*.spec.js\"",
-    "start": "node bin/io-bot",
+    "start": "node bin/client",
     "demo": "node example/ding-dong-bot.js"
   },
   "repository": {
@@ -32,7 +32,7 @@
     "url": "git+https://github.com/wechaty/wechaty.git"
   },
   "bin": {
-    "io-bot": "bin/io-bot.js",
+    "wechaty-client": "bin/client.js",
     "wechaty-version": "bin/version.js"
   },
   "keywords": [
