@@ -36,6 +36,15 @@ class Io {
     
     this.protocol = protocol + '|' + wechaty.uuid
     log.verbose('Io', 'instantiated with endpoint[%s], token[%s], protocol[%s], uuid[%s]', endpoint, token, protocol, this.uuid)
+
+    this.purpose('offline')
+  }
+
+  purpose(newPurpose) {
+    if (newPurpose) {
+      this._purpose = newPurpose
+    }
+    return this._purpose
   }
 
   toString() { return 'Class Io(' + this.token + ')'}
@@ -44,6 +53,8 @@ class Io {
 
   init() {
     log.verbose('Io', 'init()')
+
+    this.purpose('online')
 
     return co.call(this, function* () {
       yield this.initEventHook()
@@ -174,10 +185,17 @@ class Io {
       this.reconnect()
     })
 
-    return Promise.resolve()
+    return Promise.resolve(ws)
   }
 
   reconnect() {
+    log.verbose('Io', 'reconnect()')
+
+    if (this.purpose() === 'offline') {
+      log.verbose('Io', 'reconnect() with purpose() === offline')
+      return
+    }
+
     if (this.connected()) {
       log.warn('Io', 'reconnect() on a already connected io')
       return
@@ -278,8 +296,20 @@ class Io {
   close() {
     this.ws.close()
     // TODO: remove listener for this.wechaty.on(message )
+    return Promise.resolve()
   }
 
+  quit() {
+    this.purpose('offline')
+
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer)
+      this.recnnectTimer = null
+    }
+    this.close()
+
+    return Promise.resolve()
+  }
   /**
    *
    * Prepare to be overwriten by server setting
