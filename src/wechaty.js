@@ -9,16 +9,14 @@
  *
  */
 const EventEmitter  = require('events')
+const path          = require('path')
 const co            = require('co')
 const fs            = require('fs')
-const path          = require('path')
 
-const log           = require('./brolog-env')
-const UtilLib       = require('./util-lib')
-
-const PuppetWeb     = require('./puppet-web')
-
-const Config = require('./config')
+const PuppetWeb   = require('./puppet-web')
+const UtilLib     = require('./util-lib')
+const Config      = require('./config')
+const log         = require('./brolog-env')
 
 class Wechaty extends EventEmitter {
 

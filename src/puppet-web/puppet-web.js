@@ -47,6 +47,8 @@ class PuppetWeb extends Puppet {
 
     this.userId = null  // user id
     this.user   = null  // <Contact> of user self
+
+    this.on('watchdog', Watchdog.onFeed.bind(this))
   }
 
   toString() { return `Class PuppetWeb({browser:${this.browser},port:${this.port}})` }
@@ -55,8 +57,6 @@ class PuppetWeb extends Puppet {
     log.verbose('PuppetWeb', `init() with head:${this.head}, profile:${this.profile}`)
 
     this.readyState('connecting')
-
-    this.on('watchdog', Watchdog.onFeed.bind(this))
 
     return co.call(this, function* () {
 
@@ -75,7 +75,6 @@ class PuppetWeb extends Puppet {
       this.bridge = yield this.initBridge()
       log.verbose('PuppetWeb', 'initBridge() done')
 
-      // this.watchDog('inited') // start watchdog
       this.emit('watchdog', { data: 'inited' })
     })
     .catch(e => {   // Reject
@@ -190,14 +189,14 @@ class PuppetWeb extends Puppet {
     })
 
     return bridge.init()
-    .catch(e => {
-      if (this.browser.dead()) {
-        log.warn('PuppetWeb', 'initBridge() found browser dead, wait it to restore')
-      } else {
-        log.error('PuppetWeb', 'initBridge() exception: %s', e.message)
-        throw e
-      }
-    })
+                .catch(e => {
+                  if (this.browser.dead()) {
+                    log.warn('PuppetWeb', 'initBridge() found browser dead, wait it to restore')
+                  } else {
+                    log.error('PuppetWeb', 'initBridge() exception: %s', e.message)
+                    throw e
+                  }
+                })
   }
 
   initServer() {
@@ -222,10 +221,10 @@ class PuppetWeb extends Puppet {
     server.on('ding'      , Event.onServerDing.bind(this))
 
     return server.init()
-    .catch(e => {
-      log.error('PuppetWeb', 'initServer() exception: %s', e.message)
-      throw e
-    })
+                .catch(e => {
+                  log.error('PuppetWeb', 'initServer() exception: %s', e.message)
+                  throw e
+                })
   }
 
 
@@ -257,10 +256,10 @@ class PuppetWeb extends Puppet {
 
     log.silly('PuppetWeb', `send(${destination}, ${content})`)
     return this.bridge.send(destination, content)
-    .catch(e => {
-      log.error('PuppetWeb', 'send() exception: %s', e.message)
-      throw e
-    })
+                      .catch(e => {
+                        log.error('PuppetWeb', 'send() exception: %s', e.message)
+                        throw e
+                      })
   }
   reply(message, replyContent) {
     if (this.self(message)) {
@@ -287,10 +286,10 @@ class PuppetWeb extends Puppet {
    */
   logout() {
     return this.bridge.logout()
-    .catch(e => {
-      log.error('PuppetWeb', 'logout() exception: %s', e.message)
-      throw e
-    })
+                      .catch(e => {
+                        log.error('PuppetWeb', 'logout() exception: %s', e.message)
+                        throw e
+                      })
   }
 
   getContact(id) {
@@ -299,10 +298,10 @@ class PuppetWeb extends Puppet {
     }
     
     return this.bridge.getContact(id)
-    .catch(e => {
-      log.error('PuppetWeb', 'getContact(%d) exception: %s', id, e.message)
-      throw e
-    })
+                      .catch(e => {
+                        log.error('PuppetWeb', 'getContact(%d) exception: %s', id, e.message)
+                        throw e
+                      })
   }
   logined() { return !!(this.user) }
   ding(data) {
@@ -310,19 +309,19 @@ class PuppetWeb extends Puppet {
       return Promise.reject(new Error('ding fail: no bridge(yet)!'))
     }
     return this.bridge.ding(data)
-    .catch(e => {
-      log.warn('PuppetWeb', 'ding(%s) rejected: %s', data, e.message)
-      throw e
-    })
+                      .catch(e => {
+                        log.warn('PuppetWeb', 'ding(%s) rejected: %s', data, e.message)
+                        throw e
+                      })
   }
 }
 
-Object.assign(PuppetWeb, {
-  default: PuppetWeb
-  , PuppetWeb
-  , Server
-  , Browser
-  , Bridge
-})
+// Object.assign(PuppetWeb, {
+//   default: PuppetWeb
+//   , PuppetWeb
+//   , Server
+//   , Browser
+//   , Bridge
+// })
 
-module.exports = PuppetWeb
+module.exports = PuppetWeb.default = PuppetWeb.PuppetWeb = PuppetWeb
