@@ -1,3 +1,9 @@
+/**
+ * Wechaty - Wechat for Bot
+ *
+ *  use brolog here is because log in wechaty has to support both nodejs and browser(with electron)
+ *
+ */
 // const log = require('npmlog')
 const log = require('brolog')
 

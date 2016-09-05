@@ -88,10 +88,10 @@ class IoClient {
     this.log.verbose('IoClient', 'initIo()')
 
     if (!this.token) {
-      log.verbose('IoClient', 'initIo() skiped for no token set')
+      this.log.verbose('IoClient', 'initIo() skiped for no token set')
       return Promise.resolve('no token')
     } else {
-      log.verbose('IoClient', 'initIo(%s)', this.token)
+      this.log.verbose('IoClient', 'initIo(%s)', this.token)
     }
 
     const io = new Io({
@@ -102,7 +102,7 @@ class IoClient {
 
     return io.init()
             .catch(e => {
-              log.verbose('IoClient', 'initIo() init fail: %s', e.message)
+              this.log.verbose('IoClient', 'initIo() init fail: %s', e.message)
               throw e
             })
   }
@@ -132,7 +132,7 @@ class IoClient {
     const content = m.toString()
     const room = m.room()
 
-    // log.info('Bot', '%s<%s>:%s'
+    // this.log.info('Bot', '%s<%s>:%s'
     //               , (room ? '['+room.name()+']' : '')
     //               , from.name()
     //               , m.toStringDigest()
@@ -140,7 +140,7 @@ class IoClient {
 
     if (/^wechaty|botie/i.test(m.get('content')) && !bot.self(m)) {
       bot.reply(m, 'https://www.wechaty.io')
-        .then(_ => log.info('Bot', 'REPLIED to magic word "wechaty"'))
+        .then(_ => this.log.info('Bot', 'REPLIED to magic word "wechaty"'))
     }
   }
 }
