@@ -47,7 +47,7 @@ class IoClient {
 
     return co.call(this, function* () {
       this.wechaty  = yield this.initWechaty()
-      this.io       = yield this.initIo()
+      this.io       = yield this.initIo(this.wechaty)
       return this
     }).catch(e => {
       this.log.error('IoClient', 'init() exception: %s', e.message)
@@ -75,7 +75,7 @@ class IoClient {
     return wechaty.init()
                   .then(_ => {
                     this.log.verbose('IoClient', 'wechaty.init() succ')
-                    return this
+                    return wechaty
                   })
                   .catch(e => {
                     this.log.error('IoClient', 'init() init fail: %s', e)
@@ -84,18 +84,15 @@ class IoClient {
                   })
   }
 
-  initIo() {
-    this.log.verbose('IoClient', 'initIo()')
+  initIo(wechaty) {
+    this.log.verbose('IoClient', 'initIo() with token %s', this.token)
 
-    if (!this.token) {
-      this.log.verbose('IoClient', 'initIo() skiped for no token set')
-      return Promise.resolve('no token')
-    } else {
-      this.log.verbose('IoClient', 'initIo(%s)', this.token)
+    if (!wechaty) {
+      throw new Error('initIo() need a wechaty instance')
     }
-
+    
     const io = new Io({
-      wechaty: this.wechaty
+      wechaty
       , token: this.token
       , endpoint: this.endpoint
     })
