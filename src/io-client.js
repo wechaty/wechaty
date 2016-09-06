@@ -75,7 +75,7 @@ class IoClient {
     return wechaty.init()
                   .then(_ => {
                     this.log.verbose('IoClient', 'wechaty.init() succ')
-                    return this
+                    return wechaty
                   })
                   .catch(e => {
                     this.log.error('IoClient', 'init() init fail: %s', e)
