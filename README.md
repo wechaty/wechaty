@@ -609,6 +609,7 @@ Github Issue <https://github.com/wechaty/wechaty/issues>
 ## Chat Script
 1. [SuperScript](http://superscriptjs.com/) A dialog system and bot engine for conversational UI's. (Pure Javascript)
 2. [RiveScript](https://www.rivescript.com/) A simple scripting language for giving intelligence to chatbots and other conversational entities. (Perl original, Multi-Language support)
+3. [CleverScript](https://www.cleverscript.com) Easily create text, voice or avatar bots that people can chat with in browser, app or their preferred messaging platform.
 
 ## Application
 1. [助手管家](http://72c.me/a/m/yhmhrh) It's a Official Account of wechat, which can manage your personal wechat account as a robot assistant.
