@@ -32,16 +32,52 @@ class Browser extends EventEmitter {
     this.head = head
     this.sessionFile = sessionFile // a file to save session cookies
 
-    this.live = false
+    // this.live = false
+    
+    this.targetState('close')
+    this.currentState('close')
   }
 
+  // targetState : 'open' | 'close'
+  targetState(newState) {
+    if (newState) {
+      log.verbose('Browser', 'targetState(%s)', newState)
+      this._targetState = newState
+    }
+    return this._targetState
+  }
+
+  // currentState : 'opening' | 'open' | 'closing' | 'close'
+  currentState(newState) {
+    if (newState) {
+      log.verbose('Browser', 'currentState(%s)', newState)
+      this._currentState = newState
+    }
+    return this._currentState
+  }
 
   toString() { return `Browser({head:${this.head})` }
 
   init() {
-    return this.initDriver()
-    .then(() => {
-      this.live = true
+    this.targetState('open')
+    this.currentState('opening')
+
+    // fastUrl is used to open in browser for we can set cookies.
+    // backup: 'https://res.wx.qq.com/zh_CN/htmledition/v2/images/icon/ico_loading28a2f7.gif'
+    const fastUrl = 'https://wx.qq.com/zh_CN/htmledition/v2/images/webwxgeticon.jpg'
+
+    return co.call(this, function* () {
+      yield this.initDriver()
+      // this.live = true
+
+      yield this.open(fastUrl)
+      yield this.loadSession()
+                .catch(e => { // fail safe
+                  log.verbose('PuppetWeb', 'browser.loadSession(%s) exception: %s', this.profile, e.message || e)
+                })
+      yield this.open()
+
+      this.currentState('open')
       return this
     })
     .catch(e => {
@@ -50,6 +86,12 @@ class Browser extends EventEmitter {
       // with selenium-webdriver v2.53.2
       // XXX: https://github.com/SeleniumHQ/selenium/issues/2233
       log.error('PuppetWebBrowser', 'init() exception: %s', e.message)
+
+      this.currentState('closing')
+      this.quit().then(_ => {
+        this.currentState('close')
+      })
+
       throw e
     })
   }
@@ -164,7 +206,7 @@ class Browser extends EventEmitter {
                                 .build()
     
 		/**
-		 *  ISSUE #21 - https://github.com/zixia/wechaty/issues/21
+		 *  FIXME: ISSUE #21 - https://github.com/zixia/wechaty/issues/21
 	 	 *
  	 	 *	http://phantomjs.org/api/webpage/handler/on-resource-requested.html
 		 *	http://stackoverflow.com/a/29544970/1123955
@@ -190,13 +232,20 @@ this.onResourceRequested = function(request, net) {
 
   quit() {
     log.verbose('PuppetWebBrowser', 'quit()')
-    this.live = false
+    this.targetState('close')
+    this.currentState('closing')
+    // this.live = false
+
     if (!this.driver) {
       log.verbose('PuppetWebBrowser', 'driver.quit() skipped because no driver')
+
+      this.currentState('close')
       return Promise.resolve('no driver')
     } else if (!this.driver.getSession()) {
       this.driver = null
       log.verbose('PuppetWebBrowser', 'driver.quit() skipped because no driver session')
+
+      this.currentState('close')
       return Promise.resolve('no driver session')
     }
 
@@ -217,6 +266,7 @@ this.onResourceRequested = function(request, net) {
        */
       yield this.clean()
 
+      this.currentState('close')
       log.silly('PuppetWebBrowser', 'quit() co() end')
     }).catch(e => {
       // console.log(e)
@@ -232,6 +282,9 @@ this.onResourceRequested = function(request, net) {
 
       if (crashRegex.test(e.message)) { log.warn('PuppetWebBrowser', 'driver.quit() browser crashed') }
       else                            { log.warn('PuppetWebBrowser', 'driver.quit() exception: %s', e.message) }
+
+      // XXX fail safe to `close` ?
+      this.currentState('close')
     })
   }
 
@@ -399,9 +452,11 @@ this.onResourceRequested = function(request, net) {
     if (forceReason) {
       dead = true
       errMsg = forceReason
-    } else if (!this.live) {
+    // } else if (!this.live) {
+    } else if (this.targetState() !== 'open') {
       dead = true
-      errMsg = 'browser not live'
+      // errMsg = 'browser not live'
+      errMsg = 'targetState not open'
     } else if (!this.driver || !this.driver.getSession()) {
       dead = true
       errMsg = 'no driver or session'
@@ -409,7 +464,10 @@ this.onResourceRequested = function(request, net) {
 
     if (dead) {
       log.warn('PuppetWebBrowser', 'dead() because %s', errMsg)
-      this.live = false
+      // this.live = false
+      this.currentState('closing')
+      this.quit().then(_ => this.currentState('close'))
+      
       // must use nextTick here, or promise will hang... 2016/6/10
       process.nextTick(_ => {
         log.verbose('PuppetWebBrowser', 'dead() emit a `dead` event because %s', errMsg)

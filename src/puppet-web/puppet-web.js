@@ -56,7 +56,9 @@ class PuppetWeb extends Puppet {
   init() {
     log.verbose('PuppetWeb', `init() with head:${this.head}, profile:${this.profile}`)
 
-    this.readyState('connecting')
+    // this.readyState('connecting')
+    this.targetState('live')
+    this.currentState('birthing')
 
     return co.call(this, function* () {
 
@@ -66,13 +68,13 @@ class PuppetWeb extends Puppet {
       yield this.initAttach(this)
       log.verbose('PuppetWeb', 'initAttach() done')
 
-      this.server = yield this.initServer()
+      yield this.initServer()
       log.verbose('PuppetWeb', 'initServer() done')
 
-      this.browser = yield this.initBrowser()
+      yield this.initBrowser()
       log.verbose('PuppetWeb', 'initBrowser() done')
 
-      this.bridge = yield this.initBridge()
+      yield this.initBridge()
       log.verbose('PuppetWeb', 'initBridge() done')
 
       this.emit('watchdog', { data: 'inited' })
@@ -84,16 +86,20 @@ class PuppetWeb extends Puppet {
     })
     .then(() => {   // Finally
       log.verbose('PuppetWeb', 'init() done')
-      this.readyState('connected')
+      // this.readyState('connected')
+      this.currentState('live')
       return this   // for Chaining
     })
   }
 
   quit() {
     log.verbose('PuppetWeb', 'quit()')
+    this.targetState('dead')
 
-    if (this.readyState() === 'disconnecting') {
-      log.warn('PuppetWeb', 'quit() is called but readyState is `disconnecting`?')
+    // if (this.readyState() === 'disconnecting') {
+    if (this.currentState() === 'killing') {
+      // log.warn('PuppetWeb', 'quit() is called but readyState is `disconnecting`?')
+      log.warn('PuppetWeb', 'quit() is called but currentState is `killing`?')
       throw new Error('do not call quit again when quiting')
     }
 
@@ -103,7 +109,8 @@ class PuppetWeb extends Puppet {
       type: 'POISON'
     })
 
-    this.readyState('disconnecting')
+    // this.readyState('disconnecting')
+    this.currentState('killing')
 
     return co.call(this, function* () {
 
@@ -133,14 +140,18 @@ class PuppetWeb extends Puppet {
 
       log.verbose('PuppetWeb', 'quit() server.quit() this.initAttach(null)')
       yield this.initAttach(null)
+
+      this.currentState('dead')
     })
     .catch(e => { // Reject
       log.error('PuppetWeb', 'quit() exception: %s', e.message)
+      this.currentState('dead')
       throw e
     })
     .then(() => { // Finally, Fail Safe
       log.verbose('PuppetWeb', 'quit() done')
-      this.readyState('disconnected')
+      // this.readyState('disconnected')
+      this.currentState('dead')
       return this   // for Chaining
     })
   }
@@ -162,18 +173,10 @@ class PuppetWeb extends Puppet {
 
     browser.on('dead', Event.onBrowserDead.bind(this))
 
-    // fastUrl is used to open in browser for we can set cookies.
-    // backup: 'https://res.wx.qq.com/zh_CN/htmledition/v2/images/icon/ico_loading28a2f7.gif'
-    const fastUrl = 'https://wx.qq.com/zh_CN/htmledition/v2/images/webwxgeticon.jpg'
+    this.browser = browser
 
     return co.call(this, function* () {
       yield browser.init()
-      yield browser.open(fastUrl)
-      yield browser.loadSession()
-                  .catch(e => { // fail safe
-                   log.verbose('PuppetWeb', 'browser.loadSession(%s) exception: %s', this.profile, e.message || e)
-                  })
-      yield browser.open()
       return browser // follow func name meaning
     }).catch(e => {
       log.error('PuppetWeb', 'initBrowser() exception: %s', e.message)
@@ -187,6 +190,8 @@ class PuppetWeb extends Puppet {
       puppet:   this // use puppet instead of browser, is because browser might change(die) duaring run time
       , port:   this.port
     })
+
+    this.bridge = bridge
 
     return bridge.init()
                 .catch(e => {
@@ -219,6 +224,8 @@ class PuppetWeb extends Puppet {
     server.on('disconnect', Event.onServerDisconnect.bind(this))
     server.on('log'       , Event.onServerLog.bind(this))
     server.on('ding'      , Event.onServerDing.bind(this))
+
+    this.server = server
 
     return server.init()
                 .catch(e => {
@@ -315,13 +322,5 @@ class PuppetWeb extends Puppet {
                       })
   }
 }
-
-// Object.assign(PuppetWeb, {
-//   default: PuppetWeb
-//   , PuppetWeb
-//   , Server
-//   , Browser
-//   , Bridge
-// })
 
 module.exports = PuppetWeb.default = PuppetWeb.PuppetWeb = PuppetWeb
