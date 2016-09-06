@@ -9,16 +9,14 @@
  *
  */
 const EventEmitter  = require('events')
+const path          = require('path')
 const co            = require('co')
 const fs            = require('fs')
-const path          = require('path')
 
-const log           = require('./brolog-env')
-const UtilLib       = require('./util-lib')
-
-const PuppetWeb     = require('./puppet-web')
-
-const Config = require('./config')
+const PuppetWeb   = require('./puppet-web')
+const UtilLib     = require('./util-lib')
+const Config      = require('./config')
+const log         = require('./brolog-env')
 
 class Wechaty extends EventEmitter {
 
@@ -107,7 +105,7 @@ class Wechaty extends EventEmitter {
     }
 
     return co.call(this, function* () {
-      this.puppet = yield this.initPuppet()
+      yield this.initPuppet()
 
       this.inited = true
       return this // for chaining
@@ -151,18 +149,23 @@ class Wechaty extends EventEmitter {
      * 5. ...
      */
 
+    // set puppet before init, because we need this.puppet if we quit() before init() finish
+    this.puppet = puppet
+
     return puppet.init()
   }
 
   quit() {
     log.verbose('Wechaty', 'quit()')
+
+    if (!this.puppet) {
+      log.warn('Wechaty', 'quit() without this.puppet')
+      return Promise.resolve()
+    }
+
     const puppetBeforeDie = this.puppet
     this.puppet = null
     this.inited = false
-
-    if (!puppetBeforeDie) {
-      return Promise.resolve()
-    }
 
     return puppetBeforeDie.quit()
     .catch(e => {

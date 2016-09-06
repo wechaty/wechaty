@@ -36,7 +36,38 @@ class Io {
     
     this.protocol = protocol + '|' + wechaty.uuid
     log.verbose('Io', 'instantiated with endpoint[%s], token[%s], protocol[%s], uuid[%s]', endpoint, token, protocol, this.uuid)
+
+    this._eventBuffer = []
+
+    // this.purpose('offline')
+    this.targetState('disconnected')
+    this.currentState('disconnected')
   }
+
+  // targetState : 'connected' | 'disconnected'
+  targetState(newState) {
+    if (newState) {
+      log.verbose('Io', 'targetState(%s)', newState)
+      this._targetState = newState
+    }
+    return this._targetState
+  }
+
+  // currentState : 'connecting' | 'connected' | 'disconnecting' | 'disconnected'
+  currentState(newState) {
+    if (newState) {
+      log.verbose('Io', 'currentState(%s)', newState)
+      this._currentState = newState
+    }
+    return this._currentState
+  }
+
+  // purpose(newPurpose) {
+  //   if (newPurpose) {
+  //     this._purpose = newPurpose
+  //   }
+  //   return this._purpose
+  // }
 
   toString() { return 'Class Io(' + this.token + ')'}
 
@@ -45,20 +76,27 @@ class Io {
   init() {
     log.verbose('Io', 'init()')
 
+    // this.purpose('online')
+    this.targetState('connected')
+    this.currentState('connecting')
+
     return co.call(this, function* () {
       yield this.initEventHook()
       yield this.initWebSocket()
 
+      this.currentState('connected')
       return this
     }).catch(e => {
       log.warn('Io', 'init() exception: %s', e.message)
+      this.currentState('disconnected')
       throw e
     })
   }
 
   initWebSocket() {
     log.verbose('Io', 'initWebSocket()')
-    
+    this.currentState('connecting')
+
     // const auth = 'Basic ' + new Buffer(this.token + ':X').toString('base64')
     const auth = 'Token ' + this.token
     const headers = { 'Authorization': auth }
@@ -71,6 +109,7 @@ class Io {
         // XXX deal with error?
       }
       log.verbose('Io', 'initWebSocket() connected with protocol [%s]', ws.protocol)
+      this.currentState('connected')
 
       // FIXME: how to keep alive???
       ws._socket.setKeepAlive(true, 100)
@@ -175,11 +214,20 @@ class Io {
       this.reconnect()
     })
 
-    return Promise.resolve()
+    return Promise.resolve(ws)
   }
 
   reconnect() {
     log.verbose('Io', 'reconnect()')
+
+    // if (this.purpose() === 'offline') {
+    //   log.verbose('Io', 'reconnect() canceled because purpose() === offline')
+    //   return
+    // }
+    if (this.targetState() === 'disconnected') {
+      log.verbose('Io', 'reconnect() canceled because targetState() === disconnected')
+      return
+    }
 
     if (this.connected()) {
       log.warn('Io', 'reconnect() on a already connected io')
@@ -265,27 +313,54 @@ class Io {
   }
 
   send(ioEvent) {
-    log.silly('Io', 'send(%s: %s)', ioEvent.name, ioEvent.payload)
+    if (ioEvent) {
+      log.silly('Io', 'send(%s: %s)', ioEvent.name, ioEvent.payload)
+      this._eventBuffer.push(ioEvent)
+    } else { log.silly('Io', 'send()') }
 
     if (!this.connected()) {
-      log.verbose('Io', 'send() without a connected websocket, dropped(ToBeQueue)')
-      return
+      log.verbose('Io', 'send() without a connected websocket, eventBuffer.length = %d', this._eventBuffer.length)
+      return false
     }
 
-    this.ws.send(
-      JSON.stringify(
-        ioEvent
+    while (this._eventBuffer.length) {
+      this.ws.send(
+        JSON.stringify(
+          this._eventBuffer.shift()
+        )
       )
-    )
+    }
   }
   
   close() {
     log.verbose('Io', 'close()')
+    this.targetState('disconnected')
+    this.currentState('disconnecting')
 
     this.ws.close()
+    this.currentState('disconnected')
     // TODO: remove listener for this.wechaty.on(message )
+    return Promise.resolve()
   }
 
+  quit() {
+    // this.purpose('offline')
+    this.targetState('disconnected')
+    this.currentState('disconnecting')
+
+    // try to send IoEvents in buffer
+    this.send()
+    this._eventBuffer = []
+
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer)
+      this.recnnectTimer = null
+    }
+    this.close()
+
+    this.currentState('disconnected')
+    return Promise.resolve()
+  }
   /**
    *
    * Prepare to be overwriten by server setting

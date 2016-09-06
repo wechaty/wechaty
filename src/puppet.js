@@ -18,19 +18,42 @@ class Puppet extends EventEmitter {
     super()
 
     /*
+     * @deprecated
      * connected / disconnected
      * connecting / disconnecting
      */
-    this._readyState = 'disconnected'
+    // this._readyState = 'disconnected'
+
+    this.targetState('dead')
+    this.currentState('dead')
   }
 
-  readyState(newState) {
+  // targetState : 'live' | 'dead'
+  targetState(newState) {
     if (newState) {
-      log.verbose('Puppet', 'readyState() set to "%s"', newState)
-      this._readyState = newState
+      log.verbose('Puppet', 'targetState(%s)', newState)
+      this._targetState = newState
     }
-    return this._readyState
+    return this._targetState
   }
+
+  // currentState : 'birthing' | 'killing'
+  currentState(newState) {
+    if (newState) {
+      log.verbose('Puppet', 'currentState(%s)', newState)
+      this._currentState = newState
+    }
+    return this._currentState
+  }
+
+  // @deprecated
+  // readyState(newState) {
+  //   if (newState) {
+  //     log.verbose('Puppet', 'readyState() set to "%s"', newState)
+  //     this._readyState = newState
+  //   }
+  //   return this._readyState
+  // }
 
   /**
    * let puppet send message

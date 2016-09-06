@@ -47,6 +47,8 @@ class PuppetWeb extends Puppet {
 
     this.userId = null  // user id
     this.user   = null  // <Contact> of user self
+
+    this.on('watchdog', Watchdog.onFeed.bind(this))
   }
 
   toString() { return `Class PuppetWeb({browser:${this.browser},port:${this.port}})` }
@@ -54,9 +56,9 @@ class PuppetWeb extends Puppet {
   init() {
     log.verbose('PuppetWeb', `init() with head:${this.head}, profile:${this.profile}`)
 
-    this.readyState('connecting')
-
-    this.on('watchdog', Watchdog.onFeed.bind(this))
+    // this.readyState('connecting')
+    this.targetState('live')
+    this.currentState('birthing')
 
     return co.call(this, function* () {
 
@@ -66,16 +68,15 @@ class PuppetWeb extends Puppet {
       yield this.initAttach(this)
       log.verbose('PuppetWeb', 'initAttach() done')
 
-      this.server = yield this.initServer()
+      yield this.initServer()
       log.verbose('PuppetWeb', 'initServer() done')
 
-      this.browser = yield this.initBrowser()
+      yield this.initBrowser()
       log.verbose('PuppetWeb', 'initBrowser() done')
 
-      this.bridge = yield this.initBridge()
+      yield this.initBridge()
       log.verbose('PuppetWeb', 'initBridge() done')
 
-      // this.watchDog('inited') // start watchdog
       this.emit('watchdog', { data: 'inited' })
     })
     .catch(e => {   // Reject
@@ -85,16 +86,20 @@ class PuppetWeb extends Puppet {
     })
     .then(() => {   // Finally
       log.verbose('PuppetWeb', 'init() done')
-      this.readyState('connected')
+      // this.readyState('connected')
+      this.currentState('live')
       return this   // for Chaining
     })
   }
 
   quit() {
     log.verbose('PuppetWeb', 'quit()')
+    this.targetState('dead')
 
-    if (this.readyState() === 'disconnecting') {
-      log.warn('PuppetWeb', 'quit() is called but readyState is `disconnecting`?')
+    // if (this.readyState() === 'disconnecting') {
+    if (this.currentState() === 'killing') {
+      // log.warn('PuppetWeb', 'quit() is called but readyState is `disconnecting`?')
+      log.warn('PuppetWeb', 'quit() is called but currentState is `killing`?')
       throw new Error('do not call quit again when quiting')
     }
 
@@ -104,7 +109,8 @@ class PuppetWeb extends Puppet {
       type: 'POISON'
     })
 
-    this.readyState('disconnecting')
+    // this.readyState('disconnecting')
+    this.currentState('killing')
 
     return co.call(this, function* () {
 
@@ -134,14 +140,18 @@ class PuppetWeb extends Puppet {
 
       log.verbose('PuppetWeb', 'quit() server.quit() this.initAttach(null)')
       yield this.initAttach(null)
+
+      this.currentState('dead')
     })
     .catch(e => { // Reject
       log.error('PuppetWeb', 'quit() exception: %s', e.message)
+      this.currentState('dead')
       throw e
     })
     .then(() => { // Finally, Fail Safe
       log.verbose('PuppetWeb', 'quit() done')
-      this.readyState('disconnected')
+      // this.readyState('disconnected')
+      this.currentState('dead')
       return this   // for Chaining
     })
   }
@@ -163,18 +173,15 @@ class PuppetWeb extends Puppet {
 
     browser.on('dead', Event.onBrowserDead.bind(this))
 
-    // fastUrl is used to open in browser for we can set cookies.
-    // backup: 'https://res.wx.qq.com/zh_CN/htmledition/v2/images/icon/ico_loading28a2f7.gif'
-    const fastUrl = 'https://wx.qq.com/zh_CN/htmledition/v2/images/webwxgeticon.jpg'
+    this.browser = browser
+
+    if (this.targetState() !== 'live') {
+      log.warn('PuppetWeb', 'initBrowser() found targetState != live, no init anymore')
+      return Promise.resolve('skipped')
+    }
 
     return co.call(this, function* () {
       yield browser.init()
-      yield browser.open(fastUrl)
-      yield browser.loadSession()
-                  .catch(e => { // fail safe
-                   log.verbose('PuppetWeb', 'browser.loadSession(%s) exception: %s', this.profile, e.message || e)
-                  })
-      yield browser.open()
       return browser // follow func name meaning
     }).catch(e => {
       log.error('PuppetWeb', 'initBrowser() exception: %s', e.message)
@@ -189,15 +196,24 @@ class PuppetWeb extends Puppet {
       , port:   this.port
     })
 
+    this.bridge = bridge
+
+    if (this.targetState() !== 'live') {
+      log.warn('PuppetWeb', 'initBridge() found targetState != live, no init anymore')
+      return Promise.resolve('skipped')
+    }
+    
     return bridge.init()
-    .catch(e => {
-      if (this.browser.dead()) {
-        log.warn('PuppetWeb', 'initBridge() found browser dead, wait it to restore')
-      } else {
-        log.error('PuppetWeb', 'initBridge() exception: %s', e.message)
-        throw e
-      }
-    })
+                .catch(e => {
+                  if (!this.browser){
+                    log.warn('PuppetWeb', 'initBridge() without browser?')
+                  } else if (this.browser.dead()) {
+                    log.warn('PuppetWeb', 'initBridge() found browser dead, wait it to restore')
+                  } else {
+                    log.error('PuppetWeb', 'initBridge() exception: %s', e.message)
+                    throw e
+                  }
+                })
   }
 
   initServer() {
@@ -221,11 +237,18 @@ class PuppetWeb extends Puppet {
     server.on('log'       , Event.onServerLog.bind(this))
     server.on('ding'      , Event.onServerDing.bind(this))
 
+    this.server = server
+
+    if (this.targetState() !== 'live') {
+      log.warn('PuppetWeb', 'initServer() found targetState != live, no init anymore')
+      return Promise.resolve('skipped')
+    }
+
     return server.init()
-    .catch(e => {
-      log.error('PuppetWeb', 'initServer() exception: %s', e.message)
-      throw e
-    })
+                .catch(e => {
+                  log.error('PuppetWeb', 'initServer() exception: %s', e.message)
+                  throw e
+                })
   }
 
 
@@ -257,10 +280,10 @@ class PuppetWeb extends Puppet {
 
     log.silly('PuppetWeb', `send(${destination}, ${content})`)
     return this.bridge.send(destination, content)
-    .catch(e => {
-      log.error('PuppetWeb', 'send() exception: %s', e.message)
-      throw e
-    })
+                      .catch(e => {
+                        log.error('PuppetWeb', 'send() exception: %s', e.message)
+                        throw e
+                      })
   }
   reply(message, replyContent) {
     if (this.self(message)) {
@@ -287,10 +310,10 @@ class PuppetWeb extends Puppet {
    */
   logout() {
     return this.bridge.logout()
-    .catch(e => {
-      log.error('PuppetWeb', 'logout() exception: %s', e.message)
-      throw e
-    })
+                      .catch(e => {
+                        log.error('PuppetWeb', 'logout() exception: %s', e.message)
+                        throw e
+                      })
   }
 
   getContact(id) {
@@ -299,10 +322,10 @@ class PuppetWeb extends Puppet {
     }
     
     return this.bridge.getContact(id)
-    .catch(e => {
-      log.error('PuppetWeb', 'getContact(%d) exception: %s', id, e.message)
-      throw e
-    })
+                      .catch(e => {
+                        log.error('PuppetWeb', 'getContact(%d) exception: %s', id, e.message)
+                        throw e
+                      })
   }
   logined() { return !!(this.user) }
   ding(data) {
@@ -310,19 +333,11 @@ class PuppetWeb extends Puppet {
       return Promise.reject(new Error('ding fail: no bridge(yet)!'))
     }
     return this.bridge.ding(data)
-    .catch(e => {
-      log.warn('PuppetWeb', 'ding(%s) rejected: %s', data, e.message)
-      throw e
-    })
+                      .catch(e => {
+                        log.warn('PuppetWeb', 'ding(%s) rejected: %s', data, e.message)
+                        throw e
+                      })
   }
 }
 
-Object.assign(PuppetWeb, {
-  default: PuppetWeb
-  , PuppetWeb
-  , Server
-  , Browser
-  , Bridge
-})
-
-module.exports = PuppetWeb
+module.exports = PuppetWeb.default = PuppetWeb.PuppetWeb = PuppetWeb

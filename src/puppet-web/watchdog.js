@@ -43,12 +43,17 @@ function onFeed({
   const feed = `${type}:[${data}]`
   log.verbose('PuppetWebWatchdog', 'onFeed: %d, %s', timeout, feed)
 
-  if (this.readyState() === 'disconnecting'
-      // || this.readyState() === 'disconnected'
+  if (this.currentState() === 'killing'
   ) {
-    log.warn('PuppetWebWatchdog', 'onFeed() is disabled because readyState is `disconnecting`')
+    log.warn('PuppetWebWatchdog', 'onFeed() is disabled because currentState is `killing`')
     return
   }
+  // if (this.readyState() === 'disconnecting'
+  //     // || this.readyState() === 'disconnected'
+  // ) {
+  //   log.warn('PuppetWebWatchdog', 'onFeed() is disabled because readyState is `disconnecting`')
+  //   return
+  // }
 
   setWatchDogTimer.call(this, timeout, feed)
 
