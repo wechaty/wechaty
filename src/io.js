@@ -58,6 +58,7 @@ class Io {
 
   initWebSocket() {
     log.verbose('Io', 'initWebSocket()')
+    
     // const auth = 'Basic ' + new Buffer(this.token + ':X').toString('base64')
     const auth = 'Token ' + this.token
     const headers = { 'Authorization': auth }
@@ -178,6 +179,8 @@ class Io {
   }
 
   reconnect() {
+    log.verbose('Io', 'reconnect()')
+
     if (this.connected()) {
       log.warn('Io', 'reconnect() on a already connected io')
       return
@@ -201,6 +204,7 @@ class Io {
   }
 
   initEventHook() {
+    log.verbose('Io', 'initEventHook()')
     const wechaty = this.wechaty
 
     wechaty.on('message', this.ioMessage)
@@ -276,6 +280,8 @@ class Io {
   }
   
   close() {
+    log.verbose('Io', 'close()')
+
     this.ws.close()
     // TODO: remove listener for this.wechaty.on(message )
   }
