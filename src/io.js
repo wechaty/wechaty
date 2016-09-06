@@ -37,6 +37,8 @@ class Io {
     this.protocol = protocol + '|' + wechaty.uuid
     log.verbose('Io', 'instantiated with endpoint[%s], token[%s], protocol[%s], uuid[%s]', endpoint, token, protocol, this.uuid)
 
+    this._eventBuffer = []
+
     // this.purpose('offline')
     this.targetState('disconnected')
     this.currentState('disconnected')
@@ -310,18 +312,23 @@ class Io {
   }
 
   send(ioEvent) {
-    log.silly('Io', 'send(%s: %s)', ioEvent.name, ioEvent.payload)
+    if (ioEvent) {
+      log.silly('Io', 'send(%s: %s)', ioEvent.name, ioEvent.payload)
+      this._eventBuffer.push(ioEvent)
+    } else { log.silly('Io', 'send()') }
 
     if (!this.connected()) {
-      log.verbose('Io', 'send() without a connected websocket, dropped(ToBeQueue)')
-      return
+      log.verbose('Io', 'send() without a connected websocket, eventBuffer.length = %d', this._eventBuffer.length)
+      return false
     }
 
-    this.ws.send(
-      JSON.stringify(
-        ioEvent
+    while (this._eventBuffer.length) {
+      this.ws.send(
+        JSON.stringify(
+          this._eventBuffer.shift()
+        )
       )
-    )
+    }
   }
   
   close() {
@@ -339,6 +346,10 @@ class Io {
     // this.purpose('offline')
     this.targetState('disconnected')
     this.currentState('disconnecting')
+
+    // try to send IoEvents in buffer
+    this.send()
+    this._eventBuffer = []
 
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer)

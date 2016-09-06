@@ -143,6 +143,10 @@ class IoClient {
   start() {
     this.log.verbose('IoClient', 'start()')
 
+    if (!this.wechaty) {
+      return this.init()
+    }
+    
     return this.initIo(this.wechaty)
               .then(io => this.io = io)
   }
@@ -155,7 +159,7 @@ class IoClient {
     }
 
     const p = this.io.quit()
-    this.io = null
+    // this.io = null
     return p
   }
 
