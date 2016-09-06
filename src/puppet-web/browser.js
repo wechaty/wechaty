@@ -26,7 +26,7 @@ class Browser extends EventEmitter {
     head = process.env.WECHATY_HEAD || Config.DEFAULT_HEAD
     , sessionFile
   } = {}) {
-    log.verbose('Browser', 'constructor() with head(%s) sessionFile(%s)', head, sessionFile)
+    log.verbose('PuppetWebBrowser', 'constructor() with head(%s) sessionFile(%s)', head, sessionFile)
     super()
     log.verbose('PuppetWebBrowser', 'constructor()')
     this.head = head
@@ -41,7 +41,7 @@ class Browser extends EventEmitter {
   // targetState : 'open' | 'close'
   targetState(newState) {
     if (newState) {
-      log.verbose('Browser', 'targetState(%s)', newState)
+      log.verbose('PuppetWebBrowser', 'targetState(%s)', newState)
       this._targetState = newState
     }
     return this._targetState
@@ -50,7 +50,7 @@ class Browser extends EventEmitter {
   // currentState : 'opening' | 'open' | 'closing' | 'close'
   currentState(newState) {
     if (newState) {
-      log.verbose('Browser', 'currentState(%s)', newState)
+      log.verbose('PuppetWebBrowser', 'currentState(%s)', newState)
       this._currentState = newState
     }
     return this._currentState
@@ -77,8 +77,19 @@ class Browser extends EventEmitter {
                 })
       yield this.open()
 
-      this.currentState('open')
-      return this
+      /**
+       * XXX
+       * 
+       * when open url, there could happen a quit() call.
+       * should check here: if we are in `close` target state, we should clean up 
+       */
+      if (this.targetState() === 'open') {
+        this.currentState('open')
+        return this
+      } else {
+        log.warn('PuppetWebBrowser', 'init() finished but found targetState() is close. quit().')
+        return this.quit()
+      }
     })
     .catch(e => {
       // XXX: must has a `.catch` here, or promise will hang! 2016/6/7
@@ -323,7 +334,7 @@ this.onResourceRequested = function(request, net) {
   }
 
   getBrowserPids() {
-    log.silly('Browser', 'getBrowserPids()')
+    log.silly('PuppetWebBrowser', 'getBrowserPids()')
     
     return new Promise((resolve, reject) => {
       require('ps-tree')(process.pid, (err, children) => {
@@ -352,7 +363,7 @@ this.onResourceRequested = function(request, net) {
 
         let matchRegex = new RegExp(browserRe, 'i')
         const pids = children.filter(child => {
-          log.silly('Browser', 'getBrowserPids() child: %s', JSON.stringify(child))
+          log.silly('PuppetWebBrowser', 'getBrowserPids() child: %s', JSON.stringify(child))
           // https://github.com/indexzero/ps-tree/issues/18
           return matchRegex.test('' + child.COMMAND + child.COMM)
         }).map(child => child.PID)

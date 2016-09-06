@@ -175,6 +175,11 @@ class PuppetWeb extends Puppet {
 
     this.browser = browser
 
+    if (this.targetState() !== 'live') {
+      log.warn('PuppetWeb', 'initBrowser() found targetState != live, no init anymore')
+      return Promise.resolve('skipped')
+    }
+
     return co.call(this, function* () {
       yield browser.init()
       return browser // follow func name meaning
@@ -193,9 +198,16 @@ class PuppetWeb extends Puppet {
 
     this.bridge = bridge
 
+    if (this.targetState() !== 'live') {
+      log.warn('PuppetWeb', 'initBridge() found targetState != live, no init anymore')
+      return Promise.resolve('skipped')
+    }
+    
     return bridge.init()
                 .catch(e => {
-                  if (this.browser.dead()) {
+                  if (!this.browser){
+                    log.warn('PuppetWeb', 'initBridge() without browser?')
+                  } else if (this.browser.dead()) {
                     log.warn('PuppetWeb', 'initBridge() found browser dead, wait it to restore')
                   } else {
                     log.error('PuppetWeb', 'initBridge() exception: %s', e.message)
@@ -226,6 +238,11 @@ class PuppetWeb extends Puppet {
     server.on('ding'      , Event.onServerDing.bind(this))
 
     this.server = server
+
+    if (this.targetState() !== 'live') {
+      log.warn('PuppetWeb', 'initServer() found targetState != live, no init anymore')
+      return Promise.resolve('skipped')
+    }
 
     return server.init()
                 .catch(e => {
