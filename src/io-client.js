@@ -40,26 +40,66 @@ class IoClient {
       throw e
     }
     this.token(initToken)
+
+    this.targetState('disconnected')
+    this.currentState('disconnected')
   }
+
+ // targetState : 'connected' | 'disconnected'
+  targetState(newState) {
+    if (newState) {
+      this.log.verbose('IoClient', 'targetState(%s)', newState)
+      this._targetState = newState
+    }
+    return this._targetState
+  }
+
+  // currentState : 'connecting' | 'connected' | 'disconnecting' | 'disconnected'
+  currentState(newState) {
+    if (newState) {
+      this.log.verbose('IoClient', 'currentState(%s)', newState)
+      this._currentState = newState
+    }
+    return this._currentState
+  }
+
 
   init() {
     this.log.verbose('IoClient', 'init()')
 
+    if (/connecting|disconnecting/.test(this.currentState())) {
+      this.log.warn('IoClient', 'init() with currentState() with connecting, skip init')
+      return Promise.reject('pending')
+    }
+
+    this.targetState('connected')
+    this.currentState('connecting')
+
     const wechaty = this.wechaty  = new Wechaty({
       profile: Config.DEFAULT_PROFILE
     })
+
     return co.call(this, function* () {
-      this.io       = yield this.initIo(this.wechaty)
-      this.wechaty  = yield this.initWechaty(this.wechaty)
+      this.io       = yield this.initIo()
+      this.wechaty  = yield this.initWechaty()
+      this.currentState('connected')
       return this
     }).catch(e => {
       this.log.error('IoClient', 'init() exception: %s', e.message)
+      this.currentState('disconnected')
       throw e
     })
   }
 
-  initWechaty(wechaty) {
+  initWechaty() {
     this.log.verbose('IoClient', 'initWechaty()')
+
+    if (this.targetState() !== 'connected') {
+      this.log.warn('IoClient', 'initWechaty() targetState is not `connected`, skipped')
+      return Promise.resolve(wechaty)
+    }
+
+    const wechaty = this.wechaty
 
     wechaty
     .on('login'	       , user => this.log.info('IoClient', `${user.name()} logined`))
@@ -83,12 +123,19 @@ class IoClient {
                   })
   }
 
-  initIo(wechaty) {
+  initIo() {
     this.log.verbose('IoClient', 'initIo() with token %s', this.token())
 
-    if (!wechaty) {
+    if (this.targetState() !== 'connected') {
+      this.log.warn('IoClient', 'initIo() targetState is not `connected`, skipped')
+      return Promise.resolve()
+    }
+
+    if (!this.wechaty) {
       throw new Error('initIo() need a wechaty instance')
     }
+
+    const wechaty = this.wechaty
     
     const io = new Io({
       wechaty
@@ -146,19 +193,40 @@ class IoClient {
     if (!this.wechaty) {
       return this.init()
     }
+
+    if (/connecting|disconnecting/.test(this.currentState())) {
+      this.log.warn('IoClient', 'start() with a pending state, not the time')
+      return Promise.reject('pending')
+    }
     
+    this.targetState('connected')
+    this.currentState('connecting')
+   
     return this.initIo(this.wechaty)
-              .then(io => this.io = io)
+              .then(io => {
+                this.io = io
+                this.currentState('connected')
+              })
+              .catch(e => {
+                this.log.error('IoClient', 'start() exception: %s', e.message)
+                this.currentState('disconnected')
+                throw e
+              })
   }
 
   stop() {
     this.log.verbose('IoClient', 'stop()')
+    this.targetState('disconnected')
+    this.currentState('disconnecting')
+
     if (!this.io) {
       this.log.warn('IoClient', 'stop() without this.io')
+      this.currentState('connected')
       return Promise.resolve()
     }
 
     const p = this.io.quit()
+                    .then(_ => this.currentState('disconnected'))
     // this.io = null
     return p
   }
@@ -186,21 +254,34 @@ class IoClient {
 
   quit() {
     this.log.verbose('IoClient', 'quit()')
+    
+    if (this.currentState() === 'disconnecting') {
+      this.log.warn('IoClient', 'quit() with currentState() = `disconnecting`, skipped')
+      return Promise.reject('quit() with currentState = `disconnecting`')
+    }
+
+    this.targetState('disconnected')
+    this.currentState('disconnecting')
 
     return co.call(this, function* () {
 
       if (this.wechaty) {
         yield this.wechaty.quit()
-        // this.wechaty = null
+        this.wechaty = null
       } else { this.log.warn('IoClient', 'quit() no this.wechaty') }
 
       if (this.io) {
         yield this.io.quit()
-        // this.io = null 
+        this.io = null 
       } else { this.log.warn('IoClient', 'quit() no this.io') }
 
+      this.currentState('disconnected')
     }).catch(e => {
       this.log.error('IoClient', 'exception: %s', e.message)
+      
+      // XXX fail safe?
+      this.currentState('disconnected')
+
       throw e
     })
   }

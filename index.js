@@ -27,11 +27,11 @@ Object.assign(Wechaty, {
   , PuppetWeb
   
   , IoClient
+  , UtilLib
 
   , version: require('./package.json').version
   , log // for convenionce use npmlog with environment variable LEVEL
   
-  , UtilLib
 })
 
 module.exports = Wechaty

@@ -282,7 +282,7 @@ this.onResourceRequested = function(request, net) {
     }).catch(e => {
       // console.log(e)
       // log.warn('PuppetWebBrowser', 'err: %s %s %s %s', e.code, e.errno, e.syscall, e.message)
-      log.error('PuppetWebBrowser', 'quit() exception: %s', e.message)
+      log.warn('PuppetWebBrowser', 'quit() exception: %s', e.message)
 
       const crashMsgs = [
         'ECONNREFUSED'
