@@ -37,15 +37,35 @@ class Io {
     this.protocol = protocol + '|' + wechaty.uuid
     log.verbose('Io', 'instantiated with endpoint[%s], token[%s], protocol[%s], uuid[%s]', endpoint, token, protocol, this.uuid)
 
-    this.purpose('offline')
+    // this.purpose('offline')
+    this.targetState('disconnected')
+    this.currentState('disconnected')
   }
 
-  purpose(newPurpose) {
-    if (newPurpose) {
-      this._purpose = newPurpose
+  // targetState : 'connected' | 'disconnected'
+  targetState(newState) {
+    if (newState) {
+      log.verbose('Io', 'targetState(%s)', newState)
+      this._targetState = newState
     }
-    return this._purpose
+    return this._targetState
   }
+
+  // currentState : 'connecting' | 'connected' | 'disconnecting' | 'disconnected'
+  currentState(newState) {
+    if (newState) {
+      log.verbose('Io', 'currentState(%s)', newState)
+      this._currentState = newState
+    }
+    return this._currentState
+  }
+
+  // purpose(newPurpose) {
+  //   if (newPurpose) {
+  //     this._purpose = newPurpose
+  //   }
+  //   return this._purpose
+  // }
 
   toString() { return 'Class Io(' + this.token + ')'}
 
@@ -54,21 +74,27 @@ class Io {
   init() {
     log.verbose('Io', 'init()')
 
-    this.purpose('online')
+    // this.purpose('online')
+    this.targetState('connected')
+    this.currentState('connecting')
 
     return co.call(this, function* () {
       yield this.initEventHook()
       yield this.initWebSocket()
 
+      this.currentState('connected')
       return this
     }).catch(e => {
       log.warn('Io', 'init() exception: %s', e.message)
+      this.currentState('disconnected')
       throw e
     })
   }
 
   initWebSocket() {
     log.verbose('Io', 'initWebSocket()')
+    this.currentState('connecting')
+
     // const auth = 'Basic ' + new Buffer(this.token + ':X').toString('base64')
     const auth = 'Token ' + this.token
     const headers = { 'Authorization': auth }
@@ -81,6 +107,7 @@ class Io {
         // XXX deal with error?
       }
       log.verbose('Io', 'initWebSocket() connected with protocol [%s]', ws.protocol)
+      this.currentState('connected')
 
       // FIXME: how to keep alive???
       ws._socket.setKeepAlive(true, 100)
@@ -191,8 +218,12 @@ class Io {
   reconnect() {
     log.verbose('Io', 'reconnect()')
 
-    if (this.purpose() === 'offline') {
-      log.verbose('Io', 'reconnect() with purpose() === offline')
+    // if (this.purpose() === 'offline') {
+    //   log.verbose('Io', 'reconnect() canceled because purpose() === offline')
+    //   return
+    // }
+    if (this.targetState() === 'disconnected') {
+      log.verbose('Io', 'reconnect() canceled because targetState() === disconnected')
       return
     }
 
@@ -294,13 +325,20 @@ class Io {
   }
   
   close() {
+    log.verbose('Io', 'close()')
+    this.targetState('disconnected')
+    this.currentState('disconnecting')
+
     this.ws.close()
+    this.currentState('disconnected')
     // TODO: remove listener for this.wechaty.on(message )
     return Promise.resolve()
   }
 
   quit() {
-    this.purpose('offline')
+    // this.purpose('offline')
+    this.targetState('disconnected')
+    this.currentState('disconnecting')
 
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer)
@@ -308,6 +346,7 @@ class Io {
     }
     this.close()
 
+    this.currentState('disconnected')
     return Promise.resolve()
   }
   /**
