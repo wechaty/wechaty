@@ -186,19 +186,19 @@ Please submit your issue if you have any, and a fork & pull is very welcome for 
 
 # Wechaty Badge
 
-[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg?style=flat)](https://github.com/wechaty/wechaty)
+[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/wechaty/wechaty)
 
 ## Markdown
 
 ```markdown
-[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg?style=flat)](https://github.com/wechaty/wechaty)
+[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/wechaty/wechaty)
 ```
 
 ## Html
 
 ```html
 <a href="https://github.com/wechaty/wechaty" target="_blank">
-  <img src="https://img.shields.io/badge/Powered%20By-Wechaty-green.svg?style=flat" alt="Powered by Wechaty" border="0">
+  <img src="https://img.shields.io/badge/Powered%20By-Wechaty-green.svg" alt="Powered by Wechaty" border="0">
 </a>
 ```
 
