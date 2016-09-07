@@ -10,8 +10,8 @@
     "DEFAULT_PORT": 8788,
     "DEFAULT_PUPPET_PORT": 18788,
     "DEFAULT_PROTOCOL": "io|0.0.1",
-    "DEFAULT_TOKEN": "TEST_TOKEN",
-    "ENDPOINT": "wss://api.wechaty.io/v0/websocket",
+    "DEFAULT_TOKEN": "WECHATY_IO_TOKEN",
+    "DEFAULT_APIHOST": "api.wechaty.io",
     "BINARY_CHROMIUM": "/wechaty/bin/xvfb-chromium"
   },
   "scripts": {

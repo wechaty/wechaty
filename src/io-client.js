@@ -24,7 +24,6 @@ const brolog  = require('./brolog-env')
 class IoClient {
   constructor({
     initToken   = Config.token || Config.DEFAULT_TOKEN
-    , endpoint  = Config.endpoint
     , log       = brolog
   } = {}) {
     if (!log) {
@@ -32,9 +31,9 @@ class IoClient {
       throw e
     }
     this.log = log
-    this.log.verbose('IoClient', 'constructor() with token: %s', token)
+    this.log.verbose('IoClient', 'constructor() with token: %s', initToken)
 
-    if (!token) {
+    if (!initToken) {
       const e = new Error('constructor() token must be set')
       this.log.error('IoClient', e.message)
       throw e
@@ -140,7 +139,6 @@ class IoClient {
     const io = new Io({
       wechaty
       , token: this.token()
-      , endpoint: this.endpoint
     })
 
     return io.init()

@@ -91,8 +91,8 @@ test('Phantomjs http header', async t => {
       t.pass('server listen on ' + port)
     })
 
-    const endpoint = 'http://127.0.0.1:' + port
-    const options = url.parse(endpoint)
+    const serverUrl = 'http://127.0.0.1:' + port
+    const options = url.parse(serverUrl)
 
     options.headers = {
       Accept: 'image/webp,image/*,*/*;q=0.8'

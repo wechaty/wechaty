@@ -22,7 +22,7 @@ class Io {
   constructor({
     wechaty = null
     , token = null
-    , endpoint = Config.endpoint
+    , apihost = Config.apihost
     , protocol = Config.DEFAULT_PROTOCOL
   } = {}) {
     if (!wechaty || !token) {
@@ -32,10 +32,10 @@ class Io {
     this.uuid     = wechaty.uuid
 
     this.token    = token
-    this.endpoint = endpoint
+    this.apihost = apihost
     
     this.protocol = protocol + '|' + wechaty.uuid
-    log.verbose('Io', 'instantiated with endpoint[%s], token[%s], protocol[%s], uuid[%s]', endpoint, token, protocol, this.uuid)
+    log.verbose('Io', 'instantiated with apihost[%s], token[%s], protocol[%s], uuid[%s]', apihost, token, protocol, this.uuid)
 
     this._eventBuffer = []
 
@@ -101,7 +101,14 @@ class Io {
     const auth = 'Token ' + this.token
     const headers = { 'Authorization': auth }
 
-    const ws = this.ws = new WebSocket(this.endpoint, this.protocol, { headers })
+    let endpoint = 'wss://' + this.apihost + '/v0/websocket'
+
+    // XXX quick and dirty: use no ssl for APIHOST other than official
+    if (!/api\.wechaty\.io/.test(this.apihost)) {
+      endpoint = 'ws://' + this.apihost + '/v0/websocket'
+    }
+
+    const ws = this.ws = new WebSocket(endpoint, this.protocol, { headers })
 
     ws.on('open', function open() {
       if (this.protocol !== ws.protocol) {
