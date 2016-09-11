@@ -162,7 +162,7 @@ class Browser extends EventEmitter {
       args: ['--no-sandbox']  // issue #26 for run inside docker
     }
     if (Config.isDocker) {
-      options.binary = Config.BINARY_CHROMIUM
+      options.binary = Config.CMD_CHROMIUM
     }
 
     const customChrome = WebDriver.Capabilities.chrome()
@@ -300,7 +300,7 @@ this.onResourceRequested = function(request, net) {
   }
 
   clean() {
-    const max = 15
+    const max = 30
     const backoff = 100
 
     /**

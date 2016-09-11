@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.3.16",
+  "version": "0.3.17",
   "description": "Wechat for Bot (Personal Account)",
   "main": "index.js",
   "wechaty": {
@@ -12,7 +12,7 @@
     "DEFAULT_PROTOCOL": "io|0.0.1",
     "DEFAULT_TOKEN": "WECHATY_IO_TOKEN",
     "DEFAULT_APIHOST": "api.wechaty.io",
-    "BINARY_CHROMIUM": "/wechaty/bin/xvfb-chromium"
+    "CMD_CHROMIUM": "/wechaty/bin/xvfb-chromium"
   },
   "scripts": {
     "lint": "npm run eslint && npm run tslint",
@@ -25,6 +25,7 @@
     "test:phantomjs": "cross-env LC_ALL=C WECHATY_LOG=info WECHATY_HEAD=phantomjs ava --timeout=10m \"{src,test}/**/*.spec.js\"",
     "test:chrome": "cross-env LC_ALL=C WECHATY_LOG=silly WECHATY_HEAD=chrome ava --timeout=10m \"{src,test}/**/*.spec.js\"",
     "testdev": "cross-env LC_ALL=C WECHATY_LOG=silly ava --serial --verbose --fail-fast --timeout=3m",
+    "prepublish": "npm test",
     "ava": "cross-env LC_ALL=C WECHATY_LOG=verbose ava \"{src,test}/**/*.spec.js\"",
     "start": "node bin/client",
     "demo": "node example/ding-dong-bot.js"
