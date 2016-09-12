@@ -3,13 +3,6 @@ import { log }  from '../'
 
 import { spy } from 'sinon'
 
-// 'use strict'
-
-// const sinon = require('sinon')
-// const test  = require('tape')
-
-// const log   = require('../src/npmlog-env')
-
 test('Node.js function params destructuring behaviour test', function(t) {
   const DEFAULT_N = 1
   const DEFAULT_S = 't'

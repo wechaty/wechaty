@@ -13,7 +13,7 @@ import {
 // const test  = require('tape')
 // const retryPromise = require('retry-promise').default
 
-// const log = require('../../src/npmlog-env')
+// const log = require('../../src/brolog-env')
 
 const PROFILE = 'unit-test-session.wechaty.json'
 

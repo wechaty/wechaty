@@ -7,13 +7,6 @@ import {
 
 import util from 'util'
 
-// const co    = require('co')
-// const util  = require('util')
-// const test  = require('tape')
-// const retryPromise = require('retry-promise').default
-
-// const log = require('../../src/npmlog-env')
-
 const PORT = process.env.WECHATY_PORT || 58788
 const PROFILE = 'unit-test-session.wechaty.json'
 

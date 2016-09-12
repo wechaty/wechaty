@@ -14,7 +14,7 @@ Room.attach(new Puppet())
 // const Room = require('../src/room')
 // const Contact = require('../src/contact')
 // const Puppet = require('../src/puppet')
-// const log = require('../src/npmlog-env')
+// const log = require('../src/brolog-env')
 
 
 test('Room smoke testing', async t => {

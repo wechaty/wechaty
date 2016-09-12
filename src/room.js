@@ -6,7 +6,7 @@
  * https://github.com/zixia/wechaty
  *
  */
-const log   = require('./npmlog-env')
+const log   = require('./brolog-env')
 const UtilLib  = require('./util-lib')
 
 class Room {

@@ -7,7 +7,7 @@ test('Wechaty Framework', t => {
   t.truthy(Wechaty.Contact    , 'should export Wechaty.Contact')
   t.truthy(Wechaty.Room       , 'should export Wechaty.Room')
 
-  t.truthy(Wechaty.IoBot      , 'should export Wechaty.IoBot')
+  t.truthy(Wechaty.IoClient   , 'should export Wechaty.IoClient')
 
   t.truthy(Wechaty.log        , 'should export Wechaty.log')
 

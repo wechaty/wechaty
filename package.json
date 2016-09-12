@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.3.16",
+  "version": "0.3.17",
   "description": "Wechat for Bot (Personal Account)",
   "main": "index.js",
   "wechaty": {
@@ -10,21 +10,24 @@
     "DEFAULT_PORT": 8788,
     "DEFAULT_PUPPET_PORT": 18788,
     "DEFAULT_PROTOCOL": "io|0.0.1",
-    "DEFAULT_TOKEN": "WECHATY-TOKEN",
-    "ENDPOINT": "wss://api.wechaty.io/v0/websocket",
-    "BINARY_CHROMIUM": "/wechaty/bin/xvfb-chromium"
+    "DEFAULT_TOKEN": "WECHATY_IO_TOKEN",
+    "DEFAULT_APIHOST": "api.wechaty.io",
+    "CMD_CHROMIUM": "/wechaty/bin/xvfb-chromium"
   },
   "scripts": {
     "lint": "npm run eslint && npm run tslint",
-    "eslint": "eslint \"{src,test}/**/*.js\"",
-    "tslint": "tslint \"{src,test}/**/*.ts\"",
+    "eslint": "eslint \"{src,test,bin}/**/*.js\"",
+    "tslint": "tslint \"{src,test,bin}/**/*.ts\"",
+    "sloc": "sloc . --details --format cli-table --keys total,source,comment --exclude \"node_modules|doc\" && sloc . --exclude \"node_modules|doc\"",
     "pretest": "npm run lint",
     "test": "npm run test:phantomjs && npm run test:chrome",
+    "posttest": "npm run sloc",
     "test:phantomjs": "cross-env LC_ALL=C WECHATY_LOG=info WECHATY_HEAD=phantomjs ava --timeout=10m \"{src,test}/**/*.spec.js\"",
     "test:chrome": "cross-env LC_ALL=C WECHATY_LOG=silly WECHATY_HEAD=chrome ava --timeout=10m \"{src,test}/**/*.spec.js\"",
     "testdev": "cross-env LC_ALL=C WECHATY_LOG=silly ava --serial --verbose --fail-fast --timeout=3m",
+    "prepublish": "npm test",
     "ava": "cross-env LC_ALL=C WECHATY_LOG=verbose ava \"{src,test}/**/*.spec.js\"",
-    "start": "node bin/io-bot",
+    "start": "node bin/client",
     "demo": "node example/ding-dong-bot.js"
   },
   "repository": {
@@ -32,7 +35,7 @@
     "url": "git+https://github.com/wechaty/wechaty.git"
   },
   "bin": {
-    "io-bot": "bin/io-bot.js",
+    "wechaty-client": "bin/client.js",
     "wechaty-version": "bin/version.js"
   },
   "keywords": [
@@ -77,10 +80,10 @@
   },
   "dependencies": {
     "body-parser": "^1.15.2",
+    "brolog": "^0.3.7",
     "chromedriver": "^2.23.1",
     "co": "^4.6.0",
     "express": "^4.13.4",
-    "npmlog": "^4.0.0",
     "phantomjs-prebuilt": "^2.1.12",
     "ps-tree": "^1.0.1",
     "retry-promise": "^1.0.0",
@@ -98,6 +101,7 @@
     "eslint-plugin-ava": "^3.0.0",
     "qrcode-terminal": "^0.10.0",
     "sinon": "^1.17.5",
+    "sloc": "^0.1.11",
     "tslint": "^3.15.1",
     "tuling123-client": "0.0.1",
     "typescript": "^2.1.0-dev.20160830"

@@ -22,7 +22,7 @@ const util  = require('util')
 const fs    = require('fs')
 const co    = require('co')
 
-const log = require('../npmlog-env')
+const log = require('../brolog-env')
 const Contact = require('../contact')
 const Message = require('../message')
 const MediaMessage = require('../message-media')
@@ -157,8 +157,12 @@ function onServerDisconnect(data) {
     this.user = null
   }
 
-  if (this.readyState() === 'disconnecting') {
-    log.verbose('PuppetWebEvent', 'onServerDisconnect() be called when readyState is `disconnecting`')
+  // if (this.readyState() === 'disconnecting') {
+  //   log.verbose('PuppetWebEvent', 'onServerDisconnect() be called when readyState is `disconnecting`')
+  //   return
+  // }
+  if (this.currentState() === 'killing') {
+    log.verbose('PuppetWebEvent', 'onServerDisconnect() be called when currentState is `killing`')
     return
   }
 
@@ -217,8 +221,12 @@ function onServerUnload(data) {
   log.warn('PuppetWebEvent', 'onServerUnload(%s)', data)
   // onServerLogout.call(this, data) // XXX: should emit event[logout] from browser
 
-  if (this.readyState() === 'disconnecting') {
-    log.verbose('PuppetWebEvent', 'onServerUnload() will return because readyState is `disconnecting`')
+  // if (this.readyState() === 'disconnecting') {
+  //   log.verbose('PuppetWebEvent', 'onServerUnload() will return because readyState is `disconnecting`')
+  //   return
+  // }
+  if (this.currentState() === 'killing') {
+    log.verbose('PuppetWebEvent', 'onServerUnload() will return because currentState is `killing`')
     return
   }
 

@@ -9,13 +9,6 @@ import {
   , log
 } from '../../'
 
-// const https = require('https')
-// const test  = require('tape')
-// const sinon = require('sinon')
-// const co    = require('co')
-
-// const log = require('../../src/npmlog-env')
-
 const PuppetWebServer = PuppetWeb.Server //require('../../src/puppet-web/server')
 const PORT = 48788
 

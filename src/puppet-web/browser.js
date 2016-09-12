@@ -16,7 +16,7 @@ const EventEmitter  = require('events')
 const WebDriver     = require('selenium-webdriver')
 const retryPromise  = require('retry-promise').default // https://github.com/olalonde/retry-promise
 
-const log = require('../npmlog-env')
+const log = require('../brolog-env')
 
 const Config  = require('../config')
 
@@ -26,23 +26,70 @@ class Browser extends EventEmitter {
     head = process.env.WECHATY_HEAD || Config.DEFAULT_HEAD
     , sessionFile
   } = {}) {
-    log.verbose('Browser', 'constructor() with head(%s) sessionFile(%s)', head, sessionFile)
+    log.verbose('PuppetWebBrowser', 'constructor() with head(%s) sessionFile(%s)', head, sessionFile)
     super()
     log.verbose('PuppetWebBrowser', 'constructor()')
     this.head = head
     this.sessionFile = sessionFile // a file to save session cookies
 
-    this.live = false
+    // this.live = false
+    
+    this.targetState('close')
+    this.currentState('close')
   }
 
+  // targetState : 'open' | 'close'
+  targetState(newState) {
+    if (newState) {
+      log.verbose('PuppetWebBrowser', 'targetState(%s)', newState)
+      this._targetState = newState
+    }
+    return this._targetState
+  }
+
+  // currentState : 'opening' | 'open' | 'closing' | 'close'
+  currentState(newState) {
+    if (newState) {
+      log.verbose('PuppetWebBrowser', 'currentState(%s)', newState)
+      this._currentState = newState
+    }
+    return this._currentState
+  }
 
   toString() { return `Browser({head:${this.head})` }
 
   init() {
-    return this.initDriver()
-    .then(() => {
-      this.live = true
-      return this
+    this.targetState('open')
+    this.currentState('opening')
+
+    // fastUrl is used to open in browser for we can set cookies.
+    // backup: 'https://res.wx.qq.com/zh_CN/htmledition/v2/images/icon/ico_loading28a2f7.gif'
+    const fastUrl = 'https://wx.qq.com/zh_CN/htmledition/v2/images/webwxgeticon.jpg'
+
+    return co.call(this, function* () {
+      yield this.initDriver()
+      // this.live = true
+
+      yield this.open(fastUrl)
+      yield this.loadSession()
+                .catch(e => { // fail safe
+                  log.verbose('PuppetWeb', 'browser.loadSession(%s) exception: %s', this.profile, e.message || e)
+                })
+      yield this.open()
+
+      /**
+       * XXX
+       * 
+       * when open url, there could happen a quit() call.
+       * should check here: if we are in `close` target state, we should clean up 
+       */
+      if (this.targetState() === 'open') {
+        this.currentState('open')
+        return this
+      } else {
+        log.warn('PuppetWebBrowser', 'init() finished but found targetState() is close. quit().')
+        return this.quit()
+      }
     })
     .catch(e => {
       // XXX: must has a `.catch` here, or promise will hang! 2016/6/7
@@ -50,6 +97,12 @@ class Browser extends EventEmitter {
       // with selenium-webdriver v2.53.2
       // XXX: https://github.com/SeleniumHQ/selenium/issues/2233
       log.error('PuppetWebBrowser', 'init() exception: %s', e.message)
+
+      this.currentState('closing')
+      this.quit().then(_ => {
+        this.currentState('close')
+      })
+
       throw e
     })
   }
@@ -109,7 +162,7 @@ class Browser extends EventEmitter {
       args: ['--no-sandbox']  // issue #26 for run inside docker
     }
     if (Config.isDocker) {
-      options.binary = Config.BINARY_CHROMIUM
+      options.binary = Config.CMD_CHROMIUM
     }
 
     const customChrome = WebDriver.Capabilities.chrome()
@@ -164,7 +217,7 @@ class Browser extends EventEmitter {
                                 .build()
     
 		/**
-		 *  ISSUE #21 - https://github.com/zixia/wechaty/issues/21
+		 *  FIXME: ISSUE #21 - https://github.com/zixia/wechaty/issues/21
 	 	 *
  	 	 *	http://phantomjs.org/api/webpage/handler/on-resource-requested.html
 		 *	http://stackoverflow.com/a/29544970/1123955
@@ -190,13 +243,20 @@ this.onResourceRequested = function(request, net) {
 
   quit() {
     log.verbose('PuppetWebBrowser', 'quit()')
-    this.live = false
+    this.targetState('close')
+    this.currentState('closing')
+    // this.live = false
+
     if (!this.driver) {
       log.verbose('PuppetWebBrowser', 'driver.quit() skipped because no driver')
+
+      this.currentState('close')
       return Promise.resolve('no driver')
     } else if (!this.driver.getSession()) {
       this.driver = null
       log.verbose('PuppetWebBrowser', 'driver.quit() skipped because no driver session')
+
+      this.currentState('close')
       return Promise.resolve('no driver session')
     }
 
@@ -217,11 +277,12 @@ this.onResourceRequested = function(request, net) {
        */
       yield this.clean()
 
+      this.currentState('close')
       log.silly('PuppetWebBrowser', 'quit() co() end')
     }).catch(e => {
       // console.log(e)
       // log.warn('PuppetWebBrowser', 'err: %s %s %s %s', e.code, e.errno, e.syscall, e.message)
-      log.error('PuppetWebBrowser', 'quit() exception: %s', e.message)
+      log.warn('PuppetWebBrowser', 'quit() exception: %s', e.message)
 
       const crashMsgs = [
         'ECONNREFUSED'
@@ -232,11 +293,14 @@ this.onResourceRequested = function(request, net) {
 
       if (crashRegex.test(e.message)) { log.warn('PuppetWebBrowser', 'driver.quit() browser crashed') }
       else                            { log.warn('PuppetWebBrowser', 'driver.quit() exception: %s', e.message) }
+
+      // XXX fail safe to `close` ?
+      this.currentState('close')
     })
   }
 
   clean() {
-    const max = 15
+    const max = 30
     const backoff = 100
 
     /**
@@ -270,7 +334,7 @@ this.onResourceRequested = function(request, net) {
   }
 
   getBrowserPids() {
-    log.silly('Browser', 'getBrowserPids()')
+    log.silly('PuppetWebBrowser', 'getBrowserPids()')
     
     return new Promise((resolve, reject) => {
       require('ps-tree')(process.pid, (err, children) => {
@@ -299,7 +363,7 @@ this.onResourceRequested = function(request, net) {
 
         let matchRegex = new RegExp(browserRe, 'i')
         const pids = children.filter(child => {
-          log.silly('Browser', 'getBrowserPids() child: %s', JSON.stringify(child))
+          log.silly('PuppetWebBrowser', 'getBrowserPids() child: %s', JSON.stringify(child))
           // https://github.com/indexzero/ps-tree/issues/18
           return matchRegex.test('' + child.COMMAND + child.COMM)
         }).map(child => child.PID)
@@ -399,9 +463,11 @@ this.onResourceRequested = function(request, net) {
     if (forceReason) {
       dead = true
       errMsg = forceReason
-    } else if (!this.live) {
+    // } else if (!this.live) {
+    } else if (this.targetState() !== 'open') {
       dead = true
-      errMsg = 'browser not live'
+      // errMsg = 'browser not live'
+      errMsg = 'targetState not open'
     } else if (!this.driver || !this.driver.getSession()) {
       dead = true
       errMsg = 'no driver or session'
@@ -409,7 +475,10 @@ this.onResourceRequested = function(request, net) {
 
     if (dead) {
       log.warn('PuppetWebBrowser', 'dead() because %s', errMsg)
-      this.live = false
+      // this.live = false
+      this.currentState('closing')
+      this.quit().then(_ => this.currentState('close'))
+      
       // must use nextTick here, or promise will hang... 2016/6/10
       process.nextTick(_ => {
         log.verbose('PuppetWebBrowser', 'dead() emit a `dead` event because %s', errMsg)

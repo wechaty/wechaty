@@ -11,8 +11,17 @@ const Config = require('../package.json').wechaty
 Object.assign(Config, {
   head:       process.env.WECHATY_HEAD      || Config.DEFAULT_HEAD
   , puppet:   process.env.WECHATY_PUPPET    || Config.DEFAULT_PUPPET
-  , endpoint: process.env.WECHATY_ENDPOINT  || Config.ENDPOINT  // wechaty.io api endpoint
+  , apihost:  process.env.WECHATY_APIHOST   || Config.DEFAULT_APIHOST
+  , validApiHost
 })
+
+function validApiHost(apihost) {
+  if (/^[a-zA-Z0-9\.\-\_]+:?[0-9]*$/.test(apihost)) {
+    return true
+  }
+  throw new Error('validApiHost() fail for ' + apihost)
+}
+validApiHost(Config.apihost)
 
 /**
  * 2. ENVIRONMENT VARIABLES (only)

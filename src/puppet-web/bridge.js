@@ -12,7 +12,7 @@
 const co = require('co')
 const retryPromise  = require('retry-promise').default
 
-const log = require('../npmlog-env')
+const log = require('../brolog-env')
 
 class Bridge {
   constructor(options) {

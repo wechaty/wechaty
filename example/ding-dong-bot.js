@@ -1,8 +1,7 @@
-const log = require('npmlog')
-
 const {
   Wechaty
   , Config
+  , log
 } = require('../')
 
 const welcome = `

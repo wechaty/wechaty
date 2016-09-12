@@ -1,7 +1,7 @@
 [![Wechaty](https://raw.githubusercontent.com/wechaty/wechaty/master/image/wechaty-logo-en.png)](https://github.com/wechaty/wechaty)
 # Wechaty [![Linux Circle CI](https://circleci.com/gh/wechaty/wechaty.svg?style=svg)](https://circleci.com/gh/wechaty/wechaty) [![Linux/Mac Build Status](https://img.shields.io/travis/wechaty/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/wechaty/wechaty) [![Win32 Build status](https://img.shields.io/appveyor/ci/zixia/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/zixia/wechaty) [![Coverage Status](https://coveralls.io/repos/github/wechaty/wechaty/badge.svg?branch=master)](https://coveralls.io/github/wechaty/wechaty?branch=master)
 
-Connecting ChatBots, Chat as a Service.
+Connecting ChatBots.
 
 Wechaty is a Bot Framework for Wechat **Personal** Account, It can help you easy creating personal wechat bot in 7 lines of javascript code, with cross platform  support to [linux](https://travis-ci.org/wechaty/wechaty), [win32](https://ci.appveyor.com/project/zixia/wechaty) and [darwin(OSX/Mac)](https://travis-ci.org/wechaty/wechaty).
 
@@ -10,7 +10,7 @@ Wechaty is a Bot Framework for Wechat **Personal** Account, It can help you easy
 :book: <https://github.com/wechaty/wechaty/wiki>  
 :whale: <https://hub.docker.com/r/zixia/wechaty>  
 
-[![Join the chat at https://gitter.im/wechaty/wechaty](https://badges.gitter.im/wechaty/wechaty.svg)](https://gitter.im/wechaty/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=2592000)](https://nodejs.org/)
 [![Repo Size](https://reposs.herokuapp.com/?path=wechaty/wechaty)]()
 
@@ -186,19 +186,19 @@ Please submit your issue if you have any, and a fork & pull is very welcome for 
 
 # Wechaty Badge
 
-[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg?style=flat)](https://github.com/wechaty/wechaty)
+[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/wechaty/wechaty)
 
 ## Markdown
 
 ```markdown
-[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg?style=flat)](https://github.com/wechaty/wechaty)
+[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/wechaty/wechaty)
 ```
 
 ## Html
 
 ```html
 <a href="https://github.com/wechaty/wechaty" target="_blank">
-  <img src="https://img.shields.io/badge/Powered%20By-Wechaty-green.svg?style=flat" alt="Powered by Wechaty" border="0">
+  <img src="https://img.shields.io/badge/Powered%20By-Wechaty-green.svg" alt="Powered by Wechaty" border="0">
 </a>
 ```
 
@@ -609,6 +609,7 @@ Github Issue <https://github.com/wechaty/wechaty/issues>
 ## Chat Script
 1. [SuperScript](http://superscriptjs.com/) A dialog system and bot engine for conversational UI's. (Pure Javascript)
 2. [RiveScript](https://www.rivescript.com/) A simple scripting language for giving intelligence to chatbots and other conversational entities. (Perl original, Multi-Language support)
+3. [CleverScript](https://www.cleverscript.com) Easily create text, voice or avatar bots that people can chat with in browser, app or their preferred messaging platform.
 
 ## Application
 1. [助手管家](http://72c.me/a/m/yhmhrh) It's a Official Account of wechat, which can manage your personal wechat account as a robot assistant.

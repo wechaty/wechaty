@@ -18,7 +18,7 @@ import {
 // const co    = require('co')
 // const test   = require('tape')
 
-// const log   = require('../src/npmlog-env')
+// const log   = require('../src/brolog-env')
 
 // const WebDriver = require('selenium-webdriver')
 // const Browser = WebDriver.Browser
@@ -32,7 +32,7 @@ import {
  * 
  * serial here is because we are checking browser pids inside test.
  * if 2 tests run parallel in the same process,
- * there will have race conditions for the conflict
+ * there will have race conditions for the conflict of `getBrowserPids()`
  */ 
 test.serial('WebDriver process create & quit test', async t => {
   // co(function* () {

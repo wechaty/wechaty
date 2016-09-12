@@ -12,7 +12,7 @@ const Contact = require('./contact')
 const Room    = require('./room')
 
 const UtilLib  = require('./util-lib')
-const log   = require('./npmlog-env')
+const log   = require('./brolog-env')
 
 class Message {
   constructor(rawObj) {

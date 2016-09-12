@@ -7,9 +7,12 @@ import { Wechaty, Puppet } from '../'
 test('Puppet smoking test', t => {
   const p = new Puppet()
   
-  t.is(p.readyState(), 'disconnected', 'should be disconnected state after instanciate')
-  p.readyState('connecting')
-  t.is(p.readyState(), 'connecting', 'should be connecting state after set')
+  t.is(p.targetState(), 'dead', 'should be dead target state after instanciate')
+  t.is(p.currentState(), 'dead', 'should be dead current state after instanciate')
+  p.targetState('live')
+  p.currentState('birthing')
+  t.is(p.targetState(), 'live', 'should be live target state after set')
+  t.is(p.currentState(), 'birthing', 'should be birthing current state after set')
 
   // t.end()
 })
