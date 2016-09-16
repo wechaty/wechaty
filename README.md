@@ -606,6 +606,9 @@ Github Issue <https://github.com/wechaty/wechaty/issues>
 1. [ItChat](https://github.com/littlecodersh/ItChat): 微信个人号接口（支持文件、图片上下载）、微信机器人及命令行微信。三十行即可自定义个人号机器人
 1. [WechatIrcd](https://github.com/MaskRay/wechatircd): 用IRC客户端控制微信网页版
 
+### dotNET
+1. [WeChat.NET](https://github.com/sherlockchou86/WeChat.NET) WeChat.NET client based on web wechat
+
 ## Chat Script
 1. [SuperScript](http://superscriptjs.com/) A dialog system and bot engine for conversational UI's. (Pure Javascript)
 2. [RiveScript](https://www.rivescript.com/) A simple scripting language for giving intelligence to chatbots and other conversational entities. (Perl original, Multi-Language support)
