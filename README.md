@@ -8,7 +8,7 @@ Wechaty is a Bot Framework for Wechat **Personal** Account, It can help you easy
 :octocat: <https://github.com/wechaty/wechaty>  
 :beetle: <https://github.com/wechaty/wechaty/issues>  
 :book: <https://github.com/wechaty/wechaty/wiki>  
-:whale: <https://hub.docker.com/r/wechaty/wechaty>  
+:whale: <https://hub.docker.com/r/zixia/wechaty>  
 
 [![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=2592000)](https://nodejs.org/)

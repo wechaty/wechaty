@@ -19,7 +19,7 @@ test('Config list vars', t => {
   t.truthy(Config.DEFAULT_PUPPET_PORT , 'should export DEFAULT_PUPPET_PORT')
   t.truthy(Config.DEFAULT_PROTOCOL    , 'should export DEFAULT_PROTOCOL')
   t.truthy(Config.DEFAULT_APIHOST     , 'should export DEFAULT_APIHOST')
-  t.truthy(Config.BINARY_CHROMIUM     , 'should export BINARY_CHROMIUM')
+  t.truthy(Config.CMD_CHROMIUM        , 'should export CMD_CHROMIUM')
 })
 
 test('Config methods', t => {
