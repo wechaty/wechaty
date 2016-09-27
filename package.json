@@ -25,7 +25,6 @@
     "test:phantomjs": "cross-env LC_ALL=C WECHATY_LOG=info WECHATY_HEAD=phantomjs ava --timeout=10m \"{src,test}/**/*.spec.js\"",
     "test:chrome": "cross-env LC_ALL=C WECHATY_LOG=silly WECHATY_HEAD=chrome ava --timeout=10m \"{src,test}/**/*.spec.js\"",
     "testdev": "cross-env LC_ALL=C WECHATY_LOG=silly ava --serial --verbose --fail-fast --timeout=3m",
-    "prepublish": "npm test",
     "ava": "cross-env LC_ALL=C WECHATY_LOG=verbose ava \"{src,test}/**/*.spec.js\"",
     "start": "node bin/client",
     "demo": "node example/ding-dong-bot.js"
@@ -104,7 +103,7 @@
     "sloc": "^0.1.11",
     "tslint": "^3.15.1",
     "tuling123-client": "0.0.1",
-    "typescript": "^2.1.0-dev.20160830"
+    "typescript": "^2.0.3"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [
