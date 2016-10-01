@@ -23,9 +23,14 @@ const EventEmitter  = require('events')
 
 class Server extends EventEmitter {
   constructor({
-    port = Config.DEFAULT_PUPPET_PORT // W(87) X(88), ascii char code ;-]
-  } = {}) {
+    port 
+  }) {
     super()
+
+    if (!port) {
+      throw new Error('port not found')
+    }
+    
     this.port = port 
   }
 

@@ -36,6 +36,8 @@ const Watchdog  = require('./watchdog')
 const UtilLib = require('../util-lib')
 const Config  = require('../config')
 
+const DEFAULT_PUPPET_PORT = 18788 // // W(87) X(88), ascii char code ;-]
+
 class PuppetWeb extends Puppet {
   constructor({
     head = Config.head
@@ -62,7 +64,7 @@ class PuppetWeb extends Puppet {
 
     return co.call(this, function* () {
 
-      this.port = yield UtilLib.getPort(Config.DEFAULT_PUPPET_PORT)
+      this.port = yield UtilLib.getPort(DEFAULT_PUPPET_PORT)
       log.verbose('PuppetWeb', 'init() getPort %d', this.port)
 
       yield this.initAttach(this)

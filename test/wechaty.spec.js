@@ -26,5 +26,4 @@ test('Wechaty Config setting', t => {
   t.truthy(Config.DEFAULT_HEAD    , 'should has DEFAULT_HEAD')
   t.truthy(Config.DEFAULT_PUPPET  , 'should has DEFAULT_PUPPET')
   t.truthy(Config.DEFAULT_PORT    , 'should has DEFAULT_PORT')
-  t.truthy(Config.DEFAULT_PUPPET_PORT, 'should has DEFAULT_PUPPET_PORT')
 })
