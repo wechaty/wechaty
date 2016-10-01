@@ -9,22 +9,22 @@
  * B - State B
  */
 class StateMonitor <A, B>{
-  _targetState:   A|B
-  _currentState:  [A|B, boolean]
+  private _targetState:   A|B
+  private _currentState:  [A|B, boolean]
 
-  constructor(initState : A|B) {
+  constructor(initState: A|B) {
     this.targetState(initState)
     this.currentState(initState)
   }
 
-  targetState(newState: A|B) : A|B {
+  public targetState(newState: A|B): A|B {
     if (newState) {
       this._targetState = newState
     }
     return this._targetState
   }
 
-  currentState(newState: A|B, pending = false) : [A|B, boolean] {
+  public currentState(newState: A|B, pending = false): [A|B, boolean] {
     if (newState) {
       this._currentState = [newState, pending]
     }
