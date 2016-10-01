@@ -164,6 +164,8 @@ class Bridge {
   }
 
   roomAddMember(roomId, contactId) {
+    log.verbose('PuppetWebBridge', 'roomAddMember(%s, %s)', roomId, contactId)
+
     if (!roomId || !contactId) {
       throw new Error('no roomId or contactId')
     }

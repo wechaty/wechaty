@@ -19,7 +19,7 @@ class Contact {
     this.obj  = {}
   }
 
-  toString() { return this.id }
+  toString()  { return this.id }
   toStringEx() { return `Contact(${this.obj.name}[${this.id}])` }
 
   parse(rawObj) {
@@ -40,7 +40,7 @@ class Contact {
       , stranger:   !!rawObj.stranger // assign by injectio.js
     }
   }
-  
+
   name()    { return UtilLib.plainText(this.obj.name) }
   remark()  { return this.obj.remark }
   stranger()    { return this.obj.stranger }
@@ -53,7 +53,7 @@ class Contact {
       log.warn('Contact', 'ready() call on an un-inited contact')
       return Promise.resolve(this)
     }
-    
+
     if (this.obj.id) { // already ready
       return Promise.resolve(this)
     }
@@ -86,7 +86,7 @@ class Contact {
   static find() {
     return new Contact('-1')
   }
-  
+
   static findAll() {
     return [
       new Contact   ('-2')
