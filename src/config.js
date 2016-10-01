@@ -1,6 +1,6 @@
 /**
  * Wechaty - Wechaty for Bot, Connect ChatBots, Chat as a Service
- * 
+ *
  * https://github.com/wechaty/wechaty/
  */
 const { execSync } = require('child_process')
@@ -47,13 +47,17 @@ Object.assign(Config, {
  * 4. Envioronment Identify
  */
 Object.assign(Config, {
-  isDocker:   isInsideDocker()
+  isDocker:   isWechatyDocker()
 })
 
-function isInsideDocker() {
-  const cgroup = '/proc/1/cgroup'
+function isWechatyDocker() {
+  const isCi = require('is-ci')
+  if (isCi) {
+    return false
+  }
 
-  try { accessSync(cgroup, F_OK) } 
+  const cgroup = '/proc/1/cgroup'
+  try { accessSync(cgroup, F_OK) }
   catch (e) { return false }
 
   const line = execSync(`head -1 ${cgroup}`)
