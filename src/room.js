@@ -14,6 +14,7 @@ class Room {
     log.silly('Room', `constructor(${id})`)
     this.id = id
     this.obj = {}
+    this.dirtyObj = {} // when refresh, use this to save dirty data for query
     if (!Room.puppet) {
       throw new Error('no puppet attached to Room')
     }
@@ -23,10 +24,11 @@ class Room {
   toStringEx() { return `Room(${this.obj.name}[${this.id}])` }
 
   isReady() {
-    return this.obj.members && this.obj.members.length
+    return this.obj.memberList && this.obj.memberList.length
   }
 
   refresh() {
+    this.dirtyObj = this.obj
     this.obj = {}
     return this.ready()
   }
@@ -40,7 +42,7 @@ class Room {
     } else if (this.isReady()) {
       return Promise.resolve(this)
     } else if (this.obj.id) {
-      log.warn('Room', 'ready() has obj.id but members list empty in room %s. reloading', this.obj.name)
+      log.warn('Room', 'ready() has obj.id but memberList empty in room %s. reloading', this.obj.name)
     }
 
     contactGetter = contactGetter || Room.puppet.getContact.bind(Room.puppet)
@@ -57,7 +59,7 @@ class Room {
   }
 
   name() { return UtilLib.plainText(this.obj.name) }
-  get(prop) { return this.obj[prop] }
+  get(prop) { return this.obj[prop] || this.dirtyObj[prop] }
 
   parse(rawObj) {
     if (!rawObj) {
@@ -67,7 +69,7 @@ class Room {
       id:         rawObj.UserName
       , encryId:  rawObj.EncryChatRoomId // ???
       , name:     rawObj.NickName
-      , members:  this.parseMemberList(rawObj.MemberList)
+      , memberList:  this.parseMemberList(rawObj.MemberList)
     }
   }
 
@@ -99,6 +101,37 @@ class Room {
       throw new Error('contact not found')
     }
     return Room.puppet.roomDelMember(this, contact)
+                      .then(r => this.delLocal(contact))
+  }
+
+  delLocal(contact) {
+    log.verbose('Room', 'delLocal(%s)', contact)
+
+    const memberList = this.obj.memberList
+    if (!memberList || memberList.length === 0) {
+      return true // already in refreshing
+    }
+
+    let i
+    for (i=0; i<memberList.length; i++) {
+// XXX
+// console.log('########################')
+// console.log(i)
+// console.log(memberList[i].id)
+// console.log(contact.get('id'))
+// console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!')
+      if (memberList[i].id === contact.get('id')) {
+        break
+      }
+    }
+// console.log('found i=' + i)
+    if (i < memberList.length) {
+// console.log('splicing before: ' + memberList.length)
+      memberList.splice(i, 1)
+// console.log('splicing after: ' + memberList.length)
+      return true
+    }
+    return false
   }
 
   quit() {
@@ -114,6 +147,12 @@ class Room {
     }
 
     return Room.puppet.roomAddMember(this, contact)
+  }
+
+  modTopic(topic) {
+    log.verbose('Room', 'modTopic(%s)', topic)
+
+    return Room.puppet.roomModTopic(this, topic)
   }
 
   static create(contactList) {

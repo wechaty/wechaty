@@ -474,9 +474,14 @@
   function roomAddMember(ChatRoomName, UserName) {
     const chatroomFactory = WechatyBro.glue.chatroomFactory
     // XXX
-    log(ChatRoomName)
-    log(UserName)
+    // log(ChatRoomName)
+    // log(UserName)
     return chatroomFactory.addMember(ChatRoomName, UserName)
+  }
+
+  function roomModTopic(ChatRoomName, topic) {
+    const chatroomFactory = WechatyBro.glue.chatroomFactory
+    return chatroomFactory.modTopic(ChatRoomName, topic)
   }
 
   function roomCreate(UserNameList) {
@@ -558,6 +563,7 @@
     , roomCreate
     , roomAddMember
     , roomDelMember
+    , roomModTopic
 
     // test purpose
     , isLogin: isLogin

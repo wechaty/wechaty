@@ -415,10 +415,10 @@ this.onResourceRequested = function(request, net) {
     // log.verbose('PuppetWebBrowser', `Browser.execute() driver.getSession: %s`, util.inspect(this.driver.getSession()))
     if (this.dead()) { return Promise.reject(new Error('browser dead')) }
 
-// XXX
-console.log('#############')
-console.log(script)
-console.log(args)
+    // XXX
+    // console.log('#############')
+    // console.log(script)
+    // console.log(args)
 
     return this.driver.executeScript.apply(this.driver, arguments)
     .catch(e => {

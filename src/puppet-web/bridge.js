@@ -152,6 +152,10 @@ class Bridge {
   }
 
   roomDelMember(roomId, contactId) {
+    if (!roomId || !contactId) {
+      throw new Error('no roomId or contactId')
+    }
+
     return this.proxyWechaty('roomDelMember', roomId, contactId)
                 .catch(e => {
                   log.error('PuppetWebBridge', 'roomDelMember(%s, %s) exception: %s', roomId, contactId, e.message)
@@ -160,6 +164,9 @@ class Bridge {
   }
 
   roomAddMember(roomId, contactId) {
+    if (!roomId || !contactId) {
+      throw new Error('no roomId or contactId')
+    }
     return this.proxyWechaty('roomAddMember', roomId, contactId)
                 .catch(e => {
                   log.error('PuppetWebBridge', 'roomAddMember(%s, %s) exception: %s', roomId, contactId, e.message)
@@ -167,7 +174,23 @@ class Bridge {
                 })
   }
 
+  roomModTopic(roomId, topic) {
+    if (!roomId) {
+      throw new Error('no roomId')
+    }
+
+    return this.proxyWechaty('roomModTopic', roomId, topic)
+                .catch(e => {
+                  log.error('PuppetWebBridge', 'roomModTopic(%s, %s) exception: %s', roomId, topic, e.message)
+                  throw e
+                })
+  }
+
   roomCreate(contactIdList) {
+    if (!contactIdList || !Array.isArray(contactIdList)) {
+      throw new Error('no valid contactIdList')
+    }
+
     return this.proxyWechaty('roomCreate', contactIdList)
                 .catch(e => {
                   log.error('PuppetWebBridge', 'roomCreate(%s) exception: %s', contactIdList, e.message)

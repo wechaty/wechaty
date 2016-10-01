@@ -376,7 +376,18 @@ class PuppetWeb extends Puppet {
                         log.warn('PuppetWeb', 'roomAddMember(%s) rejected: %s', contact, e.message)
                         throw e
                       })
+  }
 
+  roomModTopic(room, topic) {
+    if (!this.bridge) {
+      return Promise.reject(new Error('fail: no bridge(yet)!'))
+    }
+    const roomId    = room.get('id')
+    return this.bridge.roomModTopic(roomId, topic)
+                      .catch(e => {
+                        log.warn('PuppetWeb', 'roomModTopic(%s) rejected: %s', topic, e.message)
+                        throw e
+                      })
   }
 
   roomCreate(contactList) {
