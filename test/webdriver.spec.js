@@ -52,7 +52,7 @@ test.serial('WebDriver process create & quit test', async t => {
     await b.quit()
     t.pass('quited')
 
-    const useAva = true
+    const useAva = false
     if (!useAva) { // ava will run tests concurency...
       pids = await b.getBrowserPids()
       t.is(pids.length, 0, 'no driver process after quit')

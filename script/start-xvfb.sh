@@ -11,7 +11,7 @@
 }
 
 [ "$(ps a | grep Xvfb | grep -v grep | wc -l)" = 0 ] && {
-	Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+	Xvfb :99 -screen 0 640x480x8 > /dev/null 2>&1 &
 	echo "Xvfb started"
 
 	echo "to set env, run $ export DISPLAY=':99.0'"
