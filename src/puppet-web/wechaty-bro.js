@@ -29,87 +29,6 @@
 /*global angular*/
 
 (function(port) {
-  port = port || 8788
-
-  /*
-   * WechatyBro injectio must return this object.
-   * PuppetWebBridge need this to decide if injection is successful.
-   */
-  var retObj = {
-    code: 200 // 2XX ok, 4XX/5XX error. HTTP like
-    , message: 'any message'
-    , port: port
-  }
-
-  if (typeof this.WechatyBro !== 'undefined') {
-    retObj.code = 201
-    retObj.message = 'WechatyBro already injected?'
-    return retObj
-  }
-
-  var WechatyBro = {
-    glue: {
-      // will be initialized by glueToAngular() function
-    }
-
-    // glue funcs
-    // , getLoginStatusCode: function() { return WechatyBro.glue.loginScope.code }
-    // , getLoginQrImgUrl:   function() { return WechatyBro.glue.loginScope.qrcodeUrl }
-    , angularIsReady:    angularIsReady
-
-    // variable
-    , vars: {
-      loginStatus:      false
-      , initStatus:     false
-
-      , socket:     null
-      , eventsBuf:  []
-      , scanCode:   null
-      , heartBeatTimmer:   null
-    }
-
-    // funcs
-    , init: init  // initialize WechatyBro @ Browser
-    , send: send  // send message to wechat user
-    , clog: clog  // log to Console
-    , slog: slog  // log to SocketIO
-    , log:  log   // log to both Console & SocketIO
-    , ding: ding  // simple return 'dong'
-    , quit: quit  // quit wechat
-    , emit: emit  // send event to server
-    , logout: logout // logout current logined user
-    
-    , getContact: getContact
-    , getUserName: getUserName
-    , getMsgImg: getMsgImg
-
-    // test purpose
-    , isLogin: isLogin
-    , initClog: initClog
-  }
-
-  this.WechatyBro = WechatyBro
-  retObj.code = 200
-  retObj.message = 'WechatyBro Inject Succ'
-  return retObj
-
-  /**
-   * Two return mode of WebDriver (should be one of them at a time)
-   * 1. a callback. return a value by call callback with args
-   * 2. direct return
-   */
-  // var callback = arguments[arguments.length - 1]
-  // if (typeof callback === 'function') {
-  //   return callback(retObj)
-  // } else {
-  // return retObj
-  // }
-
-  retObj.code = 500
-  retObj.message = 'SHOULD NOT RUN TO HERE'
-  return retObj
-
-  /////////////////////////////////////////////////////////////////////////////
 
   function init() {
     if (!angularIsReady()) {
@@ -273,12 +192,14 @@
 
     var accountFactory  = injector.get('accountFactory')
     var appFactory      = injector.get('appFactory')
+    var chatroomFactory = injector.get('chatroomFactory')
     var chatFactory     = injector.get('chatFactory')
     var contactFactory  = injector.get('contactFactory')
     var confFactory     = injector.get('confFactory')
     var loginFactory    = injector.get('loginFactory')
 
     var http            = injector.get('$http')
+    var state           = injector.get('$state')
     var mmHttp          = injector.get('mmHttp')
 
     var appScope    = angular.element('[ng-controller="appController"]').scope()
@@ -323,8 +244,10 @@
     WechatyBro.glue = {
       injector:       injector
       , http:         http
+      , state
 
       , accountFactory: accountFactory
+      , chatroomFactory
       , chatFactory:    chatFactory
       , confFactory:    confFactory
       , contactFactory: contactFactory
@@ -527,5 +450,137 @@
             ? accountFactory.getUserName()
             : null
   }
+
+  function roomFind(filterFunction) {
+    var contactFactory = WechatyBro.glue.contactFactory
+
+    var match
+    if (!filterFunction) {
+      match = function() { return true }
+    } else {
+      match = eval(filterFunction)
+    }
+    // log(match.toString())
+    return contactFactory.getAllChatroomContact()
+                          .filter(r => match(r.NickName))
+                          .map(r => r.UserName)
+  }
+
+  function roomDelMember(ChatRoomName, UserName) {
+    const chatroomFactory = WechatyBro.glue.chatroomFactory
+    return chatroomFactory.delMember(ChatRoomName, UserName)
+  }
+
+  function roomAddMember(ChatRoomName, UserName) {
+    const chatroomFactory = WechatyBro.glue.chatroomFactory
+    // XXX
+    log(ChatRoomName)
+    log(UserName)
+    return chatroomFactory.addMember(ChatRoomName, UserName)
+  }
+
+  function roomCreate(UserNameList) {
+    const UserNameListArg = UserNameList.map(n => { return { UserName: n } })
+
+    const chatroomFactory = WechatyBro.glue.chatroomFactory
+    chatroomFactory.create(UserNameListArg)
+                    .then(r => {
+                      if (r.BaseResponse && 0 == r.BaseResponse.Ret || -2013 == e.BaseResponse.Ret) {
+                        // be careful: key name is userName, not UserName! 20161001
+                        WechatyBro.glue.state.go('chat', { userName: r.ChatRoomName })
+                      }
+                    })
+                    .catch(e => {
+                      // TBD
+                      console.log(e)
+                    })
+    return 'no callback (yet)'
+  }
+  /////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+
+  port = port || 8788
+
+  /*
+   * WechatyBro injectio must return this object.
+   * PuppetWebBridge need this to decide if injection is successful.
+   */
+  var retObj = {
+    code: 200 // 2XX ok, 4XX/5XX error. HTTP like
+    , message: 'any message'
+    , port: port
+  }
+
+  if (typeof this.WechatyBro !== 'undefined') {
+    retObj.code = 201
+    retObj.message = 'WechatyBro already injected?'
+    return retObj
+  }
+
+  var WechatyBro = {
+    glue: {
+      // will be initialized by glueToAngular() function
+    }
+
+    // glue funcs
+    // , getLoginStatusCode: function() { return WechatyBro.glue.loginScope.code }
+    // , getLoginQrImgUrl:   function() { return WechatyBro.glue.loginScope.qrcodeUrl }
+    , angularIsReady:    angularIsReady
+
+    // variable
+    , vars: {
+      loginStatus:      false
+      , initStatus:     false
+
+      , socket:     null
+      , eventsBuf:  []
+      , scanCode:   null
+      , heartBeatTimmer:   null
+    }
+
+    // funcs
+    , init: init  // initialize WechatyBro @ Browser
+    , send: send  // send message to wechat user
+    , clog: clog  // log to Console
+    , slog: slog  // log to SocketIO
+    , log:  log   // log to both Console & SocketIO
+    , ding: ding  // simple return 'dong'
+    , quit: quit  // quit wechat
+    , emit: emit  // send event to server
+    , logout: logout // logout current logined user
+
+    , getContact: getContact
+    , getUserName: getUserName
+    , getMsgImg: getMsgImg
+
+    , roomFind
+    , roomCreate
+    , roomAddMember
+    , roomDelMember
+
+    // test purpose
+    , isLogin: isLogin
+    , initClog: initClog
+  }
+
+  this.WechatyBro = WechatyBro
+  retObj.code = 200
+  retObj.message = 'WechatyBro Inject Succ'
+
+  /**
+   * Two return mode of WebDriver (should be one of them at a time)
+   * 1. a callback. return a value by call callback with args
+   * 2. direct return
+   */
+  var callback = arguments[arguments.length - 1]
+  if (typeof callback === 'function') {
+    return callback(retObj)
+  }
+  return retObj
+
+  // retObj.code = 500
+  // retObj.message = 'SHOULD NOT RUN TO HERE'
+  // return retObj
 
 }.apply(window, arguments))

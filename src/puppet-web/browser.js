@@ -33,7 +33,7 @@ class Browser extends EventEmitter {
     this.sessionFile = sessionFile // a file to save session cookies
 
     // this.live = false
-    
+
     this.targetState('close')
     this.currentState('close')
   }
@@ -79,9 +79,9 @@ class Browser extends EventEmitter {
 
       /**
        * XXX
-       * 
+       *
        * when open url, there could happen a quit() call.
-       * should check here: if we are in `close` target state, we should clean up 
+       * should check here: if we are in `close` target state, we should clean up
        */
       if (this.targetState() === 'open') {
         this.currentState('open')
@@ -174,7 +174,7 @@ class Browser extends EventEmitter {
                         .withCapabilities(customChrome)
                         .build()
   }
- 
+
   getPhantomJsDriver() {
     // setup custom phantomJS capability https://github.com/SeleniumHQ/selenium/issues/2069
     const phantomjsExe = require('phantomjs-prebuilt').path
@@ -187,9 +187,9 @@ class Browser extends EventEmitter {
       , '--ssl-protocol=any'        // http://stackoverflow.com/a/26503588/1123955
       //, '--ssl-protocol=TLSv1'    // https://github.com/ariya/phantomjs/issues/11239#issuecomment-42362211
 
-      // issue: Secure WebSocket(wss) do not work with Self Signed Certificate in PhantomJS #12 
+      // issue: Secure WebSocket(wss) do not work with Self Signed Certificate in PhantomJS #12
       // , '--ssl-certificates-path=D:\\cygwin64\\home\\zixia\\git\\wechaty' // http://stackoverflow.com/a/32690349/1123955
-      // , '--ssl-client-certificate-file=cert.pem' // 
+      // , '--ssl-client-certificate-file=cert.pem' //
     ]
 
     if (process.env.WECHATY_DEBUG) {
@@ -215,7 +215,7 @@ class Browser extends EventEmitter {
     const driver = new WebDriver.Builder()
                                 .withCapabilities(customPhantom)
                                 .build()
-    
+
 		/**
 		 *  FIXME: ISSUE #21 - https://github.com/zixia/wechaty/issues/21
 	 	 *
@@ -237,7 +237,7 @@ this.onResourceRequested = function(request, net) {
 
     // https://github.com/detro/ghostdriver/blob/f976007a431e634a3ca981eea743a2686ebed38e/src/session.js#L233
     // driver.manage().timeouts().pageLoadTimeout(2000)
-    
+
     return driver
   }
 
@@ -270,10 +270,10 @@ this.onResourceRequested = function(request, net) {
       log.silly('PuppetWebBrowser', 'quit() this.driver = null')
 
       /**
-       * 
-       * if we use AVA to test, then this.clean will cause problems 
+       *
+       * if we use AVA to test, then this.clean will cause problems
        * because there will be more than one instance of browser with the same nodejs process id
-       * 
+       *
        */
       yield this.clean()
 
@@ -335,7 +335,7 @@ this.onResourceRequested = function(request, net) {
 
   getBrowserPids() {
     log.silly('PuppetWebBrowser', 'getBrowserPids()')
-    
+
     return new Promise((resolve, reject) => {
       require('ps-tree')(process.pid, (err, children) => {
         if (err) {
@@ -415,6 +415,11 @@ this.onResourceRequested = function(request, net) {
     // log.verbose('PuppetWebBrowser', `Browser.execute() driver.getSession: %s`, util.inspect(this.driver.getSession()))
     if (this.dead()) { return Promise.reject(new Error('browser dead')) }
 
+// XXX
+console.log('#############')
+console.log(script)
+console.log(args)
+
     return this.driver.executeScript.apply(this.driver, arguments)
     .catch(e => {
       // this.dead(e)
@@ -478,7 +483,7 @@ this.onResourceRequested = function(request, net) {
       // this.live = false
       this.currentState('closing')
       this.quit().then(_ => this.currentState('close'))
-      
+
       // must use nextTick here, or promise will hang... 2016/6/10
       process.nextTick(_ => {
         log.verbose('PuppetWebBrowser', 'dead() emit a `dead` event because %s', errMsg)
@@ -548,7 +553,7 @@ this.onResourceRequested = function(request, net) {
         else                             { return true }
       })
     }
-  
+
     return new Promise((resolve, reject) => {
       this.driver.manage().getCookies()
       .then(cookieFilter)

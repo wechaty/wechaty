@@ -26,6 +26,7 @@
     "testdev": "cross-env LC_ALL=C WECHATY_LOG=silly ava --serial --verbose --fail-fast --timeout=3m",
     "ava": "cross-env LC_ALL=C WECHATY_LOG=verbose ava \"{src,test}/**/*.spec.js\"",
     "start": "node bin/client",
+    "dev": "node t.js",
     "demo": "node example/ding-dong-bot.js"
   },
   "repository": {

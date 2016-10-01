@@ -204,7 +204,7 @@ class PuppetWeb extends Puppet {
       log.warn('PuppetWeb', 'initBridge() found targetState != live, no init anymore')
       return Promise.resolve('skipped')
     }
-    
+
     return bridge.init()
                 .catch(e => {
                   if (!this.browser){
@@ -229,9 +229,9 @@ class PuppetWeb extends Puppet {
 
     /**
      * @depreciated 20160825 zixia
-     * 
+     *
      * when `unload` there should always be a `disconnect` event?
-     */ 
+     */
     // server.on('unload'  , Event.onServerUnload.bind(this))
 
     server.on('connection', Event.onServerConnection.bind(this))
@@ -322,7 +322,7 @@ class PuppetWeb extends Puppet {
     if (!this.bridge) {
       throw new Error('PuppetWeb has no bridge for getContact()')
     }
-    
+
     return this.bridge.getContact(id)
                       .catch(e => {
                         log.error('PuppetWeb', 'getContact(%d) exception: %s', id, e.message)
@@ -340,6 +340,64 @@ class PuppetWeb extends Puppet {
                         throw e
                       })
   }
+
+  roomFind(filterFunction) {
+    if (!this.bridge) {
+      return Promise.reject(new Error('findRoom fail: no bridge(yet)!'))
+    }
+    return this.bridge.roomFind(filterFunction)
+                      .catch(e => {
+                        log.warn('PuppetWeb', 'roomFind(%s) rejected: %s', filterFunction, e.message)
+                        throw e
+                      })
+  }
+
+  roomDelMember(room, contact) {
+    if (!this.bridge) {
+      return Promise.reject(new Error('roomDelMember fail: no bridge(yet)!'))
+    }
+    const roomId    = room.get('id')
+    const contactId = contact.get('id')
+    return this.bridge.roomDelMember(roomId, contactId)
+                      .catch(e => {
+                        log.warn('PuppetWeb', 'roomDelMember(%s) rejected: %s', contact, e.message)
+                        throw e
+                      })
+  }
+
+  roomAddMember(room, contact) {
+    if (!this.bridge) {
+      return Promise.reject(new Error('fail: no bridge(yet)!'))
+    }
+    const roomId    = room.get('id')
+    const contactId = contact.get('id')
+    return this.bridge.roomAddMember(roomId, contactId)
+                      .catch(e => {
+                        log.warn('PuppetWeb', 'roomAddMember(%s) rejected: %s', contact, e.message)
+                        throw e
+                      })
+
+  }
+
+  roomCreate(contactList) {
+    if (!this.bridge) {
+      return Promise.reject(new Error('fail: no bridge(yet)!'))
+    }
+
+    if (!contactList || ! typeof contactList === 'array') {
+      throw new Error('contactList not found')
+    }
+
+    const contactIdList = contactList.map(c => c.get('id'))
+
+    return this.bridge.roomCreate(contactIdList)
+                      .catch(e => {
+                        log.warn('PuppetWeb', 'roomCreate(%s) rejected: %s', contact, e.message)
+                        throw e
+                      })
+
+  }
+
 }
 
 module.exports = PuppetWeb.default = PuppetWeb.PuppetWeb = PuppetWeb

@@ -108,9 +108,9 @@ class Bridge {
 
     /**
      * Do not insert `return` in front of the code.
-     * because the new line `\n` will cause return nothing at all 
+     * because the new line `\n` will cause return nothing at all
      */
-    return 'rejectioReturnValue = ' 
+    return 'rejectioReturnValue = '
               + fs.readFileSync(
                 path.join(__dirname, 'wechaty-bro.js')
                 , 'utf8'
@@ -141,6 +141,38 @@ class Bridge {
                 log.error('PuppetWebBridge', 'getUserName() exception: %s', e.message)
                 throw e
               })
+  }
+
+  roomFind(filterFunction) {
+    return this.proxyWechaty('roomFind', filterFunction)
+                .catch(e => {
+                  log.error('PuppetWebBridge', 'roomFind() exception: %s', e.message)
+                  throw e
+                })
+  }
+
+  roomDelMember(roomId, contactId) {
+    return this.proxyWechaty('roomDelMember', roomId, contactId)
+                .catch(e => {
+                  log.error('PuppetWebBridge', 'roomDelMember(%s, %s) exception: %s', roomId, contactId, e.message)
+                  throw e
+                })
+  }
+
+  roomAddMember(roomId, contactId) {
+    return this.proxyWechaty('roomAddMember', roomId, contactId)
+                .catch(e => {
+                  log.error('PuppetWebBridge', 'roomAddMember(%s, %s) exception: %s', roomId, contactId, e.message)
+                  throw e
+                })
+  }
+
+  roomCreate(contactIdList) {
+    return this.proxyWechaty('roomCreate', contactIdList)
+                .catch(e => {
+                  log.error('PuppetWebBridge', 'roomCreate(%s) exception: %s', contactIdList, e.message)
+                  throw e
+                })
   }
 
   send(toUserName, content) {

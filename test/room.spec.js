@@ -9,14 +9,6 @@ import {
 
 Room.attach(new Puppet())
 
-// const test = require('tape')
-// const Message = require('../src/message')
-// const Room = require('../src/room')
-// const Contact = require('../src/contact')
-// const Puppet = require('../src/puppet')
-// const log = require('../src/brolog-env')
-
-
 test('Room smoke testing', async t => {
 
   const UserName = '@0bb3e4dd746fdbd4a80546aef66f4085'

@@ -3809,7 +3809,11 @@ angular.module("Services", []),
                 }).error(function() {}),
                 i.promise
             },
-            pickContacts: function(e, t, o) {
+            pickContacts: function(
+              e: string[]
+              , t: {} filter
+              , o: boolean?
+            ) {
                 for (var n, r, a, i = [], c = this, s = t.all || {}, l = 0; l < e.length; l++)
                     switch (n = e[l],
                     a = t[n] || {},

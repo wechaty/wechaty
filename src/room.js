@@ -22,15 +22,25 @@ class Room {
   toString()   { return this.id }
   toStringEx() { return `Room(${this.obj.name}[${this.id}])` }
 
+  isReady() {
+    return this.obj.members && this.obj.members.length
+  }
+
+  refresh() {
+    this.obj = {}
+    return this.ready()
+  }
+
   ready(contactGetter) {
     log.silly('Room', 'ready(%s)', contactGetter ? contactGetter.constructor.name : '')
     if (!this.id) {
-      log.warn('Room', 'ready() on a un-inited Room')
-      return Promise.resolve(this)
-    } else if (this.obj.members && this.obj.members.length) {
+      const e = new Error('ready() on a un-inited Room')
+      log.warn('Room', e.message)
+      return Promise.reject(e)
+    } else if (this.isReady()) {
       return Promise.resolve(this)
     } else if (this.obj.id) {
-      log.warn('Room', 'ready() ready but members list empty in room %s. reloading', this.obj.name)
+      log.warn('Room', 'ready() has obj.id but members list empty in room %s. reloading', this.obj.name)
     }
 
     contactGetter = contactGetter || Room.puppet.getContact.bind(Room.puppet)
@@ -50,7 +60,10 @@ class Room {
   get(prop) { return this.obj[prop] }
 
   parse(rawObj) {
-    return !rawObj ? {} : {
+    if (!rawObj) {
+      return {}
+    }
+    return {
       id:         rawObj.UserName
       , encryId:  rawObj.EncryChatRoomId // ???
       , name:     rawObj.NickName
@@ -79,33 +92,132 @@ class Room {
     Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj[k]}`))
   }
 
-  static find() {
-    return new Room('-1')
+  del(contact) {
+    log.verbose('Room', 'del(%s) from %s', contact, this)
+
+    if (!contact) {
+      throw new Error('contact not found')
+    }
+    return Room.puppet.roomDelMember(this, contact)
   }
-  
-  static findAll() {
-    return [
-      new Room('-2')
-      , new Room('-3')
-    ]
+
+  quit() {
+    throw new Error('wx web not implement yet')
+    // WechatyBro.glue.chatroomFactory.quit("@@1c066dfcab4ef467cd0a8da8bec90880035aa46526c44f504a83172a9086a5f7"
   }
+
+  add(contact) {
+    log.verbose('Room', 'add(%s) to %s', contact, this)
+
+    if (!contact) {
+      throw new Error('contact not found')
+    }
+
+    return Room.puppet.roomAddMember(this, contact)
+  }
+
+  static create(contactList) {
+    log.verbose('Room', 'create(%s)', contactList.join(','))
+
+    if (!contactList || ! typeof contactList === 'array') {
+      throw new Error('contactList not found')
+    }
+    return Room.puppet.roomCreate(contactList)
+  }
+
+  // private
+  static _find({
+    name
+  }) {
+    log.silly('Room', '_find(%s)', name)
+
+    if (!name) {
+      throw new Error('name not found')
+    }
+
+    let filterFunction
+    if (name instanceof RegExp) {
+      filterFunction = `c => ${name.toString()}.test(c)`
+    } else if (typeof name === 'string') {
+      filterFunction = `c => c === ${name}`
+    } else {
+      throw new Error('unsupport name type')
+    }
+
+    return Room.puppet.roomFind(filterFunction)
+              .then(idList => {
+                return idList
+              })
+              .catch(e => {
+                log.error('Room', '_find() rejected: %s', e.message)
+                throw e
+              })
+  }
+
+  static find({
+    name
+  }) {
+    log.verbose('Room', 'find(%s)', name)
+
+    return Room._find({name})
+              .then(idList => {
+                if (!idList || !Array.isArray(idList)){
+                  throw new Error('_find return error')
+                }
+                if (idList.length < 1) {
+                  return null
+                }
+                const id = idList[0]
+                return Room.load(id)
+              })
+              .catch(e => {
+                log.error('Room', 'find() rejected: %s', e.message)
+                return [] // fail safe
+              })
+  }
+
+  static findAll({
+    name
+  }) {
+    log.verbose('Room', 'findAll(%s)', name)
+
+    return Room._find({name})
+              .then(idList => {
+                // console.log(idList)
+                if (!idList || !Array.isArray(idList)){
+                  throw new Error('_find return error')
+                }
+                if (idList.length < 1) {
+                  return []
+                }
+                return idList.map(i => Room.load(i))
+              })
+              .catch(e => {
+                log.error('Room', 'findAll() rejected: %s', e.message)
+                throw e
+              })
+  }
+
+  static init() { Room.pool = {} }
+
+  static load(id) {
+    if (!id) { return null }
+
+    if (id in Room.pool) {
+      return Room.pool[id]
+    }
+    return Room.pool[id] = new Room(id)
+  }
+
+  static attach(puppet) {
+    // if (!puppet) {
+    //   throw new Error('Room.attach got no puppet to attach!')
+    // }
+    Room.puppet = puppet
+  }
+
 }
 
-Room.init = function() { Room.pool = {} }
 Room.init()
-Room.load = function(id) {
-  if (!id) { return null }
-
-  if (id in Room.pool) {
-    return Room.pool[id]
-  }
-  return Room.pool[id] = new Room(id)
-}
-Room.attach = function(puppet) {
-  // if (!puppet) {
-  //   throw new Error('Room.attach got no puppet to attach!')
-  // }
-  Room.puppet = puppet
-}
 
 module.exports = Room
