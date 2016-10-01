@@ -3,6 +3,9 @@
  * 
  * https://github.com/wechaty/wechaty/
  */
+const { execSync } = require('child_process')
+const { accessSync, F_OK } = require('fs')
+
 const Config = require('../package.json').wechaty
 
 /**
@@ -44,7 +47,24 @@ Object.assign(Config, {
  * 4. Envioronment Identify
  */
 Object.assign(Config, {
-  isDocker:   !!(process.env.WECHATY_DOCKER)
+  isDocker:   isInsideDocker()
 })
+
+function isInsideDocker() {
+  const cgroup = '/proc/1/cgroup'
+
+  try { accessSync(cgroup, F_OK) } 
+  catch (e) { return false }
+
+  const line = execSync(`head -1 ${cgroup}`)
+                .toString()
+                .replace(/\n$/, '')
+
+  if (/\/$/.test(line)) {
+    return false
+  }
+  // instead of '/', docker will end with container id
+  return true
+}
 
 module.exports = Config.default = Config.Config = Config

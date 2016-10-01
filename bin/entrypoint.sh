@@ -13,7 +13,9 @@ echo "Starting Wechaty v$(wechaty-version) ..."
 echo
 
 # to identify run env (for tests)
-export WECHATY_DOCKER='docker'
+# @deprecated 20161001, use cgroup to test 
+# export WECHATY_DOCKER='docker'
+
 # set CI here, in order to force ava to output use --verbose param, which is fit docker console log
 export CI="FORCE_AVA_OUTPUT_VERBOSE"
 
