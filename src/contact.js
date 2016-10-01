@@ -25,7 +25,7 @@ class Contact {
   parse(rawObj) {
     return !rawObj ? {} : {
       id:           rawObj.UserName
-      , uin:        rawObj.Uin  // stable id? 4763975
+      , uin:        rawObj.Uin    // stable id? 4763975 || getCookie("wxuin")
       , weixin:     rawObj.Alias  // Wechat ID
       , name:       rawObj.NickName
       , remark:     rawObj.RemarkName
