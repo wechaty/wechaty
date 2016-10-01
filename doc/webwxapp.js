@@ -1454,7 +1454,24 @@ angular.module("Controllers", []),
 }(),
 !function() {
     "use strict";
-    angular.module("Controllers").controller("createChatroomController", ["$rootScope", "$scope", "$timeout", "$state", "$log", "$document", "chatFactory", "contactFactory", "appFactory", "chatroomFactory", "confFactory", "mmpop", "ngDialog", "utilFactory", "stateManageService", "accountFactory", function(e, t, o, n, r, a, i, c, s, l, u, f, d, g, m, p) {
+    angular.module("Controllers").controller("createChatroomController", ["$rootScope", "$scope", "$timeout", "$state", "$log", "$document", "chatFactory", "contactFactory", "appFactory", "chatroomFactory", "confFactory", "mmpop", "ngDialog", "utilFactory", "stateManageService", "accountFactory", function(
+      e   // $rootScope
+      , t // $scope
+      , o // $timeout
+      , n // $state
+      , r // $log
+      , a // $document
+      , i // chatFactory
+      , c // contactFactory
+      , s // appFactory
+      , l // chatroomFactory
+      , u // confFactory
+      , f // mmpop
+      , d // ngDialog
+      , g // utilFactory
+      , m // stateManageService
+      , p // accountFactory
+    ) {
         o(function() {
             t.ngDialogData.isCreate && (h = []),
             t.allContacts = c.pickContacts(["star", "friend"], {
@@ -1494,7 +1511,7 @@ angular.module("Controllers", []),
             angular.forEach(t.selectedUsers, function(e) {
                 o.push(e.UserName)
             }),
-            l.addMember(e.UserName, o.join(","), function(e) {
+            (l as chatroomFactory).addMember(e.UserName, o.join(","), function(e) {
                 e.BaseResponse && 0 != e.BaseResponse.Ret && -2013 != e.BaseResponse.Ret && d.openConfirm({
                     className: "default ",
                     templateUrl: "comfirmTips.html",
@@ -2843,16 +2860,17 @@ angular.module("Services", []),
 !function() {
     "use strict";
     angular.module("Services").factory("chatroomFactory", ["$rootScope", "$timeout", "$http", "$q", "contactFactory", "accountFactory", "emojiFactory", "confFactory", "utilFactory", "reportService", "mmHttp", function(
-        e
-        , t
-        , o
-        , n
-        , r
-        , a
-        , i
-        , c
-        , s
-        , l
+        e   // $rootScope
+        , t // $timeout
+        , o // $http
+        , n // $q
+        , r // contactFactory
+        , a // accountFactory
+        , i // emojiFactory
+        , c // confFactory
+        , s // utilFactory
+        , l // reportService
+        , _ // mmHttp ?
         ) {
         var u, f = {}, d = {
             setCurrentContact: function(e) {
