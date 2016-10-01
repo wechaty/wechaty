@@ -20,8 +20,8 @@ class Room {
     }
   }
 
-  toString()   { return this.id }
-  toStringEx() { return `Room(${this.obj.name}[${this.id}])` }
+  toString()    { return this.id }
+  toStringEx()  { return `Room(${this.obj.name}[${this.id}])` }
 
   isReady() {
     return this.obj.memberList && this.obj.memberList.length
@@ -178,7 +178,7 @@ class Room {
     if (name instanceof RegExp) {
       filterFunction = `c => ${name.toString()}.test(c)`
     } else if (typeof name === 'string') {
-      filterFunction = `c => c === ${name}`
+      filterFunction = `c => c === '${name}'`
     } else {
       throw new Error('unsupport name type')
     }
