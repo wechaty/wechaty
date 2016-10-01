@@ -48,16 +48,26 @@ function onBrowserDead(e) {
   log.verbose('PuppetWebEvent', 'onBrowserDead(%s)', e && e.message || e)
   // because this function is async, so maybe entry more than one times.
   // guard by variable: isBrowserBirthing to prevent the 2nd time entrance.
-  if (this.isBrowserBirthing) {
-    log.warn('PuppetWebEvent', 'onBrowserDead() is busy, this call will return now. stack: %s', (new Error()).stack)
+  // if (this.isBrowserBirthing) {
+  //   log.warn('PuppetWebEvent', 'onBrowserDead() is busy, this call will return now. stack: %s', (new Error()).stack)
+  //   return
+  // }
+
+  if (this.browser && this.browser.targetState() !== 'open') {
+    log.verbose('PuppetWebEvent', 'onBrowserDead() will do nothing because browser.targetState !== open')
+    return
+  }
+
+  if (this.browser && this.browser.currentState() === 'opening') {
+    log.warn('PuppetWebEvent', 'onBrowserDead() will do nothing because browser.currentState = opening. stack: %s', (new Error()).stack)
     return
   }
 
   this.scan = null
   
   return co.call(this, function* () {
-    log.verbose('PuppetWebEvent', 'onBrowserDead() co() set isBrowserBirthing true')
-    this.isBrowserBirthing = true
+    // log.verbose('PuppetWebEvent', 'onBrowserDead() co() set isBrowserBirthing true')
+    // this.isBrowserBirthing = true
 
     const TIMEOUT = 180000 // 180s / 3m
     // this.watchDog(`onBrowserDead() set a timeout of ${Math.floor(TIMEOUT / 1000)} seconds to prevent unknown state change`, {timeout: TIMEOUT})
@@ -76,9 +86,14 @@ function onBrowserDead(e) {
 
     yield this.browser.quit()
                       .catch(e => { // fail safe
-                        log.warn('PuppetWebEvent', 'browser.quit() exception: %s', e.message)
+                        log.warn('PuppetWebEvent', 'browser.quit() exception: %s, %s', e.message, e.stack)
                       })
     log.verbose('PuppetWebEvent', 'onBrowserDead() old browser quited')
+
+    if (this.browser.targetState() !== 'open') {
+      log.warn('PuppetWebEvent', 'onBrowserDead() will not init browser because browser.targetState !== open')
+      return
+    }
 
     this.browser = yield this.initBrowser()
     log.verbose('PuppetWebEvent', 'onBrowserDead() new browser inited')
@@ -104,7 +119,7 @@ function onBrowserDead(e) {
   })
   .then(() => { // Finally
     log.verbose('PuppetWebEvent', 'onBrowserDead() new browser borned')
-    this.isBrowserBirthing = false
+    // this.isBrowserBirthing = false
 
     this.emit('watchdog', {
       data: `onBrowserDead() new browser borned`
