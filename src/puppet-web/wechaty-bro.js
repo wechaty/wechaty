@@ -488,11 +488,11 @@
     const UserNameListArg = UserNameList.map(n => { return { UserName: n } })
 
     const chatroomFactory = WechatyBro.glue.chatroomFactory
+    const state           = WechatyBro.glue.state
     chatroomFactory.create(UserNameListArg)
                     .then(r => {
                       if (r.BaseResponse && 0 == r.BaseResponse.Ret || -2013 == e.BaseResponse.Ret) {
-                        // be careful: key name is userName, not UserName! 20161001
-                        WechatyBro.glue.state.go('chat', { userName: r.ChatRoomName })
+                        state.go('chat', { userName: r.ChatRoomName }) // BE CAREFUL: key name is userName, not UserName! 20161001
                       }
                     })
                     .catch(e => {
@@ -501,6 +501,7 @@
                     })
     return 'no callback (yet)'
   }
+
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
@@ -559,6 +560,7 @@
     , getUserName: getUserName
     , getMsgImg: getMsgImg
 
+    // for Wechaty Room Class
     , roomFind
     , roomCreate
     , roomAddMember

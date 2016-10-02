@@ -352,7 +352,7 @@ class PuppetWeb extends Puppet {
                       })
   }
 
-  roomDelMember(room, contact) {
+  roomDel(room, contact) {
     if (!this.bridge) {
       return Promise.reject(new Error('roomDelMember fail: no bridge(yet)!'))
     }
@@ -365,7 +365,7 @@ class PuppetWeb extends Puppet {
                       })
   }
 
-  roomAddMember(room, contact) {
+  roomAdd(room, contact) {
     if (!this.bridge) {
       return Promise.reject(new Error('fail: no bridge(yet)!'))
     }
@@ -378,14 +378,17 @@ class PuppetWeb extends Puppet {
                       })
   }
 
-  roomModTopic(room, topic) {
+  roomTopic(room, topic) {
     if (!this.bridge) {
       return Promise.reject(new Error('fail: no bridge(yet)!'))
+    } else if (!room || typeof topic === 'undefined') {
+      return Promise.reject(new Error('room or topic not found'))
     }
-    const roomId    = room.id
+
+    const roomId = room.id
     return this.bridge.roomModTopic(roomId, topic)
                       .catch(e => {
-                        log.warn('PuppetWeb', 'roomModTopic(%s) rejected: %s', topic, e.message)
+                        log.warn('PuppetWeb', 'roomTopic(%s) rejected: %s', topic, e.message)
                         throw e
                       })
   }

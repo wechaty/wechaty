@@ -4,10 +4,11 @@ import {
   , Room
   , Contact
   , Puppet
+  , PuppetWeb
   , log
 }  from '../'
 
-Room.attach(new Puppet())
+Room.attach(new PuppetWeb())
 
 test('Room smoke testing', async t => {
 
@@ -37,7 +38,7 @@ test('Room smoke testing', async t => {
 
   // .then(r => {
     t.is(r.get('id')   , UserName, 'UserName set')
-    t.is(r.get('name') , NickName, 'NickName set')
+    t.is(r.get('topic') , NickName, 'NickName set')
     t.is(r.get('encryId') , EncryChatRoomId, 'EncryChatRoomId set')
 
     const s = r.toString()
@@ -65,22 +66,18 @@ test('Room smoke testing', async t => {
 })
 */
 
-test('TBW: Room static method', t => {
-  const r = Room.find({
-    id: 'xxx'
-  }, {
-    limit: 1
+test('Room static method', async t => {
+  const room = await Room.find({
+    name: 'xxx'
   })
 
-  t.truthy(r.id, 'Room.find')
+  t.truthy(room === null, 'should return null before login')
 
-  const rs = Room.findAll({
-    from: 'yyy'
-  }, {
-    limit: 2
+  const roomList = await Room.findAll({
+    name: 'yyy'
   })
 
-  t.is(rs.length, 2, 'Room.findAll with limit 2')
+  t.is(roomList.length, 0, 'should return empty array before login')
 
   // t.end()
 })

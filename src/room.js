@@ -21,8 +21,9 @@ class Room {
   }
 
   toString()    { return this.id }
-  toStringEx()  { return `Room(${this.obj.name}[${this.id}])` }
+  toStringEx()  { return `Room(${this.obj.topic}[${this.id}])` }
 
+  // @private
   isReady() {
     return this.obj.memberList && this.obj.memberList.length
   }
@@ -42,7 +43,7 @@ class Room {
     } else if (this.isReady()) {
       return Promise.resolve(this)
     } else if (this.obj.id) {
-      log.warn('Room', 'ready() has obj.id but memberList empty in room %s. reloading', this.obj.name)
+      log.warn('Room', 'ready() has obj.id but memberList empty in room %s. reloading', this.obj.topic)
     }
 
     contactGetter = contactGetter || Room.puppet.getContact.bind(Room.puppet)
@@ -58,7 +59,7 @@ class Room {
     })
   }
 
-  name() { return UtilLib.plainText(this.obj.name) }
+  name() { return UtilLib.plainText(this.obj.topic) }
   get(prop) { return this.obj[prop] || this.dirtyObj[prop] }
 
   parse(rawObj) {
@@ -68,7 +69,7 @@ class Room {
     return {
       id:         rawObj.UserName
       , encryId:  rawObj.EncryChatRoomId // ???
-      , name:     rawObj.NickName
+      , topic:    rawObj.NickName
       , memberList:  this.parseMemberList(rawObj.MemberList)
     }
   }
@@ -100,10 +101,11 @@ class Room {
     if (!contact) {
       throw new Error('contact not found')
     }
-    return Room.puppet.roomDelMember(this, contact)
+    return Room.puppet.roomDel(this, contact)
                       .then(r => this.delLocal(contact))
   }
 
+  // @private
   delLocal(contact) {
     log.verbose('Room', 'delLocal(%s)', contact)
 
@@ -146,13 +148,17 @@ class Room {
       throw new Error('contact not found')
     }
 
-    return Room.puppet.roomAddMember(this, contact)
+    return Room.puppet.roomAdd(this, contact)
   }
 
-  modTopic(topic) {
-    log.verbose('Room', 'modTopic(%s)', topic)
+  topic(newTopic) {
+    log.verbose('Room', 'topic(%s)', newTopic)
 
-    return Room.puppet.roomModTopic(this, topic)
+    if (newTopic) {
+      Room.puppet.roomTopic(this, newTopic)
+      return newTopic
+    }
+    return this.get('topic')
   }
 
   static create(contactList) {
@@ -211,7 +217,7 @@ class Room {
               })
               .catch(e => {
                 log.error('Room', 'find() rejected: %s', e.message)
-                return [] // fail safe
+                return null // fail safe
               })
   }
 
@@ -233,7 +239,7 @@ class Room {
               })
               .catch(e => {
                 log.error('Room', 'findAll() rejected: %s', e.message)
-                throw e
+                return [] // fail safe
               })
   }
 
