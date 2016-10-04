@@ -23,15 +23,15 @@ const EventEmitter  = require('events')
 
 class Server extends EventEmitter {
   constructor({
-    port 
+    port
   }) {
     super()
 
     if (!port) {
       throw new Error('port not found')
     }
-    
-    this.port = port 
+
+    this.port = port
   }
 
   toString() { return `Server({port:${this.port}})` }
@@ -128,7 +128,10 @@ class Server extends EventEmitter {
       this.emit('disconnect', e)
     })
 
-    client.on('error' , e => log.error('PuppetWebServer', 'initEventsFromClient() client on error: %s', e))
+    client.on('error' , e => {
+      log.error('PuppetWebServer', 'initEventsFromClient() client on error: %s', e)
+      // console.log(e)
+    })
 
     // Events from Wechaty@Broswer --to--> Server
     ;[

@@ -17,12 +17,14 @@
  */
 
 const Wechaty       = require('../wechaty')
+const Config        = require('../config')
 const Contact       = require('../contact')
 const FriendRequest = require('../friend-request')
 const log           = require('../brolog-env')
 
 class PuppetWebFriendRequest extends FriendRequest {
   constructor() {
+    log.verbose('PuppetWebFriendRequest', 'constructor()')
     super()
     this.type = '' // enum('send', 'receive', 'confirm')
   }
@@ -33,12 +35,16 @@ class PuppetWebFriendRequest extends FriendRequest {
     if (!info || !info.UserName) {
       throw new Error('not valid RecommendInfo: ' + info)
     }
+    this.info     = info
 
-    this.info = info
-
-    this.message = info.Content
-    this.contact = Contact.load(info.UserName)
+    this.contact  = Contact.load(info.UserName)
+    this.hello    = info.Content
+    this.ticket   = info.Ticket
     // ??? this.nick = info.NickName
+
+    if (!this.ticket) {
+      throw new Error('ticket not found')
+    }
 
     this.type = 'receive'
   }
@@ -53,7 +59,7 @@ class PuppetWebFriendRequest extends FriendRequest {
     this.type     = 'confirm'
   }
 
-  send(contact, message = 'Hi') {
+  send(contact, hello = 'Hi') {
     log.verbose('PuppetWebFriendRequest', 'send(%s)', contact)
 
     if (!contact instanceof Contact) {
@@ -62,11 +68,12 @@ class PuppetWebFriendRequest extends FriendRequest {
     this.contact  = contact
     this.type     = 'send'
 
-    if (message) {
-      this.message = message
+    if (hello) {
+      this.hello = hello
     }
 
-    return Wechaty.puppet.friendRequestSend(contact, message)
+    return Config.puppetInstance()
+                  .friendRequestSend(contact, hello)
   }
 
   accept() {
@@ -76,7 +83,8 @@ class PuppetWebFriendRequest extends FriendRequest {
       throw new Error('request on a ' + this.type + ' type')
     }
 
-    return Wechaty.puppet.friendRequestAccept(contact, message)
+    return Config.puppetInstance()
+                  .friendRequestAccept(contact, this.ticket)
   }
 
 }

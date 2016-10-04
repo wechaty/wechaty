@@ -11,11 +11,12 @@
  */
 
 const Wechaty = require('./wechaty')
+const Config = require('./config')
 
 class FriendRequest {
   constructor() {
-    if (!Wechaty.puppet) {
-      throw new Error('no Wechaty.puppet instanciated')
+    if (!Config.puppetInstance()) {
+      throw new Error('no Config.puppetInstance() instanciated')
     }
   }
 

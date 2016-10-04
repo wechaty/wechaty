@@ -55,7 +55,7 @@ function onBrowserDead(e) {
   // }
 
   if (this.browser && this.browser.targetState() !== 'open') {
-    log.verbose('PuppetWebEvent', 'onBrowserDead() will do nothing because browser.targetState !== open')
+    log.verbose('PuppetWebEvent', 'onBrowserDead() will do nothing because browser.targetState(%s) !== open', this.browser.targetState())
     return
   }
 
@@ -92,7 +92,7 @@ function onBrowserDead(e) {
     log.verbose('PuppetWebEvent', 'onBrowserDead() old browser quited')
 
     if (this.browser.targetState() !== 'open') {
-      log.warn('PuppetWebEvent', 'onBrowserDead() will not init browser because browser.targetState !== open')
+      log.warn('PuppetWebEvent', 'onBrowserDead() will not init browser because browser.targetState(%s) !== open', this.browser.targetState())
       return
     }
 
@@ -335,6 +335,9 @@ function onServerMessage(data) {
   let m
   // log.warn('PuppetWebEvent', 'MsgType: %s', data.MsgType)
   switch (data.MsgType) {
+    /**
+     * Message.Type.VERIFYMSG: Received Friend Request
+     */
     case Message.Type.VERIFYMSG:
       log.silly('PuppetWebEvent', 'onServerMessage() received VERIFYMSG')
 
@@ -385,6 +388,7 @@ function onServerMessage(data) {
   .then(() => this.emit('message', m))
   .catch(e => {
     log.error('PuppetWebEvent', 'onServerMessage() message ready exception: %s', e)
+    // console.log(e)
     /**
      * FIXME: add retry here...
      * setTimeout(onServerMessage.bind(this, data, ++attempt), 1000)

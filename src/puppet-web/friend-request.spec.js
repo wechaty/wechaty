@@ -1,10 +1,11 @@
 import { test }   from 'ava'
 import { PuppetWebFriendRequest } from './friend-request'
 import { Wechaty } from '../wechaty'
+import { Config } from '../config'
 import { Contact } from '../contact'
 import { Message } from '../message'
 
-Wechaty.puppet = {}
+Config.puppetInstance({})
 
 test('PuppetWebFriendRequest.receive smoking test', t => {
   const rawMessageData = `
