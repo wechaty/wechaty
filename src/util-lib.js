@@ -9,7 +9,7 @@ const UtilLib = {
 
   , downloadStream
   , getPort
-  
+
   , guid
 }
 
@@ -88,8 +88,8 @@ function guid() {
 }
 
 /**
- * 
- * @param port is just a suggestion. 
+ *
+ * @param port is just a suggestion.
  * there's no grantuee for the number
  *
  * The IANA suggested ephemeral port range.
@@ -135,4 +135,4 @@ function getPort(port) {
   }
 }
 
-module.exports = UtilLib
+module.exports = UtilLib.default = UtilLib.UtilLib = UtilLib
