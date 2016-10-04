@@ -42,11 +42,12 @@ class Contact {
     }
   }
 
-  name()    { return UtilLib.plainText(this.obj.name) }
-  remark()  { return this.obj.remark }
-  stranger()    { return this.obj.stranger }
-  star()        { return this.obj.star }
-  get(prop) { return this.obj[prop] }
+  name()      { return UtilLib.plainText(this.obj.name) }
+  remark()    { return this.obj.remark }
+  stranger()  { return this.obj.stranger }
+  star()      { return this.obj.star }
+
+  get(prop)   { return this.obj[prop] }
 
   ready(contactGetter) {
     log.silly('Contact', 'ready(' + (contactGetter ? typeof contactGetter : '') + ')')
@@ -103,7 +104,9 @@ Contact.init = function() { Contact.pool = {} }
 Contact.init()
 
 Contact.load = function(id) {
-  if (!id) { return null }
+  if (!id || typeof id !== 'string') {
+    throw new Error('id must be string')
+  }
 
   if (!(id in Contact.pool)) {
     Contact.pool[id] = new Contact(id)

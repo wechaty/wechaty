@@ -29,7 +29,7 @@ class Room {
 
   // @private
   isReady() {
-    return this.obj.memberList && this.obj.memberList.length
+    return this.obj.contactList && this.obj.contactList.length
   }
 
   refresh() {
@@ -47,7 +47,7 @@ class Room {
     } else if (this.isReady()) {
       return Promise.resolve(this)
     } else if (this.obj.id) {
-      log.warn('Room', 'ready() has obj.id but memberList empty in room %s. reloading', this.obj.topic)
+      log.warn('Room', 'ready() has obj.id but contactList empty in room %s. reloading', this.obj.topic)
     }
 
     contactGetter = contactGetter || Config.puppetInstance()
@@ -75,20 +75,24 @@ class Room {
       id:         rawObj.UserName
       , encryId:  rawObj.EncryChatRoomId // ???
       , topic:    rawObj.NickName
-      , memberList:  this.parseMemberList(rawObj.MemberList)
+      , contactList:  this.parseContactList(rawObj.MemberList)
+      , nickMap:      this.parseNickMap(rawObj.MemberList)
     }
   }
 
-  parseMemberList(memberList) {
+  parseContactList(memberList) {
     if (!memberList || !memberList.map) {
       return []
     }
-    return memberList.map(m => {
-      return {
-        id:       m.UserName
-        , name:   m.DisplayName // nick name for this room?
-      }
-    })
+    return memberList.map(m => m.UserName)
+  }
+
+  parseNickMap(memberList) {
+    const nickMap = {}
+    if (memberList && memberList.map) {
+      memberList.forEach(m => nickMap[m.UserName] = m.DisplayName)
+    }
+    return nickMap
   }
 
   dumpRaw() {
@@ -114,28 +118,28 @@ class Room {
   delLocal(contact) {
     log.verbose('Room', 'delLocal(%s)', contact)
 
-    const memberList = this.obj.memberList
-    if (!memberList || memberList.length === 0) {
+    const contactList = this.obj.contactList
+    if (!contactList || contactList.length === 0) {
       return true // already in refreshing
     }
 
     let i
-    for (i=0; i<memberList.length; i++) {
+    for (i=0; i<contactList.length; i++) {
 // XXX
 // console.log('########################')
 // console.log(i)
-// console.log(memberList[i].id)
+// console.log(contactList[i].id)
 // console.log(contact.get('id'))
 // console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!')
-      if (memberList[i].id === contact.get('id')) {
+      if (contactList[i].id === contact.get('id')) {
         break
       }
     }
 // console.log('found i=' + i)
-    if (i < memberList.length) {
-// console.log('splicing before: ' + memberList.length)
-      memberList.splice(i, 1)
-// console.log('splicing after: ' + memberList.length)
+    if (i < contactList.length) {
+// console.log('splicing before: ' + contactList.length)
+      contactList.splice(i, 1)
+// console.log('splicing after: ' + contactList.length)
       return true
     }
     return false
@@ -164,6 +168,13 @@ class Room {
       return newTopic
     }
     return this.get('topic')
+  }
+
+  nick(contactId) {
+    if (!this.obj.nickMap) {
+      return ''
+    }
+    return this.obj.nickMap[contactId]
   }
 
   static create(contactList) {

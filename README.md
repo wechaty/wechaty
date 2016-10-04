@@ -525,6 +525,8 @@ wechaty.on('friend', (contact: Contact, request: FriendRequest) => {
 })
 ```
 
+Talk is cheap, show me the code: [Example/Friend-Bot](https://github.com/wechaty/wechaty/blob/master/example/friend-bot.js)
+
 ### FriendRequest.hello: string
 
 verify message
