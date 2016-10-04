@@ -266,6 +266,7 @@ class PuppetWeb extends Puppet {
 
     return this.userId == message.get('from')
   }
+
   send(message) {
     const to      = message.get('to')
     const room    = message.get('room')
@@ -275,6 +276,7 @@ class PuppetWeb extends Puppet {
     let destination = to
     if (room) {
       destination = room
+      // TODO use the right @
       // if (to && to!==room) {
       //   content = `@[${to}] ${content}`
       // }
@@ -287,6 +289,7 @@ class PuppetWeb extends Puppet {
                         throw e
                       })
   }
+
   reply(message, replyContent) {
     if (this.self(message)) {
       return Promise.reject(new Error('will not to reply message of myself'))
@@ -301,10 +304,10 @@ class PuppetWeb extends Puppet {
 
     // log.verbose('PuppetWeb', 'reply() by message: %s', util.inspect(m))
     return this.send(m)
-    .catch(e => {
-      log.error('PuppetWeb', 'reply() exception: %s', e.message)
-      throw e
-    })
+                .catch(e => {
+                  log.error('PuppetWeb', 'reply() exception: %s', e.message)
+                  throw e
+                })
   }
 
   /**

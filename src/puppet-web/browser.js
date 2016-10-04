@@ -423,7 +423,7 @@ this.onResourceRequested = function(request, net) {
     return this.driver.executeScript.apply(this.driver, arguments)
     .catch(e => {
       // this.dead(e)
-      log.warn('PuppetWebBrowser', 'execute() exception: %s', e.message)
+      log.warn('PuppetWebBrowser', 'execute() exception: %s', e.message.substr(0,99))
       throw e
     })
   }

@@ -502,9 +502,56 @@
     return 'no callback (yet)'
   }
 
+  function verifyUserRequest(UserName, VerifyContent = '') {
+    var contactFactory  = WechatyBro.glue.contactFactory
+    var confFactory     = WechatyBro.glue.confFactory
+
+    var Ticket = '' // what's this?
+
+    contactFactory.verifyUser({
+        UserName
+        , Opcode: confFactory.VERIFYUSER_OPCODE_SENDREQUEST
+        , Scene: confFactory.ADDSCENE_PF_WEB
+        , Ticket
+        , VerifyContent
+    })
+    .then(function() {  // succ
+      // alert('ok')
+      log('friendAdd(' + UserName + ', ' + VerifyContent + ') succ')
+    }, function(t) {    // fail
+      // alert('not ok')
+      log('friendAdd(' + UserName + ', ' + VerifyContent + ') fail: ' + t)
+    })
+  }
+
+  function verifyUserOk(UserName, Ticket) {
+    var contactFactory  = WechatyBro.glue.contactFactory
+    var confFactory     = WechatyBro.glue.confFactory
+
+    contactFactory.verifyUser({
+        UserName
+        , Opcode: confFactory.VERIFYUSER_OPCODE_VERIFYOK
+        , Scene: confFactory.ADDSCENE_PF_WEB
+        , Ticket
+    }).then(function() {  // succ
+      // alert('ok')
+      log('friendVerify(' + UserName + ', ' + Ticket + ') succ')
+    }, function() {       // fail
+      // alert('err')
+      log('friendVerify(' + UserName + ', ' + Ticket + ') fail')
+    })
+  }
+
+
+
+
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////
+
+
+
+
 
   port = port || 8788
 
@@ -566,6 +613,12 @@
     , roomAddMember
     , roomDelMember
     , roomModTopic
+
+    // for Friend Request
+    , verifyUserRequest
+    , verifyUserOk
+    // , friendAdd
+    // , friendVerify
 
     // test purpose
     , isLogin: isLogin
