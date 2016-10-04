@@ -1,6 +1,8 @@
 import { test } from 'ava'
 import {
   Contact
+  , Wechaty
+  , Config
   , Puppet
   , log
 }  from '../'
@@ -9,7 +11,8 @@ import {
 // const Puppet = require('../src/puppet')
 // const log = require('../src/brolog-env')
 
-Contact.attach(new Puppet())
+Config.puppetInstance(new Puppet())
+// Contact.attach()
 
 test('Contact smoke testing', async t => {
   const UserName = '@0bb3e4dd746fdbd4a80546aef66f4085'

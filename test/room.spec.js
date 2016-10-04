@@ -1,14 +1,17 @@
 import { test } from 'ava'
 import {
-  Message
-  , Room
+  Room
+  , Wechaty
+  , Config
+  , Message
   , Contact
   , Puppet
   , PuppetWeb
   , log
 }  from '../'
 
-Room.attach(new PuppetWeb())
+Config.puppetInstance(new PuppetWeb())
+// Room.attach(new PuppetWeb())
 
 test('Room smoke testing', async t => {
 
