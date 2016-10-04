@@ -56,4 +56,4 @@ class MediaMessage extends Message {
   }
 }
 
-module.exports = MediaMessage
+module.exports = MediaMessage.default = MediaMessage.MediaMessage = MediaMessage
