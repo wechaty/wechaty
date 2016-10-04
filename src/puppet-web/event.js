@@ -14,7 +14,7 @@
 /**************************************
  *
  * Events for Class PuppetWeb
- * 
+ *
  * here `this` is a PuppetWeb Instance
  *
  ***************************************/
@@ -26,6 +26,7 @@ const log = require('../brolog-env')
 const Contact = require('../contact')
 const Message = require('../message')
 const MediaMessage = require('../message-media')
+const FriendRequest = require('./friend-request')
 
 const PuppetWebEvent = {
   onBrowserDead
@@ -64,7 +65,7 @@ function onBrowserDead(e) {
   }
 
   this.scan = null
-  
+
   return co.call(this, function* () {
     // log.verbose('PuppetWebEvent', 'onBrowserDead() co() set isBrowserBirthing true')
     // this.isBrowserBirthing = true
@@ -77,7 +78,7 @@ function onBrowserDead(e) {
     })
 
     if (!this.browser || !this.bridge) {
-      const e = new Error('no browser or no bridge') 
+      const e = new Error('no browser or no bridge')
       log.error('PuppetWebEvent', 'onBrowserDead() %s', e.message)
       throw e
     }
@@ -138,7 +139,7 @@ function onServerScan(data) {
   log.verbose('PuppetWebEvent', 'onServerScan(%d)', data && data.code)
 
   this.scan = data // ScanInfo
-  
+
   /**
    * When wx.qq.com push a new QRCode to Scan, there will be cookie updates(?)
    */
@@ -186,7 +187,7 @@ function onServerDisconnect(data) {
     log.error('PuppetWebEvent', '%s', e.message)
     throw e
   }
-  
+
   /**
    * conditions:
    * 1. browser crash(i.e.: be killed)
@@ -223,7 +224,7 @@ function onServerDisconnect(data) {
  *
  * @depreciated 20160825 zixia
  * when `unload` there should always be a `disconnect` event?
- * 
+ *
  * `unload` event is sent from js@browser to webserver via socketio
  * after received `unload`, we should fix bridge by re-inject the Wechaty js code into browser.
  * possible conditions:
@@ -250,7 +251,7 @@ function onServerUnload(data) {
     log.warn('PuppetWebEvent', 'onServerUnload() %s', e.message)
     throw e
   }
-  
+
   if (this.browser.dead()) {
     log.error('PuppetWebEvent', 'onServerUnload() found browser dead. wait it to restore itself')
     return
@@ -276,7 +277,7 @@ function onServerLogin(data, attempt = 0) {
   log.verbose('PuppetWebEvent', 'onServerLogin(%s, %d)', data, attempt)
 
   this.scan = null
-  
+
   if (this.userId) {
     log.verbose('PuppetWebEvent', 'onServerLogin() be called but with userId set?')
   }
@@ -308,7 +309,8 @@ function onServerLogin(data, attempt = 0) {
     this.emit('login', this.user)
 
   }).catch(e => {
-    log.error('PuppetWebEvent', 'onServerLogin() exception: %s', e.message)
+    log.error('PuppetWebEvent', 'onServerLogin() exception: %s', e)
+    console.log(e.stack)
     throw e
   })
 }
@@ -333,6 +335,34 @@ function onServerMessage(data) {
   let m
   // log.warn('PuppetWebEvent', 'MsgType: %s', data.MsgType)
   switch (data.MsgType) {
+    case Message.Type.VERIFYMSG:
+      log.silly('PuppetWebEvent', 'onServerMessage() received VERIFYMSG')
+
+      m = new Message(data)
+
+      const request = new FriendRequest()
+      request.receive(data.RecommendInfo)
+
+      this.emit('friend', request.contact, request)
+      break
+
+    case Message.Type.SYS:
+      log.silly('PuppetWebEvent', 'onServerMessage() received SYSMSG')
+
+      m = new Message(data)
+
+      /**
+       * try to find FriendRequest Confirmation Message
+       */
+      if (/^You have added (.+) as your WeChat contact. Start chatting!$/.test(m.get('content'))) {
+        const request = new FriendRequest()
+        const contact = Contact.load(m.get('from'))
+        request.confirm(contact)
+
+        this.emit('friend', contact)
+      }
+      break
+
     case Message.Type.IMAGE:
       // log.verbose('PuppetWebEvent', 'onServerMessage() IMAGE message')
       m = new MediaMessage(data)

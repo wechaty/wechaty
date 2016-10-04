@@ -200,6 +200,28 @@ class Bridge {
                 })
   }
 
+  verifyUserRequest(contactId, message) {
+    if (!contactId) {
+      throw new Error('no valid contactId')
+    }
+    return this.proxyWechaty('verifyUserRequest', contactId, message)
+                .catch(e => {
+                  log.error('PuppetWebBridge', 'verifyUserRequest(%s, %s) exception: %s', contactId, message, e.message)
+                  throw e
+                })
+  }
+
+  verifyUserOk(contactId, ticket) {
+    if (!contactId || !ticket) {
+      throw new Error('no valid contactId or ticket')
+    }
+    return this.proxyWechaty('verifyUserOk', contactId, ticket)
+                .catch(e => {
+                  log.error('PuppetWebBridge', 'verifyUserOk(%s, %s) exception: %s', contactId, ticket, e.message)
+                  throw e
+                })
+  }
+
   send(toUserName, content) {
     return this.proxyWechaty('send', toUserName, content)
               .catch(e => {
