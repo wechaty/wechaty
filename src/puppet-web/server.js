@@ -130,7 +130,7 @@ class Server extends EventEmitter {
 
     client.on('error' , e => {
       log.error('PuppetWebServer', 'initEventsFromClient() client on error: %s', e)
-      // console.log(e)
+      log.silly('PuppetWebServer', 'initEventsFromClient() client on error: %s', e.stack)
     })
 
     // Events from Wechaty@Broswer --to--> Server

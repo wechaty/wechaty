@@ -36,9 +36,9 @@ class PuppetWebFriendRequest extends FriendRequest {
     }
     this.info     = info
 
-    this.contact  = Contact.load(info.UserName)
-    this.hello    = info.Content
-    this.ticket   = info.Ticket
+    this.contactId  = info.UserName
+    this.hello      = info.Content
+    this.ticket     = info.Ticket
     // ??? this.nick = info.NickName
 
     if (!this.ticket) {

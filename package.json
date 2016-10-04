@@ -14,6 +14,7 @@
     "CMD_CHROMIUM": "/wechaty/bin/xvfb-chromium"
   },
   "scripts": {
+    "node": "node",
     "lint": "npm run eslint && npm run tslint",
     "eslint": "eslint \"{src,test,bin}/**/*.js\"",
     "tslint": "tslint \"{src,test,bin}/**/*.ts\"",

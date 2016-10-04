@@ -346,7 +346,8 @@ function onServerMessage(data) {
       const request = new FriendRequest()
       request.receive(data.RecommendInfo)
 
-      this.emit('friend', request.contact, request)
+      const contact = Contact.load(request.contactId)
+      this.emit('friend', contact, request)
       break
 
     case Message.Type.SYS:
