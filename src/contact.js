@@ -26,7 +26,7 @@ class Contact {
   parse(rawObj) {
     return !rawObj ? {} : {
       id:           rawObj.UserName
-      , uin:        rawObj.Uin    // stable id? 4763975 || getCookie("wxuin")
+      , uin:        rawObj.Uin    // stable id: 4763975 || getCookie("wxuin")
       , weixin:     rawObj.Alias  // Wechat ID
       , name:       rawObj.NickName
       , remark:     rawObj.RemarkName
@@ -42,11 +42,12 @@ class Contact {
     }
   }
 
-  name()    { return UtilLib.plainText(this.obj.name) }
-  remark()  { return this.obj.remark }
-  stranger()    { return this.obj.stranger }
-  star()        { return this.obj.star }
-  get(prop) { return this.obj[prop] }
+  name()      { return UtilLib.plainText(this.obj.name) }
+  remark()    { return this.obj.remark }
+  stranger()  { return this.obj.stranger }
+  star()      { return this.obj.star }
+
+  get(prop)   { return this.obj[prop] }
 
   ready(contactGetter) {
     log.silly('Contact', 'ready(' + (contactGetter ? typeof contactGetter : '') + ')')
@@ -103,7 +104,9 @@ Contact.init = function() { Contact.pool = {} }
 Contact.init()
 
 Contact.load = function(id) {
-  if (!id) { return null }
+  if (!id || typeof id !== 'string') {
+    return null
+  }
 
   if (!(id in Contact.pool)) {
     Contact.pool[id] = new Contact(id)

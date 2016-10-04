@@ -48,7 +48,7 @@ bot
     const room = m.room()
     const from = m.from()
 
-    console.log((room ? '['+room.name()+']' : '')
+    console.log((room ? '['+room.topic()+']' : '')
                 + '<'+from.name()+'>'
                 + ':' + m.toStringDigest()
     )

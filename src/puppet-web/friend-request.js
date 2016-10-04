@@ -17,6 +17,7 @@
  */
 
 const Wechaty       = require('../wechaty')
+const Contact       = require('../contact')
 const Config        = require('../config')
 const FriendRequest = require('../friend-request')
 const log           = require('../brolog-env')
@@ -36,7 +37,7 @@ class PuppetWebFriendRequest extends FriendRequest {
     }
     this.info     = info
 
-    this.contactId  = info.UserName
+    this.contact    = Contact.load(info.UserName)
     this.hello      = info.Content
     this.ticket     = info.Ticket
     // ??? this.nick = info.NickName
@@ -50,23 +51,23 @@ class PuppetWebFriendRequest extends FriendRequest {
     return this
   }
 
-  confirm(contactId) {
-    log.verbose('PuppetWebFriendRequest', 'confirm(%s)', contactId)
+  confirm(contact) {
+    log.verbose('PuppetWebFriendRequest', 'confirm(%s)', contact)
 
-    if (!contactId) {
-      throw new Error('contactId not found')
+    if (!contact) {
+      throw new Error('contact not found')
     }
-    this.contactId  = contactId
-    this.type       = 'confirm'
+    this.contact  = contact
+    this.type     = 'confirm'
   }
 
-  send(contactId, hello = 'Hi') {
-    log.verbose('PuppetWebFriendRequest', 'send(%s)', contactId)
+  send(contact, hello = 'Hi') {
+    log.verbose('PuppetWebFriendRequest', 'send(%s)', contact)
 
-    if (!contactId) {
-      throw new Error('contactId not found')
+    if (!contact) {
+      throw new Error('contact not found')
     }
-    this.contactId  = contactId
+    this.contact  = contact
     this.type       = 'send'
 
     if (hello) {
@@ -74,18 +75,18 @@ class PuppetWebFriendRequest extends FriendRequest {
     }
 
     return Config.puppetInstance()
-                  .friendRequestSend(contactId, hello)
+                  .friendRequestSend(contact, hello)
   }
 
   accept() {
-    log.verbose('FriendRequest', 'accept() %s', this.contactId)
+    log.verbose('FriendRequest', 'accept() %s', this.contact)
 
     if (this.type !== 'receive') {
       throw new Error('request on a ' + this.type + ' type')
     }
 
     return Config.puppetInstance()
-                  .friendRequestAccept(this.contactId, this.ticket)
+                  .friendRequestAccept(this.contact, this.ticket)
   }
 
 }
