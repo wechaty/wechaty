@@ -19,4 +19,4 @@ else if (level){
   log.warn('Brolog', 'env WECHATY_LOG(%s) must be one of silly|verbose|info|warn|error|silent', level)
 }
 
-module.exports = log.default = log
+module.exports = log.default = log.log = log
