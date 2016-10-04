@@ -18,7 +18,6 @@
 
 const Wechaty       = require('../wechaty')
 const Config        = require('../config')
-const Contact       = require('../contact')
 const FriendRequest = require('../friend-request')
 const log           = require('../brolog-env')
 
@@ -47,44 +46,46 @@ class PuppetWebFriendRequest extends FriendRequest {
     }
 
     this.type = 'receive'
+
+    return this
   }
 
-  confirm(contact) {
-    log.verbose('PuppetWebFriendRequest', 'confirm(%s)', contact)
+  confirm(contactId) {
+    log.verbose('PuppetWebFriendRequest', 'confirm(%s)', contactId)
 
-    if (!contact instanceof Contact) {
-      contact = Contact.load(contact)
+    if (!contactId) {
+      throw new Error('contactId not found')
     }
-    this.contact  = contact
-    this.type     = 'confirm'
+    this.contactId  = contactId
+    this.type       = 'confirm'
   }
 
-  send(contact, hello = 'Hi') {
-    log.verbose('PuppetWebFriendRequest', 'send(%s)', contact)
+  send(contactId, hello = 'Hi') {
+    log.verbose('PuppetWebFriendRequest', 'send(%s)', contactId)
 
-    if (!contact instanceof Contact) {
-      contact = Contact.load(contact)
+    if (!contactId) {
+      throw new Error('contactId not found')
     }
-    this.contact  = contact
-    this.type     = 'send'
+    this.contactId  = contactId
+    this.type       = 'send'
 
     if (hello) {
       this.hello = hello
     }
 
     return Config.puppetInstance()
-                  .friendRequestSend(contact, hello)
+                  .friendRequestSend(contactId, hello)
   }
 
   accept() {
-    log.verbose('FriendRequest', 'accept() %s', this.contact)
+    log.verbose('FriendRequest', 'accept() %s', this.contactId)
 
     if (this.type !== 'receive') {
       throw new Error('request on a ' + this.type + ' type')
     }
 
     return Config.puppetInstance()
-                  .friendRequestAccept(this.contact, this.ticket)
+                  .friendRequestAccept(this.contactId, this.ticket)
   }
 
 }

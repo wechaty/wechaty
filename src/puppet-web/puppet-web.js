@@ -421,34 +421,34 @@ class PuppetWeb extends Puppet {
   /**
    * FriendRequest
    */
-  friendRequestSend(contact, message) {
+  friendRequestSend(contactId, message) {
     if (!this.bridge) {
       return Promise.reject(new Error('fail: no bridge(yet)!'))
     }
 
-    if (!contact || !contact instanceof Contact) {
-      throw new Error('contact not found')
+    if (!contactId) {
+      throw new Error('contactId not found')
     }
 
-    return this.bridge.verifyUserRequest(contact.id, message)
+    return this.bridge.verifyUserRequest(contactId, message)
                       .catch(e => {
-                        log.warn('PuppetWeb', 'friendRequestSend(%s, %s) rejected: %s', contact, message, e.message)
+                        log.warn('PuppetWeb', 'friendRequestSend(%s, %s) rejected: %s', contactId, message, e.message)
                         throw e
                       })
   }
 
-  friendRequestAccept(contact, ticket) {
+  friendRequestAccept(contactId, ticket) {
     if (!this.bridge) {
       return Promise.reject(new Error('fail: no bridge(yet)!'))
     }
 
-    if (!contact || !contact instanceof Contact || !ticket) {
-      throw new Error('contact or ticket not found')
+    if (!contactId || !ticket) {
+      throw new Error('contactId or ticket not found')
     }
 
-    return this.bridge.verifyUserOk(contact.id, ticket)
+    return this.bridge.verifyUserOk(contactId, ticket)
                       .catch(e => {
-                        log.warn('PuppetWeb', 'friendRequestAccept(%s, %s) rejected: %s', contact, ticket, e.message)
+                        log.warn('PuppetWeb', 'friendRequestAccept(%s, %s) rejected: %s', contactId, ticket, e.message)
                         throw e
                       })
   }
