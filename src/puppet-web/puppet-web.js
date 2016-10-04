@@ -25,6 +25,7 @@ const Puppet  = require('../puppet')
 const Contact = require('../contact')
 const Room    = require('../room')
 const Message = require('../message')
+const FriendRequest = require('../friend-request')
 
 const Server  = require('./server')
 const Browser = require('./browser')
@@ -67,8 +68,9 @@ class PuppetWeb extends Puppet {
       this.port = yield UtilLib.getPort(DEFAULT_PUPPET_PORT)
       log.verbose('PuppetWeb', 'init() getPort %d', this.port)
 
-      yield this.initAttach(this)
-      log.verbose('PuppetWeb', 'initAttach() done')
+      // @deprecated 20161004
+      // yield this.initAttach(this)
+      // log.verbose('PuppetWeb', 'initAttach() done')
 
       yield this.initServer()
       log.verbose('PuppetWeb', 'initServer() done')
@@ -140,8 +142,9 @@ class PuppetWeb extends Puppet {
         this.browser = null
       } else { log.warn('PuppetWeb', 'quit() without a browser') }
 
-      log.verbose('PuppetWeb', 'quit() server.quit() this.initAttach(null)')
-      yield this.initAttach(null)
+      // @deprecated 20161004
+      // log.verbose('PuppetWeb', 'quit() server.quit() this.initAttach(null)')
+      // yield this.initAttach(null)
 
       this.currentState('dead')
     })
@@ -158,13 +161,14 @@ class PuppetWeb extends Puppet {
     })
   }
 
-  initAttach(puppet) {
-    log.verbose('PuppetWeb', 'initAttach()')
-    Contact.attach(puppet)
-    Room.attach(puppet)
-    Message.attach(puppet)
-    return Promise.resolve(!!puppet)
-  }
+  // @deprecated 20161004
+  // initAttach(puppet) {
+  //   log.verbose('PuppetWeb', 'initAttach()')
+  //   Contact.attach(puppet)
+  //   Room.attach(puppet)
+  //   Message.attach(puppet)
+  //   return Promise.resolve(!!puppet)
+  // }
 
   initBrowser() {
     log.verbose('PuppetWeb', 'initBrowser()')
@@ -412,9 +416,42 @@ class PuppetWeb extends Puppet {
                         log.warn('PuppetWeb', 'roomCreate(%s) rejected: %s', contact, e.message)
                         throw e
                       })
-
   }
 
+  /**
+   * FriendRequest
+   */
+  friendRequestSend(contact, message) {
+    if (!this.bridge) {
+      return Promise.reject(new Error('fail: no bridge(yet)!'))
+    }
+
+    if (!contact || !contact instanceof Contact) {
+      throw new Error('contact not found')
+    }
+
+    return this.bridge.verifyUserRequest(contact.id, message)
+                      .catch(e => {
+                        log.warn('PuppetWeb', 'friendRequestSend(%s, %s) rejected: %s', contact, message, e.message)
+                        throw e
+                      })
+  }
+
+  friendRequestAccept(contact, ticket) {
+    if (!this.bridge) {
+      return Promise.reject(new Error('fail: no bridge(yet)!'))
+    }
+
+    if (!contact || !contact instanceof Contact || !ticket) {
+      throw new Error('contact or ticket not found')
+    }
+
+    return this.bridge.verifyUserOk(contact.id, ticket)
+                      .catch(e => {
+                        log.warn('PuppetWeb', 'friendRequestAccept(%s, %s) rejected: %s', contact, ticket, e.message)
+                        throw e
+                      })
+  }
 }
 
 module.exports = PuppetWeb.default = PuppetWeb.PuppetWeb = PuppetWeb
