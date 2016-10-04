@@ -71,4 +71,14 @@ function isWechatyDocker() {
   return true
 }
 
+/**
+ * 5. live setting
+ */
+Config.puppetInstance = function(instance) {
+  if (typeof instance !== 'undefined') {  // null is valid here
+    Config._puppetInstance = instance
+  }
+  return Config._puppetInstance
+}
+
 module.exports = Config.default = Config.Config = Config

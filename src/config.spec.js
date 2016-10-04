@@ -35,12 +35,20 @@ test('Config methods', t => {
       Config.validApiHost(apihost)
     })
   }, 'should not row for right apihost')
-  ERR_APIHOSTS.forEach(apihost => { 
+  ERR_APIHOSTS.forEach(apihost => {
     t.throws(_ => {
       Config.validApiHost(apihost)
     })
   }, 'should throw for error apihost')
 
   t.true('isDocker' in Config, 'should identify docker env by `isDocker`')
+})
 
+test('Config puppetInstance', t => {
+  let instance = Config.puppetInstance()
+  t.falsy(instance, 'should empty initialy')
+  t.truthy(Config.puppetInstance({}), 'should return instance in arg')
+  t.truthy(Config.puppetInstance(), 'should return instance after set')
+  t.falsy(Config.puppetInstance(null), 'should return null after set to null')
+  t.falsy(instance, 'should empty after set to null')
 })
