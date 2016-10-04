@@ -11,6 +11,7 @@
 const EventEmitter = require('events')
 
 const Wechaty   = require('./wechaty')
+const Contact   = require('./contact')
 const log       = require('./brolog-env')
 const UtilLib   = require('./util-lib')
 const Config    = require('./config')

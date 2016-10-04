@@ -422,7 +422,7 @@ function fireRoomJoin(m) {
   const room    = m.room()
   const content = m.content()
 
-  const inviteRe = /^(.+) invited "(.+)" to the group chat$/
+  const inviteRe = /^"?(.+)"? invited "(.+)" to the group chat$/
 
   const found = content.match(inviteRe)
   if (!found) {
@@ -435,10 +435,10 @@ function fireRoomJoin(m) {
   if (inviter === "You've") {
     inviterContact = Contact.load(this.userId)
   } else {
-    inviterContact = m.member(inviter)
+    inviterContact = room.member(inviter)
   }
 
-  inviteeContact = m.room().member(invitee)
+  inviteeContact = room.member(invitee)
 
   if (!inviterContact || !inviteeContact) {
     log.error('PuppetWebEvent', 'inivter or invitee not found for %s, %s', inviter, invitee)
@@ -465,7 +465,7 @@ function fireRoomLeave(m) {
   leaverContact = m.room().member(leaver)
 
   if (!leaverContact) {
-    log.err('PuppetWebEvent', 'leaver not found for %s', leaver)
+    log.error('PuppetWebEvent', 'leaver not found for %s', leaver)
     return
   }
   room.emit('leave', leaverContact)
