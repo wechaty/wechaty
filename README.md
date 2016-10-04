@@ -348,6 +348,21 @@ The `message` here is a [Message](#class-message).
 ### 5. Event: `error`
 To be support.
 
+### 6. Event: `friend`
+
+Fired when we got new friend request, or confirm a friend ship.
+
+```typescript
+wechaty.on('friend', (contact: Contact, request: FriendRequest) => {
+  if (request) {  // 1. request to be friend from new contact
+    request.accept()
+    console.log('auto accepted for ' + contact + ' with message: ' + request.hello)
+  } else {        // 2. confirm friend ship
+    console.log('new friend ship confirmed with ' + contact))
+  }
+})
+```
+
 ## Class Wechaty
 Main bot class.
 
@@ -493,6 +508,41 @@ room.ready()
 })
 ```
 
+## Class FriendRequest
+
+Send, receive friend request, and friend confirmation events.
+
+When someone send you a friend request, there will be a Wechaty `friend` event fired.
+
+```typescript
+wechaty.on('friend', (contact: Contact, request: FriendRequest) => {
+  if (request) {  // 1. request to be friend from new contact
+    request.accept()
+    console.log('auto accepted for ' + contact + ' with message: ' + request.hello)
+  } else {        // 2. confirm friend ship
+    console.log('new friend ship confirmed with ' + contact))
+  }
+})
+```
+
+### FriendRequest.hello: string
+
+verify message
+
+### FriendRequest.accept(): void
+
+accept a friend request
+
+### FriendRequest.send(contact: Contact, hello: string): void
+
+send new friend request
+
+```typescript
+const from = message.get('from')
+const request = new FriendRequest()
+request.send(from, 'hello~')
+```
+
 # Test
 Wechaty use ~~[TAP protocol](http://testanything.org/)~~ [AVA](https://github.com/avajs/ava) to test itself ~~by [tap](http://www.node-tap.org/)~~.
 
@@ -505,7 +555,15 @@ npm test
 
 # Version History
 
-## v0.3.13 (master)
+## master
+1. #32 Extend Room Class with:
+  1. tbw 
+1. #33 New Class `FriendRequest` with:
+  1. `Wechaty.on('friend', (contact, request) => {})` with Wechaty new Event `friend` 
+  1. `accept()` to accept a friend request
+  1. `send()` to send new friend request
+
+## v0.3.13 (2016/09)
 1. Managed by Cloud Manager: https://app.wechaty.io
 1. Dockerized & Published to docker hub as: [zixia/wechaty](https://hub.docker.com/r/zixia/wechaty/)
 1. Add `reset` & `shutdown` to IO Event
