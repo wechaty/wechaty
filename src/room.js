@@ -8,19 +8,22 @@
  * Add/Del/Topic: https://github.com/wechaty/wechaty/issues/32
  *
  */
+const EventEmitter = require('events')
+
 const Wechaty   = require('./wechaty')
 const log       = require('./brolog-env')
 const UtilLib   = require('./util-lib')
 const Config    = require('./config')
 
-class Room {
+class Room extends EventEmitter{
   constructor(id) {
+    super()
     log.silly('Room', `constructor(${id})`)
     this.id = id
     this.obj = {}
     this.dirtyObj = {} // when refresh, use this to save dirty data for query
-    if (!Config.puppetInstance) {
-      throw new Error('Config.puppetInstance not found')
+    if (!Config.puppetInstance()) {
+      throw new Error('Config.puppetInstance() not found')
     }
   }
 
@@ -29,7 +32,7 @@ class Room {
 
   // @private
   isReady() {
-    return this.obj.contactList && this.obj.contactList.length
+    return this.obj.memberList && this.obj.memberList.length
   }
 
   refresh() {
@@ -47,7 +50,7 @@ class Room {
     } else if (this.isReady()) {
       return Promise.resolve(this)
     } else if (this.obj.id) {
-      log.warn('Room', 'ready() has obj.id but contactList empty in room %s. reloading', this.obj.topic)
+      log.warn('Room', 'ready() has obj.id but memberList empty in room %s. reloading', this.obj.topic)
     }
 
     contactGetter = contactGetter || Config.puppetInstance()
@@ -64,7 +67,8 @@ class Room {
     })
   }
 
-  name() { return UtilLib.plainText(this.obj.topic) }
+  owner() { return this.obj.memberList && this.obj.memberList[0] }
+  topic() { return UtilLib.plainText(this.obj.topic) }
   get(prop) { return this.obj[prop] || this.dirtyObj[prop] }
 
   parse(rawObj) {
@@ -75,16 +79,16 @@ class Room {
       id:         rawObj.UserName
       , encryId:  rawObj.EncryChatRoomId // ???
       , topic:    rawObj.NickName
-      , contactList:  this.parseContactList(rawObj.MemberList)
-      , nickMap:      this.parseNickMap(rawObj.MemberList)
+      , memberList: this.parseMemberList(rawObj.MemberList)
+      , nickMap:    this.parseNickMap(rawObj.MemberList)
     }
   }
 
-  parseContactList(memberList) {
+  parseMemberList(memberList) {
     if (!memberList || !memberList.map) {
       return []
     }
-    return memberList.map(m => m.UserName)
+    return memberList.map(m => Contact.load(m.UserName))
   }
 
   parseNickMap(memberList) {
@@ -110,7 +114,7 @@ class Room {
     if (!contact) {
       throw new Error('contact not found')
     }
-    return Config.puppetInstance.roomDel(this, contact)
+    return Config.puppetInstance().roomDel(this, contact)
                       .then(r => this.delLocal(contact))
   }
 
@@ -118,28 +122,28 @@ class Room {
   delLocal(contact) {
     log.verbose('Room', 'delLocal(%s)', contact)
 
-    const contactList = this.obj.contactList
-    if (!contactList || contactList.length === 0) {
+    const memberList = this.obj.memberList
+    if (!memberList || memberList.length === 0) {
       return true // already in refreshing
     }
 
     let i
-    for (i=0; i<contactList.length; i++) {
+    for (i=0; i<memberList.length; i++) {
 // XXX
 // console.log('########################')
 // console.log(i)
-// console.log(contactList[i].id)
+// console.log(memberList[i].id)
 // console.log(contact.get('id'))
 // console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!')
-      if (contactList[i].id === contact.get('id')) {
+      if (memberList[i].id === contact.get('id')) {
         break
       }
     }
 // console.log('found i=' + i)
-    if (i < contactList.length) {
-// console.log('splicing before: ' + contactList.length)
-      contactList.splice(i, 1)
-// console.log('splicing after: ' + contactList.length)
+    if (i < memberList.length) {
+// console.log('splicing before: ' + memberList.length)
+      memberList.splice(i, 1)
+// console.log('splicing after: ' + memberList.length)
       return true
     }
     return false
@@ -157,24 +161,47 @@ class Room {
       throw new Error('contact not found')
     }
 
-    return Config.puppetInstance.roomAdd(this, contact)
+    return Config.puppetInstance().roomAdd(this, contact)
   }
 
   topic(newTopic) {
     log.verbose('Room', 'topic(%s)', newTopic)
 
     if (newTopic) {
-      Config.puppetInstance.roomTopic(this, newTopic)
+      Config.puppetInstance().roomTopic(this, newTopic)
       return newTopic
     }
     return this.get('topic')
   }
 
-  nick(contactId) {
+  nick(contact) {
     if (!this.obj.nickMap) {
       return ''
     }
-    return this.obj.nickMap[contactId]
+    return this.obj.nickMap[contact.id]
+  }
+
+  has(contact) {
+    if (!this.obj.memberList) {
+      return false
+    }
+    return this.obj.memberList
+                    .filter(c => c.id === contact.id)
+                    .length > 0
+  }
+
+  member(name) {
+    if (!this.obj.memberList) {
+      return null
+    }
+    const nickMap = this.obj.nickMap
+    const idList = Object.keys(nickMap)
+                          .filter(k => nickMap[k] === name)
+    if (idList.length) {
+      return Contact.load(idList[0])
+    } else {
+      return null
+    }
   }
 
   static create(contactList) {
@@ -183,7 +210,7 @@ class Room {
     if (!contactList || ! typeof contactList === 'array') {
       throw new Error('contactList not found')
     }
-    return Config.puppetInstance.roomCreate(contactList)
+    return Config.puppetInstance().roomCreate(contactList)
   }
 
   // private
@@ -205,7 +232,7 @@ class Room {
       throw new Error('unsupport name type')
     }
 
-    return Config.puppetInstance.roomFind(filterFunction)
+    return Config.puppetInstance().roomFind(filterFunction)
               .then(idList => {
                 return idList
               })
@@ -274,7 +301,7 @@ class Room {
   //   // if (!puppet) {
   //   //   throw new Error('Room.attach got no puppet to attach!')
   //   // }
-  //   Config.puppetInstance = puppet
+  //   Config.puppetInstance() = puppet
   // }
 
 }
