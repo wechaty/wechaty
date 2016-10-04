@@ -84,7 +84,7 @@ class PuppetWebFriendRequest extends FriendRequest {
     }
 
     return Config.puppetInstance()
-                  .friendRequestAccept(contact, this.ticket)
+                  .friendRequestAccept(this.contact, this.ticket)
   }
 
 }
