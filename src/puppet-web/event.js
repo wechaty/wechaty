@@ -332,49 +332,34 @@ function onServerLogout(data) {
 }
 
 function onServerMessage(data) {
-  let m
-  // log.warn('PuppetWebEvent', 'MsgType: %s', data.MsgType)
-  switch (data.MsgType) {
-    /**
-     * Message.Type.VERIFYMSG: Received Friend Request
-     */
+  let m = new Message(data)
+
+  /**
+   * Fire Events if match message type & content
+   */
+  switch (m.type()) { // data.MsgType
     case Message.Type.VERIFYMSG:
-      log.silly('PuppetWebEvent', 'onServerMessage() received VERIFYMSG')
-
-      m = new Message(data)
-
-      const request = new FriendRequest()
-      request.receive(data.RecommendInfo)
-
-      const contact = Contact.load(request.contactId)
-      this.emit('friend', contact, request)
+      fireFriendRequest(m)
       break
 
     case Message.Type.SYS:
-      log.silly('PuppetWebEvent', 'onServerMessage() received SYSMSG')
-
-      m = new Message(data)
-
-      /**
-       * try to find FriendRequest Confirmation Message
-       */
-      if (/^You have added (.+) as your WeChat contact. Start chatting!$/.test(m.get('content'))) {
-        const request = new FriendRequest()
-        const contact = Contact.load(m.get('from'))
-        request.confirm(contact)
-
-        this.emit('friend', contact)
+      if (m.room()) {
+        fireRoomJoin(m)
+        fireRoomLeave(m)
+      } else {
+        fireFriendConfirm(m.content())
       }
       break
+  }
 
+  /**
+   * Check Type for special Message
+   * reload if needed
+   */
+  switch (m.type()) {
     case Message.Type.IMAGE:
       // log.verbose('PuppetWebEvent', 'onServerMessage() IMAGE message')
       m = new MediaMessage(data)
-      break
-
-    case 'TEXT':
-    default:
-      m = new Message(data)
       break
   }
 
@@ -386,7 +371,7 @@ function onServerMessage(data) {
   }
 
   m.ready() // TODO: EventEmitter2 for video/audio/app/sys....
-  .then(() => this.emit('message', m))
+  .then(_ => this.emit('message', m))
   .catch(e => {
     log.error('PuppetWebEvent', 'onServerMessage() message ready exception: %s', e)
     // console.log(e)
@@ -395,6 +380,95 @@ function onServerMessage(data) {
      * setTimeout(onServerMessage.bind(this, data, ++attempt), 1000)
      */
   })
+}
+
+function fireFriendRequest(m) {
+  const info = m.rawObj.RecommendInfo
+  log.verbose('PuppetWebEvent', 'fireFriendRequest(%s)', info)
+
+  const request = new FriendRequest()
+  request.receive(info)
+  this.emit('friend', request.contact, request)
+}
+
+function fireFriendConfirm(m) {
+  const content = m.content()
+  log.silly('PuppetWebEvent', 'fireFriendConfirm(%s)', content)
+
+  /**
+   * try to find FriendRequest Confirmation Message
+   */
+  if (!/^You have added (.+) as your WeChat contact. Start chatting!$/.test(content)) {
+    return
+  }
+  const request = new FriendRequest()
+  const contact = Contact.load(m.get('from'))
+  request.confirm(contact)
+
+  this.emit('friend', contact)
+}
+
+
+/**
+ * try to find 'join' event for Room
+ *
+1.
+  You've invited "李卓桓" to the group chat
+  You've invited "李卓桓.PreAngel、Bruce LEE" to the group chat
+2.
+   "李卓桓.PreAngel" invited "Bruce LEE" to the group chat
+*/
+function fireRoomJoin(m) {
+  const room    = m.room()
+  const content = m.content()
+
+  const inviteRe = /^(.+) invited "(.+)" to the group chat$/
+
+  const found = content.match(inviteRe)
+  if (!found) {
+    return
+  }
+
+  const [_, inviter, invitee] = found
+  let inviterContact, inviteeContact
+
+  if (inviter === "You've") {
+    inviterContact = Contact.load(this.userId)
+  } else {
+    inviterContact = m.member(inviter)
+  }
+
+  inviteeContact = m.room().member(invitee)
+
+  if (!inviterContact || !inviteeContact) {
+    log.error('PuppetWebEvent', 'inivter or invitee not found for %s, %s', inviter, invitee)
+    return
+  }
+  room.emit('join', inviteeContact, inviterContact)
+}
+
+/**
+ * You removed "Bruce LEE" from the group chat
+ */
+function fireRoomLeave(m) {
+  const room = m.room()
+  const content = m.content()
+
+  const removeRe = /^You removed "(.+)" from the group chat$/
+
+  const found = content.match(removeRe)
+  if (!found) {
+    return
+  }
+
+  let [_, leaver] = found
+  leaverContact = m.room().member(leaver)
+
+  if (!leaverContact) {
+    log.err('PuppetWebEvent', 'leaver not found for %s', leaver)
+    return
+  }
+  room.emit('leave', leaverContact)
 }
 
 module.exports = PuppetWebEvent
