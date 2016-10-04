@@ -26,9 +26,13 @@ class Wechaty extends EventEmitter {
     , port      = Config.port
     , profile   = Config.profile  // no profile, no session save/restore
   } = {}) {
+    super()
     log.verbose('Wechaty', 'contructor()')
 
-    super()
+    if (Wechaty.instance) {
+      throw new Error('Wechaty must be singleton')
+    }
+
     this.type     = type
     this.head     = head
     this.port     = port
@@ -40,8 +44,10 @@ class Wechaty extends EventEmitter {
     this.npmVersion = require('../package.json').version
 
     this.uuid = UtilLib.guid()
-    
+
     this.inited = false
+
+    Wechaty.instance = this
   }
 
   toString() { return 'Class Wechaty(' + this.type + ')'}
@@ -55,7 +61,7 @@ class Wechaty extends EventEmitter {
       try {
         /**
          * Synchronous version of fs.access().
-         * This throws if any accessibility checks fail, and does nothing otherwise. 
+         * This throws if any accessibility checks fail, and does nothing otherwise.
          */
         fs.accessSync(dotGitPath, fs.F_OK)
 
@@ -69,7 +75,7 @@ class Wechaty extends EventEmitter {
                           .toString()
                           .trim()
         return `#git[${revision}]`
-      } catch (e) { /* fall safe */ 
+      } catch (e) { /* fall safe */
         /**
          *  1. .git not exist
          *  2. git log fail
@@ -79,10 +85,10 @@ class Wechaty extends EventEmitter {
     }
 
     return this.npmVersion
-  } 
+  }
 
   user() { return this.puppet && this.puppet.user }
-  
+
   reset(reason) {
     log.verbose('Wechaty', 'reset() because %s', reason)
     if (this.puppet && this.puppet.browser) {
@@ -91,7 +97,7 @@ class Wechaty extends EventEmitter {
       log.warn('Wechaty', 'reset() without browser')
     }
   }
-  
+
   init() {
     log.info('Wechaty', 'v%s initializing...' , this.version())
     log.verbose('Wechaty', 'puppet: %s'       , this.type)
@@ -136,9 +142,13 @@ class Wechaty extends EventEmitter {
       , 'logout'
       , 'error'
       , 'heartbeat'
+      , 'friend'
     ].map(e => {
-      puppet.on(e, data => {
-        this.emit(e, data)
+      // https://strongloop.com/strongblog/an-introduction-to-javascript-es6-arrow-functions/
+      // We’ve lost () around the argument list when there’s just one argument (rest arguments are an exception, eg (...args) => ...)
+      puppet.on(e, (...args) => {
+        // this.emit(e, data)
+        this.emit.apply(this, [e, ...args])
       })
     })
     /**
@@ -150,7 +160,10 @@ class Wechaty extends EventEmitter {
      */
 
     // set puppet before init, because we need this.puppet if we quit() before init() finish
-    this.puppet = puppet
+    this.puppet     = puppet
+
+    // set puppet instance to Wechaty Static variable, for using by Contact/Room/Message/FriendRequest etc.
+    Config.puppetInstance(puppet)
 
     return puppet.init()
   }
@@ -164,7 +177,8 @@ class Wechaty extends EventEmitter {
     }
 
     const puppetBeforeDie = this.puppet
-    this.puppet = null
+    this.puppet     = null
+    Config.puppetInstance(null)
     this.inited = false
 
     return puppetBeforeDie.quit()
@@ -219,4 +233,3 @@ class Wechaty extends EventEmitter {
  * Expose `Wechaty`.
  */
 module.exports = Wechaty.default = Wechaty.Wechaty = Wechaty
-
