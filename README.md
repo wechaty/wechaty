@@ -597,6 +597,9 @@ Github Issue <https://github.com/wechaty/wechaty/issues>
 1. [普通个人号 微信机器人/外挂](https://github.com/fritx/wxbot)
   - [微信个人号/公众号相关项目整理（wechat/weixin/wx）](https://github.com/fritx/awesome-wechat)
 
+### Go
+1. [0d0f/exfe](https://github.com/0d0f/exfe-bus/tree/master/src/wechat) Wechat bot component of exfe-bus 
+
 ### Perl
 1. [MojoWeixin](https://github.com/sjdy521/Mojo-Weixin) 使用Perl语言编写的微信客户端框架，基于Mojolicious，要求Perl版本5.10+，可通过插件提供基于HTTP协议的api接口供其他语言或系统调用
 
@@ -605,6 +608,10 @@ Github Issue <https://github.com/wechaty/wechaty/issues>
 1. [wxBot](https://github.com/liuwons/wxBot): Wechat Bot API
 1. [ItChat](https://github.com/littlecodersh/ItChat): 微信个人号接口（支持文件、图片上下载）、微信机器人及命令行微信。三十行即可自定义个人号机器人
 1. [WechatIrcd](https://github.com/MaskRay/wechatircd): 用IRC客户端控制微信网页版
+1. [查看被删的微信好友](https://github.com/0x5e/wechat-deleted-friends): 由于微信后台已经对此类脚本做了屏蔽，无论是什么语言版本的脚本均已经失效，此项目帮助了解微信web版通讯过程，切勿再使用！
+
+### KDE
+1. [WeChat KDE frontend 微信 KDE 前端](https://github.com/xiangzhai/qwx)
 
 ### dotNET
 1. [WeChat.NET](https://github.com/sherlockchou86/WeChat.NET) WeChat.NET client based on web wechat
