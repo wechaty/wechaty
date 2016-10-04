@@ -83,9 +83,9 @@ class Message {
   }
 
   from()    { return Contact.load(this.obj.from) }
-  to()      { return Contact.load(this.obj.to) }
+  to()      { return this.obj.to ? Contact.load(this.obj.to) : null }
   content() { return this.obj.content }
-  room()    { return Room.load(this.obj.room) }
+  room()    { return this.obj.room ? Room.load(this.obj.room) : null }
 
   type()    { return this.obj.type }
   typeEx()  { return Message.Type[this.obj.type] }

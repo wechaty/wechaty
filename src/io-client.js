@@ -135,7 +135,7 @@ class IoClient {
     }
 
     const wechaty = this.wechaty
-    
+
     const io = new Io({
       wechaty
       , token: this.token()
@@ -174,7 +174,7 @@ class IoClient {
     const room = m.room()
 
     // this.log.info('Bot', '%s<%s>:%s'
-    //               , (room ? '['+room.name()+']' : '')
+    //               , (room ? '['+room.topic()+']' : '')
     //               , from.name()
     //               , m.toStringDigest()
     //         )
@@ -196,10 +196,10 @@ class IoClient {
       this.log.warn('IoClient', 'start() with a pending state, not the time')
       return Promise.reject('pending')
     }
-    
+
     this.targetState('connected')
     this.currentState('connecting')
-   
+
     return this.initIo(this.wechaty)
               .then(io => {
                 this.io = io
@@ -252,7 +252,7 @@ class IoClient {
 
   quit() {
     this.log.verbose('IoClient', 'quit()')
-    
+
     if (this.currentState() === 'disconnecting') {
       this.log.warn('IoClient', 'quit() with currentState() = `disconnecting`, skipped')
       return Promise.reject('quit() with currentState = `disconnecting`')
@@ -270,13 +270,13 @@ class IoClient {
 
       if (this.io) {
         yield this.io.quit()
-        this.io = null 
+        this.io = null
       } else { this.log.warn('IoClient', 'quit() no this.io') }
 
       this.currentState('disconnected')
     }).catch(e => {
       this.log.error('IoClient', 'exception: %s', e.message)
-      
+
       // XXX fail safe?
       this.currentState('disconnected')
 

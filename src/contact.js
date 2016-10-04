@@ -26,7 +26,7 @@ class Contact {
   parse(rawObj) {
     return !rawObj ? {} : {
       id:           rawObj.UserName
-      , uin:        rawObj.Uin    // stable id? 4763975 || getCookie("wxuin")
+      , uin:        rawObj.Uin    // stable id: 4763975 || getCookie("wxuin")
       , weixin:     rawObj.Alias  // Wechat ID
       , name:       rawObj.NickName
       , remark:     rawObj.RemarkName
@@ -105,7 +105,7 @@ Contact.init()
 
 Contact.load = function(id) {
   if (!id || typeof id !== 'string') {
-    throw new Error('id must be string')
+    return null
   }
 
   if (!(id in Contact.pool)) {

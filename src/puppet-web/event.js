@@ -346,8 +346,7 @@ function onServerMessage(data) {
       const request = new FriendRequest()
       request.receive(data.RecommendInfo)
 
-      const contact = Contact.load(request.contactId)
-      this.emit('friend', contact, request)
+      this.emit('friend', request.contact, request)
       break
 
     case Message.Type.SYS:
@@ -358,7 +357,7 @@ function onServerMessage(data) {
       /**
        * try to find FriendRequest Confirmation Message
        */
-      if (/^You have added (.+) as your WeChat contact. Start chatting!$/.test(m.get('content'))) {
+      if (/^You have added(.+)as your WeChat contact. Start chatting!$/.test(m.get('content'))) {
         const request = new FriendRequest()
         const contact = Contact.load(m.get('from'))
         request.confirm(contact)

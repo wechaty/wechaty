@@ -52,7 +52,7 @@ bot
     const msg = yield m.ready()
     const room = Wechaty.Room.load(m.room())
 
-    if (room && /Wechaty/i.test(room.name())) {
+    if (room && /Wechaty/i.test(room.topic())) {
       log.info('Bot', 'talk: %s'  , msg)
       talk(m)
     } else {
