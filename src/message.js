@@ -8,15 +8,21 @@
  */
 const co = require('co')
 
+const Wechaty = require('./wechaty')
 const Contact = require('./contact')
 const Room    = require('./room')
+const Config  = require('./config')
 
-const UtilLib  = require('./util-lib')
-const log   = require('./brolog-env')
+const UtilLib = require('./util-lib')
+const log     = require('./brolog-env')
 
 class Message {
   constructor(rawObj) {
     Message.counter++
+
+    if (typeof rawObj === 'string') {
+      rawObj = JSON.parse(rawObj)
+    }
 
     this.rawObj = rawObj = rawObj || {}
     this.obj = this.parse(rawObj)
@@ -99,7 +105,8 @@ class Message {
 
       return this         // return this for chain
     }).catch(e => { // Exception
-        log.error('Message', 'ready() exception: %s', e.message)
+        log.error('Message', 'ready() exception: %s', e)
+        console.log(e)
         throw e
     })
   }
@@ -140,36 +147,36 @@ class Message {
 
 Message.counter = 0
 Message.Type = {
-  TEXT: 1,
-  IMAGE: 3,
-  VOICE: 34,
-  VIDEO: 43,
-  MICROVIDEO: 62,
-  EMOTICON: 47,
-  APP: 49,
-  VOIPMSG: 50,
-  VOIPNOTIFY: 52,
-  VOIPINVITE: 53,
-  LOCATION: 48,
-  STATUSNOTIFY: 51,
-  SYSNOTICE: 9999,
+  TEXT:               1,
+  IMAGE:              3,
+  VOICE:              34,
+  VERIFYMSG:          37,
   POSSIBLEFRIEND_MSG: 40,
-  VERIFYMSG: 37,
-  SHARECARD: 42,
-  SYS: 1e4,
-  RECALLED: 10002
+  SHARECARD:          42,
+  VIDEO:              43,
+  EMOTICON:           47,
+  LOCATION:           48,
+  APP:                49,
+  VOIPMSG:            50,
+  STATUSNOTIFY:       51,
+  VOIPNOTIFY:         52,
+  VOIPINVITE:         53,
+  MICROVIDEO:         62,
+  SYSNOTICE:          9999,
+  SYS:                10000,
+  RECALLED:           10002
 }
 Object.keys(Message.Type).forEach(k => {
   const v = Message.Type[k]
   Message.Type[v] = k // Message.Type[1] = 'TEXT'
 })
 
-Message.attach = function(puppet) {
-  log.verbose('Message', 'attach() to %s', puppet && puppet.constructor.name)
-  Message.puppet = puppet
-}
+// Message.attach = function(puppet) {
+//   log.verbose('Message', 'attach() to %s', puppet && puppet.constructor.name)
+//   Message.puppet = puppet
+// }
 
-module.exports = Message
+module.exports = Message.default = Message.Message = Message
 
 /*
  * join room in mac client: https://support.weixin.qq.com/cgi-bin/mmsupport-bin/addchatroombyinvite?ticket=AUbv%2B4GQA1Oo65ozlIqRNw%3D%3D&exportkey=AS9GWEg4L82fl3Y8e2OeDbA%3D&lang=en&pass_ticket=T6dAZXE27Y6R29%2FFppQPqaBlNwZzw9DAN5RJzzzqeBA%3D&wechat_real_lang=en

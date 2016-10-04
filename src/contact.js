@@ -6,13 +6,14 @@
  * https://github.com/zixia/wechaty
  *
  */
-const log   = require('./brolog-env')
-const UtilLib  = require('./util-lib')
+const Wechaty = require('./wechaty')
+const { log }     = require('./brolog-env')
+const { UtilLib } = require('./util-lib')
+const { Config }  = require('./config')
 
 class Contact {
   constructor(id) {
     log.silly('Contact', `constructor(${id})`)
-    if (!Contact.puppet) { throw new Error('no puppet attached to Contact') }
 
     if (id && typeof id !== 'string') { throw new Error('id must be string if provided. we got: ' + typeof id) }
     this.id   = id
@@ -59,8 +60,11 @@ class Contact {
     }
 
     if (!contactGetter) {
-      log.silly('Contact', 'get contact via ' + Contact.puppet.constructor.name)
-      contactGetter = Contact.puppet.getContact.bind(Contact.puppet)
+      if (!Config.puppetInstance()) { throw new Error('Config.puppetInstance() is not found by Contact') }
+
+      log.silly('Contact', 'get contact via ' + Config.puppetInstance().constructor.name)
+      contactGetter = Config.puppetInstance()
+                              .getContact.bind(Config.puppetInstance())
     }
     return contactGetter(this.id)
             .then(data => {
@@ -117,9 +121,9 @@ Contact.load = function(id) {
 //   return []
 // }
 
-Contact.attach = function(puppet) {
-  log.verbose('Contact', 'attach() to %s', puppet && puppet.constructor.name)
-  Contact.puppet = puppet
-}
+// Contact.attach = function(puppet) {
+//   log.warn('Contact', '@deprecated attach() to %s', puppet && puppet.constructor.name)
+//   // Config.puppetInstance(puppet)
+// }
 
-module.exports = Contact
+module.exports = Contact.default = Contact.Contact = Contact

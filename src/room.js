@@ -5,9 +5,13 @@
  * Licenst: ISC
  * https://github.com/zixia/wechaty
  *
+ * Add/Del/Topic: https://github.com/wechaty/wechaty/issues/32
+ *
  */
-const log   = require('./brolog-env')
-const UtilLib  = require('./util-lib')
+const Wechaty   = require('./wechaty')
+const log       = require('./brolog-env')
+const UtilLib   = require('./util-lib')
+const Config    = require('./config')
 
 class Room {
   constructor(id) {
@@ -15,8 +19,8 @@ class Room {
     this.id = id
     this.obj = {}
     this.dirtyObj = {} // when refresh, use this to save dirty data for query
-    if (!Room.puppet) {
-      throw new Error('no puppet attached to Room')
+    if (!Config.puppetInstance) {
+      throw new Error('Config.puppetInstance not found')
     }
   }
 
@@ -46,7 +50,8 @@ class Room {
       log.warn('Room', 'ready() has obj.id but memberList empty in room %s. reloading', this.obj.topic)
     }
 
-    contactGetter = contactGetter || Room.puppet.getContact.bind(Room.puppet)
+    contactGetter = contactGetter || Config.puppetInstance()
+                                            .getContact.bind(Config.puppetInstance())
     return contactGetter(this.id)
     .then(data => {
       log.silly('Room', `contactGetter(${this.id}) resolved`)
@@ -101,7 +106,7 @@ class Room {
     if (!contact) {
       throw new Error('contact not found')
     }
-    return Room.puppet.roomDel(this, contact)
+    return Config.puppetInstance.roomDel(this, contact)
                       .then(r => this.delLocal(contact))
   }
 
@@ -148,14 +153,14 @@ class Room {
       throw new Error('contact not found')
     }
 
-    return Room.puppet.roomAdd(this, contact)
+    return Config.puppetInstance.roomAdd(this, contact)
   }
 
   topic(newTopic) {
     log.verbose('Room', 'topic(%s)', newTopic)
 
     if (newTopic) {
-      Room.puppet.roomTopic(this, newTopic)
+      Config.puppetInstance.roomTopic(this, newTopic)
       return newTopic
     }
     return this.get('topic')
@@ -167,7 +172,7 @@ class Room {
     if (!contactList || ! typeof contactList === 'array') {
       throw new Error('contactList not found')
     }
-    return Room.puppet.roomCreate(contactList)
+    return Config.puppetInstance.roomCreate(contactList)
   }
 
   // private
@@ -189,7 +194,7 @@ class Room {
       throw new Error('unsupport name type')
     }
 
-    return Room.puppet.roomFind(filterFunction)
+    return Config.puppetInstance.roomFind(filterFunction)
               .then(idList => {
                 return idList
               })
@@ -254,12 +259,12 @@ class Room {
     return Room.pool[id] = new Room(id)
   }
 
-  static attach(puppet) {
-    // if (!puppet) {
-    //   throw new Error('Room.attach got no puppet to attach!')
-    // }
-    Room.puppet = puppet
-  }
+  // static attach(puppet) {
+  //   // if (!puppet) {
+  //   //   throw new Error('Room.attach got no puppet to attach!')
+  //   // }
+  //   Config.puppetInstance = puppet
+  // }
 
 }
 
