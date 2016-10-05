@@ -68,8 +68,25 @@ class Room extends EventEmitter{
     })
   }
 
-  owner() { return this.obj.memberList && this.obj.memberList[0] }
-  topic() { return UtilLib.plainText(this.obj.topic) }
+  owner() {
+    const ownerUin = this.obj.ownerUin
+    let memberList = this.obj.memberList || []
+
+    let user = Config.puppetInstance()
+                      .user
+
+    if (user && user.get('uin') === ownerUin) {
+      return user
+    }
+
+    memberList = memberList.filter(m => m.Uin === ownerUin)
+    if (memberList.length > 0) {
+      return memberList[0]
+    }
+
+    return null
+  }
+
   get(prop) { return this.obj[prop] || this.dirtyObj[prop] }
 
   parse(rawObj) {
@@ -77,9 +94,11 @@ class Room extends EventEmitter{
       return {}
     }
     return {
-      id:         rawObj.UserName
-      , encryId:  rawObj.EncryChatRoomId // ???
-      , topic:    rawObj.NickName
+      id:           rawObj.UserName
+      , encryId:    rawObj.EncryChatRoomId // ???
+      , topic:      rawObj.NickName
+      , ownerUin:   rawObj.OwnerUin
+
       , memberList: this.parseMemberList(rawObj.MemberList)
       , nickMap:    this.parseNickMap(rawObj.MemberList)
     }
@@ -95,7 +114,9 @@ class Room extends EventEmitter{
   parseNickMap(memberList) {
     const nickMap = {}
     if (memberList && memberList.map) {
-      memberList.forEach(m => nickMap[m.UserName] = m.DisplayName)
+      memberList.forEach(m => {
+        nickMap[m.UserName] = m.DisplayName || m.NickName
+      })
     }
     return nickMap
   }
@@ -172,7 +193,8 @@ class Room extends EventEmitter{
       Config.puppetInstance().roomTopic(this, newTopic)
       return newTopic
     }
-    return this.get('topic')
+    // return this.get('topic')
+    return UtilLib.plainText(this.obj.topic)
   }
 
   nick(contact) {
