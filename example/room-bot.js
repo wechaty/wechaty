@@ -5,7 +5,7 @@ const {
   , Contact
   , Message
   , log
-} = require('.')
+} = require('..')
 
 const welcome = `
 =============== Powered by Wechaty ===============
