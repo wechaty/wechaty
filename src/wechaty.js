@@ -202,6 +202,10 @@ class Wechaty extends EventEmitter {
     return this.puppet.self(message)
   }
 
+  user() {
+    return this.puppet.user
+  }
+
   send(message) {
     return this.puppet.send(message)
     .catch(e => {
