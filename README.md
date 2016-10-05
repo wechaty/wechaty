@@ -559,7 +559,7 @@ Room.on('leave', (leaver) => void)
 
 ### static Room.findAll(query: Query): Promise<Room[]>
 
-### static Room.create(contactList: Contact[]): Promise<any>
+### static Room.create(contactList: Contact[], topic?: string): Promise<any>
 
 ### Room.add(contact: Contact): Promise<any>
 
