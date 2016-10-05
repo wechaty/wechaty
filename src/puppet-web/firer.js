@@ -41,10 +41,10 @@ const PuppetWebFirer = {
 }
 
 const regexConfig = {
-  friendConfirm:    /^You have added (.+) as your WeChat contact. Start chatting!$/
+  friendConfirm:  /^You have added (.+) as your WeChat contact. Start chatting!$/
 
-  , roomJoin:  /^"?(.+?)"? invited "(.+)" to the group chat$/
-  , roomLeave:  /^You removed "(.+)" from the group chat$/
+  , roomJoin:     /^"?(.+?)"? invited "(.+)" to the group chat$/
+  , roomLeave:    /^You removed "(.+)" from the group chat$/
 }
 
 function fireFriendRequest(m) {
@@ -100,17 +100,18 @@ function checkRoomJoin(content) {
     return false
   }
   const [_, inviter, invitee] = found
-  return [invitee, inviter]
+  return [invitee, inviter] // put invitee at first place
 }
 
 function fireRoomJoin(m) {
   const room    = m.room()
   const content = m.content()
 
-  const [invitee, inviter] = checkRoomJoin(cotent)
-  if (!invitee || !inviter) {
+  let result = checkRoomJoin(content)
+  if (!result) {
     return
   }
+  const [invitee, inviter] = result
 
   let inviterContact, inviteeContact
 
