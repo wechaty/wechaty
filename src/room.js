@@ -214,12 +214,18 @@ class Room extends EventEmitter{
   }
 
   member(name) {
+    log.verbose('Room', 'member(%s)', name)
+
     if (!this.obj.memberList) {
+      log.warn('Room', 'member() not ready')
       return null
     }
     const nickMap = this.obj.nickMap
     const idList = Object.keys(nickMap)
                           .filter(k => nickMap[k] === name)
+
+    log.silly('Room', 'member() check nickMap: %s', JSON.stringify(nickMap))
+
     if (idList.length) {
       return Contact.load(idList[0])
     } else {

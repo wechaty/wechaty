@@ -336,52 +336,56 @@ function onServerLogout(data) {
 function onServerMessage(data) {
   let m = new Message(data)
 
-  /**
-   * Fire Events if match message type & content
-   */
-  switch (m.type()) { // data.MsgType
+  co.call(this, function* () {
+    yield m.ready()
 
-    case Message.Type.VERIFYMSG:
-      Firer.fireFriendRequest.call(this, m)
-      break
-
-    case Message.Type.SYS:
-      if (m.room()) {
-        Firer.fireRoomJoin.call(this, m)
-        Firer.fireRoomLeave.call(this, m)
-      } else {
-        Firer.fireFriendConfirm.call(this, m)
-      }
-      break
-  }
-
-  /**
-   * Check Type for special Message
-   * reload if needed
-   */
-  switch (m.type()) {
-    case Message.Type.IMAGE:
-      // log.verbose('PuppetWebEvent', 'onServerMessage() IMAGE message')
-      m = new MediaMessage(data)
-      break
-  }
-
-  // To Be Deleted: set self...
-  if (this.userId) {
-    m.set('self', this.userId)
-  } else {
-    log.warn('PuppetWebEvent', 'onServerMessage() without this.userId')
-  }
-
-  m.ready() // TODO: EventEmitter2 for video/audio/app/sys....
-  .then(_ => this.emit('message', m))
-  .catch(e => {
-    log.error('PuppetWebEvent', 'onServerMessage() message ready exception: %s', e)
-    // console.log(e)
     /**
-     * FIXME: add retry here...
-     * setTimeout(onServerMessage.bind(this, data, ++attempt), 1000)
+     * Fire Events if match message type & content
      */
+    switch (m.type()) { // data.MsgType
+
+      case Message.Type.VERIFYMSG:
+        Firer.fireFriendRequest.call(this, m)
+        break
+
+      case Message.Type.SYS:
+        if (m.room()) {
+          Firer.fireRoomJoin.call(this, m)
+          Firer.fireRoomLeave.call(this, m)
+        } else {
+          Firer.fireFriendConfirm.call(this, m)
+        }
+        break
+    }
+
+    /**
+     * Check Type for special Message
+     * reload if needed
+     */
+    switch (m.type()) {
+      case Message.Type.IMAGE:
+        // log.verbose('PuppetWebEvent', 'onServerMessage() IMAGE message')
+        m = new MediaMessage(data)
+        break
+    }
+
+    // To Be Deleted: set self...
+    if (this.userId) {
+      m.set('self', this.userId)
+    } else {
+      log.warn('PuppetWebEvent', 'onServerMessage() without this.userId')
+    }
+
+    m.ready() // TODO: EventEmitter2 for video/audio/app/sys....
+    .then(_ => this.emit('message', m))
+    .catch(e => {
+      log.error('PuppetWebEvent', 'onServerMessage() message ready exception: %s', e)
+      // console.log(e)
+      /**
+       * FIXME: add retry here...
+       * setTimeout(onServerMessage.bind(this, data, ++attempt), 1000)
+       */
+    })
   })
 }
 

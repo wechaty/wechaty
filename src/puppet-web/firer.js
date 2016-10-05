@@ -115,19 +115,27 @@ function fireRoomJoin(m) {
 
   let inviterContact, inviteeContact
 
-  if (inviter === "You've") {
-    inviterContact = Contact.load(this.userId)
-  } else {
-    inviterContact = room.member(inviter)
-  }
+  co.call(this, function* () {
+    yield room.refresh()
 
-  inviteeContact = room.member(invitee)
+    yield new Promise(resolve => {
+      setTimeout(_ => resolve(), 1000)
+    })
 
-  if (!inviterContact || !inviteeContact) {
-    log.error('PuppetWebEvent', 'inivter or invitee not found for %s, %s', inviter, invitee)
-    return
-  }
-  room.emit('join', inviteeContact, inviterContact)
+    if (inviter === "You've") {
+      inviterContact = Contact.load(this.userId)
+    } else {
+      inviterContact = room.member(inviter)
+    }
+
+    inviteeContact = room.member(invitee)
+
+    if (!inviterContact || !inviteeContact) {
+      log.error('PuppetWebEvent', 'inivter or invitee not found for %s, %s', inviter.name(), invitee.name())
+      return
+    }
+    room.emit('join', inviteeContact, inviterContact)
+  })
 }
 
 function checkRoomLeave(content) {
@@ -151,6 +159,7 @@ function fireRoomLeave(m) {
   }
 
   const room = m.room()
+
   leaverContact = room.member(leaver)
 
   if (!leaverContact) {
@@ -158,6 +167,7 @@ function fireRoomLeave(m) {
     return
   }
   room.emit('leave', leaverContact)
+  room.refresh()
 }
 
 module.exports = PuppetWebFirer
