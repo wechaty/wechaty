@@ -226,14 +226,17 @@ class Room extends EventEmitter{
     }
   }
 
-  static create(contactList) {
-    log.verbose('Room', 'create(%s)', contactList.join(','))
+  static create(contactList, topic) {
+    log.verbose('Room', 'create(%s, %s)', contactList.join(','), topic)
 
-    if (!contactList || ! typeof contactList === 'array') {
+    if (!contactList || !typeof contactList === 'array') {
       throw new Error('contactList not found')
     }
+
+    const contactIdList = contactList.map(c => c.id)
+
     return Config.puppetInstance()
-                  .roomCreate(contactList)
+                  .roomCreate(contactIdList, topic)
   }
 
   // private
