@@ -121,13 +121,15 @@ function fireRoomJoin(m) {
       inviterContact = Contact.load(this.userId)
     }
 
-    const max = 15
-    const backoff = 100
+    const max = 20
+    const backoff = 300
+    const timeout = max * (backoff * max) / 2
+    // 20 / 300 => 63,000
     // max = (2*totalTime/backoff) ^ (1/2)
     // timeout = 11,250 for {max: 15, backoff: 100}
 
     yield retryPromise({ max: max, backoff: backoff }, attempt => {
-      log.silly('PuppetWebFirer', 'fireRoomJoin() retryPromise() attempt %d', attempt)
+      log.silly('PuppetWebFirer', 'fireRoomJoin() retryPromise() attempt %d with timeout %d', attempt, timeout)
 
       return room.refresh()
                   .then(_ => {
