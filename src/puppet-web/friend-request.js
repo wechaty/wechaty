@@ -91,4 +91,4 @@ class PuppetWebFriendRequest extends FriendRequest {
 
 }
 
-module.exports = PuppetWebFriendRequest.default = PuppetWebFriendRequest.PuppetWebFriendRequest = PuppetWebFriendRequest
+module.exports = PuppetWebFriendRequest
