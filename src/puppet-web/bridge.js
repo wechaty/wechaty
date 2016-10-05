@@ -143,6 +143,14 @@ class Bridge {
               })
   }
 
+  contactFind(filterFunction) {
+    return this.proxyWechaty('contactFind', filterFunction)
+                .catch(e => {
+                  log.error('PuppetWebBridge', 'contactFind() exception: %s', e.message)
+                  throw e
+                })
+  }
+
   roomFind(filterFunction) {
     return this.proxyWechaty('roomFind', filterFunction)
                 .catch(e => {

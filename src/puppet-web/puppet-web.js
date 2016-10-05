@@ -348,6 +348,17 @@ class PuppetWeb extends Puppet {
                       })
   }
 
+  contactFind(filterFunction) {
+    if (!this.bridge) {
+      return Promise.reject(new Error('contactFind fail: no bridge(yet)!'))
+    }
+    return this.bridge.contactFind(filterFunction)
+                      .catch(e => {
+                        log.warn('PuppetWeb', 'contactFind(%s) rejected: %s', filterFunction, e.message)
+                        throw e
+                      })
+  }
+
   roomFind(filterFunction) {
     if (!this.bridge) {
       return Promise.reject(new Error('findRoom fail: no bridge(yet)!'))
@@ -400,7 +411,7 @@ class PuppetWeb extends Puppet {
                       })
   }
 
-  roomCreate(contactList) {
+  roomCreate(contactList, topic) {
     if (!this.bridge) {
       return Promise.reject(new Error('fail: no bridge(yet)!'))
     }
@@ -409,11 +420,11 @@ class PuppetWeb extends Puppet {
       throw new Error('contactList not found')
     }
 
-    const contactIdList = contactList.map(c => c.get('id'))
+    const contactIdList = contactList.map(c => c.id)
 
-    return this.bridge.roomCreate(contactIdList)
+    return this.bridge.roomCreate(contactIdList, topic)
                       .catch(e => {
-                        log.warn('PuppetWeb', 'roomCreate(%s) rejected: %s', contact, e.message)
+                        log.warn('PuppetWeb', 'roomCreate(%s, %s) rejected: %s', contactIdList.join(,), topic, e.message)
                         throw e
                       })
   }

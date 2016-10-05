@@ -451,6 +451,21 @@
             : null
   }
 
+  function contactFind(filterFunction) {
+    var contactFactory = WechatyBro.glue.contactFactory
+
+    var match
+    if (!filterFunction) {
+      match = function() { return true }
+    } else {
+      match = eval(filterFunction)
+    }
+    // log(match.toString())
+    return contactFactory.getAllFriendContact()
+                          .filter(r => match(r.NickName))
+                          .map(r => r.UserName)
+  }
+
   function roomFind(filterFunction) {
     var contactFactory = WechatyBro.glue.contactFactory
 
@@ -484,20 +499,25 @@
     return chatroomFactory.modTopic(ChatRoomName, topic)
   }
 
-  function roomCreate(UserNameList) {
+  function roomCreate(UserNameList, topic) {
     const UserNameListArg = UserNameList.map(n => { return { UserName: n } })
 
     const chatroomFactory = WechatyBro.glue.chatroomFactory
     const state           = WechatyBro.glue.state
+
     chatroomFactory.create(UserNameListArg)
                     .then(r => {
                       if (r.BaseResponse && 0 == r.BaseResponse.Ret || -2013 == e.BaseResponse.Ret) {
                         state.go('chat', { userName: r.ChatRoomName }) // BE CAREFUL: key name is userName, not UserName! 20161001
+                        if (topic) {
+                          roomModTopic(r.ChatRoomName, topic)
+                        }
                       }
+                      return r.ChatRoomName
                     })
                     .catch(e => {
                       // TBD
-                      console.log(e)
+                      log(e)
                     })
     return 'no callback (yet)'
   }
@@ -606,6 +626,9 @@
     , getContact: getContact
     , getUserName: getUserName
     , getMsgImg: getMsgImg
+
+    // for Wechaty Contact Class
+    , contactFind
 
     // for Wechaty Room Class
     , roomFind

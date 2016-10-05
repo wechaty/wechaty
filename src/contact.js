@@ -88,16 +88,80 @@ class Contact {
     Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj[k]}`))
   }
 
-  static find() {
-    return new Contact('-1')
+  // private
+  static _find({
+    name
+  }) {
+    log.silly('Cotnact', '_find(%s)', name)
+
+    if (!name) {
+      throw new Error('name not found')
+    }
+
+    let filterFunction
+    if (name instanceof RegExp) {
+      filterFunction = `c => ${name.toString()}.test(c)`
+    } else if (typeof name === 'string') {
+      filterFunction = `c => c === '${name}'`
+    } else {
+      throw new Error('unsupport name type')
+    }
+
+    return Config.puppetInstance()
+                  .contactFind(filterFunction)
+                  .then(idList => {
+                    return idList
+                  })
+                  .catch(e => {
+                    log.error('Contact', '_find() rejected: %s', e.message)
+                    throw e
+                  })
   }
 
-  static findAll() {
-    return [
-      new Contact   ('-2')
-      , new Contact ('-3')
-    ]
+  static find({
+    name
+  }) {
+    log.verbose('Contact', 'find(%s)', name)
+
+    return Contact._find({name})
+              .then(idList => {
+                if (!idList || !Array.isArray(idList)){
+                  throw new Error('_find return error')
+                }
+                if (idList.length < 1) {
+                  return null
+                }
+                const id = idList[0]
+                return Contact.load(id)
+              })
+              .catch(e => {
+                log.error('Contact', 'find() rejected: %s', e.message)
+                return null // fail safe
+              })
   }
+
+  static findAll({
+    name
+  }) {
+    log.verbose('Contact', 'findAll(%s)', name)
+
+    return Contact._find({name})
+              .then(idList => {
+                // console.log(idList)
+                if (!idList || !Array.isArray(idList)){
+                  throw new Error('_find return error')
+                }
+                if (idList.length < 1) {
+                  return []
+                }
+                return idList.map(i => Contact.load(i))
+              })
+              .catch(e => {
+                log.error('Contact', 'findAll() rejected: %s', e.message)
+                return [] // fail safe
+              })
+  }
+
 }
 
 Contact.init = function() { Contact.pool = {} }
@@ -122,11 +186,6 @@ Contact.load = function(id) {
 //   }
 
 //   return []
-// }
-
-// Contact.attach = function(puppet) {
-//   log.warn('Contact', '@deprecated attach() to %s', puppet && puppet.constructor.name)
-//   // Config.puppetInstance(puppet)
 // }
 
 module.exports = Contact.default = Contact.Contact = Contact
