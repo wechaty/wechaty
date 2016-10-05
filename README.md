@@ -22,6 +22,8 @@ Wechaty is a Bot Framework for Wechat **Personal** Account that help you easy cr
 
 > @ccaapton : wechaty library looks fantastic! [link](https://github.com/wechaty/wechaty/issues/9)
 
+> @Samurais wechaty is great. 👍 [link](https://github.com/wechaty/wechaty/issues/36#issuecomment-251708382)
+
 # Examples
 Wechaty is dead easy to use: 7 lines javascript for your wechat bot.
 
