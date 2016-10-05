@@ -18,9 +18,10 @@
  * here `this` is a PuppetWeb Instance
  *
  ***************************************/
-const util  = require('util')
-const fs    = require('fs')
-const co    = require('co')
+const util          = require('util')
+const fs            = require('fs')
+const co            = require('co')
+const retryPromise  = require('retry-promise').default
 
 const log = require('../brolog-env')
 const Contact = require('../contact')
@@ -49,7 +50,7 @@ const regexConfig = {
 
 function fireFriendRequest(m) {
   const info = m.rawObj.RecommendInfo
-  log.verbose('PuppetWebEvent', 'fireFriendRequest(%s)', info)
+  log.verbose('PuppetWebFirer', 'fireFriendRequest(%s)', info)
 
   const request = new FriendRequest()
   request.receive(info)
@@ -70,7 +71,7 @@ function checkFriendConfirm(content) {
 
 function fireFriendConfirm(m) {
   const content = m.content()
-  log.silly('PuppetWebEvent', 'fireFriendConfirm(%s)', content)
+  log.silly('PuppetWebFirer', 'fireFriendConfirm(%s)', content)
 
   if (!checkFriendConfirm(content)) {
     return
@@ -116,25 +117,49 @@ function fireRoomJoin(m) {
   let inviterContact, inviteeContact
 
   co.call(this, function* () {
-    yield room.refresh()
-
-    yield new Promise(resolve => {
-      setTimeout(_ => resolve(), 1000)
-    })
-
     if (inviter === "You've") {
       inviterContact = Contact.load(this.userId)
-    } else {
-      inviterContact = room.member(inviter)
     }
 
-    inviteeContact = room.member(invitee)
+    const max = 15
+    const backoff = 100
+    // max = (2*totalTime/backoff) ^ (1/2)
+    // timeout = 11,250 for {max: 15, backoff: 100}
+
+    yield retryPromise({ max: max, backoff: backoff }, attempt => {
+      log.silly('PuppetWebFirer', 'fireRoomJoin() retryPromise() attempt %d', attempt)
+
+      return room.refresh()
+                  .then(_ => {
+                    log.silly('PuppetWebFirer', 'inviteeContact: %s, invitorContact: %s', inviteeContact, inviterContact)
+
+                    inviteeContact || (inviteeContact = room.member(invitee))
+                    inviterContact || (inviterContact = room.member(inviter))
+                    if (inviteeContact && inviterContact) {
+                      log.silly('PuppetWebFirer', 'resolve() inviteeContact: %s, invitorContact: %s', inviteeContact, inviterContact)
+                      return Promise.resolve()
+                    } else {
+                      log.silly('PuppetWebFirer', 'reject() inviteeContact: %s, invitorContact: %s', inviteeContact, inviterContact)
+                      return Promise.reject()
+                    }
+                  })
+                  .catch(e => {
+                    log.error('PuppetWebFirer', 'retryPromise() room.refresh() rejected: %s', e.stack)
+                    throw e
+                  })
+    })
+    .catch(e => { /* fail safe */ })
 
     if (!inviterContact || !inviteeContact) {
-      log.error('PuppetWebEvent', 'inivter or invitee not found for %s, %s', inviter.name(), invitee.name())
+      log.error('PuppetWebFirer', 'inivter or invitee not found for %s, %s', inviter, invitee)
       return
     }
+    yield inviteeContact.ready()
+    yield inviterContact.ready()
     room.emit('join', inviteeContact, inviterContact)
+
+  }).catch(e => {
+    log.error('PuppetWebFirer', 'retryPromise() rejected: %s', e.stack)
   })
 }
 
@@ -163,11 +188,17 @@ function fireRoomLeave(m) {
   leaverContact = room.member(leaver)
 
   if (!leaverContact) {
-    log.error('PuppetWebEvent', 'leaver not found for %s', leaver)
+    log.error('PuppetWebFirer', 'leaver not found for %s', leaver)
     return
   }
-  room.emit('leave', leaverContact)
-  room.refresh()
+
+  co.call(this, function* () {
+    yield leaverContact.ready()
+    room.emit('leave', leaverContact)
+    room.refresh()
+  }).catch(e => {
+    log.error('PuppetWebFirer', 'fireRoomLeave() co exception: %s', e.stack)
+  })
 }
 
 module.exports = PuppetWebFirer
