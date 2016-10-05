@@ -68,25 +68,6 @@ class Room extends EventEmitter{
     })
   }
 
-  owner() {
-    const ownerUin = this.obj.ownerUin
-    let memberList = this.obj.memberList || []
-
-    let user = Config.puppetInstance()
-                      .user
-
-    if (user && user.get('uin') === ownerUin) {
-      return user
-    }
-
-    memberList = memberList.filter(m => m.Uin === ownerUin)
-    if (memberList.length > 0) {
-      return memberList[0]
-    }
-
-    return null
-  }
-
   get(prop) { return this.obj[prop] || this.dirtyObj[prop] }
 
   parse(rawObj) {
@@ -130,14 +111,26 @@ class Room extends EventEmitter{
     Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj[k]}`))
   }
 
+  add(contact) {
+    log.verbose('Room', 'add(%s) to %s', contact, this)
+
+    if (!contact) {
+      throw new Error('contact not found')
+    }
+
+    return Config.puppetInstance()
+                  .roomAdd(this, contact)
+  }
+
   del(contact) {
     log.verbose('Room', 'del(%s) from %s', contact, this)
 
     if (!contact) {
       throw new Error('contact not found')
     }
-    return Config.puppetInstance().roomDel(this, contact)
-                      .then(r => this.delLocal(contact))
+    return Config.puppetInstance()
+                  .roomDel(this, contact)
+                  .then(_ => this.delLocal(contact))
   }
 
   // @private
@@ -151,21 +144,12 @@ class Room extends EventEmitter{
 
     let i
     for (i=0; i<memberList.length; i++) {
-// XXX
-// console.log('########################')
-// console.log(i)
-// console.log(memberList[i].id)
-// console.log(contact.get('id'))
-// console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!')
       if (memberList[i].id === contact.get('id')) {
         break
       }
     }
-// console.log('found i=' + i)
     if (i < memberList.length) {
-// console.log('splicing before: ' + memberList.length)
       memberList.splice(i, 1)
-// console.log('splicing after: ' + memberList.length)
       return true
     }
     return false
@@ -174,16 +158,6 @@ class Room extends EventEmitter{
   quit() {
     throw new Error('wx web not implement yet')
     // WechatyBro.glue.chatroomFactory.quit("@@1c066dfcab4ef467cd0a8da8bec90880035aa46526c44f504a83172a9086a5f7"
-  }
-
-  add(contact) {
-    log.verbose('Room', 'add(%s) to %s', contact, this)
-
-    if (!contact) {
-      throw new Error('contact not found')
-    }
-
-    return Config.puppetInstance().roomAdd(this, contact)
   }
 
   topic(newTopic) {
@@ -213,6 +187,25 @@ class Room extends EventEmitter{
                     .length > 0
   }
 
+  owner() {
+    const ownerUin = this.obj.ownerUin
+    let memberList = this.obj.memberList || []
+
+    let user = Config.puppetInstance()
+                      .user
+
+    if (user && user.get('uin') === ownerUin) {
+      return user
+    }
+
+    memberList = memberList.filter(m => m.Uin === ownerUin)
+    if (memberList.length > 0) {
+      return memberList[0]
+    } else {
+      return null
+    }
+  }
+
   member(name) {
     log.verbose('Room', 'member(%s)', name)
 
@@ -239,7 +232,8 @@ class Room extends EventEmitter{
     if (!contactList || ! typeof contactList === 'array') {
       throw new Error('contactList not found')
     }
-    return Config.puppetInstance().roomCreate(contactList)
+    return Config.puppetInstance()
+                  .roomCreate(contactList)
   }
 
   // private
@@ -325,13 +319,6 @@ class Room extends EventEmitter{
     }
     return Room.pool[id] = new Room(id)
   }
-
-  // static attach(puppet) {
-  //   // if (!puppet) {
-  //   //   throw new Error('Room.attach got no puppet to attach!')
-  //   // }
-  //   Config.puppetInstance() = puppet
-  // }
 
 }
 

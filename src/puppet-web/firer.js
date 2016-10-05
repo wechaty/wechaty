@@ -158,6 +158,7 @@ function fireRoomJoin(m) {
     }
     yield inviteeContact.ready()
     yield inviterContact.ready()
+    this.emit('room-join', room, inviteeContact, inviterContact)
     room.emit('join', inviteeContact, inviterContact)
 
   }).catch(e => {
@@ -196,6 +197,7 @@ function fireRoomLeave(m) {
 
   co.call(this, function* () {
     yield leaverContact.ready()
+    this.emit('room-leave', room, leaverContact)
     room.emit('leave', leaverContact)
     room.refresh()
   }).catch(e => {

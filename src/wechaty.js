@@ -143,6 +143,8 @@ class Wechaty extends EventEmitter {
       , 'error'
       , 'heartbeat'
       , 'friend'
+      , 'room-join'
+      , 'room-leave'
     ].map(e => {
       // https://strongloop.com/strongblog/an-introduction-to-javascript-es6-arrow-functions/
       // We’ve lost () around the argument list when there’s just one argument (rest arguments are an exception, eg (...args) => ...)

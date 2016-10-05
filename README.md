@@ -292,13 +292,14 @@ I'll try my best to keep the api as sample as it can be.
 
 ## Events
 
-Wechaty support the following 5 events:
+Wechaty support the following 6 events:
 
 1. scan
 2. login
 3. logout
 4. message
 5. error
+6. friend
 
 ### 1. Event: `scan`
 
@@ -362,6 +363,22 @@ wechaty.on('friend', (contact: Contact, request: FriendRequest) => {
   } else {        // 2. confirm friend ship
     console.log('new friend ship confirmed with ' + contact))
   }
+})
+```
+
+### 7. Event: `room-join`
+
+```typescript
+wechaty.on('room-join', (room: Room, invitee: Contact, inviter: Contact) => {
+  console.log(`Room ${room} got new member ${invitee}, invited by ${inviter}`)
+})
+```
+
+### 8. Event: `room-leave`
+
+```typescript
+wechaty.on('room-leave', (room: Room, leaver: Contact) => {
+  console.log(`Room ${room} lost member ${leaver}`)
 })
 ```
 
@@ -509,6 +526,65 @@ room.ready()
   // Here we can be sure all the data is ready for use.
 })
 ```
+
+## Room Class of Wechaty
+
+```typescript
+type Query = { name: string|Regex }
+Room.find(query : Query) : Room | null
+Room.findAll(query : Query) : Room[]
+```
+
+### Event: `join`
+
+```javascript
+Room.on('join', (invitee, inviter) => void)
+```
+
+Event `join`: Room New Member
+
+```typescript
+room.on('join', (invitee, inviter) => {
+  console.log(`user ${invitee} joined the room ${room}, invited by ${inviter}`)
+})
+```
+
+### Event: `leave`
+
+```typescript
+Room.on('leave', (leaver) => void)
+```
+
+### static Room.find(query: Query): Promise<Room|null>
+
+### static Room.findAll(query: Query): Promise<Room[]>
+
+### static Room.create(contactList: Contact[]): Promise<any>
+
+### Room.add(contact: Contact): Promise<any>
+
+```javascript
+const friend = message.get('from')
+const room = Room.find({ name: 'Group Name' })
+if (room) {
+  room.add(friend)
+}
+```
+
+### Room.del(contact: Contact): void
+
+### Room.topic(newTopic?: string): string
+
+### Room.nick(contact: Contact): string
+
+### Room.has(contact Contact): boolean
+
+### Room.refresh(): Promise<Room>
+
+### Room.owner(): Contact|null
+
+###  Room.member(name: string): Contact|null
+
 
 ## Class FriendRequest
 
