@@ -22,11 +22,13 @@ const util  = require('util')
 const fs    = require('fs')
 const co    = require('co')
 
-const log = require('../brolog-env')
-const Contact = require('../contact')
-const Message = require('../message')
-const MediaMessage = require('../message-media')
+const log           = require('../brolog-env')
+const Contact       = require('../contact')
+const Message       = require('../message')
+const MediaMessage  = require('../message-media')
+
 const FriendRequest = require('./friend-request')
+const Firer         = require('./firer')
 
 const PuppetWebEvent = {
   onBrowserDead
@@ -338,16 +340,17 @@ function onServerMessage(data) {
    * Fire Events if match message type & content
    */
   switch (m.type()) { // data.MsgType
+
     case Message.Type.VERIFYMSG:
-      fireFriendRequest(m)
+      Firer.fireFriendRequest.call(this, m)
       break
 
     case Message.Type.SYS:
       if (m.room()) {
-        fireRoomJoin(m)
-        fireRoomLeave(m)
+        Firer.fireRoomJoin.call(this, m)
+        Firer.fireRoomLeave.call(this, m)
       } else {
-        fireFriendConfirm(m.content())
+        Firer.fireFriendConfirm.call(this, m)
       }
       break
   }
@@ -380,95 +383,6 @@ function onServerMessage(data) {
      * setTimeout(onServerMessage.bind(this, data, ++attempt), 1000)
      */
   })
-}
-
-function fireFriendRequest(m) {
-  const info = m.rawObj.RecommendInfo
-  log.verbose('PuppetWebEvent', 'fireFriendRequest(%s)', info)
-
-  const request = new FriendRequest()
-  request.receive(info)
-  this.emit('friend', request.contact, request)
-}
-
-function fireFriendConfirm(m) {
-  const content = m.content()
-  log.silly('PuppetWebEvent', 'fireFriendConfirm(%s)', content)
-
-  /**
-   * try to find FriendRequest Confirmation Message
-   */
-  if (!/^You have added (.+) as your WeChat contact. Start chatting!$/.test(content)) {
-    return
-  }
-  const request = new FriendRequest()
-  const contact = Contact.load(m.get('from'))
-  request.confirm(contact)
-
-  this.emit('friend', contact)
-}
-
-
-/**
- * try to find 'join' event for Room
- *
-1.
-  You've invited "李卓桓" to the group chat
-  You've invited "李卓桓.PreAngel、Bruce LEE" to the group chat
-2.
-   "李卓桓.PreAngel" invited "Bruce LEE" to the group chat
-*/
-function fireRoomJoin(m) {
-  const room    = m.room()
-  const content = m.content()
-
-  const inviteRe = /^"?(.+)"? invited "(.+)" to the group chat$/
-
-  const found = content.match(inviteRe)
-  if (!found) {
-    return
-  }
-
-  const [_, inviter, invitee] = found
-  let inviterContact, inviteeContact
-
-  if (inviter === "You've") {
-    inviterContact = Contact.load(this.userId)
-  } else {
-    inviterContact = room.member(inviter)
-  }
-
-  inviteeContact = room.member(invitee)
-
-  if (!inviterContact || !inviteeContact) {
-    log.error('PuppetWebEvent', 'inivter or invitee not found for %s, %s', inviter, invitee)
-    return
-  }
-  room.emit('join', inviteeContact, inviterContact)
-}
-
-/**
- * You removed "Bruce LEE" from the group chat
- */
-function fireRoomLeave(m) {
-  const room = m.room()
-  const content = m.content()
-
-  const removeRe = /^You removed "(.+)" from the group chat$/
-
-  const found = content.match(removeRe)
-  if (!found) {
-    return
-  }
-
-  let [_, leaver] = found
-  leaverContact = m.room().member(leaver)
-
-  if (!leaverContact) {
-    log.error('PuppetWebEvent', 'leaver not found for %s', leaver)
-    return
-  }
-  room.emit('leave', leaverContact)
 }
 
 module.exports = PuppetWebEvent
