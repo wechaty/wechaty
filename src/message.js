@@ -82,10 +82,51 @@ class Message {
     return '{' + this.type() + '}' + content
   }
 
-  from()    { return Contact.load(this.obj.from) }
-  to()      { return this.obj.to ? Contact.load(this.obj.to) : null }
-  content() { return this.obj.content }
-  room()    { return this.obj.room ? Room.load(this.obj.room) : null }
+  from(contact) {
+    if (contact) {
+      if (contact instanceof Contact) {
+        this.obj.from = contact.id
+      } else if (typeof contact === 'string') {
+        this.obj.from = contact
+      } else {
+        throw new Error('neither Contact nor UserName')
+      }
+    }
+    return this.obj.from ? Contact.load(this.obj.from) : null
+  }
+
+  to(contact) {
+    if (contact) {
+      if (contact instanceof Contact) {
+        this.obj.to = contact.id
+      } else if (typeof contact === 'string') {
+        this.obj.to = contact
+      } else {
+        throw new Error('neither Contact nor UserName')
+      }
+    }
+    return this.obj.to ? Contact.load(this.obj.to) : null
+  }
+
+  content(content) {
+    if (content) {
+      this.obj.content = content
+    }
+    return this.obj.content
+  }
+
+  room(room) {
+    if (room) {
+      if (room instanceof Room) {
+        this.obj.room = room.id
+      } else if (typeof room === 'string') {
+        this.obj.room = room
+      } else {
+        throw new Error('neither Room nor UserName')
+      }
+    }
+    return this.obj.room ? Room.load(this.obj.room) : null
+  }
 
   type()    { return this.obj.type }
   typeEx()  { return Message.Type[this.obj.type] }
@@ -106,7 +147,9 @@ class Message {
       return this         // return this for chain
     }).catch(e => { // Exception
         log.error('Message', 'ready() exception: %s', e)
-        console.log(e)
+        // console.log(e)
+        // this.dump()
+        // this.dumpRaw()
         throw e
     })
   }
