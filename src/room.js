@@ -121,7 +121,7 @@ class Room extends EventEmitter{
   }
 
   add(contact) {
-    log.verbose('Room', 'add(%s) to %s', contact, this)
+    log.verbose('Room', 'add(%s)', contact)
 
     if (!contact) {
       throw new Error('contact not found')
@@ -132,7 +132,7 @@ class Room extends EventEmitter{
   }
 
   del(contact) {
-    log.verbose('Room', 'del(%s) from %s', contact, this)
+    log.verbose('Room', 'del(%s)', contact)
 
     if (!contact) {
       throw new Error('contact not found')
@@ -251,7 +251,7 @@ class Room extends EventEmitter{
                       // It is a Error Object send back by callback in browser(WechatyBro)
                       throw roomId
                     }
-                    return roomId
+                    return Room.load(roomId)
                   })
   }
 
