@@ -245,10 +245,14 @@ this.onResourceRequested = function(request, net) {
     return driver
   }
 
-  quit() {
+  quit(restart) {
     log.verbose('PuppetWebBrowser', 'quit()')
-    this.targetState('close')
-    this.currentState('closing')
+
+    if (!restart) {
+      this.targetState('close')
+      this.currentState('closing')
+    }
+
     // this.live = false
 
     if (!this.driver) {

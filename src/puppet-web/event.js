@@ -87,7 +87,7 @@ function onBrowserDead(e) {
 
     log.verbose('PuppetWebEvent', 'onBrowserDead() try to reborn browser')
 
-    yield this.browser.quit()
+    yield this.browser.quit(true)
                       .catch(e => { // fail safe
                         log.warn('PuppetWebEvent', 'browser.quit() exception: %s, %s', e.message, e.stack)
                       })
