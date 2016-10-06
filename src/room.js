@@ -37,7 +37,9 @@ class Room extends EventEmitter{
   }
 
   refresh() {
-    this.dirtyObj = this.obj
+    if (this.isReady()) {
+      this.dirtyObj = this.obj
+    }
     this.obj = {}
     return this.ready()
   }
