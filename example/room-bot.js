@@ -44,6 +44,12 @@ bot
   setTimeout(_ => {
     Room.find({ name: /^ding/i })
         .then(room => {
+
+          if (!room) {
+            log.warn('Bot', 'there is no room named ding(yet)')
+            return
+          }
+
           log.info('Bot', 'start monitor "ding" room join/leave event')
           room.on('join', (invitee, inviter) => {
             try {
@@ -74,9 +80,16 @@ bot
           room.on('leave', (leaver) => {
             log.info('Bot', 'room event: %s leave, byebye', leaver.name())
           })
+          room.on('topic', (topic, oldTopic, changer) => {
+            log.info('Bot', 'room event: topic changed from %s to %s by member %s'
+                , oldTopic
+                , topic
+                , changer.name()
+              )
+          })
         })
         .catch(e => {
-          log.warn('Bot', 'there is no room named ding(yet)')
+          log.warn('Bot', 'Room.find rejected: %s', e.stack)
         })
   }, 3000)
 })
@@ -91,6 +104,13 @@ bot
   log.info('Bot', 'room-leave event: Room %s lost member %s'
                 , room.topic()
                 , leaver.name()
+              )
+})
+.on('room-topic', (room, topic, oldTopic, changer) => {
+  log.info('Bot', 'room-topic event: Room %s change topic to %s by member %s'
+                , oldTopic
+                , topic
+                , changer.name()
               )
 })
 .on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
@@ -132,19 +152,29 @@ bot
                     log.error('Bot', 'room.add() exception: %s', e.stack)
                   })
             } else {
+              log.info('Bot', 'ding room not found, try to created a new one')
               Contact.find({ name: 'Bruce LEE' })
                       .then(c => {
-                        Room.create([contact, c], 'ding')
-                            .then(_ => {
-                              log.info('Bot', 'ding room not found, created one')
+                        if (!c) {
+                          log.warn('Bot', 'Contact.find found nobody')
+                          return
+                        }
+                        c.ready().then(_ => log.info('Bot', 'Contact.find succ, got: %s', c.name()))
+                        const contactList = [contact, c]
+                        log.verbose('Bot', 'contactList: %s', contactList.join(','))
+
+                        Room.create(contactList, 'ding')
+                            .then(r => {
+                              log.info('Bot', 'new ding room created: %s', r)
+                              console.log(r)
                             })
                             .catch(e => {
-                              log.error('Bot', 'ding room create fail: %s', e.stack)
+                              log.error('Bot', 'new ding room create fail: %s', e.stack)
                             })
 
                       })
                       .catch(e => {
-                        log.error('Bot', 'Contact.find not found')
+                        log.error('Bot', 'Contact.find not found: %s', e.stack)
                       })
             }
           })

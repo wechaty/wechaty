@@ -350,8 +350,9 @@ function onServerMessage(data) {
 
       case Message.Type.SYS:
         if (m.room()) {
-          Firer.fireRoomJoin.call(this, m)
-          Firer.fireRoomLeave.call(this, m)
+          Firer.fireRoomJoin.call(this  , m)
+          Firer.fireRoomLeave.call(this , m)
+          Firer.fireRoomTopic.call(this , m)
         } else {
           Firer.fireFriendConfirm.call(this, m)
         }

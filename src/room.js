@@ -161,7 +161,7 @@ class Room extends EventEmitter{
   }
 
   topic(newTopic) {
-    log.verbose('Room', 'topic(%s)', newTopic)
+    log.verbose('Room', 'topic(%s)', newTopic ? newTopic : '')
 
     if (newTopic) {
       Config.puppetInstance().roomTopic(this, newTopic)
@@ -233,10 +233,8 @@ class Room extends EventEmitter{
       throw new Error('contactList not found')
     }
 
-    const contactIdList = contactList.map(c => c.id)
-
     return Config.puppetInstance()
-                  .roomCreate(contactIdList, topic)
+                  .roomCreate(contactList, topic)
   }
 
   // private
@@ -287,6 +285,7 @@ class Room extends EventEmitter{
               .catch(e => {
                 log.error('Room', 'find() rejected: %s', e.message)
                 return null // fail safe
+                // throw e
               })
   }
 
@@ -307,7 +306,7 @@ class Room extends EventEmitter{
                 return idList.map(i => Room.load(i))
               })
               .catch(e => {
-                log.error('Room', 'findAll() rejected: %s', e.message)
+                // log.error('Room', 'findAll() rejected: %s', e.message)
                 return [] // fail safe
               })
   }

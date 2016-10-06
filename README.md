@@ -555,6 +555,12 @@ room.on('join', (invitee, inviter) => {
 Room.on('leave', (leaver) => void)
 ```
 
+### Event: `topic`
+
+```typescript
+Room.on('topic', (topic, oldTopic, changer) => void)
+```
+
 ### static Room.find(query: Query): Promise<Room|null>
 
 ### static Room.findAll(query: Query): Promise<Room[]>

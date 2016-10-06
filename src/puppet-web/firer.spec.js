@@ -79,3 +79,18 @@ test('Firer.checkRoomLeave', t => {
   leaver = Firer.checkRoomLeave('fafdsfsdfafa')
   t.false(leaver, 'should get false if message is not expected')
 })
+
+test('Firer.checkRoomTopic', t => {
+  const data = [
+    `"李卓桓.PreAngel" changed the group name to "ding"`
+    , `李卓桓.PreAngel`
+    , `ding`
+  ]
+
+  const result = Firer.checkRoomTopic(data[0])
+  t.truthy(result, 'should check topic right')
+
+  const [topic, changer] = result
+  t.is(topic  , data[2], 'should get right topic')
+  t.is(changer, data[1], 'should get right changer')
+})

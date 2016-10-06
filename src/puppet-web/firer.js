@@ -34,11 +34,16 @@ const PuppetWebFirer = {
 
   , fireRoomJoin
   , fireRoomLeave
+  , fireRoomTopic
 
-  // for testing
+  /**
+   * for testing
+   */
   , checkFriendConfirm
+
   , checkRoomJoin
   , checkRoomLeave
+  , checkRoomTopic
 }
 
 const regexConfig = {
@@ -46,6 +51,7 @@ const regexConfig = {
 
   , roomJoin:     /^"?(.+?)"? invited "(.+)" to the group chat$/
   , roomLeave:    /^You removed "(.+)" from the group chat$/
+  , roomTopic:    /^"?(.+?)"? changed the group name to "(.+)"$/
 }
 
 function fireFriendRequest(m) {
@@ -202,6 +208,44 @@ function fireRoomLeave(m) {
     room.refresh()
   }).catch(e => {
     log.error('PuppetWebFirer', 'fireRoomLeave() co exception: %s', e.stack)
+  })
+}
+
+function checkRoomTopic(content) {
+  const re = regexConfig.roomTopic
+
+  const found = content.match(re)
+  if (!found) {
+    return false
+  }
+  const [_, changer, topic] = found
+  return [topic, changer]
+}
+
+function fireRoomTopic(m) {
+  const result = checkRoomTopic(m.content())
+  if (!result) {
+    return
+  }
+
+  const [topic, changer] = result
+  const room = m.room()
+  const oldTopic = room.topic()
+
+  changerContact = room.member(changer)
+
+  if (!changerContact) {
+    log.error('PuppetWebFirer', 'fireRoomTopic() changer contact not found for %s', changer)
+    return
+  }
+
+  co.call(this, function* () {
+    yield changerContact.ready()
+    this.emit('room-topic', room, topic, oldTopic, changerContact)
+    room.emit('topic', topic, oldTopic, changerContact)
+    room.refresh()
+  }).catch(e => {
+    log.error('PuppetWebFirer', 'fireRoomTopic() co exception: %s', e.stack)
   })
 }
 
