@@ -246,6 +246,13 @@ class Room extends EventEmitter{
 
     return Config.puppetInstance()
                   .roomCreate(contactList, topic)
+                  .then(roomId => {
+                    if (typeof roomId === 'object') {
+                      // It is a Error Object send back by callback in browser(WechatyBro)
+                      throw roomId
+                    }
+                    return roomId
+                  })
   }
 
   // private

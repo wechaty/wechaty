@@ -144,9 +144,9 @@ class Bridge {
   }
 
   contactFind(filterFunction) {
-    return this.proxyWechaty('contactFind', filterFunction)
+    return this.proxyWechaty('contactFindAsync', filterFunction)
                 .catch(e => {
-                  log.error('PuppetWebBridge', 'contactFind() exception: %s', e.message)
+                  log.error('PuppetWebBridge', 'contactFindAsync() exception: %s', e.message)
                   throw e
                 })
   }

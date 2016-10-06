@@ -451,7 +451,13 @@
             : null
   }
 
-  function contactFind(filterFunction) {
+  function contactFindAsync(filterFunction) {
+    const callback = arguments[arguments.length - 1]
+    if (typeof callback !== 'function') {
+      // here we should in sync mode, because there's no callback
+      throw new Error('async method need to be called via webdriver.executeAsyncScript')
+    }
+
     var contactFactory = WechatyBro.glue.contactFactory
 
     var match
@@ -460,10 +466,26 @@
     } else {
       match = eval(filterFunction)
     }
-    // log(match.toString())
-    return contactFactory.getAllFriendContact()
-                          .filter(r => match(r.NickName))
-                          .map(r => r.UserName)
+
+    return retryFind(0)
+
+    // retry 3 times, sleep 300ms between each time
+    function retryFind(attempt = 0) {
+      const contactList = contactFactory
+                            .getAllFriendContact()
+                            .filter(c => match(c.NickName))
+                            .map(c => c.UserName)
+
+      if (contactList && contactList.length) {
+        callback(contactList)
+      } else if (attempt > 3) {
+        callback([])
+      } else {
+        attempt++
+        setTimeout(_ => retryFind(attempt), 300)
+      }
+
+    }
   }
 
   function roomFind(filterFunction) {
@@ -510,15 +532,17 @@
 
     const chatroomFactory = WechatyBro.glue.chatroomFactory
     const state           = WechatyBro.glue.state
-
     chatroomFactory.create(UserNameListArg)
                     .then(r => {
-                      if (r.BaseResponse && 0 == r.BaseResponse.Ret || -2013 == e.BaseResponse.Ret) {
+                      if (r.BaseResponse && 0 == r.BaseResponse.Ret || -2013 == r.BaseResponse.Ret) {
                         state.go('chat', { userName: r.ChatRoomName }) // BE CAREFUL: key name is userName, not UserName! 20161001
-                        if (topic) {
-                          roomModTopic(r.ChatRoomName, topic)
+                        // if (topic) {
+                        //   setTimeout(_ => roomModTopic(r.ChatRoomName, topic), 3000)
+                        // }
+                        if (!r.ChatRoomName) {
+                          throw new Error('chatroomFactory.create() got empty r.ChatRoomName')
                         }
-                        callback(r.ChatRoomName, topic)
+                        callback(r.ChatRoomName)
                       } else {
                         throw new Error('chatroomFactory.create() error with Ret: '
                                           + r && r.BaseResponse.Ret
@@ -529,7 +553,14 @@
                     })
                     .catch(e => {
                       // Async can only return by call callback
-                      callback(e)
+                      callback(
+                        JSON.parse(
+                          JSON.stringify(
+                            e
+                            , Object.getOwnPropertyNames(e)
+                          )
+                        )
+                      )
                     })
   }
 
@@ -639,7 +670,7 @@
     , getMsgImg: getMsgImg
 
     // for Wechaty Contact Class
-    , contactFind
+    , contactFindAsync
 
     // for Wechaty Room Class
     , roomCreateAsync

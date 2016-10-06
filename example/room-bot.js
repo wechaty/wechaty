@@ -171,12 +171,22 @@ bot
                         log.verbose('Bot', 'contactList: %s', contactList.join(','))
 
                         Room.create(contactList, 'ding')
-                            .then(r => {
-                              log.info('Bot', 'new ding room created: %s', r)
-                              console.log(r)
+                            .then(roomId => {
+                              log.info('Bot', 'new ding room created, id: %s', roomId)
+                              Room.load(roomId)
+                                  .ready()
+                                  .then(room => {
+                                    room.topic('ding - created')
+
+                                    const m = new Message()
+                                    m.set('to', roomId)
+                                    m.set('room', roomId)
+                                    m.set('content', 'ding - created')
+                                    bot.send(m)
+                                  })
                             })
                             .catch(e => {
-                              log.error('Bot', 'new ding room create fail: %s', e.stack)
+                              log.error('Bot', 'new ding room create fail: %s', e.message)
                             })
 
                       })
