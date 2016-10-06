@@ -144,13 +144,13 @@ function fireRoomJoin(m) {
                     inviteeContact || (inviteeContact = room.member(invitee))
                     inviterContact || (inviterContact = room.member(inviter))
                     if (inviteeContact && inviterContact) {
-                      log.silly('PuppetWebFirer', 'resolve() inviteeContact: %s, invitorContact: %s'
+                      log.silly('PuppetWebFirer', 'fireRoomJoin() resolve() inviteeContact: %s, invitorContact: %s'
                                                 , inviteeContact
                                                 , inviterContact
                               )
                       return Promise.resolve()
                     } else {
-                      log.verbose('PuppetWebFirer', 'reject() inviteeContact: %s, invitorContact: %s'
+                      log.silly('PuppetWebFirer', 'fireRoomJoin() reject() inviteeContact: %s, invitorContact: %s'
                                                   , inviteeContact
                                                   , inviterContact
                                 )
