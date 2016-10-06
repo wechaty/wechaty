@@ -89,7 +89,7 @@ class Message {
       } else if (typeof contact === 'string') {
         this.obj.from = contact
       } else {
-        throw new Error('neither Contact nor UserName')
+        throw new Error('from neither Contact nor UserName: ' + contact + ' ' + typeof contact)
       }
     }
     return this.obj.from ? Contact.load(this.obj.from) : null
@@ -97,12 +97,12 @@ class Message {
 
   to(contact) {
     if (contact) {
-      if (contact instanceof Contact) {
+      if (contact instanceof Contact || contact instanceof Room) {
         this.obj.to = contact.id
       } else if (typeof contact === 'string') {
         this.obj.to = contact
       } else {
-        throw new Error('neither Contact nor UserName')
+        throw new Error('to neither Contact nor UserName: ' + contact + ' ' + typeof contact)
       }
     }
     return this.obj.to ? Contact.load(this.obj.to) : null
