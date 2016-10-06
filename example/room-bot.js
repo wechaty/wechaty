@@ -1,3 +1,12 @@
+#!/usr/bin/env node
+/**
+ *
+ * Wechaty - Wechat for Bot
+ *
+ * Connecting ChatBots
+ * https://github.com/wechaty/wechaty
+ *
+ */
 const co = require('co')
 
 const {
@@ -7,7 +16,19 @@ const {
   , Contact
   , Message
   , log
-} = require('..')
+} = require('../')
+
+/**
+ *
+ * create a room need at least three people
+ * when we create a room, this is the 3rd people.
+ *
+ * put name of one of your friend here, or create room will not work.
+ *
+ * ::: ___CHANGE ME___ :::
+ *     vvvvvvvvvvvvvvv
+ */
+const HELPER_CONTACT_NAME = 'Bruce LEE'
 
 const welcome = `
 =============== Powered by Wechaty ===============
@@ -115,29 +136,66 @@ bot
    *  2. say ding in room, will be removed out
    */
   if ('ding' === content) {
+
+    /**
+     *  in-room message
+     */
     if (room) {
       if (/^ding/i.test(room.topic())) {
+        /**
+         * move contact out of room
+         */
         getOutRoom(sender, room)
       }
+
+    /**
+     * peer to peer message
+     */
     } else {
+
+      /**
+       * find room name start with "ding"
+       */
       Room.find({ name: /^ding/i })
           .then(dingRoom => {
+
+            /**
+             * room found
+             */
             if (dingRoom) {
               log.info('Bot', 'onMessage: got dingRoom')
+
+              /**
+               * speaker is already in room
+               */
               if (dingRoom.has(sender)) {
                 log.info('Bot', 'onMessage: sender has already in dingRoom')
                 sendMessage(bot, {
                   content: 'no need to ding again, because you are already in ding room'
                   , to: sender.id
                 })
+
+              /**
+               * put speaker into room
+               */
               } else {
                 log.info('Bot', 'onMessage: add sender to dingRoom')
                 putInRoom(sender, dingRoom)
               }
+
+            /**
+             * room not found
+             */
             } else {
               log.info('Bot', 'onMessage: dingRoom not found, try to create one')
+              /**
+               * create the ding room
+               */
               createDingRoom(sender)
               .then(room => {
+                /**
+                 * listen events from ding room
+                 */
                 manageDingRoom()
               })
             }
@@ -258,11 +316,11 @@ function putInRoom(contact, room) {
         .catch(e => {
           log.error('Bot', 'room.add() exception: %s', e.stack)
         })
-    sendMessage(bot, {
+    setTimeout(_ => sendMessage(bot, {
       content: 'Welcome ' + contact.name()
-      , room: room.id
-      , to: contact.id
-    })
+      , room
+      , to: contact
+    }), 1000)
   } catch (e) {
     console.log('err: ' + e)
   }
@@ -287,8 +345,7 @@ function getHelperContact() {
   log.info('Bot', 'getHelperContact()')
 
   // create a new room at least need 3 contacts
-  const name = 'Bruce LEE'
-  return Contact.find({ name })
+  return Contact.find({ name: HELPER_CONTACT_NAME })
 }
 
 function createDingRoom(contact) {
