@@ -546,6 +546,8 @@ Room.find(query : Query) : Room | null
 Room.findAll(query : Query) : Room[]
 ```
 
+Talk is cheap, show me the code: [Example/Room-Bot](https://github.com/wechaty/wechaty/blob/master/example/room-bot.js)
+
 ### Event: `join`
 
 ```javascript
