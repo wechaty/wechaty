@@ -654,7 +654,11 @@ npm test
 
 ## master
 1. #32 Extend Room Class with:
-  1. tbw 
+  1. Global events: `room-join`, `room-leave`, `room-topic`
+  1. Room events: `join`, `leave`, `topic`
+  1. Create a new Room: `Room.create()`
+  1. Add/Del/Topic for Room
+  1. Other methods like nick/member/has/etc...
 1. #33 New Class `FriendRequest` with:
   1. `Wechaty.on('friend', (contact, request) => {})` with Wechaty new Event `friend` 
   1. `accept()` to accept a friend request
@@ -697,14 +701,17 @@ npm test
 
 # Todo List
 
-- [ ] Contact
-    - [ ] Accept a friend request
-    - [ ] Send a friend request
-    - [ ] Delete a contact
-- [ ] Chat Room
-    - [ ] Create a new chat room
-    - [ ] Invite people to join a existing chat room
-    - [ ] Rename a Chat Room
+- [x] Contact
+    - [x] Accept a friend request
+    - [x] Send a friend request
+    - ~~[ ] Delete a contact~~
+- [x] Chat Room
+    - [x] Create a new chat room
+    - [x] Invite people to join a existing chat room
+    - [x] Rename a Chat Room
+- [x] Session save/load
+- [x] Switch to AVA Test Runner
+- [ ] Rewrite to TypeScript
 - [ ] Events
     - [ ] Use EventEmitter2 to emit message events, so we can use wildcard
         1. `message`
@@ -719,9 +726,6 @@ npm test
     - [ ] Send/Reply image/video/attachment message
     - [ ] Save video message to file
     - [x] Save image message to file
-- [x] Session save/load
-- [ ] Rewrite to TypeScript
-- [ ] Switch to AVA Test Runner
 
 Everybody is welcome to issue your needs.
 
