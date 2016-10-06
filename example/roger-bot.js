@@ -1,3 +1,12 @@
+#!/usr/bin/env node
+/**
+ *
+ * Wechaty - Wechat for Bot
+ *
+ * Connecting ChatBots
+ * https://github.com/wechaty/wechaty
+ *
+ */
 const Wechaty = require('..')
 const bot = new Wechaty(/* no profile here because roger bot is too noisy */)
 
