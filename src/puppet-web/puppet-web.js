@@ -284,9 +284,13 @@ class PuppetWeb extends Puppet {
       // if (to && to!==room) {
       //   content = `@[${to}] ${content}`
       // }
+
+      if (!to) {
+        message.set('to', room)
+      }
     }
 
-    log.silly('PuppetWeb', `send(${destination}, ${content})`)
+    log.silly('PuppetWeb', `send() destination: ${destination}, content: ${content})`)
     return this.bridge.send(destination, content)
                       .catch(e => {
                         log.error('PuppetWeb', 'send() exception: %s', e.message)
