@@ -11,11 +11,13 @@ const co = require('co')
 const log = require('./brolog-env')
 const UtilLib = require('./util-lib')
 const Message = require('./message')
+const Config = require('./config')
 
 class MediaMessage extends Message {
   constructor(rawObj) {
     super(rawObj)
-    this.bridge = Message.puppet.bridge
+    this.bridge = Config.puppetInstance()
+                        .bridge
   }
   ready() {
     log.silly('MediaMessage', 'ready()')
