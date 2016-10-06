@@ -144,6 +144,10 @@ class Browser extends EventEmitter {
         throw new Error('unsupported head: ' + this.head)
     }
 
+    this.driver.manage()
+          .timeouts()
+          .setScriptTimeout(10000)
+
     // XXX: if no `setTimeout()` here, promise will hang forever!
     // with a confirmed bug in selenium-webdriver v2.53.2:
     // https://github.com/SeleniumHQ/selenium/issues/2233
@@ -411,7 +415,7 @@ this.onResourceRequested = function(request, net) {
   }
 
   execute(script, ...args) {
-    log.silly('PuppetWebBrowser', `Browser.execute(${script.slice(0, 80)})`)
+    log.silly('PuppetWebBrowser', 'Browser.execute(%s)', script.slice(0, 80))
     // log.verbose('PuppetWebBrowser', `Browser.execute() driver.getSession: %s`, util.inspect(this.driver.getSession()))
     if (this.dead()) { return Promise.reject(new Error('browser dead')) }
 
@@ -426,6 +430,18 @@ this.onResourceRequested = function(request, net) {
       log.warn('PuppetWebBrowser', 'execute() exception: %s', e.message.substr(0,99))
       throw e
     })
+  }
+
+  executeAsync(script, ...args) {
+    log.silly('PuppetWebBrowser', 'Browser.executeAsync(%s)', script.slice(0, 80))
+    if (this.dead()) { return Promise.reject(new Error('browser dead')) }
+// console.log(script)
+    return this.driver.executeAsyncScript.apply(this.driver, arguments)
+                .catch(e => {
+                  // this.dead(e)
+                  log.warn('PuppetWebBrowser', 'executeAsync() exception: %s', e.message.slice(0,99))
+                  throw e
+                })
   }
 
   /**

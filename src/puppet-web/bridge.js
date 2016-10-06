@@ -201,7 +201,7 @@ class Bridge {
       throw new Error('no valid contactIdList')
     }
 
-    return this.proxyWechaty('roomCreate', contactIdList)
+    return this.proxyWechaty('roomCreateAsync', contactIdList)
                 .catch(e => {
                   log.error('PuppetWebBridge', 'roomCreate(%s) exception: %s', contactIdList, e.message)
                   throw e
@@ -299,16 +299,37 @@ class Bridge {
     // see: http://blog.sqrtthree.com/2015/08/29/utf8-to-b64/
     const argsDecoded = `JSON.parse(decodeURIComponent(window.atob('${argsEncoded}')))`
 
-    const wechatyScript   = `return WechatyBro.${wechatyFunc}.apply(undefined, ${argsDecoded})`
-    // log.silly('PuppetWebBridge', 'proxyWechaty(%s, ...args) %s', wechatyFunc, wechatyScript)
-
+    const wechatyScript   = `
+      const callback = arguments[arguments.length - 1]
+      const isAsync = (typeof callback === 'function')
+      return WechatyBro
+              .${wechatyFunc}
+              .apply(undefined
+                      , isAsync
+                        ? ${argsDecoded}.concat(callback)
+                        : ${argsDecoded}
+                    )
+    `.replace(/[\n\s]+/, ' ')
+    log.silly('PuppetWebBridge', 'proxyWechaty(%s, ...args) %s', wechatyFunc, wechatyScript)
+// console.log('proxyWechaty wechatyFunc args[0]: ')
+// console.log(args[0])
+    /**
+     *
+     * WechatyBro method named end with "Async", will be treated as a Async function
+     */
+    let funcExecuter
+    if (/Async$/.test(wechatyFunc)) {
+      funcExecuter = this.executeAsync.bind(this)
+    } else {
+      funcExecuter = this.execute.bind(this)
+    }
     return this.execute('return typeof WechatyBro === "undefined"')
       .then(noWechaty => {
         if (noWechaty) {
           throw new Error('there is no WechatyBro in browser(yet)')
         }
       })
-      .then(() => this.execute(wechatyScript))
+      .then(() => funcExecuter(wechatyScript))
       .catch(e => {
         log.warn('PuppetWebBridge', 'proxyWechaty() exception: %s', e.message)
         throw e
@@ -325,6 +346,17 @@ class Bridge {
     return this.puppet.browser.execute(script, ...args)
     .catch(e => {
       log.warn('PuppetWebBridge', 'execute() exception: %s', e.message)
+      throw e
+    })
+  }
+
+  executeAsync(script, ...args) {
+    if (!this.puppet || !this.puppet.browser) {
+      return Promise.reject(new Error('execute(): no puppet or no puppet.browser in bridge'))
+    }
+    return this.puppet.browser.executeAsync(script, ...args)
+    .catch(e => {
+      log.warn('PuppetWebBridge', 'executeAsync() exception: %s', e.message)
       throw e
     })
   }

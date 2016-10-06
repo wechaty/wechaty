@@ -399,7 +399,8 @@ class PuppetWeb extends Puppet {
   roomTopic(room, topic) {
     if (!this.bridge) {
       return Promise.reject(new Error('fail: no bridge(yet)!'))
-    } else if (!room || typeof topic === 'undefined') {
+    }
+    if (!room || typeof topic === 'undefined') {
       return Promise.reject(new Error('room or topic not found'))
     }
 
@@ -422,9 +423,11 @@ class PuppetWeb extends Puppet {
 
     const contactIdList = contactList.map(c => c.id)
 
+// console.log('puppet roomCreate: ')
+// console.log(contactIdList)
     return this.bridge.roomCreate(contactIdList, topic)
                       .catch(e => {
-                        log.warn('PuppetWeb', 'roomCreate(%s, %s) rejected: %s', contactIdList.join(,), topic, e.message)
+                        log.warn('PuppetWeb', 'roomCreate(%s, %s) rejected: %s', contactIdList.join(','), topic, e.message)
                         throw e
                       })
   }

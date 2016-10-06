@@ -499,7 +499,13 @@
     return chatroomFactory.modTopic(ChatRoomName, topic)
   }
 
-  function roomCreate(UserNameList, topic) {
+  function roomCreateAsync(UserNameList, topic) {
+    const callback = arguments[arguments.length - 1]
+    if (typeof callback !== 'function') {
+      // here we should in sync mode, because there's no callback
+      throw new Error('async method need to be called via webdriver.executeAsyncScript')
+    }
+
     const UserNameListArg = UserNameList.map(n => { return { UserName: n } })
 
     const chatroomFactory = WechatyBro.glue.chatroomFactory
@@ -512,14 +518,19 @@
                         if (topic) {
                           roomModTopic(r.ChatRoomName, topic)
                         }
+                        callback(r.ChatRoomName, topic)
+                      } else {
+                        throw new Error('chatroomFactory.create() error with Ret: '
+                                          + r && r.BaseResponse.Ret
+                                          + 'with ErrMsg: '
+                                          + r && r.BaseResponse.ErrMsg
+                                      )
                       }
-                      return r.ChatRoomName
                     })
                     .catch(e => {
-                      // TBD
-                      log(e)
+                      // Async can only return by call callback
+                      callback(e)
                     })
-    return 'no callback (yet)'
   }
 
   function verifyUserRequest(UserName, VerifyContent = '') {
@@ -631,8 +642,8 @@
     , contactFind
 
     // for Wechaty Room Class
+    , roomCreateAsync
     , roomFind
-    , roomCreate
     , roomAddMember
     , roomDelMember
     , roomModTopic
