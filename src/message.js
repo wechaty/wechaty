@@ -99,8 +99,8 @@ class Message {
       const to    = Contact.load(this.obj.to)
       const room  = this.obj.room ? Room.load(this.obj.room) : null
 
-      yield from.ready()                // Contact from
-      yield to.ready()                  // Contact to
+      if (from) { yield from.ready() }  // Contact from
+      if (to)   { yield to.ready() }    // Contact to
       if (room) { yield room.ready() }  // Room member list
 
       return this         // return this for chain

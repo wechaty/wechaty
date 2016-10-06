@@ -300,6 +300,9 @@ Wechaty support the following 6 events:
 4. message
 5. error
 6. friend
+7. room-join
+8. room-leave
+9. room-topic
 
 ### 1. Event: `scan`
 
@@ -379,6 +382,14 @@ wechaty.on('room-join', (room: Room, invitee: Contact, inviter: Contact) => {
 ```typescript
 wechaty.on('room-leave', (room: Room, leaver: Contact) => {
   console.log(`Room ${room} lost member ${leaver}`)
+})
+```
+
+### 9. Event: `room-topic`
+
+```typescript
+wechaty.on('room-topic', (room: Room, topic: string, oldTopic: string, changer: Contact) => {
+  console.log(`Room ${room} topic changed from ${oldTopic} to ${topic} by {changer}`)
 })
 ```
 

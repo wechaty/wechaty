@@ -49,13 +49,14 @@ bot
             log.warn('Bot', 'there is no room named ding(yet)')
             return
           }
-
           log.info('Bot', 'start monitor "ding" room join/leave event')
+
           room.on('join', (invitee, inviter) => {
             try {
               log.info('Bot', 'room event: %s join, invited by %s', invitee.name(), inviter.name())
               const m = new Message()
               m.set('room', room.id)
+              m.set('to'  , inviter.id)
               if (inviter.id !== bot.user().id) {
                 m.set('to', inviter.id)
                 m.set('content', `@${inviter.name()} RULE1: Invitation is limited to me, the owner only. Please do not invit people without notify me.`)
@@ -95,7 +96,7 @@ bot
 })
 .on('room-join', (room, invitee, inviter) => {
   log.info('Bot', 'room-join event: Room %s got new member %s, invited by %s'
-                , room.toic()
+                , room.topic()
                 , invitee.name()
                 , inviter.name()
           )

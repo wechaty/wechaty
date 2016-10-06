@@ -48,16 +48,16 @@ class Bridge {
 
       return this.inject()
       .then(r => {
-        log.verbose('PuppetWebBridge', 'init() inject() return %s at attempt %d', r, attempt)
+        log.silly('PuppetWebBridge', 'init() inject() return %s at attempt %d', r, attempt)
         return this
       })
       .catch(e => {
-        log.verbose('PuppetWebBridge', 'init() inject() attempt %d exception: %s', attempt, e.message)
+        log.silly('PuppetWebBridge', 'init() inject() attempt %d exception: %s', attempt, e.message)
         throw e
       })
     })
     .then(_ => {
-      log.verbose('PuppetWebBridge', 'init()-ed')
+      log.silly('PuppetWebBridge', 'init()-ed')
       return this
     })
     .catch(e => {
@@ -75,7 +75,7 @@ class Bridge {
       let retObj = yield this.execute(injectio, this.port)
 
       if (retObj && /^(2|3)/.test(retObj.code)) {   // HTTP Code 2XX & 3XX
-        log.verbose('PuppetWebBridge', 'inject() eval(Wechaty) return code[%d] message[%s] port[%d]'
+        log.silly('PuppetWebBridge', 'inject() eval(Wechaty) return code[%d] message[%s] port[%d]'
           , retObj.code, retObj.message, retObj.port)
       } else {                                    // HTTP Code 4XX & 5XX
         throw new Error('execute injectio error: ' + retObj.code + ', ' + retObj.message)
@@ -83,7 +83,7 @@ class Bridge {
 
       retObj = yield this.proxyWechaty('init')
       if (retObj && /^(2|3)/.test(retObj.code)) {   // HTTP Code 2XX & 3XX
-        log.verbose('PuppetWebBridge', 'inject() Wechaty.init() return code[%d] message[%s] port[%d]'
+        log.silly('PuppetWebBridge', 'inject() Wechaty.init() return code[%d] message[%s] port[%d]'
           , retObj.code, retObj.message, retObj.port)
       } else {                                    // HTTP Code 4XX & 5XX
         throw new Error('execute proxyWechaty(init) error: ' + retObj.code + ', ' + retObj.message)
@@ -93,7 +93,7 @@ class Bridge {
       if (r!=='inject()') {
         throw new Error('fail to get right return from call ding()')
       }
-      log.verbose('PuppetWebBridge', 'inject() ding success')
+      log.silly('PuppetWebBridge', 'inject() ding success')
 
       return true
     })
@@ -310,7 +310,7 @@ class Bridge {
                         : ${argsDecoded}
                     )
     `.replace(/[\n\s]+/, ' ')
-    log.silly('PuppetWebBridge', 'proxyWechaty(%s, ...args) %s', wechatyFunc, wechatyScript)
+    // log.silly('PuppetWebBridge', 'proxyWechaty(%s, ...args) %s', wechatyFunc, wechatyScript)
 // console.log('proxyWechaty wechatyFunc args[0]: ')
 // console.log(args[0])
     /**

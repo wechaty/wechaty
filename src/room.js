@@ -94,9 +94,16 @@ class Room extends EventEmitter{
 
   parseNickMap(memberList) {
     const nickMap = {}
+    let contact, remark
     if (memberList && memberList.map) {
       memberList.forEach(m => {
-        nickMap[m.UserName] = m.DisplayName || m.NickName
+        contact = Contact.load(m.UserName)
+        if (contact) {
+          remark = contact.remark()
+        } else {
+          remark = null
+        }
+        nickMap[m.UserName] = remark || m.DisplayName || m.NickName
       })
     }
     return nickMap
@@ -161,7 +168,9 @@ class Room extends EventEmitter{
   }
 
   topic(newTopic) {
-    log.verbose('Room', 'topic(%s)', newTopic ? newTopic : '')
+    if (newTopic) {
+      log.verbose('Room', 'topic(%s)', newTopic)
+    }
 
     if (newTopic) {
       Config.puppetInstance().roomTopic(this, newTopic)

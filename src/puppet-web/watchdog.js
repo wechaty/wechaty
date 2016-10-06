@@ -41,7 +41,7 @@ function onFeed({
   }
 
   const feed = `${type}:[${data}]`
-  log.verbose('PuppetWebWatchdog', 'onFeed: %d, %s', timeout, feed)
+  log.silly('PuppetWebWatchdog', 'onFeed: %d, %s', timeout, feed)
 
   if (this.currentState() === 'killing'
   ) {
@@ -102,8 +102,8 @@ function setWatchDogTimer(timeout, feed) {
 
 function watchDogReset(timeout, lastFeed) {
   log.verbose('PuppetWebWatchdog', 'watchDogReset() timeout %d', timeout)
-  const e = new Error('watchdog reset after ' 
-                        + Math.floor(timeout/1000) 
+  const e = new Error('watchdog reset after '
+                        + Math.floor(timeout/1000)
                         + ' seconds, last feed:'
                         + '[' + lastFeed + ']'
                     )
@@ -136,7 +136,7 @@ function autoSaveSession() {
  *
  */
 function monitorScan(type) {
-  log.verbose('PuppetWebWatchdog', 'monitorScan(%s)', type)
+  log.silly('PuppetWebWatchdog', 'monitorScan(%s)', type)
 
   const scanTimeout = 10 * 60 * 1000 // 10 mins
 

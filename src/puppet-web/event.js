@@ -272,7 +272,7 @@ function onServerUnload(data) {
 }
 
 function onServerLog(data) {
-  log.verbose('PuppetWebEvent', 'onServerLog(%s)', data)
+  log.silly('PuppetWebEvent', 'onServerLog(%s)', data)
 }
 
 function onServerLogin(data, attempt = 0) {
@@ -299,9 +299,9 @@ function onServerLogin(data, attempt = 0) {
       return
     }
 
-    log.verbose('PuppetWebEvent', 'bridge.getUserName: %s', this.userId)
+    log.silly('PuppetWebEvent', 'bridge.getUserName: %s', this.userId)
     this.user = yield Contact.load(this.userId).ready()
-    log.verbose('PuppetWebEvent', `onServerLogin() user ${this.user.name()} logined`)
+    log.silly('PuppetWebEvent', `onServerLogin() user ${this.user.name()} logined`)
 
     yield this.browser.saveSession()
               .catch(e => { // fail safe
