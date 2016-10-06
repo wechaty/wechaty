@@ -67,9 +67,10 @@ bot
                 bot.send(m)
 
                 room.topic('ding - warn ' + inviter.name())
-                room.del(invitee)
+                setTimeout(_ => room.del(invitee), 10000)
               } else {
                 m.set('to', invitee.id)
+                m.set('room', room.id)
                 m.set('content', `@${invitee.name()} Welcome to my room! :)`)
                 bot.send(m)
                 room.topic('ding - welcome ' + invitee.name())
@@ -108,11 +109,15 @@ bot
               )
 })
 .on('room-topic', (room, topic, oldTopic, changer) => {
-  log.info('Bot', 'room-topic event: Room %s change topic to %s by member %s'
-                , oldTopic
-                , topic
-                , changer.name()
-              )
+  try {
+    log.info('Bot', 'room-topic event: Room %s change topic to %s by member %s'
+                  , oldTopic
+                  , topic
+                  , changer.name()
+                )
+  } catch (e) {
+    log.error('Bot', 'room-topic event exception: %s', e.stack)
+  }
 })
 .on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
 .on('error'   , e => log.info('Bot', 'error: %s', e))
@@ -137,9 +142,10 @@ bot
    *  2. say ding in room, will be removed out
    */
   if ('ding' === m.get('content')) {
-    if (m.room()) {
+    if (room) {
       if (/^ding/i.test(room.topic())) {
-        noticeMessage.set('content', 'You said "ding" in my room, I will remove you out.')
+        noticeMessage.set('room', room.id)
+        noticeMessage.set('content', `@${from.name()} You said "ding" in my room, I will remove you out.`)
         bot.send(noticeMessage)
         room.del(m.from())
       }

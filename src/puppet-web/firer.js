@@ -144,10 +144,16 @@ function fireRoomJoin(m) {
                     inviteeContact || (inviteeContact = room.member(invitee))
                     inviterContact || (inviterContact = room.member(inviter))
                     if (inviteeContact && inviterContact) {
-                      log.silly('PuppetWebFirer', 'resolve() inviteeContact: %s, invitorContact: %s', inviteeContact, inviterContact)
+                      log.silly('PuppetWebFirer', 'resolve() inviteeContact: %s, invitorContact: %s'
+                                                , inviteeContact
+                                                , inviterContact
+                              )
                       return Promise.resolve()
                     } else {
-                      log.silly('PuppetWebFirer', 'reject() inviteeContact: %s, invitorContact: %s', inviteeContact, inviterContact)
+                      log.verbose('PuppetWebFirer', 'reject() inviteeContact: %s, invitorContact: %s'
+                                                  , inviteeContact
+                                                  , inviterContact
+                                )
                       return Promise.reject()
                     }
                   })
@@ -158,8 +164,12 @@ function fireRoomJoin(m) {
     })
     .catch(e => { /* fail safe */ })
 
-    if (!inviterContact || !inviteeContact) {
-      log.error('PuppetWebFirer', 'inivter or invitee not found for %s, %s', inviter, invitee)
+    if (!inviterContact) {
+      log.error('PuppetWebFirer', 'firmRoomJoin() inivter not found for %s', inviter)
+      return
+    }
+    if (!inviteeContact) {
+      log.error('PuppetWebFirer', 'firmRoomJoin() invitee not found for %s', invitee)
       return
     }
     yield inviteeContact.ready()
@@ -232,7 +242,11 @@ function fireRoomTopic(m) {
   const room = m.room()
   const oldTopic = room.topic()
 
-  changerContact = room.member(changer)
+  if (/^You$/.test(changer)) {
+    changerContact = Contact.load(this.userId)
+  } else {
+    changerContact = room.member(changer)
+  }
 
   if (!changerContact) {
     log.error('PuppetWebFirer', 'fireRoomTopic() changer contact not found for %s', changer)
@@ -242,7 +256,7 @@ function fireRoomTopic(m) {
   co.call(this, function* () {
     yield changerContact.ready()
     this.emit('room-topic', room, topic, oldTopic, changerContact)
-    room.emit('topic', topic, oldTopic, changerContact)
+    room.emit('topic'           , topic, oldTopic, changerContact)
     room.refresh()
   }).catch(e => {
     log.error('PuppetWebFirer', 'fireRoomTopic() co exception: %s', e.stack)
