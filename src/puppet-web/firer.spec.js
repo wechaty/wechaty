@@ -39,25 +39,30 @@ test('Firer.checkRoomJoin', t => {
     [
       `You've invited "李卓桓" to the group chat`
       , `You've`
-      , `李卓桓`
+      , [`李卓桓`]
     ]
     , [
       `You've invited "李卓桓.PreAngel、Bruce LEE" to the group chat`
       , `You've`
-      , `李卓桓.PreAngel、Bruce LEE`
+      , [`李卓桓.PreAngel`, `Bruce LEE`]
     ]
     , [
       `"李卓桓.PreAngel" invited "Bruce LEE" to the group chat`
       , `李卓桓.PreAngel`
-      , `Bruce LEE`
+      , [`Bruce LEE`]
+    ]
+    , [
+      `"凌" invited "庆次、小桔妹" to the group chat`
+      , `凌`
+      , ['庆次', '小桔妹']
     ]
   ]
 
   let result
-  contentList.forEach(([content, inviter, invitee]) => {
+  contentList.forEach(([content, inviter, inviteeList]) => {
     result = Firer.checkRoomJoin(content)
     t.truthy(result, 'should check room join message right for ' + content)
-    t.is(result[0], invitee, 'should get invitee right')
+    t.deepEqual(result[0], inviteeList, 'should get inviteeList right')
     t.is(result[1], inviter, 'should get inviter right')
   })
 

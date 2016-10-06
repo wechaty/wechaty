@@ -98,19 +98,28 @@ function fireFriendConfirm(m) {
   You've invited "李卓桓.PreAngel、Bruce LEE" to the group chat
 2.
    "李卓桓.PreAngel" invited "Bruce LEE" to the group chat
+   "凌" invited "庆次、小桔妹" to the group chat
 */
 function checkRoomJoin(content) {
+  log.verbose('PuppetWebFirer', 'checkRoomJoin()')
+
   const re = regexConfig.roomJoin
 
   const found = content.match(re)
   if (!found) {
     return false
   }
-  const [_, inviter, invitee] = found
-  return [invitee, inviter] // put invitee at first place
+  const [_, inviter, inviteeStr] = found
+
+  // "凌" invited "庆次、小桔妹" to the group chat
+  const inviteeList = inviteeStr.split(/、/)
+
+  return [inviteeList, inviter] // put invitee at first place
 }
 
 function fireRoomJoin(m) {
+  log.verbose('PuppetWebFirer', 'fireRoomJoin()')
+
   const room    = m.room()
   const content = m.content()
 
@@ -118,9 +127,9 @@ function fireRoomJoin(m) {
   if (!result) {
     return
   }
-  const [invitee, inviter] = result
+  const [inviteeList, inviter] = result
 
-  let inviterContact, inviteeContact
+  let inviterContact, inviteeContactList = []
 
   co.call(this, function* () {
     if (inviter === "You've") {
@@ -139,19 +148,32 @@ function fireRoomJoin(m) {
 
       return room.refresh()
                   .then(_ => {
-                    log.silly('PuppetWebFirer', 'inviteeContact: %s, invitorContact: %s', inviteeContact, inviterContact)
+                    log.silly('PuppetWebFirer', 'inviteeList: %s, inviter: %s'
+                                              , inviteeList.join(',')
+                                              , inviter
+                            )
 
-                    inviteeContact || (inviteeContact = room.member(invitee))
+                    let iDone, allDone = true
+
+                    for (let i in inviteeList) {
+                      iDone = inviteeContactList[i] instanceof Contact
+                      if (!iDone) {
+                        inviteeContactList[i] = room.member(inviteeList[i])
+                                                || (allDone = false)
+                      }
+                    }
+
                     inviterContact || (inviterContact = room.member(inviter))
-                    if (inviteeContact && inviterContact) {
-                      log.silly('PuppetWebFirer', 'fireRoomJoin() resolve() inviteeContact: %s, invitorContact: %s'
-                                                , inviteeContact
+
+                    if (allDone && inviterContact) {
+                      log.silly('PuppetWebFirer', 'fireRoomJoin() resolve() inviteeContactList: %s, inviterContact: %s'
+                                                , inviteeContactList.join(',')
                                                 , inviterContact
                               )
                       return Promise.resolve()
                     } else {
-                      log.silly('PuppetWebFirer', 'fireRoomJoin() reject() inviteeContact: %s, invitorContact: %s'
-                                                  , inviteeContact
+                      log.silly('PuppetWebFirer', 'fireRoomJoin() reject() inviteeContactList: %s, inviterContact: %s'
+                                                  , inviteeContactList.join(',')
                                                   , inviterContact
                                 )
                       return Promise.reject()
@@ -168,14 +190,16 @@ function fireRoomJoin(m) {
       log.error('PuppetWebFirer', 'firmRoomJoin() inivter not found for %s', inviter)
       return
     }
-    if (!inviteeContact) {
-      log.error('PuppetWebFirer', 'firmRoomJoin() invitee not found for %s', invitee)
+    if (!inviteeContactList.every(c => c instanceof Contact)) {
+      log.error('PuppetWebFirer', 'firmRoomJoin() inviteeList not all found for %s', inviteeList.join(','))
       return
     }
-    yield inviteeContact.ready()
+    yield Promise.all(inviteeContactList.map(c => c.ready()))
     yield inviterContact.ready()
-    this.emit('room-join', room, inviteeContact, inviterContact)
-    room.emit('join', inviteeContact, inviterContact)
+    inviteeContactList.forEach(c => {
+      this.emit('room-join', room , c, inviterContact)
+      room.emit('join'            , c, inviterContact)
+    })
 
   }).catch(e => {
     log.error('PuppetWebFirer', 'retryPromise() rejected: %s', e.stack)
