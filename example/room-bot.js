@@ -1,3 +1,5 @@
+const co = require('co')
+
 const {
   Wechaty
   , Config
@@ -39,62 +41,25 @@ bot
 .on('scan', ({url, code}) => {
   console.log(`Use Wechat to Scan QR Code in url to login: ${code}\n${url}`)
 })
+.on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
+.on('error'   , e => log.info('Bot', 'error: %s', e))
+
+/**
+ * Global Event: login
+ *
+ * do initialization inside this event.
+ * (better to set a timeout, for browser need time to download other data)
+ */
 .on('login'	  , user => {
   log.info('Bot', `${user.name()} logined`)
-  setTimeout(_ => {
-    Room.find({ name: /^ding/i })
-        .then(room => {
 
-          if (!room) {
-            log.warn('Bot', 'there is no room named ding(yet)')
-            return
-          }
-          log.info('Bot', 'start monitor "ding" room join/leave event')
-
-          room.on('join', (invitee, inviter) => {
-            try {
-              log.info('Bot', 'room event: %s join, invited by %s', invitee.name(), inviter.name())
-              const m = new Message()
-              m.set('room', room.id)
-              m.set('to'  , inviter.id)
-              if (inviter.id !== bot.user().id) {
-                m.set('to', inviter.id)
-                m.set('content', `@${inviter.name()} RULE1: Invitation is limited to me, the owner only. Please do not invit people without notify me.`)
-                bot.send(m)
-
-                m.set('to', invitee.id)
-                m.set('content', `@${invitee.name()} Please contact me: by send "ding" to me, I will re-sed you a invitation. Now I will remove you out, sorry.`)
-                bot.send(m)
-
-                room.topic('ding - warn ' + inviter.name())
-                setTimeout(_ => room.del(invitee), 10000)
-              } else {
-                m.set('to', invitee.id)
-                m.set('room', room.id)
-                m.set('content', `@${invitee.name()} Welcome to my room! :)`)
-                bot.send(m)
-                room.topic('ding - welcome ' + invitee.name())
-              }
-            } catch (e) {
-              log.error('room join event exception: %s', e.stack)
-            }
-          })
-          room.on('leave', (leaver) => {
-            log.info('Bot', 'room event: %s leave, byebye', leaver.name())
-          })
-          room.on('topic', (topic, oldTopic, changer) => {
-            log.info('Bot', 'room event: topic changed from %s to %s by member %s'
-                , oldTopic
-                , topic
-                , changer.name()
-              )
-          })
-        })
-        .catch(e => {
-          log.warn('Bot', 'Room.find rejected: %s', e.stack)
-        })
-  }, 3000)
+  log.info('Bot', `setting to manageDingRoom() after 3 seconds ... `)
+  setTimeout(_ => manageDingRoom(), 3000)
 })
+
+/**
+ * Global Event: room-join
+ */
 .on('room-join', (room, invitee, inviter) => {
   log.info('Bot', 'room-join event: Room %s got new member %s, invited by %s'
                 , room.topic()
@@ -102,12 +67,20 @@ bot
                 , inviter.name()
           )
 })
+
+/**
+ * Global Event: room-leave
+ */
 .on('room-leave', (room, leaver) => {
   log.info('Bot', 'room-leave event: Room %s lost member %s'
                 , room.topic()
                 , leaver.name()
               )
 })
+
+/**
+ * Global Event: room-topic
+ */
 .on('room-topic', (room, topic, oldTopic, changer) => {
   try {
     log.info('Bot', 'room-topic event: Room %s change topic to %s by member %s'
@@ -119,84 +92,240 @@ bot
     log.error('Bot', 'room-topic event exception: %s', e.stack)
   }
 })
-.on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
-.on('error'   , e => log.info('Bot', 'error: %s', e))
-.on('message', m => {
-  const room = m.room()
-  const from = m.from()
+
+/**
+ * Global Event: message
+ */
+.on('message', message => {
+  const room    = message.room()
+  const sender  = message.from()
+  const content = message.content()
 
   console.log((room ? '['+room.topic()+']' : '')
-              + '<'+from.name()+'>'
-              + ':' + m.toStringDigest()
+              + '<'+sender.name()+'>'
+              + ':' + message.toStringDigest()
   )
 
-  if (bot.self(m)) {
+  if (bot.self(message)) {
     return
   }
-
-  const noticeMessage = new Message()
-  noticeMessage.set('to', from)
   /**
    * `ding` will be the magic(toggle) word:
    *  1. say ding first time, will got a room invitation
    *  2. say ding in room, will be removed out
    */
-  if ('ding' === m.get('content')) {
+  if ('ding' === content) {
     if (room) {
       if (/^ding/i.test(room.topic())) {
-        noticeMessage.set('room', room.id)
-        noticeMessage.set('content', `@${from.name()} You said "ding" in my room, I will remove you out.`)
-        bot.send(noticeMessage)
-        room.del(m.from())
+        getOutRoom(sender, room)
       }
     } else {
-      var contact = m.from()
       Room.find({ name: /^ding/i })
-          .then(room => {
-            if (room) {
-              room.add(contact)
-                  .catch(e => {
-                    log.error('Bot', 'room.add() exception: %s', e.stack)
-                  })
+          .then(dingRoom => {
+            if (dingRoom) {
+              log.info('Bot', 'onMessage: got dingRoom')
+              if (dingRoom.has(sender)) {
+                log.info('Bot', 'onMessage: sender has already in dingRoom')
+                sendMessage(bot, {
+                  content: 'no need to ding again, because you are already in ding room'
+                  , to: sender.id
+                })
+              } else {
+                log.info('Bot', 'onMessage: add sender to dingRoom')
+                putInRoom(sender, dingRoom)
+              }
             } else {
-              log.info('Bot', 'ding room not found, try to created a new one')
-              Contact.find({ name: 'Bruce LEE' })
-                      .then(c => {
-                        if (!c) {
-                          log.warn('Bot', 'Contact.find found nobody')
-                          return
-                        }
-                        c.ready().then(_ => log.info('Bot', 'Contact.find succ, got: %s', c.name()))
-                        const contactList = [contact, c]
-                        log.verbose('Bot', 'contactList: %s', contactList.join(','))
-
-                        Room.create(contactList, 'ding')
-                            .then(roomId => {
-                              log.info('Bot', 'new ding room created, id: %s', roomId)
-                              Room.load(roomId)
-                                  .ready()
-                                  .then(room => {
-                                    room.topic('ding - created')
-
-                                    const m = new Message()
-                                    m.set('to', roomId)
-                                    m.set('room', roomId)
-                                    m.set('content', 'ding - created')
-                                    bot.send(m)
-                                  })
-                            })
-                            .catch(e => {
-                              log.error('Bot', 'new ding room create fail: %s', e.message)
-                            })
-
-                      })
-                      .catch(e => {
-                        log.error('Bot', 'Contact.find not found: %s', e.stack)
-                      })
+              log.info('Bot', 'onMessage: dingRoom not found, try to create one')
+              createDingRoom(sender)
+              .then(room => {
+                manageDingRoom()
+              })
             }
+          })
+          .catch(e => {
+            log.error(e)
           })
     }
   }
 })
 .init()
 .catch(e => console.error(e))
+
+function manageDingRoom() {
+  log.info('Bot', 'manageDingRoom()')
+
+  /**
+   * Find Room
+   */
+  Room.find({ name: /^ding/i })
+  .then(room => {
+    if (!room) {
+      log.warn('Bot', 'there is no room named ding(yet)')
+      return
+    }
+    log.info('Bot', 'start monitor "ding" room join/leave event')
+
+    /**
+     * Event: Join
+     */
+    room.on('join', (invitee, inviter) =>
+      checkRoomJoin(room, invitee, inviter)
+    )
+
+    /**
+     * Event: Leave
+     */
+    room.on('leave', (leaver) => {
+      log.info('Bot', 'room event: %s leave, byebye', leaver.name())
+    })
+
+    /**
+     * Event: Topic Change
+     */
+    room.on('topic', (topic, oldTopic, changer) => {
+      log.info('Bot', 'room event: topic changed from %s to %s by member %s'
+          , oldTopic
+          , topic
+          , changer.name()
+        )
+    })
+  })
+  .catch(e => {
+    log.warn('Bot', 'Room.find rejected: %s', e.stack)
+  })
+}
+
+function checkRoomJoin(room, invitee, inviter) {
+  log.info('Bot', 'checkRoomJoin(%s, %s, %s)', room, invitee, inviter)
+
+  try {
+    log.info('Bot', 'room event: %s join, invited by %s', invitee.name(), inviter.name())
+
+    let to, content
+    if (inviter.id !== bot.user().id) {
+
+      sendMessage(bot, {
+        room
+        , content:  `@${inviter.name()} RULE1: Invitation is limited to me, the owner only. Please do not invit people without notify me.`
+        , to:       inviter.id
+      })
+
+      sendMessage(bot, {
+        room
+        , content:  `@${invitee.name()} Please contact me: by send "ding" to me, I will re-send you a invitation. Now I will remove you out, sorry.`
+        , to:       invitee.id
+      })
+
+      room.topic('ding - warn ' + inviter.name())
+      setTimeout(_ => room.del(invitee), 10000)
+
+    } else {
+
+      sendMessage(bot, {
+        room
+        , content:  `@${invitee.name()} Welcome to my room! :)`
+        , to:       invitee.id
+      })
+
+      room.topic('ding - welcome ' + invitee.name())
+    }
+
+  } catch (e) {
+    log.error('room join event exception: %s', e.stack)
+  }
+
+}
+
+function sendMessage(bot, {
+  content
+  , to
+  , room = null
+}) {
+  log.info('Bot', 'sendMessage(%s, {content: %s, to: %s, room: %s})', bot, content, to, room)
+
+  const msg = new Message()
+  msg.content(content)
+  msg.room(room)
+  msg.to(to)
+  bot.send(msg)
+}
+
+function putInRoom(contact, room) {
+  log.info('Bot', 'putInRoom(%s, %s)', contact, room)
+
+  try {
+    room.add(contact)
+        .catch(e => {
+          log.error('Bot', 'room.add() exception: %s', e.stack)
+        })
+    sendMessage(bot, {
+      content: 'Welcome ' + contact.name()
+      , room: room.id
+      , to: contact.id
+    })
+  } catch (e) {
+    console.log('err: ' + e)
+  }
+}
+
+function getOutRoom(contact, room) {
+  log.info('Bot', 'getOutRoom(%s, %s)', contact, room)
+
+  try {
+    sendMessage(bot, {
+      content:  `@${contact.name()} You said "ding" in my room, I will remove you out.`
+      , room:   room.id
+      , to:     contact.id
+    })
+    room.del(contact)
+  } catch (e) {
+    console.log('err: ' + e)
+  }
+}
+
+function getHelperContact() {
+  log.info('Bot', 'getHelperContact()')
+
+  // create a new room at least need 3 contacts
+  const name = 'Bruce LEE'
+  return Contact.find({ name })
+}
+
+function createDingRoom(contact) {
+  log.info('Bot', 'createDingRoom(%s)', contact)
+
+  return getHelperContact()
+  .then(helperContact => {
+    if (!helperContact) {
+      log.warn('Bot', 'getHelperContact() found nobody')
+      return
+    }
+    helperContact.ready().then(_ =>
+      log.info('Bot', 'getHelperContact() ok. got: %s', helperContact.name())
+    )
+
+    const contactList = [contact, helperContact]
+    log.verbose('Bot', 'contactList: %s', contactList.join(','))
+
+    return Room.create(contactList, 'ding')
+        .then(room => {
+          log.info('Bot', 'new ding room created: %s', room)
+
+          room.topic('ding - created')
+
+          sendMessage(bot, {
+            content: 'ding - created'
+            , to:   room
+            , room
+          })
+
+          return room
+        })
+        .catch(e => {
+          log.error('Bot', 'new ding room create fail: %s', e.message)
+        })
+  })
+  .catch(e => {
+    log.error('Bot', 'getHelperContact() exception:', e.stack)
+  })
+}
