@@ -382,7 +382,7 @@ class PuppetWeb extends Puppet {
     const contactId = contact.id
     return this.bridge.roomDelMember(roomId, contactId)
                       .catch(e => {
-                        log.warn('PuppetWeb', 'roomDelMember(%s) rejected: %s', contact, e.message)
+                        log.warn('PuppetWeb', 'roomDelMember(%s, %d) rejected: %s', roomId, contactId, e.message)
                         throw e
                       })
   }

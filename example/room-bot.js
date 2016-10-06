@@ -84,7 +84,9 @@ bot
 .on('room-join', (room, invitee, inviter) => {
   log.info('Bot', 'room-join event: Room %s got new member %s, invited by %s'
                 , room.topic()
-                , invitee.name()
+                , invitee.map
+                  ? invitee.map(c => c.name()).join(',')
+                  : invitee
                 , inviter.name()
           )
 })
@@ -135,7 +137,7 @@ bot
    *  1. say ding first time, will got a room invitation
    *  2. say ding in room, will be removed out
    */
-  if ('ding' === content) {
+  if (/^ding$/i.test(content)) {
 
     /**
      *  in-room message
@@ -254,10 +256,21 @@ function manageDingRoom() {
 }
 
 function checkRoomJoin(room, invitee, inviter) {
-  log.info('Bot', 'checkRoomJoin(%s, %s, %s)', room, invitee, inviter)
+  log.info('Bot', 'checkRoomJoin(%s, %s, %s)'
+                , room.topic()
+                , invitee.map
+                  ? invitee.map(c => c.name()).join(',')
+                  : invitee.name()
+                , inviter
+          )
 
   try {
-    log.info('Bot', 'room event: %s join, invited by %s', invitee.name(), inviter.name())
+    log.info('Bot', 'room event: %s join, invited by %s'
+                  , invitee.map
+                    ? invitee.map(c => c.name()).join(',')
+                    : invitee.name()
+                  , inviter.name()
+            )
 
     let to, content
     if (inviter.id !== bot.user().id) {
@@ -268,14 +281,22 @@ function checkRoomJoin(room, invitee, inviter) {
         , to:       inviter.id
       })
 
+      const atList = invitee.map
+                      ? invitee.map(c => '@' + c.name()).join(' ')
+                      : '@' + invitee.name()
+
       sendMessage(bot, {
         room
-        , content:  `@${invitee.name()} Please contact me: by send "ding" to me, I will re-send you a invitation. Now I will remove you out, sorry.`
-        , to:       invitee.id
+        , content:  `${atList} Please contact me: by send "ding" to me, I will re-send you a invitation. Now I will remove you out, sorry.`
+        , to:       invitee.map ? invitee[0].id : invitee.id
       })
 
       room.topic('ding - warn ' + inviter.name())
-      setTimeout(_ => room.del(invitee), 10000)
+      setTimeout(_ => {
+        invitee.map
+        ? invitee.forEach(c => room.del(c))
+        : room.del(invitee)
+      }, 10000)
 
     } else {
 
@@ -309,7 +330,7 @@ function sendMessage(bot, {
 }
 
 function putInRoom(contact, room) {
-  log.info('Bot', 'putInRoom(%s, %s)', contact, room)
+  log.info('Bot', 'putInRoom(%s, %s)', contact.name(), room.topic())
 
   try {
     room.add(contact)
