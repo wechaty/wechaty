@@ -64,7 +64,12 @@ class Room extends EventEmitter{
       this.rawObj = data
       this.obj    = this.parse(data)
       return this
-    }).catch(e => {
+    })
+    .then(_ => {
+      return Promise.all(this.obj.memberList.map(c => c.ready()))
+                    .then(_ => this)
+    })
+    .catch(e => {
       log.error('Room', 'contactGetter(%s) exception: %s', this.id, e.message)
       throw e
     })
