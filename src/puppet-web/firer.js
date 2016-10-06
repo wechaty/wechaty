@@ -191,15 +191,20 @@ function fireRoomJoin(m) {
       return
     }
     if (!inviteeContactList.every(c => c instanceof Contact)) {
-      log.error('PuppetWebFirer', 'firmRoomJoin() inviteeList not all found for %s', inviteeList.join(','))
-      return
+      log.error('PuppetWebFirer', 'firmRoomJoin() inviteeList not all found for %s', inviteeContactList.join(','))
+      inviteeContactList = inviteeContactList.filter(c => (c instanceof Contact))
     }
+
     yield Promise.all(inviteeContactList.map(c => c.ready()))
     yield inviterContact.ready()
-    inviteeContactList.forEach(c => {
-      this.emit('room-join', room , c, inviterContact)
-      room.emit('join'            , c, inviterContact)
-    })
+
+    if (inviteeContactList.length === 1) {
+      this.emit('room-join', room , inviteeContactList[0], inviterContact)
+      room.emit('join'            , inviteeContactList[0], inviterContact)
+    } else {
+      this.emit('room-join', room , inviteeContactList, inviterContact)
+      room.emit('join'            , inviteeContactList, inviterContact)
+    }
 
   }).catch(e => {
     log.error('PuppetWebFirer', 'retryPromise() rejected: %s', e.stack)
