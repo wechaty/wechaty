@@ -6,6 +6,10 @@
  * Connecting ChatBots
  * https://github.com/wechaty/wechaty
  *
+ * Known ISSUES:
+ *  - BUG1: can't find member by this NickName:
+ *    ' leaver: 艾静<img class="emoji emojiae" text="_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />JOY
+ *  - BUG2: leave event not right: sometimes can not found member (any more, because they left)
  */
 const co = require('co')
 
@@ -158,7 +162,7 @@ bot
       /**
        * find room name start with "ding"
        */
-      Room.find({ name: /^ding/i })
+      Room.find({ topic: /^ding/i })
           .then(dingRoom => {
 
             /**
@@ -217,10 +221,10 @@ function manageDingRoom() {
   /**
    * Find Room
    */
-  Room.find({ name: /^ding/i })
+  Room.find({ topic: /^ding/i })
   .then(room => {
     if (!room) {
-      log.warn('Bot', 'there is no room named ding(yet)')
+      log.warn('Bot', 'there is no room topic ding(yet)')
       return
     }
     log.info('Bot', 'start monitor "ding" room join/leave event')
