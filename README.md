@@ -541,7 +541,7 @@ room.ready()
 ## Room Class of Wechaty
 
 ```typescript
-type Query = { name: string|Regex }
+type Query = { topic: string|Regex }
 Room.find(query : Query) : Room | null
 Room.findAll(query : Query) : Room[]
 ```

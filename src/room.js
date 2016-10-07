@@ -144,7 +144,7 @@ class Room extends EventEmitter{
     }
     return Config.puppetInstance()
                   .roomDel(this, contact)
-                  .then(_ => this.delLocal(contact))
+                  // .then(_ => this.delLocal(contact))
   }
 
   // @private
@@ -262,21 +262,21 @@ class Room extends EventEmitter{
 
   // private
   static _find({
-    name
+    topic
   }) {
-    log.silly('Room', '_find(%s)', name)
+    log.silly('Room', '_find(%s)', topic)
 
-    if (!name) {
-      throw new Error('name not found')
+    if (!topic) {
+      throw new Error('topic not found')
     }
 
     let filterFunction
-    if (name instanceof RegExp) {
-      filterFunction = `c => ${name.toString()}.test(c)`
-    } else if (typeof name === 'string') {
-      filterFunction = `c => c === '${name}'`
+    if (topic instanceof RegExp) {
+      filterFunction = `c => ${topic.toString()}.test(c)`
+    } else if (typeof topic === 'string') {
+      filterFunction = `c => c === '${topic}'`
     } else {
-      throw new Error('unsupport name type')
+      throw new Error('unsupport topic type')
     }
 
     return Config.puppetInstance().roomFind(filterFunction)
@@ -290,11 +290,11 @@ class Room extends EventEmitter{
   }
 
   static find({
-    name
+    topic
   }) {
-    log.verbose('Room', 'find(%s)', name)
+    log.verbose('Room', 'find(%s)', topic)
 
-    return Room._find({name})
+    return Room._find({topic})
               .then(idList => {
                 if (!idList || !Array.isArray(idList)){
                   throw new Error('_find return error')
@@ -313,11 +313,11 @@ class Room extends EventEmitter{
   }
 
   static findAll({
-    name
+    topic
   }) {
-    log.verbose('Room', 'findAll(%s)', name)
+    log.verbose('Room', 'findAll(%s)', topic)
 
-    return Room._find({name})
+    return Room._find({topic})
               .then(idList => {
                 // console.log(idList)
                 if (!idList || !Array.isArray(idList)){
