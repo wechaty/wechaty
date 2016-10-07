@@ -176,9 +176,9 @@ bot
                */
               if (dingRoom.has(sender)) {
                 log.info('Bot', 'onMessage: sender has already in dingRoom')
-                sendMessage(bot, {
+                sendMessage({
                   content: 'no need to ding again, because you are already in ding room'
-                  , to: sender.id
+                  , to: sender
                 })
 
               /**
@@ -263,36 +263,29 @@ function checkRoomJoin(room, invitee, inviter) {
   log.info('Bot', 'checkRoomJoin(%s, %s, %s)'
                 , room.topic()
                 , invitee.map
-                  ? invitee.map(c => c.name()).join(',')
+                  ? invitee.map(c => c.name()).join(', ')
                   : invitee.name()
-                , inviter
+                , inviter.name()
           )
 
   try {
-    log.info('Bot', 'room event: %s join, invited by %s'
-                  , invitee.map
-                    ? invitee.map(c => c.name()).join(',')
-                    : invitee.name()
-                  , inviter.name()
-            )
-
     let to, content
     if (inviter.id !== bot.user().id) {
 
-      sendMessage(bot, {
+      sendMessage({
         room
+        , to:       inviter
         , content:  `@${inviter.name()} RULE1: Invitation is limited to me, the owner only. Please do not invit people without notify me.`
-        , to:       inviter.id
       })
 
       const atList = invitee.map
                       ? invitee.map(c => '@' + c.name()).join(' ')
                       : '@' + invitee.name()
 
-      sendMessage(bot, {
+      sendMessage({
         room
+        , to:       invitee.map ? invitee[0] : invitee
         , content:  `${atList} Please contact me: by send "ding" to me, I will re-send you a invitation. Now I will remove you out, sorry.`
-        , to:       invitee.map ? invitee[0].id : invitee.id
       })
 
       room.topic('ding - warn ' + inviter.name())
@@ -304,10 +297,10 @@ function checkRoomJoin(room, invitee, inviter) {
 
     } else {
 
-      sendMessage(bot, {
+      sendMessage({
         room
+        , to:       invitee
         , content:  `@${invitee.name()} Welcome to my room! :)`
-        , to:       invitee.id
       })
 
       room.topic('ding - welcome ' + invitee.name())
@@ -319,17 +312,18 @@ function checkRoomJoin(room, invitee, inviter) {
 
 }
 
-function sendMessage(bot, {
+function sendMessage({
   content
-  , to
-  , room = null
+  , to    = null
+  , room  = null
 }) {
-  log.info('Bot', 'sendMessage(%s, {content: %s, to: %s, room: %s})', bot, content, to, room)
+  log.info('Bot', 'sendMessage({content: %s, to: %s, room: %s})', content, to, room)
 
   const msg = new Message()
   msg.content(content)
   msg.room(room)
   msg.to(to)
+
   bot.send(msg)
 }
 
@@ -341,7 +335,7 @@ function putInRoom(contact, room) {
         .catch(e => {
           log.error('Bot', 'room.add() exception: %s', e.stack)
         })
-    setTimeout(_ => sendMessage(bot, {
+    setTimeout(_ => sendMessage({
       content: 'Welcome ' + contact.name()
       , room
       , to: contact
@@ -355,10 +349,10 @@ function getOutRoom(contact, room) {
   log.info('Bot', 'getOutRoom(%s, %s)', contact, room)
 
   try {
-    sendMessage(bot, {
+    sendMessage({
       content:  `@${contact.name()} You said "ding" in my room, I will remove you out.`
-      , room:   room.id
-      , to:     contact.id
+      , room:   room
+      , to:     contact
     })
     room.del(contact)
   } catch (e) {
@@ -395,9 +389,8 @@ function createDingRoom(contact) {
 
           room.topic('ding - created')
 
-          sendMessage(bot, {
+          sendMessage({
             content: 'ding - created'
-            , to:   room
             , room
           })
 
