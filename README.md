@@ -550,6 +550,7 @@ Github Issue - https://github.com/zixia/wechaty/issues
 1. [wechatBot](https://github.com/stonexer/wechatBot) 面向个人的微信 wechat 机器人平台 - 使用微信网页版接口wechat4u
 1. [Wechat4U](https://github.com/nodeWechat/wechat4u) 微信 wechat web 网页版接口的 JavaScript 实现，兼容Node和浏览器
 2. [wechat-user-bot](https://github.com/HalfdogStudio/wechat-user-bot) 正在组装中的微信机器人
+2. [Hubot-WeChat](https://github.com/KasperDeng/Hubot-WeChat) Hubot是一个具有真实微信号的机器人，可以自动回复信息到微信群和某联系人，并能给维护者的微信自动发送Hubot在线状态
 
 ### Perl
 1. [MojoWeixin](https://github.com/sjdy521/Mojo-Weixin) 使用Perl语言编写的微信客户端框架，基于Mojolicious，要求Perl版本5.10+，可通过插件提供基于HTTP协议的api接口供其他语言或系统调用
