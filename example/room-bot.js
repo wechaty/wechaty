@@ -6,6 +6,10 @@
  * Connecting ChatBots
  * https://github.com/wechaty/wechaty
  *
+ * Known ISSUES:
+ *  - BUG1: can't find member by this NickName:
+ *    ' leaver: 艾静<img class="emoji emojiae" text="_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />JOY
+ *  - BUG2: leave event not right: sometimes can not found member (any more, because they left)
  */
 const co = require('co')
 
@@ -158,7 +162,7 @@ bot
       /**
        * find room name start with "ding"
        */
-      Room.find({ name: /^ding/i })
+      Room.find({ topic: /^ding/i })
           .then(dingRoom => {
 
             /**
@@ -173,6 +177,10 @@ bot
               if (dingRoom.has(sender)) {
                 log.info('Bot', 'onMessage: sender has already in dingRoom')
                 sender.say('no need to ding again, because you are already in ding room')
+                // sendMessage({
+                //   content: 'no need to ding again, because you are already in ding room'
+                //   , to: sender
+                // })
 
               /**
                * put speaker into room
@@ -214,10 +222,10 @@ function manageDingRoom() {
   /**
    * Find Room
    */
-  Room.find({ name: /^ding/i })
+  Room.find({ topic: /^ding/i })
   .then(room => {
     if (!room) {
-      log.warn('Bot', 'there is no room named ding(yet)')
+      log.warn('Bot', 'there is no room topic ding(yet)')
       return
     }
     log.info('Bot', 'start monitor "ding" room join/leave event')
@@ -256,19 +264,12 @@ function checkRoomJoin(room, invitee, inviter) {
   log.info('Bot', 'checkRoomJoin(%s, %s, %s)'
                 , room.topic()
                 , invitee.map
-                  ? invitee.map(c => c.name()).join(',')
+                  ? invitee.map(c => c.name()).join(', ')
                   : invitee.name()
-                , inviter
+                , inviter.name()
           )
 
   try {
-    log.info('Bot', 'room event: %s join, invited by %s'
-                  , invitee.map
-                    ? invitee.map(c => c.name()).join(',')
-                    : invitee.name()
-                  , inviter.name()
-            )
-
     let to, content
     if (inviter.id !== bot.user().id) {
 
@@ -305,7 +306,6 @@ function checkRoomJoin(room, invitee, inviter) {
       //   , content:  `@${invitee.name()} Welcome to my room! :)`
       //   , to:       invitee.id
       // })
-
       room.topic('ding - welcome ' + invitee.name())
     }
 

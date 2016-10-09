@@ -180,7 +180,7 @@ function fireRoomJoin(m) {
                     }
                   })
                   .catch(e => {
-                    log.error('PuppetWebFirer', 'retryPromise() room.refresh() rejected: %s', e.stack)
+                    log.error('PuppetWebFirer', 'fireRoomJoin9() retryPromise() room.refresh() rejected: %s', e.stack)
                     throw e
                   })
     })
@@ -230,24 +230,56 @@ function fireRoomLeave(m) {
   if (!leaver) {
     return
   }
-
   const room = m.room()
+  let leaverContact = room.member(leaver)
 
-  leaverContact = room.member(leaver)
+  leaverContact || co.call(this, function* () {
+    const max = 20
+    const backoff = 300
+    const timeout = max * (backoff * max) / 2
+    // 20 / 300 => 63,000
+
+    yield retryPromise({ max: max, backoff: backoff }, attempt => {
+      log.silly('PuppetWebFirer', 'fireRoomLeave() retryPromise() attempt %d with timeout %d', attempt, timeout)
+
+      return room.refresh()
+                  .then(_ => {
+                    log.silly('PuppetWebFirer', 'leaver: %s', leaver)
+
+                    leaverContact = room.member(leaver)
+
+                    if (leaverContact) {
+                      log.silly('PuppetWebFirer', 'fireRoomLeave() resolve() leaverContact: %s'
+                                                , leaverContact
+                              )
+                      return Promise.resolve()
+                    } else {
+                      log.silly('PuppetWebFirer', 'fireRoomLeave() reject() leaver: %s'
+                                                  , leaver
+                                )
+                      return Promise.reject()
+                    }
+                  })
+                  .catch(e => {
+                    log.error('PuppetWebFirer', 'fireRoomLeave() retryPromise() room.refresh() rejected: %s', e && e.stack || e)
+                    throw e
+                  })
+    })
+  }).catch(e => {
+    log.error('PuppetWebFirer', 'fireRoomLeave() co exception: %s', e && e.stack || e)
+  })
 
   if (!leaverContact) {
-    log.error('PuppetWebFirer', 'leaver not found for %s', leaver)
+    log.error('PuppetWebFirer', 'fireRoomLeave() leaver not found for %s', leaver)
     return
   }
 
-  co.call(this, function* () {
-    yield leaverContact.ready()
-    this.emit('room-leave', room, leaverContact)
-    room.emit('leave', leaverContact)
-    room.refresh()
-  }).catch(e => {
-    log.error('PuppetWebFirer', 'fireRoomLeave() co exception: %s', e.stack)
-  })
+  leaverContact.ready()
+                .then(_ => {
+                  this.emit('room-leave', room, leaverContact)
+                  room.emit('leave'           , leaverContact)
+                  room.refresh()
+                })
 }
 
 function checkRoomTopic(content) {

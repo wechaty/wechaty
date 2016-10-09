@@ -419,7 +419,13 @@ this.onResourceRequested = function(request, net) {
   }
 
   execute(script, ...args) {
-    log.silly('PuppetWebBrowser', 'Browser.execute(%s)', script.slice(0, 80))
+    log.silly('PuppetWebBrowser', 'Browser.execute("%s")'
+                                , (
+                                    script.slice(0, 80)
+                                          .replace(/[\n\s]+/g, ' ')
+                                    + (script.length > 80 ? ' ... ' : '')
+                                )
+            )
     // log.verbose('PuppetWebBrowser', `Browser.execute() driver.getSession: %s`, util.inspect(this.driver.getSession()))
     if (this.dead()) { return Promise.reject(new Error('browser dead')) }
 
