@@ -655,6 +655,9 @@ npm test
 # Version History
 
 ## master
+1. #40 Converte to Typescript 
+
+## [v0.4.0](https://github.com/wechaty/wechaty/tree/v0.4.0) (2016/10/9) The Latest Javascript Version
 1. #32 Extend Room Class with:
   1. Global events: `room-join`, `room-leave`, `room-topic`
   1. Room events: `join`, `leave`, `topic`
