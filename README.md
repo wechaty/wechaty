@@ -18,11 +18,13 @@ Wechaty is a Bot Framework for Wechat **Personal** Account that help you easy cr
 
 > @GasLin : it may be the best wecaht sdk i have seen in github! [link](https://github.com/wechaty/wechaty/issues/8#issuecomment-228971491)
 
+> @Jarvis : 目前用过的最好的微信开发库 [link](http://weibo.com/3296245513/Ec4iNp9Ld?type=comment)
+
+> @ccaapton : wechaty library fantastic! [link](https://github.com/wechaty/wechaty/issues/9)
+
 > @ak5 : Thanks for this it's quite cool! [link](https://github.com/wechaty/wechaty/issues/4)
 
-> @ccaapton : wechaty library looks fantastic! [link](https://github.com/wechaty/wechaty/issues/9)
-
-> @Samurais wechaty is great. 👍 [link](https://github.com/wechaty/wechaty/issues/36#issuecomment-251708382)
+> @Samurais : wechaty is great. 👍 [link](https://github.com/wechaty/wechaty/issues/36#issuecomment-251708382)
 
 # Examples
 Wechaty is dead easy to use: 7 lines javascript for your wechat bot.
