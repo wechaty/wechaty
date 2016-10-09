@@ -6,7 +6,6 @@
  * https://github.com/zixia/wechaty
  *
  */
-const Wechaty = require('./wechaty')
 const { log }     = require('./brolog-env')
 const { UtilLib } = require('./util-lib')
 const { Config }  = require('./config')

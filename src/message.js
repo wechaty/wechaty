@@ -1,19 +1,18 @@
 /**
  *
- * wechaty: Wechat for Bot. and for human who talk to bot/robot
+ * Wechaty: Wechat for Bot. Connecting ChatBots
  *
  * Licenst: ISC
- * https://github.com/zixia/wechaty
+ * https://github.com/wechaty/wechaty
  *
  */
 const co = require('co')
 
-const Wechaty = require('./wechaty')
+const Config  = require('./config')
 const Contact = require('./contact')
 const Room    = require('./room')
-const Config  = require('./config')
-
 const UtilLib = require('./util-lib')
+
 const log     = require('./brolog-env')
 
 class Message {

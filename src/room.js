@@ -10,11 +10,13 @@
  */
 const EventEmitter = require('events')
 
-const Wechaty   = require('./wechaty')
-const Contact   = require('./contact')
-const log       = require('./brolog-env')
-const UtilLib   = require('./util-lib')
-const Config    = require('./config')
+const Config        = require('./config')
+const Contact       = require('./contact')
+const Message       = require('./message')
+const UtilLib       = require('./util-lib')
+const WechatyEvent  = require('./wechaty-event')
+
+const log           = require('./brolog-env')
 
 class Room extends EventEmitter{
   constructor(id) {
@@ -73,6 +75,46 @@ class Room extends EventEmitter{
       log.error('Room', 'contactGetter(%s) exception: %s', this.id, e.message)
       throw e
     })
+  }
+
+  on(event, callback) {
+    log.verbose('Room', 'on(%s, %s)', event, typeof callback)
+
+    /**
+     * every room event must can be mapped to a global event.
+     * such as: `join` to `room-join`
+     */
+    const wrapCallback = WechatyEvent.wrap.call(this, 'room-' + event, callback)
+
+    // bind(this1, this2): the second this is for simulate the global room-* event
+    return super.on(event, wrapCallback.bind(this, this))
+  }
+
+  say(content, replyTo = null) {
+    log.verbose('Room', 'say(%s, %s)', content, replyTo)
+
+    const m = new Message()
+    m.room(this)
+
+    if (!replyTo) {
+      m.content(content)
+      m.to(this)
+      return Config.puppetInstance()
+                    .send(m)
+    }
+
+    let mentionList
+    if (replyTo.map) {
+      m.to(replyTo[0])
+      mentionList = replyTo.map(c => '@' + c.name()).join(' ')
+    } else {
+      m.to(replyTo)
+      mentionList = '@' + replyTo.name()
+    }
+
+    m.content(mentionList + ' ' + content)
+    return Config.puppetInstance()
+                  .send(m)
   }
 
   get(prop) { return this.obj[prop] || this.dirtyObj[prop] }

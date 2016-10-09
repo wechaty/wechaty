@@ -13,10 +13,12 @@ const path          = require('path')
 const co            = require('co')
 const fs            = require('fs')
 
-const PuppetWeb   = require('./puppet-web')
-const UtilLib     = require('./util-lib')
-const Config      = require('./config')
-const log         = require('./brolog-env')
+const Config        = require('./config')
+const PuppetWeb     = require('./puppet-web')
+const UtilLib       = require('./util-lib')
+const WechatyEvent  = require('./wechaty-event')
+
+const log           = require('./brolog-env')
 
 class Wechaty extends EventEmitter {
 
@@ -122,6 +124,14 @@ class Wechaty extends EventEmitter {
     })
   }
 
+  on(event, callback) {
+    log.verbose('Wechaty', 'on(%s, %s)', event, typeof callback)
+
+    const wrapCallback = WechatyEvent.wrap.call(this, event, callback)
+
+    return super.on(event, wrapCallback)
+  }
+
   initPuppet() {
     let puppet
     switch (this.type) {
@@ -135,18 +145,7 @@ class Wechaty extends EventEmitter {
         throw new Error('Puppet unsupport(yet): ' + this.type)
     }
 
-    ;[
-      'scan'
-      , 'message'
-      , 'login'
-      , 'logout'
-      , 'error'
-      , 'heartbeat'
-      , 'friend'
-      , 'room-join'
-      , 'room-leave'
-      , 'room-topic'
-    ].map(e => {
+    WechatyEvent.list().map(e => {
       // https://strongloop.com/strongblog/an-introduction-to-javascript-es6-arrow-functions/
       // We’ve lost () around the argument list when there’s just one argument (rest arguments are an exception, eg (...args) => ...)
       puppet.on(e, (...args) => {

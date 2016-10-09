@@ -380,7 +380,7 @@ function onServerMessage(data) {
     m.ready() // TODO: EventEmitter2 for video/audio/app/sys....
     .then(_ => this.emit('message', m))
     .catch(e => {
-      log.error('PuppetWebEvent', 'onServerMessage() message ready exception: %s', e)
+      log.error('PuppetWebEvent', 'onServerMessage() message ready exception: %s', e.stack)
       // console.log(e)
       /**
        * FIXME: add retry here...
