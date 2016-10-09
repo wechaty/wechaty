@@ -9,25 +9,24 @@
  * Licenst: ISC
  * https://github.com/wechaty/wechaty
  *
- */
-
-/**************************************
- *
  * Firer for Class PuppetWeb
  *
  * here `this` is a PuppetWeb Instance
  *
- ***************************************/
-const util          = require('util')
-const fs            = require('fs')
-// const co            = require('co')
+ */
+// import * as util  from 'util'
+// import * as fs    from 'fs'
+
+/* tslint:disable:no-var-requires */
 const retryPromise  = require('retry-promise').default
 
 import Contact        from '../contact'
-import FriendRequest  from './friend-request'
-import Message        from '../message'
+// import Message        from '../message'
 import log            from '../brolog-env'
 
+import FriendRequest  from './friend-request'
+
+/* tslint:disable:variable-name */
 const PuppetWebFirer = {
   fireFriendConfirm
   , fireFriendRequest
@@ -89,18 +88,17 @@ function fireFriendConfirm(m) {
   this.emit('friend', contact)
 }
 
-
 /**
  * try to find 'join' event for Room
  *
-1.
-  You've invited "李卓桓" to the group chat
-  You've invited "李卓桓.PreAngel、Bruce LEE" to the group chat
-2.
-   "李卓桓.PreAngel" invited "Bruce LEE" to the group chat
-   "凌" invited "庆次、小桔妹" to the group chat
-*/
-function checkRoomJoin(content) {
+ * 1.
+ *  You've invited "李卓桓" to the group chat
+ *  You've invited "李卓桓.PreAngel、Bruce LEE" to the group chat
+ * 2.
+ *  "李卓桓.PreAngel" invited "Bruce LEE" to the group chat
+ *  "凌" invited "庆次、小桔妹" to the group chat
+ */
+function checkRoomJoin(content): [string|string[], string] | boolean {
   log.verbose('PuppetWebFirer', 'checkRoomJoin()')
 
   const re = regexConfig.roomJoin
@@ -109,7 +107,7 @@ function checkRoomJoin(content) {
   if (!found) {
     return false
   }
-  const [_, inviter, inviteeStr] = found
+  const [, inviter, inviteeStr] = found
 
   // "凌" invited "庆次、小桔妹" to the group chat
   const inviteeList = inviteeStr.split(/、/)
@@ -127,7 +125,7 @@ function fireRoomJoin(m) {
   if (!result) {
     return
   }
-  const [inviteeList, inviter] = result
+  const [inviteeList, inviter] = <[string[], string]>result
 
   let inviterContact, inviteeContactList = []
 
@@ -163,7 +161,9 @@ function fireRoomJoin(m) {
                       }
                     }
 
-                    inviterContact || (inviterContact = room.member(inviter))
+                    if (!inviterContact) {
+                      inviterContact = room.member(inviter)
+                    }
 
                     if (allDone && inviterContact) {
                       log.silly('PuppetWebFirer', 'fireRoomJoin() resolve() inviteeContactList: %s, inviterContact: %s'
@@ -176,7 +176,7 @@ function fireRoomJoin(m) {
                                                   , inviteeContactList.join(',')
                                                   , inviterContact
                                 )
-                      return Promise.reject()
+                      return Promise.reject('not found(yet)')
                     }
                   })
                   .catch(e => {
@@ -218,7 +218,7 @@ function checkRoomLeave(content) {
   if (!found) {
     return false
   }
-  const [_, leaver] = found
+  const [, leaver] = found
   return leaver
 }
 
@@ -233,41 +233,44 @@ function fireRoomLeave(m) {
   const room = m.room()
   let leaverContact = room.member(leaver)
 
-  leaverContact || co.call(this, function* () {
-    const max = 20
-    const backoff = 300
-    const timeout = max * (backoff * max) / 2
-    // 20 / 300 => 63,000
+  if (!leaverContact) {
 
-    yield retryPromise({ max: max, backoff: backoff }, attempt => {
-      log.silly('PuppetWebFirer', 'fireRoomLeave() retryPromise() attempt %d with timeout %d', attempt, timeout)
+    co.call(this, function* () {
+      const max = 20
+      const backoff = 300
+      const timeout = max * (backoff * max) / 2
+      // 20 / 300 => 63,000
 
-      return room.refresh()
-                  .then(_ => {
-                    log.silly('PuppetWebFirer', 'leaver: %s', leaver)
+      yield retryPromise({ max: max, backoff: backoff }, attempt => {
+        log.silly('PuppetWebFirer', 'fireRoomLeave() retryPromise() attempt %d with timeout %d', attempt, timeout)
 
-                    leaverContact = room.member(leaver)
+        return room.refresh()
+                    .then(_ => {
+                      log.silly('PuppetWebFirer', 'leaver: %s', leaver)
 
-                    if (leaverContact) {
-                      log.silly('PuppetWebFirer', 'fireRoomLeave() resolve() leaverContact: %s'
-                                                , leaverContact
-                              )
-                      return Promise.resolve()
-                    } else {
-                      log.silly('PuppetWebFirer', 'fireRoomLeave() reject() leaver: %s'
-                                                  , leaver
+                      leaverContact = room.member(leaver)
+
+                      if (leaverContact) {
+                        log.silly('PuppetWebFirer', 'fireRoomLeave() resolve() leaverContact: %s'
+                                                  , leaverContact
                                 )
-                      return Promise.reject()
-                    }
-                  })
-                  .catch(e => {
-                    log.error('PuppetWebFirer', 'fireRoomLeave() retryPromise() room.refresh() rejected: %s', e && e.stack || e)
-                    throw e
-                  })
+                        return Promise.resolve(leaverContact)
+                      } else {
+                        log.silly('PuppetWebFirer', 'fireRoomLeave() reject() leaver: %s'
+                                                    , leaver
+                                  )
+                        return Promise.reject('not found(yet)')
+                      }
+                    })
+                    .catch(e => {
+                      log.error('PuppetWebFirer', 'fireRoomLeave() retryPromise() room.refresh() rejected: %s', e && e.stack || e)
+                      throw e
+                    })
+      })
+    }).catch(e => {
+      log.error('PuppetWebFirer', 'fireRoomLeave() co exception: %s', e && e.stack || e)
     })
-  }).catch(e => {
-    log.error('PuppetWebFirer', 'fireRoomLeave() co exception: %s', e && e.stack || e)
-  })
+  }
 
   if (!leaverContact) {
     log.error('PuppetWebFirer', 'fireRoomLeave() leaver not found for %s', leaver)
@@ -282,14 +285,14 @@ function fireRoomLeave(m) {
                 })
 }
 
-function checkRoomTopic(content) {
+function checkRoomTopic(content): [string, string] | boolean {
   const re = regexConfig.roomTopic
 
   const found = content.match(re)
   if (!found) {
     return false
   }
-  const [_, changer, topic] = found
+  const [, changer, topic] = found
   return [topic, changer]
 }
 
@@ -299,10 +302,11 @@ function fireRoomTopic(m) {
     return
   }
 
-  const [topic, changer] = result
+  const [topic, changer] = <[string, string]>result
   const room = m.room()
   const oldTopic = room.topic()
 
+  let changerContact: Contact
   if (/^You$/.test(changer)) {
     changerContact = Contact.load(this.userId)
   } else {

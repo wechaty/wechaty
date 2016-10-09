@@ -12,10 +12,10 @@
  */
 import { test }   from 'ava'
 
-import Contact from '../contact'
-import Message from '../message'
+// import Contact from '../contact'
+// import Message from '../message'
 
-import FriendRequest  from './friend-request'
+// import FriendRequest  from './friend-request'
 import Firer          from './firer'
 
 test('Firer smoking test', t => {
