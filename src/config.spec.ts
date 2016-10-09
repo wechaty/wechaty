@@ -1,5 +1,6 @@
 import { test }   from 'ava'
-import { Config } from './config'
+
+import Config from './config'
 
 test('Config list vars', t => {
   t.truthy(Config.default   , 'should export default')

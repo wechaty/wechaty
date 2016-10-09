@@ -8,17 +8,17 @@
  * https://github.com/zixia/wechaty
  *
  */
-const EventEmitter  = require('events')
+import EventEmitter  = require('events')
 const path          = require('path')
-const co            = require('co')
+// const co            = require('co')
 const fs            = require('fs')
 
-const Config        = require('./config')
-const PuppetWeb     = require('./puppet-web')
-const UtilLib       = require('./util-lib')
-const WechatyEvent  = require('./wechaty-event')
+import Config        from './config'
+import PuppetWeb     from './puppet-web'
+import UtilLib       from './util-lib'
+import WechatyEvent  from './wechaty-event'
 
-const log           = require('./brolog-env')
+import log           from './brolog-env'
 
 class Wechaty extends EventEmitter {
 
@@ -238,4 +238,5 @@ class Wechaty extends EventEmitter {
 /**
  * Expose `Wechaty`.
  */
-module.exports = Wechaty.default = Wechaty.Wechaty = Wechaty
+// module.exports = Wechaty.default = Wechaty.Wechaty = Wechaty
+export default Wechaty

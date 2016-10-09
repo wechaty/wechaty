@@ -1,5 +1,5 @@
-import { test }     from 'ava'
-import { PuppetWeb }  from './'
+import { test }   from 'ava'
+import PuppetWeb  from './'
 
 test('PuppetWeb Module Exports', t => {
   t.truthy(PuppetWeb.default    , 'should export default')

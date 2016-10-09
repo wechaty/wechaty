@@ -14,19 +14,19 @@
  *
  *
  ***************************************/
-const Config  = require('./config')
-const Contact = require('./contact')
-const Message = require('./message')
-// const Room    = require('./room')
+import Config  import './config'
+import Contact import './contact'
+import Message import './message'
+// import Room    import './room'
 
-const log     = require('./brolog-env')
+import log     import './brolog-env'
 
 const WechatyEvent = {
   list
   , wrap
 }
 
-EVENT_CONFIG = {
+const EVENT_CONFIG = {
   error:          wrapFilehelper
   , friend:       wrapContact
   , heartbeat:    wrapFilehelper
@@ -206,4 +206,5 @@ function wrapFilehelper(callback) {
   }
 }
 
-module.exports = WechatyEvent.default = WechatyEvent
+// module.exports = WechatyEvent.default = WechatyEvent
+export default WechatyEvent

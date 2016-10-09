@@ -16,11 +16,11 @@
  *
  */
 
-const Wechaty       = require('../wechaty')
-const Contact       = require('../contact')
-const Config        = require('../config')
-const FriendRequest = require('../friend-request')
-const log           = require('../brolog-env')
+import Contact       from '../contact'
+import Config        from '../config'
+import FriendRequest from '../friend-request'
+import Wechaty       from '../wechaty'
+import log           from '../brolog-env'
 
 class PuppetWebFriendRequest extends FriendRequest {
   constructor() {
@@ -91,4 +91,5 @@ class PuppetWebFriendRequest extends FriendRequest {
 
 }
 
-module.exports = PuppetWebFriendRequest
+// module.exports = PuppetWebFriendRequest
+export default PuppetWebFriendRequest

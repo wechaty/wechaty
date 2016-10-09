@@ -15,11 +15,11 @@ const path        = require('path')
 const https       = require('https')
 const bodyParser  = require('body-parser')
 
-const Config  = require('../config')
-const log     = require('../brolog-env')
-
 const Express       = require('express')
 const EventEmitter  = require('events')
+
+import Config  from '../config'
+import log     from '../brolog-env'
 
 class Server extends EventEmitter {
   constructor({
@@ -171,4 +171,5 @@ class Server extends EventEmitter {
   }
 }
 
-module.exports = Server
+// module.exports = Server
+export default Server

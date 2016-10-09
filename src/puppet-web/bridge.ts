@@ -9,10 +9,10 @@
 * https://github.com/zixia/wechaty-lib
 *
 */
-const co = require('co')
+// const co = require('co')
 const retryPromise  = require('retry-promise').default
 
-const log = require('../brolog-env')
+import log from '../brolog-env'
 
 class Bridge {
   constructor(options) {
@@ -370,7 +370,8 @@ class Bridge {
   }
 }
 
-module.exports = Bridge
+// module.exports = Bridge
+export default Bridge
 
 /**
  *

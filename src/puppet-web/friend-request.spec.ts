@@ -1,9 +1,11 @@
 import { test }   from 'ava'
-import { PuppetWebFriendRequest } from './friend-request'
-import { Wechaty } from '../wechaty'
-import { Config } from '../config'
-import { Contact } from '../contact'
-import { Message } from '../message'
+
+import Config   from '../config'
+import Contact  from '../contact'
+import Message  from '../message'
+import Wechaty  from '../wechaty'
+
+import PuppetWebFriendRequest from './friend-request'
 
 Config.puppetInstance({})
 

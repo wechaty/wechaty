@@ -28,8 +28,8 @@
     "testdev": "cross-env LC_ALL=C WECHATY_LOG=silly ava --serial --verbose --fail-fast --timeout=3m",
     "ava": "cross-env LC_ALL=C WECHATY_LOG=verbose ava \"{src,test}/**/*.spec.js\"",
     "start": "ts-node bin/client",
-    "dev": "ts-node dev.js",
-    "demo": "ts-node example/ding-dong-bot.js"
+    "dev": "ts-node dev.ts",
+    "demo": "ts-node example/ding-dong-bot.ts"
   },
   "repository": {
     "type": "git",
@@ -104,6 +104,7 @@
     "qrcode-terminal": "^0.10.0",
     "sinon": "^1.17.5",
     "sloc": "^0.1.11",
+    "ts-node": "^1.4.1",
     "tslint": "^3.15.1",
     "tuling123-client": "0.0.1",
     "typescript": "^2.0.3",

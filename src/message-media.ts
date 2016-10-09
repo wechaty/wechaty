@@ -6,12 +6,13 @@
  * https://github.com/zixia/wechaty
  *
  */
-const co = require('co')
+// const co = require('co')
 
-const log = require('./brolog-env')
-const UtilLib = require('./util-lib')
-const Message = require('./message')
-const Config = require('./config')
+import Config   from './config'
+import Message  from './message'
+import UtilLib  from './util-lib'
+
+import log      from './brolog-env'
 
 class MediaMessage extends Message {
   constructor(rawObj) {
@@ -58,4 +59,5 @@ class MediaMessage extends Message {
   }
 }
 
-module.exports = MediaMessage.default = MediaMessage.MediaMessage = MediaMessage
+// module.exports = MediaMessage.default = MediaMessage.MediaMessage = MediaMessage
+export default MediaMessage

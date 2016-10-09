@@ -11,11 +11,12 @@
  */
 const EventEmitter  = require('events')
 const WebSocket     = require('ws')
-const co            = require('co')
+// const co            = require('co')
 
-const log           = require('./brolog-env')
-const Contact       = require('./contact')
-const Config        = require('./config')
+import Config        from './config'
+import Contact       from './contact'
+
+import log           from './brolog-env'
 
 class Io {
 
@@ -33,7 +34,7 @@ class Io {
 
     this.token    = token
     this.apihost = apihost
-    
+
     this.protocol = protocol + '|' + wechaty.uuid
     log.verbose('Io', 'instantiated with apihost[%s], token[%s], protocol[%s], uuid[%s]', apihost, token, protocol, this.uuid)
 
@@ -128,19 +129,19 @@ class Io {
         , payload: 'Wechaty version ' + this.wechaty.version() + ` with UUID: ${this.uuid}`
       }
       this.send(initEvent)
-      
+
     }.bind(this))
 
     ws.on('message', (data, flags) => {
       log.silly('Io', 'initWebSocket() ws.on(message): %s', data)
       // flags.binary will be set if a binary data is received.
       // flags.masked will be set if the data was masked.
-      
+
       const ioEvent = {
         name: 'raw'
         , payload: data
       }
-      
+
       try {
         const obj = JSON.parse(data)
         ioEvent.name    = obj.name
@@ -162,12 +163,12 @@ class Io {
             }
           }
           break
-        
+
         case 'reset':
           log.verbose('Io', 'on(reset): %s', ioEvent.payload)
           this.wechaty.reset()
           break
-          
+
         case 'shutdown':
           log.warn('Io', 'on(shutdown): %s', ioEvent.payload)
           process.exit(0)
@@ -182,8 +183,8 @@ class Io {
               , payload:  user.obj
             }
             this.send(loginEvent)
-          } 
-          
+          }
+
           const scan = this.wechaty && this.wechaty.puppet && this.wechaty.puppet.scan
           if (scan) {
             const scanEvent = {
@@ -192,13 +193,13 @@ class Io {
             }
             this.send(scanEvent)
           }
-          
+
           break
-          
+
         case 'sys':
           // do nothing
           break
-          
+
         default:
           log.warn('Io', 'UNKNOWN on(%s): %s', ioEvent.name, ioEvent.payload)
           break
@@ -250,7 +251,7 @@ class Io {
     } else if (this.reconnectTimeout < 10000) {
       this.reconnectTimeout *= 3
     }
-    
+
     log.warn('Io', 'reconnect() will reconnect after %d s', Math.floor(this.reconnectTimeout/1000))
     this.reconnectTimer = setTimeout(_ => {
       this.reconnectTimer = null
@@ -277,7 +278,7 @@ class Io {
           name:       event
           , payload:  data
         }
-        
+
         switch (event) {
           case 'login':
           case 'logout':
@@ -285,7 +286,7 @@ class Io {
               ioEvent.payload = data.obj
             }
             break
-          
+
           case 'error':
             ioEvent.payload = data.toString()
             break
@@ -296,11 +297,11 @@ class Io {
               , data: data
             }
             break
-            
+
           default:
             break
         }
-      
+
         this.send(ioEvent)
       })
     })
@@ -315,7 +316,7 @@ class Io {
     //   }
     //   this.send(messageEvent)
     // })
-    
+
     return Promise.resolve()
   }
 
@@ -338,7 +339,7 @@ class Io {
       )
     }
   }
-  
+
   close() {
     log.verbose('Io', 'close()')
     this.targetState('disconnected')
@@ -376,10 +377,11 @@ class Io {
   ioMessage(m) {
     log.verbose('Io', 'ioMessage() is a nop function before be overwriten from cloud')
   }
-  
+
 }
 
 /**
  * Expose `Wechaty`.
  */
-module.exports = Io.default = Io.Io = Io
+// module.exports = Io.default = Io.Io = Io
+export default Io

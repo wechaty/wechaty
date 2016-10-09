@@ -20,15 +20,15 @@
  ***************************************/
 const util  = require('util')
 const fs    = require('fs')
-const co    = require('co')
+// const co    = require('co')
 
-const log           = require('../brolog-env')
-const Contact       = require('../contact')
-const Message       = require('../message')
-const MediaMessage  = require('../message-media')
+import Contact       from '../contact'
+import MediaMessage  from '../message-media'
+import Message       from '../message'
+import log           from '../brolog-env'
 
-const FriendRequest = require('./friend-request')
-const Firer         = require('./firer')
+import FriendRequest from './friend-request'
+import Firer         from './firer'
 
 const PuppetWebEvent = {
   onBrowserDead
@@ -390,4 +390,5 @@ function onServerMessage(data) {
   })
 }
 
-module.exports = PuppetWebEvent
+// module.exports = PuppetWebEvent
+export default PuppetWebEvent

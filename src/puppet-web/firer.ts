@@ -20,13 +20,13 @@
  ***************************************/
 const util          = require('util')
 const fs            = require('fs')
-const co            = require('co')
+// const co            = require('co')
 const retryPromise  = require('retry-promise').default
 
-const log = require('../brolog-env')
-const Contact = require('../contact')
-const Message = require('../message')
-const FriendRequest = require('./friend-request')
+import Contact        from '../contact'
+import FriendRequest  from './friend-request'
+import Message        from '../message'
+import log            from '../brolog-env'
 
 const PuppetWebFirer = {
   fireFriendConfirm
@@ -324,4 +324,5 @@ function fireRoomTopic(m) {
   })
 }
 
-module.exports = PuppetWebFirer
+// module.exports = PuppetWebFirer
+export default PuppetWebFirer

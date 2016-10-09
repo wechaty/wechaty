@@ -16,10 +16,10 @@
  * Class PuppetWeb
  *
  ***************************************/
-const co    = require('co')
+// const co    = require('co')
 
-const log   = require('../brolog-env')
-const Event = require('./event')
+import log   from '../brolog-env'
+import Event from './event'
 
 const Watchdog = {
   onFeed
@@ -154,4 +154,5 @@ function monitorScan(type) {
   }
 }
 
-module.exports = Watchdog
+// module.exports = Watchdog
+export default Watchdog

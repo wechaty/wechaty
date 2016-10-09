@@ -10,16 +10,16 @@
  *
  */
 
-const co = require('co')
+// const co = require('co')
 
 /**
  * DO NOT use `require('../')` here!
  * because it will casue a LOOP require ERROR
  */
-const Wechaty = require('./wechaty')
-const Config  = require('./config')
-const Io      = require('./io')
-const brolog  = require('./brolog-env')
+import Wechaty from './wechaty'
+import Config  from './config'
+import Io      from './io'
+import brolog  from './brolog-env'
 
 class IoClient {
   constructor({
@@ -285,4 +285,5 @@ class IoClient {
   }
 }
 
-module.exports = IoClient.default = IoClient.IoClient = IoClient
+// module.exports = IoClient.default = IoClient.IoClient = IoClient
+export default IoClient

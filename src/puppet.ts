@@ -11,7 +11,8 @@
  */
 
 const EventEmitter = require('events')
-const log = require('./brolog-env')
+
+import log from './brolog-env'
 
 class Puppet extends EventEmitter {
   constructor() {
@@ -83,4 +84,5 @@ Object.assign(Puppet, {
   , Room:     require('./room')
 })
 
-module.exports = Puppet
+// module.exports = Puppet
+export default Puppet

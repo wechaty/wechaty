@@ -1,37 +1,58 @@
-const Wechaty   = require('./src/wechaty')
-const Config    = require('./src/config')
+import Wechaty   from './src/wechaty'
+import Config    from './src/config'
 
-const Message   = require('./src/message')
-const Contact   = require('./src/contact')
-const Room      = require('./src/room')
+import Message   from './src/message'
+import Contact   from './src/contact'
+import Room      from './src/room'
 
-const Puppet    = require('./src/puppet')
-const PuppetWeb = require('./src/puppet-web')
+import Puppet    from './src/puppet'
+import PuppetWeb from './src/puppet-web'
 
-const IoClient  = require('./src/io-client')
+import IoClient  from './src/io-client'
 
-const log       = require('./src/brolog-env')
+import log       from './src/brolog-env'
 
-const UtilLib   = require('./src/util-lib')
+import UtilLib   from './src/util-lib'
 
-Object.assign(Wechaty, {
-  default: Wechaty
-  , Wechaty
-  , Config
-  
+// Object.assign(Wechaty, {
+//   default: Wechaty
+//   , Wechaty
+//   , Config
+
+//   , Message
+//   , Contact
+//   , Room
+
+//   , Puppet
+//   , PuppetWeb
+
+//   , IoClient
+//   , UtilLib
+
+//   , version: require('./package.json').version
+//   , log // for convenionce use npmlog with environment variable LEVEL
+
+// })
+
+// module.exports = Wechaty
+
+const version = require('./package.json').version
+
+export default Wechaty
+export {
+  Config
+
   , Message
   , Contact
   , Room
 
   , Puppet
   , PuppetWeb
-  
+
   , IoClient
   , UtilLib
+  , Wechaty
 
-  , version: require('./package.json').version
+  , version
   , log // for convenionce use npmlog with environment variable LEVEL
-  
-})
-
-module.exports = Wechaty
+}

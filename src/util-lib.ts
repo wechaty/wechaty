@@ -1,5 +1,6 @@
 const http  = require('http')
-const log = require('./brolog-env')
+
+import log from './brolog-env'
 
 const UtilLib = {
   stripHtml
@@ -129,10 +130,12 @@ function getPort(port) {
   })
 
   function nextPort(port) {
-    RANDOM_RANGE = 1024
+    const RANDOM_RANGE = 1024
     const n = Math.floor(Math.random() * RANDOM_RANGE)
     return port + n
   }
 }
 
-module.exports = UtilLib.default = UtilLib.UtilLib = UtilLib
+// module.exports = UtilLib.default = UtilLib.UtilLib = UtilLib
+
+export default UtilLib

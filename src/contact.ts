@@ -6,9 +6,10 @@
  * https://github.com/zixia/wechaty
  *
  */
-const { log }     = require('./brolog-env')
-const { UtilLib } = require('./util-lib')
-const { Config }  = require('./config')
+import Config   from './config'
+import UtilLib  from './util-lib'
+
+import log      from './brolog-env'
 
 class Contact {
   constructor(id) {
@@ -187,4 +188,6 @@ Contact.load = function(id) {
 //   return []
 // }
 
-module.exports = Contact.default = Contact.Contact = Contact
+// module.exports = Contact.default = Contact.Contact = Contact
+
+export default Contact

@@ -7,11 +7,11 @@
  * https://github.com/wechaty/wechaty
  *
  */
-const {
+import {
   Wechaty
   , Config
   , log
-} = require('../')
+} from '../'
 
 const welcome = `
 | __        __        _           _

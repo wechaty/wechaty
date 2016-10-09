@@ -7,18 +7,17 @@
  * https://github.com/zixia/wechaty
  *
  */
-
 const fs            = require('fs')
-const co            = require('co')
+// const co            = require('co')
 const path          = require('path')
 const util          = require('util')
 const EventEmitter  = require('events')
 const WebDriver     = require('selenium-webdriver')
 const retryPromise  = require('retry-promise').default // https://github.com/olalonde/retry-promise
 
-const log = require('../brolog-env')
+import log    from'../brolog-env'
 
-const Config  = require('../config')
+import Config from'../config'
 
 class Browser extends EventEmitter {
 
@@ -638,4 +637,5 @@ this.onResourceRequested = function(request, net) {
   }
 }
 
-module.exports = Browser
+// module.exports = Browser
+export default Browser

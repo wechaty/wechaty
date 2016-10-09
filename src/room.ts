@@ -10,13 +10,13 @@
  */
 const EventEmitter = require('events')
 
-const Config        = require('./config')
-const Contact       = require('./contact')
-const Message       = require('./message')
-const UtilLib       = require('./util-lib')
-const WechatyEvent  = require('./wechaty-event')
+import Config        from './config'
+import Contact       from './contact'
+import Message       from './message'
+import UtilLib       from './util-lib'
+import WechatyEvent  from './wechaty-event'
 
-const log           = require('./brolog-env')
+import log           from './brolog-env'
 
 class Room extends EventEmitter{
   constructor(id) {
@@ -391,4 +391,5 @@ class Room extends EventEmitter{
 
 Room.init()
 
-module.exports = Room
+// module.exports = Room
+export default Room

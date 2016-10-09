@@ -10,8 +10,8 @@
  *
  */
 
-const Wechaty = require('./wechaty')
-const Config = require('./config')
+import Config   from './config'
+import Wechaty  from './wechaty'
 
 class FriendRequest {
   constructor() {
@@ -25,4 +25,5 @@ class FriendRequest {
 
 }
 
-module.exports = FriendRequest.default = FriendRequest.FriendRequest = FriendRequest
+// module.exports = FriendRequest.default = FriendRequest.FriendRequest = FriendRequest
+export default FriendRequest

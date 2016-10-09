@@ -18,24 +18,22 @@
  ***************************************/
 const util  = require('util')
 const fs    = require('fs')
-const co    = require('co')
+// const co    = require('co')
 
-const log = require('../brolog-env')
-const Puppet  = require('../puppet')
-const Contact = require('../contact')
-const Room    = require('../room')
-const Message = require('../message')
-const FriendRequest = require('../friend-request')
+import Config         from '../config'
+import Contact        from '../contact'
+import FriendRequest  from '../friend-request'
+import Message        from '../message'
+import Puppet         from '../puppet'
+import Room           from '../room'
+import UtilLib        from '../util-lib'
+import log            from '../brolog-env'
 
-const Server  = require('./server')
-const Browser = require('./browser')
-const Bridge  = require('./bridge')
-
-const Event     = require('./event')
-const Watchdog  = require('./watchdog')
-
-const UtilLib = require('../util-lib')
-const Config  = require('../config')
+import Bridge         from './bridge'
+import Browser        from './browser'
+import Event          from './event'
+import Server         from './server'
+import Watchdog       from './watchdog'
 
 const DEFAULT_PUPPET_PORT = 18788 // // W(87) X(88), ascii char code ;-]
 
@@ -472,4 +470,5 @@ class PuppetWeb extends Puppet {
   }
 }
 
-module.exports = PuppetWeb.default = PuppetWeb.PuppetWeb = PuppetWeb
+// module.exports = PuppetWeb.default = PuppetWeb.PuppetWeb = PuppetWeb
+export default PuppetWeb

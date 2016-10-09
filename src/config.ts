@@ -81,4 +81,5 @@ Config.puppetInstance = function(instance) {
   return Config._puppetInstance
 }
 
-module.exports = Config.default = Config.Config = Config
+// module.exports = Config.default = Config.Config = Config
+export default Config
