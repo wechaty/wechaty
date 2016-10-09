@@ -11,17 +11,17 @@
  */
 
 import Config   from './config'
-import Wechaty  from './wechaty'
+// import Wechaty  from './wechaty'
 
-class FriendRequest {
+abstract class FriendRequest {
   constructor() {
     if (!Config.puppetInstance()) {
       throw new Error('no Config.puppetInstance() instanciated')
     }
   }
 
-  send(contact, message)  { throw new Error('pure virtual implement') }
-  accept()                { throw new Error('pure virtual implement') }
+  public abstract send(contact: Contact, hello: string): void
+  public abstract accept(): void
 
 }
 
