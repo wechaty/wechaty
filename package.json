@@ -3,6 +3,7 @@
   "version": "0.3.17",
   "description": "Wechat for Bot (Personal Account)",
   "main": "index.js",
+  "typings": "index.d.ts",
   "wechaty": {
     "DEFAULT_HEAD": "chrome",
     "DEFAULT_PUPPET": "web",
@@ -14,7 +15,7 @@
     "CMD_CHROMIUM": "/wechaty/bin/xvfb-chromium"
   },
   "scripts": {
-    "node": "node",
+    "node": "ts-node",
     "lint": "npm run eslint && npm run tslint",
     "eslint": "eslint \"{src,test,bin}/**/*.js\"",
     "tslint": "tslint \"{src,test,bin}/**/*.ts\"",
@@ -26,9 +27,9 @@
     "test:chrome": "cross-env LC_ALL=C WECHATY_LOG=silly WECHATY_HEAD=chrome ava --timeout=10m \"{src,test}/**/*.spec.js\"",
     "testdev": "cross-env LC_ALL=C WECHATY_LOG=silly ava --serial --verbose --fail-fast --timeout=3m",
     "ava": "cross-env LC_ALL=C WECHATY_LOG=verbose ava \"{src,test}/**/*.spec.js\"",
-    "start": "node bin/client",
-    "dev": "node dev.js",
-    "demo": "node example/ding-dong-bot.js"
+    "start": "ts-node bin/client",
+    "dev": "ts-node dev.js",
+    "demo": "ts-node example/ding-dong-bot.js"
   },
   "repository": {
     "type": "git",
@@ -105,7 +106,8 @@
     "sloc": "^0.1.11",
     "tslint": "^3.15.1",
     "tuling123-client": "0.0.1",
-    "typescript": "^2.0.3"
+    "typescript": "^2.0.3",
+    "typings": "^1.4.0"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [
