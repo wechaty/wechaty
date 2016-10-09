@@ -3,18 +3,20 @@
  *
  * https://github.com/wechaty/wechaty/
  */
-const { execSync } = require('child_process')
-const { accessSync, F_OK } = require('fs')
+import { execSync } from 'child_process'
+import { accessSync, F_OK } from 'fs'
 
+/* tslint:disable:variable-name */
+/* tslint:disable:no-var-requires */
 const Config = require('../package.json').wechaty
 
 /**
  * 1. ENVIRONMENT VARIABLES + PACKAGES.JSON (default)
  */
 Object.assign(Config, {
-  head:       process.env.WECHATY_HEAD      || Config.DEFAULT_HEAD
-  , puppet:   process.env.WECHATY_PUPPET    || Config.DEFAULT_PUPPET
-  , apihost:  process.env.WECHATY_APIHOST   || Config.DEFAULT_APIHOST
+  head:       process.env['WECHATY_HEAD']      || Config.DEFAULT_HEAD
+  , puppet:   process.env['WECHATY_PUPPET']    || Config.DEFAULT_PUPPET
+  , apihost:  process.env['WECHATY_APIHOST']   || Config.DEFAULT_APIHOST
   , validApiHost
 })
 
@@ -30,9 +32,9 @@ validApiHost(Config.apihost)
  * 2. ENVIRONMENT VARIABLES (only)
  */
 Object.assign(Config, {
-  port:       process.env.WECHATY_PORT      || null // 0 for disable port
-  , profile:  process.env.WECHATY_PROFILE   || null // DO NOT set DEFAULT_PROFILE, because sometimes user do not want to save session
-  , token:    process.env.WECHATY_TOKEN     || null // DO NOT set DEFAULT, because sometimes user do not want to connect to io cloud service
+  port:       process.env['WECHATY_PORT']      || null // 0 for disable port
+  , profile:  process.env['WECHATY_PROFILE']   || null // DO NOT set DEFAULT_PROFILE, because sometimes user do not want to save session
+  , token:    process.env['WECHATY_TOKEN']     || null // DO NOT set DEFAULT, because sometimes user do not want to connect to io cloud service
 })
 
 /**
@@ -40,7 +42,7 @@ Object.assign(Config, {
  */
 Object.assign(Config, {
   // get PORT form cloud service env, ie: heroku
-  httpPort: process.env.PORT || process.env.WECHATY_PORT || Config.DEFAULT_PORT
+  httpPort: process.env['PORT'] || process.env['WECHATY_PORT'] || Config.DEFAULT_PORT
 })
 
 /**

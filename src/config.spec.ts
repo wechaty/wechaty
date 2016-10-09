@@ -32,12 +32,12 @@ test('Config methods', t => {
     , 'wechaty.io/'
   ]
   OK_APIHOSTS.forEach(apihost => {
-    t.notThrows(_ => {
+    t.notThrows(() => {
       Config.validApiHost(apihost)
     })
   }, 'should not row for right apihost')
   ERR_APIHOSTS.forEach(apihost => {
-    t.throws(_ => {
+    t.throws(() => {
       Config.validApiHost(apihost)
     })
   }, 'should throw for error apihost')
