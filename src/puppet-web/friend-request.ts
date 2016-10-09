@@ -22,14 +22,30 @@ import FriendRequest from '../friend-request'
 import Wechaty       from '../wechaty'
 import log           from '../brolog-env'
 
+type RecommendInfo = {
+  UserName:   string
+  NickName:   string
+  Content:    string // request message
+  Ticket:     string // a pass token
+  VerifyFlag: number
+}
+
 class PuppetWebFriendRequest extends FriendRequest {
+
+  public info: RecommendInfo
+  public contact: Contact
+  public hello: string
+  public type: 'send' | 'receive' | 'confirm'
+
+  private ticket: string
+
   constructor() {
     log.verbose('PuppetWebFriendRequest', 'constructor()')
     super()
-    this.type = '' // enum('send', 'receive', 'confirm')
+    this.type = null // enum('send', 'receive', 'confirm')
   }
 
-  receive(info) {
+  public receive(info: RecommendInfo): PuppetWebFriendRequest {
     log.verbose('PuppetWebFriendRequest', 'receive(%s)', info)
 
     if (!info || !info.UserName) {
@@ -51,7 +67,7 @@ class PuppetWebFriendRequest extends FriendRequest {
     return this
   }
 
-  confirm(contact) {
+  public confirm(contact: Contact): void {
     log.verbose('PuppetWebFriendRequest', 'confirm(%s)', contact)
 
     if (!contact) {
@@ -61,7 +77,7 @@ class PuppetWebFriendRequest extends FriendRequest {
     this.type     = 'confirm'
   }
 
-  send(contact, hello = 'Hi') {
+  public send(contact: Contact, hello = 'Hi'): Promise<any> {
     log.verbose('PuppetWebFriendRequest', 'send(%s)', contact)
 
     if (!contact) {
@@ -78,7 +94,7 @@ class PuppetWebFriendRequest extends FriendRequest {
                   .friendRequestSend(contact, hello)
   }
 
-  accept() {
+  public accept(): Promise<any> {
     log.verbose('FriendRequest', 'accept() %s', this.contact)
 
     if (this.type !== 'receive') {
