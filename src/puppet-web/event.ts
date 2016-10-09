@@ -9,17 +9,14 @@
  * Licenst: ISC
  * https://github.com/zixia/wechaty
  *
- */
-
-/**************************************
  *
  * Events for Class PuppetWeb
  *
  * here `this` is a PuppetWeb Instance
  *
- ***************************************/
-const util  = require('util')
-const fs    = require('fs')
+ */
+// import * as util  from 'util'
+// import * as fs    from 'fs'
 // const co    = require('co')
 
 import Contact       from '../contact'
@@ -27,9 +24,10 @@ import MediaMessage  from '../message-media'
 import Message       from '../message'
 import log           from '../brolog-env'
 
-import FriendRequest from './friend-request'
+// import FriendRequest from './friend-request'
 import Firer         from './firer'
 
+/* tslint:disable:variable-name */
 const PuppetWebEvent = {
   onBrowserDead
 
@@ -80,16 +78,16 @@ function onBrowserDead(e) {
     })
 
     if (!this.browser || !this.bridge) {
-      const e = new Error('no browser or no bridge')
-      log.error('PuppetWebEvent', 'onBrowserDead() %s', e.message)
-      throw e
+      const err = new Error('no browser or no bridge')
+      log.error('PuppetWebEvent', 'onBrowserDead() %s', err.message)
+      throw err
     }
 
     log.verbose('PuppetWebEvent', 'onBrowserDead() try to reborn browser')
 
     yield this.browser.quit(true)
-                      .catch(e => { // fail safe
-                        log.warn('PuppetWebEvent', 'browser.quit() exception: %s, %s', e.message, e.stack)
+                      .catch(error => { // fail safe
+                        log.warn('PuppetWebEvent', 'browser.quit() exception: %s, %s', error.message, error.stack)
                       })
     log.verbose('PuppetWebEvent', 'onBrowserDead() old browser quited')
 
@@ -112,12 +110,12 @@ function onBrowserDead(e) {
       log.warn('PuppetWebEvent', 'onBrowserDead() ding() get error return after reset: ' + dong)
     }
   })
-  .catch(e => { // Exception
-    log.error('PuppetWebEvent', 'onBrowserDead() exception: %s', e.message)
+  .catch(err => { // Exception
+    log.error('PuppetWebEvent', 'onBrowserDead() exception: %s', err.message)
 
     log.warn('PuppetWebEvent', 'onBrowserDead() try to re-init PuppetWeb itself')
     return this.quit()
-              .catch(e => log.warn('PuppetWebEvent', 'onBrowserDead() fail safe for this.quit(): %s', e.message))
+              .catch(error => log.warn('PuppetWebEvent', 'onBrowserDead() fail safe for this.quit(): %s', error.message))
               .then(_ => this.init())
   })
   .then(() => { // Finally
@@ -170,7 +168,7 @@ function onServerDisconnect(data) {
 
   if (this.userId) {
     log.verbose('PuppetWebEvent', 'onServerDisconnect() there has userId set. emit a logout event and set userId to null')
-    this.emit('logout', this.user || this.userId ) //'onServerDisconnect(' + data + ')')
+    this.emit('logout', this.user || this.userId) // 'onServerDisconnect(' + data + ')')
     this.userId = null
     this.user = null
   }
@@ -208,10 +206,14 @@ function onServerDisconnect(data) {
     // caused browser dead and have to be restarted. 2016/6/12
     setTimeout(_ => {
       if (!this.bridge) {
-        throw new Error('bridge gone after setTimeout? why???')  // XXX: sometimes this.bridge gone in this timeout. why? what's happend between the last if(!this.bridge) check and the timeout call?
+        // XXX: sometimes this.bridge gone in this timeout. why?
+        // what's happend between the last if(!this.bridge) check and the timeout call?
+        throw new Error('bridge gone after setTimeout? why???')
       }
       this.bridge.init()
-      .then(r  => log.verbose('PuppetWebEvent', 'onServerDisconnect() bridge re-inited: %s', r))
+      .then(ret => {
+        log.verbose('PuppetWebEvent', 'onServerDisconnect() bridge re-inited: %s', ret)
+      })
       .catch(e => log.error('PuppetWebEvent', 'onServerDisconnect() exception: [%s]', e))
     }, 1000) // 1 second instead of 10 seconds? try. (should be enough to wait)
     return
@@ -344,11 +346,11 @@ function onServerMessage(data) {
      */
     switch (m.type()) { // data.MsgType
 
-      case Message.Type.VERIFYMSG:
+      case Message.TYPE['VERIFYMSG']:
         Firer.fireFriendRequest.call(this, m)
         break
 
-      case Message.Type.SYS:
+      case Message.TYPE['SYS']:
         if (m.room()) {
           Firer.fireRoomJoin.call(this  , m)
           Firer.fireRoomLeave.call(this , m)
@@ -364,7 +366,7 @@ function onServerMessage(data) {
      * reload if needed
      */
     switch (m.type()) {
-      case Message.Type.IMAGE:
+      case Message.TYPE['IMAGE']:
         // log.verbose('PuppetWebEvent', 'onServerMessage() IMAGE message')
         m = new MediaMessage(data)
         break
