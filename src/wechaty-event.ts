@@ -21,6 +21,10 @@ import Message import './message'
 
 import log     import './brolog-env'
 
+type EventScope = {
+  say: (content: string, replyTo?: Contact|Contact[]) => void
+}
+
 const WechatyEvent = {
   list
   , wrap
@@ -84,7 +88,7 @@ function isRoom(room) {
    */
   if (!room || !room.constructor
       || room.constructor.name !== 'Room') {
-    return fasle
+    return false
   }
   return true
 }
@@ -101,7 +105,7 @@ function wrapContact(callback) {
 
     const contact = argList[0]
 
-    const eventScope = {}
+    const eventScope: EventScope
     eventScope.say = (content) => {
       const msg = new Message()
       msg.to(contact)
@@ -132,7 +136,7 @@ function wrapRoom(callback) {
       throw new Error('room or contact not found')
     }
 
-    const eventScope = {}
+    const eventScope: EventScope
     eventScope.say = (content, replyTo = null) => {
       if (!replyTo) {
         replyTo = contact
@@ -167,7 +171,7 @@ function wrapMessage(callback) {
     const receiver  = msg.to()
     const room      = msg.room()
 
-    const eventScope = {}
+    const eventScope: EventScope
     eventScope.say = (content, replyTo) => {
       log.silly('WechatyEvent', 'wrapMessage() say("%s", "%s")', content, replyTo)
 
@@ -192,7 +196,7 @@ function wrapFilehelper(callback) {
 
   return (...argList) => {
     log.silly('WechatyEvent', 'wrapFilehelper() callback')
-    const eventScope = {}
+    const eventScope: EventScope
     eventScope.say = (content) =>{
       log.silly('WechatyEvent', 'wrapFilehelper() say(%s)', content)
       const msg = new Message()
