@@ -19,7 +19,7 @@
 import Contact       from '../contact'
 import Config        from '../config'
 import FriendRequest from '../friend-request'
-import Wechaty       from '../wechaty'
+// import Wechaty       from '../wechaty'
 import log           from '../brolog-env'
 
 type RecommendInfo = {

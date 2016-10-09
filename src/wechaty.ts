@@ -33,11 +33,12 @@ type WechatySetting = {
 class Wechaty extends EventEmitter {
   private static _instance: Wechaty
 
-  private puppet: Puppet
+  public puppet: Puppet
 
   private inited:     boolean = false
   private npmVersion: string
-  private uuid:       string
+
+  public uuid:        string
 
   constructor(private setting: WechatySetting) {
     super()
@@ -108,9 +109,9 @@ class Wechaty extends EventEmitter {
 
   public user(): Contact { return this.puppet && this.puppet.user() }
 
-  public reset(reason) {
+  public reset(reason?: string) {
     log.verbose('Wechaty', 'reset() because %s', reason)
-    this.puppet.reset(reason)
+    return this.puppet.reset(reason)
   }
 
   public init() {
@@ -150,10 +151,10 @@ class Wechaty extends EventEmitter {
     let puppet
     switch (this.setting.type) {
       case 'web':
-        puppet = new PuppetWeb( {
-          head:       this.setting.head
-          , profile:  this.setting.profile
-        })
+        puppet = new PuppetWeb(
+            this.setting.head
+          , this.setting.profile
+        )
         break
       default:
         throw new Error('Puppet unsupport(yet): ' + this.setting.type)

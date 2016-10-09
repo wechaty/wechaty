@@ -52,5 +52,3 @@ t/
 t.*
 .DS_Store
 /dev.js
-
-/typings

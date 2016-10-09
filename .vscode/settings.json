@@ -2,4 +2,5 @@
 {
   // 一个制表符等于的空格数。
   "editor.tabSize": 2
+  , "typescript.tsdk": "node_modules/typescript/lib"
 }

@@ -137,7 +137,7 @@ class Message {
     return '{' + this.type() + '}' + content
   }
 
-  public from(contact) {
+  public from(contact?: Contact) {
     if (contact) {
       if (contact instanceof Contact) {
         this.obj.from = contact.id
@@ -150,7 +150,7 @@ class Message {
     return this.obj.from ? Contact.load(this.obj.from) : null
   }
 
-  public to(contact: Contact|Room|string) {
+  public to(contact?: Contact|Room|string) {
     if (contact) {
       if (contact instanceof Contact || contact instanceof Room) {
         this.obj.to = contact.id
@@ -163,14 +163,14 @@ class Message {
     return this.obj.to ? Contact.load(this.obj.to) : null
   }
 
-  public content(content) {
+  public content(content?) {
     if (content) {
       this.obj.content = content
     }
     return this.obj.content
   }
 
-  public room(room) {
+  public room(room?) {
     if (room) {
       if (room instanceof Room) {
         this.obj.room = room.id
@@ -209,7 +209,7 @@ class Message {
     })
   }
 
-  public get(prop) {
+  public get(prop): string {
     if (!prop || !(prop in this.obj)) {
       const s = '[' + Object.keys(this.obj).join(',') + ']'
       throw new Error(`Message.get(${prop}) must be in: ${s}`)

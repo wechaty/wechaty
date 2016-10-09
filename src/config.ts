@@ -32,9 +32,10 @@ validApiHost(Config.apihost)
  * 2. ENVIRONMENT VARIABLES (only)
  */
 Object.assign(Config, {
-  port:       process.env['WECHATY_PORT']      || null // 0 for disable port
-  , profile:  process.env['WECHATY_PROFILE']   || null // DO NOT set DEFAULT_PROFILE, because sometimes user do not want to save session
-  , token:    process.env['WECHATY_TOKEN']     || null // DO NOT set DEFAULT, because sometimes user do not want to connect to io cloud service
+  port:       process.env['WECHATY_PORT']     || null // 0 for disable port
+  , profile:  process.env['WECHATY_PROFILE']  || null // DO NOT set DEFAULT_PROFILE, because sometimes user do not want to save session
+  , token:    process.env['WECHATY_TOKEN']    || null // DO NOT set DEFAULT, because sometimes user do not want to connect to io cloud service
+  , debug:    process.env['WECHATY_DEBUG']    || false
 })
 
 /**
@@ -62,7 +63,7 @@ function isWechatyDocker() {
   try { accessSync(cgroup, F_OK) }
   catch (e) { return false }
 
-  const line = execSync(`head -1 ${cgroup}`)
+  const line = execSync(`sort -n ${cgroup} | head -1`)
                 .toString()
                 .replace(/\n$/, '')
 

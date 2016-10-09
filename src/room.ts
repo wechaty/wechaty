@@ -47,7 +47,7 @@ class Room extends EventEmitter {
   private obj:      RoomObj
   private rawObj:   RoomRawObj
 
-  constructor(private id) {
+  constructor(public id: string) {
     super()
     log.silly('Room', `constructor(${id})`)
     // this.id = id

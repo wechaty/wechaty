@@ -1,12 +1,12 @@
 /**
  * Wechat for Bot. and for human who can talk with bot/robot
  *
- * Interface for puppet
+ * Interface for Puppet
  *
  * Class Puppet
  *
  * Licenst: ISC
- * https://github.com/zixia/wechaty
+ * https://github.com/wechaty/wechaty
  *
  */
 
@@ -17,11 +17,18 @@ import Message  from './message'
 import Room     from './room'
 import log      from './brolog-env'
 
-class Puppet extends EventEmitter {
-  private _user: Contact
+type ContactGetterFunc = {
+  (id: string): Promise<any>
+}
+
+abstract class Puppet extends EventEmitter {
+  protected user: Contact
+  protected userId: string
 
   private _targetState:   string
   private _currentState:  string
+
+  public abstract getContact(id: string): Promise<any>
 
   constructor() {
     super()
@@ -38,7 +45,7 @@ class Puppet extends EventEmitter {
   }
 
   // targetState : 'live' | 'dead'
-  public targetState(newState) {
+  public targetState(newState?) {
     if (newState) {
       log.verbose('Puppet', 'targetState(%s)', newState)
       this._targetState = newState
@@ -47,7 +54,7 @@ class Puppet extends EventEmitter {
   }
 
   // currentState : 'birthing' | 'killing'
-  public currentState(newState) {
+  public currentState(newState?) {
     if (newState) {
       log.verbose('Puppet', 'currentState(%s)', newState)
       this._currentState = newState
@@ -55,47 +62,24 @@ class Puppet extends EventEmitter {
     return this._currentState
   }
 
-  public self(message?: Message): boolean | Contact {
-    throw new Error('pure virtual interface function')
-  }
+  public abstract self(message?: Message): boolean | Contact
 
-  public user(contact?: Contact) {
-    if (contact) {
-      this._user = contact
-    }
-    return this._user
-  }
+  // public user(contact?: Contact) {
+  //   if (contact) {
+  //     this._user = contact
+  //   }
+  //   return this._user
+  // }
 
-  /**
-   * let puppet send message
-   *
-   * @param <Message> message - the message to be sent
-   * @return <Promise>
-   */
-  public send(message): Promise<any>  { throw new Error('To Be Implemented') }
-  public reply(message, reply): Promise<any> { throw new Error('To Be Implemented') }
+  public abstract send(message: Message): Promise<any>
+  public abstract reply(message: Message, reply): Promise<any>
 
-  public reset(reason?: string)  { throw new Error('To Be Implementsd') }
-  public logout(): Promise<any>  { throw new Error('To Be Implementsd') }
-  public quit(): Promise<any>  { throw new Error('To Be Implementsd') }
-  public ding(data?: string): Promise<any>        { throw new Error('To Be Implementsd') }
-
-  public getContact(id): Promise<any>  { // for unit testing
-    log.verbose('Puppet', `Interface method getContact(${id})`)
-    throw new Error('Absolute Interface Method should never to be called')
-    // return Promise.resolve({UserName: 'WeChaty', NickName: 'Puppet'})
-  }
-
-  // () { throw new Error('To Be Implemented')  }
+  public abstract reset(reason?: string)
+  public abstract logout(): Promise<any>
+  public abstract quit(): Promise<any>
+  public abstract ding(data?: string): Promise<any>
 }
 
-// Object.assign(Puppet, {
-//   Message:    require('./message')
-//   , Contact:  require('./contact')
-//   , Room:     require('./room')
-// })
-
-// module.exports = Puppet
 export default Puppet
 export {
     Contact

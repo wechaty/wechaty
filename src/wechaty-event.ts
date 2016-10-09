@@ -7,27 +7,18 @@
  * Licenst: ISC
  * https://github.com/wechaty/wechaty
  *
- */
-/**************************************
- *
  * Events Function Wrapper
  *
- *
- ***************************************/
-import Config  import './config'
-import Contact import './contact'
-import Message import './message'
-// import Room    import './room'
+ */
+import Config  from './config'
+import Contact from './contact'
+import Message from './message'
+// import Room    from './room'
 
-import log     import './brolog-env'
+import log     from './brolog-env'
 
 type EventScope = {
   say: (content: string, replyTo?: Contact|Contact[]) => void
-}
-
-const WechatyEvent = {
-  list
-  , wrap
 }
 
 const EVENT_CONFIG = {
@@ -43,33 +34,35 @@ const EVENT_CONFIG = {
   , scan:         null  // NULL
 }
 
-function list() {
-  return Object.keys(EVENT_CONFIG)
-}
-
-function wrap(event, callback) {
-  log.verbose('WechatyEvent', 'wrap(%s, %s)', event, typeof callback)
-
-  // if (!(this instanceof Wechaty)) {
-  //   throw new Error('`this` should be Wechaty instance')
-  // }
-  if (typeof callback !== 'function') {
-    throw new Error('`callback` should be function')
+class WechatyEvent {
+  public static list() {
+    return Object.keys(EVENT_CONFIG)
   }
 
-  if (!(event in EVENT_CONFIG)) {
-    throw new Error('event not support: ' + event)
-  }
-  const wrapper = EVENT_CONFIG[event]
+  public static wrap(event, callback) {
+    log.verbose('WechatyEvent', 'wrap(%s, %s)', event, typeof callback)
 
-  /**
-   * We assign a empty object to each event callback,
-   * to carry the indenpendent scope
-   */
-  if (wrapper) {
-    return wrapper(callback)
-  } else {
-    return callback
+    // if (!(this instanceof Wechaty)) {
+    //   throw new Error('`this` should be Wechaty instance')
+    // }
+    if (typeof callback !== 'function') {
+      throw new Error('`callback` should be function')
+    }
+
+    if (!(event in EVENT_CONFIG)) {
+      throw new Error('event not support: ' + event)
+    }
+    const wrapper = EVENT_CONFIG[event]
+
+    /**
+     * We assign a empty object to each event callback,
+     * to carry the indenpendent scope
+     */
+    if (wrapper) {
+      return wrapper(callback)
+    } else {
+      return callback
+    }
   }
 }
 
@@ -105,7 +98,7 @@ function wrapContact(callback) {
 
     const contact = argList[0]
 
-    const eventScope: EventScope
+    const eventScope = <EventScope>{}
     eventScope.say = (content) => {
       const msg = new Message()
       msg.to(contact)
@@ -136,7 +129,7 @@ function wrapRoom(callback) {
       throw new Error('room or contact not found')
     }
 
-    const eventScope: EventScope
+    const eventScope = <EventScope>{}
     eventScope.say = (content, replyTo = null) => {
       if (!replyTo) {
         replyTo = contact
@@ -168,10 +161,10 @@ function wrapMessage(callback) {
     const msg       = argList[0]
 
     const sender    = msg.from()
-    const receiver  = msg.to()
+    // const receiver  = msg.to()
     const room      = msg.room()
 
-    const eventScope: EventScope
+    const eventScope = <EventScope>{}
     eventScope.say = (content, replyTo) => {
       log.silly('WechatyEvent', 'wrapMessage() say("%s", "%s")', content, replyTo)
 
@@ -179,12 +172,12 @@ function wrapMessage(callback) {
         return room.say(content, replyTo)
       }
 
-      const msg = new Message()
-      msg.to(sender)
-      msg.content(content)
+      const m = new Message()
+      m.to(sender)
+      m.content(content)
 
       return Config.puppetInstance()
-                    .send(msg)
+                    .send(m)
     }
 
     return callback.apply(eventScope, argList)
@@ -196,8 +189,8 @@ function wrapFilehelper(callback) {
 
   return (...argList) => {
     log.silly('WechatyEvent', 'wrapFilehelper() callback')
-    const eventScope: EventScope
-    eventScope.say = (content) =>{
+    const eventScope = <EventScope>{}
+    eventScope.say = (content) => {
       log.silly('WechatyEvent', 'wrapFilehelper() say(%s)', content)
       const msg = new Message()
       msg.to('filehelper')

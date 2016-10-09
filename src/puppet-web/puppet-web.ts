@@ -35,8 +35,10 @@ import Watchdog       from './watchdog'
 const DEFAULT_PUPPET_PORT = 18788 // // W(87) X(88), ascii char code ;-]
 
 class PuppetWeb extends Puppet {
+
+  public browser:  Browser
+
   private bridge:   Bridge
-  private browser:  Browser
   private server:   Server
 
   private port: number

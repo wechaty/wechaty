@@ -38,7 +38,7 @@ class UtilLib {
     )
   }
 
-  public static  downloadStream(url, cookies) {
+  public static  downloadStream(url: string, cookies): Promise<any> {
     // const myurl = 'http://wx.qq.com/cgi-bin/mmwebwx-bin/webwxgetmsgimg?&MsgID=3080011908135131569&skey=%40crypt_c117402d_53a58f8fbb21978167a3fc7d3be7f8c9'
     url = url.replace(/^https/i, 'http') // use http for better performance
     const options = require('url').parse(url)
@@ -97,7 +97,7 @@ class UtilLib {
    * const DEFAULT_IANA_RANGE = {min: 49152, max: 65535}
    *
    */
-  public static getPort(port) {
+  public static getPort(port:number): Promise<number> {
     log.verbose('UtilLib', 'getPort(%d)', port)
     let tryPort = nextPort(port || 38788)
 
@@ -127,7 +127,7 @@ class UtilLib {
       })
     })
 
-    function nextPort(newPort) {
+    function nextPort(newPort: number) {
       const RANDOM_RANGE = 1024
       const n = Math.floor(Math.random() * RANDOM_RANGE)
       return newPort + n
