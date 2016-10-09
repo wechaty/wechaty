@@ -8,40 +8,53 @@
  * https://github.com/zixia/wechaty
  *
  */
-import EventEmitter  = require('events')
-const path          = require('path')
+import { EventEmitter }  from 'events'
+import * as path         from 'path'
 // const co            = require('co')
-const fs            = require('fs')
+import * as fs          from'fs'
 
-import Config        from './config'
-import PuppetWeb     from './puppet-web'
-import UtilLib       from './util-lib'
-import WechatyEvent  from './wechaty-event'
+import Config       from './config'
+import Contact      from './contact'
+import Message      from './message'
+import Puppet       from './puppet'
+import PuppetWeb    from './puppet-web'
+import UtilLib      from './util-lib'
+import WechatyEvent from './wechaty-event'
 
-import log           from './brolog-env'
+import log          from './brolog-env'
+
+type WechatySetting = {
+  head?:       'chrome' | 'phantomjs'
+  // port?:       number
+  profile?:    string
+  type?:       'web'
+}
 
 class Wechaty extends EventEmitter {
+  private static _instance: Wechaty
 
-  constructor({
-    type        = Config.puppet
-    , head      = Config.head
-    , port      = Config.port
-    , profile   = Config.profile  // no profile, no session save/restore
-  } = {}) {
+  private puppet: Puppet
+
+  private inited:     boolean = false
+  private npmVersion: string
+  private uuid:       string
+
+  constructor(private setting: WechatySetting) {
     super()
     log.verbose('Wechaty', 'contructor()')
 
-    if (Wechaty.instance) {
+    if (Wechaty._instance instanceof Wechaty) {
       throw new Error('Wechaty must be singleton')
     }
 
-    this.type     = type
-    this.head     = head
-    this.port     = port
+    setting.type    = setting.type    || Config.puppet
+    setting.head    = setting.head    || Config.head
+    // setting.port    = setting.port    || Config.port
+    setting.profile = setting.profile || Config.profile  // no profile, no session save/restore
 
-    this.profile  = /\.wechaty\.json$/i.test(profile)
-                    ? profile
-                    : profile + '.wechaty.json'
+    setting.profile  = /\.wechaty\.json$/i.test(setting.profile)
+                        ? setting.profile
+                        : setting.profile + '.wechaty.json'
 
     this.npmVersion = require('../package.json').version
 
@@ -49,12 +62,16 @@ class Wechaty extends EventEmitter {
 
     this.inited = false
 
-    Wechaty.instance = this
+    Wechaty._instance = this
   }
 
-  toString() { return 'Class Wechaty(' + this.type + ')'}
+  public static instance() {
+    return this._instance
+  }
 
-  version(forceNpm) {
+  public toString() { return 'Class Wechaty(' + this.setting.type + ')'}
+
+  public version(forceNpm = false) {
     const dotGitPath  = path.join(__dirname, '..', '.git')
     const gitLogCmd   = 'git'
     const gitLogArgs  = ['log', '--oneline', '-1']
@@ -89,22 +106,18 @@ class Wechaty extends EventEmitter {
     return this.npmVersion
   }
 
-  user() { return this.puppet && this.puppet.user }
+  public user(): Contact { return this.puppet && this.puppet.user() }
 
-  reset(reason) {
+  public reset(reason) {
     log.verbose('Wechaty', 'reset() because %s', reason)
-    if (this.puppet && this.puppet.browser) {
-      this.puppet.browser.dead('restart required by wechaty reset()')
-    } else {
-      log.warn('Wechaty', 'reset() without browser')
-    }
+    this.puppet.reset(reason)
   }
 
-  init() {
+  public init() {
     log.info('Wechaty', 'v%s initializing...' , this.version())
-    log.verbose('Wechaty', 'puppet: %s'       , this.type)
-    log.verbose('Wechaty', 'head: %s'         , this.head)
-    log.verbose('Wechaty', 'profile: %s'      , this.profile)
+    log.verbose('Wechaty', 'puppet: %s'       , this.setting.type)
+    log.verbose('Wechaty', 'head: %s'         , this.setting.head)
+    log.verbose('Wechaty', 'profile: %s'      , this.setting.profile)
     log.verbose('Wechaty', 'uuid: %s'         , this.uuid)
 
     if (this.inited) {
@@ -124,25 +137,26 @@ class Wechaty extends EventEmitter {
     })
   }
 
-  on(event, callback) {
-    log.verbose('Wechaty', 'on(%s, %s)', event, typeof callback)
+  public on(event: string, listener: Function) {
+    log.verbose('Wechaty', 'on(%s, %s)', event, typeof listener)
 
-    const wrapCallback = WechatyEvent.wrap.call(this, event, callback)
+    const wrapListener = WechatyEvent.wrap.call(this, event, listener)
+    super.on(event, wrapListener)
 
-    return super.on(event, wrapCallback)
+    return this
   }
 
-  initPuppet() {
+  public initPuppet() {
     let puppet
-    switch (this.type) {
+    switch (this.setting.type) {
       case 'web':
         puppet = new PuppetWeb( {
-          head:       this.head
-          , profile:  this.profile
+          head:       this.setting.head
+          , profile:  this.setting.profile
         })
         break
       default:
-        throw new Error('Puppet unsupport(yet): ' + this.type)
+        throw new Error('Puppet unsupport(yet): ' + this.setting.type)
     }
 
     WechatyEvent.list().map(e => {
@@ -170,7 +184,7 @@ class Wechaty extends EventEmitter {
     return puppet.init()
   }
 
-  quit() {
+  public quit() {
     log.verbose('Wechaty', 'quit()')
 
     if (!this.puppet) {
@@ -190,31 +204,27 @@ class Wechaty extends EventEmitter {
     })
   }
 
-  logout()  {
+  public logout()  {
     return this.puppet.logout()
-    .catch(e => {
-      log.error('Wechaty', 'logout() exception: %s', e.message)
-      throw e
-    })
+                      .catch(e => {
+                        log.error('Wechaty', 'logout() exception: %s', e.message)
+                        throw e
+                      })
   }
 
-  self(message) {
+  public self(message?: Message): boolean | Contact {
     return this.puppet.self(message)
   }
 
-  user() {
-    return this.puppet.user
-  }
-
-  send(message) {
+  public send(message) {
     return this.puppet.send(message)
-    .catch(e => {
-      log.error('Wechaty', 'send() exception: %s', e.message)
-      throw e
-    })
+                      .catch(e => {
+                        log.error('Wechaty', 'send() exception: %s', e.message)
+                        throw e
+                      })
   }
 
-  reply(message, reply) {
+  public reply(message, reply) {
     return this.puppet.reply(message, reply)
     .catch(e => {
       log.error('Wechaty', 'reply() exception: %s', e.message)
@@ -222,16 +232,16 @@ class Wechaty extends EventEmitter {
     })
   }
 
-  ding(data) {
+  public ding(data: string) {
     if (!this.puppet) {
       return Promise.reject(new Error('wechaty cant ding coz no puppet'))
     }
 
     return this.puppet.ding(data)
-    .catch(e => {
-      log.error('Wechaty', 'ding() exception: %s', e.message)
-      throw e
-    })
+                      .catch(e => {
+                        log.error('Wechaty', 'ding() exception: %s', e.message)
+                        throw e
+                      })
   }
 }
 
