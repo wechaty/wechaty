@@ -145,7 +145,7 @@ class Io {
       this.currentState('connected')
 
       // FIXME: how to keep alive???
-      ws._socket.setKeepAlive(true, 100)
+      // ws._socket.setKeepAlive(true, 100)
 
       this.reconnectTimeout = null
 

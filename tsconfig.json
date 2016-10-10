@@ -1,13 +1,19 @@
 {
   "compilerOptions": {
-    "module": "commonjs"
-    , "target": "es6"
-    , "types" : [ "node" ]
+    "target": "es6"
+    , "outDir": "dist"
     , "noImplicitAny": false
+    , "strictNullChecks": true
     , "sourceMap": true
   }
   , "exclude": [
-    "node_modules"
+      "node_modules"
     , "dist"
+  ]
+  , "files": [
+      "src/*.ts"
+    , "bin/*.ts"
+    , "example/*.ts"
+    // , "test/*.ts"
   ]
 }
