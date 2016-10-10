@@ -97,7 +97,7 @@ class UtilLib {
    * const DEFAULT_IANA_RANGE = {min: 49152, max: 65535}
    *
    */
-  public static getPort(port:number): Promise<number> {
+  public static getPort(port: number): Promise<number> {
     log.verbose('UtilLib', 'getPort(%d)', port)
     let tryPort = nextPort(port || 38788)
 

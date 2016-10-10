@@ -15,10 +15,12 @@
     "CMD_CHROMIUM": "/wechaty/bin/xvfb-chromium"
   },
   "scripts": {
-    "node": "ts-node",
+    "ts-node": "ts-node",
+    "build": "tsc",
+    "clean": "rm -fr dist/*",
     "lint": "npm run eslint && npm run tslint",
-    "eslint": "eslint \"{src,test,bin}/**/*.js\"",
-    "tslint": "tslint \"{src,test,bin}/**/*.ts\" && tsc --noEmit \"src/**/*.ts\"",
+    "eslint": "eslint \"{bin,example,src,test}/**/*.js\"",
+    "tslint": "tslint \"{bin,example,src,test}/**/*.ts\" && tsc --noEmit",
     "sloc": "sloc . --details --format cli-table --keys total,source,comment --exclude \"node_modules|doc\" && sloc . --exclude \"node_modules|doc\"",
     "pretest": "npm run lint",
     "test": "npm run test:phantomjs && npm run test:chrome",
@@ -83,7 +85,6 @@
     "body-parser": "^1.15.2",
     "brolog": "^0.3.7",
     "chromedriver": "^2.23.1",
-    "co": "^4.6.0",
     "express": "^4.13.4",
     "is-ci": "^1.0.9",
     "phantomjs-prebuilt": "^2.1.12",

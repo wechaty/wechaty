@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  *
  * Wechaty bot use a ApiAi.com brain

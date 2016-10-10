@@ -31,7 +31,7 @@ CMD_CHROMIUM: string
   head: HeadType
 
   apihost: string
-  validApiHost: (string) => boolean
+  validApiHost: (host: string) => boolean
 
   httpPort: number
 

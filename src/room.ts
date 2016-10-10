@@ -123,7 +123,7 @@ class Room extends EventEmitter {
     return this
   }
 
-  public say(content, replyTo = null): Promise<any> {
+  public say(content: string, replyTo?: Contact|Contact[]): Promise<any> {
     log.verbose('Room', 'say(%s, %s)', content, replyTo)
 
     const m = new Message()
@@ -137,7 +137,7 @@ class Room extends EventEmitter {
     }
 
     let mentionList
-    if (replyTo.map) {
+    if (Array.isArray(replyTo)) {
       m.to(replyTo[0])
       mentionList = replyTo.map(c => '@' + c.name()).join(' ')
     } else {
@@ -249,7 +249,7 @@ class Room extends EventEmitter {
     // WechatyBro.glue.chatroomFactory.quit("@@1c066dfcab4ef467cd0a8da8bec90880035aa46526c44f504a83172a9086a5f7"
   }
 
-  public topic(newTopic: string): string {
+  public topic(newTopic?: string): string {
     if (newTopic) {
       log.verbose('Room', 'topic(%s)', newTopic)
     }
@@ -317,7 +317,7 @@ class Room extends EventEmitter {
     }
   }
 
-  public static create(contactList, topic): Promise<Room> {
+  public static create(contactList: Contact[], topic?: string): Promise<Room> {
     log.verbose('Room', 'create(%s, %s)', contactList.join(','), topic)
 
     if (!contactList || !(typeof contactList === 'array')) {

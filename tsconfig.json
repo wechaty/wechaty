@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
     "target": "es6"
-    , "module": "amd"
+    , "module": "commonjs"
     , "moduleResolution": "node"
     , "outDir": "dist"
-    , "outFile": "dist/wechaty.lib.js"
+    // , "outFile": "dist/wechaty.lib.js"
 
     , "sourceMap": true
     , "noUnusedLocals": true
@@ -24,7 +24,7 @@
   , "include": [
       "src/**/*.ts"
     // , "bin/*.ts"
-    // , "example/*.ts"
+     , "example/room-bot.ts"
     // , "test/*.ts"
   ]
 }

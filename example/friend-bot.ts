@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  *
  * Wechaty - Wechat for Bot

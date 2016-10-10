@@ -6,9 +6,6 @@
  * https://github.com/wechaty/wechaty
  *
  */
-// const co = require('co')
-
-// import Config  from './config'
 import Contact from './contact'
 import Room    from './room'
 import UtilLib from './util-lib'
@@ -150,7 +147,7 @@ class Message {
     return this.obj.from ? Contact.load(this.obj.from) : null
   }
 
-  public to(contact?: Contact|Room|string) {
+  public to(contact?: Contact|Room|string): Contact {
     if (contact) {
       if (contact instanceof Contact || contact instanceof Room) {
         this.obj.to = contact.id
@@ -170,7 +167,7 @@ class Message {
     return this.obj.content
   }
 
-  public room(room?) {
+  public room(room?: Room): Room {
     if (room) {
       if (room instanceof Room) {
         this.obj.room = room.id

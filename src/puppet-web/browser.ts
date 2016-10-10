@@ -117,7 +117,7 @@ class Browser extends EventEmitter {
     }
   }
 
-  public open(url = 'https://wx.qq.com'): Promise<void> {
+  public open(url: string = 'https://wx.qq.com'): Promise<void> {
     log.verbose('PuppetWebBrowser', `open(${url})`)
 
     // TODO: set a timer to guard driver.get timeout, then retry 3 times 201607
@@ -175,6 +175,8 @@ class Browser extends EventEmitter {
   }
 
   private getChromeDriver() {
+    log.verbose('PuppetWebBrowser', 'getChromeDriver()')
+
     const options = {
       args: ['--no-sandbox']  // issue #26 for run inside docker
       , binary: null

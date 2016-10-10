@@ -1,5 +1,5 @@
-#!/usr/bin/env node
 /**
+#!/usr/bin/env node
  *
  * Wechaty - Wechat for Bot
  *
@@ -11,16 +11,13 @@
  *    ' leaver: 艾静<img class="emoji emojiae" text="_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />JOY
  *  - BUG2: leave event not right: sometimes can not found member (any more, because they left)
  */
-const co = require('co')
-
-const {
+import {
   Wechaty
   , Config
   , Room
   , Contact
-  , Message
   , log
-} = require('../')
+} from '../'
 
 /**
  *
@@ -60,7 +57,7 @@ Please wait... I'm trying to login in...
 
 `
 console.log(welcome)
-const bot = new Wechaty({ profile: Config.DEFAULT_PROFILE })
+const bot = Wechaty.instance({ profile: Config.DEFAULT_PROFILE })
 
 bot
 .on('scan', ({url, code}) => {
@@ -260,17 +257,17 @@ function manageDingRoom() {
   })
 }
 
-function checkRoomJoin(room, invitee, inviter) {
+function checkRoomJoin(room: Room, invitee: Contact|Contact[], inviter: Contact) {
   log.info('Bot', 'checkRoomJoin(%s, %s, %s)'
                 , room.topic()
-                , invitee.map
+                , Array.isArray(invitee)
                   ? invitee.map(c => c.name()).join(', ')
                   : invitee.name()
                 , inviter.name()
           )
 
   try {
-    let to, content
+    // let to, content
     if (inviter.id !== bot.user().id) {
 
       room.say('RULE1: Invitation is limited to me, the owner only. Please do not invit people without notify me.'
@@ -292,21 +289,27 @@ function checkRoomJoin(room, invitee, inviter) {
 
       room.topic('ding - warn ' + inviter.name())
       setTimeout(_ => {
-        invitee.map
+        Array.isArray(invitee)
         ? invitee.forEach(c => room.del(c))
         : room.del(invitee)
       }, 10000)
 
     } else {
 
-      reply('Welcome to my room! :)')
+      room.say('Welcome to my room! :)')
 
       // sendMessage(bot, {
       //   room
       //   , content:  `@${invitee.name()} Welcome to my room! :)`
       //   , to:       invitee.id
       // })
-      room.topic('ding - welcome ' + invitee.name())
+      let welcomeTopic
+      if (Array.isArray(invitee)) {
+        welcomeTopic = invitee.map(c => c.name()).join(', ')
+      } else {
+        welcomeTopic = invitee.name()
+      }
+      room.topic('ding - welcome ' + welcomeTopic)
     }
 
   } catch (e) {
@@ -348,7 +351,7 @@ function putInRoom(contact, room) {
   }
 }
 
-function getOutRoom(contact, room) {
+function getOutRoom(contact: Contact, room: Room) {
   log.info('Bot', 'getOutRoom(%s, %s)', contact, room)
 
   try {
@@ -357,7 +360,7 @@ function getOutRoom(contact, room) {
     //   , room:   room.id
     //   , to:     contact.id
     // })
-    reply('You said "ding" in my room, I will remove you out.')
+    room.say('You said "ding" in my room, I will remove you out.')
     room.del(contact)
   } catch (e) {
     log.error('Bot', 'getOutRoom() exception: ' + e.stack)

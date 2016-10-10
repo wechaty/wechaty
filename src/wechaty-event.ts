@@ -146,12 +146,10 @@ function wrapRoom(callback) {
 function wrapMessage(callback) {
   log.verbose('WechatyEvent', 'wrapMessage()')
 
-  console.log('############### Message type: ')
-  console.log(typeof Message)
   return (...argList) => {
     log.silly('WechatyEvent', 'wrapMessage() callback')
 
-    console.log('############### wrapped on message callback')
+    // console.log('############### wrapped on message callback')
     // console.log(typeof Message)
     // console.log(argList)
     if (!(argList[0] instanceof Message)) {
