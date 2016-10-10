@@ -22,13 +22,13 @@ type ContactGetterFunc = {
 }
 
 abstract class Puppet extends EventEmitter {
-  protected user: Contact
+  public user: Contact
+  public abstract getContact(id: string): Promise<any>
+
   protected userId: string
 
   private _targetState:   string
   private _currentState:  string
-
-  public abstract getContact(id: string): Promise<any>
 
   constructor() {
     super()
@@ -78,6 +78,17 @@ abstract class Puppet extends EventEmitter {
   public abstract logout(): Promise<any>
   public abstract quit(): Promise<any>
   public abstract ding(data?: string): Promise<any>
+
+  public abstract friendRequestSend(contact: Contact, hello?: string): Promise<any>
+  public abstract friendRequestAccept(contact: Contact, ticket: string): Promise<any>
+
+  public abstract roomAdd(room: Room, contact: Contact): Promise<number>
+  public abstract roomDel(room: Room, contact: Contact): Promise<number>
+  public abstract roomTopic(room: Room, topic: string): Promise<string>
+  public abstract roomCreate(contactList: Contact[], topic?: string): Promise<Room>
+  public abstract roomFind(filter: Function): Promise<Room[]>
+
+  public abstract contactFind(filter: Function): Promise<Contact[]>
 }
 
 export default Puppet

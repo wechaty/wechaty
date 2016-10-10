@@ -11,7 +11,7 @@
  */
 
 import Config   from './config'
-// import Wechaty  from './wechaty'
+import Contact  from './contact'
 
 abstract class FriendRequest {
   constructor() {

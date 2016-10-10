@@ -14,14 +14,15 @@ import UtilLib  from './util-lib'
 
 import log      from './brolog-env'
 
-import { Bridge }   from './puppet-web/'
+import PuppetWeb from './puppet-web/index'
+import PuppetWebBridge from './puppet-web/bridge'
 
 class MediaMessage extends Message {
-  private bridge: Bridge
+  private bridge: PuppetWebBridge
 
   constructor(rawObj) {
     super(rawObj)
-    this.bridge = Config.puppetInstance()
+    this.bridge = (Config.puppetInstance() as PuppetWeb)
                         .bridge
   }
   public async ready(): Promise<MediaMessage> {
@@ -62,7 +63,7 @@ class MediaMessage extends Message {
   public readyStream(): Promise<NodeJS.ReadableStream> {
     return this.ready()
     .then(() => {
-      return Config.puppetInstance()
+      return (Config.puppetInstance() as PuppetWeb)
                     .browser.checkSession()
     })
     .then(cookies => {

@@ -4,11 +4,46 @@
  * https://github.com/wechaty/wechaty/
  */
 import { execSync } from 'child_process'
-import { accessSync, F_OK } from 'fs'
+import * as fs from 'fs'
 
+import Puppet from './puppet'
+
+type PuppetType = 'web' | 'android' | 'ios'
+type HeadType = 'chrome' | 'phantomjs'
+
+type ConfigSetting = {
+
+  DEFAULT_HEAD: string
+  DEFAULT_PUPPET: string
+  DEFAULT_APIHOST: string
+  DEFAULT_PROFILE: string
+  DEFAULT_TOKEN:  string
+DEFAULT_PROTOCOL: string
+CMD_CHROMIUM: string
+  DEFAULT_PORT: number
+
+  port: number
+  profile: string
+  token: string
+  debug: boolean
+
+  puppet: PuppetType
+  head: HeadType
+
+  apihost: string
+  validApiHost: (string) => boolean
+
+  httpPort: number
+
+  _puppetInstance: Puppet
+  puppetInstance: (instance?: Puppet) => Puppet
+
+  isDocker: () => boolean
+
+}
 /* tslint:disable:variable-name */
 /* tslint:disable:no-var-requires */
-const Config = require('../package.json').wechaty
+const Config: ConfigSetting = require('../package.json').wechaty
 
 /**
  * 1. ENVIRONMENT VARIABLES + PACKAGES.JSON (default)
@@ -20,7 +55,7 @@ Object.assign(Config, {
   , validApiHost
 })
 
-function validApiHost(apihost) {
+function validApiHost(apihost: string): boolean {
   if (/^[a-zA-Z0-9\.\-\_]+:?[0-9]*$/.test(apihost)) {
     return true
   }
@@ -32,10 +67,10 @@ validApiHost(Config.apihost)
  * 2. ENVIRONMENT VARIABLES (only)
  */
 Object.assign(Config, {
-  port:       process.env['WECHATY_PORT']     || null // 0 for disable port
-  , profile:  process.env['WECHATY_PROFILE']  || null // DO NOT set DEFAULT_PROFILE, because sometimes user do not want to save session
-  , token:    process.env['WECHATY_TOKEN']    || null // DO NOT set DEFAULT, because sometimes user do not want to connect to io cloud service
-  , debug:    process.env['WECHATY_DEBUG']    || false
+  port:       process.env['WECHATY_PORT']       || null // 0 for disable port
+  , profile:  process.env['WECHATY_PROFILE']    || null // DO NOT set DEFAULT_PROFILE, because sometimes user do not want to save session
+  , token:    process.env['WECHATY_TOKEN']      || null // DO NOT set DEFAULT, because sometimes user do not want to connect to io cloud service
+  , debug:    !!(process.env['WECHATY_DEBUG'])  || false
 })
 
 /**
@@ -60,7 +95,7 @@ function isWechatyDocker() {
   }
 
   const cgroup = '/proc/1/cgroup'
-  try { accessSync(cgroup, F_OK) }
+  try { fs.accessSync(cgroup, fs['F_OK']) }
   catch (e) { return false }
 
   const line = execSync(`sort -n ${cgroup} | head -1`)
@@ -77,7 +112,7 @@ function isWechatyDocker() {
 /**
  * 5. live setting
  */
-Config.puppetInstance = function(instance) {
+Config.puppetInstance = function(instance?: Puppet): Puppet {
   if (typeof instance !== 'undefined') {  // null is valid here
     Config._puppetInstance = instance
   }
@@ -86,3 +121,7 @@ Config.puppetInstance = function(instance) {
 
 // module.exports = Config.default = Config.Config = Config
 export default Config
+export {
+    HeadType
+  , PuppetType
+}

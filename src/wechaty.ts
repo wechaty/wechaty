@@ -13,21 +13,25 @@ import * as path         from 'path'
 // const co            = require('co')
 import * as fs          from'fs'
 
-import Config       from './config'
+import Config, {
+    HeadType
+  , PuppetType
+} from './config'
+
 import Contact      from './contact'
 import Message      from './message'
 import Puppet       from './puppet'
-import PuppetWeb    from './puppet-web'
+import PuppetWeb    from './puppet-web/index'
 import UtilLib      from './util-lib'
 import WechatyEvent from './wechaty-event'
 
 import log          from './brolog-env'
 
 type WechatySetting = {
-  head?:       'chrome' | 'phantomjs'
-  // port?:       number
   profile?:    string
-  type?:       'web'
+  head?:       HeadType
+  type?:       PuppetType
+  // port?:       number
 }
 
 class Wechaty extends EventEmitter {
@@ -83,7 +87,7 @@ class Wechaty extends EventEmitter {
          * Synchronous version of fs.access().
          * This throws if any accessibility checks fail, and does nothing otherwise.
          */
-        fs.accessSync(dotGitPath, fs.F_OK)
+        fs.accessSync(dotGitPath, fs['F_OK'])
 
         const ss = require('child_process')
                     .spawnSync(gitLogCmd, gitLogArgs, { cwd:  __dirname })
@@ -107,14 +111,14 @@ class Wechaty extends EventEmitter {
     return this.npmVersion
   }
 
-  public user(): Contact { return this.puppet && this.puppet.user() }
+  public user(): Contact { return this.puppet && this.puppet.user }
 
   public reset(reason?: string) {
     log.verbose('Wechaty', 'reset() because %s', reason)
     return this.puppet.reset(reason)
   }
 
-  public init() {
+  public async init(): Promise<Wechaty> {
     log.info('Wechaty', 'v%s initializing...' , this.version())
     log.verbose('Wechaty', 'puppet: %s'       , this.setting.type)
     log.verbose('Wechaty', 'head: %s'         , this.setting.head)
@@ -126,16 +130,18 @@ class Wechaty extends EventEmitter {
       return Promise.resolve(this)
     }
 
-    return co.call(this, function* () {
-      yield this.initPuppet()
+    // return co.call(this, function* () {
+    try {
+      await this.initPuppet()
 
       this.inited = true
-      return this // for chaining
-    })
-    .catch(e => {
+      // return this // for chaining
+    // }).catch(e => {
+    } catch (e) {
       log.error('Wechaty', 'init() exception: %s', e.message)
       throw e
-    })
+    }
+    return this
   }
 
   public on(event: string, listener: Function) {

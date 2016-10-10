@@ -70,13 +70,14 @@ class Bridge {
     })
   }
 
-  private inject(): Promise<any> {
+  private async inject(): Promise<any> {
     log.verbose('PuppetWebBridge', 'inject()')
 
-    return co.call(this, function* () {
+    // return co.call(this, function* () {
+    try {
       const injectio = this.getInjectio()
 
-      let retObj = yield this.execute(injectio, this.port)
+      let retObj = await this.execute(injectio, this.port)
 
       if (retObj && /^(2|3)/.test(retObj.code)) {   // HTTP Code 2XX & 3XX
         log.silly('PuppetWebBridge', 'inject() eval(Wechaty) return code[%d] message[%s] port[%d]'
@@ -85,7 +86,7 @@ class Bridge {
         throw new Error('execute injectio error: ' + retObj.code + ', ' + retObj.message)
       }
 
-      retObj = yield this.proxyWechaty('init')
+      retObj = await this.proxyWechaty('init')
       if (retObj && /^(2|3)/.test(retObj.code)) {   // HTTP Code 2XX & 3XX
         log.silly('PuppetWebBridge', 'inject() Wechaty.init() return code[%d] message[%s] port[%d]'
           , retObj.code, retObj.message, retObj.port)
@@ -93,18 +94,18 @@ class Bridge {
         throw new Error('execute proxyWechaty(init) error: ' + retObj.code + ', ' + retObj.message)
       }
 
-      const r = yield this.ding('inject()')
+      const r = await this.ding('inject()')
       if (r !== 'inject()') {
         throw new Error('fail to get right return from call ding()')
       }
       log.silly('PuppetWebBridge', 'inject() ding success')
 
       return true
-    })
-    .catch (e => {
+    // }).catch (e => {
+    } catch (e) {
       log.verbose('PuppetWebBridge', 'inject() exception: %s. stack: %s', e.message, e.stack)
       throw e
-    })
+    }
   }
 
   public getInjectio(): string {
@@ -123,7 +124,7 @@ class Bridge {
               + '; return rejectioReturnValue'
   }
 
-  public logout(): Promise<all> {
+  public logout(): Promise<any> {
     log.verbose('PuppetWebBridge', 'quit()')
     return this.proxyWechaty('logout')
     .catch(e => {
@@ -208,6 +209,13 @@ class Bridge {
     }
 
     return this.proxyWechaty('roomCreateAsync', contactIdList, topic)
+                .then(roomId => {
+                  if (typeof roomId === 'object') {
+                    // It is a Error Object send back by callback in browser(WechatyBro)
+                    throw roomId
+                  }
+                  return roomId
+                })
                 .catch(e => {
                   log.error('PuppetWebBridge', 'roomCreate(%s) exception: %s', contactIdList, e.message)
                   throw e

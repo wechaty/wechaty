@@ -38,7 +38,7 @@ class PuppetWeb extends Puppet {
 
   public browser:  Browser
 
-  private bridge:   Bridge
+  public bridge:   Bridge
   private server:   Server
 
   private port: number
@@ -102,7 +102,7 @@ class PuppetWeb extends Puppet {
     // })
   }
 
-  public quit() {
+  public async quit(): Promise<any> {
     log.verbose('PuppetWeb', 'quit()')
     this.targetState('dead')
 
@@ -122,10 +122,11 @@ class PuppetWeb extends Puppet {
     // this.readyState('disconnecting')
     this.currentState('killing')
 
-    return co.call(this, function* () {
+    // return co.call(this, function* () {
+    try {
 
       if (this.bridge)  {
-        yield this.bridge.quit()
+        await this.bridge.quit()
                         .catch(e => { // fail safe
                           log.warn('PuppetWeb', 'quit() bridge.quit() exception: %s', e.message)
                         })
@@ -134,13 +135,13 @@ class PuppetWeb extends Puppet {
       } else { log.warn('PuppetWeb', 'quit() without a bridge') }
 
       if (this.server) {
-        yield this.server.quit()
+        await this.server.quit()
         this.server = null
         log.verbose('PuppetWeb', 'quit() server.quit() this.server = null')
       } else { log.verbose('PuppetWeb', 'quit() without a server') }
 
       if (this.browser) {
-        yield this.browser.quit()
+        await this.browser.quit()
                   .catch(e => { // fail safe
                     log.warn('PuppetWeb', 'quit() browser.quit() exception: %s', e.message)
                   })
@@ -150,29 +151,30 @@ class PuppetWeb extends Puppet {
 
       // @deprecated 20161004
       // log.verbose('PuppetWeb', 'quit() server.quit() this.initAttach(null)')
-      // yield this.initAttach(null)
+      // await this.initAttach(null)
 
       this.currentState('dead')
-    })
-    .catch(e => { // Reject
+    // }).catch(e => { // Reject
+    } catch (e) {
       log.error('PuppetWeb', 'quit() exception: %s', e.message)
       this.currentState('dead')
       throw e
-    })
-    .then(() => { // Finally, Fail Safe
+    }
+
+    // .then(() => { // Finally, Fail Safe
       log.verbose('PuppetWeb', 'quit() done')
       // this.readyState('disconnected')
       this.currentState('dead')
       return this   // for Chaining
-    })
+    // })
   }
 
-  private initBrowser() {
+  private async initBrowser(): Promise<Browser> {
     log.verbose('PuppetWeb', 'initBrowser()')
-    const browser = new Browser({
-      head: this.head
-      , sessionFile: this.profile
-    })
+    const browser = new Browser(
+        this.head
+      , this.profile
+    )
 
     browser.on('dead', Event.onBrowserDead.bind(this))
 
@@ -180,24 +182,27 @@ class PuppetWeb extends Puppet {
 
     if (this.targetState() !== 'live') {
       log.warn('PuppetWeb', 'initBrowser() found targetState != live, no init anymore')
-      return Promise.resolve('skipped')
+      // return Promise.resolve('skipped')
+      return Promise.reject('skipped')
     }
 
-    return co.call(this, function* () {
-      yield browser.init()
+    // return co.call(this, function* () {
+    try {
+      await browser.init()
       return browser // follow func name meaning
-    }).catch(e => {
+    // }).catch(e => {
+    } catch (e) {
       log.error('PuppetWeb', 'initBrowser() exception: %s', e.message)
       throw e
-    })
+    }
   }
 
   private initBridge() {
     log.verbose('PuppetWeb', 'initBridge()')
-    const bridge = new Bridge({
-      puppet:   this // use puppet instead of browser, is because browser might change(die) duaring run time
-      , port:   this.port
-    })
+    const bridge = new Bridge(
+        this // use puppet instead of browser, is because browser might change(die) duaring run time
+      , this.port
+    )
 
     this.bridge = bridge
 
@@ -221,7 +226,7 @@ class PuppetWeb extends Puppet {
 
   private initServer() {
     log.verbose('PuppetWeb', 'initServer()')
-    const server = new Server({port: this.port})
+    const server = new Server(this.port)
 
     server.on('scan'    , Event.onServerScan.bind(this))
     server.on('login'   , Event.onServerLogin.bind(this))
@@ -356,29 +361,31 @@ class PuppetWeb extends Puppet {
                       })
   }
 
-  public contactFind(filterFunction: Function): Promise<string[]> {
+  public contactFind(filterFunction: Function): Promise<Contact[]> {
     if (!this.bridge) {
       return Promise.reject(new Error('contactFind fail: no bridge(yet)!'))
     }
     return this.bridge.contactFind(filterFunction)
+                      .then(idList => idList.map(id => Contact.load(id)))
                       .catch(e => {
                         log.warn('PuppetWeb', 'contactFind(%s) rejected: %s', filterFunction, e.message)
                         throw e
                       })
   }
 
-  public roomFind(filterFunction: Function): Promise<string[]> {
+  public roomFind(filterFunction: Function): Promise<Room[]> {
     if (!this.bridge) {
       return Promise.reject(new Error('findRoom fail: no bridge(yet)!'))
     }
     return this.bridge.roomFind(filterFunction)
+                      .then(idList => idList.map(id => Room.load(id)))
                       .catch(e => {
                         log.warn('PuppetWeb', 'roomFind(%s) rejected: %s', filterFunction, e.message)
                         throw e
                       })
   }
 
-  public roomDel(room: Room, contact: Contact) {
+  public roomDel(room: Room, contact: Contact): Promise<number> {
     if (!this.bridge) {
       return Promise.reject(new Error('roomDelMember fail: no bridge(yet)!'))
     }
@@ -391,7 +398,7 @@ class PuppetWeb extends Puppet {
                       })
   }
 
-  public roomAdd(room: Room, contact: Contact): Promise<any> {
+  public roomAdd(room: Room, contact: Contact): Promise<number> {
     if (!this.bridge) {
       return Promise.reject(new Error('fail: no bridge(yet)!'))
     }
@@ -404,7 +411,7 @@ class PuppetWeb extends Puppet {
                       })
   }
 
-  public roomTopic(room: Room, topic: string): Promise<any> {
+  public roomTopic(room: Room, topic: string): Promise<string> {
     if (!this.bridge) {
       return Promise.reject(new Error('fail: no bridge(yet)!'))
     }
@@ -420,7 +427,7 @@ class PuppetWeb extends Puppet {
                       })
   }
 
-  public roomCreate(contactList: Contact[], topic: string): Promise<string> {
+  public roomCreate(contactList: Contact[], topic: string): Promise<Room> {
     if (!this.bridge) {
       return Promise.reject(new Error('fail: no bridge(yet)!'))
     }
@@ -434,6 +441,7 @@ class PuppetWeb extends Puppet {
 // console.log('puppet roomCreate: ')
 // console.log(contactIdList)
     return this.bridge.roomCreate(contactIdList, topic)
+                      .then(roomId => Room.load(roomId))
                       .catch(e => {
                         log.warn('PuppetWeb', 'roomCreate(%s, %s) rejected: %s', contactIdList.join(','), topic, e.message)
                         throw e

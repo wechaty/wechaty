@@ -6,7 +6,7 @@ import {
   , PuppetWeb
   , Server
   , Watchdog
-} from './'
+} from './index'
 
 test('PuppetWeb Module Exports', t => {
   t.truthy(PuppetWeb  , 'should export PuppetWeb')

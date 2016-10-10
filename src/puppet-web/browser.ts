@@ -93,13 +93,13 @@ class Browser extends EventEmitter {
        * when open url, there could happen a quit() call.
        * should check here: if we are in `close` target state, we should clean up
        */
-      if (this.targetState() === 'open') {
-        this.currentState('open')
-        return this
-      } else {
-        log.warn('PuppetWebBrowser', 'init() finished but found targetState() is close. quit().')
-        return this.quit()
+      if (this.targetState() !== 'open') {
+        throw new Error('init() finished but found targetState() is close. quit().')
       }
+
+      this.currentState('open')
+      return this
+
     } catch (e) {
     // .catch(e => {
       // XXX: must has a `.catch` here, or promise will hang! 2016/6/7
@@ -117,13 +117,13 @@ class Browser extends EventEmitter {
     }
   }
 
-  public open(url = 'https://wx.qq.com'): Promise<any> {
+  public open(url = 'https://wx.qq.com'): Promise<void> {
     log.verbose('PuppetWebBrowser', `open(${url})`)
 
     // TODO: set a timer to guard driver.get timeout, then retry 3 times 201607
     return new Promise((resolve, reject) => {
       this.driver.get(url)
-                  .then(r => resolve(r))
+                  .then(_ => resolve())
                   .catch(e => {
                     log.error('PuppetWebBrowser', 'open() exception: %s', e.message)
                     this.dead(e.message)
@@ -215,7 +215,7 @@ class Browser extends EventEmitter {
       phantomjsArgs.push('--webdriver-loglevel=DEBUG')
       // phantomjsArgs.push('--webdriver-logfile=webdriver.debug.log')
     } else {
-      if (log && log.level === 'silent') {
+      if (log && log.level() === 'silent') {
         phantomjsArgs.push('--webdriver-loglevel=NONE')
       } else {
         phantomjsArgs.push('--webdriver-loglevel=ERROR')
@@ -260,7 +260,7 @@ class Browser extends EventEmitter {
     return driver
   }
 
-  public quit(restart?: boolean) {
+  public async quit(restart?: boolean): Promise<any> {
     log.verbose('PuppetWebBrowser', 'quit()')
 
     if (!restart) {
@@ -283,11 +283,12 @@ class Browser extends EventEmitter {
       return Promise.resolve('no driver session')
     }
 
-    return co.call(this, function* () {
+    // return co.call(this, function* () {
+    try {
       log.silly('PuppetWebBrowser', 'quit() co()')
-      yield this.driver.close() // http://stackoverflow.com/a/32341885/1123955
+      await this.driver.close() // http://stackoverflow.com/a/32341885/1123955
       log.silly('PuppetWebBrowser', 'quit() driver.close()-ed')
-      yield this.driver.quit()
+      await this.driver.quit()
       log.silly('PuppetWebBrowser', 'quit() driver.quit()-ed')
       this.driver = null
       log.silly('PuppetWebBrowser', 'quit() this.driver = null')
@@ -298,11 +299,12 @@ class Browser extends EventEmitter {
        * because there will be more than one instance of browser with the same nodejs process id
        *
        */
-      yield this.clean()
+      await this.clean()
 
       this.currentState('close')
       log.silly('PuppetWebBrowser', 'quit() co() end')
-    }).catch(e => {
+    // }).catch(e => {
+    } catch (e) {
       // console.log(e)
       // log.warn('PuppetWebBrowser', 'err: %s %s %s %s', e.code, e.errno, e.syscall, e.message)
       log.warn('PuppetWebBrowser', 'quit() exception: %s', e.message)
@@ -319,7 +321,9 @@ class Browser extends EventEmitter {
 
       // XXX fail safe to `close` ?
       this.currentState('close')
-    })
+    }
+
+    return
   }
 
   public clean() {
@@ -403,7 +407,7 @@ class Browser extends EventEmitter {
    * use this.driver.manage() to call other functions like:
    * deleteCookie / getCookie / getCookies
    */
-  public addCookies(cookie) {
+  public addCookies(cookie): Promise<any>|Promise<any>[] {
     if (this.dead()) { return Promise.reject(new Error('addCookies() - browser dead'))}
 
     if (typeof cookie.map === 'function') {
@@ -421,7 +425,8 @@ class Browser extends EventEmitter {
 
     log.silly('PuppetWebBrowser', 'addCookies(%s)', JSON.stringify(cookie))
 
-    return this.driver.manage()
+    // return new Promise((resolve, reject) => {
+      return (this.driver.manage() as any)
                   // this is old webdriver format
                   // .addCookie(cookie.name, cookie.value, cookie.path
                   //   , cookie.domain, cookie.secure, cookie.expiry)
@@ -431,6 +436,7 @@ class Browser extends EventEmitter {
                     log.warn('PuppetWebBrowser', 'addCookies() exception: %s', e.message)
                     throw e
                   })
+    // })
   }
 
   public execute(script, ...args): Promise<any> {
@@ -637,7 +643,10 @@ class Browser extends EventEmitter {
         }
         const cookies = JSON.parse(jsonStr.toString())
 
-        const ps = this.addCookies(cookies)
+        let ps = this.addCookies(cookies)
+        if (!Array.isArray(ps)) {
+          ps = [ps]
+        }
         Promise.all(ps)
         .then(() => {
           log.verbose('PuppetWebBrowser', 'loaded session(%d cookies) from %s', cookies.length, filename)

@@ -95,7 +95,7 @@ test('Firer.checkRoomTopic', t => {
   const result = Firer.checkRoomTopic(data[0])
   t.truthy(result, 'should check topic right')
 
-  const [topic, changer] = result
+  const [topic, changer] = result as [string, string]
   t.is(topic  , data[2], 'should get right topic')
   t.is(changer, data[1], 'should get right changer')
 })

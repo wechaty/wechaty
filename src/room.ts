@@ -40,6 +40,10 @@ type RoomRawObj = {
   MemberList:       RoomRawMemberList[]
 }
 
+type RoomQueryFilter = {
+  topic: string | RegExp
+}
+
 class Room extends EventEmitter {
   private static pool = new Map<string, Room>()
 
@@ -207,7 +211,7 @@ class Room extends EventEmitter {
                   .roomAdd(this, contact)
   }
 
-  public del(contact: Contact): Promise<any> {
+  public del(contact: Contact): Promise<number> {
     log.verbose('Room', 'del(%s)', contact)
 
     if (!contact) {
@@ -293,7 +297,7 @@ class Room extends EventEmitter {
     }
   }
 
-  public member(name): string {
+  public member(name): Contact {
     log.verbose('Room', 'member(%s)', name)
 
     if (!this.obj.memberList) {
@@ -322,20 +326,16 @@ class Room extends EventEmitter {
 
     return Config.puppetInstance()
                   .roomCreate(contactList, topic)
-                  .then(roomId => {
-                    if (typeof roomId === 'object') {
-                      // It is a Error Object send back by callback in browser(WechatyBro)
-                      throw roomId
-                    }
-                    return Room.load(roomId)
+                  .catch(e => {
+                    log.error('Room', 'create() exception: %s', e && e.stack || e.message || e)
+                    throw e
                   })
   }
 
-  // private
-  private static _find({
-    topic
-  }): Promise<string[]> {
-    log.silly('Room', '_find(%s)', topic)
+  public static findAll(query: RoomQueryFilter): Promise<Room[]> {
+    log.silly('Room', 'findAll({ topic: %s })', query.topic)
+
+    const topic = query.topic
 
     if (!topic) {
       throw new Error('topic not found')
@@ -350,59 +350,29 @@ class Room extends EventEmitter {
       throw new Error('unsupport topic type')
     }
 
-    return Config.puppetInstance().roomFind(filterFunction)
-              .then(idList => {
-                return idList
-              })
-              .catch(e => {
-                log.error('Room', '_find() rejected: %s', e.message)
-                throw e
-              })
+    return Config.puppetInstance()
+                  .roomFind(filterFunction)
+                  .catch(e => {
+                    log.error('Room', '_find() rejected: %s', e.message)
+                    return [] // fail safe
+                  })
   }
 
-  public static find({
-    topic
-  }): Promise<Room> {
-    log.verbose('Room', 'find(%s)', topic)
+  public static find(query: RoomQueryFilter): Promise<Room> {
+    log.verbose('Room', 'find({ topic: %s })', query.topic)
 
-    return Room._find({topic})
-              .then(idList => {
-                if (!idList || !Array.isArray(idList)) {
-                  throw new Error('_find return error')
-                }
-                if (idList.length < 1) {
+    return Room.findAll(query)
+                .then(roomList => {
+                  if (roomList && roomList.length > 0) {
+                    return roomList[0]
+                  }
                   return null
-                }
-                const id = idList[0]
-                return Room.load(id)
-              })
-              .catch(e => {
-                log.error('Room', 'find() rejected: %s', e.message)
-                return null // fail safe
-                // throw e
-              })
-  }
-
-  public static findAll({
-    topic
-  }): Promise<Room[]> {
-    log.verbose('Room', 'findAll(%s)', topic)
-
-    return Room._find({topic})
-              .then(idList => {
-                // console.log(idList)
-                if (!idList || !Array.isArray(idList)) {
-                  throw new Error('_find return error')
-                }
-                if (idList.length < 1) {
-                  return []
-                }
-                return idList.map(i => Room.load(i))
-              })
-              .catch(e => {
-                // log.error('Room', 'findAll() rejected: %s', e.message)
-                return [] // fail safe
-              })
+                })
+                .catch(e => {
+                  log.error('Room', 'find() rejected: %s', e.message)
+                  return null // fail safe
+                  // throw e
+                })
   }
 
   public static load(id: string): Room {

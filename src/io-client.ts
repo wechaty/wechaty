@@ -130,7 +130,7 @@ class IoClient {
                   })
   }
 
-  private initIo() {
+  private initIo(): Promise<Io> {
     this.log.verbose('IoClient', 'initIo() with token %s', this.token)
 
     if (this.targetState() !== 'connected') {
@@ -186,14 +186,15 @@ class IoClient {
     //               , from.name()
     //               , m.toStringDigest()
     //         )
+    const puppet = Config.puppetInstance()
 
-    if (/^wechaty|botie/i.test(m.get('content')) && !bot.self(m)) {
-      bot.reply(m, 'https://www.wechaty.io')
+    if (/^wechaty|botie/i.test(m.get('content')) && !puppet.self(m)) {
+      puppet.reply(m, 'https://www.wechaty.io')
         .then(_ => this.log.info('Bot', 'REPLIED to magic word "wechaty"'))
     }
   }
 
-  public start() {
+  public start(): Promise<IoClient> {
     this.log.verbose('IoClient', 'start()')
 
     if (!this.wechaty) {
@@ -212,6 +213,7 @@ class IoClient {
               .then(io => {
                 this.io = io
                 this.currentState('connected')
+                return this
               })
               .catch(e => {
                 this.log.error('IoClient', 'start() exception: %s', e.message)
@@ -237,20 +239,22 @@ class IoClient {
     return p
   }
 
-  public restart() {
+  public async restart(): Promise<IoClient> {
     this.log.verbose('IoClient', 'restart()')
 
-    return co.call(this, function* () {
-      yield this.stop()
-      yield this.start()
+    // return co.call(this, function* () {
+    try {
+      await this.stop()
+      await this.start()
       return this
-    }).catch(e => {
+    // }).catch(e => {
+    } catch (e) {
       this.log.error('IoClient', 'restart() exception %s', e.message)
       throw e
-    })
+    }
   }
 
-  public quit() {
+  public async quit(): Promise<any> {
     this.log.verbose('IoClient', 'quit()')
 
     if (this.currentState() === 'disconnecting') {
@@ -261,27 +265,28 @@ class IoClient {
     this.targetState('disconnected')
     this.currentState('disconnecting')
 
-    return co.call(this, function* () {
-
+    // return co.call(this, function* () {
+    try {
       if (this.wechaty) {
-        yield this.wechaty.quit()
+        await this.wechaty.quit()
         this.wechaty = null
       } else { this.log.warn('IoClient', 'quit() no this.wechaty') }
 
       if (this.io) {
-        yield this.io.quit()
+        await this.io.quit()
         this.io = null
       } else { this.log.warn('IoClient', 'quit() no this.io') }
 
       this.currentState('disconnected')
-    }).catch(e => {
+    // }).catch(e => {
+    } catch (e) {
       this.log.error('IoClient', 'exception: %s', e.message)
 
       // XXX fail safe?
       this.currentState('disconnected')
 
       throw e
-    })
+    }
   }
 }
 

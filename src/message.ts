@@ -184,29 +184,31 @@ class Message {
   }
 
   public type()    { return this.obj.type }
-  public typeEx()  { return Message.Type[this.obj.type] }
+  public typeEx()  { return Message.TYPE[this.obj.type] }
   public count()   { return Message.counter }
 
-  public ready(): Promise<Message> {
+  public async ready(): Promise<Message> {
     log.silly('Message', 'ready()')
 
-    return co.call(this, function* () {
+    // return co.call(this, function* () {
+    try {
       const from  = Contact.load(this.obj.from)
       const to    = Contact.load(this.obj.to)
       const room  = this.obj.room ? Room.load(this.obj.room) : null
 
-      yield from.ready()                // Contact from
-      yield to.ready()                  // Contact to
-      if (room) { yield room.ready() }  // Room member list
+      await from.ready()                // Contact from
+      await to.ready()                  // Contact to
+      if (room) { await room.ready() }  // Room member list
 
       return this         // return this for chain
-    }).catch(e => { // Exception
+    // }).catch(e => { // Exception
+    } catch (e) {
         log.error('Message', 'ready() exception: %s', e)
         // console.log(e)
         // this.dump()
         // this.dumpRaw()
         throw e
-    })
+    }
   }
 
   public get(prop): string {

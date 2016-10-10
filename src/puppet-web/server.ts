@@ -13,13 +13,13 @@ import * as io          from 'socket.io'
 import * as https       from 'https'
 import * as bodyParser  from 'body-parser'
 
-import * as Express       from 'express'
+import * as express     from 'express'
 import { EventEmitter } from 'events'
 
 import log     from '../brolog-env'
 
 class Server extends EventEmitter {
-  private express:      Express.Application
+  private express:      express.Application
   private httpsServer:  https.Server
 
   private socketServer: SocketIO.Server
@@ -62,7 +62,7 @@ class Server extends EventEmitter {
   /**
    * Https Server
    */
-  private createHttpsServer(express: Express.Application): Promise<https.Server> {
+  private createHttpsServer(express: express.Application): Promise<https.Server> {
     return new Promise((resolve, reject) => {
       https.createServer({
                             key:    require('./ssl-pem').key
@@ -83,10 +83,10 @@ class Server extends EventEmitter {
   }
 
   /**
-   * Express Middleware
+   * express Middleware
    */
   private createExpress() {
-    const e = Express()
+    const e = express()
     e.use(bodyParser.json())
     e.use(function(req, res, next) {
       res.header('Access-Control-Allow-Origin', '*')
@@ -94,7 +94,7 @@ class Server extends EventEmitter {
       next()
     })
     e.get('/ding', function(req, res) {
-      log.silly('PuppetWebServer', 'createExpress() %s GET /ding', new Date())
+      log.silly('PuppetWebServer', 'createexpress() %s GET /ding', new Date())
       res.end('dong')
     })
     return e

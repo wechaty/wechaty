@@ -21,8 +21,8 @@ import log      from './brolog-env'
 type IoSetting = {
   wechaty:    Wechaty
   token:      string
-  apihost:    string
-  protocol:   string
+  apihost?:   string
+  protocol?:  string
 }
 
 type IoEvent = {

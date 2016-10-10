@@ -40,6 +40,10 @@ type ContactRawObj = {
   Signature:    string
 }
 
+type ContactQueryFilter = {
+  name: string | RegExp
+}
+
 class Contact {
   private static pool = new Map<string, Contact>()
 
@@ -122,11 +126,10 @@ class Contact {
     Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj[k]}`))
   }
 
-  // private
-  private static _find({
-    name
-  }) {
-    log.silly('Cotnact', '_find(%s)', name)
+  public static findAll(query: ContactQueryFilter): Promise<Contact[]> {
+    log.silly('Cotnact', 'findAll({ name: %s })', query.name)
+
+    const name = query.name
 
     if (!name) {
       throw new Error('name not found')
@@ -143,60 +146,29 @@ class Contact {
 
     return Config.puppetInstance()
                   .contactFind(filterFunction)
-                  .then(idList => {
-                    return idList
+                  .catch(e => {
+                    log.error('Contact', 'findAll() rejected: %s', e.message)
+                    return [] // fail safe
+                  })
+  }
+
+  public static find(query: ContactQueryFilter): Promise<Contact> {
+    log.verbose('Contact', 'find(%s)', query.name)
+
+    return Contact.findAll(query)
+                  .then(contactList => {
+                    if (contactList && contactList.length > 0) {
+                      return contactList[0]
+                    }
+                    return null
                   })
                   .catch(e => {
-                    log.error('Contact', '_find() rejected: %s', e.message)
-                    throw e
+                    log.error('Contact', 'find() rejected: %s', e.message)
+                    return null // fail safe
                   })
   }
 
-  public static find({
-    name
-  }) {
-    log.verbose('Contact', 'find(%s)', name)
-
-    return Contact._find({name})
-              .then(idList => {
-                if (!idList || !Array.isArray(idList)) {
-                  throw new Error('_find return error')
-                }
-                if (idList.length < 1) {
-                  return null
-                }
-                const id = idList[0]
-                return Contact.load(id)
-              })
-              .catch(e => {
-                log.error('Contact', 'find() rejected: %s', e.message)
-                return null // fail safe
-              })
-  }
-
-  public static findAll({
-    name
-  }) {
-    log.verbose('Contact', 'findAll(%s)', name)
-
-    return Contact._find({name})
-              .then(idList => {
-                // console.log(idList)
-                if (!idList || !Array.isArray(idList)) {
-                  throw new Error('_find return error')
-                }
-                if (idList.length < 1) {
-                  return []
-                }
-                return idList.map(i => Contact.load(i))
-              })
-              .catch(e => {
-                log.error('Contact', 'findAll() rejected: %s', e.message)
-                return [] // fail safe
-              })
-  }
-
-  public static load(id: string) {
+  public static load(id: string): Contact {
     if (!id || typeof id !== 'string') {
       return null
     }

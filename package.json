@@ -96,6 +96,7 @@
   "devDependencies": {
     "@types/body-parser": "0.0.33",
     "@types/express": "^4.0.33",
+    "@types/mime": "0.0.29",
     "@types/node": "^6.0.45",
     "@types/selenium-webdriver": "^2.53.33",
     "@types/socket.io": "^1.4.27",
@@ -107,6 +108,7 @@
     "cross-env": "^2.0.0",
     "eslint": "^3.4.0",
     "eslint-plugin-ava": "^3.0.0",
+    "jest": "^16.0.1",
     "qrcode-terminal": "^0.10.0",
     "sinon": "^1.17.5",
     "sloc": "^0.1.11",
