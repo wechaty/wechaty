@@ -8,9 +8,6 @@
  *
  */
 import * as fs from 'fs'
-// import * as co from 'co'
-// import * as path from 'path'
-// import * as util from 'util'
 import { EventEmitter } from 'events'
 import {
   Builder
@@ -179,14 +176,14 @@ class Browser extends EventEmitter {
 
     const options = {
       args: ['--no-sandbox']  // issue #26 for run inside docker
-      , binary: null
+      , binary: undefined
     }
     if (Config.isDocker) {
       options.binary = Config.CMD_CHROMIUM
     }
 
     const customChrome = Capabilities.chrome()
-                                  .set('chromeOptions', options)
+                                    .set('chromeOptions', options)
 
     return new Builder()
                 .setAlertBehavior('ignore')
