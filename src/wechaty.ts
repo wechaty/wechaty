@@ -44,13 +44,13 @@ class Wechaty extends EventEmitter {
 
   public uuid:        string
 
-  constructor(private setting: WechatySetting) {
+  private constructor(private setting: WechatySetting) {
     super()
     log.verbose('Wechaty', 'contructor()')
 
-    if (Wechaty._instance instanceof Wechaty) {
-      throw new Error('Wechaty must be singleton')
-    }
+    // if (Wechaty._instance instanceof Wechaty) {
+    //   throw new Error('Wechaty must be singleton')
+    // }
 
     setting.type    = setting.type    || Config.puppet
     setting.head    = setting.head    || Config.head
@@ -69,10 +69,13 @@ class Wechaty extends EventEmitter {
 
     this.inited = false
 
-    Wechaty._instance = this
+    // Wechaty._instance = this
   }
 
-  public static instance() {
+  public static instance(setting: WechatySetting) {
+    if (!this._instance) {
+      this._instance = new Wechaty(setting)
+    }
     return this._instance
   }
 
