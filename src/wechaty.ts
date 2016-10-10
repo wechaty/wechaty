@@ -44,6 +44,16 @@ class Wechaty extends EventEmitter {
 
   public uuid:        string
 
+  public static instance(setting?: WechatySetting) {
+    if (setting && this._instance) {
+      throw new Error('there has already a instance. no params allowed any more')
+    }
+    if (!this._instance) {
+      this._instance = new Wechaty(setting)
+    }
+    return this._instance
+  }
+
   private constructor(private setting: WechatySetting) {
     super()
     log.verbose('Wechaty', 'contructor()')
@@ -70,13 +80,6 @@ class Wechaty extends EventEmitter {
     this.inited = false
 
     // Wechaty._instance = this
-  }
-
-  public static instance(setting: WechatySetting) {
-    if (!this._instance) {
-      this._instance = new Wechaty(setting)
-    }
-    return this._instance
   }
 
   public toString() { return 'Class Wechaty(' + this.setting.type + ')'}

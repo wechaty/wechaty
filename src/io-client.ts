@@ -80,7 +80,7 @@ class IoClient {
     this.targetState('connected')
     this.currentState('connecting')
 
-    this.wechaty  = new Wechaty({
+    this.wechaty  = Wechaty.instance({
       profile: Config.DEFAULT_PROFILE
     })
 
@@ -165,7 +165,7 @@ class IoClient {
       res.send('Wechaty IO Bot Alive!')
     })
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       app.listen(port, () => {
         this.log.verbose('IoClient', 'initWeb() Wechaty IO Bot listening on port ' + port + '!')
 

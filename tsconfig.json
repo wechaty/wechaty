@@ -1,20 +1,30 @@
 {
   "compilerOptions": {
     "target": "es6"
+    , "module": "amd"
     , "moduleResolution": "node"
     , "outDir": "dist"
-    , "noImplicitAny": false
-    , "strictNullChecks": true
+    , "outFile": "dist/wechaty.lib.js"
+
     , "sourceMap": true
+    , "noUnusedLocals": true
+
+    , "noUnusedParameters": false
+    , "strictNullChecks": false
+    , "noImplicitAny": false
+    , "noImplicitThis": false
+    , "noImplicitReturns": false
+    , "noFallthroughCasesInSwitch": false
   }
   , "exclude": [
       "node_modules"
     , "dist"
+    , "**/*.spec.ts"
   ]
-  , "files": [
-      "src/*.ts"
-    , "bin/*.ts"
-    , "example/*.ts"
+  , "include": [
+      "src/**/*.ts"
+    // , "bin/*.ts"
+    // , "example/*.ts"
     // , "test/*.ts"
   ]
 }

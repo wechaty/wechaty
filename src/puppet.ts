@@ -17,9 +17,9 @@ import Message  from './message'
 import Room     from './room'
 import log      from './brolog-env'
 
-type ContactGetterFunc = {
-  (id: string): Promise<any>
-}
+// type ContactGetterFunc = {
+//   (id: string): Promise<any>
+// }
 
 abstract class Puppet extends EventEmitter {
   public user: Contact
