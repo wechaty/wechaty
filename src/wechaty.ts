@@ -57,9 +57,11 @@ class Wechaty extends EventEmitter {
     // setting.port    = setting.port    || Config.port
     setting.profile = setting.profile || Config.profile  // no profile, no session save/restore
 
-    setting.profile  = /\.wechaty\.json$/i.test(setting.profile)
+    if (setting.profile) {
+      setting.profile  = /\.wechaty\.json$/i.test(setting.profile)
                         ? setting.profile
                         : setting.profile + '.wechaty.json'
+    }
 
     this.npmVersion = require('../package.json').version
 
