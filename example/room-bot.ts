@@ -12,10 +12,10 @@
  *  - BUG2: leave event not right: sometimes can not found member (any more, because they left)
  */
 import {
-  Wechaty
-  , Config
-  , Room
+    Config
   , Contact
+  , Room
+  , Wechaty
   , log
 } from '../'
 

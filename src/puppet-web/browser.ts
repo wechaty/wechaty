@@ -566,7 +566,7 @@ class Browser extends EventEmitter {
 
     const filename = this.sessionFile
     return new Promise((resolve, reject) => {
-      require('fs').unlink(filename, err => {
+      fs.unlink(filename, err => {
         if (err && err.code !== 'ENOENT') {
           log.silly('PuppetWebBrowser', 'cleanSession() unlink session file %s fail: %s', filename, err.message)
         }

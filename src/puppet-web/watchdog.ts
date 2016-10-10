@@ -17,6 +17,7 @@
 
 import log   from '../brolog-env'
 import Event from './event'
+import { WatchdogFood } from '../config'
 
 /* tslint:disable:variable-name */
 const Watchdog = {
@@ -24,21 +25,24 @@ const Watchdog = {
 }
 
 // feed me in time(after 1st feed), or I'll restart system
-function onFeed({
-  data = ''
-  , type = 'HEARTBEAT'
-  , timeout = 60000  // 60s default. can be override in options but be careful about the number zero(0)
-} = {}) {
+function onFeed(food: WatchdogFood) {
 
   // change to tape instead of tap
   // type = type || 'HEARTBEAT'  // BUG compatible with issue: node-tap strange behaviour cause CircleCI & Travis-CI keep failing #11
   // timeout = timeout || 60000  // BUG compatible with issue: node-tap strange behaviour cause CircleCI & Travis-CI keep failing #11
 
+  if (!food.type) {
+    food.type = 'HEARTBEAT'
+  }
+  if (!food.timeout) {
+    food.timeout = 60000 // 60s default. can be override in options but be careful about the number zero(0)
+  }
+
   if (!this) {
     throw new Error('onFeed() must has `this` of instanceof PuppetWeb')
   }
 
-  const feed = `${type}:[${data}]`
+  const feed = `${food.type}:[${food.data}]`
   log.silly('PuppetWebWatchdog', 'onFeed: %d, %s', timeout, feed)
 
   if (this.currentState() === 'killing'

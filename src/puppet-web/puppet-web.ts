@@ -17,7 +17,10 @@
 // const fs    = require('fs')
 // const co    = require('co')
 
-import Config         from '../config'
+import {
+  Config
+  , WatchdogFood
+}                     from '../config'
 import Contact        from '../contact'
 // import FriendRequest  from '../friend-request'
 import Message        from '../message'
@@ -85,7 +88,11 @@ class PuppetWeb extends Puppet {
       await this.initBridge()
       log.verbose('PuppetWeb', 'initBridge() done')
 
-      this.emit('watchdog', { data: 'inited' })
+      const food: WatchdogFood = {
+        data: 'inited'
+        , timeout: 120000 // 2 mins for first login
+      }
+      this.emit('watchdog', food)
 
       // return this
     // }).catch(e => {   // Reject

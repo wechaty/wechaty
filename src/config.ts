@@ -18,8 +18,8 @@ type ConfigSetting = {
   DEFAULT_APIHOST: string
   DEFAULT_PROFILE: string
   DEFAULT_TOKEN:  string
-DEFAULT_PROTOCOL: string
-CMD_CHROMIUM: string
+  DEFAULT_PROTOCOL: string
+  CMD_CHROMIUM: string
   DEFAULT_PORT: number
 
   port: number
@@ -119,9 +119,17 @@ Config.puppetInstance = function(instance?: Puppet): Puppet {
   return Config._puppetInstance
 }
 
+type WatchdogFood = {
+    data: any
+  , type?: 'HEARTBEAT' | 'POISON'
+  , timeout?: number  // millisecond
+}
+
 // module.exports = Config.default = Config.Config = Config
 export default Config
 export {
-    HeadType
+    Config
+  , HeadType
   , PuppetType
+  , WatchdogFood
 }
