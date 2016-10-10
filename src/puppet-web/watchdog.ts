@@ -9,25 +9,23 @@
  * Licenst: ISC
  * https://github.com/zixia/wechaty
  *
- */
-
-/**************************************
  *
  * Class PuppetWeb
  *
- ***************************************/
-const co    = require('co')
+ */
+// const co    = require('co')
 
-const log   = require('../brolog-env')
-const Event = require('./event')
+import log   from '../brolog-env'
+import Event from './event'
 
+/* tslint:disable:variable-name */
 const Watchdog = {
   onFeed
 }
 
 // feed me in time(after 1st feed), or I'll restart system
 function onFeed({
-  data
+  data = ''
   , type = 'HEARTBEAT'
   , timeout = 60000  // 60s default. can be override in options but be careful about the number zero(0)
 } = {}) {
@@ -103,7 +101,7 @@ function setWatchDogTimer(timeout, feed) {
 function watchDogReset(timeout, lastFeed) {
   log.verbose('PuppetWebWatchdog', 'watchDogReset() timeout %d', timeout)
   const e = new Error('watchdog reset after '
-                        + Math.floor(timeout/1000)
+                        + Math.floor(timeout / 1000)
                         + ' seconds, last feed:'
                         + '[' + lastFeed + ']'
                     )
@@ -120,7 +118,10 @@ function watchDogReset(timeout, lastFeed) {
 function autoSaveSession() {
   const SAVE_SESSION_INTERVAL = 5 * 60 * 1000 // 5 mins
   if (Date.now() - this.watchDogLastSaveSession > SAVE_SESSION_INTERVAL) {
-    log.verbose('PuppetWebWatchdog', 'watchDog() saveSession(%s) after %d minutes', this.profile, Math.floor(SAVE_SESSION_INTERVAL/1000/60))
+    log.verbose('PuppetWebWatchdog', 'watchDog() saveSession(%s) after %d minutes'
+                                    , this.profile
+                                    , Math.floor(SAVE_SESSION_INTERVAL / 1000 / 60)
+              )
     this.browser.saveSession()
     this.watchDogLastSaveSession = Date.now()
   }
@@ -147,11 +148,13 @@ function monitorScan(type) {
     this.lastScanEventTime = null
   } else if (this.lastScanEventTime
               && Date.now() - this.lastScanEventTime > scanTimeout) {
-    log.warn('PuppetWebWatchdog', 'monirotScan() refresh browser for no food of type scan after %s mins', Math.floor(scanTimeout/1000/60))
+    log.warn('PuppetWebWatchdog', 'monirotScan() refresh browser for no food of type scan after %s mins'
+                                , Math.floor(scanTimeout / 1000 / 60))
     // try to fix the problem
     this.browser.refresh()
     this.lastScanEventTime = Date.now()
   }
 }
 
-module.exports = Watchdog
+// module.exports = Watchdog
+export default Watchdog

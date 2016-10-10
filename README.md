@@ -14,15 +14,31 @@ Wechaty is a Bot Framework for Wechat **Personal** Account that help you easy cr
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=2592000)](https://nodejs.org/)
 [![Repo Size](https://reposs.herokuapp.com/?path=wechaty/wechaty)]()
 
+# WARNING
+
+## Wechaty is CONVERTING from Javascript to Typescript now ...
+
+```diff
++ Typescripting ...
+- Please DO NOT clone/pull until this WARNING message gone.
+```
+
+The usable version is: [v0.4.0](https://github.com/wechaty/wechaty/releases/tag/v0.4.0) (2016/10/9), which is the Latest Javascript Version
+
+Or install via `npm install wechaty`
+
+
 ## Voice of the Developer
 
 > @GasLin : it may be the best wecaht sdk i have seen in github! [link](https://github.com/wechaty/wechaty/issues/8#issuecomment-228971491)
 
+> @Jarvis : 目前用过的最好的微信开发库 [link](http://weibo.com/3296245513/Ec4iNp9Ld?type=comment)
+
+> @ccaapton : wechaty library fantastic! [link](https://github.com/wechaty/wechaty/issues/9)
+
 > @ak5 : Thanks for this it's quite cool! [link](https://github.com/wechaty/wechaty/issues/4)
 
-> @ccaapton : wechaty library looks fantastic! [link](https://github.com/wechaty/wechaty/issues/9)
-
-> @Samurais wechaty is great. 👍 [link](https://github.com/wechaty/wechaty/issues/36#issuecomment-251708382)
+> @Samurais : wechaty is great. 👍 [link](https://github.com/wechaty/wechaty/issues/36#issuecomment-251708382)
 
 # Examples
 Wechaty is dead easy to use: 7 lines javascript for your wechat bot.
@@ -655,6 +671,9 @@ npm test
 # Version History
 
 ## master
+1. #40 Converte to Typescript 
+
+## [v0.4.0](https://github.com/wechaty/wechaty/releases/tag/v0.4.0) (2016/10/9) The Latest Javascript Version
 1. #32 Extend Room Class with:
   1. Global events: `room-join`, `room-leave`, `room-topic`
   1. Room events: `join`, `leave`, `topic`

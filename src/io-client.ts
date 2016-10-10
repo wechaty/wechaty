@@ -10,42 +10,49 @@
  *
  */
 
-const co = require('co')
+// const co = require('co')
 
 /**
  * DO NOT use `require('../')` here!
  * because it will casue a LOOP require ERROR
  */
-const Wechaty = require('./wechaty')
-const Config  = require('./config')
-const Io      = require('./io')
-const brolog  = require('./brolog-env')
+// import Brolog   from 'brolog'
+
+import Config   from './config'
+import Io       from './io'
+import Wechaty  from './wechaty'
+import brolog   from './brolog-env'
 
 class IoClient {
-  constructor({
-    initToken   = Config.token || Config.DEFAULT_TOKEN
-    , log       = brolog
-  } = {}) {
+  private _targetState
+  private _currentState
+
+  private wechaty: Wechaty
+  private io: Io
+
+  constructor(
+      private token: string = Config.token || Config.DEFAULT_TOKEN
+    , private log = brolog
+  ) {
     if (!log) {
       const e = new Error('constructor() log(npmlog/brolog) must be set')
       throw e
     }
     this.log = log
-    this.log.verbose('IoClient', 'constructor() with token: %s', initToken)
+    this.log.verbose('IoClient', 'constructor() with token: %s', token)
 
-    if (!initToken) {
+    if (!token) {
       const e = new Error('constructor() token must be set')
       this.log.error('IoClient', e.message)
       throw e
     }
-    this.token(initToken)
 
     this.targetState('disconnected')
     this.currentState('disconnected')
   }
 
  // targetState : 'connected' | 'disconnected'
-  targetState(newState) {
+  private targetState(newState?) {
     if (newState) {
       this.log.verbose('IoClient', 'targetState(%s)', newState)
       this._targetState = newState
@@ -54,7 +61,7 @@ class IoClient {
   }
 
   // currentState : 'connecting' | 'connected' | 'disconnecting' | 'disconnected'
-  currentState(newState) {
+  private currentState(newState?) {
     if (newState) {
       this.log.verbose('IoClient', 'currentState(%s)', newState)
       this._currentState = newState
@@ -62,8 +69,7 @@ class IoClient {
     return this._currentState
   }
 
-
-  init() {
+  public async init(): Promise<IoClient> {
     this.log.verbose('IoClient', 'init()')
 
     if (/connecting|disconnecting/.test(this.currentState())) {
@@ -74,28 +80,30 @@ class IoClient {
     this.targetState('connected')
     this.currentState('connecting')
 
-    const wechaty = this.wechaty  = new Wechaty({
+    this.wechaty  = new Wechaty({
       profile: Config.DEFAULT_PROFILE
     })
 
-    return co.call(this, function* () {
-      this.io       = yield this.initIo()
-      this.wechaty  = yield this.initWechaty()
+    // return co.call(this, function* () {
+    try {
+      this.io       = await this.initIo()
+      this.wechaty  = await this.initWechaty()
       this.currentState('connected')
       return this
-    }).catch(e => {
+    // }).catch(e => {
+    } catch (e) {
       this.log.error('IoClient', 'init() exception: %s', e.message)
       this.currentState('disconnected')
       throw e
-    })
+    }
   }
 
-  initWechaty() {
+  private initWechaty(): Promise<Wechaty> {
     this.log.verbose('IoClient', 'initWechaty()')
 
     if (this.targetState() !== 'connected') {
       this.log.warn('IoClient', 'initWechaty() targetState is not `connected`, skipped')
-      return Promise.resolve(wechaty)
+      return Promise.resolve(this.wechaty)
     }
 
     const wechaty = this.wechaty
@@ -122,8 +130,8 @@ class IoClient {
                   })
   }
 
-  initIo() {
-    this.log.verbose('IoClient', 'initIo() with token %s', this.token())
+  private initIo(): Promise<Io> {
+    this.log.verbose('IoClient', 'initIo() with token %s', this.token)
 
     if (this.targetState() !== 'connected') {
       this.log.warn('IoClient', 'initIo() targetState is not `connected`, skipped')
@@ -138,7 +146,7 @@ class IoClient {
 
     const io = new Io({
       wechaty
-      , token: this.token()
+      , token: this.token
     })
 
     return io.init()
@@ -148,7 +156,7 @@ class IoClient {
             })
   }
 
-  initWeb(port = Config.httpPort) {
+  public initWeb(port = Config.httpPort) {
 //    if (process.env.DYNO) {
 //    }
     const app = require('express')()
@@ -167,25 +175,26 @@ class IoClient {
     })
   }
 
-  onMessage(m) {
-    const from = m.from()
-    const to = m.to()
-    const content = m.toString()
-    const room = m.room()
+  private onMessage(m) {
+    // const from = m.from()
+    // const to = m.to()
+    // const content = m.toString()
+    // const room = m.room()
 
     // this.log.info('Bot', '%s<%s>:%s'
     //               , (room ? '['+room.topic()+']' : '')
     //               , from.name()
     //               , m.toStringDigest()
     //         )
+    const puppet = Config.puppetInstance()
 
-    if (/^wechaty|botie/i.test(m.get('content')) && !bot.self(m)) {
-      bot.reply(m, 'https://www.wechaty.io')
+    if (/^wechaty|botie/i.test(m.get('content')) && !puppet.self(m)) {
+      puppet.reply(m, 'https://www.wechaty.io')
         .then(_ => this.log.info('Bot', 'REPLIED to magic word "wechaty"'))
     }
   }
 
-  start() {
+  public start(): Promise<IoClient> {
     this.log.verbose('IoClient', 'start()')
 
     if (!this.wechaty) {
@@ -200,10 +209,11 @@ class IoClient {
     this.targetState('connected')
     this.currentState('connecting')
 
-    return this.initIo(this.wechaty)
+    return this.initIo()
               .then(io => {
                 this.io = io
                 this.currentState('connected')
+                return this
               })
               .catch(e => {
                 this.log.error('IoClient', 'start() exception: %s', e.message)
@@ -212,7 +222,7 @@ class IoClient {
               })
   }
 
-  stop() {
+  public stop() {
     this.log.verbose('IoClient', 'stop()')
     this.targetState('disconnected')
     this.currentState('disconnecting')
@@ -229,28 +239,22 @@ class IoClient {
     return p
   }
 
-  restart() {
+  public async restart(): Promise<IoClient> {
     this.log.verbose('IoClient', 'restart()')
 
-    return co.call(this, function* () {
-      yield this.stop()
-      yield this.start()
+    // return co.call(this, function* () {
+    try {
+      await this.stop()
+      await this.start()
       return this
-    }).catch(e => {
+    // }).catch(e => {
+    } catch (e) {
       this.log.error('IoClient', 'restart() exception %s', e.message)
       throw e
-    })
-  }
-
-  token(newToken) {
-    if (newToken) {
-      this.log.verbose('IoClient', 'token(%s)', newToken)
-      this._token = newToken
     }
-    return this._token
   }
 
-  quit() {
+  public async quit(): Promise<any> {
     this.log.verbose('IoClient', 'quit()')
 
     if (this.currentState() === 'disconnecting') {
@@ -261,28 +265,30 @@ class IoClient {
     this.targetState('disconnected')
     this.currentState('disconnecting')
 
-    return co.call(this, function* () {
-
+    // return co.call(this, function* () {
+    try {
       if (this.wechaty) {
-        yield this.wechaty.quit()
+        await this.wechaty.quit()
         this.wechaty = null
       } else { this.log.warn('IoClient', 'quit() no this.wechaty') }
 
       if (this.io) {
-        yield this.io.quit()
+        await this.io.quit()
         this.io = null
       } else { this.log.warn('IoClient', 'quit() no this.io') }
 
       this.currentState('disconnected')
-    }).catch(e => {
+    // }).catch(e => {
+    } catch (e) {
       this.log.error('IoClient', 'exception: %s', e.message)
 
       // XXX fail safe?
       this.currentState('disconnected')
 
       throw e
-    })
+    }
   }
 }
 
-module.exports = IoClient.default = IoClient.IoClient = IoClient
+// module.exports = IoClient.default = IoClient.IoClient = IoClient
+export default IoClient

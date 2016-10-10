@@ -6,25 +6,63 @@
  * https://github.com/zixia/wechaty
  *
  */
-const Wechaty = require('./wechaty')
-const { log }     = require('./brolog-env')
-const { UtilLib } = require('./util-lib')
-const { Config }  = require('./config')
+import Config   from './config'
+import UtilLib  from './util-lib'
+
+import log      from './brolog-env'
+
+type ContactObj = {
+  id:       string
+  uin:      string
+  name:     string
+  remark:   string
+  weixin:   string
+  sex:      string
+  province: string
+  city:     string
+  signature:  string
+  address:    string
+  stranger: boolean
+  star:     boolean
+}
+
+type ContactRawObj = {
+  UserName:     string
+  Uin:          string
+  Alias:        string
+  RemarkName:   string
+  Sex:          string
+  Province:     string
+  City:         string
+  NickName:     string
+  StarFriend:   string
+  stranger:     string
+  Signature:    string
+}
+
+type ContactQueryFilter = {
+  name: string | RegExp
+}
 
 class Contact {
-  constructor(id) {
+  private static pool = new Map<string, Contact>()
+
+  private obj: ContactObj
+  private rawObj: ContactRawObj
+
+  constructor(public readonly id: string) {
     log.silly('Contact', `constructor(${id})`)
 
-    if (id && typeof id !== 'string') { throw new Error('id must be string if provided. we got: ' + typeof id) }
-    this.id   = id
-    this.obj  = {}
+    if (typeof id !== 'string') {
+      throw new Error('id must be string. found: ' + typeof id)
+    }
   }
 
-  toString()  { return this.id }
-  toStringEx() { return `Contact(${this.obj.name}[${this.id}])` }
+  public toString()  { return this.id }
+  public toStringEx() { return `Contact(${this.obj && this.obj.name}[${this.id}])` }
 
-  parse(rawObj) {
-    return !rawObj ? {} : {
+  private parse(rawObj: ContactRawObj): ContactObj {
+    return !rawObj ? null : {
       id:           rawObj.UserName
       , uin:        rawObj.Uin    // stable id: 4763975 || getCookie("wxuin")
       , weixin:     rawObj.Alias  // Wechat ID
@@ -42,14 +80,14 @@ class Contact {
     }
   }
 
-  name()      { return UtilLib.plainText(this.obj.name) }
-  remark()    { return this.obj.remark }
-  stranger()  { return this.obj.stranger }
-  star()      { return this.obj.star }
+  public name()      { return UtilLib.plainText(this.obj && this.obj.name) }
+  public remark()    { return this.obj && this.obj.remark }
+  public stranger()  { return this.obj && this.obj.stranger }
+  public star()      { return this.obj && this.obj.star }
 
-  get(prop)   { return this.obj[prop] }
+  public get(prop)   { return this.obj && this.obj[prop] }
 
-  ready(contactGetter) {
+  public ready(contactGetter?: (id: string) => Promise<ContactRawObj>): Promise<Contact> {
     log.silly('Contact', 'ready(' + (contactGetter ? typeof contactGetter : '') + ')')
     if (!this.id) {
       log.warn('Contact', 'ready() call on an un-inited contact')
@@ -79,20 +117,19 @@ class Contact {
             })
   }
 
-  dumpRaw() {
+  public dumpRaw() {
     console.error('======= dump raw contact =======')
     Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj[k]}`))
   }
-  dump()    {
+  public dump()    {
     console.error('======= dump contact =======')
     Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj[k]}`))
   }
 
-  // private
-  static _find({
-    name
-  }) {
-    log.silly('Cotnact', '_find(%s)', name)
+  public static findAll(query: ContactQueryFilter): Promise<Contact[]> {
+    log.silly('Cotnact', 'findAll({ name: %s })', query.name)
+
+    const name = query.name
 
     if (!name) {
       throw new Error('name not found')
@@ -109,74 +146,41 @@ class Contact {
 
     return Config.puppetInstance()
                   .contactFind(filterFunction)
-                  .then(idList => {
-                    return idList
+                  .catch(e => {
+                    log.error('Contact', 'findAll() rejected: %s', e.message)
+                    return [] // fail safe
+                  })
+  }
+
+  public static find(query: ContactQueryFilter): Promise<Contact> {
+    log.verbose('Contact', 'find(%s)', query.name)
+
+    return Contact.findAll(query)
+                  .then(contactList => {
+                    if (contactList && contactList.length > 0) {
+                      return contactList[0]
+                    }
+                    return null
                   })
                   .catch(e => {
-                    log.error('Contact', '_find() rejected: %s', e.message)
-                    throw e
+                    log.error('Contact', 'find() rejected: %s', e.message)
+                    return null // fail safe
                   })
   }
 
-  static find({
-    name
-  }) {
-    log.verbose('Contact', 'find(%s)', name)
+  public static load(id: string): Contact {
+    if (!id || typeof id !== 'string') {
+      return null
+    }
 
-    return Contact._find({name})
-              .then(idList => {
-                if (!idList || !Array.isArray(idList)){
-                  throw new Error('_find return error')
-                }
-                if (idList.length < 1) {
-                  return null
-                }
-                const id = idList[0]
-                return Contact.load(id)
-              })
-              .catch(e => {
-                log.error('Contact', 'find() rejected: %s', e.message)
-                return null // fail safe
-              })
-  }
-
-  static findAll({
-    name
-  }) {
-    log.verbose('Contact', 'findAll(%s)', name)
-
-    return Contact._find({name})
-              .then(idList => {
-                // console.log(idList)
-                if (!idList || !Array.isArray(idList)){
-                  throw new Error('_find return error')
-                }
-                if (idList.length < 1) {
-                  return []
-                }
-                return idList.map(i => Contact.load(i))
-              })
-              .catch(e => {
-                log.error('Contact', 'findAll() rejected: %s', e.message)
-                return [] // fail safe
-              })
+    if (!(id in Contact.pool)) {
+      Contact.pool[id] = new Contact(id)
+    }
+    return Contact.pool[id]
   }
 
 }
 
-Contact.init = function() { Contact.pool = {} }
-Contact.init()
-
-Contact.load = function(id) {
-  if (!id || typeof id !== 'string') {
-    return null
-  }
-
-  if (!(id in Contact.pool)) {
-    Contact.pool[id] = new Contact(id)
-  }
-  return Contact.pool[id]
-}
 // Contact.search = function(options) {
 //   if (options.name) {
 //     const regex = new RegExp(options.name)
@@ -188,4 +192,6 @@ Contact.load = function(id) {
 //   return []
 // }
 
-module.exports = Contact.default = Contact.Contact = Contact
+// module.exports = Contact.default = Contact.Contact = Contact
+
+export default Contact

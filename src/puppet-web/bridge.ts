@@ -1,36 +1,40 @@
 /**
-*
-* Wechaty - Wechat for Bot, and human who talk to bot.
-*
-* Inject this js code to browser,
-* in order to interactive with wechat web program.
-*
-* Licenst: MIT
-* https://github.com/zixia/wechaty-lib
-*
-*/
-const co = require('co')
+ *
+ * Wechaty - Wechat for Bot, and human who talk to bot.
+ *
+ * Inject this js code to browser,
+ * in order to interactive with wechat web program.
+ *
+ * Licenst: MIT
+ * https://github.com/zixia/wechaty-lib
+ *
+ */
+ /* tslint:disable:no-var-requires */
 const retryPromise  = require('retry-promise').default
 
-const log = require('../brolog-env')
+import log        from '../brolog-env'
+
+import PuppetWeb  from './puppet-web'
 
 class Bridge {
-  constructor(options) {
-    if (!options || !options.puppet) {
-      throw new Error('Bridge need a puppet')
+
+  constructor(
+      private puppet: PuppetWeb
+    , private port: number
+  ) {
+    if (!puppet || !port) {
+      throw new Error('Bridge need puppet & port')
     }
 
     log.verbose('PuppetWebBridge', 'new Bridge({puppet: %s, port: %s})'
-      , options.puppet.constructor.name
-      , options.port
+      , puppet.constructor.name
+      , port
     )
-
-    this.puppet = options.puppet
-    this.port   = options.port || 8788 // W(87) X(88), ascii char code ;-]
   }
-  toString() { return `Bridge({puppet: ${this.puppet.constructor.name}, port: ${this.port}})` }
 
-  init() {
+  public toString() { return `Bridge({puppet: ${this.puppet.constructor.name}, port: ${this.port}})` }
+
+  public async init(): Promise<Bridge> {
     log.verbose('PuppetWebBridge', 'init()')
 
     const max = 15
@@ -66,13 +70,14 @@ class Bridge {
     })
   }
 
-  inject() {
+  private async inject(): Promise<any> {
     log.verbose('PuppetWebBridge', 'inject()')
 
-    return co.call(this, function* () {
+    // return co.call(this, function* () {
+    try {
       const injectio = this.getInjectio()
 
-      let retObj = yield this.execute(injectio, this.port)
+      let retObj = await this.execute(injectio, this.port)
 
       if (retObj && /^(2|3)/.test(retObj.code)) {   // HTTP Code 2XX & 3XX
         log.silly('PuppetWebBridge', 'inject() eval(Wechaty) return code[%d] message[%s] port[%d]'
@@ -81,7 +86,7 @@ class Bridge {
         throw new Error('execute injectio error: ' + retObj.code + ', ' + retObj.message)
       }
 
-      retObj = yield this.proxyWechaty('init')
+      retObj = await this.proxyWechaty('init')
       if (retObj && /^(2|3)/.test(retObj.code)) {   // HTTP Code 2XX & 3XX
         log.silly('PuppetWebBridge', 'inject() Wechaty.init() return code[%d] message[%s] port[%d]'
           , retObj.code, retObj.message, retObj.port)
@@ -89,20 +94,21 @@ class Bridge {
         throw new Error('execute proxyWechaty(init) error: ' + retObj.code + ', ' + retObj.message)
       }
 
-      const r = yield this.ding('inject()')
-      if (r!=='inject()') {
+      const r = await this.ding('inject()')
+      if (r !== 'inject()') {
         throw new Error('fail to get right return from call ding()')
       }
       log.silly('PuppetWebBridge', 'inject() ding success')
 
       return true
-    })
-    .catch (e => {
+    // }).catch (e => {
+    } catch (e) {
       log.verbose('PuppetWebBridge', 'inject() exception: %s. stack: %s', e.message, e.stack)
       throw e
-    })
+    }
   }
-  getInjectio() {
+
+  public getInjectio(): string {
     const fs = require('fs')
     const path = require('path')
 
@@ -118,7 +124,7 @@ class Bridge {
               + '; return rejectioReturnValue'
   }
 
-  logout() {
+  public logout(): Promise<any> {
     log.verbose('PuppetWebBridge', 'quit()')
     return this.proxyWechaty('logout')
     .catch(e => {
@@ -126,7 +132,8 @@ class Bridge {
       throw e
     })
   }
-  quit()                    {
+
+  public quit(): Promise<void> {
     log.verbose('PuppetWebBridge', 'quit()')
     return this.proxyWechaty('quit')
     .catch(e => {
@@ -135,7 +142,7 @@ class Bridge {
     })
   }
 
-  getUserName() {
+  public getUserName(): Promise<string> {
     return this.proxyWechaty('getUserName')
               .catch(e => {
                 log.error('PuppetWebBridge', 'getUserName() exception: %s', e.message)
@@ -143,7 +150,7 @@ class Bridge {
               })
   }
 
-  contactFind(filterFunction) {
+  public contactFind(filterFunction): Promise<string[]> {
     return this.proxyWechaty('contactFindAsync', filterFunction)
                 .catch(e => {
                   log.error('PuppetWebBridge', 'contactFindAsync() exception: %s', e.message)
@@ -151,7 +158,7 @@ class Bridge {
                 })
   }
 
-  roomFind(filterFunction) {
+  public roomFind(filterFunction): Promise<string[]> {
     return this.proxyWechaty('roomFind', filterFunction)
                 .catch(e => {
                   log.error('PuppetWebBridge', 'roomFind() exception: %s', e.message)
@@ -159,7 +166,7 @@ class Bridge {
                 })
   }
 
-  roomDelMember(roomId, contactId) {
+  public roomDelMember(roomId, contactId): Promise<void> {
     if (!roomId || !contactId) {
       throw new Error('no roomId or contactId')
     }
@@ -171,7 +178,7 @@ class Bridge {
                 })
   }
 
-  roomAddMember(roomId, contactId) {
+  public roomAddMember(roomId, contactId): Promise<void> {
     log.verbose('PuppetWebBridge', 'roomAddMember(%s, %s)', roomId, contactId)
 
     if (!roomId || !contactId) {
@@ -184,7 +191,7 @@ class Bridge {
                 })
   }
 
-  roomModTopic(roomId, topic) {
+  public roomModTopic(roomId, topic): Promise<void> {
     if (!roomId) {
       throw new Error('no roomId')
     }
@@ -196,19 +203,26 @@ class Bridge {
                 })
   }
 
-  roomCreate(contactIdList) {
+  public roomCreate(contactIdList: string[], topic?: string): Promise<string> {
     if (!contactIdList || !Array.isArray(contactIdList)) {
       throw new Error('no valid contactIdList')
     }
 
-    return this.proxyWechaty('roomCreateAsync', contactIdList)
+    return this.proxyWechaty('roomCreateAsync', contactIdList, topic)
+                .then(roomId => {
+                  if (typeof roomId === 'object') {
+                    // It is a Error Object send back by callback in browser(WechatyBro)
+                    throw roomId
+                  }
+                  return roomId
+                })
                 .catch(e => {
                   log.error('PuppetWebBridge', 'roomCreate(%s) exception: %s', contactIdList, e.message)
                   throw e
                 })
   }
 
-  verifyUserRequest(contactId, hello) {
+  public verifyUserRequest(contactId, hello): Promise<void> {
     log.verbose('PuppetWebBridge', 'verifyUserRequest(%s, %s)', contactId, hello)
 
     if (!contactId) {
@@ -221,7 +235,7 @@ class Bridge {
                 })
   }
 
-  verifyUserOk(contactId, ticket) {
+  public verifyUserOk(contactId, ticket): Promise<void> {
     log.verbose('PuppetWebBridge', 'verifyUserOk(%s, %s)', contactId, ticket)
 
     if (!contactId || !ticket) {
@@ -234,7 +248,7 @@ class Bridge {
                 })
   }
 
-  send(toUserName, content) {
+  public send(toUserName, content): Promise<void> {
     return this.proxyWechaty('send', toUserName, content)
               .catch(e => {
                 log.error('PuppetWebBridge', 'send() exception: %s', e.message)
@@ -242,15 +256,16 @@ class Bridge {
               })
   }
 
-  getMsgImg(id) {
+  public getMsgImg(id): Promise<string> {
     return this.proxyWechaty('getMsgImg', id)
     .catch(e => {
       log.silly('PuppetWebBridge', 'proxyWechaty(getMsgImg, %d) exception: %s', id, e.message)
       throw e
     })
   }
-  getContact(id) {
-    if (id!==id) { // NaN
+
+  public getContact(id: string): Promise<string> {
+    if (id !== id) { // NaN
       const err = new Error('NaN! where does it come from?')
       log.error('PuppetWebBridge', 'getContact(NaN): %s', err)
       return Promise.reject(err)
@@ -290,7 +305,7 @@ class Bridge {
   /**
    * Proxy Call to Wechaty in Bridge
    */
-  proxyWechaty(wechatyFunc, ...args) {
+  private proxyWechaty(wechatyFunc, ...args): Promise<any> {
     const argsEncoded = new Buffer(
       encodeURIComponent(
         JSON.stringify(args)
@@ -339,7 +354,7 @@ class Bridge {
   /**
    * call REAL browser excute for other methods
    */
-  execute(script, ...args) {
+  private execute(script, ...args): Promise<any> {
     if (!this.puppet || !this.puppet.browser) {
       return Promise.reject(new Error('execute(): no puppet or no puppet.browser in bridge'))
     }
@@ -350,7 +365,7 @@ class Bridge {
     })
   }
 
-  executeAsync(script, ...args) {
+  private executeAsync(script, ...args): Promise<any> {
     if (!this.puppet || !this.puppet.browser) {
       return Promise.reject(new Error('execute(): no puppet or no puppet.browser in bridge'))
     }
@@ -361,7 +376,7 @@ class Bridge {
     })
   }
 
-  ding(data) {
+  public ding(data): Promise<any> {
     return this.proxyWechaty('ding', data)
     .catch(e => {
       log.error('PuppetWebBridge', 'ding(%s) exception: %s', data, e.message)
@@ -370,8 +385,11 @@ class Bridge {
   }
 }
 
-module.exports = Bridge
+// module.exports = Bridge
+export default Bridge
 
+/* tslint:disable:jsdoc-format */
+/* tslint:disable:max-line-length */
 /**
  *
  * some handy browser javascript snips
@@ -400,7 +418,6 @@ ng-init="imageInit(message,message.MMPreviewSrc || message.MMThumbSrc || getMsgI
 ng-src="/cgi-bin/mmwebwx-bin/webwxgetmsgimg?&amp;MsgID=6944236226252183282&amp;skey=%40crypt_c117402d_2b2a8c58340c8f4b0a4570cb8f11a1e8&amp;type=slave"
 src="/cgi-bin/mmwebwx-bin/webwxgetmsgimg?&amp;MsgID=6944236226252183282&amp;skey=%40crypt_c117402d_2b2a8c58340c8f4b0a4570cb8f11a1e8&amp;type=slave"
 style="height: 100px; width: 75px;">
-
 
 XMLHttpRequestOrig = XMLHttpRequest
 XMLHttpRequest = function() { return new XMLHttpRequestOrig() }

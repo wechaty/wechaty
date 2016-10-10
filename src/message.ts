@@ -1,37 +1,92 @@
 /**
  *
- * wechaty: Wechat for Bot. and for human who talk to bot/robot
+ * Wechaty: Wechat for Bot. Connecting ChatBots
  *
  * Licenst: ISC
- * https://github.com/zixia/wechaty
+ * https://github.com/wechaty/wechaty
  *
  */
-const co = require('co')
+// const co = require('co')
 
-const Wechaty = require('./wechaty')
-const Contact = require('./contact')
-const Room    = require('./room')
-const Config  = require('./config')
+// import Config  from './config'
+import Contact from './contact'
+import Room    from './room'
+import UtilLib from './util-lib'
 
-const UtilLib = require('./util-lib')
-const log     = require('./brolog-env')
+import log     from './brolog-env'
+
+type MessageRawObj = {
+  MsgId:            string
+  MsgType:          string
+  MMActualSender:   string
+  ToUserName:       string
+  MMActualContent:  string // Content has @id prefix added by wx
+  Status:           string
+  MMDigest:         string
+  MMDisplayTime:    string  // Javascript timestamp of milliseconds
+}
+
+type MessageObj = {
+  id:       string
+  type:     string
+  from:     string
+  to:       string
+  room?:    string
+  content:  string
+  status:   string
+  digest:   string
+  date:     string
+
+  url?:     string  // for MessageMedia class
+}
+
+type MessageType = {
+  [index: string]: number|string
+}
 
 class Message {
-  constructor(rawObj) {
+  public static counter = 0
+
+  public static TYPE: MessageType = {
+    TEXT:               1,
+    IMAGE:              3,
+    VOICE:              34,
+    VERIFYMSG:          37,
+    POSSIBLEFRIEND_MSG: 40,
+    SHARECARD:          42,
+    VIDEO:              43,
+    EMOTICON:           47,
+    LOCATION:           48,
+    APP:                49,
+    VOIPMSG:            50,
+    STATUSNOTIFY:       51,
+    VOIPNOTIFY:         52,
+    VOIPINVITE:         53,
+    MICROVIDEO:         62,
+    SYSNOTICE:          9999,
+    SYS:                10000,
+    RECALLED:           10002
+  }
+
+  public readonly id: string
+
+  protected obj = <MessageObj>{}
+
+  constructor(private rawObj?: MessageRawObj) {
     Message.counter++
 
     if (typeof rawObj === 'string') {
-      rawObj = JSON.parse(rawObj)
+      this.rawObj = JSON.parse(rawObj)
     }
 
-    this.rawObj = rawObj = rawObj || {}
+    this.rawObj = rawObj = rawObj || <MessageRawObj>{}
     this.obj = this.parse(rawObj)
     this.id = this.obj.id
   }
 
   // Transform rawObj to local m
-  parse(rawObj) {
-    const obj = {
+  private parse(rawObj): MessageObj {
+    const obj: MessageObj = {
       id:             rawObj.MsgId
       , type:         rawObj.MsgType
       , from:         rawObj.MMActualSender
@@ -57,32 +112,32 @@ class Message {
     }
     return obj
   }
-  toString() {
+  public toString() {
     return UtilLib.plainText(this.obj.content)
   }
-  toStringDigest() {
+  public toStringDigest() {
     const text = UtilLib.digestEmoji(this.obj.digest)
     return '{' + this.typeEx() + '}' + text
   }
 
-  toStringEx() {
-    var s = `${this.constructor.name}#${Message.counter}`
+  public toStringEx() {
+    let s = `${this.constructor.name}#${Message.counter}`
     s += '(' + this.getSenderString()
     s += ':' + this.getContentString() + ')'
     return s
   }
-  getSenderString() {
+  public getSenderString() {
     const name  = Contact.load(this.obj.from).toStringEx()
     const room = this.obj.room ? Room.load(this.obj.room).toStringEx() : null
     return '<' + name + (room ? `@${room}` : '') + '>'
   }
-  getContentString() {
+  public getContentString() {
     let content = UtilLib.plainText(this.obj.content)
-    if (content.length > 20) { content = content.substring(0,17) + '...' }
+    if (content.length > 20) { content = content.substring(0, 17) + '...' }
     return '{' + this.type() + '}' + content
   }
 
-  from(contact) {
+  public from(contact?: Contact) {
     if (contact) {
       if (contact instanceof Contact) {
         this.obj.from = contact.id
@@ -95,7 +150,7 @@ class Message {
     return this.obj.from ? Contact.load(this.obj.from) : null
   }
 
-  to(contact) {
+  public to(contact?: Contact|Room|string) {
     if (contact) {
       if (contact instanceof Contact || contact instanceof Room) {
         this.obj.to = contact.id
@@ -108,14 +163,14 @@ class Message {
     return this.obj.to ? Contact.load(this.obj.to) : null
   }
 
-  content(content) {
+  public content(content?) {
     if (content) {
       this.obj.content = content
     }
     return this.obj.content
   }
 
-  room(room) {
+  public room(room?) {
     if (room) {
       if (room instanceof Room) {
         this.obj.room = room.id
@@ -128,33 +183,35 @@ class Message {
     return this.obj.room ? Room.load(this.obj.room) : null
   }
 
-  type()    { return this.obj.type }
-  typeEx()  { return Message.Type[this.obj.type] }
-  count()   { return Message.counter }
+  public type()    { return this.obj.type }
+  public typeEx()  { return Message.TYPE[this.obj.type] }
+  public count()   { return Message.counter }
 
-  ready() {
+  public async ready(): Promise<Message> {
     log.silly('Message', 'ready()')
 
-    return co.call(this, function* () {
+    // return co.call(this, function* () {
+    try {
       const from  = Contact.load(this.obj.from)
       const to    = Contact.load(this.obj.to)
       const room  = this.obj.room ? Room.load(this.obj.room) : null
 
-      yield from.ready()                // Contact from
-      yield to.ready()                  // Contact to
-      if (room) { yield room.ready() }  // Room member list
+      await from.ready()                // Contact from
+      await to.ready()                  // Contact to
+      if (room) { await room.ready() }  // Room member list
 
       return this         // return this for chain
-    }).catch(e => { // Exception
+    // }).catch(e => { // Exception
+    } catch (e) {
         log.error('Message', 'ready() exception: %s', e)
         // console.log(e)
         // this.dump()
         // this.dumpRaw()
         throw e
-    })
+    }
   }
 
-  get(prop) {
+  public get(prop): string {
     if (!prop || !(prop in this.obj)) {
       const s = '[' + Object.keys(this.obj).join(',') + ']'
       throw new Error(`Message.get(${prop}) must be in: ${s}`)
@@ -162,65 +219,53 @@ class Message {
     return this.obj[prop]
   }
 
-  set(prop, value) {
+  public set(prop, value) {
     this.obj[prop] = value
     return this
   }
 
-  dump() {
+  public dump() {
     console.error('======= dump message =======')
     Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj[k]}`))
   }
-  dumpRaw() {
+  public dumpRaw() {
     console.error('======= dump raw message =======')
     Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj[k]}`))
   }
 
-  static find(selector, option) {
-    return new Message({MsgId: '-1'})
+  public static find(selector, option) {
+    // return new Message({MsgId: '-1'})
   }
 
-  static findAll(selector, option) {
+  public static findAll(selector, option) {
     return [
-      new Message   ({MsgId: '-2'})
-      , new Message ({MsgId: '-3'})
+      // new Message   ({MsgId: '-2'})
+      // , new Message ({MsgId: '-3'})
     ]
   }
+
+  public static initType() {
+    Object.keys(Message.TYPE).forEach(k => {
+      const v = Message.TYPE[k]
+      Message.TYPE[v] = k // Message.Type[1] = 'TEXT'
+    })
+  }
 }
 
-Message.counter = 0
-Message.Type = {
-  TEXT:               1,
-  IMAGE:              3,
-  VOICE:              34,
-  VERIFYMSG:          37,
-  POSSIBLEFRIEND_MSG: 40,
-  SHARECARD:          42,
-  VIDEO:              43,
-  EMOTICON:           47,
-  LOCATION:           48,
-  APP:                49,
-  VOIPMSG:            50,
-  STATUSNOTIFY:       51,
-  VOIPNOTIFY:         52,
-  VOIPINVITE:         53,
-  MICROVIDEO:         62,
-  SYSNOTICE:          9999,
-  SYS:                10000,
-  RECALLED:           10002
-}
-Object.keys(Message.Type).forEach(k => {
-  const v = Message.Type[k]
-  Message.Type[v] = k // Message.Type[1] = 'TEXT'
-})
+Message.initType()
 
 // Message.attach = function(puppet) {
 //   log.verbose('Message', 'attach() to %s', puppet && puppet.constructor.name)
 //   Message.puppet = puppet
 // }
 
-module.exports = Message.default = Message.Message = Message
+// module.exports = Message.default = Message.Message = Message
+export default Message
 
 /*
- * join room in mac client: https://support.weixin.qq.com/cgi-bin/mmsupport-bin/addchatroombyinvite?ticket=AUbv%2B4GQA1Oo65ozlIqRNw%3D%3D&exportkey=AS9GWEg4L82fl3Y8e2OeDbA%3D&lang=en&pass_ticket=T6dAZXE27Y6R29%2FFppQPqaBlNwZzw9DAN5RJzzzqeBA%3D&wechat_real_lang=en
+ * join room in mac client: https://support.weixin.qq.com/cgi-bin/
+ * mmsupport-bin/addchatroombyinvite
+ * ?ticket=AUbv%2B4GQA1Oo65ozlIqRNw%3D%3D&exportkey=AS9GWEg4L82fl3Y8e2OeDbA%3D
+ * &lang=en&pass_ticket=T6dAZXE27Y6R29%2FFppQPqaBlNwZzw9DAN5RJzzzqeBA%3D
+ * &wechat_real_lang=en
  */

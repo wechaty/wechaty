@@ -9,83 +9,84 @@
  * https://github.com/zixia/wechaty
  *
  */
-const fs          = require('fs')
-const io          = require('socket.io')
-const path        = require('path')
-const https       = require('https')
-const bodyParser  = require('body-parser')
+import * as io          from 'socket.io'
+import * as https       from 'https'
+import * as bodyParser  from 'body-parser'
 
-const Config  = require('../config')
-const log     = require('../brolog-env')
+import * as express     from 'express'
+import { EventEmitter } from 'events'
 
-const Express       = require('express')
-const EventEmitter  = require('events')
+import log     from '../brolog-env'
 
 class Server extends EventEmitter {
-  constructor({
-    port
-  }) {
+  private express:      express.Application
+  private httpsServer:  https.Server
+
+  private socketServer: SocketIO.Server
+  private socketClient: SocketIO.Socket
+
+  constructor(
+    private port: number
+  ) {
     super()
 
     if (!port) {
       throw new Error('port not found')
     }
 
-    this.port = port
+    // this.port = port
   }
 
-  toString() { return `Server({port:${this.port}})` }
+  public toString() { return `Server({port:${this.port}})` }
 
-  init() {
+  public async init(): Promise<Server> {
     log.verbose('PuppetWebServer', `init() on port ${this.port}`)
-    return new Promise((resolve, reject) => {
-      // this.initEventsToClient()
 
+    // return new Promise((resolve, reject) => {
+      // this.initEventsToClient()
+    try {
       this.express      = this.createExpress()
-      this.httpsServer  = this.createHttpsServer(this.express
-        , r => resolve(r), e => reject(e)
-      )
+      this.httpsServer  = await this.createHttpsServer(this.express)
+        // , r => resolve(r), e => reject(e)
       this.socketServer = this.createSocketIo(this.httpsServer)
-      return this
-    })
-    .then(_ => {
+
       log.verbose('PuppetWebServer', 'init()-ed')
       return this
-    })
-    .catch(e => {
+    } catch (e) {
+    // .catch(e => {
       log.error('PuppetWebServer', 'init() exception: %s', e.message)
       throw e
-    })
+    }
   }
 
   /**
    * Https Server
    */
-  createHttpsServer(express, resolve, reject) {
-    return https.createServer({
-      key:    require('./ssl-pem').key
-      , cert: require('./ssl-pem').cert
-    }, express) // XXX: is express must exist here? try to get rid it later. 2016/6/11
-    .listen(this.port, err => {
-      if (err) {
-        log.error('PuppetWebServer', 'createHttpsServer() exception: %s', err)
-        if (typeof reject === 'function') {
-          reject(err)
-        }
-        return
-      }
-      log.verbose('PuppetWebServer', `createHttpsServer() listen on port ${this.port}`)
-      if (typeof resolve === 'function') {
-        resolve(this)
-      }
+  private createHttpsServer(express: express.Application): Promise<https.Server> {
+    return new Promise((resolve, reject) => {
+      https.createServer({
+                            key:    require('./ssl-pem').key
+                            , cert: require('./ssl-pem').cert
+                          }
+                        , express
+                        ) // XXX: is express must exist here? try to get rid it later. 2016/6/11
+          .listen(this.port, err => {
+            if (err) {
+              log.error('PuppetWebServer', 'createHttpsServer() exception: %s', err)
+              return reject(err)
+            } else {
+              log.verbose('PuppetWebServer', `createHttpsServer() listen on port ${this.port}`)
+              resolve(this)
+            }
+          })
     })
   }
 
   /**
-   * Express Middleware
+   * express Middleware
    */
-  createExpress() {
-    const e = new Express()
+  private createExpress() {
+    const e = express()
     e.use(bodyParser.json())
     e.use(function(req, res, next) {
       res.header('Access-Control-Allow-Origin', '*')
@@ -93,7 +94,7 @@ class Server extends EventEmitter {
       next()
     })
     e.get('/ding', function(req, res) {
-      log.silly('PuppetWebServer', 'createExpress() %s GET /ding', new Date())
+      log.silly('PuppetWebServer', 'createexpress() %s GET /ding', new Date())
       res.end('dong')
     })
     return e
@@ -102,7 +103,7 @@ class Server extends EventEmitter {
   /**
    * Socket IO
    */
-  createSocketIo(httpsServer) {
+  private createSocketIo(httpsServer) {
     const socketServer = io.listen(httpsServer, {
       // log: true
     })
@@ -116,7 +117,7 @@ class Server extends EventEmitter {
     return socketServer
   }
 
-  initEventsFromClient(client) {
+  private initEventsFromClient(client) {
     log.verbose('PuppetWebServer', 'initEventFromClient()')
 
     this.emit('connection', client)
@@ -134,7 +135,7 @@ class Server extends EventEmitter {
     })
 
     // Events from Wechaty@Broswer --to--> Server
-    ;[
+    ; [
       'message'
       , 'scan'
       , 'login'
@@ -151,7 +152,7 @@ class Server extends EventEmitter {
     })
   }
 
-  quit() {
+  public quit() {
     log.verbose('PuppetWebServer', 'quit()')
     if (this.socketServer) {
       log.verbose('PuppetWebServer', 'closing socketServer')
@@ -171,4 +172,5 @@ class Server extends EventEmitter {
   }
 }
 
-module.exports = Server
+// module.exports = Server
+export default Server

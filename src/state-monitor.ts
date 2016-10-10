@@ -1,6 +1,6 @@
 /**
  * Wechaty
- * 
+ *
  * Helper Class for Manage State Change
  */
 
@@ -31,3 +31,5 @@ class StateMonitor <A, B>{
     return this._currentState
   }
 }
+
+export default StateMonitor

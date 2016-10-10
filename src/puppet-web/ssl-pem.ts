@@ -12,7 +12,7 @@
  * http://blog.mgechev.com/2014/02/19/create-https-tls-ssl-application-with-express-nodejs/
  * openssl req -x509 -days 3650 -nodes -newkey rsa:2048 -keyout key.pem -out cert.pem
  * openssl rsa -in key.pem -out newkey.pem && mv newkey.pem key.pem
- * 
+ *
  * Reference:
  * What is a Pem file - http://serverfault.com/a/9717
  */
@@ -69,8 +69,9 @@ g+Xdc4Ag/St5eqgrp95KOlVeepSlb35LAD1Cc91LddTXCYS7+dc4ndQYpgrLU0ru
 Sw==
 -----END CERTIFICATE-----
 `
-module.exports = {
-  cert:  cert
-  , key: key
-}
+// module.exports = {
+//   cert:  cert
+//   , key: key
+// }
 
+export { cert, key }
