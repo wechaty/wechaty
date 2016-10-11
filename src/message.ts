@@ -134,7 +134,7 @@ class Message {
     return '{' + this.type() + '}' + content
   }
 
-  public from(contact?: Contact) {
+  public from(contact?: Contact): Contact {
     if (contact) {
       if (contact instanceof Contact) {
         this.obj.from = contact.id

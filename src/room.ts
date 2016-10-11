@@ -109,19 +109,34 @@ class Room extends EventEmitter {
     })
   }
 
-  public on(  event: 'join' | 'leave' | 'topic'
-            , listener: Function
-  ) {
+  public on(event: 'join' , listener: (invitee:      Contact   , inviter: Contact)  => void) // XXX ???
+  public on(event: 'join' , listener: (inviteeList:  Contact[] , inviter: Contact)  => void): Room
+  public on(event: 'topic', listener: (topic: string, oldTopic: string, changer: Contact) => void): Room
+  public on(event: 'leave', listener: (leaver: Contact) => void): Room
+
+  public on(event: string, listener: Function): Room {
     log.verbose('Room', 'on(%s, %s)', event, typeof listener)
+
+    /**
+     * wrap a room event listener to a global event listener
+     */
+    const listenerWithRoomArg = (room: Room, ...argList) => {
+      return listener.apply(this, argList)
+    }
 
     /**
      * every room event must can be mapped to a global event.
      * such as: `join` to `room-join`
      */
-    const callbackWithScope = EventScope.wrap.call(this, 'room-' + event, listener)
+    const globalEventName = 'room-' + event
+    const listenerWithScope = EventScope.wrap.call(this, globalEventName, listenerWithRoomArg)
 
-    // bind(this1, this2): the second this is for simulate the global room-* event
-    super.on(event, callbackWithScope.bind(this, this))
+    /**
+     * bind(listenerWithScope, this):
+     * the `this` is for simulate the global room-* event,
+     * provide the first argument `room`
+     */
+    super.on(event, listenerWithScope.bind(listenerWithScope, this))
     return this
   }
 

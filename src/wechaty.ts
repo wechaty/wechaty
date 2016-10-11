@@ -18,14 +18,16 @@ import Config, {
   , PuppetType
 } from './config'
 
-import Contact      from './contact'
-import Message      from './message'
-import Puppet       from './puppet'
-import PuppetWeb    from './puppet-web/index'
-import UtilLib      from './util-lib'
-import EventScope   from './event-scope'
+import Contact        from './contact'
+import FriendRequest  from './friend-request'
+import Message        from './message'
+import Puppet         from './puppet'
+import PuppetWeb      from './puppet-web/index'
+import Room           from './room'
+import UtilLib        from './util-lib'
+import EventScope     from './event-scope'
 
-import log          from './brolog-env'
+import log            from './brolog-env'
 
 type WechatySetting = {
   profile?:    string
@@ -152,11 +154,23 @@ class Wechaty extends EventEmitter {
     return this
   }
 
-  public on(event: string, listener: Function) {
+  public on(event: 'message', listener: (message: Message, n: number) => void) // XXX ???
+  public on(event: 'scan'   , listener: ({url: string, code: number}) => void): Wechaty
+  public on(event: 'logout' , listener: (user: Contact) => void): Wechaty
+  public on(event: 'login'  , listener: (user: Contact) => void): Wechaty
+  public on(event: 'friend' , listener: (friend: Contact, request: FriendRequest) => void): Wechaty
+  public on(event: 'error'  , listener: (error: Error) => void): Wechaty
+  public on(event: 'heartbeat'  , listener: (data: any) => void): Wechaty
+  public on(event: 'room-join'  , listener: (room: Room, invitee:     Contact, inviter: Contact) => void): Wechaty
+  public on(event: 'room-join'  , listener: (room: Room, inviteeList: Contact, inviter: Contact) => void): Wechaty
+  public on(event: 'room-leave' , listener: (room: Room, leaver: Contact) => void): Wechaty
+  public on(event: 'room-topic' , listener: (room: Room, topic: string, oldTopic: string, changer: Contact) => void): Wechaty
+
+  public on(event: string, listener: Function): Wechaty {
     log.verbose('Wechaty', 'on(%s, %s)', event, typeof listener)
 
-    const wrapListener = EventScope.wrap.call(this, event, listener)
-    super.on(event, wrapListener)
+    const listenerWithScope = EventScope.wrap.call(this, event, listener)
+    super.on(event, listenerWithScope)
 
     return this
   }
@@ -231,7 +245,7 @@ class Wechaty extends EventEmitter {
     return this.puppet.self(message)
   }
 
-  public send(message) {
+  public send(message: Message): Promise<any> {
     return this.puppet.send(message)
                       .catch(e => {
                         log.error('Wechaty', 'send() exception: %s', e.message)
@@ -239,7 +253,7 @@ class Wechaty extends EventEmitter {
                       })
   }
 
-  public reply(message, reply) {
+  public reply(message: Message, reply: string) {
     return this.puppet.reply(message, reply)
     .catch(e => {
       log.error('Wechaty', 'reply() exception: %s', e.message)

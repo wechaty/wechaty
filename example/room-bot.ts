@@ -83,9 +83,9 @@ bot
  * Global Event: room-join
  */
 .on('room-join', (room, invitee, inviter) => {
-  log.info('Bot', 'room-join event: Room %s got new member %s, invited by %s'
+  log.info('Bot', 'EVENT: room-join - Room %s got new member %s, invited by %s'
                 , room.topic()
-                , invitee.map
+                , Array.isArray(invitee)
                   ? invitee.map(c => c.name()).join(',')
                   : invitee
                 , inviter.name()
@@ -96,7 +96,7 @@ bot
  * Global Event: room-leave
  */
 .on('room-leave', (room, leaver) => {
-  log.info('Bot', 'room-leave event: Room %s lost member %s'
+  log.info('Bot', 'EVENT: room-leave - Room %s lost member %s'
                 , room.topic()
                 , leaver.name()
               )
@@ -107,7 +107,7 @@ bot
  */
 .on('room-topic', (room, topic, oldTopic, changer) => {
   try {
-    log.info('Bot', 'room-topic event: Room %s change topic to %s by member %s'
+    log.info('Bot', 'EVENT: room-topic - Room %s change topic to %s by member %s'
                   , oldTopic
                   , topic
                   , changer.name()
@@ -120,7 +120,7 @@ bot
 /**
  * Global Event: message
  */
-.on('message', message => {
+.on('message', (message) => {
   const room    = message.room()
   const sender  = message.from()
   const content = message.content()
@@ -166,7 +166,7 @@ bot
              * room found
              */
             if (dingRoom) {
-              log.info('Bot', 'onMessage: got dingRoom')
+              log.info('Bot', 'onMessage: got dingRoom: %s', dingRoom.topic())
 
               /**
                * speaker is already in room
@@ -183,7 +183,8 @@ bot
                * put speaker into room
                */
               } else {
-                log.info('Bot', 'onMessage: add sender to dingRoom')
+                log.info('Bot', 'onMessage: add sender(%s) to dingRoom(%s)', sender.name(), dingRoom.topic())
+                sender.say('ok, I will put you in ding room!')
                 putInRoom(sender, dingRoom)
               }
 
@@ -230,22 +231,23 @@ function manageDingRoom() {
     /**
      * Event: Join
      */
-    room.on('join', (invitee: Contact|Contact[], inviter: Contact) =>
+    room.on('join', (invitee: Contact|Contact[], inviter: Contact) => {
+      log.verbose('Bot', 'Room EVENT: join - %s, %s', typeof invitee, typeof inviter)
       checkRoomJoin.call(this, room, invitee, inviter)
-    )
+    })
 
     /**
      * Event: Leave
      */
     room.on('leave', (leaver) => {
-      log.info('Bot', 'room event: %s leave, byebye', leaver.name())
+      log.info('Bot', 'Room EVENT: leave - %s leave, byebye', leaver.name())
     })
 
     /**
      * Event: Topic Change
      */
     room.on('topic', (topic, oldTopic, changer) => {
-      log.info('Bot', 'room event: topic changed from %s to %s by member %s'
+      log.info('Bot', 'Room EVENT: topic - changed from %s to %s by member %s'
           , oldTopic
           , topic
           , changer.name()

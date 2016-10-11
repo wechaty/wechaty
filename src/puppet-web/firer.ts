@@ -210,11 +210,11 @@ async function fireRoomJoin(m: Message): Promise<void> {
     await room.ready()
 
     if (inviteeContactList.length === 1) {
-      this.emit('room-join', room , inviteeContactList[0], inviterContact)
-      room.emit('join'            , inviteeContactList[0], inviterContact)
+      this.emit('room-join', room , inviteeContactList[0] , inviterContact)
+      room.emit('join'            , inviteeContactList[0] , inviterContact)
     } else {
-      this.emit('room-join', room , inviteeContactList, inviterContact)
-      room.emit('join'            , inviteeContactList, inviterContact)
+      this.emit('room-join', room , inviteeContactList    , inviterContact)
+      room.emit('join'            , inviteeContactList    , inviterContact)
     }
 
   // }).catch(e => {

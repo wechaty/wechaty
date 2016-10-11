@@ -7,7 +7,9 @@
  *
  */
 import Config   from './config'
+import Message  from './message'
 import UtilLib  from './util-lib'
+import Wechaty  from './wechaty'
 
 import log      from './brolog-env'
 
@@ -182,6 +184,22 @@ class Contact {
       Contact.pool[id] = new Contact(id)
     }
     return Contact.pool[id]
+  }
+
+  public say(content: string): Promise<any> {
+    log.verbose('Contact', 'say(%s)', content)
+
+    const wechaty = Wechaty.instance()
+    const user = wechaty.user()
+
+    const m = new Message()
+    m.from(user)
+    m.to(this)
+    m.content(content)
+
+    log.silly('Contact', 'say() from: %s to: %s content: %s', user.name(), this.name(), content)
+
+    return wechaty.send(m)
   }
 
 }

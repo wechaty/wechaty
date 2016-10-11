@@ -45,14 +45,11 @@ class EventScope {
     return Object.keys(EVENT_CONFIG)
   }
 
-  public static wrap(this: Wechaty|Room, event: WechatyEventType, callback: Function) {
-    log.verbose('WechatyEvent', 'wrap(%s, %s)', event, typeof callback)
+  public static wrap(this: Wechaty|Room, event: WechatyEventType, listener: Function): Function {
+    log.verbose('WechatyEvent', 'wrap(%s, %s)', event, typeof listener)
 
-    // if (!(this instanceof Wechaty)) {
-    //   throw new Error('`this` should be Wechaty instance')
-    // }
-    if (typeof callback !== 'function') {
-      throw new Error('`callback` should be function')
+    if (typeof listener !== 'function') {
+      throw new Error('`listener` should be function')
     }
 
     if (!(event in EVENT_CONFIG)) {
@@ -61,13 +58,13 @@ class EventScope {
     const wrapper = EVENT_CONFIG[event]
 
     /**
-     * We assign a empty object to each event callback,
+     * We assign a empty object to each event listener,
      * to carry the indenpendent scope
      */
     if (wrapper) {
-      return wrapper(callback)
+      return wrapper(listener)
     } else {
-      return callback
+      return listener
     }
   }
 }
@@ -92,11 +89,11 @@ function isRoom(room) {
   return true
 }
 
-function wrapContact(callback) {
+function wrapContact(listener) {
   log.verbose('WechatyEvent', 'wrapContact()')
 
   return (...argList) => {
-    log.silly('WechatyEvent', 'wrapContact() callback')
+    log.silly('WechatyEvent', 'wrapContact() listener')
 
     if (!isContact(argList[0])) {
       throw new Error('contact not found in argList')
@@ -113,15 +110,15 @@ function wrapContact(callback) {
                     .send(msg)
     }
 
-    return callback.apply(eventScope, argList)
+    return listener.apply(eventScope, argList)
   }
 }
 
-function wrapRoom(callback) {
+function wrapRoom(listener) {
   log.verbose('WechatyEvent', 'wrapRoom()')
 
   return (room: Room, ...argList) => {
-    log.silly('WechatyEvent', 'wrapRoom(%s, %s, %s, %s) callback', room.topic(), argList[0], argList[1], argList[2])
+    log.silly('WechatyEvent', 'wrapRoom(%s, %s, %s, %s) listener', room.topic(), argList[0], argList[1], argList[2])
 
     let contact
     for (let arg of argList) {
@@ -144,17 +141,17 @@ function wrapRoom(callback) {
       return room.say(content, replyTo)
     }
 
-    return callback.apply(eventScope, [room, ...argList])
+    return listener.apply(eventScope, [room, ...argList])
   }
 }
 
-function wrapMessage(callback) {
+function wrapMessage(listener) {
   log.verbose('WechatyEvent', 'wrapMessage()')
 
   return (...argList) => {
-    log.silly('WechatyEvent', 'wrapMessage() callback')
+    log.silly('WechatyEvent', 'wrapMessage() listener')
 
-    // console.log('############### wrapped on message callback')
+    // console.log('############### wrapped on message listener')
     // console.log(typeof Message)
     // console.log(argList)
     if (!(argList[0] instanceof Message)) {
@@ -183,15 +180,15 @@ function wrapMessage(callback) {
                     .send(m)
     }
 
-    return callback.apply(eventScope, argList)
+    return listener.apply(eventScope, argList)
   }
 }
 
-function wrapFilehelper(callback) {
+function wrapFilehelper(listener) {
   log.verbose('WechatyEvent', 'wrapFilehelper()')
 
   return (...argList) => {
-    log.silly('WechatyEvent', 'wrapFilehelper() callback')
+    log.silly('WechatyEvent', 'wrapFilehelper() listener')
     const eventScope = <WechatyEventScope>{}
     eventScope.say = (content) => {
       log.silly('WechatyEvent', 'wrapFilehelper() say(%s)', content)
@@ -202,7 +199,7 @@ function wrapFilehelper(callback) {
                     .send(msg)
     }
 
-    return callback.apply(eventScope, argList)
+    return listener.apply(eventScope, argList)
   }
 }
 
