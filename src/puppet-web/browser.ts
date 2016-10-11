@@ -83,10 +83,7 @@ class Browser extends EventEmitter {
                   log.verbose('PuppetWeb', 'browser.loadSession(%s) exception: %s', this.sessionFile, e && e.message || e)
                 })
       await this.open()
-
       /**
-       * XXX
-       *
        * when open url, there could happen a quit() call.
        * should check here: if we are in `close` target state, we should clean up
        */
@@ -406,16 +403,22 @@ class Browser extends EventEmitter {
     })
   }
 
+
   /**
    * only wrap addCookies for convinience
    *
    * use this.driver.manage() to call other functions like:
    * deleteCookie / getCookie / getCookies
    */
-  public addCookies(cookie): Promise<any>|Promise<any>[] {
+
+  // TypeScript Overloading: http://stackoverflow.com/a/21385587/1123955
+  public addCookies(cookies: Object[]): Promise<any>[]
+  public addCookies(cookie: Object): Promise<any>
+
+  public addCookies(cookie: Object|Object[]): Promise<any>|Promise<any>[] {
     if (this.dead()) { return Promise.reject(new Error('addCookies() - browser dead'))}
 
-    if (typeof cookie.map === 'function') {
+    if (Array.isArray(cookie)) {
       return cookie.map(c => {
         return this.addCookies(c)
       })
@@ -437,9 +440,10 @@ class Browser extends EventEmitter {
                   //   , cookie.domain, cookie.secure, cookie.expiry)
                   // this is new webdriver format
                   .addCookie(cookie)
+                  .then(r => resolve(r))
                   .catch(e => {
                     log.warn('PuppetWebBrowser', 'addCookies() exception: %s', e.message)
-                    throw e
+                    reject(e)
                   })
     })
   }
@@ -630,7 +634,7 @@ class Browser extends EventEmitter {
     })
   }
 
-  public loadSession() {
+  public loadSession(): Promise<any> {
     log.verbose('PuppetWebBrowser', `loadSession(${this.sessionFile})`)
     if (!this.sessionFile) {
       return Promise.reject(new Error('loadSession() no sessionFile'))
