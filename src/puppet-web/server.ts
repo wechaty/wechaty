@@ -89,7 +89,11 @@ class Server extends EventEmitter {
     const e = express()
     e.use(bodyParser.json())
     e.use(function(req, res, next) {
-      res.header('Access-Control-Allow-Origin', '*')
+      // cannot use `*` if angular is set `.withCredentials = true`
+      // see also: https://github.com/whatwg/fetch/issues/251#issuecomment-199946808
+      // res.header('Access-Control-Allow-Origin', '*')
+      res.header('Access-Control-Allow-Origin', req.headers['origin'])
+      res.header('Access-Control-Allow-Credentials', 'true')
       res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
       next()
     })
