@@ -94,7 +94,7 @@ class Contact {
       return Promise.resolve(this)
     }
 
-    if (this.obj.id) { // already ready
+    if (this.obj && this.obj.id) { // already ready
       return Promise.resolve(this)
     }
 

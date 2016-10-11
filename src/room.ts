@@ -63,11 +63,11 @@ class Room extends EventEmitter {
   }
 
   public toString()    { return this.id }
-  public toStringEx()  { return `Room(${this.obj.topic}[${this.id}])` }
+  public toStringEx()  { return `Room(${this.obj && this.obj.topic}[${this.id}])` }
 
   // @private
   public isReady(): boolean {
-    return !!(this.obj.memberList && this.obj.memberList.length)
+    return !!(this.obj && this.obj.memberList && this.obj.memberList.length)
   }
 
   public refresh(): Promise<Room> {
@@ -86,7 +86,7 @@ class Room extends EventEmitter {
       return Promise.reject(e)
     } else if (this.isReady()) {
       return Promise.resolve(this)
-    } else if (this.obj.id) {
+    } else if (this.obj && this.obj.id) {
       log.warn('Room', 'ready() has obj.id but memberList empty in room %s. reloading', this.obj.topic)
     }
 
@@ -150,7 +150,7 @@ class Room extends EventEmitter {
                   .send(m)
   }
 
-  public get(prop): string { return this.obj[prop] || this.dirtyObj[prop] }
+  public get(prop): string { return (this.obj && this.obj[prop]) || (this.dirtyObj && this.dirtyObj[prop]) }
 
   private parse(rawObj: RoomRawObj): RoomObj {
     if (!rawObj) {
@@ -226,7 +226,7 @@ class Room extends EventEmitter {
   private delLocal(contact: Contact): number {
     log.verbose('Room', 'delLocal(%s)', contact)
 
-    const memberList = this.obj.memberList
+    const memberList = this.obj && this.obj.memberList
     if (!memberList || memberList.length === 0) {
       return 0 // already in refreshing
     }
@@ -259,18 +259,18 @@ class Room extends EventEmitter {
       return newTopic
     }
     // return this.get('topic')
-    return UtilLib.plainText(this.obj.topic)
+    return UtilLib.plainText(this.obj && this.obj.topic)
   }
 
   public nick(contact: Contact): string {
-    if (!this.obj.nickMap) {
+    if (!this.obj || !this.obj.nickMap) {
       return ''
     }
     return this.obj.nickMap[contact.id]
   }
 
   public has(contact: Contact): boolean {
-    if (!this.obj.memberList) {
+    if (!this.obj || !this.obj.memberList) {
       return false
     }
     return this.obj.memberList
@@ -279,8 +279,8 @@ class Room extends EventEmitter {
   }
 
   public owner(): Contact {
-    const ownerUin = this.obj.ownerUin
-    let memberList = this.obj.memberList || []
+    const ownerUin = this.obj && this.obj.ownerUin
+    let memberList = (this.obj && this.obj.memberList) || []
 
     let user = Config.puppetInstance()
                       .user
@@ -300,7 +300,7 @@ class Room extends EventEmitter {
   public member(name): Contact {
     log.verbose('Room', 'member(%s)', name)
 
-    if (!this.obj.memberList) {
+    if (!this.obj || !this.obj.memberList) {
       log.warn('Room', 'member() not ready')
       return null
     }
