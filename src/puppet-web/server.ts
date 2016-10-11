@@ -64,28 +64,28 @@ class Server extends EventEmitter {
    */
   private createHttpsServer(express: express.Application): Promise<https.Server> {
     return new Promise((resolve, reject) => {
-      https.createServer({
-                            key:    require('./ssl-pem').key
-                            , cert: require('./ssl-pem').cert
+      const srv = https.createServer({
+                                        key:    require('./ssl-pem').key
+                                        , cert: require('./ssl-pem').cert
+                                      }
+                                    , express
+                                    ) // XXX: is express must exist here? try to get rid it later. 2016/6/11
+                        .listen(this.port, err => {
+                          if (err) {
+                            log.error('PuppetWebServer', 'createHttpsServer() exception: %s', err)
+                            return reject(err)
+                          } else {
+                            log.verbose('PuppetWebServer', `createHttpsServer() listen on port ${this.port}`)
+                            resolve(srv)
                           }
-                        , express
-                        ) // XXX: is express must exist here? try to get rid it later. 2016/6/11
-          .listen(this.port, err => {
-            if (err) {
-              log.error('PuppetWebServer', 'createHttpsServer() exception: %s', err)
-              return reject(err)
-            } else {
-              log.verbose('PuppetWebServer', `createHttpsServer() listen on port ${this.port}`)
-              resolve(this)
-            }
-          })
+                        })
     })
   }
 
   /**
    * express Middleware
    */
-  private createExpress() {
+  private createExpress(): express.Application {
     const e = express()
     e.use(bodyParser.json())
     e.use(function(req, res, next) {
@@ -107,21 +107,24 @@ class Server extends EventEmitter {
   /**
    * Socket IO
    */
-  private createSocketIo(httpsServer) {
+  private createSocketIo(httpsServer): SocketIO.Server {
     const socketServer = io.listen(httpsServer, {
       // log: true
     })
     socketServer.sockets.on('connection', (s) => {
       log.verbose('PuppetWebServer', 'createSocketIo() got connection from browser')
       // console.log(s.handshake)
-      if (this.socketClient) { this.socketClient = undefined } // close() ???
+      if (this.socketClient) {
+        log.warn('PuppetWebServer', 'createSocketIo() on(connection) there already has a this.socketClient')
+        this.socketClient = undefined // close() ???
+      }
       this.socketClient = s
       this.initEventsFromClient(s)
     })
     return socketServer
   }
 
-  private initEventsFromClient(client) {
+  private initEventsFromClient(client: SocketIO.Socket): void {
     log.verbose('PuppetWebServer', 'initEventFromClient()')
 
     this.emit('connection', client)
@@ -154,9 +157,11 @@ class Server extends EventEmitter {
         this.emit(e, data)
       })
     })
+
+    return
   }
 
-  public quit() {
+  public quit(): Promise<any> {
     log.verbose('PuppetWebServer', 'quit()')
     if (this.socketServer) {
       log.verbose('PuppetWebServer', 'closing socketServer')
@@ -172,7 +177,7 @@ class Server extends EventEmitter {
       this.httpsServer.close()
       this.httpsServer = null
     }
-    return Promise.resolve(true)
+    return Promise.resolve()
   }
 }
 
