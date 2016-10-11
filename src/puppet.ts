@@ -86,9 +86,9 @@ abstract class Puppet extends EventEmitter {
   public abstract roomDel(room: Room, contact: Contact): Promise<number>
   public abstract roomTopic(room: Room, topic: string): Promise<string>
   public abstract roomCreate(contactList: Contact[], topic?: string): Promise<Room>
-  public abstract roomFind(filter: Function): Promise<Room[]>
+  public abstract roomFind(filterFunc: string): Promise<Room[]>
 
-  public abstract contactFind(filter: Function): Promise<Contact[]>
+  public abstract contactFind(filterFunc: string): Promise<Contact[]>
 }
 
 export default Puppet

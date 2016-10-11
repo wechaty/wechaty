@@ -125,7 +125,6 @@ type WatchdogFood = {
   , timeout?: number  // millisecond
 }
 
-// module.exports = Config.default = Config.Config = Config
 export default Config
 export {
     Config

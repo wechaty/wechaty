@@ -368,26 +368,26 @@ class PuppetWeb extends Puppet {
                       })
   }
 
-  public contactFind(filterFunction: Function): Promise<Contact[]> {
+  public contactFind(filterFunc: string): Promise<Contact[]> {
     if (!this.bridge) {
       return Promise.reject(new Error('contactFind fail: no bridge(yet)!'))
     }
-    return this.bridge.contactFind(filterFunction)
+    return this.bridge.contactFind(filterFunc)
                       .then(idList => idList.map(id => Contact.load(id)))
                       .catch(e => {
-                        log.warn('PuppetWeb', 'contactFind(%s) rejected: %s', filterFunction, e.message)
+                        log.warn('PuppetWeb', 'contactFind(%s) rejected: %s', filterFunc, e.message)
                         throw e
                       })
   }
 
-  public roomFind(filterFunction: Function): Promise<Room[]> {
+  public roomFind(filterFunc: string): Promise<Room[]> {
     if (!this.bridge) {
       return Promise.reject(new Error('findRoom fail: no bridge(yet)!'))
     }
-    return this.bridge.roomFind(filterFunction)
+    return this.bridge.roomFind(filterFunc)
                       .then(idList => idList.map(id => Room.load(id)))
                       .catch(e => {
-                        log.warn('PuppetWeb', 'roomFind(%s) rejected: %s', filterFunction, e.message)
+                        log.warn('PuppetWeb', 'roomFind(%s) rejected: %s', filterFunc, e.message)
                         throw e
                       })
   }

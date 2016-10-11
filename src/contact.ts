@@ -135,7 +135,12 @@ class Contact {
       throw new Error('name not found')
     }
 
-    let filterFunction
+    /**
+     * must be string because we need inject variable value
+     * into code as variable name
+     */
+    let filterFunction: string
+
     if (name instanceof RegExp) {
       filterFunction = `c => ${name.toString()}.test(c)`
     } else if (typeof name === 'string') {

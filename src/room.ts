@@ -341,7 +341,9 @@ class Room extends EventEmitter {
       throw new Error('topic not found')
     }
 
-    let filterFunction
+    // see also Contact.findAll
+    let filterFunction: string
+
     if (topic instanceof RegExp) {
       filterFunction = `c => ${topic.toString()}.test(c)`
     } else if (typeof topic === 'string') {

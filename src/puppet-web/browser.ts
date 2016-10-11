@@ -114,11 +114,13 @@ class Browser extends EventEmitter {
     }
   }
 
-  public open(url: string = 'https://wx.qq.com'): Promise<void> {
+  public open(url: string = 'https://wx.qq.com'): Promise<any> {
     log.verbose('PuppetWebBrowser', `open(${url})`)
 
     // TODO: set a timer to guard driver.get timeout, then retry 3 times 201607
     return new Promise((resolve, reject) => {
+      // wrap another Promise is because selenium use another Promise library,
+      // which is incompatible with node typescript types
       this.driver.get(url)
                   .then(_ => resolve())
                   .catch(e => {

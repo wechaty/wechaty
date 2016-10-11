@@ -150,23 +150,23 @@ class Bridge {
               })
   }
 
-  public contactFind(filterFunction): Promise<string[]> {
-    return this.proxyWechaty('contactFindAsync', filterFunction)
+  public contactFind(filterFunc: string): Promise<string[]> {
+    return this.proxyWechaty('contactFindAsync', filterFunc)
                 .catch(e => {
                   log.error('PuppetWebBridge', 'contactFindAsync() exception: %s', e.message)
                   throw e
                 })
   }
 
-  public roomFind(filterFunction): Promise<string[]> {
-    return this.proxyWechaty('roomFind', filterFunction)
+  public roomFind(filterFunc: string): Promise<string[]> {
+    return this.proxyWechaty('roomFind', filterFunc)
                 .catch(e => {
                   log.error('PuppetWebBridge', 'roomFind() exception: %s', e.message)
                   throw e
                 })
   }
 
-  public roomDelMember(roomId, contactId): Promise<void> {
+  public roomDelMember(roomId, contactId): Promise<number> {
     if (!roomId || !contactId) {
       throw new Error('no roomId or contactId')
     }
@@ -178,7 +178,7 @@ class Bridge {
                 })
   }
 
-  public roomAddMember(roomId, contactId): Promise<void> {
+  public roomAddMember(roomId, contactId): Promise<number> {
     log.verbose('PuppetWebBridge', 'roomAddMember(%s, %s)', roomId, contactId)
 
     if (!roomId || !contactId) {

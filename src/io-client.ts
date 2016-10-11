@@ -134,8 +134,9 @@ class IoClient {
     this.log.verbose('IoClient', 'initIo() with token %s', this.token)
 
     if (this.targetState() !== 'connected') {
-      this.log.warn('IoClient', 'initIo() targetState is not `connected`, skipped')
-      return Promise.resolve()
+      const errMsg = 'initIo() targetState is not `connected`, skipped'
+      this.log.warn('IoClient', errMsg)
+      return Promise.reject(errMsg)
     }
 
     if (!this.wechaty) {
