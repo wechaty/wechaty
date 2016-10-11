@@ -2,12 +2,19 @@ import * as http from 'http'
 
 import log from './brolog-env'
 
+/**
+ * bug compatible with:
+ * https://github.com/wechaty/wechaty/issues/40#issuecomment-252802084
+ */
+import * as ws from 'ws'
+typeof ws
+
 class UtilLib {
-  public static stripHtml(html) {
+  public static stripHtml(html: string): string {
     return String(html).replace(/(<([^>]+)>)/ig, '')
   }
 
-  public static unescapeHtml(str) {
+  public static unescapeHtml(str: string): string {
     return String(str)
     .replace(/&apos;/g, "'")
     .replace(/&quot;/g, '"')
@@ -16,7 +23,7 @@ class UtilLib {
     .replace(/&amp;/g, '&')
   }
 
-  public static digestEmoji(html) {
+  public static digestEmoji(html: string): string {
     return String(html)
           .replace(/<img class="(\w*?emoji) (\w*?emoji[^"]+?)" text="(.*?)_web" src=[^>]+>/g
                  , '$3'
@@ -26,7 +33,7 @@ class UtilLib {
                  ) // '<span class="emoji emoji1f334"></span>'
   }
 
-  public static plainText(html) {
+  public static plainText(html: string): string {
     return UtilLib.stripHtml(
       UtilLib.unescapeHtml(
         UtilLib.stripHtml(
@@ -38,7 +45,7 @@ class UtilLib {
     )
   }
 
-  public static  downloadStream(url: string, cookies): Promise<any> {
+  public static  downloadStream(url: string, cookies): Promise<NodeJS.ReadableStream> {
     // const myurl = 'http://wx.qq.com/cgi-bin/mmwebwx-bin/webwxgetmsgimg?&MsgID=3080011908135131569&skey=%40crypt_c117402d_53a58f8fbb21978167a3fc7d3be7f8c9'
     url = url.replace(/^https/i, 'http') // use http for better performance
     const options = require('url').parse(url)
@@ -78,7 +85,7 @@ class UtilLib {
   }
 
   // credit - http://stackoverflow.com/a/2117523/1123955
-  public static guid() {
+  public static guid(): string {
     /* tslint:disable:no-bitwise */
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
       const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8)
@@ -127,7 +134,7 @@ class UtilLib {
       })
     })
 
-    function nextPort(newPort: number) {
+    function nextPort(newPort: number): number {
       const RANDOM_RANGE = 1024
       const n = Math.floor(Math.random() * RANDOM_RANGE)
       return newPort + n

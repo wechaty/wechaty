@@ -212,7 +212,7 @@ class Room extends EventEmitter {
   }
 
   public del(contact: Contact): Promise<number> {
-    log.verbose('Room', 'del(%s)', contact)
+    log.verbose('Room', 'del(%s)', contact.name())
 
     if (!contact) {
       throw new Error('contact not found')
@@ -223,12 +223,12 @@ class Room extends EventEmitter {
   }
 
   // @private
-  private delLocal(contact: Contact): boolean {
+  private delLocal(contact: Contact): number {
     log.verbose('Room', 'delLocal(%s)', contact)
 
     const memberList = this.obj.memberList
     if (!memberList || memberList.length === 0) {
-      return true // already in refreshing
+      return 0 // already in refreshing
     }
 
     let i
@@ -239,9 +239,9 @@ class Room extends EventEmitter {
     }
     if (i < memberList.length) {
       memberList.splice(i, 1)
-      return true
+      return 1
     }
-    return false
+    return 0
   }
 
   public quit() {

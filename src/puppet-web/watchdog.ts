@@ -43,7 +43,7 @@ function onFeed(food: WatchdogFood) {
   }
 
   const feed = `${food.type}:[${food.data}]`
-  log.silly('PuppetWebWatchdog', 'onFeed: %d, %s', timeout, feed)
+  log.silly('PuppetWebWatchdog', 'onFeed: %d, %s', food.timeout, feed)
 
   if (this.currentState() === 'killing'
   ) {
@@ -57,14 +57,14 @@ function onFeed(food: WatchdogFood) {
   //   return
   // }
 
-  setWatchDogTimer.call(this, timeout, feed)
+  setWatchDogTimer.call(this, food.timeout, feed)
 
   this.emit('heartbeat', feed)
 
-  monitorScan.call(this, type)
+  monitorScan.call(this, food.type)
   autoSaveSession.call(this)
 
-  switch (type) {
+  switch (food.type) {
     case 'POISON':
       clearWatchDogTimer.call(this)
       break
@@ -74,7 +74,7 @@ function onFeed(food: WatchdogFood) {
       break
 
     default:
-      throw new Error('Watchdog onFeed: unsupport type ' + type)
+      throw new Error('Watchdog onFeed: unsupport type ' + food.type)
   }
 }
 

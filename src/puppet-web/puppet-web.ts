@@ -204,7 +204,7 @@ class PuppetWeb extends Puppet {
     }
   }
 
-  private initBridge() {
+  private initBridge(): Promise<Bridge> {
     log.verbose('PuppetWeb', 'initBridge()')
     const bridge = new Bridge(
         this // use puppet instead of browser, is because browser might change(die) duaring run time
@@ -214,8 +214,9 @@ class PuppetWeb extends Puppet {
     this.bridge = bridge
 
     if (this.targetState() !== 'live') {
-      log.warn('PuppetWeb', 'initBridge() found targetState != live, no init anymore')
-      return Promise.resolve('skipped')
+      const errMsg = 'initBridge() found targetState != live, no init anymore'
+      log.warn('PuppetWeb', errMsg)
+      return Promise.reject(errMsg)
     }
 
     return bridge.init()
@@ -231,7 +232,7 @@ class PuppetWeb extends Puppet {
                 })
   }
 
-  private initServer() {
+  private initServer(): Promise<Server> {
     log.verbose('PuppetWeb', 'initServer()')
     const server = new Server(this.port)
 
@@ -255,8 +256,9 @@ class PuppetWeb extends Puppet {
     this.server = server
 
     if (this.targetState() !== 'live') {
-      log.warn('PuppetWeb', 'initServer() found targetState != live, no init anymore')
-      return Promise.resolve('skipped')
+      const errMsg = 'initServer() found targetState != live, no init anymore'
+      log.warn('PuppetWeb', errMsg)
+      return Promise.reject(errMsg)
     }
 
     return server.init()

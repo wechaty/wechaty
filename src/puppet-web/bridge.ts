@@ -191,12 +191,13 @@ class Bridge {
                 })
   }
 
-  public roomModTopic(roomId, topic): Promise<void> {
+  public roomModTopic(roomId, topic): Promise<string> {
     if (!roomId) {
       throw new Error('no roomId')
     }
 
     return this.proxyWechaty('roomModTopic', roomId, topic)
+                .then(_ => topic)
                 .catch(e => {
                   log.error('PuppetWebBridge', 'roomModTopic(%s, %s) exception: %s', roomId, topic, e.message)
                   throw e

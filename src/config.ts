@@ -121,7 +121,7 @@ Config.puppetInstance = function(instance?: Puppet): Puppet {
 
 type WatchdogFood = {
     data: any
-  , type?: 'HEARTBEAT' | 'POISON'
+  , type?: 'HEARTBEAT' | 'POISON' | 'SCAN'
   , timeout?: number  // millisecond
 }
 
