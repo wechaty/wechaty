@@ -114,7 +114,7 @@ class Browser extends EventEmitter {
     }
   }
 
-  public open(url: string = 'https://wx.qq.com'): Promise<any> {
+  public open(url: string = 'https://wx.qq.com'): Promise<string> {
     log.verbose('PuppetWebBrowser', `open(${url})`)
 
     // TODO: set a timer to guard driver.get timeout, then retry 3 times 201607
@@ -122,7 +122,7 @@ class Browser extends EventEmitter {
       // wrap another Promise is because selenium use another Promise library,
       // which is incompatible with node typescript types
       this.driver.get(url)
-                  .then(_ => resolve())
+                  .then(_ => resolve(url))
                   .catch(e => {
                     log.error('PuppetWebBrowser', 'open() exception: %s', e.message)
                     this.dead(e.message)
@@ -131,7 +131,7 @@ class Browser extends EventEmitter {
     })
   }
 
-  private initDriver() {
+  private initDriver(): Promise<WebDriver> {
     log.verbose('PuppetWebBrowser', 'initDriver(head: %s)', this.head)
 
     switch (true) {
@@ -168,12 +168,16 @@ class Browser extends EventEmitter {
     return Promise.resolve(this.driver)
   }
 
-  public refresh() {
+  public refresh(): Promise<any> {
     log.verbose('PuppetWebBrowser', 'refresh()')
-    return this.driver.navigate().refresh()
+    return new Promise((resolve, reject) => {
+      this.driver.navigate().refresh()
+            .then(_ => resolve())
+            .catch(e => reject(e))
+    })
   }
 
-  private getChromeDriver() {
+  private getChromeDriver(): WebDriver {
     log.verbose('PuppetWebBrowser', 'getChromeDriver()')
 
     const options = {
@@ -194,7 +198,7 @@ class Browser extends EventEmitter {
                 .build()
   }
 
-  private getPhantomJsDriver() {
+  private getPhantomJsDriver(): WebDriver {
     // setup custom phantomJS capability https://github.com/SeleniumHQ/selenium/issues/2069
     const phantomjsExe = require('phantomjs-prebuilt').path
     // const phantomjsExe = require('phantomjs2').path
@@ -327,7 +331,7 @@ class Browser extends EventEmitter {
     return
   }
 
-  public clean() {
+  public clean(): Promise<any> {
     const max = 30
     const backoff = 100
 
@@ -426,8 +430,8 @@ class Browser extends EventEmitter {
 
     log.silly('PuppetWebBrowser', 'addCookies(%s)', JSON.stringify(cookie))
 
-    // return new Promise((resolve, reject) => {
-      return (this.driver.manage() as any)
+    return new Promise((resolve, reject) => {
+      (this.driver.manage() as any)
                   // this is old webdriver format
                   // .addCookie(cookie.name, cookie.value, cookie.path
                   //   , cookie.domain, cookie.secure, cookie.expiry)
@@ -437,7 +441,7 @@ class Browser extends EventEmitter {
                     log.warn('PuppetWebBrowser', 'addCookies() exception: %s', e.message)
                     throw e
                   })
-    // })
+    })
   }
 
   public execute(script, ...args): Promise<any> {
