@@ -14,19 +14,20 @@ Wechaty is a Bot Framework for Wechat **Personal** Account that help you easy cr
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=2592000)](https://nodejs.org/)
 [![Repo Size](https://reposs.herokuapp.com/?path=wechaty/wechaty)]()
 
-# WARNING
+# ATTENTION
 
-## Wechaty is CONVERTING from Javascript to Typescript now ...
+## Wechaty is just converted from Javascript to Typescript.
 
 ```diff
-+ Typescripting ...
-- Please DO NOT clone/pull until this WARNING message gone.
++ Typescripted ...
+- Please do not clone/pull until you are really want to play with typescript wechaty in alpha stage.
 ```
 
-The usable version is: [v0.4.0](https://github.com/wechaty/wechaty/releases/tag/v0.4.0) (2016/10/9), which is the Latest Javascript Version
+The last javascript version is: [v0.4.0](https://github.com/wechaty/wechaty/releases/tag/v0.4.0) (2016/10/9)
 
-Or install via `npm install wechaty`
+Or install v0.4 via `npm install wechaty`
 
+Thanks.
 
 ## Voice of the Developer
 
