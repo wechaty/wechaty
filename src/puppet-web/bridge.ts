@@ -116,12 +116,12 @@ class Bridge {
      * Do not insert `return` in front of the code.
      * because the new line `\n` will cause return nothing at all
      */
-    return 'rejectioReturnValue = '
+    return 'injectioReturnValue = '
               + fs.readFileSync(
                 path.join(__dirname, 'wechaty-bro.js')
                 , 'utf8'
               )
-              + '; return rejectioReturnValue'
+              + '; return injectioReturnValue'
   }
 
   public logout(): Promise<any> {
