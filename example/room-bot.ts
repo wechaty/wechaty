@@ -76,7 +76,7 @@ bot
   log.info('Bot', `${user.name()} logined`)
 
   log.info('Bot', `setting to manageDingRoom() after 3 seconds ... `)
-  setTimeout(_ => manageDingRoom(), 3000)
+  setTimeout(manageDingRoom.bind(this), 3000)
 })
 
 /**
@@ -230,7 +230,7 @@ function manageDingRoom() {
     /**
      * Event: Join
      */
-    room.on('join', (invitee, inviter) =>
+    room.on('join', (invitee: Contact|Contact[], inviter: Contact) =>
       checkRoomJoin.call(this, room, invitee, inviter)
     )
 
@@ -257,7 +257,10 @@ function manageDingRoom() {
   })
 }
 
-function checkRoomJoin(room: Room, invitee: Contact|Contact[], inviter: Contact) {
+function checkRoomJoin(room: Room, invitee: Contact           , inviter: Contact)
+function checkRoomJoin(room: Room, invitee: Contact[]         , inviter: Contact)
+function checkRoomJoin(room: Room, invitee: Contact|Contact[] , inviter: Contact) {
+
   log.info('Bot', 'checkRoomJoin(%s, %s, %s)'
                 , room.topic()
                 , Array.isArray(invitee)

@@ -6,12 +6,12 @@
  * https://github.com/wechaty/wechaty
  *
  */
-const {
+import {
   Wechaty
   , Message
   , Config
   , log
-} = require('../')
+} from '../'
 
 const welcome = `
 =============== Powered by Wechaty ===============
@@ -38,7 +38,7 @@ Please wait... I'm trying to login in...
 `
 
 console.log(welcome)
-const bot = new Wechaty({ profile: Config.DEFAULT_PROFILE })
+const bot = Wechaty.instance({ profile: Config.DEFAULT_PROFILE })
 
 bot
 .on('login'	  , user => log.info('Bot', `${user.name()} logined`))

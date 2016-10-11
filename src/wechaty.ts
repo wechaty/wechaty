@@ -23,7 +23,7 @@ import Message      from './message'
 import Puppet       from './puppet'
 import PuppetWeb    from './puppet-web/index'
 import UtilLib      from './util-lib'
-import WechatyEvent from './wechaty-event'
+import EventScope   from './event-scope'
 
 import log          from './brolog-env'
 
@@ -155,7 +155,7 @@ class Wechaty extends EventEmitter {
   public on(event: string, listener: Function) {
     log.verbose('Wechaty', 'on(%s, %s)', event, typeof listener)
 
-    const wrapListener = WechatyEvent.wrap.call(this, event, listener)
+    const wrapListener = EventScope.wrap.call(this, event, listener)
     super.on(event, wrapListener)
 
     return this
@@ -174,7 +174,7 @@ class Wechaty extends EventEmitter {
         throw new Error('Puppet unsupport(yet): ' + this.setting.type)
     }
 
-    WechatyEvent.list().map(e => {
+    EventScope.list().map(e => {
       // https://strongloop.com/strongblog/an-introduction-to-javascript-es6-arrow-functions/
       // We’ve lost () around the argument list when there’s just one argument (rest arguments are an exception, eg (...args) => ...)
       puppet.on(e, (...args) => {

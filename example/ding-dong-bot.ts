@@ -36,7 +36,7 @@ Please wait... I'm trying to login in...
 `
 
 console.log(welcome)
-const bot = new Wechaty({ profile: Config.DEFAULT_PROFILE })
+const bot = Wechaty.instance({ profile: Config.DEFAULT_PROFILE })
 
 bot
 .on('login'	  , user => log.info('Bot', `${user.name()} logined`))
@@ -84,3 +84,4 @@ require('fs').appendFile('message.log', data + '\n\n############################
   if (err) { log.error('LogToFile: %s', err) }
 })
 }
+typeof logToFile;

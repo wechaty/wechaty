@@ -21,7 +21,7 @@
 const retryPromise  = require('retry-promise').default
 
 import Contact        from '../contact'
-// import Message        from '../message'
+import Message        from '../message'
 import log            from '../brolog-env'
 
 import FriendRequest  from './friend-request'
@@ -53,12 +53,14 @@ const regexConfig = {
   , roomTopic:    /^"?(.+?)"? changed the group name to "(.+)"$/
 }
 
-function fireFriendRequest(m) {
+async function fireFriendRequest(m) {
   const info = m.rawObj.RecommendInfo
   log.verbose('PuppetWebFirer', 'fireFriendRequest(%s)', info)
 
   const request = new FriendRequest()
   request.receive(info)
+
+  await request.contact.ready()
   this.emit('friend', request.contact, request)
 }
 
@@ -74,7 +76,7 @@ function checkFriendConfirm(content) {
   }
 }
 
-function fireFriendConfirm(m) {
+async function fireFriendConfirm(m) {
   const content = m.content()
   log.silly('PuppetWebFirer', 'fireFriendConfirm(%s)', content)
 
@@ -85,6 +87,7 @@ function fireFriendConfirm(m) {
   const contact = Contact.load(m.get('from'))
   request.confirm(contact)
 
+  await contact.ready()
   this.emit('friend', contact)
 }
 
@@ -98,15 +101,16 @@ function fireFriendConfirm(m) {
  *  "李卓桓.PreAngel" invited "Bruce LEE" to the group chat
  *  "凌" invited "庆次、小桔妹" to the group chat
  */
-function checkRoomJoin(content): [string|string[], string] | boolean {
+function checkRoomJoin(content: string): [string[], string] {
   log.verbose('PuppetWebFirer', 'checkRoomJoin()')
 
   const re = regexConfig.roomJoin
 
   const found = content.match(re)
   if (!found) {
-    return false
+    throw new Error('checkRoomJoin() not found')
   }
+
   const [, inviter, inviteeStr] = found
 
   // "凌" invited "庆次、小桔妹" to the group chat
@@ -115,19 +119,25 @@ function checkRoomJoin(content): [string|string[], string] | boolean {
   return [inviteeList, inviter] // put invitee at first place
 }
 
-async function fireRoomJoin(m): Promise<void> {
+async function fireRoomJoin(m: Message): Promise<void> {
   log.verbose('PuppetWebFirer', 'fireRoomJoin()')
 
   const room    = m.room()
   const content = m.content()
 
-  let result = checkRoomJoin(content)
-  if (!result) {
+  let inviteeList: string[], inviter: string
+  try {
+    [inviteeList, inviter] = checkRoomJoin(content)
+  } catch (e) { // not a room join message
     return
   }
-  const [inviteeList, inviter] = <[string[], string]>result
+  log.silly('PuppetWebFirer', 'fireRoomJoin() inviteeList: %s, inviter: %s'
+                            , inviteeList.join(',')
+                            , inviter
+          )
 
-  let inviterContact, inviteeContactList = []
+  let inviterContact: Contact
+  let inviteeContactList: Contact[] = []
 
   // co.call(this, function* () {
   try {
@@ -147,18 +157,17 @@ async function fireRoomJoin(m): Promise<void> {
 
       return room.refresh()
                   .then(_ => {
-                    log.silly('PuppetWebFirer', 'inviteeList: %s, inviter: %s'
-                                              , inviteeList.join(',')
-                                              , inviter
-                            )
-
                     let iDone, allDone = true
 
                     for (let i in inviteeList) {
                       iDone = inviteeContactList[i] instanceof Contact
                       if (!iDone) {
-                        inviteeContactList[i] = room.member(inviteeList[i])
-                                                || (allDone = false)
+                        let c = room.member(inviteeList[i])
+                        if (c) {
+                          inviteeContactList[i] = c
+                        } else {
+                          allDone = false
+                        }
                       }
                     }
 
@@ -168,20 +177,20 @@ async function fireRoomJoin(m): Promise<void> {
 
                     if (allDone && inviterContact) {
                       log.silly('PuppetWebFirer', 'fireRoomJoin() resolve() inviteeContactList: %s, inviterContact: %s'
-                                                , inviteeContactList.join(',')
-                                                , inviterContact
+                                                , inviteeContactList.map((c: Contact) => c.name()).join(',')
+                                                , inviterContact.name()
                               )
                       return Promise.resolve()
                     } else {
                       log.silly('PuppetWebFirer', 'fireRoomJoin() reject() inviteeContactList: %s, inviterContact: %s'
-                                                  , inviteeContactList.join(',')
-                                                  , inviterContact
+                                                  , inviteeContactList.map((c: Contact) => c.name()).join(',')
+                                                  , inviterContact.name()
                                 )
                       return Promise.reject('not found(yet)')
                     }
                   })
                   .catch(e => {
-                    log.error('PuppetWebFirer', 'fireRoomJoin9() retryPromise() room.refresh() rejected: %s', e.stack)
+                    log.error('PuppetWebFirer', 'fireRoomJoin() retryPromise() room.refresh() rejected: %s', e.stack)
                     throw e
                   })
     })
@@ -198,6 +207,7 @@ async function fireRoomJoin(m): Promise<void> {
 
     await Promise.all(inviteeContactList.map(c => c.ready()))
     await inviterContact.ready()
+    await room.ready()
 
     if (inviteeContactList.length === 1) {
       this.emit('room-join', room , inviteeContactList[0], inviterContact)
@@ -215,12 +225,12 @@ async function fireRoomJoin(m): Promise<void> {
   return
 }
 
-function checkRoomLeave(content) {
+function checkRoomLeave(content: string): string {
   const re = regexConfig.roomLeave
 
   const found = content.match(re)
   if (!found) {
-    return false
+    return null
   }
   const [, leaver] = found
   return leaver
@@ -283,32 +293,32 @@ async function fireRoomLeave(m) {
     return
   }
 
-  leaverContact.ready()
-                .then(_ => {
-                  this.emit('room-leave', room, leaverContact)
-                  room.emit('leave'           , leaverContact)
-                  room.refresh()
-                })
+  await leaverContact.ready()
+  await room.ready()
+  this.emit('room-leave', room, leaverContact)
+  room.emit('leave'           , leaverContact)
+  await room.refresh()
 }
 
-function checkRoomTopic(content): [string, string] | boolean {
+function checkRoomTopic(content): [string, string] {
   const re = regexConfig.roomTopic
 
   const found = content.match(re)
   if (!found) {
-    return false
+    throw new Error('checkRoomTopic() not found')
   }
   const [, changer, topic] = found
   return [topic, changer]
 }
 
 async function fireRoomTopic(m) {
-  const result = checkRoomTopic(m.content())
-  if (!result) {
+  let  topic, changer
+  try {
+    [topic, changer] = checkRoomTopic(m.content())
+  } catch (e) { // not found
     return
   }
 
-  const [topic, changer] = <[string, string]>result
   const room = m.room()
   const oldTopic = room.topic()
 
@@ -327,6 +337,7 @@ async function fireRoomTopic(m) {
   // co.call(this, function* () {
   try {
     await changerContact.ready()
+    await room.ready()
     this.emit('room-topic', room, topic, oldTopic, changerContact)
     room.emit('topic'           , topic, oldTopic, changerContact)
     room.refresh()

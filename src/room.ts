@@ -10,13 +10,13 @@
  */
 import { EventEmitter } from 'events'
 
-import Config        from './config'
-import Contact       from './contact'
-import Message       from './message'
-import UtilLib       from './util-lib'
-import WechatyEvent  from './wechaty-event'
+import Config     from './config'
+import Contact    from './contact'
+import Message    from './message'
+import UtilLib    from './util-lib'
+import EventScope from './event-scope'
 
-import log           from './brolog-env'
+import log        from './brolog-env'
 
 type RoomObj = {
   id:         string
@@ -109,17 +109,19 @@ class Room extends EventEmitter {
     })
   }
 
-  public on(event: string, listener: Function) {
+  public on(  event: 'join' | 'leave' | 'topic'
+            , listener: Function
+  ) {
     log.verbose('Room', 'on(%s, %s)', event, typeof listener)
 
     /**
      * every room event must can be mapped to a global event.
      * such as: `join` to `room-join`
      */
-    const wrapCallback = WechatyEvent.wrap.call(this, 'room-' + event, listener)
+    const callbackWithScope = EventScope.wrap.call(this, 'room-' + event, listener)
 
     // bind(this1, this2): the second this is for simulate the global room-* event
-    super.on(event, wrapCallback.bind(this, this))
+    super.on(event, callbackWithScope.bind(this, this))
     return this
   }
 
@@ -297,7 +299,10 @@ class Room extends EventEmitter {
     }
   }
 
-  public member(name): Contact {
+  /**
+   * NickName / DisplayName / RemarkName of member
+   */
+  public member(name: string): Contact {
     log.verbose('Room', 'member(%s)', name)
 
     if (!this.obj || !this.obj.memberList) {

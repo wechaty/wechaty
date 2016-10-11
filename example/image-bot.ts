@@ -6,8 +6,11 @@
  * https://github.com/wechaty/wechaty
  *
  */
-const Wechaty = require('..')
-const bot = new Wechaty({ profile: 'example-bot.wechaty.json' })
+import {
+    Message
+  , Wechaty
+} from '../'
+const bot = Wechaty.instance({ profile: 'example-bot.wechaty.json' })
 
 bot
 .on('scan', ({url, code}) => {
@@ -16,7 +19,7 @@ bot
 .on('message', m => {
   console.log(`RECV: ${m}`)
 
-  if (m.type() === Wechaty.Message.Type.IMAGE) {
+  if (m.type() === Message.TYPE['IMAGE']) {
     console.log('IMAGE url: ' + m.get('url'))
     const filename = m.id + '.jpg'
     console.log('IMAGE local filename: ' + filename)

@@ -10,16 +10,17 @@
  * Wechaty - https://github.com/zixia/wechaty
  *
  */
-const log = require('npmlog')
-const co  = require('co')
 const Tuling123 = require('tuling123-client')
-const EventEmitter2 = require('eventemitter2')
 
-const {
-  Wechaty 
-  , Config
-} = require
-('../')
+import { EventEmitter } from 'events'
+
+import {
+    Config
+  , Room
+  , Wechaty
+  , log
+} from '../'
+
 //log.level = 'verbose'
 // log.level = 'silly'
 
@@ -32,9 +33,7 @@ const {
 const TULING123_API_KEY = '18f25157e0446df58ade098479f74b21'
 const brain = new Tuling123(TULING123_API_KEY)
 
-const bot = new Wechaty({
-  profile: Config.DEFAULT_PROFILE
-})
+const bot = Wechaty.instance({ profile: Config.DEFAULT_PROFILE })
 
 console.log(`
 Welcome to Tuling Wechaty Bot.
@@ -52,12 +51,13 @@ bot
 .on('scan', ({url, code}) => {
   console.log(`Scan QR Code in url to login: ${code}\n${url}`)
 })
-.on('message', m => {
+.on('message', async m => {
   if (bot.self(m)) return
 
-  co(function* () {
-    const msg = yield m.ready()
-    const room = Wechaty.Room.load(m.get('room'))
+  // co(function* () {
+  try {
+    const msg = await m.ready()
+    const room = Room.load(m.get('room'))
 
     if (room && /Wechaty/i.test(room.get('name'))) {
       log.info('Bot', 'talk: %s'  , msg)
@@ -65,8 +65,10 @@ bot
     } else {
       log.info('Bot', 'recv: %s'  , msg)
     }
-  })
-  .catch(e => log.error('Bot', 'on message rejected: %s' , e))
+  // }).catch(e => {
+  } catch (e) {
+    log.error('Bot', 'on message rejected: %s' , e)
+  }
 })
 
 bot.init()
@@ -76,16 +78,20 @@ bot.init()
   process.exit(-1)
 })
 
-class Talker extends EventEmitter2 {
-  constructor(thinker) {
-    log.verbose('Talker()')
+class Talker extends EventEmitter {
+  private obj: {
+    text: any
+    time: any
+  }
+  private timer: number
+
+  constructor(private thinker) {
     super()
-    this.thinker = thinker
+    log.verbose('Talker()')
     this.obj = {
       text: []
       , time: []
     }
-    this.timer = null
   }
 
   save(text) {
@@ -101,7 +107,7 @@ class Talker extends EventEmitter2 {
     return text
   }
 
-  updateTimer(delayTime) {
+  updateTimer(delayTime?) {
     delayTime = delayTime || this.delayTime()
     log.verbose('Talker', 'updateTimer(%s)', delayTime)
 

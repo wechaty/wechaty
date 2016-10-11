@@ -23,8 +23,8 @@
   ]
   , "include": [
       "src/**/*.ts"
-    // , "bin/*.ts"
-     , "example/room-bot.ts"
+     , "bin/*.ts"
+     , "example/*.ts"
     // , "test/*.ts"
   ]
 }
