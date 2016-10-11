@@ -18,6 +18,8 @@ Wechaty is a Bot Framework for Wechat **Personal** Account that help you easy cr
 
 ## Wechaty is just converted from Javascript to Typescript.
 
+Details: https://github.com/wechaty/wechaty/issues/40
+
 ```diff
 + Typescripted ...
 - Please do not clone/pull until you are really want to play with typescript wechaty in alpha stage.
@@ -671,8 +673,9 @@ npm test
 
 # Version History
 
-## master
-1. #40 Converte to Typescript 
+## v0.5.0 master (2016/10) The First Typescript Version
+1. #40 Converted to Typescript (2016/10/11) 
+1. added `say()` method to Contact/Room instance, and `this` inside event listeners
 
 ## [v0.4.0](https://github.com/wechaty/wechaty/releases/tag/v0.4.0) (2016/10/9) The Latest Javascript Version
 1. #32 Extend Room Class with:
