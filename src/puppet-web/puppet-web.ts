@@ -39,10 +39,10 @@ const DEFAULT_PUPPET_PORT = 18788 // // W(87) X(88), ascii char code ;-]
 
 class PuppetWeb extends Puppet {
 
-  public browser:  Browser
+  public browser: Browser
+  public bridge:  Bridge
 
-  public bridge:   Bridge
-  private server:   Server
+  private server: Server
 
   private port: number
 
@@ -97,8 +97,8 @@ class PuppetWeb extends Puppet {
       // return this
     // }).catch(e => {   // Reject
     } catch (e) {
-      log.error('PuppetWeb', 'init exception: %s', e.message)
-      this.quit()
+      log.error('PuppetWeb', 'init() exception: %s', e.stack)
+      await this.quit()
       throw e
     }
     // .then(() => {   // Finally
@@ -196,12 +196,12 @@ class PuppetWeb extends Puppet {
     // return co.call(this, function* () {
     try {
       await browser.init()
-      return browser // follow func name meaning
     // }).catch(e => {
     } catch (e) {
       log.error('PuppetWeb', 'initBrowser() exception: %s', e.message)
       throw e
     }
+    return browser // follow func name meaning
   }
 
   private initBridge(): Promise<Bridge> {
