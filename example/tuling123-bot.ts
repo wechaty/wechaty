@@ -50,7 +50,7 @@ Loading...
 bot
 .on('login'  , user => log.info('Bot', `bot login: ${user}`))
 .on('logout' , e => log.info('Bot', 'bot logout.'))
-.on('scan', ({url, code}) => {
+.on('scan', (url, code) => {
   console.log(`Scan QR Code in url to login: ${code}\n${url}`)
 })
 .on('message', async m => {

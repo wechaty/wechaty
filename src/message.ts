@@ -6,7 +6,11 @@
  * https://github.com/wechaty/wechaty
  *
  */
-import Config   from './config'
+import {
+    Config
+  , RecommendInfo
+}               from './config'
+
 import Contact  from './contact'
 import Room     from './room'
 import UtilLib  from './util-lib'
@@ -21,6 +25,8 @@ type MessageRawObj = {
   Status:           string
   MMDigest:         string
   MMDisplayTime:    string  // Javascript timestamp of milliseconds
+
+  RecommendInfo?:   RecommendInfo
 }
 
 type MessageObj = {
@@ -73,7 +79,7 @@ class Message {
     throw Error('abstract method')
   }
 
-  constructor(private rawObj?: MessageRawObj) {
+  constructor(public rawObj?: MessageRawObj) {
     Message.counter++
 
     if (typeof rawObj === 'string') {

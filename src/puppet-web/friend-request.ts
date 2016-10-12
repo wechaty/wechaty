@@ -19,18 +19,13 @@
 /* tslint:disable:no-var-requires */
 const retryPromise  = require('retry-promise').default
 
-import Contact       from '../contact'
-import Config        from '../config'
-import FriendRequest from '../friend-request'
-import log           from '../brolog-env'
-
-type RecommendInfo = {
-  UserName:   string
-  NickName:   string
-  Content:    string // request message
-  Ticket:     string // a pass token
-  VerifyFlag: number
-}
+import Contact        from '../contact'
+import {
+    Config
+  , RecommendInfo
+}                     from '../config'
+import FriendRequest  from '../friend-request'
+import log            from '../brolog-env'
 
 class PuppetWebFriendRequest extends FriendRequest {
 

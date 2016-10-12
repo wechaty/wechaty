@@ -20,6 +20,10 @@
 /* tslint:disable:no-var-requires */
 const retryPromise  = require('retry-promise').default
 
+import {
+  // RecommendInfo
+}                     from '../config'
+
 import Contact        from '../contact'
 import Message        from '../message'
 import log            from '../brolog-env'
@@ -53,7 +57,7 @@ const regexConfig = {
   , roomTopic:    /^"?(.+?)"? changed the group name to "(.+)"$/
 }
 
-async function fireFriendRequest(m) {
+async function fireFriendRequest(m: Message) {
   const info = m.rawObj.RecommendInfo
   log.verbose('PuppetWebFirer', 'fireFriendRequest(%s)', info)
 

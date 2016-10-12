@@ -60,14 +60,15 @@ test('Firer.checkRoomJoin', t => {
 
   let result
   contentList.forEach(([content, inviter, inviteeList]) => {
-    result = Firer.checkRoomJoin(content)
+    result = Firer.checkRoomJoin(content as string)
     t.truthy(result, 'should check room join message right for ' + content)
     t.deepEqual(result[0], inviteeList, 'should get inviteeList right')
     t.is(result[1], inviter, 'should get inviter right')
   })
 
-  result = Firer.checkRoomJoin('fsadfsadfsdfsdfs')
-  t.false(result, 'should get false if message is not expected')
+  t.throws(() => {
+    Firer.checkRoomJoin('fsadfsadfsdfsdfs')
+  }, 'should throws if message is not expected')
 })
 
 test('Firer.checkRoomLeave', t => {
@@ -81,8 +82,9 @@ test('Firer.checkRoomLeave', t => {
   t.truthy(leaver, 'should get leaver for leave message')
   t.is(leaver, data[1], 'should get leaver name right')
 
-  leaver = Firer.checkRoomLeave('fafdsfsdfafa')
-  t.false(leaver, 'should get false if message is not expected')
+  t.throws(() => {
+    Firer.checkRoomLeave('fafdsfsdfafa')
+  }, 'should throw if message is not expected')
 })
 
 test('Firer.checkRoomTopic', t => {

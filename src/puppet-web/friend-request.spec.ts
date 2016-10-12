@@ -3,10 +3,12 @@ import { test }   from 'ava'
 import Config   from '../config'
 import Contact  from '../contact'
 import Message  from '../message'
-
+import Puppet   from '../puppet'
 import PuppetWebFriendRequest from './friend-request'
 
-Config.puppetInstance({})
+Config.puppetInstance({
+  userId: 'xxx'
+} as Puppet)
 
 test('PuppetWebFriendRequest.receive smoking test', t => {
   /* tslint:disable:max-line-length */

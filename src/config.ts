@@ -143,11 +143,20 @@ type ScanInfo = {
   code: number
 }
 
+type RecommendInfo = {
+  UserName:   string
+  NickName:   string
+  Content:    string // request message
+  Ticket:     string // a pass token
+  VerifyFlag: number
+}
+
 export default Config
 export {
     Config
   , HeadType
   , PuppetType
+  , RecommendInfo
   , ScanInfo
   , WatchdogFood
   , WechatyEventName
