@@ -109,12 +109,12 @@ class Room extends EventEmitter {
     })
   }
 
-  public on(event: 'join' , listener: (invitee:      Contact   , inviter: Contact)  => void) // XXX ???
-  public on(event: 'join' , listener: (inviteeList:  Contact[] , inviter: Contact)  => void): Room
-  public on(event: 'topic', listener: (topic: string, oldTopic: string, changer: Contact) => void): Room
-  public on(event: 'leave', listener: (leaver: Contact) => void): Room
+  public on(event: 'leave', listener: (leaver: Contact) => void): this
+  public on(event: 'join' , listener: (invitee:      Contact   , inviter: Contact)  => void): this
+  public on(event: 'join' , listener: (inviteeList:  Contact[] , inviter: Contact)  => void): this
+  public on(event: 'topic', listener: (topic: string, oldTopic: string, changer: Contact) => void): this
 
-  public on(event: string, listener: Function): Room {
+  public on(event: string, listener: Function): this {
     log.verbose('Room', 'on(%s, %s)', event, typeof listener)
 
     /**

@@ -16,6 +16,7 @@ import * as fs          from'fs'
 import Config, {
     HeadType
   , PuppetType
+  , WechatyEventType
 } from './config'
 
 import Contact        from './contact'
@@ -154,20 +155,22 @@ class Wechaty extends EventEmitter {
     return this
   }
 
-  public on(event: 'message', listener: (message: Message, n: number) => void) // XXX ???
-  public on(event: 'scan'   , listener: ({url: string, code: number}) => void): Wechaty
-  public on(event: 'logout' , listener: (user: Contact) => void): Wechaty
-  public on(event: 'login'  , listener: (user: Contact) => void): Wechaty
-  public on(event: 'friend' , listener: (friend: Contact, request: FriendRequest) => void): Wechaty
-  public on(event: 'error'  , listener: (error: Error) => void): Wechaty
-  public on(event: 'heartbeat'  , listener: (data: any) => void): Wechaty
-  public on(event: 'room-join'  , listener: (room: Room, invitee:     Contact, inviter: Contact) => void): Wechaty
-  public on(event: 'room-join'  , listener: (room: Room, inviteeList: Contact, inviter: Contact) => void): Wechaty
-  public on(event: 'room-leave' , listener: (room: Room, leaver: Contact) => void): Wechaty
-  public on(event: 'room-topic' , listener: (room: Room, topic: string, oldTopic: string, changer: Contact) => void): Wechaty
+  public on(event: 'error'      , listener: (error: Error) => void): this
+  public on(event: 'friend'     , listener: (friend: Contact, request: FriendRequest) => void): this
+  public on(event: 'heartbeat'  , listener: (data: any) => void): this
+  public on(event: 'logout'     , listener: (user: Contact) => void): this
+  public on(event: 'login'      , listener: (user: Contact) => void): this
+  public on(event: 'message'    , listener: (message: Message, n: number) => void): this
+  public on(event: 'room-join'  , listener: (room: Room, invitee:     Contact, inviter: Contact) => void): this
+  public on(event: 'room-join'  , listener: (room: Room, inviteeList: Contact, inviter: Contact) => void): this
+  public on(event: 'room-leave' , listener: (room: Room, leaver: Contact) => void): this
+  public on(event: 'room-topic' , listener: (room: Room, topic: string, oldTopic: string, changer: Contact) => void): this
+  public on(event: 'scan'       , listener: (url: string, code: number) => void): this
 
-  public on(event: string, listener: Function): Wechaty {
+  public on(event: WechatyEventType, listener: Function): this {
     log.verbose('Wechaty', 'on(%s, %s)', event, typeof listener)
+    typeof FriendRequest
+    typeof Room
 
     const listenerWithScope = EventScope.wrap.call(this, event, listener)
     super.on(event, listenerWithScope)
