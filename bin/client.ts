@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
-const {
+import {
   IoClient
   , Config
-  , log 
-} = require('../')
+  , log
+} from '../'
 
 const welcome = `
 | __        __        _           _
@@ -36,10 +36,7 @@ if (!token) {
 console.log(welcome)
 log.info('Client', 'Starting for WECHATY_TOKEN: %s', token)
 
-const client = new IoClient({
-  token
-  , log
-})
+const client = new IoClient(token, log)
 
 client.init()
     .catch(onError.bind(client))
