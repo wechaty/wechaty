@@ -32,9 +32,6 @@ type RecommendInfo = {
 class PuppetWebFriendRequest extends FriendRequest {
 
   public info: RecommendInfo
-  public contact: Contact
-  public hello: string
-  public type: 'send' | 'receive' | 'confirm'
 
   private ticket: string
 

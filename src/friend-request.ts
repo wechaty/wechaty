@@ -14,6 +14,11 @@ import Config   from './config'
 import Contact  from './contact'
 
 abstract class FriendRequest {
+
+  public contact: Contact
+  public hello: string
+  public type: 'send' | 'receive' | 'confirm'
+
   constructor() {
     if (!Config.puppetInstance()) {
       throw new Error('no Config.puppetInstance() instanciated')

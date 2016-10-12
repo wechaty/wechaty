@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es6"
     , "module": "commonjs"
-    , "moduleResolution": "node"
+    , "moduleResolution": "node" // typescript 2.0.3 bug compatible
     , "outDir": "dist"
     // , "outFile": "dist/wechaty.lib.js"
 

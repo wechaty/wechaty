@@ -13,7 +13,9 @@
 import * as WebSocket from 'ws'
 // const co            = require('co')
 
-import Config   from './config'
+import Config, {
+  WechatyEventType
+}   from './config'
 import Contact  from './contact'
 import Wechaty  from './wechaty'
 import log      from './brolog-env'
@@ -295,7 +297,7 @@ class Io {
 
     wechaty.on('message', this.ioMessage)
 
-    const hookEvents = [
+    const hookEvents: WechatyEventType[] = [
       'scan'
       , 'login'
       , 'logout'

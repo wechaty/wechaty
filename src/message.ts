@@ -9,7 +9,7 @@
 import Contact from './contact'
 import Room    from './room'
 import UtilLib from './util-lib'
-
+import Wechaty from './wechaty'
 import log     from './brolog-env'
 
 type MessageRawObj = {
@@ -69,7 +69,7 @@ class Message {
 
   protected obj = <MessageObj>{}
 
-  readyStream(): Promise<NodeJS.ReadableStream> {
+  public readyStream(): Promise<NodeJS.ReadableStream> {
     throw Error('abstract method')
   }
 
@@ -281,11 +281,6 @@ class Message {
 }
 
 Message.initType()
-
-// Message.attach = function(puppet) {
-//   log.verbose('Message', 'attach() to %s', puppet && puppet.constructor.name)
-//   Message.puppet = puppet
-// }
 
 // module.exports = Message.default = Message.Message = Message
 export default Message

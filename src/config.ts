@@ -125,10 +125,21 @@ type WatchdogFood = {
   , timeout?: number  // millisecond
 }
 
+type WechatyEventType = 'login' | 'logout' | 'friend'
+                  | 'message' | 'error' | 'heartbeat' | 'scan'
+                  | 'room-join' | 'room-leave' | 'room-topic'
+
+type ScanInfo = {
+  url: string
+  code: number
+}
+
 export default Config
 export {
     Config
   , HeadType
   , PuppetType
+  , ScanInfo
   , WatchdogFood
+  , WechatyEventType
 }

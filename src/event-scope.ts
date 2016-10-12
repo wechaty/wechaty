@@ -29,7 +29,7 @@ type WechatyEventType =   'error'     | 'heartbeat'
 
 const EVENT_CONFIG = {
   error:          wrapFilehelper
-  , friend:       wrapContact
+  , friend:       wrapFilehelper
   , heartbeat:    wrapFilehelper
   , login:        wrapFilehelper
   , logout:       null  // NULL
@@ -113,6 +113,7 @@ function wrapContact(listener) {
     return listener.apply(eventScope, argList)
   }
 }
+typeof wrapContact
 
 function wrapRoom(listener) {
   log.verbose('WechatyEvent', 'wrapRoom()')

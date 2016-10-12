@@ -16,8 +16,11 @@
 // const co    = require('co')
 
 import log   from '../brolog-env'
+import {
+  WatchdogFood
+} from '../config'
+
 import Event from './event'
-import { WatchdogFood } from '../config'
 
 /* tslint:disable:variable-name */
 const Watchdog = {

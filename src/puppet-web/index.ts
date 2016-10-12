@@ -15,17 +15,6 @@ import PuppetWeb  from './puppet-web'
 import Server     from './server'
 import Watchdog   from './watchdog'
 
-// Object.assign(PuppetWeb, {
-//   default: PuppetWeb
-//   , PuppetWeb
-//   , Server
-//   , Browser
-//   , Bridge
-//   , Event
-//   , Watchdog
-// })
-
-// module.exports = PuppetWeb
 export default PuppetWeb
 export {
   Bridge

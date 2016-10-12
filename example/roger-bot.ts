@@ -10,7 +10,7 @@ import { Wechaty } from '../'
 const bot = Wechaty.instance(/* no profile here because roger bot is too noisy */)
 
 bot
-.on('scan', ({url, code}) => {
+.on('scan', (url, code) => {
   console.log(`Use Wechat to Scan QR Code in url to login: ${code}\n${url}`)
 })
 .on('message', m => {

@@ -22,10 +22,9 @@ import log      from './brolog-env'
 // }
 
 abstract class Puppet extends EventEmitter {
-  public user: Contact
+  public userId:  string
+  public user:    Contact
   public abstract getContact(id: string): Promise<any>
-
-  protected userId: string
 
   private _targetState:   string
   private _currentState:  string

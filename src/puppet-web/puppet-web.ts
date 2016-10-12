@@ -18,7 +18,8 @@
 // const co    = require('co')
 
 import {
-  Config
+    Config
+  , ScanInfo
   , WatchdogFood
 }                     from '../config'
 import Contact        from '../contact'
@@ -41,8 +42,9 @@ class PuppetWeb extends Puppet {
 
   public browser: Browser
   public bridge:  Bridge
-
   private server: Server
+
+  public scan:    ScanInfo
 
   private port: number
 
@@ -359,7 +361,7 @@ class PuppetWeb extends Puppet {
                       })
   }
   public logined() { return !!(this.user) }
-  public ding(data) {
+  public ding(data: any): Promise<any> {
     if (!this.bridge) {
       return Promise.reject(new Error('ding fail: no bridge(yet)!'))
     }

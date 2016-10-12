@@ -44,7 +44,7 @@ bot
 .on('login'	  , user => log.info('Bot', `${user.name()} logined`))
 .on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
 .on('error'   , e => log.info('Bot', 'error: %s', e))
-.on('scan', ({url, code}) => {
+.on('scan', (url, code) => {
   if (!/201|200/.test(code)) {
     let loginUrl = url.replace(/\/qrcode\//, '/l/')
     require('qrcode-terminal').generate(loginUrl)

@@ -6,16 +6,14 @@
  * https://github.com/zixia/wechaty
  *
  */
-// const co = require('co')
-
 import Config   from './config'
 import Message  from './message'
 import UtilLib  from './util-lib'
 
 import log      from './brolog-env'
 
-import PuppetWeb from './puppet-web/index'
-import PuppetWebBridge from './puppet-web/bridge'
+import PuppetWeb        from './puppet-web/puppet-web'
+import PuppetWebBridge  from './puppet-web/bridge'
 
 class MediaMessage extends Message {
   private bridge: PuppetWebBridge

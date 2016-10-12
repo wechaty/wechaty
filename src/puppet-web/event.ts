@@ -19,13 +19,19 @@
 // import * as fs    from 'fs'
 // const co    = require('co')
 
-import Contact       from '../contact'
-import MediaMessage  from '../message-media'
-import Message       from '../message'
-import log           from '../brolog-env'
+import {
+    WatchdogFood
+  , ScanInfo
+}                   from '../config'
+import Contact      from '../contact'
+import Message      from '../message'
+import MediaMessage from '../message-media'
+import log          from '../brolog-env'
+
 
 // import FriendRequest from './friend-request'
-import Firer         from './firer'
+import Firer        from './firer'
+import PuppetWeb    from './puppet-web'
 
 /* tslint:disable:variable-name */
 const PuppetWebEvent = {
@@ -139,10 +145,10 @@ function onServerDing(data) {
   this.emit('watchdog', { data })
 }
 
-function onServerScan(data) {
+function onServerScan(this: PuppetWeb, data: ScanInfo) {
   log.verbose('PuppetWebEvent', 'onServerScan(%d)', data && data.code)
 
-  this.scan = data // ScanInfo
+  this.scan = data
 
   /**
    * When wx.qq.com push a new QRCode to Scan, there will be cookie updates(?)
@@ -158,9 +164,12 @@ function onServerScan(data) {
 
   // feed watchDog a `scan` type of food
   // this.watchDog(data, {type: 'scan'})
-  this.emit('watchdog', { data, type: 'SCAN' })
-
-  this.emit('scan', data)
+  const food: WatchdogFood = {
+      data
+    , type: 'SCAN'
+  }
+  this.emit('watchdog', food)
+  this.emit('scan'    , data.url, data.code)
 }
 
 function onServerConnection(data) {

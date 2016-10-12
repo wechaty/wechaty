@@ -54,9 +54,9 @@ const Wechaty = require('wechaty')
 const bot = new Wechaty()
 
 bot
-.on('scan', ({url, code}) => console.log(`Scan QrCode to login: ${code}\n${url}`))
-.on('login',         user => console.log(`User ${user} logined`))
-.on('message',    message => console.log(`Message: ${message}`))
+.on('scan', (url, code) => console.log(`Scan QrCode to login: ${code}\n${url}`))
+.on('login',       user => console.log(`User ${user} logined`))
+.on('message',  message => console.log(`Message: ${message}`))
 .init()
 ```
 
@@ -327,8 +327,8 @@ Wechaty support the following 6 events:
 
 A `scan` event will be emitted when the bot need to show you a QrCode for scaning.
 
-```javascript
-wechaty.on('scan', ({code, url}) => {
+```typescript
+wechaty.on('scan', (url: string, code: number}) => {
   console.log(`[${code}] Scan ${url} to login.` )
 })
 ```
@@ -675,7 +675,8 @@ npm test
 
 ## v0.5.0 master (2016/10) The First Typescript Version
 1. #40 Converted to Typescript (2016/10/11) 
-1. added `say()` method to Contact/Room instance, and `this` inside event listeners
+1. added `say()` method to Contact/Room instance, and to `this` inside wechaty event listeners
+1. BREAKING CHANGE: global event `scan` arguments changed from 1 to 2: now is (url: string, code: number) instead of {url, code} before. 
 
 ## [v0.4.0](https://github.com/wechaty/wechaty/releases/tag/v0.4.0) (2016/10/9) The Latest Javascript Version
 1. #32 Extend Room Class with:
