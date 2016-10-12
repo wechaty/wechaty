@@ -6,11 +6,11 @@ import {
   , log
 } from '../../'
 
-import util from 'util'
-import retryPormise from 'retry-promise'
-import EventEmitter from 'events'
+// import * as util from 'util'
+// const retryPormise = require('retry-promise').default
+// import { EventEmitter } from 'events'
 
-import { spy } from 'sinon'
+// import { spy } from 'sinon'
 
 test('Puppet Web Self Message Identification', t => {
   const p = new PuppetWeb()
@@ -24,7 +24,7 @@ test('Puppet Web Self Message Identification', t => {
 })
 
 /**
- * the reason why use `test.serial` here is: 
+ * the reason why use `test.serial` here is:
  *  static variable `Contact.puppet` will be changed
  *  when `PuppteWeb.init()` and `PuppteWeb.quit()`
  */

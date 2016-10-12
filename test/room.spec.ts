@@ -1,13 +1,13 @@
 import { test } from 'ava'
 import {
   Room
-  , Wechaty
+  // , Wechaty
   , Config
-  , Message
+  // , Message
   , Contact
-  , Puppet
+  // , Puppet
   , PuppetWeb
-  , log
+  // , log
 }  from '../'
 
 Config.puppetInstance(new PuppetWeb())
@@ -97,7 +97,8 @@ test('Room smoking test', async t => {
   t.is(nick2, EXPECTED.memberNick2, 'should get nick2 from NickName because there is no DisplayName, ')
 
   t.truthy(r.has(contact1), 'should has contact1')
-  t.falsy(r.has(new Contact('not exist id'), 'should has no this member'))
+  const noSuchContact = new Contact('not exist id')
+  t.false(r.has(noSuchContact), 'should has no this member')
 
   const owner = r.owner()
   t.true(owner === null || owner instanceof Contact, 'should get Contact instance for owner, or null')
@@ -116,13 +117,13 @@ test('Room smoking test', async t => {
 
 test('Room static method', async t => {
   const room = await Room.find({
-    name: 'xxx'
+    topic: 'xxx'
   })
 
   t.truthy(room === null, 'should return null before login')
 
   const roomList = await Room.findAll({
-    name: 'yyy'
+    topic: 'yyy'
   })
 
   t.is(roomList.length, 0, 'should return empty array before login')

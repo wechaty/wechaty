@@ -1,30 +1,35 @@
 import { test } from 'ava'
 
-import https from 'https'
-import sinon from 'sinon'
+import * as https from 'https'
+import * as sinon from 'sinon'
 
 import {
-  PuppetWeb
-  , Message
-  , log
+  // PuppetWeb
+  // , Message
+  log
 } from '../../'
 
-const PuppetWebServer = PuppetWeb.Server //require('../../src/puppet-web/server')
+import {
+    // PuppetWeb
+  Server
+}               from '../../src/puppet-web/'
+
+const PuppetWebServer = Server //require('../../src/puppet-web/server')
 const PORT = 48788
 
 test('PuppetWebServer basic tests', async t => {
-  const s = new PuppetWebServer({port: PORT})
+  const s = new PuppetWebServer(PORT)
   t.is(typeof s, 'object', 'PuppetWebServer instance created')
 
   let httpsServer = null
 
   // co(function* () {
     const spy = sinon.spy()
-    
+
     const express = s.createExpress()
     t.is(typeof express, 'function', 'create express')
 
-    httpsServer = s.createHttpsServer(express)
+    httpsServer = await s.createHttpsServer(express)
     t.is(typeof httpsServer, 'object', 'create https server')
     httpsServer.on('close', _ => spy('onClose'))
 
@@ -58,7 +63,7 @@ test('PuppetWebServer basic tests', async t => {
 })
 
 test('PuppetWebServer smoke testing', async t => {
-  const server = new PuppetWebServer({port: PORT})
+  const server = new Server(PORT)
   t.truthy(server, 'new server instance')
 
   // co(function* () {

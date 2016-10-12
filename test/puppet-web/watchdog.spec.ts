@@ -1,12 +1,16 @@
 import { test } from 'ava'
 
-import util from 'util'
-import retryPromise from 'retry-promise'
+// import * as util from 'util'
+const retryPromise = require('retry-promise').default
+
+import {
+  log
+} from '../../'
 
 import {
   PuppetWeb
-  , log
-} from '../../'
+  , Watchdog
+} from '../../src/puppet-web/'
 
 // const co    = require('co')
 // const util  = require('util')
@@ -18,7 +22,7 @@ import {
 const PROFILE = 'unit-test-session.wechaty.json'
 
 // const PuppetWeb = require('../../src/puppet-web')
-const Watchdog = PuppetWeb.Watchdog // require('../../src/puppet-web/watchdog.js')
+// const Watchdog = PuppetWeb.Watchdog // require('../../src/puppet-web/watchdog.js')
 
 test('Puppet Web watchdog timer', async t => {
   const pw = new PuppetWeb({profile: PROFILE})
@@ -29,9 +33,9 @@ test('Puppet Web watchdog timer', async t => {
 
   // co(function* () {
 
-    const origLogLevel = log.level
-    if (log.level === 'info') {
-      log.level = 'silent'
+    const origLogLevel = log.level()
+    if (log.level() === 'info') {
+      log.level('silent')
       t.pass('set log.level = silent to mute log when watchDog reset wechaty temporary')
     }
 
@@ -59,7 +63,7 @@ test('Puppet Web watchdog timer', async t => {
     const dong = await waitDing(EXPECTED_DING_DATA)
     t.is(dong, EXPECTED_DING_DATA, 'should get EXPECTED_DING_DATA from ding after watchdog reset, and restored log level')
 
-    log.level = origLogLevel
+    log.level(origLogLevel)
 
     await pw.quit()
   // })

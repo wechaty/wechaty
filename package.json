@@ -100,6 +100,7 @@
     "@types/mime": "0.0.29",
     "@types/node": "^6.0.45",
     "@types/selenium-webdriver": "^2.53.33",
+    "@types/sinon": "^1.16.31",
     "@types/socket.io": "^1.4.27",
     "@types/ws": "0.0.34",
     "apiai": "^2.0.7",

@@ -1,28 +1,40 @@
-import { test }     from 'ava'
-import { Wechaty }  from '../'
+import { test } from 'ava'
+
+import {
+    Config
+  , Contact
+  , IoClient
+  , Message
+  , Puppet
+  , PuppetWeb
+  , Room
+  , Wechaty
+
+  , log
+  , version
+}               from '../'
 
 test('Wechaty Framework', t => {
-  t.truthy(Wechaty            , 'should export Wechaty')
-  t.truthy(Wechaty.Message    , 'should export Wechaty.Message')
-  t.truthy(Wechaty.Contact    , 'should export Wechaty.Contact')
-  t.truthy(Wechaty.Room       , 'should export Wechaty.Room')
+  t.truthy(Wechaty    , 'should export Wechaty')
+  t.truthy(Message    , 'should export Message')
+  t.truthy(Contact    , 'should export Contact')
+  t.truthy(Room       , 'should export Room')
 
-  t.truthy(Wechaty.IoClient   , 'should export Wechaty.IoClient')
+  t.truthy(IoClient   , 'should export IoClient')
 
-  t.truthy(Wechaty.log        , 'should export Wechaty.log')
+  t.truthy(log        , 'should export log')
 
 
-  t.truthy(Wechaty.Puppet     , 'should export Wechaty.Puppet')
-  t.truthy(Wechaty.PuppetWeb  , 'should export Wechaty.PuppetWeb')
+  t.truthy(Puppet     , 'should export Puppet')
+  t.truthy(PuppetWeb  , 'should export PuppetWeb')
 
-  const bot = new Wechaty()
-  t.is(bot.version(true), Wechaty.version, 'should export version in package.json')
+  const bot = Wechaty.instance()
+  t.is(bot.version(true), version, 'should export version in package.json')
 })
 
 test('Wechaty Config setting', t => {
-  const Config = Wechaty.Config
 
-  t.truthy(Config                 , 'should export Wechaty.Config')
+  t.truthy(Config                 , 'should export Config')
   t.truthy(Config.DEFAULT_HEAD    , 'should has DEFAULT_HEAD')
   t.truthy(Config.DEFAULT_PUPPET  , 'should has DEFAULT_PUPPET')
   t.truthy(Config.DEFAULT_PORT    , 'should has DEFAULT_PORT')

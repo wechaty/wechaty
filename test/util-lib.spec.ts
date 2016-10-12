@@ -1,21 +1,10 @@
 import { test } from 'ava'
 import {
   UtilLib
-  , log
 }  from '../'
 
-import express from 'express'
-import http from 'http'
-
-// 'use strict'
-
-// const co      = require('co')
-// const test    = require('tape')
-// const Express = require('express')
-// const http    = require('http')
-
-// const log   = require('../src/brolog-env')
-// const UtilLib  = require('../src/util-lib')
+import * as express  from 'express'
+// import * as http     from 'http'
 
 test('Html smoking test', t => {
   const HTML_BEFORE_STRIP = 'Outer<html>Inner</html>'
@@ -79,27 +68,20 @@ test('Media download smoking test', t => {
           })
         })
         .catch(e => {
-          t.fail('downloadStream() exception: %s', e.message)
+          t.fail('downloadStream() exception: ' + e.message)
         })
 })
 
 test('getPort with free & busy port', async t => {
   const PORT = 8788
 
-  // co(function* () {
-    let port = await UtilLib.getPort(PORT)
-    t.notDeepEqual(port, PORT, 'should not be same port even it is available(to provent conflict between concurrency tests in AVA)')
+  let port = await UtilLib.getPort(PORT)
+  t.notDeepEqual(port, PORT, 'should not be same port even it is available(to provent conflict between concurrency tests in AVA)')
 
-    const app = express()
-    const server = app.listen(PORT)
-    port = await UtilLib.getPort(PORT)
-    server.close()
+  const app = express()
+  const server = app.listen(PORT)
+  port = await UtilLib.getPort(PORT)
+  server.close()
 
-    t.true(port > PORT, 'should bigger then PORT when it is not availble')
-
-  // }).catch(e => {
-  //   t.fail(e)
-  // }).then(_ => {
-  //   t.end()
-  // })
+  t.true(port > PORT, 'should bigger then PORT when it is not availble')
 })

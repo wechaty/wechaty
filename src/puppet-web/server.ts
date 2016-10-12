@@ -62,7 +62,7 @@ class Server extends EventEmitter {
   /**
    * Https Server
    */
-  private createHttpsServer(express: express.Application): Promise<https.Server> {
+  public createHttpsServer(express: express.Application): Promise<https.Server> {
     return new Promise((resolve, reject) => {
       const srv = https.createServer({
                                         key:    require('./ssl-pem').key
@@ -85,7 +85,7 @@ class Server extends EventEmitter {
   /**
    * express Middleware
    */
-  private createExpress(): express.Application {
+  public createExpress(): express.Application {
     const e = express()
     e.use(bodyParser.json())
     e.use(function(req, res, next) {
@@ -107,7 +107,7 @@ class Server extends EventEmitter {
   /**
    * Socket IO
    */
-  private createSocketIo(httpsServer): SocketIO.Server {
+  public createSocketIo(httpsServer): SocketIO.Server {
     const socketServer = io.listen(httpsServer, {
       // log: true
     })

@@ -70,7 +70,7 @@ class Bridge {
     })
   }
 
-  private async inject(): Promise<any> {
+  public async inject(): Promise<any> {
     log.verbose('PuppetWebBridge', 'inject()')
 
     // return co.call(this, function* () {
@@ -313,7 +313,7 @@ class Bridge {
   /**
    * Proxy Call to Wechaty in Bridge
    */
-  private proxyWechaty(wechatyFunc, ...args): Promise<any> {
+  public proxyWechaty(wechatyFunc, ...args): Promise<any> {
     const argsEncoded = new Buffer(
       encodeURIComponent(
         JSON.stringify(args)
@@ -362,7 +362,7 @@ class Bridge {
   /**
    * call REAL browser excute for other methods
    */
-  private execute(script, ...args): Promise<any> {
+  public execute(script, ...args): Promise<any> {
     if (!this.puppet || !this.puppet.browser) {
       return Promise.reject(new Error('execute(): no puppet or no puppet.browser in bridge'))
     }

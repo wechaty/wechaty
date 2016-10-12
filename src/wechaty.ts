@@ -182,10 +182,10 @@ class Wechaty extends EventEmitter {
     let puppet
     switch (this.setting.type) {
       case 'web':
-        puppet = new PuppetWeb(
-            this.setting.head
-          , this.setting.profile
-        )
+        puppet = new PuppetWeb({
+            head:     this.setting.head
+          , profile:  this.setting.profile
+        })
         break
       default:
         throw new Error('Puppet unsupport(yet): ' + this.setting.type)

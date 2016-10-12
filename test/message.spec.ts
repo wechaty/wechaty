@@ -1,20 +1,14 @@
 import { test } from 'ava'
 import {
-  Message
-  , Wechaty
-  , Config
+    Config
   , Contact
-  , Puppet
+  , Message
+  , PuppetWeb
+  // , Wechaty
   , log
-}  from '../'
-// const test = require('tape')
-// const Message = require('../src/message')
-// const Contact = require('../src/contact')
-// const Puppet = require('../src/puppet')
+}             from '../'
 
-// const log = require('../src/brolog-env')
-
-const puppet = new Puppet()
+const puppet = new PuppetWeb()
 Config.puppetInstance(puppet)
 // Contact.attach(puppet)
 // Message.attach(puppet)
@@ -58,7 +52,7 @@ test('Message ready() promise testing', async t => {
   // Contact.attach(puppet)
   // Message.attach(puppet)
 
-  Contact.init()
+  // Contact.init()
 
   // Mock
   function mockGetContact(id) {
@@ -105,22 +99,18 @@ test('Message ready() promise testing', async t => {
   t.is(tc.get('name') , expectedToNickName  , 'contact ready for ToNickName')
 })
 
-test('TBW: Message static method', t => {
+test('TBW: Message static method', async t => {
   // Contact.attach(new Puppet())
   // Message.attach(new Puppet())
 
-  const m = Message.find({
+  const m = await Message.find({
     id: 'xxx'
-  }, {
-    limit: 1
   })
 
   t.truthy(m.get('id'), 'Message.find')
 
-  const ms = Message.findAll({
+  const ms = await Message.findAll({
     from: 'yyy'
-  }, {
-    limit: 2
   })
 
   t.is(ms.length, 2, 'Message.findAll with limit 2')

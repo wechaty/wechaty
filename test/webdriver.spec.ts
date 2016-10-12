@@ -1,42 +1,27 @@
-import path from 'path'
+// import * as path  from 'path'
+import { test }   from 'ava'
 
-import { test } from 'ava'
+// import {
+//   Browser
+//   , By
+// }                 from 'selenium-webdriver'
 
 import {
-  Browser
-  , By
-} from 'selenium-webdriver'
-
-import {
-  PuppetWeb
-  , log
-} from '../'
-
-// 'use strict'
-
-// const path  = require('path')
-// const co    = require('co')
-// const test   = require('tape')
-
-// const log   = require('../src/brolog-env')
-
-// const WebDriver = require('selenium-webdriver')
-// const Browser = WebDriver.Browser
-// const By = WebDriver.By
-
-// const PuppetWebBrowser  = require('../src/puppet-web/browser')
-// const PuppetWebBridge   = require('../src/puppet-web/bridge')
+    Bridge  as PuppetWebBridge
+  , Browser as PuppetWebBrowser
+  , PuppetWeb
+} from '../src/puppet-web/'
 
 /**
  * WHY USE test.serial
- * 
+ *
  * serial here is because we are checking browser pids inside test.
  * if 2 tests run parallel in the same process,
  * there will have race conditions for the conflict of `getBrowserPids()`
- */ 
+ */
 test.serial('WebDriver process create & quit test', async t => {
   // co(function* () {
-    const b = new PuppetWeb.Browser()
+    const b = new PuppetWebBrowser()
     t.truthy(b, 'should instanciate a browser')
 
     await b.init()
@@ -58,6 +43,7 @@ test.serial('WebDriver process create & quit test', async t => {
       t.is(pids.length, 0, 'no driver process after quit')
     }
 
+    return
   // })
   // .catch(e => t.fail(e))
   // .then(_ => t.end())
@@ -66,11 +52,11 @@ test.serial('WebDriver process create & quit test', async t => {
 })
 
 test.serial('WebDriver smoke testing', async t => {
-  const wb = new PuppetWeb.Browser()
+  const wb = new PuppetWebBrowser()
   t.truthy(wb, 'Browser instnace')
 
-  const mockPuppet = {browser: wb}
-  const bridge = new PuppetWeb.Bridge({puppet: mockPuppet})
+  const mockPuppet = <PuppetWeb>{browser: wb}
+  const bridge = new PuppetWebBridge(mockPuppet, 8788)
   t.truthy(bridge, 'Bridge instnace')
 
   var driver // for help function `execute`
@@ -121,7 +107,7 @@ test.serial('WebDriver smoke testing', async t => {
   return
 
   //////////////////////////////////
-  function driverExecute() {
+  function driverExecute(arg1: any, arg2?: any) {
     return driver.executeScript.apply(driver, arguments)
   }
 })

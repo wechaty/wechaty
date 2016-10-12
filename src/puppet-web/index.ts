@@ -17,7 +17,7 @@ import Watchdog   from './watchdog'
 
 export default PuppetWeb
 export {
-  Bridge
+    Bridge
   , Browser
   , Event
   , PuppetWeb

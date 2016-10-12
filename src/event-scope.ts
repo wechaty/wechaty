@@ -14,6 +14,7 @@ import {
     Config
   , WechatyEventName
 }               from './config'
+
 import Contact  from './contact'
 import Message  from './message'
 import Room     from './room'
@@ -202,5 +203,4 @@ function wrapFilehelper(listener) {
   }
 }
 
-// module.exports = WechatyEvent.default = WechatyEvent
 export default EventScope

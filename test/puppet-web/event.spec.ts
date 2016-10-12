@@ -1,17 +1,22 @@
 import { test } from 'ava'
 
 import {
-  PuppetWeb
-  , log
+  // PuppetWeb
+  // , log
 } from '../../'
 
-import util from 'util'
+import {
+    Event
+  , PuppetWeb
+} from '../../src/puppet-web/'
 
-const PORT = process.env.WECHATY_PORT || 58788
+// import util from 'util'
+
+// const PORT = process.env.WECHATY_PORT || 58788
 const PROFILE = 'unit-test-session.wechaty.json'
 
 // const PuppetWeb = require('../../src/puppet-web')
-const PuppetWebEvent = PuppetWeb.Event // require('../../src/puppet-web/event')
+const PuppetWebEvent = Event // require('../../src/puppet-web/event')
 
 test('Puppet Web Event smoking test', async t => {
   let pw = new PuppetWeb({profile: PROFILE})

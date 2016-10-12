@@ -234,15 +234,15 @@ class Message {
     Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj[k]}`))
   }
 
-  public static find(selector, option) {
-    // return new Message({MsgId: '-1'})
+  public static async find(query) {
+    return Promise.resolve(new Message(<MessageRawObj>{MsgId: '-1'}))
   }
 
-  public static findAll(selector, option) {
-    return [
-      // new Message   ({MsgId: '-2'})
-      // , new Message ({MsgId: '-3'})
-    ]
+  public static async findAll(query) {
+    return Promise.resolve([
+      new Message   (<MessageRawObj>{MsgId: '-2'})
+      , new Message (<MessageRawObj>{MsgId: '-3'})
+    ])
   }
 
   public static initType() {

@@ -22,30 +22,30 @@ import log    from'../brolog-env'
 
 import Config from'../config'
 
+type BrowserSetting = {
+  head?:        string
+  sessionFile?: string
+}
+
 class Browser extends EventEmitter {
 
   private _targetState
   private _currentState
 
-  private driver: WebDriver
+  public driver: WebDriver
 
-  constructor(
-    private head: string = process.env['WECHATY_HEAD'] || Config.DEFAULT_HEAD
-    , private sessionFile: string = null // a file to save session cookies
-  ) {
+  constructor(private setting: BrowserSetting = {}) {
     super()
-    log.verbose('PuppetWebBrowser', 'constructor() with head(%s) sessionFile(%s)', head, sessionFile)
-    // this.head = head
-    // this.sessionFile = sessionFile
+    log.verbose('PuppetWebBrowser', 'constructor() with head(%s) sessionFile(%s)', setting.head, setting.sessionFile)
 
-    // this.live = false
+    setting.head = setting.head || process.env['WECHATY_HEAD'] || Config.DEFAULT_HEAD
 
     this.targetState('close')
     this.currentState('close')
   }
 
   // targetState : 'open' | 'close'
-  private targetState(newState?) {
+  public targetState(newState?) {
     if (newState) {
       log.verbose('PuppetWebBrowser', 'targetState(%s)', newState)
       this._targetState = newState
@@ -62,7 +62,7 @@ class Browser extends EventEmitter {
     return this._currentState
   }
 
-  public toString() { return `Browser({head:${this.head})` }
+  public toString() { return `Browser({head:${this.setting.head})` }
 
   public async init(): Promise<Browser> {
     this.targetState('open')
@@ -80,7 +80,7 @@ class Browser extends EventEmitter {
       await this.open(fastUrl)
       await this.loadSession()
                 .catch(e => { // fail safe
-                  log.verbose('PuppetWeb', 'browser.loadSession(%s) exception: %s', this.sessionFile, e && e.message || e)
+                  log.verbose('PuppetWeb', 'browser.loadSession(%s) exception: %s', this.setting.sessionFile, e && e.message || e)
                 })
       await this.open()
       /**
@@ -128,29 +128,31 @@ class Browser extends EventEmitter {
     })
   }
 
-  private initDriver(): Promise<WebDriver> {
-    log.verbose('PuppetWebBrowser', 'initDriver(head: %s)', this.head)
+  public initDriver(): Promise<WebDriver> {
+    log.verbose('PuppetWebBrowser', 'initDriver(head: %s)', this.setting.head)
+
+    const head = this.setting.head
 
     switch (true) {
-      case !this.head: // no head default to phantomjs
-      case /phantomjs/i.test(this.head):
-      case /phantom/i.test(this.head):
+      case !head: // no head default to phantomjs
+      case /phantomjs/i.test(head):
+      case /phantom/i.test(head):
         this.driver = this.getPhantomJsDriver()
         break
 
-      case /firefox/i.test(this.head):
+      case /firefox/i.test(head):
         this.driver = new Builder()
         .setAlertBehavior('ignore')
         .forBrowser('firefox')
         .build()
         break
 
-      case /chrome/i.test(this.head):
+      case /chrome/i.test(head):
         this.driver = this.getChromeDriver()
         break
 
       default: // unsupported browser head
-        throw new Error('unsupported head: ' + this.head)
+        throw new Error('unsupported head: ' + head)
     }
 
     this.driver.manage()
@@ -362,8 +364,10 @@ class Browser extends EventEmitter {
     })
   }
 
-  private getBrowserPids(): Promise<string[]> {
+  public getBrowserPids(): Promise<string[]> {
     log.silly('PuppetWebBrowser', 'getBrowserPids()')
+
+    const head = this.setting.head
 
     return new Promise((resolve, reject) => {
       require('ps-tree')(process.pid, (err, children) => {
@@ -374,20 +378,20 @@ class Browser extends EventEmitter {
         let browserRe
 
         switch (true) {
-          case !this.head: // no head default to phantomjs
-          case /phantomjs/i.test(this.head):
-          case /phantom/i.test(this.head):
+          case !head: // no head default to phantomjs
+          case /phantomjs/i.test(head):
+          case /phantom/i.test(head):
             browserRe = 'phantomjs'
             break
 
-          case !!(this.head): // head default to chrome
-          case /chrome/i.test(this.head):
+          case !!(head): // head default to chrome
+          case /chrome/i.test(head):
             browserRe = 'chrome(?!driver)|chromium'
             break
 
           default:
-            log.warn('PuppetWebBrowser', 'getBrowserPids() for unsupported head: %s', this.head)
-            browserRe = this.head
+            log.warn('PuppetWebBrowser', 'getBrowserPids() for unsupported head: %s', head)
+            browserRe = head
         }
 
         let matchRegex = new RegExp(browserRe, 'i')
@@ -549,32 +553,34 @@ class Browser extends EventEmitter {
     return dead
   }
 
-  public checkSession() {
+  public checkSession(): Promise<Object[]> {
     // just check cookies, no file operation
     log.verbose('PuppetWebBrowser', 'checkSession()')
 
     if (this.dead()) { Promise.reject(new Error('checkSession() - browser dead'))}
 
-    return this.driver.manage().getCookies()
+    return new Promise((resolve, reject) => {
+      this.driver.manage().getCookies()
                 .then(cookies => {
                   log.silly('PuppetWebBrowser', 'checkSession %s', cookies.map(c => c.name).join(','))
-                  return cookies
+                  resolve(cookies)
                 })
                 .catch(e => {
                   log.error('PuppetWebBrowser', 'checkSession() getCookies() exception: %s', e && e.message || e)
-                  throw e
+                  reject(e)
                 })
+    })
   }
 
   public cleanSession() {
-    log.verbose('PuppetWebBrowser', `cleanSession(${this.sessionFile})`)
-    if (!this.sessionFile) {
+    log.verbose('PuppetWebBrowser', `cleanSession(${this.setting.sessionFile})`)
+    if (!this.setting.sessionFile) {
       return Promise.reject(new Error('cleanSession() no session'))
     }
 
     if (this.dead())  { return Promise.reject(new Error('cleanSession() - browser dead'))}
 
-    const filename = this.sessionFile
+    const filename = this.setting.sessionFile
     return new Promise((resolve, reject) => {
       fs.unlink(filename, err => {
         if (err && err.code !== 'ENOENT') {
@@ -585,15 +591,15 @@ class Browser extends EventEmitter {
     })
   }
 
-  public saveSession() {
-    log.silly('PuppetWebBrowser', `saveSession(${this.sessionFile})`)
-    if (!this.sessionFile) {
+  public saveSession(): Promise<Object[]> {
+    log.silly('PuppetWebBrowser', `saveSession(${this.setting.sessionFile})`)
+    if (!this.setting.sessionFile) {
       return Promise.reject(new Error('saveSession() no session'))
     } else if (this.dead()) {
       return Promise.reject(new Error('saveSession() - browser dead'))
     }
 
-    const filename = this.sessionFile
+    const filename = this.setting.sessionFile
 
     function cookieFilter(cookies) {
       const skipNames = [
@@ -635,14 +641,14 @@ class Browser extends EventEmitter {
   }
 
   public loadSession(): Promise<any> {
-    log.verbose('PuppetWebBrowser', `loadSession(${this.sessionFile})`)
-    if (!this.sessionFile) {
+    log.verbose('PuppetWebBrowser', `loadSession(${this.setting.sessionFile})`)
+    if (!this.setting.sessionFile) {
       return Promise.reject(new Error('loadSession() no sessionFile'))
     } else if (this.dead()) {
       return Promise.reject(new Error('loadSession() - browser dead'))
     }
 
-    const filename = this.sessionFile
+    const filename = this.setting.sessionFile
 
     return new Promise((resolve, reject) => {
       fs.readFile(filename, (err, jsonStr) => {

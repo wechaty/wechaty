@@ -1,14 +1,13 @@
 import { test } from 'ava'
 
 import {
-  PuppetWeb
-  , log
-} from '../../'
+    Bridge
+  , Browser
+  , PuppetWeb
+  // , log
+} from '../../src/puppet-web/'
 
 import { spy } from 'sinon'
-
-const Browser = PuppetWeb.Browser
-const Bridge  = PuppetWeb.Bridge
 
 test('Bridge retry-promise testing', async t => {
   // co(function* () {
@@ -74,11 +73,11 @@ test('Bridge retry-promise testing', async t => {
 test('Bridge smoking test', async t => {
   const PORT = 58788
 
-  const browser = new Browser({port: PORT})
+  const browser = new Browser()
   t.truthy(browser, 'should instanciated a browser')
 
   const mockPuppet = {browser: browser}
-  const b = new Bridge({puppet: mockPuppet, port: PORT})
+  const b = new Bridge(mockPuppet as PuppetWeb, PORT)
   t.truthy(b, 'should instanciated a bridge with mocked puppet')
 
   // co(function* () {

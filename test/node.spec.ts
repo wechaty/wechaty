@@ -1,9 +1,9 @@
 import { test } from 'ava'
-import { log }  from '../'
+// import { log }  from '../'
 
 import { spy } from 'sinon'
 
-test('Node.js function params destructuring behaviour test', function(t) {
+test('Node.js function params destructuring behaviour test', t => {
   const DEFAULT_N = 1
   const DEFAULT_S = 't'
 
@@ -26,6 +26,4 @@ test('Node.js function params destructuring behaviour test', function(t) {
   paramSpy.reset()
   paramTest({s: 'life'})
   t.deepEqual(paramSpy.args[0], [DEFAULT_N, 'life'], 'should be equal to default n args')
-
-  // t.end()
 })

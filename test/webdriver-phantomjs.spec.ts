@@ -1,13 +1,13 @@
-import WebDriver from 'selenium-webdriver'
-import express from 'express'
-import * as http from 'http'
-import * as url from 'url'
+import * as WebDriver from 'selenium-webdriver'
+import * as express   from 'express'
+import * as http      from 'http'
+import * as url       from 'url'
 
-import Phantomjs from 'phantomjs-prebuilt'
+const Phantomjs = require('phantomjs-prebuilt')
 
 import { test } from 'ava'
 
-import { UtilLib, log } from '../'
+import { UtilLib } from '../'
 
 test.skip('Phantomjs replace javascript source file content test', async t => {
   const phantomjsArgs = [
@@ -31,7 +31,7 @@ test.skip('Phantomjs replace javascript source file content test', async t => {
                               .build()
 
   // http://stackoverflow.com/questions/24834403/phantomjs-change-webpage-content-before-evaluating
-  driver.executePhantomJS(`
+  ;(driver as any).executePhantomJS(`
 this.onResourceRequested = function(request, net) {
   console.log('REQUEST ' + request.url);
   alert('REQUEST ' + request.url);
@@ -83,7 +83,7 @@ test('Phantomjs http header', async t => {
     const app = express()
     app.use((req, res, done) => {
       //console.log(req.headers)
-      t.is(req.headers.referer, 'https://wx.qq.com/')
+      t.is(req.headers['referer'], 'https://wx.qq.com/')
       done()
     })
 
@@ -92,18 +92,18 @@ test('Phantomjs http header', async t => {
     })
 
     const serverUrl = 'http://127.0.0.1:' + port
-    const options = url.parse(serverUrl)
+    const options: url.Url = url.parse(serverUrl)
 
-    options.headers = {
+    options['headers'] = {
       Accept: 'image/webp,image/*,*/*;q=0.8'
       , 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'
       , Referer: 'https://wx.qq.com/'
       , 'Accept-Encoding': 'gzip, deflate, sdch'
       , 'Accept-Language': 'zh-CN,zh;q=0.8'
     }
-    options.agent = http.globalAgent
+    options['agent'] = http.globalAgent
 
-    const req = http.request(options, (res) => {
+    const req = http.request(options as any as http.RequestOptions, (res) => {
       // console.log(`STATUS: ${res.statusCode}`);
       // console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
       // res.setEncoding('utf8');

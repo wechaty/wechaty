@@ -1,17 +1,17 @@
 import { test } from 'ava'
 import {
   Contact
-  , Wechaty
+  // , Wechaty
   , Config
-  , Puppet
-  , log
+  , PuppetWeb
+  // , log
 }  from '../'
 // const test = require('tape')
 // const Contact = require('../src/contact')
 // const Puppet = require('../src/puppet')
 // const log = require('../src/brolog-env')
 
-Config.puppetInstance(new Puppet())
+Config.puppetInstance(new PuppetWeb())
 // Contact.attach()
 
 test('Contact smoke testing', async t => {

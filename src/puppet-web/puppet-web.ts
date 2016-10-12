@@ -18,10 +18,11 @@
 // const co    = require('co')
 
 import {
-    Config
-  , ScanInfo
+    // Config
+    ScanInfo
   , WatchdogFood
 }                     from '../config'
+
 import Contact        from '../contact'
 // import FriendRequest  from '../friend-request'
 import Message        from '../message'
@@ -36,28 +37,24 @@ import Event          from './event'
 import Server         from './server'
 import Watchdog       from './watchdog'
 
+type PuppetWebSetting = {
+  head?:    string
+  profile?: string
+}
 const DEFAULT_PUPPET_PORT = 18788 // // W(87) X(88), ascii char code ;-]
 
 class PuppetWeb extends Puppet {
 
   public browser: Browser
   public bridge:  Bridge
-  private server: Server
+  public server: Server
 
   public scan:    ScanInfo
 
   private port: number
 
-  constructor(
-      private head: string    = Config.head
-    , private profile: string = null  // if not set profile, then do not store session.
-  ) {
+  constructor(private setting: PuppetWebSetting = {}) {
     super()
-    // this.head     = head
-    // this.profile  = profile
-
-    // this.userId = null  // user id
-    // this.user   = null  // <Contact> of user self
 
     this.on('watchdog', Watchdog.onFeed.bind(this))
   }
@@ -65,7 +62,7 @@ class PuppetWeb extends Puppet {
   public toString() { return `Class PuppetWeb({browser:${this.browser},port:${this.port}})` }
 
   public async init(): Promise<PuppetWeb> {
-    log.verbose('PuppetWeb', `init() with head:${this.head}, profile:${this.profile}`)
+    log.verbose('PuppetWeb', `init() with head:${this.setting.head}, profile:${this.setting.profile}`)
 
     // this.readyState('connecting')
     this.targetState('live')
@@ -180,10 +177,10 @@ class PuppetWeb extends Puppet {
 
   private async initBrowser(): Promise<Browser> {
     log.verbose('PuppetWeb', 'initBrowser()')
-    const browser = new Browser(
-        this.head
-      , this.profile
-    )
+    const browser = new Browser({
+        head:         this.setting.head
+      , sessionFile:  this.setting.profile
+    })
 
     browser.on('dead', Event.onBrowserDead.bind(this))
 

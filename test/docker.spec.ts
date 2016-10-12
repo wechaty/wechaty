@@ -1,10 +1,10 @@
 import { test } from 'ava'
-import fs from 'fs'
+import * as fs from 'fs'
 
-import { execSync } from 'child_process'
-import sinon from 'sinon'
+// import { execSync } from 'child_process'
+// import * as sinon from 'sinon'
 
-import { Config, log } from '../'
+import { Config } from '../'
 
 /**
  * need keep this !Config.isDocker because ava need at least one test() inside.
@@ -17,7 +17,7 @@ import { Config, log } from '../'
 Config.isDocker && test('Docker smoking test', function(t) {
   // const n = execSync('ps a | grep Xvfb | grep -v grep | wc -l').toString().replace(/\n/, '', 'g')
   // t.is(parseInt(n), 1, 'should has Xvfb started')
-  t.notThrows(_ => {
-    fs.accessSync(Config.CMD_CHROMIUM, fs.X_OK)
+  t.notThrows(() => {
+    fs.accessSync(Config.CMD_CHROMIUM, fs['X_OK'])
   }, 'should exist xvfb-chrome exectable')
 })
