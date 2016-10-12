@@ -90,7 +90,7 @@ class Contact {
   public get(prop)   { return this.obj && this.obj[prop] }
 
   public isReady(): boolean {
-    return this.obj && this.obj.id
+    return !!(this.obj && this.obj.id)
   }
 
   public ready(contactGetter?: (id: string) => Promise<ContactRawObj>): Promise<Contact> {

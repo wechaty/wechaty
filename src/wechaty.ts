@@ -57,7 +57,7 @@ class Wechaty extends EventEmitter {
     return this._instance
   }
 
-  private constructor(private setting: WechatySetting) {
+  private constructor(private setting: WechatySetting = {}) {
     super()
     log.verbose('Wechaty', 'contructor()')
 

@@ -138,18 +138,43 @@ class Message {
     return '{' + this.type() + '}' + content
   }
 
-  public from(contact?: Contact): Contact {
+  public from(contact?: Contact|string): Contact {
     if (contact) {
-      this.obj.from = contact.id
+      if (contact instanceof Contact) {
+        this.obj.from = contact.id
+      } else if(typeof contact === 'string') {
+        this.obj.from = contact
+      } else {
+        throw new Error('unsupport from param: ' + typeof contact)
+      }
     }
     return this.obj.from ? Contact.load(this.obj.from) : null
   }
 
-  public to(contact?: Contact|Room): Contact {
+  public to(contact?: Contact|Room|string): Contact {
     if (contact) {
-      this.obj.to = contact.id
+      if (contact instanceof Contact || contact instanceof Room) {
+        this.obj.to = contact.id
+      } else if(typeof contact === 'string') {
+        this.obj.to = contact
+      } else {
+        throw new Error('unsupport to param ' + typeof contact)
+      }
     }
     return this.obj.to ? Contact.load(this.obj.to) : null
+  }
+
+  public room(room?: Room|string): Room {
+    if (room) {
+      if (room instanceof Room) {
+        this.obj.room = room.id
+      } else if (typeof room === 'string') {
+        this.obj.room = room
+      } else {
+        throw new Error('unsupport room param ' + typeof room)
+      }
+    }
+    return this.obj.room ? Room.load(this.obj.room) : null
   }
 
   public content(content?) {
@@ -157,13 +182,6 @@ class Message {
       this.obj.content = content
     }
     return this.obj.content
-  }
-
-  public room(room?: Room): Room {
-    if (room) {
-      this.obj.room = room.id
-    }
-    return this.obj.room ? Room.load(this.obj.room) : null
   }
 
   public type()    { return this.obj.type }

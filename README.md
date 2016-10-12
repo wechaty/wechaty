@@ -25,6 +25,8 @@ Details: https://github.com/wechaty/wechaty/issues/40
 - Please do not clone/pull until you are really want to play with typescript wechaty in alpha stage.
 ```
 
+VSCode is recommended for typescript because we can get benifit of [intelligent code completion, parameter info, and member lists](https://code.visualstudio.com/docs/languages/javascript).
+
 The last Javascript version is: [v0.4.0](https://github.com/wechaty/wechaty/releases/tag/v0.4.0) (2016/10/9)
 
 Or install v0.4 via `npm install wechaty`
