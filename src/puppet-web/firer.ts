@@ -111,7 +111,7 @@ function checkRoomJoin(content: string): [string[], string] {
     throw new Error('checkRoomJoin() not found')
   }
 
-  const [, inviter, inviteeStr] = found
+  const [inviter, inviteeStr] = [ found[1], found[2] ]
 
   // "凌" invited "庆次、小桔妹" to the group chat
   const inviteeList = inviteeStr.split(/、/)
@@ -120,7 +120,7 @@ function checkRoomJoin(content: string): [string[], string] {
 }
 
 async function fireRoomJoin(m: Message): Promise<void> {
-  log.verbose('PuppetWebFirer', 'fireRoomJoin()')
+  log.verbose('PuppetWebFirer', 'fireRoomJoin(%s)', m.content())
 
   const room    = m.room()
   const content = m.content()
@@ -128,7 +128,8 @@ async function fireRoomJoin(m: Message): Promise<void> {
   let inviteeList: string[], inviter: string
   try {
     [inviteeList, inviter] = checkRoomJoin(content)
-  } catch (e) { // not a room join message
+  } catch (e) {
+    // not a room join message
     return
   }
   log.silly('PuppetWebFirer', 'fireRoomJoin() inviteeList: %s, inviter: %s'
@@ -139,7 +140,6 @@ async function fireRoomJoin(m: Message): Promise<void> {
   let inviterContact: Contact
   let inviteeContactList: Contact[] = []
 
-  // co.call(this, function* () {
   try {
     if (inviter === "You've") {
       inviterContact = Contact.load(this.userId)
@@ -152,57 +152,59 @@ async function fireRoomJoin(m: Message): Promise<void> {
     // max = (2*totalTime/backoff) ^ (1/2)
     // timeout = 11,250 for {max: 15, backoff: 100}
 
-    await retryPromise({ max: max, backoff: backoff }, attempt => {
+    await retryPromise({ max: max, backoff: backoff }, async attempt => {
       log.silly('PuppetWebFirer', 'fireRoomJoin() retryPromise() attempt %d with timeout %d', attempt, timeout)
 
-      return room.refresh()
-                  .then(_ => {
-                    let iDone, allDone = true
+      await room.refresh()
+                  // .then(_ => {
+      let iDone, allDone = true
 
-                    for (let i in inviteeList) {
-                      iDone = inviteeContactList[i] instanceof Contact
-                      if (!iDone) {
-                        let c = room.member(inviteeList[i])
-                        if (c) {
-                          inviteeContactList[i] = c
-                        } else {
-                          allDone = false
-                        }
-                      }
-                    }
+      for (let i in inviteeList) {
+        iDone = inviteeContactList[i] instanceof Contact
+        if (!iDone) {
+          let c = room.member(inviteeList[i])
+          if (c) {
+            inviteeContactList[i] = c
+          } else {
+            allDone = false
+          }
+        }
+      }
 
-                    if (!inviterContact) {
-                      inviterContact = room.member(inviter)
-                    }
+      if (!inviterContact) {
+        inviterContact = room.member(inviter)
+      }
 
-                    if (allDone && inviterContact) {
-                      log.silly('PuppetWebFirer', 'fireRoomJoin() resolve() inviteeContactList: %s, inviterContact: %s'
-                                                , inviteeContactList.map((c: Contact) => c.name()).join(',')
-                                                , inviterContact.name()
-                              )
-                      return Promise.resolve()
-                    } else {
-                      log.silly('PuppetWebFirer', 'fireRoomJoin() reject() inviteeContactList: %s, inviterContact: %s'
-                                                  , inviteeContactList.map((c: Contact) => c.name()).join(',')
-                                                  , inviterContact.name()
-                                )
-                      return Promise.reject('not found(yet)')
-                    }
-                  })
-                  .catch(e => {
-                    log.error('PuppetWebFirer', 'fireRoomJoin() retryPromise() room.refresh() rejected: %s', e.stack)
-                    throw e
-                  })
+      if (allDone && inviterContact) {
+        log.silly('PuppetWebFirer', 'fireRoomJoin() resolve() inviteeContactList: %s, inviterContact: %s'
+                                  , inviteeContactList.map((c: Contact) => c.name()).join(',')
+                                  , inviterContact.name()
+                )
+        return
+      }
+
+      throw new Error('not found(yet)')
+
+    }).catch(e => {
+      log.silly('PuppetWebFirer', 'fireRoomJoin() reject() inviteeContactList: %s, inviterContact: %s'
+                            , inviteeContactList.map((c: Contact) => c.name()).join(',')
+                            , inviterContact.name()
+              )
     })
-    .catch(e => { /* fail safe */ })
 
     if (!inviterContact) {
-      log.error('PuppetWebFirer', 'firmRoomJoin() inivter not found for %s', inviter)
+      log.error('PuppetWebFirer', 'firmRoomJoin() inivter not found for %s , `room-join` & `join` event will not fired', inviter)
       return
     }
     if (!inviteeContactList.every(c => c instanceof Contact)) {
-      log.error('PuppetWebFirer', 'firmRoomJoin() inviteeList not all found for %s', inviteeContactList.join(','))
+      log.error('PuppetWebFirer', 'firmRoomJoin() inviteeList not all found for %s , only part of them will in the `room-join` or `join` event'
+                                 , inviteeContactList.join(',')
+              )
       inviteeContactList = inviteeContactList.filter(c => (c instanceof Contact))
+      if (inviteeContactList.length < 1) {
+        log.error('PuppetWebFirer', 'firmRoomJoin() inviteeList empty.  `room-join` & `join` event will not fired')
+        return
+      }
     }
 
     await Promise.all(inviteeContactList.map(c => c.ready()))
@@ -217,9 +219,8 @@ async function fireRoomJoin(m: Message): Promise<void> {
       room.emit('join'            , inviteeContactList    , inviterContact)
     }
 
-  // }).catch(e => {
   } catch (e) {
-    log.error('PuppetWebFirer', 'retryPromise() rejected: %s', e.stack)
+    log.error('PuppetWebFirer', 'exception: %s', e.stack)
   }
 
   return
@@ -232,64 +233,26 @@ function checkRoomLeave(content: string): string {
   if (!found) {
     return null
   }
-  const [, leaver] = found
-  return leaver
+  return found[1] // leaver
 }
 
 /**
  * You removed "Bruce LEE" from the group chat
  */
-async function fireRoomLeave(m) {
+async function fireRoomLeave(m: Message) {
+  log.verbose('PuppetWebFirer', 'fireRoomLeave(%s)', m.content())
+
   const leaver = checkRoomLeave(m.content())
   if (!leaver) {
     return
   }
+  log.silly('PuppetWebFirer', 'fireRoomLeave() got leaver: %s', leaver)
+
   const room = m.room()
   let leaverContact = room.member(leaver)
 
   if (!leaverContact) {
-
-    // co.call(this, function* () {
-    try {
-      const max = 20
-      const backoff = 300
-      const timeout = max * (backoff * max) / 2
-      // 20 / 300 => 63,000
-
-      await retryPromise({ max: max, backoff: backoff }, attempt => {
-        log.silly('PuppetWebFirer', 'fireRoomLeave() retryPromise() attempt %d with timeout %d', attempt, timeout)
-
-        return room.refresh()
-                    .then(_ => {
-                      log.silly('PuppetWebFirer', 'leaver: %s', leaver)
-
-                      leaverContact = room.member(leaver)
-
-                      if (leaverContact) {
-                        log.silly('PuppetWebFirer', 'fireRoomLeave() resolve() leaverContact: %s'
-                                                  , leaverContact
-                                )
-                        return Promise.resolve(leaverContact)
-                      } else {
-                        log.silly('PuppetWebFirer', 'fireRoomLeave() reject() leaver: %s'
-                                                    , leaver
-                                  )
-                        return Promise.reject('not found(yet)')
-                      }
-                    })
-                    .catch(e => {
-                      log.error('PuppetWebFirer', 'fireRoomLeave() retryPromise() room.refresh() rejected: %s', e && e.stack || e)
-                      throw e
-                    })
-      })
-    // }).catch(e => {
-    } catch (e) {
-      log.error('PuppetWebFirer', 'fireRoomLeave() co exception: %s', e && e.stack || e)
-    }
-  }
-
-  if (!leaverContact) {
-    log.error('PuppetWebFirer', 'fireRoomLeave() leaver not found for %s', leaver)
+    log.error('PuppetWebFirer', 'fireRoomLeave() leaver %s not found, event `room-leave` & `leave` will not be fired')
     return
   }
 
@@ -300,7 +263,7 @@ async function fireRoomLeave(m) {
   await room.refresh()
 }
 
-function checkRoomTopic(content): [string, string] {
+function checkRoomTopic(content: string): [string, string] {
   const re = regexConfig.roomTopic
 
   const found = content.match(re)
@@ -311,7 +274,7 @@ function checkRoomTopic(content): [string, string] {
   return [topic, changer]
 }
 
-async function fireRoomTopic(m) {
+async function fireRoomTopic(m: Message) {
   let  topic, changer
   try {
     [topic, changer] = checkRoomTopic(m.content())

@@ -8,22 +8,22 @@
  * https://github.com/zixia/wechaty
  *
  */
-import { EventEmitter }  from 'events'
-import * as path         from 'path'
-// const co            = require('co')
-import * as fs          from'fs'
+import { EventEmitter } from 'events'
+import * as path        from 'path'
+import * as fs          from 'fs'
 
-import Config, {
-    HeadType
+import {
+    Config
+  , HeadType
   , PuppetType
-  , WechatyEventType
-} from './config'
+  , WechatyEventName
+}                     from './config'
 
 import Contact        from './contact'
 import FriendRequest  from './friend-request'
 import Message        from './message'
 import Puppet         from './puppet'
-import PuppetWeb      from './puppet-web/index'
+import PuppetWeb      from './puppet-web/'
 import Room           from './room'
 import UtilLib        from './util-lib'
 import EventScope     from './event-scope'
@@ -167,7 +167,7 @@ class Wechaty extends EventEmitter {
   public on(event: 'room-topic' , listener: (room: Room, topic: string, oldTopic: string, changer: Contact) => void): this
   public on(event: 'scan'       , listener: (url: string, code: number) => void): this
 
-  public on(event: WechatyEventType, listener: Function): this {
+  public on(event: WechatyEventName, listener: Function): this {
     log.verbose('Wechaty', 'on(%s, %s)', event, typeof listener)
     typeof FriendRequest
     typeof Room

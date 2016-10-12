@@ -291,13 +291,13 @@ class PuppetWeb extends Puppet {
     return this.user
   }
 
-  public send(message) {
-    const to      = message.get('to')
-    const room    = message.get('room')
+  public send(message: Message) {
+    const to      = message.to()
+    const room    = message.room()
 
-    let content     = message.get('content')
+    let content     = message.content()
 
-    let destination = to
+    let destination: Contact|Room = to
     if (room) {
       destination = room
       // TODO use the right @
@@ -306,12 +306,15 @@ class PuppetWeb extends Puppet {
       // }
 
       if (!to) {
-        message.set('to', room)
+        message.to(room)
       }
     }
 
-    log.silly('PuppetWeb', `send() destination: ${destination}, content: ${content})`)
-    return this.bridge.send(destination, content)
+    log.silly('PuppetWeb', 'send() destination: %s, content: %s)'
+                          , room ? room.topic() : to.name()
+                          , content
+    )
+    return this.bridge.send(destination.id, content)
                       .catch(e => {
                         log.error('PuppetWeb', 'send() exception: %s', e.message)
                         throw e

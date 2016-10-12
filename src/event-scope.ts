@@ -10,22 +10,20 @@
  * Events Function Wrapper
  *
  */
-import Config  from './config'
-import Contact from './contact'
-import Message from './message'
-import Room    from './room'
-import Wechaty from './wechaty'
+import {
+    Config
+  , WechatyEventName
+}               from './config'
+import Contact  from './contact'
+import Message  from './message'
+import Room     from './room'
+import Wechaty  from './wechaty'
 
-import log     from './brolog-env'
+import log      from './brolog-env'
 
 type WechatyEventScope = {
   say: (content: string, replyTo?: Contact|Contact[]) => void
 }
-
-type WechatyEventType =   'error'     | 'heartbeat'
-                        | 'login'     | 'logout'
-                        | 'message'   | 'scan'        | 'friend'
-                        | 'room-join' | 'room-leave'  | 'room-topic'
 
 const EVENT_CONFIG = {
   error:          wrapFilehelper
@@ -45,7 +43,7 @@ class EventScope {
     return Object.keys(EVENT_CONFIG)
   }
 
-  public static wrap(this: Wechaty|Room, event: WechatyEventType, listener: Function): Function {
+  public static wrap(this: Wechaty|Room, event: WechatyEventName, listener: Function): Function {
     log.verbose('WechatyEvent', 'wrap(%s, %s)', event, typeof listener)
 
     if (typeof listener !== 'function') {

@@ -13,10 +13,11 @@
 import * as WebSocket from 'ws'
 // const co            = require('co')
 
-import Config, {
-  WechatyEventType
-}   from './config'
-import Contact  from './contact'
+import {
+    Config
+  // WechatyEventName
+}               from './config'
+
 import Wechaty  from './wechaty'
 import log      from './brolog-env'
 
@@ -27,8 +28,18 @@ type IoSetting = {
   protocol?:  string
 }
 
+type IoEventName =  'botie'
+                  | 'error'
+                  | 'heartbeat'
+                  | 'login'
+                  | 'message'
+                  | 'raw'
+                  | 'reset'
+                  | 'scan'
+                  | 'shutdown'
+
 type IoEvent = {
-  name:     string
+  name:     IoEventName
   payload:  any
 }
 
@@ -36,7 +47,7 @@ class Io {
   public uuid: string
 
   private protocol: string
-  private _eventBuffer = []
+  private eventBuffer = []
   private ws: WebSocket
 
   private _currentState: string
@@ -206,7 +217,7 @@ class Io {
           log.verbose('Io', 'on(report): %s', ioEvent.payload)
           const user = this.setting.wechaty.user()
           if (user) {
-            const loginEvent = {
+            const loginEvent: IoEvent = {
               name:       'login'
               // , payload:  user.obj
               , payload:  user
@@ -219,7 +230,7 @@ class Io {
                         && this.setting.wechaty.puppet
                         && this.setting.wechaty.puppet['scan']
           if (scan) {
-            const scanEvent = {
+            const scanEvent: IoEvent = {
               name: 'scan'
               , payload: scan
             }
@@ -297,77 +308,82 @@ class Io {
 
     wechaty.on('message', this.ioMessage)
 
-    const hookEvents: WechatyEventType[] = [
-      'scan'
-      , 'login'
-      , 'logout'
-      , 'heartbeat'
-      , 'error'
-    ]
-    hookEvents.map(event => {
-      wechaty.on(event, data => {
-        const ioEvent = {
-          name:       event
-          , payload:  data
-        }
+    wechaty.on('scan', (url, code) => this.send({ name: 'scan', payload: { url, code } }))
 
-        switch (event) {
-          case 'login':
-          case 'logout':
-            if (data instanceof Contact) {
-              // ioEvent.payload = data.obj
-              ioEvent.payload = data
-            }
-            break
+    wechaty.on('login'  , user => this.send({ name: 'login', payload: user }))
+    wechaty.on('logout' , user => this.send({ name: 'login', payload: user }))
 
-          case 'error':
-            ioEvent.payload = data.toString()
-            break
+    wechaty.on('heartbeat', data  => this.send({ name: 'heartbeat', payload: { uuid: this.uuid, data } }))
+    wechaty.on('error'    , error => this.send({ name: 'error', payload: error }))
 
-          case 'heartbeat':
-            ioEvent.payload = {
-              uuid: this.uuid
-              , data: data
-            }
-            break
+    // const hookEvents: WechatyEventName[] = [
+    //   'scan'
+    //   , 'login'
+    //   , 'logout'
+    //   , 'heartbeat'
+    //   , 'error'
+    // ]
+    // hookEvents.map(event => {
+    //   wechaty.on(event, (data) => {
+    //     const ioEvent: IoEvent = {
+    //       name:       event
+    //       , payload:  data
+    //     }
 
-          default:
-            break
-        }
+    //     switch (event) {
+    //       case 'login':
+    //       case 'logout':
+    //         if (data instanceof Contact) {
+    //           // ioEvent.payload = data.obj
+    //           ioEvent.payload = data
+    //         }
+    //         break
 
-        this.send(ioEvent)
-      })
-    })
+    //       case 'error':
+    //         ioEvent.payload = data.toString()
+    //         break
 
-    // wechaty.on('message', m => {
-    //   const text = (m.room() ? '['+m.room().name()+']' : '')
-    //               + '<'+m.from().name()+'>'
-    //               + ':' + m.toStringDigest()
-    //   const messageEvent = {
-    //     name:       'message'
-    //     , payload:  text
-    //   }
-    //   this.send(messageEvent)
+        //   case 'heartbeat':
+        //     ioEvent.payload = {
+        //       uuid: this.uuid
+        //       , data: data
+        //     }
+        //     break
+
+        //   default:
+        //     break
+        // }
+
+    //     this.send(ioEvent)
+    //   })
     // })
 
-    return Promise.resolve()
+    false && wechaty.on('message', m => {
+      const text = (m.room() ? '['+m.room().topic()+']' : '')
+                  + '<'+m.from().name()+'>'
+                  + ':' + m.toStringDigest()
+
+      this.send({ name: 'message', payload:  text })
+    })
+
+    return
   }
 
   private send(ioEvent?: IoEvent) {
     if (ioEvent) {
       log.silly('Io', 'send(%s: %s)', ioEvent.name, ioEvent.payload)
-      this._eventBuffer.push(ioEvent)
+      this.eventBuffer.push(ioEvent)
     } else { log.silly('Io', 'send()') }
 
     if (!this.connected()) {
-      log.verbose('Io', 'send() without a connected websocket, eventBuffer.length = %d', this._eventBuffer.length)
+      log.verbose('Io', 'send() without a connected websocket, eventBuffer.length = %d', this.eventBuffer.length)
       return false
     }
 
-    while (this._eventBuffer.length) {
+    while (this.eventBuffer.length) {
       this.ws.send(
         JSON.stringify(
-          this._eventBuffer.shift()
+          this.eventBuffer.shift()
         )
       )
     }
@@ -391,7 +407,7 @@ class Io {
 
     // try to send IoEvents in buffer
     this.send()
-    this._eventBuffer = []
+    this.eventBuffer = []
 
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer)

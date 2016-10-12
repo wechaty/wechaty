@@ -57,9 +57,9 @@ class Room extends EventEmitter {
     // this.id = id
     // this.obj = {}
     // this.dirtyObj = {}
-    if (!Config.puppetInstance()) {
-      throw new Error('Config.puppetInstance() not found')
-    }
+    // if (!Config.puppetInstance()) {
+    //   throw new Error('Config.puppetInstance() not found')
+    // }
   }
 
   public toString()    { return this.id }
@@ -141,7 +141,12 @@ class Room extends EventEmitter {
   }
 
   public say(content: string, replyTo?: Contact|Contact[]): Promise<any> {
-    log.verbose('Room', 'say(%s, %s)', content, replyTo)
+    log.verbose('Room', 'say(%s, %s)'
+                      , content
+                      , Array.isArray(replyTo)
+                        ? replyTo.map(c => c.name()).join(', ')
+                        : replyTo.name()
+    )
 
     const m = new Message()
     m.room(this)

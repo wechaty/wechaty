@@ -60,7 +60,7 @@ console.log(welcome)
 const bot = Wechaty.instance({ profile: Config.DEFAULT_PROFILE })
 
 bot
-.on('scan', ({url, code}) => {
+.on('scan', (url, code) => {
   console.log(`Use Wechat to Scan QR Code in url to login: ${code}\n${url}`)
 })
 .on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
@@ -87,7 +87,7 @@ bot
                 , room.topic()
                 , Array.isArray(invitee)
                   ? invitee.map(c => c.name()).join(',')
-                  : invitee
+                  : invitee.name()
                 , inviter.name()
           )
 })
@@ -232,7 +232,12 @@ function manageDingRoom() {
      * Event: Join
      */
     room.on('join', (invitee: Contact|Contact[], inviter: Contact) => {
-      log.verbose('Bot', 'Room EVENT: join - %s, %s', typeof invitee, typeof inviter)
+      log.verbose('Bot', 'Room EVENT: join - %s, %s'
+                        , Array.isArray(invitee)
+                          ? invitee.map(c => c.name()).join(', ')
+                          : invitee.name()
+                        , inviter.name()
+      )
       checkRoomJoin.call(this, room, invitee, inviter)
     })
 
@@ -318,7 +323,7 @@ function checkRoomJoin(room: Room, invitee: Contact|Contact[] , inviter: Contact
     }
 
   } catch (e) {
-    log.error('room join event exception: %s', e.stack)
+    log.error('Bot', 'checkRoomJoin() exception: %s', e.stack)
   }
 
 }

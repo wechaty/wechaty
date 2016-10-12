@@ -6,11 +6,11 @@
  * https://github.com/wechaty/wechaty
  *
  */
-import Contact from './contact'
-import Room    from './room'
-import UtilLib from './util-lib'
-import Wechaty from './wechaty'
-import log     from './brolog-env'
+import Config   from './config'
+import Contact  from './contact'
+import Room     from './room'
+import UtilLib  from './util-lib'
+import log      from './brolog-env'
 
 type MessageRawObj = {
   MsgId:            string
@@ -274,7 +274,7 @@ class Message {
       m.content(mentionList + ' ' + content)
 
     }
-    return Wechaty.instance()
+    return Config.puppetInstance()
                   .send(m)
   }
 

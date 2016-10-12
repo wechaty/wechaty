@@ -121,13 +121,22 @@ Config.puppetInstance = function(instance?: Puppet): Puppet {
 
 type WatchdogFood = {
     data: any
-  , type?: 'HEARTBEAT' | 'POISON' | 'SCAN'
   , timeout?: number  // millisecond
+  , type?:  'HEARTBEAT'
+          | 'POISON'
+          | 'SCAN'
 }
 
-type WechatyEventType = 'login' | 'logout' | 'friend'
-                  | 'message' | 'error' | 'heartbeat' | 'scan'
-                  | 'room-join' | 'room-leave' | 'room-topic'
+type WechatyEventName = 'error'
+                      | 'friend'
+                      | 'heartbeat'
+                      | 'login'
+                      | 'logout'
+                      | 'message'
+                      | 'room-join'
+                      | 'room-leave'
+                      | 'room-topic'
+                      | 'scan'
 
 type ScanInfo = {
   url: string
@@ -141,5 +150,5 @@ export {
   , PuppetType
   , ScanInfo
   , WatchdogFood
-  , WechatyEventType
+  , WechatyEventName
 }
