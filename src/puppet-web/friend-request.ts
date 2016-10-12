@@ -16,6 +16,9 @@
  *
  */
 
+/* tslint:disable:no-var-requires */
+const retryPromise  = require('retry-promise').default
+
 import Contact       from '../contact'
 import Config        from '../config'
 import FriendRequest from '../friend-request'
@@ -90,15 +93,41 @@ class PuppetWebFriendRequest extends FriendRequest {
                   .friendRequestSend(contact, hello)
   }
 
-  public accept(): Promise<any> {
+  public async accept(): Promise<any> {
     log.verbose('FriendRequest', 'accept() %s', this.contact)
 
     if (this.type !== 'receive') {
       throw new Error('request on a ' + this.type + ' type')
     }
 
-    return Config.puppetInstance()
-                  .friendRequestAccept(this.contact, this.ticket)
+    await Config.puppetInstance()
+                .friendRequestAccept(this.contact, this.ticket)
+
+    const max = 20
+    const backoff = 300
+    const timeout = max * (backoff * max) / 2
+    // 20 / 300 => 63,000
+    // max = (2*totalTime/backoff) ^ (1/2)
+    // timeout = 11,250 for {max: 15, backoff: 100}
+
+    // refresh to wait contact ready
+
+    await retryPromise({ max: max, backoff: backoff }, async (attempt: number) => {
+      log.silly('PuppetWebFriendRequest', 'accept() retryPromise() attempt %d with timeout %d', attempt, timeout)
+
+      await this.contact.ready()
+
+      if (this.contact.isReady()) {
+        log.verbose('PuppetWebFriendRequest', 'accept() with contact %s ready()', this.contact.name())
+        return
+      }
+      throw new Error('not ready')
+
+    }).catch( e => {
+      log.warn('PuppetWebFriendRequest', 'accept() rejected for contact %s because %s', this.contact, e && e.message || e)
+    })
+
+    return
   }
 
 }

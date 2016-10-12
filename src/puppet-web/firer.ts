@@ -152,7 +152,7 @@ async function fireRoomJoin(m: Message): Promise<void> {
     // max = (2*totalTime/backoff) ^ (1/2)
     // timeout = 11,250 for {max: 15, backoff: 100}
 
-    await retryPromise({ max: max, backoff: backoff }, async attempt => {
+    await retryPromise({ max: max, backoff: backoff }, async (attempt: number) => {
       log.silly('PuppetWebFirer', 'fireRoomJoin() retryPromise() attempt %d with timeout %d', attempt, timeout)
 
       await room.refresh()

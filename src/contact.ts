@@ -89,6 +89,10 @@ class Contact {
 
   public get(prop)   { return this.obj && this.obj[prop] }
 
+  public isReady(): boolean {
+    return this.obj && this.obj.id
+  }
+
   public ready(contactGetter?: (id: string) => Promise<ContactRawObj>): Promise<Contact> {
     log.silly('Contact', 'ready(' + (contactGetter ? typeof contactGetter : '') + ')')
     if (!this.id) {
@@ -96,7 +100,7 @@ class Contact {
       return Promise.resolve(this)
     }
 
-    if (this.obj && this.obj.id) { // already ready
+    if (this.isReady()) { // already ready
       return Promise.resolve(this)
     }
 
