@@ -10,6 +10,8 @@
  * Wechaty - https://github.com/zixia/wechaty
  *
  */
+/* tslint:disable:no-var-requires */
+/* tslint:disable:variable-name */
 const Tuling123 = require('tuling123-client')
 
 import { EventEmitter } from 'events'
@@ -21,7 +23,7 @@ import {
   , log
 } from '../'
 
-//log.level = 'verbose'
+// log.level = 'verbose'
 // log.level = 'silly'
 
 /**
@@ -94,12 +96,12 @@ class Talker extends EventEmitter {
     }
   }
 
-  save(text) {
+  public save(text) {
     log.verbose('Talker', 'save(%s)', text)
     this.obj.text.push(text)
     this.obj.time.push(Date.now())
   }
-  load() {
+  public load() {
     const text = this.obj.text.join(', ')
     log.verbose('Talker', 'load(%s)', text)
     this.obj.text = []
@@ -107,7 +109,7 @@ class Talker extends EventEmitter {
     return text
   }
 
-  updateTimer(delayTime?) {
+  public updateTimer(delayTime?) {
     delayTime = delayTime || this.delayTime()
     log.verbose('Talker', 'updateTimer(%s)', delayTime)
 
@@ -115,12 +117,12 @@ class Talker extends EventEmitter {
     this.timer = setTimeout(this.say.bind(this), delayTime)
   }
 
-  hear(text) {
+  public hear(text) {
     log.verbose('Talker', `hear(${text})`)
     this.save(text)
     this.updateTimer()
   }
-  say() {
+  public say() {
     log.verbose('Talker', 'say()')
     const text  = this.load()
     this.thinker(text)
@@ -128,7 +130,7 @@ class Talker extends EventEmitter {
     this.timer = null
   }
 
-  delayTime() {
+  public delayTime() {
     const minDelayTime = 5000
     const maxDelayTime = 15000
     const delayTime = Math.floor(Math.random() * (maxDelayTime - minDelayTime)) + minDelayTime
@@ -136,7 +138,8 @@ class Talker extends EventEmitter {
   }
 }
 
-var Talkers = []
+/* tslint:disable:variable-name */
+let Talkers = []
 
 function talk(m) {
   const fromId  = m.get('from')

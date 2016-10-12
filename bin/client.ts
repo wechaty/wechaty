@@ -21,7 +21,6 @@ I'm a bot, my super power is download cloud bot from wechaty.io
 
 __________________________________________________
 
-
 `
 
 let   token   = Config.token
@@ -49,4 +48,3 @@ function onError(e) {
   this.quit()
   process.exit(-1)
 }
-

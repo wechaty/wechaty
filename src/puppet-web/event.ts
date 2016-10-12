@@ -28,7 +28,6 @@ import Message      from '../message'
 import MediaMessage from '../message-media'
 import log          from '../brolog-env'
 
-
 // import FriendRequest from './friend-request'
 import Firer        from './firer'
 import PuppetWeb    from './puppet-web'

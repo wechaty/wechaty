@@ -24,7 +24,7 @@ bot
     const filename = m.id + '.jpg'
     console.log('IMAGE local filename: ' + filename)
 
-    var fileStream = require('fs').createWriteStream(filename)
+    const fileStream = require('fs').createWriteStream(filename)
 
     m.readyStream()
     .then(stream => stream.pipe(fileStream))

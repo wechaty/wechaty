@@ -59,7 +59,7 @@ test.serial('WebDriver smoke testing', async t => {
   const bridge = new PuppetWebBridge(mockPuppet, 8788)
   t.truthy(bridge, 'Bridge instnace')
 
-  var driver // for help function `execute`
+  let driver // for help function `execute`
 
   // co(function* () {
     const m = (await wb.getBrowserPids()).length

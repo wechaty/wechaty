@@ -3,6 +3,8 @@ import * as express   from 'express'
 import * as http      from 'http'
 import * as url       from 'url'
 
+/* tslint:disable:no-var-requires */
+/* tslint:disable:variable-name */
 const Phantomjs = require('phantomjs-prebuilt')
 
 import { test } from 'ava'
@@ -31,7 +33,7 @@ test.skip('Phantomjs replace javascript source file content test', async t => {
                               .build()
 
   // http://stackoverflow.com/questions/24834403/phantomjs-change-webpage-content-before-evaluating
-  ;(driver as any).executePhantomJS(`
+  ; (driver as any).executePhantomJS(`
 this.onResourceRequested = function(request, net) {
   console.log('REQUEST ' + request.url);
   alert('REQUEST ' + request.url);
@@ -82,7 +84,7 @@ test('Phantomjs http header', async t => {
 // console.log(express)
     const app = express()
     app.use((req, res, done) => {
-      //console.log(req.headers)
+      // console.log(req.headers)
       t.is(req.headers['referer'], 'https://wx.qq.com/')
       done()
     })

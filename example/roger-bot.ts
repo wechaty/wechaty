@@ -14,9 +14,9 @@ bot
   console.log(`Use Wechat to Scan QR Code in url to login: ${code}\n${url}`)
 })
 .on('message', m => {
-  (!bot.self(m)) && m.say('roger')                        // 1. reply others' msg
-  .then(() => console.log(`RECV: ${m}, REPLY: "roger"`))  // 2. log message
-  .catch(e => console.error(e))                           // 3. catch exception
+  if (bot.self(m)) { return }
+  m.say('roger')                            // 1. reply others' msg
+  console.log(`RECV: ${m}, REPLY: "roger"`) // 2. log message
 })
 .init()
 .catch(e => console.error(e))

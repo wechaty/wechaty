@@ -24,7 +24,6 @@ test('Wechaty Framework', t => {
 
   t.truthy(log        , 'should export log')
 
-
   t.truthy(Puppet     , 'should export Puppet')
   t.truthy(PuppetWeb  , 'should export PuppetWeb')
 

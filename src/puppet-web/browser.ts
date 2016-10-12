@@ -407,7 +407,6 @@ class Browser extends EventEmitter {
     })
   }
 
-
   /**
    * only wrap addCookies for convinience
    *

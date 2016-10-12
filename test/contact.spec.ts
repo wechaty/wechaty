@@ -15,13 +15,14 @@ Config.puppetInstance(new PuppetWeb())
 // Contact.attach()
 
 test('Contact smoke testing', async t => {
+  /* tslint:disable:variable-name */
   const UserName = '@0bb3e4dd746fdbd4a80546aef66f4085'
   const NickName = 'Nick Name Test'
 
   // Mock
   const mockContactGetter = function (id) {
-    return new Promise((resolve,reject) => {
-      if (id!=UserName) return resolve({});
+    return new Promise((resolve, reject) => {
+      if (id !== UserName) return resolve({});
       setTimeout(() => {
         return resolve({
           UserName: UserName

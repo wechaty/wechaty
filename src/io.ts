@@ -358,13 +358,13 @@ class Io {
     //   })
     // })
 
-    false && wechaty.on('message', m => {
-      const text = (m.room() ? '['+m.room().topic()+']' : '')
-                  + '<'+m.from().name()+'>'
-                  + ':' + m.toStringDigest()
+    // wechaty.on('message', m => {
+    //   const text = (m.room() ? '[' + m.room().topic() + ']' : '')
+    //               + '<' + m.from().name() + '>'
+    //               + ':' + m.toStringDigest()
 
-      this.send({ name: 'message', payload:  text })
-    })
+    //   this.send({ name: 'message', payload:  text })
+    // })
 
     return
   }

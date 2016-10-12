@@ -14,11 +14,10 @@ import {
   Server
 }               from '../../src/puppet-web/'
 
-const PuppetWebServer = Server //require('../../src/puppet-web/server')
 const PORT = 48788
 
 test('PuppetWebServer basic tests', async t => {
-  const s = new PuppetWebServer(PORT)
+  const s = new Server(PORT)
   t.is(typeof s, 'object', 'PuppetWebServer instance created')
 
   let httpsServer = null

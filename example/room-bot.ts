@@ -1,5 +1,5 @@
-/**
 #!/usr/bin/env node
+/**
  *
  * Wechaty - Wechat for Bot
  *
@@ -125,8 +125,8 @@ bot
   const sender  = message.from()
   const content = message.content()
 
-  console.log((room ? '['+room.topic()+']' : '')
-              + '<'+sender.name()+'>'
+  console.log((room ? '[' + room.topic() + ']' : '')
+              + '<' + sender.name() + '>'
               + ':' + message.toStringDigest()
   )
 
@@ -197,7 +197,7 @@ bot
                * create the ding room
                */
               createDingRoom(sender)
-              .then(room => {
+              .then(_ => {
                 /**
                  * listen events from ding room
                  */

@@ -6,8 +6,7 @@ import log from './brolog-env'
  * bug compatible with:
  * https://github.com/wechaty/wechaty/issues/40#issuecomment-252802084
  */
-import * as ws from 'ws'
-typeof ws
+// import * as ws from 'ws'
 
 class UtilLib {
   public static stripHtml(html: string): string {

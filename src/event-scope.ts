@@ -88,31 +88,30 @@ function isRoom(room) {
   return true
 }
 
-function wrapContact(listener) {
-  log.verbose('WechatyEvent', 'wrapContact()')
+// function wrapContact(listener) {
+//   log.verbose('WechatyEvent', 'wrapContact()')
 
-  return (...argList) => {
-    log.silly('WechatyEvent', 'wrapContact() listener')
+//   return (...argList) => {
+//     log.silly('WechatyEvent', 'wrapContact() listener')
 
-    if (!isContact(argList[0])) {
-      throw new Error('contact not found in argList')
-    }
+//     if (!isContact(argList[0])) {
+//       throw new Error('contact not found in argList')
+//     }
 
-    const contact = argList[0]
+//     const contact = argList[0]
 
-    const eventScope = <WechatyEventScope>{}
-    eventScope.say = (content) => {
-      const msg = new Message()
-      msg.to(contact)
-      msg.content(content)
-      return Config.puppetInstance()
-                    .send(msg)
-    }
+//     const eventScope = <WechatyEventScope>{}
+//     eventScope.say = (content) => {
+//       const msg = new Message()
+//       msg.to(contact)
+//       msg.content(content)
+//       return Config.puppetInstance()
+//                     .send(msg)
+//     }
 
-    return listener.apply(eventScope, argList)
-  }
-}
-typeof wrapContact
+//     return listener.apply(eventScope, argList)
+//   }
+// }
 
 function wrapRoom(listener) {
   log.verbose('WechatyEvent', 'wrapRoom()')

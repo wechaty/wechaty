@@ -169,8 +169,6 @@ class Wechaty extends EventEmitter {
 
   public on(event: WechatyEventName, listener: Function): this {
     log.verbose('Wechaty', 'on(%s, %s)', event, typeof listener)
-    typeof FriendRequest
-    typeof Room
 
     const listenerWithScope = EventScope.wrap.call(this, event, listener)
     super.on(event, listenerWithScope)

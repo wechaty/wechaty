@@ -31,7 +31,7 @@ test('Html smoking test', t => {
   const unescapedHtml = UtilLib.unescapeHtml(HTML_BEFORE_UNESCAPE)
   t.is(unescapedHtml, HTML_AFTER_UNESCAPE, 'should unescape html as expected')
 
-  for (let i=0; i<EMOJI_BEFORE_DIGEST.length; i++) {
+  for (let i = 0; i < EMOJI_BEFORE_DIGEST.length; i++) {
     const emojiDigest = UtilLib.digestEmoji(EMOJI_BEFORE_DIGEST[i])
     t.is(emojiDigest, EMOJI_AFTER_DIGEST[i], 'should digest emoji string ' + i + ' as expected')
   }

@@ -142,7 +142,7 @@ class Message {
     if (contact) {
       if (contact instanceof Contact) {
         this.obj.from = contact.id
-      } else if(typeof contact === 'string') {
+      } else if (typeof contact === 'string') {
         this.obj.from = contact
       } else {
         throw new Error('unsupport from param: ' + typeof contact)
@@ -155,7 +155,7 @@ class Message {
     if (contact) {
       if (contact instanceof Contact || contact instanceof Room) {
         this.obj.to = contact.id
-      } else if(typeof contact === 'string') {
+      } else if (typeof contact === 'string') {
         this.obj.to = contact
       } else {
         throw new Error('unsupport to param ' + typeof contact)

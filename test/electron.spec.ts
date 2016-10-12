@@ -5,5 +5,5 @@ test('Electron smoke testing', async t => {
 })
 
 test.todo('Electron open wx', t => {
-
+  t.pass('ok')
 })

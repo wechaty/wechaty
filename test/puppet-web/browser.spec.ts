@@ -129,7 +129,7 @@ test('Browser session save before quit, and load after restart', async t => {
     cookiesFromCheck = await b.checkSession()
     t.is(cookiesFromCheck.length, 0, 'should no cookie from checkSession() after deleteAllCookies()')
 
-    const cookiesFromLoad = await b.loadSession().catch(() => {}) // fail safe
+    const cookiesFromLoad = await b.loadSession().catch(() => { /* fail safe */ })
     t.truthy(cookiesFromLoad.length, 'should get cookies after loadSession()')
     const cookieFromLoad = cookiesFromLoad.filter(c => EXPECTED_NAME_REGEX.test(c.name))
     t.is(cookieFromLoad[0].name, EXPECTED_COOKIE.name, 'cookie from loadSession() should has expected cookie')

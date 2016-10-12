@@ -40,12 +40,12 @@ test.serial('PuppetWeb login/logout events', async t => {
   pw.bridge.getUserName = function() { return Promise.resolve('mockedUserName') }
   pw.getContact = function() { return Promise.resolve('dummy') }
 
-  const loginPromise = new Promise((res,rej) => pw.once('login', _ => res('loginFired')))
+  const loginPromise = new Promise((res, rej) => pw.once('login', _ => res('loginFired')))
   pw.server.emit('login')
   t.is(await loginPromise, 'loginFired', 'should fired login event')
   t.is(pw.logined(), true  , 'should be logined')
 
-  const logoutPromise = new Promise((res,rej) => pw.once('logout', _ => res('logoutFired')))
+  const logoutPromise = new Promise((res, rej) => pw.once('logout', _ => res('logoutFired')))
   pw.server.emit('logout')
   t.is(await logoutPromise, 'logoutFired', 'should fire logout event')
   t.is(pw.logined(), false, 'should be logouted')

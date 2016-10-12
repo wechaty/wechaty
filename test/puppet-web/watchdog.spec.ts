@@ -1,6 +1,7 @@
 import { test } from 'ava'
 
 // import * as util from 'util'
+/* tslint:disable:no-var-requires */
 const retryPromise = require('retry-promise').default
 
 import {

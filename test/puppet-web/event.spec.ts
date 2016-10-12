@@ -16,7 +16,6 @@ import {
 const PROFILE = 'unit-test-session.wechaty.json'
 
 // const PuppetWeb = require('../../src/puppet-web')
-const PuppetWebEvent = Event // require('../../src/puppet-web/event')
 
 test('Puppet Web Event smoking test', async t => {
   let pw = new PuppetWeb({profile: PROFILE})
@@ -26,7 +25,7 @@ test('Puppet Web Event smoking test', async t => {
     await pw.init()
     t.pass('should be inited')
 
-    await PuppetWebEvent.onBrowserDead.call(pw, 'event unit test')
+    await Event.onBrowserDead.call(pw, 'event unit test')
     t.pass('should finish onBrowserDead event process')
 
     await pw.quit()

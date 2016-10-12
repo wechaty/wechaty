@@ -10,13 +10,19 @@
  * Wechaty - https://github.com/zixia/wechaty
  *
  */
-const log = require('npmlog')
+import { Brolog as log } from 'brolog'
+/* tslint:disable:no-var-requires */
 const co  = require('co')
+/* tslint:disable:variable-name */
 const ApiAi = require('apiai')
-const EventEmitter2 = require('eventemitter2')
+import { EventEmitter } from 'events'
 
-const Wechaty = require('..')
-//log.level = 'verbose'
+import {
+  // Room
+  Wechaty
+} from '..'
+
+// log.level = 'verbose'
 // log.level = 'silly'
 
 /**
@@ -27,7 +33,7 @@ const Wechaty = require('..')
 const APIAI_API_KEY = '7217d7bce18c4bcfbe04ba7bdfaf9c08'
 const brainApiAi = ApiAi(APIAI_API_KEY)
 
-const bot = new Wechaty({ profile: 'example-bot.wechaty.json' })
+const bot = Wechaty.instance({ profile: 'example-bot.wechaty.json' })
 
 console.log(`
 Welcome to api.AI Wechaty Bot.
@@ -50,7 +56,7 @@ bot
 
   co(function* () {
     const msg = yield m.ready()
-    const room = Wechaty.Room.load(m.room())
+    const room = m.room()
 
     if (room && /Wechaty/i.test(room.topic())) {
       log.info('Bot', 'talk: %s'  , msg)
@@ -69,7 +75,11 @@ bot.init()
   process.exit(-1)
 })
 
-class Talker extends EventEmitter2 {
+class Talker extends EventEmitter {
+  private thinker
+  private obj
+  private timer
+
   constructor(thinker) {
     log.verbose('Talker()')
     super()
@@ -81,12 +91,12 @@ class Talker extends EventEmitter2 {
     this.timer = null
   }
 
-  save(text) {
+  public save(text) {
     log.verbose('Talker', 'save(%s)', text)
     this.obj.text.push(text)
     this.obj.time.push(Date.now())
   }
-  load() {
+  public load() {
     const text = this.obj.text.join(', ')
     log.verbose('Talker', 'load(%s)', text)
     this.obj.text = []
@@ -94,7 +104,7 @@ class Talker extends EventEmitter2 {
     return text
   }
 
-  updateTimer(delayTime) {
+  public updateTimer(delayTime?) {
     delayTime = delayTime || this.delayTime()
     log.verbose('Talker', 'updateTimer(%s)', delayTime)
 
@@ -102,12 +112,12 @@ class Talker extends EventEmitter2 {
     this.timer = setTimeout(this.say.bind(this), delayTime)
   }
 
-  hear(text) {
+  public hear(text) {
     log.verbose('Talker', `hear(${text})`)
     this.save(text)
     this.updateTimer()
   }
-  say() {
+  public say() {
     log.verbose('Talker', 'say()')
     const text  = this.load()
     this.thinker(text)
@@ -115,7 +125,7 @@ class Talker extends EventEmitter2 {
     this.timer = null
   }
 
-  delayTime() {
+  public delayTime() {
     const minDelayTime = 5000
     const maxDelayTime = 15000
     const delayTime = Math.floor(Math.random() * (maxDelayTime - minDelayTime)) + minDelayTime
@@ -123,7 +133,8 @@ class Talker extends EventEmitter2 {
   }
 }
 
-var Talkers = []
+/* tslint:disable:variable-name */
+let Talkers = []
 
 function talk(m) {
   const fromId  = m.get('from')

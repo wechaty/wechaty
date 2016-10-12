@@ -56,8 +56,8 @@ bot
     const room = m.room()
     const from = m.from()
 
-    console.log((room ? '['+room.topic()+']' : '')
-                + '<'+from.name()+'>'
+    console.log((room ? '[' + room.topic() + ']' : '')
+                + '<' + from.name() + '>'
                 + ':' + m.toStringDigest()
     )
 
@@ -80,8 +80,10 @@ bot.init()
 })
 
 function logToFile(data) {
-require('fs').appendFile('message.log', data + '\n\n#############################\n\n', err => {
-  if (err) { log.error('LogToFile: %s', err) }
-})
+  require('fs').appendFile('message.log', data + '\n\n#############################\n\n', err => {
+    if (err) { log.error('LogToFile: %s', err) }
+  })
 }
-typeof logToFile;
+if (typeof logToFile === 'fasdfsd') {
+  console.log('disable linting warning')
+}
