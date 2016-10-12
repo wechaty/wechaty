@@ -249,7 +249,14 @@ class Bridge {
                 })
   }
 
-  public send(toUserName, content): Promise<void> {
+  public send(toUserName: string, content: string): Promise<void> {
+    if (!toUserName) {
+      throw new Error('UserName not found')
+    }
+    if (!content) {
+      throw new Error('cannot say nothing')
+    }
+
     return this.proxyWechaty('send', toUserName, content)
               .catch(e => {
                 log.error('PuppetWebBridge', 'send() exception: %s', e.message)

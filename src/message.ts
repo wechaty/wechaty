@@ -140,26 +140,14 @@ class Message {
 
   public from(contact?: Contact): Contact {
     if (contact) {
-      if (contact instanceof Contact) {
-        this.obj.from = contact.id
-      } else if (typeof contact === 'string') {
-        this.obj.from = contact
-      } else {
-        throw new Error('from neither Contact nor UserName: ' + contact + ' ' + typeof contact)
-      }
+      this.obj.from = contact.id
     }
     return this.obj.from ? Contact.load(this.obj.from) : null
   }
 
-  public to(contact?: Contact|Room|string): Contact {
+  public to(contact?: Contact|Room): Contact {
     if (contact) {
-      if (contact instanceof Contact || contact instanceof Room) {
-        this.obj.to = contact.id
-      } else if (typeof contact === 'string') {
-        this.obj.to = contact
-      } else {
-        throw new Error('to neither Contact nor UserName: ' + contact + ' ' + typeof contact)
-      }
+      this.obj.to = contact.id
     }
     return this.obj.to ? Contact.load(this.obj.to) : null
   }
@@ -173,13 +161,7 @@ class Message {
 
   public room(room?: Room): Room {
     if (room) {
-      if (room instanceof Room) {
-        this.obj.room = room.id
-      } else if (typeof room === 'string') {
-        this.obj.room = room
-      } else {
-        throw new Error('neither Room nor UserName')
-      }
+      this.obj.room = room.id
     }
     return this.obj.room ? Room.load(this.obj.room) : null
   }
