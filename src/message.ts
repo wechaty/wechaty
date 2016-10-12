@@ -69,6 +69,10 @@ class Message {
 
   protected obj = <MessageObj>{}
 
+  readyStream(): Promise<NodeJS.ReadableStream> {
+    throw Error('abstract method')
+  }
+
   constructor(private rawObj?: MessageRawObj) {
     Message.counter++
 
@@ -247,6 +251,33 @@ class Message {
       Message.TYPE[v] = k // Message.Type[1] = 'TEXT'
     })
   }
+
+  public say(content: string, replyTo?: Contact|Contact[]): Promise<any> {
+    log.verbose('Message', 'say(%s, %s)', content, replyTo)
+
+    const m = new Message()
+    m.room(this.room())
+
+    if (!replyTo) {
+      m.to(this.from())
+      m.content(content)
+
+    } else if (this.room()) {
+      let mentionList
+      if (Array.isArray(replyTo)) {
+        m.to(replyTo[0])
+        mentionList = replyTo.map(c => '@' + c.name()).join(' ')
+      } else {
+        m.to(replyTo)
+        mentionList = '@' + replyTo.name()
+      }
+      m.content(mentionList + ' ' + content)
+
+    }
+    return Wechaty.instance()
+                  .send(m)
+  }
+
 }
 
 Message.initType()
