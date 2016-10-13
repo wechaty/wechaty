@@ -93,7 +93,7 @@ class Contact {
     return !!(this.obj && this.obj.id)
   }
 
-  public ready(contactGetter?: (id: string) => Promise<ContactRawObj>): Promise<Contact> {
+  public async ready(contactGetter?: (id: string) => Promise<ContactRawObj>): Promise<this> {
     log.silly('Contact', 'ready(' + (contactGetter ? typeof contactGetter : '') + ')')
     if (!this.id) {
       log.warn('Contact', 'ready() call on an un-inited contact')
@@ -109,18 +109,22 @@ class Contact {
 
       log.silly('Contact', 'get contact via ' + Config.puppetInstance().constructor.name)
       contactGetter = Config.puppetInstance()
-                              .getContact.bind(Config.puppetInstance())
+                            .getContact.bind(Config.puppetInstance())
     }
-    return contactGetter(this.id)
-            .then(data => {
-              log.silly('Contact', `contactGetter(${this.id}) resolved`)
-              this.rawObj = data
-              this.obj    = this.parse(data)
-              return this
-            }).catch(e => {
-              log.error('Contact', `contactGetter(${this.id}) exception: %s`, e.message)
-              throw e
-            })
+
+    // return contactGetter(this.id)
+    //         .then(data => {
+    try {
+      const rawObj = await contactGetter(this.id)
+      log.silly('Contact', `contactGetter(${this.id}) resolved`)
+      this.rawObj = rawObj
+      this.obj    = this.parse(rawObj)
+      return this
+    // }).catch(e => {
+    } catch (e) {
+      log.error('Contact', `contactGetter(${this.id}) exception: %s`, e.message)
+      throw e
+    }
   }
 
   public dumpRaw() {

@@ -287,7 +287,7 @@ class Bridge {
     // timeout = 30,6250 for {max: 35, backoff: 500}
     const timeout = max * (backoff * max) / 2
 
-    return retryPromise({ max: max, backoff: backoff }, function (attempt) {
+    return retryPromise({ max: max, backoff: backoff }, attempt => {
       log.silly('PuppetWebBridge', 'getContact() retryPromise: attampt %s/%s time for timeout %s'
         , attempt, max, timeout)
 
@@ -302,7 +302,7 @@ class Bridge {
         log.silly('PuppetWebBridge', 'proxyWechaty(getContact, %s) exception: %s', id, e.message)
         throw e
       })
-    }.bind(this))
+    })
     .catch(e => {
       log.warn('PuppetWebBridge', 'retryPromise() getContact() finally FAIL: %s', e.message)
       throw e

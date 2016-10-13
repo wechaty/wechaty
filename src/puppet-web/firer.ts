@@ -65,6 +65,10 @@ async function fireFriendRequest(m: Message) {
   request.receive(info)
 
   await request.contact.ready()
+  if (!request.contact.isReady()) {
+    log.warn('PuppetWebFirer', 'fireFriendConfirm() contact still not ready after `ready()` call')
+  }
+
   this.emit('friend', request.contact, request)
 }
 
@@ -80,7 +84,7 @@ function checkFriendConfirm(content) {
   }
 }
 
-async function fireFriendConfirm(m) {
+async function fireFriendConfirm(m: Message) {
   const content = m.content()
   log.silly('PuppetWebFirer', 'fireFriendConfirm(%s)', content)
 
@@ -88,10 +92,13 @@ async function fireFriendConfirm(m) {
     return
   }
   const request = new FriendRequest()
-  const contact = Contact.load(m.get('from'))
+  const contact = m.from()
   request.confirm(contact)
 
   await contact.ready()
+  if (!contact.isReady()) {
+    log.warn('PuppetWebFirer', 'fireFriendConfirm() contact still not ready after `ready()` call')
+  }
   this.emit('friend', contact)
 }
 

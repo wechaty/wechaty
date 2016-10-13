@@ -36,7 +36,7 @@ class PuppetWebFriendRequest extends FriendRequest {
   constructor() {
     log.verbose('PuppetWebFriendRequest', 'constructor()')
     super()
-    this.type = null // enum('send', 'receive', 'confirm')
+    this.type = null
   }
 
   public receive(info: RecommendInfo): PuppetWebFriendRequest {
@@ -45,7 +45,7 @@ class PuppetWebFriendRequest extends FriendRequest {
     if (!info || !info.UserName) {
       throw new Error('not valid RecommendInfo: ' + info)
     }
-    this.info     = info
+    this.info       = info
 
     this.contact    = Contact.load(info.UserName)
     this.hello      = info.Content
@@ -116,7 +116,7 @@ class PuppetWebFriendRequest extends FriendRequest {
         log.verbose('PuppetWebFriendRequest', 'accept() with contact %s ready()', this.contact.name())
         return
       }
-      throw new Error('not ready')
+      throw new Error('FriendRequest.accept() content.ready() not ready')
 
     }).catch( e => {
       log.warn('PuppetWebFriendRequest', 'accept() rejected for contact %s because %s', this.contact, e && e.message || e)
