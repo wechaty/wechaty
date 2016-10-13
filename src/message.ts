@@ -25,6 +25,7 @@ type MessageRawObj = {
   Status:           string
   MMDigest:         string
   MMDisplayTime:    string  // Javascript timestamp of milliseconds
+  Url:              string
 
   RecommendInfo?:   RecommendInfo
 }
