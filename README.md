@@ -472,15 +472,15 @@ wechaty.reply(message, 'roger')
 
 All wechat messages will be encaped as a Message.
 
-### Message.from(contact?: Contact): Contact
+### Message.from(contact?: Contact|string): Contact
 
 get the sender from message, or set it.
 
-### Message.to(contact?: Contact|Room): Contact|Room
+### Message.to(contact?: Contact|Room|string): Contact|Room
 
 get the receiver from a message, or set it.
 
-### Message.room(room?: Room): Room
+### Message.room(room?: Room|string): Room
 
 get the room from a message, or set it.
 

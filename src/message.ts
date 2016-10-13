@@ -49,6 +49,7 @@ type MessageType = {
 
 class Message {
   public static counter = 0
+  private _counter: number
 
   public static TYPE: MessageType = {
     TEXT:               1,
@@ -80,7 +81,7 @@ class Message {
   }
 
   constructor(public rawObj?: MessageRawObj) {
-    Message.counter++
+    this._counter = Message.counter++
 
     if (typeof rawObj === 'string') {
       this.rawObj = JSON.parse(rawObj)
@@ -128,7 +129,7 @@ class Message {
   }
 
   public toStringEx() {
-    let s = `${this.constructor.name}#${Message.counter}`
+    let s = `${this.constructor.name}#${this._counter}`
     s += '(' + this.getSenderString()
     s += ':' + this.getContentString() + ')'
     return s
@@ -144,6 +145,8 @@ class Message {
     return '{' + this.type() + '}' + content
   }
 
+  public from(contact?: Contact): Contact
+  public from(id?: string): Contact
   public from(contact?: Contact|string): Contact {
     if (contact) {
       if (contact instanceof Contact) {
@@ -157,7 +160,10 @@ class Message {
     return this.obj.from ? Contact.load(this.obj.from) : null
   }
 
-  public to(contact?: Contact|Room|string): Contact {
+  public to(contact?: Contact): Contact
+  public to(room?: Room): Room
+  public to(id?: string): Contact|Room
+  public to(contact?: Contact|Room|string): Contact|Room {
     if (contact) {
       if (contact instanceof Contact || contact instanceof Room) {
         this.obj.to = contact.id
@@ -167,9 +173,18 @@ class Message {
         throw new Error('unsupport to param ' + typeof contact)
       }
     }
-    return this.obj.to ? Contact.load(this.obj.to) : null
+    if (!this.obj.to) {
+      return null
+    }
+
+    // FIXME: better to identify a room id?
+    return /^@@/.test(this.obj.to)
+            ? Room.load(this.obj.to)
+            : Contact.load(this.obj.to)
   }
 
+  public room(room?: Room): Room
+  public room(id?: string): Room
   public room(room?: Room|string): Room {
     if (room) {
       if (room instanceof Room) {
@@ -183,7 +198,7 @@ class Message {
     return this.obj.room ? Room.load(this.obj.room) : null
   }
 
-  public content(content?) {
+  public content(content?: string) {
     if (content) {
       this.obj.content = content
     }
@@ -192,7 +207,7 @@ class Message {
 
   public type()    { return this.obj.type }
   public typeEx()  { return Message.TYPE[this.obj.type] }
-  public count()   { return Message.counter }
+  public count()   { return this._counter }
 
   public async ready(): Promise<this> {
     log.silly('Message', 'ready()')
@@ -218,7 +233,7 @@ class Message {
     }
   }
 
-  public get(prop): string {
+  public get(prop: string): string {
     if (!prop || !(prop in this.obj)) {
       const s = '[' + Object.keys(this.obj).join(',') + ']'
       throw new Error(`Message.get(${prop}) must be in: ${s}`)
@@ -226,7 +241,10 @@ class Message {
     return this.obj[prop]
   }
 
-  public set(prop, value) {
+  public set(prop: string, value: string): this {
+    if (typeof value !== 'string') {
+      throw new Error('value must be string, we got: ' + typeof value)
+    }
     this.obj[prop] = value
     return this
   }
