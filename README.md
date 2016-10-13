@@ -330,7 +330,7 @@ Wechaty support the following 6 events:
 A `scan` event will be emitted when the bot need to show you a QrCode for scaning.
 
 ```typescript
-wechaty.on('scan', (url: string, code: number}) => {
+wechaty.on('scan', (url: string, code: number) => {
   console.log(`[${code}] Scan ${url} to login.` )
 })
 ```
@@ -414,19 +414,18 @@ wechaty.on('room-topic', (room: Room, topic: string, oldTopic: string, changer: 
 })
 ```
 
-## Class Wechaty
+## Wechaty Class
 Main bot class.
 
 ```javascript
-const bot = new Wechaty({
+const bot = Wechaty.instance({
   profile
-  , token
 })
 ```
 
 1. `profile`(OPTIONAL): profile name. if a profile name is provided, the login status will be saved to it, and automatically restored on next time of wechaty start(restart).
     * can be set by environment variable: `WECHATY_PROFILE`
-1. `token`(OPTIONAL): wechaty io token. Be used to connect to cloud bot manager.
+~~1. `token`(OPTIONAL): wechaty io token. Be used to connect to cloud bot manager.~~
 
 ### Wechaty.init(): Wechaty
 Initialize the bot, return Promise.
@@ -438,15 +437,6 @@ wechaty.init()
 }
 ```
 
-### Wechaty.reply(message: Message, reply: String): Wechaty
-Reply a `message` with `reply`.
-
-That means: the `to` field of the reply message is the `from` of origin message.
-
-```javascript
-wechaty.reply(message, 'roger')
-```
-
 ### Wechaty.self(): boolean
 Check if message is send by self.
 
@@ -456,6 +446,26 @@ Return `true` for send from self, `false` for send from others.
 if (wechaty.self(message)) {
   console.log('this message is sent by myself!')
 }
+```
+
+### Wechaty.send(message: Message): Wechaty
+send a `message`
+
+```javascript
+const msg = new Message()
+msg.to('filehelper')
+msg.content('hello')
+
+wechaty.send(message)
+```
+
+### @deprecated Wechaty.reply(message: Message, reply: String): Wechaty
+Reply a `message` with `reply`.
+
+That means: the `to` field of the reply message is the `from` of origin message.
+
+```javascript
+wechaty.reply(message, 'roger')
 ```
 
 ## Message Class
