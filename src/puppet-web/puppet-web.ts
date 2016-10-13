@@ -318,24 +318,13 @@ class PuppetWeb extends Puppet {
                       })
   }
 
-  public reply(message, replyContent) {
+  public reply(message: Message, replyContent: string) {
+    log.warn('PuppetWeb', 'reply() @deprecated, please use Message.say()')
+
     if (this.self(message)) {
       return Promise.reject(new Error('will not to reply message of myself'))
     }
-
-    const m = new Message()
-    .set('content'  , replyContent)
-
-    .set('from'     , message.obj.to)
-    .set('to'       , message.obj.from)
-    .set('room'     , message.obj.room)
-
-    // log.verbose('PuppetWeb', 'reply() by message: %s', util.inspect(m))
-    return this.send(m)
-                .catch(e => {
-                  log.error('PuppetWeb', 'reply() exception: %s', e.message)
-                  throw e
-                })
+    return message.say(replyContent)
   }
 
   /**
