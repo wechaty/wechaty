@@ -342,6 +342,16 @@ class Room extends EventEmitter {
     }
   }
 
+  public memberList(): Contact[] {
+    log.verbose('Room', 'member(%s)', name)
+
+    if (!this.obj || !this.obj.memberList || this.obj.memberList.length < 1) {
+      log.warn('Room', 'memberList() not ready')
+      return null
+    }
+    return this.obj.memberList
+  }
+
   public static create(contactList: Contact[], topic?: string): Promise<Room> {
     log.verbose('Room', 'create(%s, %s)', contactList.join(','), topic)
 

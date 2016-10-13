@@ -364,16 +364,24 @@ wechaty.on('logout', user => {
 ```
 
 ### 4. Event: `message`
+
 Emit when there's a new message.
+
 ```javascript
-wechaty.on('message', message => {
+wechaty.on('message', (message: Message) => {
   console.log('message ${message} received')
 })
 ```
-The `message` here is a [Message](#class-message).
 
 ### 5. Event: `error`
-To be support.
+
+Emit for error
+
+```ts
+wechaty.on('error', (err: Error) => {
+  console.log(err.message)
+})
+```
 
 ### 6. Event: `friend`
 
@@ -425,7 +433,7 @@ const bot = Wechaty.instance({
 
 1. `profile`(OPTIONAL): profile name. if a profile name is provided, the login status will be saved to it, and automatically restored on next time of wechaty start(restart).
     * can be set by environment variable: `WECHATY_PROFILE`
-~~1. `token`(OPTIONAL): wechaty io token. Be used to connect to cloud bot manager.~~
+1. ~~`token`(OPTIONAL): wechaty io token. Be used to connect to cloud bot manager.~~
 
 ### Wechaty.init(): Wechaty
 Initialize the bot, return Promise.
@@ -456,7 +464,7 @@ const msg = new Message()
 msg.to('filehelper')
 msg.content('hello')
 
-wechaty.send(message)
+wechaty.send(msg)
 ```
 
 ### @deprecated Wechaty.reply(message: Message, reply: String): Wechaty
@@ -528,7 +536,7 @@ message.set('content', 'Hello, World!')
 
 ## Contact Class
 
-### Contact.name()
+### Contact.name(): string
 
 ### Contact.ready(): Contact
 A Contact may be not fully initialized yet. Call `ready()` to confirm we get all the data needed.
@@ -562,7 +570,7 @@ contact.get('name')
 
 ## Class Room
 
-Talk is cheap, show me the code: [Example/Room-Bot](https://github.com/wechaty/wechaty/blob/master/example/room-bot.js)
+Doc is cheap, read code: [Example/Room-Bot](https://github.com/wechaty/wechaty/blob/master/example/room-bot.js)
 
 ### Room.say(content: string, replyTo: Contact|Contact[]): Promise<void>
 
@@ -651,8 +659,9 @@ if (room) {
 
 ### Room.member(name: string): Contact|null
 
-### Room.get(prop): String|Array[{contact: Contact, name: String}]
-@deprecated.
+### Room.memberList(): Contact[]
+
+### @deprecated. Room.get(prop): String|Array[{contact: Contact, name: String}]
 
 Get prop from a room.
 
@@ -685,7 +694,7 @@ wechaty.on('friend', (contact: Contact, request: FriendRequest) => {
 })
 ```
 
-Talk is cheap, show me the code: [Example/Friend-Bot](https://github.com/wechaty/wechaty/blob/master/example/friend-bot.js)
+Doc is cheap, read code: [Example/Friend-Bot](https://github.com/wechaty/wechaty/blob/master/example/friend-bot.js)
 
 ### FriendRequest.hello: string
 
