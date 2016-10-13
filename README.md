@@ -51,9 +51,9 @@ Wechaty is dead easy to use: 7 lines javascript for your wechat bot.
 ## 1. Basic: 7 lines
 The following 7 lines of code implement a bot who can log all message to console:
 
-```javascript
-const Wechaty = require('wechaty')
-const bot = new Wechaty()
+```typescript
+import Wechaty from 'wechaty'
+const bot = Wechaty.instance() // Singleton
 
 bot
 .on('scan', (url, code) => console.log(`Scan QrCode to login: ${code}\n${url}`))
@@ -458,10 +458,40 @@ if (wechaty.self(message)) {
 }
 ```
 
-## Class Message
+## Message Class
+
 All wechat messages will be encaped as a Message.
 
-### Message.get(prop): String|Contact|Room|Date
+### Message.from(contact?: Contact): Contact
+
+get the sender from message, or set it.
+
+### Message.to(contact?: Contact|Room): Contact|Room
+
+get the receiver from a message, or set it.
+
+### Message.room(room?: Room): Room
+
+get the room from a message, or set it.
+
+### Message.say(content: string): Promise<void>
+
+reply a message to the sender.
+
+### Message.ready(): Message
+A message may be not fully initialized yet. Call `ready()` to confirm we get all the data needed.
+
+Return a Promise, will be resolved when all data is ready.
+
+```javascript
+message.ready()
+.then(() => {
+  // Here we can be sure all the data is ready for use.
+})
+```
+
+### @deprecated Message.get(prop): String|Contact|Room|Date
+
 Get prop from a message.
 
 Supported prop list:
@@ -477,7 +507,7 @@ Supported prop list:
 message.get('content')
 ```
 
-### Message.set(prop, value): Message
+### @deprecated Message.set(prop, value): Message
 Set prop to value for a message.
 
 Supported prop list: the same as `get(prop)`
@@ -486,21 +516,23 @@ Supported prop list: the same as `get(prop)`
 message.set('content', 'Hello, World!')
 ```
 
-### Message.ready(): Message
-A message may be not fully initialized yet. Call `ready()` to confirm we get all the data needed.
+## Contact Class
+
+### Contact.name()
+
+### Contact.ready(): Contact
+A Contact may be not fully initialized yet. Call `ready()` to confirm we get all the data needed.
 
 Return a Promise, will be resolved when all data is ready.
 
 ```javascript
-message.ready()
+contact.ready()
 .then(() => {
   // Here we can be sure all the data is ready for use.
 })
 ```
 
-## Class Contact
-
-### Contact.get(prop): String|Number
+### @deprecated Contact.get(prop): String|Number
 Get prop from a contact.
 
 Supported prop list:
@@ -518,35 +550,17 @@ Supported prop list:
 contact.get('name')
 ```
 
-### Contact.ready(): Contact
-A Contact may be not fully initialized yet. Call `ready()` to confirm we get all the data needed.
-
-Return a Promise, will be resolved when all data is ready.
-
-```javascript
-contact.ready()
-.then(() => {
-  // Here we can be sure all the data is ready for use.
-})
-```
-
 ## Class Room
 
+Talk is cheap, show me the code: [Example/Room-Bot](https://github.com/wechaty/wechaty/blob/master/example/room-bot.js)
 
-### Room.get(prop): String|Array[{contact: Contact, name: String}]
-Get prop from a room.
+### Room.say(content: string, replyTo: Contact|Contact[]): Promise<void>
 
-Supported prop list:
+say `content` inside Room.
 
-1. `id` :String
-1. `name` :String
-1. `members` :Array
-    1. `contact` :Contact
-    1. `name` :String
+if you set `replyTo`, then `say()` will mention them as well.
+> "@replyTo content"
 
-```javascript
-room.get('members').length
-```
 ### Room.ready(): Room
 A room may be not fully initialized yet. Call `ready()` to confirm we get all the data needed.
 
@@ -559,15 +573,9 @@ room.ready()
 })
 ```
 
-## Room Class of Wechaty
+### Room.refresh(): Room
 
-```typescript
-type Query = { topic: string|Regex }
-Room.find(query : Query) : Room | null
-Room.findAll(query : Query) : Room[]
-```
-
-Talk is cheap, show me the code: [Example/Room-Bot](https://github.com/wechaty/wechaty/blob/master/example/room-bot.js)
+force reload data for Room
 
 ### Event: `join`
 
@@ -593,6 +601,14 @@ Room.on('leave', (leaver) => void)
 
 ```typescript
 Room.on('topic', (topic, oldTopic, changer) => void)
+```
+
+### Query Type
+
+```typescript
+type Query = { topic: string|Regex }
+Room.find(query : Query) : Room | null
+Room.findAll(query : Query) : Room[]
 ```
 
 ### static Room.find(query: Query): Promise<Room|null>
@@ -623,8 +639,24 @@ if (room) {
 
 ### Room.owner(): Contact|null
 
-###  Room.member(name: string): Contact|null
+### Room.member(name: string): Contact|null
 
+### Room.get(prop): String|Array[{contact: Contact, name: String}]
+@deprecated.
+
+Get prop from a room.
+
+Supported prop list:
+
+1. `id` :String
+1. `name` :String
+1. `members` :Array
+    1. `contact` :Contact
+    1. `name` :String
+
+```javascript
+room.get('members').length
+```
 
 ## Class FriendRequest
 
