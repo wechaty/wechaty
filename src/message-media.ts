@@ -75,3 +75,4 @@ class MediaMessage extends Message {
 }
 
 export default MediaMessage
+export { MediaMessage }

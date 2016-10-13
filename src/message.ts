@@ -289,13 +289,8 @@ class Message {
 Message.initType()
 
 export default Message
-
-import MediaMessage from './message-media'
-
-export {
-    Message
-  , MediaMessage
-}
+export { Message }
+export { MediaMessage } from './message-media'
 
 /*
  * join room in mac client: https://support.weixin.qq.com/cgi-bin/
