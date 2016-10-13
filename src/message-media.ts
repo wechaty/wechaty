@@ -23,7 +23,7 @@ class MediaMessage extends Message {
     this.bridge = (Config.puppetInstance() as PuppetWeb)
                         .bridge
   }
-  public async ready(): Promise<MediaMessage> {
+  public async ready(): Promise<this> {
     log.silly('MediaMessage', 'ready()')
 
     const parentReady = super.ready.bind(this)
@@ -74,5 +74,4 @@ class MediaMessage extends Message {
   }
 }
 
-// module.exports = MediaMessage.default = MediaMessage.MediaMessage = MediaMessage
 export default MediaMessage

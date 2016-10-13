@@ -15,20 +15,17 @@
  * here `this` is a PuppetWeb Instance
  *
  */
-// import * as util  from 'util'
-// import * as fs    from 'fs'
-// const co    = require('co')
-
 import {
     WatchdogFood
   , ScanInfo
 }                   from '../config'
 import Contact      from '../contact'
-import Message      from '../message'
-import MediaMessage from '../message-media'
+import {
+  Message
+  , MediaMessage
+}                   from '../message'
 import log          from '../brolog-env'
 
-// import FriendRequest from './friend-request'
 import Firer        from './firer'
 import PuppetWeb    from './puppet-web'
 
@@ -415,5 +412,4 @@ async function onServerMessage(data): Promise<void> {
   return
 }
 
-// module.exports = PuppetWebEvent
 export default PuppetWebEvent

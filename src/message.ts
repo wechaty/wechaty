@@ -194,7 +194,7 @@ class Message {
   public typeEx()  { return Message.TYPE[this.obj.type] }
   public count()   { return Message.counter }
 
-  public async ready(): Promise<Message> {
+  public async ready(): Promise<this> {
     log.silly('Message', 'ready()')
 
     // return co.call(this, function* () {
@@ -288,8 +288,14 @@ class Message {
 
 Message.initType()
 
-// module.exports = Message.default = Message.Message = Message
 export default Message
+
+import MediaMessage from './message-media'
+
+export {
+    Message
+  , MediaMessage
+}
 
 /*
  * join room in mac client: https://support.weixin.qq.com/cgi-bin/
