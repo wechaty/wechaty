@@ -750,7 +750,7 @@ npm test
 
 ## v0.5.0 master (2016/10) The First Typescript Version
 1. [#40](https://github.com/wechaty/wechaty/issues/40) Converted to Typescript (2016/10/11) 
-1. [#41](https://github.com/wechaty/wechaty/issues/41) added `say()` method to Contact/Room instance, and to `this` inside wechaty event listeners
+1. [#41](https://github.com/wechaty/wechaty/issues/41) added `say()` method to Contact/Room instance, and to `this` inside wechaty event listeners, to make them `Sayable`
 1. BREAKING CHANGE: global event `scan` arguments changed from 1 to 2: now is (url: string, code: number) instead of {url, code} before. 
 
 ## [v0.4.0](https://github.com/wechaty/wechaty/releases/tag/v0.4.0) (2016/10/9) The Latest Javascript Version
