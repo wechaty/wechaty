@@ -9,13 +9,14 @@
  *
  */
 import { EventEmitter } from 'events'
-import * as path        from 'path'
 import * as fs          from 'fs'
+import * as path        from 'path'
 
 import {
     Config
   , HeadType
   , PuppetType
+  , Sayable
   , WechatyEventName
 }                     from './config'
 
@@ -26,7 +27,7 @@ import Puppet         from './puppet'
 import PuppetWeb      from './puppet-web/'
 import Room           from './room'
 import UtilLib        from './util-lib'
-import EventScope     from './event-scope'
+// import EventScope     from './event-scope'
 
 import log            from './brolog-env'
 
@@ -155,23 +156,30 @@ class Wechaty extends EventEmitter {
     return this
   }
 
-  public on(event: 'error'      , listener: (error: Error) => void): this
-  public on(event: 'friend'     , listener: (friend: Contact, request: FriendRequest) => void): this
-  public on(event: 'heartbeat'  , listener: (data: any) => void): this
-  public on(event: 'logout'     , listener: (user: Contact) => void): this
-  public on(event: 'login'      , listener: (user: Contact) => void): this
-  public on(event: 'message'    , listener: (message: Message, n: number) => void): this
-  public on(event: 'room-join'  , listener: (room: Room, invitee:     Contact, inviter: Contact) => void): this
-  public on(event: 'room-join'  , listener: (room: Room, inviteeList: Contact, inviter: Contact) => void): this
-  public on(event: 'room-leave' , listener: (room: Room, leaver: Contact) => void): this
-  public on(event: 'room-topic' , listener: (room: Room, topic: string, oldTopic: string, changer: Contact) => void): this
-  public on(event: 'scan'       , listener: (url: string, code: number) => void): this
+  public on(event: 'error'      , listener: (this: Sayable, error: Error) => void): this
+  public on(event: 'friend'     , listener: (this: Sayable, friend: Contact, request: FriendRequest) => void): this
+  public on(event: 'heartbeat'  , listener: (this: Sayable, data: any) => void): this
+  public on(event: 'logout'     , listener: (this: Sayable, user: Contact) => void): this
+  public on(event: 'login'      , listener: (this: Sayable, user: Contact) => void): this
+  public on(event: 'message'    , listener: (this: Sayable, message: Message, n: number) => void): this
+  public on(event: 'room-join'  , listener: (this: Sayable, room: Room, invitee:     Contact, inviter: Contact) => void): this
+  public on(event: 'room-join'  , listener: (this: Sayable, room: Room, inviteeList: Contact, inviter: Contact) => void): this
+  public on(event: 'room-leave' , listener: (this: Sayable, room: Room, leaver: Contact) => void): this
+  public on(event: 'room-topic' , listener: (this: Sayable, room: Room, topic: string, oldTopic: string, changer: Contact) => void): this
+  public on(event: 'scan'       , listener: (this: Sayable, url: string, code: number) => void): this
 
   public on(event: WechatyEventName, listener: Function): this {
     log.verbose('Wechaty', 'on(%s, %s)', event, typeof listener)
 
-    const listenerWithScope = EventScope.wrap.call(this, event, listener)
-    super.on(event, listenerWithScope)
+    const thisWithSay: Sayable = {
+      say: (content: string) => {
+        return Config.puppetInstance()
+                      .say(content)
+      }
+    }
+    super.on(event, function() {
+      return listener.apply(thisWithSay, arguments)
+    })
 
     return this
   }
@@ -185,11 +193,23 @@ class Wechaty extends EventEmitter {
           , profile:  this.setting.profile
         })
         break
+
       default:
         throw new Error('Puppet unsupport(yet): ' + this.setting.type)
     }
 
-    EventScope.list().map(e => {
+  ; // must have a semicolon here to seperate the last line with `[]`
+  [   'error'
+    , 'friend'
+    , 'heartbeat'
+    , 'login'
+    , 'logout'
+    , 'message'
+    , 'room-join'
+    , 'room-leave'
+    , 'room-topic'
+    , 'scan'
+  ].map(e => {
       // https://strongloop.com/strongblog/an-introduction-to-javascript-es6-arrow-functions/
       // We’ve lost () around the argument list when there’s just one argument (rest arguments are an exception, eg (...args) => ...)
       puppet.on(e, (...args) => {
@@ -206,7 +226,7 @@ class Wechaty extends EventEmitter {
      */
 
     // set puppet before init, because we need this.puppet if we quit() before init() finish
-    this.puppet     = puppet
+    this.puppet = puppet
 
     // set puppet instance to Wechaty Static variable, for using by Contact/Room/Message/FriendRequest etc.
     Config.puppetInstance(puppet)
@@ -254,6 +274,11 @@ class Wechaty extends EventEmitter {
                       })
   }
 
+  public say(content: string) {
+    return this.puppet.say(content)
+  }
+
+  /// @deprecated
   public reply(message: Message, reply: string) {
     return this.puppet.reply(message, reply)
     .catch(e => {

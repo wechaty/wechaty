@@ -71,6 +71,9 @@ abstract class Puppet extends EventEmitter {
   // }
 
   public abstract send(message: Message): Promise<any>
+  public abstract say(content: string)
+
+  // @deprecated
   public abstract reply(message: Message, reply): Promise<any>
 
   public abstract reset(reason?: string)

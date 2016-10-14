@@ -318,6 +318,19 @@ class PuppetWeb extends Puppet {
                       })
   }
 
+  /**
+   * Bot say...
+   * send to `filehelper` for notice / log
+   */
+  public say(content: string) {
+    const m = new Message()
+    m.to('filehelper')
+    m.content(content)
+
+    return this.send(m)
+  }
+
+  // @deprecated
   public reply(message, replyContent) {
     if (this.self(message)) {
       return Promise.reject(new Error('will not to reply message of myself'))

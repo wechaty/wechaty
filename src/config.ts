@@ -151,12 +151,17 @@ type RecommendInfo = {
   VerifyFlag: number
 }
 
+interface Sayable {
+  say(content: string, replyTo?: any): Promise<any>
+}
+
 export default Config
 export {
     Config
   , HeadType
   , PuppetType
   , RecommendInfo
+  , Sayable
   , ScanInfo
   , WatchdogFood
   , WechatyEventName

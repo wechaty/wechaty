@@ -14,7 +14,7 @@ import Config     from './config'
 import Contact    from './contact'
 import Message    from './message'
 import UtilLib    from './util-lib'
-import EventScope from './event-scope'
+// import EventScope from './event-scope'
 
 import log        from './brolog-env'
 
@@ -117,26 +117,16 @@ class Room extends EventEmitter {
   public on(event: string, listener: Function): this {
     log.verbose('Room', 'on(%s, %s)', event, typeof listener)
 
-    /**
-     * wrap a room event listener to a global event listener
-     */
-    const listenerWithRoomArg = (room: Room, ...argList) => {
-      return listener.apply(this, argList)
+    const thisWithSay = {
+      say: (content: string) => {
+        return Config.puppetInstance()
+                      .say(content)
+      }
     }
+    super.on(event, function() {
+      return listener.apply(thisWithSay, arguments)
+    })
 
-    /**
-     * every room event must can be mapped to a global event.
-     * such as: `join` to `room-join`
-     */
-    const globalEventName = 'room-' + event
-    const listenerWithScope = EventScope.wrap.call(this, globalEventName, listenerWithRoomArg)
-
-    /**
-     * bind(listenerWithScope, this):
-     * the `this` is for simulate the global room-* event,
-     * provide the first argument `room`
-     */
-    super.on(event, listenerWithScope.bind(listenerWithScope, this))
     return this
   }
 
