@@ -15,7 +15,7 @@ import log      from './brolog-env'
 import PuppetWeb        from './puppet-web/puppet-web'
 import PuppetWebBridge  from './puppet-web/bridge'
 
-class MediaMessage extends Message {
+export class MediaMessage extends Message {
   private bridge: PuppetWebBridge
 
   constructor(rawObj) {
@@ -75,4 +75,3 @@ class MediaMessage extends Message {
 }
 
 export default MediaMessage
-export { MediaMessage }

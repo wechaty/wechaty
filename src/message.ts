@@ -48,7 +48,7 @@ type MessageType = {
   [index: string]: number|string
 }
 
-class Message {
+export class Message {
   public static counter = 0
   private _counter: number
 
@@ -308,7 +308,6 @@ class Message {
 Message.initType()
 
 export default Message
-export { Message }
 export { MediaMessage } from './message-media'
 
 /*

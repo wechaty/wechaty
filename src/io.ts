@@ -1,6 +1,6 @@
 /**
  *
- * wechaty: Wechat for Bot. and for human who talk to bot/robot
+ * Wechaty: Wechat for Bot. and for human who talk to bot/robot
  *
  * Class Io
  * http://www.wechaty.io
@@ -21,7 +21,7 @@ import {
 import Wechaty  from './wechaty'
 import log      from './brolog-env'
 
-type IoSetting = {
+export type IoSetting = {
   wechaty:    Wechaty
   token:      string
   apihost?:   string
@@ -43,7 +43,7 @@ type IoEvent = {
   payload:  any
 }
 
-class Io {
+export class Io {
   public uuid: string
 
   private protocol: string

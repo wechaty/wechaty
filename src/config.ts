@@ -8,10 +8,10 @@ import * as fs from 'fs'
 
 import Puppet from './puppet'
 
-type PuppetType = 'web' | 'android' | 'ios'
-type HeadType = 'chrome' | 'phantomjs'
+export type PuppetType = 'web' | 'android' | 'ios'
+export type HeadType = 'chrome' | 'phantomjs'
 
-type ConfigSetting = {
+export type ConfigSetting = {
 
   DEFAULT_HEAD: string
   DEFAULT_PUPPET: string
@@ -43,7 +43,7 @@ type ConfigSetting = {
 }
 /* tslint:disable:variable-name */
 /* tslint:disable:no-var-requires */
-const Config: ConfigSetting = require('../package.json').wechaty
+export const Config: ConfigSetting = require('../package.json').wechaty
 
 /**
  * 1. ENVIRONMENT VARIABLES + PACKAGES.JSON (default)
@@ -119,7 +119,7 @@ Config.puppetInstance = function(instance?: Puppet): Puppet {
   return Config._puppetInstance
 }
 
-type WatchdogFood = {
+export type WatchdogFood = {
     data: any
   , timeout?: number  // millisecond
   , type?:  'HEARTBEAT'
@@ -127,7 +127,7 @@ type WatchdogFood = {
           | 'SCAN'
 }
 
-type WechatyEventName = 'error'
+export type WechatyEventName = 'error'
                       | 'friend'
                       | 'heartbeat'
                       | 'login'
@@ -138,12 +138,12 @@ type WechatyEventName = 'error'
                       | 'room-topic'
                       | 'scan'
 
-type ScanInfo = {
+export type ScanInfo = {
   url: string
   code: number
 }
 
-type RecommendInfo = {
+export type RecommendInfo = {
   UserName:   string
   NickName:   string
   Content:    string // request message
@@ -152,12 +152,3 @@ type RecommendInfo = {
 }
 
 export default Config
-export {
-    Config
-  , HeadType
-  , PuppetType
-  , RecommendInfo
-  , ScanInfo
-  , WatchdogFood
-  , WechatyEventName
-}

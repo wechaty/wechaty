@@ -30,14 +30,14 @@ import EventScope     from './event-scope'
 
 import log            from './brolog-env'
 
-type WechatySetting = {
+export type WechatySetting = {
   profile?:    string
   head?:       HeadType
   type?:       PuppetType
   // port?:       number
 }
 
-class Wechaty extends EventEmitter {
+export class Wechaty extends EventEmitter {
   private static _instance: Wechaty
 
   public puppet: Puppet

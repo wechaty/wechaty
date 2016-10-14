@@ -27,12 +27,12 @@ type RoomObj = {
   nickMap:    Map<string, string>
 }
 
-type RoomRawMemberList = {
+export type RoomRawMemberList = {
   UserName:     string
   DisplayName:  string
 }
 
-type RoomRawObj = {
+export type RoomRawObj = {
   UserName:         string
   EncryChatRoomId:  string
   NickName:         string
@@ -40,11 +40,11 @@ type RoomRawObj = {
   MemberList:       RoomRawMemberList[]
 }
 
-type RoomQueryFilter = {
+export type RoomQueryFilter = {
   topic: string | RegExp
 }
 
-class Room extends EventEmitter {
+export class Room extends EventEmitter {
   private static pool = new Map<string, Room>()
 
   private dirtyObj: RoomObj // when refresh, use this to save dirty data for query
@@ -65,12 +65,11 @@ class Room extends EventEmitter {
   public toString()    { return this.id }
   public toStringEx()  { return `Room(${this.obj && this.obj.topic}[${this.id}])` }
 
-  // @private
   public isReady(): boolean {
     return !!(this.obj && this.obj.memberList && this.obj.memberList.length)
   }
 
-  public refresh(): Promise<Room> {
+  public async refresh(): Promise<this> {
     if (this.isReady()) {
       this.dirtyObj = this.obj
     }
@@ -78,7 +77,7 @@ class Room extends EventEmitter {
     return this.ready()
   }
 
-  public ready(contactGetter?: (id: string) => Promise<RoomRawObj>): Promise<Room|void> {
+  public async ready(contactGetter?: (id: string) => Promise<RoomRawObj>): Promise<this> {
     log.silly('Room', 'ready(%s)', contactGetter ? contactGetter.constructor.name : '')
     if (!this.id) {
       const e = new Error('ready() on a un-inited Room')
@@ -423,7 +422,4 @@ class Room extends EventEmitter {
 
 }
 
-// Room.init()
-
-// module.exports = Room
 export default Room
