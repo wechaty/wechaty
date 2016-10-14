@@ -4,6 +4,6 @@ test('Electron smoke testing', async t => {
   t.true(true, 'test')
 })
 
-test.todo('Electron open wx', t => {
+test.skip('Electron open wx', t => {
   t.pass('ok')
 })
