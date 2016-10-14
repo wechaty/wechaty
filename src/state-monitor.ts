@@ -1,5 +1,12 @@
 /**
- * Wechaty
+ *
+ * Wechaty: Wechat for Bot. and for human who talk to bot/robot
+ *
+ * Class Io
+ * http://www.wechaty.io
+ *
+ * Licenst: ISC
+ * https://github.com/zixia/wechaty
  *
  * Helper Class for Manage State Change
  */
@@ -8,28 +15,40 @@
  * A - State A
  * B - State B
  */
+
 class StateMonitor <A, B>{
-  private _targetState:   A|B
-  private _currentState:  [A|B, boolean]
+  private _target:   A|B
+  private _current:  A|B
+  private _stable:  boolean
 
   constructor(initState: A|B) {
-    this.targetState(initState)
-    this.currentState(initState)
+    this.target(initState)
+    this.current(initState)
+    this.stable(true)
   }
 
-  public targetState(newState: A|B): A|B {
+  public target(newState?: A|B): A|B {
     if (newState) {
-      this._targetState = newState
+      this._target = newState
     }
-    return this._targetState
+    return this._target
   }
 
-  public currentState(newState: A|B, pending = false): [A|B, boolean] {
+  public current(newState?: A|B, stable = true): A|B {
     if (newState) {
-      this._currentState = [newState, pending]
+      this._current = newState
+      this.stable(stable)
     }
-    return this._currentState
+    return this._current
+  }
+
+  public stable(isStable?: boolean) {
+    if (typeof isStable !== 'undefined') {
+      this._stable = isStable
+    }
+    return this._stable
   }
 }
 
 export default StateMonitor
+export { StateMonitor }
