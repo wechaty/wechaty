@@ -50,14 +50,12 @@ Thanks.
 # Examples
 Wechaty is dead easy to use: 7 lines javascript for your wechat bot.
 
-## 1. Basic: 7 lines
-The following 7 lines of code implement a bot who can log all message to console:
+## 1. Basic: 6 lines
+The following 6 lines of code implement a bot who can log all message to console:
 
 ```typescript
 import Wechaty from 'wechaty'
-const bot = Wechaty.instance() // Singleton
-
-bot
+Wechaty.instance() // Singleton
 .on('scan', (url, code) => console.log(`Scan QrCode to login: ${code}\n${url}`))
 .on('login',       user => console.log(`User ${user} logined`))
 .on('message',  message => console.log(`Message: ${message}`))

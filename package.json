@@ -27,7 +27,7 @@
     "posttest": "npm run sloc",
     "test:phantomjs": "cross-env LC_ALL=C WECHATY_LOG=info WECHATY_HEAD=phantomjs node_modules/.bin/ava --timeout=10m \"{src,test}/**/*.spec.js\"",
     "test:chrome": "cross-env LC_ALL=C WECHATY_LOG=silly WECHATY_HEAD=chrome node_modules/.bin/ava --timeout=10m \"{src,test}/**/*.spec.js\"",
-    "testdev": "cross-env LC_ALL=C WECHATY_LOG=silly ts-node node_modules/.bin/ava --ext ts --serial --verbose --fail-fast --timeout=3m",
+    "testdev": "cross-env LC_ALL=C WECHATY_LOG=silly ava --ext ts --serial --verbose --fail-fast --timeout=3m",
     "ava": "cross-env LC_ALL=C WECHATY_LOG=verbose ts-node node_modules/.bin/ava \"{src,test}/**/*.spec.js\"",
     "start": "ts-node bin/client",
     "dev": "ts-node dev.ts",
@@ -110,15 +110,13 @@
     "cross-env": "^2.0.0",
     "eslint": "^3.4.0",
     "eslint-plugin-ava": "^3.0.0",
-    "jest": "^16.0.1",
     "qrcode-terminal": "^0.10.0",
     "sinon": "^1.17.5",
     "sloc": "^0.1.11",
     "ts-node": "^1.4.1",
     "tslint": "^3.15.1",
     "tuling123-client": "0.0.1",
-    "typescript": "^2.0.3",
-    "typings": "^1.4.0"
+    "typescript": "^2.0.3"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [

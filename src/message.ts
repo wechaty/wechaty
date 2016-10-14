@@ -16,7 +16,7 @@ import Room     from './room'
 import UtilLib  from './util-lib'
 import log      from './brolog-env'
 
-type MessageRawObj = {
+export type MessageRawObj = {
   MsgId:            string
   MsgType:          string
   MMActualSender:   string
@@ -30,7 +30,7 @@ type MessageRawObj = {
   RecommendInfo?:   RecommendInfo
 }
 
-type MessageObj = {
+export type MessageObj = {
   id:       string
   type:     string
   from:     string
@@ -44,7 +44,7 @@ type MessageObj = {
   url?:     string  // for MessageMedia class
 }
 
-type MessageType = {
+export type MessageType = {
   [index: string]: number|string
 }
 
@@ -308,7 +308,7 @@ export class Message {
 Message.initType()
 
 export default Message
-export { MediaMessage } from './message-media'
+export * from './message-media'
 
 /*
  * join room in mac client: https://support.weixin.qq.com/cgi-bin/

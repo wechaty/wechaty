@@ -43,7 +43,7 @@ class StateMonitor <A, B>{
   }
 
   public stable(isStable?: boolean) {
-    if (typeof isStable !== 'undefined') {
+    if (typeof isStable === 'boolean') {
       this._stable = isStable
     }
     return this._stable
