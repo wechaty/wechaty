@@ -151,4 +151,8 @@ export type RecommendInfo = {
   VerifyFlag: number
 }
 
+export interface Sayable {
+  say(content: string, replyTo?: any): Promise<any>
+}
+
 export default Config

@@ -327,12 +327,18 @@ Wechaty support the following 6 events:
 8. room-leave
 9. room-topic
 
+### this.say(content: string)
+
+`this` is `Sayable` for all listeners.
+
+which means there will be a `this.say()` method inside listener call, you can use it sending message to `filehelper`, just for logging / reporting / any usage for your convienience
+
 ### 1. Event: `scan`
 
 A `scan` event will be emitted when the bot need to show you a QrCode for scaning.
 
 ```typescript
-wechaty.on('scan', (url: string, code: number) => {
+wechaty.on('scan', (this: Sayable, url: string, code: number) => {
   console.log(`[${code}] Scan ${url} to login.` )
 })
 ```
@@ -350,7 +356,7 @@ wechaty.on('scan', (url: string, code: number) => {
 
 After the bot login full successful, the event `login` will be emitted, with a [Contact](#class-contact) of current logined user.
 ```javascript
-wechaty.on('login', user => {
+wechaty.on('login', (this: Sayable, user: Contact) => {
   console.log(`user ${user} login`)
 })
 ```
@@ -360,7 +366,7 @@ wechaty.on('login', user => {
 `logout` will be emitted when bot detected it is logout, with a [Contact](#class-contact) of current logined user.
 
 ```javascript
-wechaty.on('logout', user => {
+wechaty.on('logout', (this: Sayable, user: Contact) => {
   console.log(`user ${user} logout`)
 })
 ```
@@ -370,27 +376,29 @@ wechaty.on('logout', user => {
 Emit when there's a new message.
 
 ```javascript
-wechaty.on('message', (message: Message) => {
+wechaty.on('message', (this: Sayable, message: Message) => {
   console.log('message ${message} received')
 })
 ```
 
 ### 5. Event: `error`
 
-Emit for error
+Emit when there's a error occoured.
 
-```ts
-wechaty.on('error', (err: Error) => {
-  console.log(err.message)
+```javascript
+wechaty.on('error', (this: Sayable, err: Error) => {
+  console.log('error ${err.message} received')
 })
 ```
+The `message` here is a [Message](#class-message).
+
 
 ### 6. Event: `friend`
 
 Fired when we got new friend request, or confirm a friend ship.
 
 ```typescript
-wechaty.on('friend', (contact: Contact, request: FriendRequest) => {
+wechaty.on('friend', (this: Sayable, contact: Contact, request: FriendRequest) => {
   if (request) {  // 1. request to be friend from new contact
     request.accept()
     console.log('auto accepted for ' + contact + ' with message: ' + request.hello)
@@ -403,7 +411,7 @@ wechaty.on('friend', (contact: Contact, request: FriendRequest) => {
 ### 7. Event: `room-join`
 
 ```typescript
-wechaty.on('room-join', (room: Room, invitee: Contact, inviter: Contact) => {
+wechaty.on('room-join', (this: Sayable, room: Room, invitee: Contact, inviter: Contact) => {
   console.log(`Room ${room} got new member ${invitee}, invited by ${inviter}`)
 })
 ```
@@ -411,7 +419,7 @@ wechaty.on('room-join', (room: Room, invitee: Contact, inviter: Contact) => {
 ### 8. Event: `room-leave`
 
 ```typescript
-wechaty.on('room-leave', (room: Room, leaver: Contact) => {
+wechaty.on('room-leave', (this: Sayable, room: Room, leaver: Contact) => {
   console.log(`Room ${room} lost member ${leaver}`)
 })
 ```
@@ -419,7 +427,7 @@ wechaty.on('room-leave', (room: Room, leaver: Contact) => {
 ### 9. Event: `room-topic`
 
 ```typescript
-wechaty.on('room-topic', (room: Room, topic: string, oldTopic: string, changer: Contact) => {
+wechaty.on('room-topic', (this: Sayable, room: Room, topic: string, oldTopic: string, changer: Contact) => {
   console.log(`Room ${room} topic changed from ${oldTopic} to ${topic} by {changer}`)
 })
 ```
@@ -482,6 +490,8 @@ wechaty.reply(message, 'roger')
 
 All wechat messages will be encaped as a Message.
 
+`Message` is `Sayable`
+
 ### Message.from(contact?: Contact|string): Contact
 
 get the sender from message, or set it.
@@ -540,6 +550,8 @@ message.set('content', 'Hello, World!')
 
 ### Contact.name(): string
 
+`Contact` is `Sayable`
+
 ### Contact.ready(): Contact
 A Contact may be not fully initialized yet. Call `ready()` to confirm we get all the data needed.
 
@@ -551,6 +563,10 @@ contact.ready()
   // Here we can be sure all the data is ready for use.
 })
 ```
+
+### Contact.say(content: string)
+
+say `content` to Contact
 
 ### @deprecated Contact.get(prop): String|Number
 Get prop from a contact.
@@ -572,7 +588,8 @@ contact.get('name')
 
 ## Class Room
 
-Doc is cheap, read code: [Example/Room-Bot](https://github.com/wechaty/wechaty/blob/master/example/room-bot.js)
+Doc is cheap, show you code: [Example/Room-Bot](https://github.com/wechaty/wechaty/blob/master/example/room-bot.js)
+`Room` is `Sayable`
 
 ### Room.say(content: string, replyTo: Contact|Contact[]): Promise<void>
 
@@ -597,7 +614,13 @@ room.ready()
 
 force reload data for Room
 
-### Event: `join`
+### Room Events
+
+`this` is `Sayable` for all listeners.
+
+which means there will be a `this.say()` method inside listener call, you can use it sending message to `filehelper`, just for logging / reporting / any usage for your convienience
+
+#### Event: `join`
 
 ```javascript
 Room.on('join', (invitee, inviter) => void)
@@ -611,13 +634,13 @@ room.on('join', (invitee, inviter) => {
 })
 ```
 
-### Event: `leave`
+#### Event: `leave`
 
 ```typescript
 Room.on('leave', (leaver) => void)
 ```
 
-### Event: `topic`
+#### Event: `topic`
 
 ```typescript
 Room.on('topic', (topic, oldTopic, changer) => void)
@@ -729,18 +752,18 @@ npm test
 # Version History
 
 ## v0.5.0 master (2016/10) The First Typescript Version
-1. #40 Converted to Typescript (2016/10/11) 
-1. added `say()` method to Contact/Room instance, and to `this` inside wechaty event listeners
+1. [#40](https://github.com/wechaty/wechaty/issues/40) Converted to Typescript (2016/10/11) 
+1. [#41](https://github.com/wechaty/wechaty/issues/41) added `say()` method to Contact/Room instance, and to `this` inside wechaty event listeners, to make them `Sayable`
 1. BREAKING CHANGE: global event `scan` arguments changed from 1 to 2: now is (url: string, code: number) instead of {url, code} before. 
 
 ## [v0.4.0](https://github.com/wechaty/wechaty/releases/tag/v0.4.0) (2016/10/9) The Latest Javascript Version
-1. #32 Extend Room Class with:
+1. [#32](https://github.com/wechaty/wechaty/issues/32) Extend Room Class with:
   1. Global events: `room-join`, `room-leave`, `room-topic`
   1. Room events: `join`, `leave`, `topic`
   1. Create a new Room: `Room.create()`
   1. Add/Del/Topic for Room
   1. Other methods like nick/member/has/etc...
-1. #33 New Class `FriendRequest` with:
+1. [#33](https://github.com/wechaty/wechaty/issues/33) New Class `FriendRequest` with:
   1. `Wechaty.on('friend', (contact, request) => {})` with Wechaty new Event `friend` 
   1. `accept()` to accept a friend request
   1. `send()` to send new friend request

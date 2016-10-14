@@ -37,13 +37,13 @@ import Event          from './event'
 import Server         from './server'
 import Watchdog       from './watchdog'
 
-type PuppetWebSetting = {
+export type PuppetWebSetting = {
   head?:    string
   profile?: string
 }
 const DEFAULT_PUPPET_PORT = 18788 // // W(87) X(88), ascii char code ;-]
 
-class PuppetWeb extends Puppet {
+export class PuppetWeb extends Puppet {
 
   public browser: Browser
   public bridge:  Bridge
@@ -318,9 +318,21 @@ class PuppetWeb extends Puppet {
                       })
   }
 
+  /**
+   * Bot say...
+   * send to `filehelper` for notice / log
+   */
+  public say(content: string) {
+    const m = new Message()
+    m.to('filehelper')
+    m.content(content)
+
+    return this.send(m)
+  }
+
+  // @deprecated
   public reply(message: Message, replyContent: string) {
     log.warn('PuppetWeb', 'reply() @deprecated, please use Message.say()')
-
     if (this.self(message)) {
       return Promise.reject(new Error('will not to reply message of myself'))
     }
