@@ -3,7 +3,7 @@
   "version": "0.4.0",
   "description": "Wechat for Bot (Personal Account)",
   "main": "index.js",
-  "typings": "index.d.ts",
+  "types": "./index.d.ts",
   "wechaty": {
     "DEFAULT_HEAD": "chrome",
     "DEFAULT_PUPPET": "web",
@@ -25,10 +25,10 @@
     "pretest": "npm run lint",
     "test": "npm run test:phantomjs && npm run test:chrome",
     "posttest": "npm run sloc",
-    "test:phantomjs": "cross-env LC_ALL=C WECHATY_LOG=info WECHATY_HEAD=phantomjs ava --timeout=10m \"{src,test}/**/*.spec.js\"",
-    "test:chrome": "cross-env LC_ALL=C WECHATY_LOG=silly WECHATY_HEAD=chrome ava --timeout=10m \"{src,test}/**/*.spec.js\"",
-    "testdev": "cross-env LC_ALL=C WECHATY_LOG=silly ava --serial --verbose --fail-fast --timeout=3m",
-    "ava": "cross-env LC_ALL=C WECHATY_LOG=verbose ava \"{src,test}/**/*.spec.js\"",
+    "test:phantomjs": "cross-env LC_ALL=C WECHATY_LOG=info WECHATY_HEAD=phantomjs node_modules/.bin/ava --timeout=10m \"{src,test}/**/*.spec.js\"",
+    "test:chrome": "cross-env LC_ALL=C WECHATY_LOG=silly WECHATY_HEAD=chrome node_modules/.bin/ava --timeout=10m \"{src,test}/**/*.spec.js\"",
+    "testdev": "cross-env LC_ALL=C WECHATY_LOG=silly ts-node node_modules/.bin/ava --ext ts --serial --verbose --fail-fast --timeout=3m",
+    "ava": "cross-env LC_ALL=C WECHATY_LOG=verbose ts-node node_modules/.bin/ava \"{src,test}/**/*.spec.js\"",
     "start": "ts-node bin/client",
     "dev": "ts-node dev.ts",
     "demo": "ts-node example/ding-dong-bot.ts"
@@ -117,7 +117,7 @@
     "ts-node": "^1.4.1",
     "tslint": "^3.15.1",
     "tuling123-client": "0.0.1",
-    "typescript": "^2.1.0-dev.20161010",
+    "typescript": "^2.0.3",
     "typings": "^1.4.0"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
