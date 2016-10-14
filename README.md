@@ -33,6 +33,8 @@ Or install v0.4 via `npm install wechaty`
 
 Thanks.
 
+- See Also: [Why we decided to move from plain JavaScript to TypeScript for Babylon.js](https://www.eternalcoding.com/?p=103)
+
 ## Voice of the Developer
 
 > @GasLin : it may be the best wecaht sdk i have seen in github! [link](https://github.com/wechaty/wechaty/issues/8#issuecomment-228971491)
@@ -169,7 +171,7 @@ v6.2.1
 ```bash
 $ npm install
 
-$ node example/ding-dong-bot.js
+$ npm run demo
 ```
 
 ### 4. Enjoy Cloud9 IDE
@@ -197,7 +199,7 @@ This will clone wechaty source code to your current directory.
 ```shell
 cd wechaty
 npm install
-node example/ding-dong-bot.js
+npm run demo
 ```
 
 After a little while, bot will show you a message of a url for Login QrCode. You need to scan this qrcode in your wechat in order to permit your bot login.
