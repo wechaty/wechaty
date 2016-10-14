@@ -255,6 +255,8 @@ class Wechaty extends EventEmitter {
   }
 
   public reply(message: Message, reply: string) {
+    log.warn('Wechaty', 'reply() @deprecated, please use Message.say()')
+
     return this.puppet.reply(message, reply)
     .catch(e => {
       log.error('Wechaty', 'reply() exception: %s', e.message)
