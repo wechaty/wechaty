@@ -21,7 +21,7 @@ import {
 }                   from '../config'
 import Contact      from '../contact'
 import {
-  Message
+    Message
   , MediaMessage
 }                   from '../message'
 import log          from '../brolog-env'
@@ -31,7 +31,7 @@ import PuppetWeb    from './puppet-web'
 
 /* tslint:disable:variable-name */
 const PuppetWebEvent = {
-  onBrowserDead
+    onBrowserDead
 
   , onServerLogin
   , onServerLogout

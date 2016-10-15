@@ -50,26 +50,19 @@ bot
   console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
 })
 .on('message', m => {
-  m.ready()
-  .then(msg => {
-
-    const room = m.room()
-    const from = m.from()
-
-    console.log((room ? '[' + room.topic() + ']' : '')
-                + '<' + from.name() + '>'
+  try {
+    console.log((m.room() ? '[' + m.room().topic() + ']' : '')
+                + '<' + m.from().name() + '>'
                 + ':' + m.toStringDigest()
     )
 
-    // log.info('Bot', 'recv: %s', msg.toStringEx())
-    // logToFile(JSON.stringify(msg.rawObj))
-
     if (/^(ding|ping|bing)$/i.test(m.get('content')) && !bot.self(m)) {
-      bot.reply(m, 'dong')
-      .then(() => { log.warn('Bot', 'REPLY: dong') })
+      m.say('dong')
+      log.info('Bot', 'REPLY: dong')
     }
-  })
-  .catch(e => log.error('Bot', 'ready: %s' , e))
+  } catch (e) {
+    log.error('Bot', 'on(message) exception: %s' , e)
+  }
 })
 
 bot.init()

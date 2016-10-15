@@ -37,7 +37,7 @@ Thanks.
 
 ## Voice of the Developer
 
-> @GasLin : it may be the best wecaht sdk i have seen in github! [link](https://github.com/wechaty/wechaty/issues/8#issuecomment-228971491)
+> @JasLin : it may be the best wecaht sdk i have seen in github! [link](https://github.com/wechaty/wechaty/issues/8#issuecomment-228971491)
 
 > @Jarvis : 目前用过的最好的微信开发库 [link](http://weibo.com/3296245513/Ec4iNp9Ld?type=comment)
 
@@ -546,9 +546,9 @@ message.set('content', 'Hello, World!')
 
 ## Contact Class
 
-### Contact.name(): string
-
 `Contact` is `Sayable`
+
+### Contact.name(): string
 
 ### Contact.ready(): Contact
 A Contact may be not fully initialized yet. Call `ready()` to confirm we get all the data needed.
@@ -586,8 +586,9 @@ contact.get('name')
 
 ## Class Room
 
-Doc is cheap, show you code: [Example/Room-Bot](https://github.com/wechaty/wechaty/blob/master/example/room-bot.js)
 `Room` is `Sayable`
+
+Doc is cheap, show you code: [Example/Room-Bot](https://github.com/wechaty/wechaty/blob/master/example/room-bot.js)
 
 ### Room.say(content: string, replyTo: Contact|Contact[]): Promise<void>
 
@@ -837,7 +838,7 @@ Github Issue <https://github.com/wechaty/wechaty/issues>
 # Contributing
 * Lint: eslint
     ```bash
-    $ npm lint
+    $ npm run lint
     ```
 * Create an issue, fork, then send a pull request(with unit test please).
 

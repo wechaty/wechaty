@@ -13,10 +13,6 @@
  * Class PuppetWeb
  *
  */
-// const util  = require('util')
-// const fs    = require('fs')
-// const co    = require('co')
-
 import {
     // Config
     ScanInfo

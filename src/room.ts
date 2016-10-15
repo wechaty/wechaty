@@ -14,7 +14,6 @@ import Config     from './config'
 import Contact    from './contact'
 import Message    from './message'
 import UtilLib    from './util-lib'
-// import EventScope from './event-scope'
 
 import log        from './brolog-env'
 
@@ -54,12 +53,6 @@ export class Room extends EventEmitter {
   constructor(public id: string) {
     super()
     log.silly('Room', `constructor(${id})`)
-    // this.id = id
-    // this.obj = {}
-    // this.dirtyObj = {}
-    // if (!Config.puppetInstance()) {
-    //   throw new Error('Config.puppetInstance() not found')
-    // }
   }
 
   public toString()    { return this.id }
