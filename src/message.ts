@@ -18,13 +18,13 @@ import log      from './brolog-env'
 
 export type MessageRawObj = {
   MsgId:            string
-  MsgType:          string
+  MsgType:          number
   MMActualSender:   string
   ToUserName:       string
   MMActualContent:  string // Content has @id prefix added by wx
   Status:           string
   MMDigest:         string
-  MMDisplayTime:    string  // Javascript timestamp of milliseconds
+  MMDisplayTime:    number  // Javascript timestamp of milliseconds
   Url:              string
 
   RecommendInfo?:   RecommendInfo

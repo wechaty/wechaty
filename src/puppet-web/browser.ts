@@ -325,6 +325,8 @@ class Browser extends EventEmitter {
 
       // XXX fail safe to `close` ?
       this.currentState('close')
+
+      /* fail safe */
     }
 
     return

@@ -37,37 +37,48 @@ class Bridge {
   public async init(): Promise<Bridge> {
     log.verbose('PuppetWebBridge', 'init()')
 
-    const max = 15
-    const backoff = 100
+    return this.inject()
+    .then(r => {
+      // log.silly('PuppetWebBridge', 'init() inject() return %s at attempt %d', r, attempt)
+      return this
+    })
+    .catch(e => {
+      log.silly('PuppetWebBridge', 'init() inject() exception: %s', e && e.message || e)
+      throw e
+    })
+
+    // const max = 15
+    // const backoff = 100
 
     // max = (2*totalTime/backoff) ^ (1/2)
     // timeout = 11,250 for {max: 15, backoff: 100}
     // timeout = 45,000 for {max: 30, backoff: 100}
     // timeout = 30,6250 for {max: 35, backoff: 500}
-    const timeout = max * (backoff * max) / 2
 
-    return retryPromise({ max: max, backoff: backoff }, attempt => {
-      log.silly('PuppetWebBridge', 'init() retryPromise: attampt %s/%s times for timeout %s'
-        , attempt, max, timeout)
+    // const timeout = max * (backoff * max) / 2
 
-      return this.inject()
-      .then(r => {
-        log.silly('PuppetWebBridge', 'init() inject() return %s at attempt %d', r, attempt)
-        return this
-      })
-      .catch(e => {
-        log.silly('PuppetWebBridge', 'init() inject() attempt %d exception: %s', attempt, e.message)
-        throw e
-      })
-    })
-    .then(_ => {
-      log.silly('PuppetWebBridge', 'init()-ed')
-      return this
-    })
-    .catch(e => {
-      log.warn('PuppetWebBridge', 'init() inject FINAL fail: %s', e.message)
-      throw e
-    })
+    // return retryPromise({ max: max, backoff: backoff }, attempt => {
+    //   log.silly('PuppetWebBridge', 'init() retryPromise: attampt %s/%s times for timeout %s'
+    //     , attempt, max, timeout)
+
+    //   return this.inject()
+    //   .then(r => {
+    //     log.silly('PuppetWebBridge', 'init() inject() return %s at attempt %d', r, attempt)
+    //     return this
+    //   })
+    //   .catch(e => {
+    //     log.silly('PuppetWebBridge', 'init() inject() attempt %d exception: %s', attempt, e.message)
+    //     throw e
+    //   })
+    // })
+    // .then(_ => {
+    //   log.silly('PuppetWebBridge', 'init()-ed')
+    //   return this
+    // })
+    // .catch(e => {
+    //   log.warn('PuppetWebBridge', 'init() inject FINAL fail: %s', e.message)
+    //   throw e
+    // })
   }
 
   public async inject(): Promise<any> {
@@ -116,12 +127,13 @@ class Bridge {
      * Do not insert `return` in front of the code.
      * because the new line `\n` will cause return nothing at all
      */
-    return 'injectioReturnValue = '
+    const code = 'injectioReturnValue = '
               + fs.readFileSync(
                 path.join(__dirname, 'wechaty-bro.js')
                 , 'utf8'
               )
               + '; return injectioReturnValue'
+    return code.replace(/[\n\s]/, ' ')
   }
 
   public logout(): Promise<any> {
@@ -137,8 +149,9 @@ class Bridge {
     log.verbose('PuppetWebBridge', 'quit()')
     return this.proxyWechaty('quit')
     .catch(e => {
-      log.error('PuppetWebBridge', 'quit() exception: %s', e.message)
-      throw e
+      log.warn('PuppetWebBridge', 'quit() exception: %s', e && e.message || e)
+      // throw e
+      /* fail safe */
     })
   }
 

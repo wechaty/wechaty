@@ -142,15 +142,11 @@ export class Wechaty extends EventEmitter {
       return Promise.resolve(this)
     }
 
-    // return co.call(this, function* () {
     try {
       await this.initPuppet()
-
       this.inited = true
-      // return this // for chaining
-    // }).catch(e => {
     } catch (e) {
-      log.error('Wechaty', 'init() exception: %s', e.message)
+      log.error('Wechaty', 'init() exception: %s', e && e.message)
       throw e
     }
     return this

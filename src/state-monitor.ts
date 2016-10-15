@@ -2,7 +2,7 @@
  *
  * Wechaty: Wechat for Bot. and for human who talk to bot/robot
  *
- * Class Io
+ * Class StateMonitor
  * http://www.wechaty.io
  *
  * Licenst: ISC
@@ -16,7 +16,7 @@
  * B - State B
  */
 
-class StateMonitor <A, B>{
+export class StateMonitor <A, B>{
   private _target:   A|B
   private _current:  A|B
   private _stable:  boolean
@@ -51,4 +51,3 @@ class StateMonitor <A, B>{
 }
 
 export default StateMonitor
-export { StateMonitor }
