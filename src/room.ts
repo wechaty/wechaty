@@ -10,7 +10,10 @@
  */
 import { EventEmitter } from 'events'
 
-import Config     from './config'
+import {
+    Config
+  , Sayable
+}                 from './config'
 import Contact    from './contact'
 import Message    from './message'
 import UtilLib    from './util-lib'
@@ -38,6 +41,9 @@ export type RoomRawObj = {
   OwnerUin:         number
   MemberList:       RoomRawMemberList[]
 }
+
+export type RoomEventName = 'join' | 'leave' | 'topic'
+                          | 'EVENT_PARAM_ERROR'
 
 export type RoomQueryFilter = {
   topic: string | RegExp
@@ -101,12 +107,13 @@ export class Room extends EventEmitter {
     })
   }
 
-  public on(event: 'leave', listener: (leaver: Contact) => void): this
+  public on(event: 'leave', listener: (this: Sayable, leaver: Contact) => void): this
   public on(event: 'join' , listener: (invitee:      Contact   , inviter: Contact)  => void): this
   public on(event: 'join' , listener: (inviteeList:  Contact[] , inviter: Contact)  => void): this
   public on(event: 'topic', listener: (topic: string, oldTopic: string, changer: Contact) => void): this
+  public on(event: 'EVENT_PARAM_ERROR', listener: () => void): this
 
-  public on(event: string, listener: Function): this {
+  public on(event: RoomEventName, listener: Function): this {
     log.verbose('Room', 'on(%s, %s)', event, typeof listener)
 
     const thisWithSay = {
