@@ -332,11 +332,11 @@ Wechaty support the following 6 events:
 Notice: when we want to use `this` inside a listener, we must use the traditional `function(this) {}` instead of fat arrow `() => {}` to get `Sayable` `this` inside.
 
 ```diff
-- wechaty.on('login', user => {               // 1. fat arrow function `() => {}` will not get `Sayable` this
-+ wechaty.on('login', function(this, user) {  // 2. traditional `function(this, ...) {}` will get the right `Sayable` `this`
+- wechaty.on('login', user => {               // 1. do not use fat arrow function if you want a `Sayable` `this`
++ wechaty.on('login', function(this, user) {  // 2. use traditional `function(this, ...) {}` instead
   this.say(`${user.name()} logined`)
 })
-``
+```
 
 which means there will be a `this.say()` method inside listener call, you can use it sending message to `filehelper`, just for logging / reporting / any usage for your convienience
 
