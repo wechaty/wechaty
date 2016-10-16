@@ -11,13 +11,6 @@
  *    ' leaver: 艾静<img class="emoji emojiae" text="_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />JOY
  *  - BUG2: leave event not right: sometimes can not found member (any more, because they left)
  */
-import {
-    Config
-  , Contact
-  , Room
-  , Wechaty
-  , log
-} from '../'
 
 /**
  *
@@ -30,6 +23,32 @@ import {
  *     vvvvvvvvvvvvvvv
  */
 const HELPER_CONTACT_NAME = 'Bruce LEE'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import {
+    Config
+  , Contact
+  , Room
+  , Wechaty
+  , log
+} from '../'
 
 const welcome = `
 =============== Powered by Wechaty ===============
@@ -72,10 +91,16 @@ bot
  * do initialization inside this event.
  * (better to set a timeout, for browser need time to download other data)
  */
-.on('login'	  , user => {
-  log.info('Bot', `${user.name()} logined`)
+.on('login'	  , function (this, user) {
+  let msg = `${user.name()} logined`
 
-  log.info('Bot', `setting to manageDingRoom() after 3 seconds ... `)
+  log.info('Bot', msg)
+  this.say(msg)
+
+  msg = `setting to manageDingRoom() after 3 seconds ... `
+  log.info('Bot', msg)
+  this.say(msg)
+
   setTimeout(manageDingRoom.bind(this), 3000)
 })
 
@@ -120,7 +145,7 @@ bot
 /**
  * Global Event: message
  */
-.on('message', (message) => {
+.on('message', function (this, message) {
   const room    = message.room()
   const sender  = message.from()
   const content = message.content()
@@ -287,15 +312,6 @@ function checkRoomJoin(room: Room, invitee: Contact|Contact[] , inviter: Contact
           , invitee
       )
 
-      // const atList = invitee.map
-      //                 ? invitee.map(c => '@' + c.name()).join(' ')
-      //                 : '@' + invitee.name()
-
-      // sendMessage(bot, {
-      //   room
-      //   , content:  `${atList} Please contact me: by send "ding" to me, I will re-send you a invitation. Now I will remove you out, sorry.`
-      //   , to:       invitee.map ? invitee[0].id : invitee.id
-      // })
 
       room.topic('ding - warn ' + inviter.name())
       setTimeout(_ => {
@@ -308,11 +324,6 @@ function checkRoomJoin(room: Room, invitee: Contact|Contact[] , inviter: Contact
 
       room.say('Welcome to my room! :)')
 
-      // sendMessage(bot, {
-      //   room
-      //   , content:  `@${invitee.name()} Welcome to my room! :)`
-      //   , to:       invitee.id
-      // })
       let welcomeTopic
       if (Array.isArray(invitee)) {
         welcomeTopic = invitee.map(c => c.name()).join(', ')
@@ -328,20 +339,6 @@ function checkRoomJoin(room: Room, invitee: Contact|Contact[] , inviter: Contact
 
 }
 
-// function sendMessage(bot, {
-//   content
-//   , to
-//   , room = null
-// }) {
-//   log.info('Bot', 'sendMessage(%s, {content: %s, to: %s, room: %s})', bot, content, to, room)
-
-//   const msg = new Message()
-//   msg.content(content)
-//   msg.room(room)
-//   msg.to(to)
-//   bot.send(msg)
-// }
-
 function putInRoom(contact, room) {
   log.info('Bot', 'putInRoom(%s, %s)', contact.name(), room.topic())
 
@@ -351,11 +348,6 @@ function putInRoom(contact, room) {
           log.error('Bot', 'room.add() exception: %s', e.stack)
         })
     setTimeout(_ => room.say('Welcome ', contact), 1000)
-    // setTimeout(_ => sendMessage(bot, {
-    //   content: 'Welcome ' + contact.name()
-    //   , room
-    //   , to: contact
-    // }), 1000)
   } catch (e) {
     log.error('Bot', 'putInRoom() exception: ' + e.stack)
   }
@@ -365,11 +357,6 @@ function getOutRoom(contact: Contact, room: Room) {
   log.info('Bot', 'getOutRoom(%s, %s)', contact, room)
 
   try {
-    // sendMessage(bot, {
-    //   content:  `@${contact.name()} You said "ding" in my room, I will remove you out.`
-    //   , room:   room.id
-    //   , to:     contact.id
-    // })
     room.say('You said "ding" in my room, I will remove you out.')
     room.del(contact)
   } catch (e) {
@@ -405,13 +392,7 @@ function createDingRoom(contact) {
           log.info('Bot', 'createDingRoom() new ding room created: %s', room)
 
           room.topic('ding - created')
-
           room.say('ding - created')
-          // sendMessage(bot, {
-          //   content: ''
-          //   , to:   room
-          //   , room
-          // })
 
           return room
         })

@@ -127,17 +127,6 @@ export type WatchdogFood = {
           | 'SCAN'
 }
 
-export type WechatyEventName = 'error'
-                      | 'friend'
-                      | 'heartbeat'
-                      | 'login'
-                      | 'logout'
-                      | 'message'
-                      | 'room-join'
-                      | 'room-leave'
-                      | 'room-topic'
-                      | 'scan'
-
 export type ScanInfo = {
   url: string
   code: number
