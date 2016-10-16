@@ -431,6 +431,7 @@
 
     if (c) {
       if (c.isContact) {
+        // extend rawObj to identify `stranger`
         c.stranger = !(c.isContact())
       }
 

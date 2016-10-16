@@ -261,12 +261,13 @@ $ export WECHATY_LOG=verbose
 
 Win32:
 
-```shell
+```bat
 set WECHATY_LOG=verbose
 ```
 
 Tips: You may want to have more scroll buffer size in your CMD window in windows.
-```shell
+
+```bat
 mode con lines=32766
 ```
 > http://stackoverflow.com/a/8775884/1123955
@@ -274,7 +275,7 @@ mode con lines=32766
 ### NpmLog with Timestamp ###
 Here's a quick and dirty patch, to npmlog/log.js
 
-```javascript
+```typescript
   m.message.split(/\r?\n/).forEach(function (line) {
 
     var date = new Date();
@@ -362,7 +363,7 @@ wechaty.on('scan', (this: Sayable, url: string, code: number) => {
 ### 2. Event: `login`
 
 After the bot login full successful, the event `login` will be emitted, with a [Contact](#class-contact) of current logined user.
-```javascript
+```typescript
 wechaty.on('login', (this: Sayable, user: Contact) => {
   console.log(`user ${user} login`)
 })
@@ -372,7 +373,7 @@ wechaty.on('login', (this: Sayable, user: Contact) => {
 
 `logout` will be emitted when bot detected it is logout, with a [Contact](#class-contact) of current logined user.
 
-```javascript
+```typescript
 wechaty.on('logout', (this: Sayable, user: Contact) => {
   console.log(`user ${user} logout`)
 })
@@ -382,7 +383,7 @@ wechaty.on('logout', (this: Sayable, user: Contact) => {
 
 Emit when there's a new message.
 
-```javascript
+```typescript
 wechaty.on('message', (this: Sayable, message: Message) => {
   console.log('message ${message} received')
 })
@@ -392,7 +393,7 @@ wechaty.on('message', (this: Sayable, message: Message) => {
 
 Emit when there's a error occoured.
 
-```javascript
+```typescript
 wechaty.on('error', (this: Sayable, err: Error) => {
   console.log('error ${err.message} received')
 })
@@ -404,7 +405,7 @@ The `message` here is a [Message](#class-message).
 
 Fired when we got new friend request, or confirm a friend ship.
 
-```typescript
+```ts
 wechaty.on('friend', (this: Sayable, contact: Contact, request: FriendRequest) => {
   if (request) {  // 1. request to be friend from new contact
     request.accept()
@@ -417,7 +418,7 @@ wechaty.on('friend', (this: Sayable, contact: Contact, request: FriendRequest) =
 
 ### 7. Event: `room-join`
 
-```typescript
+```ts
 wechaty.on('room-join', (this: Sayable, room: Room, invitee: Contact, inviter: Contact) => {
   console.log(`Room ${room} got new member ${invitee}, invited by ${inviter}`)
 })
@@ -442,7 +443,7 @@ wechaty.on('room-topic', (this: Sayable, room: Room, topic: string, oldTopic: st
 ## Wechaty Class
 Main bot class.
 
-```javascript
+```typescript
 const bot = Wechaty.instance({
   profile
 })
@@ -455,7 +456,7 @@ const bot = Wechaty.instance({
 ### Wechaty.init(): Wechaty
 Initialize the bot, return Promise.
 
-```javascript
+```typescript
 wechaty.init()
 .then(() => {
   // do other staff with bot here
@@ -467,7 +468,7 @@ Check if message is send by self.
 
 Return `true` for send from self, `false` for send from others.
 
-```javascript
+```typescript
 if (wechaty.self(message)) {
   console.log('this message is sent by myself!')
 }
@@ -476,21 +477,12 @@ if (wechaty.self(message)) {
 ### Wechaty.send(message: Message): Wechaty
 send a `message`
 
-```javascript
+```typescript
 const msg = new Message()
 msg.to('filehelper')
 msg.content('hello')
 
 wechaty.send(msg)
-```
-
-### @deprecated Wechaty.reply(message: Message, reply: String): Wechaty
-Reply a `message` with `reply`.
-
-That means: the `to` field of the reply message is the `from` of origin message.
-
-```javascript
-wechaty.reply(message, 'roger')
 ```
 
 ## Message Class
@@ -520,42 +512,20 @@ A message may be not fully initialized yet. Call `ready()` to confirm we get all
 
 Return a Promise, will be resolved when all data is ready.
 
-```javascript
+```typescript
 message.ready()
 .then(() => {
   // Here we can be sure all the data is ready for use.
 })
 ```
 
-### @deprecated Message.get(prop): String|Contact|Room|Date
-
-Get prop from a message.
-
-Supported prop list:
-
-1. `id` :String
-1. `from` :Contact
-1. `to` :Contact
-1. `content` :String
-1. `room` :Room
-1. `date` :Date
-
-```javascript
-message.get('content')
-```
-
-### @deprecated Message.set(prop, value): Message
-Set prop to value for a message.
-
-Supported prop list: the same as `get(prop)`
-
-```javascript
-message.set('content', 'Hello, World!')
-```
-
 ## Contact Class
 
 `Contact` is `Sayable`
+
+### Contact.id: string
+
+Uniq id
 
 ### Contact.name(): string
 
@@ -564,34 +534,16 @@ A Contact may be not fully initialized yet. Call `ready()` to confirm we get all
 
 Return a Promise, will be resolved when all data is ready.
 
-```javascript
+```typescript
 contact.ready()
 .then(() => {
   // Here we can be sure all the data is ready for use.
 })
 ```
 
-### Contact.say(content: string)
+### Contact.say(content: string): Promise<void>
 
 say `content` to Contact
-
-### @deprecated Contact.get(prop): String|Number
-Get prop from a contact.
-
-Supported prop list:
-
-1. `id` :String
-1. `weixin` :String
-1. `name` :String
-1. `remark` :String
-1. `sex` :Number
-1. `province` :String
-1. `city` :String
-1. `signature` :String
-
-```javascript
-contact.get('name')
-```
 
 ## Class Room
 
@@ -611,7 +563,7 @@ A room may be not fully initialized yet. Call `ready()` to confirm we get all th
 
 Return a Promise, will be resolved when all data is ready.
 
-```javascript
+```typescript
 room.ready()
 .then(() => {
   // Here we can be sure all the data is ready for use.
@@ -630,7 +582,7 @@ which means there will be a `this.say()` method inside listener call, you can us
 
 #### Event: `join`
 
-```javascript
+```typescript
 Room.on('join', (invitee, inviter) => void)
 ```
 
@@ -670,7 +622,7 @@ Room.findAll(query : Query) : Room[]
 
 ### Room.add(contact: Contact): Promise<any>
 
-```javascript
+```typescript
 const friend = message.get('from')
 const room = Room.find({ name: 'Group Name' })
 if (room) {
@@ -706,7 +658,7 @@ Supported prop list:
     1. `contact` :Contact
     1. `name` :String
 
-```javascript
+```typescript
 room.get('members').length
 ```
 
