@@ -95,17 +95,9 @@ class Browser extends EventEmitter {
       return this
 
     } catch (e) {
-    // .catch(e => {
-      // XXX: must has a `.catch` here, or promise will hang! 2016/6/7
-      // XXX: if no `.catch` here, promise will hang!
-      // with selenium-webdriver v2.53.2
-      // XXX: https://github.com/SeleniumHQ/selenium/issues/2233
       log.error('PuppetWebBrowser', 'init() exception: %s', e.message)
 
-      this.currentState('closing')
-      this.quit().then(_ => {
-        this.currentState('close')
-      })
+      await this.quit()
 
       throw e
     }
@@ -266,17 +258,21 @@ class Browser extends EventEmitter {
 
   public async restart(): Promise<void> {
     log.verbose('PuppetWebBrowser', 'restart()')
+
     await this.quit()
-    if (this.targetState() !== 'open'
-        && this.currentState() !== 'opening') {
-      await this.init()
+
+    if (this.currentState() === 'opening') {
+      log.warn('PuppetWebBrowser', 'restart() found currentState === opening')
+      return
     }
+
+    await this.init()
   }
 
   public async quit(): Promise<any> {
     log.verbose('PuppetWebBrowser', 'quit()')
 
-    this.targetState('close')
+    // this.targetState('close')
     this.currentState('closing')
 
     if (!this.driver) {
@@ -539,8 +535,7 @@ class Browser extends EventEmitter {
 
     if (dead) {
       log.warn('PuppetWebBrowser', 'dead() because %s', msg)
-      this.currentState('closing')
-      this.restart().then(_ => this.currentState('close'))
+      this.quit()
 
       // must use nextTick here, or promise will hang... 2016/6/10
       setImmediate(_ => {

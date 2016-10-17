@@ -49,60 +49,44 @@ const PuppetWebEvent = {
 
 async function onBrowserDead(this: PuppetWeb, e): Promise<void> {
   log.verbose('PuppetWebEvent', 'onBrowserDead(%s)', e && e.message || e)
+
+  if (!this.browser || !this.bridge) {
+    throw new Error('browser or bridge instance not exist in PuppetWeb instance')
+  }
+
   // because this function is async, so maybe entry more than one times.
   // guard by variable: isBrowserBirthing to prevent the 2nd time entrance.
-  // if (this.isBrowserBirthing) {
-  //   log.warn('PuppetWebEvent', 'onBrowserDead() is busy, this call will return now. stack: %s', (new Error()).stack)
-  //   return
-  // }
-
-  if (this.browser && this.browser.targetState() !== 'open') {
-    log.verbose('PuppetWebEvent', 'onBrowserDead() will do nothing because browser.targetState(%s) !== open', this.browser.targetState())
+  if (this.browser.targetState() !== 'open'
+      || this.browser.currentState() === 'opening') {
+    log.verbose('PuppetWebEvent', 'onBrowserDead() will do nothing because browser.targetState(%s) !== open or browser.currentState = opening'
+                                , this.browser.targetState()
+              )
     return
   }
 
-  if (this.browser && this.browser.currentState() === 'opening') {
-    log.warn('PuppetWebEvent', 'onBrowserDead() will do nothing because browser.currentState = opening. stack: %s', (new Error()).stack)
-    return
-  }
+  const TIMEOUT = 180000 // 180s / 3m
+  // this.watchDog(`onBrowserDead() set a timeout of ${Math.floor(TIMEOUT / 1000)} seconds to prevent unknown state change`, {timeout: TIMEOUT})
+  this.emit('watchdog', {
+    data: `onBrowserDead() set a timeout of ${Math.floor(TIMEOUT / 1000)} seconds to prevent unknown state change`
+    , timeout: TIMEOUT
+  })
 
   this.scan = null
 
-  // return co.call(this, function* () {
   try {
-    // log.verbose('PuppetWebEvent', 'onBrowserDead() co() set isBrowserBirthing true')
-    // this.isBrowserBirthing = true
-
-    const TIMEOUT = 180000 // 180s / 3m
-    // this.watchDog(`onBrowserDead() set a timeout of ${Math.floor(TIMEOUT / 1000)} seconds to prevent unknown state change`, {timeout: TIMEOUT})
-    this.emit('watchdog', {
-      data: `onBrowserDead() set a timeout of ${Math.floor(TIMEOUT / 1000)} seconds to prevent unknown state change`
-      , timeout: TIMEOUT
-    })
-
-    if (!this.browser || !this.bridge) {
-      const err = new Error('no browser or no bridge')
-      log.error('PuppetWebEvent', 'onBrowserDead() %s', err.message)
-      throw err
-    }
-
-    log.verbose('PuppetWebEvent', 'onBrowserDead() try to reborn browser')
-
-    await this.browser.restart()
-                      .catch((err: Error) => { // fail safe
-                        log.warn('PuppetWebEvent', 'browser.quit() exception: %s', err.stack)
-                      })
-    log.verbose('PuppetWebEvent', 'onBrowserDead() old browser quited')
+    await this.browser.quit()
+    log.verbose('PuppetWebEvent', 'onBrowserDead() browser quit-ed')
 
     if (this.browser.targetState() !== 'open') {
-      log.warn('PuppetWebEvent', 'onBrowserDead() will not init browser because browser.targetState(%s) !== open', this.browser.targetState())
+      log.warn('PuppetWebEvent', 'onBrowserDead() will not init browser because browser.targetState(%s) !== open'
+                                , this.browser.targetState()
+              )
       return
     }
 
     this.browser = await this.initBrowser()
     log.verbose('PuppetWebEvent', 'onBrowserDead() new browser inited')
 
-    // this.bridge = await this.bridge.init()
     this.bridge = await this.initBridge()
     log.verbose('PuppetWebEvent', 'onBrowserDead() bridge re-inited')
 
@@ -110,27 +94,26 @@ async function onBrowserDead(this: PuppetWeb, e): Promise<void> {
     if (/dong/i.test(dong)) {
       log.verbose('PuppetWebEvent', 'onBrowserDead() ding() works well after reset')
     } else {
-      log.warn('PuppetWebEvent', 'onBrowserDead() ding() get error return after reset: ' + dong)
+      const e = new Error('ding() got "' + dong + '", should be "dong" ')
+      log.warn('PuppetWebEvent', 'onBrowserDead() %s', e.message)
+      throw e
     }
-  // }).catch(err => { // Exception
   } catch (e) {
     log.error('PuppetWebEvent', 'onBrowserDead() exception: %s', e.message)
-
-    log.warn('PuppetWebEvent', 'onBrowserDead() try to re-init PuppetWeb itself')
-    return this.quit()
-              .catch(error => log.warn('PuppetWebEvent', 'onBrowserDead() fail safe for this.quit(): %s', error.message))
-              .then(_ => this.init())
+    try {
+      await this.quit()
+      await this.init()
+    } catch (err) {
+      log.warn('PuppetWebEvent', 'onBrowserDead() fail safe for this.quit(): %s', err.message)
+    }
   }
 
-  // .then(() => { // Finally
-    log.verbose('PuppetWebEvent', 'onBrowserDead() new browser borned')
-    // this.isBrowserBirthing = false
+  log.verbose('PuppetWebEvent', 'onBrowserDead() new browser borned')
 
-    this.emit('watchdog', {
-      data: `onBrowserDead() new browser borned`
-      , type: 'POISON'
-    })
-  // })
+  this.emit('watchdog', {
+    data: `onBrowserDead() new browser borned`
+    , type: 'POISON'
+  })
 
   return
 }
