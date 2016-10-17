@@ -12,6 +12,9 @@
 
 import { EventEmitter } from 'events'
 
+import {
+  Sayable
+}               from './config'
 import Contact  from './contact'
 import Message  from './message'
 import Room     from './room'
@@ -21,7 +24,7 @@ import log      from './brolog-env'
 //   (id: string): Promise<any>
 // }
 
-abstract class Puppet extends EventEmitter {
+export abstract class Puppet extends EventEmitter implements Sayable {
   public userId:  string
   public user:    Contact
   public abstract getContact(id: string): Promise<any>
@@ -80,24 +83,27 @@ abstract class Puppet extends EventEmitter {
   public abstract reset(reason?: string)
   public abstract logout(): Promise<any>
   public abstract quit(): Promise<any>
-  public abstract ding(data?: string): Promise<any>
+  public abstract ding(): Promise<string>
 
+  /**
+   * FriendRequest
+   */
   public abstract friendRequestSend(contact: Contact, hello?: string): Promise<any>
   public abstract friendRequestAccept(contact: Contact, ticket: string): Promise<any>
 
+  /**
+   * Room
+   */
   public abstract roomAdd(room: Room, contact: Contact): Promise<number>
   public abstract roomDel(room: Room, contact: Contact): Promise<number>
   public abstract roomTopic(room: Room, topic: string): Promise<string>
   public abstract roomCreate(contactList: Contact[], topic?: string): Promise<Room>
   public abstract roomFind(filterFunc: string): Promise<Room[]>
 
+  /**
+   * Contact
+   */
   public abstract contactFind(filterFunc: string): Promise<Contact[]>
 }
 
 export default Puppet
-export {
-    Contact
-  , Message
-  , Puppet
-  , Room
-}

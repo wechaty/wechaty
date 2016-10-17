@@ -358,7 +358,7 @@ export class PuppetWeb extends Puppet {
                       })
   }
   public logined() { return !!(this.user) }
-  public ding(data?: any): Promise<any> {
+  public ding(data?: any): Promise<string> {
     if (!this.bridge) {
       return Promise.reject(new Error('ding fail: no bridge(yet)!'))
     }

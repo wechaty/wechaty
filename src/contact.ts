@@ -6,47 +6,50 @@
  * https://github.com/zixia/wechaty
  *
  */
-import Config   from './config'
+import {
+    Config
+  , Sayable
+}               from './config'
 import Message  from './message'
 import UtilLib  from './util-lib'
 import Wechaty  from './wechaty'
-
 import log      from './brolog-env'
 
 type ContactObj = {
-  id:       string
-  uin:      string
-  name:     string
-  remark:   string
-  weixin:   string
-  sex:      string
-  province: string
-  city:     string
-  signature:  string
   address:    string
-  stranger: boolean
-  star:     boolean
+  city:       string
+  id:         string
+  name:       string
+  province:   string
+  remark:     string
+  sex:        string
+  signature:  string
+  star:       boolean
+  stranger:   boolean
+  uin:        string
+  weixin:     string
 }
 
-type ContactRawObj = {
-  UserName:     string
-  Uin:          string
+export type ContactRawObj = {
   Alias:        string
-  RemarkName:   string
-  Sex:          string
-  Province:     string
   City:         string
   NickName:     string
-  StarFriend:   string
-  stranger:     string
+  Province:     string
+  RemarkName:   string
+  Sex:          string
   Signature:    string
+  StarFriend:   string
+  Uin:          string
+  UserName:     string
+
+  stranger:     string // assign by injectio.js
 }
 
-type ContactQueryFilter = {
+export type ContactQueryFilter = {
   name: string | RegExp
 }
 
-class Contact {
+export class Contact implements Sayable {
   private static pool = new Map<string, Contact>()
 
   private obj: ContactObj
@@ -222,7 +225,5 @@ class Contact {
 
 //   return []
 // }
-
-// module.exports = Contact.default = Contact.Contact = Contact
 
 export default Contact

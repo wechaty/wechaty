@@ -49,7 +49,7 @@ export type RoomQueryFilter = {
   topic: string | RegExp
 }
 
-export class Room extends EventEmitter {
+export class Room extends EventEmitter implements Sayable {
   private static pool = new Map<string, Room>()
 
   private dirtyObj: RoomObj // when refresh, use this to save dirty data for query

@@ -1,6 +1,7 @@
 /**
  *
- * wechaty: Wechat for ChatBots.
+ * Wechaty: Wechat for ChatBots.
+ * Connect ChatBots
  *
  * Class Wechaty
  *
@@ -33,7 +34,6 @@ export type WechatySetting = {
   profile?:    string
   head?:       HeadType
   type?:       PuppetType
-  // port?:       number
 }
 
 type WechatyEventName = 'error'
@@ -48,7 +48,7 @@ type WechatyEventName = 'error'
                       | 'scan'
                       | 'EVENT_PARAM_ERROR'
 
-export class Wechaty extends EventEmitter {
+export class Wechaty extends EventEmitter implements Sayable {
   private static _instance: Wechaty
 
   public puppet: Puppet
@@ -298,12 +298,12 @@ export class Wechaty extends EventEmitter {
     })
   }
 
-  public ding(data: string) {
+  public ding() {
     if (!this.puppet) {
       return Promise.reject(new Error('wechaty cant ding coz no puppet'))
     }
 
-    return this.puppet.ding(data)
+    return this.puppet.ding() // should return 'dong'
                       .catch(e => {
                         log.error('Wechaty', 'ding() exception: %s', e.message)
                         throw e

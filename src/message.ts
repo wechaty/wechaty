@@ -9,6 +9,7 @@
 import {
     Config
   , RecommendInfo
+  , Sayable
 }               from './config'
 
 import Contact  from './contact'
@@ -48,7 +49,7 @@ export type MessageType = {
   [index: string]: number|string
 }
 
-export class Message {
+export class Message implements Sayable {
   public static counter = 0
   private _counter: number
 

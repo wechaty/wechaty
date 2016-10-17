@@ -46,45 +46,11 @@ class Bridge {
       log.silly('PuppetWebBridge', 'init() inject() exception: %s', e && e.message || e)
       throw e
     })
-
-    // const max = 15
-    // const backoff = 100
-
-    // max = (2*totalTime/backoff) ^ (1/2)
-    // timeout = 11,250 for {max: 15, backoff: 100}
-    // timeout = 45,000 for {max: 30, backoff: 100}
-    // timeout = 30,6250 for {max: 35, backoff: 500}
-
-    // const timeout = max * (backoff * max) / 2
-
-    // return retryPromise({ max: max, backoff: backoff }, attempt => {
-    //   log.silly('PuppetWebBridge', 'init() retryPromise: attampt %s/%s times for timeout %s'
-    //     , attempt, max, timeout)
-
-    //   return this.inject()
-    //   .then(r => {
-    //     log.silly('PuppetWebBridge', 'init() inject() return %s at attempt %d', r, attempt)
-    //     return this
-    //   })
-    //   .catch(e => {
-    //     log.silly('PuppetWebBridge', 'init() inject() attempt %d exception: %s', attempt, e.message)
-    //     throw e
-    //   })
-    // })
-    // .then(_ => {
-    //   log.silly('PuppetWebBridge', 'init()-ed')
-    //   return this
-    // })
-    // .catch(e => {
-    //   log.warn('PuppetWebBridge', 'init() inject FINAL fail: %s', e.message)
-    //   throw e
-    // })
   }
 
   public async inject(): Promise<any> {
     log.verbose('PuppetWebBridge', 'inject()')
 
-    // return co.call(this, function* () {
     try {
       const injectio = this.getInjectio()
 
@@ -112,7 +78,7 @@ class Bridge {
       log.silly('PuppetWebBridge', 'inject() ding success')
 
       return true
-    // }).catch (e => {
+
     } catch (e) {
       log.verbose('PuppetWebBridge', 'inject() exception: %s. stack: %s', e.message, e.stack)
       throw e
@@ -347,8 +313,9 @@ class Bridge {
                     )
     `.replace(/[\n\s]+/, ' ')
     // log.silly('PuppetWebBridge', 'proxyWechaty(%s, ...args) %s', wechatyFunc, wechatyScript)
-// console.log('proxyWechaty wechatyFunc args[0]: ')
-// console.log(args[0])
+    // console.log('proxyWechaty wechatyFunc args[0]: ')
+    // console.log(args[0])
+
     /**
      *
      * WechatyBro method named end with "Async", will be treated as a Async function
