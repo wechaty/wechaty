@@ -296,12 +296,12 @@ export class Wechaty extends EventEmitter implements Sayable {
     })
   }
 
-  public ding(data: string) {
+  public ding() {
     if (!this.puppet) {
       return Promise.reject(new Error('wechaty cant ding coz no puppet'))
     }
 
-    return this.puppet.ding(data)
+    return this.puppet.ding() // should return 'dong'
                       .catch(e => {
                         log.error('Wechaty', 'ding() exception: %s', e.message)
                         throw e

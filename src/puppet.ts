@@ -82,7 +82,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract reset(reason?: string)
   public abstract logout(): Promise<any>
   public abstract quit(): Promise<any>
-  public abstract ding(data?: string): Promise<any>
+  public abstract ding(): Promise<string>
 
   /**
    * FriendRequest
