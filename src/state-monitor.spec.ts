@@ -43,3 +43,14 @@ test('StateMonitor smoking test', t => {
   t.is(sm.current(), 'A', 'current should be A')
   t.false(sm.stable(), 'should not be stable')
 })
+
+test('StateMonitor stable', t => {
+  const sm = new StateMonitor<'A', 'B'>('SmokingTest', 'A')
+
+  sm.current('B')
+  t.true(sm.stable(), 'should be stable')
+  sm.current('B', false)
+  t.false(sm.stable(), 'should not be stable')
+  sm.current('B', true)
+  t.true(sm.stable(), 'should be stable')
+})

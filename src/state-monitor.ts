@@ -26,8 +26,7 @@ export class StateMonitor <A, B>{
     log.verbose('StateMonitor', 'constructor(%s, %s)', client, initState)
 
     this.target(initState)
-    this.current(initState)
-    this.stable(true)
+    this.current(initState, true)
   }
 
   public target(newState?: A|B): A|B {
@@ -59,16 +58,8 @@ export class StateMonitor <A, B>{
     return this._current
   }
 
-  public stable(stable?: boolean) {
-    if (typeof stable === 'boolean') {
-      log.verbose('StateMonitor', 'stable(%s) %s state change from %s to %s'
-                                , stable
-                                , this.client
-                                , this._stable, stable)
-      this._stable = stable
-    } else {
-      log.verbose('StateMonitor', 'stable() %s state is %s', this.client, this._stable)
-    }
+  public stable() {
+    log.verbose('StateMonitor', 'stable() %s state is %s', this.client, this._stable)
     return this._stable
   }
 }
