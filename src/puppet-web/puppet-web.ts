@@ -171,7 +171,7 @@ export class PuppetWeb extends Puppet {
     // })
   }
 
-  private async initBrowser(): Promise<Browser> {
+  public async initBrowser(): Promise<Browser> {
     log.verbose('PuppetWeb', 'initBrowser()')
     const browser = new Browser({
         head:         this.setting.head
@@ -199,7 +199,7 @@ export class PuppetWeb extends Puppet {
     return browser // follow func name meaning
   }
 
-  private initBridge(): Promise<Bridge> {
+  public initBridge(): Promise<Bridge> {
     log.verbose('PuppetWeb', 'initBridge()')
     const bridge = new Bridge(
         this // use puppet instead of browser, is because browser might change(die) duaring run time
@@ -358,7 +358,7 @@ export class PuppetWeb extends Puppet {
                       })
   }
   public logined() { return !!(this.user) }
-  public ding(data: any): Promise<any> {
+  public ding(data?: any): Promise<any> {
     if (!this.bridge) {
       return Promise.reject(new Error('ding fail: no bridge(yet)!'))
     }

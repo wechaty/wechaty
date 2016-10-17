@@ -130,7 +130,7 @@ class Server extends EventEmitter {
     this.emit('connection', client)
 
     client.on('disconnect', e => {
-      log.silly('PuppetWebServer', 'socket.io disconnect: %s', e)
+      log.silly('PuppetWebServer', 'initEventsFromClient() on(discohnnect) socket.io disconnect: %s', e)
       // 1. Browser reload / 2. Lost connection(Bad network)
       this.socketClient = undefined
       this.emit('disconnect', e)
@@ -138,7 +138,7 @@ class Server extends EventEmitter {
 
     client.on('error' , e => {
       // log.error('PuppetWebServer', 'initEventsFromClient() client on error: %s', e)
-      log.error('PuppetWebServer', 'initEventsFromClient() client on error: %s', e.stack)
+      log.error('PuppetWebServer', 'initEventsFromClient() on(error): %s', e.stack)
     })
 
     // Events from Wechaty@Broswer --to--> Server

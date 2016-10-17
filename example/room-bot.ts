@@ -19,28 +19,20 @@
  *
  * put name of one of your friend here, or create room will not work.
  *
- * ::: ___CHANGE ME___ :::
- *     vvvvvvvvvvvvvvv
+ * ::::::::: ___CHANGE ME___ :::::::::
+ *                           vvvvvvvvv
+ *                           vvvvvvvvv
+ *                           vvvvvvvvv
  */
 const HELPER_CONTACT_NAME = 'Bruce LEE'
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/**
+ *                           ^^^^^^^^^
+ *                           ^^^^^^^^^
+ *                           ^^^^^^^^^
+ * ::::::::: ___CHANGE ME___ :::::::::
+ *
+ */
 
 import {
     Config
@@ -311,7 +303,6 @@ function checkRoomJoin(room: Room, invitee: Contact|Contact[] , inviter: Contact
       room.say('Please contact me: by send "ding" to me, I will re-send you a invitation. Now I will remove you out, sorry.'
           , invitee
       )
-
 
       room.topic('ding - warn ' + inviter.name())
       setTimeout(_ => {
