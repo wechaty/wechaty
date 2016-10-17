@@ -47,7 +47,7 @@ const PuppetWebEvent = {
   , onServerMessage
 }
 
-async function onBrowserDead(e): Promise<void> {
+async function onBrowserDead(this: PuppetWeb, e): Promise<void> {
   log.verbose('PuppetWebEvent', 'onBrowserDead(%s)', e && e.message || e)
   // because this function is async, so maybe entry more than one times.
   // guard by variable: isBrowserBirthing to prevent the 2nd time entrance.
@@ -88,9 +88,9 @@ async function onBrowserDead(e): Promise<void> {
 
     log.verbose('PuppetWebEvent', 'onBrowserDead() try to reborn browser')
 
-    await this.browser.quit(true)
-                      .catch(error => { // fail safe
-                        log.warn('PuppetWebEvent', 'browser.quit() exception: %s, %s', error.message, error.stack)
+    await this.browser.restart()
+                      .catch((err: Error) => { // fail safe
+                        log.warn('PuppetWebEvent', 'browser.quit() exception: %s', err.stack)
                       })
     log.verbose('PuppetWebEvent', 'onBrowserDead() old browser quited')
 
@@ -135,7 +135,7 @@ async function onBrowserDead(e): Promise<void> {
   return
 }
 
-function onServerDing(data) {
+function onServerDing(this: PuppetWeb, data) {
   log.silly('PuppetWebEvent', 'onServerDing(%s)', data)
   // this.watchDog(data)
   this.emit('watchdog', { data })
@@ -172,8 +172,8 @@ function onServerConnection(data) {
   log.verbose('PuppetWebEvent', 'onServerConnection: %s', data)
 }
 
-function onServerDisconnect(data) {
-  log.verbose('PuppetWebEvent', 'onServerDisconnect: %s', data)
+async function onServerDisconnect(this: PuppetWeb, data): Promise<void> {
+  log.verbose('PuppetWebEvent', 'onServerDisconnect(%s)', data)
 
   if (this.userId) {
     log.verbose('PuppetWebEvent', 'onServerDisconnect() there has userId set. emit a logout event and set userId to null')
@@ -206,31 +206,33 @@ function onServerDisconnect(data) {
     return
   }
 
-  this.browser.readyLive()
-  .then(r => {  // browser is alive, and we have a bridge to it
-    log.verbose('PuppetWebEvent', 'onServerDisconnect() re-initing bridge')
-    // must use setTimeout to wait a while.
-    // because the browser has just refreshed, need some time to re-init to be ready.
-    // if the browser is not ready, bridge init will fail,
-    // caused browser dead and have to be restarted. 2016/6/12
-    setTimeout(_ => {
-      if (!this.bridge) {
-        // XXX: sometimes this.bridge gone in this timeout. why?
-        // what's happend between the last if(!this.bridge) check and the timeout call?
-        throw new Error('bridge gone after setTimeout? why???')
-      }
-      this.bridge.init()
-      .then(ret => {
-        log.verbose('PuppetWebEvent', 'onServerDisconnect() bridge re-inited: %s', ret)
-      })
-      .catch(e => log.error('PuppetWebEvent', 'onServerDisconnect() exception: [%s]', e))
-    }, 1000) // 1 second instead of 10 seconds? try. (should be enough to wait)
+  const live = await this.browser.readyLive()
+
+  if (!live) { // browser is in indeed dead, or almost dead. readyLive() will auto recover itself.
+    log.verbose('PuppetWebEvent', 'onServerDisconnect() browser dead after readyLive() check. waiting it recover itself')
     return
-  })
-  .catch(e => { // browser is in indeed dead, or almost dead. readyLive() will auto recover itself.
-    log.verbose('PuppetWebEvent', 'onServerDisconnect() browser dead, waiting it recover itself: %s', e.message)
-    return
-  })
+  }
+
+  // browser is alive, and we have a bridge to it
+  log.verbose('PuppetWebEvent', 'onServerDisconnect() re-initing bridge')
+  // must use setTimeout to wait a while.
+  // because the browser has just refreshed, need some time to re-init to be ready.
+  // if the browser is not ready, bridge init will fail,
+  // caused browser dead and have to be restarted. 2016/6/12
+  setTimeout(_ => {
+    if (!this.bridge) {
+      // XXX: sometimes this.bridge gone in this timeout. why?
+      // what's happend between the last if(!this.bridge) check and the timeout call?
+      const e = new Error('bridge gone after setTimeout? why???')
+      log.warn('PuppetWebEvent', 'onServerDisconnect() setTimeout() %s', e.message)
+      throw e
+    }
+    this.bridge.init()
+                .then(ret => log.verbose('PuppetWebEvent', 'onServerDisconnect() setTimeout() bridge re-inited: %s', ret))
+                .catch(e  => log.error('PuppetWebEvent', 'onServerDisconnect() setTimeout() exception: [%s]', e))
+  }, 1000) // 1 second instead of 10 seconds? try. (should be enough to wait)
+  return
+
 }
 
 /**
@@ -246,7 +248,7 @@ function onServerDisconnect(data) {
  * 3. browser quit(crash?)
  * 4. ...
  */
-function onServerUnload(data) {
+function onServerUnload(this: PuppetWeb, data) {
   log.warn('PuppetWebEvent', 'onServerUnload(%s)', data)
   // onServerLogout.call(this, data) // XXX: should emit event[logout] from browser
 
@@ -286,7 +288,7 @@ function onServerLog(data) {
   log.silly('PuppetWebEvent', 'onServerLog(%s)', data)
 }
 
-async function onServerLogin(data, attempt = 0): Promise<void> {
+async function onServerLogin(this: PuppetWeb, data, attempt = 0): Promise<void> {
   log.verbose('PuppetWebEvent', 'onServerLogin(%s, %d)', data, attempt)
 
   this.scan = null
@@ -332,7 +334,7 @@ async function onServerLogin(data, attempt = 0): Promise<void> {
   return
 }
 
-function onServerLogout(data) {
+function onServerLogout(this: PuppetWeb, data) {
   this.emit('logout', this.user || this.userId)
 
   if (!this.user && !this.userId) {
@@ -348,7 +350,7 @@ function onServerLogout(data) {
   // })
 }
 
-async function onServerMessage(data): Promise<void> {
+async function onServerMessage(this: PuppetWeb, data): Promise<void> {
   let m = new Message(data)
 
   // co.call(this, function* () {

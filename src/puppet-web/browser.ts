@@ -29,8 +29,8 @@ type BrowserSetting = {
 
 class Browser extends EventEmitter {
 
-  private _targetState
-  private _currentState
+  private _targetState: string
+  private _currentState: string
 
   public driver: WebDriver
 
@@ -54,7 +54,7 @@ class Browser extends EventEmitter {
   }
 
   // currentState : 'opening' | 'open' | 'closing' | 'close'
-  private currentState(newState?) {
+  public currentState(newState?) {
     if (newState) {
       log.verbose('PuppetWebBrowser', 'currentState(%s)', newState)
       this._currentState = newState
@@ -264,32 +264,35 @@ class Browser extends EventEmitter {
     return driver
   }
 
-  public async quit(restart?: boolean): Promise<any> {
+  public async restart(): Promise<void> {
+    log.verbose('PuppetWebBrowser', 'restart()')
+    await this.quit()
+    if (this.targetState() !== 'open'
+        && this.currentState() !== 'opening') {
+      await this.init()
+    }
+  }
+
+  public async quit(): Promise<any> {
     log.verbose('PuppetWebBrowser', 'quit()')
 
-    if (!restart) {
-      this.targetState('close')
-      this.currentState('closing')
-    }
-
-    // this.live = false
+    this.targetState('close')
+    this.currentState('closing')
 
     if (!this.driver) {
       log.verbose('PuppetWebBrowser', 'driver.quit() skipped because no driver')
 
       this.currentState('close')
-      return Promise.resolve('no driver')
+      return 'no driver'
     } else if (!this.driver.getSession()) {
       this.driver = null
       log.verbose('PuppetWebBrowser', 'driver.quit() skipped because no driver session')
 
       this.currentState('close')
-      return Promise.resolve('no driver session')
+      return 'no driver session'
     }
 
-    // return co.call(this, function* () {
     try {
-      log.silly('PuppetWebBrowser', 'quit() co()')
       await this.driver.close() // http://stackoverflow.com/a/32341885/1123955
       log.silly('PuppetWebBrowser', 'quit() driver.close()-ed')
       await this.driver.quit()
@@ -304,10 +307,8 @@ class Browser extends EventEmitter {
        *
        */
       await this.clean()
-
-      this.currentState('close')
       log.silly('PuppetWebBrowser', 'quit() co() end')
-    // }).catch(e => {
+
     } catch (e) {
       // console.log(e)
       // log.warn('PuppetWebBrowser', 'err: %s %s %s %s', e.code, e.errno, e.syscall, e.message)
@@ -323,11 +324,10 @@ class Browser extends EventEmitter {
       if (crashRegex.test(e.message)) { log.warn('PuppetWebBrowser', 'driver.quit() browser crashed') }
       else                            { log.warn('PuppetWebBrowser', 'driver.quit() exception: %s', e.message) }
 
-      // XXX fail safe to `close` ?
-      this.currentState('close')
-
       /* fail safe */
     }
+
+    this.currentState('close')
 
     return
   }
@@ -494,61 +494,58 @@ class Browser extends EventEmitter {
    * check whether browser is full functional
    *
    */
-  public readyLive(): Promise<any> {
+  public async readyLive(): Promise<boolean> {
     log.verbose('PuppetWebBrowser', 'readyLive()')
+
     if (this.dead()) {
-      return Promise.reject(new Error('this.dead() true'))
+      log.silly('PuppetWebBrowser', 'readyLive() dead() is true')
+      return false
     }
-    return new Promise((resolve, reject) => {
-      this.execute('return 1+1')
-      .then(r => {
-        if (r === 2) {
-          resolve(true) // browser ok, living
-          return
-        }
-        const errMsg = 'deadEx() found dead browser coz 1+1 = ' + r + ' (not 2)'
-        log.verbose('PuppetWebBrowser', errMsg)
-        this.dead(errMsg)
-        reject(new Error(errMsg)) // browser not ok, dead
-        return
-      })
-      .catch(e => {
-        const errMsg = 'deadEx() found dead browser coz 1+1 = ' + e.message
-        log.verbose('PuppetWebBrowser', errMsg)
-        this.dead(errMsg)
-        reject(new Error(errMsg)) // browser not live
-        return
-      })
-    })
+
+    let two
+
+    try {
+      two = await this.execute('return 1+1')
+    } catch (e) {
+      two = e && e.message
+    }
+
+    if (two === 2) {
+      return true // browser ok, living
+    }
+
+    const errMsg = 'found dead browser coz 1+1 = ' + two + ' (not 2)'
+    log.warn('PuppetWebBrowser', 'readyLive() %s', errMsg)
+    this.dead(errMsg)
+    return false // browser not ok, dead
   }
 
-  public dead(forceReason?) {
-    let errMsg
+  public dead(forceReason?: string): boolean {
+    log.verbose('PuppetWebBrowser', 'dead(%s)', forceReason ? forceReason : '')
+
+    let msg
     let dead = false
 
     if (forceReason) {
       dead = true
-      errMsg = forceReason
-    // } else if (!this.live) {
+      msg = forceReason
     } else if (this.targetState() !== 'open') {
       dead = true
-      // errMsg = 'browser not live'
-      errMsg = 'targetState not open'
+      msg = 'targetState not open'
     } else if (!this.driver || !this.driver.getSession()) {
       dead = true
-      errMsg = 'no driver or session'
+      msg = 'no driver or session'
     }
 
     if (dead) {
-      log.warn('PuppetWebBrowser', 'dead() because %s', errMsg)
-      // this.live = false
+      log.warn('PuppetWebBrowser', 'dead() because %s', msg)
       this.currentState('closing')
-      this.quit().then(_ => this.currentState('close'))
+      this.restart().then(_ => this.currentState('close'))
 
       // must use nextTick here, or promise will hang... 2016/6/10
-      process.nextTick(_ => {
-        log.verbose('PuppetWebBrowser', 'dead() emit a `dead` event because %s', errMsg)
-        this.emit('dead', errMsg)
+      setImmediate(_ => {
+        log.verbose('PuppetWebBrowser', 'dead() emit a `dead` event because %s', msg)
+        this.emit('dead', msg)
       })
     }
     return dead
