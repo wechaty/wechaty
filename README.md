@@ -16,22 +16,17 @@ Wechaty is a Bot Framework for Wechat **Personal** Account that help you easy cr
 
 # ATTENTION
 
-## Wechaty is just converted to Typescript from Javascript.
+## Wechaty was converted to Typescript from Javascript on 12th Oct 2016.
 
 Details: https://github.com/wechaty/wechaty/issues/40
 
 ```diff
-+ Typescripted ...
-- Please do not clone/pull until you are really want to play with typescript wechaty in alpha stage.
++ Typescriptilized ...
 ```
 
 VSCode is recommended for typescript because we can get benifit of [intelligent code completion, parameter info, and member lists](https://code.visualstudio.com/docs/languages/javascript).
 
-The last Javascript version is: [v0.4.0](https://github.com/wechaty/wechaty/releases/tag/v0.4.0) (2016/10/9)
-
-Or install v0.4 via `npm install wechaty`
-
-Thanks.
+The last Javascript version is: [v0.4.0](https://github.com/wechaty/wechaty/releases/tag/v0.4.0) (2016/10/9) , or install v0.4 by `npm install wechaty`.
 
 - See Also: [Why we decided to move from plain JavaScript to TypeScript for Babylon.js](https://www.eternalcoding.com/?p=103)
 
@@ -761,8 +756,8 @@ npm test
 
 ## v0.5.0 master (2016/10) The First Typescript Version
 1. [#40](https://github.com/wechaty/wechaty/issues/40) Converted to Typescript (2016/10/11) 
-1. [#41](https://github.com/wechaty/wechaty/issues/41) added `say()` method to Contact/Room instance, and to `this` inside wechaty event listeners, to make them `Sayable`
-1. BREAKING CHANGE: global event `scan` arguments changed from 1 to 2: now is (url: string, code: number) instead of {url, code} before. 
+1. [#41](https://github.com/wechaty/wechaty/issues/41) Sayablization: Make Wechaty/Contact/Room `Sayable`, and all `this` inside wechaty event listeners are `Sayable` too.
+1. BREAKING CHANGE: global event `scan` listener arguments changed from 1 to 2: now is `function(this: Sayable, url: string, code: number)` instead of `function({url, code})` before. 
 
 ## [v0.4.0](https://github.com/wechaty/wechaty/releases/tag/v0.4.0) (2016/10/9) The Latest Javascript Version
 1. [#32](https://github.com/wechaty/wechaty/issues/32) Extend Room Class with:
@@ -772,9 +767,9 @@ npm test
   1. Add/Del/Topic for Room
   1. Other methods like nick/member/has/etc...
 1. [#33](https://github.com/wechaty/wechaty/issues/33) New Class `FriendRequest` with:
-  1. `Wechaty.on('friend', (contact, request) => {})` with Wechaty new Event `friend` 
-  1. `accept()` to accept a friend request
-  1. `send()` to send new friend request
+  1. `Wechaty.on('friend', function(contact: Contact, request: FriendRequest) {})` with Wechaty new Event `friend` 
+  1. `request.accept()` to accept a friend request
+  1. `requestsend()` to send new friend request
 
 ## v0.3.13 (2016/09)
 1. Managed by Cloud Manager: https://app.wechaty.io
