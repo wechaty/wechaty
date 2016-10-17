@@ -94,9 +94,9 @@ async function onBrowserDead(this: PuppetWeb, e): Promise<void> {
     if (/dong/i.test(dong)) {
       log.verbose('PuppetWebEvent', 'onBrowserDead() ding() works well after reset')
     } else {
-      const e = new Error('ding() got "' + dong + '", should be "dong" ')
-      log.warn('PuppetWebEvent', 'onBrowserDead() %s', e.message)
-      throw e
+      const err = new Error('ding() got "' + dong + '", should be "dong" ')
+      log.warn('PuppetWebEvent', 'onBrowserDead() %s', err.message)
+      throw err
     }
   } catch (e) {
     log.error('PuppetWebEvent', 'onBrowserDead() exception: %s', e.message)

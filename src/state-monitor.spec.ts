@@ -16,7 +16,7 @@ import StateMonitor from './state-monitor'
 
 test('StateMonitor smoking test', t => {
 
-  const sm = new StateMonitor<'A', 'B'>('A')
+  const sm = new StateMonitor<'A', 'B'>('SmokingTest', 'A')
   t.is(sm.current(), 'A', 'current should be A')
   t.is(sm.target(), 'A', 'target should be A')
   t.true(sm.stable(), 'should be stable')
