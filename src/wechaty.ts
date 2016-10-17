@@ -192,7 +192,7 @@ export class Wechaty extends EventEmitter {
   }
 
   public initPuppet() {
-    let puppet
+    let puppet: Puppet
     switch (this.setting.type) {
       case 'web':
         puppet = new PuppetWeb({
@@ -285,7 +285,9 @@ export class Wechaty extends EventEmitter {
     return this.puppet.say(content)
   }
 
-  /// @deprecated
+  /**
+   * @deprecated
+   */
   public reply(message: Message, reply: string) {
     log.warn('Wechaty', 'reply() @deprecated, please use Message.say()')
 
@@ -309,8 +311,4 @@ export class Wechaty extends EventEmitter {
   }
 }
 
-/**
- * Expose `Wechaty`.
- */
-// module.exports = Wechaty.default = Wechaty.Wechaty = Wechaty
 export default Wechaty

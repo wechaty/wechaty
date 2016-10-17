@@ -9,9 +9,7 @@
  * https://github.com/zixia/wechaty
  *
  */
-// const EventEmitter  = require('events')
 import * as WebSocket from 'ws'
-// const co            = require('co')
 
 import {
     Config
@@ -429,8 +427,4 @@ export class Io {
 
 }
 
-/**
- * Expose `Wechaty`.
- */
-// module.exports = Io.default = Io.Io = Io
 export default Io

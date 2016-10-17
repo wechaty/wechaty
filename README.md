@@ -1,9 +1,9 @@
 [![Wechaty](https://raw.githubusercontent.com/wechaty/wechaty/master/image/wechaty-logo-en.png)](https://github.com/wechaty/wechaty)
 # Wechaty [![Linux Circle CI](https://circleci.com/gh/wechaty/wechaty.svg?style=svg)](https://circleci.com/gh/wechaty/wechaty) [![Linux/Mac Build Status](https://img.shields.io/travis/wechaty/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/wechaty/wechaty) [![Win32 Build status](https://img.shields.io/appveyor/ci/zixia/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/zixia/wechaty) [![Coverage Status](https://coveralls.io/repos/github/wechaty/wechaty/badge.svg?branch=master)](https://coveralls.io/github/wechaty/wechaty?branch=master)
 
-### Connecting ChatBots.
+## Connecting ChatBots.
 
-Wechaty is a Bot Framework for Wechat **Personal** Account that help you easy creating personal wechat bot in 7 lines of javascript code, with cross platform  support to [linux](https://travis-ci.org/wechaty/wechaty), [win32](https://ci.appveyor.com/project/zixia/wechaty) and [darwin(OSX/Mac)](https://travis-ci.org/wechaty/wechaty).
+Wechaty is a Bot Framework for Wechat **Personal** Account that help you easy creating personal wechat bot in only 6 lines of javascript code, with cross platform  support to [linux](https://travis-ci.org/wechaty/wechaty), [win32](https://ci.appveyor.com/project/zixia/wechaty) and [darwin(OSX/Mac)](https://travis-ci.org/wechaty/wechaty).
 
 :octocat: <https://github.com/wechaty/wechaty>  
 :beetle: <https://github.com/wechaty/wechaty/issues>  
@@ -14,14 +14,13 @@ Wechaty is a Bot Framework for Wechat **Personal** Account that help you easy cr
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=2592000)](https://nodejs.org/)
 [![Repo Size](https://reposs.herokuapp.com/?path=wechaty/wechaty)]()
 
-# ATTENTION
-
-## Wechaty was converted to Typescript from Javascript on 12th Oct 2016.
+## Wechaty had rewriten to Typescript.
 
 Details: https://github.com/wechaty/wechaty/issues/40
 
 ```diff
 + Typescriptilized ...
++ 12th Oct 2016
 ```
 
 VSCode is recommended for typescript because we can get benifit of [intelligent code completion, parameter info, and member lists](https://code.visualstudio.com/docs/languages/javascript).
@@ -34,13 +33,13 @@ The last Javascript version is: [v0.4.0](https://github.com/wechaty/wechaty/rele
 
 > @JasLin : it may be the best wecaht sdk i have seen in github! [link](https://github.com/wechaty/wechaty/issues/8#issuecomment-228971491)
 
-> @Jarvis : 目前用过的最好的微信开发库 [link](http://weibo.com/3296245513/Ec4iNp9Ld?type=comment)
-
 > @ccaapton : wechaty library fantastic! [link](https://github.com/wechaty/wechaty/issues/9)
 
 > @ak5 : Thanks for this it's quite cool! [link](https://github.com/wechaty/wechaty/issues/4)
 
 > @Samurais : wechaty is great. 👍 [link](https://github.com/wechaty/wechaty/issues/36#issuecomment-251708382)
+
+> @Jarvis : 目前用过的最好的微信开发库 [link](http://weibo.com/3296245513/Ec4iNp9Ld?type=comment)
 
 # Examples
 Wechaty is dead easy to use: 7 lines javascript for your wechat bot.
@@ -50,6 +49,7 @@ The following 6 lines of code implement a bot who can log all message to console
 
 ```typescript
 import Wechaty from 'wechaty'
+
 Wechaty.instance() // Singleton
 .on('scan', (url, code) => console.log(`Scan QrCode to login: ${code}\n${url}`))
 .on('login',       user => console.log(`User ${user} logined`))
@@ -83,18 +83,18 @@ Use docker to deploy wechaty is highly recommended.
 
 Wechaty is fully dockerized. So it will be very easy to be deployed as a MicroService. 
 
-```shell
-$ export TOKEN="your token here"
+```bash
+export TOKEN="your token here"
 
-$ docker run -e WECHATY_TOKEN="$TOKEN" wechaty/wechaty
+docker run -e WECHATY_TOKEN="$TOKEN" wechaty/wechaty
 ```
 
 `WECHATY_TOKEN` is required here, because you need this key to manage wechaty on the chatbot cloud manager: https://www.wechaty.io
 
 ### Build
 
-```shell
-$ docker build -t wechaty .
+```bash
+docker build -t wechaty .
 ```
 
 ### Ship
@@ -121,6 +121,7 @@ g)](https://heroku.com/deploy)~~
 [![Downloads][downloads-image]][downloads-url]
 
 Use NPM is recommended to install a stable version of Wechaty published on NPM.com
+
 ```shell
 npm install --save wechaty
 ```
@@ -161,7 +162,7 @@ v6.2.1
 ```
 
 ### 3. Run
-```bash
+```shell
 $ npm install
 
 $ npm run demo

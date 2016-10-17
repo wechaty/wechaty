@@ -61,6 +61,7 @@ abstract class Puppet extends EventEmitter {
     return this._currentState
   }
 
+  public abstract async init(): Promise<this>
   public abstract self(message?: Message): boolean | Contact
 
   // public user(contact?: Contact) {
