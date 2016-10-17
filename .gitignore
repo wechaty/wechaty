@@ -53,3 +53,4 @@ t.*
 .DS_Store
 /dev.js
 /dist/
+yarn.lock
