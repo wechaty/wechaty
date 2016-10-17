@@ -144,4 +144,6 @@ export interface Sayable {
   say(content: string, replyTo?: any): Promise<any>
 }
 
+export * from './brolog-env'
+
 export default Config
