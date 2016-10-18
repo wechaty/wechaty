@@ -353,7 +353,7 @@ export class Room extends EventEmitter implements Sayable {
   public static create(contactList: Contact[], topic?: string): Promise<Room> {
     log.verbose('Room', 'create(%s, %s)', contactList.join(','), topic)
 
-    if (!contactList || !(typeof contactList === 'array')) {
+    if (!contactList || !Array.isArray(contactList)) {
       throw new Error('contactList not found')
     }
 

@@ -49,7 +49,10 @@ export class PuppetWeb extends Puppet {
 
   private port: number
 
-  constructor(private setting: PuppetWebSetting = {}) {
+  public lastScanEventTime: number
+  public watchDogLastSaveSession: number
+
+  constructor(public setting: PuppetWebSetting = {}) {
     super()
 
     this.on('watchdog', Watchdog.onFeed.bind(this))

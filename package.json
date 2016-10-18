@@ -7,7 +7,7 @@
   "wechaty": {
     "DEFAULT_HEAD": "chrome",
     "DEFAULT_PUPPET": "web",
-    "DEFAULT_PROFILE": "profile",
+    "DEFAULT_PROFILE": "demo",
     "DEFAULT_PORT": 8788,
     "DEFAULT_PROTOCOL": "io|0.0.1",
     "DEFAULT_TOKEN": "WECHATY_IO_TOKEN",

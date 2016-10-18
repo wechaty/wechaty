@@ -135,12 +135,14 @@ Object.assign(Config, {
   puppetInstance
 })
 
+export type WatchdogFoodName = 'HEARTBEAT'
+                              | 'POISON'
+                              | 'SCAN'
+
 export type WatchdogFood = {
     data: any
   , timeout?: number  // millisecond
-  , type?:  'HEARTBEAT'
-          | 'POISON'
-          | 'SCAN'
+  , type?: WatchdogFoodName
 }
 
 export type ScanInfo = {

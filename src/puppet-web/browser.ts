@@ -534,7 +534,11 @@ class Browser extends EventEmitter {
   }
 
   public dead(forceReason?: string): boolean {
-    log.verbose('PuppetWebBrowser', 'dead(%s)', forceReason ? forceReason : '')
+    if (forceReason) {
+      log.verbose('PuppetWebBrowser', 'dead(%s)', forceReason)
+    } else {
+      log.silly('PuppetWebBrowser', 'dead()')
+    }
 
     let msg
     let dead = false

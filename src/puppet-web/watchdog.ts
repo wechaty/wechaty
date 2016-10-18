@@ -15,12 +15,13 @@
  */
 // const co    = require('co')
 
-import log   from '../brolog-env'
 import {
-  WatchdogFood
-} from '../config'
-
-import Event from './event'
+    WatchdogFood
+  , WatchdogFoodName
+  , log
+}                 from '../config'
+import PuppetWeb  from './puppet-web'
+import Event      from './event'
 
 /* tslint:disable:variable-name */
 const Watchdog = {
@@ -122,11 +123,16 @@ function watchDogReset(timeout, lastFeed) {
  * save every 5 mins
  *
  */
-function autoSaveSession() {
+function autoSaveSession(this: PuppetWeb, force = false) {
+  log.silly('PuppetWebWatchdog', 'autoSaveSession()')
+
+  if (force) {
+    this.watchDogLastSaveSession = 0 // 0 will cause save session right now
+  }
   const SAVE_SESSION_INTERVAL = 5 * 60 * 1000 // 5 mins
   if (Date.now() - this.watchDogLastSaveSession > SAVE_SESSION_INTERVAL) {
-    log.verbose('PuppetWebWatchdog', 'watchDog() saveSession(%s) after %d minutes'
-                                    , this.profile
+    log.verbose('PuppetWebWatchdog', 'autoSaveSession() profile(%s) after %d minutes'
+                                    , this.setting.profile
                                     , Math.floor(SAVE_SESSION_INTERVAL / 1000 / 60)
               )
     this.browser.saveSession()
@@ -143,16 +149,17 @@ function autoSaveSession() {
  * so we need to refresh the page after a while
  *
  */
-function monitorScan(type) {
+function monitorScan(this: PuppetWeb, type: WatchdogFoodName) {
   log.silly('PuppetWebWatchdog', 'monitorScan(%s)', type)
 
   const scanTimeout = 10 * 60 * 1000 // 10 mins
 
   if (type === 'SCAN') { // watchDog was feed a 'scan' data
     this.lastScanEventTime = Date.now()
+    // autoSaveSession.call(this, true)
   }
   if (this.logined()) { // XXX: login status right?
-    this.lastScanEventTime = null
+    this.lastScanEventTime = 0
   } else if (this.lastScanEventTime
               && Date.now() - this.lastScanEventTime > scanTimeout) {
     log.warn('PuppetWebWatchdog', 'monirotScan() refresh browser for no food of type scan after %s mins'
