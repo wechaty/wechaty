@@ -20,7 +20,7 @@ Details: https://github.com/wechaty/wechaty/issues/40
 
 ```diff
 + Typescriptilized ...
-+ 12th Oct 2016
++ on 12th Oct 2016
 ```
 
 VSCode is recommended for typescript because we can get benifit of [intelligent code completion, parameter info, and member lists](https://code.visualstudio.com/docs/languages/javascript).
