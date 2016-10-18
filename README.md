@@ -27,7 +27,10 @@ VSCode is recommended for typescript because we can get benifit of [intelligent 
 
 The last Javascript version is: [v0.4.0](https://github.com/wechaty/wechaty/releases/tag/v0.4.0) (2016/10/9) , or install v0.4 by `npm install wechaty`.
 
-- See Also: [Why we decided to move from plain JavaScript to TypeScript for Babylon.js](https://www.eternalcoding.com/?p=103)
+### Benifits from Typescript
+
+- [Why we decided to move from plain JavaScript to TypeScript for Babylon.js](https://www.eternalcoding.com/?p=103)
+- [Migrating from JavaScript](www.typescriptlang.org/docs/handbook/migrating-from-javascript.html)
 
 ## Voice of the Developer
 

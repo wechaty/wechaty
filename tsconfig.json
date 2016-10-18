@@ -5,17 +5,18 @@
     , "moduleResolution": "node" // typescript 2.0.3 bug compatible
     , "outDir": "dist"
     , "declaration": true
+    , "sourceMap": true
     // , "outFile": "dist/wechaty.lib.js"
 
-    , "sourceMap": true
+    , "noEmitOnError": true
     , "noUnusedLocals": true
+    , "noImplicitReturns": true
+    , "noFallthroughCasesInSwitch": true
+    , "strictNullChecks": true
 
-    , "noUnusedParameters": false
-    , "strictNullChecks": false
     , "noImplicitAny": false
+    , "noUnusedParameters": false
     , "noImplicitThis": false
-    , "noImplicitReturns": false
-    , "noFallthroughCasesInSwitch": false
   }
   , "exclude": [
       "node_modules"

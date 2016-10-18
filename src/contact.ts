@@ -52,7 +52,7 @@ export type ContactQueryFilter = {
 export class Contact implements Sayable {
   private static pool = new Map<string, Contact>()
 
-  private obj: ContactObj
+  private obj: ContactObj | null
   private rawObj: ContactRawObj
 
   constructor(public readonly id: string) {
@@ -66,7 +66,7 @@ export class Contact implements Sayable {
   public toString()  { return this.id }
   public toStringEx() { return `Contact(${this.obj && this.obj.name}[${this.id}])` }
 
-  private parse(rawObj: ContactRawObj): ContactObj {
+  private parse(rawObj: ContactRawObj): ContactObj | null {
     return !rawObj ? null : {
       id:           rawObj.UserName
       , uin:        rawObj.Uin    // stable id: 4763975 || getCookie("wxuin")
@@ -85,7 +85,7 @@ export class Contact implements Sayable {
     }
   }
 
-  public name()      { return UtilLib.plainText(this.obj && this.obj.name) }
+  public name()      { return UtilLib.plainText(this.obj && this.obj.name || '') }
   public remark()    { return this.obj && this.obj.remark }
   public stranger()  { return this.obj && this.obj.stranger }
   public star()      { return this.obj && this.obj.star }
@@ -114,9 +114,9 @@ export class Contact implements Sayable {
       contactGetter = Config.puppetInstance()
                             .getContact.bind(Config.puppetInstance())
     }
-
-    // return contactGetter(this.id)
-    //         .then(data => {
+    if (!contactGetter) {
+      throw new Error('no contatGetter')
+    }
     try {
       const rawObj = await contactGetter(this.id)
       log.silly('Contact', `contactGetter(${this.id}) resolved`)
@@ -136,7 +136,7 @@ export class Contact implements Sayable {
   }
   public dump()    {
     console.error('======= dump contact =======')
-    Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj[k]}`))
+    Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj && this.obj[k]}`))
   }
 
   public static findAll(query: ContactQueryFilter): Promise<Contact[]> {
@@ -186,7 +186,7 @@ export class Contact implements Sayable {
                   })
   }
 
-  public static load(id: string): Contact {
+  public static load(id: string): Contact | null {
     if (!id || typeof id !== 'string') {
       return null
     }
@@ -203,6 +203,9 @@ export class Contact implements Sayable {
     const wechaty = Wechaty.instance()
     const user = wechaty.user()
 
+    if (!user) {
+      throw new Error('no user')
+    }
     const m = new Message()
     m.from(user)
     m.to(this)

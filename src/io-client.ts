@@ -27,8 +27,8 @@ class IoClient {
   private _targetState
   private _currentState
 
-  private wechaty: Wechaty
-  private io: Io
+  private wechaty: Wechaty | null
+  private io: Io | null
 
   constructor(
       private token: string = Config.token || Config.DEFAULT_TOKEN
@@ -107,6 +107,10 @@ class IoClient {
     }
 
     const wechaty = this.wechaty
+
+    if (!wechaty) {
+      throw new Error('no Wechaty')
+    }
 
     wechaty
     .on('login'	     , user => this.log.info('IoClient', `${user.name()} logined`))

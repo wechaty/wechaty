@@ -17,7 +17,7 @@ abstract class FriendRequest {
 
   public contact: Contact
   public hello: string
-  public type: 'send' | 'receive' | 'confirm'
+  public type: 'send' | 'receive' | 'confirm' | null
 
   constructor() {
     if (!Config.puppetInstance()) {

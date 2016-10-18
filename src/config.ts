@@ -11,7 +11,7 @@ import Puppet from './puppet'
 export type PuppetType = 'web' | 'android' | 'ios'
 export type HeadType = 'chrome' | 'phantomjs'
 
-export type ConfigSetting = {
+export interface ConfigSetting {
 
   DEFAULT_HEAD: string
   DEFAULT_PUPPET: string
@@ -35,10 +35,13 @@ export type ConfigSetting = {
 
   httpPort: number
 
-  _puppetInstance: Puppet
-  puppetInstance: (instance?: Puppet) => Puppet
+  _puppetInstance: Puppet | null
+  puppetInstance(): Puppet
+  puppetInstance(empty: null): void
+  puppetInstance(instance: Puppet): Puppet
+  puppetInstance(instance?: Puppet | null): Puppet | void
 
-  isDocker: () => boolean
+  isDocker(): string
 
 }
 /* tslint:disable:variable-name */
@@ -95,7 +98,7 @@ function isWechatyDocker() {
   }
 
   const cgroup = '/proc/1/cgroup'
-  try { fs.accessSync(cgroup, fs['F_OK']) }
+  try       { fs.statSync(cgroup) }
   catch (e) { return false }
 
   const line = execSync(`sort -n ${cgroup} | head -1`)
@@ -112,12 +115,25 @@ function isWechatyDocker() {
 /**
  * 5. live setting
  */
-Config.puppetInstance = function(instance?: Puppet): Puppet {
-  if (typeof instance !== 'undefined') {  // null is valid here
-    Config._puppetInstance = instance
+function puppetInstance(instance?: Puppet | null): Puppet | void {
+  if (typeof instance !== 'undefined') {
+    if (instance) {
+      Config._puppetInstance = instance
+      return instance
+    } else {
+      Config._puppetInstance = instance
+      return
+    }
+  }
+  if (!Config._puppetInstance) {
+    throw new Error('no puppet instance')
   }
   return Config._puppetInstance
 }
+
+Object.assign(Config, {
+  puppetInstance
+})
 
 export type WatchdogFood = {
     data: any
@@ -141,7 +157,7 @@ export type RecommendInfo = {
 }
 
 export interface Sayable {
-  say(content: string, replyTo?: any): Promise<any>
+  say(content: string, replyTo?: any|any[]): Promise<void>
 }
 
 export * from './brolog-env'

@@ -7,6 +7,10 @@
  * https://github.com/zixia/wechaty
  *
  */
+/* tslint:disable:no-var-requires */
+const arrify = require('arrify')
+// import arrify = require('arrify')
+
 import * as fs from 'fs'
 import { EventEmitter } from 'events'
 import {
@@ -22,9 +26,19 @@ import log    from'../brolog-env'
 
 import Config from'../config'
 
-type BrowserSetting = {
+export type BrowserSetting = {
   head?:        string
   sessionFile?: string
+}
+
+export type DriverCookie = {
+  [index: string]: string | number | boolean
+  name: string
+  value: string
+  path: string
+  domain: string
+  secure: boolean
+  expiry: number
 }
 
 class Browser extends EventEmitter {
@@ -32,7 +46,7 @@ class Browser extends EventEmitter {
   private _targetState: string
   private _currentState: string
 
-  public driver: WebDriver
+  public _driver: WebDriver | null
 
   constructor(private setting: BrowserSetting = {}) {
     super()
@@ -45,7 +59,7 @@ class Browser extends EventEmitter {
   }
 
   // targetState : 'open' | 'close'
-  public targetState(newState?) {
+  public targetState(newState?: string) {
     if (newState) {
       log.verbose('PuppetWebBrowser', 'targetState(%s)', newState)
       this._targetState = newState
@@ -54,7 +68,7 @@ class Browser extends EventEmitter {
   }
 
   // currentState : 'opening' | 'open' | 'closing' | 'close'
-  public currentState(newState?) {
+  public currentState(newState?: string) {
     if (newState) {
       log.verbose('PuppetWebBrowser', 'currentState(%s)', newState)
       this._currentState = newState
@@ -103,69 +117,84 @@ class Browser extends EventEmitter {
     }
   }
 
-  public open(url: string = 'https://wx.qq.com'): Promise<string> {
+  public async open(url: string = 'https://wx.qq.com'): Promise<void> {
     log.verbose('PuppetWebBrowser', `open(${url})`)
 
     // TODO: set a timer to guard driver.get timeout, then retry 3 times 201607
-    return new Promise((resolve, reject) => {
-      // wrap another Promise is because selenium use another Promise library,
-      // which is incompatible with node typescript types
-      this.driver.get(url)
-                  .then(_ => resolve(url))
-                  .catch(e => {
-                    log.error('PuppetWebBrowser', 'open() exception: %s', e.message)
-                    this.dead(e.message)
-                    reject(e)
-                  })
-    })
+    try {
+      await this.driver().get(url)
+    } catch (e) {
+      log.error('PuppetWebBrowser', 'open() exception: %s', e.message)
+      this.dead(e.message)
+      throw e
+    }
   }
 
-  public initDriver(): Promise<WebDriver> {
+  public async initDriver(): Promise<WebDriver> {
     log.verbose('PuppetWebBrowser', 'initDriver(head: %s)', this.setting.head)
 
-    const head = this.setting.head
+    let driver: WebDriver
+    const head = <string>this.setting.head
 
     switch (true) {
       case !head: // no head default to phantomjs
       case /phantomjs/i.test(head):
       case /phantom/i.test(head):
-        this.driver = this.getPhantomJsDriver()
+        driver = this.getPhantomJsDriver()
         break
 
       case /firefox/i.test(head):
-        this.driver = new Builder()
+        driver = new Builder()
         .setAlertBehavior('ignore')
         .forBrowser('firefox')
         .build()
         break
 
       case /chrome/i.test(head):
-        this.driver = this.getChromeDriver()
+        driver = this.getChromeDriver()
         break
 
       default: // unsupported browser head
         throw new Error('unsupported head: ' + head)
     }
 
-    this.driver.manage()
+    driver.manage()
           .timeouts()
           .setScriptTimeout(10000)
 
-    // XXX: if no `setTimeout()` here, promise will hang forever!
-    // with a confirmed bug in selenium-webdriver v2.53.2:
-    // https://github.com/SeleniumHQ/selenium/issues/2233
-    // FIXED: selenium v3 released 20160807
-    // setTimeout(() => { resolve(this.driver) }, 0)
-    return Promise.resolve(this.driver)
+    return this.driver(driver)
   }
 
-  public refresh(): Promise<any> {
+  public driver(): WebDriver
+  public driver(empty: null): void
+  public driver(newDriver: WebDriver): WebDriver
+
+  public driver(newDriver?: WebDriver | null): WebDriver | void {
+    if (typeof newDriver !== 'undefined') {
+      if (newDriver) {
+        this._driver = newDriver
+        return this._driver
+      } else {
+        this._driver = newDriver
+        return
+      }
+    }
+
+    if (!this._driver || !this._driver.getSession()) {
+      const e = new Error('no driver session')
+      log.warn('PuppetWebBrowser', 'driver() exception: %s', e.message)
+      this._driver = null
+      throw e
+    }
+
+    return this._driver
+  }
+
+  public async refresh(): Promise<any> {
     log.verbose('PuppetWebBrowser', 'refresh()')
-    return new Promise((resolve, reject) => {
-      this.driver.navigate().refresh()
-            .then(_ => resolve())
-            .catch(e => reject(e))
-    })
+    return await this.driver()
+                      .navigate()
+                      .refresh()
   }
 
   private getChromeDriver(): WebDriver {
@@ -173,7 +202,7 @@ class Browser extends EventEmitter {
 
     const options = {
       args: ['--no-sandbox']  // issue #26 for run inside docker
-      , binary: undefined
+      , binary: ''  // XXX is it ok?
     }
     if (Config.isDocker) {
       options.binary = Config.CMD_CHROMIUM
@@ -275,25 +304,12 @@ class Browser extends EventEmitter {
     // this.targetState('close')
     this.currentState('closing')
 
-    if (!this.driver) {
-      log.verbose('PuppetWebBrowser', 'driver.quit() skipped because no driver')
-
-      this.currentState('close')
-      return 'no driver'
-    } else if (!this.driver.getSession()) {
-      this.driver = null
-      log.verbose('PuppetWebBrowser', 'driver.quit() skipped because no driver session')
-
-      this.currentState('close')
-      return 'no driver session'
-    }
-
     try {
-      await this.driver.close() // http://stackoverflow.com/a/32341885/1123955
+      await this.driver().close() // http://stackoverflow.com/a/32341885/1123955
       log.silly('PuppetWebBrowser', 'quit() driver.close()-ed')
-      await this.driver.quit()
+      await this.driver().quit()
       log.silly('PuppetWebBrowser', 'quit() driver.quit()-ed')
-      this.driver = null
+      this.driver(null)
       log.silly('PuppetWebBrowser', 'quit() this.driver = null')
 
       /**
@@ -365,7 +381,7 @@ class Browser extends EventEmitter {
   public getBrowserPids(): Promise<string[]> {
     log.silly('PuppetWebBrowser', 'getBrowserPids()')
 
-    const head = this.setting.head
+    const head = this.setting.head as string
 
     return new Promise((resolve, reject) => {
       require('ps-tree')(process.pid, (err, children) => {
@@ -408,15 +424,14 @@ class Browser extends EventEmitter {
   /**
    * only wrap addCookies for convinience
    *
-   * use this.driver.manage() to call other functions like:
+   * use this.driver().manage() to call other functions like:
    * deleteCookie / getCookie / getCookies
    */
-
   // TypeScript Overloading: http://stackoverflow.com/a/21385587/1123955
-  public addCookies(cookies: Object[]): Promise<any>[]
-  public addCookies(cookie: Object): Promise<any>
+  public addCookies(cookies:  DriverCookie[]): Promise<any[]>
+  public addCookies(cookie:   DriverCookie): Promise<any>
 
-  public addCookies(cookie: Object|Object[]): Promise<any>|Promise<any>[] {
+  public async addCookies(cookie: DriverCookie|DriverCookie[]): Promise<any|any[]> {
     if (this.dead()) { return Promise.reject(new Error('addCookies() - browser dead'))}
 
     if (Array.isArray(cookie)) {
@@ -434,22 +449,23 @@ class Browser extends EventEmitter {
 
     log.silly('PuppetWebBrowser', 'addCookies(%s)', JSON.stringify(cookie))
 
-    return new Promise((resolve, reject) => {
-      (this.driver.manage() as any)
+    let ret
+    // return new Promise((resolve, reject) => {
+    try {
+      ret = await (this.driver().manage() as any).addCookie(cookie)
                   // this is old webdriver format
                   // .addCookie(cookie.name, cookie.value, cookie.path
                   //   , cookie.domain, cookie.secure, cookie.expiry)
                   // this is new webdriver format
-                  .addCookie(cookie)
-                  .then(r => resolve(r))
-                  .catch(e => {
-                    log.warn('PuppetWebBrowser', 'addCookies() exception: %s', e.message)
-                    reject(e)
-                  })
-    })
+    } catch (e) {
+      log.warn('PuppetWebBrowser', 'addCookies() exception: %s', e.message)
+      throw e
+    }
+
+    return ret
   }
 
-  public execute(script, ...args): Promise<any> {
+  public async execute(script, ...args): Promise<any> {
     log.silly('PuppetWebBrowser', 'Browser.execute("%s")'
                                 , (
                                     script.slice(0, 80)
@@ -457,32 +473,33 @@ class Browser extends EventEmitter {
                                     + (script.length > 80 ? ' ... ' : '')
                                 )
             )
-    // log.verbose('PuppetWebBrowser', `Browser.execute() driver.getSession: %s`, util.inspect(this.driver.getSession()))
-    if (this.dead()) { return Promise.reject(new Error('browser dead')) }
+    // log.verbose('PuppetWebBrowser', `Browser.execute() driver.getSession: %s`, util.inspect(this.driver().getSession()))
+    if (this.dead()) { throw new Error('browser dead') }
 
-    // XXX
-    // console.log('#############')
-    // console.log(script)
-    // console.log(args)
-
-    return this.driver.executeScript.apply(this.driver, arguments)
-    .catch(e => {
+    let ret
+    try {
+      ret = await this.driver().executeScript.apply(this.driver(), arguments)
+    } catch (e) {
       // this.dead(e)
       log.warn('PuppetWebBrowser', 'execute() exception: %s', e.message.substr(0, 99))
       throw e
-    })
+    }
+    return ret
   }
 
-  public executeAsync(script, ...args): Promise<any> {
+  public async executeAsync(script, ...args): Promise<any> {
     log.silly('PuppetWebBrowser', 'Browser.executeAsync(%s)', script.slice(0, 80))
-    if (this.dead()) { return Promise.reject(new Error('browser dead')) }
-// console.log(script)
-    return this.driver.executeAsyncScript.apply(this.driver, arguments)
-                .catch(e => {
-                  // this.dead(e)
-                  log.warn('PuppetWebBrowser', 'executeAsync() exception: %s', e.message.slice(0, 99))
-                  throw e
-                })
+    if (this.dead()) { throw new Error('browser dead') }
+
+    let ret
+    try {
+      ret = await this.driver().executeAsyncScript.apply(this.driver(), arguments)
+    } catch (e) {
+      // this.dead(e)
+      log.warn('PuppetWebBrowser', 'executeAsync() exception: %s', e.message.slice(0, 99))
+      throw e
+    }
+    return ret
   }
 
   /**
@@ -528,7 +545,7 @@ class Browser extends EventEmitter {
     } else if (this.targetState() !== 'open') {
       dead = true
       msg = 'targetState not open'
-    } else if (!this.driver || !this.driver.getSession()) {
+    } else if (!this.driver()) {
       dead = true
       msg = 'no driver or session'
     }
@@ -546,23 +563,22 @@ class Browser extends EventEmitter {
     return dead
   }
 
-  public checkSession(): Promise<Object[]> {
+  public async checkSession(): Promise<DriverCookie[]> {
     // just check cookies, no file operation
     log.verbose('PuppetWebBrowser', 'checkSession()')
 
     if (this.dead()) { Promise.reject(new Error('checkSession() - browser dead'))}
 
-    return new Promise((resolve, reject) => {
-      this.driver.manage().getCookies()
-                .then(cookies => {
-                  log.silly('PuppetWebBrowser', 'checkSession %s', cookies.map(c => c.name).join(','))
-                  resolve(cookies)
-                })
-                .catch(e => {
-                  log.error('PuppetWebBrowser', 'checkSession() getCookies() exception: %s', e && e.message || e)
-                  reject(e)
-                })
-    })
+    // return new Promise((resolve, reject) => {
+    try {
+      // `as any as DriverCookie` because selenium-webdriver @types is outdated with 2.x, where we r using 3.0
+      const cookies = await this.driver().manage().getCookies() as any as DriverCookie[]
+      log.silly('PuppetWebBrowser', 'checkSession %s', cookies.map(c => c.name).join(','))
+      return cookies
+    } catch (e) {
+      log.error('PuppetWebBrowser', 'checkSession() getCookies() exception: %s', e && e.message || e)
+      throw e
+    }
   }
 
   public cleanSession() {
@@ -584,17 +600,17 @@ class Browser extends EventEmitter {
     })
   }
 
-  public saveSession(): Promise<Object[]> {
+  public async saveSession(): Promise<DriverCookie[]> {
     log.silly('PuppetWebBrowser', `saveSession(${this.setting.sessionFile})`)
     if (!this.setting.sessionFile) {
-      return Promise.reject(new Error('saveSession() no session'))
+      throw new Error('saveSession() no session')
     } else if (this.dead()) {
-      return Promise.reject(new Error('saveSession() - browser dead'))
+      throw new Error('saveSession() - browser dead')
     }
 
     const filename = this.setting.sessionFile
 
-    function cookieFilter(cookies) {
+    function cookieFilter(cookies: DriverCookie[]) {
       const skipNames = [
         'ChromeDriver'
         , 'MM_WX_SOUND_STATE'
@@ -608,29 +624,33 @@ class Browser extends EventEmitter {
       })
     }
 
-    return new Promise((resolve, reject) => {
-      this.driver.manage().getCookies()
-      .then(cookieFilter)
-      .then(cookies => {
+    try {
+    // return new Promise((resolve, reject) => {
+      // `as any as DriverCookie` because selenium-webdriver @types is outdated with 2.x, where we r using 3.0
+      let cookies: DriverCookie[] = await this.driver().manage().getCookies() as any as DriverCookie[]
+      cookies = cookieFilter(cookies)
+      // .then(cookies => {
         // log.silly('PuppetWeb', 'saving %d cookies for session: %s', cookies.length
         //   , util.inspect(cookies.map(c => { return {name: c.name /*, value: c.value, expiresType: typeof c.expires, expires: c.expires*/} })))
-        log.silly('PuppetWebBrowser', 'saving %d cookies for session: %s', cookies.length, cookies.map(c => c.name).join(','))
+      log.silly('PuppetWebBrowser', 'saving %d cookies for session: %s', cookies.length, cookies.map(c => c.name).join(','))
 
-        const jsonStr = JSON.stringify(cookies)
-        fs.writeFile(filename, jsonStr, function(err) {
+      const jsonStr = JSON.stringify(cookies)
+
+      return new Promise((resolve, reject) => {
+        fs.writeFile(filename, jsonStr, err => {
           if (err) {
             log.error('PuppetWebBrowser', 'saveSession() fail to write file %s: %s', filename, err.errno)
-            return reject(err)
+            reject(err)
           }
           log.silly('PuppetWebBrowser', 'saved session(%d cookies) to %s', cookies.length, filename)
-          return resolve(cookies)
+          resolve(cookies)
         })
-      })
-      .catch(e => {
-        log.error('PuppetWebBrowser', 'saveSession() getCookies() exception: %s', e.message)
-        reject(e)
-      })
-    })
+      }) as Promise<DriverCookie[]> // XXX why need `as` here???
+
+    } catch (e) {
+      log.error('PuppetWebBrowser', 'saveSession() getCookies() exception: %s', e.message)
+      throw e
+    }
   }
 
   public loadSession(): Promise<any> {
@@ -651,10 +671,7 @@ class Browser extends EventEmitter {
         }
         const cookies = JSON.parse(jsonStr.toString())
 
-        let ps = this.addCookies(cookies)
-        if (!Array.isArray(ps)) {
-          ps = [ps]
-        }
+        let ps = arrify(this.addCookies(cookies))
         Promise.all(ps)
         .then(() => {
           log.verbose('PuppetWebBrowser', 'loaded session(%d cookies) from %s', cookies.length, filename)
@@ -669,5 +686,4 @@ class Browser extends EventEmitter {
   }
 }
 
-// module.exports = Browser
 export default Browser

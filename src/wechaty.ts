@@ -51,7 +51,7 @@ type WechatyEventName = 'error'
 export class Wechaty extends EventEmitter implements Sayable {
   private static _instance: Wechaty
 
-  public puppet: Puppet
+  public puppet: Puppet | null
 
   private inited:     boolean = false
   private npmVersion: string
@@ -109,7 +109,8 @@ export class Wechaty extends EventEmitter implements Sayable {
          * Synchronous version of fs.access().
          * This throws if any accessibility checks fail, and does nothing otherwise.
          */
-        fs.accessSync(dotGitPath, fs['F_OK'])
+        // fs.accessSync(dotGitPath, fs.F_OK)
+        fs.statSync(dotGitPath)
 
         const ss = require('child_process')
                     .spawnSync(gitLogCmd, gitLogArgs, { cwd:  __dirname })
@@ -133,10 +134,13 @@ export class Wechaty extends EventEmitter implements Sayable {
     return this.npmVersion
   }
 
-  public user(): Contact { return this.puppet && this.puppet.user }
+  public user(): Contact | null { return this.puppet && this.puppet.user }
 
   public reset(reason?: string) {
     log.verbose('Wechaty', 'reset() because %s', reason)
+    if (!this.puppet) {
+      throw new Error('no puppet')
+    }
     return this.puppet.reset(reason)
   }
 
@@ -219,7 +223,7 @@ export class Wechaty extends EventEmitter implements Sayable {
   ].map(e => {
       // https://strongloop.com/strongblog/an-introduction-to-javascript-es6-arrow-functions/
       // We’ve lost () around the argument list when there’s just one argument (rest arguments are an exception, eg (...args) => ...)
-      puppet.on(e, (...args) => {
+      puppet.on(e, (...args: any[]) => {
         // this.emit(e, data)
         this.emit.apply(this, [e, ...args])
       })
@@ -262,6 +266,9 @@ export class Wechaty extends EventEmitter implements Sayable {
   }
 
   public logout()  {
+    if (!this.puppet) {
+      throw new Error('no puppet')
+    }
     return this.puppet.logout()
                       .catch(e => {
                         log.error('Wechaty', 'logout() exception: %s', e.message)
@@ -269,11 +276,17 @@ export class Wechaty extends EventEmitter implements Sayable {
                       })
   }
 
-  public self(message?: Message): boolean | Contact {
+  public self(message?: Message): boolean | Contact | null {
+    if (!this.puppet) {
+      throw new Error('no puppet')
+    }
     return this.puppet.self(message)
   }
 
   public send(message: Message): Promise<any> {
+    if (!this.puppet) {
+      throw new Error('no puppet')
+    }
     return this.puppet.send(message)
                       .catch(e => {
                         log.error('Wechaty', 'send() exception: %s', e.message)
@@ -282,6 +295,9 @@ export class Wechaty extends EventEmitter implements Sayable {
   }
 
   public say(content: string) {
+    if (!this.puppet) {
+      throw new Error('no puppet')
+    }
     return this.puppet.say(content)
   }
 
@@ -290,6 +306,10 @@ export class Wechaty extends EventEmitter implements Sayable {
    */
   public reply(message: Message, reply: string) {
     log.warn('Wechaty', 'reply() @deprecated, please use Message.say()')
+
+    if (!this.puppet) {
+      throw new Error('no puppet')
+    }
 
     return this.puppet.reply(message, reply)
     .catch(e => {

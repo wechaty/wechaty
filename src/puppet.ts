@@ -25,8 +25,8 @@ import log      from './brolog-env'
 // }
 
 export abstract class Puppet extends EventEmitter implements Sayable {
-  public userId:  string
-  public user:    Contact
+  public userId:  string  | null
+  public user:    Contact | null
   public abstract getContact(id: string): Promise<any>
 
   private _targetState:   string
@@ -65,7 +65,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   }
 
   public abstract async init(): Promise<this>
-  public abstract self(message?: Message): boolean | Contact
+  public abstract self(message?: Message): boolean | Contact | null
 
   // public user(contact?: Contact) {
   //   if (contact) {

@@ -95,6 +95,10 @@ test('Message ready() promise testing', async t => {
 
   const fc = Contact.load(m.get('from'))
   const tc = Contact.load(m.get('to'))
+
+  if (!fc || !tc) {
+    throw new Error('no fc or no tc')
+  }
   t.is(fc.get('id')   , expectedFromUserName, 'contact ready for FromUserName')
   t.is(fc.get('name') , expectedFromNickName, 'contact ready for FromNickName')
   t.is(tc.get('id')   , expectedToUserName  , 'contact ready for ToUserName')

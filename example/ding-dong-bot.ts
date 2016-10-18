@@ -51,7 +51,8 @@ bot
 })
 .on('message', m => {
   try {
-    console.log((m.room() ? '[' + m.room().topic() + ']' : '')
+    const room = m.room()
+    console.log((room ? '[' + room.topic() + ']' : '')
                 + '<' + m.from().name() + '>'
                 + ':' + m.toStringDigest()
     )

@@ -231,7 +231,7 @@ async function onServerDisconnect(this: PuppetWeb, data): Promise<void> {
  * 3. browser quit(crash?)
  * 4. ...
  */
-function onServerUnload(this: PuppetWeb, data) {
+function onServerUnload(this: PuppetWeb, data): void {
   log.warn('PuppetWebEvent', 'onServerUnload(%s)', data)
   // onServerLogout.call(this, data) // XXX: should emit event[logout] from browser
 
@@ -256,7 +256,7 @@ function onServerUnload(this: PuppetWeb, data) {
   }
 
   // re-init bridge after 1 second XXX: better method to confirm unload/reload finished?
-  return setTimeout(() => {
+  setTimeout(() => {
     if (!this.bridge) {
       log.warn('PuppetWebEvent', 'onServerUnload() bridge gone after setTimeout()')
       return
@@ -265,6 +265,8 @@ function onServerUnload(this: PuppetWeb, data) {
               .then(r  => log.verbose('PuppetWebEvent', 'onServerUnload() bridge.init() done: %s', r))
               .catch(e => log.error('PuppetWebEvent', 'onServerUnload() bridge.init() exceptoin: %s', e.message))
   }, 1000)
+
+  return
 }
 
 function onServerLog(data) {
@@ -297,7 +299,11 @@ async function onServerLogin(this: PuppetWeb, data, attempt = 0): Promise<void> 
     }
 
     log.silly('PuppetWebEvent', 'bridge.getUserName: %s', this.userId)
-    this.user = await Contact.load(this.userId).ready()
+    this.user = Contact.load(this.userId)
+    if (!this.user) {
+      throw new Error('no user')
+    }
+    await this.user.ready()
     log.silly('PuppetWebEvent', `onServerLogin() user ${this.user.name()} logined`)
 
     await this.browser.saveSession()

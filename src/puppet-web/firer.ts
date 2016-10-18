@@ -58,9 +58,15 @@ const regexConfig = {
 }
 
 async function fireFriendRequest(m: Message) {
+  if (!m.rawObj) {
+    throw new Error('message empty')
+  }
   const info = m.rawObj.RecommendInfo
   log.verbose('PuppetWebFirer', 'fireFriendRequest(%s)', info)
 
+  if (!info) {
+    throw new Error('no info')
+  }
   const request = new FriendRequest()
   request.receive(info)
 
@@ -134,6 +140,11 @@ async function fireRoomJoin(m: Message): Promise<void> {
   log.verbose('PuppetWebFirer', 'fireRoomJoin(%s)', m.content())
 
   const room    = m.room()
+  if (!room) {
+    log.warn('PuppetWebFirer', 'fireRoomJoin() `room` not found')
+    return
+  }
+
   const content = m.content()
 
   let inviteeList: string[], inviter: string
@@ -148,7 +159,7 @@ async function fireRoomJoin(m: Message): Promise<void> {
                             , inviter
           )
 
-  let inviterContact: Contact
+  let inviterContact: Contact | null = null
   let inviteeContactList: Contact[] = []
 
   try {
@@ -199,7 +210,7 @@ async function fireRoomJoin(m: Message): Promise<void> {
     }).catch(e => {
       log.silly('PuppetWebFirer', 'fireRoomJoin() reject() inviteeContactList: %s, inviterContact: %s'
                             , inviteeContactList.map((c: Contact) => c.name()).join(',')
-                            , inviterContact.name()
+                            , inviter
               )
     })
 
@@ -237,7 +248,7 @@ async function fireRoomJoin(m: Message): Promise<void> {
   return
 }
 
-function checkRoomLeave(content: string): string {
+function checkRoomLeave(content: string): string|null {
   const re = regexConfig.roomLeave
 
   const found = content.match(re)
@@ -260,6 +271,10 @@ async function fireRoomLeave(m: Message) {
   log.silly('PuppetWebFirer', 'fireRoomLeave() got leaver: %s', leaver)
 
   const room = m.room()
+  if (!room) {
+    log.warn('PuppetWebFirer', 'fireRoomLeave() room not found')
+    return
+  }
   let leaverContact = room.member(leaver)
 
   if (!leaverContact) {
@@ -294,9 +309,14 @@ async function fireRoomTopic(m: Message) {
   }
 
   const room = m.room()
+  if (!room) {
+    log.warn('PuppetWebFirer', 'fireRoomLeave() room not found')
+    return
+  }
+
   const oldTopic = room.topic()
 
-  let changerContact: Contact
+  let changerContact: Contact | null
   if (/^You$/.test(changer)) {
     changerContact = Contact.load(this.userId)
   } else {

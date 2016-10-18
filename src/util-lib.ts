@@ -44,7 +44,7 @@ class UtilLib {
     )
   }
 
-  public static  downloadStream(url: string, cookies): Promise<NodeJS.ReadableStream> {
+  public static  downloadStream(url: string, cookies: any[]): Promise<NodeJS.ReadableStream> {
     // const myurl = 'http://wx.qq.com/cgi-bin/mmwebwx-bin/webwxgetmsgimg?&MsgID=3080011908135131569&skey=%40crypt_c117402d_53a58f8fbb21978167a3fc7d3be7f8c9'
     url = url.replace(/^https/i, 'http') // use http for better performance
     const options = require('url').parse(url)
@@ -65,7 +65,7 @@ class UtilLib {
      * wxpluginkey=1465901102; wxuin=1211516682; wxsid=zMT7Gb24aTQzB1rA;
      * webwx_data_ticket=gSeBbuhX+0kFdkXbgeQwr6Ck'
      */
-    options.headers.Cookie = cookies.map(c => `${c.name}=${c.value}`).join('; ')
+    options.headers.Cookie = cookies.map(c => `${c['name']}=${c['value']}`).join('; ')
     // log.verbose('Util', 'Cookie: %s', options.headers.Cookie)
 
     return new Promise((resolve, reject) => {

@@ -20,10 +20,10 @@ import log     from '../brolog-env'
 
 class Server extends EventEmitter {
   private express:      express.Application
-  private httpsServer:  https.Server
+  private httpsServer:  https.Server | null
 
-  private socketServer: SocketIO.Server
-  private socketClient: SocketIO.Socket
+  private socketServer: SocketIO.Server | null
+  private socketClient: SocketIO.Socket | null
 
   constructor(
     private port: number
@@ -116,7 +116,7 @@ class Server extends EventEmitter {
       // console.log(s.handshake)
       if (this.socketClient) {
         log.warn('PuppetWebServer', 'createSocketIo() on(connection) there already has a this.socketClient')
-        this.socketClient = undefined // close() ???
+        this.socketClient = null // close() ???
       }
       this.socketClient = s
       this.initEventsFromClient(s)
@@ -132,7 +132,7 @@ class Server extends EventEmitter {
     client.on('disconnect', e => {
       log.silly('PuppetWebServer', 'initEventsFromClient() on(discohnnect) socket.io disconnect: %s', e)
       // 1. Browser reload / 2. Lost connection(Bad network)
-      this.socketClient = undefined
+      this.socketClient = null
       this.emit('disconnect', e)
     })
 

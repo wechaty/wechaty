@@ -65,6 +65,9 @@ export class MediaMessage extends Message {
                     .browser.checkSession()
     })
     .then(cookies => {
+      if (!this.obj.url) {
+        throw new Error('no url')
+      }
       return UtilLib.downloadStream(this.obj.url, cookies)
     })
     .catch(e => {

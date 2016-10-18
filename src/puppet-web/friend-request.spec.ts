@@ -24,7 +24,7 @@ test('PuppetWebFriendRequest.receive smoking test', t => {
   t.true(typeof fr.info === 'object', 'should has info object')
   t.is(fr.hello, '我是群聊"Wechaty"的李卓桓.PreAngel', 'should has right request message')
   t.true(fr.contact instanceof Contact, 'should have a Contact instance')
-  t.is(fr.type, 'receive', 'should be receive type')
+  t.is(fr.type as any, 'receive', 'should be receive type')
 })
 
 test('PuppetWebFriendRequest.confirm smoking test', t => {
@@ -39,8 +39,8 @@ test('PuppetWebFriendRequest.confirm smoking test', t => {
 
   const fr = new PuppetWebFriendRequest()
   const contact = Contact.load(m.get('from'))
-  fr.confirm(contact)
+  fr.confirm(contact || new Contact('xx'))
 
   t.true(fr.contact instanceof Contact, 'should have a Contact instance')
-  t.is(fr.type, 'confirm', 'should be confirm type')
+  t.is(fr.type as any, 'confirm', 'should be confirm type')
 })

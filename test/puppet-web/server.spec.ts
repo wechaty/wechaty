@@ -20,7 +20,7 @@ test('PuppetWebServer basic tests', async t => {
   const s = new Server(PORT)
   t.is(typeof s, 'object', 'PuppetWebServer instance created')
 
-  let httpsServer = null
+  let httpsServer: https.Server
 
   // co(function* () {
     const spy = sinon.spy()
@@ -36,7 +36,7 @@ test('PuppetWebServer basic tests', async t => {
     t.is(typeof socketio, 'object', 'should created socket io instance')
 
     const retClose = await new Promise((resolve, reject) => {
-      httpsServer.close(_ => {
+      ; (httpsServer as any).close(_ => {
         spy('closed')
         resolve('closed')
       })

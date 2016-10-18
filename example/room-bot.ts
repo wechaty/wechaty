@@ -295,7 +295,11 @@ function checkRoomJoin(room: Room, invitee: Contact|Contact[] , inviter: Contact
 
   try {
     // let to, content
-    if (inviter.id !== bot.user().id) {
+    const user = bot.user()
+    if (!user) {
+      throw new Error('no user')
+    }
+    if (inviter.id !== user.id) {
 
       room.say('RULE1: Invitation is limited to me, the owner only. Please do not invit people without notify me.'
           , inviter
@@ -362,36 +366,34 @@ function getHelperContact() {
   return Contact.find({ name: HELPER_CONTACT_NAME })
 }
 
-function createDingRoom(contact) {
+async function createDingRoom(contact): Promise<any> {
   log.info('Bot', 'createDingRoom(%s)', contact)
 
-  return getHelperContact()
-  .then(helperContact => {
+  try {
+    const helperContact = await getHelperContact()
+
     if (!helperContact) {
       log.warn('Bot', 'getHelperContact() found nobody')
       return
     }
-    helperContact.ready().then(_ =>
-      log.info('Bot', 'getHelperContact() ok. got: %s', helperContact.name())
-    )
+
+    await helperContact.ready()
+    log.info('Bot', 'getHelperContact() ok. got: %s', helperContact.name())
 
     const contactList = [contact, helperContact]
     log.verbose('Bot', 'contactList: %s', contactList.join(','))
 
-    return Room.create(contactList, 'ding')
-        .then(room => {
-          log.info('Bot', 'createDingRoom() new ding room created: %s', room)
+    const room = await Room.create(contactList, 'ding')
+    log.info('Bot', 'createDingRoom() new ding room created: %s', room)
 
-          room.topic('ding - created')
-          room.say('ding - created')
+    room.topic('ding - created')
 
-          return room
-        })
-        .catch(e => {
-          log.error('Bot', 'createDingRoom() new ding room create fail: %s', e.stack)
-        })
-  })
-  .catch(e => {
+    room.say('ding - created')
+
+    return room
+
+  } catch (e) {
     log.error('Bot', 'getHelperContact() exception:', e.stack)
-  })
+    throw e
+  }
 }

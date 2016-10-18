@@ -45,13 +45,13 @@ export class Io {
   public uuid: string
 
   private protocol: string
-  private eventBuffer = []
+  private eventBuffer: IoEvent[] = []
   private ws: WebSocket
 
   private _currentState: string
   private _targetState: string
 
-  private reconnectTimer: NodeJS.Timer
+  private reconnectTimer: NodeJS.Timer | null
   private reconnectTimeout: number
 
   private onMessage: Function
@@ -97,13 +97,6 @@ export class Io {
     return this._currentState
   }
 
-  // purpose(newPurpose) {
-  //   if (newPurpose) {
-  //     this._purpose = newPurpose
-  //   }
-  //   return this._purpose
-  // }
-
   public toString() { return 'Class Io(' + this.setting.token + ')'}
 
   private connected() { return this.ws && this.ws.readyState === WebSocket.OPEN }
@@ -138,6 +131,9 @@ export class Io {
     const auth = 'Token ' + this.setting.token
     const headers = { 'Authorization': auth }
 
+    if (!this.setting.apihost) {
+      throw new Error('no apihost')
+    }
     let endpoint = 'wss://' + this.setting.apihost + '/v0/websocket'
 
     // XXX quick and dirty: use no ssl for APIHOST other than official
@@ -367,7 +363,7 @@ export class Io {
     return
   }
 
-  private send(ioEvent?: IoEvent) {
+  private async send(ioEvent?: IoEvent): Promise<void> {
     if (ioEvent) {
       log.silly('Io', 'send(%s: %s)', ioEvent.name, ioEvent.payload)
       this.eventBuffer.push(ioEvent)
@@ -375,15 +371,28 @@ export class Io {
 
     if (!this.connected()) {
       log.verbose('Io', 'send() without a connected websocket, eventBuffer.length = %d', this.eventBuffer.length)
-      return false
+      return
     }
 
+    const list: Promise<any>[] = []
     while (this.eventBuffer.length) {
-      this.ws.send(
+      const p = new Promise((resolve, reject) => this.ws.send(
         JSON.stringify(
           this.eventBuffer.shift()
         )
-      )
+        , (err: Error) => {
+          if (err)  { reject(err) }
+          else      { resolve()   }
+        }
+      ))
+      list.push(p)
+    }
+
+    try {
+      await Promise.all(list)
+    } catch (e) {
+      log.error('Io', 'send() exceptio: %s', e.stack)
+      throw e
     }
   }
 

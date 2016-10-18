@@ -52,8 +52,8 @@ export type RoomQueryFilter = {
 export class Room extends EventEmitter implements Sayable {
   private static pool = new Map<string, Room>()
 
-  private dirtyObj: RoomObj // when refresh, use this to save dirty data for query
-  private obj:      RoomObj
+  private dirtyObj: RoomObj | null // when refresh, use this to save dirty data for query
+  private obj:      RoomObj | null
   private rawObj:   RoomRawObj
 
   constructor(public id: string) {
@@ -88,8 +88,14 @@ export class Room extends EventEmitter implements Sayable {
       log.warn('Room', 'ready() has obj.id but memberList empty in room %s. reloading', this.obj.topic)
     }
 
-    contactGetter = contactGetter || Config.puppetInstance()
-                                            .getContact.bind(Config.puppetInstance())
+    if (!contactGetter) {
+      contactGetter = Config.puppetInstance()
+                            .getContact.bind(Config.puppetInstance())
+    }
+    if (!contactGetter) {
+      throw new Error('no contactGetter')
+    }
+
     return contactGetter(this.id)
     .then(data => {
       log.silly('Room', `contactGetter(${this.id}) resolved`)
@@ -98,6 +104,9 @@ export class Room extends EventEmitter implements Sayable {
       return this
     })
     .then(_ => {
+      if (!this.obj) {
+        throw new Error('no this.obj set after contactGetter')
+      }
       return Promise.all(this.obj.memberList.map(c => c.ready()))
                     .then(() => this)
     })
@@ -134,7 +143,7 @@ export class Room extends EventEmitter implements Sayable {
                       , content
                       , Array.isArray(replyTo)
                         ? replyTo.map(c => c.name()).join(', ')
-                        : replyTo.name()
+                        : replyTo ? replyTo.name() : ''
     )
 
     const m = new Message()
@@ -163,7 +172,7 @@ export class Room extends EventEmitter implements Sayable {
 
   public get(prop): string { return (this.obj && this.obj[prop]) || (this.dirtyObj && this.dirtyObj[prop]) }
 
-  private parse(rawObj: RoomRawObj): RoomObj {
+  private parse(rawObj: RoomRawObj): RoomObj | null {
     if (!rawObj) {
       return null
     }
@@ -208,7 +217,7 @@ export class Room extends EventEmitter implements Sayable {
   }
   public dump() {
     console.error('======= dump Room =======')
-    Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj[k]}`))
+    Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj && this.obj[k]}`))
   }
 
   public add(contact: Contact): Promise<any> {
@@ -270,7 +279,7 @@ export class Room extends EventEmitter implements Sayable {
       return newTopic
     }
     // return this.get('topic')
-    return UtilLib.plainText(this.obj && this.obj.topic)
+    return UtilLib.plainText(this.obj ? this.obj.topic : '')
   }
 
   public nick(contact: Contact): string {
@@ -289,7 +298,7 @@ export class Room extends EventEmitter implements Sayable {
                     .length > 0
   }
 
-  public owner(): Contact {
+  public owner(): Contact | null {
     const ownerUin = this.obj && this.obj.ownerUin
     let memberList = (this.obj && this.obj.memberList) || []
 
@@ -311,7 +320,7 @@ export class Room extends EventEmitter implements Sayable {
   /**
    * NickName / DisplayName / RemarkName of member
    */
-  public member(name: string): Contact {
+  public member(name: string): Contact | null {
     log.verbose('Room', 'member(%s)', name)
 
     if (!this.obj || !this.obj.memberList) {
@@ -336,7 +345,7 @@ export class Room extends EventEmitter implements Sayable {
 
     if (!this.obj || !this.obj.memberList || this.obj.memberList.length < 1) {
       log.warn('Room', 'memberList() not ready')
-      return null
+      return []
     }
     return this.obj.memberList
   }
@@ -401,7 +410,7 @@ export class Room extends EventEmitter implements Sayable {
                 })
   }
 
-  public static load(id: string): Room {
+  public static load(id: string): Room | null {
     if (!id) { return null }
 
     if (id in Room.pool) {

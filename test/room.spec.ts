@@ -109,6 +109,9 @@ test('Room smoking test', async t => {
 
   const contactA = r.member(EXPECTED.memberNick1)
   const contactB = r.member(EXPECTED.memberNick2)
+  if (!contactA || !contactB) {
+    throw new Error('no a or b')
+  }
   t.is(contactA.id, EXPECTED.memberId1, 'should get the right id from nick 1')
   t.is(contactB.id, EXPECTED.memberId2, 'should get the right id from nick 2')
 

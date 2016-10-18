@@ -134,7 +134,7 @@ class Talker extends EventEmitter {
 }
 
 /* tslint:disable:variable-name */
-let Talkers = []
+let Talkers: Talker[] = []
 
 function talk(m) {
   const fromId  = m.get('from')

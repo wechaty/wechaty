@@ -115,10 +115,10 @@ export class Message implements Sayable {
         obj.room = rawObj.ToUserName
       } else {
         log.error('Message', 'parse found a room message, but neither FromUserName nor ToUserName is a room(/^@@/)')
-        obj.room = null // bug compatible
+        // obj.room = undefined // bug compatible
       }
-    } else {
-      obj.room = null
+    // } else {
+    //   obj.room = undefined
     }
     return obj
   }
@@ -137,9 +137,11 @@ export class Message implements Sayable {
     return s
   }
   public getSenderString() {
-    const name  = Contact.load(this.obj.from).toStringEx()
-    const room = this.obj.room ? Room.load(this.obj.room).toStringEx() : null
-    return '<' + name + (room ? `@${room}` : '') + '>'
+    const name  = Contact.load(this.obj.from)
+    const room = this.obj.room
+                  ? Room.load(this.obj.room)
+                  : null
+    return '<' + (name ? name.toStringEx() : '') + (room ? `@${room.toStringEx()}` : '') + '>'
   }
   public getContentString() {
     let content = UtilLib.plainText(this.obj.content)
@@ -149,7 +151,8 @@ export class Message implements Sayable {
 
   public from(contact?: Contact): Contact
   public from(id?: string): Contact
-  public from(contact?: Contact|string): Contact {
+  public from(): Contact
+  public from(contact?: Contact|string): Contact | null {
     if (contact) {
       if (contact instanceof Contact) {
         this.obj.from = contact.id
@@ -162,10 +165,11 @@ export class Message implements Sayable {
     return this.obj.from ? Contact.load(this.obj.from) : null
   }
 
-  public to(contact?: Contact): Contact
-  public to(room?: Room): Room
-  public to(id?: string): Contact|Room
-  public to(contact?: Contact|Room|string): Contact|Room {
+  public to(contact: Contact): Contact
+  public to(room: Room): Room
+  public to(id: string): Contact | Room|null
+  public to(): Contact | Room
+  public to(contact?: Contact|Room|string): Contact|Room|null {
     if (contact) {
       if (contact instanceof Contact || contact instanceof Room) {
         this.obj.to = contact.id
@@ -185,9 +189,10 @@ export class Message implements Sayable {
             : Contact.load(this.obj.to)
   }
 
-  public room(room?: Room): Room
-  public room(id?: string): Room
-  public room(room?: Room|string): Room {
+  public room(room: Room): Room
+  public room(id: string): Room|null
+  public room(): Room|null
+  public room(room?: Room|string): Room|null {
     if (room) {
       if (room instanceof Room) {
         this.obj.room = room.id
@@ -200,7 +205,7 @@ export class Message implements Sayable {
     return this.obj.room ? Room.load(this.obj.room) : null
   }
 
-  public content(content?: string) {
+  public content(content?: string): string {
     if (content) {
       this.obj.content = content
     }
@@ -220,6 +225,9 @@ export class Message implements Sayable {
       const to    = Contact.load(this.obj.to)
       const room  = this.obj.room ? Room.load(this.obj.room) : null
 
+      if (!from || !to) {
+        throw new Error('no `from` or no `to`')
+      }
       await from.ready()                // Contact from
       await to.ready()                  // Contact to
       if (room) { await room.ready() }  // Room member list
@@ -257,7 +265,7 @@ export class Message implements Sayable {
   }
   public dumpRaw() {
     console.error('======= dump raw message =======')
-    Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj[k]}`))
+    Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj && this.rawObj[k]}`))
   }
 
   public static async find(query) {
@@ -282,7 +290,10 @@ export class Message implements Sayable {
     log.verbose('Message', 'say(%s, %s)', content, replyTo)
 
     const m = new Message()
-    m.room(this.room())
+    const room = this.room()
+    if (room) {
+      m.room(room)
+    }
 
     if (!replyTo) {
       m.to(this.from())

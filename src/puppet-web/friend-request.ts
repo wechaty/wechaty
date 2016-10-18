@@ -47,7 +47,12 @@ class PuppetWebFriendRequest extends FriendRequest {
     }
     this.info       = info
 
-    this.contact    = Contact.load(info.UserName)
+    const contact   = Contact.load(info.UserName)
+    if (!contact) {
+      log.warn('PuppetWebFriendRequest', 'receive() no contact found for "%s"', info.UserName)
+      throw new Error('no contact')
+    }
+    this.contact    = contact
     this.hello      = info.Content
     this.ticket     = info.Ticket
     // ??? this.nick = info.NickName

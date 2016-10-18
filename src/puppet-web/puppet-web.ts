@@ -43,9 +43,9 @@ export class PuppetWeb extends Puppet {
 
   public browser: Browser
   public bridge:  Bridge
-  public server: Server
+  public server:  Server
 
-  public scan:    ScanInfo
+  public scan: ScanInfo | null
 
   private port: number
 
@@ -127,28 +127,28 @@ export class PuppetWeb extends Puppet {
     // return co.call(this, function* () {
     try {
 
-      if (this.bridge)  {
+      if (this.bridge)  { // TODO use StateMonitor
         await this.bridge.quit()
                         .catch(e => { // fail safe
                           log.warn('PuppetWeb', 'quit() bridge.quit() exception: %s', e.message)
                         })
         log.verbose('PuppetWeb', 'quit() bridge.quit() this.bridge = null')
-        this.bridge = null
+        // this.bridge = null
       } else { log.warn('PuppetWeb', 'quit() without a bridge') }
 
-      if (this.server) {
+      if (this.server) { // TODO use StateMonitor
         await this.server.quit()
-        this.server = null
+        // this.server = null
         log.verbose('PuppetWeb', 'quit() server.quit() this.server = null')
       } else { log.verbose('PuppetWeb', 'quit() without a server') }
 
-      if (this.browser) {
+      if (this.browser) { // TODO use StateMonitor
         await this.browser.quit()
                   .catch(e => { // fail safe
                     log.warn('PuppetWeb', 'quit() browser.quit() exception: %s', e.message)
                   })
         log.verbose('PuppetWeb', 'quit() server.quit() this.browser = null')
-        this.browser = null
+        // this.browser = null
       } else { log.warn('PuppetWeb', 'quit() without a browser') }
 
       // @deprecated 20161004
@@ -273,7 +273,7 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public self(message?: Message): boolean | Contact {
+  public self(message?: Message): boolean | Contact | null {
     if (!this.userId) {
       log.verbose('PuppetWeb', 'self() got no this.userId')
       return false
@@ -304,7 +304,7 @@ export class PuppetWeb extends Puppet {
     }
 
     log.silly('PuppetWeb', 'send() destination: %s, content: %s)'
-                          , room ? room.topic() : to.name()
+                          , room ? room.topic() : (to as Contact).name()
                           , content
     )
     return this.bridge.send(destination.id, content)
