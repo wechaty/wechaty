@@ -50,11 +50,22 @@ const PuppetWebFirer = {
 }
 
 const regexConfig = {
-  friendConfirm:  /^You have added (.+) as your WeChat contact. Start chatting!$/
+  friendConfirm: [
+      /^You have added (.+) as your WeChat contact. Start chatting!$/
+  ]
 
-  , roomJoin:     /^"?(.+?)"? invited "(.+)" to the group chat$/
-  , roomLeave:    /^You removed "(.+)" from the group chat$/
-  , roomTopic:    /^"?(.+?)"? changed the group name to "(.+)"$/
+  , roomJoin: [
+      /^"?(.+?)"? invited "(.+)" to the group chat$/
+    , /^"?(.+?)"?邀请"(.+)"加入了群聊$/
+  ]
+  , roomLeave: [
+      /^You removed "(.+)" from the group chat$/
+    , /^你将"(.+)"移出了群聊$/
+  ]
+  , roomTopic: [
+      /^"?(.+?)"? changed the group name to "(.+)"$/
+    , /^"?(.+?)"?修改群名为“(.+)”$/
+  ]
 }
 
 async function fireFriendRequest(m: Message) {
@@ -82,8 +93,10 @@ async function fireFriendRequest(m: Message) {
  * try to find FriendRequest Confirmation Message
  */
 function checkFriendConfirm(content) {
-  const re = regexConfig.friendConfirm
-  if (re.test(content)) {
+  const reList = regexConfig.friendConfirm
+  let found = false
+  reList.some(re => !!(found = re.test(content)))
+  if (found) {
     return true
   } else {
     return false
@@ -121,10 +134,11 @@ async function fireFriendConfirm(m: Message) {
 function checkRoomJoin(content: string): [string[], string] {
   log.verbose('PuppetWebFirer', 'checkRoomJoin()')
 
-  const re = regexConfig.roomJoin
+  const reList = regexConfig.roomJoin
 
-  const found = content.match(re)
-  if (!found) {
+  let found: string[]|null = []
+  reList.some(re => !!(found = content.match(re)))
+  if (!found || !found.length) {
     throw new Error('checkRoomJoin() not found')
   }
 
@@ -249,10 +263,11 @@ async function fireRoomJoin(m: Message): Promise<void> {
 }
 
 function checkRoomLeave(content: string): string|null {
-  const re = regexConfig.roomLeave
+  const reList = regexConfig.roomLeave
 
-  const found = content.match(re)
-  if (!found) {
+  let found: string[]|null = []
+  reList.some(re => !!(found = content.match(re)))
+  if (!found || !found.length) {
     return null
   }
   return found[1] // leaver
@@ -290,10 +305,11 @@ async function fireRoomLeave(m: Message) {
 }
 
 function checkRoomTopic(content: string): [string, string] {
-  const re = regexConfig.roomTopic
+  const reList = regexConfig.roomTopic
 
-  const found = content.match(re)
-  if (!found) {
+  let found: string[]|null = []
+  reList.some(re => !!(found = content.match(re)))
+  if (!found || !found.length) {
     throw new Error('checkRoomTopic() not found')
   }
   const [, changer, topic] = found

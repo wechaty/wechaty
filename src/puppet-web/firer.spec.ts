@@ -12,11 +12,7 @@
  */
 import { test }   from 'ava'
 
-// import Contact from '../contact'
-// import Message from '../message'
-
-// import FriendRequest  from './friend-request'
-import Firer          from './firer'
+import Firer      from './firer'
 
 test('Firer smoking test', t => {
 
@@ -56,6 +52,11 @@ test('Firer.checkRoomJoin', t => {
       , `凌`
       , ['庆次', '小桔妹']
     ]
+    , [
+      `你邀请"李佳芮"加入了群聊`
+      , '你'
+      , ['李佳芮']
+    ]
   ]
 
   let result
@@ -72,15 +73,23 @@ test('Firer.checkRoomJoin', t => {
 })
 
 test('Firer.checkRoomLeave', t => {
-  const data = [
-    `You removed "Bruce LEE" from the group chat`
-    , `Bruce LEE`
+  const contentList = [
+    [
+        `You removed "Bruce LEE" from the group chat`
+      , `Bruce LEE`
+    ]
+    , [
+      '你将"李佳芮"移出了群聊'
+      , '李佳芮'
+    ]
   ]
 
-  let leaver
-  leaver = Firer.checkRoomLeave(data[0])
-  t.truthy(leaver, 'should get leaver for leave message')
-  t.is(leaver, data[1], 'should get leaver name right')
+  let result
+  contentList.forEach(([content, leaver]) => {
+    result = Firer.checkRoomLeave(content)
+    t.truthy(result, 'should get leaver for leave message: ' + content)
+    t.is(result, leaver, 'should get leaver name right')
+  })
 
   t.throws(() => {
     Firer.checkRoomLeave('fafdsfsdfafa')
@@ -88,16 +97,29 @@ test('Firer.checkRoomLeave', t => {
 })
 
 test('Firer.checkRoomTopic', t => {
-  const data = [
-    `"李卓桓.PreAngel" changed the group name to "ding"`
-    , `李卓桓.PreAngel`
-    , `ding`
+  const contentList = [
+    [
+        `"李卓桓.PreAngel" changed the group name to "ding"`
+      , `李卓桓.PreAngel`
+      , `ding`
+    ]
+    , [
+      '"李佳芮"修改群名为“dong”'
+      , '李佳芮'
+      , 'dong'
+    ]
   ]
 
-  const result = Firer.checkRoomTopic(data[0])
-  t.truthy(result, 'should check topic right')
+  let result
+  contentList.forEach(([content, changer, topic]) => {
+    result = Firer.checkRoomTopic(content)
+    t.truthy(result, 'should check topic right for content: ' + content)
+    t.is(topic  , result[2], 'should get right topic')
+    t.is(changer, result[1], 'should get right changer')
+  })
 
-  const [topic, changer] = result as [string, string]
-  t.is(topic  , data[2], 'should get right topic')
-  t.is(changer, data[1], 'should get right changer')
+  t.throws(() => {
+    Firer.checkRoomTopic('fafdsfsdfafa')
+  }, 'should throw if message is not expected')
+
 })
