@@ -31,7 +31,7 @@ import log            from '../brolog-env'
 import FriendRequest  from './friend-request'
 
 /* tslint:disable:variable-name */
-const PuppetWebFirer = {
+export const PuppetWebFirer = {
   fireFriendConfirm
   , fireFriendRequest
 
@@ -52,6 +52,7 @@ const PuppetWebFirer = {
 const regexConfig = {
   friendConfirm: [
       /^You have added (.+) as your WeChat contact. Start chatting!$/
+    , /^你已添加了(.+)，现在可以开始聊天了。$/
   ]
 
   , roomJoin: [
@@ -316,7 +317,7 @@ function checkRoomTopic(content: string): [string, string] {
   return [topic, changer]
 }
 
-async function fireRoomTopic(m: Message) {
+async function fireRoomTopic(m: Message): Promise<void> {
   let  topic, changer
   try {
     [topic, changer] = checkRoomTopic(m.content())
@@ -344,18 +345,15 @@ async function fireRoomTopic(m: Message) {
     return
   }
 
-  // co.call(this, function* () {
   try {
     await changerContact.ready()
     await room.ready()
     this.emit('room-topic', room, topic, oldTopic, changerContact)
     room.emit('topic'           , topic, oldTopic, changerContact)
     room.refresh()
-  // }).catch(e => {
   } catch (e) {
     log.error('PuppetWebFirer', 'fireRoomTopic() co exception: %s', e.stack)
   }
 }
 
-// module.exports = PuppetWebFirer
 export default PuppetWebFirer

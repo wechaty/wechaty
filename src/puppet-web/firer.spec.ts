@@ -20,11 +20,23 @@ test('Firer smoking test', t => {
 })
 
 test('Firer.checkFriendConfirm', t => {
-  const content = 'You have added 李卓桓 as your WeChat contact. Start chatting!'
-  let result
+  const contentList = [
+    [
+        'You have added 李卓桓 as your WeChat contact. Start chatting!'
+      , '李卓桓'
+    ]
+    , [
+        '你已添加了李卓桓，现在可以开始聊天了。'
+      , '李卓桓'
+    ]
 
-  result = Firer.checkFriendConfirm(content)
-  t.truthy(result, 'should be truthy for confirm msg')
+  ]
+  let result: boolean
+
+  contentList.forEach((content, friend) => {
+    result = Firer.checkFriendConfirm(content)
+    t.truthy(result, 'should be truthy for confirm msg: ' + content)
+  })
 
   result = Firer.checkFriendConfirm('fsdfsdfasdfasdfadsa')
   t.falsy(result, 'should be falsy for other msg')
