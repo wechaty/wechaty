@@ -319,7 +319,6 @@ export class Browser extends EventEmitter {
        *
        */
       await this.clean()
-      log.silly('PuppetWebBrowser', 'quit() co() end')
 
     } catch (e) {
       // console.log(e)

@@ -133,7 +133,7 @@ async function fireFriendConfirm(m: Message) {
  *  "凌" invited "庆次、小桔妹" to the group chat
  */
 function checkRoomJoin(content: string): [string[], string] {
-  log.verbose('PuppetWebFirer', 'checkRoomJoin()')
+  log.verbose('PuppetWebFirer', 'checkRoomJoin(%s)', content)
 
   const reList = regexConfig.roomJoin
 
@@ -152,7 +152,6 @@ function checkRoomJoin(content: string): [string[], string] {
 }
 
 async function fireRoomJoin(m: Message): Promise<void> {
-  log.verbose('PuppetWebFirer', 'fireRoomJoin(%s)', m.content())
 
   const room = m.room()
   if (!room) {
