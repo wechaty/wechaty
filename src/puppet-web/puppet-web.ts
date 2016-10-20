@@ -266,7 +266,7 @@ export class PuppetWeb extends Puppet {
                 })
   }
 
-  public reset(reason?: string) {
+  public reset(reason?: string): void {
     log.verbose('PuppetWeb', 'reset(%s)', reason)
 
     if (this.browser) {

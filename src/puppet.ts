@@ -80,7 +80,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   // @deprecated
   public abstract reply(message: Message, reply): Promise<void>
 
-  public abstract reset(reason?: string): Promise<void>
+  public abstract reset(reason?: string): void
   public abstract logout(): Promise<void>
   public abstract quit(): Promise<void>
 
