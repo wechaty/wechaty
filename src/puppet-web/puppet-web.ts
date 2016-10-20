@@ -276,15 +276,16 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public self(message?: Message): boolean | Contact | null {
+  public self(message: Message): boolean {
     if (!this.userId) {
-      log.verbose('PuppetWeb', 'self() got no this.userId')
-      return false
+      log.warn('PuppetWeb', 'self() got no this.userId')
+      throw new Error('no message or from')
     }
-    if (message && message.from()) {
-      return this.userId === message.get('from')
+    if (!message || !message.from()) {
+      log.warn('PuppetWeb', 'self() got no message or from')
+      throw new Error('no message or from')
     }
-    return this.user
+    return this.userId === message.from().id
   }
 
   public send(message: Message) {

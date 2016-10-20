@@ -197,7 +197,7 @@ export class Contact implements Sayable {
     return Contact.pool[id]
   }
 
-  public say(content: string): Promise<any> {
+  public async say(content: string): Promise<void> {
     log.verbose('Contact', 'say(%s)', content)
 
     const wechaty = Wechaty.instance()
@@ -213,7 +213,8 @@ export class Contact implements Sayable {
 
     log.silly('Contact', 'say() from: %s to: %s content: %s', user.name(), this.name(), content)
 
-    return wechaty.send(m)
+    await wechaty.send(m)
+    return
   }
 
 }

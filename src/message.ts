@@ -152,7 +152,7 @@ export class Message implements Sayable {
   public from(contact?: Contact): Contact
   public from(id?: string): Contact
   public from(): Contact
-  public from(contact?: Contact|string): Contact | null {
+  public from(contact?: Contact|string): Contact {
     if (contact) {
       if (contact instanceof Contact) {
         this.obj.from = contact.id
@@ -162,14 +162,19 @@ export class Message implements Sayable {
         throw new Error('unsupport from param: ' + typeof contact)
       }
     }
-    return this.obj.from ? Contact.load(this.obj.from) : null
+
+    const loadedContact = Contact.load(this.obj.from)
+    if (!loadedContact) {
+      throw new Error('no from')
+    }
+    return loadedContact
   }
 
   public to(contact: Contact): Contact
   public to(room: Room): Room
-  public to(id: string): Contact | Room|null
+  public to(id: string): Contact | Room
   public to(): Contact | Room
-  public to(contact?: Contact|Room|string): Contact|Room|null {
+  public to(contact?: Contact|Room|string): Contact|Room {
     if (contact) {
       if (contact instanceof Contact || contact instanceof Room) {
         this.obj.to = contact.id
@@ -179,20 +184,21 @@ export class Message implements Sayable {
         throw new Error('unsupport to param ' + typeof contact)
       }
     }
-    if (!this.obj.to) {
-      return null
-    }
 
     // FIXME: better to identify a room id?
-    return /^@@/.test(this.obj.to)
+    const loadedInstance = /^@@/.test(this.obj.to)
             ? Room.load(this.obj.to)
             : Contact.load(this.obj.to)
+    if (!loadedInstance) {
+      throw new Error('no to')
+    }
+    return loadedInstance
   }
 
   public room(room: Room): Room
-  public room(id: string): Room|null
-  public room(): Room|null
-  public room(room?: Room|string): Room|null {
+  public room(id: string): Room
+  public room(): Room
+  public room(room?: Room|string): Room {
     if (room) {
       if (room instanceof Room) {
         this.obj.room = room.id
@@ -202,7 +208,15 @@ export class Message implements Sayable {
         throw new Error('unsupport room param ' + typeof room)
       }
     }
-    return this.obj.room ? Room.load(this.obj.room) : null
+
+    if (!this.obj.room) {
+      throw new Error('no room')
+    }
+    const loadedRoom = Room.load(this.obj.room)
+    if (!loadedRoom) {
+      throw new Error('can not load room')
+    }
+    return loadedRoom
   }
 
   public content(content?: string): string {

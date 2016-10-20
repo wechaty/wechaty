@@ -141,15 +141,16 @@ export class Wechaty extends EventEmitter implements Sayable {
     return this.puppet.user
   }
 
-  public reset(reason?: string) {
+  public async reset(reason?: string): Promise<void> {
     log.verbose('Wechaty', 'reset() because %s', reason)
     if (!this.puppet) {
       throw new Error('no puppet')
     }
-    return this.puppet.reset(reason)
+    await this.puppet.reset(reason)
+    return
   }
 
-  public async init(): Promise<Wechaty> {
+  public async init(): Promise<void> {
     log.info('Wechaty', 'v%s initializing...' , this.version())
     log.verbose('Wechaty', 'puppet: %s'       , this.setting.type)
     log.verbose('Wechaty', 'head: %s'         , this.setting.head)
@@ -158,7 +159,7 @@ export class Wechaty extends EventEmitter implements Sayable {
 
     if (this.inited) {
       log.error('Wechaty', 'init() already inited. return and do nothing.')
-      return Promise.resolve(this)
+      return
     }
 
     try {
@@ -168,7 +169,7 @@ export class Wechaty extends EventEmitter implements Sayable {
       log.error('Wechaty', 'init() exception: %s', e && e.message)
       throw e
     }
-    return this
+    return
   }
 
   public on(event: 'error'      , listener: (this: Sayable, error: Error) => void): this
@@ -200,7 +201,7 @@ export class Wechaty extends EventEmitter implements Sayable {
     return this
   }
 
-  public initPuppet() {
+  public async initPuppet(): Promise<void> {
     let puppet: Puppet
     switch (this.setting.type) {
       case 'web':
@@ -247,15 +248,16 @@ export class Wechaty extends EventEmitter implements Sayable {
     // set puppet instance to Wechaty Static variable, for using by Contact/Room/Message/FriendRequest etc.
     Config.puppetInstance(puppet)
 
-    return puppet.init()
+    await puppet.init()
+    return
   }
 
-  public quit() {
+  public async quit(): Promise<void> {
     log.verbose('Wechaty', 'quit()')
 
     if (!this.puppet) {
       log.warn('Wechaty', 'quit() without this.puppet')
-      return Promise.resolve()
+      return
     }
 
     const puppetBeforeDie = this.puppet
@@ -263,47 +265,51 @@ export class Wechaty extends EventEmitter implements Sayable {
     Config.puppetInstance(null)
     this.inited = false
 
-    return puppetBeforeDie.quit()
-    .catch(e => {
-      log.error('Wechaty', 'quit() exception: %s', e.message)
-      throw e
-    })
+    await puppetBeforeDie.quit()
+                        .catch(e => {
+                          log.error('Wechaty', 'quit() exception: %s', e.message)
+                          throw e
+                        })
+    return
   }
 
-  public logout()  {
+  public async logout(): Promise<void>  {
     if (!this.puppet) {
       throw new Error('no puppet')
     }
-    return this.puppet.logout()
-                      .catch(e => {
-                        log.error('Wechaty', 'logout() exception: %s', e.message)
-                        throw e
-                      })
+    await this.puppet.logout()
+                    .catch(e => {
+                      log.error('Wechaty', 'logout() exception: %s', e.message)
+                      throw e
+                    })
+    return
   }
 
-  public self(message?: Message): boolean | Contact | null {
+  public self(message: Message): boolean {
     if (!this.puppet) {
       throw new Error('no puppet')
     }
     return this.puppet.self(message)
   }
 
-  public send(message: Message): Promise<any> {
+  public async send(message: Message): Promise<void> {
     if (!this.puppet) {
       throw new Error('no puppet')
     }
-    return this.puppet.send(message)
+    await this.puppet.send(message)
                       .catch(e => {
                         log.error('Wechaty', 'send() exception: %s', e.message)
                         throw e
                       })
+    return
   }
 
-  public say(content: string) {
+  public async say(content: string): Promise<void> {
     if (!this.puppet) {
       throw new Error('no puppet')
     }
-    return this.puppet.say(content)
+    await this.puppet.say(content)
+    return
   }
 
   /**

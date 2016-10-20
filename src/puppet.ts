@@ -65,7 +65,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   }
 
   public abstract async init(): Promise<this>
-  public abstract self(message?: Message): boolean | Contact | null
+  public abstract self(message?: Message): boolean
 
   // public user(contact?: Contact) {
   //   if (contact) {
@@ -74,15 +74,16 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   //   return this._user
   // }
 
-  public abstract send(message: Message): Promise<any>
-  public abstract say(content: string)
+  public abstract send(message: Message): Promise<void>
+  public abstract say(content: string): Promise<void>
 
   // @deprecated
-  public abstract reply(message: Message, reply): Promise<any>
+  public abstract reply(message: Message, reply): Promise<void>
 
-  public abstract reset(reason?: string)
-  public abstract logout(): Promise<any>
-  public abstract quit(): Promise<any>
+  public abstract reset(reason?: string): Promise<void>
+  public abstract logout(): Promise<void>
+  public abstract quit(): Promise<void>
+
   public abstract ding(): Promise<string>
 
   /**
