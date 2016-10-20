@@ -41,7 +41,7 @@ export interface ConfigSetting {
   puppetInstance(instance: Puppet): Puppet
   puppetInstance(instance?: Puppet | null): Puppet | void
 
-  isDocker(): string
+  isDocker: boolean
 
 }
 /* tslint:disable:variable-name */
