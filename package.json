@@ -39,8 +39,9 @@
     "url": "git+https://github.com/wechaty/wechaty.git"
   },
   "bin": {
-    "wechaty-client": "bin/client.js",
-    "wechaty-version": "bin/version.js"
+    "wechaty-client": "bin/client.ts",
+    "wechaty-doctor": "bin/doctor.ts",
+    "wechaty-version": "bin/version.ts"
   },
   "keywords": [
     "wechat",
