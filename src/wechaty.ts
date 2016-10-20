@@ -134,7 +134,12 @@ export class Wechaty extends EventEmitter implements Sayable {
     return this.npmVersion
   }
 
-  public user(): Contact | null { return this.puppet && this.puppet.user }
+  public user(): Contact {
+    if (!this.puppet || !this.puppet.user) {
+      throw new Error('no user')
+    }
+    return this.puppet.user
+  }
 
   public reset(reason?: string) {
     log.verbose('Wechaty', 'reset() because %s', reason)
