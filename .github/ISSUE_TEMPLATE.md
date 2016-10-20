@@ -1,4 +1,4 @@
-### Paste `npm run doctor` output
+### Please run `npm run doctor` and paste the output here 
 
 
 ### Expected behavior
