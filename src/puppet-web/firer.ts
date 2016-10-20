@@ -154,7 +154,7 @@ function checkRoomJoin(content: string): [string[], string] {
 async function fireRoomJoin(m: Message): Promise<void> {
   log.verbose('PuppetWebFirer', 'fireRoomJoin(%s)', m.content())
 
-  const room    = m.room()
+  const room = m.room()
   if (!room) {
     log.warn('PuppetWebFirer', 'fireRoomJoin() `room` not found')
     return
@@ -166,6 +166,7 @@ async function fireRoomJoin(m: Message): Promise<void> {
   try {
     [inviteeList, inviter] = checkRoomJoin(content)
   } catch (e) {
+    log.silly('PuppetWebFirer', 'fireRoomJoin() "%s" is not a join message', content)
     // not a room join message
     return
   }
@@ -178,7 +179,7 @@ async function fireRoomJoin(m: Message): Promise<void> {
   let inviteeContactList: Contact[] = []
 
   try {
-    if (inviter === "You've") {
+    if (inviter === "You've" || inviter === '你') {
       inviterContact = Contact.load(this.userId)
     }
 
@@ -334,7 +335,7 @@ async function fireRoomTopic(m: Message): Promise<void> {
   const oldTopic = room.topic()
 
   let changerContact: Contact | null
-  if (/^You$/.test(changer)) {
+  if (/^You$/.test(changer) || /^你$/.test(changer)) {
     changerContact = Contact.load(this.userId)
   } else {
     changerContact = room.member(changer)
