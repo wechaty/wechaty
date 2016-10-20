@@ -99,7 +99,7 @@ export class Wechaty extends EventEmitter implements Sayable {
   public toString() { return 'Class Wechaty(' + this.setting.type + ')'}
 
   public version(forceNpm = false) {
-    const dotGitPath  = path.join(__dirname, '..', '.git')
+    const dotGitPath  = path.join(__dirname, '..', '.git') // `/src/../.git`
     const gitLogCmd   = 'git'
     const gitLogArgs  = ['log', '--oneline', '-1']
 
@@ -110,7 +110,7 @@ export class Wechaty extends EventEmitter implements Sayable {
          * This throws if any accessibility checks fail, and does nothing otherwise.
          */
         // fs.accessSync(dotGitPath, fs.F_OK)
-        fs.statSync(dotGitPath)
+        fs.statSync(dotGitPath) // .isDirectory()
 
         const ss = require('child_process')
                     .spawnSync(gitLogCmd, gitLogArgs, { cwd:  __dirname })
