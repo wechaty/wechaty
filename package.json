@@ -17,6 +17,7 @@
   "scripts": {
     "ts-node": "ts-node",
     "build": "tsc",
+    "doctor": "ts-node bin/doctor",
     "clean": "rm -fr dist/*",
     "lint": "npm run eslint && npm run tslint",
     "eslint": "eslint \"{bin,example,src,test}/**/*.js\"",
