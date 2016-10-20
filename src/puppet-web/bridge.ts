@@ -16,7 +16,7 @@ import log        from '../brolog-env'
 
 import PuppetWeb  from './puppet-web'
 
-class Bridge {
+export class Bridge {
 
   constructor(
       private puppet: PuppetWeb
@@ -373,7 +373,6 @@ class Bridge {
   }
 }
 
-// module.exports = Bridge
 export default Bridge
 
 /* tslint:disable:jsdoc-format */

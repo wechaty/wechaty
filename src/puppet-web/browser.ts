@@ -41,7 +41,7 @@ export type DriverCookie = {
   expiry: number
 }
 
-class Browser extends EventEmitter {
+export class Browser extends EventEmitter {
 
   private _targetState: string
   private _currentState: string
