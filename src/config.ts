@@ -98,7 +98,7 @@ function isWechatyDocker() {
   }
 
   const cgroup = '/proc/1/cgroup'
-  try       { fs.statSync(cgroup) // .isFile() }
+  try       { fs.statSync(cgroup) /* .isFile() */ }
   catch (e) { return false }
 
   const line = execSync(`sort -n ${cgroup} | head -1`)
