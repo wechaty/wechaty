@@ -462,7 +462,7 @@ wechaty.init()
 }
 ```
 
-### Wechaty.self(): boolean
+### Wechaty.self(message: Message): boolean
 Check if message is send by self.
 
 Return `true` for send from self, `false` for send from others.

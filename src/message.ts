@@ -197,8 +197,8 @@ export class Message implements Sayable {
 
   public room(room: Room): Room
   public room(id: string): Room
-  public room(): Room
-  public room(room?: Room|string): Room {
+  public room(): Room|null
+  public room(room?: Room|string): Room|null {
     if (room) {
       if (room instanceof Room) {
         this.obj.room = room.id
@@ -208,15 +208,10 @@ export class Message implements Sayable {
         throw new Error('unsupport room param ' + typeof room)
       }
     }
-
     if (!this.obj.room) {
-      throw new Error('no room')
+      return null
     }
-    const loadedRoom = Room.load(this.obj.room)
-    if (!loadedRoom) {
-      throw new Error('can not load room')
-    }
-    return loadedRoom
+    return Room.load(this.obj.room)
   }
 
   public content(content?: string): string {
