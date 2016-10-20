@@ -8,19 +8,13 @@
  * https://github.com/zixia/wechaty
  *
  */
-import Bridge     from './bridge'
-import Browser    from './browser'
-import Event      from './event'
-import PuppetWeb  from './puppet-web'
-import Server     from './server'
-import Watchdog   from './watchdog'
+export { Bridge }     from './bridge'
+export { Browser }    from './browser'
+export { PuppetWebEvent as Event }      from './event'
+export { Server }     from './server'
+export { Watchdog }   from './watchdog'
 
+import PuppetWeb      from './puppet-web'
+
+export { PuppetWeb }
 export default PuppetWeb
-export {
-    Bridge
-  , Browser
-  , Event
-  , PuppetWeb
-  , Server
-  , Watchdog
-}

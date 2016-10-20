@@ -13,8 +13,6 @@
  * Class PuppetWeb
  *
  */
-// const co    = require('co')
-
 import {
     WatchdogFood
   , WatchdogFoodName
@@ -24,7 +22,7 @@ import PuppetWeb  from './puppet-web'
 import Event      from './event'
 
 /* tslint:disable:variable-name */
-const Watchdog = {
+export const Watchdog = {
   onFeed
 }
 
@@ -170,5 +168,4 @@ function monitorScan(this: PuppetWeb, type: WatchdogFoodName) {
   }
 }
 
-// module.exports = Watchdog
 export default Watchdog

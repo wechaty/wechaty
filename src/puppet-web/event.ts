@@ -30,7 +30,7 @@ import Firer        from './firer'
 import PuppetWeb    from './puppet-web'
 
 /* tslint:disable:variable-name */
-const PuppetWebEvent = {
+export const PuppetWebEvent = {
     onBrowserDead
 
   , onServerLogin

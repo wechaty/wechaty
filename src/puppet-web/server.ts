@@ -18,7 +18,7 @@ import { EventEmitter } from 'events'
 
 import log     from '../brolog-env'
 
-class Server extends EventEmitter {
+export class Server extends EventEmitter {
   private express:      express.Application
   private httpsServer:  https.Server | null
 
@@ -181,5 +181,4 @@ class Server extends EventEmitter {
   }
 }
 
-// module.exports = Server
 export default Server

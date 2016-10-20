@@ -713,7 +713,8 @@ npm test
 ## v0.5.0 master (2016/10) The First Typescript Version
 1. [#40](https://github.com/wechaty/wechaty/issues/40) Converted to Typescript (2016/10/11) 
 1. [#41](https://github.com/wechaty/wechaty/issues/41) Sayablization: Make Wechaty/Contact/Room `Sayable`, and all `this` inside wechaty event listeners are `Sayable` too.
-1. BREAKING CHANGE: global event `scan` listener arguments changed from 1 to 2: now is `function(this: Sayable, url: string, code: number)` instead of `function({url, code})` before. 
+1. BREAKING CHANGE: global event `scan` listener arguments changed from 1 to 2: now is `function(this: Sayable, url: string, code: number)` instead of `function({url, code})` before.  
+1. add `npm run doctor` to diagnose wechaty and output useful debug information
 
 ## [v0.4.0](https://github.com/wechaty/wechaty/releases/tag/v0.4.0) (2016/10/9) The Latest Javascript Version
 1. [#32](https://github.com/wechaty/wechaty/issues/32) Extend Room Class with:
@@ -835,6 +836,9 @@ Github Issue <https://github.com/wechaty/wechaty/issues>
 
 ### KDE
 1. [WeChat KDE frontend 微信 KDE 前端](https://github.com/xiangzhai/qwx)
+
+### Android
+1. [反向weixinxxx.apk](https://github.com/xiangzhai/qwx/tree/android)
 
 ### dotNET
 1. [WeChat.NET](https://github.com/sherlockchou86/WeChat.NET) WeChat.NET client based on web wechat

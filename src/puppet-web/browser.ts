@@ -41,7 +41,7 @@ export type DriverCookie = {
   expiry: number
 }
 
-class Browser extends EventEmitter {
+export class Browser extends EventEmitter {
 
   private _targetState: string
   private _currentState: string
@@ -319,7 +319,6 @@ class Browser extends EventEmitter {
        *
        */
       await this.clean()
-      log.silly('PuppetWebBrowser', 'quit() co() end')
 
     } catch (e) {
       // console.log(e)
@@ -537,7 +536,8 @@ class Browser extends EventEmitter {
     if (forceReason) {
       log.verbose('PuppetWebBrowser', 'dead(forceReason: %s)', forceReason)
     } else {
-      log.silly('PuppetWebBrowser', 'dead() checking ... ')
+      // too noisy!
+      // log.silly('PuppetWebBrowser', 'dead() checking ... ')
     }
 
     let msg
