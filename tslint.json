@@ -20,7 +20,7 @@
       "spaces"
     ],
     "interface-name": false,
-    "jsdoc-format": true,
+    "jsdoc-format": false,
     "label-position": true,
     "label-undefined": true,
     "max-line-length": [
@@ -54,7 +54,7 @@
     "no-unused-variable": true,
     "no-use-before-declare": true,
     "no-var-keyword": true,
-    "no-var-requires": true,
+    "no-var-requires": false,
     "object-literal-sort-keys": false,
     "one-line": [
       true,

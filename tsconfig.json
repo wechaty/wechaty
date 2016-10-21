@@ -24,7 +24,7 @@
   ]
   , "include": [
        "bin/*.ts"
-     , "example/*.ts"
+     , "example/**/*.ts"
      , "src/**/*.ts"
      , "test/**/*.spec.ts"
   ]

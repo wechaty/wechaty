@@ -285,7 +285,12 @@ export class Wechaty extends EventEmitter implements Sayable {
     return
   }
 
+  /**
+   * @deprecated
+   * use Message.self() instead
+   */
   public self(message: Message): boolean {
+    log.warn('Wechaty', 'self() method deprecated. use Message.self() instead')
     if (!this.puppet) {
       throw new Error('no puppet')
     }

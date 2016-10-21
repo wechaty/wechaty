@@ -276,7 +276,13 @@ export class PuppetWeb extends Puppet {
     }
   }
 
+  /**
+   * @deprecated
+   * use Message.self() instead
+   */
   public self(message: Message): boolean {
+    log.warn('PuppetWeb', 'self() method deprecated. use Message.self() instead')
+
     if (!this.userId) {
       log.warn('PuppetWeb', 'self() got no this.userId')
       throw new Error('no message or from')

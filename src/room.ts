@@ -366,7 +366,7 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   public static findAll(query: RoomQueryFilter): Promise<Room[]> {
-    log.silly('Room', 'findAll({ topic: %s })', query.topic)
+    log.verbose('Room', 'findAll({ topic: %s })', query.topic)
 
     const topic = query.topic
 
@@ -393,21 +393,14 @@ export class Room extends EventEmitter implements Sayable {
                   })
   }
 
-  public static find(query: RoomQueryFilter): Promise<Room> {
+  public static async find(query: RoomQueryFilter): Promise<Room> {
     log.verbose('Room', 'find({ topic: %s })', query.topic)
 
-    return Room.findAll(query)
-                .then(roomList => {
-                  if (roomList && roomList.length > 0) {
-                    return roomList[0]
-                  }
-                  return null
-                })
-                .catch(e => {
-                  log.error('Room', 'find() rejected: %s', e.message)
-                  return null // fail safe
-                  // throw e
-                })
+    const roomList = await Room.findAll(query)
+    if (!roomList || roomList.length < 1) {
+      throw new Error('no room found')
+    }
+    return roomList[0]
   }
 
   public static load(id: string): Room | null {

@@ -139,8 +139,21 @@ export class Contact implements Sayable {
     Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj && this.obj[k]}`))
   }
 
+  public self(): boolean {
+    const userId = Config.puppetInstance()
+                          .userId
+
+    const selfId = this.id
+
+    if (!userId || !selfId) {
+      throw new Error('no user or no self id')
+    }
+
+    return selfId === userId
+  }
+
   public static findAll(query: ContactQueryFilter): Promise<Contact[]> {
-    log.silly('Cotnact', 'findAll({ name: %s })', query.name)
+    log.verbose('Cotnact', 'findAll({ name: %s })', query.name)
 
     const name = query.name
 
@@ -170,20 +183,14 @@ export class Contact implements Sayable {
                   })
   }
 
-  public static find(query: ContactQueryFilter): Promise<Contact> {
+  public static async find(query: ContactQueryFilter): Promise<Contact> {
     log.verbose('Contact', 'find(%s)', query.name)
 
-    return Contact.findAll(query)
-                  .then(contactList => {
-                    if (contactList && contactList.length > 0) {
-                      return contactList[0]
-                    }
-                    return null
-                  })
-                  .catch(e => {
-                    log.error('Contact', 'find() rejected: %s', e.message)
-                    return null // fail safe
-                  })
+    const contactList = await Contact.findAll(query)
+    if (!contactList || contactList.length < 1) {
+      throw new Error('find not found any contact')
+    }
+    return contactList[0]
   }
 
   public static load(id: string): Contact | null {

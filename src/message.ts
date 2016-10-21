@@ -225,6 +225,18 @@ export class Message implements Sayable {
   public typeEx()  { return Message.TYPE[this.obj.type] }
   public count()   { return this._counter }
 
+  public self(): boolean {
+    const userId = Config.puppetInstance()
+                        .userId
+
+    const fromId = this.obj.id
+    if (!userId || !fromId) {
+      throw new Error('no user or no from')
+    }
+
+    return fromId === userId
+  }
+
   public async ready(): Promise<this> {
     log.silly('Message', 'ready()')
 

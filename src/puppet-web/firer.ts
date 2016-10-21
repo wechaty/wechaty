@@ -193,7 +193,6 @@ async function fireRoomJoin(m: Message): Promise<void> {
       log.silly('PuppetWebFirer', 'fireRoomJoin() retryPromise() attempt %d with timeout %d', attempt, timeout)
 
       await room.refresh()
-                  // .then(_ => {
       let iDone, allDone = true
 
       for (let i in inviteeList) {
@@ -201,7 +200,7 @@ async function fireRoomJoin(m: Message): Promise<void> {
         if (!iDone) {
           let c = room.member(inviteeList[i])
           if (c) {
-            inviteeContactList[i] = c
+            inviteeContactList[i] = await c.ready()
           } else {
             allDone = false
           }
