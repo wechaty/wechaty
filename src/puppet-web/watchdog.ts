@@ -13,6 +13,8 @@
  * Class PuppetWeb
  *
  */
+import * as os from 'os'
+
 import {
     WatchdogFood
   , WatchdogFoodName
@@ -65,6 +67,7 @@ function onFeed(food: WatchdogFood) {
 
   monitorScan.call(this, food.type)
   autoSaveSession.call(this)
+  memoryCheck.call(this)
 
   switch (food.type) {
     case 'POISON':
@@ -124,6 +127,10 @@ function watchDogReset(timeout, lastFeed) {
 function autoSaveSession(this: PuppetWeb, force = false) {
   log.silly('PuppetWebWatchdog', 'autoSaveSession()')
 
+  if (!this.userId) {
+    return
+  }
+
   if (force) {
     this.watchDogLastSaveSession = 0 // 0 will cause save session right now
   }
@@ -138,6 +145,18 @@ function autoSaveSession(this: PuppetWeb, force = false) {
   }
 }
 
+function memoryCheck(this: PuppetWeb, minMegabyte: number = 64) {
+  const freeMegabyte = Math.floor(os.freemem() / 1024 / 1024)
+  log.silly('PuppetWebWatchdog', 'memoryCheck() free: %d MB, require: %d MB'
+                                , freeMegabyte, minMegabyte)
+
+  if (freeMegabyte < minMegabyte) {
+    const e = new Error(`memory not enough: free ${freeMegabyte} < require ${minMegabyte} MB`)
+    log.warn('PuppetWebWatchdog', 'memoryCheck() %s', e.message)
+    this.emit('error', e)
+  }
+
+}
 /**
  *
  * Deal with SCAN events
