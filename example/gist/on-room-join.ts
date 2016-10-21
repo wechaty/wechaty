@@ -17,6 +17,7 @@ export default async function onRoomJoin(
      * 从这里开始修改 vvvvvvvvvvvv
      *
      */
+
     if (room.topic() !== 'ding') {
       return
     }
@@ -39,7 +40,10 @@ export default async function onRoomJoin(
      *
      *********************************************/
 
- } catch (e) {
+  } catch (e) {
     console.log(e)
   }
+
+  return
+
 }

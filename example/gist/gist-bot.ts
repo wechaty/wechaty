@@ -29,7 +29,10 @@ console.log(welcome)
 Wechaty.instance({ profile: Config.DEFAULT_PROFILE })
 .on('error'   , error       => log.info('Bot', 'error: %s', error))
 .on('scan'    , (url, code) => log.info('Bot', `Use Wechat to Scan QR Code in url to login: ${code}\n${url}`))
-.on('login'	  , user        => log.info('Bot', `${user.name()} logined`))
+.on('login'	  , function (this, user) {
+  log.info('Bot', `${user.name()} logined`)
+  this.say(`wechaty logined`)
+})
 .on('logout'	, user        => log.info('Bot', `${user.name()} logouted`))
 
 .on('message',    onMessage)
