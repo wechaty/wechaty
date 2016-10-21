@@ -270,6 +270,10 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   public topic(newTopic?: string): string {
+    if (!this.isReady()) {
+      throw new Error('room not ready')
+    }
+
     if (newTopic) {
       log.verbose('Room', 'topic(%s)', newTopic)
     }
