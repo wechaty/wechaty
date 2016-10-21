@@ -44,6 +44,8 @@ The last Javascript version is: [v0.4.0](https://github.com/wechaty/wechaty/rele
 
 > @Jarvis : 目前用过的最好的微信开发库 [link](http://weibo.com/3296245513/Ec4iNp9Ld?type=comment)
 
+> @naishstar : thanks for great SDK [link](https://github.com/wechaty/wechaty/issues/57)
+
 # Examples
 Wechaty is dead easy to use: 7 lines javascript for your wechat bot.
 
