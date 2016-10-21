@@ -200,12 +200,22 @@ export class Browser extends EventEmitter {
   private getChromeDriver(): WebDriver {
     log.verbose('PuppetWebBrowser', 'getChromeDriver()')
 
+    /**
+     * http://stackoverflow.com/a/27733960/1123955
+     * issue #56
+     */
+    const chrome = require('selenium-webdriver/chrome')
+    const path = require('chromedriver').path
+
+    const service = new chrome.ServiceBuilder(path).build()
+    chrome.setDefaultService(service)
+
     const options = {
       args: ['--no-sandbox']  // issue #26 for run inside docker
-      , binary: ''  // XXX is it ok?
+      // , binary: require('chromedriver').path
     }
     if (Config.isDocker) {
-      options.binary = Config.CMD_CHROMIUM
+      options['binary'] = Config.CMD_CHROMIUM
     }
 
     const customChrome = Capabilities.chrome()
