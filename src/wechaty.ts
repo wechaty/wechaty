@@ -173,7 +173,7 @@ export class Wechaty extends EventEmitter implements Sayable {
   }
 
   public on(event: 'error'      , listener: (this: Sayable, error: Error) => void): this
-  public on(event: 'friend'     , listener: (this: Sayable, friend: Contact, request: FriendRequest) => void): this
+  public on(event: 'friend'     , listener: (this: Sayable, friend: Contact, request?: FriendRequest) => void): this
   public on(event: 'heartbeat'  , listener: (this: Sayable, data: any) => void): this
   public on(event: 'logout'     , listener: (this: Sayable, user: Contact) => void): this
   public on(event: 'login'      , listener: (this: Sayable, user: Contact) => void): this
