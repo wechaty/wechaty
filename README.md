@@ -23,14 +23,14 @@ Details: https://github.com/wechaty/wechaty/issues/40
 + on 12th Oct 2016
 ```
 
-VSCode is recommended for typescript because we can get benifit of [intelligent code completion, parameter info, and member lists](https://code.visualstudio.com/docs/languages/javascript).
+[VSCode](https://code.visualstudio.com/) is recommended for typescript because we can get benifit of [intelligent code completion, parameter info, and member lists](https://code.visualstudio.com/docs/languages/javascript).
 
 The last Javascript version is: [v0.4.0](https://github.com/wechaty/wechaty/releases/tag/v0.4.0) (2016/10/9) , or install v0.4 by `npm install wechaty`.
 
 ### Benifits from Typescript
 
 - [Why we decided to move from plain JavaScript to TypeScript for Babylon.js](https://www.eternalcoding.com/?p=103)
-- [Migrating from JavaScript](www.typescriptlang.org/docs/handbook/migrating-from-javascript.html)
+- [Migrating from JavaScript](https://www.typescriptlang.org/docs/handbook/migrating-from-javascript.html)
 
 ## Voice of the Developer
 
