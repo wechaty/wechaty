@@ -1,4 +1,7 @@
-import Config         from './src/config'
+import {
+    Config
+  , Sayable
+}                     from './src/config'
 import Contact        from './src/contact'
 import FriendRequest  from './src/friend-request'
 import IoClient       from './src/io-client'
@@ -23,6 +26,7 @@ export {
   , Puppet
   , PuppetWeb
   , Room
+  , Sayable
   , UtilLib
   , Wechaty
   , log // for convenionce use npmlog with environment variable LEVEL

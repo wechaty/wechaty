@@ -220,26 +220,28 @@ export class Room extends EventEmitter implements Sayable {
     Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj && this.obj[k]}`))
   }
 
-  public add(contact: Contact): Promise<any> {
+  public async add(contact: Contact): Promise<any> {
     log.verbose('Room', 'add(%s)', contact)
 
     if (!contact) {
       throw new Error('contact not found')
     }
 
-    return Config.puppetInstance()
-                  .roomAdd(this, contact)
+    await Config.puppetInstance()
+                .roomAdd(this, contact)
+    return
   }
 
-  public del(contact: Contact): Promise<number> {
+  public async del(contact: Contact): Promise<number> {
     log.verbose('Room', 'del(%s)', contact.name())
 
     if (!contact) {
       throw new Error('contact not found')
     }
-    return Config.puppetInstance()
+    const n = await Config.puppetInstance()
                   .roomDel(this, contact)
                   .then(_ => this.delLocal(contact))
+    return n
   }
 
   // @private
@@ -404,7 +406,7 @@ export class Room extends EventEmitter implements Sayable {
     if (!roomList || roomList.length < 1) {
       throw new Error('no room found')
     }
-    return roomList[0]
+    return roomList[0].ready()
   }
 
   public static load(id: string): Room | null {

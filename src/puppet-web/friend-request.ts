@@ -76,7 +76,7 @@ class PuppetWebFriendRequest extends FriendRequest {
     this.type     = 'confirm'
   }
 
-  public send(contact: Contact, hello = 'Hi'): Promise<any> {
+  public async send(contact: Contact, hello = 'Hi'): Promise<void> {
     log.verbose('PuppetWebFriendRequest', 'send(%s)', contact)
 
     if (!contact) {
@@ -89,11 +89,12 @@ class PuppetWebFriendRequest extends FriendRequest {
       this.hello = hello
     }
 
-    return Config.puppetInstance()
-                  .friendRequestSend(contact, hello)
+    await Config.puppetInstance()
+                .friendRequestSend(contact, hello)
+    return
   }
 
-  public async accept(): Promise<any> {
+  public async accept(): Promise<void> {
     log.verbose('FriendRequest', 'accept() %s', this.contact)
 
     if (this.type !== 'receive') {

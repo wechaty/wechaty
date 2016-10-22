@@ -25,8 +25,8 @@ abstract class FriendRequest {
     }
   }
 
-  public abstract send(contact: Contact, hello: string): void
-  public abstract accept(): void
+  public abstract async send(contact: Contact, hello: string): Promise<void>
+  public abstract async accept(): Promise<void>
 
 }
 

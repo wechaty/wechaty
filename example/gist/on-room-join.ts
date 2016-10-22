@@ -1,17 +1,19 @@
 import {
     Contact
   , Room
+  , Sayable
 } from '../../'
 
 const arrify = require('arrify')
 
 export default async function onRoomJoin(
-    room: Room
+    this: Sayable
+  , room: Room
   , invitee: Contact|Contact[]
   , inviter: Contact
 ): Promise<void> {
   try {
-
+    const inviteeName = arrify(invitee).map(c => c.name()).join(', ')
     /********************************************
      *
      * 从这里开始修改 vvvvvvvvvvvv
@@ -19,11 +21,17 @@ export default async function onRoomJoin(
      */
 
     if (room.topic() !== 'ding') {
+      this.say('Room ' + room.topic()
+            + ' got new memeber ' + inviteeName
+            + ' invited by ' + inviter.name()
+      )
       return
     }
 
-    if (inviter.self()) {
-      room.say('Welcome to my room: ' + arrify(invitee).join(', '))
+    const inviterIsMyself = inviter.self()
+
+    if (inviterIsMyself) {
+      room.say('Welcome to my room: ' + inviteeName)
       return
     }
 
