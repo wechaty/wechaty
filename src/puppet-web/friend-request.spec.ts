@@ -35,10 +35,10 @@ test('PuppetWebFriendRequest.confirm smoking test', t => {
   const rawObj = JSON.parse(rawMessageData)
   const m = new Message(rawObj)
 
-  t.true(/^You have added (.+) as your WeChat contact. Start chatting!$/.test(m.get('content')), 'should match confirm message')
+  t.true(/^You have added (.+) as your WeChat contact. Start chatting!$/.test(m.content()), 'should match confirm message')
 
   const fr = new PuppetWebFriendRequest()
-  const contact = Contact.load(m.get('from'))
+  const contact = m.from()
   fr.confirm(contact || new Contact('xx'))
 
   t.true(fr.contact instanceof Contact, 'should have a Contact instance')

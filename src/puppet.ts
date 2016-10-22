@@ -1,5 +1,5 @@
 /**
- * Wechat for Bot. and for human who can talk with bot/robot
+ * Wechat for Bot. Connecting ChatBots
  *
  * Interface for Puppet
  *

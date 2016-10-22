@@ -84,6 +84,7 @@ export class Message implements Sayable {
 
   constructor(public rawObj?: MessageRawObj) {
     this._counter = Message.counter++
+    log.silly('Message', 'constructor() #%d', this._counter)
 
     if (typeof rawObj === 'string') {
       this.rawObj = JSON.parse(rawObj)
@@ -172,8 +173,8 @@ export class Message implements Sayable {
 
   public to(contact: Contact): Contact
   public to(room: Room): Room
-  public to(id: string): Contact | Room
-  public to(): Contact | Room
+  public to(id: string): Contact|Room
+  public to(): Contact|Room
   public to(contact?: Contact|Room|string): Contact|Room {
     if (contact) {
       if (contact instanceof Contact || contact instanceof Room) {
@@ -240,7 +241,6 @@ export class Message implements Sayable {
   public async ready(): Promise<this> {
     log.silly('Message', 'ready()')
 
-    // return co.call(this, function* () {
     try {
       const from  = Contact.load(this.obj.from)
       const to    = Contact.load(this.obj.to)
@@ -254,7 +254,6 @@ export class Message implements Sayable {
       if (room) { await room.ready() }  // Room member list
 
       return this         // return this for chain
-    // }).catch(e => { // Exception
     } catch (e) {
         log.error('Message', 'ready() exception: %s', e)
         // console.log(e)
@@ -264,7 +263,12 @@ export class Message implements Sayable {
     }
   }
 
+  /**
+   * @deprecated
+   */
   public get(prop: string): string {
+    log.warn('Message', 'DEPRECATED get()')
+
     if (!prop || !(prop in this.obj)) {
       const s = '[' + Object.keys(this.obj).join(',') + ']'
       throw new Error(`Message.get(${prop}) must be in: ${s}`)
@@ -272,7 +276,12 @@ export class Message implements Sayable {
     return this.obj[prop]
   }
 
+  /**
+   * @deprecated
+   */
   public set(prop: string, value: string): this {
+    log.warn('Message', 'DEPRECATED set()')
+
     if (typeof value !== 'string') {
       throw new Error('value must be string, we got: ' + typeof value)
     }

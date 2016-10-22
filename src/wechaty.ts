@@ -188,15 +188,19 @@ export class Wechaty extends EventEmitter implements Sayable {
   public on(event: WechatyEventName, listener: Function): this {
     log.verbose('Wechaty', 'on(%s, %s)', event, typeof listener)
 
-    const thisWithSay: Sayable = {
-      say: (content: string) => {
-        return Config.puppetInstance()
-                      .say(content)
-      }
-    }
-    super.on(event, function() {
-      return listener.apply(thisWithSay, arguments)
-    })
+    // const thisWithSay: Sayable = {
+    //   say: (content: string) => {
+    //     return Config.puppetInstance()
+    //                   .say(content)
+    //   }
+    // }
+
+    super.on(event, listener) // `this: Wechaty` is Sayable
+
+    // (...args) => {
+    //
+    //   return listener.apply(this, args)
+    // })
 
     return this
   }

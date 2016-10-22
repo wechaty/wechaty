@@ -125,16 +125,17 @@ export class Room extends EventEmitter implements Sayable {
   public on(event: RoomEventName, listener: Function): this {
     log.verbose('Room', 'on(%s, %s)', event, typeof listener)
 
-    const thisWithSay = {
-      say: (content: string) => {
-        return Config.puppetInstance()
-                      .say(content)
-      }
-    }
-    super.on(event, function() {
-      return listener.apply(thisWithSay, arguments)
-    })
+    // const thisWithSay = {
+    //   say: (content: string) => {
+    //     return Config.puppetInstance()
+    //                   .say(content)
+    //   }
+    // }
+    // super.on(event, function() {
+    //   return listener.apply(thisWithSay, arguments)
+    // })
 
+    super.on(event, listener) // Room is `Sayable`
     return this
   }
 

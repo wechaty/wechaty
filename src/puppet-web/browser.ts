@@ -1,5 +1,5 @@
 /**
- * Wechat for Bot. and for human who can talk with bot/robot
+ * Wechat for Bot. Connecting ChatBots
  *
  * Interface for puppet
  *
@@ -353,7 +353,7 @@ export class Browser extends EventEmitter {
     return
   }
 
-  public clean(): Promise<any> {
+  public clean(): Promise<void> {
     const max = 30
     const backoff = 100
 

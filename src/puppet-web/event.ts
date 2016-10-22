@@ -378,9 +378,7 @@ async function onServerMessage(this: PuppetWeb, data): Promise<void> {
     }
 
     // To Be Deleted: set self...
-    if (this.userId) {
-      m.set('self', this.userId)
-    } else {
+    if (!this.userId) {
       log.warn('PuppetWebEvent', 'onServerMessage() without this.userId')
     }
 

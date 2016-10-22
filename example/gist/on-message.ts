@@ -9,6 +9,11 @@ export default async function onMessage(message: Message): Promise<void> {
     const sender    = message.from()
     const content   = message.content()
 
+    if (room) {
+      await room.ready()
+    }
+    await sender.ready()
+
     console.log((room ? '[' + room.topic() + ']' : '')
                 + '<' + sender.name() + '>'
                 + ':' + message.toStringDigest()
