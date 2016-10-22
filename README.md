@@ -406,8 +406,11 @@ The `message` here is a [Message](#class-message).
 
 Fired when we got new friend request, or confirm a friend ship.
 
+1. if `request?: FriendRequest` is set, then it's a friend request
+1. if `request?: FriendRequest` is not set, then it's a friend confirmation
+
 ```ts
-wechaty.on('friend', (this: Sayable, contact: Contact, request: FriendRequest) => {
+wechaty.on('friend', (this: Sayable, contact: Contact, request?: FriendRequest) => {
   if (request) {  // 1. request to be friend from new contact
     request.accept()
     console.log('auto accepted for ' + contact + ' with message: ' + request.hello)
