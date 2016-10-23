@@ -175,7 +175,7 @@ export class Browser extends EventEmitter {
   public driver(newDriver: WebDriver): WebDriver
 
   public driver(newDriver?: WebDriver | null): WebDriver | void {
-    log.warn('PuppetWebBrowser', 'driver(%s)'
+    log.silly('PuppetWebBrowser', 'driver(%s)'
                                 , typeof newDriver === 'undefined'
                                   ? ''
                                   : newDriver
