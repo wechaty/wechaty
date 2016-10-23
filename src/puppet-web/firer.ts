@@ -166,8 +166,7 @@ async function fireRoomJoin(m: Message): Promise<void> {
     [inviteeList, inviter] = checkRoomJoin(content)
   } catch (e) {
     log.silly('PuppetWebFirer', 'fireRoomJoin() "%s" is not a join message', content)
-    // not a room join message
-    return
+    return // not a room join message
   }
   log.silly('PuppetWebFirer', 'fireRoomJoin() inviteeList: %s, inviter: %s'
                             , inviteeList.join(',')
@@ -193,28 +192,43 @@ async function fireRoomJoin(m: Message): Promise<void> {
       log.silly('PuppetWebFirer', 'fireRoomJoin() retryPromise() attempt %d with timeout %d', attempt, timeout)
 
       await room.refresh()
-      let iDone, allDone = true
+      let inviteeListAllDone = true
 
       for (let i in inviteeList) {
-        iDone = inviteeContactList[i] instanceof Contact
-        if (!iDone) {
+        const loaded = inviteeContactList[i] instanceof Contact
+
+        if (!loaded) {
           let c = room.member(inviteeList[i])
-          if (c) {
-            inviteeContactList[i] = await c.ready()
-            if (!c.isReady()) {
-              allDone = false
-            }
-          } else {
-            allDone = false
+          if (!c) {
+            inviteeListAllDone = false
+            continue
+          }
+
+          inviteeContactList[i] = await c.ready()
+          const isReady = c.isReady()
+          if (!isReady) {
+            inviteeListAllDone = false
+            continue
           }
         }
+
+        if (inviteeContactList[i] instanceof Contact) {
+          const isReady = inviteeContactList[i].isReady()
+          if (!isReady) {
+            log.warn('PuppetWebFirer', 'fireRoomJoin() retryPromise() isReady false for contact %s', inviteeContactList[i].id)
+            inviteeListAllDone = false
+            await inviteeContactList[i].refresh()
+            continue
+          }
+        }
+
       }
 
       if (!inviterContact) {
         inviterContact = room.member(inviter)
       }
 
-      if (allDone && inviterContact) {
+      if (inviteeListAllDone && inviterContact) {
         log.silly('PuppetWebFirer', 'fireRoomJoin() resolve() inviteeContactList: %s, inviterContact: %s'
                                   , inviteeContactList.map((c: Contact) => c.name()).join(',')
                                   , inviterContact.name()
@@ -228,7 +242,7 @@ async function fireRoomJoin(m: Message): Promise<void> {
       log.silly('PuppetWebFirer', 'fireRoomJoin() reject() inviteeContactList: %s, inviterContact: %s'
                             , inviteeContactList.map((c: Contact) => c.name()).join(',')
                             , inviter
-              )
+      )
     })
 
     if (!inviterContact) {

@@ -99,7 +99,7 @@ export class Contact implements Sayable {
   public get(prop)   { return this.obj && this.obj[prop] }
 
   public isReady(): boolean {
-    return !!(this.obj && this.obj.id)
+    return !!(this.obj && this.obj.id && this.obj.name !== undefined)
   }
 
   public async refresh(): Promise<this> {

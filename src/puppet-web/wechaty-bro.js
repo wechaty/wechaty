@@ -440,6 +440,37 @@
           contactWithoutFunction[k] = c[k]
         }
       })
+
+    } else {
+
+      /**
+       * when `id` does not exist in _contact Array, maybe it is belongs to a stranger in a room.
+       * try to find in room's member list for this `id`, and return the contact info, if any.
+       */
+      c = Object.keys(_contacts)
+                .filter(id => id.match(/^@@/))      // only search in room
+                .map(id => _contacts[id])           // map to room array
+                .filter(r => r.MemberList.length)   // get rid of room without member list
+                .filter(r => r.MemberList
+                              .filter(m => m.UserName === id)
+                              .length
+                )
+                .map(c => c.MemberList
+                            .filter(m => m.UserName === id)
+                            [0]
+                )
+                [0]
+
+      if (c) {
+        c.stranger = true
+
+        Object.keys(c).forEach(function(k) {
+          if (typeof c[k] !== 'function') {
+            contactWithoutFunction[k] = c[k]
+          }
+        })
+      }
+
     }
 
     return contactWithoutFunction
