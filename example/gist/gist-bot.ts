@@ -27,13 +27,22 @@ Please wait... I'm trying to login in...
 console.log(welcome)
 
 Wechaty.instance({ profile: Config.DEFAULT_PROFILE })
-.on('error'   , error       => log.info('Bot', 'error: %s', error))
-.on('scan'    , (url, code) => log.info('Bot', `Use Wechat to Scan QR Code in url to login: ${code}\n${url}`))
+
+.on('scan', (url, code) => {
+  if (!/201|200/.test(String(code))) {
+    let loginUrl = url.replace(/\/qrcode\//, '/l/')
+    require('qrcode-terminal').generate(loginUrl)
+  }
+  console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
+})
+
 .on('login'	  , function (this, user) {
   log.info('Bot', `${user.name()} logined`)
   this.say(`wechaty logined`)
 })
-.on('logout'	, user        => log.info('Bot', `${user.name()} logouted`))
+
+.on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
+.on('error'   , error => log.info('Bot', 'error: %s', error))
 
 .on('message',    onMessage)
 .on('friend',     onFriend)
