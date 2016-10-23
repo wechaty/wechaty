@@ -3,7 +3,7 @@
 
 ## Connecting ChatBots.
 
-Wechaty is a Bot Framework for Wechat **Personal** Account that help you easy creating personal wechat bot in only 6 lines of javascript code, with cross platform  support to [linux](https://travis-ci.org/wechaty/wechaty), [win32](https://ci.appveyor.com/project/zixia/wechaty) and [darwin(OSX/Mac)](https://travis-ci.org/wechaty/wechaty).
+Wechaty is a Bot Framework for Wechat **Personal** Account that helps you easy creating personal wechat bot in only 6 lines of javascript code, with cross-platform  support to [linux](https://travis-ci.org/wechaty/wechaty), [win32](https://ci.appveyor.com/project/zixia/wechaty) and [darwin(OSX/Mac)](https://travis-ci.org/wechaty/wechaty).
 
 :octocat: <https://github.com/wechaty/wechaty>  
 :beetle: <https://github.com/wechaty/wechaty/issues>  
@@ -14,7 +14,7 @@ Wechaty is a Bot Framework for Wechat **Personal** Account that help you easy cr
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=2592000)](https://nodejs.org/)
 [![Repo Size](https://reposs.herokuapp.com/?path=wechaty/wechaty)]()
 
-## Wechaty had rewriten to Typescript.
+## Wechaty had rewritten to Typescript.
 
 Details: https://github.com/wechaty/wechaty/issues/40
 
@@ -23,7 +23,7 @@ Details: https://github.com/wechaty/wechaty/issues/40
 + on 12th Oct 2016
 ```
 
-[VSCode](https://code.visualstudio.com/) is recommended for typescript because we can get benifit of [intelligent code completion, parameter info, and member lists](https://code.visualstudio.com/docs/languages/javascript).
+[VSCode](https://code.visualstudio.com/) is recommended for typescript because we can get the benefit of [intelligent code completion, parameter info, and member lists](https://code.visualstudio.com/docs/languages/javascript).
 
 The last Javascript version is: [v0.4.0](https://github.com/wechaty/wechaty/releases/tag/v0.4.0) (2016/10/9) , or install v0.4 by `npm install wechaty`.
 
@@ -34,13 +34,13 @@ The last Javascript version is: [v0.4.0](https://github.com/wechaty/wechaty/rele
 
 ## Voice of the Developer
 
-> @JasLin : it may be the best wecaht sdk i have seen in github! [link](https://github.com/wechaty/wechaty/issues/8#issuecomment-228971491)
+> @JasLin : it may be the best wechat SDK I have seen in Github! [link](https://github.com/wechaty/wechaty/issues/8#issuecomment-228971491)
 
 > @ccaapton : wechaty library fantastic! [link](https://github.com/wechaty/wechaty/issues/9)
 
 > @ak5 : Thanks for this it's quite cool! [link](https://github.com/wechaty/wechaty/issues/4)
 
-> @Samurais : wechaty is great. 👍 [link](https://github.com/wechaty/wechaty/issues/36#issuecomment-251708382)
+> @Samurais : wechaty is great.  [link](https://github.com/wechaty/wechaty/issues/36#issuecomment-251708382)
 
 > @Jarvis : 目前用过的最好的微信开发库 [link](http://weibo.com/3296245513/Ec4iNp9Ld?type=comment)
 
@@ -62,17 +62,17 @@ Wechaty.instance() // Singleton
 .init()
 ```
 
-Notice that you need to wait a moment while bot trys to get the login QRCode from Wechat. As soon as the bot gets login QRCode url, he will print url out. You need to scan the qrcode on wechat, and confirm login.
+Notice that you need to wait a moment while bot tries to get the login QRCode from Wechat. As soon as the bot gets login QRCode URL, he will print URL out. You need to scan the QR code on wechat and confirm login.
 
-After that, bot will be on duty. (roger-bot source can be found at [here](https://github.com/wechaty/wechaty/blob/master/example/roger-bot.js))
+After that, the bot will be on duty. (roger-bot source can be found at [here](https://github.com/wechaty/wechaty/blob/master/example/roger-bot.js))
 
 ## 2. Advanced: dozens of lines
-Here's an chatbot [ding-dong-bot](https://github.com/wechaty/wechaty/blob/master/example/ding-dong-bot.js) who can reply _dong_ when receives a message _ding_.
+Here's a chatbot [ding-dong-bot](https://github.com/wechaty/wechaty/blob/master/example/ding-dong-bot.js) who can reply _dong_ when receives a message _ding_.
 
 ## 3. Hardcore: hundreds of lines
 Here's a chatbot [api-ai-bot](https://github.com/wechaty/wechaty/blob/master/example/api-ai-bot.js), who can slightly understand NLP.
 
-Natual Language Understanding enabled by [api.AI](https://api.ai), you can get your module on api.AI by it's free plan.
+Natural Language Understanding enabled by [api.AI](https://api.ai), you can get your module on api.AI by its free plan.
 
 # Deploy
 
@@ -94,7 +94,7 @@ export TOKEN="your token here"
 docker run -e WECHATY_TOKEN="$TOKEN" wechaty/wechaty
 ```
 
-`WECHATY_TOKEN` is required here, because you need this key to manage wechaty on the chatbot cloud manager: https://www.wechaty.io
+`WECHATY_TOKEN` is required here, because you need this key to managing wechaty on the chatbot cloud manager: https://www.wechaty.io
 
 ### Build
 
@@ -104,10 +104,10 @@ docker build -t wechaty .
 
 ### Ship
 
-Wechaty can be used via: Container as a Service
+Wechaty can be used via Container as a Service
 
 * [Arukas Cloud](https://arukas.io/en/) - Hosting Docker Containers(Currently in Beta, provide up to 10 **free containers**)
-* [Docker Cloud](https://cloud.docker.com/) - Docker Cloud is a hosted service that provides a Registry with build and testing facilities for Dockerized application images, tools to help you set up and manage your host infrastructure, and deployment features to help you automate deploying your images to your infrastructure.
+* [Docker Cloud](https://cloud.docker.com/) - Docker Cloud is a hosted service that provides a Registry with the build and testing facilities for Dockerized application images, tools to help you set up and manage your host infrastructure, and deployment features to help you automate deploying your images to your infrastructure.
 * [Dao Cloud](https://www.daocloud.io/) - 容器云平台
 
 ## Deploy with Heroku
@@ -135,16 +135,16 @@ npm install --save wechaty
 If you use chrome instead of phantomjs, you should make sure:
 
 1. chrome is installed
-1. if you are under linux, set headless right for `Xvfb`
+1. if you are under Linux, set headless right for `Xvfb`
 
 * [Running a GUI application in a Docker container](https://linuxmeerkat.wordpress.com/2014/10/17/running-a-gui-application-in-a-docker-container/)
 
 Then you are set.
 
 ## Install to Cloud9 IDE
-[Cloud9 IDE](https://c9.io/) is Google Docs for Code, which is my favourite IDE today. Almost all my wechaty development is based on Cloud9.
+[Cloud9 IDE](https://c9.io/) is Google Docs for Code, which is my favorite IDE today. Almost all my wechaty development is based on Cloud9.
 
-> Cloud9 IDE written in JavaScript, uses Node.js on the back-end. It uses Docker containers for its workspaces, and hosted on Google Compute Engine.
+> Cloud9 IDE written in JavaScript uses Node.js on the back-end. It uses Docker containers for its workspaces and hosted on Google Compute Engine.
 
 ### 1. Open in Cloud9 IDE
 
@@ -188,7 +188,7 @@ Node.js Version 6.0 or above is required.
 
 ### 2. Fork & Clone Wechaty
 
-If you have no github account, you can just clone it via https:
+If you have no GitHub account, you can just clone it via https:
 ```shell
 git clone https://github.com/wechaty/wechaty.git
 ```
@@ -201,7 +201,7 @@ npm install
 npm run demo
 ```
 
-After a little while, bot will show you a message of a url for Login QrCode. You need to scan this qrcode in your wechat in order to permit your bot login.
+After a little while, bot will show you a message of an URL for Login QrCode. You need to scan this QR code in your wechat in order to permit your bot login.
 
 ### 4. Done
 
@@ -245,7 +245,7 @@ $ WECHATY_LOG=silly npm test
 ## LOG output
 Wechaty use [npmlog](https://www.npmjs.com/package/npmlog) to output log message. You can set log level by environment variable `WECHATY_LOG` to show log message.
 
-environment variable `WECHATY_LOG` values:
+the environment variable `WECHATY_LOG` values:
 
 1. `silly`
 1. `verbose`
@@ -296,7 +296,7 @@ Here's a quick and dirty patch, to npmlog/log.js
     }
 ```
 
-And we can looking forward the official support from npmlog: https://github.com/npm/npmlog/pull/24
+And we can look forward the official support from npmlog: https://github.com/npm/npmlog/pull/24
 
 ## DEBUG
 
@@ -309,13 +309,13 @@ this will:
 
 ECMAScript2015(ES6). I develop and test wechaty with Node.js v6.0.
 
-# API Refference
+# API Reference
 
-I'll try my best to keep the api as sample as it can be.
+I'll try my best to keep the API as simple as it can be.
 
 ## Events
 
-Wechaty support the following 6 events:
+Wechaty supports the following 6 events:
 
 1. scan
 2. login
@@ -340,11 +340,11 @@ Notice: when we want to use `this` inside a listener, we must use the traditiona
 })
 ```
 
-which means there will be a `this.say()` method inside listener call, you can use it sending message to `filehelper`, just for logging / reporting / any usage for your convienience
+which means there will be a `this.say()` method inside listener call, you can use it sending message to `filehelper`, just for logging / reporting / any usage for your convenience
 
 ### 1. Event: `scan`
 
-A `scan` event will be emitted when the bot need to show you a QrCode for scaning.
+A `scan` event will be emitted when the bot needs to show you a QR Code for scanning.
 
 ```typescript
 wechaty.on('scan', (this: Sayable, url: string, code: number) => {
@@ -352,14 +352,14 @@ wechaty.on('scan', (this: Sayable, url: string, code: number) => {
 })
 ```
 
-1. url: {String} the qrcode image url
+1. URL: {String} the QR code image URL
 2. code: {Number} the scan status code. some known status of the code list here is:
     1. 0    initial
     1. 200  login confirmed
     1. 201  scaned, wait for confirm
-    1. 408  wait for scan
+    1. 408  waits for scan
 
-`scan` event will be emit when it will detect a new code status change.
+`scan` event will be emitted when it will detect a new code status change.
 
 ### 2. Event: `login`
 
@@ -372,7 +372,7 @@ wechaty.on('login', (this: Sayable, user: Contact) => {
 
 ### 3. Event: `logout`
 
-`logout` will be emitted when bot detected it is logout, with a [Contact](#class-contact) of current logined user.
+`logout` will be emitted when bot detected logout, with a [Contact](#class-contact) of the current login user.
 
 ```typescript
 wechaty.on('logout', (this: Sayable, user: Contact) => {
@@ -392,7 +392,7 @@ wechaty.on('message', (this: Sayable, message: Message) => {
 
 ### 5. Event: `error`
 
-Emit when there's a error occoured.
+Emit when there's an error occurred.
 
 ```typescript
 wechaty.on('error', (this: Sayable, err: Error) => {
@@ -404,7 +404,7 @@ The `message` here is a [Message](#class-message).
 
 ### 6. Event: `friend`
 
-Fired when we got new friend request, or confirm a friend ship.
+Fired when we got new friend request, or confirm a friendship.
 
 1. if `request?: FriendRequest` is set, then it's a friend request
 1. if `request?: FriendRequest` is not set, then it's a friend confirmation
@@ -463,12 +463,12 @@ Initialize the bot, return Promise.
 ```typescript
 wechaty.init()
 .then(() => {
-  // do other staff with bot here
+  // do other stuff with bot here
 }
 ```
 
 ### Wechaty.self(message: Message): boolean
-Check if message is send by self.
+Check if message is sent by self.
 
 Return `true` for send from self, `false` for send from others.
 
@@ -491,13 +491,13 @@ wechaty.send(msg)
 
 ## Message Class
 
-All wechat messages will be encaped as a Message.
+All wechat messages will be encapsulated as a Message.
 
 `Message` is `Sayable`
 
 ### Message.from(contact?: Contact|string): Contact
 
-get the sender from message, or set it.
+get the sender from a message, or set it.
 
 ### Message.to(contact?: Contact|Room|string): Contact|Room
 
@@ -582,7 +582,7 @@ force reload data for Room
 
 `this` is `Sayable` for all listeners.
 
-which means there will be a `this.say()` method inside listener call, you can use it sending message to `filehelper`, just for logging / reporting / any usage for your convienience
+which means there will be a `this.say()` the method inside listener call, you can use it sending a message to `filehelper`, just for logging / reporting / any usage for your convenience
 
 #### Event: `join`
 
@@ -670,7 +670,7 @@ room.get('members').length
 
 Send, receive friend request, and friend confirmation events.
 
-When someone send you a friend request, there will be a Wechaty `friend` event fired.
+When someone sends you a friend request, there will be a Wechaty `friend` event fired.
 
 ```typescript
 wechaty.on('friend', (contact: Contact, request: FriendRequest) => {
@@ -695,7 +695,7 @@ accept a friend request
 
 ### FriendRequest.send(contact: Contact, hello: string): void
 
-send new friend request
+send a new friend request
 
 ```typescript
 const from = message.get('from')
@@ -752,11 +752,11 @@ npm test
 
 ## v0.1.1 (2016/6/10)
 1. add support to save & restore wechat login session
-1. add continious integration tests on win32 platform. (powered by [AppVeyor](https://www.appveyor.com/))
+1. add continuous integration tests on win32 platform. (powered by [AppVeyor](https://www.appveyor.com/))
 1. add environment variables HEAD/PORT/SESSION/DEBUG to config Wechaty
 
 ## v0.0.10 (2016/5/28)
-1. use event `scan` to show login qrcode image url(and detect state change)
+1. use event `scan` to show login QR code image URL(and detect state change)
 2. new examples: Tuling123 bot & api.AI bot
 3. more unit tests
 4. code coverage status
@@ -766,7 +766,7 @@ npm test
 1. Show contacts info
 1. Show rooms info
 1. 1st usable version
-1. Start coding from May 1st 2016
+1. Start coding from May 1st, 2016
 
 # Todo List
 
@@ -854,7 +854,7 @@ Github Issue <https://github.com/wechaty/wechaty/issues>
 3. [CleverScript](https://www.cleverscript.com) Easily create text, voice or avatar bots that people can chat with in browser, app or their preferred messaging platform.
 
 ## Application
-1. [助手管家](http://72c.me/a/m/yhmhrh) It's a Official Account of wechat, which can manage your personal wechat account as a robot assistant.
+1. [助手管家](http://72c.me/a/m/yhmhrh) It's an Official Account of wechat, which can manage your personal wechat account as a robot assistant.
 
 ## Service
 1. [Luis.ai](https://www.luis.ai) Language Understanding Intelligent Service (LUIS) offers a fast and effective way of adding language understanding to applications from Microsoft
@@ -865,17 +865,17 @@ Github Issue <https://github.com/wechaty/wechaty/issues>
 * [Advanced Natural Language Processing Tools for Bot Makers](https://stanfy.com/blog/advanced-natural-language-processing-tools-for-bot-makers/) a good article of comparing the above services.
 
 ## Framework
-1. [Bot Framework](https://dev.botframework.com/) Build and connect intelligent bots to interact with your users naturally wherever they are, from text/sms to Skype, Slack, Office 365 mail and other popular services. from Microsoft
+1. [Bot Framework](https://dev.botframework.com/) Build and connect intelligent bots to interact with your users naturally wherever they are, from text/SMS to Skype, Slack, Office 365 mail and other popular services. from Microsoft
 
 My Story
 ----------------
 My daily life/work depends on too much chat on wechat.
-* I almost have 14,000 wechat friends till May 2014, before wechat restricts a total number of friends to 5,000.
+* I almost have 14,000 wechat friends in May 2014, before wechat restricts a total number of friends to 5,000.
 * I almost have 400 wechat rooms that most of them have more than 400 members.
 
 Can you image that? I'm dying...
 
-So a tireless bot working for me 24x7 on wechat, moniting/filtering the most important message is badly needed. For example: highlights discusstion which contains the KEYWORDS I want to follow up(especially in a noisy room). ;-)
+So a tireless bot working for me 24x7 on wechat, monitoring/filtering the most important message is badly needed. For example highlights discussion which contains the KEYWORDS which I want to follow up(especially in a noisy room). ;-)
 
 At last, It's built for my personal study purpose of Automatically Testing.
 
@@ -895,4 +895,3 @@ Copyright & License
 
 [downloads-image]: http://img.shields.io/npm/dm/wechaty.svg?style=flat-square
 [downloads-url]: https://npmjs.org/package/wechaty
-
