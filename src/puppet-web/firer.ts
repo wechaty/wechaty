@@ -201,6 +201,9 @@ async function fireRoomJoin(m: Message): Promise<void> {
           let c = room.member(inviteeList[i])
           if (c) {
             inviteeContactList[i] = await c.ready()
+            if (!c.isReady()) {
+              allDone = false
+            }
           } else {
             allDone = false
           }

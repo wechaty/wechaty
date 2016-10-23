@@ -67,6 +67,10 @@ export class Contact implements Sayable {
   public toStringEx() { return `Contact(${this.obj && this.obj.name}[${this.id}])` }
 
   private parse(rawObj: ContactRawObj): ContactObj | null {
+    if (!rawObj) {
+      log.warn('Contact', 'parse() got empty rawObj!')
+    }
+
     return !rawObj ? null : {
       id:           rawObj.UserName
       , uin:        rawObj.Uin    // stable id: 4763975 || getCookie("wxuin")
@@ -99,8 +103,8 @@ export class Contact implements Sayable {
   public async ready(contactGetter?: (id: string) => Promise<ContactRawObj>): Promise<this> {
     log.silly('Contact', 'ready(' + (contactGetter ? typeof contactGetter : '') + ')')
     if (!this.id) {
-      log.warn('Contact', 'ready() call on an un-inited contact')
-      return Promise.resolve(this)
+      const e = new Error('ready() call on an un-inited contact')
+      throw e
     }
 
     if (this.isReady()) { // already ready
@@ -117,13 +121,14 @@ export class Contact implements Sayable {
     if (!contactGetter) {
       throw new Error('no contatGetter')
     }
+
     try {
       const rawObj = await contactGetter(this.id)
       log.silly('Contact', `contactGetter(${this.id}) resolved`)
       this.rawObj = rawObj
       this.obj    = this.parse(rawObj)
       return this
-    // }).catch(e => {
+
     } catch (e) {
       log.error('Contact', `contactGetter(${this.id}) exception: %s`, e.message)
       throw e
