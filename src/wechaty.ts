@@ -150,7 +150,7 @@ export class Wechaty extends EventEmitter implements Sayable {
     return
   }
 
-  public async init(): Promise<void> {
+  public async init(): Promise<this> {
     log.info('Wechaty', 'v%s initializing...' , this.version())
     log.verbose('Wechaty', 'puppet: %s'       , this.setting.type)
     log.verbose('Wechaty', 'head: %s'         , this.setting.head)
@@ -159,7 +159,7 @@ export class Wechaty extends EventEmitter implements Sayable {
 
     if (this.inited) {
       log.error('Wechaty', 'init() already inited. return and do nothing.')
-      return
+      return this
     }
 
     try {
@@ -169,7 +169,7 @@ export class Wechaty extends EventEmitter implements Sayable {
       log.error('Wechaty', 'init() exception: %s', e && e.message)
       throw e
     }
-    return
+    return this
   }
 
   public on(event: 'error'      , listener: (this: Sayable, error: Error) => void): this
@@ -205,7 +205,7 @@ export class Wechaty extends EventEmitter implements Sayable {
     return this
   }
 
-  public async initPuppet(): Promise<void> {
+  public async initPuppet(): Promise<Puppet> {
     let puppet: Puppet
     switch (this.setting.type) {
       case 'web':
@@ -219,18 +219,20 @@ export class Wechaty extends EventEmitter implements Sayable {
         throw new Error('Puppet unsupport(yet): ' + this.setting.type)
     }
 
-  ; // must have a semicolon here to seperate the last line with `[]`
-  [   'error'
-    , 'friend'
-    , 'heartbeat'
-    , 'login'
-    , 'logout'
-    , 'message'
-    , 'room-join'
-    , 'room-leave'
-    , 'room-topic'
-    , 'scan'
-  ].map(e => {
+    const eventList: WechatyEventName[] = [
+        'error'
+      , 'friend'
+      , 'heartbeat'
+      , 'login'
+      , 'logout'
+      , 'message'
+      , 'room-join'
+      , 'room-leave'
+      , 'room-topic'
+      , 'scan'
+    ]
+
+    eventList.map(e => {
       // https://strongloop.com/strongblog/an-introduction-to-javascript-es6-arrow-functions/
       // We’ve lost () around the argument list when there’s just one argument (rest arguments are an exception, eg (...args) => ...)
       puppet.on(e, (...args: any[]) => {
@@ -253,7 +255,7 @@ export class Wechaty extends EventEmitter implements Sayable {
     Config.puppetInstance(puppet)
 
     await puppet.init()
-    return
+    return puppet
   }
 
   public async quit(): Promise<void> {

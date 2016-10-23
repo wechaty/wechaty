@@ -78,7 +78,7 @@ export class Browser extends EventEmitter {
 
   public toString() { return `Browser({head:${this.setting.head})` }
 
-  public async init(): Promise<Browser> {
+  public async init(): Promise<this> {
     this.targetState('open')
     this.currentState('opening')
 
@@ -136,6 +136,7 @@ export class Browser extends EventEmitter {
     if (this._driver) {
       await this._driver.close()
       await this._driver.quit()
+      this._driver = null
     }
 
     let driver: WebDriver
