@@ -39,7 +39,12 @@ bot
 .on('login'	  , function(this, user) {
   log.info('Bot', `${user.name()} logined`)
   this.say('wechaty contact-bot just logined')
+
+  /**
+   * Main Contact Bot start from here
+   */
   main()
+
 })
 .on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
 .on('error'   , e => log.info('Bot', 'error: %s', e))
@@ -58,6 +63,9 @@ bot.init()
   process.exit(-1)
 })
 
+/**
+ * Main Contact Bot
+ */
 async function main() {
   const contactList = await Contact.findAll()
 
@@ -76,11 +84,12 @@ async function main() {
     log.info('Bot', 'Contact: %s: %s', contact.weixin(), contact.name())
 
     if (i > MAX) {
-      log.info('Bot', 'Contact too many, I only show you the first %d ... ', MAX)
+      log.info('Bot', 'Contacts too many, I only show you the first %d ... ', MAX)
       break
     }
   }
 
-  log.info('Bot', 'I will re-dump contact names after 7 second... ')
-  setTimeout(main, 7000)
+  const SLEEP = 7
+  log.info('Bot', 'I will re-dump contact weixin id & names after %d second... ', SLEEP)
+  setTimeout(main, SLEEP * 1000)
 }
