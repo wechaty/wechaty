@@ -47,7 +47,7 @@ The last Javascript version is: [v0.4.0](https://github.com/wechaty/wechaty/rele
 > @naishstar : thanks for great SDK [link](https://github.com/wechaty/wechaty/issues/57)
 
 # Examples
-Wechaty is dead easy to use: 7 lines javascript for your wechat bot.
+Wechaty is dead easy to use: 6 lines javascript for your wechat bot.
 
 ## 1. Basic: 6 lines
 The following 6 lines of code implement a bot who can log all message to console:

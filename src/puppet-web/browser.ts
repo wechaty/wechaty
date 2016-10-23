@@ -46,7 +46,7 @@ export class Browser extends EventEmitter {
   private _targetState: string
   private _currentState: string
 
-  public _driver: WebDriver | null
+  public _driver: WebDriver | null = null
 
   constructor(private setting: BrowserSetting = {}) {
     super()
@@ -131,7 +131,12 @@ export class Browser extends EventEmitter {
   }
 
   public async initDriver(): Promise<WebDriver> {
-    log.verbose('PuppetWebBrowser', 'initDriver(head: %s)', this.setting.head)
+    log.verbose('PuppetWebBrowser', 'initDriver() for head: %s', this.setting.head)
+
+    if (this._driver) {
+      await this._driver.close()
+      await this._driver.quit()
+    }
 
     let driver: WebDriver
     const head = <string>this.setting.head
@@ -170,22 +175,36 @@ export class Browser extends EventEmitter {
   public driver(newDriver: WebDriver): WebDriver
 
   public driver(newDriver?: WebDriver | null): WebDriver | void {
+    log.warn('PuppetWebBrowser', 'driver(%s)'
+                                , typeof newDriver === 'undefined'
+                                  ? ''
+                                  : newDriver
+    )
+
     if (typeof newDriver !== 'undefined') {
       if (newDriver) {
         this._driver = newDriver
         return this._driver
-      } else {
-        this._driver = newDriver
+      } else { // null
+        if (this._driver && this._driver.getSession()) {
+          throw new Error('driver still has session, can not set null')
+        }
+        this._driver = null
         return
       }
     }
 
-    if (!this._driver || !this._driver.getSession()) {
-      const e = new Error('no driver session')
+    if (!this._driver) {
+      const e = new Error('no driver')
       log.warn('PuppetWebBrowser', 'driver() exception: %s', e.message)
-      this._driver = null
       throw e
     }
+    // if (!this._driver.getSession()) {
+    //   const e = new Error('no driver session')
+    //   log.warn('PuppetWebBrowser', 'driver() exception: %s', e.message)
+    //   this._driver.quit()
+    //   throw e
+    // }
 
     return this._driver
   }
@@ -311,11 +330,17 @@ export class Browser extends EventEmitter {
   public async quit(): Promise<any> {
     log.verbose('PuppetWebBrowser', 'quit()')
 
+    if (this.currentState() === 'closing') {
+      const e = new Error('quit() be called when currentState is closing?')
+      log.warn('PuppetWebBrowser', e.message)
+      throw e
+    }
+
     // this.targetState('close')
     this.currentState('closing')
 
     try {
-      await this.driver().close() // http://stackoverflow.com/a/32341885/1123955
+      await this.driver().close().catch(e => { /* fail safe */ }) // http://stackoverflow.com/a/32341885/1123955
       log.silly('PuppetWebBrowser', 'quit() driver.close()-ed')
       await this.driver().quit()
       log.silly('PuppetWebBrowser', 'quit() driver.quit()-ed')
@@ -485,30 +510,26 @@ export class Browser extends EventEmitter {
     // log.verbose('PuppetWebBrowser', `Browser.execute() driver.getSession: %s`, util.inspect(this.driver().getSession()))
     if (this.dead()) { throw new Error('browser dead') }
 
-    let ret
     try {
-      ret = await this.driver().executeScript.apply(this.driver(), arguments)
+      return await this.driver().executeScript.apply(this.driver(), arguments)
     } catch (e) {
       // this.dead(e)
       log.warn('PuppetWebBrowser', 'execute() exception: %s', e.message.substr(0, 99))
       throw e
     }
-    return ret
   }
 
   public async executeAsync(script, ...args): Promise<any> {
     log.silly('PuppetWebBrowser', 'Browser.executeAsync(%s)', script.slice(0, 80))
     if (this.dead()) { throw new Error('browser dead') }
 
-    let ret
     try {
-      ret = await this.driver().executeAsyncScript.apply(this.driver(), arguments)
+      return await this.driver().executeAsyncScript.apply(this.driver(), arguments)
     } catch (e) {
       // this.dead(e)
       log.warn('PuppetWebBrowser', 'executeAsync() exception: %s', e.message.slice(0, 99))
       throw e
     }
-    return ret
   }
 
   /**
@@ -543,12 +564,8 @@ export class Browser extends EventEmitter {
   }
 
   public dead(forceReason?: string): boolean {
-    if (forceReason) {
-      log.verbose('PuppetWebBrowser', 'dead(forceReason: %s)', forceReason)
-    } else {
-      // too noisy!
-      // log.silly('PuppetWebBrowser', 'dead() checking ... ')
-    }
+    // too noisy!
+    // log.silly('PuppetWebBrowser', 'dead() checking ... ')
 
     let msg
     let dead = false
@@ -565,14 +582,24 @@ export class Browser extends EventEmitter {
     }
 
     if (dead) {
-      log.warn('PuppetWebBrowser', 'dead() because %s', msg)
-      this.quit()
+      log.warn('PuppetWebBrowser', 'dead(%s) because %s'
+                                  , forceReason
+                                    ? forceReason
+                                    : ''
+                                  , msg
+      )
+      // no need to quit here. dead event listener will do this async job, and do it better than here
+      // this.quit()
 
       // must use nextTick here, or promise will hang... 2016/6/10
-      setImmediate(_ => {
-        log.verbose('PuppetWebBrowser', 'dead() emit a `dead` event because %s', msg)
-        this.emit('dead', msg)
-      })
+      // setImmediate(_ => {
+        if (this.targetState() !== 'open' || this.currentState() === 'opening') {
+          log.warn('PuppetWebBrowser', 'dead() wil not emit `dead` event because currentState is `opening` or targetState !== open')
+        } else {
+          log.verbose('PuppetWebBrowser', 'dead() emit a `dead` event because %s', msg)
+          this.emit('dead', msg)
+        }
+      // })
     }
     return dead
   }
