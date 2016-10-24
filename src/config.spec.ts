@@ -47,10 +47,21 @@ test('Config methods', t => {
 })
 
 test('Config puppetInstance', t => {
-  let instance = Config.puppetInstance()
-  t.falsy(instance, 'should empty initialy')
-  t.truthy(Config.puppetInstance({} as Puppet), 'should return instance in arg')
-  t.truthy(Config.puppetInstance(), 'should return instance after set')
-  t.falsy(Config.puppetInstance(null), 'should return null after set to null')
-  t.falsy(instance, 'should empty after set to null')
+  t.throws(() => {
+    Config.puppetInstance()
+  }, Error, 'should throw when not initialized')
+
+  const EXPECTED = {userId: 'test'}
+  const puppet = <Puppet>EXPECTED
+
+  Config.puppetInstance(puppet)
+
+  let instance = Config.puppetInstance(puppet)
+  t.deepEqual(instance, <Puppet>EXPECTED, 'should equal with initialized data')
+
+  Config.puppetInstance(null)
+  t.throws(() => {
+    Config.puppetInstance()
+  }, Error, 'should throw after set to null')
+
 })
