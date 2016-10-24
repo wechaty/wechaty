@@ -107,7 +107,7 @@ export class Room extends EventEmitter implements Sayable {
       if (!this.obj) {
         throw new Error('no this.obj set after contactGetter')
       }
-      return Promise.all(this.obj.memberList.map(c => c.ready()))
+      return Promise.all(this.obj.memberList.map(c => c.ready(contactGetter)))
                     .then(() => this)
     })
     .catch(e => {
@@ -371,7 +371,7 @@ export class Room extends EventEmitter implements Sayable {
                   })
   }
 
-  public static findAll(query: RoomQueryFilter): Promise<Room[]> {
+  public static async findAll(query: RoomQueryFilter): Promise<Room[]> {
     log.verbose('Room', 'findAll({ topic: %s })', query.topic)
 
     const topic = query.topic
