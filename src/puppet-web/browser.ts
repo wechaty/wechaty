@@ -7,11 +7,6 @@
  * https://github.com/zixia/wechaty
  *
  */
-/* tslint:disable:no-var-requires */
-const arrify = require('arrify')
-// import arrify = require('arrify')
-
-import * as fs from 'fs'
 import { EventEmitter } from 'events'
 import {
   Builder
@@ -22,29 +17,24 @@ import {
 /* tslint:disable:no-var-requires */
 const retryPromise  = require('retry-promise').default // https://github.com/olalonde/retry-promise
 
-import log    from'../brolog-env'
+import Config   from  '../config'
+import log      from  '../brolog-env'
 
-import Config from'../config'
+import {
+    CookieType
+  , BrowserCookie
+}                from './browser-cookie'
 
 export type BrowserSetting = {
   head?:        string
   sessionFile?: string
 }
 
-export type DriverCookie = {
-  [index: string]: string | number | boolean
-  name: string
-  value: string
-  path: string
-  domain: string
-  secure: boolean
-  expiry: number
-}
-
 export class Browser extends EventEmitter {
 
   private _targetState: string
   private _currentState: string
+  private cookie: BrowserCookie
 
   public _driver: WebDriver | null = null
 
@@ -56,6 +46,8 @@ export class Browser extends EventEmitter {
 
     this.targetState('close')
     this.currentState('close')
+
+    this.cookie = new BrowserCookie(this, this.setting.sessionFile)
   }
 
   // targetState : 'open' | 'close'
@@ -92,7 +84,7 @@ export class Browser extends EventEmitter {
       // this.live = true
 
       await this.open(fastUrl)
-      await this.loadSession()
+      await this.loadCookie()
                 .catch(e => { // fail safe
                   log.verbose('PuppetWeb', 'browser.loadSession(%s) exception: %s', this.setting.sessionFile, e && e.message || e)
                 })
@@ -461,50 +453,6 @@ export class Browser extends EventEmitter {
     })
   }
 
-  /**
-   * only wrap addCookies for convinience
-   *
-   * use this.driver().manage() to call other functions like:
-   * deleteCookie / getCookie / getCookies
-   */
-  // TypeScript Overloading: http://stackoverflow.com/a/21385587/1123955
-  public addCookies(cookies:  DriverCookie[]): Promise<any[]>
-  public addCookies(cookie:   DriverCookie): Promise<any>
-
-  public async addCookies(cookie: DriverCookie|DriverCookie[]): Promise<any|any[]> {
-    if (this.dead()) { return Promise.reject(new Error('addCookies() - browser dead'))}
-
-    if (Array.isArray(cookie)) {
-      return cookie.map(c => {
-        return this.addCookies(c)
-      })
-    }
-    /**
-     * convert expiry from seconds to milliseconds. https://github.com/SeleniumHQ/selenium/issues/2245
-     * with selenium-webdriver v2.53.2
-     * NOTICE: the lastest branch of selenium-webdriver for js has changed the interface of addCookie:
-     * https://github.com/SeleniumHQ/selenium/commit/02f407976ca1d516826990f11aca7de3c16ba576
-     */
-    // if (cookie.expiry) { cookie.expiry = cookie.expiry * 1000 /* XXX: be aware of new version of webdriver */}
-
-    log.silly('PuppetWebBrowser', 'addCookies(%s)', JSON.stringify(cookie))
-
-    let ret
-    // return new Promise((resolve, reject) => {
-    try {
-      ret = await (this.driver().manage() as any).addCookie(cookie)
-                  // this is old webdriver format
-                  // .addCookie(cookie.name, cookie.value, cookie.path
-                  //   , cookie.domain, cookie.secure, cookie.expiry)
-                  // this is new webdriver format
-    } catch (e) {
-      log.warn('PuppetWebBrowser', 'addCookies() exception: %s', e.message)
-      throw e
-    }
-
-    return ret
-  }
-
   public async execute(script, ...args): Promise<any> {
     log.silly('PuppetWebBrowser', 'Browser.execute("%s")'
                                 , (
@@ -610,128 +558,16 @@ export class Browser extends EventEmitter {
     return dead
   }
 
-  public async checkSession(): Promise<DriverCookie[]> {
-    // just check cookies, no file operation
-    log.verbose('PuppetWebBrowser', 'checkSession()')
-
-    if (this.dead()) { Promise.reject(new Error('checkSession() - browser dead'))}
-
-    // return new Promise((resolve, reject) => {
-    try {
-      // `as any as DriverCookie` because selenium-webdriver @types is outdated with 2.x, where we r using 3.0
-      const cookies = await this.driver().manage().getCookies() as any as DriverCookie[]
-      log.silly('PuppetWebBrowser', 'checkSession %s', cookies.map(c => c.name).join(','))
-      return cookies
-    } catch (e) {
-      log.error('PuppetWebBrowser', 'checkSession() getCookies() exception: %s', e && e.message || e)
-      throw e
-    }
+  public async addCookie(cookies: CookieType[]):  Promise<void>
+  public async addCookie(cookie:  CookieType):    Promise<void>
+  public async addCookie(cookie:  CookieType|CookieType[]): Promise<void> {
+    await this.cookie.add(cookie)
   }
 
-  public cleanSession() {
-    log.verbose('PuppetWebBrowser', `cleanSession(${this.setting.sessionFile})`)
-    if (!this.setting.sessionFile) {
-      return Promise.reject(new Error('cleanSession() no session'))
-    }
-
-    if (this.dead())  { return Promise.reject(new Error('cleanSession() - browser dead'))}
-
-    const filename = this.setting.sessionFile
-    return new Promise((resolve, reject) => {
-      fs.unlink(filename, err => {
-        if (err && err.code !== 'ENOENT') {
-          log.silly('PuppetWebBrowser', 'cleanSession() unlink session file %s fail: %s', filename, err.message)
-        }
-        resolve()
-      })
-    })
-  }
-
-  public async saveSession(): Promise<DriverCookie[]> {
-    log.silly('PuppetWebBrowser', `saveSession(${this.setting.sessionFile})`)
-    if (!this.setting.sessionFile) {
-      throw new Error('saveSession() no session')
-    } else if (this.dead()) {
-      throw new Error('saveSession() - browser dead')
-    }
-
-    const filename = this.setting.sessionFile
-
-    function cookieFilter(cookies: DriverCookie[]) {
-      const skipNames = [
-        'ChromeDriver'
-        , 'MM_WX_SOUND_STATE'
-        , 'MM_WX_NOTIFY_STATE'
-      ]
-      const skipNamesRegex = new RegExp(skipNames.join('|'), 'i')
-      return cookies.filter(c => {
-        if (skipNamesRegex.test(c.name)) { return false }
-        // else if (!/wx\.qq\.com/i.test(c.domain))  { return false }
-        else                             { return true }
-      })
-    }
-
-    try {
-    // return new Promise((resolve, reject) => {
-      // `as any as DriverCookie` because selenium-webdriver @types is outdated with 2.x, where we r using 3.0
-      let cookies: DriverCookie[] = await this.driver().manage().getCookies() as any as DriverCookie[]
-      cookies = cookieFilter(cookies)
-      // .then(cookies => {
-        // log.silly('PuppetWeb', 'saving %d cookies for session: %s', cookies.length
-        //   , util.inspect(cookies.map(c => { return {name: c.name /*, value: c.value, expiresType: typeof c.expires, expires: c.expires*/} })))
-      log.silly('PuppetWebBrowser', 'saving %d cookies for session: %s', cookies.length, cookies.map(c => c.name).join(','))
-
-      const jsonStr = JSON.stringify(cookies)
-
-      return new Promise((resolve, reject) => {
-        fs.writeFile(filename, jsonStr, err => {
-          if (err) {
-            log.error('PuppetWebBrowser', 'saveSession() fail to write file %s: %s', filename, err.errno)
-            reject(err)
-          }
-          log.silly('PuppetWebBrowser', 'saved session(%d cookies) to %s', cookies.length, filename)
-          resolve(cookies)
-        })
-      }) as Promise<DriverCookie[]> // XXX why need `as` here???
-
-    } catch (e) {
-      log.error('PuppetWebBrowser', 'saveSession() getCookies() exception: %s', e.message)
-      throw e
-    }
-  }
-
-  public loadSession(): Promise<any> {
-    log.verbose('PuppetWebBrowser', 'loadSession() from %s', this.setting.sessionFile ? this.setting.sessionFile : '' )
-
-    if (!this.setting.sessionFile) {
-      return Promise.reject(new Error('loadSession() no sessionFile'))
-    } else if (this.dead()) {
-      return Promise.reject(new Error('loadSession() - browser dead'))
-    }
-
-    const filename = this.setting.sessionFile
-
-    return new Promise((resolve, reject) => {
-      fs.readFile(filename, (err, jsonStr) => {
-        if (err) {
-          if (err) { log.silly('PuppetWebBrowser', 'loadSession(%s) skipped because error code: %s', filename, err.code) }
-          return reject(new Error('error code:' + err.code))
-        }
-        const cookies = JSON.parse(jsonStr.toString())
-
-        let ps = arrify(this.addCookies(cookies))
-        Promise.all(ps)
-        .then(() => {
-          log.verbose('PuppetWebBrowser', 'loaded session(%d cookies) from %s', cookies.length, filename)
-          resolve(cookies)
-        })
-        .catch(e => {
-          log.error('PuppetWebBrowser', 'loadSession() addCookies() exception: %s', e.message)
-          reject(e)
-        })
-      })
-    })
-  }
+  public saveCookie()   { return this.cookie.save()   }
+  public loadCookie()   { return this.cookie.load()   }
+  public readCookie()   { return this.cookie.read()   }
+  public cleanCookie()  { return this.cookie.clean()  }
 }
 
 export default Browser
