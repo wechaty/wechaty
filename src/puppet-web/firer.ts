@@ -93,9 +93,10 @@ async function fireFriendRequest(m: Message) {
 /**
  * try to find FriendRequest Confirmation Message
  */
-function checkFriendConfirm(content) {
+function checkFriendConfirm(content: string): boolean {
   const reList = regexConfig.friendConfirm
   let found = false
+
   reList.some(re => !!(found = re.test(content)))
   if (found) {
     return true
@@ -140,7 +141,7 @@ function checkRoomJoin(content: string): [string[], string] {
   let found: string[]|null = []
   reList.some(re => !!(found = content.match(re)))
   if (!found || !found.length) {
-    throw new Error('checkRoomJoin() not found')
+    throw new Error('checkRoomJoin() not found matched re of ' + content)
   }
 
   const [inviter, inviteeStr] = [ found[1], found[2] ]
@@ -280,7 +281,7 @@ function checkRoomLeave(content: string): string|null {
   let found: string[]|null = []
   reList.some(re => !!(found = content.match(re)))
   if (!found || !found.length) {
-    return null
+    throw new Error('checkRoomLeave() no matched re for ' + content)
   }
   return found[1] // leaver
 }
@@ -288,11 +289,13 @@ function checkRoomLeave(content: string): string|null {
 /**
  * You removed "Bruce LEE" from the group chat
  */
-async function fireRoomLeave(m: Message) {
+async function fireRoomLeave(m: Message): Promise<void> {
   log.verbose('PuppetWebFirer', 'fireRoomLeave(%s)', m.content())
 
-  const leaver = checkRoomLeave(m.content())
-  if (!leaver) {
+  let leaver
+  try {
+    leaver = checkRoomLeave(m.content())
+  } catch (e) {
     return
   }
   log.silly('PuppetWebFirer', 'fireRoomLeave() got leaver: %s', leaver)

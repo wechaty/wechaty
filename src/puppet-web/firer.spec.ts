@@ -29,21 +29,20 @@ test('Firer.checkFriendConfirm', t => {
         '你已添加了李卓桓，现在可以开始聊天了。'
       , '李卓桓'
     ]
-
   ]
   let result: boolean
 
-  contentList.forEach((content, friend) => {
+  contentList.forEach(([content]) => {
     result = Firer.checkFriendConfirm(content)
-    t.truthy(result, 'should be truthy for confirm msg: ' + content)
+    t.true(result, 'should be truthy for confirm msg: ' + content)
   })
 
   result = Firer.checkFriendConfirm('fsdfsdfasdfasdfadsa')
-  t.falsy(result, 'should be falsy for other msg')
+  t.false(result, 'should be falsy for other msg')
 })
 
 test('Firer.checkRoomJoin', t => {
-  const contentList = [
+  const contentList: [string, string, string[]][] = [
     [
       `You've invited "李卓桓" to the group chat`
       , `You've`
@@ -73,7 +72,7 @@ test('Firer.checkRoomJoin', t => {
 
   let result
   contentList.forEach(([content, inviter, inviteeList]) => {
-    result = Firer.checkRoomJoin(content as string)
+    result = Firer.checkRoomJoin(content)
     t.truthy(result, 'should check room join message right for ' + content)
     t.deepEqual(result[0], inviteeList, 'should get inviteeList right')
     t.is(result[1], inviter, 'should get inviter right')
@@ -81,7 +80,7 @@ test('Firer.checkRoomJoin', t => {
 
   t.throws(() => {
     Firer.checkRoomJoin('fsadfsadfsdfsdfs')
-  }, 'should throws if message is not expected')
+  }, Error, 'should throws if message is not expected')
 })
 
 test('Firer.checkRoomLeave', t => {
@@ -105,7 +104,7 @@ test('Firer.checkRoomLeave', t => {
 
   t.throws(() => {
     Firer.checkRoomLeave('fafdsfsdfafa')
-  }, 'should throw if message is not expected')
+  }, Error, 'should throw if message is not expected')
 })
 
 test('Firer.checkRoomTopic', t => {
@@ -126,12 +125,12 @@ test('Firer.checkRoomTopic', t => {
   contentList.forEach(([content, changer, topic]) => {
     result = Firer.checkRoomTopic(content)
     t.truthy(result, 'should check topic right for content: ' + content)
-    t.is(topic  , result[2], 'should get right topic')
+    t.is(topic  , result[0], 'should get right topic')
     t.is(changer, result[1], 'should get right changer')
   })
 
   t.throws(() => {
     Firer.checkRoomTopic('fafdsfsdfafa')
-  }, 'should throw if message is not expected')
+  }, Error, 'should throw if message is not expected')
 
 })
