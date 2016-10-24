@@ -116,15 +116,15 @@ function isWechatyDocker() {
  * 5. live setting
  */
 function puppetInstance(instance?: Puppet | null): Puppet | void {
-  if (typeof instance !== 'undefined') {
+  if (instance !== undefined) {
     if (instance) {
       Config._puppetInstance = instance
       return instance
-    } else {
-      Config._puppetInstance = instance
-      return
     }
+    Config._puppetInstance = null
+    return
   }
+
   if (!Config._puppetInstance) {
     throw new Error('no puppet instance')
   }
