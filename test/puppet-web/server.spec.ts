@@ -6,7 +6,8 @@ import * as sinon from 'sinon'
 import {
   // PuppetWeb
   // , Message
-  log
+    UtilLib
+  , log
 } from '../../'
 
 import {
@@ -14,10 +15,9 @@ import {
   Server
 }               from '../../src/puppet-web/'
 
-const PORT = 48788
-
 test('PuppetWebServer basic tests', async t => {
-  const s = new Server(PORT)
+  const port = await UtilLib.getPort(18788)
+  const s = new Server(port)
   t.is(typeof s, 'object', 'PuppetWebServer instance created')
 
   let httpsServer: https.Server
@@ -62,12 +62,14 @@ test('PuppetWebServer basic tests', async t => {
 })
 
 test('PuppetWebServer smoke testing', async t => {
-  const server = new Server(PORT)
+  const port = await UtilLib.getPort(18788)
+
+  const server = new Server(port)
   t.truthy(server, 'new server instance')
 
   // co(function* () {
     const retInit = await server.init()
-    t.truthy(retInit, 'server:' + PORT + ' inited')
+    t.truthy(retInit, 'server:' + port + ' inited')
 
     const retHttps = await dingHttps()
     t.is(retHttps ,  'dong', 'ding https   got dong')
@@ -88,7 +90,7 @@ test('PuppetWebServer smoke testing', async t => {
   //////////////////////////////////////////
 
   function dingHttps() {
-    const options = require('url').parse(`https://localhost:${PORT}/ding`)
+    const options = require('url').parse(`https://localhost:${port}/ding`)
     options.rejectUnauthorized = false // permit self-signed CA
 
     return new Promise((resolve, reject) => {

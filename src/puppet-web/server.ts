@@ -130,7 +130,7 @@ export class Server extends EventEmitter {
     this.emit('connection', client)
 
     client.on('disconnect', e => {
-      log.silly('PuppetWebServer', 'initEventsFromClient() on(discohnnect) socket.io disconnect: %s', e)
+      log.silly('PuppetWebServer', 'initEventsFromClient() on(disconnect) socket.io disconnect: %s', e)
       // 1. Browser reload / 2. Lost connection(Bad network)
       this.socketClient = null
       this.emit('disconnect', e)

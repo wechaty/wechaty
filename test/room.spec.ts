@@ -120,17 +120,16 @@ test('Room smoking test', async t => {
 })
 
 test('Room static method', async t => {
-  const room = await Room.find({
-    topic: 'xxx'
-  })
-
-  t.truthy(room === null, 'should return null before login')
+  try {
+    await Room.find({ topic: 'xxx' })
+    t.fail('should throw but not')
+  } catch (e) {
+    t.pass('should throw before login or not found')
+  }
 
   const roomList = await Room.findAll({
     topic: 'yyy'
   })
 
   t.is(roomList.length, 0, 'should return empty array before login')
-
-  // t.end()
 })

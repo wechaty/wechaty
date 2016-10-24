@@ -110,7 +110,7 @@ export class Wechaty extends EventEmitter implements Sayable {
          * This throws if any accessibility checks fail, and does nothing otherwise.
          */
         // fs.accessSync(dotGitPath, fs.F_OK)
-        fs.statSync(dotGitPath) // .isDirectory()
+        fs.statSync(dotGitPath).isDirectory()
 
         const ss = require('child_process')
                     .spawnSync(gitLogCmd, gitLogArgs, { cwd:  __dirname })

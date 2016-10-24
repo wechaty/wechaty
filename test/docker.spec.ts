@@ -16,7 +16,8 @@ if (Config.isDocker) {
     // const n = execSync('ps a | grep Xvfb | grep -v grep | wc -l').toString().replace(/\n/, '', 'g')
     // t.is(parseInt(n), 1, 'should has Xvfb started')
     t.notThrows(() => {
-      fs.accessSync(Config.CMD_CHROMIUM, fs['X_OK'])
+      // fs.accessSync(Config.CMD_CHROMIUM, fs['X_OK'])
+      fs.statSync(Config.CMD_CHROMIUM).isFile()
     }, 'should exist xvfb-chrome exectable')
   })
 

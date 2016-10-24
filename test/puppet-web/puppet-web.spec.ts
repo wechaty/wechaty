@@ -1,7 +1,8 @@
 import { test } from 'ava'
 
 import {
-  PuppetWeb
+    Config
+  , PuppetWeb
   , Message
   , log
 } from '../../'
@@ -12,13 +13,13 @@ import {
 
 // import { spy } from 'sinon'
 
-test('Puppet Web Self Message Identification', t => {
+test.skip('@deprecated Puppet Web Self Message Identification', t => {
   const p = new PuppetWeb()
   t.truthy(p, 'should instantiated a PuppetWeb')
 
   const EXPECTED_USER_ID = 'zixia'
   const m = new Message()
-  m.set('from', EXPECTED_USER_ID)
+  m.from(EXPECTED_USER_ID)
   p.userId = EXPECTED_USER_ID
   t.truthy(p.self(m), 'should identified self for message which from is self')
 })
@@ -31,6 +32,8 @@ test('Puppet Web Self Message Identification', t => {
 test.serial('PuppetWeb login/logout events', async t => {
   let pw = new PuppetWeb()
   t.truthy(pw, 'should instantiated a PuppetWeb')
+
+  Config.puppetInstance(pw)
 
   await pw.init()
   t.pass('should be inited')
@@ -56,6 +59,8 @@ test.serial('PuppetWeb login/logout events', async t => {
 test.serial('PuppetWeb server/browser communication', async t => {
   let pw = new PuppetWeb()
   t.truthy(pw, 'should instantiated a PuppetWeb')
+
+  Config.puppetInstance(pw)
 
   const EXPECTED_DING_DATA = 'dingdong'
 
