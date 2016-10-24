@@ -168,11 +168,13 @@ export class Browser extends EventEmitter {
   public driver(newDriver: WebDriver): WebDriver
 
   public driver(newDriver?: WebDriver | null): WebDriver | void {
-    log.silly('PuppetWebBrowser', 'driver(%s)'
-                                , typeof newDriver === 'undefined'
-                                  ? ''
-                                  : newDriver
-    )
+    if (newDriver !== undefined) {
+      log.silly('PuppetWebBrowser', 'driver(%s)'
+                                  , newDriver
+                                    ? newDriver.constructor.name
+                                    : null
+      )
+    }
 
     if (typeof newDriver !== 'undefined') {
       if (newDriver) {
@@ -248,6 +250,9 @@ export class Browser extends EventEmitter {
   private getPhantomJsDriver(): WebDriver {
     // setup custom phantomJS capability https://github.com/SeleniumHQ/selenium/issues/2069
     const phantomjsExe = require('phantomjs-prebuilt').path
+    if (!phantomjsExe) {
+      throw new Error('phantomjs binary path not found')
+    }
     // const phantomjsExe = require('phantomjs2').path
 
     const phantomjsArgs = [
