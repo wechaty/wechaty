@@ -223,12 +223,17 @@ export class Browser extends EventEmitter {
     /**
      * http://stackoverflow.com/a/27733960/1123955
      * issue #56
-     */
+     * only need under win32 with cygwin
+     * and will cause strange error:
+     * `The previously configured ChromeDriver service is still running. You must shut it down before you may adjust its configuration.`
+
     const chrome = require('selenium-webdriver/chrome')
     const path = require('chromedriver').path
 
     const service = new chrome.ServiceBuilder(path).build()
     chrome.setDefaultService(service)
+
+     */
 
     const options = {
       args: ['--no-sandbox']  // issue #26 for run inside docker
@@ -696,7 +701,8 @@ export class Browser extends EventEmitter {
   }
 
   public loadSession(): Promise<any> {
-    log.verbose('PuppetWebBrowser', `loadSession(${this.setting.sessionFile})`)
+    log.verbose('PuppetWebBrowser', 'loadSession() from %s', this.setting.sessionFile ? this.setting.sessionFile : '' )
+
     if (!this.setting.sessionFile) {
       return Promise.reject(new Error('loadSession() no sessionFile'))
     } else if (this.dead()) {
