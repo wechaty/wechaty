@@ -460,7 +460,10 @@ wechaty.init()
 }
 ```
 
-### Wechaty.self(message: Message): boolean
+### @DEPRECATED Wechaty.self(message: Message): boolean
+
+use `Message.self()` instead.
+
 Check if message is sent by self.
 
 Return `true` for send from self, `false` for send from others.
@@ -557,6 +560,18 @@ message.ready()
 .then(() => {
   // Here we can be sure all the data is ready for use.
 })
+```
+
+### Message.self(message: Message): boolean
+
+Check if message is sent by self.
+
+Return `true` for send from self, `false` for send from others.
+
+```typescript
+if (message.self()) {
+  console.log('this message is sent by myself!')
+}
 ```
 
 ## Contact Class
