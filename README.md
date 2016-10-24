@@ -423,16 +423,18 @@ wechaty.on('friend', (this: Sayable, contact: Contact, request?: FriendRequest) 
 ### 7. Event: `room-join`
 
 ```ts
-wechaty.on('room-join', (this: Sayable, room: Room, invitee: Contact, inviter: Contact) => {
-  console.log(`Room ${room} got new member ${invitee}, invited by ${inviter}`)
+wechaty.on('room-join', (this: Sayable, room: Room, inviteeList: Contact[], inviter: Contact) => {
+  const nameList = inviteeList.map(c => c.name()).join(',')
+  console.log(`Room ${room} got new member ${nameList}, invited by ${inviter}`)
 })
 ```
 
 ### 8. Event: `room-leave`
 
 ```typescript
-wechaty.on('room-leave', (this: Sayable, room: Room, leaver: Contact) => {
-  console.log(`Room ${room} lost member ${leaver}`)
+wechaty.on('room-leave', (this: Sayable, room: Room, leaverList: Contact[]) => {
+  const nameList = leaverList.map(c => c.name()).join(',')
+  console.log(`Room ${room} lost member ${nameList}`)
 })
 ```
 
@@ -587,21 +589,22 @@ which means there will be a `this.say()` the method inside listener call, you ca
 #### Event: `join`
 
 ```typescript
-Room.on('join', (invitee, inviter) => void)
+Room.on('join', (this: Room, inviteeList: Contact[], inviter: Contact) => void)
 ```
 
 Event `join`: Room New Member
 
 ```typescript
-room.on('join', (invitee, inviter) => {
-  console.log(`user ${invitee} joined the room ${room}, invited by ${inviter}`)
+room.on('join', function(inviteeList, inviter) {
+  const nameList = inviteeList.map(c => c.name()).join(',') 
+  console.log(`${nameList} joined the room ${room}, invited by ${inviter}`)
 })
 ```
 
 #### Event: `leave`
 
 ```typescript
-Room.on('leave', (leaver) => void)
+Room.on('leave', (this, leaverList: Contact[]) => void)
 ```
 
 #### Event: `topic`

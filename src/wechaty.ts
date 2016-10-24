@@ -178,9 +178,8 @@ export class Wechaty extends EventEmitter implements Sayable {
   public on(event: 'logout'     , listener: (this: Sayable, user: Contact) => void): this
   public on(event: 'login'      , listener: (this: Sayable, user: Contact) => void): this
   public on(event: 'message'    , listener: (this: Sayable, message: Message) => void): this
-  public on(event: 'room-join'  , listener: (this: Sayable, room: Room, invitee:      Contact,    inviter: Contact) => void): this
-  public on(event: 'room-join'  , listener: (this: Sayable, room: Room, inviteeList:  Contact[],  inviter: Contact) => void): this
-  public on(event: 'room-leave' , listener: (this: Sayable, room: Room, leaver: Contact) => void): this
+  public on(event: 'room-join'  , listener: (this: Sayable, room: Room, inviteeList: Contact[],  inviter: Contact) => void): this
+  public on(event: 'room-leave' , listener: (this: Sayable, room: Room, leaverList: Contact[]) => void): this
   public on(event: 'room-topic' , listener: (this: Sayable, room: Room, topic: string, oldTopic: string, changer: Contact) => void): this
   public on(event: 'scan'       , listener: (this: Sayable, url: string, code: number) => void): this
   public on(event: 'EVENT_PARAM_ERROR', listener: () => void): this

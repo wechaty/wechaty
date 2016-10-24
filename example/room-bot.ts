@@ -99,12 +99,10 @@ bot
 /**
  * Global Event: room-join
  */
-.on('room-join', (room, invitee, inviter) => {
+.on('room-join', function(this, room, inviteeList, inviter) {
   log.info('Bot', 'EVENT: room-join - Room %s got new member %s, invited by %s'
                 , room.topic()
-                , Array.isArray(invitee)
-                  ? invitee.map(c => c.name()).join(',')
-                  : invitee.name()
+                , inviteeList.map(c => c.name()).join(',')
                 , inviter.name()
           )
 })
@@ -112,10 +110,10 @@ bot
 /**
  * Global Event: room-leave
  */
-.on('room-leave', (room, leaver) => {
+.on('room-leave', (room, leaverList) => {
   log.info('Bot', 'EVENT: room-leave - Room %s lost member %s'
                 , room.topic()
-                , leaver.name()
+                , leaverList.map(c => c.name()).join(',')
               )
 })
 
@@ -281,15 +279,10 @@ function manageDingRoom() {
   })
 }
 
-function checkRoomJoin(room: Room, invitee: Contact           , inviter: Contact)
-function checkRoomJoin(room: Room, invitee: Contact[]         , inviter: Contact)
-function checkRoomJoin(room: Room, invitee: Contact|Contact[] , inviter: Contact) {
-
+function checkRoomJoin(room: Room, inviteeList: Contact[], inviter: Contact) {
   log.info('Bot', 'checkRoomJoin(%s, %s, %s)'
                 , room.topic()
-                , Array.isArray(invitee)
-                  ? invitee.map(c => c.name()).join(', ')
-                  : invitee.name()
+                , inviteeList.map(c => c.name()).join(',')
                 , inviter.name()
           )
 
@@ -305,14 +298,12 @@ function checkRoomJoin(room: Room, invitee: Contact|Contact[] , inviter: Contact
           , inviter
       )
       room.say('Please contact me: by send "ding" to me, I will re-send you a invitation. Now I will remove you out, sorry.'
-          , invitee
+          , inviteeList
       )
 
       room.topic('ding - warn ' + inviter.name())
       setTimeout(_ => {
-        Array.isArray(invitee)
-        ? invitee.forEach(c => room.del(c))
-        : room.del(invitee)
+        inviteeList.forEach(c => room.del(c))
       }, 10000)
 
     } else {
@@ -320,11 +311,7 @@ function checkRoomJoin(room: Room, invitee: Contact|Contact[] , inviter: Contact
       room.say('Welcome to my room! :)')
 
       let welcomeTopic
-      if (Array.isArray(invitee)) {
-        welcomeTopic = invitee.map(c => c.name()).join(', ')
-      } else {
-        welcomeTopic = invitee.name()
-      }
+      welcomeTopic = inviteeList.map(c => c.name()).join(', ')
       room.topic('ding - welcome ' + welcomeTopic)
     }
 

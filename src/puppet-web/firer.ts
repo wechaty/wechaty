@@ -264,13 +264,8 @@ async function fireRoomJoin(m: Message): Promise<void> {
     await inviterContact.ready()
     await room.ready()
 
-    if (inviteeContactList.length === 1) {
-      this.emit('room-join', room , inviteeContactList[0] , inviterContact)
-      room.emit('join'            , inviteeContactList[0] , inviterContact)
-    } else {
-      this.emit('room-join', room , inviteeContactList    , inviterContact)
-      room.emit('join'            , inviteeContactList    , inviterContact)
-    }
+    this.emit('room-join', room , inviteeContactList, inviterContact)
+    room.emit('join'            , inviteeContactList, inviterContact)
 
   } catch (e) {
     log.error('PuppetWebFirer', 'exception: %s', e.stack)
@@ -307,6 +302,9 @@ async function fireRoomLeave(m: Message) {
     log.warn('PuppetWebFirer', 'fireRoomLeave() room not found')
     return
   }
+  /**
+   * FIXME: leaver maybe is a list
+   */
   let leaverContact = room.member(leaver)
 
   if (!leaverContact) {
@@ -316,9 +314,14 @@ async function fireRoomLeave(m: Message) {
 
   await leaverContact.ready()
   await room.ready()
-  this.emit('room-leave', room, leaverContact)
-  room.emit('leave'           , leaverContact)
-  await room.refresh()
+
+  /**
+   * FIXME: leaver maybe is a list
+   */
+  this.emit('room-leave', room, [leaverContact])
+  room.emit('leave'           , [leaverContact])
+
+  setTimeout(_ => { room.refresh() }, 10000) // reload the room data, especially for memberList
 }
 
 function checkRoomTopic(content: string): [string, string] {

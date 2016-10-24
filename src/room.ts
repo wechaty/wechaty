@@ -117,8 +117,7 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   public on(event: 'leave', listener: (this: Sayable, leaver: Contact) => void): this
-  public on(event: 'join' , listener: (invitee:      Contact   , inviter: Contact)  => void): this
-  public on(event: 'join' , listener: (inviteeList:  Contact[] , inviter: Contact)  => void): this
+  public on(event: 'join' , listener: (inviteeList: Contact[] , inviter: Contact)  => void): this
   public on(event: 'topic', listener: (topic: string, oldTopic: string, changer: Contact) => void): this
   public on(event: 'EVENT_PARAM_ERROR', listener: () => void): this
 

@@ -4,16 +4,14 @@ import {
   , Sayable
 } from '../../'
 
-const arrify = require('arrify')
-
 export default async function onRoomJoin(
     this: Sayable
   , room: Room
-  , invitee: Contact|Contact[]
+  , inviteeList: Contact[]
   , inviter: Contact
 ): Promise<void> {
   try {
-    const inviteeName = arrify(invitee).map(c => c.name()).join(', ')
+    const inviteeName = inviteeList.map(c => c.name()).join(', ')
     /********************************************
      *
      * 从这里开始修改 vvvvvvvvvvvv
@@ -36,9 +34,9 @@ export default async function onRoomJoin(
     }
 
     room.say('请勿私自拉人。需要拉人请加我', inviter)
-    room.say('请先加我好友，然后我来拉你入群。先把你移出啦。', invitee)
+    room.say('请先加我好友，然后我来拉你入群。先把你移出啦。', inviteeList)
 
-    arrify(invitee).forEach(c => {
+    inviteeList.forEach(c => {
       room.del(c)
     })
 
