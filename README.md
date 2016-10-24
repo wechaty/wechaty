@@ -23,7 +23,7 @@ Details: https://github.com/wechaty/wechaty/issues/40
 + on 12th Oct 2016
 ```
 
-[VSCode](https://code.visualstudio.com/) is recommended for typescript because we can get the benefit of [intelligent code completion, parameter info, and member lists](https://code.visualstudio.com/docs/languages/javascript).
+[VSCode](https://code.visualstudio.com/) is recommended as developing IDE for typescript because we can get the benefit of [intelligent code completion, parameter info, and member lists](https://code.visualstudio.com/docs/languages/javascript).
 
 The last Javascript version is: [v0.4.0](https://github.com/wechaty/wechaty/releases/tag/v0.4.0) (2016/10/9) , or install v0.4 by `npm install wechaty`.
 
@@ -329,18 +329,9 @@ Wechaty supports the following 6 events:
 
 ### this.say(content: string)
 
-`this` is `Sayable` for all listeners.
+`this` is `Sayable` for all listeners. here this is a `Wechaty` instance.
 
-Notice: when we want to use `this` inside a listener, we must use the traditional `function(this) {}` instead of fat arrow `() => {}` to get `Sayable` `this` inside.
-
-```diff
-- wechaty.on('login', user => {               // 1. do not use fat arrow function if you want a `Sayable` `this`
-+ wechaty.on('login', function(this, user) {  // 2. use traditional `function(this, ...) {}` instead
-  this.say(`${user.name()} logined`)
-})
-```
-
-which means there will be a `this.say()` method inside listener call, you can use it sending message to `filehelper`, just for logging / reporting / any usage for your convenience
+`this.say()` method will sending message to `filehelper`, just for logging / reporting / any usage for your convenience
 
 ### 1. Event: `scan`
 
@@ -501,19 +492,62 @@ All wechat messages will be encapsulated as a Message.
 
 get the sender from a message, or set it.
 
+#### 1. Message.from(): Contact
+
+get the sender from a message.
+
+#### 2. Message.from(contact: Contact): Contact
+
+set a sender to the message
+
+#### 3. Message.from(contactId: string): Contact
+
+set a sender to the message by it's id
+
 ### Message.to(contact?: Contact|Room|string): Contact|Room
 
 get the receiver from a message, or set it.
+
+#### 1. Message.to(): Contact|Room
+
+get the destination of the message
+
+#### 2. Message.to(contact: Contact): Contact
+
+set the destination as Contact for the message
+
+#### 3. Message.to(room: Room): Room
+
+set the destination as Room for the message
+
+#### 4. Message.to(contactOrRoomId: string): Contact | Room
+
+set the destination as Room or Contact by id, for the message
 
 ### Message.room(room?: Room|string): Room
 
 get the room from a message, or set it.
 
+#### 1. Message.room(): Room | null
+
+get the room from Message. 
+
+if the message is not in a room, then will return `null`
+
+#### 2. Message.room(room: Room): Room
+
+set the room for a Message
+
+#### 3. Message.room(roomId: string): Room
+
+set the room by id for a Message
+
 ### Message.say(content: string): Promise<void>
 
 reply a message to the sender.
 
-### Message.ready(): Message
+### Message.ready(): Promise<Message>
+
 A message may be not fully initialized yet. Call `ready()` to confirm we get all the data needed.
 
 Return a Promise, will be resolved when all data is ready.
@@ -535,7 +569,7 @@ Uniq id
 
 ### Contact.name(): string
 
-### Contact.ready(): Contact
+### Contact.ready(): Promise<Contact>
 A Contact may be not fully initialized yet. Call `ready()` to confirm we get all the data needed.
 
 Return a Promise, will be resolved when all data is ready.
@@ -564,7 +598,7 @@ say `content` inside Room.
 if you set `replyTo`, then `say()` will mention them as well.
 > "@replyTo content"
 
-### Room.ready(): Room
+### Room.ready(): Promise<Room>
 A room may be not fully initialized yet. Call `ready()` to confirm we get all the data needed.
 
 Return a Promise, will be resolved when all data is ready.
@@ -576,7 +610,7 @@ room.ready()
 })
 ```
 
-### Room.refresh(): Room
+### Room.refresh(): Promise<Room>
 
 force reload data for Room
 

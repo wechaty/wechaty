@@ -169,7 +169,7 @@ export class Browser extends EventEmitter {
 
   public driver(newDriver?: WebDriver | null): WebDriver | void {
     if (newDriver !== undefined) {
-      log.silly('PuppetWebBrowser', 'driver(%s)'
+      log.verbose('PuppetWebBrowser', 'driver(%s)'
                                   , newDriver
                                     ? newDriver.constructor.name
                                     : null
