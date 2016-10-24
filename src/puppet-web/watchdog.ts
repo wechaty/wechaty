@@ -124,7 +124,7 @@ function watchDogReset(timeout, lastFeed) {
  * save every 5 mins
  *
  */
-function autoSaveSession(this: PuppetWeb, force = false) {
+async function autoSaveSession(this: PuppetWeb, force = false) {
   log.silly('PuppetWebWatchdog', 'autoSaveSession()')
 
   if (!this.userId) {
@@ -140,7 +140,7 @@ function autoSaveSession(this: PuppetWeb, force = false) {
                                     , this.setting.profile
                                     , Math.floor(SAVE_SESSION_INTERVAL / 1000 / 60)
               )
-    this.browser.saveSession()
+    await this.browser.saveCookie()
     this.watchDogLastSaveSession = Date.now()
   }
 }

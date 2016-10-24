@@ -62,7 +62,7 @@ export class MediaMessage extends Message {
     return this.ready()
     .then(() => {
       return (Config.puppetInstance() as PuppetWeb)
-                    .browser.checkSession()
+                    .browser.readCookie()
     })
     .then(cookies => {
       if (!this.obj.url) {

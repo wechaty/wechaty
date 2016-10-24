@@ -124,7 +124,7 @@ function onServerDing(this: PuppetWeb, data) {
   this.emit('watchdog', { data })
 }
 
-function onServerScan(this: PuppetWeb, data: ScanInfo) {
+async function onServerScan(this: PuppetWeb, data: ScanInfo) {
   log.verbose('PuppetWebEvent', 'onServerScan(%d)', data && data.code)
 
   this.scan = data
@@ -132,8 +132,8 @@ function onServerScan(this: PuppetWeb, data: ScanInfo) {
   /**
    * When wx.qq.com push a new QRCode to Scan, there will be cookie updates(?)
    */
-  this.browser.saveSession()
-      .catch(() => {/* fail safe */})
+  await this.browser.saveCookie()
+                    .catch(() => {/* fail safe */})
 
   if (this.userId) {
     log.verbose('PuppetWebEvent', 'onServerScan() there has userId when got a scan event. emit logout and set userId to null')
@@ -306,10 +306,10 @@ async function onServerLogin(this: PuppetWeb, data, attempt = 0): Promise<void> 
     await this.user.ready()
     log.silly('PuppetWebEvent', `onServerLogin() user ${this.user.name()} logined`)
 
-    await this.browser.saveSession()
-              .catch(e => { // fail safe
-                log.verbose('PuppetWebEvent', 'onServerLogin() browser.saveSession exception: %s', e.message)
-              })
+    await this.browser.saveCookie()
+                      .catch(e => { // fail safe
+                        log.verbose('PuppetWebEvent', 'onServerLogin() browser.saveSession exception: %s', e.message)
+                      })
 
     this.emit('login', this.user)
 
