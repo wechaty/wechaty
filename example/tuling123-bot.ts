@@ -18,7 +18,6 @@ import { EventEmitter } from 'events'
 
 import {
     Config
-  , Room
   , Wechaty
   , log
 } from '../'
@@ -54,20 +53,18 @@ bot
   console.log(`Scan QR Code in url to login: ${code}\n${url}`)
 })
 .on('message', async m => {
-  if (bot.self(m)) return
+  if (m.self()) return
 
-  // co(function* () {
   try {
     const msg = await m.ready()
-    const room = Room.load(m.get('room'))
+    const room = m.room()
 
-    if (room && /Wechaty/i.test(room.get('name'))) {
+    if (room && /Wechaty/i.test(room.topic())) {
       log.info('Bot', 'talk: %s'  , msg)
       talk(m)
     } else {
       log.info('Bot', 'recv: %s'  , msg)
     }
-  // }).catch(e => {
   } catch (e) {
     log.error('Bot', 'on message rejected: %s' , e)
   }
@@ -142,9 +139,9 @@ class Talker extends EventEmitter {
 let Talkers: Talker[] = []
 
 function talk(m) {
-  const fromId  = m.get('from')
-  const roomId =  m.get('room')
-  const content = m.get('content')
+  const fromId  = m.from().id
+  const roomId =  m.room().id
+  const content = m.content()
 
   const talkerName = fromId + roomId
   if (!Talkers[talkerName]) {

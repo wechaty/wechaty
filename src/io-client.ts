@@ -193,7 +193,7 @@ class IoClient {
     //         )
     const puppet = Config.puppetInstance()
 
-    if (/^wechaty|botie/i.test(m.get('content')) && !puppet.self(m)) {
+    if (/^wechaty|botie/i.test(m.content()) && !m.self()) {
       puppet.reply(m, 'https://www.wechaty.io')
         .then(_ => this.log.info('Bot', 'REPLIED to magic word "wechaty"'))
     }

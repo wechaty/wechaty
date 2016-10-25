@@ -57,7 +57,7 @@ bot
                 + ':' + m.toStringDigest()
     )
 
-    if (/^(ding|ping|bing)$/i.test(m.get('content')) && !bot.self(m)) {
+    if (/^(ding|ping|bing)$/i.test(m.content()) && !m.self()) {
       m.say('dong')
       log.info('Bot', 'REPLY: dong')
     }

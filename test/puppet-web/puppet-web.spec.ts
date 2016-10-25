@@ -7,9 +7,9 @@ import {
   , log
 } from '../../'
 
-// import * as util from 'util'
-// const retryPormise = require('retry-promise').default
-// import { EventEmitter } from 'events'
+import {
+  Server
+} from '../../src/puppet-web/'
 
 // import { spy } from 'sinon'
 
@@ -74,7 +74,7 @@ test.serial('PuppetWeb server/browser communication', async t => {
 
   return
   /////////////////////////////////////////////////////////////////////////////
-  function dingSocket(server) {
+  function dingSocket(server: Server) {
     const maxTime   = 60000 // 60s
     const waitTime  = 3000
     let   totalTime = 0
@@ -82,18 +82,19 @@ test.serial('PuppetWeb server/browser communication', async t => {
       log.verbose('TestPuppetWeb', 'dingSocket()')
 
       setTimeout(_ => {
-        reject('no response timeout after ' + 2 * maxTime)
+        reject('dingSocket() no response timeout after ' + 2 * maxTime)
       }, 2 * maxTime)
       .unref()
 
-      return testDing()
+      testDing()
+      return
 
-      function testDing() {
+      function testDing(): void {
         log.silly('TestPuppetWeb', 'dingSocket() server.socketServer: %s', server.socketServer)
         if (!server.socketClient) {
           totalTime += waitTime
           if (totalTime > maxTime) {
-            return reject('timeout after ' + totalTime + 'ms')
+            return reject('testDing() timeout after ' + totalTime + 'ms')
           }
 
           log.silly('TestPuppetWeb', 'waiting socketClient to connect for ' + totalTime + '/' + maxTime + ' ms...')

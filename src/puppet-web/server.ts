@@ -22,8 +22,8 @@ export class Server extends EventEmitter {
   private express:      express.Application
   private httpsServer:  https.Server | null
 
-  private socketServer: SocketIO.Server | null
-  private socketClient: SocketIO.Socket | null
+  public socketServer: SocketIO.Server | null
+  public socketClient: SocketIO.Socket | null
 
   constructor(
     private port: number

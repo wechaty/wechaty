@@ -60,14 +60,12 @@ export class PuppetWeb extends Puppet {
 
   public toString() { return `Class PuppetWeb({browser:${this.browser},port:${this.port}})` }
 
-  public async init(): Promise<PuppetWeb> {
+  public async init(): Promise<this> {
     log.verbose('PuppetWeb', `init() with head:${this.setting.head}, profile:${this.setting.profile}`)
 
-    // this.readyState('connecting')
     this.targetState('live')
     this.currentState('birthing')
 
-    // return co.call(this, function* () {
     try {
 
       this.port = await UtilLib.getPort(DEFAULT_PUPPET_PORT)
@@ -92,19 +90,15 @@ export class PuppetWeb extends Puppet {
       }
       this.emit('watchdog', food)
 
-      // return this
-    // }).catch(e => {   // Reject
+      log.verbose('PuppetWeb', 'init() done')
+      this.currentState('live')
+      return this   // for Chaining
+
     } catch (e) {
       log.error('PuppetWeb', 'init() exception: %s', e.stack)
       await this.quit()
       throw e
     }
-    // .then(() => {   // Finally
-      log.verbose('PuppetWeb', 'init() done')
-      // this.readyState('connected')
-      this.currentState('live')
-      return this   // for Chaining
-    // })
   }
 
   public async quit(): Promise<any> {

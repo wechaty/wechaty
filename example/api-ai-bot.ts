@@ -52,7 +52,7 @@ bot
 .on('login'  , user => log.info('Bot', `bot login: ${user}`))
 .on('logout' , e => log.info('Bot', 'bot logout.'))
 .on('message', m => {
-  if (bot.self(m)) { return }
+  if (m.self()) { return }
 
   co(function* () {
     const msg = yield m.ready()
@@ -137,9 +137,9 @@ class Talker extends EventEmitter {
 let Talkers: Talker[] = []
 
 function talk(m) {
-  const fromId  = m.get('from')
-  const roomId = m.get('room')
-  const content = m.get('content')
+  const fromId  = m.from().id
+  const roomId = m.room().id
+  const content = m.content()
 
   const talkerName = fromId + roomId
   if (!Talkers[talkerName]) {

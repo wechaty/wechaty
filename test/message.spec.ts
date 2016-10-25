@@ -1,7 +1,6 @@
 import { test } from 'ava'
 import {
     Config
-  , Contact
   , Message
   , PuppetWeb
   // , Wechaty
@@ -26,8 +25,8 @@ test('Message constructor parser test', t => {
   }
   const m = new Message(rawData)
 
-  t.is(m.id          , EXPECTED.id   , 'id right')
-  t.is(m.get('from') , EXPECTED.from , 'from right')
+  t.is(m.id         , EXPECTED.id   , 'id right')
+  t.is(m.from().id  , EXPECTED.from , 'from right')
 
   const s = m.toString()
   t.is(typeof s, 'string', 'toString()')
@@ -93,8 +92,8 @@ test('Message ready() promise testing', async t => {
 
   await m.ready()
 
-  const fc = Contact.load(m.get('from'))
-  const tc = Contact.load(m.get('to'))
+  const fc = m.from()
+  const tc = m.to()
 
   if (!fc || !tc) {
     throw new Error('no fc or no tc')
@@ -113,13 +112,13 @@ test('TBW: Message static method', async t => {
     id: 'xxx'
   })
 
-  t.truthy(m.get('id'), 'Message.find')
+  t.truthy(m.id, 'Message.find')
 
-  const ms = await Message.findAll({
+  const msgList = await Message.findAll({
     from: 'yyy'
   })
 
-  t.is(ms.length, 2, 'Message.findAll with limit 2')
+  t.is(msgList.length, 2, 'Message.findAll with limit 2')
 
   // t.end()
 })

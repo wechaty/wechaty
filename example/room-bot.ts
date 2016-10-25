@@ -145,7 +145,7 @@ bot
               + ':' + message.toStringDigest()
   )
 
-  if (bot.self(message)) {
+  if (message.self()) {
     return
   }
   /**
