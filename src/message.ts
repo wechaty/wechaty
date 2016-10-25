@@ -84,7 +84,7 @@ export class Message implements Sayable {
 
   constructor(public rawObj?: MessageRawObj) {
     this._counter = Message.counter++
-    log.silly('Message', 'constructor() #%d', this._counter)
+    log.silly('Message', 'constructor() SN:%d', this._counter)
 
     if (typeof rawObj === 'string') {
       this.rawObj = JSON.parse(rawObj)
