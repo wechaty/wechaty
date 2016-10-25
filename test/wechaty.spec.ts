@@ -3,6 +3,7 @@ import { test } from 'ava'
 import {
     Config
   , Contact
+  , FriendRequest
   , IoClient
   , Message
   , Puppet
@@ -11,28 +12,30 @@ import {
   , Wechaty
 
   , log
-  , version
+  , VERSION
 }               from '../'
 
 test('Wechaty Framework', t => {
-  t.truthy(Wechaty    , 'should export Wechaty')
-  t.truthy(Message    , 'should export Message')
-  t.truthy(Contact    , 'should export Contact')
-  t.truthy(Room       , 'should export Room')
-
-  t.truthy(IoClient   , 'should export IoClient')
-
-  t.truthy(log        , 'should export log')
-
-  t.truthy(Puppet     , 'should export Puppet')
-  t.truthy(PuppetWeb  , 'should export PuppetWeb')
+  t.truthy(Contact      , 'should export Contact')
+  t.truthy(FriendRequest, 'should export FriendREquest')
+  t.truthy(IoClient     , 'should export IoClient')
+  t.truthy(Message      , 'should export Message')
+  t.truthy(Puppet       , 'should export Puppet')
+  t.truthy(PuppetWeb    , 'should export PuppetWeb')
+  t.truthy(Room         , 'should export Room')
+  t.truthy(Wechaty      , 'should export Wechaty')
+  t.truthy(log          , 'should export log')
 
   const bot = Wechaty.instance()
-  t.is(bot.version(true), version, 'should export version in package.json')
+  t.is(bot.version(true), require('../package.json').version
+                        , 'should return version as the same in package.json'
+  )
+  t.is(VERSION, require('../package.json').version
+                , 'should export version in package.json'
+  )
 })
 
 test('Wechaty Config setting', t => {
-
   t.truthy(Config                 , 'should export Config')
   t.truthy(Config.DEFAULT_HEAD    , 'should has DEFAULT_HEAD')
   t.truthy(Config.DEFAULT_PUPPET  , 'should has DEFAULT_PUPPET')

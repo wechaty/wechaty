@@ -14,7 +14,7 @@ import Wechaty        from './src/wechaty'
 
 import log            from './src/brolog-env'
 
-const version = require('./package.json').version
+const VERSION = require('./package.json').version
 
 export default Wechaty
 export {
@@ -30,5 +30,5 @@ export {
   , UtilLib
   , Wechaty
   , log // for convenionce use npmlog with environment variable LEVEL
-  , version
+  , VERSION
 }

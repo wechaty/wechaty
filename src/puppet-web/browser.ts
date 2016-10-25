@@ -12,14 +12,14 @@ import {
   Builder
   , Capabilities
   , WebDriver
-} from 'selenium-webdriver'
+}                       from 'selenium-webdriver'
 
 /* tslint:disable:no-var-requires */
 const retryPromise  = require('retry-promise').default // https://github.com/olalonde/retry-promise
 
-import Config       from  '../config'
+import Config       from '../config'
 import StateMonitor from '../state-monitor'
-import log          from  '../brolog-env'
+import log          from '../brolog-env'
 
 import {
     CookieType
@@ -60,19 +60,21 @@ export class Browser extends EventEmitter {
     this.state.target('open')
     this.state.current('open', false)
 
-    // fastUrl is used to open in browser for we can set cookies.
+    // jumpUrl is used to open in browser for we can set cookies.
     // backup: 'https://res.wx.qq.com/zh_CN/htmledition/v2/images/icon/ico_loading28a2f7.gif'
-    const fastUrl = 'https://wx.qq.com/zh_CN/htmledition/v2/images/webwxgeticon.jpg'
+    const jumpUrl = 'https://wx.qq.com/zh_CN/htmledition/v2/images/webwxgeticon.jpg'
 
-    // return co.call(this, function* () {
     try {
       await this.initDriver()
       // this.live = true
 
-      await this.open(fastUrl)
+      await this.open(jumpUrl)
       await this.loadCookie()
                 .catch(e => { // fail safe
-                  log.verbose('PuppetWeb', 'browser.loadSession(%s) exception: %s', this.setting.sessionFile, e && e.message || e)
+                  log.verbose('PuppetWeb', 'browser.loadSession(%s) exception: %s'
+                                          , this.setting.sessionFile
+                                          , e && e.message || e
+                  )
                 })
       await this.open()
       /**
@@ -159,13 +161,13 @@ export class Browser extends EventEmitter {
   public driver(newDriver?: WebDriver | null): WebDriver | void {
     if (newDriver !== undefined) {
       log.verbose('PuppetWebBrowser', 'driver(%s)'
-                                  , newDriver
-                                    ? newDriver.constructor.name
-                                    : null
+                                    , newDriver
+                                      ? newDriver.constructor.name
+                                      : null
       )
     }
 
-    if (typeof newDriver !== 'undefined') {
+    if (newDriver !== undefined) {
       if (newDriver) {
         this._driver = newDriver
         return this._driver
@@ -343,7 +345,7 @@ export class Browser extends EventEmitter {
 
       /**
        *
-       * if we use AVA to test, then this.clean will cause problems
+       * if we use AVA test runner, then this.clean might cause problems
        * because there will be more than one instance of browser with the same nodejs process id
        *
        */
@@ -386,7 +388,8 @@ export class Browser extends EventEmitter {
 
     return retryPromise({ max: max, backoff: backoff }, attempt => {
       log.silly('PuppetWebBrowser', 'clean() retryPromise: attempt %s time for timeout %s'
-        , attempt,  timeout)
+                                  , attempt,  timeout
+      )
 
       return new Promise((resolve, reject) => {
         this.getBrowserPids()
@@ -549,7 +552,10 @@ export class Browser extends EventEmitter {
       //   log.verbose('PuppetWebBrowser', 'dead() emit a `dead` event because %s', msg)
       //   this.emit('dead', msg)
       // }
-      if (this.state.target() === 'open' && this.state.current() === 'open' && this.state.stable()) {
+      if (   this.state.target()  === 'open'
+          && this.state.current() === 'open'
+          && this.state.stable()
+      ) {
         log.verbose('PuppetWebBrowser', 'dead() emit a `dead` event because %s', msg)
         this.emit('dead', msg)
       } else {
