@@ -14,8 +14,9 @@
  *
  */
 import {
-    // Config
-    ScanInfo
+    Config
+  , HeadName
+  , ScanInfo
   , WatchdogFood
 }                     from '../config'
 
@@ -34,7 +35,7 @@ import Server         from './server'
 import Watchdog       from './watchdog'
 
 export type PuppetWebSetting = {
-  head?:    string
+  head?:    HeadName
   profile?: string
 }
 const DEFAULT_PUPPET_PORT = 18788 // // W(87) X(88), ascii char code ;-]
@@ -56,6 +57,9 @@ export class PuppetWeb extends Puppet {
   constructor(public setting: PuppetWebSetting = {}) {
     super()
 
+    if (!setting.head) {
+      setting.head = Config.head
+    }
     this.on('watchdog', Watchdog.onFeed.bind(this))
   }
 
@@ -180,7 +184,7 @@ export class PuppetWeb extends Puppet {
   public async initBrowser(): Promise<Browser> {
     log.verbose('PuppetWeb', 'initBrowser()')
     const browser = new Browser({
-        head:         this.setting.head
+        head:         <HeadName>this.setting.head
       , sessionFile:  this.setting.profile
     })
 

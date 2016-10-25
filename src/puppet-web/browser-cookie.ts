@@ -12,8 +12,9 @@
 import * as fs from 'fs'
 const arrify = require('arrify')
 
-import Browser  from './browser'
-import log      from '../brolog-env'
+import log            from '../brolog-env'
+
+import BrowserDriver  from './browser-driver'
 
 /**
  * DriverCookie type exits is because @types/selenium is not updated
@@ -30,9 +31,9 @@ export type CookieType = {
 }
 
 export class BrowserCookie {
-  constructor(private browser: Browser, private storeFile?: string) {
+  constructor(private driver: BrowserDriver, private storeFile?: string) {
     log.verbose('PuppetWebBrowserCookie', 'constructor(%s, %s)'
-                                        , browser.constructor.name
+                                        , driver.constructor.name
                                         , storeFile ? storeFile : ''
     )
   }
@@ -41,14 +42,14 @@ export class BrowserCookie {
     // just check cookies, no file operation
     log.verbose('PuppetWebBrowserCookie', 'checkSession()')
 
-    if (this.browser.dead()) {
-      throw new Error('checkSession() - browser dead')
-    }
+    // if (this.browser.dead()) {
+    //   throw new Error('checkSession() - browser dead')
+    // }
 
     // return new Promise((resolve, reject) => {
     try {
       // `as any as DriverCookie` because selenium-webdriver @types is outdated with 2.x, where we r using 3.0
-      const cookies = await this.browser.driver().manage().getCookies() as any as CookieType[]
+      const cookies = await this.driver.manage().getCookies() as any as CookieType[]
       log.silly('PuppetWebBrowserCookie', 'checkSession %s', cookies.map(c => c.name).join(','))
       return cookies
     } catch (e) {
@@ -63,7 +64,7 @@ export class BrowserCookie {
       return
     }
 
-    if (this.browser.dead())  { return Promise.reject(new Error('cleanSession() - browser dead'))}
+    // if (this.browser.dead())  { return Promise.reject(new Error('cleanSession() - browser dead'))}
 
     const filename = this.storeFile
     await new Promise((resolve, reject) => {
@@ -85,9 +86,9 @@ export class BrowserCookie {
     }
     const storeFile = this.storeFile
 
-    if (this.browser.dead()) {
-      throw new Error('saveSession() - browser dead')
-    }
+    // if (this.browser.dead()) {
+    //   throw new Error('saveSession() - browser dead')
+    // }
 
     const filename = this.storeFile
 
@@ -108,7 +109,7 @@ export class BrowserCookie {
     try {
     // return new Promise((resolve, reject) => {
       // `as any as DriverCookie` because selenium-webdriver @types is outdated with 2.x, where we r using 3.0
-      let cookies: CookieType[] = await this.browser.driver().manage().getCookies() as any as CookieType[]
+      let cookies: CookieType[] = await this.driver.manage().getCookies() as any as CookieType[]
       cookies = cookieFilter(cookies)
       // .then(cookies => {
         // log.silly('PuppetWeb', 'saving %d cookies for session: %s', cookies.length
@@ -140,8 +141,8 @@ export class BrowserCookie {
     if (!this.storeFile) {
       log.verbose('PuppetWebBrowserCookie', 'load() no session store file')
       return
-    } else if (this.browser.dead()) {
-      throw new Error('loadSession() - browser dead')
+    // } else if (this.browser.dead()) {
+    //   throw new Error('loadSession() - browser dead')
     }
     const storeFile = this.storeFile
 
@@ -175,7 +176,7 @@ export class BrowserCookie {
    */
   // TypeScript Overloading: http://stackoverflow.com/a/21385587/1123955
   public async add(cookie: CookieType|CookieType[]): Promise<void> {
-    if (this.browser.dead()) { return Promise.reject(new Error('addCookies() - browser dead'))}
+    // if (this.browser.dead()) { return Promise.reject(new Error('addCookies() - browser dead'))}
 
     if (Array.isArray(cookie)) {
       for (let c of cookie) {
@@ -195,7 +196,7 @@ export class BrowserCookie {
 
     // return new Promise((resolve, reject) => {
     try {
-      await (this.browser.driver().manage() as any).addCookie(cookie)
+      await (this.driver.manage() as any).addCookie(cookie)
                   // this is old webdriver format
                   // .addCookie(cookie.name, cookie.value, cookie.path
                   //   , cookie.domain, cookie.secure, cookie.expiry)

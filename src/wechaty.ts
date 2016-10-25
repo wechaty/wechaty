@@ -15,7 +15,7 @@ import * as path        from 'path'
 
 import {
     Config
-  , HeadType
+  , HeadName
   , PuppetType
   , Sayable
 }                     from './config'
@@ -32,9 +32,9 @@ import UtilLib        from './util-lib'
 import log            from './brolog-env'
 
 export type WechatySetting = {
-  profile?:    string
-  head?:       HeadType
-  type?:       PuppetType
+  head?:    HeadName
+  type?:    PuppetType
+  profile?: string
 }
 
 export type WechatyEventName = 'error'
@@ -74,14 +74,11 @@ export class Wechaty extends EventEmitter implements Sayable {
     super()
     log.verbose('Wechaty', 'contructor()')
 
-    // if (Wechaty._instance instanceof Wechaty) {
-    //   throw new Error('Wechaty must be singleton')
-    // }
-
-    setting.type    = setting.type    || Config.puppet
     setting.head    = setting.head    || Config.head
+    setting.type    = setting.type    || Config.puppet
+    setting.profile = setting.profile || Config.profile
+
     // setting.port    = setting.port    || Config.port
-    setting.profile = setting.profile || Config.profile  // no profile, no session save/restore
 
     if (setting.profile) {
       setting.profile  = /\.wechaty\.json$/i.test(setting.profile)
@@ -214,7 +211,7 @@ export class Wechaty extends EventEmitter implements Sayable {
     switch (this.setting.type) {
       case 'web':
         puppet = new PuppetWeb({
-            head:     this.setting.head
+            head:     <HeadName>this.setting.head
           , profile:  this.setting.profile
         })
         break

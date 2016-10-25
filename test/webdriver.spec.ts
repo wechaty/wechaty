@@ -56,7 +56,7 @@ test.serial('WebDriver smoke testing', async t => {
   const m = (await wb.getBrowserPids()).length
   t.is(m, 0, 'should has no browser process before get()')
 
-  driver = await wb.initDriver()
+  driver = await wb.driver.init()
   t.truthy(driver, 'should init driver success')
 
   const injectio = bridge.getInjectio()
