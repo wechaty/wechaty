@@ -26,6 +26,7 @@ import Message        from './message'
 import Puppet         from './puppet'
 import PuppetWeb      from './puppet-web/'
 import Room           from './room'
+import StateMonitor   from './state-monitor'
 import UtilLib        from './util-lib'
 
 import log            from './brolog-env'
@@ -53,7 +54,8 @@ export class Wechaty extends EventEmitter implements Sayable {
 
   public puppet: Puppet | null
 
-  private inited:     boolean = false
+  // private inited:     boolean = false
+  private state = new StateMonitor<'standby', 'ready'>('Wechaty', 'standby')
   private npmVersion: string
 
   public uuid:        string
@@ -91,7 +93,7 @@ export class Wechaty extends EventEmitter implements Sayable {
 
     this.uuid = UtilLib.guid()
 
-    this.inited = false
+    // this.inited = false
 
     // Wechaty._instance = this
   }
@@ -157,14 +159,16 @@ export class Wechaty extends EventEmitter implements Sayable {
     log.verbose('Wechaty', 'profile: %s'      , this.setting.profile)
     log.verbose('Wechaty', 'uuid: %s'         , this.uuid)
 
-    if (this.inited) {
+    // if (this.inited) {
+    if (this.state.current() === 'ready') {
       log.error('Wechaty', 'init() already inited. return and do nothing.')
       return this
     }
 
     try {
       await this.initPuppet()
-      this.inited = true
+      // this.inited = true
+      this.state.current('ready')
     } catch (e) {
       log.error('Wechaty', 'init() exception: %s', e && e.message)
       throw e
@@ -269,7 +273,8 @@ export class Wechaty extends EventEmitter implements Sayable {
     const puppetBeforeDie = this.puppet
     this.puppet     = null
     Config.puppetInstance(null)
-    this.inited = false
+    // this.inited = false
+    this.state.current('standby')
 
     await puppetBeforeDie.quit()
                         .catch(e => {
