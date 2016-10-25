@@ -14,10 +14,11 @@ import * as WebSocket from 'ws'
 import {
     Config
   // WechatyEventName
-}               from './config'
+}                   from './config'
 
-import Wechaty  from './wechaty'
-import log      from './brolog-env'
+import StateMonitor from './state-monitor'
+import Wechaty      from './wechaty'
+import log          from './brolog-env'
 
 export type IoSetting = {
   wechaty:    Wechaty
@@ -34,6 +35,7 @@ type IoEventName =  'botie'
                   | 'raw'
                   | 'reset'
                   | 'scan'
+                  | 'sys'
                   | 'shutdown'
 
 type IoEvent = {
@@ -48,11 +50,12 @@ export class Io {
   private eventBuffer: IoEvent[] = []
   private ws: WebSocket
 
-  private _currentState: string
-  private _targetState: string
+  // private _currentState: string
+  // private _targetState: string
+  private state = new StateMonitor<'online', 'offline'>('Io', 'offline')
 
   private reconnectTimer: NodeJS.Timer | null
-  private reconnectTimeout: number
+  private reconnectTimeout: number | null
 
   private onMessage: Function
 
@@ -75,27 +78,29 @@ export class Io {
               )
 
     // this.purpose('offline')
-    this.targetState('disconnected')
-    this.currentState('disconnected')
+    // this.targetState('disconnected')
+    // this.currentState('disconnected')
+    this.state.target('offline')
+    this.state.current('offline')
   }
 
-  // targetState : 'connected' | 'disconnected'
-  private targetState(newState?) {
-    if (newState) {
-      log.verbose('Io', 'targetState(%s)', newState)
-      this._targetState = newState
-    }
-    return this._targetState
-  }
+  // // targetState : 'connected' | 'disconnected'
+  // private targetState(newState?) {
+  //   if (newState) {
+  //     log.verbose('Io', 'targetState(%s)', newState)
+  //     this._targetState = newState
+  //   }
+  //   return this._targetState
+  // }
 
-  // currentState : 'connecting' | 'connected' | 'disconnecting' | 'disconnected'
-  private currentState(newState?) {
-    if (newState) {
-      log.verbose('Io', 'currentState(%s)', newState)
-      this._currentState = newState
-    }
-    return this._currentState
-  }
+  // // currentState : 'connecting' | 'connected' | 'disconnecting' | 'disconnected'
+  // private currentState(newState?) {
+  //   if (newState) {
+  //     log.verbose('Io', 'currentState(%s)', newState)
+  //     this._currentState = newState
+  //   }
+  //   return this._currentState
+  // }
 
   public toString() { return 'Class Io(' + this.setting.token + ')'}
 
@@ -104,28 +109,33 @@ export class Io {
   public async init(): Promise<Io> {
     log.verbose('Io', 'init()')
 
-    // this.purpose('online')
-    this.targetState('connected')
-    this.currentState('connecting')
+    // this.targetState('connected')
+    // this.currentState('connecting')
+    this.state.target('online')
+    this.state.current('online', false)
 
     // return co.call(this, function* () {
     try {
       await this.initEventHook()
       await this.initWebSocket()
 
-      this.currentState('connected')
+      // this.currentState('connected')
+      this.state.current('online')
+
       return this
     // }).catch(e => {
     } catch (e) {
       log.warn('Io', 'init() exception: %s', e.message)
-      this.currentState('disconnected')
+      // this.currentState('disconnected')
+      this.state.current('offline')
       throw e
     }
   }
 
   private initWebSocket() {
     log.verbose('Io', 'initWebSocket()')
-    this.currentState('connecting')
+    // this.currentState('connecting')
+    this.state.current('online', false)
 
     // const auth = 'Basic ' + new Buffer(this.setting.token + ':X').toString('base64')
     const auth = 'Token ' + this.setting.token
@@ -143,26 +153,27 @@ export class Io {
 
     const ws = this.ws = new WebSocket(endpoint, this.protocol, { headers })
 
-    ws.on('open', function open() {
+    ws.on('open', () => {
       if (this.protocol !== ws.protocol) {
         log.error('Io', 'initWebSocket() require protocol[%s] failed', this.protocol)
         // XXX deal with error?
       }
       log.verbose('Io', 'initWebSocket() connected with protocol [%s]', ws.protocol)
-      this.currentState('connected')
+      // this.currentState('connected')
+      this.state.current('online')
 
       // FIXME: how to keep alive???
       // ws._socket.setKeepAlive(true, 100)
 
       this.reconnectTimeout = null
 
-      const initEvent = {
+      const initEvent = <IoEvent>{
         name: 'sys'
         , payload: 'Wechaty version ' + this.setting.wechaty.version() + ` with UUID: ${this.uuid}`
       }
       this.send(initEvent)
 
-    }.bind(this))
+    })
 
     ws.on('message', (data, flags) => {
       log.silly('Io', 'initWebSocket() ws.on(message): %s', data)
@@ -265,12 +276,9 @@ export class Io {
   private reconnect() {
     log.verbose('Io', 'reconnect()')
 
-    // if (this.purpose() === 'offline') {
-    //   log.verbose('Io', 'reconnect() canceled because purpose() === offline')
-    //   return
-    // }
-    if (this.targetState() === 'disconnected') {
-      log.verbose('Io', 'reconnect() canceled because targetState() === disconnected')
+    // if (this.targetState() === 'disconnected') {
+    if (this.state.target() === 'offline') {
+      log.verbose('Io', 'reconnect() canceled because state.target() === offline')
       return
     }
 
@@ -398,19 +406,24 @@ export class Io {
 
   private close() {
     log.verbose('Io', 'close()')
-    this.targetState('disconnected')
-    this.currentState('disconnecting')
+    // this.targetState('disconnected')
+    // this.currentState('disconnecting')
+    this.state.target('offline')
+    this.state.current('offline', false)
 
     this.ws.close()
-    this.currentState('disconnected')
+    // this.currentState('disconnected')
+    this.state.current('offline')
+
     // TODO: remove listener for this.setting.wechaty.on(message )
     return Promise.resolve()
   }
 
   public quit() {
-    // this.purpose('offline')
-    this.targetState('disconnected')
-    this.currentState('disconnecting')
+    // this.targetState('disconnected')
+    // this.currentState('disconnecting')
+    this.state.target('offline')
+    this.state.current('offline', false)
 
     // try to send IoEvents in buffer
     this.send()
@@ -422,7 +435,9 @@ export class Io {
     }
     this.close()
 
-    this.currentState('disconnected')
+    // this.currentState('disconnected')
+    this.state.current('offline')
+
     return Promise.resolve()
   }
   /**
