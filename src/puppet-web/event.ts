@@ -54,12 +54,17 @@ async function onBrowserDead(this: PuppetWeb, e): Promise<void> {
     throw new Error('browser or bridge instance not exist in PuppetWeb instance')
   }
 
+  const browser = this.browser
   // because this function is async, so maybe entry more than one times.
   // guard by variable: isBrowserBirthing to prevent the 2nd time entrance.
-  if (this.browser.targetState() !== 'open'
-      || this.browser.currentState() === 'opening') {
-    log.verbose('PuppetWebEvent', 'onBrowserDead() will do nothing because browser.targetState(%s) !== open or browser.currentState = opening'
-                                , this.browser.targetState()
+  // if (this.browser.targetState() !== 'open'
+  //     || this.browser.currentState() === 'opening') {
+  if ((browser.state.current() === 'open' && browser.state.inprocess())
+      || browser.state.target() !== 'open'
+  ) {
+    log.verbose('PuppetWebEvent', 'onBrowserDead() will do nothing because %s, or %s'
+                                , 'browser.state.target() !== open'
+                                , 'browser.state.current() === open & inprocess'
               )
     return
   }
@@ -77,9 +82,10 @@ async function onBrowserDead(this: PuppetWeb, e): Promise<void> {
     await this.browser.quit()
     log.verbose('PuppetWebEvent', 'onBrowserDead() browser quit-ed')
 
-    if (this.browser.targetState() !== 'open') {
-      log.warn('PuppetWebEvent', 'onBrowserDead() will not init browser because browser.targetState(%s) !== open'
-                                , this.browser.targetState()
+    // if (this.browser.targetState() !== 'open') {
+    if (browser.state.target() !== 'open') {
+      log.warn('PuppetWebEvent', 'onBrowserDead() will not init browser because browser.state.target(%s) !== open'
+                                , browser.state.target()
               )
       return
     }

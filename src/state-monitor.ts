@@ -62,6 +62,10 @@ export class StateMonitor <A, B>{
     log.verbose('StateMonitor', 'stable() %s state is %s', this.client, this._stable)
     return this._stable
   }
+
+  public inprocess() {
+    return !this._stable
+  }
 }
 
 export default StateMonitor

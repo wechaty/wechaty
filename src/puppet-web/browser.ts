@@ -17,8 +17,9 @@ import {
 /* tslint:disable:no-var-requires */
 const retryPromise  = require('retry-promise').default // https://github.com/olalonde/retry-promise
 
-import Config   from  '../config'
-import log      from  '../brolog-env'
+import Config       from  '../config'
+import StateMonitor from '../state-monitor'
+import log          from  '../brolog-env'
 
 import {
     CookieType
@@ -32,10 +33,9 @@ export type BrowserSetting = {
 
 export class Browser extends EventEmitter {
 
-  private _targetState: string
-  private _currentState: string
   private cookie: BrowserCookie
 
+  public state = new StateMonitor<'open', 'close'>('Browser', 'close')
   public _driver: WebDriver | null = null
 
   constructor(private setting: BrowserSetting = {}) {
@@ -44,35 +44,39 @@ export class Browser extends EventEmitter {
 
     setting.head = setting.head || process.env['WECHATY_HEAD'] || Config.DEFAULT_HEAD
 
-    this.targetState('close')
-    this.currentState('close')
+    // this.targetState('close')
+    // this.currentState('close')
+    this.state.target('close')
+    this.state.current('close')
 
     this.cookie = new BrowserCookie(this, this.setting.sessionFile)
   }
 
   // targetState : 'open' | 'close'
-  public targetState(newState?: string) {
-    if (newState) {
-      log.verbose('PuppetWebBrowser', 'targetState(%s)', newState)
-      this._targetState = newState
-    }
-    return this._targetState
-  }
+  // public targetState(newState?: string) {
+  //   if (newState) {
+  //     log.verbose('PuppetWebBrowser', 'targetState(%s)', newState)
+  //     this._targetState = newState
+  //   }
+  //   return this._targetState
+  // }
 
   // currentState : 'opening' | 'open' | 'closing' | 'close'
-  public currentState(newState?: string) {
-    if (newState) {
-      log.verbose('PuppetWebBrowser', 'currentState(%s)', newState)
-      this._currentState = newState
-    }
-    return this._currentState
-  }
+  // public currentState(newState?: string) {
+  //   if (newState) {
+  //     log.verbose('PuppetWebBrowser', 'currentState(%s)', newState)
+  //     this._currentState = newState
+  //   }
+  //   return this._currentState
+  // }
 
   public toString() { return `Browser({head:${this.setting.head})` }
 
   public async init(): Promise<this> {
-    this.targetState('open')
-    this.currentState('opening')
+    // this.targetState('open')
+    // this.currentState('opening')
+    this.state.target('open')
+    this.state.current('open', false)
 
     // fastUrl is used to open in browser for we can set cookies.
     // backup: 'https://res.wx.qq.com/zh_CN/htmledition/v2/images/icon/ico_loading28a2f7.gif'
@@ -93,11 +97,14 @@ export class Browser extends EventEmitter {
        * when open url, there could happen a quit() call.
        * should check here: if we are in `close` target state, we should clean up
        */
-      if (this.targetState() !== 'open') {
-        throw new Error('init() finished but found targetState() is close. quit().')
+      // if (this.targetState() !== 'open') {
+      if (this.state.target() !== 'open') {
+        throw new Error('init() finished but found state.target() is not open. quit().')
       }
 
-      this.currentState('open')
+      // this.currentState('open')
+      this.state.current('open')
+
       return this
 
     } catch (e) {
@@ -322,8 +329,9 @@ export class Browser extends EventEmitter {
 
     await this.quit()
 
-    if (this.currentState() === 'opening') {
-      log.warn('PuppetWebBrowser', 'restart() found currentState === opening')
+    // if (this.currentState() === 'opening') {
+    if (this.state.current() === 'open' && this.state.inprocess()) {
+      log.warn('PuppetWebBrowser', 'restart() found state.current() === open and inprocess()')
       return
     }
 
@@ -333,14 +341,15 @@ export class Browser extends EventEmitter {
   public async quit(): Promise<any> {
     log.verbose('PuppetWebBrowser', 'quit()')
 
-    if (this.currentState() === 'closing') {
-      const e = new Error('quit() be called when currentState is closing?')
+    // if (this.currentState() === 'closing') {
+    if (this.state.current() === 'close' && this.state.inprocess()) {
+      const e = new Error('quit() be called when state.current() is close with inprocess()?')
       log.warn('PuppetWebBrowser', e.message)
       throw e
     }
 
-    // this.targetState('close')
-    this.currentState('closing')
+    // this.currentState('closing')
+    this.state.current('close', false)
 
     try {
       await this.driver().close().catch(e => { /* fail safe */ }) // http://stackoverflow.com/a/32341885/1123955
@@ -376,7 +385,8 @@ export class Browser extends EventEmitter {
       /* fail safe */
     }
 
-    this.currentState('close')
+    // this.currentState('close')
+    this.state.current('close')
 
     return
   }
@@ -532,9 +542,10 @@ export class Browser extends EventEmitter {
     if (forceReason) {
       dead = true
       msg = forceReason
-    } else if (this.targetState() !== 'open') {
+    // } else if (this.targetState() !== 'open') {
+    } else if (this.state.target() !== 'open') {
       dead = true
-      msg = 'targetState not open'
+      msg = 'state.target() not open'
     } else if (!this.driver()) {
       dead = true
       msg = 'no driver or session'
@@ -550,15 +561,20 @@ export class Browser extends EventEmitter {
       // no need to quit here. dead event listener will do this async job, and do it better than here
       // this.quit()
 
-      // must use nextTick here, or promise will hang... 2016/6/10
-      // setImmediate(_ => {
-        if (this.targetState() !== 'open' || this.currentState() === 'opening') {
-          log.warn('PuppetWebBrowser', 'dead() wil not emit `dead` event because currentState is `opening` or targetState !== open')
-        } else {
-          log.verbose('PuppetWebBrowser', 'dead() emit a `dead` event because %s', msg)
-          this.emit('dead', msg)
-        }
-      // })
+      // if (this.targetState() !== 'open' || this.currentState() === 'opening') {
+      //   log.warn('PuppetWebBrowser', 'dead() wil not emit `dead` event because currentState is `opening` or targetState !== open')
+      // } else {
+      //   log.verbose('PuppetWebBrowser', 'dead() emit a `dead` event because %s', msg)
+      //   this.emit('dead', msg)
+      // }
+      if (this.state.target() === 'open' && this.state.current() === 'open' && this.state.stable()) {
+        log.verbose('PuppetWebBrowser', 'dead() emit a `dead` event because %s', msg)
+        this.emit('dead', msg)
+      } else {
+        log.warn('PuppetWebBrowser', 'dead() wil not emit `dead` event because %s'
+                                    , 'state is not both `open` or state is inprocess()'
+        )
+      }
     }
     return dead
   }

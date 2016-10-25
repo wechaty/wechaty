@@ -17,7 +17,8 @@ test('Browser class cookie smoking tests', async t => {
   const b = new Browser()
   t.truthy(b, 'should instanciate a browser instance')
 
-  b.targetState('open')
+  // b.targetState('open')
+  b.state.target('open')
   await b.initDriver()
   t.pass('should init driver')
 
@@ -89,7 +90,8 @@ test('Browser session save before quit, and load after restart', async t => {
   try {
     t.truthy(b, 'new Browser')
 
-    b.targetState('open')
+    // b.targetState('open')
+    b.state.target('open')
 
     await b.initDriver()
     t.pass('should init driver')
@@ -157,7 +159,8 @@ test('Browser session save before quit, and load after restart', async t => {
 
     t.pass('should started a new Browser')
 
-    b.targetState('open')
+    // b.targetState('open')
+    b.state.target('open')
 
     await b.initDriver()
     t.pass('should inited the new Browser')

@@ -49,8 +49,13 @@ test('StateMonitor stable', t => {
 
   sm.current('B')
   t.true(sm.stable(), 'should be stable')
+  t.false(sm.inprocess(), 'should be not inprocess')
+
   sm.current('B', false)
   t.false(sm.stable(), 'should not be stable')
+  t.true(sm.inprocess(), 'should be inprocess')
+
   sm.current('B', true)
   t.true(sm.stable(), 'should be stable')
+  t.false(sm.inprocess(), 'should be not inprocess')
 })
