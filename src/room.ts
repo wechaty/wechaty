@@ -9,6 +9,7 @@
  *
  */
 import { EventEmitter } from 'events'
+const arrify = require('arrify')
 
 import {
     Config
@@ -116,9 +117,9 @@ export class Room extends EventEmitter implements Sayable {
     })
   }
 
-  public on(event: 'leave', listener: (this: Sayable, leaver: Contact) => void): this
-  public on(event: 'join' , listener: (inviteeList: Contact[] , inviter: Contact)  => void): this
-  public on(event: 'topic', listener: (topic: string, oldTopic: string, changer: Contact) => void): this
+  public on(event: 'leave', listener: (this: Room, leaver: Contact) => void): this
+  public on(event: 'join' , listener: (this: Room, inviteeList: Contact[] , inviter: Contact)  => void): this
+  public on(event: 'topic', listener: (this: Room, topic: string, oldTopic: string, changer: Contact) => void): this
   public on(event: 'EVENT_PARAM_ERROR', listener: () => void): this
 
   public on(event: RoomEventName, listener: Function): this {
@@ -156,14 +157,11 @@ export class Room extends EventEmitter implements Sayable {
                     .send(m)
     }
 
-    let mentionList
-    if (Array.isArray(replyTo)) {
-      m.to(replyTo[0])
-      mentionList = replyTo.map(c => '@' + c.name()).join(' ')
-    } else {
-      m.to(replyTo)
-      mentionList = '@' + replyTo.name()
-    }
+    const replyToList: Contact[] = arrify(replyTo)
+    let mentionList: string
+
+    m.to(replyToList[0])
+    mentionList = replyToList.map(c => '@' + c.name()).join(' ')
 
     m.content(mentionList + ' ' + content)
     return Config.puppetInstance()

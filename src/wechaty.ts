@@ -36,17 +36,17 @@ export type WechatySetting = {
   type?:       PuppetType
 }
 
-type WechatyEventName = 'error'
-                      | 'friend'
-                      | 'heartbeat'
-                      | 'login'
-                      | 'logout'
-                      | 'message'
-                      | 'room-join'
-                      | 'room-leave'
-                      | 'room-topic'
-                      | 'scan'
-                      | 'EVENT_PARAM_ERROR'
+export type WechatyEventName = 'error'
+                              | 'friend'
+                              | 'heartbeat'
+                              | 'login'
+                              | 'logout'
+                              | 'message'
+                              | 'room-join'
+                              | 'room-leave'
+                              | 'room-topic'
+                              | 'scan'
+                              | 'EVENT_PARAM_ERROR'
 
 export class Wechaty extends EventEmitter implements Sayable {
   private static _instance: Wechaty
@@ -172,16 +172,17 @@ export class Wechaty extends EventEmitter implements Sayable {
     return this
   }
 
-  public on(event: 'error'      , listener: (this: Sayable, error: Error) => void): this
-  public on(event: 'friend'     , listener: (this: Sayable, friend: Contact, request?: FriendRequest) => void): this
-  public on(event: 'heartbeat'  , listener: (this: Sayable, data: any) => void): this
-  public on(event: 'logout'     , listener: (this: Sayable, user: Contact) => void): this
-  public on(event: 'login'      , listener: (this: Sayable, user: Contact) => void): this
-  public on(event: 'message'    , listener: (this: Sayable, message: Message) => void): this
-  public on(event: 'room-join'  , listener: (this: Sayable, room: Room, inviteeList: Contact[],  inviter: Contact) => void): this
-  public on(event: 'room-leave' , listener: (this: Sayable, room: Room, leaverList: Contact[]) => void): this
-  public on(event: 'room-topic' , listener: (this: Sayable, room: Room, topic: string, oldTopic: string, changer: Contact) => void): this
-  public on(event: 'scan'       , listener: (this: Sayable, url: string, code: number) => void): this
+  // public on(event: WechatyEventName, listener: Function): this
+  public on(event: 'error'      , listener: (this: Wechaty, error: Error) => void): this
+  public on(event: 'friend'     , listener: (this: Wechaty, friend: Contact, request?: FriendRequest) => void): this
+  public on(event: 'heartbeat'  , listener: (this: Wechaty, data: any) => void): this
+  public on(event: 'logout'     , listener: (this: Wechaty, user: Contact) => void): this
+  public on(event: 'login'      , listener: (this: Wechaty, user: Contact) => void): this
+  public on(event: 'message'    , listener: (this: Wechaty, message: Message) => void): this
+  public on(event: 'room-join'  , listener: (this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void): this
+  public on(event: 'room-leave' , listener: (this: Wechaty, room: Room, leaverList: Contact[]) => void): this
+  public on(event: 'room-topic' , listener: (this: Wechaty, room: Room, topic: string, oldTopic: string, changer: Contact) => void): this
+  public on(event: 'scan'       , listener: (this: Wechaty, url: string, code: number) => void): this
   public on(event: 'EVENT_PARAM_ERROR', listener: () => void): this
 
   public on(event: WechatyEventName, listener: Function): this {
