@@ -71,7 +71,7 @@ console.log(welcome)
 const bot = Wechaty.instance({ profile: Config.DEFAULT_PROFILE })
 
 bot
-.on('scan', (url, code) => {
+.on('scan', function(url, code) {
   console.log(`Use Wechat to Scan QR Code in url to login: ${code}\n${url}`)
 })
 .on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
@@ -83,7 +83,7 @@ bot
  * do initialization inside this event.
  * (better to set a timeout, for browser need time to download other data)
  */
-.on('login'	  , function (this, user) {
+.on('login', function(this, user) {
   let msg = `${user.name()} logined`
 
   log.info('Bot', msg)
@@ -110,7 +110,7 @@ bot
 /**
  * Global Event: room-leave
  */
-.on('room-leave', (room, leaverList) => {
+.on('room-leave', function(this, room, leaverList) {
   log.info('Bot', 'EVENT: room-leave - Room %s lost member %s'
                 , room.topic()
                 , leaverList.map(c => c.name()).join(',')
@@ -120,7 +120,7 @@ bot
 /**
  * Global Event: room-topic
  */
-.on('room-topic', (room, topic, oldTopic, changer) => {
+.on('room-topic', function(this, room, topic, oldTopic, changer) {
   try {
     log.info('Bot', 'EVENT: room-topic - Room %s change topic to %s by member %s'
                   , oldTopic
@@ -246,14 +246,12 @@ function manageDingRoom() {
     /**
      * Event: Join
      */
-    room.on('join', (invitee: Contact|Contact[], inviter: Contact) => {
+    room.on('join', function(this, inviteeList, inviter) {
       log.verbose('Bot', 'Room EVENT: join - %s, %s'
-                        , Array.isArray(invitee)
-                          ? invitee.map(c => c.name()).join(', ')
-                          : invitee.name()
+                        , inviteeList.map(c => c.name()).join(', ')
                         , inviter.name()
       )
-      checkRoomJoin.call(this, room, invitee, inviter)
+      checkRoomJoin.call(this, room, inviteeList, inviter)
     })
 
     /**
