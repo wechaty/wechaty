@@ -52,24 +52,6 @@ export class Browser extends EventEmitter {
     this.cookie = new BrowserCookie(this, this.setting.sessionFile)
   }
 
-  // targetState : 'open' | 'close'
-  // public targetState(newState?: string) {
-  //   if (newState) {
-  //     log.verbose('PuppetWebBrowser', 'targetState(%s)', newState)
-  //     this._targetState = newState
-  //   }
-  //   return this._targetState
-  // }
-
-  // currentState : 'opening' | 'open' | 'closing' | 'close'
-  // public currentState(newState?: string) {
-  //   if (newState) {
-  //     log.verbose('PuppetWebBrowser', 'currentState(%s)', newState)
-  //     this._currentState = newState
-  //   }
-  //   return this._currentState
-  // }
-
   public toString() { return `Browser({head:${this.setting.head})` }
 
   public async init(): Promise<this> {

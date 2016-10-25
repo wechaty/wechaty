@@ -51,7 +51,7 @@ function onFeed(this: PuppetWeb, food: WatchdogFood) {
 
   // if (this.currentState() === 'killing') {
   if (this.state.current() === 'dead' && this.state.inprocess()) {
-    log.warn('PuppetWebWatchdog', 'onFeed() is disabled because currentState is `killing`')
+    log.warn('PuppetWebWatchdog', 'onFeed() is disabled because state.current() is `dead` and inprocess()')
     return
   }
   // if (this.readyState() === 'disconnecting'

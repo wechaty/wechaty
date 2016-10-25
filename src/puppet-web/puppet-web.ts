@@ -115,7 +115,7 @@ export class PuppetWeb extends Puppet {
     // if (this.currentState() === 'killing') {
     if (this.state.current() === 'dead' && this.state.inprocess()) {
       // log.warn('PuppetWeb', 'quit() is called but readyState is `disconnecting`?')
-      log.warn('PuppetWeb', 'quit() is called but currentState is `killing`?')
+      log.warn('PuppetWeb', 'quit() is called but state.current()) is `dead` and inprocess()?')
       throw new Error('do not call quit again when quiting')
     }
 
