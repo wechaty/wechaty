@@ -394,7 +394,7 @@ export class Room extends EventEmitter implements Sayable {
     return Config.puppetInstance()
                   .roomFind(filterFunction)
                   .catch(e => {
-                    log.error('Room', '_find() rejected: %s', e.message)
+                    log.verbose('Room', 'findAll() rejected: %s', e.message)
                     return [] // fail safe
                   })
   }

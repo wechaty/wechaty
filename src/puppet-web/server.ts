@@ -64,21 +64,22 @@ export class Server extends EventEmitter {
    */
   public createHttpsServer(express: express.Application): Promise<https.Server> {
     return new Promise((resolve, reject) => {
+
       const srv = https.createServer({
-                                        key:    require('./ssl-pem').key
-                                        , cert: require('./ssl-pem').cert
-                                      }
-                                    , express
-                                    ) // XXX: is express must exist here? try to get rid it later. 2016/6/11
-                        .listen(this.port, err => {
-                          if (err) {
-                            log.error('PuppetWebServer', 'createHttpsServer() exception: %s', err)
-                            return reject(err)
-                          } else {
-                            log.verbose('PuppetWebServer', `createHttpsServer() listen on port ${this.port}`)
-                            resolve(srv)
-                          }
-                        })
+          key:  require('./ssl-pem').key
+        , cert: require('./ssl-pem').cert
+      }, express) // XXX: is express must exist here? try to get rid it later. 2016/6/11
+
+      srv.listen(this.port, err => {
+        if (err) {
+          log.error('PuppetWebServer', 'createHttpsServer() exception: %s', err)
+          return reject(err)
+        } else {
+          log.verbose('PuppetWebServer', `createHttpsServer() listen on port ${this.port}`)
+          resolve(srv)
+        }
+      })
+
     })
   }
 

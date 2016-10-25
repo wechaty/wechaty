@@ -46,11 +46,12 @@ export class PuppetWeb extends Puppet {
   public server:  Server
 
   public scan: ScanInfo | null
-
   private port: number
 
   public lastScanEventTime: number
   public watchDogLastSaveSession: number
+  public watchDogTimer: number
+  public watchDogTimerTime: number
 
   constructor(public setting: PuppetWebSetting = {}) {
     super()
@@ -63,8 +64,10 @@ export class PuppetWeb extends Puppet {
   public async init(): Promise<this> {
     log.verbose('PuppetWeb', `init() with head:${this.setting.head}, profile:${this.setting.profile}`)
 
-    this.targetState('live')
-    this.currentState('birthing')
+    // this.targetState('live')
+    // this.currentState('birthing')
+    this.state.target('live')
+    this.state.current('live', false)
 
     try {
 
@@ -91,7 +94,8 @@ export class PuppetWeb extends Puppet {
       this.emit('watchdog', food)
 
       log.verbose('PuppetWeb', 'init() done')
-      this.currentState('live')
+      // this.currentState('live')
+      this.state.current('live')
       return this   // for Chaining
 
     } catch (e) {
@@ -103,10 +107,13 @@ export class PuppetWeb extends Puppet {
 
   public async quit(): Promise<any> {
     log.verbose('PuppetWeb', 'quit()')
-    this.targetState('dead')
+    // this.targetState('dead')
 
-    // if (this.readyState() === 'disconnecting') {
-    if (this.currentState() === 'killing') {
+    // XXX should we set `target` to `dead` in `quit()`?
+    this.state.target('dead')
+
+    // if (this.currentState() === 'killing') {
+    if (this.state.current() === 'dead' && this.state.inprocess()) {
       // log.warn('PuppetWeb', 'quit() is called but readyState is `disconnecting`?')
       log.warn('PuppetWeb', 'quit() is called but currentState is `killing`?')
       throw new Error('do not call quit again when quiting')
@@ -118,8 +125,8 @@ export class PuppetWeb extends Puppet {
       type: 'POISON'
     })
 
-    // this.readyState('disconnecting')
-    this.currentState('killing')
+    // this.currentState('killing')
+    this.state.current('dead', false)
 
     // return co.call(this, function* () {
     try {
@@ -152,18 +159,20 @@ export class PuppetWeb extends Puppet {
       // log.verbose('PuppetWeb', 'quit() server.quit() this.initAttach(null)')
       // await this.initAttach(null)
 
-      this.currentState('dead')
+      // this.currentState('dead')
+      this.state.current('dead')
     // }).catch(e => { // Reject
     } catch (e) {
       log.error('PuppetWeb', 'quit() exception: %s', e.message)
-      this.currentState('dead')
+      // this.currentState('dead')
+      this.state.current('dead')
       throw e
     }
 
     // .then(() => { // Finally, Fail Safe
       log.verbose('PuppetWeb', 'quit() done')
-      // this.readyState('disconnected')
-      this.currentState('dead')
+      // this.currentState('dead')
+      this.state.current('dead')
       return this   // for Chaining
     // })
   }
@@ -179,7 +188,8 @@ export class PuppetWeb extends Puppet {
 
     this.browser = browser
 
-    if (this.targetState() !== 'live') {
+    // if (this.targetState() !== 'live') {
+    if (this.state.target() !== 'live') {
       log.warn('PuppetWeb', 'initBrowser() found targetState != live, no init anymore')
       // return Promise.resolve('skipped')
       return Promise.reject('skipped')
@@ -205,7 +215,8 @@ export class PuppetWeb extends Puppet {
 
     this.bridge = bridge
 
-    if (this.targetState() !== 'live') {
+    // if (this.targetState() !== 'live') {
+    if (this.state.target() !== 'live') {
       const errMsg = 'initBridge() found targetState != live, no init anymore'
       log.warn('PuppetWeb', errMsg)
       return Promise.reject(errMsg)
@@ -247,7 +258,8 @@ export class PuppetWeb extends Puppet {
 
     this.server = server
 
-    if (this.targetState() !== 'live') {
+    // if (this.targetState() !== 'live') {
+    if (this.state.target() !== 'live') {
       const errMsg = 'initServer() found targetState != live, no init anymore'
       log.warn('PuppetWeb', errMsg)
       return Promise.reject(errMsg)

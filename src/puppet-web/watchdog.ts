@@ -29,7 +29,7 @@ export const Watchdog = {
 }
 
 // feed me in time(after 1st feed), or I'll restart system
-function onFeed(food: WatchdogFood) {
+function onFeed(this: PuppetWeb, food: WatchdogFood) {
 
   // change to tape instead of tap
   // type = type || 'HEARTBEAT'  // BUG compatible with issue: node-tap strange behaviour cause CircleCI & Travis-CI keep failing #11
@@ -49,8 +49,8 @@ function onFeed(food: WatchdogFood) {
   const feed = `${food.type}:[${food.data}]`
   log.silly('PuppetWebWatchdog', 'onFeed: %d, %s', food.timeout, feed)
 
-  if (this.currentState() === 'killing'
-  ) {
+  // if (this.currentState() === 'killing') {
+  if (this.state.current() === 'dead' && this.state.inprocess()) {
     log.warn('PuppetWebWatchdog', 'onFeed() is disabled because currentState is `killing`')
     return
   }
@@ -95,7 +95,7 @@ function clearWatchDogTimer() {
   }
 }
 
-function setWatchDogTimer(timeout, feed) {
+function setWatchDogTimer(this: PuppetWeb, timeout, feed) {
 
   clearWatchDogTimer.call(this)
 

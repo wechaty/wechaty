@@ -171,11 +171,8 @@ async function onServerDisconnect(this: PuppetWeb, data): Promise<void> {
     this.user = null
   }
 
-  // if (this.readyState() === 'disconnecting') {
-  //   log.verbose('PuppetWebEvent', 'onServerDisconnect() be called when readyState is `disconnecting`')
-  //   return
-  // }
-  if (this.currentState() === 'killing') {
+  // if (this.currentState() === 'killing') {
+  if (this.state.current() === 'dead' && this.state.inprocess()) {
     log.verbose('PuppetWebEvent', 'onServerDisconnect() be called when currentState is `killing`')
     return
   }
@@ -241,11 +238,8 @@ function onServerUnload(this: PuppetWeb, data): void {
   log.warn('PuppetWebEvent', 'onServerUnload(%s)', data)
   // onServerLogout.call(this, data) // XXX: should emit event[logout] from browser
 
-  // if (this.readyState() === 'disconnecting') {
-  //   log.verbose('PuppetWebEvent', 'onServerUnload() will return because readyState is `disconnecting`')
-  //   return
-  // }
-  if (this.currentState() === 'killing') {
+  // if (this.currentState() === 'killing') {
+  if (this.state.current() === 'dead' && this.state.inprocess()) {
     log.verbose('PuppetWebEvent', 'onServerUnload() will return because currentState is `killing`')
     return
   }

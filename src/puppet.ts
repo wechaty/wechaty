@@ -14,11 +14,12 @@ import { EventEmitter } from 'events'
 
 import {
   Sayable
-}               from './config'
-import Contact  from './contact'
-import Message  from './message'
-import Room     from './room'
-import log      from './brolog-env'
+}                   from './config'
+import Contact      from './contact'
+import Message      from './message'
+import StateMonitor from './state-monitor'
+import Room         from './room'
+// import log          from './brolog-env'
 
 // type ContactGetterFunc = {
 //   (id: string): Promise<any>
@@ -29,8 +30,10 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public user:    Contact | null
   public abstract getContact(id: string): Promise<any>
 
-  private _targetState:   string
-  private _currentState:  string
+  public state = new StateMonitor<'live', 'dead'>('Puppet', 'dead')
+
+  // private _targetState:   string
+  // private _currentState:  string
 
   constructor() {
     super()
@@ -42,27 +45,29 @@ export abstract class Puppet extends EventEmitter implements Sayable {
      */
     // this._readyState = 'disconnected'
 
-    this.targetState('dead')
-    this.currentState('dead')
+    // this.targetState('dead')
+    // this.currentState('dead')
+    this.state.target('dead')
+    this.state.current('dead')
   }
 
   // targetState : 'live' | 'dead'
-  public targetState(newState?) {
-    if (newState) {
-      log.verbose('Puppet', 'targetState(%s)', newState)
-      this._targetState = newState
-    }
-    return this._targetState
-  }
+  // public targetState(newState?) {
+  //   if (newState) {
+  //     log.verbose('Puppet', 'targetState(%s)', newState)
+  //     this._targetState = newState
+  //   }
+  //   return this._targetState
+  // }
 
-  // currentState : 'birthing' | 'killing'
-  public currentState(newState?) {
-    if (newState) {
-      log.verbose('Puppet', 'currentState(%s)', newState)
-      this._currentState = newState
-    }
-    return this._currentState
-  }
+  // // currentState : 'birthing' | 'killing'
+  // public currentState(newState?) {
+  //   if (newState) {
+  //     log.verbose('Puppet', 'currentState(%s)', newState)
+  //     this._currentState = newState
+  //   }
+  //   return this._currentState
+  // }
 
   public abstract async init(): Promise<this>
   /**
