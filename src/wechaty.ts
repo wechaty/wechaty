@@ -54,7 +54,6 @@ export class Wechaty extends EventEmitter implements Sayable {
 
   public puppet: Puppet | null
 
-  // private inited:     boolean = false
   private state = new StateMonitor<'standby', 'ready'>('Wechaty', 'standby')
   private npmVersion: string
 
@@ -62,7 +61,7 @@ export class Wechaty extends EventEmitter implements Sayable {
 
   public static instance(setting?: WechatySetting) {
     if (setting && this._instance) {
-      throw new Error('there has already a instance. no params allowed any more')
+      throw new Error('there has already a instance. no params will be allowed any more')
     }
     if (!this._instance) {
       this._instance = new Wechaty(setting)
@@ -89,10 +88,6 @@ export class Wechaty extends EventEmitter implements Sayable {
     this.npmVersion = require('../package.json').version
 
     this.uuid = UtilLib.guid()
-
-    // this.inited = false
-
-    // Wechaty._instance = this
   }
 
   public toString() { return 'Class Wechaty(' + this.setting.type + ')'}
@@ -113,6 +108,7 @@ export class Wechaty extends EventEmitter implements Sayable {
 
         const ss = require('child_process')
                     .spawnSync(gitLogCmd, gitLogArgs, { cwd:  __dirname })
+
         if (ss.status !== 0) {
           throw new Error(ss.error)
         }
@@ -121,6 +117,7 @@ export class Wechaty extends EventEmitter implements Sayable {
                           .toString()
                           .trim()
         return `#git[${revision}]`
+
       } catch (e) { /* fall safe */
         /**
          *  1. .git not exist
@@ -208,16 +205,21 @@ export class Wechaty extends EventEmitter implements Sayable {
 
   public async initPuppet(): Promise<Puppet> {
     let puppet: Puppet
+
+    if (!this.setting.head) {
+      throw new Error('no head')
+    }
+
     switch (this.setting.type) {
       case 'web':
         puppet = new PuppetWeb({
-            head:     <HeadName>this.setting.head
+            head:     this.setting.head
           , profile:  this.setting.profile
         })
         break
 
       default:
-        throw new Error('Puppet unsupport(yet): ' + this.setting.type)
+        throw new Error('Puppet unsupport(yet?): ' + this.setting.type)
     }
 
     const eventList: WechatyEventName[] = [
@@ -250,7 +252,7 @@ export class Wechaty extends EventEmitter implements Sayable {
      */
 
     // set puppet before init, because we need this.puppet if we quit() before init() finish
-    this.puppet = puppet
+    this.puppet = <Puppet>puppet // force to use base class Puppet interface for better encapsolation
 
     // set puppet instance to Wechaty Static variable, for using by Contact/Room/Message/FriendRequest etc.
     Config.puppetInstance(puppet)

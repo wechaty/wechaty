@@ -28,7 +28,7 @@
     "posttest": "npm run clean && npm run sloc",
     "test:phantomjs": "cross-env LC_ALL=C WECHATY_LOG=info WECHATY_HEAD=phantomjs ava --timeout=10m \"dist/test/*.spec.js\"",
     "test:phantomjs.bak": "cross-env LC_ALL=C WECHATY_LOG=info WECHATY_HEAD=phantomjs ava --timeout=10m \"dist/{src,test}/**/*.spec.js\"",
-    "test:chrome": "cross-env LC_ALL=C WECHATY_LOG=info WECHATY_HEAD=chrome ava --concurrency 5 --ext js --timeout=10m \"dist/{src,test}/**/*.spec.js\"",
+    "test:chrome": "cross-env LC_ALL=C WECHATY_LOG=info WECHATY_HEAD=chrome ava --concurrency 2 --ext js --timeout=10m \"dist/{src,test}/**/*.spec.js\"",
     "testdev": "cross-env LC_ALL=C WECHATY_LOG=silly ava --ext ts --serial --verbose --fail-fast --timeout=3m",
     "testdist": "WECHATY_HEAD=phantomjs ava --ext ts --verbose --fail-fast --timeout=3m",
     "ava": "cross-env LC_ALL=C WECHATY_LOG=verbose ts-node node_modules/.bin/ava \"{src,test}/**/*.spec.js\"",

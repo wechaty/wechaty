@@ -373,7 +373,7 @@ export class Browser extends EventEmitter {
         this.emit('dead', msg)
       } else {
         log.warn('PuppetWebBrowser', 'dead() wil not emit `dead` event because %s'
-                                    , 'state is not both `open` or state is inprocess()'
+                                    , 'state is not `stable open`'
         )
       }
     }
