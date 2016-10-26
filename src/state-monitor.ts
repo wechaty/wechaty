@@ -52,7 +52,7 @@ export class StateMonitor <A, B>{
    */
   public current(newState?: A|B, stable = true): A|B {
     if (newState) {
-      log.verbose('StateMonitor', '%s.state.current(%s, %s) from (%s, %s)'
+      log.verbose('StateMonitor', '%s.state.current(%s,%s) from (%s,%s)'
                                 , this._client
                                 , newState, stable
                                 , this._current, this._stable
@@ -60,7 +60,7 @@ export class StateMonitor <A, B>{
       if (this._current === newState && this._stable === stable
           && stable === false // warn for inprocess current state change twice, mostly like a logic bug outside
       ) {
-        log.warn('StateMonitor', '%s.state.current(%s, %s) called but there are already in the same state'
+        log.warn('StateMonitor', '%s.state.current(%s,%s) called but there are already in the same state'
                                 , this._client
                                 , newState, stable
         )
