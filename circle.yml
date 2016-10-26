@@ -1,7 +1,7 @@
 machine:
   node:
     version: 6
-    
+
 dependencies:
   pre:
     - google-chrome --version
@@ -10,3 +10,8 @@ dependencies:
     - sudo apt-get update
     - sudo apt-get --only-upgrade install google-chrome-stable
     - google-chrome --version
+
+test:
+  override:
+    - nvm use 6; npm test
+    - nvm use 7; npm test

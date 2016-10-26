@@ -3,8 +3,9 @@
 # Test against these versions of Io.js and Node.js.
 environment:
   matrix:
-  # node.js
     - nodejs_version: "6"
+    - nodejs_version: "7"
+
 
 # Install scripts. (runs after repo cloning)
 install:
