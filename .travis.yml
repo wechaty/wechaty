@@ -50,3 +50,4 @@ notifications:
 
 after_success:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then curl -X POST $DOCKER_REBUILD_URL; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then npm run coveralls; fi
