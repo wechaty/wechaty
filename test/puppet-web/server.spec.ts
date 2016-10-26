@@ -67,23 +67,13 @@ test('PuppetWebServer smoke testing', async t => {
   const server = new Server(port)
   t.truthy(server, 'new server instance')
 
-  // co(function* () {
-    const retInit = await server.init()
-    t.truthy(retInit, 'server:' + port + ' inited')
+  await server.init()
+  t.pass('server:' + port + ' inited')
 
-    const retHttps = await dingHttps()
-    t.is(retHttps ,  'dong', 'ding https   got dong')
+  const retHttps = await dingHttps()
+  t.is(retHttps ,  'dong', 'ding https   got dong')
 
-    await server.quit()
-  // }).catch(e => { // Reject
-  //   t.fail('co rejected:' + e)
-  // }).then(() => { // Finally
-  //   server.quit()
-  //   t.end()
-  // })
-  // .catch(e => { // Exception
-  //   t.fail('Exception:' + e)
-  // })
+  await server.quit()
 
   return // The following is help functions only
 
