@@ -6,7 +6,6 @@ environment:
     - nodejs_version: "6"
     - nodejs_version: "7"
 
-
 # Install scripts. (runs after repo cloning)
 install:
   # Get the latest stable version of Node.js or io.js
@@ -16,10 +15,8 @@ install:
 
 # Post-install test scripts.
 test_script:
-  # Output useful info for debugging.
   - node --version
   - npm --version
-  # run tests
   - npm test
 
 # Don't actually build.
