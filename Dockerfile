@@ -14,6 +14,7 @@ WORKDIR /wechaty
 
 COPY package.json .
 RUN npm set progress=false \
+  && npm install ts-node typescript -g \
   && npm install --loglevel warn \
   && rm -fr /tmp/*
 COPY . .
