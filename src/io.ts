@@ -106,7 +106,7 @@ export class Io {
 
   private connected() { return this.ws && this.ws.readyState === WebSocket.OPEN }
 
-  public async init(): Promise<Io> {
+  public async init(): Promise<void> {
     log.verbose('Io', 'init()')
 
     // this.targetState('connected')
@@ -114,7 +114,6 @@ export class Io {
     this.state.target('online')
     this.state.current('online', false)
 
-    // return co.call(this, function* () {
     try {
       await this.initEventHook()
       await this.initWebSocket()
@@ -122,8 +121,7 @@ export class Io {
       // this.currentState('connected')
       this.state.current('online')
 
-      return this
-    // }).catch(e => {
+      return
     } catch (e) {
       log.warn('Io', 'init() exception: %s', e.message)
       // this.currentState('disconnected')

@@ -70,7 +70,6 @@ test('Puppet Web watchdog timer', async t => {
 
       try {
         const r = await pw.ding(data)
-      // .then(r => {
         if (!r) {
           throw new Error('got empty return')
         }

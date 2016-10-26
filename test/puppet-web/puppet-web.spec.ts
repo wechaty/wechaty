@@ -56,7 +56,7 @@ test.serial('PuppetWeb login/logout events', async t => {
   await pw.quit()
 })
 
-test.serial('PuppetWeb server/browser communication', async t => {
+test.only('PuppetWeb server/browser communication', async t => {
   let pw = new PuppetWeb()
   t.truthy(pw, 'should instantiated a PuppetWeb')
 

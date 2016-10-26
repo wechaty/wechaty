@@ -22,7 +22,9 @@ if (levelRegex.test(level)) {
   log.silly('Brolog', 'WECHATY_LOG set level to %s', level)
 } else {
   log = new Brolog()
-  log.warn('Brolog', 'env WECHATY_LOG(%s) must be one of silly|verbose|info|warn|error|silent', level)
+  if (level) {
+    log.warn('Brolog', 'env WECHATY_LOG(%s) must be one of silly|verbose|info|warn|error|silent', level)
+  }
 }
 
 export { Brolog }

@@ -65,7 +65,7 @@ export class PuppetWeb extends Puppet {
 
   public toString() { return `Class PuppetWeb({browser:${this.browser},port:${this.port}})` }
 
-  public async init(): Promise<this> {
+  public async init(): Promise<void> {
     log.verbose('PuppetWeb', `init() with head:${this.setting.head}, profile:${this.setting.profile}`)
 
     // this.targetState('live')
@@ -100,7 +100,7 @@ export class PuppetWeb extends Puppet {
       log.verbose('PuppetWeb', 'init() done')
       // this.currentState('live')
       this.state.current('live')
-      return this   // for Chaining
+      return
 
     } catch (e) {
       log.error('PuppetWeb', 'init() exception: %s', e.stack)
@@ -182,14 +182,12 @@ export class PuppetWeb extends Puppet {
 
   public async initBrowser(): Promise<void> {
     log.verbose('PuppetWeb', 'initBrowser()')
-    const browser = new Browser({
+    this.browser = new Browser({
         head:         <HeadName>this.setting.head
       , sessionFile:  this.setting.profile
     })
 
-    browser.on('dead', Event.onBrowserDead.bind(this))
-
-    this.browser = browser
+    this.browser.on('dead', Event.onBrowserDead.bind(this))
 
     // if (this.targetState() !== 'live') {
     if (this.state.target() !== 'live') {
@@ -199,7 +197,7 @@ export class PuppetWeb extends Puppet {
     }
 
     try {
-      await browser.init()
+      await this.browser.init()
     } catch (e) {
       log.error('PuppetWeb', 'initBrowser() exception: %s', e.message)
       throw e
@@ -209,12 +207,10 @@ export class PuppetWeb extends Puppet {
 
   public async initBridge(): Promise<void> {
     log.verbose('PuppetWeb', 'initBridge()')
-    const bridge = new Bridge(
+    this.bridge = new Bridge(
         this // use puppet instead of browser, is because browser might change(die) duaring run time
       , this.port
     )
-
-    this.bridge = bridge
 
     // if (this.targetState() !== 'live') {
     if (this.state.target() !== 'live') {
@@ -224,7 +220,7 @@ export class PuppetWeb extends Puppet {
     }
 
     try {
-      await bridge.init()
+      await this.bridge.init()
     } catch (e) {
       if (!this.browser) {
         log.warn('PuppetWeb', 'initBridge() without browser?')
@@ -240,12 +236,12 @@ export class PuppetWeb extends Puppet {
 
   private async initServer(): Promise<void> {
     log.verbose('PuppetWeb', 'initServer()')
-    const server = new Server(this.port)
+    this.server = new Server(this.port)
 
-    server.on('scan'    , Event.onServerScan.bind(this))
-    server.on('login'   , Event.onServerLogin.bind(this))
-    server.on('logout'  , Event.onServerLogout.bind(this))
-    server.on('message' , Event.onServerMessage.bind(this))
+    this.server.on('scan'    , Event.onServerScan.bind(this))
+    this.server.on('login'   , Event.onServerLogin.bind(this))
+    this.server.on('logout'  , Event.onServerLogout.bind(this))
+    this.server.on('message' , Event.onServerMessage.bind(this))
 
     /**
      * @depreciated 20160825 zixia
@@ -254,12 +250,10 @@ export class PuppetWeb extends Puppet {
      */
     // server.on('unload'  , Event.onServerUnload.bind(this))
 
-    server.on('connection', Event.onServerConnection.bind(this))
-    server.on('disconnect', Event.onServerDisconnect.bind(this))
-    server.on('log'       , Event.onServerLog.bind(this))
-    server.on('ding'      , Event.onServerDing.bind(this))
-
-    this.server = server
+    this.server.on('connection', Event.onServerConnection.bind(this))
+    this.server.on('disconnect', Event.onServerDisconnect.bind(this))
+    this.server.on('log'       , Event.onServerLog.bind(this))
+    this.server.on('ding'      , Event.onServerDing.bind(this))
 
     // if (this.targetState() !== 'live') {
     if (this.state.target() !== 'live') {
@@ -268,7 +262,7 @@ export class PuppetWeb extends Puppet {
       return Promise.reject(errMsg)
     }
 
-    await server.init()
+    await this.server.init()
                 .catch(e => {
                   log.error('PuppetWeb', 'initServer() exception: %s', e.message)
                   throw e
@@ -304,7 +298,7 @@ export class PuppetWeb extends Puppet {
     return this.userId === message.from().id
   }
 
-  public send(message: Message) {
+  public async send(message: Message): Promise<void> {
     const to      = message.to()
     const room    = message.room()
 
@@ -327,23 +321,25 @@ export class PuppetWeb extends Puppet {
                           , room ? room.topic() : (to as Contact).name()
                           , content
     )
-    return this.bridge.send(destination.id, content)
+    await this.bridge.send(destination.id, content)
                       .catch(e => {
                         log.error('PuppetWeb', 'send() exception: %s', e.message)
                         throw e
                       })
-  }
+    return
+}
 
   /**
    * Bot say...
    * send to `filehelper` for notice / log
    */
-  public say(content: string) {
+  public async say(content: string): Promise<void> {
     const m = new Message()
     m.to('filehelper')
     m.content(content)
 
-    return this.send(m)
+    await this.send(m)
+    return
   }
 
   // @deprecated
@@ -378,7 +374,7 @@ export class PuppetWeb extends Puppet {
                         throw e
                       })
   }
-  public logined() { return !!(this.user) }
+  public logined(): boolean { return !!(this.user) }
   public ding(data?: any): Promise<string> {
     if (!this.bridge) {
       return Promise.reject(new Error('ding fail: no bridge(yet)!'))

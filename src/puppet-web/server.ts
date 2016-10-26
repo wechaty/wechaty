@@ -39,7 +39,7 @@ export class Server extends EventEmitter {
 
   public toString() { return `Server({port:${this.port}})` }
 
-  public async init(): Promise<Server> {
+  public async init(): Promise<void> {
     log.verbose('PuppetWebServer', `init() on port ${this.port}`)
 
     // return new Promise((resolve, reject) => {
@@ -51,7 +51,7 @@ export class Server extends EventEmitter {
       this.socketServer = this.createSocketIo(this.httpsServer)
 
       log.verbose('PuppetWebServer', 'init()-ed')
-      return this
+      return
     } catch (e) {
     // .catch(e => {
       log.error('PuppetWebServer', 'init() exception: %s', e.message)
@@ -162,7 +162,7 @@ export class Server extends EventEmitter {
     return
   }
 
-  public quit(): Promise<any> {
+  public async quit(): Promise<void> {
     log.verbose('PuppetWebServer', 'quit()')
     if (this.socketServer) {
       log.verbose('PuppetWebServer', 'closing socketServer')
@@ -178,7 +178,7 @@ export class Server extends EventEmitter {
       this.httpsServer.close()
       this.httpsServer = null
     }
-    return Promise.resolve()
+    return
   }
 }
 

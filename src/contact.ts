@@ -211,9 +211,9 @@ export class Contact implements Sayable {
     return contactList[0]
   }
 
-  public static load(id: string): Contact | null {
+  public static load(id: string): Contact {
     if (!id || typeof id !== 'string') {
-      return null
+      throw new Error('id not found')
     }
 
     if (!(id in Contact.pool)) {
