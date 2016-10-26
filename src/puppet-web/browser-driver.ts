@@ -97,11 +97,31 @@ export class BrowserDriver {
     const customChrome = Capabilities.chrome()
                                     .set('chromeOptions', options)
 
-    return new Builder()
-                .setAlertBehavior('ignore')
-                .forBrowser('chrome')
-                .withCapabilities(customChrome)
-                .build()
+    /**
+     * XXX when will Builder().build() throw exception???
+     */
+    let driver
+    let ttl = 3
+    let err
+
+    while (!driver && ttl--) {
+      try {
+        driver = new Builder()
+                      .setAlertBehavior('ignore')
+                      .forBrowser('chrome')
+                      .withCapabilities(customChrome)
+                      .build()
+      } catch (e) {
+        log.warn('PuppetWebBrowserDriver', 'getChromeDriver() exception: %s, retry ttl: %d', e.message, ttl)
+        err = e
+      }
+    }
+
+    if (driver) {
+      return driver
+    }
+
+    throw err
   }
 
   private getPhantomJsDriver(): WebDriver {

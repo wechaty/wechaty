@@ -23,22 +23,20 @@ import Wechaty      from './wechaty'
 import brolog       from './brolog-env'
 
 export class IoClient {
-  // private _targetState
-  // private _currentState
-  private state = new StateMonitor<'online', 'offline'>('IoClient', 'offline')
 
   private wechaty: Wechaty | null
   private io: Io | null
 
+  private state = new StateMonitor<'online', 'offline'>('IoClient', 'offline')
+
   constructor(
       private token: string = Config.token || Config.DEFAULT_TOKEN
-    , private log = brolog
+    , private log: any = brolog
   ) {
     if (!log) {
       const e = new Error('constructor() log(npmlog/brolog) must be set')
       throw e
     }
-    this.log = log
     this.log.verbose('IoClient', 'constructor() with token: %s', token)
 
     if (!token) {
@@ -46,38 +44,16 @@ export class IoClient {
       this.log.error('IoClient', e.message)
       throw e
     }
-
-    // this.targetState('disconnected')
-    // this.currentState('disconnected')
-    // this.state.target('offline')
-    // this.state.current('offline')
   }
-
-//  // targetState : 'connected' | 'disconnected'
-//   private targetState(newState?) {
-//     if (newState) {
-//       this.log.verbose('IoClient', 'targetState(%s)', newState)
-//       this._targetState = newState
-//     }
-//     return this._targetState
-//   }
-
-//   // currentState : 'connecting' | 'connected' | 'disconnecting' | 'disconnected'
-//   private currentState(newState?) {
-//     if (newState) {
-//       this.log.verbose('IoClient', 'currentState(%s)', newState)
-//       this._currentState = newState
-//     }
-//     return this._currentState
-//   }
 
   public async init(): Promise<IoClient> {
     this.log.verbose('IoClient', 'init()')
 
     // if (/connecting|disconnecting/.test(this.currentState())) {
     if (this.state.inprocess()) {
-      this.log.warn('IoClient', 'init() with state.inprocess(), skip init')
-      return Promise.reject('pending')
+      const e = new Error('state.inprocess(), skip init')
+      this.log.warn('IoClient', 'init() with %s', e.message)
+      throw e
     }
 
     // this.targetState('connected')

@@ -9,6 +9,8 @@ import {
     Brolog
 } from 'brolog'
 
+export let log: Brolog
+
 const level = process.env['WECHATY_LOG']
 
 // use a typescript switch/case/default: never to replace regex
@@ -16,16 +18,13 @@ const levelRegexStr = 'silly|verbose|info|warn|error|silent'
 const levelRegex = new RegExp(levelRegexStr, 'i')
 if (levelRegex.test(level)) {
   // log.level = level.toLowerCase()
-  Brolog.level(level)
-  Brolog.silly('Brolog', 'WECHATY_LOG set level to %s', level)
-}
-else if (level) {
-  Brolog.warn('Brolog', 'env WECHATY_LOG(%s) must be one of silly|verbose|info|warn|error|silent', level)
-}
-
-export {
-    Brolog
-  , Brolog as log
+  log = new Brolog(level)
+  log.silly('Brolog', 'WECHATY_LOG set level to %s', level)
+} else {
+  log = new Brolog()
+  log.warn('Brolog', 'env WECHATY_LOG(%s) must be one of silly|verbose|info|warn|error|silent', level)
 }
 
-export default Brolog
+export { Brolog }
+
+export default log

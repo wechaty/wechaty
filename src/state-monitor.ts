@@ -22,7 +22,7 @@ export class StateMonitor <A, B>{
   private _stable:  boolean
 
   constructor(private _client: string, initState: A|B) {
-    log.verbose('StateMonitor', 'constructor(%s, %s)', _client, initState)
+    log.silly('StateMonitor', 'constructor(%s, %s)', _client, initState)
 
     this._target  = initState
     this._current = initState

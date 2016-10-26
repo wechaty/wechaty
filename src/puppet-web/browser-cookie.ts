@@ -148,8 +148,8 @@ export class BrowserCookie {
     await new Promise((resolve, reject) => {
       fs.readFile(storeFile, (err, jsonStr) => {
         if (err) {
-          if (err) { log.silly('PuppetWebBrowserCookie', 'load(%s) skipped because error code: %s', this.storeFile, err.code) }
-          return reject(new Error('error code:' + err.code))
+          log.verbose('PuppetWebBrowserCookie', 'load(%s) skipped because error code: %s', this.storeFile, err.code)
+          return // fail safe
         }
         const cookies = JSON.parse(jsonStr.toString())
 
@@ -165,6 +165,9 @@ export class BrowserCookie {
         })
       })
     })
+
+    return
+
   }
 
   /**

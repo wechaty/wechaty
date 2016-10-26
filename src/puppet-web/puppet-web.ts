@@ -193,15 +193,13 @@ export class PuppetWeb extends Puppet {
 
     // if (this.targetState() !== 'live') {
     if (this.state.target() !== 'live') {
-      log.warn('PuppetWeb', 'initBrowser() found state.target()) != live, no init anymore')
-      // return Promise.resolve('skipped')
-      return Promise.reject('skipped')
+      const e = new Error('found state.target()) != live, no init anymore')
+      log.warn('PuppetWeb', 'initBrowser() %s', e.message)
+      throw e
     }
 
-    // return co.call(this, function* () {
     try {
       await browser.init()
-    // }).catch(e => {
     } catch (e) {
       log.error('PuppetWeb', 'initBrowser() exception: %s', e.message)
       throw e
@@ -225,17 +223,18 @@ export class PuppetWeb extends Puppet {
       return Promise.reject(errMsg)
     }
 
-    await bridge.init()
-                .catch(e => {
-                  if (!this.browser) {
-                    log.warn('PuppetWeb', 'initBridge() without browser?')
-                  } else if (this.browser.dead()) {
-                    log.warn('PuppetWeb', 'initBridge() found browser dead, wait it to restore')
-                  } else {
-                    log.error('PuppetWeb', 'initBridge() exception: %s', e.message)
-                    throw e
-                  }
-                })
+    try {
+      await bridge.init()
+    } catch (e) {
+      if (!this.browser) {
+        log.warn('PuppetWeb', 'initBridge() without browser?')
+      } else if (this.browser.dead()) {
+        log.warn('PuppetWeb', 'initBridge() found browser dead, wait it to restore')
+      } else {
+        log.error('PuppetWeb', 'initBridge() exception: %s', e.message)
+        throw e
+      }
+    }
     return
   }
 

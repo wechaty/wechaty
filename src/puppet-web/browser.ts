@@ -33,9 +33,9 @@ export type BrowserSetting = {
 export class Browser extends EventEmitter {
 
   private cookie: BrowserCookie
+  public driver: BrowserDriver
 
   public state = new StateMonitor<'open', 'close'>('Browser', 'close')
-  public driver: BrowserDriver
 
   constructor(private setting: BrowserSetting = {
       head: Config.head
@@ -43,11 +43,6 @@ export class Browser extends EventEmitter {
   }) {
     super()
     log.verbose('PuppetWebBrowser', 'constructor() with head(%s) sessionFile(%s)', setting.head, setting.sessionFile)
-
-    // this.targetState('close')
-    // this.currentState('close')
-    // this.state.target('close')
-    // this.state.current('close')
 
     this.driver = new BrowserDriver(this.setting.head)
     this.cookie = new BrowserCookie(this.driver, this.setting.sessionFile)

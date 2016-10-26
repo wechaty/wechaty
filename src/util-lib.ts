@@ -128,7 +128,7 @@ class UtilLib {
         log.verbose('UtilLib', 'getPort(%d) return: %d'
                   , port
                   , okPort
-                  )
+        )
         resolve(okPort)
       })
     })
