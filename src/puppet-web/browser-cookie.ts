@@ -145,11 +145,19 @@ export class BrowserCookie {
     const storeFile = this.storeFile
     log.verbose('PuppetWebBrowserCookie', 'load() from %s', storeFile)
 
+    try {
+      fs.statSync(storeFile).isFile()
+    } catch (e) {
+      log.silly('PuppetWebBrowserCookie', 'load() skipped because session store file not exist')
+      return
+    }
+
     await new Promise((resolve, reject) => {
       fs.readFile(storeFile, (err, jsonStr) => {
         if (err) {
           log.verbose('PuppetWebBrowserCookie', 'load(%s) skipped because error code: %s', this.storeFile, err.code)
-          return // fail safe
+          reject()
+          return
         }
         const cookies = JSON.parse(jsonStr.toString())
 
@@ -158,10 +166,12 @@ export class BrowserCookie {
         .then(() => {
           log.verbose('PuppetWebBrowserCookie', 'loaded session(%d cookies) from %s', cookies.length, this.storeFile)
           resolve(cookies)
+          return
         })
         .catch(e => {
           log.error('PuppetWebBrowserCookie', 'load() add() exception: %s', e.message)
           reject(e)
+          return
         })
       })
     })
