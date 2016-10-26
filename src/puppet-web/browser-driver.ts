@@ -75,15 +75,20 @@ export class BrowserDriver {
      * issue #56
      * only need under win32 with cygwin
      * and will cause strange error:
-     * `The previously configured ChromeDriver service is still running. You must shut it down before you may adjust its configuration.`
-
+     *
+     */
     const chrome = require('selenium-webdriver/chrome')
     const path = require('chromedriver').path
 
     const service = new chrome.ServiceBuilder(path).build()
-    chrome.setDefaultService(service)
-
-     */
+    try {
+      chrome.setDefaultService(service)
+    } catch (e) { // fail safe
+      /**
+       * `The previously configured ChromeDriver service is still running.`
+       * `You must shut it down before you may adjust its configuration.`
+       */
+    }
 
     const options = {
       args: ['--no-sandbox']  // issue #26 for run inside docker
