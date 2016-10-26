@@ -21,8 +21,8 @@ export class StateMonitor <A, B>{
   private _current:  A|B
   private _stable:  boolean
 
-  constructor(private client: string, initState: A|B) {
-    log.verbose('StateMonitor', 'constructor(%s, %s)', client, initState)
+  constructor(private _client: string, initState: A|B) {
+    log.verbose('StateMonitor', 'constructor(%s, %s)', _client, initState)
 
     this._target  = initState
     this._current = initState
@@ -35,13 +35,13 @@ export class StateMonitor <A, B>{
   public target(newState?: A|B): A|B {
     if (newState) {
       log.verbose('StateMonitor', '%s.state.target(%s) from %s'
-                                , this.client
+                                , this._client
                                 , newState
                                 , this._target
       )
       this._target = newState
     } else {
-      log.silly('StateMonitor', '%s.state.target() is %s', this.client, this._target)
+      log.silly('StateMonitor', '%s.state.target() is %s', this._client, this._target)
     }
     return this._target
   }
@@ -53,7 +53,7 @@ export class StateMonitor <A, B>{
   public current(newState?: A|B, stable = true): A|B {
     if (newState) {
       log.verbose('StateMonitor', '%s.state.current(%s, %s) from (%s, %s)'
-                                , this.client
+                                , this._client
                                 , newState, stable
                                 , this._current, this._stable
                 )
@@ -61,7 +61,7 @@ export class StateMonitor <A, B>{
           && stable === false // warn for inprocess current state change twice, mostly like a logic bug outside
       ) {
         log.warn('StateMonitor', '%s.state.current(%s, %s) called but there are already in the same state'
-                                , this.client
+                                , this._client
                                 , newState, stable
         )
         const e = new Error('current unchange')
@@ -70,7 +70,7 @@ export class StateMonitor <A, B>{
       this._current = newState
       this._stable  = stable
     } else {
-      log.silly('StateMonitor', '%s.state.current() is %s', this.client, this._current)
+      log.silly('StateMonitor', '%s.state.current() is %s', this._client, this._current)
     }
     return this._current
   }
@@ -79,7 +79,7 @@ export class StateMonitor <A, B>{
    * does the current state be stable(not inprocess)?
    */
   public stable() {
-    log.silly('StateMonitor', '%s.state.stable() is %s', this.client, this._stable)
+    log.silly('StateMonitor', '%s.state.stable() is %s', this._client, this._stable)
     return this._stable
   }
 
@@ -87,8 +87,15 @@ export class StateMonitor <A, B>{
    * does the current state be inprocess(not stable)?
    */
   public inprocess() {
-    log.silly('StateMonitor', '%s.state.inprocess() is %s', this.client, !this._stable)
+    log.silly('StateMonitor', '%s.state.inprocess() is %s', this._client, !this._stable)
     return !this._stable
+  }
+
+  /**
+   * get the client name
+   */
+  public client() {
+    return this._client
   }
 }
 

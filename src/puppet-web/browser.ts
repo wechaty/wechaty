@@ -46,8 +46,8 @@ export class Browser extends EventEmitter {
 
     // this.targetState('close')
     // this.currentState('close')
-    this.state.target('close')
-    this.state.current('close')
+    // this.state.target('close')
+    // this.state.current('close')
 
     this.driver = new BrowserDriver(this.setting.head)
     this.cookie = new BrowserCookie(this.driver, this.setting.sessionFile)

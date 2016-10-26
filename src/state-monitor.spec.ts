@@ -15,8 +15,11 @@ import test from 'ava'
 import StateMonitor from './state-monitor'
 
 test('StateMonitor smoking test', t => {
+  const CLIENT_NAME = 'StateMonitorTest'
+  const sm = new StateMonitor<'A', 'B'>(CLIENT_NAME, 'A')
 
-  const sm = new StateMonitor<'A', 'B'>('SmokingTest', 'A')
+  t.is(sm.client(), CLIENT_NAME, 'should get the same client name as init')
+
   t.is(sm.current(), 'A', 'current should be A')
   t.is(sm.target(), 'A', 'target should be A')
   t.true(sm.stable(), 'should be stable')
@@ -45,7 +48,7 @@ test('StateMonitor smoking test', t => {
 })
 
 test('StateMonitor stable', t => {
-  const sm = new StateMonitor<'A', 'B'>('SmokingTest', 'A')
+  const sm = new StateMonitor<'A', 'B'>('StateMonitorTest', 'A')
 
   sm.current('B')
   t.true(sm.stable(), 'should be stable')

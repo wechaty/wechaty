@@ -49,8 +49,8 @@ export class IoClient {
 
     // this.targetState('disconnected')
     // this.currentState('disconnected')
-    this.state.target('offline')
-    this.state.current('offline')
+    // this.state.target('offline')
+    // this.state.current('offline')
   }
 
 //  // targetState : 'connected' | 'disconnected'

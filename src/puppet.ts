@@ -47,8 +47,8 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
     // this.targetState('dead')
     // this.currentState('dead')
-    this.state.target('dead')
-    this.state.current('dead')
+    // this.state.target('dead')
+    // this.state.current('dead')
   }
 
   // targetState : 'live' | 'dead'
