@@ -37,8 +37,25 @@ test('Html smoking test', t => {
   }
   const plainText = UtilLib.plainText(PLAIN_BEFORE)
   t.is(plainText, PLAIN_AFTER, 'should convert plain text as expected')
+})
 
-  // t.end()
+test('Unify Emoji', t => {
+  const ORIGNAL_XML_LIST: [string[], string][] = [
+    [
+      [
+        '<img class="emoji emoji1f602" text="_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />'
+      , '<span class=\"emoji emoji1f602\"></span>'
+      ]
+      , '<emoji code="emoji1f602"/>'
+    ]
+  ]
+
+  ORIGNAL_XML_LIST.forEach(([xmlList, expectedEmojiXml]) => {
+    xmlList.forEach(xml => {
+      const unifiedXml = UtilLib.unifyEmoji(xml)
+      t.is(unifiedXml, expectedEmojiXml, 'should convert the emoji xml to the expected unified xml')
+    })
+  })
 })
 
 test('Media download smoking test', t => {

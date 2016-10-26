@@ -9,12 +9,18 @@ import log from './brolog-env'
 // import * as ws from 'ws'
 
 class UtilLib {
-  public static stripHtml(html: string): string {
-    return String(html).replace(/(<([^>]+)>)/ig, '')
+  public static stripHtml(html?: string): string {
+    if (!html) {
+      return ''
+    }
+    return html.replace(/(<([^>]+)>)/ig, '')
   }
 
-  public static unescapeHtml(str: string): string {
-    return String(str)
+  public static unescapeHtml(str?: string): string {
+    if (!str) {
+      return ''
+    }
+    return str
     .replace(/&apos;/g, "'")
     .replace(/&quot;/g, '"')
     .replace(/&gt;/g, '>')
@@ -22,8 +28,11 @@ class UtilLib {
     .replace(/&amp;/g, '&')
   }
 
-  public static digestEmoji(html: string): string {
-    return String(html)
+  public static digestEmoji(html?: string): string {
+    if (!html) {
+      return ''
+    }
+    return html
           .replace(/<img class="(\w*?emoji) (\w*?emoji[^"]+?)" text="(.*?)_web" src=[^>]+>/g
                  , '$3'
                  ) // <img class="emoji emoji1f4a4" text="[流汗]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />
@@ -32,7 +41,30 @@ class UtilLib {
                  ) // '<span class="emoji emoji1f334"></span>'
   }
 
-  public static plainText(html: string): string {
+  /**
+   * unifyEmoji: the same emoji will be encoded as different xml code in browser. unify them.
+   *
+   *  from: <img class="emoji emoji1f602" text="_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />
+   *  to:   <span class=\"emoji emoji1f602\"></span>
+   *
+   */
+  public static unifyEmoji(html?: string): string {
+    if (!html) {
+      return ''
+    }
+    return html
+          .replace(/<img class="(\w*?emoji) (\w*?emoji[^"]+?)" text="(.*?)_web" src=[^>]+>/g
+                 , '<emoji code="$2"/>'
+                 ) // <img class="emoji emoji1f4a4" text="[流汗]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />
+          .replace(/<span class="(\w*?emoji) (\w*?emoji[^"]+?)"><\/span>/g
+                 , '<emoji code="$2"/>'
+                 ) // '<span class="emoji emoji1f334"></span>'
+  }
+
+  public static plainText(html?: string): string {
+    if (!html) {
+      return ''
+    }
     return UtilLib.stripHtml(
       UtilLib.unescapeHtml(
         UtilLib.stripHtml(

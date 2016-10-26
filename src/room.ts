@@ -30,7 +30,7 @@ type RoomObj = {
   nickMap:    Map<string, string>
 }
 
-export type RoomRawMemberList = {
+export type RoomRawMember = {
   UserName:     string
   DisplayName:  string
 }
@@ -40,10 +40,12 @@ export type RoomRawObj = {
   EncryChatRoomId:  string
   NickName:         string
   OwnerUin:         number
-  MemberList:       RoomRawMemberList[]
+  MemberList:       RoomRawMember[]
 }
 
-export type RoomEventName = 'join' | 'leave' | 'topic'
+export type RoomEventName = 'join'
+                          | 'leave'
+                          | 'topic'
                           | 'EVENT_PARAM_ERROR'
 
 export type RoomQueryFilter = {
@@ -97,24 +99,26 @@ export class Room extends EventEmitter implements Sayable {
       throw new Error('no contactGetter')
     }
 
-    return contactGetter(this.id)
-    .then(data => {
+    try {
+      const data = await contactGetter(this.id)
+    // .then(data => {
       log.silly('Room', `contactGetter(${this.id}) resolved`)
       this.rawObj = data
       this.obj    = this.parse(data)
-      return this
-    })
-    .then(_ => {
+    //   return this
+    // })
+    // .then(_ => {
       if (!this.obj) {
         throw new Error('no this.obj set after contactGetter')
       }
-      return Promise.all(this.obj.memberList.map(c => c.ready(contactGetter)))
-                    .then(() => this)
-    })
-    .catch(e => {
+      await Promise.all(this.obj.memberList.map(c => c.ready(contactGetter)))
+                    // .then(() => this)
+      return this
+    // })
+    } catch (e) {
       log.error('Room', 'contactGetter(%s) exception: %s', this.id, e.message)
       throw e
-    })
+    }
   }
 
   public on(event: 'leave', listener: (this: Room, leaver: Contact) => void): this
@@ -185,11 +189,11 @@ export class Room extends EventEmitter implements Sayable {
     }
   }
 
-  private parseMemberList(memberList) {
-    if (!memberList || !memberList.map) {
+  private parseMemberList(rawMemberList: RoomRawMember[]): Contact[] {
+    if (!rawMemberList || !rawMemberList.map) {
       return []
     }
-    return memberList.map(m => Contact.load(m.UserName))
+    return rawMemberList.map(m => Contact.load(m.UserName))
   }
 
   private parseNickMap(memberList): Map<string, string> {
@@ -203,7 +207,9 @@ export class Room extends EventEmitter implements Sayable {
         } else {
           remark = null
         }
-        nickMap[m.UserName] = remark || m.DisplayName || m.NickName
+        nickMap[m.UserName] = UtilLib.unifyEmoji(
+          remark || m.DisplayName || m.NickName
+        )
       })
     }
     return nickMap
@@ -331,6 +337,9 @@ export class Room extends EventEmitter implements Sayable {
       log.warn('Room', 'member() not ready')
       return null
     }
+
+    name = UtilLib.unifyEmoji(name)
+
     const nickMap = this.obj.nickMap
     const idList = Object.keys(nickMap)
                           .filter(k => nickMap[k] === name)
