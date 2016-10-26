@@ -18,7 +18,7 @@ import {
  * if 2 tests run parallel in the same process,
  * there will have race conditions for the conflict of `getBrowserPids()`
  */
-test('WebDriver process create & quit test', async t => {
+test.serial('WebDriver process create & quit test', async t => {
   const b = new PuppetWebBrowser()
   t.truthy(b, 'should instanciate a browser')
 
@@ -43,7 +43,7 @@ test('WebDriver process create & quit test', async t => {
 
 })
 
-test('WebDriver smoke testing', async t => {
+test.serial('WebDriver smoke testing', async t => {
   const wb = new PuppetWebBrowser()
   t.truthy(wb, 'Browser instnace')
 
