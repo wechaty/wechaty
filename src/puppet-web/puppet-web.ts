@@ -109,7 +109,7 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public async quit(): Promise<any> {
+  public async quit(): Promise<void> {
     log.verbose('PuppetWeb', 'quit()')
     // this.targetState('dead')
 
@@ -177,11 +177,10 @@ export class PuppetWeb extends Puppet {
       log.verbose('PuppetWeb', 'quit() done')
       // this.currentState('dead')
       this.state.current('dead')
-      return this   // for Chaining
     // })
   }
 
-  public async initBrowser(): Promise<Browser> {
+  public async initBrowser(): Promise<void> {
     log.verbose('PuppetWeb', 'initBrowser()')
     const browser = new Browser({
         head:         <HeadName>this.setting.head
@@ -194,7 +193,7 @@ export class PuppetWeb extends Puppet {
 
     // if (this.targetState() !== 'live') {
     if (this.state.target() !== 'live') {
-      log.warn('PuppetWeb', 'initBrowser() found targetState != live, no init anymore')
+      log.warn('PuppetWeb', 'initBrowser() found state.target()) != live, no init anymore')
       // return Promise.resolve('skipped')
       return Promise.reject('skipped')
     }
@@ -207,10 +206,10 @@ export class PuppetWeb extends Puppet {
       log.error('PuppetWeb', 'initBrowser() exception: %s', e.message)
       throw e
     }
-    return browser // follow func name meaning
+    return
   }
 
-  public initBridge(): Promise<Bridge> {
+  public async initBridge(): Promise<void> {
     log.verbose('PuppetWeb', 'initBridge()')
     const bridge = new Bridge(
         this // use puppet instead of browser, is because browser might change(die) duaring run time
@@ -226,7 +225,7 @@ export class PuppetWeb extends Puppet {
       return Promise.reject(errMsg)
     }
 
-    return bridge.init()
+    await bridge.init()
                 .catch(e => {
                   if (!this.browser) {
                     log.warn('PuppetWeb', 'initBridge() without browser?')
@@ -237,9 +236,10 @@ export class PuppetWeb extends Puppet {
                     throw e
                   }
                 })
+    return
   }
 
-  private initServer(): Promise<Server> {
+  private async initServer(): Promise<void> {
     log.verbose('PuppetWeb', 'initServer()')
     const server = new Server(this.port)
 
@@ -264,16 +264,17 @@ export class PuppetWeb extends Puppet {
 
     // if (this.targetState() !== 'live') {
     if (this.state.target() !== 'live') {
-      const errMsg = 'initServer() found targetState != live, no init anymore'
+      const errMsg = 'initServer() found state.target() != live, no init anymore'
       log.warn('PuppetWeb', errMsg)
       return Promise.reject(errMsg)
     }
 
-    return server.init()
+    await server.init()
                 .catch(e => {
                   log.error('PuppetWeb', 'initServer() exception: %s', e.message)
                   throw e
                 })
+    return
   }
 
   public reset(reason?: string): void {
@@ -291,7 +292,7 @@ export class PuppetWeb extends Puppet {
    * use Message.self() instead
    */
   public self(message: Message): boolean {
-    log.warn('PuppetWeb', 'self() method deprecated. use Message.self() instead')
+    log.warn('PuppetWeb', 'DEPRECATED self() method. use Message.self() instead')
 
     if (!this.userId) {
       log.warn('PuppetWeb', 'self() got no this.userId')
@@ -358,12 +359,13 @@ export class PuppetWeb extends Puppet {
   /**
    * logout from browser, then server will emit `logout` event
    */
-  public logout() {
-    return this.bridge.logout()
+  public async logout(): Promise<void> {
+    await this.bridge.logout()
                       .catch(e => {
                         log.error('PuppetWeb', 'logout() exception: %s', e.message)
                         throw e
                       })
+    return
   }
 
   public getContact(id: string): Promise<any> {

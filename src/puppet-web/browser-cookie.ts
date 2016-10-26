@@ -40,7 +40,7 @@ export class BrowserCookie {
 
   public async read(): Promise<CookieType[]> {
     // just check cookies, no file operation
-    log.verbose('PuppetWebBrowserCookie', 'checkSession()')
+    log.verbose('PuppetWebBrowserCookie', 'read()')
 
     // if (this.browser.dead()) {
     //   throw new Error('checkSession() - browser dead')
@@ -50,16 +50,16 @@ export class BrowserCookie {
     try {
       // `as any as DriverCookie` because selenium-webdriver @types is outdated with 2.x, where we r using 3.0
       const cookies = await this.driver.manage().getCookies() as any as CookieType[]
-      log.silly('PuppetWebBrowserCookie', 'checkSession %s', cookies.map(c => c.name).join(','))
+      log.silly('PuppetWebBrowserCookie', 'read() %s', cookies.map(c => c.name).join(','))
       return cookies
     } catch (e) {
-      log.error('PuppetWebBrowserCookie', 'checkSession() getCookies() exception: %s', e && e.message || e)
+      log.error('PuppetWebBrowserCookie', 'read() getCookies() exception: %s', e && e.message || e)
       throw e
     }
   }
 
   public async clean(): Promise<void> {
-    log.verbose('PuppetWebBrowserCookie', `cleanSession(${this.storeFile})`)
+    log.verbose('PuppetWebBrowserCookie', 'clean() file %s', this.storeFile)
     if (!this.storeFile) {
       return
     }
@@ -70,7 +70,7 @@ export class BrowserCookie {
     await new Promise((resolve, reject) => {
       fs.unlink(filename, err => {
         if (err && err.code !== 'ENOENT') {
-          log.silly('PuppetWebBrowserCookie', 'cleanSession() unlink session file %s fail: %s', filename, err.message)
+          log.silly('PuppetWebBrowserCookie', 'clean() unlink store file %s fail: %s', filename, err.message)
         }
         resolve()
       })
@@ -79,9 +79,9 @@ export class BrowserCookie {
   }
 
   public async save(): Promise<void> {
-    log.silly('PuppetWebBrowserCookie', `saveSession(${this.storeFile})`)
+    log.silly('PuppetWebBrowserCookie', 'save() to file %s', this.storeFile)
     if (!this.storeFile) {
-      log.verbose('PuppetWebBrowserCookie', 'save() no session store file')
+      log.verbose('PuppetWebBrowserCookie', 'save() no store file')
       return
     }
     const storeFile = this.storeFile
@@ -114,42 +114,41 @@ export class BrowserCookie {
       // .then(cookies => {
         // log.silly('PuppetWeb', 'saving %d cookies for session: %s', cookies.length
         //   , util.inspect(cookies.map(c => { return {name: c.name /*, value: c.value, expiresType: typeof c.expires, expires: c.expires*/} })))
-      log.silly('PuppetWebBrowserCookie', 'saving %d cookies for session: %s', cookies.length, cookies.map(c => c.name).join(','))
+      log.silly('PuppetWebBrowserCookie', 'save() saving %d cookies: %s', cookies.length, cookies.map(c => c.name).join(','))
 
       const jsonStr = JSON.stringify(cookies)
 
       await new Promise((resolve, reject) => {
         fs.writeFile(storeFile, jsonStr, err => {
           if (err) {
-            log.error('PuppetWebBrowserCookie', 'saveSession() fail to write file %s: %s', filename, err.errno)
+            log.error('PuppetWebBrowserCookie', 'save() fail to write file %s: %s', filename, err.errno)
             reject(err)
           }
-          log.silly('PuppetWebBrowserCookie', 'saved session(%d cookies) to %s', cookies.length, filename)
+          log.silly('PuppetWebBrowserCookie', 'save() %d cookies to %s', cookies.length, filename)
           resolve(cookies)
         })
       })
 
     } catch (e) {
-      log.error('PuppetWebBrowserCookie', 'saveSession() getCookies() exception: %s', e.message)
+      log.error('PuppetWebBrowserCookie', 'save() getCookies() exception: %s', e.message)
       throw e
     }
   }
 
   public async load(): Promise<void> {
-    log.verbose('PuppetWebBrowserCookie', 'loadSession() from %s', this.storeFile ? this.storeFile : '' )
-
     if (!this.storeFile) {
-      log.verbose('PuppetWebBrowserCookie', 'load() no session store file')
+      log.silly('PuppetWebBrowserCookie', 'load() skipped because no session store file')
       return
     // } else if (this.browser.dead()) {
     //   throw new Error('loadSession() - browser dead')
     }
     const storeFile = this.storeFile
+    log.verbose('PuppetWebBrowserCookie', 'load() from %s', storeFile)
 
     await new Promise((resolve, reject) => {
       fs.readFile(storeFile, (err, jsonStr) => {
         if (err) {
-          if (err) { log.silly('PuppetWebBrowserCookie', 'loadSession(%s) skipped because error code: %s', this.storeFile, err.code) }
+          if (err) { log.silly('PuppetWebBrowserCookie', 'load(%s) skipped because error code: %s', this.storeFile, err.code) }
           return reject(new Error('error code:' + err.code))
         }
         const cookies = JSON.parse(jsonStr.toString())
@@ -161,7 +160,7 @@ export class BrowserCookie {
           resolve(cookies)
         })
         .catch(e => {
-          log.error('PuppetWebBrowserCookie', 'loadSession() addCookies() exception: %s', e.message)
+          log.error('PuppetWebBrowserCookie', 'load() add() exception: %s', e.message)
           reject(e)
         })
       })

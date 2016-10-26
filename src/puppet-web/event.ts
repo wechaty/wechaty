@@ -90,10 +90,10 @@ async function onBrowserDead(this: PuppetWeb, e): Promise<void> {
       return
     }
 
-    this.browser = await this.initBrowser()
+    await this.initBrowser()
     log.verbose('PuppetWebEvent', 'onBrowserDead() new browser inited')
 
-    this.bridge = await this.initBridge()
+    await this.initBridge()
     log.verbose('PuppetWebEvent', 'onBrowserDead() bridge re-inited')
 
     const dong = await this.ding()

@@ -67,8 +67,12 @@ test.serial('PuppetWeb server/browser communication', async t => {
   await pw.init()
   t.pass('should be inited')
 
-  const ret = await dingSocket(pw.server)
-  t.is(ret,  EXPECTED_DING_DATA, 'should got EXPECTED_DING_DATA after resolved dingSocket()')
+  try {
+    const ret = await dingSocket(pw.server)
+    t.is(ret,  EXPECTED_DING_DATA, 'should got EXPECTED_DING_DATA after resolved dingSocket()')
+  } catch (e) {
+    t.fail(e.message)
+  }
 
   await pw.quit()
 

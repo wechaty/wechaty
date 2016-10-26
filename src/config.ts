@@ -161,6 +161,9 @@ export type RecommendInfo = {
 export interface Sayable {
   say(content: string, replyTo?: any|any[]): Promise<void>
 }
+export interface Sleepable {
+  sleep(millisecond: number): Promise<void>
+}
 
 export * from './brolog-env'
 

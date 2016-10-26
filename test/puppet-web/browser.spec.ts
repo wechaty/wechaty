@@ -13,7 +13,7 @@ import {
 const PROFILE = Config.DEFAULT_PROFILE + '-' + process.pid + '-'
 let profileCounter = 1
 
-test('Browser class cookie smoking tests', async t => {
+test('Browser Cookie smoking test', async t => {
   const b = new Browser()
   t.truthy(b, 'should instanciate a browser instance')
 
@@ -78,7 +78,7 @@ test('Browser class cookie smoking tests', async t => {
   await b.quit()
 })
 
-test('Browser session save before quit, and load after restart', async t => {
+test('Browser Cookie save/load test', async t => {
   const profileName = PROFILE + profileCounter++
 
   let b = new Browser({
@@ -90,7 +90,7 @@ test('Browser session save before quit, and load after restart', async t => {
    * use exception to call b.quit() to clean up
    */
   try {
-    t.truthy(b, 'new Browser')
+    t.truthy(b, 'should get a new Browser')
 
     // b.targetState('open')
     b.state.target('open')

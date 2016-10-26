@@ -27,46 +27,48 @@ export class BrowserDriver {
   }
 
   public async init(): Promise<this> {
-    log.verbose('PuppetWebBrowser', 'initDriver() for head: %s', this.head)
+    log.verbose('PuppetWebBrowserDriver', 'init() for head: %s', this.head)
 
     if (this.driver) {
-      await this.driver.close()
-      await this.driver.quit()
+      try {
+        await this.driver.close()
+        await this.driver.quit()
+      } catch (e) {
+        log.warn('PuppetWebBrowserDriver', 'init() this.driver.{close,quit}() exception: %s'
+                                          , e.message
+        )
+      }
     }
 
-    const head = this.head
-
-    switch (true) {
-      case !head: // no head default to phantomjs
-      case /phantomjs/i.test(head):
-      case /phantom/i.test(head):
+    switch (this.head) {
+      case 'phantomjs':
         this.driver = this.getPhantomJsDriver()
         break
 
-      case /firefox/i.test(head):
+      case 'firefox':
         this.driver = new Builder()
                             .setAlertBehavior('ignore')
                             .forBrowser('firefox')
                             .build()
         break
 
-      case /chrome/i.test(head):
+      case 'chrome':
         this.driver = this.getChromeDriver()
         break
 
       default: // unsupported browser head
-        throw new Error('unsupported head: ' + head)
+        throw new Error('unsupported head: ' + this.head)
     }
 
-    this.driver.manage()
-                .timeouts()
-                .setScriptTimeout(10000)
+    await this.driver.manage()
+                      .timeouts()
+                      .setScriptTimeout(10000)
 
     return this
   }
 
   private getChromeDriver(): WebDriver {
-    log.verbose('PuppetWebBrowser', 'getChromeDriver()')
+    log.verbose('PuppetWebBrowserDriver', 'getChromeDriver()')
 
     /**
      * http://stackoverflow.com/a/27733960/1123955
@@ -88,6 +90,7 @@ export class BrowserDriver {
       // , binary: require('chromedriver').path
     }
     if (Config.isDocker) {
+      log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() wechaty in docker confirmed(should not show this in CI)')
       options['binary'] = Config.CMD_CHROMIUM
     }
 
@@ -138,8 +141,8 @@ export class BrowserDriver {
                                       .set('phantomjs.binary.path', phantomjsExe)
                                       .set('phantomjs.cli.args', phantomjsArgs)
 
-    log.silly('PuppetWebBrowser', 'phantomjs binary: ' + phantomjsExe)
-    log.silly('PuppetWebBrowser', 'phantomjs args: ' + phantomjsArgs.join(' '))
+    log.silly('PuppetWebBrowserDriver', 'phantomjs binary: ' + phantomjsExe)
+    log.silly('PuppetWebBrowserDriver', 'phantomjs args: ' + phantomjsArgs.join(' '))
 
     const driver = new Builder()
                         .withCapabilities(customPhantom)
@@ -177,7 +180,7 @@ export class BrowserDriver {
 
   // public driver1(newDriver?: WebDriver | null): WebDriver | void {
   //   if (newDriver !== undefined) {
-  //     log.verbose('PuppetWebBrowser', 'driver(%s)'
+  //     log.verbose('PuppetWebBrowserDriver', 'driver(%s)'
   //                                   , newDriver
   //                                     ? newDriver.constructor.name
   //                                     : null
@@ -199,12 +202,12 @@ export class BrowserDriver {
 
   //   if (!this.driver) {
   //     const e = new Error('no driver')
-  //     log.warn('PuppetWebBrowser', 'driver() exception: %s', e.message)
+  //     log.warn('PuppetWebBrowserDriver', 'driver() exception: %s', e.message)
   //     throw e
   //   }
   //   // if (!this.driver.getSession()) {
   //   //   const e = new Error('no driver session')
-  //   //   log.warn('PuppetWebBrowser', 'driver() exception: %s', e.message)
+  //   //   log.warn('PuppetWebBrowserDriver', 'driver() exception: %s', e.message)
   //   //   this.driver.quit()
   //   //   throw e
   //   // }
@@ -213,8 +216,8 @@ export class BrowserDriver {
   // }
 
   public close()              { return this.driver.close() }
-  public executeScript()      { return this.driver.executeScript.apply(this.driver, arguments) }
   public executeAsyncScript() { return this.driver.executeAsyncScript.apply(this.driver, arguments) }
+  public executeScript()      { return this.driver.executeScript.apply(this.driver, arguments) }
   public get(url: string)     { return this.driver.get(url) }
   public getSession()         { return this.driver.getSession() }
   public manage()             { return this.driver.manage() }

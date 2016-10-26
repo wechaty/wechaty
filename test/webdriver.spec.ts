@@ -18,32 +18,32 @@ import {
  * if 2 tests run parallel in the same process,
  * there will have race conditions for the conflict of `getBrowserPids()`
  */
-test.serial('WebDriver process create & quit test', async t => {
-    const b = new PuppetWebBrowser()
-    t.truthy(b, 'should instanciate a browser')
+test('WebDriver process create & quit test', async t => {
+  const b = new PuppetWebBrowser()
+  t.truthy(b, 'should instanciate a browser')
 
-    await b.init()
-    t.pass('should be inited successful')
-    await b.open()
-    t.pass('should open successful')
+  await b.init()
+  t.pass('should be inited successful')
+  await b.open()
+  t.pass('should open successful')
 
-    let pids = await b.getBrowserPids()
-    t.truthy(pids.length > 0, 'should exist browser process after b.open()')
+  let pids = await b.getBrowserPids()
+  t.truthy(pids.length > 0, 'should exist browser process after b.open()')
 
-// console.log(b.driver.getSession())
+  // console.log(b.driver.getSession())
 
-    await b.quit()
-    t.pass('quited')
+  await b.quit()
+  t.pass('quited')
 
-    const useAva = false
-    if (!useAva) { // ava will run tests concurency...
-      pids = await b.getBrowserPids()
-      t.is(pids.length, 0, 'no driver process after quit')
-    }
+  const useAva = false
+  if (!useAva) { // ava will run tests concurency...
+    pids = await b.getBrowserPids()
+    t.is(pids.length, 0, 'no driver process after quit')
+  }
 
 })
 
-test.serial('WebDriver smoke testing', async t => {
+test('WebDriver smoke testing', async t => {
   const wb = new PuppetWebBrowser()
   t.truthy(wb, 'Browser instnace')
 

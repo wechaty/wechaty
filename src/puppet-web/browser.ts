@@ -55,7 +55,7 @@ export class Browser extends EventEmitter {
 
   public toString() { return `Browser({head:${this.setting.head})` }
 
-  public async init(): Promise<this> {
+  public async init(): Promise<void> {
     // this.targetState('open')
     // this.currentState('opening')
     this.state.target('open')
@@ -92,7 +92,7 @@ export class Browser extends EventEmitter {
       // this.currentState('open')
       this.state.current('open')
 
-      return this
+      return
 
     } catch (e) {
       log.error('PuppetWebBrowser', 'init() exception: %s', e.message)
@@ -116,11 +116,12 @@ export class Browser extends EventEmitter {
     }
   }
 
-  public async refresh(): Promise<any> {
+  public async refresh(): Promise<void> {
     log.verbose('PuppetWebBrowser', 'refresh()')
-    return await this.driver
-                      .navigate()
-                      .refresh()
+    await this.driver
+              .navigate()
+              .refresh()
+    return
   }
 
   public async restart(): Promise<void> {
@@ -137,7 +138,7 @@ export class Browser extends EventEmitter {
     await this.init()
   }
 
-  public async quit(): Promise<any> {
+  public async quit(): Promise<void> {
     log.verbose('PuppetWebBrowser', 'quit()')
 
     // if (this.currentState() === 'closing') {

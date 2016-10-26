@@ -1,4 +1,4 @@
-### Please run `npm run doctor` and paste the output here 
+### Run `npm run doctor` and paste the output here 
 
 
 ### Expected behavior
@@ -10,3 +10,4 @@
 ### Steps to reproduce the behavior (and fixes, if any)
 
 
+### Paste the full output logs here with `WECHATY_LOG=silly` set
