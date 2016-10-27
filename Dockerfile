@@ -1,25 +1,26 @@
 FROM node:7
+ENV NPM_CONFIG_LOGLEVEL warn
 
-# RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-#   && sh -c 'echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list'
-
-RUN apt-get -qq update && apt-get -qy install \
+# https://peteris.rocks/blog/quiet-and-unattended-installation-with-apt-get/
+RUN  DEBIAN_FRONTEND=noninteractive apt-get -qq update > /dev/null \
+  && apt-get -qqy -o Dpkg::Use-Pty=0 install \
       apt-utils \
       chromium \
+      figlet \
       vim \
-      xvfb
-    # && rm -rf /tmp/*
-      # google-chrome-stable \
+      xvfb \
+  > /dev/null \
+  && rm -rf /tmp/*
 
 WORKDIR /wechaty
 
 COPY package.json .
-RUN npm --progress false --loglevel warn install
-  # && rm -fr /tmp/*
+RUN  npm --progress false install > /dev/null \
+  && rm -fr /tmp/*
   # && npm install ts-node typescript -g \
 
 COPY . .
-RUN npm link
+RUN npm --progress false link
 
 ENTRYPOINT [ "/wechaty/bin/entrypoint.sh" ]
 CMD [ "start" ]

@@ -8,15 +8,18 @@ set -e
 
 PATH=$PATH:/wechaty/node_modules/.bin
 
+figlet " Wechaty "
+echo ____________________________________________________
+echo "              https://www.wechaty.io"
+figlet Connecting
+figlet ChatBots
+
 echo
 echo -n "Starting Wechaty ... "
 
 VERSION=$(wechaty-version 2>/dev/null)
 
 echo "v$VERSION"
-echo
-echo "https://www.wechaty.io"
-echo "Connecting ChatBots ... "
 echo
 
 if [ "$1" = "shell" ] || \

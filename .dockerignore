@@ -1,8 +1,2 @@
-node_modules/
-Procfile
-.eslintrc
-.git/
-.gitignore
-.npmignore
-.travis.yml
+node_modules
 *.wechaty.json
