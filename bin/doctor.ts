@@ -1,10 +1,11 @@
 #!/usr/bin/env ts-node
 
+import * as os from 'os'
+
 import {
     Config
   , Wechaty
 } from '../'
-import * as os from 'os'
 
 const wechaty = Wechaty.instance()
 

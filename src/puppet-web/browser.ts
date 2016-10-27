@@ -222,7 +222,7 @@ export class Browser extends EventEmitter {
   public getBrowserPids(): Promise<string[]> {
     log.silly('PuppetWebBrowser', 'getBrowserPids()')
 
-    const head = this.setting.head as string
+    const head = this.setting.head
 
     return new Promise((resolve, reject) => {
       require('ps-tree')(process.pid, (err, children) => {
@@ -232,21 +232,19 @@ export class Browser extends EventEmitter {
         }
         let browserRe
 
-        switch (true) {
-          case !head: // no head default to phantomjs
-          case /phantomjs/i.test(head):
-          case /phantom/i.test(head):
+        switch (head) {
+          case 'phantomjs':
             browserRe = 'phantomjs'
             break
 
-          case !!(head): // head default to chrome
-          case /chrome/i.test(head):
+          case 'chrome':
             browserRe = 'chrome(?!driver)|chromium'
             break
 
           default:
-            log.warn('PuppetWebBrowser', 'getBrowserPids() for unsupported head: %s', head)
-            browserRe = head
+            const e = new Error('unsupported head: ' + head)
+            log.warn('PuppetWebBrowser', 'getBrowserPids() for %s', e.message)
+            throw e
         }
 
         let matchRegex = new RegExp(browserRe, 'i')

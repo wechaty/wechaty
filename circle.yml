@@ -6,4 +6,4 @@ test:
   override:
     - docker info
     - docker build -t zixia/wechaty:test .
-    - docker run -v /dev/shm:/dev/shm zixia/wechaty:test test
+    - docker run --rm -v /dev/shm:/dev/shm zixia/wechaty:test test
