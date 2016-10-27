@@ -6,10 +6,17 @@
 #
 set -e
 
-VERSION=$(wechaty-version)
+PATH=$PATH:/wechaty/node_modules/.bin
 
 echo
-echo "Starting Wechaty v$(VERSION) ..."
+echo -n "Starting Wechaty ... "
+
+VERSION=$(wechaty-version 2>/dev/null)
+
+echo "v$VERSION"
+echo
+echo "https://www.wechaty.io"
+echo "Connecting ChatBots ... "
 echo
 
 if [ "$1" = "shell" ] || \
