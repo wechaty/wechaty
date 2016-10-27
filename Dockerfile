@@ -7,16 +7,16 @@ RUN apt-get update -q && apt-get install -qy \
       apt-utils \
       chromium \
       vim \
-      xvfb \
-    && rm -rf /tmp/*
+      xvfb
+    # && rm -rf /tmp/*
       # google-chrome-stable \
 
 WORKDIR /wechaty
 
 COPY package.json .
 RUN npm set progress=false \
-  && npm install --loglevel warn \
-  && rm -fr /tmp/*
+  && npm install --loglevel war
+  # && rm -fr /tmp/*
   # && npm install ts-node typescript -g \
 
 COPY . .
