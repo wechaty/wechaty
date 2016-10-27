@@ -1,17 +1,9 @@
 machine:
-  node:
-    version: 7
-
-dependencies:
-  pre:
-    - google-chrome --version
-    - wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-    - sudo sh -c 'echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list'
-    - sudo apt-get update
-    - sudo apt-get --only-upgrade install google-chrome-stable
-    - google-chrome --version
+  services:
+    - docker
 
 test:
   override:
-    - nvm use 6; npm test
-    - nvm use 7; npm test
+    - docker info
+    - docker build -t zixia/wechaty:test .
+    - docker run -v /dev/shm:/dev/shm zixia/wechaty:test test
