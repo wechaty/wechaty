@@ -772,6 +772,7 @@ npm test
 1. [#41](https://github.com/wechaty/wechaty/issues/41) Sayablization: Make Wechaty/Contact/Room `Sayable`, and all `this` inside wechaty event listeners are `Sayable` too.
 1. BREAKING CHANGE: global event `scan` listener arguments changed from 1 to 2: now is `function(this: Sayable, url: string, code: number)` instead of `function({url, code})` before.  
 1. add `npm run doctor` to diagnose wechaty and output useful debug information
+1. test under Node.js v7.0
 
 ## [v0.4.0](https://github.com/wechaty/wechaty/releases/tag/v0.4.0) (2016/10/9) The Latest Javascript Version
 1. [#32](https://github.com/wechaty/wechaty/issues/32) Extend Room Class with:
