@@ -14,8 +14,7 @@ RUN apt-get update -q && apt-get install -qy \
 WORKDIR /wechaty
 
 COPY package.json .
-RUN npm set progress=false \
-  && npm install --loglevel war
+RUN npm --progress false --loglevel warn install
   # && rm -fr /tmp/*
   # && npm install ts-node typescript -g \
 
