@@ -12,9 +12,6 @@ echo
 echo "Starting Wechaty v$(VERSION) ..."
 echo
 
-# set CI here, in order to force ava to output use --verbose param, which is fit docker console log
-# export CI="FORCE_AVA_OUTPUT_VERBOSE"
-
 if [ "$1" = "shell" ] || \
   [ "$1" = "sh" ] || \
   [ "$1" = "bash" ]
