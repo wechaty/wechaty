@@ -39,7 +39,6 @@ export const PuppetWebFirer = {
   , checkRoomLeave
   , checkRoomTopic
 
-
   , parseFriendConfirm
   , parseRoomJoin
   , parseRoomLeave
