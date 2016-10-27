@@ -51,8 +51,6 @@ export class Browser extends EventEmitter {
   public toString() { return `Browser({head:${this.setting.head})` }
 
   public async init(): Promise<void> {
-    // this.targetState('open')
-    // this.currentState('opening')
     this.state.target('open')
     this.state.current('open', false)
 
@@ -61,11 +59,7 @@ export class Browser extends EventEmitter {
     const jumpUrl = 'https://wx.qq.com/zh_CN/htmledition/v2/images/webwxgeticon.jpg'
 
     try {
-      // await this.initDriver()
       await this.driver.init()
-
-      // this.live = true
-
       await this.open(jumpUrl)
       await this.loadCookie()
                 .catch(e => { // fail safe
@@ -75,16 +69,15 @@ export class Browser extends EventEmitter {
                   )
                 })
       await this.open()
+
       /**
        * when open url, there could happen a quit() call.
        * should check here: if we are in `close` target state, we should clean up
        */
-      // if (this.targetState() !== 'open') {
       if (this.state.target() !== 'open') {
-        throw new Error('init() finished but found state.target() is not open. quit().')
+        throw new Error('init() finished but found state.target() is changed to close. has to quit().')
       }
 
-      // this.currentState('open')
       this.state.current('open')
 
       return

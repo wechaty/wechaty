@@ -23,7 +23,7 @@
     "lint": "npm run eslint && npm run tslint",
     "eslint": "eslint \"{bin,example,src,test}/**/*.js\"",
     "tslint": "tslint \"{bin,example,src,test}/**/*.ts\" && tsc --noEmit",
-    "pretest": "npm run lint && npm run clean && npm run build",
+    "pretest": "npm run clean && npm run lint && npm run build",
     "sloc": "sloc bin example src test index.ts --details --format cli-table --keys total,source,comment && sloc bin example src test index.ts",
     "test": "npm run test:chrome",
     "posttest": "npm run clean && npm run sloc",

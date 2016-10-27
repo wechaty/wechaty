@@ -19,7 +19,7 @@ test('Firer smoking test', t => {
   t.true(true, 'should be true')
 })
 
-test('Firer.checkFriendConfirm', t => {
+test('Firer.parseFriendConfirm', t => {
   const contentList = [
     [
         'You have added 李卓桓 as your WeChat contact. Start chatting!'
@@ -41,7 +41,7 @@ test('Firer.checkFriendConfirm', t => {
   t.false(result, 'should be falsy for other msg')
 })
 
-test('Firer.checkRoomJoin', t => {
+test('Firer.parseRoomJoin', t => {
   const contentList: [string, string, string[]][] = [
     [
       `You've invited "李卓桓" to the group chat`
@@ -83,7 +83,7 @@ test('Firer.checkRoomJoin', t => {
   }, Error, 'should throws if message is not expected')
 })
 
-test('Firer.checkRoomLeave', t => {
+test('Firer.parseRoomLeave', t => {
   const contentList = [
     [
         `You removed "Bruce LEE" from the group chat`
@@ -107,7 +107,7 @@ test('Firer.checkRoomLeave', t => {
   }, Error, 'should throw if message is not expected')
 })
 
-test('Firer.checkRoomTopic', t => {
+test('Firer.parseRoomTopic', t => {
   const contentList = [
     [
         `"李卓桓.PreAngel" changed the group name to "ding"`
