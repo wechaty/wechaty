@@ -42,7 +42,7 @@ export class BrowserDriver {
 
     switch (this.head) {
       case 'phantomjs':
-        this.driver = this.getPhantomJsDriver()
+        this.driver = await this.getPhantomJsDriver()
         break
 
       case 'firefox':
@@ -53,7 +53,7 @@ export class BrowserDriver {
         break
 
       case 'chrome':
-        this.driver = this.getChromeDriver()
+        this.driver = await this.getChromeDriver()
         break
 
       default: // unsupported browser head
@@ -67,7 +67,7 @@ export class BrowserDriver {
     return this
   }
 
-  private getChromeDriver(): WebDriver {
+  private async getChromeDriver(): Promise<WebDriver> {
     log.verbose('PuppetWebBrowserDriver', 'getChromeDriver()')
 
     /**
@@ -110,19 +110,29 @@ export class BrowserDriver {
     /**
      * XXX when will Builder().build() throw exception???
      */
-    let driver: WebDriver|null = null
     let ttl = 3
     let err = new Error('unknown')
+    let driver: WebDriver|null = null
 
     while (!driver && ttl--) {
+      log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() with ttl: %d', ttl)
+
       try {
         driver = new Builder()
                       .setAlertBehavior('ignore')
                       .forBrowser('chrome')
                       .withCapabilities(customChrome)
                       .build()
+
+        const valid = await this.valid(driver)
+
+        if (!valid) {
+          driver = null
+        }
+
       } catch (e) {
         log.warn('PuppetWebBrowserDriver', 'getChromeDriver() exception: %s, retry ttl: %d', e.message, ttl)
+        driver = null
         err = e
       }
     }
@@ -135,7 +145,7 @@ export class BrowserDriver {
     return driver
   }
 
-  private getPhantomJsDriver(): WebDriver {
+  private async getPhantomJsDriver(): Promise<WebDriver> {
     // setup custom phantomJS capability https://github.com/SeleniumHQ/selenium/issues/2069
     const phantomjsExe = require('phantomjs-prebuilt').path
     if (!phantomjsExe) {
@@ -179,6 +189,12 @@ export class BrowserDriver {
                         .withCapabilities(customPhantom)
                         .build()
 
+    const valid = await this.valid(driver)
+
+    if (!valid) {
+      throw new Error('invalid driver founded')
+    }
+
     /* tslint:disable:jsdoc-format */
 		/**
 		 *  FIXME: ISSUE #21 - https://github.com/zixia/wechaty/issues/21
@@ -203,6 +219,17 @@ export class BrowserDriver {
     // driver.manage().timeouts().pageLoadTimeout(2000)
 
     return driver
+  }
+
+  private async valid(driver: WebDriver): Promise<boolean> {
+    log.silly('PuppetWebBrowserDriver', 'valid()')
+
+    const session = await driver.getSession()
+    if (!session) {
+      log.warn('PuppetWebBrowserDriver', 'valid() found an invalid driver')
+    }
+
+    return !!session
   }
 
   // public driver1(): WebDriver
