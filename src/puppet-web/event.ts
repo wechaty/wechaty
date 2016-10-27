@@ -352,16 +352,16 @@ async function onServerMessage(this: PuppetWeb, data): Promise<void> {
     switch (m.type()) { // data.MsgType
 
       case Message.TYPE['VERIFYMSG']:
-        Firer.fireFriendRequest.call(this, m)
+        Firer.checkFriendRequest.call(this, m)
         break
 
       case Message.TYPE['SYS']:
         if (m.room()) {
-          Firer.fireRoomJoin.call(this  , m)
-          Firer.fireRoomLeave.call(this , m)
-          Firer.fireRoomTopic.call(this , m)
+          Firer.checkRoomJoin.call(this  , m)
+          Firer.checkRoomLeave.call(this , m)
+          Firer.checkRoomTopic.call(this , m)
         } else {
-          Firer.fireFriendConfirm.call(this, m)
+          Firer.checkFriendConfirm.call(this, m)
         }
         break
     }

@@ -14,8 +14,6 @@
  * here `this` is a PuppetWeb Instance
  *
  */
-// import * as util  from 'util'
-// import * as fs    from 'fs'
 
 /* tslint:disable:no-var-requires */
 const retryPromise  = require('retry-promise').default
@@ -25,28 +23,28 @@ import {
 }                     from '../config'
 
 import Contact        from '../contact'
-import Message        from '../message'
+import {
+    Message
+}                     from '../message'
 import log            from '../brolog-env'
 
 import FriendRequest  from './friend-request'
 
 /* tslint:disable:variable-name */
 export const PuppetWebFirer = {
-  fireFriendConfirm
-  , fireFriendRequest
-
-  , fireRoomJoin
-  , fireRoomLeave
-  , fireRoomTopic
-
-  /**
-   * for testing
-   */
-  , checkFriendConfirm
+    checkFriendConfirm
+  , checkFriendRequest
 
   , checkRoomJoin
   , checkRoomLeave
   , checkRoomTopic
+
+
+  , parseFriendConfirm
+  , parseRoomJoin
+  , parseRoomLeave
+  , parseRoomTopic
+
 }
 
 const regexConfig = {
@@ -69,7 +67,7 @@ const regexConfig = {
   ]
 }
 
-async function fireFriendRequest(m: Message) {
+async function checkFriendRequest(m: Message) {
   if (!m.rawObj) {
     throw new Error('message empty')
   }
@@ -79,6 +77,7 @@ async function fireFriendRequest(m: Message) {
   if (!info) {
     throw new Error('no info')
   }
+
   const request = new FriendRequest()
   request.receive(info)
 
@@ -93,7 +92,7 @@ async function fireFriendRequest(m: Message) {
 /**
  * try to find FriendRequest Confirmation Message
  */
-function checkFriendConfirm(content: string): boolean {
+function parseFriendConfirm(content: string): boolean {
   const reList = regexConfig.friendConfirm
   let found = false
 
@@ -105,11 +104,11 @@ function checkFriendConfirm(content: string): boolean {
   }
 }
 
-async function fireFriendConfirm(m: Message) {
+async function checkFriendConfirm(m: Message) {
   const content = m.content()
   log.silly('PuppetWebFirer', 'fireFriendConfirm(%s)', content)
 
-  if (!checkFriendConfirm(content)) {
+  if (!parseFriendConfirm(content)) {
     return
   }
   const request = new FriendRequest()
@@ -133,7 +132,7 @@ async function fireFriendConfirm(m: Message) {
  *  "李卓桓.PreAngel" invited "Bruce LEE" to the group chat
  *  "凌" invited "庆次、小桔妹" to the group chat
  */
-function checkRoomJoin(content: string): [string[], string] {
+function parseRoomJoin(content: string): [string[], string] {
   log.verbose('PuppetWebFirer', 'checkRoomJoin(%s)', content)
 
   const reList = regexConfig.roomJoin
@@ -152,7 +151,7 @@ function checkRoomJoin(content: string): [string[], string] {
   return [inviteeList, inviter] // put invitee at first place
 }
 
-async function fireRoomJoin(m: Message): Promise<void> {
+async function checkRoomJoin(m: Message): Promise<void> {
 
   const room = m.room()
   if (!room) {
@@ -164,7 +163,7 @@ async function fireRoomJoin(m: Message): Promise<void> {
 
   let inviteeList: string[], inviter: string
   try {
-    [inviteeList, inviter] = checkRoomJoin(content)
+    [inviteeList, inviter] = parseRoomJoin(content)
   } catch (e) {
     log.silly('PuppetWebFirer', 'fireRoomJoin() "%s" is not a join message', content)
     return // not a room join message
@@ -275,7 +274,7 @@ async function fireRoomJoin(m: Message): Promise<void> {
   return
 }
 
-function checkRoomLeave(content: string): string|null {
+function parseRoomLeave(content: string): string|null {
   const reList = regexConfig.roomLeave
 
   let found: string[]|null = []
@@ -289,12 +288,12 @@ function checkRoomLeave(content: string): string|null {
 /**
  * You removed "Bruce LEE" from the group chat
  */
-async function fireRoomLeave(m: Message): Promise<void> {
+async function checkRoomLeave(m: Message): Promise<void> {
   log.verbose('PuppetWebFirer', 'fireRoomLeave(%s)', m.content())
 
   let leaver
   try {
-    leaver = checkRoomLeave(m.content())
+    leaver = parseRoomLeave(m.content())
   } catch (e) {
     return
   }
@@ -327,7 +326,7 @@ async function fireRoomLeave(m: Message): Promise<void> {
   setTimeout(_ => { room.refresh() }, 10000) // reload the room data, especially for memberList
 }
 
-function checkRoomTopic(content: string): [string, string] {
+function parseRoomTopic(content: string): [string, string] {
   const reList = regexConfig.roomTopic
 
   let found: string[]|null = []
@@ -339,10 +338,10 @@ function checkRoomTopic(content: string): [string, string] {
   return [topic, changer]
 }
 
-async function fireRoomTopic(m: Message): Promise<void> {
+async function checkRoomTopic(m: Message): Promise<void> {
   let  topic, changer
   try {
-    [topic, changer] = checkRoomTopic(m.content())
+    [topic, changer] = parseRoomTopic(m.content())
   } catch (e) { // not found
     return
   }

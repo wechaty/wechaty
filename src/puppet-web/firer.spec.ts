@@ -33,11 +33,11 @@ test('Firer.checkFriendConfirm', t => {
   let result: boolean
 
   contentList.forEach(([content]) => {
-    result = Firer.checkFriendConfirm(content)
+    result = Firer.parseFriendConfirm(content)
     t.true(result, 'should be truthy for confirm msg: ' + content)
   })
 
-  result = Firer.checkFriendConfirm('fsdfsdfasdfasdfadsa')
+  result = Firer.parseFriendConfirm('fsdfsdfasdfasdfadsa')
   t.false(result, 'should be falsy for other msg')
 })
 
@@ -72,14 +72,14 @@ test('Firer.checkRoomJoin', t => {
 
   let result
   contentList.forEach(([content, inviter, inviteeList]) => {
-    result = Firer.checkRoomJoin(content)
+    result = Firer.parseRoomJoin(content)
     t.truthy(result, 'should check room join message right for ' + content)
     t.deepEqual(result[0], inviteeList, 'should get inviteeList right')
     t.is(result[1], inviter, 'should get inviter right')
   })
 
   t.throws(() => {
-    Firer.checkRoomJoin('fsadfsadfsdfsdfs')
+    Firer.parseRoomJoin('fsadfsadfsdfsdfs')
   }, Error, 'should throws if message is not expected')
 })
 
@@ -97,13 +97,13 @@ test('Firer.checkRoomLeave', t => {
 
   let result
   contentList.forEach(([content, leaver]) => {
-    result = Firer.checkRoomLeave(content)
+    result = Firer.parseRoomLeave(content)
     t.truthy(result, 'should get leaver for leave message: ' + content)
     t.is(result, leaver, 'should get leaver name right')
   })
 
   t.throws(() => {
-    Firer.checkRoomLeave('fafdsfsdfafa')
+    Firer.parseRoomLeave('fafdsfsdfafa')
   }, Error, 'should throw if message is not expected')
 })
 
@@ -123,14 +123,14 @@ test('Firer.checkRoomTopic', t => {
 
   let result
   contentList.forEach(([content, changer, topic]) => {
-    result = Firer.checkRoomTopic(content)
+    result = Firer.parseRoomTopic(content)
     t.truthy(result, 'should check topic right for content: ' + content)
     t.is(topic  , result[0], 'should get right topic')
     t.is(changer, result[1], 'should get right changer')
   })
 
   t.throws(() => {
-    Firer.checkRoomTopic('fafdsfsdfafa')
+    Firer.parseRoomTopic('fafdsfsdfafa')
   }, Error, 'should throw if message is not expected')
 
 })
