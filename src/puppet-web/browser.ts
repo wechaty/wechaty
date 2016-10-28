@@ -85,6 +85,7 @@ export class Browser extends EventEmitter {
     } catch (e) {
       log.error('PuppetWebBrowser', 'init() exception: %s', e.message)
 
+      this.state.current('close')
       await this.quit()
 
       throw e
@@ -99,7 +100,6 @@ export class Browser extends EventEmitter {
       await this.driver.get(url)
     } catch (e) {
       log.error('PuppetWebBrowser', 'open() exception: %s', e.message)
-      this.dead(e.message)
       throw e
     }
   }
@@ -117,7 +117,6 @@ export class Browser extends EventEmitter {
 
     await this.quit()
 
-    // if (this.currentState() === 'opening') {
     if (this.state.current() === 'open' && this.state.inprocess()) {
       log.warn('PuppetWebBrowser', 'restart() found state.current() === open and inprocess()')
       return
@@ -129,14 +128,12 @@ export class Browser extends EventEmitter {
   public async quit(): Promise<void> {
     log.verbose('PuppetWebBrowser', 'quit()')
 
-    // if (this.currentState() === 'closing') {
     if (this.state.current() === 'close' && this.state.inprocess()) {
       const e = new Error('quit() be called when state.current() is close with inprocess()?')
       log.warn('PuppetWebBrowser', e.message)
       throw e
     }
 
-    // this.currentState('closing')
     this.state.current('close', false)
 
     try {
@@ -327,7 +324,6 @@ export class Browser extends EventEmitter {
     if (forceReason) {
       dead = true
       msg = forceReason
-    // } else if (this.targetState() !== 'open') {
     } else if (this.state.target() !== 'open') {
       dead = true
       msg = 'state.target() not open'
@@ -343,15 +339,7 @@ export class Browser extends EventEmitter {
                                     : ''
                                   , msg
       )
-      // no need to quit here. dead event listener will do this async job, and do it better than here
-      // this.quit()
 
-      // if (this.targetState() !== 'open' || this.currentState() === 'opening') {
-      //   log.warn('PuppetWebBrowser', 'dead() wil not emit `dead` event because currentState is `opening` or targetState !== open')
-      // } else {
-      //   log.verbose('PuppetWebBrowser', 'dead() emit a `dead` event because %s', msg)
-      //   this.emit('dead', msg)
-      // }
       if (   this.state.target()  === 'open'
           && this.state.current() === 'open'
           && this.state.stable()
@@ -359,10 +347,11 @@ export class Browser extends EventEmitter {
         log.verbose('PuppetWebBrowser', 'dead() emit a `dead` event because %s', msg)
         this.emit('dead', msg)
       } else {
-        log.warn('PuppetWebBrowser', 'dead() wil not emit `dead` event because %s'
-                                    , 'state is not `stable open`'
+        log.warn('PuppetWebBrowser', 'dead() wil not emit `dead` event because states are: target(%s), current(%s), stable(%s)'
+                                    , this.state.target(), this.state.current(), this.state.stable()
         )
       }
+
     }
     return dead
   }

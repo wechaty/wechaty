@@ -105,28 +105,24 @@ export class PuppetWeb extends Puppet {
 
   public async quit(): Promise<void> {
     log.verbose('PuppetWeb', 'quit()')
-    // this.targetState('dead')
 
     // XXX should we set `target` to `dead` in `quit()`?
-    this.state.target('dead')
+    // this.state.target('dead')
 
-    // if (this.currentState() === 'killing') {
     if (this.state.current() === 'dead' && this.state.inprocess()) {
       // log.warn('PuppetWeb', 'quit() is called but readyState is `disconnecting`?')
       log.warn('PuppetWeb', 'quit() is called but state.current()) is `dead` and inprocess()?')
       throw new Error('do not call quit again when quiting')
     }
 
-    // POISON must feed before readyState set to "disconnecting"
+    // POISON must feed before state set to `dead` & `inprocess`
     this.emit('watchdog', {
       data: 'PuppetWeb.quit()',
       type: 'POISON'
     })
 
-    // this.currentState('killing')
     this.state.current('dead', false)
 
-    // return co.call(this, function* () {
     try {
 
       if (this.bridge)  { // TODO use StateMonitor
@@ -153,25 +149,15 @@ export class PuppetWeb extends Puppet {
         // this.browser = null
       } else { log.warn('PuppetWeb', 'quit() without a browser') }
 
-      // @deprecated 20161004
-      // log.verbose('PuppetWeb', 'quit() server.quit() this.initAttach(null)')
-      // await this.initAttach(null)
-
-      // this.currentState('dead')
       this.state.current('dead')
-    // }).catch(e => { // Reject
     } catch (e) {
       log.error('PuppetWeb', 'quit() exception: %s', e.message)
-      // this.currentState('dead')
       this.state.current('dead')
       throw e
     }
 
-    // .then(() => { // Finally, Fail Safe
-      log.verbose('PuppetWeb', 'quit() done')
-      // this.currentState('dead')
-      this.state.current('dead')
-    // })
+    log.verbose('PuppetWeb', 'quit() done')
+    this.state.current('dead')
   }
 
   public async initBrowser(): Promise<void> {
