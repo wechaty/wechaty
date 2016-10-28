@@ -22,6 +22,7 @@ RUN  apt-get update > /dev/null \
   > /dev/null \
   && rm -rf /tmp/* /var/lib/apt/lists/*
 
+RUN mkdir /wechaty
 WORKDIR /wechaty
 
 COPY package.json .
