@@ -16,6 +16,7 @@ RUN  apt-get update > /dev/null \
       figlet \
       libgconf-2-4 \
       vim \
+      xauth \
       xvfb \
   > /dev/null \
   && rm -rf /tmp/* /var/lib/apt/lists/*
@@ -29,6 +30,8 @@ RUN  npm --progress false install > /dev/null \
 
 COPY . .
 RUN npm --progress false link
+
+VOLUME [ "/app" ]
 
 ENTRYPOINT [ "/wechaty/bin/entrypoint.sh" ]
 CMD [ "start" ]

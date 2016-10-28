@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Wechaty - Connect ChatBots
 #
@@ -28,6 +28,18 @@ if [ "$1" = "shell" ] || \
 then
   exec /bin/bash -s
   exit $?
+fi
+
+if [[ "$1" == *.ts || "$1" == *.js ]]; then
+  appFile="/app/$1"
+  if [ -f "$appFile" ]; then
+    echo "Executing ts-node /app/$@"
+    exec ts-node "/app/$@"
+    exit $?
+  else
+    echo "ERROR: can not found app file: $appfile"
+    exit -1
+  fi
 fi
 
 exec npm $@
