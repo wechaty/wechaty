@@ -42,7 +42,7 @@ test('Puppet Web watchdog timer', async t => {
   pw.once('error', e => t.fail('waitDing() triggered watchDogReset()'))
 
   const EXPECTED_DING_DATA = 'dingdong'
-  pw.emit('watchdog', { data: 'feed to extend the dog life' })
+  pw.emit('watchdog', { data: 'feed to extend the dog life', timeout: 120000 })
 
   const dong = await waitDing(EXPECTED_DING_DATA)
   t.is(dong, EXPECTED_DING_DATA, 'should get EXPECTED_DING_DATA from ding after watchdog reset, and restored log level')
