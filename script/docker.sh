@@ -4,13 +4,13 @@
 #   https://circleci.com/docs/docker-btrfs-error/
 #
 
-RM_OPT='--rm'
-[ -n "$CI" ] && RM_OPT='--rm=false'
+optRm='--rm'
+[ -n "$CIRCLECI" ] && optRm='--rm=false'
 
 if [ "$1" = "build" ] || [ "$1" = "" ]; then
-  exec docker build "$RM_OPT" -t wechaty .
+  exec docker build "$optRm" -t wechaty .
   exit $?
 fi
 
-exec docker run -ti "$RM_OPT" -v /dev/shm:/dev/shm wechaty $@
+exec docker run -ti "$optRm" -v /dev/shm:/dev/shm wechaty $@
 exit $?

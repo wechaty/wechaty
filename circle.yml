@@ -1,9 +1,13 @@
 machine:
   services:
-    - docker
+  - docker
 
 test:
   override:
-    - docker info
-    - ./script/docker.sh build
-    - ./script/docker.sh test
+  - docker info
+  - ./script/docker.sh build
+  - ./script/docker.sh test
+
+notify:
+  webhooks:
+  - url: $DOCKER_REBUILD_URL
