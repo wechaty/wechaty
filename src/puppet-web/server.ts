@@ -20,7 +20,7 @@ import log     from '../brolog-env'
 
 export class Server extends EventEmitter {
   private express:      express.Application
-  private httpsServer:  https.Server
+  private httpsServer:  https.Server | null
 
   public socketServer: SocketIO.Server | null
   public socketClient: SocketIO.Socket | null
@@ -50,7 +50,7 @@ export class Server extends EventEmitter {
   /**
    * Https Server
    */
-  public async createHttpsServer(express: express.Application): Promise<void> {
+  public async createHttpsServer(express: express.Application): Promise<https.Server> {
     this.httpsServer = <https.Server>await new Promise((resolve, reject) => {
 
       const srv = https.createServer({
@@ -70,13 +70,13 @@ export class Server extends EventEmitter {
 
     })
 
-    return
+    return this.httpsServer
   }
 
   /**
    * express Middleware
    */
-  public createExpress(): void {
+  public createExpress(): express.Application {
     this.express = express()
     this.express.use(bodyParser.json())
     this.express.use(function(req, res, next) {
@@ -92,13 +92,13 @@ export class Server extends EventEmitter {
       log.silly('PuppetWebServer', 'createexpress() %s GET /ding', new Date())
       res.end('dong')
     })
-    return
+    return this.express
   }
 
   /**
    * Socket IO
    */
-  public createSocketIo(httpsServer): void {
+  public createSocketIo(httpsServer): SocketIO.Server {
     this.socketServer = io.listen(httpsServer, {
       // log: true
     })
@@ -112,7 +112,7 @@ export class Server extends EventEmitter {
       this.socketClient = s
       this.initEventsFromClient(s)
     })
-    return
+    return this.socketServer
   }
 
   private initEventsFromClient(client: SocketIO.Socket): void {

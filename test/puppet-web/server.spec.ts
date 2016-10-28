@@ -22,43 +22,31 @@ test('PuppetWebServer basic tests', async t => {
 
   let httpsServer: https.Server
 
-  // co(function* () {
-    const spy = sinon.spy()
+  const spy = sinon.spy()
 
-    const express = s.createExpress()
-    t.is(typeof express, 'function', 'create express')
+  const express = s.createExpress()
+  t.is(typeof express, 'function', 'create express')
 
-    httpsServer = await s.createHttpsServer(express)
-    t.is(typeof httpsServer, 'object', 'create https server')
-    httpsServer.on('close', _ => spy('onClose'))
+  httpsServer = await s.createHttpsServer(express)
+  t.is(typeof httpsServer, 'object', 'create https server')
+  httpsServer.on('close', _ => spy('onClose'))
 
-    const socketio = s.createSocketIo(httpsServer)
-    t.is(typeof socketio, 'object', 'should created socket io instance')
+  const socketio = s.createSocketIo(httpsServer)
+  t.is(typeof socketio, 'object', 'should created socket io instance')
 
-    const retClose = await new Promise((resolve, reject) => {
-      ; (httpsServer as any).close(_ => {
-        spy('closed')
-        resolve('closed')
-      })
+  const retClose = await new Promise((resolve, reject) => {
+    ; (httpsServer as any).close(_ => {
+      spy('closed')
+      resolve('closed')
     })
-    t.is(retClose, 'closed',  'HttpsServer closed')
+  })
+  t.is(retClose, 'closed',  'HttpsServer closed')
 
-    t.truthy(spy.calledTwice, 'spy should be called twice after close HttpsServer')
-    t.deepEqual(spy.args[0], ['onClose'], 'should fire event `close` when close HttpsServer')
-    t.deepEqual(spy.args[1], ['closed']  , 'should run callback when close HttpsServer')
+  t.truthy(spy.calledTwice, 'spy should be called twice after close HttpsServer')
+  t.deepEqual(spy.args[0], ['onClose'], 'should fire event `close` when close HttpsServer')
+  t.deepEqual(spy.args[1], ['closed']  , 'should run callback when close HttpsServer')
 
-    await s.quit()
-  // })
-  // .catch(e => { // Reject
-  //   t.fail('co promise rejected:' + e)
-  // })
-  // .then(() => { // Finally
-  //   s.quit()
-  //     .then(_ => t.end())
-  // })
-  // .catch(e => { // Exception
-  //   t.fail('Exception:' + e)
-  // })
+  await s.quit()
 })
 
 test('PuppetWebServer smoke testing', async t => {
