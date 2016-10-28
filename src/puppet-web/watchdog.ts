@@ -145,7 +145,7 @@ async function autoSaveSession(this: PuppetWeb, force = false) {
   }
 }
 
-function memoryCheck(this: PuppetWeb, minMegabyte: number = 64) {
+function memoryCheck(this: PuppetWeb, minMegabyte: number = 16) {
   const freeMegabyte = Math.floor(os.freemem() / 1024 / 1024)
   log.silly('PuppetWebWatchdog', 'memoryCheck() free: %d MB, require: %d MB'
                                 , freeMegabyte, minMegabyte)
