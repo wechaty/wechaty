@@ -10,7 +10,7 @@ PATH=$PATH:/wechaty/node_modules/.bin
 
 figlet " Wechaty "
 echo ____________________________________________________
-echo "              https://www.wechaty.io"
+echo "            https://www.wechaty.io"
 figlet Connecting
 figlet ChatBots
 
@@ -31,7 +31,9 @@ then
 fi
 
 if [[ "$1" == *.ts || "$1" == *.js ]]; then
+
   appFile="/app/$1"
+
   if [ -f "$appFile" ]; then
     echo "Executing ts-node /app/$@"
     exec ts-node "/app/$@"
@@ -40,6 +42,7 @@ if [[ "$1" == *.ts || "$1" == *.js ]]; then
     echo "ERROR: can not found app file: $appfile"
     exit -1
   fi
+
 fi
 
 exec npm $@
