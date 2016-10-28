@@ -114,7 +114,7 @@ export class BrowserDriver {
     let err = new Error('unknown')
     let driver: WebDriver|null = null
 
-    while (!driver && ttl--) {
+    while (!driver && ttl-- > 0) {
       log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() with ttl: %d', ttl)
 
       try {
