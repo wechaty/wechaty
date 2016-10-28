@@ -33,6 +33,7 @@ RUN  npm --progress false install > /dev/null \
 COPY . .
 RUN npm --progress false link
 
+RUN mkdir /app
 VOLUME [ "/app" ]
 
 ENTRYPOINT [ "/wechaty/bin/entrypoint.sh" ]
