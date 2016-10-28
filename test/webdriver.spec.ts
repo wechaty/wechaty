@@ -30,17 +30,11 @@ test.serial('WebDriver process create & quit test', async t => {
   let pids = await b.getBrowserPids()
   t.truthy(pids.length > 0, 'should exist browser process after b.open()')
 
-  // console.log(b.driver.getSession())
-
   await b.quit()
   t.pass('quited')
 
-  const useAva = false
-  if (!useAva) { // ava will run tests concurency...
-    pids = await b.getBrowserPids()
-    t.is(pids.length, 0, 'no driver process after quit')
-  }
-
+  pids = await b.getBrowserPids()
+  t.is(pids.length, 0, 'no driver process after quit')
 })
 
 test.serial('WebDriver smoke testing', async t => {
@@ -62,21 +56,10 @@ test.serial('WebDriver smoke testing', async t => {
   const injectio = bridge.getInjectio()
   t.truthy(injectio.length > 10, 'should got injectio script')
 
-  // XXX: if get rid of this dummy,
-  // driver.get() will fail due to cant start phantomjs process
-  // 20160828 fixed in new version of selenium webdriver
-  // await Promise.resolve()
-
   await driver.get('https://wx.qq.com/')
   t.pass('should open wx.qq.com')
 
   const n = (await wb.getBrowserPids()).length
-  // console.log(n)
-  // await new Promise((resolve) => {
-  //   setTimeout(() => {
-  //     resolve()
-  //   }, 3000)
-  // })
   t.truthy(n > 0, 'should exist browser process after get()')
 
   const retAdd = await driverExecute('return 1+1')

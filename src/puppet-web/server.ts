@@ -20,21 +20,13 @@ import log     from '../brolog-env'
 
 export class Server extends EventEmitter {
   private express:      express.Application
-  private httpsServer:  https.Server | null
+  private httpsServer:  https.Server
 
   public socketServer: SocketIO.Server | null
   public socketClient: SocketIO.Socket | null
 
-  constructor(
-    private port: number
-  ) {
+  constructor(private port: number) {
     super()
-
-    if (!port) {
-      throw new Error('port not found')
-    }
-
-    // this.port = port
   }
 
   public toString() { return `Server({port:${this.port}})` }
@@ -42,18 +34,14 @@ export class Server extends EventEmitter {
   public async init(): Promise<void> {
     log.verbose('PuppetWebServer', `init() on port ${this.port}`)
 
-    // return new Promise((resolve, reject) => {
-      // this.initEventsToClient()
     try {
-      this.express      = this.createExpress()
-      this.httpsServer  = await this.createHttpsServer(this.express)
-        // , r => resolve(r), e => reject(e)
-      this.socketServer = this.createSocketIo(this.httpsServer)
+      this.createExpress()
+      await this.createHttpsServer(this.express)
+      this.createSocketIo(this.httpsServer)
 
-      log.verbose('PuppetWebServer', 'init()-ed')
       return
+
     } catch (e) {
-    // .catch(e => {
       log.error('PuppetWebServer', 'init() exception: %s', e.message)
       throw e
     }
@@ -62,8 +50,8 @@ export class Server extends EventEmitter {
   /**
    * Https Server
    */
-  public createHttpsServer(express: express.Application): Promise<https.Server> {
-    return new Promise((resolve, reject) => {
+  public async createHttpsServer(express: express.Application): Promise<void> {
+    this.httpsServer = <https.Server>await new Promise((resolve, reject) => {
 
       const srv = https.createServer({
           key:  require('./ssl-pem').key
@@ -81,15 +69,17 @@ export class Server extends EventEmitter {
       })
 
     })
+
+    return
   }
 
   /**
    * express Middleware
    */
-  public createExpress(): express.Application {
-    const e = express()
-    e.use(bodyParser.json())
-    e.use(function(req, res, next) {
+  public createExpress(): void {
+    this.express = express()
+    this.express.use(bodyParser.json())
+    this.express.use(function(req, res, next) {
       // cannot use `*` if angular is set `.withCredentials = true`
       // see also: https://github.com/whatwg/fetch/issues/251#issuecomment-199946808
       // res.header('Access-Control-Allow-Origin', '*')
@@ -98,21 +88,21 @@ export class Server extends EventEmitter {
       res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
       next()
     })
-    e.get('/ding', function(req, res) {
+    this.express.get('/ding', function(req, res) {
       log.silly('PuppetWebServer', 'createexpress() %s GET /ding', new Date())
       res.end('dong')
     })
-    return e
+    return
   }
 
   /**
    * Socket IO
    */
-  public createSocketIo(httpsServer): SocketIO.Server {
-    const socketServer = io.listen(httpsServer, {
+  public createSocketIo(httpsServer): void {
+    this.socketServer = io.listen(httpsServer, {
       // log: true
     })
-    socketServer.sockets.on('connection', (s) => {
+    this.socketServer.sockets.on('connection', (s) => {
       log.verbose('PuppetWebServer', 'createSocketIo() got connection from browser')
       // console.log(s.handshake)
       if (this.socketClient) {
@@ -122,7 +112,7 @@ export class Server extends EventEmitter {
       this.socketClient = s
       this.initEventsFromClient(s)
     })
-    return socketServer
+    return
   }
 
   private initEventsFromClient(client: SocketIO.Socket): void {

@@ -68,8 +68,6 @@ export class PuppetWeb extends Puppet {
   public async init(): Promise<void> {
     log.verbose('PuppetWeb', `init() with head:${this.setting.head}, profile:${this.setting.profile}`)
 
-    // this.targetState('live')
-    // this.currentState('birthing')
     this.state.target('live')
     this.state.current('live', false)
 
@@ -77,10 +75,6 @@ export class PuppetWeb extends Puppet {
 
       this.port = await UtilLib.getPort(DEFAULT_PUPPET_PORT)
       log.verbose('PuppetWeb', 'init() getPort %d', this.port)
-
-      // @deprecated 20161004
-      // yield this.initAttach(this)
-      // log.verbose('PuppetWeb', 'initAttach() done')
 
       await this.initServer()
       log.verbose('PuppetWeb', 'initServer() done')
@@ -509,5 +503,4 @@ export class PuppetWeb extends Puppet {
   }
 }
 
-// module.exports = PuppetWeb.default = PuppetWeb.PuppetWeb = PuppetWeb
 export default PuppetWeb
