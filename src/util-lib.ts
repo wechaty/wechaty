@@ -165,14 +165,23 @@ class UtilLib {
       })
     })
 
-    function nextPort(newPort: number): number {
-      const RANDOM_RANGE = 1024
-      const n = Math.floor(Math.random() * RANDOM_RANGE)
-      return newPort + n
+    function nextPort(currentPort: number): number {
+      const RANGE = 719
+      // do not use Math.random() here, because AVA will fork, then here will get the same FAKE random number
+      // const n = Math.floor(Math.random() * BETWEEN_RANGE)
+
+      /**
+       * nano seconds from node: http://stackoverflow.com/a/18197438/1123955
+       */
+      const [, nanoSeed] = process.hrtime()
+      const n = nanoSeed % RANGE
+
+      if (currentPort + n > 65000) {
+        return currentPort + n - RANGE
+      }
+      return currentPort + n
     }
   }
 }
-
-// module.exports = UtilLib.default = UtilLib.UtilLib = UtilLib
 
 export default UtilLib
