@@ -36,5 +36,8 @@ RUN npm --progress false link
 RUN mkdir /app
 VOLUME [ "/app" ]
 
+ENV TS_NODE_COMPILER_OPTIONS '{"target":"es6"}'
+ENV NODE_PATH /usr/local/lib/node_modules
+
 ENTRYPOINT [ "/wechaty/bin/entrypoint.sh" ]
 CMD [ "start" ]
