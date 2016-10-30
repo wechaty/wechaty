@@ -205,6 +205,11 @@ After a little while, bot will show you a message of an URL for Login QrCode. Yo
 
 ### 4. Done
 
+## Setup `Xvfb` in linux
+
+[How to Install & Run Wechaty in Linux Server by @lijiarui](https://github.com/wechaty/wechaty/issues/48)
+
+
 Enjoy hacking Wechaty!
 Please submit your issue if you have any, and a fork & pull is very welcome for showing your idea.
 
