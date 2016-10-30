@@ -7,3 +7,7 @@ test:
   - docker info
   - ./script/docker.sh build
   - ./script/docker.sh test
+
+notify:
+  webhooks:
+      - url: https://registry.hub.docker.com/u/zixia/wechaty/trigger/01585c2b-175b-4d27-b09d-e380a052c17c/
