@@ -35,10 +35,12 @@ RUN npm --progress false link
 
 # Loading from node_modules Folders: https://nodejs.org/api/modules.html
 # If it is not found there, then it moves to the parent directory, and so on, until the root of the file system is reached.
-RUN mkdir /app && ln -s /usr/local/lib/node_modules /
+RUN mkdir /app \
+  && ln -s /usr/local/lib/node_modules / \
+  && ln -s /wechaty/tsconfig.json /
+
 VOLUME [ "/app" ]
 
-ENV TS_NODE_COMPILER_OPTIONS '{"target":"es6"}'
 
 ENTRYPOINT [ "/wechaty/bin/entrypoint.sh" ]
 CMD [ "start" ]
