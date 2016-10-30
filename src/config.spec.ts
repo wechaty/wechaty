@@ -67,7 +67,7 @@ test('Config puppetInstance', t => {
 
 test('Config docker mode', t => {
   t.true('isDocker' in Config, 'should identify docker env by `isDocker`')
-  
+
   if ('C9_PORT' in process.env) {
     t.is(Config.isDocker, false, 'should not in docker mode in Cloud9 IDE')
   } else if (require('is-ci')) {
@@ -75,5 +75,5 @@ test('Config docker mode', t => {
   } else {
     // a custom running envioronment, maybe docker, maybe not
   }
-  
+
 })

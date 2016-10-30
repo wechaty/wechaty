@@ -109,7 +109,7 @@ function isWechatyDocker() {
   if (c9 > 7 && process.env['C9_PORT']) {
     return false
   }
-  
+
   const cgroup = '/proc/1/cgroup'
   try       { fs.statSync(cgroup).isFile() }
   catch (e) { return false }
