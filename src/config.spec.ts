@@ -43,7 +43,6 @@ test('Config methods', t => {
     })
   }, 'should throw for error apihost')
 
-  t.true('isDocker' in Config, 'should identify docker env by `isDocker`')
 })
 
 test('Config puppetInstance', t => {
@@ -64,4 +63,17 @@ test('Config puppetInstance', t => {
     Config.puppetInstance()
   }, Error, 'should throw after set to null')
 
+})
+
+test('Config docker mode', t => {
+  t.true('isDocker' in Config, 'should identify docker env by `isDocker`')
+  
+  if ('C9_PORT' in process.env) {
+    t.is(Config.isDocker, false, 'should not in docker mode in Cloud9 IDE')
+  } else if (require('is-ci')) {
+    t.is(Config.isDocker, false, 'should not in docker mode in Continuous Integeration System')
+  } else {
+    // a custom running envioronment, maybe docker, maybe not
+  }
+  
 })

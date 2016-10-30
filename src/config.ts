@@ -92,11 +92,24 @@ Object.assign(Config, {
 })
 
 function isWechatyDocker() {
+  /**
+   * Continuous Integration System
+   */
   const isCi = require('is-ci')
   if (isCi) {
     return false
   }
 
+  /**
+   * Cloud9 IDE
+   */
+  const c9 = Object.keys(process.env)
+                  .filter(k => /^C9_/.test(k))
+                  .length
+  if (c9 > 7 && process.env['C9_PORT']) {
+    return false
+  }
+  
   const cgroup = '/proc/1/cgroup'
   try       { fs.statSync(cgroup).isFile() }
   catch (e) { return false }
@@ -105,10 +118,11 @@ function isWechatyDocker() {
                 .toString()
                 .replace(/\n$/, '')
 
+  // instead of `/`, docker will end with a container id
   if (/\/$/.test(line)) {
     return false
   }
-  // instead of '/', docker will end with container id
+
   return true
 }
 
