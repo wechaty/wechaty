@@ -773,11 +773,11 @@ npm test
 # Version History
 
 ## v0.5.0 master (2016/10) The First Typescript Version
-1. [#40](https://github.com/wechaty/wechaty/issues/40) Converted to Typescript (2016/10/11) 
-1. [#66](https://github.com/wechaty/wechaty/issues/66) Dockerize Wechaty for easy start
-1. [#41](https://github.com/wechaty/wechaty/issues/41) Sayablization: Make Wechaty/Contact/Room `Sayable`, and all `this` inside wechaty event listeners are `Sayable` too.
+1. Converted to Typescript (2016/10/11) [#40](https://github.com/wechaty/wechaty/issues/40) 
+1. Dockerize Wechaty for easy start [#66](https://github.com/wechaty/wechaty/issues/66)
+1. Sayablization: Make Wechaty/Contact/Room `Sayable`, and all `this` inside wechaty event listeners are `Sayable` too. [#41](https://github.com/wechaty/wechaty/issues/41)
 1. BREAKING CHANGE: global event `scan` listener arguments changed from 1 to 2: now is `function(this: Sayable, url: string, code: number)` instead of `function({url, code})` before.  
-1. add test under Node.js v7.0
+1. add test with Node.js v7.0 in CI
 1. add `npm run doctor` to diagnose wechaty and output useful debug information
 
 ## [v0.4.0](https://github.com/wechaty/wechaty/releases/tag/v0.4.0) (2016/10/9) The Latest Javascript Version
