@@ -141,7 +141,6 @@ export class BrowserDriver {
 
     } while (!driver && retry++ < 3)
 
-
     if (!driver) {
       log.error('PuppetWebBrowserDriver', 'getChromeDriver() exception: %s, retry: %d', err.stack, retry)
       throw err
