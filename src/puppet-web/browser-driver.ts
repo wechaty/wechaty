@@ -110,12 +110,14 @@ export class BrowserDriver {
     /**
      * XXX when will Builder().build() throw exception???
      */
-    let ttl = 3
+    let retry = 0
     let err = new Error('unknown')
     let driver: WebDriver|null = null
 
-    while (!driver && ttl-- > 0) {
-      log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() with ttl: %d', ttl)
+    do {
+     if (retry > 0) {
+        log.warn('PuppetWebBrowserDriver', 'getChromeDriver() with retry: %d', retry)
+      }
 
       try {
         driver = new Builder()
@@ -127,19 +129,24 @@ export class BrowserDriver {
         const valid = await this.valid(driver)
 
         if (!valid) {
+          log.warn('PuppetWebBrowserDriver', 'getChromeDriver() got invalid driver')
           driver = null
         }
 
       } catch (e) {
-        log.warn('PuppetWebBrowserDriver', 'getChromeDriver() exception: %s, retry ttl: %d', e.message, ttl)
+        log.warn('PuppetWebBrowserDriver', 'getChromeDriver() exception: %s, retry: %d', e.message, retry)
         driver = null
         err = e
       }
-    }
+
+    } while (!driver && retry++ < 3)
+
 
     if (!driver) {
-      log.error('PuppetWebBrowserDriver', 'getChromeDriver() exception: %s, retry ttl: %d', err.stack, ttl)
+      log.error('PuppetWebBrowserDriver', 'getChromeDriver() exception: %s, retry: %d', err.stack, retry)
       throw err
+    } else {
+      log.silly('PuppetWebBrowserDriver', 'getChromeDriver() success')
     }
 
     return driver
@@ -227,6 +234,8 @@ export class BrowserDriver {
     const session = await driver.getSession()
     if (!session) {
       log.warn('PuppetWebBrowserDriver', 'valid() found an invalid driver')
+    } else {
+      log.silly('PuppetWebBrowserDriver', 'valid() driver ok')
     }
 
     return !!session

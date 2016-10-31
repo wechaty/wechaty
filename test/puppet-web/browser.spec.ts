@@ -173,8 +173,7 @@ test('Browser Cookie save/load test', async t => {
     t.truthy(cookieAfterQuit, 'should get cookie from getCookie()')
     t.is(cookieAfterQuit.name, EXPECTED_COOKIE.name, 'cookie from getCookie() after browser quit, should load the right cookie back')
 
-    // clean
-    fs.unlink(profileName, err => {
+    fs.unlink(profileName, err => { // clean
       if (err) {
         log.warn('Browser', 'unlink session file %s fail: %s', PROFILE, err)
       }

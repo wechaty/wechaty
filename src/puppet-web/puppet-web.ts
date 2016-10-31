@@ -61,6 +61,8 @@ export class PuppetWeb extends Puppet {
       setting.head = Config.head
     }
     this.on('watchdog', Watchdog.onFeed.bind(this))
+
+    this.createBrowser()
   }
 
   public toString() { return `Class PuppetWeb({browser:${this.browser},port:${this.port}})` }
@@ -92,7 +94,6 @@ export class PuppetWeb extends Puppet {
       this.emit('watchdog', food)
 
       log.verbose('PuppetWeb', 'init() done')
-      // this.currentState('live')
       this.state.current('live')
       return
 
@@ -161,16 +162,19 @@ export class PuppetWeb extends Puppet {
     this.state.current('dead')
   }
 
-  public async initBrowser(): Promise<void> {
-    log.verbose('PuppetWeb', 'initBrowser()')
+  public createBrowser() {
+    log.verbose('PuppetWeb', 'createBrowser()')
     this.browser = new Browser({
         head:         <HeadName>this.setting.head
       , sessionFile:  this.setting.profile
     })
+  }
+
+  public async initBrowser(): Promise<void> {
+    log.verbose('PuppetWeb', 'initBrowser()')
 
     this.browser.on('dead', Event.onBrowserDead.bind(this))
 
-    // if (this.targetState() !== 'live') {
     if (this.state.target() !== 'live') {
       const e = new Error('found state.target()) != live, no init anymore')
       log.warn('PuppetWeb', 'initBrowser() %s', e.message)
@@ -193,7 +197,6 @@ export class PuppetWeb extends Puppet {
       , this.port
     )
 
-    // if (this.targetState() !== 'live') {
     if (this.state.target() !== 'live') {
       const errMsg = 'initBridge() found targetState != live, no init anymore'
       log.warn('PuppetWeb', errMsg)
