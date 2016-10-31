@@ -31,11 +31,14 @@ export class BrowserDriver {
 
     if (this.driver) {
       try {
-        await this.driver.close()
-        await this.driver.quit()
+        const valid = await this.valid(this.driver)
+        if (valid) {
+          // await this.driver.close()
+          await this.driver.quit()
+        }
       } catch (e) {
-        log.warn('PuppetWebBrowserDriver', 'init() this.driver.{close,quit}() exception: %s'
-                                          , e.message
+        log.warn('PuppetWebBrowserDriver', 'init() this.driver.quit() exception: %s'
+                                          , e.stack
         )
       }
     }
@@ -77,8 +80,8 @@ export class BrowserDriver {
      * and will cause strange error:
      *
      */
-    const chrome = require('selenium-webdriver/chrome')
-    const path = require('chromedriver').path
+    const chrome  = require('selenium-webdriver/chrome')
+    const path    = require('chromedriver').path
 
     const service = new chrome.ServiceBuilder(path).build()
     try {
@@ -232,7 +235,7 @@ export class BrowserDriver {
 
     const session = await driver.getSession()
     if (!session) {
-      log.warn('PuppetWebBrowserDriver', 'valid() found an invalid driver')
+      log.verbose('PuppetWebBrowserDriver', 'valid() found an invalid driver')
     } else {
       log.silly('PuppetWebBrowserDriver', 'valid() driver ok')
     }

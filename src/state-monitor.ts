@@ -34,14 +34,14 @@ export class StateMonitor <A, B>{
    */
   public target(newState?: A|B): A|B {
     if (newState) {
-      log.verbose('StateMonitor', '%s.state.target(%s) from %s'
-                                , this._client
+      log.verbose('StateMonitor', 'state.target(%s) <- %s for %s'
                                 , newState
                                 , this._target
+                                , this._client
       )
       this._target = newState
     } else {
-      log.silly('StateMonitor', '%s.state.target() is %s', this._client, this._target)
+      log.silly('StateMonitor', 'state.target() is %s of %s', this._target, this._client)
     }
     return this._target
   }
@@ -52,25 +52,30 @@ export class StateMonitor <A, B>{
    */
   public current(newState?: A|B, stable = true): A|B {
     if (newState) {
-      log.verbose('StateMonitor', '%s.state.current(%s,%s) from (%s,%s)'
-                                , this._client
+      log.verbose('StateMonitor', 'state.current(%s,%s) <- (%s,%s) for %s'
                                 , newState, stable
                                 , this._current, this._stable
-                )
-      if (this._current === newState && this._stable === stable
-          && stable === false // warn for inprocess current state change twice, mostly like a logic bug outside
-      ) {
-        log.warn('StateMonitor', '%s.state.current(%s,%s) called but there are already in the same state'
                                 , this._client
+                )
+
+      /**
+       * warn for inprocess current state change twice, mostly like a logic bug outside
+       */
+      if (this._current === newState && this._stable === stable
+          && stable === false
+      ) {
+        log.warn('StateMonitor', 'state.current(%s,%s) called but there are already in the same state for %s'
                                 , newState, stable
+                                , this._client
         )
         const e = new Error('current unchange')
         log.verbose('StateMonitor', e.stack)
       }
+
       this._current = newState
       this._stable  = stable
     } else {
-      log.silly('StateMonitor', '%s.state.current() is %s', this._client, this._current)
+      log.silly('StateMonitor', 'state.current() is %s of %s', this._current, this._client)
     }
     return this._current
   }
@@ -79,7 +84,7 @@ export class StateMonitor <A, B>{
    * does the current state be stable(not inprocess)?
    */
   public stable() {
-    log.silly('StateMonitor', '%s.state.stable() is %s', this._client, this._stable)
+    log.silly('StateMonitor', 'state.stable() is %s of %s', this._stable, this._client)
     return this._stable
   }
 
@@ -87,7 +92,7 @@ export class StateMonitor <A, B>{
    * does the current state be inprocess(not stable)?
    */
   public inprocess() {
-    log.silly('StateMonitor', '%s.state.inprocess() is %s', this._client, !this._stable)
+    log.silly('StateMonitor', 'state.inprocess() is %s of %s', !this._stable, this._client)
     return !this._stable
   }
 

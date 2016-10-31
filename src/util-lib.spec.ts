@@ -134,5 +134,5 @@ test('getPort() for an available socket port', async t => {
       t.fail('should not exception: ' + e.message + ', ' + e.stack)
     }
   }
-  t.ok('should has no exception after loop test')
+  t.pass('should has no exception after loop test')
 })

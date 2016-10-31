@@ -51,6 +51,8 @@ export class Browser extends EventEmitter {
   public toString() { return `Browser({head:${this.setting.head})` }
 
   public async init(): Promise<void> {
+    log.verbose('PuppetWebBrowser', 'init()')
+
     this.state.target('open')
     this.state.current('open', false)
 
@@ -60,10 +62,12 @@ export class Browser extends EventEmitter {
 
     try {
       await this.driver.init()
+      log.verbose('PuppetWebBrowser', 'init() driver.init() succ')
+
       await this.open(jumpUrl)
       await this.loadCookie()
                 .catch(e => { // fail safe
-                  log.verbose('PuppetWeb', 'browser.loadSession(%s) exception: %s'
+                  log.verbose('PuppetWebBrowser', 'browser.loadSession(%s) exception: %s'
                                           , this.setting.sessionFile
                                           , e && e.message || e
                   )
@@ -85,8 +89,9 @@ export class Browser extends EventEmitter {
     } catch (e) {
       log.error('PuppetWebBrowser', 'init() exception: %s', e.message)
 
-      this.state.current('close')
+      // this.state.current('close', false)
       await this.quit()
+      // this.state.current('close')
 
       throw e
     }
@@ -118,7 +123,7 @@ export class Browser extends EventEmitter {
     await this.quit()
 
     if (this.state.current() === 'open' && this.state.inprocess()) {
-      log.warn('PuppetWebBrowser', 'restart() found state.current() === open and inprocess()')
+      log.warn('PuppetWebBrowser', 'restart() found state.current() === open and inprocess() after quit()!')
       return
     }
 
@@ -138,9 +143,9 @@ export class Browser extends EventEmitter {
 
     try {
       await this.driver.close().catch(e => { /* fail safe */ }) // http://stackoverflow.com/a/32341885/1123955
-      log.silly('PuppetWebBrowser', 'quit() driver.close()-ed')
+      log.silly('PuppetWebBrowser', 'quit() driver.close() succ')
       await this.driver.quit()
-      log.silly('PuppetWebBrowser', 'quit() driver.quit()-ed')
+      log.silly('PuppetWebBrowser', 'quit() driver.quit() succ')
 
       /**
        *
@@ -168,7 +173,6 @@ export class Browser extends EventEmitter {
       /* fail safe */
     }
 
-    // this.currentState('close')
     this.state.current('close')
 
     return

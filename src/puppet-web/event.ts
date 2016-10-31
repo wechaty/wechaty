@@ -80,7 +80,7 @@ async function onBrowserDead(this: PuppetWeb, e): Promise<void> {
 
   try {
     await this.browser.quit()
-    log.verbose('PuppetWebEvent', 'onBrowserDead() browser quit-ed')
+    log.verbose('PuppetWebEvent', 'onBrowserDead() browser.quit() succ')
 
     if (browser.state.target() !== 'open') {
       log.warn('PuppetWebEvent', 'onBrowserDead() will not init browser because browser.state.target(%s) !== open'
