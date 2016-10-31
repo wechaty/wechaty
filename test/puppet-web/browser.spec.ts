@@ -17,9 +17,7 @@ test('Browser Cookie smoking test', async t => {
   const b = new Browser()
   t.truthy(b, 'should instanciate a browser instance')
 
-  // b.targetState('open')
   b.state.target('open')
-  // await b.initDriver()
   await b.driver.init()
   t.pass('should init driver')
 
@@ -79,7 +77,7 @@ test('Browser Cookie smoking test', async t => {
 })
 
 test('Browser Cookie save/load test', async t => {
-  const profileName = PROFILE + profileCounter++
+  const profileName = PROFILE + profileCounter++ + 'wechaty.json'
 
   let b = new Browser({
       head: Config.head
@@ -92,7 +90,6 @@ test('Browser Cookie save/load test', async t => {
   try {
     t.truthy(b, 'should get a new Browser')
 
-    // b.targetState('open')
     b.state.target('open')
 
     await b.driver.init()
@@ -162,7 +159,6 @@ test('Browser Cookie save/load test', async t => {
 
     t.pass('should started a new Browser')
 
-    // b.targetState('open')
     b.state.target('open')
 
     await b.driver.init()

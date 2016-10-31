@@ -18,40 +18,52 @@ test('Puppet Web watchdog timer', async t => {
   const pw = new PuppetWeb({profile: PROFILE})
   t.truthy(pw, 'should instantiate a PuppetWeb')
 
-  Watchdog.onFeed.call(pw, { data: 'initing directly' })
-  t.pass('should ok with default food type')
+  try {
+    pw.addListener('error', failOnUnexpectedErrorEvent)
 
-  const origLogLevel = log.level()
-  if (log.level() === 'info') {
-    log.level('silent')
-    t.pass('set log.level = silent to mute log when watchDog reset wechaty temporary')
+    Watchdog.onFeed.call(pw, { data: 'initing directly' })
+    t.pass('should ok with default food type')
+
+    const origLogLevel = log.level()
+    if (log.level() === 'info') {
+      log.level('silent')
+      t.pass('set log.level = silent to mute log when watchDog reset wechaty temporary')
+    }
+
+    await pw.init()
+    await pw.quit()
+
+    {
+      pw.removeListener('error', failOnUnexpectedErrorEvent)
+
+      let errorCounter = 0
+      pw.once('error', e => errorCounter++)
+      pw.emit('watchdog', {
+        data: 'active_for_timeout_1ms'
+        , timeout: 1
+      })
+      await new Promise(resolve => setTimeout(resolve, 10)) // wait untill reset
+      t.is(errorCounter, 1, 'should get event[error] after watchdog timeout')
+
+      pw.addListener('error', failOnUnexpectedErrorEvent)
+    }
+
+    // pw.once('error', e => t.fail('waitDing() triggered watchDogReset()'))
+
+    const EXPECTED_DING_DATA = 'dingdong'
+    pw.emit('watchdog', { data: 'feed to extend the dog life', timeout: 120000 })
+
+    const dong = await waitDing(EXPECTED_DING_DATA)
+    t.is(dong, EXPECTED_DING_DATA, 'should get EXPECTED_DING_DATA from ding after watchdog reset, and restored log level')
+
+    log.level(origLogLevel)
+    await pw.quit()
+
+    return
+
+  } catch (e) {
+    t.fail('exception: ' + e.message + ', ' + e.stack)
   }
-
-  await pw.init()
-  await pw.quit()
-
-  let errorCounter = 0
-  pw.once('error', e => errorCounter = 1)
-  pw.emit('watchdog', {
-    data: 'active_for_timeout_1ms'
-    , timeout: 1
-  })
-  await new Promise(resolve => setTimeout(resolve, 10)) // wait untill reset
-  t.is(errorCounter, 1, 'should get event[error] after watchdog timeout')
-
-  pw.once('error', e => t.fail('waitDing() triggered watchDogReset()'))
-
-  const EXPECTED_DING_DATA = 'dingdong'
-  pw.emit('watchdog', { data: 'feed to extend the dog life', timeout: 120000 })
-
-  const dong = await waitDing(EXPECTED_DING_DATA)
-  t.is(dong, EXPECTED_DING_DATA, 'should get EXPECTED_DING_DATA from ding after watchdog reset, and restored log level')
-
-  log.level(origLogLevel)
-
-  await pw.quit()
-
-  return
   /////////////////////////////////////////////////////////////////////////////
   function waitDing(data) {
     const max = 13
@@ -84,5 +96,9 @@ test('Puppet Web watchdog timer', async t => {
       log.error('TestPuppetWeb', 'retryPromise() waitDing() finally FAIL: %s', e.message)
       throw e
     })
+  }
+
+  function failOnUnexpectedErrorEvent(e: Error) {
+    t.fail('should not get unexpected `error` event: ' + e.message + ', ' + e.stack)
   }
 })
