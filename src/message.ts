@@ -230,7 +230,7 @@ export class Message implements Sayable {
     const userId = Config.puppetInstance()
                         .userId
 
-    const fromId = this.obj.id
+    const fromId = this.obj.from
     if (!userId || !fromId) {
       throw new Error('no user or no from')
     }
