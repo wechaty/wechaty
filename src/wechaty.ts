@@ -16,7 +16,7 @@ import * as path        from 'path'
 import {
     Config
   , HeadName
-  , PuppetType
+  , PuppetName
   , Sayable
 }                     from './config'
 
@@ -31,9 +31,9 @@ import UtilLib        from './util-lib'
 
 import log            from './brolog-env'
 
-export type WechatySetting = {
+export type PuppetSetting = {
   head?:    HeadName
-  type?:    PuppetType
+  puppet?:  PuppetName
   profile?: string
 }
 
@@ -59,7 +59,7 @@ export class Wechaty extends EventEmitter implements Sayable {
 
   public uuid:        string
 
-  public static instance(setting?: WechatySetting) {
+  public static instance(setting?: PuppetSetting) {
     if (setting && this._instance) {
       throw new Error('there has already a instance. no params will be allowed any more')
     }
@@ -69,12 +69,12 @@ export class Wechaty extends EventEmitter implements Sayable {
     return this._instance
   }
 
-  private constructor(private setting: WechatySetting = {}) {
+  private constructor(private setting: PuppetSetting = {}) {
     super()
     log.verbose('Wechaty', 'contructor()')
 
     setting.head    = setting.head    || Config.head
-    setting.type    = setting.type    || Config.puppet
+    setting.puppet  = setting.puppet  || Config.puppet
     setting.profile = setting.profile || Config.profile
 
     // setting.port    = setting.port    || Config.port
@@ -90,7 +90,7 @@ export class Wechaty extends EventEmitter implements Sayable {
     this.uuid = UtilLib.guid()
   }
 
-  public toString() { return 'Class Wechaty(' + this.setting.type + ')'}
+  public toString() { return 'Class Wechaty(' + this.setting.puppet + ')'}
 
   public version(forceNpm = false) {
     const dotGitPath  = path.join(__dirname, '..', '.git') // `/src/../.git`
@@ -148,7 +148,7 @@ export class Wechaty extends EventEmitter implements Sayable {
 
   public async init(): Promise<this> {
     log.info('Wechaty', 'v%s initializing...' , this.version())
-    log.verbose('Wechaty', 'puppet: %s'       , this.setting.type)
+    log.verbose('Wechaty', 'puppet: %s'       , this.setting.puppet)
     log.verbose('Wechaty', 'head: %s'         , this.setting.head)
     log.verbose('Wechaty', 'profile: %s'      , this.setting.profile)
     log.verbose('Wechaty', 'uuid: %s'         , this.uuid)
@@ -184,7 +184,7 @@ export class Wechaty extends EventEmitter implements Sayable {
   public on(event: 'EVENT_PARAM_ERROR', listener: () => void): this
 
   public on(event: WechatyEventName, listener: Function): this {
-    log.verbose('Wechaty', 'on(%s, %s)', event, typeof listener)
+    log.verbose('Wechaty', 'addListener(%s, %s)', event, typeof listener)
 
     // const thisWithSay: Sayable = {
     //   say: (content: string) => {
@@ -210,7 +210,7 @@ export class Wechaty extends EventEmitter implements Sayable {
       throw new Error('no head')
     }
 
-    switch (this.setting.type) {
+    switch (this.setting.puppet) {
       case 'web':
         puppet = new PuppetWeb({
             head:     this.setting.head
@@ -219,7 +219,7 @@ export class Wechaty extends EventEmitter implements Sayable {
         break
 
       default:
-        throw new Error('Puppet unsupport(yet?): ' + this.setting.type)
+        throw new Error('Puppet unsupport(yet?): ' + this.setting.puppet)
     }
 
     const eventList: WechatyEventName[] = [

@@ -265,7 +265,7 @@ export class Browser extends EventEmitter {
       return await this.driver.executeScript.apply(this.driver, arguments)
     } catch (e) {
       // this.dead(e)
-      log.warn('PuppetWebBrowser', 'execute() exception: %s', e.message.substr(0, 99))
+      log.warn('PuppetWebBrowser', 'execute() exception: %s, %s', e.message.substr(0, 99), e.stack)
       throw e
     }
   }

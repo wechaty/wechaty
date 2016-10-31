@@ -12,7 +12,7 @@ import {
 } from '../src/puppet-web/'
 
 /**
- * WHY USE test.serial
+ * WHY force to use SERIAL mode
  *
  * serial here is because we are checking browser pids inside test.
  * if 2 tests run parallel in the same process,

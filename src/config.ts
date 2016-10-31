@@ -8,13 +8,13 @@ import * as fs from 'fs'
 
 import Puppet from './puppet'
 
-export type PuppetType = 'web' | 'android' | 'ios'
+export type PuppetName = 'web' | 'android' | 'ios'
 export type HeadName = 'chrome' | 'phantomjs' | 'firefox'
 
 export interface ConfigSetting {
 
   DEFAULT_HEAD: HeadName
-  DEFAULT_PUPPET: PuppetType
+  DEFAULT_PUPPET: PuppetName
   DEFAULT_APIHOST: string
   DEFAULT_PROFILE: string
   DEFAULT_TOKEN:  string
@@ -27,7 +27,7 @@ export interface ConfigSetting {
   token: string
   debug: boolean
 
-  puppet: PuppetType
+  puppet: PuppetName
   head: HeadName
 
   apihost: string

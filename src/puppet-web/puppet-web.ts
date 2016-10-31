@@ -98,6 +98,7 @@ export class PuppetWeb extends Puppet {
 
     } catch (e) {
       log.error('PuppetWeb', 'init() exception: %s', e.stack)
+      this.emit('error', e)
       await this.quit()
       throw e
     }

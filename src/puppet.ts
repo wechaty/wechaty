@@ -32,42 +32,9 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   public state = new StateMonitor<'live', 'dead'>('Puppet', 'dead')
 
-  // private _targetState:   string
-  // private _currentState:  string
-
   constructor() {
     super()
-
-    /*
-     * @deprecated
-     * connected / disconnected
-     * connecting / disconnecting
-     */
-    // this._readyState = 'disconnected'
-
-    // this.targetState('dead')
-    // this.currentState('dead')
-    // this.state.target('dead')
-    // this.state.current('dead')
   }
-
-  // targetState : 'live' | 'dead'
-  // public targetState(newState?) {
-  //   if (newState) {
-  //     log.verbose('Puppet', 'targetState(%s)', newState)
-  //     this._targetState = newState
-  //   }
-  //   return this._targetState
-  // }
-
-  // // currentState : 'birthing' | 'killing'
-  // public currentState(newState?) {
-  //   if (newState) {
-  //     log.verbose('Puppet', 'currentState(%s)', newState)
-  //     this._currentState = newState
-  //   }
-  //   return this._currentState
-  // }
 
   public abstract async init(): Promise<this>
   /**

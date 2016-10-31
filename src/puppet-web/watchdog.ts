@@ -28,13 +28,10 @@ export const Watchdog = {
   onFeed
 }
 
-// feed me in time(after 1st feed), or I'll restart system
+/**
+ * feed me in time(after 1st feed), or I'll restart system
+ */
 function onFeed(this: PuppetWeb, food: WatchdogFood) {
-
-  // change to tape instead of tap
-  // type = type || 'HEARTBEAT'  // BUG compatible with issue: node-tap strange behaviour cause CircleCI & Travis-CI keep failing #11
-  // timeout = timeout || 60000  // BUG compatible with issue: node-tap strange behaviour cause CircleCI & Travis-CI keep failing #11
-
   if (!food.type) {
     food.type = 'HEARTBEAT'
   }
@@ -49,17 +46,25 @@ function onFeed(this: PuppetWeb, food: WatchdogFood) {
   const feed = `${food.type}:[${food.data}]`
   log.silly('PuppetWebWatchdog', 'onFeed: %d, %s', food.timeout, feed)
 
-  // if (this.currentState() === 'killing') {
-  if (this.state.current() === 'dead' && this.state.inprocess()) {
-    log.warn('PuppetWebWatchdog', 'onFeed() is disabled because state.current() is `dead` and inprocess()')
-    return
-  }
-  // if (this.readyState() === 'disconnecting'
-  //     // || this.readyState() === 'disconnected'
-  // ) {
-  //   log.warn('PuppetWebWatchdog', 'onFeed() is disabled because readyState is `disconnecting`')
+  /**
+   * Disable Watchdog on the following conditions:
+   * 1. current state is dead and inprocess
+   * 1. target state is dead
+   *
+   * in other words, watchdog should only work in this condition:
+   * 1. target state is live
+   * 1. and stable is true
+   *
+   * this is because we will not want to active watchdog when we are closing a browser, or browser is closed.
+   */
+  // if (this.state.current() === 'dead' && this.state.inprocess()) {
+  //   log.warn('PuppetWebWatchdog', 'onFeed() is disabled because state.current() is `dead` and inprocess()')
   //   return
   // }
+  if (this.state.target() === 'dead' || this.state.inprocess()) {
+    log.warn('PuppetWebWatchdog', 'onFeed() is disabled because target state is `dead` or state is inprocess')
+    return
+  }
 
   setWatchDogTimer.call(this, food.timeout, feed)
 
