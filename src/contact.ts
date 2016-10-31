@@ -216,6 +216,18 @@ export class Contact implements Sayable {
 
     return Config.puppetInstance()
                   .contactRemark(this, newRemark)
+                  .then(ret => {
+                    if (ret) {
+                      if (this.obj) {
+                        this.obj.remark = newRemark
+                      } else {
+                        log.error('Contact', 'remark() with null this.obj?')
+                      }
+                    } else {
+                      log.warn('Contact', 'remark(%s) fail', newRemark)
+                    }
+                    return ret
+                  })
                   .catch(e => {
                     log.error('Contact', 'remark(%s) rejected: %s', newRemark, e.message)
                     return false // fail safe
