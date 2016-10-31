@@ -381,7 +381,7 @@ export class PuppetWeb extends Puppet {
       return ret
 
     } catch (e) {
-      log.warn('PuppetWeb', 'contactFind(%s) rejected: %s', filterFunc, e.message)
+      log.warn('PuppetWeb', 'contactRemark(%s, %s) rejected: %s', contact.id, remark, e.message)
       throw e
     }
   }
