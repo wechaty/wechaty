@@ -26,7 +26,8 @@ RUN mkdir /wechaty
 WORKDIR /wechaty
 
 COPY package.json .
-RUN  npm --progress false install > /dev/null \
+RUN  npm --progress=false install > /dev/null \
+  && npm --progress=false install -g yarn > /dev/null \
   && rm -fr /tmp/*
   # && npm install ts-node typescript -g \
 
@@ -35,7 +36,7 @@ RUN npm --progress false link
 
 # Loading from node_modules Folders: https://nodejs.org/api/modules.html
 # If it is not found there, then it moves to the parent directory, and so on, until the root of the file system is reached.
-RUN mkdir /bot \
+RUN ln -s /root /bot \
   && ln -s /usr/local/lib/node_modules / \
   && ln -s /wechaty/tsconfig.json /
 

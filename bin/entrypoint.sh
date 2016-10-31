@@ -37,9 +37,20 @@ if [[ "$1" == *.ts || "$1" == *.js ]]; then
   shift
 
   if [ -f "$botFilePath" ]; then
+    cd /bot && pwd
+    [ -f package.json ] && {
+      echo "Install dependencies modules ..."
+      yarn
+    }
     echo "Executing ts-node $botFilePath $@"
-    exec ts-node "$botFilePath" $@
-    exit $?
+    ts-node "$botFilePath" $@
+    ret=$?
+    figlet " Wechaty "
+    echo ____________________________________________________
+    echo "            https://www.wechaty.io"
+    figlet " Exit $ret "
+    sleep 3
+    exit $ret
   else
     echo "ERROR: can not found bot file: $botFile"
     exit -1
