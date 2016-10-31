@@ -196,6 +196,7 @@
     var chatFactory     = injector.get('chatFactory')
     var contactFactory  = injector.get('contactFactory')
     var confFactory     = injector.get('confFactory')
+    var emojiFactory    = injector.get('emojiFactory')
     var loginFactory    = injector.get('loginFactory')
 
     var http            = injector.get('$http')
@@ -244,6 +245,7 @@
     WechatyBro.glue = {
       injector:       injector
       , http:         http
+      , mmHttp
       , state
 
       , accountFactory: accountFactory
@@ -251,6 +253,7 @@
       , chatFactory:    chatFactory
       , confFactory:    confFactory
       , contactFactory: contactFactory
+      , emojiFactory
       , loginFactory:   loginFactory
 
       , rootScope:    rootScope
@@ -520,6 +523,38 @@
     }
   }
 
+  function contactRemarkAsync(UserName, remark) {
+    const callback = arguments[arguments.length - 1]
+    if (typeof callback !== 'function') {
+      // here we should in sync mode, because there's no callback
+      throw new Error('async method need to be called via webdriver.executeAsyncScript')
+    }
+
+    var accountFactory  = WechatyBro.glue.accountFactory
+    var confFactory     = WechatyBro.glue.confFactory
+    var emojiFactory    = WechatyBro.glue.emojiFactory
+    var mmHttp          = WechatyBro.glue.mmHttp
+
+    mmHttp({
+      method: "POST",
+      url: confFactory.API_webwxoplog,
+      data: angular.extend({
+        UserName: UserName,
+        CmdId: confFactory.oplogCmdId.MODREMARKNAME,
+        RemarkName: emojiFactory.formatHTMLToSend(remark)
+      }, accountFactory.getBaseRequest()),
+      MMRetry: {
+        count: 3,
+        timeout: 1e4,
+        serial: !0
+      }
+    }).success(function() {
+      callback(true)
+    }).error(function() {
+      callback(false)
+    })
+  }
+
   function roomFind(filterFunction) {
     var contactFactory = WechatyBro.glue.contactFactory
 
@@ -703,6 +738,7 @@
 
     // for Wechaty Contact Class
     , contactFindAsync
+    , contactRemarkAsync
 
     // for Wechaty Room Class
     , roomCreateAsync

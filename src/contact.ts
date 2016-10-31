@@ -92,7 +92,6 @@ export class Contact implements Sayable {
 
   public weixin()    { return this.obj && this.obj.weixin || '' }
   public name()      { return UtilLib.plainText(this.obj && this.obj.name || '') }
-  public remark()    { return this.obj && this.obj.remark }
   public stranger()  { return this.obj && this.obj.stranger }
   public star()      { return this.obj && this.obj.star }
 
@@ -199,6 +198,33 @@ export class Contact implements Sayable {
                   })
   }
 
+  /**
+   * get the remark for contact
+   */
+  public remark(): string
+  /**
+   * set the remark for contact
+   */
+  public remark(newRemark: string): Promise<boolean>
+
+  public remark(newRemark?: string): Promise<boolean> | string {
+    log.verbose('Contact', 'remark(%s)', newRemark || '')
+
+    if (newRemark === undefined) {
+      return this.obj && this.obj.remark || ''
+    }
+
+    return Config.puppetInstance()
+                  .contactRemark(this, newRemark)
+                  .catch(e => {
+                    log.error('Contact', 'remark(%s) rejected: %s', newRemark, e.message)
+                    return false // fail safe
+                  })
+  }
+
+  /**
+   * try to find a contact by filter: {name: string | RegExp}
+   */
   public static async find(query: ContactQueryFilter): Promise<Contact> {
     log.verbose('Contact', 'find(%s)', query.name)
 

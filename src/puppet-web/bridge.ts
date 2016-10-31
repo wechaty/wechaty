@@ -129,6 +129,15 @@ export class Bridge {
               })
   }
 
+  public async contactRemark(contactId: string, remark: string): Promise<boolean> {
+    try {
+      return await this.proxyWechaty('contactRemarkAsync', contactId, remark)
+    } catch (e) {
+      log.error('PuppetWebBridge', 'contactRemarkAsync() exception: %s', e.message)
+      throw e
+    }
+  }
+
   public contactFind(filterFunc: string): Promise<string[]> {
     return this.proxyWechaty('contactFindAsync', filterFunc)
                 .catch(e => {

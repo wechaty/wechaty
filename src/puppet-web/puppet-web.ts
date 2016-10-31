@@ -370,6 +370,22 @@ export class PuppetWeb extends Puppet {
                       })
   }
 
+  public async contactRemark(contact: Contact, remark: string): Promise<boolean> {
+    try {
+      const ret = await this.bridge.contactRemark(contact.id, remark)
+      if (!ret) {
+        log.warn('PuppetWeb', 'contactRemark(%s, %s) bridge.contactRemark() return false'
+                            , contact.id, remark
+        )
+      }
+      return ret
+
+    } catch (e) {
+      log.warn('PuppetWeb', 'contactFind(%s) rejected: %s', filterFunc, e.message)
+      throw e
+    }
+  }
+
   public contactFind(filterFunc: string): Promise<Contact[]> {
     if (!this.bridge) {
       return Promise.reject(new Error('contactFind fail: no bridge(yet)!'))

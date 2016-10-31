@@ -81,6 +81,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
    * Contact
    */
   public abstract contactFind(filterFunc: string): Promise<Contact[]>
+  public abstract contactRemark(contact: Contact, remark: string): Promise<boolean>
 }
 
 export default Puppet
