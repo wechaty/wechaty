@@ -1,9 +1,9 @@
 [![Wechaty](https://raw.githubusercontent.com/wechaty/wechaty/master/image/wechaty-logo-en.png)](https://github.com/wechaty/wechaty)
-# Wechaty [![Docker CircleCI](https://img.shields.io/circleci/project/github/wechaty/wechaty.svg?label=Docker)](https://circleci.com/gh/wechaty/wechaty) [![Linux/Mac Build Status](https://img.shields.io/travis/wechaty/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/wechaty/wechaty) [![Win32 Build status](https://img.shields.io/appveyor/ci/zixia/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/zixia/wechaty) [![Coverage Status](https://coveralls.io/repos/github/wechaty/wechaty/badge.svg?branch=master)](https://coveralls.io/github/wechaty/wechaty?branch=master)
+# Wechaty [![Docker CircleCI](https://img.shields.io/circleci/project/github/wechaty/wechaty.svg?label=Docker)](https://circleci.com/gh/wechaty/wechaty) [![Linux/Mac Build Status](https://img.shields.io/travis/wechaty/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/wechaty/wechaty) [![Win32 Build status](https://img.shields.io/appveyor/ci/zixia/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/zixia/wechaty)
 
 ## Connecting ChatBots.
 
-Wechaty is a Bot Framework for Wechat **Personal** Account that helps you easy creating personal wechat bot in only 6 lines of javascript code, with cross-platform  support to [linux](https://travis-ci.org/wechaty/wechaty), [win32](https://ci.appveyor.com/project/zixia/wechaty) and [darwin(OSX/Mac)](https://travis-ci.org/wechaty/wechaty).
+Wechaty is a Bot Framework for Wechat **Personal** Account that helps you easy creating bot in 6 lines of javascript, with cross-platform  support to [Docker](https://circleci.com/gh/wechaty/wechaty) [Linux](https://travis-ci.org/wechaty/wechaty), [Win32](https://ci.appveyor.com/project/zixia/wechaty) and [Darwin(OSX/Mac)](https://travis-ci.org/wechaty/wechaty).
 
 :octocat: <https://github.com/wechaty/wechaty>  
 :beetle: <https://github.com/wechaty/wechaty/issues>  
@@ -760,7 +760,8 @@ const request = new FriendRequest()
 request.send(from, 'hello~')
 ```
 
-# Test
+# Test [![Coverage Status](https://coveralls.io/repos/github/wechaty/wechaty/badge.svg?branch=master)](https://coveralls.io/github/wechaty/wechaty?branch=master)
+
 Wechaty use ~~[TAP protocol](http://testanything.org/)~~ [AVA](https://github.com/avajs/ava) to test itself ~~by [tap](http://www.node-tap.org/)~~.
 
 To test Wechaty, run:
