@@ -122,8 +122,6 @@ export class Contact implements Sayable {
     }
 
     if (!contactGetter) {
-      if (!Config.puppetInstance()) { throw new Error('Config.puppetInstance() is not found by Contact') }
-
       log.silly('Contact', 'get contact via ' + Config.puppetInstance().constructor.name)
       contactGetter = Config.puppetInstance()
                             .getContact.bind(Config.puppetInstance())

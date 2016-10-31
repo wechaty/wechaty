@@ -7,6 +7,7 @@ import { execSync } from 'child_process'
 import * as fs from 'fs'
 
 import Puppet from './puppet'
+import log    from './brolog-env'
 
 export type PuppetName = 'web' | 'android' | 'ios'
 export type HeadName = 'chrome' | 'phantomjs' | 'firefox'
@@ -132,9 +133,11 @@ function isWechatyDocker() {
 function puppetInstance(instance?: Puppet | null): Puppet | void {
   if (instance !== undefined) {
     if (instance) {
+      log.verbose('Config', 'puppetInstance(%s)', instance.constructor.name)
       Config._puppetInstance = instance
       return instance
     }
+    log.verbose('Config', 'puppetInstance(null)')
     Config._puppetInstance = null
     return
   }
@@ -142,6 +145,7 @@ function puppetInstance(instance?: Puppet | null): Puppet | void {
   if (!Config._puppetInstance) {
     throw new Error('no puppet instance')
   }
+
   return Config._puppetInstance
 }
 
@@ -179,6 +183,5 @@ export interface Sleepable {
   sleep(millisecond: number): Promise<void>
 }
 
-export * from './brolog-env'
-
+export { log }
 export default Config
