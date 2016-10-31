@@ -123,7 +123,7 @@ test('getPort() for an available socket port', async t => {
   let port = await UtilLib.getPort(PORT)
   t.not(port, PORT, 'should not be same port even it is available(to provent conflict between concurrency tests in AVA)')
 
-  let ttl=17
+  let ttl = 17
   while (ttl-- > 0) {
     try {
       const app = express()
