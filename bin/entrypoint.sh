@@ -32,14 +32,16 @@ fi
 
 if [[ "$1" == *.ts || "$1" == *.js ]]; then
 
-  appFile="/app/$1"
+  botFile="$1"
+  botFilePath="/bot/$1"
+  shift
 
-  if [ -f "$appFile" ]; then
-    echo "Executing ts-node /app/$@"
-    exec ts-node "/app/$@"
+  if [ -f "$botFilePath" ]; then
+    echo "Executing ts-node $botFilePath $@"
+    exec ts-node "$botFilePath" $@
     exit $?
   else
-    echo "ERROR: can not found app file: $appfile"
+    echo "ERROR: can not found bot file: $botFile"
     exit -1
   fi
 
