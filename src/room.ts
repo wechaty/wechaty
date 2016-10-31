@@ -101,20 +101,17 @@ export class Room extends EventEmitter implements Sayable {
 
     try {
       const data = await contactGetter(this.id)
-    // .then(data => {
       log.silly('Room', `contactGetter(${this.id}) resolved`)
       this.rawObj = data
       this.obj    = this.parse(data)
-    //   return this
-    // })
-    // .then(_ => {
+
       if (!this.obj) {
         throw new Error('no this.obj set after contactGetter')
       }
       await Promise.all(this.obj.memberList.map(c => c.ready(contactGetter)))
-                    // .then(() => this)
+
       return this
-    // })
+
     } catch (e) {
       log.error('Room', 'contactGetter(%s) exception: %s', this.id, e.message)
       throw e
@@ -207,7 +204,11 @@ export class Room extends EventEmitter implements Sayable {
         } else {
           remark = null
         }
-        nickMap[m.UserName] = UtilLib.unifyEmoji(
+
+        /**
+         * ISSUE #64 emoji need to be striped
+         */
+        nickMap[m.UserName] = UtilLib.stripEmoji(
           remark || m.DisplayName || m.NickName
         )
       })
@@ -248,7 +249,6 @@ export class Room extends EventEmitter implements Sayable {
     return n
   }
 
-  // @private
   private delLocal(contact: Contact): number {
     log.verbose('Room', 'delLocal(%s)', contact)
 
@@ -288,7 +288,6 @@ export class Room extends EventEmitter implements Sayable {
       Config.puppetInstance().roomTopic(this, newTopic)
       return newTopic
     }
-    // return this.get('topic')
     return UtilLib.plainText(this.obj ? this.obj.topic : '')
   }
 
@@ -338,7 +337,10 @@ export class Room extends EventEmitter implements Sayable {
       return null
     }
 
-    name = UtilLib.unifyEmoji(name)
+    /**
+     * ISSUE #64 emoji need to be striped
+     */
+    name = UtilLib.stripEmoji(name)
 
     const nickMap = this.obj.nickMap
     const idList = Object.keys(nickMap)
@@ -387,7 +389,6 @@ export class Room extends EventEmitter implements Sayable {
       throw new Error('topic not found')
     }
 
-    // see also Contact.findAll
     let filterFunction: string
 
     if (topic instanceof RegExp) {

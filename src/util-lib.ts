@@ -61,6 +61,19 @@ class UtilLib {
                  ) // '<span class="emoji emoji1f334"></span>'
   }
 
+  public static stripEmoji(html?: string): string {
+    if (!html) {
+      return ''
+    }
+    return html
+          .replace(/<img class="(\w*?emoji) (\w*?emoji[^"]+?)" text="(.*?)_web" src=[^>]+>/g
+                 , ''
+                 ) // <img class="emoji emoji1f4a4" text="[流汗]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />
+          .replace(/<span class="(\w*?emoji) (\w*?emoji[^"]+?)"><\/span>/g
+                 , ''
+                 ) // '<span class="emoji emoji1f334"></span>'
+  }
+
   public static plainText(html?: string): string {
     if (!html) {
       return ''
@@ -76,7 +89,7 @@ class UtilLib {
     )
   }
 
-  public static  downloadStream(url: string, cookies: any[]): Promise<NodeJS.ReadableStream> {
+  public static downloadStream(url: string, cookies: any[]): Promise<NodeJS.ReadableStream> {
     // const myurl = 'http://wx.qq.com/cgi-bin/mmwebwx-bin/webwxgetmsgimg?&MsgID=3080011908135131569&skey=%40crypt_c117402d_53a58f8fbb21978167a3fc7d3be7f8c9'
     url = url.replace(/^https/i, 'http') // use http for better performance
     const options = require('url').parse(url)
@@ -167,7 +180,7 @@ class UtilLib {
 
     function nextPort(currentPort: number): number {
       const RANGE = 719
-      // do not use Math.random() here, because AVA will fork, then here will get the same FAKE random number
+      // do not use Math.random() here, because AVA will fork, then here will get the same random number, cause a race condition for socket listen
       // const n = Math.floor(Math.random() * BETWEEN_RANGE)
 
       /**

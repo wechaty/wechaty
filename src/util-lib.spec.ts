@@ -6,14 +6,33 @@ import {
 import * as express  from 'express'
 // import * as http     from 'http'
 
-test('Html smoking test', t => {
+test('stripHtml()', t => {
   const HTML_BEFORE_STRIP = 'Outer<html>Inner</html>'
   const HTML_AFTER_STRIP  = 'OuterInner'
 
+  const strippedHtml = UtilLib.stripHtml(HTML_BEFORE_STRIP)
+  t.is(strippedHtml, HTML_AFTER_STRIP, 'should strip html as expected')
+})
+
+test('unescapeHtml()', t => {
   const HTML_BEFORE_UNESCAPE  = '&apos;|&quot;|&gt;|&lt;|&amp;'
   const HTML_AFTER_UNESCAPE   = `'|"|>|<|&`
 
-  const EMOJI_BEFORE_DIGEST = [
+  const unescapedHtml = UtilLib.unescapeHtml(HTML_BEFORE_UNESCAPE)
+  t.is(unescapedHtml, HTML_AFTER_UNESCAPE, 'should unescape html as expected')
+})
+
+test('plainText()', t => {
+  const PLAIN_BEFORE  = '&amp;<html>&amp;</html>&amp;<img class="emoji emoji1f4a4" text="[流汗]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />'
+  const PLAIN_AFTER   = '&&&[流汗]'
+
+  const plainText = UtilLib.plainText(PLAIN_BEFORE)
+  t.is(plainText, PLAIN_AFTER, 'should convert plain text as expected')
+
+})
+
+test('digestEmoji()', t => {
+  const EMOJI_XML = [
     '<img class="emoji emoji1f4a4" text="[流汗]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />'
     , '<span class="emoji emoji1f334"></span>'
   ]
@@ -22,24 +41,13 @@ test('Html smoking test', t => {
     , '[emoji1f334]'
   ]
 
-  const PLAIN_BEFORE  = '&amp;<html>&amp;</html>&amp;<img class="emoji emoji1f4a4" text="[流汗]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />'
-  const PLAIN_AFTER   = '&&&[流汗]'
-
-  const strippedHtml = UtilLib.stripHtml(HTML_BEFORE_STRIP)
-  t.is(strippedHtml, HTML_AFTER_STRIP, 'should strip html as expected')
-
-  const unescapedHtml = UtilLib.unescapeHtml(HTML_BEFORE_UNESCAPE)
-  t.is(unescapedHtml, HTML_AFTER_UNESCAPE, 'should unescape html as expected')
-
-  for (let i = 0; i < EMOJI_BEFORE_DIGEST.length; i++) {
-    const emojiDigest = UtilLib.digestEmoji(EMOJI_BEFORE_DIGEST[i])
+  for (let i = 0; i < EMOJI_XML.length; i++) {
+    const emojiDigest = UtilLib.digestEmoji(EMOJI_XML[i])
     t.is(emojiDigest, EMOJI_AFTER_DIGEST[i], 'should digest emoji string ' + i + ' as expected')
   }
-  const plainText = UtilLib.plainText(PLAIN_BEFORE)
-  t.is(plainText, PLAIN_AFTER, 'should convert plain text as expected')
 })
 
-test('Unify Emoji', t => {
+test('unifyEmoji()', t => {
   const ORIGNAL_XML_LIST: [string[], string][] = [
     [
       [
@@ -58,7 +66,28 @@ test('Unify Emoji', t => {
   })
 })
 
-test('Media download smoking test', t => {
+test('stripEmoji()', t => {
+  const EMOJI_STR = [
+    [
+        'ABC<img class="emoji emoji1f4a4" text="[流汗]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />DEF'
+      , 'ABCDEF'
+    ]
+    , [
+        'UVW<span class="emoji emoji1f334"></span>XYZ'
+      , 'UVWXYZ'
+    ]
+  ]
+
+  EMOJI_STR.forEach(([emojiStr, expectResult]) => {
+    const result = UtilLib.stripEmoji(emojiStr)
+    t.is(result, expectResult, 'should strip to the expected str')
+  })
+
+  const empty = UtilLib.stripEmoji(undefined)
+  t.is(empty, '', 'should return empty string for `undefined`')
+})
+
+test('downloadStream() for media', t => {
   const app = express()
   app.use(require('cookie-parser')())
   app.get('/ding', function(req, res) {
@@ -81,7 +110,6 @@ test('Media download smoking test', t => {
             // console.log(`BODY: ${chunk}`)
             t.is(chunk.toString(), 'dong', 'should success download dong from downloadStream()')
             server.close()
-            // t.end()
           })
         })
         .catch(e => {
@@ -89,16 +117,22 @@ test('Media download smoking test', t => {
         })
 })
 
-test('getPort with free & busy port', async t => {
+test('getPort() for an available socket port', async t => {
   const PORT = 8788
 
   let port = await UtilLib.getPort(PORT)
-  t.notDeepEqual(port, PORT, 'should not be same port even it is available(to provent conflict between concurrency tests in AVA)')
+  t.not(port, PORT, 'should not be same port even it is available(to provent conflict between concurrency tests in AVA)')
 
-  const app = express()
-  const server = app.listen(PORT)
-  port = await UtilLib.getPort(PORT)
-  server.close()
-
-  t.true(port > PORT, 'should bigger then PORT when it is not availble')
+  let ttl=17
+  while (ttl-- > 0) {
+    try {
+      const app = express()
+      const server = app.listen(PORT)
+      port = await UtilLib.getPort(PORT)
+      server.close()
+    } catch (e) {
+      t.fail('should not exception: ' + e.message + ', ' + e.stack)
+    }
+  }
+  t.ok('should has no exception after loop test')
 })
