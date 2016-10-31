@@ -1,21 +1,19 @@
 import { test } from 'ava'
+
 import {
     Config
-  , Message
-  , PuppetWeb
-  // , Wechaty
   , log
-}             from '../'
+}                 from './config'
+import Message    from './message'
+import PuppetWeb  from './puppet-web/'
+
+const MOCK_USER_ID = 'TEST-USER-ID'
 
 const puppet = new PuppetWeb()
+puppet.userId = MOCK_USER_ID
 Config.puppetInstance(puppet)
-// Contact.attach(puppet)
-// Message.attach(puppet)
 
-test('Message constructor parser test', t => {
-  // Contact.attach(new Puppet())
-  // Message.attach(new Puppet())
-
+test('constructor()', t => {
   /* tslint:disable:max-line-length */
   const rawData = JSON.parse('{"MsgId":"179242112323992762","FromUserName":"@0bb3e4dd746fdbd4a80546aef66f4085","ToUserName":"@16d20edf23a3bf3bc71bb4140e91619f3ff33b4e33f7fcd25e65c1b02c7861ab","MsgType":1,"Content":"test123","Status":3,"ImgStatus":1,"CreateTime":1461652670,"VoiceLength":0,"PlayLength":0,"FileName":"","FileSize":"","MediaId":"","Url":"","AppMsgType":0,"StatusNotifyCode":0,"StatusNotifyUserName":"","RecommendInfo":{"UserName":"","NickName":"","QQNum":0,"Province":"","City":"","Content":"","Signature":"","Alias":"","Scene":0,"VerifyFlag":0,"AttrStatus":0,"Sex":0,"Ticket":"","OpCode":0},"ForwardFlag":0,"AppInfo":{"AppID":"","Type":0},"HasProductId":0,"Ticket":"","ImgHeight":0,"ImgWidth":0,"SubMsgType":0,"NewMsgId":179242112323992770,"MMPeerUserName":"@0bb3e4dd746fdbd4a80546aef66f4085","MMDigest":"test123","MMIsSend":false,"MMIsChatRoom":false,"MMUnread":true,"LocalID":"179242112323992762","ClientMsgId":"179242112323992762","MMActualContent":"test123","MMActualSender":"@0bb3e4dd746fdbd4a80546aef66f4085","MMDigestTime":"14:37","MMDisplayTime":1461652670,"MMTime":"14:37"}')
 
@@ -30,11 +28,9 @@ test('Message constructor parser test', t => {
 
   const s = m.toString()
   t.is(typeof s, 'string', 'toString()')
-
-  // t.end()
 })
 
-test('Message ready() promise testing', async t => {
+test('ready()', async t => {
 
   // must different with other rawData, because Contact class with load() will cache the result. or use Contact.resetPool()
   /* tslint:disable:max-line-length */
@@ -46,14 +42,8 @@ test('Message ready() promise testing', async t => {
   const expectedToNickName    = 'To Nick Name@Test'
   const expectedMsgId        = '3009511950433684462'
 
-  // const puppet = new Puppet()
-  puppet.getContact = mockGetContact
-
-  // const puppet = new Puppet()
-  // Contact.attach(puppet)
-  // Message.attach(puppet)
-
-  // Contact.init()
+  Config.puppetInstance()
+        .getContact = mockGetContact
 
   // Mock
   function mockGetContact(id) {
@@ -89,7 +79,6 @@ test('Message ready() promise testing', async t => {
   const m = new Message(rawData)
 
   t.is(m.id, expectedMsgId, 'id/MsgId right')
-
   await m.ready()
 
   const fc = m.from()
@@ -104,21 +93,30 @@ test('Message ready() promise testing', async t => {
   t.is(tc.get('name') , expectedToNickName  , 'contact ready for ToNickName')
 })
 
-test('TBW: Message static method', async t => {
-  // Contact.attach(new Puppet())
-  // Message.attach(new Puppet())
-
+test('find()', async t => {
   const m = await Message.find({
     id: 'xxx'
   })
 
   t.truthy(m.id, 'Message.find')
+})
 
+test('findAll()', async t => {
   const msgList = await Message.findAll({
     from: 'yyy'
   })
 
   t.is(msgList.length, 2, 'Message.findAll with limit 2')
+})
 
-  // t.end()
+test('self()', t => {
+  Config.puppetInstance()
+
+  const m = new Message()
+  m.set('from', MOCK_USER_ID)
+
+  t.true(m.self(), 'should identify self message true where message from userId')
+
+  m.set('from', 'fdsafasfsfa')
+  t.false(m.self(), 'should identify self message false when from a different fromId')
 })

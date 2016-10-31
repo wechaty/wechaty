@@ -255,7 +255,7 @@ export class Message implements Sayable {
 
       return this         // return this for chain
     } catch (e) {
-        log.error('Message', 'ready() exception: %s', e)
+        log.error('Message', 'ready() exception: %s', e.stack)
         // console.log(e)
         // this.dump()
         // this.dumpRaw()
