@@ -38,10 +38,15 @@ if [[ "$1" == *.ts || "$1" == *.js ]]; then
 
   if [ -f "$botFilePath" ]; then
     cd /bot && pwd
+
     [ -f package.json ] && {
       echo "Install dependencies modules ..."
       yarn
     }
+
+    echo "Linking Wechaty Module ... "
+    npm link
+
     echo "Executing ts-node $botFilePath $@"
     ts-node "$botFilePath" $@
     ret=$?
