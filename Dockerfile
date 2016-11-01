@@ -36,7 +36,7 @@ RUN npm --progress false link
 
 # Loading from node_modules Folders: https://nodejs.org/api/modules.html
 # If it is not found there, then it moves to the parent directory, and so on, until the root of the file system is reached.
-RUN ln -s /root /bot \
+RUN mkdir /bot \
   && ln -s /usr/local/lib/node_modules / \
   && ln -s /wechaty/tsconfig.json /
 
