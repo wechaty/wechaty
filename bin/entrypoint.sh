@@ -6,6 +6,7 @@
 #
 set -e
 
+HOME=/bot
 PATH=$PATH:/wechaty/node_modules/.bin
 
 figlet " Wechaty "
@@ -33,11 +34,11 @@ fi
 if [[ "$1" == *.ts || "$1" == *.js ]]; then
 
   botFile="$1"
-  botFilePath="/bot/$1"
+  botFilePath="$HOME/$1"
   shift
 
   if [ -f "$botFilePath" ]; then
-    cd /bot && pwd
+    cd "$HOME" && pwd
 
     [ -f package.json ] && {
       echo "Install dependencies modules ..."
@@ -48,23 +49,25 @@ if [[ "$1" == *.ts || "$1" == *.js ]]; then
     npm link wechaty > /dev/null
 
     echo "Executing ts-node $botFilePath $@"
+    ret=0
     ts-node "$botFilePath" $@ || ret=$?
 
-    (( $ret != 0 )) && {
+    (( "$ret" != 0 )) && {
       figlet ' BUG REPORT '
       read -t 30 -p "Press ENTER to print diagnose output ... " || true
+      echo
 
       echo "### 1. code of $botFile"
       cat $botFilePath
 
-      echo '### 2. directory structor of /bot'
-      ls -l /bot/
+      echo "### 2. directory structor of $HOME"
+      ls -l "$HOME"
 
       echo '### 3. package.json'
-      cat /bot/package.json
+      cat "$HOME"/package.json
 
-      echo '### 4. directory structor inside /bot/node_modules'
-      ls /bot/node_modules
+      echo "### 4. directory structor inside $HOME/node_modules"
+      ls "$HOME"/node_modules
 
       echo '### 5. wechaty doctor'
       wechaty-doctor
