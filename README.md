@@ -23,7 +23,7 @@ Details: https://github.com/wechaty/wechaty/issues/40
 + on 12th Oct 2016
 ```
 
-[VSCode](https://code.visualstudio.com/) is recommended as developing IDE for typescript because we can get the benefit of [intelligent code completion, parameter info, and member lists](https://code.visualstudio.com/docs/languages/javascript).
+[VSCode](https://code.visualstudio.com/) is highly recommended as developing IDE for typescript because we can get the benefit of [intelligent code completion, parameter info, and member lists](https://code.visualstudio.com/docs/languages/javascript).
 
 The last Javascript version is: [v0.4.0](https://github.com/wechaty/wechaty/releases/tag/v0.4.0) (2016/10/9) , or install v0.4 by `npm install wechaty`.
 
@@ -34,23 +34,23 @@ The last Javascript version is: [v0.4.0](https://github.com/wechaty/wechaty/rele
 
 ## Voice of the Developer
 
-> @JasLin : it may be the best wechat SDK I have seen in Github! [link](https://github.com/wechaty/wechaty/issues/8#issuecomment-228971491)
+> @JasLin: it may be the best wechat SDK I have seen in Github! [link](https://github.com/wechaty/wechaty/issues/8#issuecomment-228971491)
 
-> @ccaapton : wechaty library fantastic! [link](https://github.com/wechaty/wechaty/issues/9)
+> @ccaapton: wechaty library fantastic! [link](https://github.com/wechaty/wechaty/issues/9)
 
-> @ak5 : Thanks for this it's quite cool! [link](https://github.com/wechaty/wechaty/issues/4)
+> @ak5: Thanks for this it's quite cool! [link](https://github.com/wechaty/wechaty/issues/4)
 
-> @Samurais : wechaty is great.  [link](https://github.com/wechaty/wechaty/issues/36#issuecomment-251708382)
+> @Samurais: wechaty is great.  [link](https://github.com/wechaty/wechaty/issues/36#issuecomment-251708382)
 
-> @Jarvis : 目前用过的最好的微信开发库 [link](http://weibo.com/3296245513/Ec4iNp9Ld?type=comment)
+> @Jarvis: 目前用过的最好的微信开发库 [link](http://weibo.com/3296245513/Ec4iNp9Ld?type=comment)
 
-> @naishstar : thanks for great SDK [link](https://github.com/wechaty/wechaty/issues/57)
+> @naishstar: thanks for great SDK [link](https://github.com/wechaty/wechaty/issues/57)
 
 # Examples
 Wechaty is dead easy to use: 6 lines javascript for your wechat bot.
 
 ## 1. Basic: 6 lines
-The following 6 lines of code implement a bot who can log all message to console:
+The following six lines of code implement a bot who can log all message to console:
 
 ```typescript
 import Wechaty from 'wechaty'
@@ -76,7 +76,7 @@ Natural Language Understanding enabled by [api.AI](https://api.ai), you can get 
 
 # Deploy
 
-Use docker to deploy wechaty is highly recommended.
+Use Docker to deploy wechaty is highly recommended.
 
 ## Deploy with Docker
 
@@ -86,7 +86,7 @@ Use docker to deploy wechaty is highly recommended.
 
 [![dockeri.co](http://dockeri.co/image/zixia/wechaty)](https://hub.docker.com/r/zixia/wechaty/)
 
-Wechaty is fully dockerized. So it will be very easy to be deployed as a MicroService. 
+Wechaty is fully dockerized. So it will be very easy to be used as a MicroService. 
 
 ```bash
 export TOKEN="your token here"
@@ -104,7 +104,7 @@ docker build -t wechaty .
 
 ### Ship
 
-Wechaty can be used via Container as a Service
+Easy use Wechaty via Container as a Service
 
 * [Arukas Cloud](https://arukas.io/en/) - Hosting Docker Containers(Currently in Beta, provide up to 10 **free containers**)
 * [Docker Cloud](https://cloud.docker.com/) - Docker Cloud is a hosted service that provides a Registry with the build and testing facilities for Dockerized application images, tools to help you set up and manage your host infrastructure, and deployment features to help you automate deploying your images to your infrastructure.
@@ -134,7 +134,7 @@ npm install --save wechaty
 
 If you use chrome instead of phantomjs, you should make sure:
 
-1. chrome is installed
+1. installed Chrome correctly
 1. if you are under Linux, set headless right for `Xvfb`
 
 * [Running a GUI application in a Docker container](https://linuxmeerkat.wordpress.com/2014/10/17/running-a-gui-application-in-a-docker-container/)
@@ -142,7 +142,7 @@ If you use chrome instead of phantomjs, you should make sure:
 Then you are set.
 
 ## Install to Cloud9 IDE
-[Cloud9 IDE](https://c9.io/) is Google Docs for Code, which is my favorite IDE today. Almost all my wechaty development is based on Cloud9.
+[Cloud9 IDE](https://c9.io/) is Google Docs for Code, which is my favorite IDE today. Almost all my wechaty development based on Cloud9(Before Oct 2016, or v0.0.5).
 
 > Cloud9 IDE written in JavaScript uses Node.js on the back-end. It uses Docker containers for its workspaces and hosted on Google Compute Engine.
 
@@ -192,7 +192,7 @@ If you have no GitHub account, you can just clone it via https:
 ```shell
 git clone https://github.com/wechaty/wechaty.git
 ```
-This will clone wechaty source code to your current directory.
+The above command will clone wechaty source code to your current directory.
 
 ### 3. Run Demo Bot
 ```shell
@@ -201,7 +201,7 @@ npm install
 npm run demo
 ```
 
-After a little while, bot will show you a message of an URL for Login QrCode. You need to scan this QR code in your wechat in order to permit your bot login.
+After a little while, the bot will show you a message of a URL for Login QR Code. You need to scan this QR code in your wechat to permit your bot login.
 
 ### 4. Done
 
@@ -233,7 +233,7 @@ Please submit your issue if you have any, and a fork & pull is very welcome for 
 
 # Trouble Shooting
 
-If wechaty is not run as expected, run unit test maybe help to find some useful message.
+If wechaty run unexpected, then unit test maybe help to find some useful message.
 
 ```shell
 $ npm test
@@ -271,7 +271,7 @@ Win32:
 set WECHATY_LOG=verbose
 ```
 
-Tips: You may want to have more scroll buffer size in your CMD window in windows.
+Tips: You may want to have more scroll buffer size in your CMD window in Windows.
 
 ```bat
 mode con lines=32766
@@ -320,7 +320,7 @@ I'll try my best to keep the API as simple as it can be.
 
 ## Events
 
-Wechaty supports the following 6 events:
+Wechaty supports the following events:
 
 1. scan
 2. login
@@ -336,7 +336,7 @@ Wechaty supports the following 6 events:
 
 `this` is `Sayable` for all listeners. here this is a `Wechaty` instance.
 
-`this.say()` method will sending message to `filehelper`, just for logging / reporting / any usage for your convenience
+`this.say()` method will send message to `filehelper`, just for logging/reporting usage for your convenience
 
 ### 1. Event: `scan`
 
@@ -368,7 +368,7 @@ wechaty.on('login', (this: Sayable, user: Contact) => {
 
 ### 3. Event: `logout`
 
-`logout` will be emitted when bot detected logout, with a [Contact](#class-contact) of the current login user.
+`logout` will be emitted when bot detected log out, with a [Contact](#class-contact) of the current login user.
 
 ```typescript
 wechaty.on('logout', (this: Sayable, user: Contact) => {
@@ -400,10 +400,10 @@ The `message` here is a [Message](#class-message).
 
 ### 6. Event: `friend`
 
-Fired when we got new friend request, or confirm a friendship.
+`friend` event will be fired when we got a new friend request, or friendship is confirmed.
 
 1. if `request?: FriendRequest` is set, then it's a friend request
-1. if `request?: FriendRequest` is not set, then it's a friend confirmation
+1. if `request?: FriendRequest` is not set, then it's a friendship confirmation
 
 ```ts
 wechaty.on('friend', (this: Sayable, contact: Contact, request?: FriendRequest) => {
@@ -451,7 +451,7 @@ const bot = Wechaty.instance({
 })
 ```
 
-1. `profile`(OPTIONAL): profile name. if a profile name is provided, the login status will be saved to it, and automatically restored on next time of wechaty start(restart).
+1. `profile`(OPTIONAL): profile name. if a profile name is provided, wechaty will save login status to it, and automatically restored on next time of wechaty start(restart).
     * can be set by environment variable: `WECHATY_PROFILE`
 1. ~~`token`(OPTIONAL): wechaty io token. Be used to connect to cloud bot manager.~~
 
@@ -469,7 +469,7 @@ wechaty.init()
 
 use `Message.self()` instead.
 
-Check if message is sent by self.
+Check if a message is sent by self.
 
 Return `true` for send from self, `false` for send from others.
 
@@ -510,7 +510,7 @@ set a sender to the message
 
 #### 3. Message.from(contactId: string): Contact
 
-set a sender to the message by it's id
+set a sender to the message by contact id
 
 ### Message.to(contact?: Contact|Room|string): Contact|Room
 
@@ -558,7 +558,7 @@ reply a message to the sender.
 
 A message may be not fully initialized yet. Call `ready()` to confirm we get all the data needed.
 
-Return a Promise, will be resolved when all data is ready.
+Return a Promise, will be resolved when all message data is ready.
 
 ```typescript
 message.ready()
@@ -569,7 +569,7 @@ message.ready()
 
 ### Message.self(message: Message): boolean
 
-Check if message is sent by self.
+Check if a message is sent by self.
 
 Return `true` for send from self, `false` for send from others.
 
@@ -638,7 +638,7 @@ force reload data for Room
 
 `this` is `Sayable` for all listeners.
 
-which means there will be a `this.say()` the method inside listener call, you can use it sending a message to `filehelper`, just for logging / reporting / any usage for your convenience
+which means there will be a `this.say()` the method inside listener call, you can use it sending a message to `filehelper`, just for logging/reporting usage for your convenience.
 
 #### Event: `join`
 
@@ -816,7 +816,7 @@ npm test
 1. add environment variables HEAD/PORT/SESSION/DEBUG to config Wechaty
 
 ## v0.0.10 (2016/5/28)
-1. use event `scan` to show login QR code image URL(and detect state change)
+1. use event `scan` to show image url of login QR Code(and detect state change)
 2. new examples: Tuling123 bot & api.AI bot
 3. more unit tests
 4. code coverage status
@@ -842,7 +842,7 @@ npm test
 - [x] Switch to AVA Test Runner
 - [ ] Rewrite to TypeScript
 - [ ] Events
-    - [ ] Use EventEmitter2 to emit message events, so we can use wildcard
+    - [ ] Use EventEmitter2 to emit message events so that we can use wildcard
         1. `message`
         2. `message.recv`
         3. `message.sent`
@@ -880,7 +880,7 @@ Github Issue <https://github.com/wechaty/wechaty/issues>
 2. [Hubot-WeChat](https://github.com/KasperDeng/Hubot-WeChat) Hubot是一个具有真实微信号的机器人，可以自动回复信息到微信群和某联系人，并能给维护者的微信自动发送Hubot在线状态
 
 ### Electron
-1. [:speech_balloon: A better WeChat on macOS and Linux. Fewer bugs, more features. Built with Electron by Zhongyi Tong.](https://github.com/geeeeeeeeek/electronic-wechat)
+1. [:speech_balloon: A better WeChat on MacOS and Linux. Fewer bugs, more features. Built with Electron by Zhongyi Tong.](https://github.com/geeeeeeeeek/electronic-wechat)
   - [网页版微信抓包+注入实现表情贴纸显示](https://github.com/geeeeeeeeek/electronic-wechat/issues/2)
   - [新表情方案: 收到消息时修改其内容（及阻止撤回）](https://github.com/geeeeeeeeek/electronic-wechat/pull/13)
 1. [普通个人号 微信机器人/外挂](https://github.com/fritx/wxbot)
