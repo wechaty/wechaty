@@ -36,7 +36,6 @@ class PuppetWebFriendRequest extends FriendRequest {
   constructor() {
     log.verbose('PuppetWebFriendRequest', 'constructor()')
     super()
-    this.type = null
   }
 
   public receive(info: RecommendInfo): PuppetWebFriendRequest {
@@ -133,5 +132,4 @@ class PuppetWebFriendRequest extends FriendRequest {
 
 }
 
-// module.exports = PuppetWebFriendRequest
 export default PuppetWebFriendRequest

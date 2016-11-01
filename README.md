@@ -64,13 +64,13 @@ Wechaty.instance() // Singleton
 
 Notice that you need to wait a moment while bot tries to get the login QRCode from Wechat. As soon as the bot gets login QRCode URL, he will print URL out. You need to scan the QR code on wechat and confirm login.
 
-After that, the bot will be on duty. (roger-bot source can be found at [here](https://github.com/wechaty/wechaty/blob/master/example/roger-bot.js))
+After that, the bot will be on duty. (roger-bot source can be found at [here](https://github.com/wechaty/wechaty/blob/master/example/roger-bot.ts))
 
 ## 2. Advanced: dozens of lines
-Here's a chatbot [ding-dong-bot](https://github.com/wechaty/wechaty/blob/master/example/ding-dong-bot.js) who can reply _dong_ when receives a message _ding_.
+Here's a chatbot [ding-dong-bot](https://github.com/wechaty/wechaty/blob/master/example/ding-dong-bot.ts) who can reply _dong_ when receives a message _ding_.
 
 ## 3. Hardcore: hundreds of lines
-Here's a chatbot [api-ai-bot](https://github.com/wechaty/wechaty/blob/master/example/api-ai-bot.js), who can slightly understand NLP.
+Here's a chatbot [api-ai-bot](https://github.com/wechaty/wechaty/blob/master/example/api-ai-bot.ts), who can slightly understand NLP.
 
 Natural Language Understanding enabled by [api.AI](https://api.ai), you can get your module on api.AI by its free plan.
 
@@ -148,7 +148,7 @@ Then you are set.
 
 ### 1. Open in Cloud9 IDE
 
-Just one click here: <a href="https://c9.io/open/?name=Wechaty&type=nodejs&clone_url=https://github.com/wechaty/wechaty.git&description=Wechat%20for%20Bot&selection_file=/example/ding-dong-bot.js" target="_blank"><img src="https://img.shields.io/badge/open%20in-Cloud9%20IDE-blue.svg" alt="Open Wechaty in Cloud9 IDE"></a>
+Just one click here: <a href="https://c9.io/open/?name=Wechaty&type=nodejs&clone_url=https://github.com/wechaty/wechaty.git&description=Wechat%20for%20Bot&selection_file=/example/ding-dong-bot.ts" target="_blank"><img src="https://img.shields.io/badge/open%20in-Cloud9%20IDE-blue.svg" alt="Open Wechaty in Cloud9 IDE"></a>
 
 ### 2. Set default to Node.js v6
 Open Terminal in Cloud9 IDE, use nvm to install nodejs v6, which is required by Wechaty.
@@ -465,20 +465,6 @@ wechaty.init()
 }
 ```
 
-### @DEPRECATED Wechaty.self(message: Message): boolean
-
-use `Message.self()` instead.
-
-Check if a message is sent by self.
-
-Return `true` for send from self, `false` for send from others.
-
-```typescript
-if (wechaty.self(message)) {
-  console.log('this message is sent by myself!')
-}
-```
-
 ### Wechaty.send(message: Message): Wechaty
 send a `message`
 
@@ -589,6 +575,18 @@ Uniq id
 
 ### Contact.name(): string
 
+get name from a contact
+
+### Contact.remark(): string
+
+get remark name from a contact
+
+### Contact.remark(remark: string): Promise<boolean>
+
+set remark name to a contact
+
+return a Promise<boolean>, true for modify successful, false for failure.
+
 ### Contact.ready(): Promise<Contact>
 A Contact may be not fully initialized yet. Call `ready()` to confirm we get all the data needed.
 
@@ -596,9 +594,9 @@ Return a Promise, will be resolved when all data is ready.
 
 ```typescript
 contact.ready()
-.then(() => {
-  // Here we can be sure all the data is ready for use.
-})
+        .then(() => {
+          // Here we can be sure all the data is ready for use.
+        })
 ```
 
 ### Contact.say(content: string): Promise<void>
@@ -609,7 +607,7 @@ say `content` to Contact
 
 `Room` is `Sayable`
 
-Doc is cheap, show you code: [Example/Room-Bot](https://github.com/wechaty/wechaty/blob/master/example/room-bot.js)
+Doc is cheap, show you code: [Example/Room-Bot](https://github.com/wechaty/wechaty/blob/master/example/room-bot.ts)
 
 ### Room.say(content: string, replyTo: Contact|Contact[]): Promise<void>
 
@@ -625,9 +623,9 @@ Return a Promise, will be resolved when all data is ready.
 
 ```typescript
 room.ready()
-.then(() => {
-  // Here we can be sure all the data is ready for use.
-})
+    .then(() => {
+      // Here we can be sure all the data is ready for use.
+    })
 ```
 
 ### Room.refresh(): Promise<Room>
@@ -650,21 +648,20 @@ Event `join`: Room New Member
 
 ```typescript
 room.on('join', function(inviteeList, inviter) {
-  const nameList = inviteeList.map(c => c.name()).join(',') 
-  console.log(`${nameList} joined the room ${room}, invited by ${inviter}`)
+  console.log(`the room ${room.topic()}, got new members invited by ${inviter.name()}`)
 })
 ```
 
 #### Event: `leave`
 
 ```typescript
-Room.on('leave', (this, leaverList: Contact[]) => void)
+Room.on('leave', (this: Room, leaverList: Contact[]) => void)
 ```
 
 #### Event: `topic`
 
 ```typescript
-Room.on('topic', (topic, oldTopic, changer) => void)
+Room.on('topic', (this: Room, topic: string, oldTopic: string, changer: Contact) => void)
 ```
 
 ### Query Type
@@ -675,13 +672,13 @@ Room.find(query : Query) : Room | null
 Room.findAll(query : Query) : Room[]
 ```
 
-### static Room.find(query: Query): Promise<Room|null>
+### static Room.find(query: Query): Promise<Room>
 
 ### static Room.findAll(query: Query): Promise<Room[]>
 
-### static Room.create(contactList: Contact[], topic?: string): Promise<any>
+### static Room.create(contactList: Contact[], topic?: string): Promise<void>
 
-### Room.add(contact: Contact): Promise<any>
+### Room.add(contact: Contact): Promise<void>
 
 ```typescript
 const friend = message.get('from')
@@ -693,7 +690,9 @@ if (room) {
 
 ### Room.del(contact: Contact): void
 
-### Room.topic(newTopic?: string): string
+### Room.topic(): string
+
+### Room.topic(newTopic: string): void
 
 ### Room.nick(contact: Contact): string
 
@@ -706,22 +705,6 @@ if (room) {
 ### Room.member(name: string): Contact|null
 
 ### Room.memberList(): Contact[]
-
-### @deprecated. Room.get(prop): String|Array[{contact: Contact, name: String}]
-
-Get prop from a room.
-
-Supported prop list:
-
-1. `id` :String
-1. `name` :String
-1. `members` :Array
-    1. `contact` :Contact
-    1. `name` :String
-
-```typescript
-room.get('members').length
-```
 
 ## Class FriendRequest
 
@@ -740,7 +723,7 @@ wechaty.on('friend', (contact: Contact, request: FriendRequest) => {
 })
 ```
 
-Doc is cheap, read code: [Example/Friend-Bot](https://github.com/wechaty/wechaty/blob/master/example/friend-bot.js)
+Doc is cheap, read code: [Example/Friend-Bot](https://github.com/wechaty/wechaty/blob/master/example/friend-bot.ts)
 
 ### FriendRequest.hello: string
 
@@ -755,7 +738,7 @@ accept a friend request
 send a new friend request
 
 ```typescript
-const from = message.get('from')
+const from = message.from()
 const request = new FriendRequest()
 request.send(from, 'hello~')
 ```

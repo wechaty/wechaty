@@ -337,7 +337,7 @@ export class Wechaty extends EventEmitter implements Sayable {
    * @deprecated
    */
   public reply(message: Message, reply: string) {
-    log.warn('Wechaty', 'reply() @deprecated, please use Message.say()')
+    log.warn('Wechaty', 'reply() @deprecated, please use Message.say() instead')
 
     if (!this.puppet) {
       throw new Error('no puppet')

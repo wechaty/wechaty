@@ -275,7 +275,16 @@ export class Room extends EventEmitter implements Sayable {
     // WechatyBro.glue.chatroomFactory.quit("@@1c066dfcab4ef467cd0a8da8bec90880035aa46526c44f504a83172a9086a5f7"
   }
 
-  public topic(newTopic?: string): string {
+  /**
+   * get topic
+   */
+  public topic(): string
+  /**
+   * set topic
+   */
+  public topic(newTopic: string): void
+
+  public topic(newTopic?: string): string | void {
     if (!this.isReady()) {
       throw new Error('room not ready')
     }
@@ -286,7 +295,7 @@ export class Room extends EventEmitter implements Sayable {
 
     if (newTopic) {
       Config.puppetInstance().roomTopic(this, newTopic)
-      return newTopic
+      return
     }
     return UtilLib.plainText(this.obj ? this.obj.topic : '')
   }

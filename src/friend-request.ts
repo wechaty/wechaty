@@ -13,11 +13,11 @@
 import Config   from './config'
 import Contact  from './contact'
 
-abstract class FriendRequest {
+export abstract class FriendRequest {
 
   public contact: Contact
   public hello: string
-  public type: 'send' | 'receive' | 'confirm' | null
+  public type: 'send' | 'receive' | 'confirm'
 
   constructor() {
     if (!Config.puppetInstance()) {
@@ -30,5 +30,4 @@ abstract class FriendRequest {
 
 }
 
-// module.exports = FriendRequest.default = FriendRequest.FriendRequest = FriendRequest
 export default FriendRequest
