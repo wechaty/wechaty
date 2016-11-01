@@ -45,10 +45,38 @@ if [[ "$1" == *.ts || "$1" == *.js ]]; then
     echo "Executing ts-node $botFilePath $@"
     ts-node "$botFilePath" $@
     ret=$?
+
+    (( $ret != 0 )) && {
+      read -t 10 -p "Hit ENTER to see the diagnose output ... "
+
+      echo "### 1. code of $botFile"
+      cat $botFilePath
+
+      echo '### 2. directory structor of /bot'
+      ls -l /bot
+
+      echo '### 3. package.json'
+      cat /bot/package.json
+
+      echo '### 4. directory structor inside /bot/node_modules'
+      ls /bot/node_modules
+
+      echo '### 5. wechaty doctor'
+      wechaty-doctor
+
+      echo '### please include the above diagnose messages if you submit a issue ###'
+      echo
+      echo 'Wechaty Issue https://github.com/wechaty/wechaty/issues'
+      echo
+
+      figlet ' BUG REPORT '
+    }
+
     figlet " Wechaty "
     echo ____________________________________________________
     echo "            https://www.wechaty.io"
     figlet " Exit $ret "
+
     sleep 3
     exit $ret
   else
@@ -61,7 +89,7 @@ if [[ "$1" == *.ts || "$1" == *.js ]]; then
       1. Did you bind the current directory into container?
 
         check your `docker run ...` command, if there's no `volumn` arg,
-        then you need to add one to bind the volume of /bot:
+        then you need to add it so that we can bind the volume of /bot:
 
         `--volume="$PWD":/bot`
 
