@@ -1,35 +1,31 @@
-FROM node:7
-ENV NPM_CONFIG_LOGLEVEL warn
+#
+# Wechaty Docker
+# https://github.com/wechaty/wechaty
+#
+FROM alpine
+MAINTAINER Zhuophuan LI <zixia@zixia.net>
 
-# Installing the 'apt-utils' package gets rid of the 'debconf: delaying package configuration, since apt-utils is not installed'
-# error message when installing any other package with the apt-get package manager.
-# https://peteris.rocks/blog/quiet-and-unattended-installation-with-apt-get/
-RUN apt-get update > /dev/null 2>&1 && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    apt-utils \
-  > /dev/null 2>&1 \
-  && rm -rf /var/lib/apt/lists/*
-
-# 1. xvfb depend on xauth
-# 2. chromium(with webdriver) depend on libgconf-2-4
-RUN  apt-get update > /dev/null \
-  && DEBIAN_FRONTEND=noninteractive apt-get -qqy --no-install-recommends -o Dpkg::Use-Pty=0 install \
+RUN  apk update && apk upgrade \
+  && apk add nodejs \
+      bash \
+      ca-certificates \
+      chromium-chromedriver \
       chromium \
+      coreutils \
       figlet \
-      libgconf-2-4 \
+      udev \
       vim \
       xauth \
       xvfb \
-  > /dev/null \
-  && rm -rf /tmp/* /var/lib/apt/lists/*
+  && rm -rf /tmp/* /var/cache/apk/*
 
 RUN mkdir /wechaty
 WORKDIR /wechaty
 
 COPY package.json .
-RUN  npm --progress=false install > /dev/null \
+RUN npm --progress=false install > /dev/null \
   && npm --progress=false install -g yarn > /dev/null \
   && rm -fr /tmp/*
-  # && npm install ts-node typescript -g \
 
 COPY . .
 RUN npm --progress false link
@@ -38,10 +34,10 @@ RUN npm --progress false link
 # If it is not found there, then it moves to the parent directory, and so on, until the root of the file system is reached.
 RUN mkdir /bot \
   && ln -s /usr/local/lib/node_modules / \
-  && ln -s /wechaty/tsconfig.json /
+  && ln -s /wechaty/tsconfig.json / \
+  && ln -s /wechaty/bin/xvfb-run /usr/local/bin
 
 VOLUME [ "/bot" ]
-
 
 ENTRYPOINT [ "/wechaty/bin/entrypoint.sh" ]
 CMD [ "start" ]

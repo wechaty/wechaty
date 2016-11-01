@@ -115,7 +115,8 @@ function isWechatyDocker() {
   try       { fs.statSync(cgroup).isFile() }
   catch (e) { return false }
 
-  const line = execSync(`sort -n ${cgroup} | head -1`)
+  // http://stackoverflow.com/a/20624315/1123955
+  const line = execSync(`sort -n ${cgroup} 2>/dev/null | head -1`)
                 .toString()
                 .replace(/\n$/, '')
 

@@ -20,15 +20,8 @@ trap _kill_procs SIGTERM
 
 XVFB_WHD=${XVFB_WHD:-640x480x8}
 
-# Start Xvfb
-# Xvfb :99 -ac -screen 0 $XVFB_WHD -nolisten tcp &
-xvfb-run -a chromium --no-sandbox $@ &
+chromiumCmd=$(which chromium || which chromium-browser) || echo 'ERROR: can not found chromium binary'
+xvfb-run -a "$chromiumCmd" --no-sandbox $@ &
 pidXvfbChromium=$!
 
-# export DISPLAY=:99
-
-# chromium --no-sandbox $@ &
-# chromium=$!
-
 wait $pidXvfbChromium
-# wait $xvfb

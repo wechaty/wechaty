@@ -80,6 +80,8 @@ export class BrowserDriver {
      * and will cause strange error:
      *
      */
+
+    /*
     const chrome  = require('selenium-webdriver/chrome')
     const path    = require('chromedriver').path
 
@@ -87,11 +89,10 @@ export class BrowserDriver {
     try {
       chrome.setDefaultService(service)
     } catch (e) { // fail safe
-      /**
-       * `The previously configured ChromeDriver service is still running.`
-       * `You must shut it down before you may adjust its configuration.`
-       */
+       // `The previously configured ChromeDriver service is still running.`
+       // `You must shut it down before you may adjust its configuration.`
     }
+   */
 
     const options = {
       args: ['--no-sandbox']  // issue #26 for run inside docker
