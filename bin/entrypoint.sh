@@ -45,20 +45,20 @@ if [[ "$1" == *.ts || "$1" == *.js ]]; then
     }
 
     echo "Linking Wechaty Module ... "
-    npm link
+    npm link wechaty > /dev/null
 
     echo "Executing ts-node $botFilePath $@"
-    ts-node "$botFilePath" $@
-    ret=$?
+    ts-node "$botFilePath" $@ || ret=$?
 
     (( $ret != 0 )) && {
-      read -t 10 -p "Hit ENTER to see the diagnose output ... "
+      figlet ' BUG REPORT '
+      read -t 30 -p "Press ENTER to print diagnose output ... " || true
 
       echo "### 1. code of $botFile"
       cat $botFilePath
 
       echo '### 2. directory structor of /bot'
-      ls -l /bot
+      ls -l /bot/
 
       echo '### 3. package.json'
       cat /bot/package.json
@@ -69,12 +69,14 @@ if [[ "$1" == *.ts || "$1" == *.js ]]; then
       echo '### 5. wechaty doctor'
       wechaty-doctor
 
-      echo '### please include the above diagnose messages if you submit a issue ###'
+      figlet " Submit a ISSUE "
+      echo _____________________________________________________________
+      echo '####### please paste all the above diagnose messages #######'
       echo
       echo 'Wechaty Issue https://github.com/wechaty/wechaty/issues'
       echo
 
-      figlet ' BUG REPORT '
+      read -t 30 -p "Press ENTER to continue ... " || true
     }
 
     figlet " Wechaty "

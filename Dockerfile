@@ -46,4 +46,4 @@ VOLUME [ "/bot" ]
 ENTRYPOINT [ "/wechaty/bin/entrypoint.sh" ]
 CMD [ "start" ]
 
-RUN npm test
+#RUN npm test
