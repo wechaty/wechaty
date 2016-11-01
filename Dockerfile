@@ -22,13 +22,16 @@ RUN  apk update && apk upgrade \
 RUN mkdir /wechaty
 WORKDIR /wechaty
 
+# npm `chromedriver` not support alpine linux
+# https://github.com/giggio/node-chromedriver/issues/70
 COPY package.json .
-RUN npm --progress=false install > /dev/null \
-  && npm --progress=false install -g yarn > /dev/null \
+RUN  sed -i '/chromedriver/d' package.json \
+  && npm --progress=false install > /dev/null \
   && rm -fr /tmp/*
 
 COPY . .
-RUN npm --progress false link
+RUN  sed -i '/chromedriver/d' package.json \
+  && npm --progress=false link
 
 # Loading from node_modules Folders: https://nodejs.org/api/modules.html
 # If it is not found there, then it moves to the parent directory, and so on, until the root of the file system is reached.
