@@ -12,4 +12,4 @@ deployment:
   master:
     branch: master
     commands:
-      - curl -X POST -d '{"ci":"circleci"}' "$DOCKER_REBUILD_URL"
+      - curl -X POST -d '{"from":"circleci"}' "$DOCKER_REBUILD_URL"
