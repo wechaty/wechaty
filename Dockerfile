@@ -27,7 +27,7 @@ WORKDIR /wechaty
 COPY package.json .
 RUN  sed -i '/chromedriver/d' package.json \
   && npm --progress=false install > /dev/null \
-  && rm -fr /tmp/*
+  && rm -fr /tmp/* ~/.npm
 
 COPY . .
 RUN  sed -i '/chromedriver/d' package.json \
