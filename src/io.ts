@@ -299,7 +299,7 @@ export class Io {
     this.reconnectTimer = setTimeout(_ => {
       this.reconnectTimer = null
       this.initWebSocket()
-    }, this.reconnectTimeout)
+    }, this.reconnectTimeout) as any as NodeJS.Timer
   }
 
   private initEventHook() {
