@@ -2,8 +2,8 @@
   "name": "wechaty",
   "version": "0.5.0",
   "description": "Wechat for Bot (Personal Account)",
-  "main": "index.js",
-  "types": "./index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "wechaty": {
     "DEFAULT_HEAD": "chrome",
     "DEFAULT_PUPPET": "web",
@@ -131,11 +131,12 @@
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [
-    "package.json",
-    "README.md",
     "CHANGELOG",
     "LICENSE",
-    "src/",
-    "bin/"
+    "README.md",
+    "package.json",
+    "bin/",
+    "dist/",
+    "src/"
   ]
 }
