@@ -154,13 +154,16 @@ export class Wechaty extends EventEmitter implements Sayable {
       return
     }
 
+    this.state.current('ready', false)
+
     try {
       await this.initPuppet()
-      this.state.current('ready')
     } catch (e) {
       log.error('Wechaty', 'init() exception: %s', e && e.message)
       throw e
     }
+
+    this.state.current('ready')
     return
   }
 
@@ -257,6 +260,7 @@ export class Wechaty extends EventEmitter implements Sayable {
 
   public async quit(): Promise<void> {
     log.verbose('Wechaty', 'quit()')
+    this.state.current('standby', false)
 
     if (!this.puppet) {
       log.warn('Wechaty', 'quit() without this.puppet')
@@ -266,14 +270,13 @@ export class Wechaty extends EventEmitter implements Sayable {
     const puppetBeforeDie = this.puppet
     this.puppet     = null
     Config.puppetInstance(null)
-    // this.inited = false
-    this.state.current('standby')
 
     await puppetBeforeDie.quit()
                         .catch(e => {
                           log.error('Wechaty', 'quit() exception: %s', e.message)
                           throw e
                         })
+    this.state.current('standby')
     return
   }
 
