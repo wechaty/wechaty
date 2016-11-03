@@ -65,7 +65,8 @@ function wechaty::diagnose() {
   echo
   echo "### 1. source code of $file"
   echo
-  cat "$HOME/$file"
+  cat "$HOME/$file" || echo "ERROR: file not found"
+  echo
 
   echo
   echo "### 2. directory structor of $HOME"
@@ -75,12 +76,12 @@ function wechaty::diagnose() {
   echo
   echo '### 3. package.json'
   echo
-  cat "$HOME"/package.json
+  cat "$HOME"/package.json || echo "No package.json"
 
   echo
   echo "### 4. directory structor inside $HOME/node_modules"
   echo
-  ls "$HOME"/node_modules
+  ls "$HOME"/node_modules || echo "No node_modules"
 
   echo
   echo '### 5. wechaty doctor'
