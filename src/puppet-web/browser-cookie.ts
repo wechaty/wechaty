@@ -17,8 +17,10 @@ import log            from '../brolog-env'
 import BrowserDriver  from './browser-driver'
 
 /**
- * DriverCookie type exits is because @types/selenium is not updated
- * with the latest 3.0 version of selenium. 201610 zixia
+ * The reason that driverCookie type defined here
+ * is because @types/selenium is not updated
+ * with the latest 3.0 version of selenium.
+ * 201610 zixia
  */
 export type CookieType = {
   [index: string]: string | number | boolean
@@ -46,7 +48,6 @@ export class BrowserCookie {
     //   throw new Error('checkSession() - browser dead')
     // }
 
-    // return new Promise((resolve, reject) => {
     try {
       // `as any as DriverCookie` because selenium-webdriver @types is outdated with 2.x, where we r using 3.0
       const cookies = await this.driver.manage().getCookies() as any as CookieType[]
@@ -66,11 +67,11 @@ export class BrowserCookie {
 
     // if (this.browser.dead())  { return Promise.reject(new Error('cleanSession() - browser dead'))}
 
-    const filename = this.storeFile
+    const storeFile = this.storeFile
     await new Promise((resolve, reject) => {
-      fs.unlink(filename, err => {
+      fs.unlink(storeFile, err => {
         if (err && err.code !== 'ENOENT') {
-          log.silly('PuppetWebBrowserCookie', 'clean() unlink store file %s fail: %s', filename, err.message)
+          log.silly('PuppetWebBrowserCookie', 'clean() unlink store file %s fail: %s', storeFile, err.message)
         }
         resolve()
       })
@@ -79,18 +80,17 @@ export class BrowserCookie {
   }
 
   public async save(): Promise<void> {
-    log.silly('PuppetWebBrowserCookie', 'save() to file %s', this.storeFile)
     if (!this.storeFile) {
       log.verbose('PuppetWebBrowserCookie', 'save() no store file')
       return
     }
+    log.silly('PuppetWebBrowserCookie', 'save() to file %s', this.storeFile)
+
     const storeFile = this.storeFile
 
     // if (this.browser.dead()) {
     //   throw new Error('saveSession() - browser dead')
     // }
-
-    const filename = this.storeFile
 
     function cookieFilter(cookies: CookieType[]) {
       const skipNames = [
@@ -107,13 +107,11 @@ export class BrowserCookie {
     }
 
     try {
-    // return new Promise((resolve, reject) => {
       // `as any as DriverCookie` because selenium-webdriver @types is outdated with 2.x, where we r using 3.0
       let cookies: CookieType[] = await this.driver.manage().getCookies() as any as CookieType[]
       cookies = cookieFilter(cookies)
-      // .then(cookies => {
-        // log.silly('PuppetWeb', 'saving %d cookies for session: %s', cookies.length
-        //   , util.inspect(cookies.map(c => { return {name: c.name /*, value: c.value, expiresType: typeof c.expires, expires: c.expires*/} })))
+      // log.silly('PuppetWeb', 'saving %d cookies for session: %s', cookies.length
+      //   , util.inspect(cookies.map(c => { return {name: c.name /*, value: c.value, expiresType: typeof c.expires, expires: c.expires*/} })))
       log.silly('PuppetWebBrowserCookie', 'save() saving %d cookies: %s', cookies.length, cookies.map(c => c.name).join(','))
 
       const jsonStr = JSON.stringify(cookies)
@@ -121,10 +119,10 @@ export class BrowserCookie {
       await new Promise((resolve, reject) => {
         fs.writeFile(storeFile, jsonStr, err => {
           if (err) {
-            log.error('PuppetWebBrowserCookie', 'save() fail to write file %s: %s', filename, err.errno)
+            log.error('PuppetWebBrowserCookie', 'save() fail to write file %s: %s', storeFile, err.errno)
             reject(err)
           }
-          log.silly('PuppetWebBrowserCookie', 'save() %d cookies to %s', cookies.length, filename)
+          log.silly('PuppetWebBrowserCookie', 'save() %d cookies to %s', cookies.length, storeFile)
           resolve(cookies)
         })
       })

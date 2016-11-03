@@ -149,7 +149,7 @@ class UtilLib {
    *
    */
   public static getPort(port: number): Promise<number> {
-    log.verbose('UtilLib', 'getPort(%d)', port)
+    log.silly('UtilLib', 'getPort(%d)', port)
     let tryPort = nextPort(port || 38788)
 
     return new Promise((resolve, reject) => {
@@ -170,7 +170,7 @@ class UtilLib {
         })
       }
       _getPort(okPort => {
-        log.verbose('UtilLib', 'getPort(%d) return: %d'
+        log.silly('UtilLib', 'getPort(%d) return: %d'
                   , port
                   , okPort
         )

@@ -113,10 +113,10 @@ test('self()', t => {
   Config.puppetInstance()
 
   const m = new Message()
-  m.set('from', MOCK_USER_ID)
+  m.from(MOCK_USER_ID)
 
   t.true(m.self(), 'should identify self message true where message from userId')
 
-  m.set('from', 'fdsafasfsfa')
+  m.from('fdsafasfsfa')
   t.false(m.self(), 'should identify self message false when from a different fromId')
 })
