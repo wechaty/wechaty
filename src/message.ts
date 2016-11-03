@@ -150,10 +150,10 @@ export class Message implements Sayable {
     return '{' + this.type() + '}' + content
   }
 
-  public from(contact?: Contact): Contact
-  public from(id?: string): Contact
+  public from(contact?: Contact): void
+  public from(id?: string): void
   public from(): Contact
-  public from(contact?: Contact|string): Contact {
+  public from(contact?: Contact|string): Contact|void {
     if (contact) {
       if (contact instanceof Contact) {
         this.obj.from = contact.id
@@ -162,6 +162,7 @@ export class Message implements Sayable {
       } else {
         throw new Error('unsupport from param: ' + typeof contact)
       }
+      return
     }
 
     const loadedContact = Contact.load(this.obj.from)
@@ -171,11 +172,11 @@ export class Message implements Sayable {
     return loadedContact
   }
 
-  public to(contact: Contact): Contact
-  public to(room: Room): Room
-  public to(id: string): Contact|Room
+  public to(contact: Contact): void
+  public to(room: Room): void
+  public to(id: string): void
   public to(): Contact|Room
-  public to(contact?: Contact|Room|string): Contact|Room {
+  public to(contact?: Contact|Room|string): Contact|Room|void {
     if (contact) {
       if (contact instanceof Contact || contact instanceof Room) {
         this.obj.to = contact.id
@@ -184,6 +185,7 @@ export class Message implements Sayable {
       } else {
         throw new Error('unsupport to param ' + typeof contact)
       }
+      return
     }
 
     // FIXME: better to identify a room id?
@@ -196,10 +198,10 @@ export class Message implements Sayable {
     return loadedInstance
   }
 
-  public room(room: Room): Room
-  public room(id: string): Room
+  public room(room: Room): void
+  public room(id: string): void
   public room(): Room|null
-  public room(room?: Room|string): Room|null {
+  public room(room?: Room|string): Room|null|void {
     if (room) {
       if (room instanceof Room) {
         this.obj.room = room.id
@@ -208,6 +210,7 @@ export class Message implements Sayable {
       } else {
         throw new Error('unsupport room param ' + typeof room)
       }
+      return
     }
     if (!this.obj.room) {
       return null

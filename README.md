@@ -3,7 +3,7 @@
 
 ## Connecting ChatBots.
 
-Wechaty is a Bot Framework for Wechat **Personal** Account that helps you easy creating bot in 6 lines of javascript, with cross-platform  support to [Linux](https://travis-ci.org/wechaty/wechaty), [Win32](https://ci.appveyor.com/project/zixia/wechaty), [Darwin(OSX/Mac)](https://travis-ci.org/wechaty/wechaty) and [Docker](https://circleci.com/gh/wechaty/wechaty).
+Wechaty is a Bot Framework for Wechat **Personal** Account that helps you easy creating bot in 6 lines of javascript, with cross-platform support include [Linux](https://travis-ci.org/wechaty/wechaty), [Win32](https://ci.appveyor.com/project/zixia/wechaty), [Darwin(OSX/Mac)](https://travis-ci.org/wechaty/wechaty) and [Docker](https://circleci.com/gh/wechaty/wechaty).
 
 :octocat: <https://github.com/wechaty/wechaty>  
 :beetle: <https://github.com/wechaty/wechaty/issues>  
@@ -85,6 +85,8 @@ Use Docker to deploy wechaty is highly recommended.
 [![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
 
 [![dockeri.co](http://dockeri.co/image/zixia/wechaty)](https://hub.docker.com/r/zixia/wechaty/)
+
+Working in progress details: [Dockerize Wechaty for easy start #66](https://github.com/wechaty/wechaty/issues/66)
 
 Wechaty is fully dockerized. So it will be very easy to be used as a MicroService. 
 
@@ -490,15 +492,15 @@ get the sender from a message, or set it.
 
 get the sender from a message.
 
-#### 2. Message.from(contact: Contact): Contact
+#### 2. Message.from(contact: Contact): void
 
 set a sender to the message
 
-#### 3. Message.from(contactId: string): Contact
+#### 3. Message.from(contactId: string): void
 
 set a sender to the message by contact id
 
-### Message.to(contact?: Contact|Room|string): Contact|Room
+### Message.to(contact?: Contact|Room|string): Contact|Room|void
 
 get the receiver from a message, or set it.
 
@@ -506,19 +508,19 @@ get the receiver from a message, or set it.
 
 get the destination of the message
 
-#### 2. Message.to(contact: Contact): Contact
+#### 2. Message.to(contact: Contact): void
 
 set the destination as Contact for the message
 
-#### 3. Message.to(room: Room): Room
+#### 3. Message.to(room: Room): void
 
 set the destination as Room for the message
 
-#### 4. Message.to(contactOrRoomId: string): Contact | Room
+#### 4. Message.to(contactOrRoomId: string): void
 
 set the destination as Room or Contact by id, for the message
 
-### Message.room(room?: Room|string): Room
+### Message.room(room?: Room|string): Room|void
 
 get the room from a message, or set it.
 
@@ -528,11 +530,11 @@ get the room from Message.
 
 if the message is not in a room, then will return `null`
 
-#### 2. Message.room(room: Room): Room
+#### 2. Message.room(room: Room): void
 
 set the room for a Message
 
-#### 3. Message.room(roomId: string): Room
+#### 3. Message.room(roomId: string): void
 
 set the room by id for a Message
 
@@ -856,9 +858,9 @@ Github Issue <https://github.com/wechaty/wechaty/issues>
 ## Similar Project
 
 ### Javascript
+1. [Wechat4U](https://github.com/nodeWechat/wechat4u) 微信 wechat web 网页版接口的 JavaScript 实现，兼容Node和浏览器
 1. [Weixinbot](https://github.com/feit/Weixinbot) Nodejs 封装网页版微信的接口，可编程控制微信消息
 1. [wechatBot](https://github.com/stonexer/wechatBot) 面向个人的微信 wechat 机器人平台 - 使用微信网页版接口wechat4u
-1. [Wechat4U](https://github.com/nodeWechat/wechat4u) 微信 wechat web 网页版接口的 JavaScript 实现，兼容Node和浏览器
 2. [wechat-user-bot](https://github.com/HalfdogStudio/wechat-user-bot) 正在组装中的微信机器人
 2. [Hubot-WeChat](https://github.com/KasperDeng/Hubot-WeChat) Hubot是一个具有真实微信号的机器人，可以自动回复信息到微信群和某联系人，并能给维护者的微信自动发送Hubot在线状态
 
