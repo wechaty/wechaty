@@ -103,10 +103,10 @@ npm install --save wechaty
 
 ## [Wechaty](https://github.com/wechaty/wechaty/wiki/API#class-wechaty)
 
-1. [init(): Promise&gt;void&lt;](https://github.com/wechaty/wechaty/wiki/API#wechaty-init-promise-void)
-1. [instance(setting: PuppetSetting): Promise<Wechaty>](https://github.com/wechaty/wechaty/wiki/API#wechaty-instance-setting-puppetsetting-promise-wechaty)
-1. [send(message: Message): Promise<void>](https://github.com/wechaty/wechaty/wiki/API#wechaty-send-message-message-promise-void)
-1. [say(content: string): Promise<void>](https://github.com/wechaty/wechaty/wiki/API#wechaty-say-content-string-promise-void)
+1. [init(): Promise&lt;void&gt;](https://github.com/wechaty/wechaty/wiki/API#wechaty-init-promise-void)
+1. [instance(setting: PuppetSetting): Promise&lt;Wechaty&gt;](https://github.com/wechaty/wechaty/wiki/API#wechaty-instance-setting-puppetsetting-promise-wechaty)
+1. [send(message: Message): Promise&lt;void&gt;](https://github.com/wechaty/wechaty/wiki/API#wechaty-send-message-message-promise-void)
+1. [say(content: string): Promise&lt;void&gt;](https://github.com/wechaty/wechaty/wiki/API#wechaty-say-content-string-promise-void)
 
 ### [Wechaty Event](https://github.com/wechaty/wechaty/wiki/API#wechaty-event)
 
@@ -160,19 +160,9 @@ See more about:
 * [Log](https://github.com/wechaty/wechaty/wiki/Log)
 * [Debug](https://github.com/wechaty/wechaty/wiki/Debug)
 
-# Related Document
+# Release
 
-1. [Deploy](https://github.com/wechaty/wechaty/wiki/Deploy)
-1. [Docker](https://github.com/wechaty/wechaty/wiki/Docker)
-1. [Example](https://github.com/wechaty/wechaty/wiki/Example)
-1. [IDE](https://github.com/wechaty/wechaty/wiki/IDE)
-1. [NpmLog](https://github.com/wechaty/wechaty/wiki/NpmLog)
-1. [RelatedProject](https://github.com/wechaty/wechaty/wiki/RelatedProject)
-1. [Source](https://github.com/wechaty/wechaty/wiki/Source)
-1. [TypeScript](https://github.com/wechaty/wechaty/wiki/TypeScript)
-1. [Xvfb](https://github.com/wechaty/wechaty/wiki/Xvfb)
-
-# Changelog
+[Latest Release](https://github.com/wechaty/wechaty/releases/latest)(All releases [here](https://github.com/wechaty/wechaty/releases))
 
 [CHANGELOG](https://github.com/wechaty/wechaty/blob/master/CHANGELOG)
 
