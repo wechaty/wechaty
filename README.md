@@ -16,12 +16,12 @@ Wechaty is a Bot Framework for Wechat **Personal** Account that helps you easy c
 
 ## Voice of the Developer
 
-> @JasLin: it may be the best wechat SDK I have seen in Github! [link](https://github.com/wechaty/wechaty/issues/8#issuecomment-228971491)
-> @ccaapton: wechaty library fantastic! [link](https://github.com/wechaty/wechaty/issues/9)
-> @ak5: Thanks for this it's quite cool! [link](https://github.com/wechaty/wechaty/issues/4)
-> @Samurais: wechaty is great.  [link](https://github.com/wechaty/wechaty/issues/36#issuecomment-251708382)
-> @Jarvis: 目前用过的最好的微信开发库 [link](http://weibo.com/3296245513/Ec4iNp9Ld?type=comment)
-> @naishstar: thanks for great SDK [link](https://github.com/wechaty/wechaty/issues/57)
+> @JasLin: it may be the best wechat SDK I have seen in Github! [link](https://github.com/wechaty/wechaty/issues/8#issuecomment-228971491)  
+> @ccaapton: wechaty library fantastic! [link](https://github.com/wechaty/wechaty/issues/9)  
+> @ak5: Thanks for this it's quite cool! [link](https://github.com/wechaty/wechaty/issues/4)  
+> @Samurais: wechaty is great.  [link](https://github.com/wechaty/wechaty/issues/36#issuecomment-251708382)  
+> @Jarvis: 目前用过的最好的微信开发库 [link](http://weibo.com/3296245513/Ec4iNp9Ld?type=comment)  
+> @naishstar: thanks for great SDK [link](https://github.com/wechaty/wechaty/issues/57)  
 
 # Example
 
