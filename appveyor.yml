@@ -11,13 +11,15 @@ install:
   # Get the latest stable version of Node.js or io.js
   - ps: Install-Product node $env:nodejs_version
   # install modules
-  - npm --progress false --loglevel warn install
+  - npm --progress=false --loglevel=warn install
 
 # Post-install test scripts.
 test_script:
   - node --version
   - npm --version
-  - npm test
+  - npm run eslint
+  - npm run tslint
+  - npm run test:chrome
 
 # Don't actually build.
 build: off
