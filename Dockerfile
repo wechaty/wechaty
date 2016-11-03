@@ -37,6 +37,7 @@ RUN  sed -i '/chromedriver/d' package.json \
 # If it is not found there, then it moves to the parent directory, and so on, until the root of the file system is reached.
 COPY . .
 RUN  sed -i '/chromedriver/d' package.json \
+  && npm run build \
   && npm --progress=false link \
   \
   && mkdir /bot \
