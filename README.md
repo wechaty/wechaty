@@ -37,11 +37,17 @@ Wechaty.instance() // Singleton
 .init()
 ```
 
-* roger-bot can be found in example directory at [here](https://github.com/wechaty/wechaty/blob/master/example/roger-bot.ts)
+the above bot source code can be found [here](https://github.com/wechaty/wechaty/blob/master/example/roger-bot.ts).
 
-See more: [Example](https://github.com/wechaty/wechaty/wiki/Example)
+You can find more example from [Wiki](https://github.com/wechaty/wechaty/wiki/Example) and [Example Directory](https://github.com/wechaty/wechaty/blob/master/example/).
 
 # Run
+
+[![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
+[![Docker Stars](https://img.shields.io/docker/stars/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
+[![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
+
+Let's save the above example bot code to a file named `mybot.ts`, then run the following command:
 
 ```shell
 $ alias wechaty='docker run \
@@ -55,14 +61,14 @@ $ alias wechaty='docker run \
 $ wechaty mybot.ts
 ```
 
-See more: [Docker](https://github.com/wechaty/wechaty/wiki/Docker)
+Note: [Docker](https://github.com/wechaty/wechaty/wiki/Docker) is required.
 
 # NPM
 
 [![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty)
 [![Downloads][downloads-image]][downloads-url]
 
-NPM is recommended to install a stable version of Wechaty published on NPM.com
+Get Wechaty from NPM:
 
 ```shell
 npm install --save wechaty
@@ -86,18 +92,6 @@ npm install --save wechaty
 </a>
 ```
 
-# Document
-
-1. [Deploy](https://github.com/wechaty/wechaty/wiki/Deploy)
-1. [Docker](https://github.com/wechaty/wechaty/wiki/Docker)
-1. [Example](https://github.com/wechaty/wechaty/wiki/Example)
-1. [IDE](https://github.com/wechaty/wechaty/wiki/IDE)
-1. [NpmLog](https://github.com/wechaty/wechaty/wiki/NpmLog)
-1. [RelatedProject](https://github.com/wechaty/wechaty/wiki/RelatedProject)
-1. [Source](https://github.com/wechaty/wechaty/wiki/Source)
-1. [TypeScript](https://github.com/wechaty/wechaty/wiki/TypeScript)
-1. [Xvfb](https://github.com/wechaty/wechaty/wiki/Xvfb)
-
 # Requirement
 
 1. Javascript ES6(ECMAScript2015)
@@ -109,7 +103,7 @@ npm install --save wechaty
 
 ## [Wechaty](https://github.com/wechaty/wechaty/wiki/API#class-wechaty)
 
-1. [init(): Promise<void>](https://github.com/wechaty/wechaty/wiki/API#wechaty-init-promise-void)
+1. [init(): Promise&gt;void&lt;](https://github.com/wechaty/wechaty/wiki/API#wechaty-init-promise-void)
 1. [instance(setting: PuppetSetting): Promise<Wechaty>](https://github.com/wechaty/wechaty/wiki/API#wechaty-instance-setting-puppetsetting-promise-wechaty)
 1. [send(message: Message): Promise<void>](https://github.com/wechaty/wechaty/wiki/API#wechaty-send-message-message-promise-void)
 1. [say(content: string): Promise<void>](https://github.com/wechaty/wechaty/wiki/API#wechaty-say-content-string-promise-void)
@@ -165,6 +159,18 @@ See more about:
 * Know more about TAP: [Why I use Tape Instead of Mocha & So Should You](https://medium.com/javascript-scene/why-i-use-tape-instead-of-mocha-so-should-you-6aa105d8eaf4)
 * [Log](https://github.com/wechaty/wechaty/wiki/Log)
 * [Debug](https://github.com/wechaty/wechaty/wiki/Debug)
+
+# Related Document
+
+1. [Deploy](https://github.com/wechaty/wechaty/wiki/Deploy)
+1. [Docker](https://github.com/wechaty/wechaty/wiki/Docker)
+1. [Example](https://github.com/wechaty/wechaty/wiki/Example)
+1. [IDE](https://github.com/wechaty/wechaty/wiki/IDE)
+1. [NpmLog](https://github.com/wechaty/wechaty/wiki/NpmLog)
+1. [RelatedProject](https://github.com/wechaty/wechaty/wiki/RelatedProject)
+1. [Source](https://github.com/wechaty/wechaty/wiki/Source)
+1. [TypeScript](https://github.com/wechaty/wechaty/wiki/TypeScript)
+1. [Xvfb](https://github.com/wechaty/wechaty/wiki/Xvfb)
 
 # Changelog
 
