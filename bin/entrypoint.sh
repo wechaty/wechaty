@@ -60,7 +60,7 @@ function wechaty::diagnose() {
 
 : echo " exit code $ret "
   figlet ' BUG REPORT '
-  wechaty::pressEnterToContinue
+  wechaty::pressEnterToContinue 30
 
   echo
   echo "### 1. source code of $file"
@@ -110,7 +110,7 @@ function wechaty::runBot() {
 
   [ -f package.json ] && {
     echo "Install dependencies modules ..."
-    yarn
+    yarn < /dev/null # yarn will close stdin??? cause `read` command fail after yarn
   }
 
   echo "Link Wechaty Module ... "
@@ -130,14 +130,6 @@ function wechaty::runBot() {
       wechaty::diagnose "$ret" "$@"
       ;;
   esac
-
-#  if (( "$ret" != 0 )); then
-#    if (( "$ret" == 130 )); then
-#      wechaty::errorCtrlC
-#    else 
-#      wechaty::diagnose "$ret" $@
-#    fi
-#  fi
 
   return "$ret"
 }
@@ -182,43 +174,6 @@ function main() {
 
   wechaty::banner
   figlet " Exit $ret "
-  wechaty::pressEnterToContinue 3
- 
-  #
-  # 1. Get a shell
-  #
-#  if [ "$1" = "shell" ] || \
-#    [ "$1" = "sh" ] || \
-#    [ "$1" = "bash" ]
-#  then
-#    exec /bin/bash -s
-#    return $?
-#  fi
-
-  #
-  # 2. Run a bot
-  #
-#  if [[ "$1" == *.ts || "$1" == *.js ]]; then
-#    wechaty::runBot $@
-#
-#    wechaty::banner
-#    figlet " Exit $ret "
-#
-#    wechaty::pressEnterToContinue 3
-#    return $ret
-#  fi
-
-  #
-  # 3. Execute npm run ...
-  #
-#  ret=0
-#  exec npm $@ || ret=$?
-#
-#  wechaty::banner
-#  figlet " Exit $ret "
-#  wechaty::pressEnterToContinue
-#
-#  return $ret
 }
 
 main "$@"
