@@ -118,7 +118,8 @@ function wechaty::runBot() {
 
   echo "Executing ts-node $*"
   local -i ret=0
-  ts-node "$@" || ret=$?
+  ts-node "$@" &
+  wait "$!" || ret=$? # fix `can only `return' from a function or sourced script` error
 
   case "$ret" in
     0)
