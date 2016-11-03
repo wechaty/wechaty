@@ -114,8 +114,9 @@ function wechaty::runBot() {
     yarn < /dev/null # yarn will close stdin??? cause `read` command fail after yarn
   }
 
-  echo "Link Wechaty Module ... "
+  echo -n "Linking Wechaty Module ... "
   npm link wechaty > /dev/null
+  echo "linked. "
 
   echo "Executing ts-node $*"
   local -i ret=0
