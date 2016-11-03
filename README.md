@@ -745,7 +745,7 @@ const request = new FriendRequest()
 request.send(from, 'hello~')
 ```
 
-# Test [![Coverage Status](https://coveralls.io/repos/github/wechaty/wechaty/badge.svg?branch=master)](https://coveralls.io/github/wechaty/wechaty?branch=master)
+# Test [![Coverage Status](https://coveralls.io/repos/github/wechaty/wechaty/badge.svg?branch=master)](https://coveralls.io/github/wechaty/wechaty?branch=master) [![Code Climate](https://codeclimate.com/github/wechaty/wechaty/badges/gpa.svg)](https://codeclimate.com/github/wechaty/wechaty) [![Issue Count](https://codeclimate.com/github/wechaty/wechaty/badges/issue_count.svg)](https://codeclimate.com/github/wechaty/wechaty) [![Test Coverage](https://codeclimate.com/github/wechaty/wechaty/badges/coverage.svg)](https://codeclimate.com/github/wechaty/wechaty/coverage)
 
 Wechaty use ~~[TAP protocol](http://testanything.org/)~~ [AVA](https://github.com/avajs/ava) to test itself ~~by [tap](http://www.node-tap.org/)~~.
 
