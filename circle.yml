@@ -2,9 +2,9 @@ machine:
   services:
   - docker
 
-dependencies:
-  pre:
-    - sudo apt-get update; sudo apt-get install shellcheck
+# dependencies:
+#  pre:
+#    - sudo apt-get update; sudo apt-get install shellcheck
 test:
   override:
   - docker info
