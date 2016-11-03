@@ -35,7 +35,13 @@ Contribute by make product suggestion.
 Please:
  
 1. submit issue to describe the problem to get start
-1. then send pull request as you need 
+1. then send pull request as you need(with unit test & pass linting)
+ 
+  ```bash
+  $ npm run lint
+  $ npm run test
+  ```
+
 1. and do not forget to reference the issue 
 
 I built wechaty with pleasure because it can help others. help from you for wechaty will be very appreciated by the community.
