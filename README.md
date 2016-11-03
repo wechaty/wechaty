@@ -41,11 +41,7 @@ the above bot source code can be found [here](https://github.com/wechaty/wechaty
 
 You can find more example from [Wiki](https://github.com/wechaty/wechaty/wiki/Example) and [Example Directory](https://github.com/wechaty/wechaty/blob/master/example/).
 
-# Run
-
-[![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
-[![Docker Stars](https://img.shields.io/docker/stars/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
-[![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
+# Run [![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Stars](https://img.shields.io/docker/stars/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
 
 Let's save the above example bot code to a file named `mybot.ts`, then run the following command:
 
@@ -63,10 +59,7 @@ $ wechaty mybot.ts
 
 Note: [Docker](https://github.com/wechaty/wechaty/wiki/Docker) is required.
 
-# NPM
-
-[![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty)
-[![Downloads][downloads-image]][downloads-url]
+# NPM [![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty) [![Downloads][downloads-image]][downloads-url]
 
 Get Wechaty from NPM:
 
@@ -74,9 +67,9 @@ Get Wechaty from NPM:
 npm install --save wechaty
 ```
 
-# Badge
+# Badge [![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/wechaty/wechaty)
 
-[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/wechaty/wechaty)
+If you are using Wechaty, please place Wechaty Badge on your page to support Wechaty, appreciate!
 
 ## Markdown
 
