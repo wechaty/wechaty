@@ -14,24 +14,6 @@ Wechaty is a Bot Framework for Wechat **Personal** Account that helps you easy c
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=2592000)](https://nodejs.org/)
 [![Repo Size](https://reposs.herokuapp.com/?path=wechaty/wechaty)](https://github.com/wechaty/wechaty)
 
-## Wechaty had rewritten to Typescript.
-
-Details: https://github.com/wechaty/wechaty/issues/40
-
-```diff
-+ Typescriptilized ...
-+ on 12th Oct 2016
-```
-
-[VSCode](https://code.visualstudio.com/) is highly recommended as developing IDE for typescript because we can get the benefit of [intelligent code completion, parameter info, and member lists](https://code.visualstudio.com/docs/languages/javascript).
-
-The last Javascript version is: [v0.4.0](https://github.com/wechaty/wechaty/releases/tag/v0.4.0) (2016/10/9) , or install v0.4 by `npm install wechaty`.
-
-### Benifits from Typescript
-
-- [Why we decided to move from plain JavaScript to TypeScript for Babylon.js](https://www.eternalcoding.com/?p=103)
-- [Migrating from JavaScript](https://www.typescriptlang.org/docs/handbook/migrating-from-javascript.html)
-
 ## Voice of the Developer
 
 > @JasLin: it may be the best wechat SDK I have seen in Github! [link](https://github.com/wechaty/wechaty/issues/8#issuecomment-228971491)
@@ -270,6 +252,34 @@ Please submit your issue if you have any, and a fork & pull is very welcome for 
   <img src="https://img.shields.io/badge/Powered%20By-Wechaty-green.svg" alt="Powered by Wechaty" border="0">
 </a>
 ```
+
+# About TypeScript
+
+[Typescript](http://www.typescriptlang.org/) is JavaScript that scales. It comes from Microsoft, and is the popularest language in [Google Angular](https://angular.io).
+
+## Benifits from Typescript
+
+Wechaty is fully typed by TypeScript since v0.5, 12th Oct 2016. And got benefits as the following:
+
+1. Better async coding style: `async`/`await` (now we use `co` module)
+1. Strong type definition/checking for data structure
+1. Auto completion/Static syntax check with [VSCode IDE](https://code.visualstudio.com)
+1. Static variable that can initializing inside class
+1. Public/private setting for methods/member variables
+1. other benefits...
+
+The lastest javascript version is: [v0.4.0](https://github.com/wechaty/wechaty/releases/tag/v0.4.0)(2016/10/9)
+
+## Reference
+
+1. [The Future of Declaration Files](https://blogs.msdn.microsoft.com/typescript/2016/06/15/the-future-of-declaration-files/)
+1. [What's new in TypeScript](https://github.com/Microsoft/TypeScript/wiki/What's-new-in-TypeScript)
+1. [Why we decided to move from plain JavaScript to TypeScript for Babylon.js](https://www.eternalcoding.com/?p=103)
+1. [Migrating from JavaScript](https://www.typescriptlang.org/docs/handbook/migrating-from-javascript.html)
+
+* Work Log: https://github.com/wechaty/wechaty/issues/40
+
+[VSCode](https://code.visualstudio.com/) is highly recommended as developing IDE for Wechaty with TypeScript because we can get the benefit of [intelligent code completion, parameter info, and member lists](https://code.visualstudio.com/docs/languages/javascript).
 
 # Trouble Shooting
 
