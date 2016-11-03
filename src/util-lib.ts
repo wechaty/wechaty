@@ -187,7 +187,7 @@ class UtilLib {
        * nano seconds from node: http://stackoverflow.com/a/18197438/1123955
        */
       const [, nanoSeed] = process.hrtime()
-      const n = nanoSeed % RANGE
+      const n = 1 + nanoSeed % RANGE // +1 to prevent same port
 
       if (currentPort + n > 65000) {
         return currentPort + n - RANGE
