@@ -153,55 +153,19 @@ Use NPM is recommended to install a stable version of Wechaty published on NPM.c
 npm install --save wechaty
 ```
 
-
 If you use chrome instead of phantomjs, you should make sure:
 
 1. installed Chrome correctly
 1. if you are under Linux, set headless right for `Xvfb`
 
-* [Running a GUI application in a Docker container](https://linuxmeerkat.wordpress.com/2014/10/17/running-a-gui-application-in-a-docker-container/)
-
 Then you are set.
 
-## Install to Cloud9 IDE
-[Cloud9 IDE](https://c9.io/) is Google Docs for Code, which is my favorite IDE today. Almost all my wechaty development based on Cloud9(Before Oct 2016, or v0.0.5).
-
-> Cloud9 IDE written in JavaScript uses Node.js on the back-end. It uses Docker containers for its workspaces and hosted on Google Compute Engine.
-
-### 1. Open in Cloud9 IDE
-
-Just one click here: <a href="https://c9.io/open/?name=Wechaty&type=nodejs&clone_url=https://github.com/wechaty/wechaty.git&description=Wechat%20for%20Bot&selection_file=/example/ding-dong-bot.ts" target="_blank"><img src="https://img.shields.io/badge/open%20in-Cloud9%20IDE-blue.svg" alt="Open Wechaty in Cloud9 IDE"></a>
-
-### 2. Set default to Node.js v6
-Open Terminal in Cloud9 IDE, use nvm to install nodejs v6, which is required by Wechaty.
-
-```bash
-$ nvm install 6
-Downloading https://nodejs.org/dist/v6.2.1/node-v6.2.1-linux-x64.tar.xz...
-######################################################################## 100.0%
-Now using node v6.2.1 (npm v3.9.3)
-
-$ nvm alias default 6
-default -> 6 (-> v6.2.1)
-
-$ node --version
-v6.2.1
-```
-
-### 3. Run
-```shell
-$ npm install
-
-$ npm run demo
-```
-
-### 4. Enjoy Cloud9 IDE
-You are set.
-
 ## Install from Github
+
 In case that you want to dive deeper into Wechaty, fork & clone to run Wechaty bot on your machine, and start hacking.
 
 ### 1. Install Node.js
+
 Node.js Version 6.0 or above is required.
 
 1. Visit [Node.js](https://nodejs.org)
@@ -217,6 +181,7 @@ git clone https://github.com/wechaty/wechaty.git
 The above command will clone wechaty source code to your current directory.
 
 ### 3. Run Demo Bot
+
 ```shell
 cd wechaty
 npm install
@@ -226,11 +191,6 @@ npm run demo
 After a little while, the bot will show you a message of a URL for Login QR Code. You need to scan this QR code in your wechat to permit your bot login.
 
 ### 4. Done
-
-## Setup `Xvfb` in linux
-
-[How to Install & Run Wechaty in Linux Server by @lijiarui](https://github.com/wechaty/wechaty/issues/48)
-
 
 Enjoy hacking Wechaty!
 Please submit your issue if you have any, and a fork & pull is very welcome for showing your idea.
@@ -253,33 +213,16 @@ Please submit your issue if you have any, and a fork & pull is very welcome for 
 </a>
 ```
 
-# About TypeScript
+# Documented
 
-[Typescript](http://www.typescriptlang.org/) is JavaScript that scales. It comes from Microsoft, and is the popularest language in [Google Angular](https://angular.io).
+## wiki
 
-## Benifits from Typescript
+1. [[IDE|IDE]]
+1. [[Xvfb|Xvfb]]
+1. [[TypeScript|TypeScript]]
+1. [[NpmLog|NpmLog]]
+1. [[SimilarProject|SimilarProject]]
 
-Wechaty is fully typed by TypeScript since v0.5, 12th Oct 2016. And got benefits as the following:
-
-1. Better async coding style: `async`/`await` (now we use `co` module)
-1. Strong type definition/checking for data structure
-1. Auto completion/Static syntax check with [VSCode IDE](https://code.visualstudio.com)
-1. Static variable that can initializing inside class
-1. Public/private setting for methods/member variables
-1. other benefits...
-
-The lastest javascript version is: [v0.4.0](https://github.com/wechaty/wechaty/releases/tag/v0.4.0)(2016/10/9)
-
-## Reference
-
-1. [The Future of Declaration Files](https://blogs.msdn.microsoft.com/typescript/2016/06/15/the-future-of-declaration-files/)
-1. [What's new in TypeScript](https://github.com/Microsoft/TypeScript/wiki/What's-new-in-TypeScript)
-1. [Why we decided to move from plain JavaScript to TypeScript for Babylon.js](https://www.eternalcoding.com/?p=103)
-1. [Migrating from JavaScript](https://www.typescriptlang.org/docs/handbook/migrating-from-javascript.html)
-
-* Work Log: https://github.com/wechaty/wechaty/issues/40
-
-[VSCode](https://code.visualstudio.com/) is highly recommended as developing IDE for Wechaty with TypeScript because we can get the benefit of [intelligent code completion, parameter info, and member lists](https://code.visualstudio.com/docs/languages/javascript).
 
 # Trouble Shooting
 
@@ -327,31 +270,6 @@ Tips: You may want to have more scroll buffer size in your CMD window in Windows
 mode con lines=32766
 ```
 > http://stackoverflow.com/a/8775884/1123955
-
-### NpmLog with Timestamp ###
-Here's a quick and dirty patch, to npmlog/log.js
-
-```typescript
-  m.message.split(/\r?\n/).forEach(function (line) {
-
-    var date = new Date();
-    var min = date.getMinutes()
-    var sec = date.getSeconds()
-    var hour = date.getHours()
-
-    if (sec < 10) { sec = '0' + sec }
-    if (min < 10) { min = '0' + min }
-    if (hour < 10) { hour = '0' + hour }
-
-    this.write(hour + ':' + min + ':' + sec + ' ')
-
-    if (this.heading) {
-      this.write(this.heading, this.headingStyle)
-      this.write(' ')
-    }
-```
-
-And we can look forward the official support from npmlog: https://github.com/npm/npmlog/pull/24
 
 ## DEBUG
 
@@ -806,60 +724,7 @@ npm test
 
 # Version History
 
-## v0.5.0 master (2016/10) The First Typescript Version
-1. Converted to Typescript (2016/10/11) [#40](https://github.com/wechaty/wechaty/issues/40) 
-1. Dockerize Wechaty for easy start [#66](https://github.com/wechaty/wechaty/issues/66)
-1. Sayablization: Make Wechaty/Contact/Room `Sayable`, and all `this` inside wechaty event listeners are `Sayable` too. [#41](https://github.com/wechaty/wechaty/issues/41)
-1. BREAKING CHANGE: global event `scan` listener arguments changed from 1 to 2: now is `function(this: Sayable, url: string, code: number)` instead of `function({url, code})` before.  
-1. add test with Node.js v7.0 in CI
-1. add `npm run doctor` to diagnose wechaty and output useful debug information
-
-## [v0.4.0](https://github.com/wechaty/wechaty/releases/tag/v0.4.0) (2016/10/9) The Latest Javascript Version
-1. [#32](https://github.com/wechaty/wechaty/issues/32) Extend Room Class with:
-  1. Global events: `room-join`, `room-leave`, `room-topic`
-  1. Room events: `join`, `leave`, `topic`
-  1. Create a new Room: `Room.create()`
-  1. Add/Del/Topic for Room
-  1. Other methods like nick/member/has/etc...
-1. [#33](https://github.com/wechaty/wechaty/issues/33) New Class `FriendRequest` with:
-  1. `Wechaty.on('friend', function(contact: Contact, request: FriendRequest) {})` with Wechaty new Event `friend` 
-  1. `request.accept()` to accept a friend request
-  1. `requestsend()` to send new friend request
-
-## v0.3.13 (2016/09)
-1. Managed by Cloud Manager: https://app.wechaty.io
-1. Dockerized & Published to docker hub as: [zixia/wechaty](https://hub.docker.com/r/zixia/wechaty/)
-1. Add `reset` & `shutdown` to IO Event
-1. Switch Unit Test Runner from Tape/Tap to [AVA](https://github.com/avajs/ava)
-1. Move git resposity from zixia/wechaty to [wechaty/wechaty](https://github.com/wechaty/wechaty)
-
-## v0.2.3 (2016/7/28)
-1. add wechaty.io cloud management support: set environment variable `WECHATY_TOKEN` to enable io support
-2. rename `WECHATY_SESSION` to `WECHATY_PROFILE` for better name
-3. fix watchdog timer & reset bug
-
-## v0.1.8 (2016/6/25)
-1. add a watchdog to restore from unknown state
-2. add support to download image message by `ImageMessage.readyStream()`
-3. fix lots of stable issues with webdriver exceptions & injection js code compatible
-
-## v0.1.1 (2016/6/10)
-1. add support to save & restore wechat login session
-1. add continuous integration tests on win32 platform. (powered by [AppVeyor](https://www.appveyor.com/))
-1. add environment variables HEAD/PORT/SESSION/DEBUG to config Wechaty
-
-## v0.0.10 (2016/5/28)
-1. use event `scan` to show image url of login QR Code(and detect state change)
-2. new examples: Tuling123 bot & api.AI bot
-3. more unit tests
-4. code coverage status
-
-## v0.0.5 (2016/5/11)
-1. Receive & send message
-1. Show contacts info
-1. Show rooms info
-1. 1st usable version
-1. Start coding from May 1st, 2016
+[CHANGELOG](https://github.com/wechaty/wechaty/blob/master/CHANGELOG)
 
 # Todo List
 
@@ -902,44 +767,6 @@ Github Issue <https://github.com/wechaty/wechaty/issues>
 * Create an issue, fork, then send a pull request(with unit test please).
 
 # See Also
-
-## Similar Project
-
-### Javascript
-1. [Wechat4U](https://github.com/nodeWechat/wechat4u) 微信 wechat web 网页版接口的 JavaScript 实现，兼容Node和浏览器
-1. [Weixinbot](https://github.com/feit/Weixinbot) Nodejs 封装网页版微信的接口，可编程控制微信消息
-1. [wechatBot](https://github.com/stonexer/wechatBot) 面向个人的微信 wechat 机器人平台 - 使用微信网页版接口wechat4u
-2. [wechat-user-bot](https://github.com/HalfdogStudio/wechat-user-bot) 正在组装中的微信机器人
-2. [Hubot-WeChat](https://github.com/KasperDeng/Hubot-WeChat) Hubot是一个具有真实微信号的机器人，可以自动回复信息到微信群和某联系人，并能给维护者的微信自动发送Hubot在线状态
-
-### Electron
-1. [:speech_balloon: A better WeChat on MacOS and Linux. Fewer bugs, more features. Built with Electron by Zhongyi Tong.](https://github.com/geeeeeeeeek/electronic-wechat)
-  - [网页版微信抓包+注入实现表情贴纸显示](https://github.com/geeeeeeeeek/electronic-wechat/issues/2)
-  - [新表情方案: 收到消息时修改其内容（及阻止撤回）](https://github.com/geeeeeeeeek/electronic-wechat/pull/13)
-1. [普通个人号 微信机器人/外挂](https://github.com/fritx/wxbot)
-  - [微信个人号/公众号相关项目整理（wechat/weixin/wx）](https://github.com/fritx/awesome-wechat)
-
-### Go
-1. [0d0f/exfe](https://github.com/0d0f/exfe-bus/tree/master/src/wechat) Wechat bot component of exfe-bus 
-
-### Perl
-1. [MojoWeixin](https://github.com/sjdy521/Mojo-Weixin) 使用Perl语言编写的微信客户端框架，基于Mojolicious，要求Perl版本5.10+，可通过插件提供基于HTTP协议的api接口供其他语言或系统调用
-
-### Python
-1. [WeixinBot](https://github.com/Urinx/WeixinBot) *Very well documented* 网页版微信API，包含终端版微信及微信机器人
-1. [wxBot](https://github.com/liuwons/wxBot): Wechat Bot API
-1. [ItChat](https://github.com/littlecodersh/ItChat): 微信个人号接口（支持文件、图片上下载）、微信机器人及命令行微信。三十行即可自定义个人号机器人
-1. [WechatIrcd](https://github.com/MaskRay/wechatircd): 用IRC客户端控制微信网页版
-1. [查看被删的微信好友](https://github.com/0x5e/wechat-deleted-friends): 由于微信后台已经对此类脚本做了屏蔽，无论是什么语言版本的脚本均已经失效，此项目帮助了解微信web版通讯过程，切勿再使用！
-
-### KDE
-1. [WeChat KDE frontend 微信 KDE 前端](https://github.com/xiangzhai/qwx)
-
-### Android
-1. [反向weixinxxx.apk](https://github.com/xiangzhai/qwx/tree/android)
-
-### dotNET
-1. [WeChat.NET](https://github.com/sherlockchou86/WeChat.NET) WeChat.NET client based on web wechat
 
 ## Chat Script
 1. [SuperScript](http://superscriptjs.com/) A dialog system and bot engine for conversational UI's. (Pure Javascript)
