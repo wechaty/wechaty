@@ -86,9 +86,47 @@ Use Docker to deploy wechaty is highly recommended.
 
 [![dockeri.co](http://dockeri.co/image/zixia/wechaty)](https://hub.docker.com/r/zixia/wechaty/)
 
-Working in progress details: [Dockerize Wechaty for easy start #66](https://github.com/wechaty/wechaty/issues/66)
-
 Wechaty is fully dockerized. So it will be very easy to be used as a MicroService. 
+
+### Wechaty Runtime
+
+The best practice of using Wechaty Docker is like the following:
+
+``` bash
+$ cat > mybot.ts
+import Wechaty from 'wechaty'
+
+const bot = Wechaty.instance()
+console.log(bot.version())
+^D
+
+$ alias wechaty='docker run \
+    -t -i --rm \
+    -e WECHATY_LOG="$WECHATY_LOG" \
+    --volume="$(pwd)":/bot \
+    --name=wechaty \
+    zixia/wechaty \
+'
+
+$ wechaty mybot.ts
+```
+
+see? death easy to use!
+
+#### Docker options explanation
+
+1. `-t` : Allocate a pseudo-TTY
+1. `-i` : Keep STDIN open even if not attached
+1. `--rm` : Automatically remove the container when it exits
+1. `-e WECHATY_LOG="$WECHATY_LOG"` : Pass the environment variable `WECHATY_LOG` into the container
+1. `--volume="$(pwd)":/bot` : Bind current directory(replaced by `"$(pwd)"`) to '`/bot`' inside the container, by mounting the volume
+1. `--name=wechaty` : Assign `wechaty` as the container name
+1. `zixia/wechaty` : Image name on docker hub, here's our [zixia/wechaty](https://hub.docker.com/r/zixia/wechaty)
+1. `mybot.ts` : File contains code wrote by you, should be placed in current directory `./`
+
+* Work Log: [Dockerize Wechaty for easy start #66](https://github.com/wechaty/wechaty/issues/66)
+
+### Wechaty Hostie
 
 ```bash
 export TOKEN="your token here"
