@@ -17,12 +17,7 @@ install:
 test_script:
   - node --version
   - npm --version
-  - npm run clean
-  - npm run eslint
-  - npm run tslint
-  - npm run build
-  - npm run test:chrome
-  - npm run sloc
+  - npm run test
 
 # Don't actually build.
 build: off

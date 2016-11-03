@@ -20,7 +20,7 @@
     "coveralls": "nyc report --reporter=text-lcov | coveralls",
     "doctor": "ts-node bin/doctor",
     "clean": "shx rm -fr dist/*",
-    "lint": "npm run shlint && npm run eslint && npm run tslint",
+    "lint": "npm run eslint && npm run tslint",
     "eslint": "eslint \"{bin,example,src,test}/**/*.js\"",
     "tslint": "tslint \"{bin,example,src,test}/**/*.ts\" && tsc --noEmit",
     "shlint": "bash -n bin/*.sh && shellcheck bin/*.sh",

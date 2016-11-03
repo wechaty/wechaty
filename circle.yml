@@ -9,6 +9,7 @@ test:
   override:
   - docker info
   - ./script/docker.sh build
+  - ./script/docker.sh run shlint
   - ./script/docker.sh test
 
 deployment:

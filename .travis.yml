@@ -43,6 +43,7 @@ script:
   - echo $TRAVIS_OS_NAME
   - node --version
   - npm --version
+  - npm run shlint
   - npm test
 
 notifications:
