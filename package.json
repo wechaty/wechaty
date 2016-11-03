@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Wechat for Bot (Personal Account)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -17,6 +17,7 @@
   "scripts": {
     "ts-node": "ts-node",
     "build": "tsc && shx cp package.json dist/ && shx cp src/puppet-web/*.js dist/src/puppet-web/",
+    "rebuild": "npm run clean && npm run build",
     "coveralls": "nyc report --reporter=text-lcov | coveralls",
     "doctor": "ts-node bin/doctor",
     "clean": "shx rm -fr dist/*",
@@ -135,6 +136,9 @@
     "LICENSE",
     "README.md",
     "package.json",
+    "*.js",
+    "*.js.map",
+    "*.d.ts",
     "bin/",
     "dist/",
     "src/"
