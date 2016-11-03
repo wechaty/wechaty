@@ -12,7 +12,8 @@
  */
 /* tslint:disable:no-var-requires */
 /* tslint:disable:variable-name */
-const Tuling123 = require('tuling123-client')
+const QrcodeTerminal  = require('qrcode-terminal')
+const Tuling123       = require('tuling123-client')
 
 import { EventEmitter } from 'events'
 
@@ -50,7 +51,11 @@ bot
 .on('login'  , user => log.info('Bot', `bot login: ${user}`))
 .on('logout' , e => log.info('Bot', 'bot logout.'))
 .on('scan', (url, code) => {
-  console.log(`Scan QR Code in url to login: ${code}\n${url}`)
+  if (!/201|200/.test(String(code))) {
+    let loginUrl = url.replace(/\/qrcode\//, '/l/')
+    QrcodeTerminal.generate(loginUrl)
+  }
+  console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
 })
 .on('message', async m => {
   if (m.self()) return

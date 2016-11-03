@@ -6,12 +6,20 @@
  * https://github.com/wechaty/wechaty
  *
  */
+
+/* tslint:disable:variable-name */
+const QrcodeTerminal = require('qrcode-terminal')
+
 import { Wechaty } from '../'
 const bot = Wechaty.instance(/* no profile here because roger bot is too noisy */)
 
 bot
 .on('scan', (url, code) => {
-  console.log(`Use Wechat to Scan QR Code in url to login: ${code}\n${url}`)
+  if (!/201|200/.test(String(code))) {
+    let loginUrl = url.replace(/\/qrcode\//, '/l/')
+    QrcodeTerminal.generate(loginUrl)
+  }
+  console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
 })
 .on('message', m => {
   if (bot.self(m)) { return }

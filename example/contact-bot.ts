@@ -6,6 +6,10 @@
  * https://github.com/wechaty/wechaty
  *
  */
+
+/* tslint:disable:variable-name */
+const QrcodeTerminal = require('qrcode-terminal')
+
 import {
     Config
   , Contact
@@ -51,7 +55,7 @@ bot
 .on('scan', (url, code) => {
   if (!/201|200/.test(String(code))) {
     let loginUrl = url.replace(/\/qrcode\//, '/l/')
-    require('qrcode-terminal').generate(loginUrl)
+    QrcodeTerminal.generate(loginUrl)
   }
   console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
 })

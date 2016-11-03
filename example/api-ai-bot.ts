@@ -10,6 +10,10 @@
  * Wechaty - https://github.com/zixia/wechaty
  *
  */
+
+/* tslint:disable:variable-name */
+const QrcodeTerminal = require('qrcode-terminal')
+
 import { Brolog as log } from 'brolog'
 /* tslint:disable:no-var-requires */
 const co  = require('co')
@@ -47,7 +51,11 @@ Loading... please wait for QrCode Image Url and then scan to login.
 
 bot
 .on('scan', (url, code) => {
-  console.log(`[${code}]Scan QR Code in url to login:\n${url}`)
+  if (!/201|200/.test(String(code))) {
+    let loginUrl = url.replace(/\/qrcode\//, '/l/')
+    QrcodeTerminal.generate(loginUrl)
+  }
+  console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
 })
 .on('login'  , user => log.info('Bot', `bot login: ${user}`))
 .on('logout' , e => log.info('Bot', 'bot logout.'))
