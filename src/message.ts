@@ -150,8 +150,8 @@ export class Message implements Sayable {
     return '{' + this.type() + '}' + content
   }
 
-  public from(contact?: Contact): void
-  public from(id?: string): void
+  public from(contact: Contact): void
+  public from(id: string): void
   public from(): Contact
   public from(contact?: Contact|string): Contact|void {
     if (contact) {
@@ -212,10 +212,10 @@ export class Message implements Sayable {
       }
       return
     }
-    if (!this.obj.room) {
-      return null
+    if (this.obj.room) {
+      return Room.load(this.obj.room)
     }
-    return Room.load(this.obj.room)
+    return null
   }
 
   public content(content?: string): string {
