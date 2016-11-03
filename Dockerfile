@@ -2,7 +2,11 @@
 # Wechaty Docker
 # https://github.com/wechaty/wechaty
 #
-FROM alpine
+# FROM alpine
+#
+# Docker image for Alpine Linux with latest ShellCheck, a static analysis tool for shell scripts.
+# https://hub.docker.com/r/nlknguyen/alpine-shellcheck/
+FROM nlknguyen/alpine-shellcheck
 MAINTAINER Zhuophuan LI <zixia@zixia.net>
 
 RUN  apk update && apk upgrade \
@@ -29,20 +33,28 @@ RUN  sed -i '/chromedriver/d' package.json \
   && npm --progress=false install > /dev/null \
   && rm -fr /tmp/* ~/.npm
 
-COPY . .
-RUN  sed -i '/chromedriver/d' package.json \
-  && npm --progress=false link
-
 # Loading from node_modules Folders: https://nodejs.org/api/modules.html
 # If it is not found there, then it moves to the parent directory, and so on, until the root of the file system is reached.
-RUN mkdir /bot \
-  && ln -s /usr/local/lib/node_modules / \
+COPY . .
+RUN  sed -i '/chromedriver/d' package.json \
+  && npm --progress=false link \
+  \
+  && mkdir /bot \
+  \
+  && mkdir /node_modules && ln -s /wechaty /node_modules \
+  \
+  && ln -s /wechaty/bin/xvfb-run /usr/local/bin \
   && ln -s /wechaty/tsconfig.json / \
-  && ln -s /wechaty/bin/xvfb-run /usr/local/bin
+  \
+  && echo 'Linked wechaty to global'
 
 VOLUME [ "/bot" ]
 
 ENTRYPOINT [ "/wechaty/bin/entrypoint.sh" ]
 CMD [ "start" ]
+
+LABEL org.label-schema.license=ISC \
+      org.label-schema.vcs-ref=master \
+      org.label-schema.vcs-url=https://github.com/wechaty/wechaty
 
 #RUN npm test
