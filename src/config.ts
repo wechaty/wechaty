@@ -131,6 +131,10 @@ function isWechatyDocker() {
 /**
  * 5. live setting
  */
+function puppetInstance(): Puppet
+function puppetInstance(empty: null): void
+function puppetInstance(instance: Puppet): void
+
 function puppetInstance(instance?: Puppet | null): Puppet | void {
   if (instance !== undefined) {
     if (instance) {

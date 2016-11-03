@@ -153,7 +153,7 @@ See more about:
 * [Log](https://github.com/wechaty/wechaty/wiki/Log)
 * [Debug](https://github.com/wechaty/wechaty/wiki/Debug)
 
-# Release
+# Release Notes
 
 [Latest Release](https://github.com/wechaty/wechaty/releases/latest)(All releases [here](https://github.com/wechaty/wechaty/releases))
 
