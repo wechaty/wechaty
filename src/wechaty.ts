@@ -93,17 +93,13 @@ export class Wechaty extends EventEmitter implements Sayable {
   public toString() { return 'Class Wechaty(' + this.setting.puppet + ')'}
 
   public version(forceNpm = false) {
+    // TODO: use  git rev-parse HEAD  ?
     const dotGitPath  = path.join(__dirname, '..', '.git') // `/src/../.git`
     const gitLogCmd   = 'git'
     const gitLogArgs  = ['log', '--oneline', '-1']
 
     if (!forceNpm) {
       try {
-        /**
-         * Synchronous version of fs.access().
-         * This throws if any accessibility checks fail, and does nothing otherwise.
-         */
-        // fs.accessSync(dotGitPath, fs.F_OK)
         fs.statSync(dotGitPath).isDirectory()
 
         const ss = require('child_process')
