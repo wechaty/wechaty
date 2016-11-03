@@ -142,28 +142,26 @@ export class Wechaty extends EventEmitter implements Sayable {
     return
   }
 
-  public async init(): Promise<this> {
+  public async init(): Promise<void> {
     log.info('Wechaty', 'v%s initializing...' , this.version())
     log.verbose('Wechaty', 'puppet: %s'       , this.setting.puppet)
     log.verbose('Wechaty', 'head: %s'         , this.setting.head)
     log.verbose('Wechaty', 'profile: %s'      , this.setting.profile)
     log.verbose('Wechaty', 'uuid: %s'         , this.uuid)
 
-    // if (this.inited) {
     if (this.state.current() === 'ready') {
       log.error('Wechaty', 'init() already inited. return and do nothing.')
-      return this
+      return
     }
 
     try {
       await this.initPuppet()
-      // this.inited = true
       this.state.current('ready')
     } catch (e) {
       log.error('Wechaty', 'init() exception: %s', e && e.message)
       throw e
     }
-    return this
+    return
   }
 
   // public on(event: WechatyEventName, listener: Function): this
