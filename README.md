@@ -61,7 +61,7 @@ $ alias wechaty='docker run \
 $ wechaty mybot.js
 ```
 
-Know more about Wechaty [Docker](https://github.com/wechaty/wechaty/wiki/Docker).
+Know more about Docker for Wechaty at [here](https://github.com/wechaty/wechaty/wiki/Docker).
 
 # NPM [![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty) [![Downloads][downloads-image]][downloads-url]
 
