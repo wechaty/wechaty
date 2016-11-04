@@ -39,7 +39,7 @@ export interface ConfigSetting {
   _puppetInstance: Puppet | null
   puppetInstance(): Puppet
   puppetInstance(empty: null): void
-  puppetInstance(instance: Puppet): Puppet
+  puppetInstance(instance: Puppet): void
   puppetInstance(instance?: Puppet | null): Puppet | void
 
   isDocker: boolean
@@ -136,22 +136,24 @@ function puppetInstance(empty: null): void
 function puppetInstance(instance: Puppet): void
 
 function puppetInstance(instance?: Puppet | null): Puppet | void {
-  if (instance !== undefined) {
-    if (instance) {
-      log.verbose('Config', 'puppetInstance(%s)', instance.constructor.name)
-      Config._puppetInstance = instance
-      return instance
+
+  if (instance === undefined) {
+    if (!Config._puppetInstance) {
+      throw new Error('no puppet instance')
     }
+    return Config._puppetInstance
+
+  } else if (instance === null) {
     log.verbose('Config', 'puppetInstance(null)')
     Config._puppetInstance = null
     return
+
   }
 
-  if (!Config._puppetInstance) {
-    throw new Error('no puppet instance')
-  }
+  log.verbose('Config', 'puppetInstance(%s)', instance.constructor.name)
+  Config._puppetInstance = instance
+  return
 
-  return Config._puppetInstance
 }
 
 Object.assign(Config, {
@@ -184,6 +186,7 @@ export type RecommendInfo = {
 export interface Sayable {
   say(content: string, replyTo?: any|any[]): Promise<void>
 }
+
 export interface Sleepable {
   sleep(millisecond: number): Promise<void>
 }
