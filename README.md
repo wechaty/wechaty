@@ -48,7 +48,7 @@ You can find more example from [Wiki](https://github.com/wechaty/wechaty/wiki/Ex
 
 # Run [![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Stars](https://img.shields.io/docker/stars/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
 
-Run the above example bot code(assume the filenamed is `mybot.ts`):
+Run the above example bot code(`mybot.ts` in this example):
 
 ```shell
 $ alias wechaty='docker run \
