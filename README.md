@@ -183,7 +183,7 @@ Here's how to show the Wechaty Badge on your page: in case you are interested, o
 
 # Contributing
 
-Welcome to be a Wechaty Contributer:　[CONTRIBUTING](https://github.com/wechaty/wechaty/blob/master/CONTRIBUTING)
+Welcome to be a Wechaty Contributer:　[CONTRIBUTING](https://github.com/wechaty/wechaty/blob/master/CONTRIBUTING.md)
 
 # See Also
 
