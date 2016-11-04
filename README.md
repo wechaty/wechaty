@@ -53,7 +53,6 @@ Run the above example bot code(`mybot.js` in this example):
 ```shell
 $ alias wechaty='docker run \
     -t -i --rm \
-    -e WECHATY_LOG="$WECHATY_LOG" \
     --volume="$(pwd)":/bot \
     --name=wechaty \
     zixia/wechaty \
