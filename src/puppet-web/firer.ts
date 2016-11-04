@@ -374,4 +374,3 @@ async function checkRoomTopic(m: Message): Promise<void> {
     log.error('PuppetWebFirer', 'fireRoomTopic() co exception: %s', e.stack)
   }
 }
-

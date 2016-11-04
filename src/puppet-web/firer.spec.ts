@@ -12,7 +12,7 @@
  */
 import { test }   from 'ava'
 
-import { Firer as Firer}  from './firer'
+import { Firer }  from './firer'
 
 test('Firer smoking test', t => {
   t.true(true, 'should be true')
