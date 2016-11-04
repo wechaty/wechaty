@@ -30,9 +30,9 @@ Wechaty is a Bot Framework for Wechat **Personal** Account that helps you easy c
 
 # Example
 
-Your first Wechaty Bot with only 6 lines javascript:
+Your first Wechaty Bot with only 6 lines JavaScript:
 
-```typescript
+```javascript
 const Wechaty = require('wechaty')
 
 Wechaty.instance() // Singleton
@@ -42,7 +42,7 @@ Wechaty.instance() // Singleton
 .init()
 ```
 
-This bot just log all the message to the console. Source code(TypeScript version) at [here](https://github.com/wechaty/wechaty/blob/master/example/roger-bot.ts).
+This bot can log all message to console. Source code(TypeScript version) at [here](https://github.com/wechaty/wechaty/blob/master/example/roger-bot.ts).
 
 You can find more example from [Wiki](https://github.com/wechaty/wechaty/wiki/Example) and [Example Directory](https://github.com/wechaty/wechaty/blob/master/example/).
 
