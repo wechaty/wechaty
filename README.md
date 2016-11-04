@@ -33,7 +33,7 @@ The shortest wechat bot code in the world: 6 lines JavaScript
 const { Wechaty } = require('wechaty')
 
 Wechaty.instance() // Singleton
-.on('scan', (url, code) => console.log(`Scan QrCode to login: ${code}\n${url}`))
+.on('scan', (url, code) => console.log(`Scan QR Code to login: ${code}\n${url}`))
 .on('login',       user => console.log(`User ${user} logined`))
 .on('message',  message => console.log(`Message: ${message}`))
 .init()
@@ -115,28 +115,16 @@ TBW
 ### [Room Event](https://github.com/wechaty/wechaty/wiki/API#room-event)
 
 
-# Test [![Linux/Mac Build Status](https://img.shields.io/travis/wechaty/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/wechaty/wechaty) [![Win32 Build status](https://img.shields.io/appveyor/ci/zixia/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/zixia/wechaty) [![Docker CircleCI](https://img.shields.io/circleci/project/github/wechaty/wechaty.svg?label=Docker)](https://circleci.com/gh/wechaty/wechaty)
+# Test [![Linux/Mac Build Status](https://img.shields.io/travis/wechaty/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/wechaty/wechaty) [![Win32 Build status](https://img.shields.io/appveyor/ci/zixia/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/zixia/wechaty) [![Docker CircleCI](https://img.shields.io/circleci/project/github/wechaty/wechaty.svg?label=Docker)](https://circleci.com/gh/wechaty/wechaty) [![Coverage Status](https://coveralls.io/repos/github/wechaty/wechaty/badge.svg?branch=master)](https://coveralls.io/github/wechaty/wechaty?branch=master)
 
-[![Coverage Status](https://coveralls.io/repos/github/wechaty/wechaty/badge.svg?branch=master)](https://coveralls.io/github/wechaty/wechaty?branch=master) [![Code Climate](https://codeclimate.com/github/wechaty/wechaty/badges/gpa.svg)](https://codeclimate.com/github/wechaty/wechaty) [![Issue Count](https://codeclimate.com/github/wechaty/wechaty/badges/issue_count.svg)](https://codeclimate.com/github/wechaty/wechaty) [![Test Coverage](https://codeclimate.com/github/wechaty/wechaty/badges/coverage.svg)](https://codeclimate.com/github/wechaty/wechaty/coverage)
-
-Wechaty use ~~[TAP protocol](http://testanything.org/)~~ [AVA](https://github.com/avajs/ava) to test itself ~~by [tap](http://www.node-tap.org/)~~.
+Wechaty use [AVA](https://github.com/avajs/ava) for unit testing
 
 To test Wechaty, run:
 ```shell
 npm test
 ```
 
-To test with full log messages
-
-```shell
-$ WECHATY_LOG=silly npm test
-```
-
-See more about:
-* [Details about unit testing](https://github.com/wechaty/wechaty/tree/master/test)
-* Know more about TAP: [Why I use Tape Instead of Mocha & So Should You](https://medium.com/javascript-scene/why-i-use-tape-instead-of-mocha-so-should-you-6aa105d8eaf4)
-* [Log](https://github.com/wechaty/wechaty/wiki/Log)
-* [Debug](https://github.com/wechaty/wechaty/wiki/Debug)
+Get to know more about test from [here](https://github.com/wechaty/wechaty/wiki/Test)
 
 # Release Notes
 
