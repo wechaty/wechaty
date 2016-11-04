@@ -93,7 +93,7 @@ export class Wechaty extends EventEmitter implements Sayable {
 
   public version(forceNpm = false) {
     // TODO: use  git rev-parse HEAD  ?
-    const dotGitPath  = path.join(__dirname, '..', '..', '.git') // `/dist/src/../../.git`
+    const dotGitPath  = path.join(__dirname, '..', '.git') // only for ts-node, not for dist
     const gitLogCmd   = 'git'
     const gitLogArgs  = ['log', '--oneline', '-1']
 
