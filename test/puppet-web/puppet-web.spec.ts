@@ -1,3 +1,10 @@
+/**
+ * Wechaty - Wechat for Bot. Connecting ChatBots
+ *
+ * Licenst: ISC
+ * https://github.com/wechaty/wechaty
+ *
+ */
 import { test } from 'ava'
 
 import {
@@ -13,7 +20,7 @@ import {
 
 // import { spy } from 'sinon'
 
-test.skip('@deprecated Puppet Web Self Message Identification', t => {
+test('@deprecated Puppet Web Self Message Identification', t => {
   const p = new PuppetWeb()
   t.truthy(p, 'should instantiated a PuppetWeb')
 
@@ -29,7 +36,7 @@ test.skip('@deprecated Puppet Web Self Message Identification', t => {
  *  static variable `Contact.puppet` will be changed
  *  when `PuppteWeb.init()` and `PuppteWeb.quit()`
  */
-test.serial('PuppetWeb login/logout events', async t => {
+test.serial('login/logout events', async t => {
   let pw = new PuppetWeb()
   t.truthy(pw, 'should instantiated a PuppetWeb')
 
@@ -56,7 +63,7 @@ test.serial('PuppetWeb login/logout events', async t => {
   await pw.quit()
 })
 
-test.serial('PuppetWeb server/browser communication', async t => {
+test.only('server/browser socketio ding', async t => {
   let pw = new PuppetWeb()
   t.truthy(pw, 'should instantiated a PuppetWeb')
 
@@ -71,13 +78,15 @@ test.serial('PuppetWeb server/browser communication', async t => {
     const ret = await dingSocket(pw.server)
     t.is(ret,  EXPECTED_DING_DATA, 'should got EXPECTED_DING_DATA after resolved dingSocket()')
   } catch (e) {
-    t.fail(e.message)
+    t.fail(e && e.message || e || 'unknown exception???')
   }
 
   await pw.quit()
 
   return
+
   /////////////////////////////////////////////////////////////////////////////
+
   function dingSocket(server: Server) {
     const maxTime   = 60000 // 60s
     const waitTime  = 3000

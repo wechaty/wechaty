@@ -69,9 +69,5 @@ g+Xdc4Ag/St5eqgrp95KOlVeepSlb35LAD1Cc91LddTXCYS7+dc4ndQYpgrLU0ru
 Sw==
 -----END CERTIFICATE-----
 `
-// module.exports = {
-//   cert:  cert
-//   , key: key
-// }
 
 export { cert, key }

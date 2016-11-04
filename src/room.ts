@@ -14,12 +14,11 @@ const arrify = require('arrify')
 import {
     Config
   , Sayable
+  , log
 }                 from './config'
-import Contact    from './contact'
-import Message    from './message'
-import UtilLib    from './util-lib'
-
-import log        from './brolog-env'
+import { Contact }    from './contact'
+import { Message }    from './message'
+import { UtilLib }    from './util-lib'
 
 type RoomObj = {
   id:         string
@@ -436,5 +435,3 @@ export class Room extends EventEmitter implements Sayable {
   }
 
 }
-
-export default Room

@@ -1,3 +1,10 @@
+/**
+ * Wechaty - Wechat for Bot. Connecting ChatBots
+ *
+ * Licenst: ISC
+ * https://github.com/wechaty/wechaty
+ *
+ */
 import { test }   from 'ava'
 
 // import {
@@ -6,8 +13,8 @@ import { test }   from 'ava'
 // }                 from 'selenium-webdriver'
 
 import {
-    Bridge  as PuppetWebBridge
-  , Browser as PuppetWebBrowser
+    Bridge
+  , Browser
   , PuppetWeb
 } from '../src/puppet-web/'
 
@@ -19,38 +26,38 @@ import {
  * there will have race conditions for the conflict of `getBrowserPids()`
  */
 test.serial('WebDriver process create & quit test', async t => {
-  const b = new PuppetWebBrowser()
-  t.truthy(b, 'should instanciate a browser')
+  const browser = new Browser()
+  t.truthy(browser, 'should instanciate a browser')
 
-  await b.init()
+  await browser.init()
   t.pass('should be inited successful')
-  await b.open()
+  await browser.open()
   t.pass('should open successful')
 
-  let pids = await b.getBrowserPids()
+  let pids = await browser.getBrowserPids()
   t.truthy(pids.length > 0, 'should exist browser process after b.open()')
 
-  await b.quit()
+  await browser.quit()
   t.pass('quited')
 
-  pids = await b.getBrowserPids()
+  pids = await browser.getBrowserPids()
   t.is(pids.length, 0, 'no driver process after quit')
 })
 
 test.serial('WebDriver smoke testing', async t => {
-  const wb = new PuppetWebBrowser()
-  t.truthy(wb, 'Browser instnace')
+  const browser = new Browser()
+  t.truthy(browser, 'Browser instnace')
 
-  const mockPuppet = <PuppetWeb>{browser: wb}
-  const bridge = new PuppetWebBridge(mockPuppet, 8788)
+  const mockPuppet = <PuppetWeb>{browser: browser}
+  const bridge = new Bridge(mockPuppet, 8788)
   t.truthy(bridge, 'Bridge instnace')
 
   let driver // for help function `execute`
 
-  const m = (await wb.getBrowserPids()).length
+  const m = (await browser.getBrowserPids()).length
   t.is(m, 0, 'should has no browser process before get()')
 
-  driver = await wb.driver.init()
+  driver = await browser.driver.init()
   t.truthy(driver, 'should init driver success')
 
   const injectio = bridge.getInjectio()
@@ -59,7 +66,7 @@ test.serial('WebDriver smoke testing', async t => {
   await driver.get('https://wx.qq.com/')
   t.pass('should open wx.qq.com')
 
-  const n = (await wb.getBrowserPids()).length
+  const n = (await browser.getBrowserPids()).length
   t.truthy(n > 0, 'should exist browser process after get()')
 
   const retAdd = await driverExecute('return 1+1')
@@ -69,7 +76,7 @@ test.serial('WebDriver smoke testing', async t => {
   t.truthy(retInject, 'should return a object contains status of inject operation')
   t.is(retInject.code, 200, 'should got code 200 for a success wechaty inject')
 
-  await wb.quit()
+  await browser.quit()
 
   return
 

@@ -1,6 +1,6 @@
 /**
  *
- * Wechaty: Wechat for Bot. Connecting ChatBots
+ * Wechaty: * * Wechaty - Wechat for Bot. Connecting ChatBots
  *
  * Licenst: ISC
  * https://github.com/wechaty/wechaty
@@ -10,12 +10,12 @@ import {
     Config
   , RecommendInfo
   , Sayable
+  , log
 }               from './config'
 
-import Contact  from './contact'
-import Room     from './room'
-import UtilLib  from './util-lib'
-import log      from './brolog-env'
+import { Contact }  from './contact'
+import { Room }     from './room'
+import { UtilLib }  from './util-lib'
 
 export type MessageRawObj = {
   MsgId:            string
@@ -352,7 +352,6 @@ export class Message implements Sayable {
 
 Message.initType()
 
-export default Message
 export * from './message-media'
 
 /*

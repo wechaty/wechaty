@@ -1,12 +1,16 @@
+/**
+ * Wechaty - Wechat for Bot. Connecting ChatBots
+ *
+ * Licenst: ISC
+ * https://github.com/wechaty/wechaty
+ *
+ */
 import { test }   from 'ava'
 
-import Config from './config'
-import Puppet from './puppet'
+import { Config } from './config'
+import { Puppet } from './puppet'
 
-test('Config list vars', t => {
-  // t.truthy(Config.default   , 'should export default')
-  // t.truthy(Config.Config    , 'should export Config')
-
+test('important variables', t => {
   t.true('head'     in Config, 'should exist `head` in Config')
   t.true('puppet'   in Config, 'should exist `puppet` in Config')
   t.true('apihost'  in Config, 'should exist `apihost` in Config')
@@ -23,7 +27,7 @@ test('Config list vars', t => {
   t.truthy(Config.CMD_CHROMIUM        , 'should export CMD_CHROMIUM')
 })
 
-test('Config methods', t => {
+test('validApiHost()', t => {
   const OK_APIHOSTS = [
     'api.wechaty.io'
     , 'wechaty.io:8080'
@@ -45,19 +49,17 @@ test('Config methods', t => {
 
 })
 
-test('Config puppetInstance', t => {
+test('puppetInstance()', t => {
   t.throws(() => {
     Config.puppetInstance()
   }, Error, 'should throw when not initialized')
 
-  const EXPECTED = {userId: 'test'}
-  const puppet = <Puppet>EXPECTED
+  const EXPECTED = <Puppet>{userId: 'test'}
+  const mockPuppet = EXPECTED
 
-  Config.puppetInstance(puppet)
-
-  Config.puppetInstance(puppet)
+  Config.puppetInstance(mockPuppet)
   let instance = Config.puppetInstance()
-  t.deepEqual(instance, <Puppet>EXPECTED, 'should equal with initialized data')
+  t.deepEqual(instance, EXPECTED, 'should equal with initialized data')
 
   Config.puppetInstance(null)
   t.throws(() => {
@@ -66,7 +68,7 @@ test('Config puppetInstance', t => {
 
 })
 
-test('Config docker mode', t => {
+test('isDocker', t => {
   t.true('isDocker' in Config, 'should identify docker env by `isDocker`')
 
   if ('C9_PORT' in process.env) {

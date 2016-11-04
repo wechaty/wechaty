@@ -1,6 +1,13 @@
+/**
+ * Wechaty - Wechat for Bot. Connecting ChatBots
+ *
+ * Licenst: ISC
+ * https://github.com/wechaty/wechaty
+ *
+ */
 import * as http from 'http'
 
-import log from './brolog-env'
+import { log } from './config'
 
 /**
  * bug compatible with:
@@ -8,7 +15,7 @@ import log from './brolog-env'
  */
 // import * as ws from 'ws'
 
-class UtilLib {
+export class UtilLib {
   public static stripHtml(html?: string): string {
     if (!html) {
       return ''
@@ -196,5 +203,3 @@ class UtilLib {
     }
   }
 }
-
-export default UtilLib

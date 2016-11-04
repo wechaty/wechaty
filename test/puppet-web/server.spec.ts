@@ -1,21 +1,25 @@
+/**
+ * Wechaty - Wechat for Bot. Connecting ChatBots
+ *
+ * Licenst: ISC
+ * https://github.com/wechaty/wechaty
+ *
+ */
 import { test } from 'ava'
 
 import * as https from 'https'
 import * as sinon from 'sinon'
 
 import {
-  // PuppetWeb
-  // , Message
     UtilLib
   , log
-} from '../../'
+}             from '../../'
 
 import {
-    // PuppetWeb
   Server
-}               from '../../src/puppet-web/'
+}             from '../../src/puppet-web/'
 
-test('PuppetWebServer basic tests', async t => {
+test('create & close', async t => {
   const port = await UtilLib.getPort(18788)
   const s = new Server(port)
   t.is(typeof s, 'object', 'PuppetWebServer instance created')
@@ -49,19 +53,25 @@ test('PuppetWebServer basic tests', async t => {
   await s.quit()
 })
 
-test('PuppetWebServer smoke testing', async t => {
+test('http ding', async t => {
   const port = await UtilLib.getPort(18788)
 
   const server = new Server(port)
   t.truthy(server, 'new server instance')
 
-  await server.init()
-  t.pass('server:' + port + ' inited')
+  try {
+    await server.init()
+    t.pass('server:' + port + ' inited')
 
-  const retHttps = await dingHttps()
-  t.is(retHttps ,  'dong', 'ding https   got dong')
+    const retHttps = await dingHttps()
+    t.is(retHttps ,  'dong', 'ding https got dong')
 
-  await server.quit()
+    await server.quit()
+
+  } catch (e) {
+    t.fail('smoke testing exception: ' + e.message)
+    throw e
+  }
 
   return // The following is help functions only
 

@@ -1,10 +1,17 @@
+/**
+ * Wechaty - Wechat for Bot. Connecting ChatBots
+ *
+ * Licenst: ISC
+ * https://github.com/wechaty/wechaty
+ *
+ */
 import {
     Contact
   , Room
   , Sayable
 } from '../../'
 
-export default async function onRoomJoin(
+export async function onRoomJoin(
     this: Sayable
   , room: Room
   , inviteeList: Contact[]

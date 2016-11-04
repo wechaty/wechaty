@@ -28,5 +28,3 @@ if (levelRegex.test(level)) {
 }
 
 export { Brolog }
-
-export default log

@@ -6,8 +6,8 @@
 import { execSync } from 'child_process'
 import * as fs from 'fs'
 
-import Puppet from './puppet'
-import log    from './brolog-env'
+import { Puppet } from './puppet'
+import { log }    from './brolog-env'
 
 export type PuppetName = 'web' | 'android' | 'ios'
 export type HeadName = 'chrome' | 'phantomjs' | 'firefox'
@@ -192,4 +192,3 @@ export interface Sleepable {
 }
 
 export { log }
-export default Config

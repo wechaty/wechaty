@@ -1,11 +1,18 @@
+/**
+ * Wechaty - Wechat for Bot. Connecting ChatBots
+ *
+ * Licenst: ISC
+ * https://github.com/wechaty/wechaty
+ *
+ */
 import { test } from 'ava'
 
 import {
     Config
   , log
 }                 from './config'
-import Message    from './message'
-import PuppetWeb  from './puppet-web/'
+import { Message }    from './message'
+import { PuppetWeb }  from './puppet-web/'
 
 const MOCK_USER_ID = 'TEST-USER-ID'
 

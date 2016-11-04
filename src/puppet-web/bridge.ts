@@ -12,9 +12,9 @@
  /* tslint:disable:no-var-requires */
 const retryPromise  = require('retry-promise').default
 
-import log        from '../brolog-env'
+import { log }        from '../brolog-env'
 
-import PuppetWeb  from './puppet-web'
+import { PuppetWeb }  from './puppet-web'
 
 export class Bridge {
 
@@ -381,8 +381,6 @@ export class Bridge {
     })
   }
 }
-
-export default Bridge
 
 /* tslint:disable:jsdoc-format */
 /* tslint:disable:max-line-length */

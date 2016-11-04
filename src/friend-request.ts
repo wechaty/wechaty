@@ -1,5 +1,5 @@
 /**
- * Wechat for Bot. Connecting ChatBots
+ * Wechaty - Wechat for Bot. Connecting ChatBots
  *
  * Interface for puppet
  *
@@ -10,8 +10,8 @@
  *
  */
 
-import Config   from './config'
-import Contact  from './contact'
+import { Config }   from './config'
+import { Contact }  from './contact'
 
 export abstract class FriendRequest {
 
@@ -29,5 +29,3 @@ export abstract class FriendRequest {
   public abstract accept(): Promise<void>
 
 }
-
-export default FriendRequest

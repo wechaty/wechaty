@@ -20,8 +20,9 @@ import {
   , WatchdogFoodName
   , log
 }                 from '../config'
-import PuppetWeb  from './puppet-web'
-import Event      from './event'
+
+import { PuppetWeb }  from './puppet-web'
+import { Event }      from './event'
 
 /* tslint:disable:variable-name */
 export const Watchdog = {
@@ -62,7 +63,7 @@ function onFeed(this: PuppetWeb, food: WatchdogFood) {
   //   return
   // }
   if (this.state.target() === 'dead' || this.state.inprocess()) {
-    log.info('PuppetWebWatchdog', 'onFeed() is disabled because target state is `dead` or state is inprocess')
+    log.warn('PuppetWebWatchdog', 'onFeed() is disabled because target state is `dead` or state is inprocess')
     return
   }
 
@@ -191,5 +192,3 @@ function monitorScan(this: PuppetWeb, type: WatchdogFoodName) {
     this.lastScanEventTime = Date.now()
   }
 }
-
-export default Watchdog

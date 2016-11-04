@@ -13,9 +13,9 @@ import {
   , log
 } from '../../'
 
-import onMessage  from './on-message'
-import onFriend   from './on-friend'
-import onRoomJoin from './on-room-join'
+import { onMessage }  from './on-message'
+import { onFriend }   from './on-friend'
+import { onRoomJoin } from './on-room-join'
 
 const welcome = `
 =============== Powered by Wechaty ===============

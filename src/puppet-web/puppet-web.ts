@@ -18,27 +18,27 @@ import {
   , HeadName
   , ScanInfo
   , WatchdogFood
-}                     from '../config'
+  , log
+}                         from '../config'
 
-import Contact        from '../contact'
+import { Contact }        from '../contact'
 // import FriendRequest  from '../friend-request'
-import Message        from '../message'
-import Puppet         from '../puppet'
-import Room           from '../room'
-import UtilLib        from '../util-lib'
-import log            from '../brolog-env'
+import { Message }        from '../message'
+import { Puppet }         from '../puppet'
+import { Room }           from '../room'
+import { UtilLib }        from '../util-lib'
 
-import Bridge         from './bridge'
-import Browser        from './browser'
-import Event          from './event'
-import Server         from './server'
-import Watchdog       from './watchdog'
+import { Bridge }         from './bridge'
+import { Browser }        from './browser'
+import { Event }          from './event'
+import { Server }         from './server'
+import { Watchdog }       from './watchdog'
 
 export type PuppetWebSetting = {
   head?:    HeadName
   profile?: string
 }
-const DEFAULT_PUPPET_PORT = 18788 // // W(87) X(88), ascii char code ;-]
+const DEFAULT_PUPPET_PORT = 18788 // W(87) X(88), ascii char code ;-]
 
 export class PuppetWeb extends Puppet {
 
@@ -87,6 +87,12 @@ export class PuppetWeb extends Puppet {
       await this.initBridge()
       log.verbose('PuppetWeb', 'initBridge() done')
 
+      /**
+       *  state must set to `live`
+       *  before feed Watchdog
+       */
+      this.state.current('live')
+
       const food: WatchdogFood = {
         data: 'inited'
         , timeout: 120000 // 2 mins for first login
@@ -94,7 +100,6 @@ export class PuppetWeb extends Puppet {
       this.emit('watchdog', food)
 
       log.verbose('PuppetWeb', 'init() done')
-      this.state.current('live')
       return
 
     } catch (e) {
@@ -112,16 +117,19 @@ export class PuppetWeb extends Puppet {
     // this.state.target('dead')
 
     if (this.state.current() === 'dead' && this.state.inprocess()) {
-      // log.warn('PuppetWeb', 'quit() is called but readyState is `disconnecting`?')
       log.warn('PuppetWeb', 'quit() is called but state.current() is `dead` and inprocess() ?')
       throw new Error('do not call quit again when quiting')
     }
 
-    // POISON must feed before state set to `dead` & `inprocess`
-    this.emit('watchdog', {
-      data: 'PuppetWeb.quit()',
-      type: 'POISON'
-    })
+    /**
+     * must feed POISON to Watchdog
+     * before state set to `dead` & `inprocess`
+     */
+    const food: WatchdogFood = {
+        data: 'PuppetWeb.quit()'
+      , type: 'POISON'
+    }
+    this.emit('watchdog', food)
 
     this.state.current('dead', false)
 
@@ -158,7 +166,7 @@ export class PuppetWeb extends Puppet {
       throw e
     }
 
-    log.verbose('PuppetWeb', 'quit() done')
+    log.silly('PuppetWeb', 'quit() done')
     this.state.current('dead')
   }
 
@@ -508,5 +516,3 @@ export class PuppetWeb extends Puppet {
                       })
   }
 }
-
-export default PuppetWeb

@@ -1,9 +1,16 @@
+/**
+ * Wechaty - Wechat for Bot. Connecting ChatBots
+ *
+ * Licenst: ISC
+ * https://github.com/wechaty/wechaty
+ *
+ */
 import {
     Message
   , Room
 } from '../../'
 
-export default async function onMessage(message: Message): Promise<void> {
+export async function onMessage(message: Message): Promise<void> {
   try {
     const room      = message.room()
     const sender    = message.from()

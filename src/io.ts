@@ -14,11 +14,11 @@ import * as WebSocket from 'ws'
 import {
     Config
   // WechatyEventName
+  , log
 }                   from './config'
 
-import StateMonitor from './state-monitor'
-import Wechaty      from './wechaty'
-import log          from './brolog-env'
+import { StateMonitor } from './state-monitor'
+import { Wechaty }      from './wechaty'
 
 export type IoSetting = {
   wechaty:    Wechaty
@@ -448,5 +448,3 @@ export class Io {
   }
 
 }
-
-export default Io

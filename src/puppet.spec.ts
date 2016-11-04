@@ -1,3 +1,10 @@
+/**
+ * Wechaty - Wechat for Bot. Connecting ChatBots
+ *
+ * Licenst: ISC
+ * https://github.com/wechaty/wechaty
+ *
+ */
 import { test } from 'ava'
 import { PuppetWeb } from '../'
 

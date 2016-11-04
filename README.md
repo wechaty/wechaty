@@ -30,7 +30,7 @@ Wechaty is a Bot Framework for Wechat **Personal** Account that helps you easy c
 The shortest wechat bot code in the world: 6 lines JavaScript
 
 ```javascript
-const Wechaty = require('wechaty')
+const { Wechaty } = require('wechaty')
 
 Wechaty.instance() // Singleton
 .on('scan', (url, code) => console.log(`Scan QrCode to login: ${code}\n${url}`))

@@ -10,10 +10,10 @@ import {
     Config
   , Sayable
 }               from './config'
-import Message  from './message'
-import UtilLib  from './util-lib'
-import Wechaty  from './wechaty'
-import log      from './brolog-env'
+import { Message }  from './message'
+import { UtilLib }  from './util-lib'
+import { Wechaty }  from './wechaty'
+import { log }      from './brolog-env'
 
 type ContactObj = {
   address:    string
@@ -290,5 +290,3 @@ export class Contact implements Sayable {
 
 //   return []
 // }
-
-export default Contact

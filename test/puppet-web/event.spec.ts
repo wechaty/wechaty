@@ -1,3 +1,10 @@
+/**
+ * Wechaty - Wechat for Bot. Connecting ChatBots
+ *
+ * Licenst: ISC
+ * https://github.com/wechaty/wechaty
+ *
+ */
 import { test } from 'ava'
 
 import {
@@ -19,11 +26,16 @@ test('Puppet Web Event smoking test', async t => {
   let pw = new PuppetWeb({profile: PROFILE})
   t.truthy(pw, 'should instantiated a PuppetWeb')
 
-  await pw.init()
-  t.pass('should be inited')
+  try {
+    await pw.init()
+    t.pass('should be inited')
 
-  await Event.onBrowserDead.call(pw, 'event unit test')
-  t.pass('should finish onBrowserDead event process')
+    await Event.onBrowserDead.call(pw, 'event unit test')
+    t.pass('should finish onBrowserDead event process')
 
-  await pw.quit()
+    await pw.quit()
+  } catch (e) {
+    t.fail('exception: ' + e.message)
+    throw e
+  }
 })

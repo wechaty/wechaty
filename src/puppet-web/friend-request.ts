@@ -1,5 +1,5 @@
 /**
- * Wechat for Bot. Connecting ChatBots
+ * Wechaty - Wechat for Bot. Connecting ChatBots
  *
  * Interface for puppet
  *
@@ -19,13 +19,13 @@
 /* tslint:disable:no-var-requires */
 const retryPromise  = require('retry-promise').default
 
-import Contact        from '../contact'
+import { Contact }        from '../contact'
 import {
     Config
   , RecommendInfo
-}                     from '../config'
-import FriendRequest  from '../friend-request'
-import log            from '../brolog-env'
+  , log
+}                         from '../config'
+import { FriendRequest }  from '../friend-request'
 
 class PuppetWebFriendRequest extends FriendRequest {
 
@@ -38,7 +38,7 @@ class PuppetWebFriendRequest extends FriendRequest {
     super()
   }
 
-  public receive(info: RecommendInfo): PuppetWebFriendRequest {
+  public receive(info: RecommendInfo): void {
     log.verbose('PuppetWebFriendRequest', 'receive(%s)', info)
 
     if (!info || !info.UserName) {
@@ -62,7 +62,7 @@ class PuppetWebFriendRequest extends FriendRequest {
 
     this.type = 'receive'
 
-    return this
+    return
   }
 
   public confirm(contact: Contact): void {
@@ -132,4 +132,4 @@ class PuppetWebFriendRequest extends FriendRequest {
 
 }
 
-export default PuppetWebFriendRequest
+export { PuppetWebFriendRequest as FriendRequest }

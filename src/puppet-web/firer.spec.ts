@@ -1,6 +1,6 @@
 /**
  *
- * Wechaty: Wechat for Bot. Connecting ChatBots
+ * Wechaty: * * Wechaty - Wechat for Bot. Connecting ChatBots
  *
  * Class PuppetWeb Firer
  *
@@ -12,14 +12,13 @@
  */
 import { test }   from 'ava'
 
-import Firer      from './firer'
+import { Firer as Firer}  from './firer'
 
 test('Firer smoking test', t => {
-
   t.true(true, 'should be true')
 })
 
-test('Firer.parseFriendConfirm', t => {
+test('parseFriendConfirm()', t => {
   const contentList = [
     [
         'You have added 李卓桓 as your WeChat contact. Start chatting!'
@@ -41,7 +40,7 @@ test('Firer.parseFriendConfirm', t => {
   t.false(result, 'should be falsy for other msg')
 })
 
-test('Firer.parseRoomJoin', t => {
+test('parseRoomJoin()', t => {
   const contentList: [string, string, string[]][] = [
     [
       `You've invited "李卓桓" to the group chat`
@@ -83,7 +82,7 @@ test('Firer.parseRoomJoin', t => {
   }, Error, 'should throws if message is not expected')
 })
 
-test('Firer.parseRoomLeave', t => {
+test('parseRoomLeave()', t => {
   const contentList = [
     [
         `You removed "Bruce LEE" from the group chat`
@@ -107,7 +106,7 @@ test('Firer.parseRoomLeave', t => {
   }, Error, 'should throw if message is not expected')
 })
 
-test('Firer.parseRoomTopic', t => {
+test('parseRoomTopic()', t => {
   const contentList = [
     [
         `"李卓桓.PreAngel" changed the group name to "ding"`

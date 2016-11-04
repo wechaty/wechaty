@@ -18,19 +18,19 @@
 import {
     WatchdogFood
   , ScanInfo
-}                   from '../config'
-import Contact      from '../contact'
+  , log
+}                     from '../config'
+import { Contact }    from '../contact'
 import {
     Message
   , MediaMessage
-}                   from '../message'
-import log          from '../brolog-env'
+}                     from '../message'
 
-import Firer        from './firer'
-import PuppetWeb    from './puppet-web'
+import { Firer } from './firer'
+import { PuppetWeb }      from './puppet-web'
 
 /* tslint:disable:variable-name */
-export const PuppetWebEvent = {
+export const Event = {
     onBrowserDead
 
   , onServerLogin
@@ -398,5 +398,3 @@ async function onServerMessage(this: PuppetWeb, data): Promise<void> {
 
   return
 }
-
-export default PuppetWebEvent

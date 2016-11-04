@@ -1,5 +1,5 @@
 /**
- * Wechat for Bot. Connecting ChatBots
+ * Wechaty - Wechat for Bot. Connecting ChatBots
  *
  * BrowserCookie
  *
@@ -12,9 +12,9 @@
 import * as fs from 'fs'
 const arrify = require('arrify')
 
-import log            from '../brolog-env'
+import { log }            from '../config'
 
-import BrowserDriver  from './browser-driver'
+import { BrowserDriver }  from './browser-driver'
 
 /**
  * The reason that driverCookie type defined here
@@ -135,7 +135,7 @@ export class BrowserCookie {
 
   public async load(): Promise<void> {
     if (!this.storeFile) {
-      log.silly('PuppetWebBrowserCookie', 'load() skipped because no session store file')
+      log.silly('PuppetWebBrowserCookie', 'load() skipped: no session store file')
       return
     // } else if (this.browser.dead()) {
     //   throw new Error('loadSession() - browser dead')
@@ -146,14 +146,14 @@ export class BrowserCookie {
     try {
       fs.statSync(storeFile).isFile()
     } catch (e) {
-      log.silly('PuppetWebBrowserCookie', 'load() skipped because session store file not exist')
+      log.silly('PuppetWebBrowserCookie', 'load() skipped: session store file not exist')
       return
     }
 
     await new Promise((resolve, reject) => {
       fs.readFile(storeFile, (err, jsonStr) => {
         if (err) {
-          log.verbose('PuppetWebBrowserCookie', 'load(%s) skipped because error code: %s', this.storeFile, err.code)
+          log.verbose('PuppetWebBrowserCookie', 'load(%s) skipped: error code: %s', this.storeFile, err.code)
           reject()
           return
         }
@@ -218,5 +218,3 @@ export class BrowserCookie {
   }
 
 }
-
-export default BrowserCookie

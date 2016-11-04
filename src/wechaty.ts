@@ -18,18 +18,17 @@ import {
   , HeadName
   , PuppetName
   , Sayable
+  , log
 }                     from './config'
 
-import Contact        from './contact'
-import FriendRequest  from './friend-request'
-import Message        from './message'
-import Puppet         from './puppet'
-import PuppetWeb      from './puppet-web/'
-import Room           from './room'
-import StateMonitor   from './state-monitor'
-import UtilLib        from './util-lib'
-
-import log            from './brolog-env'
+import { Contact }        from './contact'
+import { FriendRequest }  from './friend-request'
+import { Message }        from './message'
+import { Puppet }         from './puppet'
+import { PuppetWeb }      from './puppet-web/'
+import { Room }           from './room'
+import { StateMonitor }   from './state-monitor'
+import { UtilLib }        from './util-lib'
 
 export type PuppetSetting = {
   head?:    HeadName
@@ -359,5 +358,3 @@ export class Wechaty extends EventEmitter implements Sayable {
                       })
   }
 }
-
-export default Wechaty

@@ -1,5 +1,5 @@
 /**
- * Wechat for Bot. Connecting ChatBots
+ * Wechaty - Wechat for Bot. Connecting ChatBots
  *
  * BrowserDriver
  *
@@ -16,8 +16,8 @@ import {
 import {
     Config
   , HeadName
+  , log
 }               from '../config'
-import log      from '../brolog-env'
 
 export class BrowserDriver {
   private driver: WebDriver
@@ -294,5 +294,3 @@ export class BrowserDriver {
   public navigate()           { return this.driver.navigate() }
   public quit()               { return this.driver.quit() }
 }
-
-export default BrowserDriver

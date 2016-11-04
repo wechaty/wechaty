@@ -1,3 +1,10 @@
+/**
+ * Wechaty - Wechat for Bot. Connecting ChatBots
+ *
+ * Licenst: ISC
+ * https://github.com/wechaty/wechaty
+ *
+ */
 import * as WebDriver from 'selenium-webdriver'
 import * as express   from 'express'
 import * as http      from 'http'

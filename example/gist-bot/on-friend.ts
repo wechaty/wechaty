@@ -1,10 +1,17 @@
+/**
+ * Wechaty - Wechat for Bot. Connecting ChatBots
+ *
+ * Licenst: ISC
+ * https://github.com/wechaty/wechaty
+ *
+ */
 import {
     Contact
   , FriendRequest
   , Room
 } from '../../'
 
-export default async function onFriend(contact: Contact, request?: FriendRequest): Promise<void> {
+export async function onFriend(contact: Contact, request?: FriendRequest): Promise<void> {
   try {
     if (!request) {
       console.log('New friend ' + contact.name() + ' relationship confirmed!')

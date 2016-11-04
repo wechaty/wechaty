@@ -1,5 +1,5 @@
 /**
- * Wechat for Bot. Connecting ChatBots
+ * Wechaty - Wechat for Bot. Connecting ChatBots
  *
  * Interface for Puppet
  *
@@ -15,11 +15,10 @@ import { EventEmitter } from 'events'
 import {
   Sayable
 }                   from './config'
-import Contact      from './contact'
-import Message      from './message'
-import StateMonitor from './state-monitor'
-import Room         from './room'
-// import log          from './brolog-env'
+import { Contact }      from './contact'
+import { Message }      from './message'
+import { StateMonitor } from './state-monitor'
+import { Room }         from './room'
 
 // type ContactGetterFunc = {
 //   (id: string): Promise<any>
@@ -83,5 +82,3 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract contactFind(filterFunc: string): Promise<Contact[]>
   public abstract contactRemark(contact: Contact, remark: string): Promise<boolean>
 }
-
-export default Puppet

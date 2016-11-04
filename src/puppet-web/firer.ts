@@ -1,6 +1,6 @@
 /**
  *
- * Wechaty: Wechat for Bot. Connecting ChatBots
+ * Wechaty: * * Wechaty - Wechat for Bot. Connecting ChatBots
  *
  * Class PuppetWeb Firer
  *
@@ -20,18 +20,17 @@ const retryPromise  = require('retry-promise').default
 
 import {
   // RecommendInfo
-}                     from '../config'
-
-import Contact        from '../contact'
+  log
+}                   from '../config'
+import { Contact }  from '../contact'
 import {
     Message
-}                     from '../message'
-import log            from '../brolog-env'
+}                   from '../message'
 
-import FriendRequest  from './friend-request'
+import { FriendRequest }  from './friend-request'
 
 /* tslint:disable:variable-name */
-export const PuppetWebFirer = {
+export const Firer = {
     checkFriendConfirm
   , checkFriendRequest
 
@@ -376,4 +375,3 @@ async function checkRoomTopic(m: Message): Promise<void> {
   }
 }
 
-export default PuppetWebFirer
