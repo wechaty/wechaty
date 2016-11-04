@@ -32,8 +32,8 @@ function wechaty::errorBotNotFound() {
 
       this will let the container visit your current directory.
 
-    if you still have issue, please have a look at 
-      https://github.com/wechaty/wechaty/issues/66 
+    if you still have issue, please have a look at
+      https://github.com/wechaty/wechaty/issues/66
       and do a search in issues, that might be help.
 
 TROUBLESHOOTING
@@ -168,7 +168,15 @@ function main() {
       ;;
 
     #
-    # 3. Execute npm run ...
+    # 3. If there's additional `npm` arg...
+    #
+    npm)
+      shift
+      npm "$@" || ret=$?
+      ;;
+
+    #
+    # 4. Default to execute npm run ...
     #
     *)
       npm "$@" || ret=$?
