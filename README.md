@@ -16,16 +16,21 @@ Wechaty is a Bot Framework for Wechat **Personal** Account that helps you easy c
 
 ## Voice of the Developer
 
-> @JasLin: it may be the best wechat SDK I have seen in Github! [link](https://github.com/wechaty/wechaty/issues/8#issuecomment-228971491)  
-> @ccaapton: wechaty library fantastic! [link](https://github.com/wechaty/wechaty/issues/9)  
-> @ak5: Thanks for this it's quite cool! [link](https://github.com/wechaty/wechaty/issues/4)  
-> @Samurais: wechaty is great.  [link](https://github.com/wechaty/wechaty/issues/36#issuecomment-251708382)  
-> @Jarvis: 目前用过的最好的微信开发库 [link](http://weibo.com/3296245513/Ec4iNp9Ld?type=comment)  
-> @naishstar: thanks for great SDK [link](https://github.com/wechaty/wechaty/issues/57)  
+> @JasLin: it may be the best wechat SDK I have seen in Github! [link](https://github.com/wechaty/wechaty/issues/8#issuecomment-228971491)
+
+> @ccaapton: wechaty library fantastic! [link](https://github.com/wechaty/wechaty/issues/9)
+
+> @ak5: Thanks for this it's quite cool! [link](https://github.com/wechaty/wechaty/issues/4)
+
+> @Samurais: wechaty is great.  [link](https://github.com/wechaty/wechaty/issues/36#issuecomment-251708382)
+
+> @Jarvis: 目前用过的最好的微信开发库 [link](http://weibo.com/3296245513/Ec4iNp9Ld?type=comment)
+
+> @naishstar: thanks for great SDK [link](https://github.com/wechaty/wechaty/issues/57)
 
 # Example
 
-Wechaty is dead easy to use: 6 lines javascript for your wechat bot who can log message to console:
+Your first Wechaty Bot with only 6 lines javascript:
 
 ```typescript
 import Wechaty from 'wechaty'
@@ -37,13 +42,13 @@ Wechaty.instance() // Singleton
 .init()
 ```
 
-the above bot source code can be found [here](https://github.com/wechaty/wechaty/blob/master/example/roger-bot.ts).
+This bot just log all the message to the console. Source code at [here](https://github.com/wechaty/wechaty/blob/master/example/roger-bot.ts).
 
 You can find more example from [Wiki](https://github.com/wechaty/wechaty/wiki/Example) and [Example Directory](https://github.com/wechaty/wechaty/blob/master/example/).
 
 # Run [![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Stars](https://img.shields.io/docker/stars/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
 
-Let's save the above example bot code to a file named `mybot.ts`, then run the following command:
+Run the above example bot code(assume the filenamed is `mybot.ts`):
 
 ```shell
 $ alias wechaty='docker run \
@@ -57,32 +62,14 @@ $ alias wechaty='docker run \
 $ wechaty mybot.ts
 ```
 
-Note: [Docker](https://github.com/wechaty/wechaty/wiki/Docker) is required.
+Know more about Wechaty [Docker](https://github.com/wechaty/wechaty/wiki/Docker).
 
 # NPM [![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty) [![Downloads][downloads-image]][downloads-url]
 
-Get Wechaty from NPM:
+Install Wechaty by NPM:
 
 ```shell
 npm install --save wechaty
-```
-
-# Badge [![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/wechaty/wechaty)
-
-If you are using Wechaty, please place Wechaty Badge on your page to support Wechaty, appreciate!
-
-## Markdown
-
-```markdown
-[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/wechaty/wechaty)
-```
-
-## Html
-
-```html
-<a href="https://github.com/wechaty/wechaty" target="_blank">
-  <img src="https://img.shields.io/badge/Powered%20By-Wechaty-green.svg" alt="Powered by Wechaty" border="0">
-</a>
 ```
 
 # Requirement
@@ -175,6 +162,24 @@ See more about:
     - [ ] Send/Reply image/video/attachment message
     - [ ] Save video message to file
     - [x] Save image message to file
+
+# Badge [![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/wechaty/wechaty)
+
+Here's how to show the Wechaty Badge on your page: in case you are interested, or you'd like to support Wechaty by show the badge. Appreciate!
+
+## Markdown
+
+```markdown
+[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/wechaty/wechaty)
+```
+
+## Html
+
+```html
+<a href="https://github.com/wechaty/wechaty" target="_blank">
+  <img src="https://img.shields.io/badge/Powered%20By-Wechaty-green.svg" alt="Powered by Wechaty" border="0">
+</a>
+```
 
 # Contributing
 
