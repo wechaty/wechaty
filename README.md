@@ -27,7 +27,7 @@ Wechaty is a Bot Framework for Wechat **Personal** Account that helps you easy c
 
 # Example
 
-Your first Wechaty Bot with only 6 lines JavaScript:
+The shortest wechat bot code in the world: 6 lines JavaScript
 
 ```javascript
 const Wechaty = require('wechaty')
@@ -58,7 +58,7 @@ $ alias wechaty='docker run \
 $ wechaty mybot.js
 ```
 
-Know more about Docker for Wechaty at [here](https://github.com/wechaty/wechaty/wiki/Docker).
+Get to know more about Wechaty Docker from [here](https://github.com/wechaty/wechaty/wiki/Docker).
 
 # NPM [![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty) [![Downloads][downloads-image]][downloads-url]
 
