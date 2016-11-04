@@ -11,9 +11,15 @@ optRm='--rm'
 if [ "$1" = "build" ] || [ "$1" = "" ]; then
   echo docker build "$optRm" -t "$imageName" .
   exec docker build "$optRm" -t "$imageName" .
-  exit $?
+
+  ret=$?
+  echo "ERROR: exec return $ret ???"
+  exit $ret
 fi
 
 echo docker run -ti "$optRm" -v /dev/shm:/dev/shm "$imageName" $@
 exec docker run -ti "$optRm" -v /dev/shm:/dev/shm "$imageName" $@
-exit $?
+
+ret=$?
+echo "ERROR: exec return $ret ???"
+exit $ret
