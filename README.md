@@ -33,7 +33,7 @@ Wechaty is a Bot Framework for Wechat **Personal** Account that helps you easy c
 Your first Wechaty Bot with only 6 lines javascript:
 
 ```typescript
-import Wechaty from 'wechaty'
+const Wechaty = require('wechaty')
 
 Wechaty.instance() // Singleton
 .on('scan', (url, code) => console.log(`Scan QrCode to login: ${code}\n${url}`))
@@ -42,13 +42,13 @@ Wechaty.instance() // Singleton
 .init()
 ```
 
-This bot just log all the message to the console. Source code at [here](https://github.com/wechaty/wechaty/blob/master/example/roger-bot.ts).
+This bot just log all the message to the console. Source code(TypeScript version) at [here](https://github.com/wechaty/wechaty/blob/master/example/roger-bot.ts).
 
 You can find more example from [Wiki](https://github.com/wechaty/wechaty/wiki/Example) and [Example Directory](https://github.com/wechaty/wechaty/blob/master/example/).
 
 # Run [![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Stars](https://img.shields.io/docker/stars/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
 
-Run the above example bot code(`mybot.ts` in this example):
+Run the above example bot code(`mybot.js` in this example):
 
 ```shell
 $ alias wechaty='docker run \
@@ -59,7 +59,7 @@ $ alias wechaty='docker run \
     zixia/wechaty \
 '
 
-$ wechaty mybot.ts
+$ wechaty mybot.js
 ```
 
 Know more about Wechaty [Docker](https://github.com/wechaty/wechaty/wiki/Docker).
