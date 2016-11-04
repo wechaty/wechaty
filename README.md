@@ -136,9 +136,8 @@ Get to know more about test from [here](https://github.com/wechaty/wechaty/wiki/
 
 # Release Notes
 
-[Latest Release](https://github.com/wechaty/wechaty/releases/latest)(All releases [here](https://github.com/wechaty/wechaty/releases))
-
-[CHANGELOG](https://github.com/wechaty/wechaty/blob/master/CHANGELOG)
+* [Latest Release](https://github.com/wechaty/wechaty/releases/latest)(All releases [here](https://github.com/wechaty/wechaty/releases))
+* [Changelog](https://github.com/wechaty/wechaty/blob/master/CHANGELOG.md)
 
 # Todo List
 
