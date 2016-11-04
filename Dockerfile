@@ -41,10 +41,8 @@ RUN  sed -i '/chromedriver/d' package.json \
   && npm --progress=false link \
   \
   && mkdir /bot \
-  \
-  && mkdir /node_modules && ln -s /wechaty /node_modules \
-  \
-  && ln -s /wechaty/bin/xvfb-run /usr/local/bin \
+  && mkdir /node_modules \
+  && ln -s /wechaty /node_modules \
   && ln -s /wechaty/tsconfig.json / \
   \
   && echo 'Linked wechaty to global'
