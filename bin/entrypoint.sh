@@ -185,6 +185,7 @@ function main() {
 
   wechaty::banner
   figlet " Exit $ret "
+  return $ret
 }
 
 main "$@"
