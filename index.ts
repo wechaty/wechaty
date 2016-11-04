@@ -32,3 +32,20 @@ export {
   , log // for convenionce use npmlog with environment variable LEVEL
   , VERSION
 }
+
+Object.assign(Wechaty, {
+    Config
+  , Contact
+  , FriendRequest
+  , IoClient
+  , Message
+  , Puppet
+  , PuppetWeb
+  , Room
+  , UtilLib
+  , Wechaty
+  , default: Wechaty
+  , log // for convenionce use npmlog with environment variable LEVEL
+  , VERSION
+})
+exports = Wechaty
