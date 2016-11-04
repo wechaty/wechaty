@@ -1,5 +1,6 @@
 [![Wechaty](https://raw.githubusercontent.com/wechaty/wechaty/master/image/wechaty-logo-en.png)](https://github.com/wechaty/wechaty)
-# Wechaty [![Linux/Mac Build Status](https://img.shields.io/travis/wechaty/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/wechaty/wechaty) [![Win32 Build status](https://img.shields.io/appveyor/ci/zixia/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/zixia/wechaty) [![Docker CircleCI](https://img.shields.io/circleci/project/github/wechaty/wechaty.svg?label=Docker)](https://circleci.com/gh/wechaty/wechaty)
+
+# Wechaty [![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=2592000)](https://nodejs.org/) [![Repo Size](https://reposs.herokuapp.com/?path=wechaty/wechaty)](https://github.com/wechaty/wechaty)
 
 ## Connecting ChatBots.
 
@@ -10,25 +11,26 @@ Wechaty is a Bot Framework for Wechat **Personal** Account that helps you easy c
 :book: <https://github.com/wechaty/wechaty/wiki>  
 :whale: <https://hub.docker.com/r/zixia/wechaty>  
 
-[![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![node](https://img.shields.io/node/v/wechaty.svg?maxAge=2592000)](https://nodejs.org/)
-[![Repo Size](https://reposs.herokuapp.com/?path=wechaty/wechaty)](https://github.com/wechaty/wechaty)
-
 ## Voice of the Developer
 
-> @JasLin: it may be the best wechat SDK I have seen in Github! [link](https://github.com/wechaty/wechaty/issues/8#issuecomment-228971491)  
-> @ccaapton: wechaty library fantastic! [link](https://github.com/wechaty/wechaty/issues/9)  
-> @ak5: Thanks for this it's quite cool! [link](https://github.com/wechaty/wechaty/issues/4)  
-> @Samurais: wechaty is great.  [link](https://github.com/wechaty/wechaty/issues/36#issuecomment-251708382)  
-> @Jarvis: 目前用过的最好的微信开发库 [link](http://weibo.com/3296245513/Ec4iNp9Ld?type=comment)  
-> @naishstar: thanks for great SDK [link](https://github.com/wechaty/wechaty/issues/57)  
+> @JasLin: it may be the best wechat SDK I have seen in Github! [link](https://github.com/wechaty/wechaty/issues/8#issuecomment-228971491)
+
+> @ccaapton: wechaty library fantastic! [link](https://github.com/wechaty/wechaty/issues/9)
+
+> @ak5: Thanks for this it's quite cool! [link](https://github.com/wechaty/wechaty/issues/4)
+
+> @Samurais: wechaty is great.  [link](https://github.com/wechaty/wechaty/issues/36#issuecomment-251708382)
+
+> @Jarvis: 目前用过的最好的微信开发库 [link](http://weibo.com/3296245513/Ec4iNp9Ld?type=comment)
+
+> @naishstar: thanks for great SDK [link](https://github.com/wechaty/wechaty/issues/57)
 
 # Example
 
-Wechaty is dead easy to use: 6 lines javascript for your wechat bot who can log message to console:
+Your first Wechaty Bot with only 6 lines JavaScript:
 
-```typescript
-import Wechaty from 'wechaty'
+```javascript
+const Wechaty = require('wechaty')
 
 Wechaty.instance() // Singleton
 .on('scan', (url, code) => console.log(`Scan QrCode to login: ${code}\n${url}`))
@@ -37,52 +39,33 @@ Wechaty.instance() // Singleton
 .init()
 ```
 
-the above bot source code can be found [here](https://github.com/wechaty/wechaty/blob/master/example/roger-bot.ts).
+This bot can log all message to console. Source code(TypeScript version) at [here](https://github.com/wechaty/wechaty/blob/master/example/roger-bot.ts).
 
 You can find more example from [Wiki](https://github.com/wechaty/wechaty/wiki/Example) and [Example Directory](https://github.com/wechaty/wechaty/blob/master/example/).
 
 # Run [![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Stars](https://img.shields.io/docker/stars/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
 
-Let's save the above example bot code to a file named `mybot.ts`, then run the following command:
+Run the above example bot code(`mybot.js` in this example):
 
 ```shell
 $ alias wechaty='docker run \
     -t -i --rm \
-    -e WECHATY_LOG="$WECHATY_LOG" \
     --volume="$(pwd)":/bot \
     --name=wechaty \
     zixia/wechaty \
 '
 
-$ wechaty mybot.ts
+$ wechaty mybot.js
 ```
 
-Note: [Docker](https://github.com/wechaty/wechaty/wiki/Docker) is required.
+Know more about Docker for Wechaty at [here](https://github.com/wechaty/wechaty/wiki/Docker).
 
 # NPM [![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty) [![Downloads][downloads-image]][downloads-url]
 
-Get Wechaty from NPM:
+Install Wechaty by NPM:
 
 ```shell
 npm install --save wechaty
-```
-
-# Badge [![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/wechaty/wechaty)
-
-If you are using Wechaty, please place Wechaty Badge on your page to support Wechaty, appreciate!
-
-## Markdown
-
-```markdown
-[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/wechaty/wechaty)
-```
-
-## Html
-
-```html
-<a href="https://github.com/wechaty/wechaty" target="_blank">
-  <img src="https://img.shields.io/badge/Powered%20By-Wechaty-green.svg" alt="Powered by Wechaty" border="0">
-</a>
 ```
 
 # Requirement
@@ -132,7 +115,9 @@ TBW
 ### [Room Event](https://github.com/wechaty/wechaty/wiki/API#room-event)
 
 
-# Test [![Coverage Status](https://coveralls.io/repos/github/wechaty/wechaty/badge.svg?branch=master)](https://coveralls.io/github/wechaty/wechaty?branch=master) [![Code Climate](https://codeclimate.com/github/wechaty/wechaty/badges/gpa.svg)](https://codeclimate.com/github/wechaty/wechaty) [![Issue Count](https://codeclimate.com/github/wechaty/wechaty/badges/issue_count.svg)](https://codeclimate.com/github/wechaty/wechaty) [![Test Coverage](https://codeclimate.com/github/wechaty/wechaty/badges/coverage.svg)](https://codeclimate.com/github/wechaty/wechaty/coverage)
+# Test [![Linux/Mac Build Status](https://img.shields.io/travis/wechaty/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/wechaty/wechaty) [![Win32 Build status](https://img.shields.io/appveyor/ci/zixia/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/zixia/wechaty) [![Docker CircleCI](https://img.shields.io/circleci/project/github/wechaty/wechaty.svg?label=Docker)](https://circleci.com/gh/wechaty/wechaty)
+
+[![Coverage Status](https://coveralls.io/repos/github/wechaty/wechaty/badge.svg?branch=master)](https://coveralls.io/github/wechaty/wechaty?branch=master) [![Code Climate](https://codeclimate.com/github/wechaty/wechaty/badges/gpa.svg)](https://codeclimate.com/github/wechaty/wechaty) [![Issue Count](https://codeclimate.com/github/wechaty/wechaty/badges/issue_count.svg)](https://codeclimate.com/github/wechaty/wechaty) [![Test Coverage](https://codeclimate.com/github/wechaty/wechaty/badges/coverage.svg)](https://codeclimate.com/github/wechaty/wechaty/coverage)
 
 Wechaty use ~~[TAP protocol](http://testanything.org/)~~ [AVA](https://github.com/avajs/ava) to test itself ~~by [tap](http://www.node-tap.org/)~~.
 
@@ -176,9 +161,27 @@ See more about:
     - [ ] Save video message to file
     - [x] Save image message to file
 
+# Badge [![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/wechaty/wechaty)
+
+Here's how to show the Wechaty Badge on your page: in case you are interested, or you'd like to support Wechaty by show the badge. Appreciate!
+
+## Markdown
+
+```markdown
+[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/wechaty/wechaty)
+```
+
+## Html
+
+```html
+<a href="https://github.com/wechaty/wechaty" target="_blank">
+  <img src="https://img.shields.io/badge/Powered%20By-Wechaty-green.svg" alt="Powered by Wechaty" border="0">
+</a>
+```
+
 # Contributing
 
-Welcome to be a Wechaty Contributer:　[CONTRIBUTING](https://github.com/wechaty/wechaty/blob/master/CONTRIBUTING)
+Welcome to be a Wechaty Contributer:　[CONTRIBUTING](https://github.com/wechaty/wechaty/blob/master/CONTRIBUTING.md)
 
 # See Also
 
