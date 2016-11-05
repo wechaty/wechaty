@@ -69,6 +69,8 @@ $ alias wechaty='docker run \
 $ wechaty mybot.js
 ```
 
+* Wechaty Docker has native support for TypeScript as well: just write in TypeScript and save to `mybot.ts`, then run `wechaty mybot.ts`.
+
 Get to know more about Wechaty Docker from [here](https://github.com/wechaty/wechaty/wiki/Docker).
 
 ## NPM
@@ -163,7 +165,7 @@ Here's how to show the Wechaty Badge on your page: in case you are interested, o
 
 # Contributing
 
-Welcome to be a Wechaty Contributer:　[CONTRIBUTING](https://github.com/wechaty/wechaty/blob/master/CONTRIBUTING.md)
+Howto [contribute](https://github.com/wechaty/wechaty/blob/master/CONTRIBUTING.md)
 
 # See Also
 
