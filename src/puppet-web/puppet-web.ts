@@ -135,39 +135,37 @@ export class PuppetWeb extends Puppet {
 
     try {
 
-      if (this.bridge)  { // TODO use StateMonitor
-        await this.bridge.quit()
-                        .catch(e => { // fail safe
-                          log.warn('PuppetWeb', 'quit() bridge.quit() exception: %s', e.message)
-                        })
-        log.verbose('PuppetWeb', 'quit() bridge.quit() this.bridge = null')
-        // this.bridge = null
-      } else { log.warn('PuppetWeb', 'quit() without a bridge') }
+      await this.bridge.quit()
+                      .catch(e => { // fail safe
+                        log.warn('PuppetWeb', 'quit() bridge.quit() exception: %s', e.message)
+                      })
+      // log.verbose('PuppetWeb', 'quit() bridge.quit() this.bridge = null')
+      // this.bridge = null
 
-      if (this.server) { // TODO use StateMonitor
-        await this.server.quit()
-        // this.server = null
-        log.verbose('PuppetWeb', 'quit() server.quit() this.server = null')
-      } else { log.verbose('PuppetWeb', 'quit() without a server') }
+      await this.server.quit()
+                      .catch(e => { // fail safe
+                        log.warn('PuppetWeb', 'quit() server.quit() exception: %s', e.message)
+                      })
+      // this.server = null
+      // log.verbose('PuppetWeb', 'quit() server.quit() this.server = null')
 
-      if (this.browser) { // TODO use StateMonitor
-        await this.browser.quit()
-                  .catch(e => { // fail safe
-                    log.warn('PuppetWeb', 'quit() browser.quit() exception: %s', e.message)
-                  })
-        log.verbose('PuppetWeb', 'quit() server.quit() this.browser = null')
-        // this.browser = null
-      } else { log.warn('PuppetWeb', 'quit() without a browser') }
+      await this.browser.quit()
+                .catch(e => { // fail safe
+                  log.warn('PuppetWeb', 'quit() browser.quit() exception: %s', e.message)
+                })
+      // log.verbose('PuppetWeb', 'quit() server.quit() this.browser = null')
+      // this.browser = null
 
       this.state.current('dead')
+      log.silly('PuppetWeb', 'quit() done')
+
+      return
+
     } catch (e) {
       log.error('PuppetWeb', 'quit() exception: %s', e.message)
       this.state.current('dead')
       throw e
     }
-
-    log.silly('PuppetWeb', 'quit() done')
-    this.state.current('dead')
   }
 
   public createBrowser() {

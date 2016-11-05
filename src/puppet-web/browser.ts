@@ -133,10 +133,16 @@ export class Browser extends EventEmitter {
   public async quit(): Promise<void> {
     log.verbose('PuppetWebBrowser', 'quit()')
 
-    if (this.state.current() === 'close' && this.state.inprocess()) {
-      const e = new Error('quit() be called when state.current() is close with inprocess()?')
-      log.warn('PuppetWebBrowser', e.message)
-      throw e
+    if (this.state.current() === 'close') {
+      if (this.state.inprocess()) {
+        const e = new Error('quit() on a browser with state.current():`close` and inprocess():`true` ?')
+        log.warn('PuppetWebBrowser', e.message)
+        throw e
+      } else { // stable
+        const e = new Error('quit() on a already quit-ed browser')
+        log.warn('PuppetWebBrowser', e.message)
+        throw e
+      }
     }
 
     this.state.current('close', false)

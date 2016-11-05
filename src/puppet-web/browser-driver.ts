@@ -237,11 +237,23 @@ export class BrowserDriver {
     const session = await driver.getSession()
     if (!session) {
       log.verbose('PuppetWebBrowserDriver', 'valid() found an invalid driver')
-    } else {
-      log.silly('PuppetWebBrowserDriver', 'valid() driver ok')
+      return false
     }
 
-    return !!session
+    let two
+    try {
+      two = await this.executeScript('return 1+1')
+    } catch (e) {
+      two = e
+      log.warn('BrowserDriver', 'valid() fail: %s', e.message)
+    }
+
+    if (two !== 2) {
+      return false
+    }
+
+    log.silly('PuppetWebBrowserDriver', 'valid() driver ok')
+    return true
   }
 
   // public driver1(): WebDriver
@@ -286,8 +298,8 @@ export class BrowserDriver {
   // }
 
   public close()              { return this.driver.close() }
-  public executeAsyncScript() { return this.driver.executeAsyncScript.apply(this.driver, arguments) }
-  public executeScript()      { return this.driver.executeScript.apply(this.driver, arguments) }
+  public executeAsyncScript(script: string|Function, ...args: any[])  { return this.driver.executeAsyncScript.apply(this.driver, arguments) }
+  public executeScript     (script: string|Function, ...args: any[])  { return this.driver.executeScript.apply(this.driver, arguments) }
   public get(url: string)     { return this.driver.get(url) }
   public getSession()         { return this.driver.getSession() }
   public manage()             { return this.driver.manage() }
