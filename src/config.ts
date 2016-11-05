@@ -191,4 +191,12 @@ export interface Sleepable {
   sleep(millisecond: number): Promise<void>
 }
 
+/**
+ * ISSUE #72
+ * Introduce the SELENIUM_PROMISE_MANAGER environment variable.
+ * When set to 1, selenium-webdriver will use the existing ControlFlow scheduler.
+ * When set to 0, the SimpleScheduler will be used.
+ */
+process.env['SELENIUM_PROMISE_MANAGER'] = 0
+
 export { log }
