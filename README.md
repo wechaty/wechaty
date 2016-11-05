@@ -143,25 +143,19 @@ Get to know more about test from [here](https://github.com/wechaty/wechaty/wiki/
 * [Latest Release](https://github.com/wechaty/wechaty/releases/latest)(All releases [here](https://github.com/wechaty/wechaty/releases))
 * [Changelog](https://github.com/wechaty/wechaty/blob/master/CHANGELOG.md)
 
-# Badge
+# Powered By Wechaty
 
 [![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/wechaty/wechaty)
 
-Here's how to show the Wechaty Badge on your page: in case you are interested, or you'd like to support Wechaty by show the badge. Appreciate!
+## Wechaty Badge
 
-## Markdown
+Get code from [here](https://github.com/wechaty/wechaty/wiki/PoweredByWechaty)
 
-```markdown
-[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/wechaty/wechaty)
-```
+## Projects Use Wechaty
 
-## Html
+1. [Wechaty.io](https://www.wechaty.io) ChatBot Portal Manager for Wechaty 
 
-```html
-<a href="https://github.com/wechaty/wechaty" target="_blank">
-  <img src="https://img.shields.io/badge/Powered%20By-Wechaty-green.svg" alt="Powered by Wechaty" border="0">
-</a>
-```
+Know more at [here](https://github.com/wechaty/wechaty/wiki/PoweredByWechaty)
 
 # Contributing
 
