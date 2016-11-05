@@ -133,7 +133,8 @@ export class BrowserDriver {
         const valid = await this.valid(driver)
 
         if (!valid) {
-          log.warn('PuppetWebBrowserDriver', 'getChromeDriver() got invalid driver')
+          err = new Error('getChromeDriver() got invalid driver')
+          log.warn('PuppetWebBrowserDriver', err.message)
           driver = null
         }
 
@@ -242,7 +243,7 @@ export class BrowserDriver {
 
     let two
     try {
-      two = await this.executeScript('return 1+1')
+      two = await driver.executeScript('return 1+1')
     } catch (e) {
       two = e
       log.warn('BrowserDriver', 'valid() fail: %s', e.message)
