@@ -64,7 +64,13 @@ export class Contact implements Sayable {
     }
   }
 
-  public toString()  { return this.id }
+  public toString(): string {
+    if (!this.obj) {
+      return this.id
+    }
+    return this.obj.remark || this.obj.name || this.id
+  }
+
   public toStringEx() { return `Contact(${this.obj && this.obj.name}[${this.id}])` }
 
   private parse(rawObj: ContactRawObj): ContactObj | null {
