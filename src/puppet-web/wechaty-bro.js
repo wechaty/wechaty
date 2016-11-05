@@ -646,7 +646,7 @@
     })
     .then(function() {  // succ
       // alert('ok')
-      log('friendAdd(' + UserName + ', ' + VerifyContent + ') succ')
+      log('friendAdd(' + UserName + ', ' + VerifyContent + ') done')
     }, function(t) {    // fail
       // alert('not ok')
       log('friendAdd(' + UserName + ', ' + VerifyContent + ') fail: ' + t)
@@ -664,7 +664,7 @@
         , Ticket
     }).then(function() {  // succ
       // alert('ok')
-      log('friendVerify(' + UserName + ', ' + Ticket + ') succ')
+      log('friendVerify(' + UserName + ', ' + Ticket + ') done')
     }, function() {       // fail
       // alert('err')
       log('friendVerify(' + UserName + ', ' + Ticket + ') fail')
@@ -760,7 +760,7 @@
 
   this.WechatyBro = WechatyBro
   retObj.code = 200
-  retObj.message = 'WechatyBro Inject Succ'
+  retObj.message = 'WechatyBro Inject Done'
 
   /**
    * Two return mode of WebDriver (should be one of them at a time)

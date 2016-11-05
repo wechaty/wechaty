@@ -10,7 +10,10 @@
  *
  */
 
-import { Config }   from './config'
+import {
+    Config
+  , log
+}                   from './config'
 import { Contact }  from './contact'
 
 export abstract class FriendRequest {
@@ -20,6 +23,8 @@ export abstract class FriendRequest {
   public type: 'send' | 'receive' | 'confirm'
 
   constructor() {
+    log.verbose('FriendRequest', 'constructor()')
+
     if (!Config.puppetInstance()) {
       throw new Error('no Config.puppetInstance() instanciated')
     }

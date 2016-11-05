@@ -62,7 +62,7 @@ export class Browser extends EventEmitter {
 
     try {
       await this.driver.init()
-      log.verbose('PuppetWebBrowser', 'init() driver.init() succ')
+      log.verbose('PuppetWebBrowser', 'init() driver.init() done')
 
       await this.open(jumpUrl)
       await this.loadCookie()
@@ -149,9 +149,9 @@ export class Browser extends EventEmitter {
 
     try {
       await this.driver.close().catch(e => { /* fail safe */ }) // http://stackoverflow.com/a/32341885/1123955
-      log.silly('PuppetWebBrowser', 'quit() driver.close() succ')
+      log.silly('PuppetWebBrowser', 'quit() driver.close() done')
       await this.driver.quit()
-      log.silly('PuppetWebBrowser', 'quit() driver.quit() succ')
+      log.silly('PuppetWebBrowser', 'quit() driver.quit() done')
 
       /**
        *
