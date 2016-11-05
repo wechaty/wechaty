@@ -34,7 +34,7 @@ export class StateMonitor <A, B>{
    */
   public target(newState?: A|B): A|B {
     if (newState) {
-      log.verbose('StateMonitor', '%s:target(%s) <- %s'
+      log.verbose('StateMonitor', '%s:target(%s) <- (%s)'
                                 , this._client
                                 , newState
                                 , this._target
