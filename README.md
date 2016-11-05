@@ -47,9 +47,16 @@ You can find more example from [Wiki](https://github.com/wechaty/wechaty/wiki/Ex
 
 # Run
 
-[![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Stars](https://img.shields.io/docker/stars/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
+Let's say, you have saved the above six lines javascript example to `mybot.js`.
 
-Run the above example bot code(`mybot.js` in this example):
+We have two options to run wechaty:
+
+1. Docker
+1. NPM
+
+## Docker
+
+[![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Stars](https://img.shields.io/docker/stars/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
 
 ```shell
 $ alias wechaty='docker run \
@@ -64,22 +71,17 @@ $ wechaty mybot.js
 
 Get to know more about Wechaty Docker from [here](https://github.com/wechaty/wechaty/wiki/Docker).
 
-# NPM
+## NPM
 
 [![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty) [![Downloads][downloads-image]][downloads-url]
 
-Install Wechaty by NPM:
-
 ```shell
-npm install --save wechaty
+$ npm install --save wechaty
+
+$ node mybot.js
 ```
 
-# Requirement
-
-1. Javascript ES6(ECMAScript2015)
-1. Node.js v6+
-1. Docker(optional)
-1. TypeScript(optional)
+You might be asked for install the `chromedriver`, depends on which platform you are.
 
 # API Reference
 
@@ -138,23 +140,6 @@ Get to know more about test from [here](https://github.com/wechaty/wechaty/wiki/
 
 * [Latest Release](https://github.com/wechaty/wechaty/releases/latest)(All releases [here](https://github.com/wechaty/wechaty/releases))
 * [Changelog](https://github.com/wechaty/wechaty/blob/master/CHANGELOG.md)
-
-# Todo List
-
-- [ ] Events
-    - [ ] Use EventEmitter2 to emit message events so that we can use wildcard
-        1. `message`
-        2. `message.recv`
-        3. `message.sent`
-        4. `message.recv.image`
-        5. `message.sent.image`
-        6. `message.recv.sys`
-        1. `message.**.image`
-        1. `message.recv.*`
-- [ ] Message
-    - [ ] Send/Reply image/video/attachment message
-    - [ ] Save video message to file
-    - [x] Save image message to file
 
 # Badge
 
