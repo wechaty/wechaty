@@ -7,7 +7,7 @@
 set -e
 
 HOME=/bot
-PATH=$PATH:/wechaty/node_modules/.bin
+PATH=$PATH:/wechaty/bin:/wechaty/node_modules/.bin
 
 function wechaty::banner() {
   figlet " Wechaty "
