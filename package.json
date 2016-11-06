@@ -34,7 +34,7 @@
     "test:chrome": "cross-env LC_ALL=C WECHATY_LOG=verbose WECHATY_HEAD=chrome ava --serial --fail-fast --verbose --ext js --timeout=7m \"dist/{src,test}/**/*.spec.js\"",
     "testdev": "cross-env LC_ALL=C WECHATY_LOG=silly ava --ext ts --serial --verbose --fail-fast --timeout=3m",
     "testdist": "cross-env WECHATY_LOG=SILLY WECHATY_HEAD=chrome ava --ext ts --verbose --fail-fast --timeout=2m",
-    "ava": "cross-env LC_ALL=C WECHATY_LOG=verbose node_modules/.bin/ava",
+    "ava": "cross-env LC_ALL=C WECHATY_LOG=verbose node_modules/.bin/ava --ext js",
     "start": "ts-node bin/client",
     "dev": "ts-node dev.ts",
     "demo": "ts-node example/ding-dong-bot.ts"

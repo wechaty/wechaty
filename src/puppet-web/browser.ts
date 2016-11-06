@@ -53,6 +53,17 @@ export class Browser extends EventEmitter {
   public async init(): Promise<void> {
     log.verbose('PuppetWebBrowser', 'init()')
 
+    if (this.state.current() === 'open') {
+      let e: Error
+      if (this.state.inprocess()) {
+        e = new Error('init() fail: current state is `open`-`ing`')
+      } else {
+        e = new Error('init() fail: current state is `open`')
+      }
+      log.error('PuppetWebBrowser', e.message)
+      throw e
+    }
+
     this.state.target('open')
     this.state.current('open', false)
 

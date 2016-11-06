@@ -16,29 +16,26 @@ import {
     Browser
 } from './browser'
 
-test.skip('quit()', async t => {
+test('quit()', async t => {
   const browser = new Browser()
-  await browser.driver.init()
+  await browser.driver.init() // init driver, not init browser
 
-  t.notThrows(async () => {
-    try {
-      await browser.quit()
-    } catch(e) {
-      throw e
-    }
-  }, 'should throw exception when call quit() on an un-init-ed browser')
+  t.throws(browser.quit(), Error, 'should throw on an un-inited browser')
 
-  t.throws(() => {
-    throw new Error('test')
-  }, Error, 'ok')
-  // browser.state.current('open', false)
+  browser.state.current('open', false)
+  t.notThrows(browser.quit(), 'should not throw exception when call quit() on an `inprocess` `open` state browser')
 
-  // t.notThrows(() => {
-  //   browser.quit()
-  // }, 'should not throw exception when call quit() on an `inprocess` `open` state browser')
+  browser.state.current('close')
+  t.throws(browser.quit(), Error, 'should throw exception when call quit() twice on browser')
 
-  // t.throws(() => {
-  //   browser.quit()
-  // }, Error, 'should throw exception when call quit() twice on browser')
+})
 
+test('init()', async t => {
+  const browser = new Browser()
+
+  browser.state.current('open')
+  t.throws(browser.init(), Error, 'should throw exception when call init() on an `open` state browser')
+
+  browser.state.current('open', false)
+  t.throws(browser.init(), Error, 'should throw exception when call init() on a `open`-`ing` state browser')
 })
