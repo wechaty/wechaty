@@ -1,0 +1,7 @@
+languages:
+  Ruby: false
+  JavaScript: true
+  PHP: false
+  Python: false
+exclude_paths:
+  - "/doc/"

@@ -32,6 +32,7 @@ node_modules
 # Optional REPL history
 .node_repl_history
 
+npm-shrinkwrap.json
 
 .*.swp
 
@@ -39,8 +40,16 @@ node_modules
 coverage
 .nyc_output
 
+# Wechaty session file
+*.wechaty.json
+
+# Cloud 9
+.c9/
+
 # Other staff
 0
-t.js
-t
-*.wechaty.json
+t/
+t.*
+.DS_Store
+/dist/
+yarn.lock

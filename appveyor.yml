@@ -3,23 +3,21 @@
 # Test against these versions of Io.js and Node.js.
 environment:
   matrix:
-  # node.js
     - nodejs_version: "6"
+#    - nodejs_version: "7"
 
 # Install scripts. (runs after repo cloning)
 install:
   # Get the latest stable version of Node.js or io.js
   - ps: Install-Product node $env:nodejs_version
   # install modules
-  - npm install
+  - npm --progress=false --loglevel=warn install
 
 # Post-install test scripts.
 test_script:
-  # Output useful info for debugging.
   - node --version
   - npm --version
-  # run tests
-  - npm test
+  - npm run test
 
 # Don't actually build.
 build: off

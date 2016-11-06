@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "target": "es6"
+    , "module": "commonjs"
+    , "moduleResolution": "node" // typescript 2.0.3 bug compatible
+    , "outDir": "dist"
+    , "declaration": true
+    , "sourceMap": true
+    // , "outFile": "dist/wechaty.lib.js"
+
+    , "noEmitOnError": true
+    , "noUnusedLocals": true
+    , "noImplicitReturns": true
+    , "noFallthroughCasesInSwitch": true
+    , "strictNullChecks": true
+
+    , "noImplicitAny": false
+    , "noUnusedParameters": false
+    , "noImplicitThis": false
+  }
+  , "exclude": [
+      "node_modules"
+    , "dist"
+  ]
+  , "include": [
+       "bin/*.ts"
+     , "example/**/*.ts"
+     , "src/**/*.ts"
+     , "test/**/*.spec.ts"
+     , "bot/**/*.ts"
+  ]
+}

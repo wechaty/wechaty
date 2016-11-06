@@ -1,0 +1,4 @@
+dist
+doc
+node_modules
+*.wechaty.json

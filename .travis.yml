@@ -1,19 +1,58 @@
+sudo: required
+dist: trusty
 language: node_js
+
 node_js:
   - "6"
+  - "7"
+
 os:
   - linux
-dist: trusty
-before_install:
-  - export DISPLAY=:99.0
-  - sh -e /etc/init.d/xvfb start
+  - osx
+
+addons:
+  apt:
+    packages:
+      - xvfb
+      - shellcheck
+
 cache:
   directories:
     - node_modules
+
+before_install:
+  - npm config set progress=false
+
+install:
+  - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew update; brew cleanup; brew cask cleanup; fi
+  - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew uninstall --force brew-cask; brew update; fi
+  - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew cask install --force google-chrome; fi
+  - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew install shellcheck; fi
+
+  - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then export DISPLAY=':99.0'; fi
+  - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then sh -e /etc/init.d/xvfb start; fi
+
+  # - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then sudo apt-get update; fi
+  # - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then sudo apt-get install -y libappindicator1 fonts-liberation; fi
+  - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb; fi
+  - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then sudo dpkg -i google-chrome*.deb; fi
+
+  - npm --progress false --loglevel warn install
+
+script:
+  - echo $TRAVIS_OS_NAME
+  - node --version
+  - npm --version
+  - npm run shlint
+  - npm test
+
 notifications:
   webhooks:
     urls:
-      - $GITTER_IM_URL
-    on_success: change  # options: [always|never|change] default: always
+      - https://webhooks.gitter.im/e/41a19fbf1d54a04e5217
+    on_success: always  # options: [always|never|change] default: always
     on_failure: always  # options: [always|never|change] default: always
     on_start: never     # options: [always|never|change] default: always
+
+after_success:
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then npm run coveralls; fi
