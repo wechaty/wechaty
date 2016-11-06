@@ -113,6 +113,8 @@ function wechaty::runBot() {
     echo "Install dependencies modules ..."
     yarn < /dev/null # yarn will close stdin??? cause `read` command fail after yarn
   }
+  yarn add @types/node < /dev/null
+
 
   # echo -n "Linking Wechaty module to bot ... "
   # npm link wechaty < /dev/null > /dev/null 2>&1
