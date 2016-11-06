@@ -137,6 +137,17 @@ function wechaty::runBot() {
   return "$ret"
 }
 
+function wechaty::help() {
+  echo <<HELP
+  Usage: wechaty <mybot.js | mybot.ts | command>
+
+  1. mybot.js: a JavaScript program for your bot. will run by node v6
+  2. mybot.ts: a TypeScript program for your bot. will run by ts-node
+  3. command: demo, test, doctor
+
+HELP
+}
+
 function main() {
   wechaty::banner
   figlet Connecting
@@ -173,6 +184,14 @@ function main() {
     npm)
       shift
       npm "$@" || ret=$?
+      ;;
+
+    '')
+      if [ -n "$WECHATY_TOKEN" ]; then
+        npm start
+      else
+        wechaty::help
+      fi
       ;;
 
     #
