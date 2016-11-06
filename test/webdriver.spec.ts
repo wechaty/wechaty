@@ -76,7 +76,7 @@ test.serial('WebDriver smoke testing', async t => {
   t.truthy(retInject, 'should return a object contains status of inject operation')
   t.is(retInject.code, 200, 'should got code 200 for a success wechaty inject')
 
-  await browser.quit()
+  await browser.driver.quit()
 
   return
 

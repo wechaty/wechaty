@@ -21,24 +21,24 @@ const PROFILE = Config.DEFAULT_PROFILE + '-' + process.pid + '-'
 let profileCounter = 1
 
 test('Browser Cookie smoking test', async t => {
-  const b = new Browser()
-  t.truthy(b, 'should instanciate a browser instance')
+  const browser = new Browser()
+  t.truthy(browser, 'should instanciate a browser instance')
 
-  b.state.target('open')
-  await b.driver.init()
+  browser.state.target('open')
+  await browser.driver.init()
   t.pass('should init driver')
 
-  await b.open()
+  await browser.open()
   t.pass('should opened')
 
-  const two = await b.execute('return 1+1')
+  const two = await browser.execute('return 1+1')
   t.is(two, 2, 'should got 2 after execute script 1+1')
 
-  let cookies = await b.driver.manage().getCookies()
+  let cookies = await browser.driver.manage().getCookies()
   t.truthy(cookies.length, 'should got plenty of cookies')
 
-  await b.driver.manage().deleteAllCookies()
-  cookies = await b.driver.manage().getCookies()
+  await browser.driver.manage().deleteAllCookies()
+  cookies = await browser.driver.manage().getCookies()
   t.is(cookies.length, 0, 'should no cookie anymore after deleteAllCookies()')
 
   const EXPECTED_COOKIES = [{
@@ -58,29 +58,29 @@ test('Browser Cookie smoking test', async t => {
     , expiry: 99999999999999
   }]
 
-  await b.addCookie(EXPECTED_COOKIES)
-  const tt = await b.readCookie()
+  await browser.addCookie(EXPECTED_COOKIES)
+  const tt = await browser.readCookie()
   await Promise.all(tt)
 
-  cookies = await b.driver.manage().getCookies()
+  cookies = await browser.driver.manage().getCookies()
   const cookies0 = cookies.filter(c => { return RegExp(EXPECTED_COOKIES[0].name).test(c.name) })
   t.is(cookies0[0].name, EXPECTED_COOKIES[0].name, 'getCookies() should filter out the cookie named wechaty0')
   const cookies1 = cookies.filter(c => { return RegExp(EXPECTED_COOKIES[1].name).test(c.name) })
   t.truthy(cookies1, 'should get cookies1')
   t.is(cookies1[0].name, EXPECTED_COOKIES[1].name, 'getCookies() should filter out the cookie named wechaty1')
 
-  await b.open()
+  await browser.open()
   t.pass('re-opened url')
-  const cookieAfterOpen = await b.driver.manage().getCookie(EXPECTED_COOKIES[0].name)
+  const cookieAfterOpen = await browser.driver.manage().getCookie(EXPECTED_COOKIES[0].name)
   t.is(cookieAfterOpen.name, EXPECTED_COOKIES[0].name, 'getCookie() should get expected cookie named after re-open url')
 
-  const dead = b.dead()
+  const dead = browser.dead()
   t.is(dead, false, 'should be a not dead browser')
 
-  const live = await b.readyLive()
+  const live = await browser.readyLive()
   t.is(live, true, 'should be a live browser')
 
-  await b.quit()
+  await browser.driver.quit()
 })
 
 test('Browser Cookie save/load test', async t => {
