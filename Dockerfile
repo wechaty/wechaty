@@ -6,11 +6,12 @@
 #
 # Docker image for Alpine Linux with latest ShellCheck, a static analysis tool for shell scripts.
 # https://hub.docker.com/r/nlknguyen/alpine-shellcheck/
-FROM nlknguyen/alpine-shellcheck
+# FROM nlknguyen/alpine-shellcheck
+FROM mhart/alpine-node:7
 MAINTAINER Zhuophuan LI <zixia@zixia.net>
 
 RUN  apk update && apk upgrade \
-  && apk add nodejs \
+  && apk add \
       bash \
       ca-certificates \
       chromium-chromedriver \
