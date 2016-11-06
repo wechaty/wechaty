@@ -113,7 +113,7 @@ export class IoClient {
 
     await wechaty.init()
                   .then(_ => {
-                    this.log.verbose('IoClient', 'wechaty.init() succ')
+                    this.log.verbose('IoClient', 'wechaty.init() done')
                     return wechaty
                   })
                   .catch(e => {
