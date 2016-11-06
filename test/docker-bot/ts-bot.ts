@@ -1,4 +1,4 @@
-import { Wechaty } from 'wechaty'                                                                                                               
+import { Wechaty } from 'wechaty'
 
-const bot = Wechaty.instance()                                                                                                               
+const bot = Wechaty.instance()
 console.log(bot.version())
