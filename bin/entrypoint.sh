@@ -113,6 +113,8 @@ function wechaty::runBot() {
     echo "Install dependencies modules ..."
     yarn < /dev/null # yarn will close stdin??? cause `read` command fail after yarn
   }
+  npm --progress=false install @types/node > /dev/null
+
 
   # echo -n "Linking Wechaty module to bot ... "
   # npm link wechaty < /dev/null > /dev/null 2>&1
@@ -135,6 +137,17 @@ function wechaty::runBot() {
   esac
 
   return "$ret"
+}
+
+function wechaty::help() {
+  echo <<HELP
+  Usage: wechaty <mybot.js | mybot.ts | command>
+
+  1. mybot.js: a JavaScript program for your bot. will run by node v6
+  2. mybot.ts: a TypeScript program for your bot. will run by ts-node
+  3. command: demo, test, doctor
+
+HELP
 }
 
 function main() {
@@ -173,6 +186,14 @@ function main() {
     npm)
       shift
       npm "$@" || ret=$?
+      ;;
+
+    '')
+      if [ -n "$WECHATY_TOKEN" ]; then
+        npm start
+      else
+        wechaty::help
+      fi
       ;;
 
     #

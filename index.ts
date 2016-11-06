@@ -30,3 +30,4 @@ export {
   , Wechaty
   , log // for convenionce use npmlog with environment variable LEVEL
 }
+

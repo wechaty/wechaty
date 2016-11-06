@@ -24,7 +24,7 @@
     "lint": "npm run eslint && npm run tslint",
     "eslint": "eslint \"{bin,example,src,test}/**/*.js\"",
     "tslint": "tslint \"{bin,example,src,test}/**/*.ts\" && tsc --noEmit",
-    "shlint": "bash -n bin/*.sh && shellcheck bin/*.sh",
+    "shlint": "bash -n bin/*.sh",
     "pretest": "npm run clean && npm run lint && npm run build",
     "sloc": "sloc bin example src test index.ts --details --format cli-table --keys total,source,comment && sloc bin example src test index.ts",
     "test": "npm run test:chrome",
@@ -34,7 +34,7 @@
     "test:chrome": "cross-env LC_ALL=C WECHATY_LOG=verbose WECHATY_HEAD=chrome ava --serial --fail-fast --verbose --ext js --timeout=7m \"dist/{src,test}/**/*.spec.js\"",
     "testdev": "cross-env LC_ALL=C WECHATY_LOG=silly ava --ext ts --serial --verbose --fail-fast --timeout=3m",
     "testdist": "cross-env WECHATY_LOG=SILLY WECHATY_HEAD=chrome ava --ext ts --verbose --fail-fast --timeout=2m",
-    "ava": "cross-env LC_ALL=C WECHATY_LOG=verbose ts-node node_modules/.bin/ava \"{src,test}/**/*.spec.js\"",
+    "ava": "cross-env LC_ALL=C WECHATY_LOG=verbose node_modules/.bin/ava --ext js",
     "start": "ts-node bin/client",
     "dev": "ts-node dev.ts",
     "demo": "ts-node example/ding-dong-bot.ts"

@@ -53,6 +53,17 @@ export class Browser extends EventEmitter {
   public async init(): Promise<void> {
     log.verbose('PuppetWebBrowser', 'init()')
 
+    if (this.state.current() === 'open') {
+      let e: Error
+      if (this.state.inprocess()) {
+        e = new Error('init() fail: current state is `open`-`ing`')
+      } else {
+        e = new Error('init() fail: current state is `open`')
+      }
+      log.error('PuppetWebBrowser', e.message)
+      throw e
+    }
+
     this.state.target('open')
     this.state.current('open', false)
 
@@ -134,15 +145,14 @@ export class Browser extends EventEmitter {
     log.verbose('PuppetWebBrowser', 'quit()')
 
     if (this.state.current() === 'close') {
+      let e: Error
       if (this.state.inprocess()) {
-        const e = new Error('quit() on a browser with state.current():`close` and inprocess():`true` ?')
-        log.warn('PuppetWebBrowser', e.message)
-        throw e
+        e = new Error('quit() fail: on a browser with state.current():`close` and inprocess():`true` ?')
       } else { // stable
-        const e = new Error('quit() on a already quit-ed browser')
-        log.warn('PuppetWebBrowser', e.message)
-        throw e
+        e = new Error('quit() fail: on a already quit-ed browser')
       }
+      log.warn('PuppetWebBrowser', e.message)
+      throw e
     }
 
     this.state.current('close', false)
@@ -275,6 +285,7 @@ export class Browser extends EventEmitter {
       return await this.driver.executeScript.apply(this.driver, arguments)
     } catch (e) {
       // this.dead(e)
+      log.verbose('PuppetWebBrowser', 'execute() script: %s', script)
       log.warn('PuppetWebBrowser', 'execute() exception: %s, %s', e.message.substr(0, 99), e.stack)
       throw e
     }

@@ -20,7 +20,7 @@ import {
 const PROFILE = Config.DEFAULT_PROFILE + '-' + process.pid + '-'
 let profileCounter = 1
 
-test('Browser Cookie smoking test', async t => {
+test('Cookie smoking test', async t => {
   const browser = new Browser()
   t.truthy(browser, 'should instanciate a browser instance')
 
@@ -83,10 +83,10 @@ test('Browser Cookie smoking test', async t => {
   await browser.driver.quit()
 })
 
-test('Browser Cookie save/load test', async t => {
+test('Cookie save/load', async t => {
   const profileName = PROFILE + profileCounter++ + 'wechaty.json'
 
-  let b = new Browser({
+  let browser = new Browser({
       head: Config.head
     , sessionFile: profileName
   })
@@ -95,14 +95,14 @@ test('Browser Cookie save/load test', async t => {
    * use exception to call b.quit() to clean up
    */
   try {
-    t.truthy(b, 'should get a new Browser')
+    t.truthy(browser, 'should get a new Browser')
 
-    b.state.target('open')
+    browser.state.target('open')
 
-    await b.driver.init()
+    await browser.driver.init()
     t.pass('should init driver')
 
-    await b.open()
+    await browser.open()
     t.pass('opened')
 
     const EXPECTED_COOKIE = {
@@ -115,43 +115,43 @@ test('Browser Cookie save/load test', async t => {
     }
     const EXPECTED_NAME_REGEX = new RegExp('^' + EXPECTED_COOKIE.name + '$')
 
-    await b.driver.manage().deleteAllCookies()
-    let cookies = await b.driver.manage().getCookies()
+    await browser.driver.manage().deleteAllCookies()
+    let cookies = await browser.driver.manage().getCookies()
     t.is(cookies.length, 0, 'should no cookie after deleteAllCookies()')
 
-    await b.addCookie(EXPECTED_COOKIE)
-    const cookieFromBrowser = await b.driver.manage().getCookie(EXPECTED_COOKIE.name)
+    await browser.addCookie(EXPECTED_COOKIE)
+    const cookieFromBrowser = await browser.driver.manage().getCookie(EXPECTED_COOKIE.name)
     t.is(cookieFromBrowser.name, EXPECTED_COOKIE.name, 'cookie from getCookie() should be same as we just set')
 
-    let cookiesFromCheck = await b.readCookie()
+    let cookiesFromCheck = await browser.readCookie()
     t.truthy(cookiesFromCheck.length, 'should get cookies from checkSession() after addCookies()')
     let cookieFromCheck  = cookiesFromCheck.filter(c => EXPECTED_NAME_REGEX.test(c['name']))
     t.is(cookieFromCheck[0]['name'], EXPECTED_COOKIE.name, 'cookie from checkSession() return should be same as we just set by addCookies()')
 
-    await b.saveCookie()
-    const cookiesFromSave = await b.readCookie()
+    await browser.saveCookie()
+    const cookiesFromSave = await browser.readCookie()
     t.truthy(cookiesFromSave.length, 'should get cookies from saveSession()')
     const cookieFromSave  = cookiesFromSave.filter(c => EXPECTED_NAME_REGEX.test(c['name']))
     t.is(cookieFromSave.length, 1, 'should has the cookie we just set')
     t.is(cookieFromSave[0]['name'], EXPECTED_COOKIE.name, 'cookie from saveSession() return should be same as we just set')
 
-    await b.driver.manage().deleteAllCookies()
-    cookiesFromCheck = await b.readCookie()
+    await browser.driver.manage().deleteAllCookies()
+    cookiesFromCheck = await browser.readCookie()
     t.is(cookiesFromCheck.length, 0, 'should no cookie from checkSession() after deleteAllCookies()')
 
-    await b.loadCookie().catch(() => { /* fail safe */ })
-    const cookiesFromLoad = await b.readCookie()
+    await browser.loadCookie().catch(() => { /* fail safe */ })
+    const cookiesFromLoad = await browser.readCookie()
     t.truthy(cookiesFromLoad.length, 'should get cookies after loadSession()')
     const cookieFromLoad = cookiesFromLoad.filter(c => EXPECTED_NAME_REGEX.test(c.name))
     t.is(cookieFromLoad[0].name, EXPECTED_COOKIE.name, 'cookie from loadSession() should has expected cookie')
 
-    cookiesFromCheck = await b.readCookie()
+    cookiesFromCheck = await browser.readCookie()
     t.truthy(cookiesFromCheck.length, 'should get cookies from checkSession() after loadSession()')
     cookieFromCheck  = cookiesFromCheck.filter(c => EXPECTED_NAME_REGEX.test(c['name']))
     t.truthy(cookieFromCheck.length, 'should has cookie after filtered after loadSession()')
     t.is(cookieFromCheck[0]['name'], EXPECTED_COOKIE.name, 'cookie from checkSession() return should has expected cookie after loadSession')
 
-    await b.quit()
+    await browser.driver.quit()
     t.pass('quited')
 
     /**
@@ -159,24 +159,24 @@ test('Browser Cookie save/load test', async t => {
      * with the same sessionFile: profileName
      */
 
-    b = new Browser({
+    browser = new Browser({
         head: Config.head
       , sessionFile: profileName
     })
 
     t.pass('should started a new Browser')
 
-    b.state.target('open')
+    browser.state.target('open')
 
-    await b.driver.init()
+    await browser.driver.init()
     t.pass('should inited the new Browser')
-    await b.open()
+    await browser.open()
     t.pass('should opened')
 
-    await b.loadCookie()
+    await browser.loadCookie()
     t.pass('should loadSession for new Browser(process)')
 
-    const cookieAfterQuit = await b.driver.manage().getCookie(EXPECTED_COOKIE.name)
+    const cookieAfterQuit = await browser.driver.manage().getCookie(EXPECTED_COOKIE.name)
     t.truthy(cookieAfterQuit, 'should get cookie from getCookie()')
     t.is(cookieAfterQuit.name, EXPECTED_COOKIE.name, 'cookie from getCookie() after browser quit, should load the right cookie back')
 
@@ -186,10 +186,10 @@ test('Browser Cookie save/load test', async t => {
       }
     })
 
-    await b.quit()
+    await browser.driver.quit()
   } catch (e) {
-    if (b) {
-      await b.quit()
+    if (browser) {
+      await browser.driver.quit()
     }
     t.fail('exception: ' + e.message)
   }
