@@ -56,8 +56,9 @@ notifications:
 after_success:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then npm run coverage; fi
 
+before_deploy: "npm run build"
+
 deploy:
   provider: npm
-  email: youremail@example.com
+  email: zixia@zixia.net
   api_key: "$NPM_TOKEN"
-  clean_up: false
