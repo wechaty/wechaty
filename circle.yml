@@ -8,9 +8,8 @@ machine:
 test:
   override:
   - docker info
-  - docker run -ti -v "$(pwd)":/mnt nlknguyen/alpine-shellcheck bin/*.sh
+  - docker run -ti -v "$(pwd)":/mnt nlknguyen/alpine-shellcheck "bin/*.sh"
   - ./script/docker.sh build
-  - ./script/docker.sh run shlint
   - ./script/docker.sh test
 
 deployment:
