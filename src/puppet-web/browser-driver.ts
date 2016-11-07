@@ -241,20 +241,19 @@ export class BrowserDriver {
   private async valid(driver: WebDriver): Promise<boolean> {
     log.verbose('PuppetWebBrowserDriver', 'valid()')
 
+    /*
     try {
       const session = await new Promise((resolve, reject) => {
-        /**
-         * resolve
-         */
+        // resolve
         driver.getSession()
               .then(session => resolve(session))
 
-        /**
-         * reject
-         */
+        // reject
         setTimeout(() => {
-          log.warn('PuppetWebBrowserDriver', 'valid() driver.getSession() timeout(halt?)')
-          reject()
+          const e = new Error('valid() driver.getSession() timeout(halt?)')
+          log.warn('PuppetWebBrowserDriver'   , e.message)
+          log.verbose('PuppetWebBrowserDriver', e.stack)
+          reject(e)
         }, 10 * 1000)
 
       })
@@ -270,6 +269,7 @@ export class BrowserDriver {
       log.warn('PuppetWebBrowserDriver', 'valid() driver.getSession() exception: %s', e.message)
       return false
     }
+   */
 
     let two
     try {
@@ -281,6 +281,7 @@ export class BrowserDriver {
     }
 
     if (two !== 2) {
+      log.warn('BrowserDriver', 'valid() fail: two = %s ?', two)
       return false
     }
 
