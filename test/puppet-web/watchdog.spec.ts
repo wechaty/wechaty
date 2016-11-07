@@ -11,14 +11,12 @@ import * as sinon from 'sinon'
 /* tslint:disable:no-var-requires */
 const retryPromise = require('retry-promise').default
 
-import {
-  log
-} from '../../'
+import { log } from '../../src/config'
 
 import {
-  PuppetWeb
+    PuppetWeb
   , Watchdog
-} from '../../src/puppet-web/'
+}               from '../../src/puppet-web/'
 
 const PROFILE = 'unit-test-session.wechaty.json'
 

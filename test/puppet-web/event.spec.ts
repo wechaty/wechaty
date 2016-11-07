@@ -8,11 +8,6 @@
 import { test } from 'ava'
 
 import {
-  // PuppetWeb
-  // , log
-} from '../../'
-
-import {
     Event
   , PuppetWeb
 } from '../../src/puppet-web/'
