@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.5.9",
+  "version": "0.5.11",
   "description": "Wechat for Bot (Personal Account)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -35,9 +35,10 @@
     "testdev": "cross-env LC_ALL=C WECHATY_LOG=silly ava --ext ts --serial --verbose --fail-fast --timeout=3m",
     "testdist": "cross-env WECHATY_LOG=SILLY WECHATY_HEAD=chrome ava --ext ts --verbose --fail-fast --timeout=2m",
     "ava": "cross-env LC_ALL=C WECHATY_LOG=verbose node_modules/.bin/ava --ext js",
-    "start": "ts-node bin/client",
+    "io-client": "ts-node bin/io-client",
     "dev": "ts-node dev.ts",
-    "demo": "ts-node example/ding-dong-bot.ts"
+    "demo": "ts-node example/ding-dong-bot.ts",
+    "start": "npm run demo"
   },
   "repository": {
     "type": "git",

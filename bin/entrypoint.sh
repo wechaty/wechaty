@@ -139,13 +139,39 @@ function wechaty::runBot() {
   return "$ret"
 }
 
-function wechaty::help() {
-  echo <<HELP
-  Usage: wechaty <mybot.js | mybot.ts | command>
+function wechaty::io-client() {
+  figlet " Wechaty.io "
+  figlet " Authing By:"
+  echo
+  echo "WECHATY_TOKEN=$WECHATY_TOKEN "
+  echo
 
-  1. mybot.js: a JavaScript program for your bot. will run by node v6
-  2. mybot.ts: a TypeScript program for your bot. will run by ts-node
-  3. command: demo, test, doctor
+  npm run io-client
+}
+
+function wechaty::help() {
+  figlet " Docker Usage: "
+  cat <<HELP
+
+
+
+  Usage: wechaty [ mybot.js | mybot.ts | COMMAND ]
+
+  Run a JavaScript/TypeScript bot, or a command.
+
+  Bot File:
+    mybot.js: a JavaScript program for your bot. will run by Node.js v7
+    mybot.ts: a TypeScript program for your bot. will run by ts-node/TypeScript v2
+
+  Commands:
+    demo    Run Wechaty DEMO
+    doctor  Print Diagnose Report
+    test    Run Unit Test
+
+  Learn more at:
+    https://github.com/wechaty/wechaty/wiki/Docker
+
+
 
 HELP
 }
@@ -165,7 +191,12 @@ function main() {
 
   local -i ret=0
 
-  case "$1" in
+  local defaultArg=help
+  if [ -n "$WECHATY_TOKEN" ]; then
+    defaultArg=io-client
+  fi
+
+  case "${1:-${defaultArg}}" in
     #
     # 1. Get a shell
     #
@@ -188,12 +219,12 @@ function main() {
       npm "$@" || ret=$?
       ;;
 
-    '')
-      if [ -n "$WECHATY_TOKEN" ]; then
-        npm start
-      else
-        wechaty::help
-      fi
+    help)
+      wechaty::help
+      ;;
+
+    io-client)
+      wechaty::io-client
       ;;
 
     #
