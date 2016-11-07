@@ -244,7 +244,6 @@ export class BrowserDriver {
   private async valid(driver: WebDriver): Promise<boolean> {
     log.verbose('PuppetWebBrowserDriver', 'valid()')
 
-    /*
     try {
       const session = await new Promise((resolve, reject) => {
         // resolve
@@ -272,7 +271,6 @@ export class BrowserDriver {
       log.warn('PuppetWebBrowserDriver', 'valid() driver.getSession() exception: %s', e.message)
       return false
     }
-   */
 
     let two
     try {
