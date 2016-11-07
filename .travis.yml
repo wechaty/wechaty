@@ -54,9 +54,11 @@ notifications:
     on_start: never     # options: [always|never|change] default: always
 
 after_success:
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then npm run coverage; fi
+  - npm run coverage
 
-before_deploy: "npm run build"
+before_deploy: 
+  - npm version
+  - npm run build
 
 deploy:
   provider: npm
