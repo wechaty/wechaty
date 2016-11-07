@@ -157,7 +157,7 @@ Get code from [here](https://github.com/wechaty/wechaty/wiki/PoweredByWechaty)
 
 1. [Wechaty.io](https://www.wechaty.io) ChatBot Portal Manager for Wechaty 
 
-Know more at [here](https://github.com/wechaty/wechaty/wiki/PoweredByWechaty)
+Know more about Projects Use Wechaty at [Wiki](https://github.com/wechaty/wechaty/wiki/PoweredByWechaty)
 
 # Contributing
 

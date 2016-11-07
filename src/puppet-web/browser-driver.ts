@@ -242,6 +242,8 @@ export class BrowserDriver {
     log.verbose('PuppetWebBrowserDriver', 'valid()')
 
     const session = await driver.getSession()
+    log.verbose('PuppetWebBrowserDriver', 'valid() driver.getSession() done')
+
     if (!session) {
       log.verbose('PuppetWebBrowserDriver', 'valid() found an invalid driver')
       return false
@@ -250,6 +252,7 @@ export class BrowserDriver {
     let two
     try {
       two = await driver.executeScript('return 1+1')
+      log.verbose('PuppetWebBrowserDriver', 'valid() driver.executeScript() done')
     } catch (e) {
       two = e
       log.warn('BrowserDriver', 'valid() fail: %s', e.message)
