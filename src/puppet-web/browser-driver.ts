@@ -31,13 +31,13 @@ export class BrowserDriver {
 
     if (this.driver) {
       try {
-        const valid = await this.valid(this.driver)
-        if (valid) {
-          // await this.driver.close()
+        // const valid = await this.valid(this.driver)
+        // if (valid) {
+        //   // await this.driver.close()
           await this.driver.quit()
-        }
+        // }
       } catch (e) {
-        log.warn('PuppetWebBrowserDriver', 'init() this.driver.quit() exception: %s'
+        log.warn('PuppetWebBrowserDriver', 'init() this.driver.quit() soft exception: %s'
                                           , e.stack
         )
       }
@@ -206,11 +206,11 @@ export class BrowserDriver {
                         .withCapabilities(customPhantom)
                         .build()
 
-    const valid = await this.valid(driver)
+    // const valid = await this.valid(driver)
 
-    if (!valid) {
-      throw new Error('invalid driver founded')
-    }
+    // if (!valid) {
+    //   throw new Error('invalid driver founded')
+    // }
 
     /* tslint:disable:jsdoc-format */
 		/**
