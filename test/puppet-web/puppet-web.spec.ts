@@ -9,14 +9,13 @@ import { test } from 'ava'
 
 import {
     Config
-  , PuppetWeb
-  , Message
   , log
-} from '../../'
-
+}                     from '../../src/config'
+import { Message }    from '../../src/message'
+import { PuppetWeb }  from '../../src/puppet-web'
 import {
   Server
-} from '../../src/puppet-web/'
+}                     from '../../src/puppet-web/server'
 
 // import { spy } from 'sinon'
 
