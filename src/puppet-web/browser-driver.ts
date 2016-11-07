@@ -124,13 +124,19 @@ export class BrowserDriver {
       }
 
       try {
+        log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() new Builder()')
+
         driver = new Builder()
                       .setAlertBehavior('ignore')
                       .forBrowser('chrome')
                       .withCapabilities(customChrome)
                       .build()
 
+        log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() new Builder() done')
+
         const valid = await this.valid(driver)
+
+        log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() valid() done: %s', valid)
 
         if (!valid) {
           err = new Error('getChromeDriver() got invalid driver')
@@ -233,7 +239,7 @@ export class BrowserDriver {
   }
 
   private async valid(driver: WebDriver): Promise<boolean> {
-    log.silly('PuppetWebBrowserDriver', 'valid()')
+    log.verbose('PuppetWebBrowserDriver', 'valid()')
 
     const session = await driver.getSession()
     if (!session) {
