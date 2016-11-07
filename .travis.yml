@@ -42,7 +42,7 @@ script:
   - echo $TRAVIS_OS_NAME
   - node --version
   - npm --version
-  - shellcheck "bin/*.sh"
+  - shellcheck bin/*.sh
   - npm test
 
 notifications:
