@@ -8,4 +8,5 @@
 # To enable this hook, rename this file to "pre-commit".
 
 npm run lint
-npm --no-git-tag-version version patch || true
+[ -z "$CYGWIN" ] && npm version patch
+# npm --no-git-tag-version version patch || true
