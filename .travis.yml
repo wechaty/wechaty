@@ -58,4 +58,6 @@ after_success:
 
 deploy:
   provider: npm
+  email: youremail@example.com
   api_key: "$NPM_TOKEN"
+  clean_up: false
