@@ -18,7 +18,7 @@
     "ts-node": "ts-node",
     "build": "tsc && shx cp package.json dist/ && shx cp src/puppet-web/*.js dist/src/puppet-web/",
     "rebuild": "npm run clean && npm run build",
-    "coveralls": "nyc report --reporter=text-lcov | coveralls",
+    "coverage": "nyc report --reporter=text-lcov | coveralls",
     "doctor": "ts-node bin/doctor",
     "clean": "shx rm -fr dist/*",
     "lint": "npm run eslint && npm run tslint",
@@ -86,7 +86,7 @@
     }
   },
   "engines": {
-    "node": ">= 6.0.0"
+    "node": ">= 7.0.0"
   },
   "dependencies": {
     "arrify": "^1.0.1",
