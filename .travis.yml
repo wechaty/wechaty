@@ -3,7 +3,6 @@ dist: trusty
 language: node_js
 
 node_js:
-  - "6"
   - "7"
 
 os:
@@ -33,7 +32,7 @@ install:
   - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then sh -e /etc/init.d/xvfb start; fi
 
   # - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then sudo apt-get update; fi
-  # - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then sudo apt-get install -y libappindicator1 fonts-liberation; fi
+  # - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then sudo apt-get install -y shellcheck; fi
   - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb; fi
   - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then sudo dpkg -i google-chrome*.deb; fi
 
@@ -43,7 +42,7 @@ script:
   - echo $TRAVIS_OS_NAME
   - node --version
   - npm --version
-  - npm run shlint
+  - shellcheck "bin/*.sh"
   - npm test
 
 notifications:
@@ -55,4 +54,4 @@ notifications:
     on_start: never     # options: [always|never|change] default: always
 
 after_success:
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then npm run coveralls; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then npm run coverage; fi
