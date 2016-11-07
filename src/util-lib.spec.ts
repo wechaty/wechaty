@@ -5,12 +5,11 @@
  * https://github.com/wechaty/wechaty
  *
  */
-import { test } from 'ava'
-import {
-  UtilLib
-}  from '../'
+import { test }       from 'ava'
+import * as express   from 'express'
 
-import * as express  from 'express'
+import { UtilLib }  from './util-lib'
+
 // import * as http     from 'http'
 
 test('stripHtml()', t => {

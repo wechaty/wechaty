@@ -6,16 +6,10 @@
  *
  */
 import { test } from 'ava'
-import {
-  Room
-  // , Wechaty
-  , Config
-  // , Message
-  , Contact
-  // , Puppet
-  , PuppetWeb
-  // , log
-}  from '../'
+import { Room } from '../src/room'
+import { Config } from '../src/config'
+import { Contact } from '../src/contact'
+import { PuppetWeb } from '../src/puppet-web'
 
 Config.puppetInstance(new PuppetWeb())
 // Room.attach(new PuppetWeb())

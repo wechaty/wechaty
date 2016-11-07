@@ -7,10 +7,10 @@
  */
 import { test } from 'ava'
 import {
-  Contact
-  , Config
-  , PuppetWeb
-}  from '../'
+  Config
+}                     from '../src/config'
+import { Contact }    from '../src/contact'
+import { PuppetWeb }  from '../src/puppet-web'
 
 Config.puppetInstance(new PuppetWeb())
 

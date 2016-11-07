@@ -11,7 +11,7 @@ import * as fs from 'fs'
 // import { execSync } from 'child_process'
 // import * as sinon from 'sinon'
 
-import { Config } from '../'
+import { Config } from '../src/config'
 
 /**
  * need keep this !Config.isDocker because ava need at least one test() inside.

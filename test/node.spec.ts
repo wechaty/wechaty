@@ -6,7 +6,7 @@
  *
  */
 import { test } from 'ava'
-// import { log }  from '../'
+// import { log }  from '../src/config'
 
 import { spy } from 'sinon'
 
