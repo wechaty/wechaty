@@ -241,11 +241,33 @@ export class BrowserDriver {
   private async valid(driver: WebDriver): Promise<boolean> {
     log.verbose('PuppetWebBrowserDriver', 'valid()')
 
-    const session = await driver.getSession()
-    log.verbose('PuppetWebBrowserDriver', 'valid() driver.getSession() done')
+    try {
+      const session = await new Promise((resolve, reject) => {
+        /**
+         * resolve
+         */
+        driver.getSession()
+              .then(session => resolve(session))
 
-    if (!session) {
-      log.verbose('PuppetWebBrowserDriver', 'valid() found an invalid driver')
+        /**
+         * reject
+         */
+        setTimeout(() => {
+          log.warn('PuppetWebBrowserDriver', 'valid() driver.getSession() timeout(halt?)')
+          reject()
+        }, 10 * 1000)
+
+      })
+
+      log.verbose('PuppetWebBrowserDriver', 'valid() driver.getSession() done')
+
+      if (!session) {
+        log.verbose('PuppetWebBrowserDriver', 'valid() found an invalid driver')
+        return false
+      }
+
+    } catch (e) {
+      log.warn('PuppetWebBrowserDriver', 'valid() driver.getSession() exception: %s', e.message)
       return false
     }
 
