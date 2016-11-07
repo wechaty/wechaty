@@ -364,7 +364,7 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   public memberList(): Contact[] {
-    log.verbose('Room', 'member(%s)', name)
+    log.verbose('Room', 'memberList')
 
     if (!this.obj || !this.obj.memberList || this.obj.memberList.length < 1) {
       log.warn('Room', 'memberList() not ready')
