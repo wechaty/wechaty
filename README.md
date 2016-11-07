@@ -85,6 +85,8 @@ $ node mybot.js
 
 You might be asked for install the `chromedriver`, depends on which platform you are.
 
+Get to know more about NPM at [Wiki](https://github.com/wechaty/wechaty/wiki/NPM)
+
 # API Reference
 
 ## [Wechaty](https://github.com/wechaty/wechaty/wiki/API#class-wechaty)

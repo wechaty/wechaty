@@ -55,3 +55,7 @@ notifications:
 
 after_success:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then npm run coverage; fi
+
+deploy:
+  provider: npm
+  api_key: "$NPM_TOKEN"
