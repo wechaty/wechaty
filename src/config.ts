@@ -199,4 +199,12 @@ export interface Sleepable {
  */
 process.env['SELENIUM_PROMISE_MANAGER'] = 0
 
+/**
+ * to count how many times this piece of code is instanciaed
+ */
+if (!global['WECHATY_CONFIG_INSTANCE_COUNTER']) {
+  global['WECHATY_CONFIG_INSTANCE_COUNTER'] = 0
+}
+global['WECHATY_CONFIG_INSTANCE_COUNTER']++
+
 export { log }

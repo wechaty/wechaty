@@ -80,3 +80,10 @@ test('isDocker', t => {
   }
 
 })
+
+/**
+ * issue #70 https://github.com/wechaty/wechaty/issues/70#issuecomment-258676376
+ */
+test('Module Singleton', t => {
+  t.is(global['WECHATY_CONFIG_INSTANCE_COUNTER'], 1, 'should only load module for one time')
+})
