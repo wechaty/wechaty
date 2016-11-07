@@ -58,9 +58,11 @@ after_success:
 
 before_deploy: 
   - npm version
-  - npm run build
+  - npm run rebuild
 
 deploy:
   provider: npm
   email: zixia@zixia.net
   api_key: "$NPM_TOKEN"
+  skip_cleanup: true
+
