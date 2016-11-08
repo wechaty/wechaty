@@ -6,7 +6,6 @@ machine:
 
 dependencies:
  pre:
-   - sudo apt-get update; sudo apt-get install shellcheck
    - curl -s -o "/tmp/v${BATS_VERSION}.tar.gz" -L \
       "https://github.com/sstephenson/bats/archive/v${BATS_VERSION}.tar.gz" \
       && tar -xzf "/tmp/v${BATS_VERSION}.tar.gz" -C /tmp/ \
@@ -15,11 +14,9 @@ dependencies:
 test:
   override:
   - docker info
-    #  - docker run -ti -v "$(pwd)":/mnt nlknguyen/alpine-shellcheck bin/*.sh
-  - shellcheck bin/*.sh
+  - docker run -ti -v "$(pwd)":/mnt nlknguyen/alpine-shellcheck bin/*.sh
   - ./script/docker.sh build
   - ./script/docker.sh test
-  - bats test/
 
 deployment:
   master:
