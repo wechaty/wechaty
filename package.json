@@ -87,7 +87,7 @@
     }
   },
   "engines": {
-    "node": ">= 7.0.0"
+    "node": ">= 6.9.0"
   },
   "dependencies": {
     "arrify": "^1.0.1",
