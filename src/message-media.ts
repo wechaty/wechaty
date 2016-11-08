@@ -6,15 +6,17 @@
  * https://github.com/zixia/wechaty
  *
  */
-import { Config, log }  from './config'
-import { Message }      from './message'
-import { UtilLib }      from './util-lib'
-
-import { PuppetWeb }    from './puppet-web/puppet-web'
-import { Bridge as PuppetWebBridge }       from './puppet-web/bridge'
+import {
+    Config
+  , log
+}                     from './config'
+import { Message }    from './message'
+import { UtilLib }    from './util-lib'
+import { PuppetWeb }  from './puppet-web/puppet-web'
+import { Bridge }     from './puppet-web/bridge'
 
 export class MediaMessage extends Message {
-  private bridge: PuppetWebBridge
+  private bridge: Bridge
 
   constructor(rawObj) {
     super(rawObj)

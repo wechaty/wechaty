@@ -214,7 +214,7 @@ export class Contact implements Sayable {
   public remark(newRemark: string): Promise<boolean>
 
   public remark(newRemark?: string): Promise<boolean> | string {
-    log.verbose('Contact', 'remark(%s)', newRemark || '')
+    log.silly('Contact', 'remark(%s)', newRemark || '')
 
     if (newRemark === undefined) {
       return this.obj && this.obj.remark || ''
