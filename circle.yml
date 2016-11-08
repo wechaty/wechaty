@@ -2,15 +2,25 @@ machine:
   services:
   - docker
 
-# dependencies:
-#  pre:
-#    - sudo apt-get update; sudo apt-get install shellcheck
+# Add some environment variables
+environment:
+  BATS_VERSION: 0.4.0
+
+dependencies:
+ pre:
+   - sudo apt-get update; sudo apt-get install shellcheck
+   - curl -s -o "/tmp/v${BATS_VERSION}.tar.gz" -L \
+      "https://github.com/sstephenson/bats/archive/v${BATS_VERSION}.tar.gz" \
+      && tar -xzf "/tmp/v${BATS_VERSION}.tar.gz" -C /tmp/ \
+      && sudo bash "/tmp/bats-${BATS_VERSION}/install.sh" /usr/local
+
 test:
   override:
   - docker info
-  - docker run -ti -v "$(pwd)":/mnt nlknguyen/alpine-shellcheck bin/*.sh
+    #  - docker run -ti -v "$(pwd)":/mnt nlknguyen/alpine-shellcheck bin/*.sh
   - ./script/docker.sh build
   - ./script/docker.sh test
+  - bats test/
 
 deployment:
   master:
