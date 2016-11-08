@@ -113,16 +113,29 @@ function wechaty::runBot() {
     echo "Install dependencies modules ..."
     yarn < /dev/null # yarn will close stdin??? cause `read` command fail after yarn
   }
-  npm --progress=false install @types/node > /dev/null
-
 
   # echo -n "Linking Wechaty module to bot ... "
   # npm link wechaty < /dev/null > /dev/null 2>&1
   # echo "linked. "
 
-  echo "Executing ts-node $*"
+  # npm --progress=false install @types/node > /dev/null
+
   local -i ret=0
-  ts-node "$@" &
+  case "$botFile" in
+    *.js)
+      echo "Executing node $*"
+      node "$@" &
+      ;;
+    *.ts)
+      # yarn add @types/node
+      echo "Executing ts-node $*"
+      ts-node "$@" &
+      ;;
+    *)
+      echo "ERROR: wechaty::runBot() neith .js nor .ts"
+      exit -1 &
+  esac
+
   wait "$!" || ret=$? # fix `can only `return' from a function or sourced script` error
 
   case "$ret" in
