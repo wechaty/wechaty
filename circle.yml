@@ -1,10 +1,8 @@
 machine:
   services:
   - docker
-
-# Add some environment variables
-environment:
-  BATS_VERSION: 0.4.0
+  environment:
+    BATS_VERSION: 0.4.0
 
 dependencies:
  pre:
