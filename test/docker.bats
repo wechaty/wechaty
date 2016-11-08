@@ -56,3 +56,23 @@ fixture=test/fixture/docker
   [ "$status" -ne 0 ]
 }
 
+@test "doctor(default by npm run)" {
+  run dockerRun doctor
+  [ "$status" -eq 0 ]
+}
+
+@test "run doctor" {
+  run dockerRun run doctor
+  [ "$status" -eq 0 ]
+}
+
+@test "run non-exist command" {
+  run dockerRun run fdasfadsfasdfasdfasdfasd
+  [ "$status" -ne 0 ]
+}
+
+@test "direct non-exist command" {
+  run dockerRun fdasfadsfasdfasdfasdfasd
+  [ "$status" -ne 0 ]
+}
+

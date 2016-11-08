@@ -244,7 +244,8 @@ function main() {
     # 4. Default to execute npm run ...
     #
     *)
-      npm "$@" || ret=$?
+      [ "$1" = "run" ] && shift
+      npm run "$@" || ret=$?
      ;;
   esac
 
