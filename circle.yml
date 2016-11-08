@@ -6,6 +6,7 @@ machine:
 
 dependencies:
  pre:
+   - export BATS_VERSION=0.4.0
    - curl -s -o "/tmp/v${BATS_VERSION}.tar.gz" -L \
       "https://github.com/sstephenson/bats/archive/v${BATS_VERSION}.tar.gz" \
       && tar -xzf "/tmp/v${BATS_VERSION}.tar.gz" -C /tmp/ \
