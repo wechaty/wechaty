@@ -1,17 +1,12 @@
 machine:
   services:
   - docker
-  environment:
-    BATS_VERSION: 0.4.0
 
 dependencies:
  pre:
-   - export BATS_VERSION=0.4.0
-   - curl -s -o "/tmp/v${BATS_VERSION}.tar.gz" -L \
-      "https://github.com/sstephenson/bats/archive/v${BATS_VERSION}.tar.gz" \
-      && tar -xzf "/tmp/v${BATS_VERSION}.tar.gz" -C /tmp/ \
-      && sudo bash "/tmp/bats-${BATS_VERSION}/install.sh" /usr/local
-
+  - sudo add-apt-repository ppa:duggan/bats --yes
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq bats
 test:
   override:
   - docker info
