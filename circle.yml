@@ -18,6 +18,7 @@ test:
   override:
   - docker info
     #  - docker run -ti -v "$(pwd)":/mnt nlknguyen/alpine-shellcheck bin/*.sh
+  - shellcheck bin/*.sh
   - ./script/docker.sh build
   - ./script/docker.sh test
   - bats test/
