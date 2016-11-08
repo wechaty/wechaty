@@ -41,7 +41,7 @@ Wechaty.instance() // Singleton
 .init()
 ```
 
-This bot can log all message to console. Source code(TypeScript version) at [here](https://github.com/wechaty/wechaty/blob/master/example/roger-bot.ts).
+This bot can log all message to console.
 
 You can find more example from [Wiki](https://github.com/wechaty/wechaty/wiki/Example) and [Example Directory](https://github.com/wechaty/wechaty/blob/master/example/).
 
@@ -129,7 +129,7 @@ TBW
 
 # Test
 
-[![Linux/Mac Build Status](https://img.shields.io/travis/wechaty/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/wechaty/wechaty) [![Windows Build status](https://img.shields.io/appveyor/ci/zixia/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/zixia/wechaty) [![Docker CircleCI](https://img.shields.io/circleci/project/github/wechaty/wechaty.svg?label=Docker)](https://circleci.com/gh/wechaty/wechaty) [![Coverage Status](https://coveralls.io/repos/github/wechaty/wechaty/badge.svg?branch=master)](https://coveralls.io/github/wechaty/wechaty?branch=master)
+[![Linux/Mac Build Status](https://img.shields.io/travis/wechaty/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/wechaty/wechaty) [![Windows Build status](https://img.shields.io/appveyor/ci/zixia/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/zixia/wechaty) [![Docker CircleCI](https://img.shields.io/circleci/project/github/wechaty/wechaty.svg?label=Docker)](https://circleci.com/gh/wechaty/wechaty) [![Coverage Status](https://coveralls.io/repos/github/wechaty/wechaty/badge.svg?branch=master)](https://coveralls.io/github/wechaty/wechaty?branch=master) [![Known Vulnerabilities](https://snyk.io/test/github/wechaty/wechaty/badge.svg)](https://snyk.io/test/github/wechaty/wechaty)
 
 Wechaty use [AVA](https://github.com/avajs/ava) for unit testing
 
@@ -138,7 +138,7 @@ To test Wechaty, run:
 npm test
 ```
 
-Get to know more about test from [here](https://github.com/wechaty/wechaty/wiki/Test)
+Get to know more about test from [Wiki:Test](https://github.com/wechaty/wechaty/wiki/Test)
 
 # Release Notes
 
@@ -151,13 +151,13 @@ Get to know more about test from [here](https://github.com/wechaty/wechaty/wiki/
 
 ## Wechaty Badge
 
-Get code from [here](https://github.com/wechaty/wechaty/wiki/PoweredByWechaty)
+Get embed html/markdown code from [Wiki:PoweredByWechaty](https://github.com/wechaty/wechaty/wiki/PoweredByWechaty)
 
 ## Projects Use Wechaty
 
 1. [Wechaty.io](https://www.wechaty.io) ChatBot Portal Manager for Wechaty 
 
-Know more about Projects Use Wechaty at [Wiki](https://github.com/wechaty/wechaty/wiki/PoweredByWechaty)
+Know more about Projects Use Wechaty at [Wiki:PoweredByWechaty](https://github.com/wechaty/wechaty/wiki/PoweredByWechaty)
 
 # Contributing
 
