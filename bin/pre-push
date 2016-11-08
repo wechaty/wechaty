@@ -6,7 +6,7 @@
 # it wants to stop the commit.
 #
 # To enable this hook, rename this file to "pre-commit".
-
+set -e
 npm run lint
 [ -z "$CYGWIN" ] && npm version patch
 # npm --no-git-tag-version version patch || true
