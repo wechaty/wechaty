@@ -22,6 +22,7 @@ RUN  apk update && apk upgrade \
       vim \
       xauth \
       xvfb \
+  && echo -e 'nameserver 114.114.114.114\nnameserver 114.114.115.115' >> /etc/resolv.conf \
   && rm -rf /tmp/* /var/cache/apk/*
 
 RUN mkdir /wechaty
