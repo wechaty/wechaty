@@ -7,7 +7,10 @@
  */
 import { test }   from 'ava'
 
-import { Config } from './config'
+import {
+    Config 
+  , hasDockerContainerId
+}                 from './config'
 import { Puppet } from './puppet'
 
 test('important variables', t => {
@@ -86,4 +89,14 @@ test('isDocker', t => {
  */
 test('Module Singleton', t => {
   t.is(global['WECHATY_CONFIG_INSTANCE_COUNTER'], 1, 'should only load module for one time')
+})
+
+test('hasDockerContainerId()', t => {
+  const ID = 'd22ff5ccbf50790c4724e19a30a6a6057d03d684ea3c2b0ddac1bf028e2cf470'
+  const LINE = '1:name=systemd:/docker/f6da3e510ff2263a368cc8a57bf35b0d1c92a3d6d387e87de8e98e082af6a41c'
+  const UBUNTU = '1:name=systemd:/init.scope'
+
+  t.true(isDockerContainerId(ID)      , 'should identify container id right')
+  t.true(isDockerContainerId(LINE)    , 'should identify container id from cgroup file right')
+  t.false(isDockerContainerId(UBUNTU) , 'should identify ubuntu cgroup line not docker')
 })

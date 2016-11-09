@@ -121,11 +121,14 @@ function isWechatyDocker() {
                 .replace(/\n$/, '')
 
   // instead of `/`, docker will end with a container id
-  if (/\/$/.test(line)) {
-    return false
-  }
+  // if (/\/$/.test(line)) {
+  //   return false
+  // }
 
-  return true
+  if (hasDockerContainerId(line)) {
+    return true
+  }
+  return false
 }
 
 /**
@@ -213,4 +216,11 @@ if (!global['WECHATY_CONFIG_INSTANCE_COUNTER']) {
 }
 global['WECHATY_CONFIG_INSTANCE_COUNTER']++
 
-export { log }
+function hasDockerContainerId(line: string) {
+  // d22ff5ccbf50790c4724e19a30a6a6057d03d684ea3c2b0ddac1bf028e2cf470
+  re = /[a-f0-9]{64}$/i
+
+  return re.test(line)
+}
+
+export { log, hasDockerContainerId }
