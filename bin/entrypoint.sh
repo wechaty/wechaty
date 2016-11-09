@@ -170,13 +170,13 @@ function wechaty::help() {
 
   Usage: wechaty [ mybot.js | mybot.ts | COMMAND ]
 
-  Run a JavaScript/TypeScript bot, or a command.
+  Run a JavaScript/TypeScript <Bot File>, or a <Wechaty Command>.
 
-  Bot File:
+  <Bot File>:
     mybot.js: a JavaScript program for your bot. will run by Node.js v7
     mybot.ts: a TypeScript program for your bot. will run by ts-node/TypeScript v2
 
-  Commands:
+  <Commands>:
     demo    Run Wechaty DEMO
     doctor  Print Diagnose Report
     test    Run Unit Test
