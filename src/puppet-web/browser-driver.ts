@@ -250,7 +250,6 @@ export class BrowserDriver {
         const timer = setTimeout(() => {
           const e = new Error('valid() driver.getSession() timeout(halt?)')
           log.warn('PuppetWebBrowserDriver'   , e.message)
-          log.verbose('PuppetWebBrowserDriver', e.stack)
           reject(e)
         }, 67 * 1000)
 

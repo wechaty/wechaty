@@ -39,7 +39,6 @@ bot
     || m.type() === MessageType.VOICE
     || m.type() === MessageType.MICROVIDEO
   ) {
-    console.log('IMAGE url: ' + m.get('url'))
     const filename = m.id + m.ext()
     console.log('IMAGE local filename: ' + filename)
 
