@@ -111,12 +111,12 @@ function isWechatyDocker() {
     return false
   }
 
-  const cgroup = '/proc/1/cgroup'
+  const cgroup = '/proc/self/cgroup'
   try       { fs.statSync(cgroup).isFile() }
   catch (e) { return false }
 
   // http://stackoverflow.com/a/20624315/1123955
-  const line = execSync(`sort -n ${cgroup} 2>/dev/null | head -1`)
+  const line = execSync(`grep docker ${cgroup} | sort -n 2>/dev/null | head -1`)
                 .toString()
                 .replace(/\n$/, '')
 
@@ -216,6 +216,11 @@ if (!global['WECHATY_CONFIG_INSTANCE_COUNTER']) {
 }
 global['WECHATY_CONFIG_INSTANCE_COUNTER']++
 
+/**
+ * issue #84
+ *
+ * http://tuhrig.de/how-to-know-you-are-inside-a-docker-container/
+ */
 function hasDockerContainerId(line: string) {
   // d22ff5ccbf50790c4724e19a30a6a6057d03d684ea3c2b0ddac1bf028e2cf470
   const re = /[a-f0-9]{64}$/i
