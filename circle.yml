@@ -2,9 +2,11 @@ machine:
   services:
   - docker
 
-# dependencies:
-#  pre:
-#    - sudo apt-get update; sudo apt-get install shellcheck
+dependencies:
+ pre:
+  - sudo add-apt-repository ppa:duggan/bats --yes
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq bats
 test:
   override:
   - docker info

@@ -79,7 +79,7 @@ export class Contact implements Sayable {
     }
 
     return !rawObj ? null : {
-      id:           rawObj.UserName
+      id:           rawObj.UserName // MMActualSender??? MMPeerUserName??? `getUserContact(message.MMActualSender,message.MMPeerUserName).HeadImgUrl`
       , uin:        rawObj.Uin    // stable id: 4763975 || getCookie("wxuin")
       , weixin:     rawObj.Alias  // Wechat ID
       , name:       rawObj.NickName

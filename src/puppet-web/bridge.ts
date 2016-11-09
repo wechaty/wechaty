@@ -253,11 +253,45 @@ export class Bridge {
   }
 
   public getMsgImg(id): Promise<string> {
+    log.verbose('PuppetWebBridge', 'getMsgImg(%s)', id)
+
     return this.proxyWechaty('getMsgImg', id)
-    .catch(e => {
-      log.silly('PuppetWebBridge', 'proxyWechaty(getMsgImg, %d) exception: %s', id, e.message)
+                .catch(e => {
+                  log.silly('PuppetWebBridge', 'proxyWechaty(getMsgImg, %d) exception: %s', id, e.message)
+                  throw e
+                })
+  }
+
+  public getMsgEmoticon(id): Promise<string> {
+    log.verbose('PuppetWebBridge', 'getMsgEmoticon(%s)', id)
+
+    return this.proxyWechaty('getMsgEmoticon', id)
+                .catch(e => {
+                  log.silly('PuppetWebBridge', 'proxyWechaty(getMsgEmoticon, %d) exception: %s', id, e.message)
+                  throw e
+                })
+  }
+
+  public async getMsgVideo(id): Promise<string> {
+    log.verbose('PuppetWebBridge', 'getMsgVideo(%s)', id)
+
+    try {
+      return await this.proxyWechaty('getMsgVideo', id)
+    } catch (e) {
+      log.silly('PuppetWebBridge', 'proxyWechaty(getMsgVideo, %d) exception: %s', id, e.message)
       throw e
-    })
+    }
+  }
+
+  public async getMsgVoice(id): Promise<string> {
+    log.verbose('PuppetWebBridge', 'getMsgVoice(%s)', id)
+
+    try {
+      return await this.proxyWechaty('getMsgVoice', id)
+    } catch (e) {
+      log.silly('PuppetWebBridge', 'proxyWechaty(getMsgVoice, %d) exception: %s', id, e.message)
+      throw e
+    }
   }
 
   public getContact(id: string): Promise<string> {

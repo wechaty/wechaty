@@ -102,10 +102,14 @@ export class UtilLib {
     const options = require('url').parse(url)
 
     options.headers = {
-      Accept: 'image/webp,image/*,*/*;q=0.8'
-      , 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'
+        // Accept: 'image/webp,image/*,*/*;q=0.8'
+        Accept: '*/*'
       , Referer: 'https://wx.qq.com/'
-      , 'Accept-Encoding': 'gzip, deflate, sdch'
+      , Range: 'bytes=0-'
+
+      , 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'
+      // , 'Accept-Encoding': 'gzip, deflate, sdch'
+      , 'Accept-Encoding': 'identity;q=1, *;q=0'
       , 'Accept-Language': 'zh-CN,zh;q=0.8'
     }
     options.agent = http.globalAgent

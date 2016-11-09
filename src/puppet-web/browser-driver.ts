@@ -37,7 +37,7 @@ export class BrowserDriver {
           await this.driver.quit()
         // }
       } catch (e) {
-        log.warn('PuppetWebBrowserDriver', 'init() this.driver.quit() soft exception: %s'
+        log.verbose('PuppetWebBrowserDriver', 'init() this.driver.quit() soft exception: %s'
                                           , e.stack
         )
       }
@@ -246,17 +246,20 @@ export class BrowserDriver {
 
     try {
       const session = await new Promise((resolve, reject) => {
-        // resolve
-        driver.getSession()
-              .then(session => resolve(session))
-
         // reject
-        setTimeout(() => {
+        const timer = setTimeout(() => {
           const e = new Error('valid() driver.getSession() timeout(halt?)')
           log.warn('PuppetWebBrowserDriver'   , e.message)
           log.verbose('PuppetWebBrowserDriver', e.stack)
           reject(e)
         }, 10 * 1000)
+
+        // resolve
+        driver.getSession()
+              .then(session => {
+                clearTimeout(timer)
+                resolve(session)
+              })
 
       })
 

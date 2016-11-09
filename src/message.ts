@@ -19,21 +19,95 @@ import { UtilLib }  from './util-lib'
 
 export type MessageRawObj = {
   MsgId:            string
-  MsgType:          number
-  MMActualSender:   string
+
+  MMActualSender:   string // getUserContact(message.MMActualSender,message.MMPeerUserName).isContact()
+  MMPeerUserName:   string // message.MsgType == CONF.MSGTYPE_TEXT && message.MMPeerUserName == 'newsapp'
   ToUserName:       string
   MMActualContent:  string // Content has @id prefix added by wx
-  Status:           string
+
   MMDigest:         string
   MMDisplayTime:    number  // Javascript timestamp of milliseconds
-  Url:              string
 
+  /**
+   * MsgType == MSGTYPE_APP && message.AppMsgType == CONF.APPMSGTYPE_URL
+   * class="cover" mm-src="{{getMsgImg(message.MsgId,'slave')}}"
+   */
+  Url:              string
+  MMAppMsgDesc:     string  // class="desc" ng-bind="message.MMAppMsgDesc"
+
+  /**
+   * MsgType == MSGTYPE_APP && message.AppMsgType == CONF.APPMSGTYPE_ATTACH
+   */
+  MMAppMsgFileExt:  string  // doc, docx ...
+  FileName:         string
+  MMAppMsgFileSize: number
+  MMAppMsgDownloadUrl:  string  // <a download ng-if="message.MMFileStatus == CONF.MM_SEND_FILE_STATUS_SUCCESS  && (massage.MMStatus == CONF.MSG_SEND_STATUS_SUCC || massage.MMStatus === undefined)  " href="{{message.MMAppMsgDownloadUrl}}">下载</a>
+  MMUploadProgress: number  // < 100
+
+  /**
+   * 模板消息
+   * MSGTYPE_APP && message.AppMsgType == CONF.APPMSGTYPE_READER_TYPE
+   *  item.url
+   *  item.title
+   *  item.pub_time
+   *  item.cover
+   *  item.digest
+   */
+  MMCategory:       any[]  //  item in message.MMCategory
+
+  /**
+   * Type
+   *
+   * MsgType == CONF.MSGTYPE_VOICE : ng-style="{'width':40 + 7*message.VoiceLength/1000}
+   */
+  MsgType:          number
+  AppMsgType:       number  // message.MsgType == CONF.MSGTYPE_APP && message.AppMsgType == CONF.APPMSGTYPE_URL
+                            // message.MsgType == CONF.MSGTYPE_TEXT && message.SubMsgType != CONF.MSGTYPE_LOCATION
+
+  SubMsgType:       number // "msgType":"{{message.MsgType}}","subType":{{message.SubMsgType||0}},"msgId":"{{message.MsgId}}"
+
+  /**
+   * Status-es
+   */
+  Status:           string
+  MMStatus:         number  // img ng-show="message.MMStatus == 1" class="ico_loading"
+                            // ng-click="resendMsg(message)" ng-show="message.MMStatus == 5" title="重新发送"
+  MMFileStatus:     number  // <p class="loading" ng-show="message.MMStatus == 1 || message.MMFileStatus == CONF.MM_SEND_FILE_STATUS_FAIL">
+                            // CONF.MM_SEND_FILE_STATUS_QUEUED, MM_SEND_FILE_STATUS_SENDING
+
+  /**
+   * Location
+   */
+  MMLocationUrl:    string  // ng-if="message.MsgType == CONF.MSGTYPE_TEXT && message.SubMsgType == CONF.MSGTYPE_LOCATION"
+                            // <a href="{{message.MMLocationUrl}}" target="_blank">
+
+  /**
+   * MsgType == CONF.MSGTYPE_EMOTICON
+   *
+   * getMsgImg(message.MsgId,'big',message)
+   */
+
+  /**
+   * Image
+   *
+   *  getMsgImg(message.MsgId,'slave')
+   */
+  MMImgStyle:       string  // ng-style="message.MMImgStyle"
+  MMPreviewSrc:     string  // message.MMPreviewSrc || message.MMThumbSrc || getMsgImg(message.MsgId,'slave')
+  MMThumbSrc:       string
+
+  /**
+   * Friend Request & ShareCard ?
+   *
+   * MsgType == CONF.MSGTYPE_SHARECARD" ng-click="showProfile($event,message.RecommendInfo.UserName)
+   * MsgType == CONF.MSGTYPE_VERIFYMSG
+   */
   RecommendInfo?:   RecommendInfo
 }
 
 export type MessageObj = {
   id:       string
-  type:     string
+  type:     number
   from:     string
   to:       string
   room?:    string
@@ -45,15 +119,43 @@ export type MessageObj = {
   url?:     string  // for MessageMedia class
 }
 
-export type MessageType = {
-  [index: string]: number|string
+// export type MessageTypeName = 'TEXT' | 'IMAGE' | 'VOICE' | 'VERIFYMSG' | 'POSSIBLEFRIEND_MSG' | 'SHARECARD' | 'VIDEO' | 'EMOTICON' | 'LOCATION' | 'APP' | 'VOIPMSG' | 'STATUSNOTIFY' | 'VOIPNOTIFY' | 'VOIPINVITE' | 'MICROVIDEO' | 'SYSNOTICE' | 'SYS' | 'RECALLED'
+
+// export type MessageTypeValue = 1 | 3 | 34 | 37 | 40 | 42 | 43 | 47 | 48 | 49 | 50 | 51 | 52 | 53 | 62 | 9999 | 10000 | 10002
+
+
+export type MessageTypeMap = {
+  [index: string]: string|number
+  //   MessageTypeName:  MessageTypeValue
+  // , MessageTypeValue: MessageTypeName
+}
+
+export const enum MessageType {
+  TEXT                = 1,
+  IMAGE               = 3,
+  VOICE               = 34,
+  VERIFYMSG           = 37,
+  POSSIBLEFRIEND_MSG  = 40,
+  SHARECARD           = 42,
+  VIDEO               = 43,
+  EMOTICON            = 47,
+  LOCATION            = 48,
+  APP                 = 49,
+  VOIPMSG             = 50,
+  STATUSNOTIFY        = 51,
+  VOIPNOTIFY          = 52,
+  VOIPINVITE          = 53,
+  MICROVIDEO          = 62,
+  SYSNOTICE           = 9999,
+  SYS                 = 10000,
+  RECALLED            = 10002
 }
 
 export class Message implements Sayable {
   public static counter = 0
   private _counter: number
 
-  public static TYPE: MessageType = {
+  public static TYPE: MessageTypeMap = {
     TEXT:               1,
     IMAGE:              3,
     VOICE:              34,
@@ -82,6 +184,10 @@ export class Message implements Sayable {
     throw Error('abstract method')
   }
 
+  public ext(): string {
+    throw Error('abstract method')
+  }
+
   constructor(public rawObj?: MessageRawObj) {
     this._counter = Message.counter++
     log.silly('Message', 'constructor() SN:%d', this._counter)
@@ -100,7 +206,7 @@ export class Message implements Sayable {
     const obj: MessageObj = {
       id:             rawObj.MsgId
       , type:         rawObj.MsgType
-      , from:         rawObj.MMActualSender
+      , from:         rawObj.MMActualSender // MMPeerUserName
       , to:           rawObj.ToUserName
       , content:      rawObj.MMActualContent // Content has @id prefix added by wx
       , status:       rawObj.Status
@@ -225,7 +331,10 @@ export class Message implements Sayable {
     return this.obj.content
   }
 
-  public type()    { return this.obj.type }
+  public type(): MessageType {
+    return this.obj.type as MessageType
+  }
+
   public typeEx()  { return Message.TYPE[this.obj.type] }
   public count()   { return this._counter }
 
@@ -241,7 +350,7 @@ export class Message implements Sayable {
     return fromId === userId
   }
 
-  public async ready(): Promise<this> {
+  public async ready(): Promise<void> {
     log.silly('Message', 'ready()')
 
     try {
@@ -256,7 +365,8 @@ export class Message implements Sayable {
       await to.ready()                  // Contact to
       if (room) { await room.ready() }  // Room member list
 
-      return this         // return this for chain
+      // return this         // return this for chain
+
     } catch (e) {
         log.error('Message', 'ready() exception: %s', e.stack)
         // console.log(e)
@@ -270,7 +380,7 @@ export class Message implements Sayable {
    * @deprecated
    */
   public get(prop: string): string {
-    log.warn('Message', 'DEPRECATED get()')
+    log.warn('Message', 'DEPRECATED get() at %s', new Error('stack').stack)
 
     if (!prop || !(prop in this.obj)) {
       const s = '[' + Object.keys(this.obj).join(',') + ']'
@@ -283,7 +393,7 @@ export class Message implements Sayable {
    * @deprecated
    */
   public set(prop: string, value: string): this {
-    log.warn('Message', 'DEPRECATED set()')
+    log.warn('Message', 'DEPRECATED set() at %s', new Error('stack').stack)
 
     if (typeof value !== 'string') {
       throw new Error('value must be string, we got: ' + typeof value)

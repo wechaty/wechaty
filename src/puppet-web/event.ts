@@ -26,8 +26,8 @@ import {
   , MediaMessage
 }                     from '../message'
 
-import { Firer } from './firer'
-import { PuppetWeb }      from './puppet-web'
+import { Firer }      from './firer'
+import { PuppetWeb }  from './puppet-web'
 
 /* tslint:disable:variable-name */
 export const Event = {
@@ -59,12 +59,16 @@ async function onBrowserDead(this: PuppetWeb, e): Promise<void> {
   // guard by variable: isBrowserBirthing to prevent the 2nd time entrance.
   // if (this.browser.targetState() !== 'open'
   //     || this.browser.currentState() === 'opening') {
-  if ((browser.state.current() === 'open' && browser.state.inprocess())
-      || browser.state.target() !== 'open'
-  ) {
+
+  // if (  (browser.state.current() === 'open' && browser.state.inprocess())
+  //     || browser.state.target() !== 'open'
+
+  if (browser.state.target() === 'close' || browser.state.inprocess()) {
     log.verbose('PuppetWebEvent', 'onBrowserDead() will do nothing because %s, or %s'
-                                , 'browser.state.target() !== open'
-                                , 'browser.state.current() === open & inprocess'
+                                // , 'browser.state.target() !== open'
+                                // , 'browser.state.current() === open & inprocess'
+                                , 'browser.state.target() === close'
+                                , 'browser.state.inprocess()'
               )
     return
   }
@@ -82,8 +86,12 @@ async function onBrowserDead(this: PuppetWeb, e): Promise<void> {
     await this.browser.quit()
     log.verbose('PuppetWebEvent', 'onBrowserDead() browser.quit() done')
 
-    if (browser.state.target() !== 'open') {
-      log.warn('PuppetWebEvent', 'onBrowserDead() will not init browser because browser.state.target(%s) !== open'
+    // if (browser.state.target() !== 'open') {
+    //   log.warn('PuppetWebEvent', 'onBrowserDead() will not init browser because browser.state.target(%s) !== open'
+    //                             , browser.state.target()
+    //           )
+    if (browser.state.target() === 'close') {
+      log.warn('PuppetWebEvent', 'onBrowserDead() will not init browser because browser.state.target(%s) is `close`'
                                 , browser.state.target()
               )
       return
@@ -97,12 +105,12 @@ async function onBrowserDead(this: PuppetWeb, e): Promise<void> {
 
     const dong = await this.ding()
     if (/dong/i.test(dong)) {
-      log.verbose('PuppetWebEvent', 'onBrowserDead() ding() works well after reset')
-    } else {
       const err = new Error('ding() got "' + dong + '", should be "dong" ')
       log.warn('PuppetWebEvent', 'onBrowserDead() %s', err.message)
       throw err
     }
+    log.verbose('PuppetWebEvent', 'onBrowserDead() ding() works well after reset')
+
   } catch (e) {
     log.error('PuppetWebEvent', 'onBrowserDead() exception: %s', e.message)
     try {
@@ -115,6 +123,7 @@ async function onBrowserDead(this: PuppetWeb, e): Promise<void> {
 
   log.verbose('PuppetWebEvent', 'onBrowserDead() new browser borned')
 
+  // why POISON here... forgot, faint
   this.emit('watchdog', {
     data: `onBrowserDead() new browser borned`
     , type: 'POISON'
@@ -123,9 +132,8 @@ async function onBrowserDead(this: PuppetWeb, e): Promise<void> {
   return
 }
 
-function onServerDing(this: PuppetWeb, data) {
+function onServerDing(this: PuppetWeb, data): void {
   log.silly('PuppetWebEvent', 'onServerDing(%s)', data)
-  // this.watchDog(data)
   this.emit('watchdog', { data })
 }
 
@@ -147,7 +155,6 @@ async function onServerScan(this: PuppetWeb, data: ScanInfo) {
   }
 
   // feed watchDog a `scan` type of food
-  // this.watchDog(data, {type: 'scan'})
   const food: WatchdogFood = {
       data
     , type: 'SCAN'
@@ -170,7 +177,6 @@ async function onServerDisconnect(this: PuppetWeb, data): Promise<void> {
     this.user = null
   }
 
-  // if (this.currentState() === 'killing') {
   if (this.state.current() === 'dead' && this.state.inprocess()) {
     log.verbose('PuppetWebEvent', 'onServerDisconnect() be called when state.current() is `dead` and inprocess()')
     return
@@ -213,8 +219,8 @@ async function onServerDisconnect(this: PuppetWeb, data): Promise<void> {
       throw e
     }
     this.bridge.init()
-                .then(ret => log.verbose('PuppetWebEvent', 'onServerDisconnect() setTimeout() bridge re-inited: %s', ret))
-                .catch(e  => log.error('PuppetWebEvent', 'onServerDisconnect() setTimeout() exception: [%s]', e))
+                .then(() => log.verbose('PuppetWebEvent', 'onServerDisconnect() setTimeout() bridge.init() done.'))
+                .catch(e => log.error('PuppetWebEvent', 'onServerDisconnect() setTimeout() bridge.init() exception: [%s]', e))
   }, 1000) // 1 second instead of 10 seconds? try. (should be enough to wait)
   return
 
@@ -279,8 +285,6 @@ async function onServerLogin(this: PuppetWeb, data, attempt = 0): Promise<void> 
   if (this.userId) {
     log.verbose('PuppetWebEvent', 'onServerLogin() be called but with userId set?')
   }
-
-  // co.call(this, function* () {
   try {
     // co.call to make `this` context work inside generator.
     // See also: https://github.com/tj/co/issues/274
@@ -311,7 +315,6 @@ async function onServerLogin(this: PuppetWeb, data, attempt = 0): Promise<void> 
 
     this.emit('login', this.user)
 
-  // }).catch(e => {
   } catch (e) {
     log.error('PuppetWebEvent', 'onServerLogin() exception: %s', e)
     console.log(e.stack)
@@ -340,7 +343,6 @@ function onServerLogout(this: PuppetWeb, data) {
 async function onServerMessage(this: PuppetWeb, data): Promise<void> {
   let m = new Message(data)
 
-  // co.call(this, function* () {
   try {
     await m.ready()
 
@@ -368,9 +370,15 @@ async function onServerMessage(this: PuppetWeb, data): Promise<void> {
      * Check Type for special Message
      * reload if needed
      */
+    console.log(m.type())
+
     switch (m.type()) {
+      case Message.TYPE['EMOTICON']:
       case Message.TYPE['IMAGE']:
-        // log.verbose('PuppetWebEvent', 'onServerMessage() IMAGE message')
+      case Message.TYPE['VIDEO']:
+      case Message.TYPE['VOICE']:
+      case Message.TYPE['MICROVIDEO']:
+        log.verbose('PuppetWebEvent', 'onServerMessage() EMOTICON/IMAGE/VIDEO/VOICE/MICROVIDEO message')
         m = new MediaMessage(data)
         break
     }

@@ -1,7 +1,7 @@
 {
   "name": "wechaty",
-  "version": "0.5.10",
-  "description": "Wechat for Bot (Personal Account)",
+  "version": "0.5.16",
+  "description": "Wechat for Bot(Personal Account)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "wechaty": {
@@ -22,8 +22,8 @@
     "doctor": "ts-node bin/doctor",
     "clean": "shx rm -fr dist/*",
     "lint": "npm run eslint && npm run tslint",
-    "eslint": "eslint \"{bin,example,src,test}/**/*.js\"",
-    "tslint": "tslint \"{bin,example,src,test}/**/*.ts\" && tsc --noEmit",
+    "eslint": "eslint \"{bin,example,src,test}/**/*.js\" --ignore-pattern=\"test/fixture/**\"",
+    "tslint": "tslint \"{bin,example,src,test}/**/*.ts\" --exclude=\"test/fixture/**\" && tsc --noEmit",
     "shlint": "bash -n bin/*.sh",
     "pretest": "npm run clean && npm run lint && npm run build",
     "sloc": "sloc bin example src test index.ts --details --format cli-table --keys total,source,comment && sloc bin example src test index.ts",
@@ -35,16 +35,17 @@
     "testdev": "cross-env LC_ALL=C WECHATY_LOG=silly ava --ext ts --serial --verbose --fail-fast --timeout=3m",
     "testdist": "cross-env WECHATY_LOG=SILLY WECHATY_HEAD=chrome ava --ext ts --verbose --fail-fast --timeout=2m",
     "ava": "cross-env LC_ALL=C WECHATY_LOG=verbose node_modules/.bin/ava --ext js",
-    "start": "ts-node bin/client",
+    "io-client": "ts-node bin/io-client",
     "dev": "ts-node dev.ts",
-    "demo": "ts-node example/ding-dong-bot.ts"
+    "demo": "ts-node example/ding-dong-bot.ts",
+    "start": "npm run demo"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/wechaty/wechaty.git"
   },
   "bin": {
-    "wechaty-client": "dist/bin/client.js",
+    "wechaty-io-client": "dist/bin/io-client.js",
     "wechaty-doctor": "dist/bin/doctor.js",
     "wechaty-version": "dist/bin/version.js"
   },
@@ -86,7 +87,7 @@
     }
   },
   "engines": {
-    "node": ">= 7.0.0"
+    "node": ">= 6.9.0"
   },
   "dependencies": {
     "arrify": "^1.0.1",

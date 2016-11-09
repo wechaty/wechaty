@@ -236,10 +236,6 @@
      */
     var contentChatScope  = rootScope.$new()
     injector.get('$controller')('contentChatController', {$scope: contentChatScope })
-    /*
-    s =
-
-    */
 
     // get all we need from wx in browser(angularjs)
     WechatyBro.glue = {
@@ -320,7 +316,9 @@
     log('logout(' + data + ')')
     WechatyBro.vars.loginStatus = false
     // WechatyBro.emit('logout', data)
-    WechatyBro.glue.loginFactory.loginout()
+    if (WechatyBro.glue.loginFactory) {
+      WechatyBro.glue.loginFactory.loginout()
+    }
     checkScan()
   }
   function quit() {
@@ -395,15 +393,45 @@
   /**
    *
    * Help Functions which Proxy to WXAPP AngularJS Scope & Factory
-   *
+   *  getMsgImg(message.MsgId,'slave')
+   *  getMsgImg(message.MsgId,'big',message)
    */
-  function getMsgImg(id) {
+  function getMsgImg(id, type, message) {
     var contentChatScope = WechatyBro.glue.contentChatScope
     if (!contentChatScope) {
       throw new Error('getMsgImg() contentChatScope not found')
     }
     var location = window.location.href.replace(/\/$/, '')
-    var path = contentChatScope.getMsgImg(id)
+    var path = contentChatScope.getMsgImg(id, type, message)
+    return location + path
+  }
+
+  function getMsgEmoticon(id) {
+    var chatFactory = WechatyBro.glue.chatFactory
+
+    var message = chatFactory.getMsg(id)
+    return message.MMPreviewSrc || getMsgImg(message.MsgId,'big',message)  || message.MMThumbSrc
+  }
+
+  function getMsgVideo(id) {
+    var contentChatScope = WechatyBro.glue.contentChatScope
+    if (!contentChatScope) {
+      throw new Error('getMsgVideo() contentChatScope not found')
+    }
+    var location = window.location.href.replace(/\/$/, '')
+    var path = contentChatScope.getMsgVideo(id)
+    return location + path
+  }
+
+  /**
+   * from playVoice()
+   */
+  function getMsgVoice(id) {
+    var confFactory     = WechatyBro.glue.confFactory
+    var accountFactory  = WechatyBro.glue.accountFactory
+
+    var location = window.location.href.replace(/\/$/, '')
+    var path = confFactory.API_webwxgetvoice + "?msgid=" + id + "&skey=" + accountFactory.getSkey()
     return location + path
   }
 
@@ -732,9 +760,12 @@
     , emit: emit  // send event to server
     , logout: logout // logout current logined user
 
-    , getContact: getContact
-    , getUserName: getUserName
-    , getMsgImg: getMsgImg
+    , getContact
+    , getUserName
+    , getMsgImg
+    , getMsgEmoticon
+    , getMsgVideo
+    , getMsgVoice
 
     // for Wechaty Contact Class
     , contactFindAsync

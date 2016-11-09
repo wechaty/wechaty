@@ -113,16 +113,29 @@ function wechaty::runBot() {
     echo "Install dependencies modules ..."
     yarn < /dev/null # yarn will close stdin??? cause `read` command fail after yarn
   }
-  npm --progress=false install @types/node > /dev/null
-
 
   # echo -n "Linking Wechaty module to bot ... "
   # npm link wechaty < /dev/null > /dev/null 2>&1
   # echo "linked. "
 
-  echo "Executing ts-node $*"
+  # npm --progress=false install @types/node > /dev/null
+
   local -i ret=0
-  ts-node "$@" &
+  case "$botFile" in
+    *.js)
+      echo "Executing node $*"
+      node "$@" &
+      ;;
+    *.ts)
+      # yarn add @types/node
+      echo "Executing ts-node $*"
+      ts-node "$@" &
+      ;;
+    *)
+      echo "ERROR: wechaty::runBot() neith .js nor .ts"
+      exit -1 &
+  esac
+
   wait "$!" || ret=$? # fix `can only `return' from a function or sourced script` error
 
   case "$ret" in
@@ -139,13 +152,39 @@ function wechaty::runBot() {
   return "$ret"
 }
 
-function wechaty::help() {
-  echo <<HELP
-  Usage: wechaty <mybot.js | mybot.ts | command>
+function wechaty::io-client() {
+  figlet " Wechaty.io "
+  figlet " Authing By:"
+  echo
+  echo "WECHATY_TOKEN=$WECHATY_TOKEN "
+  echo
 
-  1. mybot.js: a JavaScript program for your bot. will run by node v6
-  2. mybot.ts: a TypeScript program for your bot. will run by ts-node
-  3. command: demo, test, doctor
+  npm run io-client
+}
+
+function wechaty::help() {
+  figlet " Docker Usage: "
+  cat <<HELP
+
+
+
+  Usage: wechaty [ mybot.js | mybot.ts | COMMAND ]
+
+  Run a JavaScript/TypeScript bot, or a command.
+
+  Bot File:
+    mybot.js: a JavaScript program for your bot. will run by Node.js v7
+    mybot.ts: a TypeScript program for your bot. will run by ts-node/TypeScript v2
+
+  Commands:
+    demo    Run Wechaty DEMO
+    doctor  Print Diagnose Report
+    test    Run Unit Test
+
+  Learn more at:
+    https://github.com/wechaty/wechaty/wiki/Docker
+
+
 
 HELP
 }
@@ -165,7 +204,12 @@ function main() {
 
   local -i ret=0
 
-  case "$1" in
+  local defaultArg=help
+  if [ -n "$WECHATY_TOKEN" ]; then
+    defaultArg=io-client
+  fi
+
+  case "${1:-${defaultArg}}" in
     #
     # 1. Get a shell
     #
@@ -188,19 +232,20 @@ function main() {
       npm "$@" || ret=$?
       ;;
 
-    '')
-      if [ -n "$WECHATY_TOKEN" ]; then
-        npm start
-      else
-        wechaty::help
-      fi
+    help)
+      wechaty::help
+      ;;
+
+    io-client)
+      wechaty::io-client
       ;;
 
     #
     # 4. Default to execute npm run ...
     #
     *)
-      npm "$@" || ret=$?
+      [ "$1" = "run" ] && shift
+      npm run "$@" || ret=$?
      ;;
   esac
 

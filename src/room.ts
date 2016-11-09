@@ -172,6 +172,7 @@ export class Room extends EventEmitter implements Sayable {
 
   private parse(rawObj: RoomRawObj): RoomObj | null {
     if (!rawObj) {
+      log.warn('Room', 'parse() on a empty rawObj?')
       return null
     }
     return {

@@ -113,13 +113,17 @@ export class PuppetWeb extends Puppet {
   public async quit(): Promise<void> {
     log.verbose('PuppetWeb', 'quit()')
 
-    // XXX should we set `target` to `dead` in `quit()`?
-    // this.state.target('dead')
-
-    if (this.state.current() === 'dead' && this.state.inprocess()) {
-      log.warn('PuppetWeb', 'quit() is called but state.current() is `dead` and inprocess() ?')
-      throw new Error('do not call quit again when quiting')
+    if (this.state.current() === 'dead') {
+      if (this.state.inprocess()) {
+        log.warn('PuppetWeb', 'quit() is called but state.current() is `dead` and inprocess() ?')
+        throw new Error('do not call quit again when quiting')
+      }
+      log.warn('PuppetWeb', 'quit() is called but state.current() is `dead`, return and will not run quit() again(do nothing).')
+      return
     }
+
+    // XXX should we set `target` to `dead` in `quit()` ???
+    // this.state.target('dead')
 
     /**
      * must feed POISON to Watchdog

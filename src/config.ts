@@ -175,12 +175,18 @@ export type ScanInfo = {
   code: number
 }
 
+/**
+ * from Message
+ */
 export type RecommendInfo = {
   UserName:   string
-  NickName:   string
-  Content:    string // request message
-  Ticket:     string // a pass token
+  NickName:   string  // display_name
+  Content:    string  // request message
+  HeadImgUrl: string  // message.RecommendInfo.HeadImgUrl
+
+  Ticket:     string  // a pass token
   VerifyFlag: number
+
 }
 
 export interface Sayable {

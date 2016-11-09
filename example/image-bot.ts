@@ -10,11 +10,15 @@
 /* tslint:disable:variable-name */
 const QrcodeTerminal = require('qrcode-terminal')
 
+import * as util from 'util'
+
 import {
-    Message
+    Config
+  // , Message
+  , MessageType
   , Wechaty
 } from '../'
-const bot = Wechaty.instance({ profile: 'example-bot.wechaty.json' })
+const bot = Wechaty.instance({ profile: Config.DEFAULT_PROFILE })
 
 bot
 .on('scan', (url, code) => {
@@ -27,9 +31,16 @@ bot
 .on('message', m => {
   console.log(`RECV: ${m}`)
 
-  if (m.type() === Message.TYPE['IMAGE']) {
+  console.log(util.inspect(m))
+
+  if ( m.type() === MessageType.IMAGE
+    || m.type() === MessageType.EMOTICON
+    || m.type() === MessageType.VIDEO
+    || m.type() === MessageType.VOICE
+    || m.type() === MessageType.MICROVIDEO
+  ) {
     console.log('IMAGE url: ' + m.get('url'))
-    const filename = m.id + '.jpg'
+    const filename = m.id + m.ext()
     console.log('IMAGE local filename: ' + filename)
 
     const fileStream = require('fs').createWriteStream(filename)
