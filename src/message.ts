@@ -41,7 +41,9 @@ export type MessageRawObj = {
   MMAppMsgFileExt:  string  // doc, docx ...
   FileName:         string
   MMAppMsgFileSize: number
-  MMAppMsgDownloadUrl:  string  // <a download ng-if="message.MMFileStatus == CONF.MM_SEND_FILE_STATUS_SUCCESS  && (massage.MMStatus == CONF.MSG_SEND_STATUS_SUCC || massage.MMStatus === undefined)  " href="{{message.MMAppMsgDownloadUrl}}">下载</a>
+  MMAppMsgDownloadUrl:  string  // <a download ng-if="message.MMFileStatus == CONF.MM_SEND_FILE_STATUS_SUCCESS  
+                                // && (massage.MMStatus == CONF.MSG_SEND_STATUS_SUCC || massage.MMStatus === undefined)
+                                // " href="{{message.MMAppMsgDownloadUrl}}">下载</a>
   MMUploadProgress: number  // < 100
 
   /**
@@ -119,10 +121,11 @@ export type MessageObj = {
   url?:     string  // for MessageMedia class
 }
 
-// export type MessageTypeName = 'TEXT' | 'IMAGE' | 'VOICE' | 'VERIFYMSG' | 'POSSIBLEFRIEND_MSG' | 'SHARECARD' | 'VIDEO' | 'EMOTICON' | 'LOCATION' | 'APP' | 'VOIPMSG' | 'STATUSNOTIFY' | 'VOIPNOTIFY' | 'VOIPINVITE' | 'MICROVIDEO' | 'SYSNOTICE' | 'SYS' | 'RECALLED'
+// export type MessageTypeName = 'TEXT' | 'IMAGE' | 'VOICE' | 'VERIFYMSG' | 'POSSIBLEFRIEND_MSG' 
+// | 'SHARECARD' | 'VIDEO' | 'EMOTICON' | 'LOCATION' | 'APP' | 'VOIPMSG' | 'STATUSNOTIFY' 
+// | 'VOIPNOTIFY' | 'VOIPINVITE' | 'MICROVIDEO' | 'SYSNOTICE' | 'SYS' | 'RECALLED'
 
 // export type MessageTypeValue = 1 | 3 | 34 | 37 | 40 | 42 | 43 | 47 | 48 | 49 | 50 | 51 | 52 | 53 | 62 | 9999 | 10000 | 10002
-
 
 export type MessageTypeMap = {
   [index: string]: string|number

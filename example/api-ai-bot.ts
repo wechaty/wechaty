@@ -22,8 +22,8 @@ const ApiAi = require('apiai')
 import { EventEmitter } from 'events'
 
 import {
-  // Room
-  Wechaty
+    Config
+  , Wechaty
 } from '..'
 
 // log.level = 'verbose'

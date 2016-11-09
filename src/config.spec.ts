@@ -8,7 +8,7 @@
 import { test }   from 'ava'
 
 import {
-    Config 
+    Config
   , hasDockerContainerId
 }                 from './config'
 import { Puppet } from './puppet'
@@ -96,7 +96,7 @@ test('hasDockerContainerId()', t => {
   const LINE = '1:name=systemd:/docker/f6da3e510ff2263a368cc8a57bf35b0d1c92a3d6d387e87de8e98e082af6a41c'
   const UBUNTU = '1:name=systemd:/init.scope'
 
-  t.true(isDockerContainerId(ID)      , 'should identify container id right')
-  t.true(isDockerContainerId(LINE)    , 'should identify container id from cgroup file right')
-  t.false(isDockerContainerId(UBUNTU) , 'should identify ubuntu cgroup line not docker')
+  t.true(hasDockerContainerId(ID)      , 'should identify container id right')
+  t.true(hasDockerContainerId(LINE)    , 'should identify container id from cgroup file right')
+  t.false(hasDockerContainerId(UBUNTU) , 'should identify ubuntu cgroup line not docker')
 })
