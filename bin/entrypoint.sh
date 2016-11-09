@@ -190,6 +190,9 @@ HELP
 }
 
 function main() {
+  # issue #84
+  echo -e 'nameserver 114.114.114.114\nnameserver 114.114.115.115' >> /etc/resolv.conf
+
   wechaty::banner
   figlet Connecting
   figlet ChatBots
