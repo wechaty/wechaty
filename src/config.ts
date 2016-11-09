@@ -141,20 +141,19 @@ function puppetInstance(instance: Puppet): void
 function puppetInstance(instance?: Puppet | null): Puppet | void {
 
   if (instance === undefined) {
-    if (!global['_puppetInstance']) {
+    if (!this._puppetInstance) {
       throw new Error('no puppet instance')
     }
-    return global['_puppetInstance']
+    return this._puppetInstance
 
   } else if (instance === null) {
     log.verbose('Config', 'puppetInstance(null)')
-    global['_puppetInstance'] = null
+    this._puppetInstance = null
     return
-
   }
 
   log.verbose('Config', 'puppetInstance(%s)', instance.constructor.name)
-  global['_puppetInstance'] = instance
+  this._puppetInstance = instance
   return
 
 }

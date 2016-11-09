@@ -70,22 +70,23 @@ export class Room extends EventEmitter implements Sayable {
     return !!(this.obj && this.obj.memberList && this.obj.memberList.length)
   }
 
-  public async refresh(): Promise<this> {
+  public async refresh(): Promise<void> {
     if (this.isReady()) {
       this.dirtyObj = this.obj
     }
     this.obj = null
-    return this.ready()
+    await this.ready()
+    return
   }
 
-  public async ready(contactGetter?: (id: string) => Promise<RoomRawObj>): Promise<this> {
+  public async ready(contactGetter?: (id: string) => Promise<any>): Promise<void> {
     log.silly('Room', 'ready(%s)', contactGetter ? contactGetter.constructor.name : '')
     if (!this.id) {
       const e = new Error('ready() on a un-inited Room')
       log.warn('Room', e.message)
-      return Promise.reject(e)
+      throw e
     } else if (this.isReady()) {
-      return Promise.resolve(this)
+      return
     } else if (this.obj && this.obj.id) {
       log.warn('Room', 'ready() has obj.id but memberList empty in room %s. reloading', this.obj.topic)
     }
@@ -109,7 +110,7 @@ export class Room extends EventEmitter implements Sayable {
       }
       await Promise.all(this.obj.memberList.map(c => c.ready(contactGetter)))
 
-      return this
+      return
 
     } catch (e) {
       log.error('Room', 'contactGetter(%s) exception: %s', this.id, e.message)
@@ -423,7 +424,9 @@ export class Room extends EventEmitter implements Sayable {
     if (!roomList || roomList.length < 1) {
       throw new Error('no room found')
     }
-    return roomList[0].ready()
+    const room = roomList[0]
+    await room.ready()
+    return room
   }
 
   public static load(id: string): Room | null {

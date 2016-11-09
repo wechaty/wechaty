@@ -323,8 +323,8 @@ export class Wechaty extends EventEmitter implements Sayable {
     return
   }
 
-  public sleep(millisecond: number): Promise<void> {
-    return new Promise(resolve => {
+  public async sleep(millisecond: number): Promise<void> {
+    await new Promise(resolve => {
       setTimeout(resolve, millisecond)
     })
   }

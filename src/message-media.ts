@@ -20,6 +20,7 @@ export class MediaMessage extends Message {
 
   constructor(rawObj) {
     super(rawObj)
+    // FIXME: decoupling needed
     this.bridge = (Config.puppetInstance() as PuppetWeb)
                         .bridge
   }
@@ -89,6 +90,7 @@ export class MediaMessage extends Message {
   public readyStream(): Promise<NodeJS.ReadableStream> {
     return this.ready()
     .then(() => {
+      // FIXME: decoupling needed
       return (Config.puppetInstance() as PuppetWeb)
                     .browser.readCookie()
     })

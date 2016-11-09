@@ -95,7 +95,7 @@ export class PuppetWeb extends Puppet {
 
       const food: WatchdogFood = {
         data: 'inited'
-        , timeout: 120000 // 2 mins for first login
+        , timeout: 2 * 60 * 1000 // 2 mins for first login
       }
       this.emit('watchdog', food)
 
@@ -368,6 +368,7 @@ export class PuppetWeb extends Puppet {
                         throw e
                       })
   }
+
   public logined(): boolean { return !!(this.user) }
   public ding(data?: any): Promise<string> {
     if (!this.bridge) {
