@@ -96,6 +96,7 @@
     "chromedriver": "^2.25.1",
     "express": "^4.13.4",
     "is-ci": "^1.0.9",
+    "phantomjs-prebuilt": "^2.1.13",
     "ps-tree": "^1.0.1",
     "retry-promise": "^1.0.0",
     "selenium-webdriver": "^3.0.0",
