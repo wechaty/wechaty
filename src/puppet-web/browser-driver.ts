@@ -252,7 +252,7 @@ export class BrowserDriver {
           log.warn('PuppetWebBrowserDriver'   , e.message)
           log.verbose('PuppetWebBrowserDriver', e.stack)
           reject(e)
-        }, 10 * 1000)
+        }, 67 * 1000)
 
         // resolve
         driver.getSession()
