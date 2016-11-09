@@ -28,12 +28,18 @@ case "$1" in
     ret=$?
     ;;
 
+  clean)
+    docker ps -a | grep Exited | awk '{print $1}' | xargs docker rm || true
+    docker images | grep none | awk '{print $3}' | xargs docker rmi
+    ;;
+
   *)
     echo docker run -ti "$optRm" -v /dev/shm:/dev/shm "$imageName" "$@"
     exec docker run -ti "$optRm" -v /dev/shm:/dev/shm "$imageName" "$@"
-    ret=$?
     ;;
 esac
 
-echo "ERROR: exec return $ret ???"
-exit $ret
+[ "$ret" -ne 0 ] && {
+  echo "ERROR: exec return $ret ???"
+  exit $ret
+}
