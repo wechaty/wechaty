@@ -335,7 +335,7 @@ export class Bridge {
   /**
    * Proxy Call to Wechaty in Bridge
    */
-  public proxyWechaty(wechatyFunc, ...args): Promise<any> {
+  public async proxyWechaty(wechatyFunc, ...args): Promise<any> {
     const argsEncoded = new Buffer(
       encodeURIComponent(
         JSON.stringify(args)
@@ -359,27 +359,39 @@ export class Bridge {
     // console.log('proxyWechaty wechatyFunc args[0]: ')
     // console.log(args[0])
 
+    try {
+      const noWechaty = await this.execute('return typeof WechatyBro === "undefined"')
+      if (noWechaty) {
+        throw new Error('there is no WechatyBro in browser(yet)')
+      }
+    } catch (e) {
+      log.error('PuppetWebBridge', 'proxyWechaty() noWechaty exception: %s', e.message)
+      throw e
+    }
+
     /**
-     *
      * WechatyBro method named end with "Async", will be treated as a Async function
      */
-    let funcExecuter
-    if (/Async$/.test(wechatyFunc)) {
-      funcExecuter = this.executeAsync.bind(this)
-    } else {
-      funcExecuter = this.execute.bind(this)
+    // let funcExecuter
+    // if (/Async$/.test(wechatyFunc)) {
+    //   funcExecuter = this.executeAsync.bind(this)
+    // } else {
+    //   funcExecuter = this.execute.bind(this)
+    // }
+    try {
+      let ret
+      if (/Async$/.test(wechatyFunc)) {
+        ret = await this.executeAsync(wechatyScript)
+      } else {
+        ret = await this.execute(wechatyScript)
+      }
+      return ret
+
+    } catch (e) {
+      log.verbose('PuppetWebBridge', 'proxyWechaty(%s, %s) ', wechatyFunc, args.join(', '))
+      log.warn('PuppetWebBridge', 'proxyWechaty() exception: %s', e.message)
+      throw e
     }
-    return this.execute('return typeof WechatyBro === "undefined"')
-      .then(noWechaty => {
-        if (noWechaty) {
-          throw new Error('there is no WechatyBro in browser(yet)')
-        }
-      })
-      .then(() => funcExecuter(wechatyScript))
-      .catch(e => {
-        log.warn('PuppetWebBridge', 'proxyWechaty() exception: %s', e.message)
-        throw e
-      })
   }
 
   /**
