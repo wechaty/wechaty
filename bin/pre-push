@@ -7,6 +7,19 @@
 #
 # To enable this hook, rename this file to "pre-commit".
 set -e
+
+[ -n "WECHATY_INNER_PRE_HOOK" ] && {
+  # http://stackoverflow.com/a/21334985/1123955
+  exit 0
+}
+
 npm run lint
-[ -z "$CYGWIN" ] && npm version patch
-# npm --no-git-tag-version version patch || true
+
+[ -z "$CYGWIN" ] && {
+  npm version patch
+  WECHATY_INNER_PRE_HOOK=1 git push
+
+  echo "Npm verion bumped and pushed by inner push inside hook pre-push"
+  echo "outer push will be canceled, never mind."
+  exit 127
+}
