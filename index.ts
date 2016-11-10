@@ -35,3 +35,5 @@ export {
   , log // for convenionce use npmlog with environment variable LEVEL
 }
 
+export default Wechaty
+

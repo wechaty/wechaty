@@ -32,6 +32,12 @@ fixture=test/fixture/docker
   [ "$status" -ne 0 ]
 }
 
+@test "typescript bot with import = require()" {
+  cd "$fixture"
+  run dockerRun import-require.ts
+  [ "$status" -eq 0 ]
+}
+
 @test "javascript bot with require" {
   cd "$fixture/with-package-json/"
   run dockerRun with-require.js
