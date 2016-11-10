@@ -3,8 +3,8 @@
  *
  * https://github.com/wechaty/wechaty/
  */
-import { execSync } from 'child_process'
-import * as fs from 'fs'
+const isCi      = require('is-ci')
+const isDocker  = require('is-docker')
 
 import { Puppet } from './puppet'
 import { log }    from './brolog-env'
@@ -96,7 +96,6 @@ function isWechatyDocker() {
   /**
    * Continuous Integration System
    */
-  const isCi = require('is-ci')
   if (isCi) {
     return false
   }
@@ -111,24 +110,7 @@ function isWechatyDocker() {
     return false
   }
 
-  const cgroup = '/proc/self/cgroup'
-  try       { fs.statSync(cgroup).isFile() }
-  catch (e) { return false }
-
-  // http://stackoverflow.com/a/20624315/1123955
-  const line = execSync(`grep docker ${cgroup} | sort -n 2>/dev/null | head -1`)
-                .toString()
-                .replace(/\n$/, '')
-
-  // instead of `/`, docker will end with a container id
-  // if (/\/$/.test(line)) {
-  //   return false
-  // }
-
-  if (hasDockerContainerId(line)) {
-    return true
-  }
-  return false
+  return isDocker()
 }
 
 /**
@@ -214,17 +196,5 @@ if (!global['WECHATY_CONFIG_INSTANCE_COUNTER']) {
   global['WECHATY_CONFIG_INSTANCE_COUNTER'] = 0
 }
 global['WECHATY_CONFIG_INSTANCE_COUNTER']++
-
-/**
- * issue #84
- *
- * http://tuhrig.de/how-to-know-you-are-inside-a-docker-container/
- */
-function hasDockerContainerId(line: string) {
-  // d22ff5ccbf50790c4724e19a30a6a6057d03d684ea3c2b0ddac1bf028e2cf470
-  const re = /[a-f0-9]{64}$/i
-
-  return re.test(line)
-}
 
 export { log, hasDockerContainerId }
