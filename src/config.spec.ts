@@ -89,4 +89,3 @@ test('isDocker', t => {
 test('Module Singleton', t => {
   t.is(global['WECHATY_CONFIG_INSTANCE_COUNTER'], 1, 'should only load module for one time')
 })
-
