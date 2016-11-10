@@ -8,9 +8,8 @@
 # To enable this hook, rename this file to "pre-commit".
 set -e
 
-[ -n "WECHATY_INNER_PRE_HOOK" ] && {
+[ -n "$WECHATY_INNER_PRE_HOOK" ] && {
   # http://stackoverflow.com/a/21334985/1123955
-  echo "inner hook, exit 0"
   exit 0
 }
 
