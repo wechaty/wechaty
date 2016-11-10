@@ -19,7 +19,13 @@ npm run lint
   npm version patch
   WECHATY_INNER_PRE_HOOK=1 git push
 
+  echo
+  echo
+  echo
   echo "Npm verion bumped and pushed by inner push inside hook pre-push"
-  echo "outer push will be canceled, never mind."
+  echo " ------- vvvvvvv outer push will be canceled, never mind vvvvvvv -------"
+  echo
+  echo
+  echo
   exit 127
 }
