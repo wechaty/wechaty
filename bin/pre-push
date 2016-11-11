@@ -10,14 +10,16 @@ set -e
 
 remote="$1"
 url="$2"
-echo "$@"
+
+read line
+echo "$line"
 
 [ -n "$WECHATY_INNER_PRE_HOOK" ] && {
   # http://stackoverflow.com/a/21334985/1123955
   exit 0
 }
 
-npm run lint
+# npm run lint
 
 [ -z "$CYGWIN" ] && {
   npm version patch
