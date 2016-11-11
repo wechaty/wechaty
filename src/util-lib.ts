@@ -106,14 +106,17 @@ export class UtilLib {
     const protocol: 'https:'|'http:' = u.protocol as any
 
     let options
-    let request
+    // let request
+    let get
 
     if (protocol === 'https:') {
-      request       = https.request.bind(https)
+      // request       = https.request.bind(https)
+      get           = https.get
       options       = u as https.RequestOptions
       options.agent = https.globalAgent
     } else if (protocol === 'http:') {
-      request       = http.request.bind(http)
+      // request       = http.request.bind(http)
+      get           = http.get
       options       = u as http.RequestOptions
       options.agent = http.globalAgent
     } else {
@@ -151,7 +154,8 @@ export class UtilLib {
 // console.log(options)
 
     return new Promise((resolve, reject) => {
-      const req = request(options, (res) => {
+      // const req = request(options, (res) => {
+      const req = get(options, (res) => {
         // console.log(`STATUS: ${res.statusCode}`);
         // console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
         // res.setEncoding('utf8');
@@ -163,9 +167,9 @@ export class UtilLib {
         reject(e)
       })
 
-      req.end(() => {
-        log.verbose('UtilLib', 'urlStream() req.end() request sent')
-      })
+      // req.end(() => {
+      //   log.verbose('UtilLib', 'urlStream() req.end() request sent')
+      // })
 
     })
   }
