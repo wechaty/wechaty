@@ -59,14 +59,12 @@ We have two options to run wechaty:
 [![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Stars](https://img.shields.io/docker/stars/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
 
 ```shell
-$ alias wechaty='docker run \
-    -t -i --rm \
-    --volume="$(pwd)":/bot \
-    --name=wechaty \
-    zixia/wechaty \
-'
-
-$ wechaty mybot.js
+$ docker run \
+  -t -i --rm \
+  --volume="$(pwd)":/bot \
+  --name=wechaty \
+  zixia/wechaty \
+  mybot.js
 ```
 
 * Wechaty Docker has native support for TypeScript as well: just write in TypeScript and save to `mybot.ts`, then run `wechaty mybot.ts`.
