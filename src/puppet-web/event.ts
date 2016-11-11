@@ -371,7 +371,6 @@ async function onServerMessage(this: PuppetWeb, data): Promise<void> {
      * Check Type for special Message
      * reload if needed
      */
-    console.log(m.type())
 
     switch (m.type()) {
       case MsgType.EMOTICON:
