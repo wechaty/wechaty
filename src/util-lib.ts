@@ -100,21 +100,20 @@ export class UtilLib {
 
   public static urlStream(href: string, cookies: any[]): Promise<NodeJS.ReadableStream> {
     // const myurl = 'http://wx.qq.com/cgi-bin/mmwebwx-bin/webwxgetmsgimg?&MsgID=3080011908135131569&skey=%40crypt_c117402d_53a58f8fbb21978167a3fc7d3be7f8c9'
-    // url = url.replace(/^https/i, 'http') // use http for better performance
-console.log(href)
+    href = href.replace(/^https/i, 'http') // use http instead of https, because https will only success on the very first request!
+
     const u = url.parse(href)
     const protocol: 'https:'|'http:' = u.protocol as any
-console.log(u)
 
     let options
-    // let request
+    let request
 
     if (protocol === 'https:') {
-      // request       = https.request.bind(https)
+      request       = https.request.bind(https)
       options       = u as https.RequestOptions
       options.agent = https.globalAgent
     } else if (protocol === 'http:') {
-      // request       = http.request.bind(http)
+      request       = http.request.bind(http)
       options       = u as http.RequestOptions
       options.agent = http.globalAgent
     } else {
@@ -125,8 +124,8 @@ console.log(u)
       'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36',
 
       // Accept: 'image/webp,image/*,*/*;q=0.8',
-      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8', //  MsgType.IMAGE | VIDEO
-      // Accept: '*/*',
+      // Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8', //  MsgType.IMAGE | VIDEO
+      Accept: '*/*',
 
       Host: options.hostname, // 'wx.qq.com',  // MsgType.VIDEO | IMAGE
 
@@ -137,8 +136,8 @@ console.log(u)
       Range: 'bytes=0-',
 
       // 'Accept-Encoding': 'gzip, deflate, sdch',
-      'Accept-Encoding': 'gzip, deflate, sdch, br', // MsgType.IMAGE | VIDEO
-      // 'Accept-Encoding': 'identity;q=1, *;q=0',
+      // 'Accept-Encoding': 'gzip, deflate, sdch, br', // MsgType.IMAGE | VIDEO
+      'Accept-Encoding': 'identity;q=1, *;q=0',
 
       'Accept-Language': 'zh-CN,zh;q=0.8', // MsgType.IMAGE | VIDEO
       // 'Accept-Language': 'zh-CN,zh;q=0.8,zh-TW;q=0.6,en-US;q=0.4,en;q=0.2',
@@ -149,23 +148,15 @@ console.log(u)
      */
     options.headers['Cookie'] = cookies.map(c => `${c['name']}=${c['value']}`).join('; ')
     // log.verbose('Util', 'Cookie: %s', options.headers.Cookie)
-console.log(options)
+// console.log(options)
 
     return new Promise((resolve, reject) => {
-      /*
       const req = request(options, (res) => {
         // console.log(`STATUS: ${res.statusCode}`);
         // console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
         // res.setEncoding('utf8');
         resolve(res)
       })
-      */
-      let req
-      if (protocol === 'https:') {
-        req = https.request(options, resolve)
-      } else {
-        req = http.request(options, resolve)
-      }
 
       req.on('error', (e) => {
         log.warn('WebUtil', `downloadStream() problem with request: ${e.message}`)
