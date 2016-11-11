@@ -317,7 +317,7 @@ export class PuppetWeb extends Puppet {
     )
     try {
       await this.bridge.send(destination.id, content)
-    } catch(e) {
+    } catch (e) {
       log.error('PuppetWeb', 'send() exception: %s', e.message)
       throw e
     }
@@ -361,7 +361,7 @@ export class PuppetWeb extends Puppet {
   public async getContact(id: string): Promise<any> {
     try {
       return await this.bridge.getContact(id)
-    } catch(e) {
+    } catch (e) {
       log.error('PuppetWeb', 'getContact(%d) exception: %s', id, e.message)
       throw e
     }
