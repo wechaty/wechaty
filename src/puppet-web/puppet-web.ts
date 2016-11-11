@@ -315,11 +315,12 @@ export class PuppetWeb extends Puppet {
                           , room ? room.topic() : (to as Contact).name()
                           , content
     )
-    await this.bridge.send(destination.id, content)
-                      .catch(e => {
-                        log.error('PuppetWeb', 'send() exception: %s', e.message)
-                        throw e
-                      })
+    try {
+      await this.bridge.send(destination.id, content)
+    } catch(e) {
+      log.error('PuppetWeb', 'send() exception: %s', e.message)
+      throw e
+    }
     return
 }
 
@@ -349,36 +350,32 @@ export class PuppetWeb extends Puppet {
    * logout from browser, then server will emit `logout` event
    */
   public async logout(): Promise<void> {
-    await this.bridge.logout()
-                      .catch(e => {
-                        log.error('PuppetWeb', 'logout() exception: %s', e.message)
-                        throw e
-                      })
-    return
+    try {
+      await this.bridge.logout()
+    } catch (e) {
+      log.error('PuppetWeb', 'logout() exception: %s', e.message)
+      throw e
+    }
   }
 
-  public getContact(id: string): Promise<any> {
-    if (!this.bridge) {
-      throw new Error('PuppetWeb has no bridge for getContact()')
+  public async getContact(id: string): Promise<any> {
+    try {
+      return await this.bridge.getContact(id)
+    } catch(e) {
+      log.error('PuppetWeb', 'getContact(%d) exception: %s', id, e.message)
+      throw e
     }
-
-    return this.bridge.getContact(id)
-                      .catch(e => {
-                        log.error('PuppetWeb', 'getContact(%d) exception: %s', id, e.message)
-                        throw e
-                      })
   }
 
   public logined(): boolean { return !!(this.user) }
-  public ding(data?: any): Promise<string> {
-    if (!this.bridge) {
-      return Promise.reject(new Error('ding fail: no bridge(yet)!'))
+
+  public async ding(data?: any): Promise<string> {
+    try {
+      return await this.bridge.ding(data)
+    } catch (e) {
+      log.warn('PuppetWeb', 'ding(%s) rejected: %s', data, e.message)
+      throw e
     }
-    return this.bridge.ding(data)
-                      .catch(e => {
-                        log.warn('PuppetWeb', 'ding(%s) rejected: %s', data, e.message)
-                        throw e
-                      })
   }
 
   public async contactRemark(contact: Contact, remark: string): Promise<boolean> {

@@ -110,7 +110,7 @@ test('downloadStream() for media', t => {
   })
   server.listen(8000)
 
-  UtilLib.downloadStream('http://127.0.0.1:8000/ding', [{name: 'life', value: 42}])
+  UtilLib.urlStream('http://127.0.0.1:8000/ding', [{name: 'life', value: 42}])
         .then(s => {
           s.on('data', (chunk) => {
             // console.log(`BODY: ${chunk}`)

@@ -121,12 +121,15 @@ export class Bridge {
     })
   }
 
-  public getUserName(): Promise<string> {
-    return this.proxyWechaty('getUserName')
-              .catch(e => {
-                log.error('PuppetWebBridge', 'getUserName() exception: %s', e.message)
-                throw e
-              })
+  public async getUserName(): Promise<string> {
+    log.verbose('PuppetWebBridge', 'getUserName()')
+
+    try {
+      return await this.proxyWechaty('getUserName')
+    } catch (e) {
+      log.error('PuppetWebBridge', 'getUserName() exception: %s', e.message)
+      throw e
+    }
   }
 
   public async contactRemark(contactId: string, remark: string): Promise<boolean> {
@@ -294,6 +297,17 @@ export class Bridge {
     }
   }
 
+  public async getMsgPublicLinkImg(id): Promise<string> {
+    log.verbose('PuppetWebBridge', 'getMsgPublicLinkImg(%s)', id)
+
+    try {
+      return await this.proxyWechaty('getMsgPublicLinkImg', id)
+    } catch (e) {
+      log.silly('PuppetWebBridge', 'proxyWechaty(getMsgPublicLinkImg, %d) exception: %s', id, e.message)
+      throw e
+    }
+  }
+
   public getContact(id: string): Promise<string> {
     if (id !== id) { // NaN
       const err = new Error('NaN! where does it come from?')
@@ -365,7 +379,7 @@ export class Bridge {
         throw new Error('there is no WechatyBro in browser(yet)')
       }
     } catch (e) {
-      log.error('PuppetWebBridge', 'proxyWechaty() noWechaty exception: %s', e.message)
+      log.error('PuppetWebBridge', 'proxyWechaty() noWechaty exception: %s', e.stack)
       throw e
     }
 

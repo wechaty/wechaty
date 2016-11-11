@@ -5,7 +5,9 @@
  * https://github.com/wechaty/wechaty
  *
  */
-import * as http from 'http'
+import * as https from 'https'
+import * as http  from 'http'
+import * as url   from 'url'
 
 import { log } from './config'
 
@@ -96,46 +98,84 @@ export class UtilLib {
     )
   }
 
-  public static downloadStream(url: string, cookies: any[]): Promise<NodeJS.ReadableStream> {
+  public static urlStream(href: string, cookies: any[]): Promise<NodeJS.ReadableStream> {
     // const myurl = 'http://wx.qq.com/cgi-bin/mmwebwx-bin/webwxgetmsgimg?&MsgID=3080011908135131569&skey=%40crypt_c117402d_53a58f8fbb21978167a3fc7d3be7f8c9'
-    url = url.replace(/^https/i, 'http') // use http for better performance
-    const options = require('url').parse(url)
+    // url = url.replace(/^https/i, 'http') // use http for better performance
+console.log(href)
+    const u = url.parse(href)
+    const protocol: 'https:'|'http:' = u.protocol as any
+console.log(u)
+
+    let options
+    // let request
+
+    if (protocol === 'https:') {
+      // request       = https.request.bind(https)
+      options       = u as https.RequestOptions
+      options.agent = https.globalAgent
+    } else if (protocol === 'http:') {
+      // request       = http.request.bind(http)
+      options       = u as http.RequestOptions
+      options.agent = http.globalAgent
+    } else {
+      throw new Error('protocol unknown: ' + protocol)
+    }
 
     options.headers = {
-        // Accept: 'image/webp,image/*,*/*;q=0.8'
-        Accept: '*/*'
-      , Referer: 'https://wx.qq.com/'
-      , Range: 'bytes=0-'
+      'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36',
 
-      , 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'
-      // , 'Accept-Encoding': 'gzip, deflate, sdch'
-      , 'Accept-Encoding': 'identity;q=1, *;q=0'
-      , 'Accept-Language': 'zh-CN,zh;q=0.8'
+      // Accept: 'image/webp,image/*,*/*;q=0.8',
+      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8', //  MsgType.IMAGE | VIDEO
+      // Accept: '*/*',
+
+      Host: options.hostname, // 'wx.qq.com',  // MsgType.VIDEO | IMAGE
+
+      Referer: protocol + '//wx.qq.com/',
+
+      // 'Upgrade-Insecure-Requests': 1, // MsgType.VIDEO | IMAGE
+
+      Range: 'bytes=0-',
+
+      // 'Accept-Encoding': 'gzip, deflate, sdch',
+      'Accept-Encoding': 'gzip, deflate, sdch, br', // MsgType.IMAGE | VIDEO
+      // 'Accept-Encoding': 'identity;q=1, *;q=0',
+
+      'Accept-Language': 'zh-CN,zh;q=0.8', // MsgType.IMAGE | VIDEO
+      // 'Accept-Language': 'zh-CN,zh;q=0.8,zh-TW;q=0.6,en-US;q=0.4,en;q=0.2',
     }
-    options.agent = http.globalAgent
 
     /**
-     * 'pgv_pvi=6639183872; pgv_si=s8359147520;
-     * webwxuvid=747895d9dac5a25dd3a78175a5e931d879e026cacaf3ac06de0bd5f0714 ... ;
-     * mm_lang=zh_CN; MM_WX_NOTIFY_STATE=1; MM_WX_SOUND_STATE=1; wxloadtime=1465928826_expired;
-     * wxpluginkey=1465901102; wxuin=1211516682; wxsid=zMT7Gb24aTQzB1rA;
-     * webwx_data_ticket=gSeBbuhX+0kFdkXbgeQwr6Ck'
+     * pgv_pvi=6639183872; pgv_si=s8359147520; webwx_data_ticket=gSeBbuhX+0kFdkXbgeQwr6Ck
      */
-    options.headers.Cookie = cookies.map(c => `${c['name']}=${c['value']}`).join('; ')
+    options.headers['Cookie'] = cookies.map(c => `${c['name']}=${c['value']}`).join('; ')
     // log.verbose('Util', 'Cookie: %s', options.headers.Cookie)
+console.log(options)
 
     return new Promise((resolve, reject) => {
-      const req = http.request(options, (res) => {
+      /*
+      const req = request(options, (res) => {
         // console.log(`STATUS: ${res.statusCode}`);
         // console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
         // res.setEncoding('utf8');
         resolve(res)
       })
+      */
+      let req
+      if (protocol === 'https:') {
+        req = https.request(options, resolve)
+      } else {
+        req = http.request(options, resolve)
+      }
 
       req.on('error', (e) => {
         log.warn('WebUtil', `downloadStream() problem with request: ${e.message}`)
+        reject(e)
       })
-      req.end()
+
+      req.end(() => {
+        log.verbose('UtilLib', 'urlStream() req.end() request sent')
+      })
+
     })
   }
 

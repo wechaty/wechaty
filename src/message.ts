@@ -36,12 +36,18 @@ export type MessageRawObj = {
   MMAppMsgDesc:     string  // class="desc" ng-bind="message.MMAppMsgDesc"
 
   /**
+   * Attachment
+   *
    * MsgType == MSGTYPE_APP && message.AppMsgType == CONF.APPMSGTYPE_ATTACH
    */
-  MMAppMsgFileExt:  string  // doc, docx ...
-  FileName:         string
-  MMAppMsgFileSize: number
-  MMAppMsgDownloadUrl:  string  // <a download ng-if="message.MMFileStatus == CONF.MM_SEND_FILE_STATUS_SUCCESS  
+  FileName:         string  // FileName: '钢甲互联项目BP1108.pdf',
+  FileSize:         number  // FileSize: '2845701',
+  MediaId:          string  // MediaId: '@crypt_b1a45e3f_c21dceb3ac01349...
+
+  MMAppMsgFileExt:      string  // doc, docx ... 'undefined'?
+  MMAppMsgFileSize:     string  // '2.7MB',
+  MMAppMsgDownloadUrl:  string  // 'https://file.wx.qq.com/cgi-bin/mmwebwx-bin/webwxgetmedia?sender=@4f549c2dafd5ad731afa4d857bf03c10&mediaid=@crypt_b1a45e3f
+                                // <a download ng-if="message.MMFileStatus == CONF.MM_SEND_FILE_STATUS_SUCCESS
                                 // && (massage.MMStatus == CONF.MSG_SEND_STATUS_SUCC || massage.MMStatus === undefined)
                                 // " href="{{message.MMAppMsgDownloadUrl}}">下载</a>
   MMUploadProgress: number  // < 100
@@ -63,10 +69,10 @@ export type MessageRawObj = {
    * MsgType == CONF.MSGTYPE_VOICE : ng-style="{'width':40 + 7*message.VoiceLength/1000}
    */
   MsgType:          number
-  AppMsgType:       number  // message.MsgType == CONF.MSGTYPE_APP && message.AppMsgType == CONF.APPMSGTYPE_URL
-                            // message.MsgType == CONF.MSGTYPE_TEXT && message.SubMsgType != CONF.MSGTYPE_LOCATION
+  AppMsgType:       AppMsgType  // message.MsgType == CONF.MSGTYPE_APP && message.AppMsgType == CONF.APPMSGTYPE_URL
+                                // message.MsgType == CONF.MSGTYPE_TEXT && message.SubMsgType != CONF.MSGTYPE_LOCATION
 
-  SubMsgType:       number // "msgType":"{{message.MsgType}}","subType":{{message.SubMsgType||0}},"msgId":"{{message.MsgId}}"
+  SubMsgType:       MsgType // "msgType":"{{message.MsgType}}","subType":{{message.SubMsgType||0}},"msgId":"{{message.MsgId}}"
 
   /**
    * Status-es
@@ -82,6 +88,8 @@ export type MessageRawObj = {
    */
   MMLocationUrl:    string  // ng-if="message.MsgType == CONF.MSGTYPE_TEXT && message.SubMsgType == CONF.MSGTYPE_LOCATION"
                             // <a href="{{message.MMLocationUrl}}" target="_blank">
+                            // 'http://apis.map.qq.com/uri/v1/geocoder?coord=40.075041,116.338994'
+  MMLocationDesc:   string  // MMLocationDesc: '北京市昌平区回龙观龙腾苑(五区)内(龙腾街南)',
 
   /**
    * MsgType == CONF.MSGTYPE_EMOTICON
@@ -121,8 +129,8 @@ export type MessageObj = {
   url?:     string  // for MessageMedia class
 }
 
-// export type MessageTypeName = 'TEXT' | 'IMAGE' | 'VOICE' | 'VERIFYMSG' | 'POSSIBLEFRIEND_MSG' 
-// | 'SHARECARD' | 'VIDEO' | 'EMOTICON' | 'LOCATION' | 'APP' | 'VOIPMSG' | 'STATUSNOTIFY' 
+// export type MessageTypeName = 'TEXT' | 'IMAGE' | 'VOICE' | 'VERIFYMSG' | 'POSSIBLEFRIEND_MSG'
+// | 'SHARECARD' | 'VIDEO' | 'EMOTICON' | 'LOCATION' | 'APP' | 'VOIPMSG' | 'STATUSNOTIFY'
 // | 'VOIPNOTIFY' | 'VOIPINVITE' | 'MICROVIDEO' | 'SYSNOTICE' | 'SYS' | 'RECALLED'
 
 // export type MessageTypeValue = 1 | 3 | 34 | 37 | 40 | 42 | 43 | 47 | 48 | 49 | 50 | 51 | 52 | 53 | 62 | 9999 | 10000 | 10002
@@ -133,7 +141,27 @@ export type MessageTypeMap = {
   // , MessageTypeValue: MessageTypeName
 }
 
-export const enum MessageType {
+export const enum AppMsgType {
+  TEXT                     = 1,
+  IMG                      = 2,
+  AUDIO                    = 3,
+  VIDEO                    = 4,
+  URL                      = 5,
+  ATTACH                   = 6,
+  OPEN                     = 7,
+  EMOJI                    = 8,
+  VOICE_REMIND             = 9,
+  SCAN_GOOD                = 10,
+  GOOD                     = 13,
+  EMOTION                  = 15,
+  CARD_TICKET              = 16,
+  REALTIME_SHARE_LOCATION  = 17,
+  TRANSFERS                = 2e3,
+  RED_ENVELOPES            = 2001,
+  READER_TYPE              = 100001,
+}
+
+export enum MsgType {
   TEXT                = 1,
   IMAGE               = 3,
   VOICE               = 34,
@@ -151,7 +179,7 @@ export const enum MessageType {
   MICROVIDEO          = 62,
   SYSNOTICE           = 9999,
   SYS                 = 10000,
-  RECALLED            = 10002
+  RECALLED            = 10002,
 }
 
 export class Message implements Sayable {
@@ -187,8 +215,8 @@ export class Message implements Sayable {
     throw Error('abstract method')
   }
 
-  public ext(): string {
-    throw Error('abstract method')
+  public filename(): string {
+    throw Error('not a media message')
   }
 
   constructor(public rawObj?: MessageRawObj) {
@@ -207,14 +235,15 @@ export class Message implements Sayable {
   // Transform rawObj to local m
   private parse(rawObj): MessageObj {
     const obj: MessageObj = {
-      id:             rawObj.MsgId
-      , type:         rawObj.MsgType
-      , from:         rawObj.MMActualSender // MMPeerUserName
-      , to:           rawObj.ToUserName
-      , content:      rawObj.MMActualContent // Content has @id prefix added by wx
-      , status:       rawObj.Status
-      , digest:       rawObj.MMDigest
-      , date:         rawObj.MMDisplayTime  // Javascript timestamp of milliseconds
+      id:             rawObj.MsgId,
+      type:         rawObj.MsgType,
+      from:         rawObj.MMActualSender, // MMPeerUserName
+      to:           rawObj.ToUserName,
+      content:      rawObj.MMActualContent, // Content has @id prefix added by wx
+      status:       rawObj.Status,
+      digest:       rawObj.MMDigest,
+      date:         rawObj.MMDisplayTime,  // Javascript timestamp of milliseconds
+      url:          rawObj.Url || rawObj.MMAppMsgDownloadUrl || rawObj.MMLocationUrl
     }
 
     // FIXME: has ther any better method to know the room ID?
@@ -230,6 +259,7 @@ export class Message implements Sayable {
     // } else {
     //   obj.room = undefined
     }
+
     return obj
   }
   public toString() {
@@ -334,8 +364,22 @@ export class Message implements Sayable {
     return this.obj.content
   }
 
-  public type(): MessageType {
-    return this.obj.type as MessageType
+  public type(): MsgType {
+    return this.obj.type as MsgType
+  }
+
+  public typeSub(): MsgType {
+    if (!this.rawObj) {
+      throw new Error('no rawObj')
+    }
+    return this.rawObj.SubMsgType
+  }
+
+  public typeApp(): AppMsgType {
+    if (!this.rawObj) {
+      throw new Error('no rawObj')
+    }
+    return this.rawObj.AppMsgType
   }
 
   public typeEx()  { return Message.TYPE[this.obj.type] }

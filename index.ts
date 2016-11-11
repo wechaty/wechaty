@@ -8,7 +8,7 @@ import { FriendRequest }  from './src/friend-request'
 import { IoClient }       from './src/io-client'
 import {
     Message
-  , MessageType
+  , MsgType
 }                         from './src/message'
 import { Puppet }         from './src/puppet'
 import { PuppetWeb }      from './src/puppet-web/'
@@ -24,7 +24,7 @@ export {
   , FriendRequest
   , IoClient
   , Message
-  , MessageType
+  , MsgType
   , Puppet
   , PuppetWeb
   , Room

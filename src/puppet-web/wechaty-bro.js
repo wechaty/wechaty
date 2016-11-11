@@ -435,6 +435,12 @@
     return location + path
   }
 
+  function getMsgPublicLinkImg(id) {
+    var location = window.location.href.replace(/\/$/, '')
+    var path = '/cgi-bin/mmwebwx-bin/webwxgetpubliclinkimg?url=xxx&msgid=' + id + '&pictype=location'
+    return location + path
+  }
+
   function send(ToUserName, Content) {
     var chatFactory = WechatyBro.glue.chatFactory
     var confFactory = WechatyBro.glue.confFactory
@@ -766,6 +772,7 @@
     , getMsgEmoticon
     , getMsgVideo
     , getMsgVoice
+    , getMsgPublicLinkImg
 
     // for Wechaty Contact Class
     , contactFindAsync

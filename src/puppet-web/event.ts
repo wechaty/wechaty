@@ -16,14 +16,15 @@
  *
  */
 import {
-    WatchdogFood
-  , ScanInfo
-  , log
+  WatchdogFood,
+  ScanInfo,
+  log,
 }                     from '../config'
 import { Contact }    from '../contact'
 import {
-    Message
-  , MediaMessage
+  Message,
+  MediaMessage,
+  MsgType,
 }                     from '../message'
 
 import { Firer }      from './firer'
@@ -351,11 +352,11 @@ async function onServerMessage(this: PuppetWeb, data): Promise<void> {
      */
     switch (m.type()) { // data.MsgType
 
-      case Message.TYPE['VERIFYMSG']:
+      case MsgType.VERIFYMSG:
         Firer.checkFriendRequest.call(this, m)
         break
 
-      case Message.TYPE['SYS']:
+      case MsgType.SYS:
         if (m.room()) {
           Firer.checkRoomJoin.call(this  , m)
           Firer.checkRoomLeave.call(this , m)
@@ -373,13 +374,21 @@ async function onServerMessage(this: PuppetWeb, data): Promise<void> {
     console.log(m.type())
 
     switch (m.type()) {
-      case Message.TYPE['EMOTICON']:
-      case Message.TYPE['IMAGE']:
-      case Message.TYPE['VIDEO']:
-      case Message.TYPE['VOICE']:
-      case Message.TYPE['MICROVIDEO']:
+      case MsgType.EMOTICON:
+      case MsgType.IMAGE:
+      case MsgType.VIDEO:
+      case MsgType.VOICE:
+      case MsgType.MICROVIDEO:
+      case MsgType.APP:
         log.verbose('PuppetWebEvent', 'onServerMessage() EMOTICON/IMAGE/VIDEO/VOICE/MICROVIDEO message')
         m = new MediaMessage(data)
+        break
+
+      case MsgType.TEXT:
+        if (m.typeSub() === MsgType.LOCATION) {
+          log.verbose('PuppetWebEvent', 'onServerMessage() (TEXT&LOCATION) message')
+          m = new MediaMessage(data)
+        }
         break
     }
 
