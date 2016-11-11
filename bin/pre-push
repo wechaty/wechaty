@@ -8,6 +8,10 @@
 # To enable this hook, rename this file to "pre-commit".
 set -e
 
+remote="$1"
+url="$2"
+echo "$@"
+
 [ -n "$WECHATY_INNER_PRE_HOOK" ] && {
   # http://stackoverflow.com/a/21334985/1123955
   exit 0
