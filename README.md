@@ -91,16 +91,19 @@ Get to know more about NPM at [Wiki](https://github.com/wechaty/wechaty/wiki/NPM
 
 1. [init(): Promise&lt;void&gt;](https://github.com/wechaty/wechaty/wiki/API#wechaty-init-promise-void)
 
-Initialize the bot, return Promise.
+  Initialize the bot, return Promise.
 
-1. [instance(setting: PuppetSetting): Promise&lt;Wechaty&gt;](https://github.com/wechaty/wechaty/wiki/API#wechaty-instance-setting-puppetsetting-promise-wechaty)
-1. [send(message: Message): Promise&lt;void&gt;](https://github.com/wechaty/wechaty/wiki/API#wechaty-send-message-message-promise-void)
+2. [instance(setting: PuppetSetting): Promise&lt;Wechaty&gt;](https://github.com/wechaty/wechaty/wiki/API#wechaty-instance-setting-puppetsetting-promise-wechaty)
 
-send a message
+  create a bot instance
 
-1. [say(content: string): Promise&lt;void&gt;](https://github.com/wechaty/wechaty/wiki/API#wechaty-say-content-string-promise-void)
+3. [send(message: Message): Promise&lt;void&gt;](https://github.com/wechaty/wechaty/wiki/API#wechaty-send-message-message-promise-void)
 
-send message to filehelper, just for logging/reporting usage for your convenience
+  send a message
+
+4. [say(content: string): Promise&lt;void&gt;](https://github.com/wechaty/wechaty/wiki/API#wechaty-say-content-string-promise-void)
+
+  send message to filehelper, just for logging/reporting usage for your convenience
 
 ### [Wechaty Event](https://github.com/wechaty/wechaty/wiki/API#wechaty-event)
 
