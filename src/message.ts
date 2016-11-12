@@ -119,7 +119,7 @@ export type MessageObj = {
   id:       string
   type:     number
   from:     string
-  to:       string
+  to?:      string  // if to is not set, then room must be set
   room?:    string
   content:  string
   status:   string
@@ -235,7 +235,7 @@ export class Message implements Sayable {
   // Transform rawObj to local m
   private parse(rawObj): MessageObj {
     const obj: MessageObj = {
-      id:             rawObj.MsgId,
+      id:           rawObj.MsgId,
       type:         rawObj.MsgType,
       from:         rawObj.MMActualSender, // MMPeerUserName
       to:           rawObj.ToUserName,
@@ -256,8 +256,9 @@ export class Message implements Sayable {
         log.error('Message', 'parse found a room message, but neither FromUserName nor ToUserName is a room(/^@@/)')
         // obj.room = undefined // bug compatible
       }
-    // } else {
-    //   obj.room = undefined
+      if (obj.to && /^@@/.test(obj.to)) { // if a message in room without any specific receiver, then it will set to be `undefined`
+        obj.to = undefined
+      }
     }
 
     return obj
@@ -311,13 +312,16 @@ export class Message implements Sayable {
     return loadedContact
   }
 
+  // public to(room: Room): void
+  // public to(): Contact|Room
+  // public to(contact?: Contact|Room|string): Contact|Room|void {
   public to(contact: Contact): void
-  public to(room: Room): void
   public to(id: string): void
-  public to(): Contact|Room
-  public to(contact?: Contact|Room|string): Contact|Room|void {
+  public to(): Contact|null // if to is not set, then room must had set
+
+  public to(contact?: Contact|string): Contact|Room|null|void {
     if (contact) {
-      if (contact instanceof Contact || contact instanceof Room) {
+      if (contact instanceof Contact) {
         this.obj.to = contact.id
       } else if (typeof contact === 'string') {
         this.obj.to = contact
@@ -327,14 +331,10 @@ export class Message implements Sayable {
       return
     }
 
-    // FIXME: better to identify a room id?
-    const loadedInstance = /^@@/.test(this.obj.to)
-            ? Room.load(this.obj.to)
-            : Contact.load(this.obj.to)
-    if (!loadedInstance) {
-      throw new Error('no to')
+    if (!this.obj.to) {
+      return null
     }
-    return loadedInstance
+    return Contact.load(this.obj.to)
   }
 
   public room(room: Room): void
@@ -402,17 +402,19 @@ export class Message implements Sayable {
 
     try {
       const from  = Contact.load(this.obj.from)
-      const to    = Contact.load(this.obj.to)
-      const room  = this.obj.room ? Room.load(this.obj.room) : null
-
-      if (!from || !to) {
-        throw new Error('no `from` or no `to`')
-      }
       await from.ready()                // Contact from
-      await to.ready()                  // Contact to
-      if (room) { await room.ready() }  // Room member list
 
-      // return this         // return this for chain
+      if (this.obj.to) {
+        const to = Contact.load(this.obj.to)
+        await to.ready()
+      }
+
+      if (this.obj.room) {
+        const room  = Room.load(this.obj.room)
+        if (room) {
+          await room.ready()  // Room member list
+        }
+      }
 
     } catch (e) {
         log.error('Message', 'ready() exception: %s', e.stack)

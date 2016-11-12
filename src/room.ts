@@ -153,7 +153,6 @@ export class Room extends EventEmitter implements Sayable {
 
     if (!replyTo) {
       m.content(content)
-      m.to(this)
       return Config.puppetInstance()
                     .send(m)
     }

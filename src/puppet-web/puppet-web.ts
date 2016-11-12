@@ -296,27 +296,25 @@ export class PuppetWeb extends Puppet {
     const to      = message.to()
     const room    = message.room()
 
-    let content     = message.content()
+    const content     = message.content()
 
-    let destination: Contact|Room = to
-    if (room) {
-      destination = room
-      // TODO use the right @
-      // if (to && to!==room) {
-      //   content = `@[${to}] ${content}`
-      // }
-
-      if (!to) {
-        message.to(room)
-      }
+    let destinationId
+    if (to) {
+      destinationId = to.id
     }
 
-    log.silly('PuppetWeb', 'send() destination: %s, content: %s)'
-                          , room ? room.topic() : (to as Contact).name()
-                          , content
+    if (room) {
+      destinationId = room.id
+    }
+
+    log.silly('PuppetWeb', 'send() destination: %s, content: %s)',
+                            // , room ? room.topic() : (to as Contact).name()
+                            destinationId,
+                            content,
     )
+
     try {
-      await this.bridge.send(destination.id, content)
+      await this.bridge.send(destinationId, content)
     } catch (e) {
       log.error('PuppetWeb', 'send() exception: %s', e.message)
       throw e
