@@ -201,7 +201,7 @@ export class Browser extends EventEmitter {
     return
   }
 
-  public clean(kill = false): Promise<void> {
+  public async clean(kill = false): Promise<void> {
     const max = 30
     const backoff = 100
 
@@ -213,6 +213,7 @@ export class Browser extends EventEmitter {
       pidList.forEach(pid => {
         try {
           process.kill(pid, 'SIGKILL')
+          process.kill(pid)
         } catch (e) {
           log.warn('PuppetWebBrowser', 'clean(kill=true) process.kill(%d, SIGKILL) exception: %s', pid, e.message)
         }
@@ -249,7 +250,7 @@ export class Browser extends EventEmitter {
     })
   }
 
-  public getBrowserPids(): Promise<string[]> {
+  public getBrowserPids(): Promise<number[]> {
     log.silly('PuppetWebBrowser', 'getBrowserPids()')
 
     const head = this.setting.head
@@ -278,7 +279,7 @@ export class Browser extends EventEmitter {
         }
 
         let matchRegex = new RegExp(browserRe, 'i')
-        const pids: string[] = children.filter(child => {
+        const pids: number[] = children.filter(child => {
           log.silly('PuppetWebBrowser', 'getBrowserPids() child: %s', JSON.stringify(child))
           // https://github.com/indexzero/ps-tree/issues/18
           return matchRegex.test('' + child.COMMAND + child.COMM)
