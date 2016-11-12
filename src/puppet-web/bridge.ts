@@ -86,6 +86,8 @@ export class Bridge {
   }
 
   public getInjectio(): string {
+    log.verbose('PuppetWebBridge', 'getInjectio()')
+
     const fs = require('fs')
     const path = require('path')
 
@@ -350,6 +352,13 @@ export class Bridge {
    * Proxy Call to Wechaty in Bridge
    */
   public async proxyWechaty(wechatyFunc, ...args): Promise<any> {
+    log.verbose('PuppetWebBridge', 'proxyWechaty(%s, %s)'
+                                  , wechatyFunc
+                                  , args
+                                    ? args.join(', ')
+                                    : ''
+              )
+
     const argsEncoded = new Buffer(
       encodeURIComponent(
         JSON.stringify(args)
@@ -414,6 +423,8 @@ export class Bridge {
    * call REAL browser excute for other methods
    */
   public execute(script, ...args): Promise<any> {
+    log.verbose('PuppetWebBridge', 'execute()')
+
     if (!this.puppet || !this.puppet.browser) {
       return Promise.reject(new Error('execute(): no puppet or no puppet.browser in bridge'))
     }
@@ -436,6 +447,8 @@ export class Bridge {
   }
 
   public ding(data): Promise<any> {
+    log.verbose('PuppetWebBridge', 'ding(%s)', data)
+
     return this.proxyWechaty('ding', data)
     .catch(e => {
       log.error('PuppetWebBridge', 'ding(%s) exception: %s', data, e.message)

@@ -34,13 +34,13 @@ test.serial('WebDriver process create & quit test', async t => {
   await browser.open()
   t.pass('should open successful')
 
-  let pids = await browser.getBrowserPids()
+  let pids = await browser.getBrowserPidList()
   t.truthy(pids.length > 0, 'should exist browser process after b.open()')
 
   await browser.quit()
   t.pass('quited')
 
-  pids = await browser.getBrowserPids()
+  pids = await browser.getBrowserPidList()
   t.is(pids.length, 0, 'no driver process after quit')
 })
 
@@ -54,7 +54,7 @@ test.serial('WebDriver smoke testing', async t => {
 
   let driver // for help function `execute`
 
-  const m = (await browser.getBrowserPids()).length
+  const m = (await browser.getBrowserPidList()).length
   t.is(m, 0, 'should has no browser process before get()')
 
   driver = await browser.driver.init()
@@ -66,7 +66,7 @@ test.serial('WebDriver smoke testing', async t => {
   await driver.get('https://wx.qq.com/')
   t.pass('should open wx.qq.com')
 
-  const n = (await browser.getBrowserPids()).length
+  const n = (await browser.getBrowserPidList()).length
   t.truthy(n > 0, 'should exist browser process after get()')
 
   const retAdd = await driverExecute('return 1+1')
