@@ -108,22 +108,46 @@ Get to know more about NPM at [Wiki](https://github.com/wechaty/wechaty/wiki/NPM
 
 ## [Contact](https://github.com/wechaty/wechaty/wiki/API#class-contact)
 
-TBW
+1. [id:string](https://github.com/wechaty/wechaty/wiki/API#contactid-string)
+1. [name():string](https://github.com/wechaty/wechaty/wiki/API#contactname-string)
+1. [remark():string](https://github.com/wechaty/wechaty/wiki/API#contactremark-string)
+1. [remark(remark:string):Promise](https://github.com/wechaty/wechaty/wiki/API#contactremarkremark-string-promise)
+1. [ready():Promise](https://github.com/wechaty/wechaty/wiki/API#contactready-promise)
+1. [say(content:string):Promise](https://github.com/wechaty/wechaty/wiki/API#contactsaycontent-string-promise)
 
 ## [FriendRequest](https://github.com/wechaty/wechaty/wiki/API#class-friendrequest)
 
-TBW
+1. [hello:string](https://github.com/wechaty/wechaty/wiki/API#friendrequesthello-string)
+1. [accept():void](https://github.com/wechaty/wechaty/wiki/API#friendrequestaccept-void)
+1. [send(contact:Contact,hello:string):void](https://github.com/wechaty/wechaty/wiki/API#friendrequestsendcontact-contact-hello-string-void)
 
 ## [Message](https://github.com/wechaty/wechaty/wiki/API#class-message)
 
-TBW
+1. [from():Contact](https://github.com/wechaty/wechaty/wiki/API#1-messagefrom-contact)
+1. [from(contact:Contact):void](https://github.com/wechaty/wechaty/wiki/API#2-messagefromcontact-contact-void)
+1. [from(contactId:string):void](https://github.com/wechaty/wechaty/wiki/API#3-messagefromcontactid-string-void)
+1. [to():Contact|Room](https://github.com/wechaty/wechaty/wiki/API#1-messageto-contactroom)
+1. [to(contact:Contact):void](https://github.com/wechaty/wechaty/wiki/API#2-messagetocontact-contact-void)
+1. [to(room:Room):void](https://github.com/wechaty/wechaty/wiki/API#3-messagetoroom-room-void)
+1. [to(contactOrRoomId:string):void](https://github.com/wechaty/wechaty/wiki/API#4-messagetocontactorroomid-string-void)
+1. [room():Room|null](https://github.com/wechaty/wechaty/wiki/API#1-messageroom-room--null)
+1. [room(room:Room):void](https://github.com/wechaty/wechaty/wiki/API#2-messageroomroom-room-void)
+1. [room(roomId:string):void](https://github.com/wechaty/wechaty/wiki/API#3-messageroomroomid-string-void)
+1. [say(content:string):Promise](https://github.com/wechaty/wechaty/wiki/API#messagesaycontent-string-promise)
+1. [ready():Promise](https://github.com/wechaty/wechaty/wiki/API#messageready-promise)
+1. [self(message:Message):boolean](https://github.com/wechaty/wechaty/wiki/API#messageselfmessage-message-boolean)
 
 ## [Room](https://github.com/wechaty/wechaty/wiki/API#class-room)
 
-TBW
+1. [say(content:string,replyTo:Contact|ContactArray):Promise](https://github.com/wechaty/wechaty/wiki/API#roomsaycontent-string-replyto-contactcontact-promise)
+1. [ready():Promise](https://github.com/wechaty/wechaty/wiki/API#roomready-promise)
+1. [refresh():Promise](https://github.com/wechaty/wechaty/wiki/API#roomrefresh-promise)
 
 ### [Room Event](https://github.com/wechaty/wechaty/wiki/API#room-event)
 
+1. [join](https://github.com/wechaty/wechaty/wiki/API#event-join)
+1. [leave](https://github.com/wechaty/wechaty/wiki/API#event-leave)
+1. [topic](https://github.com/wechaty/wechaty/wiki/API#event-topic)
 
 # Test
 
