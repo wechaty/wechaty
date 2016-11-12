@@ -211,7 +211,7 @@ export class Browser extends EventEmitter {
      * issue #86 to kill orphan browser process
      */
     if (kill) {
-      const pidList = await this.getBrowserPids()
+      const pidList = await this.getBrowserPidList()
       pidList.forEach(pid => {
         try {
           process.kill(pid, 'SIGKILL')
@@ -228,31 +228,32 @@ export class Browser extends EventEmitter {
      */
     const timeout = max * (backoff * max) / 2
 
-    return retryPromise({ max: max, backoff: backoff }, attempt => {
+    return retryPromise({ max: max, backoff: backoff }, async attempt => {
       log.silly('PuppetWebBrowser', 'clean() retryPromise: attempt %s time for timeout %s'
                                   , attempt,  timeout
       )
 
       return new Promise(async (resolve, reject) => {
-        const pidList = await this.getBrowserPids()
-        if (pidList.length === 0) {
-          log.verbose('PuppetWebBrowser', 'clean() retryPromise() resolved, at attempt #%d', attempt)
-          resolve('clean() browser process not found, at attemp#' + attempt)
-        } else {
-          const e = new Error('clean() found browser process, not clean, dirty, at attempt#' + attempt)
-          log.silly('PuppetWebBrowser', 'clean() retryPromise() found pidList, at attempt #%d', attempt)
+        const pidList = await this.getBrowserPidList()
+
+        if (pidList.length > 0) {
+          const e = new Error('clean() retryPromise() found pidList, dirty at attempt #' + attempt)
+          log.silly('PuppetWebBrowser', e.message)
           throw e
         }
+
+        log.verbose('PuppetWebBrowser', 'clean() retryPromise() resolved, at attempt #%d', attempt)
+        resolve()
       })
     })
     .catch(e => {
-      log.error('PuppetWebBrowser', 'retryPromise failed: %s', e.message)
+      log.error('PuppetWebBrowser', 'clean() retryPromise() failed: %s', e.message)
       throw e
     })
   }
 
-  public getBrowserPids(): Promise<number[]> {
-    log.silly('PuppetWebBrowser', 'getBrowserPids()')
+  public getBrowserPidList(): Promise<number[]> {
+    log.silly('PuppetWebBrowser', 'getBrowserPidList()')
 
     const head = this.setting.head
 
