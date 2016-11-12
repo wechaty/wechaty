@@ -140,11 +140,11 @@ export class Room extends EventEmitter implements Sayable {
     return this
   }
 
-  public say(content: string): Promise<any> {
-  public say(content: string, replyTo: Contact): Promise<any> {
-  public say(content: string, replyTo: Contact[]): Promise<any> {
+  public say(content: string): Promise<any>
+  public say(content: string, replyTo: Contact): Promise<void>
+  public say(content: string, replyTo: Contact[]): Promise<void>
 
-  public say(content: string, replyTo?: Contact|Contact[]): Promise<any> {
+  public say(content: string, replyTo?: Contact|Contact[]): Promise<void> {
     log.verbose('Room', 'say(%s, %s)'
                       , content
                       , Array.isArray(replyTo)
