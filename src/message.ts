@@ -331,6 +331,8 @@ export class Message implements Sayable {
       return
     }
 
+    // no parameter
+
     if (!this.obj.to) {
       return null
     }

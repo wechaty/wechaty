@@ -140,6 +140,10 @@ export class Room extends EventEmitter implements Sayable {
     return this
   }
 
+  public say(content: string): Promise<any> {
+  public say(content: string, replyTo: Contact): Promise<any> {
+  public say(content: string, replyTo: Contact[]): Promise<any> {
+
   public say(content: string, replyTo?: Contact|Contact[]): Promise<any> {
     log.verbose('Room', 'say(%s, %s)'
                       , content
@@ -151,19 +155,16 @@ export class Room extends EventEmitter implements Sayable {
     const m = new Message()
     m.room(this)
 
-    if (!replyTo) {
-      m.content(content)
-      return Config.puppetInstance()
-                    .send(m)
-    }
-
     const replyToList: Contact[] = arrify(replyTo)
-    let mentionList: string
 
-    m.to(replyToList[0])
-    mentionList = replyToList.map(c => '@' + c.name()).join(' ')
+    if (replyToList.length > 0) {
+      const mentionList = replyToList.map(c => '@' + c.name()).join(' ')
+      m.content(mentionList + ' ' + content)
+    } else {
+      m.content(content)
+    }
+    // m.to(replyToList[0])
 
-    m.content(mentionList + ' ' + content)
     return Config.puppetInstance()
                   .send(m)
   }

@@ -299,12 +299,14 @@ export class PuppetWeb extends Puppet {
     const content     = message.content()
 
     let destinationId
-    if (to) {
-      destinationId = to.id
-    }
 
     if (room) {
       destinationId = room.id
+    } else {
+      if (!to) {
+        throw new Error('PuppetWeb.send(): message with neither room nor to?')
+      }
+      destinationId = to.id
     }
 
     log.silly('PuppetWeb', 'send() destination: %s, content: %s)',
