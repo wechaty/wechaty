@@ -7,6 +7,8 @@
  * https://github.com/zixia/wechaty
  *
  */
+const psTree = require('ps-tree')
+
 import { EventEmitter } from 'events'
 
 /* tslint:disable:no-var-requires */
@@ -158,7 +160,8 @@ export class Browser extends EventEmitter {
     this.state.current('close', false)
 
     try {
-      await this.driver.close().catch(e => { /* fail safe */ }) // http://stackoverflow.com/a/32341885/1123955
+      await this.driver.close()
+                      .catch(e => { /* fail safe */ }) // http://stackoverflow.com/a/32341885/1123955
       log.silly('PuppetWebBrowser', 'quit() driver.close() done')
       await this.driver.quit()
       log.silly('PuppetWebBrowser', 'quit() driver.quit() done')
@@ -169,7 +172,11 @@ export class Browser extends EventEmitter {
        * because there will be more than one instance of browser with the same nodejs process id
        *
        */
-      await this.clean()
+      try {
+        await this.clean()
+      } catch (e) {
+        await this.clean(true)
+      }
 
     } catch (e) {
       // console.log(e)
@@ -194,9 +201,23 @@ export class Browser extends EventEmitter {
     return
   }
 
-  public clean(): Promise<void> {
+  public clean(kill = false): Promise<void> {
     const max = 30
     const backoff = 100
+
+    /**
+     * issue #86 to kill orphan browser process
+     */
+    if (kill) {
+      const pidList = await this.getBrowserPids()
+      pidList.forEach(pid => {
+        try {
+          process.kill(pid, 'SIGKILL')
+        } catch (e) {
+          log.warn('PuppetWebBrowser', 'clean(kill=true) process.kill(%d, SIGKILL) exception: %s', pid, e.message)
+        }
+      })
+    }
 
     /**
      * max = (2*totalTime/backoff) ^ (1/2)
@@ -210,17 +231,16 @@ export class Browser extends EventEmitter {
                                   , attempt,  timeout
       )
 
-      return new Promise((resolve, reject) => {
-        this.getBrowserPids()
-        .then(pids => {
-          if (pids.length === 0) {
-            log.verbose('PuppetWebBrowser', 'clean() retryPromise() resolved')
-            resolve('clean() browser process not found, at attemp#' + attempt)
-          } else {
-            reject(new Error('clean() found browser process, not clean, dirty'))
-          }
-        })
-        .catch(e => reject(e))
+      return new Promise(async (resolve, reject) => {
+        const pidList = await this.getBrowserPids()
+        if (pidList.length === 0) {
+          log.verbose('PuppetWebBrowser', 'clean() retryPromise() resolved, at attempt #%d', attempt)
+          resolve('clean() browser process not found, at attemp#' + attempt)
+        } else {
+          const e = new Error('clean() found browser process, not clean, dirty, at attempt#' + attempt)
+          log.silly('PuppetWebBrowser', 'clean() retryPromise() found pidList, at attempt #%d', attempt)
+          throw e
+        }
       })
     })
     .catch(e => {
@@ -235,7 +255,7 @@ export class Browser extends EventEmitter {
     const head = this.setting.head
 
     return new Promise((resolve, reject) => {
-      require('ps-tree')(process.pid, (err, children) => {
+      psTree(process.pid, (err, children) => {
         if (err) {
           reject(err)
           return
