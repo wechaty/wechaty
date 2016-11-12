@@ -83,9 +83,9 @@ test('timer', async t => {
     // timeout = 84,500 for {max: 13, backoff: 1000}
     const timeout = max * (backoff * max) / 2
 
-    return retryPromise({max: max, backoff: backoff}, async function(attempt) {
-      log.silly('TestPuppetWeb', 'waitDing() retryPromise: attampt %s/%s time for timeout %s'
-        , attempt, max, timeout)
+    return retryPromise({max, backoff }, async function(attempt) {
+      log.silly('TestPuppetWeb', 'waitDing() retryPromise: attampt %s/%s time for timeout %s',
+                                  attempt, max, timeout)
 
       try {
         const r = await pw.ding(data)

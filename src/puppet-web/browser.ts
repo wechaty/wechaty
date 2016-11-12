@@ -202,6 +202,8 @@ export class Browser extends EventEmitter {
   }
 
   public async clean(kill = false): Promise<void> {
+    log.verbose('PuppetWebBrowser', 'clean(kill=%s)', kill)
+
     const max = 30
     const backoff = 100
 
@@ -355,7 +357,7 @@ export class Browser extends EventEmitter {
     return false // browser not ok, dead
   }
 
-  public dead(forceReason?: string): boolean {
+  public dead(forceReason?: any): boolean {
     // too noisy!
     // log.silly('PuppetWebBrowser', 'dead() checking ... ')
 

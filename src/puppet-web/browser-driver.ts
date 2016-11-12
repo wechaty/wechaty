@@ -29,19 +29,19 @@ export class BrowserDriver {
   public async init(): Promise<this> {
     log.verbose('PuppetWebBrowserDriver', 'init() for head: %s', this.head)
 
-    if (this.driver) {
-      try {
-        // const valid = await this.valid(this.driver)
-        // if (valid) {
-        //   // await this.driver.close()
-          await this.driver.quit()
-        // }
-      } catch (e) {
-        log.verbose('PuppetWebBrowserDriver', 'init() this.driver.quit() soft exception: %s'
-                                          , e.stack
-        )
-      }
-    }
+    // if (this.driver) {
+    //   try {
+    //     // const valid = await this.valid(this.driver)
+    //     // if (valid) {
+    //     //   // await this.driver.close()
+    //       await this.driver.quit()
+    //     // }
+    //   } catch (e) {
+    //     log.verbose('PuppetWebBrowserDriver', 'init() this.driver.quit() soft exception: %s'
+    //                                       , e.message
+    //     )
+    //   }
+    // }
 
     switch (this.head) {
       case 'phantomjs':
@@ -137,11 +137,10 @@ export class BrowserDriver {
 
         log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() new Builder() done')
 
-        const valid = await this.valid(driver)
+        const isValid = await this.valid(driver)
+        log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() valid() done: %s', isValid)
 
-        log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() valid() done: %s', valid)
-
-        if (!valid) {
+        if (!isValid) {
           err = new Error('getChromeDriver() got invalid driver')
           log.warn('PuppetWebBrowserDriver', err.message)
           driver = null
@@ -245,6 +244,7 @@ export class BrowserDriver {
     log.verbose('PuppetWebBrowserDriver', 'valid()')
 
     try {
+      log.verbose('PuppetWebBrowserDriver', 'valid() getSession()')
       const session = await new Promise((resolve, reject) => {
         // reject
         const timer = setTimeout(() => {
@@ -256,13 +256,14 @@ export class BrowserDriver {
         // resolve
         driver.getSession()
               .then(session => {
+                log.verbose('PuppetWebBrowserDriver', 'valid() getSession() done')
                 clearTimeout(timer)
                 resolve(session)
               })
 
       })
 
-      log.verbose('PuppetWebBrowserDriver', 'valid() driver.getSession() done')
+      log.verbose('PuppetWebBrowserDriver', 'valid() driver.getSession() done(out)')
 
       if (!session) {
         log.verbose('PuppetWebBrowserDriver', 'valid() found an invalid driver')
