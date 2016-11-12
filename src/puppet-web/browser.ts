@@ -213,7 +213,6 @@ export class Browser extends EventEmitter {
       pidList.forEach(pid => {
         try {
           process.kill(pid, 'SIGKILL')
-          process.kill(pid)
         } catch (e) {
           log.warn('PuppetWebBrowser', 'clean(kill=true) process.kill(%d, SIGKILL) exception: %s', pid, e.message)
         }
