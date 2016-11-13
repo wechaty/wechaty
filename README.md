@@ -89,22 +89,22 @@ Get to know more about NPM at [Wiki](https://github.com/wechaty/wechaty/wiki/NPM
 
 ## [Wechaty](https://github.com/wechaty/wechaty/wiki/API#class-wechaty)
 
-1. [init(): Promise&lt;void&gt;](https://github.com/wechaty/wechaty/wiki/API#wechaty-init-promise-void) Initialize the bot, return Promise.
-2. [instance(setting: PuppetSetting): Promise&lt;Wechaty&gt;](https://github.com/wechaty/wechaty/wiki/API#wechaty-instance-setting-puppetsetting-promise-wechaty) create a bot instance
-3. [send(message: Message): Promise&lt;void&gt;](https://github.com/wechaty/wechaty/wiki/API#wechaty-send-message-message-promise-void) send a message
-4. [say(content: string): Promise&lt;void&gt;](https://github.com/wechaty/wechaty/wiki/API#wechaty-say-content-string-promise-void) send message to filehelper, just for logging/reporting usage for your convenience
+1. [init(): Promise&lt;void&gt;](https://github.com/wechaty/wechaty/wiki/API#wechatyinit-wechaty) Initialize the bot, return Promise.
+2. [instance(setting: PuppetSetting): Promise&lt;Wechaty&gt;](https://github.com/wechaty/wechaty/wiki/API#wechatyinstanceprofilestring-wechaty) create a bot instance
+3. [send(message: Message): Promise&lt;void&gt;](https://github.com/wechaty/wechaty/wiki/API#wechatysendmessage-message-wechaty) send a message
+4. [say(content: string): Promise&lt;void&gt;](https://github.com/wechaty/wechaty/wiki/API#wechatysaycontent-string) send message to filehelper, just for logging/reporting usage for your convenience
 
 ### [Wechaty Event](https://github.com/wechaty/wechaty/wiki/API#wechaty-event)
 
-1. [error](https://github.com/wechaty/wechaty/wiki/API#wechaty-event-error) Emit when there's an error occurred.
-2. [friend](https://github.com/wechaty/wechaty/wiki/API#wechaty-event-friend) Emit when got a new friend request, or friendship is confirmed.
-3. [login](https://github.com/wechaty/wechaty/wiki/API#wechaty-event-login) Emit when bot login full successful.
-4. [logout](https://github.com/wechaty/wechaty/wiki/API#wechaty-event-logout) Emit when bot detected log out.
-5. [message](https://github.com/wechaty/wechaty/wiki/API#wechaty-event-message) Emit when there's a new message.
-6. [room-join](https://github.com/wechaty/wechaty/wiki/API#wechaty-event-room-join) Emit when someone join the room
-7. [room-leave](https://github.com/wechaty/wechaty/wiki/API#wechaty-event-room-leave) Emit when someone leave the room
-8. [room-topic](https://github.com/wechaty/wechaty/wiki/API#wechaty-event-room-topic) Emit when someone change the room's topic
-9. [scan](https://github.com/wechaty/wechaty/wiki/API#wechaty-event-scan) Emit when the bot needs to show you a QR Code for scanning
+1. [error](https://github.com/wechaty/wechaty/wiki/API#5-event-error) Emit when there's an error occurred.
+2. [friend](https://github.com/wechaty/wechaty/wiki/API#6-event-friend) Emit when got a new friend request, or friendship is confirmed.
+3. [login](https://github.com/wechaty/wechaty/wiki/API#2-event-login) Emit when bot login full successful.
+4. [logout](https://github.com/wechaty/wechaty/wiki/API#3-event-logout) Emit when bot detected log out.
+5. [message](https://github.com/wechaty/wechaty/wiki/API#4-event-message) Emit when there's a new message.
+6. [room-join](https://github.com/wechaty/wechaty/wiki/API#7-event-room-join) Emit when someone join the room
+7. [room-leave](https://github.com/wechaty/wechaty/wiki/API#8-event-room-leave) Emit when someone leave the room
+8. [room-topic](https://github.com/wechaty/wechaty/wiki/API#9-event-room-topic) Emit when someone change the room's topic
+9. [scan](https://github.com/wechaty/wechaty/wiki/API#1-event-scan) Emit when the bot needs to show you a QR Code for scanning
 
 ## [Contact](https://github.com/wechaty/wechaty/wiki/API#class-contact)
 
