@@ -87,7 +87,7 @@ Get to know more about NPM at [Wiki](https://github.com/wechaty/wechaty/wiki/NPM
 
 # API Reference
 
-### [Wechaty Event](https://github.com/wechaty/wechaty/wiki/API#wechaty-event)
+## [Wechaty Event](https://github.com/wechaty/wechaty/wiki/API#event)
 
 1. [scan](https://github.com/wechaty/wechaty/wiki/API#1-event-scan) Emit when the bot needs to show you a QR Code for scanning
 2. [login](https://github.com/wechaty/wechaty/wiki/API#2-event-login) Emit when bot login full successful.
@@ -99,21 +99,21 @@ Get to know more about NPM at [Wiki](https://github.com/wechaty/wechaty/wiki/NPM
 8. [room-leave](https://github.com/wechaty/wechaty/wiki/API#8-event-room-leave) Emit when someone leave the room
 9. [room-topic](https://github.com/wechaty/wechaty/wiki/API#9-event-room-topic) Emit when someone change the room's topic
 
-## [Wechaty](https://github.com/wechaty/wechaty/wiki/API#class-wechaty)
+## [Wechaty](https://github.com/wechaty/wechaty/wiki/API#wechaty-class)
 
 1. [instance(setting: PuppetSetting): Promise&lt;Wechaty&gt;](https://github.com/wechaty/wechaty/wiki/API#wechatyinstanceprofilestring-wechaty) create a bot instance
 2. [init(): Promise&lt;void&gt;](https://github.com/wechaty/wechaty/wiki/API#wechatyinit-wechaty) Initialize the bot, return Promise.
 3. [send(message: Message): Promise&lt;void&gt;](https://github.com/wechaty/wechaty/wiki/API#wechatysendmessage-message-wechaty) send a message
 4. [say(content: string): Promise&lt;void&gt;](https://github.com/wechaty/wechaty/wiki/API#wechatysaycontent-string) send message to filehelper, just for logging/reporting usage for your convenience
 
-## [Message](https://github.com/wechaty/wechaty/wiki/API#class-message)
+## [Message](https://github.com/wechaty/wechaty/wiki/API#message-class)
 
 1. [from():Contact](https://github.com/wechaty/wechaty/wiki/API#1-messagefrom-contact) get the sender from a message
 2. [from(contact:Contact):void](https://github.com/wechaty/wechaty/wiki/API#2-messagefromcontact-contact-void) set a sender to the message
 3. [from(contactId:string):void](https://github.com/wechaty/wechaty/wiki/API#3-messagefromcontactid-string-void) set a sender to the message by contact id
-4. [to():Contact](https://github.com/wechaty/wechaty/wiki/API#1-messageto-contactroom) get the destination of the message
+4. [to():Contact](https://github.com/wechaty/wechaty/wiki/API#1-messageto-contact) get the destination of the message
 5. [to(contact:Contact):void](https://github.com/wechaty/wechaty/wiki/API#2-messagetocontact-contact-void) set the destination as contact for the message
-6. [to(contact:string):void](https://github.com/wechaty/wechaty/wiki/API#4-messagetocontactorroomid-string-void) set the destination as contact by 'weixin', for the message
+6. [to(contact:string):void](https://github.com/wechaty/wechaty/wiki/API#3-messagetocontact-string-void) set the destination as contact by 'weixin', for the message
 7. [content():string](https://github.com/wechaty/wechaty/wiki/API#1-messagecontent-string) get the content of the message
 8. [content(content:string):string](https://github.com/wechaty/wechaty/wiki/API#2-messagecontentcontent-string-string) set the content for the message
 9. [room():Room|null](https://github.com/wechaty/wechaty/wiki/API#1-messageroom-room--null) get the room from a message.
@@ -123,7 +123,7 @@ Get to know more about NPM at [Wiki](https://github.com/wechaty/wechaty/wiki/NPM
 13. [ready():Promise](https://github.com/wechaty/wechaty/wiki/API#messageready-promise) confirm get all the data needed, will be resolved when all message data is ready.
 14. [self(message:Message):boolean](https://github.com/wechaty/wechaty/wiki/API#messageselfmessage-message-boolean) check if a message is sent by self 
 
-## [Contact](https://github.com/wechaty/wechaty/wiki/API#class-contact)
+## [Contact](https://github.com/wechaty/wechaty/wiki/API#contact-class)
 
 1. [id:string](https://github.com/wechaty/wechaty/wiki/API#contactid-string) get uniq id from a contact
 2. [name():string](https://github.com/wechaty/wechaty/wiki/API#contactname-string) get name from a contact
@@ -138,7 +138,7 @@ Get to know more about NPM at [Wiki](https://github.com/wechaty/wechaty/wiki/NPM
 2. [ready():Promise](https://github.com/wechaty/wechaty/wiki/API#roomready-promise) confirm get all the data needed, will be resolved when all data is ready
 3. [refresh():Promise](https://github.com/wechaty/wechaty/wiki/API#roomrefresh-promise) force reload data for Room
 
-### [Room Event](https://github.com/wechaty/wechaty/wiki/API#room-event)
+### [Room Event](https://github.com/wechaty/wechaty/wiki/API#room-events)
 
 1. [join](https://github.com/wechaty/wechaty/wiki/API#event-join) Emit when someone join the room
 2. [leave](https://github.com/wechaty/wechaty/wiki/API#event-leave) Emit when someone leave the room
