@@ -43,7 +43,6 @@ test('timer', async t => {
     {
       pw.removeListener('error', failOnUnexpectedErrorEvent)
 
-
       t.is(pw.state.target()  , 'dead', 'puppet web should at target  state `dead`')
       pw.state.target('live')
       t.is(pw.state.target()  , 'live', 'puppet web should at target  state `live`')
