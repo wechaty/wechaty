@@ -80,8 +80,8 @@ async function onBrowserDead(this: PuppetWeb, e: Error): Promise<void> {
 
   try {
     await this.browser.quit()
-                      .catch(e => {
-                        log.warn('PuppetWebEvent', 'onBrowserDead() onBrowserDead.quit() exception: %s', e.message)
+                      .catch(err => { // fail safe
+                        log.verbose('PuppetWebEvent', 'onBrowserDead() onBrowserDead.quit() exception: %s', err.message)
                       })
     log.verbose('PuppetWebEvent', 'onBrowserDead() browser.quit() done')
 

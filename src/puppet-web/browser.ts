@@ -364,8 +364,13 @@ export class Browser extends EventEmitter {
 
     if ( this.state.target() === 'close'
       || this.state.current() === 'close'
-      || this.state.inprocess()
+      // || this.state.inprocess()
     ) {
+      log.verbose('PuppetWebBrowser', 'dead() state target(%s) current(%s) stable(%s)'
+                                  , this.state.target()
+                                  , this.state.current()
+                                  , this.state.stable()
+      )
       log.verbose('PuppetWebBrowser', 'dead() browser is in dead state')
       return true
     }
