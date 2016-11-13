@@ -48,26 +48,21 @@ export const Event = {
   , onServerMessage
 }
 
-async function onBrowserDead(this: PuppetWeb, e): Promise<void> {
+async function onBrowserDead(this: PuppetWeb, e: Error): Promise<void> {
   log.verbose('PuppetWebEvent', 'onBrowserDead(%s)', e && e.message || e)
 
   if (!this.browser || !this.bridge) {
-    throw new Error('browser or bridge instance not exist in PuppetWeb instance')
+    throw new Error('onBrowserDead() browser or bridge instance not exist in PuppetWeb instance')
   }
 
-  const browser = this.browser
-  // because this function is async, so maybe entry more than one times.
-  // guard by variable: isBrowserBirthing to prevent the 2nd time entrance.
-  // if (this.browser.targetState() !== 'open'
-  //     || this.browser.currentState() === 'opening') {
+  log.verbose('PuppetWebEvent', 'onBrowserDead() Browser:state target(%s) current(%s) stable(%s)'
+                              , this.browser.state.target()
+                              , this.browser.state.current()
+                              , this.browser.state.stable()
+  )
 
-  // if (  (browser.state.current() === 'open' && browser.state.inprocess())
-  //     || browser.state.target() !== 'open'
-
-  if (browser.state.target() === 'close' || browser.state.inprocess()) {
+  if (this.browser.state.target() === 'close' || this.browser.state.inprocess()) {
     log.verbose('PuppetWebEvent', 'onBrowserDead() will do nothing because %s, or %s'
-                                // , 'browser.state.target() !== open'
-                                // , 'browser.state.current() === open & inprocess'
                                 , 'browser.state.target() === close'
                                 , 'browser.state.inprocess()'
               )
@@ -85,15 +80,14 @@ async function onBrowserDead(this: PuppetWeb, e): Promise<void> {
 
   try {
     await this.browser.quit()
+                      .catch(e => {
+                        log.warn('PuppetWebEvent', 'onBrowserDead() onBrowserDead.quit() exception: %s', e.message)
+                      })
     log.verbose('PuppetWebEvent', 'onBrowserDead() browser.quit() done')
 
-    // if (browser.state.target() !== 'open') {
-    //   log.warn('PuppetWebEvent', 'onBrowserDead() will not init browser because browser.state.target(%s) !== open'
-    //                             , browser.state.target()
-    //           )
-    if (browser.state.target() === 'close') {
-      log.warn('PuppetWebEvent', 'onBrowserDead() will not init browser because browser.state.target(%s) is `close`'
-                                , browser.state.target()
+    if (this.browser.state.target() === 'close') {
+      log.warn('PuppetWebEvent', 'onBrowserDead() will not init browser because browser.state.target(%s)'
+                                , this.browser.state.target()
               )
       return
     }

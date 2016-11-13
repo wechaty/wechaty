@@ -113,12 +113,13 @@ function setWatchDogTimer(this: PuppetWeb, timeout, feed) {
 }
 
 function watchDogReset(timeout, lastFeed) {
-  log.verbose('PuppetWebWatchdog', 'watchDogReset() timeout %d', timeout)
-  const e = new Error('watchdog reset after '
+  log.verbose('PuppetWebWatchdog', 'watchDogReset(%d, %s)', timeout, lastFeed)
+  const e = new Error('watchDogReset() watchdog reset after '
                         + Math.floor(timeout / 1000)
                         + ' seconds, last feed:'
                         + '[' + lastFeed + ']'
                     )
+  log.verbose('PuppetWebWatchdog', e.message)
   this.emit('error', e)
   return Event.onBrowserDead.call(this, e)
 }

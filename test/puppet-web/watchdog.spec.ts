@@ -33,6 +33,7 @@ test('timer', async t => {
     await pw.quit()
 
     pw.state.target('live')
+    pw.browser.state.target('open')
 
     const savedLevel = log.level()
     if (log.level() === 'info') {
