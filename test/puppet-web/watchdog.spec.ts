@@ -27,7 +27,7 @@ test('timer', async t => {
   try {
     pw.addListener('error', failOnUnexpectedErrorEvent)
 
-    Watchdog.onFeed.call(pw, { data: 'initing directly' })
+    Watchdog.onFeed.call(pw, { data: 'initing directly from test' })
     t.pass('should ok with default food type')
 
     const savedLevel = log.level()

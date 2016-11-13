@@ -44,8 +44,7 @@ function onFeed(this: PuppetWeb, food: WatchdogFood) {
     throw new Error('onFeed() must has `this` of instanceof PuppetWeb')
   }
 
-  const feed = `${food.type}:[${food.data}]`
-  log.silly('PuppetWebWatchdog', 'onFeed: %d, %s', food.timeout, feed)
+  log.silly('PuppetWebWatchdog', 'onFeed: %d, %s[%s]', food.timeout, food.type, food.data)
 
   /**
    * Disable Watchdog on the following conditions:
@@ -58,15 +57,15 @@ function onFeed(this: PuppetWeb, food: WatchdogFood) {
    *
    * this is because we will not want to active watchdog when we are closing a browser, or browser is closed.
    */
-  // if (this.state.current() === 'dead' && this.state.inprocess()) {
-  //   log.warn('PuppetWebWatchdog', 'onFeed() is disabled because state.current() is `dead` and inprocess()')
-  //   return
-  // }
   if (this.state.target() === 'dead' || this.state.inprocess()) {
-    log.warn('PuppetWebWatchdog', 'onFeed() is disabled because target state is `dead` or state is inprocess')
+    log.warn('PuppetWebWatchdog', 'onFeed(type=%s, data=%s, timeout=%d) is disabled because state target: %s inprocess: %s'
+                                , food.type, food.data, food.timeout
+                                , this.state.target(), this.state.inprocess()
+            )
     return
   }
 
+  const feed = `${food.type}:[${food.data}]`
   setWatchDogTimer.call(this, food.timeout, feed)
 
   this.emit('heartbeat', feed)
