@@ -87,39 +87,24 @@ Get to know more about NPM at [Wiki](https://github.com/wechaty/wechaty/wiki/NPM
 
 # API Reference
 
-## [Wechaty](https://github.com/wechaty/wechaty/wiki/API#class-wechaty)
-
-1. [init(): Promise&lt;void&gt;](https://github.com/wechaty/wechaty/wiki/API#wechaty-init-promise-void) Initialize the bot, return Promise.
-2. [instance(setting: PuppetSetting): Promise&lt;Wechaty&gt;](https://github.com/wechaty/wechaty/wiki/API#wechaty-instance-setting-puppetsetting-promise-wechaty) create a bot instance
-3. [send(message: Message): Promise&lt;void&gt;](https://github.com/wechaty/wechaty/wiki/API#wechaty-send-message-message-promise-void) send a message
-4. [say(content: string): Promise&lt;void&gt;](https://github.com/wechaty/wechaty/wiki/API#wechaty-say-content-string-promise-void) send message to filehelper, just for logging/reporting usage for your convenience
-
 ### [Wechaty Event](https://github.com/wechaty/wechaty/wiki/API#wechaty-event)
 
-1. [error](https://github.com/wechaty/wechaty/wiki/API#wechaty-event-error) Emit when there's an error occurred.
-2. [friend](https://github.com/wechaty/wechaty/wiki/API#wechaty-event-friend) Emit when got a new friend request, or friendship is confirmed.
-3. [login](https://github.com/wechaty/wechaty/wiki/API#wechaty-event-login) Emit when bot login full successful.
-4. [logout](https://github.com/wechaty/wechaty/wiki/API#wechaty-event-logout) Emit when bot detected log out.
-5. [message](https://github.com/wechaty/wechaty/wiki/API#wechaty-event-message) Emit when there's a new message.
-6. [room-join](https://github.com/wechaty/wechaty/wiki/API#wechaty-event-room-join) Emit when someone join the room
-7. [room-leave](https://github.com/wechaty/wechaty/wiki/API#wechaty-event-room-leave) Emit when someone leave the room
-8. [room-topic](https://github.com/wechaty/wechaty/wiki/API#wechaty-event-room-topic) Emit when someone change the room's topic
-9. [scan](https://github.com/wechaty/wechaty/wiki/API#wechaty-event-scan) Emit when the bot needs to show you a QR Code for scanning
+1. [scan](https://github.com/wechaty/wechaty/wiki/API#1-event-scan) Emit when the bot needs to show you a QR Code for scanning
+2. [login](https://github.com/wechaty/wechaty/wiki/API#2-event-login) Emit when bot login full successful.
+3. [logout](https://github.com/wechaty/wechaty/wiki/API#3-event-logout) Emit when bot detected log out.
+4. [message](https://github.com/wechaty/wechaty/wiki/API#4-event-message) Emit when there's a new message.
+5. [error](https://github.com/wechaty/wechaty/wiki/API#5-event-error) Emit when there's an error occurred.
+6. [friend](https://github.com/wechaty/wechaty/wiki/API#6-event-friend) Emit when got a new friend request, or friendship is confirmed.
+7. [room-join](https://github.com/wechaty/wechaty/wiki/API#7-event-room-join) Emit when someone join the room
+8. [room-leave](https://github.com/wechaty/wechaty/wiki/API#8-event-room-leave) Emit when someone leave the room
+9. [room-topic](https://github.com/wechaty/wechaty/wiki/API#9-event-room-topic) Emit when someone change the room's topic
 
-## [Contact](https://github.com/wechaty/wechaty/wiki/API#class-contact)
+## [Wechaty](https://github.com/wechaty/wechaty/wiki/API#class-wechaty)
 
-1. [id:string](https://github.com/wechaty/wechaty/wiki/API#contactid-string) get uniq id from a contact
-2. [name():string](https://github.com/wechaty/wechaty/wiki/API#contactname-string) get name from a contact
-3. [remark():string](https://github.com/wechaty/wechaty/wiki/API#contactremark-string) get remark name from a contact
-4. [remark(remark:string):Promise](https://github.com/wechaty/wechaty/wiki/API#contactremarkremark-string-promise) set remark name to a contact
-5. [ready():Promise](https://github.com/wechaty/wechaty/wiki/API#contactready-promise) confirm get all the contact data needed, will be resolved when all data is ready
-6. [say(content:string):Promise](https://github.com/wechaty/wechaty/wiki/API#contactsaycontent-string-promise) say content to a contact
-
-## [FriendRequest](https://github.com/wechaty/wechaty/wiki/API#class-friendrequest)
-
-1. [hello:string](https://github.com/wechaty/wechaty/wiki/API#friendrequesthello-string) get content from friendrequest
-2. [accept():void](https://github.com/wechaty/wechaty/wiki/API#friendrequestaccept-void) accept a friendrequest
-3. [send(contact:Contact,hello:string):void](https://github.com/wechaty/wechaty/wiki/API#friendrequestsendcontact-contact-hello-string-void) send a new friend request
+1. [instance(setting: PuppetSetting): Promise&lt;Wechaty&gt;](https://github.com/wechaty/wechaty/wiki/API#wechatyinstanceprofilestring-wechaty) create a bot instance
+2. [init(): Promise&lt;void&gt;](https://github.com/wechaty/wechaty/wiki/API#wechatyinit-wechaty) Initialize the bot, return Promise.
+3. [send(message: Message): Promise&lt;void&gt;](https://github.com/wechaty/wechaty/wiki/API#wechatysendmessage-message-wechaty) send a message
+4. [say(content: string): Promise&lt;void&gt;](https://github.com/wechaty/wechaty/wiki/API#wechatysaycontent-string) send message to filehelper, just for logging/reporting usage for your convenience
 
 ## [Message](https://github.com/wechaty/wechaty/wiki/API#class-message)
 
@@ -138,6 +123,15 @@ Get to know more about NPM at [Wiki](https://github.com/wechaty/wechaty/wiki/NPM
 13. [ready():Promise](https://github.com/wechaty/wechaty/wiki/API#messageready-promise) confirm get all the data needed, will be resolved when all message data is ready.
 14. [self(message:Message):boolean](https://github.com/wechaty/wechaty/wiki/API#messageselfmessage-message-boolean) check if a message is sent by self 
 
+## [Contact](https://github.com/wechaty/wechaty/wiki/API#class-contact)
+
+1. [id:string](https://github.com/wechaty/wechaty/wiki/API#contactid-string) get uniq id from a contact
+2. [name():string](https://github.com/wechaty/wechaty/wiki/API#contactname-string) get name from a contact
+3. [remark():string](https://github.com/wechaty/wechaty/wiki/API#contactremark-string) get remark name from a contact
+4. [remark(remark:string):Promise](https://github.com/wechaty/wechaty/wiki/API#contactremarkremark-string-promise) set remark name to a contact
+5. [ready():Promise](https://github.com/wechaty/wechaty/wiki/API#contactready-promise) confirm get all the contact data needed, will be resolved when all data is ready
+6. [say(content:string):Promise](https://github.com/wechaty/wechaty/wiki/API#contactsaycontent-string-promise) say content to a contact
+
 ## [Room](https://github.com/wechaty/wechaty/wiki/API#class-room)
 
 1. [say(content:string,replyTo:Contact|ContactArray):Promise](https://github.com/wechaty/wechaty/wiki/API#roomsaycontent-string-replyto-contactcontact-promise) say content inside Room.
@@ -149,6 +143,12 @@ Get to know more about NPM at [Wiki](https://github.com/wechaty/wechaty/wiki/NPM
 1. [join](https://github.com/wechaty/wechaty/wiki/API#event-join) Emit when someone join the room
 2. [leave](https://github.com/wechaty/wechaty/wiki/API#event-leave) Emit when someone leave the room
 3. [topic](https://github.com/wechaty/wechaty/wiki/API#event-topic) Emit when someone change the room topic
+
+## [FriendRequest](https://github.com/wechaty/wechaty/wiki/API#class-friendrequest)
+
+1. [hello:string](https://github.com/wechaty/wechaty/wiki/API#friendrequesthello-string) get content from friendrequest
+2. [accept():void](https://github.com/wechaty/wechaty/wiki/API#friendrequestaccept-void) accept a friendrequest
+3. [send(contact:Contact,hello:string):void](https://github.com/wechaty/wechaty/wiki/API#friendrequestsendcontact-contact-hello-string-void) send a new friend request
 
 # Test
 
