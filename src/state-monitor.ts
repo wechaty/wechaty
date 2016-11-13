@@ -59,6 +59,20 @@ export class StateMonitor <A, B>{
                 )
 
       /**
+       * strict check current is equal to target
+       */
+      if (this._target !== newState) {
+        log.warn('StateMonitor', '%s:current(%s,%s) current is different with target. call state.target(%s) first.'
+                                , this._client
+                                , newState, stable
+                                , newState
+        )
+        const e = new Error('current not match target')
+        log.verbose('StateMonitor', e.stack)
+        throw e
+      }
+
+      /**
        * warn for inprocess current state change twice, mostly like a logic bug outside
        */
       if (this._current === newState && this._stable === stable

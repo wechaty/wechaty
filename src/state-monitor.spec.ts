@@ -63,3 +63,13 @@ test('StateMonitor client & stable/inprocess', t => {
   t.true(sm.stable(), 'should be stable')
   t.false(sm.inprocess(), 'should be not inprocess')
 })
+
+test('current() strict check with target', t => {
+  const CLIENT_NAME = 'StateMonitorTest'
+  const sm = new StateMonitor<'A', 'B'>(CLIENT_NAME, 'A')
+
+  t.throws(() => sm.current('B'), Error, 'should thorw for unmatch current & target')
+
+  sm.target('B')
+  t.notThrows(() => sm.current('B'), 'should not throws for matched current & target')
+})
