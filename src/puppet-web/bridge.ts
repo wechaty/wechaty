@@ -405,6 +405,9 @@ export class Bridge {
     // }
     try {
       let ret
+      /**
+       * Async functions name is start with `Async` in WechatyBro
+       */
       if (/Async$/.test(wechatyFunc)) {
         ret = await this.executeAsync(wechatyScript)
       } else {
@@ -422,38 +425,38 @@ export class Bridge {
   /**
    * call REAL browser excute for other methods
    */
-  public execute(script, ...args): Promise<any> {
+  public async execute(script, ...args): Promise<any> {
     log.verbose('PuppetWebBridge', 'execute()')
 
     if (!this.puppet || !this.puppet.browser) {
-      return Promise.reject(new Error('execute(): no puppet or no puppet.browser in bridge'))
+      throw new Error('execute(): no puppet or no puppet.browser in bridge')
     }
     return this.puppet.browser.execute(script, ...args)
-    .catch(e => {
-      log.warn('PuppetWebBridge', 'execute() exception: %s', e.message)
-      throw e
-    })
+                              .catch(e => {
+                                log.warn('PuppetWebBridge', 'execute() exception: %s', e.message)
+                                throw e
+                              })
   }
 
-  private executeAsync(script, ...args): Promise<any> {
+  private async executeAsync(script, ...args): Promise<any> {
     if (!this.puppet || !this.puppet.browser) {
-      return Promise.reject(new Error('execute(): no puppet or no puppet.browser in bridge'))
+      throw new Error('execute(): no puppet or no puppet.browser in bridge')
     }
     return this.puppet.browser.executeAsync(script, ...args)
-    .catch(e => {
-      log.warn('PuppetWebBridge', 'executeAsync() exception: %s', e.message)
-      throw e
-    })
+                              .catch(e => {
+                                log.warn('PuppetWebBridge', 'executeAsync() exception: %s', e.message)
+                                throw e
+                              })
   }
 
   public ding(data): Promise<any> {
     log.verbose('PuppetWebBridge', 'ding(%s)', data)
 
     return this.proxyWechaty('ding', data)
-    .catch(e => {
-      log.error('PuppetWebBridge', 'ding(%s) exception: %s', data, e.message)
-      throw e
-    })
+                .catch(e => {
+                  log.error('PuppetWebBridge', 'ding(%s) exception: %s', data, e.message)
+                  throw e
+                })
   }
 }
 

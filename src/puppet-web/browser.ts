@@ -362,15 +362,20 @@ export class Browser extends EventEmitter {
     // too noisy!
     // log.silly('PuppetWebBrowser', 'dead() checking ... ')
 
+    if ( this.state.target() === 'close'
+      || this.state.current() === 'close'
+      || this.state.inprocess()
+    ) {
+      log.verbose('PuppetWebBrowser', 'dead() browser is in dead state')
+      return true
+    }
+
     let msg
     let dead = false
 
     if (forceReason) {
       dead = true
       msg = forceReason
-    } else if (this.state.target() !== 'open') {
-      dead = true
-      msg = 'state.target() not open'
     } else if (!this.driver) { // FIXME: this.driver is BrowserDriver, should add a method to check if availble 201610
       dead = true
       msg = 'no driver or session'
@@ -400,8 +405,9 @@ export class Browser extends EventEmitter {
     return dead
   }
 
-  public addCookie(cookies: CookieType[]):            Promise<void>
-  public addCookie(cookie:  CookieType):              Promise<void>
+  public addCookie(cookies: CookieType[]):  Promise<void>
+  public addCookie(cookie:  CookieType):    Promise<void>
+
   public addCookie(cookie:  CookieType|CookieType[]): Promise<void> {
     return this.cookie.add(cookie)
   }

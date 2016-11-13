@@ -359,9 +359,13 @@ export class Message implements Sayable {
     return null
   }
 
-  public content(content?: string): string {
+  public content(): string
+  public content(content: string): void
+
+  public content(content?: string): string|void {
     if (content) {
       this.obj.content = content
+      return
     }
     return this.obj.content
   }
