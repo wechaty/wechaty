@@ -117,7 +117,7 @@ export type MsgRawObj = {
 
 export type MsgObj = {
   id:       string
-  type:     number
+  type:     MsgType
   from:     string
   to?:      string  // if to is not set, then room must be set
   room?:    string
@@ -372,7 +372,7 @@ export class Message implements Sayable {
   }
 
   public type(): MsgType {
-    return this.obj.type as MsgType
+    return this.obj.type
   }
 
   public typeSub(): MsgType {
