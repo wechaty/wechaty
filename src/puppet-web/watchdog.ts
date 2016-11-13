@@ -58,7 +58,7 @@ function onFeed(this: PuppetWeb, food: WatchdogFood) {
    * this is because we will not want to active watchdog when we are closing a browser, or browser is closed.
    */
   if (this.state.target() === 'dead' || this.state.inprocess()) {
-    log.warn('PuppetWebWatchdog', 'onFeed(type=%s, data=%s, timeout=%d) is disabled because state target: %s inprocess: %s'
+    log.warn('PuppetWebWatchdog', 'onFeed(type=%s, data=%s, timeout=%d) is disabled because state target:`%s` inprocess:`%s`'
                                 , food.type, food.data, food.timeout
                                 , this.state.target(), this.state.inprocess()
             )

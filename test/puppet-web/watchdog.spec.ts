@@ -27,8 +27,12 @@ test('timer', async t => {
   try {
     pw.addListener('error', failOnUnexpectedErrorEvent)
 
+    await pw.init()
     Watchdog.onFeed.call(pw, { data: 'initing directly from test' })
     t.pass('should ok with default food type')
+    await pw.quit()
+
+    pw.state.target('live')
 
     const savedLevel = log.level()
     if (log.level() === 'info') {
@@ -36,13 +40,16 @@ test('timer', async t => {
       t.pass('set log.level = silent to mute log when watchDog reset wechaty temporary')
     }
 
-    await pw.init()
-    await pw.quit()
-
     {
       pw.removeListener('error', failOnUnexpectedErrorEvent)
 
-      // let errorCounter = 0
+
+      t.is(pw.state.target()  , 'dead', 'puppet web should at target  state `dead`')
+      pw.state.target('live')
+      t.is(pw.state.target()  , 'live', 'puppet web should at target  state `live`')
+      t.is(pw.state.current() , 'dead', 'puppet web should at current state `dead`')
+      t.true(pw.state.stable(), 'puppet web state should stable')
+
       const spy = sinon.spy()
       pw.once('error', spy)
       pw.emit('watchdog', {
@@ -55,7 +62,7 @@ test('timer', async t => {
       pw.addListener('error', failOnUnexpectedErrorEvent)
     }
 
-    pw.once('error', e => t.fail('waitDing() triggered watchDogReset()'))
+    // pw.once('error', e => t.fail('waitDing() triggered watchDogReset()'))
 
     const EXPECTED_DING_DATA = 'dingdong'
     pw.emit('watchdog', { data: 'feed to extend the dog life', timeout: 120000 })
@@ -65,6 +72,9 @@ test('timer', async t => {
 
     log.level(savedLevel)
     await pw.quit()
+            .catch(e => { // fail safe
+              log.warn('TestPuppetWeb', 'timer last pw.quit() exception: %s', e.message)
+            })
 
     return
 
