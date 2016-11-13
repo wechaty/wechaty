@@ -17,7 +17,7 @@ import { Contact }  from './contact'
 import { Room }     from './room'
 import { UtilLib }  from './util-lib'
 
-export type MessageRawObj = {
+export type MsgRawObj = {
   MsgId:            string
 
   MMActualSender:   string // getUserContact(message.MMActualSender,message.MMPeerUserName).isContact()
@@ -115,7 +115,7 @@ export type MessageRawObj = {
   RecommendInfo?:   RecommendInfo
 }
 
-export type MessageObj = {
+export type MsgObj = {
   id:       string
   type:     number
   from:     string
@@ -135,7 +135,7 @@ export type MessageObj = {
 
 // export type MessageTypeValue = 1 | 3 | 34 | 37 | 40 | 42 | 43 | 47 | 48 | 49 | 50 | 51 | 52 | 53 | 62 | 9999 | 10000 | 10002
 
-export type MessageTypeMap = {
+export type MsgTypeMap = {
   [index: string]: string|number
   //   MessageTypeName:  MessageTypeValue
   // , MessageTypeValue: MessageTypeName
@@ -161,7 +161,7 @@ export const enum AppMsgType {
   READER_TYPE              = 100001,
 }
 
-export enum MsgType {
+export const enum MsgType {
   TEXT                = 1,
   IMAGE               = 3,
   VOICE               = 34,
@@ -186,7 +186,7 @@ export class Message implements Sayable {
   public static counter = 0
   private _counter: number
 
-  public static TYPE: MessageTypeMap = {
+  public static TYPE: MsgTypeMap = {
     TEXT:               1,
     IMAGE:              3,
     VOICE:              34,
@@ -209,7 +209,7 @@ export class Message implements Sayable {
 
   public readonly id: string
 
-  protected obj = <MessageObj>{}
+  protected obj = <MsgObj>{}
 
   public readyStream(): Promise<NodeJS.ReadableStream> {
     throw Error('abstract method')
@@ -219,7 +219,7 @@ export class Message implements Sayable {
     throw Error('not a media message')
   }
 
-  constructor(public rawObj?: MessageRawObj) {
+  constructor(public rawObj?: MsgRawObj) {
     this._counter = Message.counter++
     log.silly('Message', 'constructor() SN:%d', this._counter)
 
@@ -227,14 +227,14 @@ export class Message implements Sayable {
       this.rawObj = JSON.parse(rawObj)
     }
 
-    this.rawObj = rawObj = rawObj || <MessageRawObj>{}
+    this.rawObj = rawObj = rawObj || <MsgRawObj>{}
     this.obj = this.parse(rawObj)
     this.id = this.obj.id
   }
 
   // Transform rawObj to local m
-  private parse(rawObj): MessageObj {
-    const obj: MessageObj = {
+  private parse(rawObj): MsgObj {
+    const obj: MsgObj = {
       id:           rawObj.MsgId,
       type:         rawObj.MsgType,
       from:         rawObj.MMActualSender, // MMPeerUserName
@@ -467,13 +467,13 @@ export class Message implements Sayable {
   }
 
   public static async find(query) {
-    return Promise.resolve(new Message(<MessageRawObj>{MsgId: '-1'}))
+    return Promise.resolve(new Message(<MsgRawObj>{MsgId: '-1'}))
   }
 
   public static async findAll(query) {
     return Promise.resolve([
-      new Message   (<MessageRawObj>{MsgId: '-2'})
-      , new Message (<MessageRawObj>{MsgId: '-3'})
+      new Message   (<MsgRawObj>{MsgId: '-2'})
+      , new Message (<MsgRawObj>{MsgId: '-3'})
     ])
   }
 

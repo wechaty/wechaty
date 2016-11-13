@@ -22,7 +22,6 @@ import {
 }                         from '../config'
 
 import { Contact }        from '../contact'
-// import FriendRequest  from '../friend-request'
 import { Message }        from '../message'
 import { Puppet }         from '../puppet'
 import { Room }           from '../room'
@@ -61,8 +60,6 @@ export class PuppetWeb extends Puppet {
       setting.head = Config.head
     }
     this.on('watchdog', Watchdog.onFeed.bind(this))
-
-    this.createBrowser()
   }
 
   public toString() { return `Class PuppetWeb({browser:${this.browser},port:${this.port}})` }
@@ -106,12 +103,19 @@ export class PuppetWeb extends Puppet {
       log.error('PuppetWeb', 'init() exception: %s', e.stack)
       this.emit('error', e)
       await this.quit()
+      this.state.target('dead')
       throw e
     }
   }
 
   public async quit(): Promise<void> {
     log.verbose('PuppetWeb', 'quit()')
+
+    log.verbose('PuppetWeb', 'quit() state target(%s) current(%s) stable(%s)'
+                            , this.state.target()
+                            , this.state.current()
+                            , this.state.stable()
+    )
 
     if (this.state.current() === 'dead') {
       if (this.state.inprocess()) {
@@ -172,20 +176,17 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public createBrowser() {
-    log.verbose('PuppetWeb', 'createBrowser()')
+  public async initBrowser(): Promise<void> {
+    log.verbose('PuppetWeb', 'initBrowser()')
+
     this.browser = new Browser({
         head:         <HeadName>this.setting.head
       , sessionFile:  this.setting.profile
     })
-  }
-
-  public async initBrowser(): Promise<void> {
-    log.verbose('PuppetWeb', 'initBrowser()')
 
     this.browser.on('dead', Event.onBrowserDead.bind(this))
 
-    if (this.state.target() !== 'live') {
+    if (this.state.target() === 'dead') {
       const e = new Error('found state.target()) != live, no init anymore')
       log.warn('PuppetWeb', 'initBrowser() %s', e.message)
       throw e
@@ -202,15 +203,16 @@ export class PuppetWeb extends Puppet {
 
   public async initBridge(): Promise<void> {
     log.verbose('PuppetWeb', 'initBridge()')
+
     this.bridge = new Bridge(
         this // use puppet instead of browser, is because browser might change(die) duaring run time
       , this.port
     )
 
-    if (this.state.target() !== 'live') {
-      const errMsg = 'initBridge() found targetState != live, no init anymore'
-      log.warn('PuppetWeb', errMsg)
-      return Promise.reject(errMsg)
+    if (this.state.target() === 'dead') {
+      const e = new Error('initBridge() found targetState != live, no init anymore')
+      log.warn('PuppetWeb', e.message)
+      throw e
     }
 
     try {
@@ -219,6 +221,7 @@ export class PuppetWeb extends Puppet {
       if (!this.browser) {
         log.warn('PuppetWeb', 'initBridge() without browser?')
       } else if (this.browser.dead()) {
+        // XXX should make here simple: why this.browser.dead() then exception will not throw?
         log.warn('PuppetWeb', 'initBridge() found browser dead, wait it to restore')
       } else {
         log.error('PuppetWeb', 'initBridge() exception: %s', e.message)
@@ -232,11 +235,6 @@ export class PuppetWeb extends Puppet {
     log.verbose('PuppetWeb', 'initServer()')
     this.server = new Server(this.port)
 
-    this.server.on('scan'    , Event.onServerScan.bind(this))
-    this.server.on('login'   , Event.onServerLogin.bind(this))
-    this.server.on('logout'  , Event.onServerLogout.bind(this))
-    this.server.on('message' , Event.onServerMessage.bind(this))
-
     /**
      * @depreciated 20160825 zixia
      *
@@ -244,16 +242,19 @@ export class PuppetWeb extends Puppet {
      */
     // server.on('unload'  , Event.onServerUnload.bind(this))
 
-    this.server.on('connection', Event.onServerConnection.bind(this))
-    this.server.on('disconnect', Event.onServerDisconnect.bind(this))
-    this.server.on('log'       , Event.onServerLog.bind(this))
-    this.server.on('ding'      , Event.onServerDing.bind(this))
+    this.server.on('connection' , Event.onServerConnection.bind(this))
+    this.server.on('ding'       , Event.onServerDing.bind(this))
+    this.server.on('disconnect' , Event.onServerDisconnect.bind(this))
+    this.server.on('log'        , Event.onServerLog.bind(this))
+    this.server.on('login'      , Event.onServerLogin.bind(this))
+    this.server.on('logout'     , Event.onServerLogout.bind(this))
+    this.server.on('message'    , Event.onServerMessage.bind(this))
+    this.server.on('scan'       , Event.onServerScan.bind(this))
 
-    // if (this.targetState() !== 'live') {
-    if (this.state.target() !== 'live') {
-      const errMsg = 'initServer() found state.target() != live, no init anymore'
-      log.warn('PuppetWeb', errMsg)
-      return Promise.reject(errMsg)
+    if (this.state.target() === 'dead') {
+      const e = new Error('initServer() found state.target() != live, no init anymore')
+      log.warn('PuppetWeb', e.message)
+      throw e
     }
 
     await this.server.init()
@@ -274,22 +275,18 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  /**
-   * @deprecated
-   * use Message.self() instead
-   */
-  public self(message: Message): boolean {
-    log.warn('PuppetWeb', 'DEPRECATED self() method. use Message.self() instead')
+  public logined(): boolean { return !!(this.user) }
 
-    if (!this.userId) {
-      log.warn('PuppetWeb', 'self() got no this.userId')
-      throw new Error('no message or from')
+  /**
+   * get self contact
+   */
+  public self(): Contact {
+    log.verbose('PuppetWeb', 'self()')
+
+    if (this.user) {
+      return this.user
     }
-    if (!message || !message.from()) {
-      log.warn('PuppetWeb', 'self() got no message or from')
-      throw new Error('no message or from')
-    }
-    return this.userId === message.from().id
+    throw new Error('PuppetWeb.self() no this.user')
   }
 
   public async send(message: Message): Promise<void> {
@@ -310,7 +307,6 @@ export class PuppetWeb extends Puppet {
     }
 
     log.silly('PuppetWeb', 'send() destination: %s, content: %s)',
-                            // , room ? room.topic() : (to as Contact).name()
                             destinationId,
                             content,
     )
@@ -337,15 +333,6 @@ export class PuppetWeb extends Puppet {
     return
   }
 
-  // @deprecated
-  public reply(message: Message, replyContent: string) {
-    log.warn('PuppetWeb', 'reply() @deprecated, please use Message.say()')
-    if (this.self(message)) {
-      return Promise.reject(new Error('will not to reply message of myself'))
-    }
-    return message.say(replyContent)
-  }
-
   /**
    * logout from browser, then server will emit `logout` event
    */
@@ -366,8 +353,6 @@ export class PuppetWeb extends Puppet {
       throw e
     }
   }
-
-  public logined(): boolean { return !!(this.user) }
 
   public async ding(data?: any): Promise<string> {
     try {
@@ -460,7 +445,7 @@ export class PuppetWeb extends Puppet {
                       })
   }
 
-  public roomCreate(contactList: Contact[], topic: string): Promise<Room> {
+  public async roomCreate(contactList: Contact[], topic: string): Promise<Room> {
     if (!this.bridge) {
       return Promise.reject(new Error('fail: no bridge(yet)!'))
     }
@@ -471,20 +456,24 @@ export class PuppetWeb extends Puppet {
 
     const contactIdList = contactList.map(c => c.id)
 
-// console.log('puppet roomCreate: ')
-// console.log(contactIdList)
-    return this.bridge.roomCreate(contactIdList, topic)
-                      .then(roomId => Room.load(roomId))
-                      .catch(e => {
-                        log.warn('PuppetWeb', 'roomCreate(%s, %s) rejected: %s', contactIdList.join(','), topic, e.message)
-                        throw e
-                      })
+    try {
+      const roomId = await this.bridge.roomCreate(contactIdList, topic)
+      const room = Room.load(roomId)
+      if (!room) {
+        throw new Error('PuppetWeb.roomCreate() roomId "' + roomId + '" not found')
+      }
+      return room
+
+    } catch (e) {
+      log.warn('PuppetWeb', 'roomCreate(%s, %s) rejected: %s', contactIdList.join(','), topic, e.message)
+      throw e
+    }
   }
 
   /**
    * FriendRequest
    */
-  public friendRequestSend(contact: Contact, hello: string): Promise<any> {
+  public async friendRequestSend(contact: Contact, hello: string): Promise<any> {
     if (!this.bridge) {
       return Promise.reject(new Error('fail: no bridge(yet)!'))
     }
@@ -493,14 +482,15 @@ export class PuppetWeb extends Puppet {
       throw new Error('contact not found')
     }
 
-    return this.bridge.verifyUserRequest(contact.id, hello)
-                      .catch(e => {
-                        log.warn('PuppetWeb', 'bridge.verifyUserRequest(%s, %s) rejected: %s', contact.id, hello, e.message)
-                        throw e
-                      })
+    try {
+      return await this.bridge.verifyUserRequest(contact.id, hello)
+    } catch (e) {
+      log.warn('PuppetWeb', 'bridge.verifyUserRequest(%s, %s) rejected: %s', contact.id, hello, e.message)
+      throw e
+    }
   }
 
-  public friendRequestAccept(contact: Contact, ticket: string): Promise<any> {
+  public async friendRequestAccept(contact: Contact, ticket: string): Promise<any> {
     if (!this.bridge) {
       return Promise.reject(new Error('fail: no bridge(yet)!'))
     }
@@ -509,10 +499,11 @@ export class PuppetWeb extends Puppet {
       throw new Error('contact or ticket not found')
     }
 
-    return this.bridge.verifyUserOk(contact.id, ticket)
-                      .catch(e => {
-                        log.warn('PuppetWeb', 'bridge.verifyUserOk(%s, %s) rejected: %s', contact.id, ticket, e.message)
-                        throw e
-                      })
+    try {
+      return await this.bridge.verifyUserOk(contact.id, ticket)
+    } catch (e) {
+      log.warn('PuppetWeb', 'bridge.verifyUserOk(%s, %s) rejected: %s', contact.id, ticket, e.message)
+      throw e
+    }
   }
 }

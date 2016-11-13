@@ -22,7 +22,7 @@ bot
   console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
 })
 .on('message', m => {
-  if (bot.self(m)) { return }
+  if (m.self()) { return }
   m.say('roger')                            // 1. reply others' msg
   console.log(`RECV: ${m}, REPLY: "roger"`) // 2. log message
 })

@@ -15,15 +15,15 @@ import { EventEmitter } from 'events'
 const retryPromise  = require('retry-promise').default // https://github.com/olalonde/retry-promise
 
 import {
-    Config
-  , HeadName
+  Config,
+  HeadName,
 }                         from '../config'
 import { StateMonitor }   from '../state-monitor'
 import { log }            from '../brolog-env'
 
 import {
-    CookieType
-  , BrowserCookie
+  CookieType,
+  BrowserCookie,
 }                         from './browser-cookie'
 import { BrowserDriver }  from './browser-driver'
 
@@ -55,6 +55,9 @@ export class Browser extends EventEmitter {
   public async init(): Promise<void> {
     log.verbose('PuppetWebBrowser', 'init()')
 
+    /**
+     * do not allow to init() twice without quit()
+     */
     if (this.state.current() === 'open') {
       let e: Error
       if (this.state.inprocess()) {
@@ -92,7 +95,7 @@ export class Browser extends EventEmitter {
        * should check here: if we are in `close` target state, we should clean up
        */
       if (this.state.target() !== 'open') {
-        throw new Error('init() finished but found state.target() is changed to close. has to quit().')
+        throw new Error('init() open() done, but state.target() is set to close after that. has to quit().')
       }
 
       this.state.current('open')
@@ -102,9 +105,7 @@ export class Browser extends EventEmitter {
     } catch (e) {
       log.error('PuppetWebBrowser', 'init() exception: %s', e.message)
 
-      // this.state.current('close', false)
       await this.quit()
-      // this.state.current('close')
 
       throw e
     }
@@ -164,6 +165,7 @@ export class Browser extends EventEmitter {
                       .catch(e => { /* fail safe */ }) // http://stackoverflow.com/a/32341885/1123955
       log.silly('PuppetWebBrowser', 'quit() driver.close() done')
       await this.driver.quit()
+                      .catch( e => log.error('PuppetWebBrowser', 'quit() this.driver.quit() exception %s', e.message))
       log.silly('PuppetWebBrowser', 'quit() driver.quit() done')
 
       /**
@@ -179,7 +181,6 @@ export class Browser extends EventEmitter {
       }
 
     } catch (e) {
-      // console.log(e)
       // log.warn('PuppetWebBrowser', 'err: %s %s %s %s', e.code, e.errno, e.syscall, e.message)
       log.warn('PuppetWebBrowser', 'quit() exception: %s', e.message)
 

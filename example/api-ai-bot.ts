@@ -184,7 +184,7 @@ function talk(m) {
         .end()
       })
     })
-    Talkers[talkerName].on('say', reply => bot.reply(m, reply))
+    Talkers[talkerName].on('say', reply => m.say(reply))
   }
   Talkers[talkerName].hear(content)
 }

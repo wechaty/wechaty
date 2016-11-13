@@ -153,6 +153,7 @@ export class Wechaty extends EventEmitter implements Sayable {
       return
     }
 
+    this.state.target('ready')
     this.state.current('ready', false)
 
     try {
@@ -292,15 +293,13 @@ export class Wechaty extends EventEmitter implements Sayable {
   }
 
   /**
-   * @deprecated
-   * use Message.self() instead
+   * get current user
    */
-  public self(message: Message): boolean {
-    log.warn('Wechaty', 'self() method deprecated. use Message.self() instead')
+  public self(): Contact {
     if (!this.puppet) {
-      throw new Error('no puppet')
+      throw new Error('Wechaty.self() no puppet')
     }
-    return this.puppet.self(message)
+    return this.puppet.self()
   }
 
   public async send(message: Message): Promise<void> {
@@ -326,23 +325,6 @@ export class Wechaty extends EventEmitter implements Sayable {
   public async sleep(millisecond: number): Promise<void> {
     await new Promise(resolve => {
       setTimeout(resolve, millisecond)
-    })
-  }
-
-  /**
-   * @deprecated
-   */
-  public reply(message: Message, reply: string) {
-    log.warn('Wechaty', 'reply() @deprecated, please use Message.say() instead')
-
-    if (!this.puppet) {
-      throw new Error('no puppet')
-    }
-
-    return this.puppet.reply(message, reply)
-    .catch(e => {
-      log.error('Wechaty', 'reply() exception: %s', e.message)
-      throw e
     })
   }
 

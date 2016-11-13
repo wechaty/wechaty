@@ -2,11 +2,10 @@
   "compilerOptions": {
     "target": "es6"
     , "module": "commonjs"
-    , "moduleResolution": "node" // typescript 2.0.3 bug compatible
+    // , "moduleResolution": "node" // typescript 2.0.3 bug compatible
     , "outDir": "dist"
     , "declaration": true
     , "sourceMap": true
-    // , "outFile": "dist/wechaty.lib.js"
 
     , "noEmitOnError": true
     , "noUnusedLocals": true
