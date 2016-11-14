@@ -257,6 +257,7 @@ export class Browser extends EventEmitter {
               log.error('PuppetWebBrowser', 'clean() retryPromise() getBrowserPidList() failed: %s', e.message)
               reject(e)
             })
+      })
   }
 
   public getBrowserPidList(): Promise<number[]> {
