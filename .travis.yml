@@ -43,8 +43,9 @@ script:
   - node --version
   - npm --version
   - shellcheck bin/*.sh
-  - if [ "$TRAVIS_OS_NAME" == 'linux' ];  then npm run test;                                fi
-  - if [ "$TRAVIS_OS_NAME" == 'osx' ];    then npm run redist && npm run test:chrome:fast ; fi
+  - npm run redist
+  - if [ "$TRAVIS_OS_NAME" == 'linux' ];  then WECHATY_LOG=verbose  npm run test;               fi
+  - if [ "$TRAVIS_OS_NAME" == 'osx' ];    then WECHATY_LOG=info     npm run test:chrome:fast ;  fi
 
 notifications:
   webhooks:

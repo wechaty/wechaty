@@ -13,6 +13,9 @@ install:
   # install modules
   - npm --progress=false install
 
+environment:
+  WECHATY_LOG: error
+
 # Post-install test scripts.
 test_script:
   - node --version
