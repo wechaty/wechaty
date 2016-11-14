@@ -235,7 +235,7 @@ function main() {
       npm "$@" || ret=$?
       ;;
 
-    help)
+    help|version)
       wechaty::help
       ;;
 
