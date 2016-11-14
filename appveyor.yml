@@ -12,7 +12,8 @@ install:
   # Get the latest stable version of Node.js or io.js
   - ps: Install-Product node $env:nodejs_version
   # install modules
-  - npm --progress=false install
+  - npm --silent --progress=false install > npm.wechaty.log 2>&1
+  - del npm.wechaty.log
 
 # Post-install test scripts.
 test_script:
