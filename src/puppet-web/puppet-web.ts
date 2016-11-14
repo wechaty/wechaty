@@ -117,15 +117,13 @@ export class PuppetWeb extends Puppet {
 
     if (this.state.current() === 'dead') {
       if (this.state.inprocess()) {
-        log.warn('PuppetWeb', 'quit() is called but state.current() is `dead` and inprocess() ?')
-        throw new Error('do not call quit again when quiting')
+        const e = new Error('quit() is called on a `dead` `inprocess()` browser')
+        log.warn('PuppetWeb', e.message)
+        throw e
       }
-      log.warn('PuppetWeb', 'quit() is called but state.current() is `dead`, return and will not run quit() again(do nothing).')
+      log.warn('PuppetWeb', 'quit() is called on a `dead` browser. return directly.')
       return
     }
-
-    // XXX should we set `target` to `dead` in `quit()` ???
-    // this.state.target('dead')
 
     /**
      * must feed POISON to Watchdog
@@ -143,29 +141,36 @@ export class PuppetWeb extends Puppet {
 
     try {
 
-      await this.bridge.quit()
-                      .catch(e => { // fail safe
-                        log.warn('PuppetWeb', 'quit() bridge.quit() exception: %s', e.message)
-                      })
-      // log.verbose('PuppetWeb', 'quit() bridge.quit() this.bridge = null')
-      // this.bridge = null
+      await new Promise(async (resolve, reject) => {
+        const timer = setTimeout(() => {
+          const e = new Error('quit() Promise() timeout')
+          log.warn('PuppetWeb', e.message)
+          reject(e)
+        })
 
-      await this.server.quit()
-                      .catch(e => { // fail safe
-                        log.warn('PuppetWeb', 'quit() server.quit() exception: %s', e.message)
-                      })
-      // this.server = null
-      // log.verbose('PuppetWeb', 'quit() server.quit() this.server = null')
+        await this.bridge.quit()
+                        .catch(e => { // fail safe
+                          log.warn('PuppetWeb', 'quit() bridge.quit() exception: %s', e.message)
+                        })
+        log.verbose('PuppetWeb', 'quit() bridge.quit() done')
 
-      await this.browser.quit()
-                .catch(e => { // fail safe
-                  log.warn('PuppetWeb', 'quit() browser.quit() exception: %s', e.message)
-                })
-      // log.verbose('PuppetWeb', 'quit() server.quit() this.browser = null')
-      // this.browser = null
+        await this.server.quit()
+                        .catch(e => { // fail safe
+                          log.warn('PuppetWeb', 'quit() server.quit() exception: %s', e.message)
+                        })
+        log.verbose('PuppetWeb', 'quit() server.quit() done')
+
+        await this.browser.quit()
+                  .catch(e => { // fail safe
+                    log.warn('PuppetWeb', 'quit() browser.quit() exception: %s', e.message)
+                  })
+        log.verbose('PuppetWeb', 'quit() browser.quit() done')
+
+        clearTimeout(timer)
+        resolve()
+      })
 
       this.state.current('dead')
-      log.silly('PuppetWeb', 'quit() done')
 
       return
 

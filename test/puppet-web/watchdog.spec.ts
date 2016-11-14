@@ -60,8 +60,6 @@ test('timer', async t => {
       pw.addListener('error', failOnUnexpectedErrorEvent)
     }
 
-    // pw.once('error', e => t.fail('waitDing() triggered watchDogReset()'))
-
     const EXPECTED_DING_DATA = 'dingdong'
     pw.emit('watchdog', { data: 'feed to extend the dog life', timeout: 120000 })
 
