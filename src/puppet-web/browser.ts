@@ -236,28 +236,11 @@ export class Browser extends EventEmitter {
       log.silly('PuppetWebBrowser', 'clean() retryPromise: attempt %s time for timeout %s'
                                   , attempt,  timeout
       )
-
-      /**
-       * should not use `async` for (resolve, reject), will cause error
-       */
-      return new Promise((resolve, reject) => {
-        this.getBrowserPidList()
-            .then(pidList => {
-
-              if (pidList.length > 0) {
-                const e = new Error('clean() retryPromise() found pidList, dirty at attempt #' + attempt)
-                log.silly('PuppetWebBrowser', e.message)
-                reject(e)
-              } else {
-                log.verbose('PuppetWebBrowser', 'clean() retryPromise() resolved, at attempt #%d', attempt)
-                resolve()
-              }
-
-            }).catch(e => {
-              log.error('PuppetWebBrowser', 'clean() retryPromise() getBrowserPidList() failed: %s', e.message)
-              reject(e)
-            })
-      })
+      const pidList = await this.getBrowserPidList()
+      if (pidList.length > 0) {
+        throw new Error('browser number: ' + pidList.length)
+      }
+    })
   }
 
   public getBrowserPidList(): Promise<number[]> {
