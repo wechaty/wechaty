@@ -255,11 +255,20 @@ export class Browser extends EventEmitter {
   }
 
   public getBrowserPidList(): Promise<number[]> {
-    log.silly('PuppetWebBrowser', 'getBrowserPidList()')
+    log.verbose('PuppetWebBrowser', 'getBrowserPidList()')
 
     const head = this.setting.head
 
     return new Promise((resolve, reject) => {
+      /**
+       * Reject
+       */
+      const timer = setTimeout(() => {
+        const e = new Error('clean() psTree() timeout.')
+        log.error('PuppetWebBrowser', e.message)
+        reject(e)
+      }, 10 * 1000)
+
       psTree(process.pid, (err, children) => {
         if (err) {
           reject(err)
@@ -289,6 +298,10 @@ export class Browser extends EventEmitter {
           return matchRegex.test('' + child.COMMAND + child.COMM)
         }).map(child => child.PID)
 
+        /**
+         * Resolve
+         */
+        clearTimeout(timer)
         resolve(pids)
         return
       })
