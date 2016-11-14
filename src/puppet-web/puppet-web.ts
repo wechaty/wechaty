@@ -138,6 +138,7 @@ export class PuppetWeb extends Puppet {
     }
     this.emit('watchdog', food)
 
+    this.state.target('dead')
     this.state.current('dead', false)
 
     try {

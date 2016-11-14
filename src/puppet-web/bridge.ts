@@ -426,7 +426,7 @@ export class Bridge {
    * call REAL browser excute for other methods
    */
   public async execute(script, ...args): Promise<any> {
-    log.verbose('PuppetWebBridge', 'execute()')
+    log.silly('PuppetWebBridge', 'execute()')
 
     if (!this.puppet || !this.puppet.browser) {
       throw new Error('execute(): no puppet or no puppet.browser in bridge')

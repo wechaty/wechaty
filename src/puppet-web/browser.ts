@@ -158,6 +158,7 @@ export class Browser extends EventEmitter {
       throw e
     }
 
+    this.state.target('close')
     this.state.current('close', false)
 
     try {
@@ -205,7 +206,7 @@ export class Browser extends EventEmitter {
   public async clean(kill = false): Promise<void> {
     log.verbose('PuppetWebBrowser', 'clean(kill=%s)', kill)
 
-    const max = 30
+    const max = 15
     const backoff = 100
 
     /**
