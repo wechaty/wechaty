@@ -22,6 +22,7 @@
     "doctor": "ts-node bin/doctor",
     "clean": "shx rm -fr dist/*",
     "lint": "npm run eslint && npm run tslint",
+    "nycava": "WECHATY_HEAD=chrome nyc ava --serial --fail-fast --verbose --ext js --timeout=3m \"dist/{src,test}/**/*.spec.js\"",
     "eslint": "eslint \"{bin,example,src,test}/**/*.js\" --ignore-pattern=\"test/fixture/**\"",
     "tslint": "tslint \"{bin,example,src,test}/**/*.ts\" --exclude=\"test/fixture/**\" && tsc --noEmit",
     "shlint": "bash -n bin/*.sh",

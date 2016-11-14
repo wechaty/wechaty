@@ -45,8 +45,8 @@ script:
   - shellcheck bin/*.sh
   - npm run lint
   - npm run redist
-  - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then WECHATY_LOG=silly npm run test:chrome; fi
-  - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then WECHATY_LOG=verbose WECHATY_HEAD=chrome nyc ava --serial --fail-fast --verbose --ext js --timeout=3m "dist/{src,test}/**/*.spec.js"; fi
+  - if [ "$TRAVIS_OS_NAME" == 'linux' ];  then WECHATY_LOG=silly    npm run test:chrome;  fi
+  - if [ "$TRAVIS_OS_NAME" == 'osx' ];    then WECHATY_LOG=verbose  npm run nycava;       fi
 
 notifications:
   webhooks:
@@ -62,7 +62,7 @@ notifications:
     on_failure: change
 
 after_success:
-  - npm run coverage
+  - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then npm run coverage; fi
 
 before_deploy:
   - npm version
