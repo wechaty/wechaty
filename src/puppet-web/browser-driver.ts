@@ -118,7 +118,7 @@ export class BrowserDriver {
      * XXX when will Builder().build() throw exception???
      */
     let retry = 0
-    let err = new Error('unknown')
+    let driverError = new Error('initChromeDriver() invalid driver error')
     // let driver: WebDriver|null = null
     let valid = false
 
@@ -142,20 +142,21 @@ export class BrowserDriver {
         log.verbose('PuppetWebBrowserDriver', 'initChromeDriver() valid() done: %s', valid)
 
         if (!valid) {
-          err = new Error('initChromeDriver() got invalid driver')
-          log.warn('PuppetWebBrowserDriver', err.message)
+          const e = new Error('initChromeDriver() got invalid driver')
+          log.warn('PuppetWebBrowserDriver', e.message)
+          driverError = e
         }
 
       } catch (e) {
         log.warn('PuppetWebBrowserDriver', 'initChromeDriver() exception: %s, retry: %d', e.message, retry)
-        err = e
+        driverError = e
       }
 
-    } while (!this.driver && retry++ < 3)
+    } while (!valid && retry++ < 3)
 
     if (!valid) {
-      log.error('PuppetWebBrowserDriver', 'initChromeDriver() not valid, retry: %d', err.stack, retry)
-      throw err
+      log.warn('PuppetWebBrowserDriver', 'initChromeDriver() not valid after retry: %d times: %s', retry, driverError.stack)
+      throw driverError
     } else {
       log.silly('PuppetWebBrowserDriver', 'initChromeDriver() success')
     }
