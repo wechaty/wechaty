@@ -119,9 +119,10 @@ Get to know more about NPM at [Wiki](https://github.com/wechaty/wechaty/wiki/NPM
 9. [room():Room|null](https://github.com/wechaty/wechaty/wiki/API#1-messageroom-room--null) get the room from a message.
 10. [room(room:Room):void](https://github.com/wechaty/wechaty/wiki/API#2-messageroomroom-room-void) set the room for a message.
 11. [room(roomId:string):void](https://github.com/wechaty/wechaty/wiki/API#3-messageroomroomid-string-void) set the room by id for a Message
-12. [say(content:string):Promise](https://github.com/wechaty/wechaty/wiki/API#messagesaycontent-string-promise) reply a message to the sender.
-13. [ready():Promise](https://github.com/wechaty/wechaty/wiki/API#messageready-promise) confirm get all the data needed, will be resolved when all message data is ready.
-14. [self(message:Message):boolean](https://github.com/wechaty/wechaty/wiki/API#messageselfmessage-message-boolean) check if a message is sent by self 
+12. [type():MsgType](https://github.com/wechaty/wechaty/wiki/API#messagetype-number) get the type of a Message.
+13. [say(content:string):Promise](https://github.com/wechaty/wechaty/wiki/API#messagesaycontent-string-promise) reply a message to the sender.
+14. [ready():Promise](https://github.com/wechaty/wechaty/wiki/API#messageready-promise) confirm get all the data needed, will be resolved when all message data is ready.
+15. [self(message:Message):boolean](https://github.com/wechaty/wechaty/wiki/API#messageselfmessage-message-boolean) check if a message is sent by self 
 
 ## [Contact](https://github.com/wechaty/wechaty/wiki/API#contact-class)
 
@@ -129,8 +130,10 @@ Get to know more about NPM at [Wiki](https://github.com/wechaty/wechaty/wiki/NPM
 2. [name():string](https://github.com/wechaty/wechaty/wiki/API#contactname-string) get name from a contact
 3. [remark():string](https://github.com/wechaty/wechaty/wiki/API#contactremark-string) get remark name from a contact
 4. [remark(remark:string):Promise](https://github.com/wechaty/wechaty/wiki/API#contactremarkremark-string-promise) set remark name to a contact
-5. [ready():Promise](https://github.com/wechaty/wechaty/wiki/API#contactready-promise) confirm get all the contact data needed, will be resolved when all data is ready
-6. [say(content:string):Promise](https://github.com/wechaty/wechaty/wiki/API#contactsaycontent-string-promise) say content to a contact
+5. [weixin():string](https://github.com/wechaty/wechaty/wiki/API#contactweixin-string) get weixin number from a contact
+6. [star():boolean](https://github.com/wechaty/wechaty/wiki/API#contactstar-boolean) true for star friend, false for no star friend
+7. [ready():Promise](https://github.com/wechaty/wechaty/wiki/API#contactready-promise) confirm get all the contact data needed, will be resolved when all data is ready
+8. [say(content:string):Promise](https://github.com/wechaty/wechaty/wiki/API#contactsaycontent-string-promise) say content to a contact
 
 ## [Room](https://github.com/wechaty/wechaty/wiki/API#class-room)
 
