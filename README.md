@@ -59,17 +59,12 @@ We have two options to run wechaty:
 [![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Stars](https://img.shields.io/docker/stars/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
 
 ```shell
-$ docker run \
-  -t -i --rm \
-  --volume="$(pwd)":/bot \
-  --name=wechaty \
-  zixia/wechaty \
-  mybot.js
+$ docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.js
 ```
 
-* Wechaty Docker has native support for TypeScript as well: just write in TypeScript and save to `mybot.ts`, then run `wechaty mybot.ts`.
+* Wechaty Docker has native support for TypeScript as well: just write in TypeScript and save to `mybot.ts`.
 
-Get to know more about Wechaty Docker from [here](https://github.com/wechaty/wechaty/wiki/Docker).
+Get to know more about Wechaty Docker at [Wiki:Docker](https://github.com/wechaty/wechaty/wiki/Docker).
 
 ## NPM
 
@@ -83,7 +78,7 @@ $ node mybot.js
 
 You might be asked for install the `chromedriver`, depends on which platform you are.
 
-Get to know more about NPM at [Wiki](https://github.com/wechaty/wechaty/wiki/NPM)
+Get to know more about NPM at [Wiki:NPM](https://github.com/wechaty/wechaty/wiki/NPM)
 
 # API Reference
 
@@ -101,8 +96,8 @@ Get to know more about NPM at [Wiki](https://github.com/wechaty/wechaty/wiki/NPM
 
 ## [Wechaty](https://github.com/wechaty/wechaty/wiki/API#wechaty-class)
 
-1. [instance(setting: PuppetSetting): Promise&lt;Wechaty&gt;](https://github.com/wechaty/wechaty/wiki/API#wechatyinstanceprofilestring-wechaty) create a bot instance
-2. [init(): Promise&lt;void&gt;](https://github.com/wechaty/wechaty/wiki/API#wechatyinit-wechaty) Initialize the bot, return Promise.
+1. [instance(setting: PuppetSetting): Promise&lt;Wechaty&gt;](https://github.com/wechaty/wechaty/wiki/API#wechatyinstanceprofilestring-wechaty) get the bot instance
+2. [init(): Promise&lt;void&gt;](https://github.com/wechaty/wechaty/wiki/API#wechatyinit-wechaty) Initialize the bot
 3. [send(message: Message): Promise&lt;void&gt;](https://github.com/wechaty/wechaty/wiki/API#wechatysendmessage-message-wechaty) send a message
 4. [say(content: string): Promise&lt;void&gt;](https://github.com/wechaty/wechaty/wiki/API#wechatysaycontent-string) send message to filehelper, just for logging/reporting usage for your convenience
 
@@ -110,15 +105,12 @@ Get to know more about NPM at [Wiki](https://github.com/wechaty/wechaty/wiki/NPM
 
 1. [from():Contact](https://github.com/wechaty/wechaty/wiki/API#1-messagefrom-contact) get the sender from a message
 2. [from(contact:Contact):void](https://github.com/wechaty/wechaty/wiki/API#2-messagefromcontact-contact-void) set a sender to the message
-3. [from(contactId:string):void](https://github.com/wechaty/wechaty/wiki/API#3-messagefromcontactid-string-void) set a sender to the message by contact id
 4. [to():Contact](https://github.com/wechaty/wechaty/wiki/API#1-messageto-contact) get the destination of the message
 5. [to(contact:Contact):void](https://github.com/wechaty/wechaty/wiki/API#2-messagetocontact-contact-void) set the destination as contact for the message
-6. [to(contact:string):void](https://github.com/wechaty/wechaty/wiki/API#3-messagetocontact-string-void) set the destination as contact by 'weixin', for the message
 7. [content():string](https://github.com/wechaty/wechaty/wiki/API#1-messagecontent-string) get the content of the message
 8. [content(content:string):string](https://github.com/wechaty/wechaty/wiki/API#2-messagecontentcontent-string-string) set the content for the message
 9. [room():Room|null](https://github.com/wechaty/wechaty/wiki/API#1-messageroom-room--null) get the room from a message.
 10. [room(room:Room):void](https://github.com/wechaty/wechaty/wiki/API#2-messageroomroom-room-void) set the room for a message.
-11. [room(roomId:string):void](https://github.com/wechaty/wechaty/wiki/API#3-messageroomroomid-string-void) set the room by id for a Message
 12. [type():MsgType](https://github.com/wechaty/wechaty/wiki/API#messagetype-number) get the type of a Message.
 13. [say(content:string):Promise](https://github.com/wechaty/wechaty/wiki/API#messagesaycontent-string-promise) reply a message to the sender.
 14. [ready():Promise](https://github.com/wechaty/wechaty/wiki/API#messageready-promise) confirm get all the data needed, will be resolved when all message data is ready.
@@ -126,11 +118,10 @@ Get to know more about NPM at [Wiki](https://github.com/wechaty/wechaty/wiki/NPM
 
 ## [Contact](https://github.com/wechaty/wechaty/wiki/API#contact-class)
 
-1. [id:string](https://github.com/wechaty/wechaty/wiki/API#contactid-string) get uniq id from a contact
 2. [name():string](https://github.com/wechaty/wechaty/wiki/API#contactname-string) get name from a contact
 3. [remark():string](https://github.com/wechaty/wechaty/wiki/API#contactremark-string) get remark name from a contact
 4. [remark(remark:string):Promise](https://github.com/wechaty/wechaty/wiki/API#contactremarkremark-string-promise) set remark name to a contact
-5. [weixin():string](https://github.com/wechaty/wechaty/wiki/API#contactweixin-string) get weixin number from a contact
+5. [weixin():string](https://github.com/wechaty/wechaty/wiki/API#contactweixin-string) get weixin id from a contact
 6. [star():boolean](https://github.com/wechaty/wechaty/wiki/API#contactstar-boolean) true for star friend, false for no star friend
 7. [ready():Promise](https://github.com/wechaty/wechaty/wiki/API#contactready-promise) confirm get all the contact data needed, will be resolved when all data is ready
 8. [say(content:string):Promise](https://github.com/wechaty/wechaty/wiki/API#contactsaycontent-string-promise) say content to a contact
@@ -139,7 +130,7 @@ Get to know more about NPM at [Wiki](https://github.com/wechaty/wechaty/wiki/NPM
 
 1. [say(content:string,replyTo:Contact|ContactArray):Promise](https://github.com/wechaty/wechaty/wiki/API#roomsaycontent-string-replyto-contactcontact-promise) say content inside Room.
 2. [ready():Promise](https://github.com/wechaty/wechaty/wiki/API#roomready-promise) confirm get all the data needed, will be resolved when all data is ready
-3. [refresh():Promise](https://github.com/wechaty/wechaty/wiki/API#roomrefresh-promise) force reload data for Room
+3. [refresh():Promise](https://github.com/wechaty/wechaty/wiki/API#roomrefresh-promise) reload data for Room
 
 ### [Room Event](https://github.com/wechaty/wechaty/wiki/API#room-events)
 
@@ -150,7 +141,7 @@ Get to know more about NPM at [Wiki](https://github.com/wechaty/wechaty/wiki/NPM
 ## [FriendRequest](https://github.com/wechaty/wechaty/wiki/API#class-friendrequest)
 
 1. [hello:string](https://github.com/wechaty/wechaty/wiki/API#friendrequesthello-string) get content from friendrequest
-2. [accept():void](https://github.com/wechaty/wechaty/wiki/API#friendrequestaccept-void) accept a friendrequest
+2. [accept():void](https://github.com/wechaty/wechaty/wiki/API#friendrequestaccept-void) accept the friendrequest
 3. [send(contact:Contact,hello:string):void](https://github.com/wechaty/wechaty/wiki/API#friendrequestsendcontact-contact-hello-string-void) send a new friend request
 
 # Test

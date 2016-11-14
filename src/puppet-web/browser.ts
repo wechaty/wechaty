@@ -232,7 +232,7 @@ export class Browser extends EventEmitter {
      */
     const timeout = max * (backoff * max) / 2
 
-    return retryPromise({ max: max, backoff: backoff }, async attempt => {
+    return retryPromise({max, backoff}, async attempt => {
       log.silly('PuppetWebBrowser', 'clean() retryPromise: attempt %s time for timeout %s'
                                   , attempt,  timeout
       )
