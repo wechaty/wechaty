@@ -390,7 +390,7 @@ export class Bridge {
         throw e
       }
     } catch (e) {
-      log.error('PuppetWebBridge', 'proxyWechaty() noWechaty exception: %s', e.stack)
+      log.warn('PuppetWebBridge', 'proxyWechaty() noWechaty exception: %s', e.stack)
       throw e
     }
 
