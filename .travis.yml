@@ -43,7 +43,8 @@ script:
   - node --version
   - npm --version
   - shellcheck bin/*.sh
-  - npm test
+  - if [ "$TRAVIS_OS_NAME" == 'linux' ];  then npm run test;                                fi
+  - if [ "$TRAVIS_OS_NAME" == 'osx' ];    then npm run redist && npm run test:chrome:fast ; fi
 
 notifications:
   webhooks:
@@ -61,9 +62,9 @@ notifications:
 after_success:
   - npm run coverage
 
-before_deploy: 
+before_deploy:
   - npm version
-  - npm run rebuild
+  - npm run redist
 
 deploy:
   provider: npm
