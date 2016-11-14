@@ -2,7 +2,7 @@
 
 # Test against these versions of Io.js and Node.js.
 environment:
-  WECHATY_LOG: error
+  WECHATY_LOG: silent
   matrix:
     - nodejs_version: "6"
 #    - nodejs_version: "7"
