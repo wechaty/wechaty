@@ -287,15 +287,21 @@ export class Room extends EventEmitter implements Sayable {
 
   public topic(newTopic?: string): string | void {
     if (!this.isReady()) {
-      throw new Error('room not ready')
+      log.warn('Room', 'topic() room not ready')
     }
 
     if (newTopic) {
       log.verbose('Room', 'topic(%s)', newTopic)
-    }
-
-    if (newTopic) {
       Config.puppetInstance().roomTopic(this, newTopic)
+                              .catch(e => {
+                                log.warn('Room', 'topic(newTopic=%s) exception: %s',
+                                                  newTopic, e && e.message || e
+                                )
+                              })
+      if (!this.obj) {
+        this.obj = <RoomObj>{}
+      }
+      Object.assign(this.obj, { topic: newTopic })
       return
     }
     return UtilLib.plainText(this.obj ? this.obj.topic : '')
@@ -429,8 +435,10 @@ export class Room extends EventEmitter implements Sayable {
     return room
   }
 
-  public static load(id: string): Room | null {
-    if (!id) { return null }
+  public static load(id: string): Room {
+    if (!id) {
+      throw new Error('Room.load() no id')
+    }
 
     if (id in Room.pool) {
       return Room.pool[id]

@@ -278,11 +278,12 @@ export class Message implements Sayable {
     return s
   }
   public getSenderString() {
-    const name  = Contact.load(this.obj.from)
-    const room = this.obj.room
-                  ? Room.load(this.obj.room)
-                  : null
-    return '<' + (name ? name.toStringEx() : '') + (room ? `@${room.toStringEx()}` : '') + '>'
+    const fromName  = Contact.load(this.obj.from).name()
+    const roomTopic = this.obj.room
+                  ? Room.load(this.obj.room).topic()
+                  : ''
+    // return '<' + (name ? name.toStringEx() : '') + roomTopic + '>'
+    return `<${fromName}:${roomTopic}>`
   }
   public getContentString() {
     let content = UtilLib.plainText(this.obj.content)
@@ -417,9 +418,7 @@ export class Message implements Sayable {
 
       if (this.obj.room) {
         const room  = Room.load(this.obj.room)
-        if (room) {
-          await room.ready()  // Room member list
-        }
+        await room.ready()  // Room member list
       }
 
     } catch (e) {

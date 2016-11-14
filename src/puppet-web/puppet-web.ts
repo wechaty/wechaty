@@ -109,8 +109,6 @@ export class PuppetWeb extends Puppet {
   }
 
   public async quit(): Promise<void> {
-    log.verbose('PuppetWeb', 'quit()')
-
     log.verbose('PuppetWeb', 'quit() state target(%s) current(%s) stable(%s)'
                             , this.state.target()
                             , this.state.current()
@@ -133,6 +131,7 @@ export class PuppetWeb extends Puppet {
      * must feed POISON to Watchdog
      * before state set to `dead` & `inprocess`
      */
+    log.verbose('PuppetWeb', 'quit() kill watchdog before do quit')
     const food: WatchdogFood = {
         data: 'PuppetWeb.quit()'
       , type: 'POISON'
@@ -458,11 +457,10 @@ export class PuppetWeb extends Puppet {
 
     try {
       const roomId = await this.bridge.roomCreate(contactIdList, topic)
-      const room = Room.load(roomId)
-      if (!room) {
+      if (!roomId) {
         throw new Error('PuppetWeb.roomCreate() roomId "' + roomId + '" not found')
       }
-      return room
+      return  Room.load(roomId)
 
     } catch (e) {
       log.warn('PuppetWeb', 'roomCreate(%s, %s) rejected: %s', contactIdList.join(','), topic, e.message)

@@ -56,7 +56,7 @@ export class BrowserDriver {
         break
 
       case 'chrome':
-        this.driver = await this.getChromeDriver()
+        await this.initChromeDriver()
         break
 
       default: // unsupported browser head
@@ -70,8 +70,8 @@ export class BrowserDriver {
     return this
   }
 
-  private async getChromeDriver(): Promise<WebDriver> {
-    log.verbose('PuppetWebBrowserDriver', 'getChromeDriver()')
+  private async initChromeDriver(): Promise<void> {
+    log.verbose('PuppetWebBrowserDriver', 'initChromeDriver()')
 
     /**
      * http://stackoverflow.com/a/27733960/1123955
@@ -102,7 +102,7 @@ export class BrowserDriver {
       // , binary: require('chromedriver').path
     }
     if (Config.isDocker) {
-      log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() wechaty in docker confirmed(should not show this in CI)')
+      log.verbose('PuppetWebBrowserDriver', 'initChromeDriver() wechaty in docker confirmed(should not show this in CI)')
       options['binary'] = Config.CMD_CHROMIUM
     }
 
@@ -119,49 +119,48 @@ export class BrowserDriver {
      */
     let retry = 0
     let err = new Error('unknown')
-    let driver: WebDriver|null = null
+    // let driver: WebDriver|null = null
+    let valid = false
 
     do {
      if (retry > 0) {
-        log.warn('PuppetWebBrowserDriver', 'getChromeDriver() with retry: %d', retry)
+        log.warn('PuppetWebBrowserDriver', 'initChromeDriver() with retry: %d', retry)
       }
 
       try {
-        log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() new Builder()')
+        log.verbose('PuppetWebBrowserDriver', 'initChromeDriver() new Builder()')
 
-        driver = new Builder()
+        this.driver = new Builder()
                       .setAlertBehavior('ignore')
                       .forBrowser('chrome')
                       .withCapabilities(customChrome)
                       .build()
 
-        log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() new Builder() done')
+        log.verbose('PuppetWebBrowserDriver', 'initChromeDriver() new Builder() done')
 
-        const isValid = await this.valid(driver)
-        log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() valid() done: %s', isValid)
+        valid = await this.valid(this.driver)
+        log.verbose('PuppetWebBrowserDriver', 'initChromeDriver() valid() done: %s', valid)
 
-        if (!isValid) {
-          err = new Error('getChromeDriver() got invalid driver')
+        if (!valid) {
+          err = new Error('initChromeDriver() got invalid driver')
           log.warn('PuppetWebBrowserDriver', err.message)
-          driver = null
         }
 
       } catch (e) {
-        log.warn('PuppetWebBrowserDriver', 'getChromeDriver() exception: %s, retry: %d', e.message, retry)
-        driver = null
+        log.warn('PuppetWebBrowserDriver', 'initChromeDriver() exception: %s, retry: %d', e.message, retry)
         err = e
       }
 
-    } while (!driver && retry++ < 3)
+    } while (!this.driver && retry++ < 3)
 
-    if (!driver) {
-      log.error('PuppetWebBrowserDriver', 'getChromeDriver() exception: %s, retry: %d', err.stack, retry)
+    if (!valid) {
+      log.error('PuppetWebBrowserDriver', 'initChromeDriver() not valid, retry: %d', err.stack, retry)
       throw err
     } else {
-      log.silly('PuppetWebBrowserDriver', 'getChromeDriver() success')
+      log.silly('PuppetWebBrowserDriver', 'initChromeDriver() success')
     }
 
-    return driver
+    return
   }
 
   private async getPhantomJsDriver(): Promise<WebDriver> {

@@ -81,16 +81,19 @@ async function onBrowserDead(this: PuppetWeb, e: Error): Promise<void> {
   try {
     await this.browser.quit()
                       .catch(err => { // fail safe
-                        log.verbose('PuppetWebEvent', 'onBrowserDead() onBrowserDead.quit() exception: %s', err.message)
+                        log.verbose('PuppetWebEvent', 'onBrowserDead() onBrowserDead.quit() soft exception: %s', err.message)
                       })
     log.verbose('PuppetWebEvent', 'onBrowserDead() browser.quit() done')
 
-    if (this.browser.state.target() === 'close') {
-      log.warn('PuppetWebEvent', 'onBrowserDead() will not init browser because browser.state.target(%s)'
-                                , this.browser.state.target()
-              )
-      return
-    }
+    /**
+     * browser.quit() will set target() to `close`
+     */
+    // if (this.browser.state.target() === 'close') {
+    //   log.warn('PuppetWebEvent', 'onBrowserDead() will not init browser because browser.state.target(%s)'
+    //                             , this.browser.state.target()
+    //           )
+    //   return
+    // }
 
     await this.initBrowser()
     log.verbose('PuppetWebEvent', 'onBrowserDead() new browser inited')

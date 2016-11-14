@@ -382,6 +382,8 @@ export class Browser extends EventEmitter {
     if (forceReason) {
       dead = true
       msg = forceReason
+      log.verbose('PuppetWebBrowser', 'dead(forceReason=%s) %s', forceReason, new Error().stack)
+
     } else if (!this.driver) { // FIXME: this.driver is BrowserDriver, should add a method to check if availble 201610
       dead = true
       msg = 'no driver or session'

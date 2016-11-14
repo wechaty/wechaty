@@ -83,7 +83,7 @@ function onFeed(this: PuppetWeb, food: WatchdogFood): void {
 
 function clearWatchDogTimer() {
   if (!this.watchDogTimer) {
-    log.warn('PuppetWebWatchdog', 'clearWatchDogTimer() nothing to clear')
+    log.verbose('PuppetWebWatchdog', 'clearWatchDogTimer() nothing to clear')
   }
   clearTimeout(this.watchDogTimer)
   this.watchDogTimer = null
