@@ -12,7 +12,7 @@ install:
   # Get the latest stable version of Node.js or io.js
   - ps: Install-Product node $env:nodejs_version
   # install modules
-  - npm --silent --progress=false install > t.log 2>&1 && del t.log
+  - npm --progress=false install > t.log 2>&1 && del t.log
 
 # Post-install test scripts.
 test_script:
