@@ -146,7 +146,7 @@ export class PuppetWeb extends Puppet {
           const e = new Error('quit() Promise() timeout')
           log.warn('PuppetWeb', e.message)
           reject(e)
-        })
+        }, 60 * 1000)
 
         await this.bridge.quit()
                         .catch(e => { // fail safe
