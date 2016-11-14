@@ -114,7 +114,7 @@ Get to know more about NPM at [Wiki:NPM](https://github.com/wechaty/wechaty/wiki
 12. [type():MsgType](https://github.com/wechaty/wechaty/wiki/API#messagetype-number) get the type of a Message.
 13. [say(content:string):Promise](https://github.com/wechaty/wechaty/wiki/API#messagesaycontent-string-promise) reply a message to the sender.
 14. [ready():Promise](https://github.com/wechaty/wechaty/wiki/API#messageready-promise) confirm get all the data needed, will be resolved when all message data is ready.
-15. [self(message:Message):boolean](https://github.com/wechaty/wechaty/wiki/API#messageselfmessage-message-boolean) check if a message is sent by self 
+15. [self():boolean](https://github.com/wechaty/wechaty/wiki/API#messageselfmessage-message-boolean) check if a message is sent by self 
 
 ## [Contact](https://github.com/wechaty/wechaty/wiki/API#contact-class)
 
