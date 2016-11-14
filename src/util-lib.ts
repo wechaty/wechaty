@@ -225,7 +225,7 @@ export class UtilLib {
     })
 
     function nextPort(currentPort: number): number {
-      const RANGE = 719
+      const RANGE = 1733
       // do not use Math.random() here, because AVA will fork, then here will get the same random number, cause a race condition for socket listen
       // const n = Math.floor(Math.random() * BETWEEN_RANGE)
 
