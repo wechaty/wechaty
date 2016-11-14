@@ -304,7 +304,11 @@ export class Browser extends EventEmitter {
                                 )
             )
     // log.verbose('PuppetWebBrowser', `Browser.execute() driver.getSession: %s`, util.inspect(this.driver.getSession()))
-    if (this.dead()) { throw new Error('browser dead') }
+    if (this.dead()) {
+      const e = new Error('Browser.execute() browser dead')
+      log.warn('PuppetWebBrowser', 'execute() this.dead() %s', e.stack)
+      throw e
+    }
 
     try {
       return await this.driver.executeScript.apply(this.driver, arguments)

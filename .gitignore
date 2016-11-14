@@ -57,3 +57,4 @@ yarn.lock
 .yarn-cache/
 .v8flags.*
 test/fixture/docker/package.json
+tags

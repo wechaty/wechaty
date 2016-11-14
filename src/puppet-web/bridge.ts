@@ -386,7 +386,7 @@ export class Bridge {
       const noWechaty = await this.execute('return typeof WechatyBro === "undefined"')
       if (noWechaty) {
         const e = new Error('there is no WechatyBro in browser(yet)')
-        this.puppet.browser.dead(e)
+        // this.puppet.browser.dead(e)
         throw e
       }
     } catch (e) {

@@ -22,15 +22,15 @@ test('StateMonitor target/current & stable', t => {
   t.is(sm.target(), 'A', 'target should be A')
   t.true(sm.stable(), 'should be stable')
 
-  sm.current('B')
-  t.is(sm.current(), 'B', 'current should be B')
+  t.throws(() => {
+    sm.current('B')
+  }, Error, 'should throw if current not match target')
+  t.throws(() => {
+    sm.current('B', false)
+  }, Error, 'should throw if current not match target 2')
+  t.is(sm.current(), 'A', 'current should still be A')
   t.is(sm.target(), 'A', 'target should still be A')
   t.true(sm.stable(), 'should be stable')
-
-  sm.current('B', false)
-  t.is(sm.current(), 'B', 'current should be B')
-  t.is(sm.target(), 'A', 'target should still be A')
-  t.false(sm.stable(), 'should be not stable')
 
   sm.target('B')
   sm.current('B')
@@ -51,6 +51,7 @@ test('StateMonitor client & stable/inprocess', t => {
 
   t.is(sm.client(), CLIENT_NAME, 'should get the same client name as init')
 
+  sm.target('B')
   sm.current('B')
   t.true(sm.stable(), 'should be stable')
   t.false(sm.inprocess(), 'should be not inprocess')
@@ -68,7 +69,9 @@ test('current() strict check with target', t => {
   const CLIENT_NAME = 'StateMonitorTest'
   const sm = new StateMonitor<'A', 'B'>(CLIENT_NAME, 'A')
 
-  t.throws(() => sm.current('B'), Error, 'should thorw for unmatch current & target')
+  t.throws(() => {
+    sm.current('B')
+  }, Error, 'should thorw for unmatch current & target')
 
   sm.target('B')
   t.notThrows(() => sm.current('B'), 'should not throws for matched current & target')

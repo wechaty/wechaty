@@ -102,7 +102,7 @@ async function onBrowserDead(this: PuppetWeb, e: Error): Promise<void> {
     log.verbose('PuppetWebEvent', 'onBrowserDead() bridge re-inited')
 
     const dong = await this.ding()
-    if (/dong/i.test(dong)) {
+    if (!/dong/i.test(dong)) {
       const err = new Error('ding() got "' + dong + '", should be "dong" ')
       log.warn('PuppetWebEvent', 'onBrowserDead() %s', err.message)
       throw err

@@ -31,6 +31,8 @@ test('Cookie smoking test', async t => {
   await browser.open()
   t.pass('should opened')
 
+  browser.state.current('open')
+
   const two = await browser.execute('return 1+1')
   t.is(two, 2, 'should got 2 after execute script 1+1')
 
