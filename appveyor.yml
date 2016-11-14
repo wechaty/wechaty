@@ -2,6 +2,7 @@
 
 # Test against these versions of Io.js and Node.js.
 environment:
+  WECHATY_LOG: error
   matrix:
     - nodejs_version: "6"
 #    - nodejs_version: "7"
@@ -12,9 +13,6 @@ install:
   - ps: Install-Product node $env:nodejs_version
   # install modules
   - npm --progress=false install
-
-environment:
-  WECHATY_LOG: error
 
 # Post-install test scripts.
 test_script:
