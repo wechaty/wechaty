@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-[ -z "$!" ] && {
+[ -z "$1" ] && {
   echo
   echo "Usage: git-push-tag.sh <tag>"
   echo
