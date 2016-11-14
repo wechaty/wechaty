@@ -243,6 +243,10 @@ function main() {
       wechaty::io-client
       ;;
 
+    test)
+      WECHATY_LOG=silent npm run test
+      ;;
+
     #
     # 4. Default to execute npm run ...
     #
