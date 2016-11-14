@@ -214,6 +214,8 @@ export class Browser extends EventEmitter {
      */
     if (kill) {
       const pidList = await this.getBrowserPidList()
+      log.verbose('PuppetWebBrowser', 'clean() %d browsers will be killed', pidList.length)
+
       pidList.forEach(pid => {
         try {
           process.kill(pid, 'SIGKILL')
@@ -235,23 +237,26 @@ export class Browser extends EventEmitter {
                                   , attempt,  timeout
       )
 
-      return new Promise(async (resolve, reject) => {
-        const pidList = await this.getBrowserPidList()
+      /**
+       * should not use `async` for (resolve, reject), will cause error
+       */
+      return new Promise((resolve, reject) => {
+        this.getBrowserPidList()
+            .then(pidList => {
 
-        if (pidList.length > 0) {
-          const e = new Error('clean() retryPromise() found pidList, dirty at attempt #' + attempt)
-          log.silly('PuppetWebBrowser', e.message)
-          throw e
-        }
+              if (pidList.length > 0) {
+                const e = new Error('clean() retryPromise() found pidList, dirty at attempt #' + attempt)
+                log.silly('PuppetWebBrowser', e.message)
+                reject(e)
+              } else {
+                log.verbose('PuppetWebBrowser', 'clean() retryPromise() resolved, at attempt #%d', attempt)
+                resolve()
+              }
 
-        log.verbose('PuppetWebBrowser', 'clean() retryPromise() resolved, at attempt #%d', attempt)
-        resolve()
-      })
-    })
-    .catch(e => {
-      log.error('PuppetWebBrowser', 'clean() retryPromise() failed: %s', e.message)
-      throw e
-    })
+            }).catch(e => {
+              log.error('PuppetWebBrowser', 'clean() retryPromise() getBrowserPidList() failed: %s', e.message)
+              reject(e)
+            })
   }
 
   public getBrowserPidList(): Promise<number[]> {
