@@ -4,7 +4,10 @@ import {
   , log
 }                         from './src/config'
 import { Contact }        from './src/contact'
-import { FriendRequest }  from './src/friend-request'
+
+// ISSUE #70 import { FriendRequest }  from './src/friend-request'
+import { FriendRequest }  from './src/puppet-web/friend-request'
+
 import { IoClient }       from './src/io-client'
 import {
     Message
