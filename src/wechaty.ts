@@ -54,8 +54,7 @@ export class Wechaty extends EventEmitter implements Sayable {
   public puppet: Puppet | null
 
   private state = new StateMonitor<'standby', 'ready'>('Wechaty', 'standby')
-  private npmVersion: string
-
+  private npmVersion: string = require('../package.json').version
   public uuid:        string
 
   public static instance(setting?: PuppetSetting) {
@@ -83,8 +82,6 @@ export class Wechaty extends EventEmitter implements Sayable {
                         ? setting.profile
                         : setting.profile + '.wechaty.json'
     }
-
-    this.npmVersion = require('../package.json').version
 
     this.uuid = UtilLib.guid()
   }
