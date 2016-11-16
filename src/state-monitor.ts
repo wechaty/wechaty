@@ -41,7 +41,7 @@ export class StateMonitor <A, B>{
       )
       this._target = newState
     } else {
-      log.silly('StateMonitor', '%s:target() %s', this._client, this._target)
+      log.silly('StateMonitor', '%s:target() - %s', this._client, this._target)
     }
     return this._target
   }
@@ -89,7 +89,7 @@ export class StateMonitor <A, B>{
       this._current = newState
       this._stable  = stable
     } else {
-      log.silly('StateMonitor', '%s:current() %s', this._client, this._current)
+      log.silly('StateMonitor', '%s:current() - %s', this._client, this._current)
     }
     return this._current
   }

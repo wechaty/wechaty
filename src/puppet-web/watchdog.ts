@@ -84,12 +84,15 @@ function onFeed(this: PuppetWeb, food: WatchdogFood): void {
 function clearWatchDogTimer() {
   if (!this.watchDogTimer) {
     log.verbose('PuppetWebWatchdog', 'clearWatchDogTimer() nothing to clear')
+    return
   }
   clearTimeout(this.watchDogTimer)
   this.watchDogTimer = null
 
-  const timeLeft = this.watchDogTimerTime - Date.now()
-  log.silly('PuppetWebWatchdog', 'clearWatchDogTimer() [%d] seconds left', Math.ceil(timeLeft / 1000))
+  if (this.watchDogTimerTime) {
+    const timeLeft = this.watchDogTimerTime - Date.now()
+    log.silly('PuppetWebWatchdog', 'clearWatchDogTimer() [%d] seconds left', Math.ceil(timeLeft / 1000))
+  }
 }
 
 function setWatchDogTimer(this: PuppetWeb, timeout, feed) {

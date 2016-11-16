@@ -8,14 +8,12 @@
 import { test } from 'ava'
 
 import {
-    Config
-  , log
+  Config,
+  log,
 }                     from '../../src/config'
 // import { Message }    from '../../src/message'
 import { PuppetWeb }  from '../../src/puppet-web'
-import {
-  Server
-}                     from '../../src/puppet-web/server'
+import { Server }     from '../../src/puppet-web/server'
 
 // import { spy } from 'sinon'
 

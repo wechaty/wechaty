@@ -282,9 +282,13 @@ export class Browser extends EventEmitter {
 
         let matchRegex = new RegExp(browserRe, 'i')
         const pids: number[] = children.filter(child => {
-          log.silly('PuppetWebBrowser', 'getBrowserPids() child: %s', JSON.stringify(child))
           // https://github.com/indexzero/ps-tree/issues/18
-          return matchRegex.test('' + child.COMMAND + child.COMM)
+          if (matchRegex.test('' + child.COMMAND + child.COMM)) {
+            log.silly('PuppetWebBrowser', 'getBrowserPids() child: %s', JSON.stringify(child))
+            return true
+          }
+          return false
+
         }).map(child => child.PID)
 
         /**
