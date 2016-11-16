@@ -8,15 +8,15 @@
  *
  */
 import {
-    Builder
-  , Capabilities
-  , WebDriver
+  Builder,
+  Capabilities,
+  WebDriver,
 }               from 'selenium-webdriver'
 
 import {
-    Config
-  , HeadName
-  , log
+  Config,
+  HeadName,
+  log,
 }               from '../config'
 
 export class BrowserDriver {
@@ -99,7 +99,6 @@ export class BrowserDriver {
           '--homepage=about:blank'
         , '--no-sandbox'
       ]  // issue #26 for run inside docker
-      // , binary: require('chromedriver').path
     }
     if (Config.isDocker) {
       log.verbose('PuppetWebBrowserDriver', 'initChromeDriver() wechaty in docker confirmed(should not show this in CI)')
@@ -109,17 +108,11 @@ export class BrowserDriver {
     const customChrome = Capabilities.chrome()
                                     .set('chromeOptions', options)
 
-    // return new Builder()
-    //             .setAlertBehavior('ignore')
-    //             .forBrowser('chrome')
-    //             .withCapabilities(customChrome)
-    //             .build()
     /**
      * XXX when will Builder().build() throw exception???
      */
     let retry = 0
     let driverError = new Error('initChromeDriver() invalid driver error')
-    // let driver: WebDriver|null = null
     let valid = false
 
     do {
@@ -259,6 +252,9 @@ export class BrowserDriver {
                 log.verbose('PuppetWebBrowserDriver', 'valid() getSession() done')
                 clearTimeout(timer)
                 resolve(session)
+              })
+              .catch(e => {
+                log.warn('PuppetWebBrowserDriver', 'valid() getSession() rejected: %s', e && e.message || e)
               })
 
       })
