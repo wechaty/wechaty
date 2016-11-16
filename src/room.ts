@@ -399,18 +399,18 @@ export class Room extends EventEmitter implements Sayable {
   public static async findAll(query: RoomQueryFilter): Promise<Room[]> {
     log.verbose('Room', 'findAll({ topic: %s })', query.topic)
 
-    const topic = query.topic
+    const topicFilter = query.topic
 
-    if (!topic) {
-      throw new Error('topic not found')
+    if (!topicFilter) {
+      throw new Error('topicFilter not found')
     }
 
     let filterFunction: string
 
-    if (topic instanceof RegExp) {
-      filterFunction = `c => ${topic.toString()}.test(c)`
-    } else if (typeof topic === 'string') {
-      filterFunction = `c => c === '${topic}'`
+    if (topicFilter instanceof RegExp) {
+      filterFunction = `function (c) { return ${topicFilter.toString()}.test(c) }`
+    } else if (typeof topicFilter === 'string') {
+      filterFunction = `function (c) { return c === '${topicFilter}' }`
     } else {
       throw new Error('unsupport topic type')
     }
