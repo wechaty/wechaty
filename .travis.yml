@@ -45,8 +45,9 @@ script:
   - shellcheck bin/*.sh
   - npm run lint
   - npm run redist
-  - if [ "$TRAVIS_OS_NAME" == 'linux' ];  then WECHATY_LOG=silly    npm run test:chrome;  fi
-  - if [ "$TRAVIS_OS_NAME" == 'osx' ];    then WECHATY_LOG=verbose  npm run nycava;       fi
+  - if [ "$TRAVIS_OS_NAME" == 'linux' ];  then WECHATY_LOG=silly    npm run test:phantomjs;   fi
+  - if [ "$TRAVIS_OS_NAME" == 'linux' ];  then WECHATY_LOG=silly    npm run test:chrome;      fi
+  - if [ "$TRAVIS_OS_NAME" == 'osx' ];    then WECHATY_LOG=verbose  npm run nycava;           fi
 
 notifications:
   webhooks:
