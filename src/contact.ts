@@ -189,9 +189,9 @@ export class Contact implements Sayable {
     let filterFunction: string
 
     if (nameFilter instanceof RegExp) {
-      filterFunction = `function (c) { return ${nameFilter.toString()}.test(c) }`
+      filterFunction = `(function (c) { return ${nameFilter.toString()}.test(c) })`
     } else if (typeof nameFilter === 'string') {
-      filterFunction = `function (c) { return c === '${nameFilter}' }`
+      filterFunction = `(function (c) { return c === '${nameFilter}' })`
     } else {
       throw new Error('unsupport name type')
     }

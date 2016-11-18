@@ -408,9 +408,9 @@ export class Room extends EventEmitter implements Sayable {
     let filterFunction: string
 
     if (topicFilter instanceof RegExp) {
-      filterFunction = `function (c) { return ${topicFilter.toString()}.test(c) }`
+      filterFunction = `(function (c) { return ${topicFilter.toString()}.test(c) })`
     } else if (typeof topicFilter === 'string') {
-      filterFunction = `function (c) { return c === '${topicFilter}' }`
+      filterFunction = `(function (c) { return c === '${topicFilter}' })`
     } else {
       throw new Error('unsupport topic type')
     }
