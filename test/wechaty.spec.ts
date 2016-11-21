@@ -8,18 +8,18 @@
 import { test } from 'ava'
 
 import {
-    Config
-  , Contact
-  , FriendRequest
-  , IoClient
-  , Message
-  , Puppet
-  , PuppetWeb
-  , Room
-  , Wechaty
+  Config,
+  Contact,
+  FriendRequest,
+  IoClient,
+  Message,
+  Puppet,
+  PuppetWeb,
+  Room,
+  Wechaty,
 
-  , log
-  , VERSION
+  log,
+  VERSION,
 }               from '../'
 
 test('Wechaty Framework', t => {

@@ -16,7 +16,7 @@ const Phantomjs = require('phantomjs-prebuilt')
 
 import { test } from 'ava'
 
-import { UtilLib } from '../'
+import { UtilLib } from '../src/util-lib'
 
 test.skip('Phantomjs replace javascript source file content test', async t => {
   const phantomjsArgs = [

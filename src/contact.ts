@@ -79,7 +79,7 @@ export class Contact implements Sayable {
     }
 
     return !rawObj ? null : {
-      id:           rawObj.UserName
+      id:           rawObj.UserName // MMActualSender??? MMPeerUserName??? `getUserContact(message.MMActualSender,message.MMPeerUserName).HeadImgUrl`
       , uin:        rawObj.Uin    // stable id: 4763975 || getCookie("wxuin")
       , weixin:     rawObj.Alias  // Wechat ID
       , name:       rawObj.NickName
@@ -176,10 +176,10 @@ export class Contact implements Sayable {
     }
     log.verbose('Cotnact', 'findAll({ name: %s })', query.name)
 
-    const name = query.name
+    const nameFilter = query.name
 
-    if (!name) {
-      throw new Error('name not found')
+    if (!nameFilter) {
+      throw new Error('nameFilter not found')
     }
 
     /**
@@ -188,10 +188,10 @@ export class Contact implements Sayable {
      */
     let filterFunction: string
 
-    if (name instanceof RegExp) {
-      filterFunction = `c => ${name.toString()}.test(c)`
-    } else if (typeof name === 'string') {
-      filterFunction = `c => c === '${name}'`
+    if (nameFilter instanceof RegExp) {
+      filterFunction = `(function (c) { return ${nameFilter.toString()}.test(c) })`
+    } else if (typeof nameFilter === 'string') {
+      filterFunction = `(function (c) { return c === '${nameFilter}' })`
     } else {
       throw new Error('unsupport name type')
     }
@@ -214,7 +214,7 @@ export class Contact implements Sayable {
   public remark(newRemark: string): Promise<boolean>
 
   public remark(newRemark?: string): Promise<boolean> | string {
-    log.verbose('Contact', 'remark(%s)', newRemark || '')
+    log.silly('Contact', 'remark(%s)', newRemark || '')
 
     if (newRemark === undefined) {
       return this.obj && this.obj.remark || ''
@@ -255,7 +255,7 @@ export class Contact implements Sayable {
 
   public static load(id: string): Contact {
     if (!id || typeof id !== 'string') {
-      throw new Error('id not found')
+      throw new Error('Contact.load(): id not found')
     }
 
     if (!(id in Contact.pool)) {

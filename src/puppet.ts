@@ -35,25 +35,12 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     super()
   }
 
-  public abstract async init(): Promise<this>
-  /**
-   * @deprecated
-   * use Message.self() instead
-   */
-  public abstract self(message?: Message): boolean
+  public abstract async init(): Promise<void>
 
-  // public user(contact?: Contact) {
-  //   if (contact) {
-  //     this._user = contact
-  //   }
-  //   return this._user
-  // }
+  public abstract self(): Contact
 
   public abstract send(message: Message): Promise<void>
   public abstract say(content: string): Promise<void>
-
-  // @deprecated
-  public abstract reply(message: Message, reply): Promise<void>
 
   public abstract reset(reason?: string): void
   public abstract logout(): Promise<void>

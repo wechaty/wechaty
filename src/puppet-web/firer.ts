@@ -272,7 +272,7 @@ async function checkRoomJoin(m: Message): Promise<void> {
   return
 }
 
-function parseRoomLeave(content: string): string|null {
+function parseRoomLeave(content: string): string {
   const reList = regexConfig.roomLeave
 
   let found: string[]|null = []

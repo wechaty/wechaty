@@ -2,6 +2,7 @@
 
 # Test against these versions of Io.js and Node.js.
 environment:
+  WECHATY_LOG: silent
   matrix:
     - nodejs_version: "6"
 #    - nodejs_version: "7"
@@ -11,13 +12,14 @@ install:
   # Get the latest stable version of Node.js or io.js
   - ps: Install-Product node $env:nodejs_version
   # install modules
-  - npm --progress=false --loglevel=warn install
+  - npm --progress=false install > nul 2>&1
 
 # Post-install test scripts.
 test_script:
   - node --version
   - npm --version
-  - npm run test
+  - npm run dist
+  - npm run test:chrome:fast
 
 # Don't actually build.
 build: off

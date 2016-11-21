@@ -41,7 +41,7 @@ export class StateMonitor <A, B>{
       )
       this._target = newState
     } else {
-      log.silly('StateMonitor', '%s:target() %s', this._client, this._target)
+      log.silly('StateMonitor', '%s:target() - %s', this._client, this._target)
     }
     return this._target
   }
@@ -57,6 +57,20 @@ export class StateMonitor <A, B>{
                                 , newState, stable
                                 , this._current, this._stable
                 )
+
+      /**
+       * strict check current is equal to target
+       */
+      if (this._target !== newState) {
+        log.warn('StateMonitor', '%s:current(%s,%s) current is different with target. call state.target(%s) first.'
+                                , this._client
+                                , newState, stable
+                                , newState
+        )
+        const e = new Error('current not match target')
+        log.verbose('StateMonitor', e.stack)
+        throw e
+      }
 
       /**
        * warn for inprocess current state change twice, mostly like a logic bug outside
@@ -75,7 +89,7 @@ export class StateMonitor <A, B>{
       this._current = newState
       this._stable  = stable
     } else {
-      log.silly('StateMonitor', '%s:current() %s', this._client, this._current)
+      log.silly('StateMonitor', '%s:current() - %s', this._client, this._current)
     }
     return this._current
   }

@@ -7,21 +7,23 @@
  * https://github.com/zixia/wechaty
  *
  */
+const psTree = require('ps-tree')
+
 import { EventEmitter } from 'events'
 
 /* tslint:disable:no-var-requires */
 const retryPromise  = require('retry-promise').default // https://github.com/olalonde/retry-promise
 
 import {
-    Config
-  , HeadName
+  Config,
+  HeadName,
 }                         from '../config'
 import { StateMonitor }   from '../state-monitor'
 import { log }            from '../brolog-env'
 
 import {
-    CookieType
-  , BrowserCookie
+  CookieType,
+  BrowserCookie,
 }                         from './browser-cookie'
 import { BrowserDriver }  from './browser-driver'
 
@@ -53,6 +55,9 @@ export class Browser extends EventEmitter {
   public async init(): Promise<void> {
     log.verbose('PuppetWebBrowser', 'init()')
 
+    /**
+     * do not allow to init() twice without quit()
+     */
     if (this.state.current() === 'open') {
       let e: Error
       if (this.state.inprocess()) {
@@ -90,7 +95,7 @@ export class Browser extends EventEmitter {
        * should check here: if we are in `close` target state, we should clean up
        */
       if (this.state.target() !== 'open') {
-        throw new Error('init() finished but found state.target() is changed to close. has to quit().')
+        throw new Error('init() open() done, but state.target() is set to close after that. has to quit().')
       }
 
       this.state.current('open')
@@ -100,9 +105,7 @@ export class Browser extends EventEmitter {
     } catch (e) {
       log.error('PuppetWebBrowser', 'init() exception: %s', e.message)
 
-      // this.state.current('close', false)
       await this.quit()
-      // this.state.current('close')
 
       throw e
     }
@@ -155,12 +158,15 @@ export class Browser extends EventEmitter {
       throw e
     }
 
+    this.state.target('close')
     this.state.current('close', false)
 
     try {
-      await this.driver.close().catch(e => { /* fail safe */ }) // http://stackoverflow.com/a/32341885/1123955
+      await this.driver.close()
+                      .catch(e => { /* fail safe */ }) // http://stackoverflow.com/a/32341885/1123955
       log.silly('PuppetWebBrowser', 'quit() driver.close() done')
       await this.driver.quit()
+                      .catch( e => log.error('PuppetWebBrowser', 'quit() this.driver.quit() exception %s', e.message))
       log.silly('PuppetWebBrowser', 'quit() driver.quit() done')
 
       /**
@@ -169,10 +175,13 @@ export class Browser extends EventEmitter {
        * because there will be more than one instance of browser with the same nodejs process id
        *
        */
-      await this.clean()
+      try {
+        await this.clean()
+      } catch (e) {
+        await this.clean(true)
+      }
 
     } catch (e) {
-      // console.log(e)
       // log.warn('PuppetWebBrowser', 'err: %s %s %s %s', e.code, e.errno, e.syscall, e.message)
       log.warn('PuppetWebBrowser', 'quit() exception: %s', e.message)
 
@@ -194,9 +203,27 @@ export class Browser extends EventEmitter {
     return
   }
 
-  public clean(): Promise<void> {
-    const max = 30
+  public async clean(kill = false): Promise<void> {
+    log.verbose('PuppetWebBrowser', 'clean(kill=%s)', kill)
+
+    const max = 15
     const backoff = 100
+
+    /**
+     * issue #86 to kill orphan browser process
+     */
+    if (kill) {
+      const pidList = await this.getBrowserPidList()
+      log.verbose('PuppetWebBrowser', 'clean() %d browsers will be killed', pidList.length)
+
+      pidList.forEach(pid => {
+        try {
+          process.kill(pid, 'SIGKILL')
+        } catch (e) {
+          log.warn('PuppetWebBrowser', 'clean(kill=true) process.kill(%d, SIGKILL) exception: %s', pid, e.message)
+        }
+      })
+    }
 
     /**
      * max = (2*totalTime/backoff) ^ (1/2)
@@ -205,37 +232,33 @@ export class Browser extends EventEmitter {
      */
     const timeout = max * (backoff * max) / 2
 
-    return retryPromise({ max: max, backoff: backoff }, attempt => {
+    return retryPromise({max, backoff}, async attempt => {
       log.silly('PuppetWebBrowser', 'clean() retryPromise: attempt %s time for timeout %s'
                                   , attempt,  timeout
       )
-
-      return new Promise((resolve, reject) => {
-        this.getBrowserPids()
-        .then(pids => {
-          if (pids.length === 0) {
-            log.verbose('PuppetWebBrowser', 'clean() retryPromise() resolved')
-            resolve('clean() browser process not found, at attemp#' + attempt)
-          } else {
-            reject(new Error('clean() found browser process, not clean, dirty'))
-          }
-        })
-        .catch(e => reject(e))
-      })
-    })
-    .catch(e => {
-      log.error('PuppetWebBrowser', 'retryPromise failed: %s', e.message)
-      throw e
+      const pidList = await this.getBrowserPidList()
+      if (pidList.length > 0) {
+        throw new Error('browser number: ' + pidList.length)
+      }
     })
   }
 
-  public getBrowserPids(): Promise<string[]> {
-    log.silly('PuppetWebBrowser', 'getBrowserPids()')
+  public getBrowserPidList(): Promise<number[]> {
+    log.verbose('PuppetWebBrowser', 'getBrowserPidList()')
 
     const head = this.setting.head
 
     return new Promise((resolve, reject) => {
-      require('ps-tree')(process.pid, (err, children) => {
+      /**
+       * Reject
+       */
+      const timer = setTimeout(() => {
+        const e = new Error('clean() psTree() timeout.')
+        log.error('PuppetWebBrowser', e.message)
+        reject(e)
+      }, 10 * 1000)
+
+      psTree(process.pid, (err, children) => {
         if (err) {
           reject(err)
           return
@@ -258,12 +281,20 @@ export class Browser extends EventEmitter {
         }
 
         let matchRegex = new RegExp(browserRe, 'i')
-        const pids: string[] = children.filter(child => {
-          log.silly('PuppetWebBrowser', 'getBrowserPids() child: %s', JSON.stringify(child))
+        const pids: number[] = children.filter(child => {
           // https://github.com/indexzero/ps-tree/issues/18
-          return matchRegex.test('' + child.COMMAND + child.COMM)
+          if (matchRegex.test('' + child.COMMAND + child.COMM)) {
+            log.silly('PuppetWebBrowser', 'getBrowserPids() child: %s', JSON.stringify(child))
+            return true
+          }
+          return false
+
         }).map(child => child.PID)
 
+        /**
+         * Resolve
+         */
+        clearTimeout(timer)
         resolve(pids)
         return
       })
@@ -279,13 +310,17 @@ export class Browser extends EventEmitter {
                                 )
             )
     // log.verbose('PuppetWebBrowser', `Browser.execute() driver.getSession: %s`, util.inspect(this.driver.getSession()))
-    if (this.dead()) { throw new Error('browser dead') }
+    if (this.dead()) {
+      const e = new Error('Browser.execute() browser dead')
+      log.warn('PuppetWebBrowser', 'execute() this.dead() %s', e.stack)
+      throw e
+    }
 
     try {
       return await this.driver.executeScript.apply(this.driver, arguments)
     } catch (e) {
       // this.dead(e)
-      log.verbose('PuppetWebBrowser', 'execute() script: %s', script)
+      log.silly('PuppetWebBrowser', 'execute() script: %s', script)
       log.warn('PuppetWebBrowser', 'execute() exception: %s, %s', e.message.substr(0, 99), e.stack)
       throw e
     }
@@ -335,9 +370,22 @@ export class Browser extends EventEmitter {
     return false // browser not ok, dead
   }
 
-  public dead(forceReason?: string): boolean {
+  public dead(forceReason?: any): boolean {
     // too noisy!
     // log.silly('PuppetWebBrowser', 'dead() checking ... ')
+
+    if ( this.state.target() === 'close'
+      || this.state.current() === 'close'
+      // || this.state.inprocess()
+    ) {
+      log.verbose('PuppetWebBrowser', 'dead() state target(%s) current(%s) stable(%s)'
+                                  , this.state.target()
+                                  , this.state.current()
+                                  , this.state.stable()
+      )
+      log.verbose('PuppetWebBrowser', 'dead() browser is in dead state')
+      return true
+    }
 
     let msg
     let dead = false
@@ -345,9 +393,8 @@ export class Browser extends EventEmitter {
     if (forceReason) {
       dead = true
       msg = forceReason
-    } else if (this.state.target() !== 'open') {
-      dead = true
-      msg = 'state.target() not open'
+      log.verbose('PuppetWebBrowser', 'dead(forceReason=%s) %s', forceReason, new Error().stack)
+
     } else if (!this.driver) { // FIXME: this.driver is BrowserDriver, should add a method to check if availble 201610
       dead = true
       msg = 'no driver or session'
@@ -377,8 +424,9 @@ export class Browser extends EventEmitter {
     return dead
   }
 
-  public addCookie(cookies: CookieType[]):            Promise<void>
-  public addCookie(cookie:  CookieType):              Promise<void>
+  public addCookie(cookies: CookieType[]):  Promise<void>
+  public addCookie(cookie:  CookieType):    Promise<void>
+
   public addCookie(cookie:  CookieType|CookieType[]): Promise<void> {
     return this.cookie.add(cookie)
   }

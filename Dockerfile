@@ -31,19 +31,22 @@ WORKDIR /wechaty
 # https://github.com/giggio/node-chromedriver/issues/70
 COPY package.json .
 RUN  sed -i '/chromedriver/d' package.json \
-  && npm --progress=false install > /dev/null \
+  && npm --silent --progress=false install > /dev/null \
   && rm -fr /tmp/* ~/.npm
 
 # Loading from node_modules Folders: https://nodejs.org/api/modules.html
 # If it is not found there, then it moves to the parent directory, and so on, until the root of the file system is reached.
 COPY . .
 RUN  sed -i '/chromedriver/d' package.json \
-  && npm run build \
-  && npm --progress=false link \
+  && npm run dist \
+  && npm --silent --progress=false link \
   \
   && mkdir /bot \
-  && mkdir /node_modules \
-  && ln -s /wechaty /node_modules \
+  \
+  && (   mkdir /node_modules && cd /node_modules \
+      && ln -s /wechaty . \
+      && npm --progress=false install @types/node --silent >/dev/null \
+    ) \
   && ln -s /wechaty/tsconfig.json / \
   \
   && echo 'Linked wechaty to global'

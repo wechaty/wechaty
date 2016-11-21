@@ -70,7 +70,7 @@
     "semicolon": false,
     "switch-default": false,
     "trailing-comma": [
-      true,
+      false,
       {
         "multiline": "never",
         "singleline": "never"

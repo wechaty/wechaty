@@ -4,9 +4,15 @@ import {
   , log
 }                         from './src/config'
 import { Contact }        from './src/contact'
-import { FriendRequest }  from './src/friend-request'
+
+// ISSUE #70 import { FriendRequest }  from './src/friend-request'
+import { FriendRequest }  from './src/puppet-web/friend-request'
+
 import { IoClient }       from './src/io-client'
-import { Message }        from './src/message'
+import {
+    Message
+  , MsgType
+}                         from './src/message'
 import { Puppet }         from './src/puppet'
 import { PuppetWeb }      from './src/puppet-web/'
 import { Room }           from './src/room'
@@ -21,6 +27,7 @@ export {
   , FriendRequest
   , IoClient
   , Message
+  , MsgType
   , Puppet
   , PuppetWeb
   , Room
@@ -30,4 +37,6 @@ export {
   , Wechaty
   , log // for convenionce use npmlog with environment variable LEVEL
 }
+
+export default Wechaty
 

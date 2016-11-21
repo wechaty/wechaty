@@ -6,7 +6,7 @@
  *
  */
 import { test } from 'ava'
-import { PuppetWeb } from '../'
+import { PuppetWeb } from './puppet-web'
 
 test('Puppet smoking test', t => {
   const p = new PuppetWeb()

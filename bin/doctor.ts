@@ -11,8 +11,8 @@ import * as os from 'os'
 
 import {
     Config
-  , Wechaty
-} from '../'
+}                   from '../src/config'
+import { Wechaty }  from '../src/wechaty'
 
 const wechaty = Wechaty.instance()
 

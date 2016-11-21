@@ -1,7 +1,7 @@
 {
   "name": "wechaty",
-  "version": "0.5.1",
-  "description": "Wechat for Bot (Personal Account)",
+  "version": "0.6.25",
+  "description": "Wechat for Bot(Personal Account)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "wechaty": {
@@ -16,35 +16,37 @@
   },
   "scripts": {
     "ts-node": "ts-node",
-    "build": "tsc && shx cp package.json dist/ && shx cp src/puppet-web/*.js dist/src/puppet-web/",
-    "rebuild": "npm run clean && npm run build",
-    "coveralls": "nyc report --reporter=text-lcov | coveralls",
+    "dist": "tsc && shx cp package.json dist/ && shx cp src/puppet-web/*.js dist/src/puppet-web/",
+    "redist": "npm run clean && npm run dist",
+    "coverage": "nyc report --reporter=text-lcov | coveralls",
     "doctor": "ts-node bin/doctor",
     "clean": "shx rm -fr dist/*",
     "lint": "npm run eslint && npm run tslint",
-    "eslint": "eslint \"{bin,example,src,test}/**/*.js\"",
-    "tslint": "tslint \"{bin,example,src,test}/**/*.ts\" && tsc --noEmit",
+    "nycava": "WECHATY_HEAD=chrome nyc ava --serial --fail-fast --verbose --timeout=3m \"dist/{src,test}/**/*.spec.js\"",
+    "eslint": "eslint \"{bin,example,src,test}/**/*.js\" --ignore-pattern=\"test/fixture/**\"",
+    "tslint": "tslint \"{bin,example,src,test}/**/*.ts\" --exclude=\"test/fixture/**\" && tsc --noEmit",
     "shlint": "bash -n bin/*.sh",
-    "pretest": "npm run clean && npm run lint && npm run build",
+    "pretest": "npm run clean && npm run lint && npm run dist",
     "sloc": "sloc bin example src test index.ts --details --format cli-table --keys total,source,comment && sloc bin example src test index.ts",
     "test": "npm run test:chrome",
     "posttest": "npm run clean && npm run sloc",
-    "test:phantomjs": "cross-env LC_ALL=C WECHATY_LOG=info WECHATY_HEAD=phantomjs ava --timeout=7m \"dist/test/*.spec.js\"",
-    "test:phantomjs.bak": "cross-env LC_ALL=C WECHATY_LOG=info WECHATY_HEAD=phantomjs ava --timeout=7m \"dist/{src,test}/**/*.spec.js\"",
-    "test:chrome": "cross-env LC_ALL=C WECHATY_LOG=verbose WECHATY_HEAD=chrome ava --serial --fail-fast --verbose --ext js --timeout=7m \"dist/{src,test}/**/*.spec.js\"",
-    "testdev": "cross-env LC_ALL=C WECHATY_LOG=silly ava --ext ts --serial --verbose --fail-fast --timeout=3m",
+    "test:phantomjs": "cross-env LC_ALL=C WECHATY_HEAD=phantomjs ava --verbose --fail-fast --serial --timeout=3m \"dist/{src,test}/**/*.spec.js\"",
+    "test:chrome": "cross-env LC_ALL=C WECHATY_HEAD=chrome ava --serial --fail-fast --verbose --timeout=3m \"dist/{src,test}/**/*.spec.js\"",
+    "test:chrome:fast": "cross-env LC_ALL=C WECHATY_HEAD=chrome ava --fail-fast --timeout=3m \"dist/{src,test}/**/*.spec.js\"",
+    "testdev": "cross-env LC_ALL=C WECHATY_LOG=silly ava --ext ts --serial --verbose --fail-fast --timeout=2m",
     "testdist": "cross-env WECHATY_LOG=SILLY WECHATY_HEAD=chrome ava --ext ts --verbose --fail-fast --timeout=2m",
-    "ava": "cross-env LC_ALL=C WECHATY_LOG=verbose node_modules/.bin/ava --ext js",
-    "start": "ts-node bin/client",
+    "ava": "cross-env LC_ALL=C WECHATY_LOG=verbose node_modules/.bin/ava",
+    "io-client": "ts-node bin/io-client",
     "dev": "ts-node dev.ts",
-    "demo": "ts-node example/ding-dong-bot.ts"
+    "demo": "ts-node example/ding-dong-bot.ts",
+    "start": "npm run demo"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/wechaty/wechaty.git"
   },
   "bin": {
-    "wechaty-client": "dist/bin/client.js",
+    "wechaty-io-client": "dist/bin/io-client.js",
     "wechaty-doctor": "dist/bin/doctor.js",
     "wechaty-version": "dist/bin/version.js"
   },
@@ -86,16 +88,17 @@
     }
   },
   "engines": {
-    "node": ">= 6.0.0"
+    "node": ">= 6.9.0"
   },
   "dependencies": {
     "arrify": "^1.0.1",
     "body-parser": "^1.15.2",
     "brolog": "^0.3.10",
-    "chromedriver": "^2.24.1",
+    "chromedriver": "^2.25.1",
     "express": "^4.13.4",
     "is-ci": "^1.0.9",
     "phantomjs-prebuilt": "^2.1.13",
+    "is-docker": "^1.1.0",
     "ps-tree": "^1.0.1",
     "retry-promise": "^1.0.0",
     "selenium-webdriver": "^3.0.0",
@@ -118,7 +121,7 @@
     "coveralls": "^2.11.14",
     "cross-env": "^2.0.0",
     "eslint": "^3.4.0",
-    "eslint-plugin-ava": "^3.0.0",
+    "eslint-plugin-ava": "^3.1.1",
     "nyc": "^8.3.2",
     "qrcode-terminal": "^0.10.0",
     "shx": "^0.1.4",
@@ -142,5 +145,8 @@
     "bin/",
     "dist/",
     "src/"
-  ]
+  ],
+  "publishConfig": {
+    "tag": "next"
+  }
 }

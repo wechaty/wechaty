@@ -10,14 +10,9 @@ import { test } from 'ava'
 import * as https from 'https'
 import * as sinon from 'sinon'
 
-import {
-    UtilLib
-  , log
-}             from '../../'
-
-import {
-  Server
-}             from '../../src/puppet-web/'
+import { Server }   from '../../src/puppet-web/'
+import { UtilLib }  from '../../src/util-lib'
+import { log }      from '../../src/config'
 
 test('create & close', async t => {
   const port = await UtilLib.getPort(18788)

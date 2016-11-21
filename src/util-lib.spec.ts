@@ -5,12 +5,11 @@
  * https://github.com/wechaty/wechaty
  *
  */
-import { test } from 'ava'
-import {
-  UtilLib
-}  from '../'
+import { test }       from 'ava'
+import * as express   from 'express'
 
-import * as express  from 'express'
+import { UtilLib }  from './util-lib'
+
 // import * as http     from 'http'
 
 test('stripHtml()', t => {
@@ -111,7 +110,7 @@ test('downloadStream() for media', t => {
   })
   server.listen(8000)
 
-  UtilLib.downloadStream('http://127.0.0.1:8000/ding', [{name: 'life', value: 42}])
+  UtilLib.urlStream('http://127.0.0.1:8000/ding', [{name: 'life', value: 42}])
         .then(s => {
           s.on('data', (chunk) => {
             // console.log(`BODY: ${chunk}`)

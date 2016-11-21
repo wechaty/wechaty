@@ -22,9 +22,11 @@ test('quit()', async t => {
 
   t.throws(browser.quit(), Error, 'should throw on an un-inited browser')
 
+  browser.state.target('open')
   browser.state.current('open', false)
   t.notThrows(browser.quit(), 'should not throw exception when call quit() on an `inprocess` `open` state browser')
 
+  browser.state.target('close')
   browser.state.current('close')
   t.throws(browser.quit(), Error, 'should throw exception when call quit() twice on browser')
 
@@ -32,6 +34,7 @@ test('quit()', async t => {
 
 test('init()', async t => {
   const browser = new Browser()
+  browser.state.target('open')
 
   browser.state.current('open')
   t.throws(browser.init(), Error, 'should throw exception when call init() on an `open` state browser')

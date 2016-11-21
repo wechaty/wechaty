@@ -236,25 +236,21 @@
      */
     var contentChatScope  = rootScope.$new()
     injector.get('$controller')('contentChatController', {$scope: contentChatScope })
-    /*
-    s =
-
-    */
 
     // get all we need from wx in browser(angularjs)
     WechatyBro.glue = {
       injector:       injector
       , http:         http
-      , mmHttp
-      , state
+      , mmHttp:       mmHttp
+      , state:        state
 
-      , accountFactory: accountFactory
-      , chatroomFactory
-      , chatFactory:    chatFactory
-      , confFactory:    confFactory
-      , contactFactory: contactFactory
-      , emojiFactory
-      , loginFactory:   loginFactory
+      , accountFactory:  accountFactory
+      , chatroomFactory: chatroomFactory
+      , chatFactory:     chatFactory
+      , confFactory:     confFactory
+      , contactFactory:  contactFactory
+      , emojiFactory:    emojiFactory
+      , loginFactory:    loginFactory
 
       , rootScope:    rootScope
       , appScope:     appScope
@@ -320,7 +316,9 @@
     log('logout(' + data + ')')
     WechatyBro.vars.loginStatus = false
     // WechatyBro.emit('logout', data)
-    WechatyBro.glue.loginFactory.loginout()
+    if (WechatyBro.glue.loginFactory) {
+      WechatyBro.glue.loginFactory.loginout()
+    }
     checkScan()
   }
   function quit() {
@@ -395,15 +393,51 @@
   /**
    *
    * Help Functions which Proxy to WXAPP AngularJS Scope & Factory
-   *
+   *  getMsgImg(message.MsgId,'slave')
+   *  getMsgImg(message.MsgId,'big',message)
    */
-  function getMsgImg(id) {
+  function getMsgImg(id, type, message) {
     var contentChatScope = WechatyBro.glue.contentChatScope
     if (!contentChatScope) {
       throw new Error('getMsgImg() contentChatScope not found')
     }
     var location = window.location.href.replace(/\/$/, '')
-    var path = contentChatScope.getMsgImg(id)
+    var path = contentChatScope.getMsgImg(id, type, message)
+    return location + path
+  }
+
+  function getMsgEmoticon(id) {
+    var chatFactory = WechatyBro.glue.chatFactory
+
+    var message = chatFactory.getMsg(id)
+    return message.MMPreviewSrc || getMsgImg(message.MsgId,'big',message)  || message.MMThumbSrc
+  }
+
+  function getMsgVideo(id) {
+    var contentChatScope = WechatyBro.glue.contentChatScope
+    if (!contentChatScope) {
+      throw new Error('getMsgVideo() contentChatScope not found')
+    }
+    var location = window.location.href.replace(/\/$/, '')
+    var path = contentChatScope.getMsgVideo(id)
+    return location + path
+  }
+
+  /**
+   * from playVoice()
+   */
+  function getMsgVoice(id) {
+    var confFactory     = WechatyBro.glue.confFactory
+    var accountFactory  = WechatyBro.glue.accountFactory
+
+    var location = window.location.href.replace(/\/$/, '')
+    var path = confFactory.API_webwxgetvoice + "?msgid=" + id + "&skey=" + accountFactory.getSkey()
+    return location + path
+  }
+
+  function getMsgPublicLinkImg(id) {
+    var location = window.location.href.replace(/\/$/, '')
+    var path = '/cgi-bin/mmwebwx-bin/webwxgetpubliclinkimg?url=xxx&msgid=' + id + '&pictype=location'
     return location + path
   }
 
@@ -451,17 +485,17 @@
        * try to find in room's member list for this `id`, and return the contact info, if any.
        */
       c = Object.keys(_contacts)
-                .filter(id => id.match(/^@@/))      // only search in room
-                .map(id => _contacts[id])           // map to room array
-                .filter(r => r.MemberList.length)   // get rid of room without member list
-                .filter(r => r.MemberList
-                              .filter(m => m.UserName === id)
-                              .length
-                )
-                .map(c => c.MemberList
-                            .filter(m => m.UserName === id)
-                            [0]
-                )
+                .filter(function(id) { return id.match(/^@@/) })    // only search in room
+                .map(function(id) { return _contacts[id] })         // map to room array
+                .filter(function(r) { return r.MemberList.length }) // get rid of room without member list
+                .filter(function(r) { return r.MemberList
+                                              .filter(function(m) { return m.UserName === id })
+                                              .length
+                })
+                .map(function(c) { return c.MemberList
+                                           .filter(function(m) { return m.UserName === id })
+                                           [0]
+                })
                 [0]
 
       if (c) {
@@ -487,7 +521,7 @@
   }
 
   function contactFindAsync(filterFunction) {
-    const callback = arguments[arguments.length - 1]
+    var callback = arguments[arguments.length - 1]
     if (typeof callback !== 'function') {
       // here we should in sync mode, because there's no callback
       throw new Error('async method need to be called via webdriver.executeAsyncScript')
@@ -505,11 +539,13 @@
     return retryFind(0)
 
     // retry 3 times, sleep 300ms between each time
-    function retryFind(attempt = 0) {
-      const contactList = contactFactory
-                            .getAllFriendContact()
-                            .filter(c => match(c.NickName))
-                            .map(c => c.UserName)
+    function retryFind(attemp) {
+      attempt = attempt || 0;
+
+      var contactList = contactFactory
+                          .getAllFriendContact()
+                          .filter(function(c) { return match(c.NickName) })
+                          .map(function(c) { return c.UserName })
 
       if (contactList && contactList.length) {
         callback(contactList)
@@ -517,14 +553,14 @@
         callback([])
       } else {
         attempt++
-        setTimeout(_ => retryFind(attempt), 300)
+        setTimeout(function() { return retryFind(attempt) }, 300)
       }
 
     }
   }
 
   function contactRemarkAsync(UserName, remark) {
-    const callback = arguments[arguments.length - 1]
+    var callback = arguments[arguments.length - 1]
     if (typeof callback !== 'function') {
       // here we should in sync mode, because there's no callback
       throw new Error('async method need to be called via webdriver.executeAsyncScript')
@@ -566,17 +602,17 @@
     }
     // log(match.toString())
     return contactFactory.getAllChatroomContact()
-                          .filter(r => match(r.NickName))
-                          .map(r => r.UserName)
+                         .filter(function(r) { return match(r.NickName) })
+                         .map(function(r) { return r.UserName })
   }
 
   function roomDelMember(ChatRoomName, UserName) {
-    const chatroomFactory = WechatyBro.glue.chatroomFactory
+    var chatroomFactory = WechatyBro.glue.chatroomFactory
     return chatroomFactory.delMember(ChatRoomName, UserName)
   }
 
   function roomAddMember(ChatRoomName, UserName) {
-    const chatroomFactory = WechatyBro.glue.chatroomFactory
+    var chatroomFactory = WechatyBro.glue.chatroomFactory
     // XXX
     // log(ChatRoomName)
     // log(UserName)
@@ -584,23 +620,23 @@
   }
 
   function roomModTopic(ChatRoomName, topic) {
-    const chatroomFactory = WechatyBro.glue.chatroomFactory
+    var chatroomFactory = WechatyBro.glue.chatroomFactory
     return chatroomFactory.modTopic(ChatRoomName, topic)
   }
 
   function roomCreateAsync(UserNameList, topic) {
-    const callback = arguments[arguments.length - 1]
+    var callback = arguments[arguments.length - 1]
     if (typeof callback !== 'function') {
       // here we should in sync mode, because there's no callback
       throw new Error('async method need to be called via webdriver.executeAsyncScript')
     }
 
-    const UserNameListArg = UserNameList.map(n => { return { UserName: n } })
+    var UserNameListArg = UserNameList.map(function(n) { return { UserName: n } })
 
-    const chatroomFactory = WechatyBro.glue.chatroomFactory
-    const state           = WechatyBro.glue.state
+    var chatroomFactory = WechatyBro.glue.chatroomFactory
+    var state           = WechatyBro.glue.state
     chatroomFactory.create(UserNameListArg)
-                    .then(r => {
+                    .then(function(r) {
                       if (r.BaseResponse && 0 == r.BaseResponse.Ret || -2013 == r.BaseResponse.Ret) {
                         state.go('chat', { userName: r.ChatRoomName }) // BE CAREFUL: key name is userName, not UserName! 20161001
                         // if (topic) {
@@ -618,7 +654,7 @@
                                       )
                       }
                     })
-                    .catch(e => {
+                    .catch(function(e) {
                       // Async can only return by call callback
                       callback(
                         JSON.parse(
@@ -631,18 +667,20 @@
                     })
   }
 
-  function verifyUserRequest(UserName, VerifyContent = '') {
-    var contactFactory  = WechatyBro.glue.contactFactory
-    var confFactory     = WechatyBro.glue.confFactory
+  function verifyUserRequest(UserName, VerifyContent) {
+    VerifyContent = VerifyContent || '';
+
+    var contactFactory = WechatyBro.glue.contactFactory
+    var confFactory = WechatyBro.glue.confFactory
 
     var Ticket = '' // what's this?
 
     contactFactory.verifyUser({
-        UserName
-        , Opcode: confFactory.VERIFYUSER_OPCODE_SENDREQUEST
-        , Scene: confFactory.ADDSCENE_PF_WEB
-        , Ticket
-        , VerifyContent
+      UserName:        UserName
+      , Opcode:        confFactory.VERIFYUSER_OPCODE_SENDREQUEST
+      , Scene:         confFactory.ADDSCENE_PF_WEB
+      , Ticket:        Ticket
+      , VerifyContent: VerifyContent
     })
     .then(function() {  // succ
       // alert('ok')
@@ -658,10 +696,10 @@
     var confFactory     = WechatyBro.glue.confFactory
 
     contactFactory.verifyUser({
-        UserName
-        , Opcode: confFactory.VERIFYUSER_OPCODE_VERIFYOK
-        , Scene: confFactory.ADDSCENE_PF_WEB
-        , Ticket
+      UserName:   UserName
+      , Opcode:   confFactory.VERIFYUSER_OPCODE_VERIFYOK
+      , Scene:    confFactory.ADDSCENE_PF_WEB
+      , Ticket:   Ticket
     }).then(function() {  // succ
       // alert('ok')
       log('friendVerify(' + UserName + ', ' + Ticket + ') done')
@@ -732,24 +770,28 @@
     , emit: emit  // send event to server
     , logout: logout // logout current logined user
 
-    , getContact: getContact
-    , getUserName: getUserName
-    , getMsgImg: getMsgImg
+    , getContact:          getContact
+    , getUserName:         getUserName
+    , getMsgImg:           getMsgImg
+    , getMsgEmoticon:      getMsgEmoticon
+    , getMsgVideo:         getMsgVideo
+    , getMsgVoice:         getMsgVoice
+    , getMsgPublicLinkImg: getMsgPublicLinkImg
 
     // for Wechaty Contact Class
-    , contactFindAsync
-    , contactRemarkAsync
+    , contactFindAsync:   contactFindAsync
+    , contactRemarkAsync: contactRemarkAsync
 
     // for Wechaty Room Class
-    , roomCreateAsync
-    , roomFind
-    , roomAddMember
-    , roomDelMember
-    , roomModTopic
+    , roomCreateAsync: roomCreateAsync
+    , roomFind:        roomFind
+    , roomAddMember:   roomAddMember
+    , roomDelMember:   roomDelMember
+    , roomModTopic:    roomModTopic
 
     // for Friend Request
-    , verifyUserRequest
-    , verifyUserOk
+    , verifyUserRequest: verifyUserRequest
+    , verifyUserOk:      verifyUserOk
     // , friendAdd
     // , friendVerify
 

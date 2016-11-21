@@ -11,6 +11,7 @@ optRm='--rm'
 [ -n "$CIRCLECI" ] && optRm='--rm=false'
 
 declare -i ret=0
+
 case "$1" in
   build | '')
     echo docker build "$optRm" -t "$imageName" .
@@ -19,23 +20,26 @@ case "$1" in
     ;;
 
   test)
-    echo docker run -ti "$optRm" -v /dev/shm:/dev/shm -v "$(pwd)":/bot "$imageName" test/docker-bot/js-bot.js
-    docker run -ti "$optRm" -v /dev/shm:/dev/shm -v "$(pwd)":/bot "$imageName" test/docker-bot/js-bot.js
+    echo "bats test/"
+    IMAGE_NAME="$imageName" bats test/
 
-    echo docker run -ti "$optRm" -v /dev/shm:/dev/shm -v "$(pwd)":/bot "$imageName" test/docker-bot/ts-bot.ts
-    docker run -ti "$optRm" -v /dev/shm:/dev/shm -v "$(pwd)":/bot "$imageName" test/docker-bot/ts-bot.ts
-
-    echo docker run -ti "$optRm" -v /dev/shm:/dev/shm "$imageName" "$@"
-    exec docker run -ti "$optRm" -v /dev/shm:/dev/shm "$imageName" "$@"
+    echo docker run -ti "$optRm" -v /dev/shm:/dev/shm "$imageName" test
+    exec docker run -ti "$optRm" -v /dev/shm:/dev/shm "$imageName" test
     ret=$?
     ;;
-    
+
+  clean)
+    docker ps -a | grep Exited | awk '{print $1}' | xargs docker rm || true
+    docker images | grep none | awk '{print $3}' | xargs docker rmi
+    ;;
+
   *)
     echo docker run -ti "$optRm" -v /dev/shm:/dev/shm "$imageName" "$@"
     exec docker run -ti "$optRm" -v /dev/shm:/dev/shm "$imageName" "$@"
-    ret=$?
     ;;
 esac
 
-echo "ERROR: exec return $ret ???"
-exit $ret
+[ "$ret" -ne 0 ] && {
+  echo "ERROR: exec return $ret ???"
+  exit $ret
+}

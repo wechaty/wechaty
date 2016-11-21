@@ -8,28 +8,14 @@
 import { test } from 'ava'
 
 import {
-    Config
-  , PuppetWeb
-  , Message
-  , log
-} from '../../'
-
-import {
-  Server
-} from '../../src/puppet-web/'
+  Config,
+  log,
+}                     from '../../src/config'
+// import { Message }    from '../../src/message'
+import { PuppetWeb }  from '../../src/puppet-web'
+import { Server }     from '../../src/puppet-web/server'
 
 // import { spy } from 'sinon'
-
-test('@deprecated Puppet Web Self Message Identification', t => {
-  const p = new PuppetWeb()
-  t.truthy(p, 'should instantiated a PuppetWeb')
-
-  const EXPECTED_USER_ID = 'zixia'
-  const m = new Message()
-  m.from(EXPECTED_USER_ID)
-  p.userId = EXPECTED_USER_ID
-  t.truthy(p.self(m), 'should identified self for message which from is self')
-})
 
 /**
  * the reason why use `test.serial` here is:

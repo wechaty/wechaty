@@ -141,7 +141,7 @@ class Talker extends EventEmitter {
 }
 
 /* tslint:disable:variable-name */
-let Talkers: Talker[] = []
+let talkerList: Talker[] = []
 
 function talk(m) {
   const fromId  = m.from().id
@@ -149,15 +149,15 @@ function talk(m) {
   const content = m.content()
 
   const talkerName = fromId + roomId
-  if (!Talkers[talkerName]) {
-    Talkers[talkerName] = new Talker(function(text) {
+  if (!talkerList[talkerName]) {
+    talkerList[talkerName] = new Talker(function(text) {
       return brain.ask(text, {userid: talkerName})
       .then(r => {
         log.info('Tuling123', 'Talker reply:"%s" for "%s" ', r.text, text)
         return r.text
       })
     })
-    Talkers[talkerName].on('say', reply => bot.reply(m, reply))
+    talkerList[talkerName].on('say', reply => m.say(reply))
   }
-  Talkers[talkerName].hear(content)
+  talkerList[talkerName].hear(content)
 }

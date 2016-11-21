@@ -179,10 +179,9 @@ export class IoClient {
     //               , from.name()
     //               , m.toStringDigest()
     //         )
-    const puppet = Config.puppetInstance()
 
     if (/^wechaty|botie/i.test(m.content()) && !m.self()) {
-      puppet.reply(m, 'https://www.wechaty.io')
+      m.say('https://www.wechaty.io')
         .then(_ => this.log.info('Bot', 'REPLIED to magic word "wechaty"'))
     }
   }

@@ -22,8 +22,8 @@ const ApiAi = require('apiai')
 import { EventEmitter } from 'events'
 
 import {
-  // Room
-  Wechaty
+    Config
+  , Wechaty
 } from '..'
 
 // log.level = 'verbose'
@@ -37,7 +37,7 @@ import {
 const APIAI_API_KEY = '7217d7bce18c4bcfbe04ba7bdfaf9c08'
 const brainApiAi = ApiAi(APIAI_API_KEY)
 
-const bot = Wechaty.instance({ profile: 'example-bot.wechaty.json' })
+const bot = Wechaty.instance({ profile: Config.DEFAULT_PROFILE })
 
 console.log(`
 Welcome to api.AI Wechaty Bot.
@@ -184,7 +184,7 @@ function talk(m) {
         .end()
       })
     })
-    Talkers[talkerName].on('say', reply => bot.reply(m, reply))
+    Talkers[talkerName].on('say', reply => m.say(reply))
   }
   Talkers[talkerName].hear(content)
 }

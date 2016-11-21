@@ -15,9 +15,9 @@
 /**
  *
  * create a room need at least three people
- * when we create a room, this is the 3rd people.
+ * when we create a room, the following one is the 3rd people.
  *
- * put name of one of your friend here, or create room will not work.
+ * put name of one of your friend here, or room create function will not work.
  *
  * ::::::::: ___CHANGE ME___ :::::::::
  *                           vvvvvvvvv

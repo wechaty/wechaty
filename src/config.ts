@@ -3,8 +3,8 @@
  *
  * https://github.com/wechaty/wechaty/
  */
-import { execSync } from 'child_process'
-import * as fs from 'fs'
+const isCi      = require('is-ci')
+const isDocker  = require('is-docker')
 
 import { Puppet } from './puppet'
 import { log }    from './brolog-env'
@@ -96,7 +96,6 @@ function isWechatyDocker() {
   /**
    * Continuous Integration System
    */
-  const isCi = require('is-ci')
   if (isCi) {
     return false
   }
@@ -111,21 +110,7 @@ function isWechatyDocker() {
     return false
   }
 
-  const cgroup = '/proc/1/cgroup'
-  try       { fs.statSync(cgroup).isFile() }
-  catch (e) { return false }
-
-  // http://stackoverflow.com/a/20624315/1123955
-  const line = execSync(`sort -n ${cgroup} 2>/dev/null | head -1`)
-                .toString()
-                .replace(/\n$/, '')
-
-  // instead of `/`, docker will end with a container id
-  if (/\/$/.test(line)) {
-    return false
-  }
-
-  return true
+  return isDocker()
 }
 
 /**
@@ -138,20 +123,19 @@ function puppetInstance(instance: Puppet): void
 function puppetInstance(instance?: Puppet | null): Puppet | void {
 
   if (instance === undefined) {
-    if (!global['_puppetInstance']) {
+    if (!this._puppetInstance) {
       throw new Error('no puppet instance')
     }
-    return global['_puppetInstance']
+    return this._puppetInstance
 
   } else if (instance === null) {
     log.verbose('Config', 'puppetInstance(null)')
-    global['_puppetInstance'] = null
+    this._puppetInstance = null
     return
-
   }
 
   log.verbose('Config', 'puppetInstance(%s)', instance.constructor.name)
-  global['_puppetInstance'] = instance
+  this._puppetInstance = instance
   return
 
 }
@@ -175,12 +159,18 @@ export type ScanInfo = {
   code: number
 }
 
+/**
+ * from Message
+ */
 export type RecommendInfo = {
   UserName:   string
-  NickName:   string
-  Content:    string // request message
-  Ticket:     string // a pass token
+  NickName:   string  // display_name
+  Content:    string  // request message
+  HeadImgUrl: string  // message.RecommendInfo.HeadImgUrl
+
+  Ticket:     string  // a pass token
   VerifyFlag: number
+
 }
 
 export interface Sayable {
@@ -199,4 +189,14 @@ export interface Sleepable {
  */
 process.env['SELENIUM_PROMISE_MANAGER'] = 0
 
-export { log }
+/**
+ * to count how many times this piece of code is instanciaed
+ */
+if (!global['WECHATY_CONFIG_INSTANCE_COUNTER']) {
+  global['WECHATY_CONFIG_INSTANCE_COUNTER'] = 0
+}
+global['WECHATY_CONFIG_INSTANCE_COUNTER']++
+
+export {
+  log
+}

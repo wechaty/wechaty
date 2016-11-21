@@ -70,22 +70,23 @@ export class Room extends EventEmitter implements Sayable {
     return !!(this.obj && this.obj.memberList && this.obj.memberList.length)
   }
 
-  public async refresh(): Promise<this> {
+  public async refresh(): Promise<void> {
     if (this.isReady()) {
       this.dirtyObj = this.obj
     }
     this.obj = null
-    return this.ready()
+    await this.ready()
+    return
   }
 
-  public async ready(contactGetter?: (id: string) => Promise<RoomRawObj>): Promise<this> {
+  public async ready(contactGetter?: (id: string) => Promise<any>): Promise<void> {
     log.silly('Room', 'ready(%s)', contactGetter ? contactGetter.constructor.name : '')
     if (!this.id) {
       const e = new Error('ready() on a un-inited Room')
       log.warn('Room', e.message)
-      return Promise.reject(e)
+      throw e
     } else if (this.isReady()) {
-      return Promise.resolve(this)
+      return
     } else if (this.obj && this.obj.id) {
       log.warn('Room', 'ready() has obj.id but memberList empty in room %s. reloading', this.obj.topic)
     }
@@ -109,7 +110,7 @@ export class Room extends EventEmitter implements Sayable {
       }
       await Promise.all(this.obj.memberList.map(c => c.ready(contactGetter)))
 
-      return this
+      return
 
     } catch (e) {
       log.error('Room', 'contactGetter(%s) exception: %s', this.id, e.message)
@@ -139,7 +140,11 @@ export class Room extends EventEmitter implements Sayable {
     return this
   }
 
-  public say(content: string, replyTo?: Contact|Contact[]): Promise<any> {
+  public say(content: string): Promise<any>
+  public say(content: string, replyTo: Contact): Promise<void>
+  public say(content: string, replyTo: Contact[]): Promise<void>
+
+  public say(content: string, replyTo?: Contact|Contact[]): Promise<void> {
     log.verbose('Room', 'say(%s, %s)'
                       , content
                       , Array.isArray(replyTo)
@@ -150,20 +155,16 @@ export class Room extends EventEmitter implements Sayable {
     const m = new Message()
     m.room(this)
 
-    if (!replyTo) {
-      m.content(content)
-      m.to(this)
-      return Config.puppetInstance()
-                    .send(m)
-    }
-
     const replyToList: Contact[] = arrify(replyTo)
-    let mentionList: string
 
-    m.to(replyToList[0])
-    mentionList = replyToList.map(c => '@' + c.name()).join(' ')
+    if (replyToList.length > 0) {
+      const mentionList = replyToList.map(c => '@' + c.name()).join(' ')
+      m.content(mentionList + ' ' + content)
+    } else {
+      m.content(content)
+    }
+    // m.to(replyToList[0])
 
-    m.content(mentionList + ' ' + content)
     return Config.puppetInstance()
                   .send(m)
   }
@@ -172,6 +173,7 @@ export class Room extends EventEmitter implements Sayable {
 
   private parse(rawObj: RoomRawObj): RoomObj | null {
     if (!rawObj) {
+      log.warn('Room', 'parse() on a empty rawObj?')
       return null
     }
     return {
@@ -285,15 +287,21 @@ export class Room extends EventEmitter implements Sayable {
 
   public topic(newTopic?: string): string | void {
     if (!this.isReady()) {
-      throw new Error('room not ready')
+      log.warn('Room', 'topic() room not ready')
     }
 
     if (newTopic) {
       log.verbose('Room', 'topic(%s)', newTopic)
-    }
-
-    if (newTopic) {
       Config.puppetInstance().roomTopic(this, newTopic)
+                              .catch(e => {
+                                log.warn('Room', 'topic(newTopic=%s) exception: %s',
+                                                  newTopic, e && e.message || e
+                                )
+                              })
+      if (!this.obj) {
+        this.obj = <RoomObj>{}
+      }
+      Object.assign(this.obj, { topic: newTopic })
       return
     }
     return UtilLib.plainText(this.obj ? this.obj.topic : '')
@@ -391,18 +399,18 @@ export class Room extends EventEmitter implements Sayable {
   public static async findAll(query: RoomQueryFilter): Promise<Room[]> {
     log.verbose('Room', 'findAll({ topic: %s })', query.topic)
 
-    const topic = query.topic
+    const topicFilter = query.topic
 
-    if (!topic) {
-      throw new Error('topic not found')
+    if (!topicFilter) {
+      throw new Error('topicFilter not found')
     }
 
     let filterFunction: string
 
-    if (topic instanceof RegExp) {
-      filterFunction = `c => ${topic.toString()}.test(c)`
-    } else if (typeof topic === 'string') {
-      filterFunction = `c => c === '${topic}'`
+    if (topicFilter instanceof RegExp) {
+      filterFunction = `(function (c) { return ${topicFilter.toString()}.test(c) })`
+    } else if (typeof topicFilter === 'string') {
+      filterFunction = `(function (c) { return c === '${topicFilter}' })`
     } else {
       throw new Error('unsupport topic type')
     }
@@ -422,11 +430,15 @@ export class Room extends EventEmitter implements Sayable {
     if (!roomList || roomList.length < 1) {
       throw new Error('no room found')
     }
-    return roomList[0].ready()
+    const room = roomList[0]
+    await room.ready()
+    return room
   }
 
-  public static load(id: string): Room | null {
-    if (!id) { return null }
+  public static load(id: string): Room {
+    if (!id) {
+      throw new Error('Room.load() no id')
+    }
 
     if (id in Room.pool) {
       return Room.pool[id]
