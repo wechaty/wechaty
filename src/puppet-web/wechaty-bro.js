@@ -539,7 +539,7 @@
     return retryFind(0)
 
     // retry 3 times, sleep 300ms between each time
-    function retryFind(attemp) {
+    function retryFind(attempt) {
       attempt = attempt || 0;
 
       var contactList = contactFactory
