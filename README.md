@@ -180,6 +180,26 @@ Know more about Projects Use Wechaty at [Wiki:PoweredByWechaty](https://github.c
 
 Howto [contribute](https://github.com/wechaty/wechaty/blob/master/CONTRIBUTING.md)
 
+Contributions in any form are highly encouraged and welcome! Be it new or improved presets, optimized streaming code or just some cleanup. So start forking!
+
+## Code Contributions
+
+If you want to add new features or change the API, please submit an issue first to make sure no one else is already working on the same thing and discuss the implementation and API details with maintainers and users by creating an issue. When everything is settled down, you can submit a pull request.
+
+When fixing bugs, you can directly submit a pull request.
+
+Make sure to add tests for your features and bugfixes and update the documentation (see below) before submitting your code!
+
+## Documentation Contributions
+
+You can directly submit pull requests for documentation changes.
+
+## Main Contributors
+
+* [JasLin](https://github.com/JasLin)
+* [cherry-geqi](https://github.com/cherry-geqi)
+* [lijiarui](https://github.com/lijiarui)
+
 # See Also
 
 * [RelatedProject](https://github.com/wechaty/wechaty/wiki/RelatedProject)
