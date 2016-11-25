@@ -39,6 +39,7 @@ export type RoomRawObj = {
   EncryChatRoomId:  string
   NickName:         string
   OwnerUin:         number
+  ChatRoomOwner:    string
   MemberList:       RoomRawMember[]
 }
 
@@ -337,9 +338,13 @@ export class Room extends EventEmitter implements Sayable {
     memberList = memberList.filter(m => m.get('uin') === ownerUin)
     if (memberList.length > 0) {
       return memberList[0]
-    } else {
-      return null
     }
+    
+    if(this.rawObj.ChatRoomOwner){
+      return Contact.load(this.rawObj.ChatRoomOwner)
+    }
+
+    return null
   }
 
   /**
