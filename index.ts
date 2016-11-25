@@ -1,7 +1,7 @@
 import {
-    Config
-  , Sayable
-  , log
+  Config,
+  Sayable,
+  log,
 }                         from './src/config'
 import { Contact }        from './src/contact'
 
@@ -10,8 +10,9 @@ import { FriendRequest }  from './src/puppet-web/friend-request'
 
 import { IoClient }       from './src/io-client'
 import {
-    Message
-  , MsgType
+  Message,
+  MediaMessage,
+  MsgType,
 }                         from './src/message'
 import { Puppet }         from './src/puppet'
 import { PuppetWeb }      from './src/puppet-web/'
@@ -22,20 +23,21 @@ import { Wechaty }        from './src/wechaty'
 const VERSION = require('./package.json').version
 
 export {
-    Config
-  , Contact
-  , FriendRequest
-  , IoClient
-  , Message
-  , MsgType
-  , Puppet
-  , PuppetWeb
-  , Room
-  , Sayable
-  , UtilLib
-  , VERSION
-  , Wechaty
-  , log // for convenionce use npmlog with environment variable LEVEL
+  Config,
+  Contact,
+  FriendRequest,
+  IoClient,
+  Message,
+  MediaMessage,
+  MsgType,
+  Puppet,
+  PuppetWeb,
+  Room,
+  Sayable,
+  UtilLib,
+  VERSION,
+  Wechaty,
+  log, // for convenionce use npmlog with environment variable LEVEL
 }
 
 export default Wechaty

@@ -115,7 +115,7 @@ export class Wechaty extends EventEmitter implements Sayable {
          *  1. .git not exist
          *  2. git log fail
          */
-        log.silly('Wechaty', 'version() test %s', e.message)
+        log.silly('Wechaty', 'version() form development environment is not availble: %s', e.message)
       }
     }
 
@@ -312,10 +312,12 @@ export class Wechaty extends EventEmitter implements Sayable {
   }
 
   public async say(content: string): Promise<void> {
+    log.verbose('Wechaty', 'say(%s)', content)
+
     if (!this.puppet) {
       throw new Error('no puppet')
     }
-    await this.puppet.say(content)
+    this.puppet.say(content)
     return
   }
 

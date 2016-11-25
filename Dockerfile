@@ -17,6 +17,7 @@ RUN  apk update && apk upgrade \
       chromium-chromedriver \
       chromium \
       coreutils \
+      ffmpeg \
       figlet \
       udev \
       vim \
