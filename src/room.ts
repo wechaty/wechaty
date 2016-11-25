@@ -339,8 +339,8 @@ export class Room extends EventEmitter implements Sayable {
     if (memberList.length > 0) {
       return memberList[0]
     }
-    
-    if(this.rawObj.ChatRoomOwner){
+
+    if (this.rawObj.ChatRoomOwner) {
       return Contact.load(this.rawObj.ChatRoomOwner)
     }
 
