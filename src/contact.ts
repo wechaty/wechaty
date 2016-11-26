@@ -107,6 +107,11 @@ export class Contact implements Sayable {
     return !!(this.obj && this.obj.id && this.obj.name !== undefined)
   }
 
+  // public refresh() {
+  //   log.warn('Contact', 'refresh() DEPRECATED. use reload() instead.')
+  //   return this.reload()
+  // }
+
   public async refresh(): Promise<this> {
     if (this.isReady()) {
       this.dirtyObj = this.obj
@@ -114,6 +119,11 @@ export class Contact implements Sayable {
     this.obj = null
     return this.ready()
   }
+
+  // public ready() {
+  //   log.warn('Contact', 'ready() DEPRECATED. use load() instead.')
+  //   return this.load()
+  // }
 
   public async ready(contactGetter?: (id: string) => Promise<ContactRawObj>): Promise<this> {
     log.silly('Contact', 'ready(' + (contactGetter ? typeof contactGetter : '') + ')')

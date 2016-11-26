@@ -6,8 +6,8 @@
  *
  */
 import {
-    Message
-  , Room
+  Message,
+  Room,
 } from '../../'
 
 export async function onMessage(message: Message): Promise<void> {

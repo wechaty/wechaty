@@ -74,6 +74,7 @@ export class MediaMessage extends Message {
             default:
               const e = new Error('ready() unsupported typeApp(): ' + this.typeApp())
               log.warn('MediaMessage', e.message)
+              this.dumpRaw()
               throw e
           }
           break

@@ -99,11 +99,7 @@ export class IoClient {
     .on('login'	     , user => this.log.info('IoClient', `${user.name()} logined`))
     .on('logout'	   , user => this.log.info('IoClient', `${user.name()} logouted`))
     .on('scan', (url, code) => this.log.info('IoClient', `[${code}] ${url}`))
-    .on('message' , message => {
-      message.ready()
-            .then(this.onMessage.bind(this))
-            .catch(e => this.log.error('IoClient', 'message.ready() %s' , e))
-    })
+    .on('message'     , msg => this.onMessage(msg))
 
     try {
       await wechaty.init()

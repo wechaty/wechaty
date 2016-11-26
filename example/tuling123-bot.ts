@@ -57,16 +57,16 @@ bot
   }
   console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
 })
-.on('message', async m => {
-  if (m.self()) return
+.on('message', async msg => {
+  if (msg.self()) return
 
   try {
-    const msg = await m.ready()
-    const room = m.room()
+    // const msg = await m.load()
+    const room = msg.room()
 
     if (room && /Wechaty/i.test(room.topic())) {
       log.info('Bot', 'talk: %s'  , msg)
-      talk(m)
+      talk(msg)
     } else {
       log.info('Bot', 'recv: %s'  , msg)
     }

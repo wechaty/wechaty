@@ -71,6 +71,11 @@ export class Room extends EventEmitter implements Sayable {
     return !!(this.obj && this.obj.memberList && this.obj.memberList.length)
   }
 
+  // public refresh() {
+  //   log.warn('Room', 'refresh() DEPRECATED. use reload() instead.')
+  //   return this.reload()
+  // }
+
   public async refresh(): Promise<void> {
     if (this.isReady()) {
       this.dirtyObj = this.obj
@@ -79,6 +84,11 @@ export class Room extends EventEmitter implements Sayable {
     await this.ready()
     return
   }
+
+  // public ready(contactGetter?: (id: string) => Promise<any>) {
+  //   log.warn('Room', 'ready() DEPRECATED. use load() instad.')
+  //   return this.load(contactGetter)
+  // }
 
   public async ready(contactGetter?: (id: string) => Promise<any>): Promise<void> {
     log.silly('Room', 'ready(%s)', contactGetter ? contactGetter.constructor.name : '')

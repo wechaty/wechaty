@@ -404,6 +404,11 @@ export class Message implements Sayable {
     return fromId === userId
   }
 
+  // public ready() {
+  //   log.warn('Message', 'ready() DEPRECATED. use load() instead.')
+  //   return this.ready()
+  // }
+
   public async ready(): Promise<void> {
     log.silly('Message', 'ready()')
 
