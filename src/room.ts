@@ -9,7 +9,6 @@
  *
  */
 import { EventEmitter } from 'events'
-const arrify = require('arrify')
 
 import {
     Config
@@ -166,7 +165,7 @@ export class Room extends EventEmitter implements Sayable {
     const m = new Message()
     m.room(this)
 
-    const replyToList: Contact[] = arrify(replyTo)
+    const replyToList: Contact[] = [].concat(replyTo as any || [])
 
     if (replyToList.length > 0) {
       const mentionList = replyToList.map(c => '@' + c.name()).join(' ')

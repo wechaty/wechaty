@@ -91,7 +91,6 @@
     "node": ">= 6.9.0"
   },
   "dependencies": {
-    "arrify": "^1.0.1",
     "body-parser": "^1.15.2",
     "brolog": "^0.3.10",
     "chromedriver": "^2.25.1",

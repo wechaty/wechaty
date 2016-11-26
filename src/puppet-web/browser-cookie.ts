@@ -10,7 +10,7 @@
  *
  */
 import * as fs from 'fs'
-const arrify = require('arrify')
+// const arrify = require('arrify')
 
 import { log }            from '../config'
 
@@ -159,17 +159,17 @@ export class BrowserCookie {
         }
         const cookies = JSON.parse(jsonStr.toString())
 
-        let ps = arrify(this.add(cookies))
+        // let ps = arrify(this.add(cookies))
+        let ps = [].concat(this.add(cookies) as any || [])
+
         Promise.all(ps)
         .then(() => {
           log.verbose('PuppetWebBrowserCookie', 'loaded session(%d cookies) from %s', cookies.length, this.storeFile)
-          resolve(cookies)
-          return
+          return resolve(cookies)
         })
         .catch(e => {
           log.error('PuppetWebBrowserCookie', 'load() add() exception: %s', e.message)
-          reject(e)
-          return
+          return reject(e)
         })
       })
     })
