@@ -251,7 +251,7 @@ async function onServerLogin(this: PuppetWeb, data, attempt = 0): Promise<void> 
     this.userId = await this.bridge.getUserName()
 
     if (!this.userId) {
-      log.verbose('PuppetWebEvent', 'onServerLogin: browser not full loaded(%d), retry later', attempt)
+      log.verbose('PuppetWebEvent', 'onServerLogin: browser not fully loaded(%d), retry later', attempt)
       setTimeout(onServerLogin.bind(this, data, ++attempt), 500)
       return
     }
