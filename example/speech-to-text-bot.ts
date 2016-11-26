@@ -43,16 +43,20 @@ bot
   }
 
   const mp3Stream = await (m as MediaMessage).readyStream()
-  const text = await voiceToText(mp3Stream)
-
+  const text = await speechToText(mp3Stream)
   console.log('VOICE TO TEXT: ' + text)
 
-  this.say(text)  // send text to 'filehelper'
+  if (m.self()) {
+    this.say(text)  // send text to 'filehelper'
+  } else {
+    m.say(text)     // to original sender
+  }
+
 })
 .init()
 .catch(e => console.error('bot.init() error: ' + e))
 
-async function voiceToText(mp3Stream: NodeJS.ReadableStream): Promise<string> {
+async function speechToText(mp3Stream: NodeJS.ReadableStream): Promise<string> {
   const wavStream = mp3ToWav(mp3Stream)
 
   // const textStream = wavToText(wavStream)
