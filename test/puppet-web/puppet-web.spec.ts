@@ -17,6 +17,10 @@ import { Server }     from '../../src/puppet-web/server'
 
 // import { spy } from 'sinon'
 
+process.on('unhandledRejection', (reason, p) => {
+  console.log('Unhandled Rejection at: Promise', p, 'reason:', reason)
+})
+
 /**
  * the reason why use `test.serial` here is:
  *  static variable `Contact.puppet` will be changed
@@ -57,17 +61,21 @@ test.serial('server/browser socketio ding', async t => {
 
   const EXPECTED_DING_DATA = 'dingdong'
 
-  await pw.init()
-  t.pass('should be inited')
-
   try {
+    await pw.init()
+    t.pass('should be inited')
+
     const ret = await dingSocket(pw.server)
     t.is(ret,  EXPECTED_DING_DATA, 'should got EXPECTED_DING_DATA after resolved dingSocket()')
   } catch (e) {
     t.fail(e && e.message || e || 'unknown exception???')
   }
 
-  await pw.quit()
+  try {
+    await pw.quit()
+  } catch (err) {
+    t.fail(err.message)
+  }
 
   return
 
@@ -81,7 +89,7 @@ test.serial('server/browser socketio ding', async t => {
       log.verbose('TestPuppetWeb', 'dingSocket()')
 
       setTimeout(_ => {
-        reject('dingSocket() no response timeout after ' + 2 * maxTime)
+        return reject('dingSocket() no response timeout after ' + 2 * maxTime)
       }, 2 * maxTime)
       .unref()
 
@@ -97,8 +105,7 @@ test.serial('server/browser socketio ding', async t => {
           }
 
           log.silly('TestPuppetWeb', 'waiting socketClient to connect for ' + totalTime + '/' + maxTime + ' ms...')
-          setTimeout(testDing, waitTime)
-          return
+          return setTimeout(testDing, waitTime)
         }
         log.silly('TestPuppetWeb', 'dingSocket() server.socketClient: %s', server.socketClient)
         server.socketClient.once('dong', data => {
