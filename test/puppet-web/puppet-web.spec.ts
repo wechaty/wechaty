@@ -105,7 +105,8 @@ test.serial('server/browser socketio ding', async t => {
           }
 
           log.silly('TestPuppetWeb', 'waiting socketClient to connect for ' + totalTime + '/' + maxTime + ' ms...')
-          return setTimeout(testDing, waitTime)
+          setTimeout(testDing, waitTime)
+          return
         }
         log.silly('TestPuppetWeb', 'dingSocket() server.socketClient: %s', server.socketClient)
         server.socketClient.once('dong', data => {
