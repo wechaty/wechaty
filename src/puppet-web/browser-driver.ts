@@ -237,8 +237,15 @@ export class BrowserDriver {
     log.verbose('PuppetWebBrowserDriver', 'valid()')
 
     try {
-      log.verbose('PuppetWebBrowserDriver', 'valid() getSession()')
       const session = await new Promise((resolve, reject) => {
+
+        /**
+         * Be careful about this TIMEOUT, the total time(TIMEOUT x retry) should not trigger Watchdog Reset
+         * because we are in state(open, false) state, which will cause Watchdog Reset failure.
+         * https://travis-ci.org/wechaty/wechaty/jobs/179022657#L3246
+         */
+        const TIMEOUT = 7 * 1000
+
         const timer = setTimeout(() => {
           const e = new Error('valid() driver.getSession() timeout(halt?)')
           log.warn('PuppetWebBrowserDriver'   , e.message)
@@ -246,8 +253,9 @@ export class BrowserDriver {
           // 1. Promise rejected
           return reject(e)
 
-        }, 67 * 1000)
+        }, TIMEOUT)
 
+        log.verbose('PuppetWebBrowserDriver', 'valid() getSession()')
         driver.getSession()
               .then(session => {
                 log.verbose('PuppetWebBrowserDriver', 'valid() getSession() done')
