@@ -16,7 +16,7 @@ const QrcodeTerminal = require('qrcode-terminal')
 
 import { Brolog as log } from 'brolog'
 /* tslint:disable:no-var-requires */
-const co  = require('co')
+// const co  = require('co')
 /* tslint:disable:variable-name */
 const ApiAi = require('apiai')
 import { EventEmitter } from 'events'
@@ -62,18 +62,18 @@ bot
 .on('message', m => {
   if (m.self()) { return }
 
-  co(function* () {
-    const msg = yield m.ready()
+  // co(function* () {
+  //   const msg = yield m.load()
     const room = m.room()
 
     if (room && /Wechaty/i.test(room.topic())) {
-      log.info('Bot', 'talk: %s'  , msg)
+      log.info('Bot', 'talk: %s'  , m)
       talk(m)
     } else {
-      log.info('Bot', 'recv: %s'  , msg)
+      log.info('Bot', 'recv: %s'  , m)
     }
-  })
-  .catch(e => log.error('Bot', 'on message rejected: %s' , e))
+  // })
+  // .catch(e => log.error('Bot', 'on message rejected: %s' , e))
 })
 
 bot.init()
