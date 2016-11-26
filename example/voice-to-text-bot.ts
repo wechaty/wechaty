@@ -100,14 +100,24 @@ function mp3ToWav(mp3Stream: NodeJS.ReadableStream): NodeJS.ReadableStream {
 }
 
 /**
+ * Baidu:
  * export BAIDU_SPEECH_API_KEY=FK58sUlteAuAIXZl5dWzAHCT
  * export BAIDU_SPEECH_SECRET_KEY=feaf24adcc5b8f02b147e7f7b1953030
  * curl "https://openapi.baidu.com/oauth/2.0/token?grant_type=client_credentials&client_id=${BAIDU_SPEECH_API_KEY}&client_secret=${BAIDU_SPEECH_SECRET_KEY}"
+ *
+ * OAuth: http://developer.baidu.com/wiki/index.php?title=docs/oauth/overview
+ * ASR: http://yuyin.baidu.com/docs/asr/57
  */
 
 /**
- * OAuth: http://developer.baidu.com/wiki/index.php?title=docs/oauth/overview
- * ASR: http://yuyin.baidu.com/docs/asr/57
+ * YunZhiSheng:
+ * http://dev.hivoice.cn/download_file/USC_DevelGuide_WebAPI_audioTranscription.pdf
+ */
+
+/**
+ * Google:
+ * http://blog.csdn.net/dlangu0393/article/details/7214728
+ * http://elric2011.github.io/a/using_speech_recognize_service.html
  */
 async function wavToText(readableStream: NodeJS.ReadableStream): Promise<string> {
   const params = {

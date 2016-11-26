@@ -50,8 +50,6 @@ export class Io {
   private eventBuffer: IoEvent[] = []
   private ws: WebSocket
 
-  // private _currentState: string
-  // private _targetState: string
   private state = new StateMonitor<'online', 'offline'>('Io', 'offline')
 
   private reconnectTimer: NodeJS.Timer | null
@@ -76,31 +74,7 @@ export class Io {
               , setting.protocol
               , this.uuid
               )
-
-    // this.purpose('offline')
-    // this.targetState('disconnected')
-    // this.currentState('disconnected')
-    // this.state.target('offline')
-    // this.state.current('offline')
   }
-
-  // // targetState : 'connected' | 'disconnected'
-  // private targetState(newState?) {
-  //   if (newState) {
-  //     log.verbose('Io', 'targetState(%s)', newState)
-  //     this._targetState = newState
-  //   }
-  //   return this._targetState
-  // }
-
-  // // currentState : 'connecting' | 'connected' | 'disconnecting' | 'disconnected'
-  // private currentState(newState?) {
-  //   if (newState) {
-  //     log.verbose('Io', 'currentState(%s)', newState)
-  //     this._currentState = newState
-  //   }
-  //   return this._currentState
-  // }
 
   public toString() { return 'Class Io(' + this.setting.token + ')'}
 
@@ -109,8 +83,6 @@ export class Io {
   public async init(): Promise<void> {
     log.verbose('Io', 'init()')
 
-    // this.targetState('connected')
-    // this.currentState('connecting')
     this.state.target('online')
     this.state.current('online', false)
 
@@ -118,13 +90,11 @@ export class Io {
       await this.initEventHook()
       await this.initWebSocket()
 
-      // this.currentState('connected')
       this.state.current('online')
 
       return
     } catch (e) {
       log.warn('Io', 'init() exception: %s', e.message)
-      // this.currentState('disconnected')
       this.state.current('offline')
       throw e
     }
@@ -132,7 +102,6 @@ export class Io {
 
   private initWebSocket() {
     log.verbose('Io', 'initWebSocket()')
-    // this.currentState('connecting')
     this.state.current('online', false)
 
     // const auth = 'Basic ' + new Buffer(this.setting.token + ':X').toString('base64')
@@ -404,13 +373,10 @@ export class Io {
 
   private close() {
     log.verbose('Io', 'close()')
-    // this.targetState('disconnected')
-    // this.currentState('disconnecting')
     this.state.target('offline')
     this.state.current('offline', false)
 
     this.ws.close()
-    // this.currentState('disconnected')
     this.state.current('offline')
 
     // TODO: remove listener for this.setting.wechaty.on(message )
@@ -418,8 +384,6 @@ export class Io {
   }
 
   public quit() {
-    // this.targetState('disconnected')
-    // this.currentState('disconnecting')
     this.state.target('offline')
     this.state.current('offline', false)
 
