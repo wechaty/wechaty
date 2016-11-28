@@ -200,6 +200,13 @@ You can directly submit pull requests for documentation changes.
 * [cherry-geqi](https://github.com/cherry-geqi)
 * [lijiarui](https://github.com/lijiarui)
 
+## Join us 
+
+Add “邀群助手” as friend by scanning the QRcode of WeChat and reply 'wechaty', you can join in our wechaty group.
+“邀群助手” is powered by wechaty..
+
+![](https://raw.githubusercontent.com/wechaty/wechaty/master/image/BotQrcode.png)
+
 # See Also
 
 * [RelatedProject](https://github.com/wechaty/wechaty/wiki/RelatedProject)
