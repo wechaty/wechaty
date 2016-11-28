@@ -202,11 +202,10 @@ You can directly submit pull requests for documentation changes.
 
 ## Join us 
 
-Scan the following qrcode and reply 'wechaty', you can join in our wechaty group.
-By the way, the bot is powered by wechaty..
+Add “邀群助手” as friend by scanning the QRcode of WeChat and reply 'wechaty', you can join in our wechaty group.
+“邀群助手” is powered by wechaty..
 
-[(https://raw.githubusercontent.com/wechaty/wechaty/master/image/botQrcode.jpeg)](https://github.com/wechaty/wechaty)
-
+![](https://raw.githubusercontent.com/wechaty/wechaty/master/image/BotQrcode.png)
 
 # See Also
 
