@@ -204,6 +204,13 @@ You can directly submit pull requests for documentation changes.
 
 * [RelatedProject](https://github.com/wechaty/wechaty/wiki/RelatedProject)
 
+# Todo
+
+* [ ] Use Dependency Injection for FriendRequest(etc)
+  - https://github.com/young-steveo/bottlejs
+  - http://jonnyreeves.co.uk/2015/basic-typescript-dependency-injection-with-decorators/
+  - https://github.com/connorwyatt/Fluency-Injection
+
 My Story
 ----------------
 My daily life/work depends on too much chat on wechat.

@@ -121,11 +121,11 @@ async function onBrowserDead(this: PuppetWeb, e: Error): Promise<void> {
 
   log.verbose('PuppetWebEvent', 'onBrowserDead() new browser borned')
 
-  // why POISON here... forgot, faint
-  this.emit('watchdog', {
-    data: `onBrowserDead() new browser borned`
-    , type: 'POISON'
-  })
+  // why POISON here... forgot, faint. comment it out to treat dog nicer... 20161128
+  // this.emit('watchdog', {
+  //   data: `onBrowserDead() new browser borned`
+  //   , type: 'POISON'
+  // })
 
   return
 }

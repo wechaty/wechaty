@@ -20,6 +20,12 @@ import {
 
 const PROFILE = 'unit-test-session.wechaty.json'
 
+process.on('unhandledRejection', (reason, p) => {
+  console.log('!!!!!!!')
+  console.log('Unhandled Rejection at: Promise', p, 'reason:', reason)
+  console.log('!!!!!!!')
+})
+
 test('timer', async t => {
   const pw = new PuppetWeb({profile: PROFILE})
   t.truthy(pw, 'should instantiate a PuppetWeb')

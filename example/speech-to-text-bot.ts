@@ -148,7 +148,7 @@ async function wavToText(readableStream: NodeJS.ReadableStream): Promise<string>
       try {
         const obj = JSON.parse(body)
         if (obj.err_no !== 0) {
-          return reject(new Error(obj.err_msg))
+          throw new Error(obj.err_msg)
         }
 
         return resolve(obj.result[0])
