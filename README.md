@@ -200,6 +200,14 @@ You can directly submit pull requests for documentation changes.
 * [cherry-geqi](https://github.com/cherry-geqi)
 * [lijiarui](https://github.com/lijiarui)
 
+## Join us 
+
+Scan the following qrcode and reply 'wechaty', you can join in our wechaty group.
+By the way, the bot is powered by wechaty..
+
+[(https://raw.githubusercontent.com/wechaty/wechaty/master/image/botQrcode.jpeg)](https://github.com/wechaty/wechaty)
+
+
 # See Also
 
 * [RelatedProject](https://github.com/wechaty/wechaty/wiki/RelatedProject)
