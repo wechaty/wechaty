@@ -206,21 +206,29 @@ export class Room extends EventEmitter implements Sayable {
 
   private parseNickMap(memberList): Map<string, string> {
     const nickMap: Map<string, string> = new Map<string, string>()
-    let contact, remark
+    let contact, name
     if (memberList && memberList.map) {
       memberList.forEach(m => {
         contact = Contact.load(m.UserName)
         if (contact) {
-          remark = contact.remark()
+          if(contact.isReady()){
+            name = contact.name()
+          }else{
+            contact.refresh()
+            contact.ready()
+              .then(_=>{
+                name = contact.name()
+              })
+          }
         } else {
-          remark = null
+          name = null
         }
 
         /**
          * ISSUE #64 emoji need to be striped
          */
         nickMap[m.UserName] = UtilLib.stripEmoji(
-          remark || m.DisplayName || m.NickName
+          name || m.NickName || m.DisplayNamem
         )
       })
     }
