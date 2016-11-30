@@ -410,7 +410,10 @@ export class Room extends EventEmitter implements Sayable {
                   })
   }
 
-  public static async findAll(query: RoomQueryFilter): Promise<Room[]> {
+  public static async findAll(query?: RoomQueryFilter): Promise<Room[]> {
+    if (!query) {
+      query = { topic: /.*/ }
+    }
     log.verbose('Room', 'findAll({ topic: %s })', query.topic)
 
     const topicFilter = query.topic
