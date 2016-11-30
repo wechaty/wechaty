@@ -120,8 +120,6 @@ export class Room extends EventEmitter implements Sayable {
       }
       await Promise.all(this.obj.memberList.map(c => c.ready(contactGetter)))
 
-      this.obj.nickMap = this.parseNickMap(this.obj.memberList)
-
       return
 
     } catch (e) {
@@ -190,14 +188,16 @@ export class Room extends EventEmitter implements Sayable {
     }
 
     const memberList  = this.parseMemberList(rawObj.MemberList)
+    const nickMap     = this.parseNickMap(rawObj.MemberList)
 
     return {
-      id:           rawObj.UserName
-      , encryId:    rawObj.EncryChatRoomId // ???
-      , topic:      rawObj.NickName
-      , ownerUin:   rawObj.OwnerUin
+      id:         rawObj.UserName,
+      encryId:    rawObj.EncryChatRoomId, // ???
+      topic:      rawObj.NickName,
+      ownerUin:   rawObj.OwnerUin,
 
-      , memberList
+      memberList,
+      nickMap,
     }
   }
 
@@ -208,16 +208,17 @@ export class Room extends EventEmitter implements Sayable {
     return rawMemberList.map(m => Contact.load(m.UserName))
   }
 
-  private parseNickMap(memberList: Contact[]): Map<string, string> {
+  private parseNickMap(memberList: RoomRawMember[]): Map<string, string> {
     const nickMap: Map<string, string> = new Map<string, string>()
+
     if (memberList && memberList.map) {
-      memberList.forEach(contact => {
+      memberList.forEach(member => {
         /**
          * ISSUE #64 emoji need to be striped
          * ISSUE #104 never use remark name because sys group message will never use that
          */
-        nickMap[contact.UserName] = UtilLib.stripEmoji(
-          contact.DisplayName || contact.NickName
+        nickMap[member.UserName] = UtilLib.stripEmoji(
+          member.DisplayName || member.NickName
         )
       })
     }
