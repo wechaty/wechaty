@@ -206,11 +206,9 @@ export class Room extends EventEmitter implements Sayable {
 
   private parseNickMap(memberList): Map<string, string> {
     const nickMap: Map<string, string> = new Map<string, string>()
-    let contact
     if (memberList && memberList.map) {
       memberList.forEach(m => {
-        contact = Contact.load(m.UserName)
-
+        console.log(m.NickName)
         /**
          * ISSUE #64 emoji need to be striped
          * ISSUE #104 never use remark name because sys group message will never use that
