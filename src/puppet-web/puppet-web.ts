@@ -368,7 +368,7 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public async contactRemark(contact: Contact, remark: string): Promise<boolean> {
+  public async contactRemark(contact: Contact, remark: string|null): Promise<boolean> {
     try {
       const ret = await this.bridge.contactRemark(contact.id, remark)
       if (!ret) {

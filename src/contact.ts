@@ -21,7 +21,7 @@ type ContactObj = {
   id:         string
   name:       string
   province:   string
-  remark:     string
+  remark:     string|null
   sex:        string
   signature:  string
   star:       boolean
@@ -222,8 +222,12 @@ export class Contact implements Sayable {
    * set the remark for contact
    */
   public remark(newRemark: string): Promise<boolean>
+  /**
+   * delete the remark for a contact
+   */
+  public remark(empty: null): Promise<boolean>
 
-  public remark(newRemark?: string): Promise<boolean> | string {
+  public remark(newRemark?: string|null): Promise<boolean> | string {
     log.silly('Contact', 'remark(%s)', newRemark || '')
 
     if (newRemark === undefined) {

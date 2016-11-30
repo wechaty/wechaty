@@ -134,7 +134,7 @@ export class Bridge {
     }
   }
 
-  public async contactRemark(contactId: string, remark: string): Promise<boolean> {
+  public async contactRemark(contactId: string, remark: string|null): Promise<boolean> {
     try {
       return await this.proxyWechaty('contactRemarkAsync', contactId, remark)
     } catch (e) {
