@@ -30,6 +30,7 @@ type RoomObj = {
 
 export type RoomRawMember = {
   UserName:     string
+  NickName:     string
   DisplayName:  string
 }
 
