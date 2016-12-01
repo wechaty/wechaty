@@ -531,5 +531,17 @@ $.ajax = function() { Wechaty.log('$.ajax() !!!'); return $.ajaxOrig(arguments) 
 mmHttp = Wechaty.glue.injector.get('mmHttp')
 mmHttp.getOrig = mmHttp.get
 mmHttp.get = function() { Wechaty.log('mmHttp.get() !!!'); return mmHttp.getOrig(arguments) }
+
+
+Object.keys(_contacts)
+.filter(k => _contacts[k].UserName.match(/^@@/))
+.filter(k => _contacts[k].MemberList.length)
+.filter(k => _contacts[k].NickName.match(/test/))
+.map(k => _contacts[k])
+
+Object.keys(_contacts)
+.filter(k => _contacts[k].NickName.match(/快站哥/))
+.map(k => _contacts[k])
+
  *
  */
