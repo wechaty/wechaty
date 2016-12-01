@@ -46,6 +46,7 @@ RUN  sed -i '/chromedriver/d' package.json \
   \
   && (   mkdir /node_modules && cd /node_modules \
       && ln -s /wechaty . \
+      && ln -s /wechaty/node_modules/* . \
       && npm --progress=false install @types/node --silent >/dev/null \
     ) \
   && ln -s /wechaty/tsconfig.json / \
