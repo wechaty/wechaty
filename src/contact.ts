@@ -217,7 +217,7 @@ export class Contact implements Sayable {
   /**
    * get the remark for contact
    */
-  public remark(): string
+  public remark(): string | null
   /**
    * set the remark for contact
    */
@@ -227,11 +227,11 @@ export class Contact implements Sayable {
    */
   public remark(empty: null): Promise<boolean>
 
-  public remark(newRemark?: string|null): Promise<boolean> | string {
+  public remark(newRemark?: string|null): Promise<boolean> | string | null {
     log.silly('Contact', 'remark(%s)', newRemark || '')
 
     if (newRemark === undefined) {
-      return this.obj && this.obj.remark || ''
+      return this.obj && this.obj.remark || null
     }
 
     return Config.puppetInstance()
@@ -241,7 +241,7 @@ export class Contact implements Sayable {
                       if (this.obj) {
                         this.obj.remark = newRemark
                       } else {
-                        log.error('Contact', 'remark() with null this.obj?')
+                        log.error('Contact', 'remark() without this.obj?')
                       }
                     } else {
                       log.warn('Contact', 'remark(%s) fail', newRemark)
