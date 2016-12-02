@@ -6,6 +6,8 @@
  * https://github.com/zixia/wechaty
  *
  */
+import * as moment from 'moment'
+
 import {
   Config,
   log,
@@ -63,13 +65,16 @@ export class MediaMessage extends Message {
               // had set in Message
               // url = this.rawObj.MMAppMsgDownloadUrl
               break
+
             case AppMsgType.URL:
+            case AppMsgType.READER_TYPE:
               if (!this.rawObj.Url) {
                 throw new Error('no Url')
               }
               // had set in Message
               // url = this.rawObj.Url
               break
+
 
             default:
               const e = new Error('ready() unsupported typeApp(): ' + this.typeApp())
@@ -140,7 +145,14 @@ export class MediaMessage extends Message {
       throw new Error('no rawObj')
     }
 
-    let filename  = this.rawObj.FileName || this.rawObj.MediaId || this.rawObj.MsgId
+    const objFileName = this.rawObj.FileName || this.rawObj.MediaId || this.rawObj.MsgId
+
+    let filename  = moment().format('YYYY-MM-DD HH:mm:ss')
+                    + ' #' + this._counter
+                    + ' ' + this.getSenderString()
+                    + ' ' + objFileName
+
+    filename = filename.replace(/ /g, '_')
 
     const re = /\.[a-z0-9]{1,7}$/i
     if (!re.test(filename)) {

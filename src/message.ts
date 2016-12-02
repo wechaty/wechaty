@@ -184,7 +184,7 @@ export const enum MsgType {
 
 export class Message implements Sayable {
   public static counter = 0
-  private _counter: number
+  public _counter: number
 
   public static TYPE: MsgTypeMap = {
     TEXT:               1,
