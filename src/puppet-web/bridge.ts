@@ -532,7 +532,6 @@ mmHttp = Wechaty.glue.injector.get('mmHttp')
 mmHttp.getOrig = mmHttp.get
 mmHttp.get = function() { Wechaty.log('mmHttp.get() !!!'); return mmHttp.getOrig(arguments) }
 
-
 Object.keys(_contacts)
 .filter(k => _contacts[k].UserName.match(/^@@/))
 .filter(k => _contacts[k].MemberList.length)

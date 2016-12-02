@@ -75,7 +75,6 @@ export class MediaMessage extends Message {
               // url = this.rawObj.Url
               break
 
-
             default:
               const e = new Error('ready() unsupported typeApp(): ' + this.typeApp())
               log.warn('MediaMessage', e.message)
