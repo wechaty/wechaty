@@ -280,10 +280,9 @@ export class Message implements Sayable {
   public getSenderString() {
     const fromName  = Contact.load(this.obj.from).name()
     const roomTopic = this.obj.room
-                  ? Room.load(this.obj.room).topic()
+                  ? (':' + Room.load(this.obj.room).topic())
                   : ''
-    // return '<' + (name ? name.toStringEx() : '') + roomTopic + '>'
-    return `<${fromName}:${roomTopic}>`
+    return `<${fromName}${roomTopic}>`
   }
   public getContentString() {
     let content = UtilLib.plainText(this.obj.content)
