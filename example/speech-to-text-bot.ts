@@ -8,7 +8,7 @@
  */
 
 import { PassThrough }        from 'stream'
-// import { createWriteStream }  from 'fs'
+import { createWriteStream }  from 'fs'
 
 import request      = require('request')
 import Ffmpeg       = require('fluent-ffmpeg')
@@ -42,7 +42,12 @@ bot
     return // skip no-VOICE message
   }
 
+  const mp3File = createWriteStream(m.filename())
+
   const mp3Stream = await (m as MediaMessage).readyStream()
+
+  mp3Stream.pipe(mp3File)
+
   const text = await speechToText(mp3Stream)
   console.log('VOICE TO TEXT: ' + text)
 
