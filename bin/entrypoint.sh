@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Wechaty - Connect ChatBots
 #
@@ -111,7 +111,7 @@ function wechaty::runBot() {
 
   [ -f package.json ] && {
     echo "Install dependencies modules ..."
-    yarn < /dev/null # yarn will close stdin??? cause `read` command fail after yarn
+    yarn < /dev/null || return $? # yarn will close stdin??? cause `read` command fail after yarn
   }
 
   # echo -n "Linking Wechaty module to bot ... "
@@ -224,6 +224,8 @@ function main() {
     # 2. Run a bot
     #
     *.ts | *.js)
+      # set -e will not work inside wechaty::runBot because of
+      # http://stackoverflow.com/a/4073372/1123955
       wechaty::runBot "$@" || ret=$?
       ;;
 
