@@ -206,11 +206,11 @@ You can directly submit pull requests for documentation changes.
 
 ## Join us 
 
-Scanning the following QR Code in WeChat, with secret code 'wechaty', you can join our **Wechaty Developers' Home**.
+Scan the following QR Code in WeChat, with secret code _wechaty_, you can join our **Wechaty Developers' Home**.
 
 ![Wechaty Developers' Home](https://raw.githubusercontent.com/wechaty/wechaty/master/image/BotQrcode.png)
 
-Scan now, then chat with other Wechaty developers!
+Scan now, then you can chat with other Wechaty developers!
 
 # See Also
 
