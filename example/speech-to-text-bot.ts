@@ -35,26 +35,25 @@ bot
   console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
 })
 .on('login'	  , user => console.log(`${user} logined`))
-.on('message', async function(this, m) {
-  console.log(`RECV: ${m}`)
+.on('message', async function(this, msg) {
+  console.log(`RECV: ${msg}`)
 
-  if (m.type() !== MsgType.VOICE) {
+  if (msg.type() !== MsgType.VOICE) {
     return // skip no-VOICE message
   }
 
-  const mp3File = createWriteStream(m.filename())
+  const mp3Stream = await (msg as MediaMessage).readyStream()
 
-  const mp3Stream = await (m as MediaMessage).readyStream()
-
-  mp3Stream.pipe(mp3File)
+  const file = createWriteStream(msg.filename())
+  mp3Stream.pipe(file)
 
   const text = await speechToText(mp3Stream)
   console.log('VOICE TO TEXT: ' + text)
 
-  if (m.self()) {
+  if (msg.self()) {
     this.say(text)  // send text to 'filehelper'
   } else {
-    m.say(text)     // to original sender
+    msg.say(text)     // to original sender
   }
 
 })
