@@ -31,6 +31,5 @@ test('Puppet Web Event smoking test', async t => {
     await pw.quit()
   } catch (e) {
     t.fail('exception: ' + e.message)
-    throw e
   }
 })
