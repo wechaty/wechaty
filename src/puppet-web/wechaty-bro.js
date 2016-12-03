@@ -667,7 +667,13 @@
                     })
   }
 
-  function verifyUserRequest(UserName, VerifyContent) {
+  function verifyUserRequestAsync(UserName, VerifyContent) {
+    var callback = arguments[arguments.length - 1]
+    if (typeof callback !== 'function') {
+      // here we should in sync mode, because there's no callback
+      throw new Error('async method need to be called via webdriver.executeAsyncScript')
+    }
+
     VerifyContent = VerifyContent || '';
 
     var contactFactory = WechatyBro.glue.contactFactory
@@ -685,13 +691,21 @@
     .then(function() {  // succ
       // alert('ok')
       log('friendAdd(' + UserName + ', ' + VerifyContent + ') done')
+      callback(true)
     }, function(t) {    // fail
       // alert('not ok')
       log('friendAdd(' + UserName + ', ' + VerifyContent + ') fail: ' + t)
+      callback(false)
     })
   }
 
   function verifyUserOk(UserName, Ticket) {
+    var callback = arguments[arguments.length - 1]
+    if (typeof callback !== 'function') {
+      // here we should in sync mode, because there's no callback
+      throw new Error('async method need to be called via webdriver.executeAsyncScript')
+    }
+
     var contactFactory  = WechatyBro.glue.contactFactory
     var confFactory     = WechatyBro.glue.confFactory
 
@@ -703,9 +717,11 @@
     }).then(function() {  // succ
       // alert('ok')
       log('friendVerify(' + UserName + ', ' + Ticket + ') done')
-    }, function() {       // fail
+      callback(true)
+    }, function(err) {       // fail
       // alert('err')
       log('friendVerify(' + UserName + ', ' + Ticket + ') fail')
+      callback(false)
     })
   }
 
