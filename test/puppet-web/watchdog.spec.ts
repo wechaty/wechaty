@@ -21,7 +21,7 @@ import {
 const PROFILE = 'unit-test-session.wechaty.json'
 
 process.on('unhandledRejection', (reason, p) => {
-  console.log('!!!!!!!')
+  console.log('!!!!!!! unhandledRejection in watchdog.spec.ts')
   console.log('Unhandled Rejection at: Promise', p, 'reason:', reason)
   console.log('!!!!!!!')
 })

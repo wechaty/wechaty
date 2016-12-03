@@ -58,11 +58,13 @@ We have two options to run wechaty:
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Stars](https://img.shields.io/docker/stars/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
 
+The **best practice** to use Wechaty is run by docker, becasue it's not only the most easy way to get start, but also protect you out of the troubles of dependencies problems. 
+
 ```shell
 $ docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.js
 ```
 
-* Wechaty Docker has native support for TypeScript as well: just write in TypeScript and save to `mybot.ts`.
+> Wechaty Docker support to run TypeScript directly as well: just write in TypeScript and save to `mybot.ts`.
 
 Get to know more about Wechaty Docker at [Wiki:Docker](https://github.com/wechaty/wechaty/wiki/Docker).
 
@@ -70,13 +72,13 @@ Get to know more about Wechaty Docker at [Wiki:Docker](https://github.com/wechat
 
 [![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty) [![Downloads][downloads-image]][downloads-url]
 
+Using Wechaty from NPM is **NOT recommended**. Please use Docker(above) instead unless you are ready to deal with lots of unknown problems.
+
 ```shell
 $ npm install --save wechaty
 
 $ node mybot.js
 ```
-
-You might be asked for install the `chromedriver`, depends on which platform you are.
 
 Get to know more about NPM at [Wiki:NPM](https://github.com/wechaty/wechaty/wiki/NPM)
 
