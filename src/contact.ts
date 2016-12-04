@@ -201,6 +201,7 @@ export class Contact implements Sayable {
     if (nameFilter instanceof RegExp) {
       filterFunction = `(function (c) { return ${nameFilter.toString()}.test(c) })`
     } else if (typeof nameFilter === 'string') {
+      nameFilter = nameFilter.replace(/'/g, '\\\'')
       filterFunction = `(function (c) { return c === '${nameFilter}' })`
     } else {
       throw new Error('unsupport name type')

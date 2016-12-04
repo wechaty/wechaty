@@ -426,6 +426,7 @@ export class Room extends EventEmitter implements Sayable {
     if (topicFilter instanceof RegExp) {
       filterFunction = `(function (c) { return ${topicFilter.toString()}.test(c) })`
     } else if (typeof topicFilter === 'string') {
+      topicFilter = topicFilter.replace(/'/g, '\\\'')
       filterFunction = `(function (c) { return c === '${topicFilter}' })`
     } else {
       throw new Error('unsupport topic type')
