@@ -186,7 +186,7 @@ export class Contact implements Sayable {
     }
     log.verbose('Cotnact', 'findAll({ name: %s })', query.name)
 
-    const nameFilter = query.name
+    let nameFilter = query.name
 
     if (!nameFilter) {
       throw new Error('nameFilter not found')
