@@ -125,6 +125,7 @@
     "eslint": "^3.4.0",
     "eslint-plugin-ava": "^3.1.1",
     "fluent-ffmpeg": "^2.1.0",
+    "node-cleanup": "^1.0.1",
     "nyc": "^8.3.2",
     "qrcode-terminal": "^0.10.0",
     "request": "^2.79.0",

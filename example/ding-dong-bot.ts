@@ -8,7 +8,8 @@
  */
 
 /* tslint:disable:variable-name */
-const QrcodeTerminal = require('qrcode-terminal')
+const QrcodeTerminal  = require('qrcode-terminal')
+const nodeCleanup     = require('node-cleanup')
 
 import {
   Wechaty
@@ -75,6 +76,10 @@ bot.init()
   log.error('Bot', 'init() fail: %s', e)
   bot.quit()
   process.exit(-1)
+})
+
+nodeCleanup(() => {
+  bot.say('quit')
 })
 
 function logToFile(data) {

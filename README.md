@@ -27,6 +27,8 @@ Wechaty is a Bot Framework for Wechat **Personal** Account which can help you cr
 
 > @naishstar: thanks for great SDK [link](https://github.com/wechaty/wechaty/issues/57)
 
+> @shevyan: 简单的接口...和Docker化的封装，结合Docker绝对是一个不错的选择 [link](http://mp.weixin.qq.com/s/o-4VMcAMz0K8yJVdNaUXow)
+
 # Example
 
 The shortest wechat bot code in the world: 6 lines JavaScript
