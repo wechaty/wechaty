@@ -30,7 +30,7 @@ export abstract class FriendRequest {
     }
   }
 
-  public abstract send(contact: Contact, hello: string): Promise<void>
-  public abstract accept(): Promise<void>
+  public abstract send(contact: Contact, hello: string): Promise<boolean>
+  public abstract accept(): Promise<boolean>
 
 }

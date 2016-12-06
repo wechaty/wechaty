@@ -186,7 +186,7 @@ export class Contact implements Sayable {
     }
     log.verbose('Cotnact', 'findAll({ name: %s })', query.name)
 
-    const nameFilter = query.name
+    let nameFilter = query.name
 
     if (!nameFilter) {
       throw new Error('nameFilter not found')
@@ -201,6 +201,7 @@ export class Contact implements Sayable {
     if (nameFilter instanceof RegExp) {
       filterFunction = `(function (c) { return ${nameFilter.toString()}.test(c) })`
     } else if (typeof nameFilter === 'string') {
+      nameFilter = nameFilter.replace(/'/g, '\\\'')
       filterFunction = `(function (c) { return c === '${nameFilter}' })`
     } else {
       throw new Error('unsupport name type')

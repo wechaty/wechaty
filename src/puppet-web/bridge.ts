@@ -216,26 +216,26 @@ export class Bridge {
                 })
   }
 
-  public verifyUserRequest(contactId, hello): Promise<void> {
+  public verifyUserRequest(contactId, hello): Promise<boolean> {
     log.verbose('PuppetWebBridge', 'verifyUserRequest(%s, %s)', contactId, hello)
 
     if (!contactId) {
       throw new Error('no valid contactId')
     }
-    return this.proxyWechaty('verifyUserRequest', contactId, hello)
+    return this.proxyWechaty('verifyUserRequestAsync', contactId, hello)
                 .catch(e => {
                   log.error('PuppetWebBridge', 'verifyUserRequest(%s, %s) exception: %s', contactId, hello, e.message)
                   throw e
                 })
   }
 
-  public verifyUserOk(contactId, ticket): Promise<void> {
+  public verifyUserOk(contactId, ticket): Promise<boolean> {
     log.verbose('PuppetWebBridge', 'verifyUserOk(%s, %s)', contactId, ticket)
 
     if (!contactId || !ticket) {
       throw new Error('no valid contactId or ticket')
     }
-    return this.proxyWechaty('verifyUserOk', contactId, ticket)
+    return this.proxyWechaty('verifyUserOkAsync', contactId, ticket)
                 .catch(e => {
                   log.error('PuppetWebBridge', 'verifyUserOk(%s, %s) exception: %s', contactId, ticket, e.message)
                   throw e

@@ -18,7 +18,7 @@ import { Server }     from '../../src/puppet-web/server'
 // import { spy } from 'sinon'
 
 process.on('unhandledRejection', (reason, p) => {
-  console.log('!!!!!!!')
+  console.log('!!!!!!! unhandledRejection in puppet-web.spec.ts')
   console.log('Unhandled Rejection at: Promise', p, 'reason:', reason)
   console.log('!!!!!!!')
 })

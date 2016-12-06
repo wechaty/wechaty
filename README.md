@@ -29,6 +29,8 @@ Wechaty is a Bot Framework for Wechat **Personal** Account which can help you cr
 
 > @shevyan: 简单的接口...和Docker化的封装，结合Docker绝对是一个不错的选择 [link](http://mp.weixin.qq.com/s/o-4VMcAMz0K8yJVdNaUXow)
 
+> @lijiarui: [Chat实录｜李佳芮：向前一步的程序媛](http://mp.weixin.qq.com/s/dWHAj8XtiKG-1fIS5Og79g)
+
 # Example
 
 The shortest wechat bot code in the world: 6 lines JavaScript
@@ -60,11 +62,13 @@ We have two options to run wechaty:
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Stars](https://img.shields.io/docker/stars/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
 
+The **best practice** to use Wechaty is run by docker, becasue it's not only the most easy way to get start, but also protect you out of the troubles of dependencies problems. 
+
 ```shell
 $ docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.js
 ```
 
-* Wechaty Docker has native support for TypeScript as well: just write in TypeScript and save to `mybot.ts`.
+> Wechaty Docker support to run TypeScript directly as well: just write in TypeScript and save to `mybot.ts`.
 
 Get to know more about Wechaty Docker at [Wiki:Docker](https://github.com/wechaty/wechaty/wiki/Docker).
 
@@ -72,13 +76,13 @@ Get to know more about Wechaty Docker at [Wiki:Docker](https://github.com/wechat
 
 [![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty) [![Downloads][downloads-image]][downloads-url]
 
+Using Wechaty from NPM is **NOT recommended**. Please use Docker(above) instead unless you are ready to deal with lots of unknown problems.
+
 ```shell
 $ npm install --save wechaty
 
 $ node mybot.js
 ```
-
-You might be asked for install the `chromedriver`, depends on which platform you are.
 
 Get to know more about NPM at [Wiki:NPM](https://github.com/wechaty/wechaty/wiki/NPM)
 
@@ -204,11 +208,11 @@ You can directly submit pull requests for documentation changes.
 
 ## Join us 
 
-Scanning the following QR Code in WeChat, with secret code 'wechaty', you can join our **Wechaty Developers' Home**.
+Scan the following QR Code in WeChat, with secret code _wechaty_, you can join our **Wechaty Developers' Home**.
 
 ![Wechaty Developers' Home](https://raw.githubusercontent.com/wechaty/wechaty/master/image/BotQrcode.png)
 
-Scan now, then chat with other Wechaty developers!
+Scan now, then you can chat with other Wechaty developers!
 
 # See Also
 

@@ -477,7 +477,7 @@ export class PuppetWeb extends Puppet {
   /**
    * FriendRequest
    */
-  public async friendRequestSend(contact: Contact, hello: string): Promise<any> {
+  public async friendRequestSend(contact: Contact, hello: string): Promise<boolean> {
     if (!this.bridge) {
       return Promise.reject(new Error('fail: no bridge(yet)!'))
     }
@@ -494,7 +494,7 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public async friendRequestAccept(contact: Contact, ticket: string): Promise<any> {
+  public async friendRequestAccept(contact: Contact, ticket: string): Promise<boolean> {
     if (!this.bridge) {
       return Promise.reject(new Error('fail: no bridge(yet)!'))
     }

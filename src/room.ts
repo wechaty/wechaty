@@ -415,7 +415,7 @@ export class Room extends EventEmitter implements Sayable {
     }
     log.verbose('Room', 'findAll({ topic: %s })', query.topic)
 
-    const topicFilter = query.topic
+    let topicFilter = query.topic
 
     if (!topicFilter) {
       throw new Error('topicFilter not found')
@@ -426,6 +426,7 @@ export class Room extends EventEmitter implements Sayable {
     if (topicFilter instanceof RegExp) {
       filterFunction = `(function (c) { return ${topicFilter.toString()}.test(c) })`
     } else if (typeof topicFilter === 'string') {
+      topicFilter = topicFilter.replace(/'/g, '\\\'')
       filterFunction = `(function (c) { return c === '${topicFilter}' })`
     } else {
       throw new Error('unsupport topic type')
