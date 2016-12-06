@@ -72,6 +72,9 @@ bot
 })
 
 bot.init()
+.then(() => {
+  bot.say('Wechaty init')
+})
 .catch(e => {
   log.error('Bot', 'init() fail: %s', e)
   bot.quit()
@@ -79,14 +82,5 @@ bot.init()
 })
 
 nodeCleanup(() => {
-  bot.say('quit')
+  bot.say('Wechaty exit')
 })
-
-function logToFile(data) {
-  require('fs').appendFile('message.log', data + '\n\n#############################\n\n', err => {
-    if (err) { log.error('LogToFile: %s', err) }
-  })
-}
-if (typeof logToFile === 'fasdfsd') {
-  console.log('disable linting warning')
-}
