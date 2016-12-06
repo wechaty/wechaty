@@ -611,12 +611,33 @@
     return chatroomFactory.delMember(ChatRoomName, UserName)
   }
 
-  function roomAddMember(ChatRoomName, UserName) {
+  function roomAddMemberAsync(ChatRoomName, UserName) {
+    var callback = arguments[arguments.length - 1]
+    if (typeof callback !== 'function') {
+      // here we should in sync mode, because there's no callback
+      throw new Error('async method need to be called via webdriver.executeAsyncScript')
+    }
+
     var chatroomFactory = WechatyBro.glue.chatroomFactory
-    // XXX
     // log(ChatRoomName)
     // log(UserName)
-    return chatroomFactory.addMember(ChatRoomName, UserName)
+
+    // There's no return value of addMember :(
+    // https://github.com/wechaty/webwx-app-tracker/blob/f22cb043ff4201ee841990dbeb59e22643092f92/formatted/webwxApp.js#L2404-L2413
+    var timer = setTimeout(function() {
+      log('roomAddMemberAsync() timeout')
+      callback(0)
+    }, 10 * 1000)
+
+    chatroomFactory.addMember(ChatRoomName, UserName, function(result) {
+
+      clearTimeout(timer)
+      callback(1)
+
+      log('roomAddMemberAsync() return: ')
+      log(result)
+
+    })
   }
 
   function roomModTopic(ChatRoomName, topic) {

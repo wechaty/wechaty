@@ -177,7 +177,7 @@ export class Bridge {
     if (!roomId || !contactId) {
       throw new Error('no roomId or contactId')
     }
-    return this.proxyWechaty('roomAddMember', roomId, contactId)
+    return this.proxyWechaty('roomAddMemberAsync', roomId, contactId)
                 .catch(e => {
                   log.error('PuppetWebBridge', 'roomAddMember(%s, %s) exception: %s', roomId, contactId, e.message)
                   throw e

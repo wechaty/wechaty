@@ -220,6 +220,7 @@ export class Contact implements Sayable {
   public remark(): string | null
   /**
    * set the remark for contact
+   * @return {Promise<boolean>} A promise to the result. true for success, false for failure
    */
   public remark(newRemark: string): Promise<boolean>
   /**
