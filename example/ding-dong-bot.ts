@@ -8,7 +8,8 @@
  */
 
 /* tslint:disable:variable-name */
-const QrcodeTerminal = require('qrcode-terminal')
+const QrcodeTerminal  = require('qrcode-terminal')
+const nodeCleanup     = require('node-cleanup')
 
 import {
   Wechaty
@@ -71,17 +72,15 @@ bot
 })
 
 bot.init()
+.then(() => {
+  bot.say('Wechaty init')
+})
 .catch(e => {
   log.error('Bot', 'init() fail: %s', e)
   bot.quit()
   process.exit(-1)
 })
 
-function logToFile(data) {
-  require('fs').appendFile('message.log', data + '\n\n#############################\n\n', err => {
-    if (err) { log.error('LogToFile: %s', err) }
-  })
-}
-if (typeof logToFile === 'fasdfsd') {
-  console.log('disable linting warning')
-}
+nodeCleanup(() => {
+  bot.say('Wechaty exit')
+})

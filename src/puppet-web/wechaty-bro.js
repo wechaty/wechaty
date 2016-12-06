@@ -720,7 +720,7 @@
     })
   }
 
-  function verifyUserOk(UserName, Ticket) {
+  function verifyUserOkAsync(UserName, Ticket) {
     var callback = arguments[arguments.length - 1]
     if (typeof callback !== 'function') {
       // here we should in sync mode, because there's no callback
@@ -827,8 +827,8 @@
     , roomModTopic:    roomModTopic
 
     // for Friend Request
-    , verifyUserRequest: verifyUserRequest
-    , verifyUserOk:      verifyUserOk
+    , verifyUserRequestAsync: verifyUserRequestAsync
+    , verifyUserOkAsync:      verifyUserOkAsync
     // , friendAdd
     // , friendVerify
 
