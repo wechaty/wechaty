@@ -820,11 +820,11 @@
     , contactRemarkAsync: contactRemarkAsync
 
     // for Wechaty Room Class
-    , roomCreateAsync: roomCreateAsync
-    , roomFind:        roomFind
-    , roomAddMember:   roomAddMember
-    , roomDelMember:   roomDelMember
-    , roomModTopic:    roomModTopic
+    , roomCreateAsync:    roomCreateAsync
+    , roomAddMemberSync:  roomAddMemberSync
+    , roomFind:           roomFind
+    , roomDelMember:      roomDelMember
+    , roomModTopic:       roomModTopic
 
     // for Friend Request
     , verifyUserRequestAsync: verifyUserRequestAsync
