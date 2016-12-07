@@ -49,13 +49,14 @@ RUN  sed -i '/chromedriver/d' package.json \
       && ln -s /wechaty/node_modules/* . \
     ) \
   && ln -s /wechaty/tsconfig.json / \
+  && echo "export * from 'wechaty'" > /index.ts \
   \
   && echo 'Linked wechaty to global'
 
 VOLUME [ "/bot" ]
 
 ENTRYPOINT [ "/wechaty/bin/entrypoint.sh" ]
-CMD [ "start" ]
+CMD [ "" ]
 
 LABEL org.label-schema.license=ISC \
       org.label-schema.vcs-ref=master \
