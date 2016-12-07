@@ -81,6 +81,8 @@ bot.init()
   process.exit(-1)
 })
 
-nodeCleanup(() => {
-  bot.say('Wechaty exit')
+nodeCleanup((reason, code) => {
+  const exitMsg = `Wechaty exit ${code} because of ${reason} `
+  console.log(exitMsg)
+  bot.say(exitMsg)
 })
