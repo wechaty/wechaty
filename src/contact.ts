@@ -9,11 +9,12 @@
 import {
     Config
   , Sayable
-}               from './config'
-import { Message }  from './message'
-import { UtilLib }  from './util-lib'
-import { Wechaty }  from './wechaty'
-import { log }      from './brolog-env'
+}                     from './config'
+import { Message }    from './message'
+import { PuppetWeb }  from './puppet-web'
+import { UtilLib }    from './util-lib'
+import { Wechaty }    from './wechaty'
+import { log }        from './brolog-env'
 
 type ContactObj = {
   address:    string
@@ -22,12 +23,13 @@ type ContactObj = {
   name:       string
   province:   string
   remark:     string|null
-  sex:        string
+  sex:        Gender
   signature:  string
   star:       boolean
   stranger:   boolean
   uin:        string
   weixin:     string
+  avatar:     string  // XXX URL of HeadImgUrl
 }
 
 export type ContactRawObj = {
@@ -36,13 +38,20 @@ export type ContactRawObj = {
   NickName:     string
   Province:     string
   RemarkName:   string
-  Sex:          string
+  Sex:          Gender
   Signature:    string
   StarFriend:   string
   Uin:          string
   UserName:     string
+  HeadImgUrl:   string
 
   stranger:     string // assign by injectio.js
+}
+
+export enum Gender {
+  Unknown = 0,
+  Male    = 1,
+  Female  = 2,
 }
 
 export type ContactQueryFilter = {
@@ -93,15 +102,40 @@ export class Contact implements Sayable {
 
       , star:       !!rawObj.StarFriend
       , stranger:   !!rawObj.stranger // assign by injectio.js
+      , avatar:     rawObj.HeadImgUrl
     }
   }
 
-  public weixin()    { return this.obj && this.obj.weixin || '' }
-  public name()      { return UtilLib.plainText(this.obj && this.obj.name || '') }
-  public stranger()  { return this.obj && this.obj.stranger }
-  public star()      { return this.obj && this.obj.star }
+  public weixin()   { return this.obj && this.obj.weixin || '' }
+  public name()     { return UtilLib.plainText(this.obj && this.obj.name || '') }
+  public stranger() { return this.obj && this.obj.stranger }
+  public star()     { return this.obj && this.obj.star }
+  /**
+   * Contact gender
+   * @return Gender.Male(2) | Gender.Femail(1) | Gender.Unknown(0)
+   */
+  public gender()   { return this.obj ? this.obj.sex : Gender.Unknown }
+  public province() { return this.obj && this.obj.province }
+  public city()     { return this.obj && this.obj.city }
 
-  public get(prop)   { return this.obj && this.obj[prop] }
+  /**
+   * Get avatar picture file stream
+   */
+  public async avatar(): Promise<NodeJS.ReadableStream> {
+    if (!this.obj || !this.obj.avatar) {
+      throw new Error('Can not get avatar: not ready')
+    }
+
+    try {
+      const cookies = await (Config.puppetInstance() as PuppetWeb).browser.readCookie()
+      return UtilLib.urlStream(this.obj.avatar, cookies)
+    } catch (e) {
+      log.warn('Contact', 'avatar() exception: %s', e.stack)
+      throw e
+    }
+  }
+
+  public get(prop)  { return this.obj && this.obj[prop] }
 
   public isReady(): boolean {
     return !!(this.obj && this.obj.id && this.obj.name !== undefined)
