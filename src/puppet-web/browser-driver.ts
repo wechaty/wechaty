@@ -251,9 +251,14 @@ export class BrowserDriver {
          */
         const TIMEOUT = 7 * 1000
 
-        const timer = setTimeout(() => {
+        let timer: NodeJS.Timer | null
+
+        timer = setTimeout(() => {
           const e = new Error('valid() driver.getSession() timeout(halt?)')
           log.warn('PuppetWebBrowserDriver'   , e.message)
+
+          // record timeout by set timer to null
+          timer = null
 
           // 1. Promise rejected
           return reject(e)
@@ -264,7 +269,10 @@ export class BrowserDriver {
         driver.getSession()
               .then(session => {
                 log.verbose('PuppetWebBrowserDriver', 'valid() getSession() done')
-                clearTimeout(timer)
+                if (timer) {
+                  clearTimeout(timer)
+                  timer = null
+                }
 
                 // 2. Promise resolved
                 return resolve(session)
@@ -274,7 +282,11 @@ export class BrowserDriver {
                 log.warn('PuppetWebBrowserDriver', 'valid() getSession() rejected: %s', e && e.message || e)
 
                 // 3. Promise rejected
-                return reject(e)
+                if (timer) {
+                  // do not call reject again if there's already a timeout
+                  timer = null
+                  return reject(e)
+                }
 
               })
 
