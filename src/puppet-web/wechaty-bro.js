@@ -711,7 +711,7 @@
     })
     .then(function() {  // succ
       // alert('ok')
-      log('friendAdd(' + UserName + ', ' + VerifyContent + ') done')
+      // log('friendAdd(' + UserName + ', ' + VerifyContent + ') done')
       callback(true)
     }, function(t) {    // fail
       // alert('not ok')
