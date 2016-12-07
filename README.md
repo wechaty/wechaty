@@ -76,14 +76,6 @@ Get to know more about Wechaty Docker at [Wiki:Docker](https://github.com/wechat
 
 [![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty) [![Downloads][downloads-image]][downloads-url]
 
-Using Wechaty from NPM is **NOT recommended**. Please use Docker(above) instead unless you are ready to deal with lots of unknown problems.
-
-```shell
-$ npm install --save wechaty
-
-$ node mybot.js
-```
-
 Get to know more about NPM at [Wiki:NPM](https://github.com/wechaty/wechaty/wiki/NPM)
 
 # API Reference

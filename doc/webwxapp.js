@@ -2916,12 +2916,14 @@ angular.module("Services", []),
             },
             addMember: function(e, t, o) {
                 var n = r.getContact(e);
-                n.MemberList.length + t.split(",").length >= 40 ? (console.log("invite", n.MemberList.length + t.split(",").length),
-                this._update("invitemember", e, {
-                    inviteMembers: t
-                }, o)) : this._update("addmember", e, {
+                n.MemberList.length + t.split(",").length >= 40
+                  ? (console.log("invite", n.MemberList.length + t.split(",").length),
+                    this._update("invitemember", e, {
+                        inviteMembers: t
+                    }, o))
+                  : this._update("addmember", e, {
                     addMembers: t
-                }, o)
+                    }, o)
             },
             delMember: function(e, t) {
                 this._update("delmember", e, {
