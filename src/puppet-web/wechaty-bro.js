@@ -821,7 +821,7 @@
 
     // for Wechaty Room Class
     , roomCreateAsync:    roomCreateAsync
-    , roomAddMemberSync:  roomAddMemberSync
+    , roomAddMemberAsync: roomAddMemberAsync
     , roomFind:           roomFind
     , roomDelMember:      roomDelMember
     , roomModTopic:       roomModTopic
