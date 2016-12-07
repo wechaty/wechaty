@@ -55,7 +55,8 @@ export enum Gender {
 }
 
 export type ContactQueryFilter = {
-  name: string | RegExp
+  name?: string | RegExp
+  remark?: string | RegExp
 }
 
 export class Contact implements Sayable {
@@ -112,7 +113,7 @@ export class Contact implements Sayable {
   public star()     { return this.obj && this.obj.star }
   /**
    * Contact gender
-   * @return Gender.Male(2) | Gender.Femail(1) | Gender.Unknown(0)
+   * @return Gender.Male(2) | Gender.Female(1) | Gender.Unknown(0)
    */
   public gender()   { return this.obj ? this.obj.sex : Gender.Unknown }
   public province() { return this.obj && this.obj.province }
@@ -214,16 +215,43 @@ export class Contact implements Sayable {
     return selfId === userId
   }
 
-  public static findAll(query?: ContactQueryFilter): Promise<Contact[]> {
-    if (!query) {
+  /**
+   * find contact by `name`(NickName) or `remark`(RemarkName)
+   */
+  public static findAll(queryArg?: ContactQueryFilter): Promise<Contact[]> {
+    let query: ContactQueryFilter
+    if (queryArg) {
+      query = queryArg
+    } else {
       query = { name: /.*/ }
     }
-    log.verbose('Cotnact', 'findAll({ name: %s })', query.name)
 
-    let nameFilter = query.name
+    // log.verbose('Cotnact', 'findAll({ name: %s })', query.name)
+    log.verbose('Cotnact', 'findAll({ %s })'
+                          , Object.keys(query)
+                                  .map(k => `${k}: ${query[k]}`)
+                                  .join(', ')
+              )
 
-    if (!nameFilter) {
-      throw new Error('nameFilter not found')
+    if (Object.keys(query).length !== 1) {
+      throw new Error('query only support one key. multi key support is not availble now.')
+    }
+
+    let filterKey                     = Object.keys(query)[0]
+    let filterValue: string | RegExp  = query[filterKey]
+
+    const keyMap = {
+      name:   'NickName',
+      remark: 'RemarkName',
+    }
+
+    filterKey = keyMap[filterKey]
+    if (!filterKey) {
+      throw new Error('unsupport filter key')
+    }
+
+    if (!filterValue) {
+      throw new Error('filterValue not found')
     }
 
     /**
@@ -232,11 +260,11 @@ export class Contact implements Sayable {
      */
     let filterFunction: string
 
-    if (nameFilter instanceof RegExp) {
-      filterFunction = `(function (c) { return ${nameFilter.toString()}.test(c) })`
-    } else if (typeof nameFilter === 'string') {
-      nameFilter = nameFilter.replace(/'/g, '\\\'')
-      filterFunction = `(function (c) { return c === '${nameFilter}' })`
+    if (filterValue instanceof RegExp) {
+      filterFunction = `(function (c) { return ${filterValue.toString()}.test(c.${filterKey}) })`
+    } else if (typeof filterValue === 'string') {
+      filterValue = filterValue.replace(/'/g, '\\\'')
+      filterFunction = `(function (c) { return c.${filterKey} === '${filterValue}' })`
     } else {
       throw new Error('unsupport name type')
     }
