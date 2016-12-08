@@ -536,7 +536,9 @@
       match = eval(filterFunction)
     }
 
-    return retryFind(0)
+    retryFind(0)
+
+    return
 
     // retry 3 times, sleep 300ms between each time
     function retryFind(attempt) {
@@ -544,7 +546,7 @@
 
       var contactList = contactFactory
                           .getAllFriendContact()
-                          .filter(function(c) { return match(c.NickName) })
+                          .filter(function(c) { return match(c) })
                           .map(function(c) { return c.UserName })
 
       if (contactList && contactList.length) {
@@ -711,7 +713,7 @@
     })
     .then(function() {  // succ
       // alert('ok')
-      log('friendAdd(' + UserName + ', ' + VerifyContent + ') done')
+      // log('friendAdd(' + UserName + ', ' + VerifyContent + ') done')
       callback(true)
     }, function(t) {    // fail
       // alert('not ok')
