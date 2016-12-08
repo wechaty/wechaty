@@ -27,9 +27,9 @@ Wechaty is a Bot Framework for Wechat **Personal** Account which can help you cr
 
 > @naishstar: thanks for great SDK [link](https://github.com/wechaty/wechaty/issues/57)
 
-> @shevyan: 简单的接口...和Docker化的封装，结合Docker绝对是一个不错的选择 [link](http://mp.weixin.qq.com/s/o-4VMcAMz0K8yJVdNaUXow)
+> @shevyan: 简单的接口...和Docker化的封装...绝对是一个不错的选择 [link](http://mp.weixin.qq.com/s/o-4VMcAMz0K8yJVdNaUXow)
 
-> @lijiarui: [Chat实录｜李佳芮：向前一步的程序媛](http://mp.weixin.qq.com/s/dWHAj8XtiKG-1fIS5Og79g)
+> @lijiarui: Chat实录｜李佳芮：向前一步的程序媛 [link](http://mp.weixin.qq.com/s/dWHAj8XtiKG-1fIS5Og79g)
 
 # Example
 
@@ -204,7 +204,7 @@ Scan the following QR Code in WeChat, with secret code _wechaty_, you can join o
 
 ![Wechaty Developers' Home](https://raw.githubusercontent.com/wechaty/wechaty/master/image/BotQrcode.png)
 
-Scan now, then you can chat with other Wechaty developers!
+Scan now, then you can chat with other Wechaty developers! (secret code: _wechaty_)
 
 # See Also
 

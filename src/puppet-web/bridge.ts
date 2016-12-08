@@ -127,7 +127,10 @@ export class Bridge {
     log.verbose('PuppetWebBridge', 'getUserName()')
 
     try {
-      return await this.proxyWechaty('getUserName')
+      const userName = await this.proxyWechaty('getUserName')
+
+      return userName
+
     } catch (e) {
       log.error('PuppetWebBridge', 'getUserName() exception: %s', e.message)
       throw e

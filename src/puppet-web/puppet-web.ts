@@ -330,6 +330,10 @@ export class PuppetWeb extends Puppet {
    * send to `filehelper` for notice / log
    */
   public async say(content: string): Promise<void> {
+    if (!this.logined()) {
+      throw new Error('can not say before login')
+    }
+
     const m = new Message()
     m.to('filehelper')
     m.content(content)

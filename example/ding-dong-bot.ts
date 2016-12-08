@@ -44,7 +44,10 @@ console.log(welcome)
 const bot = Wechaty.instance({ profile: Config.DEFAULT_PROFILE })
 
 bot
-.on('login'	  , user => log.info('Bot', `${user.name()} logined`))
+.on('login'	  , user => {
+  log.info('Bot', `${user.name()} logined`)
+  bot.say('Wechaty login')
+})
 .on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
 .on('error'   , e => log.info('Bot', 'error: %s', e))
 .on('scan', (url, code) => {
@@ -72,9 +75,6 @@ bot
 })
 
 bot.init()
-.then(() => {
-  bot.say('Wechaty init')
-})
 .catch(e => {
   log.error('Bot', 'init() fail: %s', e)
   bot.quit()
