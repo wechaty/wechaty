@@ -9,7 +9,7 @@
 
 /* tslint:disable:variable-name */
 const QrcodeTerminal  = require('qrcode-terminal')
-const nodeCleanup     = require('node-cleanup')
+const finis           = require('finis')
 
 import {
   Wechaty
@@ -81,7 +81,7 @@ bot.init()
   process.exit(-1)
 })
 
-nodeCleanup((reason, code) => {
+finis((code, reason) => {
   const exitMsg = `Wechaty exit ${code} because of ${reason} `
   console.log(exitMsg)
   bot.say(exitMsg)
