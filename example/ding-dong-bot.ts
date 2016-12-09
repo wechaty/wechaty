@@ -49,7 +49,10 @@ bot
   bot.say('Wechaty login')
 })
 .on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
-.on('error'   , e => log.info('Bot', 'error: %s', e))
+.on('error'   , e => {
+  log.info('Bot', 'error: %s', e)
+  bot.say('Wechaty error: ' + e.message)
+})
 .on('scan', (url, code) => {
   if (!/201|200/.test(String(code))) {
     let loginUrl = url.replace(/\/qrcode\//, '/l/')
