@@ -251,41 +251,52 @@ export class BrowserDriver {
          */
         const TIMEOUT = 7 * 1000
 
-        let timer: NodeJS.Timer | null
+        let watchdogTimer: NodeJS.Timer | null
 
-        timer = setTimeout(() => {
+        watchdogTimer = setTimeout(() => {
           const e = new Error('valid() driver.getSession() timeout(halt?)')
           log.warn('PuppetWebBrowserDriver'   , e.message)
 
           // record timeout by set timer to null
-          timer = null
+          watchdogTimer = null
 
           // 1. Promise rejected
-          return reject(e)
+          reject(e)
+          return
 
         }, TIMEOUT)
 
         log.verbose('PuppetWebBrowserDriver', 'valid() getSession()')
         driver.getSession()
               .then(session => {
-                log.verbose('PuppetWebBrowserDriver', 'valid() getSession() done')
-                if (timer) {
-                  clearTimeout(timer)
-                  timer = null
+                log.verbose('PuppetWebBrowserDriver', 'valid() getSession() then() done')
+                if (watchdogTimer) {
+                  log.verbose('PuppetWebBrowserDriver', 'valid() getSession() then() watchdog timer exist, will be cleared')
+                  clearTimeout(watchdogTimer)
+                  watchdogTimer = null
+                } else {
+                  log.verbose('PuppetWebBrowserDriver', 'valid() getSession() then() watchdog timer not exist?')
                 }
 
                 // 2. Promise resolved
-                return resolve(session)
+                resolve(session)
+                return
 
               })
               .catch(e => {
-                log.warn('PuppetWebBrowserDriver', 'valid() getSession() rejected: %s', e && e.message || e)
+                log.warn('PuppetWebBrowserDriver', 'valid() getSession() catch() rejected: %s', e && e.message || e)
 
-                // 3. Promise rejected
-                if (timer) {
-                  // do not call reject again if there's already a timeout
-                  timer = null
-                  return reject(e)
+                // do not call reject again if there's already a timeout
+                if (watchdogTimer) {
+                  log.verbose('PuppetWebBrowserDriver', 'valid() getSession() catch() watchdog timer exist, will set it to null and call reject()')
+
+                  // 3. Promise rejected
+                  watchdogTimer = null
+                  reject(e)
+                  return
+
+                } else {
+                  log.verbose('PuppetWebBrowserDriver', 'valid() getSession() catch() watchdog timer not exist, will not call reject() again')
                 }
 
               })

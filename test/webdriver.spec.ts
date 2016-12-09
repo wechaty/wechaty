@@ -13,9 +13,9 @@ import { test }   from 'ava'
 // }                 from 'selenium-webdriver'
 
 import {
-    Bridge
-  , Browser
-  , PuppetWeb
+  Bridge,
+  Browser,
+  PuppetWeb,
 } from '../src/puppet-web/'
 
 /**
