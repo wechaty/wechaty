@@ -84,8 +84,8 @@ bot.init()
   process.exit(-1)
 })
 
-finis((code, reason) => {
-  const exitMsg = `Wechaty exit ${code} because of ${reason} `
+finis((code, signal) => {
+  const exitMsg = `Wechaty exit ${code} because of ${signal} `
   console.log(exitMsg)
   bot.say(exitMsg)
 })
