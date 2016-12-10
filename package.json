@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.6.51",
+  "version": "0.6.52",
   "description": "Wechat for Bot(Personal Account)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -62,7 +62,6 @@
     "wechaty",
     "微信控"
   ],
-  "author": "Zhuohuan LI <zixia@zixia.net>",
   "author": {
     "name": "Zhuohuan LI",
     "email": "zixia@zixia.net",
