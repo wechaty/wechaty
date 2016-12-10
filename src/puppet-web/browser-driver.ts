@@ -255,10 +255,11 @@ export class BrowserDriver {
 
         watchdogTimer = setTimeout(() => {
           const e = new Error('valid() driver.getSession() timeout(halt?)')
-          log.warn('PuppetWebBrowserDriver'   , e.message)
+          log.warn('PuppetWebBrowserDriver', e.message)
 
           // record timeout by set timer to null
           watchdogTimer = null
+          log.verbose('PuppetWebBrowserDriver', 'watchdogTimer = %s after set null', watchdogTimer)
 
           // 1. Promise rejected
           reject(e)
@@ -274,6 +275,7 @@ export class BrowserDriver {
                   log.verbose('PuppetWebBrowserDriver', 'valid() getSession() then() watchdog timer exist, will be cleared')
                   clearTimeout(watchdogTimer)
                   watchdogTimer = null
+                  log.verbose('PuppetWebBrowserDriver', 'watchdogTimer = %s after set null', watchdogTimer)
                 } else {
                   log.verbose('PuppetWebBrowserDriver', 'valid() getSession() then() watchdog timer not exist?')
                 }
