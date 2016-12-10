@@ -568,7 +568,7 @@
       throw new Error('async method need to be called via webdriver.executeAsyncScript')
     }
 
-    if (remark === null) {
+    if (remark === null || remark === undefined) {
       remark = ''
     }
 
