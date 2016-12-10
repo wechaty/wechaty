@@ -12,9 +12,9 @@ const QrcodeTerminal  = require('qrcode-terminal')
 const finis           = require('finis')
 
 import {
-  Wechaty
-  , Config
-  , log
+  Config,
+  Wechaty,
+  log,
 } from '../'
 
 const welcome = `
@@ -44,11 +44,11 @@ console.log(welcome)
 const bot = Wechaty.instance({ profile: Config.DEFAULT_PROFILE })
 
 bot
+.on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
 .on('login'	  , user => {
   log.info('Bot', `${user.name()} logined`)
   bot.say('Wechaty login')
 })
-.on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
 .on('error'   , e => {
   log.info('Bot', 'error: %s', e)
   bot.say('Wechaty error: ' + e.message)
