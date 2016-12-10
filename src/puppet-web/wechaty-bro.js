@@ -568,6 +568,10 @@
       throw new Error('async method need to be called via webdriver.executeAsyncScript')
     }
 
+    if (remark === null) {
+      remark = ''
+    }
+
     var accountFactory  = WechatyBro.glue.accountFactory
     var confFactory     = WechatyBro.glue.confFactory
     var emojiFactory    = WechatyBro.glue.emojiFactory
