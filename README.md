@@ -33,7 +33,7 @@ Wechaty is a Bot Framework for Wechat **Personal** Account which can help you cr
 
 # Example
 
-The shortest wechat bot code in the world: 6 lines JavaScript
+The world's shortest wechat bot: 6 lines JavaScript
 
 ```javascript
 const { Wechaty } = require('wechaty')
