@@ -27,9 +27,9 @@ Wechaty is a Bot Framework for Wechat **Personal** Account which can help you cr
 
 > @naishstar: thanks for great SDK [link](https://github.com/wechaty/wechaty/issues/57)
 
-> @shevyan: 简单的接口...和Docker化的封装...绝对是一个不错的选择 [link](http://mp.weixin.qq.com/s/o-4VMcAMz0K8yJVdNaUXow)
+> @shevyan: Wechaty简单的接口...和Docker化的封装...绝对是一个不错的选择 [link](http://mp.weixin.qq.com/s/o-4VMcAMz0K8yJVdNaUXow)
 
-> @lijiarui: 把很多运营人员面临的问题先解决了，让他们更多的时间放在思考如何进行活动策划、如何留存用户，如何进行商业变现 [link](http://mp.weixin.qq.com/s/dWHAj8XtiKG-1fIS5Og79g)
+> @lijiarui: Wechaty让运营人员更多的时间思考如何进行活动策划、留存用户，商业变现 [link](http://mp.weixin.qq.com/s/dWHAj8XtiKG-1fIS5Og79g)
 
 # Example
 
