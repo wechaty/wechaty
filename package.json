@@ -63,6 +63,11 @@
     "微信控"
   ],
   "author": "Zhuohuan LI <zixia@zixia.net>",
+  "author": {
+    "name": "Zhuohuan LI",
+    "email": "zixia@zixia.net",
+    "url": "www.zixia.net"
+  },
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/wechaty/wechaty/issues"
@@ -86,6 +91,11 @@
       },
       "extends": "plugin:ava/recommended"
     }
+  },
+  "ava": {
+    "require": [
+      "ts-node/register"
+    ]
   },
   "engines": {
     "node": ">= 6.9.0"
