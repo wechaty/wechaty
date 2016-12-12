@@ -122,7 +122,7 @@
     "@types/node": "^6.0.45",
     "@types/request": "^0.0.36",
     "@types/selenium-webdriver": "^2.53.34",
-    "@types/sinon": "^1.16.31",
+    "@types/sinon": "^1.16.33",
     "@types/socket.io": "^1.4.27",
     "@types/ws": "^0.0.37",
     "apiai": "^3.0.3",
