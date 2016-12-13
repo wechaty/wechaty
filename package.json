@@ -100,6 +100,8 @@
     "node": ">= 6.9.0"
   },
   "dependencies": {
+    "@types/selenium-webdriver": "^2.53.34",
+    "@types/socket.io": "^1.4.27",
     "body-parser": "^1.15.2",
     "brolog": "^0.3.10",
     "chromedriver": "^2.25.1",
@@ -121,9 +123,7 @@
     "@types/mime": "^0.0.29",
     "@types/node": "^6.0.45",
     "@types/request": "^0.0.36",
-    "@types/selenium-webdriver": "^2.53.34",
     "@types/sinon": "^1.16.31",
-    "@types/socket.io": "^1.4.27",
     "@types/ws": "^0.0.37",
     "apiai": "^3.0.3",
     "ava": "^0.17.0",
