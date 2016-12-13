@@ -218,7 +218,7 @@ export class Contact implements Sayable {
   /**
    * find contact by `name`(NickName) or `remark`(RemarkName)
    */
-  public static findAll(queryArg?: ContactQueryFilter): Promise<Contact[]> {
+  public static async findAll(queryArg?: ContactQueryFilter): Promise<Contact[]> {
     let query: ContactQueryFilter
     if (queryArg) {
       query = queryArg
@@ -269,12 +269,15 @@ export class Contact implements Sayable {
       throw new Error('unsupport name type')
     }
 
-    return Config.puppetInstance()
-                  .contactFind(filterFunction)
-                  .catch(e => {
-                    log.error('Contact', 'findAll() rejected: %s', e.message)
-                    return [] // fail safe
-                  })
+    const list = await Config.puppetInstance()
+                              .contactFind(filterFunction)
+                              .catch(e => {
+                                log.error('Contact', 'findAll() rejected: %s', e.message)
+                                return [] // fail safe
+                              })
+    await Promise.all(list.map(c => c.ready()))
+
+    return list
   }
 
   /**
