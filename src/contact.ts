@@ -123,16 +123,22 @@ export class Contact implements Sayable {
    * Get avatar picture file stream
    */
   public async avatar(): Promise<NodeJS.ReadableStream> {
+    log.verbose('Contact', 'avatar()')
+
     if (!this.obj || !this.obj.avatar) {
       throw new Error('Can not get avatar: not ready')
     }
 
     try {
+      const hostname = (Config.puppetInstance() as PuppetWeb).browser.hostname
+      const avatarUrl = `http://${hostname}${this.obj.avatar}`
       const cookies = await (Config.puppetInstance() as PuppetWeb).browser.readCookie()
-      return UtilLib.urlStream(this.obj.avatar, cookies)
-    } catch (e) {
-      log.warn('Contact', 'avatar() exception: %s', e.stack)
-      throw e
+      log.silly('Contact', 'avatar() url: %s', avatarUrl)
+
+      return UtilLib.urlStream(avatarUrl, cookies)
+    } catch (err) {
+      log.warn('Contact', 'avatar() exception: %s', err.stack)
+      throw err
     }
   }
 
