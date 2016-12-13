@@ -37,7 +37,7 @@ export class Browser extends EventEmitter {
   private cookie: BrowserCookie
   public driver: BrowserDriver
 
-  public hostname: string
+  public hostname = 'wx.qq.com'
 
   public state = new StateMonitor<'open', 'close'>('Browser', 'close')
 
