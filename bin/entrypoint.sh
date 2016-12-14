@@ -10,6 +10,7 @@ HOME=/bot
 PATH=$PATH:/wechaty/bin:/wechaty/node_modules/.bin
 
 function wechaty::banner() {
+  echo
   figlet " Wechaty "
   echo ____________________________________________________
   echo "            https://www.wechaty.io"
