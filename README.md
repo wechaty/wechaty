@@ -15,20 +15,20 @@ Wechaty is a Bot Framework for Wechat **Personal** Account which can help you cr
 
 ## Voice of the Developer
 
-> "The best wechat SDK I have seen in Github!" [link](https://github.com/wechaty/wechaty/issues/8#issuecomment-228971491)
->  - @JasLin, BotWave CTO
+> "The best wechat SDK I have seen in Github!" [link](https://github.com/wechaty/wechaty/issues/8#issuecomment-228971491)  
+> -- @JasLin, BotWave CTO
 
-> "Wechaty简单的接口...和Docker化的封装...绝对是一个不错的选择" [link](http://mp.weixin.qq.com/s/o-4VMcAMz0K8yJVdNaUXow)
->  - @shevyan, Ghost Cloud CEO
+> "Wechaty简单的接口...和Docker化的封装...绝对是一个不错的选择" [link](http://mp.weixin.qq.com/s/o-4VMcAMz0K8yJVdNaUXow)  
+> -- @shevyan, Ghost Cloud CEO
 
-> "Wechaty让运营人员更多的时间思考如何进行活动策划、留存用户，商业变现" [link](http://mp.weixin.qq.com/s/dWHAj8XtiKG-1fIS5Og79g)
->  - @lijiarui, Orange Interactive CEO
+> "Wechaty让运营人员更多的时间思考如何进行活动策划、留存用户，商业变现" [link](http://mp.weixin.qq.com/s/dWHAj8XtiKG-1fIS5Og79g)  
+> -- @lijiarui, Orange Interactive CEO
 
-> "Wechaty is great." [link](https://github.com/wechaty/wechaty/issues/36#issuecomment-251708382)
->  - @Samurais, SnapLingo Engineering Director
+> "Wechaty is great." [link](https://github.com/wechaty/wechaty/issues/36#issuecomment-251708382)  
+> -- @Samurais, SnapLingo Director of Engineering
 
-> "最好的微信开发库" [link](http://weibo.com/3296245513/Ec4iNp9Ld?type=comment)
->  - @Jarvis, Baidu Engineer
+> "最好的微信开发库" [link](http://weibo.com/3296245513/Ec4iNp9Ld?type=comment)  
+> -- @Jarvis, Baidu
 
 > "Wechaty library fantastic!" [link](https://github.com/wechaty/wechaty/issues/9) - @ccaapton 
 
