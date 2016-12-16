@@ -123,16 +123,22 @@ export class Contact implements Sayable {
    * Get avatar picture file stream
    */
   public async avatar(): Promise<NodeJS.ReadableStream> {
+    log.verbose('Contact', 'avatar()')
+
     if (!this.obj || !this.obj.avatar) {
       throw new Error('Can not get avatar: not ready')
     }
 
     try {
+      const hostname = (Config.puppetInstance() as PuppetWeb).browser.hostname
+      const avatarUrl = `http://${hostname}${this.obj.avatar}`
       const cookies = await (Config.puppetInstance() as PuppetWeb).browser.readCookie()
-      return UtilLib.urlStream(this.obj.avatar, cookies)
-    } catch (e) {
-      log.warn('Contact', 'avatar() exception: %s', e.stack)
-      throw e
+      log.silly('Contact', 'avatar() url: %s', avatarUrl)
+
+      return UtilLib.urlStream(avatarUrl, cookies)
+    } catch (err) {
+      log.warn('Contact', 'avatar() exception: %s', err.stack)
+      throw err
     }
   }
 
@@ -218,7 +224,7 @@ export class Contact implements Sayable {
   /**
    * find contact by `name`(NickName) or `remark`(RemarkName)
    */
-  public static findAll(queryArg?: ContactQueryFilter): Promise<Contact[]> {
+  public static async findAll(queryArg?: ContactQueryFilter): Promise<Contact[]> {
     let query: ContactQueryFilter
     if (queryArg) {
       query = queryArg
@@ -269,12 +275,15 @@ export class Contact implements Sayable {
       throw new Error('unsupport name type')
     }
 
-    return Config.puppetInstance()
-                  .contactFind(filterFunction)
-                  .catch(e => {
-                    log.error('Contact', 'findAll() rejected: %s', e.message)
-                    return [] // fail safe
-                  })
+    const list = await Config.puppetInstance()
+                              .contactFind(filterFunction)
+                              .catch(e => {
+                                log.error('Contact', 'findAll() rejected: %s', e.message)
+                                return [] // fail safe
+                              })
+    await Promise.all(list.map(c => c.ready()))
+
+    return list
   }
 
   /**

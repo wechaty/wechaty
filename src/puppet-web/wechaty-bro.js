@@ -572,6 +572,11 @@
       remark = ''
     }
 
+    var contact = _contacts[UserName]
+    if (!contact) {
+      throw new Error('contactRemarkAsync() can not found UserName ' + UserName)
+    }
+
     var accountFactory  = WechatyBro.glue.accountFactory
     var confFactory     = WechatyBro.glue.confFactory
     var emojiFactory    = WechatyBro.glue.emojiFactory
@@ -591,6 +596,7 @@
         serial: !0
       }
     }).success(function() {
+      contact.RemarkName = remark
       callback(true)
     }).error(function() {
       callback(false)

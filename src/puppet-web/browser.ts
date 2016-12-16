@@ -37,6 +37,8 @@ export class Browser extends EventEmitter {
   private cookie: BrowserCookie
   public driver: BrowserDriver
 
+  public hostname = 'wx.qq.com'
+
   public state = new StateMonitor<'open', 'close'>('Browser', 'close')
 
   constructor(private setting: BrowserSetting = {
@@ -72,9 +74,11 @@ export class Browser extends EventEmitter {
     this.state.target('open')
     this.state.current('open', false)
 
+    this.hostname = this.cookie.hostname()
+
     // jumpUrl is used to open in browser for we can set cookies.
     // backup: 'https://res.wx.qq.com/zh_CN/htmledition/v2/images/icon/ico_loading28a2f7.gif'
-    const jumpUrl = 'https://wx.qq.com/zh_CN/htmledition/v2/images/webwxgeticon.jpg'
+    const jumpUrl = `https://${this.hostname}/zh_CN/htmledition/v2/images/webwxgeticon.jpg`
 
     try {
       await this.driver.init()
@@ -102,16 +106,16 @@ export class Browser extends EventEmitter {
 
       return
 
-    } catch (e) {
-      log.error('PuppetWebBrowser', 'init() exception: %s', e.message)
+    } catch (err) {
+      log.error('PuppetWebBrowser', 'init() exception: %s', err.message)
 
       await this.quit()
 
-      throw e
+      throw err
     }
   }
 
-  public async open(url: string = 'https://wx.qq.com'): Promise<void> {
+  public async open(url: string = `https://${this.hostname}`): Promise<void> {
     log.verbose('PuppetWebBrowser', `open(${url})`)
 
     // TODO: set a timer to guard driver.get timeout, then retry 3 times 201607

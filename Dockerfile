@@ -33,6 +33,7 @@ WORKDIR /wechaty
 COPY package.json .
 RUN  sed -i '/chromedriver/d' package.json \
   && npm --silent --progress=false install > /dev/null \
+  && npm --silent --progress=false install phantomjs-prebuilt > /dev/null \
   && rm -fr /tmp/* ~/.npm
 
 # Loading from node_modules Folders: https://nodejs.org/api/modules.html
