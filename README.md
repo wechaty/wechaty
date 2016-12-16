@@ -216,9 +216,12 @@ Scan now, then you can chat with other Wechaty developers! (secret code: _wechat
 # Todo
 
 * [ ] Use Dependency Injection for FriendRequest(etc)
+  - [Typescript dependency injection container for Humans!](https://github.com/asvetliakov/Huject)
   - https://github.com/young-steveo/bottlejs
   - http://jonnyreeves.co.uk/2015/basic-typescript-dependency-injection-with-decorators/
   - https://github.com/connorwyatt/Fluency-Injection
+* [ ] Use Observable for Throttle API Call Rate with Server
+  - http://blog.thoughtram.io/angular/2016/01/06/taking-advantage-of-observables-in-angular2.html
 
 My Story
 ----------------
