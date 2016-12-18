@@ -143,7 +143,7 @@
     "tslint": "^4.1.0",
     "tuling123-client": "^0.0.1",
     "typescript": "^2.1.4",
-    "yarn": "^0.17.10"
+    "yarn": "^0.18.1"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [
