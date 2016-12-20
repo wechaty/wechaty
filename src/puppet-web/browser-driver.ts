@@ -335,47 +335,6 @@ export class BrowserDriver {
     return true
   }
 
-  // public driver1(): WebDriver
-  // public driver1(empty: null): void
-  // public driver1(newDriver: WebDriver): WebDriver
-
-  // public driver1(newDriver?: WebDriver | null): WebDriver | void {
-  //   if (newDriver !== undefined) {
-  //     log.verbose('PuppetWebBrowserDriver', 'driver(%s)'
-  //                                   , newDriver
-  //                                     ? newDriver.constructor.name
-  //                                     : null
-  //     )
-  //   }
-
-  //   if (newDriver !== undefined) {
-  //     if (newDriver) {
-  //       this.driver = newDriver
-  //       return this.driver
-  //     } else { // null
-  //       if (this.driver && this.driver.getSession()) {
-  //         throw new Error('driver still has session, can not set null')
-  //       }
-  //       this.driver = null
-  //       return
-  //     }
-  //   }
-
-  //   if (!this.driver) {
-  //     const e = new Error('no driver')
-  //     log.warn('PuppetWebBrowserDriver', 'driver() exception: %s', e.message)
-  //     throw e
-  //   }
-  //   // if (!this.driver.getSession()) {
-  //   //   const e = new Error('no driver session')
-  //   //   log.warn('PuppetWebBrowserDriver', 'driver() exception: %s', e.message)
-  //   //   this.driver.quit()
-  //   //   throw e
-  //   // }
-
-  //   return this.driver
-  // }
-
   public close()              { return this.driver.close() as any as Promise<void> }
   public executeAsyncScript(script: string|Function, ...args: any[])  { return this.driver.executeAsyncScript.apply(this.driver, arguments) }
   public executeScript     (script: string|Function, ...args: any[])  { return this.driver.executeScript.apply(this.driver, arguments) }
