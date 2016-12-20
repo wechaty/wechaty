@@ -13,10 +13,10 @@ import { createWriteStream } from 'fs'
 const QrcodeTerminal = require('qrcode-terminal')
 
 import {
-    Config
-  , Contact
-  , Wechaty
-  , log
+  Config,
+  Contact,
+  Wechaty,
+  log,
 } from '../'
 
 const welcome = `

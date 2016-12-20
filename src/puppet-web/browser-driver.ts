@@ -376,12 +376,12 @@ export class BrowserDriver {
   //   return this.driver
   // }
 
-  public close()              { return this.driver.close() }
+  public close()              { return this.driver.close() as any as Promise<void> }
   public executeAsyncScript(script: string|Function, ...args: any[])  { return this.driver.executeAsyncScript.apply(this.driver, arguments) }
   public executeScript     (script: string|Function, ...args: any[])  { return this.driver.executeScript.apply(this.driver, arguments) }
-  public get(url: string)     { return this.driver.get(url) }
-  public getSession()         { return this.driver.getSession() }
-  public manage()             { return this.driver.manage() }
-  public navigate()           { return this.driver.navigate() }
-  public quit()               { return this.driver.quit() }
+  public get(url: string)     { return this.driver.get(url) as any as Promise<void> }
+  public getSession()         { return this.driver.getSession() as any as Promise<void> }
+  public manage()             { return this.driver.manage() as any }
+  public navigate()           { return this.driver.navigate() as any }
+  public quit()               { return this.driver.quit() as any as Promise<void> }
 }
