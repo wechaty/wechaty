@@ -16,8 +16,7 @@
   },
   "scripts": {
     "ts-node": "ts-node",
-    "dist": "tsc && shx cp package.json dist/ && shx cp src/puppet-web/*.js dist/src/puppet-web/",
-    "redist": "npm run clean && npm run dist",
+    "dist": "npm run clean && tsc && shx cp package.json dist/ && shx cp src/puppet-web/*.js dist/src/puppet-web/",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "doctor": "ts-node bin/doctor",
     "clean": "shx rm -fr dist/*",
