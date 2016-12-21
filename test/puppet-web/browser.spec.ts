@@ -28,7 +28,7 @@ test('Cookie smoking test', async t => {
   await browser.driver.init()
   t.pass('should init driver')
 
-  await browser.open()
+  await browser.open('https://wx.qq.com')
   t.pass('should opened')
 
   browser.state.current('open')
