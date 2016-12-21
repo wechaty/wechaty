@@ -118,6 +118,10 @@ export class Browser extends EventEmitter {
   public async open(url: string = `https://${this.hostname}`): Promise<void> {
     log.verbose('PuppetWebBrowser', `open(${url})`)
 
+    if (!this.hostname) {
+      throw new Error('hostname unknown')
+    }
+
     // TODO: set a timer to guard driver.get timeout, then retry 3 times 201607
     try {
       await this.driver.get(url)
