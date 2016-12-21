@@ -10,6 +10,8 @@
 import {
   Builder,
   Capabilities,
+  Capability,
+  logging,
   WebDriver,
 }               from 'selenium-webdriver'
 
@@ -28,20 +30,6 @@ export class BrowserDriver {
 
   public async init(): Promise<this> {
     log.verbose('PuppetWebBrowserDriver', 'init() for head: %s', this.head)
-
-    // if (this.driver) {
-    //   try {
-    //     // const valid = await this.valid(this.driver)
-    //     // if (valid) {
-    //     //   // await this.driver.close()
-    //       await this.driver.quit()
-    //     // }
-    //   } catch (e) {
-    //     log.verbose('PuppetWebBrowserDriver', 'init() this.driver.quit() soft exception: %s'
-    //                                       , e.message
-    //     )
-    //   }
-    // }
 
     switch (this.head) {
       case 'phantomjs':
@@ -107,6 +95,19 @@ export class BrowserDriver {
 
     const customChrome = Capabilities.chrome()
                                     .set('chromeOptions', options)
+
+    // TODO: chromedriver --silent
+    if (!/^(verbose|silly)$/i.test(log.level())) {
+      const prefs = new logging.Preferences()
+
+      prefs.setLevel(logging.Type.BROWSER     , logging.Level.OFF)
+      prefs.setLevel(logging.Type.CLIENT      , logging.Level.OFF)
+      prefs.setLevel(logging.Type.DRIVER      , logging.Level.OFF)
+      prefs.setLevel(logging.Type.PERFORMANCE , logging.Level.OFF)
+      prefs.setLevel(logging.Type.SERVER      , logging.Level.OFF)
+
+      customChrome.setLoggingPrefs(prefs)
+    }
 
     /**
      * XXX when will Builder().build() throw exception???
