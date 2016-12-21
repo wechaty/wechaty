@@ -26,7 +26,7 @@ test('hostname() for wechat.com', async t => {
   const browserCookie = new BrowserCookie(driver, 'test/fixture/profile/wechat.wechaty.json')
   const hostname = await browserCookie.hostname()
 
-  t.is(hostname, 'wechat.com', 'should get wechat.com')
+  t.is(hostname, 'web.wechat.com', 'should get web.wechat.com')
 })
 
 test('hostname() for default', async t => {

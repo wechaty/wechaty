@@ -201,7 +201,11 @@ export class BrowserCookie {
       return defaultHostname
     }
 
-    const domain = wxCookieList[0].domain.slice(1)
+    let domain = wxCookieList[0].domain.slice(1)
+
+    if (domain === 'wechat.com') {
+      domain = 'web.wechat.com'
+    }
     log.silly('PuppetWebBrowserCookie', 'hostname() got %s', domain)
 
     return domain
