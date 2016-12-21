@@ -10,7 +10,6 @@
 import {
   Builder,
   Capabilities,
-  Capability,
   logging,
   WebDriver,
 }               from 'selenium-webdriver'
