@@ -8,7 +8,7 @@
 import { test }   from 'ava'
 
 import {
-    Config
+  Config
 }                 from './config'
 import { Puppet } from './puppet'
 

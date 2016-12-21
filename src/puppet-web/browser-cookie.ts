@@ -33,7 +33,10 @@ export type CookieType = {
 }
 
 export class BrowserCookie {
-  constructor(private driver: BrowserDriver, private storeFile?: string) {
+  constructor(
+    private driver: BrowserDriver,
+    private storeFile?: string,
+  ) {
     log.verbose('PuppetWebBrowserCookie', 'constructor(%s, %s)'
                                         , driver.constructor.name
                                         , storeFile ? storeFile : ''
