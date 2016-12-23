@@ -16,8 +16,7 @@
   },
   "scripts": {
     "ts-node": "ts-node",
-    "dist": "tsc && shx cp package.json dist/ && shx cp src/puppet-web/*.js dist/src/puppet-web/",
-    "redist": "npm run clean && npm run dist",
+    "dist": "npm run clean && tsc && shx cp package.json dist/ && shx cp src/puppet-web/*.js dist/src/puppet-web/",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "doctor": "ts-node bin/doctor",
     "clean": "shx rm -fr dist/*",
@@ -100,7 +99,7 @@
     "node": ">= 6.9.0"
   },
   "dependencies": {
-    "@types/selenium-webdriver": "2.53.34",
+    "@types/selenium-webdriver": "2.53.37",
     "@types/socket.io": "1.4.27",
     "body-parser": "1.15.2",
     "brolog": "0.3.10",
@@ -119,9 +118,9 @@
     "@types/express": "4.0.33",
     "@types/fluent-ffmpeg": "0.0.2",
     "@types/mime": "0.0.29",
-    "@types/node": "6.0.45",
+    "@types/node": "6.0.52",
     "@types/request": "0.0.36",
-    "@types/sinon": "1.16.31",
+    "@types/sinon": "1.16.33",
     "@types/ws": "0.0.37",
     "apiai": "3.0.3",
     "ava": "0.17.0",
@@ -140,10 +139,10 @@
     "sinon": "1.17.5",
     "sloc": "0.1.11",
     "ts-node": "1.4.1",
-    "tslint": "4.0.2",
+    "tslint": "4.1.1",
     "tuling123-client": "0.0.1",
     "typescript": "2.1.4",
-    "yarn": "0.17.10"
+    "yarn": "0.18.1"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [

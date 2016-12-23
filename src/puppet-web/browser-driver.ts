@@ -10,6 +10,7 @@
 import {
   Builder,
   Capabilities,
+  logging,
   WebDriver,
 }               from 'selenium-webdriver'
 
@@ -28,20 +29,6 @@ export class BrowserDriver {
 
   public async init(): Promise<this> {
     log.verbose('PuppetWebBrowserDriver', 'init() for head: %s', this.head)
-
-    // if (this.driver) {
-    //   try {
-    //     // const valid = await this.valid(this.driver)
-    //     // if (valid) {
-    //     //   // await this.driver.close()
-    //       await this.driver.quit()
-    //     // }
-    //   } catch (e) {
-    //     log.verbose('PuppetWebBrowserDriver', 'init() this.driver.quit() soft exception: %s'
-    //                                       , e.message
-    //     )
-    //   }
-    // }
 
     switch (this.head) {
       case 'phantomjs':
@@ -107,6 +94,19 @@ export class BrowserDriver {
 
     const customChrome = Capabilities.chrome()
                                     .set('chromeOptions', options)
+
+    // TODO: chromedriver --silent
+    if (!/^(verbose|silly)$/i.test(log.level())) {
+      const prefs = new logging.Preferences()
+
+      prefs.setLevel(logging.Type.BROWSER     , logging.Level.OFF)
+      prefs.setLevel(logging.Type.CLIENT      , logging.Level.OFF)
+      prefs.setLevel(logging.Type.DRIVER      , logging.Level.OFF)
+      prefs.setLevel(logging.Type.PERFORMANCE , logging.Level.OFF)
+      prefs.setLevel(logging.Type.SERVER      , logging.Level.OFF)
+
+      customChrome.setLoggingPrefs(prefs)
+    }
 
     /**
      * XXX when will Builder().build() throw exception???
@@ -335,53 +335,12 @@ export class BrowserDriver {
     return true
   }
 
-  // public driver1(): WebDriver
-  // public driver1(empty: null): void
-  // public driver1(newDriver: WebDriver): WebDriver
-
-  // public driver1(newDriver?: WebDriver | null): WebDriver | void {
-  //   if (newDriver !== undefined) {
-  //     log.verbose('PuppetWebBrowserDriver', 'driver(%s)'
-  //                                   , newDriver
-  //                                     ? newDriver.constructor.name
-  //                                     : null
-  //     )
-  //   }
-
-  //   if (newDriver !== undefined) {
-  //     if (newDriver) {
-  //       this.driver = newDriver
-  //       return this.driver
-  //     } else { // null
-  //       if (this.driver && this.driver.getSession()) {
-  //         throw new Error('driver still has session, can not set null')
-  //       }
-  //       this.driver = null
-  //       return
-  //     }
-  //   }
-
-  //   if (!this.driver) {
-  //     const e = new Error('no driver')
-  //     log.warn('PuppetWebBrowserDriver', 'driver() exception: %s', e.message)
-  //     throw e
-  //   }
-  //   // if (!this.driver.getSession()) {
-  //   //   const e = new Error('no driver session')
-  //   //   log.warn('PuppetWebBrowserDriver', 'driver() exception: %s', e.message)
-  //   //   this.driver.quit()
-  //   //   throw e
-  //   // }
-
-  //   return this.driver
-  // }
-
-  public close()              { return this.driver.close() }
+  public close()              { return this.driver.close() as any as Promise<void> }
   public executeAsyncScript(script: string|Function, ...args: any[])  { return this.driver.executeAsyncScript.apply(this.driver, arguments) }
   public executeScript     (script: string|Function, ...args: any[])  { return this.driver.executeScript.apply(this.driver, arguments) }
-  public get(url: string)     { return this.driver.get(url) }
-  public getSession()         { return this.driver.getSession() }
-  public manage()             { return this.driver.manage() }
-  public navigate()           { return this.driver.navigate() }
-  public quit()               { return this.driver.quit() }
+  public get(url: string)     { return this.driver.get(url) as any as Promise<void> }
+  public getSession()         { return this.driver.getSession() as any as Promise<void> }
+  public manage()             { return this.driver.manage() as any }
+  public navigate()           { return this.driver.navigate() as any }
+  public quit()               { return this.driver.quit() as any as Promise<void> }
 }

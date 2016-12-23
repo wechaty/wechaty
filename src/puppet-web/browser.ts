@@ -37,13 +37,13 @@ export class Browser extends EventEmitter {
   private cookie: BrowserCookie
   public driver: BrowserDriver
 
-  public hostname = 'wx.qq.com'
+  public hostname: string
 
   public state = new StateMonitor<'open', 'close'>('Browser', 'close')
 
   constructor(private setting: BrowserSetting = {
-      head: Config.head
-    , sessionFile: ''
+    head: Config.head,
+    sessionFile: '',
   }) {
     super()
     log.verbose('PuppetWebBrowser', 'constructor() with head(%s) sessionFile(%s)', setting.head, setting.sessionFile)
@@ -117,6 +117,10 @@ export class Browser extends EventEmitter {
 
   public async open(url: string = `https://${this.hostname}`): Promise<void> {
     log.verbose('PuppetWebBrowser', `open(${url})`)
+
+    if (!this.hostname) {
+      throw new Error('hostname unknown')
+    }
 
     // TODO: set a timer to guard driver.get timeout, then retry 3 times 201607
     try {

@@ -25,6 +25,8 @@ test('Cookie smoking test', async t => {
   t.truthy(browser, 'should instanciate a browser instance')
 
   browser.state.target('open')
+  browser.hostname = 'wx.qq.com'
+
   await browser.driver.init()
   t.pass('should init driver')
 
@@ -100,6 +102,7 @@ test('Cookie save/load', async t => {
     t.truthy(browser, 'should get a new Browser')
 
     browser.state.target('open')
+    browser.hostname = 'wx.qq.com'
 
     await browser.driver.init()
     t.pass('should init driver')
@@ -169,6 +172,7 @@ test('Cookie save/load', async t => {
     t.pass('should started a new Browser')
 
     browser.state.target('open')
+    browser.hostname = 'wx.qq.com'
 
     await browser.driver.init()
     t.pass('should inited the new Browser')

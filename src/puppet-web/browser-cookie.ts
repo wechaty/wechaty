@@ -33,7 +33,10 @@ export type CookieType = {
 }
 
 export class BrowserCookie {
-  constructor(private driver: BrowserDriver, private storeFile?: string) {
+  constructor(
+    private driver: BrowserDriver,
+    private storeFile?: string,
+  ) {
     log.verbose('PuppetWebBrowserCookie', 'constructor(%s, %s)'
                                         , driver.constructor.name
                                         , storeFile ? storeFile : ''
@@ -198,7 +201,11 @@ export class BrowserCookie {
       return defaultHostname
     }
 
-    const domain = wxCookieList[0].domain.slice(1)
+    let domain = wxCookieList[0].domain.slice(1)
+
+    if (domain === 'wechat.com') {
+      domain = 'web.wechat.com'
+    }
     log.silly('PuppetWebBrowserCookie', 'hostname() got %s', domain)
 
     return domain
