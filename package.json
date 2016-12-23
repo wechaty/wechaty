@@ -139,7 +139,7 @@
     "sinon": "^1.17.5",
     "sloc": "^0.1.11",
     "ts-node": "^1.4.1",
-    "tslint": "^4.1.1",
+    "tslint": "^4.2.0",
     "tuling123-client": "^0.0.1",
     "typescript": "^2.1.4",
     "yarn": "^0.18.1"
