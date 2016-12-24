@@ -58,7 +58,7 @@ const regexConfig = {
 
   , roomJoinQrcode: [
       /^"(.+)" joined the group chat via the QR Code shared by "?(.+?)".$/
-    , /^"(.+)" joined the group chat via "?(.+?)" shared QR Code.$/
+    , /^"(.+)" joined the group chat via "?(.+?)"? shared QR Code.$/
     , /^"(.+)"通过扫描"?(.+?)"?分享的二维码加入群聊$/
   ]
 
