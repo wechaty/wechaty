@@ -33,6 +33,7 @@ WORKDIR /wechaty
 COPY package.json .
 RUN  sed -i '/chromedriver/d' package.json \
   && npm --silent --progress=false install > /dev/null \
+  && npm --silent --progress=false install phantomjs-prebuilt > /dev/null \
   && rm -fr /tmp/* ~/.npm
 
 # Loading from node_modules Folders: https://nodejs.org/api/modules.html
@@ -46,16 +47,17 @@ RUN  sed -i '/chromedriver/d' package.json \
   \
   && (   mkdir /node_modules && cd /node_modules \
       && ln -s /wechaty . \
-      && npm --progress=false install @types/node --silent >/dev/null \
+      && ln -s /wechaty/node_modules/* . \
     ) \
   && ln -s /wechaty/tsconfig.json / \
+  && echo "export * from 'wechaty'" > /index.ts \
   \
   && echo 'Linked wechaty to global'
 
 VOLUME [ "/bot" ]
 
 ENTRYPOINT [ "/wechaty/bin/entrypoint.sh" ]
-CMD [ "start" ]
+CMD [ "" ]
 
 LABEL org.label-schema.license=ISC \
       org.label-schema.vcs-ref=master \

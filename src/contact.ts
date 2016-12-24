@@ -9,11 +9,12 @@
 import {
     Config
   , Sayable
-}               from './config'
-import { Message }  from './message'
-import { UtilLib }  from './util-lib'
-import { Wechaty }  from './wechaty'
-import { log }      from './brolog-env'
+}                     from './config'
+import { Message }    from './message'
+import { PuppetWeb }  from './puppet-web'
+import { UtilLib }    from './util-lib'
+import { Wechaty }    from './wechaty'
+import { log }        from './brolog-env'
 
 type ContactObj = {
   address:    string
@@ -22,12 +23,13 @@ type ContactObj = {
   name:       string
   province:   string
   remark:     string|null
-  sex:        string
+  sex:        Gender
   signature:  string
   star:       boolean
   stranger:   boolean
   uin:        string
   weixin:     string
+  avatar:     string  // XXX URL of HeadImgUrl
 }
 
 export type ContactRawObj = {
@@ -36,17 +38,25 @@ export type ContactRawObj = {
   NickName:     string
   Province:     string
   RemarkName:   string
-  Sex:          string
+  Sex:          Gender
   Signature:    string
   StarFriend:   string
   Uin:          string
   UserName:     string
+  HeadImgUrl:   string
 
   stranger:     string // assign by injectio.js
 }
 
+export enum Gender {
+  Unknown = 0,
+  Male    = 1,
+  Female  = 2,
+}
+
 export type ContactQueryFilter = {
-  name: string | RegExp
+  name?: string | RegExp
+  remark?: string | RegExp
 }
 
 export class Contact implements Sayable {
@@ -93,15 +103,46 @@ export class Contact implements Sayable {
 
       , star:       !!rawObj.StarFriend
       , stranger:   !!rawObj.stranger // assign by injectio.js
+      , avatar:     rawObj.HeadImgUrl
     }
   }
 
-  public weixin()    { return this.obj && this.obj.weixin || '' }
-  public name()      { return UtilLib.plainText(this.obj && this.obj.name || '') }
-  public stranger()  { return this.obj && this.obj.stranger }
-  public star()      { return this.obj && this.obj.star }
+  public weixin()   { return this.obj && this.obj.weixin || '' }
+  public name()     { return UtilLib.plainText(this.obj && this.obj.name || '') }
+  public stranger() { return this.obj && this.obj.stranger }
+  public star()     { return this.obj && this.obj.star }
+  /**
+   * Contact gender
+   * @return Gender.Male(2) | Gender.Female(1) | Gender.Unknown(0)
+   */
+  public gender()   { return this.obj ? this.obj.sex : Gender.Unknown }
+  public province() { return this.obj && this.obj.province }
+  public city()     { return this.obj && this.obj.city }
 
-  public get(prop)   { return this.obj && this.obj[prop] }
+  /**
+   * Get avatar picture file stream
+   */
+  public async avatar(): Promise<NodeJS.ReadableStream> {
+    log.verbose('Contact', 'avatar()')
+
+    if (!this.obj || !this.obj.avatar) {
+      throw new Error('Can not get avatar: not ready')
+    }
+
+    try {
+      const hostname = (Config.puppetInstance() as PuppetWeb).browser.hostname
+      const avatarUrl = `http://${hostname}${this.obj.avatar}`
+      const cookies = await (Config.puppetInstance() as PuppetWeb).browser.readCookie()
+      log.silly('Contact', 'avatar() url: %s', avatarUrl)
+
+      return UtilLib.urlStream(avatarUrl, cookies)
+    } catch (err) {
+      log.warn('Contact', 'avatar() exception: %s', err.stack)
+      throw err
+    }
+  }
+
+  public get(prop)  { return this.obj && this.obj[prop] }
 
   public isReady(): boolean {
     return !!(this.obj && this.obj.id && this.obj.name !== undefined)
@@ -180,16 +221,43 @@ export class Contact implements Sayable {
     return selfId === userId
   }
 
-  public static findAll(query?: ContactQueryFilter): Promise<Contact[]> {
-    if (!query) {
+  /**
+   * find contact by `name`(NickName) or `remark`(RemarkName)
+   */
+  public static async findAll(queryArg?: ContactQueryFilter): Promise<Contact[]> {
+    let query: ContactQueryFilter
+    if (queryArg) {
+      query = queryArg
+    } else {
       query = { name: /.*/ }
     }
-    log.verbose('Cotnact', 'findAll({ name: %s })', query.name)
 
-    const nameFilter = query.name
+    // log.verbose('Cotnact', 'findAll({ name: %s })', query.name)
+    log.verbose('Cotnact', 'findAll({ %s })'
+                          , Object.keys(query)
+                                  .map(k => `${k}: ${query[k]}`)
+                                  .join(', ')
+              )
 
-    if (!nameFilter) {
-      throw new Error('nameFilter not found')
+    if (Object.keys(query).length !== 1) {
+      throw new Error('query only support one key. multi key support is not availble now.')
+    }
+
+    let filterKey                     = Object.keys(query)[0]
+    let filterValue: string | RegExp  = query[filterKey]
+
+    const keyMap = {
+      name:   'NickName',
+      remark: 'RemarkName',
+    }
+
+    filterKey = keyMap[filterKey]
+    if (!filterKey) {
+      throw new Error('unsupport filter key')
+    }
+
+    if (!filterValue) {
+      throw new Error('filterValue not found')
     }
 
     /**
@@ -198,28 +266,33 @@ export class Contact implements Sayable {
      */
     let filterFunction: string
 
-    if (nameFilter instanceof RegExp) {
-      filterFunction = `(function (c) { return ${nameFilter.toString()}.test(c) })`
-    } else if (typeof nameFilter === 'string') {
-      filterFunction = `(function (c) { return c === '${nameFilter}' })`
+    if (filterValue instanceof RegExp) {
+      filterFunction = `(function (c) { return ${filterValue.toString()}.test(c.${filterKey}) })`
+    } else if (typeof filterValue === 'string') {
+      filterValue = filterValue.replace(/'/g, '\\\'')
+      filterFunction = `(function (c) { return c.${filterKey} === '${filterValue}' })`
     } else {
       throw new Error('unsupport name type')
     }
 
-    return Config.puppetInstance()
-                  .contactFind(filterFunction)
-                  .catch(e => {
-                    log.error('Contact', 'findAll() rejected: %s', e.message)
-                    return [] // fail safe
-                  })
+    const list = await Config.puppetInstance()
+                              .contactFind(filterFunction)
+                              .catch(e => {
+                                log.error('Contact', 'findAll() rejected: %s', e.message)
+                                return [] // fail safe
+                              })
+    await Promise.all(list.map(c => c.ready()))
+
+    return list
   }
 
   /**
    * get the remark for contact
    */
-  public remark(): string
+  public remark(): string | null
   /**
    * set the remark for contact
+   * @return {Promise<boolean>} A promise to the result. true for success, false for failure
    */
   public remark(newRemark: string): Promise<boolean>
   /**
@@ -227,11 +300,11 @@ export class Contact implements Sayable {
    */
   public remark(empty: null): Promise<boolean>
 
-  public remark(newRemark?: string|null): Promise<boolean> | string {
+  public remark(newRemark?: string|null): Promise<boolean> | string | null {
     log.silly('Contact', 'remark(%s)', newRemark || '')
 
     if (newRemark === undefined) {
-      return this.obj && this.obj.remark || ''
+      return this.obj && this.obj.remark || null
     }
 
     return Config.puppetInstance()
@@ -241,7 +314,7 @@ export class Contact implements Sayable {
                       if (this.obj) {
                         this.obj.remark = newRemark
                       } else {
-                        log.error('Contact', 'remark() with null this.obj?')
+                        log.error('Contact', 'remark() without this.obj?')
                       }
                     } else {
                       log.warn('Contact', 'remark(%s) fail', newRemark)

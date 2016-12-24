@@ -72,8 +72,8 @@ async function onBrowserDead(this: PuppetWeb, e: Error): Promise<void> {
   const TIMEOUT = 180000 // 180s / 3m
   // this.watchDog(`onBrowserDead() set a timeout of ${Math.floor(TIMEOUT / 1000)} seconds to prevent unknown state change`, {timeout: TIMEOUT})
   this.emit('watchdog', {
-    data: `onBrowserDead() set a timeout of ${Math.floor(TIMEOUT / 1000)} seconds to prevent unknown state change`
-    , timeout: TIMEOUT
+    data: `onBrowserDead() set a timeout of ${Math.floor(TIMEOUT / 1000)} seconds to prevent unknown state change`,
+    timeout: TIMEOUT,
   })
 
   this.scan = null
@@ -109,13 +109,13 @@ async function onBrowserDead(this: PuppetWeb, e: Error): Promise<void> {
     }
     log.verbose('PuppetWebEvent', 'onBrowserDead() ding() works well after reset')
 
-  } catch (e) {
-    log.error('PuppetWebEvent', 'onBrowserDead() exception: %s', e.message)
+  } catch (err) {
+    log.error('PuppetWebEvent', 'onBrowserDead() exception: %s', err.message)
     try {
       await this.quit()
       await this.init()
-    } catch (err) {
-      log.warn('PuppetWebEvent', 'onBrowserDead() fail safe for this.quit(): %s', err.message)
+    } catch (error) {
+      log.warn('PuppetWebEvent', 'onBrowserDead() fail safe for this.quit(): %s', error.message)
     }
   }
 

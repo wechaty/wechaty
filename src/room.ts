@@ -235,16 +235,16 @@ export class Room extends EventEmitter implements Sayable {
     Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj && this.obj[k]}`))
   }
 
-  public async add(contact: Contact): Promise<any> {
+  public async add(contact: Contact): Promise<number> {
     log.verbose('Room', 'add(%s)', contact)
 
     if (!contact) {
       throw new Error('contact not found')
     }
 
-    await Config.puppetInstance()
-                .roomAdd(this, contact)
-    return
+    const n = Config.puppetInstance()
+                      .roomAdd(this, contact)
+    return n
   }
 
   public async del(contact: Contact): Promise<number> {
@@ -254,8 +254,8 @@ export class Room extends EventEmitter implements Sayable {
       throw new Error('contact not found')
     }
     const n = await Config.puppetInstance()
-                  .roomDel(this, contact)
-                  .then(_ => this.delLocal(contact))
+                            .roomDel(this, contact)
+                            .then(_ => this.delLocal(contact))
     return n
   }
 
@@ -415,7 +415,7 @@ export class Room extends EventEmitter implements Sayable {
     }
     log.verbose('Room', 'findAll({ topic: %s })', query.topic)
 
-    const topicFilter = query.topic
+    let topicFilter = query.topic
 
     if (!topicFilter) {
       throw new Error('topicFilter not found')
@@ -426,6 +426,7 @@ export class Room extends EventEmitter implements Sayable {
     if (topicFilter instanceof RegExp) {
       filterFunction = `(function (c) { return ${topicFilter.toString()}.test(c) })`
     } else if (typeof topicFilter === 'string') {
+      topicFilter = topicFilter.replace(/'/g, '\\\'')
       filterFunction = `(function (c) { return c === '${topicFilter}' })`
     } else {
       throw new Error('unsupport topic type')

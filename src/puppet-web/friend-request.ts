@@ -21,9 +21,9 @@ const retryPromise  = require('retry-promise').default
 
 import { Contact }        from '../contact'
 import {
-    Config
-  , RecommendInfo
-  , log
+  Config,
+  RecommendInfo,
+  log,
 }                         from '../config'
 import { FriendRequest }  from '../friend-request'
 
@@ -75,7 +75,7 @@ class PuppetWebFriendRequest extends FriendRequest {
     this.type     = 'confirm'
   }
 
-  public async send(contact: Contact, hello = 'Hi'): Promise<void> {
+  public async send(contact: Contact, hello = 'Hi'): Promise<boolean> {
     log.verbose('PuppetWebFriendRequest', 'send(%s)', contact)
 
     if (!contact) {
@@ -88,20 +88,19 @@ class PuppetWebFriendRequest extends FriendRequest {
       this.hello = hello
     }
 
-    await Config.puppetInstance()
+    return Config.puppetInstance()
                 .friendRequestSend(contact, hello)
-    return
   }
 
-  public async accept(): Promise<void> {
+  public async accept(): Promise<boolean> {
     log.verbose('FriendRequest', 'accept() %s', this.contact)
 
     if (this.type !== 'receive') {
-      throw new Error('request on a ' + this.type + ' type')
+      throw new Error('request is not a `receive` type. it is a ' + this.type + ' type')
     }
 
-    await Config.puppetInstance()
-                .friendRequestAccept(this.contact, this.ticket)
+    const ret = await Config.puppetInstance()
+                            .friendRequestAccept(this.contact, this.ticket)
 
     const max = 20
     const backoff = 300
@@ -127,7 +126,7 @@ class PuppetWebFriendRequest extends FriendRequest {
       log.warn('PuppetWebFriendRequest', 'accept() rejected for contact %s because %s', this.contact, e && e.message || e)
     })
 
-    return
+    return ret
   }
 
 }

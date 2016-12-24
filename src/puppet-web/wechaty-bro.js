@@ -536,7 +536,9 @@
       match = eval(filterFunction)
     }
 
-    return retryFind(0)
+    retryFind(0)
+
+    return
 
     // retry 3 times, sleep 300ms between each time
     function retryFind(attempt) {
@@ -544,7 +546,7 @@
 
       var contactList = contactFactory
                           .getAllFriendContact()
-                          .filter(function(c) { return match(c.NickName) })
+                          .filter(function(c) { return match(c) })
                           .map(function(c) { return c.UserName })
 
       if (contactList && contactList.length) {
@@ -566,6 +568,15 @@
       throw new Error('async method need to be called via webdriver.executeAsyncScript')
     }
 
+    if (remark === null || remark === undefined) {
+      remark = ''
+    }
+
+    var contact = _contacts[UserName]
+    if (!contact) {
+      throw new Error('contactRemarkAsync() can not found UserName ' + UserName)
+    }
+
     var accountFactory  = WechatyBro.glue.accountFactory
     var confFactory     = WechatyBro.glue.confFactory
     var emojiFactory    = WechatyBro.glue.emojiFactory
@@ -585,6 +596,7 @@
         serial: !0
       }
     }).success(function() {
+      contact.RemarkName = remark
       callback(true)
     }).error(function() {
       callback(false)
@@ -611,12 +623,33 @@
     return chatroomFactory.delMember(ChatRoomName, UserName)
   }
 
-  function roomAddMember(ChatRoomName, UserName) {
+  function roomAddMemberAsync(ChatRoomName, UserName) {
+    var callback = arguments[arguments.length - 1]
+    if (typeof callback !== 'function') {
+      // here we should in sync mode, because there's no callback
+      throw new Error('async method need to be called via webdriver.executeAsyncScript')
+    }
+
     var chatroomFactory = WechatyBro.glue.chatroomFactory
-    // XXX
     // log(ChatRoomName)
     // log(UserName)
-    return chatroomFactory.addMember(ChatRoomName, UserName)
+
+    // There's no return value of addMember :(
+    // https://github.com/wechaty/webwx-app-tracker/blob/f22cb043ff4201ee841990dbeb59e22643092f92/formatted/webwxApp.js#L2404-L2413
+    var timer = setTimeout(function() {
+      log('roomAddMemberAsync() timeout')
+      callback(0)
+    }, 10 * 1000)
+
+    chatroomFactory.addMember(ChatRoomName, UserName, function(result) {
+
+      clearTimeout(timer)
+      callback(1)
+
+      log('roomAddMemberAsync() return: ')
+      log(result)
+
+    })
   }
 
   function roomModTopic(ChatRoomName, topic) {
@@ -667,7 +700,13 @@
                     })
   }
 
-  function verifyUserRequest(UserName, VerifyContent) {
+  function verifyUserRequestAsync(UserName, VerifyContent) {
+    var callback = arguments[arguments.length - 1]
+    if (typeof callback !== 'function') {
+      // here we should in sync mode, because there's no callback
+      throw new Error('async method need to be called via webdriver.executeAsyncScript')
+    }
+
     VerifyContent = VerifyContent || '';
 
     var contactFactory = WechatyBro.glue.contactFactory
@@ -684,14 +723,22 @@
     })
     .then(function() {  // succ
       // alert('ok')
-      log('friendAdd(' + UserName + ', ' + VerifyContent + ') done')
+      // log('friendAdd(' + UserName + ', ' + VerifyContent + ') done')
+      callback(true)
     }, function(t) {    // fail
       // alert('not ok')
       log('friendAdd(' + UserName + ', ' + VerifyContent + ') fail: ' + t)
+      callback(false)
     })
   }
 
-  function verifyUserOk(UserName, Ticket) {
+  function verifyUserOkAsync(UserName, Ticket) {
+    var callback = arguments[arguments.length - 1]
+    if (typeof callback !== 'function') {
+      // here we should in sync mode, because there's no callback
+      throw new Error('async method need to be called via webdriver.executeAsyncScript')
+    }
+
     var contactFactory  = WechatyBro.glue.contactFactory
     var confFactory     = WechatyBro.glue.confFactory
 
@@ -703,9 +750,11 @@
     }).then(function() {  // succ
       // alert('ok')
       log('friendVerify(' + UserName + ', ' + Ticket + ') done')
-    }, function() {       // fail
+      callback(true)
+    }, function(err) {       // fail
       // alert('err')
       log('friendVerify(' + UserName + ', ' + Ticket + ') fail')
+      callback(false)
     })
   }
 
@@ -783,15 +832,15 @@
     , contactRemarkAsync: contactRemarkAsync
 
     // for Wechaty Room Class
-    , roomCreateAsync: roomCreateAsync
-    , roomFind:        roomFind
-    , roomAddMember:   roomAddMember
-    , roomDelMember:   roomDelMember
-    , roomModTopic:    roomModTopic
+    , roomCreateAsync:    roomCreateAsync
+    , roomAddMemberAsync: roomAddMemberAsync
+    , roomFind:           roomFind
+    , roomDelMember:      roomDelMember
+    , roomModTopic:       roomModTopic
 
     // for Friend Request
-    , verifyUserRequest: verifyUserRequest
-    , verifyUserOk:      verifyUserOk
+    , verifyUserRequestAsync: verifyUserRequestAsync
+    , verifyUserOkAsync:      verifyUserOkAsync
     // , friendAdd
     // , friendVerify
 

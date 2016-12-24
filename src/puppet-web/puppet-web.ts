@@ -146,7 +146,7 @@ export class PuppetWeb extends Puppet {
           const e = new Error('quit() Promise() timeout')
           log.warn('PuppetWeb', e.message)
           reject(e)
-        }, 60 * 1000)
+        }, 120 * 1000)
 
         await this.bridge.quit()
                         .catch(e => { // fail safe
@@ -168,6 +168,8 @@ export class PuppetWeb extends Puppet {
 
         clearTimeout(timer)
         resolve()
+        return
+
       })
 
       this.state.current('dead')
@@ -330,6 +332,10 @@ export class PuppetWeb extends Puppet {
    * send to `filehelper` for notice / log
    */
   public async say(content: string): Promise<void> {
+    if (!this.logined()) {
+      throw new Error('can not say before login')
+    }
+
     const m = new Message()
     m.to('filehelper')
     m.content(content)
@@ -477,7 +483,7 @@ export class PuppetWeb extends Puppet {
   /**
    * FriendRequest
    */
-  public async friendRequestSend(contact: Contact, hello: string): Promise<any> {
+  public async friendRequestSend(contact: Contact, hello: string): Promise<boolean> {
     if (!this.bridge) {
       return Promise.reject(new Error('fail: no bridge(yet)!'))
     }
@@ -494,7 +500,7 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public async friendRequestAccept(contact: Contact, ticket: string): Promise<any> {
+  public async friendRequestAccept(contact: Contact, ticket: string): Promise<boolean> {
     if (!this.bridge) {
       return Promise.reject(new Error('fail: no bridge(yet)!'))
     }

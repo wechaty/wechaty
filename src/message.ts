@@ -184,7 +184,7 @@ export const enum MsgType {
 
 export class Message implements Sayable {
   public static counter = 0
-  private _counter: number
+  public _counter: number
 
   public static TYPE: MsgTypeMap = {
     TEXT:               1,
@@ -280,10 +280,9 @@ export class Message implements Sayable {
   public getSenderString() {
     const fromName  = Contact.load(this.obj.from).name()
     const roomTopic = this.obj.room
-                  ? Room.load(this.obj.room).topic()
+                  ? (':' + Room.load(this.obj.room).topic())
                   : ''
-    // return '<' + (name ? name.toStringEx() : '') + roomTopic + '>'
-    return `<${fromName}:${roomTopic}>`
+    return `<${fromName}${roomTopic}>`
   }
   public getContentString() {
     let content = UtilLib.plainText(this.obj.content)

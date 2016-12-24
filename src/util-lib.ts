@@ -112,12 +112,12 @@ export class UtilLib {
     if (protocol === 'https:') {
       // request       = https.request.bind(https)
       get           = https.get
-      options       = u as https.RequestOptions
+      options       = u as any as https.RequestOptions
       options.agent = https.globalAgent
     } else if (protocol === 'http:') {
       // request       = http.request.bind(http)
       get           = http.get
-      options       = u as http.RequestOptions
+      options       = u as any as http.RequestOptions
       options.agent = http.globalAgent
     } else {
       throw new Error('protocol unknown: ' + protocol)

@@ -41,7 +41,7 @@ coverage
 .nyc_output
 
 # Wechaty session file
-*.wechaty.json
+demo.wechaty.json
 
 # Cloud 9
 .c9/

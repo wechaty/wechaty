@@ -127,7 +127,10 @@ export class Bridge {
     log.verbose('PuppetWebBridge', 'getUserName()')
 
     try {
-      return await this.proxyWechaty('getUserName')
+      const userName = await this.proxyWechaty('getUserName')
+
+      return userName
+
     } catch (e) {
       log.error('PuppetWebBridge', 'getUserName() exception: %s', e.message)
       throw e
@@ -177,7 +180,7 @@ export class Bridge {
     if (!roomId || !contactId) {
       throw new Error('no roomId or contactId')
     }
-    return this.proxyWechaty('roomAddMember', roomId, contactId)
+    return this.proxyWechaty('roomAddMemberAsync', roomId, contactId)
                 .catch(e => {
                   log.error('PuppetWebBridge', 'roomAddMember(%s, %s) exception: %s', roomId, contactId, e.message)
                   throw e
@@ -216,26 +219,26 @@ export class Bridge {
                 })
   }
 
-  public verifyUserRequest(contactId, hello): Promise<void> {
+  public verifyUserRequest(contactId, hello): Promise<boolean> {
     log.verbose('PuppetWebBridge', 'verifyUserRequest(%s, %s)', contactId, hello)
 
     if (!contactId) {
       throw new Error('no valid contactId')
     }
-    return this.proxyWechaty('verifyUserRequest', contactId, hello)
+    return this.proxyWechaty('verifyUserRequestAsync', contactId, hello)
                 .catch(e => {
                   log.error('PuppetWebBridge', 'verifyUserRequest(%s, %s) exception: %s', contactId, hello, e.message)
                   throw e
                 })
   }
 
-  public verifyUserOk(contactId, ticket): Promise<void> {
+  public verifyUserOk(contactId, ticket): Promise<boolean> {
     log.verbose('PuppetWebBridge', 'verifyUserOk(%s, %s)', contactId, ticket)
 
     if (!contactId || !ticket) {
       throw new Error('no valid contactId or ticket')
     }
-    return this.proxyWechaty('verifyUserOk', contactId, ticket)
+    return this.proxyWechaty('verifyUserOkAsync', contactId, ticket)
                 .catch(e => {
                   log.error('PuppetWebBridge', 'verifyUserOk(%s, %s) exception: %s', contactId, ticket, e.message)
                   throw e
@@ -531,5 +534,16 @@ $.ajax = function() { Wechaty.log('$.ajax() !!!'); return $.ajaxOrig(arguments) 
 mmHttp = Wechaty.glue.injector.get('mmHttp')
 mmHttp.getOrig = mmHttp.get
 mmHttp.get = function() { Wechaty.log('mmHttp.get() !!!'); return mmHttp.getOrig(arguments) }
+
+Object.keys(_contacts)
+.filter(k => _contacts[k].UserName.match(/^@@/))
+.filter(k => _contacts[k].MemberList.length)
+.filter(k => _contacts[k].NickName.match(/test/))
+.map(k => _contacts[k])
+
+Object.keys(_contacts)
+.filter(k => _contacts[k].NickName.match(/快站哥/))
+.map(k => _contacts[k])
+
  *
  */

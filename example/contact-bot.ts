@@ -7,14 +7,16 @@
  *
  */
 
+import { createWriteStream } from 'fs'
+
 /* tslint:disable:variable-name */
 const QrcodeTerminal = require('qrcode-terminal')
 
 import {
-    Config
-  , Contact
-  , Wechaty
-  , log
+  Config,
+  Contact,
+  Wechaty,
+  log,
 } from '../'
 
 const welcome = `
@@ -85,7 +87,15 @@ async function main() {
       await contact.refresh()
     }
 
-    log.info('Bot', 'Contact: %s: %s', contact.weixin(), contact.name())
+    /**
+     * Save avatar to file like: "1-name.jpg"
+     */
+    const avatarFileName = `${i}-${contact.name()}.jpg`
+    const avatarReadStream = await contact.avatar()
+    const avatarWriteStream = createWriteStream(avatarFileName)
+    avatarReadStream.pipe(avatarWriteStream)
+
+    log.info('Bot', 'Contact: %s: %s with avatar file: %s', contact.weixin(), contact.name(), avatarFileName)
 
     if (i > MAX) {
       log.info('Bot', 'Contacts too many, I only show you the first %d ... ', MAX)

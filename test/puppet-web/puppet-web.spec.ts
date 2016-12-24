@@ -18,7 +18,7 @@ import { Server }     from '../../src/puppet-web/server'
 // import { spy } from 'sinon'
 
 process.on('unhandledRejection', (reason, p) => {
-  console.log('!!!!!!!')
+  console.log('!!!!!!! unhandledRejection in puppet-web.spec.ts')
   console.log('Unhandled Rejection at: Promise', p, 'reason:', reason)
   console.log('!!!!!!!')
 })
@@ -68,7 +68,7 @@ test.serial('server/browser socketio ding', async t => {
     t.pass('should be inited')
 
     const ret = await dingSocket(pw.server)
-    t.is(ret,  EXPECTED_DING_DATA, 'should got EXPECTED_DING_DATA after resolved dingSocket()')
+    t.is(ret, EXPECTED_DING_DATA, 'should got EXPECTED_DING_DATA after resolved dingSocket()')
   } catch (e) {
     t.fail(e && e.message || e || 'unknown exception???')
   }

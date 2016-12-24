@@ -15,21 +15,28 @@ Wechaty is a Bot Framework for Wechat **Personal** Account which can help you cr
 
 ## Voice of the Developer
 
-> @JasLin: the best wechat SDK I have seen in Github! [link](https://github.com/wechaty/wechaty/issues/8#issuecomment-228971491)
+> "The best wechat SDK I have seen in Github!" [link](https://github.com/wechaty/wechaty/issues/8#issuecomment-228971491)  
+> -- @JasLin, BotWave CTO
 
-> @Jarvis: 最好的微信开发库 [link](http://weibo.com/3296245513/Ec4iNp9Ld?type=comment)
+> "Wechaty简单的接口...和Docker化的封装...绝对是一个不错的选择" [link](http://mp.weixin.qq.com/s/o-4VMcAMz0K8yJVdNaUXow)  
+> -- @shevyan, Ghost Cloud CEO
 
-> @ccaapton: wechaty library fantastic! [link](https://github.com/wechaty/wechaty/issues/9)
+> "Wechaty is great." [link](https://github.com/wechaty/wechaty/issues/36#issuecomment-251708382)  
+> -- @Samurais, SnapLingo Director of Engineering
 
-> @ak5: it's quite cool! [link](https://github.com/wechaty/wechaty/issues/4)
+> "最好的微信开发库" [link](http://weibo.com/3296245513/Ec4iNp9Ld?type=comment)  
+> -- @Jarvis, Baidu
 
-> @Samurais: wechaty is great.  [link](https://github.com/wechaty/wechaty/issues/36#issuecomment-251708382)
+> "Wechaty让运营人员更多的时间思考如何进行活动策划、留存用户，商业变现" [link](http://mp.weixin.qq.com/s/dWHAj8XtiKG-1fIS5Og79g)  
+> -- @lijiarui
 
-> @naishstar: thanks for great SDK [link](https://github.com/wechaty/wechaty/issues/57)
+> "Wechaty library fantastic!" [link](https://github.com/wechaty/wechaty/issues/9) - @ccaapton 
 
-# Example
+> "it's quite cool!" [link](https://github.com/wechaty/wechaty/issues/4) - @ak5
 
-The shortest wechat bot code in the world: 6 lines JavaScript
+> "Thanks for great SDK" [link](https://github.com/wechaty/wechaty/issues/57) - @naishstar
+
+# The World's Shortest ChatBot Code: 6 lines of JavaScript
 
 ```javascript
 const { Wechaty } = require('wechaty')
@@ -58,25 +65,19 @@ We have two options to run wechaty:
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Stars](https://img.shields.io/docker/stars/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
 
+The **best practice** to use Wechaty is run by docker, becasue it's not only the most easy way to get start, but also protect you out of the troubles of dependencies problems. 
+
 ```shell
 $ docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.js
 ```
 
-* Wechaty Docker has native support for TypeScript as well: just write in TypeScript and save to `mybot.ts`.
+> Wechaty Docker support to run TypeScript directly as well: just write in TypeScript and save to `mybot.ts`.
 
 Get to know more about Wechaty Docker at [Wiki:Docker](https://github.com/wechaty/wechaty/wiki/Docker).
 
 ## NPM
 
 [![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty) [![Downloads][downloads-image]][downloads-url]
-
-```shell
-$ npm install --save wechaty
-
-$ node mybot.js
-```
-
-You might be asked for install the `chromedriver`, depends on which platform you are.
 
 Get to know more about NPM at [Wiki:NPM](https://github.com/wechaty/wechaty/wiki/NPM)
 
@@ -202,10 +203,11 @@ You can directly submit pull requests for documentation changes.
 
 ## Join us 
 
-Add “邀群助手” as friend by scanning the QRcode of WeChat and reply 'wechaty', you can join in our wechaty group.
-“邀群助手” is powered by wechaty..
+Scan the following QR Code in WeChat, with secret code _wechaty_, you can join our **Wechaty Developers' Home**.
 
-![](https://raw.githubusercontent.com/wechaty/wechaty/master/image/BotQrcode.png)
+![Wechaty Developers' Home](https://raw.githubusercontent.com/wechaty/wechaty/master/image/BotQrcode.png)
+
+Scan now, then you can chat with other Wechaty developers! (secret code: _wechaty_)
 
 # See Also
 
@@ -214,9 +216,12 @@ Add “邀群助手” as friend by scanning the QRcode of WeChat and reply 'wec
 # Todo
 
 * [ ] Use Dependency Injection for FriendRequest(etc)
+  - [Typescript dependency injection container for Humans!](https://github.com/asvetliakov/Huject)
   - https://github.com/young-steveo/bottlejs
   - http://jonnyreeves.co.uk/2015/basic-typescript-dependency-injection-with-decorators/
   - https://github.com/connorwyatt/Fluency-Injection
+* [ ] Use Observable for Throttle API Call Rate with Server
+  - http://blog.thoughtram.io/angular/2016/01/06/taking-advantage-of-observables-in-angular2.html
 
 My Story
 ----------------
