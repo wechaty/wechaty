@@ -186,7 +186,7 @@ async function checkRoomJoin(m: Message): Promise<void> {
   let inviteeContactList: Contact[] = []
 
   try {
-    if (inviter === "You've" || inviter === '你') {
+    if (inviter === "You've" || inviter === '你' || inviter === 'your') {
       inviterContact = Contact.load(this.userId)
     }
 
