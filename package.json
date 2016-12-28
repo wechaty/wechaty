@@ -15,6 +15,7 @@
     "CMD_CHROMIUM": "/wechaty/bin/xvfb-chromium"
   },
   "scripts": {
+    "ava": "ava --verbose --extension ts",
     "ts-node": "ts-node",
     "dist": "npm run clean && tsc && shx cp package.json dist/ && shx cp src/puppet-web/*.js dist/src/puppet-web/",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
@@ -35,7 +36,6 @@
     "test:chrome:fast": "cross-env LC_ALL=C WECHATY_HEAD=chrome ava --fail-fast --timeout=3m \"dist/{src,test}/**/*.spec.js\"",
     "testdev": "cross-env LC_ALL=C WECHATY_LOG=silly ava --ext ts --serial --verbose --fail-fast --timeout=2m",
     "testdist": "cross-env WECHATY_LOG=SILLY WECHATY_HEAD=chrome ava --ext ts --verbose --fail-fast --timeout=2m",
-    "ava": "ava --extension ts",
     "io-client": "ts-node bin/io-client",
     "dev": "ts-node dev.ts",
     "demo": "ts-node example/ding-dong-bot.ts",
@@ -108,7 +108,7 @@
     "is-ci": "1.0.9",
     "is-docker": "1.1.0",
     "moment": "2.17.0",
-    "ps-tree": "1.0.1",
+    "ps-tree": "^1.1.0",
     "retry-promise": "1.0.0",
     "selenium-webdriver": "3.0.0",
     "socket.io": "1.4.8",
