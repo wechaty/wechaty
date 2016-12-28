@@ -81,7 +81,7 @@ function onFeed(this: PuppetWeb, food: WatchdogFood): void {
   memoryCheck.call(this)
 }
 
-function clearWatchDogTimer() {
+function clearWatchDogTimer(this: PuppetWeb) {
   if (!this.watchDogTimer) {
     log.verbose('PuppetWebWatchdog', 'clearWatchDogTimer() nothing to clear')
     return
@@ -95,19 +95,18 @@ function clearWatchDogTimer() {
   }
 }
 
-function setWatchDogTimer(this: PuppetWeb, timeout, feed) {
+function setWatchDogTimer(this: PuppetWeb, timeout: number, feed) {
 
   clearWatchDogTimer.call(this)
 
   log.silly('PuppetWebWatchdog', 'setWatchDogTimer(%d, %s)', timeout, feed)
-
-  this.watchDogTimer = setTimeout(watchDogReset.bind(this, timeout, feed), timeout)
+  this.watchDogTimer = setTimeout(_ => watchDogReset.call(this, timeout, feed), timeout)
   this.watchDogTimerTime = Date.now() + timeout
   // this.watchDogTimer.unref()
   // block quit, force to use quit() // this.watchDogTimer.unref() // dont block quit
 }
 
-function watchDogReset(timeout, lastFeed) {
+async function watchDogReset(timeout, lastFeed): Promise<void> {
   log.verbose('PuppetWebWatchdog', 'watchDogReset(%d, %s)', timeout, lastFeed)
 
   const e = new Error('watchDogReset() watchdog reset after '
@@ -117,7 +116,8 @@ function watchDogReset(timeout, lastFeed) {
                     )
   log.verbose('PuppetWebWatchdog', e.message)
   this.emit('error', e)
-  return Event.onBrowserDead.call(this, e)
+  Event.onBrowserDead.call(this, e)
+  return
 }
 
 /**

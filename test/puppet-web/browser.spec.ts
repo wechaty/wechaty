@@ -9,8 +9,8 @@ import * as fs from 'fs'
 import { test } from 'ava'
 
 import {
-    Config
-  , log
+  Config,
+  log,
 } from '../../'
 
 import {

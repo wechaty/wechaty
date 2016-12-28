@@ -137,7 +137,7 @@ export class BrowserCookie {
   }
 
   public async load(): Promise<void> {
-    log.verbose('PuppetWebBrowserCookie', 'load() from %s', this.storeFile)
+    log.verbose('PuppetWebBrowserCookie', 'load() from %s', this.storeFile || '"undefined"')
 
     const cookies = this.getCookiesFromFile()
 
@@ -166,7 +166,7 @@ export class BrowserCookie {
   }
 
   public getCookiesFromFile(): CookieType[] | null {
-    log.verbose('PuppetWebBrowserCookie', 'getCookiesFromFile() from %s', this.storeFile)
+    log.verbose('PuppetWebBrowserCookie', 'getCookiesFromFile() from %s', this.storeFile || '"undefined"')
 
     try {
       if (!this.storeFile) {

@@ -24,7 +24,7 @@ import { EventEmitter } from 'events'
 import {
     Config
   , Wechaty
-} from '..'
+} from '../'
 
 // log.level = 'verbose'
 // log.level = 'silly'

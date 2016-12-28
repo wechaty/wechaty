@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es6"
+    "target": "es2015"
     , "module": "commonjs"
     , "outDir": "dist"
     , "declaration": true
@@ -15,13 +15,14 @@
     , "noImplicitAny": false
     , "noUnusedParameters": false
     , "noImplicitThis": false
+    , "traceResolution": false
   }
   , "exclude": [
       "node_modules"
     , "dist"
   ]
   , "include": [
-       "bin/*.ts"
+    "bin/*.ts"
      , "example/**/*.ts"
      , "src/**/*.ts"
      , "test/**/*.spec.ts"

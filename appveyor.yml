@@ -19,6 +19,7 @@ install:
 test_script:
   - node --version
   - npm --version
+  - npm run lint
   - npm run dist
   - npm run test:chrome:fast
 

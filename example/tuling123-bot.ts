@@ -87,7 +87,7 @@ class Talker extends EventEmitter {
     text: any
     time: any
   }
-  private timer: number | null
+  private timer: NodeJS.Timer | null
 
   constructor(private thinker) {
     super()
@@ -111,12 +111,12 @@ class Talker extends EventEmitter {
     return text
   }
 
-  public updateTimer(delayTime?) {
+  public updateTimer(delayTime?: number) {
     delayTime = delayTime || this.delayTime()
     log.verbose('Talker', 'updateTimer(%s)', delayTime)
 
     if (this.timer) { clearTimeout(this.timer) }
-    this.timer = setTimeout(this.say.bind(this), delayTime)
+    this.timer = setTimeout(_ => this.say(), delayTime)
   }
 
   public hear(text) {
