@@ -25,23 +25,27 @@ import {
  * if 2 tests run parallel in the same process,
  * there will have race conditions for the conflict of `getBrowserPids()`
  */
-test.serial('WebDriver process create & quit test', async t => {
-  const browser = new Browser()
-  t.truthy(browser, 'should instanciate a browser')
+test.only('WebDriver process create & quit test', async t => {
+  try {
+    const browser = new Browser()
+    t.truthy(browser, 'should instanciate a browser')
 
-  await browser.init()
-  t.pass('should be inited successful')
-  await browser.open()
-  t.pass('should open successful')
+    await browser.init()
+    t.pass('should be inited successful')
+    await browser.open()
+    t.pass('should open successful')
 
-  let pids = await browser.getBrowserPidList()
-  t.truthy(pids.length > 0, 'should exist browser process after b.open()')
+    let pids = await browser.getBrowserPidList()
+    t.truthy(pids.length > 0, 'should exist browser process after b.open()')
 
-  await browser.quit()
-  t.pass('quited')
+    await browser.quit()
+    t.pass('quited')
 
-  pids = await browser.getBrowserPidList()
-  t.is(pids.length, 0, 'no driver process after quit')
+    pids = await browser.getBrowserPidList()
+    t.is(pids.length, 0, 'no driver process after quit')
+  } catch (err) {
+    t.fail(err.message || err)
+  }
 })
 
 test.serial('WebDriver smoke testing', async t => {

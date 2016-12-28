@@ -50,7 +50,7 @@ export class PuppetWeb extends Puppet {
 
   public lastScanEventTime: number
   public watchDogLastSaveSession: number
-  public watchDogTimer: number
+  public watchDogTimer: NodeJS.Timer | null
   public watchDogTimerTime: number
 
   constructor(public setting: PuppetWebSetting = {}) {

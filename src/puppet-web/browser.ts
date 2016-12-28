@@ -268,6 +268,7 @@ export class Browser extends EventEmitter {
 
       psTree(process.pid, (err, children) => {
         if (err) {
+          log.error('PuppetWebBrowser', 'getBrowserPidList() %s', err.message || err)
           reject(err)
           return
         }
