@@ -18,8 +18,8 @@
     , "traceResolution": false
   }
   , "exclude": [
-      "node_modules"
-    , "dist"
+      "node_modules/"
+    , "dist/"
   ]
   , "include": [
     "bin/*.ts"

@@ -25,7 +25,7 @@
     "lint": "npm run check-node-version && npm run eslint && npm run tslint",
     "nycava": "WECHATY_HEAD=chrome nyc ava --serial --fail-fast --verbose --timeout=3m \"dist/{src,test}/**/*.spec.js\"",
     "eslint": "eslint \"{bin,example,src,test}/**/*.js\" --ignore-pattern=\"test/fixture/**\"",
-    "tslint": "tslint \"{bin,example,src,test}/**/*.ts\" --exclude=\"test/fixture/**\" --exclude=\"dist/\" && tsc --noEmit",
+    "tslint": "tslint \"{bin,example,src,test}/**/*.ts\" --exclude=\"test/fixture/**\" --exclude=\"dist/\" && npm run clean && tsc --noEmit",
     "shlint": "bash -n bin/*.sh",
     "pretest": "npm run clean && npm run lint && npm run dist",
     "sloc": "sloc bin example src test index.ts --details --format cli-table --keys total,source,comment && sloc bin example src test index.ts",
