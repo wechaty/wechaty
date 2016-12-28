@@ -25,7 +25,7 @@ import {
  * if 2 tests run parallel in the same process,
  * there will have race conditions for the conflict of `getBrowserPids()`
  */
-test.only('WebDriver process create & quit test', async t => {
+test.serial('WebDriver process create & quit test', async t => {
   try {
     const browser = new Browser()
     t.truthy(browser, 'should instanciate a browser')
