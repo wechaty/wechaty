@@ -205,5 +205,7 @@ export {
  * to handle unhandled exceptions
  */
 process.on('unhandledRejection', (reason, promise) => {
+  log.error('Config', '###########################')
   log.error('Config', 'unhandledRejection: %s %s', reason, promise)
+  log.error('Config', '###########################')
 })
