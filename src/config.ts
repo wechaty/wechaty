@@ -200,3 +200,10 @@ global['WECHATY_CONFIG_INSTANCE_COUNTER']++
 export {
   log
 }
+
+/**
+ * to handle unhandled exceptions
+ */
+process.on('unhandledRejection', (reason, promise) => {
+  log.error('Config', 'unhandledRejection: %s %s', reason, promise)
+})
