@@ -104,14 +104,14 @@
     "@types/socket.io": "1.4.27",
     "body-parser": "1.15.2",
     "brolog": "0.3.10",
-    "express": "4.13.4",
+    "express": "4.14.0",
     "is-ci": "1.0.9",
     "is-docker": "1.1.0",
     "moment": "2.17.0",
     "ps-tree": "^1.1.0",
     "retry-promise": "1.0.0",
     "selenium-webdriver": "3.0.0",
-    "socket.io": "1.4.8",
+    "socket.io": "1.5.0",
     "ws": "1.1.1"
   },
   "devDependencies": {
