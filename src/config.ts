@@ -208,4 +208,7 @@ process.on('unhandledRejection', (reason, promise) => {
   log.error('Config', '###########################')
   log.error('Config', 'unhandledRejection: %s %s', reason, promise)
   log.error('Config', '###########################')
+  promise.catch(err => {
+    log.error('Config', 'unhandledRejection::catch(%s)', err.message || err)
+  })
 })
