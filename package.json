@@ -158,8 +158,5 @@
     "bin/",
     "dist/",
     "src/"
-  ],
-  "publishConfig": {
-    "tag": "next"
-  }
+  ]
 }
