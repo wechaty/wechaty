@@ -153,7 +153,7 @@ function parseRoomJoin(content: string): [string[], string] {
   /** 
    * "凌" invited "庆次、小桔妹" to the group chat
    * "桔小秘"通过扫描你分享的二维码加入群聊
-   */ 
+   */
   const [inviter, inviteeStr] = foundInvite ? [ foundInvite[1], foundInvite[2] ] : [ foundQrcode[2], foundQrcode[1] ]
   const inviteeList = inviteeStr.split(/、/)
 
