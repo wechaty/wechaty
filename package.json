@@ -100,7 +100,7 @@
     "node": ">= 6.9.0"
   },
   "dependencies": {
-    "@types/selenium-webdriver": "2.53.38",
+    "@types/selenium-webdriver": "2.53.39",
     "@types/socket.io": "1.4.27",
     "body-parser": "1.15.2",
     "brolog": "0.3.10",
