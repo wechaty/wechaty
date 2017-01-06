@@ -269,7 +269,7 @@ export class BrowserDriver {
 
         log.verbose('PuppetWebBrowserDriver', 'valid() getSession()')
         driver.getSession()
-              .then(session => {
+              .then(driverSession => {
                 log.verbose('PuppetWebBrowserDriver', 'valid() getSession() then() done')
                 if (watchdogTimer) {
                   log.verbose('PuppetWebBrowserDriver', 'valid() getSession() then() watchdog timer exist, will be cleared')
@@ -281,7 +281,7 @@ export class BrowserDriver {
                 }
 
                 // 2. Promise resolved
-                resolve(session)
+                resolve(driverSession)
                 return
 
               })
