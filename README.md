@@ -52,6 +52,16 @@ This bot can log all message to console.
 
 You can find more example from [Wiki](https://github.com/wechaty/wechaty/wiki/Example) and [Example Directory](https://github.com/wechaty/wechaty/blob/master/example/).
 
+# Getting Started
+
+### A Greate Live Coding Tutorial
+
+<div align="center">
+<a target="_blank" href="https://blog.wechaty.io/guide/2017/01/01/getting-started-wechaty.html"><img src="https://cloud.githubusercontent.com/assets/1361891/21722581/3ec957d0-d468-11e6-8888-a91c236e0ba2.jpg" border=0 width="60%"></a>
+</div>
+
+The above 10 mins video tutorial was presented by @lijiarui, which is a good start if you are new to Wechaty.
+
 # Run
 
 Let's say, you have saved the above six lines javascript example to `mybot.js`.
