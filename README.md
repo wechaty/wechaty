@@ -54,15 +54,15 @@ You can find more example from [Wiki](https://github.com/wechaty/wechaty/wiki/Ex
 
 # Getting Started
 
-### A Greate Live Coding Tutorial
+## A Great Live Coding Tutorial
 
 <div align="center">
 <a target="_blank" href="https://blog.wechaty.io/guide/2017/01/01/getting-started-wechaty.html"><img src="https://cloud.githubusercontent.com/assets/1361891/21722581/3ec957d0-d468-11e6-8888-a91c236e0ba2.jpg" border=0 width="60%"></a>
 </div>
 
-The above 10 mins video tutorial was presented by @lijiarui, which is a good start if you are new to Wechaty.
+The above 10 minutes video tutorial was presented by @lijiarui, which is a good start if you are new to Wechaty.
 
-# Run
+## Run
 
 Let's say, you have saved the above six lines javascript example to `mybot.js`.
 
@@ -71,7 +71,7 @@ We have two options to run wechaty:
 1. Docker
 1. NPM
 
-## Docker
+### Docker
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Stars](https://img.shields.io/docker/stars/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
 
@@ -85,7 +85,7 @@ $ docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.js
 
 Get to know more about Wechaty Docker at [Wiki:Docker](https://github.com/wechaty/wechaty/wiki/Docker).
 
-## NPM
+### NPM
 
 [![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty) [![Downloads][downloads-image]][downloads-url]
 
