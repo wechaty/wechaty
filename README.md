@@ -152,8 +152,8 @@ Get to know more about NPM at [Wiki:NPM](https://github.com/wechaty/wechaty/wiki
 ## [FriendRequest](https://github.com/wechaty/wechaty/wiki/API#class-friendrequest)
 
 1. [hello:string](https://github.com/wechaty/wechaty/wiki/API#friendrequesthello-string) get content from friendrequest
-2. [accept():void](https://github.com/wechaty/wechaty/wiki/API#friendrequestaccept-void) accept the friendrequest
-3. [send(contact:Contact,hello:string):void](https://github.com/wechaty/wechaty/wiki/API#friendrequestsendcontact-contact-hello-string-void) send a new friend request
+2. [accept():Promise](https://github.com/wechaty/wechaty/wiki/API#friendrequestaccept-void) accept the friendrequest
+3. [send(contact:Contact,hello:string):Promise](https://github.com/wechaty/wechaty/wiki/API#friendrequestsendcontact-contact-hello-string-void) send a new friend request
 
 # Test
 
