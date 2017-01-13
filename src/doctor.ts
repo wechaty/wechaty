@@ -20,7 +20,7 @@ export class Doctor {
   /**
    * https://gist.github.com/tedmiston/5935757
    */
-  testTcp(): Promise<boolean> {
+  public testTcp(): Promise<boolean> {
     log.verbose('Doctor', 'testTcp()')
 
     return new Promise<boolean>(async (resolve, reject) => {
