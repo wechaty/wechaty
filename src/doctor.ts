@@ -6,7 +6,10 @@
  * https://github.com/zixia/wechaty
  *
  */
-import { createServer, Socket } from 'net'
+import {
+  createServer,
+  Socket,
+}                   from 'net'
 
 import {
   log,
