@@ -19,6 +19,7 @@
     "ts-node": "ts-node",
     "dist": "npm run clean && tsc && shx cp package.json dist/ && shx cp src/puppet-web/*.js dist/src/puppet-web/",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
+    "changelog": "github_changelog_generator -u wechaty -p wechaty",
     "doctor": "npm run check-node-version && ts-node bin/doctor",
     "clean": "shx rm -fr dist/*",
     "check-node-version": "check-node-version --node \">= 6.9\"",
