@@ -114,7 +114,7 @@ export class Room extends EventEmitter implements Sayable {
       const data = await contactGetter(this.id)
       log.silly('Room', `contactGetter(${this.id}) resolved`)
       this.rawObj = data
-      this.obj    = this.parse(data)
+      this.obj    = await this.parse(data)
 
       if (!this.obj) {
         throw new Error('no this.obj set after contactGetter')
@@ -182,14 +182,14 @@ export class Room extends EventEmitter implements Sayable {
 
   public get(prop): string { return (this.obj && this.obj[prop]) || (this.dirtyObj && this.dirtyObj[prop]) }
 
-  private parse(rawObj: RoomRawObj): RoomObj | null {
+  private async parse(rawObj: RoomRawObj): Promise<RoomObj | null> {
     if (!rawObj) {
       log.warn('Room', 'parse() on a empty rawObj?')
       return null
     }
 
     const memberList  = this.parseMemberList(rawObj.MemberList)
-    const nickMap     = this.parseNickMap(rawObj.MemberList)
+    const nickMap     = await this.parseNickMap(rawObj.MemberList)
 
     return {
       id:         rawObj.UserName,
@@ -209,19 +209,27 @@ export class Room extends EventEmitter implements Sayable {
     return rawMemberList.map(m => Contact.load(m.UserName))
   }
 
-  private parseNickMap(memberList: RoomRawMember[]): Map<string, string> {
+  private async parseNickMap(memberList: RoomRawMember[]): Promise<Map<string, string>> {
     const nickMap: Map<string, string> = new Map<string, string>()
-
+    let contact: Contact
+    let remark: string | null
     if (memberList && memberList.map) {
-      memberList.forEach(member => {
+      for (let member of memberList) {
         /**
          * ISSUE #64 emoji need to be striped
          * ISSUE #104 never use remark name because sys group message will never use that
          */
+        contact = Contact.load(member.UserName)
+        await contact.ready()
+        if (contact) {
+          remark = await contact.remark()
+        } else {
+          remark = ''
+        }
         nickMap[member.UserName] = UtilLib.stripEmoji(
-          member.DisplayName || member.NickName
+          remark || member.DisplayName || member.NickName
         )
-      })
+      }
     }
     return nickMap
   }
