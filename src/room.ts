@@ -26,8 +26,8 @@ type RoomObj = {
   ownerUin:   number
   memberList: Contact[]
   nickMap:    Map<string, string>
-  remarkMap:    Map<string, string>
-  displayMap:    Map<string, string>
+  remarkMap:  Map<string, string>
+  displayMap: Map<string, string>
 }
 
 export type RoomRawMember = {
@@ -416,10 +416,6 @@ export class Room extends EventEmitter implements Sayable {
       log.warn('Room', 'member() not ready')
       return null
     }
-
-    /**
-     * ISSUE #64 emoji need to be striped
-     */
     let filterKey            = Object.keys(quaryArg)[0]
     let filterValue: string  = UtilLib.stripEmoji(quaryArg[filterKey])
 
