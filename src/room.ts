@@ -55,8 +55,8 @@ export type RoomQueryFilter = {
 }
 
 export type MemberQueryFilter = {
-  nick?: string
-  remark?: string
+  nick?:    string
+  remark?:  string
   display?: string
 }
 
@@ -247,14 +247,8 @@ export class Room extends EventEmitter implements Sayable {
       for (let member of memberList) {
         contact = Contact.load(member.UserName)
         await contact.ready()
-        if (contact) {
-          remark = await contact.remark()
-        } else {
-          remark = ''
-        }
-        remarkMap[member.UserName] = UtilLib.stripEmoji(
-          remark || ''
-        )
+        remark = await contact.remark() || ''
+        remarkMap[member.UserName] = UtilLib.stripEmoji(remark)
       }
     }
     return remarkMap
