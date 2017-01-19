@@ -99,9 +99,8 @@ export class Room extends EventEmitter implements Sayable {
   // }
 
   private async readyAllMembers(memberList: RoomRawMember[]): Promise<void> {
-    let contact: Contact
     for (let member of memberList) {
-      contact = Contact.load(member.UserName)
+      let contact = Contact.load(member.UserName)
       await contact.ready()
     }
     return
@@ -236,40 +235,35 @@ export class Room extends EventEmitter implements Sayable {
    * ISSUE #104 never use remark name because sys group message will never use that
    * @rui: cannot use argument NickName because it mix real nick and remark 
    */
-  private parseNickMap(memberList: RoomRawMember[]): Map<string, string> {
-    const nickMap: Map<string, string> = new Map<string, string>()
-    let contact: Contact
+  private parseMap(memberList: RoomRawMember[], parseContent: string): Map<string, string> {
+    const mapList: Map<string, string> = new Map<string, string>()
     if (memberList && memberList.map) {
       memberList.forEach(member => {
-        contact = Contact.load(member.UserName)
-        nickMap[member.UserName] = UtilLib.stripEmoji(contact.name())
+        let contact = Contact.load(member.UserName)
+        if (parseContent === 'nick') {
+          mapList[member.UserName] = UtilLib.stripEmoji(contact.name())
+        } else if (parseContent === 'remark') {
+          mapList[member.UserName] = UtilLib.stripEmoji(contact.remark() || '')
+        } else if (parseContent === 'display') {
+          mapList[member.UserName] = UtilLib.stripEmoji(member.DisplayName)
+        } else {
+          throw new Error('contact not parseContent')
+        }
       })
     }
-    return nickMap
+    return mapList
+  }
+
+  private parseNickMap(memberList: RoomRawMember[]): Map<string, string> {
+    return this.parseMap(memberList, 'nick')
   }
 
   private parseRemarkMap(memberList: RoomRawMember[]): Map<string, string> {
-    const remarkMap: Map<string, string> = new Map<string, string>()
-    let contact: Contact
-    let remark: string | null
-    if (memberList && memberList.map) {
-      memberList.forEach(member => {
-        contact = Contact.load(member.UserName)
-        remark =  contact.remark() || ''
-        remarkMap[member.UserName] = UtilLib.stripEmoji(remark)
-      })
-    }
-    return remarkMap
+    return this.parseMap(memberList, 'remark')
   }
 
   private parseDisplayName(memberList: RoomRawMember[]): Map<string, string> {
-    const displayMap: Map<string, string> = new Map<string, string>()
-    if (memberList && memberList.map) {
-      memberList.forEach(member => {
-        displayMap[member.UserName] = UtilLib.stripEmoji(member.DisplayName)
-      })
-    }
-    return displayMap
+    return this.parseMap(memberList, 'display')
   }
 
   public dumpRaw() {
@@ -400,54 +394,62 @@ export class Room extends EventEmitter implements Sayable {
 
     return null
   }
+
   /**
    * find member by `nick`(NickName) / `display`(DisplayName) / `remark`(RemarkName)
    * when use member(name:string), find member by nickName by default
    */
   public member(queryArg: MemberQueryFilter | string): Contact | null {
-    let query: MemberQueryFilter
     if (typeof queryArg === 'string') {
-      log.error('Room', 'function member should use member(nick:name)')
-      query = { nick: queryArg }
+      log.error('Room', 'function member should use member(queryArg: MemberQueryFilter)')
+      return this.member({remark: queryArg}) || this.member({display: queryArg}) || this.member({nick: queryArg})
     } else {
-      query = queryArg
-    }
-
-    log.verbose('Room', 'member({ %s })'
-                          , Object.keys(query)
-                                  .map(k => `${k}: ${query[k]}`)
+      log.verbose('Room', 'member({ %s })'
+                          , Object.keys(queryArg)
+                                  .map(k => `${k}: ${queryArg[k]}`)
                                   .join(', ')
               )
 
-    if (Object.keys(query).length !== 1) {
-      throw new Error('Room member find quaryArg only support one key. multi key support is not availble now.')
-    }
+      if (Object.keys(queryArg).length !== 1) {
+        throw new Error('Room member find quaryArg only support one key. multi key support is not availble now.')
+      }
 
-    if (!this.obj || !this.obj.memberList) {
-      log.warn('Room', 'member() not ready')
-      return null
-    }
-    let filterKey            = Object.keys(query)[0]
-    let filterValue: string  = UtilLib.stripEmoji(query[filterKey])
+      if (!this.obj || !this.obj.memberList) {
+        log.warn('Room', 'member() not ready')
+        return null
+      }
+      let filterKey            = Object.keys(queryArg)[0]
+      /**
+       * ISSUE #64 emoji need to be striped
+       */
+      let filterValue: string  = UtilLib.stripEmoji(queryArg[filterKey])
 
-    const keyMap = {
-      nick:     'nickMap',
-      remark:   'remarkMap',
-      display:  'displayMap'
-    }
+      const keyMap = {
+        nick:     'nickMap',
+        remark:   'remarkMap',
+        display:  'displayMap'
+      }
 
-    filterKey = keyMap[filterKey]
+      filterKey = keyMap[filterKey]
+      if (!filterKey) {
+        throw new Error('unsupport filter key')
+      }
 
-    const filterMap = this.obj[filterKey]
-    const idList = Object.keys(filterMap)
-                          .filter(k => filterMap[k] === filterValue)
+      if (!filterValue) {
+        throw new Error('filterValue not found')
+      }
 
-    log.silly('Room', 'member() check %s: %s', filterKey, JSON.stringify(filterKey))
+      const filterMap = this.obj[filterKey]
+      const idList = Object.keys(filterMap)
+                            .filter(k => filterMap[k] === filterValue)
 
-    if (idList.length) {
-      return Contact.load(idList[0])
-    } else {
-      return null
+      log.silly('Room', 'member() check %s: %s', filterKey, JSON.stringify(filterKey))
+
+      if (idList.length) {
+        return Contact.load(idList[0])
+      } else {
+        return null
+      }
     }
   }
 

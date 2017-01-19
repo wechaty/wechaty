@@ -207,7 +207,7 @@ async function checkRoomJoin(m: Message): Promise<void> {
         const loaded = inviteeContactList[i] instanceof Contact
 
         if (!loaded) {
-          let c = room.member({remark: inviteeList[i]}) || room.member({nick: inviteeList[i]})
+          let c = room.member(inviteeList[i])
           if (!c) {
             inviteeListAllDone = false
             continue
@@ -234,7 +234,7 @@ async function checkRoomJoin(m: Message): Promise<void> {
       }
 
       if (!inviterContact) {
-        inviterContact = room.member({remark: inviter}) || room.member({nick: inviter})
+        inviterContact = room.member(inviter)
       }
 
       if (inviteeListAllDone && inviterContact) {
@@ -316,7 +316,7 @@ async function checkRoomLeave(m: Message): Promise<void> {
   /**
    * FIXME: leaver maybe is a list
    */
-  let leaverContact = room.member({remark: leaver}) || room.member({nick: leaver})
+  let leaverContact = room.member(leaver)
 
   if (!leaverContact) {
     log.error('PuppetWebFirer', 'fireRoomLeave() leaver %s not found, event `room-leave` & `leave` will not be fired')
@@ -354,6 +354,7 @@ async function checkRoomTopic(m: Message): Promise<void> {
   } catch (e) { // not found
     return
   }
+
   const room = m.room()
   if (!room) {
     log.warn('PuppetWebFirer', 'fireRoomLeave() room not found')
@@ -366,7 +367,7 @@ async function checkRoomTopic(m: Message): Promise<void> {
   if (/^You$/.test(changer) || /^你$/.test(changer)) {
     changerContact = Contact.load(this.userId)
   } else {
-    changerContact = room.member({remark: changer}) || room.member({nick: changer})
+    changerContact = room.member(changer)
   }
 
   if (!changerContact) {
