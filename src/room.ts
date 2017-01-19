@@ -30,6 +30,8 @@ type RoomObj = {
   displayMap: Map<string, string>
 }
 
+type NameType = 'nick' | 'display' | 'remark'
+
 export type RoomRawMember = {
   UserName:     string
   NickName:     string
@@ -206,9 +208,9 @@ export class Room extends EventEmitter implements Sayable {
     }
 
     const memberList  = this.parseMemberList(rawObj.MemberList)
-    const nickMap     = this.parseNickMap(rawObj.MemberList)
-    const remarkMap   = this.parseRemarkMap(rawObj.MemberList)
-    const displayMap  = this.parseDisplayName(rawObj.MemberList)
+    const nickMap     = this.parseMap(rawObj.MemberList, 'nick')
+    const remarkMap   = this.parseMap(rawObj.MemberList, 'remark')
+    const displayMap  = this.parseMap(rawObj.MemberList, 'display')
 
     return {
       id:         rawObj.UserName,
@@ -230,40 +232,34 @@ export class Room extends EventEmitter implements Sayable {
     return rawMemberList.map(m => Contact.load(m.UserName))
   }
 
-  /**
-   * ISSUE #64 emoji need to be striped
-   * ISSUE #104 never use remark name because sys group message will never use that
-   * @rui: cannot use argument NickName because it mix real nick and remark 
-   */
-  private parseMap(memberList: RoomRawMember[], parseContent: string): Map<string, string> {
+  private parseMap(memberList: RoomRawMember[], parseContent: NameType): Map<string, string> {
     const mapList: Map<string, string> = new Map<string, string>()
     if (memberList && memberList.map) {
       memberList.forEach(member => {
+        let tmpName: string
         let contact = Contact.load(member.UserName)
-        if (parseContent === 'nick') {
-          mapList[member.UserName] = UtilLib.stripEmoji(contact.name())
-        } else if (parseContent === 'remark') {
-          mapList[member.UserName] = UtilLib.stripEmoji(contact.remark() || '')
-        } else if (parseContent === 'display') {
-          mapList[member.UserName] = UtilLib.stripEmoji(member.DisplayName)
-        } else {
-          throw new Error('contact not parseContent')
+        switch (parseContent) {
+          case 'nick':
+            tmpName = contact.name()
+            break
+          case 'remark':
+            tmpName = contact.remark() || ''
+            break
+          case 'display':
+            tmpName = member.DisplayName
+            break
+          default:
+            throw new Error('parseMap failed, member not found')
         }
+        /**
+         * ISSUE #64 emoji need to be striped
+         * ISSUE #104 never use remark name because sys group message will never use that
+         * @rui: cannot use argument NickName because it mix real nick and remark 
+         */
+        mapList[member.UserName] = UtilLib.stripEmoji(tmpName)
       })
     }
     return mapList
-  }
-
-  private parseNickMap(memberList: RoomRawMember[]): Map<string, string> {
-    return this.parseMap(memberList, 'nick')
-  }
-
-  private parseRemarkMap(memberList: RoomRawMember[]): Map<string, string> {
-    return this.parseMap(memberList, 'remark')
-  }
-
-  private parseDisplayName(memberList: RoomRawMember[]): Map<string, string> {
-    return this.parseMap(memberList, 'display')
   }
 
   public dumpRaw() {
@@ -401,7 +397,7 @@ export class Room extends EventEmitter implements Sayable {
    */
   public member(queryArg: MemberQueryFilter | string): Contact | null {
     if (typeof queryArg === 'string') {
-      log.error('Room', 'function member should use member(queryArg: MemberQueryFilter)')
+      log.verbose('Room', 'function member should use member(queryArg: MemberQueryFilter)')
       return this.member({remark: queryArg}) || this.member({display: queryArg}) || this.member({nick: queryArg})
     } else {
       log.verbose('Room', 'member({ %s })'
