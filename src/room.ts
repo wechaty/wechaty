@@ -356,7 +356,7 @@ export class Room extends EventEmitter implements Sayable {
     if (!this.obj || !this.obj.nickMap) {
       return ''
     }
-    return this.obj.nickMap[contact.id]
+    return this.obj.displayMap[contact.id]
   }
 
   public has(contact: Contact): boolean {
@@ -391,13 +391,14 @@ export class Room extends EventEmitter implements Sayable {
     return null
   }
 
-  public member(filter: MemberQueryFilter): Contact | null
-  public member(name: string): Contact | null
-
   /**
    * find member by `nick`(NickName) / `display`(DisplayName) / `remark`(RemarkName)
    * when use member(name:string), find member by nickName by default
    */
+
+  public member(filter: MemberQueryFilter): Contact | null
+  public member(name: string): Contact | null
+
   public member(queryArg: MemberQueryFilter | string): Contact | null {
     if (typeof queryArg === 'string') {
       log.warn('Room', 'member(%s) DEPRECATED, use member(queryArg: MemberQueryFilter) instead.')
