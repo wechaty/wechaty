@@ -400,7 +400,7 @@ export class Room extends EventEmitter implements Sayable {
    */
   public member(queryArg: MemberQueryFilter | string): Contact | null {
     if (typeof queryArg === 'string') {
-      log.verbose('Room', 'function member should use member(queryArg: MemberQueryFilter)')
+      log.warn('Room', 'member(%s) DEPRECATED, use member(queryArg: MemberQueryFilter) instead.')
       return this.member({remark: queryArg}) || this.member({display: queryArg}) || this.member({nick: queryArg})
     }
 
