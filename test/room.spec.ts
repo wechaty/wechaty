@@ -84,7 +84,15 @@ test('Room smoking test', async t => {
 
   t.is(r.id, EXPECTED.id, 'should set id/UserName right')
 
-  await r.ready(mockContactGetter)
+  let puppet
+  try {
+    puppet = Config.puppetInstance()
+    puppet.getContact = mockContactGetter
+  } catch (err) {
+    puppet = { getContact: mockContactGetter }
+    Config.puppetInstance(puppet)
+  }
+  await r.ready()
 
   t.is(r.get('id')      , EXPECTED.id, 'should set id/UserName')
   t.is(r.get('encryId') , EXPECTED.encryId, 'should set EncryChatRoomId')
