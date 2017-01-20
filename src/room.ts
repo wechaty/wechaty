@@ -391,6 +391,9 @@ export class Room extends EventEmitter implements Sayable {
     return null
   }
 
+  public member(filter: MemberQueryFilter): Contact | null
+  public member(name: string): Contact | null
+
   /**
    * find member by `nick`(NickName) / `display`(DisplayName) / `remark`(RemarkName)
    * when use member(name:string), find member by nickName by default
@@ -399,53 +402,53 @@ export class Room extends EventEmitter implements Sayable {
     if (typeof queryArg === 'string') {
       log.verbose('Room', 'function member should use member(queryArg: MemberQueryFilter)')
       return this.member({remark: queryArg}) || this.member({display: queryArg}) || this.member({nick: queryArg})
+    }
+
+    log.verbose('Room', 'member({ %s })'
+                        , Object.keys(queryArg)
+                                .map(k => `${k}: ${queryArg[k]}`)
+                                .join(', ')
+            )
+
+    if (Object.keys(queryArg).length !== 1) {
+      throw new Error('Room member find quaryArg only support one key. multi key support is not availble now.')
+    }
+
+    if (!this.obj || !this.obj.memberList) {
+      log.warn('Room', 'member() not ready')
+      return null
+    }
+    let filterKey            = Object.keys(queryArg)[0]
+    /**
+     * ISSUE #64 emoji need to be striped
+     */
+    let filterValue: string  = UtilLib.stripEmoji(queryArg[filterKey])
+
+    const keyMap = {
+      nick:     'nickMap',
+      remark:   'remarkMap',
+      display:  'displayMap'
+    }
+
+    filterKey = keyMap[filterKey]
+    if (!filterKey) {
+      throw new Error('unsupport filter key')
+    }
+
+    if (!filterValue) {
+      throw new Error('filterValue not found')
+    }
+
+    const filterMap = this.obj[filterKey]
+    const idList = Object.keys(filterMap)
+                          .filter(k => filterMap[k] === filterValue)
+
+    log.silly('Room', 'member() check %s: %s', filterKey, JSON.stringify(filterKey))
+
+    if (idList.length) {
+      return Contact.load(idList[0])
     } else {
-      log.verbose('Room', 'member({ %s })'
-                          , Object.keys(queryArg)
-                                  .map(k => `${k}: ${queryArg[k]}`)
-                                  .join(', ')
-              )
-
-      if (Object.keys(queryArg).length !== 1) {
-        throw new Error('Room member find quaryArg only support one key. multi key support is not availble now.')
-      }
-
-      if (!this.obj || !this.obj.memberList) {
-        log.warn('Room', 'member() not ready')
-        return null
-      }
-      let filterKey            = Object.keys(queryArg)[0]
-      /**
-       * ISSUE #64 emoji need to be striped
-       */
-      let filterValue: string  = UtilLib.stripEmoji(queryArg[filterKey])
-
-      const keyMap = {
-        nick:     'nickMap',
-        remark:   'remarkMap',
-        display:  'displayMap'
-      }
-
-      filterKey = keyMap[filterKey]
-      if (!filterKey) {
-        throw new Error('unsupport filter key')
-      }
-
-      if (!filterValue) {
-        throw new Error('filterValue not found')
-      }
-
-      const filterMap = this.obj[filterKey]
-      const idList = Object.keys(filterMap)
-                            .filter(k => filterMap[k] === filterValue)
-
-      log.silly('Room', 'member() check %s: %s', filterKey, JSON.stringify(filterKey))
-
-      if (idList.length) {
-        return Contact.load(idList[0])
-      } else {
-        return null
-      }
+      return null
     }
   }
 
