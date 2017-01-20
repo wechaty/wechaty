@@ -95,11 +95,6 @@ export class Room extends EventEmitter implements Sayable {
     return
   }
 
-  // public ready(contactGetter?: (id: string) => Promise<any>) {
-  //   log.warn('Room', 'ready() DEPRECATED. use load() instad.')
-  //   return this.load(contactGetter)
-  // }
-
   private async readyAllMembers(memberList: RoomRawMember[]): Promise<void> {
     for (let member of memberList) {
       let contact = Contact.load(member.UserName)
@@ -107,6 +102,11 @@ export class Room extends EventEmitter implements Sayable {
     }
     return
   }
+
+  // public ready(contactGetter?: (id: string) => Promise<any>) {
+  //   log.warn('Room', 'ready() DEPRECATED. use load() instad.')
+  //   return this.load(contactGetter)
+  // }
 
   public async ready(contactGetter?: (id: string) => Promise<any>): Promise<void> {
     log.silly('Room', 'ready(%s)', contactGetter ? contactGetter.constructor.name : '')
