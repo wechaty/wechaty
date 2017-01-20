@@ -356,7 +356,7 @@ export class Room extends EventEmitter implements Sayable {
     if (!this.obj || !this.obj.nickMap) {
       return ''
     }
-    return this.obj.displayMap[contact.id]
+    return this.obj.displayMap[contact.id] || this.obj.nickMap[contact.id]
   }
 
   public has(contact: Contact): boolean {
