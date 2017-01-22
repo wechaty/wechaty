@@ -239,7 +239,6 @@ export class Room extends EventEmitter implements Sayable {
     }
     return rawMemberList.map(m => Contact.load(m.UserName))
   }
-
   private parseMap(memberList: RoomRawMember[], parseContent: NameType): Map<string, string> {
     const mapList: Map<string, string> = new Map<string, string>()
     if (memberList && memberList.map) {
@@ -249,6 +248,7 @@ export class Room extends EventEmitter implements Sayable {
         switch (parseContent) {
           case 'nick':
             tmpName = contact.name()
+            log.silly('~~~~~~~~~~~~~~~~~~~function parseMap:nick tmpName= %s', contact.name())
             break
           case 'remark':
             tmpName = contact.remark() || ''
