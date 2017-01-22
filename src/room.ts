@@ -353,12 +353,9 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   public nick(contact: Contact): string {
-    if (!this.obj || !this.obj.displayMap || !this.obj.nickMap) {
-      log.warn('Room', 'nick() not ready')
-      return 'fuck'
+    if (!this.obj || !this.obj.nickMap) {
+      return ''
     }
-    log.silly(`function nick() %s`, this.obj.nickMap)
-    log.silly(``)
     return this.obj.displayMap[contact.id] || this.obj.nickMap[contact.id]
   }
 
@@ -404,7 +401,7 @@ export class Room extends EventEmitter implements Sayable {
 
   public member(queryArg: MemberQueryFilter | string): Contact | null {
     if (typeof queryArg === 'string') {
-      log.warn('Room', 'member(%s) DEPRECATED, use member(queryArg: MemberQueryFilter) instead.')
+      log.warn('Room', 'member(%s) DEPRECATED, use member(queryArg: MemberQueryFilter) instead.', queryArg)
       return this.member({remark: queryArg}) || this.member({display: queryArg}) || this.member({nick: queryArg})
     }
 
@@ -447,9 +444,10 @@ export class Room extends EventEmitter implements Sayable {
     const idList = Object.keys(filterMap)
                           .filter(k => filterMap[k] === filterValue)
 
-    log.silly('Room', 'member() check %s: %s', filterKey, JSON.stringify(filterKey))
+    log.silly('Room', 'member() check %s: %s', filterKey, filterKey)
 
     if (idList.length) {
+      log.silly('Room', 'member() check %s: %s result: %s', filterKey, filterKey, Contact.load(idList[0]))
       return Contact.load(idList[0])
     } else {
       return null
