@@ -355,10 +355,14 @@ export class Room extends EventEmitter implements Sayable {
   public nick(contact: Contact): string {
     log.silly('Room', 'nick(%s)', contact.id)
     if (!this.obj || !this.obj.nickMap) {
-      return 'fuck1!'
+      log.silly('Room', 'nick(%s), obj is null or nickMap is null', contact.id)
+      return ''
     }
 
-    if (!this.obj.displayMap[contact.id] && !this.obj.nickMap[contact.id]) {
+    log.silly('contact_id: %s', contact.id)
+    log.silly('displayMap: %s \n nickMap: %s', JSON.stringify(this.obj.displayMap),  JSON.stringify(this.obj.nickMap))
+
+    if ((!this.obj.displayMap[contact.id]) && (!this.obj.nickMap[contact.id])) {
       log.silly('Room', 'nick(%s) failed! fuck!!!!', contact.id)
       return 'fuck2!'
     }
