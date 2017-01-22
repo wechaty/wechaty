@@ -245,6 +245,8 @@ export class Room extends EventEmitter implements Sayable {
       memberList.forEach(member => {
         let tmpName: string
         let contact = Contact.load(member.UserName)
+        log.silly('####################Contact.load(%s): %s', member.UserName, JSON.stringify(contact))
+        log.silly('####################contact.name(): %s', contact.name())
         switch (parseContent) {
           case 'nick':
             tmpName = contact.name()
