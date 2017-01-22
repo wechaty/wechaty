@@ -357,6 +357,11 @@ export class Room extends EventEmitter implements Sayable {
     if (!this.obj || !this.obj.nickMap) {
       return 'fuck'
     }
+
+    if (!this.obj.displayMap[contact.id] || !this.obj.nickMap[contact.id]) {
+      log.silly('Room', 'nick(%s) failed! fuck!!!!', contact.id)
+      return 'fuck'
+    }
     return this.obj.displayMap[contact.id] || this.obj.nickMap[contact.id]
   }
 
@@ -445,12 +450,13 @@ export class Room extends EventEmitter implements Sayable {
     const idList = Object.keys(filterMap)
                           .filter(k => filterMap[k] === filterValue)
 
-    log.silly('Room', 'member() check %s: %s', filterKey, filterKey)
+    log.silly('Room', 'member() check %s: %s', filterKey, filterValue)
 
     if (idList.length) {
-      log.silly('Room', 'member() check %s: %s result: %s', filterKey, filterKey, Contact.load(idList[0]))
+      log.silly('Room', 'member() check %s: %s result: %s', filterKey, filterValue, Contact.load(idList[0]))
       return Contact.load(idList[0])
     } else {
+      log.silly('Room', 'member() check %s: %s not found', filterKey, filterValue)
       return null
     }
   }
