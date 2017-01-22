@@ -353,9 +353,9 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   public nick(contact: Contact): string {
-    if (!this.obj || !this.obj.nickMap) {
-      log.warn('Room', 'member() not ready')
-      return ''
+    if (!this.obj || !this.obj.displayMap || !this.obj.nickMap) {
+      log.warn('Room', 'nick() not ready')
+      return 'fuck'
     }
     log.silly(`function nick() %s`, this.obj.nickMap)
     log.silly(``)
