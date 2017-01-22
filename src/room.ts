@@ -133,9 +133,15 @@ export class Room extends EventEmitter implements Sayable {
       log.silly('Room', `contactGetter(${this.id}) resolved`)
       this.rawObj = data
       await this.readyAllMembers(this.rawObj.MemberList)
-      log.silly('*********************Raw Room data: %s', JSON.stringify(data))
+      log.silly('*********************Raw Room data: %s', JSON.stringify(data.memberList))
       this.obj    = this.parse(data)
-      log.silly('####################obj: %s', JSON.stringify(this.obj))
+      if (this.obj) {
+        log.silly('####################obj: %s', JSON.stringify(this.obj))
+        log.silly('####################objNickMap: %s', JSON.stringify(this.obj.nickMap))
+        log.silly('####################objDisplayMap: %s', JSON.stringify(this.obj.displayMap))
+        log.silly('####################objRemarkMap: %s', JSON.stringify(this.obj.remarkMap))
+      }
+
 
       if (!this.obj) {
         throw new Error('no this.obj set after contactGetter')
