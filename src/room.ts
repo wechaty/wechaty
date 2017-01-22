@@ -135,6 +135,7 @@ export class Room extends EventEmitter implements Sayable {
       await this.readyAllMembers(this.rawObj.MemberList)
       log.silly('*********************Raw Room data: %s', JSON.stringify(data))
       this.obj    = this.parse(data)
+      log.silly('####################obj: %s', JSON.stringify(this.obj))
 
       if (!this.obj) {
         throw new Error('no this.obj set after contactGetter')
