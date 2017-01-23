@@ -391,7 +391,7 @@ export class Room extends EventEmitter implements Sayable {
 
   /**
    * find member by `nick`(NickName) / `display`(DisplayName) / `remark`(RemarkName)
-   * when use member(name:string), find member by nickName by default
+   * when use member(name:string), find all name by default
    */
 
   public member(filter: MemberQueryFilter): Contact | null
@@ -399,11 +399,10 @@ export class Room extends EventEmitter implements Sayable {
 
   public member(queryArg: MemberQueryFilter | string): Contact | null {
     if (typeof queryArg === 'string') {
-      log.warn('Room', 'member(%s) DEPRECATED, use member(queryArg: MemberQueryFilter) instead.', queryArg)
       return this.member({remark: queryArg}) || this.member({display: queryArg}) || this.member({nick: queryArg})
     }
 
-    log.verbose('Room', 'member({ %s })'
+    log.silly('Room', 'member({ %s })'
                         , Object.keys(queryArg)
                                 .map(k => `${k}: ${queryArg[k]}`)
                                 .join(', ')
