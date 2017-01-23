@@ -133,16 +133,7 @@ export class Room extends EventEmitter implements Sayable {
       log.silly('Room', `contactGetter(${this.id}) resolved`)
       this.rawObj = data
       await this.readyAllMembers(this.rawObj.MemberList)
-      log.silly('*********************Raw Room data: %s', JSON.stringify(data.memberList))
-      this.obj    = this.parse(data)
-      if (this.obj) {
-        log.silly('####################obj: %s', JSON.stringify(this.obj))
-        log.silly('####################objNickMap: %s', JSON.stringify(this.obj.nickMap))
-        log.silly('####################objDisplayMap: %s', JSON.stringify(this.obj.displayMap))
-        log.silly('####################objRemarkMap: %s', JSON.stringify(this.obj.remarkMap))
-      }
-
-
+      this.obj    = this.parse(this.rawObj)
       if (!this.obj) {
         throw new Error('no this.obj set after contactGetter')
       }
@@ -245,12 +236,9 @@ export class Room extends EventEmitter implements Sayable {
       memberList.forEach(member => {
         let tmpName: string
         let contact = Contact.load(member.UserName)
-        log.silly('####################Contact.load(%s): %s', member.UserName, JSON.stringify(contact))
-        log.silly('####################contact.name(): %s', contact.name())
         switch (parseContent) {
           case 'nick':
             tmpName = contact.name()
-            log.silly('~~~~~~~~~~~~~~~~~~~function parseMap:nick tmpName= %s', contact.name())
             break
           case 'remark':
             tmpName = contact.remark() || ''
@@ -363,18 +351,8 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   public nick(contact: Contact): string {
-    log.silly('Room', 'nick(%s)', contact.id)
     if (!this.obj || !this.obj.nickMap) {
-      log.silly('Room', 'nick(%s), obj is null or nickMap is null', contact.id)
       return ''
-    }
-
-    log.silly('contact_id: %s', contact.id)
-    log.silly('displayMap: %s \n nickMap: %s', JSON.stringify(this.obj.displayMap),  JSON.stringify(this.obj.nickMap))
-
-    if ((!this.obj.displayMap[contact.id]) && (!this.obj.nickMap[contact.id])) {
-      log.silly('Room', 'nick(%s) failed! fuck!!!!', contact.id)
-      return 'fuck2!'
     }
     return this.obj.displayMap[contact.id] || this.obj.nickMap[contact.id]
   }
@@ -467,10 +445,8 @@ export class Room extends EventEmitter implements Sayable {
     log.silly('Room', 'member() check %s: %s', filterKey, filterValue)
 
     if (idList.length) {
-      log.silly('Room', 'member() check %s: %s result: %s', filterKey, filterValue, Contact.load(idList[0]))
       return Contact.load(idList[0])
     } else {
-      log.silly('Room', 'member() check %s: %s not found', filterKey, filterValue)
       return null
     }
   }
