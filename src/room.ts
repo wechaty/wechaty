@@ -26,7 +26,11 @@ type RoomObj = {
   ownerUin:   number
   memberList: Contact[]
   nickMap:    Map<string, string>
+  remarkMap:  Map<string, string>
+  displayMap: Map<string, string>
 }
+
+type NameType = 'nick' | 'display' | 'remark'
 
 export type RoomRawMember = {
   UserName:     string
@@ -50,6 +54,12 @@ export type RoomEventName = 'join'
 
 export type RoomQueryFilter = {
   topic: string | RegExp
+}
+
+export type MemberQueryFilter = {
+  nick?:    string
+  remark?:  string
+  display?: string
 }
 
 export class Room extends EventEmitter implements Sayable {
@@ -85,6 +95,14 @@ export class Room extends EventEmitter implements Sayable {
     return
   }
 
+  private async readyAllMembers(memberList: RoomRawMember[]): Promise<void> {
+    for (let member of memberList) {
+      let contact = Contact.load(member.UserName)
+      await contact.ready()
+    }
+    return
+  }
+
   // public ready(contactGetter?: (id: string) => Promise<any>) {
   //   log.warn('Room', 'ready() DEPRECATED. use load() instad.')
   //   return this.load(contactGetter)
@@ -114,8 +132,8 @@ export class Room extends EventEmitter implements Sayable {
       const data = await contactGetter(this.id)
       log.silly('Room', `contactGetter(${this.id}) resolved`)
       this.rawObj = data
-      this.obj    = this.parse(data)
-
+      await this.readyAllMembers(this.rawObj.MemberList)
+      this.obj    = this.parse(this.rawObj)
       if (!this.obj) {
         throw new Error('no this.obj set after contactGetter')
       }
@@ -189,7 +207,9 @@ export class Room extends EventEmitter implements Sayable {
     }
 
     const memberList  = this.parseMemberList(rawObj.MemberList)
-    const nickMap     = this.parseNickMap(rawObj.MemberList)
+    const nickMap     = this.parseMap(rawObj.MemberList, 'nick')
+    const remarkMap   = this.parseMap(rawObj.MemberList, 'remark')
+    const displayMap  = this.parseMap(rawObj.MemberList, 'display')
 
     return {
       id:         rawObj.UserName,
@@ -199,6 +219,8 @@ export class Room extends EventEmitter implements Sayable {
 
       memberList,
       nickMap,
+      remarkMap,
+      displayMap,
     }
   }
 
@@ -208,22 +230,34 @@ export class Room extends EventEmitter implements Sayable {
     }
     return rawMemberList.map(m => Contact.load(m.UserName))
   }
-
-  private parseNickMap(memberList: RoomRawMember[]): Map<string, string> {
-    const nickMap: Map<string, string> = new Map<string, string>()
-
+  private parseMap(memberList: RoomRawMember[], parseContent: NameType): Map<string, string> {
+    const mapList: Map<string, string> = new Map<string, string>()
     if (memberList && memberList.map) {
       memberList.forEach(member => {
+        let tmpName: string
+        let contact = Contact.load(member.UserName)
+        switch (parseContent) {
+          case 'nick':
+            tmpName = contact.name()
+            break
+          case 'remark':
+            tmpName = contact.remark() || ''
+            break
+          case 'display':
+            tmpName = member.DisplayName
+            break
+          default:
+            throw new Error('parseMap failed, member not found')
+        }
         /**
          * ISSUE #64 emoji need to be striped
          * ISSUE #104 never use remark name because sys group message will never use that
+         * @rui: cannot use argument NickName because it mix real nick and remark 
          */
-        nickMap[member.UserName] = UtilLib.stripEmoji(
-          member.DisplayName || member.NickName
-        )
+        mapList[member.UserName] = UtilLib.stripEmoji(tmpName)
       })
     }
-    return nickMap
+    return mapList
   }
 
   public dumpRaw() {
@@ -320,7 +354,7 @@ export class Room extends EventEmitter implements Sayable {
     if (!this.obj || !this.obj.nickMap) {
       return ''
     }
-    return this.obj.nickMap[contact.id]
+    return this.obj.displayMap[contact.id] || this.obj.nickMap[contact.id]
   }
 
   public has(contact: Contact): boolean {
@@ -356,26 +390,58 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * NickName / DisplayName / RemarkName of member
+   * find member by `nick`(NickName) / `display`(DisplayName) / `remark`(RemarkName)
+   * when use member(name:string), find all name by default
    */
-  public member(name: string): Contact | null {
-    log.verbose('Room', 'member(%s)', name)
+
+  public member(filter: MemberQueryFilter): Contact | null
+  public member(name: string): Contact | null
+
+  public member(queryArg: MemberQueryFilter | string): Contact | null {
+    if (typeof queryArg === 'string') {
+      return this.member({remark: queryArg}) || this.member({display: queryArg}) || this.member({nick: queryArg})
+    }
+
+    log.silly('Room', 'member({ %s })'
+                        , Object.keys(queryArg)
+                                .map(k => `${k}: ${queryArg[k]}`)
+                                .join(', ')
+            )
+
+    if (Object.keys(queryArg).length !== 1) {
+      throw new Error('Room member find quaryArg only support one key. multi key support is not availble now.')
+    }
 
     if (!this.obj || !this.obj.memberList) {
       log.warn('Room', 'member() not ready')
       return null
     }
-
+    let filterKey            = Object.keys(queryArg)[0]
     /**
      * ISSUE #64 emoji need to be striped
      */
-    name = UtilLib.stripEmoji(name)
+    let filterValue: string  = UtilLib.stripEmoji(queryArg[filterKey])
 
-    const nickMap = this.obj.nickMap
-    const idList = Object.keys(nickMap)
-                          .filter(k => nickMap[k] === name)
+    const keyMap = {
+      nick:     'nickMap',
+      remark:   'remarkMap',
+      display:  'displayMap'
+    }
 
-    log.silly('Room', 'member() check nickMap: %s', JSON.stringify(nickMap))
+    filterKey = keyMap[filterKey]
+    if (!filterKey) {
+      throw new Error('unsupport filter key')
+    }
+
+    if (!filterValue) {
+      throw new Error('filterValue not found')
+    }
+
+    const filterMap = this.obj[filterKey]
+    const idList = Object.keys(filterMap)
+                          .filter(k => filterMap[k] === filterValue)
+
+    log.silly('Room', 'member() check %s: %s', filterKey, filterValue)
 
     if (idList.length) {
       return Contact.load(idList[0])
