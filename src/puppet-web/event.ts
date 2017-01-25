@@ -312,6 +312,11 @@ async function onServerMessage(this: PuppetWeb, obj: MsgRawObj): Promise<void> {
           Firer.checkFriendConfirm.call(this, m)
         }
         break
+
+      case MsgType.TEXT:
+        if (m.room() && this.user) {
+          Firer.checkMessageAt.call(this, m, this.user)
+        }
     }
 
     /**

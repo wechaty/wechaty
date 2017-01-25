@@ -42,6 +42,7 @@ export type WechatyEventName = 'error'
                               | 'login'
                               | 'logout'
                               | 'message'
+                              | 'message-at'
                               | 'room-join'
                               | 'room-leave'
                               | 'room-topic'
@@ -171,6 +172,7 @@ export class Wechaty extends EventEmitter implements Sayable {
   public on(event: 'logout'     , listener: (this: Wechaty, user: Contact) => void): this
   public on(event: 'login'      , listener: (this: Wechaty, user: Contact) => void): this
   public on(event: 'message'    , listener: (this: Wechaty, message: Message) => void): this
+  public on(event: 'message-at' , listener: (this: Wechaty, contact: Contact, room: Room, content: string) => void): this
   public on(event: 'room-join'  , listener: (this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void): this
   public on(event: 'room-leave' , listener: (this: Wechaty, room: Room, leaverList: Contact[]) => void): this
   public on(event: 'room-topic' , listener: (this: Wechaty, room: Room, topic: string, oldTopic: string, changer: Contact) => void): this
@@ -223,6 +225,7 @@ export class Wechaty extends EventEmitter implements Sayable {
       , 'login'
       , 'logout'
       , 'message'
+      , 'message-at'
       , 'room-join'
       , 'room-leave'
       , 'room-topic'
