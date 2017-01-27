@@ -150,7 +150,7 @@ function parseRoomJoin(content: string): [string[], string] {
   if ((!foundInvite || !foundInvite.length) && (!foundQrcode || !foundQrcode.length)) {
     throw new Error('checkRoomJoin() not found matched re of ' + content)
   }
-  /** 
+  /**
    * "凌" invited "庆次、小桔妹" to the group chat
    * "桔小秘"通过扫描你分享的二维码加入群聊
    */

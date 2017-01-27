@@ -252,7 +252,7 @@ export class Room extends EventEmitter implements Sayable {
         /**
          * ISSUE #64 emoji need to be striped
          * ISSUE #104 never use remark name because sys group message will never use that
-         * @rui: cannot use argument NickName because it mix real nick and remark 
+         * @rui: cannot use argument NickName because it mix real nick and remark
          */
         mapList[member.UserName] = UtilLib.stripEmoji(tmpName)
       })
