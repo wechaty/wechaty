@@ -28,6 +28,7 @@ install:
   - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew uninstall --force brew-cask; brew update; fi
   - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew cask install --force google-chrome; fi
   - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew install shellcheck; fi
+  - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then npm install phantomjs-prebuilt; fi
 
   - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then export DISPLAY=':99.0'; fi
   - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then sh -e /etc/init.d/xvfb start; fi
