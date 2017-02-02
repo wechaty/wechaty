@@ -126,7 +126,7 @@
     "@types/request": "0.0.39",
     "@types/ws": "0.0.37",
     "apiai": "3.0.3",
-    "ava": "0.17.0",
+    "ava": "0.18.0",
     "babel-eslint": "7.1.1",
     "check-node-version": "1.1.2",
     "cookie-parser": "1.4.3",
