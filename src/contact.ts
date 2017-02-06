@@ -22,7 +22,7 @@ type ContactObj = {
   id:         string
   name:       string
   province:   string
-  remark:     string|null
+  alias:      string|null
   sex:        Gender
   signature:  string
   star:       boolean
@@ -55,8 +55,10 @@ export enum Gender {
 }
 
 export type ContactQueryFilter = {
-  name?: string | RegExp
+  name?:   string | RegExp
+  // remark should be deprecated
   remark?: string | RegExp
+  alias?:  string | RegExp
 }
 
 export class Contact implements Sayable {
@@ -78,7 +80,7 @@ export class Contact implements Sayable {
     if (!this.obj) {
       return this.id
     }
-    return this.obj.remark || this.obj.name || this.id
+    return this.obj.alias || this.obj.name || this.id
   }
 
   public toStringEx() { return `Contact(${this.obj && this.obj.name}[${this.id}])` }
@@ -93,7 +95,7 @@ export class Contact implements Sayable {
       , uin:        rawObj.Uin    // stable id: 4763975 || getCookie("wxuin")
       , weixin:     rawObj.Alias  // Wechat ID
       , name:       rawObj.NickName
-      , remark:     rawObj.RemarkName
+      , alias:      rawObj.RemarkName
       , sex:        rawObj.Sex
       , province:   rawObj.Province
       , city:       rawObj.City
@@ -222,7 +224,7 @@ export class Contact implements Sayable {
   }
 
   /**
-   * find contact by `name`(NickName) or `remark`(RemarkName)
+   * find contact by `name` or `alias`
    */
   public static async findAll(queryArg?: ContactQueryFilter): Promise<Contact[]> {
     let query: ContactQueryFilter
@@ -230,6 +232,10 @@ export class Contact implements Sayable {
       query = queryArg
     } else {
       query = { name: /.*/ }
+    }
+
+    if (query[0] === 'remark') {
+      log.warn('Contact', 'findAll(remark:%s) DEPRECATED, use findAll(alias:%s) instead.')
     }
 
     // log.verbose('Cotnact', 'findAll({ name: %s })', query.name)
@@ -248,7 +254,9 @@ export class Contact implements Sayable {
 
     const keyMap = {
       name:   'NickName',
+      // should be deprecated
       remark: 'RemarkName',
+      alias:  'RemarkName',
     }
 
     filterKey = keyMap[filterKey]
@@ -287,44 +295,55 @@ export class Contact implements Sayable {
   }
 
   /**
-   * get the remark for contact
+   * get the alias for contact
    */
-  public remark(): string | null
+  public alias(): string | null
   /**
-   * set the remark for contact
+   * set the alias for contact
    * @return {Promise<boolean>} A promise to the result. true for success, false for failure
    */
-  public remark(newRemark: string): Promise<boolean>
+  public alias(newAlias: string): Promise<boolean>
   /**
-   * delete the remark for a contact
+   * delete the alias for a contact
    */
-  public remark(empty: null): Promise<boolean>
+  public alias(empty: null): Promise<boolean>
 
-  public remark(newRemark?: string|null): Promise<boolean> | string | null {
-    log.silly('Contact', 'remark(%s)', newRemark || '')
+  public alias(newAlias?: string|null): Promise<boolean> | string | null {
+    log.silly('Contact', 'alias(%s)', newAlias || '')
 
-    if (newRemark === undefined) {
-      return this.obj && this.obj.remark || null
+    if (newAlias === undefined) {
+      return this.obj && this.obj.alias || null
     }
 
     return Config.puppetInstance()
-                  .contactRemark(this, newRemark)
+                  .contactAlias(this, newAlias)
                   .then(ret => {
                     if (ret) {
                       if (this.obj) {
-                        this.obj.remark = newRemark
+                        this.obj.alias = newAlias
                       } else {
-                        log.error('Contact', 'remark() without this.obj?')
+                        log.error('Contact', 'alias() without this.obj?')
                       }
                     } else {
-                      log.warn('Contact', 'remark(%s) fail', newRemark)
+                      log.warn('Contact', 'alias(%s) fail', newAlias)
                     }
                     return ret
                   })
                   .catch(e => {
-                    log.error('Contact', 'remark(%s) rejected: %s', newRemark, e.message)
+                    log.error('Contact', 'alias(%s) rejected: %s', newAlias, e.message)
                     return false // fail safe
                   })
+  }
+
+  public remark(newRemark?: string|null): Promise<boolean> | string | null {
+    log.warn('Contact', 'remark(%s) DEPRECATED, use alias(%s) instead.')
+    log.silly('Contact', 'remark(%s)', newRemark || '')
+
+    if (newRemark) {
+      return this.alias(newRemark)
+    } else {
+      return this.alias()
+    }
   }
 
   /**

@@ -25,12 +25,12 @@ type RoomObj = {
   topic:      string
   ownerUin:   number
   memberList: Contact[]
-  nickMap:    Map<string, string>
-  remarkMap:  Map<string, string>
-  displayMap: Map<string, string>
+  nameMap:      Map<string, string>
+  aliasMap:     Map<string, string>
+  roomAliasMap: Map<string, string>
 }
 
-type NameType = 'nick' | 'display' | 'remark'
+type NameType = 'name' | 'alias' | 'roomAlias'
 
 export type RoomRawMember = {
   UserName:     string
@@ -57,9 +57,9 @@ export type RoomQueryFilter = {
 }
 
 export type MemberQueryFilter = {
-  nick?:    string
-  remark?:  string
-  display?: string
+  name?:      string
+  alias?:     string
+  roomAlias?: string
 }
 
 export class Room extends EventEmitter implements Sayable {
@@ -206,10 +206,10 @@ export class Room extends EventEmitter implements Sayable {
       return null
     }
 
-    const memberList  = this.parseMemberList(rawObj.MemberList)
-    const nickMap     = this.parseMap(rawObj.MemberList, 'nick')
-    const remarkMap   = this.parseMap(rawObj.MemberList, 'remark')
-    const displayMap  = this.parseMap(rawObj.MemberList, 'display')
+    const memberList    = this.parseMemberList(rawObj.MemberList)
+    const nameMap       = this.parseMap(rawObj.MemberList, 'name')
+    const aliasMap      = this.parseMap(rawObj.MemberList, 'alias')
+    const roomAliasMap  = this.parseMap(rawObj.MemberList, 'roomAlias')
 
     return {
       id:         rawObj.UserName,
@@ -218,9 +218,9 @@ export class Room extends EventEmitter implements Sayable {
       ownerUin:   rawObj.OwnerUin,
 
       memberList,
-      nickMap,
-      remarkMap,
-      displayMap,
+      nameMap,
+      aliasMap,
+      roomAliasMap,
     }
   }
 
@@ -237,13 +237,13 @@ export class Room extends EventEmitter implements Sayable {
         let tmpName: string
         let contact = Contact.load(member.UserName)
         switch (parseContent) {
-          case 'nick':
+          case 'name':
             tmpName = contact.name()
             break
-          case 'remark':
-            tmpName = contact.remark() || ''
+          case 'alias':
+            tmpName = contact.alias() || ''
             break
-          case 'display':
+          case 'roomAlias':
             tmpName = member.DisplayName
             break
           default:
@@ -252,7 +252,7 @@ export class Room extends EventEmitter implements Sayable {
         /**
          * ISSUE #64 emoji need to be striped
          * ISSUE #104 never use remark name because sys group message will never use that
-         * @rui: cannot use argument NickName because it mix real nick and remark
+         * @rui: cannot use argument NickName because it mix real name and alias
          */
         mapList[member.UserName] = UtilLib.stripEmoji(tmpName)
       })
@@ -350,11 +350,20 @@ export class Room extends EventEmitter implements Sayable {
     return UtilLib.plainText(this.obj ? this.obj.topic : '')
   }
 
+  // should be deprecated
   public nick(contact: Contact): string {
-    if (!this.obj || !this.obj.nickMap) {
+    log.warn('Room', 'nick(Contact) DEPRECATED, use name(Contact) instead.')
+    if (!this.obj || !this.obj.nameMap) {
       return ''
     }
-    return this.obj.displayMap[contact.id] || this.obj.nickMap[contact.id]
+    return this.obj.roomAliasMap[contact.id] || this.obj.nameMap[contact.id]
+  }
+
+  public name(contact: Contact): string {
+    if (!this.obj || !this.obj.nameMap) {
+      return ''
+    }
+    return this.obj.roomAliasMap[contact.id] || this.obj.nameMap[contact.id]
   }
 
   public has(contact: Contact): boolean {
@@ -390,7 +399,7 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * find member by `nick`(NickName) / `display`(DisplayName) / `remark`(RemarkName)
+   * find member by `name` / `roomAlias` / `alias`
    * when use member(name:string), find all name by default
    */
 
@@ -399,7 +408,7 @@ export class Room extends EventEmitter implements Sayable {
 
   public member(queryArg: MemberQueryFilter | string): Contact | null {
     if (typeof queryArg === 'string') {
-      return this.member({remark: queryArg}) || this.member({display: queryArg}) || this.member({nick: queryArg})
+      return this.member({alias: queryArg}) || this.member({roomAlias: queryArg}) || this.member({name: queryArg})
     }
 
     log.silly('Room', 'member({ %s })'
@@ -423,9 +432,9 @@ export class Room extends EventEmitter implements Sayable {
     let filterValue: string  = UtilLib.stripEmoji(queryArg[filterKey])
 
     const keyMap = {
-      nick:     'nickMap',
-      remark:   'remarkMap',
-      display:  'displayMap'
+      name:       'nameMap',
+      alias:      'aliasMap',
+      roomAlias:  'roomAliasMap'
     }
 
     filterKey = keyMap[filterKey]
