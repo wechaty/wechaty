@@ -19,6 +19,7 @@ RUN  apk update && apk upgrade \
       coreutils \
       ffmpeg \
       figlet \
+      ttf-freefont \
       udev \
       vim \
       xauth \
