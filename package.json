@@ -130,7 +130,7 @@
     "babel-eslint": "7.1.1",
     "check-node-version": "1.1.2",
     "cookie-parser": "1.4.3",
-    "coveralls": "2.11.14",
+    "coveralls": "2.11.16",
     "cross-env": "3.1.4",
     "eslint": "3.15.0",
     "eslint-plugin-ava": "4.0.1",
