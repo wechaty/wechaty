@@ -252,6 +252,7 @@ export class Room extends EventEmitter implements Sayable {
         /**
          * ISSUE #64 emoji need to be striped
          * ISSUE #104 never use remark name because sys group message will never use that
+         * @rui: Wrong for 'never use remark name because sys group message will never use that', see more in the latest comment in #104
          * @rui: cannot use argument NickName because it mix real name and alias
          */
         mapList[member.UserName] = UtilLib.stripEmoji(tmpName)
@@ -353,13 +354,10 @@ export class Room extends EventEmitter implements Sayable {
   // should be deprecated
   public nick(contact: Contact): string {
     log.warn('Room', 'nick(Contact) DEPRECATED, use name(Contact) instead.')
-    if (!this.obj || !this.obj.nameMap) {
-      return ''
-    }
-    return this.obj.roomAliasMap[contact.id] || this.obj.nameMap[contact.id]
+    return this.alias(contact)
   }
 
-  public name(contact: Contact): string {
+  public alias(contact: Contact): string {
     if (!this.obj || !this.obj.nameMap) {
       return ''
     }

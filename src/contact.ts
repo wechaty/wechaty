@@ -56,8 +56,6 @@ export enum Gender {
 
 export type ContactQueryFilter = {
   name?:   string | RegExp
-  // remark should be deprecated
-  remark?: string | RegExp
   alias?:  string | RegExp
 }
 
@@ -226,16 +224,17 @@ export class Contact implements Sayable {
   /**
    * find contact by `name` or `alias`
    */
-  public static async findAll(queryArg?: ContactQueryFilter): Promise<Contact[]> {
+  public static async findAll(queryArg?: ContactQueryFilter | {remark: string | RegExp}): Promise<Contact[]> {
     let query: ContactQueryFilter
     if (queryArg) {
-      query = queryArg
+      if (queryArg[0] === 'remark') {
+        log.warn('Contact', 'Contact.findAll(remark:%s) DEPRECATED, use Contact.findAll(alias:%s) instead.')
+        query = { alias: queryArg[1]}
+      } else {
+        query = queryArg
+      }
     } else {
       query = { name: /.*/ }
-    }
-
-    if (query[0] === 'remark') {
-      log.warn('Contact', 'findAll(remark:%s) DEPRECATED, use findAll(alias:%s) instead.')
     }
 
     // log.verbose('Cotnact', 'findAll({ name: %s })', query.name)
@@ -254,8 +253,6 @@ export class Contact implements Sayable {
 
     const keyMap = {
       name:   'NickName',
-      // should be deprecated
-      remark: 'RemarkName',
       alias:  'RemarkName',
     }
 
@@ -335,6 +332,7 @@ export class Contact implements Sayable {
                   })
   }
 
+  // function should be deprecated
   public remark(newRemark?: string|null): Promise<boolean> | string | null {
     log.warn('Contact', 'remark(%s) DEPRECATED, use alias(%s) instead.')
     log.silly('Contact', 'remark(%s)', newRemark || '')
@@ -349,8 +347,8 @@ export class Contact implements Sayable {
   /**
    * try to find a contact by filter: {name: string | RegExp}
    */
-  public static async find(query: ContactQueryFilter): Promise<Contact> {
-    log.verbose('Contact', 'find(%s)', query.name)
+  public static async find(query: ContactQueryFilter | {remark: string | RegExp}): Promise<Contact> {
+    log.verbose('Contact', 'find(%s)', query)
 
     const contactList = await Contact.findAll(query)
     if (!contactList || !contactList.length) {

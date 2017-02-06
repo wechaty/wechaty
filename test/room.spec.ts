@@ -111,14 +111,14 @@ test('Room smoking test', async t => {
   const nick1 = r.nick(contact1)
   t.is(nick1, EXPECTED.memberNick1, 'should get nick1 from roomAlias')
 
-  const name1 = r.name(contact1)
+  const name1 = r.alias(contact1)
   t.is(name1, EXPECTED.memberNick1, 'should get name1 from roomAlias')
 
   const contact2 = new Contact(EXPECTED.memberId2)
   const nick2 = r.nick(contact2)
   t.is(nick2, EXPECTED.memberNick2, 'should get nick2 from name because there is no roomAlias, ')
 
-  const name2 = r.name(contact2)
+  const name2 = r.alias(contact2)
   t.is(name2, EXPECTED.memberNick2, 'should get nick2 from name because there is no roomAlias, ')
 
   t.truthy(r.has(contact1), 'should has contact1')
