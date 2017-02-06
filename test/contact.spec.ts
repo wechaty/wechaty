@@ -18,6 +18,7 @@ test('Contact smoke testing', async t => {
   /* tslint:disable:variable-name */
   const UserName = '@0bb3e4dd746fdbd4a80546aef66f4085'
   const NickName = 'Nick Name Test'
+  const RemarkName = 'Alias Test'
 
   // Mock
   const mockContactGetter = function (id) {
@@ -27,6 +28,7 @@ test('Contact smoke testing', async t => {
         return resolve({
           UserName: UserName
           , NickName: NickName
+          , RemarkName: RemarkName
         })
       }, 200)
     })
@@ -38,6 +40,8 @@ test('Contact smoke testing', async t => {
   const r = await c.ready(mockContactGetter)
   t.is(r.get('id')   , UserName, 'UserName set')
   t.is(r.get('name') , NickName, 'NickName set')
+  t.is(r.name(), NickName, 'should get the right name from Contact')
+  t.is(r.alias(), RemarkName, 'should get the right alias from Contact')
 
   const s = r.toString()
   t.is(typeof s, 'string', 'toString()')

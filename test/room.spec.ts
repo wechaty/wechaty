@@ -109,11 +109,17 @@ test('Room smoking test', async t => {
 
   const contact1 = new Contact(EXPECTED.memberId1)
   const nick1 = r.nick(contact1)
-  t.is(nick1, EXPECTED.memberNick1, 'should get nick1 from DisplayName')
+  t.is(nick1, EXPECTED.memberNick1, 'should get nick1 from roomAlias')
+
+  const name1 = r.name(contact1)
+  t.is(name1, EXPECTED.memberNick1, 'should get name1 from roomAlias')
 
   const contact2 = new Contact(EXPECTED.memberId2)
   const nick2 = r.nick(contact2)
-  t.is(nick2, EXPECTED.memberNick2, 'should get nick2 from NickName because there is no DisplayName, ')
+  t.is(nick2, EXPECTED.memberNick2, 'should get nick2 from name because there is no roomAlias, ')
+
+  const name2 = r.name(contact2)
+  t.is(name2, EXPECTED.memberNick2, 'should get nick2 from name because there is no roomAlias, ')
 
   t.truthy(r.has(contact1), 'should has contact1')
   const noSuchContact = new Contact('not exist id')
@@ -131,9 +137,9 @@ test('Room smoking test', async t => {
   if (!contactA || !contactB || !contactC) {
     throw new Error('no a or b')
   }
-  t.is(contactA.id, EXPECTED.memberId1, 'should get the right id from nick 1, find member by nickName')
-  t.is(contactB.id, EXPECTED.memberId2, 'should get the right id from nick 2, find member by displayName')
-  t.is(contactC.id, EXPECTED.memberId3, 'should get the right id from nick 3, find member by remark')
+  t.is(contactA.id, EXPECTED.memberId1, 'should get the right id from nick 1, find member by name')
+  t.is(contactB.id, EXPECTED.memberId2, 'should get the right id from nick 2, find member by roomAlias')
+  t.is(contactC.id, EXPECTED.memberId3, 'should get the right id from nick 3, find member by alias')
 
   const s = r.toString()
   t.is(typeof s, 'string', 'toString()')
