@@ -25,12 +25,11 @@ type RoomObj = {
   topic:      string
   ownerUin:   number
   memberList: Contact[]
-  nameMap:      Map<string, string>
-  aliasMap:     Map<string, string>
-  roomAliasMap: Map<string, string>
+  nameMap:    Map<string, string>
+  aliasMap:   Map<string, string>
 }
 
-type NameType = 'name' | 'alias' | 'roomAlias'
+type NameType = 'nick' | 'alias'
 
 export type RoomRawMember = {
   UserName:     string
@@ -57,9 +56,8 @@ export type RoomQueryFilter = {
 }
 
 export type MemberQueryFilter = {
-  name?:      string
-  alias?:     string
-  roomAlias?: string
+  name?:  string
+  alias?: string
 }
 
 export class Room extends EventEmitter implements Sayable {
@@ -206,10 +204,9 @@ export class Room extends EventEmitter implements Sayable {
       return null
     }
 
-    const memberList    = this.parseMemberList(rawObj.MemberList)
-    const nameMap       = this.parseMap(rawObj.MemberList, 'name')
-    const aliasMap      = this.parseMap(rawObj.MemberList, 'alias')
-    const roomAliasMap  = this.parseMap(rawObj.MemberList, 'roomAlias')
+    const memberList = this.parseMemberList(rawObj.MemberList)
+    const nameMap    = this.parseMap(rawObj.MemberList, 'nick')
+    const aliasMap   = this.parseMap(rawObj.MemberList, 'alias')
 
     return {
       id:         rawObj.UserName,
@@ -220,7 +217,6 @@ export class Room extends EventEmitter implements Sayable {
       memberList,
       nameMap,
       aliasMap,
-      roomAliasMap,
     }
   }
 
@@ -237,14 +233,11 @@ export class Room extends EventEmitter implements Sayable {
         let tmpName: string
         let contact = Contact.load(member.UserName)
         switch (parseContent) {
-          case 'name':
-            tmpName = contact.name()
+          case 'nick':
+            tmpName = contact.alias() || contact.name()
             break
           case 'alias':
-            tmpName = contact.alias() || ''
-            break
-          case 'roomAlias':
-            tmpName = member.DisplayName
+            tmpName = member.DisplayName || contact.name()
             break
           default:
             throw new Error('parseMap failed, member not found')
@@ -253,7 +246,8 @@ export class Room extends EventEmitter implements Sayable {
          * ISSUE #64 emoji need to be striped
          * ISSUE #104 never use remark name because sys group message will never use that
          * @rui: Wrong for 'never use remark name because sys group message will never use that', see more in the latest comment in #104
-         * @rui: cannot use argument NickName because it mix real name and alias
+         * @rui: webwx's NickName here return contactAlias, if not set contactAlias, return name
+         * @rui: 2017-7-2 webwx's NickName just ruturn name, no contactAlias
          */
         mapList[member.UserName] = UtilLib.stripEmoji(tmpName)
       })
@@ -353,15 +347,15 @@ export class Room extends EventEmitter implements Sayable {
 
   // should be deprecated
   public nick(contact: Contact): string {
-    log.warn('Room', 'nick(Contact) DEPRECATED, use name(Contact) instead.')
+    log.warn('Room', 'nick(Contact) DEPRECATED, use alias(Contact) instead.')
     return this.alias(contact)
   }
 
   public alias(contact: Contact): string {
-    if (!this.obj || !this.obj.nameMap) {
+    if (!this.obj) {
       return ''
     }
-    return this.obj.roomAliasMap[contact.id] || this.obj.nameMap[contact.id]
+    return this.obj.aliasMap[contact.id]
   }
 
   public has(contact: Contact): boolean {
@@ -397,8 +391,8 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * find member by `name` / `roomAlias` / `alias`
-   * when use member(name:string), find all name by default
+   * find member priority by `name`(contactAlias) / `alias`(roomAlias)
+   * when use member(name:string), equals to member({name:string})
    */
 
   public member(filter: MemberQueryFilter): Contact | null
@@ -406,7 +400,7 @@ export class Room extends EventEmitter implements Sayable {
 
   public member(queryArg: MemberQueryFilter | string): Contact | null {
     if (typeof queryArg === 'string') {
-      return this.member({alias: queryArg}) || this.member({roomAlias: queryArg}) || this.member({name: queryArg})
+      return this.member({name: queryArg})
     }
 
     log.silly('Room', 'member({ %s })'
@@ -416,7 +410,7 @@ export class Room extends EventEmitter implements Sayable {
             )
 
     if (Object.keys(queryArg).length !== 1) {
-      throw new Error('Room member find quaryArg only support one key. multi key support is not availble now.')
+      throw new Error('Room member find queryArg only support one key. multi key support is not availble now.')
     }
 
     if (!this.obj || !this.obj.memberList) {
@@ -432,7 +426,6 @@ export class Room extends EventEmitter implements Sayable {
     const keyMap = {
       name:       'nameMap',
       alias:      'aliasMap',
-      roomAlias:  'roomAliasMap'
     }
 
     filterKey = keyMap[filterKey]
@@ -448,7 +441,7 @@ export class Room extends EventEmitter implements Sayable {
     const idList = Object.keys(filterMap)
                           .filter(k => filterMap[k] === filterValue)
 
-    log.silly('Room', 'member() check %s: %s', filterKey, filterValue)
+    log.silly('Room', 'member() check %s from %s: %s', filterValue, filterKey, JSON.stringify(filterMap))
 
     if (idList.length) {
       return Contact.load(idList[0])

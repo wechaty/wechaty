@@ -109,17 +109,17 @@ test('Room smoking test', async t => {
 
   const contact1 = new Contact(EXPECTED.memberId1)
   const nick1 = r.nick(contact1)
-  t.is(nick1, EXPECTED.memberNick1, 'should get nick1 from roomAlias')
+  t.is(nick1, EXPECTED.memberNick1, 'should get roomAlias')
 
   const name1 = r.alias(contact1)
-  t.is(name1, EXPECTED.memberNick1, 'should get name1 from roomAlias')
+  t.is(name1, EXPECTED.memberNick1, 'should get roomAlias')
 
   const contact2 = new Contact(EXPECTED.memberId2)
   const nick2 = r.nick(contact2)
-  t.is(nick2, EXPECTED.memberNick2, 'should get nick2 from name because there is no roomAlias, ')
+  t.is(nick2, EXPECTED.memberNick2, 'should get name if not set roomAlias')
 
   const name2 = r.alias(contact2)
-  t.is(name2, EXPECTED.memberNick2, 'should get nick2 from name because there is no roomAlias, ')
+  t.is(name2, EXPECTED.memberNick2, 'should get name if not set roomAlias')
 
   t.truthy(r.has(contact1), 'should has contact1')
   const noSuchContact = new Contact('not exist id')
@@ -134,12 +134,22 @@ test('Room smoking test', async t => {
   const contactA = r.member(EXPECTED.memberNick1)
   const contactB = r.member(EXPECTED.memberNick2)
   const contactC = r.member(EXPECTED.memberNick3)
-  if (!contactA || !contactB || !contactC) {
-    throw new Error('no a or b')
+  const contactD = r.member({alias: EXPECTED.memberNick1})
+  if (contactA) {
+    throw new Error(`member(${EXPECTED.memberNick1}) cannot get contact by roomAlias`)
   }
-  t.is(contactA.id, EXPECTED.memberId1, 'should get the right id from nick 1, find member by name')
-  t.is(contactB.id, EXPECTED.memberId2, 'should get the right id from nick 2, find member by roomAlias')
-  t.is(contactC.id, EXPECTED.memberId3, 'should get the right id from nick 3, find member by alias')
+  if (!contactB) {
+    throw new Error(`member(${EXPECTED.memberNick2}) should get member by name when the contact does not have contactAlias`)
+  }
+  if (!contactC) {
+    throw new Error(`member(${EXPECTED.memberNick3}) should get member by name when the contact have contactAlias`)
+  }
+  if (!contactD) {
+    throw new Error(`member({alias: ${EXPECTED.memberNick3}}) should get member by roomAlias`)
+  }
+  t.is(contactB.id, EXPECTED.memberId2, `should get the right id from ${EXPECTED.memberId2}, find member by when the contact does not have contactAlias`)
+  t.is(contactC.id, EXPECTED.memberId3, `should get the right id from ${EXPECTED.memberId3}, find member by when the contact have contactAlias`)
+  t.is(contactD.id, EXPECTED.memberId1, `should get the right id from ${EXPECTED.memberId1}, find member by roomAlias`)
 
   const s = r.toString()
   t.is(typeof s, 'string', 'toString()')

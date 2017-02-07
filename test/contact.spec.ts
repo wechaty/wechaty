@@ -5,10 +5,8 @@
  * https://github.com/wechaty/wechaty
  *
  */
-import { test } from 'ava'
-import {
-  Config
-}                     from '../src/config'
+import { test }       from 'ava'
+import { Config }     from '../src/config'
 import { Contact }    from '../src/contact'
 import { PuppetWeb }  from '../src/puppet-web'
 
@@ -17,8 +15,8 @@ Config.puppetInstance(new PuppetWeb())
 test('Contact smoke testing', async t => {
   /* tslint:disable:variable-name */
   const UserName = '@0bb3e4dd746fdbd4a80546aef66f4085'
-  const NickName = 'Nick Name Test'
-  const RemarkName = 'Alias Test'
+  const NickName = 'NickNameTest'
+  const RemarkName = 'AliasTest'
 
   // Mock
   const mockContactGetter = function (id) {
@@ -45,4 +43,10 @@ test('Contact smoke testing', async t => {
 
   const s = r.toString()
   t.is(typeof s, 'string', 'toString()')
+
+  // const contact1 = await Contact.find({name: 'NickNameTest'})
+  // t.is(contact1.id, UserName, 'should find contact by name')
+
+  // const contact2 = await Contact.find({alias: 'AliasTest'})
+  // t.is(contact2.id, UserName, 'should find contact by alias')
 })
