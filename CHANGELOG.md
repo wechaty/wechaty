@@ -10,36 +10,22 @@
 
 **Fixed bugs:**
 
+- \[docker\] chromium-browser fail to start after upgrading chromium from v53 to v56 [\#235](https://github.com/wechaty/wechaty/issues/235)
 - typo in Wiki [\#205](https://github.com/wechaty/wechaty/issues/205)
 - doc bug [\#196](https://github.com/wechaty/wechaty/issues/196)
 - Linting Error from PR@lijiarui [\#181](https://github.com/wechaty/wechaty/issues/181)
 - \[document\] should list only the public/stable API to users [\#174](https://github.com/wechaty/wechaty/issues/174)
 
+**Closed issues:**
+
+- Contact.findAll\(\) return contactList includes oa account [\#222](https://github.com/wechaty/wechaty/issues/222)
+- room.member\(\) cannot find contact when contact set whose alias in the room [\#173](https://github.com/wechaty/wechaty/issues/173)
+
 **Merged pull requests:**
 
-- Update ws to the latest version 🚀 [\#206](https://github.com/wechaty/wechaty/pull/206) ([greenkeeper[bot]](https://github.com/integration/greenkeeper))
-- Update typescript to the latest version 🚀 [\#203](https://github.com/wechaty/wechaty/pull/203) ([greenkeeper[bot]](https://github.com/integration/greenkeeper))
-- Update is-ci to the latest version 🚀 [\#202](https://github.com/wechaty/wechaty/pull/202) ([greenkeeper[bot]](https://github.com/integration/greenkeeper))
+- fix\_function\_room.member\_\#173 [\#211](https://github.com/wechaty/wechaty/pull/211) ([lijiarui](https://github.com/lijiarui))
 - friendrequest [\#199](https://github.com/wechaty/wechaty/pull/199) ([lijiarui](https://github.com/lijiarui))
-- Update @types/node to the latest version 🚀 [\#198](https://github.com/wechaty/wechaty/pull/198) ([greenkeeper[bot]](https://github.com/integration/greenkeeper))
-- Update eslint-plugin-ava to the latest version 🚀 [\#197](https://github.com/wechaty/wechaty/pull/197) ([greenkeeper[bot]](https://github.com/integration/greenkeeper))
-- Update eslint to the latest version 🚀 [\#194](https://github.com/wechaty/wechaty/pull/194) ([greenkeeper[bot]](https://github.com/integration/greenkeeper))
-- Update @types/node to the latest version 🚀 [\#193](https://github.com/wechaty/wechaty/pull/193) ([greenkeeper[bot]](https://github.com/integration/greenkeeper))
-- Update shx to the latest version 🚀 [\#191](https://github.com/wechaty/wechaty/pull/191) ([greenkeeper[bot]](https://github.com/integration/greenkeeper))
-- Update eslint to the latest version 🚀 [\#189](https://github.com/wechaty/wechaty/pull/189) ([greenkeeper[bot]](https://github.com/integration/greenkeeper))
-- Update @types/node to the latest version 🚀 [\#187](https://github.com/wechaty/wechaty/pull/187) ([greenkeeper[bot]](https://github.com/integration/greenkeeper))
-- Update tslint to the latest version 🚀 [\#186](https://github.com/wechaty/wechaty/pull/186) ([greenkeeper[bot]](https://github.com/integration/greenkeeper))
-- Update @types/selenium-webdriver to the latest version 🚀 [\#185](https://github.com/wechaty/wechaty/pull/185) ([greenkeeper[bot]](https://github.com/integration/greenkeeper))
-- Update @types/node to the latest version 🚀 [\#183](https://github.com/wechaty/wechaty/pull/183) ([greenkeeper[bot]](https://github.com/integration/greenkeeper))
 - \#181 fix [\#182](https://github.com/wechaty/wechaty/pull/182) ([lijiarui](https://github.com/lijiarui))
-- Update @types/node to the latest version 🚀 [\#180](https://github.com/wechaty/wechaty/pull/180) ([greenkeeper[bot]](https://github.com/integration/greenkeeper))
-- Update cross-env to the latest version 🚀 [\#179](https://github.com/wechaty/wechaty/pull/179) ([greenkeeper[bot]](https://github.com/integration/greenkeeper))
-- Update sinon to the latest version 🚀 [\#178](https://github.com/wechaty/wechaty/pull/178) ([greenkeeper[bot]](https://github.com/integration/greenkeeper))
-- Update @types/sinon to the latest version 🚀 [\#177](https://github.com/wechaty/wechaty/pull/177) ([greenkeeper[bot]](https://github.com/integration/greenkeeper))
-- Update @types/request to the latest version 🚀 [\#176](https://github.com/wechaty/wechaty/pull/176) ([greenkeeper[bot]](https://github.com/integration/greenkeeper))
-- Update @types/request to the latest version 🚀 [\#172](https://github.com/wechaty/wechaty/pull/172) ([greenkeeper[bot]](https://github.com/integration/greenkeeper))
-- Update @types/node to the latest version 🚀 [\#171](https://github.com/wechaty/wechaty/pull/171) ([greenkeeper[bot]](https://github.com/integration/greenkeeper))
-- Update ts-node to the latest version 🚀 [\#170](https://github.com/wechaty/wechaty/pull/170) ([greenkeeper[bot]](https://github.com/integration/greenkeeper))
 - \[Snyk\] Fix for 4 vulnerable dependency paths [\#169](https://github.com/wechaty/wechaty/pull/169) ([snyk-bot](https://github.com/snyk-bot))
 - enhance \#155 fire `room-join` when someone joins from a QR Code [\#162](https://github.com/wechaty/wechaty/pull/162) ([lijiarui](https://github.com/lijiarui))
 
@@ -85,18 +71,13 @@
 **Merged pull requests:**
 
 - chore\(package\): update @types/node to version 6.0.54 [\#168](https://github.com/wechaty/wechaty/pull/168) ([zixia](https://github.com/zixia))
-- Update ts-node to the latest version 🚀 [\#167](https://github.com/wechaty/wechaty/pull/167) ([greenkeeper[bot]](https://github.com/integration/greenkeeper))
-- Update @types/request to the latest version 🚀 [\#166](https://github.com/wechaty/wechaty/pull/166) ([greenkeeper[bot]](https://github.com/integration/greenkeeper))
-- Update @types/selenium-webdriver to the latest version 🚀 [\#161](https://github.com/wechaty/wechaty/pull/161) ([greenkeeper[bot]](https://github.com/integration/greenkeeper))
 - chore\(package\): update tslint to version 4.2.0 [\#158](https://github.com/wechaty/wechaty/pull/158) ([zixia](https://github.com/zixia))
 - chore\(package\): update @types/selenium-webdriver to version 2.53.37 [\#149](https://github.com/wechaty/wechaty/pull/149) ([zixia](https://github.com/zixia))
 - chore\(package\): update tslint to version 4.1.1 [\#146](https://github.com/wechaty/wechaty/pull/146) ([zixia](https://github.com/zixia))
-- Update yarn to the latest version 🚀 [\#145](https://github.com/wechaty/wechaty/pull/145) ([greenkeeper[bot]](https://github.com/integration/greenkeeper))
 - chore\(package\): update @types/sinon to version 1.16.33 [\#143](https://github.com/wechaty/wechaty/pull/143) ([zixia](https://github.com/zixia))
 - chore\(package\): update @types/node to version 6.0.52 [\#142](https://github.com/wechaty/wechaty/pull/142) ([zixia](https://github.com/zixia))
 - chore\(package\): update tslint to version 4.1.0 [\#141](https://github.com/wechaty/wechaty/pull/141) ([zixia](https://github.com/zixia))
 - Update README.md [\#139](https://github.com/wechaty/wechaty/pull/139) ([lijiarui](https://github.com/lijiarui))
-- Update dependencies to enable Greenkeeper 🌴 [\#127](https://github.com/wechaty/wechaty/pull/127) ([greenkeeper[bot]](https://github.com/integration/greenkeeper))
 - qrcode [\#112](https://github.com/wechaty/wechaty/pull/112) ([lijiarui](https://github.com/lijiarui))
 - Update README.md [\#110](https://github.com/wechaty/wechaty/pull/110) ([lijiarui](https://github.com/lijiarui))
 
@@ -247,14 +228,6 @@
 
 **Merged pull requests:**
 
-- apiai@2.0.7 breaks build ⚠️ [\#24](https://github.com/wechaty/wechaty/pull/24) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
-- apiai@2.0.6 breaks build ⚠️ [\#23](https://github.com/wechaty/wechaty/pull/23) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
-- chromedriver@2.23.1 breaks build ⚠️ [\#20](https://github.com/wechaty/wechaty/pull/20) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
-- eslint@3.3.1 breaks build 🚨 [\#19](https://github.com/wechaty/wechaty/pull/19) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
-- eslint@3.3.0 breaks build ⚠️ [\#18](https://github.com/wechaty/wechaty/pull/18) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
-- phantomjs-prebuilt@2.1.12 breaks build ⚠️ [\#17](https://github.com/wechaty/wechaty/pull/17) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
-- chromedriver@2.23.0 breaks build ⚠️ [\#16](https://github.com/wechaty/wechaty/pull/16) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
-- Update all dependencies 🌴 [\#15](https://github.com/wechaty/wechaty/pull/15) ([greenkeeperio-bot](https://github.com/greenkeeperio-bot))
 
 ## [v0.2.0](https://github.com/wechaty/wechaty/tree/v0.2.0) (2016-06-28)
 [Full Changelog](https://github.com/wechaty/wechaty/compare/v0.1.7...v0.2.0)
