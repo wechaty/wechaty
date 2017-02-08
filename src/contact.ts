@@ -230,7 +230,7 @@ export class Contact implements Sayable {
     let query: ContactQueryFilter
     if (queryArg) {
       if (queryArg.remark) {
-        log.warn('Contact', 'Contact.findAll(remark:%s) DEPRECATED, use Contact.findAll(alias:%s) instead.')
+        log.warn('Contact', 'Contact.findAll({remark:%s}) DEPRECATED, use Contact.findAll({alias:%s}) instead.', queryArg.remark, queryArg.remark)
         query = { alias: queryArg.remark}
       } else {
         query = queryArg
@@ -352,12 +352,16 @@ export class Contact implements Sayable {
   /**
    * try to find a contact by filter: {name: string | RegExp}
    */
-  public static async find(query: ContactQueryFilter | {remark: string | RegExp}): Promise<Contact> {
+  public static async find(query: ContactQueryFilter): Promise<Contact> {
     log.verbose('Contact', 'find(%s)', JSON.stringify(query))
 
     const contactList = await Contact.findAll(query)
     if (!contactList || !contactList.length) {
       throw new Error('find not found any contact')
+    }
+
+    if (contactList.length > 1) {
+      log.warn('Contact', 'function find(%s) get %d contacts, use the first one by default', JSON.stringify(query), contactList.length)
     }
     return contactList[0]
   }
