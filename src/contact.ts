@@ -337,10 +337,13 @@ export class Contact implements Sayable {
     log.warn('Contact', 'remark(%s) DEPRECATED, use alias(%s) instead.')
     log.silly('Contact', 'remark(%s)', newRemark || '')
 
-    if (newRemark) {
-      return this.alias(newRemark)
-    } else {
-      return this.alias()
+    switch (newRemark) {
+      case undefined:
+        return this.alias()
+      case null:
+        return this.alias(null)
+      default:
+        return this.alias(newRemark)
     }
   }
 

@@ -29,7 +29,7 @@ type RoomObj = {
   aliasMap:   Map<string, string>
 }
 
-type NameType = 'nick' | 'alias'
+type NameType = 'name' | 'alias'
 
 export type RoomRawMember = {
   UserName:     string
@@ -205,7 +205,7 @@ export class Room extends EventEmitter implements Sayable {
     }
 
     const memberList = this.parseMemberList(rawObj.MemberList)
-    const nameMap    = this.parseMap(rawObj.MemberList, 'nick')
+    const nameMap    = this.parseMap(rawObj.MemberList, 'name')
     const aliasMap   = this.parseMap(rawObj.MemberList, 'alias')
 
     return {
@@ -233,7 +233,7 @@ export class Room extends EventEmitter implements Sayable {
         let tmpName: string
         let contact = Contact.load(member.UserName)
         switch (parseContent) {
-          case 'nick':
+          case 'name':
             tmpName = contact.alias() || contact.name()
             break
           case 'alias':
@@ -346,14 +346,14 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   // should be deprecated
-  public nick(contact: Contact): string {
+  public nick(contact: Contact): string | null {
     log.warn('Room', 'nick(Contact) DEPRECATED, use alias(Contact) instead.')
     return this.alias(contact)
   }
 
-  public alias(contact: Contact): string {
+  public alias(contact: Contact): string | null {
     if (!this.obj) {
-      return ''
+      return null
     }
     return this.obj.aliasMap[contact.id]
   }
