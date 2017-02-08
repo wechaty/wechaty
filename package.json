@@ -133,7 +133,7 @@
     "coveralls": "2.11.16",
     "cross-env": "3.1.4",
     "eslint": "3.15.0",
-    "eslint-plugin-ava": "4.0.1",
+    "eslint-plugin-ava": "4.1.0",
     "finis": "0.0.2",
     "fluent-ffmpeg": "2.1.0",
     "nyc": "10.1.0",
