@@ -57,6 +57,8 @@ export enum Gender {
 export type ContactQueryFilter = {
   name?:   string | RegExp
   alias?:  string | RegExp
+  // DEPRECATED
+  remark?: string | RegExp
 }
 
 export class Contact implements Sayable {
@@ -224,12 +226,12 @@ export class Contact implements Sayable {
   /**
    * find contact by `name` or `alias`
    */
-  public static async findAll(queryArg?: ContactQueryFilter | {remark: string | RegExp}): Promise<Contact[]> {
+  public static async findAll(queryArg?: ContactQueryFilter): Promise<Contact[]> {
     let query: ContactQueryFilter
     if (queryArg) {
-      if (Object.keys(queryArg)[0] === 'remark') {
+      if (queryArg.remark) {
         log.warn('Contact', 'Contact.findAll(remark:%s) DEPRECATED, use Contact.findAll(alias:%s) instead.')
-        query = { alias: queryArg['remark']}
+        query = { alias: queryArg.remark}
       } else {
         query = queryArg
       }
