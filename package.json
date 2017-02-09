@@ -145,7 +145,7 @@
     "ts-node": "2.1.0",
     "tslint": "4.4.0",
     "tuling123-client": "0.0.1",
-    "typescript": "2.1.5",
+    "typescript": "2.1.6",
     "yarn": "0.19.1"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
