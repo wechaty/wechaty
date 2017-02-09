@@ -142,7 +142,7 @@
     "shx": "0.2.2",
     "sinon": "1.17.7",
     "sloc": "0.2.0",
-    "ts-node": "2.0.0",
+    "ts-node": "2.1.0",
     "tslint": "4.4.0",
     "tuling123-client": "0.0.1",
     "typescript": "2.1.5",
