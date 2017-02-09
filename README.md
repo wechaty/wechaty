@@ -38,6 +38,8 @@ Wechaty is a Bot Framework for Wechat **Personal** Account which can help you cr
 
 > "Thanks for great SDK" [link](https://github.com/wechaty/wechaty/issues/57) - @naishstar
 
+> "Your docker solution is awesome!" [link](https://github.com/wechaty/wechaty/issues/164#issuecomment-278633203) - @ax4 
+
 # The World's Shortest ChatBot Code: 6 lines of JavaScript
 
 ```javascript
