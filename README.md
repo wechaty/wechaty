@@ -236,6 +236,7 @@ Scan now, then you can chat with other Wechaty developers! (secret code: _wechat
   - https://github.com/connorwyatt/Fluency-Injection
 * [ ] Use Observable for Throttle API Call Rate with Server
   - http://blog.thoughtram.io/angular/2016/01/06/taking-advantage-of-observables-in-angular2.html
+* [ ] [Generating Documentation for TypeScript Projects](https://blog.cloudflare.com/generating-documentation-for-typescript-projects/)
 
 My Story
 ----------------
