@@ -143,7 +143,7 @@ export class BrowserDriver {
       } catch (e) {
         if (/could not be found/.test(e.message)) {
           // The ChromeDriver could not be found on the current PATH
-          log.error('PuppetWebBrowserDriver', 'initChromeDriver() Wechaty require `chromedriver` to be installed.(try to run: "npm install chromedriver"')
+          log.error('PuppetWebBrowserDriver', 'initChromeDriver() Wechaty require `chromedriver` to be installed.(try to run: "npm install chromedriver" to fix this issue)')
           throw e
         }
         log.warn('PuppetWebBrowserDriver', 'initChromeDriver() exception: %s, retry: %d', e.message, retry)
