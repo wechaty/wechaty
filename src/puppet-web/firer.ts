@@ -38,6 +38,8 @@ export const Firer = {
   , checkRoomLeave
   , checkRoomTopic
 
+  , checkMessageAt
+
   , parseFriendConfirm
   , parseRoomJoin
   , parseRoomLeave
@@ -70,6 +72,16 @@ const regexConfig = {
       /^"?(.+?)"? changed the group name to "(.+)"$/
     , /^"?(.+?)"?修改群名为“(.+)”$/
   ]
+}
+
+async function checkMessageAt(m: Message, user: Contact) {
+  const regConfig = new RegExp('@' + user.name())
+  if (regConfig.test(m.content())) {
+      const contact = m.from()
+      const content = m.content()
+      const room = m.room()
+      this.emit('message-at', contact, room, content)
+  }
 }
 
 async function checkFriendRequest(m: Message) {
