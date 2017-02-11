@@ -1,4 +1,7 @@
 {
+  "rulesDirectory": [
+    "node_modules/tslint-jsdoc-rules/lib"
+  ],
   "rules": {
     "align": [
       false,
@@ -6,7 +9,10 @@
       "arguments",
       "statements"
     ],
-    "ban": false,
+    "jsdoc-require": [
+        true
+    ],
+   "ban": false,
     "class-name": true,
     "comment-format": [
       true,

@@ -144,6 +144,7 @@
     "sloc": "0.2.0",
     "ts-node": "2.1.0",
     "tslint": "4.4.0",
+    "tslint-jsdoc-rules": "^0.1.2",
     "tuling123-client": "0.0.1",
     "typescript": "2.1.6",
     "yarn": "0.19.1"
