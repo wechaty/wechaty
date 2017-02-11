@@ -238,8 +238,13 @@ Scan now, then you can chat with other Wechaty developers! (secret code: _wechat
   - http://blog.thoughtram.io/angular/2016/01/06/taking-advantage-of-observables-in-angular2.html
 * [ ] [Generating Documentation for TypeScript Projects](https://blog.cloudflare.com/generating-documentation-for-typescript-projects/)
 
+Documentation
+-------------
+
+In order to sync the doc with the lastest code for best, Wechaty use [jsdoc](http://usejsdoc.org/) to descript API, and use [jsdoc-to-markdown](https://github.com/jsdoc2md/jsdoc-to-markdown/wiki) to generate markdown format document to [docs](docs/) directory.
+
 My Story
-----------------
+--------
 My daily life/work depends on too much chat on wechat.
 * I almost have 14,000 wechat friends in May 2014, before wechat restricts a total number of friends to 5,000.
 * I almost have 400 wechat rooms that most of them have more than 400 members.
@@ -251,7 +256,7 @@ So a tireless bot working for me 24x7 on wechat, monitoring/filtering the most i
 At last, It's built for my personal study purpose of Automatically Testing.
 
 Author
------------------
+------
 Zhuohuan LI <zixia@zixia.net> (http://linkedin.com/in/zixia)
 
 <a href="http://stackoverflow.com/users/1123955/zixia">

@@ -159,6 +159,7 @@ export class Wechaty extends EventEmitter implements Sayable {
 
   /**
    * @todo document me
+   * @returns {Contact}
    */
   public user(): Contact {
     if (!this.puppet || !this.puppet.user) {
