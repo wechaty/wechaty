@@ -241,7 +241,7 @@ Scan now, then you can chat with other Wechaty developers! (secret code: _wechat
 Documentation
 -------------
 
-In order to sync the doc with the lastest code for best, Wechaty use [jsdoc](http://usejsdoc.org/) to descript API, and use [jsdoc-to-markdown](https://github.com/jsdoc2md/jsdoc-to-markdown/wiki) to generate markdown format document to [docs](docs/) directory.
+In order to sync the doc with the lastest code for best, Wechaty use [jsdoc](http://usejsdoc.org/) to descript API, and use [jsdoc-to-markdown](https://github.com/jsdoc2md/jsdoc-to-markdown/wiki) to generate markdown format document to [docs](docs/index.md) directory.
 
 My Story
 --------
