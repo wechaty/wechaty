@@ -13,52 +13,19 @@ https://github.com/zixia/wechaty
 
 * [Wechaty](#Wechaty)
     * _instance_
-        * [.state](#Wechaty+state)
-        * [.npmVersion](#Wechaty+npmVersion)
-        * [.puppet](#Wechaty+puppet)
-        * [.toString()](#Wechaty+toString)
         * [.version([forceNpm])](#Wechaty+version) ⇒ <code>string</code>
-        * [.user()](#Wechaty+user)
-        * [.reset()](#Wechaty+reset)
+        * ~~[.user()](#Wechaty+user) ⇒ <code>Contact</code>~~
         * [.init()](#Wechaty+init)
         * [.on()](#Wechaty+on)
-        * [.initPuppet()](#Wechaty+initPuppet)
         * [.quit()](#Wechaty+quit)
         * [.logout()](#Wechaty+logout)
-        * [.self()](#Wechaty+self)
+        * [.self()](#Wechaty+self) ⇒ <code>Contact</code>
         * [.send()](#Wechaty+send)
         * [.say()](#Wechaty+say)
         * [.sleep()](#Wechaty+sleep)
-        * [.ding()](#Wechaty+ding)
     * _static_
         * [.instance()](#Wechaty.instance)
 
-<a name="Wechaty+state"></a>
-
-### wechaty.state
-the state
-
-**Kind**: instance property of <code>[Wechaty](#Wechaty)</code>  
-<a name="Wechaty+npmVersion"></a>
-
-### wechaty.npmVersion
-the npmVersion
-
-**Kind**: instance property of <code>[Wechaty](#Wechaty)</code>  
-<a name="Wechaty+puppet"></a>
-
-### wechaty.puppet
-TODO: support more events:
-2. send
-3. reply
-4. quit
-5. ...
-
-**Kind**: instance property of <code>[Wechaty](#Wechaty)</code>  
-<a name="Wechaty+toString"></a>
-
-### wechaty.toString()
-**Kind**: instance method of <code>[Wechaty](#Wechaty)</code>  
 <a name="Wechaty+version"></a>
 
 ### wechaty.version([forceNpm]) ⇒ <code>string</code>
@@ -80,16 +47,14 @@ console.log(Wechaty.instance().version())
 ```
 <a name="Wechaty+user"></a>
 
-### wechaty.user()
+### ~~wechaty.user() ⇒ <code>Contact</code>~~
+***Deprecated***
+
 **Kind**: instance method of <code>[Wechaty](#Wechaty)</code>  
 **Todo**
 
 - [ ] document me
 
-<a name="Wechaty+reset"></a>
-
-### wechaty.reset()
-**Kind**: instance method of <code>[Wechaty](#Wechaty)</code>  
 <a name="Wechaty+init"></a>
 
 ### wechaty.init()
@@ -101,14 +66,6 @@ console.log(Wechaty.instance().version())
 <a name="Wechaty+on"></a>
 
 ### wechaty.on()
-**Kind**: instance method of <code>[Wechaty](#Wechaty)</code>  
-**Todo**
-
-- [ ] document me
-
-<a name="Wechaty+initPuppet"></a>
-
-### wechaty.initPuppet()
 **Kind**: instance method of <code>[Wechaty](#Wechaty)</code>  
 **Todo**
 
@@ -132,10 +89,11 @@ console.log(Wechaty.instance().version())
 
 <a name="Wechaty+self"></a>
 
-### wechaty.self()
+### wechaty.self() ⇒ <code>Contact</code>
 get current user
 
 **Kind**: instance method of <code>[Wechaty](#Wechaty)</code>  
+**Returns**: <code>Contact</code> - current logined user  
 <a name="Wechaty+send"></a>
 
 ### wechaty.send()
@@ -160,15 +118,9 @@ get current user
 
 - [ ] document me
 
-<a name="Wechaty+ding"></a>
-
-### wechaty.ding()
-**Kind**: instance method of <code>[Wechaty](#Wechaty)</code>  
-**Todo**
-
-- [ ] document me
-
 <a name="Wechaty.instance"></a>
 
 ### Wechaty.instance()
+get the singleton instance of Wechaty
+
 **Kind**: static method of <code>[Wechaty](#Wechaty)</code>  

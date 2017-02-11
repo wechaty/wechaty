@@ -51,29 +51,34 @@ export type WechatyEventName = 'error'
 export class Wechaty extends EventEmitter implements Sayable {
   /**
    * singleton _instance
+   * @private
    */
   private static _instance: Wechaty
 
   /**
    * the puppet
+   * @private
    */
   public puppet: Puppet | null
 
   /**
    * the state
+   * @private
    */
   private state = new StateMonitor<'standby', 'ready'>('Wechaty', 'standby')
   /**
    * the npmVersion
+   * @private
    */
   private npmVersion: string = require('../package.json').version
   /**
    * the uuid
+   * @private
    */
   public uuid:        string
 
   /**
-   *
+   * get the singleton instance of Wechaty
    */
   public static instance(setting?: PuppetSetting) {
     if (setting && this._instance) {
@@ -86,7 +91,7 @@ export class Wechaty extends EventEmitter implements Sayable {
   }
 
   /**
-   *
+   * @private
    */
   private constructor(private setting: PuppetSetting = {}) {
     super()
@@ -108,13 +113,13 @@ export class Wechaty extends EventEmitter implements Sayable {
   }
 
   /**
-   *
+   * @private
    */
   public toString() { return 'Class Wechaty(' + this.setting.puppet + ')'}
 
   /**
    * Return version of Wechaty
-   * @param {boolean} [forceNpm=false] if set to true, will only return the version in package.json.
+   * @param [forceNpm=false] {boolean} if set to true, will only return the version in package.json.
    *                            otherwise will return git commit hash if .git exists.
    * @returns {string} version number
    * @example
@@ -160,8 +165,11 @@ export class Wechaty extends EventEmitter implements Sayable {
   /**
    * @todo document me
    * @returns {Contact}
+   * @deprecated
    */
   public user(): Contact {
+    log.warn('Wechaty', 'user() DEPRECATED. use self() instead.')
+
     if (!this.puppet || !this.puppet.user) {
       throw new Error('no user')
     }
@@ -169,7 +177,7 @@ export class Wechaty extends EventEmitter implements Sayable {
   }
 
   /**
-   *
+   * @private
    */
   public async reset(reason?: string): Promise<void> {
     log.verbose('Wechaty', 'reset() because %s', reason)
@@ -211,9 +219,10 @@ export class Wechaty extends EventEmitter implements Sayable {
 
   // public on(event: WechatyEventName, listener: Function): this
   /**
-   * @param {string} [event='error'] the `error` event
-   * @param {Function} listener (error) => void callback function
-   * @return {Wechaty} this for chain
+   * @listens Wechaty#error
+   * @param [event='error'] {string}    the `error` event
+   * @param listener        {Function}  listener (error) => void callback function
+   * @return                {Wechaty}   this for chain
    */
   public on(event: 'error'      , listener: (this: Wechaty, error: Error) => void): this
   /**
@@ -282,6 +291,7 @@ export class Wechaty extends EventEmitter implements Sayable {
 
   /**
    * @todo document me
+   * @private
    */
   public async initPuppet(): Promise<Puppet> {
     let puppet: Puppet
@@ -323,13 +333,6 @@ export class Wechaty extends EventEmitter implements Sayable {
         this.emit.apply(this, [e, ...args])
       })
     })
-    /**
-     * TODO: support more events:
-     * 2. send
-     * 3. reply
-     * 4. quit
-     * 5. ...
-     */
 
     // set puppet before init, because we need this.puppet if we quit() before init() finish
     this.puppet = <Puppet>puppet // force to use base class Puppet interface for better encapsolation
@@ -383,6 +386,7 @@ export class Wechaty extends EventEmitter implements Sayable {
 
   /**
    * get current user
+   * @returns {Contact} current logined user
    */
   public self(): Contact {
     if (!this.puppet) {
@@ -430,6 +434,7 @@ export class Wechaty extends EventEmitter implements Sayable {
 
   /**
    * @todo document me
+   * @private
    */
   public ding() {
     if (!this.puppet) {
