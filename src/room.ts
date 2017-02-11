@@ -1,13 +1,3 @@
-/**
- *
- * wechaty: Wechat for Bot. and for human who talk to bot/robot
- *
- * Licenst: ISC
- * https://github.com/zixia/wechaty
- *
- * Add/Del/Topic: https://github.com/wechaty/wechaty/issues/32
- *
- */
 import { EventEmitter } from 'events'
 
 import {
@@ -60,6 +50,16 @@ export type MemberQueryFilter = {
   alias?: string
 }
 
+/**
+ *
+ * wechaty: Wechat for Bot. and for human who talk to bot/robot
+ *
+ * Licenst: ISC
+ * https://github.com/zixia/wechaty
+ *
+ * Add/Del/Topic: https://github.com/wechaty/wechaty/issues/32
+ *
+ */
 export class Room extends EventEmitter implements Sayable {
   private static pool = new Map<string, Room>()
 
@@ -518,6 +518,9 @@ export class Room extends EventEmitter implements Sayable {
     return room
   }
 
+  /**
+   * @todo document me
+   */
   public static load(id: string): Room {
     if (!id) {
       throw new Error('Room.load() no id')
