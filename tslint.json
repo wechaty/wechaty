@@ -20,7 +20,7 @@
       "spaces"
     ],
     "interface-name": false,
-    "jsdoc-format": false,
+    "jsdoc-format": true,
     "label-position": true,
     "max-line-length": [
       true,

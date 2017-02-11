@@ -40,7 +40,8 @@ export async function onFriend(contact: Contact, request?: FriendRequest): Promi
      *
      * 到这里结束修改 ^^^^^^^^^^^^
      *
-     ********************************************/
+     */
+    /*******************************************/
  } catch (e) {
     console.log(e)
   }

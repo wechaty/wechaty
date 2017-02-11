@@ -60,7 +60,8 @@ export async function onMessage(message: Message): Promise<void> {
      *
      * 到这里结束修改^^^^^^^^^^^^
      *
-     *********************************************/
+     */
+    /*********************************************/
   } catch (e) {
     console.log(e)
   }
