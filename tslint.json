@@ -10,7 +10,7 @@
       "statements"
     ],
     "jsdoc-require": [
-        true
+      false
     ],
    "ban": false,
     "class-name": true,
