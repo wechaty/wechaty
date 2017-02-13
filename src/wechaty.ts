@@ -60,6 +60,7 @@ export type WechatyEventName = 'error'
  * .on('message',  message => console.log(`Message: ${message}`))
  * .init()
  * ```
+ * @see The <a href="https://github.com/lijiarui/wechaty-getting-started">Wechaty Starter Project</a>
  */
 export class Wechaty extends EventEmitter implements Sayable {
   /**

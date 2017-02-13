@@ -24,6 +24,7 @@ Wechaty.instance() // Singleton
 ```
 
 **Kind**: global class  
+**See**: The <a href="https://github.com/lijiarui/wechaty-getting-started">Wechaty Starter Project</a>  
 
 * [Wechaty](#Wechaty)
     * _instance_
