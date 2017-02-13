@@ -47,6 +47,19 @@ export type WechatyEventName = 'error'
  * Licenst: ISC
  * https://github.com/zixia/wechaty
  *
+ *
+ * **Example**
+ *
+ * ```ts
+ * // The World's Shortest ChatBot Code: 6 lines of JavaScript
+ * const { Wechaty } = require('wechaty')
+ *
+ * Wechaty.instance() // Singleton
+ * .on('scan', (url, code) => console.log(`Scan QR Code to login: ${code}\n${url}`))
+ * .on('login',       user => console.log(`User ${user} logined`))
+ * .on('message',  message => console.log(`Message: ${message}`))
+ * .init()
+ * ```
  */
 export class Wechaty extends EventEmitter implements Sayable {
   /**
