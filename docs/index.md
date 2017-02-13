@@ -51,14 +51,14 @@ Return version of Wechaty
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [forceNpm] | <code>boolean</code> | <code>false</code> | if set to true, will only return the version in package.json.                            otherwise will return git commit hash if .git exists. |
+| [forceNpm] | <code>boolean</code> | <code>false</code> | if set to true, will only return the version in package.json.                                    otherwise will return git commit hash if .git exists. |
 
 **Example**  
 ```js
 console.log(Wechaty.instance().version())
- // #git[af39df]
+ // '#git[af39df]'
  console.log(Wechaty.instance().version(true))
- // 0.7.9
+ // '0.7.9'
 ```
 <a name="Wechaty+user"></a>
 

@@ -3,12 +3,12 @@ import * as fs          from 'fs'
 import * as path        from 'path'
 
 import {
-    Config
-  , HeadName
-  , PuppetName
-  , Sayable
-  , log
-}                     from './config'
+  Config,
+  HeadName,
+  PuppetName,
+  Sayable,
+  log,
+}                         from './config'
 
 import { Contact }        from './contact'
 import { FriendRequest }  from './friend-request'
@@ -133,14 +133,14 @@ export class Wechaty extends EventEmitter implements Sayable {
 
   /**
    * Return version of Wechaty
-   * @param [forceNpm=false] {boolean} if set to true, will only return the version in package.json.
-   *                            otherwise will return git commit hash if .git exists.
+   * @param {boolean} [forceNpm=false]  if set to true, will only return the version in package.json.
+   *                                    otherwise will return git commit hash if .git exists.
    * @returns {string} version number
    * @example
    *  console.log(Wechaty.instance().version())
-   *  // #git[af39df]
+   *  // '#git[af39df]'
    *  console.log(Wechaty.instance().version(true))
-   *  // 0.7.9
+   *  // '0.7.9'
    */
   public version(forceNpm = false): string {
     // TODO: use  git rev-parse HEAD  ?
