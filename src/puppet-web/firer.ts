@@ -248,7 +248,7 @@ async function checkRoomJoin(m: Message): Promise<void> {
       throw new Error('not found(yet)')
 
     }).catch(e => {
-      log.silly('PuppetWebFirer', 'fireRoomJoin() reject() inviteeContactList: %s, inviterContact: %s'
+      log.warn('PuppetWebFirer', 'fireRoomJoin() reject() inviteeContactList: %s, inviterContact: %s'
                             , inviteeContactList.map((c: Contact) => c.name()).join(',')
                             , inviter
       )
