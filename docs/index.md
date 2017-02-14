@@ -47,11 +47,11 @@ Wechaty.instance() // Singleton
 Return version of Wechaty
 
 **Kind**: instance method of <code>[Wechaty](#Wechaty)</code>  
-**Returns**: <code>string</code> - version number  
+**Returns**: <code>string</code> - version          - number  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [forceNpm] | <code>boolean</code> | <code>false</code> | if set to true, will only return the version in package.json.                                    otherwise will return git commit hash if .git exists. |
+| [forceNpm] | <code>boolean</code> | <code>false</code> | if set to true, will only return the version in package.json.                                      otherwise will return git commit hash if .git exists. |
 
 **Example**  
 ```js

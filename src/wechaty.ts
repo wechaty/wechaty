@@ -133,9 +133,9 @@ export class Wechaty extends EventEmitter implements Sayable {
 
   /**
    * Return version of Wechaty
-   * @param {boolean} [forceNpm=false]  if set to true, will only return the version in package.json.
-   *                                    otherwise will return git commit hash if .git exists.
-   * @returns {string} version number
+   * @param {boolean} [forceNpm=false]  - if set to true, will only return the version in package.json.
+   *                                      otherwise will return git commit hash if .git exists.
+   * @returns {string} version          - number
    * @example
    *  console.log(Wechaty.instance().version())
    *  // '#git[af39df]'
@@ -234,9 +234,9 @@ export class Wechaty extends EventEmitter implements Sayable {
   // public on(event: WechatyEventName, listener: Function): this
   /**
    * @listens Wechaty#error
-   * @param [event='error'] {string}    the `error` event
-   * @param listener        {Function}  listener (error) => void callback function
-   * @return                {Wechaty}   this for chain
+   * @param   {string}    [event='error'] - the `error` event name
+   * @param   {Function}  listener        - (error) => void callback function
+   * @return  {Wechaty}                   - this for chain
    */
   public on(event: 'error'      , listener: (this: Wechaty, error: Error) => void): this
   /**
