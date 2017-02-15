@@ -1,11 +1,3 @@
-/**
- *
- * wechaty: Wechat for Bot. and for human who talk to bot/robot
- *
- * Licenst: ISC
- * https://github.com/zixia/wechaty
- *
- */
 import {
     Config
   , Sayable
@@ -61,6 +53,12 @@ export type ContactQueryFilter = {
   remark?: string | RegExp
 }
 
+/**
+ * Class Contact
+ * blabla...
+ * **IMPORTANT**
+ *
+ */
 export class Contact implements Sayable {
   private static pool = new Map<string, Contact>()
 
@@ -115,7 +113,7 @@ export class Contact implements Sayable {
   public star()     { return this.obj && this.obj.star }
   /**
    * Contact gender
-   * @return Gender.Male(2) | Gender.Female(1) | Gender.Unknown(0)
+   * @returns Gender.Male(2) | Gender.Female(1) | Gender.Unknown(0)
    */
   public gender()   { return this.obj ? this.obj.sex : Gender.Unknown }
   public province() { return this.obj && this.obj.province }

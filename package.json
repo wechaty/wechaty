@@ -18,7 +18,7 @@
     "ava": "ava --verbose --extension ts",
     "ts-node": "ts-node",
     "dist": "npm run clean && tsc && shx cp package.json dist/ && shx cp src/puppet-web/*.js dist/src/puppet-web/",
-    "doc": "npm run dist && jsdoc2md dist/src/wechaty.js > docs/index.md",
+    "doc": "npm run dist && jsdoc2md dist/src/{wechaty,room,contact,friend-request,message}.js > docs/index.md",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "changelog": "github_changelog_generator -u wechaty -p wechaty && sed -i /greenkeeper/d CHANGELOG.md",
     "doctor": "npm run check-node-version && ts-node bin/doctor",
