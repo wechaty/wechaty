@@ -369,7 +369,6 @@ async function createDingRoom(contact): Promise<any> {
       return
     }
 
-    await helperContact.ready()
     log.info('Bot', 'getHelperContact() ok. got: %s', helperContact.name())
 
     const contactList = [contact, helperContact]

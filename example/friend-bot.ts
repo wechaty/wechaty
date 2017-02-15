@@ -66,7 +66,6 @@ bot
   m.set('to', 'filehelper')
 
   try {
-    await contact.ready()
     logMsg = 'received `friend` event from ' + contact.get('name')
     m.set('content', logMsg)
     bot.send(m)
