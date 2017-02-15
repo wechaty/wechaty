@@ -47,7 +47,7 @@ Wechaty.instance() // Singleton
 Return version of Wechaty
 
 **Kind**: instance method of <code>[Wechaty](#Wechaty)</code>  
-**Returns**: <code>string</code> - version          - number  
+**Returns**: <code>string</code> - - the version number  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |

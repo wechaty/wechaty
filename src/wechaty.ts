@@ -133,9 +133,10 @@ export class Wechaty extends EventEmitter implements Sayable {
 
   /**
    * Return version of Wechaty
+   *
    * @param {boolean} [forceNpm=false]  - if set to true, will only return the version in package.json.
    *                                      otherwise will return git commit hash if .git exists.
-   * @returns {string} version          - number
+   * @returns {string}                  - the version number
    * @example
    *  console.log(Wechaty.instance().version())
    *  // '#git[af39df]'
