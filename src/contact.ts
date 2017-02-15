@@ -84,7 +84,7 @@ export class Contact implements Sayable {
   public toStringEx() { return `Contact(${this.obj && this.obj.name}[${this.id}])` }
 
   private parse(rawObj: ContactRawObj): ContactObj | null {
-    if (!rawObj) {
+    if (!rawObj || !rawObj.UserName) {
       log.warn('Contact', 'parse() got empty rawObj!')
     }
 
