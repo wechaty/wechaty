@@ -41,7 +41,9 @@
     "io-client": "ts-node bin/io-client",
     "dev": "ts-node dev.ts",
     "demo": "ts-node example/ding-dong-bot.ts",
-    "start": "npm run demo"
+    "start": "npm run demo",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "repository": {
     "type": "git",
@@ -115,7 +117,8 @@
     "retry-promise": "1.0.0",
     "selenium-webdriver": "3.0.0",
     "socket.io": "1.5.0",
-    "ws": "2.0.3"
+    "ws": "2.0.3",
+    "snyk": "^1.25.0"
   },
   "devDependencies": {
     "@types/body-parser": "0.0.33",
@@ -166,5 +169,6 @@
   ],
   "publishConfig": {
     "tag": "next"
-  }
+  },
+  "snyk": true
 }
