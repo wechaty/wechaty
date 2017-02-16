@@ -25,9 +25,7 @@ import { PuppetWeb }  from './puppet-web'
 import { Event }      from './event'
 
 /* tslint:disable:variable-name */
-export const Watchdog = {
-  onFeed
-}
+export const Watchdog = { onFeed }
 
 /**
  * feed me in time(after 1st feed), or I'll restart system
@@ -66,7 +64,7 @@ function onFeed(this: PuppetWeb, food: WatchdogFood): void {
   if (this.state.target() === 'dead' || this.state.inprocess()) {
     log.warn('PuppetWebWatchdog', 'onFeed(type=%s, data=%s, timeout=%d) is disabled because state target:`%s` inprocess:`%s`'
                                 , food.type, food.data, food.timeout
-                                , this.state.target(), this.state.inprocess()
+                                , this.state.target(), this.state.inprocess(),
             )
     return
   }
@@ -112,8 +110,7 @@ async function watchDogReset(timeout, lastFeed): Promise<void> {
   const e = new Error('watchDogReset() watchdog reset after '
                         + Math.floor(timeout / 1000)
                         + ' seconds, last feed:'
-                        + '[' + lastFeed + ']'
-                    )
+                        + '[' + lastFeed + ']')
   log.verbose('PuppetWebWatchdog', e.message)
   this.emit('error', e)
   Event.onBrowserDead.call(this, e)
@@ -142,7 +139,7 @@ async function autoSaveSession(this: PuppetWeb, force = false) {
   if (Date.now() - this.watchDogLastSaveSession > SAVE_SESSION_INTERVAL) {
     log.verbose('PuppetWebWatchdog', 'autoSaveSession() profile(%s) after %d minutes'
                                     , this.setting.profile
-                                    , Math.floor(SAVE_SESSION_INTERVAL / 1000 / 60)
+                                    , Math.floor(SAVE_SESSION_INTERVAL / 1000 / 60),
               )
     await this.browser.saveCookie()
     this.watchDogLastSaveSession = Date.now()

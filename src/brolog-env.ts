@@ -5,9 +5,7 @@
  *
  */
 // const log = require('npmlog')
-import {
-    Brolog
-} from 'brolog'
+import { Brolog } from 'brolog'
 
 export let log: Brolog
 

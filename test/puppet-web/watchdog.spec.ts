@@ -14,8 +14,8 @@ const retryPromise = require('retry-promise').default
 import { log } from '../../src/config'
 
 import {
-    PuppetWeb
-  , Watchdog
+  PuppetWeb,
+  Watchdog,
 }               from '../../src/puppet-web/'
 
 const PROFILE = 'unit-test-session.wechaty.json'
@@ -57,8 +57,8 @@ test('timer', async t => {
       const spy = sinon.spy()
       pw.once('error', spy)
       pw.emit('watchdog', {
-        data: 'active_for_timeout_1ms'
-        , timeout: 1
+        data: 'active_for_timeout_1ms',
+        timeout: 1,
       })
       await new Promise(resolve => setTimeout(resolve, 10)) // wait until reset
       t.truthy(spy.calledOnce, 'should get event[error] after watchdog timeout')

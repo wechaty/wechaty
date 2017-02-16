@@ -65,8 +65,7 @@ bot
     const room = m.room()
     console.log((room ? '[' + room.topic() + ']' : '')
                 + '<' + m.from().name() + '>'
-                + ':' + m.toStringDigest()
-    )
+                + ':' + m.toStringDigest())
 
     if (/^(ding|ping|bing)$/i.test(m.content()) && !m.self()) {
       m.say('dong')

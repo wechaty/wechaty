@@ -24,9 +24,9 @@ test('Contact smoke testing', async t => {
       if (id !== UserName) return resolve({});
       setTimeout(() => {
         return resolve({
-          UserName: UserName
-          , NickName: NickName
-          , RemarkName: RemarkName
+          UserName: UserName,
+          NickName: NickName,
+          RemarkName: RemarkName,
         })
       }, 200)
     })

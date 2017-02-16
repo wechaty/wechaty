@@ -12,9 +12,7 @@ import { test } from 'ava'
   // , log
 // } from '../config'
 
-import {
-    Browser
-} from './browser'
+import { Browser } from './browser'
 
 test('quit()', async t => {
   const browser = new Browser()

@@ -33,19 +33,19 @@ import { PuppetWeb }  from './puppet-web'
 
 /* tslint:disable:variable-name */
 export const Event = {
-    onBrowserDead
+  onBrowserDead,
 
-  , onServerLogin
-  , onServerLogout
+  onServerLogin,
+  onServerLogout,
 
-  , onServerConnection
-  , onServerDisconnect
+  onServerConnection,
+  onServerDisconnect,
 
-  , onServerDing
-  , onServerScan
-  , onServerLog
+  onServerDing,
+  onServerScan,
+  onServerLog,
 
-  , onServerMessage
+  onServerMessage,
 }
 
 async function onBrowserDead(this: PuppetWeb, e: Error): Promise<void> {
@@ -55,16 +55,16 @@ async function onBrowserDead(this: PuppetWeb, e: Error): Promise<void> {
     throw new Error('onBrowserDead() browser or bridge instance not exist in PuppetWeb instance')
   }
 
-  log.verbose('PuppetWebEvent', 'onBrowserDead() Browser:state target(%s) current(%s) stable(%s)'
-                              , this.browser.state.target()
-                              , this.browser.state.current()
-                              , this.browser.state.stable()
+  log.verbose('PuppetWebEvent', 'onBrowserDead() Browser:state target(%s) current(%s) stable(%s)',
+                                this.browser.state.target(),
+                                this.browser.state.current(),
+                                this.browser.state.stable(),
   )
 
   if (this.browser.state.target() === 'close' || this.browser.state.inprocess()) {
-    log.verbose('PuppetWebEvent', 'onBrowserDead() will do nothing because %s, or %s'
-                                , 'browser.state.target() === close'
-                                , 'browser.state.inprocess()'
+    log.verbose('PuppetWebEvent', 'onBrowserDead() will do nothing because %s, or %s',
+                                  'browser.state.target() === close',
+                                  'browser.state.inprocess()',
               )
     return
   }
@@ -154,8 +154,8 @@ async function onServerScan(this: PuppetWeb, data: ScanInfo) {
 
   // feed watchDog a `scan` type of food
   const food: WatchdogFood = {
-      data
-    , type: 'SCAN'
+    data,
+    type: 'SCAN',
   }
   this.emit('watchdog', food)
   this.emit('scan'    , data.url, data.code)

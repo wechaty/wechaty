@@ -6,9 +6,9 @@
  *
  */
 import {
-    Contact
-  , FriendRequest
-  , Room
+  Contact,
+  FriendRequest,
+  Room,
 } from '../../'
 
 export async function onFriend(contact: Contact, request?: FriendRequest): Promise<void> {

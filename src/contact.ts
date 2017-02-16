@@ -1,6 +1,6 @@
 import {
-    Config
-  , Sayable
+  Config,
+  Sayable,
 }                     from './config'
 import { Message }    from './message'
 import { PuppetWeb }  from './puppet-web'
@@ -9,20 +9,20 @@ import { Wechaty }    from './wechaty'
 import { log }        from './brolog-env'
 
 type ContactObj = {
-  address:    string
-  city:       string
-  id:         string
-  name:       string
-  province:   string
-  alias:      string|null
-  sex:        Gender
-  signature:  string
-  star:       boolean
-  stranger:   boolean
-  uin:        string
-  weixin:     string
-  avatar:     string  // XXX URL of HeadImgUrl
-}
+  address:    string,
+  city:       string,
+  id:         string,
+  name:       string,
+  province:   string,
+  alias:      string|null,
+  sex:        Gender,
+  signature:  string,
+  star:       boolean,
+  stranger:   boolean,
+  uin:        string,
+  weixin:     string,
+  avatar:     string,
+}  // XXX URL of HeadImgUrl
 
 export type ContactRawObj = {
   Alias:        string
@@ -37,8 +37,7 @@ export type ContactRawObj = {
   UserName:     string
   HeadImgUrl:   string
 
-  stranger:     string // assign by injectio.js
-}
+  stranger:     string} // assign by injectio.js
 
 export enum Gender {
   Unknown = 0,
@@ -47,10 +46,10 @@ export enum Gender {
 }
 
 export type ContactQueryFilter = {
-  name?:   string | RegExp
-  alias?:  string | RegExp
+  name?:   string | RegExp,
+  alias?:  string | RegExp,
   // DEPRECATED
-  remark?: string | RegExp
+  remark?: string | RegExp,
 }
 
 /**
@@ -89,21 +88,21 @@ export class Contact implements Sayable {
     }
 
     return !rawObj ? null : {
-      id:           rawObj.UserName // MMActualSender??? MMPeerUserName??? `getUserContact(message.MMActualSender,message.MMPeerUserName).HeadImgUrl`
-      , uin:        rawObj.Uin    // stable id: 4763975 || getCookie("wxuin")
-      , weixin:     rawObj.Alias  // Wechat ID
-      , name:       rawObj.NickName
-      , alias:      rawObj.RemarkName
-      , sex:        rawObj.Sex
-      , province:   rawObj.Province
-      , city:       rawObj.City
-      , signature:  rawObj.Signature
+      id:           rawObj.UserName, // MMActualSender??? MMPeerUserName??? `getUserContact(message.MMActualSender,message.MMPeerUserName).HeadImgUrl`
+      uin:        rawObj.Uin,    // stable id: 4763975 || getCookie("wxuin")
+      weixin:     rawObj.Alias,  // Wechat ID
+      name:       rawObj.NickName,
+      alias:      rawObj.RemarkName,
+      sex:        rawObj.Sex,
+      province:   rawObj.Province,
+      city:       rawObj.City,
+      signature:  rawObj.Signature,
 
-      , address:    rawObj.Alias // XXX: need a stable address for user
+      address:    rawObj.Alias, // XXX: need a stable address for user
 
-      , star:       !!rawObj.StarFriend
-      , stranger:   !!rawObj.stranger // assign by injectio.js
-      , avatar:     rawObj.HeadImgUrl
+      star:       !!rawObj.StarFriend,
+      stranger:   !!rawObj.stranger, // assign by injectio.js
+      avatar:     rawObj.HeadImgUrl,
     }
   }
 
@@ -238,10 +237,10 @@ export class Contact implements Sayable {
     }
 
     // log.verbose('Cotnact', 'findAll({ name: %s })', query.name)
-    log.verbose('Cotnact', 'findAll({ %s })'
-                          , Object.keys(query)
+    log.verbose('Cotnact', 'findAll({ %s })',
+                            Object.keys(query)
                                   .map(k => `${k}: ${query[k]}`)
-                                  .join(', ')
+                                  .join(', '),
               )
 
     if (Object.keys(query).length !== 1) {

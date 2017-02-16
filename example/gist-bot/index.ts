@@ -8,9 +8,9 @@
  * demo for modulize code for logic
  */
 import {
-    Config
-  , Wechaty
-  , log
+  Config,
+  Wechaty,
+  log,
 } from '../../'
 
 import { onMessage }  from './on-message'

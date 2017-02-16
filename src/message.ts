@@ -7,10 +7,10 @@
  *
  */
 import {
-    Config
-  , RecommendInfo
-  , Sayable
-  , log
+  Config,
+  RecommendInfo,
+  Sayable,
+  log,
 }               from './config'
 
 import { Contact }  from './contact'
@@ -112,8 +112,7 @@ export type MsgRawObj = {
    * MsgType == CONF.MSGTYPE_SHARECARD" ng-click="showProfile($event,message.RecommendInfo.UserName)
    * MsgType == CONF.MSGTYPE_VERIFYMSG
    */
-  RecommendInfo?:   RecommendInfo
-}
+  RecommendInfo?:   RecommendInfo}
 
 export type MsgObj = {
   id:       string
@@ -125,9 +124,8 @@ export type MsgObj = {
   status:   string
   digest:   string
   date:     string
-
-  url?:     string  // for MessageMedia class
-}
+  // for MessageMedia class
+  url?:     string}
 
 // export type MessageTypeName = 'TEXT' | 'IMAGE' | 'VOICE' | 'VERIFYMSG' | 'POSSIBLEFRIEND_MSG'
 // | 'SHARECARD' | 'VIDEO' | 'EMOTICON' | 'LOCATION' | 'APP' | 'VOIPMSG' | 'STATUSNOTIFY'
@@ -136,10 +134,9 @@ export type MsgObj = {
 // export type MessageTypeValue = 1 | 3 | 34 | 37 | 40 | 42 | 43 | 47 | 48 | 49 | 50 | 51 | 52 | 53 | 62 | 9999 | 10000 | 10002
 
 export type MsgTypeMap = {
-  [index: string]: string|number
+  [index: string]: string|number}
   //   MessageTypeName:  MessageTypeValue
   // , MessageTypeValue: MessageTypeName
-}
 
 export const enum AppMsgType {
   TEXT                     = 1,
@@ -204,7 +201,7 @@ export class Message implements Sayable {
     MICROVIDEO:         62,
     SYSNOTICE:          9999,
     SYS:                10000,
-    RECALLED:           10002
+    RECALLED:           10002,
   }
 
   public readonly id: string
@@ -243,7 +240,7 @@ export class Message implements Sayable {
       status:       rawObj.Status,
       digest:       rawObj.MMDigest,
       date:         rawObj.MMDisplayTime,  // Javascript timestamp of milliseconds
-      url:          rawObj.Url || rawObj.MMAppMsgDownloadUrl || rawObj.MMLocationUrl
+      url:          rawObj.Url || rawObj.MMAppMsgDownloadUrl || rawObj.MMLocationUrl,
     }
 
     // FIXME: has ther any better method to know the room ID?
@@ -475,8 +472,8 @@ export class Message implements Sayable {
 
   public static async findAll(query) {
     return Promise.resolve([
-      new Message   (<MsgRawObj>{MsgId: '-2'})
-      , new Message (<MsgRawObj>{MsgId: '-3'})
+      new Message   (<MsgRawObj>{MsgId: '-2'}),
+      new Message (<MsgRawObj>{MsgId: '-3'}),
     ])
   }
 
