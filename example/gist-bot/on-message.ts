@@ -18,7 +18,7 @@ export async function onMessage(message: Message): Promise<void> {
 
     console.log((room ? '[' + room.topic() + ']' : '')
                 + '<' + sender.name() + '>'
-                + ':' + message.toStringDigest()
+                + ':' + message.toStringDigest(),
     )
 
     if (message.self() || room) {

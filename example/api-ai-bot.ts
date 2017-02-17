@@ -22,8 +22,8 @@ const ApiAi = require('apiai')
 import { EventEmitter } from 'events'
 
 import {
-    Config
-  , Wechaty
+  Config,
+  Wechaty,
 } from '../'
 
 // log.level = 'verbose'
@@ -93,8 +93,8 @@ class Talker extends EventEmitter {
     super()
     this.thinker = thinker
     this.obj = {
-      text: []
-      , time: []
+      text: [],
+      time: [],
     }
     this.timer = null
   }

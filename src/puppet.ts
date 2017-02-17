@@ -13,7 +13,7 @@
 import { EventEmitter } from 'events'
 
 import {
-  Sayable
+  Sayable,
 }                       from './config'
 import { Contact }      from './contact'
 import { Message }      from './message'

@@ -11,10 +11,10 @@
 const QrcodeTerminal = require('qrcode-terminal')
 
 import {
-  Wechaty
-  , Message
-  , Config
-  , log
+  Wechaty,
+  Message,
+  Config,
+  log,
 } from '../'
 
 const welcome = `

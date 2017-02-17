@@ -83,9 +83,9 @@ export class BrowserDriver {
 
     const options = {
       args: [
-          '--homepage=about:blank'
-        , '--no-sandbox'
-      ]  // issue #26 for run inside docker
+        '--homepage=about:blank',
+        '--no-sandbox',
+      ],  // issue #26 for run inside docker
     }
     if (Config.isDocker) {
       log.verbose('PuppetWebBrowserDriver', 'initChromeDriver() wechaty in docker confirmed(should not show this in CI)')
@@ -171,10 +171,10 @@ export class BrowserDriver {
     // const phantomjsExe = require('phantomjs2').path
 
     const phantomjsArgs = [
-      '--load-images=false'
-      , '--ignore-ssl-errors=true'  // this help socket.io connect with localhost
-      , '--web-security=false'      // https://github.com/ariya/phantomjs/issues/12440#issuecomment-52155299
-      , '--ssl-protocol=any'        // http://stackoverflow.com/a/26503588/1123955
+      '--load-images=false',
+      '--ignore-ssl-errors=true',  // this help socket.io connect with localhost
+      '--web-security=false',      // https://github.com/ariya/phantomjs/issues/12440#issuecomment-52155299
+      '--ssl-protocol=any',        // http://stackoverflow.com/a/26503588/1123955
       // , '--ssl-protocol=TLSv1'    // https://github.com/ariya/phantomjs/issues/11239#issuecomment-42362211
 
       // issue: Secure WebSocket(wss) do not work with Self Signed Certificate in PhantomJS #12

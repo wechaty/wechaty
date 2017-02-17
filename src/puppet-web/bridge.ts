@@ -19,16 +19,16 @@ import { PuppetWeb }  from './puppet-web'
 export class Bridge {
 
   constructor(
-      private puppet: PuppetWeb
-    , private port: number
+    private puppet: PuppetWeb,
+    private port: number,
   ) {
     if (!puppet || !port) {
       throw new Error('Bridge need puppet & port')
     }
 
-    log.verbose('PuppetWebBridge', 'new Bridge({puppet: %s, port: %s})'
-      , puppet.constructor.name
-      , port
+    log.verbose('PuppetWebBridge', 'new Bridge({puppet: %s, port: %s})',
+      puppet.constructor.name,
+      port,
     )
   }
 
@@ -97,8 +97,8 @@ export class Bridge {
      */
     const code = 'injectioReturnValue = '
               + fs.readFileSync(
-                path.join(__dirname, 'wechaty-bro.js')
-                , 'utf8'
+                path.join(__dirname, 'wechaty-bro.js'),
+                'utf8',
               )
               + '; return injectioReturnValue'
     return code.replace(/[\n\s]/, ' ')
@@ -355,17 +355,17 @@ export class Bridge {
    * Proxy Call to Wechaty in Bridge
    */
   public async proxyWechaty(wechatyFunc, ...args): Promise<any> {
-    log.verbose('PuppetWebBridge', 'proxyWechaty(%s, %s)'
-                                  , wechatyFunc
-                                  , args
+    log.verbose('PuppetWebBridge', 'proxyWechaty(%s, %s)',
+                                    wechatyFunc,
+                                    args
                                     ? args.join(', ')
-                                    : ''
+                                    : '',
               )
 
     const argsEncoded = new Buffer(
       encodeURIComponent(
-        JSON.stringify(args)
-      )
+        JSON.stringify(args),
+      ),
     ).toString('base64')
     // see: http://blog.sqrtthree.com/2015/08/29/utf8-to-b64/
     const argsDecoded = `JSON.parse(decodeURIComponent(window.atob('${argsEncoded}')))`

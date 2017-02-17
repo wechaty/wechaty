@@ -10,7 +10,7 @@
 import * as os from 'os'
 
 import {
-    Config
+  Config,
 }                   from '../src/config'
 import { Wechaty }  from '../src/wechaty'
 
