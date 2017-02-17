@@ -47,6 +47,8 @@ const regexConfig = {
   friendConfirm: [
     /^You have added (.+) as your WeChat contact. Start chatting!$/,
     /^你已添加了(.+)，现在可以开始聊天了。$/,
+    /^(.+) just added you to his\/her contacts list. Send a message to him\/her now!$/,
+    /^(.+)刚刚把你添加到通讯录，现在可以开始聊天了。$/,
   ],
 
   roomJoinInvite: [
