@@ -13,7 +13,9 @@ import { Message }  from '../message'
 import { Puppet }   from '../puppet'
 import { FriendRequest as PuppetWebFriendRequest } from './friend-request'
 
-Config.puppetInstance({ userId: 'xxx' } as Puppet)
+Config.puppetInstance({
+  userId: 'xxx',
+} as Puppet)
 
 test('PuppetWebFriendRequest.receive smoking test', t => {
   /* tslint:disable:max-line-length */

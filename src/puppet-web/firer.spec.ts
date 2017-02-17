@@ -28,14 +28,6 @@ test('parseFriendConfirm()', t => {
       '你已添加了李卓桓，现在可以开始聊天了。',
       '李卓桓',
     ],
-    [
-      `johnbassserver@gmail.com just added you to his/her contacts list. Send a message to him/her now!`,
-      `johnbassserver@gmail.com`,
-    ],
-    [
-      `johnbassserver@gmail.com刚刚把你添加到通讯录，现在可以开始聊天了。`,
-      `johnbassserver@gmail.com`,
-    ],
   ]
   let result: boolean
 

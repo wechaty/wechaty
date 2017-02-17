@@ -28,7 +28,8 @@ export async function onRoomJoin(
     if (room.topic() !== 'ding') {
       this.say('Room ' + room.topic()
             + ' got new memeber ' + inviteeName
-            + ' invited by ' + inviter.name())
+            + ' invited by ' + inviter.name(),
+            )
       return
     }
 

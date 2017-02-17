@@ -102,14 +102,16 @@ test('ready()', async t => {
 
 test('find()', async t => {
   const m = await Message.find({
-    id: 'xxx'})
+    id: 'xxx',
+  })
 
   t.truthy(m.id, 'Message.find')
 })
 
 test('findAll()', async t => {
   const msgList = await Message.findAll({
-    from: 'yyy'})
+    from: 'yyy',
+  })
 
   t.is(msgList.length, 2, 'Message.findAll with limit 2')
 })

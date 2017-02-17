@@ -21,10 +21,11 @@ import { StateMonitor } from './state-monitor'
 import { Wechaty }      from './wechaty'
 
 export type IoSetting = {
-  wechaty:    Wechaty
-  token:      string
-  apihost?:   string
-  protocol?:  string}
+  wechaty:    Wechaty,
+  token:      string,
+  apihost?:   string,
+  protocol?:  string,
+}
 
 type IoEventName =  'botie'
                   | 'error'
@@ -38,8 +39,9 @@ type IoEventName =  'botie'
                   | 'shutdown'
 
 type IoEvent = {
-  name:     IoEventName
-  payload:  any}
+  name:     IoEventName,
+  payload:  any,
+}
 
 export class Io {
   public uuid: string

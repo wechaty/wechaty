@@ -10,28 +10,31 @@ import { Message }    from './message'
 import { UtilLib }    from './util-lib'
 
 type RoomObj = {
-  id:         string
-  encryId:    string
-  topic:      string
-  ownerUin:   number
-  memberList: Contact[]
-  nameMap:    Map<string, string>
-  aliasMap:   Map<string, string>}
+  id:         string,
+  encryId:    string,
+  topic:      string,
+  ownerUin:   number,
+  memberList: Contact[],
+  nameMap:    Map<string, string>,
+  aliasMap:   Map<string, string>,
+}
 
 type NameType = 'name' | 'alias'
 
 export type RoomRawMember = {
-  UserName:     string
-  NickName:     string
-  DisplayName:  string}
+  UserName:     string,
+  NickName:     string,
+  DisplayName:  string,
+}
 
 export type RoomRawObj = {
-  UserName:         string
-  EncryChatRoomId:  string
-  NickName:         string
-  OwnerUin:         number
-  ChatRoomOwner:    string
-  MemberList:       RoomRawMember[]}
+  UserName:         string,
+  EncryChatRoomId:  string,
+  NickName:         string,
+  OwnerUin:         number,
+  ChatRoomOwner:    string,
+  MemberList:       RoomRawMember[],
+}
 
 export type RoomEventName = 'join'
                           | 'leave'
@@ -42,8 +45,9 @@ export type RoomQueryFilter = {
   topic: string | RegExp}
 
 export type MemberQueryFilter = {
-  name?:  string
-  alias?: string}
+  name?:  string,
+  alias?: string,
+}
 
 /**
  *
@@ -171,7 +175,8 @@ export class Room extends EventEmitter implements Sayable {
                       , content
                       , Array.isArray(replyTo)
                         ? replyTo.map(c => c.name()).join(', ')
-                        : replyTo ? replyTo.name() : '')
+                        : replyTo ? replyTo.name() : '',
+    )
 
     const m = new Message()
     m.room(this)
@@ -327,7 +332,8 @@ export class Room extends EventEmitter implements Sayable {
       Config.puppetInstance().roomTopic(this, newTopic)
                               .catch(e => {
                                 log.warn('Room', 'topic(newTopic=%s) exception: %s',
-                                                  newTopic, e && e.message || e)
+                                                  newTopic, e && e.message || e,
+                                )
                               })
       if (!this.obj) {
         this.obj = <RoomObj>{}
@@ -399,7 +405,8 @@ export class Room extends EventEmitter implements Sayable {
     log.silly('Room', 'member({ %s })'
                         , Object.keys(queryArg)
                                 .map(k => `${k}: ${queryArg[k]}`)
-                                .join(', '))
+                                .join(', '),
+              )
 
     if (Object.keys(queryArg).length !== 1) {
       throw new Error('Room member find queryArg only support one key. multi key support is not availble now.')

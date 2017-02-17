@@ -21,23 +21,24 @@ type ContactObj = {
   stranger:   boolean,
   uin:        string,
   weixin:     string,
-  avatar:     string,
-}  // XXX URL of HeadImgUrl
+  avatar:     string, // XXX URL of HeadImgUrl
+}
 
 export type ContactRawObj = {
-  Alias:        string
-  City:         string
-  NickName:     string
-  Province:     string
-  RemarkName:   string
-  Sex:          Gender
-  Signature:    string
-  StarFriend:   string
-  Uin:          string
-  UserName:     string
-  HeadImgUrl:   string
+  Alias:        string,
+  City:         string,
+  NickName:     string,
+  Province:     string,
+  RemarkName:   string,
+  Sex:          Gender,
+  Signature:    string,
+  StarFriend:   string,
+  Uin:          string,
+  UserName:     string,
+  HeadImgUrl:   string,
 
-  stranger:     string} // assign by injectio.js
+  stranger:     string, // assign by injectio.js
+}
 
 export enum Gender {
   Unknown = 0,
