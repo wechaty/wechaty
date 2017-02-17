@@ -59,16 +59,16 @@ test('Room smoking test', async t => {
   const CONTACT_LIST = JSON.parse(`{"@ad85207730aa94e006ddce28f74e6878":{ "UserName": "@ad85207730aa94e006ddce28f74e6878","NickName": "田美坤Maggie","RemarkName": "" },"@72c4767ce32db488871fdd1c27173b81":{ "UserName": "@72c4767ce32db488871fdd1c27173b81","NickName": "李竹～英诺天使（此号已满）","RemarkName": "" },"@ecff4a7a86f23455dc42317269aa36ab":{ "UserName": "@ecff4a7a86f23455dc42317269aa36ab","NickName": "童玮亮","RemarkName": "童玮亮备注" }}`)
 
   const EXPECTED = {
-    id:             '@@e2355db381dc46a77c0b95516d05e7486135cb6370d8a6af66925d89d50ec278'
-    , topic:        '（通知）中国青年天使会官方家'
-    , encryId:      '@4b8baa99bdfc354443711412126d2aaf'
-    , memberId1:    '@ad85207730aa94e006ddce28f74e6878'
-    , memberNick1:  '田美坤'
-    , memberId2:    '@72c4767ce32db488871fdd1c27173b81'
-    , memberNick2:  '李竹～英诺天使（此号已满）'
-    , memberId3:    '@ecff4a7a86f23455dc42317269aa36ab'
-    , memberNick3:  '童玮亮备注'
-    , ownerId:      '@33cc239d22b20d56395bbbd0967b28b9'
+    id:             '@@e2355db381dc46a77c0b95516d05e7486135cb6370d8a6af66925d89d50ec278',
+    topic:        '（通知）中国青年天使会官方家',
+    encryId:      '@4b8baa99bdfc354443711412126d2aaf',
+    memberId1:    '@ad85207730aa94e006ddce28f74e6878',
+    memberNick1:  '田美坤',
+    memberId2:    '@72c4767ce32db488871fdd1c27173b81',
+    memberNick2:  '李竹～英诺天使（此号已满）',
+    memberId3:    '@ecff4a7a86f23455dc42317269aa36ab',
+    memberNick3:  '童玮亮备注',
+    ownerId:      '@33cc239d22b20d56395bbbd0967b28b9',
   }
 
   // Mock
@@ -164,7 +164,7 @@ test('Room static method', async t => {
   }
 
   const roomList = await Room.findAll({
-    topic: 'yyy'
+    topic: 'yyy',
   })
 
   t.is(roomList.length, 0, 'should return empty array before login')

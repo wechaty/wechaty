@@ -14,11 +14,11 @@
  *
  */
 import {
-    Config
-  , HeadName
-  , ScanInfo
-  , WatchdogFood
-  , log
+  Config,
+  HeadName,
+  ScanInfo,
+  WatchdogFood,
+  log,
 }                         from '../config'
 
 import { Contact }        from '../contact'
@@ -34,8 +34,8 @@ import { Server }         from './server'
 import { Watchdog }       from './watchdog'
 
 export type PuppetWebSetting = {
-  head?:    HeadName
-  profile?: string
+  head?:    HeadName,
+  profile?: string,
 }
 const DEFAULT_PUPPET_PORT = 18788 // W(87) X(88), ascii char code ;-]
 
@@ -91,8 +91,8 @@ export class PuppetWeb extends Puppet {
       this.state.current('live')
 
       const food: WatchdogFood = {
-        data: 'inited'
-        , timeout: 2 * 60 * 1000 // 2 mins for first login
+        data: 'inited',
+        timeout: 2 * 60 * 1000, // 2 mins for first login
       }
       this.emit('watchdog', food)
 
@@ -109,10 +109,10 @@ export class PuppetWeb extends Puppet {
   }
 
   public async quit(): Promise<void> {
-    log.verbose('PuppetWeb', 'quit() state target(%s) current(%s) stable(%s)'
-                            , this.state.target()
-                            , this.state.current()
-                            , this.state.stable()
+    log.verbose('PuppetWeb', 'quit() state target(%s) current(%s) stable(%s)',
+                             this.state.target(),
+                             this.state.current(),
+                             this.state.stable(),
     )
 
     if (this.state.current() === 'dead') {
@@ -131,8 +131,8 @@ export class PuppetWeb extends Puppet {
      */
     log.verbose('PuppetWeb', 'quit() kill watchdog before do quit')
     const food: WatchdogFood = {
-        data: 'PuppetWeb.quit()'
-      , type: 'POISON'
+      data: 'PuppetWeb.quit()',
+      type: 'POISON',
     }
     this.emit('watchdog', food)
 
@@ -187,8 +187,8 @@ export class PuppetWeb extends Puppet {
     log.verbose('PuppetWeb', 'initBrowser()')
 
     this.browser = new Browser({
-        head:         <HeadName>this.setting.head
-      , sessionFile:  this.setting.profile
+      head:         <HeadName>this.setting.head,
+      sessionFile:  this.setting.profile,
     })
 
     this.browser.on('dead', Event.onBrowserDead.bind(this))
@@ -212,8 +212,8 @@ export class PuppetWeb extends Puppet {
     log.verbose('PuppetWeb', 'initBridge()')
 
     this.bridge = new Bridge(
-        this // use puppet instead of browser, is because browser might change(die) duaring run time
-      , this.port
+      this, // use puppet instead of browser, is because browser might change(die) duaring run time,
+      this.port,
     )
 
     if (this.state.target() === 'dead') {
@@ -378,8 +378,8 @@ export class PuppetWeb extends Puppet {
     try {
       const ret = await this.bridge.contactRemark(contact.id, remark)
       if (!ret) {
-        log.warn('PuppetWeb', 'contactRemark(%s, %s) bridge.contactRemark() return false'
-                            , contact.id, remark
+        log.warn('PuppetWeb', 'contactRemark(%s, %s) bridge.contactRemark() return false',
+                              contact.id, remark,
         )
       }
       return ret

@@ -13,7 +13,7 @@ import { test } from 'ava'
 // } from '../config'
 
 import {
-    Browser
+    Browser,
 } from './browser'
 
 test('quit()', async t => {

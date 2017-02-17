@@ -12,19 +12,19 @@
 import * as WebSocket from 'ws'
 
 import {
-    Config
+  Config,
   // WechatyEventName
-  , log
+  log,
 }                   from './config'
 
 import { StateMonitor } from './state-monitor'
 import { Wechaty }      from './wechaty'
 
 export type IoSetting = {
-  wechaty:    Wechaty
-  token:      string
-  apihost?:   string
-  protocol?:  string
+  wechaty:    Wechaty,
+  token:      string,
+  apihost?:   string,
+  protocol?:  string,
 }
 
 type IoEventName =  'botie'
@@ -39,8 +39,8 @@ type IoEventName =  'botie'
                   | 'shutdown'
 
 type IoEvent = {
-  name:     IoEventName
-  payload:  any
+  name:     IoEventName,
+  payload:  any,
 }
 
 export class Io {
@@ -68,11 +68,11 @@ export class Io {
     this.uuid     = setting.wechaty.uuid
 
     this.protocol = setting.protocol + '|' + setting.wechaty.uuid
-    log.verbose('Io', 'instantiated with apihost[%s], token[%s], protocol[%s], uuid[%s]'
-              , setting.apihost
-              , setting.token
-              , setting.protocol
-              , this.uuid
+    log.verbose('Io', 'instantiated with apihost[%s], token[%s], protocol[%s], uuid[%s]',
+                setting.apihost,
+                setting.token,
+                setting.protocol,
+                this.uuid,
               )
   }
 
@@ -135,8 +135,8 @@ export class Io {
       this.reconnectTimeout = null
 
       const initEvent = <IoEvent>{
-        name: 'sys'
-        , payload: 'Wechaty version ' + this.setting.wechaty.version() + ` with UUID: ${this.uuid}`
+        name: 'sys',
+        payload: 'Wechaty version ' + this.setting.wechaty.version() + ` with UUID: ${this.uuid}`,
       }
       this.send(initEvent)
 
@@ -148,8 +148,8 @@ export class Io {
       // flags.masked will be set if the data was masked.
 
       const ioEvent = {
-        name: 'raw'
-        , payload: data
+        name: 'raw',
+        payload: data,
       }
 
       try {
@@ -190,9 +190,9 @@ export class Io {
           const user = this.setting.wechaty.puppet ? this.setting.wechaty.puppet.user : null
           if (user) {
             const loginEvent: IoEvent = {
-              name:       'login'
+              name:       'login',
               // , payload:  user.obj
-              , payload:  user
+              payload:  user,
             }
             this.send(loginEvent)
           }
@@ -203,8 +203,8 @@ export class Io {
                         && this.setting.wechaty.puppet['scan']
           if (scan) {
             const scanEvent: IoEvent = {
-              name: 'scan'
-              , payload: scan
+              name: 'scan',
+              payload: scan,
             }
             this.send(scanEvent)
           }
@@ -353,12 +353,12 @@ export class Io {
     while (this.eventBuffer.length) {
       const p = new Promise((resolve, reject) => this.ws.send(
         JSON.stringify(
-          this.eventBuffer.shift()
-        )
-        , (err: Error) => {
+          this.eventBuffer.shift(),
+        ),
+        (err: Error) => {
           if (err)  { reject(err) }
           else      { resolve()   }
-        }
+        },
       ))
       list.push(p)
     }

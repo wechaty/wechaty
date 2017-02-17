@@ -14,7 +14,7 @@ import { Puppet }   from '../puppet'
 import { FriendRequest as PuppetWebFriendRequest } from './friend-request'
 
 Config.puppetInstance({
-  userId: 'xxx'
+  userId: 'xxx',
 } as Puppet)
 
 test('PuppetWebFriendRequest.receive smoking test', t => {

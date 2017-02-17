@@ -131,7 +131,7 @@ async function wavToText(readableStream: NodeJS.ReadableStream): Promise<string>
   const params = {
     'cuid': 'wechaty',
     'lan': 'zh',
-    'token': '24.8c6a25b5dcfb41af189a97d9e0b7c076.2592000.1482571685.282335-8943256'
+    'token': '24.8c6a25b5dcfb41af189a97d9e0b7c076.2592000.1482571685.282335-8943256',
   }
 
   const apiUrl = 'http://vop.baidu.com/server_api?'
