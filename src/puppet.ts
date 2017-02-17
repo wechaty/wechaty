@@ -1,15 +1,3 @@
-/**
- * Wechaty - Wechat for Bot. Connecting ChatBots
- *
- * Interface for Puppet
- *
- * Class Puppet
- *
- * Licenst: ISC
- * https://github.com/wechaty/wechaty
- *
- */
-
 import { EventEmitter } from 'events'
 
 import {
@@ -24,6 +12,9 @@ import { Room }         from './room'
 //   (id: string): Promise<any>
 // }
 
+/**
+ * Abstract Puppet Class
+ */
 export abstract class Puppet extends EventEmitter implements Sayable {
   public userId:  string  | null
   public user:    Contact | null
