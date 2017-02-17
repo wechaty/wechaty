@@ -37,7 +37,7 @@ export class StateMonitor <A, B>{
       log.verbose('StateMonitor', '%s:target(%s) <- (%s)'
                                 , this._client
                                 , newState
-                                , this._target
+                                , this._target,
       )
       this._target = newState
     } else {
@@ -55,7 +55,7 @@ export class StateMonitor <A, B>{
       log.verbose('StateMonitor', '%s:current(%s,%s) <- (%s,%s)'
                                 , this._client
                                 , newState, stable
-                                , this._current, this._stable
+                                , this._current, this._stable,
                 )
 
       /**
@@ -65,7 +65,7 @@ export class StateMonitor <A, B>{
         log.warn('StateMonitor', '%s:current(%s,%s) current is different with target. call state.target(%s) first.'
                                 , this._client
                                 , newState, stable
-                                , newState
+                                , newState,
         )
         const e = new Error('current not match target')
         log.verbose('StateMonitor', e.stack)
@@ -80,7 +80,7 @@ export class StateMonitor <A, B>{
       ) {
         log.warn('StateMonitor', '%s:current(%s,%s) called but there are already in the same state'
                                 , this._client
-                                , newState, stable
+                                , newState, stable,
         )
         const e = new Error('current unchange')
         log.verbose('StateMonitor', e.stack)

@@ -7,10 +7,10 @@
  *
  */
 import {
-    Config
-  , RecommendInfo
-  , Sayable
-  , log
+  Config,
+  RecommendInfo,
+  Sayable,
+  log,
 }               from './config'
 
 import { Contact }  from './contact'
@@ -18,39 +18,39 @@ import { Room }     from './room'
 import { UtilLib }  from './util-lib'
 
 export type MsgRawObj = {
-  MsgId:            string
+  MsgId:            string,
 
-  MMActualSender:   string // getUserContact(message.MMActualSender,message.MMPeerUserName).isContact()
-  MMPeerUserName:   string // message.MsgType == CONF.MSGTYPE_TEXT && message.MMPeerUserName == 'newsapp'
-  ToUserName:       string
-  MMActualContent:  string // Content has @id prefix added by wx
+  MMActualSender:   string, // getUserContact(message.MMActualSender,message.MMPeerUserName).isContact()
+  MMPeerUserName:   string, // message.MsgType == CONF.MSGTYPE_TEXT && message.MMPeerUserName == 'newsapp'
+  ToUserName:       string,
+  MMActualContent:  string, // Content has @id prefix added by wx
 
-  MMDigest:         string
-  MMDisplayTime:    number  // Javascript timestamp of milliseconds
+  MMDigest:         string,
+  MMDisplayTime:    number,  // Javascript timestamp of milliseconds
 
   /**
    * MsgType == MSGTYPE_APP && message.AppMsgType == CONF.APPMSGTYPE_URL
    * class="cover" mm-src="{{getMsgImg(message.MsgId,'slave')}}"
    */
-  Url:              string
-  MMAppMsgDesc:     string  // class="desc" ng-bind="message.MMAppMsgDesc"
+  Url:              string,
+  MMAppMsgDesc:     string,  // class="desc" ng-bind="message.MMAppMsgDesc"
 
   /**
    * Attachment
    *
    * MsgType == MSGTYPE_APP && message.AppMsgType == CONF.APPMSGTYPE_ATTACH
    */
-  FileName:         string  // FileName: '钢甲互联项目BP1108.pdf',
-  FileSize:         number  // FileSize: '2845701',
-  MediaId:          string  // MediaId: '@crypt_b1a45e3f_c21dceb3ac01349...
+  FileName:         string,  // FileName: '钢甲互联项目BP1108.pdf',
+  FileSize:         number,  // FileSize: '2845701',
+  MediaId:          string,  // MediaId: '@crypt_b1a45e3f_c21dceb3ac01349...
 
-  MMAppMsgFileExt:      string  // doc, docx ... 'undefined'?
-  MMAppMsgFileSize:     string  // '2.7MB',
-  MMAppMsgDownloadUrl:  string  // 'https://file.wx.qq.com/cgi-bin/mmwebwx-bin/webwxgetmedia?sender=@4f549c2dafd5ad731afa4d857bf03c10&mediaid=@crypt_b1a45e3f
+  MMAppMsgFileExt:      string,  // doc, docx ... 'undefined'?
+  MMAppMsgFileSize:     string,  // '2.7MB',
+  MMAppMsgDownloadUrl:  string,  // 'https://file.wx.qq.com/cgi-bin/mmwebwx-bin/webwxgetmedia?sender=@4f549c2dafd5ad731afa4d857bf03c10&mediaid=@crypt_b1a45e3f
                                 // <a download ng-if="message.MMFileStatus == CONF.MM_SEND_FILE_STATUS_SUCCESS
                                 // && (massage.MMStatus == CONF.MSG_SEND_STATUS_SUCC || massage.MMStatus === undefined)
                                 // " href="{{message.MMAppMsgDownloadUrl}}">下载</a>
-  MMUploadProgress: number  // < 100
+  MMUploadProgress: number,  // < 100
 
   /**
    * 模板消息
@@ -61,35 +61,35 @@ export type MsgRawObj = {
    *  item.cover
    *  item.digest
    */
-  MMCategory:       any[]  //  item in message.MMCategory
+  MMCategory:       any[],  //  item in message.MMCategory
 
   /**
    * Type
    *
    * MsgType == CONF.MSGTYPE_VOICE : ng-style="{'width':40 + 7*message.VoiceLength/1000}
    */
-  MsgType:          number
-  AppMsgType:       AppMsgType  // message.MsgType == CONF.MSGTYPE_APP && message.AppMsgType == CONF.APPMSGTYPE_URL
+  MsgType:          number,
+  AppMsgType:       AppMsgType,  // message.MsgType == CONF.MSGTYPE_APP && message.AppMsgType == CONF.APPMSGTYPE_URL
                                 // message.MsgType == CONF.MSGTYPE_TEXT && message.SubMsgType != CONF.MSGTYPE_LOCATION
 
-  SubMsgType:       MsgType // "msgType":"{{message.MsgType}}","subType":{{message.SubMsgType||0}},"msgId":"{{message.MsgId}}"
+  SubMsgType:       MsgType, // "msgType":"{{message.MsgType}}","subType":{{message.SubMsgType||0}},"msgId":"{{message.MsgId}}"
 
   /**
    * Status-es
    */
-  Status:           string
-  MMStatus:         number  // img ng-show="message.MMStatus == 1" class="ico_loading"
+  Status:           string,
+  MMStatus:         number,  // img ng-show="message.MMStatus == 1" class="ico_loading"
                             // ng-click="resendMsg(message)" ng-show="message.MMStatus == 5" title="重新发送"
-  MMFileStatus:     number  // <p class="loading" ng-show="message.MMStatus == 1 || message.MMFileStatus == CONF.MM_SEND_FILE_STATUS_FAIL">
+  MMFileStatus:     number,  // <p class="loading" ng-show="message.MMStatus == 1 || message.MMFileStatus == CONF.MM_SEND_FILE_STATUS_FAIL">
                             // CONF.MM_SEND_FILE_STATUS_QUEUED, MM_SEND_FILE_STATUS_SENDING
 
   /**
    * Location
    */
-  MMLocationUrl:    string  // ng-if="message.MsgType == CONF.MSGTYPE_TEXT && message.SubMsgType == CONF.MSGTYPE_LOCATION"
+  MMLocationUrl:    string,  // ng-if="message.MsgType == CONF.MSGTYPE_TEXT && message.SubMsgType == CONF.MSGTYPE_LOCATION"
                             // <a href="{{message.MMLocationUrl}}" target="_blank">
                             // 'http://apis.map.qq.com/uri/v1/geocoder?coord=40.075041,116.338994'
-  MMLocationDesc:   string  // MMLocationDesc: '北京市昌平区回龙观龙腾苑(五区)内(龙腾街南)',
+  MMLocationDesc:   string,  // MMLocationDesc: '北京市昌平区回龙观龙腾苑(五区)内(龙腾街南)',
 
   /**
    * MsgType == CONF.MSGTYPE_EMOTICON
@@ -102,9 +102,9 @@ export type MsgRawObj = {
    *
    *  getMsgImg(message.MsgId,'slave')
    */
-  MMImgStyle:       string  // ng-style="message.MMImgStyle"
-  MMPreviewSrc:     string  // message.MMPreviewSrc || message.MMThumbSrc || getMsgImg(message.MsgId,'slave')
-  MMThumbSrc:       string
+  MMImgStyle:       string,  // ng-style="message.MMImgStyle"
+  MMPreviewSrc:     string,  // message.MMPreviewSrc || message.MMThumbSrc || getMsgImg(message.MsgId,'slave')
+  MMThumbSrc:       string,
 
   /**
    * Friend Request & ShareCard ?
@@ -112,21 +112,21 @@ export type MsgRawObj = {
    * MsgType == CONF.MSGTYPE_SHARECARD" ng-click="showProfile($event,message.RecommendInfo.UserName)
    * MsgType == CONF.MSGTYPE_VERIFYMSG
    */
-  RecommendInfo?:   RecommendInfo
+  RecommendInfo?:   RecommendInfo,
 }
 
 export type MsgObj = {
-  id:       string
-  type:     MsgType
-  from:     string
-  to?:      string  // if to is not set, then room must be set
-  room?:    string
-  content:  string
-  status:   string
-  digest:   string
-  date:     string
-
-  url?:     string  // for MessageMedia class
+  id:       string,
+  type:     MsgType,
+  from:     string,
+  to?:      string,  // if to is not set, then room must be set
+  room?:    string,
+  content:  string,
+  status:   string,
+  digest:   string,
+  date:     string,
+  // for MessageMedia class
+  url?:     string,
 }
 
 // export type MessageTypeName = 'TEXT' | 'IMAGE' | 'VOICE' | 'VERIFYMSG' | 'POSSIBLEFRIEND_MSG'
@@ -136,11 +136,10 @@ export type MsgObj = {
 // export type MessageTypeValue = 1 | 3 | 34 | 37 | 40 | 42 | 43 | 47 | 48 | 49 | 50 | 51 | 52 | 53 | 62 | 9999 | 10000 | 10002
 
 export type MsgTypeMap = {
-  [index: string]: string|number
+  [index: string]: string|number,
   //   MessageTypeName:  MessageTypeValue
   // , MessageTypeValue: MessageTypeName
 }
-
 export const enum AppMsgType {
   TEXT                     = 1,
   IMG                      = 2,
@@ -204,7 +203,7 @@ export class Message implements Sayable {
     MICROVIDEO:         62,
     SYSNOTICE:          9999,
     SYS:                10000,
-    RECALLED:           10002
+    RECALLED:           10002,
   }
 
   public readonly id: string
@@ -243,7 +242,7 @@ export class Message implements Sayable {
       status:       rawObj.Status,
       digest:       rawObj.MMDigest,
       date:         rawObj.MMDisplayTime,  // Javascript timestamp of milliseconds
-      url:          rawObj.Url || rawObj.MMAppMsgDownloadUrl || rawObj.MMLocationUrl
+      url:          rawObj.Url || rawObj.MMAppMsgDownloadUrl || rawObj.MMLocationUrl,
     }
 
     // FIXME: has ther any better method to know the room ID?
@@ -475,8 +474,8 @@ export class Message implements Sayable {
 
   public static async findAll(query) {
     return Promise.resolve([
-      new Message   (<MsgRawObj>{MsgId: '-2'})
-      , new Message (<MsgRawObj>{MsgId: '-3'})
+      new Message   (<MsgRawObj>{MsgId: '-2'}),
+      new Message (<MsgRawObj>{MsgId: '-3'}),
     ])
   }
 

@@ -12,9 +12,7 @@
 
 import { EventEmitter } from 'events'
 
-import {
-  Sayable
-}                       from './config'
+import { Sayable }      from './config'
 import { Contact }      from './contact'
 import { Message }      from './message'
 import { StateMonitor } from './state-monitor'

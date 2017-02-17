@@ -22,8 +22,7 @@ import { UtilLib }        from './util-lib'
 export type PuppetSetting = {
   head?:    HeadName
   puppet?:  PuppetName
-  profile?: string
-}
+  profile?: string }
 
 export type WechatyEventName = 'error'
                               | 'friend'
@@ -318,8 +317,8 @@ export class Wechaty extends EventEmitter implements Sayable {
     switch (this.setting.puppet) {
       case 'web':
         puppet = new PuppetWeb({
-            head:     this.setting.head
-          , profile:  this.setting.profile
+          head:     this.setting.head,
+          profile:  this.setting.profile,
         })
         break
 
@@ -328,16 +327,16 @@ export class Wechaty extends EventEmitter implements Sayable {
     }
 
     const eventList: WechatyEventName[] = [
-        'error'
-      , 'friend'
-      , 'heartbeat'
-      , 'login'
-      , 'logout'
-      , 'message'
-      , 'room-join'
-      , 'room-leave'
-      , 'room-topic'
-      , 'scan'
+      'error',
+      'friend',
+      'heartbeat',
+      'login',
+      'logout',
+      'message',
+      'room-join',
+      'room-leave',
+      'room-topic',
+      'scan',
     ]
 
     eventList.map(e => {

@@ -11,8 +11,8 @@
  */
 
 import {
-    Config
-  , log
+  Config,
+  log,
 }                   from './config'
 import { Contact }  from './contact'
 

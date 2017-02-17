@@ -7,9 +7,7 @@
  */
 import { test } from 'ava'
 
-import {
-    BrowserCookie
-} from './browser-cookie'
+import { BrowserCookie } from './browser-cookie'
 
 import { BrowserDriver }  from './browser-driver'
 

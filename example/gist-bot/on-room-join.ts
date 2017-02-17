@@ -6,16 +6,16 @@
  *
  */
 import {
-    Contact
-  , Room
-  , Sayable
+  Contact,
+  Room,
+  Sayable,
 } from '../../'
 
 export async function onRoomJoin(
-    this: Sayable
-  , room: Room
-  , inviteeList: Contact[]
-  , inviter: Contact
+  this: Sayable,
+  room: Room,
+  inviteeList: Contact[],
+  inviter: Contact,
 ): Promise<void> {
   try {
     const inviteeName = inviteeList.map(c => c.name()).join(', ')
@@ -28,8 +28,8 @@ export async function onRoomJoin(
     if (room.topic() !== 'ding') {
       this.say('Room ' + room.topic()
             + ' got new memeber ' + inviteeName
-            + ' invited by ' + inviter.name()
-      )
+            + ' invited by ' + inviter.name(),
+            )
       return
     }
 

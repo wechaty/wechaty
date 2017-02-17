@@ -38,11 +38,11 @@ const HELPER_CONTACT_NAME = 'Bruce LEE'
 const QrcodeTerminal = require('qrcode-terminal')
 
 import {
-    Config
-  , Contact
-  , Room
-  , Wechaty
-  , log
+  Config,
+  Contact,
+  Room,
+  Wechaty,
+  log,
 } from '../'
 
 const welcome = `
@@ -110,8 +110,8 @@ bot
   log.info('Bot', 'EVENT: room-join - Room %s got new member %s, invited by %s'
                 , room.topic()
                 , inviteeList.map(c => c.name()).join(',')
-                , inviter.name()
-          )
+                , inviter.name(),
+                )
 })
 
 /**
@@ -120,8 +120,8 @@ bot
 .on('room-leave', function(this, room, leaverList) {
   log.info('Bot', 'EVENT: room-leave - Room %s lost member %s'
                 , room.topic()
-                , leaverList.map(c => c.name()).join(',')
-              )
+                , leaverList.map(c => c.name()).join(','),
+                )
 })
 
 /**
@@ -132,8 +132,8 @@ bot
     log.info('Bot', 'EVENT: room-topic - Room %s change topic to %s by member %s'
                   , oldTopic
                   , topic
-                  , changer.name()
-                )
+                  , changer.name(),
+                  )
   } catch (e) {
     log.error('Bot', 'room-topic event exception: %s', e.stack)
   }
@@ -149,8 +149,8 @@ bot
 
   console.log((room ? '[' + room.topic() + ']' : '')
               + '<' + sender.name() + '>'
-              + ':' + message.toStringDigest()
-  )
+              + ':' + message.toStringDigest(),
+              )
 
   if (message.self()) {
     return
@@ -256,8 +256,8 @@ function manageDingRoom() {
     room.on('join', function(this, inviteeList, inviter) {
       log.verbose('Bot', 'Room EVENT: join - %s, %s'
                         , inviteeList.map(c => c.name()).join(', ')
-                        , inviter.name()
-      )
+                        , inviter.name(),
+                        )
       checkRoomJoin.call(this, room, inviteeList, inviter)
     })
 
@@ -275,8 +275,8 @@ function manageDingRoom() {
       log.info('Bot', 'Room EVENT: topic - changed from %s to %s by member %s'
           , oldTopic
           , topic
-          , changer.name()
-        )
+          , changer.name(),
+          )
     })
   })
   .catch(e => {
@@ -288,8 +288,8 @@ function checkRoomJoin(room: Room, inviteeList: Contact[], inviter: Contact) {
   log.info('Bot', 'checkRoomJoin(%s, %s, %s)'
                 , room.topic()
                 , inviteeList.map(c => c.name()).join(',')
-                , inviter.name()
-          )
+                , inviter.name(),
+                )
 
   try {
     // let to, content
@@ -300,11 +300,9 @@ function checkRoomJoin(room: Room, inviteeList: Contact[], inviter: Contact) {
     if (inviter.id !== user.id) {
 
       room.say('RULE1: Invitation is limited to me, the owner only. Please do not invit people without notify me.'
-          , inviter
-      )
+          , inviter)
       room.say('Please contact me: by send "ding" to me, I will re-send you a invitation. Now I will remove you out, sorry.'
-          , inviteeList
-      )
+          , inviteeList)
 
       room.topic('ding - warn ' + inviter.name())
       setTimeout(_ => {

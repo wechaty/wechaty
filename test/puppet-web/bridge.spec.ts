@@ -8,9 +8,9 @@
 import { test } from 'ava'
 
 import {
-    Bridge
-  , Browser
-  , PuppetWeb
+  Bridge,
+  Browser,
+  PuppetWeb,
 } from '../../src/puppet-web/'
 
 import { spy } from 'sinon'

@@ -18,8 +18,8 @@ export async function onMessage(message: Message): Promise<void> {
 
     console.log((room ? '[' + room.topic() + ']' : '')
                 + '<' + sender.name() + '>'
-                + ':' + message.toStringDigest()
-    )
+                + ':' + message.toStringDigest(),
+                )
 
     if (message.self() || room) {
       console.log('message is sent from myself, or inside a room.')

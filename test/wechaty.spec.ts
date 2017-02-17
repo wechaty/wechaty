@@ -34,11 +34,11 @@ test('Wechaty Framework', t => {
   t.truthy(log          , 'should export log')
 
   const bot = Wechaty.instance()
-  t.is(bot.version(true), require('../package.json').version
-                        , 'should return version as the same in package.json'
+  t.is(bot.version(true), require('../package.json').version,
+                          'should return version as the same in package.json',
   )
-  t.is(VERSION, require('../package.json').version
-                , 'should export version in package.json'
+  t.is(VERSION, require('../package.json').version,
+                'should export version in package.json',
   )
 })
 

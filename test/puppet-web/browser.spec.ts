@@ -13,9 +13,7 @@ import {
   log,
 } from '../../'
 
-import {
-    Browser
-} from '../../src/puppet-web/'
+import { Browser } from '../../src/puppet-web/'
 
 const PROFILE = Config.DEFAULT_PROFILE + '-' + process.pid + '-'
 let profileCounter = 1
@@ -46,20 +44,20 @@ test('Cookie smoking test', async t => {
   t.is(cookies.length, 0, 'should no cookie anymore after deleteAllCookies()')
 
   const EXPECTED_COOKIES = [{
-    name: 'wechaty0'
-    , value: '8788-0'
-    , path: '/'
-    , domain: '.qq.com'
-    , secure: false
-    , expiry: 99999999999999
+    name: 'wechaty0',
+    value: '8788-0',
+    path: '/',
+    domain: '.qq.com',
+    secure: false,
+    expiry: 99999999999999,
   }
   , {
-    name: 'wechaty1'
-    , value: '8788-1'
-    , path: '/'
-    , domain: '.qq.com'
-    , secure: false
-    , expiry: 99999999999999
+    name: 'wechaty1',
+    value: '8788-1',
+    path: '/',
+    domain: '.qq.com',
+    secure: false,
+    expiry: 99999999999999,
   }]
 
   await browser.addCookie(EXPECTED_COOKIES)
@@ -91,8 +89,8 @@ test('Cookie save/load', async t => {
   const profileName = PROFILE + profileCounter++ + 'wechaty.json'
 
   let browser = new Browser({
-      head: Config.head
-    , sessionFile: profileName
+    head: Config.head,
+    sessionFile: profileName,
   })
 
   /**
@@ -111,12 +109,12 @@ test('Cookie save/load', async t => {
     t.pass('opened')
 
     const EXPECTED_COOKIE = {
-      name: 'wechaty_save_to_session'
-      , value: '### This cookie should be saved to session file, and load back at next PuppetWeb init  ###'
-      , path: '/'
-      , domain: '.wx.qq.com'
-      , secure: false
-      , expiry: 99999999999999
+      name: 'wechaty_save_to_session',
+      value: '### This cookie should be saved to session file, and load back at next PuppetWeb init  ###',
+      path: '/',
+      domain: '.wx.qq.com',
+      secure: false,
+      expiry: 99999999999999,
     }
     const EXPECTED_NAME_REGEX = new RegExp('^' + EXPECTED_COOKIE.name + '$')
 
@@ -165,8 +163,8 @@ test('Cookie save/load', async t => {
      */
 
     browser = new Browser({
-        head: Config.head
-      , sessionFile: profileName
+      head: Config.head,
+      sessionFile: profileName,
     })
 
     t.pass('should started a new Browser')
