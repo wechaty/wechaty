@@ -39,12 +39,12 @@ test('plainText()', t => {
 
 test('digestEmoji()', t => {
   const EMOJI_XML = [
-    '<img class="emoji emoji1f4a4" text="[流汗]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />'
-    , '<span class="emoji emoji1f334"></span>'
+    '<img class="emoji emoji1f4a4" text="[流汗]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />',
+    '<span class="emoji emoji1f334"></span>',
   ]
   const EMOJI_AFTER_DIGEST  = [
-    '[流汗]'
-    , '[emoji1f334]'
+    '[流汗]',
+    '[emoji1f334]',
   ]
 
   for (let i = 0; i < EMOJI_XML.length; i++) {
@@ -57,11 +57,11 @@ test('unifyEmoji()', t => {
   const ORIGNAL_XML_LIST: [string[], string][] = [
     [
       [
-        '<img class="emoji emoji1f602" text="_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />'
-      , '<span class=\"emoji emoji1f602\"></span>'
-      ]
-      , '<emoji code="emoji1f602"/>'
-    ]
+        '<img class="emoji emoji1f602" text="_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />',
+        '<span class=\"emoji emoji1f602\"></span>',
+      ],
+        '<emoji code="emoji1f602"/>',
+    ],
   ]
 
   ORIGNAL_XML_LIST.forEach(([xmlList, expectedEmojiXml]) => {
@@ -75,13 +75,13 @@ test('unifyEmoji()', t => {
 test('stripEmoji()', t => {
   const EMOJI_STR = [
     [
-        'ABC<img class="emoji emoji1f4a4" text="[流汗]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />DEF'
-      , 'ABCDEF'
-    ]
-    , [
-        'UVW<span class="emoji emoji1f334"></span>XYZ'
-      , 'UVWXYZ'
-    ]
+      'ABC<img class="emoji emoji1f4a4" text="[流汗]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />DEF',
+      'ABCDEF',
+    ],
+    [
+      'UVW<span class="emoji emoji1f334"></span>XYZ',
+      'UVWXYZ',
+    ],
   ]
 
   EMOJI_STR.forEach(([emojiStr, expectResult]) => {

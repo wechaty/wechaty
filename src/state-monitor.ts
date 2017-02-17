@@ -34,10 +34,10 @@ export class StateMonitor <A, B>{
    */
   public target(newState?: A|B): A|B {
     if (newState) {
-      log.verbose('StateMonitor', '%s:target(%s) <- (%s)'
-                                , this._client
-                                , newState
-                                , this._target
+      log.verbose('StateMonitor', '%s:target(%s) <- (%s)',
+                                  this._client,
+                                  newState,
+                                  this._target,
       )
       this._target = newState
     } else {
@@ -52,20 +52,20 @@ export class StateMonitor <A, B>{
    */
   public current(newState?: A|B, stable = true): A|B {
     if (newState) {
-      log.verbose('StateMonitor', '%s:current(%s,%s) <- (%s,%s)'
-                                , this._client
-                                , newState, stable
-                                , this._current, this._stable
+      log.verbose('StateMonitor', '%s:current(%s,%s) <- (%s,%s)',
+                                  this._client,
+                                  newState, stable,
+                                  this._current, this._stable,
                 )
 
       /**
        * strict check current is equal to target
        */
       if (this._target !== newState) {
-        log.warn('StateMonitor', '%s:current(%s,%s) current is different with target. call state.target(%s) first.'
-                                , this._client
-                                , newState, stable
-                                , newState
+        log.warn('StateMonitor', '%s:current(%s,%s) current is different with target. call state.target(%s) first.',
+                                 this._client,
+                                 newState, stable,
+                                 newState,
         )
         const e = new Error('current not match target')
         log.verbose('StateMonitor', e.stack)
@@ -78,9 +78,9 @@ export class StateMonitor <A, B>{
       if (this._current === newState && this._stable === stable
           && stable === false
       ) {
-        log.warn('StateMonitor', '%s:current(%s,%s) called but there are already in the same state'
-                                , this._client
-                                , newState, stable
+        log.warn('StateMonitor', '%s:current(%s,%s) called but there are already in the same state',
+                                  this._client,
+                                  newState, stable,
         )
         const e = new Error('current unchange')
         log.verbose('StateMonitor', e.stack)

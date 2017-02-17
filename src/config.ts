@@ -53,10 +53,10 @@ export const Config: ConfigSetting = require('../package.json').wechaty
  * 1. ENVIRONMENT VARIABLES + PACKAGES.JSON (default)
  */
 Object.assign(Config, {
-  head:       process.env['WECHATY_HEAD']      || Config.DEFAULT_HEAD
-  , puppet:   process.env['WECHATY_PUPPET']    || Config.DEFAULT_PUPPET
-  , apihost:  process.env['WECHATY_APIHOST']   || Config.DEFAULT_APIHOST
-  , validApiHost
+  head:       process.env['WECHATY_HEAD']      || Config.DEFAULT_HEAD,
+  puppet:   process.env['WECHATY_PUPPET']    || Config.DEFAULT_PUPPET,
+  apihost:  process.env['WECHATY_APIHOST']   || Config.DEFAULT_APIHOST,
+  validApiHost,
 })
 
 function validApiHost(apihost: string): boolean {
@@ -71,10 +71,10 @@ validApiHost(Config.apihost)
  * 2. ENVIRONMENT VARIABLES (only)
  */
 Object.assign(Config, {
-  port:       process.env['WECHATY_PORT']       || null // 0 for disable port
-  , profile:  process.env['WECHATY_PROFILE']    || null // DO NOT set DEFAULT_PROFILE, because sometimes user do not want to save session
-  , token:    process.env['WECHATY_TOKEN']      || null // DO NOT set DEFAULT, because sometimes user do not want to connect to io cloud service
-  , debug:    !!(process.env['WECHATY_DEBUG'])  || false
+  port:       process.env['WECHATY_PORT']     || null, // 0 for disable port
+  profile:  process.env['WECHATY_PROFILE']    || null, // DO NOT set DEFAULT_PROFILE, because sometimes user do not want to save session
+  token:    process.env['WECHATY_TOKEN']      || null, // DO NOT set DEFAULT, because sometimes user do not want to connect to io cloud service
+  debug:    !!(process.env['WECHATY_DEBUG'])  || false,
 })
 
 /**
@@ -82,14 +82,14 @@ Object.assign(Config, {
  */
 Object.assign(Config, {
   // get PORT form cloud service env, ie: heroku
-  httpPort: process.env['PORT'] || process.env['WECHATY_PORT'] || Config.DEFAULT_PORT
+  httpPort: process.env['PORT'] || process.env['WECHATY_PORT'] || Config.DEFAULT_PORT,
 })
 
 /**
  * 4. Envioronment Identify
  */
 Object.assign(Config, {
-  isDocker:   isWechatyDocker()
+  isDocker:   isWechatyDocker(),
 })
 
 function isWechatyDocker() {
@@ -141,7 +141,7 @@ function puppetInstance(instance?: Puppet | null): Puppet | void {
 }
 
 Object.assign(Config, {
-  puppetInstance
+  puppetInstance,
 })
 
 export type WatchdogFoodName = 'HEARTBEAT'
@@ -149,27 +149,27 @@ export type WatchdogFoodName = 'HEARTBEAT'
                               | 'SCAN'
 
 export type WatchdogFood = {
-    data: any
-  , timeout?: number  // millisecond
-  , type?: WatchdogFoodName
+  data: any,
+  timeout?: number,  // millisecond
+  type?: WatchdogFoodName,
 }
 
 export type ScanInfo = {
-  url: string
-  code: number
+  url: string,
+  code: number,
 }
 
 /**
  * from Message
  */
 export type RecommendInfo = {
-  UserName:   string
-  NickName:   string  // display_name
-  Content:    string  // request message
-  HeadImgUrl: string  // message.RecommendInfo.HeadImgUrl
+  UserName:   string,
+  NickName:   string,  // display_name
+  Content:    string,  // request message
+  HeadImgUrl: string,  // message.RecommendInfo.HeadImgUrl
 
-  Ticket:     string  // a pass token
-  VerifyFlag: number
+  Ticket:     string,  // a pass token
+  VerifyFlag: number,
 
 }
 

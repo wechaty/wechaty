@@ -8,7 +8,7 @@
 import { test } from 'ava'
 
 import {
-    BrowserCookie
+    BrowserCookie,
 } from './browser-cookie'
 
 import { BrowserDriver }  from './browser-driver'
