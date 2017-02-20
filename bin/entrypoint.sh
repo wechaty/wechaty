@@ -111,13 +111,13 @@ function wechaty::runBot() {
   cd    "$HOME"
 
   [ -f package.json ] && {
-    echo "Install dependencies modules ..."
+    # echo "Install dependencies modules ..."
 
     #
     # NPM module install will have problem in China.
     # i.e. chromedriver need to visit a google host to download binarys.
     #
-    echo "Skipped yarn. Please make sure you had installed all the NPM modules which is depended by your bot script."
+    echo "Please make sure you had installed all the NPM modules which is depended by your bot script."
     # yarn < /dev/null || return $? # yarn will close stdin??? cause `read` command fail after yarn
 
   }
