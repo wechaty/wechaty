@@ -51,6 +51,7 @@ Wechaty.instance() // Singleton
 .on('message',  message => console.log(`Message: ${message}`))
 .init()
 ```
+> **Notice: Wechaty requires Node.js version >= 6.9.0**
 
 This bot can log all message to console.
 
