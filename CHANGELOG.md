@@ -6,6 +6,7 @@
 
 **Implemented enhancements:**
 
+- Prepare to rename the nick/remark/display for contact/room [\#217](https://github.com/wechaty/wechaty/issues/217)
 - \[feature request\] fire `room-join` when someone joins from a QR Code [\#155](https://github.com/wechaty/wechaty/issues/155)
 
 **Fixed bugs:**
@@ -18,11 +19,20 @@
 
 **Closed issues:**
 
+- 如何获取MsgType为APP类型的信息,解析不成xml [\#262](https://github.com/wechaty/wechaty/issues/262)
+- \[linting\] fix needed for new tslint rule: trailing-comma [\#251](https://github.com/wechaty/wechaty/issues/251)
+- Room&Contact.find\(\) should throw exception when it get more than one value [\#229](https://github.com/wechaty/wechaty/issues/229)
 - Contact.findAll\(\) return contactList includes oa account [\#222](https://github.com/wechaty/wechaty/issues/222)
+- timeouts when running unattended [\#184](https://github.com/wechaty/wechaty/issues/184)
 - room.member\(\) cannot find contact when contact set whose alias in the room [\#173](https://github.com/wechaty/wechaty/issues/173)
 
 **Merged pull requests:**
 
+- add-sys-message-in-friendrequest [\#266](https://github.com/wechaty/wechaty/pull/266) ([lijiarui](https://github.com/lijiarui))
+- fix for new tslint rules [\#264](https://github.com/wechaty/wechaty/pull/264) ([lijiarui](https://github.com/lijiarui))
+- roomJoinFailed [\#249](https://github.com/wechaty/wechaty/pull/249) ([lijiarui](https://github.com/lijiarui))
+- add warn log when function Room&Contact.find\(\) return more than one value [\#239](https://github.com/wechaty/wechaty/pull/239) ([lijiarui](https://github.com/lijiarui))
+- rename the nick/remark/display for contact/room \#217 [\#234](https://github.com/wechaty/wechaty/pull/234) ([lijiarui](https://github.com/lijiarui))
 - fix\_function\_room.member\_\#173 [\#211](https://github.com/wechaty/wechaty/pull/211) ([lijiarui](https://github.com/lijiarui))
 - friendrequest [\#199](https://github.com/wechaty/wechaty/pull/199) ([lijiarui](https://github.com/lijiarui))
 - \#181 fix [\#182](https://github.com/wechaty/wechaty/pull/182) ([lijiarui](https://github.com/lijiarui))
