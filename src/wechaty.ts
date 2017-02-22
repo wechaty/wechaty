@@ -364,6 +364,13 @@ export class Wechaty extends EventEmitter implements Sayable {
    */
   public async quit(): Promise<void> {
     log.verbose('Wechaty', 'quit()')
+
+    if (this.state.current() !== 'ready' || this.state.inprocess()) {
+      const err = new Error('quit() must run on a inited instance.')
+      log.error('Wechaty', err.message)
+      throw err
+    }
+    this.state.target('standby')
     this.state.current('standby', false)
 
     if (!this.puppet) {
