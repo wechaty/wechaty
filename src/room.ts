@@ -130,6 +130,9 @@ export class Room extends EventEmitter implements Sayable {
       const data = await contactGetter(this.id)
       log.silly('Room', `contactGetter(${this.id}) resolved`)
       this.rawObj = data
+      if (!this.rawObj.MemberList) {
+         await this.ready()
+      }
       await this.readyAllMembers(this.rawObj.MemberList)
       this.obj    = this.parse(this.rawObj)
       if (!this.obj) {
