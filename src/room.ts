@@ -33,7 +33,7 @@ export type RoomRawObj = {
   NickName:         string,
   OwnerUin:         number,
   ChatRoomOwner:    string,
-  MemberList:       RoomRawMember[],
+  MemberList?:      RoomRawMember[],
 }
 
 export type RoomEventName = 'join'
