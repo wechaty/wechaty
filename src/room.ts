@@ -130,10 +130,7 @@ export class Room extends EventEmitter implements Sayable {
       const data = await contactGetter(this.id)
       log.silly('Room', `contactGetter(${this.id}) resolved`)
       this.rawObj = data
-      if (!this.rawObj.MemberList) {
-        throw new Error('no this.obj.memberList, set after contactGetter')
-      }
-      await this.readyAllMembers(this.rawObj.MemberList)
+      await this.readyAllMembers(this.rawObj.MemberList || [])
       this.obj    = this.parse(this.rawObj)
       if (!this.obj) {
         throw new Error('no this.obj set after contactGetter')
@@ -206,13 +203,10 @@ export class Room extends EventEmitter implements Sayable {
       log.warn('Room', 'parse() on a empty rawObj?')
       return null
     }
-    if (!rawObj.MemberList) {
-      rawObj.MemberList = []
-    }
 
-    const memberList = this.parseMemberList(rawObj.MemberList)
-    const nameMap    = this.parseMap(rawObj.MemberList, 'name')
-    const aliasMap   = this.parseMap(rawObj.MemberList, 'alias')
+    const memberList = this.parseMemberList(rawObj.MemberList || [])
+    const nameMap    = this.parseMap(rawObj.MemberList || [], 'name')
+    const aliasMap   = this.parseMap(rawObj.MemberList || [], 'alias')
 
     return {
       id:         rawObj.UserName,
