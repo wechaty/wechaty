@@ -403,6 +403,19 @@ export class Message implements Sayable {
     return fromId === userId
   }
 
+  public mention(): boolean {
+    const userId = Config.puppetInstance()
+                    .userId
+    if (!userId) {
+      throw new Error('no user!')
+    }
+    const regConfig = new RegExp('@ ' + Contact.load(userId).name())
+    if (regConfig.test(this.content())) {
+       return true
+    }
+    return false
+  }
+
   // public ready() {
   //   log.warn('Message', 'ready() DEPRECATED. use load() instead.')
   //   return this.ready()
