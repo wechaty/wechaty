@@ -207,7 +207,7 @@ function main() {
 
   echo
   echo -n "Starting Wechaty ... "
-
+  echo -n "NodeJS Version=$(node --version)"
   VERSION=$(WECHATY_LOG=WARN wechaty-version 2>/dev/null || echo '0.0.0(unknown)')
 
   echo "v$VERSION"

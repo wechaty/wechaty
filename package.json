@@ -102,7 +102,7 @@
     "node": ">= 6.9.0"
   },
   "dependencies": {
-    "@types/selenium-webdriver": "2.53.39",
+    "@types/selenium-webdriver": "2.53.40",
     "@types/socket.io": "1.4.28",
     "body-parser": "1.16.1",
     "brolog": "0.3.10",
@@ -133,7 +133,7 @@
     "cookie-parser": "1.4.3",
     "coveralls": "2.11.16",
     "cross-env": "3.1.4",
-    "eslint": "3.16.0",
+    "eslint": "3.16.1",
     "eslint-plugin-ava": "4.2.0",
     "finis": "0.0.2",
     "fluent-ffmpeg": "2.1.0",
@@ -148,7 +148,7 @@
     "tslint": "4.4.0",
     "tslint-jsdoc-rules": "^0.1.2",
     "tuling123-client": "0.0.1",
-    "typescript": "2.1.6",
+    "typescript": "2.2.1",
     "yarn": "0.20.3"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
