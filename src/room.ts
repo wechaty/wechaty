@@ -131,7 +131,7 @@ export class Room extends EventEmitter implements Sayable {
       log.silly('Room', `contactGetter(${this.id}) resolved`)
       this.rawObj = data
       if (!this.rawObj.MemberList) {
-         return this.ready()
+        this.rawObj.MemberList = []
       }
       await this.readyAllMembers(this.rawObj.MemberList)
       this.obj    = this.parse(this.rawObj)
@@ -139,7 +139,7 @@ export class Room extends EventEmitter implements Sayable {
         throw new Error('no this.obj set after contactGetter')
       }
       if (!this.obj.memberList) {
-        throw new Error('no this.obj.memberLit set after contactGetter')
+        this.obj.memberList = []
       }
       await Promise.all(this.obj.memberList.map(c => c.ready(contactGetter)))
 
@@ -210,27 +210,28 @@ export class Room extends EventEmitter implements Sayable {
       return null
     }
 
-    if (rawObj.MemberList) {
-      const memberList = this.parseMemberList(rawObj.MemberList)
-      const nameMap    = this.parseMap(rawObj.MemberList, 'name')
-      const aliasMap   = this.parseMap(rawObj.MemberList, 'alias')
+    if (!rawObj.MemberList) {
       return {
         id:         rawObj.UserName,
         encryId:    rawObj.EncryChatRoomId, // ???
         topic:      rawObj.NickName,
         ownerUin:   rawObj.OwnerUin,
-
-        memberList,
-        nameMap,
-        aliasMap,
+        memberList: [],
       }
     }
+
+    const memberList = this.parseMemberList(rawObj.MemberList)
+    const nameMap    = this.parseMap(rawObj.MemberList, 'name')
+    const aliasMap   = this.parseMap(rawObj.MemberList, 'alias')
 
     return {
       id:         rawObj.UserName,
       encryId:    rawObj.EncryChatRoomId, // ???
       topic:      rawObj.NickName,
       ownerUin:   rawObj.OwnerUin,
+      memberList: memberList,
+      nameMap:  nameMap,
+      aliasMap: aliasMap,
     }
   }
 
