@@ -14,9 +14,9 @@ type RoomObj = {
   encryId:    string,
   topic:      string,
   ownerUin:   number,
-  memberList: Contact[],
-  nameMap:    Map<string, string>,
-  aliasMap:   Map<string, string>,
+  memberList?: Contact[],
+  nameMap?:    Map<string, string>,
+  aliasMap?:   Map<string, string>,
 }
 
 type NameType = 'name' | 'alias'
@@ -138,6 +138,9 @@ export class Room extends EventEmitter implements Sayable {
       if (!this.obj) {
         throw new Error('no this.obj set after contactGetter')
       }
+      if (!this.obj.memberList) {
+        throw new Error('no this.obj.memberLit set after contactGetter')
+      }
       await Promise.all(this.obj.memberList.map(c => c.ready(contactGetter)))
 
       return
@@ -207,19 +210,27 @@ export class Room extends EventEmitter implements Sayable {
       return null
     }
 
-    const memberList = this.parseMemberList(rawObj.MemberList)
-    const nameMap    = this.parseMap(rawObj.MemberList, 'name')
-    const aliasMap   = this.parseMap(rawObj.MemberList, 'alias')
+    if (rawObj.MemberList) {
+      const memberList = this.parseMemberList(rawObj.MemberList)
+      const nameMap    = this.parseMap(rawObj.MemberList, 'name')
+      const aliasMap   = this.parseMap(rawObj.MemberList, 'alias')
+      return {
+        id:         rawObj.UserName,
+        encryId:    rawObj.EncryChatRoomId, // ???
+        topic:      rawObj.NickName,
+        ownerUin:   rawObj.OwnerUin,
+
+        memberList,
+        nameMap,
+        aliasMap,
+      }
+    }
 
     return {
       id:         rawObj.UserName,
       encryId:    rawObj.EncryChatRoomId, // ???
       topic:      rawObj.NickName,
       ownerUin:   rawObj.OwnerUin,
-
-      memberList,
-      nameMap,
-      aliasMap,
     }
   }
 
@@ -355,7 +366,7 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   public alias(contact: Contact): string | null {
-    if (!this.obj) {
+    if (!this.obj || !this.obj.aliasMap) {
       return null
     }
     return this.obj.aliasMap[contact.id] || null
