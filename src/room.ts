@@ -206,7 +206,7 @@ export class Room extends EventEmitter implements Sayable {
       return null
     }
 
-    const memberList = this.parseMemberList(rawObj.MemberList)
+    const memberList = this.parseMemberList(rawObj.MemberList || [])
     const nameMap    = this.parseMap('name', rawObj.MemberList)
     const aliasMap   = this.parseMap('alias', rawObj.MemberList)
 
@@ -221,7 +221,7 @@ export class Room extends EventEmitter implements Sayable {
     }
   }
 
-  private parseMemberList(rawMemberList?: RoomRawMember[]): Contact[] {
+  private parseMemberList(rawMemberList: RoomRawMember[]): Contact[] {
     if (!rawMemberList || !rawMemberList.map) {
       return []
     }
