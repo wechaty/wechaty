@@ -88,12 +88,10 @@ export class Room extends EventEmitter implements Sayable {
     return
   }
 
-  private async readyAllMembers(memberList?: RoomRawMember[]): Promise<void> {
-    if (memberList) {
-      for (let member of memberList) {
-        let contact = Contact.load(member.UserName)
-        await contact.ready()
-      }
+  private async readyAllMembers(memberList: RoomRawMember[]): Promise<void> {
+    for (let member of memberList) {
+      let contact = Contact.load(member.UserName)
+      await contact.ready()
     }
     return
   }
@@ -122,7 +120,7 @@ export class Room extends EventEmitter implements Sayable {
       const data = await contactGetter(this.id)
       log.silly('Room', `contactGetter(${this.id}) resolved`)
       this.rawObj = data
-      await this.readyAllMembers(this.rawObj.MemberList)
+      await this.readyAllMembers(this.rawObj.MemberList || [])
       this.obj    = this.parse(this.rawObj)
       if (!this.obj) {
         throw new Error('no this.obj set after contactGetter')
