@@ -93,10 +93,12 @@ export class Room extends EventEmitter implements Sayable {
     return
   }
 
-  private async readyAllMembers(memberList: RoomRawMember[]): Promise<void> {
-    for (let member of memberList) {
-      let contact = Contact.load(member.UserName)
-      await contact.ready()
+  private async readyAllMembers(memberList?: RoomRawMember[]): Promise<void> {
+    if (memberList) {
+      for (let member of memberList) {
+        let contact = Contact.load(member.UserName)
+        await contact.ready()
+      }
     }
     return
   }
@@ -205,28 +207,27 @@ export class Room extends EventEmitter implements Sayable {
     }
 
     const memberList = this.parseMemberList(rawObj.MemberList)
-    const nameMap    = this.parseMap(rawObj.MemberList, 'name')
-    const aliasMap   = this.parseMap(rawObj.MemberList, 'alias')
+    const nameMap    = this.parseMap('name', rawObj.MemberList)
+    const aliasMap   = this.parseMap('alias', rawObj.MemberList)
 
     return {
       id:         rawObj.UserName,
       encryId:    rawObj.EncryChatRoomId, // ???
       topic:      rawObj.NickName,
       ownerUin:   rawObj.OwnerUin,
-
       memberList,
       nameMap,
       aliasMap,
     }
   }
 
-  private parseMemberList(rawMemberList: RoomRawMember[]): Contact[] {
+  private parseMemberList(rawMemberList?: RoomRawMember[]): Contact[] {
     if (!rawMemberList || !rawMemberList.map) {
       return []
     }
     return rawMemberList.map(m => Contact.load(m.UserName))
   }
-  private parseMap(memberList: RoomRawMember[], parseContent: NameType): Map<string, string> {
+  private parseMap(parseContent: NameType, memberList?: RoomRawMember[]): Map<string, string> {
     const mapList: Map<string, string> = new Map<string, string>()
     if (memberList && memberList.map) {
       memberList.forEach(member => {
@@ -352,7 +353,7 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   public alias(contact: Contact): string | null {
-    if (!this.obj) {
+    if (!this.obj || !this.obj.aliasMap) {
       return null
     }
     return this.obj.aliasMap[contact.id] || null
