@@ -79,11 +79,6 @@ export class Room extends EventEmitter implements Sayable {
     return !!(this.obj && this.obj.memberList && this.obj.memberList.length)
   }
 
-  // public refresh() {
-  //   log.warn('Room', 'refresh() DEPRECATED. use reload() instead.')
-  //   return this.reload()
-  // }
-
   public async refresh(): Promise<void> {
     if (this.isReady()) {
       this.dirtyObj = this.obj
@@ -102,11 +97,6 @@ export class Room extends EventEmitter implements Sayable {
     }
     return
   }
-
-  // public ready(contactGetter?: (id: string) => Promise<any>) {
-  //   log.warn('Room', 'ready() DEPRECATED. use load() instad.')
-  //   return this.load(contactGetter)
-  // }
 
   public async ready(contactGetter?: (id: string) => Promise<any>): Promise<void> {
     log.silly('Room', 'ready(%s)', contactGetter ? contactGetter.constructor.name : '')
@@ -346,7 +336,10 @@ export class Room extends EventEmitter implements Sayable {
     return UtilLib.plainText(this.obj ? this.obj.topic : '')
   }
 
-  // should be deprecated
+  /**
+   * should be deprecated
+   * @deprecated
+   */
   public nick(contact: Contact): string | null {
     log.warn('Room', 'nick(Contact) DEPRECATED, use alias(Contact) instead.')
     return this.alias(contact)
@@ -395,7 +388,6 @@ export class Room extends EventEmitter implements Sayable {
    * find member priority by `name`(contactAlias) / `alias`(roomAlias)
    * when use member(name:string), equals to member({name:string})
    */
-
   public member(filter: MemberQueryFilter): Contact | null
   public member(name: string): Contact | null
 
