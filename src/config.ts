@@ -204,6 +204,7 @@ export {
 /**
  * to handle unhandled exceptions
  */
+/*
 process.on('unhandledRejection', (reason, promise) => {
   log.error('Config', '###########################')
   log.error('Config', 'unhandledRejection: %s %s', reason, promise)
@@ -212,3 +213,4 @@ process.on('unhandledRejection', (reason, promise) => {
     log.error('Config', 'unhandledRejection::catch(%s)', err.message || err)
   })
 })
+*/
