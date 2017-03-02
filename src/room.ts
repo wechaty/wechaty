@@ -493,12 +493,12 @@ export class Room extends EventEmitter implements Sayable {
                   })
   }
 
-  public static async find(query: RoomQueryFilter): Promise<Room> {
+  public static async find(query: RoomQueryFilter): Promise<Room | null> {
     log.verbose('Room', 'find({ topic: %s })', query.topic)
 
     const roomList = await Room.findAll(query)
     if (!roomList || roomList.length < 1) {
-      throw new Error('no room found')
+      return null
     }
     const room = roomList[0]
     await room.ready()

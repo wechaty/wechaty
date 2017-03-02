@@ -350,12 +350,12 @@ export class Contact implements Sayable {
   /**
    * try to find a contact by filter: {name: string | RegExp}
    */
-  public static async find(query: ContactQueryFilter): Promise<Contact> {
+  public static async find(query: ContactQueryFilter): Promise<Contact | null> {
     log.verbose('Contact', 'find(%s)', JSON.stringify(query))
 
     const contactList = await Contact.findAll(query)
     if (!contactList || !contactList.length) {
-      throw new Error('find not found any contact')
+      return null
     }
 
     if (contactList.length > 1) {
