@@ -140,7 +140,7 @@
     "jsdoc-to-markdown": "^3.0.0",
     "nyc": "10.1.0",
     "qrcode-terminal": "0.11.0",
-    "request": "2.79.0",
+    "request": "2.80.0",
     "shx": "0.2.2",
     "sinon": "2.0.0-pre.6",
     "sloc": "0.2.0",
