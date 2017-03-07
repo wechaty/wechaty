@@ -403,17 +403,26 @@ export class Message implements Sayable {
     return fromId === userId
   }
 
-  public mention(): boolean {
-    const userId = Config.puppetInstance()
-                    .userId
-    if (!userId) {
-      throw new Error('no user!')
-    }
-    const regConfig = new RegExp('@ ' + Contact.load(userId).name())
-    if (regConfig.test(this.content())) {
-       return true
-    }
-    return false
+  public mention(): Contact[] {
+    let contactList: Contact[] = []
+    const room = this.room()
+    if (!room) return contactList
+    if (this.type() !== MsgType.TEXT) return contactList
+
+    const foundList = this.content().match(/@\S+ ?/g)
+    if (!foundList) return contactList
+
+    const mentionList = foundList.map(element => {
+      return element.slice(1)
+    })
+    log.verbose('Message', 'mention(%s),get mentionList: %s', this.content(), JSON.stringify(mentionList))
+    mentionList.forEach(name => {
+      const contact = room.member({alias: name}) || room.member({name: name})
+      if (contact) {
+        contactList.push(contact)
+      }
+    })
+    return contactList
   }
 
   // public ready() {
