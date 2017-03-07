@@ -222,7 +222,7 @@ export class Room extends EventEmitter implements Sayable {
             tmpName = contact.alias() || contact.name()
             break
           case 'alias':
-            tmpName = member.DisplayName || contact.name()
+            tmpName = member.DisplayName
             break
           default:
             throw new Error('parseMap failed, member not found')
