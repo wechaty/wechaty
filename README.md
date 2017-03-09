@@ -216,6 +216,7 @@ You can directly submit pull requests for documentation changes.
 * [cherry-geqi](https://github.com/cherry-geqi)
 * [lijiarui](https://github.com/lijiarui)
 * [xinbenlv](https://github.com/xinbenlv)
+* [Gcaufy](https://github.com/Gcaufy)
 
 ## Join us 
 
