@@ -111,8 +111,15 @@ function wechaty::runBot() {
   cd    "$HOME"
 
   [ -f package.json ] && {
-    echo "Install dependencies modules ..."
-    yarn < /dev/null || return $? # yarn will close stdin??? cause `read` command fail after yarn
+    # echo "Install dependencies modules ..."
+
+    #
+    # NPM module install will have problem in China.
+    # i.e. chromedriver need to visit a google host to download binarys.
+    #
+    echo "Please make sure you had installed all the NPM modules which is depended by your bot script."
+    # yarn < /dev/null || return $? # yarn will close stdin??? cause `read` command fail after yarn
+
   }
 
   # echo -n "Linking Wechaty module to bot ... "
@@ -200,7 +207,7 @@ function main() {
 
   echo
   echo -n "Starting Wechaty ... "
-
+  echo -n "NodeJS Version=$(node --version)"
   VERSION=$(WECHATY_LOG=WARN wechaty-version 2>/dev/null || echo '0.0.0(unknown)')
 
   echo "v$VERSION"

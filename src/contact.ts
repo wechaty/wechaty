@@ -1,14 +1,6 @@
-/**
- *
- * wechaty: Wechat for Bot. and for human who talk to bot/robot
- *
- * Licenst: ISC
- * https://github.com/zixia/wechaty
- *
- */
 import {
-    Config
-  , Sayable
+  Config,
+  Sayable,
 }                     from './config'
 import { Message }    from './message'
 import { PuppetWeb }  from './puppet-web'
@@ -17,35 +9,35 @@ import { Wechaty }    from './wechaty'
 import { log }        from './brolog-env'
 
 type ContactObj = {
-  address:    string
-  city:       string
-  id:         string
-  name:       string
-  province:   string
-  remark:     string|null
-  sex:        Gender
-  signature:  string
-  star:       boolean
-  stranger:   boolean
-  uin:        string
-  weixin:     string
-  avatar:     string  // XXX URL of HeadImgUrl
+  address:    string,
+  city:       string,
+  id:         string,
+  name:       string,
+  province:   string,
+  alias:      string|null,
+  sex:        Gender,
+  signature:  string,
+  star:       boolean,
+  stranger:   boolean,
+  uin:        string,
+  weixin:     string,
+  avatar:     string,  // XXX URL of HeadImgUrl
 }
 
 export type ContactRawObj = {
-  Alias:        string
-  City:         string
-  NickName:     string
-  Province:     string
-  RemarkName:   string
-  Sex:          Gender
-  Signature:    string
-  StarFriend:   string
-  Uin:          string
-  UserName:     string
-  HeadImgUrl:   string
+  Alias:        string,
+  City:         string,
+  NickName:     string,
+  Province:     string,
+  RemarkName:   string,
+  Sex:          Gender,
+  Signature:    string,
+  StarFriend:   string,
+  Uin:          string,
+  UserName:     string,
+  HeadImgUrl:   string,
 
-  stranger:     string // assign by injectio.js
+  stranger:     string, // assign by injectio.js
 }
 
 export enum Gender {
@@ -55,10 +47,18 @@ export enum Gender {
 }
 
 export type ContactQueryFilter = {
-  name?: string | RegExp
-  remark?: string | RegExp
+  name?:   string | RegExp,
+  alias?:  string | RegExp,
+  // DEPRECATED
+  remark?: string | RegExp,
 }
 
+/**
+ * Class Contact
+ * blabla...
+ * **IMPORTANT**
+ *
+ */
 export class Contact implements Sayable {
   private static pool = new Map<string, Contact>()
 
@@ -78,32 +78,32 @@ export class Contact implements Sayable {
     if (!this.obj) {
       return this.id
     }
-    return this.obj.remark || this.obj.name || this.id
+    return this.obj.alias || this.obj.name || this.id
   }
 
   public toStringEx() { return `Contact(${this.obj && this.obj.name}[${this.id}])` }
 
   private parse(rawObj: ContactRawObj): ContactObj | null {
-    if (!rawObj) {
+    if (!rawObj || !rawObj.UserName) {
       log.warn('Contact', 'parse() got empty rawObj!')
     }
 
     return !rawObj ? null : {
-      id:           rawObj.UserName // MMActualSender??? MMPeerUserName??? `getUserContact(message.MMActualSender,message.MMPeerUserName).HeadImgUrl`
-      , uin:        rawObj.Uin    // stable id: 4763975 || getCookie("wxuin")
-      , weixin:     rawObj.Alias  // Wechat ID
-      , name:       rawObj.NickName
-      , remark:     rawObj.RemarkName
-      , sex:        rawObj.Sex
-      , province:   rawObj.Province
-      , city:       rawObj.City
-      , signature:  rawObj.Signature
+      id:         rawObj.UserName, // MMActualSender??? MMPeerUserName??? `getUserContact(message.MMActualSender,message.MMPeerUserName).HeadImgUrl`
+      uin:        rawObj.Uin,    // stable id: 4763975 || getCookie("wxuin")
+      weixin:     rawObj.Alias,  // Wechat ID
+      name:       rawObj.NickName,
+      alias:      rawObj.RemarkName,
+      sex:        rawObj.Sex,
+      province:   rawObj.Province,
+      city:       rawObj.City,
+      signature:  rawObj.Signature,
 
-      , address:    rawObj.Alias // XXX: need a stable address for user
+      address:    rawObj.Alias, // XXX: need a stable address for user
 
-      , star:       !!rawObj.StarFriend
-      , stranger:   !!rawObj.stranger // assign by injectio.js
-      , avatar:     rawObj.HeadImgUrl
+      star:       !!rawObj.StarFriend,
+      stranger:   !!rawObj.stranger, // assign by injectio.js
+      avatar:     rawObj.HeadImgUrl,
     }
   }
 
@@ -113,7 +113,7 @@ export class Contact implements Sayable {
   public star()     { return this.obj && this.obj.star }
   /**
    * Contact gender
-   * @return Gender.Male(2) | Gender.Female(1) | Gender.Unknown(0)
+   * @returns Gender.Male(2) | Gender.Female(1) | Gender.Unknown(0)
    */
   public gender()   { return this.obj ? this.obj.sex : Gender.Unknown }
   public province() { return this.obj && this.obj.province }
@@ -222,21 +222,26 @@ export class Contact implements Sayable {
   }
 
   /**
-   * find contact by `name`(NickName) or `remark`(RemarkName)
+   * find contact by `name` or `alias`
    */
   public static async findAll(queryArg?: ContactQueryFilter): Promise<Contact[]> {
     let query: ContactQueryFilter
     if (queryArg) {
-      query = queryArg
+      if (queryArg.remark) {
+        log.warn('Contact', 'Contact.findAll({remark:%s}) DEPRECATED, use Contact.findAll({alias:%s}) instead.', queryArg.remark, queryArg.remark)
+        query = { alias: queryArg.remark}
+      } else {
+        query = queryArg
+      }
     } else {
       query = { name: /.*/ }
     }
 
     // log.verbose('Cotnact', 'findAll({ name: %s })', query.name)
-    log.verbose('Cotnact', 'findAll({ %s })'
-                          , Object.keys(query)
+    log.verbose('Cotnact', 'findAll({ %s })',
+                            Object.keys(query)
                                   .map(k => `${k}: ${query[k]}`)
-                                  .join(', ')
+                                  .join(', '),
               )
 
     if (Object.keys(query).length !== 1) {
@@ -248,7 +253,7 @@ export class Contact implements Sayable {
 
     const keyMap = {
       name:   'NickName',
-      remark: 'RemarkName',
+      alias:  'RemarkName',
     }
 
     filterKey = keyMap[filterKey]
@@ -287,55 +292,74 @@ export class Contact implements Sayable {
   }
 
   /**
-   * get the remark for contact
+   * get the alias for contact
    */
-  public remark(): string | null
+  public alias(): string | null
   /**
-   * set the remark for contact
+   * set the alias for contact
    * @return {Promise<boolean>} A promise to the result. true for success, false for failure
    */
-  public remark(newRemark: string): Promise<boolean>
+  public alias(newAlias: string): Promise<boolean>
   /**
-   * delete the remark for a contact
+   * delete the alias for a contact
    */
-  public remark(empty: null): Promise<boolean>
+  public alias(empty: null): Promise<boolean>
 
-  public remark(newRemark?: string|null): Promise<boolean> | string | null {
-    log.silly('Contact', 'remark(%s)', newRemark || '')
+  public alias(newAlias?: string|null): Promise<boolean> | string | null {
+    log.silly('Contact', 'alias(%s)', newAlias || '')
 
-    if (newRemark === undefined) {
-      return this.obj && this.obj.remark || null
+    if (newAlias === undefined) {
+      return this.obj && this.obj.alias || null
     }
 
     return Config.puppetInstance()
-                  .contactRemark(this, newRemark)
+                  .contactAlias(this, newAlias)
                   .then(ret => {
                     if (ret) {
                       if (this.obj) {
-                        this.obj.remark = newRemark
+                        this.obj.alias = newAlias
                       } else {
-                        log.error('Contact', 'remark() without this.obj?')
+                        log.error('Contact', 'alias() without this.obj?')
                       }
                     } else {
-                      log.warn('Contact', 'remark(%s) fail', newRemark)
+                      log.warn('Contact', 'alias(%s) fail', newAlias)
                     }
                     return ret
                   })
                   .catch(e => {
-                    log.error('Contact', 'remark(%s) rejected: %s', newRemark, e.message)
+                    log.error('Contact', 'alias(%s) rejected: %s', newAlias, e.message)
                     return false // fail safe
                   })
+  }
+
+  // function should be deprecated
+  public remark(newRemark?: string|null): Promise<boolean> | string | null {
+    log.warn('Contact', 'remark(%s) DEPRECATED, use alias(%s) instead.')
+    log.silly('Contact', 'remark(%s)', newRemark || '')
+
+    switch (newRemark) {
+      case undefined:
+        return this.alias()
+      case null:
+        return this.alias(null)
+      default:
+        return this.alias(newRemark)
+    }
   }
 
   /**
    * try to find a contact by filter: {name: string | RegExp}
    */
   public static async find(query: ContactQueryFilter): Promise<Contact> {
-    log.verbose('Contact', 'find(%s)', query.name)
+    log.verbose('Contact', 'find(%s)', JSON.stringify(query))
 
     const contactList = await Contact.findAll(query)
     if (!contactList || !contactList.length) {
       throw new Error('find not found any contact')
+    }
+
+    if (contactList.length > 1) {
+      log.warn('Contact', 'function find(%s) get %d contacts, use the first one by default', JSON.stringify(query), contactList.length)
     }
     return contactList[0]
   }

@@ -6,7 +6,7 @@
 
 Wechaty is a Bot Framework for Wechat **Personal** Account which can help you create a bot in 6 lines of javascript by easy to use API, with cross-platform support include [Linux](https://travis-ci.org/wechaty/wechaty), [Windows](https://ci.appveyor.com/project/wechaty/wechaty), [Darwin(OSX/Mac)](https://travis-ci.org/wechaty/wechaty) and [Docker](https://circleci.com/gh/wechaty/wechaty).
 
-[![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800)](https://nodejs.org/) [![Repo Size](https://reposs.herokuapp.com/?path=wechaty/wechaty)](https://github.com/wechaty/wechaty)
+[![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800)](https://nodejs.org/) [![Repo Size](https://reposs.herokuapp.com/?path=wechaty/wechaty)](https://github.com/wechaty/wechaty) [![Issue Stats](http://issuestats.com/github/wechaty/wechaty/badge/pr)](http://issuestats.com/github/wechaty/wechaty) [![Issue Stats](http://issuestats.com/github/wechaty/wechaty/badge/issue)](http://issuestats.com/github/wechaty/wechaty)
 
 :octocat: <https://github.com/wechaty/wechaty>  
 :beetle: <https://github.com/wechaty/wechaty/issues>  
@@ -25,10 +25,10 @@ Wechaty is a Bot Framework for Wechat **Personal** Account which can help you cr
 > -- @Samurais, SnapLingo Director of Engineering
 
 > "最好的微信开发库" [link](http://weibo.com/3296245513/Ec4iNp9Ld?type=comment)  
-> -- @Jarvis, Baidu
+> -- @Jarvis, Baidu Developer
 
 > "Wechaty让运营人员更多的时间思考如何进行活动策划、留存用户，商业变现" [link](http://mp.weixin.qq.com/s/dWHAj8XtiKG-1fIS5Og79g)  
-> -- @lijiarui
+> -- @lijiarui, Orange Interactive Technology CEO.
 
 > "太好用，好用的想哭" -- @xinbenlv, Google Engineer, HaoShiYou.org Founder
 
@@ -37,6 +37,8 @@ Wechaty is a Bot Framework for Wechat **Personal** Account which can help you cr
 > "it's quite cool!" [link](https://github.com/wechaty/wechaty/issues/4) - @ak5
 
 > "Thanks for great SDK" [link](https://github.com/wechaty/wechaty/issues/57) - @naishstar
+
+> "Your docker solution is awesome!" [link](https://github.com/wechaty/wechaty/issues/164#issuecomment-278633203) - @ax4 
 
 # The World's Shortest ChatBot Code: 6 lines of JavaScript
 
@@ -49,6 +51,7 @@ Wechaty.instance() // Singleton
 .on('message',  message => console.log(`Message: ${message}`))
 .init()
 ```
+> **Notice: Wechaty requires Node.js version >= 6.9.0**
 
 This bot can log all message to console.
 
@@ -62,7 +65,7 @@ You can find more example from [Wiki](https://github.com/wechaty/wechaty/wiki/Ex
 <a target="_blank" href="https://blog.wechaty.io/guide/2017/01/01/getting-started-wechaty.html"><img src="https://cloud.githubusercontent.com/assets/1361891/21722581/3ec957d0-d468-11e6-8888-a91c236e0ba2.jpg" border=0 width="60%"></a>
 </div>
 
-The above 10 minutes video tutorial was presented by @lijiarui, which is a good start if you are new to Wechaty.
+The above 10 minutes video tutorial is a good start point if you are new to Wechaty.
 
 ## Run
 
@@ -212,6 +215,7 @@ You can directly submit pull requests for documentation changes.
 * [JasLin](https://github.com/JasLin)
 * [cherry-geqi](https://github.com/cherry-geqi)
 * [lijiarui](https://github.com/lijiarui)
+* [xinbenlv](https://github.com/xinbenlv)
 
 ## Join us 
 
@@ -234,9 +238,15 @@ Scan now, then you can chat with other Wechaty developers! (secret code: _wechat
   - https://github.com/connorwyatt/Fluency-Injection
 * [ ] Use Observable for Throttle API Call Rate with Server
   - http://blog.thoughtram.io/angular/2016/01/06/taking-advantage-of-observables-in-angular2.html
+* [ ] [Generating Documentation for TypeScript Projects](https://blog.cloudflare.com/generating-documentation-for-typescript-projects/)
+
+Documentation
+-------------
+
+In order to sync the doc with the lastest code for best, Wechaty use [jsdoc](http://usejsdoc.org/) to descript API, and use [jsdoc-to-markdown](https://github.com/jsdoc2md/jsdoc-to-markdown/wiki) to generate markdown format document to [docs](docs/index.md) directory.
 
 My Story
-----------------
+--------
 My daily life/work depends on too much chat on wechat.
 * I almost have 14,000 wechat friends in May 2014, before wechat restricts a total number of friends to 5,000.
 * I almost have 400 wechat rooms that most of them have more than 400 members.
@@ -248,7 +258,7 @@ So a tireless bot working for me 24x7 on wechat, monitoring/filtering the most i
 At last, It's built for my personal study purpose of Automatically Testing.
 
 Author
------------------
+------
 Zhuohuan LI <zixia@zixia.net> (http://linkedin.com/in/zixia)
 
 <a href="http://stackoverflow.com/users/1123955/zixia">

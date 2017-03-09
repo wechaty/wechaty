@@ -16,14 +16,9 @@ export async function onMessage(message: Message): Promise<void> {
     const sender    = message.from()
     const content   = message.content()
 
-    if (room) {
-      await room.ready()
-    }
-    await sender.ready()
-
     console.log((room ? '[' + room.topic() + ']' : '')
                 + '<' + sender.name() + '>'
-                + ':' + message.toStringDigest()
+                + ':' + message.toStringDigest(),
     )
 
     if (message.self() || room) {
@@ -60,7 +55,8 @@ export async function onMessage(message: Message): Promise<void> {
      *
      * 到这里结束修改^^^^^^^^^^^^
      *
-     *********************************************/
+     */
+    /*********************************************/
   } catch (e) {
     console.log(e)
   }

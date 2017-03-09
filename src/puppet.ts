@@ -1,19 +1,7 @@
-/**
- * Wechaty - Wechat for Bot. Connecting ChatBots
- *
- * Interface for Puppet
- *
- * Class Puppet
- *
- * Licenst: ISC
- * https://github.com/wechaty/wechaty
- *
- */
-
 import { EventEmitter } from 'events'
 
 import {
-  Sayable
+  Sayable,
 }                       from './config'
 import { Contact }      from './contact'
 import { Message }      from './message'
@@ -24,6 +12,9 @@ import { Room }         from './room'
 //   (id: string): Promise<any>
 // }
 
+/**
+ * Abstract Puppet Class
+ */
 export abstract class Puppet extends EventEmitter implements Sayable {
   public userId:  string  | null
   public user:    Contact | null
@@ -67,5 +58,5 @@ export abstract class Puppet extends EventEmitter implements Sayable {
    * Contact
    */
   public abstract contactFind(filterFunc: string): Promise<Contact[]>
-  public abstract contactRemark(contact: Contact, remark: string|null): Promise<boolean>
+  public abstract contactAlias(contact: Contact, alias: string|null): Promise<boolean>
 }

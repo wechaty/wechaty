@@ -37,6 +37,7 @@ install:
   - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb; fi
   - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then sudo dpkg -i google-chrome*.deb; fi
 
+  - npm install phantomjs-prebuilt
   - npm --progress false --loglevel warn install
 
 script:
