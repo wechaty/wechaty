@@ -1,11 +1,11 @@
 import { test }   from 'ava'
 import {
-    Bridge
-  , Browser
-  , Event
-  , PuppetWeb
-  , Server
-  , Watchdog
+  Bridge,
+  Browser,
+  Event,
+  PuppetWeb,
+  Server,
+  Watchdog,
 } from './index'
 
 test('PuppetWeb Module Exports', t => {

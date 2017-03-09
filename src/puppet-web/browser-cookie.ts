@@ -23,13 +23,13 @@ import { BrowserDriver }  from './browser-driver'
  * 201610 zixia
  */
 export type CookieType = {
-  [index: string]: string | number | boolean
-  name: string
-  value: string
-  path: string
-  domain: string
-  secure: boolean
-  expiry: number
+  [index: string]: string | number | boolean,
+  name: string,
+  value: string,
+  path: string,
+  domain: string,
+  secure: boolean,
+  expiry: number,
 }
 
 export class BrowserCookie {
@@ -37,9 +37,9 @@ export class BrowserCookie {
     private driver: BrowserDriver,
     private storeFile?: string,
   ) {
-    log.verbose('PuppetWebBrowserCookie', 'constructor(%s, %s)'
-                                        , driver.constructor.name
-                                        , storeFile ? storeFile : ''
+    log.verbose('PuppetWebBrowserCookie', 'constructor(%s, %s)',
+                                          driver.constructor.name,
+                                          storeFile ? storeFile : '',
     )
   }
 
@@ -97,9 +97,9 @@ export class BrowserCookie {
 
     function cookieFilter(cookies: CookieType[]) {
       const skipNames = [
-        'ChromeDriver'
-        , 'MM_WX_SOUND_STATE'
-        , 'MM_WX_NOTIFY_STATE'
+        'ChromeDriver',
+        'MM_WX_SOUND_STATE',
+        'MM_WX_NOTIFY_STATE',
       ]
       const skipNamesRegex = new RegExp(skipNames.join('|'), 'i')
       return cookies.filter(c => {

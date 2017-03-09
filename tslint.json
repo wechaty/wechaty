@@ -1,4 +1,7 @@
 {
+  "rulesDirectory": [
+    "node_modules/tslint-jsdoc-rules/lib"
+  ],
   "rules": {
     "align": [
       false,
@@ -6,7 +9,10 @@
       "arguments",
       "statements"
     ],
-    "ban": false,
+    "jsdoc-require": [
+      false
+    ],
+   "ban": false,
     "class-name": true,
     "comment-format": [
       true,
@@ -20,7 +26,7 @@
       "spaces"
     ],
     "interface-name": false,
-    "jsdoc-format": false,
+    "jsdoc-format": true,
     "label-position": true,
     "max-line-length": [
       true,
@@ -65,9 +71,9 @@
     "semicolon": false,
     "switch-default": false,
     "trailing-comma": [
-      false,
+      true,
       {
-        "multiline": "never",
+        "multiline": "always",
         "singleline": "never"
       }
     ],

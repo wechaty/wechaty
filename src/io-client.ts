@@ -46,12 +46,12 @@ export class IoClient {
     }
 
     this.wechaty = Wechaty.instance({
-      profile: token
+      profile: token,
     })
 
     this.io = new Io({
-      wechaty: this.wechaty
-      , token: this.token
+      wechaty: this.wechaty,
+      token: this.token,
     })
 
   }

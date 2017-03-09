@@ -81,7 +81,6 @@ async function main() {
   const MAX = 17
   for (let i = 0; i < contactList.length; i++ ) {
     const contact = contactList[i]
-    await contact.ready()
 
     if (!contact.weixin()) {
       await contact.refresh()

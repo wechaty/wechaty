@@ -20,11 +20,11 @@ import { UtilLib } from '../src/util-lib'
 
 test.skip('Phantomjs replace javascript source file content test', async t => {
   const phantomjsArgs = [
-    '--load-images=false'
-    , '--ignore-ssl-errors=true'  // this help socket.io connect with localhost
-    , '--web-security=false'      // https://github.com/ariya/phantomjs/issues/12440#issuecomment-52155299
-    , '--ssl-protocol=TLSv1'      // https://github.com/ariya/phantomjs/issues/11239#issuecomment-42362211
-    , '--webdriver-loglevel=WARN'
+    '--load-images=false',
+    '--ignore-ssl-errors=true', // this help socket.io connect with localhost
+    '--web-security=false',     // https://github.com/ariya/phantomjs/issues/12440#issuecomment-52155299
+    '--ssl-protocol=TLSv1',     // https://github.com/ariya/phantomjs/issues/11239#issuecomment-42362211
+    '--webdriver-loglevel=WARN',
     // , '--webdriver-loglevel=DEBUG'
     // , '--webdriver-logfile=webdriver.debug.log'
     // , '--remote-debugger-port=8080'
@@ -104,11 +104,11 @@ test('Phantomjs http header', async t => {
     const options: url.Url = url.parse(serverUrl)
 
     options['headers'] = {
-      Accept: 'image/webp,image/*,*/*;q=0.8'
-      , 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'
-      , Referer: 'https://wx.qq.com/'
-      , 'Accept-Encoding': 'gzip, deflate, sdch'
-      , 'Accept-Language': 'zh-CN,zh;q=0.8'
+      Accept: 'image/webp,image/*,*/*;q=0.8',
+       'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36',
+       Referer: 'https://wx.qq.com/',
+       'Accept-Encoding': 'gzip, deflate, sdch',
+       'Accept-Language': 'zh-CN,zh;q=0.8',
     }
     options['agent'] = http.globalAgent
 
