@@ -25,10 +25,10 @@ Wechaty is a Bot Framework for Wechat **Personal** Account which can help you cr
 > -- @Samurais, SnapLingo Director of Engineering
 
 > "最好的微信开发库" [link](http://weibo.com/3296245513/Ec4iNp9Ld?type=comment)  
-> -- @Jarvis, Baidu
+> -- @Jarvis, Baidu Developer
 
 > "Wechaty让运营人员更多的时间思考如何进行活动策划、留存用户，商业变现" [link](http://mp.weixin.qq.com/s/dWHAj8XtiKG-1fIS5Og79g)  
-> -- @lijiarui
+> -- @lijiarui, Orange Interactive Technology CEO.
 
 > "太好用，好用的想哭" -- @xinbenlv, Google Engineer, HaoShiYou.org Founder
 

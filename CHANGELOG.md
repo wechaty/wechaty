@@ -11,6 +11,7 @@
 
 **Fixed bugs:**
 
+- Cannot read property 'Symbol\(Symbol.iterator\)' of undefined [\#273](https://github.com/wechaty/wechaty/issues/273)
 - \[docker\] chromium-browser fail to start after upgrading chromium from v53 to v56 [\#235](https://github.com/wechaty/wechaty/issues/235)
 - typo in Wiki [\#205](https://github.com/wechaty/wechaty/issues/205)
 - doc bug [\#196](https://github.com/wechaty/wechaty/issues/196)
@@ -19,6 +20,8 @@
 
 **Closed issues:**
 
+- wechaty 0.7.21 works but 0.7.24 failed with Argument of type 'string | Promise\<boolean\>' is not assignable to parameter of type 'string'. [\#282](https://github.com/wechaty/wechaty/issues/282)
+- how i can save avatar without await keywords? [\#278](https://github.com/wechaty/wechaty/issues/278)
 - 如何获取MsgType为APP类型的信息,解析不成xml [\#262](https://github.com/wechaty/wechaty/issues/262)
 - \[linting\] fix needed for new tslint rule: trailing-comma [\#251](https://github.com/wechaty/wechaty/issues/251)
 - Room&Contact.find\(\) should throw exception when it get more than one value [\#229](https://github.com/wechaty/wechaty/issues/229)
@@ -28,6 +31,8 @@
 
 **Merged pull requests:**
 
+- Add print nodejs version [\#280](https://github.com/wechaty/wechaty/pull/280) ([xinbenlv](https://github.com/xinbenlv))
+- load all memberList [\#275](https://github.com/wechaty/wechaty/pull/275) ([lijiarui](https://github.com/lijiarui))
 - add-sys-message-in-friendrequest [\#266](https://github.com/wechaty/wechaty/pull/266) ([lijiarui](https://github.com/lijiarui))
 - fix for new tslint rules [\#264](https://github.com/wechaty/wechaty/pull/264) ([lijiarui](https://github.com/lijiarui))
 - roomJoinFailed [\#249](https://github.com/wechaty/wechaty/pull/249) ([lijiarui](https://github.com/lijiarui))
