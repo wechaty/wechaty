@@ -79,11 +79,6 @@ export class Room extends EventEmitter implements Sayable {
     return !!(this.obj && this.obj.memberList && this.obj.memberList.length)
   }
 
-  // public refresh() {
-  //   log.warn('Room', 'refresh() DEPRECATED. use reload() instead.')
-  //   return this.reload()
-  // }
-
   public async refresh(): Promise<void> {
     if (this.isReady()) {
       this.dirtyObj = this.obj
@@ -100,11 +95,6 @@ export class Room extends EventEmitter implements Sayable {
     }
     return
   }
-
-  // public ready(contactGetter?: (id: string) => Promise<any>) {
-  //   log.warn('Room', 'ready() DEPRECATED. use load() instad.')
-  //   return this.load(contactGetter)
-  // }
 
   public async ready(contactGetter?: (id: string) => Promise<any>): Promise<void> {
     log.silly('Room', 'ready(%s)', contactGetter ? contactGetter.constructor.name : '')
@@ -130,7 +120,7 @@ export class Room extends EventEmitter implements Sayable {
       const data = await contactGetter(this.id)
       log.silly('Room', `contactGetter(${this.id}) resolved`)
       this.rawObj = data
-      await this.readyAllMembers(this.rawObj.MemberList)
+      await this.readyAllMembers(this.rawObj.MemberList || [])
       this.obj    = this.parse(this.rawObj)
       if (!this.obj) {
         throw new Error('no this.obj set after contactGetter')
@@ -204,29 +194,24 @@ export class Room extends EventEmitter implements Sayable {
       return null
     }
 
-    const memberList = this.parseMemberList(rawObj.MemberList)
-    const nameMap    = this.parseMap(rawObj.MemberList, 'name')
-    const aliasMap   = this.parseMap(rawObj.MemberList, 'alias')
+    const memberList = (rawObj.MemberList || [])
+                        .map(m => Contact.load(m.UserName))
+
+    const nameMap    = this.parseMap('name', rawObj.MemberList)
+    const aliasMap   = this.parseMap('alias', rawObj.MemberList)
 
     return {
       id:         rawObj.UserName,
       encryId:    rawObj.EncryChatRoomId, // ???
       topic:      rawObj.NickName,
       ownerUin:   rawObj.OwnerUin,
-
       memberList,
       nameMap,
       aliasMap,
     }
   }
 
-  private parseMemberList(rawMemberList: RoomRawMember[]): Contact[] {
-    if (!rawMemberList || !rawMemberList.map) {
-      return []
-    }
-    return rawMemberList.map(m => Contact.load(m.UserName))
-  }
-  private parseMap(memberList: RoomRawMember[], parseContent: NameType): Map<string, string> {
+  private parseMap(parseContent: NameType, memberList?: RoomRawMember[]): Map<string, string> {
     const mapList: Map<string, string> = new Map<string, string>()
     if (memberList && memberList.map) {
       memberList.forEach(member => {
@@ -345,14 +330,17 @@ export class Room extends EventEmitter implements Sayable {
     return UtilLib.plainText(this.obj ? this.obj.topic : '')
   }
 
-  // should be deprecated
+  /**
+   * should be deprecated
+   * @deprecated
+   */
   public nick(contact: Contact): string | null {
     log.warn('Room', 'nick(Contact) DEPRECATED, use alias(Contact) instead.')
     return this.alias(contact)
   }
 
   public alias(contact: Contact): string | null {
-    if (!this.obj) {
+    if (!this.obj || !this.obj.aliasMap) {
       return null
     }
     return this.obj.aliasMap[contact.id] || null
@@ -394,7 +382,6 @@ export class Room extends EventEmitter implements Sayable {
    * find member priority by `name`(contactAlias) / `alias`(roomAlias)
    * when use member(name:string), equals to member({name:string})
    */
-
   public member(filter: MemberQueryFilter): Contact | null
   public member(name: string): Contact | null
 

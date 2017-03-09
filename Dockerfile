@@ -60,8 +60,24 @@ VOLUME [ "/bot" ]
 ENTRYPOINT [ "/wechaty/bin/entrypoint.sh" ]
 CMD [ "" ]
 
-LABEL org.label-schema.license=ISC \
-      org.label-schema.vcs-ref=master \
-      org.label-schema.vcs-url=https://github.com/wechaty/wechaty
+#
+# https://docs.docker.com/docker-cloud/builds/advanced/
+# http://label-schema.org/rc1/
+#
+LABEL org.label-schema.license="ISC" \
+      org.label-schema.build-date="$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
+      org.label-schema.version="$DOCKER_TAG" \
+      org.label-schema.schema-version="$(wechaty-version)" \
+      org.label-schema.name="Wechaty" \
+      org.label-schema.description="Wechat for Bot" \
+      org.label-schema.usage="https://github.com/wechaty/wechaty/wiki/Docker" \
+      org.label-schema.url="https://www.chatie.io" \
+      org.label-schema.vendor="AKA Mobi" \
+      org.label-schema.vcs-ref="$SOURCE_COMMIT" \
+      org.label-schema.vcs-url="https://github.com/wechaty/wechaty" \
+      org.label-schema.docker.cmd="docker run -ti --rm zixia/wechaty <code.js>" \
+      org.label-schema.docker.cmd.test="docker run -ti --rm zixia/wechaty test" \
+      org.label-schema.docker.cmd.help="docker run -ti --rm zixia/wechaty help" \
+      org.label-schema.docker.params="WECHATY_TOKEN=token token from https://www.chatie.io"
 
 #RUN npm test
