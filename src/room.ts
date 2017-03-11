@@ -222,7 +222,7 @@ export class Room extends EventEmitter implements Sayable {
             tmpName = contact.alias() || contact.name()
             break
           case 'alias':
-            tmpName = member.DisplayName || contact.name()
+            tmpName = member.DisplayName
             break
           default:
             throw new Error('parseMap failed, member not found')
@@ -339,6 +339,11 @@ export class Room extends EventEmitter implements Sayable {
     return this.alias(contact)
   }
 
+  /**
+   * find contact's roomAlias in the room
+   * @param {Contact} contact
+   * @returns {string | null} If can find contact's roomAlias, return string, or return null
+   */
   public alias(contact: Contact): string | null {
     if (!this.obj || !this.obj.aliasMap) {
       return null

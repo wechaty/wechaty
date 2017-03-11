@@ -119,7 +119,7 @@ test('Room smoking test', async t => {
   t.is(nick2, EXPECTED.memberNick2, 'should get name if not set roomAlias')
 
   const name2 = r.alias(contact2)
-  t.is(name2, EXPECTED.memberNick2, 'should get name if not set roomAlias')
+  t.is(name2, null, 'should return null if not set roomAlias')
 
   t.truthy(r.has(contact1), 'should has contact1')
   const noSuchContact = new Contact('not exist id')
