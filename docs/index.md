@@ -193,6 +193,47 @@ https://github.com/zixia/wechaty
 Add/Del/Topic: https://github.com/wechaty/wechaty/issues/32
 
 **Kind**: global class  
+
+* [Room](#Room)
+    * _instance_
+        * ~~[.nick()](#Room+nick)~~
+        * [.alias(contact)](#Room+alias) ⇒ <code>string</code> &#124; <code>null</code>
+    * _static_
+        * [.find(query)](#Room.find) ⇒ <code>Promise.&lt;(Room\|null)&gt;</code>
+        * [.load()](#Room.load)
+
+<a name="Room+nick"></a>
+
+### ~~room.nick()~~
+***Deprecated***
+
+should be deprecated
+
+**Kind**: instance method of <code>[Room](#Room)</code>  
+<a name="Room+alias"></a>
+
+### room.alias(contact) ⇒ <code>string</code> &#124; <code>null</code>
+find contact's roomAlias in the room
+
+**Kind**: instance method of <code>[Room](#Room)</code>  
+**Returns**: <code>string</code> &#124; <code>null</code> - If can find contact's roomAlias, return string, or return null  
+
+| Param | Type |
+| --- | --- |
+| contact | <code>[Contact](#Contact)</code> | 
+
+<a name="Room.find"></a>
+
+### Room.find(query) ⇒ <code>Promise.&lt;(Room\|null)&gt;</code>
+try to find a room by filter: {topic: string | RegExp}
+
+**Kind**: static method of <code>[Room](#Room)</code>  
+**Returns**: <code>Promise.&lt;(Room\|null)&gt;</code> - If can find the room, return Room, or return null  
+
+| Param | Type |
+| --- | --- |
+| query | <code>RoomQueryFilter</code> | 
+
 <a name="Room.load"></a>
 
 ### Room.load()
@@ -216,7 +257,7 @@ blabla...
         * [.avatar()](#Contact+avatar)
     * _static_
         * [.findAll()](#Contact.findAll)
-        * [.find()](#Contact.find)
+        * [.find(query)](#Contact.find) ⇒ <code>Promise.&lt;(Contact\|null)&gt;</code>
 
 <a name="Contact+gender"></a>
 
@@ -239,10 +280,16 @@ find contact by `name` or `alias`
 **Kind**: static method of <code>[Contact](#Contact)</code>  
 <a name="Contact.find"></a>
 
-### Contact.find()
-try to find a contact by filter: {name: string | RegExp}
+### Contact.find(query) ⇒ <code>Promise.&lt;(Contact\|null)&gt;</code>
+try to find a contact by filter: {name: string | RegExp} / {alias: string | RegExp}
 
 **Kind**: static method of <code>[Contact](#Contact)</code>  
+**Returns**: <code>Promise.&lt;(Contact\|null)&gt;</code> - If can find the contact, return Contact, or return null  
+
+| Param | Type |
+| --- | --- |
+| query | <code>ContactQueryFilter</code> | 
+
 <a name="config_1"></a>
 
 ## config_1
