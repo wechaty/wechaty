@@ -348,7 +348,9 @@ export class Contact implements Sayable {
   }
 
   /**
-   * try to find a contact by filter: {name: string | RegExp}
+   * try to find a contact by filter: {name: string | RegExp} / {alias: string | RegExp}
+   * @param {ContactQueryFilter} query
+   * @returns {Promise<Contact | null>} If can find the contact, return Contact, or return null
    */
   public static async find(query: ContactQueryFilter): Promise<Contact | null> {
     log.verbose('Contact', 'find(%s)', JSON.stringify(query))

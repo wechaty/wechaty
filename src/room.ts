@@ -493,6 +493,11 @@ export class Room extends EventEmitter implements Sayable {
                   })
   }
 
+  /**
+   * try to find a room by filter: {topic: string | RegExp}
+   * @param {RoomQueryFilter} query
+   * @returns {Promise<Room | null>} If can find the room, return Room, or return null
+   */
   public static async find(query: RoomQueryFilter): Promise<Room | null> {
     log.verbose('Room', 'find({ topic: %s })', query.topic)
 
