@@ -30,6 +30,7 @@ export async function onFriend(contact: Contact, request?: FriendRequest): Promi
 
     if (request.hello === 'ding') {
       const myRoom = await Room.find({ topic: 'ding' })
+      if (!myRoom) return
       setTimeout(function() {
         myRoom.add(contact)
         myRoom.say('welcome ' + contact.name())
