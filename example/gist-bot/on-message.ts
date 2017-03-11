@@ -36,6 +36,7 @@ export async function onMessage(message: Message): Promise<void> {
       message.say('thanks for ding me')
 
       const myRoom = await Room.find({ topic: 'ding' })
+      if (!myRoom) return
 
       if (myRoom.has(sender)) {
         sender.say('no need to ding again, because you are already in ding room')
