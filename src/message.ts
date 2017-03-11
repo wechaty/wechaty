@@ -403,6 +403,10 @@ export class Message implements Sayable {
     return fromId === userId
   }
 
+  /**
+   * Get the mentioned contact which the message is mentioned for.
+   * @returns {Contact[]} return the contactList which the message is mentioned for
+   */
   public mention(): Contact[] {
     let contactList: Contact[] = []
     const room = this.room()
@@ -413,6 +417,11 @@ export class Message implements Sayable {
     if (!foundList) return contactList
 
     const mentionList = foundList.map(element => {
+      /**
+       * fake '@' return element.slice(1, -1), wechat real '@' return element.slice(1)
+       * fake '@': @ event is produced by typeing '@lijiarui '
+       * real '@': @ event is produced by long press the contact's avatar
+       */
       return element.slice(1)
     })
     log.verbose('Message', 'mention(%s),get mentionList: %s', this.content(), JSON.stringify(mentionList))
