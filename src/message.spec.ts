@@ -166,7 +166,6 @@ test('mention()', async t => {
     puppet1 = { getContact: mockContactGetter }
     Config.puppetInstance(puppet1)
   }
-
   const m = new Message(rawData)
   const room = m.room()
   if (room) {
