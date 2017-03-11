@@ -89,19 +89,30 @@ Object.assign(Config, {
  * 4. Envioronment Identify
  */
 Object.assign(Config, {
-  isDocker:   isWechatyDocker(),
+  isDocker:  isWechatyDocker(),
+  isGlobal:  isWechatyInstalledGlobal(),
 })
+
+function isWechatyInstalledGlobal() {
+  /**
+   * TODO:
+   * 1. check /node_modules/wechaty
+   * 2. return true if exists
+   * 3. otherwise return false
+   */
+   return false
+}
 
 function isWechatyDocker() {
   /**
-   * Continuous Integration System
+   * false for Continuous Integration System
    */
   if (isCi) {
     return false
   }
 
   /**
-   * Cloud9 IDE
+   * false Cloud9 IDE
    */
   const c9 = Object.keys(process.env)
                   .filter(k => /^C9_/.test(k))
@@ -110,6 +121,9 @@ function isWechatyDocker() {
     return false
   }
 
+  /**
+   * return indentify result by NPM module `is-docker`
+   */
   return isDocker()
 }
 
@@ -204,6 +218,7 @@ export {
 /**
  * to handle unhandled exceptions
  */
+/*
 process.on('unhandledRejection', (reason, promise) => {
   log.error('Config', '###########################')
   log.error('Config', 'unhandledRejection: %s %s', reason, promise)
@@ -212,3 +227,4 @@ process.on('unhandledRejection', (reason, promise) => {
     log.error('Config', 'unhandledRejection::catch(%s)', err.message || err)
   })
 })
+*/
