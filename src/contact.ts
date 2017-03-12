@@ -40,6 +40,12 @@ export type ContactRawObj = {
   stranger:     string, // assign by injectio.js
 }
 
+/**
+ * Enum for Gender values.
+ * @readonly
+ * @export
+ * @enum {number}
+ */
 export enum Gender {
   Unknown = 0,
   Male    = 1,
@@ -106,20 +112,80 @@ export class Contact implements Sayable {
     }
   }
 
+  /**
+   * Get the weixin number from a contact
+   * Sometimes cannot get weixin number due to weixin security mechanism, not recommend.
+   *
+   * @returns {string | ''}
+   *
+   * @memberOf Contact
+   */
   public weixin()   { return this.obj && this.obj.weixin || '' }
+
+  /**
+   * Get the name from a contact
+   *
+   * @returns {string | ''}
+   * 
+   * @memberOf Contact
+   */
   public name()     { return UtilLib.plainText(this.obj && this.obj.name || '') }
+
+  /**
+   * 
+   * 
+   * @returns
+   * 
+   * @memberOf Contact
+   */
   public stranger() { return this.obj && this.obj.stranger }
+
+  /**
+   * 
+   * 
+   * @returns
+   * 
+   * @memberOf Contact
+   */
   public star()     { return this.obj && this.obj.star }
   /**
    * Contact gender
    * @returns Gender.Male(2) | Gender.Female(1) | Gender.Unknown(0)
    */
+  /**
+   * 
+   * 
+   * @returns
+   * 
+   * @memberOf Contact
+   */
   public gender()   { return this.obj ? this.obj.sex : Gender.Unknown }
+  /**
+   * 
+   * 
+   * @returns
+   * 
+   * @memberOf Contact
+   */
   public province() { return this.obj && this.obj.province }
+  /**
+   * 
+   * 
+   * @returns
+   * 
+   * @memberOf Contact
+   */
   public city()     { return this.obj && this.obj.city }
 
   /**
    * Get avatar picture file stream
+   */
+  /**
+   * 
+   * 
+   * @returns {Promise<NodeJS.ReadableStream>}
+   * 
+   * @memberOf Contact
    */
   public async avatar(): Promise<NodeJS.ReadableStream> {
     log.verbose('Contact', 'avatar()')
@@ -143,6 +209,13 @@ export class Contact implements Sayable {
 
   public get(prop)  { return this.obj && this.obj[prop] }
 
+  /**
+   * 
+   * 
+   * @returns {boolean}
+   * 
+   * @memberOf Contact
+   */
   public isReady(): boolean {
     return !!(this.obj && this.obj.id && this.obj.name !== undefined)
   }
@@ -152,6 +225,13 @@ export class Contact implements Sayable {
   //   return this.reload()
   // }
 
+  /**
+   * 
+   * 
+   * @returns {Promise<this>}
+   * 
+   * @memberOf Contact
+   */
   public async refresh(): Promise<this> {
     if (this.isReady()) {
       this.dirtyObj = this.obj
@@ -165,6 +245,14 @@ export class Contact implements Sayable {
   //   return this.load()
   // }
 
+  /**
+   * 
+   * 
+   * @param {(id: string) => Promise<ContactRawObj>} [contactGetter]
+   * @returns {Promise<this>}
+   * 
+   * @memberOf Contact
+   */
   public async ready(contactGetter?: (id: string) => Promise<ContactRawObj>): Promise<this> {
     log.silly('Contact', 'ready(' + (contactGetter ? typeof contactGetter : '') + ')')
     if (!this.id) {
@@ -198,15 +286,34 @@ export class Contact implements Sayable {
     }
   }
 
+  /**
+   * 
+   * 
+   * 
+   * @memberOf Contact
+   */
   public dumpRaw() {
     console.error('======= dump raw contact =======')
     Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj[k]}`))
   }
+  /**
+   * 
+   * 
+   * 
+   * @memberOf Contact
+   */
   public dump()    {
     console.error('======= dump contact =======')
     Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj && this.obj[k]}`))
   }
 
+  /**
+   * 
+   * 
+   * @returns {boolean}
+   * 
+   * @memberOf Contact
+   */
   public self(): boolean {
     const userId = Config.puppetInstance()
                           .userId
@@ -222,6 +329,15 @@ export class Contact implements Sayable {
 
   /**
    * find contact by `name` or `alias`
+   */
+  /**
+   * 
+   * 
+   * @static
+   * @param {ContactQueryFilter} [queryArg]
+   * @returns {Promise<Contact[]>}
+   * 
+   * @memberOf Contact
    */
   public static async findAll(queryArg?: ContactQueryFilter): Promise<Contact[]> {
     let query: ContactQueryFilter
@@ -293,14 +409,37 @@ export class Contact implements Sayable {
   /**
    * get the alias for contact
    */
+  /**
+   * 
+   * 
+   * @returns {(string | null)}
+   * 
+   * @memberOf Contact
+   */
   public alias(): string | null
   /**
    * set the alias for contact
    * @return {Promise<boolean>} A promise to the result. true for success, false for failure
    */
+  /**
+   * 
+   * 
+   * @param {string} newAlias
+   * @returns {Promise<boolean>}
+   * 
+   * @memberOf Contact
+   */
   public alias(newAlias: string): Promise<boolean>
   /**
    * delete the alias for a contact
+   */
+  /**
+   * 
+   * 
+   * @param {null} empty
+   * @returns {Promise<boolean>}
+   * 
+   * @memberOf Contact
    */
   public alias(empty: null): Promise<boolean>
 
@@ -351,6 +490,15 @@ export class Contact implements Sayable {
    * @param {ContactQueryFilter} query
    * @returns {Promise<Contact | null>} If can find the contact, return Contact, or return null
    */
+  /**
+   * 
+   * 
+   * @static
+   * @param {ContactQueryFilter} query
+   * @returns {(Promise<Contact | null>)}
+   * 
+   * @memberOf Contact
+   */
   public static async find(query: ContactQueryFilter): Promise<Contact | null> {
     log.verbose('Contact', 'find(%s)', JSON.stringify(query))
 
@@ -365,6 +513,15 @@ export class Contact implements Sayable {
     return contactList[0]
   }
 
+  /**
+   * 
+   * 
+   * @static
+   * @param {string} id
+   * @returns {Contact}
+   * 
+   * @memberOf Contact
+   */
   public static load(id: string): Contact {
     if (!id || typeof id !== 'string') {
       throw new Error('Contact.load(): id not found')
@@ -376,6 +533,14 @@ export class Contact implements Sayable {
     return Contact.pool[id]
   }
 
+  /**
+   * 
+   * 
+   * @param {string} content
+   * @returns {Promise<void>}
+   * 
+   * @memberOf Contact
+   */
   public async say(content: string): Promise<void> {
     log.verbose('Contact', 'say(%s)', content)
 
