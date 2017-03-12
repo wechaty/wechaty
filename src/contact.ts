@@ -45,19 +45,13 @@ export type ContactRawObj = {
  * @readonly
  * @export
  * @enum {number}
+ *  0 - Unknown
+ *  1 - Male
+ *  2 - Female
  */
 export enum Gender {
-  /**
-   * 0 - Unknown vlue
-   */
   Unknown = 0,
-  /**
-   * 1 - Male
-   */
   Male    = 1,
-  /**
-   * 2 - Female
-   */
   Female  = 2,
 }
 

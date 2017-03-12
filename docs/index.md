@@ -30,20 +30,6 @@ Wechaty.instance() // Singleton
 </dd>
 </dl>
 
-## Members
-
-<dl>
-<dt><a href="#Gender[undefined]">Gender[undefined]</a></dt>
-<dd><p>0 - Unknown vlue</p>
-</dd>
-<dt><a href="#Gender[undefined]">Gender[undefined]</a></dt>
-<dd><p>1 - Male</p>
-</dd>
-<dt><a href="#Gender[undefined]">Gender[undefined]</a></dt>
-<dd><p>2 - Female</p>
-</dd>
-</dl>
-
 ## Constants
 
 <dl>
@@ -397,24 +383,6 @@ Load data for Contact by id
 | --- | --- |
 | id | <code>string</code> | 
 
-<a name="Gender[undefined]"></a>
-
-## Gender[undefined]
-0 - Unknown vlue
-
-**Kind**: global variable  
-<a name="Gender[undefined]"></a>
-
-## Gender[undefined]
-1 - Male
-
-**Kind**: global variable  
-<a name="Gender[undefined]"></a>
-
-## Gender[undefined]
-2 - Female
-
-**Kind**: global variable  
 <a name="Gender"></a>
 
 ## Gender : <code>enum</code>
