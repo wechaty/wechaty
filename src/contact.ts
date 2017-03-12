@@ -55,9 +55,8 @@ export type ContactQueryFilter = {
 
 /**
  * Class Contact
- * blabla...
- * **IMPORTANT**
  *
+ * `Contact` is `Sayable`
  */
 export class Contact implements Sayable {
   private static pool = new Map<string, Contact>()
