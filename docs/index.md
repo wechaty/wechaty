@@ -30,6 +30,20 @@ Wechaty.instance() // Singleton
 </dd>
 </dl>
 
+## Members
+
+<dl>
+<dt><a href="#Gender[undefined]">Gender[undefined]</a></dt>
+<dd><p>0 - Unknown vlue</p>
+</dd>
+<dt><a href="#Gender[undefined]">Gender[undefined]</a></dt>
+<dd><p>1 - Male</p>
+</dd>
+<dt><a href="#Gender[undefined]">Gender[undefined]</a></dt>
+<dd><p>2 - Female</p>
+</dd>
+</dl>
+
 ## Constants
 
 <dl>
@@ -252,12 +266,49 @@ Class Contact
 
 * [Contact](#Contact)
     * _instance_
+        * [.weixin()](#Contact+weixin) ⇒ <code>string</code> &#124; <code>&#x27;&#x27;</code>
+        * [.name()](#Contact+name) ⇒ <code>string</code> &#124; <code>&#x27;&#x27;</code>
+        * [.stranger()](#Contact+stranger) ⇒ <code>boolean</code>
+        * [.star()](#Contact+star) ⇒ <code>boolean</code>
         * [.gender()](#Contact+gender) ⇒
-        * [.avatar()](#Contact+avatar)
+        * [.province()](#Contact+province) ⇒ <code>string</code> &#124; <code>undefined</code>
+        * [.city()](#Contact+city) ⇒ <code>string</code> &#124; <code>undefined</code>
+        * [.avatar()](#Contact+avatar) ⇒ <code>Promise.&lt;NodeJS.ReadableStream&gt;</code>
+        * [.refresh()](#Contact+refresh) ⇒ <code>Promise.&lt;this&gt;</code>
+        * [.self()](#Contact+self) ⇒ <code>boolean</code>
+        * [.say(content)](#Contact+say) ⇒ <code>Promise.&lt;void&gt;</code>
     * _static_
-        * [.findAll()](#Contact.findAll)
+        * [.findAll([queryArg])](#Contact.findAll) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
         * [.find(query)](#Contact.find) ⇒ <code>Promise.&lt;(Contact\|null)&gt;</code>
+        * [.load(id)](#Contact.load) ⇒ <code>[Contact](#Contact)</code>
 
+<a name="Contact+weixin"></a>
+
+### contact.weixin() ⇒ <code>string</code> &#124; <code>&#x27;&#x27;</code>
+Get the weixin number from a contact
+Sometimes cannot get weixin number due to weixin security mechanism, not recommend.
+
+**Kind**: instance method of <code>[Contact](#Contact)</code>  
+<a name="Contact+name"></a>
+
+### contact.name() ⇒ <code>string</code> &#124; <code>&#x27;&#x27;</code>
+Get the name from a contact
+
+**Kind**: instance method of <code>[Contact](#Contact)</code>  
+<a name="Contact+stranger"></a>
+
+### contact.stranger() ⇒ <code>boolean</code>
+Check if contact is strange
+
+**Kind**: instance method of <code>[Contact](#Contact)</code>  
+**Returns**: <code>boolean</code> - True for not friend of the bot, False for friend of the bot  
+<a name="Contact+star"></a>
+
+### contact.star() ⇒ <code>boolean</code>
+Check if the contact is star contact.
+
+**Kind**: instance method of <code>[Contact](#Contact)</code>  
+**Returns**: <code>boolean</code> - True for star friend, False for no star friend  
 <a name="Contact+gender"></a>
 
 ### contact.gender() ⇒
@@ -265,22 +316,63 @@ Contact gender
 
 **Kind**: instance method of <code>[Contact](#Contact)</code>  
 **Returns**: Gender.Male(2) | Gender.Female(1) | Gender.Unknown(0)  
+<a name="Contact+province"></a>
+
+### contact.province() ⇒ <code>string</code> &#124; <code>undefined</code>
+Get the region 'province' from a contact
+
+**Kind**: instance method of <code>[Contact](#Contact)</code>  
+<a name="Contact+city"></a>
+
+### contact.city() ⇒ <code>string</code> &#124; <code>undefined</code>
+Get the region 'city' from a contact
+
+**Kind**: instance method of <code>[Contact](#Contact)</code>  
 <a name="Contact+avatar"></a>
 
-### contact.avatar()
+### contact.avatar() ⇒ <code>Promise.&lt;NodeJS.ReadableStream&gt;</code>
 Get avatar picture file stream
 
 **Kind**: instance method of <code>[Contact](#Contact)</code>  
+<a name="Contact+refresh"></a>
+
+### contact.refresh() ⇒ <code>Promise.&lt;this&gt;</code>
+Force reload data for Contact
+
+**Kind**: instance method of <code>[Contact](#Contact)</code>  
+<a name="Contact+self"></a>
+
+### contact.self() ⇒ <code>boolean</code>
+Check if contact is self
+
+**Kind**: instance method of <code>[Contact](#Contact)</code>  
+**Returns**: <code>boolean</code> - True for contact is self, False for contact is others  
+<a name="Contact+say"></a>
+
+### contact.say(content) ⇒ <code>Promise.&lt;void&gt;</code>
+Say `content` to Contact
+
+**Kind**: instance method of <code>[Contact](#Contact)</code>  
+
+| Param | Type |
+| --- | --- |
+| content | <code>string</code> | 
+
 <a name="Contact.findAll"></a>
 
-### Contact.findAll()
-find contact by `name` or `alias`
+### Contact.findAll([queryArg]) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
+If use Contact.findAll() get the contact list of the bot.
 
 **Kind**: static method of <code>[Contact](#Contact)</code>  
+
+| Param | Type |
+| --- | --- |
+| [queryArg] | <code>ContactQueryFilter</code> | 
+
 <a name="Contact.find"></a>
 
 ### Contact.find(query) ⇒ <code>Promise.&lt;(Contact\|null)&gt;</code>
-try to find a contact by filter: {name: string | RegExp} / {alias: string | RegExp}
+Find contact by name or alias, if the result more than one, return the first one.
 
 **Kind**: static method of <code>[Contact](#Contact)</code>  
 **Returns**: <code>Promise.&lt;(Contact\|null)&gt;</code> - If can find the contact, return Contact, or return null  
@@ -289,6 +381,48 @@ try to find a contact by filter: {name: string | RegExp} / {alias: string | RegE
 | --- | --- |
 | query | <code>ContactQueryFilter</code> | 
 
+**Example**  
+```
+const contactFindByName = await Contact.find({ name:"ContactName"} )
+const contactFindByAlias = await Contact.find({ alias:"ContactAlias"} )
+```
+<a name="Contact.load"></a>
+
+### Contact.load(id) ⇒ <code>[Contact](#Contact)</code>
+Load data for Contact by id
+
+**Kind**: static method of <code>[Contact](#Contact)</code>  
+
+| Param | Type |
+| --- | --- |
+| id | <code>string</code> | 
+
+<a name="Gender[undefined]"></a>
+
+## Gender[undefined]
+0 - Unknown vlue
+
+**Kind**: global variable  
+<a name="Gender[undefined]"></a>
+
+## Gender[undefined]
+1 - Male
+
+**Kind**: global variable  
+<a name="Gender[undefined]"></a>
+
+## Gender[undefined]
+2 - Female
+
+**Kind**: global variable  
+<a name="Gender"></a>
+
+## Gender : <code>enum</code>
+Enum for Gender values.
+
+**Kind**: global enum  
+**Read only**: true  
+**Export**:   
 <a name="config_1"></a>
 
 ## config_1
