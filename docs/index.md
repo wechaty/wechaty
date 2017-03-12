@@ -25,9 +25,8 @@ Wechaty.instance() // Singleton
 <p>Add/Del/Topic: <a href="https://github.com/wechaty/wechaty/issues/32">https://github.com/wechaty/wechaty/issues/32</a></p>
 </dd>
 <dt><a href="#Contact">Contact</a></dt>
-<dd><p>Class Contact
-blabla...
-<strong>IMPORTANT</strong></p>
+<dd><p>Class Contact</p>
+<p><code>Contact</code> is <code>Sayable</code></p>
 </dd>
 </dl>
 
@@ -246,8 +245,8 @@ try to find a room by filter: {topic: string | RegExp}
 
 ## Contact
 Class Contact
-blabla...
-**IMPORTANT**
+
+`Contact` is `Sayable`
 
 **Kind**: global class  
 
