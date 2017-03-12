@@ -15,14 +15,14 @@ Wechaty is a Bot Framework for Wechat **Personal** Account which can help you cr
 
 ## Voice of the Developer
 
+> "Wechaty is a great solution, I believe there would be much more users recognize it." [link](https://github.com/Chatie/wechaty/pull/310#issuecomment-285574472)
+> -- @Gcaufy, Tencent 
+
 > "The best wechat SDK I have seen in Github!" [link](https://github.com/Chatie/wechaty/issues/8#issuecomment-228971491)  
 > -- @JasLin, BotWave CTO
 
 > "Wechaty简单的接口...和Docker化的封装...绝对是一个不错的选择" [link](http://mp.weixin.qq.com/s/o-4VMcAMz0K8yJVdNaUXow)  
 > -- @shevyan, Ghost Cloud CEO
-
-> "Wechaty is a great solution, I believe there would be much more users recognize it." [link](https://github.com/Chatie/wechaty/pull/310#issuecomment-285574472)
-> -- @Gcaufy, Tencent 
 
 > "Wechaty is great." [link](https://github.com/Chatie/wechaty/issues/36#issuecomment-251708382)  
 > -- @Samurais, SnapLingo Director of Engineering
