@@ -4,7 +4,7 @@
 
 ## Connecting ChatBots.
 
-Wechaty is a Bot Framework for Wechat **Personal** Account which can help you create a bot in 6 lines of javascript by easy to use API, with cross-platform support include [Linux](https://travis-ci.org/Chatie/wechaty), [Windows](https://ci.appveyor.com/project/Chatie/wechaty), [Darwin(OSX/Mac)](https://travis-ci.org/Chatie/wechaty) and [Docker](https://circleci.com/gh/Chatie/wechaty).
+Wechaty is a Bot Framework for Wechat **Personal** Account which can help you create a bot in 6 lines of javascript by easy to use API, with cross-platform support include [Linux](https://travis-ci.org/Chatie/wechaty), [Windows](https://ci.appveyor.com/project/wechaty/wechaty), [Darwin(OSX/Mac)](https://travis-ci.org/Chatie/wechaty) and [Docker](https://circleci.com/gh/Chatie/wechaty).
 
 [![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800)](https://nodejs.org/) [![Repo Size](https://reposs.herokuapp.com/?path=Chatie/wechaty)](https://github.com/Chatie/wechaty) [![Issue Stats](http://issuestats.com/github/Chatie/wechaty/badge/pr)](http://issuestats.com/github/Chatie/wechaty) [![Issue Stats](http://issuestats.com/github/Chatie/wechaty/badge/issue)](http://issuestats.com/github/Chatie/wechaty)
 
@@ -15,7 +15,7 @@ Wechaty is a Bot Framework for Wechat **Personal** Account which can help you cr
 
 ## Voice of the Developer
 
-> "Wechaty is a great solution, I believe there would be much more users recognize it." [link](https://github.com/Chatie/wechaty/pull/310#issuecomment-285574472)
+> "Wechaty is a great solution, I believe there would be much more users recognize it." [link](https://github.com/Chatie/wechaty/pull/310#issuecomment-285574472)  
 > -- @Gcaufy, Tencent 
 
 > "The best wechat SDK I have seen in Github!" [link](https://github.com/Chatie/wechaty/issues/8#issuecomment-228971491)  
@@ -178,7 +178,7 @@ The following VPS providers is used by ourselves, they worked perfectly in produ
 
 # Test
 
-[![Linux/Mac Build Status](https://img.shields.io/travis/Chatie/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/Chatie/wechaty) [![Windows Build status](https://img.shields.io/appveyor/ci/Chatie/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/Chatie/wechaty) [![Docker CircleCI](https://img.shields.io/circleci/project/github/Chatie/wechaty.svg?label=Docker)](https://circleci.com/gh/Chatie/wechaty) [![Coverage Status](https://coveralls.io/repos/github/Chatie/wechaty/badge.svg?branch=master)](https://coveralls.io/github/Chatie/wechaty?branch=master) [![Known Vulnerabilities](https://snyk.io/test/github/Chatie/wechaty/badge.svg)](https://snyk.io/test/github/Chatie/wechaty)
+[![Linux/Mac Build Status](https://img.shields.io/travis/Chatie/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/Chatie/wechaty) [![Windows Build status](https://img.shields.io/appveyor/ci/wechaty/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/wechaty/wechaty) [![Docker CircleCI](https://img.shields.io/circleci/project/github/Chatie/wechaty.svg?label=Docker)](https://circleci.com/gh/Chatie/wechaty) [![Coverage Status](https://coveralls.io/repos/github/wechaty/wechaty/badge.svg?branch=master)](https://coveralls.io/github/wechaty/wechaty?branch=master) [![Known Vulnerabilities](https://snyk.io/test/github/Chatie/wechaty/badge.svg)](https://snyk.io/test/github/Chatie/wechaty)
 
 Wechaty use [AVA](https://github.com/avajs/ava) for unit testing
 
