@@ -30,20 +30,6 @@ Wechaty.instance() // Singleton
 </dd>
 </dl>
 
-## Members
-
-<dl>
-<dt><a href="#Gender[undefined]">Gender[undefined]</a></dt>
-<dd><p>The Unknown value</p>
-</dd>
-<dt><a href="#Gender[undefined]">Gender[undefined]</a></dt>
-<dd><p>The Male value</p>
-</dd>
-<dt><a href="#Gender[undefined]">Gender[undefined]</a></dt>
-<dd><p>The Female value</p>
-</dd>
-</dl>
-
 ## Constants
 
 <dl>
@@ -298,7 +284,7 @@ Get the name from a contact
 <a name="Contact+stranger"></a>
 
 ### contact.stranger() ⇒ <code>boolean</code>
-Check if contact is strange
+Check if contact is stranger
 
 **Kind**: instance method of <code>[Contact](#Contact)</code>  
 **Returns**: <code>boolean</code> - True for not friend of the bot, False for friend of the bot  
@@ -361,6 +347,7 @@ Say `content` to Contact
 <a name="Contact.findAll"></a>
 
 ### Contact.findAll([queryArg]) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
+find contact by `name` or `alias`
 If use Contact.findAll() get the contact list of the bot.
 
 **Kind**: static method of <code>[Contact](#Contact)</code>  
@@ -382,7 +369,7 @@ Find contact by name or alias, if the result more than one, return the first one
 | query | <code>ContactQueryFilter</code> | 
 
 **Example**  
-```
+``` ts
 const contactFindByName = await Contact.find({ name:"ContactName"} )
 const contactFindByAlias = await Contact.find({ alias:"ContactAlias"} )
 ```
@@ -397,32 +384,12 @@ Load data for Contact by id
 | --- | --- |
 | id | <code>string</code> | 
 
-<a name="Gender[undefined]"></a>
-
-## Gender[undefined]
-The Unknown value
-
-**Kind**: global variable  
-<a name="Gender[undefined]"></a>
-
-## Gender[undefined]
-The Male value
-
-**Kind**: global variable  
-<a name="Gender[undefined]"></a>
-
-## Gender[undefined]
-The Female value
-
-**Kind**: global variable  
 <a name="Gender"></a>
 
 ## Gender : <code>enum</code>
 Enum for Gender values.
 
 **Kind**: global enum  
-**Read only**: true  
-**Export**:   
 <a name="config_1"></a>
 
 ## config_1

@@ -42,16 +42,11 @@ export type ContactRawObj = {
 
 /**
  * Enum for Gender values.
- * @readonly
- * @export
  * @enum {number}
  */
 export enum Gender {
-  /** The Unknown value */
   Unknown = 0,
-  /** The Male value */
   Male    = 1,
-  /** The Female value */
   Female  = 2,
 }
 
@@ -135,7 +130,7 @@ export class Contact implements Sayable {
   public name()     { return UtilLib.plainText(this.obj && this.obj.name || '') }
 
   /**
-   * Check if contact is strange
+   * Check if contact is stranger
    *
    * @returns {boolean} True for not friend of the bot, False for friend of the bot
    *
@@ -302,11 +297,10 @@ export class Contact implements Sayable {
 
   /**
    * find contact by `name` or `alias`
-   *
+   * If use Contact.findAll() get the contact list of the bot.
    * @static
    * @param {ContactQueryFilter} [queryArg]
    * @returns {Promise<Contact[]>}
-   * @description If use Contact.findAll() get the contact list of the bot.
    *
    * @memberOf Contact
    */
@@ -455,7 +449,7 @@ export class Contact implements Sayable {
    * @param {ContactQueryFilter} query
    * @returns {(Promise<Contact | null>)} If can find the contact, return Contact, or return null
    * @example
-   * ```
+   * ``` ts
    * const contactFindByName = await Contact.find({ name:"ContactName"} )
    * const contactFindByAlias = await Contact.find({ alias:"ContactAlias"} )
    * ```
