@@ -115,8 +115,6 @@ export class Contact implements Sayable {
    * Sometimes cannot get weixin number due to weixin security mechanism, not recommend.
    *
    * @returns {string | ''}
-   *
-   * @memberOf Contact
    */
   public weixin()   { return this.obj && this.obj.weixin || '' }
 
@@ -124,8 +122,6 @@ export class Contact implements Sayable {
    * Get the name from a contact
    *
    * @returns {string | ''}
-   *
-   * @memberOf Contact
    */
   public name()     { return UtilLib.plainText(this.obj && this.obj.name || '') }
 
@@ -133,8 +129,6 @@ export class Contact implements Sayable {
    * Check if contact is stranger
    *
    * @returns {boolean} True for not friend of the bot, False for friend of the bot
-   *
-   * @memberOf Contact
    */
   public stranger() { return this.obj && this.obj.stranger }
 
@@ -142,8 +136,6 @@ export class Contact implements Sayable {
    * Check if the contact is star contact.
    *
    * @returns {boolean} True for star friend, False for no star friend
-   *
-   * @memberOf Contact
    */
   public star()     { return this.obj && this.obj.star }
 
@@ -151,8 +143,6 @@ export class Contact implements Sayable {
    * Contact gender
    *
    * @returns Gender.Male(2) | Gender.Female(1) | Gender.Unknown(0)
-   *
-   * @memberOf Contact
    */
   public gender()   { return this.obj ? this.obj.sex : Gender.Unknown }
 
@@ -160,8 +150,6 @@ export class Contact implements Sayable {
    * Get the region 'province' from a contact
    *
    * @returns {string | undefined}
-   *
-   * @memberOf Contact
    */
   public province() { return this.obj && this.obj.province }
 
@@ -169,8 +157,6 @@ export class Contact implements Sayable {
    * Get the region 'city' from a contact
    *
    * @returns {string | undefined}
-   *
-   * @memberOf Contact
    */
   public city()     { return this.obj && this.obj.city }
 
@@ -178,8 +164,6 @@ export class Contact implements Sayable {
    * Get avatar picture file stream
    *
    * @returns {Promise<NodeJS.ReadableStream>}
-   *
-   * @memberOf Contact
    */
   public async avatar(): Promise<NodeJS.ReadableStream> {
     log.verbose('Contact', 'avatar()')
@@ -216,8 +200,6 @@ export class Contact implements Sayable {
    * Force reload data for Contact
    *
    * @returns {Promise<this>}
-   *
-   * @memberOf Contact
    */
   public async refresh(): Promise<this> {
     if (this.isReady()) {
@@ -279,8 +261,6 @@ export class Contact implements Sayable {
    * Check if contact is self
    *
    * @returns {boolean} True for contact is self, False for contact is others
-   *
-   * @memberOf Contact
    */
   public self(): boolean {
     const userId = Config.puppetInstance()
@@ -302,8 +282,6 @@ export class Contact implements Sayable {
    * @static
    * @param {ContactQueryFilter} [queryArg]
    * @returns {Promise<Contact[]>}
-   *
-   * @memberOf Contact
    */
   public static async findAll(queryArg?: ContactQueryFilter): Promise<Contact[]> {
     let query: ContactQueryFilter
@@ -376,8 +354,6 @@ export class Contact implements Sayable {
    * Get the alias for contact
    *
    * @returns {(string | null)}
-   *
-   * @memberOf Contact
    */
   public alias(): string | null
 
@@ -386,8 +362,6 @@ export class Contact implements Sayable {
    *
    * @param {string} newAlias
    * @returns {Promise<boolean>} A promise to the result. true for success, false for failure
-   *
-   * @memberOf Contact
    */
   public alias(newAlias: string): Promise<boolean>
 
@@ -396,8 +370,6 @@ export class Contact implements Sayable {
    *
    * @param {null} empty
    * @returns {Promise<boolean>}
-   *
-   * @memberOf Contact
    */
   public alias(empty: null): Promise<boolean>
 
@@ -454,8 +426,6 @@ export class Contact implements Sayable {
    * const contactFindByName = await Contact.find({ name:"ContactName"} )
    * const contactFindByAlias = await Contact.find({ alias:"ContactAlias"} )
    * ```
-   *
-   * @memberOf Contact
    */
   public static async find(query: ContactQueryFilter): Promise<Contact | null> {
     log.verbose('Contact', 'find(%s)', JSON.stringify(query))
@@ -477,8 +447,6 @@ export class Contact implements Sayable {
    * @static
    * @param {string} id
    * @returns {Contact}
-   *
-   * @memberOf Contact
    */
   public static load(id: string): Contact {
     if (!id || typeof id !== 'string') {
@@ -496,8 +464,6 @@ export class Contact implements Sayable {
    *
    * @param {string} content
    * @returns {Promise<void>}
-   * 
-   * @memberOf Contact
    */
   public async say(content: string): Promise<void> {
     log.verbose('Contact', 'say(%s)', content)
