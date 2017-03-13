@@ -113,8 +113,12 @@ export class Contact implements Sayable {
   /**
    * Get the weixin number from a contact
    * Sometimes cannot get weixin number due to weixin security mechanism, not recommend.
-   *
    * @returns {string | ''}
+   *
+   * @example
+   * ```ts
+   * const weixin = contact.weixin()
+   * ```
    */
   public weixin()   { return this.obj && this.obj.weixin || '' }
 
@@ -122,6 +126,11 @@ export class Contact implements Sayable {
    * Get the name from a contact
    *
    * @returns {string | ''}
+   *
+   * @example
+   * ```ts
+   * const name = contact.name()
+   * ```
    */
   public name()     { return UtilLib.plainText(this.obj && this.obj.name || '') }
 
@@ -129,6 +138,11 @@ export class Contact implements Sayable {
    * Check if contact is stranger
    *
    * @returns {boolean} True for not friend of the bot, False for friend of the bot
+   *
+   * @example
+   * ```ts
+   * const isStranger = contact.stranger()
+   * ```
    */
   public stranger() { return this.obj && this.obj.stranger }
 
@@ -136,6 +150,11 @@ export class Contact implements Sayable {
    * Check if the contact is star contact.
    *
    * @returns {boolean} True for star friend, False for no star friend
+   *
+   * @example
+   * ```ts
+   * const isStar = contact.star()
+   * ```
    */
   public star()     { return this.obj && this.obj.star }
 
@@ -143,6 +162,11 @@ export class Contact implements Sayable {
    * Contact gender
    *
    * @returns Gender.Male(2) | Gender.Female(1) | Gender.Unknown(0)
+   *
+   * @example
+   * ```ts
+   * const gender = contact.gender()
+   * ```
    */
   public gender()   { return this.obj ? this.obj.sex : Gender.Unknown }
 
@@ -150,6 +174,11 @@ export class Contact implements Sayable {
    * Get the region 'province' from a contact
    *
    * @returns {string | undefined}
+   *
+   * @example
+   * ```ts
+   * const province = contact.province()
+   * ```
    */
   public province() { return this.obj && this.obj.province }
 
@@ -157,6 +186,11 @@ export class Contact implements Sayable {
    * Get the region 'city' from a contact
    *
    * @returns {string | undefined}
+   *
+   * @example
+   * ```ts
+   * const city = contact.city()
+   * ```
    */
   public city()     { return this.obj && this.obj.city }
 
@@ -164,6 +198,15 @@ export class Contact implements Sayable {
    * Get avatar picture file stream
    *
    * @returns {Promise<NodeJS.ReadableStream>}
+   *
+   * @example
+   * ```ts
+   * const avatarFileName = contact.name() + `.jpg`
+   * const avatarReadStream = await contact.avatar()
+   * const avatarWriteStream = createWriteStream(avatarFileName)
+   * avatarReadStream.pipe(avatarWriteStream)
+   * log.info('Bot', 'Contact: %s: %s with avatar file: %s', contact.weixin(), contact.name(), avatarFileName)
+   * ```
    */
   public async avatar(): Promise<NodeJS.ReadableStream> {
     log.verbose('Contact', 'avatar()')
@@ -200,6 +243,11 @@ export class Contact implements Sayable {
    * Force reload data for Contact
    *
    * @returns {Promise<this>}
+   *
+   * @example
+   * ```ts
+   * await contact.refresh()
+   * ```
    */
   public async refresh(): Promise<this> {
     if (this.isReady()) {
@@ -261,6 +309,11 @@ export class Contact implements Sayable {
    * Check if contact is self
    *
    * @returns {boolean} True for contact is self, False for contact is others
+   *
+   * @example
+   * ```ts
+   * const isSelf = contact.self()
+   * ```
    */
   public self(): boolean {
     const userId = Config.puppetInstance()
@@ -279,9 +332,24 @@ export class Contact implements Sayable {
    * find contact by `name` or `alias`
    *
    * If use Contact.findAll() get the contact list of the bot.
+   *
+   * #### definition
+   * - `name` the name-string set by user-self, should be called name
+   * - `alias` the name-string set by bot for others, should be called alias
+   *
    * @static
    * @param {ContactQueryFilter} [queryArg]
    * @returns {Promise<Contact[]>}
+   *
+   * @example
+   * ```ts
+   * // get the contact list of the bot
+   * const contactList = await Contact.findAll()
+   * // find allof the contacts whose name is 'ruirui'
+   * const contactList = await Contact.findAll({name: 'ruirui'})
+   * // find allof the contacts whose alias is 'lijiarui'
+   * const contactList = await Contact.findAll({alias: 'lijiarui'})
+   * ```
    */
   public static async findAll(queryArg?: ContactQueryFilter): Promise<Contact[]> {
     let query: ContactQueryFilter
@@ -354,14 +422,31 @@ export class Contact implements Sayable {
    * Get the alias for contact
    *
    * @returns {(string | null)}
+   *
+   * @example
+   * ```ts
+   * const alias = contact.alias()
+   * ```
    */
   public alias(): string | null
 
   /**
    * set the alias for contact
    *
+   * tests show it will failed if set alias too frequently(60 times in one minute).
+   *
    * @param {string} newAlias
    * @returns {Promise<boolean>} A promise to the result. true for success, false for failure
+   *
+   * @example
+   * ```ts
+   * const ret = await contact.remark('lijiarui')
+   * if (ret) {
+   *   console.log(`change ${contact.name()}'s alias successfully!`)
+   * } else {
+   *   console.error('failed to change ${contact.name()}'s alias!')
+   * }
+   * ```
    */
   public alias(newAlias: string): Promise<boolean>
 
@@ -370,6 +455,16 @@ export class Contact implements Sayable {
    *
    * @param {null} empty
    * @returns {Promise<boolean>}
+   *
+   * @example
+   * ```ts
+   * const ret = await contact.remark(null)
+   * if (ret) {
+   *   console.log('ok!')
+   * } else {
+   *   console.error('fail!')
+   * }
+   * ```
    */
   public alias(empty: null): Promise<boolean>
 
@@ -421,10 +516,11 @@ export class Contact implements Sayable {
    * @static
    * @param {ContactQueryFilter} query
    * @returns {(Promise<Contact | null>)} If can find the contact, return Contact, or return null
+   *
    * @example
    * ``` ts
-   * const contactFindByName = await Contact.find({ name:"ContactName"} )
-   * const contactFindByAlias = await Contact.find({ alias:"ContactAlias"} )
+   * const contactFindByName = await Contact.find({ name:"ruirui"} )
+   * const contactFindByAlias = await Contact.find({ alias:"lijiarui"} )
    * ```
    */
   public static async find(query: ContactQueryFilter): Promise<Contact | null> {
@@ -447,6 +543,12 @@ export class Contact implements Sayable {
    * @static
    * @param {string} id
    * @returns {Contact}
+   *
+   * @example
+   * ``` ts
+   * // fake: contactId = @0bb3e4dd746fdbd4a80546aef66f4085
+   * const contact = Contact.load('@0bb3e4dd746fdbd4a80546aef66f4085')
+   * ```
    */
   public static load(id: string): Contact {
     if (!id || typeof id !== 'string') {
@@ -464,6 +566,11 @@ export class Contact implements Sayable {
    *
    * @param {string} content
    * @returns {Promise<void>}
+   *
+   * @example
+   * ``` ts
+   * await contact.say('welcome to wechaty!')
+   * ```
    */
   public async say(content: string): Promise<void> {
     log.verbose('Contact', 'say(%s)', content)
