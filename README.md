@@ -99,6 +99,19 @@ Get to know more about Wechaty Docker at [Wiki:Docker](https://github.com/Chatie
 
 Get to know more about NPM at [Wiki:NPM](https://github.com/Chatie/wechaty/wiki/NPM)
 
+### Server
+
+The best practice for runing Wechaty Docker/NPM is using a VPS(Virtual Private Server) outside of China, which can save you hours of time because `npm install` and `docker pull` will run smoothly without any problem. 
+
+The following VPS providers is used by ourselves, they worked perfectly in production. You can use the following link to get one in minutes, and also do this can support Wechaty because you are refered by us.
+
+| Location  | Price | Ram     | Payment           | Provider |
+| ---       | ---   | ---     | ---               | ---      |
+| Singapore | $5    | 512MB   | Paypal            | [DigitalOcean](https://m.do.co/c/01a54778df5c) |
+| Japan     | $5    | 1GB     | Paypal            | [Linode](https://www.linode.com/?r=5fd2b713d711746bb5451111df0f2b6d863e9f63) |
+| Korea     | $10   | 1GB     | Alipay, Paypal    | [Netdedi](https://www.netdedi.com/?affid=35) |
+
+
 # API Reference
 
 ## [Wechaty Event](https://github.com/Chatie/wechaty/wiki/API#event)
