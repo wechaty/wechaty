@@ -113,19 +113,19 @@ export class Contact implements Sayable {
   /**
    * Get the weixin number from a contact
    * Sometimes cannot get weixin number due to weixin security mechanism, not recommend.
-   * @returns {string | ''}
+   * @returns {string | null}
    *
    * @example
    * ```ts
    * const weixin = contact.weixin()
    * ```
    */
-  public weixin()   { return this.obj && this.obj.weixin || '' }
+  public weixin()   { return this.obj && this.obj.weixin || null }
 
   /**
    * Get the name from a contact
    *
-   * @returns {string | ''}
+   * @returns {string}
    *
    * @example
    * ```ts
@@ -137,26 +137,32 @@ export class Contact implements Sayable {
   /**
    * Check if contact is stranger
    *
-   * @returns {boolean} True for not friend of the bot, False for friend of the bot
+   * @returns {boolean | null} True for not friend of the bot, False for friend of the bot, null for cannot get the info.
    *
    * @example
    * ```ts
    * const isStranger = contact.stranger()
    * ```
    */
-  public stranger() { return this.obj && this.obj.stranger }
+  public stranger(): boolean|null {
+    if (!this.obj) return null
+    return this.obj.stranger
+  }
 
   /**
    * Check if the contact is star contact.
    *
-   * @returns {boolean} True for star friend, False for no star friend
+   * @returns {boolean} True for star friend, False for no star friend, null for cannot get the info.
    *
    * @example
    * ```ts
    * const isStar = contact.star()
    * ```
    */
-  public star()     { return this.obj && this.obj.star }
+  public star(): boolean|null {
+    if (!this.obj) return null
+    return this.obj.star
+  }
 
   /**
    * Contact gender
@@ -168,7 +174,7 @@ export class Contact implements Sayable {
    * const gender = contact.gender()
    * ```
    */
-  public gender()   { return this.obj ? this.obj.sex : Gender.Unknown }
+  public gender(): Gender   { return this.obj ? this.obj.sex : Gender.Unknown }
 
   /**
    * Get the region 'province' from a contact
