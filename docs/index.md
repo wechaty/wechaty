@@ -348,6 +348,7 @@ Say `content` to Contact
 
 ### Contact.findAll([queryArg]) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
 find contact by `name` or `alias`
+
 If use Contact.findAll() get the contact list of the bot.
 
 **Kind**: static method of <code>[Contact](#Contact)</code>  

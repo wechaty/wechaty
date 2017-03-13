@@ -297,6 +297,7 @@ export class Contact implements Sayable {
 
   /**
    * find contact by `name` or `alias`
+   *
    * If use Contact.findAll() get the contact list of the bot.
    * @static
    * @param {ContactQueryFilter} [queryArg]
