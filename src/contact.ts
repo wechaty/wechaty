@@ -524,7 +524,7 @@ export class Contact implements Sayable {
    * @returns {(Promise<Contact | null>)} If can find the contact, return Contact, or return null
    *
    * @example
-   * ``` ts
+   * ```ts
    * const contactFindByName = await Contact.find({ name:"ruirui"} )
    * const contactFindByAlias = await Contact.find({ alias:"lijiarui"} )
    * ```
@@ -551,7 +551,7 @@ export class Contact implements Sayable {
    * @returns {Contact}
    *
    * @example
-   * ``` ts
+   * ```ts
    * // fake: contactId = @0bb3e4dd746fdbd4a80546aef66f4085
    * const contact = Contact.load('@0bb3e4dd746fdbd4a80546aef66f4085')
    * ```
@@ -574,7 +574,7 @@ export class Contact implements Sayable {
    * @returns {Promise<void>}
    *
    * @example
-   * ``` ts
+   * ```ts
    * await contact.say('welcome to wechaty!')
    * ```
    */
