@@ -99,7 +99,7 @@ Get to know more about Wechaty Docker at [Wiki:Docker](https://github.com/chatie
 
 Get to know more about NPM at [Wiki:NPM](https://github.com/chatie/wechaty/wiki/NPM)
 
-### Server
+### Find a Good Server
 
 The best practice for runing Wechaty Docker/NPM is using a VPS(Virtual Private Server) outside of China, which can save you hours of time because `npm install` and `docker pull` will run smoothly without any problem. 
 
