@@ -157,8 +157,8 @@ test('Room smoking test', async t => {
 
 test('Room static method', async t => {
   try {
-    await Room.find({ topic: 'xxx' })
-    t.fail('should throw but not')
+    const result = await Room.find({ topic: 'xxx' })
+    t.is(result, null, `should return null if cannot find the room`)
   } catch (e) {
     t.pass('should throw before login or not found')
   }
