@@ -1,44 +1,47 @@
-[![Wechaty](https://raw.githubusercontent.com/wechaty/wechaty/master/image/wechaty-logo-en.png)](https://github.com/wechaty/wechaty)
+[![Wechaty](https://raw.githubusercontent.com/chatie/wechaty/master/image/wechaty-logo-en.png)](https://github.com/chatie/wechaty)
 
 # Wechaty 
 
 ## Connecting ChatBots.
 
-Wechaty is a Bot Framework for Wechat **Personal** Account which can help you create a bot in 6 lines of javascript by easy to use API, with cross-platform support include [Linux](https://travis-ci.org/wechaty/wechaty), [Windows](https://ci.appveyor.com/project/wechaty/wechaty), [Darwin(OSX/Mac)](https://travis-ci.org/wechaty/wechaty) and [Docker](https://circleci.com/gh/wechaty/wechaty).
+Wechaty is a Bot Framework for Wechat **Personal** Account which can help you create a bot in 6 lines of javascript by easy to use API, with cross-platform support include [Linux](https://travis-ci.org/chatie/wechaty), [Windows](https://ci.appveyor.com/project/chatie/wechaty), [Darwin(OSX/Mac)](https://travis-ci.org/chatie/wechaty) and [Docker](https://circleci.com/gh/chatie/wechaty).
 
-[![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800)](https://nodejs.org/) [![Repo Size](https://reposs.herokuapp.com/?path=wechaty/wechaty)](https://github.com/wechaty/wechaty) [![Issue Stats](http://issuestats.com/github/wechaty/wechaty/badge/pr)](http://issuestats.com/github/wechaty/wechaty) [![Issue Stats](http://issuestats.com/github/wechaty/wechaty/badge/issue)](http://issuestats.com/github/wechaty/wechaty)
+[![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800)](https://nodejs.org/) [![Repo Size](https://reposs.herokuapp.com/?path=Chatie/wechaty)](https://github.com/chatie/wechaty) [![Issue Stats](http://issuestats.com/github/chatie/wechaty/badge/pr)](http://issuestats.com/github/chatie/wechaty) [![Issue Stats](http://issuestats.com/github/chatie/wechaty/badge/issue)](http://issuestats.com/github/chatie/wechaty)
 
-:octocat: <https://github.com/wechaty/wechaty>  
-:beetle: <https://github.com/wechaty/wechaty/issues>  
-:book: <https://github.com/wechaty/wechaty/wiki>  
+:octocat: <https://github.com/chatie/wechaty>  
+:beetle: <https://github.com/chatie/wechaty/issues>  
+:book: <https://github.com/chatie/wechaty/wiki>  
 :whale: <https://hub.docker.com/r/zixia/wechaty>  
 
 ## Voice of the Developer
 
-> "The best wechat SDK I have seen in Github!" [link](https://github.com/wechaty/wechaty/issues/8#issuecomment-228971491)  
+> "Wechaty is a great solution, I believe there would be much more users recognize it." [link](https://github.com/chatie/wechaty/pull/310#issuecomment-285574472)  
+> -- @Gcaufy, Tencent 
+
+> "The best wechat SDK I have seen in Github!" [link](https://github.com/chatie/wechaty/issues/8#issuecomment-228971491)  
 > -- @JasLin, BotWave CTO
 
 > "Wechaty简单的接口...和Docker化的封装...绝对是一个不错的选择" [link](http://mp.weixin.qq.com/s/o-4VMcAMz0K8yJVdNaUXow)  
 > -- @shevyan, Ghost Cloud CEO
 
-> "Wechaty is great." [link](https://github.com/wechaty/wechaty/issues/36#issuecomment-251708382)  
+> "Wechaty is great." [link](https://github.com/chatie/wechaty/issues/36#issuecomment-251708382)  
 > -- @Samurais, SnapLingo Director of Engineering
 
 > "最好的微信开发库" [link](http://weibo.com/3296245513/Ec4iNp9Ld?type=comment)  
 > -- @Jarvis, Baidu Developer
 
 > "Wechaty让运营人员更多的时间思考如何进行活动策划、留存用户，商业变现" [link](http://mp.weixin.qq.com/s/dWHAj8XtiKG-1fIS5Og79g)  
-> -- @lijiarui, Orange Interactive Technology CEO.
+> -- @lijiarui, Orange Interactive CEO.
 
 > "太好用，好用的想哭" -- @xinbenlv, Google Engineer, HaoShiYou.org Founder
 
-> "Wechaty library fantastic!" [link](https://github.com/wechaty/wechaty/issues/9) - @ccaapton 
+> "Wechaty library fantastic!" [link](https://github.com/chatie/wechaty/issues/9) - @ccaapton 
 
-> "it's quite cool!" [link](https://github.com/wechaty/wechaty/issues/4) - @ak5
+> "it's quite cool!" [link](https://github.com/chatie/wechaty/issues/4) - @ak5
 
-> "Thanks for great SDK" [link](https://github.com/wechaty/wechaty/issues/57) - @naishstar
+> "Thanks for great SDK" [link](https://github.com/chatie/wechaty/issues/57) - @naishstar
 
-> "Your docker solution is awesome!" [link](https://github.com/wechaty/wechaty/issues/164#issuecomment-278633203) - @ax4 
+> "Your docker solution is awesome!" [link](https://github.com/chatie/wechaty/issues/164#issuecomment-278633203) - @ax4 
 
 # The World's Shortest ChatBot Code: 6 lines of JavaScript
 
@@ -55,14 +58,14 @@ Wechaty.instance() // Singleton
 
 This bot can log all message to console.
 
-You can find more example from [Wiki](https://github.com/wechaty/wechaty/wiki/Example) and [Example Directory](https://github.com/wechaty/wechaty/blob/master/example/).
+You can find more example from [Wiki](https://github.com/chatie/wechaty/wiki/Example) and [Example Directory](https://github.com/chatie/wechaty/blob/master/example/).
 
 # Getting Started
 
 ## A Great Live Coding Tutorial
 
 <div align="center">
-<a target="_blank" href="https://blog.wechaty.io/guide/2017/01/01/getting-started-wechaty.html"><img src="https://cloud.githubusercontent.com/assets/1361891/21722581/3ec957d0-d468-11e6-8888-a91c236e0ba2.jpg" border=0 width="60%"></a>
+<a target="_blank" href="https://blog.chatie.io/guide/2017/01/01/getting-started-wechaty.html"><img src="https://cloud.githubusercontent.com/assets/1361891/21722581/3ec957d0-d468-11e6-8888-a91c236e0ba2.jpg" border=0 width="60%"></a>
 </div>
 
 The above 10 minutes video tutorial is a good start point if you are new to Wechaty.
@@ -88,81 +91,94 @@ $ docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.js
 
 > Wechaty Docker support to run TypeScript directly as well: just write in TypeScript and save to `mybot.ts`.
 
-Get to know more about Wechaty Docker at [Wiki:Docker](https://github.com/wechaty/wechaty/wiki/Docker).
+Get to know more about Wechaty Docker at [Wiki:Docker](https://github.com/chatie/wechaty/wiki/Docker).
 
 ### NPM
 
-[![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty) [![Downloads][downloads-image]][downloads-url]
+[![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty) [![Downloads][downloads-image]][downloads-url] [![Greenkeeper badge](https://badges.greenkeeper.io/Chatie/wechaty.svg)](https://greenkeeper.io/)
 
-Get to know more about NPM at [Wiki:NPM](https://github.com/wechaty/wechaty/wiki/NPM)
+Get to know more about NPM at [Wiki:NPM](https://github.com/chatie/wechaty/wiki/NPM)
+
+### Find a Good Server
+
+The best practice for runing Wechaty Docker/NPM is using a VPS(Virtual Private Server) outside of China, which can save you hours of time because `npm install` and `docker pull` will run smoothly without any problem. 
+
+The following VPS providers is used by ourselves, they worked perfectly in production. You can use the following link to get one in minutes, and also do this can support Wechaty because you are refered by us.
+
+| Location  | Price | Ram     | Payment           | Provider |
+| ---       | ---   | ---     | ---               | ---      |
+| Singapore | $5    | 512MB   | Paypal            | [DigitalOcean](https://m.do.co/c/01a54778df5c) |
+| Japan     | $5    | 1GB     | Paypal            | [Linode](https://www.linode.com/?r=5fd2b713d711746bb5451111df0f2b6d863e9f63) |
+| Korea     | $10   | 1GB     | Alipay, Paypal    | [Netdedi](https://www.netdedi.com/?affid=35) |
+
 
 # API Reference
 
-## [Wechaty Event](https://github.com/wechaty/wechaty/wiki/API#event)
+## [Wechaty Event](https://github.com/chatie/wechaty/wiki/API#event)
 
-1. [scan](https://github.com/wechaty/wechaty/wiki/API#1-event-scan) Emit when the bot needs to show you a QR Code for scanning
-2. [login](https://github.com/wechaty/wechaty/wiki/API#2-event-login) Emit when bot login full successful.
-3. [logout](https://github.com/wechaty/wechaty/wiki/API#3-event-logout) Emit when bot detected log out.
-4. [message](https://github.com/wechaty/wechaty/wiki/API#4-event-message) Emit when there's a new message.
-5. [error](https://github.com/wechaty/wechaty/wiki/API#5-event-error) Emit when there's an error occurred.
-6. [friend](https://github.com/wechaty/wechaty/wiki/API#6-event-friend) Emit when got a new friend request, or friendship is confirmed.
-7. [room-join](https://github.com/wechaty/wechaty/wiki/API#7-event-room-join) Emit when someone join the room
-8. [room-leave](https://github.com/wechaty/wechaty/wiki/API#8-event-room-leave) Emit when someone leave the room
-9. [room-topic](https://github.com/wechaty/wechaty/wiki/API#9-event-room-topic) Emit when someone change the room's topic
+1. [scan](https://github.com/chatie/wechaty/wiki/API#1-event-scan) Emit when the bot needs to show you a QR Code for scanning
+2. [login](https://github.com/chatie/wechaty/wiki/API#2-event-login) Emit when bot login full successful.
+3. [logout](https://github.com/chatie/wechaty/wiki/API#3-event-logout) Emit when bot detected log out.
+4. [message](https://github.com/chatie/wechaty/wiki/API#4-event-message) Emit when there's a new message.
+5. [error](https://github.com/chatie/wechaty/wiki/API#5-event-error) Emit when there's an error occurred.
+6. [friend](https://github.com/chatie/wechaty/wiki/API#6-event-friend) Emit when got a new friend request, or friendship is confirmed.
+7. [room-join](https://github.com/chatie/wechaty/wiki/API#7-event-room-join) Emit when someone join the room
+8. [room-leave](https://github.com/chatie/wechaty/wiki/API#8-event-room-leave) Emit when someone leave the room
+9. [room-topic](https://github.com/chatie/wechaty/wiki/API#9-event-room-topic) Emit when someone change the room's topic
 
-## [Wechaty](https://github.com/wechaty/wechaty/wiki/API#wechaty-class)
+## [Wechaty](https://github.com/chatie/wechaty/wiki/API#wechaty-class)
 
-1. [instance(setting: PuppetSetting): Promise&lt;Wechaty&gt;](https://github.com/wechaty/wechaty/wiki/API#wechatyinstanceprofilestring-wechaty) get the bot instance
-2. [init(): Promise&lt;void&gt;](https://github.com/wechaty/wechaty/wiki/API#wechatyinit-wechaty) Initialize the bot
-3. [send(message: Message): Promise&lt;void&gt;](https://github.com/wechaty/wechaty/wiki/API#wechatysendmessage-message-wechaty) send a message
-4. [say(content: string): Promise&lt;void&gt;](https://github.com/wechaty/wechaty/wiki/API#wechatysaycontent-string) send message to filehelper, just for logging/reporting usage for your convenience
+1. [instance(setting: PuppetSetting): Promise&lt;Wechaty&gt;](https://github.com/chatie/wechaty/wiki/API#wechatyinstanceprofilestring-wechaty) get the bot instance
+2. [init(): Promise&lt;void&gt;](https://github.com/chatie/wechaty/wiki/API#wechatyinit-wechaty) Initialize the bot
+3. [send(message: Message): Promise&lt;void&gt;](https://github.com/chatie/wechaty/wiki/API#wechatysendmessage-message-wechaty) send a message
+4. [say(content: string): Promise&lt;void&gt;](https://github.com/chatie/wechaty/wiki/API#wechatysaycontent-string) send message to filehelper, just for logging/reporting usage for your convenience
 
-## [Message](https://github.com/wechaty/wechaty/wiki/API#message-class)
+## [Message](https://github.com/chatie/wechaty/wiki/API#message-class)
 
-1. [from():Contact](https://github.com/wechaty/wechaty/wiki/API#1-messagefrom-contact) get the sender from a message
-2. [from(contact:Contact):void](https://github.com/wechaty/wechaty/wiki/API#2-messagefromcontact-contact-void) set a sender to the message
-4. [to():Contact](https://github.com/wechaty/wechaty/wiki/API#1-messageto-contact) get the destination of the message
-5. [to(contact:Contact):void](https://github.com/wechaty/wechaty/wiki/API#2-messagetocontact-contact-void) set the destination as contact for the message
-7. [content():string](https://github.com/wechaty/wechaty/wiki/API#1-messagecontent-string) get the content of the message
-8. [content(content:string):string](https://github.com/wechaty/wechaty/wiki/API#2-messagecontentcontent-string-string) set the content for the message
-9. [room():Room|null](https://github.com/wechaty/wechaty/wiki/API#1-messageroom-room--null) get the room from a message.
-10. [room(room:Room):void](https://github.com/wechaty/wechaty/wiki/API#2-messageroomroom-room-void) set the room for a message.
-12. [type():MsgType](https://github.com/wechaty/wechaty/wiki/API#messagetype-number) get the type of a Message.
-13. [say(content:string):Promise](https://github.com/wechaty/wechaty/wiki/API#messagesaycontent-string-promise) reply a message to the sender.
-14. [ready():Promise](https://github.com/wechaty/wechaty/wiki/API#messageready-promise) confirm get all the data needed, will be resolved when all message data is ready.
-15. [self():boolean](https://github.com/wechaty/wechaty/wiki/API#messageselfmessage-message-boolean) check if a message is sent by self 
+1. [from():Contact](https://github.com/chatie/wechaty/wiki/API#1-messagefrom-contact) get the sender from a message
+2. [from(contact:Contact):void](https://github.com/chatie/wechaty/wiki/API#2-messagefromcontact-contact-void) set a sender to the message
+4. [to():Contact](https://github.com/chatie/wechaty/wiki/API#1-messageto-contact) get the destination of the message
+5. [to(contact:Contact):void](https://github.com/chatie/wechaty/wiki/API#2-messagetocontact-contact-void) set the destination as contact for the message
+7. [content():string](https://github.com/chatie/wechaty/wiki/API#1-messagecontent-string) get the content of the message
+8. [content(content:string):string](https://github.com/chatie/wechaty/wiki/API#2-messagecontentcontent-string-string) set the content for the message
+9. [room():Room|null](https://github.com/chatie/wechaty/wiki/API#1-messageroom-room--null) get the room from a message.
+10. [room(room:Room):void](https://github.com/chatie/wechaty/wiki/API#2-messageroomroom-room-void) set the room for a message.
+12. [type():MsgType](https://github.com/chatie/wechaty/wiki/API#messagetype-number) get the type of a Message.
+13. [say(content:string):Promise](https://github.com/chatie/wechaty/wiki/API#messagesaycontent-string-promise) reply a message to the sender.
+14. [ready():Promise](https://github.com/chatie/wechaty/wiki/API#messageready-promise) confirm get all the data needed, will be resolved when all message data is ready.
+15. [self():boolean](https://github.com/chatie/wechaty/wiki/API#messageselfmessage-message-boolean) check if a message is sent by self 
 
-## [Contact](https://github.com/wechaty/wechaty/wiki/API#contact-class)
+## [Contact](https://github.com/chatie/wechaty/wiki/API#contact-class)
 
-2. [name():string](https://github.com/wechaty/wechaty/wiki/API#contactname-string) get name from a contact
-3. [remark():string](https://github.com/wechaty/wechaty/wiki/API#contactremark-string) get remark name from a contact
-4. [remark(remark:string):Promise](https://github.com/wechaty/wechaty/wiki/API#contactremarkremark-string-promise) set remark name to a contact
-5. [weixin():string](https://github.com/wechaty/wechaty/wiki/API#contactweixin-string) get weixin id from a contact
-6. [star():boolean](https://github.com/wechaty/wechaty/wiki/API#contactstar-boolean) true for star friend, false for no star friend
-7. [ready():Promise](https://github.com/wechaty/wechaty/wiki/API#contactready-promise) confirm get all the contact data needed, will be resolved when all data is ready
-8. [say(content:string):Promise](https://github.com/wechaty/wechaty/wiki/API#contactsaycontent-string-promise) say content to a contact
+2. [name():string](https://github.com/chatie/wechaty/wiki/API#contactname-string) get name from a contact
+3. [remark():string](https://github.com/chatie/wechaty/wiki/API#contactremark-string) get remark name from a contact
+4. [remark(remark:string):Promise](https://github.com/chatie/wechaty/wiki/API#contactremarkremark-string-promise) set remark name to a contact
+5. [weixin():string](https://github.com/chatie/wechaty/wiki/API#contactweixin-string) get weixin id from a contact
+6. [star():boolean](https://github.com/chatie/wechaty/wiki/API#contactstar-boolean) true for star friend, false for no star friend
+7. [ready():Promise](https://github.com/chatie/wechaty/wiki/API#contactready-promise) confirm get all the contact data needed, will be resolved when all data is ready
+8. [say(content:string):Promise](https://github.com/chatie/wechaty/wiki/API#contactsaycontent-string-promise) say content to a contact
 
-## [Room](https://github.com/wechaty/wechaty/wiki/API#class-room)
+## [Room](https://github.com/chatie/wechaty/wiki/API#class-room)
 
-1. [say(content:string,replyTo:Contact|ContactArray):Promise](https://github.com/wechaty/wechaty/wiki/API#roomsaycontent-string-replyto-contactcontact-promise) say content inside Room.
-2. [ready():Promise](https://github.com/wechaty/wechaty/wiki/API#roomready-promise) confirm get all the data needed, will be resolved when all data is ready
-3. [refresh():Promise](https://github.com/wechaty/wechaty/wiki/API#roomrefresh-promise) reload data for Room
+1. [say(content:string,replyTo:Contact|ContactArray):Promise](https://github.com/chatie/wechaty/wiki/API#roomsaycontent-string-replyto-contactcontact-promise) say content inside Room.
+2. [ready():Promise](https://github.com/chatie/wechaty/wiki/API#roomready-promise) confirm get all the data needed, will be resolved when all data is ready
+3. [refresh():Promise](https://github.com/chatie/wechaty/wiki/API#roomrefresh-promise) reload data for Room
 
-### [Room Event](https://github.com/wechaty/wechaty/wiki/API#room-events)
+### [Room Event](https://github.com/chatie/wechaty/wiki/API#room-events)
 
-1. [join](https://github.com/wechaty/wechaty/wiki/API#event-join) Emit when someone join the room
-2. [leave](https://github.com/wechaty/wechaty/wiki/API#event-leave) Emit when someone leave the room
-3. [topic](https://github.com/wechaty/wechaty/wiki/API#event-topic) Emit when someone change the room topic
+1. [join](https://github.com/chatie/wechaty/wiki/API#event-join) Emit when someone join the room
+2. [leave](https://github.com/chatie/wechaty/wiki/API#event-leave) Emit when someone leave the room
+3. [topic](https://github.com/chatie/wechaty/wiki/API#event-topic) Emit when someone change the room topic
 
-## [FriendRequest](https://github.com/wechaty/wechaty/wiki/API#class-friendrequest)
+## [FriendRequest](https://github.com/chatie/wechaty/wiki/API#class-friendrequest)
 
-1. [hello:string](https://github.com/wechaty/wechaty/wiki/API#friendrequesthello-string) get content from friendrequest
-2. [accept():Promise](https://github.com/wechaty/wechaty/wiki/API#friendrequestaccept-void) accept the friendrequest
-3. [send(contact:Contact,hello:string):Promise](https://github.com/wechaty/wechaty/wiki/API#friendrequestsendcontact-contact-hello-string-void) send a new friend request
+1. [hello:string](https://github.com/chatie/wechaty/wiki/API#friendrequesthello-string) get content from friendrequest
+2. [accept():Promise](https://github.com/chatie/wechaty/wiki/API#friendrequestaccept-void) accept the friendrequest
+3. [send(contact:Contact,hello:string):Promise](https://github.com/chatie/wechaty/wiki/API#friendrequestsendcontact-contact-hello-string-void) send a new friend request
 
 # Test
 
-[![Linux/Mac Build Status](https://img.shields.io/travis/wechaty/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/wechaty/wechaty) [![Windows Build status](https://img.shields.io/appveyor/ci/wechaty/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/wechaty/wechaty) [![Docker CircleCI](https://img.shields.io/circleci/project/github/wechaty/wechaty.svg?label=Docker)](https://circleci.com/gh/wechaty/wechaty) [![Coverage Status](https://coveralls.io/repos/github/wechaty/wechaty/badge.svg?branch=master)](https://coveralls.io/github/wechaty/wechaty?branch=master) [![Known Vulnerabilities](https://snyk.io/test/github/wechaty/wechaty/badge.svg)](https://snyk.io/test/github/wechaty/wechaty)
+[![Linux/Mac Build Status](https://img.shields.io/travis/Chatie/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/Chatie/wechaty) [![Windows Build status](https://img.shields.io/appveyor/ci/chatie/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/chatie/wechaty) [![Docker CircleCI](https://img.shields.io/circleci/project/github/Chatie/wechaty.svg?label=Docker)](https://circleci.com/gh/Chatie/wechaty) [![Coverage Status](https://coveralls.io/repos/github/Chatie/wechaty/badge.svg?branch=master)](https://coveralls.io/github/Chatie/wechaty?branch=master) [![Known Vulnerabilities](https://snyk.io/test/github/chatie/wechaty/badge.svg)](https://snyk.io/test/github/chatie/wechaty)
 
 Wechaty use [AVA](https://github.com/avajs/ava) for unit testing
 
@@ -171,30 +187,30 @@ To test Wechaty, run:
 npm test
 ```
 
-Get to know more about test from [Wiki:Test](https://github.com/wechaty/wechaty/wiki/Test)
+Get to know more about test from [Wiki:Test](https://github.com/chatie/wechaty/wiki/Test)
 
 # Release Notes
 
-* [Latest Release](https://github.com/wechaty/wechaty/releases/latest)(All releases [here](https://github.com/wechaty/wechaty/releases))
-* [Changelog](https://github.com/wechaty/wechaty/blob/master/CHANGELOG.md)
+* [Latest Release](https://github.com/chatie/wechaty/releases/latest)(All releases [here](https://github.com/chatie/wechaty/releases))
+* [Changelog](https://github.com/chatie/wechaty/blob/master/CHANGELOG.md)
 
 # Powered By Wechaty
 
-[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/wechaty/wechaty)
+[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/chatie/wechaty)
 
 ## Wechaty Badge
 
-Get embed html/markdown code from [Wiki:PoweredByWechaty](https://github.com/wechaty/wechaty/wiki/PoweredByWechaty)
+Get embed html/markdown code from [Wiki:PoweredByWechaty](https://github.com/chatie/wechaty/wiki/PoweredByWechaty)
 
 ## Projects Use Wechaty
 
-1. [Wechaty.io](https://www.wechaty.io) ChatBot Portal Manager for Wechaty 
+1. [chatie.io](https://www.chatie.io) ChatBot Portal Manager for Wechaty 
 
-Know more about Projects Use Wechaty at [Wiki:PoweredByWechaty](https://github.com/wechaty/wechaty/wiki/PoweredByWechaty)
+Know more about Projects Use Wechaty at [Wiki:PoweredByWechaty](https://github.com/chatie/wechaty/wiki/PoweredByWechaty)
 
 # Contributing
 
-Howto [contribute](https://github.com/wechaty/wechaty/blob/master/CONTRIBUTING.md)
+Howto [contribute](https://github.com/chatie/wechaty/blob/master/CONTRIBUTING.md)
 
 Contributions in any form are highly encouraged and welcome! Be it new or improved presets, optimized streaming code or just some cleanup. So start forking!
 
@@ -216,18 +232,19 @@ You can directly submit pull requests for documentation changes.
 * [cherry-geqi](https://github.com/cherry-geqi)
 * [lijiarui](https://github.com/lijiarui)
 * [xinbenlv](https://github.com/xinbenlv)
+* [Gcaufy](https://github.com/Gcaufy)
 
 ## Join us 
 
 Scan the following QR Code in WeChat, with secret code _wechaty_, you can join our **Wechaty Developers' Home**.
 
-![Wechaty Developers' Home](https://raw.githubusercontent.com/wechaty/wechaty/master/image/BotQrcode.png)
+![Wechaty Developers' Home](https://raw.githubusercontent.com/chatie/wechaty/master/image/BotQrcode.png)
 
 Scan now, then you can chat with other Wechaty developers! (secret code: _wechaty_)
 
 # See Also
 
-* [RelatedProject](https://github.com/wechaty/wechaty/wiki/RelatedProject)
+* [RelatedProject](https://github.com/chatie/wechaty/wiki/RelatedProject)
 
 # Todo
 
