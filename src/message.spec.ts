@@ -51,6 +51,7 @@ test('ready()', async t => {
 
   Config.puppetInstance()
         .getContact = mockGetContact
+        
 
   // Mock
   function mockGetContact(id) {
