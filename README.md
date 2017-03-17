@@ -178,7 +178,7 @@ The following VPS providers is used by ourselves, they worked perfectly in produ
 
 # Test
 
-[![Linux/Mac Build Status](https://img.shields.io/travis/chatie/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/chatie/wechaty) [![Windows Build status](https://img.shields.io/appveyor/ci/chatie/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/chatie/wechaty) [![Docker CircleCI](https://img.shields.io/circleci/project/github/chatie/wechaty.svg?label=Docker)](https://circleci.com/gh/chatie/wechaty) [![Coverage Status](https://coveralls.io/repos/github/wechaty/wechaty/badge.svg?branch=master)](https://coveralls.io/github/wechaty/wechaty?branch=master) [![Known Vulnerabilities](https://snyk.io/test/github/chatie/wechaty/badge.svg)](https://snyk.io/test/github/chatie/wechaty)
+[![Linux/Mac Build Status](https://img.shields.io/travis/Chatie/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/Chatie/wechaty) [![Windows Build status](https://img.shields.io/appveyor/ci/chatie/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/chatie/wechaty) [![Docker CircleCI](https://img.shields.io/circleci/project/github/Chatie/wechaty.svg?label=Docker)](https://circleci.com/gh/Chatie/wechaty) [![Coverage Status](https://coveralls.io/repos/github/Chatie/wechaty/badge.svg?branch=master)](https://coveralls.io/github/Chatie/wechaty?branch=master) [![Known Vulnerabilities](https://snyk.io/test/github/chatie/wechaty/badge.svg)](https://snyk.io/test/github/chatie/wechaty)
 
 Wechaty use [AVA](https://github.com/avajs/ava) for unit testing
 
