@@ -236,7 +236,7 @@ You can directly submit pull requests for documentation changes.
 
 ## Join Our Wechaty Developers' Community
 
-Wechaty is using in many ChatBot projects by hundreds of developers today. If you want to talk with them, just scan the following QR Code in WeChat with secret code _wechaty_, you can join our **Wechaty Developers' Home** at once.
+Wechaty is used in many ChatBot projects by hundreds of developers. If you want to talk with other developers, just scan the following QR Code in WeChat with secret code _wechaty_, you can join our **Wechaty Developers' Home** at once.
 
 ![Wechaty Developers' Home](https://raw.githubusercontent.com/chatie/wechaty/master/image/BotQrcode.png)
 
