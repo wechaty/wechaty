@@ -234,13 +234,13 @@ You can directly submit pull requests for documentation changes.
 * [xinbenlv](https://github.com/xinbenlv)
 * [Gcaufy](https://github.com/Gcaufy)
 
-## Join us 
+## Join Our Wechaty Developers' Community
 
-Scan the following QR Code in WeChat, with secret code _wechaty_, you can join our **Wechaty Developers' Home**.
+Wechaty is using in many ChatBot projects by hundreds of developers today. If you want to talk with them, just scan the following QR Code in WeChat with secret code _wechaty_, you can join our **Wechaty Developers' Home** at once.
 
 ![Wechaty Developers' Home](https://raw.githubusercontent.com/chatie/wechaty/master/image/BotQrcode.png)
 
-Scan now, then you can chat with other Wechaty developers! (secret code: _wechaty_)
+Scan now, because other Wechaty developers want to talk with you too! (secret code: _wechaty_)
 
 # See Also
 
