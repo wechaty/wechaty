@@ -296,6 +296,48 @@ export class PuppetWeb extends Puppet {
     throw new Error('PuppetWeb.self() no this.user')
   }
 
+  public async getBaseRequest(): Promise<any> {
+    try {
+      let json = await this.bridge.getBaseRequest();
+      let obj = JSON.parse(json)
+      return obj.BaseRequest
+    } catch (e) {
+      log.error('PuppetWeb', 'send() exception: %s', e.message)
+      throw e
+    }
+  }
+
+  public async sendMedia(message: Message): Promise<void> {
+    const to = message.to()
+    const room = message.room()
+
+    const mediaId = message.mediaId()
+
+    let destinationId
+
+    if (room) {
+      destinationId = room.id
+    } else {
+      if (!to) {
+        throw new Error('PuppetWeb.send(): message with neither room nor to?')
+      }
+      destinationId = to.id
+    }
+
+    log.silly('PuppetWeb', 'send() destination: %s, mediaId: %s)',
+      destinationId,
+      mediaId,
+    )
+
+    try {
+      await this.bridge.sendMedia(destinationId, mediaId)
+    } catch (e) {
+      log.error('PuppetWeb', 'send() exception: %s', e.message)
+      throw e
+    }
+    return
+  }
+
   public async send(message: Message): Promise<void> {
     const to      = message.to()
     const room    = message.room()

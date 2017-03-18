@@ -8,6 +8,7 @@
 import * as https from 'https'
 import * as http  from 'http'
 import * as url   from 'url'
+import * as crypto from 'crypto'
 
 import { log } from './config'
 
@@ -240,5 +241,11 @@ export class UtilLib {
       }
       return currentPort + n
     }
+  }
+
+  public static md5(buffer: Buffer): string {
+    var md5sum = crypto.createHash('md5')
+    md5sum.update(buffer)
+    return md5sum.digest('hex')
   }
 }
