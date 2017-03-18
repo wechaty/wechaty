@@ -62,7 +62,7 @@ bot
  */
 .on('friend', async (contact, request) => {
   let logMsg
-  const fileTransfer = await Contact.find({name: '文件传输助手'}) || await Contact.find({name: 'File Transfer'})
+  const fileTransfer = Contact.load('filehelper')
 
   try {
     logMsg = 'received `friend` event from ' + contact.get('name')
