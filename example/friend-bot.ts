@@ -97,9 +97,7 @@ bot
   }
 
   console.log(logMsg)
-  if (fileTransfer) {
-    fileTransfer.say(logMsg)
-  }
+  fileHelper.say(logMsg)
 
 })
 
