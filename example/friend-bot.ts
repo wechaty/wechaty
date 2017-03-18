@@ -62,13 +62,11 @@ bot
  */
 .on('friend', async (contact, request) => {
   let logMsg
-  const fileTransfer = Contact.load('filehelper')
+  const fileHelper = Contact.load('filehelper')
 
   try {
     logMsg = 'received `friend` event from ' + contact.get('name')
-    if (fileTransfer) {
-      fileTransfer.say(logMsg)
-    }
+    fileHelper.say(logMsg)
     console.log(logMsg)
 
     /**
