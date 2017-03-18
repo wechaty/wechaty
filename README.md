@@ -234,7 +234,7 @@ You can directly submit pull requests for documentation changes.
 * [xinbenlv](https://github.com/xinbenlv)
 * [Gcaufy](https://github.com/Gcaufy)
 
-## Join Our Wechaty Developers' Community
+## Join Wechaty Developers' Community
 
 Wechaty is used in many ChatBot projects by hundreds of developers. If you want to talk with other developers, just scan the following QR Code in WeChat with secret code _wechaty_, you can join our **Wechaty Developers' Home** at once.
 
