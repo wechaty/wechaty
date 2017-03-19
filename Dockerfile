@@ -1,6 +1,6 @@
 #
 # Wechaty Docker
-# https://github.com/wechaty/wechaty
+# https://github.com/chatie/wechaty
 #
 # FROM alpine
 #
