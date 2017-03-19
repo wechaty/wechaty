@@ -175,14 +175,20 @@ test('mention()', async t => {
   }
 
   const msg11 = new Message(rawObj11)
+  const room11 = msg11.room()
+  if (room11) await room11.ready()
   const mentionContactList11 = msg11.mention()
   t.is(mentionContactList11.length, 0, '@_@ in message should not be treat as contact')
 
   const msg12 = new Message(rawObj12)
+  const room12 = msg12.room()
+  if (room12) await room12.ready()
   const mentionContactList12 = msg12.mention()
   t.is(mentionContactList12.length, 0, 'user@email.com in message should not be treat as contact')
 
   const msg13 = new Message(rawObj13)
+  const room13 = msg13.room()
+  if (room13) await room13.ready()
   const mentionContactList13 = msg13.mention()
   t.is(mentionContactList13.length, 0, '@_@ wow! my email is ruiruibupt@gmail.com in message should not be treat as contact')
 
