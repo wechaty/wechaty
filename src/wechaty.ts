@@ -2,6 +2,8 @@ import { EventEmitter } from 'events'
 import * as fs          from 'fs'
 import * as path        from 'path'
 import * as request     from 'request'
+import * as bl          from 'bl'
+import * as mime        from 'mime'
 
 import {
   Config,
@@ -418,12 +420,39 @@ export class Wechaty extends EventEmitter implements Sayable {
     return this.puppet.self()
   }
 
-  public async uploadMedia(file: string, toUserName: string): Promise<string> {
+  public async uploadMedia(stream: NodeJS.ReadableStream, filename: string, toUserName: string): Promise<string> {
     if (!this.puppet) {
       throw new Error('no puppet')
     }
 
-    let buffer = fs.readFileSync(file)
+    if (!filename)
+      throw new Error('no filename')
+
+    let type = mime.lookup(filename)
+    let ext = path.extname(filename)
+
+    let mediatype
+    switch (ext) {
+      case 'bmp':
+      case 'jpeg':
+      case 'jpg':
+      case 'png':
+        mediatype = 'pic'
+        break
+      case 'mp4':
+        mediatype = 'video'
+        break
+      default:
+        mediatype = 'doc'
+    }
+
+    let buffer = <Buffer>await new Promise((resolve, reject) => {
+      stream.pipe(bl((err, buf) => {
+        if (err) reject(err)
+        else resolve(buf)
+      }))
+    })
+
     let md5 = UtilLib.md5(buffer)
 
     let baseRequest = await this.puppet.getBaseRequest()
@@ -447,19 +476,19 @@ export class Wechaty extends EventEmitter implements Sayable {
 
     let formData = {
       id: 'WU_FILE_1',
-      name: '39a2bb60228749b2bb5c61c6016a0197.jpg',
-      type: 'image/jpeg',
+      name: filename,
+      type,
       lastModifiedDate: Date().toString(),
       size: size,
-      mediatype: 'pic',
+      mediatype,
       uploadmediarequest: JSON.stringify(uploadMediaRequest),
       webwx_data_ticket: webwxDataTicket,
       pass_ticket: '',
       filename: {
         value: buffer,
         options: {
-          filename: '39a2bb60228749b2bb5c61c6016a0197.jpg',
-          contentType: 'image/jpeg',
+          filename: filename,
+          contentType: type,
           size: size,
         },
       },
