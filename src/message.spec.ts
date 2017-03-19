@@ -187,9 +187,9 @@ test('mention()', async t => {
   t.is(mentionContactList13.length, 0, '@_@ wow! my email is ruiruibupt@gmail.com in message should not be treat as contact')
 
   const msg21 = new Message(rawObj21)
-  const mentionContactList21 = msg21.mention()
   const room21 = msg21.room()
   if (room21) await room21.ready()
+  const mentionContactList21 = msg21.mention()
   t.is(mentionContactList21.length, 1, '@小桔同学 is a contact')
   t.is(mentionContactList21[0].id, '@cd7d467d7464e8ff6b0acd29364654f3666df5d04551f6082bfc875f90a6afd2', 'should get 小桔同学 id right')
 
