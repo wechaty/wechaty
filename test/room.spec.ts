@@ -116,7 +116,7 @@ test('Room smoking test', async t => {
 
   const contact2 = new Contact(EXPECTED.memberId2)
   const nick2 = r.nick(contact2)
-  t.is(nick2, EXPECTED.memberNick2, 'should get name if not set roomAlias')
+  t.is(nick2, null, 'should return null if not set roomAlias')
 
   const name2 = r.alias(contact2)
   t.is(name2, null, 'should return null if not set roomAlias')
@@ -157,8 +157,8 @@ test('Room smoking test', async t => {
 
 test('Room static method', async t => {
   try {
-    await Room.find({ topic: 'xxx' })
-    t.fail('should throw but not')
+    const result = await Room.find({ topic: 'xxx' })
+    t.is(result, null, `should return null if cannot find the room`)
   } catch (e) {
     t.pass('should throw before login or not found')
   }
