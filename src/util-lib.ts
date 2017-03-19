@@ -244,7 +244,7 @@ export class UtilLib {
   }
 
   public static md5(buffer: Buffer): string {
-    var md5sum = crypto.createHash('md5')
+    let md5sum = crypto.createHash('md5')
     md5sum.update(buffer)
     return md5sum.digest('hex')
   }

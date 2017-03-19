@@ -245,7 +245,7 @@ export class Message implements Sayable {
       digest:       rawObj.MMDigest,
       date:         rawObj.MMDisplayTime,  // Javascript timestamp of milliseconds
       url:          rawObj.Url || rawObj.MMAppMsgDownloadUrl || rawObj.MMLocationUrl,
-      mediaId:      rawObj.MediaId
+      mediaId:      rawObj.MediaId,
     }
 
     // FIXME: has ther any better method to know the room ID?
@@ -372,16 +372,16 @@ export class Message implements Sayable {
     return this.obj.content
   }
 
-public mediaId():string
-public mediaId(mediaId:string): void
+  public mediaId(): string
+  public mediaId(mediaId: string): void
 
-public mediaId(mediaId?:string):string|void{
-  if(mediaId){
-    this.obj.mediaId=mediaId
-    return
+  public mediaId(mediaId?: string): string | void {
+    if (mediaId) {
+      this.obj.mediaId = mediaId
+      return
+    }
+    return this.obj.mediaId
   }
-  return this.obj.mediaId
-}
 
   public type(): MsgType {
     return this.obj.type

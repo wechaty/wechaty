@@ -426,24 +426,23 @@ export class Wechaty extends EventEmitter implements Sayable {
     let buffer = fs.readFileSync(file)
     let md5 = UtilLib.md5(buffer)
 
-    let BaseRequest = await this.puppet.getBaseRequest()
+    let baseRequest = await this.puppet.getBaseRequest()
     let cookie = await (this.puppet as PuppetWeb).browser.readCookie()
     let first = cookie.find(c => c.name === 'webwx_data_ticket')
-    let webwx_data_ticket = first && first.value
-    let pass_ticket = '';
+    let webwxDataTicket = first && first.value
     let size = buffer.length
 
     let uploadMediaRequest = {
-      BaseRequest,
+      BaseRequest: baseRequest,
       FileMd5: md5,
-      FromUserName:this.self().id,
+      FromUserName: this.self().id,
       ToUserName: toUserName,
       UploadType: 2,
       ClientMediaId: +new Date,
-      MediaType:4,
-  StartPos: 0,
-  DataLen: size,
-      TotalLen: size
+      MediaType: 4,
+      StartPos: 0,
+      DataLen: size,
+      TotalLen: size,
     }
 
     let formData = {
@@ -454,19 +453,19 @@ export class Wechaty extends EventEmitter implements Sayable {
       size: size,
       mediatype: 'pic',
       uploadmediarequest: JSON.stringify(uploadMediaRequest),
-      webwx_data_ticket,
-      pass_ticket,
+      webwx_data_ticket: webwxDataTicket,
+      pass_ticket: '',
       filename: {
         value: buffer,
         options: {
           filename: '39a2bb60228749b2bb5c61c6016a0197.jpg',
           contentType: 'image/jpeg',
-          size: size
-        }
-      }
+          size: size,
+        },
+      },
     }
 
-    var mediaId = await new Promise((resolve, reject) => {
+    let mediaId = await new Promise((resolve, reject) => {
       request.post({ url: 'https://file.wx2.qq.com/cgi-bin/mmwebwx-bin/webwxuploadmedia?f=json', formData }, function (err, res, body) {
 
         if (err) reject('err')
