@@ -19,6 +19,7 @@ npm run lint
 
 [ -z "$CYGWIN" ] && {
   npm version patch
+  git rebase
   WECHATY_INNER_PRE_HOOK=1 git push
 
   echo
@@ -34,6 +35,6 @@ npm run lint
 
 # must run this after the above `test` ([ -z ...]),
 # or will whow a error: error: failed to push some refs to 'git@github.com:wechaty/wechaty.git'
-echo "PRE-PUSH HOOK PASSED" 
+echo "PRE-PUSH HOOK PASSED"
 echo
 
