@@ -173,7 +173,6 @@ test('mention()', async t => {
     puppet1 = { getContact: mockContactGetter }
     Config.puppetInstance(puppet1)
   }
-
   const msg11 = new Message(rawObj11)
   const room11 = msg11.room()
   if (room11) await room11.ready()
