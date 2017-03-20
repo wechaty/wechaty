@@ -124,7 +124,7 @@
     "@types/mime": "0.0.29",
     "@types/node": "7.0.8",
     "@types/request": "0.0.41",
-    "@types/sinon": "1.16.35",
+    "@types/sinon": "1.16.36",
     "@types/ws": "0.0.39",
     "apiai": "4.0.1",
     "ava": "0.18.2",
