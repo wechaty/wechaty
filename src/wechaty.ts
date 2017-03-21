@@ -550,8 +550,10 @@ export class Wechaty extends EventEmitter implements Sayable {
 
   /**
    * @todo document me
+   * @static
+   *
    */
-  public async sleep(millisecond: number): Promise<void> {
+  public static async sleep(millisecond: number): Promise<void> {
     await new Promise(resolve => {
       setTimeout(resolve, millisecond)
     })

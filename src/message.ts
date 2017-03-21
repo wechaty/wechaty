@@ -187,6 +187,11 @@ export class Message implements Sayable {
   public static counter = 0
   public _counter: number
 
+  /**
+   * a map for:
+   *   1. name to id
+   *   2. id to name
+   */
   public static TYPE: MsgTypeMap = {
     TEXT:               1,
     IMAGE:              3,
