@@ -448,7 +448,12 @@
     return JSON.stringify(BaseRequest)
   }
 
-  function sendMedia(ToUserName, MediaId) {
+  function getPassticket() {
+    var accountFactory = WechatyBro.glue.accountFactory
+    return accountFactory.getPassticket()
+  }
+
+  function sendMedia(ToUserName, MediaId,Type) {
     var chatFactory = WechatyBro.glue.chatFactory
     var confFactory = WechatyBro.glue.confFactory
 
@@ -460,7 +465,7 @@
     var m = chatFactory.createMessage({
       ToUserName: ToUserName
       , MediaId: MediaId
-      , MsgType: confFactory.MSGTYPE_IMAGE
+      , MsgType: Type
     })
     chatFactory.appendMessage(m)
     return chatFactory.sendMessage(m)
@@ -851,8 +856,9 @@
     , getMsgVideo:         getMsgVideo
     , getMsgVoice:         getMsgVoice
     , getMsgPublicLinkImg: getMsgPublicLinkImg
-    , getBaseRequest: getBaseRequest
-    , sendMedia:          sendMedia
+    , getBaseRequest:      getBaseRequest
+    , getPassticket:       getPassticket
+    , sendMedia:           sendMedia
 
     // for Wechaty Contact Class
     , contactFindAsync:   contactFindAsync

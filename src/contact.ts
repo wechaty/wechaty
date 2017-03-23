@@ -2,7 +2,10 @@ import {
   Config,
   Sayable,
 }                     from './config'
-import { Message }    from './message'
+import {
+  Message,
+  MediaMessage,
+}                     from './message'
 import { PuppetWeb }  from './puppet-web'
 import { UtilLib }    from './util-lib'
 import { Wechaty }    from './wechaty'
@@ -578,8 +581,8 @@ export class Contact implements Sayable {
    * await contact.say('welcome to wechaty!')
    * ```
    */
-  public async say(content: string): Promise<void> {
-    log.verbose('Contact', 'say(%s)', content)
+  public async say(content: string|MediaMessage): Promise<void> {
+    log.verbose('Contact', 'say(%s)', typeof content === 'string' ? content : content.filename())
 
     const wechaty = Wechaty.instance()
     const user = wechaty.user()
@@ -587,11 +590,14 @@ export class Contact implements Sayable {
     if (!user) {
       throw new Error('no user')
     }
-    const m = new Message()
+    let m
+    if (typeof content === 'string') {
+      m = new Message()
+      m.content(content)
+    } else
+      m = content
     m.from(user)
     m.to(this)
-    m.content(content)
-
     log.silly('Contact', 'say() from: %s to: %s content: %s', user.name(), this.name(), content)
 
     await wechaty.send(m)

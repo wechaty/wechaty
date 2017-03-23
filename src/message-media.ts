@@ -16,6 +16,7 @@ import {
   AppMsgType,
   Message,
   MsgType,
+  // MsgRawObj,
 }                     from './message'
 import { UtilLib }    from './util-lib'
 import { PuppetWeb }  from './puppet-web/puppet-web'
@@ -23,12 +24,18 @@ import { Bridge }     from './puppet-web/bridge'
 
 export class MediaMessage extends Message {
   private bridge: Bridge
+  private filepath: string
 
   constructor(rawObj) {
-    super(rawObj)
+
+    if (typeof rawObj === 'string') {
+      super()
+      this.filepath = rawObj
+    } else
+      super(rawObj)
     // FIXME: decoupling needed
     this.bridge = (Config.puppetInstance() as PuppetWeb)
-                        .bridge
+      .bridge
   }
 
   public async ready(): Promise<void> {
@@ -140,6 +147,9 @@ export class MediaMessage extends Message {
   }
 
   public filename(): string {
+    if (this.filepath)
+      return this.filepath
+
     if (!this.rawObj) {
       throw new Error('no rawObj')
     }

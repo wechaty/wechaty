@@ -362,7 +362,18 @@ export class Bridge {
     }
   }
 
-    public sendMedia(toUserName: string, mediaId: string): Promise<void> {
+  public async getPassticket(): Promise<string> {
+    log.verbose('PuppetWebBridge', 'getPassticket()')
+
+    try {
+      return await this.proxyWechaty('getPassticket')
+    } catch (e) {
+      log.silly('PuppetWebBridge', 'proxyWechaty(getPassticket) exception: %s', e.message)
+      throw e
+    }
+  }
+
+  public sendMedia(toUserName: string, mediaId: string, type: number): Promise<void> {
     if (!toUserName) {
       throw new Error('UserName not found')
     }
@@ -370,7 +381,7 @@ export class Bridge {
       throw new Error('cannot say nothing')
     }
 
-    return this.proxyWechaty('sendMedia', toUserName, mediaId)
+    return this.proxyWechaty('sendMedia', toUserName, mediaId, type)
               .catch(e => {
                 log.error('PuppetWebBridge', 'sendMedia() exception: %s', e.message)
                 throw e

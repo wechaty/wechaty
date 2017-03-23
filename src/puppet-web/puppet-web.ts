@@ -22,7 +22,10 @@ import {
 }                         from '../config'
 
 import { Contact }        from '../contact'
-import { Message }        from '../message'
+import {
+  Message,
+}                 from '../message'
+import { MediaMessage }   from '../message-media'
 import { Puppet }         from '../puppet'
 import { Room }           from '../room'
 import { UtilLib }        from '../util-lib'
@@ -32,6 +35,10 @@ import { Browser }        from './browser'
 import { Event }          from './event'
 import { Server }         from './server'
 import { Watchdog }       from './watchdog'
+
+import * as path          from 'path'
+import * as fs            from 'fs'
+import * as request       from 'request'
 
 export type PuppetWebSetting = {
   head?:    HeadName,
@@ -296,7 +303,7 @@ export class PuppetWeb extends Puppet {
     throw new Error('PuppetWeb.self() no this.user')
   }
 
-  public async getBaseRequest(): Promise<any> {
+  private async getBaseRequest(): Promise<any> {
     try {
       let json = await this.bridge.getBaseRequest();
       let obj = JSON.parse(json)
@@ -307,11 +314,103 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public async sendMedia(message: Message): Promise<void> {
+  private async uploadMedia( filepath: string, toUserName: string): Promise<string> {
+    if (!filepath)
+      throw new Error('no filepath')
+
+    let filename = path.basename(filepath)
+    let ext = path.extname(filepath)
+
+    let contentType = UtilLib.mime(ext)
+    let mediatype
+
+    switch (ext) {
+      case '.bmp':
+      case '.jpeg':
+      case '.jpg':
+      case '.png':
+        mediatype = 'pic'
+        break
+      case '.mp4':
+        mediatype = 'video'
+        break
+      default:
+        mediatype = 'doc'
+    }
+
+    let buffer = <Buffer>await new Promise((resolve, reject) => {
+      fs.readFile(filepath, function (err, buf) {
+        if (err) reject(err)
+        else resolve(buf)
+      });
+    })
+
+    let md5 = UtilLib.md5(buffer)
+
+    let baseRequest = await this.getBaseRequest()
+    let passTicket = await this.bridge.getPassticket()
+    let cookie = await this.browser.readCookie()
+    let first = cookie.find(c => c.name === 'webwx_data_ticket')
+    let webwxDataTicket = first && first.value
+    let size = buffer.length
+
+    let uploadMediaRequest = {
+      BaseRequest: baseRequest,
+      FileMd5: md5,
+      FromUserName: this.self().id,
+      ToUserName: toUserName,
+      UploadType: 2,
+      ClientMediaId: +new Date,
+      MediaType: 4,
+      StartPos: 0,
+      DataLen: size,
+      TotalLen: size,
+    }
+
+    let formData = {
+      id: 'WU_FILE_1',
+      name: filename,
+      type: contentType,
+      lastModifiedDate: Date().toString(),
+      size: size,
+      mediatype,
+      uploadmediarequest: JSON.stringify(uploadMediaRequest),
+      webwx_data_ticket: webwxDataTicket,
+      pass_ticket: passTicket || '',
+      filename: {
+        value: buffer,
+        options: {
+          filename,
+          contentType,
+          size,
+        },
+      },
+    }
+
+    let mediaId = await new Promise((resolve, reject) => {
+      request.post({
+        url: 'https://file.wx.qq.com/cgi-bin/mmwebwx-bin/webwxuploadmedia?f=json',
+        headers: {
+          Referer: 'https://wx.qq.com',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36',
+        },
+        formData,
+      }, function (err, res, body) {
+        if (err) reject(err)
+        else {
+          let obj = JSON.parse(body)
+          resolve(obj.MediaId)
+        }
+      })
+    })
+    if (!mediaId)
+      throw new Error('upload fail')
+    return mediaId as string
+  }
+
+  public async sendMedia(message: MediaMessage): Promise<void> {
     const to = message.to()
     const room = message.room()
-
-    const mediaId = message.mediaId()
 
     let destinationId
 
@@ -323,6 +422,9 @@ export class PuppetWeb extends Puppet {
       }
       destinationId = to.id
     }
+
+    const mediaId = await this.uploadMedia(message.filename(), destinationId)
+    let msgType = UtilLib.msgType(path.extname(message.filename()))
 
     log.silly('PuppetWeb', 'send() destination: %s, mediaId: %s)',
       destinationId,
@@ -330,7 +432,7 @@ export class PuppetWeb extends Puppet {
     )
 
     try {
-      await this.bridge.sendMedia(destinationId, mediaId)
+      await this.bridge.sendMedia(destinationId, mediaId, msgType)
     } catch (e) {
       log.error('PuppetWeb', 'send() exception: %s', e.message)
       throw e
@@ -338,11 +440,9 @@ export class PuppetWeb extends Puppet {
     return
   }
 
-  public async send(message: Message): Promise<void> {
+  public async send(message: Message | MediaMessage): Promise<void> {
     const to      = message.to()
     const room    = message.room()
-
-    const content     = message.content()
 
     let destinationId
 
@@ -355,19 +455,25 @@ export class PuppetWeb extends Puppet {
       destinationId = to.id
     }
 
-    log.silly('PuppetWeb', 'send() destination: %s, content: %s)',
-                            destinationId,
-                            content,
-    )
+    if (message instanceof MediaMessage) {
+      await this.sendMedia(message)
+    } else {
+      const content = message.content()
 
-    try {
-      await this.bridge.send(destinationId, content)
-    } catch (e) {
-      log.error('PuppetWeb', 'send() exception: %s', e.message)
-      throw e
+      log.silly('PuppetWeb', 'send() destination: %s, content: %s)',
+        destinationId,
+        content,
+      )
+
+      try {
+        await this.bridge.send(destinationId, content)
+      } catch (e) {
+        log.error('PuppetWeb', 'send() exception: %s', e.message)
+        throw e
+      }
     }
     return
-}
+  }
 
   /**
    * Bot say...

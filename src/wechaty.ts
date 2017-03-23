@@ -1,9 +1,6 @@
 import { EventEmitter } from 'events'
 import * as fs          from 'fs'
 import * as path        from 'path'
-import * as request     from 'request'
-import * as bl          from 'bl'
-import * as mime        from 'mime'
 
 import {
   Config,
@@ -15,7 +12,10 @@ import {
 
 import { Contact }        from './contact'
 import { FriendRequest }  from './friend-request'
-import { Message }        from './message'
+import {
+  Message,
+  MediaMessage,
+}                         from './message'
 import { Puppet }         from './puppet'
 import { PuppetWeb }      from './puppet-web/'
 import { Room }           from './room'
@@ -420,110 +420,10 @@ export class Wechaty extends EventEmitter implements Sayable {
     return this.puppet.self()
   }
 
-  public async uploadMedia(stream: NodeJS.ReadableStream, filename: string, toUserName: string): Promise<string> {
-    if (!this.puppet) {
-      throw new Error('no puppet')
-    }
-
-    if (!filename)
-      throw new Error('no filename')
-
-    let type = mime.lookup(filename)
-    let ext = path.extname(filename)
-
-    let mediatype
-    switch (ext) {
-      case 'bmp':
-      case 'jpeg':
-      case 'jpg':
-      case 'png':
-        mediatype = 'pic'
-        break
-      case 'mp4':
-        mediatype = 'video'
-        break
-      default:
-        mediatype = 'doc'
-    }
-
-    let buffer = <Buffer>await new Promise((resolve, reject) => {
-      stream.pipe(bl((err, buf) => {
-        if (err) reject(err)
-        else resolve(buf)
-      }))
-    })
-
-    let md5 = UtilLib.md5(buffer)
-
-    let baseRequest = await this.puppet.getBaseRequest()
-    let cookie = await (this.puppet as PuppetWeb).browser.readCookie()
-    let first = cookie.find(c => c.name === 'webwx_data_ticket')
-    let webwxDataTicket = first && first.value
-    let size = buffer.length
-
-    let uploadMediaRequest = {
-      BaseRequest: baseRequest,
-      FileMd5: md5,
-      FromUserName: this.self().id,
-      ToUserName: toUserName,
-      UploadType: 2,
-      ClientMediaId: +new Date,
-      MediaType: 4,
-      StartPos: 0,
-      DataLen: size,
-      TotalLen: size,
-    }
-
-    let formData = {
-      id: 'WU_FILE_1',
-      name: filename,
-      type,
-      lastModifiedDate: Date().toString(),
-      size: size,
-      mediatype,
-      uploadmediarequest: JSON.stringify(uploadMediaRequest),
-      webwx_data_ticket: webwxDataTicket,
-      pass_ticket: '',
-      filename: {
-        value: buffer,
-        options: {
-          filename: filename,
-          contentType: type,
-          size: size,
-        },
-      },
-    }
-
-    let mediaId = await new Promise((resolve, reject) => {
-      request.post({ url: 'https://file.wx2.qq.com/cgi-bin/mmwebwx-bin/webwxuploadmedia?f=json', formData }, function (err, res, body) {
-
-        if (err) reject('err')
-        else {
-          let obj = JSON.parse(body)
-          resolve(obj.MediaId)
-        }
-      })
-    })
-
-    return mediaId as string
-  }
-
-  public async sendMedia(message: Message): Promise<void> {
-    if (!this.puppet) {
-      throw new Error('no puppet')
-    }
-    await this.puppet.sendMedia(message)
-      .catch(e => {
-        log.error('Wechaty', 'send() exception: %s', e.message)
-        throw e
-      })
-    return
-  }
-
   /**
    * @todo document me
    */
-  public async send(message: Message): Promise<void> {
+  public async send(message: Message | MediaMessage): Promise<void> {
     if (!this.puppet) {
       throw new Error('no puppet')
     }

@@ -16,6 +16,7 @@ import {
 import { Contact }  from './contact'
 import { Room }     from './room'
 import { UtilLib }  from './util-lib'
+import { MediaMessage } from './message-media'
 
 export type MsgRawObj = {
   MsgId:            string,
@@ -505,30 +506,42 @@ export class Message implements Sayable {
     })
   }
 
-  public say(content: string, replyTo?: Contact|Contact[]): Promise<any> {
+  public say(content: string | MediaMessage, replyTo?: Contact|Contact[]): Promise<any> {
     log.verbose('Message', 'say(%s, %s)', content, replyTo)
-
-    const m = new Message()
-    const room = this.room()
-    if (room) {
-      m.room(room)
-    }
-
-    if (!replyTo) {
-      m.to(this.from())
-      m.content(content)
-
-    } else if (this.room()) {
-      let mentionList
-      if (Array.isArray(replyTo)) {
-        m.to(replyTo[0])
-        mentionList = replyTo.map(c => '@' + c.name()).join(' ')
-      } else {
-        m.to(replyTo)
-        mentionList = '@' + replyTo.name()
+    let m
+    if (typeof content === 'string') {
+      m = new Message()
+      const room = this.room()
+      if (room) {
+        m.room(room)
       }
-      m.content(mentionList + ' ' + content)
 
+      if (!replyTo) {
+        m.to(this.from())
+        m.content(content)
+
+      } else if (this.room()) {
+        let mentionList
+        if (Array.isArray(replyTo)) {
+          m.to(replyTo[0])
+          mentionList = replyTo.map(c => '@' + c.name()).join(' ')
+        } else {
+          m.to(replyTo)
+          mentionList = '@' + replyTo.name()
+        }
+        m.content(mentionList + ' ' + content)
+
+      }
+    } else {
+      m = content
+      const room = this.room()
+      if (room) {
+        m.room(room)
+      }
+
+      if (!replyTo) {
+        m.to(this.from())
+      }
     }
 
     return Config.puppetInstance()
