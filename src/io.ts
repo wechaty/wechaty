@@ -12,19 +12,19 @@
 import * as WebSocket from 'ws'
 
 import {
-    Config
+  Config,
   // WechatyEventName
-  , log
+  log,
 }                   from './config'
 
 import { StateMonitor } from './state-monitor'
 import { Wechaty }      from './wechaty'
 
 export type IoSetting = {
-  wechaty:    Wechaty
-  token:      string
-  apihost?:   string
-  protocol?:  string
+  wechaty:    Wechaty,
+  token:      string,
+  apihost?:   string,
+  protocol?:  string,
 }
 
 type IoEventName =  'botie'
@@ -39,8 +39,8 @@ type IoEventName =  'botie'
                   | 'shutdown'
 
 type IoEvent = {
-  name:     IoEventName
-  payload:  any
+  name:     IoEventName,
+  payload:  any,
 }
 
 export class Io {
@@ -50,8 +50,6 @@ export class Io {
   private eventBuffer: IoEvent[] = []
   private ws: WebSocket
 
-  // private _currentState: string
-  // private _targetState: string
   private state = new StateMonitor<'online', 'offline'>('Io', 'offline')
 
   private reconnectTimer: NodeJS.Timer | null
@@ -70,37 +68,13 @@ export class Io {
     this.uuid     = setting.wechaty.uuid
 
     this.protocol = setting.protocol + '|' + setting.wechaty.uuid
-    log.verbose('Io', 'instantiated with apihost[%s], token[%s], protocol[%s], uuid[%s]'
-              , setting.apihost
-              , setting.token
-              , setting.protocol
-              , this.uuid
+    log.verbose('Io', 'instantiated with apihost[%s], token[%s], protocol[%s], uuid[%s]',
+                setting.apihost,
+                setting.token,
+                setting.protocol,
+                this.uuid,
               )
-
-    // this.purpose('offline')
-    // this.targetState('disconnected')
-    // this.currentState('disconnected')
-    // this.state.target('offline')
-    // this.state.current('offline')
   }
-
-  // // targetState : 'connected' | 'disconnected'
-  // private targetState(newState?) {
-  //   if (newState) {
-  //     log.verbose('Io', 'targetState(%s)', newState)
-  //     this._targetState = newState
-  //   }
-  //   return this._targetState
-  // }
-
-  // // currentState : 'connecting' | 'connected' | 'disconnecting' | 'disconnected'
-  // private currentState(newState?) {
-  //   if (newState) {
-  //     log.verbose('Io', 'currentState(%s)', newState)
-  //     this._currentState = newState
-  //   }
-  //   return this._currentState
-  // }
 
   public toString() { return 'Class Io(' + this.setting.token + ')'}
 
@@ -109,8 +83,6 @@ export class Io {
   public async init(): Promise<void> {
     log.verbose('Io', 'init()')
 
-    // this.targetState('connected')
-    // this.currentState('connecting')
     this.state.target('online')
     this.state.current('online', false)
 
@@ -118,13 +90,11 @@ export class Io {
       await this.initEventHook()
       await this.initWebSocket()
 
-      // this.currentState('connected')
       this.state.current('online')
 
       return
     } catch (e) {
       log.warn('Io', 'init() exception: %s', e.message)
-      // this.currentState('disconnected')
       this.state.current('offline')
       throw e
     }
@@ -132,7 +102,6 @@ export class Io {
 
   private initWebSocket() {
     log.verbose('Io', 'initWebSocket()')
-    // this.currentState('connecting')
     this.state.current('online', false)
 
     // const auth = 'Basic ' + new Buffer(this.setting.token + ':X').toString('base64')
@@ -166,8 +135,8 @@ export class Io {
       this.reconnectTimeout = null
 
       const initEvent = <IoEvent>{
-        name: 'sys'
-        , payload: 'Wechaty version ' + this.setting.wechaty.version() + ` with UUID: ${this.uuid}`
+        name: 'sys',
+        payload: 'Wechaty version ' + this.setting.wechaty.version() + ` with UUID: ${this.uuid}`,
       }
       this.send(initEvent)
 
@@ -179,8 +148,8 @@ export class Io {
       // flags.masked will be set if the data was masked.
 
       const ioEvent = {
-        name: 'raw'
-        , payload: data
+        name: 'raw',
+        payload: data,
       }
 
       try {
@@ -221,9 +190,9 @@ export class Io {
           const user = this.setting.wechaty.puppet ? this.setting.wechaty.puppet.user : null
           if (user) {
             const loginEvent: IoEvent = {
-              name:       'login'
+              name:       'login',
               // , payload:  user.obj
-              , payload:  user
+              payload:  user,
             }
             this.send(loginEvent)
           }
@@ -234,8 +203,8 @@ export class Io {
                         && this.setting.wechaty.puppet['scan']
           if (scan) {
             const scanEvent: IoEvent = {
-              name: 'scan'
-              , payload: scan
+              name: 'scan',
+              payload: scan,
             }
             this.send(scanEvent)
           }
@@ -384,12 +353,12 @@ export class Io {
     while (this.eventBuffer.length) {
       const p = new Promise((resolve, reject) => this.ws.send(
         JSON.stringify(
-          this.eventBuffer.shift()
-        )
-        , (err: Error) => {
+          this.eventBuffer.shift(),
+        ),
+        (err: Error) => {
           if (err)  { reject(err) }
           else      { resolve()   }
-        }
+        },
       ))
       list.push(p)
     }
@@ -404,13 +373,10 @@ export class Io {
 
   private close() {
     log.verbose('Io', 'close()')
-    // this.targetState('disconnected')
-    // this.currentState('disconnecting')
     this.state.target('offline')
     this.state.current('offline', false)
 
     this.ws.close()
-    // this.currentState('disconnected')
     this.state.current('offline')
 
     // TODO: remove listener for this.setting.wechaty.on(message )
@@ -418,8 +384,6 @@ export class Io {
   }
 
   public quit() {
-    // this.targetState('disconnected')
-    // this.currentState('disconnecting')
     this.state.target('offline')
     this.state.current('offline', false)
 

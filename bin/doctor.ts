@@ -10,18 +10,40 @@
 import * as os from 'os'
 
 import {
-    Config
+  Config,
 }                   from '../src/config'
 import { Wechaty }  from '../src/wechaty'
 
+import { Doctor }   from '../src/doctor'
+
 const wechaty = Wechaty.instance()
+const doctor = new Doctor()
 
-console.log(`
-#### Wechaty Doctor
+async function main() {
+  let ipcTestResult: string
+  try {
+    await doctor.testTcp()
+    ipcTestResult = 'PASS'
+  } catch (err) {
+    console.log(err)
+    ipcTestResult = 'FAIL. Please check your tcp network, Wechaty need to listen on localhost and connect to it.'
+  }
 
-1. Wechaty version: ${wechaty.version()}
-2. ${os.type()} ${os.arch()} version ${os.release()} memory ${Math.floor(os.freemem() / 1024 / 1024)}/${Math.floor(os.totalmem() / 1024 / 1024)} MB
-3. Docker: ${Config.isDocker}
-4. Node version: ${process.version}
+  console.log(`
+  #### Wechaty Doctor
 
-`)
+  1. Wechaty version: ${wechaty.version()}
+  2. ${os.type()} ${os.arch()} version ${os.release()} memory ${Math.floor(os.freemem() / 1024 / 1024)}/${Math.floor(os.totalmem() / 1024 / 1024)} MB
+  3. Docker: ${Config.isDocker}
+  4. Node version: ${process.version}
+  5. Tcp IPC TEST: ${ipcTestResult}
+
+  `)
+
+}
+
+try {
+  main()
+} catch (err) {
+  console.error('main() exception: %s', err.message || err)
+}

@@ -8,7 +8,7 @@
  */
 
 import { PassThrough }        from 'stream'
-// import { createWriteStream }  from 'fs'
+import { createWriteStream }  from 'fs'
 
 import request      = require('request')
 import Ffmpeg       = require('fluent-ffmpeg')
@@ -35,24 +35,32 @@ bot
   console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
 })
 .on('login'	  , user => console.log(`${user} logined`))
-.on('message', async function(this, m) {
-  console.log(`RECV: ${m}`)
+.on('message', async function(this, msg) {
+  console.log(`RECV: ${msg}`)
 
-  if (m.type() !== MsgType.VOICE) {
+  if (msg.type() !== MsgType.VOICE) {
     return // skip no-VOICE message
   }
 
-  const mp3Stream = await (m as MediaMessage).readyStream()
-  const text = await voiceToText(mp3Stream)
+  const mp3Stream = await (msg as MediaMessage).readyStream()
 
+  const file = createWriteStream(msg.filename())
+  mp3Stream.pipe(file)
+
+  const text = await speechToText(mp3Stream)
   console.log('VOICE TO TEXT: ' + text)
 
-  this.say(text)  // send text to 'filehelper'
+  if (msg.self()) {
+    this.say(text)  // send text to 'filehelper'
+  } else {
+    msg.say(text)     // to original sender
+  }
+
 })
 .init()
 .catch(e => console.error('bot.init() error: ' + e))
 
-async function voiceToText(mp3Stream: NodeJS.ReadableStream): Promise<string> {
+async function speechToText(mp3Stream: NodeJS.ReadableStream): Promise<string> {
   const wavStream = mp3ToWav(mp3Stream)
 
   // const textStream = wavToText(wavStream)
@@ -100,20 +108,30 @@ function mp3ToWav(mp3Stream: NodeJS.ReadableStream): NodeJS.ReadableStream {
 }
 
 /**
+ * Baidu:
  * export BAIDU_SPEECH_API_KEY=FK58sUlteAuAIXZl5dWzAHCT
  * export BAIDU_SPEECH_SECRET_KEY=feaf24adcc5b8f02b147e7f7b1953030
  * curl "https://openapi.baidu.com/oauth/2.0/token?grant_type=client_credentials&client_id=${BAIDU_SPEECH_API_KEY}&client_secret=${BAIDU_SPEECH_SECRET_KEY}"
+ *
+ * OAuth: http://developer.baidu.com/wiki/index.php?title=docs/oauth/overview
+ * ASR: http://yuyin.baidu.com/docs/asr/57
  */
 
 /**
- * OAuth: http://developer.baidu.com/wiki/index.php?title=docs/oauth/overview
- * ASR: http://yuyin.baidu.com/docs/asr/57
+ * YunZhiSheng:
+ * http://dev.hivoice.cn/download_file/USC_DevelGuide_WebAPI_audioTranscription.pdf
+ */
+
+/**
+ * Google:
+ * http://blog.csdn.net/dlangu0393/article/details/7214728
+ * http://elric2011.github.io/a/using_speech_recognize_service.html
  */
 async function wavToText(readableStream: NodeJS.ReadableStream): Promise<string> {
   const params = {
     'cuid': 'wechaty',
     'lan': 'zh',
-    'token': '24.8c6a25b5dcfb41af189a97d9e0b7c076.2592000.1482571685.282335-8943256'
+    'token': '24.8c6a25b5dcfb41af189a97d9e0b7c076.2592000.1482571685.282335-8943256',
   }
 
   const apiUrl = 'http://vop.baidu.com/server_api?'
@@ -134,7 +152,7 @@ async function wavToText(readableStream: NodeJS.ReadableStream): Promise<string>
       try {
         const obj = JSON.parse(body)
         if (obj.err_no !== 0) {
-          return reject(new Error(obj.err_msg))
+          throw new Error(obj.err_msg)
         }
 
         return resolve(obj.result[0])

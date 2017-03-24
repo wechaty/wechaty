@@ -1,8 +1,7 @@
 {
   "compilerOptions": {
-    "target": "es6"
+    "target": "es2015"
     , "module": "commonjs"
-    // , "moduleResolution": "node" // typescript 2.0.3 bug compatible
     , "outDir": "dist"
     , "declaration": true
     , "sourceMap": true
@@ -16,13 +15,14 @@
     , "noImplicitAny": false
     , "noUnusedParameters": false
     , "noImplicitThis": false
+    , "traceResolution": false
   }
   , "exclude": [
-      "node_modules"
-    , "dist"
+      "node_modules/"
+    , "dist/"
   ]
   , "include": [
-       "bin/*.ts"
+    "bin/*.ts"
      , "example/**/*.ts"
      , "src/**/*.ts"
      , "test/**/*.spec.ts"

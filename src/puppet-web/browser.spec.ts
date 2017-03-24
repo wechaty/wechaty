@@ -7,13 +7,13 @@
  */
 import { test } from 'ava'
 
-import {
+// import {
   //   Config
   // , log
-} from '../config'
+// } from '../config'
 
 import {
-    Browser
+    Browser,
 } from './browser'
 
 test('quit()', async t => {

@@ -1,4 +1,7 @@
 {
+  "rulesDirectory": [
+    "node_modules/tslint-jsdoc-rules/lib"
+  ],
   "rules": {
     "align": [
       false,
@@ -6,7 +9,10 @@
       "arguments",
       "statements"
     ],
-    "ban": false,
+    "jsdoc-require": [
+      false
+    ],
+   "ban": false,
     "class-name": true,
     "comment-format": [
       true,
@@ -20,9 +26,8 @@
       "spaces"
     ],
     "interface-name": false,
-    "jsdoc-format": false,
+    "jsdoc-format": true,
     "label-position": true,
-    "label-undefined": true,
     "max-line-length": [
       true,
       180
@@ -36,9 +41,7 @@
     "no-consecutive-blank-lines": true,
     "no-console": [false],
     "no-construct": false,
-    "no-constructor-vars": false,
     "no-debugger": true,
-    "no-duplicate-key": true,
     "no-duplicate-variable": true,
     "no-empty": true,
     "no-eval": true,
@@ -49,9 +52,7 @@
     "no-string-literal": false,
     "no-switch-case-fall-through": true,
     "no-trailing-whitespace": true,
-    "no-unreachable": true,
     "no-unused-expression": true,
-    "no-unused-variable": true,
     "no-use-before-declare": true,
     "no-var-keyword": true,
     "no-var-requires": false,
@@ -70,9 +71,9 @@
     "semicolon": false,
     "switch-default": false,
     "trailing-comma": [
-      false,
+      true,
       {
-        "multiline": "never",
+        "multiline": "always",
         "singleline": "never"
       }
     ],
@@ -88,7 +89,6 @@
         "variable-declaration": "nospace"
       }
     ],
-    "use-strict": [false],
     "variable-name": [
       true,
       "check-format",

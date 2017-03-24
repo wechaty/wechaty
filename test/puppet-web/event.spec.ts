@@ -8,14 +8,12 @@
 import { test } from 'ava'
 
 import {
-    Event
-  , PuppetWeb
+  Event,
+  PuppetWeb,
 } from '../../src/puppet-web/'
 
 // const PORT = process.env.WECHATY_PORT || 58788
 const PROFILE = 'unit-test-session.wechaty.json'
-
-// const PuppetWeb = require('../../src/puppet-web')
 
 test('Puppet Web Event smoking test', async t => {
   let pw = new PuppetWeb({profile: PROFILE})
@@ -31,6 +29,5 @@ test('Puppet Web Event smoking test', async t => {
     await pw.quit()
   } catch (e) {
     t.fail('exception: ' + e.message)
-    throw e
   }
 })

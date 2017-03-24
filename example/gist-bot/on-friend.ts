@@ -6,9 +6,9 @@
  *
  */
 import {
-    Contact
-  , FriendRequest
-  , Room
+  Contact,
+  FriendRequest,
+  Room,
 } from '../../'
 
 export async function onFriend(contact: Contact, request?: FriendRequest): Promise<void> {
@@ -30,6 +30,7 @@ export async function onFriend(contact: Contact, request?: FriendRequest): Promi
 
     if (request.hello === 'ding') {
       const myRoom = await Room.find({ topic: 'ding' })
+      if (!myRoom) return
       setTimeout(function() {
         myRoom.add(contact)
         myRoom.say('welcome ' + contact.name())
@@ -40,7 +41,8 @@ export async function onFriend(contact: Contact, request?: FriendRequest): Promi
      *
      * 到这里结束修改 ^^^^^^^^^^^^
      *
-     ********************************************/
+     */
+    /*******************************************/
  } catch (e) {
     console.log(e)
   }

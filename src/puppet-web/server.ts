@@ -54,8 +54,8 @@ export class Server extends EventEmitter {
     this.httpsServer = <https.Server>await new Promise((resolve, reject) => {
 
       const srv = https.createServer({
-          key:  require('./ssl-pem').key
-        , cert: require('./ssl-pem').cert
+        key:  require('./ssl-pem').key,
+        cert: require('./ssl-pem').cert,
       }, express) // XXX: is express must exist here? try to get rid it later. 2016/6/11
 
       srv.listen(this.port, err => {
@@ -134,14 +134,14 @@ export class Server extends EventEmitter {
 
     // Events from Wechaty@Broswer --to--> Server
     ; [
-      'message'
-      , 'scan'
-      , 'login'
-      , 'logout'
-      , 'log'
-      , 'unload'  // @depreciated 20160825 zixia
+      'message',
+      'scan',
+      'login',
+      'logout',
+      'log',
+      'unload',  // @depreciated 20160825 zixia
                   // when `unload` there should always be a `disconnect` event?
-      , 'ding'
+      'ding',
     ].map(e => {
       client.on(e, data => {
         // log.silly('PuppetWebServer', `initEventsFromClient() forward client event[${e}](${data}) from browser by emit it`)

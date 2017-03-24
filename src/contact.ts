@@ -1,54 +1,67 @@
-/**
- *
- * wechaty: Wechat for Bot. and for human who talk to bot/robot
- *
- * Licenst: ISC
- * https://github.com/zixia/wechaty
- *
- */
 import {
-    Config
-  , Sayable
-}               from './config'
-import { Message }  from './message'
-import { UtilLib }  from './util-lib'
-import { Wechaty }  from './wechaty'
-import { log }      from './brolog-env'
+  Config,
+  Sayable,
+}                     from './config'
+import { Message }    from './message'
+import { PuppetWeb }  from './puppet-web'
+import { UtilLib }    from './util-lib'
+import { Wechaty }    from './wechaty'
+import { log }        from './brolog-env'
 
 type ContactObj = {
-  address:    string
-  city:       string
-  id:         string
-  name:       string
-  province:   string
-  remark:     string
-  sex:        string
-  signature:  string
-  star:       boolean
-  stranger:   boolean
-  uin:        string
-  weixin:     string
+  address:    string,
+  city:       string,
+  id:         string,
+  name:       string,
+  province:   string,
+  alias:      string|null,
+  sex:        Gender,
+  signature:  string,
+  star:       boolean,
+  stranger:   boolean,
+  uin:        string,
+  weixin:     string,
+  avatar:     string,  // XXX URL of HeadImgUrl
 }
 
 export type ContactRawObj = {
-  Alias:        string
-  City:         string
-  NickName:     string
-  Province:     string
-  RemarkName:   string
-  Sex:          string
-  Signature:    string
-  StarFriend:   string
-  Uin:          string
-  UserName:     string
+  Alias:        string,
+  City:         string,
+  NickName:     string,
+  Province:     string,
+  RemarkName:   string,
+  Sex:          Gender,
+  Signature:    string,
+  StarFriend:   string,
+  Uin:          string,
+  UserName:     string,
+  HeadImgUrl:   string,
 
-  stranger:     string // assign by injectio.js
+  stranger:     string, // assign by injectio.js
+}
+
+/**
+ * Enum for Gender values.
+ * @enum {number}
+ */
+export enum Gender {
+  Unknown = 0,
+  Male    = 1,
+  Female  = 2,
 }
 
 export type ContactQueryFilter = {
-  name: string | RegExp
+  name?:   string | RegExp,
+  alias?:  string | RegExp,
+  // DEPRECATED
+  remark?: string | RegExp,
 }
 
+/**
+ * Class Contact
+ *
+ * `Contact` is `Sayable`
+ */
 export class Contact implements Sayable {
   private static pool = new Map<string, Contact>()
 
@@ -68,45 +81,180 @@ export class Contact implements Sayable {
     if (!this.obj) {
       return this.id
     }
-    return this.obj.remark || this.obj.name || this.id
+    return this.obj.alias || this.obj.name || this.id
   }
 
   public toStringEx() { return `Contact(${this.obj && this.obj.name}[${this.id}])` }
 
   private parse(rawObj: ContactRawObj): ContactObj | null {
-    if (!rawObj) {
+    if (!rawObj || !rawObj.UserName) {
       log.warn('Contact', 'parse() got empty rawObj!')
     }
 
     return !rawObj ? null : {
-      id:           rawObj.UserName // MMActualSender??? MMPeerUserName??? `getUserContact(message.MMActualSender,message.MMPeerUserName).HeadImgUrl`
-      , uin:        rawObj.Uin    // stable id: 4763975 || getCookie("wxuin")
-      , weixin:     rawObj.Alias  // Wechat ID
-      , name:       rawObj.NickName
-      , remark:     rawObj.RemarkName
-      , sex:        rawObj.Sex
-      , province:   rawObj.Province
-      , city:       rawObj.City
-      , signature:  rawObj.Signature
+      id:         rawObj.UserName, // MMActualSender??? MMPeerUserName??? `getUserContact(message.MMActualSender,message.MMPeerUserName).HeadImgUrl`
+      uin:        rawObj.Uin,    // stable id: 4763975 || getCookie("wxuin")
+      weixin:     rawObj.Alias,  // Wechat ID
+      name:       rawObj.NickName,
+      alias:      rawObj.RemarkName,
+      sex:        rawObj.Sex,
+      province:   rawObj.Province,
+      city:       rawObj.City,
+      signature:  rawObj.Signature,
 
-      , address:    rawObj.Alias // XXX: need a stable address for user
+      address:    rawObj.Alias, // XXX: need a stable address for user
 
-      , star:       !!rawObj.StarFriend
-      , stranger:   !!rawObj.stranger // assign by injectio.js
+      star:       !!rawObj.StarFriend,
+      stranger:   !!rawObj.stranger, // assign by injectio.js
+      avatar:     rawObj.HeadImgUrl,
     }
   }
 
-  public weixin()    { return this.obj && this.obj.weixin || '' }
-  public name()      { return UtilLib.plainText(this.obj && this.obj.name || '') }
-  public stranger()  { return this.obj && this.obj.stranger }
-  public star()      { return this.obj && this.obj.star }
+  /**
+   * Get the weixin number from a contact
+   * Sometimes cannot get weixin number due to weixin security mechanism, not recommend.
+   * @returns {string | null}
+   *
+   * @example
+   * ```ts
+   * const weixin = contact.weixin()
+   * ```
+   */
+  public weixin()   { return this.obj && this.obj.weixin || null }
 
-  public get(prop)   { return this.obj && this.obj[prop] }
+  /**
+   * Get the name from a contact
+   *
+   * @returns {string}
+   *
+   * @example
+   * ```ts
+   * const name = contact.name()
+   * ```
+   */
+  public name()     { return UtilLib.plainText(this.obj && this.obj.name || '') }
+
+  /**
+   * Check if contact is stranger
+   *
+   * @returns {boolean | null} True for not friend of the bot, False for friend of the bot, null for cannot get the info.
+   *
+   * @example
+   * ```ts
+   * const isStranger = contact.stranger()
+   * ```
+   */
+  public stranger(): boolean|null {
+    if (!this.obj) return null
+    return this.obj.stranger
+  }
+
+  /**
+   * Check if the contact is star contact.
+   *
+   * @returns {boolean} True for star friend, False for no star friend, null for cannot get the info.
+   *
+   * @example
+   * ```ts
+   * const isStar = contact.star()
+   * ```
+   */
+  public star(): boolean|null {
+    if (!this.obj) return null
+    return this.obj.star
+  }
+
+  /**
+   * Contact gender
+   *
+   * @returns Gender.Male(2) | Gender.Female(1) | Gender.Unknown(0)
+   *
+   * @example
+   * ```ts
+   * const gender = contact.gender()
+   * ```
+   */
+  public gender(): Gender   { return this.obj ? this.obj.sex : Gender.Unknown }
+
+  /**
+   * Get the region 'province' from a contact
+   *
+   * @returns {string | undefined}
+   *
+   * @example
+   * ```ts
+   * const province = contact.province()
+   * ```
+   */
+  public province() { return this.obj && this.obj.province }
+
+  /**
+   * Get the region 'city' from a contact
+   *
+   * @returns {string | undefined}
+   *
+   * @example
+   * ```ts
+   * const city = contact.city()
+   * ```
+   */
+  public city()     { return this.obj && this.obj.city }
+
+  /**
+   * Get avatar picture file stream
+   *
+   * @returns {Promise<NodeJS.ReadableStream>}
+   *
+   * @example
+   * ```ts
+   * const avatarFileName = contact.name() + `.jpg`
+   * const avatarReadStream = await contact.avatar()
+   * const avatarWriteStream = createWriteStream(avatarFileName)
+   * avatarReadStream.pipe(avatarWriteStream)
+   * log.info('Bot', 'Contact: %s: %s with avatar file: %s', contact.weixin(), contact.name(), avatarFileName)
+   * ```
+   */
+  public async avatar(): Promise<NodeJS.ReadableStream> {
+    log.verbose('Contact', 'avatar()')
+
+    if (!this.obj || !this.obj.avatar) {
+      throw new Error('Can not get avatar: not ready')
+    }
+
+    try {
+      const hostname = (Config.puppetInstance() as PuppetWeb).browser.hostname
+      const avatarUrl = `http://${hostname}${this.obj.avatar}`
+      const cookies = await (Config.puppetInstance() as PuppetWeb).browser.readCookie()
+      log.silly('Contact', 'avatar() url: %s', avatarUrl)
+
+      return UtilLib.urlStream(avatarUrl, cookies)
+    } catch (err) {
+      log.warn('Contact', 'avatar() exception: %s', err.stack)
+      throw err
+    }
+  }
+
+  public get(prop)  { return this.obj && this.obj[prop] }
 
   public isReady(): boolean {
     return !!(this.obj && this.obj.id && this.obj.name !== undefined)
   }
 
+  // public refresh() {
+  //   log.warn('Contact', 'refresh() DEPRECATED. use reload() instead.')
+  //   return this.reload()
+  // }
+
+  /**
+   * Force reload data for Contact
+   *
+   * @returns {Promise<this>}
+   *
+   * @example
+   * ```ts
+   * await contact.refresh()
+   * ```
+   */
   public async refresh(): Promise<this> {
     if (this.isReady()) {
       this.dirtyObj = this.obj
@@ -114,6 +262,11 @@ export class Contact implements Sayable {
     this.obj = null
     return this.ready()
   }
+
+  // public ready() {
+  //   log.warn('Contact', 'ready() DEPRECATED. use load() instead.')
+  //   return this.load()
+  // }
 
   public async ready(contactGetter?: (id: string) => Promise<ContactRawObj>): Promise<this> {
     log.silly('Contact', 'ready(' + (contactGetter ? typeof contactGetter : '') + ')')
@@ -152,11 +305,22 @@ export class Contact implements Sayable {
     console.error('======= dump raw contact =======')
     Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj[k]}`))
   }
+
   public dump()    {
     console.error('======= dump contact =======')
     Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj && this.obj[k]}`))
   }
 
+  /**
+   * Check if contact is self
+   *
+   * @returns {boolean} True for contact is self, False for contact is others
+   *
+   * @example
+   * ```ts
+   * const isSelf = contact.self()
+   * ```
+   */
   public self(): boolean {
     const userId = Config.puppetInstance()
                           .userId
@@ -170,16 +334,68 @@ export class Contact implements Sayable {
     return selfId === userId
   }
 
-  public static findAll(query?: ContactQueryFilter): Promise<Contact[]> {
-    if (!query) {
+  /**
+   * find contact by `name` or `alias`
+   *
+   * If use Contact.findAll() get the contact list of the bot.
+   *
+   * #### definition
+   * - `name` the name-string set by user-self, should be called name
+   * - `alias` the name-string set by bot for others, should be called alias
+   *
+   * @static
+   * @param {ContactQueryFilter} [queryArg]
+   * @returns {Promise<Contact[]>}
+   *
+   * @example
+   * ```ts
+   * // get the contact list of the bot
+   * const contactList = await Contact.findAll()
+   * // find allof the contacts whose name is 'ruirui'
+   * const contactList = await Contact.findAll({name: 'ruirui'})
+   * // find allof the contacts whose alias is 'lijiarui'
+   * const contactList = await Contact.findAll({alias: 'lijiarui'})
+   * ```
+   */
+  public static async findAll(queryArg?: ContactQueryFilter): Promise<Contact[]> {
+    let query: ContactQueryFilter
+    if (queryArg) {
+      if (queryArg.remark) {
+        log.warn('Contact', 'Contact.findAll({remark:%s}) DEPRECATED, use Contact.findAll({alias:%s}) instead.', queryArg.remark, queryArg.remark)
+        query = { alias: queryArg.remark}
+      } else {
+        query = queryArg
+      }
+    } else {
       query = { name: /.*/ }
     }
-    log.verbose('Cotnact', 'findAll({ name: %s })', query.name)
 
-    const nameFilter = query.name
+    // log.verbose('Cotnact', 'findAll({ name: %s })', query.name)
+    log.verbose('Cotnact', 'findAll({ %s })',
+                            Object.keys(query)
+                                  .map(k => `${k}: ${query[k]}`)
+                                  .join(', '),
+              )
 
-    if (!nameFilter) {
-      throw new Error('nameFilter not found')
+    if (Object.keys(query).length !== 1) {
+      throw new Error('query only support one key. multi key support is not availble now.')
+    }
+
+    let filterKey                     = Object.keys(query)[0]
+    let filterValue: string | RegExp  = query[filterKey]
+
+    const keyMap = {
+      name:   'NickName',
+      alias:  'RemarkName',
+    }
+
+    filterKey = keyMap[filterKey]
+    if (!filterKey) {
+      throw new Error('unsupport filter key')
+    }
+
+    if (!filterValue) {
+      throw new Error('filterValue not found')
     }
 
     /**
@@ -188,71 +404,158 @@ export class Contact implements Sayable {
      */
     let filterFunction: string
 
-    if (nameFilter instanceof RegExp) {
-      filterFunction = `(function (c) { return ${nameFilter.toString()}.test(c) })`
-    } else if (typeof nameFilter === 'string') {
-      filterFunction = `(function (c) { return c === '${nameFilter}' })`
+    if (filterValue instanceof RegExp) {
+      filterFunction = `(function (c) { return ${filterValue.toString()}.test(c.${filterKey}) })`
+    } else if (typeof filterValue === 'string') {
+      filterValue = filterValue.replace(/'/g, '\\\'')
+      filterFunction = `(function (c) { return c.${filterKey} === '${filterValue}' })`
     } else {
       throw new Error('unsupport name type')
     }
 
-    return Config.puppetInstance()
-                  .contactFind(filterFunction)
-                  .catch(e => {
-                    log.error('Contact', 'findAll() rejected: %s', e.message)
-                    return [] // fail safe
-                  })
+    const list = await Config.puppetInstance()
+                              .contactFind(filterFunction)
+                              .catch(e => {
+                                log.error('Contact', 'findAll() rejected: %s', e.message)
+                                return [] // fail safe
+                              })
+    await Promise.all(list.map(c => c.ready()))
+
+    return list
   }
 
   /**
-   * get the remark for contact
+   * Get the alias for contact
+   *
+   * @returns {(string | null)}
+   *
+   * @example
+   * ```ts
+   * const alias = contact.alias()
+   * ```
    */
-  public remark(): string
+  public alias(): string | null
+
   /**
-   * set the remark for contact
+   * set the alias for contact
+   *
+   * tests show it will failed if set alias too frequently(60 times in one minute).
+   *
+   * @param {string} newAlias
+   * @returns {Promise<boolean>} A promise to the result. true for success, false for failure
+   *
+   * @example
+   * ```ts
+   * const ret = await contact.remark('lijiarui')
+   * if (ret) {
+   *   console.log(`change ${contact.name()}'s alias successfully!`)
+   * } else {
+   *   console.error('failed to change ${contact.name()}'s alias!')
+   * }
+   * ```
    */
-  public remark(newRemark: string): Promise<boolean>
+  public alias(newAlias: string): Promise<boolean>
 
-  public remark(newRemark?: string): Promise<boolean> | string {
-    log.silly('Contact', 'remark(%s)', newRemark || '')
+  /**
+   * Delete the alias for a contact
+   *
+   * @param {null} empty
+   * @returns {Promise<boolean>}
+   *
+   * @example
+   * ```ts
+   * const ret = await contact.remark(null)
+   * if (ret) {
+   *   console.log('ok!')
+   * } else {
+   *   console.error('fail!')
+   * }
+   * ```
+   */
+  public alias(empty: null): Promise<boolean>
 
-    if (newRemark === undefined) {
-      return this.obj && this.obj.remark || ''
+  public alias(newAlias?: string|null): Promise<boolean> | string | null {
+    log.silly('Contact', 'alias(%s)', newAlias || '')
+
+    if (newAlias === undefined) {
+      return this.obj && this.obj.alias || null
     }
 
     return Config.puppetInstance()
-                  .contactRemark(this, newRemark)
+                  .contactAlias(this, newAlias)
                   .then(ret => {
                     if (ret) {
                       if (this.obj) {
-                        this.obj.remark = newRemark
+                        this.obj.alias = newAlias
                       } else {
-                        log.error('Contact', 'remark() with null this.obj?')
+                        log.error('Contact', 'alias() without this.obj?')
                       }
                     } else {
-                      log.warn('Contact', 'remark(%s) fail', newRemark)
+                      log.warn('Contact', 'alias(%s) fail', newAlias)
                     }
                     return ret
                   })
                   .catch(e => {
-                    log.error('Contact', 'remark(%s) rejected: %s', newRemark, e.message)
+                    log.error('Contact', 'alias(%s) rejected: %s', newAlias, e.message)
                     return false // fail safe
                   })
   }
 
+  // function should be deprecated
+  public remark(newRemark?: string|null): Promise<boolean> | string | null {
+    log.warn('Contact', 'remark(%s) DEPRECATED, use alias(%s) instead.')
+    log.silly('Contact', 'remark(%s)', newRemark || '')
+
+    switch (newRemark) {
+      case undefined:
+        return this.alias()
+      case null:
+        return this.alias(null)
+      default:
+        return this.alias(newRemark)
+    }
+  }
+
   /**
-   * try to find a contact by filter: {name: string | RegExp}
+   * try to find a contact by filter: {name: string | RegExp} / {alias: string | RegExp}
+   * @description Find contact by name or alias, if the result more than one, return the first one.
+   * @static
+   * @param {ContactQueryFilter} query
+   * @returns {(Promise<Contact | null>)} If can find the contact, return Contact, or return null
+   *
+   * @example
+   * ```ts
+   * const contactFindByName = await Contact.find({ name:"ruirui"} )
+   * const contactFindByAlias = await Contact.find({ alias:"lijiarui"} )
+   * ```
    */
-  public static async find(query: ContactQueryFilter): Promise<Contact> {
-    log.verbose('Contact', 'find(%s)', query.name)
+  public static async find(query: ContactQueryFilter): Promise<Contact | null> {
+    log.verbose('Contact', 'find(%s)', JSON.stringify(query))
 
     const contactList = await Contact.findAll(query)
     if (!contactList || !contactList.length) {
-      throw new Error('find not found any contact')
+      return null
+    }
+
+    if (contactList.length > 1) {
+      log.warn('Contact', 'function find(%s) get %d contacts, use the first one by default', JSON.stringify(query), contactList.length)
     }
     return contactList[0]
   }
 
+  /**
+   * Load data for Contact by id
+   *
+   * @static
+   * @param {string} id
+   * @returns {Contact}
+   *
+   * @example
+   * ```ts
+   * // fake: contactId = @0bb3e4dd746fdbd4a80546aef66f4085
+   * const contact = Contact.load('@0bb3e4dd746fdbd4a80546aef66f4085')
+   * ```
+   */
   public static load(id: string): Contact {
     if (!id || typeof id !== 'string') {
       throw new Error('Contact.load(): id not found')
@@ -264,6 +567,17 @@ export class Contact implements Sayable {
     return Contact.pool[id]
   }
 
+  /**
+   * Say `content` to Contact
+   *
+   * @param {string} content
+   * @returns {Promise<void>}
+   *
+   * @example
+   * ```ts
+   * await contact.say('welcome to wechaty!')
+   * ```
+   */
   public async say(content: string): Promise<void> {
     log.verbose('Contact', 'say(%s)', content)
 

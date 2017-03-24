@@ -6,8 +6,8 @@
  *
  */
 import {
-    Message
-  , Room
+  Message,
+  Room,
 } from '../../'
 
 export async function onMessage(message: Message): Promise<void> {
@@ -16,14 +16,9 @@ export async function onMessage(message: Message): Promise<void> {
     const sender    = message.from()
     const content   = message.content()
 
-    if (room) {
-      await room.ready()
-    }
-    await sender.ready()
-
     console.log((room ? '[' + room.topic() + ']' : '')
                 + '<' + sender.name() + '>'
-                + ':' + message.toStringDigest()
+                + ':' + message.toStringDigest(),
     )
 
     if (message.self() || room) {
@@ -41,6 +36,7 @@ export async function onMessage(message: Message): Promise<void> {
       message.say('thanks for ding me')
 
       const myRoom = await Room.find({ topic: 'ding' })
+      if (!myRoom) return
 
       if (myRoom.has(sender)) {
         sender.say('no need to ding again, because you are already in ding room')
@@ -60,7 +56,8 @@ export async function onMessage(message: Message): Promise<void> {
      *
      * 到这里结束修改^^^^^^^^^^^^
      *
-     *********************************************/
+     */
+    /*********************************************/
   } catch (e) {
     console.log(e)
   }

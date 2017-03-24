@@ -10,6 +10,7 @@
 import {
   Builder,
   Capabilities,
+  logging,
   WebDriver,
 }               from 'selenium-webdriver'
 
@@ -28,20 +29,6 @@ export class BrowserDriver {
 
   public async init(): Promise<this> {
     log.verbose('PuppetWebBrowserDriver', 'init() for head: %s', this.head)
-
-    // if (this.driver) {
-    //   try {
-    //     // const valid = await this.valid(this.driver)
-    //     // if (valid) {
-    //     //   // await this.driver.close()
-    //       await this.driver.quit()
-    //     // }
-    //   } catch (e) {
-    //     log.verbose('PuppetWebBrowserDriver', 'init() this.driver.quit() soft exception: %s'
-    //                                       , e.message
-    //     )
-    //   }
-    // }
 
     switch (this.head) {
       case 'phantomjs':
@@ -96,9 +83,9 @@ export class BrowserDriver {
 
     const options = {
       args: [
-          '--homepage=about:blank'
-        , '--no-sandbox'
-      ]  // issue #26 for run inside docker
+        '--homepage=about:blank',
+        '--no-sandbox',
+      ],  // issue #26 for run inside docker
     }
     if (Config.isDocker) {
       log.verbose('PuppetWebBrowserDriver', 'initChromeDriver() wechaty in docker confirmed(should not show this in CI)')
@@ -107,6 +94,19 @@ export class BrowserDriver {
 
     const customChrome = Capabilities.chrome()
                                     .set('chromeOptions', options)
+
+    // TODO: chromedriver --silent
+    if (!/^(verbose|silly)$/i.test(log.level())) {
+      const prefs = new logging.Preferences()
+
+      prefs.setLevel(logging.Type.BROWSER     , logging.Level.OFF)
+      prefs.setLevel(logging.Type.CLIENT      , logging.Level.OFF)
+      prefs.setLevel(logging.Type.DRIVER      , logging.Level.OFF)
+      prefs.setLevel(logging.Type.PERFORMANCE , logging.Level.OFF)
+      prefs.setLevel(logging.Type.SERVER      , logging.Level.OFF)
+
+      customChrome.setLoggingPrefs(prefs)
+    }
 
     /**
      * XXX when will Builder().build() throw exception???
@@ -141,6 +141,11 @@ export class BrowserDriver {
         }
 
       } catch (e) {
+        if (/could not be found/.test(e.message)) {
+          // The ChromeDriver could not be found on the current PATH
+          log.error('PuppetWebBrowserDriver', 'initChromeDriver() Wechaty require `chromedriver` to be installed.(try to run: "npm install chromedriver" to fix this issue)')
+          throw e
+        }
         log.warn('PuppetWebBrowserDriver', 'initChromeDriver() exception: %s, retry: %d', e.message, retry)
         driverError = e
       }
@@ -166,10 +171,10 @@ export class BrowserDriver {
     // const phantomjsExe = require('phantomjs2').path
 
     const phantomjsArgs = [
-      '--load-images=false'
-      , '--ignore-ssl-errors=true'  // this help socket.io connect with localhost
-      , '--web-security=false'      // https://github.com/ariya/phantomjs/issues/12440#issuecomment-52155299
-      , '--ssl-protocol=any'        // http://stackoverflow.com/a/26503588/1123955
+      '--load-images=false',
+      '--ignore-ssl-errors=true',  // this help socket.io connect with localhost
+      '--web-security=false',      // https://github.com/ariya/phantomjs/issues/12440#issuecomment-52155299
+      '--ssl-protocol=any',        // http://stackoverflow.com/a/26503588/1123955
       // , '--ssl-protocol=TLSv1'    // https://github.com/ariya/phantomjs/issues/11239#issuecomment-42362211
 
       // issue: Secure WebSocket(wss) do not work with Self Signed Certificate in PhantomJS #12
@@ -237,29 +242,70 @@ export class BrowserDriver {
     log.verbose('PuppetWebBrowserDriver', 'valid()')
 
     try {
-      log.verbose('PuppetWebBrowserDriver', 'valid() getSession()')
       const session = await new Promise((resolve, reject) => {
-        // reject
-        const timer = setTimeout(() => {
-          const e = new Error('valid() driver.getSession() timeout(halt?)')
-          log.warn('PuppetWebBrowserDriver'   , e.message)
-          reject(e)
-        }, 67 * 1000)
 
-        // resolve
+        /**
+         * Be careful about this TIMEOUT, the total time(TIMEOUT x retry) should not trigger Watchdog Reset
+         * because we are in state(open, false) state, which will cause Watchdog Reset failure.
+         * https://travis-ci.org/wechaty/wechaty/jobs/179022657#L3246
+         */
+        const TIMEOUT = 7 * 1000
+
+        let watchdogTimer: NodeJS.Timer | null
+
+        watchdogTimer = setTimeout(() => {
+          const e = new Error('valid() driver.getSession() timeout(halt?)')
+          log.warn('PuppetWebBrowserDriver', e.message)
+
+          // record timeout by set timer to null
+          watchdogTimer = null
+          log.verbose('PuppetWebBrowserDriver', 'watchdogTimer = %s after set null', watchdogTimer)
+
+          // 1. Promise rejected
+          reject(e)
+          return
+
+        }, TIMEOUT)
+
+        log.verbose('PuppetWebBrowserDriver', 'valid() getSession()')
         driver.getSession()
-              .then(session => {
-                log.verbose('PuppetWebBrowserDriver', 'valid() getSession() done')
-                clearTimeout(timer)
-                resolve(session)
+              .then(driverSession => {
+                log.verbose('PuppetWebBrowserDriver', 'valid() getSession() then() done')
+                if (watchdogTimer) {
+                  log.verbose('PuppetWebBrowserDriver', 'valid() getSession() then() watchdog timer exist, will be cleared')
+                  clearTimeout(watchdogTimer)
+                  watchdogTimer = null
+                  log.verbose('PuppetWebBrowserDriver', 'watchdogTimer = %s after set null', watchdogTimer)
+                } else {
+                  log.verbose('PuppetWebBrowserDriver', 'valid() getSession() then() watchdog timer not exist?')
+                }
+
+                // 2. Promise resolved
+                resolve(driverSession)
+                return
+
               })
               .catch(e => {
-                log.warn('PuppetWebBrowserDriver', 'valid() getSession() rejected: %s', e && e.message || e)
+                log.warn('PuppetWebBrowserDriver', 'valid() getSession() catch() rejected: %s', e && e.message || e)
+
+                // do not call reject again if there's already a timeout
+                if (watchdogTimer) {
+                  log.verbose('PuppetWebBrowserDriver', 'valid() getSession() catch() watchdog timer exist, will set it to null and call reject()')
+
+                  // 3. Promise rejected
+                  watchdogTimer = null
+                  reject(e)
+                  return
+
+                } else {
+                  log.verbose('PuppetWebBrowserDriver', 'valid() getSession() catch() watchdog timer not exist, will not call reject() again')
+                }
+
               })
 
       })
 
-      log.verbose('PuppetWebBrowserDriver', 'valid() driver.getSession() done(out)')
+      log.verbose('PuppetWebBrowserDriver', 'valid() driver.getSession() done()')
 
       if (!session) {
         log.verbose('PuppetWebBrowserDriver', 'valid() found an invalid driver')
@@ -289,53 +335,12 @@ export class BrowserDriver {
     return true
   }
 
-  // public driver1(): WebDriver
-  // public driver1(empty: null): void
-  // public driver1(newDriver: WebDriver): WebDriver
-
-  // public driver1(newDriver?: WebDriver | null): WebDriver | void {
-  //   if (newDriver !== undefined) {
-  //     log.verbose('PuppetWebBrowserDriver', 'driver(%s)'
-  //                                   , newDriver
-  //                                     ? newDriver.constructor.name
-  //                                     : null
-  //     )
-  //   }
-
-  //   if (newDriver !== undefined) {
-  //     if (newDriver) {
-  //       this.driver = newDriver
-  //       return this.driver
-  //     } else { // null
-  //       if (this.driver && this.driver.getSession()) {
-  //         throw new Error('driver still has session, can not set null')
-  //       }
-  //       this.driver = null
-  //       return
-  //     }
-  //   }
-
-  //   if (!this.driver) {
-  //     const e = new Error('no driver')
-  //     log.warn('PuppetWebBrowserDriver', 'driver() exception: %s', e.message)
-  //     throw e
-  //   }
-  //   // if (!this.driver.getSession()) {
-  //   //   const e = new Error('no driver session')
-  //   //   log.warn('PuppetWebBrowserDriver', 'driver() exception: %s', e.message)
-  //   //   this.driver.quit()
-  //   //   throw e
-  //   // }
-
-  //   return this.driver
-  // }
-
-  public close()              { return this.driver.close() }
+  public close()              { return this.driver.close() as any as Promise<void> }
   public executeAsyncScript(script: string|Function, ...args: any[])  { return this.driver.executeAsyncScript.apply(this.driver, arguments) }
   public executeScript     (script: string|Function, ...args: any[])  { return this.driver.executeScript.apply(this.driver, arguments) }
-  public get(url: string)     { return this.driver.get(url) }
-  public getSession()         { return this.driver.getSession() }
-  public manage()             { return this.driver.manage() }
-  public navigate()           { return this.driver.navigate() }
-  public quit()               { return this.driver.quit() }
+  public get(url: string)     { return this.driver.get(url) as any as Promise<void> }
+  public getSession()         { return this.driver.getSession() as any as Promise<void> }
+  public manage()             { return this.driver.manage() as any }
+  public navigate()           { return this.driver.navigate() as any }
+  public quit()               { return this.driver.quit() as any as Promise<void> }
 }

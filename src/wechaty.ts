@@ -1,25 +1,14 @@
-/**
- *
- * Wechaty: Wechat for ChatBots.
- * Connect ChatBots
- *
- * Class Wechaty
- *
- * Licenst: ISC
- * https://github.com/zixia/wechaty
- *
- */
 import { EventEmitter } from 'events'
 import * as fs          from 'fs'
 import * as path        from 'path'
 
 import {
-    Config
-  , HeadName
-  , PuppetName
-  , Sayable
-  , log
-}                     from './config'
+  Config,
+  HeadName,
+  PuppetName,
+  Sayable,
+  log,
+}                         from './config'
 
 import { Contact }        from './contact'
 import { FriendRequest }  from './friend-request'
@@ -31,9 +20,9 @@ import { StateMonitor }   from './state-monitor'
 import { UtilLib }        from './util-lib'
 
 export type PuppetSetting = {
-  head?:    HeadName
-  puppet?:  PuppetName
-  profile?: string
+  head?:    HeadName,
+  puppet?:  PuppetName,
+  profile?: string,
 }
 
 export type WechatyEventName = 'error'
@@ -48,15 +37,63 @@ export type WechatyEventName = 'error'
                               | 'scan'
                               | 'EVENT_PARAM_ERROR'
 
+/**
+ *
+ * Wechaty: Wechat for ChatBots.
+ * Connect ChatBots
+ *
+ * Class Wechaty
+ *
+ * Licenst: ISC
+ * https://github.com/zixia/wechaty
+ *
+ *
+ * **Example**
+ *
+ * ```ts
+ * // The World's Shortest ChatBot Code: 6 lines of JavaScript
+ * const { Wechaty } = require('wechaty')
+ *
+ * Wechaty.instance() // Singleton
+ * .on('scan', (url, code) => console.log(`Scan QR Code to login: ${code}\n${url}`))
+ * .on('login',       user => console.log(`User ${user} logined`))
+ * .on('message',  message => console.log(`Message: ${message}`))
+ * .init()
+ * ```
+ * @see The <a href="https://github.com/lijiarui/wechaty-getting-started">Wechaty Starter Project</a>
+ */
 export class Wechaty extends EventEmitter implements Sayable {
+  /**
+   * singleton _instance
+   * @private
+   */
   private static _instance: Wechaty
 
+  /**
+   * the puppet
+   * @private
+   */
   public puppet: Puppet | null
 
+  /**
+   * the state
+   * @private
+   */
   private state = new StateMonitor<'standby', 'ready'>('Wechaty', 'standby')
+  /**
+   * the npmVersion
+   * @private
+   */
   private npmVersion: string = require('../package.json').version
+  /**
+   * the uuid
+   * @private
+   */
   public uuid:        string
 
+  /**
+   * get the singleton instance of Wechaty
+   */
   public static instance(setting?: PuppetSetting) {
     if (setting && this._instance) {
       throw new Error('there has already a instance. no params will be allowed any more')
@@ -67,6 +104,9 @@ export class Wechaty extends EventEmitter implements Sayable {
     return this._instance
   }
 
+  /**
+   * @private
+   */
   private constructor(private setting: PuppetSetting = {}) {
     super()
     log.verbose('Wechaty', 'contructor()')
@@ -86,9 +126,24 @@ export class Wechaty extends EventEmitter implements Sayable {
     this.uuid = UtilLib.guid()
   }
 
+  /**
+   * @private
+   */
   public toString() { return 'Class Wechaty(' + this.setting.puppet + ')'}
 
-  public version(forceNpm = false) {
+  /**
+   * Return version of Wechaty
+   *
+   * @param {boolean} [forceNpm=false]  - if set to true, will only return the version in package.json.
+   *                                      otherwise will return git commit hash if .git exists.
+   * @returns {string}                  - the version number
+   * @example
+   *  console.log(Wechaty.instance().version())
+   *  // '#git[af39df]'
+   *  console.log(Wechaty.instance().version(true))
+   *  // '0.7.9'
+   */
+  public version(forceNpm = false): string {
     // TODO: use  git rev-parse HEAD  ?
     const dotGitPath  = path.join(__dirname, '..', '.git') // only for ts-node, not for dist
     const gitLogCmd   = 'git'
@@ -122,13 +177,23 @@ export class Wechaty extends EventEmitter implements Sayable {
     return this.npmVersion
   }
 
+  /**
+   * @todo document me
+   * @returns {Contact}
+   * @deprecated
+   */
   public user(): Contact {
+    log.warn('Wechaty', 'user() DEPRECATED. use self() instead.')
+
     if (!this.puppet || !this.puppet.user) {
       throw new Error('no user')
     }
     return this.puppet.user
   }
 
+  /**
+   * @private
+   */
   public async reset(reason?: string): Promise<void> {
     log.verbose('Wechaty', 'reset() because %s', reason)
     if (!this.puppet) {
@@ -138,6 +203,9 @@ export class Wechaty extends EventEmitter implements Sayable {
     return
   }
 
+  /**
+   * @todo document me
+   */
   public async init(): Promise<void> {
     log.info('Wechaty', 'v%s initializing...' , this.version())
     log.verbose('Wechaty', 'puppet: %s'       , this.setting.puppet)
@@ -165,17 +233,56 @@ export class Wechaty extends EventEmitter implements Sayable {
   }
 
   // public on(event: WechatyEventName, listener: Function): this
+  /**
+   * @listens Wechaty#error
+   * @param   {string}    [event='error'] - the `error` event name
+   * @param   {Function}  listener        - (error) => void callback function
+   * @return  {Wechaty}                   - this for chain
+   */
   public on(event: 'error'      , listener: (this: Wechaty, error: Error) => void): this
+  /**
+   * @todo document me
+   */
   public on(event: 'friend'     , listener: (this: Wechaty, friend: Contact, request?: FriendRequest) => void): this
+  /**
+   * @todo document me
+   */
   public on(event: 'heartbeat'  , listener: (this: Wechaty, data: any) => void): this
+  /**
+   * @todo document me
+   */
   public on(event: 'logout'     , listener: (this: Wechaty, user: Contact) => void): this
+  /**
+   * @todo document me
+   */
   public on(event: 'login'      , listener: (this: Wechaty, user: Contact) => void): this
+  /**
+   * @todo document me
+   */
   public on(event: 'message'    , listener: (this: Wechaty, message: Message) => void): this
+  /**
+   * @todo document me
+   */
   public on(event: 'room-join'  , listener: (this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void): this
+  /**
+   * @todo document me
+   */
   public on(event: 'room-leave' , listener: (this: Wechaty, room: Room, leaverList: Contact[]) => void): this
+  /**
+   * @todo document me
+   */
   public on(event: 'room-topic' , listener: (this: Wechaty, room: Room, topic: string, oldTopic: string, changer: Contact) => void): this
+  /**
+   * @todo document me
+   */
   public on(event: 'scan'       , listener: (this: Wechaty, url: string, code: number) => void): this
+  /**
+   * @todo document me
+   */
   public on(event: 'EVENT_PARAM_ERROR', listener: () => void): this
+  /**
+   * @todo document me
+   */
 
   public on(event: WechatyEventName, listener: Function): this {
     log.verbose('Wechaty', 'addListener(%s, %s)', event, typeof listener)
@@ -197,6 +304,10 @@ export class Wechaty extends EventEmitter implements Sayable {
     return this
   }
 
+  /**
+   * @todo document me
+   * @private
+   */
   public async initPuppet(): Promise<Puppet> {
     let puppet: Puppet
 
@@ -207,8 +318,8 @@ export class Wechaty extends EventEmitter implements Sayable {
     switch (this.setting.puppet) {
       case 'web':
         puppet = new PuppetWeb({
-            head:     this.setting.head
-          , profile:  this.setting.profile
+          head:     this.setting.head,
+          profile:  this.setting.profile,
         })
         break
 
@@ -217,16 +328,16 @@ export class Wechaty extends EventEmitter implements Sayable {
     }
 
     const eventList: WechatyEventName[] = [
-        'error'
-      , 'friend'
-      , 'heartbeat'
-      , 'login'
-      , 'logout'
-      , 'message'
-      , 'room-join'
-      , 'room-leave'
-      , 'room-topic'
-      , 'scan'
+      'error',
+      'friend',
+      'heartbeat',
+      'login',
+      'logout',
+      'message',
+      'room-join',
+      'room-leave',
+      'room-topic',
+      'scan',
     ]
 
     eventList.map(e => {
@@ -237,13 +348,6 @@ export class Wechaty extends EventEmitter implements Sayable {
         this.emit.apply(this, [e, ...args])
       })
     })
-    /**
-     * TODO: support more events:
-     * 2. send
-     * 3. reply
-     * 4. quit
-     * 5. ...
-     */
 
     // set puppet before init, because we need this.puppet if we quit() before init() finish
     this.puppet = <Puppet>puppet // force to use base class Puppet interface for better encapsolation
@@ -255,8 +359,18 @@ export class Wechaty extends EventEmitter implements Sayable {
     return puppet
   }
 
+  /**
+   * @todo document me
+   */
   public async quit(): Promise<void> {
     log.verbose('Wechaty', 'quit()')
+
+    if (this.state.current() !== 'ready' || this.state.inprocess()) {
+      const err = new Error('quit() must run on a inited instance.')
+      log.error('Wechaty', err.message)
+      throw err
+    }
+    this.state.target('standby')
     this.state.current('standby', false)
 
     if (!this.puppet) {
@@ -277,6 +391,9 @@ export class Wechaty extends EventEmitter implements Sayable {
     return
   }
 
+  /**
+   * @todo document me
+   */
   public async logout(): Promise<void>  {
     if (!this.puppet) {
       throw new Error('no puppet')
@@ -291,6 +408,7 @@ export class Wechaty extends EventEmitter implements Sayable {
 
   /**
    * get current user
+   * @returns {Contact} current logined user
    */
   public self(): Contact {
     if (!this.puppet) {
@@ -299,6 +417,9 @@ export class Wechaty extends EventEmitter implements Sayable {
     return this.puppet.self()
   }
 
+  /**
+   * @todo document me
+   */
   public async send(message: Message): Promise<void> {
     if (!this.puppet) {
       throw new Error('no puppet')
@@ -311,6 +432,9 @@ export class Wechaty extends EventEmitter implements Sayable {
     return
   }
 
+  /**
+   * @todo document me
+   */
   public async say(content: string): Promise<void> {
     log.verbose('Wechaty', 'say(%s)', content)
 
@@ -321,12 +445,21 @@ export class Wechaty extends EventEmitter implements Sayable {
     return
   }
 
-  public async sleep(millisecond: number): Promise<void> {
+  /**
+   * @todo document me
+   * @static
+   *
+   */
+  public static async sleep(millisecond: number): Promise<void> {
     await new Promise(resolve => {
       setTimeout(resolve, millisecond)
     })
   }
 
+  /**
+   * @todo document me
+   * @private
+   */
   public ding() {
     if (!this.puppet) {
       return Promise.reject(new Error('wechaty cant ding coz no puppet'))

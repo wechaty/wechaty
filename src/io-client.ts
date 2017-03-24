@@ -30,8 +30,8 @@ export class IoClient {
   private state = new StateMonitor<'online', 'offline'>('IoClient', 'offline')
 
   constructor(
-      private token: string = Config.token || Config.DEFAULT_TOKEN
-    , private log: any = new Brolog()
+    private token: string = Config.token || Config.DEFAULT_TOKEN,
+    private log: any = new Brolog(),
   ) {
     if (!log) {
       const e = new Error('constructor() log(npmlog/brolog) must be set')
@@ -46,12 +46,12 @@ export class IoClient {
     }
 
     this.wechaty = Wechaty.instance({
-      profile: token
+      profile: token,
     })
 
     this.io = new Io({
-      wechaty: this.wechaty
-      , token: this.token
+      wechaty: this.wechaty,
+      token: this.token,
     })
 
   }
@@ -59,27 +59,22 @@ export class IoClient {
   public async init(): Promise<void> {
     this.log.verbose('IoClient', 'init()')
 
-    // if (/connecting|disconnecting/.test(this.currentState())) {
     if (this.state.inprocess()) {
       const e = new Error('state.inprocess(), skip init')
       this.log.warn('IoClient', 'init() with %s', e.message)
       throw e
     }
 
-    // this.targetState('connected')
-    // this.currentState('connecting')
     this.state.target('online')
     this.state.current('online', false)
 
     try {
       await this.initIo()
       await this.initWechaty()
-      // this.currentState('connected')
       this.state.current('online')
       return
     } catch (e) {
       this.log.error('IoClient', 'init() exception: %s', e.message)
-      // this.currentState('disconnected')
       this.state.current('offline')
       throw e
     }
@@ -88,7 +83,6 @@ export class IoClient {
   private async initWechaty(): Promise<void> {
     this.log.verbose('IoClient', 'initWechaty()')
 
-    // if (this.targetState() !== 'connected') {
     if (this.state.target() !== 'online') {
       const e = new Error('state.target() is not `online`, skipped')
       this.log.warn('IoClient', 'initWechaty() %s', e.message)
@@ -105,47 +99,36 @@ export class IoClient {
     .on('login'	     , user => this.log.info('IoClient', `${user.name()} logined`))
     .on('logout'	   , user => this.log.info('IoClient', `${user.name()} logouted`))
     .on('scan', (url, code) => this.log.info('IoClient', `[${code}] ${url}`))
-    .on('message' , message => {
-      message.ready()
-            .then(this.onMessage.bind(this))
-            .catch(e => this.log.error('IoClient', 'message.ready() %s' , e))
-    })
+    .on('message'     , msg => this.onMessage(msg))
 
-    await wechaty.init()
-                  .then(_ => {
-                    this.log.verbose('IoClient', 'wechaty.init() done')
-                    return wechaty
-                  })
-                  .catch(e => {
-                    this.log.error('IoClient', 'init() init fail: %s', e)
-                    wechaty.quit()
-                    throw e
-                  })
+    try {
+      await wechaty.init()
+      this.log.verbose('IoClient', 'wechaty.init() done')
+    } catch (e) {
+      this.log.error('IoClient', 'init() init fail: %s', e)
+      wechaty.quit()
+      throw e
+    }
+
     return
   }
 
   private async initIo(): Promise<void> {
     this.log.verbose('IoClient', 'initIo() with token %s', this.token)
 
-    // if (this.targetState() !== 'connected') {
     if (this.state.target() !== 'online') {
       const e = new Error('initIo() targetState is not `connected`, skipped')
       this.log.warn('IoClient', e.message)
       throw e
     }
 
-    // const io = this.io = new Io({
-    //   wechaty: this.wechaty
-    //   , token: this.token
-    // })
+    try {
+      await this.io.init()
+    } catch (e) {
+      this.log.verbose('IoClient', 'initIo() init fail: %s', e.message)
+      throw e
+    }
 
-    const io = this.io
-
-    await io.init()
-            .catch(e => {
-              this.log.verbose('IoClient', 'initIo() init fail: %s', e.message)
-              throw e
-            })
     return
   }
 
@@ -193,27 +176,20 @@ export class IoClient {
       return this.init()
     }
 
-    // if (/connecting|disconnecting/.test(this.currentState())) {
     if (this.state.inprocess()) {
       this.log.warn('IoClient', 'start() with a pending state, not the time')
       return Promise.reject('pending')
     }
 
-    // this.targetState('connected')
-    // this.currentState('connecting')
     this.state.target('online')
     this.state.current('online', false)
 
     try {
       await this.initIo()
-              // .then(() => {
-              //   // this.io = io
-              //   // this.currentState('connected')
       this.state.current('online')
       return
     } catch (e) {
       this.log.error('IoClient', 'start() exception: %s', e.message)
-      // this.currentState('disconnected')
       this.state.current('offline')
       throw e
     }
@@ -221,8 +197,6 @@ export class IoClient {
 
   public async stop(): Promise<void> {
     this.log.verbose('IoClient', 'stop()')
-    // this.targetState('disconnected')
-    // this.currentState('disconnecting')
     this.state.target('offline')
     this.state.current('offline', false)
 
@@ -260,14 +234,11 @@ export class IoClient {
   public async quit(): Promise<void> {
     this.log.verbose('IoClient', 'quit()')
 
-    // if (this.currentState() === 'disconnecting') {
     if (this.state.current() === 'offline' && this.state.inprocess()) {
       this.log.warn('IoClient', 'quit() with currentState() = `disconnecting`, skipped')
       return Promise.reject('quit() with currentState = `disconnecting`')
     }
 
-    // this.targetState('disconnected')
-    // this.currentState('disconnecting')
     this.state.target('offline')
     this.state.current('offline', false)
 
@@ -282,7 +253,6 @@ export class IoClient {
         // this.io = null
       } else { this.log.warn('IoClient', 'quit() no this.io') }
 
-      // this.currentState('disconnected')
       this.state.current('offline')
 
       return
@@ -291,7 +261,6 @@ export class IoClient {
       this.log.error('IoClient', 'exception: %s', e.message)
 
       // XXX fail safe?
-      // this.currentState('disconnected')
       this.state.current('offline')
 
       throw e

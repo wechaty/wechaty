@@ -8,12 +8,13 @@
  */
 
 /* tslint:disable:variable-name */
-const QrcodeTerminal = require('qrcode-terminal')
+const QrcodeTerminal  = require('qrcode-terminal')
+const finis           = require('finis')
 
 import {
-  Wechaty
-  , Config
-  , log
+  Config,
+  Wechaty,
+  log,
 } from '../'
 
 const welcome = `
@@ -43,9 +44,15 @@ console.log(welcome)
 const bot = Wechaty.instance({ profile: Config.DEFAULT_PROFILE })
 
 bot
-.on('login'	  , user => log.info('Bot', `${user.name()} logined`))
 .on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
-.on('error'   , e => log.info('Bot', 'error: %s', e))
+.on('login'	  , user => {
+  log.info('Bot', `${user.name()} logined`)
+  bot.say('Wechaty login')
+})
+.on('error'   , e => {
+  log.info('Bot', 'error: %s', e)
+  bot.say('Wechaty error: ' + e.message)
+})
 .on('scan', (url, code) => {
   if (!/201|200/.test(String(code))) {
     let loginUrl = url.replace(/\/qrcode\//, '/l/')
@@ -58,7 +65,7 @@ bot
     const room = m.room()
     console.log((room ? '[' + room.topic() + ']' : '')
                 + '<' + m.from().name() + '>'
-                + ':' + m.toStringDigest()
+                + ':' + m.toStringDigest(),
     )
 
     if (/^(ding|ping|bing)$/i.test(m.content()) && !m.self()) {
@@ -77,11 +84,8 @@ bot.init()
   process.exit(-1)
 })
 
-function logToFile(data) {
-  require('fs').appendFile('message.log', data + '\n\n#############################\n\n', err => {
-    if (err) { log.error('LogToFile: %s', err) }
-  })
-}
-if (typeof logToFile === 'fasdfsd') {
-  console.log('disable linting warning')
-}
+finis((code, signal) => {
+  const exitMsg = `Wechaty exit ${code} because of ${signal} `
+  console.log(exitMsg)
+  bot.say(exitMsg)
+})

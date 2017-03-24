@@ -19,16 +19,16 @@ import { PuppetWeb }  from './puppet-web'
 export class Bridge {
 
   constructor(
-      private puppet: PuppetWeb
-    , private port: number
+    private puppet: PuppetWeb,
+    private port: number,
   ) {
     if (!puppet || !port) {
       throw new Error('Bridge need puppet & port')
     }
 
-    log.verbose('PuppetWebBridge', 'new Bridge({puppet: %s, port: %s})'
-      , puppet.constructor.name
-      , port
+    log.verbose('PuppetWebBridge', 'new Bridge({puppet: %s, port: %s})',
+      puppet.constructor.name,
+      port,
     )
   }
 
@@ -97,8 +97,8 @@ export class Bridge {
      */
     const code = 'injectioReturnValue = '
               + fs.readFileSync(
-                path.join(__dirname, 'wechaty-bro.js')
-                , 'utf8'
+                path.join(__dirname, 'wechaty-bro.js'),
+                'utf8',
               )
               + '; return injectioReturnValue'
     return code.replace(/[\n\s]/, ' ')
@@ -127,14 +127,17 @@ export class Bridge {
     log.verbose('PuppetWebBridge', 'getUserName()')
 
     try {
-      return await this.proxyWechaty('getUserName')
+      const userName = await this.proxyWechaty('getUserName')
+
+      return userName
+
     } catch (e) {
       log.error('PuppetWebBridge', 'getUserName() exception: %s', e.message)
       throw e
     }
   }
 
-  public async contactRemark(contactId: string, remark: string): Promise<boolean> {
+  public async contactRemark(contactId: string, remark: string|null): Promise<boolean> {
     try {
       return await this.proxyWechaty('contactRemarkAsync', contactId, remark)
     } catch (e) {
@@ -177,7 +180,7 @@ export class Bridge {
     if (!roomId || !contactId) {
       throw new Error('no roomId or contactId')
     }
-    return this.proxyWechaty('roomAddMember', roomId, contactId)
+    return this.proxyWechaty('roomAddMemberAsync', roomId, contactId)
                 .catch(e => {
                   log.error('PuppetWebBridge', 'roomAddMember(%s, %s) exception: %s', roomId, contactId, e.message)
                   throw e
@@ -216,26 +219,26 @@ export class Bridge {
                 })
   }
 
-  public verifyUserRequest(contactId, hello): Promise<void> {
+  public verifyUserRequest(contactId, hello): Promise<boolean> {
     log.verbose('PuppetWebBridge', 'verifyUserRequest(%s, %s)', contactId, hello)
 
     if (!contactId) {
       throw new Error('no valid contactId')
     }
-    return this.proxyWechaty('verifyUserRequest', contactId, hello)
+    return this.proxyWechaty('verifyUserRequestAsync', contactId, hello)
                 .catch(e => {
                   log.error('PuppetWebBridge', 'verifyUserRequest(%s, %s) exception: %s', contactId, hello, e.message)
                   throw e
                 })
   }
 
-  public verifyUserOk(contactId, ticket): Promise<void> {
+  public verifyUserOk(contactId, ticket): Promise<boolean> {
     log.verbose('PuppetWebBridge', 'verifyUserOk(%s, %s)', contactId, ticket)
 
     if (!contactId || !ticket) {
       throw new Error('no valid contactId or ticket')
     }
-    return this.proxyWechaty('verifyUserOk', contactId, ticket)
+    return this.proxyWechaty('verifyUserOkAsync', contactId, ticket)
                 .catch(e => {
                   log.error('PuppetWebBridge', 'verifyUserOk(%s, %s) exception: %s', contactId, ticket, e.message)
                   throw e
@@ -352,17 +355,17 @@ export class Bridge {
    * Proxy Call to Wechaty in Bridge
    */
   public async proxyWechaty(wechatyFunc, ...args): Promise<any> {
-    log.verbose('PuppetWebBridge', 'proxyWechaty(%s, %s)'
-                                  , wechatyFunc
-                                  , args
+    log.verbose('PuppetWebBridge', 'proxyWechaty(%s, %s)',
+                                    wechatyFunc,
+                                    args
                                     ? args.join(', ')
-                                    : ''
+                                    : '',
               )
 
     const argsEncoded = new Buffer(
       encodeURIComponent(
-        JSON.stringify(args)
-      )
+        JSON.stringify(args),
+      ),
     ).toString('base64')
     // see: http://blog.sqrtthree.com/2015/08/29/utf8-to-b64/
     const argsDecoded = `JSON.parse(decodeURIComponent(window.atob('${argsEncoded}')))`
@@ -531,5 +534,16 @@ $.ajax = function() { Wechaty.log('$.ajax() !!!'); return $.ajaxOrig(arguments) 
 mmHttp = Wechaty.glue.injector.get('mmHttp')
 mmHttp.getOrig = mmHttp.get
 mmHttp.get = function() { Wechaty.log('mmHttp.get() !!!'); return mmHttp.getOrig(arguments) }
+
+Object.keys(_contacts)
+.filter(k => _contacts[k].UserName.match(/^@@/))
+.filter(k => _contacts[k].MemberList.length)
+.filter(k => _contacts[k].NickName.match(/test/))
+.map(k => _contacts[k])
+
+Object.keys(_contacts)
+.filter(k => _contacts[k].NickName.match(/快站哥/))
+.map(k => _contacts[k])
+
  *
  */

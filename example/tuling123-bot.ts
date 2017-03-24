@@ -15,12 +15,10 @@
 const QrcodeTerminal  = require('qrcode-terminal')
 const Tuling123       = require('tuling123-client')
 
-import { EventEmitter } from 'events'
-
 import {
-    Config
-  , Wechaty
-  , log
+  Config,
+  Wechaty,
+  log,
 } from '../'
 
 // log.level = 'verbose'
@@ -33,7 +31,7 @@ import {
  *
  */
 const TULING123_API_KEY = '18f25157e0446df58ade098479f74b21'
-const brain = new Tuling123(TULING123_API_KEY)
+const tuling = new Tuling123(TULING123_API_KEY)
 
 const bot = Wechaty.instance({ profile: Config.DEFAULT_PROFILE })
 
@@ -57,22 +55,20 @@ bot
   }
   console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
 })
-.on('message', async m => {
-  if (m.self()) return
+.on('message', async msg => {
+  // Skip message from self, or inside a room
+  if (msg.self() || msg.room()) return
 
-  try {
-    const msg = await m.ready()
-    const room = m.room()
+  log.info('Bot', 'talk: %s'  , msg)
 
-    if (room && /Wechaty/i.test(room.topic())) {
-      log.info('Bot', 'talk: %s'  , msg)
-      talk(m)
-    } else {
-      log.info('Bot', 'recv: %s'  , msg)
-    }
-  } catch (e) {
-    log.error('Bot', 'on message rejected: %s' , e)
-  }
+  tuling.ask(msg.content(), {userid: msg.from()})
+    .then(({text}) => {
+      log.info('Tuling123', 'Talker reply:"%s" for "%s" ', text, msg.content())
+      msg.say(text)
+    })
+    .catch(err => {
+      log.error('Bot', 'on message rejected: %s' , err)
+    })
 })
 
 bot.init()
@@ -81,83 +77,3 @@ bot.init()
   bot.quit()
   process.exit(-1)
 })
-
-class Talker extends EventEmitter {
-  private obj: {
-    text: any
-    time: any
-  }
-  private timer: number | null
-
-  constructor(private thinker) {
-    super()
-    log.verbose('Talker()')
-    this.obj = {
-      text: []
-      , time: []
-    }
-  }
-
-  public save(text) {
-    log.verbose('Talker', 'save(%s)', text)
-    this.obj.text.push(text)
-    this.obj.time.push(Date.now())
-  }
-  public load() {
-    const text = this.obj.text.join(', ')
-    log.verbose('Talker', 'load(%s)', text)
-    this.obj.text = []
-    this.obj.time = []
-    return text
-  }
-
-  public updateTimer(delayTime?) {
-    delayTime = delayTime || this.delayTime()
-    log.verbose('Talker', 'updateTimer(%s)', delayTime)
-
-    if (this.timer) { clearTimeout(this.timer) }
-    this.timer = setTimeout(this.say.bind(this), delayTime)
-  }
-
-  public hear(text) {
-    log.verbose('Talker', `hear(${text})`)
-    this.save(text)
-    this.updateTimer()
-  }
-  public say() {
-    log.verbose('Talker', 'say()')
-    const text  = this.load()
-    this.thinker(text)
-    .then(reply => this.emit('say', reply))
-    this.timer = null
-  }
-
-  public delayTime() {
-    const minDelayTime = 5000
-    const maxDelayTime = 15000
-    const delayTime = Math.floor(Math.random() * (maxDelayTime - minDelayTime)) + minDelayTime
-    return delayTime
-  }
-}
-
-/* tslint:disable:variable-name */
-let talkerList: Talker[] = []
-
-function talk(m) {
-  const fromId  = m.from().id
-  const roomId =  m.room().id
-  const content = m.content()
-
-  const talkerName = fromId + roomId
-  if (!talkerList[talkerName]) {
-    talkerList[talkerName] = new Talker(function(text) {
-      return brain.ask(text, {userid: talkerName})
-      .then(r => {
-        log.info('Tuling123', 'Talker reply:"%s" for "%s" ', r.text, text)
-        return r.text
-      })
-    })
-    talkerList[talkerName].on('say', reply => m.say(reply))
-  }
-  talkerList[talkerName].hear(content)
-}

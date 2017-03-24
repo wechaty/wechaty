@@ -28,8 +28,8 @@ import {
 import { BrowserDriver }  from './browser-driver'
 
 export type BrowserSetting = {
-  head:         HeadName
-  sessionFile?: string
+  head:         HeadName,
+  sessionFile?: string,
 }
 
 export class Browser extends EventEmitter {
@@ -37,11 +37,13 @@ export class Browser extends EventEmitter {
   private cookie: BrowserCookie
   public driver: BrowserDriver
 
+  public hostname: string
+
   public state = new StateMonitor<'open', 'close'>('Browser', 'close')
 
   constructor(private setting: BrowserSetting = {
-      head: Config.head
-    , sessionFile: ''
+    head: Config.head,
+    sessionFile: '',
   }) {
     super()
     log.verbose('PuppetWebBrowser', 'constructor() with head(%s) sessionFile(%s)', setting.head, setting.sessionFile)
@@ -72,9 +74,11 @@ export class Browser extends EventEmitter {
     this.state.target('open')
     this.state.current('open', false)
 
+    this.hostname = this.cookie.hostname()
+
     // jumpUrl is used to open in browser for we can set cookies.
     // backup: 'https://res.wx.qq.com/zh_CN/htmledition/v2/images/icon/ico_loading28a2f7.gif'
-    const jumpUrl = 'https://wx.qq.com/zh_CN/htmledition/v2/images/webwxgeticon.jpg'
+    const jumpUrl = `https://${this.hostname}/zh_CN/htmledition/v2/images/webwxgeticon.jpg`
 
     try {
       await this.driver.init()
@@ -83,9 +87,9 @@ export class Browser extends EventEmitter {
       await this.open(jumpUrl)
       await this.loadCookie()
                 .catch(e => { // fail safe
-                  log.verbose('PuppetWebBrowser', 'browser.loadSession(%s) exception: %s'
-                                          , this.setting.sessionFile
-                                          , e && e.message || e
+                  log.verbose('PuppetWebBrowser', 'browser.loadSession(%s) exception: %s',
+                                                  this.setting.sessionFile,
+                                                  e && e.message || e,
                   )
                 })
       await this.open()
@@ -102,17 +106,21 @@ export class Browser extends EventEmitter {
 
       return
 
-    } catch (e) {
-      log.error('PuppetWebBrowser', 'init() exception: %s', e.message)
+    } catch (err) {
+      log.error('PuppetWebBrowser', 'init() exception: %s', err.message)
 
       await this.quit()
 
-      throw e
+      throw err
     }
   }
 
-  public async open(url: string = 'https://wx.qq.com'): Promise<void> {
+  public async open(url: string = `https://${this.hostname}`): Promise<void> {
     log.verbose('PuppetWebBrowser', `open(${url})`)
+
+    if (!this.hostname) {
+      throw new Error('hostname unknown')
+    }
 
     // TODO: set a timer to guard driver.get timeout, then retry 3 times 201607
     try {
@@ -186,9 +194,9 @@ export class Browser extends EventEmitter {
       log.warn('PuppetWebBrowser', 'quit() exception: %s', e.message)
 
       const crashMsgs = [
-        'ECONNREFUSED'
-        , 'WebDriverError: .* not reachable'
-        , 'NoSuchWindowError: no such window: target window already closed'
+        'ECONNREFUSED',
+        'WebDriverError: .* not reachable',
+        'NoSuchWindowError: no such window: target window already closed',
       ]
       const crashRegex = new RegExp(crashMsgs.join('|'), 'i')
 
@@ -233,8 +241,8 @@ export class Browser extends EventEmitter {
     const timeout = max * (backoff * max) / 2
 
     return retryPromise({max, backoff}, async attempt => {
-      log.silly('PuppetWebBrowser', 'clean() retryPromise: attempt %s time for timeout %s'
-                                  , attempt,  timeout
+      log.silly('PuppetWebBrowser', 'clean() retryPromise: attempt %s time for timeout %s',
+                                    attempt,  timeout,
       )
       const pidList = await this.getBrowserPidList()
       if (pidList.length > 0) {
@@ -260,6 +268,7 @@ export class Browser extends EventEmitter {
 
       psTree(process.pid, (err, children) => {
         if (err) {
+          log.error('PuppetWebBrowser', 'getBrowserPidList() %s', err.message || err)
           reject(err)
           return
         }
@@ -302,12 +311,12 @@ export class Browser extends EventEmitter {
   }
 
   public async execute(script, ...args): Promise<any> {
-    log.silly('PuppetWebBrowser', 'Browser.execute("%s")'
-                                , (
+    log.silly('PuppetWebBrowser', 'Browser.execute("%s")',
+                                (
                                     script.slice(0, 80)
                                           .replace(/[\n\s]+/g, ' ')
                                     + (script.length > 80 ? ' ... ' : '')
-                                )
+                                ),
             )
     // log.verbose('PuppetWebBrowser', `Browser.execute() driver.getSession: %s`, util.inspect(this.driver.getSession()))
     if (this.dead()) {
@@ -378,10 +387,10 @@ export class Browser extends EventEmitter {
       || this.state.current() === 'close'
       // || this.state.inprocess()
     ) {
-      log.verbose('PuppetWebBrowser', 'dead() state target(%s) current(%s) stable(%s)'
-                                  , this.state.target()
-                                  , this.state.current()
-                                  , this.state.stable()
+      log.verbose('PuppetWebBrowser', 'dead() state target(%s) current(%s) stable(%s)',
+                                      this.state.target(),
+                                      this.state.current(),
+                                      this.state.stable(),
       )
       log.verbose('PuppetWebBrowser', 'dead() browser is in dead state')
       return true
@@ -401,11 +410,11 @@ export class Browser extends EventEmitter {
     }
 
     if (dead) {
-      log.warn('PuppetWebBrowser', 'dead(%s) because %s'
-                                  , forceReason
+      log.warn('PuppetWebBrowser', 'dead(%s) because %s',
+                                   forceReason
                                     ? forceReason
-                                    : ''
-                                  , msg
+                                    : '',
+                                   msg,
       )
 
       if (   this.state.target()  === 'open'
@@ -415,8 +424,8 @@ export class Browser extends EventEmitter {
         log.verbose('PuppetWebBrowser', 'dead() emit a `dead` event because %s', msg)
         this.emit('dead', msg)
       } else {
-        log.warn('PuppetWebBrowser', 'dead() wil not emit `dead` event because states are: target(%s), current(%s), stable(%s)'
-                                    , this.state.target(), this.state.current(), this.state.stable()
+        log.warn('PuppetWebBrowser', 'dead() wil not emit `dead` event because states are: target(%s), current(%s), stable(%s)',
+                                     this.state.target(), this.state.current(), this.state.stable(),
         )
       }
 

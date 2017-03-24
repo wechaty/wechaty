@@ -33,19 +33,19 @@ import { PuppetWeb }  from './puppet-web'
 
 /* tslint:disable:variable-name */
 export const Event = {
-    onBrowserDead
+  onBrowserDead,
 
-  , onServerLogin
-  , onServerLogout
+  onServerLogin,
+  onServerLogout,
 
-  , onServerConnection
-  , onServerDisconnect
+  onServerConnection,
+  onServerDisconnect,
 
-  , onServerDing
-  , onServerScan
-  , onServerLog
+  onServerDing,
+  onServerScan,
+  onServerLog,
 
-  , onServerMessage
+  onServerMessage,
 }
 
 async function onBrowserDead(this: PuppetWeb, e: Error): Promise<void> {
@@ -55,16 +55,16 @@ async function onBrowserDead(this: PuppetWeb, e: Error): Promise<void> {
     throw new Error('onBrowserDead() browser or bridge instance not exist in PuppetWeb instance')
   }
 
-  log.verbose('PuppetWebEvent', 'onBrowserDead() Browser:state target(%s) current(%s) stable(%s)'
-                              , this.browser.state.target()
-                              , this.browser.state.current()
-                              , this.browser.state.stable()
+  log.verbose('PuppetWebEvent', 'onBrowserDead() Browser:state target(%s) current(%s) stable(%s)',
+                                this.browser.state.target(),
+                                this.browser.state.current(),
+                                this.browser.state.stable(),
   )
 
   if (this.browser.state.target() === 'close' || this.browser.state.inprocess()) {
-    log.verbose('PuppetWebEvent', 'onBrowserDead() will do nothing because %s, or %s'
-                                , 'browser.state.target() === close'
-                                , 'browser.state.inprocess()'
+    log.verbose('PuppetWebEvent', 'onBrowserDead() will do nothing because %s, or %s',
+                                  'browser.state.target() === close',
+                                  'browser.state.inprocess()',
               )
     return
   }
@@ -72,8 +72,8 @@ async function onBrowserDead(this: PuppetWeb, e: Error): Promise<void> {
   const TIMEOUT = 180000 // 180s / 3m
   // this.watchDog(`onBrowserDead() set a timeout of ${Math.floor(TIMEOUT / 1000)} seconds to prevent unknown state change`, {timeout: TIMEOUT})
   this.emit('watchdog', {
-    data: `onBrowserDead() set a timeout of ${Math.floor(TIMEOUT / 1000)} seconds to prevent unknown state change`
-    , timeout: TIMEOUT
+    data: `onBrowserDead() set a timeout of ${Math.floor(TIMEOUT / 1000)} seconds to prevent unknown state change`,
+    timeout: TIMEOUT,
   })
 
   this.scan = null
@@ -109,23 +109,23 @@ async function onBrowserDead(this: PuppetWeb, e: Error): Promise<void> {
     }
     log.verbose('PuppetWebEvent', 'onBrowserDead() ding() works well after reset')
 
-  } catch (e) {
-    log.error('PuppetWebEvent', 'onBrowserDead() exception: %s', e.message)
+  } catch (err) {
+    log.error('PuppetWebEvent', 'onBrowserDead() exception: %s', err.message)
     try {
       await this.quit()
       await this.init()
-    } catch (err) {
-      log.warn('PuppetWebEvent', 'onBrowserDead() fail safe for this.quit(): %s', err.message)
+    } catch (error) {
+      log.warn('PuppetWebEvent', 'onBrowserDead() fail safe for this.quit(): %s', error.message)
     }
   }
 
   log.verbose('PuppetWebEvent', 'onBrowserDead() new browser borned')
 
-  // why POISON here... forgot, faint
-  this.emit('watchdog', {
-    data: `onBrowserDead() new browser borned`
-    , type: 'POISON'
-  })
+  // why POISON here... forgot, faint. comment it out to treat dog nicer... 20161128
+  // this.emit('watchdog', {
+  //   data: `onBrowserDead() new browser borned`
+  //   , type: 'POISON'
+  // })
 
   return
 }
@@ -154,8 +154,8 @@ async function onServerScan(this: PuppetWeb, data: ScanInfo) {
 
   // feed watchDog a `scan` type of food
   const food: WatchdogFood = {
-      data
-    , type: 'SCAN'
+    data,
+    type: 'SCAN',
   }
   this.emit('watchdog', food)
   this.emit('scan'    , data.url, data.code)
@@ -251,7 +251,7 @@ async function onServerLogin(this: PuppetWeb, data, attempt = 0): Promise<void> 
     this.userId = await this.bridge.getUserName()
 
     if (!this.userId) {
-      log.verbose('PuppetWebEvent', 'onServerLogin: browser not full loaded(%d), retry later', attempt)
+      log.verbose('PuppetWebEvent', 'onServerLogin: browser not fully loaded(%d), retry later', attempt)
       setTimeout(onServerLogin.bind(this, data, ++attempt), 500)
       return
     }

@@ -11,10 +11,10 @@
 const QrcodeTerminal = require('qrcode-terminal')
 
 import {
-  Wechaty
-  , Message
-  , Config
-  , log
+  Wechaty,
+  Contact,
+  Config,
+  log,
 } from '../'
 
 const welcome = `
@@ -60,51 +60,45 @@ bot
  * Wechaty Event: `friend`
  *
  */
-.on('friend', (contact, request) => {
+.on('friend', async (contact, request) => {
   let logMsg
-  const m = new Message()
-  m.set('to', 'filehelper')
+  const fileHelper = Contact.load('filehelper')
 
-  contact.ready().then(_ => {
-    try {
-      logMsg = 'received `friend` event from ' + contact.get('name')
-      m.set('content', logMsg)
-      bot.send(m)
-      console.log(logMsg)
-
-      /**
-       *
-       * 1. New Friend Request
-       *
-       * when request is set, we can get verify message from `request.hello`,
-       * and accept this request by `request.accept()`
-       */
-      if (request) {
-        if (request.hello === 'ding') {
-          logMsg = 'accepted because verify messsage is "ding"'
-          request.accept()
-
-        } else {
-          logMsg = 'not auto accepted, because verify message is: ' + request.hello
-        }
-      /**
-       *
-       * 2. Friend Ship Confirmed
-       *
-       */
-      } else {
-        logMsg = 'friend ship confirmed with ' + contact.get('name')
-      }
-
-    } catch (e) {
-      logMsg = e.message
-    }
-
+  try {
+    logMsg = 'received `friend` event from ' + contact.get('name')
+    fileHelper.say(logMsg)
     console.log(logMsg)
-    m.set('content', logMsg)
-    bot.send(m)
 
-  })
+    /**
+     *
+     * 1. New Friend Request
+     *
+     * when request is set, we can get verify message from `request.hello`,
+     * and accept this request by `request.accept()`
+     */
+    if (request) {
+      if (request.hello === 'ding') {
+        logMsg = 'accepted because verify messsage is "ding"'
+        request.accept()
+
+      } else {
+        logMsg = 'not auto accepted, because verify message is: ' + request.hello
+      }
+    /**
+     *
+     * 2. Friend Ship Confirmed
+     *
+     */
+    } else {
+      logMsg = 'friend ship confirmed with ' + contact.get('name')
+    }
+  } catch (e) {
+    logMsg = e.message
+  }
+
+  console.log(logMsg)
+  fileHelper.say(logMsg)
+
 })
 
 bot.init()

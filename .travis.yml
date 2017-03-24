@@ -3,6 +3,7 @@ dist: trusty
 language: node_js
 
 node_js:
+  - "6"
   - "7"
 
 os:
@@ -36,6 +37,7 @@ install:
   - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb; fi
   - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then sudo dpkg -i google-chrome*.deb; fi
 
+  - npm install phantomjs-prebuilt
   - npm --progress false --loglevel warn install
 
 script:
@@ -44,7 +46,7 @@ script:
   - npm --version
   - shellcheck bin/*.sh
   - npm run lint
-  - npm run redist
+  - npm run dist
   - if [ "$TRAVIS_OS_NAME" == 'linux' ];  then WECHATY_LOG=silly    npm run test:phantomjs;   fi
   - if [ "$TRAVIS_OS_NAME" == 'linux' ];  then WECHATY_LOG=silly    npm run test:chrome;      fi
   - if [ "$TRAVIS_OS_NAME" == 'osx' ];    then WECHATY_LOG=verbose  npm run nycava;           fi
@@ -67,7 +69,7 @@ after_success:
 
 before_deploy:
   - npm version
-  - npm run redist
+  - npm run dist
 
 deploy:
   provider: npm

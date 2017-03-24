@@ -7,9 +7,7 @@
  */
 import { test }   from 'ava'
 
-import {
-    Config
-}                 from './config'
+import { Config } from './config'
 import { Puppet } from './puppet'
 
 test('important variables', t => {
@@ -31,12 +29,12 @@ test('important variables', t => {
 
 test('validApiHost()', t => {
   const OK_APIHOSTS = [
-    'api.wechaty.io'
-    , 'wechaty.io:8080'
+    'api.wechaty.io',
+    'wechaty.io:8080',
   ]
   const ERR_APIHOSTS = [
-    'https://api.wechaty.io'
-    , 'wechaty.io/'
+    'https://api.wechaty.io',
+    'wechaty.io/',
   ]
   OK_APIHOSTS.forEach(apihost => {
     t.notThrows(() => {

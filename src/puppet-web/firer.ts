@@ -20,49 +20,56 @@ const retryPromise  = require('retry-promise').default
 
 import {
   // RecommendInfo
-  log
+  log,
 }                   from '../config'
 import { Contact }  from '../contact'
-import {
-    Message
-}                   from '../message'
+import { Message }  from '../message'
 
 import { FriendRequest }  from './friend-request'
 
 /* tslint:disable:variable-name */
 export const Firer = {
-    checkFriendConfirm
-  , checkFriendRequest
+  checkFriendConfirm,
+  checkFriendRequest,
 
-  , checkRoomJoin
-  , checkRoomLeave
-  , checkRoomTopic
+  checkRoomJoin,
+  checkRoomLeave,
+  checkRoomTopic,
 
-  , parseFriendConfirm
-  , parseRoomJoin
-  , parseRoomLeave
-  , parseRoomTopic
+  parseFriendConfirm,
+  parseRoomJoin,
+  parseRoomLeave,
+  parseRoomTopic,
 
 }
 
 const regexConfig = {
   friendConfirm: [
-      /^You have added (.+) as your WeChat contact. Start chatting!$/
-    , /^你已添加了(.+)，现在可以开始聊天了。$/
-  ]
+    /^You have added (.+) as your WeChat contact. Start chatting!$/,
+    /^你已添加了(.+)，现在可以开始聊天了。$/,
+    /^(.+) just added you to his\/her contacts list. Send a message to him\/her now!$/,
+    /^(.+)刚刚把你添加到通讯录，现在可以开始聊天了。$/,
+  ],
 
-  , roomJoin: [
-      /^"?(.+?)"? invited "(.+)" to the group chat$/
-    , /^"?(.+?)"?邀请"(.+)"加入了群聊$/
-  ]
-  , roomLeave: [
-      /^You removed "(.+)" from the group chat$/
-    , /^你将"(.+)"移出了群聊$/
-  ]
-  , roomTopic: [
-      /^"?(.+?)"? changed the group name to "(.+)"$/
-    , /^"?(.+?)"?修改群名为“(.+)”$/
-  ]
+  roomJoinInvite: [
+    /^"?(.+?)"? invited "(.+)" to the group chat$/,
+    /^"?(.+?)"?邀请"(.+)"加入了群聊$/,
+  ],
+
+  roomJoinQrcode: [
+    /^"(.+)" joined the group chat via the QR Code shared by "?(.+?)".$/,
+    /^"(.+)" joined the group chat via "?(.+?)"? shared QR Code.$/,
+    /^"(.+)"通过扫描"?(.+?)"?分享的二维码加入群聊$/,
+  ],
+
+  roomLeave: [
+    /^You removed "(.+)" from the group chat$/,
+    /^你将"(.+)"移出了群聊$/,
+  ],
+  roomTopic: [
+    /^"?(.+?)"? changed the group name to "(.+)"$/,
+    /^"?(.+?)"?修改群名为“(.+)”$/,
+  ],
 }
 
 async function checkFriendRequest(m: Message) {
@@ -133,17 +140,21 @@ async function checkFriendConfirm(m: Message) {
 function parseRoomJoin(content: string): [string[], string] {
   log.verbose('PuppetWebFirer', 'checkRoomJoin(%s)', content)
 
-  const reList = regexConfig.roomJoin
+  const reListInvite = regexConfig.roomJoinInvite
+  const reListQrcode = regexConfig.roomJoinQrcode
 
-  let found: string[]|null = []
-  reList.some(re => !!(found = content.match(re)))
-  if (!found || !found.length) {
+  let foundInvite: string[]|null = []
+  reListInvite.some(re => !!(foundInvite = content.match(re)))
+  let foundQrcode: string[]|null = []
+  reListQrcode.some(re => !!(foundQrcode = content.match(re)))
+  if ((!foundInvite || !foundInvite.length) && (!foundQrcode || !foundQrcode.length)) {
     throw new Error('checkRoomJoin() not found matched re of ' + content)
   }
-
-  const [inviter, inviteeStr] = [ found[1], found[2] ]
-
-  // "凌" invited "庆次、小桔妹" to the group chat
+  /**
+   * "凌" invited "庆次、小桔妹" to the group chat
+   * "桔小秘"通过扫描你分享的二维码加入群聊
+   */
+  const [inviter, inviteeStr] = foundInvite ? [ foundInvite[1], foundInvite[2] ] : [ foundQrcode[2], foundQrcode[1] ]
   const inviteeList = inviteeStr.split(/、/)
 
   return [inviteeList, inviter] // put invitee at first place
@@ -166,16 +177,16 @@ async function checkRoomJoin(m: Message): Promise<void> {
     log.silly('PuppetWebFirer', 'fireRoomJoin() "%s" is not a join message', content)
     return // not a room join message
   }
-  log.silly('PuppetWebFirer', 'fireRoomJoin() inviteeList: %s, inviter: %s'
-                            , inviteeList.join(',')
-                            , inviter
+  log.silly('PuppetWebFirer', 'fireRoomJoin() inviteeList: %s, inviter: %s',
+                              inviteeList.join(','),
+                              inviter,
           )
 
   let inviterContact: Contact | null = null
   let inviteeContactList: Contact[] = []
 
   try {
-    if (inviter === "You've" || inviter === '你') {
+    if (inviter === "You've" || inviter === '你' || inviter === 'your') {
       inviterContact = Contact.load(this.userId)
     }
 
@@ -227,9 +238,9 @@ async function checkRoomJoin(m: Message): Promise<void> {
       }
 
       if (inviteeListAllDone && inviterContact) {
-        log.silly('PuppetWebFirer', 'fireRoomJoin() resolve() inviteeContactList: %s, inviterContact: %s'
-                                  , inviteeContactList.map((c: Contact) => c.name()).join(',')
-                                  , inviterContact.name()
+        log.silly('PuppetWebFirer', 'fireRoomJoin() resolve() inviteeContactList: %s, inviterContact: %s',
+                                    inviteeContactList.map((c: Contact) => c.name()).join(','),
+                                    inviterContact.name(),
                 )
         return
       }
@@ -237,9 +248,9 @@ async function checkRoomJoin(m: Message): Promise<void> {
       throw new Error('not found(yet)')
 
     }).catch(e => {
-      log.silly('PuppetWebFirer', 'fireRoomJoin() reject() inviteeContactList: %s, inviterContact: %s'
-                            , inviteeContactList.map((c: Contact) => c.name()).join(',')
-                            , inviter
+      log.warn('PuppetWebFirer', 'fireRoomJoin() reject() inviteeContactList: %s, inviterContact: %s',
+                                 inviteeContactList.map((c: Contact) => c.name()).join(','),
+                                 inviter,
       )
     })
 
@@ -248,8 +259,8 @@ async function checkRoomJoin(m: Message): Promise<void> {
       return
     }
     if (!inviteeContactList.every(c => c instanceof Contact)) {
-      log.error('PuppetWebFirer', 'firmRoomJoin() inviteeList not all found for %s , only part of them will in the `room-join` or `join` event'
-                                 , inviteeContactList.join(',')
+      log.error('PuppetWebFirer', 'firmRoomJoin() inviteeList not all found for %s , only part of them will in the `room-join` or `join` event',
+                                  inviteeContactList.join(','),
               )
       inviteeContactList = inviteeContactList.filter(c => (c instanceof Contact))
       if (inviteeContactList.length < 1) {

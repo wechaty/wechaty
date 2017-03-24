@@ -10,7 +10,7 @@
  *
  */
 import * as fs from 'fs'
-const arrify = require('arrify')
+// const arrify = require('arrify')
 
 import { log }            from '../config'
 
@@ -23,20 +23,23 @@ import { BrowserDriver }  from './browser-driver'
  * 201610 zixia
  */
 export type CookieType = {
-  [index: string]: string | number | boolean
-  name: string
-  value: string
-  path: string
-  domain: string
-  secure: boolean
-  expiry: number
+  [index: string]: string | number | boolean,
+  name: string,
+  value: string,
+  path: string,
+  domain: string,
+  secure: boolean,
+  expiry: number,
 }
 
 export class BrowserCookie {
-  constructor(private driver: BrowserDriver, private storeFile?: string) {
-    log.verbose('PuppetWebBrowserCookie', 'constructor(%s, %s)'
-                                        , driver.constructor.name
-                                        , storeFile ? storeFile : ''
+  constructor(
+    private driver: BrowserDriver,
+    private storeFile?: string,
+  ) {
+    log.verbose('PuppetWebBrowserCookie', 'constructor(%s, %s)',
+                                          driver.constructor.name,
+                                          storeFile ? storeFile : '',
     )
   }
 
@@ -94,9 +97,9 @@ export class BrowserCookie {
 
     function cookieFilter(cookies: CookieType[]) {
       const skipNames = [
-        'ChromeDriver'
-        , 'MM_WX_SOUND_STATE'
-        , 'MM_WX_NOTIFY_STATE'
+        'ChromeDriver',
+        'MM_WX_SOUND_STATE',
+        'MM_WX_NOTIFY_STATE',
       ]
       const skipNamesRegex = new RegExp(skipNames.join('|'), 'i')
       return cookies.filter(c => {
@@ -134,48 +137,78 @@ export class BrowserCookie {
   }
 
   public async load(): Promise<void> {
-    if (!this.storeFile) {
-      log.silly('PuppetWebBrowserCookie', 'load() skipped: no session store file')
-      return
-    // } else if (this.browser.dead()) {
-    //   throw new Error('loadSession() - browser dead')
-    }
-    const storeFile = this.storeFile
-    log.verbose('PuppetWebBrowserCookie', 'load() from %s', storeFile)
+    log.verbose('PuppetWebBrowserCookie', 'load() from %s', this.storeFile || '"undefined"')
 
-    try {
-      fs.statSync(storeFile).isFile()
-    } catch (e) {
-      log.silly('PuppetWebBrowserCookie', 'load() skipped: session store file not exist')
+    const cookies = this.getCookiesFromFile()
+
+    if (!cookies) {
+      log.silly('PuppetWebBrowserCookie', 'load() no cookies')
       return
     }
 
     await new Promise((resolve, reject) => {
-      fs.readFile(storeFile, (err, jsonStr) => {
-        if (err) {
-          log.verbose('PuppetWebBrowserCookie', 'load(%s) skipped: error code: %s', this.storeFile, err.code)
-          reject()
-          return
-        }
-        const cookies = JSON.parse(jsonStr.toString())
+      // let ps = arrify(this.add(cookies))
+      let ps = [].concat(this.add(cookies) as any || [])
 
-        let ps = arrify(this.add(cookies))
-        Promise.all(ps)
-        .then(() => {
-          log.verbose('PuppetWebBrowserCookie', 'loaded session(%d cookies) from %s', cookies.length, this.storeFile)
-          resolve(cookies)
-          return
-        })
-        .catch(e => {
-          log.error('PuppetWebBrowserCookie', 'load() add() exception: %s', e.message)
-          reject(e)
-          return
-        })
+      Promise.all(ps)
+      .then(() => {
+        log.verbose('PuppetWebBrowserCookie', 'loaded session(%d cookies) from %s', cookies.length, this.storeFile)
+        return resolve(cookies)
+      })
+      .catch(e => {
+        log.error('PuppetWebBrowserCookie', 'load() add() exception: %s', e.message)
+        return reject(e)
       })
     })
 
     return
 
+  }
+
+  public getCookiesFromFile(): CookieType[] | null {
+    log.verbose('PuppetWebBrowserCookie', 'getCookiesFromFile() from %s', this.storeFile || '"undefined"')
+
+    try {
+      if (!this.storeFile) {
+        throw new Error('no store file')
+      }
+      fs.statSync(this.storeFile).isFile()
+    } catch (err) {
+      log.silly('PuppetWebBrowserCookie', 'getCookiesFromFile() no cookies: %s', err.message)
+      return null
+    }
+    const jsonStr = fs.readFileSync(this.storeFile)
+    const cookies = JSON.parse(jsonStr.toString())
+
+    return cookies
+  }
+
+  public hostname(): string {
+    log.verbose('PuppetWebBrowserCookie', 'hostname()')
+
+    const defaultHostname = 'wx.qq.com'
+
+    const cookieList = this.getCookiesFromFile()
+
+    if (!cookieList || cookieList.length === 0) {
+      log.silly('PuppetWebBrowserCookie', 'hostname() no cookie, return default hostname')
+      return defaultHostname
+    }
+
+    const wxCookieList = cookieList.filter(c => /^webwx_auth_ticket|webwxuvid$/.test(c.name))
+    if (!wxCookieList.length) {
+      log.silly('PuppetWebBrowserCookie', 'hostname() no valid cookie in files, return default hostname')
+      return defaultHostname
+    }
+
+    let domain = wxCookieList[0].domain.slice(1)
+
+    if (domain === 'wechat.com') {
+      domain = 'web.wechat.com'
+    }
+    log.silly('PuppetWebBrowserCookie', 'hostname() got %s', domain)
+
+    return domain
   }
 
   /**

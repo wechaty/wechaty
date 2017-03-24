@@ -42,11 +42,11 @@ export class UtilLib {
       return ''
     }
     return html
-          .replace(/<img class="(\w*?emoji) (\w*?emoji[^"]+?)" text="(.*?)_web" src=[^>]+>/g
-                 , '$3'
+          .replace(/<img class="(\w*?emoji) (\w*?emoji[^"]+?)" text="(.*?)_web" src=[^>]+>/g,
+                   '$3',
                  ) // <img class="emoji emoji1f4a4" text="[流汗]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />
-          .replace(/<span class="(\w*?emoji) (\w*?emoji[^"]+?)"><\/span>/g
-                 , '[$2]'
+          .replace(/<span class="(\w*?emoji) (\w*?emoji[^"]+?)"><\/span>/g,
+                   '[$2]',
                  ) // '<span class="emoji emoji1f334"></span>'
   }
 
@@ -62,11 +62,11 @@ export class UtilLib {
       return ''
     }
     return html
-          .replace(/<img class="(\w*?emoji) (\w*?emoji[^"]+?)" text="(.*?)_web" src=[^>]+>/g
-                 , '<emoji code="$2"/>'
+          .replace(/<img class="(\w*?emoji) (\w*?emoji[^"]+?)" text="(.*?)_web" src=[^>]+>/g,
+                   '<emoji code="$2"/>',
                  ) // <img class="emoji emoji1f4a4" text="[流汗]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />
-          .replace(/<span class="(\w*?emoji) (\w*?emoji[^"]+?)"><\/span>/g
-                 , '<emoji code="$2"/>'
+          .replace(/<span class="(\w*?emoji) (\w*?emoji[^"]+?)"><\/span>/g,
+                   '<emoji code="$2"/>',
                  ) // '<span class="emoji emoji1f334"></span>'
   }
 
@@ -75,11 +75,11 @@ export class UtilLib {
       return ''
     }
     return html
-          .replace(/<img class="(\w*?emoji) (\w*?emoji[^"]+?)" text="(.*?)_web" src=[^>]+>/g
-                 , ''
+          .replace(/<img class="(\w*?emoji) (\w*?emoji[^"]+?)" text="(.*?)_web" src=[^>]+>/g,
+                   '',
                  ) // <img class="emoji emoji1f4a4" text="[流汗]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />
-          .replace(/<span class="(\w*?emoji) (\w*?emoji[^"]+?)"><\/span>/g
-                 , ''
+          .replace(/<span class="(\w*?emoji) (\w*?emoji[^"]+?)"><\/span>/g,
+                   '',
                  ) // '<span class="emoji emoji1f334"></span>'
   }
 
@@ -91,10 +91,10 @@ export class UtilLib {
       UtilLib.unescapeHtml(
         UtilLib.stripHtml(
           UtilLib.digestEmoji(
-            html
-          )
-        )
-      )
+            html,
+          ),
+        ),
+      ),
     )
   }
 
@@ -112,12 +112,12 @@ export class UtilLib {
     if (protocol === 'https:') {
       // request       = https.request.bind(https)
       get           = https.get
-      options       = u as https.RequestOptions
+      options       = u as any as https.RequestOptions
       options.agent = https.globalAgent
     } else if (protocol === 'http:') {
       // request       = http.request.bind(http)
       get           = http.get
-      options       = u as http.RequestOptions
+      options       = u as any as http.RequestOptions
       options.agent = http.globalAgent
     } else {
       throw new Error('protocol unknown: ' + protocol)
@@ -216,9 +216,9 @@ export class UtilLib {
         })
       }
       _getPort(okPort => {
-        log.silly('UtilLib', 'getPort(%d) return: %d'
-                  , port
-                  , okPort
+        log.silly('UtilLib', 'getPort(%d) return: %d',
+                  port,
+                  okPort,
         )
         resolve(okPort)
       })

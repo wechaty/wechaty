@@ -8,8 +8,8 @@
  */
 
 import {
-    Config
-  , log
+  Config,
+  log,
 }                   from '../src/config'
 
 import { IoClient } from '../src/io-client'
