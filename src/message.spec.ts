@@ -175,21 +175,33 @@ test('mention()', async t => {
   }
   const msg11 = new Message(rawObj11)
   const room11 = msg11.room()
-  if (room11) await room11.ready()
-  const mentionContactList11 = msg11.mention()
-  t.is(mentionContactList11.length, 0, '@_@ in message should not be treat as contact')
+  if (room11) {
+    await room11.ready()
+    setTimeout(function () {
+      const mentionContactList11 = msg11.mention()
+      t.is(mentionContactList11.length, 0, '@_@ in message should not be treat as contact')
+    }, 1 * 1000)
+  }
 
   const msg12 = new Message(rawObj12)
   const room12 = msg12.room()
-  if (room12) await room12.ready()
-  const mentionContactList12 = msg12.mention()
-  t.is(mentionContactList12.length, 0, 'user@email.com in message should not be treat as contact')
+  if (room12) {
+    await room12.ready()
+    setTimeout(function () {
+      const mentionContactList12 = msg12.mention()
+      t.is(mentionContactList12.length, 0, 'user@email.com in message should not be treat as contact')
+    }, 1 * 1000)
+  }
 
   const msg13 = new Message(rawObj13)
   const room13 = msg13.room()
-  if (room13) await room13.ready()
-  const mentionContactList13 = msg13.mention()
-  t.is(mentionContactList13.length, 0, '@_@ wow! my email is ruiruibupt@gmail.com in message should not be treat as contact')
+  if (room13) {
+    await room13.ready()
+    setTimeout(function () {
+      const mentionContactList13 = msg13.mention()
+      t.is(mentionContactList13.length, 0, '@_@ wow! my email is ruiruibupt@gmail.com in message should not be treat as contact')
+    }, 1 * 1000)
+  }
 
   const msg21 = new Message(rawObj21)
   const room21 = msg21.room()
@@ -199,7 +211,7 @@ test('mention()', async t => {
       const mentionContactList21 = msg21.mention()
       t.is(mentionContactList21.length, 1, '@小桔同学 is a contact')
       t.is(mentionContactList21[0].id, '@cd7d467d7464e8ff6b0acd29364654f3666df5d04551f6082bfc875f90a6afd2', 'should get 小桔同学 id right')
-    }, 3 * 1000)
+    }, 1 * 1000)
   }
 
   const msg22 = new Message(rawObj22)
@@ -211,7 +223,7 @@ test('mention()', async t => {
       t.is(mentionContactList22.length, 2, '@小桔同学 and @wuli舞哩客服 is a contact')
       t.is(mentionContactList22[0].id, '@cd7d467d7464e8ff6b0acd29364654f3666df5d04551f6082bfc875f90a6afd2', 'should get 小桔同学 id right')
       t.is(mentionContactList22[1].id, '@36d55130f6a91bae4a2ed2cc5f19c56a9258c65ce3db9777f74f607223ef0855', 'should get wuli舞哩客服 id right')
-    }, 3 * 1000)
+    }, 1 * 1000)
   }
 
   const msg31 = new Message(rawObj31)
@@ -222,7 +234,7 @@ test('mention()', async t => {
       const mentionContactList31 = msg31.mention()
       t.is(mentionContactList31.length, 1, '@wuli舞哩客服 is a contact')
       t.is(mentionContactList31[0].id, '@36d55130f6a91bae4a2ed2cc5f19c56a9258c65ce3db9777f74f607223ef0855', 'should get wuli舞哩客服 id right')
-    }, 3 * 1000)
+    }, 1 * 1000)
   }
 
   const msg32 = new Message(rawObj32)
@@ -234,6 +246,6 @@ test('mention()', async t => {
       t.is(mentionContactList32.length, 2, '@小桔同学 and @wuli舞哩客服 is a contact')
       t.is(mentionContactList32[0].id, '@36d55130f6a91bae4a2ed2cc5f19c56a9258c65ce3db9777f74f607223ef0855', 'should get wuli舞哩客服 id right')
       t.is(mentionContactList32[1].id, '@cd7d467d7464e8ff6b0acd29364654f3666df5d04551f6082bfc875f90a6afd2', 'should get 小桔同学 id right')
-    }, 3 * 1000)
+    }, 1 * 1000)
   }
 })
