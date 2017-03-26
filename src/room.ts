@@ -362,18 +362,12 @@ export class Room extends EventEmitter implements Sayable {
 
   public owner(): Contact | null {
     const ownerUin = this.obj && this.obj.ownerUin
-    let memberList = (this.obj && this.obj.memberList) || []
 
     let user = Config.puppetInstance()
                       .user
 
     if (user && user.get('uin') === ownerUin) {
       return user
-    }
-
-    memberList = memberList.filter(m => m.get('uin') === ownerUin)
-    if (memberList.length > 0) {
-      return memberList[0]
     }
 
     if (this.rawObj.ChatRoomOwner) {
