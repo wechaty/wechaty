@@ -13,7 +13,6 @@ import {
   log,
 }  from './config'
 
-
 import { Contact }  from './contact'
 import { Room }     from './room'
 import { UtilLib }  from './util-lib'
