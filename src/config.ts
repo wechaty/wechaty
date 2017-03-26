@@ -224,7 +224,8 @@ process.on('unhandledRejection', (reason, promise) => {
   log.error('Config', 'unhandledRejection: %s %s', reason, promise)
   log.error('Config', '###########################')
   promise.catch(err => {
-    log.error('Config', 'unhandledRejection::catch(%s)', err.message || err)
+    log.error('Config', 'unhandledRejection::catch(%s)', err.message)
+    console.error('Config', err); // I don't know if log.error has similar full trace print support like console.error
   })
 })
 */
