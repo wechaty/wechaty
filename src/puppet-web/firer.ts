@@ -230,7 +230,6 @@ async function checkRoomJoin(m: Message): Promise<void> {
             continue
           }
         }
-
       }
 
       if (!inviterContact) {
