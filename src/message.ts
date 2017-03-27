@@ -404,10 +404,11 @@ export class Message implements Sayable {
   }
 
   /**
+   *
    * Get the mentioned contact which the message is mentioned for.
    * @returns {Contact[]} return the contactList which the message is mentioned for
    *
-   * * @example
+   * @example
    * ```ts
    * const content = message.content()
    * const contactList = message.mention()
