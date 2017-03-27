@@ -10,16 +10,17 @@ import { Message }    from './message'
 import { UtilLib }    from './util-lib'
 
 type RoomObj = {
-  id:         string,
-  encryId:    string,
-  topic:      string,
-  ownerUin:   number,
-  memberList: Contact[],
-  nameMap:    Map<string, string>,
-  aliasMap:   Map<string, string>,
+  id:               string,
+  encryId:          string,
+  topic:            string,
+  ownerUin:         number,
+  memberList:       Contact[],
+  nameMap:          Map<string, string>,
+  roomAliasMap:     Map<string, string>,
+  contactAliasMap:  Map<string, string>,
 }
 
-type NameType = 'name' | 'alias'
+type NameType = 'name' | 'roomAlias' | 'contactAlias'
 
 export type RoomRawMember = {
   UserName:     string,
@@ -46,8 +47,9 @@ export type RoomQueryFilter = {
 }
 
 export type MemberQueryFilter = {
-  name?:  string,
-  alias?: string,
+  name?:         string,
+  roomAlias?:    string,
+  contactAlias?: string,
 }
 
 /**
@@ -96,14 +98,14 @@ export class Room extends EventEmitter implements Sayable {
     return
   }
 
-  public async ready(contactGetter?: (id: string) => Promise<any>): Promise<Room> {
+  public async ready(contactGetter?: (id: string) => Promise<any>): Promise<void> {
     log.silly('Room', 'ready(%s)', contactGetter ? contactGetter.constructor.name : '')
     if (!this.id) {
       const e = new Error('ready() on a un-inited Room')
       log.warn('Room', e.message)
       throw e
     } else if (this.isReady()) {
-      return this
+      return
     } else if (this.obj && this.obj.id) {
       log.warn('Room', 'ready() has obj.id but memberList empty in room %s. reloading', this.obj.topic)
     }
@@ -127,7 +129,7 @@ export class Room extends EventEmitter implements Sayable {
       }
       await Promise.all(this.obj.memberList.map(c => c.ready(contactGetter)))
 
-      return this
+      return
 
     } catch (e) {
       log.error('Room', 'contactGetter(%s) exception: %s', this.id, e.message)
@@ -198,7 +200,8 @@ export class Room extends EventEmitter implements Sayable {
                         .map(m => Contact.load(m.UserName))
 
     const nameMap    = this.parseMap('name', rawObj.MemberList)
-    const aliasMap   = this.parseMap('alias', rawObj.MemberList)
+    const roomAliasMap   = this.parseMap('roomAlias', rawObj.MemberList)
+    const contactAliasMap   = this.parseMap('contactAlias', rawObj.MemberList)
 
     return {
       id:         rawObj.UserName,
@@ -207,7 +210,8 @@ export class Room extends EventEmitter implements Sayable {
       ownerUin:   rawObj.OwnerUin,
       memberList,
       nameMap,
-      aliasMap,
+      roomAliasMap,
+      contactAliasMap,
     }
   }
 
@@ -219,10 +223,13 @@ export class Room extends EventEmitter implements Sayable {
         let contact = Contact.load(member.UserName)
         switch (parseContent) {
           case 'name':
-            tmpName = contact.alias() || contact.name()
+            tmpName = contact.name()
             break
-          case 'alias':
+          case 'roomAlias':
             tmpName = member.DisplayName
+            break
+          case 'contactAlias':
+            tmpName = contact.alias() || ''
             break
           default:
             throw new Error('parseMap failed, member not found')
@@ -340,15 +347,15 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * return contact's roomAlias in the room
+   * find contact's roomAlias in the room
    * @param {Contact} contact
-   * @returns {string | null} If a contact has an alias in room, return string, otherwise return null
+   * @returns {string | null} If can find contact's roomAlias, return string, or return null
    */
   public alias(contact: Contact): string | null {
-    if (!this.obj || !this.obj.aliasMap) {
+    if (!this.obj || !this.obj.roomAliasMap) {
       return null
     }
-    return this.obj.aliasMap[contact.id] || null
+    return this.obj.roomAliasMap[contact.id] || null
   }
 
   public has(contact: Contact): boolean {
@@ -378,15 +385,28 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * find member priority by `name`(contactAlias) / `alias`(roomAlias)
-   * when use member(name:string), equals to member({name:string})
+   * find member by name | roomAlias | contactAlias
+   * when use memberAll(name:string), return all matched members, including name, roomAlias, contactAlias
    */
-  public member(filter: MemberQueryFilter): Contact | null
-  public member(name: string): Contact | null
+  public memberAll(filter: MemberQueryFilter): Contact[] | null
+  public memberAll(name: string): Contact[] | null
 
-  public member(queryArg: MemberQueryFilter | string): Contact | null {
+  public memberAll(queryArg: MemberQueryFilter | string): Contact[] | null {
     if (typeof queryArg === 'string') {
-      return this.member({name: queryArg})
+      let contactList: Contact[] = []
+      const nameList = this.memberAll({name: queryArg})
+      const roomAliasList = this.memberAll({roomAlias: queryArg})
+      const contactAliasList = this.memberAll({contactAlias: queryArg})
+      if (nameList) {
+        contactList = contactList.concat(nameList)
+      }
+      if (roomAliasList) {
+        contactList = contactList.concat(roomAliasList)
+      }
+      if (contactAliasList) {
+        contactList = contactList.concat(contactAliasList)
+      }
+      return contactList
     }
 
     log.silly('Room', 'member({ %s })',
@@ -410,8 +430,9 @@ export class Room extends EventEmitter implements Sayable {
     let filterValue: string  = UtilLib.stripEmoji(queryArg[filterKey])
 
     const keyMap = {
-      name:       'nameMap',
-      alias:      'aliasMap',
+      name:         'nameMap',
+      roomAlias:    'roomAliasMap',
+      contactAlias: 'contactAliasMap',
     }
 
     filterKey = keyMap[filterKey]
@@ -430,10 +451,27 @@ export class Room extends EventEmitter implements Sayable {
     log.silly('Room', 'member() check %s from %s: %s', filterValue, filterKey, JSON.stringify(filterMap))
 
     if (idList.length) {
-      return Contact.load(idList[0])
+      return idList.map(id => Contact.load(id))
     } else {
       return null
     }
+  }
+
+  public member(filter: MemberQueryFilter): Contact | null
+  public member(name: string): Contact | null
+
+  public member(queryArg: MemberQueryFilter | string): Contact | null {
+    log.verbose('Room', 'member(%s)', JSON.stringify(queryArg))
+
+    const memberList =  this.memberAll(queryArg)
+    if (!memberList || !memberList.length) {
+      return null
+    }
+
+    if (memberList.length > 1) {
+      log.warn('Room', 'function member(%s) get %d contacts, use the first one by default', JSON.stringify(queryArg), memberList.length)
+    }
+    return memberList[0]
   }
 
   public memberList(): Contact[] {
@@ -484,18 +522,12 @@ export class Room extends EventEmitter implements Sayable {
       throw new Error('unsupport topic type')
     }
 
-    const roomList = await Config.puppetInstance()
-                                  .roomFind(filterFunction)
-                                  .catch(e => {
-                                    log.verbose('Room', 'findAll() rejected: %s', e.message)
-                                    return [] // fail safe
-                                  })
-
-    for (let i = 0; i < roomList.length; i++) {
-      await roomList[i].ready()
-    }
-
-    return roomList
+    return Config.puppetInstance()
+                  .roomFind(filterFunction)
+                  .catch(e => {
+                    log.verbose('Room', 'findAll() rejected: %s', e.message)
+                    return [] // fail safe
+                  })
   }
 
   /**
@@ -509,10 +541,10 @@ export class Room extends EventEmitter implements Sayable {
     const roomList = await Room.findAll(query)
     if (!roomList || roomList.length < 1) {
       return null
-    } else if (roomList.length > 1) {
-      log.warn('Room', 'find() got more than one result, return the 1st one.')
     }
-    return roomList[0]
+    const room = roomList[0]
+    await room.ready()
+    return room
   }
 
   /**
