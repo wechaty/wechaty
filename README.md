@@ -178,7 +178,7 @@ The following VPS providers is used by ourselves, they worked perfectly in produ
 
 # Test
 
-[![Linux/Mac Build Status](https://img.shields.io/travis/Chatie/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/Chatie/wechaty) [![Windows Build status](https://img.shields.io/appveyor/ci/chatie/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/chatie/wechaty) [![Docker CircleCI](https://img.shields.io/circleci/project/github/Chatie/wechaty.svg?label=Docker)](https://circleci.com/gh/Chatie/wechaty) [![Coverage Status](https://coveralls.io/repos/github/Chatie/wechaty/badge.svg?branch=master)](https://coveralls.io/github/Chatie/wechaty?branch=master) [![Known Vulnerabilities](https://snyk.io/test/github/chatie/wechaty/badge.svg)](https://snyk.io/test/github/chatie/wechaty)
+[![Linux/Mac Build Status](https://img.shields.io/travis/Chatie/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/Chatie/wechaty) [![Windows Build status](https://img.shields.io/appveyor/ci/chatie/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/chatie/wechaty) [![Docker CircleCI](https://img.shields.io/circleci/project/github/Chatie/wechaty/master.svg?label=Docker)](https://circleci.com/gh/Chatie/wechaty) [![Coverage Status](https://coveralls.io/repos/github/Chatie/wechaty/badge.svg?branch=master)](https://coveralls.io/github/Chatie/wechaty?branch=master) [![Known Vulnerabilities](https://snyk.io/test/github/chatie/wechaty/badge.svg)](https://snyk.io/test/github/chatie/wechaty)
 
 Wechaty use [AVA](https://github.com/avajs/ava) for unit testing
 
@@ -234,13 +234,13 @@ You can directly submit pull requests for documentation changes.
 * [xinbenlv](https://github.com/xinbenlv)
 * [Gcaufy](https://github.com/Gcaufy)
 
-## Join us 
+## Join Wechaty Developers' Community
 
-Scan the following QR Code in WeChat, with secret code _wechaty_, you can join our **Wechaty Developers' Home**.
+Wechaty is used in many ChatBot projects by hundreds of developers. If you want to talk with other developers, just scan the following QR Code in WeChat with secret code _wechaty_, you can join our **Wechaty Developers' Home** at once.
 
 ![Wechaty Developers' Home](https://raw.githubusercontent.com/chatie/wechaty/master/image/BotQrcode.png)
 
-Scan now, then you can chat with other Wechaty developers! (secret code: _wechaty_)
+Scan now, because other Wechaty developers want to talk with you too! (secret code: _wechaty_)
 
 # See Also
 
@@ -284,7 +284,7 @@ Zhuohuan LI <zixia@zixia.net> (http://linkedin.com/in/zixia)
 
 Copyright & License
 -------------------
-* Code & Docs 2016© zixia
+* Code & Docs 2016-2017© zixia
 * Code released under the ISC license
 * Docs released under Creative Commons
 
