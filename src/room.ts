@@ -96,14 +96,14 @@ export class Room extends EventEmitter implements Sayable {
     return
   }
 
-  public async ready(contactGetter?: (id: string) => Promise<any>): Promise<void> {
+  public async ready(contactGetter?: (id: string) => Promise<any>): Promise<Room> {
     log.silly('Room', 'ready(%s)', contactGetter ? contactGetter.constructor.name : '')
     if (!this.id) {
       const e = new Error('ready() on a un-inited Room')
       log.warn('Room', e.message)
       throw e
     } else if (this.isReady()) {
-      return
+      return this
     } else if (this.obj && this.obj.id) {
       log.warn('Room', 'ready() has obj.id but memberList empty in room %s. reloading', this.obj.topic)
     }
@@ -127,7 +127,7 @@ export class Room extends EventEmitter implements Sayable {
       }
       await Promise.all(this.obj.memberList.map(c => c.ready(contactGetter)))
 
-      return
+      return this
 
     } catch (e) {
       log.error('Room', 'contactGetter(%s) exception: %s', this.id, e.message)
@@ -484,13 +484,14 @@ export class Room extends EventEmitter implements Sayable {
       throw new Error('unsupport topic type')
     }
 
-    const roomList =  Config.puppetInstance()
-                            .roomFind(filterFunction)
-                            .catch(e => {
-                              log.verbose('Room', 'findAll() rejected: %s', e.message)
-                              return [] // fail safe
-                            })
-    for(let i=0; i<roomList.length; i++) {
+    const roomList = await Config.puppetInstance()
+                                  .roomFind(filterFunction)
+                                  .catch(e => {
+                                    log.verbose('Room', 'findAll() rejected: %s', e.message)
+                                    return [] // fail safe
+                                  })
+
+    for (let i = 0; i < roomList.length; i++) {
       await roomList[i].ready()
     }
 
