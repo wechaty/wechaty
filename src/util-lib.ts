@@ -252,10 +252,10 @@ export class UtilLib {
 
   public static msgType(ext): MsgType {
     switch (ext) {
-      case '.bmp':
-      case '.jpeg':
-      case '.jpg':
-      case '.png':
+      case 'bmp':
+      case 'jpeg':
+      case 'jpg':
+      case 'png':
         return MsgType.IMAGE
       case 'mp4':
         return MsgType.VIDEO
@@ -266,17 +266,17 @@ export class UtilLib {
 
   public static mime(ext): string {
     switch (ext) {
-      case '.pdf':
+      case 'pdf':
         return 'application/pdf'
-      case '.bmp':
+      case 'bmp':
         return 'image/bmp'
-      case '.jpeg':
+      case 'jpeg':
         return 'image/jpeg'
-      case '.jpg':
+      case 'jpg':
         return 'image/jpeg'
-      case '.png':
+      case 'png':
         return 'image/png'
-      case '.mp4':
+      case 'mp4':
         return 'video/mp4'
       default:
         return 'application/octet-stream'

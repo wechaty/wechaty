@@ -581,8 +581,12 @@ export class Contact implements Sayable {
    * await contact.say('welcome to wechaty!')
    * ```
    */
-  public async say(content: string|MediaMessage): Promise<void> {
-    log.verbose('Contact', 'say(%s)', typeof content === 'string' ? content : content.filename())
+  public async say(text: string)
+  public async say(mediaMessage: MediaMessage)
+
+  public async say(textOrMedia: string | MediaMessage): Promise<void> {
+    const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
+    log.verbose('Contact', 'say(%s)', content)
 
     const wechaty = Wechaty.instance()
     const user = wechaty.user()
@@ -591,11 +595,14 @@ export class Contact implements Sayable {
       throw new Error('no user')
     }
     let m
-    if (typeof content === 'string') {
+    if (typeof textOrMedia === 'string') {
       m = new Message()
-      m.content(content)
-    } else
-      m = content
+      m.content(textOrMedia)
+    } else if (textOrMedia instanceof MediaMessage) {
+      m = textOrMedia
+    } else {
+      throw new Error('not support args')
+    }
     m.from(user)
     m.to(this)
     log.silly('Contact', 'say() from: %s to: %s content: %s', user.name(), this.name(), content)

@@ -4,8 +4,10 @@ import {
   Sayable,
 }                       from './config'
 import { Contact }      from './contact'
-import { Message }      from './message'
-import { MediaMessage }      from './message-media'
+import {
+  Message,
+  MediaMessage,
+}                       from './message'
 import { StateMonitor } from './state-monitor'
 import { Room }         from './room'
 
