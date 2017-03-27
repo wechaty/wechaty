@@ -19,23 +19,22 @@ import {
   ScanInfo,
   WatchdogFood,
   log,
-} from '../config'
+}                         from '../config'
 
-import { Contact } from '../contact'
+import { Contact }        from '../contact'
 import {
   Message,
   MediaMessage,
-} from '../message'
+ }                        from '../message'
+import { Puppet }         from '../puppet'
+import { Room }           from '../room'
+import { UtilLib }        from '../util-lib'
 
-import { Puppet } from '../puppet'
-import { Room } from '../room'
-import { UtilLib } from '../util-lib'
-
-import { Bridge } from './bridge'
-import { Browser } from './browser'
-import { Event } from './event'
-import { Server } from './server'
-import { Watchdog } from './watchdog'
+import { Bridge }         from './bridge'
+import { Browser }        from './browser'
+import { Event }          from './event'
+import { Server }         from './server'
+import { Watchdog }       from './watchdog'
 
 import * as request from 'request'
 import * as bl from 'bl'
@@ -48,9 +47,8 @@ const enum UploadMediaType {
   AUDIO = 3,
   ATTACHMENT = 4,
 }
-
 export type PuppetWebSetting = {
-  head?: HeadName,
+  head?:    HeadName,
   profile?: string,
 }
 const DEFAULT_PUPPET_PORT = 18788 // W(87) X(88), ascii char code ;-]
@@ -58,8 +56,8 @@ const DEFAULT_PUPPET_PORT = 18788 // W(87) X(88), ascii char code ;-]
 export class PuppetWeb extends Puppet {
 
   public browser: Browser
-  public bridge: Bridge
-  public server: Server
+  public bridge:  Bridge
+  public server:  Server
 
   public scan: ScanInfo | null
   private port: number
@@ -126,9 +124,9 @@ export class PuppetWeb extends Puppet {
 
   public async quit(): Promise<void> {
     log.verbose('PuppetWeb', 'quit() state target(%s) current(%s) stable(%s)',
-      this.state.target(),
-      this.state.current(),
-      this.state.stable(),
+                             this.state.target(),
+                             this.state.current(),
+                             this.state.stable(),
     )
 
     if (this.state.current() === 'dead') {
@@ -165,21 +163,21 @@ export class PuppetWeb extends Puppet {
         }, 120 * 1000)
 
         await this.bridge.quit()
-          .catch(e => { // fail safe
-            log.warn('PuppetWeb', 'quit() bridge.quit() exception: %s', e.message)
-          })
+                        .catch(e => { // fail safe
+                          log.warn('PuppetWeb', 'quit() bridge.quit() exception: %s', e.message)
+                        })
         log.verbose('PuppetWeb', 'quit() bridge.quit() done')
 
         await this.server.quit()
-          .catch(e => { // fail safe
-            log.warn('PuppetWeb', 'quit() server.quit() exception: %s', e.message)
-          })
+                        .catch(e => { // fail safe
+                          log.warn('PuppetWeb', 'quit() server.quit() exception: %s', e.message)
+                        })
         log.verbose('PuppetWeb', 'quit() server.quit() done')
 
         await this.browser.quit()
-          .catch(e => { // fail safe
-            log.warn('PuppetWeb', 'quit() browser.quit() exception: %s', e.message)
-          })
+                  .catch(e => { // fail safe
+                    log.warn('PuppetWeb', 'quit() browser.quit() exception: %s', e.message)
+                  })
         log.verbose('PuppetWeb', 'quit() browser.quit() done')
 
         clearTimeout(timer)
@@ -203,8 +201,8 @@ export class PuppetWeb extends Puppet {
     log.verbose('PuppetWeb', 'initBrowser()')
 
     this.browser = new Browser({
-      head: <HeadName>this.setting.head,
-      sessionFile: this.setting.profile,
+      head:         <HeadName>this.setting.head,
+      sessionFile:  this.setting.profile,
     })
 
     this.browser.on('dead', Event.onBrowserDead.bind(this))
@@ -265,14 +263,14 @@ export class PuppetWeb extends Puppet {
      */
     // server.on('unload'  , Event.onServerUnload.bind(this))
 
-    this.server.on('connection', Event.onServerConnection.bind(this))
-    this.server.on('ding', Event.onServerDing.bind(this))
-    this.server.on('disconnect', Event.onServerDisconnect.bind(this))
-    this.server.on('log', Event.onServerLog.bind(this))
-    this.server.on('login', Event.onServerLogin.bind(this))
-    this.server.on('logout', Event.onServerLogout.bind(this))
-    this.server.on('message', Event.onServerMessage.bind(this))
-    this.server.on('scan', Event.onServerScan.bind(this))
+    this.server.on('connection' , Event.onServerConnection.bind(this))
+    this.server.on('ding'       , Event.onServerDing.bind(this))
+    this.server.on('disconnect' , Event.onServerDisconnect.bind(this))
+    this.server.on('log'        , Event.onServerLog.bind(this))
+    this.server.on('login'      , Event.onServerLogin.bind(this))
+    this.server.on('logout'     , Event.onServerLogout.bind(this))
+    this.server.on('message'    , Event.onServerMessage.bind(this))
+    this.server.on('scan'       , Event.onServerScan.bind(this))
 
     if (this.state.target() === 'dead') {
       const e = new Error('initServer() found state.target() != live, no init anymore')
@@ -281,10 +279,10 @@ export class PuppetWeb extends Puppet {
     }
 
     await this.server.init()
-      .catch(e => {
-        log.error('PuppetWeb', 'initServer() exception: %s', e.message)
-        throw e
-      })
+                .catch(e => {
+                  log.error('PuppetWeb', 'initServer() exception: %s', e.message)
+                  throw e
+                })
     return
   }
 
@@ -451,8 +449,8 @@ export class PuppetWeb extends Puppet {
     return
   }
 
-  public async send(message: Message | MediaMessage): Promise<void> {
-    const to = message.to()
+   public async send(message: Message | MediaMessage): Promise<void> {
+    const to   = message.to()
     const room = message.room()
 
     let destinationId
@@ -533,12 +531,12 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public async contactAlias(contact: Contact, remark: string | null): Promise<boolean> {
+  public async contactAlias(contact: Contact, remark: string|null): Promise<boolean> {
     try {
       const ret = await this.bridge.contactRemark(contact.id, remark)
       if (!ret) {
         log.warn('PuppetWeb', 'contactRemark(%s, %s) bridge.contactRemark() return false',
-          contact.id, remark,
+                              contact.id, remark,
         )
       }
       return ret
@@ -554,11 +552,11 @@ export class PuppetWeb extends Puppet {
       return Promise.reject(new Error('contactFind fail: no bridge(yet)!'))
     }
     return this.bridge.contactFind(filterFunc)
-      .then(idList => idList.map(id => Contact.load(id)))
-      .catch(e => {
-        log.warn('PuppetWeb', 'contactFind(%s) rejected: %s', filterFunc, e.message)
-        throw e
-      })
+                      .then(idList => idList.map(id => Contact.load(id)))
+                      .catch(e => {
+                        log.warn('PuppetWeb', 'contactFind(%s) rejected: %s', filterFunc, e.message)
+                        throw e
+                      })
   }
 
   public roomFind(filterFunc: string): Promise<Room[]> {
@@ -566,37 +564,37 @@ export class PuppetWeb extends Puppet {
       return Promise.reject(new Error('findRoom fail: no bridge(yet)!'))
     }
     return this.bridge.roomFind(filterFunc)
-      .then(idList => idList.map(id => Room.load(id)))
-      .catch(e => {
-        log.warn('PuppetWeb', 'roomFind(%s) rejected: %s', filterFunc, e.message)
-        throw e
-      })
+                      .then(idList => idList.map(id => Room.load(id)))
+                      .catch(e => {
+                        log.warn('PuppetWeb', 'roomFind(%s) rejected: %s', filterFunc, e.message)
+                        throw e
+                      })
   }
 
   public roomDel(room: Room, contact: Contact): Promise<number> {
     if (!this.bridge) {
       return Promise.reject(new Error('roomDelMember fail: no bridge(yet)!'))
     }
-    const roomId = room.id
+    const roomId    = room.id
     const contactId = contact.id
     return this.bridge.roomDelMember(roomId, contactId)
-      .catch(e => {
-        log.warn('PuppetWeb', 'roomDelMember(%s, %d) rejected: %s', roomId, contactId, e.message)
-        throw e
-      })
+                      .catch(e => {
+                        log.warn('PuppetWeb', 'roomDelMember(%s, %d) rejected: %s', roomId, contactId, e.message)
+                        throw e
+                      })
   }
 
   public roomAdd(room: Room, contact: Contact): Promise<number> {
     if (!this.bridge) {
       return Promise.reject(new Error('fail: no bridge(yet)!'))
     }
-    const roomId = room.id
+    const roomId    = room.id
     const contactId = contact.id
     return this.bridge.roomAddMember(roomId, contactId)
-      .catch(e => {
-        log.warn('PuppetWeb', 'roomAddMember(%s) rejected: %s', contact, e.message)
-        throw e
-      })
+                      .catch(e => {
+                        log.warn('PuppetWeb', 'roomAddMember(%s) rejected: %s', contact, e.message)
+                        throw e
+                      })
   }
 
   public roomTopic(room: Room, topic: string): Promise<string> {
@@ -609,10 +607,10 @@ export class PuppetWeb extends Puppet {
 
     const roomId = room.id
     return this.bridge.roomModTopic(roomId, topic)
-      .catch(e => {
-        log.warn('PuppetWeb', 'roomTopic(%s) rejected: %s', topic, e.message)
-        throw e
-      })
+                      .catch(e => {
+                        log.warn('PuppetWeb', 'roomTopic(%s) rejected: %s', topic, e.message)
+                        throw e
+                      })
   }
 
   public async roomCreate(contactList: Contact[], topic: string): Promise<Room> {
@@ -620,7 +618,7 @@ export class PuppetWeb extends Puppet {
       return Promise.reject(new Error('fail: no bridge(yet)!'))
     }
 
-    if (!contactList || !contactList.map) {
+    if (!contactList || ! contactList.map) {
       throw new Error('contactList not found')
     }
 
@@ -631,7 +629,7 @@ export class PuppetWeb extends Puppet {
       if (!roomId) {
         throw new Error('PuppetWeb.roomCreate() roomId "' + roomId + '" not found')
       }
-      return Room.load(roomId)
+      return  Room.load(roomId)
 
     } catch (e) {
       log.warn('PuppetWeb', 'roomCreate(%s, %s) rejected: %s', contactIdList.join(','), topic, e.message)
