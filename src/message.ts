@@ -186,11 +186,6 @@ export class Message implements Sayable {
   public static counter = 0
   public _counter: number
 
-  /**
-   * a map for:
-   *   1. name to id
-   *   2. id to name
-   */
   public static TYPE: MsgTypeMap = {
     TEXT:               1,
     IMAGE:              3,
@@ -444,15 +439,9 @@ export class Message implements Sayable {
     })
     log.verbose('Message', 'mention(%s),get mentionList: %s', this.content(), JSON.stringify(mentionList))
     mentionList.forEach(name => {
-      const atRoomAliasList = room.memberAll({roomAlias: name})
-      const atContactAliasList = room.memberAll({name: name})
-      if (atRoomAliasList || atContactAliasList) {
-        if (atRoomAliasList) {
-          contactList.concat(atRoomAliasList)
-        }
-        if (atContactAliasList) {
-          contactList.concat(atContactAliasList)
-        }
+      const contact = room.member({alias: name}) || room.member({name: name})
+      if (contact) {
+        contactList.push(contact)
       } else {
         log.warn('Message', 'mention() can not found room.member() from mentionList')
         // this will help us to track the unexpected strings.
