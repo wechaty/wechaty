@@ -406,21 +406,33 @@ export class Message implements Sayable {
   /**
    * Get the mentioned contact which the message is mentioned for.
    * @returns {Contact[]} return the contactList which the message is mentioned for
+   *
+   * * @example
+   * ```ts
+   * const content = message.content()
+   * const contactList = message.mention()
+   * console.log(content)
+   * console.log(contactList)
+   * ```
    */
   public mention(): Contact[] {
     let contactList: Contact[] = []
     const room = this.room()
-    if (!room) return contactList
-    if (this.type() !== MsgType.TEXT) return contactList
+    if (this.type() !== MsgType.TEXT || !room ) {
+      return contactList
+    }
 
-    const foundList = this.content().match(/@\S+ ?/g)
-    if (!foundList) return contactList
+    const atStringList = this.content().match(/@\S+ ?/g)
+    if (!atStringList) return contactList
 
-    const mentionList = foundList.map(element => {
+    const mentionList = atStringList.map(element => {
       /**
-       * fake '@' return element.slice(1, -1), wechat real '@' return element.slice(1)
-       * fake '@': @ event is produced by typeing '@lijiarui '
-       * real '@': @ event is produced by long press the contact's avatar
+       * `fake@` and `real@` definition
+       * Supposed a wechat contact called `lijiarui`
+       * `fake@` means @ event is produced by typing '@lijiarui ' (mock mention behaviour by web wechat)
+       * `real@` means @ event is produced by long press the contact's avatar (the real behaviour in cellphone)
+       *
+       * `fake@` return element.slice(1, -1), `real@` return element.slice(1)
        */
       return element.slice(1)
     })
@@ -429,6 +441,9 @@ export class Message implements Sayable {
       const contact = room.member({alias: name}) || room.member({name: name})
       if (contact) {
         contactList.push(contact)
+      } else {
+        log.warn('Message', 'mention() can not found room.member() from mentionList')
+        // this will help us to track the unexpected strings.
       }
     })
     return contactList
