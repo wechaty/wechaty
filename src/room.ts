@@ -340,9 +340,9 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * find contact's roomAlias in the room
+   * return contact's roomAlias in the room
    * @param {Contact} contact
-   * @returns {string | null} If can find contact's roomAlias, return string, or return null
+   * @returns {string | null} If a contact has an alias in room, return string, otherwise return null
    */
   public alias(contact: Contact): string | null {
     if (!this.obj || !this.obj.aliasMap) {
@@ -484,12 +484,17 @@ export class Room extends EventEmitter implements Sayable {
       throw new Error('unsupport topic type')
     }
 
-    return Config.puppetInstance()
-                  .roomFind(filterFunction)
-                  .catch(e => {
-                    log.verbose('Room', 'findAll() rejected: %s', e.message)
-                    return [] // fail safe
-                  })
+    const roomList =  Config.puppetInstance()
+                            .roomFind(filterFunction)
+                            .catch(e => {
+                              log.verbose('Room', 'findAll() rejected: %s', e.message)
+                              return [] // fail safe
+                            })
+    for(let i=0; i<roomList.length; i++) {
+      await roomList[i].ready()
+    }
+
+    return roomList
   }
 
   /**
@@ -503,10 +508,10 @@ export class Room extends EventEmitter implements Sayable {
     const roomList = await Room.findAll(query)
     if (!roomList || roomList.length < 1) {
       return null
+    } else if (roomList.length > 1) {
+      log.warn('Room', 'find() got more than one result, return the 1st one.')
     }
-    const room = roomList[0]
-    await room.ready()
-    return room
+    return roomList[0]
   }
 
   /**
