@@ -6,6 +6,10 @@
  * https://github.com/wechaty/wechaty
  *
  */
+import * as moment from 'moment'
+import * as fs     from 'fs'
+import * as path   from 'path'
+
 import {
   Config,
   RecommendInfo,
@@ -16,6 +20,8 @@ import {
 import { Contact }  from './contact'
 import { Room }     from './room'
 import { UtilLib }  from './util-lib'
+import { PuppetWeb }  from './puppet-web/puppet-web'
+import { Bridge }     from './puppet-web/bridge'
 
 export type MsgRawObj = {
   MsgId:            string,
@@ -492,31 +498,47 @@ export class Message implements Sayable {
     })
   }
 
-  public say(content: string, replyTo?: Contact|Contact[]): Promise<any> {
+  public say(text: string, replyTo?: Contact | Contact[]): Promise<any>
+  public say(mediaMessage: MediaMessage, replyTo?: Contact | Contact[]): Promise<any>
+
+  public say(textOrMedia: string | MediaMessage, replyTo?: Contact|Contact[]): Promise<any> {
+    const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
     log.verbose('Message', 'say(%s, %s)', content, replyTo)
-
-    const m = new Message()
-    const room = this.room()
-    if (room) {
-      m.room(room)
-    }
-
-    if (!replyTo) {
-      m.to(this.from())
-      m.content(content)
-
-    } else if (this.room()) {
-      let mentionList
-      if (Array.isArray(replyTo)) {
-        m.to(replyTo[0])
-        mentionList = replyTo.map(c => '@' + c.name()).join(' ')
-      } else {
-        m.to(replyTo)
-        mentionList = '@' + replyTo.name()
+    let m
+    if (typeof textOrMedia === 'string') {
+      m = new Message()
+      const room = this.room()
+      if (room) {
+        m.room(room)
       }
-      m.content(mentionList + ' ' + content)
 
+      if (!replyTo) {
+        m.to(this.from())
+        m.content(textOrMedia)
+
+      } else if (this.room()) {
+        let mentionList
+        if (Array.isArray(replyTo)) {
+          m.to(replyTo[0])
+          mentionList = replyTo.map(c => '@' + c.name()).join(' ')
+        } else {
+          m.to(replyTo)
+          mentionList = '@' + replyTo.name()
+        }
+        m.content(mentionList + ' ' + textOrMedia)
+      }
+    } else if (textOrMedia instanceof MediaMessage) {
+      m = textOrMedia
+      const room = this.room()
+      if (room) {
+        m.room(room)
+      }
+
+      if (!replyTo) {
+        m.to(this.from())
+      }
     }
+
     return Config.puppetInstance()
                   .send(m)
   }
@@ -525,7 +547,197 @@ export class Message implements Sayable {
 
 Message.initType()
 
-export * from './message-media'
+export class MediaMessage extends Message {
+  private bridge: Bridge
+  private fileStream: NodeJS.ReadableStream
+  private fileName: string // 'music'
+  private fileExt: string // 'mp3'
+
+  constructor(rawObj: object)
+  constructor(filePath: string)
+
+  constructor(rawObjOrFilePath: object | string) {
+    if (typeof rawObjOrFilePath === 'string') {
+      super()
+      this.fileStream = fs.createReadStream(rawObjOrFilePath)
+
+      const pathInfo = path.parse(rawObjOrFilePath)
+      this.fileName = pathInfo.name
+      this.fileExt = pathInfo.ext.replace(/^\./, '')
+    } else if (rawObjOrFilePath instanceof Object) {
+      super(rawObjOrFilePath as any)
+    } else {
+      throw new Error('not supported construct param')
+    }
+
+    // FIXME: decoupling needed
+    this.bridge = (Config.puppetInstance() as PuppetWeb)
+      .bridge
+  }
+
+  public async ready(): Promise<void> {
+    log.silly('MediaMessage', 'ready()')
+
+    try {
+      await super.ready()
+
+      let url: string|null = null
+      switch (this.type()) {
+        case MsgType.EMOTICON:
+          url = await this.bridge.getMsgEmoticon(this.id)
+          break
+        case MsgType.IMAGE:
+          url = await this.bridge.getMsgImg(this.id)
+          break
+        case MsgType.VIDEO:
+        case MsgType.MICROVIDEO:
+          url = await this.bridge.getMsgVideo(this.id)
+          break
+        case MsgType.VOICE:
+          url = await this.bridge.getMsgVoice(this.id)
+          break
+
+        case MsgType.APP:
+          if (!this.rawObj) {
+            throw new Error('no rawObj')
+          }
+          switch (this.typeApp()) {
+            case AppMsgType.ATTACH:
+              if (!this.rawObj.MMAppMsgDownloadUrl) {
+                throw new Error('no MMAppMsgDownloadUrl')
+              }
+              // had set in Message
+              // url = this.rawObj.MMAppMsgDownloadUrl
+              break
+
+            case AppMsgType.URL:
+            case AppMsgType.READER_TYPE:
+              if (!this.rawObj.Url) {
+                throw new Error('no Url')
+              }
+              // had set in Message
+              // url = this.rawObj.Url
+              break
+
+            default:
+              const e = new Error('ready() unsupported typeApp(): ' + this.typeApp())
+              log.warn('MediaMessage', e.message)
+              this.dumpRaw()
+              throw e
+          }
+          break
+
+        case MsgType.TEXT:
+          if (this.typeSub() === MsgType.LOCATION) {
+            url = await this.bridge.getMsgPublicLinkImg(this.id)
+          }
+          break
+
+        default:
+          throw new Error('not support message type for MediaMessage')
+      }
+
+      if (!url) {
+        if (!this.obj.url) {
+          throw new Error('no obj.url')
+        }
+        url = this.obj.url
+      }
+
+      this.obj.url = url
+
+    } catch (e) {
+      log.warn('MediaMessage', 'ready() exception: %s', e.message)
+      throw e
+    }
+  }
+
+  public ext(): string {
+    if (this.fileExt)
+      return this.fileExt
+
+    switch (this.type()) {
+      case MsgType.EMOTICON:
+        return 'gif'
+
+      case MsgType.IMAGE:
+        return 'jpg'
+
+      case MsgType.VIDEO:
+      case MsgType.MICROVIDEO:
+        return 'mp4'
+
+      case MsgType.VOICE:
+        return 'mp3'
+
+      case MsgType.APP:
+        switch (this.typeApp()) {
+          case AppMsgType.URL:
+            return 'url' // XXX
+        }
+        break
+
+      case MsgType.TEXT:
+        if (this.typeSub() === MsgType.LOCATION) {
+          return 'jpg'
+        }
+        break
+    }
+    throw new Error('not support type: ' + this.type())
+  }
+
+  public filename(): string {
+    if (this.fileName && this.fileExt) {
+      return this.fileName + '.' + this.fileExt
+    }
+
+    if (!this.rawObj) {
+      throw new Error('no rawObj')
+    }
+
+    const objFileName = this.rawObj.FileName || this.rawObj.MediaId || this.rawObj.MsgId
+
+    let filename  = moment().format('YYYY-MM-DD HH:mm:ss')
+                    + ' #' + this._counter
+                    + ' ' + this.getSenderString()
+                    + ' ' + objFileName
+
+    filename = filename.replace(/ /g, '_')
+
+    const re = /\.[a-z0-9]{1,7}$/i
+    if (!re.test(filename)) {
+      const ext = this.rawObj.MMAppMsgFileExt || this.ext()
+      filename += '.' + ext
+    }
+    return filename
+  }
+
+  // private getMsgImg(id: string): Promise<string> {
+  //   return this.bridge.getMsgImg(id)
+  //   .catch(e => {
+  //     log.warn('MediaMessage', 'getMsgImg(%d) exception: %s', id, e.message)
+  //     throw e
+  //   })
+  // }
+
+  public async readyStream(): Promise<NodeJS.ReadableStream> {
+    if (this.fileStream)
+      return this.fileStream
+
+    try {
+      await this.ready()
+      // FIXME: decoupling needed
+      const cookies = await (Config.puppetInstance() as PuppetWeb).browser.readCookie()
+      if (!this.obj.url) {
+        throw new Error('no url')
+      }
+      return UtilLib.urlStream(this.obj.url, cookies)
+    } catch (e) {
+      log.warn('MediaMessage', 'stream() exception: %s', e.stack)
+      throw e
+    }
+  }
+}
 
 /*
  * join room in mac client: https://support.weixin.qq.com/cgi-bin/
