@@ -96,14 +96,14 @@ export class Room extends EventEmitter implements Sayable {
     return
   }
 
-  public async ready(contactGetter?: (id: string) => Promise<any>): Promise<void> {
+  public async ready(contactGetter?: (id: string) => Promise<any>): Promise<Room> {
     log.silly('Room', 'ready(%s)', contactGetter ? contactGetter.constructor.name : '')
     if (!this.id) {
       const e = new Error('ready() on a un-inited Room')
       log.warn('Room', e.message)
       throw e
     } else if (this.isReady()) {
-      return
+      return this
     } else if (this.obj && this.obj.id) {
       log.warn('Room', 'ready() has obj.id but memberList empty in room %s. reloading', this.obj.topic)
     }
@@ -127,7 +127,7 @@ export class Room extends EventEmitter implements Sayable {
       }
       await Promise.all(this.obj.memberList.map(c => c.ready(contactGetter)))
 
-      return
+      return this
 
     } catch (e) {
       log.error('Room', 'contactGetter(%s) exception: %s', this.id, e.message)
@@ -340,9 +340,9 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * find contact's roomAlias in the room
+   * return contact's roomAlias in the room
    * @param {Contact} contact
-   * @returns {string | null} If can find contact's roomAlias, return string, or return null
+   * @returns {string | null} If a contact has an alias in room, return string, otherwise return null
    */
   public alias(contact: Contact): string | null {
     if (!this.obj || !this.obj.aliasMap) {
@@ -362,18 +362,12 @@ export class Room extends EventEmitter implements Sayable {
 
   public owner(): Contact | null {
     const ownerUin = this.obj && this.obj.ownerUin
-    let memberList = (this.obj && this.obj.memberList) || []
 
     let user = Config.puppetInstance()
                       .user
 
     if (user && user.get('uin') === ownerUin) {
       return user
-    }
-
-    memberList = memberList.filter(m => m.get('uin') === ownerUin)
-    if (memberList.length > 0) {
-      return memberList[0]
     }
 
     if (this.rawObj.ChatRoomOwner) {
@@ -490,12 +484,18 @@ export class Room extends EventEmitter implements Sayable {
       throw new Error('unsupport topic type')
     }
 
-    return Config.puppetInstance()
-                  .roomFind(filterFunction)
-                  .catch(e => {
-                    log.verbose('Room', 'findAll() rejected: %s', e.message)
-                    return [] // fail safe
-                  })
+    const roomList = await Config.puppetInstance()
+                                  .roomFind(filterFunction)
+                                  .catch(e => {
+                                    log.verbose('Room', 'findAll() rejected: %s', e.message)
+                                    return [] // fail safe
+                                  })
+
+    for (let i = 0; i < roomList.length; i++) {
+      await roomList[i].ready()
+    }
+
+    return roomList
   }
 
   /**
@@ -509,10 +509,10 @@ export class Room extends EventEmitter implements Sayable {
     const roomList = await Room.findAll(query)
     if (!roomList || roomList.length < 1) {
       return null
+    } else if (roomList.length > 1) {
+      log.warn('Room', 'find() got more than one result, return the 1st one.')
     }
-    const room = roomList[0]
-    await room.ready()
-    return room
+    return roomList[0]
   }
 
   /**
