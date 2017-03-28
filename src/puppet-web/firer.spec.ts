@@ -115,18 +115,30 @@ test('parseRoomLeave()', t => {
     [
       `You removed "Bruce LEE" from the group chat`,
       `Bruce LEE`,
+      `Bot`,
     ],
     [
       '你将"李佳芮"移出了群聊',
+      '李佳芮',
+      `Bot`,
+    ],
+    [
+      `You were removed from the group chat by "桔小秘"`,
+      `Bot`,
+      `桔小秘`,
+    ],
+    [
+      '你被"李佳芮"移出群聊',
+      `Bot`,
       '李佳芮',
     ],
   ]
 
   let result
-  contentList.forEach(([content, leaver]) => {
+  contentList.forEach(([content, leaver, remover]) => {
     result = Firer.parseRoomLeave(content)
     t.truthy(result, 'should get leaver for leave message: ' + content)
-    t.is(result, leaver, 'should get leaver name right')
+    t.is(result, [leaver, remover], 'should get leaver and remover name right')
   })
 
   t.throws(() => {
