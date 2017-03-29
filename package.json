@@ -118,12 +118,12 @@
     "ws": "2.2.2"
   },
   "devDependencies": {
-    "@types/body-parser": "1.16.1",
+    "@types/body-parser": "1.16.2",
     "@types/express": "4.0.35",
     "@types/fluent-ffmpeg": "0.0.2",
     "@types/mime": "0.0.29",
     "@types/request": "0.0.42",
-    "@types/node": "7.0.11",
+    "@types/node": "7.0.12",
     "@types/sinon": "1.16.36",
     "@types/ws": "0.0.39",
     "apiai": "4.0.1",
@@ -137,7 +137,7 @@
     "eslint-plugin-ava": "4.2.0",
     "finis": "0.0.2",
     "fluent-ffmpeg": "2.1.0",
-    "nyc": "10.1.2",
+    "nyc": "10.2.0",
     "jsdoc-to-markdown": "^3.0.0",
     "qrcode-terminal": "0.11.0",
     "request": "2.81.0",
@@ -148,7 +148,7 @@
     "tslint": "4.5.1",
     "tslint-jsdoc-rules": "^0.1.2",
     "tuling123-client": "0.0.1",
-    "typescript": "2.2.1",
+    "typescript": "2.2.2",
     "yarn": "0.21.3"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
