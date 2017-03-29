@@ -439,7 +439,7 @@ export class Message implements Sayable {
     })
     log.verbose('Message', 'mention(%s),get mentionList: %s', this.content(), JSON.stringify(mentionList))
     mentionList.forEach(name => {
-      const contact = room.member({alias: name}) || room.member({name: name})
+      const contact = room.member({roomAlias: name}) || room.member({name: name})
       if (contact) {
         contactList.push(contact)
       } else {
