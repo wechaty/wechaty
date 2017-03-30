@@ -553,10 +553,10 @@ export class MediaMessage extends Message {
   private fileName: string // 'music'
   private fileExt: string // 'mp3'
 
-  constructor(rawObj: object)
+  constructor(rawObj: Object)
   constructor(filePath: string)
 
-  constructor(rawObjOrFilePath: object | string) {
+  constructor(rawObjOrFilePath: Object | string) {
     if (typeof rawObjOrFilePath === 'string') {
       super()
       this.fileStream = fs.createReadStream(rawObjOrFilePath)
