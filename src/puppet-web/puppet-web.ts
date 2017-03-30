@@ -353,6 +353,10 @@ export class PuppetWeb extends Puppet {
       }))
     })
 
+    let fileMaxSize = 20 * 1024 * 1024
+    if (buffer.length > fileMaxSize)
+      throw new Error('Maximum file size 20M')
+
     let md5 = UtilLib.md5(buffer)
 
     let baseRequest = await this.getBaseRequest()
