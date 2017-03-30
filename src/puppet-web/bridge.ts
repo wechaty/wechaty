@@ -351,6 +351,43 @@ export class Bridge {
     /////////////////////////////////
   }
 
+  public async getBaseRequest(): Promise<string> {
+    log.verbose('PuppetWebBridge', 'getBaseRequest()')
+
+    try {
+      return await this.proxyWechaty('getBaseRequest')
+    } catch (e) {
+      log.silly('PuppetWebBridge', 'proxyWechaty(getBaseRequest) exception: %s', e.message)
+      throw e
+    }
+  }
+
+  public async getPassticket(): Promise<string> {
+    log.verbose('PuppetWebBridge', 'getPassticket()')
+
+    try {
+      return await this.proxyWechaty('getPassticket')
+    } catch (e) {
+      log.silly('PuppetWebBridge', 'proxyWechaty(getPassticket) exception: %s', e.message)
+      throw e
+    }
+  }
+
+  public sendMedia(toUserName: string, mediaId: string, type: number): Promise<void> {
+    if (!toUserName) {
+      throw new Error('UserName not found')
+    }
+    if (!mediaId) {
+      throw new Error('cannot say nothing')
+    }
+
+    return this.proxyWechaty('sendMedia', toUserName, mediaId, type)
+              .catch(e => {
+                log.error('PuppetWebBridge', 'sendMedia() exception: %s', e.message)
+                throw e
+              })
+  }
+
   /**
    * Proxy Call to Wechaty in Bridge
    */

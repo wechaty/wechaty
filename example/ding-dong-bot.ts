@@ -15,6 +15,7 @@ import {
   Config,
   Wechaty,
   log,
+  MediaMessage,
 } from '../'
 
 const welcome = `
@@ -71,6 +72,9 @@ bot
     if (/^(ding|ping|bing)$/i.test(m.content()) && !m.self()) {
       m.say('dong')
       log.info('Bot', 'REPLY: dong')
+    } else if (/^code$/i.test(m.content()) && !m.self()) {
+      m.say(new MediaMessage(__dirname + '/../image/BotQrcode.png'))
+      log.info('Bot', 'REPLY: Img')
     }
   } catch (e) {
     log.error('Bot', 'on(message) exception: %s' , e)

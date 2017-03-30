@@ -8,7 +8,9 @@
 import * as https from 'https'
 import * as http  from 'http'
 import * as url   from 'url'
+import * as crypto from 'crypto'
 
+import { MsgType } from './message'
 import { log } from './config'
 
 /**
@@ -239,6 +241,45 @@ export class UtilLib {
         return currentPort + n - RANGE
       }
       return currentPort + n
+    }
+  }
+
+  public static md5(buffer: Buffer): string {
+    let md5sum = crypto.createHash('md5')
+    md5sum.update(buffer)
+    return md5sum.digest('hex')
+  }
+
+  public static msgType(ext): MsgType {
+    switch (ext) {
+      case 'bmp':
+      case 'jpeg':
+      case 'jpg':
+      case 'png':
+        return MsgType.IMAGE
+      case 'mp4':
+        return MsgType.VIDEO
+      default:
+        return MsgType.APP
+    }
+  }
+
+  public static mime(ext): string {
+    switch (ext) {
+      case 'pdf':
+        return 'application/pdf'
+      case 'bmp':
+        return 'image/bmp'
+      case 'jpeg':
+        return 'image/jpeg'
+      case 'jpg':
+        return 'image/jpeg'
+      case 'png':
+        return 'image/png'
+      case 'mp4':
+        return 'video/mp4'
+      default:
+        return 'application/octet-stream'
     }
   }
 }
