@@ -469,9 +469,9 @@ export class Contact implements Sayable {
    * ```ts
    * const ret = await contact.alias(null)
    * if (ret) {
-   *   console.log('ok!')
+   *   console.log(`delete ${contact.name()}'s alias successfully!`)
    * } else {
-   *   console.error('fail!')
+   *   console.log(`failed to delete ${contact.name()}'s alias!`)
    * }
    * ```
    */
@@ -507,9 +507,9 @@ export class Contact implements Sayable {
    * ```ts
    * const ret = await contact.alias(null)
    * if (ret) {
-   *   console.log('ok!')
+   *   console.log(`delete ${contact.name()}'s alias successfully!`)
    * } else {
-   *   console.error('fail!')
+   *   console.log(`failed to delete ${contact.name()}'s alias!`)
    * }
    * ```
    */
