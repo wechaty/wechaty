@@ -440,7 +440,7 @@ export class Contact implements Sayable {
   public alias(): string | null
 
   /**
-   * set the alias for contact
+   * Set the alias for contact
    *
    * tests show it will failed if set alias too frequently(60 times in one minute).
    *
