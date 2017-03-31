@@ -428,7 +428,7 @@ export class Contact implements Sayable {
   }
 
   /**
-   * Get the alias for contact
+   * GET the alias for contact
    *
    * @returns {(string | null)}
    *
@@ -440,7 +440,7 @@ export class Contact implements Sayable {
   public alias(): string | null
 
   /**
-   * Set the alias for contact
+   * SET the alias for contact
    *
    * tests show it will failed if set alias too frequently(60 times in one minute).
    *
@@ -460,7 +460,7 @@ export class Contact implements Sayable {
   public alias(newAlias: string): Promise<boolean>
 
   /**
-   * Delete the alias for a contact
+   * DELETE the alias for a contact
    *
    * @param {null} empty
    * @returns {Promise<boolean>}
