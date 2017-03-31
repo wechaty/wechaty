@@ -485,7 +485,12 @@ export class Contact implements Sayable {
    *
    * @example GET the alias for a contact
    * ```ts
-   * const alias = contact.alias()  //@returns {(string | null)}
+   * const alias = contact.alias()
+   * if (alias === null) {
+   *   console.log('You have not yet set any alias for contact ' + contact.name())
+   * } else {
+   *   console.log('You have already set an alias for contact ' + contact.name() + ':' + alias)
+   * }
    * ```
    *
    * @example SET the alias for a contact
