@@ -490,7 +490,7 @@ export class Contact implements Sayable {
    *
    * @example SET the alias for a contact
    * ```ts
-   * const ret = await contact.alias('lijiarui')  //@returns {Promise<boolean>}
+   * const ret = await contact.alias('lijiarui')
    * if (ret) {
    *   console.log(`change ${contact.name()}'s alias successfully!`)
    * } else {
@@ -500,7 +500,7 @@ export class Contact implements Sayable {
    *
    * @example DELETE the alias for a contact
    * ```ts
-   * const ret = await contact.alias(null)  //@returns {Promise<boolean>}
+   * const ret = await contact.alias(null)
    * if (ret) {
    *   console.log('ok!')
    * } else {
