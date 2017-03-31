@@ -16,11 +16,11 @@ type RoomObj = {
   ownerUin:         number,
   memberList:       Contact[],
   nameMap:          Map<string, string>,
-  roomAliasMap:     Map<string, string>,
+  aliasMap:     Map<string, string>,
   contactAliasMap:  Map<string, string>,
 }
 
-type NameType = 'name' | 'roomAlias' | 'contactAlias'
+type NameType = 'name' | 'alias' | 'contactAlias'
 
 export type RoomRawMember = {
   UserName:     string,
@@ -48,7 +48,7 @@ export type RoomQueryFilter = {
 
 export type MemberQueryFilter = {
   name?:         string,
-  roomAlias?:    string,
+  alias?:    string,
   contactAlias?: string,
 }
 
@@ -200,7 +200,7 @@ export class Room extends EventEmitter implements Sayable {
                         .map(m => Contact.load(m.UserName))
 
     const nameMap    = this.parseMap('name', rawObj.MemberList)
-    const roomAliasMap   = this.parseMap('roomAlias', rawObj.MemberList)
+    const aliasMap   = this.parseMap('alias', rawObj.MemberList)
     const contactAliasMap   = this.parseMap('contactAlias', rawObj.MemberList)
 
     return {
@@ -210,7 +210,7 @@ export class Room extends EventEmitter implements Sayable {
       ownerUin:   rawObj.OwnerUin,
       memberList,
       nameMap,
-      roomAliasMap,
+      aliasMap,
       contactAliasMap,
     }
   }
@@ -225,7 +225,7 @@ export class Room extends EventEmitter implements Sayable {
           case 'name':
             tmpName = contact.name()
             break
-          case 'roomAlias':
+          case 'alias':
             tmpName = member.DisplayName
             break
           case 'contactAlias':
@@ -347,15 +347,15 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * return contact's roomAlias in the room
+   * return contact's roomAlias(we called alias here) in the room
    * @param {Contact} contact
    * @returns {string | null} If a contact has an alias in room, return string, otherwise return null
    */
   public alias(contact: Contact): string | null {
-    if (!this.obj || !this.obj.roomAliasMap) {
+    if (!this.obj || !this.obj.aliasMap) {
       return null
     }
-    return this.obj.roomAliasMap[contact.id] || null
+    return this.obj.aliasMap[contact.id] || null
   }
 
   public has(contact: Contact): boolean {
@@ -385,8 +385,8 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * find member by name | roomAlias | contactAlias
-   * when use memberAll(name:string), return all matched members, including name, roomAlias, contactAlias
+   * find member by name | alias(roomAlias) | contactAlias
+   * when use memberAll(name:string), return all matched members, including name, alias(roomAlias), contactAlias
    */
   public memberAll(filter: MemberQueryFilter): Contact[] | null
   public memberAll(name: string): Contact[] | null
@@ -395,13 +395,13 @@ export class Room extends EventEmitter implements Sayable {
     if (typeof queryArg === 'string') {
       let contactList: Contact[] = []
       const nameList = this.memberAll({name: queryArg})
-      const roomAliasList = this.memberAll({roomAlias: queryArg})
+      const aliasList = this.memberAll({alias: queryArg})
       const contactAliasList = this.memberAll({contactAlias: queryArg})
       if (nameList) {
         contactList = contactList.concat(nameList)
       }
-      if (roomAliasList) {
-        contactList = contactList.concat(roomAliasList)
+      if (aliasList) {
+        contactList = contactList.concat(aliasList)
       }
       if (contactAliasList) {
         contactList = contactList.concat(contactAliasList)
@@ -431,7 +431,7 @@ export class Room extends EventEmitter implements Sayable {
 
     const keyMap = {
       name:         'nameMap',
-      roomAlias:    'roomAliasMap',
+      alias:        'aliasMap',
       contactAlias: 'contactAliasMap',
     }
 

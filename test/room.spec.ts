@@ -134,7 +134,7 @@ test('Room smoking test', async t => {
   const contactA = r.member(EXPECTED.memberNick1)
   const contactB = r.member(EXPECTED.memberNick2)
   const contactC = r.member(EXPECTED.memberNick3)
-  const contactD = r.member({roomAlias: EXPECTED.memberNick1})
+  const contactD = r.member({alias: EXPECTED.memberNick1})
   if (!contactA) {
     throw new Error(`member(${EXPECTED.memberNick1}) should get member by roomAlias by default`)
   }
