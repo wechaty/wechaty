@@ -353,10 +353,10 @@ export class PuppetWeb extends Puppet {
       }))
     })
 
-    //Sending video files is not allowed to exceed 20MB
-    //https://github.com/Chatie/webwx-app-tracker/blob/master/formatted/webwxApp.js#L1115
+    // Sending video files is not allowed to exceed 20MB
+    // https://github.com/Chatie/webwx-app-tracker/blob/master/formatted/webwxApp.js#L1115
     const videoMaxSize = 20 * 1024 * 1024
-    if (mediatype == 'video' && buffer.length > videoMaxSize)
+    if (mediatype === 'video' && buffer.length > videoMaxSize)
       throw new Error('Sending video files is not allowed to exceed 20MB')
 
     let md5 = UtilLib.md5(buffer)
