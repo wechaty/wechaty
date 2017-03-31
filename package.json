@@ -133,7 +133,7 @@
     "check-node-version": "2.0.1",
     "cookie-parser": "1.4.3",
     "coveralls": "2.13.0",
-    "cross-env": "3.2.4",
+    "cross-env": "4.0.0",
     "eslint": "3.18.0",
     "eslint-plugin-ava": "4.2.0",
     "finis": "0.0.2",
