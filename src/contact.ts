@@ -480,14 +480,14 @@ export class Contact implements Sayable {
   /**
    * GET / SET / DELETE the alias for a contact
    *
-   * @param {(none | string | null)} newAlias , 
+   * @param {(none | string | null)} newAlias ,
    * @returns {(string | null | Promise<boolean>)}
    *
    * @example GET the alias for a contact
    * ```ts
    * const alias = contact.alias()  //@returns {(string | null)}
    * ```
-   * 
+   *
    * @example SET the alias for a contact
    * ```ts
    * const ret = await contact.alias('lijiarui')  //@returns {Promise<boolean>}
@@ -497,7 +497,7 @@ export class Contact implements Sayable {
    *   console.error('failed to change ${contact.name()}'s alias!')
    * }
    * ```
-   * 
+   *
    * @example DELETE the alias for a contact
    * ```ts
    * const ret = await contact.alias(null)  //@returns {Promise<boolean>}
