@@ -449,7 +449,7 @@ export class Contact implements Sayable {
    *
    * @example
    * ```ts
-   * const ret = await contact.remark('lijiarui')
+   * const ret = await contact.alias('lijiarui')
    * if (ret) {
    *   console.log(`change ${contact.name()}'s alias successfully!`)
    * } else {
@@ -467,7 +467,7 @@ export class Contact implements Sayable {
    *
    * @example
    * ```ts
-   * const ret = await contact.remark(null)
+   * const ret = await contact.alias(null)
    * if (ret) {
    *   console.log('ok!')
    * } else {
