@@ -353,9 +353,9 @@ export class PuppetWeb extends Puppet {
       }))
     })
 
-    let fileMaxSize = 20 * 1024 * 1024
-    if (buffer.length > fileMaxSize)
-      throw new Error('Maximum file size 20M')
+    const videoMaxSize = 20 * 1024 * 1024
+    if (mediatype == 'video' && buffer.length > videoMaxSize)
+      throw new Error('Sending video files is not allowed to exceed 20MB')
 
     let md5 = UtilLib.md5(buffer)
 
