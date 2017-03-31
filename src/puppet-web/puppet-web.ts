@@ -357,7 +357,7 @@ export class PuppetWeb extends Puppet {
     // https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L1115
     const videoMaxSize = 20 * 1024 * 1024
     if (mediatype === 'video' && buffer.length > videoMaxSize)
-      throw new Error(`Sending video files is not allowed to exceed ${videoMaxSize/1024/1024}MB`)
+      throw new Error(`Sending video files is not allowed to exceed ${videoMaxSize / 1024 / 1024}MB`)
 
     let md5 = UtilLib.md5(buffer)
 
