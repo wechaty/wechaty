@@ -414,6 +414,59 @@ export class Message implements Sayable {
     return fromId === userId
   }
 
+  /**
+   *
+   * Get the mentioned contact which the message is mentioned for.
+   * @returns {Contact[]} return the contactList which the message is mentioned for
+   *
+   * @example
+   * ```ts
+   * const content = message.content()
+   * const contactList = message.mention()
+   * console.log(content)
+   * console.log(contactList)
+   * ```
+   */
+  public mention(): Contact[] {
+    let contactList: Contact[] = []
+    const room = this.room()
+    if (this.type() !== MsgType.TEXT || !room ) {
+      return contactList
+    }
+
+    const atStringList = this.content().match(/@\S+ ?/g)
+    if (!atStringList) return contactList
+
+    const mentionList = atStringList.map(element => {
+      /**
+       * `fake@` and `real@` definition
+       * Supposed a wechat contact called `lijiarui`
+       * `fake@` means @ event is produced by typing '@lijiarui ' (mock mention behaviour by web wechat)
+       * `real@` means @ event is produced by long press the contact's avatar (the real behaviour in cellphone)
+       *
+       * `fake@` return element.slice(1, -1), `real@` return element.slice(1)
+       */
+      return element.slice(1)
+    })
+    log.verbose('Message', 'mention(%s),get mentionList: %s', this.content(), JSON.stringify(mentionList))
+    mentionList.forEach(name => {
+      const atRoomAliasList = room.memberAll({roomAlias: name})
+      const atContactAliasList = room.memberAll({name: name})
+      if (atRoomAliasList || atContactAliasList) {
+        if (atRoomAliasList) {
+          contactList.concat(atRoomAliasList)
+        }
+        if (atContactAliasList) {
+          contactList.concat(atContactAliasList)
+        }
+      } else {
+        log.warn('Message', 'mention() can not found room.member() from mentionList')
+        // this will help us to track the unexpected strings.
+      }
+    })
+    return contactList
+  }
+
   // public ready() {
   //   log.warn('Message', 'ready() DEPRECATED. use load() instead.')
   //   return this.ready()
