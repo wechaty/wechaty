@@ -319,7 +319,7 @@ async function checkRoomLeave(m: Message): Promise<void> {
   let leaverContact = room.member(leaver)
 
   if (!leaverContact) {
-    log.error('PuppetWebFirer', 'fireRoomLeave() leaver %s not found, event `room-leave` & `leave` will not be fired')
+    log.error('PuppetWebFirer', 'fireRoomLeave() leaver %s not found, event `room-leave` & `leave` will not be fired', leaver)
     return
   }
 
