@@ -128,7 +128,7 @@
     "@types/sinon": "2.1.2",
     "@types/ws": "0.0.39",
     "apiai": "4.0.1",
-    "ava": "0.18.2",
+    "ava": "0.19.0",
     "babel-eslint": "7.2.1",
     "check-node-version": "2.0.1",
     "cookie-parser": "1.4.3",
