@@ -450,9 +450,15 @@ export class Message implements Sayable {
     })
     log.verbose('Message', 'mention(%s),get mentionList: %s', this.content(), JSON.stringify(mentionList))
     mentionList.forEach(name => {
-      const contact = room.member({alias: name}) || room.member({name: name})
-      if (contact) {
-        contactList.push(contact)
+      const atRoomAliasList = room.memberAll({roomAlias: name})
+      const atContactAliasList = room.memberAll({name: name})
+      if (atRoomAliasList || atContactAliasList) {
+        if (atRoomAliasList) {
+          contactList.concat(atRoomAliasList)
+        }
+        if (atContactAliasList) {
+          contactList.concat(atContactAliasList)
+        }
       } else {
         log.warn('Message', 'mention() can not found room.member() from mentionList')
         // this will help us to track the unexpected strings.
