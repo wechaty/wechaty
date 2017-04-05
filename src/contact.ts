@@ -2,7 +2,10 @@ import {
   Config,
   Sayable,
 }                     from './config'
-import { Message }    from './message'
+import {
+  Message,
+  MediaMessage,
+}                     from './message'
 import { PuppetWeb }  from './puppet-web'
 import { UtilLib }    from './util-lib'
 import { Wechaty }    from './wechaty'
@@ -425,7 +428,7 @@ export class Contact implements Sayable {
   }
 
   /**
-   * Get the alias for contact
+   * GET the alias for contact
    *
    * @returns {(string | null)}
    *
@@ -437,7 +440,7 @@ export class Contact implements Sayable {
   public alias(): string | null
 
   /**
-   * set the alias for contact
+   * SET the alias for contact
    *
    * tests show it will failed if set alias too frequently(60 times in one minute).
    *
@@ -446,7 +449,7 @@ export class Contact implements Sayable {
    *
    * @example
    * ```ts
-   * const ret = await contact.remark('lijiarui')
+   * const ret = await contact.alias('lijiarui')
    * if (ret) {
    *   console.log(`change ${contact.name()}'s alias successfully!`)
    * } else {
@@ -457,23 +460,59 @@ export class Contact implements Sayable {
   public alias(newAlias: string): Promise<boolean>
 
   /**
-   * Delete the alias for a contact
+   * DELETE the alias for a contact
    *
    * @param {null} empty
    * @returns {Promise<boolean>}
    *
    * @example
    * ```ts
-   * const ret = await contact.remark(null)
+   * const ret = await contact.alias(null)
    * if (ret) {
-   *   console.log('ok!')
+   *   console.log(`delete ${contact.name()}'s alias successfully!`)
    * } else {
-   *   console.error('fail!')
+   *   console.log(`failed to delete ${contact.name()}'s alias!`)
    * }
    * ```
    */
   public alias(empty: null): Promise<boolean>
 
+  /**
+   * GET / SET / DELETE the alias for a contact
+   *
+   * @param {(none | string | null)} newAlias ,
+   * @returns {(string | null | Promise<boolean>)}
+   *
+   * @example GET the alias for a contact
+   * ```ts
+   * const alias = contact.alias()
+   * if (alias === null) {
+   *   console.log('You have not yet set any alias for contact ' + contact.name())
+   * } else {
+   *   console.log('You have already set an alias for contact ' + contact.name() + ':' + alias)
+   * }
+   * ```
+   *
+   * @example SET the alias for a contact
+   * ```ts
+   * const ret = await contact.alias('lijiarui')
+   * if (ret) {
+   *   console.log(`change ${contact.name()}'s alias successfully!`)
+   * } else {
+   *   console.error('failed to change ${contact.name()}'s alias!')
+   * }
+   * ```
+   *
+   * @example DELETE the alias for a contact
+   * ```ts
+   * const ret = await contact.alias(null)
+   * if (ret) {
+   *   console.log(`delete ${contact.name()}'s alias successfully!`)
+   * } else {
+   *   console.log(`failed to delete ${contact.name()}'s alias!`)
+   * }
+   * ```
+   */
   public alias(newAlias?: string|null): Promise<boolean> | string | null {
     log.silly('Contact', 'alias(%s)', newAlias || '')
 
@@ -578,7 +617,11 @@ export class Contact implements Sayable {
    * await contact.say('welcome to wechaty!')
    * ```
    */
-  public async say(content: string): Promise<void> {
+  public async say(text: string)
+  public async say(mediaMessage: MediaMessage)
+
+  public async say(textOrMedia: string | MediaMessage): Promise<void> {
+    const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
     log.verbose('Contact', 'say(%s)', content)
 
     const wechaty = Wechaty.instance()
@@ -587,11 +630,17 @@ export class Contact implements Sayable {
     if (!user) {
       throw new Error('no user')
     }
-    const m = new Message()
+    let m
+    if (typeof textOrMedia === 'string') {
+      m = new Message()
+      m.content(textOrMedia)
+    } else if (textOrMedia instanceof MediaMessage) {
+      m = textOrMedia
+    } else {
+      throw new Error('not support args')
+    }
     m.from(user)
     m.to(this)
-    m.content(content)
-
     log.silly('Contact', 'say() from: %s to: %s content: %s', user.name(), this.name(), content)
 
     await wechaty.send(m)

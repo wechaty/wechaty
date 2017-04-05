@@ -12,7 +12,7 @@ const QrcodeTerminal = require('qrcode-terminal')
 
 import {
   Wechaty,
-  Message,
+  Contact,
   Config,
   log,
 } from '../'
@@ -62,13 +62,11 @@ bot
  */
 .on('friend', async (contact, request) => {
   let logMsg
-  const m = new Message()
-  m.set('to', 'filehelper')
+  const fileHelper = Contact.load('filehelper')
 
   try {
     logMsg = 'received `friend` event from ' + contact.get('name')
-    m.set('content', logMsg)
-    bot.send(m)
+    fileHelper.say(logMsg)
     console.log(logMsg)
 
     /**
@@ -99,8 +97,7 @@ bot
   }
 
   console.log(logMsg)
-  m.set('content', logMsg)
-  bot.send(m)
+  fileHelper.say(logMsg)
 
 })
 

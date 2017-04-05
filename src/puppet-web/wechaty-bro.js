@@ -441,6 +441,36 @@
     return location + path
   }
 
+  function getBaseRequest() {
+    var accountFactory = WechatyBro.glue.accountFactory
+    var BaseRequest = accountFactory.getBaseRequest()
+  
+    return JSON.stringify(BaseRequest)
+  }
+
+  function getPassticket() {
+    var accountFactory = WechatyBro.glue.accountFactory
+    return accountFactory.getPassticket()
+  }
+
+  function sendMedia(ToUserName, MediaId,Type) {
+    var chatFactory = WechatyBro.glue.chatFactory
+    var confFactory = WechatyBro.glue.confFactory
+
+    if (!chatFactory || !confFactory) {
+      log('send() chatFactory or confFactory not exist.')
+      return false
+    }
+
+    var m = chatFactory.createMessage({
+      ToUserName: ToUserName
+      , MediaId: MediaId
+      , MsgType: Type
+    })
+    chatFactory.appendMessage(m)
+    return chatFactory.sendMessage(m)
+  }
+
   function send(ToUserName, Content) {
     var chatFactory = WechatyBro.glue.chatFactory
     var confFactory = WechatyBro.glue.confFactory
@@ -826,6 +856,9 @@
     , getMsgVideo:         getMsgVideo
     , getMsgVoice:         getMsgVoice
     , getMsgPublicLinkImg: getMsgPublicLinkImg
+    , getBaseRequest:      getBaseRequest
+    , getPassticket:       getPassticket
+    , sendMedia:           sendMedia
 
     // for Wechaty Contact Class
     , contactFindAsync:   contactFindAsync

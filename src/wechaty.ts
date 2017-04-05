@@ -12,7 +12,10 @@ import {
 
 import { Contact }        from './contact'
 import { FriendRequest }  from './friend-request'
-import { Message }        from './message'
+import {
+  Message,
+  MediaMessage,
+}                         from './message'
 import { Puppet }         from './puppet'
 import { PuppetWeb }      from './puppet-web/'
 import { Room }           from './room'
@@ -420,7 +423,7 @@ export class Wechaty extends EventEmitter implements Sayable {
   /**
    * @todo document me
    */
-  public async send(message: Message): Promise<void> {
+  public async send(message: Message | MediaMessage): Promise<void> {
     if (!this.puppet) {
       throw new Error('no puppet')
     }
@@ -447,8 +450,10 @@ export class Wechaty extends EventEmitter implements Sayable {
 
   /**
    * @todo document me
+   * @static
+   *
    */
-  public async sleep(millisecond: number): Promise<void> {
+  public static async sleep(millisecond: number): Promise<void> {
     await new Promise(resolve => {
       setTimeout(resolve, millisecond)
     })
