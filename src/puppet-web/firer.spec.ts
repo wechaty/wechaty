@@ -111,34 +111,38 @@ test('parseRoomJoin()', t => {
 })
 
 test('parseRoomLeave()', t => {
-  const contentList = [
+  const contentLeaverList = [
     [
       `You removed "Bruce LEE" from the group chat`,
       `Bruce LEE`,
-      `Bot`,
     ],
     [
       '你将"李佳芮"移出了群聊',
       '李佳芮',
-      `Bot`,
     ],
+  ]
+
+  const contentRemoverList = [
     [
       `You were removed from the group chat by "桔小秘"`,
-      `Bot`,
       `桔小秘`,
     ],
     [
       '你被"李佳芮"移出群聊',
-      `Bot`,
       '李佳芮',
     ],
   ]
 
-  let result
-  contentList.forEach(([content, leaver, remover]) => {
-    result = Firer.parseRoomLeave(content)
-    t.truthy(result, 'should get leaver for leave message: ' + content)
-    t.is(result, [leaver, remover], 'should get leaver and remover name right')
+  contentLeaverList.forEach(([content, leaver]) => {
+    const resultLeaver = Firer.parseRoomLeave(content)[0]
+    t.truthy(resultLeaver, 'should get leaver for leave message: ' + content)
+    t.is(resultLeaver, leaver, 'should get leaver name right')
+  })
+
+  contentRemoverList.forEach(([content, remover]) => {
+    const resultRemover = Firer.parseRoomLeave(content)[1]
+    t.truthy(resultRemover, 'should get remover for leave message: ' + content)
+    t.is(resultRemover, remover, 'should get leaver name right')
   })
 
   t.throws(() => {
