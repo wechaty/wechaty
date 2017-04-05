@@ -135,20 +135,21 @@ test('Room smoking test', async t => {
   const contactB = r.member(EXPECTED.memberNick2)
   const contactC = r.member(EXPECTED.memberNick3)
   const contactD = r.member({alias: EXPECTED.memberNick1})
-  if (contactA) {
-    throw new Error(`member(${EXPECTED.memberNick1}) cannot get contact by roomAlias`)
+  if (!contactA) {
+    throw new Error(`member(${EXPECTED.memberNick1}) should get member by roomAlias by default`)
   }
   if (!contactB) {
-    throw new Error(`member(${EXPECTED.memberNick2}) should get member by name when the contact does not have contactAlias`)
+    throw new Error(`member(${EXPECTED.memberNick2}) should get member by name by default`)
   }
   if (!contactC) {
-    throw new Error(`member(${EXPECTED.memberNick3}) should get member by name when the contact have contactAlias`)
+    throw new Error(`member(${EXPECTED.memberNick3}) should get member by name by default`)
   }
   if (!contactD) {
     throw new Error(`member({alias: ${EXPECTED.memberNick3}}) should get member by roomAlias`)
   }
-  t.is(contactB.id, EXPECTED.memberId2, `should get the right id from ${EXPECTED.memberId2}, find member by when the contact does not have contactAlias`)
-  t.is(contactC.id, EXPECTED.memberId3, `should get the right id from ${EXPECTED.memberId3}, find member by when the contact have contactAlias`)
+  t.is(contactA.id, EXPECTED.memberId1, `should get the right id from ${EXPECTED.memberId1}, find member by default`)
+  t.is(contactB.id, EXPECTED.memberId2, `should get the right id from ${EXPECTED.memberId2}, find member by default`)
+  t.is(contactC.id, EXPECTED.memberId3, `should get the right id from ${EXPECTED.memberId3}, find member by default`)
   t.is(contactD.id, EXPECTED.memberId1, `should get the right id from ${EXPECTED.memberId1}, find member by roomAlias`)
 
   const s = r.toString()

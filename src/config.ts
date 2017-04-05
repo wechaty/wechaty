@@ -212,7 +212,7 @@ if (!global['WECHATY_CONFIG_INSTANCE_COUNTER']) {
 global['WECHATY_CONFIG_INSTANCE_COUNTER']++
 
 export {
-  log
+  log,
 }
 
 /**
