@@ -166,6 +166,7 @@
     "src/"
   ],
   "publishConfig": {
-    "tag": "next"
+    "tagBak": "next",
+    "tag": "latest"
   }
 }
