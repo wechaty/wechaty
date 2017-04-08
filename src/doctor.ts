@@ -20,6 +20,18 @@ export class Doctor {
     log.verbose('Doctor', 'constructor()')
   }
 
+  public chromedriverVersion(): string {
+    const spawn = require( 'child_process' ).spawnSync
+    let version: string
+    try {
+      const cmd = spawn( 'chromedriver', [ '--version' ] )
+      version = cmd.error || cmd.stdout.toString() || cmd.stderr.toString()
+    } catch (e) {
+      version = e.message
+    }
+    return version
+  }
+
   /**
    * https://gist.github.com/tedmiston/5935757
    */
