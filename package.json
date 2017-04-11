@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.7.58",
+  "version": "0.7.61",
   "description": "Wechat for Bot(Personal Account)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -106,7 +106,7 @@
     "@types/socket.io": "1.4.29",
     "body-parser": "1.17.1",
     "brolog": "0.4.3",
-    "chromedriver": "^2.27.1",
+    "chromedriver": "^2.29.0",
     "express": "5.0.0-alpha.5",
     "is-ci": "1.0.10",
     "is-docker": "1.1.0",
@@ -127,7 +127,7 @@
     "@types/node": "7.0.12",
     "@types/sinon": "2.1.2",
     "@types/ws": "0.0.39",
-    "apiai": "4.0.1",
+    "apiai": "4.0.2",
     "ava": "0.18.2",
     "babel-eslint": "7.2.1",
     "check-node-version": "2.0.1",
@@ -146,11 +146,11 @@
     "sinon": "2.1.0",
     "sloc": "0.2.0",
     "ts-node": "3.0.2",
-    "tslint": "5.0.0",
+    "tslint": "5.1.0",
     "tslint-jsdoc-rules": "^0.1.2",
     "tuling123-client": "0.0.1",
     "typescript": "2.2.2",
-    "yarn": "0.21.3"
+    "yarn": "0.22.0"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [
@@ -166,6 +166,7 @@
     "src/"
   ],
   "publishConfig": {
-    "tag": "next"
+    "tagBak": "next",
+    "tag": "latest"
   }
 }

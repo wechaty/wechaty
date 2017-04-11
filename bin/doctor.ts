@@ -21,6 +21,7 @@ const doctor = new Doctor()
 
 async function main() {
   let ipcTestResult: string
+  let chromedriverVersion = doctor.chromedriverVersion()
   try {
     await doctor.testTcp()
     ipcTestResult = 'PASS'
@@ -37,6 +38,7 @@ async function main() {
   3. Docker: ${Config.isDocker}
   4. Node version: ${process.version}
   5. Tcp IPC TEST: ${ipcTestResult}
+  6. Chromedriver: ${chromedriverVersion}
 
   `)
 
