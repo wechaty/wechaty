@@ -329,14 +329,18 @@ async function checkRoomLeave(m: Message): Promise<void> {
   let leaverContact: Contact | null, removerContact: Contact | null
   if (leaver === this.userId) {
     leaverContact = Contact.load(this.userId)
-    removerContact = room.member({contactAlias: remover}) || room.member({name: remover})
+    // not sure which is better
+    // removerContact = room.member({contactAlias: remover}) || room.member({name: remover})
+    removerContact = room.member(remover)
     if (!removerContact) {
       log.error('PuppetWebFirer', 'fireRoomLeave() bot is removed from the room, but remover %s not found, event `room-leave` & `leave` will not be fired', remover)
       return
     }
   } else {
     removerContact = Contact.load(this.userId)
-    leaverContact = room.member({contactAlias: remover}) || room.member({name: leaver})
+    // not sure which is better
+    // leaverContact = room.member({contactAlias: remover}) || room.member({name: leaver})
+    leaverContact = room.member(remover)
     if (!leaverContact) {
       log.error('PuppetWebFirer', 'fireRoomLeave() bot removed someone from the room, but leaver %s not found, event `room-leave` & `leave` will not be fired', leaver)
       return
