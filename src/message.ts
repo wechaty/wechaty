@@ -434,7 +434,7 @@ export class Message implements Sayable {
       return contactList
     }
 
-    const atStringList = this.content().match(/@\S+ ?/g)
+    const atStringList: string[]|null = this.content().match(/@\S+ ?/g)
     if (!atStringList) return contactList
 
     const mentionList = atStringList.map(element => {
@@ -459,9 +459,10 @@ export class Message implements Sayable {
         if (atContactAliasList) {
           contactList.concat(atContactAliasList)
         }
+        log.verbose(`Message`, `Contact ${name} is being mentioned.`)
       } else {
-        log.warn('Message', 'mention() can not found room.member() from mentionList')
         // this will help us to track the unexpected strings.
+        log.warn(`Message`, `message.mention() can not found member using room.member() from mentionList, metion string: ${name}`)
       }
     })
     return contactList
