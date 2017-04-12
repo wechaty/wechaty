@@ -422,12 +422,12 @@ export class Message implements Sayable {
    * @example
    * ```ts
    * const content = message.content()
-   * const contactList = message.mention()
+   * const contactList = message.mentioned()
    * console.log(content)
    * console.log(contactList)
    * ```
    */
-  public mention(): Contact[] {
+  public mentioned(): Contact[] {
     let contactList: Contact[] = []
     const room = this.room()
     if (this.type() !== MsgType.TEXT || !room ) {
@@ -441,14 +441,14 @@ export class Message implements Sayable {
       /**
        * `fake@` and `real@` definition
        * Supposed a wechat contact called `lijiarui`
-       * `fake@` means @ event is produced by typing '@lijiarui ' (mock mention behaviour by web wechat)
+       * `fake@` means @ event is produced by typing '@lijiarui ' (mock mentioned behaviour by web wechat)
        * `real@` means @ event is produced by long press the contact's avatar (the real behaviour in cellphone)
        *
        * `fake@` return element.slice(1, -1), `real@` return element.slice(1)
        */
       return element.slice(1)
     })
-    log.verbose('Message', 'mention(%s),get mentionList: %s', this.content(), JSON.stringify(mentionList))
+    log.verbose('Message', 'mentioned(%s),get mentionList: %s', this.content(), JSON.stringify(mentionList))
     mentionList.forEach(name => {
       const atRoomAliasList = room.memberAll({roomAlias: name})
       const atContactAliasList = room.memberAll({name: name})
@@ -462,7 +462,7 @@ export class Message implements Sayable {
         log.verbose(`Message`, `Contact ${name} is being mentioned.`)
       } else {
         // this will help us to track the unexpected strings.
-        log.warn(`Message`, `message.mention() can not found member using room.member() from mentionList, metion string: ${name}`)
+        log.warn(`Message`, `message.mentioned() can not found member using room.member() from mentionList, metion string: ${name}`)
       }
     })
     return contactList

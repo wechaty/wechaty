@@ -128,7 +128,7 @@ test('self()', t => {
   t.false(m.self(), 'should identify self message false when from a different fromId')
 })
 
-test('mention()', async t => {
+test('mentioned()', async t => {
   /* tslint:disable:max-line-length */
   const rawObj11 = JSON.parse(`{"MsgId":"6475340302153501409","FromUserName":"@@9cdc696e490bd76c57e7dd54792dc1408e27d65e312178b1943e88579b7939f4","ToUserName":"@cd7d467d7464e8ff6b0acd29364654f3666df5d04551f6082bfc875f90a6afd2","MsgType":1,"Content":"@4c32c97337cbb325442c304d6a44e374:<br/>@_@","Status":3,"ImgStatus":1,"CreateTime":1489823176,"VoiceLength":0,"PlayLength":0,"FileName":"","FileSize":"","MediaId":"","Url":"","AppMsgType":0,"StatusNotifyCode":0,"StatusNotifyUserName":"","RecommendInfo":{"UserName":"","NickName":"","QQNum":0,"Province":"","City":"","Content":"","Signature":"","Alias":"","Scene":0,"VerifyFlag":0,"AttrStatus":0,"Sex":0,"Ticket":"","OpCode":0},"ForwardFlag":0,"AppInfo":{"AppID":"","Type":0},"HasProductId":0,"Ticket":"","ImgHeight":0,"ImgWidth":0,"SubMsgType":0,"NewMsgId":6475340302153502000,"OriContent":"","MMPeerUserName":"@@9cdc696e490bd76c57e7dd54792dc1408e27d65e312178b1943e88579b7939f4","MMDigest":"22acb030-ff09-11e6-8a73-cff62d9268c5:@_@","MMIsSend":false,"MMIsChatRoom":true,"MMUnread":true,"LocalID":"6475340302153501409","ClientMsgId":"6475340302153501409","MMActualContent":"@_@","MMActualSender":"@4c32c97337cbb325442c304d6a44e374","MMDigestTime":"15:46","MMDisplayTime":1489823176,"MMTime":"15:46"}`)
 
@@ -178,7 +178,7 @@ test('mention()', async t => {
   if (room11) {
     await room11.ready()
     setTimeout(function () {
-      const mentionContactList11 = msg11.mention()
+      const mentionContactList11 = msg11.mentioned()
       t.is(mentionContactList11.length, 0, '@_@ in message should not be treat as contact')
     }, 1 * 1000)
   }
@@ -188,7 +188,7 @@ test('mention()', async t => {
   if (room12) {
     await room12.ready()
     setTimeout(function () {
-      const mentionContactList12 = msg12.mention()
+      const mentionContactList12 = msg12.mentioned()
       t.is(mentionContactList12.length, 0, 'user@email.com in message should not be treat as contact')
     }, 1 * 1000)
   }
@@ -198,7 +198,7 @@ test('mention()', async t => {
   if (room13) {
     await room13.ready()
     setTimeout(function () {
-      const mentionContactList13 = msg13.mention()
+      const mentionContactList13 = msg13.mentioned()
       t.is(mentionContactList13.length, 0, '@_@ wow! my email is ruiruibupt@gmail.com in message should not be treat as contact')
     }, 1 * 1000)
   }
@@ -208,7 +208,7 @@ test('mention()', async t => {
   if (room21) {
     await room21.ready()
     setTimeout(function () {
-      const mentionContactList21 = msg21.mention()
+      const mentionContactList21 = msg21.mentioned()
       t.is(mentionContactList21.length, 1, '@小桔同学 is a contact')
       t.is(mentionContactList21[0].id, '@cd7d467d7464e8ff6b0acd29364654f3666df5d04551f6082bfc875f90a6afd2', 'should get 小桔同学 id right')
     }, 1 * 1000)
@@ -219,7 +219,7 @@ test('mention()', async t => {
   if (room22) {
     await room22.ready()
     setTimeout(function () {
-      const mentionContactList22 = msg22.mention()
+      const mentionContactList22 = msg22.mentioned()
       t.is(mentionContactList22.length, 2, '@小桔同学 and @wuli舞哩客服 is a contact')
       t.is(mentionContactList22[0].id, '@cd7d467d7464e8ff6b0acd29364654f3666df5d04551f6082bfc875f90a6afd2', 'should get 小桔同学 id right')
       t.is(mentionContactList22[1].id, '@36d55130f6a91bae4a2ed2cc5f19c56a9258c65ce3db9777f74f607223ef0855', 'should get wuli舞哩客服 id right')
@@ -231,7 +231,7 @@ test('mention()', async t => {
   if (room31) {
     await room31.ready()
     setTimeout(function () {
-      const mentionContactList31 = msg31.mention()
+      const mentionContactList31 = msg31.mentioned()
       t.is(mentionContactList31.length, 1, '@wuli舞哩客服 is a contact')
       t.is(mentionContactList31[0].id, '@36d55130f6a91bae4a2ed2cc5f19c56a9258c65ce3db9777f74f607223ef0855', 'should get wuli舞哩客服 id right')
     }, 1 * 1000)
@@ -242,7 +242,7 @@ test('mention()', async t => {
   if (room32) {
     await room32.ready()
     setTimeout(function () {
-      const mentionContactList32 = msg32.mention()
+      const mentionContactList32 = msg32.mentioned()
       t.is(mentionContactList32.length, 2, '@小桔同学 and @wuli舞哩客服 is a contact')
       t.is(mentionContactList32[0].id, '@36d55130f6a91bae4a2ed2cc5f19c56a9258c65ce3db9777f74f607223ef0855', 'should get wuli舞哩客服 id right')
       t.is(mentionContactList32[1].id, '@cd7d467d7464e8ff6b0acd29364654f3666df5d04551f6082bfc875f90a6afd2', 'should get 小桔同学 id right')
