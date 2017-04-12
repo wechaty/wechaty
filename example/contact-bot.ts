@@ -78,6 +78,20 @@ async function main() {
   log.info('Bot', '#######################')
   log.info('Bot', 'Contact number: %d\n', contactList.length)
 
+  /**
+   * List Brand Contact
+   */
+  for (let i = 0; i < contactList.length; i++) {
+    const contact = contactList[i]
+    if (contact.brand() === null) {
+      await contact.refresh()
+    }
+
+    if (contact.brand()) {
+      log.info('Bot', `Brand ${i}: ${contact.name()}`)
+    }
+  }
+
   const MAX = 17
   for (let i = 0; i < contactList.length; i++ ) {
     const contact = contactList[i]
