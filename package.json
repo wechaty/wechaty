@@ -129,7 +129,7 @@
     "@types/ws": "0.0.39",
     "apiai": "4.0.2",
     "ava": "0.18.2",
-    "babel-eslint": "7.2.1",
+    "babel-eslint": "7.2.2",
     "check-node-version": "2.0.1",
     "cookie-parser": "1.4.3",
     "coveralls": "2.13.0",
