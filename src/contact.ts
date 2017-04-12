@@ -25,6 +25,7 @@ type ContactObj = {
   uin:        string,
   weixin:     string,
   avatar:     string,  // XXX URL of HeadImgUrl
+  brand:      boolean,
 }
 
 export type ContactRawObj = {
@@ -41,6 +42,7 @@ export type ContactRawObj = {
   HeadImgUrl:   string,
 
   stranger:     string, // assign by injectio.js
+  VerifyFlag:   number,
 }
 
 /**
@@ -110,6 +112,11 @@ export class Contact implements Sayable {
       star:       !!rawObj.StarFriend,
       stranger:   !!rawObj.stranger, // assign by injectio.js
       avatar:     rawObj.HeadImgUrl,
+      /**
+       * @see 1. https://github.com/nodeWechat/wechat4u/blob/master/src/interface/contact.js#L65
+       * @see 2. https://github.com/Urinx/WeixinBot/blob/master/README.md
+       */
+      brand:      !!rawObj.UserName && !rawObj.UserName.startsWith('@@') && (rawObj.VerifyFlag & 8) !== 0,
     }
   }
 
@@ -150,6 +157,21 @@ export class Contact implements Sayable {
   public stranger(): boolean|null {
     if (!this.obj) return null
     return this.obj.stranger
+  }
+
+  /**
+   * Check if it's a brand contact
+   *
+   * @returns {boolean|null} True for brand, Flase for contact is not a brand, null for can not get the info
+   *
+   * @example
+   * ```ts
+   * const isBrand = contact.brand()
+   * ```
+   */
+  public brand(): boolean|null {
+    if (!this.obj) return null
+    return this.obj.brand
   }
 
   /**
