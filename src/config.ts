@@ -212,19 +212,22 @@ if (!global['WECHATY_CONFIG_INSTANCE_COUNTER']) {
 global['WECHATY_CONFIG_INSTANCE_COUNTER']++
 
 export {
-  log
+  log,
 }
 
 /**
  * to handle unhandled exceptions
  */
-/*
-process.on('unhandledRejection', (reason, promise) => {
-  log.error('Config', '###########################')
-  log.error('Config', 'unhandledRejection: %s %s', reason, promise)
-  log.error('Config', '###########################')
-  promise.catch(err => {
-    log.error('Config', 'unhandledRejection::catch(%s)', err.message || err)
+const logLevel = process.env['WECHATY_LOG']
+if (/verbose|silly/i.test(logLevel)) {
+  log.verbose('Config', 'registering process.on("unhandledRejection")')
+  process.on('unhandledRejection', (reason, promise) => {
+    log.error('Config', '###########################')
+    log.error('Config', 'unhandledRejection: %s %s', reason, promise)
+    log.error('Config', '###########################')
+    promise.catch(err => {
+      log.error('Config', 'unhandledRejection::catch(%s)', err.message)
+      console.error('Config', err) // I don't know if log.error has similar full trace print support like console.error
+    })
   })
-})
-*/
+}
