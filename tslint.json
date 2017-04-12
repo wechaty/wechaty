@@ -36,7 +36,7 @@
     "member-ordering": [false],
     "no-any": false,
     "no-arg": true,
-    "no-bitwise": false,
+    "no-bitwise": true,
     "no-conditional-assignment": true,
     "no-consecutive-blank-lines": true,
     "no-console": [false],

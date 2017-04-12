@@ -116,6 +116,7 @@ export class Contact implements Sayable {
        * @see 1. https://github.com/nodeWechat/wechat4u/blob/master/src/interface/contact.js#L65
        * @see 2. https://github.com/Urinx/WeixinBot/blob/master/README.md
        */
+      // tslint:disable-next-line
       brand:      !!rawObj.UserName && !rawObj.UserName.startsWith('@@') && (rawObj.VerifyFlag & 8) !== 0,
     }
   }
@@ -169,9 +170,8 @@ export class Contact implements Sayable {
    * const isBrand = contact.brand()
    * ```
    */
-  public brand(): boolean|null {
-    if (!this.obj) return null
-    return this.obj.brand
+  public brand(): boolean {
+    return !!this.obj && this.obj.brand
   }
 
   /**
