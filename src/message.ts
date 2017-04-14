@@ -448,12 +448,7 @@ export class Message implements Sayable {
       const atRoomAliasList = room.memberAll({roomAlias: name})
       const atContactAliasList = room.memberAll({name: name})
       if (atRoomAliasList || atContactAliasList) {
-        if (atRoomAliasList) {
-          contactList = contactList.concat(atRoomAliasList)
-        }
-        if (atContactAliasList) {
-          contactList = contactList.concat(atContactAliasList)
-        }
+        contactList = contactList.concat(atRoomAliasList || atContactAliasList || [])
         log.verbose(`Message`, `Contact ${name} is being mentioned.`)
       } else {
         // this will help us to track the unexpected strings.
