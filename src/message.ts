@@ -434,30 +434,25 @@ export class Message implements Sayable {
       return contactList
     }
 
-    const atStringList: string[]|null = this.content().match(/@\S+ ?/g)
-    if (!atStringList) return contactList
+    const atStrings = this.content().split(String.fromCharCode(8197))
 
-    const mentionList = atStringList.map(element => {
-      /**
-       * `fake@` and `real@` definition
-       * Supposed a wechat contact called `lijiarui`
-       * `fake@` means @ event is produced by typing '@lijiarui ' (mock mentioned behaviour by web wechat)
-       * `real@` means @ event is produced by long press the contact's avatar (the real behaviour in cellphone)
-       *
-       * `fake@` return element.slice(1, -1), `real@` return element.slice(1)
-       */
-      return element.slice(1)
+    if (atStrings.length === 0) return contactList
+
+    const mentionList = atStrings.map(e => {
+      return e.slice(e.lastIndexOf('@') + 1)
     })
+    .filter(e => !!e) // filter blank string
+
     log.verbose('Message', 'mentioned(%s),get mentionList: %s', this.content(), JSON.stringify(mentionList))
     mentionList.forEach(name => {
       const atRoomAliasList = room.memberAll({roomAlias: name})
       const atContactAliasList = room.memberAll({name: name})
       if (atRoomAliasList || atContactAliasList) {
         if (atRoomAliasList) {
-          contactList.concat(atRoomAliasList)
+          contactList = contactList.concat(atRoomAliasList)
         }
         if (atContactAliasList) {
-          contactList.concat(atContactAliasList)
+          contactList = contactList.concat(atContactAliasList)
         }
         log.verbose(`Message`, `Contact ${name} is being mentioned.`)
       } else {
