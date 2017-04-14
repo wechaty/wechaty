@@ -97,6 +97,18 @@ Get to know more about Wechaty Docker at [Wiki:Docker](https://github.com/chatie
 
 [![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty) [![Downloads][downloads-image]][downloads-url] [![Greenkeeper badge](https://badges.greenkeeper.io/Chatie/wechaty.svg)](https://greenkeeper.io/)
 
+```shell
+$ npm install wechaty
+
+$ cat > mybot.js <<'_EOF_'
+const { Wechaty } = require('wechaty')
+const bot = Wechaty.instance()
+console.log(bot.version())
+_EOF_
+
+$ node mybot.js
+```
+
 Get to know more about NPM at [Wiki:NPM](https://github.com/chatie/wechaty/wiki/NPM)
 
 ### Find a Good Server
