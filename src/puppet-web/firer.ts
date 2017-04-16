@@ -62,10 +62,16 @@ const regexConfig = {
     /^"(.+)"通过扫描"?(.+?)"?分享的二维码加入群聊$/,
   ],
 
-  roomLeave: [
+  // no list
+  roomLeaveByBot: [
     /^You removed "(.+)" from the group chat$/,
     /^你将"(.+)"移出了群聊$/,
   ],
+  roomLeaveByOther: [
+    /^You were removed from the group chat by "(.+)"$/,
+    /^你被"(.+)"移出群聊$/,
+  ],
+
   roomTopic: [
     /^"?(.+?)"? changed the group name to "(.+)"$/,
     /^"?(.+?)"?修改群名为“(.+)”$/,
@@ -283,15 +289,18 @@ async function checkRoomJoin(m: Message): Promise<void> {
   return
 }
 
-function parseRoomLeave(content: string): string {
-  const reList = regexConfig.roomLeave
-
-  let found: string[]|null = []
-  reList.some(re => !!(found = content.match(re)))
-  if (!found || !found.length) {
+function parseRoomLeave(content: string): [string, string] {
+  const reListByBot = regexConfig.roomLeaveByBot
+  const reListByOther = regexConfig.roomLeaveByOther
+  let foundByBot: string[]|null = []
+  reListByBot.some(re => !!(foundByBot = content.match(re)))
+  let foundByOther: string[]|null = []
+  reListByOther.some(re => !!(foundByOther = content.match(re)))
+  if ((!foundByBot || !foundByBot.length) && (!foundByOther || !foundByOther.length)) {
     throw new Error('checkRoomLeave() no matched re for ' + content)
   }
-  return found[1] // leaver
+  const [leaver, remover] = foundByBot ? [ foundByBot[1], this.userId ] : [ this.userId, foundByOther[1] ]
+  return [leaver, remover]
 }
 
 /**
@@ -300,9 +309,9 @@ function parseRoomLeave(content: string): string {
 async function checkRoomLeave(m: Message): Promise<void> {
   log.verbose('PuppetWebFirer', 'fireRoomLeave(%s)', m.content())
 
-  let leaver
+  let leaver: string, remover: string
   try {
-    leaver = parseRoomLeave(m.content())
+    [leaver, remover] = parseRoomLeave(m.content())
   } catch (e) {
     return
   }
@@ -315,22 +324,39 @@ async function checkRoomLeave(m: Message): Promise<void> {
   }
   /**
    * FIXME: leaver maybe is a list
+   * @lijiarui: I have checked, leaver will never be a list. If the bot remove 2 leavers at the same time, it will be 2 sys message, instead of 1 sys message contains 2 leavers.
    */
-  let leaverContact = room.member(leaver)
-
-  if (!leaverContact) {
-    log.error('PuppetWebFirer', 'fireRoomLeave() leaver %s not found, event `room-leave` & `leave` will not be fired', leaver)
-    return
+  let leaverContact: Contact | null, removerContact: Contact | null
+  if (leaver === this.userId) {
+    leaverContact = Contact.load(this.userId)
+    // not sure which is better
+    // removerContact = room.member({contactAlias: remover}) || room.member({name: remover})
+    removerContact = room.member(remover)
+    if (!removerContact) {
+      log.error('PuppetWebFirer', 'fireRoomLeave() bot is removed from the room, but remover %s not found, event `room-leave` & `leave` will not be fired', remover)
+      return
+    }
+  } else {
+    removerContact = Contact.load(this.userId)
+    // not sure which is better
+    // leaverContact = room.member({contactAlias: remover}) || room.member({name: leaver})
+    leaverContact = room.member(remover)
+    if (!leaverContact) {
+      log.error('PuppetWebFirer', 'fireRoomLeave() bot removed someone from the room, but leaver %s not found, event `room-leave` & `leave` will not be fired', leaver)
+      return
+    }
   }
 
+  await removerContact.ready()
   await leaverContact.ready()
   await room.ready()
 
   /**
    * FIXME: leaver maybe is a list
+   * @lijiarui: I have checked, leaver will never be a list. If the bot remove 2 leavers at the same time, it will be 2 sys message, instead of 1 sys message contains 2 leavers.
    */
-  this.emit('room-leave', room, [leaverContact])
-  room.emit('leave'           , [leaverContact])
+  this.emit('room-leave', room, leaverContact, removerContact)
+  room.emit('leave'           , leaverContact, removerContact)
 
   setTimeout(_ => { room.refresh() }, 10000) // reload the room data, especially for memberList
 }
