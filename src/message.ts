@@ -438,10 +438,27 @@ export class Message implements Sayable {
 
     if (atStrings.length === 0) return contactList
 
-    const mentionList = atStrings.map(e => {
-      return e.slice(e.lastIndexOf('@') + 1)
+    const strings = atStrings.filter(e => e.indexOf('@') > -1).map(e => {
+      const list = e.split('@')
+      if (list.length < 3) {
+        return [e.slice(e.lastIndexOf('@') + 1)]
+      } else {
+        // deal name: lijiarui@wechaty@beijing
+        let nickList: string[] = []
+        for (let i = 1; i < list.length; i++) {
+          let nick = ''
+          for (let j = 1; j <= i; j++) {
+            nick = '@' + list[list.length - j] + nick
+          }
+          nickList.push(nick.slice(1))
+        }
+        return nickList
+      }
     })
     .filter(e => !!e) // filter blank string
+    const mentionList = strings.reduce((acc, val) => {
+      return acc.concat(val)
+    }, [])
 
     log.verbose('Message', 'mentioned(%s),get mentionList: %s', this.content(), JSON.stringify(mentionList))
     mentionList.forEach(name => {
