@@ -453,6 +453,11 @@
     return accountFactory.getPassticket()
   }
 
+  function getUploadMediaUrl() {
+    var confFactory = WechatyBro.glue.confFactory
+    return confFactory.API_webwxuploadmedia
+  }
+
   function sendMedia(ToUserName, MediaId,Type) {
     var chatFactory = WechatyBro.glue.chatFactory
     var confFactory = WechatyBro.glue.confFactory
@@ -858,6 +863,7 @@
     , getMsgPublicLinkImg: getMsgPublicLinkImg
     , getBaseRequest:      getBaseRequest
     , getPassticket:       getPassticket
+    , getUploadMediaUrl:   getUploadMediaUrl
     , sendMedia:           sendMedia
 
     // for Wechaty Contact Class
