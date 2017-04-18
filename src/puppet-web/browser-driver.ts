@@ -81,6 +81,8 @@ export class BrowserDriver {
     }
    */
 
+    require('chromedriver')
+
     const options = {
       args: [
         '--homepage=about:blank',
