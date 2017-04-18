@@ -4,7 +4,10 @@ import {
   Sayable,
 }                       from './config'
 import { Contact }      from './contact'
-import { Message }      from './message'
+import {
+  Message,
+  MediaMessage,
+}                       from './message'
 import { StateMonitor } from './state-monitor'
 import { Room }         from './room'
 
@@ -30,7 +33,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   public abstract self(): Contact
 
-  public abstract send(message: Message): Promise<void>
+  public abstract send(message: Message | MediaMessage): Promise<void>
   public abstract say(content: string): Promise<void>
 
   public abstract reset(reason?: string): void

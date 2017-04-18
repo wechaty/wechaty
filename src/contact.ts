@@ -2,7 +2,10 @@ import {
   Config,
   Sayable,
 }                     from './config'
-import { Message }    from './message'
+import {
+  Message,
+  MediaMessage,
+}                     from './message'
 import { PuppetWeb }  from './puppet-web'
 import { UtilLib }    from './util-lib'
 import { Wechaty }    from './wechaty'
@@ -40,6 +43,10 @@ export type ContactRawObj = {
   stranger:     string, // assign by injectio.js
 }
 
+/**
+ * Enum for Gender values.
+ * @enum {number}
+ */
 export enum Gender {
   Unknown = 0,
   Male    = 1,
@@ -55,9 +62,8 @@ export type ContactQueryFilter = {
 
 /**
  * Class Contact
- * blabla...
- * **IMPORTANT**
  *
+ * `Contact` is `Sayable`
  */
 export class Contact implements Sayable {
   private static pool = new Map<string, Contact>()
@@ -107,20 +113,109 @@ export class Contact implements Sayable {
     }
   }
 
-  public weixin()   { return this.obj && this.obj.weixin || '' }
+  /**
+   * Get the weixin number from a contact
+   * Sometimes cannot get weixin number due to weixin security mechanism, not recommend.
+   * @returns {string | null}
+   *
+   * @example
+   * ```ts
+   * const weixin = contact.weixin()
+   * ```
+   */
+  public weixin()   { return this.obj && this.obj.weixin || null }
+
+  /**
+   * Get the name from a contact
+   *
+   * @returns {string}
+   *
+   * @example
+   * ```ts
+   * const name = contact.name()
+   * ```
+   */
   public name()     { return UtilLib.plainText(this.obj && this.obj.name || '') }
-  public stranger() { return this.obj && this.obj.stranger }
-  public star()     { return this.obj && this.obj.star }
+
+  /**
+   * Check if contact is stranger
+   *
+   * @returns {boolean | null} True for not friend of the bot, False for friend of the bot, null for cannot get the info.
+   *
+   * @example
+   * ```ts
+   * const isStranger = contact.stranger()
+   * ```
+   */
+  public stranger(): boolean|null {
+    if (!this.obj) return null
+    return this.obj.stranger
+  }
+
+  /**
+   * Check if the contact is star contact.
+   *
+   * @returns {boolean} True for star friend, False for no star friend, null for cannot get the info.
+   *
+   * @example
+   * ```ts
+   * const isStar = contact.star()
+   * ```
+   */
+  public star(): boolean|null {
+    if (!this.obj) return null
+    return this.obj.star
+  }
+
   /**
    * Contact gender
+   *
    * @returns Gender.Male(2) | Gender.Female(1) | Gender.Unknown(0)
+   *
+   * @example
+   * ```ts
+   * const gender = contact.gender()
+   * ```
    */
-  public gender()   { return this.obj ? this.obj.sex : Gender.Unknown }
+  public gender(): Gender   { return this.obj ? this.obj.sex : Gender.Unknown }
+
+  /**
+   * Get the region 'province' from a contact
+   *
+   * @returns {string | undefined}
+   *
+   * @example
+   * ```ts
+   * const province = contact.province()
+   * ```
+   */
   public province() { return this.obj && this.obj.province }
+
+  /**
+   * Get the region 'city' from a contact
+   *
+   * @returns {string | undefined}
+   *
+   * @example
+   * ```ts
+   * const city = contact.city()
+   * ```
+   */
   public city()     { return this.obj && this.obj.city }
 
   /**
    * Get avatar picture file stream
+   *
+   * @returns {Promise<NodeJS.ReadableStream>}
+   *
+   * @example
+   * ```ts
+   * const avatarFileName = contact.name() + `.jpg`
+   * const avatarReadStream = await contact.avatar()
+   * const avatarWriteStream = createWriteStream(avatarFileName)
+   * avatarReadStream.pipe(avatarWriteStream)
+   * log.info('Bot', 'Contact: %s: %s with avatar file: %s', contact.weixin(), contact.name(), avatarFileName)
+   * ```
    */
   public async avatar(): Promise<NodeJS.ReadableStream> {
     log.verbose('Contact', 'avatar()')
@@ -153,6 +248,16 @@ export class Contact implements Sayable {
   //   return this.reload()
   // }
 
+  /**
+   * Force reload data for Contact
+   *
+   * @returns {Promise<this>}
+   *
+   * @example
+   * ```ts
+   * await contact.refresh()
+   * ```
+   */
   public async refresh(): Promise<this> {
     if (this.isReady()) {
       this.dirtyObj = this.obj
@@ -203,11 +308,22 @@ export class Contact implements Sayable {
     console.error('======= dump raw contact =======')
     Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj[k]}`))
   }
+
   public dump()    {
     console.error('======= dump contact =======')
     Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj && this.obj[k]}`))
   }
 
+  /**
+   * Check if contact is self
+   *
+   * @returns {boolean} True for contact is self, False for contact is others
+   *
+   * @example
+   * ```ts
+   * const isSelf = contact.self()
+   * ```
+   */
   public self(): boolean {
     const userId = Config.puppetInstance()
                           .userId
@@ -223,6 +339,26 @@ export class Contact implements Sayable {
 
   /**
    * find contact by `name` or `alias`
+   *
+   * If use Contact.findAll() get the contact list of the bot.
+   *
+   * #### definition
+   * - `name` the name-string set by user-self, should be called name
+   * - `alias` the name-string set by bot for others, should be called alias
+   *
+   * @static
+   * @param {ContactQueryFilter} [queryArg]
+   * @returns {Promise<Contact[]>}
+   *
+   * @example
+   * ```ts
+   * // get the contact list of the bot
+   * const contactList = await Contact.findAll()
+   * // find allof the contacts whose name is 'ruirui'
+   * const contactList = await Contact.findAll({name: 'ruirui'})
+   * // find allof the contacts whose alias is 'lijiarui'
+   * const contactList = await Contact.findAll({alias: 'lijiarui'})
+   * ```
    */
   public static async findAll(queryArg?: ContactQueryFilter): Promise<Contact[]> {
     let query: ContactQueryFilter
@@ -292,19 +428,91 @@ export class Contact implements Sayable {
   }
 
   /**
-   * get the alias for contact
+   * GET the alias for contact
+   *
+   * @returns {(string | null)}
+   *
+   * @example
+   * ```ts
+   * const alias = contact.alias()
+   * ```
    */
   public alias(): string | null
+
   /**
-   * set the alias for contact
-   * @return {Promise<boolean>} A promise to the result. true for success, false for failure
+   * SET the alias for contact
+   *
+   * tests show it will failed if set alias too frequently(60 times in one minute).
+   *
+   * @param {string} newAlias
+   * @returns {Promise<boolean>} A promise to the result. true for success, false for failure
+   *
+   * @example
+   * ```ts
+   * const ret = await contact.alias('lijiarui')
+   * if (ret) {
+   *   console.log(`change ${contact.name()}'s alias successfully!`)
+   * } else {
+   *   console.error('failed to change ${contact.name()}'s alias!')
+   * }
+   * ```
    */
   public alias(newAlias: string): Promise<boolean>
+
   /**
-   * delete the alias for a contact
+   * DELETE the alias for a contact
+   *
+   * @param {null} empty
+   * @returns {Promise<boolean>}
+   *
+   * @example
+   * ```ts
+   * const ret = await contact.alias(null)
+   * if (ret) {
+   *   console.log(`delete ${contact.name()}'s alias successfully!`)
+   * } else {
+   *   console.log(`failed to delete ${contact.name()}'s alias!`)
+   * }
+   * ```
    */
   public alias(empty: null): Promise<boolean>
 
+  /**
+   * GET / SET / DELETE the alias for a contact
+   *
+   * @param {(none | string | null)} newAlias ,
+   * @returns {(string | null | Promise<boolean>)}
+   *
+   * @example GET the alias for a contact
+   * ```ts
+   * const alias = contact.alias()
+   * if (alias === null) {
+   *   console.log('You have not yet set any alias for contact ' + contact.name())
+   * } else {
+   *   console.log('You have already set an alias for contact ' + contact.name() + ':' + alias)
+   * }
+   * ```
+   *
+   * @example SET the alias for a contact
+   * ```ts
+   * const ret = await contact.alias('lijiarui')
+   * if (ret) {
+   *   console.log(`change ${contact.name()}'s alias successfully!`)
+   * } else {
+   *   console.error('failed to change ${contact.name()}'s alias!')
+   * }
+   * ```
+   *
+   * @example DELETE the alias for a contact
+   * ```ts
+   * const ret = await contact.alias(null)
+   * if (ret) {
+   *   console.log(`delete ${contact.name()}'s alias successfully!`)
+   * } else {
+   *   console.log(`failed to delete ${contact.name()}'s alias!`)
+   * }
+   * ```
+   */
   public alias(newAlias?: string|null): Promise<boolean> | string | null {
     log.silly('Contact', 'alias(%s)', newAlias || '')
 
@@ -348,14 +556,24 @@ export class Contact implements Sayable {
   }
 
   /**
-   * try to find a contact by filter: {name: string | RegExp}
+   * try to find a contact by filter: {name: string | RegExp} / {alias: string | RegExp}
+   * @description Find contact by name or alias, if the result more than one, return the first one.
+   * @static
+   * @param {ContactQueryFilter} query
+   * @returns {(Promise<Contact | null>)} If can find the contact, return Contact, or return null
+   *
+   * @example
+   * ```ts
+   * const contactFindByName = await Contact.find({ name:"ruirui"} )
+   * const contactFindByAlias = await Contact.find({ alias:"lijiarui"} )
+   * ```
    */
-  public static async find(query: ContactQueryFilter): Promise<Contact> {
+  public static async find(query: ContactQueryFilter): Promise<Contact | null> {
     log.verbose('Contact', 'find(%s)', JSON.stringify(query))
 
     const contactList = await Contact.findAll(query)
     if (!contactList || !contactList.length) {
-      throw new Error('find not found any contact')
+      return null
     }
 
     if (contactList.length > 1) {
@@ -364,6 +582,19 @@ export class Contact implements Sayable {
     return contactList[0]
   }
 
+  /**
+   * Load data for Contact by id
+   *
+   * @static
+   * @param {string} id
+   * @returns {Contact}
+   *
+   * @example
+   * ```ts
+   * // fake: contactId = @0bb3e4dd746fdbd4a80546aef66f4085
+   * const contact = Contact.load('@0bb3e4dd746fdbd4a80546aef66f4085')
+   * ```
+   */
   public static load(id: string): Contact {
     if (!id || typeof id !== 'string') {
       throw new Error('Contact.load(): id not found')
@@ -375,7 +606,22 @@ export class Contact implements Sayable {
     return Contact.pool[id]
   }
 
-  public async say(content: string): Promise<void> {
+  /**
+   * Say `content` to Contact
+   *
+   * @param {string} content
+   * @returns {Promise<void>}
+   *
+   * @example
+   * ```ts
+   * await contact.say('welcome to wechaty!')
+   * ```
+   */
+  public async say(text: string)
+  public async say(mediaMessage: MediaMessage)
+
+  public async say(textOrMedia: string | MediaMessage): Promise<void> {
+    const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
     log.verbose('Contact', 'say(%s)', content)
 
     const wechaty = Wechaty.instance()
@@ -384,11 +630,17 @@ export class Contact implements Sayable {
     if (!user) {
       throw new Error('no user')
     }
-    const m = new Message()
+    let m
+    if (typeof textOrMedia === 'string') {
+      m = new Message()
+      m.content(textOrMedia)
+    } else if (textOrMedia instanceof MediaMessage) {
+      m = textOrMedia
+    } else {
+      throw new Error('not support args')
+    }
     m.from(user)
     m.to(this)
-    m.content(content)
-
     log.silly('Contact', 'say() from: %s to: %s content: %s', user.name(), this.name(), content)
 
     await wechaty.send(m)

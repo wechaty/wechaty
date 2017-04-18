@@ -2,9 +2,9 @@
 
 [ -z "$1" ] && {
   echo
-  echo "Usage: npm-set-latest.sh <wechaty@version>"
+  echo "Usage: npm-set-latest.sh <version>"
   echo
   exit 1
 }
 
-npm dist-tag add "$1" latest
+npm dist-tag add "wechaty@$1" latest
