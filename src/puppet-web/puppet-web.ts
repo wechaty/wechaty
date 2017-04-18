@@ -397,8 +397,12 @@ export class PuppetWeb extends Puppet {
     }
 
     let mediaId = await new Promise((resolve, reject) => {
+      let fileHost = `file.wx.qq.com`
+      if (hostname === "wx2.qq.com") {
+        fileHost = "file2.wx.qq.com"
+      }
       request.post({
-        url: `https://file.${hostname}/cgi-bin/mmwebwx-bin/webwxuploadmedia?f=json`,
+        url: `https://${fileHost}/cgi-bin/mmwebwx-bin/webwxuploadmedia?f=json`,
         headers: {
           Referer: `https://${hostname}`,
           'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36',
