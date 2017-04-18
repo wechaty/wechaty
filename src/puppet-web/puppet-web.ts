@@ -357,6 +357,7 @@ export class PuppetWeb extends Puppet {
 
     let baseRequest = await this.getBaseRequest()
     let passTicket = await this.bridge.getPassticket()
+    let uploadMediaUrl = await this.bridge.getUploadMediaUrl()
     let cookie = await this.browser.readCookie()
     let first = cookie.find(c => c.name === 'webwx_data_ticket')
     let webwxDataTicket = first && first.value
@@ -398,7 +399,7 @@ export class PuppetWeb extends Puppet {
 
     let mediaId = await new Promise((resolve, reject) => {
       request.post({
-        url: `https://file.${hostname}/cgi-bin/mmwebwx-bin/webwxuploadmedia?f=json`,
+        url: uploadMediaUrl + '?f=json',
         headers: {
           Referer: `https://${hostname}`,
           'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36',
