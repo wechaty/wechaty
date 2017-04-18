@@ -205,12 +205,11 @@ function main() {
   figlet Connecting
   figlet ChatBots
 
-  echo
-  echo -n "Starting Wechaty ... "
-  echo -n "NodeJS Version=$(node --version)"
   VERSION=$(WECHATY_LOG=WARN wechaty-version 2>/dev/null || echo '0.0.0(unknown)')
 
-  echo "v$VERSION"
+  echo
+  echo -n "Starting Wechaty v$VERSION with "
+  echo -n "Node.js v$(node --version) ..."
   echo
 
   local -i ret=0
