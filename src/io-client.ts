@@ -72,12 +72,12 @@ export class IoClient {
       await this.initIo()
       await this.initWechaty()
       this.state.current('online')
-      return
     } catch (e) {
       this.log.error('IoClient', 'init() exception: %s', e.message)
       this.state.current('offline')
       throw e
     }
+    return
   }
 
   private async initWechaty(): Promise<void> {
@@ -163,9 +163,9 @@ export class IoClient {
     //               , m.toStringDigest()
     //         )
 
-    if (/^wechaty|botie/i.test(m.content()) && !m.self()) {
+    if (/^wechaty|chatie|botie/i.test(m.content()) && !m.self()) {
       m.say('https://www.wechaty.io')
-        .then(_ => this.log.info('Bot', 'REPLIED to magic word "wechaty"'))
+        .then(_ => this.log.info('Bot', 'REPLIED to magic word "chatie"'))
     }
   }
 
@@ -178,7 +178,7 @@ export class IoClient {
 
     if (this.state.inprocess()) {
       this.log.warn('IoClient', 'start() with a pending state, not the time')
-      return Promise.reject('pending')
+      throw new Error('pending')
     }
 
     this.state.target('online')
@@ -187,16 +187,17 @@ export class IoClient {
     try {
       await this.initIo()
       this.state.current('online')
-      return
     } catch (e) {
       this.log.error('IoClient', 'start() exception: %s', e.message)
       this.state.current('offline')
       throw e
     }
+    return
   }
 
   public async stop(): Promise<void> {
     this.log.verbose('IoClient', 'stop()')
+
     this.state.target('offline')
     this.state.current('offline', false)
 
@@ -204,8 +205,8 @@ export class IoClient {
     if (!this.io) {
       this.log.warn('IoClient', 'stop() without this.io')
       // this.currentState('connected')
-      this.state.current('online')
-      return Promise.resolve()
+      this.state.current('offline')
+      return
     }
 
     await this.io.quit()
@@ -224,11 +225,11 @@ export class IoClient {
     try {
       await this.stop()
       await this.start()
-      return
     } catch (e) {
       this.log.error('IoClient', 'restart() exception %s', e.message)
       throw e
     }
+    return
   }
 
   public async quit(): Promise<void> {
@@ -236,7 +237,7 @@ export class IoClient {
 
     if (this.state.current() === 'offline' && this.state.inprocess()) {
       this.log.warn('IoClient', 'quit() with currentState() = `disconnecting`, skipped')
-      return Promise.reject('quit() with currentState = `disconnecting`')
+      throw new Error('quit() with currentState = `disconnecting`')
     }
 
     this.state.target('offline')
@@ -255,8 +256,6 @@ export class IoClient {
 
       this.state.current('offline')
 
-      return
-
     } catch (e) {
       this.log.error('IoClient', 'exception: %s', e.message)
 
@@ -265,5 +264,8 @@ export class IoClient {
 
       throw e
     }
+
+    return
+
   }
 }
