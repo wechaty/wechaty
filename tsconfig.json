@@ -5,8 +5,8 @@
     , "outDir": "dist"
     , "declaration": true
     , "sourceMap": true
-    , "noLib": true
-    
+    , "noLib": false
+
     , "noEmitOnError": true
     , "noUnusedLocals": true
     , "noImplicitReturns": true
