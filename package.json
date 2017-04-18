@@ -124,7 +124,7 @@
     "@types/fluent-ffmpeg": "0.0.2",
     "@types/mime": "0.0.29",
     "@types/request": "0.0.42",
-    "@types/node": "7.0.12",
+    "@types/node": "7.0.13",
     "@types/sinon": "2.1.2",
     "@types/ws": "0.0.39",
     "apiai": "4.0.2",
