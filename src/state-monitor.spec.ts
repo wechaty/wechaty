@@ -12,7 +12,7 @@
  */
 import test from 'ava'
 
-import { StateMonitor } from './state-monitor'
+import StateMonitor from './state-monitor'
 
 test('StateMonitor target/current & stable', t => {
   const CLIENT_NAME = 'StateMonitorTest'

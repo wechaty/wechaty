@@ -659,3 +659,5 @@ export class Contact implements Sayable {
 
 //   return []
 // }
+
+export default Contact

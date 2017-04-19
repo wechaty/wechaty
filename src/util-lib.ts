@@ -283,3 +283,5 @@ export class UtilLib {
     }
   }
 }
+
+export default UtilLib

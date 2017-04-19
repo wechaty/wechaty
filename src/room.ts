@@ -5,12 +5,12 @@ import {
   Sayable,
   log,
 }                     from './config'
-import { Contact }    from './contact'
+import Contact        from './contact'
 import {
   Message,
   MediaMessage,
 }                     from './message'
-import { UtilLib }    from './util-lib'
+import UtilLib        from './util-lib'
 
 type RoomObj = {
   id:               string,
@@ -584,3 +584,5 @@ export class Room extends EventEmitter implements Sayable {
   }
 
 }
+
+export default Room

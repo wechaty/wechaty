@@ -11,7 +11,7 @@ import * as sinon from 'sinon'
 /* tslint:disable:no-var-requires */
 const retryPromise = require('retry-promise').default
 
-import { log } from '../../src/config'
+import log from '../../src/brolog-env'
 
 import {
   PuppetWeb,

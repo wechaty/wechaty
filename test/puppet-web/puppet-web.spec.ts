@@ -12,8 +12,8 @@ import {
   log,
 }                     from '../../src/config'
 // import { Message }    from '../../src/message'
-import { PuppetWeb }  from '../../src/puppet-web'
-import { Server }     from '../../src/puppet-web/server'
+import PuppetWeb  from '../../src/puppet-web'
+import Server     from '../../src/puppet-web/server'
 
 // import { spy } from 'sinon'
 

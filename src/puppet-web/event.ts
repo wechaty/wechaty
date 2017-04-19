@@ -19,17 +19,17 @@ import {
   WatchdogFood,
   ScanInfo,
   log,
-}                     from '../config'
-import { Contact }    from '../contact'
+}                 from '../config'
+import Contact    from '../contact'
 import {
   Message,
   MediaMessage,
   MsgType,
   MsgRawObj,
-}                     from '../message'
+}                 from '../message'
 
-import { Firer }      from './firer'
-import { PuppetWeb }  from './puppet-web'
+import Firer      from './firer'
+import PuppetWeb  from './puppet-web'
 
 /* tslint:disable:variable-name */
 export const Event = {
@@ -348,3 +348,5 @@ async function onServerMessage(this: PuppetWeb, obj: MsgRawObj): Promise<void> {
 
   return
 }
+
+export default Event

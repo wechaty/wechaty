@@ -19,22 +19,22 @@ import {
   ScanInfo,
   WatchdogFood,
   log,
-}                         from '../config'
+}                     from '../config'
 
-import { Contact }        from '../contact'
+import Contact        from '../contact'
 import {
   Message,
   MediaMessage,
- }                        from '../message'
-import { Puppet }         from '../puppet'
-import { Room }           from '../room'
-import { UtilLib }        from '../util-lib'
+ }                    from '../message'
+import Puppet         from '../puppet'
+import Room           from '../room'
+import UtilLib        from '../util-lib'
 
-import { Bridge }         from './bridge'
-import { Browser }        from './browser'
-import { Event }          from './event'
-import { Server }         from './server'
-import { Watchdog }       from './watchdog'
+import Bridge         from './bridge'
+import Browser        from './browser'
+import Event          from './event'
+import Server         from './server'
+import Watchdog       from './watchdog'
 
 import * as request from 'request'
 import * as bl from 'bl'
@@ -675,3 +675,5 @@ export class PuppetWeb extends Puppet {
     }
   }
 }
+
+export default PuppetWeb

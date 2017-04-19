@@ -13,8 +13,8 @@
 import {
   Config,
   log,
-}                   from './config'
-import { Contact }  from './contact'
+}               from './config'
+import Contact  from './contact'
 
 export abstract class FriendRequest {
 
@@ -34,3 +34,5 @@ export abstract class FriendRequest {
   public abstract accept(): Promise<boolean>
 
 }
+
+export default FriendRequest

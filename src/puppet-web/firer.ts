@@ -21,11 +21,11 @@ const retryPromise  = require('retry-promise').default
 import {
   // RecommendInfo
   log,
-}                   from '../config'
-import { Contact }  from '../contact'
-import { Message }  from '../message'
+}                     from '../config'
+import Contact        from '../contact'
+import Message        from '../message'
 
-import { FriendRequest }  from './friend-request'
+import FriendRequest  from './friend-request'
 
 /* tslint:disable:variable-name */
 export const Firer = {
@@ -411,3 +411,5 @@ async function checkRoomTopic(m: Message): Promise<void> {
     log.error('PuppetWebFirer', 'fireRoomTopic() co exception: %s', e.stack)
   }
 }
+
+export default Firer

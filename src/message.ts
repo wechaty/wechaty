@@ -17,11 +17,11 @@ import {
   log,
 }  from './config'
 
-import { Contact }  from './contact'
-import { Room }     from './room'
-import { UtilLib }  from './util-lib'
-import { PuppetWeb }  from './puppet-web/puppet-web'
-import { Bridge }     from './puppet-web/bridge'
+import Contact    from './contact'
+import Room       from './room'
+import UtilLib    from './util-lib'
+import PuppetWeb  from './puppet-web/puppet-web'
+import Bridge     from './puppet-web/bridge'
 
 export type MsgRawObj = {
   MsgId:            string,
@@ -746,3 +746,5 @@ export class MediaMessage extends Message {
  * &lang=en&pass_ticket=T6dAZXE27Y6R29%2FFppQPqaBlNwZzw9DAN5RJzzzqeBA%3D
  * &wechat_real_lang=en
  */
+
+export default Message

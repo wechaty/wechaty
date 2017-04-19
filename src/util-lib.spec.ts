@@ -8,7 +8,7 @@
 import { test }       from 'ava'
 import * as express   from 'express'
 
-import { UtilLib }  from './util-lib'
+import UtilLib        from './util-lib'
 
 // import * as http     from 'http'
 
