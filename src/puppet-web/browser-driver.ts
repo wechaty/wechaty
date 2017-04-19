@@ -81,6 +81,12 @@ export class BrowserDriver {
     }
    */
 
+    /**
+     * https://github.com/Chatie/wechaty/pull/416
+     * In some circumstances, ChromeDriver could not be found on the current PATH.
+     * The chromedriver package always adds directory of chrome driver binary to PATH.
+     * So we requires chromedriver here to avoid PATH issue.
+     */
     require('chromedriver')
 
     const options = {
