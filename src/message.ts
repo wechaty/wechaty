@@ -17,6 +17,7 @@ import {
   log,
 }  from './config'
 
+
 import { Contact }  from './contact'
 import { Room }     from './room'
 import { UtilLib }  from './util-lib'
@@ -412,6 +413,37 @@ export class Message implements Sayable {
     }
 
     return fromId === userId
+  }
+
+  /**
+   * Get the mentioned contact which the message is mentioned for.
+   * @returns {Contact[]} return the contactList which the message is mentioned for
+   */
+  public mention(): Contact[] {
+    let contactList: Contact[] = []
+    const room = this.room()
+    if (!room) return contactList
+    if (this.type() !== MsgType.TEXT) return contactList
+
+    const foundList = this.content().match(/@\S+ ?/g)
+    if (!foundList) return contactList
+
+    const mentionList = foundList.map(element => {
+      /**
+       * fake '@' return element.slice(1, -1), wechat real '@' return element.slice(1)
+       * fake '@': @ event is produced by typeing '@lijiarui '
+       * real '@': @ event is produced by long press the contact's avatar
+       */
+      return element.slice(1)
+    })
+    log.verbose('Message', 'mention(%s),get mentionList: %s', this.content(), JSON.stringify(mentionList))
+    mentionList.forEach(name => {
+      const contact = room.member({alias: name}) || room.member({name: name})
+      if (contact) {
+        contactList.push(contact)
+      }
+    })
+    return contactList
   }
 
   // public ready() {
