@@ -4,9 +4,12 @@ import {
   Config,
   Sayable,
   log,
-}                 from './config'
+}                     from './config'
 import { Contact }    from './contact'
-import { Message }    from './message'
+import {
+  Message,
+  MediaMessage,
+}                     from './message'
 import { UtilLib }    from './util-lib'
 
 type RoomObj = {
@@ -160,11 +163,13 @@ export class Room extends EventEmitter implements Sayable {
     return this
   }
 
+  public say(mediaMessage: MediaMessage): Promise<any>
   public say(content: string): Promise<any>
   public say(content: string, replyTo: Contact): Promise<void>
   public say(content: string, replyTo: Contact[]): Promise<void>
 
-  public say(content: string, replyTo?: Contact|Contact[]): Promise<void> {
+  public say(textOrMedia: string | MediaMessage, replyTo?: Contact|Contact[]): Promise<void> {
+    const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
     log.verbose('Room', 'say(%s, %s)',
                         content,
                         Array.isArray(replyTo)
@@ -172,18 +177,23 @@ export class Room extends EventEmitter implements Sayable {
                         : replyTo ? replyTo.name() : '',
     )
 
-    const m = new Message()
+    let m
+    if (typeof textOrMedia === 'string') {
+      m = new Message()
+
+      const replyToList: Contact[] = [].concat(replyTo as any || [])
+
+      if (replyToList.length > 0) {
+        const mentionList = replyToList.map(c => '@' + c.name()).join(' ')
+        m.content(mentionList + ' ' + content)
+      } else {
+        m.content(content)
+      }
+      // m.to(replyToList[0])
+    } else
+      m = textOrMedia
+
     m.room(this)
-
-    const replyToList: Contact[] = [].concat(replyTo as any || [])
-
-    if (replyToList.length > 0) {
-      const mentionList = replyToList.map(c => '@' + c.name()).join(' ')
-      m.content(mentionList + ' ' + content)
-    } else {
-      m.content(content)
-    }
-    // m.to(replyToList[0])
 
     return Config.puppetInstance()
                   .send(m)
