@@ -7,7 +7,7 @@
  *
  */
 
-import { Wechaty } from '../src/wechaty'
+import Wechaty from '../src/wechaty'
 
 const w = Wechaty.instance()
 console.log(w.version())

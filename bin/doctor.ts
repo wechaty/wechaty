@@ -9,12 +9,9 @@
 
 import * as os from 'os'
 
-import {
-  Config,
-}                   from '../src/config'
-import { Wechaty }  from '../src/wechaty'
-
-import { Doctor }   from '../src/doctor'
+import Config   from '../src/config'
+import Doctor   from '../src/doctor'
+import Wechaty  from '../src/wechaty'
 
 const wechaty = Wechaty.instance()
 const doctor = new Doctor()
