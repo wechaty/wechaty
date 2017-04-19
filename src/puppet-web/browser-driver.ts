@@ -81,14 +81,6 @@ export class BrowserDriver {
     }
    */
 
-    /**
-     * https://github.com/Chatie/wechaty/pull/416
-     * In some circumstances, ChromeDriver could not be found on the current PATH.
-     * The chromedriver package always adds directory of chrome driver binary to PATH.
-     * So we requires chromedriver here to avoid PATH issue.
-     */
-    require('chromedriver')
-
     const options = {
       args: [
         '--homepage=about:blank',
@@ -98,6 +90,14 @@ export class BrowserDriver {
     if (Config.isDocker) {
       log.verbose('PuppetWebBrowserDriver', 'initChromeDriver() wechaty in docker confirmed(should not show this in CI)')
       options['binary'] = Config.CMD_CHROMIUM
+    } else {
+      /**
+       * https://github.com/Chatie/wechaty/pull/416
+       * In some circumstances, ChromeDriver could not be found on the current PATH when not in Docker.
+       * The chromedriver package always adds directory of chrome driver binary to PATH.
+       * So we requires chromedriver here to avoid PATH issue.
+       */
+      require('chromedriver')
     }
 
     const customChrome = Capabilities.chrome()
