@@ -116,7 +116,7 @@
     "socket.io": "1.7.3",
     "selenium-webdriver": "3.3.0",
     "bl": "^1.2.0",
-    "ws": "2.2.3"
+    "ws": "2.3.0"
   },
   "devDependencies": {
     "@types/body-parser": "1.16.3",
