@@ -373,6 +373,17 @@ export class Bridge {
     }
   }
 
+  public async getUploadMediaUrl(): Promise<string> {
+    log.verbose('PuppetWebBridge', 'getUploadMediaUrl()')
+
+    try {
+      return await this.proxyWechaty('getUploadMediaUrl')
+    } catch (e) {
+      log.silly('PuppetWebBridge', 'proxyWechaty(getUploadMediaUrl) exception: %s', e.message)
+      throw e
+    }
+  }
+
   public sendMedia(toUserName: string, mediaId: string, type: number): Promise<void> {
     if (!toUserName) {
       throw new Error('UserName not found')

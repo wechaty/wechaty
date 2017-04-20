@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.7.58",
+  "version": "0.7.64",
   "description": "Wechat for Bot(Personal Account)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -106,7 +106,7 @@
     "@types/socket.io": "1.4.29",
     "body-parser": "1.17.1",
     "brolog": "0.4.3",
-    "chromedriver": "^2.27.1",
+    "chromedriver": "^2.29.0",
     "express": "5.0.0-alpha.5",
     "is-ci": "1.0.10",
     "is-docker": "1.1.0",
@@ -116,41 +116,41 @@
     "socket.io": "1.7.3",
     "selenium-webdriver": "3.3.0",
     "bl": "^1.2.0",
-    "ws": "2.2.2"
+    "ws": "2.2.3"
   },
   "devDependencies": {
-    "@types/body-parser": "1.16.2",
+    "@types/body-parser": "1.16.3",
     "@types/express": "4.0.35",
     "@types/fluent-ffmpeg": "0.0.2",
     "@types/mime": "0.0.29",
+    "@types/node": "7.0.13",
     "@types/request": "0.0.42",
-    "@types/node": "7.0.12",
-    "@types/sinon": "2.1.0",
+    "@types/sinon": "2.1.2",
     "@types/ws": "0.0.39",
-    "apiai": "4.0.1",
+    "apiai": "4.0.2",
     "ava": "0.18.2",
-    "babel-eslint": "7.2.1",
+    "babel-eslint": "7.2.2",
     "check-node-version": "2.0.1",
     "cookie-parser": "1.4.3",
-    "coveralls": "2.12.0",
-    "cross-env": "3.2.4",
+    "coveralls": "2.13.0",
+    "cross-env": "4.0.0",
     "eslint": "3.18.0",
     "eslint-plugin-ava": "4.2.0",
     "finis": "0.0.2",
     "fluent-ffmpeg": "2.1.0",
-    "nyc": "10.2.0",
     "jsdoc-to-markdown": "^3.0.0",
+    "nyc": "10.2.0",
     "qrcode-terminal": "0.11.0",
     "request": "2.81.0",
     "shx": "0.2.2",
     "sinon": "2.1.0",
     "sloc": "0.2.0",
     "ts-node": "3.0.2",
-    "tslint": "5.0.0",
+    "tslint": "5.1.0",
     "tslint-jsdoc-rules": "^0.1.2",
     "tuling123-client": "0.0.1",
     "typescript": "2.2.2",
-    "yarn": "0.21.3"
+    "yarn": "0.22.0"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [
@@ -166,6 +166,7 @@
     "src/"
   ],
   "publishConfig": {
-    "tag": "next"
+    "tagBak": "next",
+    "tag": "latest"
   }
 }

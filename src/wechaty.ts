@@ -475,3 +475,5 @@ export class Wechaty extends EventEmitter implements Sayable {
                       })
   }
 }
+
+export default Wechaty

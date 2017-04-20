@@ -428,7 +428,7 @@ export class Contact implements Sayable {
   }
 
   /**
-   * Get the alias for contact
+   * GET the alias for contact
    *
    * @returns {(string | null)}
    *
@@ -440,7 +440,7 @@ export class Contact implements Sayable {
   public alias(): string | null
 
   /**
-   * set the alias for contact
+   * SET the alias for contact
    *
    * tests show it will failed if set alias too frequently(60 times in one minute).
    *
@@ -449,7 +449,7 @@ export class Contact implements Sayable {
    *
    * @example
    * ```ts
-   * const ret = await contact.remark('lijiarui')
+   * const ret = await contact.alias('lijiarui')
    * if (ret) {
    *   console.log(`change ${contact.name()}'s alias successfully!`)
    * } else {
@@ -460,23 +460,59 @@ export class Contact implements Sayable {
   public alias(newAlias: string): Promise<boolean>
 
   /**
-   * Delete the alias for a contact
+   * DELETE the alias for a contact
    *
    * @param {null} empty
    * @returns {Promise<boolean>}
    *
    * @example
    * ```ts
-   * const ret = await contact.remark(null)
+   * const ret = await contact.alias(null)
    * if (ret) {
-   *   console.log('ok!')
+   *   console.log(`delete ${contact.name()}'s alias successfully!`)
    * } else {
-   *   console.error('fail!')
+   *   console.log(`failed to delete ${contact.name()}'s alias!`)
    * }
    * ```
    */
   public alias(empty: null): Promise<boolean>
 
+  /**
+   * GET / SET / DELETE the alias for a contact
+   *
+   * @param {(none | string | null)} newAlias ,
+   * @returns {(string | null | Promise<boolean>)}
+   *
+   * @example GET the alias for a contact
+   * ```ts
+   * const alias = contact.alias()
+   * if (alias === null) {
+   *   console.log('You have not yet set any alias for contact ' + contact.name())
+   * } else {
+   *   console.log('You have already set an alias for contact ' + contact.name() + ':' + alias)
+   * }
+   * ```
+   *
+   * @example SET the alias for a contact
+   * ```ts
+   * const ret = await contact.alias('lijiarui')
+   * if (ret) {
+   *   console.log(`change ${contact.name()}'s alias successfully!`)
+   * } else {
+   *   console.error('failed to change ${contact.name()}'s alias!')
+   * }
+   * ```
+   *
+   * @example DELETE the alias for a contact
+   * ```ts
+   * const ret = await contact.alias(null)
+   * if (ret) {
+   *   console.log(`delete ${contact.name()}'s alias successfully!`)
+   * } else {
+   *   console.log(`failed to delete ${contact.name()}'s alias!`)
+   * }
+   * ```
+   */
   public alias(newAlias?: string|null): Promise<boolean> | string | null {
     log.silly('Contact', 'alias(%s)', newAlias || '')
 

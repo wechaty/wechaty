@@ -10,9 +10,9 @@
 import {
   Config,
   log,
-}                   from '../src/config'
+}               from '../src/config'
 
-import { IoClient } from '../src/io-client'
+import IoClient from '../src/io-client'
 
 const welcome = `
 | __        __        _           _
