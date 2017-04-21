@@ -44,7 +44,6 @@ export type ContactRawObj = {
 
   stranger:     string, // assign by injectio.js
   VerifyFlag:   number,
-  ContactFlag:  number,
 }
 
 /**
