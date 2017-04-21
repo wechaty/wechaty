@@ -5,10 +5,10 @@
  * https://github.com/wechaty/wechaty
  *
  */
-import { test }       from 'ava'
-import { Config }     from '../src/config'
-import { Contact }    from '../src/contact'
-import { PuppetWeb }  from '../src/puppet-web'
+import { test }   from 'ava'
+import Config     from '../src/config'
+import Contact    from '../src/contact'
+import PuppetWeb  from '../src/puppet-web'
 
 Config.puppetInstance(new PuppetWeb())
 

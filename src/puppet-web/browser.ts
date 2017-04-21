@@ -17,15 +17,15 @@ const retryPromise  = require('retry-promise').default // https://github.com/ola
 import {
   Config,
   HeadName,
-}                         from '../config'
-import { StateMonitor }   from '../state-monitor'
-import { log }            from '../brolog-env'
+}                     from '../config'
+import StateMonitor   from '../state-monitor'
+import log            from '../brolog-env'
 
 import {
   CookieType,
   BrowserCookie,
-}                         from './browser-cookie'
-import { BrowserDriver }  from './browser-driver'
+}                     from './browser-cookie'
+import BrowserDriver  from './browser-driver'
 
 export type BrowserSetting = {
   head:         HeadName,
@@ -445,3 +445,5 @@ export class Browser extends EventEmitter {
   public readCookie()   { return this.cookie.read()   }
   public cleanCookie()  { return this.cookie.clean()  }
 }
+
+export default Browser

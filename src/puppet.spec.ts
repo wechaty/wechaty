@@ -5,8 +5,8 @@
  * https://github.com/wechaty/wechaty
  *
  */
-import { test } from 'ava'
-import { PuppetWeb } from './puppet-web'
+import { test }   from 'ava'
+import PuppetWeb  from './puppet-web'
 
 test('Puppet smoking test', t => {
   const p = new PuppetWeb()

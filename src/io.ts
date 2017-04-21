@@ -32,6 +32,7 @@ type IoEventName =  'botie'
                   | 'heartbeat'
                   | 'login'
                   | 'message'
+                  | 'update'
                   | 'raw'
                   | 'reset'
                   | 'scan'
@@ -134,7 +135,7 @@ export class Io {
 
       this.reconnectTimeout = null
 
-      const initEvent = <IoEvent>{
+      const initEvent: IoEvent = {
         name: 'sys',
         payload: 'Wechaty version ' + this.setting.wechaty.version() + ` with UUID: ${this.uuid}`,
       }
@@ -147,7 +148,7 @@ export class Io {
       // flags.binary will be set if a binary data is received.
       // flags.masked will be set if the data was masked.
 
-      const ioEvent = {
+      const ioEvent: IoEvent = {
         name: 'raw',
         payload: data,
       }
@@ -243,9 +244,8 @@ export class Io {
   private reconnect() {
     log.verbose('Io', 'reconnect()')
 
-    // if (this.targetState() === 'disconnected') {
     if (this.state.target() === 'offline') {
-      log.verbose('Io', 'reconnect() canceled because state.target() === offline')
+      log.warn('Io', 'reconnect() canceled because state.target() === offline')
       return
     }
 
@@ -268,7 +268,7 @@ export class Io {
     this.reconnectTimer = setTimeout(_ => {
       this.reconnectTimer = null
       this.initWebSocket()
-    }, this.reconnectTimeout) as any as NodeJS.Timer
+    }, this.reconnectTimeout)// as any as NodeJS.Timer
   }
 
   private initEventHook() {
@@ -371,7 +371,7 @@ export class Io {
     }
   }
 
-  private close() {
+  private async close(): Promise<void> {
     log.verbose('Io', 'close()')
     this.state.target('offline')
     this.state.current('offline', false)
@@ -383,19 +383,19 @@ export class Io {
     return Promise.resolve()
   }
 
-  public quit() {
+  public async quit(): Promise<void> {
     this.state.target('offline')
     this.state.current('offline', false)
 
     // try to send IoEvents in buffer
-    this.send()
+    await this.send()
     this.eventBuffer = []
 
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer)
       this.reconnectTimer = null
     }
-    this.close()
+    await this.close()
 
     // this.currentState('disconnected')
     this.state.current('offline')
@@ -412,3 +412,5 @@ export class Io {
   }
 
 }
+
+export default Io

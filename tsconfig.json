@@ -1,10 +1,11 @@
 {
   "compilerOptions": {
-    "target": "es2015"
+    "target": "es6"
     , "module": "commonjs"
     , "outDir": "dist"
     , "declaration": true
     , "sourceMap": true
+    , "noLib": false
 
     , "noEmitOnError": true
     , "noUnusedLocals": true

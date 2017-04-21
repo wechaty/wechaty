@@ -5,13 +5,13 @@
  * https://github.com/wechaty/wechaty
  *
  */
-import { test }   from 'ava'
+import { test }               from 'ava'
 
-import { Config }   from '../config'
-import { Contact }  from '../contact'
-import { Message }  from '../message'
-import { Puppet }   from '../puppet'
-import { FriendRequest as PuppetWebFriendRequest } from './friend-request'
+import Config                 from '../config'
+import Contact                from '../contact'
+import Message                from '../message'
+import Puppet                 from '../puppet'
+import PuppetWebFriendRequest from './friend-request'
 
 Config.puppetInstance({
   userId: 'xxx',

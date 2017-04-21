@@ -344,3 +344,5 @@ export class BrowserDriver {
   public navigate()           { return this.driver.navigate() as any }
   public quit()               { return this.driver.quit() as any as Promise<void> }
 }
+
+export default BrowserDriver

@@ -117,3 +117,5 @@ export class StateMonitor <A, B>{
     return this._client
   }
 }
+
+export default StateMonitor

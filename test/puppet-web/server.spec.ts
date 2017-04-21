@@ -5,14 +5,14 @@
  * https://github.com/wechaty/wechaty
  *
  */
-import { test } from 'ava'
+import { test }     from 'ava'
 
-import * as https from 'https'
-import * as sinon from 'sinon'
+import * as https   from 'https'
+import * as sinon   from 'sinon'
 
 import { Server }   from '../../src/puppet-web/'
-import { UtilLib }  from '../../src/util-lib'
-import { log }      from '../../src/config'
+import UtilLib      from '../../src/util-lib'
+import log          from '../../src/brolog-env'
 
 test('create & close', async t => {
   const port = await UtilLib.getPort(18788)

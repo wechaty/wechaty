@@ -12,9 +12,9 @@
 import * as fs from 'fs'
 // const arrify = require('arrify')
 
-import { log }            from '../config'
+import { log }        from '../config'
 
-import { BrowserDriver }  from './browser-driver'
+import BrowserDriver  from './browser-driver'
 
 /**
  * The reason that driverCookie type defined here
@@ -251,3 +251,5 @@ export class BrowserCookie {
   }
 
 }
+
+export default BrowserCookie

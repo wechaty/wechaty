@@ -19,22 +19,22 @@ import {
   ScanInfo,
   WatchdogFood,
   log,
-}                         from '../config'
+}                     from '../config'
 
-import { Contact }        from '../contact'
+import Contact        from '../contact'
 import {
   Message,
   MediaMessage,
- }                        from '../message'
-import { Puppet }         from '../puppet'
-import { Room }           from '../room'
-import { UtilLib }        from '../util-lib'
+ }                    from '../message'
+import Puppet         from '../puppet'
+import Room           from '../room'
+import UtilLib        from '../util-lib'
 
-import { Bridge }         from './bridge'
-import { Browser }        from './browser'
-import { Event }          from './event'
-import { Server }         from './server'
-import { Watchdog }       from './watchdog'
+import Bridge         from './bridge'
+import Browser        from './browser'
+import Event          from './event'
+import Server         from './server'
+import Watchdog       from './watchdog'
 
 import * as request from 'request'
 import * as bl from 'bl'
@@ -353,10 +353,17 @@ export class PuppetWeb extends Puppet {
       }))
     })
 
+    // Sending video files is not allowed to exceed 20MB
+    // https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L1115
+    const videoMaxSize = 20 * 1024 * 1024
+    if (mediatype === 'video' && buffer.length > videoMaxSize)
+      throw new Error(`Sending video files is not allowed to exceed ${videoMaxSize / 1024 / 1024}MB`)
+
     let md5 = UtilLib.md5(buffer)
 
     let baseRequest = await this.getBaseRequest()
     let passTicket = await this.bridge.getPassticket()
+    let uploadMediaUrl = await this.bridge.getUploadMediaUrl()
     let cookie = await this.browser.readCookie()
     let first = cookie.find(c => c.name === 'webwx_data_ticket')
     let webwxDataTicket = first && first.value
@@ -398,7 +405,7 @@ export class PuppetWeb extends Puppet {
 
     let mediaId = await new Promise((resolve, reject) => {
       request.post({
-        url: `https://file.${hostname}/cgi-bin/mmwebwx-bin/webwxuploadmedia?f=json`,
+        url: uploadMediaUrl + '?f=json',
         headers: {
           Referer: `https://${hostname}`,
           'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36',
@@ -674,3 +681,5 @@ export class PuppetWeb extends Puppet {
     }
   }
 }
+
+export default PuppetWeb

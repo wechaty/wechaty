@@ -46,7 +46,7 @@ Wechaty is a Bot Framework for Wechat **Personal** Account which can help you cr
 # The World's Shortest ChatBot Code: 6 lines of JavaScript
 
 ```javascript
-const { Wechaty } = require('wechaty')
+const { Wechaty } = require('wechaty') // import Wechaty from 'wechaty'
 
 Wechaty.instance() // Singleton
 .on('scan', (url, code) => console.log(`Scan QR Code to login: ${code}\n${url}`))
@@ -96,6 +96,18 @@ Get to know more about Wechaty Docker at [Wiki:Docker](https://github.com/chatie
 ### NPM
 
 [![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty) [![Downloads][downloads-image]][downloads-url] [![Greenkeeper badge](https://badges.greenkeeper.io/Chatie/wechaty.svg)](https://greenkeeper.io/)
+
+```shell
+$ npm install wechaty
+
+$ cat > mybot.js <<'_EOF_'
+const { Wechaty } = require('wechaty')
+const bot = Wechaty.instance()
+console.log(bot.version())
+_EOF_
+
+$ node mybot.js
+```
 
 Get to know more about NPM at [Wiki:NPM](https://github.com/chatie/wechaty/wiki/NPM)
 

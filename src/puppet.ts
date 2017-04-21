@@ -3,13 +3,13 @@ import { EventEmitter } from 'events'
 import {
   Sayable,
 }                       from './config'
-import { Contact }      from './contact'
+import Contact          from './contact'
 import {
   Message,
   MediaMessage,
 }                       from './message'
-import { StateMonitor } from './state-monitor'
-import { Room }         from './room'
+import StateMonitor     from './state-monitor'
+import Room             from './room'
 
 // type ContactGetterFunc = {
 //   (id: string): Promise<any>
@@ -63,3 +63,5 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract contactFind(filterFunc: string): Promise<Contact[]>
   public abstract contactAlias(contact: Contact, alias: string|null): Promise<boolean>
 }
+
+export default Puppet

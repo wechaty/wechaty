@@ -19,15 +19,15 @@
 /* tslint:disable:no-var-requires */
 const retryPromise  = require('retry-promise').default
 
-import { Contact }        from '../contact'
+import Contact        from '../contact'
 import {
   Config,
   RecommendInfo,
   log,
-}                         from '../config'
-import { FriendRequest }  from '../friend-request'
+}                     from '../config'
+import FriendRequest  from '../friend-request'
 
-class PuppetWebFriendRequest extends FriendRequest {
+export class PuppetWebFriendRequest extends FriendRequest {
 
   public info: RecommendInfo
 
@@ -131,4 +131,4 @@ class PuppetWebFriendRequest extends FriendRequest {
 
 }
 
-export { PuppetWebFriendRequest as FriendRequest }
+export default PuppetWebFriendRequest

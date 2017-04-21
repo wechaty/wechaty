@@ -19,10 +19,10 @@ import {
   WatchdogFood,
   WatchdogFoodName,
   log,
-}                     from '../config'
+}                   from '../config'
 
-import { PuppetWeb }  from './puppet-web'
-import { Event }      from './event'
+import PuppetWeb    from './puppet-web'
+import Event        from './event'
 
 /* tslint:disable:variable-name */
 export const Watchdog = {
@@ -190,3 +190,5 @@ function monitorScan(this: PuppetWeb, type: WatchdogFoodName) {
     this.lastScanEventTime = Date.now()
   }
 }
+
+export default Watchdog

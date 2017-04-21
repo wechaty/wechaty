@@ -12,9 +12,9 @@
  /* tslint:disable:no-var-requires */
 const retryPromise  = require('retry-promise').default
 
-import { log }        from '../brolog-env'
+import log        from '../brolog-env'
 
-import { PuppetWeb }  from './puppet-web'
+import PuppetWeb  from './puppet-web'
 
 export class Bridge {
 
@@ -373,6 +373,17 @@ export class Bridge {
     }
   }
 
+  public async getUploadMediaUrl(): Promise<string> {
+    log.verbose('PuppetWebBridge', 'getUploadMediaUrl()')
+
+    try {
+      return await this.proxyWechaty('getUploadMediaUrl')
+    } catch (e) {
+      log.silly('PuppetWebBridge', 'proxyWechaty(getUploadMediaUrl) exception: %s', e.message)
+      throw e
+    }
+  }
+
   public sendMedia(toUserName: string, mediaId: string, type: number): Promise<void> {
     if (!toUserName) {
       throw new Error('UserName not found')
@@ -584,3 +595,5 @@ Object.keys(_contacts)
 
  *
  */
+
+export default Bridge

@@ -231,3 +231,5 @@ if (/verbose|silly/i.test(logLevel)) {
     })
   })
 }
+
+export default Config
