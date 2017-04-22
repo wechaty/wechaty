@@ -64,7 +64,7 @@ export type ContactQueryFilter = {
 }
 
 /**
- * @see https://github.com/Chatie/wechaty/blob/master/doc/webwxapp.js#L4057
+ * @see https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3848
  */
 const specialContactList: string[] = [
   'weibo', 'qqmail', 'fmessage', 'tmessage', 'qmessage', 'qqsync', 'floatbottle',
@@ -124,13 +124,13 @@ export class Contact implements Sayable {
       stranger:   !!rawObj.stranger, // assign by injectio.js
       avatar:     rawObj.HeadImgUrl,
       /**
-       * @see 1. https://github.com/Chatie/wechaty/blob/master/doc/webwxapp.js#L3368
+       * @see 1. https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3243
        * @see 2. https://github.com/Urinx/WeixinBot/blob/master/README.md
        */
       // tslint:disable-next-line
       official:      !!rawObj.UserName && !rawObj.UserName.startsWith('@@') && !!(rawObj.VerifyFlag & 8),
       /**
-       * @see 1. https://github.com/Chatie/wechaty/blob/master/doc/webwxapp.js#L4187
+       * @see 1. https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3246
        */
       special:       specialContactList.indexOf(rawObj.UserName) > -1 || /@qqim$/.test(rawObj.UserName),
     }
@@ -200,7 +200,7 @@ export class Contact implements Sayable {
    * 'masssendapp', 'meishiapp', 'feedsapp', 'voip', 'blogappweixin', 'weixin', 'brandsessionholder',
    * 'weixinreminder', 'wxid_novlwrv3lqwv11', 'gh_22b87fa7cb3c', 'officialaccounts', 'notification_messages',
    * ```
-   * @see https://github.com/Chatie/wechaty/blob/master/doc/webwxapp.js#L4057
+   * @see https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3848
    *
    * @returns {boolean|null} True for brand, Flase for contact is not a brand
    *
