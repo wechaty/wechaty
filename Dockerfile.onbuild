@@ -1,0 +1,9 @@
+FROM zixia/wechaty
+
+WORKDIR /bot/
+
+ONBUILD COPY package.json /bot/
+ONBUILD RUN npm install && npm cache clean
+ONBUILD COPY . /bot/
+
+CMD [ "npm", "start" ]

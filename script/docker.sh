@@ -5,7 +5,7 @@
 #
 set -e
 
-imageName='wechaty:test'
+imageName='zixia/wechaty'
 
 optRm='--rm'
 [ -n "$CIRCLECI" ] && optRm='--rm=false'
@@ -16,6 +16,10 @@ case "$1" in
   build | '')
     echo docker build "$optRm" -t "$imageName" .
     exec docker build "$optRm" -t "$imageName" .
+
+    echo docker build "$optRm" -t "${imageName}:onbuild" -f Dockerfile.onbuild .
+    exec docker build "$optRm" -t "${imageName}:onbuild" -f Dockerfile.onbuild .
+
     ret=$?
     ;;
 
