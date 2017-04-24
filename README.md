@@ -288,7 +288,7 @@ At last, It's built for my personal study purpose of Automatically Testing.
 
 Author
 ------
-Zhuohuan LI <zixia@zixia.net> (http://linkedin.com/in/zixia)
+Huan LI <zixia@zixia.net> (http://linkedin.com/in/zixia)
 
 <a href="http://stackoverflow.com/users/1123955/zixia">
   <img src="http://stackoverflow.com/users/flair/1123955.png" width="208" height="58" alt="profile for zixia at Stack Overflow, Q&amp;A for professional and enthusiast programmers" title="profile for zixia at Stack Overflow, Q&amp;A for professional and enthusiast programmers">
