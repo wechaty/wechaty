@@ -417,6 +417,15 @@ export class Message implements Sayable {
   /**
    *
    * Get the mentioned contact which the message is mentioned for.
+   * message event table
+   *
+   * |                                                                            | Web  |  Mac PC Client | iOS Mobile |  android Mobile |
+   * | :---                                                                       | :--: |     :----:     |   :---:    |     :---:       |
+   * | [You were mentioned] tip ([有人@我]的提示)                                   |  ✘   |        √       |     √      |       √         |
+   * | Identify magic code (8197) by copy & paste in mobile                       |  ✘   |        √       |     √      |       ✘         |
+   * | Identify magic code (8197) by programming                                  |  ✘   |        ✘       |     ✘      |       ✘         |
+   * | Identify two contacts with the same roomAlias by [You were  mentioned] tip |  ✘   |        ✘       |     √      |       √         |
+   *
    * @returns {Contact[]} return the contactList which the message is mentioned for
    *
    * @example
@@ -434,16 +443,31 @@ export class Message implements Sayable {
       return contactList
     }
 
+    // Example: `Let me introduce @lijiarui@wechaty@beijing , she is a wechaty contributor`
+    // Trying to split array with magic code `8197` and get atStrings
+    // Example result: atStrings = ['Let me introduce @lijiarui@wechaty@beijing', ', she is a wechaty contributor']
     const atStrings = this.content().split(String.fromCharCode(8197))
 
     if (atStrings.length === 0) return contactList
 
+    // Using `filter(e => e.indexOf('@') > -1)` to filter the string without `@`
+    // Example result: atStrings.filter(e => e.indexOf('@') > -1) = ['Let me introduce @lijiarui@wechaty@beijing']
     const strings = atStrings.filter(e => e.indexOf('@') > -1).map(e => {
+
+      // Example result: list = ['Let me introduce ','@lijiarui', '@wechaty', '@beijing']
       const list = e.split('@')
+
+      // `list.length < 3` means the array just have less than 2 element, means contact doesn't have multiple `@` signs
       if (list.length < 3) {
         return [e.slice(e.lastIndexOf('@') + 1)]
       } else {
-        // deal name: lijiarui@wechaty@beijing
+
+        // Deal with contact with multiple `@`signs
+        // Select element from `list` array to join strings with the following rules:
+        // 1. end with the last element from `list` array.
+        // 2. element are continuous, eg: [3],[2,3],[1,2,3]
+
+        // Here: list = ['Let me introduce ','@lijiarui', '@wechaty', '@beijing']
         let nickList: string[] = []
         for (let i = 1; i < list.length; i++) {
           let nick = ''
@@ -452,6 +476,8 @@ export class Message implements Sayable {
           }
           nickList.push(nick.slice(1))
         }
+
+        // Example result: nickList = ['beijing','wechaty@beijing','lijiarui@wechaty@beijing']
         return nickList
       }
     })
