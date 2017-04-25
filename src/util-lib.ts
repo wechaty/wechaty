@@ -255,6 +255,7 @@ export class UtilLib {
       case 'bmp':
       case 'jpeg':
       case 'jpg':
+      case 'gif':
       case 'png':
         return MsgType.IMAGE
       case 'mp4':
@@ -276,6 +277,8 @@ export class UtilLib {
         return 'image/jpeg'
       case 'png':
         return 'image/png'
+      case 'gif':
+        return 'image/gif'
       case 'mp4':
         return 'video/mp4'
       default:

@@ -336,6 +336,7 @@ export class PuppetWeb extends Puppet {
       case 'jpeg':
       case 'jpg':
       case 'png':
+      case 'gif':
         mediatype = 'pic'
         break
       case 'mp4':
