@@ -28,5 +28,6 @@
      , "src/**/*.ts"
      , "test/**/*.spec.ts"
      , "bot/**/*.ts"
+     , "app/**/*.ts"
   ]
 }
