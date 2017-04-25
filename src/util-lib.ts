@@ -255,9 +255,10 @@ export class UtilLib {
       case 'bmp':
       case 'jpeg':
       case 'jpg':
-      case 'gif':
       case 'png':
         return MsgType.IMAGE
+      case 'gif':
+        return MsgType.EMOTICON
       case 'mp4':
         return MsgType.VIDEO
       default:
