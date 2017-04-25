@@ -25,6 +25,8 @@ type ContactObj = {
   uin:        string,
   weixin:     string,
   avatar:     string,  // XXX URL of HeadImgUrl
+  official:   boolean,
+  special:    boolean,
 }
 
 export type ContactRawObj = {
@@ -41,6 +43,7 @@ export type ContactRawObj = {
   HeadImgUrl:   string,
 
   stranger:     string, // assign by injectio.js
+  VerifyFlag:   number,
 }
 
 /**
@@ -59,6 +62,16 @@ export type ContactQueryFilter = {
   // DEPRECATED
   remark?: string | RegExp,
 }
+
+/**
+ * @see https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3848
+ */
+const specialContactList: string[] = [
+  'weibo', 'qqmail', 'fmessage', 'tmessage', 'qmessage', 'qqsync', 'floatbottle',
+  'lbsapp', 'shakeapp', 'medianote', 'qqfriend', 'readerapp', 'blogapp', 'facebookapp',
+  'masssendapp', 'meishiapp', 'feedsapp', 'voip', 'blogappweixin', 'weixin', 'brandsessionholder',
+  'weixinreminder', 'wxid_novlwrv3lqwv11', 'gh_22b87fa7cb3c', 'officialaccounts', 'notification_messages',
+]
 
 /**
  * Class Contact
@@ -110,6 +123,16 @@ export class Contact implements Sayable {
       star:       !!rawObj.StarFriend,
       stranger:   !!rawObj.stranger, // assign by injectio.js
       avatar:     rawObj.HeadImgUrl,
+      /**
+       * @see 1. https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3243
+       * @see 2. https://github.com/Urinx/WeixinBot/blob/master/README.md
+       */
+      // tslint:disable-next-line
+      official:      !!rawObj.UserName && !rawObj.UserName.startsWith('@@') && !!(rawObj.VerifyFlag & 8),
+      /**
+       * @see 1. https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3246
+       */
+      special:       specialContactList.indexOf(rawObj.UserName) > -1 || /@qqim$/.test(rawObj.UserName),
     }
   }
 
@@ -150,6 +173,58 @@ export class Contact implements Sayable {
   public stranger(): boolean|null {
     if (!this.obj) return null
     return this.obj.stranger
+  }
+
+  /**
+   * Check if it's a offical account
+   *
+   * @returns {boolean|null} True for official account, Flase for contact is not a official account
+   *
+   * @example
+   * ```ts
+   * const isOfficial = contact.official()
+   * ```
+   */
+  public official(): boolean {
+    return !!this.obj && this.obj.official
+  }
+
+  /**
+   * Check if it's a special contact
+   *
+   * the contact who's id in following list will be identify as a special contact
+   *
+   * ```ts
+   * 'weibo', 'qqmail', 'fmessage', 'tmessage', 'qmessage', 'qqsync', 'floatbottle',
+   * 'lbsapp', 'shakeapp', 'medianote', 'qqfriend', 'readerapp', 'blogapp', 'facebookapp',
+   * 'masssendapp', 'meishiapp', 'feedsapp', 'voip', 'blogappweixin', 'weixin', 'brandsessionholder',
+   * 'weixinreminder', 'wxid_novlwrv3lqwv11', 'gh_22b87fa7cb3c', 'officialaccounts', 'notification_messages',
+   * ```
+   * @see https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3848
+   *
+   * @returns {boolean|null} True for brand, Flase for contact is not a brand
+   *
+   * @example
+   * ```ts
+   * const isSpecial = contact.special()
+   * ```
+   */
+  public special(): boolean {
+    return !!this.obj && this.obj.special
+  }
+
+  /**
+   * Check if it's a personal account
+   *
+   * @returns {boolean|null} True for personal account, Flase for contact is not a personal account
+   *
+   * @example
+   * ```ts
+   * const isPersonal = contact.personal()
+   * ```
+   */
+  public personal(): boolean {
+    return !this.official()
   }
 
   /**

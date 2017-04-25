@@ -78,6 +78,38 @@ async function main() {
   log.info('Bot', '#######################')
   log.info('Bot', 'Contact number: %d\n', contactList.length)
 
+  /**
+   * official contacts list
+   */
+  for (let i = 0; i < contactList.length; i++) {
+    const contact = contactList[i]
+    if (contact.official()) {
+      log.info('Bot', `official ${i}: ${contact}`)
+    }
+  }
+
+  /**
+   *  Special contact list
+   */
+
+  for (let i = 0; i < contactList.length; i++) {
+    const contact = contactList[i]
+    if (contact.special()) {
+      log.info('Bot', `special ${i}: ${contact.name()}`)
+    }
+  }
+
+  /**
+   *  personal contact list
+   */
+
+  for (let i = 0; i < contactList.length; i++) {
+    const contact = contactList[i]
+    if (contact.personal()) {
+      log.info('Bot', `personal ${i}: ${contact.get('name')} : ${contact.id}`)
+    }
+  }
+
   const MAX = 17
   for (let i = 0; i < contactList.length; i++ ) {
     const contact = contactList[i]
