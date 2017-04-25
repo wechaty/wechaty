@@ -1,5 +1,6 @@
 FROM zixia/wechaty
 
+RUN mkdir -p /app/
 WORKDIR /app/
 
 ONBUILD ARG NODE_ENV
