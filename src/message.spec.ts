@@ -94,10 +94,10 @@ test('ready()', async t => {
   if (!fc || !tc) {
     throw new Error('no fc or no tc')
   }
-  t.is(fc.get('id')   , expectedFromUserName, 'contact ready for FromUserName')
-  t.is(fc.get('name') , expectedFromNickName, 'contact ready for FromNickName')
-  t.is(tc.get('id')   , expectedToUserName  , 'contact ready for ToUserName')
-  t.is(tc.get('name') , expectedToNickName  , 'contact ready for ToNickName')
+  t.is(fc.id      , expectedFromUserName, 'contact ready for FromUserName')
+  t.is(fc.name()  , expectedFromNickName, 'contact ready for FromNickName')
+  t.is(tc.id      , expectedToUserName  , 'contact ready for ToUserName')
+  t.is(tc.name()  , expectedToNickName  , 'contact ready for ToNickName')
 })
 
 test('find()', async t => {
