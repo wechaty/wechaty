@@ -444,37 +444,40 @@ export class Message implements Sayable {
     // define magic code `8197` to identify @xxx
     const AT_SEPRATOR = String.fromCharCode(8197)
 
-    const atStrList = this.content().split(AT_SEPRATOR)
+    const atList = this.content().split(AT_SEPRATOR)
 
-    if (atStrList.length === 0) return contactList
+    if (atList.length === 0) return contactList
 
     // Using `filter(e => e.indexOf('@') > -1)` to filter the string without `@`
-    const mentionedStringList = atStrList
+    const rawMentionedList = atList
       .filter(str => str.includes('@'))
-        .map(str => {
-        str = str.replace(/^.*?@/, '@')
-        let nick = ''
-        const nickList: string[] = []
+      .map(str => multipleAt(str))
+      .filter(str => !!str) // filter blank string
 
+    // convert 'hello@a@b@c' to [ 'c', 'b@c', 'a@b@c' ]
+    function multipleAt(str: string) {
+      str = str.replace(/^.*?@/, '@')
+        let name = ''
+        const nameList: string[] = []
         str.split('@')
-          .filter(c => !!c)
+          .filter(mentionName => !!mentionName)
           .reverse()
-          .forEach(c => {
-            nick = c + '@' + nick
-            nickList.push(nick.slice(0, -1)) // get rid of the `@` at beginning
+          .forEach(mentionName => {
+            name = mentionName + '@' + name
+            nameList.push(name.slice(0, -1)) // get rid of the `@` at beginning
           })
+        return nameList
+    }
 
-        return nickList
-      })
-    .filter(e => !!e) // filter blank string
-    const mentionList = [].concat.apply([], mentionedStringList)
-
+    // flatten array, see http://stackoverflow.com/a/10865042/1123955
+    const mentionList = [].concat.apply([], rawMentionedList)
     log.verbose('Message', 'mentioned(%s),get mentionList: %s', this.content(), JSON.stringify(mentionList))
+
     contactList = [].concat.apply([],
-      mentionList.map(x => {
-        room.memberAll(x)
+      mentionList.map(member => {
+        room.memberAll(member)
       })
-      .filter(c => !!c),
+      .filter(contact => !!contact),
     )
 
     if (contactList.length === 0) {
