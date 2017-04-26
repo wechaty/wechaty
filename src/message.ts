@@ -414,6 +414,78 @@ export class Message implements Sayable {
     return fromId === userId
   }
 
+  /**
+   *
+   * Get message mentioned contactList.
+   * message event table as follows
+   *
+   * |                                                                            | Web  |  Mac PC Client | iOS Mobile |  android Mobile |
+   * | :---                                                                       | :--: |     :----:     |   :---:    |     :---:       |
+   * | [You were mentioned] tip ([有人@我]的提示)                                   |  ✘   |        √       |     √      |       √         |
+   * | Identify magic code (8197) by copy & paste in mobile                       |  ✘   |        √       |     √      |       ✘         |
+   * | Identify magic code (8197) by programming                                  |  ✘   |        ✘       |     ✘      |       ✘         |
+   * | Identify two contacts with the same roomAlias by [You were  mentioned] tip |  ✘   |        ✘       |     √      |       √         |
+   *
+   * @returns {Contact[]} return message mentioned contactList
+   *
+   * @example
+   * ```ts
+   * const contactList = message.mentioned()
+   * console.log(contactList)
+   * ```
+   */
+  public mentioned(): Contact[] {
+    let contactList: Contact[] = []
+    const room = this.room()
+    if (this.type() !== MsgType.TEXT || !room ) {
+      return contactList
+    }
+
+    // define magic code `8197` to identify @xxx
+    const AT_SEPRATOR = String.fromCharCode(8197)
+
+    const atList = this.content().split(AT_SEPRATOR)
+
+    if (atList.length === 0) return contactList
+
+    // Using `filter(e => e.indexOf('@') > -1)` to filter the string without `@`
+    const rawMentionedList = atList
+      .filter(str => str.includes('@'))
+      .map(str => multipleAt(str))
+      .filter(str => !!str) // filter blank string
+
+    // convert 'hello@a@b@c' to [ 'c', 'b@c', 'a@b@c' ]
+    function multipleAt(str: string) {
+      str = str.replace(/^.*?@/, '@')
+        let name = ''
+        const nameList: string[] = []
+        str.split('@')
+          .filter(mentionName => !!mentionName)
+          .reverse()
+          .forEach(mentionName => {
+            name = mentionName + '@' + name
+            nameList.push(name.slice(0, -1)) // get rid of the `@` at beginning
+          })
+        return nameList
+    }
+
+    // flatten array, see http://stackoverflow.com/a/10865042/1123955
+    const mentionList = [].concat.apply([], rawMentionedList)
+    log.verbose('Message', 'mentioned(%s),get mentionList: %s', this.content(), JSON.stringify(mentionList))
+
+    contactList = [].concat.apply([],
+      mentionList.map(member => {
+        room.memberAll(member)
+      })
+      .filter(contact => !!contact),
+    )
+
+    if (contactList.length === 0) {
+      log.warn(`Message`, `message.mentioned() can not found member using room.member() from mentionList, metion string: ${JSON.stringify(mentionList)}`)
+    }
+    return contactList
+  }
+
   // public ready() {
   //   log.warn('Message', 'ready() DEPRECATED. use load() instead.')
   //   return this.ready()
