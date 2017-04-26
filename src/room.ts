@@ -184,7 +184,8 @@ export class Room extends EventEmitter implements Sayable {
       const replyToList: Contact[] = [].concat(replyTo as any || [])
 
       if (replyToList.length > 0) {
-        const mentionList = replyToList.map(c => '@' + c.name()).join(' ')
+        const AT_SEPRATOR = String.fromCharCode(8197)
+        const mentionList = replyToList.map(c => '@' + c.name()).join(AT_SEPRATOR)
         m.content(mentionList + ' ' + content)
       } else {
         m.content(content)
