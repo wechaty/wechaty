@@ -416,8 +416,8 @@ export class Message implements Sayable {
 
   /**
    *
-   * Get the mentioned contact which the message is mentioned for.
-   * message event table
+   * Get message mentioned contactList.
+   * message event table as follows
    *
    * |                                                                            | Web  |  Mac PC Client | iOS Mobile |  android Mobile |
    * | :---                                                                       | :--: |     :----:     |   :---:    |     :---:       |
@@ -426,13 +426,11 @@ export class Message implements Sayable {
    * | Identify magic code (8197) by programming                                  |  ✘   |        ✘       |     ✘      |       ✘         |
    * | Identify two contacts with the same roomAlias by [You were  mentioned] tip |  ✘   |        ✘       |     √      |       √         |
    *
-   * @returns {Contact[]} return the contactList which the message is mentioned for
+   * @returns {Contact[]} return message mentioned contactList
    *
    * @example
    * ```ts
-   * const content = message.content()
    * const contactList = message.mentioned()
-   * console.log(content)
    * console.log(contactList)
    * ```
    */
@@ -443,61 +441,45 @@ export class Message implements Sayable {
       return contactList
     }
 
-    // Example: `Let me introduce @lijiarui@wechaty@beijing , she is a wechaty contributor`
-    // Trying to split array with magic code `8197` and get atStrings
-    // Example result: atStrings = ['Let me introduce @lijiarui@wechaty@beijing', ', she is a wechaty contributor']
-    const atStrings = this.content().split(String.fromCharCode(8197))
+    // define magic code `8197` to identify @xxx
+    const AT_SEPRATOR = String.fromCharCode(8197)
 
-    if (atStrings.length === 0) return contactList
+    const atStrList = this.content().split(AT_SEPRATOR)
+
+    if (atStrList.length === 0) return contactList
 
     // Using `filter(e => e.indexOf('@') > -1)` to filter the string without `@`
-    // Example result: atStrings.filter(e => e.indexOf('@') > -1) = ['Let me introduce @lijiarui@wechaty@beijing']
-    const strings = atStrings.filter(e => e.indexOf('@') > -1).map(e => {
+    const mentionedStringList = atStrList
+      .filter(str => str.includes('@'))
+        .map(str => {
+        str = str.replace(/^.*?@/, '@')
+        let nick = ''
+        const nickList: string[] = []
 
-      // Example result: list = ['Let me introduce ','@lijiarui', '@wechaty', '@beijing']
-      const list = e.split('@')
+        str.split('@')
+          .filter(c => !!c)
+          .reverse()
+          .forEach(c => {
+            nick = c + '@' + nick
+            nickList.push(nick.slice(0, -1)) // get rid of the `@` at beginning
+          })
 
-      // `list.length < 3` means the array just have less than 2 element, means contact doesn't have multiple `@` signs
-      if (list.length < 3) {
-        return [e.slice(e.lastIndexOf('@') + 1)]
-      } else {
-
-        // Deal with contact with multiple `@`signs
-        // Select element from `list` array to join strings with the following rules:
-        // 1. end with the last element from `list` array.
-        // 2. element are continuous, eg: [3],[2,3],[1,2,3]
-
-        // Here: list = ['Let me introduce ','@lijiarui', '@wechaty', '@beijing']
-        let nickList: string[] = []
-        for (let i = 1; i < list.length; i++) {
-          let nick = ''
-          for (let j = 1; j <= i; j++) {
-            nick = '@' + list[list.length - j] + nick
-          }
-          nickList.push(nick.slice(1))
-        }
-
-        // Example result: nickList = ['beijing','wechaty@beijing','lijiarui@wechaty@beijing']
         return nickList
-      }
-    })
+      })
     .filter(e => !!e) // filter blank string
-    const mentionList = strings.reduce((acc, val) => {
-      return acc.concat(val)
-    }, [])
+    const mentionList = [].concat.apply([], mentionedStringList)
 
     log.verbose('Message', 'mentioned(%s),get mentionList: %s', this.content(), JSON.stringify(mentionList))
-    mentionList.forEach(name => {
-      const atRoomAliasList = room.memberAll({roomAlias: name})
-      const atContactAliasList = room.memberAll({name: name})
-      if (atRoomAliasList || atContactAliasList) {
-        contactList = contactList.concat(atRoomAliasList || atContactAliasList || [])
-        log.verbose(`Message`, `Contact ${name} is being mentioned.`)
-      } else {
-        // this will help us to track the unexpected strings.
-        log.warn(`Message`, `message.mentioned() can not found member using room.member() from mentionList, metion string: ${name}`)
-      }
-    })
+    contactList = [].concat.apply([],
+      mentionList.map(x => {
+        room.memberAll(x)
+      })
+      .filter(c => !!c),
+    )
+
+    if (contactList.length === 0) {
+      log.warn(`Message`, `message.mentioned() can not found member using room.member() from mentionList, metion string: ${JSON.stringify(mentionList)}`)
+    }
     return contactList
   }
 
