@@ -70,6 +70,8 @@ You can find more example from [Wiki](https://github.com/chatie/wechaty/wiki/Exa
 
 The above 10 minutes video tutorial is a good start point if you are new to Wechaty.
 
+> Source code in the video can be found at here: [Wechaty Starter Repository](https://github.com/lijiarui/wechaty-getting-started)
+
 ## Run
 
 Let's say, you have saved the above six lines javascript example to `mybot.js`.
