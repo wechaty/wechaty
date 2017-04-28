@@ -126,7 +126,7 @@
     "@types/node": "7.0.14",
     "@types/request": "0.0.42",
     "@types/sinon": "2.1.3",
-    "@types/ws": "0.0.39",
+    "@types/ws": "0.0.40",
     "apiai": "4.0.2",
     "ava": "0.18.2",
     "babel-eslint": "7.2.3",
