@@ -128,7 +128,7 @@ The following VPS providers is used by ourselves, they worked perfectly in produ
 
 # API Reference
 
-## [Wechaty Event](https://github.com/chatie/wechaty/wiki/API#event)
+## [Wechaty Events](https://github.com/chatie/wechaty/wiki/API#event)
 
 1. [scan](https://github.com/chatie/wechaty/wiki/API#1-event-scan) Emit when the bot needs to show you a QR Code for scanning
 2. [login](https://github.com/chatie/wechaty/wiki/API#2-event-login) Emit when bot login full successful.
@@ -144,7 +144,6 @@ The following VPS providers is used by ourselves, they worked perfectly in produ
 
 1. [instance(setting: PuppetSetting): Promise&lt;Wechaty&gt;](https://github.com/chatie/wechaty/wiki/API#wechatyinstanceprofilestring-wechaty) get the bot instance
 2. [init(): Promise&lt;void&gt;](https://github.com/chatie/wechaty/wiki/API#wechatyinit-wechaty) Initialize the bot
-3. [send(message: Message): Promise&lt;void&gt;](https://github.com/chatie/wechaty/wiki/API#wechatysendmessage-message-wechaty) send a message
 4. [say(content: string): Promise&lt;void&gt;](https://github.com/chatie/wechaty/wiki/API#wechatysaycontent-string) send message to filehelper, just for logging/reporting usage for your convenience
 
 ## [Message](https://github.com/chatie/wechaty/wiki/API#message-class)
@@ -159,7 +158,6 @@ The following VPS providers is used by ourselves, they worked perfectly in produ
 10. [room(room:Room):void](https://github.com/chatie/wechaty/wiki/API#2-messageroomroom-room-void) set the room for a message.
 12. [type():MsgType](https://github.com/chatie/wechaty/wiki/API#messagetype-number) get the type of a Message.
 13. [say(content:string):Promise](https://github.com/chatie/wechaty/wiki/API#messagesaycontent-string-promise) reply a message to the sender.
-14. [ready():Promise](https://github.com/chatie/wechaty/wiki/API#messageready-promise) confirm get all the data needed, will be resolved when all message data is ready.
 15. [self():boolean](https://github.com/chatie/wechaty/wiki/API#messageselfmessage-message-boolean) check if a message is sent by self 
 
 ## [Contact](https://github.com/chatie/wechaty/wiki/API#contact-class)
@@ -169,13 +167,11 @@ The following VPS providers is used by ourselves, they worked perfectly in produ
 4. [remark(remark:string):Promise](https://github.com/chatie/wechaty/wiki/API#contactremarkremark-string-promise) set remark name to a contact
 5. [weixin():string](https://github.com/chatie/wechaty/wiki/API#contactweixin-string) get weixin id from a contact
 6. [star():boolean](https://github.com/chatie/wechaty/wiki/API#contactstar-boolean) true for star friend, false for no star friend
-7. [ready():Promise](https://github.com/chatie/wechaty/wiki/API#contactready-promise) confirm get all the contact data needed, will be resolved when all data is ready
 8. [say(content:string):Promise](https://github.com/chatie/wechaty/wiki/API#contactsaycontent-string-promise) say content to a contact
 
 ## [Room](https://github.com/chatie/wechaty/wiki/API#class-room)
 
 1. [say(content:string,replyTo:Contact|ContactArray):Promise](https://github.com/chatie/wechaty/wiki/API#roomsaycontent-string-replyto-contactcontact-promise) say content inside Room.
-2. [ready():Promise](https://github.com/chatie/wechaty/wiki/API#roomready-promise) confirm get all the data needed, will be resolved when all data is ready
 3. [refresh():Promise](https://github.com/chatie/wechaty/wiki/API#roomrefresh-promise) reload data for Room
 
 ### [Room Event](https://github.com/chatie/wechaty/wiki/API#room-events)
