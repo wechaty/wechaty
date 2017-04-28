@@ -75,8 +75,10 @@ bot
 
       m.say(`Join Wechaty Developers' Community
 
-            Wechaty is used in many ChatBot projects by hundreds of developers. If you want to talk with other developers, just scan the following QR Code in WeChat with secret code: wechaty, you can join our Wechaty Developers' Home at once.
-        `
+            Wechaty is used in many ChatBot projects by hundreds of developers.
+            If you want to talk with other developers, just scan the following QR Code in WeChat with secret code: wechaty,
+            you can join our Wechaty Developers' Home at once.
+        `.replace(/  /, ' '),
       )
       m.say(new MediaMessage(__dirname + '/../image/BotQrcode.png'))
       m.say('Scan now, because other Wechaty developers want to talk with you too! (secret code: wechaty)')
