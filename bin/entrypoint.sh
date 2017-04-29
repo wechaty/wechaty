@@ -209,7 +209,7 @@ function main() {
 
   echo
   echo -n "Starting Wechaty v$VERSION with "
-  echo -n "Node.js v$(node --version) ..."
+  echo -n "Node.js $(node --version) ..."
   echo
 
   local -i ret=0

@@ -69,12 +69,20 @@ bot
                 + ':' + m.toStringDigest(),
     )
 
-    if (/^(ding|ping|bing)$/i.test(m.content()) && !m.self()) {
+    if (/^(ding|ping|bing|code)$/i.test(m.content()) && !m.self()) {
       m.say('dong')
       log.info('Bot', 'REPLY: dong')
-    } else if (/^code$/i.test(m.content()) && !m.self()) {
+
+      m.say(`Join Wechaty Developers' Community
+
+            Wechaty is used in many ChatBot projects by hundreds of developers.
+            If you want to talk with other developers, just scan the following QR Code in WeChat with secret code: wechaty,
+            you can join our Wechaty Developers' Home at once.
+        `.replace(/  /, ' '),
+      )
       m.say(new MediaMessage(__dirname + '/../image/BotQrcode.png'))
-      log.info('Bot', 'REPLY: Img')
+      m.say('Scan now, because other Wechaty developers want to talk with you too! (secret code: wechaty)')
+      log.info('Bot', 'REPLY: Image')
     }
   } catch (e) {
     log.error('Bot', 'on(message) exception: %s' , e)
