@@ -404,27 +404,39 @@ export class Room extends EventEmitter implements Sayable {
    * find member by name | roomAlias(alias) | contactAlias
    * when use memberAll(name:string), return all matched members, including name, roomAlias, contactAlias
    */
-  public memberAll(filter: MemberQueryFilter): Contact[] | null
-  public memberAll(name: string): Contact[] | null
+  public memberAll(name: string): Contact[]
+  public memberAll(filter: MemberQueryFilter): Contact[]
 
-  public memberAll(queryArg: MemberQueryFilter | string): Contact[] | null {
+  public memberAll(queryArg: MemberQueryFilter | string): Contact[] {
     if (typeof queryArg === 'string') {
-      let contactList: Contact[] = []
-      const nameList = this.memberAll({name: queryArg})
-      const roomAliasList = this.memberAll({roomAlias: queryArg})
-      const contactAliasList = this.memberAll({contactAlias: queryArg})
-      if (nameList) {
-        contactList = contactList.concat(nameList)
-      }
-      if (roomAliasList) {
-        contactList = contactList.concat(roomAliasList)
-      }
-      if (contactAliasList) {
-        contactList = contactList.concat(contactAliasList)
-      }
-      return contactList
+      //
+      // use the following `return` statement to do this job.
+      //
+
+      // const nameList = this.memberAll({name: queryArg})
+      // const roomAliasList = this.memberAll({roomAlias: queryArg})
+      // const contactAliasList = this.memberAll({contactAlias: queryArg})
+
+      // if (nameList) {
+      //   contactList = contactList.concat(nameList)
+      // }
+      // if (roomAliasList) {
+      //   contactList = contactList.concat(roomAliasList)
+      // }
+      // if (contactAliasList) {
+      //   contactList = contactList.concat(contactAliasList)
+      // }
+
+      return ([] as Contact[]).concat(
+        this.memberAll({name: queryArg}),
+        this.memberAll({roomAlias: queryArg}),
+        this.memberAll({contactAlias: queryArg}),
+      )
     }
 
+    /**
+     * We got filter parameter
+     */
     log.silly('Room', 'member({ %s })',
                          Object.keys(queryArg)
                                 .map(k => `${k}: ${queryArg[k]}`)
@@ -437,7 +449,7 @@ export class Room extends EventEmitter implements Sayable {
 
     if (!this.obj || !this.obj.memberList) {
       log.warn('Room', 'member() not ready')
-      return null
+      return []
     }
     let filterKey            = Object.keys(queryArg)[0]
     /**
@@ -470,12 +482,12 @@ export class Room extends EventEmitter implements Sayable {
     if (idList.length) {
       return idList.map(id => Contact.load(id))
     } else {
-      return null
+      return []
     }
   }
 
-  public member(filter: MemberQueryFilter): Contact | null
   public member(name: string): Contact | null
+  public member(filter: MemberQueryFilter): Contact | null
 
   public member(queryArg: MemberQueryFilter | string): Contact | null {
     log.verbose('Room', 'member(%s)', JSON.stringify(queryArg))
