@@ -12,7 +12,7 @@ import {
 }                     from './message'
 import UtilLib        from './util-lib'
 
-type RoomObj = {
+interface RoomObj {
   id:               string,
   encryId:          string,
   topic:            string,
@@ -25,13 +25,13 @@ type RoomObj = {
 
 type NameType = 'name' | 'alias' | 'roomAlias' | 'contactAlias'
 
-export type RoomRawMember = {
+export interface RoomRawMember {
   UserName:     string,
   NickName:     string,
   DisplayName:  string,
 }
 
-export type RoomRawObj = {
+export interface RoomRawObj {
   UserName:         string,
   EncryChatRoomId:  string,
   NickName:         string,
@@ -45,11 +45,11 @@ export type RoomEventName = 'join'
                           | 'topic'
                           | 'EVENT_PARAM_ERROR'
 
-export type RoomQueryFilter = {
+export interface RoomQueryFilter {
   topic: string | RegExp,
 }
 
-export type MemberQueryFilter = {
+export interface MemberQueryFilter {
   name?:         string,
   alias?:        string,
   roomAlias?:    string,
@@ -95,8 +95,8 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   private async readyAllMembers(memberList: RoomRawMember[]): Promise<void> {
-    for (let member of memberList) {
-      let contact = Contact.load(member.UserName)
+    for (const member of memberList) {
+      const contact = Contact.load(member.UserName)
       await contact.ready()
     }
     return
@@ -232,7 +232,7 @@ export class Room extends EventEmitter implements Sayable {
     if (memberList && memberList.map) {
       memberList.forEach(member => {
         let tmpName: string
-        let contact = Contact.load(member.UserName)
+        const contact = Contact.load(member.UserName)
         switch (parseContent) {
           case 'name':
             tmpName = contact.name()
@@ -386,7 +386,7 @@ export class Room extends EventEmitter implements Sayable {
   public owner(): Contact | null {
     const ownerUin = this.obj && this.obj.ownerUin
 
-    let user = Config.puppetInstance()
+    const user = Config.puppetInstance()
                       .user
 
     if (user && user.get('uin') === ownerUin) {
@@ -443,7 +443,7 @@ export class Room extends EventEmitter implements Sayable {
     /**
      * ISSUE #64 emoji need to be striped
      */
-    let filterValue: string  = UtilLib.stripEmoji(queryArg[filterKey])
+    const filterValue: string  = UtilLib.stripEmoji(queryArg[filterKey])
 
     const keyMap = {
       name:         'nameMap',

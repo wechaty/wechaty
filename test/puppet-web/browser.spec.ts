@@ -121,7 +121,7 @@ test('Cookie save/load', async t => {
     const EXPECTED_NAME_REGEX = new RegExp('^' + EXPECTED_COOKIE.name + '$')
 
     await browser.driver.manage().deleteAllCookies()
-    let cookies = await browser.driver.manage().getCookies()
+    const cookies = await browser.driver.manage().getCookies()
     t.is(cookies.length, 0, 'should no cookie after deleteAllCookies()')
 
     await browser.addCookie(EXPECTED_COOKIE)

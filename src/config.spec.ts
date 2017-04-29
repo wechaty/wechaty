@@ -58,7 +58,7 @@ test('puppetInstance()', t => {
   const mockPuppet = EXPECTED
 
   Config.puppetInstance(mockPuppet)
-  let instance = Config.puppetInstance()
+  const instance = Config.puppetInstance()
   t.deepEqual(instance, EXPECTED, 'should equal with initialized data')
 
   Config.puppetInstance(null)

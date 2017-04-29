@@ -22,7 +22,7 @@ import { Room }           from './room'
 import { StateMonitor }   from './state-monitor'
 import { UtilLib }        from './util-lib'
 
-export type PuppetSetting = {
+export interface PuppetSetting {
   head?:    HeadName,
   puppet?:  PuppetName,
   profile?: string,

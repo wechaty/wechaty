@@ -162,13 +162,13 @@ export type WatchdogFoodName = 'HEARTBEAT'
                               | 'POISON'
                               | 'SCAN'
 
-export type WatchdogFood = {
+export interface WatchdogFood {
   data: any,
   timeout?: number,  // millisecond
   type?: WatchdogFoodName,
 }
 
-export type ScanInfo = {
+export interface ScanInfo {
   url: string,
   code: number,
 }
@@ -176,7 +176,7 @@ export type ScanInfo = {
 /**
  * from Message
  */
-export type RecommendInfo = {
+export interface RecommendInfo {
   UserName:   string,
   NickName:   string,  // display_name
   Content:    string,  // request message

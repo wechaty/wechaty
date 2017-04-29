@@ -27,7 +27,7 @@ import {
 }                     from './browser-cookie'
 import BrowserDriver  from './browser-driver'
 
-export type BrowserSetting = {
+export interface BrowserSetting {
   head:         HeadName,
   sessionFile?: string,
 }
@@ -289,7 +289,7 @@ export class Browser extends EventEmitter {
             throw e
         }
 
-        let matchRegex = new RegExp(browserRe, 'i')
+        const matchRegex = new RegExp(browserRe, 'i')
         const pids: number[] = children.filter(child => {
           // https://github.com/indexzero/ps-tree/issues/18
           if (matchRegex.test('' + child.COMMAND + child.COMM)) {

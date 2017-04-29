@@ -23,7 +23,7 @@ import UtilLib    from './util-lib'
 import PuppetWeb  from './puppet-web/puppet-web'
 import Bridge     from './puppet-web/bridge'
 
-export type MsgRawObj = {
+export interface MsgRawObj {
   MsgId:            string,
 
   MMActualSender:   string, // getUserContact(message.MMActualSender,message.MMPeerUserName).isContact()
@@ -121,7 +121,7 @@ export type MsgRawObj = {
   RecommendInfo?:   RecommendInfo,
 }
 
-export type MsgObj = {
+export interface MsgObj {
   id:       string,
   type:     MsgType,
   from:     string,
@@ -141,7 +141,7 @@ export type MsgObj = {
 
 // export type MessageTypeValue = 1 | 3 | 34 | 37 | 40 | 42 | 43 | 47 | 48 | 49 | 50 | 51 | 52 | 53 | 62 | 9999 | 10000 | 10002
 
-export type MsgTypeMap = {
+export interface MsgTypeMap {
   [index: string]: string|number,
   //   MessageTypeName:  MessageTypeValue
   // , MessageTypeValue: MessageTypeName

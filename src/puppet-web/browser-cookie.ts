@@ -22,7 +22,7 @@ import BrowserDriver  from './browser-driver'
  * with the latest 3.0 version of selenium.
  * 201610 zixia
  */
-export type CookieType = {
+export interface CookieType {
   [index: string]: string | number | boolean,
   name: string,
   value: string,
@@ -148,7 +148,7 @@ export class BrowserCookie {
 
     await new Promise((resolve, reject) => {
       // let ps = arrify(this.add(cookies))
-      let ps = [].concat(this.add(cookies) as any || [])
+      const ps = [].concat(this.add(cookies) as any || [])
 
       Promise.all(ps)
       .then(() => {
@@ -222,7 +222,7 @@ export class BrowserCookie {
     // if (this.browser.dead()) { return Promise.reject(new Error('addCookies() - browser dead'))}
 
     if (Array.isArray(cookie)) {
-      for (let c of cookie) {
+      for (const c of cookie) {
         await this.add(c)
       }
       return

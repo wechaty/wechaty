@@ -20,7 +20,7 @@ import {
 import { StateMonitor } from './state-monitor'
 import { Wechaty }      from './wechaty'
 
-export type IoSetting = {
+export interface IoSetting {
   wechaty:    Wechaty,
   token:      string,
   apihost?:   string,
@@ -39,7 +39,7 @@ type IoEventName =  'botie'
                   | 'sys'
                   | 'shutdown'
 
-type IoEvent = {
+interface IoEvent {
   name:     IoEventName,
   payload:  any,
 }

@@ -11,7 +11,7 @@ import { UtilLib }    from './util-lib'
 import { Wechaty }    from './wechaty'
 import { log }        from './brolog-env'
 
-type ContactObj = {
+interface ContactObj {
   address:    string,
   city:       string,
   id:         string,
@@ -29,7 +29,7 @@ type ContactObj = {
   special:    boolean,
 }
 
-export type ContactRawObj = {
+export interface ContactRawObj {
   Alias:        string,
   City:         string,
   NickName:     string,
@@ -56,7 +56,7 @@ export enum Gender {
   Female  = 2,
 }
 
-export type ContactQueryFilter = {
+export interface ContactQueryFilter {
   name?:   string | RegExp,
   alias?:  string | RegExp,
   // DEPRECATED
