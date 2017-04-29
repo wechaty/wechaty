@@ -428,8 +428,8 @@ export class Room extends EventEmitter implements Sayable {
       // }
 
       return ([] as Contact[]).concat(
-        this.memberAll({name: queryArg}),
-        this.memberAll({roomAlias: queryArg}),
+        this.memberAll({name:         queryArg}),
+        this.memberAll({roomAlias:    queryArg}),
         this.memberAll({contactAlias: queryArg}),
       )
     }
