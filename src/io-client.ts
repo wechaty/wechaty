@@ -16,11 +16,13 @@
  */
 // import Brolog   from 'brolog'
 
-import { Config }       from './config'
+import {
+  Config,
+  log as globalLog,
+}                       from './config'
 import { Io }           from './io'
 import { StateMonitor } from './state-monitor'
 import { Wechaty }      from './wechaty'
-import { Brolog }       from './brolog-env'
 
 export class IoClient {
 
@@ -31,7 +33,7 @@ export class IoClient {
 
   constructor(
     private token: string = Config.token || Config.DEFAULT_TOKEN,
-    private log: any = new Brolog(),
+    private log: any = globalLog,
   ) {
     if (!log) {
       const e = new Error('constructor() log(npmlog/brolog) must be set')
