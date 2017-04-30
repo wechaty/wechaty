@@ -11,7 +11,7 @@
     "DEFAULT_PORT": 8788,
     "DEFAULT_PROTOCOL": "io|0.0.1",
     "DEFAULT_TOKEN": "WECHATY_IO_TOKEN",
-    "DEFAULT_APIHOST": "api.wechaty.io",
+    "DEFAULT_APIHOST": "api.chatie.io",
     "CMD_CHROMIUM": "/wechaty/bin/xvfb-chromium"
   },
   "scripts": {
