@@ -438,9 +438,9 @@ export class Room extends EventEmitter implements Sayable {
      * We got filter parameter
      */
     log.silly('Room', 'member({ %s })',
-                         Object.keys(queryArg)
-                                .map(k => `${k}: ${queryArg[k]}`)
-                                .join(', '),
+                      Object.keys(queryArg)
+                            .map(k => `${k}: ${queryArg[k]}`)
+                            .join(', '),
             )
 
     if (Object.keys(queryArg).length !== 1) {
@@ -458,10 +458,10 @@ export class Room extends EventEmitter implements Sayable {
     const filterValue: string  = UtilLib.stripEmoji(queryArg[filterKey])
 
     const keyMap = {
-      name:         'nameMap',
-      roomAlias:    'roomAliasMap',
-      alias:        'roomAliasMap',
       contactAlias: 'contactAliasMap',
+      name:         'nameMap',
+      alias:        'roomAliasMap',
+      roomAlias:    'roomAliasMap',
     }
 
     filterKey = keyMap[filterKey]
