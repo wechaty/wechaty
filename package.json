@@ -105,6 +105,7 @@
   "dependencies": {
     "@types/selenium-webdriver": "3.0.3",
     "@types/socket.io": "1.4.29",
+    "bl": "^1.2.0",
     "body-parser": "1.17.1",
     "brolog": "1.0.6",
     "chromedriver": "^2.29.0",
@@ -114,9 +115,8 @@
     "moment": "2.18.1",
     "ps-tree": "^1.1.0",
     "retry-promise": "1.0.0",
-    "socket.io": "1.7.3",
     "selenium-webdriver": "3.4.0",
-    "bl": "^1.2.0",
+    "socket.io": "1.7.3",
     "ws": "2.3.1"
   },
   "devDependencies": {
