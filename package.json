@@ -131,7 +131,7 @@
     "apiai": "4.0.2",
     "ava": "0.18.2",
     "babel-eslint": "7.2.3",
-    "check-node-version": "2.0.1",
+    "check-node-version": "2.1.0",
     "codelyzer": "^3.0.1",
     "cookie-parser": "1.4.3",
     "coveralls": "2.13.1",
