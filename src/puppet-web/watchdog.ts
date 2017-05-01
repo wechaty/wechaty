@@ -173,7 +173,7 @@ function memoryCheck(this: PuppetWeb, minMegabyte: number = 4) {
 function monitorScan(this: PuppetWeb, type: WatchdogFoodName) {
   log.silly('PuppetWebWatchdog', 'monitorScan(%s)', type)
 
-  const scanTimeout = 10 * 60 * 1000 // 10 mins
+  const scanTimeout = 4 * 60 * 1000 // 4 mins (before is 10 mins)
 
   if (type === 'SCAN') { // watchDog was feed a 'scan' data
     this.lastScanEventTime = Date.now()
