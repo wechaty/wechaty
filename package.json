@@ -105,7 +105,7 @@
   "dependencies": {
     "@types/selenium-webdriver": "3.0.3",
     "@types/socket.io": "1.4.29",
-    "bl": "^1.2.0",
+    "bl": "^1.2.1",
     "body-parser": "1.17.1",
     "brolog": "1.0.15",
     "chromedriver": "^2.29.0",
