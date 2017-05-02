@@ -6,7 +6,6 @@
  * https://github.com/wechaty/wechaty
  *
  */
-import * as moment from 'moment'
 import * as fs     from 'fs'
 import * as path   from 'path'
 
@@ -767,14 +766,7 @@ export class MediaMessage extends Message {
       throw new Error('no rawObj')
     }
 
-    const objFileName = this.rawObj.FileName || this.rawObj.MediaId || this.rawObj.MsgId
-
-    let filename  = moment().format('YYYY-MM-DD HH:mm:ss')
-                    + ' #' + this._counter
-                    + ' ' + this.getSenderString()
-                    + ' ' + objFileName
-
-    filename = filename.replace(/ /g, '_')
+    let filename = this.rawObj.FileName || this.rawObj.MediaId || this.rawObj.MsgId
 
     const re = /\.[a-z0-9]{1,7}$/i
     if (!re.test(filename)) {
