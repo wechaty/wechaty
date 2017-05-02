@@ -620,7 +620,7 @@ Message.initType()
 
 export class MediaMessage extends Message {
   private bridge: Bridge
-  private fileStream: NodeJS.ReadableStream
+  private filePath: string
   private fileName: string // 'music'
   private fileExt: string // 'mp3'
 
@@ -630,7 +630,7 @@ export class MediaMessage extends Message {
   constructor(rawObjOrFilePath: Object | string) {
     if (typeof rawObjOrFilePath === 'string') {
       super()
-      this.fileStream = fs.createReadStream(rawObjOrFilePath)
+      this.filePath = rawObjOrFilePath
 
       const pathInfo = path.parse(rawObjOrFilePath)
       this.fileName = pathInfo.name
@@ -785,8 +785,8 @@ export class MediaMessage extends Message {
   // }
 
   public async readyStream(): Promise<NodeJS.ReadableStream> {
-    if (this.fileStream)
-      return this.fileStream
+    if (this.filePath)
+      return fs.createReadStream(this.filePath)
 
     try {
       await this.ready()
