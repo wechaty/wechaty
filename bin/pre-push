@@ -18,7 +18,7 @@ set -e
 npm run lint
 
 [ -z "$CYGWIN" ] && {
-  git rebase
+  # git rebase
   npm version patch
   WECHATY_INNER_PRE_HOOK=1 git push
 
