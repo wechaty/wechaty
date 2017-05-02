@@ -11,6 +11,8 @@ const psTree = require('ps-tree')
 
 import { EventEmitter } from 'events'
 
+import { StateSwitch }  from 'state-switch'
+
 /* tslint:disable:no-var-requires */
 const retryPromise  = require('retry-promise').default // https://github.com/olalonde/retry-promise
 
@@ -18,7 +20,6 @@ import {
   Config,
   HeadName,
 }                     from '../config'
-import StateMonitor   from '../state-monitor'
 import log            from '../brolog-env'
 
 import {
@@ -39,7 +40,7 @@ export class Browser extends EventEmitter {
 
   public hostname: string
 
-  public state = new StateMonitor<'open', 'close'>('Browser', 'close')
+  public state = new StateSwitch<'open', 'close'>('Browser', 'close', log)
 
   constructor(private setting: BrowserSetting = {
     head: Config.head,

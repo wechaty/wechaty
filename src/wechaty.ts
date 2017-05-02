@@ -2,6 +2,8 @@ import { EventEmitter } from 'events'
 import * as fs          from 'fs'
 import * as path        from 'path'
 
+import { StateSwitch }  from 'state-switch'
+
 import {
   Config,
   HeadName,
@@ -19,7 +21,6 @@ import {
 import { Puppet }         from './puppet'
 import { PuppetWeb }      from './puppet-web/'
 import { Room }           from './room'
-import { StateMonitor }   from './state-monitor'
 import { UtilLib }        from './util-lib'
 
 export interface PuppetSetting {
@@ -82,7 +83,7 @@ export class Wechaty extends EventEmitter implements Sayable {
    * the state
    * @private
    */
-  private state = new StateMonitor<'standby', 'ready'>('Wechaty', 'standby')
+  private state = new StateSwitch<'standby', 'ready'>('Wechaty', 'standby', log)
   /**
    * the npmVersion
    * @private
