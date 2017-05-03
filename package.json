@@ -70,7 +70,7 @@
     "email": "zixia@zixia.net",
     "url": "www.zixia.net"
   },
-  "license": "ISC",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/chatie/wechaty/issues"
   },
