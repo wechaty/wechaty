@@ -117,7 +117,7 @@
     "retry-promise": "1.0.0",
     "selenium-webdriver": "3.4.0",
     "socket.io": "1.7.3",
-    "state-switch": "0.1.10",
+    "state-switch": "0.1.11",
     "ws": "2.3.1"
   },
   "devDependencies": {
