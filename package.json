@@ -117,7 +117,7 @@
     "retry-promise": "1.0.0",
     "selenium-webdriver": "3.4.0",
     "socket.io": "1.7.3",
-    "state-switch": "0.1.8",
+    "state-switch": "0.1.10",
     "ws": "2.3.1"
   },
   "devDependencies": {
@@ -153,7 +153,7 @@
     "tslint-jsdoc-rules": "0.1.2",
     "tuling123-client": "0.0.1",
     "typescript": "2.3.2",
-    "yarn": "0.23.3"
+    "yarn": "0.23.4"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [
