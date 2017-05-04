@@ -11,7 +11,7 @@ import { UtilLib }    from './util-lib'
 import { Wechaty }    from './wechaty'
 import { log }        from './brolog-env'
 
-type ContactObj = {
+interface ContactObj {
   address:    string,
   city:       string,
   id:         string,
@@ -29,7 +29,7 @@ type ContactObj = {
   special:    boolean,
 }
 
-export type ContactRawObj = {
+export interface ContactRawObj {
   Alias:        string,
   City:         string,
   NickName:     string,
@@ -56,7 +56,7 @@ export enum Gender {
   Female  = 2,
 }
 
-export type ContactQueryFilter = {
+export interface ContactQueryFilter {
   name?:   string | RegExp,
   alias?:  string | RegExp,
   // DEPRECATED
@@ -146,7 +146,15 @@ export class Contact implements Sayable {
    * const weixin = contact.weixin()
    * ```
    */
-  public weixin()   { return this.obj && this.obj.weixin || null }
+  public weixin(): string | null {
+    const wxId = this.obj && this.obj.weixin || null
+    if (!wxId) {
+      log.info('Contact', `weixin() is not able to always work, it's limited by Tencent API`)
+      log.silly('Contact', 'weixin() If you want to track a contact between sessions, see FAQ at')
+      log.silly('Contact', 'https://github.com/Chatie/wechaty/wiki/FAQ#1-how-to-get-the-permanent-id-for-a-contact')
+    }
+    return wxId
+  }
 
   /**
    * Get the name from a contact

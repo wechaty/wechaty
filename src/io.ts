@@ -11,16 +11,17 @@
  */
 import * as WebSocket from 'ws'
 
+import { StateSwitch }  from 'state-switch'
+
 import {
   Config,
   // WechatyEventName
   log,
 }                   from './config'
 
-import { StateMonitor } from './state-monitor'
 import { Wechaty }      from './wechaty'
 
-export type IoSetting = {
+export interface IoSetting {
   wechaty:    Wechaty,
   token:      string,
   apihost?:   string,
@@ -39,7 +40,7 @@ type IoEventName =  'botie'
                   | 'sys'
                   | 'shutdown'
 
-type IoEvent = {
+interface IoEvent {
   name:     IoEventName,
   payload:  any,
 }
@@ -51,7 +52,7 @@ export class Io {
   private eventBuffer: IoEvent[] = []
   private ws: WebSocket
 
-  private state = new StateMonitor<'online', 'offline'>('Io', 'offline')
+  private state = new StateSwitch<'online', 'offline'>('Io', 'offline', log)
 
   private reconnectTimer: NodeJS.Timer | null
   private reconnectTimeout: number | null

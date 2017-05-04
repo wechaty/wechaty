@@ -52,7 +52,7 @@ Loading... please wait for QrCode Image Url and then scan to login.
 bot
 .on('scan', (url, code) => {
   if (!/201|200/.test(String(code))) {
-    let loginUrl = url.replace(/\/qrcode\//, '/l/')
+    const loginUrl = url.replace(/\/qrcode\//, '/l/')
     QrcodeTerminal.generate(loginUrl)
   }
   console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
@@ -142,7 +142,7 @@ class Talker extends EventEmitter {
 }
 
 /* tslint:disable:variable-name */
-let Talkers: Talker[] = []
+const Talkers: Talker[] = []
 
 function talk(m) {
   const fromId  = m.from().id

@@ -29,7 +29,7 @@ process.on('unhandledRejection', (reason, p) => {
  *  when `PuppteWeb.init()` and `PuppteWeb.quit()`
  */
 test.serial('login/logout events', async t => {
-  let pw = new PuppetWeb()
+  const pw = new PuppetWeb()
   t.truthy(pw, 'should instantiated a PuppetWeb')
 
   Config.puppetInstance(pw)
@@ -56,7 +56,7 @@ test.serial('login/logout events', async t => {
 })
 
 test.serial('server/browser socketio ding', async t => {
-  let pw = new PuppetWeb()
+  const pw = new PuppetWeb()
   t.truthy(pw, 'should instantiated a PuppetWeb')
 
   Config.puppetInstance(pw)

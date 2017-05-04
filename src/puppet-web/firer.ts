@@ -209,11 +209,11 @@ async function checkRoomJoin(m: Message): Promise<void> {
       await room.refresh()
       let inviteeListAllDone = true
 
-      for (let i in inviteeList) {
+      for (const i in inviteeList) {
         const loaded = inviteeContactList[i] instanceof Contact
 
         if (!loaded) {
-          let c = room.member(inviteeList[i])
+          const c = room.member(inviteeList[i])
           if (!c) {
             inviteeListAllDone = false
             continue

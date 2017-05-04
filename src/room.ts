@@ -12,7 +12,7 @@ import {
 }                     from './message'
 import UtilLib        from './util-lib'
 
-type RoomObj = {
+interface RoomObj {
   id:               string,
   encryId:          string,
   topic:            string,
@@ -25,13 +25,13 @@ type RoomObj = {
 
 type NameType = 'name' | 'alias' | 'roomAlias' | 'contactAlias'
 
-export type RoomRawMember = {
+export interface RoomRawMember {
   UserName:     string,
   NickName:     string,
   DisplayName:  string,
 }
 
-export type RoomRawObj = {
+export interface RoomRawObj {
   UserName:         string,
   EncryChatRoomId:  string,
   NickName:         string,
@@ -45,11 +45,11 @@ export type RoomEventName = 'join'
                           | 'topic'
                           | 'EVENT_PARAM_ERROR'
 
-export type RoomQueryFilter = {
+export interface RoomQueryFilter {
   topic: string | RegExp,
 }
 
-export type MemberQueryFilter = {
+export interface MemberQueryFilter {
   name?:         string,
   alias?:        string,
   roomAlias?:    string,
@@ -95,8 +95,8 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   private async readyAllMembers(memberList: RoomRawMember[]): Promise<void> {
-    for (let member of memberList) {
-      let contact = Contact.load(member.UserName)
+    for (const member of memberList) {
+      const contact = Contact.load(member.UserName)
       await contact.ready()
     }
     return
@@ -232,7 +232,7 @@ export class Room extends EventEmitter implements Sayable {
     if (memberList && memberList.map) {
       memberList.forEach(member => {
         let tmpName: string
-        let contact = Contact.load(member.UserName)
+        const contact = Contact.load(member.UserName)
         switch (parseContent) {
           case 'name':
             tmpName = contact.name()
@@ -386,7 +386,7 @@ export class Room extends EventEmitter implements Sayable {
   public owner(): Contact | null {
     const ownerUin = this.obj && this.obj.ownerUin
 
-    let user = Config.puppetInstance()
+    const user = Config.puppetInstance()
                       .user
 
     if (user && user.get('uin') === ownerUin) {
@@ -404,31 +404,43 @@ export class Room extends EventEmitter implements Sayable {
    * find member by name | roomAlias(alias) | contactAlias
    * when use memberAll(name:string), return all matched members, including name, roomAlias, contactAlias
    */
-  public memberAll(filter: MemberQueryFilter): Contact[] | null
-  public memberAll(name: string): Contact[] | null
+  public memberAll(name: string): Contact[]
+  public memberAll(filter: MemberQueryFilter): Contact[]
 
-  public memberAll(queryArg: MemberQueryFilter | string): Contact[] | null {
+  public memberAll(queryArg: MemberQueryFilter | string): Contact[] {
     if (typeof queryArg === 'string') {
-      let contactList: Contact[] = []
-      const nameList = this.memberAll({name: queryArg})
-      const roomAliasList = this.memberAll({roomAlias: queryArg})
-      const contactAliasList = this.memberAll({contactAlias: queryArg})
-      if (nameList) {
-        contactList = contactList.concat(nameList)
-      }
-      if (roomAliasList) {
-        contactList = contactList.concat(roomAliasList)
-      }
-      if (contactAliasList) {
-        contactList = contactList.concat(contactAliasList)
-      }
-      return contactList
+      //
+      // use the following `return` statement to do this job.
+      //
+
+      // const nameList = this.memberAll({name: queryArg})
+      // const roomAliasList = this.memberAll({roomAlias: queryArg})
+      // const contactAliasList = this.memberAll({contactAlias: queryArg})
+
+      // if (nameList) {
+      //   contactList = contactList.concat(nameList)
+      // }
+      // if (roomAliasList) {
+      //   contactList = contactList.concat(roomAliasList)
+      // }
+      // if (contactAliasList) {
+      //   contactList = contactList.concat(contactAliasList)
+      // }
+
+      return ([] as Contact[]).concat(
+        this.memberAll({name:         queryArg}),
+        this.memberAll({roomAlias:    queryArg}),
+        this.memberAll({contactAlias: queryArg}),
+      )
     }
 
+    /**
+     * We got filter parameter
+     */
     log.silly('Room', 'member({ %s })',
-                         Object.keys(queryArg)
-                                .map(k => `${k}: ${queryArg[k]}`)
-                                .join(', '),
+                      Object.keys(queryArg)
+                            .map(k => `${k}: ${queryArg[k]}`)
+                            .join(', '),
             )
 
     if (Object.keys(queryArg).length !== 1) {
@@ -437,19 +449,19 @@ export class Room extends EventEmitter implements Sayable {
 
     if (!this.obj || !this.obj.memberList) {
       log.warn('Room', 'member() not ready')
-      return null
+      return []
     }
     let filterKey            = Object.keys(queryArg)[0]
     /**
      * ISSUE #64 emoji need to be striped
      */
-    let filterValue: string  = UtilLib.stripEmoji(queryArg[filterKey])
+    const filterValue: string  = UtilLib.stripEmoji(queryArg[filterKey])
 
     const keyMap = {
-      name:         'nameMap',
-      roomAlias:    'roomAliasMap',
-      alias:        'roomAliasMap',
       contactAlias: 'contactAliasMap',
+      name:         'nameMap',
+      alias:        'roomAliasMap',
+      roomAlias:    'roomAliasMap',
     }
 
     filterKey = keyMap[filterKey]
@@ -470,12 +482,12 @@ export class Room extends EventEmitter implements Sayable {
     if (idList.length) {
       return idList.map(id => Contact.load(id))
     } else {
-      return null
+      return []
     }
   }
 
-  public member(filter: MemberQueryFilter): Contact | null
   public member(name: string): Contact | null
+  public member(filter: MemberQueryFilter): Contact | null
 
   public member(queryArg: MemberQueryFilter | string): Contact | null {
     log.verbose('Room', 'member(%s)', JSON.stringify(queryArg))
@@ -496,6 +508,10 @@ export class Room extends EventEmitter implements Sayable {
 
     if (!this.obj || !this.obj.memberList || this.obj.memberList.length < 1) {
       log.warn('Room', 'memberList() not ready')
+      log.verbose('Room', 'memberList() trying call refresh() to update')
+      this.refresh().then(() => {
+        log.verbose('Room', 'memberList() refresh() done')
+      })
       return []
     }
     return this.obj.memberList

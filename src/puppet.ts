@@ -1,14 +1,16 @@
 import { EventEmitter } from 'events'
 
+import { StateSwitch }  from 'state-switch'
+
 import {
   Sayable,
+  log,
 }                       from './config'
 import Contact          from './contact'
 import {
   Message,
   MediaMessage,
 }                       from './message'
-import StateMonitor     from './state-monitor'
 import Room             from './room'
 
 // type ContactGetterFunc = {
@@ -23,7 +25,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public user:    Contact | null
   public abstract getContact(id: string): Promise<any>
 
-  public state = new StateMonitor<'live', 'dead'>('Puppet', 'dead')
+  public state = new StateSwitch<'live', 'dead'>('Puppet', 'dead', log)
 
   constructor() {
     super()

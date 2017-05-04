@@ -47,7 +47,7 @@ const enum UploadMediaType {
   AUDIO = 3,
   ATTACHMENT = 4,
 }
-export type PuppetWebSetting = {
+export interface PuppetWebSetting {
   head?:    HeadName,
   profile?: string,
 }
@@ -312,8 +312,8 @@ export class PuppetWeb extends Puppet {
 
   private async getBaseRequest(): Promise<any> {
     try {
-      let json = await this.bridge.getBaseRequest();
-      let obj = JSON.parse(json)
+      const json = await this.bridge.getBaseRequest();
+      const obj = JSON.parse(json)
       return obj.BaseRequest
     } catch (e) {
       log.error('PuppetWeb', 'send() exception: %s', e.message)
@@ -325,10 +325,10 @@ export class PuppetWeb extends Puppet {
     if (!mediaMessage)
       throw new Error('require mediaMessage')
 
-    let filename = mediaMessage.filename()
-    let ext = mediaMessage.ext()
+    const filename = mediaMessage.filename()
+    const ext = mediaMessage.ext()
 
-    let contentType = UtilLib.mime(ext)
+    const contentType = UtilLib.mime(ext)
     let mediatype: MediaType
 
     switch (ext) {
@@ -346,8 +346,8 @@ export class PuppetWeb extends Puppet {
         mediatype = 'doc'
     }
 
-    let readStream = await mediaMessage.readyStream()
-    let buffer = <Buffer>await new Promise((resolve, reject) => {
+    const readStream = await mediaMessage.readyStream()
+    const buffer = <Buffer>await new Promise((resolve, reject) => {
       readStream.pipe(bl((err, data) => {
         if (err) reject(err)
         else resolve(data)
@@ -360,18 +360,18 @@ export class PuppetWeb extends Puppet {
     if (mediatype === 'video' && buffer.length > videoMaxSize)
       throw new Error(`Sending video files is not allowed to exceed ${videoMaxSize / 1024 / 1024}MB`)
 
-    let md5 = UtilLib.md5(buffer)
+    const md5 = UtilLib.md5(buffer)
 
-    let baseRequest = await this.getBaseRequest()
-    let passTicket = await this.bridge.getPassticket()
-    let uploadMediaUrl = await this.bridge.getUploadMediaUrl()
-    let cookie = await this.browser.readCookie()
-    let first = cookie.find(c => c.name === 'webwx_data_ticket')
-    let webwxDataTicket = first && first.value
-    let size = buffer.length
+    const baseRequest = await this.getBaseRequest()
+    const passTicket = await this.bridge.getPassticket()
+    const uploadMediaUrl = await this.bridge.getUploadMediaUrl()
+    const cookie = await this.browser.readCookie()
+    const first = cookie.find(c => c.name === 'webwx_data_ticket')
+    const webwxDataTicket = first && first.value
+    const size = buffer.length
 
-    let hostname = this.browser.hostname
-    let uploadMediaRequest = {
+    const hostname = this.browser.hostname
+    const uploadMediaRequest = {
       BaseRequest: baseRequest,
       FileMd5: md5,
       FromUserName: this.self().id,
@@ -384,7 +384,7 @@ export class PuppetWeb extends Puppet {
       TotalLen: size,
     }
 
-    let formData = {
+    const formData = {
       id: 'WU_FILE_1',
       name: filename,
       type: contentType,
@@ -404,7 +404,7 @@ export class PuppetWeb extends Puppet {
       },
     }
 
-    let mediaId = await new Promise((resolve, reject) => {
+    const mediaId = await new Promise((resolve, reject) => {
       request.post({
         url: uploadMediaUrl + '?f=json',
         headers: {
@@ -415,7 +415,7 @@ export class PuppetWeb extends Puppet {
       }, function (err, res, body) {
         if (err) reject(err)
         else {
-          let obj = JSON.parse(body)
+          const obj = JSON.parse(body)
           resolve(obj.MediaId)
         }
       })
@@ -441,7 +441,7 @@ export class PuppetWeb extends Puppet {
     }
 
     const mediaId = await this.uploadMedia(message, destinationId)
-    let msgType = UtilLib.msgType(message.ext())
+    const msgType = UtilLib.msgType(message.ext())
 
     log.silly('PuppetWeb', 'send() destination: %s, mediaId: %s)',
       destinationId,

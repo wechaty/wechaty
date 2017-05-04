@@ -16,7 +16,7 @@ import {
 const PROFILE = 'unit-test-session.wechaty.json'
 
 test('Puppet Web Event smoking test', async t => {
-  let pw = new PuppetWeb({profile: PROFILE})
+  const pw = new PuppetWeb({profile: PROFILE})
   t.truthy(pw, 'should instantiated a PuppetWeb')
 
   try {

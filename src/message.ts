@@ -6,7 +6,6 @@
  * https://github.com/wechaty/wechaty
  *
  */
-import * as moment from 'moment'
 import * as fs     from 'fs'
 import * as path   from 'path'
 
@@ -23,7 +22,7 @@ import UtilLib    from './util-lib'
 import PuppetWeb  from './puppet-web/puppet-web'
 import Bridge     from './puppet-web/bridge'
 
-export type MsgRawObj = {
+export interface MsgRawObj {
   MsgId:            string,
 
   MMActualSender:   string, // getUserContact(message.MMActualSender,message.MMPeerUserName).isContact()
@@ -121,7 +120,7 @@ export type MsgRawObj = {
   RecommendInfo?:   RecommendInfo,
 }
 
-export type MsgObj = {
+export interface MsgObj {
   id:       string,
   type:     MsgType,
   from:     string,
@@ -141,7 +140,7 @@ export type MsgObj = {
 
 // export type MessageTypeValue = 1 | 3 | 34 | 37 | 40 | 42 | 43 | 47 | 48 | 49 | 50 | 51 | 52 | 53 | 62 | 9999 | 10000 | 10002
 
-export type MsgTypeMap = {
+export interface MsgTypeMap {
   [index: string]: string|number,
   //   MessageTypeName:  MessageTypeValue
   // , MessageTypeValue: MessageTypeName
@@ -621,7 +620,7 @@ Message.initType()
 
 export class MediaMessage extends Message {
   private bridge: Bridge
-  private fileStream: NodeJS.ReadableStream
+  private filePath: string
   private fileName: string // 'music'
   private fileExt: string // 'mp3'
 
@@ -631,7 +630,7 @@ export class MediaMessage extends Message {
   constructor(rawObjOrFilePath: Object | string) {
     if (typeof rawObjOrFilePath === 'string') {
       super()
-      this.fileStream = fs.createReadStream(rawObjOrFilePath)
+      this.filePath = rawObjOrFilePath
 
       const pathInfo = path.parse(rawObjOrFilePath)
       this.fileName = pathInfo.name
@@ -767,14 +766,7 @@ export class MediaMessage extends Message {
       throw new Error('no rawObj')
     }
 
-    const objFileName = this.rawObj.FileName || this.rawObj.MediaId || this.rawObj.MsgId
-
-    let filename  = moment().format('YYYY-MM-DD HH:mm:ss')
-                    + ' #' + this._counter
-                    + ' ' + this.getSenderString()
-                    + ' ' + objFileName
-
-    filename = filename.replace(/ /g, '_')
+    let filename = this.rawObj.FileName || this.rawObj.MediaId || this.rawObj.MsgId
 
     const re = /\.[a-z0-9]{1,7}$/i
     if (!re.test(filename)) {
@@ -793,8 +785,8 @@ export class MediaMessage extends Message {
   // }
 
   public async readyStream(): Promise<NodeJS.ReadableStream> {
-    if (this.fileStream)
-      return this.fileStream
+    if (this.filePath)
+      return fs.createReadStream(this.filePath)
 
     try {
       await this.ready()

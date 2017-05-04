@@ -18,7 +18,7 @@ const doctor = new Doctor()
 
 async function main() {
   let ipcTestResult: string
-  let chromedriverVersion = doctor.chromedriverVersion()
+  const chromedriverVersion = doctor.chromedriverVersion()
   try {
     await doctor.testTcp()
     ipcTestResult = 'PASS'

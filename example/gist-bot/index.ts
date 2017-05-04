@@ -30,7 +30,7 @@ Wechaty.instance({ profile: Config.DEFAULT_PROFILE })
 
 .on('scan', (url, code) => {
   if (!/201|200/.test(String(code))) {
-    let loginUrl = url.replace(/\/qrcode\//, '/l/')
+    const loginUrl = url.replace(/\/qrcode\//, '/l/')
     require('qrcode-terminal').generate(loginUrl)
   }
   console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)

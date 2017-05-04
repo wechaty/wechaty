@@ -34,7 +34,7 @@ test('retryPromise()', async t => {
 
   const retryPromise = require('retry-promise').default
 
-  let delay500 = delayedFactory(500)
+  const delay500 = delayedFactory(500)
   await retryPromise({ max: 1, backoff: 1 }, function() {
     return delay500()
   }).catch(e => {
@@ -43,7 +43,7 @@ test('retryPromise()', async t => {
   t.true(thenSpy.withArgs(EXPECTED_REJECT).calledOnce, 'should got EXPECTED_REJECT when wait not enough')
 
   thenSpy.reset()
-  let anotherDelay50 = delayedFactory(50)
+  const anotherDelay50 = delayedFactory(50)
   await retryPromise({ max: 6, backoff: 10 }, function() {
     return anotherDelay50()
   })

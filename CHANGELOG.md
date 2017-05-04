@@ -2,20 +2,30 @@
 
 ## [Unreleased](https://github.com/chatie/wechaty/tree/HEAD)
 
-[Full Changelog](https://github.com/chatie/wechaty/compare/v0.7.0...HEAD)
+[Full Changelog](https://github.com/chatie/wechaty/compare/v0.8.2...HEAD)
 
 **Implemented enhancements:**
 
+- License Change: from ISC to Apache-2.0 [\#474](https://github.com/Chatie/wechaty/issues/474)
+
+## [v0.8.2](https://github.com/chatie/wechaty/tree/v0.8.2) (2017-05-03)
+[Full Changelog](https://github.com/chatie/wechaty/compare/v0.7.0...v0.8.2)
+
+**Implemented enhancements:**
+
+- Promote StateMonitor to a solo NPM module: StateSwitch [\#466](https://github.com/Chatie/wechaty/issues/466)
 - Display detailed error trace when an error is caught in async  [\#360](https://github.com/Chatie/wechaty/issues/360)
 - Room.find\({topic: topic}\) should allowed to return null [\#291](https://github.com/Chatie/wechaty/issues/291)
 - add `room-bot-leave` event [\#250](https://github.com/Chatie/wechaty/issues/250)
 - Prepare to rename the nick/remark/display for contact/room [\#217](https://github.com/Chatie/wechaty/issues/217)
+- \[new feature\] add function message.mention\(\) [\#216](https://github.com/Chatie/wechaty/issues/216)
 - \[new feature\] set bot's nickname in the group [\#201](https://github.com/Chatie/wechaty/issues/201)
 - \[feature request\] fire `room-join` when someone joins from a QR Code [\#155](https://github.com/Chatie/wechaty/issues/155)
 - \#4 send image/video [\#337](https://github.com/Chatie/wechaty/pull/337) ([mukaiu](https://github.com/mukaiu))
 
 **Fixed bugs:**
 
+- Reuse MediaMessage upload fail.Can be allowed MediaMessage reuse？ [\#439](https://github.com/Chatie/wechaty/issues/439)
 - Room.member\(\) cannot find contact correctly [\#365](https://github.com/Chatie/wechaty/issues/365)
 - Room.alias\(\) should return null if we have not set the alias in the room  [\#283](https://github.com/Chatie/wechaty/issues/283)
 - Cannot read property 'Symbol\(Symbol.iterator\)' of undefined [\#273](https://github.com/Chatie/wechaty/issues/273)
@@ -28,19 +38,26 @@
 
 **Closed issues:**
 
+- An in-range update of state-switch is breaking the build 🚨 [\#468](https://github.com/Chatie/wechaty/issues/468)
+- An in-range update of state-switch is breaking the build 🚨 [\#467](https://github.com/Chatie/wechaty/issues/467)
+- Always getSession timeout [\#463](https://github.com/Chatie/wechaty/issues/463)
+- how to create more bots at once [\#460](https://github.com/Chatie/wechaty/issues/460)
+- An in-range update of bl is breaking the build 🚨 [\#459](https://github.com/Chatie/wechaty/issues/459)
 - how do we get avatar link? [\#424](https://github.com/Chatie/wechaty/issues/424)
+- can't run the example [\#423](https://github.com/Chatie/wechaty/issues/423)
 - 有没有查找好友的方法？ [\#411](https://github.com/Chatie/wechaty/issues/411)
 - ding-dong-bot-ts cannot run normally on Mac [\#410](https://github.com/Chatie/wechaty/issues/410)
 - Failed due to EAI\_AGAIN registry.yarnpkg.com:443 [\#408](https://github.com/Chatie/wechaty/issues/408)
 - cannot remark friend in centos system [\#406](https://github.com/Chatie/wechaty/issues/406)
 - MediaMessage in ding-dong-bot example can not be create [\#399](https://github.com/Chatie/wechaty/issues/399)
-- wechaty can auto receive on account. [\#398](https://github.com/Chatie/wechaty/issues/398)
+- wechaty can auto receive money\(red envolop/transfer\) on account. [\#398](https://github.com/Chatie/wechaty/issues/398)
 - An in-range update of chromedriver is breaking the build 🚨 [\#395](https://github.com/Chatie/wechaty/issues/395)
 - \[bug\] room.say\(\) return contact's alias when bot set alias for some one [\#394](https://github.com/Chatie/wechaty/issues/394)
 - `Room.fresh\(\)`not work; `Room.alias\(\)`returns null [\#391](https://github.com/Chatie/wechaty/issues/391)
 - should add`phantomjs-prebuilt` in package.json [\#385](https://github.com/Chatie/wechaty/issues/385)
 - error on room join: TypeError: room.topic is not a function [\#383](https://github.com/Chatie/wechaty/issues/383)
 - problem starting docker container . SyntaxError: Unexpected token function [\#352](https://github.com/Chatie/wechaty/issues/352)
+- \[discuss\] Rename Wechaty to Chatie? [\#346](https://github.com/Chatie/wechaty/issues/346)
 - cannot send images / this.puppet.getBaseRequest is not a function [\#338](https://github.com/Chatie/wechaty/issues/338)
 - Some strange log warn [\#336](https://github.com/Chatie/wechaty/issues/336)
 - run bot in server,about 1 hour ago ,the process will be killed [\#330](https://github.com/Chatie/wechaty/issues/330)
@@ -56,15 +73,25 @@
 
 **Merged pull requests:**
 
+- Lazy to create a stream [\#470](https://github.com/Chatie/wechaty/pull/470) ([mukaiu](https://github.com/mukaiu))
+- chore\(package\): update state-switch to version 0.1.7 [\#469](https://github.com/Chatie/wechaty/pull/469) ([zixia](https://github.com/zixia))
+- chore\(package\): update bl to version 1.2.1 [\#462](https://github.com/Chatie/wechaty/pull/462) ([zixia](https://github.com/zixia))
+- fix\(package\): update brolog to version 1.0.13 [\#455](https://github.com/Chatie/wechaty/pull/455) ([zixia](https://github.com/zixia))
+- chore\(package\): update fluent-ffmpeg to version 2.1.2 [\#449](https://github.com/Chatie/wechaty/pull/449) ([zixia](https://github.com/zixia))
+- add magic code for room.say\(\)  when `@bot ` happen [\#440](https://github.com/Chatie/wechaty/pull/440) ([lijiarui](https://github.com/lijiarui))
+- \#3 support send gif [\#438](https://github.com/Chatie/wechaty/pull/438) ([mukaiu](https://github.com/mukaiu))
 - Limit video file size [\#421](https://github.com/Chatie/wechaty/pull/421) ([mukaiu](https://github.com/mukaiu))
 - add room.say\(MediaMessage\) [\#420](https://github.com/Chatie/wechaty/pull/420) ([mukaiu](https://github.com/mukaiu))
+- Fix chrome driver path problem in Windows [\#416](https://github.com/Chatie/wechaty/pull/416) ([xjchengo](https://github.com/xjchengo))
 - fix upload media url error [\#415](https://github.com/Chatie/wechaty/pull/415) ([mukaiu](https://github.com/mukaiu))
+- support brand checking of contact  [\#404](https://github.com/Chatie/wechaty/pull/404) ([JasLin](https://github.com/JasLin))
 - chore\(package\): update chromedriver to version 2.29.0 [\#396](https://github.com/Chatie/wechaty/pull/396) ([zixia](https://github.com/zixia))
 - Add missing %s content for leaver not found error [\#388](https://github.com/Chatie/wechaty/pull/388) ([xinbenlv](https://github.com/xinbenlv))
 - fix jsdoc flush issue \#378 and minor fix on the doc examples [\#380](https://github.com/Chatie/wechaty/pull/380) ([ax4](https://github.com/ax4))
 - Limit the size of the sending file [\#376](https://github.com/Chatie/wechaty/pull/376) ([mukaiu](https://github.com/mukaiu))
 - add room-leave event [\#370](https://github.com/Chatie/wechaty/pull/370) ([lijiarui](https://github.com/lijiarui))
 - room.memberAll\(\) & change room.member\(\) query to 3 types [\#364](https://github.com/Chatie/wechaty/pull/364) ([lijiarui](https://github.com/lijiarui))
+- Add mention [\#362](https://github.com/Chatie/wechaty/pull/362) ([lijiarui](https://github.com/lijiarui))
 - Printout entire error trace when unhandledRejection was caught [\#361](https://github.com/Chatie/wechaty/pull/361) ([xinbenlv](https://github.com/xinbenlv))
 - first item of memberList as owner is confusion [\#358](https://github.com/Chatie/wechaty/pull/358) ([JasLin](https://github.com/JasLin))
 - chore\(package\): update ts-node to version 3.0.2 [\#351](https://github.com/Chatie/wechaty/pull/351) ([zixia](https://github.com/zixia))

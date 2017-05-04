@@ -15,23 +15,25 @@
  * because it will casue a LOOP require ERROR
  */
 // import Brolog   from 'brolog'
+import { StateSwitch } from 'state-switch'
 
-import { Config }       from './config'
+import {
+  Config,
+  log as globalLog,
+}                       from './config'
 import { Io }           from './io'
-import { StateMonitor } from './state-monitor'
 import { Wechaty }      from './wechaty'
-import { Brolog }       from './brolog-env'
 
 export class IoClient {
 
   private wechaty: Wechaty
   private io: Io // XXX keep io `null-able` or not? 20161026
 
-  private state = new StateMonitor<'online', 'offline'>('IoClient', 'offline')
+  private state = new StateSwitch<'online', 'offline'>('IoClient', 'offline', globalLog)
 
   constructor(
     private token: string = Config.token || Config.DEFAULT_TOKEN,
-    private log: any = new Brolog(),
+    private log: any = globalLog,
   ) {
     if (!log) {
       const e = new Error('constructor() log(npmlog/brolog) must be set')
