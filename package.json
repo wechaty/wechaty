@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.8.6",
+  "version": "0.8.7",
   "description": "Wechat for Bot(Personal Account)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -148,7 +148,6 @@
     "shx": "0.2.2",
     "sinon": "2.2.0",
     "sloc": "0.2.0",
-    "tslint": "5.2.0",
     "tslint": "5.1.0",
     "tslint-jsdoc-rules": "0.1.2",
     "tuling123-client": "0.0.1",
