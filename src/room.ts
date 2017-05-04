@@ -508,6 +508,10 @@ export class Room extends EventEmitter implements Sayable {
 
     if (!this.obj || !this.obj.memberList || this.obj.memberList.length < 1) {
       log.warn('Room', 'memberList() not ready')
+      log.verbose('Room', 'memberList() trying call refresh() to update')
+      this.refresh().then(() => {
+        log.verbose('Room', 'memberList() refresh() done')
+      })
       return []
     }
     return this.obj.memberList

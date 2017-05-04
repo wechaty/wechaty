@@ -146,7 +146,15 @@ export class Contact implements Sayable {
    * const weixin = contact.weixin()
    * ```
    */
-  public weixin()   { return this.obj && this.obj.weixin || null }
+  public weixin(): string | null {
+    const wxId = this.obj && this.obj.weixin || null
+    if (!wxId) {
+      log.info('Contact', `weixin() is not able to always work, it's limited by Tencent API`)
+      log.silly('Contact', 'weixin() If you want to track a contact between sessions, see FAQ at')
+      log.silly('Contact', 'https://github.com/Chatie/wechaty/wiki/FAQ#1-how-to-get-the-permanent-id-for-a-contact')
+    }
+    return wxId
+  }
 
   /**
    * Get the name from a contact
