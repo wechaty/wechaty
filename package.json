@@ -125,7 +125,7 @@
     "@types/express": "4.0.35",
     "@types/fluent-ffmpeg": "0.0.2",
     "@types/mime": "0.0.29",
-    "@types/node": "7.0.16",
+    "@types/node": "7.0.17",
     "@types/request": "0.0.42",
     "@types/sinon": "2.2.1",
     "@types/ws": "0.0.41",
