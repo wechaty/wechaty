@@ -58,3 +58,4 @@ yarn.lock
 .v8flags.*
 test/fixture/docker/package.json
 tags
+*.wechaty.json
