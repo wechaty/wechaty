@@ -58,8 +58,6 @@ notifications:
     on_success: always  # options: [always|never|change] default: always
     on_failure: always  # options: [always|never|change] default: always
     on_start: never     # options: [always|never|change] default: always
-
-notifications:
   email:
     on_success: change
     on_failure: change
