@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.8.8",
+  "version": "0.8.9",
   "description": "Wechat for Bot(Personal Account)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -123,10 +123,10 @@
   "devDependencies": {
     "@types/body-parser": "1.16.3",
     "@types/express": "4.0.35",
-    "@types/fluent-ffmpeg": "0.0.2",
+    "@types/fluent-ffmpeg": "2.1.0",
     "@types/mime": "0.0.29",
-    "@types/node": "7.0.16",
     "@types/request": "0.0.43",
+    "@types/node": "7.0.17",
     "@types/sinon": "2.2.1",
     "@types/ws": "0.0.41",
     "apiai": "4.0.2",
