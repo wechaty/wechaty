@@ -107,7 +107,7 @@
     "@types/socket.io": "1.4.29",
     "bl": "1.2.1",
     "body-parser": "1.17.1",
-    "brolog": "1.1.2",
+    "brolog": "1.1.15",
     "chromedriver": "2.29.0",
     "express": "5.0.0-alpha.5",
     "is-ci": "1.0.10",
