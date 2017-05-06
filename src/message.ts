@@ -573,6 +573,7 @@ export class Message implements Sayable {
   public say(mediaMessage: MediaMessage, replyTo?: Contact | Contact[]): Promise<any>
 
   public say(textOrMedia: string | MediaMessage, replyTo?: Contact|Contact[]): Promise<any> {
+    /* tslint:disable:no-use-before-declare */
     const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
     log.verbose('Message', 'say(%s, %s)', content, replyTo)
     let m
@@ -598,6 +599,7 @@ export class Message implements Sayable {
         }
         m.content(mentionList + ' ' + textOrMedia)
       }
+    /* tslint:disable:no-use-before-declare */
     } else if (textOrMedia instanceof MediaMessage) {
       m = textOrMedia
       const room = this.room()
