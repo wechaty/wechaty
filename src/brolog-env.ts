@@ -5,7 +5,8 @@
  *
  */
 // const log = require('npmlog')
-import log from 'brolog'
+import { Brolog } from 'brolog'
+const log = Brolog.instance()
 
 const level = process.env['WECHATY_LOG']
 
