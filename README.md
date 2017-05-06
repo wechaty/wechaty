@@ -245,6 +245,7 @@ You can directly submit pull requests for documentation changes.
 * [lijiarui](https://github.com/lijiarui)
 * [xinbenlv](https://github.com/xinbenlv)
 * [Gcaufy](https://github.com/Gcaufy)
+* [mukaiu](https://github.com/mukaiu)
 
 ## Join Wechaty Developers' Community
 
