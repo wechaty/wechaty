@@ -116,7 +116,7 @@
     "ps-tree": "1.1.0",
     "retry-promise": "1.0.0",
     "selenium-webdriver": "3.4.0",
-    "socket.io": "1.7.4",
+    "socket.io": "2.0.0",
     "state-switch": "0.1.13",
     "ws": "2.3.1"
   },
