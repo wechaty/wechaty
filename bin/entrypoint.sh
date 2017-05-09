@@ -13,7 +13,7 @@ function wechaty::banner() {
   echo
   figlet " Wechaty "
   echo ____________________________________________________
-  echo "            https://www.wechaty.io"
+  echo "            https://www.chatie.io"
 }
 
 function wechaty::errorBotNotFound() {
@@ -34,7 +34,7 @@ function wechaty::errorBotNotFound() {
       this will let the container visit your current directory.
 
     if you still have issue, please have a look at
-      https://github.com/wechaty/wechaty/issues/66
+      https://github.com/chatie/wechaty/issues/66
       and do a search in issues, that might be help.
 
 TROUBLESHOOTING
@@ -93,7 +93,7 @@ function wechaty::diagnose() {
   echo _____________________________________________________________
   echo '####### please paste all the above diagnose messages #######'
   echo
-  echo 'Wechaty Issue https://github.com/wechaty/wechaty/issues'
+  echo 'Wechaty Issue https://github.com/chatie/wechaty/issues'
   echo
 
   wechaty::pressEnterToContinue
@@ -190,7 +190,7 @@ function wechaty::help() {
     test    Run Unit Test
 
   Learn more at:
-    https://github.com/wechaty/wechaty/wiki/Docker
+    https://github.com/chatie/wechaty/wiki/Docker
 
 
 
