@@ -11,7 +11,7 @@ import { UtilLib }    from './util-lib'
 import { Wechaty }    from './wechaty'
 import { log }        from './brolog-env'
 
-interface ContactObj {
+export interface ContactObj {
   address:    string,
   city:       string,
   id:         string,
@@ -81,7 +81,7 @@ const specialContactList: string[] = [
 export class Contact implements Sayable {
   private static pool = new Map<string, Contact>()
 
-  private obj: ContactObj | null
+  public obj: ContactObj | null
   private dirtyObj: ContactObj | null
   private rawObj: ContactRawObj
 

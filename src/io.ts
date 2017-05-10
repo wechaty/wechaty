@@ -189,12 +189,12 @@ export class Io {
 
         case 'update':
           log.verbose('Io', 'on(report): %s', ioEvent.payload)
-          const user = this.setting.wechaty.puppet ? this.setting.wechaty.puppet.user : null
+          const user = Wechaty.instance().self()
           if (user) {
             const loginEvent: IoEvent = {
               name:       'login',
               // , payload:  user.obj
-              payload:  user,
+              payload:  user.obj,
             }
             this.send(loginEvent)
           }

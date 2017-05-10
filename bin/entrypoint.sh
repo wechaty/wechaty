@@ -161,7 +161,7 @@ function wechaty::runBot() {
 }
 
 function wechaty::io-client() {
-  figlet " Wechaty.io "
+  figlet " Chatie.io "
   figlet " Authing By:"
   echo
   echo "WECHATY_TOKEN=$WECHATY_TOKEN "
