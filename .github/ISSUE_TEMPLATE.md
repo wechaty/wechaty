@@ -21,4 +21,10 @@
 
 ### Paste the full output logs here with `WECHATY_LOG=silly` set
 
+```shell
+$ WECHATY_LOG=silly npm run ts-node mybot.ts
 
+# or 
+
+$ WECHATY_LOG=silly node dist/mybot.js
+```
