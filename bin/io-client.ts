@@ -23,9 +23,9 @@ const welcome = `
 |                                     |___/
 
 =============== Powered by Wechaty ===============
-       -------- https://wechaty.io --------
+       -------- https://www.chatie.io --------
 
-I'm a bot, my super power is download cloud bot from wechaty.io
+My super power: download cloud bot from www.chatie.io
 
 __________________________________________________
 
