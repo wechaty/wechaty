@@ -88,6 +88,8 @@ test('ready()', async t => {
   t.is(m.id, expectedMsgId, 'id/MsgId right')
   await m.ready()
 
+  console.log(m.obj)
+
   const fc = m.from()
   const tc = m.to()
 
