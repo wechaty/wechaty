@@ -219,7 +219,7 @@ export class Message implements Sayable {
 
   public readonly id: string
 
-  public obj = <MsgObj>{}
+  protected obj = <MsgObj>{}
 
   public readyStream(): Promise<NodeJS.ReadableStream> {
     throw Error('abstract method')

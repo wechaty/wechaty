@@ -88,14 +88,14 @@ test('ready()', async t => {
   t.is(m.id, expectedMsgId, 'id/MsgId right')
   await m.ready()
 
-  console.log(m.obj)
-
   const fc = m.from()
   const tc = m.to()
 
   if (!fc || !tc) {
     throw new Error('no fc or no tc')
   }
+  console.log(tc.obj)
+
   t.is(fc.id      , expectedFromUserName, 'contact ready for FromUserName')
   t.is(fc.name()  , expectedFromNickName, 'contact ready for FromNickName')
   t.is(tc.id      , expectedToUserName  , 'contact ready for ToUserName')
