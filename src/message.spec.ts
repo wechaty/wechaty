@@ -49,9 +49,6 @@ test('ready()', async t => {
   const expectedToNickName   = 'To Nick Name@Test'
   const expectedMsgId        = '3009511950433684462'
 
-  Config.puppetInstance()
-        .getContact = mockGetContact
-
   // Mock
   function mockGetContact(id) {
     log.silly('TestMessage', `mocked getContact(${id})`)
@@ -82,6 +79,9 @@ test('ready()', async t => {
       }, 100)
     })
   }
+
+  Config.puppetInstance()
+        .getContact = mockGetContact
 
   const m = new Message(rawData)
 

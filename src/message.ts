@@ -486,17 +486,12 @@ export class Message implements Sayable {
     return contactList
   }
 
-  // public ready() {
-  //   log.warn('Message', 'ready() DEPRECATED. use load() instead.')
-  //   return this.ready()
-  // }
-
   public async ready(): Promise<void> {
     log.silly('Message', 'ready()')
 
     try {
       const from  = Contact.load(this.obj.from)
-      await from.ready()                // Contact from
+      await from.ready()  // Contact from
 
       if (this.obj.to) {
         const to = Contact.load(this.obj.to)
