@@ -14,7 +14,7 @@ import {
   RecommendInfo,
   Sayable,
   log,
-}  from './config'
+}                 from './config'
 
 import Contact    from './contact'
 import Room       from './room'
@@ -191,6 +191,7 @@ export class Message implements Sayable {
   public static counter = 0
   public _counter: number
 
+  // DEPRECATED: TypeScript ENUM did this for us 201705
   /**
    * a map for:
    *   1. name to id
@@ -219,7 +220,7 @@ export class Message implements Sayable {
 
   public readonly id: string
 
-  protected obj = <MsgObj>{}
+  public obj = <MsgObj>{}
 
   public readyStream(): Promise<NodeJS.ReadableStream> {
     throw Error('abstract method')
@@ -562,7 +563,7 @@ export class Message implements Sayable {
     ])
   }
 
-  // DEPRECATED: TypeScript ENUM did this for us
+  // DEPRECATED: TypeScript ENUM did this for us 201705
   // public static initType() {
   //   Object.keys(Message.TYPE).forEach(k => {
   //     const v = Message.TYPE[k]

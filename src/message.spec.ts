@@ -94,6 +94,7 @@ test('ready()', async t => {
   if (!fc || !tc) {
     throw new Error('no fc or no tc')
   }
+  console.log(m.obj)
   console.log(fc.obj)
   console.log(tc.obj)
 
