@@ -146,7 +146,7 @@ export interface MsgTypeMap {
   // , MessageTypeValue: MessageTypeName
 }
 
-export const enum AppMsgType {
+export enum AppMsgType {
   TEXT                     = 1,
   IMG                      = 2,
   AUDIO                    = 3,
@@ -166,7 +166,7 @@ export const enum AppMsgType {
   READER_TYPE              = 100001,
 }
 
-export const enum MsgType {
+export enum MsgType {
   TEXT                = 1,
   IMAGE               = 3,
   VOICE               = 34,
@@ -196,26 +196,26 @@ export class Message implements Sayable {
    *   1. name to id
    *   2. id to name
    */
-  public static TYPE: MsgTypeMap = {
-    TEXT:               1,
-    IMAGE:              3,
-    VOICE:              34,
-    VERIFYMSG:          37,
-    POSSIBLEFRIEND_MSG: 40,
-    SHARECARD:          42,
-    VIDEO:              43,
-    EMOTICON:           47,
-    LOCATION:           48,
-    APP:                49,
-    VOIPMSG:            50,
-    STATUSNOTIFY:       51,
-    VOIPNOTIFY:         52,
-    VOIPINVITE:         53,
-    MICROVIDEO:         62,
-    SYSNOTICE:          9999,
-    SYS:                10000,
-    RECALLED:           10002,
-  }
+  // public static TYPE: MsgTypeMap = {
+  //   TEXT:               1,
+  //   IMAGE:              3,
+  //   VOICE:              34,
+  //   VERIFYMSG:          37,
+  //   POSSIBLEFRIEND_MSG: 40,
+  //   SHARECARD:          42,
+  //   VIDEO:              43,
+  //   EMOTICON:           47,
+  //   LOCATION:           48,
+  //   APP:                49,
+  //   VOIPMSG:            50,
+  //   STATUSNOTIFY:       51,
+  //   VOIPNOTIFY:         52,
+  //   VOIPINVITE:         53,
+  //   MICROVIDEO:         62,
+  //   SYSNOTICE:          9999,
+  //   SYS:                10000,
+  //   RECALLED:           10002,
+  // }
 
   public readonly id: string
 
@@ -242,7 +242,7 @@ export class Message implements Sayable {
     this.id = this.obj.id
   }
 
-  // Transform rawObj to local m
+  // Transform rawObj to local obj
   private parse(rawObj): MsgObj {
     const obj: MsgObj = {
       id:           rawObj.MsgId,
@@ -256,7 +256,7 @@ export class Message implements Sayable {
       url:          rawObj.Url || rawObj.MMAppMsgDownloadUrl || rawObj.MMLocationUrl,
     }
 
-    // FIXME: has ther any better method to know the room ID?
+    // FIXME: has there any better method to know the room ID?
     if (rawObj.MMIsChatRoom) {
       if (/^@@/.test(rawObj.FromUserName)) {
         obj.room =  rawObj.FromUserName // MMPeerUserName always eq FromUserName ?
@@ -398,7 +398,7 @@ export class Message implements Sayable {
     return this.rawObj.AppMsgType
   }
 
-  public typeEx()  { return Message.TYPE[this.obj.type] }
+  public typeEx()  { return MsgType[this.obj.type] }
   public count()   { return this._counter }
 
   public self(): boolean {
@@ -562,12 +562,13 @@ export class Message implements Sayable {
     ])
   }
 
-  public static initType() {
-    Object.keys(Message.TYPE).forEach(k => {
-      const v = Message.TYPE[k]
-      Message.TYPE[v] = k // Message.Type[1] = 'TEXT'
-    })
-  }
+  // DEPRECATED: TypeScript ENUM did this for us
+  // public static initType() {
+  //   Object.keys(Message.TYPE).forEach(k => {
+  //     const v = Message.TYPE[k]
+  //     Message.TYPE[v] = k // Message.Type[1] = 'TEXT'
+  //   })
+  // }
 
   public say(text: string, replyTo?: Contact | Contact[]): Promise<any>
   public say(mediaMessage: MediaMessage, replyTo?: Contact | Contact[]): Promise<any>
@@ -618,7 +619,7 @@ export class Message implements Sayable {
 
 }
 
-Message.initType()
+// Message.initType()
 
 export class MediaMessage extends Message {
   private bridge: Bridge
@@ -645,7 +646,7 @@ export class MediaMessage extends Message {
 
     // FIXME: decoupling needed
     this.bridge = (Config.puppetInstance() as PuppetWeb)
-      .bridge
+                    .bridge
   }
 
   public async ready(): Promise<void> {
