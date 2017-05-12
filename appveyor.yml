@@ -21,7 +21,7 @@ test_script:
   - npm --version
   - npm run lint
   - npm run dist
-  - npm run test:bug
+  - npm run test:chrome:fast
 
 # Don't actually build.
 build: off

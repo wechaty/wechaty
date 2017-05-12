@@ -37,7 +37,9 @@ test('constructor()', t => {
   t.is(typeof s, 'string', 'toString()')
 })
 
-test('ready()', async t => {
+// Issue #445
+// XXX have to use test.serial() because mockGetContact can not be parallel
+test.serial('ready()', async t => {
 
   // must different with other rawData, because Contact class with load() will cache the result. or use Contact.resetPool()
   /* tslint:disable:max-line-length */
@@ -132,7 +134,9 @@ test('self()', t => {
   t.false(m.self(), 'should identify self message false when from a different fromId')
 })
 
-test('mentioned()', async t => {
+// Issue #445
+// XXX have to use test.serial() because mockGetContact can not be parallel
+test.serial('mentioned()', async t => {
   /* tslint:disable:max-line-length */
   const rawObj11 = JSON.parse(`{"MsgId":"6475340302153501409","FromUserName":"@@9cdc696e490bd76c57e7dd54792dc1408e27d65e312178b1943e88579b7939f4","ToUserName":"@cd7d467d7464e8ff6b0acd29364654f3666df5d04551f6082bfc875f90a6afd2","MsgType":1,"Content":"@4c32c97337cbb325442c304d6a44e374:<br/>@_@","Status":3,"ImgStatus":1,"CreateTime":1489823176,"VoiceLength":0,"PlayLength":0,"FileName":"","FileSize":"","MediaId":"","Url":"","AppMsgType":0,"StatusNotifyCode":0,"StatusNotifyUserName":"","RecommendInfo":{"UserName":"","NickName":"","QQNum":0,"Province":"","City":"","Content":"","Signature":"","Alias":"","Scene":0,"VerifyFlag":0,"AttrStatus":0,"Sex":0,"Ticket":"","OpCode":0},"ForwardFlag":0,"AppInfo":{"AppID":"","Type":0},"HasProductId":0,"Ticket":"","ImgHeight":0,"ImgWidth":0,"SubMsgType":0,"NewMsgId":6475340302153502000,"OriContent":"","MMPeerUserName":"@@9cdc696e490bd76c57e7dd54792dc1408e27d65e312178b1943e88579b7939f4","MMDigest":"22acb030-ff09-11e6-8a73-cff62d9268c5:@_@","MMIsSend":false,"MMIsChatRoom":true,"MMUnread":true,"LocalID":"6475340302153501409","ClientMsgId":"6475340302153501409","MMActualContent":"@_@","MMActualSender":"@4c32c97337cbb325442c304d6a44e374","MMDigestTime":"15:46","MMDisplayTime":1489823176,"MMTime":"15:46"}`)
 
