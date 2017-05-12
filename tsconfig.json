@@ -23,7 +23,7 @@
     , "dist/"
   ]
   , "include": [
-    "bin/*.ts"
+       "bin/*.ts"
      , "example/**/*.ts"
      , "src/**/*.ts"
      , "test/**/*.spec.ts"
