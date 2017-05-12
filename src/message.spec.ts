@@ -94,6 +94,7 @@ test('ready()', async t => {
   if (!fc || !tc) {
     throw new Error('no fc or no tc')
   }
+  console.log(fc.obj)
   console.log(tc.obj)
 
   t.is(fc.id      , expectedFromUserName, 'contact ready for FromUserName')

@@ -59,7 +59,7 @@ export enum Gender {
 export interface ContactQueryFilter {
   name?:   string | RegExp,
   alias?:  string | RegExp,
-  // DEPRECATED
+  // remark is DEPRECATED
   remark?: string | RegExp,
 }
 
