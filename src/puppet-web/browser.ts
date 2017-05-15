@@ -125,7 +125,7 @@ export class Browser extends EventEmitter {
 
     // Issue #175
     // TODO: set a timer to guard driver.get timeout, then retry 3 times 201607
-    const timeout = 15 * 1000
+    const timeout = 60 * 1000
     let ttl = 3
     while (ttl-- > 0) {
       log.silly('PuppetWebBrowser', 'open() begin for ttl:%d', ttl)
