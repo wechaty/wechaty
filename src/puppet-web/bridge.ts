@@ -142,8 +142,9 @@ export class Bridge {
       return await this.proxyWechaty('contactRemarkAsync', contactId, remark)
     } catch (e) {
       log.verbose('PuppetWebBridge', 'contactRemarkAsync() exception: %s', e.message)
-      // throw e
       // Issue #509 return false instead of throw when contact is not a friend.
+      // throw e
+      log.warn('PuppetWebBridge', 'contactRemark() does not work on contact is not a friend')
       return false
     }
   }
