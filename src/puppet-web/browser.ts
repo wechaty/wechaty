@@ -123,13 +123,33 @@ export class Browser extends EventEmitter {
       throw new Error('hostname unknown')
     }
 
+    // Issue #175
     // TODO: set a timer to guard driver.get timeout, then retry 3 times 201607
-    try {
-      await this.driver.get(url)
-    } catch (e) {
-      log.error('PuppetWebBrowser', 'open() exception: %s', e.message)
-      throw e
+    const timeout = 15 * 1000
+    let ttl = 3
+    while (ttl-- > 0) {
+      log.silly('PuppetWebBrowser', 'open() begin for ttl:%d', ttl)
+      try {
+        await new Promise((resolve, reject) => {
+          const id = setTimeout(() => reject('timeout at ttl:' + ttl), timeout)
+          this.driver.get(url)
+                      .then(() => {
+                        clearTimeout(id)
+                        resolve()
+                      })
+                      .catch(reject)
+        })
+
+        log.silly('PuppetWebBrowser', 'open() end for ttl:%d', ttl)
+        return  // open done
+
+      } catch (e) {
+        log.error('PuppetWebBrowser', 'open() exception: %s', e.message)
+      }
     }
+
+    throw new Error('ttl exceed & open fail')
+
   }
 
   public async refresh(): Promise<void> {
