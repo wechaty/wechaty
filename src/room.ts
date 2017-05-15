@@ -397,6 +397,7 @@ export class Room extends EventEmitter implements Sayable {
       return Contact.load(this.rawObj.ChatRoomOwner)
     }
 
+    log.info('Room', 'owner() is limited by Tencent API, sometimes work sometimes not')
     return null
   }
 
