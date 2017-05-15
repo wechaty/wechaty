@@ -248,7 +248,7 @@ export class Bridge {
                 })
   }
 
-  public send(toUserName: string, content: string): Promise<void> {
+  public send(toUserName: string, content: string): Promise<boolean> {
     if (!toUserName) {
       throw new Error('UserName not found')
     }
@@ -387,7 +387,7 @@ export class Bridge {
     }
   }
 
-  public sendMedia(toUserName: string, mediaId: string, type: number): Promise<void> {
+  public sendMedia(toUserName: string, mediaId: string, type: number): Promise<boolean> {
     if (!toUserName) {
       throw new Error('UserName not found')
     }

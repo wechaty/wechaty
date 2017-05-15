@@ -703,7 +703,7 @@ export class Contact implements Sayable {
   public async say(text: string)
   public async say(mediaMessage: MediaMessage)
 
-  public async say(textOrMedia: string | MediaMessage): Promise<void> {
+  public async say(textOrMedia: string | MediaMessage): Promise<boolean> {
     const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
     log.verbose('Contact', 'say(%s)', content)
 
@@ -726,8 +726,7 @@ export class Contact implements Sayable {
     m.to(this)
     log.silly('Contact', 'say() from: %s to: %s content: %s', user.name(), this.name(), content)
 
-    await wechaty.send(m)
-    return
+    return await wechaty.send(m)
   }
 
 }
