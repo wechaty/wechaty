@@ -132,7 +132,12 @@ function wechaty::runBot() {
   case "$botFile" in
     *.js)
       echo "Executing node $*"
-      node "$@" &
+      if [ "$NODE_ENV" != "production" ]; then
+        echo "Executing babel-node --presets es2015 $*"
+        babel-node --presets es2015 "$@" &
+      else
+        node "$@" &
+      fi
       ;;
     *.ts)
       # yarn add @types/node

@@ -425,7 +425,7 @@ export class PuppetWeb extends Puppet {
     return mediaId as string
   }
 
-  public async sendMedia(message: MediaMessage): Promise<void> {
+  public async sendMedia(message: MediaMessage): Promise<boolean> {
     const to = message.to()
     const room = message.room()
 
@@ -448,16 +448,17 @@ export class PuppetWeb extends Puppet {
       mediaId,
     )
 
+    let ret = false
     try {
-      await this.bridge.sendMedia(destinationId, mediaId, msgType)
+      ret = await this.bridge.sendMedia(destinationId, mediaId, msgType)
     } catch (e) {
       log.error('PuppetWeb', 'send() exception: %s', e.message)
-      throw e
+      return false
     }
-    return
+    return ret
   }
 
-   public async send(message: Message | MediaMessage): Promise<void> {
+   public async send(message: Message | MediaMessage): Promise<boolean> {
     const to   = message.to()
     const room = message.room()
 
@@ -472,8 +473,10 @@ export class PuppetWeb extends Puppet {
       destinationId = to.id
     }
 
+    let ret = false
+
     if (message instanceof MediaMessage) {
-      await this.sendMedia(message)
+      ret = await this.sendMedia(message)
     } else {
       const content = message.content()
 
@@ -483,20 +486,20 @@ export class PuppetWeb extends Puppet {
       )
 
       try {
-        await this.bridge.send(destinationId, content)
+        ret = await this.bridge.send(destinationId, content)
       } catch (e) {
         log.error('PuppetWeb', 'send() exception: %s', e.message)
         throw e
       }
     }
-    return
+    return ret
   }
 
   /**
    * Bot say...
    * send to `filehelper` for notice / log
    */
-  public async say(content: string): Promise<void> {
+  public async say(content: string): Promise<boolean> {
     if (!this.logined()) {
       throw new Error('can not say before login')
     }
@@ -505,8 +508,7 @@ export class PuppetWeb extends Puppet {
     m.to('filehelper')
     m.content(content)
 
-    await this.send(m)
-    return
+    return await this.send(m)
   }
 
   /**

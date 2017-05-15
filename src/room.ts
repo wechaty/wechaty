@@ -163,12 +163,12 @@ export class Room extends EventEmitter implements Sayable {
     return this
   }
 
-  public say(mediaMessage: MediaMessage): Promise<any>
-  public say(content: string): Promise<any>
-  public say(content: string, replyTo: Contact): Promise<void>
-  public say(content: string, replyTo: Contact[]): Promise<void>
+  public say(mediaMessage: MediaMessage)
+  public say(content: string)
+  public say(content: string, replyTo: Contact)
+  public say(content: string, replyTo: Contact[])
 
-  public say(textOrMedia: string | MediaMessage, replyTo?: Contact|Contact[]): Promise<void> {
+  public say(textOrMedia: string | MediaMessage, replyTo?: Contact|Contact[]): Promise<boolean> {
     const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
     log.verbose('Room', 'say(%s, %s)',
                         content,

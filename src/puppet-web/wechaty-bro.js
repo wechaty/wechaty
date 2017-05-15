@@ -444,7 +444,7 @@
   function getBaseRequest() {
     var accountFactory = WechatyBro.glue.accountFactory
     var BaseRequest = accountFactory.getBaseRequest()
-  
+
     return JSON.stringify(BaseRequest)
   }
 
@@ -463,17 +463,23 @@
     var confFactory = WechatyBro.glue.confFactory
 
     if (!chatFactory || !confFactory) {
-      log('send() chatFactory or confFactory not exist.')
+      log('sendMedia() chatFactory or confFactory not exist.')
       return false
     }
 
-    var m = chatFactory.createMessage({
-      ToUserName: ToUserName
-      , MediaId: MediaId
-      , MsgType: Type
-    })
-    chatFactory.appendMessage(m)
-    return chatFactory.sendMessage(m)
+    try {
+      var m = chatFactory.createMessage({
+        ToUserName: ToUserName
+        , MediaId: MediaId
+        , MsgType: Type
+      })
+      chatFactory.appendMessage(m)
+      chatFactory.sendMessage(m)
+    } catch (e) {
+      log('sendMedia() exception: ' + e.message)
+      return false
+    }
+    return true
   }
 
   function send(ToUserName, Content) {
@@ -484,13 +490,19 @@
       log('send() chatFactory or confFactory not exist.')
       return false
     }
-    var m = chatFactory.createMessage({
-      ToUserName: ToUserName
-      , Content: Content
-      , MsgType: confFactory.MSGTYPE_TEXT
-    })
-    chatFactory.appendMessage(m)
-    return chatFactory.sendMessage(m)
+    try {
+      var m = chatFactory.createMessage({
+        ToUserName: ToUserName
+        , Content: Content
+        , MsgType: confFactory.MSGTYPE_TEXT
+      })
+      chatFactory.appendMessage(m)
+      chatFactory.sendMessage(m)
+    } catch (e) {
+      log('send() exception: ' + e.message)
+      return false
+    }
+    return true
   }
   function getContact(id) {
     var contactFactory = WechatyBro.glue.contactFactory

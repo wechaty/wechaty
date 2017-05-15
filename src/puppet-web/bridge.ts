@@ -141,8 +141,11 @@ export class Bridge {
     try {
       return await this.proxyWechaty('contactRemarkAsync', contactId, remark)
     } catch (e) {
-      log.error('PuppetWebBridge', 'contactRemarkAsync() exception: %s', e.message)
-      throw e
+      log.verbose('PuppetWebBridge', 'contactRemarkAsync() exception: %s', e.message)
+      // Issue #509 return false instead of throw when contact is not a friend.
+      // throw e
+      log.warn('PuppetWebBridge', 'contactRemark() does not work on contact is not a friend')
+      return false
     }
   }
 
@@ -245,7 +248,7 @@ export class Bridge {
                 })
   }
 
-  public send(toUserName: string, content: string): Promise<void> {
+  public send(toUserName: string, content: string): Promise<boolean> {
     if (!toUserName) {
       throw new Error('UserName not found')
     }
@@ -384,7 +387,7 @@ export class Bridge {
     }
   }
 
-  public sendMedia(toUserName: string, mediaId: string, type: number): Promise<void> {
+  public sendMedia(toUserName: string, mediaId: string, type: number): Promise<boolean> {
     if (!toUserName) {
       throw new Error('UserName not found')
     }

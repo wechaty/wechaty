@@ -424,29 +424,27 @@ export class Wechaty extends EventEmitter implements Sayable {
   /**
    * @todo document me
    */
-  public async send(message: Message | MediaMessage): Promise<void> {
+  public async send(message: Message | MediaMessage): Promise<boolean> {
     if (!this.puppet) {
       throw new Error('no puppet')
     }
-    await this.puppet.send(message)
-                      .catch(e => {
-                        log.error('Wechaty', 'send() exception: %s', e.message)
-                        throw e
-                      })
-    return
+    return await this.puppet.send(message)
+                            .catch(e => {
+                              log.error('Wechaty', 'send() exception: %s', e.message)
+                              throw e
+                            })
   }
 
   /**
    * @todo document me
    */
-  public async say(content: string): Promise<void> {
+  public async say(content: string): Promise<boolean> {
     log.verbose('Wechaty', 'say(%s)', content)
 
     if (!this.puppet) {
       throw new Error('no puppet')
     }
-    this.puppet.say(content)
-    return
+    return await this.puppet.say(content)
   }
 
   /**

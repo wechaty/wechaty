@@ -188,7 +188,7 @@ export interface RecommendInfo {
 }
 
 export interface Sayable {
-  say(content: string, replyTo?: any|any[]): Promise<void>
+  say(content: string, replyTo?: any|any[]): Promise<boolean>
 }
 
 export interface Sleepable {
