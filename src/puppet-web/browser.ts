@@ -140,8 +140,9 @@ export class Browser extends EventEmitter {
                       .catch(reject)
         })
 
+        // open successful!
         log.silly('PuppetWebBrowser', 'open() end for ttl:%d', ttl)
-        return  // open done
+        return
 
       } catch (e) {
         log.error('PuppetWebBrowser', 'open() exception: %s', e.message)
