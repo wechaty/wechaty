@@ -131,7 +131,11 @@ export class Browser extends EventEmitter {
       log.silly('PuppetWebBrowser', 'open() begin for ttl:%d', ttl)
       try {
         await new Promise((resolve, reject) => {
-          const id = setTimeout(() => reject('timeout at ttl:' + ttl), timeout)
+          const id = setTimeout(() => {
+            this.driver.close()
+            const e = new Error('timeout at ttl:' + ttl)
+            reject(e)
+          }, timeout)
           this.driver.get(url)
                       .then(() => {
                         clearTimeout(id)
