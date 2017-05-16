@@ -216,7 +216,10 @@ Get embed html/markdown code from [Wiki:PoweredByWechaty](https://github.com/cha
 
 ## Projects Use Wechaty
 
-1. [chatie.io](https://www.chatie.io) ChatBot Portal Manager for Wechaty 
+1. [Relay between Telegram and WeChat](https://github.com/Firaenix/TeleChatRelay)
+1. [A chat bot managing the HaoShiYou wechat groups run by volunteers of haoshiyou.org](https://github.com/xinbenlv/haoshiyou-bot)
+1. [A chat interactive bot to manage TODO list](https://github.com/coderbunker/candobot)
+1. [Forward WeChat messages to telegram](https://github.com/luosheng/Wegram)
 
 Know more about Projects Use Wechaty at [Wiki:PoweredByWechaty](https://github.com/chatie/wechaty/wiki/PoweredByWechaty)
 

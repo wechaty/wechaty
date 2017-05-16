@@ -125,17 +125,22 @@ export class Browser extends EventEmitter {
 
     // Issue #175
     // TODO: set a timer to guard driver.get timeout, then retry 3 times 201607
-    const timeout = 60 * 1000
-    let ttl = 3
-    while (ttl-- > 0) {
-      log.silly('PuppetWebBrowser', 'open() begin for ttl:%d', ttl)
+    const TIMEOUT = 60 * 1000
+    let TTL = 0
+    while (TTL++ < 3) {
+      log.silly('PuppetWebBrowser', 'open() begin for ttl:%d', TTL)
       try {
         await new Promise((resolve, reject) => {
+
           const id = setTimeout(() => {
             this.driver.close()
-            const e = new Error('timeout at ttl:' + ttl)
+            const e = new Error('timeout after '
+                                + Math.round(TIMEOUT / 1000) + ' seconds'
+                                + 'at ttl:' + TTL,
+                              )
             reject(e)
-          }, timeout)
+          }, TIMEOUT)
+
           this.driver.get(url)
                       .then(() => {
                         clearTimeout(id)
@@ -145,7 +150,7 @@ export class Browser extends EventEmitter {
         })
 
         // open successful!
-        log.silly('PuppetWebBrowser', 'open() end for ttl:%d', ttl)
+        log.silly('PuppetWebBrowser', 'open() end for ttl:%d', TTL)
         return
 
       } catch (e) {
@@ -153,7 +158,7 @@ export class Browser extends EventEmitter {
       }
     }
 
-    throw new Error('ttl exceed & open fail')
+    throw new Error('open fail because ttl(' + TTL + ') exceed')
 
   }
 
