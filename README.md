@@ -115,18 +115,18 @@ $ node mybot.js
 
 Get to know more about NPM at [Wiki:NPM](https://github.com/chatie/wechaty/wiki/NPM)
 
-### Find a Good Server
+# Test
 
-The best practice for runing Wechaty Docker/NPM is using a VPS(Virtual Private Server) outside of China, which can save you hours of time because `npm install` and `docker pull` will run smoothly without any problem. 
+[![Linux/Mac Build Status](https://img.shields.io/travis/Chatie/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/Chatie/wechaty) [![Windows Build status](https://img.shields.io/appveyor/ci/chatie/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/chatie/wechaty) [![Docker CircleCI](https://img.shields.io/circleci/project/github/Chatie/wechaty/master.svg?label=Docker)](https://circleci.com/gh/Chatie/wechaty) [![Coverage Status](https://coveralls.io/repos/github/Chatie/wechaty/badge.svg?branch=master)](https://coveralls.io/github/Chatie/wechaty?branch=master) [![Known Vulnerabilities](https://snyk.io/test/github/chatie/wechaty/badge.svg)](https://snyk.io/test/github/chatie/wechaty)
 
-The following VPS providers is used by ourselves, they worked perfectly in production. You can use the following link to get one in minutes, and also do this can support Wechaty because you are refered by us.
+Wechaty use [AVA](https://github.com/avajs/ava) for unit testing
 
-| Location  | Price | Ram     | Payment           | Provider |
-| ---       | ---   | ---     | ---               | ---      |
-| Singapore | $5    | 512MB   | Paypal            | [DigitalOcean](https://m.do.co/c/01a54778df5c) |
-| Japan     | $5    | 1GB     | Paypal            | [Linode](https://www.linode.com/?r=5fd2b713d711746bb5451111df0f2b6d863e9f63) |
-| Korea     | $10   | 1GB     | Alipay, Paypal    | [Netdedi](https://www.netdedi.com/?affid=35) |
+To test Wechaty, run:
+```shell
+npm test
+```
 
+Get to know more about test from [Wiki:Test](https://github.com/chatie/wechaty/wiki/Test)
 
 # API Reference
 
@@ -188,19 +188,6 @@ The following VPS providers is used by ourselves, they worked perfectly in produ
 2. [accept():Promise](https://github.com/chatie/wechaty/wiki/API#friendrequestaccept-void) accept the friendrequest
 3. [send(contact:Contact,hello:string):Promise](https://github.com/chatie/wechaty/wiki/API#friendrequestsendcontact-contact-hello-string-void) send a new friend request
 
-# Test
-
-[![Linux/Mac Build Status](https://img.shields.io/travis/Chatie/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/Chatie/wechaty) [![Windows Build status](https://img.shields.io/appveyor/ci/chatie/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/chatie/wechaty) [![Docker CircleCI](https://img.shields.io/circleci/project/github/Chatie/wechaty/master.svg?label=Docker)](https://circleci.com/gh/Chatie/wechaty) [![Coverage Status](https://coveralls.io/repos/github/Chatie/wechaty/badge.svg?branch=master)](https://coveralls.io/github/Chatie/wechaty?branch=master) [![Known Vulnerabilities](https://snyk.io/test/github/chatie/wechaty/badge.svg)](https://snyk.io/test/github/chatie/wechaty)
-
-Wechaty use [AVA](https://github.com/avajs/ava) for unit testing
-
-To test Wechaty, run:
-```shell
-npm test
-```
-
-Get to know more about test from [Wiki:Test](https://github.com/chatie/wechaty/wiki/Test)
-
 # Release Notes
 
 * [Latest Release](https://github.com/chatie/wechaty/releases/latest)(All releases [here](https://github.com/chatie/wechaty/releases))
@@ -213,6 +200,18 @@ Get to know more about test from [Wiki:Test](https://github.com/chatie/wechaty/w
 ## Wechaty Badge
 
 Get embed html/markdown code from [Wiki:PoweredByWechaty](https://github.com/chatie/wechaty/wiki/PoweredByWechaty)
+
+## Find a Good Server
+
+The best practice for runing Wechaty Docker/NPM is using a VPS(Virtual Private Server) outside of China, which can save you hours of time because `npm install` and `docker pull` will run smoothly without any problem. 
+
+The following VPS providers is used by ourselves, they worked perfectly in production. You can use the following link to get one in minutes, and also do this can support Wechaty because you are refered by us.
+
+| Location  | Price | Ram     | Payment           | Provider |
+| ---       | ---   | ---     | ---               | ---      |
+| Singapore | $5    | 512MB   | Paypal            | [DigitalOcean](https://m.do.co/c/01a54778df5c) |
+| Japan     | $5    | 1GB     | Paypal            | [Linode](https://www.linode.com/?r=5fd2b713d711746bb5451111df0f2b6d863e9f63) |
+| Korea     | $10   | 1GB     | Alipay, Paypal    | [Netdedi](https://www.netdedi.com/?affid=35) |
 
 ## Projects Use Wechaty
 
