@@ -441,20 +441,21 @@ export class Message implements Sayable {
       return contactList
     }
 
-    // define magic code `8197` to identify @xxx
-    const AT_SEPRATOR = String.fromCharCode(8197)
+    // define magic code `8197` to identify @xxx now it is 32(normal blank)
+    const AT_SEPRATOR = String.fromCharCode(32)
 
     const atList = this.content().split(AT_SEPRATOR)
 
     if (atList.length === 0) return contactList
 
     // Using `filter(e => e.indexOf('@') > -1)` to filter the string without `@`
-    const rawMentionedList = atList
+    let mentionList: string[] = []
+    atList
       .filter(str => str.includes('@'))
       .map(str => multipleAt(str))
       .filter(str => !!str) // filter blank string
 
-    // convert 'hello@a@b@c' to [ 'c', 'b@c', 'a@b@c' ]
+    // convert 'hello@a@b@c' to [ 'c', 'b@c', 'a@b@c' ] and integrate all possible strings to mentionList
     function multipleAt(str: string) {
       str = str.replace(/^.*?@/, '@')
         let name = ''
@@ -466,19 +467,16 @@ export class Message implements Sayable {
             name = mentionName + '@' + name
             nameList.push(name.slice(0, -1)) // get rid of the `@` at beginning
           })
-        return nameList
+        mentionList = mentionList.concat(nameList || [])
+        return mentionList
     }
 
-    // flatten array, see http://stackoverflow.com/a/10865042/1123955
-    const mentionList = [].concat.apply([], rawMentionedList)
     log.verbose('Message', 'mentioned(%s),get mentionList: %s', this.content(), JSON.stringify(mentionList))
 
-    contactList = [].concat.apply([],
-      mentionList.map(nameStr => {
-        room.memberAll(nameStr)
-      })
-      .filter(contact => !!contact),
-    )
+    mentionList.map(nameStr => {
+      const nameStrList = room.memberAll(nameStr)
+      contactList = contactList.concat(nameStrList || [])
+    })
 
     if (contactList.length === 0) {
       log.warn(`Message`, `message.mentioned() can not found member using room.member() from mentionList, metion string: ${JSON.stringify(mentionList)}`)
