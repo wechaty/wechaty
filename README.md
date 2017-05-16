@@ -205,6 +205,15 @@ Get to know more about test from [Wiki:Test](https://github.com/chatie/wechaty/w
 
 Get embed html/markdown code from [Wiki:PoweredByWechaty](https://github.com/chatie/wechaty/wiki/PoweredByWechaty)
 
+## Projects Use Wechaty
+
+1. [Relay between Telegram and WeChat](https://github.com/Firaenix/TeleChatRelay)
+1. [A chat bot managing the HaoShiYou wechat groups run by volunteers of haoshiyou.org](https://github.com/xinbenlv/haoshiyou-bot)
+1. [A chat interactive bot to manage TODO list](https://github.com/coderbunker/candobot)
+1. [Forward WeChat messages to telegram](https://github.com/luosheng/Wegram)
+
+Know more about Projects Use Wechaty at [Wiki:PoweredByWechaty](https://github.com/chatie/wechaty/wiki/PoweredByWechaty)
+
 ## Find a Good Server
 
 The best practice for runing Wechaty Docker/NPM is using a VPS(Virtual Private Server) outside of China, which can save you hours of time because `npm install` and `docker pull` will run smoothly without any problem. 
@@ -216,15 +225,6 @@ The following VPS providers is used by ourselves, they worked perfectly in produ
 | Singapore | $5    | 512MB   | Paypal            | [DigitalOcean](https://m.do.co/c/01a54778df5c) |
 | Japan     | $5    | 1GB     | Paypal            | [Linode](https://www.linode.com/?r=5fd2b713d711746bb5451111df0f2b6d863e9f63) |
 | Korea     | $10   | 1GB     | Alipay, Paypal    | [Netdedi](https://www.netdedi.com/?affid=35) |
-
-## Projects Use Wechaty
-
-1. [Relay between Telegram and WeChat](https://github.com/Firaenix/TeleChatRelay)
-1. [A chat bot managing the HaoShiYou wechat groups run by volunteers of haoshiyou.org](https://github.com/xinbenlv/haoshiyou-bot)
-1. [A chat interactive bot to manage TODO list](https://github.com/coderbunker/candobot)
-1. [Forward WeChat messages to telegram](https://github.com/luosheng/Wegram)
-
-Know more about Projects Use Wechaty at [Wiki:PoweredByWechaty](https://github.com/chatie/wechaty/wiki/PoweredByWechaty)
 
 # Contributing
 
