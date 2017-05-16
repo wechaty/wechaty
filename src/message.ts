@@ -479,7 +479,7 @@ export class Message implements Sayable {
     })
 
     if (contactList.length === 0) {
-      log.warn(`Message`, `message.mentioned() can not found member using room.member() from mentionList, metion string: ${JSON.stringify(mentionList)}`)
+      log.warn(`Message`, `message.mentioned() can not found member using room.member() from mentionList, mention string: ${JSON.stringify(mentionList)}`)
     }
     return contactList
   }
