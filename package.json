@@ -67,7 +67,7 @@
     "微信控"
   ],
   "author": {
-    "name": "Zhuohuan LI",
+    "name": "Huan LI",
     "email": "zixia@zixia.net",
     "url": "www.zixia.net"
   },
@@ -164,12 +164,8 @@
     "LICENSE",
     "README.md",
     "package.json",
-    "*.js",
-    "*.js.map",
-    "*.d.ts",
     "bin/",
-    "dist/",
-    "src/"
+    "dist/"
   ],
   "publishConfig": {
     "tagBak": "next",
