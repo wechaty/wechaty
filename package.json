@@ -24,7 +24,7 @@
     "doctor": "npm run check-node-version && ts-node bin/doctor",
     "clean": "shx rm -fr dist/*",
     "check-node-version": "check-node-version --node \">= 6.9\"",
-    "lint": "npm run check-node-version && npm run eslint && npm run tslint",
+    "lint": "npm run clean && npm run check-node-version && npm run eslint && npm run tslint",
     "nycava": "WECHATY_HEAD=chrome nyc ava --serial --fail-fast --verbose --timeout=3m \"dist/{src,test}/**/*.spec.js\"",
     "eslint": "eslint \"{bin,example,src,test}/**/*.js\" --ignore-pattern=\"test/fixture/**\"",
     "tslint": "tslint --project tsconfig.json --type-check \"{bin,example,src,test}/**/*.ts\" --exclude=\"test/fixture/**\" --exclude=\"dist/\" && npm run clean && tsc --noEmit",
