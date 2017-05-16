@@ -133,7 +133,13 @@ export class Browser extends EventEmitter {
         await new Promise((resolve, reject) => {
 
           const id = setTimeout(() => {
-            this.driver.close()
+            try {
+              this.driver.close()
+            } catch (e) {
+              log.warn('PuppetWebBrowser', 'open() timeout, close driver exception: %s',
+                                            e.message,
+                      )
+            }
             const e = new Error('timeout after '
                                 + Math.round(TIMEOUT / 1000) + ' seconds'
                                 + 'at ttl:' + TTL,
