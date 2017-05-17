@@ -448,8 +448,8 @@ export class Message implements Sayable {
 
     if (atList.length === 0) return contactList
 
-    // Using `filter(e => e.indexOf('@') > -1)` to filter the string without `@`
     let mentionList: string[] = []
+    // atList here is trying to fill in mentionList in function multipulAt()
     atList
       .filter(str => str.includes('@'))
       .map(str => multipleAt(str))
@@ -474,8 +474,8 @@ export class Message implements Sayable {
     log.verbose('Message', 'mentioned(%s),get mentionList: %s', this.content(), JSON.stringify(mentionList))
 
     mentionList.map(nameStr => {
-      const nameStrList = room.memberAll(nameStr)
-      contactList = contactList.concat(nameStrList || [])
+      const nameList = room.memberAll(nameStr)
+      contactList = contactList.concat(nameList || [])
     })
 
     if (contactList.length === 0) {
