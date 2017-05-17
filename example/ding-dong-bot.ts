@@ -73,15 +73,13 @@ bot
       m.say('dong')
       log.info('Bot', 'REPLY: dong')
 
-      m.say(`Join Wechaty Developers' Community
-
-            Wechaty is used in many ChatBot projects by hundreds of developers.
-            If you want to talk with other developers, just scan the following QR Code in WeChat with secret code: wechaty,
-            you can join our Wechaty Developers' Home at once.
-        `.replace(/  /, ' '),
-      )
+      const joinWechaty =  `Join Wechaty Developers' Community\n\n` +
+                            `Wechaty is used in many ChatBot projects by hundreds of developers.\n\n` +
+                            `If you want to talk with other developers, just scan the following QR Code in WeChat with secret code: wechaty,\n\n` +
+                            `you can join our Wechaty Developers' Home at once`
+      m.say(joinWechaty)
       m.say(new MediaMessage(__dirname + '/../image/BotQrcode.png'))
-      m.say('Scan now, because other Wechaty developers want to talk with you too! (secret code: wechaty)')
+      m.say('Scan now, because other Wechaty developers want to talk with you too!\n\n (secret code: wechaty)')
       log.info('Bot', 'REPLY: Image')
     }
   } catch (e) {
