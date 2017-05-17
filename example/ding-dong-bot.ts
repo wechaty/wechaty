@@ -61,7 +61,7 @@ bot
   }
   console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
 })
-.on('message', m => {
+.on('message', async m => {
   try {
     const room = m.room()
     console.log((room ? '[' + room.topic() + ']' : '')
@@ -77,9 +77,9 @@ bot
                             `Wechaty is used in many ChatBot projects by hundreds of developers.\n\n` +
                             `If you want to talk with other developers, just scan the following QR Code in WeChat with secret code: wechaty,\n\n` +
                             `you can join our Wechaty Developers' Home at once`
-      m.say(joinWechaty)
-      m.say(new MediaMessage(__dirname + '/../image/BotQrcode.png'))
-      m.say('Scan now, because other Wechaty developers want to talk with you too!\n\n (secret code: wechaty)')
+      await m.say(joinWechaty)
+      await m.say(new MediaMessage(__dirname + '/../image/BotQrcode.png'))
+      await m.say('Scan now, because other Wechaty developers want to talk with you too!\n\n(secret code: wechaty)')
       log.info('Bot', 'REPLY: Image')
     }
   } catch (e) {
