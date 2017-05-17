@@ -441,8 +441,8 @@ export class Message implements Sayable {
       return contactList
     }
 
-    // define magic code `8197` to identify @xxx now it is 32(normal blank)
-    const AT_SEPRATOR = String.fromCharCode(32)
+    // define magic code `8197` to identify @xxx (wechat version > 6.5, old version use normal blank `32`)
+    const AT_SEPRATOR = String.fromCharCode(8197)
 
     const atList = this.content().split(AT_SEPRATOR)
 
