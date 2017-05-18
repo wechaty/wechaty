@@ -107,7 +107,7 @@
     "@types/selenium-webdriver": "3.0.4",
     "@types/socket.io": "1.4.29",
     "bl": "1.2.1",
-    "body-parser": "1.17.1",
+    "body-parser": "1.17.2",
     "brolog": "1.1.18",
     "chromedriver": "2.29.0",
     "express": "4.15.2",
