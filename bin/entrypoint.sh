@@ -131,11 +131,11 @@ function wechaty::runBot() {
   local -i ret=0
   case "$botFile" in
     *.js)
-      echo "Executing node $*"
       if [ "$NODE_ENV" != "production" ]; then
         echo "Executing babel-node --presets es2015 $*"
         babel-node --presets es2015 "$@" &
       else
+        echo "Executing node $*"
         node "$@" &
       fi
       ;;

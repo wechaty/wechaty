@@ -85,7 +85,9 @@ export class Contact implements Sayable {
   private dirtyObj: ContactObj | null
   private rawObj: ContactRawObj
 
-  constructor(public readonly id: string) {
+  constructor(
+    public readonly id: string,
+  ) {
     log.silly('Contact', `constructor(${id})`)
 
     if (typeof id !== 'string') {
@@ -499,15 +501,15 @@ export class Contact implements Sayable {
       throw new Error('unsupport name type')
     }
 
-    const list = await Config.puppetInstance()
+    const contactList = await Config.puppetInstance()
                               .contactFind(filterFunction)
                               .catch(e => {
                                 log.error('Contact', 'findAll() rejected: %s', e.message)
                                 return [] // fail safe
                               })
-    await Promise.all(list.map(c => c.ready()))
+    await Promise.all(contactList.map(c => c.ready()))
 
-    return list
+    return contactList
   }
 
   /**
