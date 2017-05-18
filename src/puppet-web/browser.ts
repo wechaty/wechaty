@@ -123,13 +123,49 @@ export class Browser extends EventEmitter {
       throw new Error('hostname unknown')
     }
 
+    // Issue #175
     // TODO: set a timer to guard driver.get timeout, then retry 3 times 201607
-    try {
-      await this.driver.get(url)
-    } catch (e) {
-      log.error('PuppetWebBrowser', 'open() exception: %s', e.message)
-      throw e
+    const TIMEOUT = 60 * 1000
+    let TTL = 0
+    while (TTL++ < 3) {
+      log.silly('PuppetWebBrowser', 'open() begin for ttl:%d', TTL)
+      try {
+        await new Promise((resolve, reject) => {
+
+          const id = setTimeout(() => {
+            try {
+              this.driver.close()
+            } catch (e) {
+              log.warn('PuppetWebBrowser', 'open() timeout, close driver exception: %s',
+                                            e.message,
+                      )
+            }
+            const e = new Error('timeout after '
+                                + Math.round(TIMEOUT / 1000) + ' seconds'
+                                + 'at ttl:' + TTL,
+                              )
+            reject(e)
+          }, TIMEOUT)
+
+          this.driver.get(url)
+                      .then(() => {
+                        clearTimeout(id)
+                        resolve()
+                      })
+                      .catch(reject)
+        })
+
+        // open successful!
+        log.silly('PuppetWebBrowser', 'open() end for ttl:%d', TTL)
+        return
+
+      } catch (e) {
+        log.error('PuppetWebBrowser', 'open() exception: %s', e.message)
+      }
     }
+
+    throw new Error('open fail because ttl(' + TTL + ') exceed')
+
   }
 
   public async refresh(): Promise<void> {

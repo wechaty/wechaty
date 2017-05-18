@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.8.36",
+  "version": "0.8.54",
   "description": "Wechat for Bot(Personal Account)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -24,8 +24,8 @@
     "doctor": "npm run check-node-version && ts-node bin/doctor",
     "clean": "shx rm -fr dist/*",
     "check-node-version": "check-node-version --node \">= 6.9\"",
-    "lint": "npm run check-node-version && npm run eslint && npm run tslint",
-    "nycava": "WECHATY_HEAD=chrome nyc ava --serial --fail-fast --verbose --timeout=3m \"dist/{src,test}/**/*.spec.js\"",
+    "lint": "npm run clean && npm run check-node-version && npm run eslint && npm run tslint",
+    "nycava": "WECHATY_HEAD=chrome nyc ava --serial --fail-fast --verbose --timeout=5m \"dist/{src,test}/**/*.spec.js\"",
     "eslint": "eslint \"{bin,example,src,test}/**/*.js\" --ignore-pattern=\"test/fixture/**\"",
     "tslint": "tslint --project tsconfig.json --type-check \"{bin,example,src,test}/**/*.ts\" --exclude=\"test/fixture/**\" --exclude=\"dist/\" && npm run clean && tsc --noEmit",
     "shlint": "bash -n bin/*.sh",
@@ -33,10 +33,10 @@
     "sloc": "sloc bin example src test index.ts --details --format cli-table --keys total,source,comment && sloc bin example src test index.ts",
     "test": "npm run test:chrome",
     "posttest": "npm run clean && npm run sloc",
-    "test:phantomjs": "cross-env LC_ALL=C WECHATY_HEAD=phantomjs ava --verbose --fail-fast --serial --timeout=3m \"dist/{src,test}/**/*.spec.js\"",
-    "test:chrome": "cross-env LC_ALL=C WECHATY_HEAD=chrome ava --serial --fail-fast --verbose --timeout=3m \"dist/{src,test}/**/*.spec.js\"",
-    "test:bug": "cross-env LC_ALL=C WECHATY_HEAD=chrome WECHATY_LOG=silly ava --serial --fail-fast --verbose --timeout=3m \"dist/src/message.spec.js\"",
-    "test:chrome:fast": "cross-env LC_ALL=C WECHATY_HEAD=chrome ava --fail-fast --timeout=3m \"dist/{src,test}/**/*.spec.js\"",
+    "test:phantomjs": "cross-env LC_ALL=C WECHATY_HEAD=phantomjs ava --verbose --fail-fast --serial --timeout=5m \"dist/{src,test}/**/*.spec.js\"",
+    "test:chrome": "cross-env LC_ALL=C WECHATY_HEAD=chrome ava --serial --fail-fast --verbose --timeout=5m \"dist/{src,test}/**/*.spec.js\"",
+    "test:bug": "cross-env LC_ALL=C WECHATY_HEAD=chrome WECHATY_LOG=silly ava --serial --fail-fast --verbose --timeout=5m \"dist/src/message.spec.js\"",
+    "test:chrome:fast": "cross-env LC_ALL=C WECHATY_HEAD=chrome ava --fail-fast --timeout=5m \"dist/{src,test}/**/*.spec.js\"",
     "testdev": "cross-env LC_ALL=C WECHATY_LOG=silly ava --ext ts --serial --verbose --fail-fast --timeout=2m",
     "testdist": "cross-env WECHATY_LOG=SILLY WECHATY_HEAD=chrome ava --ext ts --verbose --fail-fast --timeout=2m",
     "io-client": "ts-node bin/io-client",
@@ -67,7 +67,7 @@
     "微信控"
   ],
   "author": {
-    "name": "Zhuohuan LI",
+    "name": "Huan LI",
     "email": "zixia@zixia.net",
     "url": "www.zixia.net"
   },
@@ -104,13 +104,13 @@
     "node": ">= 6.9.0"
   },
   "dependencies": {
-    "@types/selenium-webdriver": "3.0.3",
+    "@types/selenium-webdriver": "3.0.4",
     "@types/socket.io": "1.4.29",
     "bl": "1.2.1",
     "body-parser": "1.17.1",
     "brolog": "1.1.18",
     "chromedriver": "2.29.0",
-    "express": "5.0.0-alpha.5",
+    "express": "4.15.2",
     "is-ci": "1.0.10",
     "is-docker": "1.1.0",
     "moment": "2.18.1",
@@ -119,7 +119,7 @@
     "selenium-webdriver": "3.4.0",
     "socket.io": "1.7.4",
     "state-switch": "0.1.13",
-    "ws": "2.3.1"
+    "ws": "3.0.0"
   },
   "devDependencies": {
     "@types/body-parser": "1.16.3",
@@ -128,7 +128,7 @@
     "@types/mime": "0.0.29",
     "@types/node": "7.0.18",
     "@types/request": "0.0.43",
-    "@types/sinon": "2.2.1",
+    "@types/sinon": "2.2.2",
     "@types/ws": "0.0.41",
     "apiai": "4.0.2",
     "ava": "0.18.2",
@@ -164,12 +164,8 @@
     "LICENSE",
     "README.md",
     "package.json",
-    "*.js",
-    "*.js.map",
-    "*.d.ts",
     "bin/",
-    "dist/",
-    "src/"
+    "dist/"
   ],
   "publishConfig": {
     "tagBak": "next",

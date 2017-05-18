@@ -397,6 +397,7 @@ export class Room extends EventEmitter implements Sayable {
       return Contact.load(this.rawObj.ChatRoomOwner)
     }
 
+    log.info('Room', 'owner() is limited by Tencent API, sometimes work sometimes not')
     return null
   }
 
@@ -437,7 +438,7 @@ export class Room extends EventEmitter implements Sayable {
     /**
      * We got filter parameter
      */
-    log.silly('Room', 'member({ %s })',
+    log.silly('Room', 'memberAll({ %s })',
                       Object.keys(queryArg)
                             .map(k => `${k}: ${queryArg[k]}`)
                             .join(', '),
@@ -451,7 +452,7 @@ export class Room extends EventEmitter implements Sayable {
       log.warn('Room', 'member() not ready')
       return []
     }
-    let filterKey            = Object.keys(queryArg)[0]
+    const filterKey            = Object.keys(queryArg)[0]
     /**
      * ISSUE #64 emoji need to be striped
      */
@@ -464,20 +465,20 @@ export class Room extends EventEmitter implements Sayable {
       roomAlias:    'roomAliasMap',
     }
 
-    filterKey = keyMap[filterKey]
-    if (!filterKey) {
-      throw new Error('unsupport filter key')
+    const filterMapName = keyMap[filterKey]
+    if (!filterMapName) {
+      throw new Error('unsupport filter key: ' + filterKey)
     }
 
     if (!filterValue) {
       throw new Error('filterValue not found')
     }
 
-    const filterMap = this.obj[filterKey]
+    const filterMap = this.obj[filterMapName]
     const idList = Object.keys(filterMap)
-                          .filter(k => filterMap[k] === filterValue)
+                          .filter(id => filterMap[id] === filterValue)
 
-    log.silly('Room', 'member() check %s from %s: %s', filterValue, filterKey, JSON.stringify(filterMap))
+    log.silly('Room', 'memberAll() check %s from %s: %s', filterValue, filterKey, JSON.stringify(filterMap))
 
     if (idList.length) {
       return idList.map(id => Contact.load(id))
@@ -498,7 +499,7 @@ export class Room extends EventEmitter implements Sayable {
     }
 
     if (memberList.length > 1) {
-      log.warn('Room', 'function member(%s) get %d contacts, use the first one by default', JSON.stringify(queryArg), memberList.length)
+      log.warn('Room', 'member(%s) get %d contacts, use the first one by default', JSON.stringify(queryArg), memberList.length)
     }
     return memberList[0]
   }

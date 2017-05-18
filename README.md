@@ -6,8 +6,9 @@
 
 Wechaty is a Bot Framework for Wechat **Personal** Account which can help you create a bot in 6 lines of javascript by easy to use API, with cross-platform support include [Linux](https://travis-ci.org/chatie/wechaty), [Windows](https://ci.appveyor.com/project/chatie/wechaty), [Darwin(OSX/Mac)](https://travis-ci.org/chatie/wechaty) and [Docker](https://circleci.com/gh/chatie/wechaty).
 
-[![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800)](https://nodejs.org/) [![Repo Size](https://reposs.herokuapp.com/?path=Chatie/wechaty)](https://github.com/chatie/wechaty)
-[![Issue Stats](http://issuestats.com/github/chatie/wechaty/badge/pr)](http://issuestats.com/github/chatie/wechaty) [![Issue Stats](http://issuestats.com/github/chatie/wechaty/badge/issue)](http://issuestats.com/github/chatie/wechaty)
+[![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://github.com/ellerbrock/typescript-badges/)
+[![Repo Size](https://reposs.herokuapp.com/?path=Chatie/wechaty)](https://github.com/chatie/wechaty)
 
 :octocat: <https://github.com/chatie/wechaty>  
 :beetle: <https://github.com/chatie/wechaty/issues>  
@@ -100,7 +101,9 @@ Get to know more about Wechaty Docker at [Wiki:Docker](https://github.com/chatie
 
 ### NPM
 
-[![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty) [![Downloads][downloads-image]][downloads-url] [![Greenkeeper badge](https://badges.greenkeeper.io/Chatie/wechaty.svg)](https://greenkeeper.io/)
+[![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty)
+[![Downloads][downloads-image]][downloads-url]
+[![Greenkeeper badge](https://badges.greenkeeper.io/Chatie/wechaty.svg)](https://greenkeeper.io/)
 
 ```shell
 $ npm install wechaty
@@ -116,18 +119,23 @@ $ node mybot.js
 
 Get to know more about NPM at [Wiki:NPM](https://github.com/chatie/wechaty/wiki/NPM)
 
-### Find a Good Server
+# Test
 
-The best practice for runing Wechaty Docker/NPM is using a VPS(Virtual Private Server) outside of China, which can save you hours of time because `npm install` and `docker pull` will run smoothly without any problem. 
+[![Linux/Mac Build Status](https://img.shields.io/travis/Chatie/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/Chatie/wechaty)
+[![Windows Build status](https://img.shields.io/appveyor/ci/chatie/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/chatie/wechaty)
+[![Docker CircleCI](https://img.shields.io/circleci/project/github/Chatie/wechaty/master.svg?label=Docker)](https://circleci.com/gh/Chatie/wechaty)
 
-The following VPS providers is used by ourselves, they worked perfectly in production. You can use the following link to get one in minutes, and also do this can support Wechaty because you are refered by us.
+[![Coverage Status](https://coveralls.io/repos/github/Chatie/wechaty/badge.svg?branch=master)](https://coveralls.io/github/Chatie/wechaty?branch=master)
+[![Known Vulnerabilities](https://snyk.io/test/github/chatie/wechaty/badge.svg)](https://snyk.io/test/github/chatie/wechaty)
 
-| Location  | Price | Ram     | Payment           | Provider |
-| ---       | ---   | ---     | ---               | ---      |
-| Singapore | $5    | 512MB   | Paypal            | [DigitalOcean](https://m.do.co/c/01a54778df5c) |
-| Japan     | $5    | 1GB     | Paypal            | [Linode](https://www.linode.com/?r=5fd2b713d711746bb5451111df0f2b6d863e9f63) |
-| Korea     | $10   | 1GB     | Alipay, Paypal    | [Netdedi](https://www.netdedi.com/?affid=35) |
+Wechaty use [AVA](https://github.com/avajs/ava) for unit testing
 
+To test Wechaty, run:
+```shell
+npm test
+```
+
+Get to know more about test from [Wiki:Test](https://github.com/chatie/wechaty/wiki/Test)
 
 # API Reference
 
@@ -189,19 +197,6 @@ The following VPS providers is used by ourselves, they worked perfectly in produ
 2. [accept():Promise](https://github.com/chatie/wechaty/wiki/API#friendrequestaccept-void) accept the friendrequest
 3. [send(contact:Contact,hello:string):Promise](https://github.com/chatie/wechaty/wiki/API#friendrequestsendcontact-contact-hello-string-void) send a new friend request
 
-# Test
-
-[![Linux/Mac Build Status](https://img.shields.io/travis/Chatie/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/Chatie/wechaty) [![Windows Build status](https://img.shields.io/appveyor/ci/chatie/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/chatie/wechaty) [![Docker CircleCI](https://img.shields.io/circleci/project/github/Chatie/wechaty/master.svg?label=Docker)](https://circleci.com/gh/Chatie/wechaty) [![Coverage Status](https://coveralls.io/repos/github/Chatie/wechaty/badge.svg?branch=master)](https://coveralls.io/github/Chatie/wechaty?branch=master) [![Known Vulnerabilities](https://snyk.io/test/github/chatie/wechaty/badge.svg)](https://snyk.io/test/github/chatie/wechaty)
-
-Wechaty use [AVA](https://github.com/avajs/ava) for unit testing
-
-To test Wechaty, run:
-```shell
-npm test
-```
-
-Get to know more about test from [Wiki:Test](https://github.com/chatie/wechaty/wiki/Test)
-
 # Release Notes
 
 * [Latest Release](https://github.com/chatie/wechaty/releases/latest)(All releases [here](https://github.com/chatie/wechaty/releases))
@@ -217,11 +212,30 @@ Get embed html/markdown code from [Wiki:PoweredByWechaty](https://github.com/cha
 
 ## Projects Use Wechaty
 
-1. [chatie.io](https://www.chatie.io) ChatBot Portal Manager for Wechaty 
+1. [Relay between Telegram and WeChat](https://github.com/Firaenix/TeleChatRelay)
+1. [A chat bot managing the HaoShiYou wechat groups run by volunteers of haoshiyou.org](https://github.com/xinbenlv/haoshiyou-bot)
+1. [A chat interactive bot to manage TODO list](https://github.com/coderbunker/candobot)
+1. [Forward WeChat messages to telegram](https://github.com/luosheng/Wegram)
 
 Know more about Projects Use Wechaty at [Wiki:PoweredByWechaty](https://github.com/chatie/wechaty/wiki/PoweredByWechaty)
 
+## Find a Good Server
+
+The best practice for runing Wechaty Docker/NPM is using a VPS(Virtual Private Server) outside of China, which can save you hours of time because `npm install` and `docker pull` will run smoothly without any problem. 
+
+The following VPS providers is used by ourselves, they worked perfectly in production. You can use the following link to get one in minutes, and also do this can support Wechaty because you are refered by us.
+
+| Location  | Price | Ram     | Payment           | Provider |
+| ---       | ---   | ---     | ---               | ---      |
+| Singapore | $5    | 512MB   | Paypal            | [DigitalOcean](https://m.do.co/c/01a54778df5c) |
+| Japan     | $5    | 1GB     | Paypal            | [Linode](https://www.linode.com/?r=5fd2b713d711746bb5451111df0f2b6d863e9f63) |
+| Korea     | $10   | 1GB     | Alipay, Paypal    | [Netdedi](https://www.netdedi.com/?affid=35) |
+
 # Contributing
+
+[![Issue Stats](http://issuestats.com/github/chatie/wechaty/badge/pr)](http://issuestats.com/github/chatie/wechaty)
+[![Issue Stats](http://issuestats.com/github/chatie/wechaty/badge/issue)](http://issuestats.com/github/chatie/wechaty)
+[![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Howto [contribute](https://github.com/chatie/wechaty/blob/master/CONTRIBUTING.md)
 
@@ -298,7 +312,7 @@ Huan LI <zixia@zixia.net> (http://linkedin.com/in/zixia)
 
 Copyright & License
 -------------------
-* Code & Docs 2016-2017© zixia
+* Code & Docs © 2016-2017 zixia
 * Code released under the ISC license
 * Docs released under Creative Commons
 
