@@ -452,10 +452,11 @@ export class Message implements Sayable {
     // atList here is trying to fill in mentionList in function multipulAt()
     atList
       .filter(str => str.includes('@'))
-      .map(str => multipleAt(str))
-      .filter(str => !!str) // filter blank string
+      .map(str => {
+        mentionList = mentionList.concat(multipleAt(str) || [])
+      })
 
-    // convert 'hello@a@b@c' to [ 'c', 'b@c', 'a@b@c' ] and integrate all possible strings to mentionList
+    // convert 'hello@a@b@c' to [ 'c', 'b@c', 'a@b@c' ]
     function multipleAt(str: string) {
       str = str.replace(/^.*?@/, '@')
         let name = ''
@@ -467,8 +468,7 @@ export class Message implements Sayable {
             name = mentionName + '@' + name
             nameList.push(name.slice(0, -1)) // get rid of the `@` at beginning
           })
-        mentionList = mentionList.concat(nameList || [])
-        return mentionList
+        return nameList
     }
 
     log.verbose('Message', 'mentioned(%s),get mentionList: %s', this.content(), JSON.stringify(mentionList))
