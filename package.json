@@ -17,7 +17,7 @@
   "scripts": {
     "ava": "ava --verbose --extension ts",
     "ts-node": "ts-node",
-    "dist": "npm run clean && tsc && shx cp package.json dist/ && shx cp src/puppet-web/*.js dist/src/puppet-web/",
+    "dist": "npm run clean && tsc && jq 'del (.files)' < package.json > dist/package.json && shx cp src/puppet-web/*.js dist/src/puppet-web/",
     "doc": "npm run dist && jsdoc2md dist/src/{wechaty,room,contact,friend-request,message}.js > docs/index.md",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "changelog": "github_changelog_generator -u chatie -p wechaty && sed -i'' /greenkeeper/d CHANGELOG.md",
@@ -39,6 +39,7 @@
     "test:chrome:fast": "cross-env LC_ALL=C WECHATY_HEAD=chrome ava --fail-fast --timeout=5m \"dist/{src,test}/**/*.spec.js\"",
     "testdev": "cross-env LC_ALL=C WECHATY_LOG=silly ava --ext ts --serial --verbose --fail-fast --timeout=2m",
     "testdist": "cross-env WECHATY_LOG=SILLY WECHATY_HEAD=chrome ava --ext ts --verbose --fail-fast --timeout=2m",
+    "test:pack": "npm run dist && rm -fr package wechaty-*.*.*.tgz && npm pack --verbose  && tar zxvf wechaty-*.*.*.tgz",
     "io-client": "ts-node bin/io-client",
     "dev": "ts-node dev.ts",
     "demo": "ts-node example/ding-dong-bot.ts",
@@ -164,8 +165,9 @@
     "LICENSE",
     "README.md",
     "package.json",
-    "bin/",
-    "dist/"
+    "dist/bin",
+    "dist/index.*",
+    "dist/src"
   ],
   "publishConfig": {
     "tagBak": "next",
