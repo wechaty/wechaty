@@ -11,6 +11,8 @@ environment:
 install:
   # Get the latest stable version of Node.js or io.js
   - ps: Install-Product node $env:nodejs_version
+  # chocolatey install jq - https://chocolatey.org/packages/jq
+  - choco install jq
   # install modules
   - npm --progress=false install > nul 2>&1
   - npm --progress=false install phantomjs-prebuilt > nul 2>&1
