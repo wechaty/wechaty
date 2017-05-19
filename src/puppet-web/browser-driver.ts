@@ -27,7 +27,7 @@ export class BrowserDriver {
     log.verbose('PuppetWebBrowserDriver', 'constructor(%s)', head)
   }
 
-  public async init(): Promise<this> {
+  public async init(): Promise<void> {
     log.verbose('PuppetWebBrowserDriver', 'init() for head: %s', this.head)
 
     switch (this.head) {
@@ -54,7 +54,7 @@ export class BrowserDriver {
                       .timeouts()
                       .setScriptTimeout(10000)
 
-    return this
+    return
   }
 
   private async initChromeDriver(): Promise<void> {

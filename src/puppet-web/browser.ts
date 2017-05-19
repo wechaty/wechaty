@@ -128,18 +128,22 @@ export class Browser extends EventEmitter {
     const TIMEOUT = 60 * 1000
     let TTL = 0
     while (TTL++ < 3) {
-      log.silly('PuppetWebBrowser', 'open() begin for ttl:%d', TTL)
+      log.verbose('PuppetWebBrowser', 'open() begin for ttl:%d', TTL)
       try {
-        await new Promise((resolve, reject) => {
+        await new Promise(async (resolve, reject) => {
 
-          const id = setTimeout(() => {
+          const id = setTimeout(async () => {
             try {
-              this.driver.close()
+              await this.driver.close()
+              await this.driver.quit()
+              await this.driver.init()
+              log.verbose('PuppetWebBrowser', 'open() driver.{close,quit,init}() done')
             } catch (e) {
               log.warn('PuppetWebBrowser', 'open() timeout, close driver exception: %s',
                                             e.message,
                       )
             }
+
             const e = new Error('timeout after '
                                 + Math.round(TIMEOUT / 1000) + ' seconds'
                                 + 'at ttl:' + TTL,
@@ -147,16 +151,18 @@ export class Browser extends EventEmitter {
             reject(e)
           }, TIMEOUT)
 
-          this.driver.get(url)
-                      .then(() => {
-                        clearTimeout(id)
-                        resolve()
-                      })
-                      .catch(reject)
+          try {
+            await this.driver.get(url)
+            resolve()
+          } catch (e) {
+            reject(e)
+          } finally {
+            clearTimeout(id)
+          }
         })
 
         // open successful!
-        log.silly('PuppetWebBrowser', 'open() end for ttl:%d', TTL)
+        log.verbose('PuppetWebBrowser', 'open() end for ttl:%d', TTL)
         return
 
       } catch (e) {
