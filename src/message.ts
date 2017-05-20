@@ -441,18 +441,21 @@ export class Message implements Sayable {
       return contactList
     }
 
-    // define magic code `8197` to identify @xxx
+    // define magic code `8197` to identify @xxx (wechat version > 6.5, old version use normal blank `32`)
     const AT_SEPRATOR = String.fromCharCode(8197)
 
     const atList = this.content().split(AT_SEPRATOR)
 
     if (atList.length === 0) return contactList
 
-    // Using `filter(e => e.indexOf('@') > -1)` to filter the string without `@`
+    // atList here is trying to fill in mentionList in function multipulAt()
     const rawMentionedList = atList
       .filter(str => str.includes('@'))
-      .map(str => multipleAt(str))
-      .filter(str => !!str) // filter blank string
+      .map(str => multipleAt(str) )
+
+    // flatten array, see http://stackoverflow.com/a/10865042/1123955
+    const mentionList = [].concat.apply([], rawMentionedList)
+    log.verbose('Message', 'mentioned(%s),get mentionList: %s', this.content(), JSON.stringify(mentionList))
 
     // convert 'hello@a@b@c' to [ 'c', 'b@c', 'a@b@c' ]
     function multipleAt(str: string) {
@@ -469,19 +472,15 @@ export class Message implements Sayable {
         return nameList
     }
 
-    // flatten array, see http://stackoverflow.com/a/10865042/1123955
-    const mentionList = [].concat.apply([], rawMentionedList)
     log.verbose('Message', 'mentioned(%s),get mentionList: %s', this.content(), JSON.stringify(mentionList))
 
-    contactList = [].concat.apply([],
-      mentionList.map(nameStr => {
-        room.memberAll(nameStr)
-      })
-      .filter(contact => !!contact),
-    )
+    mentionList.map(nameStr => {
+      const nameList = room.memberAll(nameStr)
+      contactList = contactList.concat(nameList || [])
+    })
 
     if (contactList.length === 0) {
-      log.warn(`Message`, `message.mentioned() can not found member using room.member() from mentionList, metion string: ${JSON.stringify(mentionList)}`)
+      log.warn(`Message`, `message.mentioned() can not found member using room.member() from mentionList, mention string: ${JSON.stringify(mentionList)}`)
     }
     return contactList
   }
