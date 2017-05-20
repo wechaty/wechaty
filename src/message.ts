@@ -448,13 +448,14 @@ export class Message implements Sayable {
 
     if (atList.length === 0) return contactList
 
-    let mentionList: string[] = []
     // atList here is trying to fill in mentionList in function multipulAt()
-    atList
+    const rawMentionedList = atList
       .filter(str => str.includes('@'))
-      .map(str => {
-        mentionList = mentionList.concat(multipleAt(str) || [])
-      })
+      .map(str => multipleAt(str) )
+
+    // flatten array, see http://stackoverflow.com/a/10865042/1123955
+    const mentionList = [].concat.apply([], rawMentionedList)
+    log.verbose('Message', 'mentioned(%s),get mentionList: %s', this.content(), JSON.stringify(mentionList))
 
     // convert 'hello@a@b@c' to [ 'c', 'b@c', 'a@b@c' ]
     function multipleAt(str: string) {
