@@ -474,9 +474,7 @@ export class Message implements Sayable {
     log.verbose('Message', 'mentioned(%s),get mentionList: %s', this.content(), JSON.stringify(mentionList))
 
     contactList = [].concat.apply([],
-      mentionList.map(nameStr => {
-        room.memberAll(nameStr)
-      })
+      mentionList.map(nameStr => room.memberAll(nameStr))
       .filter(contact => !!contact),
     )
 
