@@ -126,8 +126,8 @@ export class Browser extends EventEmitter {
     // Issue #175
     // TODO: set a timer to guard driver.get timeout, then retry 3 times 201607
     const TIMEOUT = 60 * 1000
-    let TTL = 0
-    while (TTL++ < 3) {
+    let TTL = 3
+    while (TTL--) {
       log.verbose('PuppetWebBrowser', 'open() begin for ttl:%d', TTL)
       try {
         await new Promise(async (resolve, reject) => {
@@ -162,7 +162,7 @@ export class Browser extends EventEmitter {
         })
 
         // open successful!
-        log.verbose('PuppetWebBrowser', 'open() end for ttl:%d', TTL)
+        log.verbose('PuppetWebBrowser', 'open() end at ttl:%d', TTL)
         return
 
       } catch (e) {
@@ -170,7 +170,7 @@ export class Browser extends EventEmitter {
       }
     }
 
-    throw new Error('open fail because ttl(' + TTL + ') exceed')
+    throw new Error('open fail because ttl expired')
 
   }
 
