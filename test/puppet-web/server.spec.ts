@@ -12,7 +12,7 @@ import * as sinon   from 'sinon'
 
 import { Server }   from '../../src/puppet-web/'
 import UtilLib      from '../../src/util-lib'
-import log          from '../../src/brolog-env'
+import { log  }     from '../../src/config'
 
 test('create & close', async t => {
   const port = await UtilLib.getPort(18788)

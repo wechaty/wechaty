@@ -16,7 +16,7 @@ import * as bodyParser  from 'body-parser'
 import * as express     from 'express'
 import { EventEmitter } from 'events'
 
-import log  from '../brolog-env'
+import { log }          from '../config'
 
 export class Server extends EventEmitter {
   private express:      express.Application

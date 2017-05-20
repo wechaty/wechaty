@@ -6,8 +6,15 @@
 const isCi      = require('is-ci')
 const isDocker  = require('is-docker')
 
+import { log }    from 'brolog'
+
 import { Puppet } from './puppet'
-import { log }    from './brolog-env'
+
+const level = process.env['WECHATY_LOG']
+if (level) {
+  log.level(level.toLowerCase())
+  log.silly('Brolog', 'WECHATY_LOG set level to %s', level)
+}
 
 export type PuppetName = 'web' | 'android' | 'ios'
 export type HeadName = 'chrome' | 'phantomjs' | 'firefox'
@@ -211,10 +218,6 @@ if (!global['WECHATY_CONFIG_INSTANCE_COUNTER']) {
 }
 global['WECHATY_CONFIG_INSTANCE_COUNTER']++
 
-export {
-  log,
-}
-
 /**
  * to handle unhandled exceptions
  */
@@ -230,6 +233,10 @@ if (/verbose|silly/i.test(logLevel)) {
       console.error('Config', err) // I don't know if log.error has similar full trace print support like console.error
     })
   })
+}
+
+export {
+  log,
 }
 
 export default Config

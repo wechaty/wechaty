@@ -19,8 +19,8 @@ const retryPromise  = require('retry-promise').default // https://github.com/ola
 import {
   Config,
   HeadName,
+  log,
 }                     from '../config'
-import log            from '../brolog-env'
 
 import {
   CookieType,

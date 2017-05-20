@@ -12,7 +12,7 @@
  /* tslint:disable:no-var-requires */
 const retryPromise  = require('retry-promise').default
 
-import log        from '../brolog-env'
+import { log }    from '../config'
 
 import PuppetWeb  from './puppet-web'
 

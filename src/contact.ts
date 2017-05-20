@@ -1,6 +1,7 @@
 import {
   Config,
   Sayable,
+  log,
 }                     from './config'
 import {
   Message,
@@ -9,7 +10,6 @@ import {
 import { PuppetWeb }  from './puppet-web'
 import { UtilLib }    from './util-lib'
 import { Wechaty }    from './wechaty'
-import { log }        from './brolog-env'
 
 export interface ContactObj {
   address:    string,
