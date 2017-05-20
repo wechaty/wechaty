@@ -16,7 +16,7 @@ import {
   Bridge,
   Browser,
   PuppetWeb,
-} from '../src/puppet-web/'
+}                 from '../src/puppet-web/'
 
 /**
  * WHY force to use SERIAL mode
@@ -56,13 +56,12 @@ test.serial('WebDriver smoke testing', async t => {
   const bridge = new Bridge(mockPuppet, 8788)
   t.truthy(bridge, 'Bridge instnace')
 
-  let driver // for help function `execute`
-
   const m = (await browser.getBrowserPidList()).length
   t.is(m, 0, 'should has no browser process before get()')
 
-  driver = await browser.driver.init()
-  t.truthy(driver, 'should init driver success')
+  t.notThrows(async () => await browser.driver.init(), 'should init driver success')
+
+  const driver = browser.driver.getWebDriver() // for help function `execute`
 
   const injectio = bridge.getInjectio()
   t.truthy(injectio.length > 10, 'should got injectio script')

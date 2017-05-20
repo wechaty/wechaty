@@ -57,6 +57,9 @@ export class BrowserDriver {
     return
   }
 
+  public getWebDriver(): WebDriver {
+    return this.driver
+  }
   private async initChromeDriver(): Promise<void> {
     log.verbose('PuppetWebBrowserDriver', 'initChromeDriver()')
 
