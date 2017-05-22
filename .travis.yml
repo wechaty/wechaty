@@ -51,6 +51,7 @@ script:
   # - if [ "$TRAVIS_OS_NAME" == 'linux' ];  then WECHATY_LOG=silly    npm run test:phantomjs;   fi
   - if [ "$TRAVIS_OS_NAME" == 'linux' ];  then WECHATY_LOG=silly    npm run test:chrome;      fi
   - if [ "$TRAVIS_OS_NAME" == 'osx' ];    then WECHATY_LOG=verbose  npm run nycava;           fi
+  - npm run test:npm && echo 'Npm packing is passed the test and ready for publish'
 
 notifications:
   webhooks:
