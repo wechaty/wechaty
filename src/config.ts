@@ -10,10 +10,26 @@ import { log }    from 'brolog'
 
 import { Puppet } from './puppet'
 
-const level = process.env['WECHATY_LOG']
-if (level) {
-  log.level(level.toLowerCase())
-  log.silly('Brolog', 'WECHATY_LOG set level to %s', level)
+const logLevel = process.env['WECHATY_LOG']
+if (logLevel) {
+  log.level(logLevel.toLowerCase())
+  log.silly('Brolog', 'WECHATY_LOG set level to %s', logLevel)
+}
+
+/**
+ * to handle unhandled exceptions
+ */
+if (/verbose|silly/i.test(logLevel)) {
+  log.info('Config', 'registering process.on("unhandledRejection") for development/debug')
+  process.on('unhandledRejection', (reason, promise) => {
+    log.error('Config', '###########################')
+    log.error('Config', 'unhandledRejection: %s %s', reason, promise)
+    log.error('Config', '###########################')
+    promise.catch(err => {
+      log.error('Config', 'unhandledRejection::catch(%s)', err.message)
+      console.error('Config', err) // I don't know if log.error has similar full trace print support like console.error
+    })
+  })
 }
 
 export type PuppetName = 'web' | 'android' | 'ios'
@@ -217,23 +233,6 @@ if (!global['WECHATY_CONFIG_INSTANCE_COUNTER']) {
   global['WECHATY_CONFIG_INSTANCE_COUNTER'] = 0
 }
 global['WECHATY_CONFIG_INSTANCE_COUNTER']++
-
-/**
- * to handle unhandled exceptions
- */
-const logLevel = process.env['WECHATY_LOG']
-if (/verbose|silly/i.test(logLevel)) {
-  log.verbose('Config', 'registering process.on("unhandledRejection")')
-  process.on('unhandledRejection', (reason, promise) => {
-    log.error('Config', '###########################')
-    log.error('Config', 'unhandledRejection: %s %s', reason, promise)
-    log.error('Config', '###########################')
-    promise.catch(err => {
-      log.error('Config', 'unhandledRejection::catch(%s)', err.message)
-      console.error('Config', err) // I don't know if log.error has similar full trace print support like console.error
-    })
-  })
-}
 
 export {
   log,
