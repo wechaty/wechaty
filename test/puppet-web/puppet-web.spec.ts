@@ -10,18 +10,9 @@ import { test } from 'ava'
 import {
   Config,
   log,
-}                     from '../../src/config'
-// import { Message }    from '../../src/message'
+}                 from '../../src/config'
 import PuppetWeb  from '../../src/puppet-web'
-import Server     from '../../src/puppet-web/server'
-
-// import { spy } from 'sinon'
-
-// process.on('unhandledRejection', (reason, p) => {
-//   console.log('!!!!!!! unhandledRejection in puppet-web.spec.ts')
-//   console.log('Unhandled Rejection at: Promise', p, 'reason:', reason)
-//   console.log('!!!!!!!')
-// })
+import PuppetWebServer     from '../../src/puppet-web/server'
 
 /**
  * the reason why use `test.serial` here is:
@@ -56,25 +47,25 @@ test.serial('login/logout events', async t => {
 })
 
 test.serial('server/browser socketio ding', async t => {
-  const pw = new PuppetWeb()
-  t.truthy(pw, 'should instantiated a PuppetWeb')
+  const puppet = new PuppetWeb()
+  t.truthy(puppet, 'should instantiated a PuppetWeb')
 
-  Config.puppetInstance(pw)
+  Config.puppetInstance(puppet)
 
   const EXPECTED_DING_DATA = 'dingdong'
 
   try {
-    await pw.init()
+    await puppet.init()
     t.pass('should be inited')
 
-    const ret = await dingSocket(pw.server)
+    const ret = await dingSocket(puppet.server)
     t.is(ret, EXPECTED_DING_DATA, 'should got EXPECTED_DING_DATA after resolved dingSocket()')
   } catch (e) {
     t.fail(e && e.message || e || 'unknown exception???')
   }
 
   try {
-    await pw.quit()
+    await puppet.quit()
   } catch (err) {
     t.fail(err.message)
   }
@@ -83,17 +74,17 @@ test.serial('server/browser socketio ding', async t => {
 
   /////////////////////////////////////////////////////////////////////////////
 
-  function dingSocket(server: Server) {
+  function dingSocket(server: PuppetWebServer) {
     const maxTime   = 60000 // 60s
     const waitTime  = 3000
     let   totalTime = 0
     return new Promise((resolve, reject) => {
       log.verbose('TestPuppetWeb', 'dingSocket()')
 
-      setTimeout(_ => {
-        return reject('dingSocket() no response timeout after ' + 2 * maxTime)
+      const timeoutTimer = setTimeout(_ => {
+        reject('dingSocket() no response timeout after ' + 2 * maxTime)
       }, 2 * maxTime)
-      .unref()
+      timeoutTimer.unref()
 
       testDing()
       return
@@ -113,7 +104,10 @@ test.serial('server/browser socketio ding', async t => {
         log.silly('TestPuppetWeb', 'dingSocket() server.socketClient: %s', server.socketClient)
         server.socketClient.once('dong', data => {
           log.verbose('TestPuppetWeb', 'socket recv event dong: ' + data)
+
+          clearTimeout(timeoutTimer)
           return resolve(data)
+
         })
         server.socketClient.emit('ding', EXPECTED_DING_DATA)
       }
