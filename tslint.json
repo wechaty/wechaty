@@ -6,7 +6,7 @@
     "align": [
       true,
       "parameters",
-      "arguments",
+      // "arguments",
       "statements"
     ],
     "jsdoc-require": [

@@ -24,17 +24,23 @@ export async function onFriend(contact: Contact, request?: FriendRequest): Promi
      */
     await request.accept()
 
-    setTimeout(function() {
-      contact.say('thank you for adding me')
-    }, 3000)
+    setTimeout(
+      _ => {
+        contact.say('thank you for adding me')
+      },
+      3000,
+    )
 
     if (request.hello === 'ding') {
       const myRoom = await Room.find({ topic: 'ding' })
       if (!myRoom) return
-      setTimeout(function() {
-        myRoom.add(contact)
-        myRoom.say('welcome ' + contact.name())
-      }, 3000)
+      setTimeout(
+        _ => {
+          myRoom.add(contact)
+          myRoom.say('welcome ' + contact.name())
+        },
+        3000,
+      )
     }
 
     /**

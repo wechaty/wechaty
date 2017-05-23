@@ -107,10 +107,10 @@ bot
  * Global Event: room-join
  */
 .on('room-join', function(this, room, inviteeList, inviter) {
-  log.info('Bot', 'EVENT: room-join - Room %s got new member %s, invited by %s',
-                  room.topic(),
-                  inviteeList.map(c => c.name()).join(','),
-                  inviter.name(),
+  log.info( 'Bot', 'EVENT: room-join - Room %s got new member %s, invited by %s',
+            room.topic(),
+            inviteeList.map(c => c.name()).join(','),
+            inviter.name(),
           )
 })
 
@@ -307,9 +307,12 @@ function checkRoomJoin(room: Room, inviteeList: Contact[], inviter: Contact) {
       )
 
       room.topic('ding - warn ' + inviter.name())
-      setTimeout(_ => {
-        inviteeList.forEach(c => room.del(c))
-      }, 10000)
+      setTimeout(
+        _ => {
+          inviteeList.forEach(c => room.del(c))
+        },
+        10000,
+      )
 
     } else {
 
