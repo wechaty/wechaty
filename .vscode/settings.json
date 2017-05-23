@@ -3,5 +3,6 @@
   , "files.exclude": {
       "node_modules/": true
     , "dist/": true
+    , "package/": true
   }
 }
