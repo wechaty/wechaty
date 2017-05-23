@@ -457,16 +457,16 @@ export class Message implements Sayable {
     // convert 'hello@a@b@c' to [ 'c', 'b@c', 'a@b@c' ]
     function multipleAt(str: string) {
       str = str.replace(/^.*?@/, '@')
-        let name = ''
-        const nameList: string[] = []
-        str.split('@')
-          .filter(mentionName => !!mentionName)
-          .reverse()
-          .forEach(mentionName => {
-            name = mentionName + '@' + name
-            nameList.push(name.slice(0, -1)) // get rid of the `@` at beginning
-          })
-        return nameList
+      let name = ''
+      const nameList: string[] = []
+      str.split('@')
+        .filter(mentionName => !!mentionName)
+        .reverse()
+        .forEach(mentionName => {
+          name = mentionName + '@' + name
+          nameList.push(name.slice(0, -1)) // get rid of the `@` at beginning
+        })
+      return nameList
     }
 
     // flatten array, see http://stackoverflow.com/a/10865042/1123955

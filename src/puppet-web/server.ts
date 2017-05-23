@@ -133,7 +133,8 @@ export class Server extends EventEmitter {
     })
 
     // Events from Wechaty@Broswer --to--> Server
-    ; [
+    ; // MUST KEEP: seprator
+    [
       'message',
       'scan',
       'login',

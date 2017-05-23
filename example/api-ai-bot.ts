@@ -64,14 +64,14 @@ bot
 
   // co(function* () {
   //   const msg = yield m.load()
-    const room = m.room()
+  const room = m.room()
 
-    if (room && /Wechaty/i.test(room.topic())) {
-      log.info('Bot', 'talk: %s'  , m)
-      talk(m)
-    } else {
-      log.info('Bot', 'recv: %s'  , m)
-    }
+  if (room && /Wechaty/i.test(room.topic())) {
+    log.info('Bot', 'talk: %s'  , m)
+    talk(m)
+  } else {
+    log.info('Bot', 'recv: %s'  , m)
+  }
   // })
   // .catch(e => log.error('Bot', 'on message rejected: %s' , e))
 })
