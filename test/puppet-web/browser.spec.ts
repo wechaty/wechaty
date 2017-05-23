@@ -5,17 +5,17 @@
  * https://github.com/wechaty/wechaty
  *
  */
-import * as fs from 'fs'
+import * as fs  from 'fs'
 import { test } from 'ava'
 
 import {
   Config,
   log,
-} from '../../'
+}               from '../../'
 
 import {
-    Browser,
-} from '../../src/puppet-web/'
+  Browser,
+}               from '../../src/puppet-web/'
 
 const PROFILE = Config.DEFAULT_PROFILE + '-' + process.pid + '-'
 let profileCounter = 1
@@ -88,7 +88,7 @@ test('Cookie smoking test', async t => {
 })
 
 test('Cookie save/load', async t => {
-  const profileName = PROFILE + profileCounter++ + 'wechaty.json'
+  const profileName = PROFILE + (profileCounter++)
 
   let browser = new Browser({
       head: Config.head,
