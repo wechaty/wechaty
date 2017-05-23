@@ -27,6 +27,7 @@ export interface ContactObj {
   avatar:     string,  // XXX URL of HeadImgUrl
   official:   boolean,
   special:    boolean,
+  displayName: string,
 }
 
 export interface ContactRawObj {
@@ -44,6 +45,7 @@ export interface ContactRawObj {
 
   stranger:     string, // assign by injectio.js
   VerifyFlag:   number,
+  DisplayName: string,
 }
 
 /**
@@ -135,6 +137,7 @@ export class Contact implements Sayable {
        * @see 1. https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3246
        */
       special:       specialContactList.indexOf(rawObj.UserName) > -1 || /@qqim$/.test(rawObj.UserName),
+      displayName:    rawObj.DisplayName, // XXX: need a stable address for user
     }
   }
 
@@ -169,6 +172,7 @@ export class Contact implements Sayable {
    * ```
    */
   public name()     { return UtilLib.plainText(this.obj && this.obj.name || '') }
+  public displayName()     { return UtilLib.plainText(this.obj && this.obj.displayName || '') }
 
   /**
    * Check if contact is stranger

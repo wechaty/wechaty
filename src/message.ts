@@ -39,7 +39,7 @@ export interface MsgRawObj {
    */
   Url:              string,
   MMAppMsgDesc:     string,  // class="desc" ng-bind="message.MMAppMsgDesc"
-
+  md5:              string,
   /**
    * Attachment
    *

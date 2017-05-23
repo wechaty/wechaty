@@ -138,7 +138,6 @@ export class BrowserDriver {
                       .build()
 
         log.verbose('PuppetWebBrowserDriver', 'initChromeDriver() new Builder() done')
-
         valid = await this.valid(this.driver)
         log.verbose('PuppetWebBrowserDriver', 'initChromeDriver() valid() done: %s', valid)
 

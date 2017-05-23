@@ -93,7 +93,6 @@ bot.init()
   bot.quit()
   process.exit(-1)
 })
-
 finis((code, signal) => {
   const exitMsg = `Wechaty exit ${code} because of ${signal} `
   console.log(exitMsg)

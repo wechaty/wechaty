@@ -17,7 +17,7 @@
   "scripts": {
     "ava": "ava --verbose --extension ts",
     "ts-node": "ts-node",
-    "dist": "npm run clean && tsc && jq 'del (.files)' < package.json > dist/package.json && shx cp src/puppet-web/*.js dist/src/puppet-web/",
+    "dist": "npm run clean && tsc &&  shx cp package.json dist/ && shx cp src/puppet-web/*.js dist/src/puppet-web/",
     "doc": "npm run dist && jsdoc2md dist/src/{wechaty,room,contact,friend-request,message}.js > docs/index.md",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "changelog": "github_changelog_generator -u chatie -p wechaty && sed -i'' /greenkeeper/d CHANGELOG.md",
@@ -107,6 +107,7 @@
   "dependencies": {
     "@types/selenium-webdriver": "3.0.4",
     "@types/socket.io": "1.4.29",
+    "angular": "^1.6.4",
     "bl": "1.2.1",
     "body-parser": "1.17.2",
     "brolog": "1.1.18",
