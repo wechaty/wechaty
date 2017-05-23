@@ -756,8 +756,8 @@
 
     VerifyContent = VerifyContent || '';
 
-    var contactFactory = WechatyBro.glue.contactFactory
-    var confFactory = WechatyBro.glue.confFactory
+    var contactFactory  = WechatyBro.glue.contactFactory
+    var confFactory     = WechatyBro.glue.confFactory
 
     var Ticket = '' // what's this?
 

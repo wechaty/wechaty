@@ -652,7 +652,7 @@ export class PuppetWeb extends Puppet {
    */
   public async friendRequestSend(contact: Contact, hello: string): Promise<boolean> {
     if (!this.bridge) {
-      return Promise.reject(new Error('fail: no bridge(yet)!'))
+      throw new Error('fail: no bridge(yet)!')
     }
 
     if (!contact) {
