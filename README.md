@@ -45,7 +45,7 @@ Wechaty is a Bot Framework for Wechat **Personal** Account which can help you cr
 
 > "Your docker solution is awesome!" [link](https://github.com/chatie/wechaty/issues/164#issuecomment-278633203) - @ax4 
 
-> "If you know js ... try Chatie/wechaty, it's easy to use." @[Urinx](https://github.com/Urinx) Uri Lee, Author of [WeixinBot](https://github.com/Urinx/WeixinBot)
+> "If you know js ... try Chatie/Wechaty, it's easy to use." @[Urinx](https://github.com/Urinx) Uri Lee, Author of [WeixinBot](https://github.com/Urinx/WeixinBot)
 
 # The World's Shortest ChatBot Code: 6 lines of JavaScript
 
