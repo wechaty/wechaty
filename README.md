@@ -302,7 +302,7 @@ Huan LI <zixia@zixia.net> (http://linkedin.com/in/zixia)
 Copyright & License
 -------------------
 * Code & Docs © 2016-2017 zixia
-* Code released under the ISC license
+* Code released under the Apache-2.0 license
 * Docs released under Creative Commons
 
 [downloads-image]: http://img.shields.io/npm/dm/wechaty.svg?style=flat-square
