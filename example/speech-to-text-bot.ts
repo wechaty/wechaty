@@ -17,12 +17,17 @@ import querystring  = require('querystring')
 /* tslint:disable:variable-name */
 const QrcodeTerminal = require('qrcode-terminal')
 
+/**
+ * Change `import { ... } from '../'`
+ * to     `import { ... } from 'wechaty'`
+ * when you are runing with Docker or NPM instead of Git Source.
+ */
 import {
   Config,
   MediaMessage,
   MsgType,
   Wechaty,
-} from '../'
+}                 from '../'
 
 const bot = Wechaty.instance({ profile: Config.DEFAULT_PROFILE })
 

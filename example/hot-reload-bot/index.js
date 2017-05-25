@@ -3,13 +3,13 @@
  *
  * DEV: docker run -ti -e --rm --volume="$(pwd)":/bot zixia/wechaty index.js
  * PROD: docker run -ti -e NODE_ENV=production --rm --volume="$(pwd)":/bot zixia/wechaty index.js
- * 
+ *
  * @author: Gcaufy
- * 
+ *
  */
 const fs = require('fs');
 const path = require('path');
-const Wechaty = require('wechaty').default;
+const { Wechaty } = require('wechaty');
 
 const isProd = process.env.NODE_ENV === 'production';
 const bot = Wechaty.instance();
@@ -45,7 +45,7 @@ const purgeCache = (moduleName) => {
             delete require.cache[mod.id];
         }(mod));
     }
-    
+
     Object.keys(module.constructor._pathCache).forEach(function(cacheKey) {
         if (cacheKey.indexOf(moduleName)>0) {
             delete module.constructor._pathCache[cacheKey];

@@ -15,11 +15,16 @@
 const QrcodeTerminal  = require('qrcode-terminal')
 const Tuling123       = require('tuling123-client')
 
+/**
+ * Change `import { ... } from '../'`
+ * to     `import { ... } from 'wechaty'`
+ * when you are runing with Docker or NPM instead of Git Source.
+ */
 import {
   Config,
   Wechaty,
   log,
-} from '../'
+}           from '../'
 
 // log.level = 'verbose'
 // log.level = 'silly'
