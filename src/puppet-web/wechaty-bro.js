@@ -642,11 +642,17 @@
         timeout: 1e4,
         serial: !0
       }
-    }).success(function() {
+    })
+    .success(function() {
       contact.RemarkName = remark
+
       callback(true)
-    }).error(function() {
+
+    })
+    .error(function() {
+
       callback(false)
+
     })
   }
 
