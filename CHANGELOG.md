@@ -6,7 +6,38 @@
 
 **Implemented enhancements:**
 
+- use babel-node to run javascript\(.js\) file inside docker [\#507](https://github.com/Chatie/wechaty/issues/507)
 - License Change: from ISC to Apache-2.0 [\#474](https://github.com/Chatie/wechaty/issues/474)
+- \[Feature request\] @mention support? [\#153](https://github.com/Chatie/wechaty/issues/153)
+
+**Fixed bugs:**
+
+- wechaty v0.8.54 does not install all required component  [\#522](https://github.com/Chatie/wechaty/issues/522)
+- message.mentioned\(\) does not work as expected [\#512](https://github.com/Chatie/wechaty/issues/512)
+- ts-node commond not found  after update docker image [\#492](https://github.com/Chatie/wechaty/issues/492)
+- may be not need .vscode folder, need .editorconfig [\#489](https://github.com/Chatie/wechaty/issues/489)
+- MediaMessage\#filename\(\) should not use timestamp as part of the filename [\#465](https://github.com/Chatie/wechaty/issues/465)
+- \[ci\]   × src » message » ready\(\) contact ready for ToNickName [\#445](https://github.com/Chatie/wechaty/issues/445)
+- Build Docker image from zixia/wechaty:onbuild,/bot/node\_modules does not exist. [\#436](https://github.com/Chatie/wechaty/issues/436)
+- \[test\] Unit Tests under Linux by TravisCI keep failing [\#384](https://github.com/Chatie/wechaty/issues/384)
+
+**Closed issues:**
+
+- whatever [\#543](https://github.com/Chatie/wechaty/issues/543)
+- static Contact.find\(\) / static Contact.findAll\(\) throws exception [\#520](https://github.com/Chatie/wechaty/issues/520)
+- Cannot set alias of Contact Object getting from `message.from\(\)` method when Contact is not a friend [\#509](https://github.com/Chatie/wechaty/issues/509)
+- An in-range update of brolog is breaking the build 🚨 [\#499](https://github.com/Chatie/wechaty/issues/499)
+- windows run program send images throw out error [\#427](https://github.com/Chatie/wechaty/issues/427)
+- group names have HTML in them [\#382](https://github.com/Chatie/wechaty/issues/382)
+- jsdoc2md may flush some pieces of the embedded doc [\#378](https://github.com/Chatie/wechaty/issues/378)
+
+**Merged pull requests:**
+
+- fix \#512 [\#531](https://github.com/Chatie/wechaty/pull/531) ([FlyingBlazer](https://github.com/FlyingBlazer))
+- make dingdong reply more beautiful [\#515](https://github.com/Chatie/wechaty/pull/515) ([lijiarui](https://github.com/lijiarui))
+- chore\(package\): update @types/node to version 7.0.18 [\#496](https://github.com/Chatie/wechaty/pull/496) ([zixia](https://github.com/zixia))
+- fix\(package\): update brolog to version 1.1.15 [\#495](https://github.com/Chatie/wechaty/pull/495) ([zixia](https://github.com/zixia))
+- add contributor lockon [\#490](https://github.com/Chatie/wechaty/pull/490) ([lijiarui](https://github.com/lijiarui))
 
 ## [v0.8.2](https://github.com/chatie/wechaty/tree/v0.8.2) (2017-05-03)
 [Full Changelog](https://github.com/chatie/wechaty/compare/v0.7.0...v0.8.2)

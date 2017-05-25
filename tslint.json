@@ -4,9 +4,9 @@
   ],
   "rules": {
     "align": [
-      false,
+      true,
       "parameters",
-      "arguments",
+      // "arguments",
       "statements"
     ],
     "jsdoc-require": [

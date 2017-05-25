@@ -19,7 +19,7 @@
 /* tslint:disable:no-var-requires */
 const retryPromise  = require('retry-promise').default
 
-import Contact        from '../contact'
+import { Contact }    from '../contact'
 import {
   Config,
   RecommendInfo,

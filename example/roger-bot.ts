@@ -10,7 +10,13 @@
 /* tslint:disable:variable-name */
 const QrcodeTerminal = require('qrcode-terminal')
 
+/**
+ * Change `import { ... } from '../'`
+ * to     `import { ... } from 'wechaty'`
+ * when you are runing with Docker or NPM instead of Git Source.
+ */
 import { Wechaty } from '../'
+
 const bot = Wechaty.instance(/* no profile here because roger bot is too noisy */)
 
 bot

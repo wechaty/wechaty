@@ -642,11 +642,17 @@
         timeout: 1e4,
         serial: !0
       }
-    }).success(function() {
+    })
+    .success(function() {
       contact.RemarkName = remark
+
       callback(true)
-    }).error(function() {
+
+    })
+    .error(function() {
+
       callback(false)
+
     })
   }
 
@@ -756,8 +762,8 @@
 
     VerifyContent = VerifyContent || '';
 
-    var contactFactory = WechatyBro.glue.contactFactory
-    var confFactory = WechatyBro.glue.confFactory
+    var contactFactory  = WechatyBro.glue.contactFactory
+    var confFactory     = WechatyBro.glue.confFactory
 
     var Ticket = '' // what's this?
 

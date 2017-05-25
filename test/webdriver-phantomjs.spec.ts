@@ -40,7 +40,8 @@ test.skip('Phantomjs replace javascript source file content test', async t => {
                               .build()
 
   // http://stackoverflow.com/questions/24834403/phantomjs-change-webpage-content-before-evaluating
-  ; (driver as any).executePhantomJS(`
+  ;
+  (driver as any).executePhantomJS(`
 this.onResourceRequested = function(request, net) {
   console.log('REQUEST ' + request.url);
   alert('REQUEST ' + request.url);
