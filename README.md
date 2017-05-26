@@ -17,6 +17,9 @@ Wechaty is a Bot Framework for Wechat **Personal** Account which can help you cr
 
 ## Voice of the Developer
 
+> I ... fall in love with it. It’s really easy to get started to make your own wechatbot. [link](http://blog.chatie.io/2017/05/25/use-interval-in-wechaty.html)  
+> -- @kungfu-software, Founder of Kungfu Software
+
 > "Wechaty is a great solution, I believe there would be much more users recognize it." [link](https://github.com/chatie/wechaty/pull/310#issuecomment-285574472)  
 > -- @Gcaufy, Tencent 
 
@@ -35,7 +38,11 @@ Wechaty is a Bot Framework for Wechat **Personal** Account which can help you cr
 > "Wechaty让运营人员更多的时间思考如何进行活动策划、留存用户，商业变现" [link](http://mp.weixin.qq.com/s/dWHAj8XtiKG-1fIS5Og79g)  
 > -- @lijiarui, Orange Interactive CEO.
 
-> "太好用，好用的想哭" -- @xinbenlv, Google Engineer, HaoShiYou.org Founder
+> "太好用，好用的想哭"  
+> -- @xinbenlv, Google Engineer, HaoShiYou.org Founder
+
+> "If you know js ... try Chatie/wechaty, it's easy to use."  
+> -- @Urinx Uri Lee, Author of WeixinBot
 
 > "Wechaty library fantastic!" [link](https://github.com/chatie/wechaty/issues/9) - @ccaapton 
 
@@ -45,7 +52,6 @@ Wechaty is a Bot Framework for Wechat **Personal** Account which can help you cr
 
 > "Your docker solution is awesome!" [link](https://github.com/chatie/wechaty/issues/164#issuecomment-278633203) - @ax4 
 
-> "If you know js ... try Chatie/wechaty, it's easy to use." @[Urinx](https://github.com/Urinx) Uri Lee, Author of [WeixinBot](https://github.com/Urinx/WeixinBot)
 
 # The World's Shortest ChatBot Code: 6 lines of JavaScript
 
