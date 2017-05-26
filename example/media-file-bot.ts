@@ -13,12 +13,17 @@ const QrcodeTerminal = require('qrcode-terminal')
 // import { inspect }            from 'util'
 import { createWriteStream, writeFileSync }  from 'fs'
 
+/**
+ * Change `import { ... } from '../'`
+ * to     `import { ... } from 'wechaty'`
+ * when you are runing with Docker or NPM instead of Git Source.
+ */
 import {
   Config,
   Message,
   MsgType,
   Wechaty,
-} from '../'
+}           from '../'
 const bot = Wechaty.instance({ profile: Config.DEFAULT_PROFILE })
 
 bot

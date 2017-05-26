@@ -52,11 +52,10 @@ Wechaty is a Bot Framework for Wechat **Personal** Account which can help you cr
 
 > "Your docker solution is awesome!" [link](https://github.com/chatie/wechaty/issues/164#issuecomment-278633203) - @ax4 
 
-
 # The World's Shortest ChatBot Code: 6 lines of JavaScript
 
 ```javascript
-const { Wechaty } = require('wechaty') // import Wechaty from 'wechaty'
+const { Wechaty } = require('wechaty') // import { Wechaty } from 'wechaty'
 
 Wechaty.instance() // Singleton
 .on('scan', (url, code) => console.log(`Scan QR Code to login: ${code}\n${url}`))
@@ -308,7 +307,7 @@ Huan LI <zixia@zixia.net> (http://linkedin.com/in/zixia)
 Copyright & License
 -------------------
 * Code & Docs © 2016-2017 zixia
-* Code released under the ISC license
+* Code released under the Apache-2.0 license
 * Docs released under Creative Commons
 
 [downloads-image]: http://img.shields.io/npm/dm/wechaty.svg?style=flat-square

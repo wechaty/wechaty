@@ -11,12 +11,17 @@
 const QrcodeTerminal  = require('qrcode-terminal')
 const finis           = require('finis')
 
+/**
+ * Change `import { ... } from '../'`
+ * to     `import { ... } from 'wechaty'`
+ * when you are runing with Docker or NPM instead of Git Source.
+ */
 import {
   Config,
   Wechaty,
   log,
   MediaMessage,
-} from '../'
+}               from '../'
 
 const welcome = `
 | __        __        _           _

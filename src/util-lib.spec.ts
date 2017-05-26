@@ -108,9 +108,9 @@ test('downloadStream() for media', t => {
     t.fail('server on clientError')
     socket.end('HTTP/1.1 400 Bad Request\r\n\r\n')
   })
-  server.listen(8000)
+  server.listen(65534)
 
-  UtilLib.urlStream('http://127.0.0.1:8000/ding', [{name: 'life', value: 42}])
+  UtilLib.urlStream('http://127.0.0.1:65534/ding', [{name: 'life', value: 42}])
         .then(s => {
           s.on('data', (chunk) => {
             // console.log(`BODY: ${chunk}`)

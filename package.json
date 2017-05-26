@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.8.72",
+  "version": "0.8.80",
   "description": "Wechat for Bot(Personal Account)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -40,7 +40,7 @@
     "testdev": "cross-env LC_ALL=C WECHATY_LOG=silly ava --ext ts --serial --verbose --fail-fast --timeout=2m",
     "testdist": "cross-env WECHATY_LOG=SILLY WECHATY_HEAD=chrome ava --ext ts --verbose --fail-fast --timeout=2m",
     "test:pack": "npm run dist && rm -fr package wechaty-*.*.*.tgz && npm pack --verbose  && tar zxvf wechaty-*.*.*.tgz",
-    "test:npm": "export TMPDIR=/tmp/wechaty.$$ && npm pack && mkdir $TMPDIR && mv wechaty-*.*.*.tgz $TMPDIR && cp example/smoke-testing.js $TMPDIR && cd $TMPDIR && npm init -y && npm i wechaty-*.*.*.tgz && node smoke-testing.js",
+    "test:npm": "export TMPDIR=/tmp/wechaty.$$ && npm pack && mkdir $TMPDIR && mv wechaty-*.*.*.tgz $TMPDIR && cp test/fixture/smoke-testing.js $TMPDIR && cd $TMPDIR && npm init -y && npm i wechaty-*.*.*.tgz && node smoke-testing.js",
     "io-client": "ts-node bin/io-client",
     "dev": "ts-node dev.ts",
     "demo": "ts-node example/ding-dong-bot.ts",
@@ -150,14 +150,14 @@
     "nyc": "10.3.2",
     "qrcode-terminal": "0.11.0",
     "shx": "0.2.2",
-    "sinon": "2.3.0",
+    "sinon": "2.3.1",
     "sloc": "0.2.0",
     "ts-node": "3.0.4",
-    "tslint": "5.3.0",
+    "tslint": "5.3.2",
     "tslint-jsdoc-rules": "0.1.2",
     "tuling123-client": "0.0.1",
     "typescript": "2.3.3",
-    "yarn": "0.24.4"
+    "yarn": "0.24.5"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [

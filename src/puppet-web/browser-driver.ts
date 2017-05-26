@@ -50,9 +50,10 @@ export class BrowserDriver {
         throw new Error('unsupported head: ' + this.head)
     }
 
+    const WEBDRIVER_TIMEOUT = 60 * 1000
     await this.driver.manage()
                       .timeouts()
-                      .setScriptTimeout(10000)
+                      .setScriptTimeout(WEBDRIVER_TIMEOUT)
 
     return
   }
