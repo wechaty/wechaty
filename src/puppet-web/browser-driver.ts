@@ -63,7 +63,7 @@ export class BrowserDriver {
   }
 
   private async getChromeDriver(): Promise<WebDriver> {
-    log.verbose('PuppetWebBrowserDriver', 'initChromeDriver()')
+    log.verbose('PuppetWebBrowserDriver', 'getChromeDriver()')
 
     /**
      * http://stackoverflow.com/a/27733960/1123955
@@ -93,7 +93,7 @@ export class BrowserDriver {
       ],  // issue #26 for run inside docker
     }
     if (Config.isDocker) {
-      log.verbose('PuppetWebBrowserDriver', 'initChromeDriver() wechaty in docker confirmed(should not show this in CI)')
+      log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() wechaty in docker confirmed(should not show this in CI)')
       options['binary'] = Config.CMD_CHROMIUM
     } else {
       /**
@@ -125,16 +125,16 @@ export class BrowserDriver {
      * XXX when will Builder().build() throw exception???
      */
     let ttl = 3
-    let driverError = new Error('initChromeDriver() invalid driver error')
+    let driverError = new Error('getChromeDriver() invalid driver error')
     let valid = false
 
     let driver: WebDriver
 
     while (ttl--) {
-      log.verbose('PuppetWebBrowserDriver', 'initChromeDriver() ttl: %d', ttl)
+      log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() ttl: %d', ttl)
 
       try {
-        log.verbose('PuppetWebBrowserDriver', 'initChromeDriver() new Builder()')
+        log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() new Builder()')
 
         driver = new Builder()
                       .setAlertBehavior('ignore')
@@ -142,18 +142,18 @@ export class BrowserDriver {
                       .withCapabilities(customChrome)
                       .build()
 
-        log.verbose('PuppetWebBrowserDriver', 'initChromeDriver() new Builder() done')
+        log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() new Builder() done')
 
         valid = await this.valid(driver)
-        log.verbose('PuppetWebBrowserDriver', 'initChromeDriver() valid() done: %s', valid)
+        log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() valid() done: %s', valid)
 
         if (valid) {
-          log.silly('PuppetWebBrowserDriver', 'initChromeDriver() success')
+          log.silly('PuppetWebBrowserDriver', 'getChromeDriver() success')
 
           return driver
 
         } else {
-          const e = new Error('initChromeDriver() got invalid driver')
+          const e = new Error('getChromeDriver() got invalid driver')
           log.warn('PuppetWebBrowserDriver', e.message)
           driverError = e
         }
@@ -161,16 +161,16 @@ export class BrowserDriver {
       } catch (e) {
         if (/could not be found/.test(e.message)) {
           // The ChromeDriver could not be found on the current PATH
-          log.error('PuppetWebBrowserDriver', 'initChromeDriver() Wechaty require `chromedriver` to be installed.(try to run: "npm install chromedriver" to fix this issue)')
+          log.error('PuppetWebBrowserDriver', 'getChromeDriver() Wechaty require `chromedriver` to be installed.(try to run: "npm install chromedriver" to fix this issue)')
           throw e
         }
-        log.warn('PuppetWebBrowserDriver', 'initChromeDriver() ttl:%d exception: %s, ttl: %d', ttl, e.message)
+        log.warn('PuppetWebBrowserDriver', 'getChromeDriver() ttl:%d exception: %s, ttl: %d', ttl, e.message)
         driverError = e
       }
 
     }
 
-    log.warn('PuppetWebBrowserDriver', 'initChromeDriver() not valid with ttl expired: %s', driverError.stack)
+    log.warn('PuppetWebBrowserDriver', 'getChromeDriver() not valid with ttl expired: %s', driverError.stack)
     throw driverError
 
   }

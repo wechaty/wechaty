@@ -368,14 +368,17 @@ export class Browser extends EventEmitter {
       throw e
     }
 
+    let ret
     try {
-      return await this.driver.executeScript.apply(this.driver, arguments)
+      ret = await this.driver.executeScript.apply(this.driver, arguments)
     } catch (e) {
       // this.dead(e)
-      log.silly('PuppetWebBrowser', 'execute() script: %s', script)
       log.warn('PuppetWebBrowser', 'execute() exception: %s, %s', e.message.substr(0, 99), e.stack)
+      log.silly('PuppetWebBrowser', 'execute() script: %s', script)
       throw e
     }
+
+    return ret
   }
 
   public async executeAsync(script, ...args): Promise<any> {
@@ -447,7 +450,7 @@ export class Browser extends EventEmitter {
       msg = forceReason
       log.verbose('PuppetWebBrowser', 'dead(forceReason=%s) %s', forceReason, new Error().stack)
 
-    } else if (!this.driver) { // FIXME: this.driver is BrowserDriver, should add a method to check if availble 201610
+    } else if (!this.driver) { // FIXME: this.driver is BrowserDriver, should add a method(sync) to check if availble 201610
       dead = true
       msg = 'no driver or session'
     }
