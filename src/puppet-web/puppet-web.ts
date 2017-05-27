@@ -134,9 +134,10 @@ export class PuppetWeb extends Puppet {
         const e = new Error('quit() is called on a `dead` `inprocess()` browser')
         log.warn('PuppetWeb', e.message)
         throw e
+      } else {
+        log.warn('PuppetWeb', 'quit() is called on a `dead` browser. return directly.')
+        return
       }
-      log.warn('PuppetWeb', 'quit() is called on a `dead` browser. return directly.')
-      return
     }
 
     /**
@@ -186,14 +187,15 @@ export class PuppetWeb extends Puppet {
 
       })
 
-      this.state.current('dead')
-
       return
 
     } catch (e) {
       log.error('PuppetWeb', 'quit() exception: %s', e.message)
-      this.state.current('dead')
       throw e
+    } finally {
+
+      this.state.current('dead')
+
     }
   }
 

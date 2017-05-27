@@ -69,7 +69,7 @@ async function onBrowserDead(this: PuppetWeb, e: Error): Promise<void> {
     return
   }
 
-  const TIMEOUT = 180000 // 180s / 3m
+  const TIMEOUT = 3 * 60 * 1000 // 3 minutes
   // this.watchDog(`onBrowserDead() set a timeout of ${Math.floor(TIMEOUT / 1000)} seconds to prevent unknown state change`, {timeout: TIMEOUT})
   this.emit('watchdog', {
     data: `onBrowserDead() set a timeout of ${Math.floor(TIMEOUT / 1000)} seconds to prevent unknown state change`,
