@@ -298,7 +298,7 @@ At last, It's built for my personal study purpose of Automatically Testing.
 
 Author
 ------
-Huan LI <zixia@zixia.net> (http://linkedin.com/in/zixia)
+Huan LI \<zixia@zixia.net\> (http://linkedin.com/in/zixia)
 
 <a href="http://stackoverflow.com/users/1123955/zixia">
   <img src="http://stackoverflow.com/users/flair/1123955.png" width="208" height="58" alt="profile for zixia at Stack Overflow, Q&amp;A for professional and enthusiast programmers" title="profile for zixia at Stack Overflow, Q&amp;A for professional and enthusiast programmers">
@@ -306,8 +306,8 @@ Huan LI <zixia@zixia.net> (http://linkedin.com/in/zixia)
 
 Copyright & License
 -------------------
-* Code & Docs © 2016-2017 zixia
-* Code released under the Apache-2.0 license
+* Code & Docs © 2016-2017 Huan LI \<zixia@zixia.net\>
+* Code released under the Apache-2.0 License
 * Docs released under Creative Commons
 
 [downloads-image]: http://img.shields.io/npm/dm/wechaty.svg?style=flat-square
