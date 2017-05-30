@@ -5,18 +5,11 @@
  * https://github.com/wechaty/wechaty
  *
  */
-import { test } from 'ava'
+import { test }     from 'ava'
 
-// import {
-  //   Config
-  // , log
-// } from '../config'
+import { Browser }  from './browser'
 
-import {
-    Browser,
-} from './browser'
-
-test('quit()', async t => {
+test.serial('quit()', async t => {
   const browser = new Browser()
   await browser.driver.init() // init driver, not init browser
 
@@ -32,7 +25,7 @@ test('quit()', async t => {
 
 })
 
-test('init()', async t => {
+test.serial('init()', async t => {
   const browser = new Browser()
   browser.state.target('open')
 

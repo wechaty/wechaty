@@ -23,7 +23,9 @@ import {
 export class BrowserDriver {
   private driver: WebDriver
 
-  constructor(private head: HeadName) {
+  constructor(
+    private head: HeadName,
+  ) {
     log.verbose('PuppetWebBrowserDriver', 'constructor(%s)', head)
   }
 

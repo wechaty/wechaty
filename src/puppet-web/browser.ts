@@ -42,10 +42,12 @@ export class Browser extends EventEmitter {
 
   public state = new StateSwitch<'open', 'close'>('Browser', 'close', log)
 
-  constructor(private setting: BrowserSetting = {
-    head: Config.head,
-    sessionFile: '',
-  }) {
+  constructor(
+    private setting: BrowserSetting = {
+      head: Config.head,
+      sessionFile: '',
+    },
+  ) {
     super()
     log.verbose('PuppetWebBrowser', 'constructor() with head(%s) sessionFile(%s)', setting.head, setting.sessionFile)
 
@@ -247,9 +249,10 @@ export class Browser extends EventEmitter {
       else                            { log.warn('PuppetWebBrowser', 'driver.quit() exception: %s', e.message) }
 
       /* fail safe */
-    }
 
-    this.state.current('close')
+    } finally {
+      this.state.current('close')
+    }
 
     return
   }
