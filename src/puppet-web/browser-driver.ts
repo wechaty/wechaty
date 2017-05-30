@@ -10,8 +10,8 @@
 import {
   Builder,
   Capabilities,
-  logging,
   WebDriver,
+  logging,
 }               from 'selenium-webdriver'
 
 import {
@@ -125,7 +125,7 @@ export class BrowserDriver {
      * XXX when will Builder().build() throw exception???
      */
     let ttl = 3
-    let driverError = new Error('getChromeDriver() invalid driver error')
+    let driverError = new Error('getChromeDriver() unknown invalid driver error')
     let valid = false
 
     let driver: WebDriver
@@ -164,13 +164,13 @@ export class BrowserDriver {
           log.error('PuppetWebBrowserDriver', 'getChromeDriver() Wechaty require `chromedriver` to be installed.(try to run: "npm install chromedriver" to fix this issue)')
           throw e
         }
-        log.warn('PuppetWebBrowserDriver', 'getChromeDriver() ttl:%d exception: %s, ttl: %d', ttl, e.message)
+        log.warn('PuppetWebBrowserDriver', 'getChromeDriver() ttl:%d exception: %s', ttl, e.message)
         driverError = e
       }
 
     }
 
-    log.warn('PuppetWebBrowserDriver', 'getChromeDriver() not valid with ttl expired: %s', driverError.stack)
+    log.warn('PuppetWebBrowserDriver', 'getChromeDriver() invalid after ttl expired: %s', driverError.stack)
     throw driverError
 
   }
@@ -254,8 +254,43 @@ export class BrowserDriver {
   private async valid(driver: WebDriver): Promise<boolean> {
     log.verbose('PuppetWebBrowserDriver', 'valid()')
 
+    if (!await this.validDriverSession(driver)) {
+      return false
+    }
+
+    if (!await this.validDriverExecute(driver)) {
+      return false
+    }
+
+    return true
+
+  }
+
+  private async validDriverExecute(driver: WebDriver): Promise<boolean> {
+    log.verbose('PuppetWebBrowserDriver', 'validDriverExecute()')
+
     try {
-      const session = await new Promise((resolve, reject) => {
+      const two = await driver.executeScript('return 1+1')
+      log.verbose('PuppetWebBrowserDriver', 'validDriverExecute() driver.executeScript() done: two = %s', two)
+
+      if (two === 2) {
+        log.silly('PuppetWebBrowserDriver', 'validDriverExecute() driver ok')
+        return true
+      } else {
+        log.warn('PuppetWebBrowserDriver', 'validDriverExecute() fail: two = %s ?', two)
+        return false
+      }
+    } catch (e) {
+      log.warn('BrowserDriver', 'validDriverExecute() fail: %s', e.message)
+      return false
+    }
+  }
+
+  private async validDriverSession(driver: WebDriver): Promise<boolean> {
+    log.verbose('PuppetWebBrowserDriver', 'validDriverSession()')
+
+    try {
+      const session = await new Promise(async (resolve, reject) => {
 
         /**
          * Be careful about this TIMEOUT, the total time(TIMEOUT x retry) should not trigger Watchdog Reset
@@ -267,12 +302,12 @@ export class BrowserDriver {
         let watchdogTimer: NodeJS.Timer | null
 
         watchdogTimer = setTimeout(() => {
-          const e = new Error('valid() driver.getSession() timeout(halt?)')
+          const e = new Error('validDriverSession() driver.getSession() timeout(halt?)')
           log.warn('PuppetWebBrowserDriver', e.message)
 
           // record timeout by set timer to null
           watchdogTimer = null
-          log.verbose('PuppetWebBrowserDriver', 'watchdogTimer = %s after set null', watchdogTimer)
+          log.verbose('PuppetWebBrowserDriver', 'validDriverSession() watchdogTimer timeout')
 
           // 1. Promise rejected
           reject(e)
@@ -280,82 +315,67 @@ export class BrowserDriver {
 
         }, TIMEOUT)
 
-        log.verbose('PuppetWebBrowserDriver', 'valid() getSession()')
-        driver.getSession()
-              .then(driverSession => {
-                log.verbose('PuppetWebBrowserDriver', 'valid() getSession() then() done')
-                if (watchdogTimer) {
-                  log.verbose('PuppetWebBrowserDriver', 'valid() getSession() then() watchdog timer exist, will be cleared')
-                  clearTimeout(watchdogTimer)
-                  watchdogTimer = null
-                  log.verbose('PuppetWebBrowserDriver', 'watchdogTimer = %s after set null', watchdogTimer)
-                } else {
-                  log.verbose('PuppetWebBrowserDriver', 'valid() getSession() then() watchdog timer not exist?')
-                }
+        log.verbose('PuppetWebBrowserDriver', 'validDriverSession() getSession()')
 
-                // 2. Promise resolved
-                resolve(driverSession)
-                return
+        try {
+          const driverSession = await driver.getSession()
+          log.verbose('PuppetWebBrowserDriver', 'validDriverSession() getSession() done')
 
-              })
-              .catch(e => {
-                log.warn('PuppetWebBrowserDriver', 'valid() getSession() catch() rejected: %s', e && e.message || e)
+          if (watchdogTimer) {
+            log.verbose('PuppetWebBrowserDriver', 'validDriverSession() getSession() watchdogTimer cleared')
+            clearTimeout(watchdogTimer)
+            watchdogTimer = null
+          } else {
+            const e = new Error('watchdog timer not exist, timeout before getSession return?')
+            log.warn('PuppetWebBrowserDriver', 'validDriverSession() getSession() %s', e.message)
+            throw e
+          }
 
-                // do not call reject again if there's already a timeout
-                if (watchdogTimer) {
-                  log.verbose('PuppetWebBrowserDriver', 'valid() getSession() catch() watchdog timer exist, will set it to null and call reject()')
+          // 2. Promise resolved
+          resolve(driverSession)
+          return
 
-                  // 3. Promise rejected
-                  watchdogTimer = null
-                  reject(e)
-                  return
+        } catch (e) {
+          log.warn('PuppetWebBrowserDriver', 'validDriverSession() getSession() catch() rejected: %s', e && e.message || e)
 
-                } else {
-                  log.verbose('PuppetWebBrowserDriver', 'valid() getSession() catch() watchdog timer not exist, will not call reject() again')
-                }
+          if (watchdogTimer) {
+            log.verbose('PuppetWebBrowserDriver', 'validDriverSession() getSession() catch() watchdog timer exist, will clear it then call reject()')
 
-              })
+            // 3. Promise rejected
+            clearTimeout(watchdogTimer)
+            watchdogTimer = null
+          }
+
+          reject(e)
+          return
+
+        }
 
       })
 
-      log.verbose('PuppetWebBrowserDriver', 'valid() driver.getSession() done()')
+      log.verbose('PuppetWebBrowserDriver', 'validDriverSession() driver.getSession() done()')
 
       if (!session) {
-        log.verbose('PuppetWebBrowserDriver', 'valid() found an invalid driver')
+        log.verbose('PuppetWebBrowserDriver', 'validDriverSession() found an invalid driver')
         return false
       }
 
     } catch (e) {
-      log.warn('PuppetWebBrowserDriver', 'valid() driver.getSession() exception: %s', e.message)
+      log.warn('PuppetWebBrowserDriver', 'validDriverSession() driver.getSession() exception: %s', e.message)
       return false
     }
 
-    let two
-    try {
-      two = await driver.executeScript('return 1+1')
-      log.verbose('PuppetWebBrowserDriver', 'valid() driver.executeScript() done')
-    } catch (e) {
-      two = e
-      log.warn('BrowserDriver', 'valid() fail: %s', e.message)
-    }
-
-    if (two !== 2) {
-      log.warn('BrowserDriver', 'valid() fail: two = %s ?', two)
-      return false
-    }
-
-    log.silly('PuppetWebBrowserDriver', 'valid() driver ok')
     return true
   }
 
-  public close()              { return this.driver.close() as any as Promise<void> }
+  public close()              { return this.driver.close()      as any as Promise<void> }
   public executeAsyncScript(script: string|Function, ...args: any[])  { return this.driver.executeAsyncScript.apply(this.driver, arguments) }
   public executeScript     (script: string|Function, ...args: any[])  { return this.driver.executeScript.apply(this.driver, arguments) }
-  public get(url: string)     { return this.driver.get(url) as any as Promise<void> }
+  public get(url: string)     { return this.driver.get(url)     as any as Promise<void> }
   public getSession()         { return this.driver.getSession() as any as Promise<void> }
-  public manage()             { return this.driver.manage() as any }
-  public navigate()           { return this.driver.navigate() as any }
-  public quit()               { return this.driver.quit() as any as Promise<void> }
+  public manage()             { return this.driver.manage()     as any }
+  public navigate()           { return this.driver.navigate()   as any }
+  public quit()               { return this.driver.quit()       as any as Promise<void> }
 }
 
-export default BrowserDriver
+// export default BrowserDriver

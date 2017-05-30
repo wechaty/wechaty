@@ -9,12 +9,11 @@
  * https://github.com/zixia/wechaty
  *
  */
-import * as fs from 'fs'
-// const arrify = require('arrify')
+import * as fs            from 'fs'
 
-import { log }        from '../config'
+import { log }            from '../config'
 
-import BrowserDriver  from './browser-driver'
+import { BrowserDriver }  from './browser-driver'
 
 /**
  * The reason that driverCookie type defined here

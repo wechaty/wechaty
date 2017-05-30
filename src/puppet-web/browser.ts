@@ -20,13 +20,13 @@ import {
   Config,
   HeadName,
   log,
-}                     from '../config'
+}                         from '../config'
 
 import {
-  CookieType,
   BrowserCookie,
-}                     from './browser-cookie'
-import BrowserDriver  from './browser-driver'
+  CookieType,
+}                         from './browser-cookie'
+import { BrowserDriver }  from './browser-driver'
 
 export interface BrowserSetting {
   head:         HeadName,
