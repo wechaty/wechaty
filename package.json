@@ -138,7 +138,6 @@
     "babel-eslint": "7.2.3",
     "babel-preset-es2015": "^6.24.1",
     "check-node-version": "2.1.0",
-    "codelyzer": "3.0.1",
     "cookie-parser": "1.4.3",
     "coveralls": "2.13.1",
     "cross-env": "5.0.0",
