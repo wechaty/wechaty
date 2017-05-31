@@ -64,3 +64,4 @@ tags
 *.wechaty.json
 /package
 /wechaty-*.*.*.tgz
+package-lock.json
