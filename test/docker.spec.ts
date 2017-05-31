@@ -19,7 +19,7 @@ import Config from '../src/config'
  */
 if (Config.isDocker) {
 
-  test('Docker smoking test', function(t) {
+  test('Docker smoke testing', function(t) {
     // const n = execSync('ps a | grep Xvfb | grep -v grep | wc -l').toString().replace(/\n/, '', 'g')
     // t.is(parseInt(n), 1, 'should has Xvfb started')
     t.notThrows(() => {

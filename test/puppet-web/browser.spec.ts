@@ -20,7 +20,7 @@ import {
 const PROFILE = Config.DEFAULT_PROFILE + '-' + process.pid + '-'
 let profileCounter = 1
 
-test('Cookie smoking test', async t => {
+test('Cookie smoke testing', async t => {
   const browser = new Browser()
   t.truthy(browser, 'should instanciate a browser instance')
 

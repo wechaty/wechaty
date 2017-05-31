@@ -8,7 +8,7 @@
 import { test }   from 'ava'
 import PuppetWeb  from './puppet-web'
 
-test('Puppet smoking test', t => {
+test('Puppet smoke testing', t => {
   const p = new PuppetWeb()
 
   t.is(p.state.target(), 'dead', 'should be dead target state after instanciate')

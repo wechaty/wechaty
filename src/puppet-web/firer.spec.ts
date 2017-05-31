@@ -14,7 +14,7 @@ import { test }   from 'ava'
 
 import { Firer }  from './firer'
 
-test('Firer smoking test', t => {
+test('Firer smoke testing', t => {
   t.true(true, 'should be true')
 })
 
