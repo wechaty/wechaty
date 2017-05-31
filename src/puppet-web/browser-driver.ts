@@ -321,7 +321,6 @@ export class BrowserDriver {
 
         }, TIMEOUT)
 
-
         try {
           log.verbose('PuppetWebBrowserDriver', 'validDriverSession() getSession()')
           const driverSession = await driver.getSession()
