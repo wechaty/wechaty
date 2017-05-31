@@ -56,8 +56,6 @@ export class BrowserDriver {
     await this.driver.manage()
                       .timeouts()
                       .setScriptTimeout(WEBDRIVER_TIMEOUT)
-
-    return
   }
 
   public getWebDriver(): WebDriver {
@@ -107,8 +105,9 @@ export class BrowserDriver {
       require('chromedriver')
     }
 
-    const customChrome = Capabilities.chrome()
-                                    .set('chromeOptions', options)
+    const customChrome = Capabilities
+                          .chrome()
+                          .set('chromeOptions', options)
 
     // TODO: chromedriver --silent
     if (!/^(verbose|silly)$/i.test(log.level())) {
@@ -156,8 +155,15 @@ export class BrowserDriver {
 
         } else {
           const e = new Error('getChromeDriver() got invalid driver')
-          log.warn('PuppetWebBrowserDriver', e.message)
+          log.warn('PuppetWebBrowserDriver', 'getChromeDriver() %s', e.message)
           driverError = e
+
+          try {
+            await driver.quit()
+          } catch (e) {
+            log.warn('PuppetWebBrowserDriver', 'getChromeDriver() %s', e.message)
+            driverError = e
+          }
         }
 
       } catch (e) {
@@ -299,65 +305,52 @@ export class BrowserDriver {
          * because we are in state(open, false) state, which will cause Watchdog Reset failure.
          * https://travis-ci.org/wechaty/wechaty/jobs/179022657#L3246
          */
-        const TIMEOUT = 7 * 1000
+        const TIMEOUT = 13 * 1000
 
-        let watchdogTimer: NodeJS.Timer | null
+        let timer: NodeJS.Timer | null
 
-        watchdogTimer = setTimeout(() => {
+        timer = setTimeout(_ => {
           const e = new Error('validDriverSession() driver.getSession() timeout(halt?)')
           log.warn('PuppetWebBrowserDriver', e.message)
 
           // record timeout by set timer to null
-          watchdogTimer = null
-          log.verbose('PuppetWebBrowserDriver', 'validDriverSession() watchdogTimer timeout')
+          timer = null
 
           // 1. Promise rejected
-          reject(e)
-          return
+          return reject(e)
 
         }, TIMEOUT)
 
-        log.verbose('PuppetWebBrowserDriver', 'validDriverSession() getSession()')
 
         try {
+          log.verbose('PuppetWebBrowserDriver', 'validDriverSession() getSession()')
           const driverSession = await driver.getSession()
           log.verbose('PuppetWebBrowserDriver', 'validDriverSession() getSession() done')
 
-          if (watchdogTimer) {
-            log.verbose('PuppetWebBrowserDriver', 'validDriverSession() getSession() watchdogTimer cleared')
-            clearTimeout(watchdogTimer)
-            watchdogTimer = null
-          } else {
-            const e = new Error('watchdog timer not exist, timeout before getSession return?')
-            log.warn('PuppetWebBrowserDriver', 'validDriverSession() getSession() %s', e.message)
-            throw e
-          }
-
-          // 2. Promise resolved
-          resolve(driverSession)
-          return
+          // 3. Promise resolved
+          return resolve(driverSession)
 
         } catch (e) {
           log.warn('PuppetWebBrowserDriver', 'validDriverSession() getSession() catch() rejected: %s', e && e.message || e)
 
-          if (watchdogTimer) {
-            log.verbose('PuppetWebBrowserDriver', 'validDriverSession() getSession() catch() watchdog timer exist, will clear it then call reject()')
+          // 4. Promise rejected
+          return reject(e)
 
-            // 3. Promise rejected
-            clearTimeout(watchdogTimer)
-            watchdogTimer = null
+        } finally {
+          if (timer) {
+            log.verbose('PuppetWebBrowserDriver', 'validDriverSession() getSession() clearing timer')
+            clearTimeout(timer)
+            timer = null
           }
-
-          reject(e)
-          return
-
         }
 
       })
 
       log.verbose('PuppetWebBrowserDriver', 'validDriverSession() driver.getSession() done()')
 
-      if (!session) {
+      if (session) {
+        return true
+      } else {
         log.verbose('PuppetWebBrowserDriver', 'validDriverSession() found an invalid driver')
         return false
       }
@@ -367,7 +360,6 @@ export class BrowserDriver {
       return false
     }
 
-    return true
   }
 
   public close()              { return this.driver.close()      as any as Promise<void> }

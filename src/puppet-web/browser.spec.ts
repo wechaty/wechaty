@@ -34,4 +34,7 @@ test.serial('init()', async t => {
 
   browser.state.current('open', false)
   t.throws(browser.init(), Error, 'should throw exception when call init() on a `open`-`ing` state browser')
+
+  await browser.quit()
+  t.pass('should quited browser')
 })
