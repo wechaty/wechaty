@@ -146,7 +146,7 @@ export class BrowserDriver {
         log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() new Builder() done')
 
         valid = await this.valid(driver)
-        log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() valid() done: %s', valid)
+        log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() valid() is %s at ttl %d', valid, ttl)
 
         if (valid) {
           log.silly('PuppetWebBrowserDriver', 'getChromeDriver() success')
@@ -154,14 +154,15 @@ export class BrowserDriver {
           return driver
 
         } else {
-          const e = new Error('getChromeDriver() got invalid driver')
+          const e = new Error('got invalid driver at ttl ' + ttl)
           log.warn('PuppetWebBrowserDriver', 'getChromeDriver() %s', e.message)
           driverError = e
 
           try {
+            log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() driver.quit() at ttl %d', ttl)
             await driver.quit()
           } catch (e) {
-            log.warn('PuppetWebBrowserDriver', 'getChromeDriver() %s', e.message)
+            log.warn('PuppetWebBrowserDriver', 'getChromeDriver() driver.quit() exception: %s', e.message)
             driverError = e
           }
         }
