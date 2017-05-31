@@ -158,14 +158,13 @@ export class BrowserDriver {
           log.warn('PuppetWebBrowserDriver', 'getChromeDriver() %s', e.message)
           driverError = e
 
-          try {
-            log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() driver.quit() at ttl %d', ttl)
-            await driver.quit()
-          } catch (e) {
-            log.warn('PuppetWebBrowserDriver', 'getChromeDriver() driver.quit() exception: %s', e.message)
-            driverError = e
-          }
-        }
+          log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() driver.quit() at ttl %d', ttl)
+          driver.quit() // do not await, because a invalid driver will always hang when quit()
+                .catch(err => {
+                  log.warn('PuppetWebBrowserDriver', 'getChromeDriver() driver.quit() exception: %s', err.message)
+                  driverError = e
+                })
+        } // END if
 
       } catch (e) {
         if (/could not be found/.test(e.message)) {
@@ -306,7 +305,7 @@ export class BrowserDriver {
          * because we are in state(open, false) state, which will cause Watchdog Reset failure.
          * https://travis-ci.org/wechaty/wechaty/jobs/179022657#L3246
          */
-        const TIMEOUT = 13 * 1000
+        const TIMEOUT = 7 * 1000
 
         let timer: NodeJS.Timer | null
 
