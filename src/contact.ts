@@ -709,8 +709,8 @@ export class Contact implements Sayable {
     const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
     log.verbose('Contact', 'say(%s)', content)
 
-    const wechaty = Wechaty.instance()
-    const user = wechaty.user()
+    const bot = Wechaty.instance()
+    const user = bot.self()
 
     if (!user) {
       throw new Error('no user')
@@ -728,7 +728,7 @@ export class Contact implements Sayable {
     m.to(this)
     log.silly('Contact', 'say() from: %s to: %s content: %s', user.name(), this.name(), content)
 
-    return await wechaty.send(m)
+    return await bot.send(m)
   }
 
 }
