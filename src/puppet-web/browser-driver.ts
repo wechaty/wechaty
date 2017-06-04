@@ -158,12 +158,11 @@ export class BrowserDriver {
           log.warn('PuppetWebBrowserDriver', 'getChromeDriver() %s', e.message)
           driverError = e
 
-          try {
-            await driver.quit()
-          } catch (e) {
-            log.warn('PuppetWebBrowserDriver', 'getChromeDriver() %s', e.message)
-            driverError = e
-          }
+          driver.quit() // do not `await` here
+                .catch(err => {
+                  log.warn('PuppetWebBrowserDriver', 'getChromeDriver() driver.quit() exception %s', err.message)
+                  driverError = err
+                })
         }
 
       } catch (e) {
@@ -176,7 +175,7 @@ export class BrowserDriver {
         driverError = e
       }
 
-    }
+    } // END while
 
     log.warn('PuppetWebBrowserDriver', 'getChromeDriver() invalid after ttl expired: %s', driverError.stack)
     throw driverError
