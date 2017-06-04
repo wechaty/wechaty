@@ -298,7 +298,7 @@ function checkRoomJoin(room: Room, inviteeList: Contact[], inviter: Contact) {
 
   try {
     // let to, content
-    const user = bot.user()
+    const user = bot.self()
     if (!user) {
       throw new Error('no user')
     }

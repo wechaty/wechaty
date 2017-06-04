@@ -146,7 +146,7 @@ export class BrowserDriver {
         log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() new Builder() done')
 
         valid = await this.valid(driver)
-        log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() valid() done: %s', valid)
+        log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() valid() is %s at ttl %d', valid, ttl)
 
         if (valid) {
           log.silly('PuppetWebBrowserDriver', 'getChromeDriver() success')
@@ -154,16 +154,17 @@ export class BrowserDriver {
           return driver
 
         } else {
-          const e = new Error('getChromeDriver() got invalid driver')
+          const e = new Error('got invalid driver at ttl ' + ttl)
           log.warn('PuppetWebBrowserDriver', 'getChromeDriver() %s', e.message)
           driverError = e
 
-          driver.quit() // do not `await` here
+          log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() driver.quit() at ttl %d', ttl)
+          driver.quit() // do not await, because a invalid driver will always hang when quit()
                 .catch(err => {
-                  log.warn('PuppetWebBrowserDriver', 'getChromeDriver() driver.quit() exception %s', err.message)
+                  log.warn('PuppetWebBrowserDriver', 'getChromeDriver() driver.quit() exception: %s', err.message)
                   driverError = err
                 })
-        }
+        } // END if
 
       } catch (e) {
         if (/could not be found/.test(e.message)) {
@@ -304,7 +305,7 @@ export class BrowserDriver {
          * because we are in state(open, false) state, which will cause Watchdog Reset failure.
          * https://travis-ci.org/wechaty/wechaty/jobs/179022657#L3246
          */
-        const TIMEOUT = 13 * 1000
+        const TIMEOUT = 7 * 1000
 
         let timer: NodeJS.Timer | null
 
