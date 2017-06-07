@@ -97,6 +97,7 @@ export class Room extends EventEmitter implements Sayable {
   private async readyAllMembers(memberList: RoomRawMember[]): Promise<void> {
     for (const member of memberList) {
       const contact = Contact.load(member.UserName)
+      await contact.refresh()
       await contact.ready()
     }
     return
