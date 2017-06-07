@@ -1,0 +1,596 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>wechaty</title>
+	<meta name="description" content="">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="assets/js/search.js" data-base=".">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="index.html" class="title">wechaty</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+							<input type="checkbox" id="tsd-filter-only-exported" />
+							<label class="tsd-widget" for="tsd-filter-only-exported">Only exported</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<ul class="tsd-breadcrumb">
+				<li>
+					<a href="globals.html">Globals</a>
+				</li>
+			</ul>
+			<h1> wechaty</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<div class="tsd-panel tsd-typography">
+				<p><a href="https://github.com/chatie/wechaty"><img src="https://raw.githubusercontent.com/chatie/wechaty/master/image/wechaty-logo-en.png" alt="Wechaty"></a></p>
+				<h1 id="wechaty">Wechaty</h1>
+				<h2 id="connecting-chatbots-">Connecting ChatBots.</h2>
+				<p>Wechaty is a Bot Framework for Wechat <strong>Personal</strong> Account which can help you create a bot in 6 lines of javascript by easy to use API, with cross-platform support include <a href="https://travis-ci.org/chatie/wechaty">Linux</a>, <a href="https://ci.appveyor.com/project/chatie/wechaty">Windows</a>, <a href="https://travis-ci.org/chatie/wechaty">Darwin(OSX/Mac)</a> and <a href="https://circleci.com/gh/chatie/wechaty">Docker</a>.</p>
+				<p><a href="https://gitter.im/zixia/wechaty?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge"><img src="https://badges.gitter.im/zixia/wechaty.svg" alt="Join the chat at https://gitter.im/zixia/wechaty"></a> <a href="https://nodejs.org/"><img src="https://img.shields.io/node/v/wechaty.svg?maxAge=604800" alt="node"></a> <a href="https://github.com/chatie/wechaty"><img src="https://reposs.herokuapp.com/?path=Chatie/wechaty" alt="Repo Size"></a> <a href="http://issuestats.com/github/chatie/wechaty"><img src="http://issuestats.com/github/chatie/wechaty/badge/pr" alt="Issue Stats"></a> <a href="http://issuestats.com/github/chatie/wechaty"><img src="http://issuestats.com/github/chatie/wechaty/badge/issue" alt="Issue Stats"></a></p>
+				<p>:octocat: <a href="https://github.com/chatie/wechaty">https://github.com/chatie/wechaty</a><br>:beetle: <a href="https://github.com/chatie/wechaty/issues">https://github.com/chatie/wechaty/issues</a><br>:book: <a href="https://github.com/chatie/wechaty/wiki">https://github.com/chatie/wechaty/wiki</a><br>:whale: <a href="https://hub.docker.com/r/zixia/wechaty">https://hub.docker.com/r/zixia/wechaty</a>  </p>
+				<h2 id="voice-of-the-developer">Voice of the Developer</h2>
+				<blockquote>
+					<p>&quot;Wechaty is a great solution, I believe there would be much more users recognize it.&quot; <a href="https://github.com/chatie/wechaty/pull/310#issuecomment-285574472">link</a><br>-- @Gcaufy, Tencent </p>
+					<p>&quot;The best wechat SDK I have seen in Github!&quot; <a href="https://github.com/chatie/wechaty/issues/8#issuecomment-228971491">link</a><br>-- @JasLin, BotWave CTO</p>
+					<p>&quot;Wechaty简单的接口...和Docker化的封装...绝对是一个不错的选择&quot; <a href="http://mp.weixin.qq.com/s/o-4VMcAMz0K8yJVdNaUXow">link</a><br>-- @shevyan, Ghost Cloud CEO</p>
+					<p>&quot;Wechaty is great.&quot; <a href="https://github.com/chatie/wechaty/issues/36#issuecomment-251708382">link</a><br>-- @Samurais, SnapLingo Director of Engineering</p>
+					<p>&quot;最好的微信开发库&quot; <a href="http://weibo.com/3296245513/Ec4iNp9Ld?type=comment">link</a><br>-- @Jarvis, Baidu Developer</p>
+					<p>&quot;Wechaty让运营人员更多的时间思考如何进行活动策划、留存用户，商业变现&quot; <a href="http://mp.weixin.qq.com/s/dWHAj8XtiKG-1fIS5Og79g">link</a><br>-- @lijiarui, Orange Interactive CEO.</p>
+					<p>&quot;太好用，好用的想哭&quot; -- @xinbenlv, Google Engineer, HaoShiYou.org Founder</p>
+					<p>&quot;Wechaty library fantastic!&quot; <a href="https://github.com/chatie/wechaty/issues/9">link</a> - @ccaapton </p>
+					<p>&quot;it&#39;s quite cool!&quot; <a href="https://github.com/chatie/wechaty/issues/4">link</a> - @ak5</p>
+					<p>&quot;Thanks for great SDK&quot; <a href="https://github.com/chatie/wechaty/issues/57">link</a> - @naishstar</p>
+					<p>&quot;Your docker solution is awesome!&quot; <a href="https://github.com/chatie/wechaty/issues/164#issuecomment-278633203">link</a> - @ax4 </p>
+				</blockquote>
+				<h1 id="the-world-s-shortest-chatbot-code-6-lines-of-javascript">The World&#39;s Shortest ChatBot Code: 6 lines of JavaScript</h1>
+				<pre><code class="lang-javascript"><span class="hljs-keyword">const</span> { Wechaty } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'wechaty'</span>)
+
+Wechaty.instance() <span class="hljs-comment">// Singleton</span>
+.on(<span class="hljs-string">'scan'</span>, (url, code) =&gt; <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`Scan QR Code to login: <span class="hljs-subst">${code}</span>\n<span class="hljs-subst">${url}</span>`</span>))
+.on(<span class="hljs-string">'login'</span>,       user =&gt; <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`User <span class="hljs-subst">${user}</span> logined`</span>))
+.on(<span class="hljs-string">'message'</span>,  message =&gt; <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`Message: <span class="hljs-subst">${message}</span>`</span>))
+.init()
+</code></pre>
+				<blockquote>
+					<p><strong>Notice: Wechaty requires Node.js version &gt;= 6.9.0</strong></p>
+				</blockquote>
+				<p>This bot can log all message to console.</p>
+				<p>You can find more example from <a href="https://github.com/chatie/wechaty/wiki/Example">Wiki</a> and <a href="https://github.com/chatie/wechaty/blob/master/example/">Example Directory</a>.</p>
+				<h1 id="getting-started">Getting Started</h1>
+				<h2 id="a-great-live-coding-tutorial">A Great Live Coding Tutorial</h2>
+				<div align="center">
+					<a target="_blank" href="https://blog.chatie.io/guide/2017/01/01/getting-started-wechaty.html"><img src="https://cloud.githubusercontent.com/assets/1361891/21722581/3ec957d0-d468-11e6-8888-a91c236e0ba2.jpg" border=0 width="60%"></a>
+				</div>
+				<p>The above 10 minutes video tutorial is a good start point if you are new to Wechaty.</p>
+				<h2 id="run">Run</h2>
+				<p>Let&#39;s say, you have saved the above six lines javascript example to <code>mybot.js</code>.</p>
+				<p>We have two options to run wechaty:</p>
+				<ol>
+					<li>Docker</li>
+					<li>NPM</li>
+				</ol>
+				<h3 id="docker">Docker</h3>
+				<p><a href="https://hub.docker.com/r/zixia/wechaty/"><img src="https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000" alt="Docker Pulls"></a> <a href="https://hub.docker.com/r/zixia/wechaty/"><img src="https://img.shields.io/docker/stars/zixia/wechaty.svg?maxAge=2592000" alt="Docker Stars"></a> <a href="https://microbadger.com/#/images/zixia/wechaty"><img src="https://images.microbadger.com/badges/image/zixia/wechaty.svg" alt="Docker Layers"></a></p>
+				<p>The <strong>best practice</strong> to use Wechaty is run by docker, becasue it&#39;s not only the most easy way to get start, but also protect you out of the troubles of dependencies problems. </p>
+				<pre><code class="lang-shell">$ docker run -ti --rm --volume=&quot;$(pwd)&quot;:/bot zixia/wechaty mybot.js
+</code></pre>
+				<blockquote>
+					<p>Wechaty Docker support to run TypeScript directly as well: just write in TypeScript and save to <code>mybot.ts</code>.</p>
+				</blockquote>
+				<p>Get to know more about Wechaty Docker at <a href="https://github.com/chatie/wechaty/wiki/Docker">Wiki:Docker</a>.</p>
+				<h3 id="npm">NPM</h3>
+				<p><a href="https://badge.fury.io/js/wechaty"><img src="https://badge.fury.io/js/wechaty.svg" alt="NPM Version"></a> <a href="https://npmjs.org/package/wechaty"><img src="http://img.shields.io/npm/dm/wechaty.svg?style=flat-square" alt="Downloads"></a> <a href="https://greenkeeper.io/"><img src="https://badges.greenkeeper.io/Chatie/wechaty.svg" alt="Greenkeeper badge"></a></p>
+				<p>Get to know more about NPM at <a href="https://github.com/chatie/wechaty/wiki/NPM">Wiki:NPM</a></p>
+				<h3 id="find-a-good-server">Find a Good Server</h3>
+				<p>The best practice for runing Wechaty Docker/NPM is using a VPS(Virtual Private Server) outside of China, which can save you hours of time because <code>npm install</code> and <code>docker pull</code> will run smoothly without any problem. </p>
+				<p>The following VPS providers is used by ourselves, they worked perfectly in production. You can use the following link to get one in minutes, and also do this can support Wechaty because you are refered by us.</p>
+				<table>
+					<thead>
+						<tr>
+							<th>Location</th>
+							<th>Price</th>
+							<th>Ram</th>
+							<th>Payment</th>
+							<th>Provider</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>Singapore</td>
+							<td>$5</td>
+							<td>512MB</td>
+							<td>Paypal</td>
+							<td><a href="https://m.do.co/c/01a54778df5c">DigitalOcean</a></td>
+						</tr>
+						<tr>
+							<td>Japan</td>
+							<td>$5</td>
+							<td>1GB</td>
+							<td>Paypal</td>
+							<td><a href="https://www.linode.com/?r=5fd2b713d711746bb5451111df0f2b6d863e9f63">Linode</a></td>
+						</tr>
+						<tr>
+							<td>Korea</td>
+							<td>$10</td>
+							<td>1GB</td>
+							<td>Alipay, Paypal</td>
+							<td><a href="https://www.netdedi.com/?affid=35">Netdedi</a></td>
+						</tr>
+					</tbody>
+				</table>
+				<h1 id="api-reference">API Reference</h1>
+				<h2 id="-wechaty-event-https-github-com-chatie-wechaty-wiki-api-event-"><a href="https://github.com/chatie/wechaty/wiki/API#event">Wechaty Event</a></h2>
+				<ol>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#1-event-scan">scan</a> Emit when the bot needs to show you a QR Code for scanning</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#2-event-login">login</a> Emit when bot login full successful.</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#3-event-logout">logout</a> Emit when bot detected log out.</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#4-event-message">message</a> Emit when there&#39;s a new message.</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#5-event-error">error</a> Emit when there&#39;s an error occurred.</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#6-event-friend">friend</a> Emit when got a new friend request, or friendship is confirmed.</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#7-event-room-join">room-join</a> Emit when someone join the room</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#8-event-room-leave">room-leave</a> Emit when someone leave the room</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#9-event-room-topic">room-topic</a> Emit when someone change the room&#39;s topic</li>
+				</ol>
+				<h2 id="-wechaty-https-github-com-chatie-wechaty-wiki-api-wechaty-class-"><a href="https://github.com/chatie/wechaty/wiki/API#wechaty-class">Wechaty</a></h2>
+				<ol>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#wechatyinstanceprofilestring-wechaty">instance(setting: PuppetSetting): Promise&lt;Wechaty&gt;</a> get the bot instance</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#wechatyinit-wechaty">init(): Promise&lt;void&gt;</a> Initialize the bot</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#wechatysendmessage-message-wechaty">send(message: Message): Promise&lt;void&gt;</a> send a message</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#wechatysaycontent-string">say(content: string): Promise&lt;void&gt;</a> send message to filehelper, just for logging/reporting usage for your convenience</li>
+				</ol>
+				<h2 id="-message-https-github-com-chatie-wechaty-wiki-api-message-class-"><a href="https://github.com/chatie/wechaty/wiki/API#message-class">Message</a></h2>
+				<ol>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#1-messagefrom-contact">from():Contact</a> get the sender from a message</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#2-messagefromcontact-contact-void">from(contact:Contact):void</a> set a sender to the message</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#1-messageto-contact">to():Contact</a> get the destination of the message</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#2-messagetocontact-contact-void">to(contact:Contact):void</a> set the destination as contact for the message</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#1-messagecontent-string">content():string</a> get the content of the message</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#2-messagecontentcontent-string-string">content(content:string):string</a> set the content for the message</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#1-messageroom-room--null">room():Room|null</a> get the room from a message.</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#2-messageroomroom-room-void">room(room:Room):void</a> set the room for a message.</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#messagetype-number">type():MsgType</a> get the type of a Message.</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#messagesaycontent-string-promise">say(content:string):Promise</a> reply a message to the sender.</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#messageready-promise">ready():Promise</a> confirm get all the data needed, will be resolved when all message data is ready.</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#messageselfmessage-message-boolean">self():boolean</a> check if a message is sent by self </li>
+				</ol>
+				<h2 id="-contact-https-github-com-chatie-wechaty-wiki-api-contact-class-"><a href="https://github.com/chatie/wechaty/wiki/API#contact-class">Contact</a></h2>
+				<ol>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#contactname-string">name():string</a> get name from a contact</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#contactremark-string">remark():string</a> get remark name from a contact</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#contactremarkremark-string-promise">remark(remark:string):Promise</a> set remark name to a contact</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#contactweixin-string">weixin():string</a> get weixin id from a contact</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#contactstar-boolean">star():boolean</a> true for star friend, false for no star friend</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#contactready-promise">ready():Promise</a> confirm get all the contact data needed, will be resolved when all data is ready</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#contactsaycontent-string-promise">say(content:string):Promise</a> say content to a contact</li>
+				</ol>
+				<h2 id="-room-https-github-com-chatie-wechaty-wiki-api-class-room-"><a href="https://github.com/chatie/wechaty/wiki/API#class-room">Room</a></h2>
+				<ol>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#roomsaycontent-string-replyto-contactcontact-promise">say(content:string,replyTo:Contact|ContactArray):Promise</a> say content inside Room.</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#roomready-promise">ready():Promise</a> confirm get all the data needed, will be resolved when all data is ready</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#roomrefresh-promise">refresh():Promise</a> reload data for Room</li>
+				</ol>
+				<h3 id="-room-event-https-github-com-chatie-wechaty-wiki-api-room-events-"><a href="https://github.com/chatie/wechaty/wiki/API#room-events">Room Event</a></h3>
+				<ol>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#event-join">join</a> Emit when someone join the room</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#event-leave">leave</a> Emit when someone leave the room</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#event-topic">topic</a> Emit when someone change the room topic</li>
+				</ol>
+				<h2 id="-friendrequest-https-github-com-chatie-wechaty-wiki-api-class-friendrequest-"><a href="https://github.com/chatie/wechaty/wiki/API#class-friendrequest">FriendRequest</a></h2>
+				<ol>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#friendrequesthello-string">hello:string</a> get content from friendrequest</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#friendrequestaccept-void">accept():Promise</a> accept the friendrequest</li>
+					<li><a href="https://github.com/chatie/wechaty/wiki/API#friendrequestsendcontact-contact-hello-string-void">send(contact:Contact,hello:string):Promise</a> send a new friend request</li>
+				</ol>
+				<h1 id="test">Test</h1>
+				<p><a href="https://travis-ci.org/Chatie/wechaty"><img src="https://img.shields.io/travis/Chatie/wechaty.svg?label=Linux/Mac" alt="Linux/Mac Build Status"></a> <a href="https://ci.appveyor.com/project/chatie/wechaty"><img src="https://img.shields.io/appveyor/ci/chatie/wechaty/master.svg?label=Windows" alt="Windows Build status"></a> <a href="https://circleci.com/gh/Chatie/wechaty"><img src="https://img.shields.io/circleci/project/github/Chatie/wechaty/master.svg?label=Docker" alt="Docker CircleCI"></a> <a href="https://coveralls.io/github/Chatie/wechaty?branch=master"><img src="https://coveralls.io/repos/github/Chatie/wechaty/badge.svg?branch=master" alt="Coverage Status"></a> <a href="https://snyk.io/test/github/chatie/wechaty"><img src="https://snyk.io/test/github/chatie/wechaty/badge.svg" alt="Known Vulnerabilities"></a></p>
+				<p>Wechaty use <a href="https://github.com/avajs/ava">AVA</a> for unit testing</p>
+				<p>To test Wechaty, run:</p>
+				<pre><code class="lang-shell">npm test
+</code></pre>
+				<p>Get to know more about test from <a href="https://github.com/chatie/wechaty/wiki/Test">Wiki:Test</a></p>
+				<h1 id="release-notes">Release Notes</h1>
+				<ul>
+					<li><a href="https://github.com/chatie/wechaty/releases/latest">Latest Release</a>(All releases <a href="https://github.com/chatie/wechaty/releases">here</a>)</li>
+					<li><a href="https://github.com/chatie/wechaty/blob/master/CHANGELOG.md">Changelog</a></li>
+				</ul>
+				<h1 id="powered-by-wechaty">Powered By Wechaty</h1>
+				<p><a href="https://github.com/chatie/wechaty"><img src="https://img.shields.io/badge/Powered%20By-Wechaty-green.svg" alt="Powered by Wechaty"></a></p>
+				<h2 id="wechaty-badge">Wechaty Badge</h2>
+				<p>Get embed html/markdown code from <a href="https://github.com/chatie/wechaty/wiki/PoweredByWechaty">Wiki:PoweredByWechaty</a></p>
+				<h2 id="projects-use-wechaty">Projects Use Wechaty</h2>
+				<ol>
+					<li><a href="https://www.chatie.io">chatie.io</a> ChatBot Portal Manager for Wechaty </li>
+				</ol>
+				<p>Know more about Projects Use Wechaty at <a href="https://github.com/chatie/wechaty/wiki/PoweredByWechaty">Wiki:PoweredByWechaty</a></p>
+				<h1 id="contributing">Contributing</h1>
+				<p>Howto <a href="https://github.com/chatie/wechaty/blob/master/CONTRIBUTING.md">contribute</a></p>
+				<p>Contributions in any form are highly encouraged and welcome! Be it new or improved presets, optimized streaming code or just some cleanup. So start forking!</p>
+				<h2 id="code-contributions">Code Contributions</h2>
+				<p>If you want to add new features or change the API, please submit an issue first to make sure no one else is already working on the same thing and discuss the implementation and API details with maintainers and users by creating an issue. When everything is settled down, you can submit a pull request.</p>
+				<p>When fixing bugs, you can directly submit a pull request.</p>
+				<p>Make sure to add tests for your features and bugfixes and update the documentation (see below) before submitting your code!</p>
+				<h2 id="documentation-contributions">Documentation Contributions</h2>
+				<p>You can directly submit pull requests for documentation changes.</p>
+				<h2 id="main-contributors">Main Contributors</h2>
+				<ul>
+					<li><a href="https://github.com/JasLin">JasLin</a></li>
+					<li><a href="https://github.com/cherry-geqi">cherry-geqi</a></li>
+					<li><a href="https://github.com/lijiarui">lijiarui</a></li>
+					<li><a href="https://github.com/xinbenlv">xinbenlv</a></li>
+					<li><a href="https://github.com/Gcaufy">Gcaufy</a></li>
+				</ul>
+				<h2 id="join-wechaty-developers-community">Join Wechaty Developers&#39; Community</h2>
+				<p>Wechaty is used in many ChatBot projects by hundreds of developers. If you want to talk with other developers, just scan the following QR Code in WeChat with secret code <em>wechaty</em>, you can join our <strong>Wechaty Developers&#39; Home</strong> at once.</p>
+				<p><img src="https://raw.githubusercontent.com/chatie/wechaty/master/image/BotQrcode.png" alt="Wechaty Developers&#39; Home"></p>
+				<p>Scan now, because other Wechaty developers want to talk with you too! (secret code: <em>wechaty</em>)</p>
+				<h1 id="see-also">See Also</h1>
+				<ul>
+					<li><a href="https://github.com/chatie/wechaty/wiki/RelatedProject">RelatedProject</a></li>
+				</ul>
+				<h1 id="todo">Todo</h1>
+				<ul>
+					<li>[ ] Use Dependency Injection for FriendRequest(etc)<ul>
+							<li><a href="https://github.com/asvetliakov/Huject">Typescript dependency injection container for Humans!</a></li>
+							<li><a href="https://github.com/young-steveo/bottlejs">https://github.com/young-steveo/bottlejs</a></li>
+							<li><a href="http://jonnyreeves.co.uk/2015/basic-typescript-dependency-injection-with-decorators/">http://jonnyreeves.co.uk/2015/basic-typescript-dependency-injection-with-decorators/</a></li>
+							<li><a href="https://github.com/connorwyatt/Fluency-Injection">https://github.com/connorwyatt/Fluency-Injection</a></li>
+						</ul>
+					</li>
+					<li>[ ] Use Observable for Throttle API Call Rate with Server<ul>
+							<li><a href="http://blog.thoughtram.io/angular/2016/01/06/taking-advantage-of-observables-in-angular2.html">http://blog.thoughtram.io/angular/2016/01/06/taking-advantage-of-observables-in-angular2.html</a></li>
+						</ul>
+					</li>
+					<li>[ ] <a href="https://blog.cloudflare.com/generating-documentation-for-typescript-projects/">Generating Documentation for TypeScript Projects</a></li>
+				</ul>
+				<h2 id="documentation">Documentation</h2>
+				<p>In order to sync the doc with the lastest code for best, Wechaty use <a href="http://usejsdoc.org/">jsdoc</a> to descript API, and use <a href="https://github.com/jsdoc2md/jsdoc-to-markdown/wiki">jsdoc-to-markdown</a> to generate markdown format document to <a href="docs/index.md">docs</a> directory.</p>
+				<h2 id="my-story">My Story</h2>
+				<p>My daily life/work depends on too much chat on wechat.</p>
+				<ul>
+					<li>I almost have 14,000 wechat friends in May 2014, before wechat restricts a total number of friends to 5,000.</li>
+					<li>I almost have 400 wechat rooms that most of them have more than 400 members.</li>
+				</ul>
+				<p>Can you image that? I&#39;m dying...</p>
+				<p>So a tireless bot working for me 24x7 on wechat, monitoring/filtering the most important message is badly needed. For example highlights discussion which contains the KEYWORDS which I want to follow up(especially in a noisy room). ;-)</p>
+				<p>At last, It&#39;s built for my personal study purpose of Automatically Testing.</p>
+				<h2 id="author">Author</h2>
+				<p>Zhuohuan LI <a href="&#x6d;&#97;&#x69;&#108;&#x74;&#x6f;&#x3a;&#122;&#x69;&#120;&#105;&#97;&#x40;&#x7a;&#105;&#120;&#105;&#97;&#x2e;&#110;&#x65;&#116;">&#122;&#x69;&#120;&#105;&#97;&#x40;&#x7a;&#105;&#120;&#105;&#97;&#x2e;&#110;&#x65;&#116;</a> (<a href="http://linkedin.com/in/zixia">http://linkedin.com/in/zixia</a>)</p>
+				<p><a href="http://stackoverflow.com/users/1123955/zixia">
+						<img src="http://stackoverflow.com/users/flair/1123955.png" width="208" height="58" alt="profile for zixia at Stack Overflow, Q&amp;A for professional and enthusiast programmers" title="profile for zixia at Stack Overflow, Q&amp;A for professional and enthusiast programmers">
+				</a></p>
+				<h2 id="copyright-license">Copyright &amp; License</h2>
+				<ul>
+					<li>Code &amp; Docs 2016-2017© zixia</li>
+					<li>Code released under the ISC license</li>
+					<li>Docs released under Creative Commons</li>
+				</ul>
+			</div>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class="globals  ">
+						<a href="globals.html"><em>Globals</em></a>
+					</li>
+					<li class="label tsd-is-external">
+						<span>Internals</span>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_bin_doctor_.html">"bin/doctor"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_bin_io_client_.html">"bin/io-<wbr>client"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_bin_version_.html">"bin/version"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_example_api_ai_bot_.html">"example/api-<wbr>ai-<wbr>bot"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_example_contact_bot_.html">"example/contact-<wbr>bot"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_example_ding_dong_bot_.html">"example/ding-<wbr>dong-<wbr>bot"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_example_friend_bot_.html">"example/friend-<wbr>bot"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_example_gist_bot_index_.html">"example/gist-<wbr>bot/index"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_example_gist_bot_on_friend_.html">"example/gist-<wbr>bot/on-<wbr>friend"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_example_gist_bot_on_message_.html">"example/gist-<wbr>bot/on-<wbr>message"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_example_gist_bot_on_room_join_.html">"example/gist-<wbr>bot/on-<wbr>room-<wbr>join"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_example_media_file_bot_.html">"example/media-<wbr>file-<wbr>bot"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_example_roger_bot_.html">"example/roger-<wbr>bot"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_example_room_bot_.html">"example/room-<wbr>bot"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_example_speech_to_text_bot_.html">"example/speech-<wbr>to-<wbr>text-<wbr>bot"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_example_tuling123_bot_.html">"example/tuling123-<wbr>bot"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_brolog_env_.html">"src/brolog-<wbr>env"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_config_.html">"src/config"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_config_spec_.html">"src/config.spec"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_contact_.html">"src/contact"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_doctor_.html">"src/doctor"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_friend_request_.html">"src/friend-<wbr>request"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_io_.html">"src/io"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_io_client_.html">"src/io-<wbr>client"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_message_.html">"src/message"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_message_spec_.html">"src/message.spec"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_puppet_.html">"src/puppet"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_puppet_web_bridge_.html">"src/puppet-<wbr>web/bridge"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_puppet_web_browser_.html">"src/puppet-<wbr>web/browser"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_puppet_web_browser_cookie_.html">"src/puppet-<wbr>web/browser-<wbr>cookie"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_puppet_web_browser_cookie_spec_.html">"src/puppet-<wbr>web/browser-<wbr>cookie.spec"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_puppet_web_browser_driver_.html">"src/puppet-<wbr>web/browser-<wbr>driver"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_puppet_web_browser_spec_.html">"src/puppet-<wbr>web/browser.spec"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_puppet_web_event_.html">"src/puppet-<wbr>web/event"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_puppet_web_firer_.html">"src/puppet-<wbr>web/firer"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_puppet_web_firer_spec_.html">"src/puppet-<wbr>web/firer.spec"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_puppet_web_friend_request_.html">"src/puppet-<wbr>web/friend-<wbr>request"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_puppet_web_friend_request_spec_.html">"src/puppet-<wbr>web/friend-<wbr>request.spec"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_puppet_web_index_.html">"src/puppet-<wbr>web/index"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_puppet_web_index_spec_.html">"src/puppet-<wbr>web/index.spec"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_puppet_web_puppet_web_.html">"src/puppet-<wbr>web/puppet-<wbr>web"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_puppet_web_server_.html">"src/puppet-<wbr>web/server"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_puppet_web_ssl_pem_.html">"src/puppet-<wbr>web/ssl-<wbr>pem"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_puppet_web_watchdog_.html">"src/puppet-<wbr>web/watchdog"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_puppet_spec_.html">"src/puppet.spec"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_room_.html">"src/room"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_state_monitor_.html">"src/state-<wbr>monitor"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_state_monitor_spec_.html">"src/state-<wbr>monitor.spec"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_util_lib_.html">"src/util-<wbr>lib"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_util_lib_spec_.html">"src/util-<wbr>lib.spec"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_src_wechaty_.html">"src/wechaty"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_test_contact_spec_.html">"test/contact.spec"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_test_docker_spec_.html">"test/docker.spec"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_test_electron_spec_.html">"test/electron.spec"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_test_node_spec_.html">"test/node.spec"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_test_puppet_web_bridge_spec_.html">"test/puppet-<wbr>web/bridge.spec"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_test_puppet_web_browser_spec_.html">"test/puppet-<wbr>web/browser.spec"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_test_puppet_web_event_spec_.html">"test/puppet-<wbr>web/event.spec"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_test_puppet_web_puppet_web_spec_.html">"test/puppet-<wbr>web/puppet-<wbr>web.spec"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_test_puppet_web_server_spec_.html">"test/puppet-<wbr>web/server.spec"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_test_puppet_web_watchdog_spec_.html">"test/puppet-<wbr>web/watchdog.spec"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_test_room_spec_.html">"test/room.spec"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_test_webdriver_phantomjs_spec_.html">"test/webdriver-<wbr>phantomjs.spec"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_test_webdriver_spec_.html">"test/webdriver.spec"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_test_wechaty_spec_.html">"test/wechaty.spec"</a>
+					</li>
+					<li class="label tsd-is-external">
+						<span>Externals</span>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="modules/_index_.html">"index"</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-module"><span class="tsd-kind-icon">Module</span></li>
+				<li class="tsd-kind-object-literal"><span class="tsd-kind-icon">Object literal</span></li>
+				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
+				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
+				<li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
+				<li class="tsd-kind-index-signature"><span class="tsd-kind-icon">Index signature</span></li>
+				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
+				<li class="tsd-kind-enum-member"><span class="tsd-kind-icon">Enumeration member</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-enum"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-enum"><span class="tsd-kind-icon">Method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
+				<li class="tsd-kind-interface tsd-has-type-parameter"><span class="tsd-kind-icon">Interface with type parameter</span></li>
+				<li class="tsd-kind-constructor tsd-parent-kind-interface"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
+				<li class="tsd-kind-index-signature tsd-parent-kind-interface"><span class="tsd-kind-icon">Index signature</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
+				<li class="tsd-kind-class tsd-has-type-parameter"><span class="tsd-kind-icon">Class with type parameter</span></li>
+				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class"><span class="tsd-kind-icon">Accessor</span></li>
+				<li class="tsd-kind-index-signature tsd-parent-kind-class"><span class="tsd-kind-icon">Index signature</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
+				<li class="tsd-kind-call-signature tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="http://typedoc.org/" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="assets/js/main.js"></script>
+<script>if (location.protocol == 'file:') document.write('<script src="assets/js/search.js"><' + '/script>');</script>
+</body>
+</html>
