@@ -4,8 +4,8 @@
 environment:
   WECHATY_LOG: silent
   matrix:
-    - nodejs_version: "6"
 #    - nodejs_version: "7"
+    - nodejs_version: "8"
 
 # Install scripts. (runs after repo cloning)
 install:
