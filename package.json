@@ -152,7 +152,7 @@
     "sinon": "2.3.3",
     "sloc": "0.2.0",
     "ts-node": "3.0.6",
-    "tslint": "5.4.3",
+    "tslint": "5.3.x",
     "tslint-jsdoc-rules": "0.1.2",
     "tuling123-client": "0.0.1",
     "typescript": "2.3.4",
