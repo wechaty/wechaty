@@ -7,7 +7,7 @@
 # Docker image for Alpine Linux with latest ShellCheck, a static analysis tool for shell scripts.
 # https://hub.docker.com/r/nlknguyen/alpine-shellcheck/
 # FROM nlknguyen/alpine-shellcheck
-FROM mhart/alpine-node:8
+FROM mhart/alpine-node:7
 MAINTAINER Huan LI <zixia@zixia.net>
 
 RUN  apk update && apk upgrade \
