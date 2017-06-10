@@ -144,10 +144,14 @@ export class Io {
 
     })
 
-    ws.on('message', (data, flags) => {
+    ws.on('message', data => {
       log.silly('Io', 'initWebSocket() ws.on(message): %s', data)
       // flags.binary will be set if a binary data is received.
       // flags.masked will be set if the data was masked.
+
+      if (typeof data !== 'string') {
+        throw new Error('data should be string...')
+      }
 
       const ioEvent: IoEvent = {
         name: 'raw',
