@@ -1,5 +1,8 @@
 /**
  *
+ */
+
+/**
  * Wechaty - Wechat for Bot, and human who talk to bot.
  *
  * Class PuppetWebInjectio
@@ -7,9 +10,8 @@
  * Inject this js code to browser,
  * in order to interactive with wechat web program.
  *
- * Licenst: ISC
- * https://github.com/wechaty/wechaty
- *
+ * Licenst: Apache-2.0
+ * https://github.com/chatie/wechaty
  *
  * ATTENTION:
  *
