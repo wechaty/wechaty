@@ -119,6 +119,7 @@ async function updateLicense(file: string): Promise<void> {
   const writeStream = createWriteStream(tmpFile)
   const tranStream  = new LicenseTransformer()
 
+  console.log(`Updating LICENSE for file ${file}...`)
   await new Promise<void>((resolve, reject) => {
     readStream
       .pipe(tranStream)
@@ -129,15 +130,14 @@ async function updateLicense(file: string): Promise<void> {
   await promisify(linkCallback)(tmpFile, file)
   await promisify(unlinkCallback)(tmpFile)
 }
-// const updateLicense = promisify(updateLicenseCb) as
-//   (file: string) => Promise<void>
 
 async function glob(pattern): Promise<string[]> {
   return promisify(globCallback)(pattern)
 }
+
 async function main(): Promise<void> {
   // const pattern = '{bin/**/*.ts,src/**/*.{ts,js},test/**/*.ts}'
-  const pattern = 't.ts'
+  const pattern = 'test/**/*.ts'
   const srcFileList = await glob(pattern)
   const promiseList = srcFileList.map(updateLicense)
   await Promise.all(promiseList)
