@@ -18,18 +18,20 @@ const LICENSE = `/**
  *   limitations under the License.
  *
  */`
+
 import {
   createReadStream,
   createWriteStream,
   link    as linkCallback,
   unlink  as unlinkCallback,
-}                         from 'fs'
-import * as globCallback  from 'glob'
+}                             from 'fs'
 import {
   Transform,
   TransformOptions,
-}                         from 'stream'
-import { promisify }      from 'util'
+}                             from 'stream'
+import { promisify }          from 'util'
+
+import * as globCallback      from 'glob'
 
 class LicenseTransformer extends Transform {
 
