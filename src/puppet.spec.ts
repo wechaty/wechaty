@@ -1,5 +1,5 @@
 /**
- *   Chatie - https://github.com/chatie
+ *   Wechaty - https://github.com/chatie/wechaty
  *
  *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
  *

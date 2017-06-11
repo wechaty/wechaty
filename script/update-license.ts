@@ -1,7 +1,7 @@
 #!/usr/bin/env ts-node
 
 const LICENSE = `/**
- *   Chatie - https://github.com/chatie
+ *   Wechaty - https://github.com/chatie/wechaty
  *
  *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
@@ -136,8 +136,8 @@ async function glob(pattern): Promise<string[]> {
 }
 
 async function main(): Promise<void> {
-  // const pattern = '{bin/**/*.ts,src/**/*.{ts,js},test/**/*.ts}'
-  const pattern = 'src/**/*.{js,ts}'
+  const pattern = '{bin/**/*.ts,src/**/*.{ts,js},test/**/*.ts}'
+  // const pattern = 'src/**/*.{js,ts}'
   const srcFileList = await glob(pattern)
   const promiseList = srcFileList.map(updateLicense)
   await Promise.all(promiseList)
