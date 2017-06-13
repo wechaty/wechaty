@@ -27,7 +27,7 @@
  */
 /* tslint:disable:no-var-requires */
 /* tslint:disable:variable-name */
-const QrcodeTerminal  = require('qrcode-terminal')
+const qrcodeTerminal  = require('qrcode-terminal')
 const Tuling123       = require('tuling123-client')
 
 /**
@@ -71,7 +71,7 @@ bot
 .on('scan', (url, code) => {
   if (!/201|200/.test(String(code))) {
     const loginUrl = url.replace(/\/qrcode\//, '/l/')
-    QrcodeTerminal.generate(loginUrl)
+    qrcodeTerminal.generate(loginUrl)
   }
   console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
 })
@@ -81,14 +81,16 @@ bot
 
   log.info('Bot', 'talk: %s'  , msg)
 
-  tuling.ask(msg.content(), {userid: msg.from()})
-    .then(({text}) => {
-      log.info('Tuling123', 'Talker reply:"%s" for "%s" ', text, msg.content())
-      msg.say(text)
-    })
-    .catch(err => {
-      log.error('Bot', 'on message rejected: %s' , err)
-    })
+  try {
+    const reply = tuling.ask(msg.content(), {userid: msg.from()})
+    log.info('Tuling123', 'Talker reply:"%s" for "%s" ',
+                          reply,
+                          msg.content(),
+            )
+    msg.say(reply)
+  } catch (e) {
+    log.error('Bot', 'on message tuling.ask() exception: %s' , e && e.message || e)
+  }
 })
 
 bot.init()

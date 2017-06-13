@@ -84,14 +84,14 @@ bot
     fileHelper.say(logMsg)
     console.log(logMsg)
 
-    /**
-     *
-     * 1. New Friend Request
-     *
-     * when request is set, we can get verify message from `request.hello`,
-     * and accept this request by `request.accept()`
-     */
     if (request) {
+      /**
+       *
+       * 1. New Friend Request
+       *
+       * when request is set, we can get verify message from `request.hello`,
+       * and accept this request by `request.accept()`
+       */
       if (request.hello === 'ding') {
         logMsg = 'accepted because verify messsage is "ding"'
         request.accept()
@@ -99,12 +99,12 @@ bot
       } else {
         logMsg = 'not auto accepted, because verify message is: ' + request.hello
       }
-    /**
-     *
-     * 2. Friend Ship Confirmed
-     *
-     */
     } else {
+      /**
+       *
+       * 2. Friend Ship Confirmed
+       *
+       */
       logMsg = 'friend ship confirmed with ' + contact.get('name')
     }
   } catch (e) {

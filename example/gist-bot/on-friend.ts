@@ -26,7 +26,7 @@ import {
   Contact,
   FriendRequest,
   Room,
-} from '../../'
+}                 from '../../'
 
 export async function onFriend(contact: Contact, request?: FriendRequest): Promise<void> {
   try {
@@ -42,8 +42,8 @@ export async function onFriend(contact: Contact, request?: FriendRequest): Promi
     await request.accept()
 
     setTimeout(
-      _ => {
-        contact.say('thank you for adding me')
+      async _ => {
+        await contact.say('thank you for adding me')
       },
       3000,
     )
@@ -52,9 +52,9 @@ export async function onFriend(contact: Contact, request?: FriendRequest): Promi
       const myRoom = await Room.find({ topic: 'ding' })
       if (!myRoom) return
       setTimeout(
-        _ => {
-          myRoom.add(contact)
-          myRoom.say('welcome ' + contact.name())
+        async _ => {
+          await myRoom.add(contact)
+          await myRoom.say('welcome ' + contact.name())
         },
         3000,
       )

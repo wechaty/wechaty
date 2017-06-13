@@ -17,11 +17,14 @@
  *
  */
 
-/* tslint:disable:variable-name */
-const QrcodeTerminal = require('qrcode-terminal')
-
 // import { inspect }            from 'util'
-import { createWriteStream, writeFileSync }  from 'fs'
+import {
+  createWriteStream,
+  // writeFileSync,
+}                           from 'fs'
+
+/* tslint:disable:variable-name */
+import * as qrcodeTerminal  from 'qrcode-terminal'
 
 /**
  * Change `import { ... } from '../'`
@@ -40,7 +43,7 @@ bot
 .on('scan', (url, code) => {
   if (!/201|200/.test(String(code))) {
     const loginUrl = url.replace(/\/qrcode\//, '/l/')
-    QrcodeTerminal.generate(loginUrl)
+    qrcodeTerminal.generate(loginUrl)
   }
   console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
 })
@@ -49,7 +52,7 @@ bot
   console.log(`RECV: ${m}`)
 
   // console.log(inspect(m))
-  saveRawObj(m.rawObj)
+  // saveRawObj(m.rawObj)
 
   if ( m.type() === MsgType.IMAGE
     || m.type() === MsgType.EMOTICON
@@ -65,23 +68,23 @@ bot
 .init()
 .catch(e => console.error('bot.init() error: ' + e))
 
-function saveMediaFile(message: Message) {
+async function saveMediaFile(message: Message) {
   const filename = message.filename()
   console.log('IMAGE local filename: ' + filename)
 
   const fileStream = createWriteStream(filename)
 
   console.log('start to readyStream()')
-  message.readyStream()
-          .then(stream => {
-            stream.pipe(fileStream)
-                  .on('close', () => {
-                    console.log('finish readyStream()')
-                  })
-          })
-          .catch(e => console.log('stream error:' + e))
+  try {
+    const netStream = await message.readyStream()
+    netStream
+      .pipe(fileStream)
+      .on('close', _ => console.log('finish readyStream()'))
+  } catch (e) {
+    console.error('stream error:', e)
+  }
 }
 
-function saveRawObj(o) {
-  writeFileSync('rawObj.log', JSON.stringify(o, null, '  ') + '\n\n\n', { flag: 'a' })
-}
+// function saveRawObj(o) {
+//   writeFileSync('rawObj.log', JSON.stringify(o, null, '  ') + '\n\n\n', { flag: 'a' })
+// }

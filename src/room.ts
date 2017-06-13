@@ -352,12 +352,13 @@ export class Room extends EventEmitter implements Sayable {
 
     if (newTopic) {
       log.verbose('Room', 'topic(%s)', newTopic)
-      Config.puppetInstance().roomTopic(this, newTopic)
-                              .catch(e => {
-                                log.warn('Room', 'topic(newTopic=%s) exception: %s',
-                                                  newTopic, e && e.message || e,
-                                )
-                              })
+      Config.puppetInstance()
+            .roomTopic(this, newTopic)
+            .catch(e => {
+              log.warn('Room', 'topic(newTopic=%s) exception: %s',
+                                newTopic, e && e.message || e,
+                      )
+            })
       if (!this.obj) {
         this.obj = <RoomObj>{}
       }

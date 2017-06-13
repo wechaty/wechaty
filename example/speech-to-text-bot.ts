@@ -25,7 +25,7 @@ import Ffmpeg       = require('fluent-ffmpeg')
 import querystring  = require('querystring')
 
 /* tslint:disable:variable-name */
-const QrcodeTerminal = require('qrcode-terminal')
+const qrcodeTerminal = require('qrcode-terminal')
 
 /**
  * Change `import { ... } from '../'`
@@ -45,7 +45,7 @@ bot
 .on('scan', (url, code) => {
   if (!/201|200/.test(String(code))) {
     const loginUrl = url.replace(/\/qrcode\//, '/l/')
-    QrcodeTerminal.generate(loginUrl)
+    qrcodeTerminal.generate(loginUrl)
   }
   console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
 })
@@ -142,7 +142,7 @@ function mp3ToWav(mp3Stream: NodeJS.ReadableStream): NodeJS.ReadableStream {
  * http://blog.csdn.net/dlangu0393/article/details/7214728
  * http://elric2011.github.io/a/using_speech_recognize_service.html
  */
-async function wavToText(readableStream: NodeJS.ReadableStream): Promise<string> {
+async function wavToText(wavStream: NodeJS.ReadableStream): Promise<string> {
   const params = {
     'cuid': 'wechaty',
     'lan': 'zh',
@@ -159,7 +159,7 @@ async function wavToText(readableStream: NodeJS.ReadableStream): Promise<string>
   }
 
   return new Promise<string>((resolve, reject) => {
-    readableStream.pipe(request.post(apiUrl, options, (err, httpResponse, body) => {
+    wavStream.pipe(request.post(apiUrl, options, (err, httpResponse, body) => {
       // "err_msg":"success.","err_no":0,"result":["这是一个测试测试语音转文字，"]
       if (err) {
         return reject(err)

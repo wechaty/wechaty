@@ -50,22 +50,22 @@ export async function onMessage(message: Message): Promise<void> {
      */
 
     if (content === 'ding') {
-      message.say('thanks for ding me')
+      await message.say('thanks for ding me')
 
       const myRoom = await Room.find({ topic: 'ding' })
       if (!myRoom) return
 
       if (myRoom.has(sender)) {
-        sender.say('no need to ding again, because you are already in ding room')
+        await sender.say('no need to ding again, because you are already in ding room')
         return
       }
 
-      sender.say('ok, I will put you in ding room!')
-      myRoom.add(sender)
+      await sender.say('ok, I will put you in ding room!')
+      await myRoom.add(sender)
       return
 
     } else if (content === 'dong') {
-      sender.say('ok, dong me is welcome, too.')
+      await sender.say('ok, dong me is welcome, too.')
       return
     }
 
@@ -76,6 +76,6 @@ export async function onMessage(message: Message): Promise<void> {
      */
     /*********************************************/
   } catch (e) {
-    console.log(e)
+    console.error(e)
   }
 }
