@@ -28,6 +28,9 @@ import {
   Browser,
 }               from '../../src/puppet-web/'
 
+const TEST_DOMAIN = 'www.chatie.io'
+const TEST_URL = 'https://' + TEST_DOMAIN
+
 const PROFILE = Config.DEFAULT_PROFILE + '-' + process.pid + '-'
 let profileCounter = 1
 
@@ -41,7 +44,7 @@ test('Cookie smoke testing', async t => {
   await browser.driver.init()
   t.pass('should init driver')
 
-  await browser.open()
+  await browser.open(TEST_URL)
   t.pass('should opened')
 
   browser.state.current('open')
@@ -60,7 +63,7 @@ test('Cookie smoke testing', async t => {
     name: 'wechaty0',
     value: '8788-0',
     path: '/',
-    domain: '.qq.com',
+    domain: '.chatie.io',
     secure: false,
     expiry: 99999999999999,
   },
@@ -68,7 +71,7 @@ test('Cookie smoke testing', async t => {
     name: 'wechaty1',
     value: '8788-1',
     path: '/',
-    domain: '.qq.com',
+    domain: '.chatie.io',
     secure: false,
     expiry: 99999999999999,
   }]
@@ -84,7 +87,7 @@ test('Cookie smoke testing', async t => {
   t.truthy(cookies1, 'should get cookies1')
   t.is(cookies1[0].name, EXPECTED_COOKIES[1].name, 'getCookies() should filter out the cookie named wechaty1')
 
-  await browser.open()
+  await browser.open(TEST_URL)
   t.pass('re-opened url')
   const cookieAfterOpen = await browser.driver.manage().getCookie(EXPECTED_COOKIES[0].name)
   t.is(cookieAfterOpen.name, EXPECTED_COOKIES[0].name, 'getCookie() should get expected cookie named after re-open url')
@@ -102,8 +105,8 @@ test('Cookie save/load', async t => {
   const profileName = PROFILE + (profileCounter++)
 
   let browser = new Browser({
-      head: Config.head,
-      sessionFile: profileName,
+      head:         Config.head,
+      sessionFile:  profileName,
   })
 
   /**
@@ -118,14 +121,14 @@ test('Cookie save/load', async t => {
     await browser.driver.init()
     t.pass('should init driver')
 
-    await browser.open()
+    await browser.open(TEST_URL)
     t.pass('opened')
 
     const EXPECTED_COOKIE = {
       name: 'wechaty_save_to_session',
       value: '### This cookie should be saved to session file, and load back at next PuppetWeb init  ###',
       path: '/',
-      domain: '.wx.qq.com',
+      domain: '.chatie.io',
       secure: false,
       expiry: 99999999999999,
     }
@@ -176,8 +179,8 @@ test('Cookie save/load', async t => {
      */
 
     browser = new Browser({
-      head: Config.head,
-      sessionFile: profileName,
+      head:         Config.head,
+      sessionFile:  profileName,
     })
 
     t.pass('should started a new Browser')
@@ -187,7 +190,7 @@ test('Cookie save/load', async t => {
 
     await browser.driver.init()
     t.pass('should inited the new Browser')
-    await browser.open()
+    await browser.open(TEST_URL)
     t.pass('should opened')
 
     await browser.loadCookie()
@@ -205,7 +208,7 @@ test('Cookie save/load', async t => {
   } catch (e) {
     t.fail('exception: ' + e.message)
   } finally {
-    if (browser) {
+    if (browser && browser.driver) {
       await browser.driver.quit()
     }
   }
@@ -220,11 +223,13 @@ test('Hostname smoke testing', async t => {
   await browser.driver.init()
   t.pass('should init driver')
 
-  await browser.open()
+  await browser.open(TEST_URL)
   t.pass('should opened')
 
   browser.state.current('open')
 
   const hostname = await browser.hostname()
-  t.truthy(hostname)
+  t.is(hostname, TEST_DOMAIN, 'should get hostname as "chatie.io"')
+
+  await browser.quit()
 })
