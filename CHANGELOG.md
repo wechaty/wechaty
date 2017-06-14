@@ -23,6 +23,7 @@
 
 **Closed issues:**
 
+- 在 Windows Server 上初始化的时候，chromedriver 报错。 [\#574](https://github.com/Chatie/wechaty/issues/574)
 - whatever [\#543](https://github.com/Chatie/wechaty/issues/543)
 - static Contact.find\(\) / static Contact.findAll\(\) throws exception [\#520](https://github.com/Chatie/wechaty/issues/520)
 - Cannot set alias of Contact Object getting from `message.from\(\)` method when Contact is not a friend [\#509](https://github.com/Chatie/wechaty/issues/509)
@@ -33,6 +34,10 @@
 
 **Merged pull requests:**
 
+- add notice to readme [\#578](https://github.com/Chatie/wechaty/pull/578) ([imerse](https://github.com/imerse))
+- chore\(package\): update @types/node to version 7.0.28 [\#569](https://github.com/Chatie/wechaty/pull/569) ([zixia](https://github.com/zixia))
+- chore\(package\): update @types/node to version 7.0.26 [\#560](https://github.com/Chatie/wechaty/pull/560) ([zixia](https://github.com/zixia))
+- chore\(package\): update tslint to version 5.3.2 [\#542](https://github.com/Chatie/wechaty/pull/542) ([zixia](https://github.com/zixia))
 - fix \#512 [\#531](https://github.com/Chatie/wechaty/pull/531) ([FlyingBlazer](https://github.com/FlyingBlazer))
 - make dingdong reply more beautiful [\#515](https://github.com/Chatie/wechaty/pull/515) ([lijiarui](https://github.com/lijiarui))
 - chore\(package\): update @types/node to version 7.0.18 [\#496](https://github.com/Chatie/wechaty/pull/496) ([zixia](https://github.com/zixia))
@@ -222,7 +227,6 @@
 
 - another problem about docker run [\#103](https://github.com/Chatie/wechaty/issues/103)
 -  Error: Server terminated early with status 127 [\#102](https://github.com/Chatie/wechaty/issues/102)
-- Selenium WebDriver driver.getSession\(\) wait a long time [\#86](https://github.com/Chatie/wechaty/issues/86)
 
 **Merged pull requests:**
 
