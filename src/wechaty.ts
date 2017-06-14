@@ -26,6 +26,7 @@ import {
   Config,
   HeadName,
   PuppetName,
+  Raven,
   Sayable,
   log,
 }                         from './config'
@@ -194,6 +195,7 @@ export class Wechaty extends EventEmitter implements Sayable {
          *  2. git log fail
          */
         log.silly('Wechaty', 'version() form development environment is not availble: %s', e.message)
+        Raven.captureException(e)
       }
     }
 
@@ -248,6 +250,7 @@ export class Wechaty extends EventEmitter implements Sayable {
       await this.initPuppet()
     } catch (e) {
       log.error('Wechaty', 'init() exception: %s', e && e.message)
+      Raven.captureException(e)
       throw e
     }
 
@@ -408,6 +411,7 @@ export class Wechaty extends EventEmitter implements Sayable {
     await puppetBeforeDie.quit()
                         .catch(e => {
                           log.error('Wechaty', 'quit() exception: %s', e.message)
+                          Raven.captureException(e)
                           throw e
                         })
     this.state.current('standby')
@@ -424,6 +428,7 @@ export class Wechaty extends EventEmitter implements Sayable {
     await this.puppet.logout()
                     .catch(e => {
                       log.error('Wechaty', 'logout() exception: %s', e.message)
+                      Raven.captureException(e)
                       throw e
                     })
     return
@@ -450,6 +455,7 @@ export class Wechaty extends EventEmitter implements Sayable {
     return await this.puppet.send(message)
                             .catch(e => {
                               log.error('Wechaty', 'send() exception: %s', e.message)
+                              Raven.captureException(e)
                               throw e
                             })
   }
@@ -489,6 +495,7 @@ export class Wechaty extends EventEmitter implements Sayable {
     return this.puppet.ding() // should return 'dong'
                       .catch(e => {
                         log.error('Wechaty', 'ding() exception: %s', e.message)
+                        Raven.captureException(e)
                         throw e
                       })
   }

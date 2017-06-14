@@ -18,6 +18,7 @@
  */
 import {
   Config,
+  Raven,
   Sayable,
   log,
 }                     from './config'
@@ -336,6 +337,7 @@ export class Contact implements Sayable {
       return UtilLib.urlStream(avatarUrl, cookies)
     } catch (err) {
       log.warn('Contact', 'avatar() exception: %s', err.stack)
+      Raven.captureException(err)
       throw err
     }
   }
@@ -403,6 +405,7 @@ export class Contact implements Sayable {
 
     } catch (e) {
       log.error('Contact', `contactGetter(${this.id}) exception: %s`, e.message)
+      Raven.captureException(e)
       throw e
     }
   }
@@ -523,6 +526,7 @@ export class Contact implements Sayable {
                               .contactFind(filterFunction)
                               .catch(e => {
                                 log.error('Contact', 'findAll() rejected: %s', e.message)
+                                Raven.captureException(e)
                                 return [] // fail safe
                               })
     await Promise.all(contactList.map(c => c.ready()))
@@ -639,6 +643,7 @@ export class Contact implements Sayable {
                   })
                   .catch(e => {
                     log.error('Contact', 'alias(%s) rejected: %s', newAlias, e.message)
+                    Raven.captureException(e)
                     return false // fail safe
                   })
   }

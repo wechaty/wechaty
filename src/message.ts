@@ -21,6 +21,7 @@ import * as path   from 'path'
 
 import {
   Config,
+  Raven,
   RecommendInfo,
   Sayable,
   log,
@@ -513,6 +514,7 @@ export class Message implements Sayable {
 
     } catch (e) {
         log.error('Message', 'ready() exception: %s', e.stack)
+        Raven.captureException(e)
         // console.log(e)
         // this.dump()
         // this.dumpRaw()
@@ -726,6 +728,7 @@ export class MediaMessage extends Message {
 
     } catch (e) {
       log.warn('MediaMessage', 'ready() exception: %s', e.message)
+      Raven.captureException(e)
       throw e
     }
   }
@@ -805,6 +808,7 @@ export class MediaMessage extends Message {
       return UtilLib.urlStream(this.obj.url, cookies)
     } catch (e) {
       log.warn('MediaMessage', 'stream() exception: %s', e.stack)
+      Raven.captureException(e)
       throw e
     }
   }

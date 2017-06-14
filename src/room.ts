@@ -20,6 +20,7 @@ import { EventEmitter } from 'events'
 
 import {
   Config,
+  Raven,
   Sayable,
   log,
 }                     from './config'
@@ -155,6 +156,7 @@ export class Room extends EventEmitter implements Sayable {
 
     } catch (e) {
       log.error('Room', 'contactGetter(%s) exception: %s', this.id, e.message)
+      Raven.captureException(e)
       throw e
     }
   }
@@ -358,6 +360,7 @@ export class Room extends EventEmitter implements Sayable {
               log.warn('Room', 'topic(newTopic=%s) exception: %s',
                                 newTopic, e && e.message || e,
                       )
+              Raven.captureException(e)
             })
       if (!this.obj) {
         this.obj = <RoomObj>{}
@@ -548,6 +551,7 @@ export class Room extends EventEmitter implements Sayable {
                   .roomCreate(contactList, topic)
                   .catch(e => {
                     log.error('Room', 'create() exception: %s', e && e.stack || e.message || e)
+                    Raven.captureException(e)
                     throw e
                   })
   }
@@ -579,6 +583,7 @@ export class Room extends EventEmitter implements Sayable {
                                   .roomFind(filterFunction)
                                   .catch(e => {
                                     log.verbose('Room', 'findAll() rejected: %s', e.message)
+                                    Raven.captureException(e)
                                     return [] // fail safe
                                   })
 

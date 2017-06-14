@@ -239,8 +239,26 @@ export interface Sleepable {
  */
 process.env['SELENIUM_PROMISE_MANAGER'] = 0
 
+import * as Raven from 'raven'
+Raven
+.config('https://f6770399ee65459a82af82650231b22c:d8d11b283deb441e807079b8bb2c45cd@sentry.io/179672')
+.install()
+
+/*
+try {
+    doSomething(a[0])
+} catch (e) {
+    Raven.captureException(e)
+}
+
+Raven.context(function () {
+  doSomething(a[0])
+})
+ */
+
 export {
   log,
+  Raven,
 }
 
 export default Config
