@@ -195,7 +195,6 @@ export class Wechaty extends EventEmitter implements Sayable {
          *  2. git log fail
          */
         log.silly('Wechaty', 'version() form development environment is not availble: %s', e.message)
-        Raven.captureException(e)
       }
     }
 
