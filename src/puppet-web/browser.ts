@@ -47,7 +47,7 @@ export class Browser extends EventEmitter {
   private cookie: BrowserCookie
   public driver: BrowserDriver
 
-  public hostname: string
+  // public hostname: string
 
   public state = new StateSwitch<'open', 'close'>('Browser', 'close', log)
 
@@ -86,11 +86,11 @@ export class Browser extends EventEmitter {
     this.state.target('open')
     this.state.current('open', false)
 
-    this.hostname = this.cookie.hostname()
+    const hostname = this.cookie.hostname()
 
     // jumpUrl is used to open in browser for we can set cookies.
     // backup: 'https://res.wx.qq.com/zh_CN/htmledition/v2/images/icon/ico_loading28a2f7.gif'
-    const jumpUrl = `https://${this.hostname}/zh_CN/htmledition/v2/images/webwxgeticon.jpg`
+    const jumpUrl = `https://${hostname}/zh_CN/htmledition/v2/images/webwxgeticon.jpg`
 
     try {
       await this.driver.init()
@@ -127,12 +127,25 @@ export class Browser extends EventEmitter {
     }
   }
 
-  public async open(url: string = `https://${this.hostname}`): Promise<void> {
+  public async hostname(): Promise<string | null> {
+    log.verbose('PuppetWebBrowser', 'hostname()')
+    const domain = await this.execute('return document.domain')
+    log.silly('PuppetWebBrowser', 'hostname() got %s', domain)
+    return domain
+  }
+
+  public async open(url?: string): Promise<void> {
     log.verbose('PuppetWebBrowser', `open(${url})`)
 
-    if (!this.hostname) {
-      throw new Error('hostname unknown')
+    if (!url) {
+      const hostname = this.cookie.hostname()
+      if (!hostname) {
+        throw new Error('hostname unknown')
+      }
+      url = `https://${hostname}`
     }
+
+    const openUrl = url
 
     // Issue #175
     // TODO: set a timer to guard driver.get timeout, then retry 3 times 201607
@@ -163,7 +176,7 @@ export class Browser extends EventEmitter {
           }, TIMEOUT)
 
           try {
-            await this.driver.get(url)
+            await this.driver.get(openUrl)
             resolve()
           } catch (e) {
             reject(e)

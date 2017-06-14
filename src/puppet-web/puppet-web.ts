@@ -385,7 +385,7 @@ export class PuppetWeb extends Puppet {
     const webwxDataTicket = first && first.value
     const size = buffer.length
 
-    const hostname = this.browser.hostname
+    const hostname = await this.browser.hostname()
     const uploadMediaRequest = {
       BaseRequest: baseRequest,
       FileMd5: md5,

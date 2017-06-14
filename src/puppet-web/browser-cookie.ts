@@ -192,19 +192,19 @@ export class BrowserCookie {
   public hostname(): string {
     log.verbose('PuppetWebBrowserCookie', 'hostname()')
 
-    const defaultHostname = 'wx.qq.com'
+    const DEFAULT_HOSTNAME = 'wx.qq.com'
 
     const cookieList = this.getCookiesFromFile()
 
     if (!cookieList || cookieList.length === 0) {
       log.silly('PuppetWebBrowserCookie', 'hostname() no cookie, return default hostname')
-      return defaultHostname
+      return DEFAULT_HOSTNAME
     }
 
     const wxCookieList = cookieList.filter(c => /^webwx_auth_ticket|webwxuvid$/.test(c.name))
     if (!wxCookieList.length) {
       log.silly('PuppetWebBrowserCookie', 'hostname() no valid cookie in files, return default hostname')
-      return defaultHostname
+      return DEFAULT_HOSTNAME
     }
 
     let domain = wxCookieList[0].domain.slice(1)
@@ -245,7 +245,7 @@ export class BrowserCookie {
 
     // return new Promise((resolve, reject) => {
     try {
-      await (this.driver.manage() as any).addCookie(cookie)
+      await this.driver.manage().addCookie(cookie)
                   // this is old webdriver format
                   // .addCookie(cookie.name, cookie.value, cookie.path
                   //   , cookie.domain, cookie.secure, cookie.expiry)

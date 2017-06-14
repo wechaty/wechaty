@@ -329,7 +329,7 @@ export class Contact implements Sayable {
     }
 
     try {
-      const hostname = (Config.puppetInstance() as PuppetWeb).browser.hostname
+      const hostname = await (Config.puppetInstance() as PuppetWeb).browser.hostname()
       const avatarUrl = `http://${hostname}${this.obj.avatar}`
       const cookies = await (Config.puppetInstance() as PuppetWeb).browser.readCookie()
       log.silly('Contact', 'avatar() url: %s', avatarUrl)

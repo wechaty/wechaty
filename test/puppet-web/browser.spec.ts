@@ -36,7 +36,7 @@ test('Cookie smoke testing', async t => {
   t.truthy(browser, 'should instanciate a browser instance')
 
   browser.state.target('open')
-  browser.hostname = 'wx.qq.com'
+  // browser.hostname = 'wx.qq.com'
 
   await browser.driver.init()
   t.pass('should init driver')
@@ -113,7 +113,7 @@ test('Cookie save/load', async t => {
     t.truthy(browser, 'should get a new Browser')
 
     browser.state.target('open')
-    browser.hostname = 'wx.qq.com'
+    // browser.hostname = 'wx.qq.com'
 
     await browser.driver.init()
     t.pass('should init driver')
@@ -183,7 +183,7 @@ test('Cookie save/load', async t => {
     t.pass('should started a new Browser')
 
     browser.state.target('open')
-    browser.hostname = 'wx.qq.com'
+    // browser.hostname = 'wx.qq.com'
 
     await browser.driver.init()
     t.pass('should inited the new Browser')
@@ -202,12 +202,29 @@ test('Cookie save/load', async t => {
         log.warn('Browser', 'unlink session file %s fail: %s', PROFILE, err)
       }
     })
-
-    await browser.driver.quit()
   } catch (e) {
+    t.fail('exception: ' + e.message)
+  } finally {
     if (browser) {
       await browser.driver.quit()
     }
-    t.fail('exception: ' + e.message)
   }
+})
+
+test('Hostname smoke testing', async t => {
+  const browser = new Browser()
+  t.truthy(browser, 'should instanciate a browser instance')
+
+  browser.state.target('open')
+
+  await browser.driver.init()
+  t.pass('should init driver')
+
+  await browser.open()
+  t.pass('should opened')
+
+  browser.state.current('open')
+
+  const hostname = await browser.hostname()
+  t.truthy(hostname)
 })

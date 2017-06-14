@@ -19,15 +19,27 @@
 import {
   Builder,
   Capabilities,
-  WebDriver,
   logging,
-}               from 'selenium-webdriver'
+  Navigation,
+  Options,
+  WebDriver,
+  promise as promiseManager,
+}                             from 'selenium-webdriver'
 
 import {
   Config,
   HeadName,
   log,
-}               from '../config'
+}                             from '../config'
+
+/**
+ * ISSUE #72
+ * Introduce the SELENIUM_PROMISE_MANAGER environment variable.
+ * When set to 1, selenium-webdriver will use the existing ControlFlow scheduler.
+ * When set to 0, the SimpleScheduler will be used.
+ */
+process.env['SELENIUM_PROMISE_MANAGER'] = 0
+promiseManager.USE_PROMISE_MANAGER = false
 
 export class BrowserDriver {
   private driver: WebDriver
@@ -370,14 +382,14 @@ export class BrowserDriver {
 
   }
 
-  public close()              { return this.driver.close()      as any as Promise<void> }
+  public close()                { return this.driver.close() }
   public executeAsyncScript(script: string|Function, ...args: any[])  { return this.driver.executeAsyncScript.apply(this.driver, arguments) }
   public executeScript     (script: string|Function, ...args: any[])  { return this.driver.executeScript.apply(this.driver, arguments) }
-  public get(url: string)     { return this.driver.get(url)     as any as Promise<void> }
-  public getSession()         { return this.driver.getSession() as any as Promise<void> }
-  public manage()             { return this.driver.manage()     as any }
-  public navigate()           { return this.driver.navigate()   as any }
-  public quit()               { return this.driver.quit()       as any as Promise<void> }
+  public get(url: string)       { return this.driver.get(url)     as any as Promise<void> }
+  public getSession()           { return this.driver.getSession() as any as Promise<void> }
+  public manage(): Options      { return this.driver.manage() }
+  public navigate(): Navigation { return this.driver.navigate() }
+  public quit()                 { return this.driver.quit()       as any as Promise<void> }
 }
 
 // export default BrowserDriver
