@@ -33,7 +33,6 @@ test.serial('quit()', async t => {
   browser.state.target('close')
   browser.state.current('close')
   t.throws(browser.quit(), Error, 'should throw exception when call quit() twice on browser')
-
 })
 
 test.serial('init()', async t => {

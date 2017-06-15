@@ -34,7 +34,7 @@ Raven
     release: require('../package.json').version,
     tags: {
       git_commit: 'c0deb10c4',
-      platform:   !!process.env('WECHATY_DOCKER')
+      platform:   !!process.env['WECHATY_DOCKER']
                   ? 'docker'
                   : os.platform(),
     },
@@ -165,7 +165,7 @@ Object.assign(config, {
  * 4. Envioronment Identify
  */
 Object.assign(config, {
-  dockerMode: !!process.env('WECHATY_DOCKER'),
+  dockerMode: !!process.env['WECHATY_DOCKER'],
   isGlobal:  isWechatyInstalledGlobal(),
 })
 
