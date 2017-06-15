@@ -27,7 +27,7 @@ import {
 }                             from 'selenium-webdriver'
 
 import {
-  Config,
+  config,
   HeadName,
   log,
 }                             from '../config'
@@ -113,9 +113,9 @@ export class BrowserDriver {
         '--no-sandbox',
       ],  // issue #26 for run inside docker
     }
-    if (Config.dockerMode) {
+    if (config.dockerMode) {
       log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() wechaty in docker confirmed(should not show this in CI)')
-      options['binary'] = Config.CMD_CHROMIUM
+      options['binary'] = config.CMD_CHROMIUM
     } else {
       /**
        * https://github.com/Chatie/wechaty/pull/416
@@ -224,7 +224,7 @@ export class BrowserDriver {
       // , '--ssl-client-certificate-file=cert.pem' //
     ]
 
-    if (Config.debug) {
+    if (config.debug) {
       phantomjsArgs.push('--remote-debugger-port=8080') // XXX: be careful when in production env.
       phantomjsArgs.push('--webdriver-loglevel=DEBUG')
       // phantomjsArgs.push('--webdriver-logfile=webdriver.debug.log')

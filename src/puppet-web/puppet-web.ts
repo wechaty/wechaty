@@ -17,7 +17,7 @@
  *
  */
 import {
-  Config,
+  config,
   HeadName,
   log,
   Raven,
@@ -75,7 +75,7 @@ export class PuppetWeb extends Puppet {
     super()
 
     if (!setting.head) {
-      setting.head = Config.head
+      setting.head = config.head
     }
     this.on('watchdog', Watchdog.onFeed.bind(this))
   }

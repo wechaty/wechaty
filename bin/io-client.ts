@@ -19,7 +19,7 @@
  */
 
 import {
-  Config,
+  config,
   log,
 }               from '../src/config'
 
@@ -42,12 +42,12 @@ __________________________________________________
 
 `
 
-let   token   = Config.token
+let   token   = config.token
 
 if (!token) {
   log.error('Client', 'token not found: please set WECHATY_TOKEN in environment before run io-client')
   // process.exit(-1)
-  token = Config.DEFAULT_TOKEN
+  token = config.DEFAULT_TOKEN
   log.warn('Client', `set token to "${token}" for demo purpose`)
 }
 

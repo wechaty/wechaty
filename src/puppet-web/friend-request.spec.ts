@@ -18,13 +18,13 @@
  */
 import { test }               from 'ava'
 
-import Config                 from '../config'
+import config                 from '../config'
 import Contact                from '../contact'
 import Message                from '../message'
 import Puppet                 from '../puppet'
 import PuppetWebFriendRequest from './friend-request'
 
-Config.puppetInstance({
+config.puppetInstance({
   userId: 'xxx',
 } as Puppet)
 

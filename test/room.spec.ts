@@ -18,12 +18,12 @@
  */
 import { test } from 'ava'
 
-import Config     from '../src/config'
+import config     from '../src/config'
 import Contact    from '../src/contact'
 import PuppetWeb  from '../src/puppet-web'
 import Room       from '../src/room'
 
-Config.puppetInstance(new PuppetWeb())
+config.puppetInstance(new PuppetWeb())
 // Room.attach(new PuppetWeb())
 
 // test('Room smoke testing', async t => {
@@ -105,11 +105,11 @@ test('Room smoking test', async t => {
 
   let puppet
   try {
-    puppet = Config.puppetInstance()
+    puppet = config.puppetInstance()
     puppet.getContact = mockContactGetter
   } catch (err) {
     puppet = { getContact: mockContactGetter }
-    Config.puppetInstance(puppet)
+    config.puppetInstance(puppet)
   }
   await r.ready()
 

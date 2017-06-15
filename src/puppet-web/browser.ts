@@ -26,7 +26,7 @@ import { StateSwitch }  from 'state-switch'
 const retryPromise  = require('retry-promise').default // https://github.com/olalonde/retry-promise
 
 import {
-  Config,
+  config,
   HeadName,
   log,
 }                         from '../config'
@@ -53,7 +53,7 @@ export class Browser extends EventEmitter {
 
   constructor(
     private setting: BrowserSetting = {
-      head: Config.head,
+      head: config.head,
       sessionFile: '',
     },
   ) {

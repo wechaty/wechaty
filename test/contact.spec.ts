@@ -17,11 +17,11 @@
  *
  */
 import { test }   from 'ava'
-import Config     from '../src/config'
+import config     from '../src/config'
 import Contact    from '../src/contact'
 import PuppetWeb  from '../src/puppet-web'
 
-Config.puppetInstance(new PuppetWeb())
+config.puppetInstance(new PuppetWeb())
 
 test('Contact smoke testing', async t => {
   /* tslint:disable:variable-name */

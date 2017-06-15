@@ -19,7 +19,7 @@
 import { test } from 'ava'
 
 import {
-  Config,
+  config,
   log,
 }                 from '../../src/config'
 import PuppetWeb  from '../../src/puppet-web'
@@ -34,7 +34,7 @@ test.serial('login/logout events', async t => {
   const pw = new PuppetWeb()
   t.truthy(pw, 'should instantiated a PuppetWeb')
 
-  Config.puppetInstance(pw)
+  config.puppetInstance(pw)
 
   await pw.init()
   t.pass('should be inited')
@@ -61,7 +61,7 @@ test.serial('server/browser socketio ding', async t => {
   const puppet = new PuppetWeb()
   t.truthy(puppet, 'should instantiated a PuppetWeb')
 
-  Config.puppetInstance(puppet)
+  config.puppetInstance(puppet)
 
   const EXPECTED_DING_DATA = 'dingdong'
 

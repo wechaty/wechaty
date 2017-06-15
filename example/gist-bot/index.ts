@@ -23,7 +23,7 @@
  * when you are runing with Docker or NPM instead of Git Source.
  */
 import {
-  Config,
+  config,
   Wechaty,
   log,
 }           from '../../'
@@ -41,7 +41,7 @@ Please wait... I'm trying to login in...
 `
 console.log(welcome)
 
-Wechaty.instance({ profile: Config.DEFAULT_PROFILE })
+Wechaty.instance({ profile: config.DEFAULT_PROFILE })
 
 .on('scan', (url, code) => {
   if (!/201|200/.test(String(code))) {

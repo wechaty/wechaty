@@ -33,13 +33,13 @@ const qrcodeTerminal = require('qrcode-terminal')
  * when you are runing with Docker or NPM instead of Git Source.
  */
 import {
-  Config,
+  config,
   MediaMessage,
   MsgType,
   Wechaty,
 }                 from '../'
 
-const bot = Wechaty.instance({ profile: Config.DEFAULT_PROFILE })
+const bot = Wechaty.instance({ profile: config.DEFAULT_PROFILE })
 
 bot
 .on('scan', (url, code) => {

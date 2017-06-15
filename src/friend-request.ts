@@ -18,7 +18,7 @@
  */
 
 import {
-  Config,
+  config,
   log,
 }               from './config'
 import Contact  from './contact'
@@ -32,7 +32,7 @@ export abstract class FriendRequest {
   constructor() {
     log.verbose('FriendRequest', 'constructor()')
 
-    if (!Config.puppetInstance()) {
+    if (!config.puppetInstance()) {
       throw new Error('no Config.puppetInstance() instanciated')
     }
   }

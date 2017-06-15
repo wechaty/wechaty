@@ -17,7 +17,7 @@
  *
  */
 import {
-  Config,
+  config,
   Raven,
   Sayable,
   log,
@@ -329,9 +329,9 @@ export class Contact implements Sayable {
     }
 
     try {
-      const hostname = await (Config.puppetInstance() as PuppetWeb).browser.hostname()
+      const hostname = await (config.puppetInstance() as PuppetWeb).browser.hostname()
       const avatarUrl = `http://${hostname}${this.obj.avatar}`
-      const cookies = await (Config.puppetInstance() as PuppetWeb).browser.readCookie()
+      const cookies = await (config.puppetInstance() as PuppetWeb).browser.readCookie()
       log.silly('Contact', 'avatar() url: %s', avatarUrl)
 
       return UtilLib.urlStream(avatarUrl, cookies)
@@ -388,9 +388,9 @@ export class Contact implements Sayable {
     }
 
     if (!contactGetter) {
-      log.silly('Contact', 'get contact via ' + Config.puppetInstance().constructor.name)
-      contactGetter = Config.puppetInstance()
-                            .getContact.bind(Config.puppetInstance())
+      log.silly('Contact', 'get contact via ' + config.puppetInstance().constructor.name)
+      contactGetter = config.puppetInstance()
+                            .getContact.bind(config.puppetInstance())
     }
     if (!contactGetter) {
       throw new Error('no contatGetter')
@@ -431,7 +431,7 @@ export class Contact implements Sayable {
    * ```
    */
   public self(): boolean {
-    const userId = Config.puppetInstance()
+    const userId = config.puppetInstance()
                           .userId
 
     const selfId = this.id
@@ -522,7 +522,7 @@ export class Contact implements Sayable {
       throw new Error('unsupport name type')
     }
 
-    const contactList = await Config.puppetInstance()
+    const contactList = await config.puppetInstance()
                               .contactFind(filterFunction)
                               .catch(e => {
                                 log.error('Contact', 'findAll() rejected: %s', e.message)
@@ -627,7 +627,7 @@ export class Contact implements Sayable {
       return this.obj && this.obj.alias || null
     }
 
-    return Config.puppetInstance()
+    return config.puppetInstance()
                   .contactAlias(this, newAlias)
                   .then(ret => {
                     if (ret) {

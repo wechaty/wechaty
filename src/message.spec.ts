@@ -19,7 +19,7 @@
 import { test } from 'ava'
 
 import {
-  Config,
+  config,
   log,
 }                 from './config'
 import Message    from './message'
@@ -29,7 +29,7 @@ const MOCK_USER_ID = 'TEST-USER-ID'
 
 const puppet = new PuppetWeb()
 puppet.userId = MOCK_USER_ID
-Config.puppetInstance(puppet)
+config.puppetInstance(puppet)
 
 test('constructor()', t => {
   /* tslint:disable:max-line-length */
@@ -93,7 +93,7 @@ test.serial('ready()', async t => {
     })
   }
 
-  Config.puppetInstance()
+  config.puppetInstance()
         .getContact = mockGetContact
 
   const m = new Message(rawData)
@@ -131,7 +131,7 @@ test('findAll()', async t => {
 })
 
 test('self()', t => {
-  Config.puppetInstance()
+  config.puppetInstance()
 
   const m = new Message()
   m.from(MOCK_USER_ID)
@@ -183,11 +183,11 @@ test.serial('mentioned()', async t => {
 
   let puppet1
   try {
-    puppet1 = Config.puppetInstance()
+    puppet1 = config.puppetInstance()
     puppet1.getContact = mockContactGetter
   } catch (err) {
     puppet1 = { getContact: mockContactGetter }
-    Config.puppetInstance(puppet1)
+    config.puppetInstance(puppet1)
   }
   const msg11 = new Message(rawObj11)
   const room11 = msg11.room()

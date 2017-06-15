@@ -19,7 +19,7 @@
 import { EventEmitter } from 'events'
 
 import {
-  Config,
+  config,
   Raven,
   Sayable,
   log,
@@ -134,8 +134,8 @@ export class Room extends EventEmitter implements Sayable {
     }
 
     if (!contactGetter) {
-      contactGetter = Config.puppetInstance()
-                            .getContact.bind(Config.puppetInstance())
+      contactGetter = config.puppetInstance()
+                            .getContact.bind(config.puppetInstance())
     }
     if (!contactGetter) {
       throw new Error('no contactGetter')
@@ -216,7 +216,7 @@ export class Room extends EventEmitter implements Sayable {
 
     m.room(this)
 
-    return Config.puppetInstance()
+    return config.puppetInstance()
                   .send(m)
   }
 
@@ -295,7 +295,7 @@ export class Room extends EventEmitter implements Sayable {
       throw new Error('contact not found')
     }
 
-    const n = Config.puppetInstance()
+    const n = config.puppetInstance()
                       .roomAdd(this, contact)
     return n
   }
@@ -306,7 +306,7 @@ export class Room extends EventEmitter implements Sayable {
     if (!contact) {
       throw new Error('contact not found')
     }
-    const n = await Config.puppetInstance()
+    const n = await config.puppetInstance()
                             .roomDel(this, contact)
                             .then(_ => this.delLocal(contact))
     return n
@@ -354,7 +354,7 @@ export class Room extends EventEmitter implements Sayable {
 
     if (newTopic) {
       log.verbose('Room', 'topic(%s)', newTopic)
-      Config.puppetInstance()
+      config.puppetInstance()
             .roomTopic(this, newTopic)
             .catch(e => {
               log.warn('Room', 'topic(newTopic=%s) exception: %s',
@@ -408,7 +408,7 @@ export class Room extends EventEmitter implements Sayable {
   public owner(): Contact | null {
     const ownerUin = this.obj && this.obj.ownerUin
 
-    const user = Config.puppetInstance()
+    const user = config.puppetInstance()
                       .user
 
     if (user && user.get('uin') === ownerUin) {
@@ -547,7 +547,7 @@ export class Room extends EventEmitter implements Sayable {
       throw new Error('contactList not found')
     }
 
-    return Config.puppetInstance()
+    return config.puppetInstance()
                   .roomCreate(contactList, topic)
                   .catch(e => {
                     log.error('Room', 'create() exception: %s', e && e.stack || e.message || e)
@@ -579,7 +579,7 @@ export class Room extends EventEmitter implements Sayable {
       throw new Error('unsupport topic type')
     }
 
-    const roomList = await Config.puppetInstance()
+    const roomList = await config.puppetInstance()
                                   .roomFind(filterFunction)
                                   .catch(e => {
                                     log.verbose('Room', 'findAll() rejected: %s', e.message)

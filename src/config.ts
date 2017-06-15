@@ -16,7 +16,43 @@
  *   limitations under the License.
  *
  */
-import * as os from 'os'
+import * as fs    from 'fs'
+import * as os    from 'os'
+import * as path  from 'path'
+
+/**
+ * Raven.io
+ */
+import * as Raven from 'raven'
+Raven.disableConsoleAlerts()
+
+Raven
+.config(
+  process.env.NODE_ENV === 'production'
+    && 'https://f6770399ee65459a82af82650231b22c:d8d11b283deb441e807079b8bb2c45cd@sentry.io/179672',
+  {
+    release: require('../package.json').version,
+    tags: {
+      git_commit: 'c0deb10c4',
+      platform:   !!process.env('WECHATY_DOCKER')
+                  ? 'docker'
+                  : os.platform(),
+    },
+  },
+)
+.install()
+
+/*
+try {
+    doSomething(a[0])
+} catch (e) {
+    Raven.captureException(e)
+}
+
+Raven.context(function () {
+  doSomething(a[0])
+})
+ */
 
 // const isCi      = require('is-ci')
 // const isDocker  = require('is-docker')
@@ -78,22 +114,24 @@ export interface ConfigSetting {
   puppetInstance(): Puppet
   puppetInstance(empty: null): void
   puppetInstance(instance: Puppet): void
-  puppetInstance(instance?: Puppet | null): Puppet | void
+  puppetInstance(instance?: Puppet | null): Puppet | void,
 
-  dockerMode: boolean
+  gitVersion(): string | null,
+  npmVersion(): string,
 
+  dockerMode: boolean,
 }
 /* tslint:disable:variable-name */
 /* tslint:disable:no-var-requires */
-export const Config: ConfigSetting = require('../package.json').wechaty
+export const config: ConfigSetting = require('../package.json').wechaty
 
 /**
  * 1. ENVIRONMENT VARIABLES + PACKAGES.JSON (default)
  */
-Object.assign(Config, {
-  apihost:    process.env['WECHATY_APIHOST']   || Config.DEFAULT_APIHOST,
-  head:       process.env['WECHATY_HEAD']      || Config.DEFAULT_HEAD,
-  puppet:     process.env['WECHATY_PUPPET']    || Config.DEFAULT_PUPPET,
+Object.assign(config, {
+  apihost:    process.env['WECHATY_APIHOST']   || config.DEFAULT_APIHOST,
+  head:       process.env['WECHATY_HEAD']      || config.DEFAULT_HEAD,
+  puppet:     process.env['WECHATY_PUPPET']    || config.DEFAULT_PUPPET,
   validApiHost,
 })
 
@@ -103,12 +141,12 @@ function validApiHost(apihost: string): boolean {
   }
   throw new Error('validApiHost() fail for ' + apihost)
 }
-validApiHost(Config.apihost)
+validApiHost(config.apihost)
 
 /**
  * 2. ENVIRONMENT VARIABLES (only)
  */
-Object.assign(Config, {
+Object.assign(config, {
   port:       process.env['WECHATY_PORT']     || null, // 0 for disable port
   profile:  process.env['WECHATY_PROFILE']    || null, // DO NOT set DEFAULT_PROFILE, because sometimes user do not want to save session
   token:    process.env['WECHATY_TOKEN']      || null, // DO NOT set DEFAULT, because sometimes user do not want to connect to io cloud service
@@ -118,15 +156,15 @@ Object.assign(Config, {
 /**
  * 3. Service Settings
  */
-Object.assign(Config, {
+Object.assign(config, {
   // get PORT form cloud service env, ie: heroku
-  httpPort: process.env['PORT'] || process.env['WECHATY_PORT'] || Config.DEFAULT_PORT,
+  httpPort: process.env['PORT'] || process.env['WECHATY_PORT'] || config.DEFAULT_PORT,
 })
 
 /**
  * 4. Envioronment Identify
  */
-Object.assign(Config, {
+Object.assign(config, {
   dockerMode: !!process.env('WECHATY_DOCKER'),
   isGlobal:  isWechatyInstalledGlobal(),
 })
@@ -195,7 +233,52 @@ function puppetInstance(instance?: Puppet | null): Puppet | void {
 
 }
 
-Object.assign(Config, {
+function gitVersion(): string | null {
+  const dotGitPath  = path.join(__dirname, '..', '.git') // only for ts-node, not for dist
+  // const gitLogArgs  = ['log', '--oneline', '-1']
+  // TODO: use git rev-parse HEAD ?
+  const gitArgs  = ['rev-parse', 'HEAD']
+
+  try {
+    // Make sure this is a Wechaty repository
+    fs.statSync(dotGitPath).isDirectory()
+
+    const ss = require('child_process')
+                .spawnSync('git', gitArgs, { cwd:  __dirname })
+
+    if (ss.status !== 0) {
+      throw new Error(ss.error)
+    }
+
+    const revision = ss.stdout
+                      .toString()
+                      .trim()
+                      .slice(0, 7)
+    return revision
+
+  } catch (e) { /* fall safe */
+    /**
+     *  1. .git not exist
+     *  2. git log fail
+     */
+    log.silly('Wechaty', 'version() form development environment is not availble: %s', e.message)
+    return null
+  }
+}
+
+function npmVersion(): string {
+  try {
+    return require('../package.json').version
+  } catch (e) {
+    log.error('Wechaty', 'npmVersion() exception %s', e.message)
+    Raven.captureException(e)
+    return '0.0.0'
+  }
+}
+
+Object.assign(config, {
+  gitVersion,
+  npmVersion,
   puppetInstance,
 })
 
@@ -236,38 +319,9 @@ export interface Sleepable {
   sleep(millisecond: number): Promise<void>
 }
 
-import * as Raven from 'raven'
-Raven.disableConsoleAlerts()
-
-Raven
-.config(
-  process.env.NODE_ENV === 'production'
-    && 'https://f6770399ee65459a82af82650231b22c:d8d11b283deb441e807079b8bb2c45cd@sentry.io/179672',
-  {
-    release: require('../package.json').version,
-    tags: {
-      git_commit: 'c0deb10c4',
-      platform: os.platform(),
-    },
-  },
-)
-.install()
-
-/*
-try {
-    doSomething(a[0])
-} catch (e) {
-    Raven.captureException(e)
-}
-
-Raven.context(function () {
-  doSomething(a[0])
-})
- */
-
 export {
   log,
   Raven,
 }
 
-export default Config
+export default config

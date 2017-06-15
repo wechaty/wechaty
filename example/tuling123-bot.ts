@@ -36,7 +36,7 @@ const Tuling123       = require('tuling123-client')
  * when you are runing with Docker or NPM instead of Git Source.
  */
 import {
-  Config,
+  config,
   Wechaty,
   log,
 }           from '../'
@@ -53,7 +53,7 @@ import {
 const TULING123_API_KEY = '18f25157e0446df58ade098479f74b21'
 const tuling = new Tuling123(TULING123_API_KEY)
 
-const bot = Wechaty.instance({ profile: Config.DEFAULT_PROFILE })
+const bot = Wechaty.instance({ profile: config.DEFAULT_PROFILE })
 
 console.log(`
 Welcome to Tuling Wechaty Bot.

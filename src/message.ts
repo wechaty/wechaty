@@ -20,7 +20,7 @@ import * as fs     from 'fs'
 import * as path   from 'path'
 
 import {
-  Config,
+  config,
   Raven,
   RecommendInfo,
   Sayable,
@@ -414,7 +414,7 @@ export class Message implements Sayable {
   public count()   { return this._counter }
 
   public self(): boolean {
-    const userId = Config.puppetInstance()
+    const userId = config.puppetInstance()
                         .userId
 
     const fromId = this.obj.from
@@ -619,7 +619,7 @@ export class Message implements Sayable {
       }
     }
 
-    return Config.puppetInstance()
+    return config.puppetInstance()
                   .send(m)
   }
 
@@ -651,7 +651,7 @@ export class MediaMessage extends Message {
     }
 
     // FIXME: decoupling needed
-    this.bridge = (Config.puppetInstance() as PuppetWeb)
+    this.bridge = (config.puppetInstance() as PuppetWeb)
                     .bridge
   }
 
@@ -801,7 +801,7 @@ export class MediaMessage extends Message {
     try {
       await this.ready()
       // FIXME: decoupling needed
-      const cookies = await (Config.puppetInstance() as PuppetWeb).browser.readCookie()
+      const cookies = await (config.puppetInstance() as PuppetWeb).browser.readCookie()
       if (!this.obj.url) {
         throw new Error('no url')
       }

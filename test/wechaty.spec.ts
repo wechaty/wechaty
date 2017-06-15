@@ -19,7 +19,7 @@
 import { test } from 'ava'
 
 import {
-  Config,
+  config,
   Contact,
   FriendRequest,
   IoClient,
@@ -54,8 +54,8 @@ test('Wechaty Framework', t => {
 })
 
 test('Wechaty Config setting', t => {
-  t.truthy(Config                 , 'should export Config')
-  t.truthy(Config.DEFAULT_HEAD    , 'should has DEFAULT_HEAD')
-  t.truthy(Config.DEFAULT_PUPPET  , 'should has DEFAULT_PUPPET')
-  t.truthy(Config.DEFAULT_PORT    , 'should has DEFAULT_PORT')
+  t.truthy(config                 , 'should export Config')
+  t.truthy(config.DEFAULT_HEAD    , 'should has DEFAULT_HEAD')
+  t.truthy(config.DEFAULT_PUPPET  , 'should has DEFAULT_PUPPET')
+  t.truthy(config.DEFAULT_PORT    , 'should has DEFAULT_PORT')
 })

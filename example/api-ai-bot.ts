@@ -41,7 +41,7 @@ import { EventEmitter } from 'events'
  * when you are runing with Docker or NPM instead of Git Source.
  */
 import {
-  Config,
+  config,
   Wechaty,
 }           from '../'
 
@@ -56,7 +56,7 @@ import {
 const APIAI_API_KEY = '7217d7bce18c4bcfbe04ba7bdfaf9c08'
 const brainApiAi = ApiAi(APIAI_API_KEY)
 
-const bot = Wechaty.instance({ profile: Config.DEFAULT_PROFILE })
+const bot = Wechaty.instance({ profile: config.DEFAULT_PROFILE })
 
 console.log(`
 Welcome to api.AI Wechaty Bot.

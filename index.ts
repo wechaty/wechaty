@@ -1,7 +1,7 @@
 import {
-  Config,
-  Sayable,
+  config,
   log,
+  Sayable,
 }                     from './src/config'
 import Contact        from './src/contact'
 
@@ -23,7 +23,7 @@ import Wechaty        from './src/wechaty'
 const VERSION = require('./package.json').version
 
 export {
-  Config,
+  config,
   Contact,
   FriendRequest,
   IoClient,

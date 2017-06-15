@@ -20,7 +20,7 @@ import * as fs  from 'fs'
 import { test } from 'ava'
 
 import {
-  Config,
+  config,
   log,
 }               from '../../'
 
@@ -31,7 +31,7 @@ import {
 const TEST_DOMAIN = 'www.chatie.io'
 const TEST_URL = 'https://' + TEST_DOMAIN
 
-const PROFILE = Config.DEFAULT_PROFILE + '-' + process.pid + '-'
+const PROFILE = config.DEFAULT_PROFILE + '-' + process.pid + '-'
 let profileCounter = 1
 
 test('Cookie smoke testing', async t => {
@@ -105,7 +105,7 @@ test('Cookie save/load', async t => {
   const profileName = PROFILE + (profileCounter++)
 
   let browser = new Browser({
-      head:         Config.head,
+      head:         config.head,
       sessionFile:  profileName,
   })
 
@@ -179,7 +179,7 @@ test('Cookie save/load', async t => {
      */
 
     browser = new Browser({
-      head:         Config.head,
+      head:         config.head,
       sessionFile:  profileName,
     })
 

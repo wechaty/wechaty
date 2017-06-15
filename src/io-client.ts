@@ -25,7 +25,7 @@
 import { StateSwitch } from 'state-switch'
 
 import {
-  Config,
+  config,
   log as globalLog,
 }                       from './config'
 import { Io }           from './io'
@@ -39,7 +39,7 @@ export class IoClient {
   private state = new StateSwitch<'online', 'offline'>('IoClient', 'offline', globalLog)
 
   constructor(
-    private token: string = Config.token || Config.DEFAULT_TOKEN,
+    private token: string = config.token || config.DEFAULT_TOKEN,
     private log: any = globalLog,
   ) {
     if (!log) {
@@ -141,7 +141,7 @@ export class IoClient {
     return
   }
 
-  public initWeb(port = Config.httpPort) {
+  public initWeb(port = config.httpPort) {
 //    if (process.env.DYNO) {
 //    }
     const app = require('express')()

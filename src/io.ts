@@ -21,7 +21,7 @@ import * as WebSocket from 'ws'
 import { StateSwitch }  from 'state-switch'
 
 import {
-  Config,
+  config,
   // WechatyEventName
   log,
 }                   from './config'
@@ -71,8 +71,8 @@ export class Io {
       throw new Error('Io must has wechaty & token set')
     }
 
-    setting.apihost   = setting.apihost   || Config.apihost
-    setting.protocol  = setting.protocol  || Config.DEFAULT_PROTOCOL
+    setting.apihost   = setting.apihost   || config.apihost
+    setting.protocol  = setting.protocol  || config.DEFAULT_PROTOCOL
 
     this.uuid     = setting.wechaty.uuid
 

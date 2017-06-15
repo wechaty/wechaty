@@ -28,7 +28,7 @@ const QrcodeTerminal = require('qrcode-terminal')
  * when you are runing with Docker or NPM instead of Git Source.
  */
 import {
-  Config,
+  config,
   Contact,
   Wechaty,
   log,
@@ -54,7 +54,7 @@ Please wait... I'm trying to login in...
 `
 
 console.log(welcome)
-const bot = Wechaty.instance({ profile: Config.DEFAULT_PROFILE })
+const bot = Wechaty.instance({ profile: config.DEFAULT_PROFILE })
 
 bot
 .on('login'	  , function(this, user) {
