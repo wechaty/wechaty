@@ -113,7 +113,7 @@ export class BrowserDriver {
         '--no-sandbox',
       ],  // issue #26 for run inside docker
     }
-    if (Config.isDocker) {
+    if (Config.dockerMode) {
       log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() wechaty in docker confirmed(should not show this in CI)')
       options['binary'] = Config.CMD_CHROMIUM
     } else {

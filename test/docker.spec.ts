@@ -25,10 +25,10 @@ import * as fs from 'fs'
 import Config from '../src/config'
 
 /**
- * need keep this !Config.isDocker because ava need at least one test() inside.
+ * need keep this !Config.dockerMode because ava need at least one test() inside.
  *   × No tests found in test\docker.spec.js
  */
-if (Config.isDocker) {
+if (Config.dockerMode) {
 
   test('Docker smoke testing', function(t) {
     // const n = execSync('ps a | grep Xvfb | grep -v grep | wc -l').toString().replace(/\n/, '', 'g')

@@ -79,13 +79,13 @@ test('puppetInstance()', t => {
 
 })
 
-test('isDocker', t => {
-  t.true('isDocker' in Config, 'should identify docker env by `isDocker`')
+test('dockerMode', t => {
+  t.true('dockerMode' in Config, 'should identify docker env by `dockerMode`')
 
   if ('C9_PORT' in process.env) {
-    t.is(Config.isDocker, false, 'should not in docker mode in Cloud9 IDE')
+    t.is(Config.dockerMode, false, 'should not in docker mode in Cloud9 IDE')
   } else if (require('is-ci')) {
-    t.is(Config.isDocker, false, 'should not in docker mode in Continuous Integeration System')
+    t.is(Config.dockerMode, false, 'should not in docker mode in Continuous Integeration System')
   } else {
     // a custom running envioronment, maybe docker, maybe not
   }

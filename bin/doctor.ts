@@ -43,7 +43,7 @@ async function main() {
 
   1. Wechaty version: ${wechaty.version()}
   2. ${os.type()} ${os.arch()} version ${os.release()} memory ${Math.floor(os.freemem() / 1024 / 1024)}/${Math.floor(os.totalmem() / 1024 / 1024)} MB
-  3. Docker: ${Config.isDocker}
+  3. Docker: ${Config.dockerMode}
   4. Node version: ${process.version}
   5. Tcp IPC TEST: ${ipcTestResult}
   6. Chromedriver: ${chromedriverVersion}

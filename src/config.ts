@@ -16,8 +16,10 @@
  *   limitations under the License.
  *
  */
-const isCi      = require('is-ci')
-const isDocker  = require('is-docker')
+import * as os from 'os'
+
+// const isCi      = require('is-ci')
+// const isDocker  = require('is-docker')
 
 import { log }    from 'brolog'
 
@@ -78,7 +80,7 @@ export interface ConfigSetting {
   puppetInstance(instance: Puppet): void
   puppetInstance(instance?: Puppet | null): Puppet | void
 
-  isDocker: boolean
+  dockerMode: boolean
 
 }
 /* tslint:disable:variable-name */
@@ -89,9 +91,9 @@ export const Config: ConfigSetting = require('../package.json').wechaty
  * 1. ENVIRONMENT VARIABLES + PACKAGES.JSON (default)
  */
 Object.assign(Config, {
+  apihost:    process.env['WECHATY_APIHOST']   || Config.DEFAULT_APIHOST,
   head:       process.env['WECHATY_HEAD']      || Config.DEFAULT_HEAD,
-  puppet:   process.env['WECHATY_PUPPET']    || Config.DEFAULT_PUPPET,
-  apihost:  process.env['WECHATY_APIHOST']   || Config.DEFAULT_APIHOST,
+  puppet:     process.env['WECHATY_PUPPET']    || Config.DEFAULT_PUPPET,
   validApiHost,
 })
 
@@ -125,7 +127,7 @@ Object.assign(Config, {
  * 4. Envioronment Identify
  */
 Object.assign(Config, {
-  isDocker:  isWechatyDocker(),
+  dockerMode: !!process.env('WECHATY_DOCKER'),
   isGlobal:  isWechatyInstalledGlobal(),
 })
 
@@ -139,29 +141,32 @@ function isWechatyInstalledGlobal() {
    return false
 }
 
-function isWechatyDocker() {
+/**
+ * @DEPRECATED on Jun 2017 by zixia
+ */
+// function dockerMode() {
   /**
    * false for Continuous Integration System
    */
-  if (isCi) {
-    return false
-  }
+  // if (isCi) {
+  //   return false
+  // }
 
   /**
    * false Cloud9 IDE
    */
-  const c9 = Object.keys(process.env)
-                  .filter(k => /^C9_/.test(k))
-                  .length
-  if (c9 > 7 && process.env['C9_PORT']) {
-    return false
-  }
+  // const c9 = Object.keys(process.env)
+  //                 .filter(k => /^C9_/.test(k))
+  //                 .length
+  // if (c9 > 7 && process.env['C9_PORT']) {
+  //   return false
+  // }
 
   /**
    * return indentify result by NPM module `is-docker`
    */
-  return isDocker()
-}
+  // return isDocker()
+// }
 
 /**
  * 5. live setting
@@ -232,8 +237,20 @@ export interface Sleepable {
 }
 
 import * as Raven from 'raven'
+Raven.disableConsoleAlerts()
+
 Raven
-.config('https://f6770399ee65459a82af82650231b22c:d8d11b283deb441e807079b8bb2c45cd@sentry.io/179672')
+.config(
+  process.env.NODE_ENV === 'production'
+    && 'https://f6770399ee65459a82af82650231b22c:d8d11b283deb441e807079b8bb2c45cd@sentry.io/179672',
+  {
+    release: require('../package.json').version,
+    tags: {
+      git_commit: 'c0deb10c4',
+      platform: os.platform(),
+    },
+  },
+)
 .install()
 
 /*
