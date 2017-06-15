@@ -111,8 +111,6 @@
     "brolog": "1.1.18",
     "chromedriver": "2.29.2",
     "express": "4.15.2",
-    "is-ci": "1.0.10",
-    "is-docker": "1.1.0",
     "ps-tree": "1.1.0",
     "raven": "2.0.2",
     "request": "2.81.0",
