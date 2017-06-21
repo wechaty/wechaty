@@ -115,7 +115,7 @@
     "chromedriver": "2.29.2",
     "express": "4.15.2",
     "ps-tree": "1.1.0",
-    "raven": "2.0.2",
+    "raven": "2.1.0",
     "request": "2.81.0",
     "retry-promise": "1.0.0",
     "selenium-webdriver": "3.4.0",
