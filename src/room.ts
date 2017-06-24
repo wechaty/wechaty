@@ -166,7 +166,7 @@ export class Room extends EventEmitter implements Sayable {
   public on(event: 'topic', listener: (this: Room, topic: string, oldTopic: string, changer: Contact) => void): this
   public on(event: 'EVENT_PARAM_ERROR', listener: () => void): this
 
-  public on(event: RoomEventName, listener: Function): this {
+  public on(event: RoomEventName, listener: (args: any) => any): this {
     log.verbose('Room', 'on(%s, %s)', event, typeof listener)
 
     // const thisWithSay = {

@@ -282,7 +282,7 @@ export class Wechaty extends EventEmitter implements Sayable {
    * @todo document me
    */
 
-  public on(event: WechatyEventName, listener: Function): this {
+  public on(event: WechatyEventName, listener: (args: any) => any): this {
     log.verbose('Wechaty', 'addListener(%s, %s)', event, typeof listener)
 
     // const thisWithSay: Sayable = {
