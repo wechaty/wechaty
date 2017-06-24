@@ -478,7 +478,7 @@ export class Room extends EventEmitter implements Sayable {
     /**
      * ISSUE #64 emoji need to be striped
      */
-    const filterValue: string  = UtilLib.stripEmoji(queryArg[filterKey])
+    const filterValue: string  = UtilLib.stripEmoji(UtilLib.plainText(queryArg[filterKey]))
 
     const keyMap = {
       contactAlias: 'contactAliasMap',
