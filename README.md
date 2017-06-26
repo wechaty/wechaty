@@ -204,6 +204,9 @@ Get to know more about test from [Wiki:Test](https://github.com/chatie/wechaty/w
 2. [accept():Promise](https://github.com/chatie/wechaty/wiki/API#friendrequestaccept-void) accept the friendrequest
 3. [send(contact:Contact,hello:string):Promise](https://github.com/chatie/wechaty/wiki/API#friendrequestsendcontact-contact-hello-string-void) send a new friend request
 
+## [MediaMessage](https://github.com/chatie/wechaty/wiki/API#class-mediamessage)
+Create a media message object.
+
 # Release Notes
 
 * [Latest Release](https://github.com/chatie/wechaty/releases/latest)(All releases [here](https://github.com/chatie/wechaty/releases))
