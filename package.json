@@ -131,7 +131,7 @@
     "@types/raven": "1.2.2",
     "@types/request": "0.0.44",
     "@types/selenium-webdriver": "3.0.4",
-    "@types/sinon": "2.3.1",
+    "@types/sinon": "2.3.2",
     "@types/ws": "3.0.0",
     "apiai": "4.0.2",
     "ava": "0.18.2",
