@@ -104,7 +104,7 @@ test('stripEmoji()', t => {
   t.is(empty, '', 'should return empty string for `undefined`')
 })
 
-test('downloadStream() for media', t => {
+test('downloadStream() for media', async t => {
   const app = express()
   app.use(require('cookie-parser')())
   app.get('/ding', function(req, res) {
@@ -121,17 +121,20 @@ test('downloadStream() for media', t => {
   })
   server.listen(65534)
 
-  UtilLib.urlStream('http://127.0.0.1:65534/ding', [{name: 'life', value: 42}])
-        .then(s => {
-          s.on('data', (chunk) => {
-            // console.log(`BODY: ${chunk}`)
-            t.is(chunk.toString(), 'dong', 'should success download dong from downloadStream()')
-            server.close()
-          })
-        })
-        .catch(e => {
-          t.fail('downloadStream() exception: ' + e.message)
-        })
+  try {
+    const s = await UtilLib.urlStream('http://127.0.0.1:65534/ding', [{name: 'life', value: 42}])
+    await new Promise((resolve, reject) => {
+      s.on('data', (chunk) => {
+        // console.log(`BODY: ${chunk}`)
+        t.is(chunk.toString(), 'dong', 'should success download dong from downloadStream()')
+        server.close()
+        resolve()
+      })
+      s.on('error', reject)
+    })
+  } catch (e) {
+    t.fail('downloadStream() exception: ' + e.message)
+  }
 })
 
 test('getPort() for an available socket port', async t => {
