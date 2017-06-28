@@ -19,7 +19,7 @@
 
 
 
-### Paste the full output logs here with `WECHATY_LOG=silly` set
+### Full Output Logs
 
 ```shell
 $ WECHATY_LOG=silly npm run ts-node mybot.ts
@@ -28,3 +28,12 @@ $ WECHATY_LOG=silly npm run ts-node mybot.ts
 
 $ WECHATY_LOG=silly node dist/mybot.js
 ```
+
+<details>
+<summary>
+Show Logs
+</summary>
+
+### Paste the full output logs here with `WECHATY_LOG=silly` set
+
+</details>
