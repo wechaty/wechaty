@@ -98,9 +98,7 @@ this.onResourceRequested = function(request, net) {
 })
 
 test('Phantomjs http header', async t => {
-  // co(function* () {
     const port = await UtilLib.getPort(8080)
-// console.log(express)
     const app = express()
     app.use((req, res, done) => {
       // console.log(req.headers)
@@ -108,8 +106,8 @@ test('Phantomjs http header', async t => {
       done()
     })
 
-    const server = app.listen(port, _ => {
-      t.pass('server listen on ' + port)
+    await new Promise((resolve, reject) => {
+      app.listen(port, resolve)
     })
 
     const serverUrl = 'http://127.0.0.1:' + port
@@ -124,23 +122,14 @@ test('Phantomjs http header', async t => {
     }
     options['agent'] = http.globalAgent
 
-    try {
-      await new Promise((resolve, reject) => {
-        const req = http.request(options as any as http.RequestOptions, (res) => {
-          // console.log(`STATUS: ${res.statusCode}`);
-          // console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
-          // res.setEncoding('utf8');
-          t.pass('http.request done')
-          server.close()
-          req.end()
-          return resolve()
-        })
-        req.on('error', reject)
+    await new Promise((resolve, reject) => {
+      const req = http.request(options as any as http.RequestOptions, (res) => {
+        // console.log(`STATUS: ${res.statusCode}`);
+        // console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
+        // res.setEncoding('utf8');
+        t.pass('http.request done')
+        return resolve()
       })
-    } catch (e) {
-      t.fail(e)
-    }
-  // }).then(_ => {
-    // t.end()
-  // })
+      req.on('error', reject)
+    })
 })
