@@ -61,9 +61,9 @@ import { log }    from 'brolog'
 
 import { Puppet } from './puppet'
 
-const logLevel = process.env['WECHATY_LOG']
+const logLevel = process.env['WECHATY_LOG'] || 'info'
 if (logLevel) {
-  log.level(logLevel.toLowerCase())
+  log.level(logLevel.toLowerCase() as any)
   log.silly('Brolog', 'WECHATY_LOG set level to %s', logLevel)
 }
 

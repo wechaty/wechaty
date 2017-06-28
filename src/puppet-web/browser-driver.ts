@@ -38,7 +38,7 @@ import {
  * When set to 1, selenium-webdriver will use the existing ControlFlow scheduler.
  * When set to 0, the SimpleScheduler will be used.
  */
-process.env['SELENIUM_PROMISE_MANAGER'] = 0
+process.env['SELENIUM_PROMISE_MANAGER'] = '0'
 promiseManager.USE_PROMISE_MANAGER = false
 
 export class BrowserDriver {

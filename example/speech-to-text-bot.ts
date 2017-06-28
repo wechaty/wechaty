@@ -17,8 +17,11 @@
  *
  */
 
-import { PassThrough }        from 'stream'
 import { createWriteStream }  from 'fs'
+import {
+  PassThrough,
+  Readable,
+}                             from 'stream'
 
 import request      = require('request')
 import Ffmpeg       = require('fluent-ffmpeg')
@@ -75,7 +78,7 @@ bot
 .init()
 .catch(e => console.error('bot.init() error: ' + e))
 
-async function speechToText(mp3Stream: NodeJS.ReadableStream): Promise<string> {
+async function speechToText(mp3Stream: Readable): Promise<string> {
   const wavStream = mp3ToWav(mp3Stream)
 
   // const textStream = wavToText(wavStream)
@@ -94,7 +97,7 @@ async function speechToText(mp3Stream: NodeJS.ReadableStream): Promise<string> {
   }
 }
 
-function mp3ToWav(mp3Stream: NodeJS.ReadableStream): NodeJS.ReadableStream {
+function mp3ToWav(mp3Stream: Readable): NodeJS.ReadableStream {
   const wavStream = new PassThrough()
 
   Ffmpeg(mp3Stream)

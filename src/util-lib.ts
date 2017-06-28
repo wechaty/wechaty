@@ -16,10 +16,13 @@
  *   limitations under the License.
  *
  */
+import * as crypto from 'crypto'
 import * as https from 'https'
 import * as http  from 'http'
+import {
+  Readable,
+}                 from 'stream'
 import * as url   from 'url'
-import * as crypto from 'crypto'
 
 import { MsgType } from './message'
 import { log } from './config'
@@ -111,7 +114,7 @@ export class UtilLib {
     )
   }
 
-  public static urlStream(href: string, cookies: any[]): Promise<NodeJS.ReadableStream> {
+  public static urlStream(href: string, cookies: any[]): Promise<Readable> {
     // const myurl = 'http://wx.qq.com/cgi-bin/mmwebwx-bin/webwxgetmsgimg?&MsgID=3080011908135131569&skey=%40crypt_c117402d_53a58f8fbb21978167a3fc7d3be7f8c9'
     href = href.replace(/^https/i, 'http') // use http instead of https, because https will only success on the very first request!
 
@@ -166,7 +169,7 @@ export class UtilLib {
     // log.verbose('Util', 'Cookie: %s', options.headers.Cookie)
 // console.log(options)
 
-    return new Promise((resolve, reject) => {
+    return new Promise<Readable>((resolve, reject) => {
       // const req = request(options, (res) => {
       const req = get(options, (res) => {
         // console.log(`STATUS: ${res.statusCode}`);
@@ -176,7 +179,7 @@ export class UtilLib {
       })
 
       req.on('error', (e) => {
-        log.warn('WebUtil', `downloadStream() problem with request: ${e.message}`)
+        log.warn('UtilLib', `urlStream() problem with request: ${e.message}`)
         reject(e)
       })
 

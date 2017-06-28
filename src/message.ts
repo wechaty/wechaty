@@ -16,8 +16,11 @@
  *   limitations under the License.
  *
  */
-import * as fs     from 'fs'
-import * as path   from 'path'
+import * as fs    from 'fs'
+import * as path  from 'path'
+import {
+  Readable,
+}                 from 'stream'
 
 import {
   config,
@@ -233,7 +236,7 @@ export class Message implements Sayable {
 
   public obj = <MsgObj>{}
 
-  public readyStream(): Promise<NodeJS.ReadableStream> {
+  public readyStream(): Promise<Readable> {
     throw Error('abstract method')
   }
 
@@ -794,7 +797,7 @@ export class MediaMessage extends Message {
   //   })
   // }
 
-  public async readyStream(): Promise<NodeJS.ReadableStream> {
+  public async readyStream(): Promise<Readable> {
     if (this.filePath)
       return fs.createReadStream(this.filePath)
 

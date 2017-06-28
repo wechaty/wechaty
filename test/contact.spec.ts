@@ -31,7 +31,7 @@ test('Contact smoke testing', async t => {
 
   // Mock
   const mockContactGetter = function (id) {
-    return new Promise((resolve, reject) => {
+    return new Promise<any>((resolve, reject) => {
       if (id !== UserName) return resolve({});
       setTimeout(() => {
         return resolve({
