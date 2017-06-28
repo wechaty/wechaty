@@ -166,18 +166,8 @@ export class Room extends EventEmitter implements Sayable {
   public on(event: 'topic', listener: (this: Room, topic: string, oldTopic: string, changer: Contact) => void): this
   public on(event: 'EVENT_PARAM_ERROR', listener: () => void): this
 
-  public on(event: RoomEventName, listener: (args: any) => any): this {
+  public on(event: RoomEventName, listener: (...args: any[]) => any): this {
     log.verbose('Room', 'on(%s, %s)', event, typeof listener)
-
-    // const thisWithSay = {
-    //   say: (content: string) => {
-    //     return Config.puppetInstance()
-    //                   .say(content)
-    //   }
-    // }
-    // super.on(event, function() {
-    //   return listener.apply(thisWithSay, arguments)
-    // })
 
     super.on(event, listener) // Room is `Sayable`
     return this
@@ -427,8 +417,8 @@ export class Room extends EventEmitter implements Sayable {
    * find member by name | roomAlias(alias) | contactAlias
    * when use memberAll(name:string), return all matched members, including name, roomAlias, contactAlias
    */
-  public memberAll(name: string): Contact[]
   public memberAll(filter: MemberQueryFilter): Contact[]
+  public memberAll(name: string): Contact[]
 
   public memberAll(queryArg: MemberQueryFilter | string): Contact[] {
     if (typeof queryArg === 'string') {
@@ -515,7 +505,15 @@ export class Room extends EventEmitter implements Sayable {
   public member(queryArg: MemberQueryFilter | string): Contact | null {
     log.verbose('Room', 'member(%s)', JSON.stringify(queryArg))
 
-    const memberList =  this.memberAll(queryArg)
+    let memberList: Contact[]
+    // ISSUE #622
+    // error TS2345: Argument of type 'string | MemberQueryFilter' is not assignable to parameter of type 'MemberQueryFilter' #622
+    if (typeof queryArg === 'string') {
+      memberList =  this.memberAll(queryArg)
+    } else {
+      memberList =  this.memberAll(queryArg)
+    }
+
     if (!memberList || !memberList.length) {
       return null
     }
