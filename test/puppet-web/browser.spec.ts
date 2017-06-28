@@ -158,7 +158,7 @@ test('Cookie save/load', async t => {
     cookiesFromCheck = await browser.readCookie()
     t.is(cookiesFromCheck.length, 0, 'should no cookie from checkSession() after deleteAllCookies()')
 
-    await browser.loadCookie().catch(() => { /* fail safe */ })
+    await browser.loadCookie() // .catch(() => { /* fail safe */ })
     const cookiesFromLoad = await browser.readCookie()
     t.truthy(cookiesFromLoad.length, 'should get cookies after loadSession()')
     const cookieFromLoad = cookiesFromLoad.filter(c => EXPECTED_NAME_REGEX.test(c.name))
