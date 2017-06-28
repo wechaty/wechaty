@@ -124,21 +124,22 @@ test('Phantomjs http header', async t => {
     }
     options['agent'] = http.globalAgent
 
-    const req = http.request(options as any as http.RequestOptions, (res) => {
-      // console.log(`STATUS: ${res.statusCode}`);
-      // console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
-      // res.setEncoding('utf8');
-      t.pass('http.request done')
-      server.close()
-    })
-
-    req.on('error', e => {
-      t.fail('req error')
-    })
-    req.end()
-
-  // }).catch(e => {
-  //   t.fail(e)
+    try {
+      await new Promise((resolve, reject) => {
+        const req = http.request(options as any as http.RequestOptions, (res) => {
+          // console.log(`STATUS: ${res.statusCode}`);
+          // console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
+          // res.setEncoding('utf8');
+          t.pass('http.request done')
+          server.close()
+          req.end()
+          return resolve()
+        })
+        req.on('error', reject)
+      })
+    } catch (e) {
+      t.fail(e)
+    }
   // }).then(_ => {
     // t.end()
   // })
