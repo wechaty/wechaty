@@ -33,7 +33,12 @@ $ WECHATY_LOG=silly node dist/mybot.js
 <summary>
 Show Logs
 </summary>
+### Paste the full output logs here with `WECHATY_LOG=silly` set 
 
-### Paste the full output logs here with `WECHATY_LOG=silly` set
+```shell
+# PASTE FULL LOG OUTPUT AT HERE:
 
+
+
+```
 </details>
