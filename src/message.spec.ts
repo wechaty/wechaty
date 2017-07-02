@@ -221,7 +221,7 @@ test.serial('mentioned()', async t => {
     await room21.ready()
     const mentionContactList21 = msg21.mentioned()
     t.is(mentionContactList21.length, 1, '@小桔同学 is a contact')
-    t.is(mentionContactList21[0].id, '@cd7d467d7464e8ff6b0acd29364654f3666df5d04551f6082bfc875f90a6afd2', 'should get 小桔同学 id right')
+    t.is(mentionContactList21[0].id, '@cd7d467d7464e8ff6b0acd29364654f3666df5d04551f6082bfc875f90a6afd2', 'should get 小桔同学 id right in rawObj21')
   }
 
   const msg22 = new Message(rawObj22)
@@ -230,8 +230,9 @@ test.serial('mentioned()', async t => {
     await room22.ready()
     const mentionContactList22 = msg22.mentioned()
     t.is(mentionContactList22.length, 2, '@小桔同学 and @wuli舞哩客服 is a contact')
-    t.is(mentionContactList22[0].id, '@cd7d467d7464e8ff6b0acd29364654f3666df5d04551f6082bfc875f90a6afd2', 'should get 小桔同学 id right')
-    t.is(mentionContactList22[1].id, '@36d55130f6a91bae4a2ed2cc5f19c56a9258c65ce3db9777f74f607223ef0855', 'should get wuli舞哩客服 id right')
+    // not sure the rela serial
+    t.is(mentionContactList22[0].id, '@36d55130f6a91bae4a2ed2cc5f19c56a9258c65ce3db9777f74f607223ef0855', 'should get 小桔同学 id right in rawObj22')
+    t.is(mentionContactList22[1].id, '@cd7d467d7464e8ff6b0acd29364654f3666df5d04551f6082bfc875f90a6afd2', 'should get wuli舞哩客服 id right in rawObj22')
   }
 
   const msg31 = new Message(rawObj31)
@@ -240,7 +241,7 @@ test.serial('mentioned()', async t => {
     await room31.ready()
     const mentionContactList31 = msg31.mentioned()
     t.is(mentionContactList31.length, 1, '@wuli舞哩客服 is a contact')
-    t.is(mentionContactList31[0].id, '@36d55130f6a91bae4a2ed2cc5f19c56a9258c65ce3db9777f74f607223ef0855', 'should get wuli舞哩客服 id right')
+    t.is(mentionContactList31[0].id, '@36d55130f6a91bae4a2ed2cc5f19c56a9258c65ce3db9777f74f607223ef0855', 'should get wuli舞哩客服 id right in rawObj31')
   }
 
   const msg32 = new Message(rawObj32)
@@ -249,7 +250,7 @@ test.serial('mentioned()', async t => {
     await room32.ready()
     const mentionContactList32 = msg32.mentioned()
     t.is(mentionContactList32.length, 2, '@小桔同学 and @wuli舞哩客服 is a contact')
-    t.is(mentionContactList32[0].id, '@36d55130f6a91bae4a2ed2cc5f19c56a9258c65ce3db9777f74f607223ef0855', 'should get wuli舞哩客服 id right')
-    t.is(mentionContactList32[1].id, '@cd7d467d7464e8ff6b0acd29364654f3666df5d04551f6082bfc875f90a6afd2', 'should get 小桔同学 id right')
+    t.is(mentionContactList32[0].id, '@36d55130f6a91bae4a2ed2cc5f19c56a9258c65ce3db9777f74f607223ef0855', 'should get wuli舞哩客服 id right in rawObj32')
+    t.is(mentionContactList32[1].id, '@cd7d467d7464e8ff6b0acd29364654f3666df5d04551f6082bfc875f90a6afd2', 'should get 小桔同学 id right in rawObj32')
   }
 })
