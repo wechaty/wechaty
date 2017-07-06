@@ -153,7 +153,7 @@
     "shx": "0.2.2",
     "sinon": "2.3.6",
     "sloc": "0.2.0",
-    "ts-node": "3.1.0",
+    "ts-node": "3.2.0",
     "tslint": "5.3.2",
     "tslint-jsdoc-rules": "0.1.2",
     "tuling123-client": "0.0.1",
