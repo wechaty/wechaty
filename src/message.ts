@@ -244,6 +244,9 @@ export class Message implements Sayable {
     throw Error('not a media message')
   }
 
+  /**
+   * @private
+   */
   constructor(public rawObj?: MsgRawObj) {
     this._counter = Message.counter++
     log.silly('Message', 'constructor() SN:%d', this._counter)
@@ -315,6 +318,9 @@ export class Message implements Sayable {
     return '{' + this.type() + '}' + content
   }
 
+  /**
+   * @todo document me
+   */
   public from(contact: Contact): void
   public from(id: string): void
   public from(): Contact
@@ -340,6 +346,9 @@ export class Message implements Sayable {
   // public to(room: Room): void
   // public to(): Contact|Room
   // public to(contact?: Contact|Room|string): Contact|Room|void {
+  /**
+   * @todo document me
+   */
   public to(contact: Contact): void
   public to(id: string): void
   public to(): Contact|null // if to is not set, then room must had set
@@ -364,6 +373,9 @@ export class Message implements Sayable {
     return Contact.load(this.obj.to)
   }
 
+  /**
+   * @todo document me
+   */
   public room(room: Room): void
   public room(id: string): void
   public room(): Room|null
@@ -384,6 +396,9 @@ export class Message implements Sayable {
     return null
   }
 
+  /**
+   * @todo document me
+   */
   public content(): string
   public content(content: string): void
 
@@ -395,10 +410,16 @@ export class Message implements Sayable {
     return this.obj.content
   }
 
+  /**
+   * @todo document me
+   */
   public type(): MsgType {
     return this.obj.type
   }
 
+  /**
+   * @todo document me
+   */
   public typeSub(): MsgType {
     if (!this.rawObj) {
       throw new Error('no rawObj')
@@ -406,6 +427,9 @@ export class Message implements Sayable {
     return this.rawObj.SubMsgType
   }
 
+  /**
+   * @todo document me
+   */
   public typeApp(): AppMsgType {
     if (!this.rawObj) {
       throw new Error('no rawObj')
@@ -413,9 +437,18 @@ export class Message implements Sayable {
     return this.rawObj.AppMsgType
   }
 
+  /**
+   * @todo document me
+   */
   public typeEx()  { return MsgType[this.obj.type] }
+  /**
+   * @todo document me
+   */
   public count()   { return this._counter }
 
+  /**
+   * @todo document me
+   */
   public self(): boolean {
     const userId = config.puppetInstance()
                         .userId
@@ -579,6 +612,9 @@ export class Message implements Sayable {
   //   })
   // }
 
+  /**
+   * @todo document me
+   */
   public say(text: string, replyTo?: Contact | Contact[]): Promise<any>
   public say(mediaMessage: MediaMessage, replyTo?: Contact | Contact[]): Promise<any>
 
@@ -736,6 +772,9 @@ export class MediaMessage extends Message {
     }
   }
 
+  /**
+   * @todo document me
+   */
   public ext(): string {
     if (this.fileExt)
       return this.fileExt
@@ -770,6 +809,9 @@ export class MediaMessage extends Message {
     throw new Error('not support type: ' + this.type())
   }
 
+  /**
+   * @todo document me
+   */
   public filename(): string {
     if (this.fileName && this.fileExt) {
       return this.fileName + '.' + this.fileExt

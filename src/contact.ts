@@ -104,6 +104,9 @@ export class Contact implements Sayable {
   private dirtyObj: ContactObj | null
   private rawObj: ContactRawObj
 
+  /**
+   * @private
+   */
   constructor(
     public readonly id: string,
   ) {
