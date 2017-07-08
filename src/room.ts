@@ -92,11 +92,17 @@ export class Room extends EventEmitter implements Sayable {
   private obj:      RoomObj | null
   private rawObj:   RoomRawObj
 
+  /**
+   * @private
+   */
   constructor(public id: string) {
     super()
     log.silly('Room', `constructor(${id})`)
   }
 
+  /**
+   * @private
+   */
   public toString()    { return this.id }
   public toStringEx()  { return `Room(${this.obj && this.obj.topic}[${this.id}])` }
 
@@ -104,6 +110,9 @@ export class Room extends EventEmitter implements Sayable {
     return !!(this.obj && this.obj.memberList && this.obj.memberList.length)
   }
 
+  /**
+   * @todo document me
+   */
   public async refresh(): Promise<void> {
     if (this.isReady()) {
       this.dirtyObj = this.obj
@@ -161,11 +170,25 @@ export class Room extends EventEmitter implements Sayable {
     }
   }
 
+  /**
+   * @todo document me
+   */
   public on(event: 'leave', listener: (this: Room, leaver: Contact) => void): this
+  /**
+   * @todo document me
+   */
   public on(event: 'join' , listener: (this: Room, inviteeList: Contact[] , inviter: Contact)  => void): this
+  /**
+   * @todo document me
+   */
   public on(event: 'topic', listener: (this: Room, topic: string, oldTopic: string, changer: Contact) => void): this
+  /**
+   * @todo document me
+   */
   public on(event: 'EVENT_PARAM_ERROR', listener: () => void): this
-
+  /**
+   * @todo document me
+   */
   public on(event: RoomEventName, listener: (...args: any[]) => any): this {
     log.verbose('Room', 'on(%s, %s)', event, typeof listener)
 
@@ -173,6 +196,9 @@ export class Room extends EventEmitter implements Sayable {
     return this
   }
 
+  /**
+   * @todo document me
+   */
   public say(mediaMessage: MediaMessage)
   public say(content: string)
   public say(content: string, replyTo: Contact)
@@ -212,6 +238,9 @@ export class Room extends EventEmitter implements Sayable {
 
   public get(prop): string { return (this.obj && this.obj[prop]) || (this.dirtyObj && this.dirtyObj[prop]) }
 
+  /**
+   * @private
+   */
   private parse(rawObj: RoomRawObj): RoomObj | null {
     if (!rawObj) {
       log.warn('Room', 'parse() on a empty rawObj?')
@@ -278,6 +307,9 @@ export class Room extends EventEmitter implements Sayable {
     Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj && this.obj[k]}`))
   }
 
+  /**
+   * @todo document me
+   */
   public async add(contact: Contact): Promise<number> {
     log.verbose('Room', 'add(%s)', contact)
 
@@ -290,6 +322,9 @@ export class Room extends EventEmitter implements Sayable {
     return n
   }
 
+  /**
+   * @todo document me
+   */
   public async del(contact: Contact): Promise<number> {
     log.verbose('Room', 'del(%s)', contact.name())
 
@@ -302,6 +337,9 @@ export class Room extends EventEmitter implements Sayable {
     return n
   }
 
+  /**
+   * @todo document me
+   */
   private delLocal(contact: Contact): number {
     log.verbose('Room', 'delLocal(%s)', contact)
 
@@ -379,6 +417,9 @@ export class Room extends EventEmitter implements Sayable {
     return this.roomAlias(contact)
   }
 
+  /**
+   * @todo document me
+   */
   public roomAlias(contact: Contact): string | null {
     if (!this.obj || !this.obj.roomAliasMap) {
       return null
@@ -386,6 +427,9 @@ export class Room extends EventEmitter implements Sayable {
     return this.obj.roomAliasMap[contact.id] || null
   }
 
+  /**
+   * @todo document me
+   */
   public has(contact: Contact): boolean {
     if (!this.obj || !this.obj.memberList) {
       return false
@@ -395,6 +439,9 @@ export class Room extends EventEmitter implements Sayable {
                     .length > 0
   }
 
+  /**
+   * @todo document me
+   */
   public owner(): Contact | null {
     const ownerUin = this.obj && this.obj.ownerUin
 
@@ -499,6 +546,9 @@ export class Room extends EventEmitter implements Sayable {
     }
   }
 
+  /**
+   * @todo document me
+   */
   public member(name: string): Contact | null
   public member(filter: MemberQueryFilter): Contact | null
 
@@ -524,6 +574,9 @@ export class Room extends EventEmitter implements Sayable {
     return memberList[0]
   }
 
+  /**
+   * @todo document me
+   */
   public memberList(): Contact[] {
     log.verbose('Room', 'memberList')
 
@@ -538,6 +591,9 @@ export class Room extends EventEmitter implements Sayable {
     return this.obj.memberList
   }
 
+  /**
+   * @todo document me
+   */
   public static create(contactList: Contact[], topic?: string): Promise<Room> {
     log.verbose('Room', 'create(%s, %s)', contactList.join(','), topic)
 
@@ -554,6 +610,9 @@ export class Room extends EventEmitter implements Sayable {
                   })
   }
 
+  /**
+   * @todo document me
+   */
   public static async findAll(query?: RoomQueryFilter): Promise<Room[]> {
     if (!query) {
       query = { topic: /.*/ }
