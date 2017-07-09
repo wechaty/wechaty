@@ -91,7 +91,6 @@ export class Room extends EventEmitter implements Sayable {
   private dirtyObj: RoomObj | null // when refresh, use this to save dirty data for query
   private obj:      RoomObj | null
   private rawObj:   RoomRawObj
-
   /**
    * @private
    */
@@ -99,19 +98,41 @@ export class Room extends EventEmitter implements Sayable {
     super()
     log.silly('Room', `constructor(${id})`)
   }
-
+ /**
+  * @private
+  */
   /**
-   * @private
+   * try to get a room idendify room ID
+   * @returns {string} return a room ID (notice: the room ID might be different each login time)
+   * @memberof Room
    */
   public toString()    { return this.id }
+
+  /**
+   * try to get a room topic with room id format {Room:topic[ID]}
+   * @returns {string} return a room topic with room ID
+   * @memberof Room
+   */
   public toStringEx()  { return `Room(${this.obj && this.obj.topic}[${this.id}])` }
 
+  /**
+   * check the room is ready for member or has already created, if fail to connect the room
+   * will cause some problem for using
+   * @returns {boolean} return true is the room is ready, otherwise false
+   * @memberof Room
+   */
   public isReady(): boolean {
     return !!(this.obj && this.obj.memberList && this.obj.memberList.length)
   }
 
   /**
-   * @todo document me
+   * Force reload data for room info include the member list and some delay cause
+   * info not being updated
+   * * @example
+   * const room = await Room.find({ name: 'Group Name' })
+   * if (room) await Room.refresh()
+   * @returns {Promise<void>}
+   * @memberof Room
    */
   public async refresh(): Promise<void> {
     if (this.isReady()) {
@@ -129,7 +150,9 @@ export class Room extends EventEmitter implements Sayable {
     }
     return
   }
-
+  /**
+   * @todo Don't know what is this function for. by William
+   */
   public async ready(contactGetter?: (id: string) => Promise<any>): Promise<Room> {
     log.silly('Room', 'ready(%s)', contactGetter ? contactGetter.constructor.name : '')
     if (!this.id) {
@@ -171,23 +194,40 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * @todo document me
+   * room leave event will post out a notice when room has member being the bot remove
+   * (only work the bot is the room owner)
+   *
+   * @param {'leave'} event
+   * @param {(this: Room, leaver: Contact) => void} listener
+   * @returns {this}
+   * @memberof Room
    */
   public on(event: 'leave', listener: (this: Room, leaver: Contact) => void): this
+
   /**
-   * @todo document me
+   * room join event will post out a notice when room has new member
+   * (only work the bot is the room owner)
+   * @param {'join'} event
+   * @param {(this: Room, inviteeList: Contact[] , inviter: Contact)  => void} listener
+   * @returns {this}
+   * @memberof Room
    */
   public on(event: 'join' , listener: (this: Room, inviteeList: Contact[] , inviter: Contact)  => void): this
+
   /**
-   * @todo document me
+   * room topic name change event will post out a notice when the room topic being changed
+   * @param {'topic'} event
+   * @param {(this: Room, topic: string, oldTopic: string, changer: Contact) => void} listener
+   * @returns {this}
+   * @memberof Room
    */
   public on(event: 'topic', listener: (this: Room, topic: string, oldTopic: string, changer: Contact) => void): this
   /**
-   * @todo document me
+   * @todo Don't know what is this function for. by William
    */
   public on(event: 'EVENT_PARAM_ERROR', listener: () => void): this
   /**
-   * @todo document me
+   * @todo Don't know what is this function for. by William
    */
   public on(event: RoomEventName, listener: (...args: any[]) => any): this {
     log.verbose('Room', 'on(%s, %s)', event, typeof listener)
@@ -196,14 +236,22 @@ export class Room extends EventEmitter implements Sayable {
     return this
   }
 
-  /**
-   * @todo document me
-   */
   public say(mediaMessage: MediaMessage)
   public say(content: string)
   public say(content: string, replyTo: Contact)
   public say(content: string, replyTo: Contact[])
 
+  /**
+   * room is sayable, room can say content or send MediaMessage such as file or picture to the room.
+   * If you set replyTo, then say() will mention them as well.("@replyTo content")
+   * @param {(string | MediaMessage)} textOrMedia
+   * @param {(Contact|Contact[])} [replyTo] (optional)
+   * @returns {Promise<boolean>} return true if saying successful, otherwise false.
+   * @example
+   * const room = await Room.find({ name: 'Group Name' })
+   * if (room) await room.say("test")
+   * @memberof Room
+   */
   public say(textOrMedia: string | MediaMessage, replyTo?: Contact|Contact[]): Promise<boolean> {
     const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
     log.verbose('Room', 'say(%s, %s)',
@@ -235,11 +283,12 @@ export class Room extends EventEmitter implements Sayable {
     return config.puppetInstance()
                   .send(m)
   }
-
-  public get(prop): string { return (this.obj && this.obj[prop]) || (this.dirtyObj && this.dirtyObj[prop]) }
-
   /**
-   * @private
+   * @todo Don't know what is this function for. by William
+   */
+  public get(prop): string { return (this.obj && this.obj[prop]) || (this.dirtyObj && this.dirtyObj[prop]) }
+  /**
+   * @todo Don't know what is this function for. by William
    */
   private parse(rawObj: RoomRawObj): RoomObj | null {
     if (!rawObj) {
@@ -297,18 +346,30 @@ export class Room extends EventEmitter implements Sayable {
     }
     return mapList
   }
-
+  /**
+   * @todo Don't know what is this function for. by William
+   */
   public dumpRaw() {
     console.error('======= dump raw Room =======')
     Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj[k]}`))
   }
+  /**
+   * @todo Don't know what is this function for. by William
+   */
   public dump() {
     console.error('======= dump Room =======')
     Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj && this.obj[k]}`))
   }
 
   /**
-   * @todo document me
+   * Add contact in a room (Promise)
+   * @example
+   * const friend = message.get('from')
+   * const room = await Room.find({ name: 'Group Name' })
+   * if (room) room.add(friend)
+   * @param {Contact} contact
+   * @returns {Promise<number>}
+   * @memberof Room
    */
   public async add(contact: Contact): Promise<number> {
     log.verbose('Room', 'add(%s)', contact)
@@ -323,7 +384,13 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * @todo document me
+   * Delete a contact from the room
+   * @param {Contact} contact
+   * @returns {Promise<number>}
+   * @example
+   * const room = await Room.find({ name: 'Group Name' })
+   * if (room) room.del(friend)
+   * @memberof Room
    */
   public async del(contact: Contact): Promise<number> {
     log.verbose('Room', 'del(%s)', contact.name())
@@ -337,9 +404,6 @@ export class Room extends EventEmitter implements Sayable {
     return n
   }
 
-  /**
-   * @todo document me
-   */
   private delLocal(contact: Contact): number {
     log.verbose('Room', 'delLocal(%s)', contact)
 
@@ -367,11 +431,23 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * get topic
+   * get the room topic name
+   * @returns {string}
+   * @example
+   * const room = await Room.find({ name: 'Group Name' })
+   * if (room) roomName = await room.topic()
+   * @memberof Room
    */
   public topic(): string
+
   /**
-   * set topic
+   * Set the room topic name
+   * (notice over 100 people only the room onwer can set the room topic)
+   * @param {string} newTopic
+   * @example
+   * const room = await Room.find({ name: 'Group Name' })
+   * if (room) await room.topic("new Group Name")
+   * @memberof Room
    */
   public topic(newTopic: string): void
 
@@ -412,13 +488,17 @@ export class Room extends EventEmitter implements Sayable {
    * return contact's roomAlias in the room, the same as roomAlias
    * @param {Contact} contact
    * @returns {string | null} If a contact has an alias in room, return string, otherwise return null
+   * @example
+   * const friend = message.get('from')
+   * const room = await Room.find({ name: 'Group Name' })
+   * if (room) roomAlias = await room.aliax(friend)   //get friend alias in the room
    */
   public alias(contact: Contact): string | null {
     return this.roomAlias(contact)
   }
 
   /**
-   * @todo document me
+   * @todo This function should be private by William
    */
   public roomAlias(contact: Contact): string | null {
     if (!this.obj || !this.obj.roomAliasMap) {
@@ -428,7 +508,14 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * @todo document me
+   * check a person in the room or not. If in the room return true, otherwise false
+   * @param {Contact} contact
+   * @returns {boolean}
+   * @example
+   * const friend = await essage.from()
+   * const room = await Room.find({ name: 'Group Name' })
+   * if (room) found = await room.has(friend)
+   * @memberof Room
    */
   public has(contact: Contact): boolean {
     if (!this.obj || !this.obj.memberList) {
@@ -440,7 +527,12 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * @todo document me
+   * get the room onwer contact for a room (Not recommend, because cannot always get the owner)
+   * @returns {(Contact | null)}
+   * @example
+   * const room = await Room.find({ name: 'Group Name' })
+   * if (room) owner = await room.owner()
+   * @memberof Room
    */
   public owner(): Contact | null {
     const ownerUin = this.obj && this.obj.ownerUin
@@ -460,13 +552,18 @@ export class Room extends EventEmitter implements Sayable {
     return null
   }
 
-  /**
-   * find member by name | roomAlias(alias) | contactAlias
-   * when use memberAll(name:string), return all matched members, including name, roomAlias, contactAlias
-   */
   public memberAll(filter: MemberQueryFilter): Contact[]
   public memberAll(name: string): Contact[]
-
+  /**
+   * Get all room member from the room
+   * @param {MemberQueryFilter} filter
+   * @returns {Contact[]}
+   * @example
+   * const room = await Room.find({ name: 'Group Name' })
+   * if (room) members = await room.memberAll()
+   * console.log(members)
+   * @memberof Room
+   */
   public memberAll(queryArg: MemberQueryFilter | string): Contact[] {
     if (typeof queryArg === 'string') {
       //
@@ -547,11 +644,46 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * @todo document me
+   * Find the contact by name in room.
+   * @param {string} name
+   * @returns {(Contact | null)}
+   * @memberof Room
    */
   public member(name: string): Contact | null
+
+  /**
+   * Find the contact by alias in the room
+   * @param {MemberQueryFilter} filter
+   * @returns {(Contact | null)}
+   * @memberof Room
+   */
   public member(filter: MemberQueryFilter): Contact | null
 
+  /**
+   * Find the contact by name in the room, equals to Room.member({name:name})
+   * notice:
+   * there are three kinds of names in wechat:
+   *  Definition:
+   *    name:          the name-string set by user-self, should be called name
+   *    room alias:    the name-string set by user-self in a room, should be called room alias. room alias only belongs to the room.
+   *    contact alias: the name-string set by bot for others, should be called contact alias
+   *  Display order in wechat room:
+   *    @ Event:
+   *      When someone @ a contact in a room, wechat recognise the name order as follows: 
+   *      room alias > name
+   *    system message:
+   *      When room event happens(join, leave, changetopic), system message recognise the name order as follows:
+   *      contact alias > name
+   *    on-screen Names:
+   *      The contact name showed to the wechat user in the group
+   *      contact alias > room alias > nickName
+   *  Room.member() query key:
+   *    self-set: {name: string}
+   *    other-set: {alias: string}
+   * @param {(MemberQueryFilter | string)} queryArg
+   * @returns {(Contact | null)}
+   * @memberof Room
+   */
   public member(queryArg: MemberQueryFilter | string): Contact | null {
     log.verbose('Room', 'member(%s)', JSON.stringify(queryArg))
 
@@ -575,7 +707,9 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * @todo document me
+   * Get all room member from the room
+   * @returns {Contact[]}
+   * @memberof Room
    */
   public memberList(): Contact[] {
     log.verbose('Room', 'memberList')
@@ -592,7 +726,12 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * @todo document me
+   * Create a new room.
+   * @static
+   * @param {Contact[]} contactList
+   * @param {string} [topic]
+   * @returns {Promise<Room>}
+   * @memberof Room
    */
   public static create(contactList: Contact[], topic?: string): Promise<Room> {
     log.verbose('Room', 'create(%s, %s)', contactList.join(','), topic)
@@ -611,7 +750,11 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * @todo document me
+   * return all matched members, including name, roomAlias, contactAlias by a contact array
+   * @static
+   * @param {RoomQueryFilter} [query]
+   * @returns {Promise<Room[]>}
+   * @memberof Room
    */
   public static async findAll(query?: RoomQueryFilter): Promise<Room[]> {
     if (!query) {
@@ -670,6 +813,7 @@ export class Room extends EventEmitter implements Sayable {
 
   /**
    * @todo document me
+   * @todo Don't know what is this function for. by William
    */
   public static load(id: string): Room {
     if (!id) {
