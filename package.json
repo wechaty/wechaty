@@ -132,7 +132,7 @@
     "@types/request": "0.0.45",
     "@types/selenium-webdriver": "3.0.4",
     "@types/sinon": "2.3.2",
-    "@types/ws": "3.0.1",
+    "@types/ws": "3.0.2",
     "apiai": "4.0.3",
     "ava": "0.20.0",
     "babel-cli": "6.24.1",
