@@ -88,7 +88,7 @@ test('parseRoomJoin()', t => {
     ],
     [
       `"桔小秘"通过扫描你分享的二维码加入群聊`,
-      undefined,
+      `你`,
       ['桔小秘'],
     ],
     [
@@ -98,7 +98,7 @@ test('parseRoomJoin()', t => {
     ],
     [
       `"桔小秘" joined the group chat via your shared QR Code.`,
-      undefined,
+      `your`,
       ['桔小秘'],
     ],
     [

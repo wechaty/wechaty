@@ -60,9 +60,9 @@ const regexConfig = {
 
   roomJoinQrcode: [
     /^" (.+)" joined the group chat via the QR Code shared by "?(.+?)".$/,
-    /^"(.+)" joined the group chat via your shared QR Code.$/,
+    /^"(.+)" joined the group chat via "?(.+?)"? shared QR Code.$/,
     /^" (.+)"通过扫描"?(.+?)"?分享的二维码加入群聊$/,
-    /^"(.+)"通过扫描你分享的二维码加入群聊$/,
+    /^"(.+)"通过扫描"?(.+?)"?分享的二维码加入群聊$/,
   ],
 
   // no list
@@ -195,9 +195,7 @@ async function checkRoomJoin(m: Message): Promise<void> {
   let inviteeContactList: Contact[] = []
 
   try {
-    // match reg `/^"(.+)"通过扫描你分享的二维码加入群聊$/,` or /^"(.+)" joined the group chat via your shared QR Code.$/,
-    // cannot get founder[2], then inviter here return undefined
-    if (!inviter) {
+    if (inviter === "You've" || inviter === '你' || inviter === 'your') {
       inviterContact = Contact.load(this.userId)
     }
 
