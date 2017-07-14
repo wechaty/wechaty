@@ -134,7 +134,7 @@
     "@types/sinon": "2.3.2",
     "@types/ws": "3.0.2",
     "apiai": "4.0.3",
-    "ava": "0.20.0",
+    "ava": "0.21.0",
     "babel-cli": "6.24.1",
     "babel-eslint": "7.2.3",
     "babel-preset-es2015": "6.24.1",
