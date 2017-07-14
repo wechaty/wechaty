@@ -114,6 +114,7 @@
     "brolog": "1.1.18",
     "chromedriver": "2.29.2",
     "express": "4.15.2",
+    "phantomjs-prebuilt": "^2.1.14",
     "ps-tree": "1.1.0",
     "raven": "2.1.0",
     "request": "2.81.0",
