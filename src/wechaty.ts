@@ -170,6 +170,9 @@ export class Wechaty extends EventEmitter implements Sayable {
     return config.npmVersion()
   }
 
+  /**
+   * @todo document me
+   */
   public version(forceNpm?) {
     return Wechaty.version(forceNpm)
   }
@@ -281,7 +284,6 @@ export class Wechaty extends EventEmitter implements Sayable {
   /**
    * @todo document me
    */
-
   public on(event: WechatyEventName, listener: (...args: any[]) => any): this {
     log.verbose('Wechaty', 'addListener(%s, %s)', event, typeof listener)
 
@@ -447,7 +449,6 @@ export class Wechaty extends EventEmitter implements Sayable {
   /**
    * @todo document me
    * @static
-   *
    */
   public static async sleep(millisecond: number): Promise<void> {
     await new Promise(resolve => {
