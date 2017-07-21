@@ -17,6 +17,7 @@ RUN  apk update && apk upgrade \
       chromium-chromedriver \
       chromium \
       coreutils \
+      curl \
       ffmpeg \
       figlet \
       jq \
