@@ -119,7 +119,7 @@
     "raven": "2.1.0",
     "request": "2.81.0",
     "retry-promise": "1.0.0",
-    "selenium-webdriver": "3.4.0",
+    "selenium-webdriver": "3.5.0",
     "socket.io": "1.7.4",
     "state-switch": "0.1.13",
     "ws": "3.0.0"
