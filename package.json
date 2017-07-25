@@ -112,7 +112,7 @@
     "bl": "1.2.1",
     "body-parser": "1.17.2",
     "brolog": "1.1.30",
-    "chromedriver": "2.29.2",
+    "chromedriver": "2.31.0",
     "express": "4.15.2",
     "phantomjs-prebuilt": "^2.1.14",
     "ps-tree": "1.1.0",
