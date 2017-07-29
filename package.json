@@ -111,7 +111,7 @@
     "@types/socket.io": "1.4.29",
     "bl": "1.2.1",
     "body-parser": "1.17.2",
-    "brolog": "1.1.30",
+    "brolog": "1.1.32",
     "chromedriver": "2.31.0",
     "express": "4.15.2",
     "phantomjs-prebuilt": "^2.1.14",
