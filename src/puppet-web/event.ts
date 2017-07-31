@@ -163,7 +163,7 @@ async function onServerScan(this: PuppetWeb, data: ScanInfo) {
 }
 
 function onServerConnection(data) {
-  log.verbose('PuppetWebEvent', 'onServerConnection: %s', data)
+  log.verbose('PuppetWebEvent', 'onServerConnection: %s', typeof data)
 }
 
 /**

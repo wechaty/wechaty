@@ -65,9 +65,9 @@ Wechaty.instance() // Singleton
 ```
 > **Notice: Wechaty requires Node.js version >= 6.9.0**
 
-This bot can log all message to console.
+This bot can log all messages to the console.
 
-You can find more example from [Wiki](https://github.com/chatie/wechaty/wiki/Example) and [Example Directory](https://github.com/chatie/wechaty/blob/master/example/).
+You can find more examples from [Wiki](https://github.com/chatie/wechaty/wiki/Example) and [Example Directory](https://github.com/chatie/wechaty/blob/master/example/).
 
 # Getting Started
 
@@ -77,13 +77,13 @@ You can find more example from [Wiki](https://github.com/chatie/wechaty/wiki/Exa
 <a target="_blank" href="https://blog.chatie.io/guide/2017/01/01/getting-started-wechaty.html"><img src="https://cloud.githubusercontent.com/assets/1361891/21722581/3ec957d0-d468-11e6-8888-a91c236e0ba2.jpg" border=0 width="60%"></a>
 </div>
 
-The above 10 minutes video tutorial is a good start point if you are new to Wechaty.
+The above 10 minute video tutorial is a good start point if you are new to Wechaty.
 
-> Source code in the video can be found at here: [Wechaty Starter Repository](https://github.com/lijiarui/wechaty-getting-started)
+> Source code in the video can be found at: [Wechaty Starter Repository](https://github.com/lijiarui/wechaty-getting-started)
 
 ## Run
 
-Let's say, you have saved the above six lines javascript example to `mybot.js`.
+Let's say, you have saved the above six line javascript example to `mybot.js`.
 
 We have two options to run wechaty:
 
@@ -96,13 +96,13 @@ Notice: The published versions have always passed the CI tests. We highly recomm
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Stars](https://img.shields.io/docker/stars/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
 
-The **best practice** to use Wechaty is run by docker, becasue it's not only the most easy way to get start, but also protect you out of the troubles of dependencies problems. 
+The **best practice** to use Wechaty is running with docker, because it's not only the most easy way to get started, but also protects you from the troubles of dependency problems. 
 
 ```shell
 $ docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.js
 ```
 
-> Wechaty Docker support to run TypeScript directly as well: just write in TypeScript and save to `mybot.ts`.
+> Wechaty Docker supports running TypeScript directly as well: just write in TypeScript and save to `mybot.ts`.
 
 Get to know more about Wechaty Docker at [Wiki:Docker](https://github.com/chatie/wechaty/wiki/Docker).
 
@@ -135,28 +135,28 @@ Get to know more about NPM at [Wiki:NPM](https://github.com/chatie/wechaty/wiki/
 [![Coverage Status](https://coveralls.io/repos/github/Chatie/wechaty/badge.svg?branch=master)](https://coveralls.io/github/Chatie/wechaty?branch=master)
 [![Known Vulnerabilities](https://snyk.io/test/github/chatie/wechaty/badge.svg)](https://snyk.io/test/github/chatie/wechaty)
 
-Wechaty use [AVA](https://github.com/avajs/ava) for unit testing
+Wechaty uses [AVA](https://github.com/avajs/ava) for unit testing
 
 To test Wechaty, run:
 ```shell
 npm test
 ```
 
-Get to know more about test from [Wiki:Test](https://github.com/chatie/wechaty/wiki/Test)
+Get to know more about the tests from [Wiki:Test](https://github.com/chatie/wechaty/wiki/Test)
 
 # API Reference
 
 ## [Wechaty Events](https://github.com/chatie/wechaty/wiki/API#event)
 
 1. [scan](https://github.com/chatie/wechaty/wiki/API#1-event-scan) Emit when the bot needs to show you a QR Code for scanning
-2. [login](https://github.com/chatie/wechaty/wiki/API#2-event-login) Emit when bot login full successful.
-3. [logout](https://github.com/chatie/wechaty/wiki/API#3-event-logout) Emit when bot detected log out.
+2. [login](https://github.com/chatie/wechaty/wiki/API#2-event-login) Emit when bot login is fully successful.
+3. [logout](https://github.com/chatie/wechaty/wiki/API#3-event-logout) Emit when bot detects log out.
 4. [message](https://github.com/chatie/wechaty/wiki/API#4-event-message) Emit when there's a new message.
-5. [error](https://github.com/chatie/wechaty/wiki/API#5-event-error) Emit when there's an error occurred.
-6. [friend](https://github.com/chatie/wechaty/wiki/API#6-event-friend) Emit when got a new friend request, or friendship is confirmed.
-7. [room-join](https://github.com/chatie/wechaty/wiki/API#7-event-room-join) Emit when someone join the room
-8. [room-leave](https://github.com/chatie/wechaty/wiki/API#8-event-room-leave) Emit when someone leave the room
-9. [room-topic](https://github.com/chatie/wechaty/wiki/API#9-event-room-topic) Emit when someone change the room's topic
+5. [error](https://github.com/chatie/wechaty/wiki/API#5-event-error) Emit when an error occurs.
+6. [friend](https://github.com/chatie/wechaty/wiki/API#6-event-friend) Emit when a new friend request is received, or friendship is confirmed.
+7. [room-join](https://github.com/chatie/wechaty/wiki/API#7-event-room-join) Emit when someone joins the room
+8. [room-leave](https://github.com/chatie/wechaty/wiki/API#8-event-room-leave) Emit when someone leaves the room
+9. [room-topic](https://github.com/chatie/wechaty/wiki/API#9-event-room-topic) Emit when someone changes the room's topic
 
 ## [Wechaty](https://github.com/chatie/wechaty/wiki/API#wechaty-class)
 
@@ -166,16 +166,16 @@ Get to know more about test from [Wiki:Test](https://github.com/chatie/wechaty/w
 
 ## [Message](https://github.com/chatie/wechaty/wiki/API#message-class)
 
-1. [from():Contact](https://github.com/chatie/wechaty/wiki/API#1-messagefrom-contact) get the sender from a message
-2. [from(contact:Contact):void](https://github.com/chatie/wechaty/wiki/API#2-messagefromcontact-contact-void) set a sender to the message
-4. [to():Contact](https://github.com/chatie/wechaty/wiki/API#1-messageto-contact) get the destination of the message
+1. [from():Contact](https://github.com/chatie/wechaty/wiki/API#1-messagefrom-contact) get the sender of a message
+2. [from(contact:Contact):void](https://github.com/chatie/wechaty/wiki/API#2-messagefromcontact-contact-void) set a sender of the message
+4. [to():Contact](https://github.com/chatie/wechaty/wiki/API#1-messageto-contact) get the destination for the message
 5. [to(contact:Contact):void](https://github.com/chatie/wechaty/wiki/API#2-messagetocontact-contact-void) set the destination as contact for the message
 7. [content():string](https://github.com/chatie/wechaty/wiki/API#1-messagecontent-string) get the content of the message
 8. [content(content:string):string](https://github.com/chatie/wechaty/wiki/API#2-messagecontentcontent-string-string) set the content for the message
 9. [room():Room|null](https://github.com/chatie/wechaty/wiki/API#1-messageroom-room--null) get the room from a message.
 10. [room(room:Room):void](https://github.com/chatie/wechaty/wiki/API#2-messageroomroom-room-void) set the room for a message.
 12. [type():MsgType](https://github.com/chatie/wechaty/wiki/API#messagetype-number) get the type of a Message.
-13. [say(content:string):Promise](https://github.com/chatie/wechaty/wiki/API#messagesaycontent-string-promise) reply a message to the sender.
+13. [say(content:string):Promise](https://github.com/chatie/wechaty/wiki/API#messagesaycontent-string-promise) send a reply message to the sender.
 15. [self():boolean](https://github.com/chatie/wechaty/wiki/API#messageselfmessage-message-boolean) check if a message is sent by self 
 
 ## [Contact](https://github.com/chatie/wechaty/wiki/API#contact-class)
@@ -185,18 +185,18 @@ Get to know more about test from [Wiki:Test](https://github.com/chatie/wechaty/w
 4. [remark(remark:string):Promise](https://github.com/chatie/wechaty/wiki/API#contactremarkremark-string-promise) set remark name to a contact
 5. [weixin():string](https://github.com/chatie/wechaty/wiki/API#contactweixin-string) get weixin id from a contact
 6. [star():boolean](https://github.com/chatie/wechaty/wiki/API#contactstar-boolean) true for star friend, false for no star friend
-8. [say(content:string):Promise](https://github.com/chatie/wechaty/wiki/API#contactsaycontent-string-promise) say content to a contact
+8. [say(content:string):Promise](https://github.com/chatie/wechaty/wiki/API#contactsaycontent-string-promise) send a message to a contact
 
 ## [Room](https://github.com/chatie/wechaty/wiki/API#class-room)
 
-1. [say(content:string,replyTo:Contact|ContactArray):Promise](https://github.com/chatie/wechaty/wiki/API#roomsaycontent-string-replyto-contactcontact-promise) say content inside Room.
+1. [say(content:string,replyTo:Contact|ContactArray):Promise](https://github.com/chatie/wechaty/wiki/API#roomsaycontent-string-replyto-contactcontact-promise) send a message inside Room.
 3. [refresh():Promise](https://github.com/chatie/wechaty/wiki/API#roomrefresh-promise) reload data for Room
 
 ### [Room Event](https://github.com/chatie/wechaty/wiki/API#room-events)
 
-1. [join](https://github.com/chatie/wechaty/wiki/API#event-join) Emit when someone join the room
-2. [leave](https://github.com/chatie/wechaty/wiki/API#event-leave) Emit when someone leave the room
-3. [topic](https://github.com/chatie/wechaty/wiki/API#event-topic) Emit when someone change the room topic
+1. [join](https://github.com/chatie/wechaty/wiki/API#event-join) Emit when someone joins the room
+2. [leave](https://github.com/chatie/wechaty/wiki/API#event-leave) Emit when someone leaves the room
+3. [topic](https://github.com/chatie/wechaty/wiki/API#event-topic) Emit when someone changes the room topic
 
 ## [FriendRequest](https://github.com/chatie/wechaty/wiki/API#class-friendrequest)
 
@@ -220,20 +220,20 @@ Create a media message object.
 
 Get embed html/markdown code from [Wiki:PoweredByWechaty](https://github.com/chatie/wechaty/wiki/PoweredByWechaty)
 
-## Projects Use Wechaty
+## Projects Using Wechaty
 
 1. [Relay between Telegram and WeChat](https://github.com/Firaenix/TeleChatRelay)
 1. [A chat bot managing the HaoShiYou wechat groups run by volunteers of haoshiyou.org](https://github.com/xinbenlv/haoshiyou-bot)
-1. [A chat interactive bot to manage TODO list](https://github.com/coderbunker/candobot)
+1. [An interactive chat bot to manage a TODO list](https://github.com/coderbunker/candobot)
 1. [Forward WeChat messages to telegram](https://github.com/luosheng/Wegram)
 
-Know more about Projects Use Wechaty at [Wiki:PoweredByWechaty](https://github.com/chatie/wechaty/wiki/PoweredByWechaty)
+Learn more about Projects Using Wechaty at [Wiki:PoweredByWechaty](https://github.com/chatie/wechaty/wiki/PoweredByWechaty)
 
 ## Find a Good Server
 
-The best practice for runing Wechaty Docker/NPM is using a VPS(Virtual Private Server) outside of China, which can save you hours of time because `npm install` and `docker pull` will run smoothly without any problem. 
+The best practice for running Wechaty Docker/NPM is using a VPS(Virtual Private Server) outside of China, which can save you hours of time because `npm install` and `docker pull` will run smoothly without any problem. 
 
-The following VPS providers is used by ourselves, they worked perfectly in production. You can use the following link to get one in minutes, and also do this can support Wechaty because you are refered by us.
+The following VPS providers are used by the Wechaty team, and they worked perfectly in production. You can use the following link to get one in minutes. Also, doing this can support Wechaty because you are referred by us.
 
 | Location  | Price | Ram     | Payment           | Provider |
 | ---       | ---   | ---     | ---               | ---      |
@@ -287,17 +287,17 @@ Scan now, because other Wechaty developers want to talk with you too! (secret co
 Documentation
 -------------
 
-In order to sync the doc with the lastest code for best, Wechaty use [jsdoc](http://usejsdoc.org/) to descript API, and use [jsdoc-to-markdown](https://github.com/jsdoc2md/jsdoc-to-markdown/wiki) to generate markdown format document to [docs](docs/index.md) directory.
+In order to sync the doc with the lastest code, it's best to use [jsdoc](http://usejsdoc.org/) to describe the API, and use [jsdoc-to-markdown](https://github.com/jsdoc2md/jsdoc-to-markdown/wiki) to generate markdown format documents to the [docs](docs/index.md) directory.
 
 My Story
 --------
 My daily life/work depends on too much chat on wechat.
 * I almost have 14,000 wechat friends in May 2014, before wechat restricts a total number of friends to 5,000.
-* I almost have 400 wechat rooms that most of them have more than 400 members.
+* I almost have 400 wechat rooms, and most of them have more than 400 members.
 
-Can you image that? I'm dying...
+Can you imagine that? I'm dying...
 
-So a tireless bot working for me 24x7 on wechat, monitoring/filtering the most important message is badly needed. For example highlights discussion which contains the KEYWORDS which I want to follow up(especially in a noisy room). ;-)
+So a tireless bot working for me 24x7 on wechat, monitoring/filtering the most important message is badly needed. For example, it highlights discussion which contains the KEYWORDS which I want to follow up(especially in a noisy room). ;-)
 
 At last, It's built for my personal study purpose of Automatically Testing.
 

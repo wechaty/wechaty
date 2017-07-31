@@ -57,7 +57,10 @@ Raven.context(function () {
 // const isCi      = require('is-ci')
 // const isDocker  = require('is-docker')
 
-import { log }    from 'brolog'
+import {
+  log,
+  Loggable,
+}    from 'brolog'
 
 import { Puppet } from './puppet'
 
@@ -321,6 +324,7 @@ export interface Sleepable {
 
 export {
   log,
+  Loggable,
   Raven,
 }
 
