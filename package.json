@@ -143,7 +143,7 @@
     "cookie-parser": "1.4.3",
     "coveralls": "2.13.1",
     "cross-env": "5.0.4",
-    "eslint": "4.4.0",
+    "eslint": "4.4.1",
     "eslint-plugin-ava": "4.2.1",
     "finis": "0.0.2",
     "fluent-ffmpeg": "2.1.2",
