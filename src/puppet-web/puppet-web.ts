@@ -521,6 +521,11 @@ export class PuppetWeb extends Puppet {
       throw new Error('can not say before login')
     }
 
+    if (!content) {
+      log.warn('PuppetWeb', 'say(%s) can not say nothing', content)
+      return false
+    }
+
     const m = new Message()
     m.to('filehelper')
     m.content(content)
