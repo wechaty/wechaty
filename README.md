@@ -98,13 +98,21 @@ Notice: The published versions have always passed the CI tests. We highly recomm
 
 The **best practice** to use Wechaty is running with docker, because it's not only the most easy way to get started, but also protects you from the troubles of dependency problems. 
 
-```shell
-$ docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.js
-```
-
-> Wechaty Docker supports running TypeScript directly as well: just write in TypeScript and save to `mybot.ts`.
+> Wechaty Docker supports both JavaScript and TypeScript. To use TypeScript just write in TypeScript and save with extension name `.ts`.
 
 Get to know more about Wechaty Docker at [Wiki:Docker](https://github.com/chatie/wechaty/wiki/Docker).
+
+1. Run JavaScript
+
+```shell
+$ docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.js # for JavaScript
+```
+
+1. Run TypeScript
+
+```shell
+$ docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.ts # for TypeScript
+```
 
 ### NPM
 
@@ -304,6 +312,8 @@ At last, It's built for my personal study purpose of Automatically Testing.
 Author
 ------
 Huan LI \<zixia@zixia.net\> (http://linkedin.com/in/zixia)
+
+I'm an active angel investor, serial entrepreneur with strong technical background and rich social network experience.
 
 <a href="http://stackoverflow.com/users/1123955/zixia">
   <img src="http://stackoverflow.com/users/flair/1123955.png" width="208" height="58" alt="profile for zixia at Stack Overflow, Q&amp;A for professional and enthusiast programmers" title="profile for zixia at Stack Overflow, Q&amp;A for professional and enthusiast programmers">
