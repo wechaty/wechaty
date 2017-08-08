@@ -23,6 +23,17 @@ import { log }    from '../config'
 
 import PuppetWeb  from './puppet-web'
 
+export interface MediaData {
+  ToUserName: string,
+  MsgType: number,
+  MediaId: string,
+  FileName: string,
+  FileSize: number,
+  FileMd5?: string,
+  MMFileId: string,
+  MMFileExt: string,
+}
+
 export class Bridge {
 
   constructor(
@@ -397,7 +408,7 @@ export class Bridge {
     }
   }
 
-  public sendMedia(mediaData: any): Promise<boolean> {
+  public sendMedia(mediaData: MediaData): Promise<boolean> {
     if (!mediaData.ToUserName) {
       throw new Error('UserName not found')
     }

@@ -34,7 +34,10 @@ import Puppet         from '../puppet'
 import Room           from '../room'
 import UtilLib        from '../util-lib'
 
-import Bridge         from './bridge'
+import {
+  Bridge,
+  MediaData,
+}                     from './bridge'
 import Browser        from './browser'
 import Event          from './event'
 import Server         from './server'
@@ -338,7 +341,7 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  private async uploadMedia(mediaMessage: MediaMessage, toUserName: string): Promise<any> {
+  private async uploadMedia(mediaMessage: MediaMessage, toUserName: string): Promise<MediaData> {
     if (!mediaMessage)
       throw new Error('require mediaMessage')
 
@@ -403,8 +406,9 @@ export class PuppetWeb extends Puppet {
       TotalLen: size,
     }
 
-    const mediaData = {
-      MsgType: mediaMessage.type(),
+    const mediaData = <MediaData> {
+      ToUserName: toUserName,
+      MediaId: '',
       FileName: filename,
       FileSize: size,
       FileMd5: md5,
@@ -450,7 +454,7 @@ export class PuppetWeb extends Puppet {
     })
     if (!mediaId)
       throw new Error('upload fail')
-    return { mediaId, mediaData }
+    return Object.assign(mediaData, { MediaId: mediaId as string})
   }
 
   public async sendMedia(message: MediaMessage): Promise<boolean> {
@@ -468,19 +472,13 @@ export class PuppetWeb extends Puppet {
       destinationId = to.id
     }
 
-    const { mediaId, mediaData } = await this.uploadMedia(message, destinationId)
-    const msgType = UtilLib.msgType(message.ext())
-
-    mediaData.FileType = 7
-    mediaData.ToUserName = destinationId
-    mediaData.MediaId = mediaId
-    mediaData.MsgType = msgType
+    const mediaData = await this.uploadMedia(message, destinationId)
+    mediaData.MsgType = UtilLib.msgType(message.ext())
 
     log.silly('PuppetWeb', 'send() destination: %s, mediaId: %s)',
       destinationId,
-      mediaId,
+      mediaData.MediaId,
     )
-
     let ret = false
     try {
       ret = await this.bridge.sendMedia(mediaData)

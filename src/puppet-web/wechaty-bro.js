@@ -490,9 +490,7 @@
         MediaId: data.MediaId,
         MsgType: data.MsgType,
         FileName: data.FileName,
-        FileMd5: data.FileMd5,
         FileSize: data.FileSize,
-        FileType: data.FileType || 7,
         MMFileExt: data.MMFileExt,
         MMFileId: data.MMFileId,
       }
