@@ -410,8 +410,6 @@ export class PuppetWeb extends Puppet {
       FileMd5: md5,
       MMFileId: id,
       MMFileExt: ext,
-      // MMUploadProgress: 0,
-      // MMFileStatus: 1,
     }
 
     const formData = {
