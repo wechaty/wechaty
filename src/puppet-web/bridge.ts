@@ -397,15 +397,14 @@ export class Bridge {
     }
   }
 
-  public sendMedia(toUserName: string, mediaId: string, type: number): Promise<boolean> {
-    if (!toUserName) {
+  public sendMedia(mediaData: any): Promise<boolean> {
+    if (!mediaData.ToUserName) {
       throw new Error('UserName not found')
     }
-    if (!mediaId) {
+    if (!mediaData.MediaId) {
       throw new Error('cannot say nothing')
     }
-
-    return this.proxyWechaty('sendMedia', toUserName, mediaId, type)
+    return this.proxyWechaty('sendMedia', mediaData)
               .catch(e => {
                 log.error('PuppetWebBridge', 'sendMedia() exception: %s', e.message)
                 throw e

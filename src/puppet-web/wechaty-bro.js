@@ -475,7 +475,7 @@
     return confFactory.API_webwxuploadmedia
   }
 
-  function sendMedia(ToUserName, MediaId,Type) {
+  function sendMedia(data) {
     var chatFactory = WechatyBro.glue.chatFactory
     var confFactory = WechatyBro.glue.confFactory
 
@@ -485,11 +485,19 @@
     }
 
     try {
-      var m = chatFactory.createMessage({
-        ToUserName: ToUserName
-        , MediaId: MediaId
-        , MsgType: Type
-      })
+      var d = {
+        ToUserName: data.ToUserName,
+        MediaId: data.MediaId,
+        MsgType: data.MsgType,
+        FileName: data.FileName,
+        FileMd5: data.FileMd5,
+        FileSize: data.FileSize,
+        FileType: data.FileType || 7,
+        MMFileExt: data.MMFileExt,
+        MMFileId: data.MMFileId,
+      }
+
+      var m = chatFactory.createMessage(d)
       chatFactory.appendMessage(m)
       chatFactory.sendMessage(m)
     } catch (e) {
