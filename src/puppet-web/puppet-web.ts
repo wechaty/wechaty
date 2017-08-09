@@ -417,11 +417,11 @@ export class PuppetWeb extends Puppet {
     }
 
     const formData = {
-      id: this.fileId,
+      id,
       name: filename,
       type: contentType,
       lastModifiedDate: Date().toString(),
-      size: size,
+      size,
       mediatype,
       uploadmediarequest: JSON.stringify(uploadMediaRequest),
       webwx_data_ticket: webwxDataTicket,
