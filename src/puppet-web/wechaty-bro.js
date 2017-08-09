@@ -492,7 +492,7 @@
         FileName: data.FileName,
         FileSize: data.FileSize,
         MMFileExt: data.MMFileExt,
-        MMFileId: data.MMFileId,
+        MMFileId: data.MMFileId
       }
 
       var m = chatFactory.createMessage(d)
