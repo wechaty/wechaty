@@ -34,7 +34,10 @@ import Puppet         from '../puppet'
 import Room           from '../room'
 import UtilLib        from '../util-lib'
 
-import Bridge         from './bridge'
+import {
+  Bridge,
+  MediaData,
+}                     from './bridge'
 import Browser        from './browser'
 import Event          from './event'
 import Server         from './server'
@@ -65,6 +68,7 @@ export class PuppetWeb extends Puppet {
 
   public scan: ScanInfo | null
   private port: number
+  private fileId: number
 
   public lastScanEventTime: number
   public watchDogLastSaveSession: number
@@ -73,6 +77,7 @@ export class PuppetWeb extends Puppet {
 
   constructor(public setting: PuppetWebSetting = {}) {
     super()
+    this.fileId = 0
 
     if (!setting.head) {
       setting.head = config.head
@@ -336,7 +341,7 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  private async uploadMedia(mediaMessage: MediaMessage, toUserName: string): Promise<string> {
+  private async uploadMedia(mediaMessage: MediaMessage, toUserName: string): Promise<MediaData> {
     if (!mediaMessage)
       throw new Error('require mediaMessage')
 
@@ -384,6 +389,8 @@ export class PuppetWeb extends Puppet {
     const first = cookie.find(c => c.name === 'webwx_data_ticket')
     const webwxDataTicket = first && first.value
     const size = buffer.length
+    const id = 'WU_FILE_' + this.fileId
+    this.fileId++
 
     const hostname = await this.browser.hostname()
     const uploadMediaRequest = {
@@ -399,16 +406,26 @@ export class PuppetWeb extends Puppet {
       TotalLen: size,
     }
 
+    const mediaData = <MediaData> {
+      ToUserName: toUserName,
+      MediaId: '',
+      FileName: filename,
+      FileSize: size,
+      FileMd5: md5,
+      MMFileId: id,
+      MMFileExt: ext,
+    }
+
     const formData = {
-      id: 'WU_FILE_1',
+      id,
       name: filename,
       type: contentType,
       lastModifiedDate: Date().toString(),
-      size: size,
+      size,
       mediatype,
       uploadmediarequest: JSON.stringify(uploadMediaRequest),
       webwx_data_ticket: webwxDataTicket,
-      pass_ticket: passTicket || '',
+      pass_ticket: passTicket,
       filename: {
         value: buffer,
         options: {
@@ -437,7 +454,7 @@ export class PuppetWeb extends Puppet {
     })
     if (!mediaId)
       throw new Error('upload fail')
-    return mediaId as string
+    return Object.assign(mediaData, { MediaId: mediaId as string})
   }
 
   public async sendMedia(message: MediaMessage): Promise<boolean> {
@@ -455,17 +472,16 @@ export class PuppetWeb extends Puppet {
       destinationId = to.id
     }
 
-    const mediaId = await this.uploadMedia(message, destinationId)
-    const msgType = UtilLib.msgType(message.ext())
+    const mediaData = await this.uploadMedia(message, destinationId)
+    mediaData.MsgType = UtilLib.msgType(message.ext())
 
     log.silly('PuppetWeb', 'send() destination: %s, mediaId: %s)',
       destinationId,
-      mediaId,
+      mediaData.MediaId,
     )
-
     let ret = false
     try {
-      ret = await this.bridge.sendMedia(destinationId, mediaId, msgType)
+      ret = await this.bridge.sendMedia(mediaData)
     } catch (e) {
       log.error('PuppetWeb', 'send() exception: %s', e.message)
       Raven.captureException(e)

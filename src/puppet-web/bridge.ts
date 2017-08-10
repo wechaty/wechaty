@@ -23,6 +23,17 @@ import { log }    from '../config'
 
 import PuppetWeb  from './puppet-web'
 
+export interface MediaData {
+  ToUserName: string,
+  MsgType: number,
+  MediaId: string,
+  FileName: string,
+  FileSize: number,
+  FileMd5?: string,
+  MMFileId: string,
+  MMFileExt: string,
+}
+
 export class Bridge {
 
   constructor(
@@ -397,15 +408,14 @@ export class Bridge {
     }
   }
 
-  public sendMedia(toUserName: string, mediaId: string, type: number): Promise<boolean> {
-    if (!toUserName) {
+  public sendMedia(mediaData: MediaData): Promise<boolean> {
+    if (!mediaData.ToUserName) {
       throw new Error('UserName not found')
     }
-    if (!mediaId) {
+    if (!mediaData.MediaId) {
       throw new Error('cannot say nothing')
     }
-
-    return this.proxyWechaty('sendMedia', toUserName, mediaId, type)
+    return this.proxyWechaty('sendMedia', mediaData)
               .catch(e => {
                 log.error('PuppetWebBridge', 'sendMedia() exception: %s', e.message)
                 throw e
