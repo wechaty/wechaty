@@ -6,12 +6,21 @@
 
 **Implemented enhancements:**
 
+- Cannot send pdf file using MediaMessage [\#710](https://github.com/Chatie/wechaty/issues/710)
+- Use Sentry.io to report exceptions [\#580](https://github.com/Chatie/wechaty/issues/580)
 - use babel-node to run javascript\(.js\) file inside docker [\#507](https://github.com/Chatie/wechaty/issues/507)
 - License Change: from ISC to Apache-2.0 [\#474](https://github.com/Chatie/wechaty/issues/474)
+- requesting a new QR code cost more than 2 minutes [\#434](https://github.com/Chatie/wechaty/issues/434)
 - \[Feature request\] @mention support? [\#153](https://github.com/Chatie/wechaty/issues/153)
+- \[Docker\] add a `onbuild` image to Wechaty [\#147](https://github.com/Chatie/wechaty/issues/147)
 
 **Fixed bugs:**
 
+- Cannot send pdf file using MediaMessage [\#710](https://github.com/Chatie/wechaty/issues/710)
+- \[test\] Unit Test for `mentioned` feature does not run at all [\#623](https://github.com/Chatie/wechaty/issues/623)
+- error TS2345: Argument of type 'string | MemberQueryFilter' is not assignable to parameter of type 'MemberQueryFilter' [\#622](https://github.com/Chatie/wechaty/issues/622)
+- \[Doc\] Add `say\(new MediaMessage\('/tmp/mediafile.gif'\)\)` documentation [\#587](https://github.com/Chatie/wechaty/issues/587)
+- Node Typing BUG: `process.env: any` [\#582](https://github.com/Chatie/wechaty/issues/582)
 - wechaty v0.8.54 does not install all required component  [\#522](https://github.com/Chatie/wechaty/issues/522)
 - message.mentioned\(\) does not work as expected [\#512](https://github.com/Chatie/wechaty/issues/512)
 - ts-node commond not found  after update docker image [\#492](https://github.com/Chatie/wechaty/issues/492)
@@ -19,21 +28,44 @@
 - MediaMessage\#filename\(\) should not use timestamp as part of the filename [\#465](https://github.com/Chatie/wechaty/issues/465)
 - \[ci\]   × src » message » ready\(\) contact ready for ToNickName [\#445](https://github.com/Chatie/wechaty/issues/445)
 - Build Docker image from zixia/wechaty:onbuild,/bot/node\_modules does not exist. [\#436](https://github.com/Chatie/wechaty/issues/436)
+- requesting a new QR code cost more than 2 minutes [\#434](https://github.com/Chatie/wechaty/issues/434)
+- Concat.avatar\(\)  faild ,when hostname changed from https://wx.qq.com to https://wx2.qq.com [\#418](https://github.com/Chatie/wechaty/issues/418)
 - \[test\] Unit Tests under Linux by TravisCI keep failing [\#384](https://github.com/Chatie/wechaty/issues/384)
+- Can't get wechaty up and running using phantomjs [\#60](https://github.com/Chatie/wechaty/issues/60)
 
 **Closed issues:**
 
+- if wechaty cannot get inviteeList when emit `room-join` , suggest it emit room-fire and get warning info. [\#671](https://github.com/Chatie/wechaty/issues/671)
+- Room.find\(\) 发送消息提示 say is not a function [\#664](https://github.com/Chatie/wechaty/issues/664)
+- Modify Function `Room.create` return type, from `Promise\<Room\>` to `Promise\<Room|null\>`  [\#616](https://github.com/Chatie/wechaty/issues/616)
+- Bot log out frequently and got some strange error between it logout and relogin automatically [\#612](https://github.com/Chatie/wechaty/issues/612)
+- init 后会打开扫码的网页？ [\#601](https://github.com/Chatie/wechaty/issues/601)
+- Error: ENOENT: no such file or directory, stat '/wechaty/dist/.git' [\#581](https://github.com/Chatie/wechaty/issues/581)
 - 在 Windows Server 上初始化的时候，chromedriver 报错。 [\#574](https://github.com/Chatie/wechaty/issues/574)
 - whatever [\#543](https://github.com/Chatie/wechaty/issues/543)
+- got \[aq.qq.com\] domain [\#526](https://github.com/Chatie/wechaty/issues/526)
 - static Contact.find\(\) / static Contact.findAll\(\) throws exception [\#520](https://github.com/Chatie/wechaty/issues/520)
 - Cannot set alias of Contact Object getting from `message.from\(\)` method when Contact is not a friend [\#509](https://github.com/Chatie/wechaty/issues/509)
 - An in-range update of brolog is breaking the build 🚨 [\#499](https://github.com/Chatie/wechaty/issues/499)
+- room.member\(\) can not return right result [\#437](https://github.com/Chatie/wechaty/issues/437)
 - windows run program send images throw out error [\#427](https://github.com/Chatie/wechaty/issues/427)
 - group names have HTML in them [\#382](https://github.com/Chatie/wechaty/issues/382)
 - jsdoc2md may flush some pieces of the embedded doc [\#378](https://github.com/Chatie/wechaty/issues/378)
 
 **Merged pull requests:**
 
+- fix\(puppet-web\): send any type file. [\#714](https://github.com/Chatie/wechaty/pull/714) ([binsee](https://github.com/binsee))
+- add\(example\): add a roger bot runs on wechaty telegram bot adaptor [\#684](https://github.com/Chatie/wechaty/pull/684) ([hczhcz](https://github.com/hczhcz))
+- some typo fixes and suggested revisions [\#681](https://github.com/Chatie/wechaty/pull/681) ([lpmi-13](https://github.com/lpmi-13))
+- room-join cannot detect inviteeList when people join in the room with qrcode [\#651](https://github.com/Chatie/wechaty/pull/651) ([lijiarui](https://github.com/lijiarui))
+- Create CODE\_OF\_CONDUCT.md [\#644](https://github.com/Chatie/wechaty/pull/644) ([zixia](https://github.com/zixia))
+- fix\(package\): update brolog to version 1.1.23 [\#643](https://github.com/Chatie/wechaty/pull/643) ([zixia](https://github.com/zixia))
+- add documentation TODO entries [\#640](https://github.com/Chatie/wechaty/pull/640) ([hczhcz](https://github.com/hczhcz))
+- fix \#623 [\#627](https://github.com/Chatie/wechaty/pull/627) ([lijiarui](https://github.com/lijiarui))
+- add log detail tag [\#619](https://github.com/Chatie/wechaty/pull/619) ([lijiarui](https://github.com/lijiarui))
+- Create CODE\_OF\_CONDUCT.md [\#608](https://github.com/Chatie/wechaty/pull/608) ([zixia](https://github.com/zixia))
+- add the link to media message in the wiki [\#605](https://github.com/Chatie/wechaty/pull/605) ([TingYinHelen](https://github.com/TingYinHelen))
+- change outdated qrcode [\#604](https://github.com/Chatie/wechaty/pull/604) ([lijiarui](https://github.com/lijiarui))
 - add notice to readme [\#578](https://github.com/Chatie/wechaty/pull/578) ([imerse](https://github.com/imerse))
 - chore\(package\): update @types/node to version 7.0.28 [\#569](https://github.com/Chatie/wechaty/pull/569) ([zixia](https://github.com/zixia))
 - chore\(package\): update @types/node to version 7.0.26 [\#560](https://github.com/Chatie/wechaty/pull/560) ([zixia](https://github.com/zixia))
