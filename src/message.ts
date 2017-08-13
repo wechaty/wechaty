@@ -16,11 +16,11 @@
  *   limitations under the License.
  *
  */
-import * as fs from 'fs'
-import * as path from 'path'
+import * as fs    from 'fs'
+import * as path  from 'path'
 import {
   Readable,
-} from 'stream'
+}                 from 'stream'
 
 import {
   config,
@@ -28,47 +28,47 @@ import {
   RecommendInfo,
   Sayable,
   log,
-} from './config'
+}                 from './config'
 
-import Contact from './contact'
-import Room from './room'
-import UtilLib from './util-lib'
-import PuppetWeb from './puppet-web/puppet-web'
-import Bridge from './puppet-web/bridge'
+import Contact    from './contact'
+import Room       from './room'
+import UtilLib    from './util-lib'
+import PuppetWeb  from './puppet-web/puppet-web'
+import Bridge     from './puppet-web/bridge'
 
 export interface MsgRawObj {
-  MsgId: string,
+  MsgId:            string,
 
-  MMActualSender: string, // getUserContact(message.MMActualSender,message.MMPeerUserName).isContact()
-  MMPeerUserName: string, // message.MsgType == CONF.MSGTYPE_TEXT && message.MMPeerUserName == 'newsapp'
-  ToUserName: string,
-  MMActualContent: string, // Content has @id prefix added by wx
+  MMActualSender:   string, // getUserContact(message.MMActualSender,message.MMPeerUserName).isContact()
+  MMPeerUserName:   string, // message.MsgType == CONF.MSGTYPE_TEXT && message.MMPeerUserName == 'newsapp'
+  ToUserName:       string,
+  MMActualContent:  string, // Content has @id prefix added by wx
 
-  MMDigest: string,
-  MMDisplayTime: number,  // Javascript timestamp of milliseconds
+  MMDigest:         string,
+  MMDisplayTime:    number,  // Javascript timestamp of milliseconds
 
   /**
    * MsgType == MSGTYPE_APP && message.AppMsgType == CONF.APPMSGTYPE_URL
    * class="cover" mm-src="{{getMsgImg(message.MsgId,'slave')}}"
    */
-  Url: string,
-  MMAppMsgDesc: string,  // class="desc" ng-bind="message.MMAppMsgDesc"
+  Url:              string,
+  MMAppMsgDesc:     string,  // class="desc" ng-bind="message.MMAppMsgDesc"
 
   /**
    * Attachment
    *
    * MsgType == MSGTYPE_APP && message.AppMsgType == CONF.APPMSGTYPE_ATTACH
    */
-  FileName: string,  // FileName: '钢甲互联项目BP1108.pdf',
-  FileSize: number,  // FileSize: '2845701',
-  MediaId: string,  // MediaId: '@crypt_b1a45e3f_c21dceb3ac01349...
+  FileName:         string,  // FileName: '钢甲互联项目BP1108.pdf',
+  FileSize:         number,  // FileSize: '2845701',
+  MediaId:          string,  // MediaId: '@crypt_b1a45e3f_c21dceb3ac01349...
 
-  MMAppMsgFileExt: string,  // doc, docx ... 'undefined'?
-  MMAppMsgFileSize: string,  // '2.7MB',
-  MMAppMsgDownloadUrl: string,  // 'https://file.wx.qq.com/cgi-bin/mmwebwx-bin/webwxgetmedia?sender=@4f549c2dafd5ad731afa4d857bf03c10&mediaid=@crypt_b1a45e3f
-  // <a download ng-if="message.MMFileStatus == CONF.MM_SEND_FILE_STATUS_SUCCESS
-  // && (massage.MMStatus == CONF.MSG_SEND_STATUS_SUCC || massage.MMStatus === undefined)
-  // " href="{{message.MMAppMsgDownloadUrl}}">下载</a>
+  MMAppMsgFileExt:      string,  // doc, docx ... 'undefined'?
+  MMAppMsgFileSize:     string,  // '2.7MB',
+  MMAppMsgDownloadUrl:  string,  // 'https://file.wx.qq.com/cgi-bin/mmwebwx-bin/webwxgetmedia?sender=@4f549c2dafd5ad731afa4d857bf03c10&mediaid=@crypt_b1a45e3f
+                                 // <a download ng-if="message.MMFileStatus == CONF.MM_SEND_FILE_STATUS_SUCCESS
+                                 // && (massage.MMStatus == CONF.MSG_SEND_STATUS_SUCC || massage.MMStatus === undefined)
+                                 // " href="{{message.MMAppMsgDownloadUrl}}">下载</a>
   MMUploadProgress: number,  // < 100
 
   /**
@@ -80,35 +80,35 @@ export interface MsgRawObj {
    *  item.cover
    *  item.digest
    */
-  MMCategory: any[],  //  item in message.MMCategory
+  MMCategory:       any[],  //  item in message.MMCategory
 
   /**
    * Type
    *
    * MsgType == CONF.MSGTYPE_VOICE : ng-style="{'width':40 + 7*message.VoiceLength/1000}
    */
-  MsgType: number,
-  AppMsgType: AppMsgType,  // message.MsgType == CONF.MSGTYPE_APP && message.AppMsgType == CONF.APPMSGTYPE_URL
-  // message.MsgType == CONF.MSGTYPE_TEXT && message.SubMsgType != CONF.MSGTYPE_LOCATION
+  MsgType:          number,
+  AppMsgType:       AppMsgType,  // message.MsgType == CONF.MSGTYPE_APP && message.AppMsgType == CONF.APPMSGTYPE_URL
+                                 // message.MsgType == CONF.MSGTYPE_TEXT && message.SubMsgType != CONF.MSGTYPE_LOCATION
 
-  SubMsgType: MsgType, // "msgType":"{{message.MsgType}}","subType":{{message.SubMsgType||0}},"msgId":"{{message.MsgId}}"
+  SubMsgType:       MsgType, // "msgType":"{{message.MsgType}}","subType":{{message.SubMsgType||0}},"msgId":"{{message.MsgId}}"
 
   /**
    * Status-es
    */
-  Status: string,
-  MMStatus: number,  // img ng-show="message.MMStatus == 1" class="ico_loading"
-  // ng-click="resendMsg(message)" ng-show="message.MMStatus == 5" title="重新发送"
-  MMFileStatus: number,  // <p class="loading" ng-show="message.MMStatus == 1 || message.MMFileStatus == CONF.MM_SEND_FILE_STATUS_FAIL">
-  // CONF.MM_SEND_FILE_STATUS_QUEUED, MM_SEND_FILE_STATUS_SENDING
+  Status:           string,
+  MMStatus:         number,  // img ng-show="message.MMStatus == 1" class="ico_loading"
+                             // ng-click="resendMsg(message)" ng-show="message.MMStatus == 5" title="重新发送"
+  MMFileStatus:     number,  // <p class="loading" ng-show="message.MMStatus == 1 || message.MMFileStatus == CONF.MM_SEND_FILE_STATUS_FAIL">
+                             // CONF.MM_SEND_FILE_STATUS_QUEUED, MM_SEND_FILE_STATUS_SENDING
 
   /**
    * Location
    */
-  MMLocationUrl: string,  // ng-if="message.MsgType == CONF.MSGTYPE_TEXT && message.SubMsgType == CONF.MSGTYPE_LOCATION"
-  // <a href="{{message.MMLocationUrl}}" target="_blank">
-  // 'http://apis.map.qq.com/uri/v1/geocoder?coord=40.075041,116.338994'
-  MMLocationDesc: string,  // MMLocationDesc: '北京市昌平区回龙观龙腾苑(五区)内(龙腾街南)',
+  MMLocationUrl:    string,  // ng-if="message.MsgType == CONF.MSGTYPE_TEXT && message.SubMsgType == CONF.MSGTYPE_LOCATION"
+                             // <a href="{{message.MMLocationUrl}}" target="_blank">
+                             // 'http://apis.map.qq.com/uri/v1/geocoder?coord=40.075041,116.338994'
+  MMLocationDesc:   string,  // MMLocationDesc: '北京市昌平区回龙观龙腾苑(五区)内(龙腾街南)',
 
   /**
    * MsgType == CONF.MSGTYPE_EMOTICON
@@ -121,9 +121,9 @@ export interface MsgRawObj {
    *
    *  getMsgImg(message.MsgId,'slave')
    */
-  MMImgStyle: string,  // ng-style="message.MMImgStyle"
-  MMPreviewSrc: string,  // message.MMPreviewSrc || message.MMThumbSrc || getMsgImg(message.MsgId,'slave')
-  MMThumbSrc: string,
+  MMImgStyle:       string,  // ng-style="message.MMImgStyle"
+  MMPreviewSrc:     string,  // message.MMPreviewSrc || message.MMThumbSrc || getMsgImg(message.MsgId,'slave')
+  MMThumbSrc:       string,
 
   /**
    * Friend Request & ShareCard ?
@@ -131,21 +131,21 @@ export interface MsgRawObj {
    * MsgType == CONF.MSGTYPE_SHARECARD" ng-click="showProfile($event,message.RecommendInfo.UserName)
    * MsgType == CONF.MSGTYPE_VERIFYMSG
    */
-  RecommendInfo?: RecommendInfo,
+  RecommendInfo?:   RecommendInfo,
 }
 
 export interface MsgObj {
-  id: string,
-  type: MsgType,
-  from: string,
-  to?: string,  // if to is not set, then room must be set
-  room?: string,
-  content: string,
-  status: string,
-  digest: string,
-  date: string,
+  id:       string,
+  type:     MsgType,
+  from:     string,
+  to?:      string,  // if to is not set, then room must be set
+  room?:    string,
+  content:  string,
+  status:   string,
+  digest:   string,
+  date:     string,
 
-  url?: string,  // for MessageMedia class
+  url?:     string,  // for MessageMedia class
 }
 
 // export type MessageTypeName = 'TEXT' | 'IMAGE' | 'VOICE' | 'VERIFYMSG' | 'POSSIBLEFRIEND_MSG'
@@ -155,50 +155,50 @@ export interface MsgObj {
 // export type MessageTypeValue = 1 | 3 | 34 | 37 | 40 | 42 | 43 | 47 | 48 | 49 | 50 | 51 | 52 | 53 | 62 | 9999 | 10000 | 10002
 
 export interface MsgTypeMap {
-  [index: string]: string | number,
+  [index: string]: string|number,
   //   MessageTypeName:  MessageTypeValue
   // , MessageTypeValue: MessageTypeName
 }
 
 export enum AppMsgType {
-  TEXT = 1,
-  IMG = 2,
-  AUDIO = 3,
-  VIDEO = 4,
-  URL = 5,
-  ATTACH = 6,
-  OPEN = 7,
-  EMOJI = 8,
-  VOICE_REMIND = 9,
-  SCAN_GOOD = 10,
-  GOOD = 13,
-  EMOTION = 15,
-  CARD_TICKET = 16,
-  REALTIME_SHARE_LOCATION = 17,
-  TRANSFERS = 2e3,
-  RED_ENVELOPES = 2001,
-  READER_TYPE = 100001,
+  TEXT                     = 1,
+  IMG                      = 2,
+  AUDIO                    = 3,
+  VIDEO                    = 4,
+  URL                      = 5,
+  ATTACH                   = 6,
+  OPEN                     = 7,
+  EMOJI                    = 8,
+  VOICE_REMIND             = 9,
+  SCAN_GOOD                = 10,
+  GOOD                     = 13,
+  EMOTION                  = 15,
+  CARD_TICKET              = 16,
+  REALTIME_SHARE_LOCATION  = 17,
+  TRANSFERS                = 2e3,
+  RED_ENVELOPES            = 2001,
+  READER_TYPE              = 100001,
 }
 
 export enum MsgType {
-  TEXT = 1,
-  IMAGE = 3,
-  VOICE = 34,
-  VERIFYMSG = 37,
-  POSSIBLEFRIEND_MSG = 40,
-  SHARECARD = 42,
-  VIDEO = 43,
-  EMOTICON = 47,
-  LOCATION = 48,
-  APP = 49,
-  VOIPMSG = 50,
-  STATUSNOTIFY = 51,
-  VOIPNOTIFY = 52,
-  VOIPINVITE = 53,
-  MICROVIDEO = 62,
-  SYSNOTICE = 9999,
-  SYS = 10000,
-  RECALLED = 10002,
+  TEXT                = 1,
+  IMAGE               = 3,
+  VOICE               = 34,
+  VERIFYMSG           = 37,
+  POSSIBLEFRIEND_MSG  = 40,
+  SHARECARD           = 42,
+  VIDEO               = 43,
+  EMOTICON            = 47,
+  LOCATION            = 48,
+  APP                 = 49,
+  VOIPMSG             = 50,
+  STATUSNOTIFY        = 51,
+  VOIPNOTIFY          = 52,
+  VOIPINVITE          = 53,
+  MICROVIDEO          = 62,
+  SYSNOTICE           = 9999,
+  SYS                 = 10000,
+  RECALLED            = 10002,
 }
 
 export class Message implements Sayable {
@@ -263,21 +263,21 @@ export class Message implements Sayable {
   // Transform rawObj to local obj
   private parse(rawObj): MsgObj {
     const obj: MsgObj = {
-      id: rawObj.MsgId,
-      type: rawObj.MsgType,
-      from: rawObj.MMActualSender, // MMPeerUserName
-      to: rawObj.ToUserName,
-      content: rawObj.MMActualContent, // Content has @id prefix added by wx
-      status: rawObj.Status,
-      digest: rawObj.MMDigest,
-      date: rawObj.MMDisplayTime,  // Javascript timestamp of milliseconds
-      url: rawObj.Url || rawObj.MMAppMsgDownloadUrl || rawObj.MMLocationUrl,
+      id:           rawObj.MsgId,
+      type:         rawObj.MsgType,
+      from:         rawObj.MMActualSender, // MMPeerUserName
+      to:           rawObj.ToUserName,
+      content:      rawObj.MMActualContent, // Content has @id prefix added by wx
+      status:       rawObj.Status,
+      digest:       rawObj.MMDigest,
+      date:         rawObj.MMDisplayTime,  // Javascript timestamp of milliseconds
+      url:          rawObj.Url || rawObj.MMAppMsgDownloadUrl || rawObj.MMLocationUrl,
     }
 
     // FIXME: has there any better method to know the room ID?
     if (rawObj.MMIsChatRoom) {
       if (/^@@/.test(rawObj.FromUserName)) {
-        obj.room = rawObj.FromUserName // MMPeerUserName always eq FromUserName ?
+        obj.room =  rawObj.FromUserName // MMPeerUserName always eq FromUserName ?
       } else if (/^@@/.test(rawObj.ToUserName)) {
         obj.room = rawObj.ToUserName
       } else {
@@ -306,10 +306,10 @@ export class Message implements Sayable {
     return s
   }
   public getSenderString() {
-    const fromName = Contact.load(this.obj.from).name()
+    const fromName  = Contact.load(this.obj.from).name()
     const roomTopic = this.obj.room
-      ? (':' + Room.load(this.obj.room).topic())
-      : ''
+                  ? (':' + Room.load(this.obj.room).topic())
+                  : ''
     return `<${fromName}${roomTopic}>`
   }
   public getContentString() {
@@ -344,7 +344,7 @@ export class Message implements Sayable {
    * @returns {(Contact|void)}
    * @memberof Message
    */
-  public from(contact?: Contact | string): Contact | void {
+  public from(contact?: Contact|string): Contact|void {
     if (contact) {
       if (contact instanceof Contact) {
         this.obj.from = contact.id
@@ -385,7 +385,7 @@ export class Message implements Sayable {
    * @returns {(Contact|null)}
    * @memberof Message
    */
-  public to(): Contact | null // if to is not set, then room must had set
+  public to(): Contact|null // if to is not set, then room must had set
   /**
    * Get the receiver from a message, or set it.
    * Only deal with Contact, if you need Room, try Message.room()
@@ -393,7 +393,7 @@ export class Message implements Sayable {
    * @returns {(Contact|Room|null|void)}
    * @memberof Message
    */
-  public to(contact?: Contact | string): Contact | Room | null | void {
+  public to(contact?: Contact|string): Contact|Room|null|void {
     if (contact) {
       if (contact instanceof Contact) {
         this.obj.to = contact.id
@@ -412,7 +412,6 @@ export class Message implements Sayable {
     }
     return Contact.load(this.obj.to)
   }
-
 
   /**
    * Set the room for a message
@@ -434,7 +433,7 @@ export class Message implements Sayable {
    * @returns {(Room|null)}
    * @memberof Message
    */
-  public room(): Room | null
+  public room(): Room|null
 
   /**
    * Get the room from a message, or set it.
@@ -442,7 +441,7 @@ export class Message implements Sayable {
    * @returns {(Room|null|void)}
    * @memberof Message
    */
-  public room(room?: Room | string): Room | null | void {
+  public room(room?: Room|string): Room|null|void {
     if (room) {
       if (room instanceof Room) {
         this.obj.room = room.id
@@ -458,7 +457,6 @@ export class Message implements Sayable {
     }
     return null
   }
-
 
   /**
    * Get the content of the message
@@ -478,14 +476,13 @@ export class Message implements Sayable {
    * @returns {(string|void)}
    * @memberof Message
    */
-  public content(content?: string): string | void {
+  public content(content?: string): string|void {
     if (content) {
       this.obj.content = content
       return
     }
     return this.obj.content
   }
-
 
   /**
    * Get the type from the message.
@@ -528,7 +525,6 @@ export class Message implements Sayable {
     return this.rawObj.SubMsgType
   }
 
-
   /**
    * Get the app type from message, if not apptype, return 0
    * Some known value of the type list here is:
@@ -563,13 +559,12 @@ export class Message implements Sayable {
    * @todo document me
    * @todo Don't know what is this function for. by William
    */
-  public typeEx() { return MsgType[this.obj.type] }
+  public typeEx()  { return MsgType[this.obj.type] }
   /**
    * @todo document me
    * @todo Don't know what is this function for. by William
    */
-  public count() { return this._counter }
-
+  public count()   { return this._counter }
 
   /**
    * Check if a message is sent by self.
@@ -584,11 +579,13 @@ export class Message implements Sayable {
    */
   public self(): boolean {
     const userId = config.puppetInstance()
-      .userId
+                        .userId
+
     const fromId = this.obj.from
     if (!userId || !fromId) {
       throw new Error('no user or no from')
     }
+
     return fromId === userId
   }
 
@@ -615,7 +612,7 @@ export class Message implements Sayable {
   public mentioned(): Contact[] {
     let contactList: Contact[] = []
     const room = this.room()
-    if (this.type() !== MsgType.TEXT || !room) {
+    if (this.type() !== MsgType.TEXT || !room ) {
       return contactList
     }
 
@@ -653,7 +650,7 @@ export class Message implements Sayable {
 
     contactList = [].concat.apply([],
       mentionList.map(nameStr => room.memberAll(nameStr))
-        .filter(contact => !!contact),
+      .filter(contact => !!contact),
     )
 
     if (contactList.length === 0) {
@@ -671,7 +668,7 @@ export class Message implements Sayable {
     log.silly('Message', 'ready()')
 
     try {
-      const from = Contact.load(this.obj.from)
+      const from  = Contact.load(this.obj.from)
       await from.ready()  // Contact from
 
       if (this.obj.to) {
@@ -680,17 +677,17 @@ export class Message implements Sayable {
       }
 
       if (this.obj.room) {
-        const room = Room.load(this.obj.room)
+        const room  = Room.load(this.obj.room)
         await room.ready()  // Room member list
       }
 
     } catch (e) {
-      log.error('Message', 'ready() exception: %s', e.stack)
-      Raven.captureException(e)
-      // console.log(e)
-      // this.dump()
-      // this.dumpRaw()
-      throw e
+        log.error('Message', 'ready() exception: %s', e.stack)
+        Raven.captureException(e)
+        // console.log(e)
+        // this.dump()
+        // this.dumpRaw()
+        throw e
     }
   }
 
@@ -730,13 +727,13 @@ export class Message implements Sayable {
   }
 
   public static async find(query) {
-    return Promise.resolve(new Message(<MsgRawObj>{ MsgId: '-1' }))
+    return Promise.resolve(new Message(<MsgRawObj>{MsgId: '-1'}))
   }
 
   public static async findAll(query) {
     return Promise.resolve([
-      new Message(<MsgRawObj>{ MsgId: '-2' }),
-      new Message(<MsgRawObj>{ MsgId: '-3' }),
+      new Message   (<MsgRawObj>{MsgId: '-2'}),
+      new Message (<MsgRawObj>{MsgId: '-3'}),
     ])
   }
 
@@ -783,7 +780,7 @@ export class Message implements Sayable {
    * @returns {Promise<any>}
    * @memberof Message
    */
-  public say(textOrMedia: string | MediaMessage, replyTo?: Contact | Contact[]): Promise<any> {
+  public say(textOrMedia: string | MediaMessage, replyTo?: Contact|Contact[]): Promise<any> {
     /* tslint:disable:no-use-before-declare */
     const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
     log.verbose('Message', 'say(%s, %s)', content, replyTo)
@@ -810,7 +807,7 @@ export class Message implements Sayable {
         }
         m.content(mentionList + ' ' + textOrMedia)
       }
-      /* tslint:disable:no-use-before-declare */
+    /* tslint:disable:no-use-before-declare */
     } else if (textOrMedia instanceof MediaMessage) {
       m = textOrMedia
       const room = this.room()
@@ -824,7 +821,7 @@ export class Message implements Sayable {
     }
 
     return config.puppetInstance()
-      .send(m)
+                  .send(m)
   }
 
 }
@@ -856,7 +853,7 @@ export class MediaMessage extends Message {
 
     // FIXME: decoupling needed
     this.bridge = (config.puppetInstance() as PuppetWeb)
-      .bridge
+                    .bridge
   }
 
   public async ready(): Promise<void> {
@@ -865,7 +862,7 @@ export class MediaMessage extends Message {
     try {
       await super.ready()
 
-      let url: string | null = null
+      let url: string|null = null
       switch (this.type()) {
         case MsgType.EMOTICON:
           url = await this.bridge.getMsgEmoticon(this.id)
@@ -974,7 +971,6 @@ export class MediaMessage extends Message {
     }
     throw new Error('not support type: ' + this.type())
   }
-
 
   /**
    * Get the filename from a media message, if not media message, throw Error
