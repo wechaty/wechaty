@@ -22,6 +22,7 @@ const retryPromise  = require('retry-promise').default
 import { log }    from '../config'
 
 import PuppetWeb  from './puppet-web'
+import {MsgRawObj}  from '../message'
 
 export interface MediaData {
   ToUserName: string,
@@ -418,6 +419,20 @@ export class Bridge {
     return this.proxyWechaty('sendMedia', mediaData)
               .catch(e => {
                 log.error('PuppetWebBridge', 'sendMedia() exception: %s', e.message)
+                throw e
+              })
+  }
+
+  public forward(baseData: MsgRawObj, patchData: MsgRawObj): Promise<boolean> {
+    if (!baseData.ToUserName) {
+      throw new Error('UserName not found')
+    }
+    if (!patchData.MMActualContent && !patchData.MMSendContent) {
+      throw new Error('cannot say nothing')
+    }
+    return this.proxyWechaty('forward', baseData, patchData)
+              .catch(e => {
+                log.error('PuppetWebBridge', 'forward() exception: %s', e.message)
                 throw e
               })
   }

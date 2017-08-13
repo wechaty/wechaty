@@ -42,7 +42,9 @@ export interface MsgRawObj {
   MMActualSender:   string, // getUserContact(message.MMActualSender,message.MMPeerUserName).isContact()
   MMPeerUserName:   string, // message.MsgType == CONF.MSGTYPE_TEXT && message.MMPeerUserName == 'newsapp'
   ToUserName:       string,
+  FromUserName:     string,
   MMActualContent:  string, // Content has @id prefix added by wx
+  Content:          string,
 
   MMDigest:         string,
   MMDisplayTime:    number,  // Javascript timestamp of milliseconds
@@ -132,6 +134,16 @@ export interface MsgRawObj {
    * MsgType == CONF.MSGTYPE_VERIFYMSG
    */
   RecommendInfo?:   RecommendInfo,
+
+  /**
+   * Transpond Message
+   */
+  MsgIdBeforeTranspond: string,  // oldMsg.MsgIdBeforeTranspond || oldMsg.MsgId,
+  isTranspond: boolean,
+  MMSourceMsgId: string,
+  sendByLocal: boolean, // If transpond file, it must is false, not need to upload. And, can't to call createMessage(), it set to true
+  MMSendContent: string,
+
 }
 
 export interface MsgObj {
@@ -611,6 +623,31 @@ export class Message implements Sayable {
   //     Message.TYPE[v] = k // Message.Type[1] = 'TEXT'
   //   })
   // }
+
+  /**
+   * @param sendTo UserId or RoomId
+   */
+  public forward(sendTo: string): Promise<any> {
+    const m = <MsgRawObj>this.rawObj
+    const newMsg = <MsgRawObj>{}
+    newMsg.ToUserName = sendTo
+    newMsg.FromUserName = config.puppetInstance().userId || ''
+    newMsg.isTranspond = true
+    newMsg.MsgIdBeforeTranspond = m.MsgIdBeforeTranspond || m.MsgId
+    newMsg.MMSourceMsgId = m.MsgId
+    newMsg.sendByLocal = false
+    newMsg.Content = UtilLib.unescapeHtml(m.Content.replace(/^@\w+:<br\/>/, ''))
+    newMsg.MMActualSender = config.puppetInstance().userId || ''
+    if (m.MMSendContent)
+      newMsg.MMSendContent = m.MMSendContent.replace(/^@\w+:\s/, '')
+    if (m.MMDigest)
+      newMsg.MMDigest = m.MMDigest.replace(/^@\w+:/, '')
+    if (m.MMActualContent)
+      newMsg.MMActualContent = UtilLib.stripHtml(m.MMActualContent.replace(/^@\w+:<br\/>/, ''))
+
+    return config.puppetInstance()
+      .forward(m, newMsg)
+  }
 
   /**
    * @todo document me

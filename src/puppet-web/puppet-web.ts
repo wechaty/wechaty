@@ -29,6 +29,7 @@ import Contact        from '../contact'
 import {
   Message,
   MediaMessage,
+  MsgRawObj,
  }                    from '../message'
 import Puppet         from '../puppet'
 import Room           from '../room'
@@ -486,6 +487,26 @@ export class PuppetWeb extends Puppet {
       log.error('PuppetWeb', 'send() exception: %s', e.message)
       Raven.captureException(e)
       return false
+    }
+    return ret
+  }
+
+  public async forward(baseData: MsgRawObj, patchData: MsgRawObj): Promise<boolean> {
+
+    log.silly('PuppetWeb', 'forward() destination: %s, content: %s)',
+      patchData.ToUserName,
+      patchData.MMActualContent,
+    )
+    let ret = false
+    try {
+      // log.info('PuppetWeb', `forward() baseData: ${JSON.stringify(baseData)}\n`)
+      // log.info('PuppetWeb', `forward() patchData: ${JSON.stringify(patchData)}\n`)
+
+      ret = await this.bridge.forward(baseData, patchData)
+    } catch (e) {
+      log.error('PuppetWeb', 'forward() exception: %s', e.message)
+      Raven.captureException(e)
+      throw e
     }
     return ret
   }
