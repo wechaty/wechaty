@@ -516,10 +516,9 @@
 
     try {
       var m = chatFactory.createMessage(baseData)
-      log('forward() cMsg: ' + JSON.stringify(m))
 
+      // Need to override the parametes after called createMessage()
       m = Object.assign(m, patchData)
-      log('forward() newMsg: ' + JSON.stringify(m))
 
       chatFactory.appendMessage(m)
       chatFactory.sendMessage(m)

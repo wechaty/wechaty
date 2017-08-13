@@ -22,7 +22,7 @@ const retryPromise  = require('retry-promise').default
 import { log }    from '../config'
 
 import PuppetWeb  from './puppet-web'
-import {MsgRawObj}  from '../message'
+import { MsgRawObj }  from '../message'
 
 export interface MediaData {
   ToUserName: string,

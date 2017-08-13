@@ -627,16 +627,16 @@ export class Message implements Sayable {
   /**
    * @param sendTo UserId/RoomId/Room/Contact
    */
-  public forward(room: Room): Promise<any>
-  public forward(contact: Contact): Promise<any>
-  public forward(id: string): Promise<any>
-  public forward(sendTo: string|Room|Contact): Promise<any> {
+  public forward(room: Room): Promise<boolean>
+  public forward(contact: Contact): Promise<boolean>
+  public forward(id: string): Promise<boolean>
+  public forward(sendTo: string|Room|Contact): Promise<boolean> {
     const m = <MsgRawObj>this.rawObj
     const newMsg = <MsgRawObj>{}
     let id = ''
     if (sendTo instanceof Room || sendTo instanceof Contact) {
       id = sendTo.id
-    } else {
+    } else if (typeof sendTo === 'string') {
       id = sendTo
     }
     newMsg.ToUserName = id
@@ -644,6 +644,11 @@ export class Message implements Sayable {
     newMsg.isTranspond = true
     newMsg.MsgIdBeforeTranspond = m.MsgIdBeforeTranspond || m.MsgId
     newMsg.MMSourceMsgId = m.MsgId
+
+    // The following parameters need to be overridden after calling createMessage()
+
+    // If you want to forward the file, would like to skip the duplicate upload, sendByLocal must be false.
+    // But need to pay attention to file.size> 25Mb, due to the server policy restrictions, need to re-upload
     newMsg.sendByLocal = false
     newMsg.Content = UtilLib.unescapeHtml(m.Content.replace(/^@\w+:<br\/>/, ''))
     newMsg.MMActualSender = config.puppetInstance().userId || ''
