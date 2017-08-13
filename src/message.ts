@@ -138,11 +138,11 @@ export interface MsgRawObj {
   /**
    * Transpond Message
    */
-  MsgIdBeforeTranspond: string,  // oldMsg.MsgIdBeforeTranspond || oldMsg.MsgId,
-  isTranspond: boolean,
-  MMSourceMsgId: string,
-  sendByLocal: boolean, // If transpond file, it must is false, not need to upload. And, can't to call createMessage(), it set to true
-  MMSendContent: string,
+  MsgIdBeforeTranspond?: string,  // oldMsg.MsgIdBeforeTranspond || oldMsg.MsgId,
+  isTranspond?: boolean,
+  MMSourceMsgId?: string,
+  sendByLocal?: boolean, // If transpond file, it must is false, not need to upload. And, can't to call createMessage(), it set to true
+  MMSendContent?: string,
 
 }
 
