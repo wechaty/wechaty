@@ -625,12 +625,21 @@ export class Message implements Sayable {
   // }
 
   /**
-   * @param sendTo UserId or RoomId
+   * @param sendTo UserId/RoomId/Room/Contact
    */
-  public forward(sendTo: string): Promise<any> {
+  public forward(room: Room): Promise<any>
+  public forward(contact: Contact): Promise<any>
+  public forward(id: string): Promise<any>
+  public forward(sendTo: string|Room|Contact): Promise<any> {
     const m = <MsgRawObj>this.rawObj
     const newMsg = <MsgRawObj>{}
-    newMsg.ToUserName = sendTo
+    let id = ''
+    if (sendTo instanceof Room || sendTo instanceof Contact) {
+      id = sendTo.id
+    } else {
+      id = sendTo
+    }
+    newMsg.ToUserName = id
     newMsg.FromUserName = config.puppetInstance().userId || ''
     newMsg.isTranspond = true
     newMsg.MsgIdBeforeTranspond = m.MsgIdBeforeTranspond || m.MsgId
