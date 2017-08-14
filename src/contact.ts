@@ -725,10 +725,24 @@ export class Contact implements Sayable {
    *
    * @example
    * ```ts
+   * const contact = await Contact.find({name: 'lijiarui'}) // change 'lijiarui' to any of your contact name in wechat
    * await contact.say('welcome to wechaty!')
    * ```
    */
   public async say(text: string)
+
+  /**
+   * Send Media File to Contact
+   *
+   * @param {MediaMessage} mediaMessage
+   * @memberof Contact
+   * @returns {Promise<boolean>}
+   * @example
+   * ```ts
+   * const contact = await Contact.find({name: 'lijiarui'}) // change 'lijiarui' to any of your contact name in wechat
+   * await contact.say('/test.jpg') // put the filePath you want to send here
+   * ```
+   */
   public async say(mediaMessage: MediaMessage)
 
   public async say(textOrMedia: string | MediaMessage): Promise<boolean> {
