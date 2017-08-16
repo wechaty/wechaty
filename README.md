@@ -175,13 +175,9 @@ Get to know more about the tests from [Wiki:Test](https://github.com/chatie/wech
 ## [Message](https://github.com/chatie/wechaty/wiki/API#message-class)
 
 1. [from():Contact](https://github.com/chatie/wechaty/wiki/API#1-messagefrom-contact) get the sender of a message
-2. [from(contact:Contact):void](https://github.com/chatie/wechaty/wiki/API#2-messagefromcontact-contact-void) set a sender of the message
 4. [to():Contact](https://github.com/chatie/wechaty/wiki/API#1-messageto-contact) get the destination for the message
-5. [to(contact:Contact):void](https://github.com/chatie/wechaty/wiki/API#2-messagetocontact-contact-void) set the destination as contact for the message
 7. [content():string](https://github.com/chatie/wechaty/wiki/API#1-messagecontent-string) get the content of the message
-8. [content(content:string):string](https://github.com/chatie/wechaty/wiki/API#2-messagecontentcontent-string-string) set the content for the message
 9. [room():Room|null](https://github.com/chatie/wechaty/wiki/API#1-messageroom-room--null) get the room from a message.
-10. [room(room:Room):void](https://github.com/chatie/wechaty/wiki/API#2-messageroomroom-room-void) set the room for a message.
 12. [type():MsgType](https://github.com/chatie/wechaty/wiki/API#messagetype-number) get the type of a Message.
 13. [say(content:string):Promise](https://github.com/chatie/wechaty/wiki/API#messagesaycontent-string-promise) send a reply message to the sender.
 15. [self():boolean](https://github.com/chatie/wechaty/wiki/API#messageselfmessage-message-boolean) check if a message is sent by self 
@@ -327,3 +323,4 @@ Copyright & License
 
 [downloads-image]: http://img.shields.io/npm/dm/wechaty.svg?style=flat-square
 [downloads-url]: https://npmjs.org/package/wechaty
+
