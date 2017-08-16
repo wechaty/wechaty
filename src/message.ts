@@ -632,6 +632,7 @@ export class Message implements Sayable {
   public forward(sendTo: Room|Contact): Promise<boolean> {
     const m = <MsgRawObj>this.rawObj
     const newMsg = <MsgRawObj>{}
+    const fileSizeLimit = 25 * 1024 * 1024
     let id = ''
     // if you know roomId or userId, you can use `Room.load(roomId)` or `Contact.load(userId)`
     if (sendTo instanceof Room || sendTo instanceof Contact) {
@@ -649,6 +650,9 @@ export class Message implements Sayable {
 
     // If you want to forward the file, would like to skip the duplicate upload, sendByLocal must be false.
     // But need to pay attention to file.size> 25Mb, due to the server policy restrictions, need to re-upload
+    if (m.FileSize >= fileSizeLimit) {
+      log.warn('Message', 'forward() file size >= 25Mb,the message may fail to be forwarded due to server policy restrictions.')
+    }
     newMsg.sendByLocal = false
     newMsg.Content = UtilLib.unescapeHtml(m.Content.replace(/^@\w+:<br\/>/, ''))
     newMsg.MMActualSender = config.puppetInstance().userId || ''
