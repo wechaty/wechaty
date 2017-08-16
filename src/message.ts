@@ -633,7 +633,7 @@ export class Message implements Sayable {
     if (!this.rawObj) {
       throw new Error('no rawObj!')
     }
-    const m = this.rawObj
+    let m = this.rawObj
     const newMsg = <MsgRawObj>{}
     const fileSizeLimit = 25 * 1024 * 1024
     let id = ''
@@ -648,6 +648,8 @@ export class Message implements Sayable {
     newMsg.isTranspond = true
     newMsg.MsgIdBeforeTranspond = m.MsgIdBeforeTranspond || m.MsgId
     newMsg.MMSourceMsgId = m.MsgId
+    newMsg.Content = UtilLib.unescapeHtml(m.Content.replace(/^@\w+:<br\/>/, ''))
+    m = Object.assign(m, newMsg)
 
     // The following parameters need to be overridden after calling createMessage()
 
@@ -657,7 +659,6 @@ export class Message implements Sayable {
       log.warn('Message', 'forward() file size >= 25Mb,the message may fail to be forwarded due to server policy restrictions.')
     }
     newMsg.sendByLocal = false
-    newMsg.Content = UtilLib.unescapeHtml(m.Content.replace(/^@\w+:<br\/>/, ''))
     newMsg.MMActualSender = config.puppetInstance().userId || ''
     if (m.MMSendContent)
       newMsg.MMSendContent = m.MMSendContent.replace(/^@\w+:\s/, '')
