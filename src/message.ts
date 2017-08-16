@@ -144,6 +144,8 @@ export interface MsgRawObj {
   sendByLocal?: boolean, // If transpond file, it must is false, not need to upload. And, can't to call createMessage(), it set to true
   MMSendContent?: string,
 
+  MMIsChatRoom?: boolean,
+
 }
 
 export interface MsgObj {
@@ -170,6 +172,12 @@ export interface MsgTypeMap {
   [index: string]: string|number,
   //   MessageTypeName:  MessageTypeValue
   // , MessageTypeValue: MessageTypeName
+}
+
+export interface ForwardOption {
+  user?: boolean|string,
+  room?: boolean|string,
+  custom?: string,
 }
 
 export enum AppMsgType {
@@ -625,30 +633,55 @@ export class Message implements Sayable {
   // }
 
   /**
-   * @param sendTo Room/Contact
+   *
+   * @param sendTo Room or Contact
+   * @param option Whether to display the message source, and the custom source information format
    */
-  public forward(room: Room): Promise<boolean>
-  public forward(contact: Contact): Promise<boolean>
-  public forward(sendTo: Room|Contact): Promise<boolean> {
+  public forward(room: Room, option?: ForwardOption): Promise<boolean>
+  public forward(contact: Contact, option?: ForwardOption): Promise<boolean>
+  public forward(sendTo: Room|Contact, option?: ForwardOption): Promise<boolean> {
     if (!this.rawObj) {
       throw new Error('no rawObj!')
     }
-    let m = this.rawObj
+    let m = Object.assign({}, this.rawObj)
+    const opt = option || <ForwardOption>{}
     const newMsg = <MsgRawObj>{}
     const fileSizeLimit = 25 * 1024 * 1024
     let id = ''
     // if you know roomId or userId, you can use `Room.load(roomId)` or `Contact.load(userId)`
+    let user = ''
+    let room = ''
+    let from = ''
     if (sendTo instanceof Room || sendTo instanceof Contact) {
       id = sendTo.id
     } else {
       throw new Error('param must be Room or Contact!')
     }
+
+    if (opt.custom || opt.user || opt.room) {
+      user = Contact.load(m.MMActualSender).name()
+      if (opt.user && typeof opt.user === 'string') {
+        user = opt.user.replace(/\$USER/, user)
+      }
+      if (m.MMIsChatRoom) {
+        room = Room.load(m.FromUserName).topic()
+        if (opt.room && typeof opt.room === 'string') {
+          room = opt.room.replace(/\$ROOM/, room)
+        }
+      }
+      if (!opt.custom) {
+        opt.custom = (opt.room && room ? '[$ROOM]' : '') + (opt.user ? '$USER' : '')
+      }
+      from = opt.custom.replace(/\$USER/, user).replace(/\$ROOM/, room) + ':\n'
+    }
+
     newMsg.ToUserName = id
     newMsg.FromUserName = config.puppetInstance().userId || ''
     newMsg.isTranspond = true
     newMsg.MsgIdBeforeTranspond = m.MsgIdBeforeTranspond || m.MsgId
     newMsg.MMSourceMsgId = m.MsgId
-    newMsg.Content = UtilLib.unescapeHtml(m.Content.replace(/^@\w+:<br\/>/, ''))
+    newMsg.Content = UtilLib.unescapeHtml(from + m.Content.replace(/^@\w+:<br\/>/, ''))
+    newMsg.MMIsChatRoom = sendTo instanceof Room ? true : false
     m = Object.assign(m, newMsg)
 
     // The following parameters need to be overridden after calling createMessage()
