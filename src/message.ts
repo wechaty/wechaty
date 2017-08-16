@@ -680,7 +680,10 @@ export class Message implements Sayable {
     newMsg.isTranspond = true
     newMsg.MsgIdBeforeTranspond = m.MsgIdBeforeTranspond || m.MsgId
     newMsg.MMSourceMsgId = m.MsgId
-    newMsg.Content = UtilLib.unescapeHtml(from + m.Content.replace(/^@\w+:<br\/>/, ''))
+    newMsg.Content = UtilLib.unescapeHtml(m.Content.replace(/^@\w+:<br\/>/, ''))
+    if (m.MsgType === MsgType.TEXT) {
+      newMsg.Content = from + newMsg.Content  // only text msg
+    }
     newMsg.MMIsChatRoom = sendTo instanceof Room ? true : false
     m = Object.assign(m, newMsg)
 
