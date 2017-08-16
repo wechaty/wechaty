@@ -625,19 +625,19 @@ export class Message implements Sayable {
   // }
 
   /**
-   * @param sendTo UserId/RoomId/Room/Contact
+   * @param sendTo Room/Contact
    */
   public forward(room: Room): Promise<boolean>
   public forward(contact: Contact): Promise<boolean>
-  public forward(id: string): Promise<boolean>
-  public forward(sendTo: string|Room|Contact): Promise<boolean> {
+  public forward(sendTo: Room|Contact): Promise<boolean> {
     const m = <MsgRawObj>this.rawObj
     const newMsg = <MsgRawObj>{}
     let id = ''
+    // if you know roomId or userId, you can use `Room.load(roomId)` or `Contact.load(userId)`
     if (sendTo instanceof Room || sendTo instanceof Contact) {
       id = sendTo.id
-    } else if (typeof sendTo === 'string') {
-      id = sendTo
+    } else {
+      throw new Error('param must be Room or Contact!')
     }
     newMsg.ToUserName = id
     newMsg.FromUserName = config.puppetInstance().userId || ''
