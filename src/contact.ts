@@ -195,7 +195,8 @@ export class Contact implements Sayable {
   /**
    * Check if contact is stranger
    *
-   * @returns {boolean | null} True for not friend of the bot, False for friend of the bot, null for cannot get the info.
+   * @returns {boolean | null}
+   * True for not friend of the bot, False for friend of the bot, null for cannot get the info.
    *
    * @example
    * ```ts
@@ -210,7 +211,8 @@ export class Contact implements Sayable {
   /**
    * Check if it's a offical account
    *
-   * @returns {boolean|null} True for official account, Flase for contact is not a official account
+   * @returns {boolean|null}
+   * True for official account, Flase for contact is not a official account
    *
    * @example
    * ```ts
@@ -262,7 +264,8 @@ export class Contact implements Sayable {
   /**
    * Check if the contact is star contact.
    *
-   * @returns {boolean} True for star friend, False for no star friend, null for cannot get the info.
+   * @returns {boolean}
+   * True for star friend, False for no star friend, null for cannot get the info.
    *
    * @example
    * ```ts
@@ -555,7 +558,8 @@ export class Contact implements Sayable {
    * tests show it will failed if set alias too frequently(60 times in one minute).
    *
    * @param {string} newAlias
-   * @returns {Promise<boolean>} A promise to the result. true for success, false for failure
+   * @returns {Promise<boolean>}
+   * A promise to the result. true for success, false for failure
    *
    * @example
    * ```ts
@@ -725,7 +729,8 @@ export class Contact implements Sayable {
    *
    * @example
    * ```ts
-   * const contact = await Contact.find({name: 'lijiarui'}) // change 'lijiarui' to any of your contact name in wechat
+   * // change 'lijiarui' to any of your contact name in wechat
+   * const contact = await Contact.find({name: 'lijiarui'})
    * await contact.say('welcome to wechaty!')
    * ```
    */
@@ -735,12 +740,13 @@ export class Contact implements Sayable {
    * Send Media File to Contact
    *
    * @param {MediaMessage} mediaMessage
-   * @memberof Contact
    * @returns {Promise<boolean>}
    * @example
    * ```ts
-   * const contact = await Contact.find({name: 'lijiarui'}) // change 'lijiarui' to any of your contact name in wechat
-   * await contact.say('/test.jpg') // put the filePath you want to send here
+   * // change 'lijiarui' to any of your contact name in wechat
+   * const contact = await Contact.find({name: 'lijiarui'})
+   * // put the filePath you want to send here
+   * await contact.say(new MediaMessage(__dirname + '/wechaty.png')
    * ```
    */
   public async say(mediaMessage: MediaMessage)

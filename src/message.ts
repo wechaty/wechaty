@@ -163,7 +163,6 @@ export interface MsgTypeMap {
 /**
  *
  * Enum for AppMsgType values.
- * @export
  * @enum {number}
  */
 export enum AppMsgType {
@@ -189,7 +188,6 @@ export enum AppMsgType {
 /**
  *
  * Enum for MsgType values.
- * @export
  * @enum {number}
  */
 export enum MsgType {
@@ -335,7 +333,6 @@ export class Message implements Sayable {
    * Set a sender to the message
    * @param {Contact} contact
    * @returns {void}
-   * @memberof Message
    */
   public from(contact: Contact): void
 
@@ -344,7 +341,6 @@ export class Message implements Sayable {
    * Set a sender to the message by contact id
    * @param {string} id
    * @returns {void}
-   * @memberof Message
    */
   public from(id: string): void
 
@@ -352,7 +348,6 @@ export class Message implements Sayable {
    *
    * Get the sender from a message.
    * @returns {Contact}
-   * @memberof Message
    */
   public from(): Contact
 
@@ -384,7 +379,6 @@ export class Message implements Sayable {
    *
    * @param {Contact} contact
    * @returns {void}
-   * @memberof Message
    */
   public to(contact: Contact): void
 
@@ -393,7 +387,6 @@ export class Message implements Sayable {
    *
    * @param {string} id
    * @returns {void}
-   * @memberof Message
    */
   public to(id: string): void
 
@@ -401,7 +394,6 @@ export class Message implements Sayable {
    * Get the destination of the message
    * Message.to() will return null if a message is in a room, use Message.room() to get the room.
    * @returns {(Contact|null)}
-   * @memberof Message
    */
   public to(): Contact|null // if to is not set, then room must had set
 
@@ -430,7 +422,6 @@ export class Message implements Sayable {
    *
    * @param {Room} room
    * @returns {void}
-   * @memberof Message
    */
   public room(room: Room): void
 
@@ -439,7 +430,6 @@ export class Message implements Sayable {
    *
    * @param {string} id
    * @returns {void}
-   * @memberof Message
    */
   public room(id: string): void
 
@@ -448,7 +438,6 @@ export class Message implements Sayable {
    * If the message is not in a room, then will return `null`
    *
    * @returns {(Room|null)}
-   * @memberof Message
    */
   public room(): Room|null
   public room(room?: Room|string): Room|null|void {
@@ -472,7 +461,6 @@ export class Message implements Sayable {
    * Get the content of the message
    *
    * @returns {string}
-   * @memberof Message
    */
   public content(): string
 
@@ -481,7 +469,6 @@ export class Message implements Sayable {
    *
    * @param {string} content
    * @returns {void}
-   * @memberof Message
    */
   public content(content: string): void
 
@@ -516,7 +503,6 @@ export class Message implements Sayable {
    * * SYS 10000
    * * RECALLED 10002
    * @returns {MsgType}
-   * @memberof Message
    */
   public type(): MsgType {
     return this.obj.type
@@ -526,7 +512,6 @@ export class Message implements Sayable {
    * Get the typeSub from the message.
    * If message is a location message: m.type() === MsgType.TEXT && m.typeSub() === MsgType.LOCATION
    * @returns {MsgType}
-   * @memberof Message
    */
   public typeSub(): MsgType {
     if (!this.rawObj) {
@@ -539,7 +524,6 @@ export class Message implements Sayable {
    * Get the typeApp from the message.
    *
    * @returns {AppMsgType}
-   * @memberof Message
    */
   public typeApp(): AppMsgType {
     if (!this.rawObj) {
@@ -552,7 +536,6 @@ export class Message implements Sayable {
    * Get the typeEx from the message.
    *
    * @returns {MsgType}
-   * @memberof Message
    */
   public typeEx()  { return MsgType[this.obj.type] }
 
@@ -560,7 +543,6 @@ export class Message implements Sayable {
    * Get the serial number from the message.
    *
    * @returns {number}
-   * @memberof Message
    */
   public count()   { return this._counter }
 
@@ -568,7 +550,6 @@ export class Message implements Sayable {
    * Check if a message is sent by self.
    *
    * @returns {boolean} Return `true` for send from self, `false` for send from others.
-   * @memberof Message
    * @example
    * ```ts
    * if (message.self()) {
@@ -745,7 +726,6 @@ export class Message implements Sayable {
    * @param {string} text
    * @param {(Contact | Contact[])} [replyTo]
    * @returns {Promise<any>}
-   * @memberof Message
    * @example
    * ```ts
    * const bot = Wechaty.instance()
@@ -757,7 +737,7 @@ export class Message implements Sayable {
    *   }
    * })
    * ```
-   * see more: https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts
+   * @see https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts
    */
   public say(text: string, replyTo?: Contact | Contact[]): Promise<any>
 
@@ -767,7 +747,6 @@ export class Message implements Sayable {
    * @param {MediaMessage} mediaMessage
    * @param {(Contact | Contact[])} [replyTo]
    * @returns {Promise<any>}
-   * @memberof Message
    * @example
    * ```ts
    * const bot = Wechaty.instance()
@@ -778,7 +757,7 @@ export class Message implements Sayable {
    *     console.log('Bot REPLY: Image')
    *   }
    * })
-   * see more: https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts
+   * @see https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts
    */
   public say(mediaMessage: MediaMessage, replyTo?: Contact | Contact[]): Promise<any>
 
@@ -940,11 +919,10 @@ export class MediaMessage extends Message {
    * Get the MediaMessage file extension, etc: `jpg`, `gif`, `pdf`, `word` ..
    *
    * @returns {string}
-   * @memberof MediaMessage
    * @example
    * ```ts
    * .on('message', async function (m) {
-   *   if (m.rawObj) {
+   *   if (m instanceof MediaMessage && m.rawObj ) {
    *     console.log('======get m.ext()=======')
    *     const mediaMsg = new MediaMessage(m.rawObj)
    *     console.log(mediaMsg.ext())
@@ -990,11 +968,10 @@ export class MediaMessage extends Message {
    * Get the MediaMessage filename, etc: `how to build a chatbot.pdf`..
    *
    * @returns {string}
-   * @memberof MediaMessage
    * @example
    * ```ts
    * .on('message', async function (m) {
-   *   if (m.rawObj) {
+   *   if (m instanceof MediaMessage && m.rawObj) {
    *     console.log('======get m.filename()=======')
    *     const mediaMsg = new MediaMessage(m.rawObj)
    *     console.log(mediaMsg.filename())

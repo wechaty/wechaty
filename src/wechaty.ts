@@ -207,7 +207,6 @@ export class Wechaty extends EventEmitter implements Sayable {
    * Initialize the bot, return Promise.
    *
    * @returns {Promise<void>}
-   * @memberof Wechaty
    * @example
    * ```ts
    * wechaty.init()
@@ -254,11 +253,10 @@ export class Wechaty extends EventEmitter implements Sayable {
 
   /**
    * When someone sends you a friend request, there will be a Wechaty friend event fired.
-   * See more in : https://github.com/wechaty/wechaty/blob/master/example/friend-bot.ts
+   * @see https://github.com/wechaty/wechaty/blob/master/example/friend-bot.ts
    * @param {'friend'} event
    * @param {(this: Wechaty, friend: Contact, request?: FriendRequest) => void} listener
    * @returns {this}
-   * @memberof Wechaty
    * @example
    * ```ts
    * wechaty.on('friend', (contact: Contact, request: FriendRequest) => {
@@ -287,7 +285,6 @@ export class Wechaty extends EventEmitter implements Sayable {
    * @param {'logout'} event
    * @param {(this: Wechaty, user: Contact) => void} listener
    * @returns {this}
-   * @memberof Wechaty
    * @example
    * ```ts
    * wechaty.on('logout', (user: Contact) => {
@@ -303,7 +300,6 @@ export class Wechaty extends EventEmitter implements Sayable {
    * @param {'login'} event
    * @param {(this: Wechaty, user: Contact) => void} listener
    * @returns {this}
-   * @memberof Wechaty
    * @example
    * ```ts
    * wechaty.on('login', (user: Contact) => {
@@ -319,7 +315,6 @@ export class Wechaty extends EventEmitter implements Sayable {
    * @param {'message'} event
    * @param {(this: Wechaty, message: Message) => void} listener
    * @returns {this}
-   * @memberof Wechaty
    * @example
    * ```ts
    * wechaty.on('message', (message: Message) => {
@@ -335,7 +330,6 @@ export class Wechaty extends EventEmitter implements Sayable {
    * @param {'room-join'} event
    * @param {(this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void} listener
    * @returns {this}
-   * @memberof Wechaty
    * @example
    * ```ts
    * wechaty.on('room-join', (room: Room, inviteeList: Contact[], inviter: Contact) => {
@@ -353,7 +347,6 @@ export class Wechaty extends EventEmitter implements Sayable {
    * @param {'room-leave'} event
    * @param {(this: Wechaty, room: Room, leaverList: Contact[]) => void} listener
    * @returns {this}
-   * @memberof Wechaty
    * @example
    * ```ts
    * wechaty.on('room-leave', (room: Room, leaverList: Contact[]) => {
@@ -370,7 +363,6 @@ export class Wechaty extends EventEmitter implements Sayable {
    * @param {'room-topic'} event
    * @param {(this: Wechaty, room: Room, topic: string, oldTopic: string, changer: Contact) => void} listener
    * @returns {this}
-   * @memberof Wechaty
    * @example
    * ```ts
    * wechaty.on('room-topic', (room: Room, topic: string, oldTopic: string, changer: Contact) => {
@@ -392,7 +384,6 @@ export class Wechaty extends EventEmitter implements Sayable {
    * @param {'scan'} event
    * @param {(this: Wechaty, url: string, code: number) => void} listener
    * @returns {this}
-   * @memberof Wechaty
    * @example
    * ```ts
    * wechaty.on('scan', (url: string, code: number) => {
@@ -487,7 +478,6 @@ export class Wechaty extends EventEmitter implements Sayable {
    * Quit the bot
    *
    * @returns {Promise<void>}
-   * @memberof Wechaty
    * @example
    * ```ts
    * Wechaty.quit()
@@ -527,7 +517,6 @@ export class Wechaty extends EventEmitter implements Sayable {
    * Logout the bot
    *
    * @returns {Promise<void>}
-   * @memberof Wechaty
    * @example
    * ```ts
    * Wechaty.logout()
@@ -550,7 +539,6 @@ export class Wechaty extends EventEmitter implements Sayable {
    * Get current user
    *
    * @returns {Contact}
-   * @memberof Wechaty
    * @example
    * ```ts
    * const contact = Wechaty.self()
@@ -584,7 +572,6 @@ export class Wechaty extends EventEmitter implements Sayable {
    *
    * @param {string} content
    * @returns {Promise<boolean>}
-   * @memberof Wechaty
    */
   public async say(content: string): Promise<boolean> {
     log.verbose('Wechaty', 'say(%s)', content)
