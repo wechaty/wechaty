@@ -427,7 +427,7 @@ export class Bridge {
     if (!baseData.ToUserName) {
       throw new Error('UserName not found')
     }
-    if (!patchData.MMActualContent && !patchData.MMSendContent) {
+    if (!patchData.MMActualContent && !patchData.MMSendContent && !patchData.Content) {
       throw new Error('cannot say nothing')
     }
     return this.proxyWechaty('forward', baseData, patchData)
