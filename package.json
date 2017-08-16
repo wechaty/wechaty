@@ -136,7 +136,7 @@
     "@types/ws": "3.0.2",
     "apiai": "4.0.3",
     "ava": "0.22.0",
-    "babel-cli": "6.24.1",
+    "babel-cli": "6.26.0",
     "babel-eslint": "7.2.3",
     "babel-preset-es2015": "6.24.1",
     "check-node-version": "2.1.0",
