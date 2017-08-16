@@ -630,7 +630,10 @@ export class Message implements Sayable {
   public forward(room: Room): Promise<boolean>
   public forward(contact: Contact): Promise<boolean>
   public forward(sendTo: Room|Contact): Promise<boolean> {
-    const m = <MsgRawObj>this.rawObj
+    if (!this.rawObj) {
+      throw new Error('no rawObj!')
+    }
+    const m = this.rawObj
     const newMsg = <MsgRawObj>{}
     const fileSizeLimit = 25 * 1024 * 1024
     let id = ''
