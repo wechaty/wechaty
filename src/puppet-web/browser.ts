@@ -519,4 +519,8 @@ export class Browser extends EventEmitter {
   public cleanCookie()  { return this.cookie.clean()  }
 }
 
+export {
+  IWebDriverOptionsCookie,
+}
+
 export default Browser

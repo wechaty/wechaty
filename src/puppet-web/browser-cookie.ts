@@ -122,11 +122,13 @@ export class BrowserCookie {
     }
 
     try {
-      // `as any as DriverCookie` because selenium-webdriver @types is outdated with 2.x, where we r using 3.0
       let cookies: IWebDriverOptionsCookie[] = await this.driver.manage().getCookies()
+      console.log(cookies)
       cookies = cookieFilter(cookies)
-      // log.silly('PuppetWeb', 'saving %d cookies for session: %s', cookies.length
-      //   , util.inspect(cookies.map(c => { return {name: c.name /*, value: c.value, expiresType: typeof c.expires, expires: c.expires*/} })))
+
+      // log.silly('PuppetWebBrowserCookie', 'save() saving %d cookies for session: %s', cookies.length
+      //   , require('util').inspect(cookies.map(c => { return {name: c.name, value: c.value, expiresType: typeof c.expiry, expiry: c.expiry} })))
+
       log.silly('PuppetWebBrowserCookie', 'save() saving %d cookies: %s', cookies.length, cookies.map(c => c.name).join(','))
 
       const jsonStr = JSON.stringify(cookies)
@@ -239,8 +241,9 @@ export class BrowserCookie {
   public async add(cookie: IWebDriverOptionsCookie | IWebDriverOptionsCookie[]): Promise<void> {
 
     if (Array.isArray(cookie)) {
-      log.verbose('PuppetWebBrowserCookie', 'add(Array: %s)', JSON.stringify(cookie))
-      for (const c of cookie) {
+      const cookieList = cookie
+      log.verbose('PuppetWebBrowserCookie', 'add(Array.length = %d)', cookieList.length)
+      for (const c of cookieList) {
         await this.add(c)
       }
       return

@@ -16,14 +16,14 @@
  *   limitations under the License.
  *
  */
-import { test } from 'ava'
+import { test }             from 'ava'
 
 import {
   config,
   log,
-}                 from '../../src/config'
-import PuppetWeb  from '../../src/puppet-web'
-import PuppetWebServer     from '../../src/puppet-web/server'
+}                           from '../../src/config'
+import PuppetWeb            from '../../src/puppet-web'
+import PuppetWebServer      from '../../src/puppet-web/server'
 
 /**
  * the reason why use `test.serial` here is:

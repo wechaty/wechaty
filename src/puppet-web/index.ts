@@ -16,14 +16,20 @@
  *   limitations under the License.
  *
  */
-export { Bridge }     from './bridge'
-export { Browser }    from './browser'
-export { Event }      from './event'
-export { PuppetWebFriendRequest as FriendRequest }  from './friend-request'
+export { Bridge }                           from './bridge'
+export {
+  Browser,
+  IWebDriverOptionsCookie,
+}                                           from './browser'
+export { Event }                            from './event'
+export {
+  PuppetWebFriendRequest as FriendRequest,
+}                                           from './friend-request'
+import { PuppetWeb }                        from './puppet-web'
+export { Server }                           from './server'
+export { Watchdog }                         from './watchdog'
 
-export { Server }     from './server'
-export { Watchdog }   from './watchdog'
-
-import PuppetWeb      from './puppet-web'
-export { PuppetWeb }
 export default PuppetWeb
+export {
+  PuppetWeb,
+}
