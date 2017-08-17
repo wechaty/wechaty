@@ -109,6 +109,8 @@ export class BrowserDriver {
 
     const options = {
       args: [
+        '--disable-gpu',
+        '--headless', // https://developers.google.com/web/updates/2017/04/headless-chrome
         '--homepage=about:blank',
         '--no-sandbox',
       ],  // issue #26 for run inside docker
