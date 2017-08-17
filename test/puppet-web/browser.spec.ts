@@ -22,11 +22,12 @@ import { test } from 'ava'
 import {
   config,
   log,
-}               from '../../'
+}                           from '../../'
 
 import {
   Browser,
-}               from '../../src/puppet-web/'
+  IWebDriverOptionsCookie,
+}                           from '../../src/puppet-web/'
 
 const TEST_DOMAIN = 'www.chatie.io'
 const TEST_URL = 'https://' + TEST_DOMAIN
@@ -130,8 +131,8 @@ test('Cookie save/load', async t => {
       path: '/',
       domain: '.chatie.io',
       secure: false,
-      expiry: 99999999999999,
-    }
+      expiry: 3133683026,
+    } as IWebDriverOptionsCookie
     const EXPECTED_NAME_REGEX = new RegExp('^' + EXPECTED_COOKIE.name + '$')
 
     await browser.driver.manage().deleteAllCookies()
@@ -200,17 +201,18 @@ test('Cookie save/load', async t => {
     t.truthy(cookieAfterQuit, 'should get cookie from getCookie()')
     t.is(cookieAfterQuit.name, EXPECTED_COOKIE.name, 'cookie from getCookie() after browser quit, should load the right cookie back')
 
-    fs.unlink(profileName, err => { // clean
-      if (err) {
-        log.warn('Browser', 'unlink session file %s fail: %s', PROFILE, err)
-      }
-    })
   } catch (e) {
     t.fail('exception: ' + e.message)
   } finally {
     if (browser && browser.driver) {
       await browser.driver.quit()
     }
+
+    fs.unlink(profileName, err => { // clean
+      if (err) {
+        log.warn('Browser', 'unlink session file %s fail: %s', PROFILE, err)
+      }
+    })
   }
 })
 
