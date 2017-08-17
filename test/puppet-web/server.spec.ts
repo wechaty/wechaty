@@ -41,8 +41,8 @@ test('create & close', async t => {
   t.is(typeof httpsServer, 'object', 'create https server')
   httpsServer.on('close', _ => spy('onClose'))
 
-  const socketio = s.createSocketIo(httpsServer)
-  t.is(typeof socketio, 'object', 'should created socket io instance')
+  const socket = s.createWebSocketServer(httpsServer)
+  t.is(typeof socket, 'object', 'should created WebSocket instance')
 
   const retClose = await new Promise((resolve, reject) => {
     ; (httpsServer as any).close(_ => {
