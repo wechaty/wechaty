@@ -911,12 +911,15 @@ export class MediaMessage extends Message {
     }
     newMsg.sendByLocal = false
     newMsg.MMActualSender = config.puppetInstance().userId || ''
-    if (m.MMSendContent)
+    if (m.MMSendContent) {
       newMsg.MMSendContent = m.MMSendContent.replace(/^@\w+:\s/, '')
-    if (m.MMDigest)
+    }
+    if (m.MMDigest) {
       newMsg.MMDigest = m.MMDigest.replace(/^@\w+:/, '')
-    if (m.MMActualContent)
+    }
+    if (m.MMActualContent) {
       newMsg.MMActualContent = UtilLib.stripHtml(m.MMActualContent.replace(/^@\w+:<br\/>/, '')).replace(/^[\w\-]+:<br\/>/, '')
+    }
     m = Object.assign(m, newMsg)
 
     return config.puppetInstance()
