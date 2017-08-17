@@ -898,9 +898,9 @@ export class MediaMessage extends Message {
     newMsg.isTranspond = true
     newMsg.MsgIdBeforeTranspond = m.MsgIdBeforeTranspond || m.MsgId
     newMsg.MMSourceMsgId = m.MsgId
-    newMsg.Content = UtilLib.unescapeHtml(m.Content.replace(/^@\w+:<br\/>/, ''))
+    // In room msg, the content prefix sender:, need to be removed, otherwise the forwarded sender will display the source message sender, causing self () to determine the error
+    newMsg.Content = UtilLib.unescapeHtml(m.Content.replace(/^@\w+:<br\/>/, '')).replace(/^[\w\-]+:<br\/>/, '')
     newMsg.MMIsChatRoom = sendTo instanceof Room ? true : false
-    m = Object.assign(m, newMsg)
 
     // The following parameters need to be overridden after calling createMessage()
 
@@ -916,7 +916,8 @@ export class MediaMessage extends Message {
     if (m.MMDigest)
       newMsg.MMDigest = m.MMDigest.replace(/^@\w+:/, '')
     if (m.MMActualContent)
-      newMsg.MMActualContent = UtilLib.stripHtml(m.MMActualContent.replace(/^@\w+:<br\/>/, ''))
+      newMsg.MMActualContent = UtilLib.stripHtml(m.MMActualContent.replace(/^@\w+:<br\/>/, '')).replace(/^[\w\-]+:<br\/>/, '')
+    m = Object.assign(m, newMsg)
 
     return config.puppetInstance()
       .forward(m, newMsg)
