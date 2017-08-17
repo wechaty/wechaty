@@ -46,6 +46,7 @@ script:
   - echo $TRAVIS_OS_NAME
   - node --version
   - npm --version
+  - google-chrome --version
   - shellcheck bin/*.sh
   - npm run lint
   - npm run dist
