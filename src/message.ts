@@ -174,12 +174,6 @@ export interface MsgTypeMap {
   // , MessageTypeValue: MessageTypeName
 }
 
-export interface ForwardOption {
-  user?: boolean|string,
-  room?: boolean|string,
-  custom?: string,
-}
-
 export enum AppMsgType {
   TEXT                     = 1,
   IMG                      = 2,
@@ -633,81 +627,6 @@ export class Message implements Sayable {
   // }
 
   /**
-   *
-   * @param sendTo Room or Contact
-   * @param option Whether to display the message source, and the custom source information format
-   */
-  public forward(room: Room, option?: ForwardOption): Promise<boolean>
-  public forward(contact: Contact, option?: ForwardOption): Promise<boolean>
-  public forward(sendTo: Room|Contact, option?: ForwardOption): Promise<boolean> {
-    if (!this.rawObj) {
-      throw new Error('no rawObj!')
-    }
-    let m = Object.assign({}, this.rawObj)
-    const opt = option || <ForwardOption>{}
-    const newMsg = <MsgRawObj>{}
-    const fileSizeLimit = 25 * 1024 * 1024
-    let id = ''
-    // if you know roomId or userId, you can use `Room.load(roomId)` or `Contact.load(userId)`
-    let user = ''
-    let room = ''
-    let from = ''
-    if (sendTo instanceof Room || sendTo instanceof Contact) {
-      id = sendTo.id
-    } else {
-      throw new Error('param must be Room or Contact!')
-    }
-
-    if (opt.custom || opt.user || opt.room) {
-      user = Contact.load(m.MMActualSender).name()
-      if (opt.user && typeof opt.user === 'string') {
-        user = opt.user.replace(/\$USER/, user)
-      }
-      if (m.MMIsChatRoom) {
-        room = Room.load(m.FromUserName).topic()
-        if (opt.room && typeof opt.room === 'string') {
-          room = opt.room.replace(/\$ROOM/, room)
-        }
-      }
-      if (!opt.custom) {
-        opt.custom = (opt.room && room ? '[$ROOM]' : '') + (opt.user ? '$USER' : '')
-      }
-      from = opt.custom.replace(/\$USER/, user).replace(/\$ROOM/, room) + ':\n'
-    }
-
-    newMsg.ToUserName = id
-    newMsg.FromUserName = config.puppetInstance().userId || ''
-    newMsg.isTranspond = true
-    newMsg.MsgIdBeforeTranspond = m.MsgIdBeforeTranspond || m.MsgId
-    newMsg.MMSourceMsgId = m.MsgId
-    newMsg.Content = UtilLib.unescapeHtml(m.Content.replace(/^@\w+:<br\/>/, ''))
-    if (m.MsgType === MsgType.TEXT) {
-      newMsg.Content = from + newMsg.Content  // only text msg
-    }
-    newMsg.MMIsChatRoom = sendTo instanceof Room ? true : false
-    m = Object.assign(m, newMsg)
-
-    // The following parameters need to be overridden after calling createMessage()
-
-    // If you want to forward the file, would like to skip the duplicate upload, sendByLocal must be false.
-    // But need to pay attention to file.size> 25Mb, due to the server policy restrictions, need to re-upload
-    if (m.FileSize >= fileSizeLimit) {
-      log.warn('Message', 'forward() file size >= 25Mb,the message may fail to be forwarded due to server policy restrictions.')
-    }
-    newMsg.sendByLocal = false
-    newMsg.MMActualSender = config.puppetInstance().userId || ''
-    if (m.MMSendContent)
-      newMsg.MMSendContent = m.MMSendContent.replace(/^@\w+:\s/, '')
-    if (m.MMDigest)
-      newMsg.MMDigest = m.MMDigest.replace(/^@\w+:/, '')
-    if (m.MMActualContent)
-      newMsg.MMActualContent = UtilLib.stripHtml(m.MMActualContent.replace(/^@\w+:<br\/>/, ''))
-
-    return config.puppetInstance()
-      .forward(m, newMsg)
-  }
-
-  /**
    * @todo document me
    */
   public say(text: string, replyTo?: Contact | Contact[]): Promise<any>
@@ -951,6 +870,56 @@ export class MediaMessage extends Message {
       Raven.captureException(e)
       throw e
     }
+  }
+
+  /**
+   *
+   * @param sendTo Room or Contact
+   */
+  public forward(room: Room): Promise<boolean>
+  public forward(contact: Contact): Promise<boolean>
+  public forward(sendTo: Room|Contact): Promise<boolean> {
+    if (!this.rawObj) {
+      throw new Error('no rawObj!')
+    }
+    let m = Object.assign({}, this.rawObj)
+    const newMsg = <MsgRawObj>{}
+    const fileSizeLimit = 25 * 1024 * 1024
+    let id = ''
+    // if you know roomId or userId, you can use `Room.load(roomId)` or `Contact.load(userId)`
+    if (sendTo instanceof Room || sendTo instanceof Contact) {
+      id = sendTo.id
+    } else {
+      throw new Error('param must be Room or Contact!')
+    }
+
+    newMsg.ToUserName = id
+    newMsg.FromUserName = config.puppetInstance().userId || ''
+    newMsg.isTranspond = true
+    newMsg.MsgIdBeforeTranspond = m.MsgIdBeforeTranspond || m.MsgId
+    newMsg.MMSourceMsgId = m.MsgId
+    newMsg.Content = UtilLib.unescapeHtml(m.Content.replace(/^@\w+:<br\/>/, ''))
+    newMsg.MMIsChatRoom = sendTo instanceof Room ? true : false
+    m = Object.assign(m, newMsg)
+
+    // The following parameters need to be overridden after calling createMessage()
+
+    // If you want to forward the file, would like to skip the duplicate upload, sendByLocal must be false.
+    // But need to pay attention to file.size> 25Mb, due to the server policy restrictions, need to re-upload
+    if (m.FileSize >= fileSizeLimit) {
+      log.warn('Message', 'forward() file size >= 25Mb,the message may fail to be forwarded due to server policy restrictions.')
+    }
+    newMsg.sendByLocal = false
+    newMsg.MMActualSender = config.puppetInstance().userId || ''
+    if (m.MMSendContent)
+      newMsg.MMSendContent = m.MMSendContent.replace(/^@\w+:\s/, '')
+    if (m.MMDigest)
+      newMsg.MMDigest = m.MMDigest.replace(/^@\w+:/, '')
+    if (m.MMActualContent)
+      newMsg.MMActualContent = UtilLib.stripHtml(m.MMActualContent.replace(/^@\w+:<br\/>/, ''))
+
+    return config.puppetInstance()
+      .forward(m, newMsg)
   }
 }
 
