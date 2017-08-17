@@ -117,6 +117,9 @@ export class Contact implements Sayable {
     }
   }
 
+  /**
+   * @private
+   */
   public toString(): string {
     if (!this.obj) {
       return this.id
@@ -124,8 +127,14 @@ export class Contact implements Sayable {
     return this.obj.alias || this.obj.name || this.id
   }
 
+  /**
+   * @private
+   */
   public toStringEx() { return `Contact(${this.obj && this.obj.name}[${this.id}])` }
 
+  /**
+   * @private
+   */
   private parse(rawObj: ContactRawObj): ContactObj | null {
     if (!rawObj || !rawObj.UserName) {
       log.warn('Contact', 'parse() got empty rawObj!')
@@ -348,8 +357,14 @@ export class Contact implements Sayable {
     }
   }
 
+  /**
+   * @private
+   */
   public get(prop)  { return this.obj && this.obj[prop] }
 
+  /**
+   * @private
+   */
   public isReady(): boolean {
     return !!(this.obj && this.obj.id && this.obj.name)
   }
@@ -382,6 +397,9 @@ export class Contact implements Sayable {
   //   return this.load()
   // }
 
+  /**
+   * @private
+   */
   public async ready(contactGetter?: (id: string) => Promise<ContactRawObj>): Promise<this> {
     log.silly('Contact', 'ready(' + (contactGetter ? typeof contactGetter : '') + ')')
     if (!this.id) {
@@ -416,11 +434,17 @@ export class Contact implements Sayable {
     }
   }
 
+  /**
+   * @private
+   */
   public dumpRaw() {
     console.error('======= dump raw contact =======')
     Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj[k]}`))
   }
 
+  /**
+   * @private
+   */
   public dump()    {
     console.error('======= dump contact =======')
     Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj && this.obj[k]}`))
@@ -655,6 +679,9 @@ export class Contact implements Sayable {
                   })
   }
 
+  /**
+   * @deprecated
+   */
   // function should be deprecated
   public remark(newRemark?: string|null): Promise<boolean> | string | null {
     log.warn('Contact', 'remark(%s) DEPRECATED, use alias(%s) instead.')

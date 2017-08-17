@@ -596,7 +596,6 @@ export class Wechaty extends EventEmitter implements Sayable {
   }
 
   /**
-   * @todo document me
    * @private
    */
   public ding() {

@@ -212,7 +212,14 @@ export enum MsgType {
 }
 
 export class Message implements Sayable {
+  /**
+   * @private
+   */
   public static counter = 0
+
+  /**
+   * @private
+   */
   public _counter: number
 
   // DEPRECATED: TypeScript ENUM did this for us 201705
@@ -242,14 +249,26 @@ export class Message implements Sayable {
   //   RECALLED:           10002,
   // }
 
+  /**
+   * @private
+   */
   public readonly id: string
 
+  /**
+   * @private
+   */
   public obj = <MsgObj>{}
 
+  /**
+   * @private
+   */
   public readyStream(): Promise<Readable> {
     throw Error('abstract method')
   }
 
+  /**
+   * @private
+   */
   public filename(): string {
     throw Error('not a media message')
   }
@@ -270,6 +289,9 @@ export class Message implements Sayable {
     this.id = this.obj.id
   }
 
+  /**
+   * @private
+   */
   // Transform rawObj to local obj
   private parse(rawObj): MsgObj {
     const obj: MsgObj = {
@@ -301,20 +323,35 @@ export class Message implements Sayable {
 
     return obj
   }
+
+  /**
+   * @private
+   */
   public toString() {
     return UtilLib.plainText(this.obj.content)
   }
+
+  /**
+   * @private
+   */
   public toStringDigest() {
     const text = UtilLib.digestEmoji(this.obj.digest)
     return '{' + this.typeEx() + '}' + text
   }
 
+  /**
+   * @private
+   */
   public toStringEx() {
     let s = `${this.constructor.name}#${this._counter}`
     s += '(' + this.getSenderString()
     s += ':' + this.getContentString() + ')'
     return s
   }
+
+  /**
+   * @private
+   */
   public getSenderString() {
     const fromName  = Contact.load(this.obj.from).name()
     const roomTopic = this.obj.room
@@ -322,6 +359,10 @@ export class Message implements Sayable {
                   : ''
     return `<${fromName}${roomTopic}>`
   }
+
+  /**
+   * @private
+   */
   public getContentString() {
     let content = UtilLib.plainText(this.obj.content)
     if (content.length > 20) { content = content.substring(0, 17) + '...' }
@@ -329,19 +370,16 @@ export class Message implements Sayable {
   }
 
   /**
-   *
    * @private
    */
   public from(contact: Contact): void
 
   /**
-   *
    * @private
    */
   public from(id: string): void
 
   /**
-   *
    * Get the sender from a message.
    * @returns {Contact}
    */
@@ -635,6 +673,9 @@ export class Message implements Sayable {
     return contactList
   }
 
+  /**
+   * @private
+   */
   public async ready(): Promise<void> {
     log.silly('Message', 'ready()')
 
@@ -688,19 +729,32 @@ export class Message implements Sayable {
     return this
   }
 
+  /**
+   * @private
+   */
   public dump() {
     console.error('======= dump message =======')
     Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj[k]}`))
   }
+
+  /**
+   * @private
+   */
   public dumpRaw() {
     console.error('======= dump raw message =======')
     Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj && this.rawObj[k]}`))
   }
 
+  /**
+   * @private
+   */
   public static async find(query) {
     return Promise.resolve(new Message(<MsgRawObj>{MsgId: '-1'}))
   }
 
+  /**
+   * @private
+   */
   public static async findAll(query) {
     return Promise.resolve([
       new Message   (<MsgRawObj>{MsgId: '-2'}),
@@ -804,12 +858,34 @@ export class Message implements Sayable {
 // Message.initType()
 
 export class MediaMessage extends Message {
+  /**
+   * @private
+   */
   private bridge: Bridge
+
+  /**
+   * @private
+   */
   private filePath: string
+
+  /**
+   * @private
+   */
   private fileName: string // 'music'
+
+  /**
+   * @private
+   */
   private fileExt: string // 'mp3'
 
+  /**
+   * @private
+   */
   constructor(rawObj: Object)
+
+  /**
+   * @private
+   */
   constructor(filePath: string)
 
   constructor(rawObjOrFilePath: Object | string) {
@@ -831,6 +907,9 @@ export class MediaMessage extends Message {
                     .bridge
   }
 
+  /**
+   * @private
+   */
   public async ready(): Promise<void> {
     log.silly('MediaMessage', 'ready()')
 
@@ -996,6 +1075,9 @@ export class MediaMessage extends Message {
   //   })
   // }
 
+  /**
+   * @private
+   */
   public async readyStream(): Promise<Readable> {
     if (this.filePath)
       return fs.createReadStream(this.filePath)

@@ -104,8 +104,15 @@ export class Room extends EventEmitter implements Sayable {
    * @private
    */
   public toString()    { return this.id }
+
+  /**
+   * @private
+   */
   public toStringEx()  { return `Room(${this.obj && this.obj.topic}[${this.id}])` }
 
+  /**
+   * @private
+   */
   public isReady(): boolean {
     return !!(this.obj && this.obj.memberList && this.obj.memberList.length)
   }
@@ -124,6 +131,9 @@ export class Room extends EventEmitter implements Sayable {
     return
   }
 
+  /**
+   * @private
+   */
   private async readyAllMembers(memberList: RoomRawMember[]): Promise<void> {
     for (const member of memberList) {
       const contact = Contact.load(member.UserName)
@@ -132,6 +142,9 @@ export class Room extends EventEmitter implements Sayable {
     return
   }
 
+  /**
+   * @private
+   */
   public async ready(contactGetter?: (id: string) => Promise<any>): Promise<Room> {
     log.silly('Room', 'ready(%s)', contactGetter ? contactGetter.constructor.name : '')
     if (!this.id) {
@@ -237,19 +250,11 @@ export class Room extends EventEmitter implements Sayable {
 
   /**
    * @private
-   *
-   * @param {'EVENT_PARAM_ERROR'} event
-   * @param {() => void} listener
-   * @returns {this}
    */
   public on(event: 'EVENT_PARAM_ERROR', listener: () => void): this
 
   /**
    * @private
-   *
-   * @param {RoomEventName} event
-   * @param {(...args: any[]) => any} listener
-   * @returns {this}
    */
   public on(event: RoomEventName, listener: (...args: any[]) => any): this {
     log.verbose('Room', 'on(%s, %s)', event, typeof listener)
@@ -341,6 +346,9 @@ export class Room extends EventEmitter implements Sayable {
                   .send(m)
   }
 
+  /**
+   * @private
+   */
   public get(prop): string { return (this.obj && this.obj[prop]) || (this.dirtyObj && this.dirtyObj[prop]) }
 
   /**
@@ -371,6 +379,9 @@ export class Room extends EventEmitter implements Sayable {
     }
   }
 
+  /**
+   * @private
+   */
   private parseMap(parseContent: NameType, memberList?: RoomRawMember[]): Map<string, string> {
     const mapList: Map<string, string> = new Map<string, string>()
     if (memberList && memberList.map) {
@@ -403,10 +414,17 @@ export class Room extends EventEmitter implements Sayable {
     return mapList
   }
 
+  /**
+   * @private
+   */
   public dumpRaw() {
     console.error('======= dump raw Room =======')
     Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj[k]}`))
   }
+
+  /**
+   * @private
+   */
   public dump() {
     console.error('======= dump Room =======')
     Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj && this.obj[k]}`))
@@ -476,6 +494,9 @@ export class Room extends EventEmitter implements Sayable {
     return n
   }
 
+  /**
+   * @private
+   */
   private delLocal(contact: Contact): number {
     log.verbose('Room', 'delLocal(%s)', contact)
 
@@ -497,6 +518,9 @@ export class Room extends EventEmitter implements Sayable {
     return 0
   }
 
+  /**
+   * @private
+   */
   public quit() {
     throw new Error('wx web not implement yet')
     // WechatyBro.glue.chatroomFactory.quit("@@1c066dfcab4ef467cd0a8da8bec90880035aa46526c44f504a83172a9086a5f7"
