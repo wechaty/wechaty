@@ -27,12 +27,6 @@ import * as url   from 'url'
 import { MsgType } from './message'
 import { log } from './config'
 
-/**
- * bug compatible with:
- * https://github.com/wechaty/wechaty/issues/40#issuecomment-252802084
- */
-// import * as ws from 'ws'
-
 export class UtilLib {
   public static stripHtml(html?: string): string {
     if (!html) {

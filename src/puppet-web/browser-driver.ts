@@ -114,6 +114,7 @@ export class BrowserDriver {
         '--headless', // https://developers.google.com/web/updates/2017/04/headless-chrome
         '--homepage=about:blank',
         '--no-sandbox',
+        // '--remote-debugging-port=9222',  // will conflict with webdriver
       ],  // issue #26 for run inside docker
     }
     if (config.dockerMode) {
