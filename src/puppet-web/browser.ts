@@ -29,13 +29,15 @@ import {
   config,
   HeadName,
   log,
-}                         from '../config'
+}                           from '../config'
 
 import {
   BrowserCookie,
-  CookieType,
-}                         from './browser-cookie'
-import { BrowserDriver }  from './browser-driver'
+}                           from './browser-cookie'
+import {
+  BrowserDriver,
+  IWebDriverOptionsCookie,
+}                           from './browser-driver'
 
 export interface BrowserSetting {
   head:         HeadName,
@@ -504,10 +506,10 @@ export class Browser extends EventEmitter {
     return dead
   }
 
-  public addCookie(cookies: CookieType[]):  Promise<void>
-  public addCookie(cookie:  CookieType):    Promise<void>
+  public addCookie(cookies: IWebDriverOptionsCookie[]):  Promise<void>
+  public addCookie(cookie:  IWebDriverOptionsCookie):    Promise<void>
 
-  public addCookie(cookie:  CookieType|CookieType[]): Promise<void> {
+  public addCookie(cookie:  IWebDriverOptionsCookie | IWebDriverOptionsCookie[]): Promise<void> {
     return this.cookie.add(cookie)
   }
 

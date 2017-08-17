@@ -19,11 +19,12 @@
 import {
   Builder,
   Capabilities,
+  IWebDriverOptionsCookie,
   logging,
   Navigation,
   Options,
-  WebDriver,
   promise as promiseManager,
+  WebDriver,
 }                             from 'selenium-webdriver'
 
 import {
@@ -395,3 +396,6 @@ export class BrowserDriver {
 }
 
 // export default BrowserDriver
+export {
+  IWebDriverOptionsCookie,
+}
