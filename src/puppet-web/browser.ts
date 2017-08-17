@@ -16,14 +16,10 @@
  *   limitations under the License.
  *
  */
-const psTree = require('ps-tree')
-
 import { EventEmitter } from 'events'
-
+const psTree            = require('ps-tree')
+const retryPromise      = require('retry-promise').default // https://github.com/olalonde/retry-promise
 import { StateSwitch }  from 'state-switch'
-
-/* tslint:disable:no-var-requires */
-const retryPromise  = require('retry-promise').default // https://github.com/olalonde/retry-promise
 
 import {
   config,
@@ -47,9 +43,7 @@ export interface BrowserSetting {
 export class Browser extends EventEmitter {
 
   private cookie: BrowserCookie
-  public driver: BrowserDriver
-
-  // public hostname: string
+  public driver:  BrowserDriver
 
   public state = new StateSwitch<'open', 'close'>('Browser', 'close', log)
 
