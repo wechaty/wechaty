@@ -175,7 +175,7 @@ export class Room extends EventEmitter implements Sayable {
   /**
    * Get room leave event, emitted when bot remove someone from the room or someone remove the bot from the room.
    * If both personA and personB are not the bot itselt, the event cannot be fired if personA remove personB from the room
-   * This is Sayable for all listeners.
+   * `this` is Sayable for all listeners.
    * Which means there will be a this.say() the method inside listener call,
    * you can use it sending a message to filehelper, just for logging/reporting usage for your convenience.
    * @param {'leave'} event
@@ -196,7 +196,7 @@ export class Room extends EventEmitter implements Sayable {
 
   /**
    * Get room join event, emitted when someone join the room
-   * This is Sayable for all listeners.
+   * `this` is Sayable for all listeners.
    * Which means there will be a this.say() the method inside listener call,
    * you can use it sending a message to filehelper, just for logging/reporting usage for your convenience.
    *
@@ -217,7 +217,7 @@ export class Room extends EventEmitter implements Sayable {
 
   /**
    * Get topic event, emitted when someone change room topic
-   * This is Sayable for all listeners.
+   * `this` is Sayable for all listeners.
    * Which means there will be a this.say() the method inside listener call,
    * you can use it sending a message to filehelper, just for logging/reporting usage for your convenience.
    *
@@ -236,10 +236,7 @@ export class Room extends EventEmitter implements Sayable {
   public on(event: 'topic', listener: (this: Room, topic: string, oldTopic: string, changer: Contact) => void): this
 
   /**
-   * Get EVENT_PARAM_ERROR event
-   * This is Sayable for all listeners.
-   * Which means there will be a this.say() the method inside listener call,
-   * you can use it sending a message to filehelper, just for logging/reporting usage for your convenience.
+   * @private
    *
    * @param {'EVENT_PARAM_ERROR'} event
    * @param {() => void} listener
@@ -248,10 +245,7 @@ export class Room extends EventEmitter implements Sayable {
   public on(event: 'EVENT_PARAM_ERROR', listener: () => void): this
 
   /**
-   * Get RoomEventName event
-   * This is Sayable for all listeners.
-   * Which means there will be a this.say() the method inside listener call,
-   * you can use it sending a message to filehelper, just for logging/reporting usage for your convenience.
+   * @private
    *
    * @param {RoomEventName} event
    * @param {(...args: any[]) => any} listener
@@ -270,8 +264,10 @@ export class Room extends EventEmitter implements Sayable {
    * @param {MediaMessage} mediaMessage
    * @example
    * ```ts
-   * const room = await Room.find({name: 'wechaty'}) // change 'wechaty' to any of your room in wechat
-   * await room.say('/test.jpg') // put the filePath you want to send here
+   * // change 'wechaty' to any of your room in wechat
+   * const room = await Room.find({name: 'wechaty'})
+   * // put the filePath you want to send here
+   * await room.say(new MediaMessage('/test.jpg'))
    * ```
    */
   public say(mediaMessage: MediaMessage)
@@ -282,7 +278,8 @@ export class Room extends EventEmitter implements Sayable {
    * @param {string} content
    * @example
    * ```ts
-   * const room = await Room.find({name: 'wechaty'}) // change 'wechaty' to any of your room in wechat
+   * // change 'wechaty' to any of your room in wechat
+   * const room = await Room.find({name: 'wechaty'})
    * await room.say('Hello world!')
    * ```
    */
@@ -295,8 +292,10 @@ export class Room extends EventEmitter implements Sayable {
    * @param {Contact} replyTo
    * @example
    * ```ts
-   * const contact = await Contact.find({name: 'lijiarui'}) // change 'lijiarui' to any of the room member/
-   * const room = await Room.find({name: 'wechaty'}) // change 'wechaty' to any of your room in wechat
+   * // change 'lijiarui' to any of the room member
+   * const contact = await Contact.find({name: 'lijiarui'})
+   * // change 'wechaty' to any of your room in wechat
+   * const room = await Room.find({name: 'wechaty'})
    * await room.say('Hello world!', contact)
    * ```
    */
@@ -679,7 +678,7 @@ export class Room extends EventEmitter implements Sayable {
   public memberAll(filter: MemberQueryFilter): Contact[]
 
   /**
-   * find member by name | roomAlias(alias) | contactAlias
+   * find member by name | roomAlias(alias) | contactAlias.
    * when use memberAll(name:string), return all matched members, including name, roomAlias, contactAlias
    * @param {string} name
    * @returns {Contact[]}
@@ -767,13 +766,13 @@ export class Room extends EventEmitter implements Sayable {
 
   /**
    * Find member by name | roomAlias(alias) | contactAlias.
-   * It got many, return the first
+   * If got many, returns the first
    * @param {string} name
    * @returns {(Contact | null)}
    * @example
    * ```ts
-   * // change 'wechaty' to any room in your wechat
-   * const room = await Room.find({topic: wechaty})
+   * // change 'wechaty' to any room name in your wechat
+   * const room = await Room.find({topic: 'wechaty'})
    * if (room) {
    *   // change 'lijiarui' to any room member in your wechat
    *   const member = room.member('lijiarui')
@@ -798,8 +797,8 @@ export class Room extends EventEmitter implements Sayable {
    * @returns {(Contact | null)}
    * @example
    * ```ts
-   * // change 'wechaty' to any room in your wechat
-   * const room = await Room.find({topic: wechaty})
+   * // change 'wechaty' to any room name in your wechat
+   * const room = await Room.find({topic: 'wechaty'})
    * if (room) {
    *   // change 'lijiarui' to any room member in your wechat
    *   const member = room.member({name: 'lijiarui'})
@@ -893,7 +892,7 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * Find room by topic, return all the match room
+   * Find room by topic, return all the matched room
    *
    * @static
    * @param {RoomQueryFilter} [query]
@@ -962,11 +961,7 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * Find the room by roomId
-   *
-   * @static
-   * @param {string} id
-   * @returns {Room}
+   * @private
    */
   public static load(id: string): Room {
     if (!id) {

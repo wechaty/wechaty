@@ -196,7 +196,7 @@ export class Contact implements Sayable {
    * Check if contact is stranger
    *
    * @returns {boolean | null}
-   * True for not friend of the bot, False for friend of the bot, null for cannot get the info.
+   * True for not friend of the bot, False for friend of the bot, null for unknown.
    *
    * @example
    * ```ts
@@ -212,7 +212,7 @@ export class Contact implements Sayable {
    * Check if it's a offical account
    *
    * @returns {boolean|null}
-   * True for official account, Flase for contact is not a official account
+   * True for official account, Flase for contact is not a official account, null for unknown
    *
    * @example
    * ```ts
@@ -265,7 +265,7 @@ export class Contact implements Sayable {
    * Check if the contact is star contact.
    *
    * @returns {boolean}
-   * True for star friend, False for no star friend, null for cannot get the info.
+   * True for star friend, False for no star friend.
    *
    * @example
    * ```ts

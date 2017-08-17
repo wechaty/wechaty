@@ -209,10 +209,8 @@ export class Wechaty extends EventEmitter implements Sayable {
    * @returns {Promise<void>}
    * @example
    * ```ts
-   * wechaty.init()
-   * .then(() => {
-   *   // do other stuff with bot here
-   * }
+   * await bot.init()
+   * // do other stuff with bot here
    * ```
    */
   public async init(): Promise<void> {
@@ -274,8 +272,13 @@ export class Wechaty extends EventEmitter implements Sayable {
    * ```
    */
   public on(event: 'friend'     , listener: (this: Wechaty, friend: Contact, request?: FriendRequest) => void): this
+
   /**
-   * @todo document me
+   * Get bot's heartbeat
+   *
+   * @param {'heartbeat'} event
+   * @param {(this: Wechaty, data: any) => void} listener
+   * @returns {this}
    */
   public on(event: 'heartbeat'  , listener: (this: Wechaty, data: any) => void): this
 
@@ -325,7 +328,7 @@ export class Wechaty extends EventEmitter implements Sayable {
   public on(event: 'message'    , listener: (this: Wechaty, message: Message) => void): this
 
   /**
-   * Emit when anyone join the room
+   * Emit when anyone join any room
    *
    * @param {'room-join'} event
    * @param {(this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void} listener
@@ -375,7 +378,7 @@ export class Wechaty extends EventEmitter implements Sayable {
   /**
    * A scan event will be emitted when the bot needs to show you a QR Code for scanning.
    * 1. URL: {String} the QR code image URL
-   * 2.code: {Number} the scan status code. some known status of the code list here is:
+   * 2. code: {Number} the scan status code. some known status of the code list here is:
    * ** 0 initial
    * ** 200 login confirmed
    * ** 201 scaned, wait for confirm
@@ -480,7 +483,7 @@ export class Wechaty extends EventEmitter implements Sayable {
    * @returns {Promise<void>}
    * @example
    * ```ts
-   * Wechaty.quit()
+   * await bot.quit()
    * ```
    */
   public async quit(): Promise<void> {
@@ -519,7 +522,7 @@ export class Wechaty extends EventEmitter implements Sayable {
    * @returns {Promise<void>}
    * @example
    * ```ts
-   * Wechaty.logout()
+   * await bot.logout()
    * ```
    */
   public async logout(): Promise<void>  {
@@ -541,7 +544,7 @@ export class Wechaty extends EventEmitter implements Sayable {
    * @returns {Contact}
    * @example
    * ```ts
-   * const contact = Wechaty.self()
+   * const contact = bot.self()
    * console.log(`Bot is ${contact.name()}`)
    * ```
    */

@@ -330,17 +330,13 @@ export class Message implements Sayable {
 
   /**
    *
-   * Set a sender to the message
-   * @param {Contact} contact
-   * @returns {void}
+   * @private
    */
   public from(contact: Contact): void
 
   /**
    *
-   * Set a sender to the message by contact id
-   * @param {string} id
-   * @returns {void}
+   * @private
    */
   public from(id: string): void
 
@@ -731,10 +727,8 @@ export class Message implements Sayable {
    * const bot = Wechaty.instance()
    * bot
    * .on('message', async m => {
-   *   if (/^(ding|ping|bing|code)$/i.test(m.content())) {
-   *     await m.say('dong')
-   *     console.log('Bot REPLY: dong')
-   *   }
+   *   await m.say('hello world')
+   *   console.log('Bot REPLY: hello world')
    * })
    * ```
    * @see https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts
@@ -752,7 +746,7 @@ export class Message implements Sayable {
    * const bot = Wechaty.instance()
    * bot
    * .on('message', async m => {
-   *   if (/^(ding|ping|bing|code)$/i.test(m.content())) {
+   *   if (/^ding$/i.test(m.content())) {
    *     await m.say(new MediaMessage(__dirname + '/wechaty.png'))
    *     console.log('Bot REPLY: Image')
    *   }
@@ -922,10 +916,8 @@ export class MediaMessage extends Message {
    * @example
    * ```ts
    * .on('message', async function (m) {
-   *   if (m instanceof MediaMessage && m.rawObj ) {
-   *     console.log('======get m.ext()=======')
-   *     const mediaMsg = new MediaMessage(m.rawObj)
-   *     console.log(mediaMsg.ext())
+   *   if (m instanceof MediaMessage) {
+   *     console.log('media message file name extention is: ' + m.ext())
    *   }
    * })
    * ```
@@ -971,10 +963,8 @@ export class MediaMessage extends Message {
    * @example
    * ```ts
    * .on('message', async function (m) {
-   *   if (m instanceof MediaMessage && m.rawObj) {
-   *     console.log('======get m.filename()=======')
-   *     const mediaMsg = new MediaMessage(m.rawObj)
-   *     console.log(mediaMsg.filename())
+   *   if (m instanceof MediaMessage) {
+   *     console.log('media message file name is: ' + m.filename())
    *   }
    * })
    * ```
