@@ -21,7 +21,8 @@ install:
 test_script:
   - node --version
   - npm --version
-  - reg query "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall\Google Chrome" /v DisplayVersion
+  # https://bugs.chromium.org/p/chromium/issues/detail?id=158372#c6
+  - wmic datafile where name="C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe" get Version /value
   - npm run lint
   - npm run dist
   - npm run test:chrome:fast
