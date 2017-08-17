@@ -123,7 +123,6 @@ export class BrowserCookie {
 
     try {
       let cookies: IWebDriverOptionsCookie[] = await this.driver.manage().getCookies()
-      console.log(cookies)
       cookies = cookieFilter(cookies)
 
       // log.silly('PuppetWebBrowserCookie', 'save() saving %d cookies for session: %s', cookies.length
