@@ -873,8 +873,39 @@ export class MediaMessage extends Message {
   }
 
   /**
+   * Forward the received message.
    *
-   * @param sendTo Room or Contact
+   * The types of messages that can be forwarded are as follows:
+   *
+   * The return value of {@link Message#type} matches one of the following types:
+   * ```json
+   * MsgType {
+   *   TEXT                = 1,
+   *   IMAGE               = 3,
+   *   VIDEO               = 43,
+   *   EMOTICON            = 47,
+   *   LOCATION            = 48,
+   *   APP                 = 49,
+   *   MICROVIDEO          = 62,
+   * }
+   *
+   * When the return value of {@link Message#type} is `MsgType.APP`, the return value of {@link Message#typeApp} matches one of the following types:
+   * ```json
+   * AppMsgType {
+   *   TEXT                     = 1,
+   *   IMG                      = 2,
+   *   VIDEO                    = 4,
+   *   ATTACH                   = 6,
+   *   EMOJI                    = 8,
+   * }
+   * ```
+   * But, it should be noted that when forwarding ATTACH type message, if the file size is greater than 25Mb, the forwarding will fail.
+   * The reason is that the server limits the forwarding of files above 25Mb. You need to download the file and use `new MediaMessage (file)` to send the file.
+   *
+   * @param {(Room | Contact)} sendTo
+   * The recipient of the message, the room, or the contact
+   * @returns {Promise<boolean>}
+   * @memberof MediaMessage
    */
   public forward(room: Room): Promise<boolean>
   public forward(contact: Contact): Promise<boolean>
