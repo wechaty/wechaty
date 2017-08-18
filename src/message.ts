@@ -604,6 +604,34 @@ export class Message implements Sayable {
     ])
   }
 
+  /**
+   * Return the recalled message id
+   *
+   * Valid only if {@link Message#type} is equal to `MsgType.RECALLED`
+   *
+   * @returns {string} msgId
+   * @memberof Message
+   * @example
+   * ```javascript
+   * Bot.on('message', async m => {
+   *   if (m.type() === MsgType.RECALLED) {
+   *     await m.say(`You recalled a message, message ID：${m.getRevokeId()}`)
+   *   }
+   * })
+   * ```
+   */
+  public getRevokeId(): string {
+    if (this.obj.type === MsgType.RECALLED) {
+      try {
+        const ret = UtilLib.unescapeHtml(this.obj.content).match(/<msgid>(\w+)<\/msgid>/)
+        return ret ? ret[1] : ''
+      } catch (e) {
+        log.error('Message', 'getRevokeId() exception: %s', e.stack)
+      }
+    }
+    return ''
+  }
+
   // DEPRECATED: TypeScript ENUM did this for us 201705
   // public static initType() {
   //   Object.keys(Message.TYPE).forEach(k => {
