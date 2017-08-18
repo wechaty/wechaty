@@ -263,7 +263,7 @@ export class BrowserDriver {
 
     /* tslint:disable:jsdoc-format */
 		/**
-		 *  FIXME: ISSUE #21 - https://github.com/zixia/wechaty/issues/21
+		 *  FIXME: ISSUE #21 - https://github.com/chatie/wechaty/issues/21
 	 	 *
  	 	 *	http://phantomjs.org/api/webpage/handler/on-resource-requested.html
 		 *	http://stackoverflow.com/a/29544970/1123955

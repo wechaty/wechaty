@@ -79,10 +79,10 @@ export interface MemberQueryFilter {
  *
  * wechaty: Wechat for Bot. and for human who talk to bot/robot
  *
- * Licenst: ISC
- * https://github.com/zixia/wechaty
+ * Licenst: Apache-2.0
+ * https://github.com/chatie/wechaty
  *
- * Add/Del/Topic: https://github.com/wechaty/wechaty/issues/32
+ * Add/Del/Topic: https://github.com/chatie/wechaty/issues/32
  *
  */
 export class Room extends EventEmitter implements Sayable {

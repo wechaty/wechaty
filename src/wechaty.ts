@@ -61,13 +61,11 @@ export type WechatyEventName = 'error'
 /**
  *
  * Wechaty: Wechat for ChatBots.
- * Connect ChatBots
  *
- * Class Wechaty
- *
- * Licenst: ISC
- * https://github.com/zixia/wechaty
- *
+ * Wechaty is a Bot Framework for Wechat **Personal** Account
+ * which can help you create a bot in 6 lines of javascript
+ * by easy to use API, with cross-platform support for
+ * Linux/Mac/Windows.
  *
  * **Example**
  *
