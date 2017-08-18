@@ -64,7 +64,6 @@ export class BrowserCookie {
     // }
 
     try {
-      // `as any as DriverCookie` because selenium-webdriver @types is outdated with 2.x, where we r using 3.0
       const cookies = await this.driver.manage().getCookies()
       log.silly('PuppetWebBrowserCookie', 'read() %s', cookies.map(c => c.name).join(','))
       return cookies
@@ -159,24 +158,14 @@ export class BrowserCookie {
       return
     }
 
-    await new Promise((resolve, reject) => {
-      // let ps = arrify(this.add(cookies))
-      const ps: Promise<void>[] = []
-      ps.concat(this.add(cookies))
-
-      Promise.all(ps)
-      .then(() => {
-        log.verbose('PuppetWebBrowserCookie', 'loaded session(%d cookies) from %s', cookies.length, this.storeFile)
-        return resolve(cookies)
-      })
-      .catch(e => {
-        log.error('PuppetWebBrowserCookie', 'load() add() exception: %s', e.message)
-        return reject(e)
-      })
-    })
-
+    try {
+      await this.add(cookies)
+      log.verbose('PuppetWebBrowserCookie', 'loaded session(%d cookies) from %s', cookies.length, this.storeFile)
+    } catch (e) {
+      log.error('PuppetWebBrowserCookie', 'load() add() exception: %s', e.message)
+      throw e
+    }
     return
-
   }
 
   public getCookiesFromFile(): IWebDriverOptionsCookie[] | null {

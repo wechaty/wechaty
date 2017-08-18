@@ -66,7 +66,7 @@ test('Cookie smoke testing', async t => {
     path: '/',
     domain: '.chatie.io',
     secure: false,
-    expiry: 99999999999999,
+    expiry: 2133683026,
   },
   {
     name: 'wechaty1',
@@ -74,7 +74,7 @@ test('Cookie smoke testing', async t => {
     path: '/',
     domain: '.chatie.io',
     secure: false,
-    expiry: 99999999999999,
+    expiry: 2133683026,
   }]
 
   await browser.addCookie(EXPECTED_COOKIES)
@@ -131,7 +131,7 @@ test('Cookie save/load', async t => {
       path: '/',
       domain: '.chatie.io',
       secure: false,
-      expiry: 3133683026,
+      expiry: 2133683026,
     } as IWebDriverOptionsCookie
     const EXPECTED_NAME_REGEX = new RegExp('^' + EXPECTED_COOKIE.name + '$')
 
@@ -161,6 +161,7 @@ test('Cookie save/load', async t => {
 
     await browser.loadCookie() // .catch(() => { /* fail safe */ })
     const cookiesFromLoad = await browser.readCookie()
+    // XXX: circle ci sometimes fail at next line
     t.truthy(cookiesFromLoad.length, 'should get cookies after loadSession()')
     const cookieFromLoad = cookiesFromLoad.filter(c => EXPECTED_NAME_REGEX.test(c.name))
     t.is(cookieFromLoad[0].name, EXPECTED_COOKIE.name, 'cookie from loadSession() should has expected cookie')
