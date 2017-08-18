@@ -76,6 +76,7 @@
     glueToAngular()
     connectSocket()
     hookEvents()
+    hookProcess()
 
     checkScan()
 
@@ -378,6 +379,19 @@
     })
     return true
   }
+
+  function hookProcess() {
+    var chatFactory = WechatyBro.glue.chatFactory
+    var rootScope = WechatyBro.glue.rootScope
+    // hook chatFactory._recalledMsgProcess, resolve emit RECALLED type msg
+    chatFactory.__recalledMsgProcess = chatFactory._recalledMsgProcess
+    chatFactory._recalledMsgProcess = function (msg) {
+      var _this = this
+      _this.__recalledMsgProcess(msg)
+      _this.addChatMessage(msg)
+    }
+  }
+
   function connectSocket() {
     log('connectSocket()')
     if (typeof io !== 'function') {
