@@ -42,7 +42,7 @@ const welcome = `
 |                                     |___/
 
 =============== Powered by Wechaty ===============
--------- https://github.com/zixia/wechaty --------
+-------- https://github.com/chatie/wechaty --------
 
 I'm a bot, my super power is talk in Wechat.
 

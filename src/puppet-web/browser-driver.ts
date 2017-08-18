@@ -19,11 +19,12 @@
 import {
   Builder,
   Capabilities,
+  IWebDriverOptionsCookie,
   logging,
   Navigation,
   Options,
-  WebDriver,
   promise as promiseManager,
+  WebDriver,
 }                             from 'selenium-webdriver'
 
 import {
@@ -53,7 +54,7 @@ export class BrowserDriver {
   public async init(): Promise<void> {
     log.verbose('PuppetWebBrowserDriver', 'init() for head: %s', this.head)
 
-    switch (this.head) {
+    switch (this.head.toLowerCase()) {
       case 'phantomjs':
         this.driver = await this.getPhantomJsDriver()
         break
@@ -66,7 +67,11 @@ export class BrowserDriver {
         break
 
       case 'chrome':
-        this.driver = await this.getChromeDriver()
+        this.driver = await this.getChromeDriver(false) // headless = false
+        break
+
+      case 'chrome-headless':
+        this.driver = await this.getChromeDriver(true)  // headless = true
         break
 
       default: // unsupported browser head
@@ -83,36 +88,38 @@ export class BrowserDriver {
     return this.driver
   }
 
-  private async getChromeDriver(): Promise<WebDriver> {
+  private async getChromeDriver(headless = false): Promise<WebDriver> {
     log.verbose('PuppetWebBrowserDriver', 'getChromeDriver()')
 
-    /**
-     * http://stackoverflow.com/a/27733960/1123955
-     * issue #56
-     * only need under win32 with cygwin
-     * and will cause strange error:
-     *
-     */
-
-    /*
-    const chrome  = require('selenium-webdriver/chrome')
-    const path    = require('chromedriver').path
-
-    const service = new chrome.ServiceBuilder(path).build()
-    try {
-      chrome.setDefaultService(service)
-    } catch (e) { // fail safe
-       // `The previously configured ChromeDriver service is still running.`
-       // `You must shut it down before you may adjust its configuration.`
-    }
-   */
+    const HEADLESS_ARGS = [
+      // --allow-insecure-localhost: Require Chrome v62
+      // https://bugs.chromium.org/p/chromium/issues/detail?id=721739#c26
+      '--allow-insecure-localhost',
+      '--disable-gpu',
+      // --headless: Require Chrome v60
+      // https://developers.google.com/web/updates/2017/04/headless-chrome
+      '--headless',
+    ]
 
     const options = {
       args: [
         '--homepage=about:blank',
         '--no-sandbox',
+        // '--remote-debugging-port=9222',  // will conflict with webdriver
       ],  // issue #26 for run inside docker
+      // binary: '/opt/google/chrome-unstable/chrome',
     }
+
+    if (headless)  {
+      // ISSUE #739
+      // Chrome v62 or above is required
+      // because when we are using --headless args,
+      // chrome version below 62 will not allow the
+      // self-signed certificate to be used when
+      // visiting https://localhost.
+      options.args.concat(HEADLESS_ARGS)
+    }
+
     if (config.dockerMode) {
       log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() wechaty in docker confirmed(should not show this in CI)')
       options['binary'] = config.CMD_CHROMIUM
@@ -256,7 +263,7 @@ export class BrowserDriver {
 
     /* tslint:disable:jsdoc-format */
 		/**
-		 *  FIXME: ISSUE #21 - https://github.com/zixia/wechaty/issues/21
+		 *  FIXME: ISSUE #21 - https://github.com/chatie/wechaty/issues/21
 	 	 *
  	 	 *	http://phantomjs.org/api/webpage/handler/on-resource-requested.html
 		 *	http://stackoverflow.com/a/29544970/1123955
@@ -393,3 +400,6 @@ export class BrowserDriver {
 }
 
 // export default BrowserDriver
+export {
+  IWebDriverOptionsCookie,
+}

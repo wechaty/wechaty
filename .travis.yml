@@ -5,16 +5,18 @@ language: node_js
 node_js:
   - "7"
   - "8"
-  
+
 os:
   - linux
   - osx
 
 addons:
+  chrome: stable
   apt:
     packages:
-      - xvfb
+      - jq
       - shellcheck
+      - xvfb
 
 cache:
   directories:
@@ -33,11 +35,9 @@ install:
   - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then export DISPLAY=':99.0'; fi
   - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then sh -e /etc/init.d/xvfb start; fi
 
-  # - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then sudo apt-get update; fi
-  # - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then sudo apt-get install -y shellcheck; fi
-  - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb; fi
-  - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then sudo dpkg -i google-chrome*.deb; fi
-  - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then sudo apt-get install jq; fi
+  # - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb; fi
+  # - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then sudo dpkg -i google-chrome*.deb; fi
+  # - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then sudo apt-get install jq; fi
 
   - npm install phantomjs-prebuilt
   - npm --progress false --loglevel warn install
@@ -46,6 +46,8 @@ script:
   - echo $TRAVIS_OS_NAME
   - node --version
   - npm --version
+  - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then google-chrome --version; fi
+  - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --version; fi
   - shellcheck bin/*.sh
   - npm run lint
   - npm run dist
@@ -77,4 +79,3 @@ deploy:
   email: zixia@zixia.net
   api_key: "$NPM_TOKEN"
   skip_cleanup: true
-

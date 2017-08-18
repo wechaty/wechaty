@@ -16,14 +16,17 @@
  *   limitations under the License.
  *
  */
-import { test } from 'ava'
+import { test }       from 'ava'
 
 import {
   config,
   log,
-}                 from '../../src/config'
-import PuppetWeb  from '../../src/puppet-web'
-import PuppetWebServer     from '../../src/puppet-web/server'
+}                     from '../../src/config'
+import PuppetWeb      from '../../src/puppet-web'
+import {
+  PuppetWebServer,
+  WechatyBroEvent,
+}                     from '../../src/puppet-web/server'
 
 /**
  * the reason why use `test.serial` here is:
@@ -85,7 +88,7 @@ test.serial('server/browser socketio ding', async t => {
 
   /////////////////////////////////////////////////////////////////////////////
 
-  function dingSocket(server: PuppetWebServer) {
+  function dingSocket(server: PuppetWebServer): Promise<string> {
     const maxTime   = 60000 // 60s
     const waitTime  = 3000
     let   totalTime = 0
@@ -112,15 +115,21 @@ test.serial('server/browser socketio ding', async t => {
           setTimeout(testDing, waitTime)
           return
         }
-        log.silly('TestPuppetWeb', 'dingSocket() server.socketClient: %s', server.socketClient)
-        server.socketClient.once('dong', data => {
+
+        // server.socketClient is set
+        log.silly('TestPuppetWeb', 'dingSocket() server.socketClient: %s', server.socketClient.readyState)
+        server.once('dong', data => {
           log.verbose('TestPuppetWeb', 'socket recv event dong: ' + data)
 
           clearTimeout(timeoutTimer)
           return resolve(data)
 
         })
-        server.socketClient.emit('ding', EXPECTED_DING_DATA)
+        const obj: WechatyBroEvent = {
+          name: 'ding',
+          data: EXPECTED_DING_DATA,
+        }
+        server.socketClient.send(JSON.stringify(obj))
       }
     })
   }

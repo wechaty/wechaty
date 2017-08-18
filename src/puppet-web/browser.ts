@@ -16,26 +16,24 @@
  *   limitations under the License.
  *
  */
-const psTree = require('ps-tree')
-
 import { EventEmitter } from 'events'
-
+const psTree            = require('ps-tree')
+const retryPromise      = require('retry-promise').default // https://github.com/olalonde/retry-promise
 import { StateSwitch }  from 'state-switch'
-
-/* tslint:disable:no-var-requires */
-const retryPromise  = require('retry-promise').default // https://github.com/olalonde/retry-promise
 
 import {
   config,
   HeadName,
   log,
-}                         from '../config'
+}                           from '../config'
 
 import {
   BrowserCookie,
-  CookieType,
-}                         from './browser-cookie'
-import { BrowserDriver }  from './browser-driver'
+}                           from './browser-cookie'
+import {
+  BrowserDriver,
+  IWebDriverOptionsCookie,
+}                           from './browser-driver'
 
 export interface BrowserSetting {
   head:         HeadName,
@@ -45,9 +43,7 @@ export interface BrowserSetting {
 export class Browser extends EventEmitter {
 
   private cookie: BrowserCookie
-  public driver: BrowserDriver
-
-  // public hostname: string
+  public driver:  BrowserDriver
 
   public state = new StateSwitch<'open', 'close'>('Browser', 'close', log)
 
@@ -504,10 +500,10 @@ export class Browser extends EventEmitter {
     return dead
   }
 
-  public addCookie(cookies: CookieType[]):  Promise<void>
-  public addCookie(cookie:  CookieType):    Promise<void>
+  public addCookie(cookies: IWebDriverOptionsCookie[]):  Promise<void>
+  public addCookie(cookie:  IWebDriverOptionsCookie):    Promise<void>
 
-  public addCookie(cookie:  CookieType|CookieType[]): Promise<void> {
+  public addCookie(cookie:  IWebDriverOptionsCookie | IWebDriverOptionsCookie[]): Promise<void> {
     return this.cookie.add(cookie)
   }
 
@@ -515,6 +511,10 @@ export class Browser extends EventEmitter {
   public loadCookie()   { return this.cookie.load()   }
   public readCookie()   { return this.cookie.read()   }
   public cleanCookie()  { return this.cookie.clean()  }
+}
+
+export {
+  IWebDriverOptionsCookie,
 }
 
 export default Browser

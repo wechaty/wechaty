@@ -16,7 +16,7 @@
  *   limitations under the License.
  *
  */
-import { test } from 'ava'
+import { test }   from 'ava'
 
 import {
   config,
