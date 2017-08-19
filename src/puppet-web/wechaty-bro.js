@@ -216,6 +216,7 @@
     var confFactory     = injector.get('confFactory')
     var emojiFactory    = injector.get('emojiFactory')
     var loginFactory    = injector.get('loginFactory')
+    var utilFactory     = injector.get('utilFactory')
 
     var http            = injector.get('$http')
     var state           = injector.get('$state')
@@ -269,6 +270,7 @@
       , contactFactory:  contactFactory
       , emojiFactory:    emojiFactory
       , loginFactory:    loginFactory
+      , utilFactory:     utilFactory
 
       , rootScope:    rootScope
       , appScope:     appScope
@@ -382,11 +384,28 @@
 
   function hookRecalledMsgProcess() {
     var chatFactory = WechatyBro.glue.chatFactory
+    var utilFactory = WechatyBro.glue.utilFactory
+    var confFactory = WechatyBro.glue.confFactory
     // hook chatFactory._recalledMsgProcess, resolve emit RECALLED type msg
     chatFactory.__recalledMsgProcess = chatFactory._recalledMsgProcess
-    chatFactory._recalledMsgProcess = function (msg) {
+    chatFactory._recalledMsgProcess = function(msg) {
       chatFactory.__recalledMsgProcess(msg)
-      WechatyBro.emit('message', msg)
+      var m = Object.assign({},msg)
+      var content = utilFactory.htmlDecode(m.MMActualContent)
+      content = utilFactory.encodeEmoji(content)
+      var revokemsg = utilFactory.xml2json(content).revokemsg
+      if (revokemsg.msgid) {
+        var chatMsgs = chatFactory.getChatMessage(m.MMPeerUserName)
+        var i = chatFactory._findMessageByMsgId(chatMsgs, revokemsg.msgid)
+        if (i > -1) {
+          m = chatMsgs[i]
+          m.MsgType = confFactory.MSGTYPE_RECALLED
+        } else {
+          m.MsgId = revokemsg.msgid
+          m.MMActualContent = m.Content = revokemsg.replacemsg.replace(/"/g,"")
+        }
+        WechatyBro.emit('message', m)
+      }
     }
   }
 

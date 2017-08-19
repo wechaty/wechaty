@@ -412,6 +412,7 @@ export class Message implements Sayable {
 
   /**
    * @todo document me
+   * If type is equal to `MsgType.RECALLED`, {@link Message#id} is the msgId of the recalled message.
    */
   public type(): MsgType {
     return this.obj.type
@@ -602,34 +603,6 @@ export class Message implements Sayable {
       new Message   (<MsgRawObj>{MsgId: '-2'}),
       new Message (<MsgRawObj>{MsgId: '-3'}),
     ])
-  }
-
-  /**
-   * Return the recalled message id
-   *
-   * Valid only if {@link Message#type} is equal to `MsgType.RECALLED`
-   *
-   * @returns {string} msgId
-   * @memberof Message
-   * @example
-   * ```javascript
-   * Bot.on('message', async m => {
-   *   if (m.type() === MsgType.RECALLED) {
-   *     await m.say(`You recalled a message, message ID：${m.getRevokeId()}`)
-   *   }
-   * })
-   * ```
-   */
-  public getRevokeId(): string {
-    if (this.obj.type === MsgType.RECALLED) {
-      try {
-        const ret = UtilLib.unescapeHtml(this.obj.content).match(/<msgid>(\w+)<\/msgid>/)
-        return ret ? ret[1] : ''
-      } catch (e) {
-        log.error('Message', 'getRevokeId() exception: %s', e.stack)
-      }
-    }
-    return ''
   }
 
   // DEPRECATED: TypeScript ENUM did this for us 201705
