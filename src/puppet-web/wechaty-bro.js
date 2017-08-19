@@ -386,7 +386,7 @@
     chatFactory.__recalledMsgProcess = chatFactory._recalledMsgProcess
     chatFactory._recalledMsgProcess = function (msg) {
       chatFactory.__recalledMsgProcess(msg)
-      chatFactory.addChatMessage(msg)
+      WechatyBro.emit('message', msg)
     }
   }
 
