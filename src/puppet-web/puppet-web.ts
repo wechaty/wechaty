@@ -740,11 +740,14 @@ export class PuppetWeb extends Puppet {
    * For issue #668
    */
   public async readyStable(): Promise<void> {
+    log.verbose('PuppetWeb', 'readyStable()')
     let counter = 0
 
     async function stable(resolve: Function): Promise<void> {
+      log.silly('PuppetWeb', 'readyStable() stable() counter=%d', counter)
       const contactList = await Contact.findAll()
       if (counter === contactList.length) {
+        log.verbose('PuppetWeb', 'readyStable() stable() READY')
         return resolve()
       }
       counter = contactList.length
@@ -754,7 +757,10 @@ export class PuppetWeb extends Puppet {
 
     return new Promise<void>((resolve, reject) => {
       setTimeout(
-        () => reject(new Error('timeout after 60 seconds')),
+        () => {
+          log.warn('PuppetWeb', 'readyStable() stable() reject at counter=%d', counter)
+          return reject(new Error('timeout after 60 seconds'))
+        },
         60 * 1000,
       ).unref() // wait for 1 min
 
