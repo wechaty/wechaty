@@ -30,6 +30,9 @@ import {
   PuppetWebServer,
   WechatyBroEvent,
 }                     from '../../src/puppet-web/server'
+import {
+  Bridge as PuppetWebBridge,
+}                     from '../../src/puppet-web/bridge'
 
 /**
  * the reason why use `test.serial` here is:
@@ -37,22 +40,13 @@ import {
  *  when `PuppteWeb.init()` and `PuppteWeb.quit()`
  */
 test.serial('login/logout events', async t => {
-  const pw = new PuppetWeb()
-  t.truthy(pw, 'should instantiated a PuppetWeb')
-
-  config.puppetInstance(pw)
-
-  const STUB_INIT_BROWSER = stub(pw, 'initBrowser')
+  const STUB_INIT_BROWSER = stub(PuppetWeb.prototype, 'initBrowser')
   STUB_INIT_BROWSER.resolves()
+  const STUB_BRIDGE_INIT = stub(PuppetWebBridge.prototype, 'init')
+  STUB_BRIDGE_INIT.resolves()
 
-  const STUB_QUIT = stub(pw, 'quit')
+  const STUB_QUIT = stub(PuppetWeb.prototype, 'quit')
   STUB_QUIT.resolves()
-
-  await pw.init()
-  t.pass('should be inited')
-  t.is(pw.logined() , false  , 'should be not logined')
-
-  // XXX find a better way to mock...
 
   const STUB_CONTACT_FIND_ALL = stub(Contact, 'findAll')
   STUB_CONTACT_FIND_ALL.onFirstCall().resolves([])
@@ -60,31 +54,51 @@ test.serial('login/logout events', async t => {
   STUB_CONTACT_FIND_ALL.onThirdCall().resolves([1, 2])
   STUB_CONTACT_FIND_ALL.resolves([1, 2, 3])
 
-  const STUB_BRIDGE_GET_USER_NAME = stub(pw.bridge, 'getUserName')
+  const STUB_BRIDGE_GET_USER_NAME = stub(PuppetWebBridge.prototype, 'getUserName')
   STUB_BRIDGE_GET_USER_NAME.resolves('mockedUserName')
   // pw.bridge.getUserName = function() { return Promise.resolve('mockedUserName') }
 
-  const STUB_GET_CONTACT = stub(pw, 'getContact')
+  const STUB_GET_CONTACT = stub(PuppetWeb.prototype, 'getContact')
   STUB_GET_CONTACT.resolves('dummy')
   // pw.getContact = function() { return Promise.resolve('dummy') }
 
-  const loginPromise = new Promise((res, rej) => pw.once('login', _ => res('loginFired')))
-  pw.server.emit('login')
-  t.is(await loginPromise, 'loginFired', 'should fired login event')
-  t.is(pw.logined(), true  , 'should be logined')
+  try {
+    const pw = new PuppetWeb()
+    t.truthy(pw, 'should instantiated a PuppetWeb')
 
-  t.truthy(STUB_BRIDGE_GET_USER_NAME.called,  'bridge.getUserName should be called')
-  t.truthy(STUB_GET_CONTACT.called,           'pw.getContact should be called')
+    config.puppetInstance(pw)
 
-  t.truthy(STUB_CONTACT_FIND_ALL.called,      'contactFind stub should be called')
-  t.is(STUB_CONTACT_FIND_ALL.callCount, 5,    'should call stubContactFind 5 times')
+    await pw.init()
+    t.pass('should be inited')
+    t.is(pw.logined() , false  , 'should be not logined')
 
-  const logoutPromise = new Promise((res, rej) => pw.once('logout', _ => res('logoutFired')))
-  pw.server.emit('logout')
-  t.is(await logoutPromise, 'logoutFired', 'should fire logout event')
-  t.is(pw.logined(), false, 'should be logouted')
+    // XXX find a better way to mock...
 
-  await pw.quit()
+    const loginPromise = new Promise((res, rej) => pw.once('login', _ => res('loginFired')))
+    pw.server.emit('login')
+    t.is(await loginPromise, 'loginFired', 'should fired login event')
+    t.is(pw.logined(), true  , 'should be logined')
+
+    t.truthy(STUB_BRIDGE_GET_USER_NAME.called,  'bridge.getUserName should be called')
+    t.truthy(STUB_GET_CONTACT.called,           'pw.getContact should be called')
+
+    t.truthy(STUB_CONTACT_FIND_ALL.called,      'contactFind stub should be called')
+    t.is(STUB_CONTACT_FIND_ALL.callCount, 5,    'should call stubContactFind 5 times')
+
+    const logoutPromise = new Promise((res, rej) => pw.once('logout', _ => res('logoutFired')))
+    pw.server.emit('logout')
+    t.is(await logoutPromise, 'logoutFired', 'should fire logout event')
+    t.is(pw.logined(), false, 'should be logouted')
+
+    await pw.quit()
+  } finally {
+    STUB_BRIDGE_GET_USER_NAME.restore()
+    STUB_BRIDGE_INIT.restore()
+    STUB_CONTACT_FIND_ALL.restore()
+    STUB_GET_CONTACT.restore()
+    STUB_INIT_BROWSER.restore()
+    STUB_QUIT.restore()
+  }
 })
 
 test.serial('server/browser WebSocket ding', async t => {
