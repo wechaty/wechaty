@@ -756,14 +756,14 @@ export class Message implements Sayable {
   }
 
   /**
-   * @private
+   * @todo
    */
   public static async find(query) {
     return Promise.resolve(new Message(<MsgRawObj>{MsgId: '-1'}))
   }
 
   /**
-   * @private
+   * @todo
    */
   public static async findAll(query) {
     return Promise.resolve([
