@@ -11,11 +11,9 @@ os:
   - osx
 
 addons:
+  chrome: beta
   apt:
-    sources:
-      - google-chrome
     packages:
-      - google-chrome-unstable
       - jq
       - shellcheck
       - xvfb
