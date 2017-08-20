@@ -11,7 +11,7 @@ os:
   - osx
 
 addons:
-  chrome: beta
+  chrome: stable
   apt:
     packages:
       - jq
