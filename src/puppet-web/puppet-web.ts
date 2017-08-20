@@ -296,12 +296,13 @@ export class PuppetWeb extends Puppet {
       throw e
     }
 
-    await this.server.init()
-                .catch(e => {
-                  log.error('PuppetWeb', 'initServer() exception: %s', e.message)
-                  Raven.captureException(e)
-                  throw e
-                })
+    try {
+      await this.server.init()
+    } catch (e) {
+      log.error('PuppetWeb', 'initServer() exception: %s', e.message)
+      Raven.captureException(e)
+      throw e
+    }
     return
   }
 
@@ -732,6 +733,40 @@ export class PuppetWeb extends Puppet {
       Raven.captureException(e)
       throw e
     }
+  }
+
+  /**
+   * @private
+   * For issue #668
+   */
+  public async readyStable(): Promise<void> {
+    log.verbose('PuppetWeb', 'readyStable()')
+    let counter = -1
+
+    async function stable(resolve: Function): Promise<void> {
+      log.silly('PuppetWeb', 'readyStable() stable() counter=%d', counter)
+      const contactList = await Contact.findAll()
+      if (counter === contactList.length) {
+        log.verbose('PuppetWeb', 'readyStable() stable() READY counter=%d', counter)
+        return resolve()
+      }
+      counter = contactList.length
+      setTimeout(() => stable(resolve), 300)
+        .unref()
+    }
+
+    return new Promise<void>((resolve, reject) => {
+      setTimeout(
+        () => {
+          log.warn('PuppetWeb', 'readyStable() stable() reject at counter=%d', counter)
+          return reject(new Error('timeout after 60 seconds'))
+        },
+        60 * 1000,
+      ).unref() // wait for 1 min
+
+      setTimeout(() => stable(resolve), 1 * 1000)
+    })
+
   }
 }
 

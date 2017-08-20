@@ -262,10 +262,18 @@ async function onServerLogin(this: PuppetWeb, data, attempt = 0): Promise<void> 
     await this.user.ready()
     log.silly('PuppetWebEvent', `onServerLogin() user ${this.user.name()} logined`)
 
-    await this.browser.saveCookie()
-                      .catch(e => { // fail safe
-                        log.verbose('PuppetWebEvent', 'onServerLogin() browser.saveSession() exception: %s', e.message)
-                      })
+    try {
+      await this.browser.saveCookie()
+    } catch (e) { // fail safe
+      log.verbose('PuppetWebEvent', 'onServerLogin() browser.saveSession() exception: %s', e.message)
+    }
+
+    // fix issue #668
+    try {
+      await this.readyStable()
+    } catch (e) { // fail safe
+      log.warn('PuppetWebEvent', 'readyStable() exception: %s', e && e.message || e)
+    }
 
     this.emit('login', this.user)
 

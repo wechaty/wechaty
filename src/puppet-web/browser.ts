@@ -344,6 +344,7 @@ export class Browser extends EventEmitter {
             break
 
           case 'chrome':
+          case 'chrome-headless':
             browserRe = 'chrome(?!driver)|chromium'
             break
 

@@ -149,23 +149,6 @@ export class Server extends EventEmitter {
       const obj = JSON.parse(data as string) as WechatyBroEvent
       this.emit(obj.name, obj.data)
     })
-    // Events from Wechaty@Broswer --to--> Server
-    // ; // MUST KEEP: seprator
-    // [
-    //   'message',
-    //   'scan',
-    //   'login',
-    //   'logout',
-    //   'log',
-    //   'unload',  // @depreciated 20160825 zixia
-    //               // when `unload` there should always be a `disconnect` event?
-    //   'ding',
-    // ].map(e => {
-    //   client.on(e, data => {
-    //     // log.silly('PuppetWebServer', `initEventsFromClient() forward client event[${e}](${data}) from browser by emit it`)
-    //     this.emit(e, data)
-    //   })
-    // })
 
     return
   }
