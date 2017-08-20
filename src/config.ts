@@ -86,8 +86,14 @@ if (/verbose|silly/i.test(logLevel)) {
   })
 }
 
-export type PuppetName = 'web' | 'android' | 'ios'
-export type HeadName = 'chrome' | 'phantomjs' | 'firefox'
+export type PuppetName = 'web'
+                        | 'android'
+                        | 'ios'
+
+export type HeadName = 'chrome'
+                      | 'chrome-headless'
+                      | 'phantomjs'
+                      | 'firefox'
 
 export interface ConfigSetting {
 
