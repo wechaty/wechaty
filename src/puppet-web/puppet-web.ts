@@ -741,13 +741,13 @@ export class PuppetWeb extends Puppet {
    */
   public async readyStable(): Promise<void> {
     log.verbose('PuppetWeb', 'readyStable()')
-    let counter = 0
+    let counter = -1
 
     async function stable(resolve: Function): Promise<void> {
       log.silly('PuppetWeb', 'readyStable() stable() counter=%d', counter)
       const contactList = await Contact.findAll()
       if (counter === contactList.length) {
-        log.verbose('PuppetWeb', 'readyStable() stable() READY')
+        log.verbose('PuppetWeb', 'readyStable() stable() READY counter=%d', counter)
         return resolve()
       }
       counter = contactList.length

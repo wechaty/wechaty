@@ -525,16 +525,17 @@ export class Contact implements Sayable {
       throw new Error('unsupport name type')
     }
 
-    const contactList = await config.puppetInstance()
-                              .contactFind(filterFunction)
-                              .catch(e => {
-                                log.error('Contact', 'findAll() rejected: %s', e.message)
-                                Raven.captureException(e)
-                                return [] // fail safe
-                              })
-    await Promise.all(contactList.map(c => c.ready()))
+    try {
+      const contactList = await config.puppetInstance()
+                                  .contactFind(filterFunction)
 
-    return contactList
+      await Promise.all(contactList.map(c => c.ready()))
+      return contactList
+
+    } catch (e) {
+      log.error('Contact', 'findAll() rejected: %s', e.message)
+      return [] // fail safe
+    }
   }
 
   /**

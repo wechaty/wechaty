@@ -17,11 +17,14 @@
  *
  */
 import { test }       from 'ava'
+import { stub }        from 'sinon'
 
 import {
+  Contact,
   config,
   log,
-}                     from '../../src/config'
+}                     from '../../'
+
 import PuppetWeb      from '../../src/puppet-web'
 import {
   PuppetWebServer,
@@ -39,18 +42,42 @@ test.serial('login/logout events', async t => {
 
   config.puppetInstance(pw)
 
+  const STUB_INIT_BROWSER = stub(pw, 'initBrowser')
+  STUB_INIT_BROWSER.resolves()
+
+  const STUB_QUIT = stub(pw, 'quit')
+  STUB_QUIT.resolves()
+
   await pw.init()
   t.pass('should be inited')
   t.is(pw.logined() , false  , 'should be not logined')
 
   // XXX find a better way to mock...
-  pw.bridge.getUserName = function() { return Promise.resolve('mockedUserName') }
-  pw.getContact = function() { return Promise.resolve('dummy') }
+
+  const STUB_CONTACT_FIND_ALL = stub(Contact, 'findAll')
+  STUB_CONTACT_FIND_ALL.onFirstCall().resolves([])
+  STUB_CONTACT_FIND_ALL.onSecondCall().resolves([1])
+  STUB_CONTACT_FIND_ALL.onThirdCall().resolves([1, 2])
+  STUB_CONTACT_FIND_ALL.resolves([1, 2, 3])
+
+  const STUB_BRIDGE_GET_USER_NAME = stub(pw.bridge, 'getUserName')
+  STUB_BRIDGE_GET_USER_NAME.resolves('mockedUserName')
+  // pw.bridge.getUserName = function() { return Promise.resolve('mockedUserName') }
+
+  const STUB_GET_CONTACT = stub(pw, 'getContact')
+  STUB_GET_CONTACT.resolves('dummy')
+  // pw.getContact = function() { return Promise.resolve('dummy') }
 
   const loginPromise = new Promise((res, rej) => pw.once('login', _ => res('loginFired')))
   pw.server.emit('login')
   t.is(await loginPromise, 'loginFired', 'should fired login event')
   t.is(pw.logined(), true  , 'should be logined')
+
+  t.truthy(STUB_BRIDGE_GET_USER_NAME.called,  'bridge.getUserName should be called')
+  t.truthy(STUB_GET_CONTACT.called,           'pw.getContact should be called')
+
+  t.truthy(STUB_CONTACT_FIND_ALL.called,      'contactFind stub should be called')
+  t.is(STUB_CONTACT_FIND_ALL.callCount, 5,    'should call stubContactFind 5 times')
 
   const logoutPromise = new Promise((res, rej) => pw.once('logout', _ => res('logoutFired')))
   pw.server.emit('logout')
@@ -60,7 +87,7 @@ test.serial('login/logout events', async t => {
   await pw.quit()
 })
 
-test.serial('server/browser socketio ding', async t => {
+test.serial('server/browser WebSocket ding', async t => {
   const puppet = new PuppetWeb()
   t.truthy(puppet, 'should instantiated a PuppetWeb')
 
