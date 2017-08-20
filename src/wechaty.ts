@@ -1,21 +1,29 @@
 /**
- *   Wechaty - https://github.com/chatie/wechaty
  *
- *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *  @ignore
+ *  Wechaty - https://github.com/chatie/wechaty
+ *  2016-2017 Huan LI <zixia@zixia.net>
  *
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  *
+ *  Wechaty: Wechat for ChatBots.
+ *
+ *  Wechaty is a Bot Framework for Wechat **Personal** Account
+ *  which can help you create a bot in 6 lines of javascript
+ *  by easy to use API, with cross-platform support for
+ *  Linux/Mac/Windows.
  */
+
 import { EventEmitter } from 'events'
 
 import { StateSwitch }  from 'state-switch'
@@ -59,27 +67,14 @@ export type WechatyEventName = 'error'
                               | 'EVENT_PARAM_ERROR'
 
 /**
+ * Main bot class.
  *
- * Wechaty: Wechat for ChatBots.
+ * [The World's Shortest ChatBot Code: 6 lines of JavaScript]{@link #wechatyinstance}
  *
- * Wechaty is a Bot Framework for Wechat **Personal** Account
- * which can help you create a bot in 6 lines of javascript
- * by easy to use API, with cross-platform support for
- * Linux/Mac/Windows.
+ * [Wechaty Starter Project]{@link https://github.com/lijiarui/wechaty-getting-started}
+ * @example
+ * import { Wechaty } from 'wechaty'
  *
- * **Example**
- *
- * ```ts
- * // The World's Shortest ChatBot Code: 6 lines of JavaScript
- * const { Wechaty } = require('wechaty')
- *
- * Wechaty.instance() // Singleton
- * .on('scan', (url, code) => console.log(`Scan QR Code to login: ${code}\n${url}`))
- * .on('login',       user => console.log(`User ${user} logined`))
- * .on('message',  message => console.log(`Message: ${message}`))
- * .init()
- * ```
- * @see The <a href="https://github.com/lijiarui/wechaty-getting-started">Wechaty Starter Project</a>
  */
 export class Wechaty extends EventEmitter implements Sayable {
   /**
@@ -108,6 +103,16 @@ export class Wechaty extends EventEmitter implements Sayable {
 
   /**
    * get the singleton instance of Wechaty
+   *
+   * @example
+   * // The World's Shortest ChatBot Code: 6 lines of JavaScript
+   * const { Wechaty } = require('wechaty')
+   *
+   * Wechaty.instance() // Singleton
+   * .on('scan', (url, code) => console.log(`Scan QR Code to login: ${code}\n${url}`))
+   * .on('login',       user => console.log(`User ${user} logined`))
+   * .on('message',  message => console.log(`Message: ${message}`))
+   * .init()
    */
   public static instance(setting?: PuppetSetting) {
     if (setting && this._instance) {
@@ -153,10 +158,8 @@ export class Wechaty extends EventEmitter implements Sayable {
    *                                      otherwise will return git commit hash if .git exists.
    * @returns {string}                  - the version number
    * @example
-   *  console.log(Wechaty.instance().version())
-   *  // '#git[af39df]'
-   *  console.log(Wechaty.instance().version(true))
-   *  // '0.7.9'
+   * console.log(Wechaty.instance().version())       // return '#git[af39df]'
+   * console.log(Wechaty.instance().version(true))   // return '0.7.9'
    */
   public static version(forceNpm = false): string {
     if (!forceNpm) {
@@ -169,16 +172,14 @@ export class Wechaty extends EventEmitter implements Sayable {
   }
 
   /**
-   * @todo document me
+   * @private
    */
   public version(forceNpm?) {
     return Wechaty.version(forceNpm)
   }
 
   /**
-   * @todo document me
-   * @returns {Contact}
-   * @deprecated
+   * @private
    */
   public user(): Contact {
     log.warn('Wechaty', 'user() DEPRECATED. use self() instead.')
@@ -206,10 +207,8 @@ export class Wechaty extends EventEmitter implements Sayable {
    *
    * @returns {Promise<void>}
    * @example
-   * ```ts
    * await bot.init()
    * // do other stuff with bot here
-   * ```
    */
   public async init(): Promise<void> {
     log.info('Wechaty', 'v%s initializing...' , this.version())
@@ -238,167 +237,128 @@ export class Wechaty extends EventEmitter implements Sayable {
     return
   }
 
-  // public on(event: WechatyEventName, listener: Function): this
-  /**
-   * @listens Wechaty#error
-   * @param   {string}    [event='error'] - the `error` event name
-   * @param   {Function}  listener        - (error) => void callback function
-   * @return  {Wechaty}                   - this for chain
-   */
   public on(event: 'error'      , listener: (this: Wechaty, error: Error) => void): this
 
-  /**
-   * When someone sends you a friend request, there will be a Wechaty friend event fired.
-   * @see https://github.com/wechaty/wechaty/blob/master/example/friend-bot.ts
-   * @param {'friend'} event
-   * @param {(this: Wechaty, friend: Contact, request?: FriendRequest) => void} listener
-   * @returns {this}
-   * @example
-   * ```ts
-   * wechaty.on('friend', (contact: Contact, request: FriendRequest) => {
-   *         if(request){// 1. request to be friend from new contact
-   *           let result = await request.accept()
-   *           if(result){
-   *             console.log(`Request from ${contact.name()} is accept succesfully!`)
-   *           } else{
-   *             console.log(`Request from ${contact.name()} failed to accept!`)
-   *           }
-   * 	       } else {        // 2. confirm friend ship
-   *          console.log(`new friendship confirmed with ${contact.name()}`)
-   *         }
-   *  })
-   * ```
-   */
   public on(event: 'friend'     , listener: (this: Wechaty, friend: Contact, request?: FriendRequest) => void): this
 
-  /**
-   * Get bot's heartbeat
-   *
-   * @param {'heartbeat'} event
-   * @param {(this: Wechaty, data: any) => void} listener
-   * @returns {this}
-   */
   public on(event: 'heartbeat'  , listener: (this: Wechaty, data: any) => void): this
 
-  /**
-   * logout will be emitted when bot detected log out, with a Contact of the current login user.
-   *
-   * @param {'logout'} event
-   * @param {(this: Wechaty, user: Contact) => void} listener
-   * @returns {this}
-   * @example
-   * ```ts
-   * wechaty.on('logout', (user: Contact) => {
-   *   console.log(`user ${user} logout`)
-   * })
-   * ```
-   */
   public on(event: 'logout'     , listener: (this: Wechaty, user: Contact) => void): this
 
-  /**
-   * After the bot login full successful, the event login will be emitted, with a Contact of current logined user.
-   *
-   * @param {'login'} event
-   * @param {(this: Wechaty, user: Contact) => void} listener
-   * @returns {this}
-   * @example
-   * ```ts
-   * wechaty.on('login', (user: Contact) => {
-   *   console.log(`user ${user} login`)
-   * })
-   * ```
-   */
   public on(event: 'login'      , listener: (this: Wechaty, user: Contact) => void): this
 
-  /**
-   * Emit when there's a new message.
-   *
-   * @param {'message'} event
-   * @param {(this: Wechaty, message: Message) => void} listener
-   * @returns {this}
-   * @example
-   * ```ts
-   * wechaty.on('message', (message: Message) => {
-   *   console.log(`message ${message} received`)
-   * })
-   * ```
-   */
   public on(event: 'message'    , listener: (this: Wechaty, message: Message) => void): this
 
-  /**
-   * Emit when anyone join any room
-   *
-   * @param {'room-join'} event
-   * @param {(this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void} listener
-   * @returns {this}
-   * @example
-   * ```ts
-   * wechaty.on('room-join', (room: Room, inviteeList: Contact[], inviter: Contact) => {
-   *   const nameList = inviteeList.map(c => c.name()).join(',')
-   *   console.log(`Room ${room.topic()} got new member ${nameList}, invited by ${inviter}`)
-   * })
-   * ```
-   */
   public on(event: 'room-join'  , listener: (this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void): this
 
-  /**
-   * Emit when anyone leave the room
-   * If both personA and personB are not the bot itselt, the event cannot be fired if personA remove personB from the room
-   *
-   * @param {'room-leave'} event
-   * @param {(this: Wechaty, room: Room, leaverList: Contact[]) => void} listener
-   * @returns {this}
-   * @example
-   * ```ts
-   * wechaty.on('room-leave', (room: Room, leaverList: Contact[]) => {
-   *   const nameList = leaverList.map(c => c.name()).join(',')
-   *   console.log(`Room ${room.topic()} lost member ${nameList}`)
-   * })
-   * ```
-   */
   public on(event: 'room-leave' , listener: (this: Wechaty, room: Room, leaverList: Contact[]) => void): this
 
-  /**
-   * Get topic event, emitted when someone change room topic
-   *
-   * @param {'room-topic'} event
-   * @param {(this: Wechaty, room: Room, topic: string, oldTopic: string, changer: Contact) => void} listener
-   * @returns {this}
-   * @example
-   * ```ts
-   * wechaty.on('room-topic', (room: Room, topic: string, oldTopic: string, changer: Contact) => {
-   *   console.log(`Room ${room.topic()} topic changed from ${oldTopic} to ${topic} by ${changer.name()}`)
-   * })
-   * ```
-   */
   public on(event: 'room-topic' , listener: (this: Wechaty, room: Room, topic: string, oldTopic: string, changer: Contact) => void): this
 
+  public on(event: 'scan'       , listener: (this: Wechaty, url: string, code: number) => void): this
+
+  public on(event: 'EVENT_PARAM_ERROR', listener: () => void): this
+
   /**
-   * A scan event will be emitted when the bot needs to show you a QR Code for scanning.
-   * 1. URL: {String} the QR code image URL
-   * 2. code: {Number} the scan status code. some known status of the code list here is:
-   * ** 0 initial
-   * ** 200 login confirmed
-   * ** 201 scaned, wait for confirm
-   * ** 408 waits for scan
-   * `scan` event will be emitted when it will detect a new code status change.
-   * @param {'scan'} event
-   * @param {(this: Wechaty, url: string, code: number) => void} listener
-   * @returns {this}
-   * @example
-   * ```ts
+   * @desc       Wechaty Class Event Type
+   * @typedef    WechatyEventName
+   * @property   {string}  error      - When the bot get error, there will be a Wechaty error event fired.
+   * @property   {string}  login      - After the bot login full successful, the event login will be emitted, with a Contact of current logined user.
+   * @property   {string}  logout     - Logout will be emitted when bot detected log out, with a Contact of the current login user.
+   * @property   {string}  scan       - A scan event will be emitted when the bot needs to show you a QR Code for scanning.
+   * @property   {string}  heartbeat  - Get bot's heartbeat.
+   * @property   {string}  friend     - When someone sends you a friend request, there will be a Wechaty friend event fired.
+   * @property   {string}  message    - Emit when there's a new message.
+   * @property   {string}  room-join  - Emit when anyone join any room.
+   * @property   {string}  room-topic - Get topic event, emitted when someone change room topic.
+   * @property   {string}  room-leave - Emit when anyone leave the room.<br>
+   *                                    If someone leaves the room by themselves, wechat will not notice other people in the room, so the bot will never get the "leave" event.
+   */
+
+  /**
+   * @desc       Wechaty Class Event Function
+   * @typedef    WechatyEventFunction
+   * @property   {Function} error           -(this: Wechaty, error: Error) => void callback function
+   * @property   {Function} login           -(this: Wechaty, user: Contact)=> void
+   * @property   {Function} logout          -(this: Wechaty, user: Contact) => void
+   * @property   {Function} scan            -(this: Wechaty, url: string, code: number) => void <br>
+   * <ol>
+   * <li>URL: {String} the QR code image URL</li>
+   * <li>code: {Number} the scan status code. some known status of the code list here is:</li>
+   * </ol>
+   * <ul>
+   * <li>0 initial_</li>
+   * <li>200 login confirmed</li>
+   * <li>201 scaned, wait for confirm</li>
+   * <li>408 waits for scan</li>
+   * </ul>
+   * @property   {Function} heartbeat       -(this: Wechaty, data: any) => void
+   * @property   {Function} friend          -(this: Wechaty, friend: Contact, request?: FriendRequest) => void
+   * @property   {Function} message         -(this: Wechaty, message: Message) => void
+   * @property   {Function} room-join       -(this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void
+   * @property   {Function} room-topic      -(this: Wechaty, room: Room, topic: string, oldTopic: string, changer: Contact) => void
+   * @property   {Function} room-leave      -(this: Wechaty, room: Room, leaverList: Contact[]) => void
+   */
+
+  /**
+   * @listens Wechaty
+   * @param   {WechatyEventName}      event      - Emit WechatyEvent
+   * @param   {WechatyEventFunction}  listener   - Depends on the WechatyEvent
+   * @return  {Wechaty}                          - this for chain
+   * More Example Gist:
+   *
+   * [Example/Friend-Bot]{@link https://github.com/wechaty/wechaty/blob/master/example/friend-bot.ts}
+   *
+   * @example <caption>Event:scan </caption>
    * wechaty.on('scan', (url: string, code: number) => {
    *   console.log(`[${code}] Scan ${url} to login.` )
    * })
-   * ```
-   */
-  public on(event: 'scan'       , listener: (this: Wechaty, url: string, code: number) => void): this
-  /**
-   * @todo document me
-   */
-  public on(event: 'EVENT_PARAM_ERROR', listener: () => void): this
-  /**
-   * @todo document me
+   *
+   * @example <caption>Event:login </caption>
+   * bot.on('login', (user: Contact) => {
+   *   console.log(`user ${user} login`)
+   * })
+   *
+   * @example <caption>Event:logout </caption>
+   * bot.on('logout', (user: Contact) => {
+   *   console.log(`user ${user} logout`)
+   * })
+   *
+   * @example <caption>Event:message </caption>
+   * wechaty.on('message', (message: Message) => {
+   *   console.log(`message ${message} received`)
+   * })
+   *
+   * @example <caption>Event:friend </caption>
+   * bot.on('friend', (contact: Contact, request: FriendRequest) => {
+   *   if(request){ // 1. request to be friend from new contact
+   *     let result = await request.accept()
+   *       if(result){
+   *         console.log(`Request from ${contact.name()} is accept succesfully!`)
+   *       } else{
+   *         console.log(`Request from ${contact.name()} failed to accept!`)
+   *       }
+   * 	  } else { // 2. confirm friend ship
+   *       console.log(`new friendship confirmed with ${contact.name()}`)
+   *    }
+   *  })
+   *
+   * @example <caption>Event:room-join </caption>
+   * bot.on('room-join', (room: Room, inviteeList: Contact[], inviter: Contact) => {
+   *   const nameList = inviteeList.map(c => c.name()).join(',')
+   *   console.log(`Room ${room.topic()} got new member ${nameList}, invited by ${inviter}`)
+   * })
+   *
+   * @example <caption>Event:room-leave </caption>
+   * bot.on('room-leave', (room: Room, leaverList: Contact[]) => {
+   *   const nameList = leaverList.map(c => c.name()).join(',')
+   *   console.log(`Room ${room.topic()} lost member ${nameList}`)
+   * })
+   *
+   * @example <caption>Event:room-topic </caption>
+   * bot.on('room-topic', (room: Room, topic: string, oldTopic: string, changer: Contact) => {
+   *   console.log(`Room ${room.topic()} topic changed from ${oldTopic} to ${topic} by ${changer.name()}`)
+   * })
    */
   public on(event: WechatyEventName, listener: (...args: any[]) => any): this {
     log.verbose('Wechaty', 'addListener(%s, %s)', event, typeof listener)
@@ -421,7 +381,6 @@ export class Wechaty extends EventEmitter implements Sayable {
   }
 
   /**
-   * @todo document me
    * @private
    */
   public async initPuppet(): Promise<Puppet> {
@@ -480,9 +439,7 @@ export class Wechaty extends EventEmitter implements Sayable {
    *
    * @returns {Promise<void>}
    * @example
-   * ```ts
    * await bot.quit()
-   * ```
    */
   public async quit(): Promise<void> {
     log.verbose('Wechaty', 'quit()')
@@ -519,9 +476,7 @@ export class Wechaty extends EventEmitter implements Sayable {
    *
    * @returns {Promise<void>}
    * @example
-   * ```ts
    * await bot.logout()
-   * ```
    */
   public async logout(): Promise<void>  {
     if (!this.puppet) {
@@ -541,10 +496,8 @@ export class Wechaty extends EventEmitter implements Sayable {
    *
    * @returns {Contact}
    * @example
-   * ```ts
    * const contact = bot.self()
    * console.log(`Bot is ${contact.name()}`)
-   * ```
    */
   public self(): Contact {
     if (!this.puppet) {
@@ -554,7 +507,7 @@ export class Wechaty extends EventEmitter implements Sayable {
   }
 
   /**
-   * @todo document me
+   * @private
    */
   public async send(message: Message | MediaMessage): Promise<boolean> {
     if (!this.puppet) {
@@ -584,8 +537,7 @@ export class Wechaty extends EventEmitter implements Sayable {
   }
 
   /**
-   * @todo document me
-   * @static
+   * @private
    */
   public static async sleep(millisecond: number): Promise<void> {
     await new Promise(resolve => {

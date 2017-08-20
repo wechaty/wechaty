@@ -1,7 +1,8 @@
 /**
+ *   @ignore
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -67,7 +68,11 @@ export interface ContactRawObj {
 
 /**
  * Enum for Gender values.
+ *
  * @enum {number}
+ * @property {number} Unknown   - 0 for Unknown
+ * @property {number} Male      - 1 for Male
+ * @property {number} Female    - 2 for Female
  */
 export enum Gender {
   Unknown = 0,
@@ -83,6 +88,7 @@ export interface ContactQueryFilter {
 }
 
 /**
+ * @ignore
  * @see https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3848
  */
 const specialContactList: string[] = [
@@ -93,9 +99,10 @@ const specialContactList: string[] = [
 ]
 
 /**
- * Class Contact
+ * All wechat contacts(friend) will be encapsulated as a Contact.
  *
- * `Contact` is `Sayable`
+ * `Contact` is `Sayable`,
+ * [Example/Contact-Bot]{@link https://github.com/Chatie/wechaty/blob/master/example/contact-bot.ts}
  */
 export class Contact implements Sayable {
   private static pool = new Map<string, Contact>()
@@ -157,12 +164,14 @@ export class Contact implements Sayable {
       stranger:   !!rawObj.stranger, // assign by injectio.js
       avatar:     rawObj.HeadImgUrl,
       /**
+       * @ignore
        * @see 1. https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3243
        * @see 2. https://github.com/Urinx/WeixinBot/blob/master/README.md
        */
       // tslint:disable-next-line
       official:      !!rawObj.UserName && !rawObj.UserName.startsWith('@@') && !!(rawObj.VerifyFlag & 8),
       /**
+       * @ignore
        * @see 1. https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3246
        */
       special:       specialContactList.indexOf(rawObj.UserName) > -1 || /@qqim$/.test(rawObj.UserName),
@@ -170,14 +179,13 @@ export class Contact implements Sayable {
   }
 
   /**
-   * Get the weixin number from a contact
-   * Sometimes cannot get weixin number due to weixin security mechanism, not recommend.
-   * @returns {string | null}
+   * Get the weixin number from a contact.
    *
+   * Sometimes cannot get weixin number due to weixin security mechanism, not recommend.
+   *
+   * @returns {string | null}
    * @example
-   * ```ts
    * const weixin = contact.weixin()
-   * ```
    */
   public weixin(): string | null {
     const wxId = this.obj && this.obj.weixin || null
@@ -193,24 +201,17 @@ export class Contact implements Sayable {
    * Get the name from a contact
    *
    * @returns {string}
-   *
    * @example
-   * ```ts
    * const name = contact.name()
-   * ```
    */
   public name()     { return UtilLib.plainText(this.obj && this.obj.name || '') }
 
   /**
    * Check if contact is stranger
    *
-   * @returns {boolean | null}
-   * True for not friend of the bot, False for friend of the bot, null for unknown.
-   *
+   * @returns {boolean | null} - True for not friend of the bot, False for friend of the bot, null for unknown.
    * @example
-   * ```ts
    * const isStranger = contact.stranger()
-   * ```
    */
   public stranger(): boolean|null {
     if (!this.obj) return null
@@ -220,13 +221,11 @@ export class Contact implements Sayable {
   /**
    * Check if it's a offical account
    *
-   * @returns {boolean|null}
-   * True for official account, Flase for contact is not a official account, null for unknown
-   *
+   * @returns {boolean|null} - True for official account, Flase for contact is not a official account, null for unknown
+   * @see {@link https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3243|webwxApp.js#L324}
+   * @see {@link https://github.com/Urinx/WeixinBot/blob/master/README.md|Urinx/WeixinBot/README}
    * @example
-   * ```ts
    * const isOfficial = contact.official()
-   * ```
    */
   public official(): boolean {
     return !!this.obj && this.obj.official
@@ -235,22 +234,17 @@ export class Contact implements Sayable {
   /**
    * Check if it's a special contact
    *
-   * the contact who's id in following list will be identify as a special contact
+   * The contact who's id in following list will be identify as a special contact
+   * `weibo`, `qqmail`, `fmessage`, `tmessage`, `qmessage`, `qqsync`, `floatbottle`,
+   * `lbsapp`, `shakeapp`, `medianote`, `qqfriend`, `readerapp`, `blogapp`, `facebookapp`,
+   * `masssendapp`, `meishiapp`, `feedsapp`, `voip`, `blogappweixin`, `weixin`, `brandsessionholder`,
+   * `weixinreminder`, `wxid_novlwrv3lqwv11`, `gh_22b87fa7cb3c`, `officialaccounts`, `notification_messages`,
    *
-   * ```ts
-   * 'weibo', 'qqmail', 'fmessage', 'tmessage', 'qmessage', 'qqsync', 'floatbottle',
-   * 'lbsapp', 'shakeapp', 'medianote', 'qqfriend', 'readerapp', 'blogapp', 'facebookapp',
-   * 'masssendapp', 'meishiapp', 'feedsapp', 'voip', 'blogappweixin', 'weixin', 'brandsessionholder',
-   * 'weixinreminder', 'wxid_novlwrv3lqwv11', 'gh_22b87fa7cb3c', 'officialaccounts', 'notification_messages',
-   * ```
-   * @see https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3848
-   *
+   * @see {@link https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3848|webwxApp.js#L3848}
+   * @see {@link https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3246|webwxApp.js#L3246}
    * @returns {boolean|null} True for brand, Flase for contact is not a brand
-   *
    * @example
-   * ```ts
    * const isSpecial = contact.special()
-   * ```
    */
   public special(): boolean {
     return !!this.obj && this.obj.special
@@ -259,12 +253,9 @@ export class Contact implements Sayable {
   /**
    * Check if it's a personal account
    *
-   * @returns {boolean|null} True for personal account, Flase for contact is not a personal account
-   *
+   * @returns {boolean|null} - True for personal account, Flase for contact is not a personal account
    * @example
-   * ```ts
    * const isPersonal = contact.personal()
-   * ```
    */
   public personal(): boolean {
     return !this.official()
@@ -273,13 +264,9 @@ export class Contact implements Sayable {
   /**
    * Check if the contact is star contact.
    *
-   * @returns {boolean}
-   * True for star friend, False for no star friend.
-   *
+   * @returns {boolean} - True for star friend, False for no star friend.
    * @example
-   * ```ts
    * const isStar = contact.star()
-   * ```
    */
   public star(): boolean|null {
     if (!this.obj) return null
@@ -290,11 +277,8 @@ export class Contact implements Sayable {
    * Contact gender
    *
    * @returns Gender.Male(2) | Gender.Female(1) | Gender.Unknown(0)
-   *
    * @example
-   * ```ts
    * const gender = contact.gender()
-   * ```
    */
   public gender(): Gender   { return this.obj ? this.obj.sex : Gender.Unknown }
 
@@ -302,11 +286,8 @@ export class Contact implements Sayable {
    * Get the region 'province' from a contact
    *
    * @returns {string | undefined}
-   *
    * @example
-   * ```ts
    * const province = contact.province()
-   * ```
    */
   public province() { return this.obj && this.obj.province }
 
@@ -314,11 +295,8 @@ export class Contact implements Sayable {
    * Get the region 'city' from a contact
    *
    * @returns {string | undefined}
-   *
    * @example
-   * ```ts
    * const city = contact.city()
-   * ```
    */
   public city()     { return this.obj && this.obj.city }
 
@@ -326,15 +304,12 @@ export class Contact implements Sayable {
    * Get avatar picture file stream
    *
    * @returns {Promise<NodeJS.ReadableStream>}
-   *
    * @example
-   * ```ts
    * const avatarFileName = contact.name() + `.jpg`
    * const avatarReadStream = await contact.avatar()
    * const avatarWriteStream = createWriteStream(avatarFileName)
    * avatarReadStream.pipe(avatarWriteStream)
    * log.info('Bot', 'Contact: %s: %s with avatar file: %s', contact.weixin(), contact.name(), avatarFileName)
-   * ```
    */
   public async avatar(): Promise<NodeJS.ReadableStream> {
     log.verbose('Contact', 'avatar()')
@@ -378,11 +353,8 @@ export class Contact implements Sayable {
    * Force reload data for Contact
    *
    * @returns {Promise<this>}
-   *
    * @example
-   * ```ts
    * await contact.refresh()
-   * ```
    */
   public async refresh(): Promise<this> {
     if (this.isReady()) {
@@ -454,11 +426,8 @@ export class Contact implements Sayable {
    * Check if contact is self
    *
    * @returns {boolean} True for contact is self, False for contact is others
-   *
    * @example
-   * ```ts
    * const isSelf = contact.self()
-   * ```
    */
   public self(): boolean {
     const userId = config.puppetInstance()
@@ -474,27 +443,30 @@ export class Contact implements Sayable {
   }
 
   /**
-   * find contact by `name` or `alias`
+   * The way to search Contact
+   *
+   * @typedef    ContactQueryFilter
+   * @property   {string} name    -the name-string set by user-self, should be called name
+   * @property   {string} alias   -the name-string set by bot for others, should be called alias
+   * [More Detail]{@link https://github.com/Chatie/wechaty/issues/365}
+   */
+
+  /**
+   * Find contact by `name` or `alias`
    *
    * If use Contact.findAll() get the contact list of the bot.
    *
    * #### definition
-   * - `name` the name-string set by user-self, should be called name
-   * - `alias` the name-string set by bot for others, should be called alias
+   * - `name`   the name-string set by user-self, should be called name
+   * - `alias`  the name-string set by bot for others, should be called alias
    *
    * @static
    * @param {ContactQueryFilter} [queryArg]
    * @returns {Promise<Contact[]>}
-   *
    * @example
-   * ```ts
-   * // get the contact list of the bot
-   * const contactList = await Contact.findAll()
-   * // find allof the contacts whose name is 'ruirui'
-   * const contactList = await Contact.findAll({name: 'ruirui'})
-   * // find allof the contacts whose alias is 'lijiarui'
-   * const contactList = await Contact.findAll({alias: 'lijiarui'})
-   * ```
+   * const contactList = await Contact.findAll()                    // get the contact list of the bot
+   * const contactList = await Contact.findAll({name: 'ruirui'})    // find allof the contacts whose name is 'ruirui'
+   * const contactList = await Contact.findAll({alias: 'lijiarui'}) // find all of the contacts whose alias is 'lijiarui'
    */
   public static async findAll(queryArg?: ContactQueryFilter): Promise<Contact[]> {
     let query: ContactQueryFilter
@@ -564,92 +536,41 @@ export class Contact implements Sayable {
     return contactList
   }
 
-  /**
-   * GET the alias for contact
-   *
-   * @returns {(string | null)}
-   *
-   * @example
-   * ```ts
-   * const alias = contact.alias()
-   * ```
-   */
   public alias(): string | null
 
-  /**
-   * SET the alias for contact
-   *
-   * tests show it will failed if set alias too frequently(60 times in one minute).
-   *
-   * @param {string} newAlias
-   * @returns {Promise<boolean>}
-   * A promise to the result. true for success, false for failure
-   *
-   * @example
-   * ```ts
-   * const ret = await contact.alias('lijiarui')
-   * if (ret) {
-   *   console.log(`change ${contact.name()}'s alias successfully!`)
-   * } else {
-   *   console.error('failed to change ${contact.name()}'s alias!')
-   * }
-   * ```
-   */
   public alias(newAlias: string): Promise<boolean>
 
-  /**
-   * DELETE the alias for a contact
-   *
-   * @param {null} empty
-   * @returns {Promise<boolean>}
-   *
-   * @example
-   * ```ts
-   * const ret = await contact.alias(null)
-   * if (ret) {
-   *   console.log(`delete ${contact.name()}'s alias successfully!`)
-   * } else {
-   *   console.log(`failed to delete ${contact.name()}'s alias!`)
-   * }
-   * ```
-   */
   public alias(empty: null): Promise<boolean>
 
   /**
    * GET / SET / DELETE the alias for a contact
    *
+   * Tests show it will failed if set alias too frequently(60 times in one minute).
    * @param {(none | string | null)} newAlias ,
    * @returns {(string | null | Promise<boolean>)}
-   *
-   * @example GET the alias for a contact
-   * ```ts
+   * @example <caption> GET the alias for a contact</caption>
    * const alias = contact.alias()
    * if (alias === null) {
    *   console.log('You have not yet set any alias for contact ' + contact.name())
    * } else {
    *   console.log('You have already set an alias for contact ' + contact.name() + ':' + alias)
    * }
-   * ```
    *
-   * @example SET the alias for a contact
-   * ```ts
+   * @example <caption>SET the alias for a contact</caption>
    * const ret = await contact.alias('lijiarui')
    * if (ret) {
    *   console.log(`change ${contact.name()}'s alias successfully!`)
    * } else {
    *   console.error('failed to change ${contact.name()}'s alias!')
    * }
-   * ```
    *
-   * @example DELETE the alias for a contact
-   * ```ts
+   * @example <caption>DELETE the alias for a contact</caption>
    * const ret = await contact.alias(null)
    * if (ret) {
    *   console.log(`delete ${contact.name()}'s alias successfully!`)
    * } else {
    *   console.log(`failed to delete ${contact.name()}'s alias!`)
    * }
-   * ```
    */
   public alias(newAlias?: string|null): Promise<boolean> | string | null {
     log.silly('Contact', 'alias(%s)', newAlias || '')
@@ -680,7 +601,7 @@ export class Contact implements Sayable {
   }
 
   /**
-   * @deprecated
+   * @private
    */
   // function should be deprecated
   public remark(newRemark?: string|null): Promise<boolean> | string | null {
@@ -698,17 +619,16 @@ export class Contact implements Sayable {
   }
 
   /**
-   * try to find a contact by filter: {name: string | RegExp} / {alias: string | RegExp}
-   * @description Find contact by name or alias, if the result more than one, return the first one.
+   * Try to find a contact by filter: {name: string | RegExp} / {alias: string | RegExp}
+   *
+   * Find contact by name or alias, if the result more than one, return the first one.
+   *
    * @static
    * @param {ContactQueryFilter} query
    * @returns {(Promise<Contact | null>)} If can find the contact, return Contact, or return null
-   *
    * @example
-   * ```ts
    * const contactFindByName = await Contact.find({ name:"ruirui"} )
    * const contactFindByAlias = await Contact.find({ alias:"lijiarui"} )
-   * ```
    */
   public static async find(query: ContactQueryFilter): Promise<Contact | null> {
     log.verbose('Contact', 'find(%s)', JSON.stringify(query))
@@ -725,17 +645,7 @@ export class Contact implements Sayable {
   }
 
   /**
-   * Load data for Contact by id
-   *
-   * @static
-   * @param {string} id
-   * @returns {Contact}
-   *
-   * @example
-   * ```ts
-   * // fake: contactId = @0bb3e4dd746fdbd4a80546aef66f4085
-   * const contact = Contact.load('@0bb3e4dd746fdbd4a80546aef66f4085')
-   * ```
+   * @private
    */
   public static load(id: string): Contact {
     if (!id || typeof id !== 'string') {
@@ -748,36 +658,20 @@ export class Contact implements Sayable {
     return Contact.pool[id]
   }
 
-  /**
-   * Say `content` to Contact
-   *
-   * @param {string} content
-   * @returns {Promise<void>}
-   *
-   * @example
-   * ```ts
-   * // change 'lijiarui' to any of your contact name in wechat
-   * const contact = await Contact.find({name: 'lijiarui'})
-   * await contact.say('welcome to wechaty!')
-   * ```
-   */
   public async say(text: string)
 
-  /**
-   * Send Media File to Contact
-   *
-   * @param {MediaMessage} mediaMessage
-   * @returns {Promise<boolean>}
-   * @example
-   * ```ts
-   * // change 'lijiarui' to any of your contact name in wechat
-   * const contact = await Contact.find({name: 'lijiarui'})
-   * // put the filePath you want to send here
-   * await contact.say(new MediaMessage(__dirname + '/wechaty.png')
-   * ```
-   */
   public async say(mediaMessage: MediaMessage)
 
+  /**
+   * Send Text or Media File to Contact.
+   *
+   * @param {(string | MediaMessage)} textOrMedia
+   * @returns {Promise<boolean>}
+   * @example
+   * const contact = await Contact.find({name: 'lijiarui'})  // change 'lijiarui' to any of your contact name in wechat
+   * await contact.say('welcome to wechaty!')
+   * await contact.say(new MediaMessage(__dirname + '/wechaty.png') // put the filePath you want to send here
+   */
   public async say(textOrMedia: string | MediaMessage): Promise<boolean> {
     const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
     log.verbose('Contact', 'say(%s)', content)

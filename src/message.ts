@@ -1,4 +1,5 @@
 /**
+ *   @ignore
  *   Wechaty - https://github.com/chatie/wechaty
  *
  *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
@@ -163,7 +164,25 @@ export interface MsgTypeMap {
 /**
  *
  * Enum for AppMsgType values.
+ *
  * @enum {number}
+ * @property {number} TEXT                    - 1      for TEXT
+ * @property {number} IMG                     - 2      for IMG
+ * @property {number} AUDIO                   - 3      for AUDIO
+ * @property {number} VIDEO                   - 4      for VIDEO
+ * @property {number} URL                     - 5      for URL
+ * @property {number} ATTACH                  - 6      for ATTACH
+ * @property {number} OPEN                    - 7      for OPEN
+ * @property {number} EMOJI                   - 8      for EMOJI
+ * @property {number} VOICE_REMIND            - 9      for VOICE_REMIND
+ * @property {number} SCAN_GOOD               - 10     for SCAN_GOOD
+ * @property {number} GOOD                    - 13     for GOOD
+ * @property {number} EMOTION                 - 15     for EMOTION
+ * @property {number} CARD_TICKET             - 16     for CARD_TICKET
+ * @property {number} REALTIME_SHARE_LOCATION - 17     for REALTIME_SHARE_LOCATION
+ * @property {number} TRANSFERS               - 2e3    for TRANSFERS
+ * @property {number} RED_ENVELOPES           - 2001   for RED_ENVELOPES
+ * @property {number} READER_TYPE             - 100001 for READER_TYPE
  */
 export enum AppMsgType {
   TEXT                     = 1,
@@ -189,6 +208,24 @@ export enum AppMsgType {
  *
  * Enum for MsgType values.
  * @enum {number}
+ * @property {number} TEXT                - 1     for TEXT
+ * @property {number} IMAGE               - 3     for IMAGE
+ * @property {number} VOICE               - 34    for VOICE
+ * @property {number} VERIFYMSG           - 37    for VERIFYMSG
+ * @property {number} POSSIBLEFRIEND_MSG  - 40    for POSSIBLEFRIEND_MSG
+ * @property {number} SHARECARD           - 42    for SHARECARD
+ * @property {number} VIDEO               - 43    for VIDEO
+ * @property {number} EMOTICON            - 47    for EMOTICON
+ * @property {number} LOCATION            - 48    for LOCATION
+ * @property {number} APP                 - 49    for APP
+ * @property {number} VOIPMSG             - 50    for VOIPMSG
+ * @property {number} STATUSNOTIFY        - 51    for STATUSNOTIFY
+ * @property {number} VOIPNOTIFY          - 52    for VOIPNOTIFY
+ * @property {number} VOIPINVITE          - 53    for VOIPINVITE
+ * @property {number} MICROVIDEO          - 62    for MICROVIDEO
+ * @property {number} SYSNOTICE           - 9999  for SYSNOTICE
+ * @property {number} SYS                 - 10000 for SYS
+ * @property {number} RECALLED            - 10002 for RECALLED
  */
 export enum MsgType {
   TEXT                = 1,
@@ -211,6 +248,12 @@ export enum MsgType {
   RECALLED            = 10002,
 }
 
+/**
+ * All wechat messages will be encapsulated as a Message.
+ *
+ * `Message` is `Sayable`,
+ * [Example/Ding-Dong-Bot]{@link https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts}
+ */
 export class Message implements Sayable {
   /**
    * @private
@@ -379,12 +422,12 @@ export class Message implements Sayable {
    */
   public from(id: string): void
 
+  public from(): Contact
+
   /**
    * Get the sender from a message.
    * @returns {Contact}
    */
-  public from(): Contact
-
   public from(contact?: Contact|string): Contact|void {
     if (contact) {
       if (contact instanceof Contact) {
@@ -409,28 +452,22 @@ export class Message implements Sayable {
   // public to(contact?: Contact|Room|string): Contact|Room|void {
 
   /**
-   * Set the destination as Contact for the message
-   *
-   * @param {Contact} contact
-   * @returns {void}
+   * @private
    */
   public to(contact: Contact): void
 
   /**
-   * Set the destination as Contact by 'weixinID', eg: 'filehelper', for the message
-   *
-   * @param {string} id
-   * @returns {void}
+   * @private
    */
   public to(id: string): void
+
+  public to(): Contact|null // if to is not set, then room must had set
 
   /**
    * Get the destination of the message
    * Message.to() will return null if a message is in a room, use Message.room() to get the room.
    * @returns {(Contact|null)}
    */
-  public to(): Contact|null // if to is not set, then room must had set
-
   public to(contact?: Contact|string): Contact|Room|null|void {
     if (contact) {
       if (contact instanceof Contact) {
@@ -452,20 +489,16 @@ export class Message implements Sayable {
   }
 
   /**
-   * Set the room for a message
-   *
-   * @param {Room} room
-   * @returns {void}
+   * @private
    */
   public room(room: Room): void
 
   /**
-   * Set the room for a message
-   *
-   * @param {string} id
-   * @returns {void}
+   * @private
    */
   public room(id: string): void
+
+  public room(): Room|null
 
   /**
    * Get the room from the message.
@@ -473,7 +506,6 @@ export class Message implements Sayable {
    *
    * @returns {(Room|null)}
    */
-  public room(): Room|null
   public room(room?: Room|string): Room|null|void {
     if (room) {
       if (room instanceof Room) {
@@ -491,21 +523,18 @@ export class Message implements Sayable {
     return null
   }
 
+  public content(): string
+
+  /**
+   * @private
+   */
+  public content(content: string): void
+
   /**
    * Get the content of the message
    *
    * @returns {string}
    */
-  public content(): string
-
-  /**
-   * Set the content for the message
-   *
-   * @param {string} content
-   * @returns {void}
-   */
-  public content(content: string): void
-
   public content(content?: string): string|void {
     if (content) {
       this.obj.content = content
@@ -516,26 +545,8 @@ export class Message implements Sayable {
 
   /**
    * Get the type from the message.
-   * Some known value of the type list here is:
-   * * TEXT 1
-   * * IMAGE 3
-   * * VOICE 34
-   * * VERIFYMSG 37
-   * * POSSIBLEFRIEND_MSG 40
-   * * SHARECARD 42
-   * * VIDEO 43
-   * * EMOTICON 47
-   * * LOCATION 48
-   * * APP 49
-   * * VOIPMSG 50
-   * * STATUSNOTIFY 51
-   * * VOIPNOTIFY 52
-   * * VOIPINVITE 53
-   * * MICROVIDEO 62
-   * * APP 49
-   * * SYSNOTICE 9999
-   * * SYS 10000
-   * * RECALLED 10002
+   *
+   * @see {@link MsgType}
    * @returns {MsgType}
    */
   public type(): MsgType {
@@ -544,7 +555,10 @@ export class Message implements Sayable {
 
   /**
    * Get the typeSub from the message.
-   * If message is a location message: m.type() === MsgType.TEXT && m.typeSub() === MsgType.LOCATION
+   *
+   * If message is a location message: `m.type() === MsgType.TEXT && m.typeSub() === MsgType.LOCATION`
+   *
+   * @see {@link MsgType}
    * @returns {MsgType}
    */
   public typeSub(): MsgType {
@@ -558,6 +572,7 @@ export class Message implements Sayable {
    * Get the typeApp from the message.
    *
    * @returns {AppMsgType}
+   * @see {@link AppMsgType}
    */
   public typeApp(): AppMsgType {
     if (!this.rawObj) {
@@ -574,22 +589,18 @@ export class Message implements Sayable {
   public typeEx()  { return MsgType[this.obj.type] }
 
   /**
-   * Get the serial number from the message.
-   *
-   * @returns {number}
+   * @private
    */
   public count()   { return this._counter }
 
   /**
    * Check if a message is sent by self.
    *
-   * @returns {boolean} Return `true` for send from self, `false` for send from others.
+   * @returns {boolean} - Return `true` for send from self, `false` for send from others.
    * @example
-   * ```ts
    * if (message.self()) {
    *  console.log('this message is sent by myself!')
    * }
-   * ```
    */
   public self(): boolean {
     const userId = config.puppetInstance()
@@ -606,7 +617,8 @@ export class Message implements Sayable {
   /**
    *
    * Get message mentioned contactList.
-   * message event table as follows
+   *
+   * Message event table as follows
    *
    * |                                                                            | Web  |  Mac PC Client | iOS Mobile |  android Mobile |
    * | :---                                                                       | :--: |     :----:     |   :---:    |     :---:       |
@@ -615,13 +627,11 @@ export class Message implements Sayable {
    * | Identify magic code (8197) by programming                                  |  ✘   |        ✘       |     ✘      |       ✘         |
    * | Identify two contacts with the same roomAlias by [You were  mentioned] tip |  ✘   |        ✘       |     √      |       √         |
    *
-   * @returns {Contact[]} return message mentioned contactList
+   * @returns {Contact[]} - Return message mentioned contactList
    *
    * @example
-   * ```ts
    * const contactList = message.mentioned()
    * console.log(contactList)
-   * ```
    */
   public mentioned(): Contact[] {
     let contactList: Contact[] = []
@@ -704,7 +714,7 @@ export class Message implements Sayable {
   }
 
   /**
-   * @deprecated
+   * @private
    */
   public get(prop: string): string {
     log.warn('Message', 'DEPRECATED get() at %s', new Error('stack').stack)
@@ -717,7 +727,7 @@ export class Message implements Sayable {
   }
 
   /**
-   * @deprecated
+   * @private
    */
   public set(prop: string, value: string): this {
     log.warn('Message', 'DEPRECATED set() at %s', new Error('stack').stack)
@@ -770,45 +780,30 @@ export class Message implements Sayable {
   //   })
   // }
 
-  /**
-   * Reply a text message to the sender.
-   *
-   * @param {string} text
-   * @param {(Contact | Contact[])} [replyTo]
-   * @returns {Promise<any>}
-   * @example
-   * ```ts
-   * const bot = Wechaty.instance()
-   * bot
-   * .on('message', async m => {
-   *   await m.say('hello world')
-   *   console.log('Bot REPLY: hello world')
-   * })
-   * ```
-   * @see https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts
-   */
   public say(text: string, replyTo?: Contact | Contact[]): Promise<any>
 
+  public say(mediaMessage: MediaMessage, replyTo?: Contact | Contact[]): Promise<any>
+
   /**
-   * Reply a media message to the sender.
+   * Reply a Text or Media File message to the sender.
    *
-   * @param {MediaMessage} mediaMessage
-   * @param {(Contact | Contact[])} [replyTo]
+   * @see {@link https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts|Example/ding-dong-bot}
+   * @param {(string | MediaMessage)} textOrMedia
+   * @param {(Contact|Contact[])} [replyTo]
    * @returns {Promise<any>}
+   *
    * @example
-   * ```ts
    * const bot = Wechaty.instance()
    * bot
    * .on('message', async m => {
    *   if (/^ding$/i.test(m.content())) {
+   *     await m.say('hello world')
+   *     console.log('Bot REPLY: hello world')
    *     await m.say(new MediaMessage(__dirname + '/wechaty.png'))
    *     console.log('Bot REPLY: Image')
    *   }
    * })
-   * @see https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts
    */
-  public say(mediaMessage: MediaMessage, replyTo?: Contact | Contact[]): Promise<any>
-
   public say(textOrMedia: string | MediaMessage, replyTo?: Contact|Contact[]): Promise<any> {
     /* tslint:disable:no-use-before-declare */
     const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
@@ -857,6 +852,10 @@ export class Message implements Sayable {
 
 // Message.initType()
 
+/**
+ * Meidia Type Message
+ *
+ */
 export class MediaMessage extends Message {
   /**
    * @private
@@ -993,13 +992,11 @@ export class MediaMessage extends Message {
    *
    * @returns {string}
    * @example
-   * ```ts
-   * .on('message', async function (m) {
+   * bot.on('message', async function (m) {
    *   if (m instanceof MediaMessage) {
    *     console.log('media message file name extention is: ' + m.ext())
    *   }
    * })
-   * ```
    */
   public ext(): string {
     if (this.fileExt)
@@ -1040,13 +1037,11 @@ export class MediaMessage extends Message {
    *
    * @returns {string}
    * @example
-   * ```ts
-   * .on('message', async function (m) {
+   * bot.on('message', async function (m) {
    *   if (m instanceof MediaMessage) {
    *     console.log('media message file name is: ' + m.filename())
    *   }
    * })
-   * ```
    */
   public filename(): string {
     if (this.fileName && this.fileExt) {
