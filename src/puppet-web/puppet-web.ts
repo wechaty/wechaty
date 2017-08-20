@@ -742,21 +742,23 @@ export class PuppetWeb extends Puppet {
   public async readyStable(): Promise<void> {
     let counter = 0
 
-    async function loaded(resolve: Function): Promise<void> {
+    async function stable(resolve: Function): Promise<void> {
       const contactList = await Contact.findAll()
       if (counter === contactList.length) {
         return resolve()
       }
       counter = contactList.length
-      setTimeout(() => loaded(resolve), 300)
+      setTimeout(() => stable(resolve), 300)
         .unref()
     }
 
     return new Promise<void>((resolve, reject) => {
-      setTimeout(reject, 60 * 1000) // wait for 1 min
-        .unref()
+      setTimeout(
+        () => reject(new Error('timeout after 60 seconds')),
+        60 * 1000,
+      ).unref() // wait for 1 min
 
-      setTimeout(() => loaded(resolve), 1 * 1000)
+      setTimeout(() => stable(resolve), 1 * 1000)
     })
 
   }
