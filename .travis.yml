@@ -11,7 +11,7 @@ os:
   - osx
 
 addons:
-  chrome: stable
+  chrome: unstable
   apt:
     packages:
       - jq
@@ -54,7 +54,7 @@ script:
   # - if [ "$TRAVIS_OS_NAME" == 'linux' ];  then WECHATY_LOG=silly    npm run test:phantomjs;   fi
   - if [ "$TRAVIS_OS_NAME" == 'linux' ];  then WECHATY_LOG=silly    npm run test:chrome;      fi
   - if [ "$TRAVIS_OS_NAME" == 'osx' ];    then WECHATY_LOG=verbose  npm run nycava;           fi
-  - npm run test:npm && echo 'Npm packing test is passed'
+  - WECHATY_HEAD=chrome-headless npm run test:npm && echo 'Npm packing test is passed'
 
 notifications:
   webhooks:
