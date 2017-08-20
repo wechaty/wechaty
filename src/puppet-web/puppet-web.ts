@@ -296,12 +296,13 @@ export class PuppetWeb extends Puppet {
       throw e
     }
 
-    await this.server.init()
-                .catch(e => {
-                  log.error('PuppetWeb', 'initServer() exception: %s', e.message)
-                  Raven.captureException(e)
-                  throw e
-                })
+    try {
+      await this.server.init()
+    } catch (e) {
+      log.error('PuppetWeb', 'initServer() exception: %s', e.message)
+      Raven.captureException(e)
+      throw e
+    }
     return
   }
 
@@ -732,6 +733,32 @@ export class PuppetWeb extends Puppet {
       Raven.captureException(e)
       throw e
     }
+  }
+
+  /**
+   * @private
+   * For issue #668
+   */
+  public async readyStable(): Promise<void> {
+    let counter = 0
+
+    async function loaded(resolve: Function): Promise<void> {
+      const contactList = await Contact.findAll()
+      if (counter === contactList.length) {
+        return resolve()
+      }
+      counter = contactList.length
+      setTimeout(() => loaded(resolve), 300)
+        .unref()
+    }
+
+    return new Promise<void>((resolve, reject) => {
+      setTimeout(reject, 60 * 1000) // wait for 1 min
+        .unref()
+
+      setTimeout(() => loaded(resolve), 1 * 1000)
+    })
+
   }
 }
 
