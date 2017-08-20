@@ -543,55 +543,73 @@ export class Message implements Sayable {
     return this.obj.content
   }
 
-  /**
-   * Get the type from the message.
-   *
-   * @see {@link MsgType}
-   * @returns {MsgType}
-   */
-  public type(): MsgType {
-    return this.obj.type
-  }
+  public say(text: string, replyTo?: Contact | Contact[]): Promise<any>
+
+  public say(mediaMessage: MediaMessage, replyTo?: Contact | Contact[]): Promise<any>
 
   /**
-   * Get the typeSub from the message.
+   * Reply a Text or Media File message to the sender.
    *
-   * If message is a location message: `m.type() === MsgType.TEXT && m.typeSub() === MsgType.LOCATION`
+   * @see {@link https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts|Example/ding-dong-bot}
+   * @param {(string | MediaMessage)} textOrMedia
+   * @param {(Contact|Contact[])} [replyTo]
+   * @returns {Promise<any>}
    *
-   * @see {@link MsgType}
-   * @returns {MsgType}
+   * @example
+   * const bot = Wechaty.instance()
+   * bot
+   * .on('message', async m => {
+   *   if (/^ding$/i.test(m.content())) {
+   *     await m.say('hello world')
+   *     console.log('Bot REPLY: hello world')
+   *     await m.say(new MediaMessage(__dirname + '/wechaty.png'))
+   *     console.log('Bot REPLY: Image')
+   *   }
+   * })
    */
-  public typeSub(): MsgType {
-    if (!this.rawObj) {
-      throw new Error('no rawObj')
+  public say(textOrMedia: string | MediaMessage, replyTo?: Contact|Contact[]): Promise<any> {
+    /* tslint:disable:no-use-before-declare */
+    const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
+    log.verbose('Message', 'say(%s, %s)', content, replyTo)
+    let m
+    if (typeof textOrMedia === 'string') {
+      m = new Message()
+      const room = this.room()
+      if (room) {
+        m.room(room)
+      }
+
+      if (!replyTo) {
+        m.to(this.from())
+        m.content(textOrMedia)
+
+      } else if (this.room()) {
+        let mentionList
+        if (Array.isArray(replyTo)) {
+          m.to(replyTo[0])
+          mentionList = replyTo.map(c => '@' + c.name()).join(' ')
+        } else {
+          m.to(replyTo)
+          mentionList = '@' + replyTo.name()
+        }
+        m.content(mentionList + ' ' + textOrMedia)
+      }
+    /* tslint:disable:no-use-before-declare */
+    } else if (textOrMedia instanceof MediaMessage) {
+      m = textOrMedia
+      const room = this.room()
+      if (room) {
+        m.room(room)
+      }
+
+      if (!replyTo) {
+        m.to(this.from())
+      }
     }
-    return this.rawObj.SubMsgType
+
+    return config.puppetInstance()
+                  .send(m)
   }
-
-  /**
-   * Get the typeApp from the message.
-   *
-   * @returns {AppMsgType}
-   * @see {@link AppMsgType}
-   */
-  public typeApp(): AppMsgType {
-    if (!this.rawObj) {
-      throw new Error('no rawObj')
-    }
-    return this.rawObj.AppMsgType
-  }
-
-  /**
-   * Get the typeEx from the message.
-   *
-   * @returns {MsgType}
-   */
-  public typeEx()  { return MsgType[this.obj.type] }
-
-  /**
-   * @private
-   */
-  public count()   { return this._counter }
 
   /**
    * Check if a message is sent by self.
@@ -684,6 +702,56 @@ export class Message implements Sayable {
   }
 
   /**
+   * Get the type from the message.
+   *
+   * @see {@link MsgType}
+   * @returns {MsgType}
+   */
+  public type(): MsgType {
+    return this.obj.type
+  }
+
+  /**
+   * Get the typeSub from the message.
+   *
+   * If message is a location message: `m.type() === MsgType.TEXT && m.typeSub() === MsgType.LOCATION`
+   *
+   * @see {@link MsgType}
+   * @returns {MsgType}
+   */
+  public typeSub(): MsgType {
+    if (!this.rawObj) {
+      throw new Error('no rawObj')
+    }
+    return this.rawObj.SubMsgType
+  }
+
+  /**
+   * Get the typeApp from the message.
+   *
+   * @returns {AppMsgType}
+   * @see {@link AppMsgType}
+   */
+  public typeApp(): AppMsgType {
+    if (!this.rawObj) {
+      throw new Error('no rawObj')
+    }
+    return this.rawObj.AppMsgType
+  }
+
+  /**
+   * Get the typeEx from the message.
+   *
+   * @returns {MsgType}
+   */
+  public typeEx()  { return MsgType[this.obj.type] }
+
+  /**
+   * @private
+   */
+  public count()   { return this._counter }
+
+  /**
    * @private
    */
   public async ready(): Promise<void> {
@@ -756,14 +824,14 @@ export class Message implements Sayable {
   }
 
   /**
-   * @todo
+   * @todo add function
    */
   public static async find(query) {
     return Promise.resolve(new Message(<MsgRawObj>{MsgId: '-1'}))
   }
 
   /**
-   * @todo
+   * @todo add function
    */
   public static async findAll(query) {
     return Promise.resolve([
@@ -779,74 +847,6 @@ export class Message implements Sayable {
   //     Message.TYPE[v] = k // Message.Type[1] = 'TEXT'
   //   })
   // }
-
-  public say(text: string, replyTo?: Contact | Contact[]): Promise<any>
-
-  public say(mediaMessage: MediaMessage, replyTo?: Contact | Contact[]): Promise<any>
-
-  /**
-   * Reply a Text or Media File message to the sender.
-   *
-   * @see {@link https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts|Example/ding-dong-bot}
-   * @param {(string | MediaMessage)} textOrMedia
-   * @param {(Contact|Contact[])} [replyTo]
-   * @returns {Promise<any>}
-   *
-   * @example
-   * const bot = Wechaty.instance()
-   * bot
-   * .on('message', async m => {
-   *   if (/^ding$/i.test(m.content())) {
-   *     await m.say('hello world')
-   *     console.log('Bot REPLY: hello world')
-   *     await m.say(new MediaMessage(__dirname + '/wechaty.png'))
-   *     console.log('Bot REPLY: Image')
-   *   }
-   * })
-   */
-  public say(textOrMedia: string | MediaMessage, replyTo?: Contact|Contact[]): Promise<any> {
-    /* tslint:disable:no-use-before-declare */
-    const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
-    log.verbose('Message', 'say(%s, %s)', content, replyTo)
-    let m
-    if (typeof textOrMedia === 'string') {
-      m = new Message()
-      const room = this.room()
-      if (room) {
-        m.room(room)
-      }
-
-      if (!replyTo) {
-        m.to(this.from())
-        m.content(textOrMedia)
-
-      } else if (this.room()) {
-        let mentionList
-        if (Array.isArray(replyTo)) {
-          m.to(replyTo[0])
-          mentionList = replyTo.map(c => '@' + c.name()).join(' ')
-        } else {
-          m.to(replyTo)
-          mentionList = '@' + replyTo.name()
-        }
-        m.content(mentionList + ' ' + textOrMedia)
-      }
-    /* tslint:disable:no-use-before-declare */
-    } else if (textOrMedia instanceof MediaMessage) {
-      m = textOrMedia
-      const room = this.room()
-      if (room) {
-        m.room(room)
-      }
-
-      if (!replyTo) {
-        m.to(this.from())
-      }
-    }
-
-    return config.puppetInstance()
-                  .send(m)
-  }
 
 }
 

@@ -120,20 +120,6 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * Force reload data for Room
-   *
-   * @returns {Promise<void>}
-   */
-  public async refresh(): Promise<void> {
-    if (this.isReady()) {
-      this.dirtyObj = this.obj
-    }
-    this.obj = null
-    await this.ready()
-    return
-  }
-
-  /**
    * @private
    */
   private async readyAllMembers(memberList: RoomRawMember[]): Promise<void> {
@@ -909,6 +895,20 @@ export class Room extends EventEmitter implements Sayable {
       log.warn('Room', 'find() got more than one result, return the 1st one.')
     }
     return roomList[0]
+  }
+
+  /**
+   * Force reload data for Room
+   *
+   * @returns {Promise<void>}
+   */
+  public async refresh(): Promise<void> {
+    if (this.isReady()) {
+      this.dirtyObj = this.obj
+    }
+    this.obj = null
+    await this.ready()
+    return
   }
 
   /**
