@@ -11,9 +11,11 @@ os:
   - osx
 
 addons:
-  chrome: unstable
   apt:
+    sources:
+      - google-chrome
     packages:
+      - google-chrome-unstable
       - jq
       - shellcheck
       - xvfb
