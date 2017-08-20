@@ -272,7 +272,7 @@ async function onServerLogin(this: PuppetWeb, data, attempt = 0): Promise<void> 
     try {
       await this.readyStable()
     } catch (e) { // fail safe
-      log.warn('PuppetWebEvent', 'readyStable() exception: %s', e && e.message)
+      log.warn('PuppetWebEvent', 'readyStable() exception: %s', e && e.message || e)
     }
 
     this.emit('login', this.user)
