@@ -1,5 +1,5 @@
 /**
- *   @ignore
+ *
  *   Wechaty - https://github.com/chatie/wechaty
  *
  *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
@@ -16,6 +16,7 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  *
+ *   @ignore
  */
 import {
   config,
@@ -88,8 +89,8 @@ export interface ContactQueryFilter {
 }
 
 /**
- * @ignore
  * @see https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3848
+ * @ignore
  */
 const specialContactList: string[] = [
   'weibo', 'qqmail', 'fmessage', 'tmessage', 'qmessage', 'qqsync', 'floatbottle',
@@ -164,15 +165,15 @@ export class Contact implements Sayable {
       stranger:   !!rawObj.stranger, // assign by injectio.js
       avatar:     rawObj.HeadImgUrl,
       /**
-       * @ignore
        * @see 1. https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3243
        * @see 2. https://github.com/Urinx/WeixinBot/blob/master/README.md
+       * @ignore
        */
       // tslint:disable-next-line
       official:      !!rawObj.UserName && !rawObj.UserName.startsWith('@@') && !!(rawObj.VerifyFlag & 8),
       /**
-       * @ignore
        * @see 1. https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3246
+       * @ignore
        */
       special:       specialContactList.indexOf(rawObj.UserName) > -1 || /@qqim$/.test(rawObj.UserName),
     }
@@ -563,7 +564,7 @@ export class Contact implements Sayable {
    * if (ret) {
    *   console.log(`change ${contact.name()}'s alias successfully!`)
    * } else {
-   *   console.error('failed to change ${contact.name()}'s alias!')
+   *   console.error(`failed to change ${contact.name()}'s alias!`)
    * }
    *
    * @example <caption>DELETE the alias for a contact</caption>

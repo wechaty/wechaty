@@ -1,5 +1,4 @@
 /**
- *   @ignore
  *   Wechaty - https://github.com/chatie/wechaty
  *
  *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
@@ -15,7 +14,7 @@
  *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
- *
+ *   @ignore
  */
 import * as fs    from 'fs'
 import * as path  from 'path'

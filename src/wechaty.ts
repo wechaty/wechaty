@@ -1,6 +1,5 @@
 /**
  *
- *  @ignore
  *  Wechaty - https://github.com/chatie/wechaty
  *  2016-2017 Huan LI <zixia@zixia.net>
  *
@@ -22,6 +21,8 @@
  *  which can help you create a bot in 6 lines of javascript
  *  by easy to use API, with cross-platform support for
  *  Linux/Mac/Windows.
+ *
+ *  @ignore
  */
 
 import { EventEmitter } from 'events'

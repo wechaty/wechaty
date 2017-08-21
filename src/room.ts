@@ -1,5 +1,5 @@
 /**
- *   @ignore
+ *
  *   Wechaty - https://github.com/chatie/wechaty
  *
  *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
@@ -20,7 +20,7 @@
  *
  *   Licenst: Apache-2.0
  *   https://github.com/chatie/wechaty
- *
+ *   @ignore
  */
 import { EventEmitter } from 'events'
 
