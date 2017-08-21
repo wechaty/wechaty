@@ -661,11 +661,11 @@ Tests show it will failed if set alias too frequently(60 times in one minute).
 
 **Kind**: instance method of [<code>Contact</code>](#Contact)  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| newAlias | <code>none</code> \| <code>string</code> \| <code>null</code> | , |
+| Param | Type |
+| --- | --- |
+| newAlias | <code>none</code> \| <code>string</code> \| <code>null</code> | 
 
-**Example** *( GET the alias for a contact)*  
+**Example** *( GET the alias for a contact, return {(string | null)})*  
 ```js
 const alias = contact.alias()
 if (alias === null) {

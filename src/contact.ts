@@ -237,9 +237,9 @@ export class Contact implements Sayable {
    * GET / SET / DELETE the alias for a contact
    *
    * Tests show it will failed if set alias too frequently(60 times in one minute).
-   * @param {(none | string | null)} newAlias ,
+   * @param {(none | string | null)} newAlias
    * @returns {(string | null | Promise<boolean>)}
-   * @example <caption> GET the alias for a contact</caption>
+   * @example <caption> GET the alias for a contact, return {(string | null)}</caption>
    * const alias = contact.alias()
    * if (alias === null) {
    *   console.log('You have not yet set any alias for contact ' + contact.name())
