@@ -188,7 +188,7 @@ export class Contact implements Sayable {
    * @param {(string | MediaMessage)} textOrMedia
    * @returns {Promise<boolean>}
    * @example
-   * const contact = await Contact.find({name: 'lijiarui'})  // change 'lijiarui' to any of your contact name in wechat
+   * const contact = await Contact.find({name: 'lijiarui'})         // change 'lijiarui' to any of your contact name in wechat
    * await contact.say('welcome to wechaty!')
    * await contact.say(new MediaMessage(__dirname + '/wechaty.png') // put the filePath you want to send here
    */

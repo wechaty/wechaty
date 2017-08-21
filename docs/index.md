@@ -203,9 +203,8 @@ await bot.quit()
 get the singleton instance of Wechaty
 
 **Kind**: static method of [<code>Wechaty</code>](#Wechaty)  
-**Example**  
+**Example** *(The World&#x27;s Shortest ChatBot Code: 6 lines of JavaScript)*  
 ```js
-// The World's Shortest ChatBot Code: 6 lines of JavaScript
 const { Wechaty } = require('wechaty')
 
 Wechaty.instance() // Singleton
@@ -639,7 +638,7 @@ Send Text or Media File to Contact.
 
 **Example**  
 ```js
-const contact = await Contact.find({name: 'lijiarui'})  // change 'lijiarui' to any of your contact name in wechat
+const contact = await Contact.find({name: 'lijiarui'})         // change 'lijiarui' to any of your contact name in wechat
 await contact.say('welcome to wechaty!')
 await contact.say(new MediaMessage(__dirname + '/wechaty.png') // put the filePath you want to send here
 ```

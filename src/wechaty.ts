@@ -104,8 +104,7 @@ export class Wechaty extends EventEmitter implements Sayable {
   /**
    * get the singleton instance of Wechaty
    *
-   * @example
-   * // The World's Shortest ChatBot Code: 6 lines of JavaScript
+   * @example <caption>The World's Shortest ChatBot Code: 6 lines of JavaScript</caption>
    * const { Wechaty } = require('wechaty')
    *
    * Wechaty.instance() // Singleton
