@@ -207,9 +207,9 @@ export class Room extends EventEmitter implements Sayable {
   /**
    * @desc       Room Class Event Function
    * @typedef    RoomEventFunction
-   * @property   {Function} room-join       -(this: Room, inviteeList: Contact[] , inviter: Contact)  => void
-   * @property   {Function} room-topic      -(this: Room, topic: string, oldTopic: string, changer: Contact) => void
-   * @property   {Function} room-leave      -(this: Room, leaver: Contact) => void
+   * @property   {Function} room-join       - (this: Room, inviteeList: Contact[] , inviter: Contact)  => void
+   * @property   {Function} room-topic      - (this: Room, topic: string, oldTopic: string, changer: Contact) => void
+   * @property   {Function} room-leave      - (this: Room, leaver: Contact) => void
    */
 
   /**

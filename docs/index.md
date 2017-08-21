@@ -813,7 +813,7 @@ const ret = await contact.alias('lijiarui')
 if (ret) {
   console.log(`change ${contact.name()}'s alias successfully!`)
 } else {
-  console.error('failed to change ${contact.name()}'s alias!')
+  console.log(`failed to change ${contact.name()} alias!`)
 }
 ```
 **Example** *(DELETE the alias for a contact)*  
@@ -1247,6 +1247,6 @@ The way to search Contact
 
 | Name | Type | Description |
 | --- | --- | --- |
-| name | <code>string</code> | the name-string set by user-self, should be called name |
-| alias | <code>string</code> | the name-string set by bot for others, should be called alias [More Detail](https://github.com/Chatie/wechaty/issues/365) |
+| name | <code>string</code> | The name-string set by user-self, should be called name |
+| alias | <code>string</code> | The name-string set by bot for others, should be called alias [More Detail](https://github.com/Chatie/wechaty/issues/365) |
 

@@ -448,8 +448,8 @@ export class Contact implements Sayable {
    * The way to search Contact
    *
    * @typedef    ContactQueryFilter
-   * @property   {string} name    -the name-string set by user-self, should be called name
-   * @property   {string} alias   -the name-string set by bot for others, should be called alias
+   * @property   {string} name    - The name-string set by user-self, should be called name
+   * @property   {string} alias   - The name-string set by bot for others, should be called alias
    * [More Detail]{@link https://github.com/Chatie/wechaty/issues/365}
    */
 
@@ -564,7 +564,7 @@ export class Contact implements Sayable {
    * if (ret) {
    *   console.log(`change ${contact.name()}'s alias successfully!`)
    * } else {
-   *   console.error(`failed to change ${contact.name()}'s alias!`)
+   *   console.log(`failed to change ${contact.name()} alias!`)
    * }
    *
    * @example <caption>DELETE the alias for a contact</caption>
