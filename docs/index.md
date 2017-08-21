@@ -64,10 +64,10 @@ Main bot class.
     * _instance_
         * [.init()](#Wechaty+init) ⇒ <code>Promise.&lt;void&gt;</code>
         * [.on(event, listener)](#Wechaty+on) ⇒ [<code>Wechaty</code>](#Wechaty)
+        * [.quit()](#Wechaty+quit) ⇒ <code>Promise.&lt;void&gt;</code>
+        * [.logout()](#Wechaty+logout) ⇒ <code>Promise.&lt;void&gt;</code>
         * [.self()](#Wechaty+self) ⇒ [<code>Contact</code>](#Contact)
         * [.say(content)](#Wechaty+say) ⇒ <code>Promise.&lt;boolean&gt;</code>
-        * [.logout()](#Wechaty+logout) ⇒ <code>Promise.&lt;void&gt;</code>
-        * [.quit()](#Wechaty+quit) ⇒ <code>Promise.&lt;void&gt;</code>
     * _static_
         * [.instance()](#Wechaty.instance)
         * [.version([forceNpm])](#Wechaty.version) ⇒ <code>string</code>
@@ -155,6 +155,26 @@ bot.on('room-topic', (room: Room, topic: string, oldTopic: string, changer: Cont
   console.log(`Room ${room.topic()} topic changed from ${oldTopic} to ${topic} by ${changer.name()}`)
 })
 ```
+<a name="Wechaty+quit"></a>
+
+### wechaty.quit() ⇒ <code>Promise.&lt;void&gt;</code>
+Quit the bot
+
+**Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
+**Example**  
+```js
+await bot.quit()
+```
+<a name="Wechaty+logout"></a>
+
+### wechaty.logout() ⇒ <code>Promise.&lt;void&gt;</code>
+Logout the bot
+
+**Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
+**Example**  
+```js
+await bot.logout()
+```
 <a name="Wechaty+self"></a>
 
 ### wechaty.self() ⇒ [<code>Contact</code>](#Contact)
@@ -177,26 +197,6 @@ Send message to filehelper
 | --- | --- |
 | content | <code>string</code> | 
 
-<a name="Wechaty+logout"></a>
-
-### wechaty.logout() ⇒ <code>Promise.&lt;void&gt;</code>
-Logout the bot
-
-**Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
-**Example**  
-```js
-await bot.logout()
-```
-<a name="Wechaty+quit"></a>
-
-### wechaty.quit() ⇒ <code>Promise.&lt;void&gt;</code>
-Quit the bot
-
-**Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
-**Example**  
-```js
-await bot.quit()
-```
 <a name="Wechaty.instance"></a>
 
 ### Wechaty.instance()
@@ -242,6 +242,7 @@ All wechat rooms(groups) will be encapsulated as a Room.
 
 * [Room](#Room)
     * _instance_
+        * [.refresh()](#Room+refresh) ⇒ <code>Promise.&lt;void&gt;</code>
         * [.on(event, listener)](#Room+on) ⇒ <code>this</code>
         * [.say(textOrMedia, [replyTo])](#Room+say) ⇒ <code>Promise.&lt;boolean&gt;</code>
         * [.add(contact)](#Room+add) ⇒ <code>Promise.&lt;number&gt;</code>
@@ -254,12 +255,17 @@ All wechat rooms(groups) will be encapsulated as a Room.
         * [.memberAll(queryArg)](#Room+memberAll) ⇒ [<code>Array.&lt;Contact&gt;</code>](#Contact)
         * [.member(queryArg)](#Room+member) ⇒ [<code>Contact</code>](#Contact) \| <code>null</code>
         * [.memberList()](#Room+memberList) ⇒ [<code>Array.&lt;Contact&gt;</code>](#Contact)
-        * [.refresh()](#Room+refresh) ⇒ <code>Promise.&lt;void&gt;</code>
     * _static_
         * [.create(contactList, [topic])](#Room.create) ⇒ [<code>Promise.&lt;Room&gt;</code>](#Room)
         * [.findAll([query])](#Room.findAll) ⇒ <code>Promise.&lt;Array.&lt;Room&gt;&gt;</code>
         * [.find(query)](#Room.find) ⇒ <code>Promise.&lt;(Room\|null)&gt;</code>
 
+<a name="Room+refresh"></a>
+
+### room.refresh() ⇒ <code>Promise.&lt;void&gt;</code>
+Force reload data for Room
+
+**Kind**: instance method of [<code>Room</code>](#Room)  
 <a name="Room+on"></a>
 
 ### room.on(event, listener) ⇒ <code>this</code>
@@ -537,12 +543,6 @@ if (room) {
 Get all room member from the room
 
 **Kind**: instance method of [<code>Room</code>](#Room)  
-<a name="Room+refresh"></a>
-
-### room.refresh() ⇒ <code>Promise.&lt;void&gt;</code>
-Force reload data for Room
-
-**Kind**: instance method of [<code>Room</code>](#Room)  
 <a name="Room.create"></a>
 
 ### Room.create(contactList, [topic]) ⇒ [<code>Promise.&lt;Room&gt;</code>](#Room)
@@ -606,9 +606,8 @@ All wechat contacts(friend) will be encapsulated as a Contact.
 
 * [Contact](#Contact)
     * _instance_
-        * [.say(textOrMedia)](#Contact+say) ⇒ <code>Promise.&lt;boolean&gt;</code>
+        * ~~[.weixin()](#Contact+weixin) ⇒ <code>string</code> \| <code>null</code>~~
         * [.name()](#Contact+name) ⇒ <code>string</code>
-        * [.alias(newAlias)](#Contact+alias) ⇒ <code>string</code> \| <code>null</code> \| <code>Promise.&lt;boolean&gt;</code>
         * [.stranger()](#Contact+stranger) ⇒ <code>boolean</code> \| <code>null</code>
         * [.official()](#Contact+official) ⇒ <code>boolean</code> \| <code>null</code>
         * [.special()](#Contact+special) ⇒ <code>boolean</code> \| <code>null</code>
@@ -620,27 +619,25 @@ All wechat contacts(friend) will be encapsulated as a Contact.
         * [.avatar()](#Contact+avatar) ⇒ <code>Promise.&lt;NodeJS.ReadableStream&gt;</code>
         * [.refresh()](#Contact+refresh) ⇒ <code>Promise.&lt;this&gt;</code>
         * [.self()](#Contact+self) ⇒ <code>boolean</code>
-        * ~~[.weixin()](#Contact+weixin) ⇒ <code>string</code> \| <code>null</code>~~
+        * [.alias(newAlias)](#Contact+alias) ⇒ <code>string</code> \| <code>null</code> \| <code>Promise.&lt;boolean&gt;</code>
+        * [.say(textOrMedia)](#Contact+say) ⇒ <code>Promise.&lt;boolean&gt;</code>
     * _static_
         * [.findAll([queryArg])](#Contact.findAll) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
         * [.find(query)](#Contact.find) ⇒ <code>Promise.&lt;(Contact\|null)&gt;</code>
 
-<a name="Contact+say"></a>
+<a name="Contact+weixin"></a>
 
-### contact.say(textOrMedia) ⇒ <code>Promise.&lt;boolean&gt;</code>
-Send Text or Media File to Contact.
+### ~~contact.weixin() ⇒ <code>string</code> \| <code>null</code>~~
+***Deprecated***
+
+Get the weixin number from a contact.
+
+Sometimes cannot get weixin number due to weixin security mechanism, not recommend.
 
 **Kind**: instance method of [<code>Contact</code>](#Contact)  
-
-| Param | Type |
-| --- | --- |
-| textOrMedia | <code>string</code> \| [<code>MediaMessage</code>](#MediaMessage) | 
-
 **Example**  
 ```js
-const contact = await Contact.find({name: 'lijiarui'})         // change 'lijiarui' to any of your contact name in wechat
-await contact.say('welcome to wechaty!')
-await contact.say(new MediaMessage(__dirname + '/wechaty.png') // put the filePath you want to send here
+const weixin = contact.weixin()
 ```
 <a name="Contact+name"></a>
 
@@ -651,46 +648,6 @@ Get the name from a contact
 **Example**  
 ```js
 const name = contact.name()
-```
-<a name="Contact+alias"></a>
-
-### contact.alias(newAlias) ⇒ <code>string</code> \| <code>null</code> \| <code>Promise.&lt;boolean&gt;</code>
-GET / SET / DELETE the alias for a contact
-
-Tests show it will failed if set alias too frequently(60 times in one minute).
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-
-| Param | Type |
-| --- | --- |
-| newAlias | <code>none</code> \| <code>string</code> \| <code>null</code> | 
-
-**Example** *( GET the alias for a contact, return {(string | null)})*  
-```js
-const alias = contact.alias()
-if (alias === null) {
-  console.log('You have not yet set any alias for contact ' + contact.name())
-} else {
-  console.log('You have already set an alias for contact ' + contact.name() + ':' + alias)
-}
-```
-**Example** *(SET the alias for a contact)*  
-```js
-const ret = await contact.alias('lijiarui')
-if (ret) {
-  console.log(`change ${contact.name()}'s alias successfully!`)
-} else {
-  console.error('failed to change ${contact.name()}'s alias!')
-}
-```
-**Example** *(DELETE the alias for a contact)*  
-```js
-const ret = await contact.alias(null)
-if (ret) {
-  console.log(`delete ${contact.name()}'s alias successfully!`)
-} else {
-  console.log(`failed to delete ${contact.name()}'s alias!`)
-}
 ```
 <a name="Contact+stranger"></a>
 
@@ -828,19 +785,62 @@ Check if contact is self
 ```js
 const isSelf = contact.self()
 ```
-<a name="Contact+weixin"></a>
+<a name="Contact+alias"></a>
 
-### ~~contact.weixin() ⇒ <code>string</code> \| <code>null</code>~~
-***Deprecated***
+### contact.alias(newAlias) ⇒ <code>string</code> \| <code>null</code> \| <code>Promise.&lt;boolean&gt;</code>
+GET / SET / DELETE the alias for a contact
 
-Get the weixin number from a contact.
-
-Sometimes cannot get weixin number due to weixin security mechanism, not recommend.
+Tests show it will failed if set alias too frequently(60 times in one minute).
 
 **Kind**: instance method of [<code>Contact</code>](#Contact)  
+
+| Param | Type |
+| --- | --- |
+| newAlias | <code>none</code> \| <code>string</code> \| <code>null</code> | 
+
+**Example** *( GET the alias for a contact, return {(string | null)})*  
+```js
+const alias = contact.alias()
+if (alias === null) {
+  console.log('You have not yet set any alias for contact ' + contact.name())
+} else {
+  console.log('You have already set an alias for contact ' + contact.name() + ':' + alias)
+}
+```
+**Example** *(SET the alias for a contact)*  
+```js
+const ret = await contact.alias('lijiarui')
+if (ret) {
+  console.log(`change ${contact.name()}'s alias successfully!`)
+} else {
+  console.error('failed to change ${contact.name()}'s alias!')
+}
+```
+**Example** *(DELETE the alias for a contact)*  
+```js
+const ret = await contact.alias(null)
+if (ret) {
+  console.log(`delete ${contact.name()}'s alias successfully!`)
+} else {
+  console.log(`failed to delete ${contact.name()}'s alias!`)
+}
+```
+<a name="Contact+say"></a>
+
+### contact.say(textOrMedia) ⇒ <code>Promise.&lt;boolean&gt;</code>
+Send Text or Media File to Contact.
+
+**Kind**: instance method of [<code>Contact</code>](#Contact)  
+
+| Param | Type |
+| --- | --- |
+| textOrMedia | <code>string</code> \| [<code>MediaMessage</code>](#MediaMessage) | 
+
 **Example**  
 ```js
-const weixin = contact.weixin()
+const contact = await Contact.find({name: 'lijiarui'})         // change 'lijiarui' to any of your contact name in wechat
+await contact.say('welcome to wechaty!')
+await contact.say(new MediaMessage(__dirname + '/wechaty.png') // put the filePath you want to send here
 ```
 <a name="Contact.findAll"></a>
 
@@ -900,13 +900,13 @@ All wechat messages will be encapsulated as a Message.
         * [.to()](#Message+to) ⇒ [<code>Contact</code>](#Contact) \| <code>null</code>
         * [.room()](#Message+room) ⇒ [<code>Room</code>](#Room) \| <code>null</code>
         * [.content()](#Message+content) ⇒ <code>string</code>
-        * [.say(textOrMedia, [replyTo])](#Message+say) ⇒ <code>Promise.&lt;any&gt;</code>
-        * [.self()](#Message+self) ⇒ <code>boolean</code>
-        * [.mentioned()](#Message+mentioned) ⇒ [<code>Array.&lt;Contact&gt;</code>](#Contact)
         * [.type()](#Message+type) ⇒ [<code>MsgType</code>](#MsgType)
         * [.typeSub()](#Message+typeSub) ⇒ [<code>MsgType</code>](#MsgType)
         * [.typeApp()](#Message+typeApp) ⇒ [<code>AppMsgType</code>](#AppMsgType)
         * [.typeEx()](#Message+typeEx) ⇒ [<code>MsgType</code>](#MsgType)
+        * [.self()](#Message+self) ⇒ <code>boolean</code>
+        * [.mentioned()](#Message+mentioned) ⇒ [<code>Array.&lt;Contact&gt;</code>](#Contact)
+        * [.say(textOrMedia, [replyTo])](#Message+say) ⇒ <code>Promise.&lt;any&gt;</code>
     * _static_
         * [.find()](#Message.find)
         * [.findAll()](#Message.findAll)
@@ -937,32 +937,35 @@ If the message is not in a room, then will return `null`
 Get the content of the message
 
 **Kind**: instance method of [<code>Message</code>](#Message)  
-<a name="Message+say"></a>
+<a name="Message+type"></a>
 
-### message.say(textOrMedia, [replyTo]) ⇒ <code>Promise.&lt;any&gt;</code>
-Reply a Text or Media File message to the sender.
+### message.type() ⇒ [<code>MsgType</code>](#MsgType)
+Get the type from the message.
 
 **Kind**: instance method of [<code>Message</code>](#Message)  
-**See**: [Example/ding-dong-bot](https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts)  
+**See**: [MsgType](#MsgType)  
+<a name="Message+typeSub"></a>
 
-| Param | Type |
-| --- | --- |
-| textOrMedia | <code>string</code> \| [<code>MediaMessage</code>](#MediaMessage) | 
-| [replyTo] | [<code>Contact</code>](#Contact) \| [<code>Array.&lt;Contact&gt;</code>](#Contact) | 
+### message.typeSub() ⇒ [<code>MsgType</code>](#MsgType)
+Get the typeSub from the message.
 
-**Example**  
-```js
-const bot = Wechaty.instance()
-bot
-.on('message', async m => {
-  if (/^ding$/i.test(m.content())) {
-    await m.say('hello world')
-    console.log('Bot REPLY: hello world')
-    await m.say(new MediaMessage(__dirname + '/wechaty.png'))
-    console.log('Bot REPLY: Image')
-  }
-})
-```
+If message is a location message: `m.type() === MsgType.TEXT && m.typeSub() === MsgType.LOCATION`
+
+**Kind**: instance method of [<code>Message</code>](#Message)  
+**See**: [MsgType](#MsgType)  
+<a name="Message+typeApp"></a>
+
+### message.typeApp() ⇒ [<code>AppMsgType</code>](#AppMsgType)
+Get the typeApp from the message.
+
+**Kind**: instance method of [<code>Message</code>](#Message)  
+**See**: [AppMsgType](#AppMsgType)  
+<a name="Message+typeEx"></a>
+
+### message.typeEx() ⇒ [<code>MsgType</code>](#MsgType)
+Get the typeEx from the message.
+
+**Kind**: instance method of [<code>Message</code>](#Message)  
 <a name="Message+self"></a>
 
 ### message.self() ⇒ <code>boolean</code>
@@ -997,35 +1000,32 @@ Message event table as follows
 const contactList = message.mentioned()
 console.log(contactList)
 ```
-<a name="Message+type"></a>
+<a name="Message+say"></a>
 
-### message.type() ⇒ [<code>MsgType</code>](#MsgType)
-Get the type from the message.
-
-**Kind**: instance method of [<code>Message</code>](#Message)  
-**See**: [MsgType](#MsgType)  
-<a name="Message+typeSub"></a>
-
-### message.typeSub() ⇒ [<code>MsgType</code>](#MsgType)
-Get the typeSub from the message.
-
-If message is a location message: `m.type() === MsgType.TEXT && m.typeSub() === MsgType.LOCATION`
+### message.say(textOrMedia, [replyTo]) ⇒ <code>Promise.&lt;any&gt;</code>
+Reply a Text or Media File message to the sender.
 
 **Kind**: instance method of [<code>Message</code>](#Message)  
-**See**: [MsgType](#MsgType)  
-<a name="Message+typeApp"></a>
+**See**: [Example/ding-dong-bot](https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts)  
 
-### message.typeApp() ⇒ [<code>AppMsgType</code>](#AppMsgType)
-Get the typeApp from the message.
+| Param | Type |
+| --- | --- |
+| textOrMedia | <code>string</code> \| [<code>MediaMessage</code>](#MediaMessage) | 
+| [replyTo] | [<code>Contact</code>](#Contact) \| [<code>Array.&lt;Contact&gt;</code>](#Contact) | 
 
-**Kind**: instance method of [<code>Message</code>](#Message)  
-**See**: [AppMsgType](#AppMsgType)  
-<a name="Message+typeEx"></a>
-
-### message.typeEx() ⇒ [<code>MsgType</code>](#MsgType)
-Get the typeEx from the message.
-
-**Kind**: instance method of [<code>Message</code>](#Message)  
+**Example**  
+```js
+const bot = Wechaty.instance()
+bot
+.on('message', async m => {
+  if (/^ding$/i.test(m.content())) {
+    await m.say('hello world')
+    console.log('Bot REPLY: hello world')
+    await m.say(new MediaMessage(__dirname + '/wechaty.png'))
+    console.log('Bot REPLY: Image')
+  }
+})
+```
 <a name="Message.find"></a>
 
 ### Message.find()

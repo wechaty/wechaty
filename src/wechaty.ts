@@ -433,6 +433,63 @@ export class Wechaty extends EventEmitter implements Sayable {
   }
 
   /**
+   * Quit the bot
+   *
+   * @returns {Promise<void>}
+   * @example
+   * await bot.quit()
+   */
+  public async quit(): Promise<void> {
+    log.verbose('Wechaty', 'quit()')
+
+    if (this.state.current() !== 'ready' || this.state.inprocess()) {
+      const err = new Error('quit() must run on a inited instance.')
+      log.error('Wechaty', err.message)
+      throw err
+    }
+    this.state.target('standby')
+    this.state.current('standby', false)
+
+    if (!this.puppet) {
+      log.warn('Wechaty', 'quit() without this.puppet')
+      return
+    }
+
+    const puppetBeforeDie = this.puppet
+    this.puppet     = null
+    config.puppetInstance(null)
+
+    await puppetBeforeDie.quit()
+                        .catch(e => {
+                          log.error('Wechaty', 'quit() exception: %s', e.message)
+                          Raven.captureException(e)
+                          throw e
+                        })
+    this.state.current('standby')
+    return
+  }
+
+  /**
+   * Logout the bot
+   *
+   * @returns {Promise<void>}
+   * @example
+   * await bot.logout()
+   */
+  public async logout(): Promise<void>  {
+    if (!this.puppet) {
+      throw new Error('no puppet')
+    }
+    await this.puppet.logout()
+                    .catch(e => {
+                      log.error('Wechaty', 'logout() exception: %s', e.message)
+                      Raven.captureException(e)
+                      throw e
+                    })
+    return
+  }
+
+  /**
    * Get current user
    *
    * @returns {Contact}
@@ -475,63 +532,6 @@ export class Wechaty extends EventEmitter implements Sayable {
       throw new Error('no puppet')
     }
     return await this.puppet.say(content)
-  }
-
-  /**
-   * Logout the bot
-   *
-   * @returns {Promise<void>}
-   * @example
-   * await bot.logout()
-   */
-  public async logout(): Promise<void>  {
-    if (!this.puppet) {
-      throw new Error('no puppet')
-    }
-    await this.puppet.logout()
-                    .catch(e => {
-                      log.error('Wechaty', 'logout() exception: %s', e.message)
-                      Raven.captureException(e)
-                      throw e
-                    })
-    return
-  }
-
-  /**
-   * Quit the bot
-   *
-   * @returns {Promise<void>}
-   * @example
-   * await bot.quit()
-   */
-  public async quit(): Promise<void> {
-    log.verbose('Wechaty', 'quit()')
-
-    if (this.state.current() !== 'ready' || this.state.inprocess()) {
-      const err = new Error('quit() must run on a inited instance.')
-      log.error('Wechaty', err.message)
-      throw err
-    }
-    this.state.target('standby')
-    this.state.current('standby', false)
-
-    if (!this.puppet) {
-      log.warn('Wechaty', 'quit() without this.puppet')
-      return
-    }
-
-    const puppetBeforeDie = this.puppet
-    this.puppet     = null
-    config.puppetInstance(null)
-
-    await puppetBeforeDie.quit()
-                        .catch(e => {
-                          log.error('Wechaty', 'quit() exception: %s', e.message)
-                          Raven.captureException(e)
-                          throw e
-                        })
-    this.state.current('standby')
-    return
   }
 
   /**
