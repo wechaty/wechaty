@@ -88,9 +88,8 @@ await bot.init()
 ### wechaty.on(event, listener) ⇒ [<code>Wechaty</code>](#Wechaty)
 **Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
 **Returns**: [<code>Wechaty</code>](#Wechaty) - - this for chain
-More Example Gist:
 
-[Example/Friend-Bot](https://github.com/wechaty/wechaty/blob/master/example/friend-bot.ts)  
+More Example Gist: [Example/Friend-Bot](https://github.com/wechaty/wechaty/blob/master/example/friend-bot.ts)  
 
 | Param | Type | Description |
 | --- | --- | --- |

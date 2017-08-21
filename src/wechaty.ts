@@ -305,9 +305,8 @@ export class Wechaty extends EventEmitter implements Sayable {
    * @param   {WechatyEventName}      event      - Emit WechatyEvent
    * @param   {WechatyEventFunction}  listener   - Depends on the WechatyEvent
    * @return  {Wechaty}                          - this for chain
-   * More Example Gist:
    *
-   * [Example/Friend-Bot]{@link https://github.com/wechaty/wechaty/blob/master/example/friend-bot.ts}
+   * More Example Gist: [Example/Friend-Bot]{@link https://github.com/wechaty/wechaty/blob/master/example/friend-bot.ts}
    *
    * @example <caption>Event:scan </caption>
    * wechaty.on('scan', (url: string, code: number) => {
