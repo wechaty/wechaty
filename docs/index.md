@@ -613,7 +613,7 @@ All wechat contacts(friend) will be encapsulated as a Contact.
         * [.special()](#Contact+special) ⇒ <code>boolean</code> \| <code>null</code>
         * [.personal()](#Contact+personal) ⇒ <code>boolean</code> \| <code>null</code>
         * [.star()](#Contact+star) ⇒ <code>boolean</code>
-        * [.gender()](#Contact+gender) ⇒ [<code>Gender</code>](#Gender)
+        * [.gender()](#Contact+gender) ⇒ <code>Gender.Male(2)</code> \| <code>Gender.Female(1)</code> \| <code>Gender.Unknown(0)</code>
         * [.province()](#Contact+province) ⇒ <code>string</code> \| <code>undefined</code>
         * [.city()](#Contact+city) ⇒ <code>string</code> \| <code>undefined</code>
         * [.avatar()](#Contact+avatar) ⇒ <code>Promise.&lt;NodeJS.ReadableStream&gt;</code>
@@ -722,7 +722,7 @@ const isStar = contact.star()
 ```
 <a name="Contact+gender"></a>
 
-### contact.gender() ⇒ [<code>Gender</code>](#Gender)
+### contact.gender() ⇒ <code>Gender.Male(2)</code> \| <code>Gender.Female(1)</code> \| <code>Gender.Unknown(0)</code>
 Contact gender
 
 **Kind**: instance method of [<code>Contact</code>](#Contact)  

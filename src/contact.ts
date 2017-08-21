@@ -278,7 +278,7 @@ export class Contact implements Sayable {
   /**
    * Contact gender
    *
-   * @returns {Gender}
+   * @returns {Gender.Male(2)|Gender.Female(1)|Gender.Unknown(0)}
    * @example
    * const gender = contact.gender()
    */
