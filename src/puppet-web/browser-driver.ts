@@ -24,6 +24,7 @@ import {
   Navigation,
   Options,
   promise as promiseManager,
+  Session,
   WebDriver,
 }                             from 'selenium-webdriver'
 
@@ -187,9 +188,10 @@ export class BrowserDriver {
           driverError = e
 
           log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() driver.quit() at ttl %d', ttl)
-          driver.quit() // do not await, because a invalid driver will always hang when quit()
+          driver.close()
+                .then(() => driver.quit())  // // do not await, because a invalid driver will always hang when quit()
                 .catch(err => {
-                  log.warn('PuppetWebBrowserDriver', 'getChromeDriver() driver.quit() exception: %s', err.message)
+                  log.warn('PuppetWebBrowserDriver', 'getChromeDriver() driver.{close,quit}() exception: %s', err.message)
                   driverError = err
                 })
         } // END if
@@ -392,14 +394,15 @@ export class BrowserDriver {
   public close()                { return this.driver.close() }
   public executeAsyncScript(script: string|Function, ...args: any[])  { return this.driver.executeAsyncScript.apply(this.driver, arguments) }
   public executeScript     (script: string|Function, ...args: any[])  { return this.driver.executeScript.apply(this.driver, arguments) }
-  public get(url: string)       { return this.driver.get(url)     as any as Promise<void> }
-  public getSession()           { return this.driver.getSession() as any as Promise<void> }
+  public get(url: string)       { return this.driver.get(url) }
+  public getSession()           { return this.driver.getSession() }
   public manage(): Options      { return this.driver.manage() }
   public navigate(): Navigation { return this.driver.navigate() }
-  public quit()                 { return this.driver.quit()       as any as Promise<void> }
+  public quit()                 { return this.driver.quit() }
 }
 
 // export default BrowserDriver
 export {
   IWebDriverOptionsCookie,
+  Session,
 }
