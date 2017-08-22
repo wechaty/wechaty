@@ -65,17 +65,16 @@ test('retryPromise()', async t => {
 })
 
 test('WechatyBro.ding()', async t => {
+  const PORT = 58788
+
+  const browser = new Browser()
+  t.truthy(browser, 'should instanciated a browser')
+
+  const mockPuppet = {browser: browser}
+  const bridge = new Bridge(mockPuppet as PuppetWeb, PORT)
+  t.truthy(bridge, 'should instanciated a bridge with mocked puppet')
 
   try {
-    const PORT = 58788
-
-    const browser = new Browser()
-    t.truthy(browser, 'should instanciated a browser')
-
-    const mockPuppet = {browser: browser}
-    const bridge = new Bridge(mockPuppet as PuppetWeb, PORT)
-    t.truthy(bridge, 'should instanciated a bridge with mocked puppet')
-
     await browser.init()
     t.pass('should instanciated a browser')
 
@@ -88,18 +87,23 @@ test('WechatyBro.ding()', async t => {
     const retDing = await bridge.execute('return WechatyBro.ding()')
     t.is(retDing, 'dong', 'should got dong after execute WechatyBro.ding()')
 
-    // @deprecated
-    // const retReady = await b.execute('return WechatyBro.isReady()')
-    // t.is(typeof retReady, 'boolean', 'should got a boolean return after execute WechatyBro.isReady()')
-
     const retCode = await bridge.proxyWechaty('isLogin')
     t.is(typeof retCode, 'boolean', 'should got a boolean after call proxyWechaty(isLogin)')
 
-    await bridge.quit()
-    t.pass('b.quit()')
-    await browser.quit()
-    t.pass('browser.quit()')
   } catch (err) {
     t.fail('exception: ' + err.message)
+  } finally {
+    try {
+      await bridge.quit()
+      t.pass('b.quit()')
+    } catch (e) {
+      t.fail(e)
+    }
+    try {
+      await browser.quit()
+      t.pass('browser.quit()')
+    } catch (e) {
+      t.fail(e)
+    }
   }
 })
