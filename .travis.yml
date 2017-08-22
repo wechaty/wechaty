@@ -52,8 +52,9 @@ script:
   - npm run lint
   - npm run dist
   # - if [ "$TRAVIS_OS_NAME" == 'linux' ];  then WECHATY_LOG=silly    npm run test:phantomjs;   fi
-  - if [ "$TRAVIS_OS_NAME" == 'linux' ];  then WECHATY_LOG=silly    npm run test:chrome;      fi
-  - if [ "$TRAVIS_OS_NAME" == 'osx' ];    then WECHATY_LOG=verbose  npm run nycava;           fi
+  # https://github.com/SeleniumHQ/docker-selenium/issues/87#issuecomment-187580115
+  - if [ "$TRAVIS_OS_NAME" == 'linux' ];  then DBUS_SESSION_BUS_ADDRESS=/dev/null WECHATY_LOG=silly npm run test:chrome; fi
+  - if [ "$TRAVIS_OS_NAME" == 'osx' ];    then WECHATY_LOG=verbose  npm run nycava; fi
   - WECHATY_HEAD=chrome-headless npm run test:npm && echo 'Npm packing test is passed'
 
 notifications:
