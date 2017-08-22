@@ -103,10 +103,17 @@ export class BrowserDriver {
 
     const options = {
       args: [
+        // fix 'No such session error'
+        // https://bugs.chromium.org/p/chromedriver/issues/detail?id=732#c19
+        '--disable-impl-side-painting',
+
         '--homepage=about:blank',
+
+        // issue #26 for run inside docker
         '--no-sandbox',
+
         // '--remote-debugging-port=9222',  // will conflict with webdriver
-      ],  // issue #26 for run inside docker
+      ],
       // binary: '/opt/google/chrome-unstable/chrome',
     }
 
