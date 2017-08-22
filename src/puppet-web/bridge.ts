@@ -25,13 +25,13 @@ import PuppetWeb  from './puppet-web'
 
 export interface MediaData {
   ToUserName: string,
-  MsgType: number,
-  MediaId: string,
-  FileName: string,
-  FileSize: number,
-  FileMd5?: string,
-  MMFileId: string,
-  MMFileExt: string,
+  MsgType:    number,
+  MediaId:    string,
+  FileName:   string,
+  FileSize:   number,
+  FileMd5?:   string,
+  MMFileId:   string,
+  MMFileExt:  string,
 }
 
 export class Bridge {

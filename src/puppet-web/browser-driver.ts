@@ -99,32 +99,36 @@ export class BrowserDriver {
   private async getChromeDriver(headless = false): Promise<WebDriver> {
     log.verbose('PuppetWebBrowserDriver', 'getChromeDriver()')
 
-    const HEADLESS_ARGS = [
-      // --allow-insecure-localhost: Require Chrome v62
-      // https://bugs.chromium.org/p/chromium/issues/detail?id=721739#c26
-      '--allow-insecure-localhost',
-      '--disable-gpu',
-      // --headless: Require Chrome v60
-      // https://developers.google.com/web/updates/2017/04/headless-chrome
-      '--headless',
-    ]
-
     const options = {
       args: [
+        // fix 'No such session error'
+        // https://bugs.chromium.org/p/chromedriver/issues/detail?id=732#c19
+        '--disable-impl-side-painting',
+
         '--homepage=about:blank',
+
+        // issue #26 for run inside docker
         '--no-sandbox',
+
         // '--remote-debugging-port=9222',  // will conflict with webdriver
-      ],  // issue #26 for run inside docker
+      ],
       // binary: '/opt/google/chrome-unstable/chrome',
     }
 
     if (headless)  {
-      // ISSUE #739
-      // Chrome v62 or above is required
-      // because when we are using --headless args,
-      // chrome version below 62 will not allow the
-      // self-signed certificate to be used when
-      // visiting https://localhost.
+      const HEADLESS_ARGS = [
+        // --allow-insecure-localhost: Require Chrome v62
+        // https://bugs.chromium.org/p/chromium/issues/detail?id=721739#c26
+        '--allow-insecure-localhost',
+        '--disable-gpu',
+        // --headless: Require Chrome v60
+        // https://developers.google.com/web/updates/2017/04/headless-chrome
+        '--headless',
+      ]
+
+      // ISSUE #739 Chrome v62 or above is required
+      // because when we are using --headless args, chrome version below 62 will not allow the
+      // self-signed certificate to be used when visiting https://localhost.
       options.args.concat(HEADLESS_ARGS)
     }
 
@@ -145,15 +149,28 @@ export class BrowserDriver {
                           .chrome()
                           .set('chromeOptions', options)
 
-    // TODO: chromedriver --silent
-    if (!/^(verbose|silly)$/i.test(log.level())) {
+    { // set logging
+      // TODO: chromedriver --silent
       const prefs = new logging.Preferences()
+      let loggingLevel: logging.Level
 
-      prefs.setLevel(logging.Type.BROWSER     , logging.Level.OFF)
-      prefs.setLevel(logging.Type.CLIENT      , logging.Level.OFF)
-      prefs.setLevel(logging.Type.DRIVER      , logging.Level.OFF)
-      prefs.setLevel(logging.Type.PERFORMANCE , logging.Level.OFF)
-      prefs.setLevel(logging.Type.SERVER      , logging.Level.OFF)
+      switch (log.level()) {
+        case 'silly':
+          loggingLevel = logging.Level.ALL
+          break
+        case 'verbose':
+          loggingLevel = logging.Level.DEBUG
+          break
+
+        default:
+          loggingLevel = logging.Level.OFF
+
+      }
+      prefs.setLevel(logging.Type.BROWSER     , loggingLevel)
+      prefs.setLevel(logging.Type.CLIENT      , loggingLevel)
+      prefs.setLevel(logging.Type.DRIVER      , loggingLevel)
+      prefs.setLevel(logging.Type.PERFORMANCE , loggingLevel)
+      prefs.setLevel(logging.Type.SERVER      , loggingLevel)
 
       customChrome.setLoggingPrefs(prefs)
     }
