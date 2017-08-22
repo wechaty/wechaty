@@ -43,6 +43,13 @@ import {
 process.env['SELENIUM_PROMISE_MANAGER'] = '0'
 promiseManager.USE_PROMISE_MANAGER = false
 
+/**
+ * issue #756
+ * fix Chromedriver frequently hangs when attempting to start a new session.
+ * https://github.com/SeleniumHQ/docker-selenium/issues/87#issuecomment-187580115
+ */
+process.env['DBUS_SESSION_BUS_ADDRESS'] = '/dev/null'
+
 export class BrowserDriver {
   private driver: WebDriver
 
