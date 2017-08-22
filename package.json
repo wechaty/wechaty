@@ -122,8 +122,8 @@
     "ws": "3.1.0"
   },
   "devDependencies": {
+    "@types/fluent-ffmpeg": "2.1.2",
     "@types/body-parser": "1.16.5",
-    "@types/fluent-ffmpeg": "2.1.1",
     "@types/glob": "5.0.30",
     "@types/mime": "1.3.1",
     "@types/raven": "2.1.2",
