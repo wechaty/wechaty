@@ -54,13 +54,10 @@ Raven.context(function () {
 })
  */
 
-// const isCi      = require('is-ci')
-// const isDocker  = require('is-docker')
-
 import {
   log,
   Loggable,
-}    from 'brolog'
+}                 from 'brolog'
 
 import { Puppet } from './puppet'
 
@@ -187,33 +184,6 @@ function isWechatyInstalledGlobal() {
    */
    return false
 }
-
-/**
- * @DEPRECATED on Jun 2017 by zixia
- */
-// function dockerMode() {
-  /**
-   * false for Continuous Integration System
-   */
-  // if (isCi) {
-  //   return false
-  // }
-
-  /**
-   * false Cloud9 IDE
-   */
-  // const c9 = Object.keys(process.env)
-  //                 .filter(k => /^C9_/.test(k))
-  //                 .length
-  // if (c9 > 7 && process.env['C9_PORT']) {
-  //   return false
-  // }
-
-  /**
-   * return indentify result by NPM module `is-docker`
-   */
-  // return isDocker()
-// }
 
 /**
  * 5. live setting
