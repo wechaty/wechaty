@@ -18,11 +18,6 @@
  */
 import { test }   from 'ava'
 
-// import {
-//   Browser
-//   , By
-// }                 from 'selenium-webdriver'
-
 import {
   Bridge,
   Browser,
@@ -54,8 +49,8 @@ test.serial('WebDriver process create & quit test', async t => {
 
     pids = await browser.getBrowserPidList()
     t.is(pids.length, 0, 'no driver process after quit')
-  } catch (err) {
-    t.fail(err.message || err)
+  } catch (e) {
+    t.fail(e.message || e)
   }
 })
 
