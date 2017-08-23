@@ -1,5 +1,23 @@
 /**
+ *   Wechaty - https://github.com/chatie/wechaty
  *
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ */
+
+/**
  * Wechaty - Wechat for Bot, and human who talk to bot.
  *
  * Class PuppetWebInjectio
@@ -7,9 +25,8 @@
  * Inject this js code to browser,
  * in order to interactive with wechat web program.
  *
- * Licenst: ISC
- * https://github.com/wechaty/wechaty
- *
+ * Licenst: Apache-2.0
+ * https://github.com/chatie/wechaty
  *
  * ATTENTION:
  *
@@ -129,14 +146,15 @@
    */
   function emit(event, data) {
     var eventsBuf = WechatyBro.vars.eventsBuf
-    if (!eventsBuf.map) {
+    if (!Array.isArray(eventsBuf)) {
       throw new Error('WechatyBro.vars.eventsBuf must be a Array')
     }
     if (event) {
       eventsBuf.unshift([event, data])
     }
     var socket = WechatyBro.vars.socket
-    if (!socket) {
+    // readyState: A value of 1 indicates that the connection is established and communication is possible.
+    if (!socket || socket.readyState !== 1) {
       clog('WechatyBro.vars.socket not ready')
       return setTimeout(emit, 1000) // resent eventsBuf after 1000ms
     }
@@ -148,8 +166,15 @@
         var eventData = eventsBuf.pop()
         if (eventData && eventData.map && eventData.length===2) {
           clog('emiting ' + eventData[0])
-          socket.emit(eventData[0], eventData[1])
-        } else { clog('WechatyBro.emit() got invalid eventData: ' + eventData[0] + ', ' + eventData[1] + ', length: ' + eventData.length) }
+          // socket.emit(eventData[0], eventData[1])
+          var obj = {
+            name: eventData[0],
+            data: eventData[1],
+          }
+          socket.send(JSON.stringify(obj))
+        } else {
+          clog('WechatyBro.emit() got invalid eventData: ' + eventData[0] + ', ' + eventData[1] + ', length: ' + eventData.length)
+        }
       }
 
       if (bufLen > 1) { clog('WechatyBro.vars.eventsBuf[' + bufLen + '] all sent') }
@@ -363,31 +388,34 @@
   }
   function connectSocket() {
     log('connectSocket()')
-    if (typeof io !== 'function') {
-      log('connectSocket: io not found. loading lib...')
-      // http://stackoverflow.com/a/3248500/1123955
-      var script = document.createElement('script')
-      script.onload = function() {
-        log('socket io lib loaded.')
-        connectSocket()
+    /*global socket*/ // WechatyBro global variable: socket
+    var socket  = WechatyBro.vars.socket = new WebSocket('wss://127.0.0.1:' + port)
+
+    socket.onmessage = function(messageEvent) {
+      var data = messageEvent.data
+      log('socket.onmessage: ' + data)
+
+      var recvObj = JSON.parse(data)
+      var name = recvObj.name
+      var data = recvObj.data
+      switch (name) {
+        // ding -> dong. for test & live check purpose
+        // ping/pong are reserved by socket.io https://github.com/socketio/socket.io/issues/2414
+        case 'ding':
+          var obj = {
+            name: 'dong',
+            data: data,
+          }
+          socket.send(JSON.stringify(obj))
+          break
+        default:
+          clog('unknown event name: ' + name)
       }
-      script.src = '//cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js'
-      document.getElementsByTagName('head')[0].appendChild(script)
-      return // wait to be called via script.onload()
     }
 
-    /*global io*/ // WechatyBro global variable: socket
-    var socket  = WechatyBro.vars.socket = io.connect('wss://127.0.0.1:' + port/*, {transports: ['websocket']}*/)
-
-    // ding -> dong. for test & live check purpose
-    // ping/pong are reserved by socket.io https://github.com/socketio/socket.io/issues/2414
-    socket.on('ding', function(data) {
-      log('received socket io event: ding(' + data + '). emit dong...')
-      socket.emit('dong', data)
-    })
-
-    socket.on('connect'   , function(e) { clog('connected to server:' + e) })
-    socket.on('disconnect', function(e) { clog('socket disconnect:'   + e) })
+    socket.onopen   = function(e) { clog('connected to server:' + e) }
+    socket.onclose  = function(e) { clog('socket disconnect:'   + e) }
+    socket.onerror  = function(e) { clog('WebSocket error:' + e) }
   }
 
   /**
@@ -444,7 +472,7 @@
   function getBaseRequest() {
     var accountFactory = WechatyBro.glue.accountFactory
     var BaseRequest = accountFactory.getBaseRequest()
-  
+
     return JSON.stringify(BaseRequest)
   }
 
@@ -453,22 +481,39 @@
     return accountFactory.getPassticket()
   }
 
-  function sendMedia(ToUserName, MediaId,Type) {
+  function getUploadMediaUrl() {
+    var confFactory = WechatyBro.glue.confFactory
+    return confFactory.API_webwxuploadmedia
+  }
+
+  function sendMedia(data) {
     var chatFactory = WechatyBro.glue.chatFactory
     var confFactory = WechatyBro.glue.confFactory
 
     if (!chatFactory || !confFactory) {
-      log('send() chatFactory or confFactory not exist.')
+      log('sendMedia() chatFactory or confFactory not exist.')
       return false
     }
 
-    var m = chatFactory.createMessage({
-      ToUserName: ToUserName
-      , MediaId: MediaId
-      , MsgType: Type
-    })
-    chatFactory.appendMessage(m)
-    return chatFactory.sendMessage(m)
+    try {
+      var d = {
+        ToUserName: data.ToUserName,
+        MediaId: data.MediaId,
+        MsgType: data.MsgType,
+        FileName: data.FileName,
+        FileSize: data.FileSize,
+        MMFileExt: data.MMFileExt,
+        MMFileId: data.MMFileId
+      }
+
+      var m = chatFactory.createMessage(d)
+      chatFactory.appendMessage(m)
+      chatFactory.sendMessage(m)
+    } catch (e) {
+      log('sendMedia() exception: ' + e.message)
+      return false
+    }
+    return true
   }
 
   function send(ToUserName, Content) {
@@ -479,13 +524,19 @@
       log('send() chatFactory or confFactory not exist.')
       return false
     }
-    var m = chatFactory.createMessage({
-      ToUserName: ToUserName
-      , Content: Content
-      , MsgType: confFactory.MSGTYPE_TEXT
-    })
-    chatFactory.appendMessage(m)
-    return chatFactory.sendMessage(m)
+    try {
+      var m = chatFactory.createMessage({
+        ToUserName: ToUserName
+        , Content: Content
+        , MsgType: confFactory.MSGTYPE_TEXT
+      })
+      chatFactory.appendMessage(m)
+      chatFactory.sendMessage(m)
+    } catch (e) {
+      log('send() exception: ' + e.message)
+      return false
+    }
+    return true
   }
   function getContact(id) {
     var contactFactory = WechatyBro.glue.contactFactory
@@ -625,11 +676,17 @@
         timeout: 1e4,
         serial: !0
       }
-    }).success(function() {
+    })
+    .success(function() {
       contact.RemarkName = remark
+
       callback(true)
-    }).error(function() {
+
+    })
+    .error(function() {
+
       callback(false)
+
     })
   }
 
@@ -739,8 +796,8 @@
 
     VerifyContent = VerifyContent || '';
 
-    var contactFactory = WechatyBro.glue.contactFactory
-    var confFactory = WechatyBro.glue.confFactory
+    var contactFactory  = WechatyBro.glue.contactFactory
+    var confFactory     = WechatyBro.glue.confFactory
 
     var Ticket = '' // what's this?
 
@@ -858,6 +915,7 @@
     , getMsgPublicLinkImg: getMsgPublicLinkImg
     , getBaseRequest:      getBaseRequest
     , getPassticket:       getPassticket
+    , getUploadMediaUrl:   getUploadMediaUrl
     , sendMedia:           sendMedia
 
     // for Wechaty Contact Class

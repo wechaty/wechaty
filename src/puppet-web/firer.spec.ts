@@ -1,20 +1,31 @@
 /**
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * Wechaty: * * Wechaty - Wechat for Bot. Connecting ChatBots
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
- * Class PuppetWeb Firer
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
  *
- * Process the Message to find which event to FIRE
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
- * Licenst: ISC
- * https://github.com/wechaty/wechaty
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
+
+/**
+ * Process the Message to find which event to FIRE
+ */
+
 import { test }   from 'ava'
 
 import { Firer }  from './firer'
 
-test('Firer smoking test', t => {
+test('Firer smoke testing', t => {
   t.true(true, 'should be true')
 })
 
@@ -81,6 +92,11 @@ test('parseRoomJoin()', t => {
       ['桔小秘'],
     ],
     [
+      `" 桔小秘"通过扫描"李佳芮"分享的二维码加入群聊`,
+      `李佳芮`,
+      ['桔小秘'],
+    ],
+    [
       `"桔小秘"通过扫描"李佳芮"分享的二维码加入群聊`,
       `李佳芮`,
       ['桔小秘'],
@@ -88,6 +104,11 @@ test('parseRoomJoin()', t => {
     [
       `"桔小秘" joined the group chat via your shared QR Code.`,
       `your`,
+      ['桔小秘'],
+    ],
+    [
+      `" 桔小秘" joined the group chat via the QR Code shared by "李佳芮".`,
+      `李佳芮`,
       ['桔小秘'],
     ],
     [
@@ -111,7 +132,7 @@ test('parseRoomJoin()', t => {
 })
 
 test('parseRoomLeave()', t => {
-  const contentList = [
+  const contentLeaverList = [
     [
       `You removed "Bruce LEE" from the group chat`,
       `Bruce LEE`,
@@ -122,11 +143,27 @@ test('parseRoomLeave()', t => {
     ],
   ]
 
-  let result
-  contentList.forEach(([content, leaver]) => {
-    result = Firer.parseRoomLeave(content)
-    t.truthy(result, 'should get leaver for leave message: ' + content)
-    t.is(result, leaver, 'should get leaver name right')
+  const contentRemoverList = [
+    [
+      `You were removed from the group chat by "桔小秘"`,
+      `桔小秘`,
+    ],
+    [
+      '你被"李佳芮"移出群聊',
+      '李佳芮',
+    ],
+  ]
+
+  contentLeaverList.forEach(([content, leaver]) => {
+    const resultLeaver = Firer.parseRoomLeave(content)[0]
+    t.truthy(resultLeaver, 'should get leaver for leave message: ' + content)
+    t.is(resultLeaver, leaver, 'should get leaver name right')
+  })
+
+  contentRemoverList.forEach(([content, remover]) => {
+    const resultRemover = Firer.parseRoomLeave(content)[1]
+    t.truthy(resultRemover, 'should get remover for leave message: ' + content)
+    t.is(resultRemover, remover, 'should get leaver name right')
   })
 
   t.throws(() => {

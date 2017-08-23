@@ -1,20 +1,29 @@
 /**
- * Wechaty - Wechat for Bot. Connecting ChatBots
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * BrowserCookie
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
- * ISSUE #59
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
  *
- * Licenst: ISC
- * https://github.com/zixia/wechaty
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
-import * as fs from 'fs'
-// const arrify = require('arrify')
+import * as fs              from 'fs'
 
-import { log }            from '../config'
+import { log }              from '../config'
 
-import { BrowserDriver }  from './browser-driver'
+import {
+  BrowserDriver,
+  IWebDriverOptionsCookie,
+}                           from './browser-driver'
 
 /**
  * The reason that driverCookie type defined here
@@ -22,15 +31,18 @@ import { BrowserDriver }  from './browser-driver'
  * with the latest 3.0 version of selenium.
  * 201610 zixia
  */
-export type CookieType = {
-  [index: string]: string | number | boolean,
-  name: string,
-  value: string,
-  path: string,
-  domain: string,
-  secure: boolean,
-  expiry: number,
-}
+/**
+ * Updated 201708 zixia Use IWebDriverOptionsCookie from selenium instead
+ */
+// export interface CookieType {
+//   [index: string]: string | number | boolean,
+//   name: string,
+//   value: string,
+//   path: string,
+//   domain: string,
+//   secure: boolean,
+//   expiry: number,
+// }
 
 export class BrowserCookie {
   constructor(
@@ -43,7 +55,7 @@ export class BrowserCookie {
     )
   }
 
-  public async read(): Promise<CookieType[]> {
+  public async read(): Promise<IWebDriverOptionsCookie[]> {
     // just check cookies, no file operation
     log.verbose('PuppetWebBrowserCookie', 'read()')
 
@@ -52,8 +64,7 @@ export class BrowserCookie {
     // }
 
     try {
-      // `as any as DriverCookie` because selenium-webdriver @types is outdated with 2.x, where we r using 3.0
-      const cookies = await this.driver.manage().getCookies() as any as CookieType[]
+      const cookies = await this.driver.manage().getCookies()
       log.silly('PuppetWebBrowserCookie', 'read() %s', cookies.map(c => c.name).join(','))
       return cookies
     } catch (e) {
@@ -95,7 +106,7 @@ export class BrowserCookie {
     //   throw new Error('saveSession() - browser dead')
     // }
 
-    function cookieFilter(cookies: CookieType[]) {
+    function cookieFilter(cookies: IWebDriverOptionsCookie[]) {
       const skipNames = [
         'ChromeDriver',
         'MM_WX_SOUND_STATE',
@@ -110,11 +121,12 @@ export class BrowserCookie {
     }
 
     try {
-      // `as any as DriverCookie` because selenium-webdriver @types is outdated with 2.x, where we r using 3.0
-      let cookies: CookieType[] = await this.driver.manage().getCookies() as any as CookieType[]
+      let cookies: IWebDriverOptionsCookie[] = await this.driver.manage().getCookies()
       cookies = cookieFilter(cookies)
-      // log.silly('PuppetWeb', 'saving %d cookies for session: %s', cookies.length
-      //   , util.inspect(cookies.map(c => { return {name: c.name /*, value: c.value, expiresType: typeof c.expires, expires: c.expires*/} })))
+
+      // log.silly('PuppetWebBrowserCookie', 'save() saving %d cookies for session: %s', cookies.length
+      //   , require('util').inspect(cookies.map(c => { return {name: c.name, value: c.value, expiresType: typeof c.expiry, expiry: c.expiry} })))
+
       log.silly('PuppetWebBrowserCookie', 'save() saving %d cookies: %s', cookies.length, cookies.map(c => c.name).join(','))
 
       const jsonStr = JSON.stringify(cookies)
@@ -146,26 +158,17 @@ export class BrowserCookie {
       return
     }
 
-    await new Promise((resolve, reject) => {
-      // let ps = arrify(this.add(cookies))
-      let ps = [].concat(this.add(cookies) as any || [])
-
-      Promise.all(ps)
-      .then(() => {
-        log.verbose('PuppetWebBrowserCookie', 'loaded session(%d cookies) from %s', cookies.length, this.storeFile)
-        return resolve(cookies)
-      })
-      .catch(e => {
-        log.error('PuppetWebBrowserCookie', 'load() add() exception: %s', e.message)
-        return reject(e)
-      })
-    })
-
+    try {
+      await this.add(cookies)
+      log.verbose('PuppetWebBrowserCookie', 'loaded session(%d cookies) from %s', cookies.length, this.storeFile)
+    } catch (e) {
+      log.error('PuppetWebBrowserCookie', 'load() add() exception: %s', e.message)
+      throw e
+    }
     return
-
   }
 
-  public getCookiesFromFile(): CookieType[] | null {
+  public getCookiesFromFile(): IWebDriverOptionsCookie[] | null {
     log.verbose('PuppetWebBrowserCookie', 'getCookiesFromFile() from %s', this.storeFile || '"undefined"')
 
     try {
@@ -186,22 +189,27 @@ export class BrowserCookie {
   public hostname(): string {
     log.verbose('PuppetWebBrowserCookie', 'hostname()')
 
-    const defaultHostname = 'wx.qq.com'
+    const DEFAULT_HOSTNAME = 'wx.qq.com'
 
     const cookieList = this.getCookiesFromFile()
 
     if (!cookieList || cookieList.length === 0) {
       log.silly('PuppetWebBrowserCookie', 'hostname() no cookie, return default hostname')
-      return defaultHostname
+      return DEFAULT_HOSTNAME
     }
 
     const wxCookieList = cookieList.filter(c => /^webwx_auth_ticket|webwxuvid$/.test(c.name))
     if (!wxCookieList.length) {
       log.silly('PuppetWebBrowserCookie', 'hostname() no valid cookie in files, return default hostname')
-      return defaultHostname
+      return DEFAULT_HOSTNAME
+    }
+    let domain = wxCookieList[0].domain
+    if (!domain) {
+      log.silly('PuppetWebBrowserCookie', 'hostname() no valid domain in cookies, return default hostname')
+      return DEFAULT_HOSTNAME
     }
 
-    let domain = wxCookieList[0].domain.slice(1)
+    domain = domain.slice(1)
 
     if (domain === 'wechat.com') {
       domain = 'web.wechat.com'
@@ -218,11 +226,12 @@ export class BrowserCookie {
    * deleteCookie / getCookie / getCookies
    */
   // TypeScript Overloading: http://stackoverflow.com/a/21385587/1123955
-  public async add(cookie: CookieType|CookieType[]): Promise<void> {
-    // if (this.browser.dead()) { return Promise.reject(new Error('addCookies() - browser dead'))}
+  public async add(cookie: IWebDriverOptionsCookie | IWebDriverOptionsCookie[]): Promise<void> {
 
     if (Array.isArray(cookie)) {
-      for (let c of cookie) {
+      const cookieList = cookie
+      log.verbose('PuppetWebBrowserCookie', 'add(Array.length = %d)', cookieList.length)
+      for (const c of cookieList) {
         await this.add(c)
       }
       return
@@ -235,19 +244,18 @@ export class BrowserCookie {
      */
     // if (cookie.expiry) { cookie.expiry = cookie.expiry * 1000 /* XXX: be aware of new version of webdriver */}
 
-    log.silly('PuppetWebBrowserCookie', 'addCookies(%s)', JSON.stringify(cookie))
+    log.silly('PuppetWebBrowserCookie', 'add(%s)', JSON.stringify(cookie))
 
-    // return new Promise((resolve, reject) => {
     try {
-      await (this.driver.manage() as any).addCookie(cookie)
-                  // this is old webdriver format
-                  // .addCookie(cookie.name, cookie.value, cookie.path
-                  //   , cookie.domain, cookie.secure, cookie.expiry)
-                  // this is new webdriver format
+      await this.driver
+                .manage()
+                .addCookie(cookie)
     } catch (e) {
-      log.warn('PuppetWebBrowserCookie', 'addCookies() exception: %s', e.message)
+      log.warn('PuppetWebBrowserCookie', 'add() exception: %s', e.message)
       throw e
     }
   }
 
 }
+
+export default BrowserCookie

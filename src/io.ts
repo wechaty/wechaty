@@ -1,26 +1,34 @@
 /**
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * Wechaty: Wechat for Bot. and for human who talk to bot/robot
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
- * Class Io
- * http://www.wechaty.io
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
  *
- * Licenst: ISC
- * https://github.com/zixia/wechaty
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 import * as WebSocket from 'ws'
 
+import { StateSwitch }  from 'state-switch'
+
 import {
-  Config,
+  config,
   // WechatyEventName
   log,
 }                   from './config'
 
-import { StateMonitor } from './state-monitor'
 import { Wechaty }      from './wechaty'
 
-export type IoSetting = {
+export interface IoSetting {
   wechaty:    Wechaty,
   token:      string,
   apihost?:   string,
@@ -32,13 +40,14 @@ type IoEventName =  'botie'
                   | 'heartbeat'
                   | 'login'
                   | 'message'
+                  | 'update'
                   | 'raw'
                   | 'reset'
                   | 'scan'
                   | 'sys'
                   | 'shutdown'
 
-type IoEvent = {
+interface IoEvent {
   name:     IoEventName,
   payload:  any,
 }
@@ -50,7 +59,7 @@ export class Io {
   private eventBuffer: IoEvent[] = []
   private ws: WebSocket
 
-  private state = new StateMonitor<'online', 'offline'>('Io', 'offline')
+  private state = new StateSwitch<'online', 'offline'>('Io', 'offline', log)
 
   private reconnectTimer: NodeJS.Timer | null
   private reconnectTimeout: number | null
@@ -62,8 +71,8 @@ export class Io {
       throw new Error('Io must has wechaty & token set')
     }
 
-    setting.apihost   = setting.apihost   || Config.apihost
-    setting.protocol  = setting.protocol  || Config.DEFAULT_PROTOCOL
+    setting.apihost   = setting.apihost   || config.apihost
+    setting.protocol  = setting.protocol  || config.DEFAULT_PROTOCOL
 
     this.uuid     = setting.wechaty.uuid
 
@@ -134,7 +143,7 @@ export class Io {
 
       this.reconnectTimeout = null
 
-      const initEvent = <IoEvent>{
+      const initEvent: IoEvent = {
         name: 'sys',
         payload: 'Wechaty version ' + this.setting.wechaty.version() + ` with UUID: ${this.uuid}`,
       }
@@ -142,12 +151,16 @@ export class Io {
 
     })
 
-    ws.on('message', (data, flags) => {
+    ws.on('message', data => {
       log.silly('Io', 'initWebSocket() ws.on(message): %s', data)
       // flags.binary will be set if a binary data is received.
       // flags.masked will be set if the data was masked.
 
-      const ioEvent = {
+      if (typeof data !== 'string') {
+        throw new Error('data should be string...')
+      }
+
+      const ioEvent: IoEvent = {
         name: 'raw',
         payload: data,
       }
@@ -188,11 +201,12 @@ export class Io {
         case 'update':
           log.verbose('Io', 'on(report): %s', ioEvent.payload)
           const user = this.setting.wechaty.puppet ? this.setting.wechaty.puppet.user : null
+
           if (user) {
             const loginEvent: IoEvent = {
               name:       'login',
               // , payload:  user.obj
-              payload:  user,
+              payload:  user.obj,
             }
             this.send(loginEvent)
           }
@@ -243,9 +257,8 @@ export class Io {
   private reconnect() {
     log.verbose('Io', 'reconnect()')
 
-    // if (this.targetState() === 'disconnected') {
     if (this.state.target() === 'offline') {
-      log.verbose('Io', 'reconnect() canceled because state.target() === offline')
+      log.warn('Io', 'reconnect() canceled because state.target() === offline')
       return
     }
 
@@ -268,7 +281,7 @@ export class Io {
     this.reconnectTimer = setTimeout(_ => {
       this.reconnectTimer = null
       this.initWebSocket()
-    }, this.reconnectTimeout) as any as NodeJS.Timer
+    }, this.reconnectTimeout)// as any as NodeJS.Timer
   }
 
   private initEventHook() {
@@ -371,7 +384,7 @@ export class Io {
     }
   }
 
-  private close() {
+  private async close(): Promise<void> {
     log.verbose('Io', 'close()')
     this.state.target('offline')
     this.state.current('offline', false)
@@ -383,19 +396,19 @@ export class Io {
     return Promise.resolve()
   }
 
-  public quit() {
+  public async quit(): Promise<void> {
     this.state.target('offline')
     this.state.current('offline', false)
 
     // try to send IoEvents in buffer
-    this.send()
+    await this.send()
     this.eventBuffer = []
 
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer)
       this.reconnectTimer = null
     }
-    this.close()
+    await this.close()
 
     // this.currentState('disconnected')
     this.state.current('offline')
@@ -412,3 +425,5 @@ export class Io {
   }
 
 }
+
+export default Io

@@ -1,10 +1,11 @@
 {
   "compilerOptions": {
-    "target": "es2015"
+    "target": "es6"
     , "module": "commonjs"
     , "outDir": "dist"
     , "declaration": true
     , "sourceMap": true
+    , "noLib": false
 
     , "noEmitOnError": true
     , "noUnusedLocals": true
@@ -22,10 +23,11 @@
     , "dist/"
   ]
   , "include": [
-    "bin/*.ts"
+       "bin/*.ts"
      , "example/**/*.ts"
      , "src/**/*.ts"
      , "test/**/*.spec.ts"
      , "bot/**/*.ts"
+     , "app/**/*.ts"
   ]
 }

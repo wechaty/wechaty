@@ -1,35 +1,36 @@
 /**
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * wechaty: Wechat for Bot. and for human who talk to bot/robot
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
- * Class PuppetWeb Events
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
  *
- * use to control wechat in web browser.
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
- * Licenst: ISC
- * https://github.com/zixia/wechaty
- *
- *
- * Events for Class PuppetWeb
- *
- * here `this` is a PuppetWeb Instance
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 import {
   WatchdogFood,
   ScanInfo,
   log,
-}                     from '../config'
-import { Contact }    from '../contact'
+}                 from '../config'
+import Contact    from '../contact'
 import {
   Message,
   MediaMessage,
   MsgType,
   MsgRawObj,
-}                     from '../message'
+}                 from '../message'
 
-import { Firer }      from './firer'
-import { PuppetWeb }  from './puppet-web'
+import Firer      from './firer'
+import PuppetWeb  from './puppet-web'
 
 /* tslint:disable:variable-name */
 export const Event = {
@@ -69,7 +70,7 @@ async function onBrowserDead(this: PuppetWeb, e: Error): Promise<void> {
     return
   }
 
-  const TIMEOUT = 180000 // 180s / 3m
+  const TIMEOUT = 3 * 60 * 1000 // 3 minutes
   // this.watchDog(`onBrowserDead() set a timeout of ${Math.floor(TIMEOUT / 1000)} seconds to prevent unknown state change`, {timeout: TIMEOUT})
   this.emit('watchdog', {
     data: `onBrowserDead() set a timeout of ${Math.floor(TIMEOUT / 1000)} seconds to prevent unknown state change`,
@@ -162,7 +163,7 @@ async function onServerScan(this: PuppetWeb, data: ScanInfo) {
 }
 
 function onServerConnection(data) {
-  log.verbose('PuppetWebEvent', 'onServerConnection: %s', data)
+  log.verbose('PuppetWebEvent', 'onServerConnection: %s', typeof data)
 }
 
 /**
@@ -261,10 +262,18 @@ async function onServerLogin(this: PuppetWeb, data, attempt = 0): Promise<void> 
     await this.user.ready()
     log.silly('PuppetWebEvent', `onServerLogin() user ${this.user.name()} logined`)
 
-    await this.browser.saveCookie()
-                      .catch(e => { // fail safe
-                        log.verbose('PuppetWebEvent', 'onServerLogin() browser.saveSession() exception: %s', e.message)
-                      })
+    try {
+      await this.browser.saveCookie()
+    } catch (e) { // fail safe
+      log.verbose('PuppetWebEvent', 'onServerLogin() browser.saveSession() exception: %s', e.message)
+    }
+
+    // fix issue #668
+    try {
+      await this.readyStable()
+    } catch (e) { // fail safe
+      log.warn('PuppetWebEvent', 'readyStable() exception: %s', e && e.message || e)
+    }
 
     this.emit('login', this.user)
 
@@ -348,3 +357,5 @@ async function onServerMessage(this: PuppetWeb, obj: MsgRawObj): Promise<void> {
 
   return
 }
+
+export default Event

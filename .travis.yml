@@ -3,18 +3,21 @@ dist: trusty
 language: node_js
 
 node_js:
-  - "6"
   - "7"
+  - "8"
 
 os:
   - linux
   - osx
 
 addons:
+  chrome: stable
   apt:
     packages:
-      - xvfb
+      - jq
       - shellcheck
+      - xvfb
+      - dbus-x11
 
 cache:
   directories:
@@ -28,14 +31,10 @@ install:
   - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew uninstall --force brew-cask; brew update; fi
   - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew cask install --force google-chrome; fi
   - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew install shellcheck; fi
+  - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew install jq; fi
 
   - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then export DISPLAY=':99.0'; fi
   - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then sh -e /etc/init.d/xvfb start; fi
-
-  # - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then sudo apt-get update; fi
-  # - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then sudo apt-get install -y shellcheck; fi
-  - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb; fi
-  - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then sudo dpkg -i google-chrome*.deb; fi
 
   - npm install phantomjs-prebuilt
   - npm --progress false --loglevel warn install
@@ -44,12 +43,15 @@ script:
   - echo $TRAVIS_OS_NAME
   - node --version
   - npm --version
+  - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then google-chrome --version; fi
+  - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --version; fi
   - shellcheck bin/*.sh
   - npm run lint
   - npm run dist
-  - if [ "$TRAVIS_OS_NAME" == 'linux' ];  then WECHATY_LOG=silly    npm run test:phantomjs;   fi
-  - if [ "$TRAVIS_OS_NAME" == 'linux' ];  then WECHATY_LOG=silly    npm run test:chrome;      fi
-  - if [ "$TRAVIS_OS_NAME" == 'osx' ];    then WECHATY_LOG=verbose  npm run nycava;           fi
+  # https://github.com/SeleniumHQ/docker-selenium/issues/87#issuecomment-187580115
+  - if [ "$TRAVIS_OS_NAME" == 'linux' ];  then DBUS_SESSION_BUS_ADDRESS=/dev/null WECHATY_LOG=silly npm run test:chrome; fi
+  - if [ "$TRAVIS_OS_NAME" == 'osx' ];    then WECHATY_LOG=verbose  npm run nycava; fi
+  - WECHATY_HEAD=chrome-headless npm run test:npm && echo 'Npm packing test is passed'
 
 notifications:
   webhooks:
@@ -58,8 +60,6 @@ notifications:
     on_success: always  # options: [always|never|change] default: always
     on_failure: always  # options: [always|never|change] default: always
     on_start: never     # options: [always|never|change] default: always
-
-notifications:
   email:
     on_success: change
     on_failure: change
@@ -76,4 +76,3 @@ deploy:
   email: zixia@zixia.net
   api_key: "$NPM_TOKEN"
   skip_cleanup: true
-

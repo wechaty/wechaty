@@ -1,16 +1,27 @@
 /**
- * Wechaty - Wechat for Bot. Connecting ChatBots
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * Licenst: ISC
- * https://github.com/wechaty/wechaty
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
-import { test }       from 'ava'
-import { Config }     from '../src/config'
-import { Contact }    from '../src/contact'
-import { PuppetWeb }  from '../src/puppet-web'
+import { test }   from 'ava'
+import config     from '../src/config'
+import Contact    from '../src/contact'
+import PuppetWeb  from '../src/puppet-web'
 
-Config.puppetInstance(new PuppetWeb())
+config.puppetInstance(new PuppetWeb())
 
 test('Contact smoke testing', async t => {
   /* tslint:disable:variable-name */
@@ -20,7 +31,7 @@ test('Contact smoke testing', async t => {
 
   // Mock
   const mockContactGetter = function (id) {
-    return new Promise((resolve, reject) => {
+    return new Promise<any>((resolve, reject) => {
       if (id !== UserName) return resolve({});
       setTimeout(() => {
         return resolve({

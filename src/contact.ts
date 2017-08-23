@@ -1,6 +1,26 @@
+/**
+ *   Wechaty - https://github.com/chatie/wechaty
+ *
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ */
 import {
-  Config,
+  config,
+  Raven,
   Sayable,
+  log,
 }                     from './config'
 import {
   Message,
@@ -9,9 +29,8 @@ import {
 import { PuppetWeb }  from './puppet-web'
 import { UtilLib }    from './util-lib'
 import { Wechaty }    from './wechaty'
-import { log }        from './brolog-env'
 
-type ContactObj = {
+export interface ContactObj {
   address:    string,
   city:       string,
   id:         string,
@@ -25,9 +44,11 @@ type ContactObj = {
   uin:        string,
   weixin:     string,
   avatar:     string,  // XXX URL of HeadImgUrl
+  official:   boolean,
+  special:    boolean,
 }
 
-export type ContactRawObj = {
+export interface ContactRawObj {
   Alias:        string,
   City:         string,
   NickName:     string,
@@ -41,6 +62,7 @@ export type ContactRawObj = {
   HeadImgUrl:   string,
 
   stranger:     string, // assign by injectio.js
+  VerifyFlag:   number,
 }
 
 /**
@@ -53,12 +75,22 @@ export enum Gender {
   Female  = 2,
 }
 
-export type ContactQueryFilter = {
+export interface ContactQueryFilter {
   name?:   string | RegExp,
   alias?:  string | RegExp,
-  // DEPRECATED
+  // remark is DEPRECATED
   remark?: string | RegExp,
 }
+
+/**
+ * @see https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3848
+ */
+const specialContactList: string[] = [
+  'weibo', 'qqmail', 'fmessage', 'tmessage', 'qmessage', 'qqsync', 'floatbottle',
+  'lbsapp', 'shakeapp', 'medianote', 'qqfriend', 'readerapp', 'blogapp', 'facebookapp',
+  'masssendapp', 'meishiapp', 'feedsapp', 'voip', 'blogappweixin', 'weixin', 'brandsessionholder',
+  'weixinreminder', 'wxid_novlwrv3lqwv11', 'gh_22b87fa7cb3c', 'officialaccounts', 'notification_messages',
+]
 
 /**
  * Class Contact
@@ -68,11 +100,16 @@ export type ContactQueryFilter = {
 export class Contact implements Sayable {
   private static pool = new Map<string, Contact>()
 
-  private obj: ContactObj | null
+  public obj: ContactObj | null
   private dirtyObj: ContactObj | null
   private rawObj: ContactRawObj
 
-  constructor(public readonly id: string) {
+  /**
+   * @private
+   */
+  constructor(
+    public readonly id: string,
+  ) {
     log.silly('Contact', `constructor(${id})`)
 
     if (typeof id !== 'string') {
@@ -110,6 +147,16 @@ export class Contact implements Sayable {
       star:       !!rawObj.StarFriend,
       stranger:   !!rawObj.stranger, // assign by injectio.js
       avatar:     rawObj.HeadImgUrl,
+      /**
+       * @see 1. https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3243
+       * @see 2. https://github.com/Urinx/WeixinBot/blob/master/README.md
+       */
+      // tslint:disable-next-line
+      official:      !!rawObj.UserName && !rawObj.UserName.startsWith('@@') && !!(rawObj.VerifyFlag & 8),
+      /**
+       * @see 1. https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3246
+       */
+      special:       specialContactList.indexOf(rawObj.UserName) > -1 || /@qqim$/.test(rawObj.UserName),
     }
   }
 
@@ -123,7 +170,15 @@ export class Contact implements Sayable {
    * const weixin = contact.weixin()
    * ```
    */
-  public weixin()   { return this.obj && this.obj.weixin || null }
+  public weixin(): string | null {
+    const wxId = this.obj && this.obj.weixin || null
+    if (!wxId) {
+      log.info('Contact', `weixin() is not able to always work, it's limited by Tencent API`)
+      log.info('Contact', 'weixin() If you want to track a contact between sessions, see FAQ at')
+      log.info('Contact', 'https://github.com/Chatie/wechaty/wiki/FAQ#1-how-to-get-the-permanent-id-for-a-contact')
+    }
+    return wxId
+  }
 
   /**
    * Get the name from a contact
@@ -150,6 +205,58 @@ export class Contact implements Sayable {
   public stranger(): boolean|null {
     if (!this.obj) return null
     return this.obj.stranger
+  }
+
+  /**
+   * Check if it's a offical account
+   *
+   * @returns {boolean|null} True for official account, Flase for contact is not a official account
+   *
+   * @example
+   * ```ts
+   * const isOfficial = contact.official()
+   * ```
+   */
+  public official(): boolean {
+    return !!this.obj && this.obj.official
+  }
+
+  /**
+   * Check if it's a special contact
+   *
+   * the contact who's id in following list will be identify as a special contact
+   *
+   * ```ts
+   * 'weibo', 'qqmail', 'fmessage', 'tmessage', 'qmessage', 'qqsync', 'floatbottle',
+   * 'lbsapp', 'shakeapp', 'medianote', 'qqfriend', 'readerapp', 'blogapp', 'facebookapp',
+   * 'masssendapp', 'meishiapp', 'feedsapp', 'voip', 'blogappweixin', 'weixin', 'brandsessionholder',
+   * 'weixinreminder', 'wxid_novlwrv3lqwv11', 'gh_22b87fa7cb3c', 'officialaccounts', 'notification_messages',
+   * ```
+   * @see https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3848
+   *
+   * @returns {boolean|null} True for brand, Flase for contact is not a brand
+   *
+   * @example
+   * ```ts
+   * const isSpecial = contact.special()
+   * ```
+   */
+  public special(): boolean {
+    return !!this.obj && this.obj.special
+  }
+
+  /**
+   * Check if it's a personal account
+   *
+   * @returns {boolean|null} True for personal account, Flase for contact is not a personal account
+   *
+   * @example
+   * ```ts
+   * const isPersonal = contact.personal()
+   * ```
+   */
+  public personal(): boolean {
+    return !this.official()
   }
 
   /**
@@ -225,14 +332,15 @@ export class Contact implements Sayable {
     }
 
     try {
-      const hostname = (Config.puppetInstance() as PuppetWeb).browser.hostname
+      const hostname = await (config.puppetInstance() as PuppetWeb).browser.hostname()
       const avatarUrl = `http://${hostname}${this.obj.avatar}`
-      const cookies = await (Config.puppetInstance() as PuppetWeb).browser.readCookie()
+      const cookies = await (config.puppetInstance() as PuppetWeb).browser.readCookie()
       log.silly('Contact', 'avatar() url: %s', avatarUrl)
 
       return UtilLib.urlStream(avatarUrl, cookies)
     } catch (err) {
       log.warn('Contact', 'avatar() exception: %s', err.stack)
+      Raven.captureException(err)
       throw err
     }
   }
@@ -240,7 +348,7 @@ export class Contact implements Sayable {
   public get(prop)  { return this.obj && this.obj[prop] }
 
   public isReady(): boolean {
-    return !!(this.obj && this.obj.id && this.obj.name !== undefined)
+    return !!(this.obj && this.obj.id && this.obj.name)
   }
 
   // public refresh() {
@@ -283,9 +391,9 @@ export class Contact implements Sayable {
     }
 
     if (!contactGetter) {
-      log.silly('Contact', 'get contact via ' + Config.puppetInstance().constructor.name)
-      contactGetter = Config.puppetInstance()
-                            .getContact.bind(Config.puppetInstance())
+      log.silly('Contact', 'get contact via ' + config.puppetInstance().constructor.name)
+      contactGetter = config.puppetInstance()
+                            .getContact.bind(config.puppetInstance())
     }
     if (!contactGetter) {
       throw new Error('no contatGetter')
@@ -300,6 +408,7 @@ export class Contact implements Sayable {
 
     } catch (e) {
       log.error('Contact', `contactGetter(${this.id}) exception: %s`, e.message)
+      Raven.captureException(e)
       throw e
     }
   }
@@ -325,7 +434,7 @@ export class Contact implements Sayable {
    * ```
    */
   public self(): boolean {
-    const userId = Config.puppetInstance()
+    const userId = config.puppetInstance()
                           .userId
 
     const selfId = this.id
@@ -416,15 +525,17 @@ export class Contact implements Sayable {
       throw new Error('unsupport name type')
     }
 
-    const list = await Config.puppetInstance()
-                              .contactFind(filterFunction)
-                              .catch(e => {
-                                log.error('Contact', 'findAll() rejected: %s', e.message)
-                                return [] // fail safe
-                              })
-    await Promise.all(list.map(c => c.ready()))
+    try {
+      const contactList = await config.puppetInstance()
+                                  .contactFind(filterFunction)
 
-    return list
+      await Promise.all(contactList.map(c => c.ready()))
+      return contactList
+
+    } catch (e) {
+      log.error('Contact', 'findAll() rejected: %s', e.message)
+      return [] // fail safe
+    }
   }
 
   /**
@@ -520,7 +631,7 @@ export class Contact implements Sayable {
       return this.obj && this.obj.alias || null
     }
 
-    return Config.puppetInstance()
+    return config.puppetInstance()
                   .contactAlias(this, newAlias)
                   .then(ret => {
                     if (ret) {
@@ -536,6 +647,7 @@ export class Contact implements Sayable {
                   })
                   .catch(e => {
                     log.error('Contact', 'alias(%s) rejected: %s', newAlias, e.message)
+                    Raven.captureException(e)
                     return false // fail safe
                   })
   }
@@ -620,12 +732,12 @@ export class Contact implements Sayable {
   public async say(text: string)
   public async say(mediaMessage: MediaMessage)
 
-  public async say(textOrMedia: string | MediaMessage): Promise<void> {
+  public async say(textOrMedia: string | MediaMessage): Promise<boolean> {
     const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
     log.verbose('Contact', 'say(%s)', content)
 
-    const wechaty = Wechaty.instance()
-    const user = wechaty.user()
+    const bot = Wechaty.instance()
+    const user = bot.self()
 
     if (!user) {
       throw new Error('no user')
@@ -643,19 +755,9 @@ export class Contact implements Sayable {
     m.to(this)
     log.silly('Contact', 'say() from: %s to: %s content: %s', user.name(), this.name(), content)
 
-    await wechaty.send(m)
-    return
+    return await bot.send(m)
   }
 
 }
 
-// Contact.search = function(options) {
-//   if (options.name) {
-//     const regex = new RegExp(options.name)
-//     return Object.keys(Contact.pool)
-//     .filter(k => regex.test(Contact.pool[k].name()))
-//     .map(k => Contact.pool[k])
-//   }
-
-//   return []
-// }
+export default Contact

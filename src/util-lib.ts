@@ -1,23 +1,31 @@
 /**
- * Wechaty - Wechat for Bot. Connecting ChatBots
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * Licenst: ISC
- * https://github.com/wechaty/wechaty
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
+import * as crypto from 'crypto'
 import * as https from 'https'
 import * as http  from 'http'
+import {
+  Readable,
+}                 from 'stream'
 import * as url   from 'url'
-import * as crypto from 'crypto'
 
 import { MsgType } from './message'
 import { log } from './config'
-
-/**
- * bug compatible with:
- * https://github.com/wechaty/wechaty/issues/40#issuecomment-252802084
- */
-// import * as ws from 'ws'
 
 export class UtilLib {
   public static stripHtml(html?: string): string {
@@ -100,7 +108,7 @@ export class UtilLib {
     )
   }
 
-  public static urlStream(href: string, cookies: any[]): Promise<NodeJS.ReadableStream> {
+  public static urlStream(href: string, cookies: any[]): Promise<Readable> {
     // const myurl = 'http://wx.qq.com/cgi-bin/mmwebwx-bin/webwxgetmsgimg?&MsgID=3080011908135131569&skey=%40crypt_c117402d_53a58f8fbb21978167a3fc7d3be7f8c9'
     href = href.replace(/^https/i, 'http') // use http instead of https, because https will only success on the very first request!
 
@@ -155,7 +163,7 @@ export class UtilLib {
     // log.verbose('Util', 'Cookie: %s', options.headers.Cookie)
 // console.log(options)
 
-    return new Promise((resolve, reject) => {
+    return new Promise<Readable>((resolve, reject) => {
       // const req = request(options, (res) => {
       const req = get(options, (res) => {
         // console.log(`STATUS: ${res.statusCode}`);
@@ -165,7 +173,7 @@ export class UtilLib {
       })
 
       req.on('error', (e) => {
-        log.warn('WebUtil', `downloadStream() problem with request: ${e.message}`)
+        log.warn('UtilLib', `urlStream() problem with request: ${e.message}`)
         reject(e)
       })
 
@@ -245,7 +253,7 @@ export class UtilLib {
   }
 
   public static md5(buffer: Buffer): string {
-    let md5sum = crypto.createHash('md5')
+    const md5sum = crypto.createHash('md5')
     md5sum.update(buffer)
     return md5sum.digest('hex')
   }
@@ -257,6 +265,8 @@ export class UtilLib {
       case 'jpg':
       case 'png':
         return MsgType.IMAGE
+      case 'gif':
+        return MsgType.EMOTICON
       case 'mp4':
         return MsgType.VIDEO
       default:
@@ -276,6 +286,8 @@ export class UtilLib {
         return 'image/jpeg'
       case 'png':
         return 'image/png'
+      case 'gif':
+        return 'image/gif'
       case 'mp4':
         return 'video/mp4'
       default:
@@ -283,3 +295,5 @@ export class UtilLib {
     }
   }
 }
+
+export default UtilLib

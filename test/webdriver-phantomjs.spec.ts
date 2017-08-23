@@ -1,8 +1,19 @@
 /**
- * Wechaty - Wechat for Bot. Connecting ChatBots
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * Licenst: ISC
- * https://github.com/wechaty/wechaty
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 import * as WebDriver from 'selenium-webdriver'
@@ -40,7 +51,8 @@ test.skip('Phantomjs replace javascript source file content test', async t => {
                               .build()
 
   // http://stackoverflow.com/questions/24834403/phantomjs-change-webpage-content-before-evaluating
-  ; (driver as any).executePhantomJS(`
+  ;
+  (driver as any).executePhantomJS(`
 this.onResourceRequested = function(request, net) {
   console.log('REQUEST ' + request.url);
   alert('REQUEST ' + request.url);
@@ -85,10 +97,9 @@ this.onResourceRequested = function(request, net) {
   // t.end()
 })
 
-test('Phantomjs http header', async t => {
-  // co(function* () {
+test.skip('TODO: Phantomjs http header', async t => {
     const port = await UtilLib.getPort(8080)
-// console.log(express)
+    console.log(port)
     const app = express()
     app.use((req, res, done) => {
       // console.log(req.headers)
@@ -96,8 +107,9 @@ test('Phantomjs http header', async t => {
       done()
     })
 
-    const server = app.listen(port, _ => {
-      t.pass('server listen on ' + port)
+    let server: http.Server
+    await new Promise((resolve, reject) => {
+      server = app.listen(port, resolve)
     })
 
     const serverUrl = 'http://127.0.0.1:' + port
@@ -112,22 +124,17 @@ test('Phantomjs http header', async t => {
     }
     options['agent'] = http.globalAgent
 
-    const req = http.request(options as any as http.RequestOptions, (res) => {
-      // console.log(`STATUS: ${res.statusCode}`);
-      // console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
-      // res.setEncoding('utf8');
-      t.pass('http.request done')
-      server.close()
+    await new Promise((resolve, reject) => {
+      console.log('1')
+      const req = http.request(options as any as http.RequestOptions, (res) => {
+        // console.log(`STATUS: ${res.statusCode}`);
+        // console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
+        // res.setEncoding('utf8');
+        console.log('2')
+        t.pass('http.request done')
+        req.on('error', reject)
+        return resolve()
+      })
+      req.on('error', reject)
     })
-
-    req.on('error', e => {
-      t.fail('req error')
-    })
-    req.end()
-
-  // }).catch(e => {
-  //   t.fail(e)
-  // }).then(_ => {
-    // t.end()
-  // })
 })

@@ -9,11 +9,13 @@ set -e
 HOME=/bot
 PATH=$PATH:/wechaty/bin:/wechaty/node_modules/.bin
 
+export WECHATY_DOCKER=1
+
 function wechaty::banner() {
   echo
   figlet " Wechaty "
   echo ____________________________________________________
-  echo "            https://www.wechaty.io"
+  echo "            https://www.chatie.io"
 }
 
 function wechaty::errorBotNotFound() {
@@ -34,7 +36,7 @@ function wechaty::errorBotNotFound() {
       this will let the container visit your current directory.
 
     if you still have issue, please have a look at
-      https://github.com/wechaty/wechaty/issues/66
+      https://github.com/chatie/wechaty/issues/66
       and do a search in issues, that might be help.
 
 TROUBLESHOOTING
@@ -93,7 +95,7 @@ function wechaty::diagnose() {
   echo _____________________________________________________________
   echo '####### please paste all the above diagnose messages #######'
   echo
-  echo 'Wechaty Issue https://github.com/wechaty/wechaty/issues'
+  echo 'Wechaty Issue https://github.com/chatie/wechaty/issues'
   echo
 
   wechaty::pressEnterToContinue
@@ -131,8 +133,13 @@ function wechaty::runBot() {
   local -i ret=0
   case "$botFile" in
     *.js)
-      echo "Executing node $*"
-      node "$@" &
+      if [ "$NODE_ENV" != "production" ]; then
+        echo "Executing babel-node --presets es2015 $*"
+        babel-node --presets es2015 "$@" &
+      else
+        echo "Executing node $*"
+        node "$@" &
+      fi
       ;;
     *.ts)
       # yarn add @types/node
@@ -161,7 +168,7 @@ function wechaty::runBot() {
 }
 
 function wechaty::io-client() {
-  figlet " Wechaty.io "
+  figlet " Chatie.io "
   figlet " Authing By:"
   echo
   echo "WECHATY_TOKEN=$WECHATY_TOKEN "
@@ -190,7 +197,7 @@ function wechaty::help() {
     test    Run Unit Test
 
   Learn more at:
-    https://github.com/wechaty/wechaty/wiki/Docker
+    https://github.com/chatie/wechaty/wiki/Docker
 
 
 
@@ -205,12 +212,11 @@ function main() {
   figlet Connecting
   figlet ChatBots
 
-  echo
-  echo -n "Starting Wechaty ... "
-  echo -n "NodeJS Version=$(node --version)"
   VERSION=$(WECHATY_LOG=WARN wechaty-version 2>/dev/null || echo '0.0.0(unknown)')
 
-  echo "v$VERSION"
+  echo
+  echo -n "Starting Wechaty v$VERSION with "
+  echo -n "Node.js $(node --version) ..."
   echo
 
   local -i ret=0

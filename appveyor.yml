@@ -4,13 +4,15 @@
 environment:
   WECHATY_LOG: silent
   matrix:
-    - nodejs_version: "6"
 #    - nodejs_version: "7"
+    - nodejs_version: "8"
 
 # Install scripts. (runs after repo cloning)
 install:
   # Get the latest stable version of Node.js or io.js
   - ps: Install-Product node $env:nodejs_version
+  # chocolatey install jq - https://chocolatey.org/packages/jq
+  - choco install jq
   # install modules
   - npm --progress=false install > nul 2>&1
   - npm --progress=false install phantomjs-prebuilt > nul 2>&1
@@ -19,6 +21,8 @@ install:
 test_script:
   - node --version
   - npm --version
+  # https://bugs.chromium.org/p/chromium/issues/detail?id=158372#c6
+  - wmic datafile where name="C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe" get Version /value
   - npm run lint
   - npm run dist
   - npm run test:chrome:fast

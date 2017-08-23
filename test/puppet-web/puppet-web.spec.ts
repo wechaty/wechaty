@@ -1,27 +1,38 @@
 /**
- * Wechaty - Wechat for Bot. Connecting ChatBots
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * Licenst: ISC
- * https://github.com/wechaty/wechaty
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
-import { test } from 'ava'
+import { test }       from 'ava'
+import { stub }        from 'sinon'
 
 import {
-  Config,
+  Contact,
+  config,
   log,
-}                     from '../../src/config'
-// import { Message }    from '../../src/message'
-import { PuppetWeb }  from '../../src/puppet-web'
-import { Server }     from '../../src/puppet-web/server'
+}                     from '../../'
 
-// import { spy } from 'sinon'
-
-process.on('unhandledRejection', (reason, p) => {
-  console.log('!!!!!!! unhandledRejection in puppet-web.spec.ts')
-  console.log('Unhandled Rejection at: Promise', p, 'reason:', reason)
-  console.log('!!!!!!!')
-})
+import PuppetWeb      from '../../src/puppet-web'
+import {
+  PuppetWebServer,
+  WechatyBroEvent,
+}                     from '../../src/puppet-web/server'
+import {
+  Bridge as PuppetWebBridge,
+}                     from '../../src/puppet-web/bridge'
 
 /**
  * the reason why use `test.serial` here is:
@@ -29,52 +40,87 @@ process.on('unhandledRejection', (reason, p) => {
  *  when `PuppteWeb.init()` and `PuppteWeb.quit()`
  */
 test.serial('login/logout events', async t => {
-  let pw = new PuppetWeb()
-  t.truthy(pw, 'should instantiated a PuppetWeb')
+  const STUB_INIT_BROWSER = stub(PuppetWeb.prototype, 'initBrowser')
+  STUB_INIT_BROWSER.resolves()
+  const STUB_BRIDGE_INIT = stub(PuppetWebBridge.prototype, 'init')
+  STUB_BRIDGE_INIT.resolves()
 
-  Config.puppetInstance(pw)
+  const STUB_QUIT = stub(PuppetWeb.prototype, 'quit')
+  STUB_QUIT.resolves()
 
-  await pw.init()
-  t.pass('should be inited')
-  t.is(pw.logined() , false  , 'should be not logined')
+  const STUB_CONTACT_FIND_ALL = stub(Contact, 'findAll')
+  STUB_CONTACT_FIND_ALL.onFirstCall().resolves([])
+  STUB_CONTACT_FIND_ALL.onSecondCall().resolves([1])
+  STUB_CONTACT_FIND_ALL.onThirdCall().resolves([1, 2])
+  STUB_CONTACT_FIND_ALL.resolves([1, 2, 3])
 
-  // XXX find a better way to mock...
-  pw.bridge.getUserName = function() { return Promise.resolve('mockedUserName') }
-  pw.getContact = function() { return Promise.resolve('dummy') }
+  const STUB_BRIDGE_GET_USER_NAME = stub(PuppetWebBridge.prototype, 'getUserName')
+  STUB_BRIDGE_GET_USER_NAME.resolves('mockedUserName')
+  // pw.bridge.getUserName = function() { return Promise.resolve('mockedUserName') }
 
-  const loginPromise = new Promise((res, rej) => pw.once('login', _ => res('loginFired')))
-  pw.server.emit('login')
-  t.is(await loginPromise, 'loginFired', 'should fired login event')
-  t.is(pw.logined(), true  , 'should be logined')
+  const STUB_GET_CONTACT = stub(PuppetWeb.prototype, 'getContact')
+  STUB_GET_CONTACT.resolves('dummy')
+  // pw.getContact = function() { return Promise.resolve('dummy') }
 
-  const logoutPromise = new Promise((res, rej) => pw.once('logout', _ => res('logoutFired')))
-  pw.server.emit('logout')
-  t.is(await logoutPromise, 'logoutFired', 'should fire logout event')
-  t.is(pw.logined(), false, 'should be logouted')
+  try {
+    const pw = new PuppetWeb()
+    t.truthy(pw, 'should instantiated a PuppetWeb')
 
-  await pw.quit()
+    config.puppetInstance(pw)
+
+    await pw.init()
+    t.pass('should be inited')
+    t.is(pw.logined() , false  , 'should be not logined')
+
+    // XXX find a better way to mock...
+
+    const loginPromise = new Promise((res, rej) => pw.once('login', _ => res('loginFired')))
+    pw.server.emit('login')
+    t.is(await loginPromise, 'loginFired', 'should fired login event')
+    t.is(pw.logined(), true  , 'should be logined')
+
+    t.truthy(STUB_BRIDGE_GET_USER_NAME.called,  'bridge.getUserName should be called')
+    t.truthy(STUB_GET_CONTACT.called,           'pw.getContact should be called')
+
+    t.truthy(STUB_CONTACT_FIND_ALL.called,      'contactFind stub should be called')
+    t.is(STUB_CONTACT_FIND_ALL.callCount, 5,    'should call stubContactFind 5 times')
+
+    const logoutPromise = new Promise((res, rej) => pw.once('logout', _ => res('logoutFired')))
+    pw.server.emit('logout')
+    t.is(await logoutPromise, 'logoutFired', 'should fire logout event')
+    t.is(pw.logined(), false, 'should be logouted')
+
+    await pw.quit()
+  } finally {
+    STUB_BRIDGE_GET_USER_NAME.restore()
+    STUB_BRIDGE_INIT.restore()
+    STUB_CONTACT_FIND_ALL.restore()
+    STUB_GET_CONTACT.restore()
+    STUB_INIT_BROWSER.restore()
+    STUB_QUIT.restore()
+  }
 })
 
-test.serial('server/browser socketio ding', async t => {
-  let pw = new PuppetWeb()
-  t.truthy(pw, 'should instantiated a PuppetWeb')
+test.serial('server/browser WebSocket ding', async t => {
+  const puppet = new PuppetWeb()
+  t.truthy(puppet, 'should instantiated a PuppetWeb')
 
-  Config.puppetInstance(pw)
+  config.puppetInstance(puppet)
 
   const EXPECTED_DING_DATA = 'dingdong'
 
   try {
-    await pw.init()
+    await puppet.init()
     t.pass('should be inited')
 
-    const ret = await dingSocket(pw.server)
+    const ret = await dingSocket(puppet.server)
     t.is(ret, EXPECTED_DING_DATA, 'should got EXPECTED_DING_DATA after resolved dingSocket()')
   } catch (e) {
     t.fail(e && e.message || e || 'unknown exception???')
   }
 
   try {
-    await pw.quit()
+    await puppet.quit()
   } catch (err) {
     t.fail(err.message)
   }
@@ -83,17 +129,17 @@ test.serial('server/browser socketio ding', async t => {
 
   /////////////////////////////////////////////////////////////////////////////
 
-  function dingSocket(server: Server) {
+  function dingSocket(server: PuppetWebServer): Promise<string> {
     const maxTime   = 60000 // 60s
     const waitTime  = 3000
     let   totalTime = 0
     return new Promise((resolve, reject) => {
       log.verbose('TestPuppetWeb', 'dingSocket()')
 
-      setTimeout(_ => {
-        return reject('dingSocket() no response timeout after ' + 2 * maxTime)
+      const timeoutTimer = setTimeout(_ => {
+        reject('dingSocket() no response timeout after ' + 2 * maxTime)
       }, 2 * maxTime)
-      .unref()
+      timeoutTimer.unref()
 
       testDing()
       return
@@ -110,12 +156,21 @@ test.serial('server/browser socketio ding', async t => {
           setTimeout(testDing, waitTime)
           return
         }
-        log.silly('TestPuppetWeb', 'dingSocket() server.socketClient: %s', server.socketClient)
-        server.socketClient.once('dong', data => {
+
+        // server.socketClient is set
+        log.silly('TestPuppetWeb', 'dingSocket() server.socketClient: %s', server.socketClient.readyState)
+        server.once('dong', data => {
           log.verbose('TestPuppetWeb', 'socket recv event dong: ' + data)
+
+          clearTimeout(timeoutTimer)
           return resolve(data)
+
         })
-        server.socketClient.emit('ding', EXPECTED_DING_DATA)
+        const obj: WechatyBroEvent = {
+          name: 'ding',
+          data: EXPECTED_DING_DATA,
+        }
+        server.socketClient.send(JSON.stringify(obj))
       }
     })
   }

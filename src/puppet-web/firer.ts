@@ -1,17 +1,19 @@
 /**
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * Wechaty: * * Wechaty - Wechat for Bot. Connecting ChatBots
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
- * Class PuppetWeb Firer
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
  *
- * Process the Message to find which event to FIRE
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
- * Licenst: ISC
- * https://github.com/wechaty/wechaty
- *
- * Firer for Class PuppetWeb
- *
- * here `this` is a PuppetWeb Instance
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 
@@ -21,11 +23,11 @@ const retryPromise  = require('retry-promise').default
 import {
   // RecommendInfo
   log,
-}                   from '../config'
-import { Contact }  from '../contact'
-import { Message }  from '../message'
+}                     from '../config'
+import Contact        from '../contact'
+import Message        from '../message'
 
-import { FriendRequest }  from './friend-request'
+import FriendRequest  from './friend-request'
 
 /* tslint:disable:variable-name */
 export const Firer = {
@@ -57,15 +59,23 @@ const regexConfig = {
   ],
 
   roomJoinQrcode: [
+    /^" (.+)" joined the group chat via the QR Code shared by "?(.+?)".$/,
     /^"(.+)" joined the group chat via the QR Code shared by "?(.+?)".$/,
     /^"(.+)" joined the group chat via "?(.+?)"? shared QR Code.$/,
+    /^" (.+)"通过扫描"?(.+?)"?分享的二维码加入群聊$/,
     /^"(.+)"通过扫描"?(.+?)"?分享的二维码加入群聊$/,
   ],
 
-  roomLeave: [
+  // no list
+  roomLeaveByBot: [
     /^You removed "(.+)" from the group chat$/,
     /^你将"(.+)"移出了群聊$/,
   ],
+  roomLeaveByOther: [
+    /^You were removed from the group chat by "(.+)"$/,
+    /^你被"(.+)"移出群聊$/,
+  ],
+
   roomTopic: [
     /^"?(.+?)"? changed the group name to "(.+)"$/,
     /^"?(.+?)"?修改群名为“(.+)”$/,
@@ -203,11 +213,11 @@ async function checkRoomJoin(m: Message): Promise<void> {
       await room.refresh()
       let inviteeListAllDone = true
 
-      for (let i in inviteeList) {
+      for (const i in inviteeList) {
         const loaded = inviteeContactList[i] instanceof Contact
 
         if (!loaded) {
-          let c = room.member(inviteeList[i])
+          const c = room.member(inviteeList[i])
           if (!c) {
             inviteeListAllDone = false
             continue
@@ -283,15 +293,18 @@ async function checkRoomJoin(m: Message): Promise<void> {
   return
 }
 
-function parseRoomLeave(content: string): string {
-  const reList = regexConfig.roomLeave
-
-  let found: string[]|null = []
-  reList.some(re => !!(found = content.match(re)))
-  if (!found || !found.length) {
+function parseRoomLeave(content: string): [string, string] {
+  const reListByBot = regexConfig.roomLeaveByBot
+  const reListByOther = regexConfig.roomLeaveByOther
+  let foundByBot: string[]|null = []
+  reListByBot.some(re => !!(foundByBot = content.match(re)))
+  let foundByOther: string[]|null = []
+  reListByOther.some(re => !!(foundByOther = content.match(re)))
+  if ((!foundByBot || !foundByBot.length) && (!foundByOther || !foundByOther.length)) {
     throw new Error('checkRoomLeave() no matched re for ' + content)
   }
-  return found[1] // leaver
+  const [leaver, remover] = foundByBot ? [ foundByBot[1], this.userId ] : [ this.userId, foundByOther[1] ]
+  return [leaver, remover]
 }
 
 /**
@@ -300,9 +313,9 @@ function parseRoomLeave(content: string): string {
 async function checkRoomLeave(m: Message): Promise<void> {
   log.verbose('PuppetWebFirer', 'fireRoomLeave(%s)', m.content())
 
-  let leaver
+  let leaver: string, remover: string
   try {
-    leaver = parseRoomLeave(m.content())
+    [leaver, remover] = parseRoomLeave(m.content())
   } catch (e) {
     return
   }
@@ -315,22 +328,39 @@ async function checkRoomLeave(m: Message): Promise<void> {
   }
   /**
    * FIXME: leaver maybe is a list
+   * @lijiarui: I have checked, leaver will never be a list. If the bot remove 2 leavers at the same time, it will be 2 sys message, instead of 1 sys message contains 2 leavers.
    */
-  let leaverContact = room.member(leaver)
-
-  if (!leaverContact) {
-    log.error('PuppetWebFirer', 'fireRoomLeave() leaver %s not found, event `room-leave` & `leave` will not be fired', leaver)
-    return
+  let leaverContact: Contact | null, removerContact: Contact | null
+  if (leaver === this.userId) {
+    leaverContact = Contact.load(this.userId)
+    // not sure which is better
+    // removerContact = room.member({contactAlias: remover}) || room.member({name: remover})
+    removerContact = room.member(remover)
+    if (!removerContact) {
+      log.error('PuppetWebFirer', 'fireRoomLeave() bot is removed from the room, but remover %s not found, event `room-leave` & `leave` will not be fired', remover)
+      return
+    }
+  } else {
+    removerContact = Contact.load(this.userId)
+    // not sure which is better
+    // leaverContact = room.member({contactAlias: remover}) || room.member({name: leaver})
+    leaverContact = room.member(remover)
+    if (!leaverContact) {
+      log.error('PuppetWebFirer', 'fireRoomLeave() bot removed someone from the room, but leaver %s not found, event `room-leave` & `leave` will not be fired', leaver)
+      return
+    }
   }
 
+  await removerContact.ready()
   await leaverContact.ready()
   await room.ready()
 
   /**
    * FIXME: leaver maybe is a list
+   * @lijiarui: I have checked, leaver will never be a list. If the bot remove 2 leavers at the same time, it will be 2 sys message, instead of 1 sys message contains 2 leavers.
    */
-  this.emit('room-leave', room, [leaverContact])
-  room.emit('leave'           , [leaverContact])
+  this.emit('room-leave', room, leaverContact, removerContact)
+  room.emit('leave'           , leaverContact, removerContact)
 
   setTimeout(_ => { room.refresh() }, 10000) // reload the room data, especially for memberList
 }
@@ -385,3 +415,5 @@ async function checkRoomTopic(m: Message): Promise<void> {
     log.error('PuppetWebFirer', 'fireRoomTopic() co exception: %s', e.stack)
   }
 }
+
+export default Firer

@@ -1,36 +1,54 @@
 /**
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * Wechaty - Wechat for Bot
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
- * Connecting ChatBots
- * https://github.com/wechaty/wechaty
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 
-import { PassThrough }        from 'stream'
 import { createWriteStream }  from 'fs'
+import {
+  PassThrough,
+  Readable,
+}                             from 'stream'
 
 import request      = require('request')
 import Ffmpeg       = require('fluent-ffmpeg')
 import querystring  = require('querystring')
 
 /* tslint:disable:variable-name */
-const QrcodeTerminal = require('qrcode-terminal')
+const qrcodeTerminal = require('qrcode-terminal')
 
+/**
+ * Change `import { ... } from '../'`
+ * to     `import { ... } from 'wechaty'`
+ * when you are runing with Docker or NPM instead of Git Source.
+ */
 import {
-  Config,
+  config,
   MediaMessage,
   MsgType,
   Wechaty,
-} from '../'
+}                 from '../'
 
-const bot = Wechaty.instance({ profile: Config.DEFAULT_PROFILE })
+const bot = Wechaty.instance({ profile: config.DEFAULT_PROFILE })
 
 bot
 .on('scan', (url, code) => {
   if (!/201|200/.test(String(code))) {
-    let loginUrl = url.replace(/\/qrcode\//, '/l/')
-    QrcodeTerminal.generate(loginUrl)
+    const loginUrl = url.replace(/\/qrcode\//, '/l/')
+    qrcodeTerminal.generate(loginUrl)
   }
   console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
 })
@@ -60,7 +78,7 @@ bot
 .init()
 .catch(e => console.error('bot.init() error: ' + e))
 
-async function speechToText(mp3Stream: NodeJS.ReadableStream): Promise<string> {
+async function speechToText(mp3Stream: Readable): Promise<string> {
   const wavStream = mp3ToWav(mp3Stream)
 
   // const textStream = wavToText(wavStream)
@@ -79,7 +97,7 @@ async function speechToText(mp3Stream: NodeJS.ReadableStream): Promise<string> {
   }
 }
 
-function mp3ToWav(mp3Stream: NodeJS.ReadableStream): NodeJS.ReadableStream {
+function mp3ToWav(mp3Stream: Readable): NodeJS.ReadableStream {
   const wavStream = new PassThrough()
 
   Ffmpeg(mp3Stream)
@@ -127,7 +145,7 @@ function mp3ToWav(mp3Stream: NodeJS.ReadableStream): NodeJS.ReadableStream {
  * http://blog.csdn.net/dlangu0393/article/details/7214728
  * http://elric2011.github.io/a/using_speech_recognize_service.html
  */
-async function wavToText(readableStream: NodeJS.ReadableStream): Promise<string> {
+async function wavToText(wavStream: NodeJS.ReadableStream): Promise<string> {
   const params = {
     'cuid': 'wechaty',
     'lan': 'zh',
@@ -144,7 +162,7 @@ async function wavToText(readableStream: NodeJS.ReadableStream): Promise<string>
   }
 
   return new Promise<string>((resolve, reject) => {
-    readableStream.pipe(request.post(apiUrl, options, (err, httpResponse, body) => {
+    wavStream.pipe(request.post(apiUrl, options, (err, httpResponse, body) => {
       // "err_msg":"success.","err_no":0,"result":["这是一个测试测试语音转文字，"]
       if (err) {
         return reject(err)

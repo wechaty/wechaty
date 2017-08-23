@@ -4,15 +4,15 @@
   ],
   "rules": {
     "align": [
-      false,
+      true,
       "parameters",
-      "arguments",
+      // "arguments",
       "statements"
     ],
     "jsdoc-require": [
       false
     ],
-   "ban": false,
+    "ban": false,
     "class-name": true,
     "comment-format": [
       true,
@@ -32,6 +32,15 @@
       true,
       180
     ],
+  "callable-types": true,
+  "import-blacklist": [true, "rxjs"],
+  "interface-over-type-literal": true,
+  "no-empty-interface": true,
+  "no-string-throw": true,
+  "prefer-const": true,
+  "typeof-compare": true,
+  "unified-signatures": false,
+  "no-inferrable-types": [true, "ignore-params"],
     "member-access": true,
     "member-ordering": [false],
     "no-any": false,
@@ -53,6 +62,7 @@
     "no-switch-case-fall-through": true,
     "no-trailing-whitespace": true,
     "no-unused-expression": true,
+    "no-unused-variable": true,
     "no-use-before-declare": true,
     "no-var-keyword": true,
     "no-var-requires": false,

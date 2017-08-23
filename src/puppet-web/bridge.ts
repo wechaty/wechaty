@@ -1,20 +1,38 @@
 /**
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * Wechaty - Wechat for Bot, and human who talk to bot.
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
- * Inject this js code to browser,
- * in order to interactive with wechat web program.
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
  *
- * Licenst: MIT
- * https://github.com/zixia/wechaty-lib
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
  /* tslint:disable:no-var-requires */
 const retryPromise  = require('retry-promise').default
 
-import { log }        from '../brolog-env'
+import { log }    from '../config'
 
-import { PuppetWeb }  from './puppet-web'
+import PuppetWeb  from './puppet-web'
+
+export interface MediaData {
+  ToUserName: string,
+  MsgType:    number,
+  MediaId:    string,
+  FileName:   string,
+  FileSize:   number,
+  FileMd5?:   string,
+  MMFileId:   string,
+  MMFileExt:  string,
+}
 
 export class Bridge {
 
@@ -141,8 +159,11 @@ export class Bridge {
     try {
       return await this.proxyWechaty('contactRemarkAsync', contactId, remark)
     } catch (e) {
-      log.error('PuppetWebBridge', 'contactRemarkAsync() exception: %s', e.message)
-      throw e
+      log.verbose('PuppetWebBridge', 'contactRemarkAsync() exception: %s', e.message)
+      // Issue #509 return false instead of throw when contact is not a friend.
+      // throw e
+      log.warn('PuppetWebBridge', 'contactRemark() does not work on contact is not a friend')
+      return false
     }
   }
 
@@ -219,20 +240,23 @@ export class Bridge {
                 })
   }
 
-  public verifyUserRequest(contactId, hello): Promise<boolean> {
+  public async verifyUserRequest(contactId, hello): Promise<boolean> {
     log.verbose('PuppetWebBridge', 'verifyUserRequest(%s, %s)', contactId, hello)
 
     if (!contactId) {
       throw new Error('no valid contactId')
     }
-    return this.proxyWechaty('verifyUserRequestAsync', contactId, hello)
-                .catch(e => {
-                  log.error('PuppetWebBridge', 'verifyUserRequest(%s, %s) exception: %s', contactId, hello, e.message)
-                  throw e
-                })
+    try {
+
+      return await this.proxyWechaty('verifyUserRequestAsync', contactId, hello)
+
+    } catch (e) {
+      log.error('PuppetWebBridge', 'verifyUserRequest(%s, %s) exception: %s', contactId, hello, e.message)
+      throw e
+    }
   }
 
-  public verifyUserOk(contactId, ticket): Promise<boolean> {
+  public async verifyUserOk(contactId, ticket): Promise<boolean> {
     log.verbose('PuppetWebBridge', 'verifyUserOk(%s, %s)', contactId, ticket)
 
     if (!contactId || !ticket) {
@@ -245,7 +269,7 @@ export class Bridge {
                 })
   }
 
-  public send(toUserName: string, content: string): Promise<void> {
+  public async send(toUserName: string, content: string): Promise<boolean> {
     if (!toUserName) {
       throw new Error('UserName not found')
     }
@@ -373,15 +397,25 @@ export class Bridge {
     }
   }
 
-  public sendMedia(toUserName: string, mediaId: string, type: number): Promise<void> {
-    if (!toUserName) {
+  public async getUploadMediaUrl(): Promise<string> {
+    log.verbose('PuppetWebBridge', 'getUploadMediaUrl()')
+
+    try {
+      return await this.proxyWechaty('getUploadMediaUrl')
+    } catch (e) {
+      log.silly('PuppetWebBridge', 'proxyWechaty(getUploadMediaUrl) exception: %s', e.message)
+      throw e
+    }
+  }
+
+  public sendMedia(mediaData: MediaData): Promise<boolean> {
+    if (!mediaData.ToUserName) {
       throw new Error('UserName not found')
     }
-    if (!mediaId) {
+    if (!mediaData.MediaId) {
       throw new Error('cannot say nothing')
     }
-
-    return this.proxyWechaty('sendMedia', toUserName, mediaId, type)
+    return this.proxyWechaty('sendMedia', mediaData)
               .catch(e => {
                 log.error('PuppetWebBridge', 'sendMedia() exception: %s', e.message)
                 throw e
@@ -584,3 +618,5 @@ Object.keys(_contacts)
 
  *
  */
+
+export default Bridge

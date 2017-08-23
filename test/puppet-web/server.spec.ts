@@ -1,18 +1,29 @@
 /**
- * Wechaty - Wechat for Bot. Connecting ChatBots
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * Licenst: ISC
- * https://github.com/wechaty/wechaty
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
-import { test } from 'ava'
+import { test }     from 'ava'
 
-import * as https from 'https'
-import * as sinon from 'sinon'
+import * as https   from 'https'
+import * as sinon   from 'sinon'
 
 import { Server }   from '../../src/puppet-web/'
-import { UtilLib }  from '../../src/util-lib'
-import { log }      from '../../src/config'
+import UtilLib      from '../../src/util-lib'
+import { log  }     from '../../src/config'
 
 test('create & close', async t => {
   const port = await UtilLib.getPort(18788)
@@ -30,8 +41,8 @@ test('create & close', async t => {
   t.is(typeof httpsServer, 'object', 'create https server')
   httpsServer.on('close', _ => spy('onClose'))
 
-  const socketio = s.createSocketIo(httpsServer)
-  t.is(typeof socketio, 'object', 'should created socket io instance')
+  const socket = s.createWebSocketServer(httpsServer)
+  t.is(typeof socket, 'object', 'should created WebSocket instance')
 
   const retClose = await new Promise((resolve, reject) => {
     ; (httpsServer as any).close(_ => {

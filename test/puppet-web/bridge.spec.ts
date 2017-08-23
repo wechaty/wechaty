@@ -1,8 +1,19 @@
 /**
- * Wechaty - Wechat for Bot. Connecting ChatBots
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * Licenst: ISC
- * https://github.com/wechaty/wechaty
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 import { test } from 'ava'
@@ -34,7 +45,7 @@ test('retryPromise()', async t => {
 
   const retryPromise = require('retry-promise').default
 
-  let delay500 = delayedFactory(500)
+  const delay500 = delayedFactory(500)
   await retryPromise({ max: 1, backoff: 1 }, function() {
     return delay500()
   }).catch(e => {
@@ -43,7 +54,7 @@ test('retryPromise()', async t => {
   t.true(thenSpy.withArgs(EXPECTED_REJECT).calledOnce, 'should got EXPECTED_REJECT when wait not enough')
 
   thenSpy.reset()
-  let anotherDelay50 = delayedFactory(50)
+  const anotherDelay50 = delayedFactory(50)
   await retryPromise({ max: 6, backoff: 10 }, function() {
     return anotherDelay50()
   })
@@ -54,17 +65,16 @@ test('retryPromise()', async t => {
 })
 
 test('WechatyBro.ding()', async t => {
+  const PORT = 58788
+
+  const browser = new Browser()
+  t.truthy(browser, 'should instanciated a browser')
+
+  const mockPuppet = {browser: browser}
+  const bridge = new Bridge(mockPuppet as PuppetWeb, PORT)
+  t.truthy(bridge, 'should instanciated a bridge with mocked puppet')
 
   try {
-    const PORT = 58788
-
-    const browser = new Browser()
-    t.truthy(browser, 'should instanciated a browser')
-
-    const mockPuppet = {browser: browser}
-    const bridge = new Bridge(mockPuppet as PuppetWeb, PORT)
-    t.truthy(bridge, 'should instanciated a bridge with mocked puppet')
-
     await browser.init()
     t.pass('should instanciated a browser')
 
@@ -77,18 +87,23 @@ test('WechatyBro.ding()', async t => {
     const retDing = await bridge.execute('return WechatyBro.ding()')
     t.is(retDing, 'dong', 'should got dong after execute WechatyBro.ding()')
 
-    // @deprecated
-    // const retReady = await b.execute('return WechatyBro.isReady()')
-    // t.is(typeof retReady, 'boolean', 'should got a boolean return after execute WechatyBro.isReady()')
-
     const retCode = await bridge.proxyWechaty('isLogin')
     t.is(typeof retCode, 'boolean', 'should got a boolean after call proxyWechaty(isLogin)')
 
-    await bridge.quit()
-    t.pass('b.quit()')
-    await browser.quit()
-    t.pass('browser.quit()')
   } catch (err) {
     t.fail('exception: ' + err.message)
+  } finally {
+    try {
+      await bridge.quit()
+      t.pass('b.quit()')
+    } catch (e) {
+      t.fail(e)
+    }
+    try {
+      await browser.quit()
+      t.pass('browser.quit()')
+    } catch (e) {
+      t.fail(e)
+    }
   }
 })

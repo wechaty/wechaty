@@ -1,11 +1,30 @@
+/**
+ *   Wechaty - https://github.com/chatie/wechaty
+ *
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ */
 import { EventEmitter } from 'events'
-import * as fs          from 'fs'
-import * as path        from 'path'
+
+import { StateSwitch }  from 'state-switch'
 
 import {
-  Config,
+  config,
   HeadName,
   PuppetName,
+  Raven,
   Sayable,
   log,
 }                         from './config'
@@ -19,10 +38,9 @@ import {
 import { Puppet }         from './puppet'
 import { PuppetWeb }      from './puppet-web/'
 import { Room }           from './room'
-import { StateMonitor }   from './state-monitor'
 import { UtilLib }        from './util-lib'
 
-export type PuppetSetting = {
+export interface PuppetSetting {
   head?:    HeadName,
   puppet?:  PuppetName,
   profile?: string,
@@ -43,13 +61,11 @@ export type WechatyEventName = 'error'
 /**
  *
  * Wechaty: Wechat for ChatBots.
- * Connect ChatBots
  *
- * Class Wechaty
- *
- * Licenst: ISC
- * https://github.com/zixia/wechaty
- *
+ * Wechaty is a Bot Framework for Wechat **Personal** Account
+ * which can help you create a bot in 6 lines of javascript
+ * by easy to use API, with cross-platform support for
+ * Linux/Mac/Windows.
  *
  * **Example**
  *
@@ -82,12 +98,8 @@ export class Wechaty extends EventEmitter implements Sayable {
    * the state
    * @private
    */
-  private state = new StateMonitor<'standby', 'ready'>('Wechaty', 'standby')
-  /**
-   * the npmVersion
-   * @private
-   */
-  private npmVersion: string = require('../package.json').version
+  private state = new StateSwitch<'standby', 'ready'>('Wechaty', 'standby', log)
+
   /**
    * the uuid
    * @private
@@ -114,9 +126,9 @@ export class Wechaty extends EventEmitter implements Sayable {
     super()
     log.verbose('Wechaty', 'contructor()')
 
-    setting.head    = setting.head    || Config.head
-    setting.puppet  = setting.puppet  || Config.puppet
-    setting.profile = setting.profile || Config.profile
+    setting.head    = setting.head    || config.head
+    setting.puppet  = setting.puppet  || config.puppet
+    setting.profile = setting.profile || config.profile
 
     // setting.port    = setting.port    || Config.port
 
@@ -146,38 +158,21 @@ export class Wechaty extends EventEmitter implements Sayable {
    *  console.log(Wechaty.instance().version(true))
    *  // '0.7.9'
    */
-  public version(forceNpm = false): string {
-    // TODO: use  git rev-parse HEAD  ?
-    const dotGitPath  = path.join(__dirname, '..', '.git') // only for ts-node, not for dist
-    const gitLogCmd   = 'git'
-    const gitLogArgs  = ['log', '--oneline', '-1']
-
+  public static version(forceNpm = false): string {
     if (!forceNpm) {
-      try {
-        fs.statSync(dotGitPath).isDirectory()
-
-        const ss = require('child_process')
-                    .spawnSync(gitLogCmd, gitLogArgs, { cwd:  __dirname })
-
-        if (ss.status !== 0) {
-          throw new Error(ss.error)
-        }
-
-        const revision = ss.stdout
-                          .toString()
-                          .trim()
+      const revision = config.gitVersion()
+      if (revision) {
         return `#git[${revision}]`
-
-      } catch (e) { /* fall safe */
-        /**
-         *  1. .git not exist
-         *  2. git log fail
-         */
-        log.silly('Wechaty', 'version() form development environment is not availble: %s', e.message)
       }
     }
+    return config.npmVersion()
+  }
 
-    return this.npmVersion
+  /**
+   * @todo document me
+   */
+  public version(forceNpm?) {
+    return Wechaty.version(forceNpm)
   }
 
   /**
@@ -228,6 +223,7 @@ export class Wechaty extends EventEmitter implements Sayable {
       await this.initPuppet()
     } catch (e) {
       log.error('Wechaty', 'init() exception: %s', e && e.message)
+      Raven.captureException(e)
       throw e
     }
 
@@ -286,8 +282,7 @@ export class Wechaty extends EventEmitter implements Sayable {
   /**
    * @todo document me
    */
-
-  public on(event: WechatyEventName, listener: Function): this {
+  public on(event: WechatyEventName, listener: (...args: any[]) => any): this {
     log.verbose('Wechaty', 'addListener(%s, %s)', event, typeof listener)
 
     // const thisWithSay: Sayable = {
@@ -356,7 +351,7 @@ export class Wechaty extends EventEmitter implements Sayable {
     this.puppet = <Puppet>puppet // force to use base class Puppet interface for better encapsolation
 
     // set puppet instance to Wechaty Static variable, for using by Contact/Room/Message/FriendRequest etc.
-    Config.puppetInstance(puppet)
+    config.puppetInstance(puppet)
 
     await puppet.init()
     return puppet
@@ -383,11 +378,12 @@ export class Wechaty extends EventEmitter implements Sayable {
 
     const puppetBeforeDie = this.puppet
     this.puppet     = null
-    Config.puppetInstance(null)
+    config.puppetInstance(null)
 
     await puppetBeforeDie.quit()
                         .catch(e => {
                           log.error('Wechaty', 'quit() exception: %s', e.message)
+                          Raven.captureException(e)
                           throw e
                         })
     this.state.current('standby')
@@ -404,6 +400,7 @@ export class Wechaty extends EventEmitter implements Sayable {
     await this.puppet.logout()
                     .catch(e => {
                       log.error('Wechaty', 'logout() exception: %s', e.message)
+                      Raven.captureException(e)
                       throw e
                     })
     return
@@ -423,35 +420,33 @@ export class Wechaty extends EventEmitter implements Sayable {
   /**
    * @todo document me
    */
-  public async send(message: Message | MediaMessage): Promise<void> {
+  public async send(message: Message | MediaMessage): Promise<boolean> {
     if (!this.puppet) {
       throw new Error('no puppet')
     }
-    await this.puppet.send(message)
-                      .catch(e => {
-                        log.error('Wechaty', 'send() exception: %s', e.message)
-                        throw e
-                      })
-    return
+    return await this.puppet.send(message)
+                            .catch(e => {
+                              log.error('Wechaty', 'send() exception: %s', e.message)
+                              Raven.captureException(e)
+                              throw e
+                            })
   }
 
   /**
    * @todo document me
    */
-  public async say(content: string): Promise<void> {
+  public async say(content: string): Promise<boolean> {
     log.verbose('Wechaty', 'say(%s)', content)
 
     if (!this.puppet) {
       throw new Error('no puppet')
     }
-    this.puppet.say(content)
-    return
+    return await this.puppet.say(content)
   }
 
   /**
    * @todo document me
    * @static
-   *
    */
   public static async sleep(millisecond: number): Promise<void> {
     await new Promise(resolve => {
@@ -471,7 +466,10 @@ export class Wechaty extends EventEmitter implements Sayable {
     return this.puppet.ding() // should return 'dong'
                       .catch(e => {
                         log.error('Wechaty', 'ding() exception: %s', e.message)
+                        Raven.captureException(e)
                         throw e
                       })
   }
 }
+
+export default Wechaty

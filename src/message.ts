@@ -1,29 +1,42 @@
 /**
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * Wechaty: * * Wechaty - Wechat for Bot. Connecting ChatBots
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
- * Licenst: ISC
- * https://github.com/wechaty/wechaty
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
-import * as moment from 'moment'
-import * as fs     from 'fs'
-import * as path   from 'path'
+import * as fs    from 'fs'
+import * as path  from 'path'
+import {
+  Readable,
+}                 from 'stream'
 
 import {
-  Config,
+  config,
+  Raven,
   RecommendInfo,
   Sayable,
   log,
-}  from './config'
+}                 from './config'
 
-import { Contact }  from './contact'
-import { Room }     from './room'
-import { UtilLib }  from './util-lib'
-import { PuppetWeb }  from './puppet-web/puppet-web'
-import { Bridge }     from './puppet-web/bridge'
+import Contact    from './contact'
+import Room       from './room'
+import UtilLib    from './util-lib'
+import PuppetWeb  from './puppet-web/puppet-web'
+import Bridge     from './puppet-web/bridge'
 
-export type MsgRawObj = {
+export interface MsgRawObj {
   MsgId:            string,
 
   MMActualSender:   string, // getUserContact(message.MMActualSender,message.MMPeerUserName).isContact()
@@ -121,7 +134,7 @@ export type MsgRawObj = {
   RecommendInfo?:   RecommendInfo,
 }
 
-export type MsgObj = {
+export interface MsgObj {
   id:       string,
   type:     MsgType,
   from:     string,
@@ -141,13 +154,13 @@ export type MsgObj = {
 
 // export type MessageTypeValue = 1 | 3 | 34 | 37 | 40 | 42 | 43 | 47 | 48 | 49 | 50 | 51 | 52 | 53 | 62 | 9999 | 10000 | 10002
 
-export type MsgTypeMap = {
+export interface MsgTypeMap {
   [index: string]: string|number,
   //   MessageTypeName:  MessageTypeValue
   // , MessageTypeValue: MessageTypeName
 }
 
-export const enum AppMsgType {
+export enum AppMsgType {
   TEXT                     = 1,
   IMG                      = 2,
   AUDIO                    = 3,
@@ -167,7 +180,7 @@ export const enum AppMsgType {
   READER_TYPE              = 100001,
 }
 
-export const enum MsgType {
+export enum MsgType {
   TEXT                = 1,
   IMAGE               = 3,
   VOICE               = 34,
@@ -192,37 +205,38 @@ export class Message implements Sayable {
   public static counter = 0
   public _counter: number
 
+  // DEPRECATED: TypeScript ENUM did this for us 201705
   /**
    * a map for:
    *   1. name to id
    *   2. id to name
    */
-  public static TYPE: MsgTypeMap = {
-    TEXT:               1,
-    IMAGE:              3,
-    VOICE:              34,
-    VERIFYMSG:          37,
-    POSSIBLEFRIEND_MSG: 40,
-    SHARECARD:          42,
-    VIDEO:              43,
-    EMOTICON:           47,
-    LOCATION:           48,
-    APP:                49,
-    VOIPMSG:            50,
-    STATUSNOTIFY:       51,
-    VOIPNOTIFY:         52,
-    VOIPINVITE:         53,
-    MICROVIDEO:         62,
-    SYSNOTICE:          9999,
-    SYS:                10000,
-    RECALLED:           10002,
-  }
+  // public static TYPE: MsgTypeMap = {
+  //   TEXT:               1,
+  //   IMAGE:              3,
+  //   VOICE:              34,
+  //   VERIFYMSG:          37,
+  //   POSSIBLEFRIEND_MSG: 40,
+  //   SHARECARD:          42,
+  //   VIDEO:              43,
+  //   EMOTICON:           47,
+  //   LOCATION:           48,
+  //   APP:                49,
+  //   VOIPMSG:            50,
+  //   STATUSNOTIFY:       51,
+  //   VOIPNOTIFY:         52,
+  //   VOIPINVITE:         53,
+  //   MICROVIDEO:         62,
+  //   SYSNOTICE:          9999,
+  //   SYS:                10000,
+  //   RECALLED:           10002,
+  // }
 
   public readonly id: string
 
-  protected obj = <MsgObj>{}
+  public obj = <MsgObj>{}
 
-  public readyStream(): Promise<NodeJS.ReadableStream> {
+  public readyStream(): Promise<Readable> {
     throw Error('abstract method')
   }
 
@@ -230,6 +244,9 @@ export class Message implements Sayable {
     throw Error('not a media message')
   }
 
+  /**
+   * @private
+   */
   constructor(public rawObj?: MsgRawObj) {
     this._counter = Message.counter++
     log.silly('Message', 'constructor() SN:%d', this._counter)
@@ -243,7 +260,7 @@ export class Message implements Sayable {
     this.id = this.obj.id
   }
 
-  // Transform rawObj to local m
+  // Transform rawObj to local obj
   private parse(rawObj): MsgObj {
     const obj: MsgObj = {
       id:           rawObj.MsgId,
@@ -257,7 +274,7 @@ export class Message implements Sayable {
       url:          rawObj.Url || rawObj.MMAppMsgDownloadUrl || rawObj.MMLocationUrl,
     }
 
-    // FIXME: has ther any better method to know the room ID?
+    // FIXME: has there any better method to know the room ID?
     if (rawObj.MMIsChatRoom) {
       if (/^@@/.test(rawObj.FromUserName)) {
         obj.room =  rawObj.FromUserName // MMPeerUserName always eq FromUserName ?
@@ -301,6 +318,9 @@ export class Message implements Sayable {
     return '{' + this.type() + '}' + content
   }
 
+  /**
+   * @todo document me
+   */
   public from(contact: Contact): void
   public from(id: string): void
   public from(): Contact
@@ -326,6 +346,9 @@ export class Message implements Sayable {
   // public to(room: Room): void
   // public to(): Contact|Room
   // public to(contact?: Contact|Room|string): Contact|Room|void {
+  /**
+   * @todo document me
+   */
   public to(contact: Contact): void
   public to(id: string): void
   public to(): Contact|null // if to is not set, then room must had set
@@ -350,6 +373,9 @@ export class Message implements Sayable {
     return Contact.load(this.obj.to)
   }
 
+  /**
+   * @todo document me
+   */
   public room(room: Room): void
   public room(id: string): void
   public room(): Room|null
@@ -370,6 +396,9 @@ export class Message implements Sayable {
     return null
   }
 
+  /**
+   * @todo document me
+   */
   public content(): string
   public content(content: string): void
 
@@ -381,10 +410,16 @@ export class Message implements Sayable {
     return this.obj.content
   }
 
+  /**
+   * @todo document me
+   */
   public type(): MsgType {
     return this.obj.type
   }
 
+  /**
+   * @todo document me
+   */
   public typeSub(): MsgType {
     if (!this.rawObj) {
       throw new Error('no rawObj')
@@ -392,6 +427,9 @@ export class Message implements Sayable {
     return this.rawObj.SubMsgType
   }
 
+  /**
+   * @todo document me
+   */
   public typeApp(): AppMsgType {
     if (!this.rawObj) {
       throw new Error('no rawObj')
@@ -399,11 +437,20 @@ export class Message implements Sayable {
     return this.rawObj.AppMsgType
   }
 
-  public typeEx()  { return Message.TYPE[this.obj.type] }
+  /**
+   * @todo document me
+   */
+  public typeEx()  { return MsgType[this.obj.type] }
+  /**
+   * @todo document me
+   */
   public count()   { return this._counter }
 
+  /**
+   * @todo document me
+   */
   public self(): boolean {
-    const userId = Config.puppetInstance()
+    const userId = config.puppetInstance()
                         .userId
 
     const fromId = this.obj.from
@@ -414,17 +461,82 @@ export class Message implements Sayable {
     return fromId === userId
   }
 
-  // public ready() {
-  //   log.warn('Message', 'ready() DEPRECATED. use load() instead.')
-  //   return this.ready()
-  // }
+  /**
+   *
+   * Get message mentioned contactList.
+   * message event table as follows
+   *
+   * |                                                                            | Web  |  Mac PC Client | iOS Mobile |  android Mobile |
+   * | :---                                                                       | :--: |     :----:     |   :---:    |     :---:       |
+   * | [You were mentioned] tip ([有人@我]的提示)                                   |  ✘   |        √       |     √      |       √         |
+   * | Identify magic code (8197) by copy & paste in mobile                       |  ✘   |        √       |     √      |       ✘         |
+   * | Identify magic code (8197) by programming                                  |  ✘   |        ✘       |     ✘      |       ✘         |
+   * | Identify two contacts with the same roomAlias by [You were  mentioned] tip |  ✘   |        ✘       |     √      |       √         |
+   *
+   * @returns {Contact[]} return message mentioned contactList
+   *
+   * @example
+   * ```ts
+   * const contactList = message.mentioned()
+   * console.log(contactList)
+   * ```
+   */
+  public mentioned(): Contact[] {
+    let contactList: Contact[] = []
+    const room = this.room()
+    if (this.type() !== MsgType.TEXT || !room ) {
+      return contactList
+    }
+
+    // define magic code `8197` to identify @xxx
+    const AT_SEPRATOR = String.fromCharCode(8197)
+
+    const atList = this.content().split(AT_SEPRATOR)
+
+    if (atList.length === 0) return contactList
+
+    // Using `filter(e => e.indexOf('@') > -1)` to filter the string without `@`
+    const rawMentionedList = atList
+      .filter(str => str.includes('@'))
+      .map(str => multipleAt(str))
+      .filter(str => !!str) // filter blank string
+
+    // convert 'hello@a@b@c' to [ 'c', 'b@c', 'a@b@c' ]
+    function multipleAt(str: string) {
+      str = str.replace(/^.*?@/, '@')
+      let name = ''
+      const nameList: string[] = []
+      str.split('@')
+        .filter(mentionName => !!mentionName)
+        .reverse()
+        .forEach(mentionName => {
+          name = mentionName + '@' + name
+          nameList.push(name.slice(0, -1)) // get rid of the `@` at beginning
+        })
+      return nameList
+    }
+
+    // flatten array, see http://stackoverflow.com/a/10865042/1123955
+    const mentionList = [].concat.apply([], rawMentionedList)
+    log.verbose('Message', 'mentioned(%s),get mentionList: %s', this.content(), JSON.stringify(mentionList))
+
+    contactList = [].concat.apply([],
+      mentionList.map(nameStr => room.memberAll(nameStr))
+      .filter(contact => !!contact),
+    )
+
+    if (contactList.length === 0) {
+      log.warn(`Message`, `message.mentioned() can not found member using room.member() from mentionList, metion string: ${JSON.stringify(mentionList)}`)
+    }
+    return contactList
+  }
 
   public async ready(): Promise<void> {
     log.silly('Message', 'ready()')
 
     try {
       const from  = Contact.load(this.obj.from)
-      await from.ready()                // Contact from
+      await from.ready()  // Contact from
 
       if (this.obj.to) {
         const to = Contact.load(this.obj.to)
@@ -438,6 +550,7 @@ export class Message implements Sayable {
 
     } catch (e) {
         log.error('Message', 'ready() exception: %s', e.stack)
+        Raven.captureException(e)
         // console.log(e)
         // this.dump()
         // this.dumpRaw()
@@ -491,17 +604,22 @@ export class Message implements Sayable {
     ])
   }
 
-  public static initType() {
-    Object.keys(Message.TYPE).forEach(k => {
-      const v = Message.TYPE[k]
-      Message.TYPE[v] = k // Message.Type[1] = 'TEXT'
-    })
-  }
+  // DEPRECATED: TypeScript ENUM did this for us 201705
+  // public static initType() {
+  //   Object.keys(Message.TYPE).forEach(k => {
+  //     const v = Message.TYPE[k]
+  //     Message.TYPE[v] = k // Message.Type[1] = 'TEXT'
+  //   })
+  // }
 
+  /**
+   * @todo document me
+   */
   public say(text: string, replyTo?: Contact | Contact[]): Promise<any>
   public say(mediaMessage: MediaMessage, replyTo?: Contact | Contact[]): Promise<any>
 
   public say(textOrMedia: string | MediaMessage, replyTo?: Contact|Contact[]): Promise<any> {
+    /* tslint:disable:no-use-before-declare */
     const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
     log.verbose('Message', 'say(%s, %s)', content, replyTo)
     let m
@@ -527,6 +645,7 @@ export class Message implements Sayable {
         }
         m.content(mentionList + ' ' + textOrMedia)
       }
+    /* tslint:disable:no-use-before-declare */
     } else if (textOrMedia instanceof MediaMessage) {
       m = textOrMedia
       const room = this.room()
@@ -539,17 +658,17 @@ export class Message implements Sayable {
       }
     }
 
-    return Config.puppetInstance()
+    return config.puppetInstance()
                   .send(m)
   }
 
 }
 
-Message.initType()
+// Message.initType()
 
 export class MediaMessage extends Message {
   private bridge: Bridge
-  private fileStream: NodeJS.ReadableStream
+  private filePath: string
   private fileName: string // 'music'
   private fileExt: string // 'mp3'
 
@@ -559,7 +678,7 @@ export class MediaMessage extends Message {
   constructor(rawObjOrFilePath: Object | string) {
     if (typeof rawObjOrFilePath === 'string') {
       super()
-      this.fileStream = fs.createReadStream(rawObjOrFilePath)
+      this.filePath = rawObjOrFilePath
 
       const pathInfo = path.parse(rawObjOrFilePath)
       this.fileName = pathInfo.name
@@ -571,8 +690,8 @@ export class MediaMessage extends Message {
     }
 
     // FIXME: decoupling needed
-    this.bridge = (Config.puppetInstance() as PuppetWeb)
-      .bridge
+    this.bridge = (config.puppetInstance() as PuppetWeb)
+                    .bridge
   }
 
   public async ready(): Promise<void> {
@@ -648,10 +767,14 @@ export class MediaMessage extends Message {
 
     } catch (e) {
       log.warn('MediaMessage', 'ready() exception: %s', e.message)
+      Raven.captureException(e)
       throw e
     }
   }
 
+  /**
+   * @todo document me
+   */
   public ext(): string {
     if (this.fileExt)
       return this.fileExt
@@ -686,6 +809,9 @@ export class MediaMessage extends Message {
     throw new Error('not support type: ' + this.type())
   }
 
+  /**
+   * @todo document me
+   */
   public filename(): string {
     if (this.fileName && this.fileExt) {
       return this.fileName + '.' + this.fileExt
@@ -695,14 +821,7 @@ export class MediaMessage extends Message {
       throw new Error('no rawObj')
     }
 
-    const objFileName = this.rawObj.FileName || this.rawObj.MediaId || this.rawObj.MsgId
-
-    let filename  = moment().format('YYYY-MM-DD HH:mm:ss')
-                    + ' #' + this._counter
-                    + ' ' + this.getSenderString()
-                    + ' ' + objFileName
-
-    filename = filename.replace(/ /g, '_')
+    let filename = this.rawObj.FileName || this.rawObj.MediaId || this.rawObj.MsgId
 
     const re = /\.[a-z0-9]{1,7}$/i
     if (!re.test(filename)) {
@@ -720,20 +839,21 @@ export class MediaMessage extends Message {
   //   })
   // }
 
-  public async readyStream(): Promise<NodeJS.ReadableStream> {
-    if (this.fileStream)
-      return this.fileStream
+  public async readyStream(): Promise<Readable> {
+    if (this.filePath)
+      return fs.createReadStream(this.filePath)
 
     try {
       await this.ready()
       // FIXME: decoupling needed
-      const cookies = await (Config.puppetInstance() as PuppetWeb).browser.readCookie()
+      const cookies = await (config.puppetInstance() as PuppetWeb).browser.readCookie()
       if (!this.obj.url) {
         throw new Error('no url')
       }
       return UtilLib.urlStream(this.obj.url, cookies)
     } catch (e) {
       log.warn('MediaMessage', 'stream() exception: %s', e.stack)
+      Raven.captureException(e)
       throw e
     }
   }
@@ -746,3 +866,5 @@ export class MediaMessage extends Message {
  * &lang=en&pass_ticket=T6dAZXE27Y6R29%2FFppQPqaBlNwZzw9DAN5RJzzzqeBA%3D
  * &wechat_real_lang=en
  */
+
+export default Message

@@ -1,14 +1,25 @@
 /**
- * Wechaty - Wechat for Bot. Connecting ChatBots
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * Licenst: ISC
- * https://github.com/wechaty/wechaty
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 import { test }       from 'ava'
 import * as express   from 'express'
 
-import { UtilLib }  from './util-lib'
+import UtilLib        from './util-lib'
 
 // import * as http     from 'http'
 
@@ -93,7 +104,7 @@ test('stripEmoji()', t => {
   t.is(empty, '', 'should return empty string for `undefined`')
 })
 
-test('downloadStream() for media', t => {
+test('downloadStream() for media', async t => {
   const app = express()
   app.use(require('cookie-parser')())
   app.get('/ding', function(req, res) {
@@ -108,19 +119,22 @@ test('downloadStream() for media', t => {
     t.fail('server on clientError')
     socket.end('HTTP/1.1 400 Bad Request\r\n\r\n')
   })
-  server.listen(8000)
+  server.listen(65534)
 
-  UtilLib.urlStream('http://127.0.0.1:8000/ding', [{name: 'life', value: 42}])
-        .then(s => {
-          s.on('data', (chunk) => {
-            // console.log(`BODY: ${chunk}`)
-            t.is(chunk.toString(), 'dong', 'should success download dong from downloadStream()')
-            server.close()
-          })
-        })
-        .catch(e => {
-          t.fail('downloadStream() exception: ' + e.message)
-        })
+  try {
+    const s = await UtilLib.urlStream('http://127.0.0.1:65534/ding', [{name: 'life', value: 42}])
+    await new Promise((resolve, reject) => {
+      s.on('data', (chunk) => {
+        // console.log(`BODY: ${chunk}`)
+        t.is(chunk.toString(), 'dong', 'should success download dong from downloadStream()')
+        server.close()
+        resolve()
+      })
+      s.on('error', reject)
+    })
+  } catch (e) {
+    t.fail('downloadStream() exception: ' + e.message)
+  }
 })
 
 test('getPort() for an available socket port', async t => {

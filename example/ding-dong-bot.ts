@@ -1,9 +1,19 @@
 /**
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * Wechaty - Wechat for Bot
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
- * Connecting ChatBots
- * https://github.com/wechaty/wechaty
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 
@@ -11,12 +21,17 @@
 const QrcodeTerminal  = require('qrcode-terminal')
 const finis           = require('finis')
 
+/**
+ * Change `import { ... } from '../'`
+ * to     `import { ... } from 'wechaty'`
+ * when you are runing with Docker or NPM instead of Git Source.
+ */
 import {
-  Config,
+  config,
   Wechaty,
   log,
   MediaMessage,
-} from '../'
+}               from '../'
 
 const welcome = `
 | __        __        _           _
@@ -27,7 +42,7 @@ const welcome = `
 |                                     |___/
 
 =============== Powered by Wechaty ===============
--------- https://github.com/zixia/wechaty --------
+-------- https://github.com/chatie/wechaty --------
 
 I'm a bot, my super power is talk in Wechat.
 
@@ -42,7 +57,7 @@ Please wait... I'm trying to login in...
 `
 
 console.log(welcome)
-const bot = Wechaty.instance({ profile: Config.DEFAULT_PROFILE })
+const bot = Wechaty.instance({ profile: config.DEFAULT_PROFILE })
 
 bot
 .on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
@@ -56,12 +71,12 @@ bot
 })
 .on('scan', (url, code) => {
   if (!/201|200/.test(String(code))) {
-    let loginUrl = url.replace(/\/qrcode\//, '/l/')
+    const loginUrl = url.replace(/\/qrcode\//, '/l/')
     QrcodeTerminal.generate(loginUrl)
   }
   console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
 })
-.on('message', m => {
+.on('message', async m => {
   try {
     const room = m.room()
     console.log((room ? '[' + room.topic() + ']' : '')
@@ -69,12 +84,18 @@ bot
                 + ':' + m.toStringDigest(),
     )
 
-    if (/^(ding|ping|bing)$/i.test(m.content()) && !m.self()) {
+    if (/^(ding|ping|bing|code)$/i.test(m.content()) && !m.self()) {
       m.say('dong')
       log.info('Bot', 'REPLY: dong')
-    } else if (/^code$/i.test(m.content()) && !m.self()) {
-      m.say(new MediaMessage(__dirname + '/../image/BotQrcode.png'))
-      log.info('Bot', 'REPLY: Img')
+
+      const joinWechaty =  `Join Wechaty Developers' Community\n\n` +
+                            `Wechaty is used in many ChatBot projects by hundreds of developers.\n\n` +
+                            `If you want to talk with other developers, just scan the following QR Code in WeChat with secret code: wechaty,\n\n` +
+                            `you can join our Wechaty Developers' Home at once`
+      await m.say(joinWechaty)
+      await m.say(new MediaMessage(__dirname + '/../image/BotQrcode.png'))
+      await m.say('Scan now, because other Wechaty developers want to talk with you too!\n\n(secret code: wechaty)')
+      log.info('Bot', 'REPLY: Image')
     }
   } catch (e) {
     log.error('Bot', 'on(message) exception: %s' , e)

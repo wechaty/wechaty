@@ -8,7 +8,7 @@
 # https://hub.docker.com/r/nlknguyen/alpine-shellcheck/
 # FROM nlknguyen/alpine-shellcheck
 FROM mhart/alpine-node:7
-MAINTAINER Zhuophuan LI <zixia@zixia.net>
+MAINTAINER Huan LI <zixia@zixia.net>
 
 RUN  apk update && apk upgrade \
   && apk add \
@@ -17,8 +17,10 @@ RUN  apk update && apk upgrade \
       chromium-chromedriver \
       chromium \
       coreutils \
+      curl \
       ffmpeg \
       figlet \
+      jq \
       ttf-freefont \
       udev \
       vim \

@@ -1,31 +1,49 @@
 /**
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * Wechaty - Wechat for Bot
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
- * Connecting ChatBots
- * https://github.com/wechaty/wechaty
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 
-/* tslint:disable:variable-name */
-const QrcodeTerminal = require('qrcode-terminal')
-
 // import { inspect }            from 'util'
-import { createWriteStream, writeFileSync }  from 'fs'
-
 import {
-  Config,
+  createWriteStream,
+  // writeFileSync,
+}                           from 'fs'
+
+/* tslint:disable:variable-name */
+import * as qrcodeTerminal  from 'qrcode-terminal'
+
+/**
+ * Change `import { ... } from '../'`
+ * to     `import { ... } from 'wechaty'`
+ * when you are runing with Docker or NPM instead of Git Source.
+ */
+import {
+  config,
   Message,
   MsgType,
   Wechaty,
-} from '../'
-const bot = Wechaty.instance({ profile: Config.DEFAULT_PROFILE })
+}           from '../'
+const bot = Wechaty.instance({ profile: config.DEFAULT_PROFILE })
 
 bot
 .on('scan', (url, code) => {
   if (!/201|200/.test(String(code))) {
-    let loginUrl = url.replace(/\/qrcode\//, '/l/')
-    QrcodeTerminal.generate(loginUrl)
+    const loginUrl = url.replace(/\/qrcode\//, '/l/')
+    qrcodeTerminal.generate(loginUrl)
   }
   console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
 })
@@ -34,7 +52,7 @@ bot
   console.log(`RECV: ${m}`)
 
   // console.log(inspect(m))
-  saveRawObj(m.rawObj)
+  // saveRawObj(m.rawObj)
 
   if ( m.type() === MsgType.IMAGE
     || m.type() === MsgType.EMOTICON
@@ -50,23 +68,23 @@ bot
 .init()
 .catch(e => console.error('bot.init() error: ' + e))
 
-function saveMediaFile(message: Message) {
+async function saveMediaFile(message: Message) {
   const filename = message.filename()
   console.log('IMAGE local filename: ' + filename)
 
   const fileStream = createWriteStream(filename)
 
   console.log('start to readyStream()')
-  message.readyStream()
-          .then(stream => {
-            stream.pipe(fileStream)
-                  .on('close', () => {
-                    console.log('finish readyStream()')
-                  })
-          })
-          .catch(e => console.log('stream error:' + e))
+  try {
+    const netStream = await message.readyStream()
+    netStream
+      .pipe(fileStream)
+      .on('close', _ => console.log('finish readyStream()'))
+  } catch (e) {
+    console.error('stream error:', e)
+  }
 }
 
-function saveRawObj(o) {
-  writeFileSync('rawObj.log', JSON.stringify(o, null, '  ') + '\n\n\n', { flag: 'a' })
-}
+// function saveRawObj(o) {
+//   writeFileSync('rawObj.log', JSON.stringify(o, null, '  ') + '\n\n\n', { flag: 'a' })
+// }

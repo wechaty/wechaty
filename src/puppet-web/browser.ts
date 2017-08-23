@@ -1,33 +1,41 @@
 /**
- * Wechaty - Wechat for Bot. Connecting ChatBots
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * Interface for puppet
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
- * Licenst: ISC
- * https://github.com/zixia/wechaty
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
-const psTree = require('ps-tree')
-
 import { EventEmitter } from 'events'
-
-/* tslint:disable:no-var-requires */
-const retryPromise  = require('retry-promise').default // https://github.com/olalonde/retry-promise
+const psTree            = require('ps-tree')
+const retryPromise      = require('retry-promise').default // https://github.com/olalonde/retry-promise
+import { StateSwitch }  from 'state-switch'
 
 import {
-  Config,
+  config,
   HeadName,
-}                         from '../config'
-import { StateMonitor }   from '../state-monitor'
-import { log }            from '../brolog-env'
+  log,
+}                           from '../config'
 
 import {
-  CookieType,
   BrowserCookie,
-}                         from './browser-cookie'
-import { BrowserDriver }  from './browser-driver'
+}                           from './browser-cookie'
+import {
+  BrowserDriver,
+  IWebDriverOptionsCookie,
+}                           from './browser-driver'
 
-export type BrowserSetting = {
+export interface BrowserSetting {
   head:         HeadName,
   sessionFile?: string,
 }
@@ -35,16 +43,16 @@ export type BrowserSetting = {
 export class Browser extends EventEmitter {
 
   private cookie: BrowserCookie
-  public driver: BrowserDriver
+  public driver:  BrowserDriver
 
-  public hostname: string
+  public state = new StateSwitch<'open', 'close'>('Browser', 'close', log)
 
-  public state = new StateMonitor<'open', 'close'>('Browser', 'close')
-
-  constructor(private setting: BrowserSetting = {
-    head: Config.head,
-    sessionFile: '',
-  }) {
+  constructor(
+    private setting: BrowserSetting = {
+      head: config.head,
+      sessionFile: '',
+    },
+  ) {
     super()
     log.verbose('PuppetWebBrowser', 'constructor() with head(%s) sessionFile(%s)', setting.head, setting.sessionFile)
 
@@ -74,11 +82,11 @@ export class Browser extends EventEmitter {
     this.state.target('open')
     this.state.current('open', false)
 
-    this.hostname = this.cookie.hostname()
+    const hostname = this.cookie.hostname()
 
     // jumpUrl is used to open in browser for we can set cookies.
     // backup: 'https://res.wx.qq.com/zh_CN/htmledition/v2/images/icon/ico_loading28a2f7.gif'
-    const jumpUrl = `https://${this.hostname}/zh_CN/htmledition/v2/images/webwxgeticon.jpg`
+    const jumpUrl = `https://${hostname}/zh_CN/htmledition/v2/images/webwxgeticon.jpg`
 
     try {
       await this.driver.init()
@@ -115,20 +123,75 @@ export class Browser extends EventEmitter {
     }
   }
 
-  public async open(url: string = `https://${this.hostname}`): Promise<void> {
+  public async hostname(): Promise<string | null> {
+    log.verbose('PuppetWebBrowser', 'hostname()')
+    const domain = await this.execute('return document.domain')
+    log.silly('PuppetWebBrowser', 'hostname() got %s', domain)
+    return domain
+  }
+
+  public async open(url?: string): Promise<void> {
     log.verbose('PuppetWebBrowser', `open(${url})`)
 
-    if (!this.hostname) {
-      throw new Error('hostname unknown')
+    if (!url) {
+      const hostname = this.cookie.hostname()
+      if (!hostname) {
+        throw new Error('hostname unknown')
+      }
+      url = `https://${hostname}`
     }
 
+    const openUrl = url
+
+    // Issue #175
     // TODO: set a timer to guard driver.get timeout, then retry 3 times 201607
-    try {
-      await this.driver.get(url)
-    } catch (e) {
-      log.error('PuppetWebBrowser', 'open() exception: %s', e.message)
-      throw e
+    const TIMEOUT = 60 * 1000
+    let ttl = 3
+    while (ttl--) {
+      log.verbose('PuppetWebBrowser', 'open() begin for ttl:%d', ttl)
+      try {
+        await new Promise(async (resolve, reject) => {
+
+          const timer = setTimeout(async _ => {
+            try {
+              await this.driver.close()
+              await this.driver.quit()
+              await this.driver.init()
+              log.verbose('PuppetWebBrowser', 'open() driver.{close,quit,init}() done')
+            } catch (e) {
+              log.warn('PuppetWebBrowser', 'open() timeout, close driver exception: %s',
+                                            e.message,
+                      )
+            }
+
+            const e = new Error('timeout after '
+                                + Math.round(TIMEOUT / 1000) + ' seconds'
+                                + 'at ttl:' + ttl,
+                              )
+            reject(e)
+          }, TIMEOUT)
+
+          try {
+            await this.driver.get(openUrl)
+            resolve()
+          } catch (e) {
+            reject(e)
+          } finally {
+            clearTimeout(timer)
+          }
+        })
+
+        // open successful!
+        log.verbose('PuppetWebBrowser', 'open() end at ttl:%d', ttl)
+        return
+
+      } catch (e) {
+        log.error('PuppetWebBrowser', 'open() exception: %s', e.message)
+      }
     }
+
+    throw new Error('open fail because ttl expired')
+
   }
 
   public async refresh(): Promise<void> {
@@ -204,9 +267,10 @@ export class Browser extends EventEmitter {
       else                            { log.warn('PuppetWebBrowser', 'driver.quit() exception: %s', e.message) }
 
       /* fail safe */
-    }
 
-    this.state.current('close')
+    } finally {
+      this.state.current('close')
+    }
 
     return
   }
@@ -280,6 +344,7 @@ export class Browser extends EventEmitter {
             break
 
           case 'chrome':
+          case 'chrome-headless':
             browserRe = 'chrome(?!driver)|chromium'
             break
 
@@ -289,7 +354,7 @@ export class Browser extends EventEmitter {
             throw e
         }
 
-        let matchRegex = new RegExp(browserRe, 'i')
+        const matchRegex = new RegExp(browserRe, 'i')
         const pids: number[] = children.filter(child => {
           // https://github.com/indexzero/ps-tree/issues/18
           if (matchRegex.test('' + child.COMMAND + child.COMM)) {
@@ -325,14 +390,17 @@ export class Browser extends EventEmitter {
       throw e
     }
 
+    let ret
     try {
-      return await this.driver.executeScript.apply(this.driver, arguments)
+      ret = await this.driver.executeScript.apply(this.driver, arguments)
     } catch (e) {
       // this.dead(e)
-      log.silly('PuppetWebBrowser', 'execute() script: %s', script)
       log.warn('PuppetWebBrowser', 'execute() exception: %s, %s', e.message.substr(0, 99), e.stack)
+      log.silly('PuppetWebBrowser', 'execute() script: %s', script)
       throw e
     }
+
+    return ret
   }
 
   public async executeAsync(script, ...args): Promise<any> {
@@ -404,7 +472,7 @@ export class Browser extends EventEmitter {
       msg = forceReason
       log.verbose('PuppetWebBrowser', 'dead(forceReason=%s) %s', forceReason, new Error().stack)
 
-    } else if (!this.driver) { // FIXME: this.driver is BrowserDriver, should add a method to check if availble 201610
+    } else if (!this.driver) { // FIXME: this.driver is BrowserDriver, should add a method(sync) to check if availble 201610
       dead = true
       msg = 'no driver or session'
     }
@@ -433,10 +501,10 @@ export class Browser extends EventEmitter {
     return dead
   }
 
-  public addCookie(cookies: CookieType[]):  Promise<void>
-  public addCookie(cookie:  CookieType):    Promise<void>
+  public addCookie(cookies: IWebDriverOptionsCookie[]):  Promise<void>
+  public addCookie(cookie:  IWebDriverOptionsCookie):    Promise<void>
 
-  public addCookie(cookie:  CookieType|CookieType[]): Promise<void> {
+  public addCookie(cookie:  IWebDriverOptionsCookie | IWebDriverOptionsCookie[]): Promise<void> {
     return this.cookie.add(cookie)
   }
 
@@ -445,3 +513,9 @@ export class Browser extends EventEmitter {
   public readCookie()   { return this.cookie.read()   }
   public cleanCookie()  { return this.cookie.clean()  }
 }
+
+export {
+  IWebDriverOptionsCookie,
+}
+
+export default Browser

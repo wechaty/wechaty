@@ -1,8 +1,8 @@
 {
-  "name": "Wechaty Cloud Bot for IO @ Heroku",
+  "name": "wechaty",
   "description": "Wechat for Bot. Get your Heroku cloud bot by deploy me",
-  "repository": "https://github.com/zixia/wechaty",
-  "logo": "https://raw.githubusercontent.com/zixia/wechaty/master/image/wechaty-icon.png",
+  "repository": "https://github.com/chatie/wechaty",
+  "logo": "https://raw.githubusercontent.com/chatie/wechaty/master/image/wechaty-icon.png",
   "keywords": ["wechaty", "wechat", "bot", "chatbot", "framework", "cloudbot"],
   "env": {
     "WECHATY_TOKEN": {
@@ -15,6 +15,6 @@
     }
   },
   "engines": {
-    "node": "6"
+    "node": "7"
   }
 }

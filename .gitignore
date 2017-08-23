@@ -56,5 +56,12 @@ yarn.lock
 .yarn/
 .yarn-cache/
 .v8flags.*
-test/fixture/docker/package.json
+
+# why? forgot... 2017-05-18 by zixia
+/test/fixture/docker/package.json
+
 tags
+*.wechaty.json
+/package
+/wechaty-*.*.*.tgz
+*.bak

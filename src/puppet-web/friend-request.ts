@@ -1,33 +1,42 @@
 /**
- * Wechaty - Wechat for Bot. Connecting ChatBots
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * Interface for puppet
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
- * Class FriendRequest
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
  *
- * Licenst: ISC
- * https://github.com/wechaty/wechaty
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ */
+
+/**
  * request/accept: https://github.com/wechaty/wechaty/issues/33
  *
  * 1. send request
  * 2. receive request(in friend event)
  * 3. confirmation friendship(friend event)
- *
  */
 
 /* tslint:disable:no-var-requires */
 const retryPromise  = require('retry-promise').default
 
-import { Contact }        from '../contact'
+import { Contact }    from '../contact'
 import {
-  Config,
+  config,
   RecommendInfo,
   log,
-}                         from '../config'
-import { FriendRequest }  from '../friend-request'
+}                     from '../config'
+import FriendRequest  from '../friend-request'
 
-class PuppetWebFriendRequest extends FriendRequest {
+export class PuppetWebFriendRequest extends FriendRequest {
 
   public info: RecommendInfo
 
@@ -88,7 +97,7 @@ class PuppetWebFriendRequest extends FriendRequest {
       this.hello = hello
     }
 
-    return Config.puppetInstance()
+    return config.puppetInstance()
                 .friendRequestSend(contact, hello)
   }
 
@@ -99,7 +108,7 @@ class PuppetWebFriendRequest extends FriendRequest {
       throw new Error('request is not a `receive` type. it is a ' + this.type + ' type')
     }
 
-    const ret = await Config.puppetInstance()
+    const ret = await config.puppetInstance()
                             .friendRequestAccept(this.contact, this.ticket)
 
     const max = 20
@@ -131,4 +140,4 @@ class PuppetWebFriendRequest extends FriendRequest {
 
 }
 
-export { PuppetWebFriendRequest as FriendRequest }
+export default PuppetWebFriendRequest

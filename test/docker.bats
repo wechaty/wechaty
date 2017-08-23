@@ -19,6 +19,17 @@ fixture=test/fixture/docker
   [ "$status" -ne 0 ]
 }
 
+@test "javascript es6 import should success" {
+  cd "$fixture"
+  run dockerRun es6-import.js
+  [ "$status" -eq 0 ] # should succ
+}
+
+@test "javascript es6 import with NODE_ENV=production should fail" {
+  cd "$fixture"
+  run dockerRun -e NODE_ENV=production es6-import.js
+  [ "$status" -ne 0 ] # should fail
+}
 
 @test "typescript bot" {
   cd "$fixture"

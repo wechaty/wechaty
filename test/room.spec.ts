@@ -1,18 +1,29 @@
 /**
- * Wechaty - Wechat for Bot. Connecting ChatBots
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * Licenst: ISC
- * https://github.com/wechaty/wechaty
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 import { test } from 'ava'
 
-import { Config }     from '../src/config'
-import { Contact }    from '../src/contact'
-import { PuppetWeb }  from '../src/puppet-web'
-import { Room }       from '../src/room'
+import config     from '../src/config'
+import Contact    from '../src/contact'
+import PuppetWeb  from '../src/puppet-web'
+import Room       from '../src/room'
 
-Config.puppetInstance(new PuppetWeb())
+config.puppetInstance(new PuppetWeb())
 // Room.attach(new PuppetWeb())
 
 // test('Room smoke testing', async t => {
@@ -94,11 +105,11 @@ test('Room smoking test', async t => {
 
   let puppet
   try {
-    puppet = Config.puppetInstance()
+    puppet = config.puppetInstance()
     puppet.getContact = mockContactGetter
   } catch (err) {
     puppet = { getContact: mockContactGetter }
-    Config.puppetInstance(puppet)
+    config.puppetInstance(puppet)
   }
   await r.ready()
 
@@ -108,15 +119,15 @@ test('Room smoking test', async t => {
   t.is(r.topic()        , EXPECTED.topic, 'should set topic/NickName')
 
   const contact1 = new Contact(EXPECTED.memberId1)
-  const nick1 = r.nick(contact1)
-  t.is(nick1, EXPECTED.memberNick1, 'should get roomAlias')
+  const alias1 = r.alias(contact1)
+  t.is(alias1, EXPECTED.memberNick1, 'should get roomAlias')
 
   const name1 = r.alias(contact1)
   t.is(name1, EXPECTED.memberNick1, 'should get roomAlias')
 
   const contact2 = new Contact(EXPECTED.memberId2)
-  const nick2 = r.nick(contact2)
-  t.is(nick2, null, 'should return null if not set roomAlias')
+  const alias2 = r.alias(contact2)
+  t.is(alias2, null, 'should return null if not set roomAlias')
 
   const name2 = r.alias(contact2)
   t.is(name2, null, 'should return null if not set roomAlias')

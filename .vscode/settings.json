@@ -1,6 +1,10 @@
-// 将设置放入此文件中以覆盖默认值和用户设置。
 {
-  // 一个制表符等于的空格数。
-    "editor.tabSize": 2
-  , "typescript.tsdk": "./node_modules/typescript/lib"
+    "typescript.tsdk": "./node_modules/typescript/lib"
+  , "typescript.check.tscVersion": false
+  , "files.exclude": {
+      "dist/": true
+    , "doc/": true
+    , "node_modules/": true
+    , "package/": true
+  }
 }

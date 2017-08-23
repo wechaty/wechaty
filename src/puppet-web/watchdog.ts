@@ -1,16 +1,19 @@
 /**
+ *   Wechaty - https://github.com/chatie/wechaty
  *
- * wechaty: Wechat for Bot. and for human who talk to bot/robot
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
- * Class PuppetWeb Watchdog
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
  *
- * monitor puppet
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
- * Licenst: ISC
- * https://github.com/zixia/wechaty
- *
- *
- * Class PuppetWeb
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 import * as os from 'os'
@@ -19,10 +22,10 @@ import {
   WatchdogFood,
   WatchdogFoodName,
   log,
-}                     from '../config'
+}                   from '../config'
 
-import { PuppetWeb }  from './puppet-web'
-import { Event }      from './event'
+import PuppetWeb    from './puppet-web'
+import Event        from './event'
 
 /* tslint:disable:variable-name */
 export const Watchdog = {
@@ -173,7 +176,7 @@ function memoryCheck(this: PuppetWeb, minMegabyte: number = 4) {
 function monitorScan(this: PuppetWeb, type: WatchdogFoodName) {
   log.silly('PuppetWebWatchdog', 'monitorScan(%s)', type)
 
-  const scanTimeout = 10 * 60 * 1000 // 10 mins
+  const scanTimeout = 4 * 60 * 1000 // 4 mins (before is 10 mins)
 
   if (type === 'SCAN') { // watchDog was feed a 'scan' data
     this.lastScanEventTime = Date.now()
@@ -190,3 +193,5 @@ function monitorScan(this: PuppetWeb, type: WatchdogFoodName) {
     this.lastScanEventTime = Date.now()
   }
 }
+
+export default Watchdog

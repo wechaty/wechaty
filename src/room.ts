@@ -1,15 +1,37 @@
+/**
+ *   Wechaty - https://github.com/chatie/wechaty
+ *
+ *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ */
 import { EventEmitter } from 'events'
 
 import {
-  Config,
+  config,
+  Raven,
   Sayable,
   log,
-}                 from './config'
-import { Contact }    from './contact'
-import { Message }    from './message'
-import { UtilLib }    from './util-lib'
+}                     from './config'
+import Contact        from './contact'
+import {
+  Message,
+  MediaMessage,
+}                     from './message'
+import UtilLib        from './util-lib'
 
-type RoomObj = {
+interface RoomObj {
   id:               string,
   encryId:          string,
   topic:            string,
@@ -22,13 +44,13 @@ type RoomObj = {
 
 type NameType = 'name' | 'alias' | 'roomAlias' | 'contactAlias'
 
-export type RoomRawMember = {
+export interface RoomRawMember {
   UserName:     string,
   NickName:     string,
   DisplayName:  string,
 }
 
-export type RoomRawObj = {
+export interface RoomRawObj {
   UserName:         string,
   EncryChatRoomId:  string,
   NickName:         string,
@@ -42,11 +64,11 @@ export type RoomEventName = 'join'
                           | 'topic'
                           | 'EVENT_PARAM_ERROR'
 
-export type RoomQueryFilter = {
+export interface RoomQueryFilter {
   topic: string | RegExp,
 }
 
-export type MemberQueryFilter = {
+export interface MemberQueryFilter {
   name?:         string,
   alias?:        string,
   roomAlias?:    string,
@@ -57,10 +79,10 @@ export type MemberQueryFilter = {
  *
  * wechaty: Wechat for Bot. and for human who talk to bot/robot
  *
- * Licenst: ISC
- * https://github.com/zixia/wechaty
+ * Licenst: Apache-2.0
+ * https://github.com/chatie/wechaty
  *
- * Add/Del/Topic: https://github.com/wechaty/wechaty/issues/32
+ * Add/Del/Topic: https://github.com/chatie/wechaty/issues/32
  *
  */
 export class Room extends EventEmitter implements Sayable {
@@ -70,11 +92,17 @@ export class Room extends EventEmitter implements Sayable {
   private obj:      RoomObj | null
   private rawObj:   RoomRawObj
 
+  /**
+   * @private
+   */
   constructor(public id: string) {
     super()
     log.silly('Room', `constructor(${id})`)
   }
 
+  /**
+   * @private
+   */
   public toString()    { return this.id }
   public toStringEx()  { return `Room(${this.obj && this.obj.topic}[${this.id}])` }
 
@@ -82,6 +110,9 @@ export class Room extends EventEmitter implements Sayable {
     return !!(this.obj && this.obj.memberList && this.obj.memberList.length)
   }
 
+  /**
+   * @todo document me
+   */
   public async refresh(): Promise<void> {
     if (this.isReady()) {
       this.dirtyObj = this.obj
@@ -92,8 +123,8 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   private async readyAllMembers(memberList: RoomRawMember[]): Promise<void> {
-    for (let member of memberList) {
-      let contact = Contact.load(member.UserName)
+    for (const member of memberList) {
+      const contact = Contact.load(member.UserName)
       await contact.ready()
     }
     return
@@ -112,8 +143,8 @@ export class Room extends EventEmitter implements Sayable {
     }
 
     if (!contactGetter) {
-      contactGetter = Config.puppetInstance()
-                            .getContact.bind(Config.puppetInstance())
+      contactGetter = config.puppetInstance()
+                            .getContact.bind(config.puppetInstance())
     }
     if (!contactGetter) {
       throw new Error('no contactGetter')
@@ -134,37 +165,47 @@ export class Room extends EventEmitter implements Sayable {
 
     } catch (e) {
       log.error('Room', 'contactGetter(%s) exception: %s', this.id, e.message)
+      Raven.captureException(e)
       throw e
     }
   }
 
+  /**
+   * @todo document me
+   */
   public on(event: 'leave', listener: (this: Room, leaver: Contact) => void): this
+  /**
+   * @todo document me
+   */
   public on(event: 'join' , listener: (this: Room, inviteeList: Contact[] , inviter: Contact)  => void): this
+  /**
+   * @todo document me
+   */
   public on(event: 'topic', listener: (this: Room, topic: string, oldTopic: string, changer: Contact) => void): this
+  /**
+   * @todo document me
+   */
   public on(event: 'EVENT_PARAM_ERROR', listener: () => void): this
-
-  public on(event: RoomEventName, listener: Function): this {
+  /**
+   * @todo document me
+   */
+  public on(event: RoomEventName, listener: (...args: any[]) => any): this {
     log.verbose('Room', 'on(%s, %s)', event, typeof listener)
-
-    // const thisWithSay = {
-    //   say: (content: string) => {
-    //     return Config.puppetInstance()
-    //                   .say(content)
-    //   }
-    // }
-    // super.on(event, function() {
-    //   return listener.apply(thisWithSay, arguments)
-    // })
 
     super.on(event, listener) // Room is `Sayable`
     return this
   }
 
-  public say(content: string): Promise<any>
-  public say(content: string, replyTo: Contact): Promise<void>
-  public say(content: string, replyTo: Contact[]): Promise<void>
+  /**
+   * @todo document me
+   */
+  public say(mediaMessage: MediaMessage)
+  public say(content: string)
+  public say(content: string, replyTo: Contact)
+  public say(content: string, replyTo: Contact[])
 
-  public say(content: string, replyTo?: Contact|Contact[]): Promise<void> {
+  public say(textOrMedia: string | MediaMessage, replyTo?: Contact|Contact[]): Promise<boolean> {
+    const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
     log.verbose('Room', 'say(%s, %s)',
                         content,
                         Array.isArray(replyTo)
@@ -172,25 +213,34 @@ export class Room extends EventEmitter implements Sayable {
                         : replyTo ? replyTo.name() : '',
     )
 
-    const m = new Message()
+    let m
+    if (typeof textOrMedia === 'string') {
+      m = new Message()
+
+      const replyToList: Contact[] = [].concat(replyTo as any || [])
+
+      if (replyToList.length > 0) {
+        const AT_SEPRATOR = String.fromCharCode(8197)
+        const mentionList = replyToList.map(c => '@' + c.name()).join(AT_SEPRATOR)
+        m.content(mentionList + ' ' + content)
+      } else {
+        m.content(content)
+      }
+      // m.to(replyToList[0])
+    } else
+      m = textOrMedia
+
     m.room(this)
 
-    const replyToList: Contact[] = [].concat(replyTo as any || [])
-
-    if (replyToList.length > 0) {
-      const mentionList = replyToList.map(c => '@' + c.name()).join(' ')
-      m.content(mentionList + ' ' + content)
-    } else {
-      m.content(content)
-    }
-    // m.to(replyToList[0])
-
-    return Config.puppetInstance()
+    return config.puppetInstance()
                   .send(m)
   }
 
   public get(prop): string { return (this.obj && this.obj[prop]) || (this.dirtyObj && this.dirtyObj[prop]) }
 
+  /**
+   * @private
+   */
   private parse(rawObj: RoomRawObj): RoomObj | null {
     if (!rawObj) {
       log.warn('Room', 'parse() on a empty rawObj?')
@@ -221,7 +271,7 @@ export class Room extends EventEmitter implements Sayable {
     if (memberList && memberList.map) {
       memberList.forEach(member => {
         let tmpName: string
-        let contact = Contact.load(member.UserName)
+        const contact = Contact.load(member.UserName)
         switch (parseContent) {
           case 'name':
             tmpName = contact.name()
@@ -257,6 +307,9 @@ export class Room extends EventEmitter implements Sayable {
     Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj && this.obj[k]}`))
   }
 
+  /**
+   * @todo document me
+   */
   public async add(contact: Contact): Promise<number> {
     log.verbose('Room', 'add(%s)', contact)
 
@@ -264,23 +317,29 @@ export class Room extends EventEmitter implements Sayable {
       throw new Error('contact not found')
     }
 
-    const n = Config.puppetInstance()
+    const n = config.puppetInstance()
                       .roomAdd(this, contact)
     return n
   }
 
+  /**
+   * @todo document me
+   */
   public async del(contact: Contact): Promise<number> {
     log.verbose('Room', 'del(%s)', contact.name())
 
     if (!contact) {
       throw new Error('contact not found')
     }
-    const n = await Config.puppetInstance()
+    const n = await config.puppetInstance()
                             .roomDel(this, contact)
                             .then(_ => this.delLocal(contact))
     return n
   }
 
+  /**
+   * @todo document me
+   */
   private delLocal(contact: Contact): number {
     log.verbose('Room', 'delLocal(%s)', contact)
 
@@ -323,12 +382,14 @@ export class Room extends EventEmitter implements Sayable {
 
     if (newTopic) {
       log.verbose('Room', 'topic(%s)', newTopic)
-      Config.puppetInstance().roomTopic(this, newTopic)
-                              .catch(e => {
-                                log.warn('Room', 'topic(newTopic=%s) exception: %s',
-                                                  newTopic, e && e.message || e,
-                                )
-                              })
+      config.puppetInstance()
+            .roomTopic(this, newTopic)
+            .catch(e => {
+              log.warn('Room', 'topic(newTopic=%s) exception: %s',
+                                newTopic, e && e.message || e,
+                      )
+              Raven.captureException(e)
+            })
       if (!this.obj) {
         this.obj = <RoomObj>{}
       }
@@ -356,6 +417,9 @@ export class Room extends EventEmitter implements Sayable {
     return this.roomAlias(contact)
   }
 
+  /**
+   * @todo document me
+   */
   public roomAlias(contact: Contact): string | null {
     if (!this.obj || !this.obj.roomAliasMap) {
       return null
@@ -363,6 +427,9 @@ export class Room extends EventEmitter implements Sayable {
     return this.obj.roomAliasMap[contact.id] || null
   }
 
+  /**
+   * @todo document me
+   */
   public has(contact: Contact): boolean {
     if (!this.obj || !this.obj.memberList) {
       return false
@@ -372,10 +439,13 @@ export class Room extends EventEmitter implements Sayable {
                     .length > 0
   }
 
+  /**
+   * @todo document me
+   */
   public owner(): Contact | null {
     const ownerUin = this.obj && this.obj.ownerUin
 
-    let user = Config.puppetInstance()
+    const user = config.puppetInstance()
                       .user
 
     if (user && user.get('uin') === ownerUin) {
@@ -386,6 +456,7 @@ export class Room extends EventEmitter implements Sayable {
       return Contact.load(this.rawObj.ChatRoomOwner)
     }
 
+    log.info('Room', 'owner() is limited by Tencent API, sometimes work sometimes not')
     return null
   }
 
@@ -393,31 +464,43 @@ export class Room extends EventEmitter implements Sayable {
    * find member by name | roomAlias(alias) | contactAlias
    * when use memberAll(name:string), return all matched members, including name, roomAlias, contactAlias
    */
-  public memberAll(filter: MemberQueryFilter): Contact[] | null
-  public memberAll(name: string): Contact[] | null
+  public memberAll(filter: MemberQueryFilter): Contact[]
+  public memberAll(name: string): Contact[]
 
-  public memberAll(queryArg: MemberQueryFilter | string): Contact[] | null {
+  public memberAll(queryArg: MemberQueryFilter | string): Contact[] {
     if (typeof queryArg === 'string') {
-      let contactList: Contact[] = []
-      const nameList = this.memberAll({name: queryArg})
-      const roomAliasList = this.memberAll({roomAlias: queryArg})
-      const contactAliasList = this.memberAll({contactAlias: queryArg})
-      if (nameList) {
-        contactList = contactList.concat(nameList)
-      }
-      if (roomAliasList) {
-        contactList = contactList.concat(roomAliasList)
-      }
-      if (contactAliasList) {
-        contactList = contactList.concat(contactAliasList)
-      }
-      return contactList
+      //
+      // use the following `return` statement to do this job.
+      //
+
+      // const nameList = this.memberAll({name: queryArg})
+      // const roomAliasList = this.memberAll({roomAlias: queryArg})
+      // const contactAliasList = this.memberAll({contactAlias: queryArg})
+
+      // if (nameList) {
+      //   contactList = contactList.concat(nameList)
+      // }
+      // if (roomAliasList) {
+      //   contactList = contactList.concat(roomAliasList)
+      // }
+      // if (contactAliasList) {
+      //   contactList = contactList.concat(contactAliasList)
+      // }
+
+      return ([] as Contact[]).concat(
+        this.memberAll({name:         queryArg}),
+        this.memberAll({roomAlias:    queryArg}),
+        this.memberAll({contactAlias: queryArg}),
+      )
     }
 
-    log.silly('Room', 'member({ %s })',
-                         Object.keys(queryArg)
-                                .map(k => `${k}: ${queryArg[k]}`)
-                                .join(', '),
+    /**
+     * We got filter parameter
+     */
+    log.silly('Room', 'memberAll({ %s })',
+                      Object.keys(queryArg)
+                            .map(k => `${k}: ${queryArg[k]}`)
+                            .join(', '),
             )
 
     if (Object.keys(queryArg).length !== 1) {
@@ -426,70 +509,91 @@ export class Room extends EventEmitter implements Sayable {
 
     if (!this.obj || !this.obj.memberList) {
       log.warn('Room', 'member() not ready')
-      return null
+      return []
     }
-    let filterKey            = Object.keys(queryArg)[0]
+    const filterKey            = Object.keys(queryArg)[0]
     /**
      * ISSUE #64 emoji need to be striped
      */
-    let filterValue: string  = UtilLib.stripEmoji(queryArg[filterKey])
+    const filterValue: string  = UtilLib.stripEmoji(UtilLib.plainText(queryArg[filterKey]))
 
     const keyMap = {
-      name:         'nameMap',
-      roomAlias:    'roomAliasMap',
-      alias:        'roomAliasMap',
       contactAlias: 'contactAliasMap',
+      name:         'nameMap',
+      alias:        'roomAliasMap',
+      roomAlias:    'roomAliasMap',
     }
 
-    filterKey = keyMap[filterKey]
-    if (!filterKey) {
-      throw new Error('unsupport filter key')
+    const filterMapName = keyMap[filterKey]
+    if (!filterMapName) {
+      throw new Error('unsupport filter key: ' + filterKey)
     }
 
     if (!filterValue) {
       throw new Error('filterValue not found')
     }
 
-    const filterMap = this.obj[filterKey]
+    const filterMap = this.obj[filterMapName]
     const idList = Object.keys(filterMap)
-                          .filter(k => filterMap[k] === filterValue)
+                          .filter(id => filterMap[id] === filterValue)
 
-    log.silly('Room', 'member() check %s from %s: %s', filterValue, filterKey, JSON.stringify(filterMap))
+    log.silly('Room', 'memberAll() check %s from %s: %s', filterValue, filterKey, JSON.stringify(filterMap))
 
     if (idList.length) {
       return idList.map(id => Contact.load(id))
     } else {
-      return null
+      return []
     }
   }
 
-  public member(filter: MemberQueryFilter): Contact | null
+  /**
+   * @todo document me
+   */
   public member(name: string): Contact | null
+  public member(filter: MemberQueryFilter): Contact | null
 
   public member(queryArg: MemberQueryFilter | string): Contact | null {
     log.verbose('Room', 'member(%s)', JSON.stringify(queryArg))
 
-    const memberList =  this.memberAll(queryArg)
+    let memberList: Contact[]
+    // ISSUE #622
+    // error TS2345: Argument of type 'string | MemberQueryFilter' is not assignable to parameter of type 'MemberQueryFilter' #622
+    if (typeof queryArg === 'string') {
+      memberList =  this.memberAll(queryArg)
+    } else {
+      memberList =  this.memberAll(queryArg)
+    }
+
     if (!memberList || !memberList.length) {
       return null
     }
 
     if (memberList.length > 1) {
-      log.warn('Room', 'function member(%s) get %d contacts, use the first one by default', JSON.stringify(queryArg), memberList.length)
+      log.warn('Room', 'member(%s) get %d contacts, use the first one by default', JSON.stringify(queryArg), memberList.length)
     }
     return memberList[0]
   }
 
+  /**
+   * @todo document me
+   */
   public memberList(): Contact[] {
     log.verbose('Room', 'memberList')
 
     if (!this.obj || !this.obj.memberList || this.obj.memberList.length < 1) {
       log.warn('Room', 'memberList() not ready')
+      log.verbose('Room', 'memberList() trying call refresh() to update')
+      this.refresh().then(() => {
+        log.verbose('Room', 'memberList() refresh() done')
+      })
       return []
     }
     return this.obj.memberList
   }
 
+  /**
+   * @todo document me
+   */
   public static create(contactList: Contact[], topic?: string): Promise<Room> {
     log.verbose('Room', 'create(%s, %s)', contactList.join(','), topic)
 
@@ -497,14 +601,18 @@ export class Room extends EventEmitter implements Sayable {
       throw new Error('contactList not found')
     }
 
-    return Config.puppetInstance()
+    return config.puppetInstance()
                   .roomCreate(contactList, topic)
                   .catch(e => {
                     log.error('Room', 'create() exception: %s', e && e.stack || e.message || e)
+                    Raven.captureException(e)
                     throw e
                   })
   }
 
+  /**
+   * @todo document me
+   */
   public static async findAll(query?: RoomQueryFilter): Promise<Room[]> {
     if (!query) {
       query = { topic: /.*/ }
@@ -528,10 +636,11 @@ export class Room extends EventEmitter implements Sayable {
       throw new Error('unsupport topic type')
     }
 
-    const roomList = await Config.puppetInstance()
+    const roomList = await config.puppetInstance()
                                   .roomFind(filterFunction)
                                   .catch(e => {
                                     log.verbose('Room', 'findAll() rejected: %s', e.message)
+                                    Raven.captureException(e)
                                     return [] // fail safe
                                   })
 
@@ -574,3 +683,5 @@ export class Room extends EventEmitter implements Sayable {
   }
 
 }
+
+export default Room
