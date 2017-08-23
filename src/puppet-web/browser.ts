@@ -321,7 +321,7 @@ export class Browser extends EventEmitter {
     const head = this.setting.head
 
     try {
-      const children = await new Promise((resolve, reject) => {
+      const children = await new Promise<any[]>((resolve, reject) => {
         psTree(process.pid, (err, c) => {
           if (err) {
             return reject(err)
