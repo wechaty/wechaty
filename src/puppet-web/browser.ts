@@ -17,7 +17,7 @@
  *
  */
 import { EventEmitter } from 'events'
-import { promisify }    from 'util'
+// v8.x only import { promisify }    from 'util'
 
 const psTree            = require('ps-tree')
 const retryPromise      = require('retry-promise').default // https://github.com/olalonde/retry-promise
@@ -321,7 +321,15 @@ export class Browser extends EventEmitter {
     const head = this.setting.head
 
     try {
-      const children = await promisify(psTree)(process.pid)
+      const children = await new Promise((resolve, reject) => {
+        psTree(process.pid, (err, c) => {
+          if (err) {
+            return reject(err)
+          } else {
+            return resolve(c)
+          }
+        })
+      })
 
       let regexText: string
 
