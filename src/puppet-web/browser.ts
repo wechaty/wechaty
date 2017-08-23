@@ -176,6 +176,9 @@ export class Browser extends EventEmitter {
           }
         })
 
+        // open successful
+        return
+
       } catch (e) {
         log.error('PuppetWebBrowser', 'open() exception: %s', e.message)
 
