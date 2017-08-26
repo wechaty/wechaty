@@ -589,7 +589,6 @@ export class Bridge {
   }
 }
 
-
 /* tslint:disable:jsdoc-format */
 /* tslint:disable:max-line-length */
 /**
