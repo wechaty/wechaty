@@ -119,6 +119,11 @@ export class PuppetWeb extends Puppet {
       }
       log.verbose('PuppetWeb', 'initBridge() done')
 
+      const clicked = await this.bridge.clickSwitchAccount()
+      if (clicked) {
+        log.verbose('PuppetWeb', 'init() bridge.clickSwitchAccount() clicked')
+      }
+
       /**
        *  state must set to `live`
        *  before feed Watchdog

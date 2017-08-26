@@ -18,6 +18,7 @@
  */
 import {
   Builder,
+  By,
   Capabilities,
   IWebDriverOptionsCookie,
   logging,
@@ -52,7 +53,7 @@ promiseManager.USE_PROMISE_MANAGER = false
 process.env['DBUS_SESSION_BUS_ADDRESS'] = '/dev/null'
 
 export class BrowserDriver {
-  private driver: WebDriver
+  public driver: WebDriver
 
   constructor(
     private head: HeadName,
@@ -429,6 +430,7 @@ export class BrowserDriver {
 
 // export default BrowserDriver
 export {
+  By,
   IWebDriverOptionsCookie,
   Session,
   TargetLocator,

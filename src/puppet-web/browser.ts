@@ -35,6 +35,7 @@ import {
 import {
   BrowserDriver,
   IWebDriverOptionsCookie,
+  By,
 }                           from './browser-driver'
 
 export interface BrowserSetting {
@@ -492,6 +493,20 @@ export class Browser extends EventEmitter {
 
     }
     return dead
+  }
+
+  public async clickSwitchAccount(): Promise<boolean> {
+    log.verbose('PuppetWebBrowser', 'clickSwitchAccount()')
+
+    try {
+      const button = await this.driver.driver.findElement(By.linkText('Switch Account'))
+      button.click()
+      log.silly('PuppetWebBrowser', 'clickSwitchAccount() clicked!')
+      return true
+    } catch (e) {
+      log.silly('PuppetWebBrowser', 'clickSwitchAccount() button not found: %s', e && e.message || e)
+      return false
+    }
   }
 
   public addCookie(cookies: IWebDriverOptionsCookie[]):  Promise<void>
