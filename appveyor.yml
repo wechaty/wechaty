@@ -15,7 +15,6 @@ install:
   - choco install jq
   # install modules
   - npm --progress=false install > nul 2>&1
-  - npm --progress=false install phantomjs-prebuilt > nul 2>&1
 
 # Post-install test scripts.
 test_script:

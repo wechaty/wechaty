@@ -36,7 +36,6 @@ install:
   - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then export DISPLAY=':99.0'; fi
   - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then sh -e /etc/init.d/xvfb start; fi
 
-  - npm install phantomjs-prebuilt
   - npm --progress false --loglevel warn install
 
 script:

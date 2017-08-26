@@ -33,7 +33,6 @@
     "sloc": "sloc bin example src test index.ts --details --format cli-table --keys total,source,comment && sloc bin example src test index.ts",
     "test": "npm run test:chrome",
     "posttest": "npm run clean && npm run sloc",
-    "test:phantomjs": "cross-env LC_ALL=C WECHATY_HEAD=phantomjs ava --verbose --fail-fast --serial --timeout=5m \"dist/{src,test}/**/*.spec.js\"",
     "test:chrome": "cross-env LC_ALL=C WECHATY_HEAD=chrome ava --serial --fail-fast --verbose --timeout=5m \"dist/{src,test}/**/*.spec.js\"",
     "test:bug": "cross-env LC_ALL=C WECHATY_HEAD=chrome WECHATY_LOG=silly ava --serial --fail-fast --verbose --timeout=5m \"dist/src/message.spec.js\"",
     "test:chrome:fast": "cross-env LC_ALL=C WECHATY_HEAD=chrome ava --concurrency 5 --fail-fast --timeout=5m \"dist/{src,test}/**/*.spec.js\"",
