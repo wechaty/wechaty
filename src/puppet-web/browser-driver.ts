@@ -25,6 +25,7 @@ import {
   Options,
   promise as promiseManager,
   Session,
+  TargetLocator,
   WebDriver,
 }                             from 'selenium-webdriver'
 
@@ -423,10 +424,12 @@ export class BrowserDriver {
   public manage(): Options      { return this.driver.manage() }
   public navigate(): Navigation { return this.driver.navigate() }
   public quit()                 { return this.driver.quit() }
+  public switchTo()             { return this.driver.switchTo() }
 }
 
 // export default BrowserDriver
 export {
   IWebDriverOptionsCookie,
   Session,
+  TargetLocator,
 }

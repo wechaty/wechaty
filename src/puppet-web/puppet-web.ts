@@ -30,7 +30,9 @@ import {
   Message,
   MediaMessage,
  }                    from '../message'
-import Puppet         from '../puppet'
+import {
+  Puppet,
+}                     from '../puppet'
 import Room           from '../room'
 import UtilLib        from '../util-lib'
 
@@ -104,7 +106,17 @@ export class PuppetWeb extends Puppet {
       await this.initBrowser()
       log.verbose('PuppetWeb', 'initBrowser() done')
 
-      await this.initBridge()
+      try {
+        await this.initBridge()
+      } catch (e) {
+        const blockedMessage = await this.bridge.blockedMessageBody()
+                            || await this.bridge.blockedMessageAlert()
+        if (blockedMessage) {
+          const error = new Error(blockedMessage)
+          this.emit('error', error)
+        }
+        throw e
+      }
       log.verbose('PuppetWeb', 'initBridge() done')
 
       /**
