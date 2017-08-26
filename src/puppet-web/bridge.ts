@@ -583,10 +583,6 @@ export class Bridge {
     })
   }
 
-  public async clickSwitchAccount(): Promise<boolean> {
-    log.verbose('PuppetWebBridge', 'clickSwitchAccount()')
-    return this.puppet.browser.clickSwitchAccount()
-  }
 }
 
 /* tslint:disable:jsdoc-format */
