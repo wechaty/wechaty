@@ -165,23 +165,23 @@ export interface MsgTypeMap {
  * Enum for AppMsgType values.
  *
  * @enum {number}
- * @property {number} TEXT                    - 1      for TEXT
- * @property {number} IMG                     - 2      for IMG
- * @property {number} AUDIO                   - 3      for AUDIO
- * @property {number} VIDEO                   - 4      for VIDEO
- * @property {number} URL                     - 5      for URL
- * @property {number} ATTACH                  - 6      for ATTACH
- * @property {number} OPEN                    - 7      for OPEN
- * @property {number} EMOJI                   - 8      for EMOJI
- * @property {number} VOICE_REMIND            - 9      for VOICE_REMIND
- * @property {number} SCAN_GOOD               - 10     for SCAN_GOOD
- * @property {number} GOOD                    - 13     for GOOD
- * @property {number} EMOTION                 - 15     for EMOTION
- * @property {number} CARD_TICKET             - 16     for CARD_TICKET
- * @property {number} REALTIME_SHARE_LOCATION - 17     for REALTIME_SHARE_LOCATION
- * @property {number} TRANSFERS               - 2e3    for TRANSFERS
- * @property {number} RED_ENVELOPES           - 2001   for RED_ENVELOPES
- * @property {number} READER_TYPE             - 100001 for READER_TYPE
+ * @property {number} TEXT                    - AppMsgType.TEXT                     (1)     for TEXT
+ * @property {number} IMG                     - AppMsgType.IMG                      (2)      for IMG
+ * @property {number} AUDIO                   - AppMsgType.AUDIO                    (3)      for AUDIO
+ * @property {number} VIDEO                   - AppMsgType.VIDEO                    (4)      for VIDEO
+ * @property {number} URL                     - AppMsgType.URL                      (5)      for URL
+ * @property {number} ATTACH                  - AppMsgType.ATTACH                   (6)      for ATTACH
+ * @property {number} OPEN                    - AppMsgType.OPEN                     (7)      for OPEN
+ * @property {number} EMOJI                   - AppMsgType.EMOJI                    (8)      for EMOJI
+ * @property {number} VOICE_REMIND            - AppMsgType.VOICE_REMIND             (9)      for VOICE_REMIND
+ * @property {number} SCAN_GOOD               - AppMsgType.SCAN_GOOD                (10)     for SCAN_GOOD
+ * @property {number} GOOD                    - AppMsgType.GOOD                     (13)     for GOOD
+ * @property {number} EMOTION                 - AppMsgType.EMOTION                  (15)     for EMOTION
+ * @property {number} CARD_TICKET             - AppMsgType.CARD_TICKET              (16)     for CARD_TICKET
+ * @property {number} REALTIME_SHARE_LOCATION - AppMsgType.REALTIME_SHARE_LOCATION  (17)     for REALTIME_SHARE_LOCATION
+ * @property {number} TRANSFERS               - AppMsgType.TRANSFERS                (2e3)    for TRANSFERS
+ * @property {number} RED_ENVELOPES           - AppMsgType.RED_ENVELOPES            (2001)   for RED_ENVELOPES
+ * @property {number} READER_TYPE             - AppMsgType.READER_TYPE              (100001) for READER_TYPE
  */
 export enum AppMsgType {
   TEXT                     = 1,
@@ -207,24 +207,24 @@ export enum AppMsgType {
  *
  * Enum for MsgType values.
  * @enum {number}
- * @property {number} TEXT                - 1     for TEXT
- * @property {number} IMAGE               - 3     for IMAGE
- * @property {number} VOICE               - 34    for VOICE
- * @property {number} VERIFYMSG           - 37    for VERIFYMSG
- * @property {number} POSSIBLEFRIEND_MSG  - 40    for POSSIBLEFRIEND_MSG
- * @property {number} SHARECARD           - 42    for SHARECARD
- * @property {number} VIDEO               - 43    for VIDEO
- * @property {number} EMOTICON            - 47    for EMOTICON
- * @property {number} LOCATION            - 48    for LOCATION
- * @property {number} APP                 - 49    for APP
- * @property {number} VOIPMSG             - 50    for VOIPMSG
- * @property {number} STATUSNOTIFY        - 51    for STATUSNOTIFY
- * @property {number} VOIPNOTIFY          - 52    for VOIPNOTIFY
- * @property {number} VOIPINVITE          - 53    for VOIPINVITE
- * @property {number} MICROVIDEO          - 62    for MICROVIDEO
- * @property {number} SYSNOTICE           - 9999  for SYSNOTICE
- * @property {number} SYS                 - 10000 for SYS
- * @property {number} RECALLED            - 10002 for RECALLED
+ * @property {number} TEXT                - MsgType.TEXT                (1)     for TEXT
+ * @property {number} IMAGE               - MsgType.IMAGE               (3)     for IMAGE
+ * @property {number} VOICE               - MsgType.VOICE               (34)    for VOICE
+ * @property {number} VERIFYMSG           - MsgType.VERIFYMSG           (37)    for VERIFYMSG
+ * @property {number} POSSIBLEFRIEND_MSG  - MsgType.POSSIBLEFRIEND_MSG  (40)    for POSSIBLEFRIEND_MSG
+ * @property {number} SHARECARD           - MsgType.SHARECARD           (42)    for SHARECARD
+ * @property {number} VIDEO               - MsgType.VIDEO               (43)    for VIDEO
+ * @property {number} EMOTICON            - MsgType.EMOTICON            (47)    for EMOTICON
+ * @property {number} LOCATION            - MsgType.LOCATION            (48)    for LOCATION
+ * @property {number} APP                 - MsgType.APP                 (49)    for APP
+ * @property {number} VOIPMSG             - MsgType.VOIPMSG             (50)    for VOIPMSG
+ * @property {number} STATUSNOTIFY        - MsgType.STATUSNOTIFY        (51)    for STATUSNOTIFY
+ * @property {number} VOIPNOTIFY          - MsgType.VOIPNOTIFY          (52)    for VOIPNOTIFY
+ * @property {number} VOIPINVITE          - MsgType.VOIPINVITE          (53)    for VOIPINVITE
+ * @property {number} MICROVIDEO          - MsgType.MICROVIDEO          (62)    for MICROVIDEO
+ * @property {number} SYSNOTICE           - MsgType.SYSNOTICE           (9999)  for SYSNOTICE
+ * @property {number} SYS                 - MsgType.SYS                 (10000) for SYS
+ * @property {number} RECALLED            - MsgType.RECALLED            (10002) for RECALLED
  */
 export enum MsgType {
   TEXT                = 1,
@@ -522,6 +522,11 @@ export class Message implements Sayable {
     return null
   }
 
+  /**
+   * Get the content of the message
+   *
+   * @returns {string}
+   */
   public content(): string
 
   /**

@@ -1105,23 +1105,23 @@ Enum for AppMsgType values.
 
 | Name | Type | Description |
 | --- | --- | --- |
-| TEXT | <code>number</code> | 1      for TEXT |
-| IMG | <code>number</code> | 2      for IMG |
-| AUDIO | <code>number</code> | 3      for AUDIO |
-| VIDEO | <code>number</code> | 4      for VIDEO |
-| URL | <code>number</code> | 5      for URL |
-| ATTACH | <code>number</code> | 6      for ATTACH |
-| OPEN | <code>number</code> | 7      for OPEN |
-| EMOJI | <code>number</code> | 8      for EMOJI |
-| VOICE_REMIND | <code>number</code> | 9      for VOICE_REMIND |
-| SCAN_GOOD | <code>number</code> | 10     for SCAN_GOOD |
-| GOOD | <code>number</code> | 13     for GOOD |
-| EMOTION | <code>number</code> | 15     for EMOTION |
-| CARD_TICKET | <code>number</code> | 16     for CARD_TICKET |
-| REALTIME_SHARE_LOCATION | <code>number</code> | 17     for REALTIME_SHARE_LOCATION |
-| TRANSFERS | <code>number</code> | 2e3    for TRANSFERS |
-| RED_ENVELOPES | <code>number</code> | 2001   for RED_ENVELOPES |
-| READER_TYPE | <code>number</code> | 100001 for READER_TYPE |
+| TEXT | <code>number</code> | AppMsgType.TEXT                     (1)     for TEXT |
+| IMG | <code>number</code> | AppMsgType.IMG                      (2)      for IMG |
+| AUDIO | <code>number</code> | AppMsgType.AUDIO                    (3)      for AUDIO |
+| VIDEO | <code>number</code> | AppMsgType.VIDEO                    (4)      for VIDEO |
+| URL | <code>number</code> | AppMsgType.URL                      (5)      for URL |
+| ATTACH | <code>number</code> | AppMsgType.ATTACH                   (6)      for ATTACH |
+| OPEN | <code>number</code> | AppMsgType.OPEN                     (7)      for OPEN |
+| EMOJI | <code>number</code> | AppMsgType.EMOJI                    (8)      for EMOJI |
+| VOICE_REMIND | <code>number</code> | AppMsgType.VOICE_REMIND             (9)      for VOICE_REMIND |
+| SCAN_GOOD | <code>number</code> | AppMsgType.SCAN_GOOD                (10)     for SCAN_GOOD |
+| GOOD | <code>number</code> | AppMsgType.GOOD                     (13)     for GOOD |
+| EMOTION | <code>number</code> | AppMsgType.EMOTION                  (15)     for EMOTION |
+| CARD_TICKET | <code>number</code> | AppMsgType.CARD_TICKET              (16)     for CARD_TICKET |
+| REALTIME_SHARE_LOCATION | <code>number</code> | AppMsgType.REALTIME_SHARE_LOCATION  (17)     for REALTIME_SHARE_LOCATION |
+| TRANSFERS | <code>number</code> | AppMsgType.TRANSFERS                (2e3)    for TRANSFERS |
+| RED_ENVELOPES | <code>number</code> | AppMsgType.RED_ENVELOPES            (2001)   for RED_ENVELOPES |
+| READER_TYPE | <code>number</code> | AppMsgType.READER_TYPE              (100001) for READER_TYPE |
 
 <a name="MsgType"></a>
 
@@ -1133,24 +1133,24 @@ Enum for MsgType values.
 
 | Name | Type | Description |
 | --- | --- | --- |
-| TEXT | <code>number</code> | 1     for TEXT |
-| IMAGE | <code>number</code> | 3     for IMAGE |
-| VOICE | <code>number</code> | 34    for VOICE |
-| VERIFYMSG | <code>number</code> | 37    for VERIFYMSG |
-| POSSIBLEFRIEND_MSG | <code>number</code> | 40    for POSSIBLEFRIEND_MSG |
-| SHARECARD | <code>number</code> | 42    for SHARECARD |
-| VIDEO | <code>number</code> | 43    for VIDEO |
-| EMOTICON | <code>number</code> | 47    for EMOTICON |
-| LOCATION | <code>number</code> | 48    for LOCATION |
-| APP | <code>number</code> | 49    for APP |
-| VOIPMSG | <code>number</code> | 50    for VOIPMSG |
-| STATUSNOTIFY | <code>number</code> | 51    for STATUSNOTIFY |
-| VOIPNOTIFY | <code>number</code> | 52    for VOIPNOTIFY |
-| VOIPINVITE | <code>number</code> | 53    for VOIPINVITE |
-| MICROVIDEO | <code>number</code> | 62    for MICROVIDEO |
-| SYSNOTICE | <code>number</code> | 9999  for SYSNOTICE |
-| SYS | <code>number</code> | 10000 for SYS |
-| RECALLED | <code>number</code> | 10002 for RECALLED |
+| TEXT | <code>number</code> | MsgType.TEXT                (1)     for TEXT |
+| IMAGE | <code>number</code> | MsgType.IMAGE               (3)     for IMAGE |
+| VOICE | <code>number</code> | MsgType.VOICE               (34)    for VOICE |
+| VERIFYMSG | <code>number</code> | MsgType.VERIFYMSG           (37)    for VERIFYMSG |
+| POSSIBLEFRIEND_MSG | <code>number</code> | MsgType.POSSIBLEFRIEND_MSG  (40)    for POSSIBLEFRIEND_MSG |
+| SHARECARD | <code>number</code> | MsgType.SHARECARD           (42)    for SHARECARD |
+| VIDEO | <code>number</code> | MsgType.VIDEO               (43)    for VIDEO |
+| EMOTICON | <code>number</code> | MsgType.EMOTICON            (47)    for EMOTICON |
+| LOCATION | <code>number</code> | MsgType.LOCATION            (48)    for LOCATION |
+| APP | <code>number</code> | MsgType.APP                 (49)    for APP |
+| VOIPMSG | <code>number</code> | MsgType.VOIPMSG             (50)    for VOIPMSG |
+| STATUSNOTIFY | <code>number</code> | MsgType.STATUSNOTIFY        (51)    for STATUSNOTIFY |
+| VOIPNOTIFY | <code>number</code> | MsgType.VOIPNOTIFY          (52)    for VOIPNOTIFY |
+| VOIPINVITE | <code>number</code> | MsgType.VOIPINVITE          (53)    for VOIPINVITE |
+| MICROVIDEO | <code>number</code> | MsgType.MICROVIDEO          (62)    for MICROVIDEO |
+| SYSNOTICE | <code>number</code> | MsgType.SYSNOTICE           (9999)  for SYSNOTICE |
+| SYS | <code>number</code> | MsgType.SYS                 (10000) for SYS |
+| RECALLED | <code>number</code> | MsgType.RECALLED            (10002) for RECALLED |
 
 <a name="WechatyEventName"></a>
 

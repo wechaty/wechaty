@@ -661,8 +661,19 @@ export class Contact implements Sayable {
     return Contact.pool[id]
   }
 
+  /**
+   * Sent Text to contact
+   *
+   * @param {string} text
+   */
   public async say(text: string)
 
+  /**
+   * Send Media File to Contact
+   *
+   * @param {MediaMessage} mediaMessage
+   * @memberof Contact
+   */
   public async say(mediaMessage: MediaMessage)
 
   /**
