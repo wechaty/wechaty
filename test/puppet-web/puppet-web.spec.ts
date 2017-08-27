@@ -41,7 +41,10 @@ import {
  */
 test.serial('login/logout events', async t => {
   const STUB_INIT_BROWSER = stub(PuppetWeb.prototype, 'initBrowser')
-  STUB_INIT_BROWSER.resolves()
+  STUB_INIT_BROWSER.resolves({
+    clickSwitchAccount: () => false,
+  })
+
   const STUB_BRIDGE_INIT = stub(PuppetWebBridge.prototype, 'init')
   STUB_BRIDGE_INIT.resolves()
 

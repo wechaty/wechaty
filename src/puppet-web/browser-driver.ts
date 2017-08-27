@@ -18,12 +18,15 @@
  */
 import {
   Builder,
+  By,
   Capabilities,
   IWebDriverOptionsCookie,
   logging,
   Navigation,
   Options,
   promise as promiseManager,
+  Session,
+  TargetLocator,
   WebDriver,
 }                             from 'selenium-webdriver'
 
@@ -42,8 +45,15 @@ import {
 process.env['SELENIUM_PROMISE_MANAGER'] = '0'
 promiseManager.USE_PROMISE_MANAGER = false
 
+/**
+ * issue #756
+ * fix Chromedriver frequently hangs when attempting to start a new session.
+ * https://github.com/SeleniumHQ/docker-selenium/issues/87#issuecomment-187580115
+ */
+process.env['DBUS_SESSION_BUS_ADDRESS'] = '/dev/null'
+
 export class BrowserDriver {
-  private driver: WebDriver
+  public driver: WebDriver
 
   constructor(
     private head: HeadName,
@@ -91,32 +101,36 @@ export class BrowserDriver {
   private async getChromeDriver(headless = false): Promise<WebDriver> {
     log.verbose('PuppetWebBrowserDriver', 'getChromeDriver()')
 
-    const HEADLESS_ARGS = [
-      // --allow-insecure-localhost: Require Chrome v62
-      // https://bugs.chromium.org/p/chromium/issues/detail?id=721739#c26
-      '--allow-insecure-localhost',
-      '--disable-gpu',
-      // --headless: Require Chrome v60
-      // https://developers.google.com/web/updates/2017/04/headless-chrome
-      '--headless',
-    ]
-
     const options = {
       args: [
+        // fix 'No such session error'
+        // https://bugs.chromium.org/p/chromedriver/issues/detail?id=732#c19
+        '--disable-impl-side-painting',
+
         '--homepage=about:blank',
+
+        // issue #26 for run inside docker
         '--no-sandbox',
+
         // '--remote-debugging-port=9222',  // will conflict with webdriver
-      ],  // issue #26 for run inside docker
+      ],
       // binary: '/opt/google/chrome-unstable/chrome',
     }
 
     if (headless)  {
-      // ISSUE #739
-      // Chrome v62 or above is required
-      // because when we are using --headless args,
-      // chrome version below 62 will not allow the
-      // self-signed certificate to be used when
-      // visiting https://localhost.
+      const HEADLESS_ARGS = [
+        // --allow-insecure-localhost: Require Chrome v62
+        // https://bugs.chromium.org/p/chromium/issues/detail?id=721739#c26
+        '--allow-insecure-localhost',
+        '--disable-gpu',
+        // --headless: Require Chrome v60
+        // https://developers.google.com/web/updates/2017/04/headless-chrome
+        '--headless',
+      ]
+
+      // ISSUE #739 Chrome v62 or above is required
+      // because when we are using --headless args, chrome version below 62 will not allow the
+      // self-signed certificate to be used when visiting https://localhost.
       options.args.concat(HEADLESS_ARGS)
     }
 
@@ -137,15 +151,28 @@ export class BrowserDriver {
                           .chrome()
                           .set('chromeOptions', options)
 
-    // TODO: chromedriver --silent
-    if (!/^(verbose|silly)$/i.test(log.level())) {
+    { // set logging
+      // TODO: chromedriver --silent
       const prefs = new logging.Preferences()
+      let loggingLevel: logging.Level
 
-      prefs.setLevel(logging.Type.BROWSER     , logging.Level.OFF)
-      prefs.setLevel(logging.Type.CLIENT      , logging.Level.OFF)
-      prefs.setLevel(logging.Type.DRIVER      , logging.Level.OFF)
-      prefs.setLevel(logging.Type.PERFORMANCE , logging.Level.OFF)
-      prefs.setLevel(logging.Type.SERVER      , logging.Level.OFF)
+      switch (log.level()) {
+        case 'silly':
+          loggingLevel = logging.Level.ALL
+          break
+        case 'verbose':
+          loggingLevel = logging.Level.DEBUG
+          break
+
+        default:
+          loggingLevel = logging.Level.OFF
+
+      }
+      prefs.setLevel(logging.Type.BROWSER     , loggingLevel)
+      prefs.setLevel(logging.Type.CLIENT      , loggingLevel)
+      prefs.setLevel(logging.Type.DRIVER      , loggingLevel)
+      prefs.setLevel(logging.Type.PERFORMANCE , loggingLevel)
+      prefs.setLevel(logging.Type.SERVER      , loggingLevel)
 
       customChrome.setLoggingPrefs(prefs)
     }
@@ -187,9 +214,10 @@ export class BrowserDriver {
           driverError = e
 
           log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() driver.quit() at ttl %d', ttl)
-          driver.quit() // do not await, because a invalid driver will always hang when quit()
+          driver.close()
+                .then(() => driver.quit())  // // do not await, because a invalid driver will always hang when quit()
                 .catch(err => {
-                  log.warn('PuppetWebBrowserDriver', 'getChromeDriver() driver.quit() exception: %s', err.message)
+                  log.warn('PuppetWebBrowserDriver', 'getChromeDriver() driver.{close,quit}() exception: %s', err.message)
                   driverError = err
                 })
         } // END if
@@ -392,14 +420,18 @@ export class BrowserDriver {
   public close()                { return this.driver.close() }
   public executeAsyncScript(script: string|Function, ...args: any[])  { return this.driver.executeAsyncScript.apply(this.driver, arguments) }
   public executeScript     (script: string|Function, ...args: any[])  { return this.driver.executeScript.apply(this.driver, arguments) }
-  public get(url: string)       { return this.driver.get(url)     as any as Promise<void> }
-  public getSession()           { return this.driver.getSession() as any as Promise<void> }
+  public get(url: string)       { return this.driver.get(url) }
+  public getSession()           { return this.driver.getSession() }
   public manage(): Options      { return this.driver.manage() }
   public navigate(): Navigation { return this.driver.navigate() }
-  public quit()                 { return this.driver.quit()       as any as Promise<void> }
+  public quit()                 { return this.driver.quit() }
+  public switchTo()             { return this.driver.switchTo() }
 }
 
 // export default BrowserDriver
 export {
+  By,
   IWebDriverOptionsCookie,
+  Session,
+  TargetLocator,
 }

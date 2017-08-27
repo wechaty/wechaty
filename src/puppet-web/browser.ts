@@ -17,6 +17,8 @@
  *
  */
 import { EventEmitter } from 'events'
+// v8.x only import { promisify }    from 'util'
+
 const psTree            = require('ps-tree')
 const retryPromise      = require('retry-promise').default // https://github.com/olalonde/retry-promise
 import { StateSwitch }  from 'state-switch'
@@ -33,6 +35,7 @@ import {
 import {
   BrowserDriver,
   IWebDriverOptionsCookie,
+  By,
 }                           from './browser-driver'
 
 export interface BrowserSetting {
@@ -131,7 +134,7 @@ export class Browser extends EventEmitter {
   }
 
   public async open(url?: string): Promise<void> {
-    log.verbose('PuppetWebBrowser', `open(${url})`)
+    log.verbose('PuppetWebBrowser', 'open(%s)', url)
 
     if (!url) {
       const hostname = this.cookie.hostname()
@@ -150,48 +153,46 @@ export class Browser extends EventEmitter {
     while (ttl--) {
       log.verbose('PuppetWebBrowser', 'open() begin for ttl:%d', ttl)
       try {
-        await new Promise(async (resolve, reject) => {
+        await new Promise<void>(async (resolve, reject) => {
 
-          const timer = setTimeout(async _ => {
-            try {
-              await this.driver.close()
-              await this.driver.quit()
-              await this.driver.init()
-              log.verbose('PuppetWebBrowser', 'open() driver.{close,quit,init}() done')
-            } catch (e) {
-              log.warn('PuppetWebBrowser', 'open() timeout, close driver exception: %s',
-                                            e.message,
-                      )
-            }
-
+          const timer = setTimeout(_ => {
             const e = new Error('timeout after '
                                 + Math.round(TIMEOUT / 1000) + ' seconds'
                                 + 'at ttl:' + ttl,
                               )
-            reject(e)
+            return reject(e)
           }, TIMEOUT)
 
           try {
             await this.driver.get(openUrl)
-            resolve()
+            // open successful!
+            log.verbose('PuppetWebBrowser', 'open(%s) end at ttl:%d', openUrl, ttl)
+            return resolve()
+
           } catch (e) {
-            reject(e)
+            return reject(e)
+
           } finally {
             clearTimeout(timer)
           }
         })
 
-        // open successful!
-        log.verbose('PuppetWebBrowser', 'open() end at ttl:%d', ttl)
+        // open successful
         return
 
       } catch (e) {
         log.error('PuppetWebBrowser', 'open() exception: %s', e.message)
+
+        await this.driver.close()
+        await this.driver.quit()
+        await this.driver.init()
+        log.verbose('PuppetWebBrowser', 'open() driver.{close,quit,init}() done')
       }
     }
 
+    await this.driver.close()
+    await this.driver.quit()
     throw new Error('open fail because ttl expired')
-
   }
 
   public async refresh(): Promise<void> {
@@ -315,64 +316,57 @@ export class Browser extends EventEmitter {
     })
   }
 
-  public getBrowserPidList(): Promise<number[]> {
+  public async getBrowserPidList(): Promise<number[]> {
     log.verbose('PuppetWebBrowser', 'getBrowserPidList()')
 
     const head = this.setting.head
 
-    return new Promise((resolve, reject) => {
-      /**
-       * Reject
-       */
-      const timer = setTimeout(() => {
-        const e = new Error('clean() psTree() timeout.')
-        log.error('PuppetWebBrowser', e.message)
-        reject(e)
-      }, 10 * 1000)
-
-      psTree(process.pid, (err, children) => {
-        if (err) {
-          log.error('PuppetWebBrowser', 'getBrowserPidList() %s', err.message || err)
-          reject(err)
-          return
-        }
-        let browserRe
-
-        switch (head) {
-          case 'phantomjs':
-            browserRe = 'phantomjs'
-            break
-
-          case 'chrome':
-          case 'chrome-headless':
-            browserRe = 'chrome(?!driver)|chromium'
-            break
-
-          default:
-            const e = new Error('unsupported head: ' + head)
-            log.warn('PuppetWebBrowser', 'getBrowserPids() for %s', e.message)
-            throw e
-        }
-
-        const matchRegex = new RegExp(browserRe, 'i')
-        const pids: number[] = children.filter(child => {
-          // https://github.com/indexzero/ps-tree/issues/18
-          if (matchRegex.test('' + child.COMMAND + child.COMM)) {
-            log.silly('PuppetWebBrowser', 'getBrowserPids() child: %s', JSON.stringify(child))
-            return true
+    try {
+      const children = await new Promise<any[]>((resolve, reject) => {
+        psTree(process.pid, (err, c) => {
+          if (err) {
+            return reject(err)
+          } else {
+            return resolve(c)
           }
-          return false
-
-        }).map(child => child.PID)
-
-        /**
-         * Resolve
-         */
-        clearTimeout(timer)
-        resolve(pids)
-        return
+        })
       })
-    })
+
+      let regexText: string
+
+      switch (head) {
+        case 'phantomjs':
+          regexText = 'phantomjs'
+          break
+
+        case 'chrome':
+        case 'chrome-headless':
+          regexText = 'chrome(?!driver)|chromium'
+          break
+
+        default:
+          const e = new Error('unsupported head: ' + head)
+          log.warn('PuppetWebBrowser', 'getBrowserPids() for %s', e.message)
+          throw e
+      }
+
+      const matchRegex = new RegExp(regexText, 'i')
+      const pids: number[] = children.filter(child => {
+        // https://github.com/indexzero/ps-tree/issues/18
+        if (matchRegex.test('' + child.COMMAND + child.COMM)) {
+          log.silly('PuppetWebBrowser', 'getBrowserPids() child: %s', JSON.stringify(child))
+          return true
+        }
+        return false
+
+      }).map(child => child.PID)
+
+      return pids
+
+    } catch (e) {
+      log.error('PuppetWebBrowser', 'getBrowserPidList() exception: %s', e.message || e)
+      throw e
+    }
   }
 
   public async execute(script, ...args): Promise<any> {
@@ -499,6 +493,20 @@ export class Browser extends EventEmitter {
 
     }
     return dead
+  }
+
+  public async clickSwitchAccount(): Promise<boolean> {
+    log.verbose('PuppetWebBrowser', 'clickSwitchAccount()')
+
+    try {
+      const button = await this.driver.driver.findElement(By.linkText('Switch Account'))
+      button.click()
+      log.silly('PuppetWebBrowser', 'clickSwitchAccount() clicked!')
+      return true
+    } catch (e) {
+      log.silly('PuppetWebBrowser', 'clickSwitchAccount() button not found: %s', e && e.message || e)
+      return false
+    }
   }
 
   public addCookie(cookies: IWebDriverOptionsCookie[]):  Promise<void>

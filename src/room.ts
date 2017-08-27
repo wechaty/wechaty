@@ -886,9 +886,10 @@ export class Room extends EventEmitter implements Sayable {
                                     return [] // fail safe
                                   })
 
-    for (let i = 0; i < roomList.length; i++) {
-      await roomList[i].ready()
-    }
+    await Promise.all(roomList.map(room => room.ready()))
+    // for (let i = 0; i < roomList.length; i++) {
+    //   await roomList[i].ready()
+    // }
 
     return roomList
   }
