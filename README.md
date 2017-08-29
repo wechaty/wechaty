@@ -324,8 +324,6 @@ AUTHOR
 ------
 Huan LI \<zixia@zixia.net\> (http://linkedin.com/in/zixia)
 
-I'm an active angel investor, serial entrepreneur with strong technical background and rich social network experience.
-
 <a href="http://stackoverflow.com/users/1123955/zixia">
   <img src="http://stackoverflow.com/users/flair/1123955.png" width="208" height="58" alt="profile for zixia at Stack Overflow, Q&amp;A for professional and enthusiast programmers" title="profile for zixia at Stack Overflow, Q&amp;A for professional and enthusiast programmers">
 </a>
