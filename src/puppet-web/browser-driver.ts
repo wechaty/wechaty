@@ -435,3 +435,5 @@ export {
   Session,
   TargetLocator,
 }
+
+export default BrowserDriver

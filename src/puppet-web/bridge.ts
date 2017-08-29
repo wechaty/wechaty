@@ -59,15 +59,13 @@ export class Bridge {
   public async init(): Promise<Bridge> {
     log.verbose('PuppetWebBridge', 'init()')
 
-    return this.inject()
-    .then(r => {
-      // log.silly('PuppetWebBridge', 'init() inject() return %s at attempt %d', r, attempt)
+    try {
+      await this.inject()
       return this
-    })
-    .catch(e => {
+    } catch (e) {
       log.silly('PuppetWebBridge', 'init() inject() exception: %s', e && e.message || e)
       throw e
-    })
+    }
   }
 
   public async inject(): Promise<any> {
