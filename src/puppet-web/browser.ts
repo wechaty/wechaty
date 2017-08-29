@@ -235,7 +235,9 @@ export class Browser extends EventEmitter {
 
     try {
       await this.driver.close()
-                      .catch(e => { /* fail safe */ }) // http://stackoverflow.com/a/32341885/1123955
+                      .catch(e => {   // http://stackoverflow.com/a/32341885/1123955
+                        log.error('PuppetWebBriowser', 'quit() this.driver.close() exception %s', e.message)
+                      })
       log.silly('PuppetWebBrowser', 'quit() driver.close() done')
       await this.driver.quit()
                       .catch( e => log.error('PuppetWebBrowser', 'quit() this.driver.quit() exception %s', e.message))

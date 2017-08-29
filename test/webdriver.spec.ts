@@ -31,29 +31,6 @@ import {
  * if 2 tests run parallel in the same process,
  * there will have race conditions for the conflict of `getBrowserPids()`
  */
-test.serial('WebDriver process create & quit test', async t => {
-  try {
-    const browser = new Browser()
-    t.truthy(browser, 'should instanciate a browser')
-
-    await browser.init()
-    t.pass('should be inited successful')
-    await browser.open()
-    t.pass('should open successful')
-
-    let pids = await browser.getBrowserPidList()
-    t.truthy(pids.length > 0, 'should exist browser process after b.open()')
-
-    await browser.quit()
-    t.pass('quited')
-
-    pids = await browser.getBrowserPidList()
-    t.is(pids.length, 0, 'no driver process after quit')
-  } catch (e) {
-    t.fail(e.message || e)
-  }
-})
-
 test.serial('WebDriver smoke testing', async t => {
   const browser = new Browser()
   t.truthy(browser, 'Browser instnace')
@@ -62,8 +39,8 @@ test.serial('WebDriver smoke testing', async t => {
   const bridge = new Bridge(mockPuppet, 8788)
   t.truthy(bridge, 'Bridge instnace')
 
-  const m = (await browser.getBrowserPidList()).length
-  t.is(m, 0, 'should has no browser process before get()')
+  let pids = await browser.getBrowserPidList()
+  t.is(pids.length, 0, 'should has no browser process before init()')
 
   await browser.driver.init()
 
@@ -76,8 +53,8 @@ test.serial('WebDriver smoke testing', async t => {
   await driver.get('https://wx.qq.com/')
   t.pass('should open wx.qq.com')
 
-  const n = (await browser.getBrowserPidList()).length
-  t.truthy(n > 0, 'should exist browser process after get()')
+  pids = await browser.getBrowserPidList()
+  t.truthy(pids.length > 0, 'should exist browser process after get()')
 
   const retAdd = await driverExecute('return 1+1')
   t.is(retAdd, 2, 'should return 2 for execute 1+1 in browser')
@@ -87,6 +64,9 @@ test.serial('WebDriver smoke testing', async t => {
   t.is(retInject.code, 200, 'should got code 200 for a success wechaty inject')
 
   await browser.driver.quit()
+
+  pids = await browser.getBrowserPidList()
+  t.is(pids.length, 0, 'should exist browser process after get()')
 
   return
 
