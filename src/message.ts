@@ -319,11 +319,31 @@ export class Message implements Sayable {
   }
 
   /**
-   * @todo document me
+   * Set a sender to the message
+   * @param {Contact} contact
+   * @memberof Message
    */
   public from(contact: Contact): void
+  /**
+   * Set a sender to the message by contact id
+   * @param {string} id
+   * @memberof Message
+   */
   public from(id: string): void
+
+  /**
+   * Get the sender from a message.
+   * @returns {Contact}
+   * @memberof Message
+   */
   public from(): Contact
+
+  /**
+   * Get the sender from a message, or set it.
+   * @param {(Contact|string)} [contact]
+   * @returns {(Contact|void)}
+   * @memberof Message
+   */
   public from(contact?: Contact|string): Contact|void {
     if (contact) {
       if (contact instanceof Contact) {
@@ -347,12 +367,32 @@ export class Message implements Sayable {
   // public to(): Contact|Room
   // public to(contact?: Contact|Room|string): Contact|Room|void {
   /**
-   * @todo document me
+   * Set the destination as Contact for the message
+   * @param {Contact} contact
+   * @memberof Message
    */
   public to(contact: Contact): void
-  public to(id: string): void
-  public to(): Contact|null // if to is not set, then room must had set
 
+  /**
+   * Set the destination as Contact by 'weixin', for the message
+   * @param {string} id
+   * @memberof Message
+   */
+  public to(id: string): void
+  /**
+   * Get the destination of the message
+   * Message.to() will return null if a message is in a room, use Message.room() to get the room.
+   * @returns {(Contact|null)}
+   * @memberof Message
+   */
+  public to(): Contact|null // if to is not set, then room must had set
+  /**
+   * Get the receiver from a message, or set it.
+   * Only deal with Contact, if you need Room, try Message.room()
+   * @param {(Contact|string)} [contact]
+   * @returns {(Contact|Room|null|void)}
+   * @memberof Message
+   */
   public to(contact?: Contact|string): Contact|Room|null|void {
     if (contact) {
       if (contact instanceof Contact) {
@@ -374,11 +414,33 @@ export class Message implements Sayable {
   }
 
   /**
-   * @todo document me
+   * Set the room for a message
+   * @param {Room} room
+   * @memberof Message
    */
   public room(room: Room): void
+
+  /**
+   * Set the room by id for a message
+   * @param {string} id
+   * @memberof Message
+   */
   public room(id: string): void
+
+  /**
+   * Get the room from the message.
+   * If the message is not in a room, then will return null
+   * @returns {(Room|null)}
+   * @memberof Message
+   */
   public room(): Room|null
+
+  /**
+   * Get the room from a message, or set it.
+   * @param {(Room|string)} [room]
+   * @returns {(Room|null|void)}
+   * @memberof Message
+   */
   public room(room?: Room|string): Room|null|void {
     if (room) {
       if (room instanceof Room) {
@@ -397,11 +459,23 @@ export class Message implements Sayable {
   }
 
   /**
-   * @todo document me
+   * Get the content of the message
+   * @returns {string}
+   * @memberof Message
    */
   public content(): string
+  /**
+   * Set the content for the message
+   * @param {string} content
+   * @memberof Message
+   */
   public content(content: string): void
-
+  /**
+   * Get the content from a message, or set it
+   * @param {string} [content]
+   * @returns {(string|void)}
+   * @memberof Message
+   */
   public content(content?: string): string|void {
     if (content) {
       this.obj.content = content
@@ -411,14 +485,38 @@ export class Message implements Sayable {
   }
 
   /**
-   * @todo document me
+   * Get the type from the message.
+   * Some known value of the type list here is:
+   * TEXT 1
+   * IMAGE 3
+   * VOICE 34
+   * VERIFYMSG 37
+   * POSSIBLEFRIEND_MSG 40
+   * SHARECARD 42
+   * VIDEO 43
+   * EMOTICON 47
+   * LOCATION 48
+   * APP 49
+   * VOIPMSG 50
+   * STATUSNOTIFY 51
+   * VOIPNOTIFY 52
+   * VOIPINVITE 53
+   * MICROVIDEO 62
+   * APP 49
+   * SYSNOTICE 9999
+   * SYS 10000
+   * RECALLED 10002
+   * @returns {MsgType}
+   * @memberof Message
    */
   public type(): MsgType {
     return this.obj.type
   }
 
   /**
-   * @todo document me
+   * Get a type has sub-type of MsgType type
+   * @returns {MsgType}
+   * @memberof Message
    */
   public typeSub(): MsgType {
     if (!this.rawObj) {
@@ -428,7 +526,27 @@ export class Message implements Sayable {
   }
 
   /**
-   * @todo document me
+   * Get the app type from message, if not apptype, return 0
+   * Some known value of the type list here is:
+   * TEXT 1
+   * IMG 2
+   * AUDIO 3
+   * VIDEO 4
+   * URL 5
+   * ATTACH 6
+   * OPEN 7
+   * EMOJI 8
+   * VOICE_REMIND 9
+   * SCAN_GOOD 10
+   * GOOD 13
+   * EMOTION 15
+   * CARD_TICKET 16
+   * REALTIME_SHARE_LOCATION 17
+   * TRANSFERS 2e3
+   * RED_ENVELOPES 2001
+   * READER_TYPE 100001
+   * @returns {AppMsgType}
+   * @memberof Message
    */
   public typeApp(): AppMsgType {
     if (!this.rawObj) {
@@ -439,15 +557,25 @@ export class Message implements Sayable {
 
   /**
    * @todo document me
+   * @todo Don't know what is this function for. by William
    */
   public typeEx()  { return MsgType[this.obj.type] }
   /**
    * @todo document me
+   * @todo Don't know what is this function for. by William
    */
   public count()   { return this._counter }
 
   /**
-   * @todo document me
+   * Check if a message is sent by self.
+   * Return true for send from self, false for send from others.
+   * @example
+   * ```ts
+   * if (message.self())
+   *   console.log('this message is sent by myself!')
+   * ```
+   * @returns {boolean}
+   * @memberof Message
    */
   public self(): boolean {
     const userId = config.puppetInstance()
@@ -531,6 +659,11 @@ export class Message implements Sayable {
     return contactList
   }
 
+  /**
+   * check the message you want to send, and from is ready for using.
+   * @returns {Promise<void>}
+   * @memberof Message
+   */
   public async ready(): Promise<void> {
     log.silly('Message', 'ready()')
 
@@ -613,11 +746,40 @@ export class Message implements Sayable {
   // }
 
   /**
-   * @todo document me
+   * Reply a text message to the sender.
+   * @param {string} text
+   * @param {(Contact | Contact[])} [replyTo]
+   * @returns {Promise<any>}
+   * @memberof Message
+   * @example 
+   * ```ts
+   * // assume a Contact object name is "testPerson" in room "testRoom"
+   * testRoom("hi",testPerson)    //will @testPerson in testRoom and say hi
+   * ```
    */
   public say(text: string, replyTo?: Contact | Contact[]): Promise<any>
+
+  /**
+   * Reply a mediaMessage to the sender.
+   * @param {MediaMessage} mediaMessage
+   * @param {(Contact | Contact[])} [replyTo]
+   * @returns {Promise<any>}
+   * @memberof Message
+   * @example 
+   * ```ts
+   * // assume a Contact object name is "testPerson" in room "testRoom"
+   * testRoom(new MediaMessage("hi.jpg"),testPerson)    //will @testPerson in testRoom and send hi.jpg
+   * ```
+   */
   public say(mediaMessage: MediaMessage, replyTo?: Contact | Contact[]): Promise<any>
 
+  /**
+   * Reply a text message, or mediaMessage to the sender.
+   * @param {(string | MediaMessage)} textOrMedia
+   * @param {(Contact | Contact[])} [replyTo]
+   * @returns {Promise<any>}
+   * @memberof Message
+   */
   public say(textOrMedia: string | MediaMessage, replyTo?: Contact|Contact[]): Promise<any> {
     /* tslint:disable:no-use-before-declare */
     const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
@@ -774,6 +936,7 @@ export class MediaMessage extends Message {
 
   /**
    * @todo document me
+   * @todo Don't know what is this function for. by William
    */
   public ext(): string {
     if (this.fileExt)
@@ -810,7 +973,9 @@ export class MediaMessage extends Message {
   }
 
   /**
-   * @todo document me
+   * Get the filename from a media message, if not media message, throw Error
+   * @returns {string}
+   * @memberof MediaMessage
    */
   public filename(): string {
     if (this.fileName && this.fileExt) {
