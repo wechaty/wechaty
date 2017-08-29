@@ -18,15 +18,15 @@
  */
 import { test }   from 'ava'
 import * as sinon from 'sinon'
-const sinonTest   = require('sinon-test')(sinon)
+// const sinonTest   = require('sinon-test')(sinon)
 
 import PuppetWeb  from './puppet-web'
 import Bridge     from './bridge'
 
-test('PuppetWebBridge smoke testing', sinonTest(async t => {
+test('PuppetWebBridge smoke testing', async t => {
   const browser = sinon.spy()
 
   const mockPuppet = {browser} as any as PuppetWeb
   const bridge = new Bridge(mockPuppet, 8788)
   t.truthy(bridge, 'Bridge instnace')
-}))
+})
