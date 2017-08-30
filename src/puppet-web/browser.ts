@@ -128,7 +128,7 @@ export class Browser extends EventEmitter {
 
   public async hostname(): Promise<string | null> {
     log.verbose('PuppetWebBrowser', 'hostname()')
-    const domain = await this.execute('return document.domain')
+    const domain = await this.execute('return location.hostname')
     log.silly('PuppetWebBrowser', 'hostname() got %s', domain)
     return domain
   }
