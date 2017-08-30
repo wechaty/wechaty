@@ -20,34 +20,29 @@ import { test }       from 'ava'
 
 import config         from '../config'
 
-import BrowserDriver  from './browser-driver'
+import {
+  BrowserDriver,
+}                     from './browser-driver'
 
 test('BrowserDriver smoke testing', async t => {
-  let driver
-
   try {
     const browserDriver = new BrowserDriver(config.head)
     t.truthy(browserDriver, 'BrowserDriver instnace')
 
     await browserDriver.init()
 
-    driver = browserDriver.getWebDriver() // for help function `execute`
+    const driver = browserDriver.getWebDriver() // for help function `execute`
     t.truthy(driver, 'should get webdriver instance')
 
     await driver.get('https://wx.qq.com/')
     t.pass('should open wx.qq.com')
 
-    const retAdd = await driverExecute('return 1+1')
+    const retAdd = await driver.executeScript<number>('return 1 + 1')
     t.is(retAdd, 2, 'should return 2 for execute 1+1 in browser')
 
     await browserDriver.quit()
 
-    return
   } catch (e) {
     t.fail(e && e.message || e)
-  }
-  //////////////////////////////////
-  function driverExecute(arg1: any, arg2?: any) {
-    return driver.executeScript.apply(driver, arguments)
   }
 })
