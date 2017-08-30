@@ -22,32 +22,30 @@ import config         from '../config'
 
 import BrowserDriver  from './browser-driver'
 
-/**
- * WHY force to use SERIAL mode
- *
- * serial here is because we are checking browser pids inside test.
- * if 2 tests run parallel in the same process,
- * there will have race conditions for the conflict of `getBrowserPids()`
- */
-test.serial('BrowserDriver smoke testing', async t => {
-  const browserDriver = new BrowserDriver(config.head)
-  t.truthy(browserDriver, 'BrowserDriver instnace')
+test('BrowserDriver smoke testing', async t => {
+  let driver
 
-  await browserDriver.init()
+  try {
+    const browserDriver = new BrowserDriver(config.head)
+    t.truthy(browserDriver, 'BrowserDriver instnace')
 
-  const driver = browserDriver.getWebDriver() // for help function `execute`
-  t.truthy(driver, 'should get webdriver instance')
+    await browserDriver.init()
 
-  await driver.get('https://wx.qq.com/')
-  t.pass('should open wx.qq.com')
+    driver = browserDriver.getWebDriver() // for help function `execute`
+    t.truthy(driver, 'should get webdriver instance')
 
-  const retAdd = await driverExecute('return 1+1')
-  t.is(retAdd, 2, 'should return 2 for execute 1+1 in browser')
+    await driver.get('https://wx.qq.com/')
+    t.pass('should open wx.qq.com')
 
-  await browserDriver.quit()
+    const retAdd = await driverExecute('return 1+1')
+    t.is(retAdd, 2, 'should return 2 for execute 1+1 in browser')
 
-  return
+    await browserDriver.quit()
 
+    return
+  } catch (e) {
+    t.fail(e && e.message || e)
+  }
   //////////////////////////////////
   function driverExecute(arg1: any, arg2?: any) {
     return driver.executeScript.apply(driver, arguments)
