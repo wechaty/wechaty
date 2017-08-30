@@ -106,7 +106,7 @@
   },
   "dependencies": {
     "@types/express": "4.0.37",
-    "@types/node": "8.0.25",
+    "@types/node": "8.0.26",
     "bl": "1.2.1",
     "body-parser": "1.17.2",
     "brolog": "1.1.32",
