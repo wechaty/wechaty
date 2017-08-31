@@ -109,6 +109,8 @@ export class PuppetWeb extends Puppet {
       try {
         this.bridge = await this.initBridge()
       } catch (e) {
+        log.verbose('PuppetWeb', 'init() this.initBridge() exception: %s', e.message)
+
         const blockedMessage = await this.bridge.blockedMessageBody()
                             || await this.bridge.blockedMessageAlert()
         if (blockedMessage) {
@@ -190,26 +192,38 @@ export class PuppetWeb extends Puppet {
           reject(e)
         }, 120 * 1000)
 
-        await this.bridge.quit()
-                        .catch(e => { // fail safe
-                          log.warn('PuppetWeb', 'quit() bridge.quit() exception: %s', e.message)
-                          Raven.captureException(e)
-                        })
-        log.verbose('PuppetWeb', 'quit() bridge.quit() done')
+        if (this.bridge) {
+          await this.bridge.quit()
+                          .catch(e => { // fail safe
+                            log.warn('PuppetWeb', 'quit() bridge.quit() exception: %s', e.message)
+                            Raven.captureException(e)
+                          })
+          log.verbose('PuppetWeb', 'quit() bridge.quit() done')
+        } else {
+          log.warn('PuppetWeb', 'quit() no this.bridge')
+        }
 
-        await this.server.quit()
-                        .catch(e => { // fail safe
-                          log.warn('PuppetWeb', 'quit() server.quit() exception: %s', e.message)
-                          Raven.captureException(e)
-                        })
-        log.verbose('PuppetWeb', 'quit() server.quit() done')
+        if (this.server) {
+          await this.server.quit()
+                          .catch(e => { // fail safe
+                            log.warn('PuppetWeb', 'quit() server.quit() exception: %s', e.message)
+                            Raven.captureException(e)
+                          })
+          log.verbose('PuppetWeb', 'quit() server.quit() done')
+        } else {
+          log.warn('PuppetWeb', 'quit() no this.server')
+        }
 
-        await this.browser.quit()
-                  .catch(e => { // fail safe
-                    log.warn('PuppetWeb', 'quit() browser.quit() exception: %s', e.message)
-                    Raven.captureException(e)
-                  })
-        log.verbose('PuppetWeb', 'quit() browser.quit() done')
+        if (this.browser) {
+          await this.browser.quit()
+                    .catch(e => { // fail safe
+                      log.warn('PuppetWeb', 'quit() browser.quit() exception: %s', e.message)
+                      Raven.captureException(e)
+                    })
+          log.verbose('PuppetWeb', 'quit() browser.quit() done')
+        } else {
+          log.warn('PuppetWeb', 'quit() no this.browser')
+        }
 
         clearTimeout(timer)
         resolve()
