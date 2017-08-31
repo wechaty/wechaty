@@ -161,7 +161,7 @@ In order to sync the doc with the lastest code, it's best to use [jsdoc](http://
 
 ## API Reference
 
-TODO: change links to jsdoc version: [API Document](docs/)
+TODO: change links to jsdoc version: [API Document](docs/index.md)
 
 ### [Wechaty Events](https://github.com/chatie/wechaty/wiki/API#event)
 
