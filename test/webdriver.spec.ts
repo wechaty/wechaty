@@ -22,28 +22,30 @@ import {
   Browser,
 }                 from '../src/puppet-web/'
 
-test.serial('WebDriver smoke testing', async t => {
-  const browser = new Browser()
-  t.truthy(browser, 'Browser instnace')
+test('WebDriver smoke testing', async t => {
+  try {
+    const browser = new Browser()
+    t.truthy(browser, 'Browser instnace')
 
-  let pids = await browser.getBrowserPidList()
-  t.is(pids.length, 0, 'should has no browser process before init()')
+    let pids = await browser.getBrowserPidList()
+    t.is(pids.length, 0, 'should has no browser process before init()')
 
-  await browser.driver.init()
+    await browser.driver.init()
 
-  const driver = browser.driver.getWebDriver() // for help function `execute`
-  t.truthy(driver, 'should get webdriver instance')
+    const driver = browser.driver.getWebDriver() // for help function `execute`
+    t.truthy(driver, 'should get webdriver instance')
 
-  await driver.get('https://wx.qq.com/')
-  t.pass('should open wx.qq.com')
+    await driver.get('https://wx.qq.com/')
+    t.pass('should open wx.qq.com')
 
-  pids = await browser.getBrowserPidList()
-  t.truthy(pids.length > 0, 'should exist browser process after get()')
+    pids = await browser.getBrowserPidList()
+    t.truthy(pids.length > 0, 'should exist browser process after get()')
 
-  await browser.driver.quit()
+    await browser.driver.quit()
 
-  pids = await browser.getBrowserPidList()
-  t.is(pids.length, 0, 'should exist browser process after get()')
-
-  return
+    pids = await browser.getBrowserPidList()
+    t.is(pids.length, 0, 'should exist browser process after get()')
+  } catch (e) {
+    t.fail(e && e.message || e)
+  }
 })
