@@ -243,6 +243,7 @@ async function onServerLogin(this: PuppetWeb, data, attempt = 0): Promise<void> 
   // issue #772
   // if `login` event fired before this.bridge inited, we delay the event for 1 second.
   if (!this.bridge) {
+    log.verbose('PuppetWebEvent', 'onServerLogin() fired before bridge inited. delay for 1 second.')
     setTimeout(() => {
       onServerLogin.apply(this, arguments)
     }, 1000)
