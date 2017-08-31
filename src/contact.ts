@@ -1,5 +1,4 @@
 /**
- *
  *   Wechaty - https://github.com/chatie/wechaty
  *
  *   @copyright 2016-2017 Huan LI <zixia@zixia.net>

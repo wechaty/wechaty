@@ -1,8 +1,7 @@
 /**
- *
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -16,10 +15,6 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  *
- *   wechaty: Wechat for Bot. and for human who talk to bot/robot
- *
- *   Licenst: Apache-2.0
- *   https://github.com/chatie/wechaty
  *   @ignore
  */
 import { EventEmitter } from 'events'
