@@ -756,6 +756,9 @@ export class Message implements Sayable {
    */
   public dumpRaw() {
     console.error('======= dump raw message =======')
+    if (!this.rawObj) {
+      throw new Error('no this.obj')
+    }
     Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj && this.rawObj[k]}`))
   }
 

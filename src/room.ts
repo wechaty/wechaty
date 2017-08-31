@@ -389,6 +389,9 @@ export class Room extends EventEmitter implements Sayable {
    */
   public dump() {
     console.error('======= dump Room =======')
+    if (!this.obj) {
+      throw new Error('no this.obj')
+    }
     Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj && this.obj[k]}`))
   }
 
