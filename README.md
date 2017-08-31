@@ -161,6 +161,8 @@ In order to sync the doc with the lastest code, it's best to use [jsdoc](http://
 
 ## API Reference
 
+TODO: change links to jsdoc version: [API Document](docs/)
+
 ### [Wechaty Events](https://github.com/chatie/wechaty/wiki/API#event)
 
 1. [scan](https://github.com/chatie/wechaty/wiki/API#1-event-scan) Emit when the bot needs to show you a QR Code for scanning
