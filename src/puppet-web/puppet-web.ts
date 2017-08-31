@@ -51,9 +51,9 @@ import * as bl from 'bl'
 type MediaType = 'pic' | 'video' | 'doc'
 
 const enum UploadMediaType {
-  IMAGE = 1,
-  VIDEO = 2,
-  AUDIO = 3,
+  IMAGE      = 1,
+  VIDEO      = 2,
+  AUDIO      = 3,
   ATTACHMENT = 4,
 }
 export interface PuppetWebSetting {

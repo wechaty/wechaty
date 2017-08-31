@@ -240,6 +240,15 @@ function onServerLog(data) {
 async function onServerLogin(this: PuppetWeb, data, attempt = 0): Promise<void> {
   log.verbose('PuppetWebEvent', 'onServerLogin(%s, %d)', data, attempt)
 
+  // issue #772
+  // if `login` event fired before this.bridge inited, we delay the event for 1 second.
+  if (!this.bridge) {
+    setTimeout(() => {
+      onServerLogin.apply(this, arguments)
+    }, 1000)
+    return
+  }
+
   this.scan = null
 
   if (this.userId) {
@@ -248,6 +257,8 @@ async function onServerLogin(this: PuppetWeb, data, attempt = 0): Promise<void> 
   try {
     /**
      * save login user id to this.userId
+     *
+     * issue #772: this.bridge might not inited if the 'login' event fired too fast(because of auto login)
      */
     this.userId = await this.bridge.getUserName()
 

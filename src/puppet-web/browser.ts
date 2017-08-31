@@ -501,6 +501,11 @@ export class Browser extends EventEmitter {
     log.verbose('PuppetWebBrowser', 'clickSwitchAccount()')
 
     try {
+      // TODO
+      // Promise.race([
+      //   english
+      //   chinese
+      // ])
       const button = await this.driver.driver.findElement(By.linkText('Switch Account'))
       button.click()
       log.silly('PuppetWebBrowser', 'clickSwitchAccount() clicked!')
