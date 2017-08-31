@@ -33,8 +33,10 @@ export interface MediaData {
   FileName:   string,
   FileSize:   number,
   FileMd5?:   string,
-  MMFileId:   string,
-  MMFileExt:  string,
+  FileType?:  number,
+  MMFileId?:  string,
+  MMFileExt?: string,
+  Signature?: string,
 }
 
 export class Bridge {
@@ -394,6 +396,17 @@ export class Bridge {
       return await this.proxyWechaty('getPassticket')
     } catch (e) {
       log.silly('PuppetWebBridge', 'proxyWechaty(getPassticket) exception: %s', e.message)
+      throw e
+    }
+  }
+
+  public async getCheckUploadUrl(): Promise<string> {
+    log.verbose('PuppetWebBridge', 'getCheckUploadUrl()')
+
+    try {
+      return await this.proxyWechaty('getCheckUploadUrl')
+    } catch (e) {
+      log.silly('PuppetWebBridge', 'proxyWechaty(getCheckUploadUrl) exception: %s', e.message)
       throw e
     }
   }
