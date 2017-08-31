@@ -20,9 +20,7 @@ import { test }       from 'ava'
 
 import config         from '../config'
 
-import {
-  BrowserDriver,
-}                     from './browser-driver'
+import BrowserDriver  from './browser-driver'
 
 test('BrowserDriver smoke testing', async t => {
   try {
@@ -34,8 +32,8 @@ test('BrowserDriver smoke testing', async t => {
     const driver = browserDriver.getWebDriver() // for help function `execute`
     t.truthy(driver, 'should get webdriver instance')
 
-    await driver.get('https://wx.qq.com/')
-    t.pass('should open wx.qq.com')
+    await driver.get('https://mp.weixin.qq.com/')
+    t.pass('should open mp.weixin.qq.com')
 
     const retAdd = await driver.executeScript<number>('return 1 + 1')
     t.is(retAdd, 2, 'should return 2 for execute 1+1 in browser')
