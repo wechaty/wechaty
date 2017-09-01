@@ -872,6 +872,8 @@ export class MediaMessage extends Message {
     }
   }
 
+  public forward(room: Room): Promise<boolean>
+  public forward(contact: Contact): Promise<boolean>
   /**
    * Forward the received message.
    *
@@ -888,6 +890,7 @@ export class MediaMessage extends Message {
    *   APP                 = 49,
    *   MICROVIDEO          = 62,
    * }
+   * ```
    *
    * When the return value of {@link Message#type} is `MsgType.APP`, the return value of {@link Message#typeApp} matches one of the following types:
    * ```json
@@ -907,8 +910,6 @@ export class MediaMessage extends Message {
    * @returns {Promise<boolean>}
    * @memberof MediaMessage
    */
-  public forward(room: Room): Promise<boolean>
-  public forward(contact: Contact): Promise<boolean>
   public forward(sendTo: Room|Contact): Promise<boolean> {
     if (!this.rawObj) {
       throw new Error('no rawObj!')
