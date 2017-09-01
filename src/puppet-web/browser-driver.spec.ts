@@ -29,7 +29,7 @@ test('BrowserDriver smoke testing', async t => {
 
     await browserDriver.init()
 
-    const driver = browserDriver.getWebDriver() // for help function `execute`
+    const driver = browserDriver.getWebDriver()
     t.truthy(driver, 'should get webdriver instance')
 
     await driver.get('https://mp.weixin.qq.com/')
@@ -38,6 +38,7 @@ test('BrowserDriver smoke testing', async t => {
     const retAdd = await driver.executeScript<number>('return 1 + 1')
     t.is(retAdd, 2, 'should return 2 for execute 1+1 in browser')
 
+    await browserDriver.close()
     await browserDriver.quit()
 
   } catch (e) {

@@ -469,7 +469,7 @@ export class PuppetWeb extends Puppet {
       },
     }
 
-    const mediaId = await new Promise((resolve, reject) => {
+    const mediaId = await new Promise<string>((resolve, reject) => {
       request.post({
         url: uploadMediaUrl + '?f=json',
         headers: {
@@ -478,16 +478,21 @@ export class PuppetWeb extends Puppet {
         },
         formData,
       }, function (err, res, body) {
-        if (err) reject(err)
-        else {
+        if (err) {
+          return reject(err)
+        }
+        try {
           const obj = JSON.parse(body)
-          resolve(obj.MediaId)
+          return resolve(obj.MediaId)
+        } catch (e) {
+          return reject(e)
         }
       })
     })
-    if (!mediaId)
+    if (!mediaId) {
       throw new Error('upload fail')
-    return Object.assign(mediaData, { MediaId: mediaId as string})
+    }
+    return Object.assign(mediaData, { MediaId: mediaId })
   }
 
   public async sendMedia(message: MediaMessage): Promise<boolean> {
