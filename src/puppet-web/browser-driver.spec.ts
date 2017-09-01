@@ -26,10 +26,10 @@ import {
 import BrowserDriver  from './browser-driver'
 
 test('BrowserDriver smoke testing', async t => {
-  let err: Error | null = new Error('ttl timeout')
+  let err: Error | null = new Error('not run')
   let ttl = 3
 
-  while (ttl-- && err) {
+  while (err && ttl--) {
     try {
       const browserDriver = new BrowserDriver(config.head)
       t.truthy(browserDriver, 'BrowserDriver instnace')
@@ -51,12 +51,15 @@ test('BrowserDriver smoke testing', async t => {
       err = null
 
     } catch (e) {
-      log.error('TestPuppetWebBrowserDriver', 'exception: %s', (e && e.message || e))
       err = e
+      log.error('TestPuppetWebBrowserDriver', 'ttl %d, exception: %s',
+                                              ttl,
+                                              e && e.message || e,
+                )
     }
   }
 
-  if (ttl <= 0) {
+  if (err && ttl <= 0) {
     t.fail('ttl timeout: ' + (err && err.message || err))
   }
 })
