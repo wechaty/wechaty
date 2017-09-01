@@ -28,6 +28,7 @@ import Contact          from './contact'
 import {
   Message,
   MediaMessage,
+  MsgRawObj,
 }                       from './message'
 import Room             from './room'
 
@@ -54,6 +55,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract self(): Contact
 
   public abstract send(message: Message | MediaMessage): Promise<boolean>
+  public abstract forward(baseData: MsgRawObj, patchData: MsgRawObj): Promise<boolean>
   public abstract say(content: string): Promise<boolean>
 
   public abstract reset(reason?: string): void

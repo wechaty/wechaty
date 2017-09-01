@@ -516,6 +516,31 @@
     return true
   }
 
+  function forward(baseData, patchData) {
+    var chatFactory = WechatyBro.glue.chatFactory
+    var confFactory = WechatyBro.glue.confFactory
+
+    if (!chatFactory || !confFactory) {
+      log('forward() chatFactory or confFactory not exist.')
+      return false
+    }
+
+    try {
+      var m = chatFactory.createMessage(baseData)
+
+      // Need to override the parametes after called createMessage()
+      m = Object.assign(m, patchData)
+
+      chatFactory.appendMessage(m)
+      chatFactory.sendMessage(m)
+    } catch (e) {
+      log('forward() exception: ' + e.message)
+      return false
+    }
+    return true
+  }
+
+
   function send(ToUserName, Content) {
     var chatFactory = WechatyBro.glue.chatFactory
     var confFactory = WechatyBro.glue.confFactory
@@ -917,6 +942,7 @@
     , getPassticket:       getPassticket
     , getUploadMediaUrl:   getUploadMediaUrl
     , sendMedia:           sendMedia
+    , forward:             forward
 
     // for Wechaty Contact Class
     , contactFindAsync:   contactFindAsync

@@ -42,7 +42,9 @@ export interface MsgRawObj {
   MMActualSender:   string, // getUserContact(message.MMActualSender,message.MMPeerUserName).isContact()
   MMPeerUserName:   string, // message.MsgType == CONF.MSGTYPE_TEXT && message.MMPeerUserName == 'newsapp'
   ToUserName:       string,
+  FromUserName:     string,
   MMActualContent:  string, // Content has @id prefix added by wx
+  Content:          string,
 
   MMDigest:         string,
   MMDisplayTime:    number,  // Javascript timestamp of milliseconds
@@ -132,6 +134,18 @@ export interface MsgRawObj {
    * MsgType == CONF.MSGTYPE_VERIFYMSG
    */
   RecommendInfo?:   RecommendInfo,
+
+  /**
+   * Transpond Message
+   */
+  MsgIdBeforeTranspond?: string,  // oldMsg.MsgIdBeforeTranspond || oldMsg.MsgId,
+  isTranspond?: boolean,
+  MMSourceMsgId?: string,
+  sendByLocal?: boolean, // If transpond file, it must is false, not need to upload. And, can't to call createMessage(), it set to true
+  MMSendContent?: string,
+
+  MMIsChatRoom?: boolean,
+
 }
 
 export interface MsgObj {
@@ -1097,6 +1111,92 @@ export class MediaMessage extends Message {
       Raven.captureException(e)
       throw e
     }
+  }
+
+  public forward(room: Room): Promise<boolean>
+  public forward(contact: Contact): Promise<boolean>
+  /**
+   * Forward the received message.
+   *
+   * The types of messages that can be forwarded are as follows:
+   *
+   * The return value of {@link Message#type} matches one of the following types:
+   * ```json
+   * MsgType {
+   *   TEXT                = 1,
+   *   IMAGE               = 3,
+   *   VIDEO               = 43,
+   *   EMOTICON            = 47,
+   *   LOCATION            = 48,
+   *   APP                 = 49,
+   *   MICROVIDEO          = 62,
+   * }
+   * ```
+   *
+   * When the return value of {@link Message#type} is `MsgType.APP`, the return value of {@link Message#typeApp} matches one of the following types:
+   * ```json
+   * AppMsgType {
+   *   TEXT                     = 1,
+   *   IMG                      = 2,
+   *   VIDEO                    = 4,
+   *   ATTACH                   = 6,
+   *   EMOJI                    = 8,
+   * }
+   * ```
+   * But, it should be noted that when forwarding ATTACH type message, if the file size is greater than 25Mb, the forwarding will fail.
+   * The reason is that the server limits the forwarding of files above 25Mb. You need to download the file and use `new MediaMessage (file)` to send the file.
+   *
+   * @param {(Room | Contact)} sendTo
+   * The recipient of the message, the room, or the contact
+   * @returns {Promise<boolean>}
+   * @memberof MediaMessage
+   */
+  public forward(sendTo: Room|Contact): Promise<boolean> {
+    if (!this.rawObj) {
+      throw new Error('no rawObj!')
+    }
+    let m = Object.assign({}, this.rawObj)
+    const newMsg = <MsgRawObj>{}
+    const fileSizeLimit = 25 * 1024 * 1024
+    let id = ''
+    // if you know roomId or userId, you can use `Room.load(roomId)` or `Contact.load(userId)`
+    if (sendTo instanceof Room || sendTo instanceof Contact) {
+      id = sendTo.id
+    } else {
+      throw new Error('param must be Room or Contact!')
+    }
+
+    newMsg.ToUserName = id
+    newMsg.FromUserName = config.puppetInstance().userId || ''
+    newMsg.isTranspond = true
+    newMsg.MsgIdBeforeTranspond = m.MsgIdBeforeTranspond || m.MsgId
+    newMsg.MMSourceMsgId = m.MsgId
+    // In room msg, the content prefix sender:, need to be removed, otherwise the forwarded sender will display the source message sender, causing self () to determine the error
+    newMsg.Content = UtilLib.unescapeHtml(m.Content.replace(/^@\w+:<br\/>/, '')).replace(/^[\w\-]+:<br\/>/, '')
+    newMsg.MMIsChatRoom = sendTo instanceof Room ? true : false
+
+    // The following parameters need to be overridden after calling createMessage()
+
+    // If you want to forward the file, would like to skip the duplicate upload, sendByLocal must be false.
+    // But need to pay attention to file.size> 25Mb, due to the server policy restrictions, need to re-upload
+    if (m.FileSize >= fileSizeLimit) {
+      log.warn('Message', 'forward() file size >= 25Mb,the message may fail to be forwarded due to server policy restrictions.')
+    }
+    newMsg.sendByLocal = false
+    newMsg.MMActualSender = config.puppetInstance().userId || ''
+    if (m.MMSendContent) {
+      newMsg.MMSendContent = m.MMSendContent.replace(/^@\w+:\s/, '')
+    }
+    if (m.MMDigest) {
+      newMsg.MMDigest = m.MMDigest.replace(/^@\w+:/, '')
+    }
+    if (m.MMActualContent) {
+      newMsg.MMActualContent = UtilLib.stripHtml(m.MMActualContent.replace(/^@\w+:<br\/>/, '')).replace(/^[\w\-]+:<br\/>/, '')
+    }
+    m = Object.assign(m, newMsg)
+
+    return config.puppetInstance()
+      .forward(m, newMsg)
   }
 }
 
