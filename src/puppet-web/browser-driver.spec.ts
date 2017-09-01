@@ -18,30 +18,43 @@
  */
 import { test }       from 'ava'
 
-import config         from '../config'
+import {
+  config,
+  log,
+}                     from '../config'
 
 import BrowserDriver  from './browser-driver'
 
 test('BrowserDriver smoke testing', async t => {
-  try {
-    const browserDriver = new BrowserDriver(config.head)
-    t.truthy(browserDriver, 'BrowserDriver instnace')
+  let err: Error = new Error('ttl timeout')
+  let ttl = 3
 
-    await browserDriver.init()
+  while (ttl--) {
+    try {
+      const browserDriver = new BrowserDriver(config.head)
+      t.truthy(browserDriver, 'BrowserDriver instnace')
 
-    const driver = browserDriver.getWebDriver()
-    t.truthy(driver, 'should get webdriver instance')
+      await browserDriver.init()
 
-    await driver.get('https://mp.weixin.qq.com/')
-    t.pass('should open mp.weixin.qq.com')
+      const driver = browserDriver.getWebDriver()
+      t.truthy(driver, 'should get webdriver instance')
 
-    const retAdd = await driver.executeScript<number>('return 1 + 1')
-    t.is(retAdd, 2, 'should return 2 for execute 1+1 in browser')
+      await driver.get('https://mp.weixin.qq.com/')
+      t.pass('should open mp.weixin.qq.com')
 
-    await browserDriver.close()
-    await browserDriver.quit()
+      const retAdd = await driver.executeScript<number>('return 1 + 1')
+      t.is(retAdd, 2, 'should return 2 for execute 1+1 in browser')
 
-  } catch (e) {
-    t.fail(e && e.message || e)
+      await browserDriver.close()
+      await browserDriver.quit()
+
+    } catch (e) {
+      log.error('TestPuppetWebBrowserDriver', 'exception: %s', (e && e.message || e))
+      err = e
+    }
+  }
+
+  if (ttl <= 0) {
+    t.fail('ttl timeout: ' + (err && err.message || err))
   }
 })
