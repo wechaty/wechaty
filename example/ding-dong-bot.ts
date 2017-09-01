@@ -1,7 +1,7 @@
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ const welcome = `
 |                                     |___/
 
 =============== Powered by Wechaty ===============
--------- https://github.com/zixia/wechaty --------
+-------- https://github.com/chatie/wechaty --------
 
 I'm a bot, my super power is talk in Wechat.
 

@@ -1,6 +1,6 @@
 [![Wechaty](https://raw.githubusercontent.com/chatie/wechaty/master/image/wechaty-logo-en.png)](https://github.com/chatie/wechaty)
 
-# Wechaty 
+# WECHATY
 
 ## Connecting ChatBots.
 
@@ -69,7 +69,8 @@ This bot can log all messages to the console.
 
 You can find more examples from [Wiki](https://github.com/chatie/wechaty/wiki/Example) and [Example Directory](https://github.com/chatie/wechaty/blob/master/example/).
 
-# Getting Started
+GETTING STARTED
+----------------
 
 ## A Great Live Coding Tutorial
 
@@ -134,7 +135,8 @@ $ node mybot.js
 
 Get to know more about NPM at [Wiki:NPM](https://github.com/chatie/wechaty/wiki/NPM)
 
-# Test
+TEST
+-------
 
 [![Linux/Mac Build Status](https://img.shields.io/travis/Chatie/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/Chatie/wechaty)
 [![Windows Build status](https://img.shields.io/appveyor/ci/chatie/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/chatie/wechaty)
@@ -152,9 +154,16 @@ npm test
 
 Get to know more about the tests from [Wiki:Test](https://github.com/chatie/wechaty/wiki/Test)
 
-# API Reference
+DOCUMATAION
+-------------
 
-## [Wechaty Events](https://github.com/chatie/wechaty/wiki/API#event)
+In order to sync the doc with the lastest code, it's best to use [jsdoc](http://usejsdoc.org/) to describe the API, and use [jsdoc-to-markdown](https://github.com/jsdoc2md/jsdoc-to-markdown/wiki) to generate markdown format documents to the [docs](docs/index.md) directory.
+
+## API Reference
+
+TODO: change links to jsdoc version: [API Document](docs/index.md)
+
+### [Wechaty Events](https://github.com/chatie/wechaty/wiki/API#event)
 
 1. [scan](https://github.com/chatie/wechaty/wiki/API#1-event-scan) Emit when the bot needs to show you a QR Code for scanning
 2. [login](https://github.com/chatie/wechaty/wiki/API#2-event-login) Emit when bot login is fully successful.
@@ -166,27 +175,23 @@ Get to know more about the tests from [Wiki:Test](https://github.com/chatie/wech
 8. [room-leave](https://github.com/chatie/wechaty/wiki/API#8-event-room-leave) Emit when someone leaves the room
 9. [room-topic](https://github.com/chatie/wechaty/wiki/API#9-event-room-topic) Emit when someone changes the room's topic
 
-## [Wechaty](https://github.com/chatie/wechaty/wiki/API#wechaty-class)
+### [Wechaty](https://github.com/chatie/wechaty/wiki/API#wechaty-class)
 
 1. [instance(setting: PuppetSetting): Promise&lt;Wechaty&gt;](https://github.com/chatie/wechaty/wiki/API#wechatyinstanceprofilestring-wechaty) get the bot instance
 2. [init(): Promise&lt;void&gt;](https://github.com/chatie/wechaty/wiki/API#wechatyinit-wechaty) Initialize the bot
 4. [say(content: string): Promise&lt;void&gt;](https://github.com/chatie/wechaty/wiki/API#wechatysaycontent-string) send message to filehelper, just for logging/reporting usage for your convenience
 
-## [Message](https://github.com/chatie/wechaty/wiki/API#message-class)
+### [Message](https://github.com/chatie/wechaty/wiki/API#message-class)
 
 1. [from():Contact](https://github.com/chatie/wechaty/wiki/API#1-messagefrom-contact) get the sender of a message
-2. [from(contact:Contact):void](https://github.com/chatie/wechaty/wiki/API#2-messagefromcontact-contact-void) set a sender of the message
 4. [to():Contact](https://github.com/chatie/wechaty/wiki/API#1-messageto-contact) get the destination for the message
-5. [to(contact:Contact):void](https://github.com/chatie/wechaty/wiki/API#2-messagetocontact-contact-void) set the destination as contact for the message
 7. [content():string](https://github.com/chatie/wechaty/wiki/API#1-messagecontent-string) get the content of the message
-8. [content(content:string):string](https://github.com/chatie/wechaty/wiki/API#2-messagecontentcontent-string-string) set the content for the message
 9. [room():Room|null](https://github.com/chatie/wechaty/wiki/API#1-messageroom-room--null) get the room from a message.
-10. [room(room:Room):void](https://github.com/chatie/wechaty/wiki/API#2-messageroomroom-room-void) set the room for a message.
 12. [type():MsgType](https://github.com/chatie/wechaty/wiki/API#messagetype-number) get the type of a Message.
 13. [say(content:string):Promise](https://github.com/chatie/wechaty/wiki/API#messagesaycontent-string-promise) send a reply message to the sender.
 15. [self():boolean](https://github.com/chatie/wechaty/wiki/API#messageselfmessage-message-boolean) check if a message is sent by self 
 
-## [Contact](https://github.com/chatie/wechaty/wiki/API#contact-class)
+### [Contact](https://github.com/chatie/wechaty/wiki/API#contact-class)
 
 2. [name():string](https://github.com/chatie/wechaty/wiki/API#contactname-string) get name from a contact
 3. [remark():string](https://github.com/chatie/wechaty/wiki/API#contactremark-string) get remark name from a contact
@@ -195,32 +200,35 @@ Get to know more about the tests from [Wiki:Test](https://github.com/chatie/wech
 6. [star():boolean](https://github.com/chatie/wechaty/wiki/API#contactstar-boolean) true for star friend, false for no star friend
 8. [say(content:string):Promise](https://github.com/chatie/wechaty/wiki/API#contactsaycontent-string-promise) send a message to a contact
 
-## [Room](https://github.com/chatie/wechaty/wiki/API#class-room)
+### [Room](https://github.com/chatie/wechaty/wiki/API#class-room)
 
 1. [say(content:string,replyTo:Contact|ContactArray):Promise](https://github.com/chatie/wechaty/wiki/API#roomsaycontent-string-replyto-contactcontact-promise) send a message inside Room.
 3. [refresh():Promise](https://github.com/chatie/wechaty/wiki/API#roomrefresh-promise) reload data for Room
 
-### [Room Event](https://github.com/chatie/wechaty/wiki/API#room-events)
+#### [Room Event](https://github.com/chatie/wechaty/wiki/API#room-events)
 
 1. [join](https://github.com/chatie/wechaty/wiki/API#event-join) Emit when someone joins the room
 2. [leave](https://github.com/chatie/wechaty/wiki/API#event-leave) Emit when someone leaves the room
 3. [topic](https://github.com/chatie/wechaty/wiki/API#event-topic) Emit when someone changes the room topic
 
-## [FriendRequest](https://github.com/chatie/wechaty/wiki/API#class-friendrequest)
+### [FriendRequest](https://github.com/chatie/wechaty/wiki/API#class-friendrequest)
 
 1. [hello:string](https://github.com/chatie/wechaty/wiki/API#friendrequesthello-string) get content from friendrequest
 2. [accept():Promise](https://github.com/chatie/wechaty/wiki/API#friendrequestaccept-void) accept the friendrequest
 3. [send(contact:Contact,hello:string):Promise](https://github.com/chatie/wechaty/wiki/API#friendrequestsendcontact-contact-hello-string-void) send a new friend request
 
-## [MediaMessage](https://github.com/chatie/wechaty/wiki/API#class-mediamessage)
+### [MediaMessage](https://github.com/chatie/wechaty/wiki/API#class-mediamessage)
+
 Create a media message object.
 
-# Release Notes
+RELEASE NOTES
+---------------
 
 * [Latest Release](https://github.com/chatie/wechaty/releases/latest)(All releases [here](https://github.com/chatie/wechaty/releases))
 * [Changelog](https://github.com/chatie/wechaty/blob/master/CHANGELOG.md)
 
-# Powered By Wechaty
+POWERED BY WECHATY
+-------------------
 
 [![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/chatie/wechaty)
 
@@ -249,7 +257,8 @@ The following VPS providers are used by the Wechaty team, and they worked perfec
 | Japan     | $5    | 1GB     | Paypal            | [Linode](https://www.linode.com/?r=5fd2b713d711746bb5451111df0f2b6d863e9f63) |
 | Korea     | $10   | 1GB     | Alipay, Paypal    | [Netdedi](https://www.netdedi.com/?affid=35) |
 
-# Contributing
+CONTRIBUTING
+--------------
 
 [![Issue Stats](http://issuestats.com/github/chatie/wechaty/badge/pr)](http://issuestats.com/github/chatie/wechaty)
 [![Issue Stats](http://issuestats.com/github/chatie/wechaty/badge/issue)](http://issuestats.com/github/chatie/wechaty)
@@ -273,12 +282,12 @@ You can directly submit pull requests for documentation changes.
 
 ## Main Contributors
 
-* [JasLin](https://github.com/JasLin)
 * [cherry-geqi](https://github.com/cherry-geqi)
-* [lijiarui](https://github.com/lijiarui)
-* [xinbenlv](https://github.com/xinbenlv)
 * [Gcaufy](https://github.com/Gcaufy)
+* [JasLin](https://github.com/JasLin)
+* [lijiarui](https://github.com/lijiarui)
 * [mukaiu](https://github.com/mukaiu)
+* [xinbenlv](https://github.com/xinbenlv)
 
 ## Join Wechaty Developers' Community
 
@@ -288,16 +297,20 @@ Wechaty is used in many ChatBot projects by hundreds of developers. If you want 
 
 Scan now, because other Wechaty developers want to talk with you too! (secret code: _wechaty_)
 
-# See Also
+SEE ALSO
+---------
 
 * [RelatedProject](https://github.com/chatie/wechaty/wiki/RelatedProject)
 
-Documentation
--------------
+FUTURE IMPROVEMENTS
+--------------
+Wechaty is far from perfect. The following things should be addressed in the future:
 
-In order to sync the doc with the lastest code, it's best to use [jsdoc](http://usejsdoc.org/) to describe the API, and use [jsdoc-to-markdown](https://github.com/jsdoc2md/jsdoc-to-markdown/wiki) to generate markdown format documents to the [docs](docs/index.md) directory.
+- [ ] PuppetWine - Use DLL Inject to hook Windows Wechat Application, run from wine inside docker.
+- [ ] PuppetAndroid - Use Xposed to Hook Android Pad version of Wechat App, run from android emulator inside docker.
 
-My Story
+
+MY STORY
 --------
 My daily life/work depends on too much chat on wechat.
 * I almost have 14,000 wechat friends in May 2014, before wechat restricts a total number of friends to 5,000.
@@ -309,17 +322,15 @@ So a tireless bot working for me 24x7 on wechat, monitoring/filtering the most i
 
 At last, It's built for my personal study purpose of Automatically Testing.
 
-Author
+AUTHOR
 ------
 Huan LI \<zixia@zixia.net\> (http://linkedin.com/in/zixia)
-
-I'm an active angel investor, serial entrepreneur with strong technical background and rich social network experience.
 
 <a href="http://stackoverflow.com/users/1123955/zixia">
   <img src="http://stackoverflow.com/users/flair/1123955.png" width="208" height="58" alt="profile for zixia at Stack Overflow, Q&amp;A for professional and enthusiast programmers" title="profile for zixia at Stack Overflow, Q&amp;A for professional and enthusiast programmers">
 </a>
 
-Copyright & License
+COPYRIGHT & LICENSE
 -------------------
 * Code & Docs © 2016-2017 Huan LI \<zixia@zixia.net\>
 * Code released under the Apache-2.0 License

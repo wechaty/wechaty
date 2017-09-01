@@ -16,35 +16,30 @@
  *   limitations under the License.
  *
  */
-import { test }   from 'ava'
+import { test }       from 'ava'
 
-import {
-  Browser,
-}                 from '../src/puppet-web/'
+import config         from '../config'
 
-test('WebDriver smoke testing', async t => {
+import BrowserDriver  from './browser-driver'
+
+test('BrowserDriver smoke testing', async t => {
   try {
-    const browser = new Browser()
-    t.truthy(browser, 'Browser instnace')
+    const browserDriver = new BrowserDriver(config.head)
+    t.truthy(browserDriver, 'BrowserDriver instnace')
 
-    let pids = await browser.getBrowserPidList()
-    t.is(pids.length, 0, 'should has no browser process before init()')
+    await browserDriver.init()
 
-    await browser.driver.init()
-
-    const driver = browser.driver.getWebDriver() // for help function `execute`
+    const driver = browserDriver.getWebDriver() // for help function `execute`
     t.truthy(driver, 'should get webdriver instance')
 
-    await driver.get('https://wx.qq.com/')
-    t.pass('should open wx.qq.com')
+    await driver.get('https://mp.weixin.qq.com/')
+    t.pass('should open mp.weixin.qq.com')
 
-    pids = await browser.getBrowserPidList()
-    t.truthy(pids.length > 0, 'should exist browser process after get()')
+    const retAdd = await driver.executeScript<number>('return 1 + 1')
+    t.is(retAdd, 2, 'should return 2 for execute 1+1 in browser')
 
-    await browser.driver.quit()
+    await browserDriver.quit()
 
-    pids = await browser.getBrowserPidList()
-    t.is(pids.length, 0, 'should exist browser process after get()')
   } catch (e) {
     t.fail(e && e.message || e)
   }

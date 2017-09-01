@@ -1,7 +1,7 @@
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -16,21 +16,25 @@
  *   limitations under the License.
  *
  */
-import * as io          from 'socket.io'
-import * as https       from 'https'
 import * as bodyParser  from 'body-parser'
-
-import * as express     from 'express'
 import { EventEmitter } from 'events'
+import * as express     from 'express'
+import * as https       from 'https'
+import * as WebSocket   from 'ws'
 
 import { log }          from '../config'
+
+export interface WechatyBroEvent {
+  name: string,
+  data: string | object,
+}
 
 export class Server extends EventEmitter {
   private express:      express.Application
   private httpsServer:  https.Server | null
 
-  public socketServer: SocketIO.Server | null
-  public socketClient: SocketIO.Socket | null
+  public socketServer: WebSocket.Server | null
+  public socketClient: WebSocket | null
 
   constructor(private port: number) {
     super()
@@ -44,7 +48,7 @@ export class Server extends EventEmitter {
     try {
       this.createExpress()
       await this.createHttpsServer(this.express)
-      this.createSocketIo(this.httpsServer)
+      this.createWebSocketServer(this.httpsServer)
 
       return
 
@@ -105,30 +109,32 @@ export class Server extends EventEmitter {
   /**
    * Socket IO
    */
-  public createSocketIo(httpsServer): SocketIO.Server {
-    this.socketServer = io.listen(httpsServer, {
-      // log: true
+  public createWebSocketServer(httpsServer): WebSocket.Server {
+    this.socketServer = new WebSocket.Server({
+      server: httpsServer,
     })
-    this.socketServer.sockets.on('connection', (s) => {
-      log.verbose('PuppetWebServer', 'createSocketIo() got connection from browser')
-      // console.log(s.handshake)
+    this.socketServer.on('connection', client => {
+      log.verbose('PuppetWebServer', 'createWebSocketServer() got connection from browser')
       if (this.socketClient) {
-        log.warn('PuppetWebServer', 'createSocketIo() on(connection) there already has a this.socketClient')
+        log.warn('PuppetWebServer', 'createWebSocketServer() on(connection) there already has a this.socketClient')
         this.socketClient = null // close() ???
       }
-      this.socketClient = s
-      this.initEventsFromClient(s)
+      this.socketClient = client
+      this.initEventsFromClient(client)
     })
     return this.socketServer
   }
 
-  private initEventsFromClient(client: SocketIO.Socket): void {
+  private initEventsFromClient(client: WebSocket): void {
     log.verbose('PuppetWebServer', 'initEventFromClient()')
 
     this.emit('connection', client)
+    client.on('open', () => {
+      log.silly('PuppetWebServer', 'initEventsFromClient() on(open) WebSocket opened')
+    })
 
-    client.on('disconnect', e => {
-      log.silly('PuppetWebServer', 'initEventsFromClient() on(disconnect) socket.io disconnect: %s', e)
+    client.on('close', e => {
+      log.silly('PuppetWebServer', 'initEventsFromClient() on(disconnect) WebSocket disconnect: %s', e)
       // 1. Browser reload / 2. Lost connection(Bad network)
       this.socketClient = null
       this.emit('disconnect', e)
@@ -139,22 +145,9 @@ export class Server extends EventEmitter {
       log.error('PuppetWebServer', 'initEventsFromClient() on(error): %s', e.stack)
     })
 
-    // Events from Wechaty@Broswer --to--> Server
-    ; // MUST KEEP: seprator
-    [
-      'message',
-      'scan',
-      'login',
-      'logout',
-      'log',
-      'unload',  // @depreciated 20160825 zixia
-                  // when `unload` there should always be a `disconnect` event?
-      'ding',
-    ].map(e => {
-      client.on(e, data => {
-        // log.silly('PuppetWebServer', `initEventsFromClient() forward client event[${e}](${data}) from browser by emit it`)
-        this.emit(e, data)
-      })
+    client.on('message', data => {
+      const obj = JSON.parse(data as string) as WechatyBroEvent
+      this.emit(obj.name, obj.data)
     })
 
     return
@@ -181,3 +174,6 @@ export class Server extends EventEmitter {
 }
 
 export default Server
+export {
+  Server as PuppetWebServer,
+}

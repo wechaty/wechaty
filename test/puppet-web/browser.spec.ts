@@ -1,7 +1,7 @@
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -22,11 +22,12 @@ import { test } from 'ava'
 import {
   config,
   log,
-}               from '../../'
+}                           from '../../'
 
 import {
   Browser,
-}               from '../../src/puppet-web/'
+  IWebDriverOptionsCookie,
+}                           from '../../src/puppet-web/'
 
 const TEST_DOMAIN = 'www.chatie.io'
 const TEST_URL = 'https://' + TEST_DOMAIN
@@ -65,7 +66,7 @@ test('Cookie smoke testing', async t => {
     path: '/',
     domain: '.chatie.io',
     secure: false,
-    expiry: 99999999999999,
+    expiry: 2133683026,
   },
   {
     name: 'wechaty1',
@@ -73,7 +74,7 @@ test('Cookie smoke testing', async t => {
     path: '/',
     domain: '.chatie.io',
     secure: false,
-    expiry: 99999999999999,
+    expiry: 2133683026,
   }]
 
   await browser.addCookie(EXPECTED_COOKIES)
@@ -130,8 +131,8 @@ test('Cookie save/load', async t => {
       path: '/',
       domain: '.chatie.io',
       secure: false,
-      expiry: 99999999999999,
-    }
+      expiry: 2133683026,
+    } as IWebDriverOptionsCookie
     const EXPECTED_NAME_REGEX = new RegExp('^' + EXPECTED_COOKIE.name + '$')
 
     await browser.driver.manage().deleteAllCookies()
@@ -160,6 +161,7 @@ test('Cookie save/load', async t => {
 
     await browser.loadCookie() // .catch(() => { /* fail safe */ })
     const cookiesFromLoad = await browser.readCookie()
+    // XXX: circle ci sometimes fail at next line
     t.truthy(cookiesFromLoad.length, 'should get cookies after loadSession()')
     const cookieFromLoad = cookiesFromLoad.filter(c => EXPECTED_NAME_REGEX.test(c.name))
     t.is(cookieFromLoad[0].name, EXPECTED_COOKIE.name, 'cookie from loadSession() should has expected cookie')
@@ -200,17 +202,18 @@ test('Cookie save/load', async t => {
     t.truthy(cookieAfterQuit, 'should get cookie from getCookie()')
     t.is(cookieAfterQuit.name, EXPECTED_COOKIE.name, 'cookie from getCookie() after browser quit, should load the right cookie back')
 
-    fs.unlink(profileName, err => { // clean
-      if (err) {
-        log.warn('Browser', 'unlink session file %s fail: %s', PROFILE, err)
-      }
-    })
   } catch (e) {
     t.fail('exception: ' + e.message)
   } finally {
     if (browser && browser.driver) {
       await browser.driver.quit()
     }
+
+    fs.unlink(profileName, err => { // clean
+      if (err) {
+        log.warn('Browser', 'unlink session file %s fail: %s', PROFILE, err)
+      }
+    })
   }
 })
 

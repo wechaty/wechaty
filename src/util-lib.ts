@@ -1,7 +1,7 @@
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -26,12 +26,6 @@ import * as url   from 'url'
 
 import { MsgType } from './message'
 import { log } from './config'
-
-/**
- * bug compatible with:
- * https://github.com/wechaty/wechaty/issues/40#issuecomment-252802084
- */
-// import * as ws from 'ws'
 
 export class UtilLib {
   public static stripHtml(html?: string): string {

@@ -16,10 +16,17 @@
  *   limitations under the License.
  *
  */
-const { Wechaty } = require('wechaty') // import Wechaty from 'wechaty'
+import { test }   from 'ava'
+import * as sinon from 'sinon'
+// const sinonTest   = require('sinon-test')(sinon)
 
-Wechaty.instance() // Singleton
-.on('scan', (url, code) => console.log(`Scan QR Code to login: ${code}\n${url}`))
-.on('login',       user => console.log(`User ${user} logined`))
-.on('message',  message => console.log(`Message: ${message}`))
-.init()
+import PuppetWeb  from './puppet-web'
+import Bridge     from './bridge'
+
+test('PuppetWebBridge smoke testing', async t => {
+  const browser = sinon.spy()
+
+  const mockPuppet = {browser} as any as PuppetWeb
+  const bridge = new Bridge(mockPuppet, 8788)
+  t.truthy(bridge, 'Bridge instnace')
+})

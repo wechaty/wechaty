@@ -1,7 +1,7 @@
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -18,12 +18,16 @@
  */
 import {
   Builder,
+  By,
   Capabilities,
+  IWebDriverOptionsCookie,
   logging,
   Navigation,
   Options,
-  WebDriver,
   promise as promiseManager,
+  Session,
+  TargetLocator,
+  WebDriver,
 }                             from 'selenium-webdriver'
 
 import {
@@ -41,8 +45,15 @@ import {
 process.env['SELENIUM_PROMISE_MANAGER'] = '0'
 promiseManager.USE_PROMISE_MANAGER = false
 
+/**
+ * issue #756
+ * fix Chromedriver frequently hangs when attempting to start a new session.
+ * https://github.com/SeleniumHQ/docker-selenium/issues/87#issuecomment-187580115
+ */
+process.env['DBUS_SESSION_BUS_ADDRESS'] = '/dev/null'
+
 export class BrowserDriver {
-  private driver: WebDriver
+  public driver: WebDriver
 
   constructor(
     private head: HeadName,
@@ -53,7 +64,7 @@ export class BrowserDriver {
   public async init(): Promise<void> {
     log.verbose('PuppetWebBrowserDriver', 'init() for head: %s', this.head)
 
-    switch (this.head) {
+    switch (this.head.toLowerCase()) {
       case 'phantomjs':
         this.driver = await this.getPhantomJsDriver()
         break
@@ -66,7 +77,11 @@ export class BrowserDriver {
         break
 
       case 'chrome':
-        this.driver = await this.getChromeDriver()
+        this.driver = await this.getChromeDriver(false) // headless = false
+        break
+
+      case 'chrome-headless':
+        this.driver = await this.getChromeDriver(true)  // headless = true
         break
 
       default: // unsupported browser head
@@ -83,36 +98,42 @@ export class BrowserDriver {
     return this.driver
   }
 
-  private async getChromeDriver(): Promise<WebDriver> {
+  private async getChromeDriver(headless = false): Promise<WebDriver> {
     log.verbose('PuppetWebBrowserDriver', 'getChromeDriver()')
-
-    /**
-     * http://stackoverflow.com/a/27733960/1123955
-     * issue #56
-     * only need under win32 with cygwin
-     * and will cause strange error:
-     *
-     */
-
-    /*
-    const chrome  = require('selenium-webdriver/chrome')
-    const path    = require('chromedriver').path
-
-    const service = new chrome.ServiceBuilder(path).build()
-    try {
-      chrome.setDefaultService(service)
-    } catch (e) { // fail safe
-       // `The previously configured ChromeDriver service is still running.`
-       // `You must shut it down before you may adjust its configuration.`
-    }
-   */
 
     const options = {
       args: [
+        // fix 'No such session error'
+        // https://bugs.chromium.org/p/chromedriver/issues/detail?id=732#c19
+        '--disable-impl-side-painting',
+
         '--homepage=about:blank',
+
+        // issue #26 for run inside docker
         '--no-sandbox',
-      ],  // issue #26 for run inside docker
+
+        // '--remote-debugging-port=9222',  // will conflict with webdriver
+      ],
+      // binary: '/opt/google/chrome-unstable/chrome',
     }
+
+    if (headless)  {
+      const HEADLESS_ARGS = [
+        // --allow-insecure-localhost: Require Chrome v62
+        // https://bugs.chromium.org/p/chromium/issues/detail?id=721739#c26
+        '--allow-insecure-localhost',
+        '--disable-gpu',
+        // --headless: Require Chrome v60
+        // https://developers.google.com/web/updates/2017/04/headless-chrome
+        '--headless',
+      ]
+
+      // ISSUE #739 Chrome v62 or above is required
+      // because when we are using --headless args, chrome version below 62 will not allow the
+      // self-signed certificate to be used when visiting https://localhost.
+      options.args.concat(HEADLESS_ARGS)
+    }
+
     if (config.dockerMode) {
       log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() wechaty in docker confirmed(should not show this in CI)')
       options['binary'] = config.CMD_CHROMIUM
@@ -130,15 +151,28 @@ export class BrowserDriver {
                           .chrome()
                           .set('chromeOptions', options)
 
-    // TODO: chromedriver --silent
-    if (!/^(verbose|silly)$/i.test(log.level())) {
+    { // set logging
+      // TODO: chromedriver --silent
       const prefs = new logging.Preferences()
+      let loggingLevel: logging.Level
 
-      prefs.setLevel(logging.Type.BROWSER     , logging.Level.OFF)
-      prefs.setLevel(logging.Type.CLIENT      , logging.Level.OFF)
-      prefs.setLevel(logging.Type.DRIVER      , logging.Level.OFF)
-      prefs.setLevel(logging.Type.PERFORMANCE , logging.Level.OFF)
-      prefs.setLevel(logging.Type.SERVER      , logging.Level.OFF)
+      switch (log.level()) {
+        case 'silly':
+          loggingLevel = logging.Level.ALL
+          break
+        case 'verbose':
+          loggingLevel = logging.Level.DEBUG
+          break
+
+        default:
+          loggingLevel = logging.Level.OFF
+
+      }
+      prefs.setLevel(logging.Type.BROWSER     , loggingLevel)
+      prefs.setLevel(logging.Type.CLIENT      , loggingLevel)
+      prefs.setLevel(logging.Type.DRIVER      , loggingLevel)
+      prefs.setLevel(logging.Type.PERFORMANCE , loggingLevel)
+      prefs.setLevel(logging.Type.SERVER      , loggingLevel)
 
       customChrome.setLoggingPrefs(prefs)
     }
@@ -180,9 +214,10 @@ export class BrowserDriver {
           driverError = e
 
           log.verbose('PuppetWebBrowserDriver', 'getChromeDriver() driver.quit() at ttl %d', ttl)
-          driver.quit() // do not await, because a invalid driver will always hang when quit()
+          driver.close()
+                .then(() => driver.quit())  // // do not await, because a invalid driver will always hang when quit()
                 .catch(err => {
-                  log.warn('PuppetWebBrowserDriver', 'getChromeDriver() driver.quit() exception: %s', err.message)
+                  log.warn('PuppetWebBrowserDriver', 'getChromeDriver() driver.{close,quit}() exception: %s', err.message)
                   driverError = err
                 })
         } // END if
@@ -256,7 +291,7 @@ export class BrowserDriver {
 
     /* tslint:disable:jsdoc-format */
 		/**
-		 *  FIXME: ISSUE #21 - https://github.com/zixia/wechaty/issues/21
+		 *  FIXME: ISSUE #21 - https://github.com/chatie/wechaty/issues/21
 	 	 *
  	 	 *	http://phantomjs.org/api/webpage/handler/on-resource-requested.html
 		 *	http://stackoverflow.com/a/29544970/1123955
@@ -385,11 +420,20 @@ export class BrowserDriver {
   public close()                { return this.driver.close() }
   public executeAsyncScript(script: string|Function, ...args: any[])  { return this.driver.executeAsyncScript.apply(this.driver, arguments) }
   public executeScript     (script: string|Function, ...args: any[])  { return this.driver.executeScript.apply(this.driver, arguments) }
-  public get(url: string)       { return this.driver.get(url)     as any as Promise<void> }
-  public getSession()           { return this.driver.getSession() as any as Promise<void> }
+  public get(url: string)       { return this.driver.get(url) }
+  public getSession()           { return this.driver.getSession() }
   public manage(): Options      { return this.driver.manage() }
   public navigate(): Navigation { return this.driver.navigate() }
-  public quit()                 { return this.driver.quit()       as any as Promise<void> }
+  public quit()                 { return this.driver.quit() }
+  public switchTo()             { return this.driver.switchTo() }
 }
 
 // export default BrowserDriver
+export {
+  By,
+  IWebDriverOptionsCookie,
+  Session,
+  TargetLocator,
+}
+
+export default BrowserDriver

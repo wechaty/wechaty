@@ -1,7 +1,7 @@
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -85,5 +85,19 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract contactFind(filterFunc: string): Promise<Contact[]>
   public abstract contactAlias(contact: Contact, alias: string|null): Promise<boolean>
 }
+
+/**
+ * <error>
+ *  <ret>1203</ret>
+ *  <message>当前登录环境异常。为了你的帐号安全，暂时不能登录web微信。你可以通过手机客户端或者windows微信登录。</message>
+ * </error>
+ */
+// export enum WechatErrorCode {
+//   WebBlock = 1203,
+// }
+
+// export class WechatError extends Error {
+//   public code: WechatErrorCode
+// }
 
 export default Puppet

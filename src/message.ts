@@ -1,7 +1,7 @@
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
- *
+ *   @ignore
  */
 import * as fs    from 'fs'
 import * as path  from 'path'
@@ -174,6 +174,29 @@ export interface MsgTypeMap {
   // , MessageTypeValue: MessageTypeName
 }
 
+/**
+ *
+ * Enum for AppMsgType values.
+ *
+ * @enum {number}
+ * @property {number} TEXT                    - AppMsgType.TEXT                     (1)     for TEXT
+ * @property {number} IMG                     - AppMsgType.IMG                      (2)      for IMG
+ * @property {number} AUDIO                   - AppMsgType.AUDIO                    (3)      for AUDIO
+ * @property {number} VIDEO                   - AppMsgType.VIDEO                    (4)      for VIDEO
+ * @property {number} URL                     - AppMsgType.URL                      (5)      for URL
+ * @property {number} ATTACH                  - AppMsgType.ATTACH                   (6)      for ATTACH
+ * @property {number} OPEN                    - AppMsgType.OPEN                     (7)      for OPEN
+ * @property {number} EMOJI                   - AppMsgType.EMOJI                    (8)      for EMOJI
+ * @property {number} VOICE_REMIND            - AppMsgType.VOICE_REMIND             (9)      for VOICE_REMIND
+ * @property {number} SCAN_GOOD               - AppMsgType.SCAN_GOOD                (10)     for SCAN_GOOD
+ * @property {number} GOOD                    - AppMsgType.GOOD                     (13)     for GOOD
+ * @property {number} EMOTION                 - AppMsgType.EMOTION                  (15)     for EMOTION
+ * @property {number} CARD_TICKET             - AppMsgType.CARD_TICKET              (16)     for CARD_TICKET
+ * @property {number} REALTIME_SHARE_LOCATION - AppMsgType.REALTIME_SHARE_LOCATION  (17)     for REALTIME_SHARE_LOCATION
+ * @property {number} TRANSFERS               - AppMsgType.TRANSFERS                (2e3)    for TRANSFERS
+ * @property {number} RED_ENVELOPES           - AppMsgType.RED_ENVELOPES            (2001)   for RED_ENVELOPES
+ * @property {number} READER_TYPE             - AppMsgType.READER_TYPE              (100001) for READER_TYPE
+ */
 export enum AppMsgType {
   TEXT                     = 1,
   IMG                      = 2,
@@ -194,6 +217,29 @@ export enum AppMsgType {
   READER_TYPE              = 100001,
 }
 
+/**
+ *
+ * Enum for MsgType values.
+ * @enum {number}
+ * @property {number} TEXT                - MsgType.TEXT                (1)     for TEXT
+ * @property {number} IMAGE               - MsgType.IMAGE               (3)     for IMAGE
+ * @property {number} VOICE               - MsgType.VOICE               (34)    for VOICE
+ * @property {number} VERIFYMSG           - MsgType.VERIFYMSG           (37)    for VERIFYMSG
+ * @property {number} POSSIBLEFRIEND_MSG  - MsgType.POSSIBLEFRIEND_MSG  (40)    for POSSIBLEFRIEND_MSG
+ * @property {number} SHARECARD           - MsgType.SHARECARD           (42)    for SHARECARD
+ * @property {number} VIDEO               - MsgType.VIDEO               (43)    for VIDEO
+ * @property {number} EMOTICON            - MsgType.EMOTICON            (47)    for EMOTICON
+ * @property {number} LOCATION            - MsgType.LOCATION            (48)    for LOCATION
+ * @property {number} APP                 - MsgType.APP                 (49)    for APP
+ * @property {number} VOIPMSG             - MsgType.VOIPMSG             (50)    for VOIPMSG
+ * @property {number} STATUSNOTIFY        - MsgType.STATUSNOTIFY        (51)    for STATUSNOTIFY
+ * @property {number} VOIPNOTIFY          - MsgType.VOIPNOTIFY          (52)    for VOIPNOTIFY
+ * @property {number} VOIPINVITE          - MsgType.VOIPINVITE          (53)    for VOIPINVITE
+ * @property {number} MICROVIDEO          - MsgType.MICROVIDEO          (62)    for MICROVIDEO
+ * @property {number} SYSNOTICE           - MsgType.SYSNOTICE           (9999)  for SYSNOTICE
+ * @property {number} SYS                 - MsgType.SYS                 (10000) for SYS
+ * @property {number} RECALLED            - MsgType.RECALLED            (10002) for RECALLED
+ */
 export enum MsgType {
   TEXT                = 1,
   IMAGE               = 3,
@@ -215,8 +261,21 @@ export enum MsgType {
   RECALLED            = 10002,
 }
 
+/**
+ * All wechat messages will be encapsulated as a Message.
+ *
+ * `Message` is `Sayable`,
+ * [Example/Ding-Dong-Bot]{@link https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts}
+ */
 export class Message implements Sayable {
+  /**
+   * @private
+   */
   public static counter = 0
+
+  /**
+   * @private
+   */
   public _counter: number
 
   // DEPRECATED: TypeScript ENUM did this for us 201705
@@ -246,14 +305,26 @@ export class Message implements Sayable {
   //   RECALLED:           10002,
   // }
 
+  /**
+   * @private
+   */
   public readonly id: string
 
+  /**
+   * @private
+   */
   public obj = <MsgObj>{}
 
+  /**
+   * @private
+   */
   public readyStream(): Promise<Readable> {
     throw Error('abstract method')
   }
 
+  /**
+   * @private
+   */
   public filename(): string {
     throw Error('not a media message')
   }
@@ -274,6 +345,9 @@ export class Message implements Sayable {
     this.id = this.obj.id
   }
 
+  /**
+   * @private
+   */
   // Transform rawObj to local obj
   private parse(rawObj): MsgObj {
     const obj: MsgObj = {
@@ -305,20 +379,35 @@ export class Message implements Sayable {
 
     return obj
   }
+
+  /**
+   * @private
+   */
   public toString() {
     return UtilLib.plainText(this.obj.content)
   }
+
+  /**
+   * @private
+   */
   public toStringDigest() {
     const text = UtilLib.digestEmoji(this.obj.digest)
     return '{' + this.typeEx() + '}' + text
   }
 
+  /**
+   * @private
+   */
   public toStringEx() {
     let s = `${this.constructor.name}#${this._counter}`
     s += '(' + this.getSenderString()
     s += ':' + this.getContentString() + ')'
     return s
   }
+
+  /**
+   * @private
+   */
   public getSenderString() {
     const fromName  = Contact.load(this.obj.from).name()
     const roomTopic = this.obj.room
@@ -326,6 +415,10 @@ export class Message implements Sayable {
                   : ''
     return `<${fromName}${roomTopic}>`
   }
+
+  /**
+   * @private
+   */
   public getContentString() {
     let content = UtilLib.plainText(this.obj.content)
     if (content.length > 20) { content = content.substring(0, 17) + '...' }
@@ -333,11 +426,21 @@ export class Message implements Sayable {
   }
 
   /**
-   * @todo document me
+   * @private
    */
   public from(contact: Contact): void
+
+  /**
+   * @private
+   */
   public from(id: string): void
+
   public from(): Contact
+
+  /**
+   * Get the sender from a message.
+   * @returns {Contact}
+   */
   public from(contact?: Contact|string): Contact|void {
     if (contact) {
       if (contact instanceof Contact) {
@@ -360,13 +463,24 @@ export class Message implements Sayable {
   // public to(room: Room): void
   // public to(): Contact|Room
   // public to(contact?: Contact|Room|string): Contact|Room|void {
+
   /**
-   * @todo document me
+   * @private
    */
   public to(contact: Contact): void
+
+  /**
+   * @private
+   */
   public to(id: string): void
+
   public to(): Contact|null // if to is not set, then room must had set
 
+  /**
+   * Get the destination of the message
+   * Message.to() will return null if a message is in a room, use Message.room() to get the room.
+   * @returns {(Contact|null)}
+   */
   public to(contact?: Contact|string): Contact|Room|null|void {
     if (contact) {
       if (contact instanceof Contact) {
@@ -388,11 +502,23 @@ export class Message implements Sayable {
   }
 
   /**
-   * @todo document me
+   * @private
    */
   public room(room: Room): void
+
+  /**
+   * @private
+   */
   public room(id: string): void
+
   public room(): Room|null
+
+  /**
+   * Get the room from the message.
+   * If the message is not in a room, then will return `null`
+   *
+   * @returns {(Room|null)}
+   */
   public room(room?: Room|string): Room|null|void {
     if (room) {
       if (room instanceof Room) {
@@ -411,11 +537,22 @@ export class Message implements Sayable {
   }
 
   /**
-   * @todo document me
+   * Get the content of the message
+   *
+   * @returns {string}
    */
   public content(): string
+
+  /**
+   * @private
+   */
   public content(content: string): void
 
+  /**
+   * Get the content of the message
+   *
+   * @returns {string}
+   */
   public content(content?: string): string|void {
     if (content) {
       this.obj.content = content
@@ -425,14 +562,22 @@ export class Message implements Sayable {
   }
 
   /**
-   * @todo document me
+   * Get the type from the message.
+   *
+   * @see {@link MsgType}
+   * @returns {MsgType}
    */
   public type(): MsgType {
     return this.obj.type
   }
 
   /**
-   * @todo document me
+   * Get the typeSub from the message.
+   *
+   * If message is a location message: `m.type() === MsgType.TEXT && m.typeSub() === MsgType.LOCATION`
+   *
+   * @see {@link MsgType}
+   * @returns {MsgType}
    */
   public typeSub(): MsgType {
     if (!this.rawObj) {
@@ -442,7 +587,10 @@ export class Message implements Sayable {
   }
 
   /**
-   * @todo document me
+   * Get the typeApp from the message.
+   *
+   * @returns {AppMsgType}
+   * @see {@link AppMsgType}
    */
   public typeApp(): AppMsgType {
     if (!this.rawObj) {
@@ -452,16 +600,25 @@ export class Message implements Sayable {
   }
 
   /**
-   * @todo document me
+   * Get the typeEx from the message.
+   *
+   * @returns {MsgType}
    */
   public typeEx()  { return MsgType[this.obj.type] }
+
   /**
-   * @todo document me
+   * @private
    */
   public count()   { return this._counter }
 
   /**
-   * @todo document me
+   * Check if a message is sent by self.
+   *
+   * @returns {boolean} - Return `true` for send from self, `false` for send from others.
+   * @example
+   * if (message.self()) {
+   *  console.log('this message is sent by myself!')
+   * }
    */
   public self(): boolean {
     const userId = config.puppetInstance()
@@ -478,7 +635,8 @@ export class Message implements Sayable {
   /**
    *
    * Get message mentioned contactList.
-   * message event table as follows
+   *
+   * Message event table as follows
    *
    * |                                                                            | Web  |  Mac PC Client | iOS Mobile |  android Mobile |
    * | :---                                                                       | :--: |     :----:     |   :---:    |     :---:       |
@@ -487,13 +645,11 @@ export class Message implements Sayable {
    * | Identify magic code (8197) by programming                                  |  ✘   |        ✘       |     ✘      |       ✘         |
    * | Identify two contacts with the same roomAlias by [You were  mentioned] tip |  ✘   |        ✘       |     √      |       √         |
    *
-   * @returns {Contact[]} return message mentioned contactList
+   * @returns {Contact[]} - Return message mentioned contactList
    *
    * @example
-   * ```ts
    * const contactList = message.mentioned()
    * console.log(contactList)
-   * ```
    */
   public mentioned(): Contact[] {
     let contactList: Contact[] = []
@@ -545,6 +701,9 @@ export class Message implements Sayable {
     return contactList
   }
 
+  /**
+   * @private
+   */
   public async ready(): Promise<void> {
     log.silly('Message', 'ready()')
 
@@ -573,7 +732,7 @@ export class Message implements Sayable {
   }
 
   /**
-   * @deprecated
+   * @private
    */
   public get(prop: string): string {
     log.warn('Message', 'DEPRECATED get() at %s', new Error('stack').stack)
@@ -586,7 +745,7 @@ export class Message implements Sayable {
   }
 
   /**
-   * @deprecated
+   * @private
    */
   public set(prop: string, value: string): this {
     log.warn('Message', 'DEPRECATED set() at %s', new Error('stack').stack)
@@ -598,19 +757,35 @@ export class Message implements Sayable {
     return this
   }
 
+  /**
+   * @private
+   */
   public dump() {
     console.error('======= dump message =======')
     Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj[k]}`))
   }
+
+  /**
+   * @private
+   */
   public dumpRaw() {
     console.error('======= dump raw message =======')
+    if (!this.rawObj) {
+      throw new Error('no this.obj')
+    }
     Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj && this.rawObj[k]}`))
   }
 
+  /**
+   * @todo add function
+   */
   public static async find(query) {
     return Promise.resolve(new Message(<MsgRawObj>{MsgId: '-1'}))
   }
 
+  /**
+   * @todo add function
+   */
   public static async findAll(query) {
     return Promise.resolve([
       new Message   (<MsgRawObj>{MsgId: '-2'}),
@@ -626,12 +801,30 @@ export class Message implements Sayable {
   //   })
   // }
 
-  /**
-   * @todo document me
-   */
   public say(text: string, replyTo?: Contact | Contact[]): Promise<any>
+
   public say(mediaMessage: MediaMessage, replyTo?: Contact | Contact[]): Promise<any>
 
+  /**
+   * Reply a Text or Media File message to the sender.
+   *
+   * @see {@link https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts|Example/ding-dong-bot}
+   * @param {(string | MediaMessage)} textOrMedia
+   * @param {(Contact|Contact[])} [replyTo]
+   * @returns {Promise<any>}
+   *
+   * @example
+   * const bot = Wechaty.instance()
+   * bot
+   * .on('message', async m => {
+   *   if (/^ding$/i.test(m.content())) {
+   *     await m.say('hello world')
+   *     console.log('Bot REPLY: hello world')
+   *     await m.say(new MediaMessage(__dirname + '/wechaty.png'))
+   *     console.log('Bot REPLY: Image')
+   *   }
+   * })
+   */
   public say(textOrMedia: string | MediaMessage, replyTo?: Contact|Contact[]): Promise<any> {
     /* tslint:disable:no-use-before-declare */
     const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
@@ -680,13 +873,39 @@ export class Message implements Sayable {
 
 // Message.initType()
 
+/**
+ * Meidia Type Message
+ *
+ */
 export class MediaMessage extends Message {
+  /**
+   * @private
+   */
   private bridge: Bridge
+
+  /**
+   * @private
+   */
   private filePath: string
+
+  /**
+   * @private
+   */
   private fileName: string // 'music'
+
+  /**
+   * @private
+   */
   private fileExt: string // 'mp3'
 
+  /**
+   * @private
+   */
   constructor(rawObj: Object)
+
+  /**
+   * @private
+   */
   constructor(filePath: string)
 
   constructor(rawObjOrFilePath: Object | string) {
@@ -708,6 +927,9 @@ export class MediaMessage extends Message {
                     .bridge
   }
 
+  /**
+   * @private
+   */
   public async ready(): Promise<void> {
     log.silly('MediaMessage', 'ready()')
 
@@ -787,7 +1009,15 @@ export class MediaMessage extends Message {
   }
 
   /**
-   * @todo document me
+   * Get the MediaMessage file extension, etc: `jpg`, `gif`, `pdf`, `word` ..
+   *
+   * @returns {string}
+   * @example
+   * bot.on('message', async function (m) {
+   *   if (m instanceof MediaMessage) {
+   *     console.log('media message file name extention is: ' + m.ext())
+   *   }
+   * })
    */
   public ext(): string {
     if (this.fileExt)
@@ -824,7 +1054,15 @@ export class MediaMessage extends Message {
   }
 
   /**
-   * @todo document me
+   * Get the MediaMessage filename, etc: `how to build a chatbot.pdf`..
+   *
+   * @returns {string}
+   * @example
+   * bot.on('message', async function (m) {
+   *   if (m instanceof MediaMessage) {
+   *     console.log('media message file name is: ' + m.filename())
+   *   }
+   * })
    */
   public filename(): string {
     if (this.fileName && this.fileExt) {
@@ -853,6 +1091,9 @@ export class MediaMessage extends Message {
   //   })
   // }
 
+  /**
+   * @private
+   */
   public async readyStream(): Promise<Readable> {
     if (this.filePath)
       return fs.createReadStream(this.filePath)

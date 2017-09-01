@@ -1,7 +1,7 @@
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -54,13 +54,10 @@ Raven.context(function () {
 })
  */
 
-// const isCi      = require('is-ci')
-// const isDocker  = require('is-docker')
-
 import {
   log,
   Loggable,
-}    from 'brolog'
+}                 from 'brolog'
 
 import { Puppet } from './puppet'
 
@@ -86,8 +83,14 @@ if (/verbose|silly/i.test(logLevel)) {
   })
 }
 
-export type PuppetName = 'web' | 'android' | 'ios'
-export type HeadName = 'chrome' | 'phantomjs' | 'firefox'
+export type PuppetName = 'web'
+                        | 'android'
+                        | 'ios'
+
+export type HeadName = 'chrome'
+                      | 'chrome-headless'
+                      | 'phantomjs'
+                      | 'firefox'
 
 export interface ConfigSetting {
 
@@ -181,33 +184,6 @@ function isWechatyInstalledGlobal() {
    */
    return false
 }
-
-/**
- * @DEPRECATED on Jun 2017 by zixia
- */
-// function dockerMode() {
-  /**
-   * false for Continuous Integration System
-   */
-  // if (isCi) {
-  //   return false
-  // }
-
-  /**
-   * false Cloud9 IDE
-   */
-  // const c9 = Object.keys(process.env)
-  //                 .filter(k => /^C9_/.test(k))
-  //                 .length
-  // if (c9 > 7 && process.env['C9_PORT']) {
-  //   return false
-  // }
-
-  /**
-   * return indentify result by NPM module `is-docker`
-   */
-  // return isDocker()
-// }
 
 /**
  * 5. live setting

@@ -1,7 +1,7 @@
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -31,7 +31,9 @@ import {
   MediaMessage,
   MsgRawObj,
  }                    from '../message'
-import Puppet         from '../puppet'
+import {
+  Puppet,
+}                     from '../puppet'
 import Room           from '../room'
 import UtilLib        from '../util-lib'
 
@@ -50,9 +52,9 @@ import * as bl from 'bl'
 type MediaType = 'pic' | 'video' | 'doc'
 
 const enum UploadMediaType {
-  IMAGE = 1,
-  VIDEO = 2,
-  AUDIO = 3,
+  IMAGE      = 1,
+  VIDEO      = 2,
+  AUDIO      = 3,
   ATTACHMENT = 4,
 }
 export interface PuppetWebSetting {
@@ -102,11 +104,28 @@ export class PuppetWeb extends Puppet {
       await this.initServer()
       log.verbose('PuppetWeb', 'initServer() done')
 
-      await this.initBrowser()
+      this.browser = await this.initBrowser()
       log.verbose('PuppetWeb', 'initBrowser() done')
 
-      await this.initBridge()
+      try {
+        this.bridge = await this.initBridge()
+      } catch (e) {
+        log.verbose('PuppetWeb', 'init() this.initBridge() exception: %s', e.message)
+
+        const blockedMessage = await this.bridge.blockedMessageBody()
+                            || await this.bridge.blockedMessageAlert()
+        if (blockedMessage) {
+          const error = new Error(blockedMessage)
+          this.emit('error', error)
+        }
+        throw e
+      }
       log.verbose('PuppetWeb', 'initBridge() done')
+
+      const clicked = await this.browser.clickSwitchAccount()
+      if (clicked) {
+        log.verbose('PuppetWeb', 'init() bridge.clickSwitchAccount() clicked')
+      }
 
       /**
        *  state must set to `live`
@@ -174,26 +193,38 @@ export class PuppetWeb extends Puppet {
           reject(e)
         }, 120 * 1000)
 
-        await this.bridge.quit()
-                        .catch(e => { // fail safe
-                          log.warn('PuppetWeb', 'quit() bridge.quit() exception: %s', e.message)
-                          Raven.captureException(e)
-                        })
-        log.verbose('PuppetWeb', 'quit() bridge.quit() done')
+        if (this.bridge) {
+          await this.bridge.quit()
+                          .catch(e => { // fail safe
+                            log.warn('PuppetWeb', 'quit() bridge.quit() exception: %s', e.message)
+                            Raven.captureException(e)
+                          })
+          log.verbose('PuppetWeb', 'quit() bridge.quit() done')
+        } else {
+          log.warn('PuppetWeb', 'quit() no this.bridge')
+        }
 
-        await this.server.quit()
-                        .catch(e => { // fail safe
-                          log.warn('PuppetWeb', 'quit() server.quit() exception: %s', e.message)
-                          Raven.captureException(e)
-                        })
-        log.verbose('PuppetWeb', 'quit() server.quit() done')
+        if (this.server) {
+          await this.server.quit()
+                          .catch(e => { // fail safe
+                            log.warn('PuppetWeb', 'quit() server.quit() exception: %s', e.message)
+                            Raven.captureException(e)
+                          })
+          log.verbose('PuppetWeb', 'quit() server.quit() done')
+        } else {
+          log.warn('PuppetWeb', 'quit() no this.server')
+        }
 
-        await this.browser.quit()
-                  .catch(e => { // fail safe
-                    log.warn('PuppetWeb', 'quit() browser.quit() exception: %s', e.message)
-                    Raven.captureException(e)
-                  })
-        log.verbose('PuppetWeb', 'quit() browser.quit() done')
+        if (this.browser) {
+          await this.browser.quit()
+                    .catch(e => { // fail safe
+                      log.warn('PuppetWeb', 'quit() browser.quit() exception: %s', e.message)
+                      Raven.captureException(e)
+                    })
+          log.verbose('PuppetWeb', 'quit() browser.quit() done')
+        } else {
+          log.warn('PuppetWeb', 'quit() no this.browser')
+        }
 
         clearTimeout(timer)
         resolve()
@@ -214,15 +245,15 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public async initBrowser(): Promise<void> {
+  public async initBrowser(): Promise<Browser> {
     log.verbose('PuppetWeb', 'initBrowser()')
 
-    this.browser = new Browser({
+    const browser = new Browser({
       head:         <HeadName>this.setting.head,
       sessionFile:  this.setting.profile,
     })
 
-    this.browser.on('dead', Event.onBrowserDead.bind(this))
+    browser.on('dead', Event.onBrowserDead.bind(this))
 
     if (this.state.target() === 'dead') {
       const e = new Error('found state.target()) != live, no init anymore')
@@ -231,19 +262,19 @@ export class PuppetWeb extends Puppet {
     }
 
     try {
-      await this.browser.init()
+      await browser.init()
     } catch (e) {
       log.error('PuppetWeb', 'initBrowser() exception: %s', e.message)
       Raven.captureException(e)
       throw e
     }
-    return
+    return browser
   }
 
-  public async initBridge(): Promise<void> {
+  public async initBridge(): Promise<Bridge> {
     log.verbose('PuppetWeb', 'initBridge()')
 
-    this.bridge = new Bridge(
+    const bridge = new Bridge(
       this, // use puppet instead of browser, is because browser might change(die) duaring run time,
       this.port,
     )
@@ -255,7 +286,7 @@ export class PuppetWeb extends Puppet {
     }
 
     try {
-      await this.bridge.init()
+      await bridge.init()
     } catch (e) {
       Raven.captureException(e)
       if (!this.browser) {
@@ -268,7 +299,7 @@ export class PuppetWeb extends Puppet {
         throw e
       }
     }
-    return
+    return bridge
   }
 
   private async initServer(): Promise<void> {
@@ -297,12 +328,13 @@ export class PuppetWeb extends Puppet {
       throw e
     }
 
-    await this.server.init()
-                .catch(e => {
-                  log.error('PuppetWeb', 'initServer() exception: %s', e.message)
-                  Raven.captureException(e)
-                  throw e
-                })
+    try {
+      await this.server.init()
+    } catch (e) {
+      log.error('PuppetWeb', 'initServer() exception: %s', e.message)
+      Raven.captureException(e)
+      throw e
+    }
     return
   }
 
@@ -753,6 +785,40 @@ export class PuppetWeb extends Puppet {
       Raven.captureException(e)
       throw e
     }
+  }
+
+  /**
+   * @private
+   * For issue #668
+   */
+  public async readyStable(): Promise<void> {
+    log.verbose('PuppetWeb', 'readyStable()')
+    let counter = -1
+
+    async function stable(resolve: Function): Promise<void> {
+      log.silly('PuppetWeb', 'readyStable() stable() counter=%d', counter)
+      const contactList = await Contact.findAll()
+      if (counter === contactList.length) {
+        log.verbose('PuppetWeb', 'readyStable() stable() READY counter=%d', counter)
+        return resolve()
+      }
+      counter = contactList.length
+      setTimeout(() => stable(resolve), 300)
+        .unref()
+    }
+
+    return new Promise<void>((resolve, reject) => {
+      setTimeout(
+        () => {
+          log.warn('PuppetWeb', 'readyStable() stable() reject at counter=%d', counter)
+          return reject(new Error('timeout after 60 seconds'))
+        },
+        60 * 1000,
+      ).unref() // wait for 1 min
+
+      setTimeout(() => stable(resolve), 1 * 1000)
+    })
+
   }
 }
 

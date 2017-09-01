@@ -1,7 +1,7 @@
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -16,23 +16,25 @@
  *   limitations under the License.
  *
  */
- /* tslint:disable:no-var-requires */
+import { parseString }  from 'xml2js'
+
+/* tslint:disable:no-var-requires */
 const retryPromise  = require('retry-promise').default
 
-import { log }    from '../config'
+import { log }        from '../config'
 
-import PuppetWeb  from './puppet-web'
+import PuppetWeb      from './puppet-web'
 import { MsgRawObj }  from '../message'
 
 export interface MediaData {
   ToUserName: string,
-  MsgType: number,
-  MediaId: string,
-  FileName: string,
-  FileSize: number,
-  FileMd5?: string,
-  MMFileId: string,
-  MMFileExt: string,
+  MsgType:    number,
+  MediaId:    string,
+  FileName:   string,
+  FileSize:   number,
+  FileMd5?:   string,
+  MMFileId:   string,
+  MMFileExt:  string,
 }
 
 export class Bridge {
@@ -56,15 +58,13 @@ export class Bridge {
   public async init(): Promise<Bridge> {
     log.verbose('PuppetWebBridge', 'init()')
 
-    return this.inject()
-    .then(r => {
-      // log.silly('PuppetWebBridge', 'init() inject() return %s at attempt %d', r, attempt)
+    try {
+      await this.inject()
       return this
-    })
-    .catch(e => {
+    } catch (e) {
       log.silly('PuppetWebBridge', 'init() inject() exception: %s', e && e.message || e)
       throw e
-    })
+    }
   }
 
   public async inject(): Promise<any> {
@@ -547,6 +547,53 @@ export class Bridge {
                   throw e
                 })
   }
+
+  /**
+   * <error>
+   *  <ret>1203</ret>
+   *  <message>当前登录环境异常。为了你的帐号安全，暂时不能登录web微信。你可以通过手机客户端或者windows微信登录。</message>
+   * </error>
+   */
+  public async blockedMessageBody(): Promise<string | null> {
+    log.silly('PuppetWebBridge', 'blockedMessageBody()')
+    const text = await this.execute('return document.body.innerText')
+
+    return new Promise<string | null>((resolve, reject) => {
+      parseString(text, { explicitArray: false }, (err, obj) => {
+        if (err) {
+          return resolve(null)
+        }
+        if (!obj.error) {
+          return resolve(null)
+        }
+        const code    = obj.error.code
+        const message = obj.error.message
+        if (code === 1203) {
+          // <error>
+          // <ret>1203</ret>
+          // <message>当前登录环境异常。为了你的帐号安全，暂时不能登录web微信。你可以通过手机客户端或者windows微信登录。</message>
+          // </error>
+          return resolve(message)
+        }
+        return resolve(message) // other error message
+      })
+    })
+  }
+
+  public async blockedMessageAlert(): Promise<string | null> {
+    log.silly('PuppetWebBridge', 'blockedMessageAlert()')
+
+    const driver = this.puppet.browser.driver
+
+    return new Promise<string | null>(async (resolve, reject) => {
+      const alert = driver.switchTo().alert()
+      alert.catch(() => resolve(null))
+      alert.then(() => {
+        alert.getText().then(resolve)
+      })
+    })
+  }
+
 }
 
 /* tslint:disable:jsdoc-format */
