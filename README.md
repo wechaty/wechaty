@@ -289,9 +289,11 @@ You can directly submit pull requests for documentation changes.
 * [mukaiu](https://github.com/mukaiu)
 * [xinbenlv](https://github.com/xinbenlv)
 
-## Join Wechaty Developers' Community
+See more at <https://github.com/Chatie/wechaty/graphs/contributors>
 
-Wechaty is used in many ChatBot projects by hundreds of developers. If you want to talk with other developers, just scan the following QR Code in WeChat with secret code _wechaty_, you can join our **Wechaty Developers' Home** at once.
+## JOIN US
+
+Wechaty is used in many ChatBot projects by hundreds of developers. If you want to talk with other developers, just scan the following QR Code in WeChat with secret code _wechaty_, join our **Wechaty Developers' Home** now.
 
 ![Wechaty Developers' Home](https://raw.githubusercontent.com/chatie/wechaty/master/image/BotQrcode.png)
 
