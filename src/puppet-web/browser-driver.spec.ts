@@ -45,8 +45,8 @@ test('BrowserDriver smoke testing', async t => {
       const retAdd = await driver.executeScript<number>('return 1 + 1')
       t.is(retAdd, 2, 'should return 2 for execute 1+1 in browser')
 
-      await browserDriver.close()
-      await browserDriver.quit()
+      await browserDriver.close().catch(()  => { /* fail safe */ })
+      await browserDriver.quit().catch(()   => { /* fail safe */ })
 
       err = null
 
