@@ -141,6 +141,7 @@ test('Cookie save/load', async t => {
 
     await browser.addCookie(EXPECTED_COOKIE)
     const cookieFromBrowser = await browser.driver.manage().getCookie(EXPECTED_COOKIE.name)
+    t.truthy(cookieFromBrowser, 'should get cookie from browser')
     t.is(cookieFromBrowser.name, EXPECTED_COOKIE.name, 'cookie from getCookie() should be same as we just set')
 
     let cookiesFromCheck = await browser.readCookie()
