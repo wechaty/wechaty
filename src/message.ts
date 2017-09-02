@@ -17,6 +17,7 @@
  *   @ignore
  */
 import * as fs    from 'fs'
+import * as os    from 'os'
 import * as path  from 'path'
 import {
   Readable,
@@ -64,6 +65,8 @@ export interface MsgRawObj {
   FileName:         string,  // FileName: '钢甲互联项目BP1108.pdf',
   FileSize:         number,  // FileSize: '2845701',
   MediaId:          string,  // MediaId: '@crypt_b1a45e3f_c21dceb3ac01349...
+  MMFileExt:        string,  // doc, docx ... 'undefined'?
+  Signature:        string,  // checkUpload return the signature used to upload large files
 
   MMAppMsgFileExt:      string,  // doc, docx ... 'undefined'?
   MMAppMsgFileSize:     string,  // '2.7MB',
@@ -924,13 +927,15 @@ export class MediaMessage extends Message {
       this.fileExt = pathInfo.ext.replace(/^\./, '')
     } else if (rawObjOrFilePath instanceof Object) {
       super(rawObjOrFilePath as any)
+      // debug
+      log.silly('MediaMessage', 'constructor() rawObjOrFilePath: %s', JSON.stringify(rawObjOrFilePath))
     } else {
       throw new Error('not supported construct param')
     }
 
     // FIXME: decoupling needed
     this.bridge = (config.puppetInstance() as PuppetWeb)
-                    .bridge
+      .bridge
   }
 
   /**
@@ -1114,14 +1119,59 @@ export class MediaMessage extends Message {
       log.verbose('MediaMessage', 'stream() url: %s', this.obj.url)
       return UtilLib.urlStream(this.obj.url, cookies)
     } catch (e) {
-      log.warn('MediaMessage', 'stream() exception: %s', e.stack)
+      log.warn('MediaMessage', 'readyStream() exception: %s', e.stack)
       Raven.captureException(e)
       throw e
     }
   }
 
-  public forward(room: Room): Promise<boolean>
-  public forward(contact: Contact): Promise<boolean>
+  /**
+   * save file
+   *
+   * @param filePath save file
+   */
+  public async saveFile(filePath: string): Promise<boolean> {
+    let ret = false
+    if (!filePath) {
+      throw new Error('saveFile() filePath is invalid')
+    }
+    log.silly('MediaMessage', `saveFile() filePath:'${filePath}'`)
+    if (fs.existsSync(filePath)) {
+      throw new Error('saveFile() file does exist!')
+    }
+    const writeStream = fs.createWriteStream(filePath)
+    let readStream
+    // let chunkCount = 0
+    // let chunkLength = 0
+    try {
+      readStream = await this.readyStream()
+    } catch (e) {
+      log.error('MediaMessage', `saveFile() call readyStream() error: ${e.message}`)
+      throw new Error(`saveFile() call readyStream() error: ${e.message}`)
+    }
+    ret = <boolean>await new Promise((resolve, reject) => {
+      readStream.pipe(writeStream)
+      readStream
+        // .on('data', chunk => {
+        //   chunkCount++
+        //   chunkLength += chunk.length
+        //   log.silly('MediaMessage', `saveFile() chunk count=${chunkCount}, length=${chunkLength}`)
+        // })
+        .on('end', () => {
+          log.silly('MediaMessage', `saveFile() pipe end`)
+          resolve(true)
+        })
+        .on('error', e => {
+          log.error('MediaMessage', `saveFile() error: ${e.message}`)
+          reject(e)
+        })
+    })
+    log.silly('MediaMessage', `saveFile() end. ret:%s`, ret)
+    return ret
+  }
+
+  public forward(room: Room|Room[]): Promise<boolean>
+  public forward(contact: Contact|Contact[]): Promise<boolean>
   /**
    * Forward the received message.
    *
@@ -1153,27 +1203,61 @@ export class MediaMessage extends Message {
    * But, it should be noted that when forwarding ATTACH type message, if the file size is greater than 25Mb, the forwarding will fail.
    * The reason is that the server limits the forwarding of files above 25Mb. You need to download the file and use `new MediaMessage (file)` to send the file.
    *
-   * @param {(Room | Contact)} sendTo
+   * @param {(Sayable | Sayable[])} sendTo Room or Contact, or array
    * The recipient of the message, the room, or the contact
    * @returns {Promise<boolean>}
    * @memberof MediaMessage
    */
-  public forward(sendTo: Room|Contact): Promise<boolean> {
+  public async forward(sendTo: Room|Room[]|Contact|Contact[]): Promise<boolean> {
     if (!this.rawObj) {
       throw new Error('no rawObj!')
     }
     let m = Object.assign({}, this.rawObj)
     const newMsg = <MsgRawObj>{}
-    const fileSizeLimit = 25 * 1024 * 1024
-    let id = ''
+    // const fileSizeLimit = 25 * 1024 * 1024
+    const fileSizeLimit = 5 * 1024 * 1024
+    let ret = false
     // if you know roomId or userId, you can use `Room.load(roomId)` or `Contact.load(userId)`
-    if (sendTo instanceof Room || sendTo instanceof Contact) {
-      id = sendTo.id
-    } else {
-      throw new Error('param must be Room or Contact!')
+    let sendToList: Contact[] = [].concat(sendTo as any || [])
+    sendToList = sendToList.filter(s => {
+      if ((s instanceof Room || s instanceof Contact) && s.id) {
+        return true
+      }
+      return false
+    }) as Contact[]
+    if (sendToList.length < 1) {
+      throw new Error('param must be Room or Contact and array')
+    }
+    if (m.FileSize >= fileSizeLimit) {
+      log.silly('MediaMessage', `forward() 文件大小超限，本次将进行上传发送`)
+      const tmpDir = fs.mkdtempSync(os.tmpdir() + '/wechaty-tmp-')
+      const filePath = tmpDir + '/' + this.filename()
+      let saveFileRet
+      try {
+        saveFileRet = await this.saveFile(filePath)
+        if (!saveFileRet) {
+          throw new Error('save file fail')
+        }
+        log.silly('MediaMessage', `forward() save file path:'${filePath}'`)
+        const msg = new MediaMessage(filePath)
+        // TODO: Direct call PuppetWeb.uploadMedia(), return MediaData
+        // await config.puppetInstance()
+        // log.silly('MediaMessage', `forward() sendTo list:${JSON.stringify(sendToList)}`)
+        for (let i = 0; i < sendToList.length; i++) {
+          // all call success return true
+          // TODO: PuppetWeb uploaded files can't be reused
+          ret = (i === 0 ? true : ret) && await sendToList[i].say(msg)
+        }
+        log.silly('MediaMessage', `forward() send file done`)
+
+        fs.unlinkSync(filePath)
+        fs.rmdirSync(tmpDir)
+      } catch (e) {
+        log.warn('MediaMessage', `forward() error: ${e.message}`)
+      }
+      return ret
     }
 
-    newMsg.ToUserName = id
     newMsg.FromUserName = config.puppetInstance().userId || ''
     newMsg.isTranspond = true
     newMsg.MsgIdBeforeTranspond = m.MsgIdBeforeTranspond || m.MsgId
@@ -1184,26 +1268,24 @@ export class MediaMessage extends Message {
 
     // The following parameters need to be overridden after calling createMessage()
 
-    // If you want to forward the file, would like to skip the duplicate upload, sendByLocal must be false.
-    // But need to pay attention to file.size> 25Mb, due to the server policy restrictions, need to re-upload
-    if (m.FileSize >= fileSizeLimit) {
-      log.warn('Message', 'forward() file size >= 25Mb,the message may fail to be forwarded due to server policy restrictions.')
-    }
     newMsg.sendByLocal = false
-    newMsg.MMActualSender = config.puppetInstance().userId || ''
-    if (m.MMSendContent) {
-      newMsg.MMSendContent = m.MMSendContent.replace(/^@\w+:\s/, '')
-    }
-    if (m.MMDigest) {
-      newMsg.MMDigest = m.MMDigest.replace(/^@\w+:/, '')
-    }
-    if (m.MMActualContent) {
-      newMsg.MMActualContent = UtilLib.stripHtml(m.MMActualContent.replace(/^@\w+:<br\/>/, '')).replace(/^[\w\-]+:<br\/>/, '')
-    }
+    // newMsg.MMActualSender = config.puppetInstance().userId || ''
+    // if (m.MMSendContent) {
+    //   newMsg.MMSendContent = m.MMSendContent.replace(/^@\w+:\s/, '')
+    // }
+    // if (m.MMDigest) {
+    //   newMsg.MMDigest = m.MMDigest.replace(/^@\w+:/, '')
+    // }
+    // if (m.MMActualContent) {
+    //   newMsg.MMActualContent = UtilLib.stripHtml(m.MMActualContent.replace(/^@\w+:<br\/>/, '')).replace(/^[\w\-]+:<br\/>/, '')
+    // }
     m = Object.assign(m, newMsg)
-
-    return config.puppetInstance()
-      .forward(m, newMsg)
+    for (let i = 0; i < sendToList.length; i++) {
+      newMsg.ToUserName = sendToList[i].id
+      // all call success return true
+      ret = (i === 0 ? true : ret) && await config.puppetInstance().forward(m, newMsg)
+    }
+    return ret
   }
 }
 

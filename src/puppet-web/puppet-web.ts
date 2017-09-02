@@ -557,10 +557,10 @@ export class PuppetWeb extends Puppet {
           }
         })
       })
-    } catch (e) {
-      log.error('PuppetWeb', 'uploadMedia() exception: %s', e.message)
-      throw new Error('uploadMedia err: ' + e.message)
-    }
+    })
+    delete formData.filename.value
+    // debug
+    log.silly('PuppetWeb', 'uploadMedia() uploaded!\nformData: %s\nmediaData:%s', JSON.stringify(formData), JSON.stringify(mediaData))
     if (!mediaId) {
       log.error('PuppetWeb', 'uploadMedia(): upload fail')
       throw new Error('PuppetWeb.uploadMedia(): upload fail')
@@ -583,12 +583,27 @@ export class PuppetWeb extends Puppet {
       destinationId = to.id
     }
 
-    let mediaData
-    try {
+    let mediaData: MediaData
+    const data = message.rawObj as MsgRawObj
+    if (!data.MediaId) {
+      log.silly('PuppetWeb', '现在将进行上传文件, rawObj:%s', JSON.stringify(data))
       mediaData = await this.uploadMedia(message, destinationId)
-    } catch (e) {
-      log.error('PuppetWeb', 'sendMedia() exception: %s', e.message)
-      return false
+    } else {
+      mediaData = {
+        ToUserName: data.ToUserName,
+        MediaId: data.MediaId,
+        MsgType: data.MsgType,
+        FileName: data.FileName,
+        FileSize: data.FileSize,
+        MMFileExt: data.MMFileExt,
+        // can be remove MMFileId
+        // MMFileId: data.MMFileId
+      }
+      if (data.Signature) {
+        mediaData.Signature = data.Signature
+      }
+      // fix display '取消' buttom
+      mediaData.sendByLocal = false
     }
     mediaData.MsgType = UtilLib.msgType(message.ext())
 
