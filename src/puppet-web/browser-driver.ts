@@ -289,15 +289,15 @@ export class BrowserDriver {
     //   throw new Error('invalid driver founded')
     // }
 
-    /* tslint:disable:jsdoc-format */
-		/**
-		 *  FIXME: ISSUE #21 - https://github.com/chatie/wechaty/issues/21
-	 	 *
- 	 	 *	http://phantomjs.org/api/webpage/handler/on-resource-requested.html
-		 *	http://stackoverflow.com/a/29544970/1123955
-		 *  https://github.com/geeeeeeeeek/electronic-wechat/pull/319
-		 *
-		 */
+    /**
+     * tslint:disable:jsdoc-format
+     *
+     * FIXME: ISSUE #21 - https://github.com/chatie/wechaty/issues/21
+     * http://phantomjs.org/api/webpage/handler/on-resource-requested.html
+     * http://stackoverflow.com/a/29544970/1123955
+     * https://github.com/geeeeeeeeek/electronic-wechat/pull/319
+     */
+
     //   	driver.executePhantomJS(`
     // this.onResourceRequested = function(request, net) {
     //    console.log('REQUEST ' + request.url);

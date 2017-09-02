@@ -61,13 +61,13 @@ export class Server extends EventEmitter {
   /**
    * Https Server
    */
-  public async createHttpsServer(express: express.Application): Promise<https.Server> {
+  public async createHttpsServer(expressApp: express.Application): Promise<https.Server> {
     this.httpsServer = <https.Server>await new Promise((resolve, reject) => {
 
       const srv = https.createServer({
         key:  require('./ssl-pem').key,
         cert: require('./ssl-pem').cert,
-      }, express) // XXX: is express must exist here? try to get rid it later. 2016/6/11
+      }, expressApp) // XXX: is express must exist here? try to get rid it later. 2016/6/11
 
       srv.listen(this.port, err => {
         if (err) {
