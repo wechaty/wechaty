@@ -1,7 +1,7 @@
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import Contact          from './contact'
 import {
   Message,
   MediaMessage,
+  MsgRawObj,
 }                       from './message'
 import Room             from './room'
 
@@ -54,6 +55,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract self(): Contact
 
   public abstract send(message: Message | MediaMessage): Promise<boolean>
+  public abstract forward(baseData: MsgRawObj, patchData: MsgRawObj): Promise<boolean>
   public abstract say(content: string): Promise<boolean>
 
   public abstract reset(reason?: string): void

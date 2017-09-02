@@ -1,7 +1,7 @@
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -41,10 +41,11 @@ test('WebDriver smoke testing', async t => {
     pids = await browser.getBrowserPidList()
     t.truthy(pids.length > 0, 'should exist browser process after get()')
 
+    await browser.driver.close()
     await browser.driver.quit()
 
     pids = await browser.getBrowserPidList()
-    t.is(pids.length, 0, 'should exist browser process after get()')
+    t.is(pids.length, 0, 'should not exist browser process after quit()')
   } catch (e) {
     t.fail(e && e.message || e)
   }

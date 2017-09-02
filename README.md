@@ -161,6 +161,8 @@ In order to sync the doc with the lastest code, it's best to use [jsdoc](http://
 
 ## API Reference
 
+TODO: change links to jsdoc version: [API Document](docs/index.md)
+
 ### [Wechaty Events](https://github.com/chatie/wechaty/wiki/API#event)
 
 1. [scan](https://github.com/chatie/wechaty/wiki/API#1-event-scan) Emit when the bot needs to show you a QR Code for scanning
@@ -287,9 +289,11 @@ You can directly submit pull requests for documentation changes.
 * [mukaiu](https://github.com/mukaiu)
 * [xinbenlv](https://github.com/xinbenlv)
 
-## Join Wechaty Developers' Community
+See more at <https://github.com/Chatie/wechaty/graphs/contributors>
 
-Wechaty is used in many ChatBot projects by hundreds of developers. If you want to talk with other developers, just scan the following QR Code in WeChat with secret code _wechaty_, you can join our **Wechaty Developers' Home** at once.
+## JOIN US
+
+Wechaty is used in many ChatBot projects by hundreds of developers. If you want to talk with other developers, just scan the following QR Code in WeChat with secret code _wechaty_, join our **Wechaty Developers' Home** now.
 
 ![Wechaty Developers' Home](https://raw.githubusercontent.com/chatie/wechaty/master/image/BotQrcode.png)
 

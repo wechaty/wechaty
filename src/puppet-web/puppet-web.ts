@@ -1,7 +1,7 @@
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import Contact        from '../contact'
 import {
   Message,
   MediaMessage,
+  MsgRawObj,
  }                    from '../message'
 import {
   Puppet,
@@ -51,9 +52,9 @@ import * as bl from 'bl'
 type MediaType = 'pic' | 'video' | 'doc'
 
 const enum UploadMediaType {
-  IMAGE = 1,
-  VIDEO = 2,
-  AUDIO = 3,
+  IMAGE      = 1,
+  VIDEO      = 2,
+  AUDIO      = 3,
   ATTACHMENT = 4,
 }
 export interface PuppetWebSetting {
@@ -109,6 +110,8 @@ export class PuppetWeb extends Puppet {
       try {
         this.bridge = await this.initBridge()
       } catch (e) {
+        log.verbose('PuppetWeb', 'init() this.initBridge() exception: %s', e.message)
+
         const blockedMessage = await this.bridge.blockedMessageBody()
                             || await this.bridge.blockedMessageAlert()
         if (blockedMessage) {
@@ -190,26 +193,38 @@ export class PuppetWeb extends Puppet {
           reject(e)
         }, 120 * 1000)
 
-        await this.bridge.quit()
-                        .catch(e => { // fail safe
-                          log.warn('PuppetWeb', 'quit() bridge.quit() exception: %s', e.message)
-                          Raven.captureException(e)
-                        })
-        log.verbose('PuppetWeb', 'quit() bridge.quit() done')
+        if (this.bridge) {
+          await this.bridge.quit()
+                          .catch(e => { // fail safe
+                            log.warn('PuppetWeb', 'quit() bridge.quit() exception: %s', e.message)
+                            Raven.captureException(e)
+                          })
+          log.verbose('PuppetWeb', 'quit() bridge.quit() done')
+        } else {
+          log.warn('PuppetWeb', 'quit() no this.bridge')
+        }
 
-        await this.server.quit()
-                        .catch(e => { // fail safe
-                          log.warn('PuppetWeb', 'quit() server.quit() exception: %s', e.message)
-                          Raven.captureException(e)
-                        })
-        log.verbose('PuppetWeb', 'quit() server.quit() done')
+        if (this.server) {
+          await this.server.quit()
+                          .catch(e => { // fail safe
+                            log.warn('PuppetWeb', 'quit() server.quit() exception: %s', e.message)
+                            Raven.captureException(e)
+                          })
+          log.verbose('PuppetWeb', 'quit() server.quit() done')
+        } else {
+          log.warn('PuppetWeb', 'quit() no this.server')
+        }
 
-        await this.browser.quit()
-                  .catch(e => { // fail safe
-                    log.warn('PuppetWeb', 'quit() browser.quit() exception: %s', e.message)
-                    Raven.captureException(e)
-                  })
-        log.verbose('PuppetWeb', 'quit() browser.quit() done')
+        if (this.browser) {
+          await this.browser.quit()
+                    .catch(e => { // fail safe
+                      log.warn('PuppetWeb', 'quit() browser.quit() exception: %s', e.message)
+                      Raven.captureException(e)
+                    })
+          log.verbose('PuppetWeb', 'quit() browser.quit() done')
+        } else {
+          log.warn('PuppetWeb', 'quit() no this.browser')
+        }
 
         clearTimeout(timer)
         resolve()
@@ -454,7 +469,7 @@ export class PuppetWeb extends Puppet {
       },
     }
 
-    const mediaId = await new Promise((resolve, reject) => {
+    const mediaId = await new Promise<string>((resolve, reject) => {
       request.post({
         url: uploadMediaUrl + '?f=json',
         headers: {
@@ -463,16 +478,21 @@ export class PuppetWeb extends Puppet {
         },
         formData,
       }, function (err, res, body) {
-        if (err) reject(err)
-        else {
+        if (err) {
+          return reject(err)
+        }
+        try {
           const obj = JSON.parse(body)
-          resolve(obj.MediaId)
+          return resolve(obj.MediaId)
+        } catch (e) {
+          return reject(e)
         }
       })
     })
-    if (!mediaId)
+    if (!mediaId) {
       throw new Error('upload fail')
-    return Object.assign(mediaData, { MediaId: mediaId as string})
+    }
+    return Object.assign(mediaData, { MediaId: mediaId })
   }
 
   public async sendMedia(message: MediaMessage): Promise<boolean> {
@@ -504,6 +524,26 @@ export class PuppetWeb extends Puppet {
       log.error('PuppetWeb', 'send() exception: %s', e.message)
       Raven.captureException(e)
       return false
+    }
+    return ret
+  }
+
+  public async forward(baseData: MsgRawObj, patchData: MsgRawObj): Promise<boolean> {
+
+    log.silly('PuppetWeb', 'forward() destination: %s, content: %s)',
+      patchData.ToUserName,
+      patchData.MMActualContent,
+    )
+    let ret = false
+    try {
+      // log.info('PuppetWeb', `forward() baseData: ${JSON.stringify(baseData)}\n`)
+      // log.info('PuppetWeb', `forward() patchData: ${JSON.stringify(patchData)}\n`)
+
+      ret = await this.bridge.forward(baseData, patchData)
+    } catch (e) {
+      log.error('PuppetWeb', 'forward() exception: %s', e.message)
+      Raven.captureException(e)
+      throw e
     }
     return ret
   }

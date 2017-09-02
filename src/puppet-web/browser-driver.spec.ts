@@ -1,7 +1,7 @@
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -18,31 +18,48 @@
  */
 import { test }       from 'ava'
 
-import config         from '../config'
-
 import {
-  BrowserDriver,
-}                     from './browser-driver'
+  config,
+  log,
+}                     from '../config'
+
+import BrowserDriver  from './browser-driver'
 
 test('BrowserDriver smoke testing', async t => {
-  try {
-    const browserDriver = new BrowserDriver(config.head)
-    t.truthy(browserDriver, 'BrowserDriver instnace')
+  let err: Error | null = new Error('not run')
+  let ttl = 3
 
-    await browserDriver.init()
+  while (err && ttl--) {
+    try {
+      const browserDriver = new BrowserDriver(config.head)
+      t.truthy(browserDriver, 'BrowserDriver instnace')
 
-    const driver = browserDriver.getWebDriver() // for help function `execute`
-    t.truthy(driver, 'should get webdriver instance')
+      await browserDriver.init()
 
-    await driver.get('https://wx.qq.com/')
-    t.pass('should open wx.qq.com')
+      const driver = browserDriver.getWebDriver()
+      t.truthy(driver, 'should get webdriver instance')
 
-    const retAdd = await driver.executeScript<number>('return 1 + 1')
-    t.is(retAdd, 2, 'should return 2 for execute 1+1 in browser')
+      await driver.get('https://mp.weixin.qq.com/')
+      t.pass('should open mp.weixin.qq.com')
 
-    await browserDriver.quit()
+      const retAdd = await driver.executeScript<number>('return 1 + 1')
+      t.is(retAdd, 2, 'should return 2 for execute 1+1 in browser')
 
-  } catch (e) {
-    t.fail(e && e.message || e)
+      await browserDriver.close().catch(()  => { /* fail safe */ })
+      await browserDriver.quit().catch(()   => { /* fail safe */ })
+
+      err = null
+
+    } catch (e) {
+      err = e
+      log.error('TestPuppetWebBrowserDriver', 'ttl %d, exception: %s',
+                                              ttl,
+                                              e && e.message || e,
+                )
+    }
+  }
+
+  if (err && ttl <= 0) {
+    t.fail('ttl timeout: ' + (err && err.message || err))
   }
 })

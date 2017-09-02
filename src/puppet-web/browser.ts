@@ -1,7 +1,7 @@
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -501,6 +501,11 @@ export class Browser extends EventEmitter {
     log.verbose('PuppetWebBrowser', 'clickSwitchAccount()')
 
     try {
+      // TODO
+      // Promise.race([
+      //   english
+      //   chinese
+      // ])
       const button = await this.driver.driver.findElement(By.linkText('Switch Account'))
       button.click()
       log.silly('PuppetWebBrowser', 'clickSwitchAccount() clicked!')

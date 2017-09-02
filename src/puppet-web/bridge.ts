@@ -1,7 +1,7 @@
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -21,11 +21,10 @@ import { parseString }  from 'xml2js'
 /* tslint:disable:no-var-requires */
 const retryPromise  = require('retry-promise').default
 
-import { log }    from '../config'
+import { log }        from '../config'
 
-import {
-  PuppetWeb,
-}                 from './puppet-web'
+import PuppetWeb      from './puppet-web'
+import { MsgRawObj }  from '../message'
 
 export interface MediaData {
   ToUserName: string,
@@ -420,6 +419,20 @@ export class Bridge {
     return this.proxyWechaty('sendMedia', mediaData)
               .catch(e => {
                 log.error('PuppetWebBridge', 'sendMedia() exception: %s', e.message)
+                throw e
+              })
+  }
+
+  public forward(baseData: MsgRawObj, patchData: MsgRawObj): Promise<boolean> {
+    if (!baseData.ToUserName) {
+      throw new Error('UserName not found')
+    }
+    if (!patchData.MMActualContent && !patchData.MMSendContent && !patchData.Content) {
+      throw new Error('cannot say nothing')
+    }
+    return this.proxyWechaty('forward', baseData, patchData)
+              .catch(e => {
+                log.error('PuppetWebBridge', 'forward() exception: %s', e.message)
                 throw e
               })
   }

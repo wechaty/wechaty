@@ -1,7 +1,7 @@
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  *
+ *   @ignore
  */
 import { EventEmitter } from 'events'
 
@@ -76,14 +77,10 @@ export interface MemberQueryFilter {
 }
 
 /**
+ * All wechat rooms(groups) will be encapsulated as a Room.
  *
- * wechaty: Wechat for Bot. and for human who talk to bot/robot
- *
- * Licenst: Apache-2.0
- * https://github.com/chatie/wechaty
- *
- * Add/Del/Topic: https://github.com/chatie/wechaty/issues/32
- *
+ * `Room` is `Sayable`,
+ * [Example/Room-Bot]{@link https://github.com/Chatie/wechaty/blob/master/example/room-bot.ts}
  */
 export class Room extends EventEmitter implements Sayable {
   private static pool = new Map<string, Room>()
@@ -104,14 +101,23 @@ export class Room extends EventEmitter implements Sayable {
    * @private
    */
   public toString()    { return this.id }
+
+  /**
+   * @private
+   */
   public toStringEx()  { return `Room(${this.obj && this.obj.topic}[${this.id}])` }
 
+  /**
+   * @private
+   */
   public isReady(): boolean {
     return !!(this.obj && this.obj.memberList && this.obj.memberList.length)
   }
 
   /**
-   * @todo document me
+   * Force reload data for Room
+   *
+   * @returns {Promise<void>}
    */
   public async refresh(): Promise<void> {
     if (this.isReady()) {
@@ -122,6 +128,9 @@ export class Room extends EventEmitter implements Sayable {
     return
   }
 
+  /**
+   * @private
+   */
   private async readyAllMembers(memberList: RoomRawMember[]): Promise<void> {
     for (const member of memberList) {
       const contact = Contact.load(member.UserName)
@@ -130,6 +139,9 @@ export class Room extends EventEmitter implements Sayable {
     return
   }
 
+  /**
+   * @private
+   */
   public async ready(contactGetter?: (id: string) => Promise<any>): Promise<Room> {
     log.silly('Room', 'ready(%s)', contactGetter ? contactGetter.constructor.name : '')
     if (!this.id) {
@@ -170,24 +182,63 @@ export class Room extends EventEmitter implements Sayable {
     }
   }
 
-  /**
-   * @todo document me
-   */
   public on(event: 'leave', listener: (this: Room, leaver: Contact) => void): this
-  /**
-   * @todo document me
-   */
+
   public on(event: 'join' , listener: (this: Room, inviteeList: Contact[] , inviter: Contact)  => void): this
-  /**
-   * @todo document me
-   */
+
   public on(event: 'topic', listener: (this: Room, topic: string, oldTopic: string, changer: Contact) => void): this
-  /**
-   * @todo document me
-   */
+
   public on(event: 'EVENT_PARAM_ERROR', listener: () => void): this
+
+   /**
+    * @desc       Room Class Event Type
+    * @typedef    RoomEventName
+    * @property   {string}  join  - Emit when anyone join any room.
+    * @property   {string}  topic - Get topic event, emitted when someone change room topic.
+    * @property   {string}  leave - Emit when anyone leave the room.<br>
+    *                               If someone leaves the room by themselves, wechat will not notice other people in the room, so the bot will never get the "leave" event.
+    */
+
   /**
-   * @todo document me
+   * @desc       Room Class Event Function
+   * @typedef    RoomEventFunction
+   * @property   {Function} room-join       - (this: Room, inviteeList: Contact[] , inviter: Contact)  => void
+   * @property   {Function} room-topic      - (this: Room, topic: string, oldTopic: string, changer: Contact) => void
+   * @property   {Function} room-leave      - (this: Room, leaver: Contact) => void
+   */
+
+  /**
+   * @listens Room
+   * @param   {RoomEventName}      event      - Emit WechatyEvent
+   * @param   {RoomEventFunction}  listener   - Depends on the WechatyEvent
+   * @return  {this}                          - this for chain
+   *
+   * @example <caption>Event:join </caption>
+   * const room = await Room.find({topic: 'event-room'}) // change `event-room` to any room topic in your wechat
+   * if (room) {
+   *   room.on('join', (room: Room, inviteeList: Contact[], inviter: Contact) => {
+   *     const nameList = inviteeList.map(c => c.name()).join(',')
+   *     console.log(`Room ${room.topic()} got new member ${nameList}, invited by ${inviter}`)
+   *   })
+   * }
+   *
+   * @example <caption>Event:leave </caption>
+   * const room = await Room.find({topic: 'event-room'}) // change `event-room` to any room topic in your wechat
+   * if (room) {
+   *   room.on('leave', (room: Room, leaverList: Contact[]) => {
+   *     const nameList = leaverList.map(c => c.name()).join(',')
+   *     console.log(`Room ${room.topic()} lost member ${nameList}`)
+   *   })
+   * }
+   *
+   * @example <caption>Event:topic </caption>
+   * const room = await Room.find({topic: 'event-room'}) // change `event-room` to any room topic in your wechat
+   * if (room) {
+   *   room.on('topic', (room: Room, topic: string, oldTopic: string, changer: Contact) => {
+   *     console.log(`Room ${room.topic()} topic changed from ${oldTopic} to ${topic} by ${changer.name()}`)
+   *   })
+   * }
+   *
    */
   public on(event: RoomEventName, listener: (...args: any[]) => any): this {
     log.verbose('Room', 'on(%s, %s)', event, typeof listener)
@@ -196,14 +247,35 @@ export class Room extends EventEmitter implements Sayable {
     return this
   }
 
-  /**
-   * @todo document me
-   */
   public say(mediaMessage: MediaMessage)
+
   public say(content: string)
+
   public say(content: string, replyTo: Contact)
+
   public say(content: string, replyTo: Contact[])
 
+  /**
+   * Send message inside Room, if set [replyTo], wechaty will mention the contact as well.
+   *
+   * @param {(string | MediaMessage)} textOrMedia - Send `text` or `media file` inside Room.
+   * @param {(Contact | Contact[])} [replyTo] - Optional parameter, send content inside Room, and mention @replyTo contact or contactList.
+   * @returns {Promise<boolean>}
+   * If bot send message successfully, it will return true. If the bot failed to send for blocking or any other reason, it will return false
+   *
+   * @example <caption>Send text inside Room</caption>
+   * const room = await Room.find({name: 'wechaty'})        // change 'wechaty' to any of your room in wechat
+   * await room.say('Hello world!')
+   *
+   * @example <caption>Send media file inside Room</caption>
+   * const room = await Room.find({name: 'wechaty'})        // change 'wechaty' to any of your room in wechat
+   * await room.say(new MediaMessage('/test.jpg'))          // put the filePath you want to send here
+   *
+   * @example <caption>Send text inside Room, and mention @replyTo contact</caption>
+   * const contact = await Contact.find({name: 'lijiarui'}) // change 'lijiarui' to any of the room member
+   * const room = await Room.find({name: 'wechaty'})        // change 'wechaty' to any of your room in wechat
+   * await room.say('Hello world!', contact)
+   */
   public say(textOrMedia: string | MediaMessage, replyTo?: Contact|Contact[]): Promise<boolean> {
     const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
     log.verbose('Room', 'say(%s, %s)',
@@ -236,6 +308,9 @@ export class Room extends EventEmitter implements Sayable {
                   .send(m)
   }
 
+  /**
+   * @private
+   */
   public get(prop): string { return (this.obj && this.obj[prop]) || (this.dirtyObj && this.dirtyObj[prop]) }
 
   /**
@@ -266,6 +341,9 @@ export class Room extends EventEmitter implements Sayable {
     }
   }
 
+  /**
+   * @private
+   */
   private parseMap(parseContent: NameType, memberList?: RoomRawMember[]): Map<string, string> {
     const mapList: Map<string, string> = new Map<string, string>()
     if (memberList && memberList.map) {
@@ -298,17 +376,41 @@ export class Room extends EventEmitter implements Sayable {
     return mapList
   }
 
+  /**
+   * @private
+   */
   public dumpRaw() {
     console.error('======= dump raw Room =======')
     Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj[k]}`))
   }
+
+  /**
+   * @private
+   */
   public dump() {
     console.error('======= dump Room =======')
+    if (!this.obj) {
+      throw new Error('no this.obj')
+    }
     Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj && this.obj[k]}`))
   }
 
   /**
-   * @todo document me
+   * Add contact in a room
+   *
+   * @param {Contact} contact
+   * @returns {Promise<number>}
+   * @example
+   * const contact = await Contact.find({name: 'lijiarui'}) // change 'lijiarui' to any contact in your wechat
+   * const room = await Room.find({topic: 'wechat'})        // change 'wechat' to any room topic in your wechat
+   * if (room) {
+   *   const result = await room.add(contact)
+   *   if (result) {
+   *     console.log(`add ${contact.name()} to ${room.topic()} successfully! `)
+   *   } else{
+   *     console.log(`failed to add ${contact.name()} to ${room.topic()}! `)
+   *   }
+   * }
    */
   public async add(contact: Contact): Promise<number> {
     log.verbose('Room', 'add(%s)', contact)
@@ -323,7 +425,21 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * @todo document me
+   * Delete a contact from the room
+   * It works only when the bot is the owner of the room
+   * @param {Contact} contact
+   * @returns {Promise<number>}
+   * @example
+   * const room = await Room.find({topic: 'wechat'})          // change 'wechat' to any room topic in your wechat
+   * const contact = await Contact.find({name: 'lijiarui'})   // change 'lijiarui' to any room member in the room you just set
+   * if (room) {
+   *   const result = await room.del(contact)
+   *   if (result) {
+   *     console.log(`remove ${contact.name()} from ${room.topic()} successfully! `)
+   *   } else{
+   *     console.log(`failed to remove ${contact.name()} from ${room.topic()}! `)
+   *   }
+   * }
    */
   public async del(contact: Contact): Promise<number> {
     log.verbose('Room', 'del(%s)', contact.name())
@@ -338,7 +454,7 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * @todo document me
+   * @private
    */
   private delLocal(contact: Contact): number {
     log.verbose('Room', 'delLocal(%s)', contact)
@@ -361,20 +477,47 @@ export class Room extends EventEmitter implements Sayable {
     return 0
   }
 
+  /**
+   * @private
+   */
   public quit() {
     throw new Error('wx web not implement yet')
     // WechatyBro.glue.chatroomFactory.quit("@@1c066dfcab4ef467cd0a8da8bec90880035aa46526c44f504a83172a9086a5f7"
   }
 
-  /**
-   * get topic
-   */
   public topic(): string
-  /**
-   * set topic
-   */
+
   public topic(newTopic: string): void
 
+  /**
+   * SET/GET topic from the room
+   *
+   * @param {string} [newTopic] If set this para, it will change room topic.
+   * @returns {(string | void)}
+   *
+   * @example <caption>When you say anything in a room, it will get room topic. </caption>
+   * const bot = Wechaty.instance()
+   * bot
+   * .on('message', async m => {
+   *   const room = m.room()
+   *   if (room) {
+   *     const topic = room.topic()
+   *     console.log(`room topic is : ${topic}`)
+   *   }
+   * })
+   *
+   * @example <caption>When you say anything in a room, it will change room topic. </caption>
+   * const bot = Wechaty.instance()
+   * bot
+   * .on('message', async m => {
+   *   const room = m.room()
+   *   if (room) {
+   *     const oldTopic = room.topic()
+   *     room.topic('change topic to wechaty!')
+   *     console.log(`room topic change from ${oldTopic} to ${room.topic()}`)
+   *   }
+   * })
+   */
   public topic(newTopic?: string): string | void {
     if (!this.isReady()) {
       log.warn('Room', 'topic() room not ready')
@@ -401,7 +544,7 @@ export class Room extends EventEmitter implements Sayable {
 
   /**
    * should be deprecated
-   * @deprecated
+   * @private
    */
   public nick(contact: Contact): string | null {
     log.warn('Room', 'nick(Contact) DEPRECATED, use alias(Contact) instead.')
@@ -409,16 +552,29 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * return contact's roomAlias in the room, the same as roomAlias
+   * Return contact's roomAlias in the room, the same as roomAlias
    * @param {Contact} contact
-   * @returns {string | null} If a contact has an alias in room, return string, otherwise return null
+   * @returns {string | null} - If a contact has an alias in room, return string, otherwise return null
+   * @example
+   * const bot = Wechaty.instance()
+   * bot
+   * .on('message', async m => {
+   *   const room = m.room()
+   *   const contact = m.from()
+   *   if (room) {
+   *     const alias = room.alias(contact)
+   *     console.log(`${contact.name()} alias is ${alias}`)
+   *   }
+   * })
    */
   public alias(contact: Contact): string | null {
     return this.roomAlias(contact)
   }
 
   /**
-   * @todo document me
+   * Same as function alias
+   * @param {Contact} contact
+   * @returns {(string | null)}
    */
   public roomAlias(contact: Contact): string | null {
     if (!this.obj || !this.obj.roomAliasMap) {
@@ -428,7 +584,20 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * @todo document me
+   * Check if the room has member `contact`.
+   *
+   * @param {Contact} contact
+   * @returns {boolean} Return `true` if has contact, else return `false`.
+   * @example <caption>Check whether 'lijiarui' is in the room 'wechaty'</caption>
+   * const contact = await Contact.find({name: 'lijiarui'})   // change 'lijiarui' to any of contact in your wechat
+   * const room = await Room.find({topic: 'wechaty'})         // change 'wechaty' to any of the room in your wechat
+   * if (contact && room) {
+   *   if (room.has(contact)) {
+   *     console.log(`${contact.name()} is in the room ${room.topic()}!`)
+   *   } else {
+   *     console.log(`${contact.name()} is not in the room ${room.topic()} !`)
+   *   }
+   * }
    */
   public has(contact: Contact): boolean {
     if (!this.obj || !this.obj.memberList) {
@@ -440,7 +609,10 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * @todo document me
+   * @deprecated
+   * Get room's owner from the room.
+   * Not recommend, because cannot always get the owner
+   * @returns {(Contact | null)}
    */
   public owner(): Contact | null {
     const ownerUin = this.obj && this.obj.ownerUin
@@ -460,13 +632,32 @@ export class Room extends EventEmitter implements Sayable {
     return null
   }
 
-  /**
-   * find member by name | roomAlias(alias) | contactAlias
-   * when use memberAll(name:string), return all matched members, including name, roomAlias, contactAlias
-   */
   public memberAll(filter: MemberQueryFilter): Contact[]
+
   public memberAll(name: string): Contact[]
 
+  /**
+   * The way to search member by Room.member()
+   *
+   * @typedef    MemberQueryFilter
+   * @property   {string} name            -Find the contact by wechat name in a room, equal to `Contact.name()`.
+   * @property   {string} alias           -Find the contact by alias set by the bot for others in a room, equal to `roomAlias`.
+   * @property   {string} roomAlias       -Find the contact by alias set by the bot for others in a room.
+   * @property   {string} contactAlias    -Find the contact by alias set by the contact out of a room, equal to `Contact.alias()`.
+   * [More Detail]{@link https://github.com/Chatie/wechaty/issues/365}
+   */
+
+  /**
+   * Find all contacts in a room
+   *
+   * #### definition
+   * - `name`                 the name-string set by user-self, should be called name, equal to `Contact.name()`
+   * - `roomAlias` | `alias`  the name-string set by user-self in the room, should be called roomAlias
+   * - `contactAlias`         the name-string set by bot for others, should be called alias, equal to `Contact.alias()`
+   * @param {(MemberQueryFilter | string)} queryArg -When use memberAll(name:string), return all matched members, including name, roomAlias, contactAlias
+   * @returns {Contact[]}
+   * @memberof Room
+   */
   public memberAll(queryArg: MemberQueryFilter | string): Contact[] {
     if (typeof queryArg === 'string') {
       //
@@ -546,12 +737,38 @@ export class Room extends EventEmitter implements Sayable {
     }
   }
 
-  /**
-   * @todo document me
-   */
   public member(name: string): Contact | null
+
   public member(filter: MemberQueryFilter): Contact | null
 
+  /**
+   * Find all contacts in a room, if get many, return the first one.
+   *
+   * @param {(MemberQueryFilter | string)} queryArg -When use member(name:string), return all matched members, including name, roomAlias, contactAlias
+   * @returns {(Contact | null)}
+   *
+   * @example <caption>Find member by name</caption>
+   * const room = await Room.find({topic: 'wechaty'})           // change 'wechaty' to any room name in your wechat
+   * if (room) {
+   *   const member = room.member('lijiarui')                   // change 'lijiarui' to any room member in your wechat
+   *   if (member) {
+   *     console.log(`${room.topic()} got the member: ${member.name()}`)
+   *   } else {
+   *     console.log(`cannot get member in room: ${room.topic()}`)
+   *   }
+   * }
+   *
+   * @example <caption>Find member by MemberQueryFilter</caption>
+   * const room = await Room.find({topic: 'wechaty'})          // change 'wechaty' to any room name in your wechat
+   * if (room) {
+   *   const member = room.member({name: 'lijiarui'})          // change 'lijiarui' to any room member in your wechat
+   *   if (member) {
+   *     console.log(`${room.topic()} got the member: ${member.name()}`)
+   *   } else {
+   *     console.log(`cannot get member in room: ${room.topic()}`)
+   *   }
+   * }
+   */
   public member(queryArg: MemberQueryFilter | string): Contact | null {
     log.verbose('Room', 'member(%s)', JSON.stringify(queryArg))
 
@@ -575,7 +792,9 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * @todo document me
+   * Get all room member from the room
+   *
+   * @returns {Contact[]}
    */
   public memberList(): Contact[] {
     log.verbose('Room', 'memberList')
@@ -592,7 +811,21 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * @todo document me
+   * Create a new room.
+   *
+   * @static
+   * @param {Contact[]} contactList
+   * @param {string} [topic]
+   * @returns {Promise<Room>}
+   * @example <caption>Creat a room with 'lijiarui' and 'juxiaomi', the room topic is 'ding - created'</caption>
+   * const helperContactA = await Contact.find({ name: 'lijiarui' })  // change 'lijiarui' to any contact in your wechat
+   * const helperContactB = await Contact.find({ name: 'juxiaomi' })  // change 'juxiaomi' to any contact in your wechat
+   * const contactList = [helperContactA, helperContactB]
+   * console.log('Bot', 'contactList: %s', contactList.join(','))
+   * const room = await Room.create(contactList, 'ding')
+   * console.log('Bot', 'createDingRoom() new ding room created: %s', room)
+   * await room.topic('ding - created')
+   * await room.say('ding - created')
    */
   public static create(contactList: Contact[], topic?: string): Promise<Room> {
     log.verbose('Room', 'create(%s, %s)', contactList.join(','), topic)
@@ -611,7 +844,14 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * @todo document me
+   * Find room by topic, return all the matched room
+   *
+   * @static
+   * @param {RoomQueryFilter} [query]
+   * @returns {Promise<Room[]>}
+   * @example
+   * const roomList = await Room.findAll()                    // get the room list of the bot
+   * const roomList = await Room.findAll({name: 'wechaty'})   // find all of the rooms with name 'wechaty'
    */
   public static async findAll(query?: RoomQueryFilter): Promise<Room[]> {
     if (!query) {
@@ -653,7 +893,8 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * try to find a room by filter: {topic: string | RegExp}
+   * Try to find a room by filter: {topic: string | RegExp}. If get many, return the first one.
+   *
    * @param {RoomQueryFilter} query
    * @returns {Promise<Room | null>} If can find the room, return Room, or return null
    */
@@ -670,7 +911,7 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * @todo document me
+   * @private
    */
   public static load(id: string): Room {
     if (!id) {

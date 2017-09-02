@@ -1,7 +1,7 @@
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -141,6 +141,7 @@ test('Cookie save/load', async t => {
 
     await browser.addCookie(EXPECTED_COOKIE)
     const cookieFromBrowser = await browser.driver.manage().getCookie(EXPECTED_COOKIE.name)
+    t.truthy(cookieFromBrowser, 'should get cookie from browser')
     t.is(cookieFromBrowser.name, EXPECTED_COOKIE.name, 'cookie from getCookie() should be same as we just set')
 
     let cookiesFromCheck = await browser.readCookie()
