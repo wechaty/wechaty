@@ -15,12 +15,13 @@ install:
   - choco install jq
   # install modules
   - npm --progress=false install > nul 2>&1
-  - npm --progress=false install phantomjs-prebuilt > nul 2>&1
 
 # Post-install test scripts.
 test_script:
   - node --version
   - npm --version
+  # https://bugs.chromium.org/p/chromium/issues/detail?id=158372#c6
+  - wmic datafile where name="C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe" get Version /value
   - npm run lint
   - npm run dist
   - npm run test:chrome:fast

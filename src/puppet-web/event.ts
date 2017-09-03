@@ -1,7 +1,7 @@
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   Copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -240,6 +240,16 @@ function onServerLog(data) {
 async function onServerLogin(this: PuppetWeb, data, attempt = 0): Promise<void> {
   log.verbose('PuppetWebEvent', 'onServerLogin(%s, %d)', data, attempt)
 
+  // issue #772
+  // if `login` event fired before this.bridge inited, we delay the event for 1 second.
+  if (!this.bridge) {
+    log.verbose('PuppetWebEvent', 'onServerLogin() fired before bridge inited. delay for 1 second.')
+    setTimeout(() => {
+      onServerLogin.apply(this, arguments)
+    }, 1000)
+    return
+  }
+
   this.scan = null
 
   if (this.userId) {
@@ -248,6 +258,8 @@ async function onServerLogin(this: PuppetWeb, data, attempt = 0): Promise<void> 
   try {
     /**
      * save login user id to this.userId
+     *
+     * issue #772: this.bridge might not inited if the 'login' event fired too fast(because of auto login)
      */
     this.userId = await this.bridge.getUserName()
 
@@ -262,10 +274,18 @@ async function onServerLogin(this: PuppetWeb, data, attempt = 0): Promise<void> 
     await this.user.ready()
     log.silly('PuppetWebEvent', `onServerLogin() user ${this.user.name()} logined`)
 
-    await this.browser.saveCookie()
-                      .catch(e => { // fail safe
-                        log.verbose('PuppetWebEvent', 'onServerLogin() browser.saveSession() exception: %s', e.message)
-                      })
+    try {
+      await this.browser.saveCookie()
+    } catch (e) { // fail safe
+      log.verbose('PuppetWebEvent', 'onServerLogin() browser.saveSession() exception: %s', e.message)
+    }
+
+    // fix issue #668
+    try {
+      await this.readyStable()
+    } catch (e) { // fail safe
+      log.warn('PuppetWebEvent', 'readyStable() exception: %s', e && e.message || e)
+    }
 
     this.emit('login', this.user)
 
