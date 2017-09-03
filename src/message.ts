@@ -564,6 +564,7 @@ export class Message implements Sayable {
   /**
    * Get the type from the message.
    *
+   * If type is equal to `MsgType.RECALLED`, {@link Message#id} is the msgId of the recalled message.
    * @see {@link MsgType}
    * @returns {MsgType}
    */
