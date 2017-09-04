@@ -808,20 +808,23 @@ export class PuppetWeb extends Puppet {
         return resolve()
       }
       counter = contactList.length
-      setTimeout(() => stable(resolve), 300)
+      setTimeout(() => stable(resolve), 1000)
         .unref()
     }
 
     return new Promise<void>((resolve, reject) => {
-      setTimeout(
-        () => {
-          log.warn('PuppetWeb', 'readyStable() stable() reject at counter=%d', counter)
-          return reject(new Error('timeout after 60 seconds'))
-        },
-        60 * 1000,
-      ).unref() // wait for 1 min
+      const timer = setTimeout(() => {
+        log.warn('PuppetWeb', 'readyStable() stable() reject at counter=%d', counter)
+        return reject(new Error('timeout after 60 seconds'))
+      }, 60 * 1000)
+      timer.unref()
 
-      setTimeout(() => stable(resolve), 1 * 1000)
+      const myResolve = () => {
+        clearTimeout(timer)
+        resolve()
+      }
+
+      setTimeout(() => stable(myResolve), 1000)
     })
 
   }
