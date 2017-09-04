@@ -144,7 +144,6 @@ export interface MsgRawObj {
   MsgIdBeforeTranspond?: string,  // oldMsg.MsgIdBeforeTranspond || oldMsg.MsgId,
   isTranspond?: boolean,
   MMSourceMsgId?: string,
-  sendByLocal?: boolean, // If transpond file, it must is false, not need to upload. And, can't to call createMessage(), it set to true
   MMSendContent?: string,
 
   MMIsChatRoom?: boolean,
@@ -1215,12 +1214,15 @@ export class MediaMessage extends Message {
     let m = Object.assign({}, this.rawObj)
     const newMsg = <MsgRawObj>{}
     // const fileSizeLimit = 25 * 1024 * 1024
-    const fileSizeLimit = 5 * 1024 * 1024
+    // debug
+    const fileSizeLimit = 2 * 1024 * 1024
     let ret = false
     // if you know roomId or userId, you can use `Room.load(roomId)` or `Contact.load(userId)`
     let sendToList: Contact[] = [].concat(sendTo as any || [])
     sendToList = sendToList.filter(s => {
       if ((s instanceof Room || s instanceof Contact) && s.id) {
+        // debug
+        log.silly('MediaMessage', `forward() sendTo: ${s.id}`)
         return true
       }
       return false
@@ -1246,7 +1248,9 @@ export class MediaMessage extends Message {
         for (let i = 0; i < sendToList.length; i++) {
           // all call success return true
           // TODO: PuppetWeb uploaded files can't be reused
+          log.silly('MediaMessage', `forward() call say[${i}], id: ${sendToList[i].id} , msg.rawObj: ${JSON.stringify(msg.rawObj)}`)
           ret = (i === 0 ? true : ret) && await sendToList[i].say(msg)
+          log.silly('MediaMessage', `forward() call say[${i}] done, msg.rawObj: ${JSON.stringify(msg.rawObj)}`)
         }
         log.silly('MediaMessage', `forward() send file done`)
 
@@ -1268,7 +1272,7 @@ export class MediaMessage extends Message {
 
     // The following parameters need to be overridden after calling createMessage()
 
-    newMsg.sendByLocal = false
+    // newMsg.sendByLocal = false
     // newMsg.MMActualSender = config.puppetInstance().userId || ''
     // if (m.MMSendContent) {
     //   newMsg.MMSendContent = m.MMSendContent.replace(/^@\w+:\s/, '')

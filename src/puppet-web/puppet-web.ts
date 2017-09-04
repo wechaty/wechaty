@@ -57,6 +57,7 @@ const enum UploadMediaType {
   AUDIO      = 3,
   ATTACHMENT = 4,
 }
+
 export interface PuppetWebSetting {
   head?:    HeadName,
   profile?: string,
@@ -469,9 +470,8 @@ export class PuppetWeb extends Puppet {
       FileName:   filename,
       FileSize:   size,
       FileMd5:    md5,
-      MMFileId:   id,
       MMFileExt:  ext,
-      Signature:  '',
+      // Signature:  '',
     }
 
     // If file size > 25M, must first call checkUpload to get Signature and AESKey, otherwise it will fail to upload
@@ -515,6 +515,9 @@ export class PuppetWeb extends Puppet {
       uploadMediaRequest.Signature = ret.Signature
       uploadMediaRequest.AESKey    = ret.AESKey
       mediaData.Signature          = ret.Signature
+    } else {
+      delete uploadMediaRequest.Signature
+      delete uploadMediaRequest.AESKey
     }
 
     log.verbose('PuppetWeb', 'uploadMedia() webwx_data_ticket: %s', webwxDataTicket)
@@ -563,6 +566,7 @@ export class PuppetWeb extends Puppet {
     log.silly('PuppetWeb', 'uploadMedia() uploaded!\nformData: %s\nmediaData:%s', JSON.stringify(formData), JSON.stringify(mediaData))
     if (!mediaId) {
       log.error('PuppetWeb', 'uploadMedia(): upload fail')
+      log.silly('PuppetWeb', 'uploadMedia(): fail, formData: %s', JSON.stringify(formData))
       throw new Error('PuppetWeb.uploadMedia(): upload fail')
     }
     return Object.assign(mediaData, { MediaId: mediaId as string })
@@ -586,26 +590,35 @@ export class PuppetWeb extends Puppet {
     let mediaData: MediaData
     const data = message.rawObj as MsgRawObj
     if (!data.MediaId) {
+      // debug
       log.silly('PuppetWeb', '现在将进行上传文件, rawObj:%s', JSON.stringify(data))
-      mediaData = await this.uploadMedia(message, destinationId)
+      try {
+        mediaData = await this.uploadMedia(message, destinationId)
+        message.rawObj = <MsgRawObj> Object.assign(data, mediaData)
+        // debug
+        log.silly('PuppetWeb', 'uploaded done, new rawObj:%s', JSON.stringify(message.rawObj))
+      } catch (e) {
+        log.error('PuppetWeb', 'sendMedia() exception: %s', e.message)
+        return false
+      }
     } else {
       mediaData = {
-        ToUserName: data.ToUserName,
+        ToUserName: destinationId,
         MediaId: data.MediaId,
         MsgType: data.MsgType,
         FileName: data.FileName,
         FileSize: data.FileSize,
         MMFileExt: data.MMFileExt,
-        // can be remove MMFileId
-        // MMFileId: data.MMFileId
       }
       if (data.Signature) {
         mediaData.Signature = data.Signature
       }
       // fix display '取消' buttom
-      mediaData.sendByLocal = false
     }
+    // mediaData.ToUserName = destinationId
     mediaData.MsgType = UtilLib.msgType(message.ext())
+    // debug
+    log.silly('PuppetWeb', 'before call bride.sendMedia(), mediaData:%s', JSON.stringify(mediaData))
 
     log.silly('PuppetWeb', 'sendMedia() destination: %s, mediaId: %s)',
       destinationId,

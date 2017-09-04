@@ -33,11 +33,9 @@ export interface MediaData {
   FileName:   string,
   FileSize:   number,
   FileMd5?:   string,
-  MMFileId?:   string,
-  MMFileExt:  string,
+  FileType?:  number,
+  MMFileExt?: string,
   Signature?: string,
-  sendByLocal?: boolean
-
 }
 
 export class Bridge {
