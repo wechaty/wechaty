@@ -58,7 +58,6 @@ export type WechatyEventName = 'error'
                               | 'room-leave'
                               | 'room-topic'
                               | 'scan'
-                              | 'EVENT_PARAM_ERROR'
 
 /**
  * Main bot class.
@@ -230,27 +229,19 @@ export class Wechaty extends EventEmitter implements Sayable {
     return
   }
 
-  public on(event: 'error'      , listener: (this: Wechaty, error: Error) => void): this
-
-  public on(event: 'friend'     , listener: (this: Wechaty, friend: Contact, request?: FriendRequest) => void): this
-
-  public on(event: 'heartbeat'  , listener: (this: Wechaty, data: any) => void): this
-
-  public on(event: 'logout'     , listener: (this: Wechaty, user: Contact) => void): this
-
-  public on(event: 'login'      , listener: (this: Wechaty, user: Contact) => void): this
-
-  public on(event: 'message'    , listener: (this: Wechaty, message: Message) => void): this
-
-  public on(event: 'room-join'  , listener: (this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void): this
-
-  public on(event: 'room-leave' , listener: (this: Wechaty, room: Room, leaverList: Contact[]) => void): this
-
+  public on(event: 'error'      , listener: (this: Wechaty, error: Error) => void):                                                  this
+  public on(event: 'friend'     , listener: (this: Wechaty, friend: Contact, request?: FriendRequest) => void):                      this
+  public on(event: 'heartbeat'  , listener: (this: Wechaty, data: any) => void):                                                     this
+  public on(event: 'logout'     , listener: (this: Wechaty, user: Contact) => void):                                                 this
+  public on(event: 'login'      , listener: (this: Wechaty, user: Contact) => void):                                                 this
+  public on(event: 'message'    , listener: (this: Wechaty, message: Message) => void):                                              this
+  public on(event: 'room-join'  , listener: (this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void):         this
+  public on(event: 'room-leave' , listener: (this: Wechaty, room: Room, leaverList: Contact[]) => void):                             this
   public on(event: 'room-topic' , listener: (this: Wechaty, room: Room, topic: string, oldTopic: string, changer: Contact) => void): this
+  public on(event: 'scan'       , listener: (this: Wechaty, url: string, code: number) => void):                                     this
 
-  public on(event: 'scan'       , listener: (this: Wechaty, url: string, code: number) => void): this
-
-  public on(event: 'EVENT_PARAM_ERROR', listener: () => void): this
+  // guard for the above event: make sure it includes all the possible values
+  public on(event: never,         listener: any): this
 
   /**
    * @desc       Wechaty Class Event Type
@@ -354,21 +345,7 @@ export class Wechaty extends EventEmitter implements Sayable {
    */
   public on(event: WechatyEventName, listener: (...args: any[]) => any): this {
     log.verbose('Wechaty', 'addListener(%s, %s)', event, typeof listener)
-
-    // const thisWithSay: Sayable = {
-    //   say: (content: string) => {
-    //     return Config.puppetInstance()
-    //                   .say(content)
-    //   }
-    // }
-
     super.on(event, listener) // `this: Wechaty` is Sayable
-
-    // (...args) => {
-    //
-    //   return listener.apply(this, args)
-    // })
-
     return this
   }
 
@@ -453,12 +430,13 @@ export class Wechaty extends EventEmitter implements Sayable {
     this.puppet     = null
     config.puppetInstance(null)
 
-    await puppetBeforeDie.quit()
-                        .catch(e => {
-                          log.error('Wechaty', 'quit() exception: %s', e.message)
-                          Raven.captureException(e)
-                          throw e
-                        })
+    try {
+      await puppetBeforeDie.quit()
+    } catch (e) {
+      log.error('Wechaty', 'quit() exception: %s', e.message)
+      Raven.captureException(e)
+      throw e
+    }
     this.state.current('standby')
     return
   }
@@ -474,12 +452,13 @@ export class Wechaty extends EventEmitter implements Sayable {
     if (!this.puppet) {
       throw new Error('no puppet')
     }
-    await this.puppet.logout()
-                    .catch(e => {
-                      log.error('Wechaty', 'logout() exception: %s', e.message)
-                      Raven.captureException(e)
-                      throw e
-                    })
+    try {
+      await this.puppet.logout()
+    } catch (e) {
+      log.error('Wechaty', 'logout() exception: %s', e.message)
+      Raven.captureException(e)
+      throw e
+    }
     return
   }
 
@@ -505,12 +484,13 @@ export class Wechaty extends EventEmitter implements Sayable {
     if (!this.puppet) {
       throw new Error('no puppet')
     }
-    return await this.puppet.send(message)
-                            .catch(e => {
-                              log.error('Wechaty', 'send() exception: %s', e.message)
-                              Raven.captureException(e)
-                              throw e
-                            })
+    try {
+      return await this.puppet.send(message)
+    } catch (e) {
+      log.error('Wechaty', 'send() exception: %s', e.message)
+      Raven.captureException(e)
+      throw e
+    }
   }
 
   /**
@@ -540,17 +520,18 @@ export class Wechaty extends EventEmitter implements Sayable {
   /**
    * @private
    */
-  public ding() {
+  public async ding(): Promise<string> {
     if (!this.puppet) {
       return Promise.reject(new Error('wechaty cant ding coz no puppet'))
     }
 
-    return this.puppet.ding() // should return 'dong'
-                      .catch(e => {
-                        log.error('Wechaty', 'ding() exception: %s', e.message)
-                        Raven.captureException(e)
-                        throw e
-                      })
+    try {
+      return await this.puppet.ding() // should return 'dong'
+    } catch (e) {
+      log.error('Wechaty', 'ding() exception: %s', e.message)
+      Raven.captureException(e)
+      throw e
+    }
   }
 }
 
