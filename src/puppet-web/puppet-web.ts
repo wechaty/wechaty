@@ -449,6 +449,9 @@ export class PuppetWeb extends Puppet {
       MMFileExt: ext,
     }
 
+    log.verbose('PuppetWeb', 'uploadMedia() webwx_data_ticket: %s', webwxDataTicket)
+    log.verbose('PuppetWeb', 'uploadMedia() pass_ticket: %s', passTicket)
+
     const formData = {
       id,
       name: filename,
