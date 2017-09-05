@@ -1093,7 +1093,7 @@ export class MediaMessage extends Message {
   // }
 
   /**
-   * @private
+   * Get the read stream for attachment file
    */
   public async readyStream(): Promise<Readable> {
     if (this.filePath)
@@ -1106,6 +1106,7 @@ export class MediaMessage extends Message {
       if (!this.obj.url) {
         throw new Error('no url')
       }
+      log.verbose('MediaMessage', 'stream() url: %s', this.obj.url)
       return UtilLib.urlStream(this.obj.url, cookies)
     } catch (e) {
       log.warn('MediaMessage', 'stream() exception: %s', e.stack)

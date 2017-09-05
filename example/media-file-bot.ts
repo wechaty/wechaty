@@ -20,6 +20,7 @@
 // import { inspect }            from 'util'
 import {
   createWriteStream,
+  statSync,
   // writeFileSync,
 }                           from 'fs'
 
@@ -33,7 +34,7 @@ import * as qrcodeTerminal  from 'qrcode-terminal'
  */
 import {
   config,
-  Message,
+  MediaMessage,
   MsgType,
   Wechaty,
 }           from '../'
@@ -62,13 +63,15 @@ bot
     || m.type() === MsgType.APP
     || (m.type() === MsgType.TEXT && m.typeSub() === MsgType.LOCATION)  // LOCATION
   ) {
-    saveMediaFile(m)
+    if (m instanceof MediaMessage) {
+      saveMediaFile(m)
+    }
   }
 })
 .init()
 .catch(e => console.error('bot.init() error: ' + e))
 
-async function saveMediaFile(message: Message) {
+async function saveMediaFile(message: MediaMessage) {
   const filename = message.filename()
   console.log('IMAGE local filename: ' + filename)
 
@@ -79,7 +82,10 @@ async function saveMediaFile(message: Message) {
     const netStream = await message.readyStream()
     netStream
       .pipe(fileStream)
-      .on('close', _ => console.log('finish readyStream()'))
+      .on('close', _ => {
+        const stat = statSync(filename)
+        console.log('finish readyStream() for ', filename, ' size: ', stat.size)
+      })
   } catch (e) {
     console.error('stream error:', e)
   }

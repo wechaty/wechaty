@@ -113,7 +113,7 @@ export class UtilLib {
     href = href.replace(/^https/i, 'http') // use http instead of https, because https will only success on the very first request!
 
     const u = url.parse(href)
-    const protocol: 'https:'|'http:' = u.protocol as any
+    const protocol = u.protocol as 'https:'|'http:'
 
     let options
     // let request
