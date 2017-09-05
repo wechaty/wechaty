@@ -109,7 +109,7 @@
     "@types/node": "8.0.26",
     "bl": "1.2.1",
     "body-parser": "1.17.2",
-    "brolog": "1.1.32",
+    "brolog": "1.1.35",
     "chromedriver": "2.32.0",
     "express": "4.15.2",
     "ps-tree": "1.1.0",
