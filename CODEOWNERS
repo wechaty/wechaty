@@ -2,6 +2,7 @@
 # https://help.github.com/articles/about-codeowners/
 #
 
+/package.json                       @lijiarui
 /docs/                              @lijiarui @hczhcz @TingYinHelen @ax4
 /src/puppet-web/wechaty-bro.js      @binsee @mukaiu @hczhcz @cherry-geqi @zhenyong
 /src/puppet-web/firer.*.ts          @xinbenlv
