@@ -2,5 +2,10 @@
 # https://help.github.com/articles/about-codeowners/
 #
 
-*       @zixia
+/docs/                              @lijiarui @hczhcz @TingYinHelen @ax4
+/src/puppet-web/wechaty-bro.js      @binsee @mukaiu @hczhcz @cherry-geqi @zhenyong
+/src/puppet-web/firer.*.ts          @xinbenlv
+/src/puppet-web/bridge.*.ts         @mukaiu
+/src/puppet-web/browser-driver.*.ts @xjchengo
+/example/                           @Gcaufy @hczhcz
 
