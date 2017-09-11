@@ -316,7 +316,10 @@ export class Message implements Sayable {
   public obj = <MsgObj>{}
 
   /**
-   * @private
+   * Please notice that when we are running Wechaty,
+   * if you use the browser that controlled by Wechaty to send attachment files,
+   * you will get a zero sized file, because it is not an attachment from the network,
+   * but a local data, which is not supported by Wechaty yet.
    */
   public readyStream(): Promise<Readable> {
     throw Error('abstract method')
