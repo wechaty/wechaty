@@ -238,6 +238,7 @@ Get embed html/markdown code from [Wiki:PoweredByWechaty](https://github.com/cha
 
 ## Projects Using Wechaty
 
+1. [一个用CNN深度神剧网络给图片评分的wechaty项目](https://github.com/huyingxi/wechaty_selfie)
 1. [Relay between Telegram and WeChat](https://github.com/Firaenix/TeleChatRelay)
 1. [A chat bot managing the HaoShiYou wechat groups run by volunteers of haoshiyou.org](https://github.com/xinbenlv/haoshiyou-bot)
 1. [An interactive chat bot to manage a TODO list](https://github.com/coderbunker/candobot)
