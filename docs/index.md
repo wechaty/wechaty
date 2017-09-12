@@ -896,7 +896,6 @@ All wechat messages will be encapsulated as a Message.
 
 * [Message](#Message)
     * _instance_
-        * [.readyStream()](#Message+readyStream)
         * [.say(textOrMedia, [replyTo])](#Message+say) ⇒ <code>Promise.&lt;any&gt;</code>
         * [.from()](#Message+from) ⇒ [<code>Contact</code>](#Contact)
         * [.room()](#Message+room) ⇒ [<code>Room</code>](#Room) \| <code>null</code>
@@ -908,19 +907,11 @@ All wechat messages will be encapsulated as a Message.
         * [.self()](#Message+self) ⇒ <code>boolean</code>
         * [.mentioned()](#Message+mentioned) ⇒ [<code>Array.&lt;Contact&gt;</code>](#Contact)
         * [.to()](#Message+to) ⇒ [<code>Contact</code>](#Contact) \| <code>null</code>
+        * [.readyStream()](#Message+readyStream) ⇒ <code>Promise.&lt;Readable&gt;</code>
     * _static_
         * [.find()](#Message.find)
         * [.findAll()](#Message.findAll)
 
-<a name="Message+readyStream"></a>
-
-### message.readyStream()
-Please notice that when we are running Wechaty,
-if you use the browser that controlled by Wechaty to send attachment files,
-you will get a zero sized file, because it is not an attachment from the network,
-but a local data, which is not supported by Wechaty yet.
-
-**Kind**: instance method of [<code>Message</code>](#Message)  
 <a name="Message+say"></a>
 
 ### message.say(textOrMedia, [replyTo]) ⇒ <code>Promise.&lt;any&gt;</code>
@@ -1036,6 +1027,15 @@ console.log(contactList)
 ### message.to() ⇒ [<code>Contact</code>](#Contact) \| <code>null</code>
 Get the destination of the message
 Message.to() will return null if a message is in a room, use Message.room() to get the room.
+
+**Kind**: instance method of [<code>Message</code>](#Message)  
+<a name="Message+readyStream"></a>
+
+### message.readyStream() ⇒ <code>Promise.&lt;Readable&gt;</code>
+Please notice that when we are running Wechaty,
+if you use the browser that controlled by Wechaty to send attachment files,
+you will get a zero sized file, because it is not an attachment from the network,
+but a local data, which is not supported by Wechaty yet.
 
 **Kind**: instance method of [<code>Message</code>](#Message)  
 <a name="Message.find"></a>

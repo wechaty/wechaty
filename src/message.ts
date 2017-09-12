@@ -316,16 +316,6 @@ export class Message implements Sayable {
   public obj = <MsgObj>{}
 
   /**
-   * Please notice that when we are running Wechaty,
-   * if you use the browser that controlled by Wechaty to send attachment files,
-   * you will get a zero sized file, because it is not an attachment from the network,
-   * but a local data, which is not supported by Wechaty yet.
-   */
-  public readyStream(): Promise<Readable> {
-    throw Error('abstract method')
-  }
-
-  /**
    * @private
    */
   public filename(): string {
@@ -863,6 +853,18 @@ export class Message implements Sayable {
       return null
     }
     return Contact.load(this.obj.to)
+  }
+
+  /**
+   * Please notice that when we are running Wechaty,
+   * if you use the browser that controlled by Wechaty to send attachment files,
+   * you will get a zero sized file, because it is not an attachment from the network,
+   * but a local data, which is not supported by Wechaty yet.
+   *
+   * @returns {Promise<Readable>}
+   */
+  public readyStream(): Promise<Readable> {
+    throw Error('abstract method')
   }
 
   // DEPRECATED: TypeScript ENUM did this for us 201705
