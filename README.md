@@ -295,7 +295,7 @@ See more at <https://github.com/Chatie/wechaty/graphs/contributors>
 
 Wechaty is used in many ChatBot projects by hundreds of developers. If you want to talk with other developers, just scan the following QR Code in WeChat with secret code _wechaty_, join our **Wechaty Developers' Home** now.
 
-![Wechaty Developers' Home](https://raw.githubusercontent.com/chatie/wechaty/master/image/BotQrcode.png)
+![Wechaty Developers' Home](https://chatie.io/wechaty/images/bot-qr-code.png)
 
 Scan now, because other Wechaty developers want to talk with you too! (secret code: _wechaty_)
 
