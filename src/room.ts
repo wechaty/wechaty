@@ -888,7 +888,7 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * @deprecated
+   * @private
    * Get room's owner from the room.
    * Not recommend, because cannot always get the owner
    * @returns {(Contact | null)}

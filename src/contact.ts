@@ -700,7 +700,7 @@ export class Contact implements Sayable {
    *
    * Sometimes cannot get weixin number due to weixin security mechanism, not recommend.
    *
-   * @deprecated
+   * @private
    * @returns {string | null}
    * @example
    * const weixin = contact.weixin()

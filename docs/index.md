@@ -254,7 +254,6 @@ All wechat rooms(groups) will be encapsulated as a Room.
         * [.member(queryArg)](#Room+member) ⇒ [<code>Contact</code>](#Contact) \| <code>null</code>
         * [.memberList()](#Room+memberList) ⇒ [<code>Array.&lt;Contact&gt;</code>](#Contact)
         * [.refresh()](#Room+refresh) ⇒ <code>Promise.&lt;void&gt;</code>
-        * ~~[.owner()](#Room+owner) ⇒ [<code>Contact</code>](#Contact) \| <code>null</code>~~
     * _static_
         * [.create(contactList, [topic])](#Room.create) ⇒ [<code>Promise.&lt;Room&gt;</code>](#Room)
         * [.findAll([query])](#Room.findAll) ⇒ <code>Promise.&lt;Array.&lt;Room&gt;&gt;</code>
@@ -537,12 +536,6 @@ Get all room member from the room
 Force reload data for Room
 
 **Kind**: instance method of [<code>Room</code>](#Room)  
-<a name="Room+owner"></a>
-
-### ~~room.owner() ⇒ [<code>Contact</code>](#Contact) \| <code>null</code>~~
-***Deprecated***
-
-**Kind**: instance method of [<code>Room</code>](#Room)  
 <a name="Room.create"></a>
 
 ### Room.create(contactList, [topic]) ⇒ [<code>Promise.&lt;Room&gt;</code>](#Room)
@@ -620,7 +613,6 @@ All wechat contacts(friend) will be encapsulated as a Contact.
         * [.avatar()](#Contact+avatar) ⇒ <code>Promise.&lt;NodeJS.ReadableStream&gt;</code>
         * [.refresh()](#Contact+refresh) ⇒ <code>Promise.&lt;this&gt;</code>
         * [.self()](#Contact+self) ⇒ <code>boolean</code>
-        * ~~[.weixin()](#Contact+weixin) ⇒ <code>string</code> \| <code>null</code>~~
     * _static_
         * [.find(query)](#Contact.find) ⇒ <code>Promise.&lt;(Contact\|null)&gt;</code>
         * [.findAll([queryArg])](#Contact.findAll) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
@@ -827,20 +819,6 @@ Check if contact is self
 **Example**  
 ```js
 const isSelf = contact.self()
-```
-<a name="Contact+weixin"></a>
-
-### ~~contact.weixin() ⇒ <code>string</code> \| <code>null</code>~~
-***Deprecated***
-
-Get the weixin number from a contact.
-
-Sometimes cannot get weixin number due to weixin security mechanism, not recommend.
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Example**  
-```js
-const weixin = contact.weixin()
 ```
 <a name="Contact.find"></a>
 
