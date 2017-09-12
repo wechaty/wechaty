@@ -116,20 +116,6 @@ export class Room extends EventEmitter implements Sayable {
   }
 
   /**
-   * Force reload data for Room
-   *
-   * @returns {Promise<void>}
-   */
-  public async refresh(): Promise<void> {
-    if (this.isReady()) {
-      this.dirtyObj = this.obj
-    }
-    this.obj = null
-    await this.ready()
-    return
-  }
-
-  /**
    * @private
    */
   private async readyAllMembers(memberList: RoomRawMember[]): Promise<void> {
@@ -181,6 +167,67 @@ export class Room extends EventEmitter implements Sayable {
       Raven.captureException(e)
       throw e
     }
+  }
+
+  public say(mediaMessage: MediaMessage)
+
+  public say(content: string)
+
+  public say(content: string, replyTo: Contact)
+
+  public say(content: string, replyTo: Contact[])
+
+  /**
+   * Send message inside Room, if set [replyTo], wechaty will mention the contact as well.
+   *
+   * @param {(string | MediaMessage)} textOrMedia - Send `text` or `media file` inside Room.
+   * @param {(Contact | Contact[])} [replyTo] - Optional parameter, send content inside Room, and mention @replyTo contact or contactList.
+   * @returns {Promise<boolean>}
+   * If bot send message successfully, it will return true. If the bot failed to send for blocking or any other reason, it will return false
+   *
+   * @example <caption>Send text inside Room</caption>
+   * const room = await Room.find({name: 'wechaty'})        // change 'wechaty' to any of your room in wechat
+   * await room.say('Hello world!')
+   *
+   * @example <caption>Send media file inside Room</caption>
+   * const room = await Room.find({name: 'wechaty'})        // change 'wechaty' to any of your room in wechat
+   * await room.say(new MediaMessage('/test.jpg'))          // put the filePath you want to send here
+   *
+   * @example <caption>Send text inside Room, and mention @replyTo contact</caption>
+   * const contact = await Contact.find({name: 'lijiarui'}) // change 'lijiarui' to any of the room member
+   * const room = await Room.find({name: 'wechaty'})        // change 'wechaty' to any of your room in wechat
+   * await room.say('Hello world!', contact)
+   */
+  public say(textOrMedia: string | MediaMessage, replyTo?: Contact|Contact[]): Promise<boolean> {
+    const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
+    log.verbose('Room', 'say(%s, %s)',
+                        content,
+                        Array.isArray(replyTo)
+                        ? replyTo.map(c => c.name()).join(', ')
+                        : replyTo ? replyTo.name() : '',
+    )
+
+    let m
+    if (typeof textOrMedia === 'string') {
+      m = new Message()
+
+      const replyToList: Contact[] = [].concat(replyTo as any || [])
+
+      if (replyToList.length > 0) {
+        const AT_SEPRATOR = String.fromCharCode(8197)
+        const mentionList = replyToList.map(c => '@' + c.name()).join(AT_SEPRATOR)
+        m.content(mentionList + ' ' + content)
+      } else {
+        m.content(content)
+      }
+      // m.to(replyToList[0])
+    } else
+      m = textOrMedia
+
+    m.room(this)
+
+    return config.puppetInstance()
+                  .send(m)
   }
 
   public on(event: 'leave', listener: (this: Room, leaver: Contact) => void): this
@@ -246,67 +293,6 @@ export class Room extends EventEmitter implements Sayable {
 
     super.on(event, listener) // Room is `Sayable`
     return this
-  }
-
-  public say(mediaMessage: MediaMessage)
-
-  public say(content: string)
-
-  public say(content: string, replyTo: Contact)
-
-  public say(content: string, replyTo: Contact[])
-
-  /**
-   * Send message inside Room, if set [replyTo], wechaty will mention the contact as well.
-   *
-   * @param {(string | MediaMessage)} textOrMedia - Send `text` or `media file` inside Room.
-   * @param {(Contact | Contact[])} [replyTo] - Optional parameter, send content inside Room, and mention @replyTo contact or contactList.
-   * @returns {Promise<boolean>}
-   * If bot send message successfully, it will return true. If the bot failed to send for blocking or any other reason, it will return false
-   *
-   * @example <caption>Send text inside Room</caption>
-   * const room = await Room.find({name: 'wechaty'})        // change 'wechaty' to any of your room in wechat
-   * await room.say('Hello world!')
-   *
-   * @example <caption>Send media file inside Room</caption>
-   * const room = await Room.find({name: 'wechaty'})        // change 'wechaty' to any of your room in wechat
-   * await room.say(new MediaMessage('/test.jpg'))          // put the filePath you want to send here
-   *
-   * @example <caption>Send text inside Room, and mention @replyTo contact</caption>
-   * const contact = await Contact.find({name: 'lijiarui'}) // change 'lijiarui' to any of the room member
-   * const room = await Room.find({name: 'wechaty'})        // change 'wechaty' to any of your room in wechat
-   * await room.say('Hello world!', contact)
-   */
-  public say(textOrMedia: string | MediaMessage, replyTo?: Contact|Contact[]): Promise<boolean> {
-    const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
-    log.verbose('Room', 'say(%s, %s)',
-                        content,
-                        Array.isArray(replyTo)
-                        ? replyTo.map(c => c.name()).join(', ')
-                        : replyTo ? replyTo.name() : '',
-    )
-
-    let m
-    if (typeof textOrMedia === 'string') {
-      m = new Message()
-
-      const replyToList: Contact[] = [].concat(replyTo as any || [])
-
-      if (replyToList.length > 0) {
-        const AT_SEPRATOR = String.fromCharCode(8197)
-        const mentionList = replyToList.map(c => '@' + c.name()).join(AT_SEPRATOR)
-        m.content(mentionList + ' ' + content)
-      } else {
-        m.content(content)
-      }
-      // m.to(replyToList[0])
-    } else
-      m = textOrMedia
-
-    m.room(this)
-
-    return config.puppetInstance()
-                  .send(m)
   }
 
   /**
@@ -609,30 +595,6 @@ export class Room extends EventEmitter implements Sayable {
                     .length > 0
   }
 
-  /**
-   * @deprecated
-   * Get room's owner from the room.
-   * Not recommend, because cannot always get the owner
-   * @returns {(Contact | null)}
-   */
-  public owner(): Contact | null {
-    const ownerUin = this.obj && this.obj.ownerUin
-
-    const user = config.puppetInstance()
-                      .user
-
-    if (user && user.get('uin') === ownerUin) {
-      return user
-    }
-
-    if (this.rawObj.ChatRoomOwner) {
-      return Contact.load(this.rawObj.ChatRoomOwner)
-    }
-
-    log.info('Room', 'owner() is limited by Tencent API, sometimes work sometimes not')
-    return null
-  }
-
   public memberAll(filter: MemberQueryFilter): Contact[]
 
   public memberAll(name: string): Contact[]
@@ -909,6 +871,44 @@ export class Room extends EventEmitter implements Sayable {
       log.warn('Room', 'find() got more than one result, return the 1st one.')
     }
     return roomList[0]
+  }
+
+  /**
+   * Force reload data for Room
+   *
+   * @returns {Promise<void>}
+   */
+  public async refresh(): Promise<void> {
+    if (this.isReady()) {
+      this.dirtyObj = this.obj
+    }
+    this.obj = null
+    await this.ready()
+    return
+  }
+
+  /**
+   * @deprecated
+   * Get room's owner from the room.
+   * Not recommend, because cannot always get the owner
+   * @returns {(Contact | null)}
+   */
+  public owner(): Contact | null {
+    const ownerUin = this.obj && this.obj.ownerUin
+
+    const user = config.puppetInstance()
+                      .user
+
+    if (user && user.get('uin') === ownerUin) {
+      return user
+    }
+
+    if (this.rawObj.ChatRoomOwner) {
+      return Contact.load(this.rawObj.ChatRoomOwner)
+    }
+
+    log.info('Room', 'owner() is limited by Tencent API, sometimes work sometimes not')
+    return null
   }
 
   /**
