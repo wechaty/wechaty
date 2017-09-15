@@ -316,16 +316,6 @@ export class Message implements Sayable {
   public obj = <MsgObj>{}
 
   /**
-   * Please notice that when we are running Wechaty,
-   * if you use the browser that controlled by Wechaty to send attachment files,
-   * you will get a zero sized file, because it is not an attachment from the network,
-   * but a local data, which is not supported by Wechaty yet.
-   */
-  public readyStream(): Promise<Readable> {
-    throw Error('abstract method')
-  }
-
-  /**
    * @private
    */
   public filename(): string {
@@ -428,6 +418,74 @@ export class Message implements Sayable {
     return '{' + this.type() + '}' + content
   }
 
+  public say(text: string, replyTo?: Contact | Contact[]): Promise<any>
+
+  public say(mediaMessage: MediaMessage, replyTo?: Contact | Contact[]): Promise<any>
+
+  /**
+   * Reply a Text or Media File message to the sender.
+   *
+   * @see {@link https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts|Example/ding-dong-bot}
+   * @param {(string | MediaMessage)} textOrMedia
+   * @param {(Contact|Contact[])} [replyTo]
+   * @returns {Promise<any>}
+   *
+   * @example
+   * const bot = Wechaty.instance()
+   * bot
+   * .on('message', async m => {
+   *   if (/^ding$/i.test(m.content())) {
+   *     await m.say('hello world')
+   *     console.log('Bot REPLY: hello world')
+   *     await m.say(new MediaMessage(__dirname + '/wechaty.png'))
+   *     console.log('Bot REPLY: Image')
+   *   }
+   * })
+   */
+  public say(textOrMedia: string | MediaMessage, replyTo?: Contact|Contact[]): Promise<any> {
+    /* tslint:disable:no-use-before-declare */
+    const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
+    log.verbose('Message', 'say(%s, %s)', content, replyTo)
+    let m
+    if (typeof textOrMedia === 'string') {
+      m = new Message()
+      const room = this.room()
+      if (room) {
+        m.room(room)
+      }
+
+      if (!replyTo) {
+        m.to(this.from())
+        m.content(textOrMedia)
+
+      } else if (this.room()) {
+        let mentionList
+        if (Array.isArray(replyTo)) {
+          m.to(replyTo[0])
+          mentionList = replyTo.map(c => '@' + c.name()).join(' ')
+        } else {
+          m.to(replyTo)
+          mentionList = '@' + replyTo.name()
+        }
+        m.content(mentionList + ' ' + textOrMedia)
+      }
+    /* tslint:disable:no-use-before-declare */
+    } else if (textOrMedia instanceof MediaMessage) {
+      m = textOrMedia
+      const room = this.room()
+      if (room) {
+        m.room(room)
+      }
+
+      if (!replyTo) {
+        m.to(this.from())
+      }
+    }
+
+    return config.puppetInstance()
+                  .send(m)
+  }
+
   /**
    * @private
    */
@@ -461,47 +519,6 @@ export class Message implements Sayable {
       throw new Error('no from')
     }
     return loadedContact
-  }
-
-  // public to(room: Room): void
-  // public to(): Contact|Room
-  // public to(contact?: Contact|Room|string): Contact|Room|void {
-
-  /**
-   * @private
-   */
-  public to(contact: Contact): void
-
-  /**
-   * @private
-   */
-  public to(id: string): void
-
-  public to(): Contact|null // if to is not set, then room must had set
-
-  /**
-   * Get the destination of the message
-   * Message.to() will return null if a message is in a room, use Message.room() to get the room.
-   * @returns {(Contact|null)}
-   */
-  public to(contact?: Contact|string): Contact|Room|null|void {
-    if (contact) {
-      if (contact instanceof Contact) {
-        this.obj.to = contact.id
-      } else if (typeof contact === 'string') {
-        this.obj.to = contact
-      } else {
-        throw new Error('unsupport to param ' + typeof contact)
-      }
-      return
-    }
-
-    // no parameter
-
-    if (!this.obj.to) {
-      return null
-    }
-    return Contact.load(this.obj.to)
   }
 
   /**
@@ -797,6 +814,59 @@ export class Message implements Sayable {
     ])
   }
 
+  // public to(room: Room): void
+  // public to(): Contact|Room
+  // public to(contact?: Contact|Room|string): Contact|Room|void {
+
+  /**
+   * @private
+   */
+  public to(contact: Contact): void
+
+  /**
+   * @private
+   */
+  public to(id: string): void
+
+  public to(): Contact|null // if to is not set, then room must had set
+
+  /**
+   * Get the destination of the message
+   * Message.to() will return null if a message is in a room, use Message.room() to get the room.
+   * @returns {(Contact|null)}
+   */
+  public to(contact?: Contact|string): Contact|Room|null|void {
+    if (contact) {
+      if (contact instanceof Contact) {
+        this.obj.to = contact.id
+      } else if (typeof contact === 'string') {
+        this.obj.to = contact
+      } else {
+        throw new Error('unsupport to param ' + typeof contact)
+      }
+      return
+    }
+
+    // no parameter
+
+    if (!this.obj.to) {
+      return null
+    }
+    return Contact.load(this.obj.to)
+  }
+
+  /**
+   * Please notice that when we are running Wechaty,
+   * if you use the browser that controlled by Wechaty to send attachment files,
+   * you will get a zero sized file, because it is not an attachment from the network,
+   * but a local data, which is not supported by Wechaty yet.
+   *
+   * @returns {Promise<Readable>}
+   */
+  public readyStream(): Promise<Readable> {
+    throw Error('abstract method')
+  }
+
   // DEPRECATED: TypeScript ENUM did this for us 201705
   // public static initType() {
   //   Object.keys(Message.TYPE).forEach(k => {
@@ -804,74 +874,6 @@ export class Message implements Sayable {
   //     Message.TYPE[v] = k // Message.Type[1] = 'TEXT'
   //   })
   // }
-
-  public say(text: string, replyTo?: Contact | Contact[]): Promise<any>
-
-  public say(mediaMessage: MediaMessage, replyTo?: Contact | Contact[]): Promise<any>
-
-  /**
-   * Reply a Text or Media File message to the sender.
-   *
-   * @see {@link https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts|Example/ding-dong-bot}
-   * @param {(string | MediaMessage)} textOrMedia
-   * @param {(Contact|Contact[])} [replyTo]
-   * @returns {Promise<any>}
-   *
-   * @example
-   * const bot = Wechaty.instance()
-   * bot
-   * .on('message', async m => {
-   *   if (/^ding$/i.test(m.content())) {
-   *     await m.say('hello world')
-   *     console.log('Bot REPLY: hello world')
-   *     await m.say(new MediaMessage(__dirname + '/wechaty.png'))
-   *     console.log('Bot REPLY: Image')
-   *   }
-   * })
-   */
-  public say(textOrMedia: string | MediaMessage, replyTo?: Contact|Contact[]): Promise<any> {
-    /* tslint:disable:no-use-before-declare */
-    const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
-    log.verbose('Message', 'say(%s, %s)', content, replyTo)
-    let m
-    if (typeof textOrMedia === 'string') {
-      m = new Message()
-      const room = this.room()
-      if (room) {
-        m.room(room)
-      }
-
-      if (!replyTo) {
-        m.to(this.from())
-        m.content(textOrMedia)
-
-      } else if (this.room()) {
-        let mentionList
-        if (Array.isArray(replyTo)) {
-          m.to(replyTo[0])
-          mentionList = replyTo.map(c => '@' + c.name()).join(' ')
-        } else {
-          m.to(replyTo)
-          mentionList = '@' + replyTo.name()
-        }
-        m.content(mentionList + ' ' + textOrMedia)
-      }
-    /* tslint:disable:no-use-before-declare */
-    } else if (textOrMedia instanceof MediaMessage) {
-      m = textOrMedia
-      const room = this.room()
-      if (room) {
-        m.room(room)
-      }
-
-      if (!replyTo) {
-        m.to(this.from())
-      }
-    }
-
-    return config.puppetInstance()
-                  .send(m)
-  }
 
 }
 
