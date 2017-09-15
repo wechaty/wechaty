@@ -1,4 +1,5 @@
 /**
+ *
  *   Wechaty - https://github.com/chatie/wechaty
  *
  *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
@@ -179,23 +180,175 @@ export class Contact implements Sayable {
   }
 
   /**
-   * Get the weixin number from a contact.
+   * The way to search Contact
    *
-   * Sometimes cannot get weixin number due to weixin security mechanism, not recommend.
-   *
-   * @deprecated
-   * @returns {string | null}
-   * @example
-   * const weixin = contact.weixin()
+   * @typedef    ContactQueryFilter
+   * @property   {string} name    - The name-string set by user-self, should be called name
+   * @property   {string} alias   - The name-string set by bot for others, should be called alias
+   * [More Detail]{@link https://github.com/Chatie/wechaty/issues/365}
    */
-  public weixin(): string | null {
-    const wxId = this.obj && this.obj.weixin || null
-    if (!wxId) {
-      log.info('Contact', `weixin() is not able to always work, it's limited by Tencent API`)
-      log.info('Contact', 'weixin() If you want to track a contact between sessions, see FAQ at')
-      log.info('Contact', 'https://github.com/Chatie/wechaty/wiki/FAQ#1-how-to-get-the-permanent-id-for-a-contact')
+
+  /**
+   * Try to find a contact by filter: {name: string | RegExp} / {alias: string | RegExp}
+   *
+   * Find contact by name or alias, if the result more than one, return the first one.
+   *
+   * @static
+   * @param {ContactQueryFilter} query
+   * @returns {(Promise<Contact | null>)} If can find the contact, return Contact, or return null
+   * @example
+   * const contactFindByName = await Contact.find({ name:"ruirui"} )
+   * const contactFindByAlias = await Contact.find({ alias:"lijiarui"} )
+   */
+  public static async find(query: ContactQueryFilter): Promise<Contact | null> {
+    log.verbose('Contact', 'find(%s)', JSON.stringify(query))
+
+    const contactList = await Contact.findAll(query)
+    if (!contactList || !contactList.length) {
+      return null
     }
-    return wxId
+
+    if (contactList.length > 1) {
+      log.warn('Contact', 'function find(%s) get %d contacts, use the first one by default', JSON.stringify(query), contactList.length)
+    }
+    return contactList[0]
+  }
+
+  /**
+   * Find contact by `name` or `alias`
+   *
+   * If use Contact.findAll() get the contact list of the bot.
+   *
+   * #### definition
+   * - `name`   the name-string set by user-self, should be called name
+   * - `alias`  the name-string set by bot for others, should be called alias
+   *
+   * @static
+   * @param {ContactQueryFilter} [queryArg]
+   * @returns {Promise<Contact[]>}
+   * @example
+   * const contactList = await Contact.findAll()                    // get the contact list of the bot
+   * const contactList = await Contact.findAll({name: 'ruirui'})    // find allof the contacts whose name is 'ruirui'
+   * const contactList = await Contact.findAll({alias: 'lijiarui'}) // find all of the contacts whose alias is 'lijiarui'
+   */
+  public static async findAll(queryArg?: ContactQueryFilter): Promise<Contact[]> {
+    let query: ContactQueryFilter
+    if (queryArg) {
+      if (queryArg.remark) {
+        log.warn('Contact', 'Contact.findAll({remark:%s}) DEPRECATED, use Contact.findAll({alias:%s}) instead.', queryArg.remark, queryArg.remark)
+        query = { alias: queryArg.remark}
+      } else {
+        query = queryArg
+      }
+    } else {
+      query = { name: /.*/ }
+    }
+
+    // log.verbose('Cotnact', 'findAll({ name: %s })', query.name)
+    log.verbose('Cotnact', 'findAll({ %s })',
+                            Object.keys(query)
+                                  .map(k => `${k}: ${query[k]}`)
+                                  .join(', '),
+              )
+
+    if (Object.keys(query).length !== 1) {
+      throw new Error('query only support one key. multi key support is not availble now.')
+    }
+
+    let filterKey                     = Object.keys(query)[0]
+    let filterValue: string | RegExp  = query[filterKey]
+
+    const keyMap = {
+      name:   'NickName',
+      alias:  'RemarkName',
+    }
+
+    filterKey = keyMap[filterKey]
+    if (!filterKey) {
+      throw new Error('unsupport filter key')
+    }
+
+    if (!filterValue) {
+      throw new Error('filterValue not found')
+    }
+
+    /**
+     * must be string because we need inject variable value
+     * into code as variable name
+     */
+    let filterFunction: string
+
+    if (filterValue instanceof RegExp) {
+      filterFunction = `(function (c) { return ${filterValue.toString()}.test(c.${filterKey}) })`
+    } else if (typeof filterValue === 'string') {
+      filterValue = filterValue.replace(/'/g, '\\\'')
+      filterFunction = `(function (c) { return c.${filterKey} === '${filterValue}' })`
+    } else {
+      throw new Error('unsupport name type')
+    }
+
+    try {
+      const contactList = await config.puppetInstance()
+                                  .contactFind(filterFunction)
+
+      await Promise.all(contactList.map(c => c.ready()))
+      return contactList
+
+    } catch (e) {
+      log.error('Contact', 'findAll() rejected: %s', e.message)
+      return [] // fail safe
+    }
+  }
+
+  /**
+   * Sent Text to contact
+   *
+   * @param {string} text
+   */
+  public async say(text: string)
+
+  /**
+   * Send Media File to Contact
+   *
+   * @param {MediaMessage} mediaMessage
+   * @memberof Contact
+   */
+  public async say(mediaMessage: MediaMessage)
+
+  /**
+   * Send Text or Media File to Contact.
+   *
+   * @param {(string | MediaMessage)} textOrMedia
+   * @returns {Promise<boolean>}
+   * @example
+   * const contact = await Contact.find({name: 'lijiarui'})         // change 'lijiarui' to any of your contact name in wechat
+   * await contact.say('welcome to wechaty!')
+   * await contact.say(new MediaMessage(__dirname + '/wechaty.png') // put the filePath you want to send here
+   */
+  public async say(textOrMedia: string | MediaMessage): Promise<boolean> {
+    const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
+    log.verbose('Contact', 'say(%s)', content)
+
+    const bot = Wechaty.instance()
+    const user = bot.self()
+
+    if (!user) {
+      throw new Error('no user')
+    }
+    let m
+    if (typeof textOrMedia === 'string') {
+      m = new Message()
+      m.content(textOrMedia)
+    } else if (textOrMedia instanceof MediaMessage) {
+      m = textOrMedia
+    } else {
+      throw new Error('not support args')
+    }
+    m.from(user)
+    m.to(this)
+    log.silly('Contact', 'say() from: %s to: %s content: %s', user.name(), this.name(), content)
+
+    return await bot.send(m)
   }
 
   /**
@@ -206,6 +359,70 @@ export class Contact implements Sayable {
    * const name = contact.name()
    */
   public name()     { return UtilLib.plainText(this.obj && this.obj.name || '') }
+
+  public alias(): string | null
+
+  public alias(newAlias: string): Promise<boolean>
+
+  public alias(empty: null): Promise<boolean>
+
+  /**
+   * GET / SET / DELETE the alias for a contact
+   *
+   * Tests show it will failed if set alias too frequently(60 times in one minute).
+   * @param {(none | string | null)} newAlias
+   * @returns {(string | null | Promise<boolean>)}
+   * @example <caption> GET the alias for a contact, return {(string | null)}</caption>
+   * const alias = contact.alias()
+   * if (alias === null) {
+   *   console.log('You have not yet set any alias for contact ' + contact.name())
+   * } else {
+   *   console.log('You have already set an alias for contact ' + contact.name() + ':' + alias)
+   * }
+   *
+   * @example <caption>SET the alias for a contact</caption>
+   * const ret = await contact.alias('lijiarui')
+   * if (ret) {
+   *   console.log(`change ${contact.name()}'s alias successfully!`)
+   * } else {
+   *   console.log(`failed to change ${contact.name()} alias!`)
+   * }
+   *
+   * @example <caption>DELETE the alias for a contact</caption>
+   * const ret = await contact.alias(null)
+   * if (ret) {
+   *   console.log(`delete ${contact.name()}'s alias successfully!`)
+   * } else {
+   *   console.log(`failed to delete ${contact.name()}'s alias!`)
+   * }
+   */
+  public alias(newAlias?: string|null): Promise<boolean> | string | null {
+    log.silly('Contact', 'alias(%s)', newAlias || '')
+
+    if (newAlias === undefined) {
+      return this.obj && this.obj.alias || null
+    }
+
+    return config.puppetInstance()
+                  .contactAlias(this, newAlias)
+                  .then(ret => {
+                    if (ret) {
+                      if (this.obj) {
+                        this.obj.alias = newAlias
+                      } else {
+                        log.error('Contact', 'alias() without this.obj?')
+                      }
+                    } else {
+                      log.warn('Contact', 'alias(%s) fail', newAlias)
+                    }
+                    return ret
+                  })
+                  .catch(e => {
+                    log.error('Contact', 'alias(%s) rejected: %s', newAlias, e.message)
+                    Raven.captureException(e)
+                    return false // fail safe
+                  })
+  }
 
   /**
    * Check if contact is stranger
@@ -447,165 +664,6 @@ export class Contact implements Sayable {
   }
 
   /**
-   * The way to search Contact
-   *
-   * @typedef    ContactQueryFilter
-   * @property   {string} name    - The name-string set by user-self, should be called name
-   * @property   {string} alias   - The name-string set by bot for others, should be called alias
-   * [More Detail]{@link https://github.com/Chatie/wechaty/issues/365}
-   */
-
-  /**
-   * Find contact by `name` or `alias`
-   *
-   * If use Contact.findAll() get the contact list of the bot.
-   *
-   * #### definition
-   * - `name`   the name-string set by user-self, should be called name
-   * - `alias`  the name-string set by bot for others, should be called alias
-   *
-   * @static
-   * @param {ContactQueryFilter} [queryArg]
-   * @returns {Promise<Contact[]>}
-   * @example
-   * const contactList = await Contact.findAll()                    // get the contact list of the bot
-   * const contactList = await Contact.findAll({name: 'ruirui'})    // find allof the contacts whose name is 'ruirui'
-   * const contactList = await Contact.findAll({alias: 'lijiarui'}) // find all of the contacts whose alias is 'lijiarui'
-   */
-  public static async findAll(queryArg?: ContactQueryFilter): Promise<Contact[]> {
-    let query: ContactQueryFilter
-    if (queryArg) {
-      if (queryArg.remark) {
-        log.warn('Contact', 'Contact.findAll({remark:%s}) DEPRECATED, use Contact.findAll({alias:%s}) instead.', queryArg.remark, queryArg.remark)
-        query = { alias: queryArg.remark}
-      } else {
-        query = queryArg
-      }
-    } else {
-      query = { name: /.*/ }
-    }
-
-    // log.verbose('Cotnact', 'findAll({ name: %s })', query.name)
-    log.verbose('Cotnact', 'findAll({ %s })',
-                            Object.keys(query)
-                                  .map(k => `${k}: ${query[k]}`)
-                                  .join(', '),
-              )
-
-    if (Object.keys(query).length !== 1) {
-      throw new Error('query only support one key. multi key support is not availble now.')
-    }
-
-    let filterKey                     = Object.keys(query)[0]
-    let filterValue: string | RegExp  = query[filterKey]
-
-    const keyMap = {
-      name:   'NickName',
-      alias:  'RemarkName',
-    }
-
-    filterKey = keyMap[filterKey]
-    if (!filterKey) {
-      throw new Error('unsupport filter key')
-    }
-
-    if (!filterValue) {
-      throw new Error('filterValue not found')
-    }
-
-    /**
-     * must be string because we need inject variable value
-     * into code as variable name
-     */
-    let filterFunction: string
-
-    if (filterValue instanceof RegExp) {
-      filterFunction = `(function (c) { return ${filterValue.toString()}.test(c.${filterKey}) })`
-    } else if (typeof filterValue === 'string') {
-      filterValue = filterValue.replace(/'/g, '\\\'')
-      filterFunction = `(function (c) { return c.${filterKey} === '${filterValue}' })`
-    } else {
-      throw new Error('unsupport name type')
-    }
-
-    try {
-      const contactList = await config.puppetInstance()
-                                  .contactFind(filterFunction)
-
-      await Promise.all(contactList.map(c => c.ready()))
-      return contactList
-
-    } catch (e) {
-      log.error('Contact', 'findAll() rejected: %s', e.message)
-      return [] // fail safe
-    }
-  }
-
-  public alias(): string | null
-
-  public alias(newAlias: string): Promise<boolean>
-
-  public alias(empty: null): Promise<boolean>
-
-  /**
-   * GET / SET / DELETE the alias for a contact
-   *
-   * Tests show it will failed if set alias too frequently(60 times in one minute).
-   * @param {(none | string | null)} newAlias
-   * @returns {(string | null | Promise<boolean>)}
-   * @example <caption> GET the alias for a contact, return {(string | null)}</caption>
-   * const alias = contact.alias()
-   * if (alias === null) {
-   *   console.log('You have not yet set any alias for contact ' + contact.name())
-   * } else {
-   *   console.log('You have already set an alias for contact ' + contact.name() + ':' + alias)
-   * }
-   *
-   * @example <caption>SET the alias for a contact</caption>
-   * const ret = await contact.alias('lijiarui')
-   * if (ret) {
-   *   console.log(`change ${contact.name()}'s alias successfully!`)
-   * } else {
-   *   console.log(`failed to change ${contact.name()} alias!`)
-   * }
-   *
-   * @example <caption>DELETE the alias for a contact</caption>
-   * const ret = await contact.alias(null)
-   * if (ret) {
-   *   console.log(`delete ${contact.name()}'s alias successfully!`)
-   * } else {
-   *   console.log(`failed to delete ${contact.name()}'s alias!`)
-   * }
-   */
-  public alias(newAlias?: string|null): Promise<boolean> | string | null {
-    log.silly('Contact', 'alias(%s)', newAlias || '')
-
-    if (newAlias === undefined) {
-      return this.obj && this.obj.alias || null
-    }
-
-    return config.puppetInstance()
-                  .contactAlias(this, newAlias)
-                  .then(ret => {
-                    if (ret) {
-                      if (this.obj) {
-                        this.obj.alias = newAlias
-                      } else {
-                        log.error('Contact', 'alias() without this.obj?')
-                      }
-                    } else {
-                      log.warn('Contact', 'alias(%s) fail', newAlias)
-                    }
-                    return ret
-                  })
-                  .catch(e => {
-                    log.error('Contact', 'alias(%s) rejected: %s', newAlias, e.message)
-                    Raven.captureException(e)
-                    return false // fail safe
-                  })
-  }
-
-  /**
    * @private
    */
   // function should be deprecated
@@ -624,32 +682,6 @@ export class Contact implements Sayable {
   }
 
   /**
-   * Try to find a contact by filter: {name: string | RegExp} / {alias: string | RegExp}
-   *
-   * Find contact by name or alias, if the result more than one, return the first one.
-   *
-   * @static
-   * @param {ContactQueryFilter} query
-   * @returns {(Promise<Contact | null>)} If can find the contact, return Contact, or return null
-   * @example
-   * const contactFindByName = await Contact.find({ name:"ruirui"} )
-   * const contactFindByAlias = await Contact.find({ alias:"lijiarui"} )
-   */
-  public static async find(query: ContactQueryFilter): Promise<Contact | null> {
-    log.verbose('Contact', 'find(%s)', JSON.stringify(query))
-
-    const contactList = await Contact.findAll(query)
-    if (!contactList || !contactList.length) {
-      return null
-    }
-
-    if (contactList.length > 1) {
-      log.warn('Contact', 'function find(%s) get %d contacts, use the first one by default', JSON.stringify(query), contactList.length)
-    }
-    return contactList[0]
-  }
-
-  /**
    * @private
    */
   public static load(id: string): Contact {
@@ -664,54 +696,23 @@ export class Contact implements Sayable {
   }
 
   /**
-   * Sent Text to contact
+   * Get the weixin number from a contact.
    *
-   * @param {string} text
-   */
-  public async say(text: string)
-
-  /**
-   * Send Media File to Contact
+   * Sometimes cannot get weixin number due to weixin security mechanism, not recommend.
    *
-   * @param {MediaMessage} mediaMessage
-   * @memberof Contact
-   */
-  public async say(mediaMessage: MediaMessage)
-
-  /**
-   * Send Text or Media File to Contact.
-   *
-   * @param {(string | MediaMessage)} textOrMedia
-   * @returns {Promise<boolean>}
+   * @private
+   * @returns {string | null}
    * @example
-   * const contact = await Contact.find({name: 'lijiarui'})         // change 'lijiarui' to any of your contact name in wechat
-   * await contact.say('welcome to wechaty!')
-   * await contact.say(new MediaMessage(__dirname + '/wechaty.png') // put the filePath you want to send here
+   * const weixin = contact.weixin()
    */
-  public async say(textOrMedia: string | MediaMessage): Promise<boolean> {
-    const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
-    log.verbose('Contact', 'say(%s)', content)
-
-    const bot = Wechaty.instance()
-    const user = bot.self()
-
-    if (!user) {
-      throw new Error('no user')
+  public weixin(): string | null {
+    const wxId = this.obj && this.obj.weixin || null
+    if (!wxId) {
+      log.info('Contact', `weixin() is not able to always work, it's limited by Tencent API`)
+      log.info('Contact', 'weixin() If you want to track a contact between sessions, see FAQ at')
+      log.info('Contact', 'https://github.com/Chatie/wechaty/wiki/FAQ#1-how-to-get-the-permanent-id-for-a-contact')
     }
-    let m
-    if (typeof textOrMedia === 'string') {
-      m = new Message()
-      m.content(textOrMedia)
-    } else if (textOrMedia instanceof MediaMessage) {
-      m = textOrMedia
-    } else {
-      throw new Error('not support args')
-    }
-    m.from(user)
-    m.to(this)
-    log.silly('Contact', 'say() from: %s to: %s content: %s', user.name(), this.name(), content)
-
-    return await bot.send(m)
+    return wxId
   }
 
 }
