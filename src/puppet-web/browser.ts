@@ -501,7 +501,8 @@ export class Browser extends EventEmitter {
     log.verbose('PuppetWebBrowser', 'clickSwitchAccount()')
 
     try {
-      const button = await this.driver.driver.findElement(By.xpath("//a[@ng-click='qrcodeLogin()']"))
+      const button = await this.driver.driver.findElement(By.xpath(
+        "//div[contains(@class,'association') and contains(@class,'show')]/a[@ng-click='qrcodeLogin()']"))
       button.click()
       log.silly('PuppetWebBrowser', 'clickSwitchAccount() clicked!')
       return true
