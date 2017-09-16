@@ -249,7 +249,7 @@ async function onServerLogin(this: PuppetWeb, data, attempt = 0): Promise<void> 
       throw new Error('onServerLogin() arguments is null')
     }
     setTimeout(() => {
-        onServerLogin.apply(this, arguments)
+      onServerLogin.apply(this, arguments)
     }, 1000)
     return
   }
