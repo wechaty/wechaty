@@ -14,6 +14,7 @@
  *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
+ *   @ignore
  *
  */
 
@@ -46,24 +47,7 @@ export abstract class FriendRequest {
     }
   }
 
-  /**
-   * Send a new friend request
-   *
-   * @param {Contact} contact
-   * @param {string} [hello='Hi']
-   * @returns {Promise<boolean>} Return a Promise, true for accept successful, false for failure.
-   * @example
-   * const from = message.from()
-   * const request = new FriendRequest()
-   * request.send(from, 'hello~')
-   */
   public abstract send(contact: Contact, hello: string): Promise<boolean>
-
-  /**
-   * Accept a friend request
-   *
-   * @returns {Promise<boolean>} Return a Promise, true for accept successful, false for failure.
-   */
   public abstract accept(): Promise<boolean>
 
 }

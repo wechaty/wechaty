@@ -33,6 +33,8 @@
 <dt><a href="#MediaMessage">MediaMessage</a></dt>
 <dd><p>Meidia Type Message</p>
 </dd>
+<dt><a href="#FriendRequest">FriendRequest</a></dt>
+<dd></dd>
 </dl>
 
 ## Typedefs
@@ -883,6 +885,37 @@ Send, receive friend request, and friend confirmation events.
 [Example/Friend-Bot](https://github.com/Chatie/wechaty/blob/master/example/friend-bot.ts)
 
 **Kind**: global class  
+
+* [FriendRequest](#FriendRequest)
+    * [.send(contact, [hello])](#FriendRequest+send) ⇒ <code>Promise.&lt;boolean&gt;</code>
+    * [.accept()](#FriendRequest+accept) ⇒ <code>Promise.&lt;boolean&gt;</code>
+
+<a name="FriendRequest+send"></a>
+
+### friendRequest.send(contact, [hello]) ⇒ <code>Promise.&lt;boolean&gt;</code>
+Send a new friend request
+
+**Kind**: instance method of [<code>FriendRequest</code>](#FriendRequest)  
+**Returns**: <code>Promise.&lt;boolean&gt;</code> - Return a Promise, true for accept successful, false for failure.  
+
+| Param | Type | Default |
+| --- | --- | --- |
+| contact | [<code>Contact</code>](#Contact) |  | 
+| [hello] | <code>string</code> | <code>&quot;&#x27;Hi&#x27;&quot;</code> | 
+
+**Example**  
+```js
+const from = message.from()
+const request = new FriendRequest()
+request.send(from, 'hello~')
+```
+<a name="FriendRequest+accept"></a>
+
+### friendRequest.accept() ⇒ <code>Promise.&lt;boolean&gt;</code>
+Accept a friend request
+
+**Kind**: instance method of [<code>FriendRequest</code>](#FriendRequest)  
+**Returns**: <code>Promise.&lt;boolean&gt;</code> - Return a Promise, true for accept successful, false for failure.  
 <a name="Message"></a>
 
 ## Message
@@ -1139,6 +1172,41 @@ The reason is that the server limits the forwarding of files above 25Mb. You nee
 | --- | --- | --- |
 | sendTo | [<code>Room</code>](#Room) \| [<code>Contact</code>](#Contact) | The recipient of the message, the room, or the contact |
 
+<a name="FriendRequest"></a>
+
+## FriendRequest
+**Kind**: global class  
+
+* [FriendRequest](#FriendRequest)
+    * [.send(contact, [hello])](#FriendRequest+send) ⇒ <code>Promise.&lt;boolean&gt;</code>
+    * [.accept()](#FriendRequest+accept) ⇒ <code>Promise.&lt;boolean&gt;</code>
+
+<a name="FriendRequest+send"></a>
+
+### friendRequest.send(contact, [hello]) ⇒ <code>Promise.&lt;boolean&gt;</code>
+Send a new friend request
+
+**Kind**: instance method of [<code>FriendRequest</code>](#FriendRequest)  
+**Returns**: <code>Promise.&lt;boolean&gt;</code> - Return a Promise, true for accept successful, false for failure.  
+
+| Param | Type | Default |
+| --- | --- | --- |
+| contact | [<code>Contact</code>](#Contact) |  | 
+| [hello] | <code>string</code> | <code>&quot;&#x27;Hi&#x27;&quot;</code> | 
+
+**Example**  
+```js
+const from = message.from()
+const request = new FriendRequest()
+request.send(from, 'hello~')
+```
+<a name="FriendRequest+accept"></a>
+
+### friendRequest.accept() ⇒ <code>Promise.&lt;boolean&gt;</code>
+Accept a friend request
+
+**Kind**: instance method of [<code>FriendRequest</code>](#FriendRequest)  
+**Returns**: <code>Promise.&lt;boolean&gt;</code> - Return a Promise, true for accept successful, false for failure.  
 <a name="Gender"></a>
 
 ## Gender : <code>enum</code>
