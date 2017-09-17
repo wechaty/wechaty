@@ -16,6 +16,15 @@
 <p><code>Contact</code> is <code>Sayable</code>,
 <a href="https://github.com/Chatie/wechaty/blob/master/example/contact-bot.ts">Example/Contact-Bot</a></p>
 </dd>
+<dt><a href="#FriendRequest">FriendRequest</a></dt>
+<dd><p>Send, receive friend request, and friend confirmation events.</p>
+<ol>
+<li>send request</li>
+<li>receive request(in friend event)</li>
+<li>confirmation friendship(friend event)</li>
+</ol>
+<p><a href="https://github.com/Chatie/wechaty/blob/master/example/friend-bot.ts">Example/Friend-Bot</a></p>
+</dd>
 <dt><a href="#Message">Message</a></dt>
 <dd><p>All wechat messages will be encapsulated as a Message.</p>
 <p><code>Message</code> is <code>Sayable</code>,
@@ -862,6 +871,18 @@ const contactList = await Contact.findAll()                    // get the contac
 const contactList = await Contact.findAll({name: 'ruirui'})    // find allof the contacts whose name is 'ruirui'
 const contactList = await Contact.findAll({alias: 'lijiarui'}) // find all of the contacts whose alias is 'lijiarui'
 ```
+<a name="FriendRequest"></a>
+
+## FriendRequest
+Send, receive friend request, and friend confirmation events.
+
+1. send request
+2. receive request(in friend event)
+3. confirmation friendship(friend event)
+
+[Example/Friend-Bot](https://github.com/Chatie/wechaty/blob/master/example/friend-bot.ts)
+
+**Kind**: global class  
 <a name="Message"></a>
 
 ## Message
