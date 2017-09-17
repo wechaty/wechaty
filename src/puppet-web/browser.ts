@@ -507,7 +507,7 @@ export class Browser extends EventEmitter {
       log.silly('PuppetWebBrowser', 'clickSwitchAccount() clicked!')
       return true
     } catch (e) {
-      log.silly('PuppetWebBrowser', 'clickSwitchAccount() button not found: %s', e && e.message || e)
+      log.silly('PuppetWebBrowser', 'clickSwitchAccount() button not found')
       return false
     }
   }
