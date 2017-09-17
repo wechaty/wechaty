@@ -24,6 +24,36 @@
 <dt><a href="#MediaMessage">MediaMessage</a></dt>
 <dd><p>Meidia Type Message</p>
 </dd>
+<dt><a href="#PuppetWebFriendRequest">PuppetWebFriendRequest</a></dt>
+<dd><p>Send, receive friend request, and friend confirmation events.</p>
+<ol>
+<li>send request</li>
+<li>receive request(in friend event)</li>
+<li>confirmation friendship(friend event)</li>
+</ol>
+<p><a href="https://github.com/Chatie/wechaty/blob/master/example/friend-bot.ts">Example/Friend-Bot</a></p>
+</dd>
+</dl>
+
+## Members
+
+<dl>
+<dt><a href="#__awaiter">__awaiter</a></dt>
+<dd><p>Wechaty - <a href="https://github.com/chatie/wechaty">https://github.com/chatie/wechaty</a></p>
+</dd>
+</dl>
+
+## Constants
+
+<dl>
+<dt><a href="#retryPromise">retryPromise</a></dt>
+<dd><p>request/accept: <a href="https://github.com/wechaty/wechaty/issues/33">https://github.com/wechaty/wechaty/issues/33</a></p>
+<ol>
+<li>send request</li>
+<li>receive request(in friend event)</li>
+<li>confirmation friendship(friend event)</li>
+</ol>
+</dd>
 </dl>
 
 ## Typedefs
@@ -1118,6 +1148,68 @@ The reason is that the server limits the forwarding of files above 25Mb. You nee
 | --- | --- | --- |
 | sendTo | [<code>Room</code>](#Room) \| [<code>Contact</code>](#Contact) | The recipient of the message, the room, or the contact |
 
+<a name="PuppetWebFriendRequest"></a>
+
+## PuppetWebFriendRequest
+Send, receive friend request, and friend confirmation events.
+
+1. send request
+2. receive request(in friend event)
+3. confirmation friendship(friend event)
+
+[Example/Friend-Bot](https://github.com/Chatie/wechaty/blob/master/example/friend-bot.ts)
+
+**Kind**: global class  
+
+* [PuppetWebFriendRequest](#PuppetWebFriendRequest)
+    * [.send(contact, [hello])](#PuppetWebFriendRequest+send) ⇒ <code>Promise.&lt;boolean&gt;</code>
+    * [.accept()](#PuppetWebFriendRequest+accept) ⇒ <code>Promise.&lt;boolean&gt;</code>
+
+<a name="PuppetWebFriendRequest+send"></a>
+
+### puppetWebFriendRequest.send(contact, [hello]) ⇒ <code>Promise.&lt;boolean&gt;</code>
+Send a new friend request
+
+**Kind**: instance method of [<code>PuppetWebFriendRequest</code>](#PuppetWebFriendRequest)  
+**Returns**: <code>Promise.&lt;boolean&gt;</code> - Return a Promise, true for accept successful, false for failure.  
+
+| Param | Type | Default |
+| --- | --- | --- |
+| contact | [<code>Contact</code>](#Contact) |  | 
+| [hello] | <code>string</code> | <code>&quot;&#x27;Hi&#x27;&quot;</code> | 
+
+**Example**  
+```js
+const from = message.from()
+const request = new FriendRequest()
+request.send(from, 'hello~')
+```
+<a name="PuppetWebFriendRequest+accept"></a>
+
+### puppetWebFriendRequest.accept() ⇒ <code>Promise.&lt;boolean&gt;</code>
+Accept a friend request
+
+**Kind**: instance method of [<code>PuppetWebFriendRequest</code>](#PuppetWebFriendRequest)  
+**Returns**: <code>Promise.&lt;boolean&gt;</code> - Return a Promise, true for accept successful, false for failure.  
+<a name="__awaiter"></a>
+
+## __awaiter
+Wechaty - https://github.com/chatie/wechaty
+
+**Kind**: global variable  
+**Copyright**: 2016-2017 Huan LI <zixia@zixia.net>
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.  
 <a name="Gender"></a>
 
 ## Gender : <code>enum</code>
@@ -1189,6 +1281,16 @@ Enum for MsgType values.
 | SYS | <code>number</code> | MsgType.SYS                 (10000) for SYS |
 | RECALLED | <code>number</code> | MsgType.RECALLED            (10002) for RECALLED |
 
+<a name="retryPromise"></a>
+
+## retryPromise
+request/accept: https://github.com/wechaty/wechaty/issues/33
+
+1. send request
+2. receive request(in friend event)
+3. confirmation friendship(friend event)
+
+**Kind**: global constant  
 <a name="WechatyEventName"></a>
 
 ## WechatyEventName

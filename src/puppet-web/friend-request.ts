@@ -36,6 +36,15 @@ import {
 }                     from '../config'
 import FriendRequest  from '../friend-request'
 
+/**
+ * Send, receive friend request, and friend confirmation events.
+ *
+ * 1. send request
+ * 2. receive request(in friend event)
+ * 3. confirmation friendship(friend event)
+ *
+ * [Example/Friend-Bot]{@link https://github.com/Chatie/wechaty/blob/master/example/friend-bot.ts}
+ */
 export class PuppetWebFriendRequest extends FriendRequest {
 
   public info: RecommendInfo
@@ -84,6 +93,17 @@ export class PuppetWebFriendRequest extends FriendRequest {
     this.type     = 'confirm'
   }
 
+  /**
+   * Send a new friend request
+   *
+   * @param {Contact} contact
+   * @param {string} [hello='Hi']
+   * @returns {Promise<boolean>} Return a Promise, true for accept successful, false for failure.
+   * @example
+   * const from = message.from()
+   * const request = new FriendRequest()
+   * request.send(from, 'hello~')
+   */
   public async send(contact: Contact, hello = 'Hi'): Promise<boolean> {
     log.verbose('PuppetWebFriendRequest', 'send(%s)', contact)
 
@@ -101,6 +121,11 @@ export class PuppetWebFriendRequest extends FriendRequest {
                 .friendRequestSend(contact, hello)
   }
 
+  /**
+   * Accept a friend request
+   *
+   * @returns {Promise<boolean>} Return a Promise, true for accept successful, false for failure.
+   */
   public async accept(): Promise<boolean> {
     log.verbose('FriendRequest', 'accept() %s', this.contact)
 
