@@ -65,3 +65,4 @@ tags
 /package
 /wechaty-*.*.*.tgz
 *.bak
+package-lock.json
