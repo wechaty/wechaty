@@ -1233,12 +1233,20 @@ export class MediaMessage extends Message {
     if (m.FileSize >= fileSizeLimit) {
       log.silly('MediaMessage', `forward() 文件大小超限，本次将进行上传发送`)
       const tmpDir = fs.mkdtempSync(os.tmpdir() + '/wechaty-tmp-')
-      const filePath = tmpDir + '/' + this.filename()
+      let filePath
+      filePath = tmpDir + '/' + this.filename()
       let saveFileRet
       try {
         saveFileRet = await this.saveFile(filePath)
         if (!saveFileRet) {
           throw new Error('save file fail')
+        } else if (fs.statSync(filePath).size === 0) {
+          // throw new Error(`file size should be ${m.FileSize} bytes, but save file size is 0 bytes`)
+          // debug
+          filePath = 'E:/CodeWork/fork/wechaty/example/f25Mb.zip'
+        }
+        if (!fs.existsSync(filePath)) {
+          throw new Error('file not exist! path:' + filePath)
         }
         log.silly('MediaMessage', `forward() save file path:'${filePath}'`)
         const msg = new MediaMessage(filePath)
@@ -1249,12 +1257,14 @@ export class MediaMessage extends Message {
           // all call success return true
           // TODO: PuppetWeb uploaded files can't be reused
           log.silly('MediaMessage', `forward() call say[${i}], id: ${sendToList[i].id} , msg.rawObj: ${JSON.stringify(msg.rawObj)}`)
+          log.silly('MediaMessage', `forward() send ready. i=${i}`)
           ret = (i === 0 ? true : ret) && await sendToList[i].say(msg)
+          log.silly('MediaMessage', `forward() send done. i=${i}`)
           log.silly('MediaMessage', `forward() call say[${i}] done, msg.rawObj: ${JSON.stringify(msg.rawObj)}`)
         }
         log.silly('MediaMessage', `forward() send file done`)
 
-        fs.unlinkSync(filePath)
+        // fs.unlinkSync(filePath)
         fs.rmdirSync(tmpDir)
       } catch (e) {
         log.warn('MediaMessage', `forward() error: ${e.message}`)

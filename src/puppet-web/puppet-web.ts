@@ -411,7 +411,8 @@ export class PuppetWeb extends Puppet {
     // Sending video files is not allowed to exceed 20MB
     // https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L1115
     const videoMaxSize = 20 * 1024 * 1024
-    const bigFileSize = 25 * 1024 * 1024
+    // const bigFileSize = 25 * 1024 * 1024
+    const bigFileSize = 2 * 1024 * 1024
     const maxFileSize = 100 * 1024 * 1024
     if (mediatype === 'video' && buffer.length > videoMaxSize)
       throw new Error(`Sending video files is not allowed to exceed ${videoMaxSize / 1024 / 1024}MB`)
@@ -437,7 +438,10 @@ export class PuppetWeb extends Puppet {
     const headers = {
       Referer: `https://${hostname}`,
       'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36',
+      Cookie: cookie.map(c => c.name + '=' + c.value).join('; '),
     }
+
+    log.silly('PuppetWeb', 'uploadMedia() headers:%s', JSON.stringify(headers))
 
     const uploadMediaRequest = {
       BaseRequest:   baseRequest,
@@ -480,32 +484,37 @@ export class PuppetWeb extends Puppet {
       let ret
       try {
         ret = <any> await new Promise((resolve, reject) => {
-          request.post({
-            url: `https://${hostname}${checkUploadUrl}?pass_ticket=${passTicket}`,
+          const r = {
+            url: `https://${hostname}${checkUploadUrl}`,
             headers,
             json: checkData,
-          }, function (err, res, body) {
-            if (err) {
-              reject(err)
-            } else {
-              let obj = body
-              if (typeof body !== 'object') {
-                obj = JSON.parse(body)
+          }
+          request.post(r, function (err, res, body) {
+            try {
+              if (err) {
+                reject(err)
+              } else {
+                let obj = body
+                if (typeof body !== 'object') {
+                  obj = JSON.parse(body)
+                }
+                if (typeof obj !== 'object' || obj.BaseResponse.Ret !== 0) {
+                  const errMsg = obj.BaseResponse || 'api return err'
+                  log.silly('PuppetWeb', 'uploadMedia() checkUpload err:%s \nreq:%s\nret:%s', JSON.stringify(errMsg), JSON.stringify(r), body)
+                  reject(new Error('chackUpload err:' + JSON.stringify(errMsg)))
+                }
+                resolve({
+                  Signature: obj.Signature,
+                  AESKey: obj.AESKey,
+                })
               }
-              if (typeof obj !== 'object' || obj.BaseResponse.Ret !== 0) {
-                const errMsg = obj.BaseResponse || 'api return err'
-                log.silly('PuppetWeb', 'uploadMedia() checkUpload err: ' + errMsg)
-                reject(new Error('chackUpload err:' + errMsg))
-              }
-              resolve({
-                Signature: obj.Signature,
-                AESKey: obj.AESKey,
-              })
+            } catch (e) {
+              reject(e)
             }
           })
         })
       } catch (e) {
-        log.error('PuppetWeb', 'uploadMedia() exception: %s', e.message)
+        log.error('PuppetWeb', 'uploadMedia() checkUpload exception: %s', e.message)
         throw e
       }
       if (!ret.Signature) {
@@ -545,25 +554,31 @@ export class PuppetWeb extends Puppet {
     let mediaId
     try {
       mediaId = <string>await new Promise((resolve, reject) => {
-        request.post({
-          url: uploadMediaUrl + '?f=json',
-          headers,
-          formData,
-        }, function (err, res, body) {
-          if (err) { reject(err) }
-          else {
-            let obj = body
-            if (typeof body !== 'object') {
-              obj = JSON.parse(body)
+        try {
+          request.post({
+            url: uploadMediaUrl + '?f=json',
+            headers,
+            formData,
+          }, function (err, res, body) {
+            if (err) { reject(err) }
+            else {
+              let obj = body
+              if (typeof body !== 'object') {
+                obj = JSON.parse(body)
+              }
+              resolve(obj.MediaId || '')
             }
-            resolve(obj.MediaId || '')
-          }
-        })
+          })
+        } catch (e) {
+          reject(e)
+        }
       })
-    })
-    delete formData.filename.value
-    // debug
-    log.silly('PuppetWeb', 'uploadMedia() uploaded!\nformData: %s\nmediaData:%s', JSON.stringify(formData), JSON.stringify(mediaData))
+    } catch (e) {
+      delete formData.filename.value
+      log.error('PuppetWeb', 'uploadMedia() uploadMedia formData: %s', JSON.stringify(formData))
+      log.error('PuppetWeb', 'uploadMedia() uploadMedia exception: %s', e.message)
+      throw new Error('uploadMedia err: ' + e.message)
+    }
     if (!mediaId) {
       log.error('PuppetWeb', 'uploadMedia(): upload fail')
       log.silly('PuppetWeb', 'uploadMedia(): fail, formData: %s', JSON.stringify(formData))
@@ -602,6 +617,8 @@ export class PuppetWeb extends Puppet {
         return false
       }
     } else {
+      // debug
+      log.silly('PuppetWeb', '跳过上传文件, rawObj:%s', JSON.stringify(data))
       mediaData = {
         ToUserName: destinationId,
         MediaId: data.MediaId,
@@ -613,7 +630,6 @@ export class PuppetWeb extends Puppet {
       if (data.Signature) {
         mediaData.Signature = data.Signature
       }
-      // fix display '取消' buttom
     }
     // mediaData.ToUserName = destinationId
     mediaData.MsgType = UtilLib.msgType(message.ext())
