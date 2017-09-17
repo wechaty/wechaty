@@ -23,6 +23,15 @@ import {
 }               from './config'
 import Contact  from './contact'
 
+/**
+ * Send, receive friend request, and friend confirmation events.
+ *
+ * 1. send request
+ * 2. receive request(in friend event)
+ * 3. confirmation friendship(friend event)
+ *
+ * [Example/Friend-Bot]{@link https://github.com/Chatie/wechaty/blob/master/example/friend-bot.ts}
+ */
 export abstract class FriendRequest {
 
   public contact: Contact
@@ -37,7 +46,24 @@ export abstract class FriendRequest {
     }
   }
 
+  /**
+   * Send a new friend request
+   *
+   * @param {Contact} contact
+   * @param {string} [hello='Hi']
+   * @returns {Promise<boolean>} Return a Promise, true for accept successful, false for failure.
+   * @example
+   * const from = message.from()
+   * const request = new FriendRequest()
+   * request.send(from, 'hello~')
+   */
   public abstract send(contact: Contact, hello: string): Promise<boolean>
+
+  /**
+   * Accept a friend request
+   *
+   * @returns {Promise<boolean>} Return a Promise, true for accept successful, false for failure.
+   */
   public abstract accept(): Promise<boolean>
 
 }
