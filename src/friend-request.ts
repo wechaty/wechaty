@@ -14,6 +14,7 @@
  *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
+ *   @ignore
  *
  */
 
@@ -23,6 +24,15 @@ import {
 }               from './config'
 import Contact  from './contact'
 
+/**
+ * Send, receive friend request, and friend confirmation events.
+ *
+ * 1. send request
+ * 2. receive request(in friend event)
+ * 3. confirmation friendship(friend event)
+ *
+ * [Example/Friend-Bot]{@link https://github.com/Chatie/wechaty/blob/master/example/friend-bot.ts}
+ */
 export abstract class FriendRequest {
 
   public contact: Contact
