@@ -12,7 +12,7 @@ Wechaty is a Bot Framework for Wechat **Personal** Account which can help you cr
 
 :octocat: <https://github.com/chatie/wechaty>  
 :beetle: <https://github.com/chatie/wechaty/issues>  
-:book: <https://github.com/chatie/wechaty/wiki>
+:book: <https://github.com/chatie/wechaty/wiki>  
 :whale: <https://hub.docker.com/r/zixia/wechaty>  
 
 ## Voice of the Developer
