@@ -119,7 +119,7 @@
     "selenium-webdriver": "3.5.0",
     "state-switch": "0.1.13",
     "ws": "3.2.0",
-    "xml2js": "^0.4.19"
+    "xml2js": "0.4.19"
   },
   "devDependencies": {
     "@types/body-parser": "1.16.5",
@@ -130,9 +130,8 @@
     "@types/request": "2.0.3",
     "@types/selenium-webdriver": "3.0.7",
     "@types/sinon": "2.3.4",
-    "@types/sinon-test": "^1.0.2",
     "@types/ws": "3.0.2",
-    "@types/xml2js": "^0.4.0",
+    "@types/xml2js": "0.4.0",
     "apiai": "4.0.3",
     "ava": "0.22.0",
     "babel-cli": "6.26.0",
@@ -152,7 +151,7 @@
     "qrcode-terminal": "0.11.0",
     "shx": "0.2.2",
     "sinon": "3.3.0",
-    "sinon-test": "^2.1.0",
+    "sinon-test": "2.1.1",
     "sloc": "0.2.0",
     "ts-node": "3.3.0",
     "tslint": "5.7.0",
