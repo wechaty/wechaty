@@ -1,75 +1,149 @@
-## Classes
+[![Wechaty](https://chatie.io/wechaty/images/wechaty-logo-en.png)](https://github.com/chatie/wechaty)
 
-<dl>
-<dt><a href="#Wechaty">Wechaty</a></dt>
-<dd><p>Main bot class.</p>
-<p><a href="#wechatyinstance">The World&#39;s Shortest ChatBot Code: 6 lines of JavaScript</a></p>
-<p><a href="https://github.com/lijiarui/wechaty-getting-started">Wechaty Starter Project</a></p>
-</dd>
-<dt><a href="#Room">Room</a></dt>
-<dd><p>All wechat rooms(groups) will be encapsulated as a Room.</p>
-<p><code>Room</code> is <code>Sayable</code>,
-<a href="https://github.com/Chatie/wechaty/blob/master/example/room-bot.ts">Example/Room-Bot</a></p>
-</dd>
-<dt><a href="#Contact">Contact</a></dt>
-<dd><p>All wechat contacts(friend) will be encapsulated as a Contact.</p>
-<p><code>Contact</code> is <code>Sayable</code>,
-<a href="https://github.com/Chatie/wechaty/blob/master/example/contact-bot.ts">Example/Contact-Bot</a></p>
-</dd>
-<dt><a href="#FriendRequest">FriendRequest</a></dt>
-<dd><p>Send, receive friend request, and friend confirmation events.</p>
-<ol>
-<li>send request</li>
-<li>receive request(in friend event)</li>
-<li>confirmation friendship(friend event)</li>
-</ol>
-<p><a href="https://github.com/Chatie/wechaty/blob/master/example/friend-bot.ts">Example/Friend-Bot</a></p>
-</dd>
-<dt><a href="#Message">Message</a></dt>
-<dd><p>All wechat messages will be encapsulated as a Message.</p>
-<p><code>Message</code> is <code>Sayable</code>,
-<a href="https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts">Example/Ding-Dong-Bot</a></p>
-</dd>
-<dt><a href="#MediaMessage">MediaMessage</a></dt>
-<dd><p>Meidia Type Message</p>
-</dd>
-<dt><a href="#FriendRequest">FriendRequest</a></dt>
-<dd></dd>
-</dl>
+# WECHATY
 
-## Typedefs
+## Connecting ChatBots.
 
-<dl>
-<dt><a href="#WechatyEventName">WechatyEventName</a></dt>
-<dd><p>Wechaty Class Event Type</p>
-</dd>
-<dt><a href="#WechatyEventFunction">WechatyEventFunction</a></dt>
-<dd><p>Wechaty Class Event Function</p>
-</dd>
-<dt><a href="#RoomEventName">RoomEventName</a></dt>
-<dd><p>Room Class Event Type</p>
-</dd>
-<dt><a href="#RoomEventFunction">RoomEventFunction</a></dt>
-<dd><p>Room Class Event Function</p>
-</dd>
-<dt><a href="#MemberQueryFilter">MemberQueryFilter</a></dt>
-<dd><p>The way to search member by Room.member()</p>
-</dd>
-<dt><a href="#ContactQueryFilter">ContactQueryFilter</a></dt>
-<dd><p>The way to search Contact</p>
-</dd>
-</dl>
+Wechaty is a Bot Framework for Wechat **Personal** Account which can help you create a bot in 6 lines of javascript by easy to use API, with cross-platform support include [Linux](https://travis-ci.org/chatie/wechaty), [Windows](https://ci.appveyor.com/project/chatie/wechaty), [Darwin(OSX/Mac)](https://travis-ci.org/chatie/wechaty) and [Docker](https://circleci.com/gh/chatie/wechaty).
 
-<a name="Wechaty"></a>
+[![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
+[![Repo Size](https://reposs.herokuapp.com/?path=Chatie/wechaty)](https://github.com/chatie/wechaty)
 
-## Wechaty
-Main bot class.
+:octocat: <https://github.com/chatie/wechaty>  
+:beetle: <https://github.com/chatie/wechaty/issues>  
+:book: <https://github.com/chatie/wechaty/wiki>  
+:whale: <https://hub.docker.com/r/zixia/wechaty>  
 
-[The World's Shortest ChatBot Code: 6 lines of JavaScript](#wechatyinstance)
+## Voice of the Developer
 
-[Wechaty Starter Project](https://github.com/lijiarui/wechaty-getting-started)
+> "Wechaty is a great solution, I believe there would be much more users recognize it." [link](https://github.com/chatie/wechaty/pull/310#issuecomment-285574472)  
+> -- @Gcaufy, Tencent
 
-**Kind**: global class  
+> "太好用，好用的想哭"  
+> -- @xinbenlv, Google Engineer, HaoShiYou.org Founder
+
+> "最好的微信开发库" [link](http://weibo.com/3296245513/Ec4iNp9Ld?type=comment)  
+> -- @Jarvis, Baidu Developer
+
+> "Wechaty让运营人员更多的时间思考如何进行活动策划、留存用户，商业变现" [link](http://mp.weixin.qq.com/s/dWHAj8XtiKG-1fIS5Og79g)  
+> -- @lijiarui, Orange Interactive CEO.
+
+> "If you know js ... try Chatie/wechaty, it's easy to use."  
+> -- @Urinx Uri Lee, Author of WeixinBot
+
+See more at [Wiki:VoiceOfDeveloper](https://github.com/Chatie/wechaty/wiki/VoiceOfDeveloper)
+
+# The World's Shortest ChatBot Code: 6 lines of JavaScript
+
+```javascript
+const { Wechaty } = require('wechaty') // import { Wechaty } from 'wechaty'
+
+Wechaty.instance() // Singleton
+.on('scan', (url, code) => console.log(`Scan QR Code to login: ${code}\n${url}`))
+.on('login',       user => console.log(`User ${user} logined`))
+.on('message',  message => console.log(`Message: ${message}`))
+.init()
+```
+> **Notice: Wechaty requires Node.js version >= 6.9.0**
+
+This bot can log all messages to the console.
+
+You can find more examples from [Wiki](https://github.com/chatie/wechaty/wiki/Example) and [Example Directory](https://github.com/chatie/wechaty/blob/master/example/).
+
+GETTING STARTED
+----------------
+
+## A Great Live Coding Tutorial
+
+<div align="center">
+<a target="_blank" href="https://blog.chatie.io/guide/2017/01/01/getting-started-wechaty.html"><img src="https://cloud.githubusercontent.com/assets/1361891/21722581/3ec957d0-d468-11e6-8888-a91c236e0ba2.jpg" border=0 width="60%"></a>
+</div>
+
+The above 10 minute video tutorial is a good start point if you are new to Wechaty.
+
+> Source code in the video can be found at: [Wechaty Starter Repository](https://github.com/lijiarui/wechaty-getting-started)
+
+## Run
+
+Let's say, you have saved the above six line javascript example to `mybot.js`.
+
+We have two options to run wechaty:
+
+1. Docker
+1. NPM
+
+Notice: The published versions have always passed the CI tests. We highly recommend running wechaty with the versions installed by docker or npm instead of the latest master branch unless you are prepared to deal with the broken code problems. 
+
+### Docker
+
+[![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Stars](https://img.shields.io/docker/stars/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
+
+The **best practice** to use Wechaty is running with docker, because it's not only the most easy way to get started, but also protects you from the troubles of dependency problems. 
+
+> Wechaty Docker supports both JavaScript and TypeScript. To use TypeScript just write in TypeScript and save with extension name `.ts`.
+
+Get to know more about Wechaty Docker at [Wiki:Docker](https://github.com/chatie/wechaty/wiki/Docker).
+
+1. Run JavaScript
+
+```shell
+$ docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.js # for JavaScript
+```
+
+1. Run TypeScript
+
+```shell
+$ docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.ts # for TypeScript
+```
+
+### NPM
+
+[![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty)
+[![Downloads][downloads-image]][downloads-url]
+[![Greenkeeper badge](https://badges.greenkeeper.io/Chatie/wechaty.svg)](https://greenkeeper.io/)
+
+```shell
+$ npm install wechaty
+
+$ cat > mybot.js <<'_EOF_'
+const { Wechaty } = require('wechaty')
+const bot = Wechaty.instance()
+console.log(bot.version())
+_EOF_
+
+$ node mybot.js
+```
+
+Get to know more about NPM at [Wiki:NPM](https://github.com/chatie/wechaty/wiki/NPM)
+
+TEST
+-------
+
+[![Linux/Mac Build Status](https://img.shields.io/travis/Chatie/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/Chatie/wechaty)
+[![Windows Build status](https://img.shields.io/appveyor/ci/chatie/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/chatie/wechaty)
+[![Docker CircleCI](https://img.shields.io/circleci/project/github/Chatie/wechaty/master.svg?label=Docker)](https://circleci.com/gh/Chatie/wechaty)
+
+[![Coverage Status](https://coveralls.io/repos/github/Chatie/wechaty/badge.svg?branch=master)](https://coveralls.io/github/Chatie/wechaty?branch=master)
+[![Known Vulnerabilities](https://snyk.io/test/github/chatie/wechaty/badge.svg)](https://snyk.io/test/github/chatie/wechaty)
+
+Wechaty uses [AVA](https://github.com/avajs/ava) for unit testing
+
+To test Wechaty, run:
+```shell
+npm test
+```
+
+Get to know more about the tests from [Wiki:Test](https://github.com/chatie/wechaty/wiki/Test)
+
+DOCUMATAION
+-------------
+
+In order to sync the doc with the lastest code, we are using [jsdoc](http://usejsdoc.org/) to describe the API, and use [jsdoc-to-markdown](https://github.com/jsdoc2md/jsdoc-to-markdown/wiki) to generate markdown format documents to the [docs](docs/index.md) directory.
+
+See: [Official API Reference](https://chatie.github.io/wechaty/)
+
+
 
 * [Wechaty](#Wechaty)
     * _instance_
@@ -83,530 +157,8 @@ Main bot class.
         * [.instance()](#Wechaty.instance)
         * [.version([forceNpm])](#Wechaty.version) ⇒ <code>string</code>
 
-<a name="Wechaty+init"></a>
 
-### wechaty.init() ⇒ <code>Promise.&lt;void&gt;</code>
-Initialize the bot, return Promise.
 
-**Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
-**Example**  
-```js
-await bot.init()
-// do other stuff with bot here
-```
-<a name="Wechaty+on"></a>
-
-### wechaty.on(event, listener) ⇒ [<code>Wechaty</code>](#Wechaty)
-**Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
-**Returns**: [<code>Wechaty</code>](#Wechaty) - - this for chain
-
-More Example Gist: [Example/Friend-Bot](https://github.com/wechaty/wechaty/blob/master/example/friend-bot.ts)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| event | [<code>WechatyEventName</code>](#WechatyEventName) | Emit WechatyEvent |
-| listener | [<code>WechatyEventFunction</code>](#WechatyEventFunction) | Depends on the WechatyEvent |
-
-**Example** *(Event:scan )*  
-```js
-wechaty.on('scan', (url: string, code: number) => {
-  console.log(`[${code}] Scan ${url} to login.` )
-})
-```
-**Example** *(Event:login )*  
-```js
-bot.on('login', (user: Contact) => {
-  console.log(`user ${user} login`)
-})
-```
-**Example** *(Event:logout )*  
-```js
-bot.on('logout', (user: Contact) => {
-  console.log(`user ${user} logout`)
-})
-```
-**Example** *(Event:message )*  
-```js
-wechaty.on('message', (message: Message) => {
-  console.log(`message ${message} received`)
-})
-```
-**Example** *(Event:friend )*  
-```js
-bot.on('friend', (contact: Contact, request: FriendRequest) => {
-  if(request){ // 1. request to be friend from new contact
-    let result = await request.accept()
-      if(result){
-        console.log(`Request from ${contact.name()} is accept succesfully!`)
-      } else{
-        console.log(`Request from ${contact.name()} failed to accept!`)
-      }
-	  } else { // 2. confirm friend ship
-      console.log(`new friendship confirmed with ${contact.name()}`)
-   }
- })
-```
-**Example** *(Event:room-join )*  
-```js
-bot.on('room-join', (room: Room, inviteeList: Contact[], inviter: Contact) => {
-  const nameList = inviteeList.map(c => c.name()).join(',')
-  console.log(`Room ${room.topic()} got new member ${nameList}, invited by ${inviter}`)
-})
-```
-**Example** *(Event:room-leave )*  
-```js
-bot.on('room-leave', (room: Room, leaverList: Contact[]) => {
-  const nameList = leaverList.map(c => c.name()).join(',')
-  console.log(`Room ${room.topic()} lost member ${nameList}`)
-})
-```
-**Example** *(Event:room-topic )*  
-```js
-bot.on('room-topic', (room: Room, topic: string, oldTopic: string, changer: Contact) => {
-  console.log(`Room ${room.topic()} topic changed from ${oldTopic} to ${topic} by ${changer.name()}`)
-})
-```
-<a name="Wechaty+quit"></a>
-
-### wechaty.quit() ⇒ <code>Promise.&lt;void&gt;</code>
-Quit the bot
-
-**Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
-**Example**  
-```js
-await bot.quit()
-```
-<a name="Wechaty+logout"></a>
-
-### wechaty.logout() ⇒ <code>Promise.&lt;void&gt;</code>
-Logout the bot
-
-**Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
-**Example**  
-```js
-await bot.logout()
-```
-<a name="Wechaty+self"></a>
-
-### wechaty.self() ⇒ [<code>Contact</code>](#Contact)
-Get current user
-
-**Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
-**Example**  
-```js
-const contact = bot.self()
-console.log(`Bot is ${contact.name()}`)
-```
-<a name="Wechaty+say"></a>
-
-### wechaty.say(content) ⇒ <code>Promise.&lt;boolean&gt;</code>
-Send message to filehelper
-
-**Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
-
-| Param | Type |
-| --- | --- |
-| content | <code>string</code> | 
-
-<a name="Wechaty.instance"></a>
-
-### Wechaty.instance()
-get the singleton instance of Wechaty
-
-**Kind**: static method of [<code>Wechaty</code>](#Wechaty)  
-**Example** *(The World&#x27;s Shortest ChatBot Code: 6 lines of JavaScript)*  
-```js
-const { Wechaty } = require('wechaty')
-
-Wechaty.instance() // Singleton
-.on('scan', (url, code) => console.log(`Scan QR Code to login: ${code}\n${url}`))
-.on('login',       user => console.log(`User ${user} logined`))
-.on('message',  message => console.log(`Message: ${message}`))
-.init()
-```
-<a name="Wechaty.version"></a>
-
-### Wechaty.version([forceNpm]) ⇒ <code>string</code>
-Return version of Wechaty
-
-**Kind**: static method of [<code>Wechaty</code>](#Wechaty)  
-**Returns**: <code>string</code> - - the version number  
-
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| [forceNpm] | <code>boolean</code> | <code>false</code> | if set to true, will only return the version in package.json.                                      otherwise will return git commit hash if .git exists. |
-
-**Example**  
-```js
-console.log(Wechaty.instance().version())       // return '#git[af39df]'
-console.log(Wechaty.instance().version(true))   // return '0.7.9'
-```
-<a name="Room"></a>
-
-## Room
-All wechat rooms(groups) will be encapsulated as a Room.
-
-`Room` is `Sayable`,
-[Example/Room-Bot](https://github.com/Chatie/wechaty/blob/master/example/room-bot.ts)
-
-**Kind**: global class  
-
-* [Room](#Room)
-    * _instance_
-        * [.say(textOrMedia, [replyTo])](#Room+say) ⇒ <code>Promise.&lt;boolean&gt;</code>
-        * [.on(event, listener)](#Room+on) ⇒ <code>this</code>
-        * [.add(contact)](#Room+add) ⇒ <code>Promise.&lt;number&gt;</code>
-        * [.del(contact)](#Room+del) ⇒ <code>Promise.&lt;number&gt;</code>
-        * [.topic([newTopic])](#Room+topic) ⇒ <code>string</code> \| <code>void</code>
-        * [.alias(contact)](#Room+alias) ⇒ <code>string</code> \| <code>null</code>
-        * [.roomAlias(contact)](#Room+roomAlias) ⇒ <code>string</code> \| <code>null</code>
-        * [.has(contact)](#Room+has) ⇒ <code>boolean</code>
-        * [.memberAll(queryArg)](#Room+memberAll) ⇒ [<code>Array.&lt;Contact&gt;</code>](#Contact)
-        * [.member(queryArg)](#Room+member) ⇒ [<code>Contact</code>](#Contact) \| <code>null</code>
-        * [.memberList()](#Room+memberList) ⇒ [<code>Array.&lt;Contact&gt;</code>](#Contact)
-        * [.refresh()](#Room+refresh) ⇒ <code>Promise.&lt;void&gt;</code>
-    * _static_
-        * [.create(contactList, [topic])](#Room.create) ⇒ [<code>Promise.&lt;Room&gt;</code>](#Room)
-        * [.findAll([query])](#Room.findAll) ⇒ <code>Promise.&lt;Array.&lt;Room&gt;&gt;</code>
-        * [.find(query)](#Room.find) ⇒ <code>Promise.&lt;(Room\|null)&gt;</code>
-
-<a name="Room+say"></a>
-
-### room.say(textOrMedia, [replyTo]) ⇒ <code>Promise.&lt;boolean&gt;</code>
-Send message inside Room, if set [replyTo], wechaty will mention the contact as well.
-
-**Kind**: instance method of [<code>Room</code>](#Room)  
-**Returns**: <code>Promise.&lt;boolean&gt;</code> - If bot send message successfully, it will return true. If the bot failed to send for blocking or any other reason, it will return false  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| textOrMedia | <code>string</code> \| [<code>MediaMessage</code>](#MediaMessage) | Send `text` or `media file` inside Room. |
-| [replyTo] | [<code>Contact</code>](#Contact) \| [<code>Array.&lt;Contact&gt;</code>](#Contact) | Optional parameter, send content inside Room, and mention @replyTo contact or contactList. |
-
-**Example** *(Send text inside Room)*  
-```js
-const room = await Room.find({name: 'wechaty'})        // change 'wechaty' to any of your room in wechat
-await room.say('Hello world!')
-```
-**Example** *(Send media file inside Room)*  
-```js
-const room = await Room.find({name: 'wechaty'})        // change 'wechaty' to any of your room in wechat
-await room.say(new MediaMessage('/test.jpg'))          // put the filePath you want to send here
-```
-**Example** *(Send text inside Room, and mention @replyTo contact)*  
-```js
-const contact = await Contact.find({name: 'lijiarui'}) // change 'lijiarui' to any of the room member
-const room = await Room.find({name: 'wechaty'})        // change 'wechaty' to any of your room in wechat
-await room.say('Hello world!', contact)
-```
-<a name="Room+on"></a>
-
-### room.on(event, listener) ⇒ <code>this</code>
-**Kind**: instance method of [<code>Room</code>](#Room)  
-**Returns**: <code>this</code> - - this for chain  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| event | [<code>RoomEventName</code>](#RoomEventName) | Emit WechatyEvent |
-| listener | [<code>RoomEventFunction</code>](#RoomEventFunction) | Depends on the WechatyEvent |
-
-**Example** *(Event:join )*  
-```js
-const room = await Room.find({topic: 'event-room'}) // change `event-room` to any room topic in your wechat
-if (room) {
-  room.on('join', (room: Room, inviteeList: Contact[], inviter: Contact) => {
-    const nameList = inviteeList.map(c => c.name()).join(',')
-    console.log(`Room ${room.topic()} got new member ${nameList}, invited by ${inviter}`)
-  })
-}
-```
-**Example** *(Event:leave )*  
-```js
-const room = await Room.find({topic: 'event-room'}) // change `event-room` to any room topic in your wechat
-if (room) {
-  room.on('leave', (room: Room, leaverList: Contact[]) => {
-    const nameList = leaverList.map(c => c.name()).join(',')
-    console.log(`Room ${room.topic()} lost member ${nameList}`)
-  })
-}
-```
-**Example** *(Event:topic )*  
-```js
-const room = await Room.find({topic: 'event-room'}) // change `event-room` to any room topic in your wechat
-if (room) {
-  room.on('topic', (room: Room, topic: string, oldTopic: string, changer: Contact) => {
-    console.log(`Room ${room.topic()} topic changed from ${oldTopic} to ${topic} by ${changer.name()}`)
-  })
-}
-```
-<a name="Room+add"></a>
-
-### room.add(contact) ⇒ <code>Promise.&lt;number&gt;</code>
-Add contact in a room
-
-**Kind**: instance method of [<code>Room</code>](#Room)  
-
-| Param | Type |
-| --- | --- |
-| contact | [<code>Contact</code>](#Contact) | 
-
-**Example**  
-```js
-const contact = await Contact.find({name: 'lijiarui'}) // change 'lijiarui' to any contact in your wechat
-const room = await Room.find({topic: 'wechat'})        // change 'wechat' to any room topic in your wechat
-if (room) {
-  const result = await room.add(contact)
-  if (result) {
-    console.log(`add ${contact.name()} to ${room.topic()} successfully! `)
-  } else{
-    console.log(`failed to add ${contact.name()} to ${room.topic()}! `)
-  }
-}
-```
-<a name="Room+del"></a>
-
-### room.del(contact) ⇒ <code>Promise.&lt;number&gt;</code>
-Delete a contact from the room
-It works only when the bot is the owner of the room
-
-**Kind**: instance method of [<code>Room</code>](#Room)  
-
-| Param | Type |
-| --- | --- |
-| contact | [<code>Contact</code>](#Contact) | 
-
-**Example**  
-```js
-const room = await Room.find({topic: 'wechat'})          // change 'wechat' to any room topic in your wechat
-const contact = await Contact.find({name: 'lijiarui'})   // change 'lijiarui' to any room member in the room you just set
-if (room) {
-  const result = await room.del(contact)
-  if (result) {
-    console.log(`remove ${contact.name()} from ${room.topic()} successfully! `)
-  } else{
-    console.log(`failed to remove ${contact.name()} from ${room.topic()}! `)
-  }
-}
-```
-<a name="Room+topic"></a>
-
-### room.topic([newTopic]) ⇒ <code>string</code> \| <code>void</code>
-SET/GET topic from the room
-
-**Kind**: instance method of [<code>Room</code>](#Room)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| [newTopic] | <code>string</code> | If set this para, it will change room topic. |
-
-**Example** *(When you say anything in a room, it will get room topic. )*  
-```js
-const bot = Wechaty.instance()
-bot
-.on('message', async m => {
-  const room = m.room()
-  if (room) {
-    const topic = room.topic()
-    console.log(`room topic is : ${topic}`)
-  }
-})
-```
-**Example** *(When you say anything in a room, it will change room topic. )*  
-```js
-const bot = Wechaty.instance()
-bot
-.on('message', async m => {
-  const room = m.room()
-  if (room) {
-    const oldTopic = room.topic()
-    room.topic('change topic to wechaty!')
-    console.log(`room topic change from ${oldTopic} to ${room.topic()}`)
-  }
-})
-```
-<a name="Room+alias"></a>
-
-### room.alias(contact) ⇒ <code>string</code> \| <code>null</code>
-Return contact's roomAlias in the room, the same as roomAlias
-
-**Kind**: instance method of [<code>Room</code>](#Room)  
-**Returns**: <code>string</code> \| <code>null</code> - - If a contact has an alias in room, return string, otherwise return null  
-
-| Param | Type |
-| --- | --- |
-| contact | [<code>Contact</code>](#Contact) | 
-
-**Example**  
-```js
-const bot = Wechaty.instance()
-bot
-.on('message', async m => {
-  const room = m.room()
-  const contact = m.from()
-  if (room) {
-    const alias = room.alias(contact)
-    console.log(`${contact.name()} alias is ${alias}`)
-  }
-})
-```
-<a name="Room+roomAlias"></a>
-
-### room.roomAlias(contact) ⇒ <code>string</code> \| <code>null</code>
-Same as function alias
-
-**Kind**: instance method of [<code>Room</code>](#Room)  
-
-| Param | Type |
-| --- | --- |
-| contact | [<code>Contact</code>](#Contact) | 
-
-<a name="Room+has"></a>
-
-### room.has(contact) ⇒ <code>boolean</code>
-Check if the room has member `contact`.
-
-**Kind**: instance method of [<code>Room</code>](#Room)  
-**Returns**: <code>boolean</code> - Return `true` if has contact, else return `false`.  
-
-| Param | Type |
-| --- | --- |
-| contact | [<code>Contact</code>](#Contact) | 
-
-**Example** *(Check whether &#x27;lijiarui&#x27; is in the room &#x27;wechaty&#x27;)*  
-```js
-const contact = await Contact.find({name: 'lijiarui'})   // change 'lijiarui' to any of contact in your wechat
-const room = await Room.find({topic: 'wechaty'})         // change 'wechaty' to any of the room in your wechat
-if (contact && room) {
-  if (room.has(contact)) {
-    console.log(`${contact.name()} is in the room ${room.topic()}!`)
-  } else {
-    console.log(`${contact.name()} is not in the room ${room.topic()} !`)
-  }
-}
-```
-<a name="Room+memberAll"></a>
-
-### room.memberAll(queryArg) ⇒ [<code>Array.&lt;Contact&gt;</code>](#Contact)
-Find all contacts in a room
-
-#### definition
-- `name`                 the name-string set by user-self, should be called name, equal to `Contact.name()`
-- `roomAlias` | `alias`  the name-string set by user-self in the room, should be called roomAlias
-- `contactAlias`         the name-string set by bot for others, should be called alias, equal to `Contact.alias()`
-
-**Kind**: instance method of [<code>Room</code>](#Room)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| queryArg | [<code>MemberQueryFilter</code>](#MemberQueryFilter) \| <code>string</code> | When use memberAll(name:string), return all matched members, including name, roomAlias, contactAlias |
-
-<a name="Room+member"></a>
-
-### room.member(queryArg) ⇒ [<code>Contact</code>](#Contact) \| <code>null</code>
-Find all contacts in a room, if get many, return the first one.
-
-**Kind**: instance method of [<code>Room</code>](#Room)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| queryArg | [<code>MemberQueryFilter</code>](#MemberQueryFilter) \| <code>string</code> | When use member(name:string), return all matched members, including name, roomAlias, contactAlias |
-
-**Example** *(Find member by name)*  
-```js
-const room = await Room.find({topic: 'wechaty'})           // change 'wechaty' to any room name in your wechat
-if (room) {
-  const member = room.member('lijiarui')                   // change 'lijiarui' to any room member in your wechat
-  if (member) {
-    console.log(`${room.topic()} got the member: ${member.name()}`)
-  } else {
-    console.log(`cannot get member in room: ${room.topic()}`)
-  }
-}
-```
-**Example** *(Find member by MemberQueryFilter)*  
-```js
-const room = await Room.find({topic: 'wechaty'})          // change 'wechaty' to any room name in your wechat
-if (room) {
-  const member = room.member({name: 'lijiarui'})          // change 'lijiarui' to any room member in your wechat
-  if (member) {
-    console.log(`${room.topic()} got the member: ${member.name()}`)
-  } else {
-    console.log(`cannot get member in room: ${room.topic()}`)
-  }
-}
-```
-<a name="Room+memberList"></a>
-
-### room.memberList() ⇒ [<code>Array.&lt;Contact&gt;</code>](#Contact)
-Get all room member from the room
-
-**Kind**: instance method of [<code>Room</code>](#Room)  
-<a name="Room+refresh"></a>
-
-### room.refresh() ⇒ <code>Promise.&lt;void&gt;</code>
-Force reload data for Room
-
-**Kind**: instance method of [<code>Room</code>](#Room)  
-<a name="Room.create"></a>
-
-### Room.create(contactList, [topic]) ⇒ [<code>Promise.&lt;Room&gt;</code>](#Room)
-Create a new room.
-
-**Kind**: static method of [<code>Room</code>](#Room)  
-
-| Param | Type |
-| --- | --- |
-| contactList | [<code>Array.&lt;Contact&gt;</code>](#Contact) | 
-| [topic] | <code>string</code> | 
-
-**Example** *(Creat a room with &#x27;lijiarui&#x27; and &#x27;juxiaomi&#x27;, the room topic is &#x27;ding - created&#x27;)*  
-```js
-const helperContactA = await Contact.find({ name: 'lijiarui' })  // change 'lijiarui' to any contact in your wechat
-const helperContactB = await Contact.find({ name: 'juxiaomi' })  // change 'juxiaomi' to any contact in your wechat
-const contactList = [helperContactA, helperContactB]
-console.log('Bot', 'contactList: %s', contactList.join(','))
-const room = await Room.create(contactList, 'ding')
-console.log('Bot', 'createDingRoom() new ding room created: %s', room)
-await room.topic('ding - created')
-await room.say('ding - created')
-```
-<a name="Room.findAll"></a>
-
-### Room.findAll([query]) ⇒ <code>Promise.&lt;Array.&lt;Room&gt;&gt;</code>
-Find room by topic, return all the matched room
-
-**Kind**: static method of [<code>Room</code>](#Room)  
-
-| Param | Type |
-| --- | --- |
-| [query] | <code>RoomQueryFilter</code> | 
-
-**Example**  
-```js
-const roomList = await Room.findAll()                    // get the room list of the bot
-const roomList = await Room.findAll({name: 'wechaty'})   // find all of the rooms with name 'wechaty'
-```
-<a name="Room.find"></a>
-
-### Room.find(query) ⇒ <code>Promise.&lt;(Room\|null)&gt;</code>
-Try to find a room by filter: {topic: string | RegExp}. If get many, return the first one.
-
-**Kind**: static method of [<code>Room</code>](#Room)  
-**Returns**: <code>Promise.&lt;(Room\|null)&gt;</code> - If can find the room, return Room, or return null  
-
-| Param | Type |
-| --- | --- |
-| query | <code>RoomQueryFilter</code> | 
-
-<a name="Contact"></a>
-
-## Contact
-All wechat contacts(friend) will be encapsulated as a Contact.
-
-`Contact` is `Sayable`,
-[Example/Contact-Bot](https://github.com/Chatie/wechaty/blob/master/example/contact-bot.ts)
-
-**Kind**: global class  
 
 * [Contact](#Contact)
     * _instance_
@@ -628,1006 +180,8 @@ All wechat contacts(friend) will be encapsulated as a Contact.
         * [.find(query)](#Contact.find) ⇒ <code>Promise.&lt;(Contact\|null)&gt;</code>
         * [.findAll([queryArg])](#Contact.findAll) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
 
-<a name="Contact+say"></a>
 
-### contact.say(textOrMedia) ⇒ <code>Promise.&lt;boolean&gt;</code>
-Send Text or Media File to Contact.
 
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-
-| Param | Type |
-| --- | --- |
-| textOrMedia | <code>string</code> \| [<code>MediaMessage</code>](#MediaMessage) | 
-
-**Example**  
-```js
-const contact = await Contact.find({name: 'lijiarui'})         // change 'lijiarui' to any of your contact name in wechat
-await contact.say('welcome to wechaty!')
-await contact.say(new MediaMessage(__dirname + '/wechaty.png') // put the filePath you want to send here
-```
-<a name="Contact+name"></a>
-
-### contact.name() ⇒ <code>string</code>
-Get the name from a contact
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Example**  
-```js
-const name = contact.name()
-```
-<a name="Contact+alias"></a>
-
-### contact.alias(newAlias) ⇒ <code>string</code> \| <code>null</code> \| <code>Promise.&lt;boolean&gt;</code>
-GET / SET / DELETE the alias for a contact
-
-Tests show it will failed if set alias too frequently(60 times in one minute).
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-
-| Param | Type |
-| --- | --- |
-| newAlias | <code>none</code> \| <code>string</code> \| <code>null</code> | 
-
-**Example** *( GET the alias for a contact, return {(string | null)})*  
-```js
-const alias = contact.alias()
-if (alias === null) {
-  console.log('You have not yet set any alias for contact ' + contact.name())
-} else {
-  console.log('You have already set an alias for contact ' + contact.name() + ':' + alias)
-}
-```
-**Example** *(SET the alias for a contact)*  
-```js
-const ret = await contact.alias('lijiarui')
-if (ret) {
-  console.log(`change ${contact.name()}'s alias successfully!`)
-} else {
-  console.log(`failed to change ${contact.name()} alias!`)
-}
-```
-**Example** *(DELETE the alias for a contact)*  
-```js
-const ret = await contact.alias(null)
-if (ret) {
-  console.log(`delete ${contact.name()}'s alias successfully!`)
-} else {
-  console.log(`failed to delete ${contact.name()}'s alias!`)
-}
-```
-<a name="Contact+stranger"></a>
-
-### contact.stranger() ⇒ <code>boolean</code> \| <code>null</code>
-Check if contact is stranger
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Returns**: <code>boolean</code> \| <code>null</code> - - True for not friend of the bot, False for friend of the bot, null for unknown.  
-**Example**  
-```js
-const isStranger = contact.stranger()
-```
-<a name="Contact+official"></a>
-
-### contact.official() ⇒ <code>boolean</code> \| <code>null</code>
-Check if it's a offical account
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Returns**: <code>boolean</code> \| <code>null</code> - - True for official account, Flase for contact is not a official account, null for unknown  
-**See**
-
-- [webwxApp.js#L324](https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3243)
-- [Urinx/WeixinBot/README](https://github.com/Urinx/WeixinBot/blob/master/README.md)
-
-**Example**  
-```js
-const isOfficial = contact.official()
-```
-<a name="Contact+special"></a>
-
-### contact.special() ⇒ <code>boolean</code> \| <code>null</code>
-Check if it's a special contact
-
-The contact who's id in following list will be identify as a special contact
-`weibo`, `qqmail`, `fmessage`, `tmessage`, `qmessage`, `qqsync`, `floatbottle`,
-`lbsapp`, `shakeapp`, `medianote`, `qqfriend`, `readerapp`, `blogapp`, `facebookapp`,
-`masssendapp`, `meishiapp`, `feedsapp`, `voip`, `blogappweixin`, `weixin`, `brandsessionholder`,
-`weixinreminder`, `wxid_novlwrv3lqwv11`, `gh_22b87fa7cb3c`, `officialaccounts`, `notification_messages`,
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Returns**: <code>boolean</code> \| <code>null</code> - True for brand, Flase for contact is not a brand  
-**See**
-
-- [webwxApp.js#L3848](https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3848)
-- [webwxApp.js#L3246](https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3246)
-
-**Example**  
-```js
-const isSpecial = contact.special()
-```
-<a name="Contact+personal"></a>
-
-### contact.personal() ⇒ <code>boolean</code> \| <code>null</code>
-Check if it's a personal account
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Returns**: <code>boolean</code> \| <code>null</code> - - True for personal account, Flase for contact is not a personal account  
-**Example**  
-```js
-const isPersonal = contact.personal()
-```
-<a name="Contact+star"></a>
-
-### contact.star() ⇒ <code>boolean</code>
-Check if the contact is star contact.
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Returns**: <code>boolean</code> - - True for star friend, False for no star friend.  
-**Example**  
-```js
-const isStar = contact.star()
-```
-<a name="Contact+gender"></a>
-
-### contact.gender() ⇒ <code>Gender.Male(2)</code> \| <code>Gender.Female(1)</code> \| <code>Gender.Unknown(0)</code>
-Contact gender
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Example**  
-```js
-const gender = contact.gender()
-```
-<a name="Contact+province"></a>
-
-### contact.province() ⇒ <code>string</code> \| <code>undefined</code>
-Get the region 'province' from a contact
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Example**  
-```js
-const province = contact.province()
-```
-<a name="Contact+city"></a>
-
-### contact.city() ⇒ <code>string</code> \| <code>undefined</code>
-Get the region 'city' from a contact
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Example**  
-```js
-const city = contact.city()
-```
-<a name="Contact+avatar"></a>
-
-### contact.avatar() ⇒ <code>Promise.&lt;NodeJS.ReadableStream&gt;</code>
-Get avatar picture file stream
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Example**  
-```js
-const avatarFileName = contact.name() + `.jpg`
-const avatarReadStream = await contact.avatar()
-const avatarWriteStream = createWriteStream(avatarFileName)
-avatarReadStream.pipe(avatarWriteStream)
-log.info('Bot', 'Contact: %s: %s with avatar file: %s', contact.weixin(), contact.name(), avatarFileName)
-```
-<a name="Contact+refresh"></a>
-
-### contact.refresh() ⇒ <code>Promise.&lt;this&gt;</code>
-Force reload data for Contact
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Example**  
-```js
-await contact.refresh()
-```
-<a name="Contact+self"></a>
-
-### contact.self() ⇒ <code>boolean</code>
-Check if contact is self
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Returns**: <code>boolean</code> - True for contact is self, False for contact is others  
-**Example**  
-```js
-const isSelf = contact.self()
-```
-<a name="Contact.find"></a>
-
-### Contact.find(query) ⇒ <code>Promise.&lt;(Contact\|null)&gt;</code>
-Try to find a contact by filter: {name: string | RegExp} / {alias: string | RegExp}
-
-Find contact by name or alias, if the result more than one, return the first one.
-
-**Kind**: static method of [<code>Contact</code>](#Contact)  
-**Returns**: <code>Promise.&lt;(Contact\|null)&gt;</code> - If can find the contact, return Contact, or return null  
-
-| Param | Type |
-| --- | --- |
-| query | [<code>ContactQueryFilter</code>](#ContactQueryFilter) | 
-
-**Example**  
-```js
-const contactFindByName = await Contact.find({ name:"ruirui"} )
-const contactFindByAlias = await Contact.find({ alias:"lijiarui"} )
-```
-<a name="Contact.findAll"></a>
-
-### Contact.findAll([queryArg]) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
-Find contact by `name` or `alias`
-
-If use Contact.findAll() get the contact list of the bot.
-
-#### definition
-- `name`   the name-string set by user-self, should be called name
-- `alias`  the name-string set by bot for others, should be called alias
-
-**Kind**: static method of [<code>Contact</code>](#Contact)  
-
-| Param | Type |
-| --- | --- |
-| [queryArg] | [<code>ContactQueryFilter</code>](#ContactQueryFilter) | 
-
-**Example**  
-```js
-const contactList = await Contact.findAll()                    // get the contact list of the bot
-const contactList = await Contact.findAll({name: 'ruirui'})    // find allof the contacts whose name is 'ruirui'
-const contactList = await Contact.findAll({alias: 'lijiarui'}) // find all of the contacts whose alias is 'lijiarui'
-```
-<a name="FriendRequest"></a>
-
-## FriendRequest
-Send, receive friend request, and friend confirmation events.
-
-1. send request
-2. receive request(in friend event)
-3. confirmation friendship(friend event)
-
-[Example/Friend-Bot](https://github.com/Chatie/wechaty/blob/master/example/friend-bot.ts)
-
-**Kind**: global class  
-
-* [FriendRequest](#FriendRequest)
-    * [.send(contact, [hello])](#FriendRequest+send) ⇒ <code>Promise.&lt;boolean&gt;</code>
-    * [.accept()](#FriendRequest+accept) ⇒ <code>Promise.&lt;boolean&gt;</code>
-
-<a name="FriendRequest+send"></a>
-
-### friendRequest.send(contact, [hello]) ⇒ <code>Promise.&lt;boolean&gt;</code>
-Send a new friend request
-
-**Kind**: instance method of [<code>FriendRequest</code>](#FriendRequest)  
-**Returns**: <code>Promise.&lt;boolean&gt;</code> - Return a Promise, true for accept successful, false for failure.  
-
-| Param | Type | Default |
-| --- | --- | --- |
-| contact | [<code>Contact</code>](#Contact) |  | 
-| [hello] | <code>string</code> | <code>&quot;&#x27;Hi&#x27;&quot;</code> | 
-
-**Example**  
-```js
-const from = message.from()
-const request = new FriendRequest()
-request.send(from, 'hello~')
-```
-<a name="FriendRequest+accept"></a>
-
-### friendRequest.accept() ⇒ <code>Promise.&lt;boolean&gt;</code>
-Accept a friend request
-
-**Kind**: instance method of [<code>FriendRequest</code>](#FriendRequest)  
-**Returns**: <code>Promise.&lt;boolean&gt;</code> - Return a Promise, true for accept successful, false for failure.  
-<a name="Message"></a>
-
-## Message
-All wechat messages will be encapsulated as a Message.
-
-`Message` is `Sayable`,
-[Example/Ding-Dong-Bot](https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts)
-
-**Kind**: global class  
-
-* [Message](#Message)
-    * _instance_
-        * [.say(textOrMedia, [replyTo])](#Message+say) ⇒ <code>Promise.&lt;any&gt;</code>
-        * [.from()](#Message+from) ⇒ [<code>Contact</code>](#Contact)
-        * [.room()](#Message+room) ⇒ [<code>Room</code>](#Room) \| <code>null</code>
-        * [.content()](#Message+content) ⇒ <code>string</code>
-        * [.type()](#Message+type) ⇒ [<code>MsgType</code>](#MsgType)
-        * [.typeSub()](#Message+typeSub) ⇒ [<code>MsgType</code>](#MsgType)
-        * [.typeApp()](#Message+typeApp) ⇒ [<code>AppMsgType</code>](#AppMsgType)
-        * [.typeEx()](#Message+typeEx) ⇒ [<code>MsgType</code>](#MsgType)
-        * [.self()](#Message+self) ⇒ <code>boolean</code>
-        * [.mentioned()](#Message+mentioned) ⇒ [<code>Array.&lt;Contact&gt;</code>](#Contact)
-        * [.to()](#Message+to) ⇒ [<code>Contact</code>](#Contact) \| <code>null</code>
-        * [.readyStream()](#Message+readyStream) ⇒ <code>Promise.&lt;Readable&gt;</code>
-    * _static_
-        * [.find()](#Message.find)
-        * [.findAll()](#Message.findAll)
-
-<a name="Message+say"></a>
-
-### message.say(textOrMedia, [replyTo]) ⇒ <code>Promise.&lt;any&gt;</code>
-Reply a Text or Media File message to the sender.
-
-**Kind**: instance method of [<code>Message</code>](#Message)  
-**See**: [Example/ding-dong-bot](https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts)  
-
-| Param | Type |
-| --- | --- |
-| textOrMedia | <code>string</code> \| [<code>MediaMessage</code>](#MediaMessage) | 
-| [replyTo] | [<code>Contact</code>](#Contact) \| [<code>Array.&lt;Contact&gt;</code>](#Contact) | 
-
-**Example**  
-```js
-const bot = Wechaty.instance()
-bot
-.on('message', async m => {
-  if (/^ding$/i.test(m.content())) {
-    await m.say('hello world')
-    console.log('Bot REPLY: hello world')
-    await m.say(new MediaMessage(__dirname + '/wechaty.png'))
-    console.log('Bot REPLY: Image')
-  }
-})
-```
-<a name="Message+from"></a>
-
-### message.from() ⇒ [<code>Contact</code>](#Contact)
-Get the sender from a message.
-
-**Kind**: instance method of [<code>Message</code>](#Message)  
-<a name="Message+room"></a>
-
-### message.room() ⇒ [<code>Room</code>](#Room) \| <code>null</code>
-Get the room from the message.
-If the message is not in a room, then will return `null`
-
-**Kind**: instance method of [<code>Message</code>](#Message)  
-<a name="Message+content"></a>
-
-### message.content() ⇒ <code>string</code>
-Get the content of the message
-
-**Kind**: instance method of [<code>Message</code>](#Message)  
-<a name="Message+type"></a>
-
-### message.type() ⇒ [<code>MsgType</code>](#MsgType)
-Get the type from the message.
-
-If type is equal to `MsgType.RECALLED`, [Message#id](Message#id) is the msgId of the recalled message.
-
-**Kind**: instance method of [<code>Message</code>](#Message)  
-**See**: [MsgType](#MsgType)  
-<a name="Message+typeSub"></a>
-
-### message.typeSub() ⇒ [<code>MsgType</code>](#MsgType)
-Get the typeSub from the message.
-
-If message is a location message: `m.type() === MsgType.TEXT && m.typeSub() === MsgType.LOCATION`
-
-**Kind**: instance method of [<code>Message</code>](#Message)  
-**See**: [MsgType](#MsgType)  
-<a name="Message+typeApp"></a>
-
-### message.typeApp() ⇒ [<code>AppMsgType</code>](#AppMsgType)
-Get the typeApp from the message.
-
-**Kind**: instance method of [<code>Message</code>](#Message)  
-**See**: [AppMsgType](#AppMsgType)  
-<a name="Message+typeEx"></a>
-
-### message.typeEx() ⇒ [<code>MsgType</code>](#MsgType)
-Get the typeEx from the message.
-
-**Kind**: instance method of [<code>Message</code>](#Message)  
-<a name="Message+self"></a>
-
-### message.self() ⇒ <code>boolean</code>
-Check if a message is sent by self.
-
-**Kind**: instance method of [<code>Message</code>](#Message)  
-**Returns**: <code>boolean</code> - - Return `true` for send from self, `false` for send from others.  
-**Example**  
-```js
-if (message.self()) {
- console.log('this message is sent by myself!')
-}
-```
-<a name="Message+mentioned"></a>
-
-### message.mentioned() ⇒ [<code>Array.&lt;Contact&gt;</code>](#Contact)
-Get message mentioned contactList.
-
-Message event table as follows
-
-|                                                                            | Web  |  Mac PC Client | iOS Mobile |  android Mobile |
-| :---                                                                       | :--: |     :----:     |   :---:    |     :---:       |
-| [You were mentioned] tip ([有人@我]的提示)                                   |  ✘   |        √       |     √      |       √         |
-| Identify magic code (8197) by copy & paste in mobile                       |  ✘   |        √       |     √      |       ✘         |
-| Identify magic code (8197) by programming                                  |  ✘   |        ✘       |     ✘      |       ✘         |
-| Identify two contacts with the same roomAlias by [You were  mentioned] tip |  ✘   |        ✘       |     √      |       √         |
-
-**Kind**: instance method of [<code>Message</code>](#Message)  
-**Returns**: [<code>Array.&lt;Contact&gt;</code>](#Contact) - - Return message mentioned contactList  
-**Example**  
-```js
-const contactList = message.mentioned()
-console.log(contactList)
-```
-<a name="Message+to"></a>
-
-### message.to() ⇒ [<code>Contact</code>](#Contact) \| <code>null</code>
-Get the destination of the message
-Message.to() will return null if a message is in a room, use Message.room() to get the room.
-
-**Kind**: instance method of [<code>Message</code>](#Message)  
-<a name="Message+readyStream"></a>
-
-### message.readyStream() ⇒ <code>Promise.&lt;Readable&gt;</code>
-Please notice that when we are running Wechaty,
-if you use the browser that controlled by Wechaty to send attachment files,
-you will get a zero sized file, because it is not an attachment from the network,
-but a local data, which is not supported by Wechaty yet.
-
-**Kind**: instance method of [<code>Message</code>](#Message)  
-<a name="Message.find"></a>
-
-### Message.find()
-**Kind**: static method of [<code>Message</code>](#Message)  
-**Todo**
-
-- [ ] add function
-
-<a name="Message.findAll"></a>
-
-### Message.findAll()
-**Kind**: static method of [<code>Message</code>](#Message)  
-**Todo**
-
-- [ ] add function
-
-<a name="MediaMessage"></a>
-
-## MediaMessage
-Meidia Type Message
-
-**Kind**: global class  
-
-* [MediaMessage](#MediaMessage)
-    * [.ext()](#MediaMessage+ext) ⇒ <code>string</code>
-    * [.filename()](#MediaMessage+filename) ⇒ <code>string</code>
-    * [.readyStream()](#MediaMessage+readyStream)
-    * [.forward(sendTo)](#MediaMessage+forward) ⇒ <code>Promise.&lt;boolean&gt;</code>
-
-<a name="MediaMessage+ext"></a>
-
-### mediaMessage.ext() ⇒ <code>string</code>
-Get the MediaMessage file extension, etc: `jpg`, `gif`, `pdf`, `word` ..
-
-**Kind**: instance method of [<code>MediaMessage</code>](#MediaMessage)  
-**Example**  
-```js
-bot.on('message', async function (m) {
-  if (m instanceof MediaMessage) {
-    console.log('media message file name extention is: ' + m.ext())
-  }
-})
-```
-<a name="MediaMessage+filename"></a>
-
-### mediaMessage.filename() ⇒ <code>string</code>
-Get the MediaMessage filename, etc: `how to build a chatbot.pdf`..
-
-**Kind**: instance method of [<code>MediaMessage</code>](#MediaMessage)  
-**Example**  
-```js
-bot.on('message', async function (m) {
-  if (m instanceof MediaMessage) {
-    console.log('media message file name is: ' + m.filename())
-  }
-})
-```
-<a name="MediaMessage+readyStream"></a>
-
-### mediaMessage.readyStream()
-Get the read stream for attachment file
-
-**Kind**: instance method of [<code>MediaMessage</code>](#MediaMessage)  
-<a name="MediaMessage+forward"></a>
-
-### mediaMessage.forward(sendTo) ⇒ <code>Promise.&lt;boolean&gt;</code>
-Forward the received message.
-
-The types of messages that can be forwarded are as follows:
-
-The return value of [type](#Message+type) matches one of the following types:
-```json
-MsgType {
-  TEXT                = 1,
-  IMAGE               = 3,
-  VIDEO               = 43,
-  EMOTICON            = 47,
-  LOCATION            = 48,
-  APP                 = 49,
-  MICROVIDEO          = 62,
-}
-```
-
-When the return value of [type](#Message+type) is `MsgType.APP`, the return value of [typeApp](#Message+typeApp) matches one of the following types:
-```json
-AppMsgType {
-  TEXT                     = 1,
-  IMG                      = 2,
-  VIDEO                    = 4,
-  ATTACH                   = 6,
-  EMOJI                    = 8,
-}
-```
-But, it should be noted that when forwarding ATTACH type message, if the file size is greater than 25Mb, the forwarding will fail.
-The reason is that the server limits the forwarding of files above 25Mb. You need to download the file and use `new MediaMessage (file)` to send the file.
-
-**Kind**: instance method of [<code>MediaMessage</code>](#MediaMessage)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| sendTo | [<code>Room</code>](#Room) \| [<code>Contact</code>](#Contact) | The recipient of the message, the room, or the contact |
-
-<a name="FriendRequest"></a>
-
-## FriendRequest
-**Kind**: global class  
-
-* [FriendRequest](#FriendRequest)
-    * [.send(contact, [hello])](#FriendRequest+send) ⇒ <code>Promise.&lt;boolean&gt;</code>
-    * [.accept()](#FriendRequest+accept) ⇒ <code>Promise.&lt;boolean&gt;</code>
-
-<a name="FriendRequest+send"></a>
-
-### friendRequest.send(contact, [hello]) ⇒ <code>Promise.&lt;boolean&gt;</code>
-Send a new friend request
-
-**Kind**: instance method of [<code>FriendRequest</code>](#FriendRequest)  
-**Returns**: <code>Promise.&lt;boolean&gt;</code> - Return a Promise, true for accept successful, false for failure.  
-
-| Param | Type | Default |
-| --- | --- | --- |
-| contact | [<code>Contact</code>](#Contact) |  | 
-| [hello] | <code>string</code> | <code>&quot;&#x27;Hi&#x27;&quot;</code> | 
-
-**Example**  
-```js
-const from = message.from()
-const request = new FriendRequest()
-request.send(from, 'hello~')
-```
-<a name="FriendRequest+accept"></a>
-
-### friendRequest.accept() ⇒ <code>Promise.&lt;boolean&gt;</code>
-Accept a friend request
-
-**Kind**: instance method of [<code>FriendRequest</code>](#FriendRequest)  
-**Returns**: <code>Promise.&lt;boolean&gt;</code> - Return a Promise, true for accept successful, false for failure.  
-<a name="Gender"></a>
-
-## Gender : <code>enum</code>
-Enum for Gender values.
-
-**Kind**: global enum  
-**Properties**
-
-| Name | Type | Description |
-| --- | --- | --- |
-| Unknown | <code>number</code> | 0 for Unknown |
-| Male | <code>number</code> | 1 for Male |
-| Female | <code>number</code> | 2 for Female |
-
-<a name="AppMsgType"></a>
-
-## AppMsgType : <code>enum</code>
-Enum for AppMsgType values.
-
-**Kind**: global enum  
-**Properties**
-
-| Name | Type | Description |
-| --- | --- | --- |
-| TEXT | <code>number</code> | AppMsgType.TEXT                     (1)     for TEXT |
-| IMG | <code>number</code> | AppMsgType.IMG                      (2)      for IMG |
-| AUDIO | <code>number</code> | AppMsgType.AUDIO                    (3)      for AUDIO |
-| VIDEO | <code>number</code> | AppMsgType.VIDEO                    (4)      for VIDEO |
-| URL | <code>number</code> | AppMsgType.URL                      (5)      for URL |
-| ATTACH | <code>number</code> | AppMsgType.ATTACH                   (6)      for ATTACH |
-| OPEN | <code>number</code> | AppMsgType.OPEN                     (7)      for OPEN |
-| EMOJI | <code>number</code> | AppMsgType.EMOJI                    (8)      for EMOJI |
-| VOICE_REMIND | <code>number</code> | AppMsgType.VOICE_REMIND             (9)      for VOICE_REMIND |
-| SCAN_GOOD | <code>number</code> | AppMsgType.SCAN_GOOD                (10)     for SCAN_GOOD |
-| GOOD | <code>number</code> | AppMsgType.GOOD                     (13)     for GOOD |
-| EMOTION | <code>number</code> | AppMsgType.EMOTION                  (15)     for EMOTION |
-| CARD_TICKET | <code>number</code> | AppMsgType.CARD_TICKET              (16)     for CARD_TICKET |
-| REALTIME_SHARE_LOCATION | <code>number</code> | AppMsgType.REALTIME_SHARE_LOCATION  (17)     for REALTIME_SHARE_LOCATION |
-| TRANSFERS | <code>number</code> | AppMsgType.TRANSFERS                (2e3)    for TRANSFERS |
-| RED_ENVELOPES | <code>number</code> | AppMsgType.RED_ENVELOPES            (2001)   for RED_ENVELOPES |
-| READER_TYPE | <code>number</code> | AppMsgType.READER_TYPE              (100001) for READER_TYPE |
-
-<a name="MsgType"></a>
-
-## MsgType : <code>enum</code>
-Enum for MsgType values.
-
-**Kind**: global enum  
-**Properties**
-
-| Name | Type | Description |
-| --- | --- | --- |
-| TEXT | <code>number</code> | MsgType.TEXT                (1)     for TEXT |
-| IMAGE | <code>number</code> | MsgType.IMAGE               (3)     for IMAGE |
-| VOICE | <code>number</code> | MsgType.VOICE               (34)    for VOICE |
-| VERIFYMSG | <code>number</code> | MsgType.VERIFYMSG           (37)    for VERIFYMSG |
-| POSSIBLEFRIEND_MSG | <code>number</code> | MsgType.POSSIBLEFRIEND_MSG  (40)    for POSSIBLEFRIEND_MSG |
-| SHARECARD | <code>number</code> | MsgType.SHARECARD           (42)    for SHARECARD |
-| VIDEO | <code>number</code> | MsgType.VIDEO               (43)    for VIDEO |
-| EMOTICON | <code>number</code> | MsgType.EMOTICON            (47)    for EMOTICON |
-| LOCATION | <code>number</code> | MsgType.LOCATION            (48)    for LOCATION |
-| APP | <code>number</code> | MsgType.APP                 (49)    for APP |
-| VOIPMSG | <code>number</code> | MsgType.VOIPMSG             (50)    for VOIPMSG |
-| STATUSNOTIFY | <code>number</code> | MsgType.STATUSNOTIFY        (51)    for STATUSNOTIFY |
-| VOIPNOTIFY | <code>number</code> | MsgType.VOIPNOTIFY          (52)    for VOIPNOTIFY |
-| VOIPINVITE | <code>number</code> | MsgType.VOIPINVITE          (53)    for VOIPINVITE |
-| MICROVIDEO | <code>number</code> | MsgType.MICROVIDEO          (62)    for MICROVIDEO |
-| SYSNOTICE | <code>number</code> | MsgType.SYSNOTICE           (9999)  for SYSNOTICE |
-| SYS | <code>number</code> | MsgType.SYS                 (10000) for SYS |
-| RECALLED | <code>number</code> | MsgType.RECALLED            (10002) for RECALLED |
-
-<a name="WechatyEventName"></a>
-
-## WechatyEventName
-Wechaty Class Event Type
-
-**Kind**: global typedef  
-**Properties**
-
-| Name | Type | Description |
-| --- | --- | --- |
-| error | <code>string</code> | When the bot get error, there will be a Wechaty error event fired. |
-| login | <code>string</code> | After the bot login full successful, the event login will be emitted, with a Contact of current logined user. |
-| logout | <code>string</code> | Logout will be emitted when bot detected log out, with a Contact of the current login user. |
-| scan | <code>string</code> | A scan event will be emitted when the bot needs to show you a QR Code for scanning. |
-| heartbeat | <code>string</code> | Get bot's heartbeat. |
-| friend | <code>string</code> | When someone sends you a friend request, there will be a Wechaty friend event fired. |
-| message | <code>string</code> | Emit when there's a new message. |
-| room-join | <code>string</code> | Emit when anyone join any room. |
-| room-topic | <code>string</code> | Get topic event, emitted when someone change room topic. |
-| room-leave | <code>string</code> | Emit when anyone leave the room.<br>                                    If someone leaves the room by themselves, wechat will not notice other people in the room, so the bot will never get the "leave" event. |
-
-<a name="WechatyEventFunction"></a>
-
-## WechatyEventFunction
-Wechaty Class Event Function
-
-**Kind**: global typedef  
-**Properties**
-
-| Name | Type | Description |
-| --- | --- | --- |
-| error | <code>function</code> | (this: Wechaty, error: Error) => void callback function |
-| login | <code>function</code> | (this: Wechaty, user: Contact)=> void |
-| logout | <code>function</code> | (this: Wechaty, user: Contact) => void |
-| scan | <code>function</code> | (this: Wechaty, url: string, code: number) => void <br> <ol> <li>URL: {String} the QR code image URL</li> <li>code: {Number} the scan status code. some known status of the code list here is:</li> </ol> <ul> <li>0 initial_</li> <li>200 login confirmed</li> <li>201 scaned, wait for confirm</li> <li>408 waits for scan</li> </ul> |
-| heartbeat | <code>function</code> | (this: Wechaty, data: any) => void |
-| friend | <code>function</code> | (this: Wechaty, friend: Contact, request?: FriendRequest) => void |
-| message | <code>function</code> | (this: Wechaty, message: Message) => void |
-| room-join | <code>function</code> | (this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void |
-| room-topic | <code>function</code> | (this: Wechaty, room: Room, topic: string, oldTopic: string, changer: Contact) => void |
-| room-leave | <code>function</code> | (this: Wechaty, room: Room, leaverList: Contact[]) => void |
-
-<a name="RoomEventName"></a>
-
-## RoomEventName
-Room Class Event Type
-
-**Kind**: global typedef  
-**Properties**
-
-| Name | Type | Description |
-| --- | --- | --- |
-| join | <code>string</code> | Emit when anyone join any room. |
-| topic | <code>string</code> | Get topic event, emitted when someone change room topic. |
-| leave | <code>string</code> | Emit when anyone leave the room.<br>                               If someone leaves the room by themselves, wechat will not notice other people in the room, so the bot will never get the "leave" event. |
-
-<a name="RoomEventFunction"></a>
-
-## RoomEventFunction
-Room Class Event Function
-
-**Kind**: global typedef  
-**Properties**
-
-| Name | Type | Description |
-| --- | --- | --- |
-| room-join | <code>function</code> | (this: Room, inviteeList: Contact[] , inviter: Contact)  => void |
-| room-topic | <code>function</code> | (this: Room, topic: string, oldTopic: string, changer: Contact) => void |
-| room-leave | <code>function</code> | (this: Room, leaver: Contact) => void |
-
-<a name="MemberQueryFilter"></a>
-
-## MemberQueryFilter
-The way to search member by Room.member()
-
-**Kind**: global typedef  
-**Properties**
-
-| Name | Type | Description |
-| --- | --- | --- |
-| name | <code>string</code> | Find the contact by wechat name in a room, equal to `Contact.name()`. |
-| alias | <code>string</code> | Find the contact by alias set by the bot for others in a room, equal to `roomAlias`. |
-| roomAlias | <code>string</code> | Find the contact by alias set by the bot for others in a room. |
-| contactAlias | <code>string</code> | Find the contact by alias set by the contact out of a room, equal to `Contact.alias()`. [More Detail](https://github.com/Chatie/wechaty/issues/365) |
-
-<a name="ContactQueryFilter"></a>
-
-## ContactQueryFilter
-The way to search Contact
-
-**Kind**: global typedef  
-**Properties**
-
-| Name | Type | Description |
-| --- | --- | --- |
-| name | <code>string</code> | The name-string set by user-self, should be called name |
-| alias | <code>string</code> | The name-string set by bot for others, should be called alias [More Detail](https://github.com/Chatie/wechaty/issues/365) |
-
-## Classes
-
-<dl>
-<dt><a href="#Wechaty">Wechaty</a></dt>
-<dd><p>Main bot class.</p>
-<p><a href="#wechatyinstance">The World&#39;s Shortest ChatBot Code: 6 lines of JavaScript</a></p>
-<p><a href="https://github.com/lijiarui/wechaty-getting-started">Wechaty Starter Project</a></p>
-</dd>
-<dt><a href="#Room">Room</a></dt>
-<dd><p>All wechat rooms(groups) will be encapsulated as a Room.</p>
-<p><code>Room</code> is <code>Sayable</code>,
-<a href="https://github.com/Chatie/wechaty/blob/master/example/room-bot.ts">Example/Room-Bot</a></p>
-</dd>
-<dt><a href="#Contact">Contact</a></dt>
-<dd><p>All wechat contacts(friend) will be encapsulated as a Contact.</p>
-<p><code>Contact</code> is <code>Sayable</code>,
-<a href="https://github.com/Chatie/wechaty/blob/master/example/contact-bot.ts">Example/Contact-Bot</a></p>
-</dd>
-<dt><a href="#FriendRequest">FriendRequest</a></dt>
-<dd><p>Send, receive friend request, and friend confirmation events.</p>
-<ol>
-<li>send request</li>
-<li>receive request(in friend event)</li>
-<li>confirmation friendship(friend event)</li>
-</ol>
-<p><a href="https://github.com/Chatie/wechaty/blob/master/example/friend-bot.ts">Example/Friend-Bot</a></p>
-</dd>
-<dt><a href="#Message">Message</a></dt>
-<dd><p>All wechat messages will be encapsulated as a Message.</p>
-<p><code>Message</code> is <code>Sayable</code>,
-<a href="https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts">Example/Ding-Dong-Bot</a></p>
-</dd>
-<dt><a href="#MediaMessage">MediaMessage</a></dt>
-<dd><p>Meidia Type Message</p>
-</dd>
-<dt><a href="#FriendRequest">FriendRequest</a></dt>
-<dd></dd>
-</dl>
-
-## Typedefs
-
-<dl>
-<dt><a href="#WechatyEventName">WechatyEventName</a></dt>
-<dd><p>Wechaty Class Event Type</p>
-</dd>
-<dt><a href="#WechatyEventFunction">WechatyEventFunction</a></dt>
-<dd><p>Wechaty Class Event Function</p>
-</dd>
-<dt><a href="#RoomEventName">RoomEventName</a></dt>
-<dd><p>Room Class Event Type</p>
-</dd>
-<dt><a href="#RoomEventFunction">RoomEventFunction</a></dt>
-<dd><p>Room Class Event Function</p>
-</dd>
-<dt><a href="#MemberQueryFilter">MemberQueryFilter</a></dt>
-<dd><p>The way to search member by Room.member()</p>
-</dd>
-<dt><a href="#ContactQueryFilter">ContactQueryFilter</a></dt>
-<dd><p>The way to search Contact</p>
-</dd>
-</dl>
-
-<a name="Wechaty"></a>
-
-## Wechaty
-Main bot class.
-
-[The World's Shortest ChatBot Code: 6 lines of JavaScript](#wechatyinstance)
-
-[Wechaty Starter Project](https://github.com/lijiarui/wechaty-getting-started)
-
-**Kind**: global class  
-
-* [Wechaty](#Wechaty)
-    * _instance_
-        * [.init()](#Wechaty+init) ⇒ <code>Promise.&lt;void&gt;</code>
-        * [.on(event, listener)](#Wechaty+on) ⇒ [<code>Wechaty</code>](#Wechaty)
-        * [.quit()](#Wechaty+quit) ⇒ <code>Promise.&lt;void&gt;</code>
-        * [.logout()](#Wechaty+logout) ⇒ <code>Promise.&lt;void&gt;</code>
-        * [.self()](#Wechaty+self) ⇒ [<code>Contact</code>](#Contact)
-        * [.say(content)](#Wechaty+say) ⇒ <code>Promise.&lt;boolean&gt;</code>
-    * _static_
-        * [.instance()](#Wechaty.instance)
-        * [.version([forceNpm])](#Wechaty.version) ⇒ <code>string</code>
-
-<a name="Wechaty+init"></a>
-
-### wechaty.init() ⇒ <code>Promise.&lt;void&gt;</code>
-Initialize the bot, return Promise.
-
-**Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
-**Example**  
-```js
-await bot.init()
-// do other stuff with bot here
-```
-<a name="Wechaty+on"></a>
-
-### wechaty.on(event, listener) ⇒ [<code>Wechaty</code>](#Wechaty)
-**Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
-**Returns**: [<code>Wechaty</code>](#Wechaty) - - this for chain
-
-More Example Gist: [Example/Friend-Bot](https://github.com/wechaty/wechaty/blob/master/example/friend-bot.ts)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| event | [<code>WechatyEventName</code>](#WechatyEventName) | Emit WechatyEvent |
-| listener | [<code>WechatyEventFunction</code>](#WechatyEventFunction) | Depends on the WechatyEvent |
-
-**Example** *(Event:scan )*  
-```js
-wechaty.on('scan', (url: string, code: number) => {
-  console.log(`[${code}] Scan ${url} to login.` )
-})
-```
-**Example** *(Event:login )*  
-```js
-bot.on('login', (user: Contact) => {
-  console.log(`user ${user} login`)
-})
-```
-**Example** *(Event:logout )*  
-```js
-bot.on('logout', (user: Contact) => {
-  console.log(`user ${user} logout`)
-})
-```
-**Example** *(Event:message )*  
-```js
-wechaty.on('message', (message: Message) => {
-  console.log(`message ${message} received`)
-})
-```
-**Example** *(Event:friend )*  
-```js
-bot.on('friend', (contact: Contact, request: FriendRequest) => {
-  if(request){ // 1. request to be friend from new contact
-    let result = await request.accept()
-      if(result){
-        console.log(`Request from ${contact.name()} is accept succesfully!`)
-      } else{
-        console.log(`Request from ${contact.name()} failed to accept!`)
-      }
-	  } else { // 2. confirm friend ship
-      console.log(`new friendship confirmed with ${contact.name()}`)
-   }
- })
-```
-**Example** *(Event:room-join )*  
-```js
-bot.on('room-join', (room: Room, inviteeList: Contact[], inviter: Contact) => {
-  const nameList = inviteeList.map(c => c.name()).join(',')
-  console.log(`Room ${room.topic()} got new member ${nameList}, invited by ${inviter}`)
-})
-```
-**Example** *(Event:room-leave )*  
-```js
-bot.on('room-leave', (room: Room, leaverList: Contact[]) => {
-  const nameList = leaverList.map(c => c.name()).join(',')
-  console.log(`Room ${room.topic()} lost member ${nameList}`)
-})
-```
-**Example** *(Event:room-topic )*  
-```js
-bot.on('room-topic', (room: Room, topic: string, oldTopic: string, changer: Contact) => {
-  console.log(`Room ${room.topic()} topic changed from ${oldTopic} to ${topic} by ${changer.name()}`)
-})
-```
-<a name="Wechaty+quit"></a>
-
-### wechaty.quit() ⇒ <code>Promise.&lt;void&gt;</code>
-Quit the bot
-
-**Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
-**Example**  
-```js
-await bot.quit()
-```
-<a name="Wechaty+logout"></a>
-
-### wechaty.logout() ⇒ <code>Promise.&lt;void&gt;</code>
-Logout the bot
-
-**Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
-**Example**  
-```js
-await bot.logout()
-```
-<a name="Wechaty+self"></a>
-
-### wechaty.self() ⇒ [<code>Contact</code>](#Contact)
-Get current user
-
-**Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
-**Example**  
-```js
-const contact = bot.self()
-console.log(`Bot is ${contact.name()}`)
-```
-<a name="Wechaty+say"></a>
-
-### wechaty.say(content) ⇒ <code>Promise.&lt;boolean&gt;</code>
-Send message to filehelper
-
-**Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
-
-| Param | Type |
-| --- | --- |
-| content | <code>string</code> | 
-
-<a name="Wechaty.instance"></a>
-
-### Wechaty.instance()
-get the singleton instance of Wechaty
-
-**Kind**: static method of [<code>Wechaty</code>](#Wechaty)  
-**Example** *(The World&#x27;s Shortest ChatBot Code: 6 lines of JavaScript)*  
-```js
-const { Wechaty } = require('wechaty')
-
-Wechaty.instance() // Singleton
-.on('scan', (url, code) => console.log(`Scan QR Code to login: ${code}\n${url}`))
-.on('login',       user => console.log(`User ${user} logined`))
-.on('message',  message => console.log(`Message: ${message}`))
-.init()
-```
-<a name="Wechaty.version"></a>
-
-### Wechaty.version([forceNpm]) ⇒ <code>string</code>
-Return version of Wechaty
-
-**Kind**: static method of [<code>Wechaty</code>](#Wechaty)  
-**Returns**: <code>string</code> - - the version number  
-
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| [forceNpm] | <code>boolean</code> | <code>false</code> | if set to true, will only return the version in package.json.                                      otherwise will return git commit hash if .git exists. |
-
-**Example**  
-```js
-console.log(Wechaty.instance().version())       // return '#git[af39df]'
-console.log(Wechaty.instance().version(true))   // return '0.7.9'
-```
-<a name="Room"></a>
-
-## Room
-All wechat rooms(groups) will be encapsulated as a Room.
-
-`Room` is `Sayable`,
-[Example/Room-Bot](https://github.com/Chatie/wechaty/blob/master/example/room-bot.ts)
-
-**Kind**: global class  
 
 * [Room](#Room)
     * _instance_
@@ -1648,661 +202,8 @@ All wechat rooms(groups) will be encapsulated as a Room.
         * [.findAll([query])](#Room.findAll) ⇒ <code>Promise.&lt;Array.&lt;Room&gt;&gt;</code>
         * [.find(query)](#Room.find) ⇒ <code>Promise.&lt;(Room\|null)&gt;</code>
 
-<a name="Room+say"></a>
 
-### room.say(textOrMedia, [replyTo]) ⇒ <code>Promise.&lt;boolean&gt;</code>
-Send message inside Room, if set [replyTo], wechaty will mention the contact as well.
 
-**Kind**: instance method of [<code>Room</code>](#Room)  
-**Returns**: <code>Promise.&lt;boolean&gt;</code> - If bot send message successfully, it will return true. If the bot failed to send for blocking or any other reason, it will return false  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| textOrMedia | <code>string</code> \| [<code>MediaMessage</code>](#MediaMessage) | Send `text` or `media file` inside Room. |
-| [replyTo] | [<code>Contact</code>](#Contact) \| [<code>Array.&lt;Contact&gt;</code>](#Contact) | Optional parameter, send content inside Room, and mention @replyTo contact or contactList. |
-
-**Example** *(Send text inside Room)*  
-```js
-const room = await Room.find({name: 'wechaty'})        // change 'wechaty' to any of your room in wechat
-await room.say('Hello world!')
-```
-**Example** *(Send media file inside Room)*  
-```js
-const room = await Room.find({name: 'wechaty'})        // change 'wechaty' to any of your room in wechat
-await room.say(new MediaMessage('/test.jpg'))          // put the filePath you want to send here
-```
-**Example** *(Send text inside Room, and mention @replyTo contact)*  
-```js
-const contact = await Contact.find({name: 'lijiarui'}) // change 'lijiarui' to any of the room member
-const room = await Room.find({name: 'wechaty'})        // change 'wechaty' to any of your room in wechat
-await room.say('Hello world!', contact)
-```
-<a name="Room+on"></a>
-
-### room.on(event, listener) ⇒ <code>this</code>
-**Kind**: instance method of [<code>Room</code>](#Room)  
-**Returns**: <code>this</code> - - this for chain  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| event | [<code>RoomEventName</code>](#RoomEventName) | Emit WechatyEvent |
-| listener | [<code>RoomEventFunction</code>](#RoomEventFunction) | Depends on the WechatyEvent |
-
-**Example** *(Event:join )*  
-```js
-const room = await Room.find({topic: 'event-room'}) // change `event-room` to any room topic in your wechat
-if (room) {
-  room.on('join', (room: Room, inviteeList: Contact[], inviter: Contact) => {
-    const nameList = inviteeList.map(c => c.name()).join(',')
-    console.log(`Room ${room.topic()} got new member ${nameList}, invited by ${inviter}`)
-  })
-}
-```
-**Example** *(Event:leave )*  
-```js
-const room = await Room.find({topic: 'event-room'}) // change `event-room` to any room topic in your wechat
-if (room) {
-  room.on('leave', (room: Room, leaverList: Contact[]) => {
-    const nameList = leaverList.map(c => c.name()).join(',')
-    console.log(`Room ${room.topic()} lost member ${nameList}`)
-  })
-}
-```
-**Example** *(Event:topic )*  
-```js
-const room = await Room.find({topic: 'event-room'}) // change `event-room` to any room topic in your wechat
-if (room) {
-  room.on('topic', (room: Room, topic: string, oldTopic: string, changer: Contact) => {
-    console.log(`Room ${room.topic()} topic changed from ${oldTopic} to ${topic} by ${changer.name()}`)
-  })
-}
-```
-<a name="Room+add"></a>
-
-### room.add(contact) ⇒ <code>Promise.&lt;number&gt;</code>
-Add contact in a room
-
-**Kind**: instance method of [<code>Room</code>](#Room)  
-
-| Param | Type |
-| --- | --- |
-| contact | [<code>Contact</code>](#Contact) | 
-
-**Example**  
-```js
-const contact = await Contact.find({name: 'lijiarui'}) // change 'lijiarui' to any contact in your wechat
-const room = await Room.find({topic: 'wechat'})        // change 'wechat' to any room topic in your wechat
-if (room) {
-  const result = await room.add(contact)
-  if (result) {
-    console.log(`add ${contact.name()} to ${room.topic()} successfully! `)
-  } else{
-    console.log(`failed to add ${contact.name()} to ${room.topic()}! `)
-  }
-}
-```
-<a name="Room+del"></a>
-
-### room.del(contact) ⇒ <code>Promise.&lt;number&gt;</code>
-Delete a contact from the room
-It works only when the bot is the owner of the room
-
-**Kind**: instance method of [<code>Room</code>](#Room)  
-
-| Param | Type |
-| --- | --- |
-| contact | [<code>Contact</code>](#Contact) | 
-
-**Example**  
-```js
-const room = await Room.find({topic: 'wechat'})          // change 'wechat' to any room topic in your wechat
-const contact = await Contact.find({name: 'lijiarui'})   // change 'lijiarui' to any room member in the room you just set
-if (room) {
-  const result = await room.del(contact)
-  if (result) {
-    console.log(`remove ${contact.name()} from ${room.topic()} successfully! `)
-  } else{
-    console.log(`failed to remove ${contact.name()} from ${room.topic()}! `)
-  }
-}
-```
-<a name="Room+topic"></a>
-
-### room.topic([newTopic]) ⇒ <code>string</code> \| <code>void</code>
-SET/GET topic from the room
-
-**Kind**: instance method of [<code>Room</code>](#Room)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| [newTopic] | <code>string</code> | If set this para, it will change room topic. |
-
-**Example** *(When you say anything in a room, it will get room topic. )*  
-```js
-const bot = Wechaty.instance()
-bot
-.on('message', async m => {
-  const room = m.room()
-  if (room) {
-    const topic = room.topic()
-    console.log(`room topic is : ${topic}`)
-  }
-})
-```
-**Example** *(When you say anything in a room, it will change room topic. )*  
-```js
-const bot = Wechaty.instance()
-bot
-.on('message', async m => {
-  const room = m.room()
-  if (room) {
-    const oldTopic = room.topic()
-    room.topic('change topic to wechaty!')
-    console.log(`room topic change from ${oldTopic} to ${room.topic()}`)
-  }
-})
-```
-<a name="Room+alias"></a>
-
-### room.alias(contact) ⇒ <code>string</code> \| <code>null</code>
-Return contact's roomAlias in the room, the same as roomAlias
-
-**Kind**: instance method of [<code>Room</code>](#Room)  
-**Returns**: <code>string</code> \| <code>null</code> - - If a contact has an alias in room, return string, otherwise return null  
-
-| Param | Type |
-| --- | --- |
-| contact | [<code>Contact</code>](#Contact) | 
-
-**Example**  
-```js
-const bot = Wechaty.instance()
-bot
-.on('message', async m => {
-  const room = m.room()
-  const contact = m.from()
-  if (room) {
-    const alias = room.alias(contact)
-    console.log(`${contact.name()} alias is ${alias}`)
-  }
-})
-```
-<a name="Room+roomAlias"></a>
-
-### room.roomAlias(contact) ⇒ <code>string</code> \| <code>null</code>
-Same as function alias
-
-**Kind**: instance method of [<code>Room</code>](#Room)  
-
-| Param | Type |
-| --- | --- |
-| contact | [<code>Contact</code>](#Contact) | 
-
-<a name="Room+has"></a>
-
-### room.has(contact) ⇒ <code>boolean</code>
-Check if the room has member `contact`.
-
-**Kind**: instance method of [<code>Room</code>](#Room)  
-**Returns**: <code>boolean</code> - Return `true` if has contact, else return `false`.  
-
-| Param | Type |
-| --- | --- |
-| contact | [<code>Contact</code>](#Contact) | 
-
-**Example** *(Check whether &#x27;lijiarui&#x27; is in the room &#x27;wechaty&#x27;)*  
-```js
-const contact = await Contact.find({name: 'lijiarui'})   // change 'lijiarui' to any of contact in your wechat
-const room = await Room.find({topic: 'wechaty'})         // change 'wechaty' to any of the room in your wechat
-if (contact && room) {
-  if (room.has(contact)) {
-    console.log(`${contact.name()} is in the room ${room.topic()}!`)
-  } else {
-    console.log(`${contact.name()} is not in the room ${room.topic()} !`)
-  }
-}
-```
-<a name="Room+memberAll"></a>
-
-### room.memberAll(queryArg) ⇒ [<code>Array.&lt;Contact&gt;</code>](#Contact)
-Find all contacts in a room
-
-#### definition
-- `name`                 the name-string set by user-self, should be called name, equal to `Contact.name()`
-- `roomAlias` | `alias`  the name-string set by user-self in the room, should be called roomAlias
-- `contactAlias`         the name-string set by bot for others, should be called alias, equal to `Contact.alias()`
-
-**Kind**: instance method of [<code>Room</code>](#Room)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| queryArg | [<code>MemberQueryFilter</code>](#MemberQueryFilter) \| <code>string</code> | When use memberAll(name:string), return all matched members, including name, roomAlias, contactAlias |
-
-<a name="Room+member"></a>
-
-### room.member(queryArg) ⇒ [<code>Contact</code>](#Contact) \| <code>null</code>
-Find all contacts in a room, if get many, return the first one.
-
-**Kind**: instance method of [<code>Room</code>](#Room)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| queryArg | [<code>MemberQueryFilter</code>](#MemberQueryFilter) \| <code>string</code> | When use member(name:string), return all matched members, including name, roomAlias, contactAlias |
-
-**Example** *(Find member by name)*  
-```js
-const room = await Room.find({topic: 'wechaty'})           // change 'wechaty' to any room name in your wechat
-if (room) {
-  const member = room.member('lijiarui')                   // change 'lijiarui' to any room member in your wechat
-  if (member) {
-    console.log(`${room.topic()} got the member: ${member.name()}`)
-  } else {
-    console.log(`cannot get member in room: ${room.topic()}`)
-  }
-}
-```
-**Example** *(Find member by MemberQueryFilter)*  
-```js
-const room = await Room.find({topic: 'wechaty'})          // change 'wechaty' to any room name in your wechat
-if (room) {
-  const member = room.member({name: 'lijiarui'})          // change 'lijiarui' to any room member in your wechat
-  if (member) {
-    console.log(`${room.topic()} got the member: ${member.name()}`)
-  } else {
-    console.log(`cannot get member in room: ${room.topic()}`)
-  }
-}
-```
-<a name="Room+memberList"></a>
-
-### room.memberList() ⇒ [<code>Array.&lt;Contact&gt;</code>](#Contact)
-Get all room member from the room
-
-**Kind**: instance method of [<code>Room</code>](#Room)  
-<a name="Room+refresh"></a>
-
-### room.refresh() ⇒ <code>Promise.&lt;void&gt;</code>
-Force reload data for Room
-
-**Kind**: instance method of [<code>Room</code>](#Room)  
-<a name="Room.create"></a>
-
-### Room.create(contactList, [topic]) ⇒ [<code>Promise.&lt;Room&gt;</code>](#Room)
-Create a new room.
-
-**Kind**: static method of [<code>Room</code>](#Room)  
-
-| Param | Type |
-| --- | --- |
-| contactList | [<code>Array.&lt;Contact&gt;</code>](#Contact) | 
-| [topic] | <code>string</code> | 
-
-**Example** *(Creat a room with &#x27;lijiarui&#x27; and &#x27;juxiaomi&#x27;, the room topic is &#x27;ding - created&#x27;)*  
-```js
-const helperContactA = await Contact.find({ name: 'lijiarui' })  // change 'lijiarui' to any contact in your wechat
-const helperContactB = await Contact.find({ name: 'juxiaomi' })  // change 'juxiaomi' to any contact in your wechat
-const contactList = [helperContactA, helperContactB]
-console.log('Bot', 'contactList: %s', contactList.join(','))
-const room = await Room.create(contactList, 'ding')
-console.log('Bot', 'createDingRoom() new ding room created: %s', room)
-await room.topic('ding - created')
-await room.say('ding - created')
-```
-<a name="Room.findAll"></a>
-
-### Room.findAll([query]) ⇒ <code>Promise.&lt;Array.&lt;Room&gt;&gt;</code>
-Find room by topic, return all the matched room
-
-**Kind**: static method of [<code>Room</code>](#Room)  
-
-| Param | Type |
-| --- | --- |
-| [query] | <code>RoomQueryFilter</code> | 
-
-**Example**  
-```js
-const roomList = await Room.findAll()                    // get the room list of the bot
-const roomList = await Room.findAll({name: 'wechaty'})   // find all of the rooms with name 'wechaty'
-```
-<a name="Room.find"></a>
-
-### Room.find(query) ⇒ <code>Promise.&lt;(Room\|null)&gt;</code>
-Try to find a room by filter: {topic: string | RegExp}. If get many, return the first one.
-
-**Kind**: static method of [<code>Room</code>](#Room)  
-**Returns**: <code>Promise.&lt;(Room\|null)&gt;</code> - If can find the room, return Room, or return null  
-
-| Param | Type |
-| --- | --- |
-| query | <code>RoomQueryFilter</code> | 
-
-<a name="Contact"></a>
-
-## Contact
-All wechat contacts(friend) will be encapsulated as a Contact.
-
-`Contact` is `Sayable`,
-[Example/Contact-Bot](https://github.com/Chatie/wechaty/blob/master/example/contact-bot.ts)
-
-**Kind**: global class  
-
-* [Contact](#Contact)
-    * _instance_
-        * [.say(textOrMedia)](#Contact+say) ⇒ <code>Promise.&lt;boolean&gt;</code>
-        * [.name()](#Contact+name) ⇒ <code>string</code>
-        * [.alias(newAlias)](#Contact+alias) ⇒ <code>string</code> \| <code>null</code> \| <code>Promise.&lt;boolean&gt;</code>
-        * [.stranger()](#Contact+stranger) ⇒ <code>boolean</code> \| <code>null</code>
-        * [.official()](#Contact+official) ⇒ <code>boolean</code> \| <code>null</code>
-        * [.special()](#Contact+special) ⇒ <code>boolean</code> \| <code>null</code>
-        * [.personal()](#Contact+personal) ⇒ <code>boolean</code> \| <code>null</code>
-        * [.star()](#Contact+star) ⇒ <code>boolean</code>
-        * [.gender()](#Contact+gender) ⇒ <code>Gender.Male(2)</code> \| <code>Gender.Female(1)</code> \| <code>Gender.Unknown(0)</code>
-        * [.province()](#Contact+province) ⇒ <code>string</code> \| <code>undefined</code>
-        * [.city()](#Contact+city) ⇒ <code>string</code> \| <code>undefined</code>
-        * [.avatar()](#Contact+avatar) ⇒ <code>Promise.&lt;NodeJS.ReadableStream&gt;</code>
-        * [.refresh()](#Contact+refresh) ⇒ <code>Promise.&lt;this&gt;</code>
-        * [.self()](#Contact+self) ⇒ <code>boolean</code>
-    * _static_
-        * [.find(query)](#Contact.find) ⇒ <code>Promise.&lt;(Contact\|null)&gt;</code>
-        * [.findAll([queryArg])](#Contact.findAll) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
-
-<a name="Contact+say"></a>
-
-### contact.say(textOrMedia) ⇒ <code>Promise.&lt;boolean&gt;</code>
-Send Text or Media File to Contact.
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-
-| Param | Type |
-| --- | --- |
-| textOrMedia | <code>string</code> \| [<code>MediaMessage</code>](#MediaMessage) | 
-
-**Example**  
-```js
-const contact = await Contact.find({name: 'lijiarui'})         // change 'lijiarui' to any of your contact name in wechat
-await contact.say('welcome to wechaty!')
-await contact.say(new MediaMessage(__dirname + '/wechaty.png') // put the filePath you want to send here
-```
-<a name="Contact+name"></a>
-
-### contact.name() ⇒ <code>string</code>
-Get the name from a contact
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Example**  
-```js
-const name = contact.name()
-```
-<a name="Contact+alias"></a>
-
-### contact.alias(newAlias) ⇒ <code>string</code> \| <code>null</code> \| <code>Promise.&lt;boolean&gt;</code>
-GET / SET / DELETE the alias for a contact
-
-Tests show it will failed if set alias too frequently(60 times in one minute).
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-
-| Param | Type |
-| --- | --- |
-| newAlias | <code>none</code> \| <code>string</code> \| <code>null</code> | 
-
-**Example** *( GET the alias for a contact, return {(string | null)})*  
-```js
-const alias = contact.alias()
-if (alias === null) {
-  console.log('You have not yet set any alias for contact ' + contact.name())
-} else {
-  console.log('You have already set an alias for contact ' + contact.name() + ':' + alias)
-}
-```
-**Example** *(SET the alias for a contact)*  
-```js
-const ret = await contact.alias('lijiarui')
-if (ret) {
-  console.log(`change ${contact.name()}'s alias successfully!`)
-} else {
-  console.log(`failed to change ${contact.name()} alias!`)
-}
-```
-**Example** *(DELETE the alias for a contact)*  
-```js
-const ret = await contact.alias(null)
-if (ret) {
-  console.log(`delete ${contact.name()}'s alias successfully!`)
-} else {
-  console.log(`failed to delete ${contact.name()}'s alias!`)
-}
-```
-<a name="Contact+stranger"></a>
-
-### contact.stranger() ⇒ <code>boolean</code> \| <code>null</code>
-Check if contact is stranger
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Returns**: <code>boolean</code> \| <code>null</code> - - True for not friend of the bot, False for friend of the bot, null for unknown.  
-**Example**  
-```js
-const isStranger = contact.stranger()
-```
-<a name="Contact+official"></a>
-
-### contact.official() ⇒ <code>boolean</code> \| <code>null</code>
-Check if it's a offical account
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Returns**: <code>boolean</code> \| <code>null</code> - - True for official account, Flase for contact is not a official account, null for unknown  
-**See**
-
-- [webwxApp.js#L324](https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3243)
-- [Urinx/WeixinBot/README](https://github.com/Urinx/WeixinBot/blob/master/README.md)
-
-**Example**  
-```js
-const isOfficial = contact.official()
-```
-<a name="Contact+special"></a>
-
-### contact.special() ⇒ <code>boolean</code> \| <code>null</code>
-Check if it's a special contact
-
-The contact who's id in following list will be identify as a special contact
-`weibo`, `qqmail`, `fmessage`, `tmessage`, `qmessage`, `qqsync`, `floatbottle`,
-`lbsapp`, `shakeapp`, `medianote`, `qqfriend`, `readerapp`, `blogapp`, `facebookapp`,
-`masssendapp`, `meishiapp`, `feedsapp`, `voip`, `blogappweixin`, `weixin`, `brandsessionholder`,
-`weixinreminder`, `wxid_novlwrv3lqwv11`, `gh_22b87fa7cb3c`, `officialaccounts`, `notification_messages`,
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Returns**: <code>boolean</code> \| <code>null</code> - True for brand, Flase for contact is not a brand  
-**See**
-
-- [webwxApp.js#L3848](https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3848)
-- [webwxApp.js#L3246](https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3246)
-
-**Example**  
-```js
-const isSpecial = contact.special()
-```
-<a name="Contact+personal"></a>
-
-### contact.personal() ⇒ <code>boolean</code> \| <code>null</code>
-Check if it's a personal account
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Returns**: <code>boolean</code> \| <code>null</code> - - True for personal account, Flase for contact is not a personal account  
-**Example**  
-```js
-const isPersonal = contact.personal()
-```
-<a name="Contact+star"></a>
-
-### contact.star() ⇒ <code>boolean</code>
-Check if the contact is star contact.
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Returns**: <code>boolean</code> - - True for star friend, False for no star friend.  
-**Example**  
-```js
-const isStar = contact.star()
-```
-<a name="Contact+gender"></a>
-
-### contact.gender() ⇒ <code>Gender.Male(2)</code> \| <code>Gender.Female(1)</code> \| <code>Gender.Unknown(0)</code>
-Contact gender
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Example**  
-```js
-const gender = contact.gender()
-```
-<a name="Contact+province"></a>
-
-### contact.province() ⇒ <code>string</code> \| <code>undefined</code>
-Get the region 'province' from a contact
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Example**  
-```js
-const province = contact.province()
-```
-<a name="Contact+city"></a>
-
-### contact.city() ⇒ <code>string</code> \| <code>undefined</code>
-Get the region 'city' from a contact
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Example**  
-```js
-const city = contact.city()
-```
-<a name="Contact+avatar"></a>
-
-### contact.avatar() ⇒ <code>Promise.&lt;NodeJS.ReadableStream&gt;</code>
-Get avatar picture file stream
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Example**  
-```js
-const avatarFileName = contact.name() + `.jpg`
-const avatarReadStream = await contact.avatar()
-const avatarWriteStream = createWriteStream(avatarFileName)
-avatarReadStream.pipe(avatarWriteStream)
-log.info('Bot', 'Contact: %s: %s with avatar file: %s', contact.weixin(), contact.name(), avatarFileName)
-```
-<a name="Contact+refresh"></a>
-
-### contact.refresh() ⇒ <code>Promise.&lt;this&gt;</code>
-Force reload data for Contact
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Example**  
-```js
-await contact.refresh()
-```
-<a name="Contact+self"></a>
-
-### contact.self() ⇒ <code>boolean</code>
-Check if contact is self
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Returns**: <code>boolean</code> - True for contact is self, False for contact is others  
-**Example**  
-```js
-const isSelf = contact.self()
-```
-<a name="Contact.find"></a>
-
-### Contact.find(query) ⇒ <code>Promise.&lt;(Contact\|null)&gt;</code>
-Try to find a contact by filter: {name: string | RegExp} / {alias: string | RegExp}
-
-Find contact by name or alias, if the result more than one, return the first one.
-
-**Kind**: static method of [<code>Contact</code>](#Contact)  
-**Returns**: <code>Promise.&lt;(Contact\|null)&gt;</code> - If can find the contact, return Contact, or return null  
-
-| Param | Type |
-| --- | --- |
-| query | [<code>ContactQueryFilter</code>](#ContactQueryFilter) | 
-
-**Example**  
-```js
-const contactFindByName = await Contact.find({ name:"ruirui"} )
-const contactFindByAlias = await Contact.find({ alias:"lijiarui"} )
-```
-<a name="Contact.findAll"></a>
-
-### Contact.findAll([queryArg]) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
-Find contact by `name` or `alias`
-
-If use Contact.findAll() get the contact list of the bot.
-
-#### definition
-- `name`   the name-string set by user-self, should be called name
-- `alias`  the name-string set by bot for others, should be called alias
-
-**Kind**: static method of [<code>Contact</code>](#Contact)  
-
-| Param | Type |
-| --- | --- |
-| [queryArg] | [<code>ContactQueryFilter</code>](#ContactQueryFilter) | 
-
-**Example**  
-```js
-const contactList = await Contact.findAll()                    // get the contact list of the bot
-const contactList = await Contact.findAll({name: 'ruirui'})    // find allof the contacts whose name is 'ruirui'
-const contactList = await Contact.findAll({alias: 'lijiarui'}) // find all of the contacts whose alias is 'lijiarui'
-```
-<a name="FriendRequest"></a>
-
-## FriendRequest
-Send, receive friend request, and friend confirmation events.
-
-1. send request
-2. receive request(in friend event)
-3. confirmation friendship(friend event)
-
-[Example/Friend-Bot](https://github.com/Chatie/wechaty/blob/master/example/friend-bot.ts)
-
-**Kind**: global class  
-
-* [FriendRequest](#FriendRequest)
-    * [.send(contact, [hello])](#FriendRequest+send) ⇒ <code>Promise.&lt;boolean&gt;</code>
-    * [.accept()](#FriendRequest+accept) ⇒ <code>Promise.&lt;boolean&gt;</code>
-
-<a name="FriendRequest+send"></a>
-
-### friendRequest.send(contact, [hello]) ⇒ <code>Promise.&lt;boolean&gt;</code>
-Send a new friend request
-
-**Kind**: instance method of [<code>FriendRequest</code>](#FriendRequest)  
-**Returns**: <code>Promise.&lt;boolean&gt;</code> - Return a Promise, true for accept successful, false for failure.  
-
-| Param | Type | Default |
-| --- | --- | --- |
-| contact | [<code>Contact</code>](#Contact) |  | 
-| [hello] | <code>string</code> | <code>&quot;&#x27;Hi&#x27;&quot;</code> | 
-
-**Example**  
-```js
-const from = message.from()
-const request = new FriendRequest()
-request.send(from, 'hello~')
-```
-<a name="FriendRequest+accept"></a>
-
-### friendRequest.accept() ⇒ <code>Promise.&lt;boolean&gt;</code>
-Accept a friend request
-
-**Kind**: instance method of [<code>FriendRequest</code>](#FriendRequest)  
-**Returns**: <code>Promise.&lt;boolean&gt;</code> - Return a Promise, true for accept successful, false for failure.  
-<a name="Message"></a>
-
-## Message
-All wechat messages will be encapsulated as a Message.
-
-`Message` is `Sayable`,
-[Example/Ding-Dong-Bot](https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts)
-
-**Kind**: global class  
 
 * [Message](#Message)
     * _instance_
@@ -2322,154 +223,7 @@ All wechat messages will be encapsulated as a Message.
         * [.find()](#Message.find)
         * [.findAll()](#Message.findAll)
 
-<a name="Message+say"></a>
 
-### message.say(textOrMedia, [replyTo]) ⇒ <code>Promise.&lt;any&gt;</code>
-Reply a Text or Media File message to the sender.
-
-**Kind**: instance method of [<code>Message</code>](#Message)  
-**See**: [Example/ding-dong-bot](https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts)  
-
-| Param | Type |
-| --- | --- |
-| textOrMedia | <code>string</code> \| [<code>MediaMessage</code>](#MediaMessage) | 
-| [replyTo] | [<code>Contact</code>](#Contact) \| [<code>Array.&lt;Contact&gt;</code>](#Contact) | 
-
-**Example**  
-```js
-const bot = Wechaty.instance()
-bot
-.on('message', async m => {
-  if (/^ding$/i.test(m.content())) {
-    await m.say('hello world')
-    console.log('Bot REPLY: hello world')
-    await m.say(new MediaMessage(__dirname + '/wechaty.png'))
-    console.log('Bot REPLY: Image')
-  }
-})
-```
-<a name="Message+from"></a>
-
-### message.from() ⇒ [<code>Contact</code>](#Contact)
-Get the sender from a message.
-
-**Kind**: instance method of [<code>Message</code>](#Message)  
-<a name="Message+room"></a>
-
-### message.room() ⇒ [<code>Room</code>](#Room) \| <code>null</code>
-Get the room from the message.
-If the message is not in a room, then will return `null`
-
-**Kind**: instance method of [<code>Message</code>](#Message)  
-<a name="Message+content"></a>
-
-### message.content() ⇒ <code>string</code>
-Get the content of the message
-
-**Kind**: instance method of [<code>Message</code>](#Message)  
-<a name="Message+type"></a>
-
-### message.type() ⇒ [<code>MsgType</code>](#MsgType)
-Get the type from the message.
-
-If type is equal to `MsgType.RECALLED`, [Message#id](Message#id) is the msgId of the recalled message.
-
-**Kind**: instance method of [<code>Message</code>](#Message)  
-**See**: [MsgType](#MsgType)  
-<a name="Message+typeSub"></a>
-
-### message.typeSub() ⇒ [<code>MsgType</code>](#MsgType)
-Get the typeSub from the message.
-
-If message is a location message: `m.type() === MsgType.TEXT && m.typeSub() === MsgType.LOCATION`
-
-**Kind**: instance method of [<code>Message</code>](#Message)  
-**See**: [MsgType](#MsgType)  
-<a name="Message+typeApp"></a>
-
-### message.typeApp() ⇒ [<code>AppMsgType</code>](#AppMsgType)
-Get the typeApp from the message.
-
-**Kind**: instance method of [<code>Message</code>](#Message)  
-**See**: [AppMsgType](#AppMsgType)  
-<a name="Message+typeEx"></a>
-
-### message.typeEx() ⇒ [<code>MsgType</code>](#MsgType)
-Get the typeEx from the message.
-
-**Kind**: instance method of [<code>Message</code>](#Message)  
-<a name="Message+self"></a>
-
-### message.self() ⇒ <code>boolean</code>
-Check if a message is sent by self.
-
-**Kind**: instance method of [<code>Message</code>](#Message)  
-**Returns**: <code>boolean</code> - - Return `true` for send from self, `false` for send from others.  
-**Example**  
-```js
-if (message.self()) {
- console.log('this message is sent by myself!')
-}
-```
-<a name="Message+mentioned"></a>
-
-### message.mentioned() ⇒ [<code>Array.&lt;Contact&gt;</code>](#Contact)
-Get message mentioned contactList.
-
-Message event table as follows
-
-|                                                                            | Web  |  Mac PC Client | iOS Mobile |  android Mobile |
-| :---                                                                       | :--: |     :----:     |   :---:    |     :---:       |
-| [You were mentioned] tip ([有人@我]的提示)                                   |  ✘   |        √       |     √      |       √         |
-| Identify magic code (8197) by copy & paste in mobile                       |  ✘   |        √       |     √      |       ✘         |
-| Identify magic code (8197) by programming                                  |  ✘   |        ✘       |     ✘      |       ✘         |
-| Identify two contacts with the same roomAlias by [You were  mentioned] tip |  ✘   |        ✘       |     √      |       √         |
-
-**Kind**: instance method of [<code>Message</code>](#Message)  
-**Returns**: [<code>Array.&lt;Contact&gt;</code>](#Contact) - - Return message mentioned contactList  
-**Example**  
-```js
-const contactList = message.mentioned()
-console.log(contactList)
-```
-<a name="Message+to"></a>
-
-### message.to() ⇒ [<code>Contact</code>](#Contact) \| <code>null</code>
-Get the destination of the message
-Message.to() will return null if a message is in a room, use Message.room() to get the room.
-
-**Kind**: instance method of [<code>Message</code>](#Message)  
-<a name="Message+readyStream"></a>
-
-### message.readyStream() ⇒ <code>Promise.&lt;Readable&gt;</code>
-Please notice that when we are running Wechaty,
-if you use the browser that controlled by Wechaty to send attachment files,
-you will get a zero sized file, because it is not an attachment from the network,
-but a local data, which is not supported by Wechaty yet.
-
-**Kind**: instance method of [<code>Message</code>](#Message)  
-<a name="Message.find"></a>
-
-### Message.find()
-**Kind**: static method of [<code>Message</code>](#Message)  
-**Todo**
-
-- [ ] add function
-
-<a name="Message.findAll"></a>
-
-### Message.findAll()
-**Kind**: static method of [<code>Message</code>](#Message)  
-**Todo**
-
-- [ ] add function
-
-<a name="MediaMessage"></a>
-
-## MediaMessage
-Meidia Type Message
-
-**Kind**: global class  
 
 * [MediaMessage](#MediaMessage)
     * [.ext()](#MediaMessage+ext) ⇒ <code>string</code>
@@ -2477,280 +231,130 @@ Meidia Type Message
     * [.readyStream()](#MediaMessage+readyStream)
     * [.forward(sendTo)](#MediaMessage+forward) ⇒ <code>Promise.&lt;boolean&gt;</code>
 
-<a name="MediaMessage+ext"></a>
 
-### mediaMessage.ext() ⇒ <code>string</code>
-Get the MediaMessage file extension, etc: `jpg`, `gif`, `pdf`, `word` ..
-
-**Kind**: instance method of [<code>MediaMessage</code>](#MediaMessage)  
-**Example**  
-```js
-bot.on('message', async function (m) {
-  if (m instanceof MediaMessage) {
-    console.log('media message file name extention is: ' + m.ext())
-  }
-})
-```
-<a name="MediaMessage+filename"></a>
-
-### mediaMessage.filename() ⇒ <code>string</code>
-Get the MediaMessage filename, etc: `how to build a chatbot.pdf`..
-
-**Kind**: instance method of [<code>MediaMessage</code>](#MediaMessage)  
-**Example**  
-```js
-bot.on('message', async function (m) {
-  if (m instanceof MediaMessage) {
-    console.log('media message file name is: ' + m.filename())
-  }
-})
-```
-<a name="MediaMessage+readyStream"></a>
-
-### mediaMessage.readyStream()
-Get the read stream for attachment file
-
-**Kind**: instance method of [<code>MediaMessage</code>](#MediaMessage)  
-<a name="MediaMessage+forward"></a>
-
-### mediaMessage.forward(sendTo) ⇒ <code>Promise.&lt;boolean&gt;</code>
-Forward the received message.
-
-The types of messages that can be forwarded are as follows:
-
-The return value of [type](#Message+type) matches one of the following types:
-```json
-MsgType {
-  TEXT                = 1,
-  IMAGE               = 3,
-  VIDEO               = 43,
-  EMOTICON            = 47,
-  LOCATION            = 48,
-  APP                 = 49,
-  MICROVIDEO          = 62,
-}
-```
-
-When the return value of [type](#Message+type) is `MsgType.APP`, the return value of [typeApp](#Message+typeApp) matches one of the following types:
-```json
-AppMsgType {
-  TEXT                     = 1,
-  IMG                      = 2,
-  VIDEO                    = 4,
-  ATTACH                   = 6,
-  EMOJI                    = 8,
-}
-```
-But, it should be noted that when forwarding ATTACH type message, if the file size is greater than 25Mb, the forwarding will fail.
-The reason is that the server limits the forwarding of files above 25Mb. You need to download the file and use `new MediaMessage (file)` to send the file.
-
-**Kind**: instance method of [<code>MediaMessage</code>](#MediaMessage)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| sendTo | [<code>Room</code>](#Room) \| [<code>Contact</code>](#Contact) | The recipient of the message, the room, or the contact |
-
-<a name="FriendRequest"></a>
-
-## FriendRequest
-**Kind**: global class  
 
 * [FriendRequest](#FriendRequest)
     * [.send(contact, [hello])](#FriendRequest+send) ⇒ <code>Promise.&lt;boolean&gt;</code>
     * [.accept()](#FriendRequest+accept) ⇒ <code>Promise.&lt;boolean&gt;</code>
 
-<a name="FriendRequest+send"></a>
 
-### friendRequest.send(contact, [hello]) ⇒ <code>Promise.&lt;boolean&gt;</code>
-Send a new friend request
+RELEASE NOTES
+---------------
 
-**Kind**: instance method of [<code>FriendRequest</code>](#FriendRequest)  
-**Returns**: <code>Promise.&lt;boolean&gt;</code> - Return a Promise, true for accept successful, false for failure.  
+* [Latest Release](https://github.com/chatie/wechaty/releases/latest)(All releases [here](https://github.com/chatie/wechaty/releases))
+* [Changelog](https://github.com/chatie/wechaty/blob/master/CHANGELOG.md)
 
-| Param | Type | Default |
-| --- | --- | --- |
-| contact | [<code>Contact</code>](#Contact) |  | 
-| [hello] | <code>string</code> | <code>&quot;&#x27;Hi&#x27;&quot;</code> | 
+POWERED BY WECHATY
+-------------------
 
-**Example**  
-```js
-const from = message.from()
-const request = new FriendRequest()
-request.send(from, 'hello~')
-```
-<a name="FriendRequest+accept"></a>
+[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/chatie/wechaty)
 
-### friendRequest.accept() ⇒ <code>Promise.&lt;boolean&gt;</code>
-Accept a friend request
+## Wechaty Badge
 
-**Kind**: instance method of [<code>FriendRequest</code>](#FriendRequest)  
-**Returns**: <code>Promise.&lt;boolean&gt;</code> - Return a Promise, true for accept successful, false for failure.  
-<a name="Gender"></a>
+Get embed html/markdown code from [Wiki:PoweredByWechaty](https://github.com/chatie/wechaty/wiki/PoweredByWechaty)
 
-## Gender : <code>enum</code>
-Enum for Gender values.
+## Projects Using Wechaty
 
-**Kind**: global enum  
-**Properties**
+1. [一个用CNN深度神剧网络给图片评分的wechaty项目](https://github.com/huyingxi/wechaty_selfie)
+1. [Relay between Telegram and WeChat](https://github.com/Firaenix/TeleChatRelay)
+1. [A chat bot managing the HaoShiYou wechat groups run by volunteers of haoshiyou.org](https://github.com/xinbenlv/haoshiyou-bot)
+1. [An interactive chat bot to manage a TODO list](https://github.com/coderbunker/candobot)
+1. [Forward WeChat messages to telegram](https://github.com/luosheng/Wegram)
 
-| Name | Type | Description |
-| --- | --- | --- |
-| Unknown | <code>number</code> | 0 for Unknown |
-| Male | <code>number</code> | 1 for Male |
-| Female | <code>number</code> | 2 for Female |
+Learn more about Projects Using Wechaty at [Wiki:PoweredByWechaty](https://github.com/chatie/wechaty/wiki/PoweredByWechaty)
 
-<a name="AppMsgType"></a>
+## Find a Good Server
 
-## AppMsgType : <code>enum</code>
-Enum for AppMsgType values.
+The best practice for running Wechaty Docker/NPM is using a VPS(Virtual Private Server) outside of China, which can save you hours of time because `npm install` and `docker pull` will run smoothly without any problem. 
 
-**Kind**: global enum  
-**Properties**
+The following VPS providers are used by the Wechaty team, and they worked perfectly in production. You can use the following link to get one in minutes. Also, doing this can support Wechaty because you are referred by us.
 
-| Name | Type | Description |
-| --- | --- | --- |
-| TEXT | <code>number</code> | AppMsgType.TEXT                     (1)     for TEXT |
-| IMG | <code>number</code> | AppMsgType.IMG                      (2)      for IMG |
-| AUDIO | <code>number</code> | AppMsgType.AUDIO                    (3)      for AUDIO |
-| VIDEO | <code>number</code> | AppMsgType.VIDEO                    (4)      for VIDEO |
-| URL | <code>number</code> | AppMsgType.URL                      (5)      for URL |
-| ATTACH | <code>number</code> | AppMsgType.ATTACH                   (6)      for ATTACH |
-| OPEN | <code>number</code> | AppMsgType.OPEN                     (7)      for OPEN |
-| EMOJI | <code>number</code> | AppMsgType.EMOJI                    (8)      for EMOJI |
-| VOICE_REMIND | <code>number</code> | AppMsgType.VOICE_REMIND             (9)      for VOICE_REMIND |
-| SCAN_GOOD | <code>number</code> | AppMsgType.SCAN_GOOD                (10)     for SCAN_GOOD |
-| GOOD | <code>number</code> | AppMsgType.GOOD                     (13)     for GOOD |
-| EMOTION | <code>number</code> | AppMsgType.EMOTION                  (15)     for EMOTION |
-| CARD_TICKET | <code>number</code> | AppMsgType.CARD_TICKET              (16)     for CARD_TICKET |
-| REALTIME_SHARE_LOCATION | <code>number</code> | AppMsgType.REALTIME_SHARE_LOCATION  (17)     for REALTIME_SHARE_LOCATION |
-| TRANSFERS | <code>number</code> | AppMsgType.TRANSFERS                (2e3)    for TRANSFERS |
-| RED_ENVELOPES | <code>number</code> | AppMsgType.RED_ENVELOPES            (2001)   for RED_ENVELOPES |
-| READER_TYPE | <code>number</code> | AppMsgType.READER_TYPE              (100001) for READER_TYPE |
+| Location  | Price | Ram     | Payment           | Provider |
+| ---       | ---   | ---     | ---               | ---      |
+| Singapore | $5    | 512MB   | Paypal            | [DigitalOcean](https://m.do.co/c/01a54778df5c) |
+| Japan     | $5    | 1GB     | Paypal            | [Linode](https://www.linode.com/?r=5fd2b713d711746bb5451111df0f2b6d863e9f63) |
+| Korea     | $10   | 1GB     | Alipay, Paypal    | [Netdedi](https://www.netdedi.com/?affid=35) |
 
-<a name="MsgType"></a>
+CONTRIBUTING
+--------------
 
-## MsgType : <code>enum</code>
-Enum for MsgType values.
+[![Issue Stats](http://issuestats.com/github/chatie/wechaty/badge/pr)](http://issuestats.com/github/chatie/wechaty)
+[![Issue Stats](http://issuestats.com/github/chatie/wechaty/badge/issue)](http://issuestats.com/github/chatie/wechaty)
+[![Join the chat at https://gitter.im/zixia/wechaty](https://badges.gitter.im/zixia/wechaty.svg)](https://gitter.im/zixia/wechaty?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-**Kind**: global enum  
-**Properties**
+Howto [contribute](https://github.com/chatie/wechaty/blob/master/CONTRIBUTING.md)
 
-| Name | Type | Description |
-| --- | --- | --- |
-| TEXT | <code>number</code> | MsgType.TEXT                (1)     for TEXT |
-| IMAGE | <code>number</code> | MsgType.IMAGE               (3)     for IMAGE |
-| VOICE | <code>number</code> | MsgType.VOICE               (34)    for VOICE |
-| VERIFYMSG | <code>number</code> | MsgType.VERIFYMSG           (37)    for VERIFYMSG |
-| POSSIBLEFRIEND_MSG | <code>number</code> | MsgType.POSSIBLEFRIEND_MSG  (40)    for POSSIBLEFRIEND_MSG |
-| SHARECARD | <code>number</code> | MsgType.SHARECARD           (42)    for SHARECARD |
-| VIDEO | <code>number</code> | MsgType.VIDEO               (43)    for VIDEO |
-| EMOTICON | <code>number</code> | MsgType.EMOTICON            (47)    for EMOTICON |
-| LOCATION | <code>number</code> | MsgType.LOCATION            (48)    for LOCATION |
-| APP | <code>number</code> | MsgType.APP                 (49)    for APP |
-| VOIPMSG | <code>number</code> | MsgType.VOIPMSG             (50)    for VOIPMSG |
-| STATUSNOTIFY | <code>number</code> | MsgType.STATUSNOTIFY        (51)    for STATUSNOTIFY |
-| VOIPNOTIFY | <code>number</code> | MsgType.VOIPNOTIFY          (52)    for VOIPNOTIFY |
-| VOIPINVITE | <code>number</code> | MsgType.VOIPINVITE          (53)    for VOIPINVITE |
-| MICROVIDEO | <code>number</code> | MsgType.MICROVIDEO          (62)    for MICROVIDEO |
-| SYSNOTICE | <code>number</code> | MsgType.SYSNOTICE           (9999)  for SYSNOTICE |
-| SYS | <code>number</code> | MsgType.SYS                 (10000) for SYS |
-| RECALLED | <code>number</code> | MsgType.RECALLED            (10002) for RECALLED |
+Contributions in any form are highly encouraged and welcome! Be it new or improved presets, optimized streaming code or just some cleanup. So start forking!
 
-<a name="WechatyEventName"></a>
+## Code Contributions
 
-## WechatyEventName
-Wechaty Class Event Type
+If you want to add new features or change the API, please submit an issue first to make sure no one else is already working on the same thing and discuss the implementation and API details with maintainers and users by creating an issue. When everything is settled down, you can submit a pull request.
 
-**Kind**: global typedef  
-**Properties**
+When fixing bugs, you can directly submit a pull request.
 
-| Name | Type | Description |
-| --- | --- | --- |
-| error | <code>string</code> | When the bot get error, there will be a Wechaty error event fired. |
-| login | <code>string</code> | After the bot login full successful, the event login will be emitted, with a Contact of current logined user. |
-| logout | <code>string</code> | Logout will be emitted when bot detected log out, with a Contact of the current login user. |
-| scan | <code>string</code> | A scan event will be emitted when the bot needs to show you a QR Code for scanning. |
-| heartbeat | <code>string</code> | Get bot's heartbeat. |
-| friend | <code>string</code> | When someone sends you a friend request, there will be a Wechaty friend event fired. |
-| message | <code>string</code> | Emit when there's a new message. |
-| room-join | <code>string</code> | Emit when anyone join any room. |
-| room-topic | <code>string</code> | Get topic event, emitted when someone change room topic. |
-| room-leave | <code>string</code> | Emit when anyone leave the room.<br>                                    If someone leaves the room by themselves, wechat will not notice other people in the room, so the bot will never get the "leave" event. |
+Make sure to add tests for your features and bugfixes and update the documentation (see below) before submitting your code!
 
-<a name="WechatyEventFunction"></a>
+## Documentation Contributions
 
-## WechatyEventFunction
-Wechaty Class Event Function
+You can directly submit pull requests for documentation changes.
 
-**Kind**: global typedef  
-**Properties**
+## Main Contributors
 
-| Name | Type | Description |
-| --- | --- | --- |
-| error | <code>function</code> | (this: Wechaty, error: Error) => void callback function |
-| login | <code>function</code> | (this: Wechaty, user: Contact)=> void |
-| logout | <code>function</code> | (this: Wechaty, user: Contact) => void |
-| scan | <code>function</code> | (this: Wechaty, url: string, code: number) => void <br> <ol> <li>URL: {String} the QR code image URL</li> <li>code: {Number} the scan status code. some known status of the code list here is:</li> </ol> <ul> <li>0 initial_</li> <li>200 login confirmed</li> <li>201 scaned, wait for confirm</li> <li>408 waits for scan</li> </ul> |
-| heartbeat | <code>function</code> | (this: Wechaty, data: any) => void |
-| friend | <code>function</code> | (this: Wechaty, friend: Contact, request?: FriendRequest) => void |
-| message | <code>function</code> | (this: Wechaty, message: Message) => void |
-| room-join | <code>function</code> | (this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void |
-| room-topic | <code>function</code> | (this: Wechaty, room: Room, topic: string, oldTopic: string, changer: Contact) => void |
-| room-leave | <code>function</code> | (this: Wechaty, room: Room, leaverList: Contact[]) => void |
+* [cherry-geqi](https://github.com/cherry-geqi)
+* [Gcaufy](https://github.com/Gcaufy)
+* [JasLin](https://github.com/JasLin)
+* [lijiarui](https://github.com/lijiarui)
+* [mukaiu](https://github.com/mukaiu)
+* [xinbenlv](https://github.com/xinbenlv)
 
-<a name="RoomEventName"></a>
+See more at <https://github.com/Chatie/wechaty/graphs/contributors>
 
-## RoomEventName
-Room Class Event Type
+## JOIN US
 
-**Kind**: global typedef  
-**Properties**
+Wechaty is used in many ChatBot projects by hundreds of developers. If you want to talk with other developers, just scan the following QR Code in WeChat with secret code _wechaty_, join our **Wechaty Developers' Home** now.
 
-| Name | Type | Description |
-| --- | --- | --- |
-| join | <code>string</code> | Emit when anyone join any room. |
-| topic | <code>string</code> | Get topic event, emitted when someone change room topic. |
-| leave | <code>string</code> | Emit when anyone leave the room.<br>                               If someone leaves the room by themselves, wechat will not notice other people in the room, so the bot will never get the "leave" event. |
+![Wechaty Developers' Home](https://chatie.io/wechaty/images/bot-qr-code.png)
 
-<a name="RoomEventFunction"></a>
+Scan now, because other Wechaty developers want to talk with you too! (secret code: _wechaty_)
 
-## RoomEventFunction
-Room Class Event Function
+SEE ALSO
+---------
 
-**Kind**: global typedef  
-**Properties**
+* [RelatedProject](https://github.com/chatie/wechaty/wiki/RelatedProject)
 
-| Name | Type | Description |
-| --- | --- | --- |
-| room-join | <code>function</code> | (this: Room, inviteeList: Contact[] , inviter: Contact)  => void |
-| room-topic | <code>function</code> | (this: Room, topic: string, oldTopic: string, changer: Contact) => void |
-| room-leave | <code>function</code> | (this: Room, leaver: Contact) => void |
+FUTURE IMPROVEMENTS
+--------------
+Wechaty is far from perfect. The following things should be addressed in the future:
 
-<a name="MemberQueryFilter"></a>
+- [ ] PuppetWine - Use DLL Inject to hook Windows Wechat Application, run from wine inside docker.
+- [ ] PuppetAndroid - Use Xposed to Hook Android Pad version of Wechat App, run from android emulator inside docker.
 
-## MemberQueryFilter
-The way to search member by Room.member()
 
-**Kind**: global typedef  
-**Properties**
+MY STORY
+--------
+My daily life/work depends on too much chat on wechat.
+* I almost have 14,000 wechat friends in May 2014, before wechat restricts a total number of friends to 5,000.
+* I almost have 400 wechat rooms, and most of them have more than 400 members.
 
-| Name | Type | Description |
-| --- | --- | --- |
-| name | <code>string</code> | Find the contact by wechat name in a room, equal to `Contact.name()`. |
-| alias | <code>string</code> | Find the contact by alias set by the bot for others in a room, equal to `roomAlias`. |
-| roomAlias | <code>string</code> | Find the contact by alias set by the bot for others in a room. |
-| contactAlias | <code>string</code> | Find the contact by alias set by the contact out of a room, equal to `Contact.alias()`. [More Detail](https://github.com/Chatie/wechaty/issues/365) |
+Can you imagine that? I'm dying...
 
-<a name="ContactQueryFilter"></a>
+So a tireless bot working for me 24x7 on wechat, monitoring/filtering the most important message is badly needed. For example, it highlights discussion which contains the KEYWORDS which I want to follow up(especially in a noisy room). ;-)
 
-## ContactQueryFilter
-The way to search Contact
+At last, It's built for my personal study purpose of Automatically Testing.
 
-**Kind**: global typedef  
-**Properties**
+AUTHOR
+------
+Huan LI \<zixia@zixia.net\> (http://linkedin.com/in/zixia)
 
-| Name | Type | Description |
-| --- | --- | --- |
-| name | <code>string</code> | The name-string set by user-self, should be called name |
-| alias | <code>string</code> | The name-string set by bot for others, should be called alias [More Detail](https://github.com/Chatie/wechaty/issues/365) |
+<a href="http://stackoverflow.com/users/1123955/zixia">
+  <img src="http://stackoverflow.com/users/flair/1123955.png" width="208" height="58" alt="profile for zixia at Stack Overflow, Q&amp;A for professional and enthusiast programmers" title="profile for zixia at Stack Overflow, Q&amp;A for professional and enthusiast programmers">
+</a>
 
+COPYRIGHT & LICENSE
+-------------------
+* Code & Docs © 2016-2017 Huan LI \<zixia@zixia.net\>
+* Code released under the Apache-2.0 License
+* Docs released under Creative Commons
+
+[downloads-image]: http://img.shields.io/npm/dm/wechaty.svg?style=flat-square
+[downloads-url]: https://npmjs.org/package/wechaty
