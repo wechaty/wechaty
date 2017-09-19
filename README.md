@@ -157,74 +157,9 @@ Get to know more about the tests from [Wiki:Test](https://github.com/chatie/wech
 DOCUMATAION
 -------------
 
-In order to sync the doc with the lastest code, it's best to use [jsdoc](http://usejsdoc.org/) to describe the API, and use [jsdoc-to-markdown](https://github.com/jsdoc2md/jsdoc-to-markdown/wiki) to generate markdown format documents to the [docs](docs/index.md) directory.
+In order to sync the doc with the lastest code, we are using [jsdoc](http://usejsdoc.org/) to describe the API, and use [jsdoc-to-markdown](https://github.com/jsdoc2md/jsdoc-to-markdown/wiki) to generate markdown format documents to the [docs](docs/index.md) directory.
 
-## API Reference
-
-TODO: change links to jsdoc version: [API Document](docs/index.md)
-
-### [Wechaty Events](http://chatie.io/wechaty/#wechatyeventname)
-
-1. [scan](http://chatie.io/wechaty/#Wechaty+on) Emit when the bot needs to show you a QR Code for scanning
-2. [login](http://chatie.io/wechaty/#Wechaty+on) Emit when bot login is fully successful.
-3. [logout](http://chatie.io/wechaty/#Wechaty+on) Emit when bot detects log out.
-4. [message](http://chatie.io/wechaty/#Wechaty+on) Emit when there's a new message.
-5. [error](http://chatie.io/wechaty/#Wechaty+on) Emit when an error occurs.
-6. [friend](http://chatie.io/wechaty/#Wechaty+on) Emit when a new friend request is received, or friendship is confirmed.
-7. [room-join](http://chatie.io/wechaty/#Wechaty+on) Emit when someone joins the room
-8. [room-leave](http://chatie.io/wechaty/#Wechaty+on) Emit when someone leaves the room
-9. [room-topic](http://chatie.io/wechaty/#Wechaty+on) Emit when someone changes the room's topic
-
-### [Wechaty](http://chatie.io/wechaty/#Wechaty)
-
-1. [instance(setting: PuppetSetting): Promise&lt;Wechaty&gt;](http://chatie.io/wechaty/#Wechaty) get the bot instance
-2. [init(): Promise&lt;void&gt;](http://chatie.io/wechaty/#Wechaty+init) Initialize the bot
-4. [say(content: string): Promise&lt;void&gt;](http://chatie.io/wechaty/#Wechaty+say) send message to filehelper, just for logging/reporting usage for your convenience
-
-### [Message](http://chatie.io/wechaty/#Message)
-
-1. [from():Contact](http://chatie.io/wechaty/#Message+from) get the sender of a message
-4. [to():Contact](http://chatie.io/wechaty/#messageto--contact--null) get the destination for the message
-9. [room():Room|null](http://chatie.io/wechaty/#messageroom--room--null) get the room from a message.
-7. [content():string](http://chatie.io/wechaty/#messagecontent--string) get the content of the message
-12. [type():MsgType](http://chatie.io/wechaty/#messagetype--msgtype) get the type of a Message.
-13. [say(content:string):Promise](http://chatie.io/wechaty/#Message+say) send a reply message to the sender.
-15. [self():boolean](http://chatie.io/wechaty/#messageself--boolean) check if a message is sent by self 
-
-### [Contact](http://chatie.io/wechaty/#Contact)
-
-2. [name():string](http://chatie.io/wechaty/#Contact+name) get name from a contact
-3. [alias():string](http://chatie.io/wechaty/#contactaliasnewalias--string--null--promiseboolean) get remark name from a contact
-4. [alias(alias:string):Promise](http://chatie.io/wechaty/#contactaliasnewalias--string--null--promiseboolean) set remark name to a contact
-6. [star():boolean](http://chatie.io/wechaty/#Contact+star) true for star friend, false for no star friend
-8. [say(content:string):Promise](http://chatie.io/wechaty/#contactsaytextormedia--promiseboolean) send a message to a contact
-8. [find():Promise](http://chatie.io/wechaty/#Contact.find) try to find a contact by filter: {name: string | RegExp} / {alias: string | RegExp}
-
-### [Room](http://chatie.io/wechaty/#room)
-
-1. [say(content:string,replyTo:Contact|ContactArray):Promise](http://chatie.io/wechaty/#Room+say) send a message inside Room.
-3. [refresh():Promise](http://chatie.io/wechaty/#Room+refresh) reload data for Room
-3. [add():Promise](http://chatie.io/wechaty/#roomaddcontact--promisenumber) add contact in a room
-3. [del():Promise](http://chatie.io/wechaty/#Room+del) delete a contact from the room It works only when the bot is the owner of the room
-3. [topic():string|void](http://chatie.io/wechaty/#Room+topic) SET/GET topic from the room
-3. [find():Promise](http://chatie.io/wechaty/#Room.find) try to find a room by filter: {topic: string | RegExp}. If get many, return the first one.
-
-
-#### [Room Event](http://chatie.io/wechaty/#Room+on)
-
-1. [join](http://chatie.io/wechaty/#Room+on) Emit when someone joins the room
-2. [leave](http://chatie.io/wechaty/#Room+on) Emit when someone leaves the room
-3. [topic](http://chatie.io/wechaty/#Room+on) Emit when someone changes the room topic
-
-### [FriendRequest](https://github.com/chatie/wechaty/wiki/API#class-friendrequest)
-
-1. [hello:string](https://github.com/chatie/wechaty/wiki/API#friendrequesthello-string) get content from friendrequest
-2. [accept():Promise](https://github.com/chatie/wechaty/wiki/API#friendrequestaccept-void) accept the friendrequest
-3. [send(contact:Contact,hello:string):Promise](https://github.com/chatie/wechaty/wiki/API#friendrequestsendcontact-contact-hello-string-void) send a new friend request
-
-### [MediaMessage](http://chatie.io/wechaty/#MediaMessage)
-
-Create a media message object.
+See: [Official API Reference](https://chatie.github.io/wechaty/)
 
 RELEASE NOTES
 ---------------
