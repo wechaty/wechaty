@@ -1,0 +1,13 @@
+{{#if name}}{{#sig~}}
+{{{@depOpen}~}}
+[{{{@codeOpen}~}}
+{{#if @prefix}}{{@prefix}} {{/if~}}
+{{#if (isClassMember)}}{{@parent~}}{{/if~}}
+{{@accessSymbol}}{{#if (isEvent)}}"{{{name}}}"{{else}}{{{name}}}{{/if~}}
+{{~#if @methodSign}}{{#if (isEvent)}} {{@methodSign}}{{else}}{{@methodSign}}{{/if}}{{/if~}}
+{{{@codeClose}}}](http://chatie.io/wechaty/#{{{anchorName}}})
+{{~#if @returnSymbol}} {{@returnSymbol}}{{/if~}}
+{{#if @returnTypes}} {{>linked-type-list types=@returnTypes delimiter=" \| " }}{{/if~}}
+{{#if @suffix}} {{@suffix}}{{/if~}}
+{{{@depClose}~}}
+{{~/sig}}{{/if~}}
