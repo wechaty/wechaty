@@ -143,6 +143,80 @@ In order to sync the doc with the lastest code, we are using [jsdoc](http://usej
 
 See: [Official API Reference](https://chatie.github.io/wechaty/)
 
+
+* [Wechaty](http://chatie.io/wechaty/#Wechaty)
+    * [wechaty.init()](http://chatie.io/wechaty/#Wechaty+init) ⇒ <code>Promise.&lt;void&gt;</code>
+    * [wechaty.on(event, listener)](http://chatie.io/wechaty/#Wechaty+on) ⇒ [<code>Wechaty</code>](http://chatie.io/wechaty/#Wechaty)
+    * [wechaty.quit()](http://chatie.io/wechaty/#Wechaty+quit) ⇒ <code>Promise.&lt;void&gt;</code>
+    * [wechaty.logout()](http://chatie.io/wechaty/#Wechaty+logout) ⇒ <code>Promise.&lt;void&gt;</code>
+    * [wechaty.self()](http://chatie.io/wechaty/#Wechaty+self) ⇒ [<code>Contact</code>](http://chatie.io/wechaty/#Contact)
+    * [wechaty.say(content)](http://chatie.io/wechaty/#Wechaty+say) ⇒ <code>Promise.&lt;boolean&gt;</code>
+    * [Wechaty.instance()](http://chatie.io/wechaty/#Wechaty.instance)
+    * [Wechaty.version([forceNpm])](http://chatie.io/wechaty/#Wechaty.version) ⇒ <code>string</code>
+
+* [Contact](http://chatie.io/wechaty/#Contact)
+    * [contact.say(textOrMedia)](http://chatie.io/wechaty/#Contact+say) ⇒ <code>Promise.&lt;boolean&gt;</code>
+    * [contact.name()](http://chatie.io/wechaty/#Contact+name) ⇒ <code>string</code>
+    * [contact.alias(newAlias)](http://chatie.io/wechaty/#Contact+alias) ⇒ <code>string</code> \| <code>null</code> \| <code>Promise.&lt;boolean&gt;</code>
+    * [contact.stranger()](http://chatie.io/wechaty/#Contact+stranger) ⇒ <code>boolean</code> \| <code>null</code>
+    * [contact.official()](http://chatie.io/wechaty/#Contact+official) ⇒ <code>boolean</code> \| <code>null</code>
+    * [contact.special()](http://chatie.io/wechaty/#Contact+special) ⇒ <code>boolean</code> \| <code>null</code>
+    * [contact.personal()](http://chatie.io/wechaty/#Contact+personal) ⇒ <code>boolean</code> \| <code>null</code>
+    * [contact.star()](http://chatie.io/wechaty/#Contact+star) ⇒ <code>boolean</code>
+    * [contact.gender()](http://chatie.io/wechaty/#Contact+gender) ⇒ <code>Gender.Male(2)</code> \| <code>Gender.Female(1)</code> \| <code>Gender.Unknown(0)</code>
+    * [contact.province()](http://chatie.io/wechaty/#Contact+province) ⇒ <code>string</code> \| <code>undefined</code>
+    * [contact.city()](http://chatie.io/wechaty/#Contact+city) ⇒ <code>string</code> \| <code>undefined</code>
+    * [contact.avatar()](http://chatie.io/wechaty/#Contact+avatar) ⇒ <code>Promise.&lt;NodeJS.ReadableStream&gt;</code>
+    * [contact.refresh()](http://chatie.io/wechaty/#Contact+refresh) ⇒ <code>Promise.&lt;this&gt;</code>
+    * [contact.self()](http://chatie.io/wechaty/#Contact+self) ⇒ <code>boolean</code>
+    * [Contact.find(query)](http://chatie.io/wechaty/#Contact.find) ⇒ <code>Promise.&lt;(Contact\|null)&gt;</code>
+    * [Contact.findAll([queryArg])](http://chatie.io/wechaty/#Contact.findAll) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
+
+
+* [Room](http://chatie.io/wechaty/#Room)
+    * [room.say(textOrMedia, [replyTo])](http://chatie.io/wechaty/#Room+say) ⇒ <code>Promise.&lt;boolean&gt;</code>
+    * [room.on(event, listener)](http://chatie.io/wechaty/#Room+on) ⇒ <code>this</code>
+    * [room.add(contact)](http://chatie.io/wechaty/#Room+add) ⇒ <code>Promise.&lt;number&gt;</code>
+    * [room.del(contact)](http://chatie.io/wechaty/#Room+del) ⇒ <code>Promise.&lt;number&gt;</code>
+    * [room.topic([newTopic])](http://chatie.io/wechaty/#Room+topic) ⇒ <code>string</code> \| <code>void</code>
+    * [room.alias(contact)](http://chatie.io/wechaty/#Room+alias) ⇒ <code>string</code> \| <code>null</code>
+    * [room.roomAlias(contact)](http://chatie.io/wechaty/#Room+roomAlias) ⇒ <code>string</code> \| <code>null</code>
+    * [room.has(contact)](http://chatie.io/wechaty/#Room+has) ⇒ <code>boolean</code>
+    * [room.memberAll(queryArg)](http://chatie.io/wechaty/#Room+memberAll) ⇒ [<code>Array.&lt;Contact&gt;</code>](http://chatie.io/wechaty/#Contact)
+    * [room.member(queryArg)](http://chatie.io/wechaty/#Room+member) ⇒ [<code>Contact</code>](http://chatie.io/wechaty/#Contact) \| <code>null</code>
+    * [room.memberList()](http://chatie.io/wechaty/#Room+memberList) ⇒ [<code>Array.&lt;Contact&gt;</code>](http://chatie.io/wechaty/#Contact)
+    * [room.refresh()](http://chatie.io/wechaty/#Room+refresh) ⇒ <code>Promise.&lt;void&gt;</code>
+    * [Room.create(contactList, [topic])](http://chatie.io/wechaty/#Room.create) ⇒ [<code>Promise.&lt;Room&gt;</code>](http://chatie.io/wechaty/#Room)
+    * [Room.findAll([query])](http://chatie.io/wechaty/#Room.findAll) ⇒ <code>Promise.&lt;Array.&lt;Room&gt;&gt;</code>
+    * [Room.find(query)](http://chatie.io/wechaty/#Room.find) ⇒ <code>Promise.&lt;(Room\|null)&gt;</code>
+
+
+* [Message](http://chatie.io/wechaty/#Message)
+    * [message.say(textOrMedia, [replyTo])](http://chatie.io/wechaty/#Message+say) ⇒ <code>Promise.&lt;any&gt;</code>
+    * [message.from()](http://chatie.io/wechaty/#Message+from) ⇒ [<code>Contact</code>](http://chatie.io/wechaty/#Contact)
+    * [message.room()](http://chatie.io/wechaty/#Message+room) ⇒ [<code>Room</code>](http://chatie.io/wechaty/#Room) \| <code>null</code>
+    * [message.content()](http://chatie.io/wechaty/#Message+content) ⇒ <code>string</code>
+    * [message.type()](http://chatie.io/wechaty/#Message+type) ⇒ [<code>MsgType</code>](http://chatie.io/wechaty/#MsgType)
+    * [message.typeSub()](http://chatie.io/wechaty/#Message+typeSub) ⇒ [<code>MsgType</code>](http://chatie.io/wechaty/#MsgType)
+    * [message.typeApp()](http://chatie.io/wechaty/#Message+typeApp) ⇒ [<code>AppMsgType</code>](http://chatie.io/wechaty/#AppMsgType)
+    * [message.typeEx()](http://chatie.io/wechaty/#Message+typeEx) ⇒ [<code>MsgType</code>](http://chatie.io/wechaty/#MsgType)
+    * [message.self()](http://chatie.io/wechaty/#Message+self) ⇒ <code>boolean</code>
+    * [message.mentioned()](http://chatie.io/wechaty/#Message+mentioned) ⇒ [<code>Array.&lt;Contact&gt;</code>](http://chatie.io/wechaty/#Contact)
+    * [message.to()](http://chatie.io/wechaty/#Message+to) ⇒ [<code>Contact</code>](http://chatie.io/wechaty/#Contact) \| <code>null</code>
+    * [message.readyStream()](http://chatie.io/wechaty/#Message+readyStream) ⇒ <code>Promise.&lt;Readable&gt;</code>
+    * [Message.find()](http://chatie.io/wechaty/#Message.find)
+    * [Message.findAll()](http://chatie.io/wechaty/#Message.findAll)
+
+* [MediaMessage](http://chatie.io/wechaty/#MediaMessage)
+    * [mediaMessage.ext()](http://chatie.io/wechaty/#MediaMessage+ext) ⇒ <code>string</code>
+    * [mediaMessage.filename()](http://chatie.io/wechaty/#MediaMessage+filename) ⇒ <code>string</code>
+    * [mediaMessage.readyStream()](http://chatie.io/wechaty/#MediaMessage+readyStream)
+    * [mediaMessage.forward(sendTo)](http://chatie.io/wechaty/#MediaMessage+forward) ⇒ <code>Promise.&lt;boolean&gt;</code>
+
+* [FriendRequest](http://chatie.io/wechaty/#FriendRequest)
+    * [friendRequest.send(contact, [hello])](http://chatie.io/wechaty/#FriendRequest+send) ⇒ <code>Promise.&lt;boolean&gt;</code>
+    * [friendRequest.accept()](http://chatie.io/wechaty/#FriendRequest+accept) ⇒ <code>Promise.&lt;boolean&gt;</code>
+
 RELEASE NOTES
 ---------------
 
@@ -263,4 +337,3 @@ COPYRIGHT & LICENSE
 
 [downloads-image]: http://img.shields.io/npm/dm/wechaty.svg?style=flat-square
 [downloads-url]: https://npmjs.org/package/wechaty
-
