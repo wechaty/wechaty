@@ -113,7 +113,6 @@
     "body-parser": "1.18.0",
     "brolog": "1.2.6",
     "chromedriver": "2.32.3",
-    "dmd-plugin-example": "^0.1.0",
     "express": "4.15.2",
     "ps-tree": "1.1.0",
     "raven": "2.1.2",
