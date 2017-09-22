@@ -1,3 +1,4 @@
+
 [![Wechaty](https://chatie.io/wechaty/images/wechaty-logo-en.png)](https://github.com/chatie/wechaty)
 
 # WECHATY
