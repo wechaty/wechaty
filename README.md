@@ -145,7 +145,7 @@ In order to sync the doc with the lastest code, we are using [jsdoc](http://usej
 See: [Official API Reference](https://chatie.github.io/wechaty/)
 
 
-[comment]: <> (JSDOC SYNC BEGIN) 
+[comment]: # (JSDOC SYNC BEGIN) 
 
 * [Wechaty](http://chatie.io/wechaty/#Wechaty)
     * [wechaty.init()](http://chatie.io/wechaty/#Wechaty+init) ⇒ <code>Promise.&lt;void&gt;</code>
@@ -220,7 +220,7 @@ See: [Official API Reference](https://chatie.github.io/wechaty/)
     * [friendRequest.send(contact, [hello])](http://chatie.io/wechaty/#FriendRequest+send) ⇒ <code>Promise.&lt;boolean&gt;</code>
     * [friendRequest.accept()](http://chatie.io/wechaty/#FriendRequest+accept) ⇒ <code>Promise.&lt;boolean&gt;</code>
  
-[comment]: <> (JSDOC SYNC END)
+[comment]: # (JSDOC SYNC END)
 
 RELEASE NOTES
 ---------------
