@@ -129,7 +129,7 @@
     "@types/raven": "2.1.2",
     "@types/request": "2.0.3",
     "@types/selenium-webdriver": "3.0.7",
-    "@types/sinon": "2.3.4",
+    "@types/sinon": "2.3.5",
     "@types/ws": "3.0.2",
     "@types/xml2js": "0.4.0",
     "apiai": "4.0.3",
