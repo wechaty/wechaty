@@ -106,7 +106,7 @@
   },
   "dependencies": {
     "@types/express": "4.0.37",
-    "@types/node": "8.0.28",
+    "@types/node": "8.0.29",
     "bl": "1.2.1",
     "body-parser": "1.18.0",
     "chromedriver": "2.32.3",
