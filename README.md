@@ -219,7 +219,7 @@ See: [Official API Reference](https://chatie.github.io/wechaty/)
 * [FriendRequest](http://chatie.io/wechaty/#FriendRequest)
     * [friendRequest.send(contact, [hello])](http://chatie.io/wechaty/#FriendRequest+send) ⇒ <code>Promise.&lt;boolean&gt;</code>
     * [friendRequest.accept()](http://chatie.io/wechaty/#FriendRequest+accept) ⇒ <code>Promise.&lt;boolean&gt;</code>
- 
+
 [comment]: # (JSDOC SYNC END)
 
 RELEASE NOTES
