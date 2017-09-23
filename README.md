@@ -1,10 +1,11 @@
 [![Wechaty](https://chatie.io/wechaty/images/wechaty-logo-en.png)](https://github.com/chatie/wechaty)
 
-# WECHATY
+WECHATY
+-------
 
 ## Connecting ChatBots.
 
-Wechaty is a Bot Framework for Wechat **Personal** Account which can help you create a bot in 6 lines of javascript by easy to use API, with cross-platform support include [Linux](https://travis-ci.org/chatie/wechaty), [Windows](https://ci.appveyor.com/project/chatie/wechaty), [Darwin(OSX/Mac)](https://travis-ci.org/chatie/wechaty) and [Docker](https://circleci.com/gh/chatie/wechaty).
+Wechaty is a Bot Framework for Wechat **Personal** Account which can help you create a bot in 6 lines of javascript, with cross-platform support include [Linux](https://travis-ci.org/chatie/wechaty), [Windows](https://ci.appveyor.com/project/chatie/wechaty), [Darwin(OSX/Mac)](https://travis-ci.org/chatie/wechaty) and [Docker](https://circleci.com/gh/chatie/wechaty).
 
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
@@ -21,20 +22,20 @@ Wechaty is a Bot Framework for Wechat **Personal** Account which can help you cr
 > -- @Gcaufy, Tencent
 
 > "太好用，好用的想哭"  
-> -- @xinbenlv, Google Engineer, HaoShiYou.org Founder
+> -- @xinbenlv, Google Engineer, Founder of HaoShiYou.org
 
 > "最好的微信开发库" [link](http://weibo.com/3296245513/Ec4iNp9Ld?type=comment)  
-> -- @Jarvis, Baidu Developer
+> -- @Jarvis, Baidu Engineer
 
 > "Wechaty让运营人员更多的时间思考如何进行活动策划、留存用户，商业变现" [link](http://mp.weixin.qq.com/s/dWHAj8XtiKG-1fIS5Og79g)  
-> -- @lijiarui, Orange Interactive CEO.
+> -- @lijiarui, Orange Interactive Founder.
 
 > "If you know js ... try Chatie/wechaty, it's easy to use."  
-> -- @Urinx Uri Lee, Author of WeixinBot
+> -- @Urinx Uri Lee, WeixinBot Author
 
 See more at [Wiki:VoiceOfDeveloper](https://github.com/Chatie/wechaty/wiki/VoiceOfDeveloper)
 
-# The World's Shortest ChatBot Code: 6 lines of JavaScript
+## The World's Shortest ChatBot Code: 6 lines of JavaScript
 
 ```javascript
 const { Wechaty } = require('wechaty') // import { Wechaty } from 'wechaty'
@@ -52,7 +53,7 @@ This bot can log all messages to the console.
 You can find more examples from [Wiki](https://github.com/chatie/wechaty/wiki/Example) and [Example Directory](https://github.com/chatie/wechaty/blob/master/example/).
 
 GETTING STARTED
-----------------
+---------------
 
 ## A Great Live Coding Tutorial
 
@@ -118,7 +119,7 @@ $ node mybot.js
 Get to know more about NPM at [Wiki:NPM](https://github.com/chatie/wechaty/wiki/NPM)
 
 TEST
--------
+----
 
 [![Linux/Mac Build Status](https://img.shields.io/travis/Chatie/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/Chatie/wechaty)
 [![Windows Build status](https://img.shields.io/appveyor/ci/chatie/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/chatie/wechaty)
@@ -127,7 +128,7 @@ TEST
 [![Coverage Status](https://coveralls.io/repos/github/Chatie/wechaty/badge.svg?branch=master)](https://coveralls.io/github/Chatie/wechaty?branch=master)
 [![Known Vulnerabilities](https://snyk.io/test/github/chatie/wechaty/badge.svg)](https://snyk.io/test/github/chatie/wechaty)
 
-Wechaty uses [AVA](https://github.com/avajs/ava) for unit testing
+Wechaty is fully tested by unit tests and integration tests, with Continious Integration & Continious Deliver(CI/CD) support, which is powered by TravisCI, CircleCI and Appveyor CI.
 
 To test Wechaty, run:
 ```shell
@@ -144,13 +145,13 @@ In order to sync the doc with the lastest code, we are using [jsdoc](http://usej
 See: [Official API Reference](https://chatie.github.io/wechaty/)
 
 RELEASE NOTES
----------------
+-------------
 
 * [Latest Release](https://github.com/chatie/wechaty/releases/latest)(All releases [here](https://github.com/chatie/wechaty/releases))
 * [Changelog](https://github.com/chatie/wechaty/blob/master/CHANGELOG.md)
 
 POWERED BY WECHATY
--------------------
+------------------
 
 [![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/chatie/wechaty)
 
@@ -179,6 +180,11 @@ The following VPS providers are used by the Wechaty team, and they worked perfec
 | Singapore | $5    | 512MB   | Paypal            | [DigitalOcean](https://m.do.co/c/01a54778df5c) |
 | Japan     | $5    | 1GB     | Paypal            | [Linode](https://www.linode.com/?r=5fd2b713d711746bb5451111df0f2b6d863e9f63) |
 | Korea     | $10   | 1GB     | Alipay, Paypal    | [Netdedi](https://www.netdedi.com/?affid=35) |
+
+
+## See Also
+
+* [RelatedProject](https://github.com/chatie/wechaty/wiki/RelatedProject)
 
 CONTRIBUTING
 --------------
@@ -214,7 +220,7 @@ You can directly submit pull requests for documentation changes.
 
 See more at <https://github.com/Chatie/wechaty/graphs/contributors>
 
-## JOIN US
+## Join Us
 
 Wechaty is used in many ChatBot projects by hundreds of developers. If you want to talk with other developers, just scan the following QR Code in WeChat with secret code _wechaty_, join our **Wechaty Developers' Home** now.
 
@@ -222,21 +228,24 @@ Wechaty is used in many ChatBot projects by hundreds of developers. If you want 
 
 Scan now, because other Wechaty developers want to talk with you too! (secret code: _wechaty_)
 
-SEE ALSO
----------
+## Future Improvements
 
-* [RelatedProject](https://github.com/chatie/wechaty/wiki/RelatedProject)
-
-FUTURE IMPROVEMENTS
---------------
 Wechaty is far from perfect. The following things should be addressed in the future:
 
 - [ ] PuppetWine - Use DLL Inject to hook Windows Wechat Application, run from wine inside docker.
 - [ ] PuppetAndroid - Use Xposed to Hook Android Pad version of Wechat App, run from android emulator inside docker.
 
 
-MY STORY
---------
+AUTHOR
+------
+Huan LI \<zixia@zixia.net\> (http://linkedin.com/in/zixia)
+
+<a href="http://stackoverflow.com/users/1123955/zixia">
+  <img src="http://stackoverflow.com/users/flair/1123955.png" width="208" height="58" alt="profile for zixia at Stack Overflow, Q&amp;A for professional and enthusiast programmers" title="profile for zixia at Stack Overflow, Q&amp;A for professional and enthusiast programmers">
+</a>
+
+## My Story
+
 My daily life/work depends on too much chat on wechat.
 * I almost have 14,000 wechat friends in May 2014, before wechat restricts a total number of friends to 5,000.
 * I almost have 400 wechat rooms, and most of them have more than 400 members.
@@ -246,14 +255,6 @@ Can you imagine that? I'm dying...
 So a tireless bot working for me 24x7 on wechat, monitoring/filtering the most important message is badly needed. For example, it highlights discussion which contains the KEYWORDS which I want to follow up(especially in a noisy room). ;-)
 
 At last, It's built for my personal study purpose of Automatically Testing.
-
-AUTHOR
-------
-Huan LI \<zixia@zixia.net\> (http://linkedin.com/in/zixia)
-
-<a href="http://stackoverflow.com/users/1123955/zixia">
-  <img src="http://stackoverflow.com/users/flair/1123955.png" width="208" height="58" alt="profile for zixia at Stack Overflow, Q&amp;A for professional and enthusiast programmers" title="profile for zixia at Stack Overflow, Q&amp;A for professional and enthusiast programmers">
-</a>
 
 COPYRIGHT & LICENSE
 -------------------
