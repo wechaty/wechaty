@@ -1,4 +1,5 @@
-# Wechaty v0.8.226 Documentation
+# Wechaty v0.8.227 Documentation
+
 ## Classes
 
 <dl>
