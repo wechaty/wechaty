@@ -145,7 +145,7 @@ In order to sync the doc with the lastest code, we are using [jsdoc](http://usej
 See: [Official API Reference](https://chatie.github.io/wechaty/)
 
 
-[comment]: # (JSDOC SYNC BEGIN) 
+[comment]: # (JSDOC SYNC BEGIN)
 
 * [Wechaty](http://chatie.io/wechaty/#Wechaty)
     * [wechaty.init()](http://chatie.io/wechaty/#Wechaty+init) ⇒ <code>Promise.&lt;void&gt;</code>
