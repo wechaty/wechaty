@@ -158,7 +158,7 @@
     "tslint-jsdoc-rules": "0.1.2",
     "tuling123-client": "0.0.1",
     "typescript": "2.5.2",
-    "yarn": "1.0.2"
+    "yarn": "1.1.0"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [
