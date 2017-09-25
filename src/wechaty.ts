@@ -342,7 +342,7 @@ export class Wechaty extends EventEmitter implements Sayable {
    * })
    */
   public on(event: WechatyEventName, listener: string | ((...args: any[]) => any)): this {
-    log.verbose('Wechaty', 'addListener(%s, %s)',
+    log.verbose('Wechaty', 'on(%s, %s)',
                             event,
                             typeof listener === 'string'
                               ? listener
