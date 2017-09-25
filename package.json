@@ -112,7 +112,7 @@
     "body-parser": "1.18.2",
     "chromedriver": "2.32.3",
     "brolog": "1.2.6",
-    "express": "4.15.2",
+    "express": "5.0.0-alpha.6",
     "ps-tree": "1.1.0",
     "raven": "2.1.2",
     "request": "2.82.0",
