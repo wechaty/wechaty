@@ -135,7 +135,7 @@
     "apiai": "4.0.3",
     "ava": "0.22.0",
     "babel-cli": "6.26.0",
-    "babel-eslint": "8.0.0",
+    "babel-eslint": "8.0.1",
     "babel-preset-es2015": "6.24.1",
     "check-node-version": "2.1.0",
     "cookie-parser": "1.4.3",
