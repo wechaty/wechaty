@@ -18,7 +18,9 @@
  *  @ignore
  */
 import { EventEmitter } from 'events'
+import * as path        from 'path'
 
+import * as caller      from 'caller'
 import { StateSwitch }  from 'state-switch'
 
 import {
@@ -350,8 +352,9 @@ export class Wechaty extends EventEmitter implements Sayable {
                 )
 
     if (typeof listener === 'string') {
+      const absoluteFilename = callerPathResolve(listener)
       // we can not do `await` here
-      import(listener)
+      import(absoluteFilename)
         .then(func => {
           log.info('Wechaty', 'on(%s, %s) loaded', event, listener)
           super.on(event, func)
@@ -365,6 +368,21 @@ export class Wechaty extends EventEmitter implements Sayable {
       super.on(event, listener) // `this: Wechaty` is Sayable
     }
     return this
+
+    // resolve filename based on caller's __dirname
+    function callerPathResolve(filename) {
+      if (path.isAbsolute(filename)) {
+        return filename
+      }
+
+      const callerFile = caller()
+      const callerDir  = path.dirname(callerFile)
+      const absoluteFilename = path.resolve([
+        callerDir,
+        listener,
+      ])
+      return absoluteFilename
+    }
   }
 
   /**
