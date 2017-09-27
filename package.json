@@ -115,7 +115,7 @@
     "express": "4.15.2",
     "ps-tree": "1.1.0",
     "raven": "2.1.2",
-    "request": "2.82.0",
+    "request": "2.83.0",
     "retry-promise": "1.0.0",
     "selenium-webdriver": "3.5.0",
     "state-switch": "0.1.13",
