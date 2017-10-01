@@ -541,7 +541,7 @@ export class PuppetWeb extends Puppet {
       mediatype,
       uploadmediarequest: JSON.stringify(uploadMediaRequest),
       webwx_data_ticket: webwxDataTicket,
-      pass_ticket: passTicket,
+      pass_ticket: passTicket || '',
       filename: {
         value: buffer,
         options: {
