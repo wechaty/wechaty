@@ -1205,7 +1205,7 @@ export class MediaMessage extends Message {
     }
     let m = Object.assign({}, this.rawObj)
     const newMsg = <MsgRawObj>{}
-    const fileSizeLimit = 25 * 1024 * 1024
+    const largeFileSize = 25 * 1024 * 1024
     let ret = false
     // if you know roomId or userId, you can use `Room.load(roomId)` or `Contact.load(userId)`
     let sendToList: Contact[] = [].concat(sendTo as any || [])
@@ -1220,7 +1220,8 @@ export class MediaMessage extends Message {
     if (sendToList.length < 1) {
       throw new Error('param must be Room or Contact and array')
     }
-    if (m.FileSize >= fileSizeLimit) {
+    if (m.FileSize >= largeFileSize && !m.Signature) {
+      // if has RawObj.Signature, can forward the 25Mb+ file
       log.warn('MediaMessage', 'forward() Due to webWx restrictions, more than 25MB of files can not be downloaded and can not be forwarded.')
       return false
     }
