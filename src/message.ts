@@ -17,7 +17,6 @@
  *   @ignore
  */
 import * as fs    from 'fs'
-import * as os    from 'os'
 import * as path  from 'path'
 import {
   Readable,
@@ -406,8 +405,8 @@ export class Message implements Sayable {
   public getSenderString() {
     const fromName  = Contact.load(this.obj.from).name()
     const roomTopic = this.obj.room
-                  ? (':' + Room.load(this.obj.room).topic())
-                  : ''
+      ? (':' + Room.load(this.obj.room).topic())
+      : ''
     return `<${fromName}${roomTopic}>`
   }
 
@@ -629,10 +628,10 @@ export class Message implements Sayable {
    */
   public typeEx()  { return MsgType[this.obj.type] }
 
-  /**
-   * @private
-   */
-  public count()   { return this._counter }
+    /**
+     * @private
+     */
+    public count()   { return this._counter }
 
   /**
    * Check if a message is sent by self.
@@ -645,7 +644,7 @@ export class Message implements Sayable {
    */
   public self(): boolean {
     const userId = config.puppetInstance()
-                        .userId
+      .userId
 
     const fromId = this.obj.from
     if (!userId || !fromId) {
@@ -715,7 +714,7 @@ export class Message implements Sayable {
 
     contactList = [].concat.apply([],
       mentionList.map(nameStr => room.memberAll(nameStr))
-      .filter(contact => !!contact),
+        .filter(contact => !!contact),
     )
 
     if (contactList.length === 0) {
@@ -745,12 +744,12 @@ export class Message implements Sayable {
       }
 
     } catch (e) {
-        log.error('Message', 'ready() exception: %s', e.stack)
-        Raven.captureException(e)
-        // console.log(e)
-        // this.dump()
-        // this.dumpRaw()
-        throw e
+      log.error('Message', 'ready() exception: %s', e.stack)
+      Raven.captureException(e)
+      // console.log(e)
+      // this.dump()
+      // this.dumpRaw()
+      throw e
     }
   }
 
@@ -1140,8 +1139,6 @@ export class MediaMessage extends Message {
     }
     const writeStream = fs.createWriteStream(filePath)
     let readStream
-    // let chunkCount = 0
-    // let chunkLength = 0
     try {
       readStream = await this.readyStream()
     } catch (e) {
@@ -1151,11 +1148,6 @@ export class MediaMessage extends Message {
     ret = <boolean>await new Promise((resolve, reject) => {
       readStream.pipe(writeStream)
       readStream
-        // .on('data', chunk => {
-        //   chunkCount++
-        //   chunkLength += chunk.length
-        //   log.silly('MediaMessage', `saveFile() chunk count=${chunkCount}, length=${chunkLength}`)
-        // })
         .on('end', () => {
           log.silly('MediaMessage', `saveFile() pipe end`)
           resolve(true)
@@ -1213,9 +1205,7 @@ export class MediaMessage extends Message {
     }
     let m = Object.assign({}, this.rawObj)
     const newMsg = <MsgRawObj>{}
-    // const fileSizeLimit = 25 * 1024 * 1024
-    // debug
-    const fileSizeLimit = 2 * 1024 * 1024
+    const fileSizeLimit = 25 * 1024 * 1024
     let ret = false
     // if you know roomId or userId, you can use `Room.load(roomId)` or `Contact.load(userId)`
     let sendToList: Contact[] = [].concat(sendTo as any || [])
@@ -1231,45 +1221,8 @@ export class MediaMessage extends Message {
       throw new Error('param must be Room or Contact and array')
     }
     if (m.FileSize >= fileSizeLimit) {
-      log.silly('MediaMessage', `forward() 文件大小超限，本次将进行上传发送`)
-      const tmpDir = fs.mkdtempSync(os.tmpdir() + '/wechaty-tmp-')
-      let filePath
-      filePath = tmpDir + '/' + this.filename()
-      let saveFileRet
-      try {
-        saveFileRet = await this.saveFile(filePath)
-        if (!saveFileRet) {
-          throw new Error('save file fail')
-        } else if (fs.statSync(filePath).size === 0) {
-          // throw new Error(`file size should be ${m.FileSize} bytes, but save file size is 0 bytes`)
-          // debug
-          filePath = 'E:/CodeWork/fork/wechaty/example/f25Mb.zip'
-        }
-        if (!fs.existsSync(filePath)) {
-          throw new Error('file not exist! path:' + filePath)
-        }
-        log.silly('MediaMessage', `forward() save file path:'${filePath}'`)
-        const msg = new MediaMessage(filePath)
-        // TODO: Direct call PuppetWeb.uploadMedia(), return MediaData
-        // await config.puppetInstance()
-        // log.silly('MediaMessage', `forward() sendTo list:${JSON.stringify(sendToList)}`)
-        for (let i = 0; i < sendToList.length; i++) {
-          // all call success return true
-          // TODO: PuppetWeb uploaded files can't be reused
-          log.silly('MediaMessage', `forward() call say[${i}], id: ${sendToList[i].id} , msg.rawObj: ${JSON.stringify(msg.rawObj)}`)
-          log.silly('MediaMessage', `forward() send ready. i=${i}`)
-          ret = (i === 0 ? true : ret) && await sendToList[i].say(msg)
-          log.silly('MediaMessage', `forward() send done. i=${i}`)
-          log.silly('MediaMessage', `forward() call say[${i}] done, msg.rawObj: ${JSON.stringify(msg.rawObj)}`)
-        }
-        log.silly('MediaMessage', `forward() send file done`)
-
-        // fs.unlinkSync(filePath)
-        fs.rmdirSync(tmpDir)
-      } catch (e) {
-        log.warn('MediaMessage', `forward() error: ${e.message}`)
-      }
-      return ret
+      log.warn('MediaMessage', 'forward() Due to webWx restrictions, more than 25MB of files can not be downloaded and can not be forwarded.')
+      return false
     }
 
     newMsg.FromUserName = config.puppetInstance().userId || ''
