@@ -31,7 +31,7 @@ Wechaty is a Bot Framework for Wechat **Personal** Account which can help you cr
 > -- @lijiarui, Orange Interactive Founder.
 
 > "If you know js ... try Chatie/wechaty, it's easy to use."  
-> -- @Urinx Uri Lee, WeixinBot Author
+> -- @Urinx Uri Lee, WeixinBot(Python) Author
 
 See more at [Wiki:VoiceOfDeveloper](https://github.com/Chatie/wechaty/wiki/VoiceOfDeveloper)
 
