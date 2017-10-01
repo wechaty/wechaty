@@ -18,10 +18,11 @@
  *  @ignore
  */
 import { EventEmitter } from 'events'
-import * as path        from 'path'
-
-import * as caller      from 'caller'
-import { StateSwitch }  from 'state-switch'
+import StateSwitch      from 'state-switch'
+import {
+  callerResolve,
+  hotImport,
+}                       from 'hot-import'
 
 import {
   config,
@@ -352,37 +353,19 @@ export class Wechaty extends EventEmitter implements Sayable {
                 )
 
     if (typeof listener === 'string') {
-      const absoluteFilename = callerPathResolve(listener)
-      // we can not do `await` here
-      import(absoluteFilename)
-        .then(func => {
-          log.info('Wechaty', 'on(%s, %s) loaded', event, listener)
-          super.on(event, func)
-        })
+      const absoluteFilename = callerResolve(listener, __filename)
+      log.verbose('Wechaty', 'on() hotImpor(%s)', absoluteFilename)
+      hotImport(absoluteFilename)
+        .then(func => super.on(event, func.bind(this)))
         .catch(e => {
-          log.error('Wechaty', 'on(%s, %s) rejected because: %s',
+          log.error('Wechaty', 'on(%s, %s) hotImport() exception: %s',
                                 event, listener, e)
           this.emit('error', e)
         })
-    } else {
-      super.on(event, listener) // `this: Wechaty` is Sayable
+      return this
     }
+    super.on(event, listener) // `this: Wechaty` is Sayable
     return this
-
-    // resolve filename based on caller's __dirname
-    function callerPathResolve(filename) {
-      if (path.isAbsolute(filename)) {
-        return filename
-      }
-
-      const callerFile = caller()
-      const callerDir  = path.dirname(callerFile)
-      const absoluteFilename = path.resolve([
-        callerDir,
-        listener,
-      ])
-      return absoluteFilename
-    }
   }
 
   /**
