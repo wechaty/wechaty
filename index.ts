@@ -1,7 +1,6 @@
 import {
   config,
   log,
-  Loggable,
   Sayable,
 }                     from './src/config'
 import Contact        from './src/contact'
@@ -39,7 +38,6 @@ export {
   VERSION,
   Wechaty,
   log, // for convenionce use npmlog with environment variable LEVEL
-  Loggable,
 }
 
 export default Wechaty
