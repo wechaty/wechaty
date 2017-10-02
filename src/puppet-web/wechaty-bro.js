@@ -512,6 +512,11 @@
     return accountFactory.getPassticket()
   }
 
+  function getCheckUploadUrl() {
+    var confFactory = WechatyBro.glue.confFactory
+    return confFactory.API_checkupload
+  }
+
   function getUploadMediaUrl() {
     var confFactory = WechatyBro.glue.confFactory
     return confFactory.API_webwxuploadmedia
@@ -534,10 +539,18 @@
         FileName: data.FileName,
         FileSize: data.FileSize,
         MMFileExt: data.MMFileExt,
-        MMFileId: data.MMFileId
+      }
+
+      if (data.Signature) {
+        d.Signature = data.Signature
       }
 
       var m = chatFactory.createMessage(d)
+
+      m.MMFileStatus = confFactory.MM_SEND_FILE_STATUS_SUCCESS
+      m.MMStatus = confFactory.MSG_SEND_STATUS_SUCC
+      m.sendByLocal = false
+
       chatFactory.appendMessage(m)
       chatFactory.sendMessage(m)
     } catch (e) {
@@ -974,6 +987,7 @@
     , getUploadMediaUrl:   getUploadMediaUrl
     , sendMedia:           sendMedia
     , forward:             forward
+    , getCheckUploadUrl:   getCheckUploadUrl
 
     // for Wechaty Contact Class
     , contactFindAsync:   contactFindAsync

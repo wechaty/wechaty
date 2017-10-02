@@ -409,44 +409,121 @@ export class PuppetWeb extends Puppet {
 
     // Sending video files is not allowed to exceed 20MB
     // https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L1115
-    const videoMaxSize = 20 * 1024 * 1024
-    if (mediatype === 'video' && buffer.length > videoMaxSize)
-      throw new Error(`Sending video files is not allowed to exceed ${videoMaxSize / 1024 / 1024}MB`)
+    const maxVideoSize = 20 * 1024 * 1024
+    const largeFileSize = 25 * 1024 * 1024
+    const maxFileSize = 100 * 1024 * 1024
+    if (mediatype === 'video' && buffer.length > maxVideoSize)
+      throw new Error(`Sending video files is not allowed to exceed ${maxVideoSize / 1024 / 1024}MB`)
+    if (buffer.length > maxFileSize) {
+      throw new Error(`Sending files is not allowed to exceed ${maxFileSize / 1024 / 1024}MB`)
+    }
 
     const md5 = UtilLib.md5(buffer)
 
     const baseRequest = await this.getBaseRequest()
     const passTicket = await this.bridge.getPassticket()
     const uploadMediaUrl = await this.bridge.getUploadMediaUrl()
+    const checkUploadUrl = await this.bridge.getCheckUploadUrl()
     const cookie = await this.browser.readCookie()
     const first = cookie.find(c => c.name === 'webwx_data_ticket')
     const webwxDataTicket = first && first.value
     const size = buffer.length
+    const fromUserName = this.self().id
     const id = 'WU_FILE_' + this.fileId
     this.fileId++
 
     const hostname = await this.browser.hostname()
-    const uploadMediaRequest = {
-      BaseRequest: baseRequest,
-      FileMd5: md5,
-      FromUserName: this.self().id,
-      ToUserName: toUserName,
-      UploadType: 2,
-      ClientMediaId: +new Date,
-      MediaType: UploadMediaType.ATTACHMENT,
-      StartPos: 0,
-      DataLen: size,
-      TotalLen: size,
+    const headers = {
+      Referer: `https://${hostname}`,
+      'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36',
+      Cookie: cookie.map(c => c.name + '=' + c.value).join('; '),
     }
 
-    const mediaData = <MediaData> {
+    log.silly('PuppetWeb', 'uploadMedia() headers:%s', JSON.stringify(headers))
+
+    const uploadMediaRequest = {
+      BaseRequest:   baseRequest,
+      FileMd5:       md5,
+      FromUserName:  fromUserName,
+      ToUserName:    toUserName,
+      UploadType:    2,
+      ClientMediaId: +new Date,
+      MediaType:     UploadMediaType.ATTACHMENT,
+      StartPos:      0,
+      DataLen:       size,
+      TotalLen:      size,
+      Signature:     '',
+      AESKey:        '',
+    }
+
+    const checkData = {
+      BaseRequest:  baseRequest,
+      FromUserName: fromUserName,
+      ToUserName:   toUserName,
+      FileName:     filename,
+      FileSize:     size,
+      FileMd5:      md5,
+      FileType:     7,              // If do not have this parameter, the api will fail
+    }
+
+    const mediaData = <MediaData>{
       ToUserName: toUserName,
-      MediaId: '',
-      FileName: filename,
-      FileSize: size,
-      FileMd5: md5,
-      MMFileId: id,
-      MMFileExt: ext,
+      MediaId:    '',
+      FileName:   filename,
+      FileSize:   size,
+      FileMd5:    md5,
+      MMFileExt:  ext,
+    }
+
+    // If file size > 25M, must first call checkUpload to get Signature and AESKey, otherwise it will fail to upload
+    // https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L1132 #1182
+    if (size > largeFileSize) {
+      let ret
+      try {
+        ret = <any> await new Promise((resolve, reject) => {
+          const r = {
+            url: `https://${hostname}${checkUploadUrl}`,
+            headers,
+            json: checkData,
+          }
+          request.post(r, function (err, res, body) {
+            try {
+              if (err) {
+                reject(err)
+              } else {
+                let obj = body
+                if (typeof body !== 'object') {
+                  obj = JSON.parse(body)
+                }
+                if (typeof obj !== 'object' || obj.BaseResponse.Ret !== 0) {
+                  const errMsg = obj.BaseResponse || 'api return err'
+                  log.silly('PuppetWeb', 'uploadMedia() checkUpload err:%s \nreq:%s\nret:%s', JSON.stringify(errMsg), JSON.stringify(r), body)
+                  reject(new Error('chackUpload err:' + JSON.stringify(errMsg)))
+                }
+                resolve({
+                  Signature: obj.Signature,
+                  AESKey: obj.AESKey,
+                })
+              }
+            } catch (e) {
+              reject(e)
+            }
+          })
+        })
+      } catch (e) {
+        log.error('PuppetWeb', 'uploadMedia() checkUpload exception: %s', e.message)
+        throw e
+      }
+      if (!ret.Signature) {
+        log.error('PuppetWeb', 'uploadMedia(): chackUpload failed to get Signature')
+        throw new Error('chackUpload failed to get Signature')
+      }
+      uploadMediaRequest.Signature = ret.Signature
+      uploadMediaRequest.AESKey    = ret.AESKey
+      mediaData.Signature          = ret.Signature
+    } else {
+      delete uploadMediaRequest.Signature
+      delete uploadMediaRequest.AESKey
     }
 
     log.verbose('PuppetWeb', 'uploadMedia() webwx_data_ticket: %s', webwxDataTicket)
@@ -461,7 +538,7 @@ export class PuppetWeb extends Puppet {
       mediatype,
       uploadmediarequest: JSON.stringify(uploadMediaRequest),
       webwx_data_ticket: webwxDataTicket,
-      pass_ticket: passTicket,
+      pass_ticket: passTicket || '',
       filename: {
         value: buffer,
         options: {
@@ -471,31 +548,37 @@ export class PuppetWeb extends Puppet {
         },
       },
     }
-
-    const mediaId = await new Promise<string>((resolve, reject) => {
-      request.post({
-        url: uploadMediaUrl + '?f=json',
-        headers: {
-          Referer: `https://${hostname}`,
-          'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36',
-        },
-        formData,
-      }, function (err, res, body) {
-        if (err) {
-          return reject(err)
-        }
+    let mediaId
+    try {
+      mediaId = <string>await new Promise((resolve, reject) => {
         try {
-          const obj = JSON.parse(body)
-          return resolve(obj.MediaId)
+          request.post({
+            url: uploadMediaUrl + '?f=json',
+            headers,
+            formData,
+          }, function (err, res, body) {
+            if (err) { reject(err) }
+            else {
+              let obj = body
+              if (typeof body !== 'object') {
+                obj = JSON.parse(body)
+              }
+              resolve(obj.MediaId || '')
+            }
+          })
         } catch (e) {
-          return reject(e)
+          reject(e)
         }
       })
-    })
-    if (!mediaId) {
-      throw new Error('upload fail')
+    } catch (e) {
+      log.error('PuppetWeb', 'uploadMedia() uploadMedia exception: %s', e.message)
+      throw new Error('uploadMedia err: ' + e.message)
     }
-    return Object.assign(mediaData, { MediaId: mediaId })
+    if (!mediaId) {
+      log.error('PuppetWeb', 'uploadMedia(): upload fail')
+      throw new Error('PuppetWeb.uploadMedia(): upload fail')
+    }
+    return Object.assign(mediaData, { MediaId: mediaId as string })
   }
 
   public async sendMedia(message: MediaMessage): Promise<boolean> {
@@ -508,15 +591,39 @@ export class PuppetWeb extends Puppet {
       destinationId = room.id
     } else {
       if (!to) {
-        throw new Error('PuppetWeb.send(): message with neither room nor to?')
+        throw new Error('PuppetWeb.sendMedia(): message with neither room nor to?')
       }
       destinationId = to.id
     }
 
-    const mediaData = await this.uploadMedia(message, destinationId)
+    let mediaData: MediaData
+    const data = message.rawObj as MsgRawObj
+    if (!data.MediaId) {
+      try {
+        mediaData = await this.uploadMedia(message, destinationId)
+        message.rawObj = <MsgRawObj> Object.assign(data, mediaData)
+        log.silly('PuppetWeb', 'Upload completed, new rawObj:%s', JSON.stringify(message.rawObj))
+      } catch (e) {
+        log.error('PuppetWeb', 'sendMedia() exception: %s', e.message)
+        return false
+      }
+    } else {
+      // To support forward file
+      log.silly('PuppetWeb', 'skip upload file, rawObj:%s', JSON.stringify(data))
+      mediaData = {
+        ToUserName: destinationId,
+        MediaId: data.MediaId,
+        MsgType: data.MsgType,
+        FileName: data.FileName,
+        FileSize: data.FileSize,
+        MMFileExt: data.MMFileExt,
+      }
+      if (data.Signature) {
+        mediaData.Signature = data.Signature
+      }
+    }
     mediaData.MsgType = UtilLib.msgType(message.ext())
-
-    log.silly('PuppetWeb', 'send() destination: %s, mediaId: %s)',
+    log.silly('PuppetWeb', 'sendMedia() destination: %s, mediaId: %s)',
       destinationId,
       mediaData.MediaId,
     )
@@ -524,7 +631,7 @@ export class PuppetWeb extends Puppet {
     try {
       ret = await this.bridge.sendMedia(mediaData)
     } catch (e) {
-      log.error('PuppetWeb', 'send() exception: %s', e.message)
+      log.error('PuppetWeb', 'sendMedia() exception: %s', e.message)
       Raven.captureException(e)
       return false
     }
