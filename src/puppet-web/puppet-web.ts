@@ -410,12 +410,11 @@ export class PuppetWeb extends Puppet {
 
     // Sending video files is not allowed to exceed 20MB
     // https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L1115
-    const videoMaxSize = 20 * 1024 * 1024
-    // const bigFileSize = 25 * 1024 * 1024
-    const bigFileSize = 2 * 1024 * 1024
+    const maxVideoSize = 20 * 1024 * 1024
+    const largeFileSize = 25 * 1024 * 1024
     const maxFileSize = 100 * 1024 * 1024
-    if (mediatype === 'video' && buffer.length > videoMaxSize)
-      throw new Error(`Sending video files is not allowed to exceed ${videoMaxSize / 1024 / 1024}MB`)
+    if (mediatype === 'video' && buffer.length > maxVideoSize)
+      throw new Error(`Sending video files is not allowed to exceed ${maxVideoSize / 1024 / 1024}MB`)
     if (buffer.length > maxFileSize) {
       throw new Error(`Sending files is not allowed to exceed ${maxFileSize / 1024 / 1024}MB`)
     }
@@ -475,12 +474,11 @@ export class PuppetWeb extends Puppet {
       FileSize:   size,
       FileMd5:    md5,
       MMFileExt:  ext,
-      // Signature:  '',
     }
 
     // If file size > 25M, must first call checkUpload to get Signature and AESKey, otherwise it will fail to upload
     // https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L1132 #1182
-    if (size > bigFileSize) {
+    if (size > largeFileSize) {
       let ret
       try {
         ret = <any> await new Promise((resolve, reject) => {
@@ -574,14 +572,11 @@ export class PuppetWeb extends Puppet {
         }
       })
     } catch (e) {
-      delete formData.filename.value
-      log.error('PuppetWeb', 'uploadMedia() uploadMedia formData: %s', JSON.stringify(formData))
       log.error('PuppetWeb', 'uploadMedia() uploadMedia exception: %s', e.message)
       throw new Error('uploadMedia err: ' + e.message)
     }
     if (!mediaId) {
       log.error('PuppetWeb', 'uploadMedia(): upload fail')
-      log.silly('PuppetWeb', 'uploadMedia(): fail, formData: %s', JSON.stringify(formData))
       throw new Error('PuppetWeb.uploadMedia(): upload fail')
     }
     return Object.assign(mediaData, { MediaId: mediaId as string })
@@ -605,20 +600,17 @@ export class PuppetWeb extends Puppet {
     let mediaData: MediaData
     const data = message.rawObj as MsgRawObj
     if (!data.MediaId) {
-      // debug
-      log.silly('PuppetWeb', '现在将进行上传文件, rawObj:%s', JSON.stringify(data))
       try {
         mediaData = await this.uploadMedia(message, destinationId)
         message.rawObj = <MsgRawObj> Object.assign(data, mediaData)
-        // debug
-        log.silly('PuppetWeb', 'uploaded done, new rawObj:%s', JSON.stringify(message.rawObj))
+        log.silly('PuppetWeb', 'Upload completed, new rawObj:%s', JSON.stringify(message.rawObj))
       } catch (e) {
         log.error('PuppetWeb', 'sendMedia() exception: %s', e.message)
         return false
       }
     } else {
-      // debug
-      log.silly('PuppetWeb', '跳过上传文件, rawObj:%s', JSON.stringify(data))
+      // To support forward file
+      log.silly('PuppetWeb', 'skip upload file, rawObj:%s', JSON.stringify(data))
       mediaData = {
         ToUserName: destinationId,
         MediaId: data.MediaId,
@@ -631,11 +623,7 @@ export class PuppetWeb extends Puppet {
         mediaData.Signature = data.Signature
       }
     }
-    // mediaData.ToUserName = destinationId
     mediaData.MsgType = UtilLib.msgType(message.ext())
-    // debug
-    log.silly('PuppetWeb', 'before call bride.sendMedia(), mediaData:%s', JSON.stringify(mediaData))
-
     log.silly('PuppetWeb', 'sendMedia() destination: %s, mediaId: %s)',
       destinationId,
       mediaData.MediaId,
