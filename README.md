@@ -61,7 +61,7 @@ GETTING STARTED
 <a target="_blank" href="https://blog.chatie.io/guide/2017/01/01/getting-started-wechaty.html"><img src="http://blog.chatie.io/download/2017/lijiarui-wechaty-quick-start-guide-video.jpg" border=0 width="60%"></a>
 </div>
 
-The above 10 minute video tutorial is a good start point if you are new to Wechaty.
+The above 15 minute video tutorial is a good start point if you are new to Wechaty.
 
 > Source code in the video can be found at: [Wechaty Starter Repository](https://github.com/lijiarui/wechaty-getting-started)
 
