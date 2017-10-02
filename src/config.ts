@@ -56,7 +56,6 @@ Raven.context(function () {
 
 import {
   log,
-  Loggable,
 }                 from 'brolog'
 
 import { Puppet } from './puppet'
@@ -300,7 +299,6 @@ export interface Sleepable {
 
 export {
   log,
-  Loggable,
   Raven,
 }
 
