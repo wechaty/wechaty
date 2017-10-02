@@ -647,9 +647,6 @@ export class PuppetWeb extends Puppet {
     )
     let ret = false
     try {
-      // log.info('PuppetWeb', `forward() baseData: ${JSON.stringify(baseData)}\n`)
-      // log.info('PuppetWeb', `forward() patchData: ${JSON.stringify(patchData)}\n`)
-
       ret = await this.bridge.forward(baseData, patchData)
     } catch (e) {
       log.error('PuppetWeb', 'forward() exception: %s', e.message)
