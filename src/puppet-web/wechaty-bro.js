@@ -549,6 +549,7 @@
 
       m.MMFileStatus = confFactory.MM_SEND_FILE_STATUS_SUCCESS
       m.MMStatus = confFactory.MSG_SEND_STATUS_SUCC
+      m.sendByLocal = false
 
       chatFactory.appendMessage(m)
       chatFactory.sendMessage(m)
