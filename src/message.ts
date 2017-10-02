@@ -1126,8 +1126,7 @@ export class MediaMessage extends Message {
    *
    * @param filePath save file
    */
-  public async saveFile(filePath: string): Promise<boolean> {
-    let ret = false
+  public async saveFile(filePath: string): Promise<void> {
     if (!filePath) {
       throw new Error('saveFile() filePath is invalid')
     }
@@ -1143,20 +1142,16 @@ export class MediaMessage extends Message {
       log.error('MediaMessage', `saveFile() call readyStream() error: ${e.message}`)
       throw new Error(`saveFile() call readyStream() error: ${e.message}`)
     }
-    ret = <boolean>await new Promise((resolve, reject) => {
+    await new Promise((resolve, reject) => {
       readStream.pipe(writeStream)
       readStream
-        .on('end', () => {
-          log.silly('MediaMessage', `saveFile() pipe end`)
-          resolve(true)
-        })
-        .on('error', e => {
-          log.error('MediaMessage', `saveFile() error: ${e.message}`)
-          reject(e)
-        })
+        .once('end', resolve)
+        .once('error', reject)
     })
-    log.silly('MediaMessage', `saveFile() end. ret:%s`, ret)
-    return ret
+      .catch(e => {
+        log.error('MediaMessage', `saveFile() error: ${e.message}`)
+        throw e
+      })
   }
 
   public forward(room: Room|Room[]): Promise<boolean>
