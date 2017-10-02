@@ -494,7 +494,13 @@ export class PuppetWeb extends Puppet {
               } else {
                 let obj = body
                 if (typeof body !== 'object') {
-                  obj = JSON.parse(body)
+                  log.silly('PuppetWeb', 'updateMedia() typeof body = %s', typeof body)
+                  try {
+                    obj = JSON.parse(body)
+                  } catch (e) {
+                    log.error('PuppetWeb', 'updateMedia() exception: %s', e)
+                    this.emit('error', e)
+                  }
                 }
                 if (typeof obj !== 'object' || obj.BaseResponse.Ret !== 0) {
                   const errMsg = obj.BaseResponse || 'api return err'
