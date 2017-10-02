@@ -498,6 +498,7 @@ export class PuppetWeb extends Puppet {
                   try {
                     obj = JSON.parse(body)
                   } catch (e) {
+                    log.error('PuppetWeb', 'updateMedia() body = %s', body)
                     log.error('PuppetWeb', 'updateMedia() exception: %s', e)
                     this.emit('error', e)
                   }
