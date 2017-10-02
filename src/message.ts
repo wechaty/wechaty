@@ -1191,8 +1191,21 @@ export class MediaMessage extends Message {
    *   EMOJI                    = 8,
    * }
    * ```
-   * But, it should be noted that when forwarding ATTACH type message, if the file size is greater than 25Mb, the forwarding will fail.
-   * The reason is that the server limits the forwarding of files above 25Mb. You need to download the file and use `new MediaMessage (file)` to send the file.
+   * It should be noted that when forwarding ATTACH type message, if the file size is greater than 25Mb, the forwarding will fail.
+   * The reason is that the server shields the web wx to download more than 25Mb files with a file size of 0.
+   *
+   * But if the file is uploaded by you using wechaty, you can forward it.
+   * You need to detect the following conditions in the message event, which can be forwarded if it is met.
+   *
+   * ```javasrcipt
+   * .on('message', async m => {
+   *   if (m.self() && m.rawObj && m.rawObj.Signature) {
+   *     // Filter the contacts you have forwarded
+   *     const msg = <MediaMessage> m
+   *     await msg.forward()
+   *   }
+   * })
+   * ```
    *
    * @param {(Sayable | Sayable[])} sendTo Room or Contact, or array
    * The recipient of the message, the room, or the contact
