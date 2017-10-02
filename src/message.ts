@@ -405,8 +405,8 @@ export class Message implements Sayable {
   public getSenderString() {
     const fromName  = Contact.load(this.obj.from).name()
     const roomTopic = this.obj.room
-      ? (':' + Room.load(this.obj.room).topic())
-      : ''
+                  ? (':' + Room.load(this.obj.room).topic())
+                  : ''
     return `<${fromName}${roomTopic}>`
   }
 
@@ -628,10 +628,10 @@ export class Message implements Sayable {
    */
   public typeEx()  { return MsgType[this.obj.type] }
 
-    /**
-     * @private
-     */
-    public count()   { return this._counter }
+  /**
+   * @private
+   */
+  public count()   { return this._counter }
 
   /**
    * Check if a message is sent by self.
@@ -644,7 +644,7 @@ export class Message implements Sayable {
    */
   public self(): boolean {
     const userId = config.puppetInstance()
-      .userId
+                        .userId
 
     const fromId = this.obj.from
     if (!userId || !fromId) {
@@ -925,15 +925,13 @@ export class MediaMessage extends Message {
       this.fileExt = pathInfo.ext.replace(/^\./, '')
     } else if (rawObjOrFilePath instanceof Object) {
       super(rawObjOrFilePath as any)
-      // debug
-      log.silly('MediaMessage', 'constructor() rawObjOrFilePath: %s', JSON.stringify(rawObjOrFilePath))
     } else {
       throw new Error('not supported construct param')
     }
 
     // FIXME: decoupling needed
     this.bridge = (config.puppetInstance() as PuppetWeb)
-      .bridge
+                    .bridge
   }
 
   /**
@@ -1114,7 +1112,7 @@ export class MediaMessage extends Message {
       if (!this.obj.url) {
         throw new Error('no url')
       }
-      log.verbose('MediaMessage', 'stream() url: %s', this.obj.url)
+      log.verbose('MediaMessage', 'readyStream() url: %s', this.obj.url)
       return UtilLib.urlStream(this.obj.url, cookies)
     } catch (e) {
       log.warn('MediaMessage', 'readyStream() exception: %s', e.stack)
@@ -1224,8 +1222,6 @@ export class MediaMessage extends Message {
     let sendToList: Contact[] = [].concat(sendTo as any || [])
     sendToList = sendToList.filter(s => {
       if ((s instanceof Room || s instanceof Contact) && s.id) {
-        // debug
-        log.silly('MediaMessage', `forward() sendTo: ${s.id}`)
         return true
       }
       return false
@@ -1249,17 +1245,6 @@ export class MediaMessage extends Message {
 
     // The following parameters need to be overridden after calling createMessage()
 
-    // newMsg.sendByLocal = false
-    // newMsg.MMActualSender = config.puppetInstance().userId || ''
-    // if (m.MMSendContent) {
-    //   newMsg.MMSendContent = m.MMSendContent.replace(/^@\w+:\s/, '')
-    // }
-    // if (m.MMDigest) {
-    //   newMsg.MMDigest = m.MMDigest.replace(/^@\w+:/, '')
-    // }
-    // if (m.MMActualContent) {
-    //   newMsg.MMActualContent = UtilLib.stripHtml(m.MMActualContent.replace(/^@\w+:<br\/>/, '')).replace(/^[\w\-]+:<br\/>/, '')
-    // }
     m = Object.assign(m, newMsg)
     for (let i = 0; i < sendToList.length; i++) {
       newMsg.ToUserName = sendToList[i].id
