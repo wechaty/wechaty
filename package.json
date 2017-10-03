@@ -113,7 +113,7 @@
     "brolog": "1.2.6",
     "chromedriver": "2.32.3",
     "express": "4.15.2",
-    "hot-import": "0.1.20",
+    "hot-import": "0.1.21",
     "ps-tree": "1.1.0",
     "raven": "2.2.1",
     "request": "2.83.0",
