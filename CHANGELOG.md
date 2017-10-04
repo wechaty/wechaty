@@ -10,10 +10,10 @@ WECHATY CONTRIBUTORS
 1. @[binsee](https://github.com/binsee): [\#844](https://github.com/Chatie/wechaty/pull/844),[\#811](https://github.com/Chatie/wechaty/pull/811),[\#771](https://github.com/Chatie/wechaty/pull/771),[\#744](https://github.com/Chatie/wechaty/pull/744),[\#727](https://github.com/Chatie/wechaty/pull/727),[\#714](https://github.com/Chatie/wechaty/pull/714)
 1. @[JasLin](https://github.com/JasLin): [\#404](https://github.com/Chatie/wechaty/pull/404),[\#358](https://github.com/Chatie/wechaty/pull/358),[\#105](https://github.com/Chatie/wechaty/pull/105),[\#100](https://github.com/Chatie/wechaty/pull/100),[\#78](https://github.com/Chatie/wechaty/pull/78),[\#76](https://github.com/Chatie/wechaty/pull/76)
 1. @[xinbenlv](https://github.com/xinbenlv): [\#388](https://github.com/Chatie/wechaty/pull/388),[\#361](https://github.com/Chatie/wechaty/pull/361),[\#280](https://github.com/Chatie/wechaty/pull/280)
+1. @[hczhcz](https://github.com/hczhcz): [\#684](https://github.com/Chatie/wechaty/pull/684),[\#640](https://github.com/Chatie/wechaty/pull/640)
 
 ### Contributors
 
-1. @[hczhcz](https://github.com/hczhcz): [\#684](https://github.com/Chatie/wechaty/pull/684),[\#640](https://github.com/Chatie/wechaty/pull/640)
 1. @[imerse](https://github.com/imerse): [\#578](https://github.com/Chatie/wechaty/pull/578)
 1. @[FlyingBlazer](https://github.com/FlyingBlazer): [\#531](https://github.com/Chatie/wechaty/pull/531)
 1. @[zhenyong](https://github.com/zhenyong): [\#770](https://github.com/Chatie/wechaty/pull/770)
@@ -22,9 +22,7 @@ WECHATY CONTRIBUTORS
 1. @[TingYinHelen](https://github.com/TingYinHelen): [\#605](https://github.com/Chatie/wechaty/pull/605)
 1. @[ax4](https://github.com/ax4): [\#380](https://github.com/Chatie/wechaty/pull/380)
 1. @[Gcaufy](https://github.com/Gcaufy): [\#310](https://github.com/Chatie/wechaty/pull/310)
-1. @[snyk-bot](https://github.com/snyk-bot): [\#169](https://github.com/Chatie/wechaty/pull/169)
 1. @[cherry-geqi](https://github.com/cherry-geqi): [\#97](https://github.com/Chatie/wechaty/pull/97)
-1. @[gitter-badger](https://github.com/gitter-badger): [\#3](https://github.com/Chatie/wechaty/pull/3)
 
 # Change Log
 

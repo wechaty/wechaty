@@ -39,7 +39,7 @@ function processLine(line: string): void {
 }
 
 function outputContributorMd() {
-  const MIN_MAINTAINER_COMMIT_NUM = 3
+  const MIN_MAINTAINER_COMMIT_NUM = 2
   function isMaintainer(committer: string): boolean {
     return contributeMap[committer].length >= MIN_MAINTAINER_COMMIT_NUM
   }
@@ -71,7 +71,15 @@ function outputContributorMd() {
     '',
   ].join('\n'))
 
+  const SKIP_NAME_LIST = [
+    'snyk-bot',
+    'gitter-badger',
+  ]
+  const SKIP_REGEX = new RegExp(SKIP_NAME_LIST.join('|'), 'i')
   for (const contributor of Object.keys(contributeMap).sort(desc)) {
+    if (SKIP_REGEX.test(contributor)) {
+      continue
+    }
     if (!activeContributorList.includes(contributor)) {
       console.log(`1. @${contributor}: ${contributeMap[contributor].join(',')}`)
     }
