@@ -20,7 +20,7 @@
     "dist": "npm run clean && tsc && jq \"del (.files)\" < package.json > dist/package.json && shx cp src/puppet-web/*.js dist/src/puppet-web/",
     "doc": "npm run dist && echo '# Wechaty v'$(jq -r .version package.json)' Documentation\n' > docs/index.md && jsdoc2md dist/src/{wechaty,room,contact,friend-request,message}.js dist/src/puppet-web/friend-request.js>> docs/index.md",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
-    "changelog": "github_changelog_generator -u chatie -p wechaty && sed -i'.bak' /greenkeeper/d CHANGELOG.md",
+    "changelog": "github_changelog_generator -u chatie -p wechaty && sed -i'.bak' /greenkeeper/d CHANGELOG.md && ts-node script/sort-contributiveness.ts < CHANGELOG.md > CHANGELOG.new.md && cat CHANGELOG.md >> CHANGELOG.new.md && mv CHANGELOG.new.md CHANGELOG.md",
     "doctor": "npm run check-node-version && ts-node bin/doctor",
     "clean": "shx rm -fr dist/*",
     "check-node-version": "check-node-version --node \">= 6.9\"",
