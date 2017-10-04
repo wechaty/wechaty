@@ -17,6 +17,9 @@
     , "noUnusedParameters": false
     , "noImplicitThis": false
     , "traceResolution": false
+    , "lib": [
+      "es2016"
+    ]
   }
   , "exclude": [
       "node_modules/"
@@ -24,6 +27,7 @@
   ]
   , "include": [
        "bin/*.ts"
+     , "script/**/*.ts"
      , "example/**/*.ts"
      , "src/**/*.ts"
      , "test/**/*.spec.ts"

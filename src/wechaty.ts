@@ -17,10 +17,12 @@
  *
  *  @ignore
  */
-
 import { EventEmitter } from 'events'
-
-import { StateSwitch }  from 'state-switch'
+import StateSwitch      from 'state-switch'
+import {
+  callerResolve,
+  hotImport,
+}                       from 'hot-import'
 
 import {
   config,
@@ -229,17 +231,16 @@ export class Wechaty extends EventEmitter implements Sayable {
     return
   }
 
-  public on(event: 'error'      , listener: (this: Wechaty, error: Error) => void):                                                  this
-  public on(event: 'friend'     , listener: (this: Wechaty, friend: Contact, request?: FriendRequest) => void):                      this
-  public on(event: 'heartbeat'  , listener: (this: Wechaty, data: any) => void):                                                     this
-  public on(event: 'logout'     , listener: (this: Wechaty, user: Contact) => void):                                                 this
-  public on(event: 'login'      , listener: (this: Wechaty, user: Contact) => void):                                                 this
-  public on(event: 'message'    , listener: (this: Wechaty, message: Message) => void):                                              this
-  public on(event: 'room-join'  , listener: (this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void):         this
-  public on(event: 'room-leave' , listener: (this: Wechaty, room: Room, leaverList: Contact[]) => void):                             this
-  public on(event: 'room-topic' , listener: (this: Wechaty, room: Room, topic: string, oldTopic: string, changer: Contact) => void): this
-  public on(event: 'scan'       , listener: (this: Wechaty, url: string, code: number) => void):                                     this
-
+  public on(event: 'error'      , listener: string | ((this: Wechaty, error: Error) => void)):                                                  this
+  public on(event: 'friend'     , listener: string | ((this: Wechaty, friend: Contact, request?: FriendRequest) => void)):                      this
+  public on(event: 'heartbeat'  , listener: string | ((this: Wechaty, data: any) => void)):                                                     this
+  public on(event: 'logout'     , listener: string | ((this: Wechaty, user: Contact) => void)):                                                 this
+  public on(event: 'login'      , listener: string | ((this: Wechaty, user: Contact) => void)):                                                 this
+  public on(event: 'message'    , listener: string | ((this: Wechaty, message: Message) => void)):                                              this
+  public on(event: 'room-join'  , listener: string | ((this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void)):         this
+  public on(event: 'room-leave' , listener: string | ((this: Wechaty, room: Room, leaverList: Contact[]) => void)):                             this
+  public on(event: 'room-topic' , listener: string | ((this: Wechaty, room: Room, topic: string, oldTopic: string, changer: Contact) => void)): this
+  public on(event: 'scan'       , listener: string | ((this: Wechaty, url: string, code: number) => void)):                                     this
   // guard for the above event: make sure it includes all the possible values
   public on(event: never,         listener: any): this
 
@@ -343,8 +344,26 @@ export class Wechaty extends EventEmitter implements Sayable {
    *   console.log(`Room ${room.topic()} topic changed from ${oldTopic} to ${topic} by ${changer.name()}`)
    * })
    */
-  public on(event: WechatyEventName, listener: (...args: any[]) => any): this {
-    log.verbose('Wechaty', 'addListener(%s, %s)', event, typeof listener)
+  public on(event: WechatyEventName, listener: string | ((...args: any[]) => any)): this {
+    log.verbose('Wechaty', 'on(%s, %s)',
+                            event,
+                            typeof listener === 'string'
+                              ? listener
+                              : typeof listener,
+                )
+
+    if (typeof listener === 'string') {
+      const absoluteFilename = callerResolve(listener, __filename)
+      log.verbose('Wechaty', 'on() hotImpor(%s)', absoluteFilename)
+      hotImport(absoluteFilename)
+        .then(func => super.on(event, func.bind(this)))
+        .catch(e => {
+          log.error('Wechaty', 'on(%s, %s) hotImport() exception: %s',
+                                event, listener, e)
+          this.emit('error', e)
+        })
+      return this
+    }
     super.on(event, listener) // `this: Wechaty` is Sayable
     return this
   }

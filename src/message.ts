@@ -64,6 +64,8 @@ export interface MsgRawObj {
   FileName:         string,  // FileName: '钢甲互联项目BP1108.pdf',
   FileSize:         number,  // FileSize: '2845701',
   MediaId:          string,  // MediaId: '@crypt_b1a45e3f_c21dceb3ac01349...
+  MMFileExt:        string,  // doc, docx ... 'undefined'?
+  Signature:        string,  // checkUpload return the signature used to upload large files
 
   MMAppMsgFileExt:      string,  // doc, docx ... 'undefined'?
   MMAppMsgFileSize:     string,  // '2.7MB',
@@ -141,7 +143,6 @@ export interface MsgRawObj {
   MsgIdBeforeTranspond?: string,  // oldMsg.MsgIdBeforeTranspond || oldMsg.MsgId,
   isTranspond?: boolean,
   MMSourceMsgId?: string,
-  sendByLocal?: boolean, // If transpond file, it must is false, not need to upload. And, can't to call createMessage(), it set to true
   MMSendContent?: string,
 
   MMIsChatRoom?: boolean,
@@ -713,7 +714,7 @@ export class Message implements Sayable {
 
     contactList = [].concat.apply([],
       mentionList.map(nameStr => room.memberAll(nameStr))
-      .filter(contact => !!contact),
+        .filter(contact => !!contact),
     )
 
     if (contactList.length === 0) {
@@ -743,12 +744,12 @@ export class Message implements Sayable {
       }
 
     } catch (e) {
-        log.error('Message', 'ready() exception: %s', e.stack)
-        Raven.captureException(e)
-        // console.log(e)
-        // this.dump()
-        // this.dumpRaw()
-        throw e
+      log.error('Message', 'ready() exception: %s', e.stack)
+      Raven.captureException(e)
+      // console.log(e)
+      // this.dump()
+      // this.dumpRaw()
+      throw e
     }
   }
 
@@ -1111,17 +1112,50 @@ export class MediaMessage extends Message {
       if (!this.obj.url) {
         throw new Error('no url')
       }
-      log.verbose('MediaMessage', 'stream() url: %s', this.obj.url)
+      log.verbose('MediaMessage', 'readyStream() url: %s', this.obj.url)
       return UtilLib.urlStream(this.obj.url, cookies)
     } catch (e) {
-      log.warn('MediaMessage', 'stream() exception: %s', e.stack)
+      log.warn('MediaMessage', 'readyStream() exception: %s', e.stack)
       Raven.captureException(e)
       throw e
     }
   }
 
-  public forward(room: Room): Promise<boolean>
-  public forward(contact: Contact): Promise<boolean>
+  /**
+   * save file
+   *
+   * @param filePath save file
+   */
+  public async saveFile(filePath: string): Promise<void> {
+    if (!filePath) {
+      throw new Error('saveFile() filePath is invalid')
+    }
+    log.silly('MediaMessage', `saveFile() filePath:'${filePath}'`)
+    if (fs.existsSync(filePath)) {
+      throw new Error('saveFile() file does exist!')
+    }
+    const writeStream = fs.createWriteStream(filePath)
+    let readStream
+    try {
+      readStream = await this.readyStream()
+    } catch (e) {
+      log.error('MediaMessage', `saveFile() call readyStream() error: ${e.message}`)
+      throw new Error(`saveFile() call readyStream() error: ${e.message}`)
+    }
+    await new Promise((resolve, reject) => {
+      readStream.pipe(writeStream)
+      readStream
+        .once('end', resolve)
+        .once('error', reject)
+    })
+      .catch(e => {
+        log.error('MediaMessage', `saveFile() error: ${e.message}`)
+        throw e
+      })
+  }
+
+  public forward(room: Room|Room[]): Promise<boolean>
+  public forward(contact: Contact|Contact[]): Promise<boolean>
   /**
    * Forward the received message.
    *
@@ -1150,30 +1184,52 @@ export class MediaMessage extends Message {
    *   EMOJI                    = 8,
    * }
    * ```
-   * But, it should be noted that when forwarding ATTACH type message, if the file size is greater than 25Mb, the forwarding will fail.
-   * The reason is that the server limits the forwarding of files above 25Mb. You need to download the file and use `new MediaMessage (file)` to send the file.
+   * It should be noted that when forwarding ATTACH type message, if the file size is greater than 25Mb, the forwarding will fail.
+   * The reason is that the server shields the web wx to download more than 25Mb files with a file size of 0.
    *
-   * @param {(Room | Contact)} sendTo
+   * But if the file is uploaded by you using wechaty, you can forward it.
+   * You need to detect the following conditions in the message event, which can be forwarded if it is met.
+   *
+   * ```javasrcipt
+   * .on('message', async m => {
+   *   if (m.self() && m.rawObj && m.rawObj.Signature) {
+   *     // Filter the contacts you have forwarded
+   *     const msg = <MediaMessage> m
+   *     await msg.forward()
+   *   }
+   * })
+   * ```
+   *
+   * @param {(Sayable | Sayable[])} sendTo Room or Contact, or array
    * The recipient of the message, the room, or the contact
    * @returns {Promise<boolean>}
    * @memberof MediaMessage
    */
-  public forward(sendTo: Room|Contact): Promise<boolean> {
+  public async forward(sendTo: Room|Room[]|Contact|Contact[]): Promise<boolean> {
     if (!this.rawObj) {
       throw new Error('no rawObj!')
     }
     let m = Object.assign({}, this.rawObj)
     const newMsg = <MsgRawObj>{}
-    const fileSizeLimit = 25 * 1024 * 1024
-    let id = ''
+    const largeFileSize = 25 * 1024 * 1024
+    let ret = false
     // if you know roomId or userId, you can use `Room.load(roomId)` or `Contact.load(userId)`
-    if (sendTo instanceof Room || sendTo instanceof Contact) {
-      id = sendTo.id
-    } else {
-      throw new Error('param must be Room or Contact!')
+    let sendToList: Contact[] = [].concat(sendTo as any || [])
+    sendToList = sendToList.filter(s => {
+      if ((s instanceof Room || s instanceof Contact) && s.id) {
+        return true
+      }
+      return false
+    }) as Contact[]
+    if (sendToList.length < 1) {
+      throw new Error('param must be Room or Contact and array')
+    }
+    if (m.FileSize >= largeFileSize && !m.Signature) {
+      // if has RawObj.Signature, can forward the 25Mb+ file
+      log.warn('MediaMessage', 'forward() Due to webWx restrictions, more than 25MB of files can not be downloaded and can not be forwarded.')
+      return false
     }
 
-    newMsg.ToUserName = id
     newMsg.FromUserName = config.puppetInstance().userId || ''
     newMsg.isTranspond = true
     newMsg.MsgIdBeforeTranspond = m.MsgIdBeforeTranspond || m.MsgId
@@ -1184,26 +1240,13 @@ export class MediaMessage extends Message {
 
     // The following parameters need to be overridden after calling createMessage()
 
-    // If you want to forward the file, would like to skip the duplicate upload, sendByLocal must be false.
-    // But need to pay attention to file.size> 25Mb, due to the server policy restrictions, need to re-upload
-    if (m.FileSize >= fileSizeLimit) {
-      log.warn('Message', 'forward() file size >= 25Mb,the message may fail to be forwarded due to server policy restrictions.')
-    }
-    newMsg.sendByLocal = false
-    newMsg.MMActualSender = config.puppetInstance().userId || ''
-    if (m.MMSendContent) {
-      newMsg.MMSendContent = m.MMSendContent.replace(/^@\w+:\s/, '')
-    }
-    if (m.MMDigest) {
-      newMsg.MMDigest = m.MMDigest.replace(/^@\w+:/, '')
-    }
-    if (m.MMActualContent) {
-      newMsg.MMActualContent = UtilLib.stripHtml(m.MMActualContent.replace(/^@\w+:<br\/>/, '')).replace(/^[\w\-]+:<br\/>/, '')
-    }
     m = Object.assign(m, newMsg)
-
-    return config.puppetInstance()
-      .forward(m, newMsg)
+    for (let i = 0; i < sendToList.length; i++) {
+      newMsg.ToUserName = sendToList[i].id
+      // all call success return true
+      ret = (i === 0 ? true : ret) && await config.puppetInstance().forward(m, newMsg)
+    }
+    return ret
   }
 }
 

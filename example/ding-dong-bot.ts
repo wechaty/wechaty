@@ -31,7 +31,7 @@ import {
   Wechaty,
   log,
   MediaMessage,
-}               from '../'
+}               from '../index'
 
 const welcome = `
 | __        __        _           _
