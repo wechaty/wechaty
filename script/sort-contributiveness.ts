@@ -61,8 +61,8 @@ function outputContributorMd() {
     '',
   ].join('\n'))
 
-  for (const committer of activeContributorList) {
-    console.log('1.', committer, contributeMap[committer].join(','))
+  for (const contributor of activeContributorList) {
+    console.log(`1. @${contributor}: ${contributeMap[contributor].join(',')}`)
   }
 
   console.log([
@@ -73,7 +73,7 @@ function outputContributorMd() {
 
   for (const contributor of Object.keys(contributeMap).sort(desc)) {
     if (!activeContributorList.includes(contributor)) {
-      console.log('1.', contributor, contributeMap[contributor].join(','))
+      console.log(`1. @${contributor}: ${contributeMap[contributor].join(',')}`)
     }
   }
   console.log()
