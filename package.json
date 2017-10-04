@@ -140,7 +140,7 @@
     "babel-preset-es2015": "6.24.1",
     "check-node-version": "2.1.0",
     "cookie-parser": "1.4.3",
-    "coveralls": "2.13.3",
+    "coveralls": "3.0.0",
     "cross-env": "5.0.5",
     "eslint": "4.8.0",
     "eslint-plugin-ava": "4.2.2",
