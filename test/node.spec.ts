@@ -27,7 +27,7 @@ test('Node.js function params destructuring behaviour test', t => {
 
   const paramSpy = spy()
   function paramTest({
-    n   = DEFAULT_N,
+    n = DEFAULT_N,
     s = DEFAULT_S,
   } = {}) {
     paramSpy(n, s)

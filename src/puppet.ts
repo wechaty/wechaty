@@ -28,14 +28,30 @@ import Contact          from './contact'
 import {
   Message,
   MediaMessage,
-  MsgRawObj,
+  // MsgRawObj,
 }                       from './message'
+import Profile          from './profile'
 import Room             from './room'
 
 // type ContactGetterFunc = {
 //   (id: string): Promise<any>
 // }
+export interface ScanInfo {
+  url:  string,
+  code: number,
+}
 
+export type PuppetEventName = 'ding'
+                            | 'error'
+                            | 'login'
+                            | 'logout'
+                            | 'message'
+                            | 'scan'
+                            | 'watchdog'
+
+export interface PuppetOptions {
+  profile: Profile,
+}
 /**
  * Abstract Puppet Class
  */
@@ -46,8 +62,35 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   public state = new StateSwitch<'live', 'dead'>('Puppet', 'dead', log)
 
-  constructor() {
+  constructor(public options: PuppetOptions) {
     super()
+  }
+
+  public emit(event: 'ding',    text: string):              boolean
+  public emit(event: 'error',   e: Error):                  boolean
+  public emit(event: 'login',   user: Contact):             boolean
+  public emit(event: 'logout',  user: Contact | string): boolean
+  public emit(event: 'message', message: Message):          boolean
+  public emit(event: 'scan',    url: string, code: number): boolean
+  public emit(event: 'watchdog',  data: any):               boolean
+
+  public emit(event: never, ...args: any[]):                    boolean
+  public emit(event: PuppetEventName, ...args: any[]): boolean {
+    return super.emit(event, ...args)
+  }
+
+  public on(event: 'ding',    listener: (text: string)      => void): this
+  public on(event: 'error',   listener: (e: Error)          => void): this
+  public on(event: 'login',   listener: (user: Contact)     => void): this
+  public on(event: 'logout',  listener: (user: Contact)     => void): this
+  public on(event: 'message', listener: (message: Message)  => void): this
+  public on(event: 'scan',    listener: (info: ScanInfo)    => void): this
+  public on(event: 'watchdog',  listener: (data: any)       => void): this
+
+  public on(event: never, listener: any):                                           this
+  public on(event: PuppetEventName, listener: ((...args: any[]) => void)): this {
+    super.on(event, listener)
+    return this
   }
 
   public abstract async init(): Promise<void>
@@ -55,7 +98,8 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract self(): Contact
 
   public abstract send(message: Message | MediaMessage): Promise<boolean>
-  public abstract forward(baseData: MsgRawObj, patchData: MsgRawObj): Promise<boolean>
+  public abstract forward(message: Message, contact: Contact | Room): Promise<boolean>
+  // public abstract forward(baseData: MsgRawObj, patchData: MsgRawObj): Promise<boolean>
   public abstract say(content: string): Promise<boolean>
 
   public abstract reset(reason?: string): void

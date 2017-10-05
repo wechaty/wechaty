@@ -26,26 +26,25 @@ import {
 
 import {
   config,
-  HeadName,
   PuppetName,
   Raven,
   Sayable,
   log,
-}                         from './config'
+}                     from './config'
 
-import { Contact }        from './contact'
-import { FriendRequest }  from './friend-request'
+import Contact        from './contact'
+import FriendRequest  from './friend-request'
 import {
   Message,
   MediaMessage,
-}                         from './message'
-import { Puppet }         from './puppet'
-import { PuppetWeb }      from './puppet-web/'
-import { Room }           from './room'
-import { UtilLib }        from './util-lib'
+}                     from './message'
+import Profile        from './profile'
+import Puppet         from './puppet'
+import PuppetWeb      from './puppet-web/'
+import Room           from './room'
+import UtilLib        from './util-lib'
 
 export interface PuppetSetting {
-  head?:    HeadName,
   puppet?:  PuppetName,
   profile?: string,
 }
@@ -83,6 +82,8 @@ export class Wechaty extends EventEmitter implements Sayable {
    * @private
    */
   public puppet: Puppet | null
+
+  private profile: Profile
 
   /**
    * the state
@@ -125,17 +126,9 @@ export class Wechaty extends EventEmitter implements Sayable {
     super()
     log.verbose('Wechaty', 'contructor()')
 
-    setting.head    = setting.head    || config.head
     setting.puppet  = setting.puppet  || config.puppet
-    setting.profile = setting.profile || config.profile
 
-    // setting.port    = setting.port    || Config.port
-
-    if (setting.profile) {
-      setting.profile  = /\.wechaty\.json$/i.test(setting.profile)
-                        ? setting.profile
-                        : setting.profile + '.wechaty.json'
-    }
+    this.profile = new Profile(setting.profile)
 
     this.uuid = UtilLib.guid()
   }
@@ -207,7 +200,6 @@ export class Wechaty extends EventEmitter implements Sayable {
   public async init(): Promise<void> {
     log.info('Wechaty', 'v%s initializing...' , this.version())
     log.verbose('Wechaty', 'puppet: %s'       , this.setting.puppet)
-    log.verbose('Wechaty', 'head: %s'         , this.setting.head)
     log.verbose('Wechaty', 'profile: %s'      , this.setting.profile)
     log.verbose('Wechaty', 'uuid: %s'         , this.uuid)
 
@@ -220,6 +212,7 @@ export class Wechaty extends EventEmitter implements Sayable {
     this.state.current('ready', false)
 
     try {
+      this.profile.load()
       await this.initPuppet()
     } catch (e) {
       log.error('Wechaty', 'init() exception: %s', e && e.message)
@@ -374,15 +367,10 @@ export class Wechaty extends EventEmitter implements Sayable {
   public async initPuppet(): Promise<Puppet> {
     let puppet: Puppet
 
-    if (!this.setting.head) {
-      throw new Error('no head')
-    }
-
     switch (this.setting.puppet) {
       case 'web':
         puppet = new PuppetWeb({
-          head:     this.setting.head,
-          profile:  this.setting.profile,
+          profile:  this.profile,
         })
         break
 

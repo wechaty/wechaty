@@ -537,9 +537,9 @@ export class Contact implements Sayable {
     }
 
     try {
-      const hostname = await (config.puppetInstance() as PuppetWeb).browser.hostname()
+      const hostname = await (config.puppetInstance() as PuppetWeb).hostname()
       const avatarUrl = `http://${hostname}${this.obj.avatar}&type=big` // add '&type=big' to get big image
-      const cookies = await (config.puppetInstance() as PuppetWeb).browser.readCookie()
+      const cookies = await (config.puppetInstance() as PuppetWeb).cookies()
       log.silly('Contact', 'avatar() url: %s', avatarUrl)
 
       return UtilLib.urlStream(avatarUrl, cookies)

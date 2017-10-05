@@ -16,54 +16,84 @@
  *   limitations under the License.
  *
  */
+import { EventEmitter } from 'events'
+import * as path        from 'path'
+import {
+  Browser,
+  Cookie,
+  Dialog,
+  launch,
+  Page,
+}                       from 'puppeteer'
 import { parseString }  from 'xml2js'
 
 /* tslint:disable:no-var-requires */
 const retryPromise  = require('retry-promise').default
 
 import { log }        from '../config'
+import Profile        from '../profile'
 
-import PuppetWeb      from './puppet-web'
-import { MsgRawObj }  from '../message'
+import {
+  MediaData,
+  MsgRawObj,
+}                     from './schema'
 
-export interface MediaData {
-  ToUserName: string,
-  MsgType:    number,
-  MediaId:    string,
-  FileName:   string,
-  FileSize:   number,
-  FileMd5?:   string,
-  FileType?:  number,
-  MMFileExt?: string,
-  Signature?: string,
+export interface InjectResult {
+  code:    number,
+  message: string,
 }
 
-export class Bridge {
+export class Bridge extends EventEmitter {
+  private browser: Browser
+  private page:    Page
 
   constructor(
-    private puppet: PuppetWeb,
-    private port: number,
+    public profile: Profile,
   ) {
-    if (!puppet || !port) {
-      throw new Error('Bridge need puppet & port')
-    }
-
-    log.verbose('PuppetWebBridge', 'new Bridge({puppet: %s, port: %s})',
-      puppet.constructor.name,
-      port,
-    )
+    super()
+    log.verbose('PuppetWebBridge', 'constructor()')
   }
 
-  public toString() { return `Bridge({puppet: ${this.puppet.constructor.name}, port: ${this.port}})` }
 
-  public async init(): Promise<Bridge> {
+
+  public async init(): Promise<void> {
     log.verbose('PuppetWebBridge', 'init()')
 
     try {
+      this.browser = await launch({
+        // ignoreHTTPSErrors: true,
+        headless:          true,
+        // args: [
+        //   '--allow-insecure-localhost',
+        // ],
+      })
+
+      const version = await this.browser.version()
+      log.verbose('PUppetWebBridge', 'init() browser version: %s', version)
+
+      const cookieList = this.cookies(this.profile)
+      await this.page.setCookie(cookieList)
+      const domain = this.cookieDomain(cookieList)
+
+      this.page = await this.browser.newPage()
+      this.page.goto(domain, {
+        waitUntil: 'load',  // https://github.com/GoogleChrome/puppeteer/issues/805
+      })
+
+      await this.page.exposeFunction('emit', this.emit.bind(this))
+
+      const onDialog = (dialog: Dialog) => {
+        log.warn('PuppetWebBridge', 'init() page.on(dialog) type:%s message:%s',
+        dialog.type, dialog.message())
+        dialog.dismiss()
+        .catch(e => log.error('PuppetWebBridge', 'init() dialog.dismiss() reject: %s', e))
+        this.emit('error', new Error(dialog.message()))
+      }
+      this.page.on('dialog', onDialog)
+
       await this.inject()
-      return this
     } catch (e) {
-      log.silly('PuppetWebBridge', 'init() inject() exception: %s', e && e.message || e)
+      log.silly('PuppetWebBridge', 'init() exception: %s', e && e.message || e)
       throw e
     }
   }
@@ -72,21 +102,22 @@ export class Bridge {
     log.verbose('PuppetWebBridge', 'inject()')
 
     try {
-      const injectio = this.getInjectio()
+      let retObj = await this.page.injectFile(path.join(
+        __dirname,
+        'wechaty-bro.js',
+      )) as any as InjectResult
 
-      let retObj = await this.execute(injectio, this.port)
-
-      if (retObj && /^(2|3)/.test(retObj.code)) {   // HTTP Code 2XX & 3XX
-        log.silly('PuppetWebBridge', 'inject() eval(Wechaty) return code[%d] message[%s] port[%d]'
-          , retObj.code, retObj.message, retObj.port)
+      if (retObj && /^(2|3)/.test(retObj.code.toString())) {   // HTTP Code 2XX & 3XX
+        log.silly('PuppetWebBridge', 'inject() eval(Wechaty) return code[%d] message[%s]',
+                                      retObj.code, retObj.message)
       } else {                                    // HTTP Code 4XX & 5XX
         throw new Error('execute injectio error: ' + retObj.code + ', ' + retObj.message)
       }
 
       retObj = await this.proxyWechaty('init')
-      if (retObj && /^(2|3)/.test(retObj.code)) {   // HTTP Code 2XX & 3XX
-        log.silly('PuppetWebBridge', 'inject() Wechaty.init() return code[%d] message[%s] port[%d]'
-          , retObj.code, retObj.message, retObj.port)
+      if (retObj && /^(2|3)/.test(retObj.code.toString())) {   // HTTP Code 2XX & 3XX
+        log.silly('PuppetWebBridge', 'inject() Wechaty.init() return code[%d] message[%s]'
+          , retObj.code, retObj.message)
       } else {                                    // HTTP Code 4XX & 5XX
         throw new Error('execute proxyWechaty(init) error: ' + retObj.code + ', ' + retObj.message)
       }
@@ -105,24 +136,24 @@ export class Bridge {
     }
   }
 
-  public getInjectio(): string {
-    log.verbose('PuppetWebBridge', 'getInjectio()')
+  // public getInjectio(): string {
+  //   log.verbose('PuppetWebBridge', 'getInjectio()')
 
-    const fs = require('fs')
-    const path = require('path')
+  //   const fs = require('fs')
+  //   const path = require('path')
 
-    /**
-     * Do not insert `return` in front of the code.
-     * because the new line `\n` will cause return nothing at all
-     */
-    const code = 'injectioReturnValue = '
-              + fs.readFileSync(
-                path.join(__dirname, 'wechaty-bro.js'),
-                'utf8',
-              )
-              + '; return injectioReturnValue'
-    return code.replace(/[\n\s]/, ' ')
-  }
+  //   /**
+  //    * Do not insert `return` in front of the code.
+  //    * because the new line `\n` will cause return nothing at all
+  //    */
+  //   const code = 'injectioReturnValue = '
+  //             + fs.readFileSync(
+  //               path.join(__dirname, 'wechaty-bro.js'),
+  //               'utf8',
+  //             )
+  //             + '; return injectioReturnValue'
+  //   return code.replace(/[\n\s]/, ' ')
+  // }
 
   public logout(): Promise<any> {
     log.verbose('PuppetWebBridge', 'quit()')
@@ -135,12 +166,16 @@ export class Bridge {
 
   public quit(): Promise<void> {
     log.verbose('PuppetWebBridge', 'quit()')
-    return this.proxyWechaty('quit')
-    .catch(e => {
+    return this.proxyWechaty('quit').then(async () => {
+      await this.page.close()
+      await this.browser.close()
+      log.silly('PuppetWebBridge', 'quit() page&browser closed.')
+    }).catch(e => {
       log.warn('PuppetWebBridge', 'quit() exception: %s', e && e.message || e)
       // throw e
       /* fail safe */
     })
+
   }
 
   public async getUserName(): Promise<string> {
@@ -159,9 +194,9 @@ export class Bridge {
 
   public async contactRemark(contactId: string, remark: string|null): Promise<boolean> {
     try {
-      return await this.proxyWechaty('contactRemarkAsync', contactId, remark)
+      return await this.proxyWechaty('contactRemark', contactId, remark)
     } catch (e) {
-      log.verbose('PuppetWebBridge', 'contactRemarkAsync() exception: %s', e.message)
+      log.verbose('PuppetWebBridge', 'contactRemark() exception: %s', e.message)
       // Issue #509 return false instead of throw when contact is not a friend.
       // throw e
       log.warn('PuppetWebBridge', 'contactRemark() does not work on contact is not a friend')
@@ -169,12 +204,13 @@ export class Bridge {
     }
   }
 
-  public contactFind(filterFunc: string): Promise<string[]> {
-    return this.proxyWechaty('contactFindAsync', filterFunc)
-                .catch(e => {
-                  log.error('PuppetWebBridge', 'contactFindAsync() exception: %s', e.message)
-                  throw e
-                })
+  public async contactFind(filterFunc: string): Promise<string[]> {
+    try {
+      return await this.proxyWechaty('contactFind', filterFunc)
+    } catch (e) {
+      log.error('PuppetWebBridge', 'contactFind() exception: %s', e.message)
+      throw e
+    }
   }
 
   public roomFind(filterFunc: string): Promise<string[]> {
@@ -197,17 +233,18 @@ export class Bridge {
                 })
   }
 
-  public roomAddMember(roomId, contactId): Promise<number> {
+  public async roomAddMember(roomId, contactId): Promise<number> {
     log.verbose('PuppetWebBridge', 'roomAddMember(%s, %s)', roomId, contactId)
 
     if (!roomId || !contactId) {
       throw new Error('no roomId or contactId')
     }
-    return this.proxyWechaty('roomAddMemberAsync', roomId, contactId)
-                .catch(e => {
-                  log.error('PuppetWebBridge', 'roomAddMember(%s, %s) exception: %s', roomId, contactId, e.message)
-                  throw e
-                })
+    try {
+      return await this.proxyWechaty('roomAddMember', roomId, contactId)
+    } catch (e) {
+      log.error('PuppetWebBridge', 'roomAddMember(%s, %s) exception: %s', roomId, contactId, e.message)
+      throw e
+    }
   }
 
   public roomModTopic(roomId, topic): Promise<string> {
@@ -223,23 +260,22 @@ export class Bridge {
                 })
   }
 
-  public roomCreate(contactIdList: string[], topic?: string): Promise<string> {
+  public async roomCreate(contactIdList: string[], topic?: string): Promise<string> {
     if (!contactIdList || !Array.isArray(contactIdList)) {
       throw new Error('no valid contactIdList')
     }
 
-    return this.proxyWechaty('roomCreateAsync', contactIdList, topic)
-                .then(roomId => {
-                  if (typeof roomId === 'object') {
-                    // It is a Error Object send back by callback in browser(WechatyBro)
-                    throw roomId
-                  }
-                  return roomId
-                })
-                .catch(e => {
-                  log.error('PuppetWebBridge', 'roomCreate(%s) exception: %s', contactIdList, e.message)
-                  throw e
-                })
+    try {
+      const roomId = await this.proxyWechaty('roomCreate', contactIdList, topic)
+      if (typeof roomId === 'object') {
+        // It is a Error Object send back by callback in browser(WechatyBro)
+        throw roomId
+      }
+      return roomId
+    } catch (e) {
+      log.error('PuppetWebBridge', 'roomCreate(%s) exception: %s', contactIdList, e.message)
+      throw e
+    }
   }
 
   public async verifyUserRequest(contactId, hello): Promise<boolean> {
@@ -249,9 +285,7 @@ export class Bridge {
       throw new Error('no valid contactId')
     }
     try {
-
-      return await this.proxyWechaty('verifyUserRequestAsync', contactId, hello)
-
+      return await this.proxyWechaty('verifyUserRequest', contactId, hello)
     } catch (e) {
       log.error('PuppetWebBridge', 'verifyUserRequest(%s, %s) exception: %s', contactId, hello, e.message)
       throw e
@@ -264,11 +298,12 @@ export class Bridge {
     if (!contactId || !ticket) {
       throw new Error('no valid contactId or ticket')
     }
-    return this.proxyWechaty('verifyUserOkAsync', contactId, ticket)
-                .catch(e => {
-                  log.error('PuppetWebBridge', 'verifyUserOk(%s, %s) exception: %s', contactId, ticket, e.message)
-                  throw e
-                })
+    try {
+      return await this.proxyWechaty('verifyUserOk', contactId, ticket)
+    } catch (e) {
+      log.error('PuppetWebBridge', 'verifyUserOk(%s, %s) exception: %s', contactId, ticket, e.message)
+      throw e
+    }
   }
 
   public async send(toUserName: string, content: string): Promise<boolean> {
@@ -468,23 +503,20 @@ export class Bridge {
     // see: http://blog.sqrtthree.com/2015/08/29/utf8-to-b64/
     const argsDecoded = `JSON.parse(decodeURIComponent(window.atob('${argsEncoded}')))`
 
-    const wechatyScript   = `
-      const callback = arguments[arguments.length - 1]
-      const isAsync = (typeof callback === 'function')
+    const wechatyScript = `
       return WechatyBro
               .${wechatyFunc}
-              .apply(undefined
-                      , isAsync
-                        ? ${argsDecoded}.concat(callback)
-                        : ${argsDecoded}
-                    )
+              .apply(
+                undefined,
+                ${argsDecoded},
+              )
     `.replace(/[\n\s]+/, ' ')
     // log.silly('PuppetWebBridge', 'proxyWechaty(%s, ...args) %s', wechatyFunc, wechatyScript)
     // console.log('proxyWechaty wechatyFunc args[0]: ')
     // console.log(args[0])
 
     try {
-      const noWechaty = await this.execute('return typeof WechatyBro === "undefined"')
+      const noWechaty = await this.page.evaluate('typeof WechatyBro === "undefined"')
       if (noWechaty) {
         const e = new Error('there is no WechatyBro in browser(yet)')
         // this.puppet.browser.dead(e)
@@ -505,15 +537,16 @@ export class Bridge {
     //   funcExecuter = this.execute.bind(this)
     // }
     try {
-      let ret
+      // let ret
       /**
        * Async functions name is start with `Async` in WechatyBro
        */
-      if (/Async$/.test(wechatyFunc)) {
-        ret = await this.executeAsync(wechatyScript)
-      } else {
-        ret = await this.execute(wechatyScript)
-      }
+      // if (/Async$/.test(wechatyFunc)) {
+      //   ret = await this.executeAsync(wechatyScript)
+      // } else {
+        // ret = await this.execute(wechatyScript)
+      // }
+      const ret = await this.page.evaluate(wechatyScript)
       return ret
 
     } catch (e) {
@@ -526,29 +559,29 @@ export class Bridge {
   /**
    * call REAL browser excute for other methods
    */
-  public async execute(script, ...args): Promise<any> {
-    log.silly('PuppetWebBridge', 'execute()')
+  // public async execute(script, ...args): Promise<any> {
+  //   log.silly('PuppetWebBridge', 'execute()')
 
-    if (!this.puppet || !this.puppet.browser) {
-      throw new Error('execute(): no puppet or no puppet.browser in bridge')
-    }
-    return this.puppet.browser.execute(script, ...args)
-                              .catch(e => {
-                                log.warn('PuppetWebBridge', 'execute() exception: %s', e.message)
-                                throw e
-                              })
-  }
+  //   if (!this.puppet || !this.puppet.browser) {
+  //     throw new Error('execute(): no puppet or no puppet.browser in bridge')
+  //   }
+  //   return this.puppet.browser.execute(script, ...args)
+  //                             .catch(e => {
+  //                               log.warn('PuppetWebBridge', 'execute() exception: %s', e.message)
+  //                               throw e
+  //                             })
+  // }
 
-  private async executeAsync(script, ...args): Promise<any> {
-    if (!this.puppet || !this.puppet.browser) {
-      throw new Error('execute(): no puppet or no puppet.browser in bridge')
-    }
-    return this.puppet.browser.executeAsync(script, ...args)
-                              .catch(e => {
-                                log.warn('PuppetWebBridge', 'executeAsync() exception: %s', e.message)
-                                throw e
-                              })
-  }
+  // private async executeAsync(script, ...args): Promise<any> {
+  //   if (!this.puppet || !this.puppet.browser) {
+  //     throw new Error('execute(): no puppet or no puppet.browser in bridge')
+  //   }
+  //   return this.puppet.browser.executeAsync(script, ...args)
+  //                             .catch(e => {
+  //                               log.warn('PuppetWebBridge', 'executeAsync() exception: %s', e.message)
+  //                               throw e
+  //                             })
+  // }
 
   public ding(data): Promise<any> {
     log.verbose('PuppetWebBridge', 'ding(%s)', data)
@@ -568,7 +601,7 @@ export class Bridge {
    */
   public async blockedMessageBody(): Promise<string | null> {
     log.silly('PuppetWebBridge', 'blockedMessageBody()')
-    const text = await this.execute('return document.body.innerText')
+    const text = await this.page.evaluate('return document.body.innerText')
 
     return new Promise<string | null>((resolve, reject) => {
       parseString(text, { explicitArray: false }, (err, obj) => {
@@ -592,105 +625,99 @@ export class Bridge {
     })
   }
 
-  public async blockedMessageAlert(): Promise<string | null> {
-    log.silly('PuppetWebBridge', 'blockedMessageAlert()')
+  // public async blockedMessageAlert(): Promise<string | null> {
+  //   log.silly('PuppetWebBridge', 'blockedMessageAlert()')
 
-    const driver = this.puppet.browser.driver
+  //   // const driver = this.puppet.browser.driver
 
-    return new Promise<string | null>(async (resolve, reject) => {
-      const alert = driver.switchTo().alert()
-      alert.catch(() => resolve(null))
-      alert.then(() => {
-        alert.getText().then(resolve)
-      })
-    })
+  //   return new Promise<string | null>(async (resolve, reject) => {
+  //     const alert = driver.switchTo().alert()
+  //     alert.catch(() => resolve(null))
+  //     alert.then(() => {
+  //       alert.getText().then(resolve)
+  //     })
+  //   })
+  // }
+
+  // TODO: from Browser to Bridge
+  public async clickSwitchAccount(): Promise<boolean> {
+    log.verbose('PuppetWebBrowser', 'clickSwitchAccount()')
+
+    try {
+      const button = await this.page.$("//div[contains(@class,'association') and contains(@class,'show')]/a[@ng-click='qrcodeLogin()']")
+      await button.click();
+      // const button = await this.driver.driver.findElement(By.xpath(
+      //   "//div[contains(@class,'association') and contains(@class,'show')]/a[@ng-click='qrcodeLogin()']"))
+      // button.click()
+      log.silly('PuppetWebBrowser', 'clickSwitchAccount() clicked!')
+      return true
+    } catch (e) {
+      log.silly('PuppetWebBrowser', 'clickSwitchAccount() button not found')
+      return false
+    }
   }
 
+  public async hostname(): Promise<string | null> {
+    log.verbose('PuppetWebBridge', 'hostname()')
+    const hostname = await this.page.evaluate('location.hostname')
+    log.silly('PuppetWebBridge', 'hostname() got %s', hostname)
+    return hostname
+  }
+
+  public cookies(cookieList: Cookie[]): void
+  public cookies(): Cookie[]
+
+  public cookies(cookieList?: Cookie[]): void | Cookie[] {
+    if (cookieList) {
+      this.page.setCookie(...cookieList)
+      .catch(err => {
+        log.error('PuppetWebBridge', 'cookies(%s) reject: %s', cookieList, err)
+        this.emit('error', err)
+      })
+      return
+    } else {
+      // FIXME: puppeteer typing bug
+      cookieList = this.page.cookies() as any as Cookie[]
+      return cookieList
+    }
+  }
+
+  /**
+   * name
+   */
+  public cookieDomain(cookieList: Cookie[]): string {
+    log.verbose('PuppetWebBridge', 'cookieDomain(%s)', cookieList)
+
+    const DEFAULT_HOSTNAME = 'wx.qq.com'
+
+    if (!cookieList || cookieList.length === 0) {
+      log.silly('PuppetWebBridge', 'cookieDomain() no cookie, return default hostname')
+      return DEFAULT_HOSTNAME
+    }
+
+    const wxCookieList = cookieList.filter(c => /^webwx_auth_ticket|webwxuvid$/.test(c.name))
+    if (!wxCookieList.length) {
+      log.silly('PuppetWebBridge', 'cookieDomain() no valid cookie, return default hostname')
+      return DEFAULT_HOSTNAME
+    }
+    let domain = wxCookieList[0].domain
+    if (!domain) {
+      log.silly('PuppetWebBridge', 'cookieDomain() no valid domain in cookies, return default hostname')
+      return DEFAULT_HOSTNAME
+    }
+
+    domain = domain.slice(1)
+
+    if (domain === 'wechat.com') {
+      domain = 'web.wechat.com'
+    }
+    log.silly('PuppetWebBridge', 'cookieDomain() got %s', domain)
+
+    return domain
+  }
 }
 
-/* tslint:disable:jsdoc-format */
-/* tslint:disable:max-line-length */
-/**
- *
- * some handy browser javascript snips
- *
-ac = Wechaty.glue.contactFactory.getAllContacts();
-Object.keys(ac).filter(function(k) { return /李/.test(ac[k].NickName) }).map(function(k) { var c = ac[k]; return {NickName: c.NickName, Alias: c.Alias, Uin: c.Uin, MMInChatRoom: c.MMInChatRoom} })
-
-Object.keys(window._chatContent).filter(function (k) { return window._chatContent[k].length > 0 }).map(function (k) { return window._chatContent[k].map(function (v) {return v.MMDigestTime}) })
-
-.web_wechat_tab_add
-.web_wechat_tab_launch-chat
-
-contentChatController
-
-e.getMsgImg = function(e, t, o) {
-    return o && "undefined" != typeof o.MMStatus && o.MMStatus != u.MSG_SEND_STATUS_SUCC ? void 0 : u.API_webwxgetmsgimg + "?&MsgID=" + e + "&skey=" + encodeURIComponent(c.getSkey()) + (t ? "&type=" + t : "")
+export {
+  Cookie,
 }
-,
-e.getMsgVideo = function(e) {
-    return u.API_webwxgetvideo + "?msgid=" + e + "&skey=" + encodeURIComponent(c.getSkey())
-}
-
-<div class="picture"
-ng-init="imageInit(message,message.MMPreviewSrc || message.MMThumbSrc || getMsgImg(message.MsgId,'slave'))">
-<img class="msg-img" ng-style="message.MMImgStyle" ng-click="previewImg(message)"
-ng-src="/cgi-bin/mmwebwx-bin/webwxgetmsgimg?&amp;MsgID=6944236226252183282&amp;skey=%40crypt_c117402d_2b2a8c58340c8f4b0a4570cb8f11a1e8&amp;type=slave"
-src="/cgi-bin/mmwebwx-bin/webwxgetmsgimg?&amp;MsgID=6944236226252183282&amp;skey=%40crypt_c117402d_2b2a8c58340c8f4b0a4570cb8f11a1e8&amp;type=slave"
-style="height: 100px; width: 75px;">
-
-XMLHttpRequestOrig = XMLHttpRequest
-XMLHttpRequest = function() { return new XMLHttpRequestOrig() }
-
- *
-.web_wechat_tab_launch-chat
-
-contentChatController
-
-e.getMsgImg = function(e, t, o) {
-    return o && "undefined" != typeof o.MMStatus && o.MMStatus != u.MSG_SEND_STATUS_SUCC ? void 0 : u.API_webwxgetmsgimg + "?&MsgID=" + e + "&skey=" + encodeURIComponent(c.getSkey()) + (t ? "&type=" + t : "")
-}
-,
-e.getMsgVideo = function(e) {
-    return u.API_webwxgetvideo + "?msgid=" + e + "&skey=" + encodeURIComponent(c.getSkey())
-}
-
-<div class="picture"
-ng-init="imageInit(message,message.MMPreviewSrc || message.MMThumbSrc || getMsgImg(message.MsgId,'slave'))">
-<img class="msg-img" ng-style="message.MMImgStyle" ng-click="previewImg(message)"
-ng-src="/cgi-bin/mmwebwx-bin/webwxgetmsgimg?&amp;MsgID=6944236226252183282&amp;skey=%40crypt_c117402d_2b2a8c58340c8f4b0a4570cb8f11a1e8&amp;type=slave"
-src="/cgi-bin/mmwebwx-bin/webwxgetmsgimg?&amp;MsgID=6944236226252183282&amp;skey=%40crypt_c117402d_2b2a8c58340c8f4b0a4570cb8f11a1e8&amp;type=slave"
-style="height: 100px; width: 75px;">
-
- *
- * check the live status of wxapp method 1
- *
-appFactory = Wechaty.glue.injector.get('appFactory')
-appFactory.syncOrig = appFactory.sync
-appFactory.syncCheckOrig = appFactory.syncCheck
-appFactory.sync = function() { Wechaty.log('appFactory.sync() !!!'); return appFactory.syncOrig(arguments) }
-appFactory.syncCheck = function() { Wechaty.log('appFactory.syncCheck() !!!'); return appFactory.syncCheckOrig(arguments) }
-
-// method 2
-$.ajaxOrig = $.ajax
-$.ajax = function() { Wechaty.log('$.ajax() !!!'); return $.ajaxOrig(arguments) }
-
-// method 3 - mmHttp
-mmHttp = Wechaty.glue.injector.get('mmHttp')
-mmHttp.getOrig = mmHttp.get
-mmHttp.get = function() { Wechaty.log('mmHttp.get() !!!'); return mmHttp.getOrig(arguments) }
-
-Object.keys(_contacts)
-.filter(k => _contacts[k].UserName.match(/^@@/))
-.filter(k => _contacts[k].MemberList.length)
-.filter(k => _contacts[k].NickName.match(/test/))
-.map(k => _contacts[k])
-
-Object.keys(_contacts)
-.filter(k => _contacts[k].NickName.match(/快站哥/))
-.map(k => _contacts[k])
-
- *
- */
-
 export default Bridge

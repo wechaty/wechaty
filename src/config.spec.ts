@@ -30,12 +30,11 @@ test('important variables', t => {
   t.true('token'    in config, 'should exist `token` in Config')
 
   t.truthy(config.DEFAULT_PUPPET      , 'should export DEFAULT_PUPPET')
-  t.truthy(config.DEFAULT_PORT        , 'should export DEFAULT_PORT')
+  // t.truthy(config.DEFAULT_PORT        , 'should export DEFAULT_PORT')
   t.truthy(config.DEFAULT_PROFILE     , 'should export DEFAULT_PROFILE')
-  t.truthy(config.DEFAULT_HEAD        , 'should export DEFAULT_HEAD')
   t.truthy(config.DEFAULT_PROTOCOL    , 'should export DEFAULT_PROTOCOL')
   t.truthy(config.DEFAULT_APIHOST     , 'should export DEFAULT_APIHOST')
-  t.truthy(config.CMD_CHROMIUM        , 'should export CMD_CHROMIUM')
+  // t.truthy(config.CMD_CHROMIUM        , 'should export CMD_CHROMIUM')
 })
 
 test('validApiHost()', t => {

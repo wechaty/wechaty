@@ -144,10 +144,10 @@ async function autoSaveSession(this: PuppetWeb, force = false) {
   const SAVE_SESSION_INTERVAL = 3 * 60 * 1000 // 3 mins
   if (Date.now() - this.watchDogLastSaveSession > SAVE_SESSION_INTERVAL) {
     log.verbose('PuppetWebWatchdog', 'autoSaveSession() profile(%s) after %d minutes',
-                                     this.setting.profile,
+                                     this.options.profile,
                                      Math.floor(SAVE_SESSION_INTERVAL / 1000 / 60),
               )
-    await this.browser.saveCookie()
+    await this.bridge.saveCookie()
     this.watchDogLastSaveSession = Date.now()
   }
 }
@@ -189,7 +189,7 @@ function monitorScan(this: PuppetWeb, type: WatchdogFoodName) {
     log.warn('PuppetWebWatchdog', 'monirotScan() refresh browser for no food of type scan after %s mins'
                                 , Math.floor(scanTimeout / 1000 / 60))
     // try to fix the problem
-    this.browser.refresh()
+    this.bridge.refresh()
     this.lastScanEventTime = Date.now()
   }
 }

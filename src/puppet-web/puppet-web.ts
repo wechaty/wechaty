@@ -17,11 +17,10 @@
  *
  */
 import {
-  config,
-  HeadName,
+  // config,
+  // HeadName,
   log,
   Raven,
-  ScanInfo,
   WatchdogFood,
 }                     from '../config'
 
@@ -29,21 +28,26 @@ import Contact        from '../contact'
 import {
   Message,
   MediaMessage,
-  MsgRawObj,
- }                    from '../message'
+}                    from '../message'
 import {
   Puppet,
+  PuppetOptions,
+  ScanInfo,
 }                     from '../puppet'
 import Room           from '../room'
 import UtilLib        from '../util-lib'
 
 import {
   Bridge,
-  MediaData,
+  Cookie,
 }                     from './bridge'
-import Browser        from './browser'
+// import Browser        from './browser'
 import Event          from './event'
-import Server         from './server'
+// import Server         from './server'
+import {
+  MediaData,
+  MsgRawObj,
+}                     from './schema'
 import Watchdog       from './watchdog'
 
 import * as request from 'request'
@@ -58,20 +62,14 @@ const enum UploadMediaType {
   ATTACHMENT = 4,
 }
 
-export interface PuppetWebSetting {
-  head?:    HeadName,
-  profile?: string,
-}
-const DEFAULT_PUPPET_PORT = 18788 // W(87) X(88), ascii char code ;-]
-
 export class PuppetWeb extends Puppet {
 
-  public browser: Browser
+  // public browser: Browser
   public bridge:  Bridge
-  public server:  Server
+  // public server:  Server
 
   public scan: ScanInfo | null
-  private port: number
+  // private port: number
   private fileId: number
 
   public lastScanEventTime: number
@@ -79,34 +77,24 @@ export class PuppetWeb extends Puppet {
   public watchDogTimer: NodeJS.Timer | null
   public watchDogTimerTime: number
 
-  constructor(public setting: PuppetWebSetting = {}) {
-    super()
+  constructor(
+    public options: PuppetOptions,
+  ) {
+    super(options)
     this.fileId = 0
 
-    if (!setting.head) {
-      setting.head = config.head
-    }
     this.on('watchdog', Watchdog.onFeed.bind(this))
   }
 
-  public toString() { return `Class PuppetWeb({browser:${this.browser},port:${this.port}})` }
+  public toString() { return `Class PuppetWeb({profile:${this.options.profile}})` }
 
   public async init(): Promise<void> {
-    log.verbose('PuppetWeb', `init() with head:${this.setting.head}, profile:${this.setting.profile}`)
+    log.verbose('PuppetWeb', `init() with profile:${this.options.profile}`)
 
     this.state.target('live')
     this.state.current('live', false)
 
     try {
-
-      this.port = await UtilLib.getPort(DEFAULT_PUPPET_PORT)
-      log.verbose('PuppetWeb', 'init() getPort %d', this.port)
-
-      await this.initServer()
-      log.verbose('PuppetWeb', 'initServer() done')
-
-      this.browser = await this.initBrowser()
-      log.verbose('PuppetWeb', 'initBrowser() done')
 
       try {
         this.bridge = await this.initBridge()
@@ -114,7 +102,6 @@ export class PuppetWeb extends Puppet {
         log.verbose('PuppetWeb', 'init() this.initBridge() exception: %s', e.message)
 
         const blockedMessage = await this.bridge.blockedMessageBody()
-                            || await this.bridge.blockedMessageAlert()
         if (blockedMessage) {
           const error = new Error(blockedMessage)
           this.emit('error', error)
@@ -123,7 +110,7 @@ export class PuppetWeb extends Puppet {
       }
       log.verbose('PuppetWeb', 'initBridge() done')
 
-      const clicked = await this.browser.clickSwitchAccount()
+      const clicked = await this.bridge.clickSwitchAccount()
       if (clicked) {
         log.verbose('PuppetWeb', 'init() bridge.clickSwitchAccount() clicked')
       }
@@ -205,27 +192,27 @@ export class PuppetWeb extends Puppet {
           log.warn('PuppetWeb', 'quit() no this.bridge')
         }
 
-        if (this.server) {
-          await this.server.quit()
-                          .catch(e => { // fail safe
-                            log.warn('PuppetWeb', 'quit() server.quit() exception: %s', e.message)
-                            Raven.captureException(e)
-                          })
-          log.verbose('PuppetWeb', 'quit() server.quit() done')
-        } else {
-          log.warn('PuppetWeb', 'quit() no this.server')
-        }
+        // if (this.server) {
+        //   await this.server.quit()
+        //                   .catch(e => { // fail safe
+        //                     log.warn('PuppetWeb', 'quit() server.quit() exception: %s', e.message)
+        //                     Raven.captureException(e)
+        //                   })
+        //   log.verbose('PuppetWeb', 'quit() server.quit() done')
+        // } else {
+        //   log.warn('PuppetWeb', 'quit() no this.server')
+        // }
 
-        if (this.browser) {
-          await this.browser.quit()
-                    .catch(e => { // fail safe
-                      log.warn('PuppetWeb', 'quit() browser.quit() exception: %s', e.message)
-                      Raven.captureException(e)
-                    })
-          log.verbose('PuppetWeb', 'quit() browser.quit() done')
-        } else {
-          log.warn('PuppetWeb', 'quit() no this.browser')
-        }
+        // if (this.browser) {
+        //   await this.browser.quit()
+        //             .catch(e => { // fail safe
+        //               log.warn('PuppetWeb', 'quit() browser.quit() exception: %s', e.message)
+        //               Raven.captureException(e)
+        //             })
+        //   log.verbose('PuppetWeb', 'quit() browser.quit() done')
+        // } else {
+        //   log.warn('PuppetWeb', 'quit() no this.browser')
+        // }
 
         clearTimeout(timer)
         resolve()
@@ -246,39 +233,38 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public async initBrowser(): Promise<Browser> {
-    log.verbose('PuppetWeb', 'initBrowser()')
+  // public async initBrowser(): Promise<Browser> {
+  //   log.verbose('PuppetWeb', 'initBrowser()')
 
-    const browser = new Browser({
-      head:         <HeadName>this.setting.head,
-      sessionFile:  this.setting.profile,
-    })
+  //   const browser = new Browser({
+  //     head:         <HeadName>this.options.head,
+  //     sessionFile:  this.options.profile,
+  //   })
 
-    browser.on('dead', Event.onBrowserDead.bind(this))
+  //   browser.on('dead', Event.onBrowserDead.bind(this))
 
-    if (this.state.target() === 'dead') {
-      const e = new Error('found state.target()) != live, no init anymore')
-      log.warn('PuppetWeb', 'initBrowser() %s', e.message)
-      throw e
-    }
+  //   if (this.state.target() === 'dead') {
+  //     const e = new Error('found state.target()) != live, no init anymore')
+  //     log.warn('PuppetWeb', 'initBrowser() %s', e.message)
+  //     throw e
+  //   }
 
-    try {
-      await browser.init()
-    } catch (e) {
-      log.error('PuppetWeb', 'initBrowser() exception: %s', e.message)
-      Raven.captureException(e)
-      throw e
-    }
-    return browser
-  }
+  //   try {
+  //     await browser.init()
+  //   } catch (e) {
+  //     log.error('PuppetWeb', 'initBrowser() exception: %s', e.message)
+  //     Raven.captureException(e)
+  //     throw e
+  //   }
+  //   return browser
+  // }
 
   public async initBridge(): Promise<Bridge> {
     log.verbose('PuppetWeb', 'initBridge()')
 
-    const bridge = new Bridge(
-      this, // use puppet instead of browser, is because browser might change(die) duaring run time,
-      this.port,
-    )
+    const bridge = new Bridge(this.options.profile)
+      // this, // use puppet instead of browser, is because browser might change(die) duaring run time,
+      // this.port,
 
     if (this.state.target() === 'dead') {
       const e = new Error('initBridge() found targetState != live, no init anymore')
@@ -290,22 +276,33 @@ export class PuppetWeb extends Puppet {
       await bridge.init()
     } catch (e) {
       Raven.captureException(e)
-      if (!this.browser) {
-        log.warn('PuppetWeb', 'initBridge() without browser?')
-      } else if (this.browser.dead()) {
-        // XXX should make here simple: why this.browser.dead() then exception will not throw?
-        log.warn('PuppetWeb', 'initBridge() found browser dead, wait it to restore')
-      } else {
-        log.error('PuppetWeb', 'initBridge() exception: %s', e.message)
-        throw e
-      }
+      // if (!this.browser) {
+      //   log.warn('PuppetWeb', 'initBridge() without browser?')
+      // } else if (this.browser.dead()) {
+      //   // XXX should make here simple: why this.browser.dead() then exception will not throw?
+      //   log.warn('PuppetWeb', 'initBridge() found browser dead, wait it to restore')
+      // } else {
+      log.error('PuppetWeb', 'initBridge() exception: %s', e.message)
+      throw e
+      // }
     }
+
+    // TODO: move from Server to Bridge
+    // this.bridge.on('connection' , Event.onServerConnection.bind(this))
+    this.bridge.on('ding'       , Event.onServerDing.bind(this))
+    // this.bridge.on('disconnect' , Event.onServerDisconnect.bind(this))
+    this.bridge.on('log'        , Event.onServerLog.bind(this))
+    this.bridge.on('login'      , Event.onServerLogin.bind(this))
+    this.bridge.on('logout'     , Event.onServerLogout.bind(this))
+    this.bridge.on('message'    , Event.onServerMessage.bind(this))
+    this.bridge.on('scan'       , Event.onServerScan.bind(this))
+
     return bridge
   }
 
-  private async initServer(): Promise<void> {
-    log.verbose('PuppetWeb', 'initServer()')
-    this.server = new Server(this.port)
+  // private async initServer(): Promise<void> {
+  //   log.verbose('PuppetWeb', 'initServer()')
+  //   this.server = new Server(this.port)
 
     /**
      * @depreciated 20160825 zixia
@@ -314,39 +311,52 @@ export class PuppetWeb extends Puppet {
      */
     // server.on('unload'  , Event.onServerUnload.bind(this))
 
-    this.server.on('connection' , Event.onServerConnection.bind(this))
-    this.server.on('ding'       , Event.onServerDing.bind(this))
-    this.server.on('disconnect' , Event.onServerDisconnect.bind(this))
-    this.server.on('log'        , Event.onServerLog.bind(this))
-    this.server.on('login'      , Event.onServerLogin.bind(this))
-    this.server.on('logout'     , Event.onServerLogout.bind(this))
-    this.server.on('message'    , Event.onServerMessage.bind(this))
-    this.server.on('scan'       , Event.onServerScan.bind(this))
+  //   this.server.on('connection' , Event.onServerConnection.bind(this))
+  //   this.server.on('ding'       , Event.onServerDing.bind(this))
+  //   this.server.on('disconnect' , Event.onServerDisconnect.bind(this))
+  //   this.server.on('log'        , Event.onServerLog.bind(this))
+  //   this.server.on('login'      , Event.onServerLogin.bind(this))
+  //   this.server.on('logout'     , Event.onServerLogout.bind(this))
+  //   this.server.on('message'    , Event.onServerMessage.bind(this))
+  //   this.server.on('scan'       , Event.onServerScan.bind(this))
 
-    if (this.state.target() === 'dead') {
-      const e = new Error('initServer() found state.target() != live, no init anymore')
-      log.warn('PuppetWeb', e.message)
-      throw e
-    }
+  //   if (this.state.target() === 'dead') {
+  //     const e = new Error('initServer() found state.target() != live, no init anymore')
+  //     log.warn('PuppetWeb', e.message)
+  //     throw e
+  //   }
 
-    try {
-      await this.server.init()
-    } catch (e) {
-      log.error('PuppetWeb', 'initServer() exception: %s', e.message)
-      Raven.captureException(e)
-      throw e
-    }
-    return
-  }
+  //   try {
+  //     await this.server.init()
+  //   } catch (e) {
+  //     log.error('PuppetWeb', 'initServer() exception: %s', e.message)
+  //     Raven.captureException(e)
+  //     throw e
+  //   }
+  //   return
+  // }
 
   public reset(reason?: string): void {
     log.verbose('PuppetWeb', 'reset(%s)', reason)
 
-    if (this.browser) {
-      this.browser.dead('restart required by reset()')
-    } else {
-      log.warn('PuppetWeb', 'reset() without browser')
-    }
+    this.bridge.quit().then(async () => {
+      try {
+        await this.bridge.init()
+        log.silly('PuppetWeb', 'reset() done')
+      } catch (e) {
+        log.error('PuppetWeb', 'reset(%s) bridge.init() reject: %s', reason, e)
+        this.emit('error', e)
+      }
+    }).catch(err => {
+      log.error('PuppetWeb', 'reset(%s) bridge.quit() reject: %s', reason, err)
+      this.emit('error', err)
+    })
+
+    // if (this.browser) {
+    //   this.browser.dead('restart required by reset()')
+    // } else {
+    //   log.warn('PuppetWeb', 'reset() without browser')
+    // }
   }
 
   public logined(): boolean { return !!(this.user) }
@@ -410,9 +420,9 @@ export class PuppetWeb extends Puppet {
 
     // Sending video files is not allowed to exceed 20MB
     // https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L1115
-    const maxVideoSize = 20 * 1024 * 1024
+    const maxVideoSize  = 20 * 1024 * 1024
     const largeFileSize = 25 * 1024 * 1024
-    const maxFileSize = 100 * 1024 * 1024
+    const maxFileSize   = 100 * 1024 * 1024
     if (mediatype === 'video' && buffer.length > maxVideoSize)
       throw new Error(`Sending video files is not allowed to exceed ${maxVideoSize / 1024 / 1024}MB`)
     if (buffer.length > maxFileSize) {
@@ -425,7 +435,7 @@ export class PuppetWeb extends Puppet {
     const passTicket = await this.bridge.getPassticket()
     const uploadMediaUrl = await this.bridge.getUploadMediaUrl()
     const checkUploadUrl = await this.bridge.getCheckUploadUrl()
-    const cookie = await this.browser.readCookie()
+    const cookie = await this.bridge.cookies()
     const first = cookie.find(c => c.name === 'webwx_data_ticket')
     const webwxDataTicket = first && first.value
     const size = buffer.length
@@ -433,7 +443,7 @@ export class PuppetWeb extends Puppet {
     const id = 'WU_FILE_' + this.fileId
     this.fileId++
 
-    const hostname = await this.browser.hostname()
+    const hostname = await this.bridge.hostname()
     const headers = {
       Referer: `https://${hostname}`,
       'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36',
@@ -646,12 +656,65 @@ export class PuppetWeb extends Puppet {
     return ret
   }
 
-  public async forward(baseData: MsgRawObj, patchData: MsgRawObj): Promise<boolean> {
+  /**
+   * TODO: should be change to forward(message, contact)
+   */
+  // public async forward(baseData: MsgRawObj, patchData: MsgRawObj): Promise<boolean> {
+  public async forward(message: MediaMessage, sendTo: Contact | Room): Promise<boolean> {
 
-    log.silly('PuppetWeb', 'forward() destination: %s, content: %s)',
-      patchData.ToUserName,
-      patchData.MMActualContent,
+    log.silly('PuppetWeb', 'forward() to: %s, message: %s)',
+      sendTo, message.filename(),
+      // patchData.ToUserName,
+      // patchData.MMActualContent,
     )
+
+    if (!message.rawObj) {
+      throw new Error('no rawObj')
+    }
+
+    let m = Object.assign({}, message.rawObj)
+    const newMsg = <MsgRawObj>{}
+    const largeFileSize = 25 * 1024 * 1024
+    // let ret = false
+    // if you know roomId or userId, you can use `Room.load(roomId)` or `Contact.load(userId)`
+    // let sendToList: Contact[] = [].concat(sendTo as any || [])
+    // sendToList = sendToList.filter(s => {
+    //   if ((s instanceof Room || s instanceof Contact) && s.id) {
+    //     return true
+    //   }
+    //   return false
+    // }) as Contact[]
+    // if (sendToList.length < 1) {
+    //   throw new Error('param must be Room or Contact and array')
+    // }
+    if (m.FileSize >= largeFileSize && !m.Signature) {
+      // if has RawObj.Signature, can forward the 25Mb+ file
+      log.warn('MediaMessage', 'forward() Due to webWx restrictions, more than 25MB of files can not be downloaded and can not be forwarded.')
+      return false
+    }
+
+    newMsg.FromUserName = this.userId || ''
+    newMsg.isTranspond = true
+    newMsg.MsgIdBeforeTranspond = m.MsgIdBeforeTranspond || m.MsgId
+    newMsg.MMSourceMsgId = m.MsgId
+    // In room msg, the content prefix sender:, need to be removed, otherwise the forwarded sender will display the source message sender, causing self () to determine the error
+    newMsg.Content = UtilLib.unescapeHtml(m.Content.replace(/^@\w+:<br\/>/, '')).replace(/^[\w\-]+:<br\/>/, '')
+    newMsg.MMIsChatRoom = sendTo instanceof Room ? true : false
+
+    // The following parameters need to be overridden after calling createMessage()
+
+    m = Object.assign(m, newMsg)
+    // for (let i = 0; i < sendToList.length; i++) {
+      // newMsg.ToUserName = sendToList[i].id
+      // // all call success return true
+      // ret = (i === 0 ? true : ret) && await config.puppetInstance().forward(m, newMsg)
+    // }
+    newMsg.ToUserName = sendTo.id
+    // ret = await config.puppetInstance().forward(m, newMsg)
+    // return ret
+    const baseData  = m
+    const patchData = newMsg
+
     let ret = false
     try {
       ret = await this.bridge.forward(baseData, patchData)
@@ -942,6 +1005,30 @@ export class PuppetWeb extends Puppet {
       setTimeout(() => stable(myResolve), 1000)
     })
 
+  }
+
+  public async hostname(): Promise<string> {
+    try {
+      const name = await this.bridge.hostname()
+      if (!name) {
+        throw new Error('no hostname found')
+      }
+      return name
+    } catch (e) {
+      log.error('PuppetWeb', 'hostname() exception:%s', e)
+      this.emit('error', e)
+      throw e
+    }
+  }
+
+  public cookies(): Cookie[] {
+    return this.bridge.cookies()
+  }
+
+  public saveCookie(): void {
+    const cookieList = this.bridge.cookies()
+    this.options.profile.set('cookies', cookieList)
+    this.options.profile.save()
   }
 }
 
