@@ -17,16 +17,11 @@
  *
  */
 export { Bridge }                           from './bridge'
-export {
-  Browser,
-  IWebDriverOptionsCookie,
-}                                           from './browser'
 export { Event }                            from './event'
 export {
   PuppetWebFriendRequest as FriendRequest,
 }                                           from './friend-request'
 import { PuppetWeb }                        from './puppet-web'
-export { Server }                           from './server'
 export { Watchdog }                         from './watchdog'
 
 export default PuppetWeb

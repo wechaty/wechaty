@@ -35,7 +35,7 @@ import {
   ScanInfo,
 }                     from '../puppet'
 import Room           from '../room'
-import UtilLib        from '../util-lib'
+import Misc           from '../misc'
 
 import {
   Bridge,
@@ -47,20 +47,12 @@ import Event          from './event'
 import {
   MediaData,
   MsgRawObj,
+  MediaType,
 }                     from './schema'
 import Watchdog       from './watchdog'
 
 import * as request from 'request'
 import * as bl from 'bl'
-
-type MediaType = 'pic' | 'video' | 'doc'
-
-const enum UploadMediaType {
-  IMAGE      = 1,
-  VIDEO      = 2,
-  AUDIO      = 3,
-  ATTACHMENT = 4,
-}
 
 export class PuppetWeb extends Puppet {
 
@@ -392,7 +384,7 @@ export class PuppetWeb extends Puppet {
     const filename = mediaMessage.filename()
     const ext = mediaMessage.ext()
 
-    const contentType = UtilLib.mime(ext)
+    const contentType = Misc.mime(ext)
     let mediatype: MediaType
 
     switch (ext) {
@@ -401,13 +393,13 @@ export class PuppetWeb extends Puppet {
       case 'jpg':
       case 'png':
       case 'gif':
-        mediatype = 'pic'
+        mediatype = MediaType.IMAGE
         break
       case 'mp4':
-        mediatype = 'video'
+        mediatype = MediaType.VIDEO
         break
       default:
-        mediatype = 'doc'
+        mediatype = MediaType.ATTACHMENT
     }
 
     const readStream = await mediaMessage.readyStream()
@@ -423,13 +415,13 @@ export class PuppetWeb extends Puppet {
     const maxVideoSize  = 20 * 1024 * 1024
     const largeFileSize = 25 * 1024 * 1024
     const maxFileSize   = 100 * 1024 * 1024
-    if (mediatype === 'video' && buffer.length > maxVideoSize)
+    if (mediatype === MediaType.VIDEO && buffer.length > maxVideoSize)
       throw new Error(`Sending video files is not allowed to exceed ${maxVideoSize / 1024 / 1024}MB`)
     if (buffer.length > maxFileSize) {
       throw new Error(`Sending files is not allowed to exceed ${maxFileSize / 1024 / 1024}MB`)
     }
 
-    const md5 = UtilLib.md5(buffer)
+    const md5 = Misc.md5(buffer)
 
     const baseRequest = await this.getBaseRequest()
     const passTicket = await this.bridge.getPassticket()
@@ -459,7 +451,7 @@ export class PuppetWeb extends Puppet {
       ToUserName:    toUserName,
       UploadType:    2,
       ClientMediaId: +new Date,
-      MediaType:     UploadMediaType.ATTACHMENT,
+      MediaType:     MediaType.ATTACHMENT,
       StartPos:      0,
       DataLen:       size,
       TotalLen:      size,
@@ -640,7 +632,7 @@ export class PuppetWeb extends Puppet {
         mediaData.Signature = data.Signature
       }
     }
-    mediaData.MsgType = UtilLib.msgType(message.ext())
+    mediaData.MsgType = message.type() // Misc.msgType(message.ext())
     log.silly('PuppetWeb', 'sendMedia() destination: %s, mediaId: %s)',
       destinationId,
       mediaData.MediaId,
@@ -698,7 +690,7 @@ export class PuppetWeb extends Puppet {
     newMsg.MsgIdBeforeTranspond = m.MsgIdBeforeTranspond || m.MsgId
     newMsg.MMSourceMsgId = m.MsgId
     // In room msg, the content prefix sender:, need to be removed, otherwise the forwarded sender will display the source message sender, causing self () to determine the error
-    newMsg.Content = UtilLib.unescapeHtml(m.Content.replace(/^@\w+:<br\/>/, '')).replace(/^[\w\-]+:<br\/>/, '')
+    newMsg.Content = Misc.unescapeHtml(m.Content.replace(/^@\w+:<br\/>/, '')).replace(/^[\w\-]+:<br\/>/, '')
     newMsg.MMIsChatRoom = sendTo instanceof Room ? true : false
 
     // The following parameters need to be overridden after calling createMessage()

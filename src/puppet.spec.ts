@@ -16,11 +16,16 @@
  *   limitations under the License.
  *
  */
-import { test }   from 'ava'
+// tslint:disable:no-shadowed-variable
+import * as test  from 'blue-tape'
+// import * as sinon from 'sinon'
+
+import Profile    from './profile'
 import PuppetWeb  from './puppet-web'
 
 test('Puppet smoke testing', t => {
-  const p = new PuppetWeb()
+  const profile = new Profile(Math.random().toString(36).substr(2, 5))
+  const p = new PuppetWeb({ profile })
 
   t.is(p.state.target(), 'dead', 'should be dead target state after instanciate')
   t.is(p.state.current(), 'dead', 'should be dead current state after instanciate')

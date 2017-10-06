@@ -35,7 +35,7 @@ import * as qrcodeTerminal  from 'qrcode-terminal'
 import {
   config,
   MediaMessage,
-  MsgType,
+  // MsgType,
   Wechaty,
 }           from '../'
 const bot = Wechaty.instance({ profile: config.DEFAULT_PROFILE })
@@ -55,18 +55,18 @@ bot
   // console.log(inspect(m))
   // saveRawObj(m.rawObj)
 
-  if ( m.type() === MsgType.IMAGE
-    || m.type() === MsgType.EMOTICON
-    || m.type() === MsgType.VIDEO
-    || m.type() === MsgType.VOICE
-    || m.type() === MsgType.MICROVIDEO
-    || m.type() === MsgType.APP
-    || (m.type() === MsgType.TEXT && m.typeSub() === MsgType.LOCATION)  // LOCATION
-  ) {
-    if (m instanceof MediaMessage) {
-      saveMediaFile(m)
-    }
+  // if ( m.type() === MsgType.IMAGE
+  //   || m.type() === MsgType.EMOTICON
+  //   || m.type() === MsgType.VIDEO
+  //   || m.type() === MsgType.VOICE
+  //   || m.type() === MsgType.MICROVIDEO
+  //   || m.type() === MsgType.APP
+  //   || (m.type() === MsgType.TEXT && m.typeSub() === MsgType.LOCATION)  // LOCATION
+  // ) {
+  if (m instanceof MediaMessage) {
+    saveMediaFile(m)
   }
+  // }
 })
 .init()
 .catch(e => console.error('bot.init() error: ' + e))

@@ -54,8 +54,6 @@ export class Bridge extends EventEmitter {
     log.verbose('PuppetWebBridge', 'constructor()')
   }
 
-
-
   public async init(): Promise<void> {
     log.verbose('PuppetWebBridge', 'init()')
 
@@ -71,8 +69,10 @@ export class Bridge extends EventEmitter {
       const version = await this.browser.version()
       log.verbose('PUppetWebBridge', 'init() browser version: %s', version)
 
-      const cookieList = this.cookies(this.profile)
-      await this.page.setCookie(cookieList)
+      const cookieList = this.profile.get('cookies') as Cookie[]
+      if (cookieList.length) {
+        await this.page.setCookie(...cookieList)
+      }
       const domain = this.cookieDomain(cookieList)
 
       this.page = await this.browser.newPage()
@@ -714,6 +714,15 @@ export class Bridge extends EventEmitter {
     log.silly('PuppetWebBridge', 'cookieDomain() got %s', domain)
 
     return domain
+  }
+
+  public async reload(): Promise<void> {
+    await this.page.reload()
+    return
+  }
+
+  public async evaluate(...args: any[]): Promise<string> {
+    return await this.page.evaluate.apply(this.page, args)
   }
 }
 

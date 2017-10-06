@@ -16,10 +16,14 @@
  *   limitations under the License.
  *
  */
-import { test } from 'ava'
+// tslint:disable:no-shadowed-variable
+import * as test  from 'blue-tape'
+// import * as sinon from 'sinon'
+
+import Profile  from '../../src/profile'
 
 import {
-  Event,
+  // Event,
   PuppetWeb,
 } from '../../src/puppet-web/'
 
@@ -27,15 +31,17 @@ import {
 const PROFILE = 'unit-test-session.wechaty.json'
 
 test('Puppet Web Event smoke testing', async t => {
-  const pw = new PuppetWeb({profile: PROFILE})
-  t.truthy(pw, 'should instantiated a PuppetWeb')
+  const pw = new PuppetWeb({
+    profile: new Profile(PROFILE),
+  })
+  t.ok(pw, 'should instantiated a PuppetWeb')
 
   try {
     await pw.init()
     t.pass('should be inited')
 
-    await Event.onBrowserDead.call(pw, 'event unit test')
-    t.pass('should finish onBrowserDead event process')
+    // await Event.onBrowserDead.call(pw, 'event unit test')
+    // t.pass('should finish onBrowserDead event process')
 
     await pw.quit()
   } catch (e) {

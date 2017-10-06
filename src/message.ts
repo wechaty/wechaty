@@ -31,7 +31,7 @@ import {
 
 import Contact    from './contact'
 import Room       from './room'
-import UtilLib    from './util-lib'
+import Misc       from './misc'
 import PuppetWeb  from './puppet-web/puppet-web'
 import Bridge     from './puppet-web/bridge'
 
@@ -41,6 +41,11 @@ import {
   MsgRawObj,
   MsgType,
 }                 from './puppet-web/schema'
+
+export type TypeName =  'attachment'
+                      | 'audio'
+                      | 'image'
+                      | 'video'
 
 /**
  * All wechat messages will be encapsulated as a Message.
@@ -158,14 +163,14 @@ export class Message implements Sayable {
    * @private
    */
   public toString() {
-    return UtilLib.plainText(this.obj.content)
+    return Misc.plainText(this.obj.content)
   }
 
   /**
    * @private
    */
   public toStringDigest() {
-    const text = UtilLib.digestEmoji(this.obj.digest)
+    const text = Misc.digestEmoji(this.obj.digest)
     return '{' + this.typeEx() + '}' + text
   }
 
@@ -194,7 +199,7 @@ export class Message implements Sayable {
    * @private
    */
   public getContentString() {
-    let content = UtilLib.plainText(this.obj.content)
+    let content = Misc.plainText(this.obj.content)
     if (content.length > 20) { content = content.substring(0, 17) + '...' }
     return '{' + this.type() + '}' + content
   }
@@ -893,7 +898,7 @@ export class MediaMessage extends Message {
         throw new Error('no url')
       }
       log.verbose('MediaMessage', 'readyStream() url: %s', this.obj.url)
-      return UtilLib.urlStream(this.obj.url, cookies)
+      return Misc.urlStream(this.obj.url, cookies)
     } catch (e) {
       log.warn('MediaMessage', 'readyStream() exception: %s', e.stack)
       Raven.captureException(e)
@@ -934,8 +939,6 @@ export class MediaMessage extends Message {
       })
   }
 
-  public forward(room: Room|Room[]): Promise<boolean>
-  public forward(contact: Contact|Contact[]): Promise<boolean>
   /**
    * Forward the received message.
    *
@@ -980,17 +983,17 @@ export class MediaMessage extends Message {
    * })
    * ```
    *
-   * @param {(Sayable | Sayable[])} sendTo Room or Contact
+   * @param {(Sayable | Sayable[])} to Room or Contact
    * The recipient of the message, the room, or the contact
    * @returns {Promise<boolean>}
    * @memberof MediaMessage
    */
-  public async forward(sendTo: Room|Contact): Promise<boolean> {
+  public async forward(to: Room|Contact): Promise<boolean> {
     try {
-      const ret = await config.puppetInstance().forward(this, sendTo)
+      const ret = await config.puppetInstance().forward(this, to)
       return ret
     } catch (e) {
-      log.error('Message', 'forward(%s) exception: %s', sendTo, e)
+      log.error('Message', 'forward(%s) exception: %s', to, e)
       throw e
     }
   }

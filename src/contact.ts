@@ -23,14 +23,14 @@ import {
   Raven,
   Sayable,
   log,
-}                     from './config'
+}                 from './config'
 import {
   Message,
   MediaMessage,
-}                     from './message'
-import { PuppetWeb }  from './puppet-web'
-import { UtilLib }    from './util-lib'
-import { Wechaty }    from './wechaty'
+}                 from './message'
+import Misc       from './misc'
+import PuppetWeb  from './puppet-web'
+import Wechaty    from './wechaty'
 
 export interface ContactObj {
   address:    string,
@@ -358,7 +358,7 @@ export class Contact implements Sayable {
    * @example
    * const name = contact.name()
    */
-  public name()     { return UtilLib.plainText(this.obj && this.obj.name || '') }
+  public name()     { return Misc.plainText(this.obj && this.obj.name || '') }
 
   public alias(): string | null
 
@@ -542,7 +542,7 @@ export class Contact implements Sayable {
       const cookies = await (config.puppetInstance() as PuppetWeb).cookies()
       log.silly('Contact', 'avatar() url: %s', avatarUrl)
 
-      return UtilLib.urlStream(avatarUrl, cookies)
+      return Misc.urlStream(avatarUrl, cookies)
     } catch (err) {
       log.warn('Contact', 'avatar() exception: %s', err.stack)
       Raven.captureException(err)

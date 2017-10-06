@@ -16,57 +16,36 @@
  *   limitations under the License.
  *
  */
-import { test }       from 'ava'
-import { stub }        from 'sinon'
+// tslint:disable:no-shadowed-variable
+import * as test  from 'blue-tape'
+import * as sinon from 'sinon'
+const sinonTest   = require('sinon-test')(sinon)
 
 import {
-  Contact,
   config,
-  log,
-}                     from '../../'
+  Contact,
+  Profile,
+}                 from '../../'
 
-import PuppetWeb      from '../../src/puppet-web'
-import {
-  PuppetWebServer,
-  WechatyBroEvent,
-}                     from '../../src/puppet-web/server'
-import {
-  Bridge as PuppetWebBridge,
-}                     from '../../src/puppet-web/bridge'
+import PuppetWeb  from '../../src/puppet-web'
+import Bridge     from '../../src/puppet-web/bridge'
 
-/**
- * the reason why use `test.serial` here is:
- *  static variable `Contact.puppet` will be changed
- *  when `PuppteWeb.init()` and `PuppteWeb.quit()`
- */
-test.serial('login/logout events', async t => {
-  const STUB_INIT_BROWSER = stub(PuppetWeb.prototype, 'initBrowser')
-  STUB_INIT_BROWSER.resolves({
-    clickSwitchAccount: () => false,
-  })
+test('login/logout events', sinonTest(async t => {
+  sinon.stub(Bridge.prototype, 'init').resolves()
+  sinon.stub(PuppetWeb.prototype,       'quit').resolves()
 
-  const STUB_BRIDGE_INIT = stub(PuppetWebBridge.prototype, 'init')
-  STUB_BRIDGE_INIT.resolves()
+  sinon.stub(Contact, 'findAll')
+        .onFirstCall().resolves([])
+        .onSecondCall().resolves([1])
+        .onThirdCall().resolves([1, 2])
+        .resolves([1, 2, 3])
 
-  const STUB_QUIT = stub(PuppetWeb.prototype, 'quit')
-  STUB_QUIT.resolves()
-
-  const STUB_CONTACT_FIND_ALL = stub(Contact, 'findAll')
-  STUB_CONTACT_FIND_ALL.onFirstCall().resolves([])
-  STUB_CONTACT_FIND_ALL.onSecondCall().resolves([1])
-  STUB_CONTACT_FIND_ALL.onThirdCall().resolves([1, 2])
-  STUB_CONTACT_FIND_ALL.resolves([1, 2, 3])
-
-  const STUB_BRIDGE_GET_USER_NAME = stub(PuppetWebBridge.prototype, 'getUserName')
-  STUB_BRIDGE_GET_USER_NAME.resolves('mockedUserName')
-  // pw.bridge.getUserName = function() { return Promise.resolve('mockedUserName') }
-
-  const STUB_GET_CONTACT = stub(PuppetWeb.prototype, 'getContact')
-  STUB_GET_CONTACT.resolves('dummy')
-  // pw.getContact = function() { return Promise.resolve('dummy') }
+  sinon.stub(Bridge.prototype, 'getUserName').resolves('mockedUserName')
+  sinon.stub(PuppetWeb.prototype,       'getContact').resolves('dummy')
 
   try {
-    const pw = new PuppetWeb()
+    const profile = new Profile()
+    const pw = new PuppetWeb({ profile })
     t.truthy(pw, 'should instantiated a PuppetWeb')
 
     config.puppetInstance(pw)
@@ -78,103 +57,24 @@ test.serial('login/logout events', async t => {
     // XXX find a better way to mock...
 
     const loginPromise = new Promise((res, rej) => pw.once('login', _ => res('loginFired')))
-    pw.server.emit('login')
+    pw.bridge.emit('login')
     t.is(await loginPromise, 'loginFired', 'should fired login event')
     t.is(pw.logined(), true  , 'should be logined')
 
-    t.truthy(STUB_BRIDGE_GET_USER_NAME.called,  'bridge.getUserName should be called')
-    t.truthy(STUB_GET_CONTACT.called,           'pw.getContact should be called')
+    t.truthy((pw.bridge.getUserName as any).called, 'bridge.getUserName should be called')
+    t.truthy((pw.getContact as any).called,         'pw.getContact should be called')
 
-    t.truthy(STUB_CONTACT_FIND_ALL.called,      'contactFind stub should be called')
-    t.is(STUB_CONTACT_FIND_ALL.callCount, 5,    'should call stubContactFind 5 times')
+    t.truthy((Contact.findAll as any).called,      'contactFind stub should be called')
+    t.is((Contact.findAll as any).callCount, 5,    'should call stubContactFind 5 times')
 
     const logoutPromise = new Promise((res, rej) => pw.once('logout', _ => res('logoutFired')))
-    pw.server.emit('logout')
+    pw.bridge.emit('logout')
     t.is(await logoutPromise, 'logoutFired', 'should fire logout event')
     t.is(pw.logined(), false, 'should be logouted')
 
     await pw.quit()
-  } finally {
-    STUB_BRIDGE_GET_USER_NAME.restore()
-    STUB_BRIDGE_INIT.restore()
-    STUB_CONTACT_FIND_ALL.restore()
-    STUB_GET_CONTACT.restore()
-    STUB_INIT_BROWSER.restore()
-    STUB_QUIT.restore()
-  }
-})
-
-test.serial('server/browser WebSocket ding', async t => {
-  const puppet = new PuppetWeb()
-  t.truthy(puppet, 'should instantiated a PuppetWeb')
-
-  config.puppetInstance(puppet)
-
-  const EXPECTED_DING_DATA = 'dingdong'
-
-  try {
-    await puppet.init()
-    t.pass('should be inited')
-
-    const ret = await dingSocket(puppet.server)
-    t.is(ret, EXPECTED_DING_DATA, 'should got EXPECTED_DING_DATA after resolved dingSocket()')
+    profile.destroy()
   } catch (e) {
-    t.fail(e && e.message || e || 'unknown exception???')
+    t.fail(e)
   }
-
-  try {
-    await puppet.quit()
-  } catch (err) {
-    t.fail(err.message)
-  }
-
-  return
-
-  /////////////////////////////////////////////////////////////////////////////
-
-  function dingSocket(server: PuppetWebServer): Promise<string> {
-    const maxTime   = 60000 // 60s
-    const waitTime  = 3000
-    let   totalTime = 0
-    return new Promise((resolve, reject) => {
-      log.verbose('TestPuppetWeb', 'dingSocket()')
-
-      const timeoutTimer = setTimeout(_ => {
-        reject('dingSocket() no response timeout after ' + 2 * maxTime)
-      }, 2 * maxTime)
-      timeoutTimer.unref()
-
-      testDing()
-      return
-
-      function testDing(): void {
-        log.silly('TestPuppetWeb', 'dingSocket() server.socketServer: %s', server.socketServer)
-        if (!server.socketClient) {
-          totalTime += waitTime
-          if (totalTime > maxTime) {
-            return reject('testDing() timeout after ' + totalTime + 'ms')
-          }
-
-          log.silly('TestPuppetWeb', 'waiting socketClient to connect for ' + totalTime + '/' + maxTime + ' ms...')
-          setTimeout(testDing, waitTime)
-          return
-        }
-
-        // server.socketClient is set
-        log.silly('TestPuppetWeb', 'dingSocket() server.socketClient: %s', server.socketClient.readyState)
-        server.once('dong', data => {
-          log.verbose('TestPuppetWeb', 'socket recv event dong: ' + data)
-
-          clearTimeout(timeoutTimer)
-          return resolve(data)
-
-        })
-        const obj: WechatyBroEvent = {
-          name: 'ding',
-          data: EXPECTED_DING_DATA,
-        }
-        server.socketClient.send(JSON.stringify(obj))
-      }
-    })
-  }
-})
+}))

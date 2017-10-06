@@ -16,13 +16,15 @@
  *   limitations under the License.
  *
  */
-import { test } from 'ava'
+// tslint:disable:no-shadowed-variable
+import * as test  from 'blue-tape'
 import * as sinon from 'sinon'
 
 /* tslint:disable:no-var-requires */
 const retryPromise = require('retry-promise').default
 
 import { log } from '../../src/config'
+import Profile from '../../src/profile'
 
 import {
   PuppetWeb,
@@ -38,8 +40,10 @@ process.on('unhandledRejection', (reason, p) => {
 })
 
 test('timer', async t => {
-  const pw = new PuppetWeb({profile: PROFILE})
-  t.truthy(pw, 'should instantiate a PuppetWeb')
+  const pw = new PuppetWeb({
+    profile: new Profile(PROFILE),
+  })
+  t.ok(pw, 'should instantiate a PuppetWeb')
 
   try {
     pw.addListener('error', failOnUnexpectedErrorEvent)
@@ -50,7 +54,7 @@ test('timer', async t => {
     await pw.quit()
 
     pw.state.target('live')
-    pw.browser.state.target('open')
+    // pw.browser.state.target('open')
 
     const savedLevel = log.level()
     if (log.level() === 'info') {
@@ -72,7 +76,7 @@ test('timer', async t => {
         timeout: 1,
       })
       await new Promise(resolve => setTimeout(resolve, 10)) // wait until reset
-      t.truthy(spy.calledOnce, 'should get event[error] after watchdog timeout')
+      t.ok(spy.calledOnce, 'should get event[error] after watchdog timeout')
 
       pw.addListener('error', failOnUnexpectedErrorEvent)
     }

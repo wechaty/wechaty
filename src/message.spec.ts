@@ -23,11 +23,14 @@ import {
   log,
 }                 from './config'
 import Message    from './message'
+import Profile    from './profile'
 import PuppetWeb  from './puppet-web/'
 
 const MOCK_USER_ID = 'TEST-USER-ID'
 
-const puppet = new PuppetWeb()
+const puppet = new PuppetWeb({
+  profile: new Profile(),
+})
 puppet.userId = MOCK_USER_ID
 config.puppetInstance(puppet)
 

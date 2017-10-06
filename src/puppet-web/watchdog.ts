@@ -25,7 +25,7 @@ import {
 }                   from '../config'
 
 import PuppetWeb    from './puppet-web'
-import Event        from './event'
+// import Event        from './event'
 
 /* tslint:disable:variable-name */
 export const Watchdog = {
@@ -119,7 +119,7 @@ async function watchDogReset(timeout, lastFeed): Promise<void> {
                     )
   log.verbose('PuppetWebWatchdog', e.message)
   this.emit('error', e)
-  Event.onBrowserDead.call(this, e)
+  // Event.onBrowserDead.call(this, e)
   return
 }
 
@@ -147,7 +147,7 @@ async function autoSaveSession(this: PuppetWeb, force = false) {
                                      this.options.profile,
                                      Math.floor(SAVE_SESSION_INTERVAL / 1000 / 60),
               )
-    await this.bridge.saveCookie()
+    await this.saveCookie()
     this.watchDogLastSaveSession = Date.now()
   }
 }
@@ -189,7 +189,7 @@ function monitorScan(this: PuppetWeb, type: WatchdogFoodName) {
     log.warn('PuppetWebWatchdog', 'monirotScan() refresh browser for no food of type scan after %s mins'
                                 , Math.floor(scanTimeout / 1000 / 60))
     // try to fix the problem
-    this.bridge.refresh()
+    this.bridge.reload().catch(e => log.error('PuppetWebWatchdog', 'monitorScan() catch: %s', e))
     this.lastScanEventTime = Date.now()
   }
 }

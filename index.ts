@@ -1,44 +1,31 @@
-import {
+export {
   config,
   log,
   Sayable,
 }                     from './src/config'
-import Contact        from './src/contact'
+export { Contact }    from './src/contact'
 
 // ISSUE #70 import { FriendRequest }  from './src/friend-request'
-import FriendRequest  from './src/puppet-web/friend-request'
-
-import IoClient       from './src/io-client'
-import {
-  Message,
-  MediaMessage,
-  MsgType,
-}                     from './src/message'
-import Puppet         from './src/puppet'
-import PuppetWeb      from './src/puppet-web/'
-import Room           from './src/room'
-import UtilLib        from './src/util-lib'
-import Wechaty        from './src/wechaty'
-
-const VERSION = require('./package.json').version
-
 export {
-  config,
-  Contact,
-  FriendRequest,
-  IoClient,
+  PuppetWebFriendRequest as FriendRequest,
+}                     from './src/puppet-web/friend-request'
+export {
+  MsgType,
+}                     from './src/puppet-web/schema'
+
+export { IoClient }   from './src/io-client'
+export {
   Message,
   MediaMessage,
-  MsgType,
-  Puppet,
-  PuppetWeb,
-  Room,
-  Sayable,
-  UtilLib,
-  VERSION,
-  Wechaty,
-  log, // for convenionce use npmlog with environment variable LEVEL
-}
+}                     from './src/message'
+export { Profile }    from './src/profile'
+export { Puppet }     from './src/puppet'
+export { PuppetWeb }  from './src/puppet-web/'
+export { Room }       from './src/room'
+export { Misc }       from './src/misc'
 
+export const VERSION = require('./package.json').version
+
+import Wechaty from './src/wechaty'
+export { Wechaty }
 export default Wechaty
-

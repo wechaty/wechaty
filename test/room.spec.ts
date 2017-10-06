@@ -16,14 +16,19 @@
  *   limitations under the License.
  *
  */
-import { test } from 'ava'
+// tslint:disable:no-shadowed-variable
+import * as test  from 'blue-tape'
+// import * as sinon from 'sinon'
 
 import config     from '../src/config'
 import Contact    from '../src/contact'
+import Profile    from '../src/profile'
 import PuppetWeb  from '../src/puppet-web'
 import Room       from '../src/room'
 
-config.puppetInstance(new PuppetWeb())
+config.puppetInstance(new PuppetWeb({
+  profile: new Profile(),
+}))
 // Room.attach(new PuppetWeb())
 
 // test('Room smoke testing', async t => {
@@ -132,7 +137,7 @@ test('Room smoking test', async t => {
   const name2 = r.alias(contact2)
   t.is(name2, null, 'should return null if not set roomAlias')
 
-  t.truthy(r.has(contact1), 'should has contact1')
+  t.ok(r.has(contact1), 'should has contact1')
   const noSuchContact = new Contact('not exist id')
   t.false(r.has(noSuchContact), 'should has no this member')
 

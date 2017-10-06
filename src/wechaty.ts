@@ -39,26 +39,31 @@ import {
   MediaMessage,
 }                     from './message'
 import Profile        from './profile'
-import Puppet         from './puppet'
+import {
+  Puppet,
+  PuppetEvent,
+}                     from './puppet'
 import PuppetWeb      from './puppet-web/'
 import Room           from './room'
-import UtilLib        from './util-lib'
+import Misc           from './misc'
 
-export interface PuppetSetting {
+export interface WechatyOptions {
   puppet?:  PuppetName,
   profile?: string,
 }
 
-export type WechatyEventName = 'error'
-                              | 'friend'
-                              | 'heartbeat'
-                              | 'login'
-                              | 'logout'
-                              | 'message'
-                              | 'room-join'
-                              | 'room-leave'
-                              | 'room-topic'
-                              | 'scan'
+export type WechatEvent = 'friend'
+                        | 'login'
+                        | 'logout'
+                        | 'message'
+                        | 'room-join'
+                        | 'room-leave'
+                        | 'room-topic'
+                        | 'scan'
+
+export type WechatyEvent = WechatEvent
+                        | 'heartbeat'
+                        | 'error'
 
 /**
  * Main bot class.
@@ -109,12 +114,12 @@ export class Wechaty extends EventEmitter implements Sayable {
    * .on('message',  message => console.log(`Message: ${message}`))
    * .init()
    */
-  public static instance(setting?: PuppetSetting) {
-    if (setting && this._instance) {
+  public static instance(options?: WechatyOptions) {
+    if (options && this._instance) {
       throw new Error('there has already a instance. no params will be allowed any more')
     }
     if (!this._instance) {
-      this._instance = new Wechaty(setting)
+      this._instance = new Wechaty(options)
     }
     return this._instance
   }
@@ -122,21 +127,21 @@ export class Wechaty extends EventEmitter implements Sayable {
   /**
    * @private
    */
-  private constructor(private setting: PuppetSetting = {}) {
+  private constructor(private options: WechatyOptions = {}) {
     super()
     log.verbose('Wechaty', 'contructor()')
 
-    setting.puppet  = setting.puppet  || config.puppet
+    options.puppet  = options.puppet  || config.puppet
 
-    this.profile = new Profile(setting.profile)
+    this.profile = new Profile(options.profile)
 
-    this.uuid = UtilLib.guid()
+    this.uuid = Misc.guid()
   }
 
   /**
    * @private
    */
-  public toString() { return 'Class Wechaty(' + this.setting.puppet + ')'}
+  public toString() { return `Class Wechaty(${this.options.puppet}, ${this.profile.name})`}
 
   /**
    * Return version of Wechaty
@@ -168,18 +173,6 @@ export class Wechaty extends EventEmitter implements Sayable {
   /**
    * @private
    */
-  public user(): Contact {
-    log.warn('Wechaty', 'user() DEPRECATED. use self() instead.')
-
-    if (!this.puppet || !this.puppet.user) {
-      throw new Error('no user')
-    }
-    return this.puppet.user
-  }
-
-  /**
-   * @private
-   */
   public async reset(reason?: string): Promise<void> {
     log.verbose('Wechaty', 'reset() because %s', reason)
     if (!this.puppet) {
@@ -199,8 +192,8 @@ export class Wechaty extends EventEmitter implements Sayable {
    */
   public async init(): Promise<void> {
     log.info('Wechaty', 'v%s initializing...' , this.version())
-    log.verbose('Wechaty', 'puppet: %s'       , this.setting.puppet)
-    log.verbose('Wechaty', 'profile: %s'      , this.setting.profile)
+    log.verbose('Wechaty', 'puppet: %s'       , this.options.puppet)
+    log.verbose('Wechaty', 'profile: %s'      , this.options.profile)
     log.verbose('Wechaty', 'uuid: %s'         , this.uuid)
 
     if (this.state.current() === 'ready') {
@@ -280,7 +273,7 @@ export class Wechaty extends EventEmitter implements Sayable {
 
   /**
    * @listens Wechaty
-   * @param   {WechatyEventName}      event      - Emit WechatyEvent
+   * @param   {WechatyEvent}      event      - Emit WechatyEvent
    * @param   {WechatyEventFunction}  listener   - Depends on the WechatyEvent
    * @return  {Wechaty}                          - this for chain
    *
@@ -337,7 +330,7 @@ export class Wechaty extends EventEmitter implements Sayable {
    *   console.log(`Room ${room.topic()} topic changed from ${oldTopic} to ${topic} by ${changer.name()}`)
    * })
    */
-  public on(event: WechatyEventName, listener: string | ((...args: any[]) => any)): this {
+  public on(event: WechatyEvent, listener: string | ((...args: any[]) => any)): this {
     log.verbose('Wechaty', 'on(%s, %s)',
                             event,
                             typeof listener === 'string'
@@ -367,7 +360,7 @@ export class Wechaty extends EventEmitter implements Sayable {
   public async initPuppet(): Promise<Puppet> {
     let puppet: Puppet
 
-    switch (this.setting.puppet) {
+    switch (this.options.puppet) {
       case 'web':
         puppet = new PuppetWeb({
           profile:  this.profile,
@@ -375,10 +368,10 @@ export class Wechaty extends EventEmitter implements Sayable {
         break
 
       default:
-        throw new Error('Puppet unsupport(yet?): ' + this.setting.puppet)
+        throw new Error('Puppet unsupport(yet?): ' + this.options.puppet)
     }
 
-    const eventList: WechatyEventName[] = [
+    const eventList: PuppetEvent[] = [
       'error',
       'friend',
       'heartbeat',
@@ -394,8 +387,7 @@ export class Wechaty extends EventEmitter implements Sayable {
     eventList.map(e => {
       // https://strongloop.com/strongblog/an-introduction-to-javascript-es6-arrow-functions/
       // We’ve lost () around the argument list when there’s just one argument (rest arguments are an exception, eg (...args) => ...)
-      puppet.on(e, (...args: any[]) => {
-        // this.emit(e, data)
+      puppet.on(e as any, (...args: any[]) => {
         this.emit.apply(this, [e, ...args])
       })
     })

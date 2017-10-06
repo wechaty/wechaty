@@ -19,11 +19,13 @@ export class Profile {
   constructor(
     public name: string = config.profile,
   ) {
-    this.file = path.join(
-      process.cwd(),
-      name,
-      '.wechaty.json',
-    )
+    this.file = path.isAbsolute(name)
+      ? name
+      : path.join(
+          process.cwd(),
+          name,
+          '.wechaty.json',
+        )
   }
 
   public load() {
@@ -54,6 +56,9 @@ export class Profile {
     this.obj[section] = data
   }
 
+  public destroy(): void {
+    fs.unlinkSync(this.file)
+  }
 }
 
 export default Profile

@@ -249,3 +249,10 @@ export interface RecommendInfo {
   VerifyFlag: number,
 
 }
+
+export const enum MediaType {
+  IMAGE      = 1,
+  VIDEO      = 2,
+  AUDIO      = 3,
+  ATTACHMENT = 4,
+}

@@ -24,10 +24,10 @@ import {
 }                 from 'stream'
 import * as url   from 'url'
 
-import { MsgType } from './message'
+// import { MsgType } from './puppet-web/schema'
 import { log } from './config'
 
-export class UtilLib {
+export class Misc {
   public static stripHtml(html?: string): string {
     if (!html) {
       return ''
@@ -97,10 +97,10 @@ export class UtilLib {
     if (!html) {
       return ''
     }
-    return UtilLib.stripHtml(
-      UtilLib.unescapeHtml(
-        UtilLib.stripHtml(
-          UtilLib.digestEmoji(
+    return Misc.stripHtml(
+      Misc.unescapeHtml(
+        Misc.stripHtml(
+          Misc.digestEmoji(
             html,
           ),
         ),
@@ -258,21 +258,21 @@ export class UtilLib {
     return md5sum.digest('hex')
   }
 
-  public static msgType(ext): MsgType {
-    switch (ext) {
-      case 'bmp':
-      case 'jpeg':
-      case 'jpg':
-      case 'png':
-        return MsgType.IMAGE
-      case 'gif':
-        return MsgType.EMOTICON
-      case 'mp4':
-        return MsgType.VIDEO
-      default:
-        return MsgType.APP
-    }
-  }
+  // public static msgType(ext): MsgType {
+  //   switch (ext) {
+  //     case 'bmp':
+  //     case 'jpeg':
+  //     case 'jpg':
+  //     case 'png':
+  //       return MsgType.IMAGE
+  //     case 'gif':
+  //       return MsgType.EMOTICON
+  //     case 'mp4':
+  //       return MsgType.VIDEO
+  //     default:
+  //       return MsgType.APP
+  //   }
+  // }
 
   public static mime(ext): string {
     switch (ext) {
@@ -296,4 +296,4 @@ export class UtilLib {
   }
 }
 
-export default UtilLib
+export default Misc
