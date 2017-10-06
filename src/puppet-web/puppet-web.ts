@@ -22,28 +22,27 @@ import {
   log,
   Raven,
   WatchdogFood,
-}                     from '../config'
-
-import Contact        from '../contact'
+}                   from '../config'
+import Contact      from '../contact'
 import {
   Message,
   MediaMessage,
-}                    from '../message'
+}                   from '../message'
+import Profile      from '../profile'
 import {
   Puppet,
   PuppetOptions,
   ScanInfo,
-}                     from '../puppet'
-import Room           from '../room'
-import Misc           from '../misc'
+}                    from '../puppet'
+import Room          from '../room'
+import Misc          from '../misc'
 
 import {
   Bridge,
   Cookie,
-}                     from './bridge'
-// import Browser        from './browser'
-import Event          from './event'
-// import Server         from './server'
+}                    from './bridge'
+import Event         from './event'
+
 import {
   MediaData,
   MsgRawObj,
@@ -55,13 +54,9 @@ import * as request from 'request'
 import * as bl from 'bl'
 
 export class PuppetWeb extends Puppet {
-
-  // public browser: Browser
   public bridge:  Bridge
-  // public server:  Server
 
   public scan: ScanInfo | null
-  // private port: number
   private fileId: number
 
   public lastScanEventTime: number
@@ -87,19 +82,7 @@ export class PuppetWeb extends Puppet {
     this.state.current('live', false)
 
     try {
-
-      try {
-        this.bridge = await this.initBridge()
-      } catch (e) {
-        log.verbose('PuppetWeb', 'init() this.initBridge() exception: %s', e.message)
-
-        const blockedMessage = await this.bridge.blockedMessageBody()
-        if (blockedMessage) {
-          const error = new Error(blockedMessage)
-          this.emit('error', error)
-        }
-        throw e
-      }
+      this.bridge = await this.initBridge(this.options.profile)
       log.verbose('PuppetWeb', 'initBridge() done')
 
       const clicked = await this.bridge.clickSwitchAccount()
@@ -184,28 +167,6 @@ export class PuppetWeb extends Puppet {
           log.warn('PuppetWeb', 'quit() no this.bridge')
         }
 
-        // if (this.server) {
-        //   await this.server.quit()
-        //                   .catch(e => { // fail safe
-        //                     log.warn('PuppetWeb', 'quit() server.quit() exception: %s', e.message)
-        //                     Raven.captureException(e)
-        //                   })
-        //   log.verbose('PuppetWeb', 'quit() server.quit() done')
-        // } else {
-        //   log.warn('PuppetWeb', 'quit() no this.server')
-        // }
-
-        // if (this.browser) {
-        //   await this.browser.quit()
-        //             .catch(e => { // fail safe
-        //               log.warn('PuppetWeb', 'quit() browser.quit() exception: %s', e.message)
-        //               Raven.captureException(e)
-        //             })
-        //   log.verbose('PuppetWeb', 'quit() browser.quit() done')
-        // } else {
-        //   log.warn('PuppetWeb', 'quit() no this.browser')
-        // }
-
         clearTimeout(timer)
         resolve()
         return
@@ -225,38 +186,10 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  // public async initBrowser(): Promise<Browser> {
-  //   log.verbose('PuppetWeb', 'initBrowser()')
-
-  //   const browser = new Browser({
-  //     head:         <HeadName>this.options.head,
-  //     sessionFile:  this.options.profile,
-  //   })
-
-  //   browser.on('dead', Event.onBrowserDead.bind(this))
-
-  //   if (this.state.target() === 'dead') {
-  //     const e = new Error('found state.target()) != live, no init anymore')
-  //     log.warn('PuppetWeb', 'initBrowser() %s', e.message)
-  //     throw e
-  //   }
-
-  //   try {
-  //     await browser.init()
-  //   } catch (e) {
-  //     log.error('PuppetWeb', 'initBrowser() exception: %s', e.message)
-  //     Raven.captureException(e)
-  //     throw e
-  //   }
-  //   return browser
-  // }
-
-  public async initBridge(): Promise<Bridge> {
+  public async initBridge(profile: Profile): Promise<Bridge> {
     log.verbose('PuppetWeb', 'initBridge()')
 
-    const bridge = new Bridge(this.options.profile)
-      // this, // use puppet instead of browser, is because browser might change(die) duaring run time,
-      // this.port,
+    const bridge = new Bridge(profile)
 
     if (this.state.target() === 'dead') {
       const e = new Error('initBridge() found targetState != live, no init anymore')
@@ -267,66 +200,29 @@ export class PuppetWeb extends Puppet {
     try {
       await bridge.init()
     } catch (e) {
+      // FIXME
+      /*
+      const blockedMessage = await this.bridge.blockedMessageBody()
+      if (blockedMessage) {
+        const error = new Error(blockedMessage)
+        this.emit('error', error)
+      }
+      */
+
       Raven.captureException(e)
-      // if (!this.browser) {
-      //   log.warn('PuppetWeb', 'initBridge() without browser?')
-      // } else if (this.browser.dead()) {
-      //   // XXX should make here simple: why this.browser.dead() then exception will not throw?
-      //   log.warn('PuppetWeb', 'initBridge() found browser dead, wait it to restore')
-      // } else {
       log.error('PuppetWeb', 'initBridge() exception: %s', e.message)
       throw e
-      // }
     }
 
-    // TODO: move from Server to Bridge
-    // this.bridge.on('connection' , Event.onServerConnection.bind(this))
-    this.bridge.on('ding'       , Event.onServerDing.bind(this))
-    // this.bridge.on('disconnect' , Event.onServerDisconnect.bind(this))
-    this.bridge.on('log'        , Event.onServerLog.bind(this))
-    this.bridge.on('login'      , Event.onServerLogin.bind(this))
-    this.bridge.on('logout'     , Event.onServerLogout.bind(this))
-    this.bridge.on('message'    , Event.onServerMessage.bind(this))
-    this.bridge.on('scan'       , Event.onServerScan.bind(this))
+    this.bridge.on('ding'     , Event.onServerDing.bind(this))
+    this.bridge.on('log'      , Event.onServerLog.bind(this))
+    this.bridge.on('login'    , Event.onServerLogin.bind(this))
+    this.bridge.on('logout'   , Event.onServerLogout.bind(this))
+    this.bridge.on('message'  , Event.onServerMessage.bind(this))
+    this.bridge.on('scan'     , Event.onServerScan.bind(this))
 
     return bridge
   }
-
-  // private async initServer(): Promise<void> {
-  //   log.verbose('PuppetWeb', 'initServer()')
-  //   this.server = new Server(this.port)
-
-    /**
-     * @depreciated 20160825 zixia
-     *
-     * when `unload` there should always be a `disconnect` event?
-     */
-    // server.on('unload'  , Event.onServerUnload.bind(this))
-
-  //   this.server.on('connection' , Event.onServerConnection.bind(this))
-  //   this.server.on('ding'       , Event.onServerDing.bind(this))
-  //   this.server.on('disconnect' , Event.onServerDisconnect.bind(this))
-  //   this.server.on('log'        , Event.onServerLog.bind(this))
-  //   this.server.on('login'      , Event.onServerLogin.bind(this))
-  //   this.server.on('logout'     , Event.onServerLogout.bind(this))
-  //   this.server.on('message'    , Event.onServerMessage.bind(this))
-  //   this.server.on('scan'       , Event.onServerScan.bind(this))
-
-  //   if (this.state.target() === 'dead') {
-  //     const e = new Error('initServer() found state.target() != live, no init anymore')
-  //     log.warn('PuppetWeb', e.message)
-  //     throw e
-  //   }
-
-  //   try {
-  //     await this.server.init()
-  //   } catch (e) {
-  //     log.error('PuppetWeb', 'initServer() exception: %s', e.message)
-  //     Raven.captureException(e)
-  //     throw e
-  //   }
-  //   return
-  // }
 
   public reset(reason?: string): void {
     log.verbose('PuppetWeb', 'reset(%s)', reason)
@@ -343,12 +239,6 @@ export class PuppetWeb extends Puppet {
       log.error('PuppetWeb', 'reset(%s) bridge.quit() reject: %s', reason, err)
       this.emit('error', err)
     })
-
-    // if (this.browser) {
-    //   this.browser.dead('restart required by reset()')
-    // } else {
-    //   log.warn('PuppetWeb', 'reset() without browser')
-    // }
   }
 
   public logined(): boolean { return !!(this.user) }

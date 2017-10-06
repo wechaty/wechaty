@@ -14,21 +14,32 @@ export interface ProfileSchema {
 
 export class Profile {
   private obj:  ProfileSchema
-  private file: string
+  private file: string | null
 
   constructor(
     public name: string = config.profile,
   ) {
-    this.file = path.isAbsolute(name)
-      ? name
-      : path.join(
-          process.cwd(),
-          name,
-          '.wechaty.json',
-        )
+    log.verbose('Profile', 'constructor(%s), name')
+
+    if (!name) {
+      this.file = null
+    } else {
+      this.file = path.isAbsolute(name)
+        ? name
+        : path.join(
+            process.cwd(),
+            name,
+            '.wechaty.json',
+          )
+    }
   }
 
   public load() {
+    log.verbose('Profile', 'load() file: %s', this.file)
+    if (!this.file) {
+      return
+    }
+
     const text = fs.readFileSync(this.file).toString()
     try {
       this.obj = JSON.parse(text)
@@ -39,6 +50,11 @@ export class Profile {
   }
 
   public save() {
+    log.verbose('Profile', 'save() file: %s', this.file)
+    if (!this.file) {
+      return
+    }
+
     try {
       const text = JSON.stringify(this.obj)
       fs.writeFileSync(this.file, text)
@@ -48,16 +64,27 @@ export class Profile {
     }
   }
 
-  public get(section: ProfileSection): any {
+  public get(section: ProfileSection): null | any {
+    log.verbose('Profile', 'get(%s)', section)
+    if (!this.obj) {
+      return null
+    }
     return this.obj[section]
   }
 
   public set(section: ProfileSection, data: any): void {
+    log.verbose('Profile', 'set(%s, %s)', section, data)
+    if (!this.obj) {
+      throw new Error('no profile initialized!')
+    }
     this.obj[section] = data
   }
 
   public destroy(): void {
-    fs.unlinkSync(this.file)
+    log.verbose('Profile', 'destroy() file: %s', this.file)
+    if (this.file) {
+      fs.unlinkSync(this.file)
+    }
   }
 }
 

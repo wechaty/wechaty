@@ -1,3 +1,4 @@
+#!/usr/bin/env ts-node
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
@@ -16,14 +17,18 @@
  *   limitations under the License.
  *
  */
-import { test }       from 'ava'
+// tslint:disable:no-shadowed-variable
+import * as test  from 'blue-tape'
+// import * as sinon from 'sinon'
+// const sinonTest   = require('sinon-test')(sinon)
+
 import * as express   from 'express'
 
 import Misc        from './misc'
 
 // import * as http     from 'http'
 
-test('stripHtml()', t => {
+test('stripHtml()', async t => {
   const HTML_BEFORE_STRIP = 'Outer<html>Inner</html>'
   const HTML_AFTER_STRIP  = 'OuterInner'
 
@@ -31,7 +36,7 @@ test('stripHtml()', t => {
   t.is(strippedHtml, HTML_AFTER_STRIP, 'should strip html as expected')
 })
 
-test('unescapeHtml()', t => {
+test('unescapeHtml()', async t => {
   const HTML_BEFORE_UNESCAPE  = '&apos;|&quot;|&gt;|&lt;|&amp;'
   const HTML_AFTER_UNESCAPE   = `'|"|>|<|&`
 
@@ -39,7 +44,7 @@ test('unescapeHtml()', t => {
   t.is(unescapedHtml, HTML_AFTER_UNESCAPE, 'should unescape html as expected')
 })
 
-test('plainText()', t => {
+test('plainText()', async t => {
   const PLAIN_BEFORE  = '&amp;<html>&amp;</html>&amp;<img class="emoji emoji1f4a4" text="[流汗]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />'
   const PLAIN_AFTER   = '&&&[流汗]'
 
@@ -48,7 +53,7 @@ test('plainText()', t => {
 
 })
 
-test('digestEmoji()', t => {
+test('digestEmoji()', async t => {
   const EMOJI_XML = [
     '<img class="emoji emoji1f4a4" text="[流汗]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />',
     '<span class="emoji emoji1f334"></span>',
@@ -64,7 +69,7 @@ test('digestEmoji()', t => {
   }
 })
 
-test('unifyEmoji()', t => {
+test('unifyEmoji()', async t => {
   const ORIGNAL_XML_LIST: [string[], string][] = [
     [
       [
@@ -83,7 +88,7 @@ test('unifyEmoji()', t => {
   })
 })
 
-test('stripEmoji()', t => {
+test('stripEmoji()', async t => {
   const EMOJI_STR = [
     [
       'ABC<img class="emoji emoji1f4a4" text="[流汗]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />DEF',
@@ -109,7 +114,7 @@ test('downloadStream() for media', async t => {
   app.use(require('cookie-parser')())
   app.get('/ding', function(req, res) {
     // console.log(req.cookies)
-    t.truthy(req.cookies, 'should has cookies in req')
+    t.ok(req.cookies, 'should has cookies in req')
     t.is(req.cookies.life, '42', 'should has a cookie named life value 42')
     res.end('dong')
   })

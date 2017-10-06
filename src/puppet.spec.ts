@@ -1,3 +1,4 @@
+#!/usr/bin/env ts-node
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
@@ -23,7 +24,7 @@ import * as test  from 'blue-tape'
 import Profile    from './profile'
 import PuppetWeb  from './puppet-web'
 
-test('Puppet smoke testing', t => {
+test('Puppet smoke testing', async t => {
   const profile = new Profile(Math.random().toString(36).substr(2, 5))
   const p = new PuppetWeb({ profile })
 

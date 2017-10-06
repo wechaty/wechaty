@@ -1,3 +1,4 @@
+#!/usr/bin/env ts-node
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
@@ -27,7 +28,7 @@ import {
   Watchdog,
 } from './index'
 
-test('PuppetWeb Module Exports', t => {
+test('PuppetWeb Module Exports', async t => {
   t.ok(PuppetWeb  , 'should export PuppetWeb')
   t.ok(Event      , 'should export Event')
   t.ok(Watchdog   , 'should export Watchdog')

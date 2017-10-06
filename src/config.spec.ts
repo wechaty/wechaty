@@ -1,3 +1,4 @@
+#!/usr/bin/env ts-node
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
@@ -16,28 +17,29 @@
  *   limitations under the License.
  *
  */
-import { test }   from 'ava'
+// tslint:disable:no-shadowed-variable
+import * as test  from 'blue-tape'
+// import * as sinon from 'sinon'
+// const sinonTest   = require('sinon-test')(sinon)
 
 import { config } from './config'
 import { Puppet } from './puppet'
 
-test('important variables', t => {
-  t.true('head'     in config, 'should exist `head` in Config')
+test('important variables', async t => {
   t.true('puppet'   in config, 'should exist `puppet` in Config')
   t.true('apihost'  in config, 'should exist `apihost` in Config')
-  t.true('port'     in config, 'should exist `port` in Config')
   t.true('profile'  in config, 'should exist `profile` in Config')
   t.true('token'    in config, 'should exist `token` in Config')
 
-  t.truthy(config.DEFAULT_PUPPET      , 'should export DEFAULT_PUPPET')
-  // t.truthy(config.DEFAULT_PORT        , 'should export DEFAULT_PORT')
-  t.truthy(config.DEFAULT_PROFILE     , 'should export DEFAULT_PROFILE')
-  t.truthy(config.DEFAULT_PROTOCOL    , 'should export DEFAULT_PROTOCOL')
-  t.truthy(config.DEFAULT_APIHOST     , 'should export DEFAULT_APIHOST')
-  // t.truthy(config.CMD_CHROMIUM        , 'should export CMD_CHROMIUM')
+  t.ok(config.DEFAULT_PUPPET      , 'should export DEFAULT_PUPPET')
+  // t.ok(config.DEFAULT_PORT        , 'should export DEFAULT_PORT')
+  t.ok(config.DEFAULT_PROFILE     , 'should export DEFAULT_PROFILE')
+  t.ok(config.DEFAULT_PROTOCOL    , 'should export DEFAULT_PROTOCOL')
+  t.ok(config.DEFAULT_APIHOST     , 'should export DEFAULT_APIHOST')
+  // t.ok(config.CMD_CHROMIUM        , 'should export CMD_CHROMIUM')
 })
 
-test('validApiHost()', t => {
+test('validApiHost()', async t => {
   const OK_APIHOSTS = [
     'api.wechaty.io',
     'wechaty.io:8080',
@@ -47,7 +49,7 @@ test('validApiHost()', t => {
     'wechaty.io/',
   ]
   OK_APIHOSTS.forEach(apihost => {
-    t.notThrows(() => {
+    t.doesNotThrow(() => {
       config.validApiHost(apihost)
     })
   }, 'should not row for right apihost')
@@ -59,7 +61,7 @@ test('validApiHost()', t => {
 
 })
 
-test('puppetInstance()', t => {
+test('puppetInstance()', async t => {
   t.throws(() => {
     config.puppetInstance()
   }, Error, 'should throw when not initialized')
@@ -78,7 +80,7 @@ test('puppetInstance()', t => {
 
 })
 
-test('dockerMode', t => {
+test('dockerMode', async t => {
   t.true('dockerMode' in config, 'should identify docker env by `dockerMode`')
 
   if ('C9_PORT' in process.env) {

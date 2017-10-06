@@ -18,6 +18,7 @@
  */
 import { EventEmitter } from 'events'
 import * as path        from 'path'
+
 import {
   Browser,
   Cookie,
@@ -44,8 +45,8 @@ export interface InjectResult {
 }
 
 export class Bridge extends EventEmitter {
-  private browser: Browser
-  private page:    Page
+  private browser : Browser
+  private page    : Page
 
   constructor(
     public profile: Profile,
@@ -57,45 +58,59 @@ export class Bridge extends EventEmitter {
   public async init(): Promise<void> {
     log.verbose('PuppetWebBridge', 'init()')
 
+    let browser
+    let page
+
     try {
-      this.browser = await launch({
-        // ignoreHTTPSErrors: true,
-        headless:          true,
-        // args: [
-        //   '--allow-insecure-localhost',
-        // ],
-      })
-
-      const version = await this.browser.version()
-      log.verbose('PUppetWebBridge', 'init() browser version: %s', version)
-
-      const cookieList = this.profile.get('cookies') as Cookie[]
-      if (cookieList.length) {
-        await this.page.setCookie(...cookieList)
-      }
-      const domain = this.cookieDomain(cookieList)
-
-      this.page = await this.browser.newPage()
-      this.page.goto(domain, {
-        waitUntil: 'load',  // https://github.com/GoogleChrome/puppeteer/issues/805
-      })
-
-      await this.page.exposeFunction('emit', this.emit.bind(this))
-
-      const onDialog = (dialog: Dialog) => {
-        log.warn('PuppetWebBridge', 'init() page.on(dialog) type:%s message:%s',
-        dialog.type, dialog.message())
-        dialog.dismiss()
-        .catch(e => log.error('PuppetWebBridge', 'init() dialog.dismiss() reject: %s', e))
-        this.emit('error', new Error(dialog.message()))
-      }
-      this.page.on('dialog', onDialog)
+      browser = await this.initBrowser()
+      page    = await this.initPage(browser)
 
       await this.inject()
     } catch (e) {
       log.silly('PuppetWebBridge', 'init() exception: %s', e && e.message || e)
       throw e
     }
+
+    this.browser = browser
+    this.page    = page
+  }
+
+  public async initBrowser(): Promise<Browser> {
+    const browser = await launch({
+      headless : true,
+    })
+
+    const version = await browser.version()
+    log.verbose('PUppetWebBridge', 'initBrowser() version: %s', version)
+
+    return browser
+  }
+
+  public async initPage(browser: Browser): Promise<Page> {
+    const page = await browser.newPage()
+
+    const cookieList = this.profile.get('cookies') as Cookie[]
+    const domain = this.cookieDomain(cookieList)
+    page.goto(domain, {
+      waitUntil: 'load',  // https://github.com/GoogleChrome/puppeteer/issues/805
+    })
+
+    if (cookieList && cookieList.length) {
+      await page.setCookie(...cookieList)
+    }
+
+    await page.exposeFunction('emit', this.emit.bind(this))
+
+    const onDialog = (dialog: Dialog) => {
+      log.warn('PuppetWebBridge', 'init() page.on(dialog) type:%s message:%s',
+      dialog.type, dialog.message())
+      dialog.dismiss()
+      .catch(e => log.error('PuppetWebBridge', 'init() dialog.dismiss() reject: %s', e))
+      this.emit('error', new Error(dialog.message()))
+    }
+    page.on('dialog', onDialog)
+
+    return page
   }
 
   public async inject(): Promise<any> {
@@ -122,8 +137,9 @@ export class Bridge extends EventEmitter {
         throw new Error('execute proxyWechaty(init) error: ' + retObj.code + ', ' + retObj.message)
       }
 
-      const r = await this.ding('inject()')
-      if (r !== 'inject()') {
+      const SUCCESS_CIPHER = 'inject() OK!'
+      const r = await this.ding(SUCCESS_CIPHER)
+      if (r !== SUCCESS_CIPHER) {
         throw new Error('fail to get right return from call ding()')
       }
       log.silly('PuppetWebBridge', 'inject() ding success')
@@ -135,25 +151,6 @@ export class Bridge extends EventEmitter {
       throw e
     }
   }
-
-  // public getInjectio(): string {
-  //   log.verbose('PuppetWebBridge', 'getInjectio()')
-
-  //   const fs = require('fs')
-  //   const path = require('path')
-
-  //   /**
-  //    * Do not insert `return` in front of the code.
-  //    * because the new line `\n` will cause return nothing at all
-  //    */
-  //   const code = 'injectioReturnValue = '
-  //             + fs.readFileSync(
-  //               path.join(__dirname, 'wechaty-bro.js'),
-  //               'utf8',
-  //             )
-  //             + '; return injectioReturnValue'
-  //   return code.replace(/[\n\s]/, ' ')
-  // }
 
   public logout(): Promise<any> {
     log.verbose('PuppetWebBridge', 'quit()')
@@ -527,28 +524,9 @@ export class Bridge extends EventEmitter {
       throw e
     }
 
-    /**
-     * WechatyBro method named end with "Async", will be treated as a Async function
-     */
-    // let funcExecuter
-    // if (/Async$/.test(wechatyFunc)) {
-    //   funcExecuter = this.executeAsync.bind(this)
-    // } else {
-    //   funcExecuter = this.execute.bind(this)
-    // }
     try {
-      // let ret
-      /**
-       * Async functions name is start with `Async` in WechatyBro
-       */
-      // if (/Async$/.test(wechatyFunc)) {
-      //   ret = await this.executeAsync(wechatyScript)
-      // } else {
-        // ret = await this.execute(wechatyScript)
-      // }
       const ret = await this.page.evaluate(wechatyScript)
       return ret
-
     } catch (e) {
       log.verbose('PuppetWebBridge', 'proxyWechaty(%s, %s) ', wechatyFunc, args.join(', '))
       log.warn('PuppetWebBridge', 'proxyWechaty() exception: %s', e.message)
@@ -556,41 +534,16 @@ export class Bridge extends EventEmitter {
     }
   }
 
-  /**
-   * call REAL browser excute for other methods
-   */
-  // public async execute(script, ...args): Promise<any> {
-  //   log.silly('PuppetWebBridge', 'execute()')
-
-  //   if (!this.puppet || !this.puppet.browser) {
-  //     throw new Error('execute(): no puppet or no puppet.browser in bridge')
-  //   }
-  //   return this.puppet.browser.execute(script, ...args)
-  //                             .catch(e => {
-  //                               log.warn('PuppetWebBridge', 'execute() exception: %s', e.message)
-  //                               throw e
-  //                             })
-  // }
-
-  // private async executeAsync(script, ...args): Promise<any> {
-  //   if (!this.puppet || !this.puppet.browser) {
-  //     throw new Error('execute(): no puppet or no puppet.browser in bridge')
-  //   }
-  //   return this.puppet.browser.executeAsync(script, ...args)
-  //                             .catch(e => {
-  //                               log.warn('PuppetWebBridge', 'executeAsync() exception: %s', e.message)
-  //                               throw e
-  //                             })
-  // }
-
-  public ding(data): Promise<any> {
+  public async ding(data): Promise<any> {
     log.verbose('PuppetWebBridge', 'ding(%s)', data)
 
-    return this.proxyWechaty('ding', data)
-                .catch(e => {
-                  log.error('PuppetWebBridge', 'ding(%s) exception: %s', data, e.message)
-                  throw e
-                })
+    try {
+      const ret = await this.proxyWechaty('ding', data)
+      return ret
+    } catch (e) {
+      log.error('PuppetWebBridge', 'ding(%s) exception: %s', data, e.message)
+      throw e
+    }
   }
 
   /**
@@ -624,20 +577,6 @@ export class Bridge extends EventEmitter {
       })
     })
   }
-
-  // public async blockedMessageAlert(): Promise<string | null> {
-  //   log.silly('PuppetWebBridge', 'blockedMessageAlert()')
-
-  //   // const driver = this.puppet.browser.driver
-
-  //   return new Promise<string | null>(async (resolve, reject) => {
-  //     const alert = driver.switchTo().alert()
-  //     alert.catch(() => resolve(null))
-  //     alert.then(() => {
-  //       alert.getText().then(resolve)
-  //     })
-  //   })
-  // }
 
   // TODO: from Browser to Bridge
   public async clickSwitchAccount(): Promise<boolean> {

@@ -16,7 +16,11 @@
  *   limitations under the License.
  *
  */
-import { test } from 'ava'
+// tslint:disable:no-shadowed-variable
+import * as test  from 'blue-tape'
+// import * as sinon from 'sinon'
+// const sinonTest   = require('sinon-test')(sinon)
+
 // import { log }  from '../src/config'
 
 import { spy } from 'sinon'
