@@ -26,8 +26,6 @@ import * as express   from 'express'
 
 import Misc        from './misc'
 
-// import * as http     from 'http'
-
 test('stripHtml()', async t => {
   const HTML_BEFORE_STRIP = 'Outer<html>Inner</html>'
   const HTML_AFTER_STRIP  = 'OuterInner'

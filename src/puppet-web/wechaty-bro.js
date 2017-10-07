@@ -47,12 +47,6 @@
       return retObj
     }
 
-    // if (!initClog(false)) { // make console.log work (wxapp disabled the console.log)
-    //   retObj.code = 503 // 503 Service Unavailable http://www.restapitutorial.com/httpstatuscodes.html
-    //   retObj.message = 'initClog fail'
-    //   return retObj
-    // }
-
     if (WechatyBro.vars.initStatus === true) {
       log('WechatyBro.init() called twice: already inited')
       retObj.code = 304 // 304 Not Modified https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.5
@@ -60,14 +54,11 @@
       return retObj
     }
 
-    // WechatyBro.log('init on port:' + port)
-
     if (MMCgiLogined()) {
       login('page refresh')
     }
 
     glueToAngular()
-    // connectSocket()
     hookEvents()
     hookRecalledMsgProcess()
 
@@ -313,38 +304,6 @@
       }
     }
   }
-
-  // function connectSocket() {
-  //   log('connectSocket()')
-  //   /*global socket*/ // WechatyBro global variable: socket
-  //   var socket  = WechatyBro.vars.socket = new WebSocket('wss://127.0.0.1:' + port)
-
-  //   socket.onmessage = function(messageEvent) {
-  //     var data = messageEvent.data
-  //     log('socket.onmessage: ' + data)
-
-  //     var recvObj = JSON.parse(data)
-  //     var name = recvObj.name
-  //     var data = recvObj.data
-  //     switch (name) {
-  //       // ding -> dong. for test & live check purpose
-  //       // ping/pong are reserved by socket.io https://github.com/socketio/socket.io/issues/2414
-  //       case 'ding':
-  //         var obj = {
-  //           name: 'dong',
-  //           data: data,
-  //         }
-  //         socket.send(JSON.stringify(obj))
-  //         break
-  //       default:
-  //       WechatyBro.log('unknown event name: ' + name)
-  //     }
-  //   }
-
-  //   // socket.onopen   = function(e) { clog('connected to server:' + e) }
-  //   // socket.onclose  = function(e) { clog('socket disconnect:'   + e) }
-  //   // socket.onerror  = function(e) { clog('WebSocket error:' + e) }
-  // }
 
   /**
    *
@@ -826,7 +785,6 @@
     }
 
     // funcs
-    // , clog:   clog                              // log to Console
     , ding:   ding         // simple return 'dong'
     , emit:   window.emit  // send event to Node.js
     , init:   init         // initialize WechatyBro @ Browser
@@ -834,7 +792,6 @@
     , logout: logout       // logout current logined user
     , quit:   quit         // quit wechat
     , send:   send         // send message to wechat user
-    // , slog:   slog                              // log to SocketIO
 
     , getContact:          getContact
     , getUserName:         getUserName
@@ -867,7 +824,6 @@
 
     // test purpose
     , isLogin: isLogin
-    // , initClog: initClog
   }
 
   this.WechatyBro = WechatyBro
@@ -875,15 +831,6 @@
   retObj.code    = 200
   retObj.message = 'WechatyBro Inject Done'
 
-  /**
-   * Two return mode of WebDriver (should be one of them at a time)
-   * 1. a callback. return a value by call callback with args
-   * 2. direct return
-   */
-  // var callback = arguments[arguments.length - 1]
-  // if (typeof callback === 'function') {
-  //   return callback(retObj)
-  // }
   return retObj
 
 }.apply(window))

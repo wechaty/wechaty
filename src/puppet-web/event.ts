@@ -40,13 +40,8 @@ import {
 
 /* tslint:disable:variable-name */
 export const Event = {
-  // onBrowserDead,
-
   onLogin,
   onLogout,
-
-  // onConnection,
-  // onDisconnect,
 
   onDing,
   onScan,

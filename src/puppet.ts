@@ -29,7 +29,6 @@ import FriendRequest    from './friend-request'
 import {
   Message,
   MediaMessage,
-  // MsgRawObj,
 }                       from './message'
 import Profile          from './profile'
 import Room             from './room'

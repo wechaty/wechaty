@@ -24,7 +24,6 @@ import {
 }                 from 'stream'
 import * as url   from 'url'
 
-// import { MsgType } from './puppet-web/schema'
 import { log } from './config'
 
 export class Misc {

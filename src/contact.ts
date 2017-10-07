@@ -582,11 +582,6 @@ export class Contact implements Sayable {
     return this.ready()
   }
 
-  // public ready() {
-  //   log.warn('Contact', 'ready() DEPRECATED. use load() instead.')
-  //   return this.load()
-  // }
-
   /**
    * @private
    */

@@ -78,16 +78,3 @@ test('puppetInstance()', async t => {
   }, Error, 'should throw after set to null')
 
 })
-
-test('dockerMode', async t => {
-  t.true('dockerMode' in config, 'should identify docker env by `dockerMode`')
-
-  if ('C9_PORT' in process.env) {
-    t.is(config.dockerMode, false, 'should not in docker mode in Cloud9 IDE')
-  } else if (require('is-ci')) {
-    t.is(config.dockerMode, false, 'should not in docker mode in Continuous Integeration System')
-  } else {
-    // a custom running envioronment, maybe docker, maybe not
-  }
-
-})

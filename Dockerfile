@@ -8,7 +8,7 @@
 # https://hub.docker.com/r/nlknguyen/alpine-shellcheck/
 # FROM nlknguyen/alpine-shellcheck
 FROM mhart/alpine-node:7
-MAINTAINER Huan LI <zixia@zixia.net>
+LABEL maintainer="Huan LI <zixia@zixia.net>"
 
 RUN  apk update && apk upgrade \
   && apk add \
@@ -21,6 +21,7 @@ RUN  apk update && apk upgrade \
       ffmpeg \
       figlet \
       jq \
+      moreutils \
       ttf-freefont \
       udev \
       vim \

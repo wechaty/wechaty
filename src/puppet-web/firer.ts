@@ -21,7 +21,6 @@
 const retryPromise  = require('retry-promise').default
 
 import {
-  // RecommendInfo
   log,
 }                     from '../config'
 import Contact        from '../contact'

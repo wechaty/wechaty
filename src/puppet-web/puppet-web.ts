@@ -200,17 +200,9 @@ export class PuppetWeb extends Puppet {
       }
     }
 
-    /**
-     * must feed POISON to Watchdog
-     * before state set to `dead` & `inprocess`
-     */
     log.verbose('PuppetWeb', 'quit() kill watchdog before do quit')
+
     this.puppetWatchrat.sleep()
-    // const food: WatchRatFood = {
-    //   data: 'PuppetWeb.quit()',
-    //   type: 'POISON',
-    // }
-    // this.emit('watchdog', food)
 
     this.state.target('dead')
     this.state.current('dead', false)
