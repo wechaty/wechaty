@@ -37,6 +37,23 @@ export class RxQueue extends EventEmitter {
     }
   }
 
+  public on(event: 'i', listener: ((...args: any[]) => void)) : this
+  public on(event: 'o', listener: ((...args: any[]) => void)) : this
+  public on(event: never, listener: never)                    : never
+
+  public on(event: 'i' | 'o', listener: ((...args: any[]) => void)): this {
+    super.on(event, listener)
+    return this
+  }
+
+  public emit(event: 'i', ...args: any[])    : boolean
+  public emit(event: 'o', ...args: any[])    : boolean
+  public emit(event: never, listener: never) : never
+
+  public emit(event: 'i' | 'o', ...args: any[]): boolean {
+    return super.emit(event, ...args)
+  }
+
   // https://stackoverflow.com/a/40088306/1123955
   // http://jsbin.com/mulocegalu/1/edit?html,js,output
   private initDelay() {

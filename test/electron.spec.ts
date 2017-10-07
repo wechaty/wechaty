@@ -1,3 +1,5 @@
+#!/usr/bin/env ts-node
+
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
@@ -25,6 +27,6 @@ test('Electron smoke testing', async t => {
   t.true(true, 'test')
 })
 
-test.skip('Electron open wx', t => {
+test.skip('Electron open wx', async t => {
   t.pass('ok')
 })

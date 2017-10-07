@@ -18,6 +18,8 @@
  *  @ignore
  */
 import { EventEmitter } from 'events'
+import * as os          from 'os'
+
 import StateSwitch      from 'state-switch'
 import {
   callerResolve,
@@ -212,6 +214,8 @@ export class Wechaty extends EventEmitter implements Sayable {
       Raven.captureException(e)
       throw e
     }
+
+    this.on('heartbeat', () => this.memoryCheck())
 
     this.state.current('ready')
     return
@@ -530,6 +534,21 @@ export class Wechaty extends EventEmitter implements Sayable {
       log.error('Wechaty', 'ding() exception: %s', e.message)
       Raven.captureException(e)
       throw e
+    }
+  }
+
+  /**
+   * @private
+   */
+  private memoryCheck(minMegabyte = 4): void {
+    const freeMegabyte = Math.floor(os.freemem() / 1024 / 1024)
+    log.silly('Wechaty', 'memoryCheck() free: %d MB, require: %d MB',
+                          freeMegabyte, minMegabyte)
+
+    if (freeMegabyte < minMegabyte) {
+      const e = new Error(`memory not enough: free ${freeMegabyte} < require ${minMegabyte} MB`)
+      log.warn('Wechaty', 'memoryCheck() %s', e.message)
+      this.emit('error', e)
     }
   }
 }

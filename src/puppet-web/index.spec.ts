@@ -25,12 +25,10 @@ import {
   Bridge,
   Event,
   PuppetWeb,
-  Watchdog,
 } from './index'
 
 test('PuppetWeb Module Exports', async t => {
   t.ok(PuppetWeb  , 'should export PuppetWeb')
   t.ok(Event      , 'should export Event')
-  t.ok(Watchdog   , 'should export Watchdog')
   t.ok(Bridge     , 'should export Bridge')
 })

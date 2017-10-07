@@ -1,3 +1,5 @@
+#!/usr/bin/env ts-node
+
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
@@ -35,7 +37,7 @@ import {
   VERSION,
 }               from '../'
 
-test('Wechaty Framework', t => {
+test('Wechaty Framework', async t => {
   t.ok(Contact      , 'should export Contact')
   t.ok(FriendRequest, 'should export FriendREquest')
   t.ok(IoClient     , 'should export IoClient')
@@ -55,7 +57,7 @@ test('Wechaty Framework', t => {
   )
 })
 
-test('Wechaty Config setting', t => {
+test('Wechaty Config setting', async t => {
   t.ok(config                 , 'should export Config')
   t.ok(config.DEFAULT_PUPPET  , 'should has DEFAULT_PUPPET')
 })

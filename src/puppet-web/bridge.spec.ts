@@ -28,6 +28,6 @@ import Bridge     from './bridge'
 
 test('PuppetWebBridge smoke testing', async t => {
   const profile = new Profile()
-  const bridge = new Bridge(profile)
+  const bridge = new Bridge({ profile })
   t.ok(bridge, 'Bridge instnace')
 })

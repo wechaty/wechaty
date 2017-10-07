@@ -17,11 +17,8 @@
  *
  */
 import {
-  // config,
-  // HeadName,
   log,
   Raven,
-  WatchdogFood,
 }                   from '../config'
 import Contact      from '../contact'
 import {
@@ -35,7 +32,12 @@ import {
   ScanInfo,
 }                    from '../puppet'
 import Room          from '../room'
+import RxQueue       from '../rx-queue'
 import Misc          from '../misc'
+import {
+  Watchrat,
+  WatchratFood,
+}                   from '../watchrat'
 
 import {
   Bridge,
@@ -48,16 +50,21 @@ import {
   MsgRawObj,
   MediaType,
 }                     from './schema'
-import Watchdog       from './watchdog'
 
 import * as request from 'request'
 import * as bl from 'bl'
 
-export class PuppetWeb extends Puppet {
-  public bridge:  Bridge
+export type PuppetFoodType = 'scan' | 'ding'
+export type ScanFoodType   = 'scan' | 'login' | 'logout'
 
-  public scan: ScanInfo | null
-  private fileId: number
+export class PuppetWeb extends Puppet {
+  public bridge : Bridge
+  public scan   : ScanInfo | null
+
+  public puppetWatchrat : Watchrat<PuppetFoodType>
+  public scanWatchrat   : Watchrat<ScanFoodType>
+
+  private fileId   : number
 
   public lastScanEventTime: number
   public watchDogLastSaveSession: number
@@ -70,7 +77,11 @@ export class PuppetWeb extends Puppet {
     super(options)
     this.fileId = 0
 
-    this.on('watchdog', Watchdog.onFeed.bind(this))
+    const PUPPET_TIMEOUT = 60 * 1000
+    this.puppetWatchrat = new Watchrat<PuppetFoodType>('PuppetWeb', PUPPET_TIMEOUT)
+
+    const SCAN_TIMEOUT = 4 * 60 * 1000 // 4 mins (before is 10 mins)
+    this.scanWatchrat   = new Watchrat<ScanFoodType>('Scan', SCAN_TIMEOUT)
   }
 
   public toString() { return `Class PuppetWeb({profile:${this.options.profile}})` }
@@ -82,6 +93,16 @@ export class PuppetWeb extends Puppet {
     this.state.current('live', false)
 
     try {
+      await this.initPuppetWatchrat()
+      await this.initScanWatchrat()
+
+      const throttleQueue = new RxQueue('throttle', 5 * 60 * 1000)
+      this.on('heartbeat', data => throttleQueue.emit('i', data))
+      throttleQueue.on('o', async () => {
+        log.verbose('Wechaty', 'init() throttleQueue.on(o)')
+        await this.saveCookie()
+      })
+
       this.bridge = await this.initBridge(this.options.profile)
       log.verbose('PuppetWeb', 'initBridge() done')
 
@@ -96,7 +117,7 @@ export class PuppetWeb extends Puppet {
        */
       this.state.current('live')
 
-      const food: WatchdogFood = {
+      const food: WatchratFood = {
         data: 'inited',
         timeout: 2 * 60 * 1000, // 2 mins for first login
       }
@@ -113,6 +134,52 @@ export class PuppetWeb extends Puppet {
       Raven.captureException(e)
       throw e
     }
+  }
+
+  public initPuppetWatchrat(): void {
+    this.on('ding', data => this.puppetWatchrat.feed({
+      data,
+      type: 'ding',
+    }))
+    // feed the rat, heartbeat the puppet.
+    this.puppetWatchrat.on('feed', food => {
+      this.emit('heartbeat', food.data)
+    })
+
+  }
+
+  /**
+   * Deal with SCAN events
+   *
+   * if web browser stay at login qrcode page long time,
+   * sometimes the qrcode will not refresh, leave there expired.
+   * so we need to refresh the page after a while
+   */
+  public initScanWatchrat(): void {
+    this.on('scan', info => this.scanWatchrat.feed({
+      data: info,
+      type: 'scan',
+    }))
+    this.on('login',  user => {
+      this.scanWatchrat.feed({
+        data: user,
+        type: 'login',
+      })
+      this.scanWatchrat.sleep()
+    })
+    this.on('logout', user => this.scanWatchrat.feed({
+      data: user,
+      type: 'logout',
+    }))
+
+    this.scanWatchrat.on('reset', async () => {
+      try {
+        await this.bridge.reload()
+      } catch (e) {
+        log.error('PuppetWeb', 'initScanWatchrat() on(reset) exception: %s', e)
+        this.emit('error', e)
+      }
+    })
   }
 
   public async quit(): Promise<void> {
@@ -138,11 +205,12 @@ export class PuppetWeb extends Puppet {
      * before state set to `dead` & `inprocess`
      */
     log.verbose('PuppetWeb', 'quit() kill watchdog before do quit')
-    const food: WatchdogFood = {
-      data: 'PuppetWeb.quit()',
-      type: 'POISON',
-    }
-    this.emit('watchdog', food)
+    this.puppetWatchrat.sleep()
+    // const food: WatchRatFood = {
+    //   data: 'PuppetWeb.quit()',
+    //   type: 'POISON',
+    // }
+    // this.emit('watchdog', food)
 
     this.state.target('dead')
     this.state.current('dead', false)
@@ -189,7 +257,7 @@ export class PuppetWeb extends Puppet {
   public async initBridge(profile: Profile): Promise<Bridge> {
     log.verbose('PuppetWeb', 'initBridge()')
 
-    const head = true
+    const head = false
     const bridge = new Bridge({
       head,
       profile,

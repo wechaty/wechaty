@@ -1,3 +1,5 @@
+#!/usr/bin/env ts-node
+
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
@@ -25,7 +27,7 @@ import * as test  from 'blue-tape'
 
 import { spy } from 'sinon'
 
-test('Node.js function params destructuring behaviour test', t => {
+test('Node.js function params destructuring behaviour test', async t => {
   const DEFAULT_N = 1
   const DEFAULT_S = 't'
 

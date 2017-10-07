@@ -22,7 +22,6 @@ export {
   PuppetWebFriendRequest as FriendRequest,
 }                                           from './friend-request'
 import { PuppetWeb }                        from './puppet-web'
-export { Watchdog }                         from './watchdog'
 
 export default PuppetWeb
 export {

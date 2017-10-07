@@ -105,6 +105,7 @@
     "raven": "2.2.1",
     "request": "2.83.0",
     "retry-promise": "1.0.0",
+    "rxjs": "^5.4.3",
     "state-switch": "0.1.13",
     "ws": "3.2.0",
     "xml2js": "0.4.19"

@@ -256,16 +256,6 @@ Object.assign(config, {
   puppetInstance,
 })
 
-export type WatchdogFoodName = 'HEARTBEAT'
-                              | 'POISON'
-                              | 'SCAN'
-
-export interface WatchdogFood {
-  data: any,
-  timeout?: number,  // millisecond
-  type?: WatchdogFoodName,
-}
-
 export interface Sayable {
   say(content: string, replyTo?: any|any[]): Promise<boolean>
 }
