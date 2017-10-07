@@ -32,11 +32,9 @@ test('important variables', async t => {
   t.true('token'    in config, 'should exist `token` in Config')
 
   t.ok(config.DEFAULT_PUPPET      , 'should export DEFAULT_PUPPET')
-  // t.ok(config.DEFAULT_PORT        , 'should export DEFAULT_PORT')
   t.ok(config.DEFAULT_PROFILE     , 'should export DEFAULT_PROFILE')
   t.ok(config.DEFAULT_PROTOCOL    , 'should export DEFAULT_PROTOCOL')
   t.ok(config.DEFAULT_APIHOST     , 'should export DEFAULT_APIHOST')
-  // t.ok(config.CMD_CHROMIUM        , 'should export CMD_CHROMIUM')
 })
 
 test('validApiHost()', async t => {
@@ -62,6 +60,7 @@ test('validApiHost()', async t => {
 })
 
 test('puppetInstance()', async t => {
+  config.puppetInstance(null)
   t.throws(() => {
     config.puppetInstance()
   }, Error, 'should throw when not initialized')

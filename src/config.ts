@@ -85,11 +85,6 @@ export type PuppetName = 'web'
                         | 'android'
                         | 'ios'
 
-// export type HeadName = 'chrome'
-//                       | 'chrome-headless'
-//                       | 'phantomjs'
-//                       | 'firefox'
-
 export interface ConfigSetting {
 
   DEFAULT_PUPPET: PuppetName
@@ -98,13 +93,11 @@ export interface ConfigSetting {
   DEFAULT_TOKEN:  string
   DEFAULT_PROTOCOL: string
 
-  // port: number
   profile: string
   token: string
   debug: boolean
 
   puppet: PuppetName
-  // head: HeadName
 
   apihost: string
   validApiHost: (host: string) => boolean
@@ -189,7 +182,7 @@ function puppetInstance(instance: Puppet): void
 
 function puppetInstance(instance?: Puppet | null): Puppet | void {
 
-  if (instance === undefined) {
+  if (typeof instance === 'undefined') {
     if (!this._puppetInstance) {
       throw new Error('no puppet instance')
     }

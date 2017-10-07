@@ -22,8 +22,8 @@
 import * as test  from 'blue-tape'
 // import * as sinon from 'sinon'
 
-import { log }  from '../../src/config'
-log.level('silly')
+// import { log }  from '../../src/config'
+// log.level('silly')
 
 import Profile  from '../../src/profile'
 
@@ -72,7 +72,6 @@ test('retryPromise()', async t => {
 test.only('WechatyBro.ding()', async t => {
   const profile = new Profile(Math.random().toString(36).substr(2, 5))
   const bridge = new Bridge({
-    head: true,
     profile,
   })
   t.ok(bridge, 'should instanciated a bridge with mocked puppet')

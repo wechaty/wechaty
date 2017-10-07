@@ -12,7 +12,6 @@
     "DEFAULT_APIHOST": "api.chatie.io"
   },
   "scripts": {
-    "ava": "ava --verbose --extension ts",
     "ts-node": "ts-node",
     "dist": "npm run clean && tsc && jq \"del (.files)\" < package.json > dist/package.json && shx cp src/puppet-web/*.js dist/src/puppet-web/",
     "doc": "npm run dist && echo '# Wechaty v'$(jq -r .version package.json)' Documentation\n' > docs/index.md && jsdoc2md dist/src/{wechaty,room,contact,friend-request,message}.js dist/src/puppet-web/friend-request.js>> docs/index.md",
@@ -25,11 +24,10 @@
     "lint:es": "eslint \"{bin,example,src,test}/**/*.js\" --ignore-pattern=\"test/fixture/**\"",
     "lint:ts": "npm run clean && tslint --version && tslint --project tsconfig.json --type-check \"{bin,example,src,test}/**/*.ts\" --exclude \"test/fixture/**\" --exclude \"dist/\" && tsc --noEmit",
     "lint:sh": "bash -n bin/*.sh",
-    "nycava": "WECHATY_HEAD=chrome nyc ava --serial --fail-fast --verbose --timeout=5m \"dist/{src,test}/**/*.spec.js\"",
     "sloc": "sloc bin example src test index.ts --details --format cli-table --keys total,source,comment && sloc bin example src test index.ts",
-    "pretest": "npm run clean && npm run lint && npm run dist",
+    "pretest": "npm run clean && npm run lint",
     "test": "blue-tape -r ts-node/register -r source-map-support/register \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\"",
-    "posttest": "npm run clean && npm run sloc",
+    "posttest": "npm run sloc",
     "test:npm": "export TMPDIR=/tmp/wechaty.$$ && npm pack && mkdir $TMPDIR && mv wechaty-*.*.*.tgz $TMPDIR && cp test/fixture/smoke-testing.js $TMPDIR && cd $TMPDIR && npm init -y && npm i wechaty-*.*.*.tgz && node smoke-testing.js",
     "io-client": "ts-node bin/io-client",
     "demo": "ts-node example/ding-dong-bot.ts",
@@ -73,23 +71,14 @@
       "node": true,
       "es6": true
     },
-    "plugins": [
-      "ava"
-    ],
     "parser": "babel-eslint",
     "parserOptions": {
       "ecmaVersion": 7,
       "sourceType": "module",
       "ecmaFeatures": {
         "impliedStrict": true
-      },
-      "extends": "plugin:ava/recommended"
+      }
     }
-  },
-  "ava": {
-    "require": [
-      "ts-node/register"
-    ]
   },
   "engines": {
     "node": ">= 6.9.0"
@@ -123,7 +112,6 @@
     "@types/sinon": "2.3.5",
     "@types/xml2js": "0.4.0",
     "apiai": "4.0.3",
-    "ava": "0.22.0",
     "babel-cli": "6.26.0",
     "babel-eslint": "8.0.1",
     "babel-preset-es2015": "6.24.1",
@@ -134,7 +122,6 @@
     "coveralls": "2.13.3",
     "cross-env": "5.0.5",
     "eslint": "4.8.0",
-    "eslint-plugin-ava": "4.2.2",
     "express": "4.15.2",
     "finis": "0.0.2",
     "fluent-ffmpeg": "2.1.2",
@@ -146,6 +133,7 @@
     "sinon": "4.0.1",
     "sinon-test": "2.1.1",
     "sloc": "0.2.0",
+    "tap-summary": "^4.0.0",
     "ts-node": "3.3.0",
     "tslint": "5.7.0",
     "tslint-jsdoc-rules": "0.1.2",

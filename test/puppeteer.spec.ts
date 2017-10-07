@@ -143,7 +143,7 @@ test('other demos', async t => {
   try {
     const browser = await launch({
       ignoreHTTPSErrors: true,
-      headless: true,
+      headless: false,
       args: [
         '--allow-insecure-localhost',
       ],
