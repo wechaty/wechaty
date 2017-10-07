@@ -21,16 +21,13 @@ test('starve to death', sinonTest(async function(t) {
   } as WatchratFood
 
   const watchrat = new Watchrat('TestWatchrat', TIMEOUT)
-  watchrat.on('reset', (food, timeLeft) => {
-    t.equal(timeLeft, 0, 'timeLeft should equal to 0 when reset')
+  watchrat.on('reset', (food, left) => {
+    t.equal(left, 0, 'timeLeft should equal to 0 when reset')
     t.deepEqual(food, EXPECTED_FOOD, 'should get food back when reset')
   })
   watchrat.feed(EXPECTED_FOOD)
 
   this.clock.tick(TIMEOUT + 1)
-
-  watchrat.kill()
-  await watchrat.death()
 
   t.end()
 }))
@@ -47,11 +44,8 @@ test('feed in the middle', sinonTest(async function(t) {
   watchrat.feed({ data: 'dummy' })
 
   this.clock.tick(FEED_TIME)
-  let timeLeft = watchrat.feed({ data: 'dummy' })
-  t.equal(timeLeft, TIMEOUT - FEED_TIME, 'should get the time left dependes on the FEED_TIME')
-
-  timeLeft = watchrat.kill()
-  await watchrat.death()
+  const left = watchrat.feed({ data: 'dummy' })
+  t.equal(left, TIMEOUT - FEED_TIME, 'should get the time left dependes on the FEED_TIME')
 
   t.end()
 }))
@@ -71,11 +65,8 @@ test('sleep()', sinonTest(async function(t) {
 
   this.clock.tick(TIMEOUT * 2)
 
-  const timeLeft = watchrat.kill()
-  t.ok(timeLeft < 0, 'time should already passed by...')
-
-  await watchrat.death()
-  t.pass('sleep work as expected, no reset fired')
+  const left = watchrat.left()
+  t.ok(left < 0, 'time should already passed by...')
 
   t.end()
 }))
