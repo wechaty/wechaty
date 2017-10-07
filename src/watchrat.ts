@@ -5,50 +5,32 @@ import { EventEmitter } from 'events'
 
 import { log }  from './config'
 
-export type WatchRatEvent = 'death' | 'timeout'
-
+export type WatchRatEvent    = 'death' | 'timeout'
 export type WatchRatListener = (timeout: number, lastFood: any) => void
 
 export class WatchRat extends EventEmitter {
-  private timer: NodeJS.Timer | undefined
+  private timer : NodeJS.Timer | undefined | null
+  private died  : boolean
 
-  private lastFeed: number
-  private lastFood: any
-
-  private killed: boolean
+  private lastFeed : number
+  private lastFood : any
 
   constructor(
     public timeout = 60 * 1000,
   ) {
     super()
     log.verbose('WatchRat', 'constructor(%d)', timeout)
-
-    this.killed   = false
-    this.lastFeed = Date.now()
-
-    this.startTimer()
+    this.died = false
   }
 
-  public on(event: 'death', listener: WatchRatListener):   this
-  public on(event: 'timeout', listener: WatchRatListener): this
-  public on(event: never, listener: any): any
+  public on(event: 'death',   listener: WatchRatListener) : this
+  public on(event: 'timeout', listener: WatchRatListener) : this
+  public on(event: never,     listener: never)            : never
 
   public on(event: WatchRatEvent, listener: WatchRatListener): this {
     log.verbose('WatchRat', 'on(%s)', event)
     super.on(event, listener)
     return this
-  }
-
-  private stopTimer() {
-    log.verbose('WatchRat', 'stopTimer()')
-
-    if (!this.timer) {
-      throw new Error('timer not exist!')
-    }
-    clearTimeout(this.timer)
-    this.timer = undefined
-
-    return this.timeLeft()
   }
 
   private startTimer(): number {
@@ -57,12 +39,36 @@ export class WatchRat extends EventEmitter {
     if (this.timer) {
       throw new Error('timer already exist!')
     }
+    if (this.died) {
+      throw new Error('can not start timer on a dead rat!')
+    }
+
     this.timer = setTimeout(() => {
-      this.lastFeed = Date.now()
+      log.verbose('WatchRat', 'startTimer() setTimeout() after %d', this.timeout)
+      this.died = true
       this.emit('timeout', this.timeout, this.lastFood)
+      this.emit('death', this.timeout, this.lastFood)
     }, this.timeout)
 
+    this.lastFeed = Date.now()
     return this.timeout
+  }
+
+  private stopTimer(): number {
+    log.verbose('WatchRat', 'stopTimer()')
+
+    if (this.timer === undefined) {
+      // first time to init watchrat
+      return 0
+    }
+
+    if (this.timer === null) {
+      throw new Error('time is already stoped!')
+    }
+    clearTimeout(this.timer)
+    this.timer = null
+
+    return this.timeLeft()
   }
 
   private timeLeft(): number {
@@ -77,8 +83,8 @@ export class WatchRat extends EventEmitter {
   public feed(food?: any): number {
     log.verbose('WatchRat', 'feed(%s)', food)
 
-    if (this.killed) {
-      throw new Error('watchrat had been killed!')
+    if (this.died) {
+      throw new Error('cannot feed a dead rat!')
     }
 
     const now = Date.now()
@@ -96,7 +102,7 @@ export class WatchRat extends EventEmitter {
   public kill(): number {
     log.verbose('WatchRat', 'kill()')
 
-    this.killed = true
+    this.died = true
 
     const timeLeft = this.stopTimer()
     this.emit('death', this.timeout, this.lastFood)
@@ -107,12 +113,10 @@ export class WatchRat extends EventEmitter {
   public async death(): Promise<void> {
     log.verbose('WatchRat', 'death()')
 
-    if (this.killed) {
+    if (this.died) {
       return Promise.resolve()
     }
-    return new Promise<void>(resolve => {
-      this.once('death', resolve)
-    })
+    return new Promise<void>(resolve => this.once('death', resolve))
   }
 }
 

@@ -17,6 +17,7 @@ test('starve to death', sinonTest(async function(t) {
     t.equal(timeout, TIMEOUT, 'timeout should equal to the constructor param')
     t.notOk(food, 'should no food when we did not feed watchrat')
   })
+  watchrat.feed()
 
   this.clock.tick(TIMEOUT + 1)
 
@@ -26,7 +27,7 @@ test('starve to death', sinonTest(async function(t) {
   t.end()
 }))
 
-test('feed in the middle', sinonTest(async function(t) {
+test.only('feed in the middle', sinonTest(async function(t) {
   // console.log('this', this)
   const TIMEOUT   = 1 * 1000
   const FEED_TIME = 0.3 * 1000
@@ -35,6 +36,7 @@ test('feed in the middle', sinonTest(async function(t) {
   watchrat.on('timeout', (timeout, food) => {
     t.fail('should not timeout')
   })
+  watchrat.feed()
 
   this.clock.tick(FEED_TIME)
   let timeLeft = watchrat.feed()
