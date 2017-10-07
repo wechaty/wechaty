@@ -29,6 +29,7 @@ install:
   - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew install moreutils; fi
   - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew install shellcheck; fi
   - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew install jq; fi
+  - npm install
 
 script:
   - echo $TRAVIS_OS_NAME
