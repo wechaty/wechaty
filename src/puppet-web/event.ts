@@ -40,26 +40,26 @@ import {
 export const Event = {
   // onBrowserDead,
 
-  onServerLogin,
-  onServerLogout,
+  onLogin,
+  onLogout,
 
-  // onServerConnection,
-  // onServerDisconnect,
+  // onConnection,
+  // onDisconnect,
 
-  onServerDing,
-  onServerScan,
-  onServerLog,
+  onDing,
+  onScan,
+  onLog,
 
-  onServerMessage,
+  onMessage,
 }
 
-function onServerDing(this: PuppetWeb, data): void {
-  log.silly('PuppetWebEvent', 'onServerDing(%s)', data)
+function onDing(this: PuppetWeb, data): void {
+  log.silly('PuppetWebEvent', 'onDing(%s)', data)
   this.emit('watchdog', { data })
 }
 
-async function onServerScan(this: PuppetWeb, data: ScanInfo) {
-  log.verbose('PuppetWebEvent', 'onServerScan(%d)', data && data.code)
+async function onScan(this: PuppetWeb, data: ScanInfo) {
+  log.verbose('PuppetWebEvent', 'onScan(%d)', data && data.code)
 
   this.scan = data
 
@@ -69,7 +69,7 @@ async function onServerScan(this: PuppetWeb, data: ScanInfo) {
   this.saveCookie()
 
   if (this.user) {
-    log.verbose('PuppetWebEvent', 'onServerScan() there has user when got a scan event. emit logout and set it to null')
+    log.verbose('PuppetWebEvent', 'onScan() there has user when got a scan event. emit logout and set it to null')
     this.emit('logout', this.user)
     this.user = this.userId = null
   }
@@ -83,100 +83,19 @@ async function onServerScan(this: PuppetWeb, data: ScanInfo) {
   this.emit('scan'    , data.url, data.code)
 }
 
-// function onServerConnection(data) {
-//   log.verbose('PuppetWebEvent', 'onServerConnection: %s', typeof data)
-// }
-
-/**
- * `disconnect` event
- * after received `disconnect`, we should fix bridge by re-inject the Wechaty js code into browser.
- * possible conditions:
- * 1. browser refresh
- * 2. browser navigated to a new url
- * 3. browser quit(crash?)
- * 4. ...
- */
-// async function onServerDisconnect(this: PuppetWeb, data): Promise<void> {
-//   log.verbose('PuppetWebEvent', 'onServerDisconnect(%s)', data)
-
-//   if (this.user) {
-//     log.verbose('PuppetWebEvent', 'onServerDisconnect() there has user set. emit a logout event and set it to null')
-//     this.emit('logout', this.user)
-//     this.user = this.userId = null
-//   }
-
-//   if (this.state.current() === 'dead' && this.state.inprocess()) {
-//     log.verbose('PuppetWebEvent', 'onServerDisconnect() be called when state.current() is `dead` and inprocess()')
-//     return
-//   }
-
-//   if (!this.browser || !this.bridge) {
-//     const e = new Error('onServerDisconnect() no browser or bridge')
-//     log.error('PuppetWebEvent', '%s', e.message)
-//     throw e
-//   }
-
-//   /**
-//    * conditions:
-//    * 1. browser crash(i.e.: be killed)
-//    */
-//   if (this.browser.dead()) {   // browser is dead
-//     log.verbose('PuppetWebEvent', 'onServerDisconnect() found dead browser. wait it to restore')
-//     return
-//   }
-
-//   const live = await this.browser.readyLive()
-
-//   if (!live) { // browser is in indeed dead, or almost dead. readyLive() will auto recover itself.
-//     log.verbose('PuppetWebEvent', 'onServerDisconnect() browser dead after readyLive() check. waiting it recover itself')
-//     return
-//   }
-
-//   // browser is alive, and we have a bridge to it
-//   log.verbose('PuppetWebEvent', 'onServerDisconnect() re-initing bridge')
-//   // must use setTimeout to wait a while.
-//   // because the browser has just refreshed, need some time to re-init to be ready.
-//   // if the browser is not ready, bridge init will fail,
-//   // caused browser dead and have to be restarted. 2016/6/12
-//   setTimeout(_ => {
-//     if (!this.bridge) {
-//       // XXX: sometimes this.bridge gone in this timeout. why?
-//       // what's happend between the last if(!this.bridge) check and the timeout call?
-//       const e = new Error('bridge gone after setTimeout? why???')
-//       log.warn('PuppetWebEvent', 'onServerDisconnect() setTimeout() %s', e.message)
-//       throw e
-//     }
-//     this.bridge.init()
-//                 .then(() => log.verbose('PuppetWebEvent', 'onServerDisconnect() setTimeout() bridge.init() done.'))
-//                 .catch(e => log.error('PuppetWebEvent', 'onServerDisconnect() setTimeout() bridge.init() exception: [%s]', e))
-//   }, 1000) // 1 second instead of 10 seconds? try. (should be enough to wait)
-//   return
-
-// }
-
-function onServerLog(data) {
-  log.verbose('PuppetWebEvent', 'onServerLog(%s)', data)
+function onLog(data: any): void {
+  log.verbose('PuppetWebEvent', 'onLog(%s)', data)
 }
 
-async function onServerLogin(this: PuppetWeb, data, attempt = 0): Promise<void> {
-  log.verbose('PuppetWebEvent', 'onServerLogin(%s, %d)', data, attempt)
-
-  // issue #772
-  // if `login` event fired before this.bridge inited, we delay the event for 1 second.
-  const args = Array.prototype.slice.call(arguments)
-  if (!this.bridge) {
-    log.verbose('PuppetWebEvent', 'onServerLogin() fired before bridge inited. delay for 1 second.')
-    setTimeout(() => {
-      onServerLogin.apply(this, args)
-    }, 1000)
-    return
-  }
+async function onLogin(this: PuppetWeb, memo: string, attempt = 0): Promise<void> {
+  log.verbose('PuppetWebEvent', 'onLogin(%s, %d)', memo, attempt)
 
   this.scan = null
 
   if (this.userId) {
-    log.verbose('PuppetWebEvent', 'onServerLogin() be called but with userId set?')
+    log.warn('PuppetWebEvent', 'onLogin() userId had already set: "%s"', this.userId)
   }
+
   try {
     /**
      * save login user id to this.userId
@@ -186,20 +105,20 @@ async function onServerLogin(this: PuppetWeb, data, attempt = 0): Promise<void> 
     this.userId = await this.bridge.getUserName()
 
     if (!this.userId) {
-      log.verbose('PuppetWebEvent', 'onServerLogin: browser not fully loaded(%d), retry later', attempt)
-      setTimeout(onServerLogin.bind(this, data, ++attempt), 500)
+      log.verbose('PuppetWebEvent', 'onLogin: browser not fully loaded(%d), retry later', attempt)
+      setTimeout(onLogin.bind(this, memo, ++attempt), 100)
       return
     }
 
     log.silly('PuppetWebEvent', 'bridge.getUserName: %s', this.userId)
     this.user = Contact.load(this.userId)
     await this.user.ready()
-    log.silly('PuppetWebEvent', `onServerLogin() user ${this.user.name()} logined`)
+    log.silly('PuppetWebEvent', `onLogin() user ${this.user.name()} logined`)
 
     try {
-      this.saveCookie()
+      await this.saveCookie()
     } catch (e) { // fail safe
-      log.verbose('PuppetWebEvent', 'onServerLogin() browser.saveSession() exception: %s', e.message)
+      log.verbose('PuppetWebEvent', 'onLogin() this.saveCookie() exception: %s', e.message)
     }
 
     // fix issue #668
@@ -212,7 +131,7 @@ async function onServerLogin(this: PuppetWeb, data, attempt = 0): Promise<void> 
     this.emit('login', this.user)
 
   } catch (e) {
-    log.error('PuppetWebEvent', 'onServerLogin() exception: %s', e)
+    log.error('PuppetWebEvent', 'onLogin() exception: %s', e)
     console.log(e.stack)
     throw e
   }
@@ -220,18 +139,18 @@ async function onServerLogin(this: PuppetWeb, data, attempt = 0): Promise<void> 
   return
 }
 
-function onServerLogout(this: PuppetWeb, data) {
+function onLogout(this: PuppetWeb, data) {
   this.emit('logout', this.user || this.userId || '')
 
   if (!this.user && !this.userId) {
-    log.warn('PuppetWebEvent', 'onServerLogout() without this.user or userId initialized')
+    log.warn('PuppetWebEvent', 'onLogout() without this.user or userId initialized')
   }
 
   this.userId = null
   this.user   = null
 }
 
-async function onServerMessage(this: PuppetWeb, obj: MsgRawObj): Promise<void> {
+async function onMessage(this: PuppetWeb, obj: MsgRawObj): Promise<void> {
   let m = new Message(obj)
 
   try {
@@ -269,13 +188,13 @@ async function onServerMessage(this: PuppetWeb, obj: MsgRawObj): Promise<void> {
       case MsgType.VOICE:
       case MsgType.MICROVIDEO:
       case MsgType.APP:
-        log.verbose('PuppetWebEvent', 'onServerMessage() EMOTICON/IMAGE/VIDEO/VOICE/MICROVIDEO message')
+        log.verbose('PuppetWebEvent', 'onMessage() EMOTICON/IMAGE/VIDEO/VOICE/MICROVIDEO message')
         m = new MediaMessage(obj)
         break
 
       case MsgType.TEXT:
         if (m.typeSub() === MsgType.LOCATION) {
-          log.verbose('PuppetWebEvent', 'onServerMessage() (TEXT&LOCATION) message')
+          log.verbose('PuppetWebEvent', 'onMessage() (TEXT&LOCATION) message')
           m = new MediaMessage(obj)
         }
         break
@@ -285,7 +204,7 @@ async function onServerMessage(this: PuppetWeb, obj: MsgRawObj): Promise<void> {
     this.emit('message', m)
 
   } catch (e) {
-    log.error('PuppetWebEvent', 'onServerMessage() exception: %s', e.stack)
+    log.error('PuppetWebEvent', 'onMessage() exception: %s', e.stack)
     throw e
   }
 

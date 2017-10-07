@@ -5,8 +5,8 @@ import { EventEmitter } from 'events'
 
 import { log }  from './config'
 
-export type WatchRatEvent    = 'death' | 'timeout'
-export type WatchRatListener = (timeout: number, lastFood: any) => void
+export type WatchRatEvent    = 'death' | 'feed' | 'timeout'
+export type WatchRatListener = (time: number, food: any) => void
 
 export class WatchRat extends EventEmitter {
   private timer : NodeJS.Timer | undefined | null
@@ -24,6 +24,7 @@ export class WatchRat extends EventEmitter {
   }
 
   public on(event: 'death',   listener: WatchRatListener) : this
+  public on(event: 'feed',    listener: WatchRatListener) : this
   public on(event: 'timeout', listener: WatchRatListener) : this
   public on(event: never,     listener: never)            : never
 
@@ -49,6 +50,8 @@ export class WatchRat extends EventEmitter {
       this.emit('timeout', this.timeout, this.lastFood)
       this.emit('death', this.timeout, this.lastFood)
     }, this.timeout)
+
+    this.timer.unref()  // should not block node quit
 
     this.lastFeed = Date.now()
     return this.timeout
@@ -95,6 +98,8 @@ export class WatchRat extends EventEmitter {
 
     this.lastFeed = now
     this.lastFood = food
+
+    this.emit('feed', timeLeft, food)
 
     return timeLeft
   }

@@ -13,13 +13,13 @@ export interface ProfileSchema {
 }
 
 export class Profile {
-  private obj:  ProfileSchema
-  private file: string | null
+  private obj  : ProfileSchema
+  private file : string | null
 
   constructor(
     public name: string = config.profile,
   ) {
-    log.verbose('Profile', 'constructor(%s), name')
+    log.verbose('Profile', 'constructor(%s)', name)
 
     if (!name) {
       this.file = null
@@ -28,15 +28,18 @@ export class Profile {
         ? name
         : path.join(
             process.cwd(),
-            name,
-            '.wechaty.json',
+            name + '.wechaty.json',
           )
     }
   }
 
-  public load() {
+  public load(): void {
     log.verbose('Profile', 'load() file: %s', this.file)
     if (!this.file) {
+      return
+    }
+
+    if (!fs.existsSync(this.file)) {
       return
     }
 
@@ -49,7 +52,7 @@ export class Profile {
     }
   }
 
-  public save() {
+  public save(): void {
     log.verbose('Profile', 'save() file: %s', this.file)
     if (!this.file) {
       return
@@ -75,14 +78,14 @@ export class Profile {
   public set(section: ProfileSection, data: any): void {
     log.verbose('Profile', 'set(%s, %s)', section, data)
     if (!this.obj) {
-      throw new Error('no profile initialized!')
+      return
     }
     this.obj[section] = data
   }
 
   public destroy(): void {
     log.verbose('Profile', 'destroy() file: %s', this.file)
-    if (this.file) {
+    if (this.file && fs.existsSync(this.file)) {
       fs.unlinkSync(this.file)
     }
   }

@@ -20,7 +20,15 @@
 // tslint:disable:no-shadowed-variable
 import * as test  from 'blue-tape'
 import * as sinon from 'sinon'
-const sinonTest   = require('sinon-test')(sinon)
+const sinonTest   = require('sinon-test')(sinon, {
+  useFakeTimers: {  // https://github.com/sinonjs/lolex
+    shouldAdvanceTime : true,
+    advanceTimeDelta  : 10,
+  },
+})
+
+// import { log }    from '../../src/config'
+// log.level('silly')
 
 import {
   config,
@@ -28,21 +36,26 @@ import {
   Profile,
 }                 from '../../'
 
-import PuppetWeb  from '../../src/puppet-web'
+import PuppetWeb  from '../../src/puppet-web/puppet-web'
 import Bridge     from '../../src/puppet-web/bridge'
+import Event      from '../../src/puppet-web/event'
 
-test('login/logout events', sinonTest(async (t: test.Test) => {
+test('login/logout events', sinonTest(async function (t: test.Test) {
   // sinon.stub(Bridge.prototype,    'init').resolves()
   // sinon.stub(PuppetWeb.prototype, 'quit').resolves()
 
   sinon.stub(Contact, 'findAll')
         .onFirstCall().resolves([])
         .onSecondCall().resolves([1])
-        .onThirdCall().resolves([1, 2])
-        .resolves([1, 2, 3])
+        .resolves([1, 2])
+
+  sinon.stub(Event, 'onScan') // block the scan event to prevent reset logined user
 
   sinon.stub(Bridge.prototype,    'getUserName').resolves('mockedUserName')
-  sinon.stub(PuppetWeb.prototype, 'getContact') .resolves('dummy')
+  sinon.stub(PuppetWeb.prototype, 'getContact') .resolves({
+    NickName: 'mockedNickName',
+    UserName: 'mockedUserName',
+  })
 
   try {
     const profile = new Profile()
@@ -55,18 +68,17 @@ test('login/logout events', sinonTest(async (t: test.Test) => {
     t.pass('should be inited')
     t.is(pw.logined() , false  , 'should be not logined')
 
-    // XXX find a better way to mock...
-
-    const loginPromise = new Promise((res, rej) => pw.once('login', _ => res('loginFired')))
-    pw.bridge.emit('login')
-    t.is(await loginPromise, 'loginFired', 'should fired login event')
+    const EXPECTED_CHIPER = 'loginFired'
+    const loginPromise = new Promise(r => pw.once('login', _ => r(EXPECTED_CHIPER)))
+    pw.bridge.emit('login', 'TestPuppetWeb')
+    t.is(await loginPromise, EXPECTED_CHIPER, 'should fired login event')
     t.is(pw.logined(), true  , 'should be logined')
 
     t.ok((pw.bridge.getUserName as any).called, 'bridge.getUserName should be called')
     t.ok((pw.getContact as any).called,         'pw.getContact should be called')
 
-    t.ok((Contact.findAll as any).called,      'contactFind stub should be called')
-    t.is((Contact.findAll as any).callCount, 5,    'should call stubContactFind 5 times')
+    t.ok((Contact.findAll as any).called,       'contactFind stub should be called')
+    t.is((Contact.findAll as any).callCount, 4, 'should call stubContactFind 4 times')
 
     const logoutPromise = new Promise((res, rej) => pw.once('logout', _ => res('logoutFired')))
     pw.bridge.emit('logout')

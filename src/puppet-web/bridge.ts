@@ -44,40 +44,41 @@ export interface InjectResult {
   message: string,
 }
 
+export interface BridgeOptions {
+  head?   : boolean,
+  profile : Profile,
+}
+
 export class Bridge extends EventEmitter {
   private browser : Browser
   private page    : Page
 
   constructor(
-    public profile: Profile,
+    public options = {} as BridgeOptions,
   ) {
     super()
+
     log.verbose('PuppetWebBridge', 'constructor()')
   }
 
   public async init(): Promise<void> {
     log.verbose('PuppetWebBridge', 'init()')
 
-    let browser
-    let page
-
     try {
-      browser = await this.initBrowser()
-      page    = await this.initPage(browser)
+      this.browser = await this.initBrowser()
+      this.page    = await this.initPage(this.browser)
 
-      await this.inject()
+      await this.readyAngular(this.page)
+      await this.inject(this.page)
     } catch (e) {
       log.silly('PuppetWebBridge', 'init() exception: %s', e && e.message || e)
       throw e
     }
-
-    this.browser = browser
-    this.page    = page
   }
 
   public async initBrowser(): Promise<Browser> {
     const browser = await launch({
-      headless : true,
+      headless : this.options.head ? false : true,
     })
 
     const version = await browser.version()
@@ -89,9 +90,9 @@ export class Bridge extends EventEmitter {
   public async initPage(browser: Browser): Promise<Page> {
     const page = await browser.newPage()
 
-    const cookieList = this.profile.get('cookies') as Cookie[]
+    const cookieList = this.options.profile.get('cookies') as Cookie[]
     const domain = this.cookieDomain(cookieList)
-    page.goto(domain, {
+    await page.goto(domain, {
       waitUntil: 'load',  // https://github.com/GoogleChrome/puppeteer/issues/805
     })
 
@@ -113,11 +114,24 @@ export class Bridge extends EventEmitter {
     return page
   }
 
-  public async inject(): Promise<any> {
+  public async readyAngular(page: Page): Promise<void> {
+    log.verbose('PuppetWebBridge', 'readyAngular()')
+    const TIMEOUT = 30 * 1000
+    await new Promise<void>(async (resolve, reject) => {
+      const timer = setTimeout(reject, TIMEOUT)
+      await page.waitForFunction(`typeof window.angular !== 'undefined'`)
+
+      clearTimeout(timer)
+      log.verbose('PuppetWebBridge', 'readyAngular() Promise.resolve()')
+      resolve()
+    })
+  }
+
+  public async inject(page: Page): Promise<any> {
     log.verbose('PuppetWebBridge', 'inject()')
 
     try {
-      let retObj = await this.page.injectFile(path.join(
+      let retObj = await page.injectFile(path.join(
         __dirname,
         'wechaty-bro.js',
       )) as any as InjectResult
@@ -161,17 +175,20 @@ export class Bridge extends EventEmitter {
     })
   }
 
-  public quit(): Promise<void> {
+  public async quit(): Promise<void> {
     log.verbose('PuppetWebBridge', 'quit()')
-    return this.proxyWechaty('quit').then(async () => {
+    try {
+      await this.proxyWechaty('quit')
+      log.silly('PuppetWebBridge', 'quit() proxyWechaty(quit)-ed')
       await this.page.close()
+      log.silly('PuppetWebBridge', 'quit() page.close()-ed')
       await this.browser.close()
-      log.silly('PuppetWebBridge', 'quit() page&browser closed.')
-    }).catch(e => {
+      log.silly('PuppetWebBridge', 'quit() browser.close()-ed')
+    } catch (e) {
       log.warn('PuppetWebBridge', 'quit() exception: %s', e && e.message || e)
       // throw e
       /* fail safe */
-    })
+    }
 
   }
 
@@ -371,7 +388,7 @@ export class Bridge extends EventEmitter {
     }
   }
 
-  public getContact(id: string): Promise<string> {
+  public getContact(id: string): Promise<object> {
     if (id !== id) { // NaN
       const err = new Error('NaN! where does it come from?')
       log.error('PuppetWebBridge', 'getContact(NaN): %s', err)
@@ -484,33 +501,13 @@ export class Bridge extends EventEmitter {
   /**
    * Proxy Call to Wechaty in Bridge
    */
-  public async proxyWechaty(wechatyFunc, ...args): Promise<any> {
-    log.verbose('PuppetWebBridge', 'proxyWechaty(%s, %s)',
+  public async proxyWechaty(wechatyFunc: string, ...args: any[]): Promise<any> {
+    log.verbose('PuppetWebBridge', 'proxyWechaty(%s%s)',
                                     wechatyFunc,
-                                    args
-                                    ? args.join(', ')
+                                    args.length
+                                    ? ' , ' + args.join(', ')
                                     : '',
               )
-
-    const argsEncoded = new Buffer(
-      encodeURIComponent(
-        JSON.stringify(args),
-      ),
-    ).toString('base64')
-    // see: http://blog.sqrtthree.com/2015/08/29/utf8-to-b64/
-    const argsDecoded = `JSON.parse(decodeURIComponent(window.atob('${argsEncoded}')))`
-
-    const wechatyScript = `
-      return WechatyBro
-              .${wechatyFunc}
-              .apply(
-                undefined,
-                ${argsDecoded},
-              )
-    `.replace(/[\n\s]+/, ' ')
-    // log.silly('PuppetWebBridge', 'proxyWechaty(%s, ...args) %s', wechatyFunc, wechatyScript)
-    // console.log('proxyWechaty wechatyFunc args[0]: ')
-    // console.log(args[0])
 
     try {
       const noWechaty = await this.page.evaluate('typeof WechatyBro === "undefined"')
@@ -523,6 +520,26 @@ export class Bridge extends EventEmitter {
       log.warn('PuppetWebBridge', 'proxyWechaty() noWechaty exception: %s', e.stack)
       throw e
     }
+
+    const argsEncoded = new Buffer(
+      encodeURIComponent(
+        JSON.stringify(args),
+      ),
+    ).toString('base64')
+    // see: http://blog.sqrtthree.com/2015/08/29/utf8-to-b64/
+    const argsDecoded = `JSON.parse(decodeURIComponent(window.atob('${argsEncoded}')))`
+
+    const wechatyScript = `
+      WechatyBro
+        .${wechatyFunc}
+        .apply(
+          undefined,
+          ${argsDecoded},
+        )
+    `.replace(/[\n\s]+/, ' ')
+    // log.silly('PuppetWebBridge', 'proxyWechaty(%s, ...args) %s', wechatyFunc, wechatyScript)
+    // console.log('proxyWechaty wechatyFunc args[0]: ')
+    // console.log(args[0])
 
     try {
       const ret = await this.page.evaluate(wechatyScript)
@@ -603,20 +620,21 @@ export class Bridge extends EventEmitter {
     return hostname
   }
 
-  public cookies(cookieList: Cookie[]): void
-  public cookies(): Cookie[]
+  public async cookies(cookieList: Cookie[]): Promise<void>
+  public async cookies(): Promise<Cookie[]>
 
-  public cookies(cookieList?: Cookie[]): void | Cookie[] {
+  public async cookies(cookieList?: Cookie[]): Promise<void | Cookie[]> {
     if (cookieList) {
-      this.page.setCookie(...cookieList)
-      .catch(err => {
-        log.error('PuppetWebBridge', 'cookies(%s) reject: %s', cookieList, err)
-        this.emit('error', err)
-      })
+      try {
+        await this.page.setCookie(...cookieList)
+      } catch (e) {
+        log.error('PuppetWebBridge', 'cookies(%s) reject: %s', cookieList, e)
+        this.emit('error', e)
+      }
       return
     } else {
       // FIXME: puppeteer typing bug
-      cookieList = this.page.cookies() as any as Cookie[]
+      cookieList = await this.page.cookies() as any as Cookie[]
       return cookieList
     }
   }
@@ -624,13 +642,13 @@ export class Bridge extends EventEmitter {
   /**
    * name
    */
-  public cookieDomain(cookieList: Cookie[]): string {
+  public cookieDomain(cookieList?: Cookie[]): string {
     log.verbose('PuppetWebBridge', 'cookieDomain(%s)', cookieList)
 
-    const DEFAULT_HOSTNAME = 'wx.qq.com'
+    const DEFAULT_HOSTNAME = 'https://wx.qq.com'
 
     if (!cookieList || cookieList.length === 0) {
-      log.silly('PuppetWebBridge', 'cookieDomain() no cookie, return default hostname')
+      log.silly('PuppetWebBridge', 'cookieDomain() no cookie, return default %s', DEFAULT_HOSTNAME)
       return DEFAULT_HOSTNAME
     }
 

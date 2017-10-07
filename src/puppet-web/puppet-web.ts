@@ -76,7 +76,7 @@ export class PuppetWeb extends Puppet {
   public toString() { return `Class PuppetWeb({profile:${this.options.profile}})` }
 
   public async init(): Promise<void> {
-    log.verbose('PuppetWeb', `init() with profile:${this.options.profile}`)
+    log.verbose('PuppetWeb', `init() with profile:${this.options.profile.name}`)
 
     this.state.target('live')
     this.state.current('live', false)
@@ -189,7 +189,11 @@ export class PuppetWeb extends Puppet {
   public async initBridge(profile: Profile): Promise<Bridge> {
     log.verbose('PuppetWeb', 'initBridge()')
 
-    const bridge = new Bridge(profile)
+    const head = true
+    const bridge = new Bridge({
+      head,
+      profile,
+    })
 
     if (this.state.target() === 'dead') {
       const e = new Error('initBridge() found targetState != live, no init anymore')
@@ -208,18 +212,17 @@ export class PuppetWeb extends Puppet {
         this.emit('error', error)
       }
       */
-
-      Raven.captureException(e)
       log.error('PuppetWeb', 'initBridge() exception: %s', e.message)
+      Raven.captureException(e)
       throw e
     }
 
-    this.bridge.on('ding'     , Event.onServerDing.bind(this))
-    this.bridge.on('log'      , Event.onServerLog.bind(this))
-    this.bridge.on('login'    , Event.onServerLogin.bind(this))
-    this.bridge.on('logout'   , Event.onServerLogout.bind(this))
-    this.bridge.on('message'  , Event.onServerMessage.bind(this))
-    this.bridge.on('scan'     , Event.onServerScan.bind(this))
+    bridge.on('ding'     , Event.onDing.bind(this))
+    bridge.on('log'      , Event.onLog.bind(this))
+    bridge.on('login'    , Event.onLogin.bind(this))
+    bridge.on('logout'   , Event.onLogout.bind(this))
+    bridge.on('message'  , Event.onMessage.bind(this))
+    bridge.on('scan'     , Event.onScan.bind(this))
 
     return bridge
   }
@@ -680,7 +683,7 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public async getContact(id: string): Promise<any> {
+  public async getContact(id: string): Promise<object> {
     try {
       return await this.bridge.getContact(id)
     } catch (e) {
@@ -903,12 +906,12 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public cookies(): Cookie[] {
-    return this.bridge.cookies()
+  public async cookies(): Promise<Cookie[]> {
+    return await this.bridge.cookies()
   }
 
-  public saveCookie(): void {
-    const cookieList = this.bridge.cookies()
+  public async saveCookie(): Promise<void> {
+    const cookieList = await this.bridge.cookies()
     this.options.profile.set('cookies', cookieList)
     this.options.profile.save()
   }

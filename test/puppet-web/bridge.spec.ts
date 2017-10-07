@@ -1,3 +1,5 @@
+#!/usr/bin/env ts-node
+
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
@@ -19,6 +21,9 @@
 // tslint:disable:no-shadowed-variable
 import * as test  from 'blue-tape'
 // import * as sinon from 'sinon'
+
+import { log }  from '../../src/config'
+log.level('silly')
 
 import Profile  from '../../src/profile'
 
@@ -64,9 +69,12 @@ test('retryPromise()', async t => {
   t.true(thenSpy.withArgs(EXPECTED_RESOLVE).calledOnce, 'should got EXPECTED_RESOLVE when wait enough')
 })
 
-test('WechatyBro.ding()', async t => {
+test.only('WechatyBro.ding()', async t => {
   const profile = new Profile(Math.random().toString(36).substr(2, 5))
-  const bridge = new Bridge(profile)
+  const bridge = new Bridge({
+    head: true,
+    profile,
+  })
   t.ok(bridge, 'should instanciated a bridge with mocked puppet')
 
   try {
@@ -79,15 +87,11 @@ test('WechatyBro.ding()', async t => {
     const retCode = await bridge.proxyWechaty('isLogin')
     t.is(typeof retCode, 'boolean', 'should got a boolean after call proxyWechaty(isLogin)')
 
+    await bridge.quit()
+    t.pass('b.quit()')
+
+    profile.destroy()
   } catch (err) {
     t.fail('exception: ' + err.message)
-  } finally {
-    try {
-      await bridge.quit()
-      profile.destroy()
-      t.pass('b.quit()')
-    } catch (e) {
-      t.fail(e)
-    }
   }
 })

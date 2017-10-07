@@ -886,4 +886,4 @@
   // }
   return retObj
 
-}.apply(window, arguments))
+}.apply(window))
