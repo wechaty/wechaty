@@ -22,7 +22,7 @@
     "check-node-version": "check-node-version --node \">= 6.9\"",
     "lint": "npm run clean && npm run check-node-version && npm run lint:es && npm run lint:ts",
     "lint:es": "eslint \"{bin,example,src,test}/**/*.js\" --ignore-pattern=\"test/fixture/**\"",
-    "lint:ts": "npm run clean && tslint --version && tslint --project tsconfig.json --type-check \"{bin,example,src,test}/**/*.ts\" --exclude \"test/fixture/**\" --exclude \"dist/\" && tsc --noEmit",
+    "lint:ts": "npm run clean && echo TSLint v`tslint --version` && tslint --project tsconfig.json --type-check \"{bin,example,src,test}/**/*.ts\" --exclude \"test/fixture/**\" --exclude \"dist/\" && tsc --noEmit",
     "lint:sh": "bash -n bin/*.sh",
     "sloc": "sloc bin example src test index.ts --details --format cli-table --keys total,source,comment && sloc bin example src test index.ts",
     "pretest": "npm run clean && npm run lint",
