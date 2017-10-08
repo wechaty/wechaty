@@ -109,7 +109,7 @@ export class Bridge extends EventEmitter {
     if (cookieList && cookieList.length) {
       await page.setCookie(...cookieList)
       log.silly('PuppetWebBridge', 'initPage() page.setCookie() %s cookies set back', cookieList.length)
-      await page.reload()
+      await page.reload() // reload page to make effect of the new cookie.
     }
 
     await page.exposeFunction('emit', this.emit.bind(this))
@@ -118,11 +118,14 @@ export class Bridge extends EventEmitter {
       log.warn('PuppetWebBridge', 'init() page.on(dialog) type:%s message:%s',
                                   dialog.type, dialog.message())
       try {
-        await dialog.dismiss()
+        // XXX: Which ONE is better?
+        await dialog.accept()
+        // await dialog.dismiss()
       } catch (e) {
         log.error('PuppetWebBridge', 'init() dialog.dismiss() reject: %s', e)
       }
-      this.emit('error', new Error(dialog.message()))
+
+      this.emit('error', new Error(`${dialog.type}(${dialog.message()})`))
     }
     page.on('dialog', onDialog)
 
