@@ -1,6 +1,3 @@
-// https://github.com/andrew-filonenko/ya-watchdog
-// https://en.wikipedia.org/wiki/Watchdog_timer
-
 import { EventEmitter } from 'events'
 
 import { log }  from './config'
