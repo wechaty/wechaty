@@ -48,7 +48,7 @@ test('delay', async function (t) {
 test('throttle', async function (t) {
   const spy = sinon.spy()
   const THROTTLE_TIME = 30
-  const GENERATED_NUM = 10
+  const GENERATED_NUM = 7
   const GENERATED_INTERVAL = 10
   const throttleQueue = new RxQueue('throttle', THROTTLE_TIME)
 
@@ -74,7 +74,7 @@ test('throttle', async function (t) {
 
   // TODO: use fake timer / TestScheduler to do this
   const duration = Math.round((Date.now() - startTime) / 100) * 100
-  const EXPECT_DURATION = GENERATED_NUM * GENERATED_INTERVAL
+  const EXPECT_DURATION = Math.round(GENERATED_NUM * GENERATED_INTERVAL / 100) * 100
   t.equal(duration, EXPECT_DURATION, 'should cost time as expectation')
 
   const EXPECTED_O_NUM = Math.ceil((GENERATED_NUM * GENERATED_INTERVAL) / THROTTLE_TIME)
@@ -82,7 +82,6 @@ test('throttle', async function (t) {
   t.deepEqual(spy.args[0][0], 0, 'should received 0')
   t.deepEqual(spy.args[1][0], 3, 'should received 3')
   t.deepEqual(spy.args[2][0], 6, 'should received 6')
-  t.deepEqual(spy.args[3][0], 9, 'should received 9')
 })
 
 test('debounce', async function (t) {
