@@ -9,27 +9,30 @@ jobs:
       - checkout
       - setup_remote_docker
       - run:
-          name: info
+          name: Environment Information
           command: |
             docker --version
             docker info
             whoami
+            pwd
+            ls -lr
       - run:
-          name: setup
+          name: Prepare Build
           command: |
             apk update && apk add curl curl-dev bash
             curl -sSL -o /tmp/bats_v0.4.0.tar.gz https://github.com/sstephenson/bats/archive/v0.4.0.tar.gz
             tar -xf /tmp/bats_v0.4.0.tar.gz
             bats-0.4.0/install.sh /usr/local
       - run:
-          name: build
+          name: Build Wechaty
           command: |
             docker run -ti -v "$(pwd)":/mnt nlknguyen/alpine-shellcheck bin/*.sh
             ./script/docker.sh build
       - run:
-          name: test
+          name: Testing
           command: |
             ./script/docker.sh test
       - deploy:
+          name: Deploy Wechaty Image to Docker Hub
           command: |
             curl -X POST -d '{"from":"circleci"}' "$DOCKER_REBUILD_URL"
