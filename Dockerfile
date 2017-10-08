@@ -1,61 +1,71 @@
-#
-# Wechaty Docker
-# https://github.com/chatie/wechaty
-#
-# FROM alpine
-#
-# Docker image for Alpine Linux with latest ShellCheck, a static analysis tool for shell scripts.
-# https://hub.docker.com/r/nlknguyen/alpine-shellcheck/
-# FROM nlknguyen/alpine-shellcheck
-FROM mhart/alpine-node:7
+FROM node:7
 LABEL maintainer="Huan LI <zixia@zixia.net>"
 
-RUN  apk update && apk upgrade \
-  && apk add \
-      bash \
-      ca-certificates \
-      chromium-chromedriver \
-      chromium \
-      coreutils \
-      curl \
-      ffmpeg \
-      figlet \
-      jq \
-      moreutils \
-      ttf-freefont \
-      udev \
-      vim \
-      xauth \
-      xvfb \
-  && rm -rf /tmp/* /var/cache/apk/*
+ENV NPM_CONFIG_LOGLEVEL warn
+ENV DEBIAN_FRONTEND     noninteractive
 
-RUN mkdir /wechaty
+# Installing the 'apt-utils' package gets rid of the 'debconf: delaying package configuration, since apt-utils is not installed'
+# error message when installing any other package with the apt-get package manager.
+# https://peteris.rocks/blog/quiet-and-unattended-installation-with-apt-get/
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    apt-utils \
+    bash \
+    ca-certificates \
+    curl \
+    coreutils \
+    figlet \
+    jq \
+    libav-tools \
+    moreutils \
+    sudo \
+    ttf-freefont \
+    vim \
+  && rm -rf /tmp/* /var/lib/apt/lists/*
+
+# https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md
+# https://github.com/ebidel/try-puppeteer/blob/master/backend/Dockerfile
+# Install latest chrome dev package.
+# Note: this also installs the necessary libs so we don't need the previous RUN command.
+RUN apt-get update && apt-get install -y wget --no-install-recommends \
+    && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
+    && apt-get update \
+    && apt-get install -y google-chrome-unstable \
+      --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get purge --auto-remove \
+    && rm -rf /src/*.deb
+
+# Add chatie user.
+RUN groupadd -r bot && useradd -r -g bot -d /bot -m -G audio,video,sudo bot \
+    && mkdir -p /bot/Downloads \
+    && chown -R bot:bot /bot \
+    && echo "bot   ALL=NOPASSWD:ALL" >> /etc/sudoers
+
+RUN mkdir /wechaty \
+    && chown -R bot:bot /wechaty \
+    && mkdir /node_modules
+
 WORKDIR /wechaty
 
-# npm `chromedriver` not support alpine linux
-# https://github.com/giggio/node-chromedriver/issues/70
+# Run user as non privileged.
+USER bot
+
 COPY package.json .
-RUN  sed -i '/chromedriver/d' package.json \
-  && npm --silent --progress=false install > /dev/null \
-  && rm -fr /tmp/* ~/.npm
+RUN  npm install \
+  && sudo rm -fr /tmp/* ~/.npm
+
+COPY . .
+RUN  npm run dist
 
 # Loading from node_modules Folders: https://nodejs.org/api/modules.html
 # If it is not found there, then it moves to the parent directory, and so on, until the root of the file system is reached.
-COPY . .
-RUN  sed -i '/chromedriver/d' package.json \
-  && npm run dist \
-  && npm --silent --progress=false link \
-  \
-  && mkdir /bot \
-  \
-  && (   mkdir /node_modules && cd /node_modules \
-      && ln -s /wechaty . \
-      && ln -s /wechaty/node_modules/* . \
-    ) \
-  && ln -s /wechaty/tsconfig.json / \
-  && echo "export * from 'wechaty'" > /index.ts \
-  \
-  && echo 'Linked wechaty to global'
+RUN sudo npm link \
+    && sudo ln -s /wechaty /node_modules/wechaty \
+    && sudo ln -s /wechaty/node_modules/* /node_modules/ \
+    && sudo ln -s /wechaty/tsconfig.json / \
+    && echo "export * from 'wechaty'" | sudo tee /index.ts \
+    && echo 'Linked wechaty to global'
 
 VOLUME [ "/bot" ]
 
@@ -66,17 +76,17 @@ CMD [ "" ]
 # https://docs.docker.com/docker-cloud/builds/advanced/
 # http://label-schema.org/rc1/
 #
-LABEL org.label-schema.license="ISC" \
+LABEL org.label-schema.license="Apache-2.0" \
       org.label-schema.build-date="$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
       org.label-schema.version="$DOCKER_TAG" \
       org.label-schema.schema-version="$(wechaty-version)" \
       org.label-schema.name="Wechaty" \
       org.label-schema.description="Wechat for Bot" \
-      org.label-schema.usage="https://github.com/wechaty/wechaty/wiki/Docker" \
+      org.label-schema.usage="https://github.com/chatie/wechaty/wiki/Docker" \
       org.label-schema.url="https://www.chatie.io" \
       org.label-schema.vendor="AKA Mobi" \
       org.label-schema.vcs-ref="$SOURCE_COMMIT" \
-      org.label-schema.vcs-url="https://github.com/wechaty/wechaty" \
+      org.label-schema.vcs-url="https://github.com/chatie/wechaty" \
       org.label-schema.docker.cmd="docker run -ti --rm zixia/wechaty <code.js>" \
       org.label-schema.docker.cmd.test="docker run -ti --rm zixia/wechaty test" \
       org.label-schema.docker.cmd.help="docker run -ti --rm zixia/wechaty help" \

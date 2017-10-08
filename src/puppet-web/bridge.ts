@@ -79,6 +79,11 @@ export class Bridge extends EventEmitter {
   public async initBrowser(): Promise<Browser> {
     const browser = await launch({
       headless : this.options.head ? false : true,
+      args: [
+        '--disable-gpu',
+        '--disable-setuid-sandbox',
+        '--no-sandbox',
+      ],
     })
 
     const version = await browser.version()

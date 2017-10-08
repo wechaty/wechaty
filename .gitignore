@@ -66,3 +66,4 @@ tags
 /wechaty-*.*.*.tgz
 *.bak
 package-lock.json
+.babel.json

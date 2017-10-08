@@ -82,7 +82,7 @@
     }
   },
   "engines": {
-    "node": ">= 6.9.0"
+    "node": ">= 6"
   },
   "dependencies": {
     "@types/node": "8.0.32",
@@ -115,7 +115,7 @@
     "apiai": "4.0.3",
     "babel-cli": "6.26.0",
     "babel-eslint": "8.0.1",
-    "babel-preset-es2015": "6.24.1",
+    "babel-preset-env": "^1.6.0",
     "blue-tape": "^1.0.0",
     "body-parser": "1.18.2",
     "check-node-version": "2.1.0",

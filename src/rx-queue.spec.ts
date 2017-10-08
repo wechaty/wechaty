@@ -34,7 +34,8 @@ test('delay', async function (t) {
   delayQueue.emit('i', END_CHIPER)
   await wait
 
-  const duration = Math.floor((Date.now() - startTime) / 10) * 10
+  // TODO: use fake timer / TestScheduler to do this
+  const duration = Math.round((Date.now() - startTime) / 100) * 100
   const EXPECT_DURATION = DELAY_TIME * 2
   t.equal(duration, EXPECT_DURATION, 'should delayed all message')
 
@@ -71,7 +72,8 @@ test('throttle', async function (t) {
   })
   await wait
 
-  const duration = Math.floor((Date.now() - startTime) / 10) * 10
+  // TODO: use fake timer / TestScheduler to do this
+  const duration = Math.round((Date.now() - startTime) / 100) * 100
   const EXPECT_DURATION = GENERATED_NUM * GENERATED_INTERVAL
   t.equal(duration, EXPECT_DURATION, 'should cost time as expectation')
 
@@ -110,8 +112,9 @@ test('debounce', async function (t) {
   })
   await wait
 
-  const duration = Math.floor((Date.now() - startTime) / 10) * 10
-  const EXPECT_DURATION = GENERATED_NUM * GENERATED_INTERVAL + DEBOUNCE_TIME
+  // TODO: use fake timer / TestScheduler to do this
+  const duration        = Math.round((Date.now() - startTime) / 100) * 100
+  const EXPECT_DURATION = Math.round((GENERATED_NUM * GENERATED_INTERVAL + DEBOUNCE_TIME) / 100) * 100
   t.equal(duration, EXPECT_DURATION, 'should cost time as expectation')
 
   const EXPECTED_O_NUM = 1

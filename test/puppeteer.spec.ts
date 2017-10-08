@@ -28,9 +28,18 @@ import {
   launch,
 }                 from 'puppeteer'
 
+const PUPPETEER_LAUNCH_OPTIONS = {
+  headless: true,
+  args: [
+    '--disable-gpu',
+    '--disable-setuid-sandbox',
+    '--no-sandbox',
+  ],
+}
+
 test('Puppeteer smoke testing', async t => {
   try {
-    const browser = await launch()
+    const browser = await launch(PUPPETEER_LAUNCH_OPTIONS)
     t.ok(browser, 'Browser instnace')
 
     const version = await browser.version()
@@ -52,7 +61,7 @@ test('Puppeteer smoke testing', async t => {
 
 test('evaluate() a function that returns a Promise', async t => {
   try {
-    const browser = await launch()
+    const browser = await launch(PUPPETEER_LAUNCH_OPTIONS)
     const page    = await browser.newPage()
 
     const result = await page.evaluate(() => Promise.resolve(42))
@@ -72,7 +81,7 @@ test('injectFile() a file and get the returns value', async t => {
   }
 
   try {
-    const browser = await launch()
+    const browser = await launch(PUPPETEER_LAUNCH_OPTIONS)
     const page = await browser.newPage()
 
     const result = await page.injectFile(path.join(
@@ -100,7 +109,7 @@ test('page.on(console)', async t => {
   const EXPECTED_ARG2 = 2
   const EXPECTED_ARG3 = { arg3: 3 }
 
-  const browser = await launch()
+  const browser = await launch(PUPPETEER_LAUNCH_OPTIONS)
   const page    = await browser.newPage()
 
   const spy = sinon.spy()
@@ -123,7 +132,7 @@ test('page.on(console)', async t => {
 })
 
 test('page.exposeFunction()', async t => {
-  const browser = await launch()
+  const browser = await launch(PUPPETEER_LAUNCH_OPTIONS)
   const page    = await browser.newPage()
 
   const spy = sinon.spy()
@@ -141,13 +150,7 @@ test('other demos', async t => {
   const EXPECTED_URL = 'https://www.google.com/'
 
   try {
-    const browser = await launch({
-      ignoreHTTPSErrors: true,
-      headless: false,
-      args: [
-        '--allow-insecure-localhost',
-      ],
-    })
+    const browser = await launch(PUPPETEER_LAUNCH_OPTIONS)
 
     const version = await browser.version()
     t.ok(version, 'should get version')
