@@ -188,9 +188,9 @@ export class Bridge extends EventEmitter {
     try {
       await this.proxyWechaty('quit')
       log.silly('PuppetWebBridge', 'quit() proxyWechaty(quit)-ed')
-      await this.page.close()
+      await (this.page.close().catch(() => { /* fail safe */ }))
       log.silly('PuppetWebBridge', 'quit() page.close()-ed')
-      await this.browser.close()
+      await (this.browser.close().catch(() => { /* fail safe */ }))
       log.silly('PuppetWebBridge', 'quit() browser.close()-ed')
     } catch (e) {
       log.warn('PuppetWebBridge', 'quit() exception: %s', e && e.message || e)

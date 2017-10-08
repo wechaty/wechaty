@@ -703,9 +703,9 @@ export class Contact implements Sayable {
   public weixin(): string | null {
     const wxId = this.obj && this.obj.weixin || null
     if (!wxId) {
-      log.info('Contact', `weixin() is not able to always work, it's limited by Tencent API`)
-      log.info('Contact', 'weixin() If you want to track a contact between sessions, see FAQ at')
-      log.info('Contact', 'https://github.com/Chatie/wechaty/wiki/FAQ#1-how-to-get-the-permanent-id-for-a-contact')
+      log.verbose('Contact', `weixin() is not able to always work, it's limited by Tencent API`)
+      log.verbose('Contact', 'weixin() If you want to track a contact between sessions, see FAQ at')
+      log.verbose('Contact', 'https://github.com/Chatie/wechaty/wiki/FAQ#1-how-to-get-the-permanent-id-for-a-contact')
     }
     return wxId
   }

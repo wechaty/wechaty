@@ -734,6 +734,13 @@ export class PuppetWeb extends Puppet {
    * logout from browser, then server will emit `logout` event
    */
   public async logout(): Promise<void> {
+    log.verbose('PuppetWeb', 'logout()')
+
+    const data = this.user || this.userId || ''
+    this.userId = this.user = null
+
+    this.emit('logout', data)
+
     try {
       await this.bridge.logout()
     } catch (e) {

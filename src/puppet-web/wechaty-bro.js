@@ -205,7 +205,7 @@
     // 200: 登录成功
     var code  = +WechatyBro.glue.loginScope.code
     var url   =  WechatyBro.glue.loginScope.qrcodeUrl
-    log('checkScan() code:' + code + ' url:' + url + ' scanCode:' + WechatyBro.vars.scanCode)
+    // log('checkScan() code:' + code + ' url:' + url + ' scanCode:' + WechatyBro.vars.scanCode)
 
     if (url && code !== WechatyBro.vars.scanCode) {
 
@@ -523,6 +523,9 @@
   }
 
   function getUserName() {
+    if (!WechatyBro.isLogin()) {
+      return null
+    }
     var accountFactory = WechatyBro.glue.accountFactory
     return accountFactory
             ? accountFactory.getUserName()
