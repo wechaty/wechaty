@@ -110,11 +110,14 @@ export class Bridge extends EventEmitter {
 
     await page.exposeFunction('emit', this.emit.bind(this))
 
-    const onDialog = (dialog: Dialog) => {
+    const onDialog = async (dialog: Dialog) => {
       log.warn('PuppetWebBridge', 'init() page.on(dialog) type:%s message:%s',
-      dialog.type, dialog.message())
-      dialog.dismiss()
-      .catch(e => log.error('PuppetWebBridge', 'init() dialog.dismiss() reject: %s', e))
+                                  dialog.type, dialog.message())
+      try {
+        await dialog.dismiss()
+      } catch (e) {
+        log.error('PuppetWebBridge', 'init() dialog.dismiss() reject: %s', e)
+      }
       this.emit('error', new Error(dialog.message()))
     }
     page.on('dialog', onDialog)
@@ -125,7 +128,7 @@ export class Bridge extends EventEmitter {
   public async readyAngular(page: Page): Promise<void> {
     log.verbose('PuppetWebBridge', 'readyAngular()')
     const TIMEOUT = 30 * 1000
-    return new Promise<void>(async (resolve, reject) => {
+    await new Promise<void>(async (resolve, reject) => {
       const timer = setTimeout(reject, TIMEOUT)
       await page.waitForFunction(`typeof window.angular !== 'undefined'`)
 
@@ -138,10 +141,11 @@ export class Bridge extends EventEmitter {
   public async inject(page: Page): Promise<void> {
     log.verbose('PuppetWebBridge', 'inject()')
 
+    const WECHATY_BRO_JS_FILE = 'wechaty-bro.js'
     try {
       let retObj = await page.injectFile(path.join(
         __dirname,
-        'wechaty-bro.js',
+        WECHATY_BRO_JS_FILE,
       )) as any as InjectResult
 
       if (retObj && /^(2|3)/.test(retObj.code.toString())) {

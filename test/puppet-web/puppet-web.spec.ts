@@ -41,8 +41,6 @@ import Bridge     from '../../src/puppet-web/bridge'
 import Event      from '../../src/puppet-web/event'
 
 test('login/logout events', sinonTest(async function (t: test.Test) {
-  // sinon.stub(Bridge.prototype,    'init').resolves()
-  // sinon.stub(PuppetWeb.prototype, 'quit').resolves()
 
   sinon.stub(Contact, 'findAll')
         .onFirstCall().resolves([])
@@ -59,7 +57,7 @@ test('login/logout events', sinonTest(async function (t: test.Test) {
 
   try {
     const profile = new Profile()
-    const pw = new PuppetWeb({ profile })
+    const pw      = new PuppetWeb({ profile })
     t.ok(pw, 'should instantiated a PuppetWeb')
 
     config.puppetInstance(pw)
