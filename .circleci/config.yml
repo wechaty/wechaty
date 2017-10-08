@@ -18,7 +18,7 @@ jobs:
       - run:
           name: setup
           command: |
-            apk update && apk add -silent curl curl-dev bash
+            apk update && apk add curl curl-dev bash
             curl -sSL -o /tmp/bats_v0.4.0.tar.gz https://github.com/sstephenson/bats/archive/v0.4.0.tar.gz
             tar -xf /tmp/bats_v0.4.0.tar.gz
             bats-0.4.0/install.sh /usr/local
