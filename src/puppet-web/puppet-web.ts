@@ -17,6 +17,7 @@
  *
  */
 import {
+  config,
   log,
   Raven,
 }                   from '../config'
@@ -91,13 +92,6 @@ export class PuppetWeb extends Puppet {
       await this.initWatchdogForPuppet()
       await this.initWatchdogForScan()
 
-      const throttleQueue = new RxQueue('throttle', 5 * 60 * 1000)
-      this.on('heartbeat', data => throttleQueue.emit('i', data))
-      throttleQueue.on('o', async () => {
-        log.verbose('Wechaty', 'init() throttleQueue.on(o)')
-        await this.saveCookie()
-      })
-
       this.bridge = await this.initBridge(this.options.profile)
       log.verbose('PuppetWeb', 'initBridge() done')
 
@@ -117,6 +111,13 @@ export class PuppetWeb extends Puppet {
         timeout: 2 * 60 * 1000, // 2 mins for first login
       }
       this.emit('watchdog', food)
+
+      const throttleQueue = new RxQueue('throttle', 5 * 60 * 1000)
+      this.on('heartbeat', data => throttleQueue.emit('i', data))
+      throttleQueue.on('o', async () => {
+        log.verbose('Wechaty', 'init() throttleQueue.on(o)')
+        await this.saveCookie()
+      })
 
       log.verbose('PuppetWeb', 'init() done')
       return
@@ -238,7 +239,7 @@ export class PuppetWeb extends Puppet {
       throw e
     }
 
-    const head = false
+    const head = config.head
     // we have to set this.bridge right now,
     // because the Event.onXXX might arrive while we are initializing.
     this.bridge = new Bridge({

@@ -186,7 +186,7 @@
   }
 
   function checkScan() {
-    log('checkScan()')
+    // log('checkScan()')
     if (isLogin()) {
       log('checkScan() - already login, no more check, and return(only)') //but I will emit a login event')
       // login('checkScan found already login')

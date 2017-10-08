@@ -87,6 +87,7 @@ export type PuppetName = 'web'
 
 export interface ConfigSetting {
 
+  DEFAULT_HEAD: number
   DEFAULT_PUPPET: PuppetName
   DEFAULT_APIHOST: string
   DEFAULT_PROFILE: string
@@ -97,6 +98,7 @@ export interface ConfigSetting {
   token: string
   debug: boolean
 
+  head: boolean
   puppet: PuppetName
 
   apihost: string
@@ -123,9 +125,9 @@ export const config: ConfigSetting = require('../package.json').wechaty
  * 1. ENVIRONMENT VARIABLES + PACKAGES.JSON (default)
  */
 Object.assign(config, {
-  apihost:    process.env['WECHATY_APIHOST']   || config.DEFAULT_APIHOST,
-  // head:       process.env['WECHATY_HEAD']      || config.DEFAULT_HEAD,
-  puppet:     process.env['WECHATY_PUPPET']    || config.DEFAULT_PUPPET,
+  apihost:    process.env['WECHATY_APIHOST']    || config.DEFAULT_APIHOST,
+  head:       ('WECHATY_HEAD' in process.env) ? (!!process.env['WECHATY_HEAD']) : (!!(config.DEFAULT_HEAD)),
+  puppet:     process.env['WECHATY_PUPPET']     || config.DEFAULT_PUPPET,
   validApiHost,
 })
 

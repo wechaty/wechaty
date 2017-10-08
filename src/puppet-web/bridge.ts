@@ -96,6 +96,8 @@ export class Bridge extends EventEmitter {
   }
 
   public async initPage(browser: Browser): Promise<Page> {
+    log.verbose('PuppetWebBridge', 'initPage()')
+
     const page = await browser.newPage()
 
     const cookieList = this.options.profile.get('cookies') as Cookie[]
@@ -106,6 +108,7 @@ export class Bridge extends EventEmitter {
 
     if (cookieList && cookieList.length) {
       await page.setCookie(...cookieList)
+      log.silly('PuppetWebBridge', 'initPage() page.setCookie() %s cookies set back', cookieList.length)
     }
 
     await page.exposeFunction('emit', this.emit.bind(this))
