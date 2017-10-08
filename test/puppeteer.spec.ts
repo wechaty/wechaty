@@ -147,7 +147,7 @@ test('page.exposeFunction()', async t => {
 })
 
 test('other demos', async t => {
-  const EXPECTED_URL = 'https://www.google.com/'
+  const EXPECTED_URL = 'https://www.zixia.net/'
 
   try {
     const browser = await launch(PUPPETEER_LAUNCH_OPTIONS)
@@ -226,7 +226,8 @@ test('other demos', async t => {
 
     t.equal(await page.evaluate('1 + 2'), 3, 'should evaluated 1 + 2 = 3')
 
-    t.equal(await page.url(), EXPECTED_URL, 'should get the url right')
+    const url = await page.url()
+    t.equal(url, EXPECTED_URL, 'should get the url right')
     // await new Promise(r => setTimeout(r, 3000))
 
     await page.close()
