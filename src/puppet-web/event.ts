@@ -81,7 +81,7 @@ async function onScan(this: PuppetWeb, data: ScanInfo) {
 }
 
 function onLog(data: any): void {
-  log.verbose('PuppetWebEvent', 'onLog(%s)', data)
+  log.silly('PuppetWebEvent', 'onLog(%s)', data)
 }
 
 async function onLogin(this: PuppetWeb, memo: string, attempt = 0): Promise<void> {

@@ -62,6 +62,7 @@
     hookEvents()
     hookRecalledMsgProcess()
 
+    log('init() scanCode: ' + WechatyBro.vars.scanCode)
     checkScan()
 
     heartBeat(true)
@@ -204,6 +205,8 @@
     // 200: 登录成功
     var code  = +WechatyBro.glue.loginScope.code
     var url   =  WechatyBro.glue.loginScope.qrcodeUrl
+    log('checkScan() code:' + code + ' url:' + url + ' scanCode:' + WechatyBro.vars.scanCode)
+
     if (url && code !== WechatyBro.vars.scanCode) {
 
       log('checkScan() - code change detected: from '
@@ -212,8 +215,8 @@
         + code
       )
       WechatyBro.emit('scan', {
-        code:   code
-        , url:  url
+        code:   code,
+        url:  url,
       })
       WechatyBro.vars.scanCode = code
     }
@@ -775,13 +778,11 @@
 
     // variable
     , vars: {
-      loginStatus:      false
-      , initStatus:     false
+      loginStatus : false,
+      initStatus  : false,
 
-      , socket:     null
-      , eventsBuf:  []
-      , scanCode:   null
-      , heartBeatTimmer:   null
+      scanCode        : null,
+      heartBeatTimmer : null,
     }
 
     // funcs

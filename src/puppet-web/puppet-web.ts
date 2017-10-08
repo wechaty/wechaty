@@ -93,8 +93,8 @@ export class PuppetWeb extends Puppet {
     this.state.current('live', false)
 
     try {
-      await this.initPuppetWatchrat()
-      await this.initScanWatchrat()
+      await this.initWatchdogForPuppet()
+      await this.initWatchdogForScan()
 
       const throttleQueue = new RxQueue('throttle', 5 * 60 * 1000)
       this.on('heartbeat', data => throttleQueue.emit('i', data))
@@ -136,7 +136,7 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public initPuppetWatchrat(): void {
+  public initWatchdogForPuppet(): void {
     this.on('ding', data => this.puppetWatchrat.feed({
       data,
       type: 'ding',
@@ -155,7 +155,7 @@ export class PuppetWeb extends Puppet {
    * sometimes the qrcode will not refresh, leave there expired.
    * so we need to refresh the page after a while
    */
-  public initScanWatchrat(): void {
+  public initWatchdogForScan(): void {
     this.on('scan', info => this.scanWatchrat.feed({
       data: info,
       type: 'scan',
@@ -249,20 +249,27 @@ export class PuppetWeb extends Puppet {
   public async initBridge(profile: Profile): Promise<Bridge> {
     log.verbose('PuppetWeb', 'initBridge()')
 
-    const head = false
-    const bridge = new Bridge({
-      head,
-      profile,
-    })
-
     if (this.state.target() === 'dead') {
       const e = new Error('initBridge() found targetState != live, no init anymore')
       log.warn('PuppetWeb', e.message)
       throw e
     }
 
+    const head = true
+    this.bridge = new Bridge({
+      head,
+      profile,
+    })
+
+    this.bridge.on('ding'     , Event.onDing.bind(this))
+    this.bridge.on('log'      , Event.onLog.bind(this))
+    this.bridge.on('login'    , Event.onLogin.bind(this))
+    this.bridge.on('logout'   , Event.onLogout.bind(this))
+    this.bridge.on('message'  , Event.onMessage.bind(this))
+    this.bridge.on('scan'     , Event.onScan.bind(this))
+
     try {
-      await bridge.init()
+      await this.bridge.init()
     } catch (e) {
       // FIXME
       /*
@@ -277,14 +284,7 @@ export class PuppetWeb extends Puppet {
       throw e
     }
 
-    bridge.on('ding'     , Event.onDing.bind(this))
-    bridge.on('log'      , Event.onLog.bind(this))
-    bridge.on('login'    , Event.onLogin.bind(this))
-    bridge.on('logout'   , Event.onLogout.bind(this))
-    bridge.on('message'  , Event.onMessage.bind(this))
-    bridge.on('scan'     , Event.onScan.bind(this))
-
-    return bridge
+    return this.bridge
   }
 
   public reset(reason?: string): void {
