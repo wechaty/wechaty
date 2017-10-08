@@ -11,11 +11,11 @@ jobs:
           name: setup
           command: |
             sudo apt-get update -qq
-            sudo apt-get install software-properties-common
+            sudo apt-get install -y -qq software-properties-common
 
             sudo add-apt-repository ppa:duggan/bats --yes
             sudo apt-get update -qq
-            sudo apt-get install -qq bats
+            sudo apt-get install -y -qq bats
 
             docker --version
             docker info
