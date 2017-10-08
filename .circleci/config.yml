@@ -33,7 +33,7 @@ jobs:
       - deploy:
           name: Deploy Wechaty Image to Docker Hub
           command: |
-            if [ "${CIRCLE_BRANCH}" == "master" ];
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
               curl -X POST -d '{"from":"circleci"}' "$DOCKER_REBUILD_URL"
             else
               echo "Skipped for not master branch."
