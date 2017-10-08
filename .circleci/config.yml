@@ -10,17 +10,23 @@ jobs:
       - checkout
       - setup_remote_docker
       - run:
+          name: info
+          command: |
+            docker --version
+            docker info
+            whoami
+      - run:
           name: setup
           command: |
-            sudo apt-get update -qq
+            apk update
+            apk install bats
+            apt-get update -qq
             sudo apt-get install -y -qq software-properties-common
 
             sudo add-apt-repository ppa:duggan/bats --yes
             sudo apt-get update -qq
             sudo apt-get install -y -qq bats
 
-            docker --version
-            docker info
       - run:
           name: build
           command: |
