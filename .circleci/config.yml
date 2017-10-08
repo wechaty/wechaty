@@ -2,11 +2,13 @@ version: 2
 
 jobs:
   build:
+    working_directory: /app
     docker:
-      - image: ubuntu:17.04
+      - image: docker:17.05.0-ce-git
 
     steps:
       - checkout
+      - setup_remote_docker
       - run:
           name: setup
           command: |
