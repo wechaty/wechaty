@@ -3,7 +3,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: ubuntu:14.04
+      - image: ubuntu:17.04
 
     steps:
       - checkout
