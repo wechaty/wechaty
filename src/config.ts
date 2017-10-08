@@ -113,7 +113,7 @@ export interface ConfigSetting {
   gitVersion(): string | null,
   npmVersion(): string,
 
-  dockerMode: boolean,
+  docker: boolean,
 }
 /* tslint:disable:variable-name */
 /* tslint:disable:no-var-requires */
@@ -159,7 +159,7 @@ Object.assign(config, {
  * 4. Envioronment Identify
  */
 Object.assign(config, {
-  dockerMode: !!process.env['WECHATY_DOCKER'],
+  docker: !!process.env['WECHATY_DOCKER'],
   isGlobal:  isWechatyInstalledGlobal(),
 })
 
