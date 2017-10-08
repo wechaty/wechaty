@@ -47,6 +47,7 @@ RUN mkdir /wechaty \
     && mkdir /node_modules
 
 WORKDIR /wechaty
+VOLUME [ "/bot" ]
 
 # Run user as non privileged.
 USER bot
@@ -66,8 +67,6 @@ RUN sudo npm link \
     && sudo ln -s /wechaty/tsconfig.json / \
     && echo "export * from 'wechaty'" | sudo tee /index.ts \
     && echo 'Linked wechaty to global'
-
-VOLUME [ "/bot" ]
 
 ENTRYPOINT [ "/wechaty/bin/entrypoint.sh" ]
 CMD [ "" ]

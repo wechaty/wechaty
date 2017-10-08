@@ -134,8 +134,9 @@ function wechaty::runBot() {
   case "$botFile" in
     *.js)
       if [ "$NODE_ENV" != "production" ]; then
-        echo "Executing babel-node --presets es2015 $*"
-        babel-node --presets es2015 "$@" &
+        echo "Executing babel-node --presets env $*"
+        # https://stackoverflow.com/a/34025957/1123955
+        BABEL_DISABLE_CACHE=1 babel-node --presets env "$@" &
       else
         echo "Executing node $*"
         node "$@" &
@@ -206,7 +207,7 @@ HELP
 
 function main() {
   # issue #84
-  echo -e 'nameserver 114.114.114.114\nnameserver 114.114.115.115' | sudo tee -a /etc/resolv.conf
+  echo -e 'nameserver 114.114.114.114\nnameserver 114.114.115.115' | sudo tee -a /etc/resolv.conf > /dev/null
 
   wechaty::banner
   figlet Connecting
