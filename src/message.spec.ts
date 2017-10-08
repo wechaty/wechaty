@@ -138,7 +138,7 @@ test('findAll()', async t => {
 })
 
 test('self()', async t => {
-  config.puppetInstance()
+  config.puppetInstance(puppet)
 
   const m = new Message()
   m.from(MOCK_USER_ID)
