@@ -5,7 +5,7 @@ jobs:
     machine: true
     steps:
       - checkout
-      - setup_remote_docker
+      # - setup_remote_docker
       - run:
           name: Environment Information
           command: |
