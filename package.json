@@ -20,7 +20,7 @@
     "doctor": "npm run check-node-version && ts-node bin/doctor",
     "clean": "shx rm -fr dist/*",
     "check-node-version": "check-node-version --node \">= 6.9\"",
-    "lint": "npm run clean && npm run check-node-version && npm run lint:es && npm run lint:ts",
+    "lint": "npm run check-node-version && npm run lint:ts && npm run lint:es && npm run lint:sh",
     "lint:es": "eslint \"{bin,example,src,test}/**/*.js\" --ignore-pattern=\"test/fixture/**\"",
     "lint:ts": "npm run clean && echo TSLint v`tslint --version` && tslint --project tsconfig.json --type-check \"{bin,example,src,test}/**/*.ts\" --exclude \"test/fixture/**\" --exclude \"dist/\" && tsc --noEmit",
     "lint:sh": "bash -n bin/*.sh",
