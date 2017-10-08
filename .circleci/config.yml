@@ -2,34 +2,33 @@ version: 2
 
 jobs:
   build:
+    docker:
+      - image: ubuntu:14.04
+
     steps:
       - checkout
-      - run: whoami
-      - run: sudo add-apt-repository ppa:duggan/bats --yes
-      - run: sudo apt-get update -qq
-      - run: sudo apt-get install -qq bats
-      - run: docker --version
-      - run: docker info
-      - run: docker run -ti -v "$(pwd)":/mnt nlknguyen/alpine-shellcheck bin/*.sh
-      - run: ./script/docker.sh build
-  test:
-    steps:
-      - run: ./script/docker.sh test
-
-  deploy:
-    branch: master
-    steps:
-      - run: curl -X POST -d '{"from":"circleci"}' "$DOCKER_REBUILD_URL"
-
-workflows:
-  version: 2
-  build_and_test_and_deploy:
-    jobs:
-      - build
-      - test:
-          requires:
-            - build
+      - run:
+        name: setup
+        command: |
+          sudo add-apt-repository ppa:duggan/bats --yes
+          sudo apt-get update -qq
+          sudo apt-get install -qq bats
+          docker --version
+          docker info
+      - run:
+        name: build
+        command: |
+          docker run -ti -v "$(pwd)":/mnt nlknguyen/alpine-shellcheck bin/*.sh
+          ./script/docker.sh build
+      - run:
+        name: test
+        command: |
+          ./script/docker.sh test
       - deploy:
-          requires:
-            - build
-            - test
+        command: |
+          curl -X POST -d '{"from":"circleci"}' "$DOCKER_REBUILD_URL"
+
+notify:
+  webhooks:
+    # Handles uploading stable/RC releases to GitHub
+    - url: https://nightly.yarnpkg.com/release_circleci
