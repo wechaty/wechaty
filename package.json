@@ -127,7 +127,7 @@
     "cross-env": "^5.0.5",
     "eslint": "^4.8.0",
     "express": "^4.15.2",
-    "finis": "^0.0.2",
+    "finis": "^0.0.3",
     "fluent-ffmpeg": "^2.1.2",
     "glob": "^7.1.2",
     "jsdoc-to-markdown": "^3.0.0",
