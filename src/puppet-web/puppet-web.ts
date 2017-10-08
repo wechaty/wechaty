@@ -17,113 +17,91 @@
  *
  */
 import {
-  config,
-  HeadName,
   log,
   Raven,
-  ScanInfo,
-  WatchdogFood,
-}                     from '../config'
-
-import Contact        from '../contact'
+}                   from '../config'
+import Contact      from '../contact'
 import {
   Message,
   MediaMessage,
-  MsgRawObj,
- }                    from '../message'
+}                   from '../message'
+import Profile      from '../profile'
 import {
   Puppet,
-}                     from '../puppet'
-import Room           from '../room'
-import UtilLib        from '../util-lib'
+  PuppetOptions,
+  ScanInfo,
+}                    from '../puppet'
+import Room          from '../room'
+import RxQueue       from '../rx-queue'
+import Misc          from '../misc'
+import {
+  Watchrat,
+  WatchratFood,
+}                   from '../watchrat'
 
 import {
   Bridge,
+  Cookie,
+}                    from './bridge'
+import Event         from './event'
+
+import {
   MediaData,
-}                     from './bridge'
-import Browser        from './browser'
-import Event          from './event'
-import Server         from './server'
-import Watchdog       from './watchdog'
+  MsgRawObj,
+  MediaType,
+}                     from './schema'
 
 import * as request from 'request'
 import * as bl from 'bl'
 
-type MediaType = 'pic' | 'video' | 'doc'
-
-const enum UploadMediaType {
-  IMAGE      = 1,
-  VIDEO      = 2,
-  AUDIO      = 3,
-  ATTACHMENT = 4,
-}
-
-export interface PuppetWebSetting {
-  head?:    HeadName,
-  profile?: string,
-}
-const DEFAULT_PUPPET_PORT = 18788 // W(87) X(88), ascii char code ;-]
+export type PuppetFoodType = 'scan' | 'ding'
+export type ScanFoodType   = 'scan' | 'login' | 'logout'
 
 export class PuppetWeb extends Puppet {
+  public bridge   : Bridge
+  public scanInfo : ScanInfo | null
 
-  public browser: Browser
-  public bridge:  Bridge
-  public server:  Server
+  public puppetWatchrat : Watchrat<PuppetFoodType>
+  public scanWatchrat   : Watchrat<ScanFoodType>
 
-  public scan: ScanInfo | null
-  private port: number
-  private fileId: number
+  private fileId   : number
 
-  public lastScanEventTime: number
-  public watchDogLastSaveSession: number
-  public watchDogTimer: NodeJS.Timer | null
-  public watchDogTimerTime: number
-
-  constructor(public setting: PuppetWebSetting = {}) {
-    super()
+  constructor(
+    public options: PuppetOptions,
+  ) {
+    super(options)
     this.fileId = 0
 
-    if (!setting.head) {
-      setting.head = config.head
-    }
-    this.on('watchdog', Watchdog.onFeed.bind(this))
+    const PUPPET_TIMEOUT = 60 * 1000  // 1 minute
+    this.puppetWatchrat = new Watchrat<PuppetFoodType>('PuppetWeb', PUPPET_TIMEOUT)
+
+    const SCAN_TIMEOUT = 4 * 60 * 1000 // 4 minutes
+    this.scanWatchrat   = new Watchrat<ScanFoodType>('Scan', SCAN_TIMEOUT)
   }
 
-  public toString() { return `Class PuppetWeb({browser:${this.browser},port:${this.port}})` }
+  public toString() { return `Class PuppetWeb({profile:${this.options.profile}})` }
 
   public async init(): Promise<void> {
-    log.verbose('PuppetWeb', `init() with head:${this.setting.head}, profile:${this.setting.profile}`)
+    log.verbose('PuppetWeb', `init() with profile:${this.options.profile.name}`)
 
     this.state.target('live')
     this.state.current('live', false)
 
     try {
+      await this.initWatchdogForPuppet()
+      await this.initWatchdogForScan()
 
-      this.port = await UtilLib.getPort(DEFAULT_PUPPET_PORT)
-      log.verbose('PuppetWeb', 'init() getPort %d', this.port)
+      const throttleQueue = new RxQueue('throttle', 5 * 60 * 1000)
+      this.on('heartbeat', data => throttleQueue.emit('i', data))
+      throttleQueue.on('o', async () => {
+        log.verbose('Wechaty', 'init() throttleQueue.on(o)')
+        await this.saveCookie()
+      })
 
-      await this.initServer()
-      log.verbose('PuppetWeb', 'initServer() done')
-
-      this.browser = await this.initBrowser()
-      log.verbose('PuppetWeb', 'initBrowser() done')
-
-      try {
-        this.bridge = await this.initBridge()
-      } catch (e) {
-        log.verbose('PuppetWeb', 'init() this.initBridge() exception: %s', e.message)
-
-        const blockedMessage = await this.bridge.blockedMessageBody()
-                            || await this.bridge.blockedMessageAlert()
-        if (blockedMessage) {
-          const error = new Error(blockedMessage)
-          this.emit('error', error)
-        }
-        throw e
-      }
+      this.bridge = await this.initBridge(this.options.profile)
       log.verbose('PuppetWeb', 'initBridge() done')
 
-      const clicked = await this.browser.clickSwitchAccount()
+      const clicked = await this.bridge.clickSwitchAccount()
       if (clicked) {
         log.verbose('PuppetWeb', 'init() bridge.clickSwitchAccount() clicked')
       }
@@ -134,7 +112,7 @@ export class PuppetWeb extends Puppet {
        */
       this.state.current('live')
 
-      const food: WatchdogFood = {
+      const food: WatchratFood = {
         data: 'inited',
         timeout: 2 * 60 * 1000, // 2 mins for first login
       }
@@ -144,13 +122,76 @@ export class PuppetWeb extends Puppet {
       return
 
     } catch (e) {
-      log.error('PuppetWeb', 'init() exception: %s', e.stack)
+      log.error('PuppetWeb', 'init() exception: %s', e)
+
+      this.state.target('dead')
       this.emit('error', e)
       await this.quit()
-      this.state.target('dead')
+
       Raven.captureException(e)
       throw e
     }
+  }
+
+  public initWatchdogForPuppet(): void {
+    const puppet = this
+    const dog    = this.puppetWatchrat
+
+    puppet.on('ding', data => this.puppetWatchrat.feed({
+      data,
+      type: 'ding',
+    }))
+
+    dog.on('feed', food => {
+      // feed the rat, heartbeat the puppet.
+      puppet.emit('heartbeat', food.data)
+    })
+
+    dog.on('reset', (food, left) => {
+      const e = new Error(`PuppetWeb Watchdog Reset, last food: ${food.data}`)
+      puppet.emit('error', e)
+    })
+  }
+
+  /**
+   * Deal with SCAN events
+   *
+   * if web browser stay at login qrcode page long time,
+   * sometimes the qrcode will not refresh, leave there expired.
+   * so we need to refresh the page after a while
+   */
+  public initWatchdogForScan(): void {
+    const puppet = this
+    const dog    = this.scanWatchrat
+
+    puppet.on('scan', info => dog.feed({
+      data: info,
+      type: 'scan',
+    }))
+    puppet.on('login',  user => {
+      dog.feed({
+        data: user,
+        type: 'login',
+      })
+      // do not monitor `scan` event anymore
+      // after user login
+      dog.sleep()
+    })
+
+    // active monitor again for `scan` event
+    puppet.on('logout', user => dog.feed({
+      data: user,
+      type: 'logout',
+    }))
+
+    dog.on('reset', async () => {
+      try {
+        await this.bridge.reload()
+      } catch (e) {
+        log.error('PuppetWeb', 'initScanWatchrat() on(reset) exception: %s', e)
+        this.emit('error', e)
+      }
+    })
   }
 
   public async quit(): Promise<void> {
@@ -162,7 +203,7 @@ export class PuppetWeb extends Puppet {
 
     if (this.state.current() === 'dead') {
       if (this.state.inprocess()) {
-        const e = new Error('quit() is called on a `dead` `inprocess()` browser')
+        const e = new Error('quit() is called on a `dead` `inprocess()` PuppetWeb')
         log.warn('PuppetWeb', e.message)
         throw e
       } else {
@@ -171,114 +212,25 @@ export class PuppetWeb extends Puppet {
       }
     }
 
-    /**
-     * must feed POISON to Watchdog
-     * before state set to `dead` & `inprocess`
-     */
     log.verbose('PuppetWeb', 'quit() kill watchdog before do quit')
-    const food: WatchdogFood = {
-      data: 'PuppetWeb.quit()',
-      type: 'POISON',
-    }
-    this.emit('watchdog', food)
+    this.puppetWatchrat.sleep()
 
     this.state.target('dead')
     this.state.current('dead', false)
 
     try {
-
-      await new Promise(async (resolve, reject) => {
-        const timer = setTimeout(() => {
-          const e = new Error('quit() Promise() timeout')
-          log.warn('PuppetWeb', e.message)
-          reject(e)
-        }, 120 * 1000)
-
-        if (this.bridge) {
-          await this.bridge.quit()
-                          .catch(e => { // fail safe
-                            log.warn('PuppetWeb', 'quit() bridge.quit() exception: %s', e.message)
-                            Raven.captureException(e)
-                          })
-          log.verbose('PuppetWeb', 'quit() bridge.quit() done')
-        } else {
-          log.warn('PuppetWeb', 'quit() no this.bridge')
-        }
-
-        if (this.server) {
-          await this.server.quit()
-                          .catch(e => { // fail safe
-                            log.warn('PuppetWeb', 'quit() server.quit() exception: %s', e.message)
-                            Raven.captureException(e)
-                          })
-          log.verbose('PuppetWeb', 'quit() server.quit() done')
-        } else {
-          log.warn('PuppetWeb', 'quit() no this.server')
-        }
-
-        if (this.browser) {
-          await this.browser.quit()
-                    .catch(e => { // fail safe
-                      log.warn('PuppetWeb', 'quit() browser.quit() exception: %s', e.message)
-                      Raven.captureException(e)
-                    })
-          log.verbose('PuppetWeb', 'quit() browser.quit() done')
-        } else {
-          log.warn('PuppetWeb', 'quit() no this.browser')
-        }
-
-        clearTimeout(timer)
-        resolve()
-        return
-
-      })
-
-      return
-
+      await this.bridge.quit()
     } catch (e) {
       log.error('PuppetWeb', 'quit() exception: %s', e.message)
       Raven.captureException(e)
       throw e
     } finally {
-
       this.state.current('dead')
-
     }
   }
 
-  public async initBrowser(): Promise<Browser> {
-    log.verbose('PuppetWeb', 'initBrowser()')
-
-    const browser = new Browser({
-      head:         <HeadName>this.setting.head,
-      sessionFile:  this.setting.profile,
-    })
-
-    browser.on('dead', Event.onBrowserDead.bind(this))
-
-    if (this.state.target() === 'dead') {
-      const e = new Error('found state.target()) != live, no init anymore')
-      log.warn('PuppetWeb', 'initBrowser() %s', e.message)
-      throw e
-    }
-
-    try {
-      await browser.init()
-    } catch (e) {
-      log.error('PuppetWeb', 'initBrowser() exception: %s', e.message)
-      Raven.captureException(e)
-      throw e
-    }
-    return browser
-  }
-
-  public async initBridge(): Promise<Bridge> {
+  public async initBridge(profile: Profile): Promise<Bridge> {
     log.verbose('PuppetWeb', 'initBridge()')
-
-    const bridge = new Bridge(
-      this, // use puppet instead of browser, is because browser might change(die) duaring run time,
-      this.port,
-    )
 
     if (this.state.target() === 'dead') {
       const e = new Error('initBridge() found targetState != live, no init anymore')
@@ -286,70 +238,61 @@ export class PuppetWeb extends Puppet {
       throw e
     }
 
+    const head = false
+    // we have to set this.bridge right now,
+    // because the Event.onXXX might arrive while we are initializing.
+    this.bridge = new Bridge({
+      head,
+      profile,
+    })
+
+    this.bridge.on('ding'     , Event.onDing.bind(this))
+    this.bridge.on('log'      , Event.onLog.bind(this))
+    this.bridge.on('login'    , Event.onLogin.bind(this))
+    this.bridge.on('logout'   , Event.onLogout.bind(this))
+    this.bridge.on('message'  , Event.onMessage.bind(this))
+    this.bridge.on('scan'     , Event.onScan.bind(this))
+
     try {
-      await bridge.init()
+      await this.bridge.init()
     } catch (e) {
-      Raven.captureException(e)
-      if (!this.browser) {
-        log.warn('PuppetWeb', 'initBridge() without browser?')
-      } else if (this.browser.dead()) {
-        // XXX should make here simple: why this.browser.dead() then exception will not throw?
-        log.warn('PuppetWeb', 'initBridge() found browser dead, wait it to restore')
-      } else {
-        log.error('PuppetWeb', 'initBridge() exception: %s', e.message)
-        throw e
+      // FIXME
+      // Enable the following code again
+      /*
+      const blockedMessage = await this.bridge.blockedMessageBody()
+      if (blockedMessage) {
+        const error = new Error(blockedMessage)
+        this.emit('error', error)
       }
-    }
-    return bridge
-  }
-
-  private async initServer(): Promise<void> {
-    log.verbose('PuppetWeb', 'initServer()')
-    this.server = new Server(this.port)
-
-    /**
-     * @depreciated 20160825 zixia
-     *
-     * when `unload` there should always be a `disconnect` event?
-     */
-    // server.on('unload'  , Event.onServerUnload.bind(this))
-
-    this.server.on('connection' , Event.onServerConnection.bind(this))
-    this.server.on('ding'       , Event.onServerDing.bind(this))
-    this.server.on('disconnect' , Event.onServerDisconnect.bind(this))
-    this.server.on('log'        , Event.onServerLog.bind(this))
-    this.server.on('login'      , Event.onServerLogin.bind(this))
-    this.server.on('logout'     , Event.onServerLogout.bind(this))
-    this.server.on('message'    , Event.onServerMessage.bind(this))
-    this.server.on('scan'       , Event.onServerScan.bind(this))
-
-    if (this.state.target() === 'dead') {
-      const e = new Error('initServer() found state.target() != live, no init anymore')
-      log.warn('PuppetWeb', e.message)
-      throw e
-    }
-
-    try {
-      await this.server.init()
-    } catch (e) {
-      log.error('PuppetWeb', 'initServer() exception: %s', e.message)
+      */
+      log.error('PuppetWeb', 'initBridge() exception: %s', e.message)
       Raven.captureException(e)
       throw e
     }
-    return
+
+    return this.bridge
   }
 
   public reset(reason?: string): void {
     log.verbose('PuppetWeb', 'reset(%s)', reason)
 
-    if (this.browser) {
-      this.browser.dead('restart required by reset()')
-    } else {
-      log.warn('PuppetWeb', 'reset() without browser')
-    }
+    this.bridge.quit().then(async () => {
+      try {
+        await this.bridge.init()
+        log.silly('PuppetWeb', 'reset() done')
+      } catch (e) {
+        log.error('PuppetWeb', 'reset(%s) bridge.init() reject: %s', reason, e)
+        this.emit('error', e)
+      }
+    }).catch(err => {
+      log.error('PuppetWeb', 'reset(%s) bridge.quit() reject: %s', reason, err)
+      this.emit('error', err)
+    })
   }
 
-  public logined(): boolean { return !!(this.user) }
+  public logined(): boolean {
+    return !!(this.user)
+  }
 
   /**
    * get self contact
@@ -365,7 +308,7 @@ export class PuppetWeb extends Puppet {
 
   private async getBaseRequest(): Promise<any> {
     try {
-      const json = await this.bridge.getBaseRequest();
+      const json = await this.bridge.getBaseRequest()
       const obj = JSON.parse(json)
       return obj.BaseRequest
     } catch (e) {
@@ -382,7 +325,7 @@ export class PuppetWeb extends Puppet {
     const filename = mediaMessage.filename()
     const ext = mediaMessage.ext()
 
-    const contentType = UtilLib.mime(ext)
+    const contentType = Misc.mime(ext)
     let mediatype: MediaType
 
     switch (ext) {
@@ -391,13 +334,13 @@ export class PuppetWeb extends Puppet {
       case 'jpg':
       case 'png':
       case 'gif':
-        mediatype = 'pic'
+        mediatype = MediaType.IMAGE
         break
       case 'mp4':
-        mediatype = 'video'
+        mediatype = MediaType.VIDEO
         break
       default:
-        mediatype = 'doc'
+        mediatype = MediaType.ATTACHMENT
     }
 
     const readStream = await mediaMessage.readyStream()
@@ -410,22 +353,22 @@ export class PuppetWeb extends Puppet {
 
     // Sending video files is not allowed to exceed 20MB
     // https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L1115
-    const maxVideoSize = 20 * 1024 * 1024
+    const maxVideoSize  = 20 * 1024 * 1024
     const largeFileSize = 25 * 1024 * 1024
-    const maxFileSize = 100 * 1024 * 1024
-    if (mediatype === 'video' && buffer.length > maxVideoSize)
+    const maxFileSize   = 100 * 1024 * 1024
+    if (mediatype === MediaType.VIDEO && buffer.length > maxVideoSize)
       throw new Error(`Sending video files is not allowed to exceed ${maxVideoSize / 1024 / 1024}MB`)
     if (buffer.length > maxFileSize) {
       throw new Error(`Sending files is not allowed to exceed ${maxFileSize / 1024 / 1024}MB`)
     }
 
-    const md5 = UtilLib.md5(buffer)
+    const md5 = Misc.md5(buffer)
 
     const baseRequest = await this.getBaseRequest()
     const passTicket = await this.bridge.getPassticket()
     const uploadMediaUrl = await this.bridge.getUploadMediaUrl()
     const checkUploadUrl = await this.bridge.getCheckUploadUrl()
-    const cookie = await this.browser.readCookie()
+    const cookie = await this.bridge.cookies()
     const first = cookie.find(c => c.name === 'webwx_data_ticket')
     const webwxDataTicket = first && first.value
     const size = buffer.length
@@ -433,7 +376,7 @@ export class PuppetWeb extends Puppet {
     const id = 'WU_FILE_' + this.fileId
     this.fileId++
 
-    const hostname = await this.browser.hostname()
+    const hostname = await this.bridge.hostname()
     const headers = {
       Referer: `https://${hostname}`,
       'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36',
@@ -449,7 +392,7 @@ export class PuppetWeb extends Puppet {
       ToUserName:    toUserName,
       UploadType:    2,
       ClientMediaId: +new Date,
-      MediaType:     UploadMediaType.ATTACHMENT,
+      MediaType:     MediaType.ATTACHMENT,
       StartPos:      0,
       DataLen:       size,
       TotalLen:      size,
@@ -630,7 +573,7 @@ export class PuppetWeb extends Puppet {
         mediaData.Signature = data.Signature
       }
     }
-    mediaData.MsgType = UtilLib.msgType(message.ext())
+    mediaData.MsgType = message.type() // Misc.msgType(message.ext())
     log.silly('PuppetWeb', 'sendMedia() destination: %s, mediaId: %s)',
       destinationId,
       mediaData.MediaId,
@@ -646,12 +589,65 @@ export class PuppetWeb extends Puppet {
     return ret
   }
 
-  public async forward(baseData: MsgRawObj, patchData: MsgRawObj): Promise<boolean> {
+  /**
+   * TODO: should be change to forward(message, contact)
+   */
+  // public async forward(baseData: MsgRawObj, patchData: MsgRawObj): Promise<boolean> {
+  public async forward(message: MediaMessage, sendTo: Contact | Room): Promise<boolean> {
 
-    log.silly('PuppetWeb', 'forward() destination: %s, content: %s)',
-      patchData.ToUserName,
-      patchData.MMActualContent,
+    log.silly('PuppetWeb', 'forward() to: %s, message: %s)',
+      sendTo, message.filename(),
+      // patchData.ToUserName,
+      // patchData.MMActualContent,
     )
+
+    if (!message.rawObj) {
+      throw new Error('no rawObj')
+    }
+
+    let m = Object.assign({}, message.rawObj)
+    const newMsg = <MsgRawObj>{}
+    const largeFileSize = 25 * 1024 * 1024
+    // let ret = false
+    // if you know roomId or userId, you can use `Room.load(roomId)` or `Contact.load(userId)`
+    // let sendToList: Contact[] = [].concat(sendTo as any || [])
+    // sendToList = sendToList.filter(s => {
+    //   if ((s instanceof Room || s instanceof Contact) && s.id) {
+    //     return true
+    //   }
+    //   return false
+    // }) as Contact[]
+    // if (sendToList.length < 1) {
+    //   throw new Error('param must be Room or Contact and array')
+    // }
+    if (m.FileSize >= largeFileSize && !m.Signature) {
+      // if has RawObj.Signature, can forward the 25Mb+ file
+      log.warn('MediaMessage', 'forward() Due to webWx restrictions, more than 25MB of files can not be downloaded and can not be forwarded.')
+      return false
+    }
+
+    newMsg.FromUserName         = this.userId || ''
+    newMsg.isTranspond          = true
+    newMsg.MsgIdBeforeTranspond = m.MsgIdBeforeTranspond || m.MsgId
+    newMsg.MMSourceMsgId        = m.MsgId
+    // In room msg, the content prefix sender:, need to be removed, otherwise the forwarded sender will display the source message sender, causing self () to determine the error
+    newMsg.Content      = Misc.unescapeHtml(m.Content.replace(/^@\w+:<br\/>/, '')).replace(/^[\w\-]+:<br\/>/, '')
+    newMsg.MMIsChatRoom = sendTo instanceof Room ? true : false
+
+    // The following parameters need to be overridden after calling createMessage()
+
+    m = Object.assign(m, newMsg)
+    // for (let i = 0; i < sendToList.length; i++) {
+      // newMsg.ToUserName = sendToList[i].id
+      // // all call success return true
+      // ret = (i === 0 ? true : ret) && await config.puppetInstance().forward(m, newMsg)
+    // }
+    newMsg.ToUserName = sendTo.id
+    // ret = await config.puppetInstance().forward(m, newMsg)
+    // return ret
+    const baseData  = m
+    const patchData = newMsg
+
     let ret = false
     try {
       ret = await this.bridge.forward(baseData, patchData)
@@ -726,6 +722,13 @@ export class PuppetWeb extends Puppet {
    * logout from browser, then server will emit `logout` event
    */
   public async logout(): Promise<void> {
+    log.verbose('PuppetWeb', 'logout()')
+
+    const data = this.user || this.userId || ''
+    this.userId = this.user = null
+
+    this.emit('logout', data)
+
     try {
       await this.bridge.logout()
     } catch (e) {
@@ -735,7 +738,7 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public async getContact(id: string): Promise<any> {
+  public async getContact(id: string): Promise<object> {
     try {
       return await this.bridge.getContact(id)
     } catch (e) {
@@ -772,82 +775,68 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public contactFind(filterFunc: string): Promise<Contact[]> {
-    if (!this.bridge) {
-      return Promise.reject(new Error('contactFind fail: no bridge(yet)!'))
+  public async contactFind(filterFunc: string): Promise<Contact[]> {
+    try {
+      const idList = await this.bridge.contactFind(filterFunc)
+      return idList.map(id => Contact.load(id))
+    } catch (e) {
+      log.warn('PuppetWeb', 'contactFind(%s) rejected: %s', filterFunc, e.message)
+      Raven.captureException(e)
+      throw e
     }
-    return this.bridge.contactFind(filterFunc)
-                      .then(idList => idList.map(id => Contact.load(id)))
-                      .catch(e => {
-                        log.warn('PuppetWeb', 'contactFind(%s) rejected: %s', filterFunc, e.message)
-                        Raven.captureException(e)
-                        throw e
-                      })
   }
 
-  public roomFind(filterFunc: string): Promise<Room[]> {
-    if (!this.bridge) {
-      return Promise.reject(new Error('findRoom fail: no bridge(yet)!'))
+  public async roomFind(filterFunc: string): Promise<Room[]> {
+    try {
+      const idList = await this.bridge.roomFind(filterFunc)
+      return idList.map(id => Room.load(id))
+    } catch (e) {
+      log.warn('PuppetWeb', 'roomFind(%s) rejected: %s', filterFunc, e.message)
+      Raven.captureException(e)
+      throw e
     }
-    return this.bridge.roomFind(filterFunc)
-                      .then(idList => idList.map(id => Room.load(id)))
-                      .catch(e => {
-                        log.warn('PuppetWeb', 'roomFind(%s) rejected: %s', filterFunc, e.message)
-                        Raven.captureException(e)
-                        throw e
-                      })
   }
 
-  public roomDel(room: Room, contact: Contact): Promise<number> {
-    if (!this.bridge) {
-      return Promise.reject(new Error('roomDelMember fail: no bridge(yet)!'))
-    }
+  public async roomDel(room: Room, contact: Contact): Promise<number> {
     const roomId    = room.id
     const contactId = contact.id
-    return this.bridge.roomDelMember(roomId, contactId)
-                      .catch(e => {
-                        log.warn('PuppetWeb', 'roomDelMember(%s, %d) rejected: %s', roomId, contactId, e.message)
-                        Raven.captureException(e)
-                        throw e
-                      })
+    try {
+      return await this.bridge.roomDelMember(roomId, contactId)
+    } catch (e) {
+      log.warn('PuppetWeb', 'roomDelMember(%s, %d) rejected: %s', roomId, contactId, e.message)
+      Raven.captureException(e)
+      throw e
+    }
   }
 
-  public roomAdd(room: Room, contact: Contact): Promise<number> {
-    if (!this.bridge) {
-      return Promise.reject(new Error('fail: no bridge(yet)!'))
-    }
+  public async roomAdd(room: Room, contact: Contact): Promise<number> {
     const roomId    = room.id
     const contactId = contact.id
-    return this.bridge.roomAddMember(roomId, contactId)
-                      .catch(e => {
-                        log.warn('PuppetWeb', 'roomAddMember(%s) rejected: %s', contact, e.message)
-                        Raven.captureException(e)
-                        throw e
-                      })
+    try {
+      return await this.bridge.roomAddMember(roomId, contactId)
+    } catch (e) {
+      log.warn('PuppetWeb', 'roomAddMember(%s) rejected: %s', contact, e.message)
+      Raven.captureException(e)
+      throw e
+    }
   }
 
-  public roomTopic(room: Room, topic: string): Promise<string> {
-    if (!this.bridge) {
-      return Promise.reject(new Error('fail: no bridge(yet)!'))
-    }
+  public async roomTopic(room: Room, topic: string): Promise<string> {
     if (!room || typeof topic === 'undefined') {
       return Promise.reject(new Error('room or topic not found'))
     }
 
     const roomId = room.id
-    return this.bridge.roomModTopic(roomId, topic)
-                      .catch(e => {
-                        log.warn('PuppetWeb', 'roomTopic(%s) rejected: %s', topic, e.message)
-                        Raven.captureException(e)
-                        throw e
-                      })
+    try {
+      return await this.bridge.roomModTopic(roomId, topic)
+    } catch (e) {
+      log.warn('PuppetWeb', 'roomTopic(%s) rejected: %s', topic, e.message)
+      Raven.captureException(e)
+      throw e
+    }
   }
 
   public async roomCreate(contactList: Contact[], topic: string): Promise<Room> {
-    if (!this.bridge) {
-      return Promise.reject(new Error('fail: no bridge(yet)!'))
-    }
-
     if (!contactList || ! contactList.map) {
       throw new Error('contactList not found')
     }
@@ -872,10 +861,6 @@ export class PuppetWeb extends Puppet {
    * FriendRequest
    */
   public async friendRequestSend(contact: Contact, hello: string): Promise<boolean> {
-    if (!this.bridge) {
-      throw new Error('fail: no bridge(yet)!')
-    }
-
     if (!contact) {
       throw new Error('contact not found')
     }
@@ -890,10 +875,6 @@ export class PuppetWeb extends Puppet {
   }
 
   public async friendRequestAccept(contact: Contact, ticket: string): Promise<boolean> {
-    if (!this.bridge) {
-      return Promise.reject(new Error('fail: no bridge(yet)!'))
-    }
-
     if (!contact || !ticket) {
       throw new Error('contact or ticket not found')
     }
@@ -942,6 +923,30 @@ export class PuppetWeb extends Puppet {
       setTimeout(() => stable(myResolve), 1000)
     })
 
+  }
+
+  public async hostname(): Promise<string> {
+    try {
+      const name = await this.bridge.hostname()
+      if (!name) {
+        throw new Error('no hostname found')
+      }
+      return name
+    } catch (e) {
+      log.error('PuppetWeb', 'hostname() exception:%s', e)
+      this.emit('error', e)
+      throw e
+    }
+  }
+
+  public async cookies(): Promise<Cookie[]> {
+    return await this.bridge.cookies()
+  }
+
+  public async saveCookie(): Promise<void> {
+    const cookieList = await this.bridge.cookies()
+    this.options.profile.set('cookies', cookieList)
+    this.options.profile.save()
   }
 }
 

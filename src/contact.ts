@@ -23,14 +23,14 @@ import {
   Raven,
   Sayable,
   log,
-}                     from './config'
+}                 from './config'
 import {
   Message,
   MediaMessage,
-}                     from './message'
-import { PuppetWeb }  from './puppet-web'
-import { UtilLib }    from './util-lib'
-import { Wechaty }    from './wechaty'
+}                 from './message'
+import Misc       from './misc'
+import PuppetWeb  from './puppet-web'
+import Wechaty    from './wechaty'
 
 export interface ContactObj {
   address:    string,
@@ -358,7 +358,7 @@ export class Contact implements Sayable {
    * @example
    * const name = contact.name()
    */
-  public name()     { return UtilLib.plainText(this.obj && this.obj.name || '') }
+  public name()     { return Misc.plainText(this.obj && this.obj.name || '') }
 
   public alias(): string | null
 
@@ -537,12 +537,12 @@ export class Contact implements Sayable {
     }
 
     try {
-      const hostname = await (config.puppetInstance() as PuppetWeb).browser.hostname()
+      const hostname = await (config.puppetInstance() as PuppetWeb).hostname()
       const avatarUrl = `http://${hostname}${this.obj.avatar}&type=big` // add '&type=big' to get big image
-      const cookies = await (config.puppetInstance() as PuppetWeb).browser.readCookie()
+      const cookies = await (config.puppetInstance() as PuppetWeb).cookies()
       log.silly('Contact', 'avatar() url: %s', avatarUrl)
 
-      return UtilLib.urlStream(avatarUrl, cookies)
+      return Misc.urlStream(avatarUrl, cookies)
     } catch (err) {
       log.warn('Contact', 'avatar() exception: %s', err.stack)
       Raven.captureException(err)
@@ -581,11 +581,6 @@ export class Contact implements Sayable {
     this.obj = null
     return this.ready()
   }
-
-  // public ready() {
-  //   log.warn('Contact', 'ready() DEPRECATED. use load() instead.')
-  //   return this.load()
-  // }
 
   /**
    * @private
@@ -708,9 +703,9 @@ export class Contact implements Sayable {
   public weixin(): string | null {
     const wxId = this.obj && this.obj.weixin || null
     if (!wxId) {
-      log.info('Contact', `weixin() is not able to always work, it's limited by Tencent API`)
-      log.info('Contact', 'weixin() If you want to track a contact between sessions, see FAQ at')
-      log.info('Contact', 'https://github.com/Chatie/wechaty/wiki/FAQ#1-how-to-get-the-permanent-id-for-a-contact')
+      log.verbose('Contact', `weixin() is not able to always work, it's limited by Tencent API`)
+      log.verbose('Contact', 'weixin() If you want to track a contact between sessions, see FAQ at')
+      log.verbose('Contact', 'https://github.com/Chatie/wechaty/wiki/FAQ#1-how-to-get-the-permanent-id-for-a-contact')
     }
     return wxId
   }

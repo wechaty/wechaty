@@ -1,3 +1,5 @@
+#!/usr/bin/env ts-node
+
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
@@ -16,7 +18,9 @@
  *   limitations under the License.
  *
  */
-import { test } from 'ava'
+// tslint:disable:no-shadowed-variable
+import * as test  from 'blue-tape'
+// import * as sinon from 'sinon'
 
 import {
   config,
@@ -33,16 +37,16 @@ import {
   VERSION,
 }               from '../'
 
-test('Wechaty Framework', t => {
-  t.truthy(Contact      , 'should export Contact')
-  t.truthy(FriendRequest, 'should export FriendREquest')
-  t.truthy(IoClient     , 'should export IoClient')
-  t.truthy(Message      , 'should export Message')
-  t.truthy(Puppet       , 'should export Puppet')
-  t.truthy(PuppetWeb    , 'should export PuppetWeb')
-  t.truthy(Room         , 'should export Room')
-  t.truthy(Wechaty      , 'should export Wechaty')
-  t.truthy(log          , 'should export log')
+test('Wechaty Framework', async t => {
+  t.ok(Contact      , 'should export Contact')
+  t.ok(FriendRequest, 'should export FriendREquest')
+  t.ok(IoClient     , 'should export IoClient')
+  t.ok(Message      , 'should export Message')
+  t.ok(Puppet       , 'should export Puppet')
+  t.ok(PuppetWeb    , 'should export PuppetWeb')
+  t.ok(Room         , 'should export Room')
+  t.ok(Wechaty      , 'should export Wechaty')
+  t.ok(log          , 'should export log')
 
   const bot = Wechaty.instance()
   t.is(bot.version(true), require('../package.json').version,
@@ -53,9 +57,7 @@ test('Wechaty Framework', t => {
   )
 })
 
-test('Wechaty Config setting', t => {
-  t.truthy(config                 , 'should export Config')
-  t.truthy(config.DEFAULT_HEAD    , 'should has DEFAULT_HEAD')
-  t.truthy(config.DEFAULT_PUPPET  , 'should has DEFAULT_PUPPET')
-  t.truthy(config.DEFAULT_PORT    , 'should has DEFAULT_PORT')
+test('Wechaty Config setting', async t => {
+  t.ok(config                 , 'should export Config')
+  t.ok(config.DEFAULT_PUPPET  , 'should has DEFAULT_PUPPET')
 })

@@ -1,21 +1,17 @@
 {
   "name": "wechaty",
-  "version": "0.9.5",
+  "version": "0.10.1",
   "description": "Wechat for Bot(Personal Account)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "wechaty": {
-    "DEFAULT_HEAD": "chrome",
     "DEFAULT_PUPPET": "web",
     "DEFAULT_PROFILE": "demo",
-    "DEFAULT_PORT": 8788,
     "DEFAULT_PROTOCOL": "io|0.0.1",
     "DEFAULT_TOKEN": "WECHATY_IO_TOKEN",
-    "DEFAULT_APIHOST": "api.chatie.io",
-    "CMD_CHROMIUM": "/wechaty/bin/xvfb-chromium"
+    "DEFAULT_APIHOST": "api.chatie.io"
   },
   "scripts": {
-    "ava": "ava --verbose --extension ts",
     "ts-node": "ts-node",
     "dist": "npm run clean && tsc && jq \"del (.files)\" < package.json > dist/package.json && shx cp src/puppet-web/*.js dist/src/puppet-web/",
     "doc": "npm run dist && echo '# Wechaty v'$(jq -r .version package.json)' Documentation\n' > docs/index.md && jsdoc2md dist/src/{wechaty,room,contact,friend-request,message}.js dist/src/puppet-web/friend-request.js>> docs/index.md",
@@ -23,25 +19,18 @@
     "changelog": "github_changelog_generator -u chatie -p wechaty && sed -i'.bak' /greenkeeper/d CHANGELOG.md && ts-node script/sort-contributiveness.ts < CHANGELOG.md > CHANGELOG.new.md && cat CHANGELOG.md >> CHANGELOG.new.md && mv CHANGELOG.new.md CHANGELOG.md",
     "doctor": "npm run check-node-version && ts-node bin/doctor",
     "clean": "shx rm -fr dist/*",
-    "check-node-version": "check-node-version --node \">= 6.9\"",
-    "lint": "npm run clean && npm run check-node-version && npm run lint:es && npm run lint:ts",
+    "check-node-version": "check-node-version --node \">= 7\"",
+    "lint": "npm run check-node-version && npm run lint:ts && npm run lint:es && npm run lint:sh",
     "lint:es": "eslint \"{bin,example,src,test}/**/*.js\" --ignore-pattern=\"test/fixture/**\"",
-    "lint:ts": "tslint --version && tslint --project tsconfig.json --type-check \"{bin,example,src,test}/**/*.ts\" --exclude \"test/fixture/**\" --exclude \"dist/\" && npm run clean && tsc --noEmit",
+    "lint:ts": "npm run clean && echo tslint v`tslint --version` && tslint --project tsconfig.json --type-check \"{bin,example,src,test}/**/*.ts\" --exclude \"test/fixture/**\" --exclude \"dist/\" && tsc --noEmit",
     "lint:sh": "bash -n bin/*.sh",
-    "nycava": "WECHATY_HEAD=chrome nyc ava --serial --fail-fast --verbose --timeout=5m \"dist/{src,test}/**/*.spec.js\"",
-    "pretest": "npm run clean && npm run lint && npm run dist",
     "sloc": "sloc bin example src test index.ts --details --format cli-table --keys total,source,comment && sloc bin example src test index.ts",
-    "test": "npm run test:chrome",
-    "posttest": "npm run clean && npm run sloc",
-    "test:chrome": "cross-env LC_ALL=C WECHATY_HEAD=chrome ava --serial --fail-fast --verbose --timeout=5m \"dist/{src,test}/**/*.spec.js\"",
-    "test:bug": "cross-env LC_ALL=C WECHATY_HEAD=chrome WECHATY_LOG=silly ava --serial --fail-fast --verbose --timeout=5m \"dist/src/message.spec.js\"",
-    "test:chrome:fast": "cross-env LC_ALL=C WECHATY_HEAD=chrome ava --concurrency 5 --fail-fast --timeout=5m \"dist/{src,test}/**/*.spec.js\"",
-    "testdev": "cross-env LC_ALL=C WECHATY_LOG=silly ava --ext ts --serial --verbose --fail-fast --timeout=2m",
-    "testdist": "cross-env WECHATY_LOG=SILLY WECHATY_HEAD=chrome ava --ext ts --verbose --fail-fast --timeout=2m",
-    "test:pack": "npm run dist && rm -fr package wechaty-*.*.*.tgz && npm pack --verbose  && tar zxvf wechaty-*.*.*.tgz",
-    "test:npm": "export TMPDIR=/tmp/wechaty.$$ && npm pack && mkdir $TMPDIR && mv wechaty-*.*.*.tgz $TMPDIR && cp test/fixture/smoke-testing.js $TMPDIR && cd $TMPDIR && npm init -y && npm i wechaty-*.*.*.tgz && node smoke-testing.js",
+    "pretest": "npm run clean && npm run lint",
+    "test": "blue-tape -r ts-node/register -r source-map-support/register \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\"",
+    "posttest": "npm run sloc",
+    "test:linux": "npm run pretest && parallel ts-node -- ./src/**/*.spec.ts ./test/**/*.spec.ts && npm run posttest",
+    "test:npm": "npm run dist && export TMPDIR=/tmp/wechaty.$$ && npm pack && mkdir $TMPDIR && mv wechaty-*.*.*.tgz $TMPDIR && cp test/fixture/smoke-testing.js $TMPDIR && cd $TMPDIR && npm init -y && npm i wechaty-*.*.*.tgz && node smoke-testing.js",
     "io-client": "ts-node bin/io-client",
-    "dev": "ts-node dev.ts",
     "demo": "ts-node example/ding-dong-bot.ts",
     "start": "npm run demo"
   },
@@ -83,67 +72,58 @@
       "node": true,
       "es6": true
     },
-    "plugins": [
-      "ava"
-    ],
     "parser": "babel-eslint",
     "parserOptions": {
       "ecmaVersion": 7,
       "sourceType": "module",
       "ecmaFeatures": {
         "impliedStrict": true
-      },
-      "extends": "plugin:ava/recommended"
+      }
     }
   },
-  "ava": {
-    "require": [
-      "ts-node/register"
-    ]
-  },
   "engines": {
-    "node": ">= 6.9.0"
+    "node": ">= 7"
   },
   "dependencies": {
-    "@types/express": "4.0.37",
     "@types/node": "8.0.33",
     "@types/ws": "3.2.0",
     "bl": "1.2.1",
     "body-parser": "1.18.2",
     "brolog": "1.2.8",
-    "chromedriver": "2.33.0",
-    "express": "4.15.2",
     "hot-import": "0.1.21",
-    "ps-tree": "1.1.0",
+    "puppeteer": "0.11.0",
     "raven": "2.2.1",
     "request": "2.83.0",
     "retry-promise": "1.0.0",
-    "selenium-webdriver": "3.6.0",
+    "rxjs": "^5.4.3",
     "state-switch": "0.1.13",
     "ws": "3.2.0",
     "xml2js": "0.4.19"
   },
   "devDependencies": {
+    "@types/blue-tape": "^0.1.31",
     "@types/body-parser": "1.16.5",
+    "@types/express": "4.0.37",
     "@types/fluent-ffmpeg": "2.1.4",
     "@types/glob": "5.0.33",
     "@types/mime": "2.0.0",
+    "@types/puppeteer": "0.10.1",
     "@types/raven": "2.1.2",
     "@types/request": "2.0.4",
-    "@types/selenium-webdriver": "3.0.7",
     "@types/sinon": "2.3.5",
     "@types/xml2js": "0.4.0",
     "apiai": "4.0.3",
-    "ava": "0.22.0",
     "babel-cli": "6.26.0",
     "babel-eslint": "8.0.1",
-    "babel-preset-es2015": "6.24.1",
+    "babel-preset-env": "^1.6.0",
+    "blue-tape": "^1.0.0",
+    "body-parser": "1.18.2",
     "check-node-version": "2.1.0",
     "cookie-parser": "1.4.3",
     "coveralls": "3.0.0",
     "cross-env": "5.0.5",
     "eslint": "4.8.0",
-    "eslint-plugin-ava": "4.2.2",
+    "express": "4.15.2",
     "finis": "0.0.2",
     "fluent-ffmpeg": "2.1.2",
     "glob": "7.1.2",

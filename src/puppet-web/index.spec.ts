@@ -1,3 +1,4 @@
+#!/usr/bin/env ts-node
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
@@ -16,21 +17,18 @@
  *   limitations under the License.
  *
  */
-import { test }   from 'ava'
+// tslint:disable:no-shadowed-variable
+import * as test  from 'blue-tape'
+// import * as sinon from 'sinon'
+
 import {
   Bridge,
-  Browser,
   Event,
   PuppetWeb,
-  Server,
-  Watchdog,
 } from './index'
 
-test('PuppetWeb Module Exports', t => {
-  t.truthy(PuppetWeb  , 'should export PuppetWeb')
-  t.truthy(Event      , 'should export Event')
-  t.truthy(Watchdog   , 'should export Watchdog')
-  t.truthy(Server     , 'should export Server')
-  t.truthy(Browser    , 'should export Browser')
-  t.truthy(Bridge     , 'should export Bridge')
+test('PuppetWeb Module Exports', async t => {
+  t.ok(PuppetWeb  , 'should export PuppetWeb')
+  t.ok(Event      , 'should export Event')
+  t.ok(Bridge     , 'should export Bridge')
 })

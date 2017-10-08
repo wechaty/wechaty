@@ -1,3 +1,4 @@
+#!/usr/bin/env ts-node
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
@@ -16,29 +17,27 @@
  *   limitations under the License.
  *
  */
-import { test }   from 'ava'
+// tslint:disable:no-shadowed-variable
+import * as test  from 'blue-tape'
+// import * as sinon from 'sinon'
+// const sinonTest   = require('sinon-test')(sinon)
 
 import { config } from './config'
 import { Puppet } from './puppet'
 
-test('important variables', t => {
-  t.true('head'     in config, 'should exist `head` in Config')
+test('important variables', async t => {
   t.true('puppet'   in config, 'should exist `puppet` in Config')
   t.true('apihost'  in config, 'should exist `apihost` in Config')
-  t.true('port'     in config, 'should exist `port` in Config')
   t.true('profile'  in config, 'should exist `profile` in Config')
   t.true('token'    in config, 'should exist `token` in Config')
 
-  t.truthy(config.DEFAULT_PUPPET      , 'should export DEFAULT_PUPPET')
-  t.truthy(config.DEFAULT_PORT        , 'should export DEFAULT_PORT')
-  t.truthy(config.DEFAULT_PROFILE     , 'should export DEFAULT_PROFILE')
-  t.truthy(config.DEFAULT_HEAD        , 'should export DEFAULT_HEAD')
-  t.truthy(config.DEFAULT_PROTOCOL    , 'should export DEFAULT_PROTOCOL')
-  t.truthy(config.DEFAULT_APIHOST     , 'should export DEFAULT_APIHOST')
-  t.truthy(config.CMD_CHROMIUM        , 'should export CMD_CHROMIUM')
+  t.ok(config.DEFAULT_PUPPET      , 'should export DEFAULT_PUPPET')
+  t.ok(config.DEFAULT_PROFILE     , 'should export DEFAULT_PROFILE')
+  t.ok(config.DEFAULT_PROTOCOL    , 'should export DEFAULT_PROTOCOL')
+  t.ok(config.DEFAULT_APIHOST     , 'should export DEFAULT_APIHOST')
 })
 
-test('validApiHost()', t => {
+test('validApiHost()', async t => {
   const OK_APIHOSTS = [
     'api.wechaty.io',
     'wechaty.io:8080',
@@ -48,7 +47,7 @@ test('validApiHost()', t => {
     'wechaty.io/',
   ]
   OK_APIHOSTS.forEach(apihost => {
-    t.notThrows(() => {
+    t.doesNotThrow(() => {
       config.validApiHost(apihost)
     })
   }, 'should not row for right apihost')
@@ -60,10 +59,16 @@ test('validApiHost()', t => {
 
 })
 
-test('puppetInstance()', t => {
+test('puppetInstance()', async t => {
+  // BUG Compitable with Win32 CI
+  // global instance infected across unit tests... :(
+  const bak = config.puppetInstance()
+
+  config.puppetInstance(null)
   t.throws(() => {
     config.puppetInstance()
   }, Error, 'should throw when not initialized')
+  config.puppetInstance(bak)
 
   const EXPECTED = <Puppet>{userId: 'test'}
   const mockPuppet = EXPECTED
@@ -77,17 +82,5 @@ test('puppetInstance()', t => {
     config.puppetInstance()
   }, Error, 'should throw after set to null')
 
-})
-
-test('dockerMode', t => {
-  t.true('dockerMode' in config, 'should identify docker env by `dockerMode`')
-
-  if ('C9_PORT' in process.env) {
-    t.is(config.dockerMode, false, 'should not in docker mode in Cloud9 IDE')
-  } else if (require('is-ci')) {
-    t.is(config.dockerMode, false, 'should not in docker mode in Continuous Integeration System')
-  } else {
-    // a custom running envioronment, maybe docker, maybe not
-  }
-
+  config.puppetInstance(bak)
 })

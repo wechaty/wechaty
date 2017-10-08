@@ -18,6 +18,8 @@
  *  @ignore
  */
 import { EventEmitter } from 'events'
+import * as os          from 'os'
+
 import StateSwitch      from 'state-switch'
 import {
   callerResolve,
@@ -26,40 +28,44 @@ import {
 
 import {
   config,
-  HeadName,
   PuppetName,
   Raven,
   Sayable,
   log,
-}                         from './config'
+}                     from './config'
 
-import { Contact }        from './contact'
-import { FriendRequest }  from './friend-request'
+import Contact        from './contact'
+import FriendRequest  from './friend-request'
 import {
   Message,
   MediaMessage,
-}                         from './message'
-import { Puppet }         from './puppet'
-import { PuppetWeb }      from './puppet-web/'
-import { Room }           from './room'
-import { UtilLib }        from './util-lib'
+}                     from './message'
+import Profile        from './profile'
+import {
+  Puppet,
+  PuppetEvent,
+}                     from './puppet'
+import PuppetWeb      from './puppet-web/'
+import Room           from './room'
+import Misc           from './misc'
 
-export interface PuppetSetting {
-  head?:    HeadName,
+export interface WechatyOptions {
   puppet?:  PuppetName,
   profile?: string,
 }
 
-export type WechatyEventName = 'error'
-                              | 'friend'
-                              | 'heartbeat'
-                              | 'login'
-                              | 'logout'
-                              | 'message'
-                              | 'room-join'
-                              | 'room-leave'
-                              | 'room-topic'
-                              | 'scan'
+export type WechatEvent = 'friend'
+                        | 'login'
+                        | 'logout'
+                        | 'message'
+                        | 'room-join'
+                        | 'room-leave'
+                        | 'room-topic'
+                        | 'scan'
+
+export type WechatyEvent = WechatEvent
+                        | 'heartbeat'
+                        | 'error'
 
 /**
  * Main bot class.
@@ -83,6 +89,8 @@ export class Wechaty extends EventEmitter implements Sayable {
    * @private
    */
   public puppet: Puppet | null
+
+  private profile: Profile
 
   /**
    * the state
@@ -108,12 +116,12 @@ export class Wechaty extends EventEmitter implements Sayable {
    * .on('message',  message => console.log(`Message: ${message}`))
    * .init()
    */
-  public static instance(setting?: PuppetSetting) {
-    if (setting && this._instance) {
+  public static instance(options?: WechatyOptions) {
+    if (options && this._instance) {
       throw new Error('there has already a instance. no params will be allowed any more')
     }
     if (!this._instance) {
-      this._instance = new Wechaty(setting)
+      this._instance = new Wechaty(options)
     }
     return this._instance
   }
@@ -121,29 +129,21 @@ export class Wechaty extends EventEmitter implements Sayable {
   /**
    * @private
    */
-  private constructor(private setting: PuppetSetting = {}) {
+  private constructor(private options: WechatyOptions = {}) {
     super()
     log.verbose('Wechaty', 'contructor()')
 
-    setting.head    = setting.head    || config.head
-    setting.puppet  = setting.puppet  || config.puppet
-    setting.profile = setting.profile || config.profile
+    options.puppet  = options.puppet  || config.puppet
 
-    // setting.port    = setting.port    || Config.port
+    this.profile = new Profile(options.profile)
 
-    if (setting.profile) {
-      setting.profile  = /\.wechaty\.json$/i.test(setting.profile)
-                        ? setting.profile
-                        : setting.profile + '.wechaty.json'
-    }
-
-    this.uuid = UtilLib.guid()
+    this.uuid = Misc.guid()
   }
 
   /**
    * @private
    */
-  public toString() { return 'Class Wechaty(' + this.setting.puppet + ')'}
+  public toString() { return `Class Wechaty(${this.options.puppet}, ${this.profile.name})`}
 
   /**
    * Return version of Wechaty
@@ -175,18 +175,6 @@ export class Wechaty extends EventEmitter implements Sayable {
   /**
    * @private
    */
-  public user(): Contact {
-    log.warn('Wechaty', 'user() DEPRECATED. use self() instead.')
-
-    if (!this.puppet || !this.puppet.user) {
-      throw new Error('no user')
-    }
-    return this.puppet.user
-  }
-
-  /**
-   * @private
-   */
   public async reset(reason?: string): Promise<void> {
     log.verbose('Wechaty', 'reset() because %s', reason)
     if (!this.puppet) {
@@ -206,9 +194,8 @@ export class Wechaty extends EventEmitter implements Sayable {
    */
   public async init(): Promise<void> {
     log.info('Wechaty', 'v%s initializing...' , this.version())
-    log.verbose('Wechaty', 'puppet: %s'       , this.setting.puppet)
-    log.verbose('Wechaty', 'head: %s'         , this.setting.head)
-    log.verbose('Wechaty', 'profile: %s'      , this.setting.profile)
+    log.verbose('Wechaty', 'puppet: %s'       , this.options.puppet)
+    log.verbose('Wechaty', 'profile: %s'      , this.options.profile)
     log.verbose('Wechaty', 'uuid: %s'         , this.uuid)
 
     if (this.state.current() === 'ready') {
@@ -220,12 +207,15 @@ export class Wechaty extends EventEmitter implements Sayable {
     this.state.current('ready', false)
 
     try {
+      this.profile.load()
       await this.initPuppet()
     } catch (e) {
       log.error('Wechaty', 'init() exception: %s', e && e.message)
       Raven.captureException(e)
       throw e
     }
+
+    this.on('heartbeat', () => this.memoryCheck())
 
     this.state.current('ready')
     return
@@ -287,7 +277,7 @@ export class Wechaty extends EventEmitter implements Sayable {
 
   /**
    * @listens Wechaty
-   * @param   {WechatyEventName}      event      - Emit WechatyEvent
+   * @param   {WechatyEvent}      event      - Emit WechatyEvent
    * @param   {WechatyEventFunction}  listener   - Depends on the WechatyEvent
    * @return  {Wechaty}                          - this for chain
    *
@@ -344,7 +334,7 @@ export class Wechaty extends EventEmitter implements Sayable {
    *   console.log(`Room ${room.topic()} topic changed from ${oldTopic} to ${topic} by ${changer.name()}`)
    * })
    */
-  public on(event: WechatyEventName, listener: string | ((...args: any[]) => any)): this {
+  public on(event: WechatyEvent, listener: string | ((...args: any[]) => any)): this {
     log.verbose('Wechaty', 'on(%s, %s)',
                             event,
                             typeof listener === 'string'
@@ -374,23 +364,18 @@ export class Wechaty extends EventEmitter implements Sayable {
   public async initPuppet(): Promise<Puppet> {
     let puppet: Puppet
 
-    if (!this.setting.head) {
-      throw new Error('no head')
-    }
-
-    switch (this.setting.puppet) {
+    switch (this.options.puppet) {
       case 'web':
         puppet = new PuppetWeb({
-          head:     this.setting.head,
-          profile:  this.setting.profile,
+          profile:  this.profile,
         })
         break
 
       default:
-        throw new Error('Puppet unsupport(yet?): ' + this.setting.puppet)
+        throw new Error('Puppet unsupport(yet?): ' + this.options.puppet)
     }
 
-    const eventList: WechatyEventName[] = [
+    const eventList: PuppetEvent[] = [
       'error',
       'friend',
       'heartbeat',
@@ -406,8 +391,7 @@ export class Wechaty extends EventEmitter implements Sayable {
     eventList.map(e => {
       // https://strongloop.com/strongblog/an-introduction-to-javascript-es6-arrow-functions/
       // We’ve lost () around the argument list when there’s just one argument (rest arguments are an exception, eg (...args) => ...)
-      puppet.on(e, (...args: any[]) => {
-        // this.emit(e, data)
+      puppet.on(e as any, (...args: any[]) => {
         this.emit.apply(this, [e, ...args])
       })
     })
@@ -550,6 +534,21 @@ export class Wechaty extends EventEmitter implements Sayable {
       log.error('Wechaty', 'ding() exception: %s', e.message)
       Raven.captureException(e)
       throw e
+    }
+  }
+
+  /**
+   * @private
+   */
+  private memoryCheck(minMegabyte = 4): void {
+    const freeMegabyte = Math.floor(os.freemem() / 1024 / 1024)
+    log.silly('Wechaty', 'memoryCheck() free: %d MB, require: %d MB',
+                          freeMegabyte, minMegabyte)
+
+    if (freeMegabyte < minMegabyte) {
+      const e = new Error(`memory not enough: free ${freeMegabyte} < require ${minMegabyte} MB`)
+      log.warn('Wechaty', 'memoryCheck() %s', e.message)
+      this.emit('error', e)
     }
   }
 }

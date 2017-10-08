@@ -2,9 +2,8 @@
 
 # Test against these versions of Io.js and Node.js.
 environment:
-  WECHATY_LOG: silent
   matrix:
-#    - nodejs_version: "7"
+    - nodejs_version: "7"
     - nodejs_version: "8"
 
 # Install scripts. (runs after repo cloning)
@@ -14,7 +13,7 @@ install:
   # chocolatey install jq - https://chocolatey.org/packages/jq
   - choco install jq
   # install modules
-  - npm --progress=false install > nul 2>&1
+  - npm install
 
 # Post-install test scripts.
 test_script:
@@ -23,8 +22,7 @@ test_script:
   # https://bugs.chromium.org/p/chromium/issues/detail?id=158372#c6
   - wmic datafile where name="C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe" get Version /value
   - npm run lint
-  - npm run dist
-  - npm run test:chrome:fast
+  - npm run test
 
 # Don't actually build.
 build: off

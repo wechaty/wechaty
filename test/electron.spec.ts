@@ -1,3 +1,5 @@
+#!/usr/bin/env ts-node
+
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
@@ -16,12 +18,15 @@
  *   limitations under the License.
  *
  */
-import { test } from 'ava'
+// tslint:disable:no-shadowed-variable
+import * as test  from 'blue-tape'
+// import * as sinon from 'sinon'
+// const sinonTest   = require('sinon-test')(sinon)
 
 test('Electron smoke testing', async t => {
   t.true(true, 'test')
 })
 
-test.skip('Electron open wx', t => {
+test.skip('Electron open wx', async t => {
   t.pass('ok')
 })

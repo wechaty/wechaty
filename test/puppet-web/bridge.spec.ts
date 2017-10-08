@@ -1,3 +1,5 @@
+#!/usr/bin/env ts-node
+
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
@@ -16,13 +18,16 @@
  *   limitations under the License.
  *
  */
-import { test } from 'ava'
+// tslint:disable:no-shadowed-variable
+import * as test  from 'blue-tape'
+// import * as sinon from 'sinon'
 
-import {
-  Bridge,
-  Browser,
-  PuppetWeb,
-} from '../../src/puppet-web/'
+// import { log }  from '../../src/config'
+// log.level('silly')
+
+import Profile  from '../../src/profile'
+
+import Bridge   from '../../src/puppet-web/bridge'
 
 import { spy } from 'sinon'
 
@@ -64,46 +69,28 @@ test('retryPromise()', async t => {
   t.true(thenSpy.withArgs(EXPECTED_RESOLVE).calledOnce, 'should got EXPECTED_RESOLVE when wait enough')
 })
 
-test('WechatyBro.ding()', async t => {
-  const PORT = 58788
-
-  const browser = new Browser()
-  t.truthy(browser, 'should instanciated a browser')
-
-  const mockPuppet = {browser: browser}
-  const bridge = new Bridge(mockPuppet as PuppetWeb, PORT)
-  t.truthy(bridge, 'should instanciated a bridge with mocked puppet')
+test.only('WechatyBro.ding()', async t => {
+  const profile = new Profile(Math.random().toString(36).substr(2, 5))
+  const bridge = new Bridge({
+    profile,
+  })
+  t.ok(bridge, 'should instanciated a bridge with mocked puppet')
 
   try {
-    await browser.init()
-    t.pass('should instanciated a browser')
+    await bridge.init()
+    t.pass('should init Bridge')
 
-    await browser.open()
-    t.pass('should open success')
-
-    await bridge.inject()
-    t.pass('should injected WechatyBro')
-
-    const retDing = await bridge.execute('return WechatyBro.ding()')
+    const retDing = await bridge.evaluate('WechatyBro.ding()')
     t.is(retDing, 'dong', 'should got dong after execute WechatyBro.ding()')
 
     const retCode = await bridge.proxyWechaty('isLogin')
     t.is(typeof retCode, 'boolean', 'should got a boolean after call proxyWechaty(isLogin)')
 
+    await bridge.quit()
+    t.pass('b.quit()')
+
+    profile.destroy()
   } catch (err) {
     t.fail('exception: ' + err.message)
-  } finally {
-    try {
-      await bridge.quit()
-      t.pass('b.quit()')
-    } catch (e) {
-      t.fail(e)
-    }
-    try {
-      await browser.quit()
-      t.pass('browser.quit()')
-    } catch (e) {
-      t.fail(e)
-    }
   }
 })

@@ -64,7 +64,7 @@ bot
   /**
    * Main Contact Bot start from here
    */
-  main()
+  onLogin()
 
 })
 .on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
@@ -87,7 +87,7 @@ bot.init()
 /**
  * Main Contact Bot
  */
-async function main() {
+async function onLogin() {
   const contactList = await Contact.findAll()
 
   log.info('Bot', '#######################')
@@ -139,7 +139,10 @@ async function main() {
     const avatarFileName = `${i}-${contact.name()}.jpg`
     const avatarReadStream = await contact.avatar()
     const avatarWriteStream = createWriteStream(avatarFileName)
+
+    const wait = new Promise(r => avatarWriteStream.once('close', r))
     avatarReadStream.pipe(avatarWriteStream)
+    await wait
 
     log.info('Bot', 'Contact: %s: %s with avatar file: %s', contact.weixin(), contact.name(), avatarFileName)
 
@@ -149,7 +152,10 @@ async function main() {
     }
   }
 
-  const SLEEP = 7
-  log.info('Bot', 'I will re-dump contact weixin id & names after %d second... ', SLEEP)
-  setTimeout(main, SLEEP * 1000)
+  // const SLEEP = 7
+  // log.info('Bot', 'I will re-dump contact weixin id & names after %d second... ', SLEEP)
+  // setTimeout(main, SLEEP * 1000)
+
+  await bot.logout()
+  await bot.quit()
 }

@@ -85,29 +85,19 @@ export type PuppetName = 'web'
                         | 'android'
                         | 'ios'
 
-export type HeadName = 'chrome'
-                      | 'chrome-headless'
-                      | 'phantomjs'
-                      | 'firefox'
-
 export interface ConfigSetting {
 
-  DEFAULT_HEAD: HeadName
   DEFAULT_PUPPET: PuppetName
   DEFAULT_APIHOST: string
   DEFAULT_PROFILE: string
   DEFAULT_TOKEN:  string
   DEFAULT_PROTOCOL: string
-  CMD_CHROMIUM: string
-  DEFAULT_PORT: number
 
-  port: number
   profile: string
   token: string
   debug: boolean
 
   puppet: PuppetName
-  head: HeadName
 
   apihost: string
   validApiHost: (host: string) => boolean
@@ -123,7 +113,7 @@ export interface ConfigSetting {
   gitVersion(): string | null,
   npmVersion(): string,
 
-  dockerMode: boolean,
+  docker: boolean,
 }
 /* tslint:disable:variable-name */
 /* tslint:disable:no-var-requires */
@@ -134,7 +124,7 @@ export const config: ConfigSetting = require('../package.json').wechaty
  */
 Object.assign(config, {
   apihost:    process.env['WECHATY_APIHOST']   || config.DEFAULT_APIHOST,
-  head:       process.env['WECHATY_HEAD']      || config.DEFAULT_HEAD,
+  // head:       process.env['WECHATY_HEAD']      || config.DEFAULT_HEAD,
   puppet:     process.env['WECHATY_PUPPET']    || config.DEFAULT_PUPPET,
   validApiHost,
 })
@@ -151,7 +141,7 @@ validApiHost(config.apihost)
  * 2. ENVIRONMENT VARIABLES (only)
  */
 Object.assign(config, {
-  port:       process.env['WECHATY_PORT']     || null, // 0 for disable port
+  // port:       process.env['WECHATY_PORT']     || null, // 0 for disable port
   profile:  process.env['WECHATY_PROFILE']    || null, // DO NOT set DEFAULT_PROFILE, because sometimes user do not want to save session
   token:    process.env['WECHATY_TOKEN']      || null, // DO NOT set DEFAULT, because sometimes user do not want to connect to io cloud service
   debug:    !!(process.env['WECHATY_DEBUG'])  || false,
@@ -160,16 +150,16 @@ Object.assign(config, {
 /**
  * 3. Service Settings
  */
-Object.assign(config, {
+// Object.assign(config, {
   // get PORT form cloud service env, ie: heroku
-  httpPort: process.env['PORT'] || process.env['WECHATY_PORT'] || config.DEFAULT_PORT,
-})
+  // httpPort: process.env['PORT'] || process.env['WECHATY_PORT'] || config.DEFAULT_PORT,
+// })
 
 /**
  * 4. Envioronment Identify
  */
 Object.assign(config, {
-  dockerMode: !!process.env['WECHATY_DOCKER'],
+  docker: !!process.env['WECHATY_DOCKER'],
   isGlobal:  isWechatyInstalledGlobal(),
 })
 
@@ -192,7 +182,7 @@ function puppetInstance(instance: Puppet): void
 
 function puppetInstance(instance?: Puppet | null): Puppet | void {
 
-  if (instance === undefined) {
+  if (typeof instance === 'undefined') {
     if (!this._puppetInstance) {
       throw new Error('no puppet instance')
     }
@@ -258,35 +248,6 @@ Object.assign(config, {
   npmVersion,
   puppetInstance,
 })
-
-export type WatchdogFoodName = 'HEARTBEAT'
-                              | 'POISON'
-                              | 'SCAN'
-
-export interface WatchdogFood {
-  data: any,
-  timeout?: number,  // millisecond
-  type?: WatchdogFoodName,
-}
-
-export interface ScanInfo {
-  url: string,
-  code: number,
-}
-
-/**
- * from Message
- */
-export interface RecommendInfo {
-  UserName:   string,
-  NickName:   string,  // display_name
-  Content:    string,  // request message
-  HeadImgUrl: string,  // message.RecommendInfo.HeadImgUrl
-
-  Ticket:     string,  // a pass token
-  VerifyFlag: number,
-
-}
 
 export interface Sayable {
   say(content: string, replyTo?: any|any[]): Promise<boolean>

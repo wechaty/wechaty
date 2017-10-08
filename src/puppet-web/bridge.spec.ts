@@ -1,3 +1,4 @@
+#!/usr/bin/env ts-node
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
@@ -16,17 +17,19 @@
  *   limitations under the License.
  *
  */
-import { test }   from 'ava'
-import * as sinon from 'sinon'
+// tslint:disable:no-shadowed-variable
+import * as test  from 'blue-tape'
+// import * as sinon from 'sinon'
 // const sinonTest   = require('sinon-test')(sinon)
 
-import PuppetWeb  from './puppet-web'
+import Profile    from '../profile'
+
 import Bridge     from './bridge'
 
-test('PuppetWebBridge smoke testing', async t => {
-  const browser = sinon.spy()
-
-  const mockPuppet = {browser} as any as PuppetWeb
-  const bridge = new Bridge(mockPuppet, 8788)
-  t.truthy(bridge, 'Bridge instnace')
+test('PuppetWebBridge', async t => {
+  const profile = new Profile()
+  const bridge = new Bridge({ profile })
+  await bridge.init()
+  t.ok(bridge, 'Bridge instnace')
+  await bridge.quit()
 })

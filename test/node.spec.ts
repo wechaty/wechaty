@@ -1,3 +1,5 @@
+#!/usr/bin/env ts-node
+
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
@@ -16,18 +18,22 @@
  *   limitations under the License.
  *
  */
-import { test } from 'ava'
+// tslint:disable:no-shadowed-variable
+import * as test  from 'blue-tape'
+// import * as sinon from 'sinon'
+// const sinonTest   = require('sinon-test')(sinon)
+
 // import { log }  from '../src/config'
 
 import { spy } from 'sinon'
 
-test('Node.js function params destructuring behaviour test', t => {
+test('Node.js function params destructuring behaviour test', async t => {
   const DEFAULT_N = 1
   const DEFAULT_S = 't'
 
   const paramSpy = spy()
   function paramTest({
-    n   = DEFAULT_N,
+    n = DEFAULT_N,
     s = DEFAULT_S,
   } = {}) {
     paramSpy(n, s)

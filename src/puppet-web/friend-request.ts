@@ -32,10 +32,13 @@ const retryPromise  = require('retry-promise').default
 import { Contact }    from '../contact'
 import {
   config,
-  RecommendInfo,
   log,
 }                     from '../config'
 import FriendRequest  from '../friend-request'
+
+import {
+  RecommendInfo,
+}                     from './schema'
 
 /**
  * @alias FriendRequest

@@ -1,3 +1,4 @@
+#!/usr/bin/env ts-node
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
@@ -16,22 +17,28 @@
  *   limitations under the License.
  *
  */
-import { test }   from 'ava'
+// tslint:disable:no-shadowed-variable
+import * as test  from 'blue-tape'
+// import * as sinon from 'sinon'
+// const sinonTest   = require('sinon-test')(sinon)
 
 import {
   config,
   log,
 }                 from './config'
 import Message    from './message'
+import Profile    from './profile'
 import PuppetWeb  from './puppet-web/'
 
 const MOCK_USER_ID = 'TEST-USER-ID'
 
-const puppet = new PuppetWeb()
+const puppet = new PuppetWeb({
+  profile: new Profile(),
+})
 puppet.userId = MOCK_USER_ID
 config.puppetInstance(puppet)
 
-test('constructor()', t => {
+test('constructor()', async t => {
   /* tslint:disable:max-line-length */
   const rawData = JSON.parse('{"MsgId":"179242112323992762","FromUserName":"@0bb3e4dd746fdbd4a80546aef66f4085","ToUserName":"@16d20edf23a3bf3bc71bb4140e91619f3ff33b4e33f7fcd25e65c1b02c7861ab","MsgType":1,"Content":"test123","Status":3,"ImgStatus":1,"CreateTime":1461652670,"VoiceLength":0,"PlayLength":0,"FileName":"","FileSize":"","MediaId":"","Url":"","AppMsgType":0,"StatusNotifyCode":0,"StatusNotifyUserName":"","RecommendInfo":{"UserName":"","NickName":"","QQNum":0,"Province":"","City":"","Content":"","Signature":"","Alias":"","Scene":0,"VerifyFlag":0,"AttrStatus":0,"Sex":0,"Ticket":"","OpCode":0},"ForwardFlag":0,"AppInfo":{"AppID":"","Type":0},"HasProductId":0,"Ticket":"","ImgHeight":0,"ImgWidth":0,"SubMsgType":0,"NewMsgId":179242112323992770,"MMPeerUserName":"@0bb3e4dd746fdbd4a80546aef66f4085","MMDigest":"test123","MMIsSend":false,"MMIsChatRoom":false,"MMUnread":true,"LocalID":"179242112323992762","ClientMsgId":"179242112323992762","MMActualContent":"test123","MMActualSender":"@0bb3e4dd746fdbd4a80546aef66f4085","MMDigestTime":"14:37","MMDisplayTime":1461652670,"MMTime":"14:37"}')
 
@@ -50,7 +57,7 @@ test('constructor()', t => {
 
 // Issue #445
 // XXX have to use test.serial() because mockGetContact can not be parallel
-test.serial('ready()', async t => {
+test('ready()', async t => {
 
   // must different with other rawData, because Contact class with load() will cache the result. or use Contact.resetPool()
   /* tslint:disable:max-line-length */
@@ -119,7 +126,7 @@ test('find()', async t => {
     id: 'xxx',
   })
 
-  t.truthy(m.id, 'Message.find')
+  t.ok(m.id, 'Message.find')
 })
 
 test('findAll()', async t => {
@@ -130,8 +137,8 @@ test('findAll()', async t => {
   t.is(msgList.length, 2, 'Message.findAll with limit 2')
 })
 
-test('self()', t => {
-  config.puppetInstance()
+test('self()', async t => {
+  config.puppetInstance(puppet)
 
   const m = new Message()
   m.from(MOCK_USER_ID)
@@ -142,9 +149,7 @@ test('self()', t => {
   t.false(m.self(), 'should identify self message false when from a different fromId')
 })
 
-// Issue #445
-// XXX have to use test.serial() because mockGetContact can not be parallel
-test.serial('mentioned()', async t => {
+test('mentioned()', async t => {
   /* tslint:disable:max-line-length */
   const rawObj11 = JSON.parse(`{"MsgId":"6475340302153501409","FromUserName":"@@9cdc696e490bd76c57e7dd54792dc1408e27d65e312178b1943e88579b7939f4","ToUserName":"@cd7d467d7464e8ff6b0acd29364654f3666df5d04551f6082bfc875f90a6afd2","MsgType":1,"Content":"@4c32c97337cbb325442c304d6a44e374:<br/>@_@","Status":3,"ImgStatus":1,"CreateTime":1489823176,"VoiceLength":0,"PlayLength":0,"FileName":"","FileSize":"","MediaId":"","Url":"","AppMsgType":0,"StatusNotifyCode":0,"StatusNotifyUserName":"","RecommendInfo":{"UserName":"","NickName":"","QQNum":0,"Province":"","City":"","Content":"","Signature":"","Alias":"","Scene":0,"VerifyFlag":0,"AttrStatus":0,"Sex":0,"Ticket":"","OpCode":0},"ForwardFlag":0,"AppInfo":{"AppID":"","Type":0},"HasProductId":0,"Ticket":"","ImgHeight":0,"ImgWidth":0,"SubMsgType":0,"NewMsgId":6475340302153502000,"OriContent":"","MMPeerUserName":"@@9cdc696e490bd76c57e7dd54792dc1408e27d65e312178b1943e88579b7939f4","MMDigest":"22acb030-ff09-11e6-8a73-cff62d9268c5:@_@","MMIsSend":false,"MMIsChatRoom":true,"MMUnread":true,"LocalID":"6475340302153501409","ClientMsgId":"6475340302153501409","MMActualContent":"@_@","MMActualSender":"@4c32c97337cbb325442c304d6a44e374","MMDigestTime":"15:46","MMDisplayTime":1489823176,"MMTime":"15:46"}`)
 

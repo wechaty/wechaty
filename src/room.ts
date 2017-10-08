@@ -25,13 +25,13 @@ import {
   Raven,
   Sayable,
   log,
-}                     from './config'
-import Contact        from './contact'
+}                 from './config'
+import Contact    from './contact'
 import {
   Message,
   MediaMessage,
-}                     from './message'
-import UtilLib        from './util-lib'
+}                 from './message'
+import Misc       from './misc'
 
 interface RoomObj {
   id:               string,
@@ -357,7 +357,7 @@ export class Room extends EventEmitter implements Sayable {
          * @rui: webwx's NickName here return contactAlias, if not set contactAlias, return name
          * @rui: 2017-7-2 webwx's NickName just ruturn name, no contactAlias
          */
-        mapList[member.UserName] = UtilLib.stripEmoji(tmpName)
+        mapList[member.UserName] = Misc.stripEmoji(tmpName)
       })
     }
     return mapList
@@ -526,7 +526,7 @@ export class Room extends EventEmitter implements Sayable {
       Object.assign(this.obj, { topic: newTopic })
       return
     }
-    return UtilLib.plainText(this.obj ? this.obj.topic : '')
+    return Misc.plainText(this.obj ? this.obj.topic : '')
   }
 
   /**
@@ -669,7 +669,7 @@ export class Room extends EventEmitter implements Sayable {
     /**
      * ISSUE #64 emoji need to be striped
      */
-    const filterValue: string  = UtilLib.stripEmoji(UtilLib.plainText(queryArg[filterKey]))
+    const filterValue: string  = Misc.stripEmoji(Misc.plainText(queryArg[filterKey]))
 
     const keyMap = {
       contactAlias: 'contactAliasMap',

@@ -1,0 +1,40 @@
+version: 2
+
+jobs:
+  build:
+    machine: true
+    steps:
+      - checkout
+      # - setup_remote_docker
+      - run:
+          name: Environment Information
+          command: |
+            docker --version
+            docker info
+            whoami
+            pwd
+            ls -lr
+      - run:
+          name: Prepare Build
+          command: |
+            # apk update && apk add curl curl-dev bash
+            curl -sSL -o /tmp/bats_v0.4.0.tar.gz https://github.com/sstephenson/bats/archive/v0.4.0.tar.gz
+            tar -xf /tmp/bats_v0.4.0.tar.gz
+            sudo bats-0.4.0/install.sh /usr/local
+      - run:
+          name: Build Wechaty
+          command: |
+            docker run -ti -v "$(pwd)":/mnt nlknguyen/alpine-shellcheck bin/*.sh
+            ./script/docker.sh build
+      - run:
+          name: Testing
+          command: |
+            ./script/docker.sh test
+      - deploy:
+          name: Deploy Wechaty Image to Docker Hub
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              curl -X POST -d '{"from":"circleci"}' "$DOCKER_REBUILD_URL"
+            else
+              echo "Skipped for not master branch."
+            fi
