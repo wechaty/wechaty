@@ -255,7 +255,7 @@ export class PuppetWeb extends Puppet {
       throw e
     }
 
-    const head = true
+    const head = false
     this.bridge = new Bridge({
       head,
       profile,
