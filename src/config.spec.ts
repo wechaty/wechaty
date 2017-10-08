@@ -60,10 +60,15 @@ test('validApiHost()', async t => {
 })
 
 test('puppetInstance()', async t => {
+  // BUG Compitable with Win32 CI
+  // global instance infected across unit tests... :(
+  const bak = config.puppetInstance()
+
   config.puppetInstance(null)
   t.throws(() => {
     config.puppetInstance()
   }, Error, 'should throw when not initialized')
+  config.puppetInstance(bak)
 
   const EXPECTED = <Puppet>{userId: 'test'}
   const mockPuppet = EXPECTED
@@ -77,4 +82,5 @@ test('puppetInstance()', async t => {
     config.puppetInstance()
   }, Error, 'should throw after set to null')
 
+  config.puppetInstance(bak)
 })
