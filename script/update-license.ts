@@ -134,7 +134,7 @@ async function updateLicense(file: string): Promise<void> {
 }
 
 async function glob(pattern): Promise<string[]> {
-  return promisify<string, string[]>(globCallback)(pattern)
+  return promisify<string, string[]>(globCallback as any)(pattern)
 }
 
 async function main(): Promise<void> {
