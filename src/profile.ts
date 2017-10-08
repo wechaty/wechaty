@@ -35,11 +35,15 @@ export class Profile {
 
   public load(): void {
     log.verbose('Profile', 'load() file: %s', this.file)
+    this.obj = {}
+
     if (!this.file) {
+      log.verbose('Profile', 'load() no file, NOOP')
       return
     }
 
     if (!fs.existsSync(this.file)) {
+      log.verbose('Profile', 'load() file not exist, NOOP')
       return
     }
 
@@ -48,13 +52,17 @@ export class Profile {
       this.obj = JSON.parse(text)
     } catch (e) {
       log.error('Profile', 'load() exception: %s', e)
-      this.obj = {}
     }
   }
 
   public save(): void {
     log.verbose('Profile', 'save() file: %s', this.file)
-    if (!this.file || !this.obj) {
+    if (!this.file) {
+      log.verbose('Profile', 'save() no file, NOOP')
+      return
+    }
+    if (!this.obj) {
+      log.verbose('Profile', 'save() no obj, NOOP')
       return
     }
 
@@ -78,15 +86,17 @@ export class Profile {
   public set(section: ProfileSection, data: any): void {
     log.verbose('Profile', 'set(%s, %s)', section, data)
     if (!this.obj) {
-      return
+      throw new Error('set before load?')
     }
     this.obj[section] = data
   }
 
   public destroy(): void {
     log.verbose('Profile', 'destroy() file: %s', this.file)
+    this.obj = {}
     if (this.file && fs.existsSync(this.file)) {
       fs.unlinkSync(this.file)
+      this.file = null
     }
   }
 }

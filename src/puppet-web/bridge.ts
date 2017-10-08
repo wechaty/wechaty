@@ -109,6 +109,7 @@ export class Bridge extends EventEmitter {
     if (cookieList && cookieList.length) {
       await page.setCookie(...cookieList)
       log.silly('PuppetWebBridge', 'initPage() page.setCookie() %s cookies set back', cookieList.length)
+      await page.reload()
     }
 
     await page.exposeFunction('emit', this.emit.bind(this))
