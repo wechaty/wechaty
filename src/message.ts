@@ -842,7 +842,8 @@ export class MediaMessage extends Message {
         }
         break
     }
-    throw new Error('not support type: ' + this.type())
+    log.error('MediaMessage', `ext() got unknown type: ${this.type()}`)
+    return String(this.type())
   }
 
   /**
