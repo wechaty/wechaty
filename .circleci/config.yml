@@ -27,8 +27,3 @@ jobs:
       - deploy:
         command: |
           curl -X POST -d '{"from":"circleci"}' "$DOCKER_REBUILD_URL"
-
-notify:
-  webhooks:
-    # Handles uploading stable/RC releases to GitHub
-    - url: https://nightly.yarnpkg.com/release_circleci
