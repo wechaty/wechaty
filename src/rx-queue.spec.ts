@@ -47,9 +47,9 @@ test('delay', async function (t) {
 
 test('throttle', async function (t) {
   const spy = sinon.spy()
-  const THROTTLE_TIME = 30
+  const THROTTLE_TIME = 50
   const GENERATED_NUM = 7
-  const GENERATED_INTERVAL = 10
+  const GENERATED_INTERVAL = 30
   const throttleQueue = new RxQueue('throttle', THROTTLE_TIME)
 
   throttleQueue.init()
@@ -77,11 +77,11 @@ test('throttle', async function (t) {
   const EXPECT_DURATION = Math.round(GENERATED_NUM * GENERATED_INTERVAL / 100) * 100
   t.equal(duration, EXPECT_DURATION, 'should cost time as expectation')
 
-  const EXPECTED_O_NUM = Math.ceil((GENERATED_NUM * GENERATED_INTERVAL) / THROTTLE_TIME)
+  const EXPECTED_O_NUM = Math.floor((GENERATED_NUM * GENERATED_INTERVAL) / THROTTLE_TIME)
   t.equal(spy.callCount, EXPECTED_O_NUM, 'should received EXPECTED_O_NUM calls')
-  t.deepEqual(spy.args[0][0], 0, 'should received 0')
-  t.deepEqual(spy.args[1][0], 3, 'should received 3')
-  t.deepEqual(spy.args[2][0], 6, 'should received 6')
+  t.equal(spy.args[0][0], 0, 'should received 0')
+  t.equal(spy.args[1][0], 2, 'should received 2')
+  t.equal(spy.args[2][0], 4, 'should received 4')
 })
 
 test('debounce', async function (t) {
