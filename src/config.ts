@@ -87,16 +87,17 @@ export type PuppetName = 'web'
 
 export interface ConfigSetting {
 
-  DEFAULT_HEAD: number
-  DEFAULT_PUPPET: PuppetName
-  DEFAULT_APIHOST: string
-  DEFAULT_PROFILE: string
-  DEFAULT_TOKEN:  string
-  DEFAULT_PROTOCOL: string
+  DEFAULT_HEAD     : number,
+  DEFAULT_PORT     : number,
+  DEFAULT_PUPPET   : PuppetName
+  DEFAULT_APIHOST  : string
+  DEFAULT_PROFILE  : string
+  DEFAULT_TOKEN    : string
+  DEFAULT_PROTOCOL : string
 
-  profile: string
-  token: string
-  debug: boolean
+  profile : string
+  token   : string
+  debug   : boolean
 
   head: boolean
   puppet: PuppetName
@@ -152,10 +153,10 @@ Object.assign(config, {
 /**
  * 3. Service Settings
  */
-// Object.assign(config, {
+Object.assign(config, {
   // get PORT form cloud service env, ie: heroku
-  // httpPort: process.env['PORT'] || process.env['WECHATY_PORT'] || config.DEFAULT_PORT,
-// })
+  httpPort: process.env['PORT'] || process.env['WECHATY_PORT'] || config.DEFAULT_PORT,
+})
 
 /**
  * 4. Envioronment Identify

@@ -6,6 +6,7 @@
   "types": "dist/index.d.ts",
   "wechaty": {
     "DEFAULT_HEAD": 0,
+    "DEFAULT_PORT": 8080,
     "DEFAULT_PUPPET": "web",
     "DEFAULT_PROFILE": "demo",
     "DEFAULT_PROTOCOL": "io|0.0.1",
