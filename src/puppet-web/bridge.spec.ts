@@ -26,8 +26,10 @@ import Profile    from '../profile'
 
 import Bridge     from './bridge'
 
-test('PuppetWebBridge smoke testing', async t => {
+test('PuppetWebBridge', async t => {
   const profile = new Profile()
   const bridge = new Bridge({ profile })
+  await bridge.init()
   t.ok(bridge, 'Bridge instnace')
+  await bridge.quit()
 })

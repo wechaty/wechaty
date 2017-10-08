@@ -77,8 +77,11 @@ export class Bridge extends EventEmitter {
   }
 
   public async initBrowser(): Promise<Browser> {
+    log.verbose('PuppetWebBridge', 'initBrowser()')
+
+    const headless = this.options.head ? false : true
     const browser = await launch({
-      headless : this.options.head ? false : true,
+      headless,
       args: [
         '--disable-gpu',
         '--disable-setuid-sandbox',
