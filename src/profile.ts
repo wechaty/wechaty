@@ -86,7 +86,7 @@ export class Profile {
   public set(section: ProfileSection, data: any): void {
     log.verbose('Profile', 'set(%s, %s)', section, data)
     if (!this.obj) {
-      throw new Error('set before load?')
+      this.obj = {}
     }
     this.obj[section] = data
   }
