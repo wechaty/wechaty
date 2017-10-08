@@ -64,33 +64,6 @@ export class Message implements Sayable {
    */
   public _counter: number
 
-  // DEPRECATED: TypeScript ENUM did this for us 201705
-  /**
-   * a map for:
-   *   1. name to id
-   *   2. id to name
-   */
-  // public static TYPE: MsgTypeMap = {
-  //   TEXT:               1,
-  //   IMAGE:              3,
-  //   VOICE:              34,
-  //   VERIFYMSG:          37,
-  //   POSSIBLEFRIEND_MSG: 40,
-  //   SHARECARD:          42,
-  //   VIDEO:              43,
-  //   EMOTICON:           47,
-  //   LOCATION:           48,
-  //   APP:                49,
-  //   VOIPMSG:            50,
-  //   STATUSNOTIFY:       51,
-  //   VOIPNOTIFY:         52,
-  //   VOIPINVITE:         53,
-  //   MICROVIDEO:         62,
-  //   SYSNOTICE:          9999,
-  //   SYS:                10000,
-  //   RECALLED:           10002,
-  // }
-
   /**
    * @private
    */
@@ -998,6 +971,7 @@ export class MediaMessage extends Message {
       throw e
     }
   }
+
 }
 
 /*
@@ -1008,4 +982,7 @@ export class MediaMessage extends Message {
  * &wechat_real_lang=en
  */
 
+export {
+  MsgType,
+}
 export default Message
