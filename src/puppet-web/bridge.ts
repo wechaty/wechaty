@@ -676,7 +676,7 @@ export class Bridge extends EventEmitter {
     if (domain === 'wechat.com') {
       domain = 'web.wechat.com'
     }
-  
+
     if (!/^http/.test(domain)) {
       // Protocol error (Page.navigate): Cannot navigate to invalid URL undefined
       domain = 'https://' + domain
