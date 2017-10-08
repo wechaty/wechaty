@@ -58,18 +58,13 @@ export type PuppetFoodType = 'scan' | 'ding'
 export type ScanFoodType   = 'scan' | 'login' | 'logout'
 
 export class PuppetWeb extends Puppet {
-  public bridge : Bridge
-  public scan   : ScanInfo | null
+  public bridge   : Bridge
+  public scanInfo : ScanInfo | null
 
   public puppetWatchrat : Watchrat<PuppetFoodType>
   public scanWatchrat   : Watchrat<ScanFoodType>
 
   private fileId   : number
-
-  public lastScanEventTime: number
-  public watchDogLastSaveSession: number
-  public watchDogTimer: NodeJS.Timer | null
-  public watchDogTimerTime: number
 
   constructor(
     public options: PuppetOptions,
@@ -77,10 +72,10 @@ export class PuppetWeb extends Puppet {
     super(options)
     this.fileId = 0
 
-    const PUPPET_TIMEOUT = 60 * 1000
+    const PUPPET_TIMEOUT = 60 * 1000  // 1 minute
     this.puppetWatchrat = new Watchrat<PuppetFoodType>('PuppetWeb', PUPPET_TIMEOUT)
 
-    const SCAN_TIMEOUT = 4 * 60 * 1000 // 4 mins (before is 10 mins)
+    const SCAN_TIMEOUT = 4 * 60 * 1000 // 4 minutes
     this.scanWatchrat   = new Watchrat<ScanFoodType>('Scan', SCAN_TIMEOUT)
   }
 
@@ -127,25 +122,35 @@ export class PuppetWeb extends Puppet {
       return
 
     } catch (e) {
-      log.error('PuppetWeb', 'init() exception: %s', e.stack)
+      log.error('PuppetWeb', 'init() exception: %s', e)
+
+      this.state.target('dead')
       this.emit('error', e)
       await this.quit()
-      this.state.target('dead')
+
       Raven.captureException(e)
       throw e
     }
   }
 
   public initWatchdogForPuppet(): void {
-    this.on('ding', data => this.puppetWatchrat.feed({
+    const puppet = this
+    const dog    = this.puppetWatchrat
+
+    puppet.on('ding', data => this.puppetWatchrat.feed({
       data,
       type: 'ding',
     }))
-    // feed the rat, heartbeat the puppet.
-    this.puppetWatchrat.on('feed', food => {
-      this.emit('heartbeat', food.data)
+
+    dog.on('feed', food => {
+      // feed the rat, heartbeat the puppet.
+      puppet.emit('heartbeat', food.data)
     })
 
+    dog.on('reset', (food, left) => {
+      const e = new Error(`PuppetWeb Watchdog Reset, last food: ${food.data}`)
+      puppet.emit('error', e)
+    })
   }
 
   /**
@@ -156,23 +161,30 @@ export class PuppetWeb extends Puppet {
    * so we need to refresh the page after a while
    */
   public initWatchdogForScan(): void {
-    this.on('scan', info => this.scanWatchrat.feed({
+    const puppet = this
+    const dog    = this.scanWatchrat
+
+    puppet.on('scan', info => dog.feed({
       data: info,
       type: 'scan',
     }))
-    this.on('login',  user => {
-      this.scanWatchrat.feed({
+    puppet.on('login',  user => {
+      dog.feed({
         data: user,
         type: 'login',
       })
-      this.scanWatchrat.sleep()
+      // do not monitor `scan` event anymore
+      // after user login
+      dog.sleep()
     })
-    this.on('logout', user => this.scanWatchrat.feed({
+
+    // active monitor again for `scan` event
+    puppet.on('logout', user => dog.feed({
       data: user,
       type: 'logout',
     }))
 
-    this.scanWatchrat.on('reset', async () => {
+    dog.on('reset', async () => {
       try {
         await this.bridge.reload()
       } catch (e) {
@@ -191,7 +203,7 @@ export class PuppetWeb extends Puppet {
 
     if (this.state.current() === 'dead') {
       if (this.state.inprocess()) {
-        const e = new Error('quit() is called on a `dead` `inprocess()` browser')
+        const e = new Error('quit() is called on a `dead` `inprocess()` PuppetWeb')
         log.warn('PuppetWeb', e.message)
         throw e
       } else {
@@ -201,48 +213,19 @@ export class PuppetWeb extends Puppet {
     }
 
     log.verbose('PuppetWeb', 'quit() kill watchdog before do quit')
-
     this.puppetWatchrat.sleep()
 
     this.state.target('dead')
     this.state.current('dead', false)
 
     try {
-
-      await new Promise(async (resolve, reject) => {
-        const timer = setTimeout(() => {
-          const e = new Error('quit() Promise() timeout')
-          log.warn('PuppetWeb', e.message)
-          reject(e)
-        }, 120 * 1000)
-
-        if (this.bridge) {
-          await this.bridge.quit()
-                          .catch(e => { // fail safe
-                            log.warn('PuppetWeb', 'quit() bridge.quit() exception: %s', e.message)
-                            Raven.captureException(e)
-                          })
-          log.verbose('PuppetWeb', 'quit() bridge.quit() done')
-        } else {
-          log.warn('PuppetWeb', 'quit() no this.bridge')
-        }
-
-        clearTimeout(timer)
-        resolve()
-        return
-
-      })
-
-      return
-
+      await this.bridge.quit()
     } catch (e) {
       log.error('PuppetWeb', 'quit() exception: %s', e.message)
       Raven.captureException(e)
       throw e
     } finally {
-
       this.state.current('dead')
-
     }
   }
 
@@ -256,6 +239,8 @@ export class PuppetWeb extends Puppet {
     }
 
     const head = false
+    // we have to set this.bridge right now,
+    // because the Event.onXXX might arrive while we are initializing.
     this.bridge = new Bridge({
       head,
       profile,
@@ -272,6 +257,7 @@ export class PuppetWeb extends Puppet {
       await this.bridge.init()
     } catch (e) {
       // FIXME
+      // Enable the following code again
       /*
       const blockedMessage = await this.bridge.blockedMessageBody()
       if (blockedMessage) {
@@ -304,7 +290,9 @@ export class PuppetWeb extends Puppet {
     })
   }
 
-  public logined(): boolean { return !!(this.user) }
+  public logined(): boolean {
+    return !!(this.user)
+  }
 
   /**
    * get self contact
@@ -320,7 +308,7 @@ export class PuppetWeb extends Puppet {
 
   private async getBaseRequest(): Promise<any> {
     try {
-      const json = await this.bridge.getBaseRequest();
+      const json = await this.bridge.getBaseRequest()
       const obj = JSON.parse(json)
       return obj.BaseRequest
     } catch (e) {
@@ -638,12 +626,12 @@ export class PuppetWeb extends Puppet {
       return false
     }
 
-    newMsg.FromUserName = this.userId || ''
-    newMsg.isTranspond = true
+    newMsg.FromUserName         = this.userId || ''
+    newMsg.isTranspond          = true
     newMsg.MsgIdBeforeTranspond = m.MsgIdBeforeTranspond || m.MsgId
-    newMsg.MMSourceMsgId = m.MsgId
+    newMsg.MMSourceMsgId        = m.MsgId
     // In room msg, the content prefix sender:, need to be removed, otherwise the forwarded sender will display the source message sender, causing self () to determine the error
-    newMsg.Content = Misc.unescapeHtml(m.Content.replace(/^@\w+:<br\/>/, '')).replace(/^[\w\-]+:<br\/>/, '')
+    newMsg.Content      = Misc.unescapeHtml(m.Content.replace(/^@\w+:<br\/>/, '')).replace(/^[\w\-]+:<br\/>/, '')
     newMsg.MMIsChatRoom = sendTo instanceof Room ? true : false
 
     // The following parameters need to be overridden after calling createMessage()
@@ -787,82 +775,68 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public contactFind(filterFunc: string): Promise<Contact[]> {
-    if (!this.bridge) {
-      return Promise.reject(new Error('contactFind fail: no bridge(yet)!'))
+  public async contactFind(filterFunc: string): Promise<Contact[]> {
+    try {
+      const idList = await this.bridge.contactFind(filterFunc)
+      return idList.map(id => Contact.load(id))
+    } catch (e) {
+      log.warn('PuppetWeb', 'contactFind(%s) rejected: %s', filterFunc, e.message)
+      Raven.captureException(e)
+      throw e
     }
-    return this.bridge.contactFind(filterFunc)
-                      .then(idList => idList.map(id => Contact.load(id)))
-                      .catch(e => {
-                        log.warn('PuppetWeb', 'contactFind(%s) rejected: %s', filterFunc, e.message)
-                        Raven.captureException(e)
-                        throw e
-                      })
   }
 
-  public roomFind(filterFunc: string): Promise<Room[]> {
-    if (!this.bridge) {
-      return Promise.reject(new Error('findRoom fail: no bridge(yet)!'))
+  public async roomFind(filterFunc: string): Promise<Room[]> {
+    try {
+      const idList = await this.bridge.roomFind(filterFunc)
+      return idList.map(id => Room.load(id))
+    } catch (e) {
+      log.warn('PuppetWeb', 'roomFind(%s) rejected: %s', filterFunc, e.message)
+      Raven.captureException(e)
+      throw e
     }
-    return this.bridge.roomFind(filterFunc)
-                      .then(idList => idList.map(id => Room.load(id)))
-                      .catch(e => {
-                        log.warn('PuppetWeb', 'roomFind(%s) rejected: %s', filterFunc, e.message)
-                        Raven.captureException(e)
-                        throw e
-                      })
   }
 
-  public roomDel(room: Room, contact: Contact): Promise<number> {
-    if (!this.bridge) {
-      return Promise.reject(new Error('roomDelMember fail: no bridge(yet)!'))
-    }
+  public async roomDel(room: Room, contact: Contact): Promise<number> {
     const roomId    = room.id
     const contactId = contact.id
-    return this.bridge.roomDelMember(roomId, contactId)
-                      .catch(e => {
-                        log.warn('PuppetWeb', 'roomDelMember(%s, %d) rejected: %s', roomId, contactId, e.message)
-                        Raven.captureException(e)
-                        throw e
-                      })
+    try {
+      return await this.bridge.roomDelMember(roomId, contactId)
+    } catch (e) {
+      log.warn('PuppetWeb', 'roomDelMember(%s, %d) rejected: %s', roomId, contactId, e.message)
+      Raven.captureException(e)
+      throw e
+    }
   }
 
-  public roomAdd(room: Room, contact: Contact): Promise<number> {
-    if (!this.bridge) {
-      return Promise.reject(new Error('fail: no bridge(yet)!'))
-    }
+  public async roomAdd(room: Room, contact: Contact): Promise<number> {
     const roomId    = room.id
     const contactId = contact.id
-    return this.bridge.roomAddMember(roomId, contactId)
-                      .catch(e => {
-                        log.warn('PuppetWeb', 'roomAddMember(%s) rejected: %s', contact, e.message)
-                        Raven.captureException(e)
-                        throw e
-                      })
+    try {
+      return await this.bridge.roomAddMember(roomId, contactId)
+    } catch (e) {
+      log.warn('PuppetWeb', 'roomAddMember(%s) rejected: %s', contact, e.message)
+      Raven.captureException(e)
+      throw e
+    }
   }
 
-  public roomTopic(room: Room, topic: string): Promise<string> {
-    if (!this.bridge) {
-      return Promise.reject(new Error('fail: no bridge(yet)!'))
-    }
+  public async roomTopic(room: Room, topic: string): Promise<string> {
     if (!room || typeof topic === 'undefined') {
       return Promise.reject(new Error('room or topic not found'))
     }
 
     const roomId = room.id
-    return this.bridge.roomModTopic(roomId, topic)
-                      .catch(e => {
-                        log.warn('PuppetWeb', 'roomTopic(%s) rejected: %s', topic, e.message)
-                        Raven.captureException(e)
-                        throw e
-                      })
+    try {
+      return await this.bridge.roomModTopic(roomId, topic)
+    } catch (e) {
+      log.warn('PuppetWeb', 'roomTopic(%s) rejected: %s', topic, e.message)
+      Raven.captureException(e)
+      throw e
+    }
   }
 
   public async roomCreate(contactList: Contact[], topic: string): Promise<Room> {
-    if (!this.bridge) {
-      return Promise.reject(new Error('fail: no bridge(yet)!'))
-    }
-
     if (!contactList || ! contactList.map) {
       throw new Error('contactList not found')
     }
@@ -887,10 +861,6 @@ export class PuppetWeb extends Puppet {
    * FriendRequest
    */
   public async friendRequestSend(contact: Contact, hello: string): Promise<boolean> {
-    if (!this.bridge) {
-      throw new Error('fail: no bridge(yet)!')
-    }
-
     if (!contact) {
       throw new Error('contact not found')
     }
@@ -905,10 +875,6 @@ export class PuppetWeb extends Puppet {
   }
 
   public async friendRequestAccept(contact: Contact, ticket: string): Promise<boolean> {
-    if (!this.bridge) {
-      return Promise.reject(new Error('fail: no bridge(yet)!'))
-    }
-
     if (!contact || !ticket) {
       throw new Error('contact or ticket not found')
     }
