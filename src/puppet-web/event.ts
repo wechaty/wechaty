@@ -55,7 +55,7 @@ function onDing(this: PuppetWeb, data): void {
   this.emit('watchdog', { data })
 }
 
-async function onScan(this: PuppetWeb, data: ScanInfo) {
+async function onScan(this: PuppetWeb, data: ScanInfo): Promise<void> {
   log.verbose('PuppetWebEvent', 'onScan(%d)', data && data.code)
 
   if (this.state.target() === 'dead') {
@@ -64,24 +64,26 @@ async function onScan(this: PuppetWeb, data: ScanInfo) {
     return
   }
 
-  this.scan = data
+  this.scanInfo = data
 
   /**
    * When wx.qq.com push a new QRCode to Scan, there will be cookie updates(?)
    */
-  this.saveCookie()
+  await this.saveCookie()
 
   if (this.user) {
     log.verbose('PuppetWebEvent', 'onScan() there has user when got a scan event. emit logout and set it to null')
-    this.emit('logout', this.user)
+
+    const bak = this.user || this.userId || ''
     this.user = this.userId = null
+    this.emit('logout', bak)
   }
 
   // feed watchDog a `scan` type of food
-  const food: WatchratFood = {
+  const food = {
     data,
     type: 'scan',
-  }
+  } as WatchratFood
   this.emit('watchdog', food)
   this.emit('scan'    , data.url, data.code)
 }
@@ -99,7 +101,7 @@ async function onLogin(this: PuppetWeb, memo: string, attempt = 0): Promise<void
     return
   }
 
-  this.scan = null
+  this.scanInfo = null
 
   if (this.userId) {
     log.warn('PuppetWebEvent', 'onLogin(%s) userId had already set: "%s"', memo, this.userId)
@@ -143,7 +145,6 @@ async function onLogin(this: PuppetWeb, memo: string, attempt = 0): Promise<void
 
   } catch (e) {
     log.error('PuppetWebEvent', 'onLogin() exception: %s', e)
-    console.log(e.stack)
     throw e
   }
 
@@ -153,14 +154,13 @@ async function onLogin(this: PuppetWeb, memo: string, attempt = 0): Promise<void
 function onLogout(this: PuppetWeb, data) {
   log.verbose('PuppetWebEvent', 'onLogout(%s)', data)
 
-  this.emit('logout', this.user || this.userId || '')
-
   if (!this.user && !this.userId) {
     log.warn('PuppetWebEvent', 'onLogout() without this.user or userId initialized')
   }
 
-  this.userId = null
-  this.user   = null
+  const bak = this.user || this.userId || ''
+  this.userId = this.user = null
+  this.emit('logout', bak)
 }
 
 async function onMessage(this: PuppetWeb, obj: MsgRawObj): Promise<void> {
@@ -213,7 +213,7 @@ async function onMessage(this: PuppetWeb, obj: MsgRawObj): Promise<void> {
         break
     }
 
-    await m.ready() // TODO: EventEmitter2 for video/audio/app/sys....
+    await m.ready()
     this.emit('message', m)
 
   } catch (e) {
