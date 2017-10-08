@@ -497,7 +497,7 @@
                 .filter(id => id.match(/^@@/))    // only search in room
                 .map(id => _contacts[id])         // map to room array
                 .filter(r => r.MemberList.length) // get rid of room without member list
-                .filter(r = r.MemberList
+                .filter(r => r.MemberList
                             .filter(m => m.UserName === id)
                             .length
                 )
