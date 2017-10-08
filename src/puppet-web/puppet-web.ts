@@ -324,7 +324,7 @@ export class PuppetWeb extends Puppet {
       throw new Error('require mediaMessage')
 
     const filename = mediaMessage.filename()
-    const ext = mediaMessage.ext()
+    const ext      = mediaMessage.ext()
 
     const contentType = Misc.mime(ext)
     let mediatype: MediaType
@@ -354,27 +354,28 @@ export class PuppetWeb extends Puppet {
 
     // Sending video files is not allowed to exceed 20MB
     // https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L1115
-    const maxVideoSize  = 20 * 1024 * 1024
-    const largeFileSize = 25 * 1024 * 1024
-    const maxFileSize   = 100 * 1024 * 1024
-    if (mediatype === MediaType.VIDEO && buffer.length > maxVideoSize)
-      throw new Error(`Sending video files is not allowed to exceed ${maxVideoSize / 1024 / 1024}MB`)
-    if (buffer.length > maxFileSize) {
-      throw new Error(`Sending files is not allowed to exceed ${maxFileSize / 1024 / 1024}MB`)
+    const MAX_FILE_SIZE   = 100 * 1024 * 1024
+    const LARGE_FILE_SIZE = 25 * 1024 * 1024
+    const MAX_VIDEO_SIZE  = 20 * 1024 * 1024
+
+    if (mediatype === MediaType.VIDEO && buffer.length > MAX_VIDEO_SIZE)
+      throw new Error(`Sending video files is not allowed to exceed ${MAX_VIDEO_SIZE / 1024 / 1024}MB`)
+    if (buffer.length > MAX_FILE_SIZE) {
+      throw new Error(`Sending files is not allowed to exceed ${MAX_FILE_SIZE / 1024 / 1024}MB`)
     }
 
     const md5 = Misc.md5(buffer)
 
-    const baseRequest = await this.getBaseRequest()
-    const passTicket = await this.bridge.getPassticket()
-    const uploadMediaUrl = await this.bridge.getUploadMediaUrl()
-    const checkUploadUrl = await this.bridge.getCheckUploadUrl()
-    const cookie = await this.bridge.cookies()
-    const first = cookie.find(c => c.name === 'webwx_data_ticket')
+    const baseRequest     = await this.getBaseRequest()
+    const passTicket      = await this.bridge.getPassticket()
+    const uploadMediaUrl  = await this.bridge.getUploadMediaUrl()
+    const checkUploadUrl  = await this.bridge.getCheckUploadUrl()
+    const cookie          = await this.bridge.cookies()
+    const first           = cookie.find(c => c.name === 'webwx_data_ticket')
     const webwxDataTicket = first && first.value
-    const size = buffer.length
-    const fromUserName = this.self().id
-    const id = 'WU_FILE_' + this.fileId
+    const size            = buffer.length
+    const fromUserName    = this.self().id
+    const id              = 'WU_FILE_' + this.fileId
     this.fileId++
 
     const hostname = await this.bridge.hostname()
@@ -411,18 +412,18 @@ export class PuppetWeb extends Puppet {
       FileType:     7,              // If do not have this parameter, the api will fail
     }
 
-    const mediaData = <MediaData>{
+    const mediaData = {
       ToUserName: toUserName,
       MediaId:    '',
       FileName:   filename,
       FileSize:   size,
       FileMd5:    md5,
       MMFileExt:  ext,
-    }
+    } as MediaData
 
     // If file size > 25M, must first call checkUpload to get Signature and AESKey, otherwise it will fail to upload
     // https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L1132 #1182
-    if (size > largeFileSize) {
+    if (size > LARGE_FILE_SIZE) {
       let ret
       try {
         ret = <any> await new Promise((resolve, reject) => {
@@ -453,8 +454,8 @@ export class PuppetWeb extends Puppet {
                   reject(new Error('chackUpload err:' + JSON.stringify(errMsg)))
                 }
                 resolve({
-                  Signature: obj.Signature,
-                  AESKey: obj.AESKey,
+                  Signature : obj.Signature,
+                  AESKey    : obj.AESKey,
                 })
               }
             } catch (e) {
@@ -534,7 +535,7 @@ export class PuppetWeb extends Puppet {
   }
 
   public async sendMedia(message: MediaMessage): Promise<boolean> {
-    const to = message.to()
+    const to   = message.to()
     const room = message.room()
 
     let destinationId
@@ -549,11 +550,11 @@ export class PuppetWeb extends Puppet {
     }
 
     let mediaData: MediaData
-    const data = message.rawObj as MsgRawObj
-    if (!data.MediaId) {
+    const rawObj = message.rawObj as MsgRawObj
+    if (!rawObj.MediaId) {
       try {
         mediaData = await this.uploadMedia(message, destinationId)
-        message.rawObj = <MsgRawObj> Object.assign(data, mediaData)
+        message.rawObj = Object.assign(rawObj, mediaData)
         log.silly('PuppetWeb', 'Upload completed, new rawObj:%s', JSON.stringify(message.rawObj))
       } catch (e) {
         log.error('PuppetWeb', 'sendMedia() exception: %s', e.message)
@@ -561,23 +562,27 @@ export class PuppetWeb extends Puppet {
       }
     } else {
       // To support forward file
-      log.silly('PuppetWeb', 'skip upload file, rawObj:%s', JSON.stringify(data))
+      log.silly('PuppetWeb', 'skip upload file, rawObj:%s', JSON.stringify(rawObj))
       mediaData = {
-        ToUserName: destinationId,
-        MediaId: data.MediaId,
-        MsgType: data.MsgType,
-        FileName: data.FileName,
-        FileSize: data.FileSize,
-        MMFileExt: data.MMFileExt,
+        ToUserName : destinationId,
+        MediaId    : rawObj.MediaId,
+        MsgType    : rawObj.MsgType,
+        FileName   : rawObj.FileName,
+        FileSize   : rawObj.FileSize,
+        MMFileExt  : rawObj.MMFileExt,
       }
-      if (data.Signature) {
-        mediaData.Signature = data.Signature
+      if (rawObj.Signature) {
+        mediaData.Signature = rawObj.Signature
       }
     }
-    mediaData.MsgType = message.type() // Misc.msgType(message.ext())
-    log.silly('PuppetWeb', 'sendMedia() destination: %s, mediaId: %s)',
+    // console.log('mediaData.MsgType', mediaData.MsgType)
+    // console.log('rawObj.MsgType', message.rawObj && message.rawObj.MsgType)
+
+    mediaData.MsgType = Misc.msgType(message.ext())
+    log.silly('PuppetWeb', 'sendMedia() destination: %s, mediaId: %s, MsgType; %s)',
       destinationId,
       mediaData.MediaId,
+      mediaData.MsgType,
     )
     let ret = false
     try {

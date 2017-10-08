@@ -16,15 +16,16 @@
  *   limitations under the License.
  *
  */
-import * as crypto from 'crypto'
-import * as https from 'https'
-import * as http  from 'http'
+import * as crypto  from 'crypto'
+import * as https   from 'https'
+import * as http    from 'http'
 import {
   Readable,
-}                 from 'stream'
-import * as url   from 'url'
+}                   from 'stream'
+import * as url     from 'url'
 
-import { log } from './config'
+import { log }      from './config'
+import { MsgType }  from './message'
 
 export class Misc {
   public static stripHtml(html?: string): string {
@@ -257,21 +258,21 @@ export class Misc {
     return md5sum.digest('hex')
   }
 
-  // public static msgType(ext): MsgType {
-  //   switch (ext) {
-  //     case 'bmp':
-  //     case 'jpeg':
-  //     case 'jpg':
-  //     case 'png':
-  //       return MsgType.IMAGE
-  //     case 'gif':
-  //       return MsgType.EMOTICON
-  //     case 'mp4':
-  //       return MsgType.VIDEO
-  //     default:
-  //       return MsgType.APP
-  //   }
-  // }
+  public static msgType(ext: string): MsgType {
+    switch (ext) {
+      case 'bmp':
+      case 'jpeg':
+      case 'jpg':
+      case 'png':
+        return MsgType.IMAGE
+      case 'gif':
+        return MsgType.EMOTICON
+      case 'mp4':
+        return MsgType.VIDEO
+      default:
+        return MsgType.APP
+    }
+  }
 
   public static mime(ext): string {
     switch (ext) {
