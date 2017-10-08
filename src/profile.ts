@@ -48,13 +48,13 @@ export class Profile {
       this.obj = JSON.parse(text)
     } catch (e) {
       log.error('Profile', 'load() exception: %s', e)
-      throw e
+      this.obj = {}
     }
   }
 
   public save(): void {
     log.verbose('Profile', 'save() file: %s', this.file)
-    if (!this.file) {
+    if (!this.file || !this.obj) {
       return
     }
 
