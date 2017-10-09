@@ -19,6 +19,9 @@
 import { EventEmitter } from 'events'
 
 import { StateSwitch }  from 'state-switch'
+import {
+  WatchdogFood,
+}                       from 'watchdog'
 
 import {
   Sayable,
@@ -32,9 +35,6 @@ import {
 }                       from './message'
 import Profile          from './profile'
 import Room             from './room'
-import {
-  WatchratFood,
-}                       from './watchrat'
 import {
   WechatyEvent,
 }                       from './wechaty'
@@ -76,7 +76,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public emit(event: 'room-leave',  room: Room, leaverList: Contact[])                             : boolean
   public emit(event: 'room-topic',  room: Room, topic: string, oldTopic: string, changer: Contact) : boolean
   public emit(event: 'scan',        url: string, code: number)                                     : boolean
-  public emit(event: 'watchdog',    food: WatchratFood)                                            : boolean
+  public emit(event: 'watchdog',    food: WatchdogFood)                                            : boolean
   public emit(event: never, ...args: any[])                                                        : boolean
 
   public emit(
@@ -97,7 +97,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public on(event: 'room-leave',  listener: (room: Room, leaverList: Contact[]) => void)                             : this
   public on(event: 'room-topic',  listener: (room: Room, topic: string, oldTopic: string, changer: Contact) => void) : this
   public on(event: 'scan',        listener: (info: ScanInfo) => void)                                                : this
-  public on(event: 'watchdog',    listener: (data: WatchratFood) => void)                                            : this
+  public on(event: 'watchdog',    listener: (data: WatchdogFood) => void)                                            : this
   public on(event: never, listener: any)                                                                             : this
 
   public on(

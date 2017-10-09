@@ -17,6 +17,11 @@
  *
  */
 import {
+  Watchdog,
+  WatchdogFood,
+}                   from 'watchdog'
+
+import {
   config,
   log,
   Raven,
@@ -35,10 +40,6 @@ import {
 import Room          from '../room'
 import RxQueue       from '../rx-queue'
 import Misc          from '../misc'
-import {
-  Watchrat,
-  WatchratFood,
-}                   from '../watchrat'
 
 import {
   Bridge,
@@ -62,8 +63,8 @@ export class PuppetWeb extends Puppet {
   public bridge   : Bridge
   public scanInfo : ScanInfo | null
 
-  public puppetWatchrat : Watchrat<PuppetFoodType>
-  public scanWatchrat   : Watchrat<ScanFoodType>
+  public puppetWatchdog : Watchdog<PuppetFoodType>
+  public scanWatchdog   : Watchdog<ScanFoodType>
 
   private fileId   : number
 
@@ -74,10 +75,10 @@ export class PuppetWeb extends Puppet {
     this.fileId = 0
 
     const PUPPET_TIMEOUT = 60 * 1000  // 1 minute
-    this.puppetWatchrat = new Watchrat<PuppetFoodType>('PuppetWeb', PUPPET_TIMEOUT)
+    this.puppetWatchdog = new Watchdog<PuppetFoodType>(PUPPET_TIMEOUT, 'PuppetWeb')
 
     const SCAN_TIMEOUT = 4 * 60 * 1000 // 4 minutes
-    this.scanWatchrat   = new Watchrat<ScanFoodType>('Scan', SCAN_TIMEOUT)
+    this.scanWatchdog   = new Watchdog<ScanFoodType>(SCAN_TIMEOUT, 'Scan')
   }
 
   public toString() { return `Class PuppetWeb({profile:${this.options.profile}})` }
@@ -106,7 +107,7 @@ export class PuppetWeb extends Puppet {
        */
       this.state.current('live')
 
-      const food: WatchratFood = {
+      const food: WatchdogFood = {
         data: 'inited',
         timeout: 2 * 60 * 1000, // 2 mins for first login
       }
@@ -136,9 +137,9 @@ export class PuppetWeb extends Puppet {
 
   public initWatchdogForPuppet(): void {
     const puppet = this
-    const dog    = this.puppetWatchrat
+    const dog    = this.puppetWatchdog
 
-    puppet.on('ding', data => this.puppetWatchrat.feed({
+    puppet.on('ding', data => this.puppetWatchdog.feed({
       data,
       type: 'ding',
     }))
@@ -163,7 +164,7 @@ export class PuppetWeb extends Puppet {
    */
   public initWatchdogForScan(): void {
     const puppet = this
-    const dog    = this.scanWatchrat
+    const dog    = this.scanWatchdog
 
     puppet.on('scan', info => dog.feed({
       data: info,
@@ -189,7 +190,7 @@ export class PuppetWeb extends Puppet {
       try {
         await this.bridge.reload()
       } catch (e) {
-        log.error('PuppetWeb', 'initScanWatchrat() on(reset) exception: %s', e)
+        log.error('PuppetWeb', 'initScanWatchdog() on(reset) exception: %s', e)
         this.emit('error', e)
       }
     })
@@ -214,7 +215,7 @@ export class PuppetWeb extends Puppet {
     }
 
     log.verbose('PuppetWeb', 'quit() kill watchdog before do quit')
-    this.puppetWatchrat.sleep()
+    this.puppetWatchdog.sleep()
 
     this.state.target('dead')
     this.state.current('dead', false)
