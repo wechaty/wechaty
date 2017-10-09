@@ -102,9 +102,11 @@ export class Bridge extends EventEmitter {
 
     const cookieList = this.options.profile.get('cookies') as Cookie[]
     const domain = this.cookieDomain(cookieList)
-    await page.goto(domain, {
-      waitUntil: 'load',  // https://github.com/GoogleChrome/puppeteer/issues/805
-    })
+    await page.goto(domain) // Does this related to(?) the CI Error: exception: Navigation Timeout Exceeded: 30000ms exceeded
+
+    // , {
+    //   waitUntil: 'load',  // https://github.com/GoogleChrome/puppeteer/issues/805
+    // })
 
     if (cookieList && cookieList.length) {
       await page.setCookie(...cookieList)
