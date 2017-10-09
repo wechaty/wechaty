@@ -16,6 +16,8 @@
  *   limitations under the License.
  *
  */
+import * as mime    from 'mime'
+
 import {
   config,
   log,
@@ -326,7 +328,8 @@ export class PuppetWeb extends Puppet {
     const filename = mediaMessage.filename()
     const ext      = mediaMessage.ext()
 
-    const contentType = Misc.mime(ext)
+    // const contentType = Misc.mime(ext)
+    const contentType = mime.getType(ext)
     let mediatype: MediaType
 
     switch (ext) {
