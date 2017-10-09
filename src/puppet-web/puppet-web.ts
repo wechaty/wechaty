@@ -16,8 +16,6 @@
  *   limitations under the License.
  *
  */
-import * as mime    from 'mime'
-
 import {
   config,
   log,
@@ -329,7 +327,11 @@ export class PuppetWeb extends Puppet {
     const ext      = mediaMessage.ext()
 
     // const contentType = Misc.mime(ext)
-    const contentType = mime.getType(ext)
+    // const contentType = mime.getType(ext)
+    const contentType = mediaMessage.mimeType()
+    if (!contentType) {
+      throw new Error('no MIME Type found on mediaMessage: ' + mediaMessage.filename())
+    }
     let mediatype: MediaType
 
     switch (ext) {
@@ -599,7 +601,7 @@ export class PuppetWeb extends Puppet {
   }
 
   /**
-   * TODO: should be change to forward(message, contact)
+   * TODO: Test this function if it could work...
    */
   // public async forward(baseData: MsgRawObj, patchData: MsgRawObj): Promise<boolean> {
   public async forward(message: MediaMessage, sendTo: Contact | Room): Promise<boolean> {

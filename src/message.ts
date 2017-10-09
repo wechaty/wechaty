@@ -22,6 +22,8 @@ import {
   Readable,
 }                 from 'stream'
 
+import * as mime  from 'mime'
+
 import {
   config,
   Raven,
@@ -79,6 +81,14 @@ export class Message implements Sayable {
    */
   public filename(): string {
     throw Error('not a media message')
+  }
+
+  /**
+   * return the MIME Type of this Message
+   * text message will always return `text/plain`
+   */
+  public mimeType(): string {
+    return 'text/plain'
   }
 
   /**
@@ -817,6 +827,14 @@ export class MediaMessage extends Message {
     }
     log.error('MediaMessage', `ext() got unknown type: ${this.type()}`)
     return String(this.type())
+  }
+
+  /**
+   * return the MIME Type of this MediaMessage
+   *
+   */
+  public mimeType(): string | null {
+    return mime.getType(this.ext())
   }
 
   /**
