@@ -84,14 +84,6 @@ export class Message implements Sayable {
   }
 
   /**
-   * return the MIME Type of this Message
-   * text message will always return `text/plain`
-   */
-  public mimeType(): string {
-    return 'text/plain'
-  }
-
-  /**
    * @private
    */
   constructor(public rawObj?: MsgRawObj) {
