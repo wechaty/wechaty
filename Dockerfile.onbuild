@@ -1,7 +1,7 @@
 FROM zixia/wechaty
 
 RUN sudo mkdir /app/ \
-  && chown -R bot:bot /app/
+    && sudo chown -R bot:bot /app/
 WORKDIR /app/
 
 ONBUILD ARG NODE_ENV
