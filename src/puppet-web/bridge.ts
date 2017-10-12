@@ -66,12 +66,15 @@ export class Bridge extends EventEmitter {
 
     try {
       this.browser = await this.initBrowser()
+      log.info('PuppetWebBridge', 'init() initBrowser() down')
+
       this.page    = await this.initPage(this.browser)
+      log.info('PuppetWebBridge', 'init() initPage() down')
 
       await this.readyAngular(this.page)
       await this.inject(this.page)
     } catch (e) {
-      log.silly('PuppetWebBridge', 'init() exception: %s', e && e.message || e)
+      log.error('PuppetWebBridge', 'init() exception: %s', e)
       throw e
     }
   }
@@ -101,10 +104,15 @@ export class Bridge extends EventEmitter {
     const page = await browser.newPage()
 
     const cookieList = this.options.profile.get('cookies') as Cookie[]
-    const domain = this.cookieDomain(cookieList)
-    await page.goto(domain, {
-      waitUntil: 'load',  // https://github.com/GoogleChrome/puppeteer/issues/805
-    })
+    const url        = this.entryUrl(cookieList)
+
+    log.info('PuppetWebBridge', 'initPage() before page.goto(domain)')
+    await page.goto(url) // Does this related to(?) the CI Error: exception: Navigation Timeout Exceeded: 30000ms exceeded
+    log.info('PuppetWebBridge', 'initPage() after page.goto(domain)')
+
+    // , {
+    //   waitUntil: 'load',  // https://github.com/GoogleChrome/puppeteer/issues/805
+    // })
 
     if (cookieList && cookieList.length) {
       await page.setCookie(...cookieList)
@@ -662,48 +670,52 @@ export class Bridge extends EventEmitter {
   /**
    * name
    */
-  public cookieDomain(cookieList?: Cookie[]): string {
+  public entryUrl(cookieList?: Cookie[]): string {
     log.verbose('PuppetWebBridge', 'cookieDomain(%s)', cookieList)
 
-    const DEFAULT_HOSTNAME = 'https://wx.qq.com'
+    const DEFAULT_URL = 'https://wx.qq.com'
 
     if (!cookieList || cookieList.length === 0) {
-      log.silly('PuppetWebBridge', 'cookieDomain() no cookie, return default %s', DEFAULT_HOSTNAME)
-      return DEFAULT_HOSTNAME
+      log.silly('PuppetWebBridge', 'cookieDomain() no cookie, return default %s', DEFAULT_URL)
+      return DEFAULT_URL
     }
 
     const wxCookieList = cookieList.filter(c => /^webwx_auth_ticket|webwxuvid$/.test(c.name))
     if (!wxCookieList.length) {
       log.silly('PuppetWebBridge', 'cookieDomain() no valid cookie, return default hostname')
-      return DEFAULT_HOSTNAME
+      return DEFAULT_URL
     }
     let domain = wxCookieList[0].domain
     if (!domain) {
       log.silly('PuppetWebBridge', 'cookieDomain() no valid domain in cookies, return default hostname')
-      return DEFAULT_HOSTNAME
+      return DEFAULT_URL
     }
 
     domain = domain.slice(1)
-
     if (domain === 'wechat.com') {
       domain = 'web.wechat.com'
     }
 
-    if (!/^http/.test(domain)) {
+    let url
+    if (/^http/.test(url)) {
+      url = domain
+    } else {
       // Protocol error (Page.navigate): Cannot navigate to invalid URL undefined
-      domain = 'https://' + domain
+      url = `https://${domain}`
     }
-    log.silly('PuppetWebBridge', 'cookieDomain() got %s', domain)
+    log.silly('PuppetWebBridge', 'cookieDomain() got %s', url)
 
-    return domain
+    return url
   }
 
   public async reload(): Promise<void> {
+    log.verbose('PuppetWebBridge', 'reload()')
     await this.page.reload()
     return
   }
 
   public async evaluate(...args: any[]): Promise<string> {
+    log.silly('PuppetWebBridge', 'evaluate()')
     return await this.page.evaluate.apply(this.page, args)
   }
 }

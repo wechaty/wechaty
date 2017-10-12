@@ -1,13 +1,14 @@
 FROM zixia/wechaty
 
-RUN mkdir -p /app/
+RUN sudo mkdir /app/ \
+    && sudo chown -R bot:bot /app/
 WORKDIR /app/
 
 ONBUILD ARG NODE_ENV
 ONBUILD ENV NODE_ENV $NODE_ENV
 
 ONBUILD COPY package.json .
-ONBUILD RUN npm install && npm cache clean && rm -fr /tmp/* /root/.npm
+ONBUILD RUN npm install && npm cache clean && rm -fr /tmp/* ~/.npm
 ONBUILD COPY . .
 
 CMD [ "npm", "start" ]
