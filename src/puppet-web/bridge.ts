@@ -593,39 +593,38 @@ export class Bridge extends EventEmitter {
   }
 
   /**
-   * <error>
-   *  <ret>1203</ret>
-   *  <message>当前登录环境异常。为了你的帐号安全，暂时不能登录web微信。你可以通过手机客户端或者windows微信登录。</message>
-   * </error>
+   * Throw if there's a blocked message
    */
-  public async blockedMessageBody(): Promise<string | null> {
-    log.silly('PuppetWebBridge', 'blockedMessageBody()')
-    const text = await this.page.evaluate('return document.body.innerText')
+  public async testBlockedMessage(text: string): Promise<void> {
+    log.silly('PuppetWebBridge', 'testBlockedMessage(%s)', text)
 
-    return new Promise<string | null>((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       parseString(text, { explicitArray: false }, (err, obj) => {
         if (err) {
-          return resolve(null)
+          return resolve()
         }
         if (!obj.error) {
-          return resolve(null)
+          return resolve()
         }
         const code    = obj.error.code
-        const message = obj.error.message
+        const message = obj.error.message as string
+        const e = new Error(message)
+
         if (code === 1203) {
           // <error>
           // <ret>1203</ret>
           // <message>当前登录环境异常。为了你的帐号安全，暂时不能登录web微信。你可以通过手机客户端或者windows微信登录。</message>
           // </error>
-          return resolve(message)
+          return reject(e)
         }
-        return resolve(message) // other error message
+        log.warn('PuppetWebBridge', 'testBlockedMessage() code: %s type: %s', code, typeof code)
+        return reject(e) // other error message
       })
     })
   }
 
   public async clickSwitchAccount(): Promise<boolean> {
-    log.verbose('PuppetWebBrowser', 'clickSwitchAccount()')
+    log.verbose('PuppetWebBridge', 'clickSwitchAccount()')
 
     const SELECTOR = `//div[contains(@class,'association') and contains(@class,'show')]/a[@ng-click='qrcodeLogin()']`
     try {
@@ -633,10 +632,10 @@ export class Bridge extends EventEmitter {
       await button.click()
       // const button = await this.driver.driver.findElement(By.xpath(
       //   "//div[contains(@class,'association') and contains(@class,'show')]/a[@ng-click='qrcodeLogin()']"))
-      log.silly('PuppetWebBrowser', 'clickSwitchAccount() clicked!')
+      log.silly('PuppetWebBridge', 'clickSwitchAccount() clicked!')
       return true
     } catch (e) {
-      log.silly('PuppetWebBrowser', 'clickSwitchAccount() button not found')
+      log.silly('PuppetWebBridge', 'clickSwitchAccount() button not found')
       return false
     }
   }

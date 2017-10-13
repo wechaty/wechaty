@@ -17,8 +17,9 @@
  *   limitations under the License.
  *
  */
-// tslint:disable:no-shadowed-variable
 import * as test  from 'blue-tape'
+// tslint:disable:no-shadowed-variable
+
 // import * as sinon from 'sinon'
 // const sinonTest   = require('sinon-test')(sinon)
 
@@ -32,4 +33,67 @@ test('PuppetWebBridge', async t => {
   await bridge.init()
   t.ok(bridge, 'Bridge instnace')
   await bridge.quit()
+})
+
+test('testBlockedMessage()', async t => {
+  const BLOCKED_XML_ZH = `
+    <error>
+     <ret>1203</ret>
+     <message>当前登录环境异常。为了你的帐号安全，暂时不能登录web微信。你可以通过手机客户端或者windows微信登录。</message>
+    </error>
+  `
+
+  const BLOCKED_TEXT_ZH = [
+    '当前登录环境异常。为了你的帐号安全，暂时不能登录web微信。',
+    '你可以通过手机客户端或者windows微信登录。',
+  ].join('')
+
+   // tslint:disable:max-line-length
+  const BLOCKED_XML_EN = `
+    <error>
+     <ret>1203</ret>
+     <message>For account security, newly registered WeChat accounts are unable to log in to Web WeChat. To use WeChat on a computer, use Windows WeChat or Mac WeChat at http://wechat.com</message>
+    </error>
+    `
+
+  const BLOCKED_TEXT_EN = [
+    'For account security, newly registered WeChat accounts are unable to log in to Web WeChat.',
+    ' To use WeChat on a computer, use Windows WeChat or Mac WeChat at http://wechat.com',
+  ].join('')
+
+  test('not blocked', async t => {
+    const profile = new Profile()
+    const bridge = new Bridge({ profile })
+
+    try {
+      await bridge.testBlockedMessage('this is not xml')
+      t.pass('should not throw when no block message')
+    } catch (e) {
+      t.fail('should throw when no block message')
+    }
+  })
+
+  test('zh', async t => {
+    const profile = new Profile()
+    const bridge = new Bridge({ profile })
+
+    try {
+      await bridge.testBlockedMessage(BLOCKED_XML_ZH)
+      t.fail('should throw exception')
+    } catch (e) {
+      t.equal(e.message, BLOCKED_TEXT_ZH, 'should get zh blocked message')
+    }
+  })
+
+  test('en', async t => {
+    const profile = new Profile()
+    const bridge = new Bridge({ profile })
+
+    try {
+      await bridge.testBlockedMessage(BLOCKED_XML_EN)
+      t.fail('should throw exception')
+    } catch (e) {
+      t.equal(e.message, BLOCKED_TEXT_EN, 'should get en blocked message')
+    }
+  })
 })

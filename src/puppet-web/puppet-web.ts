@@ -258,18 +258,15 @@ export class PuppetWeb extends Puppet {
     try {
       await this.bridge.init()
     } catch (e) {
-      // FIXME
-      // Enable the following code again
-      /*
-      const blockedMessage = await this.bridge.blockedMessageBody()
-      if (blockedMessage) {
-        const error = new Error(blockedMessage)
-        this.emit('error', error)
+      const text = await this.bridge.evaluate('document.body.innerHTML')
+      try {
+        await this.bridge.testBlockedMessage(text)
+        log.error('PuppetWeb', 'initBridge() exception: %s', e.message)
+        Raven.captureException(e)
+        this.emit('error', e)
+      } catch (blockedError) {
+        this.emit('error', blockedError)
       }
-      */
-      log.error('PuppetWeb', 'initBridge() exception: %s', e.message)
-      Raven.captureException(e)
-      throw e
     }
 
     return this.bridge
