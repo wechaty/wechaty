@@ -90,8 +90,8 @@ export class PuppetWeb extends Puppet {
     this.state.current('live', false)
 
     try {
-      await this.initWatchdogForPuppet()
-      await this.initWatchdogForScan()
+      this.initWatchdogForPuppet()
+      this.initWatchdogForScan()
 
       this.bridge = await this.initBridge(this.options.profile)
       log.verbose('PuppetWeb', 'initBridge() done')
@@ -221,7 +221,11 @@ export class PuppetWeb extends Puppet {
     this.state.current('dead', false)
 
     try {
-      await this.bridge.quit()
+      if (this.bridge) {
+        await this.bridge.quit()
+      } else {
+        log.warn('PuppetWeb', 'quit() no bridge!')
+      }
     } catch (e) {
       log.error('PuppetWeb', 'quit() exception: %s', e.message)
       Raven.captureException(e)
