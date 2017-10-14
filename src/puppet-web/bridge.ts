@@ -17,6 +17,7 @@
  *
  */
 import { EventEmitter } from 'events'
+import * as fs          from 'fs'
 import * as path        from 'path'
 
 import {
@@ -156,12 +157,16 @@ export class Bridge extends EventEmitter {
   public async inject(page: Page): Promise<void> {
     log.verbose('PuppetWebBridge', 'inject()')
 
-    const WECHATY_BRO_JS_FILE = 'wechaty-bro.js'
+    const WECHATY_BRO_JS_FILE = path.join(
+      __dirname,
+      'wechaty-bro.js',
+    )
+
     try {
-      let retObj = await page.injectFile(path.join(
-        __dirname,
-        WECHATY_BRO_JS_FILE,
-      )) as any as InjectResult
+      const sourceCode = fs.readFileSync(WECHATY_BRO_JS_FILE)
+                            .toString()
+
+      let retObj = await page.evaluate(sourceCode) as any as InjectResult
 
       if (retObj && /^(2|3)/.test(retObj.code.toString())) {
         // HTTP Code 2XX & 3XX
@@ -596,7 +601,8 @@ export class Bridge extends EventEmitter {
    * Throw if there's a blocked message
    */
   public async testBlockedMessage(text: string): Promise<void> {
-    log.silly('PuppetWebBridge', 'testBlockedMessage(%s)', text)
+    log.silly('PuppetWebBridge', 'testBlockedMessage(%s)',
+                                  text.substr(0, 50).replace(/\n/, ''))
 
     return new Promise<void>((resolve, reject) => {
       parseString(text, { explicitArray: false }, (err, obj) => {
