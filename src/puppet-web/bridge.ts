@@ -67,10 +67,10 @@ export class Bridge extends EventEmitter {
 
     try {
       this.browser = await this.initBrowser()
-      log.info('PuppetWebBridge', 'init() initBrowser() down')
+      log.verbose('PuppetWebBridge', 'init() initBrowser() done')
 
       this.page    = await this.initPage(this.browser)
-      log.info('PuppetWebBridge', 'init() initPage() down')
+      log.verbose('PuppetWebBridge', 'init() initPage() done')
 
       await this.readyAngular(this.page)
       await this.inject(this.page)
@@ -107,9 +107,9 @@ export class Bridge extends EventEmitter {
     const cookieList = this.options.profile.get('cookies') as Cookie[]
     const url        = this.entryUrl(cookieList)
 
-    log.info('PuppetWebBridge', 'initPage() before page.goto(url)')
+    log.verbose('PuppetWebBridge', 'initPage() before page.goto(url)')
     await page.goto(url) // Does this related to(?) the CI Error: exception: Navigation Timeout Exceeded: 30000ms exceeded
-    log.info('PuppetWebBridge', 'initPage() after page.goto(url)')
+    log.verbose('PuppetWebBridge', 'initPage() after page.goto(url)')
 
     // , {
     //   waitUntil: 'load',  // https://github.com/GoogleChrome/puppeteer/issues/805
