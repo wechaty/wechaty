@@ -22,6 +22,8 @@ import {
   Readable,
 }                 from 'stream'
 
+import * as mime  from 'mime'
+
 import {
   config,
   Raven,
@@ -136,7 +138,7 @@ export class Message implements Sayable {
    * @private
    */
   public toString() {
-    return Misc.plainText(this.obj.content)
+    return `Message(${Misc.plainText(this.obj.content)})`
   }
 
   /**
@@ -695,6 +697,13 @@ export class MediaMessage extends Message {
   /**
    * @private
    */
+  public toString() {
+    return `MediaMessage(${this.filename()})`
+  }
+
+  /**
+   * @private
+   */
   public async ready(): Promise<void> {
     log.silly('MediaMessage', 'ready()')
 
@@ -817,6 +826,14 @@ export class MediaMessage extends Message {
     }
     log.error('MediaMessage', `ext() got unknown type: ${this.type()}`)
     return String(this.type())
+  }
+
+  /**
+   * return the MIME Type of this MediaMessage
+   *
+   */
+  public mimeType(): string | null {
+    return mime.getType(this.ext())
   }
 
   /**

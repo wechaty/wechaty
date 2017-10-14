@@ -17,6 +17,10 @@
  *
  */
 import {
+  WatchdogFood,
+}                 from 'watchdog'
+
+import {
   log,
 }                 from '../config'
 import Contact    from '../contact'
@@ -27,9 +31,6 @@ import {
 import {
   ScanInfo,
 }                 from '../puppet'
-import {
-  WatchratFood,
-}                 from '../watchrat'
 
 import Firer      from './firer'
 import PuppetWeb  from './puppet-web'
@@ -80,10 +81,10 @@ async function onScan(this: PuppetWeb, data: ScanInfo): Promise<void> {
   }
 
   // feed watchDog a `scan` type of food
-  const food = {
+  const food: WatchdogFood = {
     data,
     type: 'scan',
-  } as WatchratFood
+  }
   this.emit('watchdog', food)
   this.emit('scan'    , data.url, data.code)
 }

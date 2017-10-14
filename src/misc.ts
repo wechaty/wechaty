@@ -274,26 +274,26 @@ export class Misc {
     }
   }
 
-  public static mime(ext): string {
-    switch (ext) {
-      case 'pdf':
-        return 'application/pdf'
-      case 'bmp':
-        return 'image/bmp'
-      case 'jpeg':
-        return 'image/jpeg'
-      case 'jpg':
-        return 'image/jpeg'
-      case 'png':
-        return 'image/png'
-      case 'gif':
-        return 'image/gif'
-      case 'mp4':
-        return 'video/mp4'
-      default:
-        return 'application/octet-stream'
-    }
-  }
+  // public static mime(ext): string {
+  //   switch (ext) {
+  //     case 'pdf':
+  //       return 'application/pdf'
+  //     case 'bmp':
+  //       return 'image/bmp'
+  //     case 'jpeg':
+  //       return 'image/jpeg'
+  //     case 'jpg':
+  //       return 'image/jpeg'
+  //     case 'png':
+  //       return 'image/png'
+  //     case 'gif':
+  //       return 'image/gif'
+  //     case 'mp4':
+  //       return 'video/mp4'
+  //     default:
+  //       return 'application/octet-stream'
+  //   }
+  // }
 }
 
 export default Misc

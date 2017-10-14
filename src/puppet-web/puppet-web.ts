@@ -17,6 +17,11 @@
  *
  */
 import {
+  Watchdog,
+  WatchdogFood,
+}                   from 'watchdog'
+
+import {
   config,
   log,
   Raven,
@@ -35,10 +40,6 @@ import {
 import Room          from '../room'
 import RxQueue       from '../rx-queue'
 import Misc          from '../misc'
-import {
-  Watchrat,
-  WatchratFood,
-}                   from '../watchrat'
 
 import {
   Bridge,
@@ -62,8 +63,8 @@ export class PuppetWeb extends Puppet {
   public bridge   : Bridge
   public scanInfo : ScanInfo | null
 
-  public puppetWatchrat : Watchrat<PuppetFoodType>
-  public scanWatchrat   : Watchrat<ScanFoodType>
+  public puppetWatchdog : Watchdog<PuppetFoodType>
+  public scanWatchdog   : Watchdog<ScanFoodType>
 
   private fileId   : number
 
@@ -74,10 +75,10 @@ export class PuppetWeb extends Puppet {
     this.fileId = 0
 
     const PUPPET_TIMEOUT = 60 * 1000  // 1 minute
-    this.puppetWatchrat = new Watchrat<PuppetFoodType>('PuppetWeb', PUPPET_TIMEOUT)
+    this.puppetWatchdog = new Watchdog<PuppetFoodType>(PUPPET_TIMEOUT, 'PuppetWeb')
 
     const SCAN_TIMEOUT = 4 * 60 * 1000 // 4 minutes
-    this.scanWatchrat   = new Watchrat<ScanFoodType>('Scan', SCAN_TIMEOUT)
+    this.scanWatchdog   = new Watchdog<ScanFoodType>(SCAN_TIMEOUT, 'Scan')
   }
 
   public toString() { return `Class PuppetWeb({profile:${this.options.profile}})` }
@@ -89,8 +90,8 @@ export class PuppetWeb extends Puppet {
     this.state.current('live', false)
 
     try {
-      await this.initWatchdogForPuppet()
-      await this.initWatchdogForScan()
+      this.initWatchdogForPuppet()
+      this.initWatchdogForScan()
 
       this.bridge = await this.initBridge(this.options.profile)
       log.verbose('PuppetWeb', 'initBridge() done')
@@ -106,7 +107,7 @@ export class PuppetWeb extends Puppet {
        */
       this.state.current('live')
 
-      const food: WatchratFood = {
+      const food: WatchdogFood = {
         data: 'inited',
         timeout: 2 * 60 * 1000, // 2 mins for first login
       }
@@ -136,9 +137,9 @@ export class PuppetWeb extends Puppet {
 
   public initWatchdogForPuppet(): void {
     const puppet = this
-    const dog    = this.puppetWatchrat
+    const dog    = this.puppetWatchdog
 
-    puppet.on('ding', data => this.puppetWatchrat.feed({
+    puppet.on('ding', data => this.puppetWatchdog.feed({
       data,
       type: 'ding',
     }))
@@ -163,7 +164,7 @@ export class PuppetWeb extends Puppet {
    */
   public initWatchdogForScan(): void {
     const puppet = this
-    const dog    = this.scanWatchrat
+    const dog    = this.scanWatchdog
 
     puppet.on('scan', info => dog.feed({
       data: info,
@@ -189,7 +190,7 @@ export class PuppetWeb extends Puppet {
       try {
         await this.bridge.reload()
       } catch (e) {
-        log.error('PuppetWeb', 'initScanWatchrat() on(reset) exception: %s', e)
+        log.error('PuppetWeb', 'initScanWatchdog() on(reset) exception: %s', e)
         this.emit('error', e)
       }
     })
@@ -214,13 +215,17 @@ export class PuppetWeb extends Puppet {
     }
 
     log.verbose('PuppetWeb', 'quit() kill watchdog before do quit')
-    this.puppetWatchrat.sleep()
+    this.puppetWatchdog.sleep()
 
     this.state.target('dead')
     this.state.current('dead', false)
 
     try {
-      await this.bridge.quit()
+      if (this.bridge) {
+        await this.bridge.quit()
+      } else {
+        log.warn('PuppetWeb', 'quit() no bridge!')
+      }
     } catch (e) {
       log.error('PuppetWeb', 'quit() exception: %s', e.message)
       Raven.captureException(e)
@@ -257,18 +262,15 @@ export class PuppetWeb extends Puppet {
     try {
       await this.bridge.init()
     } catch (e) {
-      // FIXME
-      // Enable the following code again
-      /*
-      const blockedMessage = await this.bridge.blockedMessageBody()
-      if (blockedMessage) {
-        const error = new Error(blockedMessage)
-        this.emit('error', error)
+      const text = await this.bridge.evaluate('document.body.innerHTML')
+      try {
+        await this.bridge.testBlockedMessage(text)
+        log.error('PuppetWeb', 'initBridge() exception: %s', e.message)
+        Raven.captureException(e)
+        this.emit('error', e)
+      } catch (blockedError) {
+        this.emit('error', blockedError)
       }
-      */
-      log.error('PuppetWeb', 'initBridge() exception: %s', e.message)
-      Raven.captureException(e)
-      throw e
     }
 
     return this.bridge
@@ -326,7 +328,12 @@ export class PuppetWeb extends Puppet {
     const filename = mediaMessage.filename()
     const ext      = mediaMessage.ext()
 
-    const contentType = Misc.mime(ext)
+    // const contentType = Misc.mime(ext)
+    // const contentType = mime.getType(ext)
+    const contentType = mediaMessage.mimeType()
+    if (!contentType) {
+      throw new Error('no MIME Type found on mediaMessage: ' + mediaMessage.filename())
+    }
     let mediatype: MediaType
 
     switch (ext) {
@@ -596,7 +603,7 @@ export class PuppetWeb extends Puppet {
   }
 
   /**
-   * TODO: should be change to forward(message, contact)
+   * TODO: Test this function if it could work...
    */
   // public async forward(baseData: MsgRawObj, patchData: MsgRawObj): Promise<boolean> {
   public async forward(message: MediaMessage, sendTo: Contact | Room): Promise<boolean> {
