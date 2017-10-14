@@ -106,9 +106,9 @@ export class Bridge extends EventEmitter {
     const cookieList = this.options.profile.get('cookies') as Cookie[]
     const url        = this.entryUrl(cookieList)
 
-    log.info('PuppetWebBridge', 'initPage() before page.goto(domain)')
+    log.info('PuppetWebBridge', 'initPage() before page.goto(url)')
     await page.goto(url) // Does this related to(?) the CI Error: exception: Navigation Timeout Exceeded: 30000ms exceeded
-    log.info('PuppetWebBridge', 'initPage() after page.goto(domain)')
+    log.info('PuppetWebBridge', 'initPage() after page.goto(url)')
 
     // , {
     //   waitUntil: 'load',  // https://github.com/GoogleChrome/puppeteer/issues/805
@@ -597,6 +597,8 @@ export class Bridge extends EventEmitter {
    *  <ret>1203</ret>
    *  <message>当前登录环境异常。为了你的帐号安全，暂时不能登录web微信。你可以通过手机客户端或者windows微信登录。</message>
    * </error>
+   *
+   * For account security, newly registered WeChat accounts are unable to log in to Web WeChat. To use WeChat on a computer, use Windows WeChat or Mac WeChat at http://wechat.com
    */
   public async blockedMessageBody(): Promise<string | null> {
     log.silly('PuppetWebBridge', 'blockedMessageBody()')
