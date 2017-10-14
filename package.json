@@ -95,7 +95,7 @@
     "brolog": "^1.2.8",
     "hot-import": "^0.1.21",
     "mime": "^2.0.3",
-    "puppeteer": "^0.11.0",
+    "puppeteer": "^0.12.0",
     "raven": "^2.2.1",
     "request": "^2.83.0",
     "retry-promise": "^1.0.0",
