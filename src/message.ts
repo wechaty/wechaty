@@ -138,7 +138,7 @@ export class Message implements Sayable {
    * @private
    */
   public toString() {
-    return Misc.plainText(this.obj.content)
+    return `Message(${Misc.plainText(this.obj.content)})`
   }
 
   /**
@@ -692,6 +692,13 @@ export class MediaMessage extends Message {
     // FIXME: decoupling needed
     this.bridge = (config.puppetInstance() as PuppetWeb)
                     .bridge
+  }
+
+  /**
+   * @private
+   */
+  public toString() {
+    return `MediaMessage(${this.filename()})`
   }
 
   /**
