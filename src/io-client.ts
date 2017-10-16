@@ -21,56 +21,48 @@
  * DO NOT use `require('../')` here!
  * because it will casue a LOOP require ERROR
  */
-// import Brolog   from 'brolog'
-import { StateSwitch } from 'state-switch'
+// import Brolog       from 'brolog'
+import StateSwitch  from 'state-switch'
 
 import {
   config,
-  log as globalLog,
+  log,
 }                       from './config'
 import { Io }           from './io'
 import { Wechaty }      from './wechaty'
 
+export interface IoClientOptions {
+  token    : string,
+  wechaty? : Wechaty,
+}
+
 export class IoClient {
 
-  private wechaty: Wechaty
   private io: Io // XXX keep io `null-able` or not? 20161026
 
-  private state = new StateSwitch<'online', 'offline'>('IoClient', 'offline', globalLog)
+  private state = new StateSwitch<'online', 'offline'>('IoClient', 'offline', log)
 
   constructor(
-    private token: string = config.token || config.DEFAULT_TOKEN,
-    private log: any = globalLog,
+    public options: IoClientOptions,
   ) {
-    if (!log) {
-      const e = new Error('constructor() log(npmlog/brolog) must be set')
-      throw e
-    }
-    this.log.verbose('IoClient', 'constructor() with token: %s', token)
+    log.verbose('IoClient', 'constructor({ token = %s})', options.token)
 
-    if (!token) {
-      const e = new Error('constructor() token must be set')
-      this.log.error('IoClient', e.message)
-      throw e
-    }
-
-    this.wechaty = Wechaty.instance({
-      profile: token,
-    })
+    options.token   = options.token   || config.token || config.DEFAULT_TOKEN,
+    options.wechaty = options.wechaty || Wechaty.instance({ profile: this.options.token })
 
     this.io = new Io({
-      wechaty: this.wechaty,
-      token: this.token,
+      wechaty : this.options.wechaty as Wechaty,
+      token   : this.options.token,
     })
 
   }
 
   public async init(): Promise<void> {
-    this.log.verbose('IoClient', 'init()')
+    log.verbose('IoClient', 'init()')
 
     if (this.state.inprocess()) {
       const e = new Error('state.inprocess(), skip init')
-      this.log.warn('IoClient', 'init() with %s', e.message)
+      log.warn('IoClient', 'init() with %s', e.message)
       throw e
     }
 
@@ -79,42 +71,36 @@ export class IoClient {
 
     try {
       await this.initIo()
-      await this.initWechaty()
+      await this.initWechaty(this.options.wechaty as Wechaty)
       this.state.current('online')
     } catch (e) {
-      this.log.error('IoClient', 'init() exception: %s', e.message)
+      log.error('IoClient', 'init() exception: %s', e.message)
       this.state.current('offline')
       throw e
     }
     return
   }
 
-  private async initWechaty(): Promise<void> {
-    this.log.verbose('IoClient', 'initWechaty()')
+  private async initWechaty(wechaty: Wechaty): Promise<void> {
+    log.verbose('IoClient', 'initWechaty()')
 
     if (this.state.target() !== 'online') {
       const e = new Error('state.target() is not `online`, skipped')
-      this.log.warn('IoClient', 'initWechaty() %s', e.message)
+      log.warn('IoClient', 'initWechaty() %s', e.message)
       throw e
     }
 
-    const wechaty = this.wechaty
-
-    if (!wechaty) {
-      throw new Error('no Wechaty')
-    }
-
     wechaty
-    .on('login'	     , user => this.log.info('IoClient', `${user.name()} logined`))
-    .on('logout'	   , user => this.log.info('IoClient', `${user.name()} logouted`))
-    .on('scan', (url, code) => this.log.info('IoClient', `[${code}] ${url}`))
+    .on('login'	     , user => log.info('IoClient', `${user.name()} logined`))
+    .on('logout'	   , user => log.info('IoClient', `${user.name()} logouted`))
+    .on('scan', (url, code) => log.info('IoClient', `[${code}] ${url}`))
     .on('message'     , msg => this.onMessage(msg))
 
     try {
       await wechaty.init()
-      this.log.verbose('IoClient', 'wechaty.init() done')
+      log.verbose('IoClient', 'wechaty.init() done')
     } catch (e) {
-      this.log.error('IoClient', 'init() init fail: %s', e)
+      log.error('IoClient', 'init() init fail: %s', e)
       wechaty.quit()
       throw e
     }
@@ -123,18 +109,18 @@ export class IoClient {
   }
 
   private async initIo(): Promise<void> {
-    this.log.verbose('IoClient', 'initIo() with token %s', this.token)
+    log.verbose('IoClient', 'initIo() with token %s', this.options.token)
 
     if (this.state.target() !== 'online') {
       const e = new Error('initIo() targetState is not `connected`, skipped')
-      this.log.warn('IoClient', e.message)
+      log.warn('IoClient', e.message)
       throw e
     }
 
     try {
       await this.io.init()
     } catch (e) {
-      this.log.verbose('IoClient', 'initIo() init fail: %s', e.message)
+      log.verbose('IoClient', 'initIo() init fail: %s', e.message)
       throw e
     }
 
@@ -152,7 +138,7 @@ export class IoClient {
 
     return new Promise((resolve) => {
       app.listen(port, () => {
-        this.log.verbose('IoClient', 'initWeb() Wechaty IO Bot listening on port ' + port + '!')
+        log.verbose('IoClient', 'initWeb() Wechaty IO Bot listening on port ' + port + '!')
 
         return resolve(this)
 
@@ -166,7 +152,7 @@ export class IoClient {
     // const content = m.toString()
     // const room = m.room()
 
-    // this.log.info('Bot', '%s<%s>:%s'
+    // log.info('Bot', '%s<%s>:%s'
     //               , (room ? '['+room.topic()+']' : '')
     //               , from.name()
     //               , m.toStringDigest()
@@ -174,19 +160,19 @@ export class IoClient {
 
     if (/^wechaty|chatie|botie/i.test(m.content()) && !m.self()) {
       m.say('https://www.wechaty.io')
-        .then(_ => this.log.info('Bot', 'REPLIED to magic word "chatie"'))
+        .then(_ => log.info('Bot', 'REPLIED to magic word "chatie"'))
     }
   }
 
   public async start(): Promise<void> {
-    this.log.verbose('IoClient', 'start()')
+    log.verbose('IoClient', 'start()')
 
-    if (!this.wechaty) {
-      return this.init()
-    }
+    // if (!this.options.wechaty) {
+    //   return this.init()
+    // }
 
     if (this.state.inprocess()) {
-      this.log.warn('IoClient', 'start() with a pending state, not the time')
+      log.warn('IoClient', 'start() with a pending state, not the time')
       throw new Error('pending')
     }
 
@@ -197,7 +183,7 @@ export class IoClient {
       await this.initIo()
       this.state.current('online')
     } catch (e) {
-      this.log.error('IoClient', 'start() exception: %s', e.message)
+      log.error('IoClient', 'start() exception: %s', e.message)
       this.state.current('offline')
       throw e
     }
@@ -205,14 +191,14 @@ export class IoClient {
   }
 
   public async stop(): Promise<void> {
-    this.log.verbose('IoClient', 'stop()')
+    log.verbose('IoClient', 'stop()')
 
     this.state.target('offline')
     this.state.current('offline', false)
 
     // XXX
     if (!this.io) {
-      this.log.warn('IoClient', 'stop() without this.io')
+      log.warn('IoClient', 'stop() without this.io')
       // this.currentState('connected')
       this.state.current('offline')
       return
@@ -229,23 +215,23 @@ export class IoClient {
   }
 
   public async restart(): Promise<void> {
-    this.log.verbose('IoClient', 'restart()')
+    log.verbose('IoClient', 'restart()')
 
     try {
       await this.stop()
       await this.start()
     } catch (e) {
-      this.log.error('IoClient', 'restart() exception %s', e.message)
+      log.error('IoClient', 'restart() exception %s', e.message)
       throw e
     }
     return
   }
 
   public async quit(): Promise<void> {
-    this.log.verbose('IoClient', 'quit()')
+    log.verbose('IoClient', 'quit()')
 
     if (this.state.current() === 'offline' && this.state.inprocess()) {
-      this.log.warn('IoClient', 'quit() with currentState() = `disconnecting`, skipped')
+      log.warn('IoClient', 'quit() with currentState() = `disconnecting`, skipped')
       throw new Error('quit() with currentState = `disconnecting`')
     }
 
@@ -253,20 +239,20 @@ export class IoClient {
     this.state.current('offline', false)
 
     try {
-      if (this.wechaty) {
-        await this.wechaty.quit()
+      if (this.options.wechaty) {
+        await this.options.wechaty.quit()
         // this.wechaty = null
-      } else { this.log.warn('IoClient', 'quit() no this.wechaty') }
+      } else { log.warn('IoClient', 'quit() no this.wechaty') }
 
       if (this.io) {
         await this.io.quit()
         // this.io = null
-      } else { this.log.warn('IoClient', 'quit() no this.io') }
+      } else { log.warn('IoClient', 'quit() no this.io') }
 
       this.state.current('offline')
 
     } catch (e) {
-      this.log.error('IoClient', 'exception: %s', e.message)
+      log.error('IoClient', 'exception: %s', e.message)
 
       // XXX fail safe?
       this.state.current('offline')
