@@ -138,7 +138,7 @@ export class Message implements Sayable {
    * @private
    */
   public toString() {
-    return `Message(${Misc.plainText(this.obj.content)})`
+    return `Message<${Misc.plainText(this.obj.content)}>`
   }
 
   /**
@@ -698,7 +698,7 @@ export class MediaMessage extends Message {
    * @private
    */
   public toString() {
-    return `MediaMessage(${this.filename()})`
+    return `MediaMessage<${this.filename()}>`
   }
 
   /**
