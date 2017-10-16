@@ -211,8 +211,6 @@ export class Bridge extends EventEmitter {
   public async quit(): Promise<void> {
     log.verbose('PuppetWebBridge', 'quit()')
     try {
-      await this.proxyWechaty('quit')
-      log.silly('PuppetWebBridge', 'quit() proxyWechaty(quit)-ed')
       await this.page.close()
       log.silly('PuppetWebBridge', 'quit() page.close()-ed')
       await this.browser.close()

@@ -246,10 +246,6 @@
     }
     checkScan()
   }
-  function quit() {
-    log('quit()')
-    logout('quit()')
-  }
 
   function ding(data) { log('recv ding'); return data || 'dong' }
   function hookEvents() {
@@ -794,7 +790,6 @@
     , init:   init         // initialize WechatyBro @ Browser
     , log:    log          // log to Node.js
     , logout: logout       // logout current logined user
-    , quit:   quit         // quit wechat
     , send:   send         // send message to wechat user
 
     , getContact:          getContact
