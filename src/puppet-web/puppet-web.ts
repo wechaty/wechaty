@@ -260,6 +260,7 @@ export class PuppetWeb extends Puppet {
     this.bridge.on('logout'   , Event.onLogout.bind(this))
     this.bridge.on('message'  , Event.onMessage.bind(this))
     this.bridge.on('scan'     , Event.onScan.bind(this))
+    this.bridge.on('unload'   , Event.onUnload.bind(this))
 
     try {
       await this.bridge.init()
