@@ -186,7 +186,9 @@ export class PuppetWeb extends Puppet {
       type: 'logout',
     }))
 
-    dog.on('reset', async () => {
+    dog.on('reset', async (food, left) => {
+      log.warn('PuppetWeb', 'initSccanWatchdog() on(reset) lastFood: %s, timeLeft: %s',
+                            food.data, left)
       try {
         await this.bridge.reload()
       } catch (e) {
@@ -262,15 +264,28 @@ export class PuppetWeb extends Puppet {
     try {
       await this.bridge.init()
     } catch (e) {
+      log.error('PuppetWeb', 'initBridge() exception: %s', e.message)
+      this.emit('error', e)
+
+      // TypeError: Cannot read property 'evaluate' of undefined
+      if (!this.bridge) {
+        throw e
+      }
+
       const text = await this.bridge.evaluate('document.body.innerHTML')
       try {
+        // Test if Wechat account is blocked
+        // will throw exception if blocked
         await this.bridge.testBlockedMessage(text)
-        log.error('PuppetWeb', 'initBridge() exception: %s', e.message)
-        Raven.captureException(e)
-        this.emit('error', e)
       } catch (blockedError) {
+        // Wechat Account Blocked
+        log.error('PuppetWeb', 'initBridge() Wechat Account Blocked for using Web: %s', blockedError.message)
         this.emit('error', blockedError)
+        throw blockedError
       }
+
+      Raven.captureException(e)
+      throw e
     }
 
     return this.bridge
@@ -909,15 +924,15 @@ export class PuppetWeb extends Puppet {
     log.verbose('PuppetWeb', 'readyStable()')
     let counter = -1
 
-    async function stable(resolve: Function): Promise<void> {
+    async function stable(done: Function): Promise<void> {
       log.silly('PuppetWeb', 'readyStable() stable() counter=%d', counter)
       const contactList = await Contact.findAll()
       if (counter === contactList.length) {
         log.verbose('PuppetWeb', 'readyStable() stable() READY counter=%d', counter)
-        return resolve()
+        return done()
       }
       counter = contactList.length
-      setTimeout(() => stable(resolve), 1000)
+      setTimeout(() => stable(done), 1000)
         .unref()
     }
 
@@ -928,12 +943,12 @@ export class PuppetWeb extends Puppet {
       }, 60 * 1000)
       timer.unref()
 
-      const myResolve = () => {
+      const done = () => {
         clearTimeout(timer)
-        resolve()
+        return resolve()
       }
 
-      setTimeout(() => stable(myResolve), 1000)
+      return stable(done)
     })
 
   }

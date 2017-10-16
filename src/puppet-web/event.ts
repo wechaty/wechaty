@@ -41,14 +41,16 @@ import {
 
 /* tslint:disable:variable-name */
 export const Event = {
+  onDing,
+
+  onLog,
   onLogin,
   onLogout,
 
-  onDing,
-  onScan,
-  onLog,
-
   onMessage,
+  onScan,
+  onUnload,
+
 }
 
 function onDing(this: PuppetWeb, data): void {
@@ -223,6 +225,18 @@ async function onMessage(this: PuppetWeb, obj: MsgRawObj): Promise<void> {
   }
 
   return
+}
+
+async function onUnload(this: PuppetWeb): Promise<void> {
+  log.silly('PuppetWebEvent', 'onUnload()')
+  try {
+    await this.quit()
+    await this.init()
+  } catch (e) {
+    log.error('PuppetWebEvent', 'onUnload() exception: %s', e)
+    this.emit('error', e)
+    throw e
+  }
 }
 
 export default Event
