@@ -101,7 +101,7 @@ export class Room extends EventEmitter implements Sayable {
   /**
    * @private
    */
-  public toString()    { return `Room<${this.topic()}>` }
+  public toString()    { return `@Room<${this.topic()}>` }
 
   /**
    * @private
