@@ -419,7 +419,7 @@ export class Io {
    *
    */
   private ioMessage(m) {
-    log.verbose('Io', 'ioMessage() is a nop function before be overwriten from cloud')
+    log.silly('Io', 'ioMessage() is a nop function before be overwriten from cloud')
   }
 
 }
