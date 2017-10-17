@@ -141,11 +141,7 @@ export class PuppetWeb extends Puppet {
     const puppet = this
     const dog    = this.puppetWatchdog
 
-    puppet.on('ding', data => dog.feed({
-      data,
-      type: 'ding',
-    }))
-
+    puppet.on('watchdog', food => dog.feed(food))
     dog.on('feed', food => {
       log.verbose('PuppetWeb', 'initWatchdogForPuppet() dog.on(feed)')
       // feed the dog, heartbeat the puppet.

@@ -45,7 +45,6 @@ export interface ScanInfo {
 }
 
 export type PuppetEvent = WechatyEvent
-                        | 'ding'
                         | 'watchdog'
 
 export interface PuppetOptions {
@@ -65,7 +64,6 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     super()
   }
 
-  public emit(event: 'ding',        text: string)                                                  : boolean
   public emit(event: 'error',       e: Error)                                                      : boolean
   public emit(event: 'friend',      friend: Contact, request?: FriendRequest)                      : boolean
   public emit(event: 'heartbeat',   data: any)                                                     : boolean
@@ -86,7 +84,6 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     return super.emit(event, ...args)
   }
 
-  public on(event: 'ding',        listener: (text: string) => void)                                                  : this
   public on(event: 'error',       listener: (e: Error) => void)                                                      : this
   public on(event: 'friend',      listener: (friend: Contact, request?: FriendRequest) => void)                      : this
   public on(event: 'heartbeat',   listener: (data: any) => void)                                                     : this
