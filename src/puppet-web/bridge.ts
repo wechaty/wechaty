@@ -539,7 +539,7 @@ export class Bridge extends EventEmitter {
    * Proxy Call to Wechaty in Bridge
    */
   public async proxyWechaty(wechatyFunc: string, ...args: any[]): Promise<any> {
-    log.verbose('PuppetWebBridge', 'proxyWechaty(%s%s)',
+    log.silly('PuppetWebBridge', 'proxyWechaty(%s%s)',
                                     wechatyFunc,
                                     args.length
                                     ? ' , ' + args.join(', ')
