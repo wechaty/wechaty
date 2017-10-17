@@ -71,7 +71,7 @@ export class IoClient {
 
     try {
       await this.initIo()
-      await this.initWechaty(this.options.wechaty as Wechaty)
+      await this.hookWechaty(this.options.wechaty as Wechaty)
       this.state.current('online')
     } catch (e) {
       log.error('IoClient', 'init() exception: %s', e.message)
@@ -81,7 +81,7 @@ export class IoClient {
     return
   }
 
-  private async initWechaty(wechaty: Wechaty): Promise<void> {
+  private async hookWechaty(wechaty: Wechaty): Promise<void> {
     log.verbose('IoClient', 'initWechaty()')
 
     if (this.state.target() !== 'online') {
@@ -95,15 +95,6 @@ export class IoClient {
     .on('logout'	   , user => log.info('IoClient', `${user.name()} logouted`))
     .on('scan', (url, code) => log.info('IoClient', `[${code}] ${url}`))
     .on('message'     , msg => this.onMessage(msg))
-
-    try {
-      await wechaty.init()
-      log.verbose('IoClient', 'wechaty.init() done')
-    } catch (e) {
-      log.error('IoClient', 'init() init fail: %s', e)
-      wechaty.quit()
-      throw e
-    }
 
     return
   }
