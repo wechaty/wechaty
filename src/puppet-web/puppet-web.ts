@@ -136,22 +136,31 @@ export class PuppetWeb extends Puppet {
   }
 
   public initWatchdogForPuppet(): void {
+    log.verbose('PuppetWeb', 'initWatchdogForPuppet()')
+
     const puppet = this
     const dog    = this.puppetWatchdog
 
-    puppet.on('ding', data => this.puppetWatchdog.feed({
+    puppet.on('ding', data => dog.feed({
       data,
       type: 'ding',
     }))
 
     dog.on('feed', food => {
-      // feed the rat, heartbeat the puppet.
+      log.verbose('PuppetWeb', 'initWatchdogForPuppet() dog.on(feed)')
+      // feed the dog, heartbeat the puppet.
       puppet.emit('heartbeat', food.data)
     })
 
-    dog.on('reset', (food, left) => {
-      const e = new Error(`PuppetWeb Watchdog Reset, last food: ${food.data}`)
-      puppet.emit('error', e)
+    dog.on('reset', async (food, left) => {
+      log.warn('PuppetWeb', 'initWatchdogForPuppet() dog.on(reset) last food: %s',
+                            food.data)
+      try {
+        await this.quit()
+        await this.init()
+      } catch (e) {
+        puppet.emit('error', e)
+      }
     })
   }
 
@@ -163,6 +172,8 @@ export class PuppetWeb extends Puppet {
    * so we need to refresh the page after a while
    */
   public initWatchdogForScan(): void {
+    log.verbose('PuppetWeb', 'initWatchdogForScan()')
+
     const puppet = this
     const dog    = this.scanWatchdog
 
@@ -187,13 +198,21 @@ export class PuppetWeb extends Puppet {
     }))
 
     dog.on('reset', async (food, left) => {
-      log.warn('PuppetWeb', 'initSccanWatchdog() on(reset) lastFood: %s, timeLeft: %s',
+      log.warn('PuppetWeb', 'initScanWatchdog() on(reset) lastFood: %s, timeLeft: %s',
                             food.data, left)
       try {
         await this.bridge.reload()
       } catch (e) {
         log.error('PuppetWeb', 'initScanWatchdog() on(reset) exception: %s', e)
-        this.emit('error', e)
+        try {
+          log.error('PuppetWeb', 'initScanWatchdog() on(reset) try to recover by bridge.{quit,init}()', e)
+          await this.bridge.quit()
+          await this.bridge.init()
+          log.error('PuppetWeb', 'initScanWatchdog() on(reset) recover successful')
+        } catch (e) {
+          log.error('PuppetWeb', 'initScanWatchdog() on(reset) recover FAIL: %s', e)
+          this.emit('error', e)
+        }
       }
     })
   }
@@ -221,6 +240,7 @@ export class PuppetWeb extends Puppet {
 
     this.state.target('dead')
     this.state.current('dead', false)
+    this.removeAllListeners()
 
     try {
       if (this.bridge) {
@@ -273,7 +293,10 @@ export class PuppetWeb extends Puppet {
         throw e
       }
 
-      const text = await this.bridge.evaluate('document.body.innerHTML')
+      const text = await this.bridge.evaluate(() => {
+        return document.body.innerHTML
+      }) as any as string
+
       try {
         // Test if Wechat account is blocked
         // will throw exception if blocked

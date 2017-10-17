@@ -41,10 +41,7 @@ import {
   MediaMessage,
 }                     from './message'
 import Profile        from './profile'
-import {
-  Puppet,
-  PuppetEvent,
-}                     from './puppet'
+import Puppet         from './puppet'
 import PuppetWeb      from './puppet-web/'
 import Room           from './room'
 import Misc           from './misc'
@@ -64,8 +61,8 @@ export type WechatEvent = 'friend'
                         | 'scan'
 
 export type WechatyEvent = WechatEvent
-                        | 'heartbeat'
                         | 'error'
+                        | 'heartbeat'
 
 /**
  * Main bot class.
@@ -116,7 +113,9 @@ export class Wechaty extends EventEmitter implements Sayable {
    * .on('message',  message => console.log(`Message: ${message}`))
    * .init()
    */
-  public static instance(options?: WechatyOptions) {
+  public static instance(
+    options?: WechatyOptions,
+  ) {
     if (options && this._instance) {
       throw new Error('there has already a instance. no params will be allowed any more')
     }
@@ -129,7 +128,9 @@ export class Wechaty extends EventEmitter implements Sayable {
   /**
    * @private
    */
-  private constructor(private options: WechatyOptions = {}) {
+  private constructor(
+    private options: WechatyOptions = {},
+  ) {
     super()
     log.verbose('Wechaty', 'contructor()')
 
@@ -143,7 +144,7 @@ export class Wechaty extends EventEmitter implements Sayable {
   /**
    * @private
    */
-  public toString() { return `Class Wechaty(${this.options.puppet}, ${this.profile.name})`}
+  public toString() { return `Wechaty<${this.options.puppet}, ${this.profile.name}>`}
 
   /**
    * Return version of Wechaty
@@ -173,18 +174,6 @@ export class Wechaty extends EventEmitter implements Sayable {
   }
 
   /**
-   * @private
-   */
-  public async reset(reason?: string): Promise<void> {
-    log.verbose('Wechaty', 'reset() because %s', reason)
-    if (!this.puppet) {
-      throw new Error('no puppet')
-    }
-    await this.puppet.reset(reason)
-    return
-  }
-
-  /**
    * Initialize the bot, return Promise.
    *
    * @returns {Promise<void>}
@@ -208,7 +197,11 @@ export class Wechaty extends EventEmitter implements Sayable {
 
     try {
       this.profile.load()
-      await this.initPuppet()
+      this.puppet = await this.initPuppet()
+
+      // set puppet instance to Wechaty Static variable, for using by Contact/Room/Message/FriendRequest etc.
+      config.puppetInstance(this.puppet)
+
     } catch (e) {
       log.error('Wechaty', 'init() exception: %s', e && e.message)
       Raven.captureException(e)
@@ -362,6 +355,7 @@ export class Wechaty extends EventEmitter implements Sayable {
    * @private
    */
   public async initPuppet(): Promise<Puppet> {
+    log.verbose('Wechaty', 'initPuppet()')
     let puppet: Puppet
 
     switch (this.options.puppet) {
@@ -375,7 +369,7 @@ export class Wechaty extends EventEmitter implements Sayable {
         throw new Error('Puppet unsupport(yet?): ' + this.options.puppet)
     }
 
-    const eventList: PuppetEvent[] = [
+    const eventList: WechatyEvent[] = [
       'error',
       'friend',
       'heartbeat',
@@ -388,21 +382,16 @@ export class Wechaty extends EventEmitter implements Sayable {
       'scan',
     ]
 
-    eventList.map(e => {
-      // https://strongloop.com/strongblog/an-introduction-to-javascript-es6-arrow-functions/
-      // We’ve lost () around the argument list when there’s just one argument (rest arguments are an exception, eg (...args) => ...)
-      puppet.on(e as any, (...args: any[]) => {
-        this.emit.apply(this, [e, ...args])
+    for (const event of eventList) {
+      log.verbose('Wechaty', 'initPuppet() puppet.on(%s) registered', event)
+      /// e as any ??? Maybe this is a bug of TypeScript v2.5.3
+      puppet.on(event as any, (...args: any[]) => {
+        this.emit(event, ...args)
       })
-    })
-
-    // set puppet before init, because we need this.puppet if we quit() before init() finish
-    this.puppet = <Puppet>puppet // force to use base class Puppet interface for better encapsolation
-
-    // set puppet instance to Wechaty Static variable, for using by Contact/Room/Message/FriendRequest etc.
-    config.puppetInstance(puppet)
+    }
 
     await puppet.init()
+
     return puppet
   }
 
@@ -423,6 +412,7 @@ export class Wechaty extends EventEmitter implements Sayable {
     }
     this.state.target('standby')
     this.state.current('standby', false)
+    this.removeAllListeners()
 
     if (!this.puppet) {
       log.warn('Wechaty', 'quit() without this.puppet')
@@ -430,7 +420,7 @@ export class Wechaty extends EventEmitter implements Sayable {
     }
 
     const puppetBeforeDie = this.puppet
-    this.puppet     = null
+    this.puppet = null
     config.puppetInstance(null)
 
     try {
@@ -439,8 +429,9 @@ export class Wechaty extends EventEmitter implements Sayable {
       log.error('Wechaty', 'quit() exception: %s', e.message)
       Raven.captureException(e)
       throw e
+    } finally {
+      this.state.current('standby', true)
     }
-    this.state.current('standby')
     return
   }
 
@@ -551,6 +542,19 @@ export class Wechaty extends EventEmitter implements Sayable {
       this.emit('error', e)
     }
   }
+
+  /**
+   * @private
+   */
+  public async reset(reason?: string): Promise<void> {
+    log.verbose('Wechaty', 'reset() because %s', reason)
+    if (!this.puppet) {
+      throw new Error('no puppet')
+    }
+    await this.puppet.reset(reason)
+    return
+  }
+
 }
 
 export default Wechaty

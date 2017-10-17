@@ -50,6 +50,8 @@ export interface BridgeOptions {
   profile : Profile,
 }
 
+declare const WechatyBro
+
 export class Bridge extends EventEmitter {
   private browser : Browser
   private page    : Page
@@ -210,6 +212,7 @@ export class Bridge extends EventEmitter {
 
   public async quit(): Promise<void> {
     log.verbose('PuppetWebBridge', 'quit()')
+    this.removeAllListeners()
     try {
       await this.page.close()
       log.silly('PuppetWebBridge', 'quit() page.close()-ed')
@@ -544,7 +547,9 @@ export class Bridge extends EventEmitter {
               )
 
     try {
-      const noWechaty = await this.page.evaluate('typeof WechatyBro === "undefined"')
+      const noWechaty = await this.page.evaluate(() => {
+        return typeof WechatyBro === 'undefined'
+      })
       if (noWechaty) {
         const e = new Error('there is no WechatyBro in browser(yet)')
         throw e
@@ -646,7 +651,7 @@ export class Bridge extends EventEmitter {
 
   public async hostname(): Promise<string | null> {
     log.verbose('PuppetWebBridge', 'hostname()')
-    const hostname = await this.page.evaluate('location.hostname')
+    const hostname = await this.page.evaluate(() => location.hostname) as any as string
     log.silly('PuppetWebBridge', 'hostname() got %s', hostname)
     return hostname
   }
@@ -717,9 +722,9 @@ export class Bridge extends EventEmitter {
     return
   }
 
-  public async evaluate(...args: any[]): Promise<string> {
+  public async evaluate(fn: () => any, ...args: any[]): Promise<() => any> {
     log.silly('PuppetWebBridge', 'evaluate()')
-    return await this.page.evaluate.apply(this.page, args)
+    return await this.page.evaluate(fn, ...args)
   }
 }
 

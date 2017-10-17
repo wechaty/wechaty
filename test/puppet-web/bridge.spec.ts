@@ -69,6 +69,8 @@ test('retryPromise()', async t => {
   t.true(thenSpy.withArgs(EXPECTED_RESOLVE).calledOnce, 'should got EXPECTED_RESOLVE when wait enough')
 })
 
+declare const WechatyBro
+
 test.only('WechatyBro.ding()', async t => {
   const profile = new Profile(Math.random().toString(36).substr(2, 5))
   const bridge = new Bridge({
@@ -80,7 +82,10 @@ test.only('WechatyBro.ding()', async t => {
     await bridge.init()
     t.pass('should init Bridge')
 
-    const retDing = await bridge.evaluate('WechatyBro.ding()')
+    const retDing = await bridge.evaluate(() => {
+      return WechatyBro.ding()
+    }) as any as string
+
     t.is(retDing, 'dong', 'should got dong after execute WechatyBro.ding()')
 
     const retCode = await bridge.proxyWechaty('isLogin')
