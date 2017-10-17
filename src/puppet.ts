@@ -45,8 +45,7 @@ export interface ScanInfo {
 }
 
 export type PuppetEvent = WechatyEvent
-                              | 'ding'
-                              | 'watchdog'
+                        | 'watchdog'
 
 export interface PuppetOptions {
   profile: Profile,
@@ -65,7 +64,6 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     super()
   }
 
-  public emit(event: 'ding',        text: string)                                                  : boolean
   public emit(event: 'error',       e: Error)                                                      : boolean
   public emit(event: 'friend',      friend: Contact, request?: FriendRequest)                      : boolean
   public emit(event: 'heartbeat',   data: any)                                                     : boolean
@@ -77,7 +75,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public emit(event: 'room-topic',  room: Room, topic: string, oldTopic: string, changer: Contact) : boolean
   public emit(event: 'scan',        url: string, code: number)                                     : boolean
   public emit(event: 'watchdog',    food: WatchdogFood)                                            : boolean
-  public emit(event: never, ...args: any[])                                                        : boolean
+  public emit(event: never, ...args: never[])                                                      : never
 
   public emit(
     event:   PuppetEvent,
@@ -86,7 +84,6 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     return super.emit(event, ...args)
   }
 
-  public on(event: 'ding',        listener: (text: string) => void)                                                  : this
   public on(event: 'error',       listener: (e: Error) => void)                                                      : this
   public on(event: 'friend',      listener: (friend: Contact, request?: FriendRequest) => void)                      : this
   public on(event: 'heartbeat',   listener: (data: any) => void)                                                     : this
@@ -98,11 +95,11 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public on(event: 'room-topic',  listener: (room: Room, topic: string, oldTopic: string, changer: Contact) => void) : this
   public on(event: 'scan',        listener: (info: ScanInfo) => void)                                                : this
   public on(event: 'watchdog',    listener: (data: WatchdogFood) => void)                                            : this
-  public on(event: never, listener: any)                                                                             : this
+  public on(event: never,         listener: never)                                                                   : never
 
   public on(
     event:    PuppetEvent,
-    listener: ((...args: any[]) => void),
+    listener: (...args: any[]) => void,
   ): this {
     super.on(event, listener)
     return this

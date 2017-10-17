@@ -42,7 +42,7 @@ __________________________________________________
 
 `
 
-let   token   = config.token
+let token = config.token
 
 if (!token) {
   log.error('Client', 'token not found: please set WECHATY_TOKEN in environment before run io-client')
@@ -54,7 +54,9 @@ if (!token) {
 console.log(welcome)
 log.info('Client', 'Starting for WECHATY_TOKEN: %s', token)
 
-const client = new IoClient(token, log)
+const client = new IoClient({
+  token,
+})
 
 client.init()
     .catch(onError.bind(client))

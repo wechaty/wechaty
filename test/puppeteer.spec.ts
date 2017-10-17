@@ -17,7 +17,8 @@
  *   limitations under the License.
  *
  */
-import * as path from 'path'
+import * as fs    from 'fs'
+import * as path  from 'path'
 
 // tslint:disable:no-shadowed-variable
 import * as test  from 'blue-tape'
@@ -74,7 +75,7 @@ test('evaluate() a function that returns a Promise', async t => {
   }
 })
 
-test('injectFile() a file and get the returns value', async t => {
+test('evaluate() a file and get the returns value', async t => {
   const EXPECTED_OBJ = {
     code: 42,
     message: 'meaning of the life',
@@ -84,10 +85,13 @@ test('injectFile() a file and get the returns value', async t => {
     const browser = await launch(PUPPETEER_LAUNCH_OPTIONS)
     const page = await browser.newPage()
 
-    const result = await page.injectFile(path.join(
+    const file = path.join(
       __dirname,
       'fixture/inject-file.js',
-    )) as any
+    )
+    const source = fs.readFileSync(file).toString()
+
+    const result = await page.evaluate(source)
     t.deepEqual(result, EXPECTED_OBJ, 'should inject file inside browser and return the value')
 
     const noWechaty = await page.evaluate('typeof WechatyBro === "undefined"')
@@ -107,7 +111,7 @@ test('injectFile() a file and get the returns value', async t => {
 test('page.on(console)', async t => {
   const EXPECTED_ARG1 = 'arg1'
   const EXPECTED_ARG2 = 2
-  const EXPECTED_ARG3 = { arg3: 3 }
+  // const EXPECTED_ARG3 = { arg3: 3 }
 
   const browser = await launch(PUPPETEER_LAUNCH_OPTIONS)
   const page    = await browser.newPage()
@@ -115,17 +119,18 @@ test('page.on(console)', async t => {
   const spy = sinon.spy()
 
   page.on('console', spy)
-  await (page.evaluate as any)(function () {
-    console.log.apply(console, arguments)
-  }, EXPECTED_ARG1, EXPECTED_ARG2, EXPECTED_ARG3)
+  await (page.evaluate as any)((...args) => {
+    console.log.apply(console, args)
+  }, EXPECTED_ARG1, EXPECTED_ARG2) // , EXPECTED_ARG3)
 
   // wait a while to let chrome fire the event
   await new Promise(r => setTimeout(r, 3))
 
   t.ok(spy.calledOnce, 'should be called once')
-  t.equal(spy.args[0][0], EXPECTED_ARG1, 'should get console.log 1st arg')
-  t.equal(spy.args[0][1], EXPECTED_ARG2, 'should get console.log 2nd arg')
-  t.deepEqual(spy.args[0][2], EXPECTED_ARG3, 'should get console.log 3rd arg')
+
+  const consoleMessage = spy.firstCall.args[0]
+  t.equal(consoleMessage['type'], 'log', 'should get log type')
+  t.equal(consoleMessage['text'], EXPECTED_ARG1 + ' ' + EXPECTED_ARG2, 'should get console.log 1st/2nd arg')
 
   await page.close()
   await browser.close()
