@@ -24,6 +24,7 @@ import {
   Browser,
   Cookie,
   Dialog,
+  ElementHandle,
   launch,
   Page,
 }                       from 'puppeteer'
@@ -643,46 +644,49 @@ export class Bridge extends EventEmitter {
     })
   }
 
-  public async clickSwitchAccount(): Promise<boolean> {
+  public async clickSwitchAccount(page: Page = this.page): Promise<boolean> {
     log.verbose('PuppetWebBridge', 'clickSwitchAccount()')
 
     // https://github.com/GoogleChrome/puppeteer/issues/537#issuecomment-334918553
-    async function waitForXpath(page: Page, xpath: string) {
-      const resultsHandle = await (page as any).evaluateHandle(xpathInner => {
-        const results = [] as any
-        const query = document.evaluate(xpathInner, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+    async function listXpath(thePage: Page, xpath: string): Promise<ElementHandle[]> {
+      const nodeHandleList = await (thePage as any).evaluateHandle(xpathInner => {
+        const nodeList: Node[] = []
+        const query = document.evaluate(xpathInner, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
         for (let i = 0, length = query.snapshotLength; i < length; ++i) {
-          results.push(query.snapshotItem(i));
+          nodeList.push(query.snapshotItem(i))
         }
-        return results;
-      }, xpath);
-      const properties = await resultsHandle.getProperties();
-      const result = [] as any
-      const releasePromises = [] as any
+        return nodeList
+      }, xpath)
+      const properties = await nodeHandleList.getProperties()
+
+      const elementHandleList:  ElementHandle[] = []
+      const releasePromises:    Promise<void>[] = []
+
       for (const property of properties.values()) {
-        const element = property.asElement();
+        const element = property.asElement()
         if (element)
-          result.push(element);
+          elementHandleList.push(element)
         else
-          releasePromises.push(property.dispose());
+          releasePromises.push(property.dispose())
       }
-      await Promise.all(releasePromises);
-      return result;
+      await Promise.all(releasePromises)
+      return elementHandleList
     }
 
     const XPATH_SELECTOR = `//div[contains(@class,'association') and contains(@class,'show')]/a[@ng-click='qrcodeLogin()']`
-    // const DOM_
     try {
-      // const button = await this.page.$(XPATH_SELECTOR)
-      const [button] = await waitForXpath(this.page, XPATH_SELECTOR)
-      await button.click()
-      // const button = await this.driver.driver.findElement(By.xpath(
-      //   "//div[contains(@class,'association') and contains(@class,'show')]/a[@ng-click='qrcodeLogin()']"))
-      log.silly('PuppetWebBridge', 'clickSwitchAccount() clicked!')
-      return true
+      const [button] = await listXpath(page, XPATH_SELECTOR)
+      if (button) {
+        await button.click()
+        log.silly('PuppetWebBridge', 'clickSwitchAccount() clicked!')
+        return true
+      } else {
+        log.silly('PuppetWebBridge', 'clickSwitchAccount() button not found')
+        return false
+      }
     } catch (e) {
-      log.silly('PuppetWebBridge', 'clickSwitchAccount() button not found: %s', e)
-      return false
+      log.silly('PuppetWebBridge', 'clickSwitchAccount() exception: %s', e)
+      throw e
     }
   }
 
