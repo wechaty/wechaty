@@ -92,3 +92,21 @@ test('event:scan', async t => {
 
   t.ok(spy.calledOnce, 'should get event:scan')
 })
+
+test('onFunction()', async t => {
+  const spy     = sinon.spy()
+  const wechaty = Wechaty.instance()
+
+  const EXPECTED_ERROR = new Error('testing123')
+  wechaty.on('message', () => { throw EXPECTED_ERROR })
+  wechaty.on('scan',    () => 42)
+  wechaty.on('error',   spy)
+
+  const messageFuture  = new Promise(resolve => wechaty.once('message', resolve))
+  wechaty.emit('message')
+
+  await messageFuture
+
+  t.ok(spy.calledOnce, 'should get event:error once')
+  t.equal(spy.firstCall.args[0], EXPECTED_ERROR, 'should get error from message listener')
+})
