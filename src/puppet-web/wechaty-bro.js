@@ -208,15 +208,14 @@
     // log('checkScan() code:' + code + ' url:' + url + ' scanCode:' + WechatyBro.vars.scanCode)
 
     if (url && code !== WechatyBro.vars.scanCode) {
-
       log('checkScan() - code change detected: from '
         + WechatyBro.vars.scanCode
         + ' to '
         + code
       )
       WechatyBro.emit('scan', {
-        code:   code,
-        url:  url,
+        code : code,
+        url  : url,
       })
       WechatyBro.vars.scanCode = code
     }
@@ -229,14 +228,19 @@
     return
   }
 
-  function isLogin() { return !!WechatyBro.vars.loginStatus }
+  function isLogin() {
+    return !!WechatyBro.vars.loginStatus
+  }
+
   function login(data) {
     log('login(' + data + ')')
     if (!WechatyBro.vars.loginStatus) {
       WechatyBro.vars.loginStatus = true
     }
+    WechatyBro.vars.scanCode = null
     WechatyBro.emit('login', data)
   }
+
   function logout(data) {
     log('logout(' + data + ')')
     WechatyBro.vars.loginStatus = false
@@ -244,10 +248,16 @@
     if (WechatyBro.glue.loginFactory) {
       WechatyBro.glue.loginFactory.loginout()
     }
+
+    WechatyBro.vars.scanCode = null
     checkScan()
   }
 
-  function ding(data) { log('recv ding'); return data || 'dong' }
+  function ding(data) {
+    log('recv ding')
+    return data || 'dong'
+  }
+
   function hookEvents() {
     var rootScope = WechatyBro.glue.rootScope
     var appScope = WechatyBro.glue.appScope

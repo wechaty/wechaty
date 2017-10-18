@@ -63,6 +63,8 @@ export type WechatEvent = 'friend'
 export type WechatyEvent = WechatEvent
                         | 'error'
                         | 'heartbeat'
+                        | 'start'
+                        | 'stop'
 
 /**
  * Main bot class.
@@ -93,7 +95,7 @@ export class Wechaty extends EventEmitter implements Sayable {
    * the state
    * @private
    */
-  private state = new StateSwitch<'standby', 'ready'>('Wechaty', 'standby', log)
+  private state = new StateSwitch<'on', 'off'>('Wechaty', 'off', log)
 
   /**
    * the uuid
@@ -176,54 +178,69 @@ export class Wechaty extends EventEmitter implements Sayable {
   /**
    * Initialize the bot, return Promise.
    *
+   * @deprecated
    * @returns {Promise<void>}
    * @example
    * await bot.init()
    * // do other stuff with bot here
    */
   public async init(): Promise<void> {
-    log.info('Wechaty', 'v%s initializing...' , this.version())
+    log.warn('Wechaty', 'init() DEPRECATED and will be removed after Jun 2018. Use start() instead.')
+    await this.start()
+  }
+
+  /**
+   * Start the bot, return Promise.
+   *
+   * @returns {Promise<void>}
+   * @example
+   * await bot.start()
+   * // do other stuff with bot here
+   */
+  public async start(): Promise<void> {
+    log.info('Wechaty', 'v%s starting...' , this.version())
     log.verbose('Wechaty', 'puppet: %s'       , this.options.puppet)
     log.verbose('Wechaty', 'profile: %s'      , this.options.profile)
     log.verbose('Wechaty', 'uuid: %s'         , this.uuid)
 
-    if (this.state.current() === 'ready') {
-      log.error('Wechaty', 'init() already inited. return and do nothing.')
+    if (this.state.current() === 'on') {
+      log.error('Wechaty', 'start() already started. return and do nothing.')
       return
     }
 
-    this.state.target('ready')
-    this.state.current('ready', false)
+    this.state.target('on')
+    this.state.current('on', false)
 
     try {
       this.profile.load()
       this.puppet = await this.initPuppet()
 
-      // set puppet instance to Wechaty Static variable, for using by Contact/Room/Message/FriendRequest etc.
-      config.puppetInstance(this.puppet)
-
     } catch (e) {
-      log.error('Wechaty', 'init() exception: %s', e && e.message)
+      log.error('Wechaty', 'start() exception: %s', e && e.message)
       Raven.captureException(e)
       throw e
     }
 
     this.on('heartbeat', () => this.memoryCheck())
 
-    this.state.current('ready')
+    this.state.current('on', true)
+    this.emit('start')
+
     return
   }
 
-  public on(event: 'error'      , listener: string | ((this: Wechaty, error: Error) => void)):                                                  this
-  public on(event: 'friend'     , listener: string | ((this: Wechaty, friend: Contact, request?: FriendRequest) => void)):                      this
-  public on(event: 'heartbeat'  , listener: string | ((this: Wechaty, data: any) => void)):                                                     this
-  public on(event: 'logout'     , listener: string | ((this: Wechaty, user: Contact) => void)):                                                 this
-  public on(event: 'login'      , listener: string | ((this: Wechaty, user: Contact) => void)):                                                 this
-  public on(event: 'message'    , listener: string | ((this: Wechaty, message: Message) => void)):                                              this
-  public on(event: 'room-join'  , listener: string | ((this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void)):         this
-  public on(event: 'room-leave' , listener: string | ((this: Wechaty, room: Room, leaverList: Contact[]) => void)):                             this
-  public on(event: 'room-topic' , listener: string | ((this: Wechaty, room: Room, topic: string, oldTopic: string, changer: Contact) => void)): this
-  public on(event: 'scan'       , listener: string | ((this: Wechaty, url: string, code: number) => void)):                                     this
+  public on(event: 'error'      , listener: string | ((this: Wechaty, error: Error) => void))                                                  : this
+  public on(event: 'friend'     , listener: string | ((this: Wechaty, friend: Contact, request?: FriendRequest) => void))                      : this
+  public on(event: 'heartbeat'  , listener: string | ((this: Wechaty, data: any) => void))                                                     : this
+  public on(event: 'logout'     , listener: string | ((this: Wechaty, user: Contact) => void))                                                 : this
+  public on(event: 'login'      , listener: string | ((this: Wechaty, user: Contact) => void))                                                 : this
+  public on(event: 'message'    , listener: string | ((this: Wechaty, message: Message) => void))                                              : this
+  public on(event: 'room-join'  , listener: string | ((this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void))         : this
+  public on(event: 'room-leave' , listener: string | ((this: Wechaty, room: Room, leaverList: Contact[]) => void))                             : this
+  public on(event: 'room-topic' , listener: string | ((this: Wechaty, room: Room, topic: string, oldTopic: string, changer: Contact) => void)) : this
+  public on(event: 'scan'       , listener: string | ((this: Wechaty, url: string, code: number) => void))                                     : this
+  public on(event: 'start'      , listener: string | ((this: Wechaty) => void))                                                                : this
+  public on(event: 'stop'       , listener: string | ((this: Wechaty) => void))                                                                : this
   // guard for the above event: make sure it includes all the possible values
   public on(event: never,         listener: any): this
 
@@ -233,7 +250,6 @@ export class Wechaty extends EventEmitter implements Sayable {
    * @property   {string}  error      - When the bot get error, there will be a Wechaty error event fired.
    * @property   {string}  login      - After the bot login full successful, the event login will be emitted, with a Contact of current logined user.
    * @property   {string}  logout     - Logout will be emitted when bot detected log out, with a Contact of the current login user.
-   * @property   {string}  scan       - A scan event will be emitted when the bot needs to show you a QR Code for scanning.
    * @property   {string}  heartbeat  - Get bot's heartbeat.
    * @property   {string}  friend     - When someone sends you a friend request, there will be a Wechaty friend event fired.
    * @property   {string}  message    - Emit when there's a new message.
@@ -241,6 +257,7 @@ export class Wechaty extends EventEmitter implements Sayable {
    * @property   {string}  room-topic - Get topic event, emitted when someone change room topic.
    * @property   {string}  room-leave - Emit when anyone leave the room.<br>
    *                                    If someone leaves the room by themselves, wechat will not notice other people in the room, so the bot will never get the "leave" event.
+   * @property   {string}  scan       - A scan event will be emitted when the bot needs to show you a QR Code for scanning.
    */
 
   /**
@@ -390,6 +407,8 @@ export class Wechaty extends EventEmitter implements Sayable {
       })
     }
 
+    // set puppet instance to Wechaty Static variable, for using by Contact/Room/Message/FriendRequest etc.
+    config.puppetInstance(puppet)
     await puppet.init()
 
     return puppet
@@ -398,24 +417,36 @@ export class Wechaty extends EventEmitter implements Sayable {
   /**
    * Quit the bot
    *
+   * @deprecated
    * @returns {Promise<void>}
    * @example
    * await bot.quit()
    */
   public async quit(): Promise<void> {
-    log.verbose('Wechaty', 'quit()')
+    log.warn('Wechaty', 'quit() DEPRECATED and will be removed after Jun 2018. Use stop() instead.')
+    await this.stop()
+  }
 
-    if (this.state.current() !== 'ready' || this.state.inprocess()) {
-      const err = new Error('quit() must run on a inited instance.')
+  /**
+   * Stop the bot
+   *
+   * @returns {Promise<void>}
+   * @example
+   * await bot.stop()
+   */
+  public async stop(): Promise<void> {
+    log.verbose('Wechaty', 'stop()')
+
+    if (this.state.current() !== 'on' || !this.state.stable()) {
+      const err = new Error(`stop() must run on a inited instance.`)
       log.error('Wechaty', err.message)
       throw err
     }
-    this.state.target('standby')
-    this.state.current('standby', false)
-    this.removeAllListeners()
+    this.state.target('off')
+    this.state.current('off', false)
 
     if (!this.puppet) {
-      log.warn('Wechaty', 'quit() without this.puppet')
+      log.warn('Wechaty', 'stop() without this.puppet')
       return
     }
 
@@ -426,11 +457,16 @@ export class Wechaty extends EventEmitter implements Sayable {
     try {
       await puppetBeforeDie.quit()
     } catch (e) {
-      log.error('Wechaty', 'quit() exception: %s', e.message)
+      log.error('Wechaty', 'stop() exception: %s', e.message)
       Raven.captureException(e)
       throw e
     } finally {
-      this.state.current('standby', true)
+      this.state.current('off', true)
+      this.emit('stop')
+
+      // MUST use setImmediate at here(the end of this function),
+      // because we need to run the micro task registered by the `emit` method
+      // setImmediate(() => this.removeAllListeners())
     }
     return
   }
@@ -443,9 +479,12 @@ export class Wechaty extends EventEmitter implements Sayable {
    * await bot.logout()
    */
   public async logout(): Promise<void>  {
+    log.verbose('Wechaty', 'logout()')
+
     if (!this.puppet) {
       throw new Error('no puppet')
     }
+
     try {
       await this.puppet.logout()
     } catch (e) {

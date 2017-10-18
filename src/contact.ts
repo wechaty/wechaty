@@ -130,9 +130,11 @@ export class Contact implements Sayable {
    */
   public toString(): string {
     if (!this.obj) {
-      return this.id
+      return `Contact<this.id>`
     }
-    return this.obj.alias || this.obj.name || this.id
+    const obj  = this.obj
+    const name = obj.alias || obj.name || this.id
+    return `Contact<${name}>`
   }
 
   /**

@@ -20,7 +20,7 @@
  */
 // tslint:disable:no-shadowed-variable
 import * as test  from 'blue-tape'
-// import * as sinon from 'sinon'
+import * as sinon from 'sinon'
 
 import {
   config,
@@ -37,7 +37,7 @@ import {
   VERSION,
 }               from '../'
 
-test('Wechaty Framework', async t => {
+test('Export of the Framework', async t => {
   t.ok(Contact      , 'should export Contact')
   t.ok(FriendRequest, 'should export FriendREquest')
   t.ok(IoClient     , 'should export IoClient')
@@ -57,7 +57,38 @@ test('Wechaty Framework', async t => {
   )
 })
 
-test('Wechaty Config setting', async t => {
+test('Config setting', async t => {
   t.ok(config                 , 'should export Config')
   t.ok(config.DEFAULT_PUPPET  , 'should has DEFAULT_PUPPET')
+})
+
+test('event:start/stop', async t => {
+  const wechaty = Wechaty.instance()
+
+  const startSpy = sinon.spy()
+  const stopSpy  = sinon.spy()
+
+  wechaty.on('start', startSpy)
+  wechaty.on('stop',  stopSpy)
+
+  await wechaty.start()
+  await wechaty.stop()
+
+  t.ok(startSpy.calledOnce, 'should get event:start once')
+  t.ok(stopSpy.calledOnce,  'should get event:stop once')
+})
+
+test('event:scan', async t => {
+  const spy     = sinon.spy()
+  const wechaty = Wechaty.instance()
+
+  wechaty.on('scan', spy)
+
+  const scanFuture  = new Promise(resolve => wechaty.once('scan', resolve))
+
+  await wechaty.start()
+  await scanFuture
+  await wechaty.stop()
+
+  t.ok(spy.calledOnce, 'should get event:scan')
 })

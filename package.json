@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.10.29",
+  "version": "0.10.38",
   "description": "Wechat for Bot(Personal Account)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -111,7 +111,7 @@
     "@types/fluent-ffmpeg": "^2.1.4",
     "@types/glob": "^5.0.33",
     "@types/mime": "^2.0.0",
-    "@types/puppeteer": "^0.10.3",
+    "@types/puppeteer": "^0.12.0",
     "@types/raven": "^2.1.2",
     "@types/request": "^2.0.4",
     "@types/sinon": "^2.3.5",
