@@ -232,16 +232,18 @@ export class Wechaty extends EventEmitter implements Sayable {
     return
   }
 
-  public on(event: 'error'      , listener: string | ((this: Wechaty, error: Error) => void)):                                                  this
-  public on(event: 'friend'     , listener: string | ((this: Wechaty, friend: Contact, request?: FriendRequest) => void)):                      this
-  public on(event: 'heartbeat'  , listener: string | ((this: Wechaty, data: any) => void)):                                                     this
-  public on(event: 'logout'     , listener: string | ((this: Wechaty, user: Contact) => void)):                                                 this
-  public on(event: 'login'      , listener: string | ((this: Wechaty, user: Contact) => void)):                                                 this
-  public on(event: 'message'    , listener: string | ((this: Wechaty, message: Message) => void)):                                              this
-  public on(event: 'room-join'  , listener: string | ((this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void)):         this
-  public on(event: 'room-leave' , listener: string | ((this: Wechaty, room: Room, leaverList: Contact[]) => void)):                             this
-  public on(event: 'room-topic' , listener: string | ((this: Wechaty, room: Room, topic: string, oldTopic: string, changer: Contact) => void)): this
-  public on(event: 'scan'       , listener: string | ((this: Wechaty, url: string, code: number) => void)):                                     this
+  public on(event: 'error'      , listener: string | ((this: Wechaty, error: Error) => void))                                                  : this
+  public on(event: 'friend'     , listener: string | ((this: Wechaty, friend: Contact, request?: FriendRequest) => void))                      : this
+  public on(event: 'heartbeat'  , listener: string | ((this: Wechaty, data: any) => void))                                                     : this
+  public on(event: 'logout'     , listener: string | ((this: Wechaty, user: Contact) => void))                                                 : this
+  public on(event: 'login'      , listener: string | ((this: Wechaty, user: Contact) => void))                                                 : this
+  public on(event: 'message'    , listener: string | ((this: Wechaty, message: Message) => void))                                              : this
+  public on(event: 'room-join'  , listener: string | ((this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void))         : this
+  public on(event: 'room-leave' , listener: string | ((this: Wechaty, room: Room, leaverList: Contact[]) => void))                             : this
+  public on(event: 'room-topic' , listener: string | ((this: Wechaty, room: Room, topic: string, oldTopic: string, changer: Contact) => void)) : this
+  public on(event: 'scan'       , listener: string | ((this: Wechaty, url: string, code: number) => void))                                     : this
+  public on(event: 'start'      , listener: string | ((this: Wechaty) => void))                                                                : this
+  public on(event: 'stop'       , listener: string | ((this: Wechaty) => void))                                                                : this
   // guard for the above event: make sure it includes all the possible values
   public on(event: never,         listener: any): this
 
@@ -251,7 +253,6 @@ export class Wechaty extends EventEmitter implements Sayable {
    * @property   {string}  error      - When the bot get error, there will be a Wechaty error event fired.
    * @property   {string}  login      - After the bot login full successful, the event login will be emitted, with a Contact of current logined user.
    * @property   {string}  logout     - Logout will be emitted when bot detected log out, with a Contact of the current login user.
-   * @property   {string}  scan       - A scan event will be emitted when the bot needs to show you a QR Code for scanning.
    * @property   {string}  heartbeat  - Get bot's heartbeat.
    * @property   {string}  friend     - When someone sends you a friend request, there will be a Wechaty friend event fired.
    * @property   {string}  message    - Emit when there's a new message.
@@ -259,6 +260,7 @@ export class Wechaty extends EventEmitter implements Sayable {
    * @property   {string}  room-topic - Get topic event, emitted when someone change room topic.
    * @property   {string}  room-leave - Emit when anyone leave the room.<br>
    *                                    If someone leaves the room by themselves, wechat will not notice other people in the room, so the bot will never get the "leave" event.
+   * @property   {string}  scan       - A scan event will be emitted when the bot needs to show you a QR Code for scanning.
    */
 
   /**
