@@ -33,6 +33,10 @@ export class Profile {
     }
   }
 
+  public toString() {
+    return `Profile<${this.name}>`
+  }
+
   public load(): void {
     log.verbose('Profile', 'load() file: %s', this.file)
     this.obj = {}

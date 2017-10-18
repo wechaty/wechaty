@@ -482,6 +482,7 @@ export class Wechaty extends EventEmitter implements Sayable {
 
     try {
       await puppetBeforeDie.quit()
+      setImmediate(() => puppetBeforeDie.removeAllListeners())
     } catch (e) {
       log.error('Wechaty', 'stop() exception: %s', e.message)
       Raven.captureException(e)

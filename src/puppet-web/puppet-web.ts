@@ -84,7 +84,7 @@ export class PuppetWeb extends Puppet {
   public toString() { return `PuppetWeb<${this.options.profile.name}>` }
 
   public async init(): Promise<void> {
-    log.verbose('PuppetWeb', `init() with profile:${this.options.profile.name}`)
+    log.verbose('PuppetWeb', `init() with ${this.options.profile}`)
 
     this.state.target('live')
     this.state.current('live', false)
@@ -238,7 +238,7 @@ export class PuppetWeb extends Puppet {
       }
     }
 
-    log.verbose('PuppetWeb', 'quit() stop watchdog before do quit')
+    log.verbose('PuppetWeb', 'quit() make watchdog sleep before do quit')
     this.puppetWatchdog.sleep()
 
     this.state.target('dead')
@@ -247,6 +247,7 @@ export class PuppetWeb extends Puppet {
     try {
       if (this.bridge) {
         await this.bridge.quit()
+        setImmediate(() => this.bridge.removeAllListeners())
       } else {
         log.warn('PuppetWeb', 'quit() no bridge!')
       }
