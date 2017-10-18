@@ -93,7 +93,7 @@ test('event:scan', async t => {
   t.ok(spy.calledOnce, 'should get event:scan')
 })
 
-test('onFunction()', async t => {
+test('on(event, Function)', async t => {
   const spy     = sinon.spy()
   const wechaty = Wechaty.instance()
 
@@ -110,3 +110,5 @@ test('onFunction()', async t => {
   t.ok(spy.calledOnce, 'should get event:error once')
   t.equal(spy.firstCall.args[0], EXPECTED_ERROR, 'should get error from message listener')
 })
+
+// TODO: add test for event args
