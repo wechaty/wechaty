@@ -352,20 +352,45 @@ export class Wechaty extends EventEmitter implements Sayable {
                               : typeof listener,
                 )
 
-    if (typeof listener === 'string') {
-      const absoluteFilename = callerResolve(listener, __filename)
-      log.verbose('Wechaty', 'on() hotImpor(%s)', absoluteFilename)
-      hotImport(absoluteFilename)
-        .then(func => super.on(event, func.bind(this)))
-        .catch(e => {
-          log.error('Wechaty', 'on(%s, %s) hotImport() exception: %s',
-                                event, listener, e)
-          this.emit('error', e)
-        })
-      return this
+    if (typeof listener === 'function') {
+      this.onFunction(event, listener)
+    } else {
+      this.onModulePath(event, listener)
     }
-    super.on(event, listener) // `this: Wechaty` is Sayable
     return this
+  }
+
+  private onModulePath(event: WechatyEvent, modulePath: string): void {
+    const absoluteFilename = callerResolve(modulePath, __filename)
+    log.verbose('Wechaty', 'onModulePath() hotImpor(%s)', absoluteFilename)
+    hotImport(absoluteFilename)
+      .then((func: Function) => super.on(event, (...args: any[]) => {
+        try {
+          func.apply(this, args)
+        } catch (e) {
+          log.error('Wechaty', 'onModulePath(%s, %s) listener exception: %s',
+                                event, modulePath, e)
+          this.emit('error', e)
+        }
+      }))
+      .catch(e => {
+        log.error('Wechaty', 'onModulePath(%s, %s) hotImport() exception: %s',
+                              event, modulePath, e)
+        this.emit('error', e)
+      })
+  }
+
+  private onFunction(event: WechatyEvent, listener: Function): void {
+    log.verbose('Wechaty', 'onFunction(%s)', event)
+
+    super.on(event, (...args: any[]) => {
+      try {
+        listener.apply(this, args)
+      } catch (e) {
+        log.error('Wechaty', 'onFunction(%s) listener exception: %s', event, e)
+        this.emit('error', e)
+      }
+    })
   }
 
   /**
@@ -440,7 +465,8 @@ export class Wechaty extends EventEmitter implements Sayable {
     if (this.state.current() !== 'on' || !this.state.stable()) {
       const err = new Error(`stop() must run on a inited instance.`)
       log.error('Wechaty', err.message)
-      throw err
+      this.emit('error', err)
+      return
     }
     this.state.target('off')
     this.state.current('off', false)

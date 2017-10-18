@@ -74,14 +74,14 @@ export class PuppetWeb extends Puppet {
     super(options)
     this.fileId = 0
 
-    const PUPPET_TIMEOUT = 60 * 1000  // 1 minute
-    this.puppetWatchdog = new Watchdog<PuppetFoodType>(PUPPET_TIMEOUT, 'PuppetWeb')
+    const PUPPET_TIMEOUT  = 60 * 1000  // 1 minute
+    this.puppetWatchdog   = new Watchdog<PuppetFoodType>(PUPPET_TIMEOUT, 'PuppetWeb')
 
-    const SCAN_TIMEOUT = 4 * 60 * 1000 // 4 minutes
+    const SCAN_TIMEOUT  = 4 * 60 * 1000 // 4 minutes
     this.scanWatchdog   = new Watchdog<ScanFoodType>(SCAN_TIMEOUT, 'Scan')
   }
 
-  public toString() { return `Class PuppetWeb({profile:${this.options.profile}})` }
+  public toString() { return `PuppetWeb<${this.options.profile.name}>` }
 
   public async init(): Promise<void> {
     log.verbose('PuppetWeb', `init() with profile:${this.options.profile.name}`)
@@ -141,6 +141,9 @@ export class PuppetWeb extends Puppet {
     const puppet = this
     const dog    = this.puppetWatchdog
 
+    // clean the dog because this could be re-inited
+    dog.removeAllListeners()
+
     puppet.on('watchdog', food => dog.feed(food))
     dog.on('feed', food => {
       log.silly('PuppetWeb', 'initWatchdogForPuppet() dog.on(feed)')
@@ -172,6 +175,9 @@ export class PuppetWeb extends Puppet {
 
     const puppet = this
     const dog    = this.scanWatchdog
+
+    // clean the dog because this could be re-inited
+    dog.removeAllListeners()
 
     puppet.on('scan', info => dog.feed({
       data: info,
@@ -224,9 +230,10 @@ export class PuppetWeb extends Puppet {
       if (this.state.inprocess()) {
         const e = new Error('quit() is called on a `dead` `inprocess()` PuppetWeb')
         log.warn('PuppetWeb', e.message)
-        throw e
+        this.emit('error', e)
+        return
       } else {
-        log.warn('PuppetWeb', 'quit() is called on a `dead` browser. return directly.')
+        log.warn('PuppetWeb', 'quit() is called on a `dead` puppet. return directly.')
         return
       }
     }
