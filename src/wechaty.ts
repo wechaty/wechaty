@@ -215,9 +215,6 @@ export class Wechaty extends EventEmitter implements Sayable {
       this.profile.load()
       this.puppet = await this.initPuppet()
 
-      // set puppet instance to Wechaty Static variable, for using by Contact/Room/Message/FriendRequest etc.
-      config.puppetInstance(this.puppet)
-
     } catch (e) {
       log.error('Wechaty', 'start() exception: %s', e && e.message)
       Raven.captureException(e)
@@ -410,6 +407,8 @@ export class Wechaty extends EventEmitter implements Sayable {
       })
     }
 
+    // set puppet instance to Wechaty Static variable, for using by Contact/Room/Message/FriendRequest etc.
+    config.puppetInstance(this.puppet)
     await puppet.init()
 
     return puppet
