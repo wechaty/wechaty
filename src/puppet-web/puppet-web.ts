@@ -231,12 +231,11 @@ export class PuppetWeb extends Puppet {
       }
     }
 
-    log.verbose('PuppetWeb', 'quit() kill watchdog before do quit')
+    log.verbose('PuppetWeb', 'quit() stop watchdog before do quit')
     this.puppetWatchdog.sleep()
 
     this.state.target('dead')
     this.state.current('dead', false)
-    this.removeAllListeners()
 
     try {
       if (this.bridge) {
@@ -250,6 +249,7 @@ export class PuppetWeb extends Puppet {
       throw e
     } finally {
       this.state.current('dead')
+      this.removeAllListeners()
     }
   }
 
@@ -775,10 +775,9 @@ export class PuppetWeb extends Puppet {
     const data = this.user || this.userId || ''
     this.userId = this.user = null
 
-    this.emit('logout', data)
-
     try {
       await this.bridge.logout()
+      this.emit('logout', data)
     } catch (e) {
       log.error('PuppetWeb', 'logout() exception: %s', e.message)
       Raven.captureException(e)

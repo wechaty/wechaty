@@ -63,6 +63,8 @@ export type WechatEvent = 'friend'
 export type WechatyEvent = WechatEvent
                         | 'error'
                         | 'heartbeat'
+                        | 'start'
+                        | 'stop'
 
 /**
  * Main bot class.
@@ -176,19 +178,33 @@ export class Wechaty extends EventEmitter implements Sayable {
   /**
    * Initialize the bot, return Promise.
    *
+   * @deprecated
    * @returns {Promise<void>}
    * @example
    * await bot.init()
    * // do other stuff with bot here
    */
   public async init(): Promise<void> {
-    log.info('Wechaty', 'v%s initializing...' , this.version())
+    log.warn('Wechaty', 'init() DEPRECATED and will be removed after Jun 2018. Use start() instead.')
+    await this.start()
+  }
+
+  /**
+   * Start the bot, return Promise.
+   *
+   * @returns {Promise<void>}
+   * @example
+   * await bot.start()
+   * // do other stuff with bot here
+   */
+  public async start(): Promise<void> {
+    log.info('Wechaty', 'v%s starting...' , this.version())
     log.verbose('Wechaty', 'puppet: %s'       , this.options.puppet)
     log.verbose('Wechaty', 'profile: %s'      , this.options.profile)
     log.verbose('Wechaty', 'uuid: %s'         , this.uuid)
 
     if (this.state.current() === 'ready') {
-      log.error('Wechaty', 'init() already inited. return and do nothing.')
+      log.error('Wechaty', 'start() already started. return and do nothing.')
       return
     }
 
@@ -203,7 +219,7 @@ export class Wechaty extends EventEmitter implements Sayable {
       config.puppetInstance(this.puppet)
 
     } catch (e) {
-      log.error('Wechaty', 'init() exception: %s', e && e.message)
+      log.error('Wechaty', 'start() exception: %s', e && e.message)
       Raven.captureException(e)
       throw e
     }
@@ -211,6 +227,8 @@ export class Wechaty extends EventEmitter implements Sayable {
     this.on('heartbeat', () => this.memoryCheck())
 
     this.state.current('ready')
+    this.emit('start')
+
     return
   }
 
@@ -396,13 +414,26 @@ export class Wechaty extends EventEmitter implements Sayable {
   }
 
   /**
-   * Quit the bot
+   * Stop the bot
    *
+   * @deprecated
    * @returns {Promise<void>}
    * @example
    * await bot.quit()
    */
   public async quit(): Promise<void> {
+    log.warn('Wechaty', 'quit() DEPRECATED and will be removed after Jun 2018. Use stop() instead.')
+    await this.stop()
+  }
+
+  /**
+   * Stop the bot
+   *
+   * @returns {Promise<void>}
+   * @example
+   * await bot.stop()
+   */
+  public async stop(): Promise<void> {
     log.verbose('Wechaty', 'quit()')
 
     if (this.state.current() !== 'ready' || this.state.inprocess()) {
@@ -412,7 +443,6 @@ export class Wechaty extends EventEmitter implements Sayable {
     }
     this.state.target('standby')
     this.state.current('standby', false)
-    this.removeAllListeners()
 
     if (!this.puppet) {
       log.warn('Wechaty', 'quit() without this.puppet')
@@ -431,6 +461,8 @@ export class Wechaty extends EventEmitter implements Sayable {
       throw e
     } finally {
       this.state.current('standby', true)
+      this.removeAllListeners()
+      this.emit('stop')
     }
     return
   }
@@ -443,9 +475,12 @@ export class Wechaty extends EventEmitter implements Sayable {
    * await bot.logout()
    */
   public async logout(): Promise<void>  {
+    log.verbose('Wechaty', 'logout()')
+
     if (!this.puppet) {
       throw new Error('no puppet')
     }
+
     try {
       await this.puppet.logout()
     } catch (e) {
