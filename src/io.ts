@@ -38,6 +38,7 @@ type IoEventName =  'botie'
                   | 'error'
                   | 'heartbeat'
                   | 'login'
+                  | 'logout'
                   | 'message'
                   | 'update'
                   | 'raw'
@@ -114,12 +115,12 @@ export class Io {
     log.verbose('Io', 'initEventHook()')
     const wechaty = this.options.wechaty
 
-    wechaty.on('error'    , error =>        this.send({ name: 'error', payload: error }))
-    wechaty.on('heartbeat', data  =>        this.send({ name: 'heartbeat', payload: { uuid: this.uuid, data } }))
-    wechaty.on('login',     user =>         this.send({ name: 'login', payload: user }))
-    wechaty.on('logout' ,   user =>         this.send({ name: 'login', payload: user }))
+    wechaty.on('error'    , error =>        this.send({ name: 'error',      payload: error }))
+    wechaty.on('heartbeat', data  =>        this.send({ name: 'heartbeat',  payload: { uuid: this.uuid, data } }))
+    wechaty.on('login',     user =>         this.send({ name: 'login',      payload: user }))
+    wechaty.on('logout' ,   user =>         this.send({ name: 'logout',     payload: user }))
     wechaty.on('message',   message =>      this.ioMessage(message))
-    wechaty.on('scan',      (url, code) =>  this.send({ name: 'scan', payload: { url, code } }))
+    wechaty.on('scan',      (url, code) =>  this.send({ name: 'scan',       payload: { url, code } }))
 
     // const hookEvents: WechatyEventName[] = [
     //   'scan'
@@ -301,6 +302,11 @@ export class Io {
 
       case 'sys':
         // do nothing
+        break
+
+      case 'logout':
+        log.warn('Io', 'on(logout): %s', ioEvent.payload)
+        this.options.wechaty.logout()
         break
 
       default:
