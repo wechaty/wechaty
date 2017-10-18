@@ -235,6 +235,7 @@
     if (!WechatyBro.vars.loginStatus) {
       WechatyBro.vars.loginStatus = true
     }
+    WechatyBro.vars.scanCode = null
     WechatyBro.emit('login', data)
   }
   function logout(data) {
@@ -244,6 +245,8 @@
     if (WechatyBro.glue.loginFactory) {
       WechatyBro.glue.loginFactory.loginout()
     }
+
+    WechatyBro.vars.scanCode = null
     checkScan()
   }
 
