@@ -95,7 +95,7 @@ export class Wechaty extends EventEmitter implements Sayable {
    * the state
    * @private
    */
-  private state = new StateSwitch<'standby', 'ready'>('Wechaty', 'standby', log)
+  private state = new StateSwitch<'on', 'off'>('Wechaty', 'off', log)
 
   /**
    * the uuid
@@ -203,13 +203,13 @@ export class Wechaty extends EventEmitter implements Sayable {
     log.verbose('Wechaty', 'profile: %s'      , this.options.profile)
     log.verbose('Wechaty', 'uuid: %s'         , this.uuid)
 
-    if (this.state.current() === 'ready') {
+    if (this.state.current() === 'on') {
       log.error('Wechaty', 'start() already started. return and do nothing.')
       return
     }
 
-    this.state.target('ready')
-    this.state.current('ready', false)
+    this.state.target('on')
+    this.state.current('on', false)
 
     try {
       this.profile.load()
@@ -226,7 +226,7 @@ export class Wechaty extends EventEmitter implements Sayable {
 
     this.on('heartbeat', () => this.memoryCheck())
 
-    this.state.current('ready')
+    this.state.current('on', true)
     this.emit('start')
 
     return
@@ -416,7 +416,7 @@ export class Wechaty extends EventEmitter implements Sayable {
   }
 
   /**
-   * Stop the bot
+   * Quit the bot
    *
    * @deprecated
    * @returns {Promise<void>}
@@ -436,18 +436,18 @@ export class Wechaty extends EventEmitter implements Sayable {
    * await bot.stop()
    */
   public async stop(): Promise<void> {
-    log.verbose('Wechaty', 'quit()')
+    log.verbose('Wechaty', 'stop()')
 
-    if (this.state.current() !== 'ready' || this.state.inprocess()) {
-      const err = new Error('quit() must run on a inited instance.')
+    if (this.state.current() !== 'on' || !this.state.stable()) {
+      const err = new Error(`stop() must run on a inited instance.`)
       log.error('Wechaty', err.message)
       throw err
     }
-    this.state.target('standby')
-    this.state.current('standby', false)
+    this.state.target('off')
+    this.state.current('off', false)
 
     if (!this.puppet) {
-      log.warn('Wechaty', 'quit() without this.puppet')
+      log.warn('Wechaty', 'stop() without this.puppet')
       return
     }
 
@@ -458,13 +458,16 @@ export class Wechaty extends EventEmitter implements Sayable {
     try {
       await puppetBeforeDie.quit()
     } catch (e) {
-      log.error('Wechaty', 'quit() exception: %s', e.message)
+      log.error('Wechaty', 'stop() exception: %s', e.message)
       Raven.captureException(e)
       throw e
     } finally {
-      this.state.current('standby', true)
-      this.removeAllListeners()
+      this.state.current('off', true)
       this.emit('stop')
+
+      // should use setImmediate here,
+      // because we need to run the micro task of the `emitt` event
+      setImmediate(() => this.removeAllListeners())
     }
     return
   }
