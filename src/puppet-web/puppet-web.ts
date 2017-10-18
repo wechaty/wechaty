@@ -249,7 +249,9 @@ export class PuppetWeb extends Puppet {
       throw e
     } finally {
       this.state.current('dead')
-      this.removeAllListeners()
+
+      // register the removeListeners micro task at then end of the task queue
+      // setImmediate(() => this.removeAllListeners())
     }
   }
 

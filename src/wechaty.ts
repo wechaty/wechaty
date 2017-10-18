@@ -465,9 +465,9 @@ export class Wechaty extends EventEmitter implements Sayable {
       this.state.current('off', true)
       this.emit('stop')
 
-      // should use setImmediate here,
-      // because we need to run the micro task of the `emitt` event
-      setImmediate(() => this.removeAllListeners())
+      // MUST use setImmediate at here(the end of this function),
+      // because we need to run the micro task registered by the `emit` method
+      // setImmediate(() => this.removeAllListeners())
     }
     return
   }
