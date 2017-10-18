@@ -647,7 +647,7 @@ export class Bridge extends EventEmitter {
       log.silly('PuppetWebBridge', 'clickSwitchAccount() clicked!')
       return true
     } catch (e) {
-      log.silly('PuppetWebBridge', 'clickSwitchAccount() button not found')
+      log.silly('PuppetWebBridge', 'clickSwitchAccount() button not found: %s', e)
       return false
     }
   }
