@@ -408,7 +408,7 @@ export class Wechaty extends EventEmitter implements Sayable {
     }
 
     // set puppet instance to Wechaty Static variable, for using by Contact/Room/Message/FriendRequest etc.
-    config.puppetInstance(this.puppet)
+    config.puppetInstance(puppet)
     await puppet.init()
 
     return puppet
