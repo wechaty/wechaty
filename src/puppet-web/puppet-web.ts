@@ -86,8 +86,7 @@ export class PuppetWeb extends Puppet {
   public async init(): Promise<void> {
     log.verbose('PuppetWeb', `init() with ${this.options.profile}`)
 
-    this.state.target('live')
-    this.state.current('live', false)
+    this.state.on('pending')
 
     try {
       this.initWatchdogForPuppet()
@@ -105,7 +104,7 @@ export class PuppetWeb extends Puppet {
        *  state must set to `live`
        *  before feed Watchdog
        */
-      this.state.current('live')
+      this.state.on(true)
 
       const food: WatchdogFood = {
         data: 'inited',
@@ -126,7 +125,7 @@ export class PuppetWeb extends Puppet {
     } catch (e) {
       log.error('PuppetWeb', 'init() exception: %s', e)
 
-      this.state.target('dead')
+      this.state.off(true)
       this.emit('error', e)
       await this.quit()
 
@@ -220,29 +219,24 @@ export class PuppetWeb extends Puppet {
   }
 
   public async quit(): Promise<void> {
-    log.verbose('PuppetWeb', 'quit() state target(%s) current(%s) stable(%s)',
-                             this.state.target(),
-                             this.state.current(),
-                             this.state.stable(),
-    )
+    log.verbose('PuppetWeb', 'quit() state OFF: %s',
+                             this.state.off(),
+                )
 
-    if (this.state.current() === 'dead') {
-      if (this.state.inprocess()) {
-        const e = new Error('quit() is called on a `dead` `inprocess()` PuppetWeb')
+    if (this.state.off() === 'pending') {
+        const e = new Error('quit() is called on a PENDING OFF PuppetWeb')
         log.warn('PuppetWeb', e.message)
         this.emit('error', e)
         return
-      } else {
-        log.warn('PuppetWeb', 'quit() is called on a `dead` puppet. return directly.')
+    } else if (this.state.off() === true) {
+        log.warn('PuppetWeb', 'quit() is called on a OFF puppet. return directly.')
         return
-      }
     }
 
     log.verbose('PuppetWeb', 'quit() make watchdog sleep before do quit')
     this.puppetWatchdog.sleep()
 
-    this.state.target('dead')
-    this.state.current('dead', false)
+    this.state.off('pending')
 
     try {
       if (this.bridge) {
@@ -256,7 +250,7 @@ export class PuppetWeb extends Puppet {
       Raven.captureException(e)
       throw e
     } finally {
-      this.state.current('dead')
+      this.state.off(true)
 
       // register the removeListeners micro task at then end of the task queue
       // setImmediate(() => this.removeAllListeners())
@@ -266,7 +260,7 @@ export class PuppetWeb extends Puppet {
   public async initBridge(profile: Profile): Promise<Bridge> {
     log.verbose('PuppetWeb', 'initBridge()')
 
-    if (this.state.target() === 'dead') {
+    if (this.state.off()) {
       const e = new Error('initBridge() found targetState != live, no init anymore')
       log.warn('PuppetWeb', e.message)
       throw e

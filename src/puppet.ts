@@ -58,10 +58,11 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public user:    Contact | null
   public abstract getContact(id: string): Promise<any>
 
-  public state = new StateSwitch<'live', 'dead'>('Puppet', 'dead', log)
+  public state: StateSwitch
 
   constructor(public options: PuppetOptions) {
     super()
+    this.state = new StateSwitch('Puppet', log)
   }
 
   public emit(event: 'error',       e: Error)                                                      : boolean

@@ -61,9 +61,9 @@ function onDing(this: PuppetWeb, data): void {
 async function onScan(this: PuppetWeb, data: ScanInfo): Promise<void> {
   log.verbose('PuppetWebEvent', 'onScan(%d)', data && data.code)
 
-  if (this.state.target() === 'dead') {
-    log.verbose('PuppetWebEvent', 'onScan(%s) state.target=%s, NOOP',
-                                  data, this.state.target())
+  if (this.state.off()) {
+    log.verbose('PuppetWebEvent', 'onScan(%s) state.off()=%s, NOOP',
+                                  data, this.state.off())
     return
   }
 
@@ -98,9 +98,9 @@ function onLog(data: any): void {
 async function onLogin(this: PuppetWeb, memo: string, attempt = 0): Promise<void> {
   log.verbose('PuppetWebEvent', 'onLogin(%s, %d)', memo, attempt)
 
-  if (this.state.target() === 'dead') {
-    log.verbose('PuppetWebEvent', 'onLogin(%s, %d) state.target=%s, NOOP',
-                                  memo, attempt, this.state.target())
+  if (this.state.off()) {
+    log.verbose('PuppetWebEvent', 'onLogin(%s, %d) state.off()=%s, NOOP',
+                                  memo, attempt, this.state.off())
     return
   }
 
@@ -130,7 +130,7 @@ async function onLogin(this: PuppetWeb, memo: string, attempt = 0): Promise<void
     log.silly('PuppetWebEvent', `onLogin() user ${this.user.name()} logined`)
 
     try {
-      if (this.state.target() === 'live' && this.state.stable()) {
+      if (this.state.on() === true) {
         await this.saveCookie()
       }
     } catch (e) { // fail safe

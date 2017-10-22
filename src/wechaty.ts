@@ -95,7 +95,7 @@ export class Wechaty extends EventEmitter implements Sayable {
    * the state
    * @private
    */
-  private state = new StateSwitch<'on', 'off'>('Wechaty', 'off', log)
+  private state = new StateSwitch('Wechaty', log)
 
   /**
    * the uuid
@@ -203,13 +203,15 @@ export class Wechaty extends EventEmitter implements Sayable {
     log.verbose('Wechaty', 'profile: %s'      , this.options.profile)
     log.verbose('Wechaty', 'uuid: %s'         , this.uuid)
 
-    if (this.state.current() === 'on') {
+    if (this.state.on() === true) {
       log.error('Wechaty', 'start() already started. return and do nothing.')
+      return
+    } else if (this.state.on() === 'pending') {
+      log.error('Wechaty', 'start() another task is starting. return and do nothing.')
       return
     }
 
-    this.state.target('on')
-    this.state.current('on', false)
+    this.state.on('pending')
 
     try {
       this.profile.load()
@@ -223,7 +225,7 @@ export class Wechaty extends EventEmitter implements Sayable {
 
     this.on('heartbeat', () => this.memoryCheck())
 
-    this.state.current('on', true)
+    this.state.on(true)
     this.emit('start')
 
     return
@@ -462,14 +464,13 @@ export class Wechaty extends EventEmitter implements Sayable {
   public async stop(): Promise<void> {
     log.verbose('Wechaty', 'stop()')
 
-    if (this.state.current() !== 'on' || !this.state.stable()) {
+    if (this.state.off() === 'pending') { // current() !== 'on' || !this.state.stable()) {
       const err = new Error(`stop() must run on a inited instance.`)
       log.error('Wechaty', err.message)
       this.emit('error', err)
       return
     }
-    this.state.target('off')
-    this.state.current('off', false)
+    this.state.off('pending')
 
     if (!this.puppet) {
       log.warn('Wechaty', 'stop() without this.puppet')
@@ -488,7 +489,7 @@ export class Wechaty extends EventEmitter implements Sayable {
       Raven.captureException(e)
       throw e
     } finally {
-      this.state.current('off', true)
+      this.state.off(true)
       this.emit('stop')
 
       // MUST use setImmediate at here(the end of this function),

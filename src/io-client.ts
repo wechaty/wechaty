@@ -40,7 +40,7 @@ export class IoClient {
 
   private io: Io // XXX keep io `null-able` or not? 20161026
 
-  private state = new StateSwitch<'online', 'offline'>('IoClient', 'offline', log)
+  private state = new StateSwitch('IoClient', log)
 
   constructor(
     public options: IoClientOptions,
@@ -60,22 +60,21 @@ export class IoClient {
   public async init(): Promise<void> {
     log.verbose('IoClient', 'init()')
 
-    if (this.state.inprocess()) {
-      const e = new Error('state.inprocess(), skip init')
+    if (this.state.pending()) {
+      const e = new Error('state.pending(), skip init')
       log.warn('IoClient', 'init() with %s', e.message)
       throw e
     }
 
-    this.state.target('online')
-    this.state.current('online', false)
+    this.state.on('pending')
 
     try {
       await this.initIo()
       await this.hookWechaty(this.options.wechaty as Wechaty)
-      this.state.current('online')
+      this.state.on(true)
     } catch (e) {
       log.error('IoClient', 'init() exception: %s', e.message)
-      this.state.current('offline')
+      this.state.off(true)
       throw e
     }
     return
@@ -84,8 +83,8 @@ export class IoClient {
   private async hookWechaty(wechaty: Wechaty): Promise<void> {
     log.verbose('IoClient', 'initWechaty()')
 
-    if (this.state.target() !== 'online') {
-      const e = new Error('state.target() is not `online`, skipped')
+    if (this.state.off()) {
+      const e = new Error('state.off() is true, skipped')
       log.warn('IoClient', 'initWechaty() %s', e.message)
       throw e
     }
@@ -102,8 +101,8 @@ export class IoClient {
   private async initIo(): Promise<void> {
     log.verbose('IoClient', 'initIo() with token %s', this.options.token)
 
-    if (this.state.target() !== 'online') {
-      const e = new Error('initIo() targetState is not `connected`, skipped')
+    if (this.state.off()) {
+      const e = new Error('initIo() state.off() is true, skipped')
       log.warn('IoClient', e.message)
       throw e
     }
@@ -162,20 +161,19 @@ export class IoClient {
     //   return this.init()
     // }
 
-    if (this.state.inprocess()) {
+    if (this.state.pending()) {
       log.warn('IoClient', 'start() with a pending state, not the time')
       throw new Error('pending')
     }
 
-    this.state.target('online')
-    this.state.current('online', false)
+    this.state.on('pending')
 
     try {
       await this.initIo()
-      this.state.current('online')
+      this.state.on(true)
     } catch (e) {
       log.error('IoClient', 'start() exception: %s', e.message)
-      this.state.current('offline')
+      this.state.off(true)
       throw e
     }
     return
@@ -184,21 +182,20 @@ export class IoClient {
   public async stop(): Promise<void> {
     log.verbose('IoClient', 'stop()')
 
-    this.state.target('offline')
-    this.state.current('offline', false)
+    this.state.off('pending')
 
     // XXX
     if (!this.io) {
       log.warn('IoClient', 'stop() without this.io')
       // this.currentState('connected')
-      this.state.current('offline')
+      this.state.off(true)
       return
     }
 
     await this.io.quit()
                     // .then(_ => this.currentState('disconnected'))
-                    // .then(_ => this.state.current('offline'))
-    this.state.current('offline')
+                    // .then(_ => this.state.current('off'))
+    this.state.off(true)
 
     // XXX 20161026
     // this.io = null
@@ -221,13 +218,12 @@ export class IoClient {
   public async quit(): Promise<void> {
     log.verbose('IoClient', 'quit()')
 
-    if (this.state.current() === 'offline' && this.state.inprocess()) {
-      log.warn('IoClient', 'quit() with currentState() = `disconnecting`, skipped')
-      throw new Error('quit() with currentState = `disconnecting`')
+    if (this.state.off() === 'pending') {
+      log.warn('IoClient', 'quit() with state.off() = `pending`, skipped')
+      throw new Error('quit() with state.off() = `pending`')
     }
 
-    this.state.target('offline')
-    this.state.current('offline', false)
+    this.state.off('pending')
 
     try {
       if (this.options.wechaty) {
@@ -240,15 +236,11 @@ export class IoClient {
         // this.io = null
       } else { log.warn('IoClient', 'quit() no this.io') }
 
-      this.state.current('offline')
-
     } catch (e) {
       log.error('IoClient', 'exception: %s', e.message)
-
-      // XXX fail safe?
-      this.state.current('offline')
-
       throw e
+    } finally {
+      this.state.off(true)
     }
 
     return

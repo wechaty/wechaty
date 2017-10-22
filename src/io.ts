@@ -59,7 +59,7 @@ export class Io {
   private eventBuffer : IoEvent[] = []
   private ws          : WebSocket
 
-  private state = new StateSwitch<'online', 'offline'>('Io', 'offline', log)
+  private state = new StateSwitch('Io', log)
 
   private reconnectTimer: NodeJS.Timer | null
   private reconnectTimeout: number | null
@@ -94,19 +94,18 @@ export class Io {
   public async init(): Promise<void> {
     log.verbose('Io', 'init()')
 
-    this.state.target('online')
-    this.state.current('online', false)
+    this.state.on('pending')
 
     try {
       await this.initEventHook()
       this.ws = this.initWebSocket()
 
-      this.state.current('online', true)
+      this.state.on(true)
 
       return
     } catch (e) {
       log.warn('Io', 'init() exception: %s', e.message)
-      this.state.current('offline')
+      this.state.off(true)
       throw e
     }
   }
@@ -177,7 +176,7 @@ export class Io {
 
   private initWebSocket() {
     log.verbose('Io', 'initWebSocket()')
-    // this.state.current('online', false)
+    // this.state.current('on', false)
 
     // const auth = 'Basic ' + new Buffer(this.setting.token + ':X').toString('base64')
     const auth = 'Token ' + this.options.token
@@ -210,7 +209,7 @@ export class Io {
     }
     log.verbose('Io', 'initWebSocket() connected with protocol [%s]', ws.protocol)
     // this.currentState('connected')
-    // this.state.current('online')
+    // this.state.current('on')
 
     // FIXME: how to keep alive???
     // ws._socket.setKeepAlive(true, 100)
@@ -339,7 +338,7 @@ export class Io {
   private reconnect() {
     log.verbose('Io', 'reconnect()')
 
-    if (this.state.target() === 'offline') {
+    if (this.state.off()) {
       log.warn('Io', 'reconnect() canceled because state.target() === offline')
       return
     }
@@ -400,8 +399,7 @@ export class Io {
   }
 
   public async quit(): Promise<void> {
-    this.state.target('offline')
-    this.state.current('offline', false)
+    this.state.off('pending')
 
     // try to send IoEvents in buffer
     await this.send()
@@ -414,10 +412,9 @@ export class Io {
 
     this.ws.close()
 
-    // this.currentState('disconnected')
-    this.state.current('offline', true)
+    this.state.off(true)
 
-    return Promise.resolve()
+    return
   }
   /**
    *
