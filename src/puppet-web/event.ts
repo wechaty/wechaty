@@ -229,6 +229,7 @@ async function onMessage(this: PuppetWeb, obj: MsgRawObj): Promise<void> {
 
 async function onUnload(this: PuppetWeb): Promise<void> {
   log.silly('PuppetWebEvent', 'onUnload()')
+  /*
   try {
     await this.quit()
     await this.init()
@@ -237,6 +238,7 @@ async function onUnload(this: PuppetWeb): Promise<void> {
     this.emit('error', e)
     throw e
   }
+  */
 }
 
 export default Event
