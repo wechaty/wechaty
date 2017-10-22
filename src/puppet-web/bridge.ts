@@ -198,7 +198,7 @@ export class Bridge extends EventEmitter {
   }
 
   public async logout(): Promise<any> {
-    log.verbose('PuppetWebBridge', 'quit()')
+    log.verbose('PuppetWebBridge', 'logout()')
     try {
       return await this.proxyWechaty('logout')
     } catch (e) {

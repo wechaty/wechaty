@@ -249,7 +249,9 @@
       WechatyBro.glue.loginFactory.loginout()
     }
 
-    WechatyBro.vars.scanCode = null
+    WechatyBro.vars.scanCode        = null
+    WechatyBro.glue.loginScope.code = null
+
     checkScan()
   }
 
