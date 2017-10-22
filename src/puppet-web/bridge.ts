@@ -114,10 +114,6 @@ export class Bridge extends EventEmitter {
     await page.goto(url) // Does this related to(?) the CI Error: exception: Navigation Timeout Exceeded: 30000ms exceeded
     log.verbose('PuppetWebBridge', 'initPage() after page.goto(url)')
 
-    // , {
-    //   waitUntil: 'load',  // https://github.com/GoogleChrome/puppeteer/issues/805
-    // })
-
     if (cookieList && cookieList.length) {
       await page.setCookie(...cookieList)
       log.silly('PuppetWebBridge', 'initPage() page.setCookie() %s cookies set back', cookieList.length)
@@ -213,7 +209,6 @@ export class Bridge extends EventEmitter {
 
   public async quit(): Promise<void> {
     log.verbose('PuppetWebBridge', 'quit()')
-    this.removeAllListeners()
     try {
       await this.page.close()
       log.silly('PuppetWebBridge', 'quit() page.close()-ed')
@@ -221,10 +216,8 @@ export class Bridge extends EventEmitter {
       log.silly('PuppetWebBridge', 'quit() browser.close()-ed')
     } catch (e) {
       log.warn('PuppetWebBridge', 'quit() exception: %s', e && e.message || e)
-      // throw e
-      /* fail safe */
+      this.emit('error', e)
     }
-
   }
 
   public async getUserName(): Promise<string> {
@@ -681,7 +674,7 @@ export class Bridge extends EventEmitter {
         log.silly('PuppetWebBridge', 'clickSwitchAccount() clicked!')
         return true
       } else {
-        log.silly('PuppetWebBridge', 'clickSwitchAccount() button not found')
+        // log.silly('PuppetWebBridge', 'clickSwitchAccount() button not found')
         return false
       }
     } catch (e) {

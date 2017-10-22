@@ -219,16 +219,15 @@ export class PuppetWeb extends Puppet {
   }
 
   public async quit(): Promise<void> {
-    log.verbose('PuppetWeb', 'quit() state OFF: %s',
-                             this.state.off(),
-                )
+    log.verbose('PuppetWeb', 'quit()')
 
-    if (this.state.off() === 'pending') {
+    const off = this.state.off()
+    if (off === 'pending') {
         const e = new Error('quit() is called on a PENDING OFF PuppetWeb')
         log.warn('PuppetWeb', e.message)
         this.emit('error', e)
         return
-    } else if (this.state.off() === true) {
+    } else if (off === true) {
         log.warn('PuppetWeb', 'quit() is called on a OFF puppet. return directly.')
         return
     }
@@ -239,21 +238,15 @@ export class PuppetWeb extends Puppet {
     this.state.off('pending')
 
     try {
-      if (this.bridge) {
-        await this.bridge.quit()
-        setImmediate(() => this.bridge.removeAllListeners())
-      } else {
-        log.warn('PuppetWeb', 'quit() no bridge!')
-      }
+      await this.bridge.quit()
+      // register the removeListeners micro task at then end of the task queue
+      setImmediate(() => this.bridge.removeAllListeners())
     } catch (e) {
       log.error('PuppetWeb', 'quit() exception: %s', e.message)
       Raven.captureException(e)
       throw e
     } finally {
       this.state.off(true)
-
-      // register the removeListeners micro task at then end of the task queue
-      // setImmediate(() => this.removeAllListeners())
     }
   }
 

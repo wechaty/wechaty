@@ -477,13 +477,13 @@ export class Wechaty extends EventEmitter implements Sayable {
       return
     }
 
-    const puppetBeforeDie = this.puppet
+    const puppet = this.puppet
+
     this.puppet = null
     config.puppetInstance(null)
 
     try {
-      await puppetBeforeDie.quit()
-      setImmediate(() => puppetBeforeDie.removeAllListeners())
+      await puppet.quit()
     } catch (e) {
       log.error('Wechaty', 'stop() exception: %s', e.message)
       Raven.captureException(e)
@@ -494,7 +494,7 @@ export class Wechaty extends EventEmitter implements Sayable {
 
       // MUST use setImmediate at here(the end of this function),
       // because we need to run the micro task registered by the `emit` method
-      // setImmediate(() => this.removeAllListeners())
+      setImmediate(() => puppet.removeAllListeners())
     }
     return
   }
