@@ -47,7 +47,7 @@
       return retObj
     }
 
-    if (WechatyBro.vars.initStatus === true) {
+    if (WechatyBro.vars.initState === true) {
       log('WechatyBro.init() called twice: already inited')
       retObj.code = 304 // 304 Not Modified https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.5
       retObj.message = 'init() already inited before. returned with do nothing'
@@ -68,21 +68,25 @@
     heartBeat(true)
 
     log('inited!. ;-D')
-    WechatyBro.vars.initStatus = true
+    WechatyBro.vars.initState = true
 
     retObj.code = 200
     retObj.message = 'WechatyBro Init Succ'
     return retObj
   }
 
-  function log(text) { WechatyBro.emit('log', text) }
+  function log(text) {
+    WechatyBro.emit('log', text)
+  }
 
   /**
   *
   * Functions that Glued with AngularJS
   *
   */
-  function MMCgiLogined() { return !!(window.MMCgi && window.MMCgi.isLogin) }
+  function MMCgiLogined() {
+    return !!(window.MMCgi && window.MMCgi.isLogin)
+  }
 
   function angularIsReady() {
     // don't log inside, because we has not yet init clog here.
@@ -187,7 +191,7 @@
 
   function checkScan() {
     // log('checkScan()')
-    if (isLogin()) {
+    if (loginState()) {
       log('checkScan() - already login, no more check, and return(only)') //but I will emit a login event')
       // login('checkScan found already login')
       return
@@ -205,7 +209,7 @@
     // 200: 登录成功
     var code  = +WechatyBro.glue.loginScope.code
     var url   =  WechatyBro.glue.loginScope.qrcodeUrl
-    // log('checkScan() code:' + code + ' url:' + url + ' scanCode:' + WechatyBro.vars.scanCode)
+    log('checkScan() code:' + code + ' url:' + url + ' scanCode:' + WechatyBro.vars.scanCode)
 
     if (url && code !== WechatyBro.vars.scanCode) {
       log('checkScan() - code change detected: from '
@@ -220,37 +224,41 @@
       WechatyBro.vars.scanCode = code
     }
 
-    if (code === 200) {
-      login('scan code 200')
-    } else {
-      setTimeout(checkScan, 1000)
+    if (code !== 200) {
+      return setTimeout(checkScan, 1000)
     }
-    return
+
+    WechatyBro.vars.scanCode = null
+    WechatyBro.glue.loginScope.code = null
+
+    return login('scan code 200')
   }
 
-  function isLogin() {
-    return !!WechatyBro.vars.loginStatus
+  function loginState(state) {
+    if (typeof state === 'undefined') {
+      return !!WechatyBro.vars.loginState
+    }
+    WechatyBro.vars.loginState = state
+    return
   }
 
   function login(data) {
     log('login(' + data + ')')
-    if (!WechatyBro.vars.loginStatus) {
-      WechatyBro.vars.loginStatus = true
-    }
-    WechatyBro.vars.scanCode = null
+    loginState(true)
     WechatyBro.emit('login', data)
   }
 
   function logout(data) {
     log('logout(' + data + ')')
-    WechatyBro.vars.loginStatus = false
+
+    loginState(false)
+
     // WechatyBro.emit('logout', data)
     if (WechatyBro.glue.loginFactory) {
       WechatyBro.glue.loginFactory.loginout()
+    } else {
+      log('logout() WechatyBro.glue.loginFactory NOT found')
     }
-
-    WechatyBro.vars.scanCode        = null
-    WechatyBro.glue.loginScope.code = null
 
     checkScan()
   }
@@ -268,7 +276,7 @@
       return false
     }
     rootScope.$on('message:add:success', function(event, data) {
-      if (!isLogin()) { // in case of we missed the pageInit event
+      if (!loginState()) { // in case of we missed the pageInit event
         login('by event[message:add:success]')
       }
       WechatyBro.emit('message', data)
@@ -789,8 +797,8 @@
 
     // variable
     , vars: {
-      loginStatus : false,
-      initStatus  : false,
+      loginState : false,
+      initState  : false,
 
       scanCode        : null,
       heartBeatTimmer : null,
@@ -834,7 +842,11 @@
     , verifyUserOk:      verifyUserOk
 
     // test purpose
-    , isLogin: isLogin
+    , isLogin: () => {
+      log('DEPRECATED. use loginState() instead');
+      return loginState()
+    }
+    , loginState: loginState
   }
 
   this.WechatyBro = WechatyBro

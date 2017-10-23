@@ -59,7 +59,7 @@ function onDing(this: PuppetWeb, data): void {
 }
 
 async function onScan(this: PuppetWeb, data: ScanInfo): Promise<void> {
-  log.verbose('PuppetWebEvent', 'onScan(%d)', data && data.code)
+  log.verbose('PuppetWebEvent', 'onScan({code: %d, url: %s})', data.code, data.url)
 
   if (this.state.off()) {
     log.verbose('PuppetWebEvent', 'onScan(%s) state.off()=%s, NOOP',

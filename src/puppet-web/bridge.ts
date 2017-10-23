@@ -72,11 +72,9 @@ export class Bridge extends EventEmitter {
       this.browser = await this.initBrowser()
       log.verbose('PuppetWebBridge', 'init() initBrowser() done')
 
-      this.page    = await this.initPage(this.browser)
+      this.page = await this.initPage(this.browser)
       log.verbose('PuppetWebBridge', 'init() initPage() done')
 
-      await this.readyAngular(this.page)
-      await this.inject(this.page)
     } catch (e) {
       log.error('PuppetWebBridge', 'init() exception: %s', e)
       throw e
@@ -106,21 +104,9 @@ export class Bridge extends EventEmitter {
     log.verbose('PuppetWebBridge', 'initPage()')
 
     const page = await browser.newPage()
-
-    const cookieList = this.options.profile.get('cookies') as Cookie[]
-    const url        = this.entryUrl(cookieList)
-
-    log.verbose('PuppetWebBridge', 'initPage() before page.goto(url)')
-    await page.goto(url) // Does this related to(?) the CI Error: exception: Navigation Timeout Exceeded: 30000ms exceeded
-    log.verbose('PuppetWebBridge', 'initPage() after page.goto(url)')
-
-    if (cookieList && cookieList.length) {
-      await page.setCookie(...cookieList)
-      log.silly('PuppetWebBridge', 'initPage() page.setCookie() %s cookies set back', cookieList.length)
-      await page.reload() // reload page to make effect of the new cookie.
-    }
-
-    await page.exposeFunction('emit', this.emit.bind(this))
+    // set this in time because the following callbacks
+    // might be called before initPage() return.
+    this.page = page
 
     const onDialog = async (dialog: Dialog) => {
       log.warn('PuppetWebBridge', 'init() page.on(dialog) type:%s message:%s',
@@ -135,7 +121,51 @@ export class Bridge extends EventEmitter {
 
       this.emit('error', new Error(`${dialog.type}(${dialog.message()})`))
     }
+
+    const onLoad = async () => {
+      log.verbose('PuppetWebBridge', 'initPage() on(load) %s', page.url())
+      try {
+        await page.exposeFunction('emit', this.emit.bind(this))
+      } catch (e) {
+        // exposed function will stay in the browser after reload the page
+        log.verbose('PuppetWebBridge', 'initPage() onLoad() page.exposeFunction(emit) exception: %s', e)
+      }
+
+      try {
+        await this.readyAngular(page)
+        await this.inject(page)
+
+        const clicked = await this.clickSwitchAccount()
+        if (clicked) {
+          log.verbose('PuppetWebBridge', 'initPage() onLoad() clickSwitchAccount() clicked')
+        } else {
+          log.silly('PuppetWebBridge', 'initPage() onLoad() clickSwitchAccount() NOP')
+        }
+
+      } catch (e) {
+        log.error('PuppetWebBridge', 'init() initPage() onLoad() exception: %s', e)
+        this.emit('error', e)
+      }
+    }
+
     page.on('dialog', onDialog)
+    page.on('load', onLoad)
+    page.on('error', e => this.emit('error', e))
+
+    ///////////////////
+
+    const cookieList = this.options.profile.get('cookies') as Cookie[]
+    const url        = this.entryUrl(cookieList)
+
+    log.verbose('PuppetWebBridge', 'initPage() before page.goto(url)')
+    await page.goto(url) // Does this related to(?) the CI Error: exception: Navigation Timeout Exceeded: 30000ms exceeded
+    log.verbose('PuppetWebBridge', 'initPage() after page.goto(url)')
+
+    if (cookieList && cookieList.length) {
+      await page.setCookie(...cookieList)
+      log.silly('PuppetWebBridge', 'initPage() page.setCookie() %s cookies set back', cookieList.length)
+      await page.reload() // reload page to make effect of the new cookie.
+    }
 
     return page
   }
@@ -148,7 +178,7 @@ export class Bridge extends EventEmitter {
       await page.waitForFunction(`typeof window.angular !== 'undefined'`)
 
       clearTimeout(timer)
-      log.verbose('PuppetWebBridge', 'readyAngular() Promise.resolve()')
+      log.silly('PuppetWebBridge', 'readyAngular() resolve-ed')
       resolve()
     })
   }
@@ -184,7 +214,7 @@ export class Bridge extends EventEmitter {
         throw new Error('execute proxyWechaty(init) error: ' + retObj.code + ', ' + retObj.message)
       }
 
-      const SUCCESS_CIPHER = 'inject() OK!'
+      const SUCCESS_CIPHER = 'ding() OK!'
       const r = await this.ding(SUCCESS_CIPHER)
       if (r !== SUCCESS_CIPHER) {
         throw new Error('fail to get right return from call ding()')
@@ -215,7 +245,7 @@ export class Bridge extends EventEmitter {
       await this.browser.close()
       log.silly('PuppetWebBridge', 'quit() browser.close()-ed')
     } catch (e) {
-      log.warn('PuppetWebBridge', 'quit() exception: %s', e && e.message || e)
+      log.warn('PuppetWebBridge', 'quit() exception: %s', e)
       this.emit('error', e)
     }
   }
