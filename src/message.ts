@@ -878,6 +878,8 @@ export class MediaMessage extends Message {
    * Get the read stream for attachment file
    */
   public async readyStream(): Promise<Readable> {
+    log.verbose('MediaMessage', 'readyStream()')
+
     if (this.filePath)
       return fs.createReadStream(this.filePath)
 

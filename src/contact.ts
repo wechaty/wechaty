@@ -399,7 +399,7 @@ export class Contact implements Sayable {
    * }
    */
   public alias(newAlias?: string|null): Promise<boolean> | string | null {
-    log.silly('Contact', 'alias(%s)', newAlias || '')
+    // log.silly('Contact', 'alias(%s)', newAlias || '')
 
     if (newAlias === undefined) {
       return this.obj && this.obj.alias || null
@@ -588,7 +588,7 @@ export class Contact implements Sayable {
    * @private
    */
   public async ready(contactGetter?: (id: string) => Promise<ContactRawObj>): Promise<this> {
-    log.silly('Contact', 'ready(' + (contactGetter ? typeof contactGetter : '') + ')')
+    // log.silly('Contact', 'ready(' + (contactGetter ? typeof contactGetter : '') + ')')
     if (!this.id) {
       const e = new Error('ready() call on an un-inited contact')
       throw e
