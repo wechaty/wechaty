@@ -31,12 +31,16 @@ import Profile    from '../profile'
 
 import Bridge     from './bridge'
 
-test('PuppetWebBridge', async t => {
+test.only('PuppetWebBridge', async t => {
   const profile = new Profile()
   const bridge = new Bridge({ profile })
-  await bridge.init()
-  t.ok(bridge, 'Bridge instnace')
-  await bridge.quit()
+  try {
+    await bridge.init()
+    await bridge.quit()
+    t.pass('Bridge instnace')
+  } catch (e) {
+    t.fail('Bridge instance: ' + e)
+  }
 })
 
 test('testBlockedMessage()', async t => {
@@ -111,7 +115,7 @@ test('clickSwitchAccount()', async t => {
   const profile = new Profile()
   const bridge = new Bridge({ profile} )
 
-  test('switch account', async t => {
+  test('switch account needed', async t => {
     const browser = await launch()
     const page = await browser.newPage()
 
@@ -124,7 +128,7 @@ test('clickSwitchAccount()', async t => {
     t.equal(clicked, true, 'should click the switch account button')
   })
 
-  test('switch account', async t => {
+  test('switch account not needed', async t => {
     const browser = await launch()
     const page = await browser.newPage()
 

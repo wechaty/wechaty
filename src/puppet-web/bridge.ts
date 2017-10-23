@@ -28,6 +28,7 @@ import {
   launch,
   Page,
 }                       from 'puppeteer'
+import StateSwitch      from 'state-switch'
 import { parseString }  from 'xml2js'
 
 /* tslint:disable:no-var-requires */
@@ -56,26 +57,31 @@ declare const WechatyBro
 export class Bridge extends EventEmitter {
   private browser : Browser
   private page    : Page
+  private state   : StateSwitch
 
   constructor(
     public options: BridgeOptions,
   ) {
     super()
-
     log.verbose('PuppetWebBridge', 'constructor()')
+
+    this.state = new StateSwitch('PuppetWebBridge', log)
   }
 
   public async init(): Promise<void> {
     log.verbose('PuppetWebBridge', 'init()')
 
+    this.state.on('pending')
     try {
       this.browser = await this.initBrowser()
       log.verbose('PuppetWebBridge', 'init() initBrowser() done')
 
       this.page = await this.initPage(this.browser)
-      log.verbose('PuppetWebBridge', 'init() initPage() done')
 
+      this.state.on(true)
+      log.verbose('PuppetWebBridge', 'init() initPage() done')
     } catch (e) {
+      this.state.off(true)
       log.error('PuppetWebBridge', 'init() exception: %s', e)
       throw e
     }
@@ -124,11 +130,23 @@ export class Bridge extends EventEmitter {
 
     const onLoad = async () => {
       log.verbose('PuppetWebBridge', 'initPage() on(load) %s', page.url())
+
+      if (this.state.off()) {
+        log.verbose('PuppetWebBridge', 'initPage() onLoad() OFF state detected. NOP')
+        return
+      }
+
       try {
         await page.exposeFunction('emit', this.emit.bind(this))
       } catch (e) {
+        if (this.state.off()) {
+          log.verbose('PuppetWebBridge', 'initPage() onLoad() OFF state detected. NOP')
+          return
+        }
+
         // exposed function will stay in the browser after reload the page
-        log.verbose('PuppetWebBridge', 'initPage() onLoad() page.exposeFunction(emit) exception: %s', e)
+        log.verbose('PuppetWebBridge', 'initPage() onLoad() page.exposeFunction(emit) already exist')
+        log.silly('PuppetWebBridge', 'initPage() onLoad() page.exposeFunction(emit) exception: %s', e)
       }
 
       try {
@@ -143,6 +161,11 @@ export class Bridge extends EventEmitter {
         }
 
       } catch (e) {
+        if (this.state.off()) {
+          log.verbose('PuppetWebBridge', 'initPage() onLoad() OFF state detected. NOP')
+          return
+        }
+
         log.error('PuppetWebBridge', 'init() initPage() onLoad() exception: %s', e)
         this.emit('error', e)
       }
@@ -239,6 +262,8 @@ export class Bridge extends EventEmitter {
 
   public async quit(): Promise<void> {
     log.verbose('PuppetWebBridge', 'quit()')
+    this.state.off('pending')
+
     try {
       await this.page.close()
       log.silly('PuppetWebBridge', 'quit() page.close()-ed')
@@ -247,6 +272,8 @@ export class Bridge extends EventEmitter {
     } catch (e) {
       log.warn('PuppetWebBridge', 'quit() exception: %s', e)
       this.emit('error', e)
+    } finally {
+      this.state.off(true)
     }
   }
 
