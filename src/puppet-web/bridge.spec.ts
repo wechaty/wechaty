@@ -31,7 +31,7 @@ import Profile    from '../profile'
 
 import Bridge     from './bridge'
 
-test.only('PuppetWebBridge', async t => {
+test('PuppetWebBridge', async t => {
   const profile = new Profile()
   const bridge = new Bridge({ profile })
   try {

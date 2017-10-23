@@ -71,12 +71,12 @@ test('retryPromise()', async t => {
 
 declare const WechatyBro
 
-test.only('WechatyBro.ding()', async t => {
+test('WechatyBro.ding()', async t => {
   const profile = new Profile(Math.random().toString(36).substr(2, 5))
   const bridge = new Bridge({
     profile,
   })
-  t.ok(bridge, 'should instanciated a bridge with mocked puppet')
+  t.ok(bridge, 'should instanciated a bridge')
 
   try {
     await bridge.init()

@@ -128,7 +128,7 @@ export class Bridge extends EventEmitter {
       this.emit('error', new Error(`${dialog.type}(${dialog.message()})`))
     }
 
-    const onLoad = async () => {
+    const onLoad = async (done: () => void) => {
       log.verbose('PuppetWebBridge', 'initPage() on(load) %s', page.url())
 
       if (this.state.off()) {
@@ -168,12 +168,15 @@ export class Bridge extends EventEmitter {
 
         log.error('PuppetWebBridge', 'init() initPage() onLoad() exception: %s', e)
         this.emit('error', e)
+      } finally {
+        done()
       }
     }
 
     page.on('dialog', onDialog)
-    page.on('load', onLoad)
     page.on('error', e => this.emit('error', e))
+
+    const loaded = new Promise(resolve => page.on('load', () => onLoad(resolve)))
 
     ///////////////////
 
@@ -189,6 +192,8 @@ export class Bridge extends EventEmitter {
       log.silly('PuppetWebBridge', 'initPage() page.setCookie() %s cookies set back', cookieList.length)
       await page.reload() // reload page to make effect of the new cookie.
     }
+
+    await loaded  // wait the page on load finish
 
     return page
   }
@@ -677,7 +682,7 @@ export class Bridge extends EventEmitter {
           return resolve()
         }
         const ret     = +obj.error.ret
-        const message =  obj.error.message as string
+        const message =  obj.error.message
 
         const e = new Error(message)
 
