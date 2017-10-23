@@ -335,9 +335,10 @@
     if (!contentChatScope) {
       throw new Error('getMsgImg() contentChatScope not found')
     }
-    var location = window.location.href.replace(/\/$/, '')
     var path = contentChatScope.getMsgImg(id, type, message)
-    return location + path
+    return window.location.origin + path
+    // https://wx.qq.com/?&lang=en_US/cgi-bin/mmwebwx-bin/webwxgetmsgimg?&MsgID=4520385745174034093&skey=%40crypt_f9cec94b_a3aa5c868466d81bc518293eb292926e
+    // https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxgetmsgimg?&MsgID=8454987316459381112&skey=%40crypt_f9cec94b_bd210b2224f217afeab8d462af70cf53
   }
 
   function getMsgEmoticon(id) {
@@ -352,9 +353,8 @@
     if (!contentChatScope) {
       throw new Error('getMsgVideo() contentChatScope not found')
     }
-    var location = window.location.href.replace(/\/$/, '')
     var path = contentChatScope.getMsgVideo(id)
-    return location + path
+    return window.location.origin + path
   }
 
   /**
@@ -364,15 +364,13 @@
     var confFactory     = WechatyBro.glue.confFactory
     var accountFactory  = WechatyBro.glue.accountFactory
 
-    var location = window.location.href.replace(/\/$/, '')
     var path = confFactory.API_webwxgetvoice + "?msgid=" + id + "&skey=" + accountFactory.getSkey()
-    return location + path
+    return window.location.origin + path
   }
 
   function getMsgPublicLinkImg(id) {
-    var location = window.location.href.replace(/\/$/, '')
     var path = '/cgi-bin/mmwebwx-bin/webwxgetpubliclinkimg?url=xxx&msgid=' + id + '&pictype=location'
-    return location + path
+    return window.location.origin + path
   }
 
   function getBaseRequest() {
