@@ -197,9 +197,9 @@
       return
     }
     if (!WechatyBro.glue.loginScope) {
-      log('checkScan() - loginScope disappeared, no more check')
-      login('loginScope disappeared')
-      return
+      log('checkScan() - loginScope disappeared, TODO: find out the reason why this happen')
+      // login('loginScope disappeared')
+      // return
     }
 
     // loginScope.code:
