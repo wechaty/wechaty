@@ -28,8 +28,11 @@ export class Profile {
         ? name
         : path.join(
             process.cwd(),
-            name + '.wechaty.json',
+            name,
           )
+      if (!/\.wechaty\.json$/.test(this.file)) {
+        this.file +=  '.wechaty.json'
+      }
     }
   }
 
