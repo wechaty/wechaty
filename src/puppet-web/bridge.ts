@@ -153,7 +153,7 @@ export class Bridge extends EventEmitter {
         await this.readyAngular(page)
         await this.inject(page)
 
-        const clicked = await this.clickSwitchAccount()
+        const clicked = await this.clickSwitchAccount(page)
         if (clicked) {
           log.verbose('PuppetWebBridge', 'initPage() onLoad() clickSwitchAccount() clicked')
         } else {
@@ -699,7 +699,7 @@ export class Bridge extends EventEmitter {
     })
   }
 
-  public async clickSwitchAccount(page: Page = this.page): Promise<boolean> {
+  public async clickSwitchAccount(page: Page): Promise<boolean> {
     log.verbose('PuppetWebBridge', 'clickSwitchAccount()')
 
     // https://github.com/GoogleChrome/puppeteer/issues/537#issuecomment-334918553
