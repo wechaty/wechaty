@@ -200,15 +200,18 @@
       log('checkScan() - loginScope disappeared, TODO: find out the reason why this happen')
       // login('loginScope disappeared')
       // return
+      return setTimeout(checkScan, 1000)
     }
+
+    const loginScope = WechatyBro.glue.loginScope
 
     // loginScope.code:
     // 0:   显示二维码
     // 408: 未确认（显示二维码后30秒触发）
     // 201: 扫描，未确认
     // 200: 登录成功
-    var code  = +WechatyBro.glue.loginScope.code
-    var url   =  WechatyBro.glue.loginScope.qrcodeUrl
+    var code  = +loginScope.code
+    var url   =  loginScope.qrcodeUrl
     log('checkScan() code:' + code + ' url:' + url + ' scanCode:' + WechatyBro.vars.scanCode)
 
     if (url && code !== WechatyBro.vars.scanCode) {
@@ -229,7 +232,7 @@
     }
 
     WechatyBro.vars.scanCode = null
-    WechatyBro.glue.loginScope.code = null
+    loginScope.code          = null
 
     return login('scan code 200')
   }
