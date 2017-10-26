@@ -276,26 +276,6 @@ export class PuppetWeb extends Puppet {
       log.error('PuppetWeb', 'initBridge() exception: %s', e.message)
       this.emit('error', e)
 
-      // TypeError: Cannot read property 'evaluate' of undefined
-      if (!this.bridge) {
-        throw e
-      }
-
-      const text = await this.bridge.evaluate(() => {
-        return document.body.innerHTML
-      }) as any as string
-
-      try {
-        // Test if Wechat account is blocked
-        // will throw exception if blocked
-        await this.bridge.testBlockedMessage(text)
-      } catch (blockedError) {
-        // Wechat Account Blocked
-        log.error('PuppetWeb', 'initBridge() Wechat Account Blocked for using Web: %s', blockedError.message)
-        this.emit('error', blockedError)
-        throw blockedError
-      }
-
       Raven.captureException(e)
       throw e
     }

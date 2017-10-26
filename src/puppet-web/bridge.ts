@@ -128,12 +128,17 @@ export class Bridge extends EventEmitter {
       this.emit('error', new Error(`${dialog.type}(${dialog.message()})`))
     }
 
-    const onLoad = async (done: () => void) => {
+    const onLoad = async (
+      resolve: ()         => void,
+      reject: (e: Error)  => void,
+    ) => {
       log.verbose('PuppetWebBridge', 'initPage() on(load) %s', page.url())
+
+      const stateOffError = new Error('onLoad() OFF state detected')
 
       if (this.state.off()) {
         log.verbose('PuppetWebBridge', 'initPage() onLoad() OFF state detected. NOP')
-        return
+        return reject(stateOffError)
       }
 
       try {
@@ -141,7 +146,7 @@ export class Bridge extends EventEmitter {
       } catch (e) {
         if (this.state.off()) {
           log.verbose('PuppetWebBridge', 'initPage() onLoad() OFF state detected. NOP')
-          return
+          return reject(stateOffError)
         }
 
         // exposed function will stay in the browser after reload the page
@@ -151,6 +156,23 @@ export class Bridge extends EventEmitter {
 
       try {
         await this.readyAngular(page)
+      } catch (e) {
+        const text = await this.evaluate(() => {
+          return document.body.innerHTML
+        }) as any as string // BUG of Puppet Type Definition
+
+        try {
+          // Test if Wechat account is blocked
+          // will throw exception if blocked
+          await this.testBlockedMessage(text)
+        } catch (e) { // Wechat Account Blocked
+          log.error('PuppetWeb', 'initBridge() Wechat Account Blocked for using Web: %s', e.message)
+          this.emit('error', e)
+          return reject(e)
+        }
+      }
+
+      try {
         await this.inject(page)
 
         const clicked = await this.clickSwitchAccount(page)
@@ -163,20 +185,22 @@ export class Bridge extends EventEmitter {
       } catch (e) {
         if (this.state.off()) {
           log.verbose('PuppetWebBridge', 'initPage() onLoad() OFF state detected. NOP')
-          return
+          return reject(stateOffError)
         }
 
         log.error('PuppetWebBridge', 'init() initPage() onLoad() exception: %s', e)
         this.emit('error', e)
-      } finally {
-        done()
+        return reject(e)
+
       }
+
+      return resolve()
     }
 
     page.on('dialog', onDialog)
     page.on('error', e => this.emit('error', e))
 
-    const loaded = new Promise(resolve => page.on('load', () => onLoad(resolve)))
+    const loaded = new Promise((resolve, reject) => page.on('load', () => onLoad(resolve, reject)))
 
     ///////////////////
 
@@ -200,9 +224,11 @@ export class Bridge extends EventEmitter {
 
   public async readyAngular(page: Page): Promise<void> {
     log.verbose('PuppetWebBridge', 'readyAngular()')
-    const TIMEOUT = 30 * 1000
+    const TIMEOUT = 10 * 1000
     await new Promise<void>(async (resolve, reject) => {
-      const timer = setTimeout(reject, TIMEOUT)
+      const timer = setTimeout(() => {
+        reject(`readyAngular() timeout after ${TIMEOUT}`)
+      }, TIMEOUT)
       await page.waitForFunction(`typeof window.angular !== 'undefined'`)
 
       clearTimeout(timer)
