@@ -689,8 +689,9 @@ export class Bridge extends EventEmitter {
    * Throw if there's a blocked message
    */
   public async testBlockedMessage(text: string): Promise<void> {
+    const textSnip = text.substr(0, 50).replace(/\n/, '')
     log.silly('PuppetWebBridge', 'testBlockedMessage(%s)',
-                                  text.substr(0, 50).replace(/\n/, ''))
+                                  textSnip)
 
     interface BlockedMessage {
       error?: {
@@ -701,7 +702,12 @@ export class Bridge extends EventEmitter {
 
     return new Promise<void>((resolve, reject) => {
       parseString(text, { explicitArray: false }, (err, obj: BlockedMessage) => {
-        if (err) {
+        if (err) {  // HTML can not be parsed to JSON
+          return resolve()
+        }
+        if (!obj) {
+          // FIXME: when will this happen?
+          log.warn('PuppetWebBridge', 'testBlockedMessage() parseString(%s) return empty obj', textSnip)
           return resolve()
         }
         if (!obj.error) {
