@@ -109,10 +109,9 @@ export class Bridge extends EventEmitter {
   public async initPage(browser: Browser): Promise<Page> {
     log.verbose('PuppetWebBridge', 'initPage()')
 
-    const page = await browser.newPage()
     // set this in time because the following callbacks
     // might be called before initPage() return.
-    this.page = page
+    const page = this.page =  await browser.newPage()
 
     const onDialog = async (dialog: Dialog) => {
       log.warn('PuppetWebBridge', 'init() page.on(dialog) type:%s message:%s',
@@ -134,75 +133,28 @@ export class Bridge extends EventEmitter {
     ) => {
       log.verbose('PuppetWebBridge', 'initPage() on(load) %s', page.url())
 
-      const stateOffError = new Error('onLoad() OFF state detected')
-
       if (this.state.off()) {
         log.verbose('PuppetWebBridge', 'initPage() onLoad() OFF state detected. NOP')
-        return reject(stateOffError)
+        return reject(new Error('onLoad() OFF state detected'))
       }
 
       try {
-        await page.exposeFunction('emit', this.emit.bind(this))
-      } catch (e) {
-        if (this.state.off()) {
-          log.verbose('PuppetWebBridge', 'initPage() onLoad() OFF state detected. NOP')
-          return reject(stateOffError)
+        const emitExist = await page.evaluate(() => {
+          return typeof window['emit'] === 'function'
+        })
+        if (!emitExist) {
+          await page.exposeFunction('emit', this.emit.bind(this))
         }
-
-        // exposed function will stay in the browser after reload the page
-        log.verbose('PuppetWebBridge', 'initPage() onLoad() page.exposeFunction(emit) already exist')
-        log.silly('PuppetWebBridge', 'initPage() onLoad() page.exposeFunction(emit) exception: %s', e)
-      }
-
-      try {
         await this.readyAngular(page)
-      } catch (e) {
-        const text = await this.evaluate(() => {
-          return document.body.innerHTML
-        }) as any as string // BUG of Puppet Type Definition
-
-        try {
-          // Test if Wechat account is blocked
-          // will throw exception if blocked
-          await this.testBlockedMessage(text)
-        } catch (e) { // Wechat Account Blocked
-          log.error('PuppetWeb', 'initBridge() Wechat Account Blocked for using Web: %s', e.message)
-          this.emit('error', e)
-          return reject(e)
-        }
-      }
-
-      try {
         await this.inject(page)
-
-        const clicked = await this.clickSwitchAccount(page)
-        if (clicked) {
-          log.verbose('PuppetWebBridge', 'initPage() onLoad() clickSwitchAccount() clicked')
-        } else {
-          log.silly('PuppetWebBridge', 'initPage() onLoad() clickSwitchAccount() NOP')
-        }
-
+        await this.clickSwitchAccount(page)
+        return resolve()
       } catch (e) {
-        if (this.state.off()) {
-          log.verbose('PuppetWebBridge', 'initPage() onLoad() OFF state detected. NOP')
-          return reject(stateOffError)
-        }
-
         log.error('PuppetWebBridge', 'init() initPage() onLoad() exception: %s', e)
         this.emit('error', e)
         return reject(e)
-
       }
-
-      return resolve()
     }
-
-    page.on('dialog', onDialog)
-    page.on('error', e => this.emit('error', e))
-
-    const loaded = new Promise((resolve, reject) => page.on('load', () => onLoad(resolve, reject)))
-
-    ///////////////////
 
     const cookieList = this.options.profile.get('cookies') as Cookie[]
     const url        = this.entryUrl(cookieList)
@@ -214,10 +166,16 @@ export class Bridge extends EventEmitter {
     if (cookieList && cookieList.length) {
       await page.setCookie(...cookieList)
       log.silly('PuppetWebBridge', 'initPage() page.setCookie() %s cookies set back', cookieList.length)
-      await page.reload() // reload page to make effect of the new cookie.
     }
 
-    await loaded  // wait the page on load finish
+    page.on('dialog', onDialog)
+    page.on('error', e => this.emit('error', e))
+
+    const loaded = new Promise((resolve, reject) => {
+      page.on('load', () => onLoad(resolve, reject))
+    })
+    await page.reload() // reload page to make effect of the new cookie.
+    await loaded        // wait the page on load finish
 
     return page
   }
@@ -226,8 +184,22 @@ export class Bridge extends EventEmitter {
     log.verbose('PuppetWebBridge', 'readyAngular()')
     const TIMEOUT = 10 * 1000
     await new Promise<void>(async (resolve, reject) => {
-      const timer = setTimeout(() => {
+      const timer = setTimeout(async () => {
+        const text = await this.evaluate(() => {
+          return document.body.innerHTML
+        }) as any as string // BUG of Puppet Type Definition
+
+        const blockedMessage = await this.testBlockedMessage(text)
+
+        if (blockedMessage) {  // Wechat Account Blocked
+          log.error('PuppetWeb', 'initBridge() Wechat Account Blocked for using Web: %s', blockedMessage)
+          const err = new Error(blockedMessage)
+          this.emit('error', err)
+          return reject(err)
+        }
+
         reject(`readyAngular() timeout after ${TIMEOUT}`)
+
       }, TIMEOUT)
       await page.waitForFunction(`typeof window.angular !== 'undefined'`)
 
@@ -688,9 +660,9 @@ export class Bridge extends EventEmitter {
   /**
    * Throw if there's a blocked message
    */
-  public async testBlockedMessage(text: string): Promise<void> {
+  public async testBlockedMessage(text: string): Promise<string | false> {
     const textSnip = text.substr(0, 50).replace(/\n/, '')
-    log.silly('PuppetWebBridge', 'testBlockedMessage(%s)',
+    log.verbose('PuppetWebBridge', 'testBlockedMessage(%s)',
                                   textSnip)
 
     interface BlockedMessage {
@@ -700,33 +672,31 @@ export class Bridge extends EventEmitter {
       }
     }
 
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<string | false>((resolve, reject) => {
       parseString(text, { explicitArray: false }, (err, obj: BlockedMessage) => {
         if (err) {  // HTML can not be parsed to JSON
-          return resolve()
+          return resolve(false)
         }
         if (!obj) {
           // FIXME: when will this happen?
           log.warn('PuppetWebBridge', 'testBlockedMessage() parseString(%s) return empty obj', textSnip)
-          return resolve()
+          return resolve(false)
         }
         if (!obj.error) {
-          return resolve()
+          return resolve(false)
         }
         const ret     = +obj.error.ret
         const message =  obj.error.message
-
-        const e = new Error(message)
 
         if (ret === 1203) {
           // <error>
           // <ret>1203</ret>
           // <message>当前登录环境异常。为了你的帐号安全，暂时不能登录web微信。你可以通过手机客户端或者windows微信登录。</message>
           // </error>
-          return reject(e)
+          return resolve(message)
         }
         log.warn('PuppetWebBridge', 'testBlockedMessage() code: %s type: %s', ret, typeof ret)
-        return reject(e) // other error message
+        return resolve(message) // other error message
       })
     })
   }
@@ -767,10 +737,12 @@ export class Bridge extends EventEmitter {
         await button.click()
         log.silly('PuppetWebBridge', 'clickSwitchAccount() clicked!')
         return true
+
       } else {
         // log.silly('PuppetWebBridge', 'clickSwitchAccount() button not found')
         return false
       }
+
     } catch (e) {
       log.silly('PuppetWebBridge', 'clickSwitchAccount() exception: %s', e)
       throw e
