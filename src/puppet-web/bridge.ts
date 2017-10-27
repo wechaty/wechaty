@@ -36,7 +36,7 @@ const retryPromise  = require('retry-promise').default
 
 import { log }        from '../config'
 import Profile        from '../profile'
-
+import Misc           from '../misc'
 import {
   MediaData,
   MsgRawObj,
@@ -81,8 +81,21 @@ export class Bridge extends EventEmitter {
       this.state.on(true)
       log.verbose('PuppetWebBridge', 'init() initPage() done')
     } catch (e) {
-      this.state.off(true)
       log.error('PuppetWebBridge', 'init() exception: %s', e)
+      this.state.off(true)
+
+      try {
+        if (this.page) {
+          await this.page.close()
+        }
+        if (this.browser) {
+          await this.browser.close()
+        }
+      } catch (e2) {
+        log.error('PuppetWebBridge', 'init() exception %s, close page/browser exception %s', e, e2)
+      }
+
+      this.emit('error', e)
       throw e
     }
   }
@@ -123,7 +136,6 @@ export class Bridge extends EventEmitter {
       } catch (e) {
         log.error('PuppetWebBridge', 'init() dialog.dismiss() reject: %s', e)
       }
-
       this.emit('error', new Error(`${dialog.type}(${dialog.message()})`))
     }
 
@@ -151,7 +163,6 @@ export class Bridge extends EventEmitter {
         return resolve()
       } catch (e) {
         log.error('PuppetWebBridge', 'init() initPage() onLoad() exception: %s', e)
-        this.emit('error', e)
         return reject(e)
       }
     }
@@ -185,6 +196,8 @@ export class Bridge extends EventEmitter {
     const TIMEOUT = 10 * 1000
     await new Promise<void>(async (resolve, reject) => {
       const timer = setTimeout(async () => {
+        log.verbose('PuppetWebBridge', 'readyAngular() timeout')
+
         const text = await this.evaluate(() => {
           return document.body.innerHTML
         }) as any as string // BUG of Puppet Type Definition
@@ -192,9 +205,7 @@ export class Bridge extends EventEmitter {
         const blockedMessage = await this.testBlockedMessage(text)
 
         if (blockedMessage) {  // Wechat Account Blocked
-          log.error('PuppetWeb', 'initBridge() Wechat Account Blocked for using Web: %s', blockedMessage)
           const err = new Error(blockedMessage)
-          this.emit('error', err)
           return reject(err)
         }
 
@@ -657,6 +668,17 @@ export class Bridge extends EventEmitter {
     }
   }
 
+  public preHtmlToXml(text: string): string {
+    log.verbose('PuppetWebBridge', 'preHtmlToXml()')
+
+    const preRegex = /^<pre[^>]*>([^<]+)<\/pre>$/i
+    const matches = text.match(preRegex)
+    if (!matches) {
+      return text
+    }
+    return Misc.unescapeHtml(matches[1])
+  }
+
   /**
    * Throw if there's a blocked message
    */
@@ -664,6 +686,9 @@ export class Bridge extends EventEmitter {
     const textSnip = text.substr(0, 50).replace(/\n/, '')
     log.verbose('PuppetWebBridge', 'testBlockedMessage(%s)',
                                   textSnip)
+
+    // see unit test for detail
+    text = this.preHtmlToXml(text)
 
     interface BlockedMessage {
       error?: {
@@ -688,6 +713,8 @@ export class Bridge extends EventEmitter {
         const ret     = +obj.error.ret
         const message =  obj.error.message
 
+        log.warn('PuppetWebBridge', 'testBlockedMessage() error.ret=%s', ret)
+
         if (ret === 1203) {
           // <error>
           // <ret>1203</ret>
@@ -695,7 +722,6 @@ export class Bridge extends EventEmitter {
           // </error>
           return resolve(message)
         }
-        log.warn('PuppetWebBridge', 'testBlockedMessage() code: %s type: %s', ret, typeof ret)
         return resolve(message) // other error message
       })
     })
