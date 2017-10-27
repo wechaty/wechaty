@@ -78,9 +78,9 @@ export class Bridge extends EventEmitter {
 
       this.on('load', this.onLoad.bind(this))
 
-      const loaded = new Promise(resolve => this.once('load', resolve))
+      const ready = new Promise(resolve => this.once('ready', resolve))
       this.page = await this.initPage(this.browser)
-      await loaded
+      await ready
 
       this.state.on(true)
       log.verbose('PuppetWebBridge', 'init() initPage() done')
@@ -155,6 +155,9 @@ export class Bridge extends EventEmitter {
       await this.readyAngular(page)
       await this.inject(page)
       await this.clickSwitchAccount(page)
+
+      this.emit('ready')
+
     } catch (e) {
       log.error('PuppetWebBridge', 'init() initPage() onLoad() exception: %s', e)
       this.emit('error', e)

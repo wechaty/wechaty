@@ -93,9 +93,9 @@ test('WechatyBro.ding()', async t => {
 
     await bridge.quit()
     t.pass('b.quit()')
-
-    profile.destroy()
   } catch (err) {
     t.fail('exception: ' + err.message)
+  } finally {
+    profile.destroy()
   }
 })
