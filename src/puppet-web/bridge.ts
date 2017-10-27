@@ -76,7 +76,11 @@ export class Bridge extends EventEmitter {
       this.browser = await this.initBrowser()
       log.verbose('PuppetWebBridge', 'init() initBrowser() done')
 
+      this.on('load', this.onLoad.bind(this))
+
+      const loaded = new Promise(resolve => this.once('load', resolve))
       this.page = await this.initPage(this.browser)
+      await loaded
 
       this.state.on(true)
       log.verbose('PuppetWebBridge', 'init() initPage() done')
@@ -119,6 +123,44 @@ export class Bridge extends EventEmitter {
     return browser
   }
 
+  public async onDialog(dialog: Dialog) {
+    log.warn('PuppetWebBridge', 'init() page.on(dialog) type:%s message:%s',
+                                dialog.type, dialog.message())
+    try {
+      // XXX: Which ONE is better?
+      await dialog.accept()
+      // await dialog.dismiss()
+    } catch (e) {
+      log.error('PuppetWebBridge', 'init() dialog.dismiss() reject: %s', e)
+    }
+    this.emit('error', new Error(`${dialog.type}(${dialog.message()})`))
+  }
+
+  public async onLoad(page: Page): Promise<void> {
+    log.verbose('PuppetWebBridge', 'initPage() on(load) %s', page.url())
+
+    if (this.state.off()) {
+      log.verbose('PuppetWebBridge', 'initPage() onLoad() OFF state detected. NOP')
+      return // reject(new Error('onLoad() OFF state detected'))
+    }
+
+    try {
+      const emitExist = await page.evaluate(() => {
+        return typeof window['emit'] === 'function'
+      })
+      if (!emitExist) {
+        await page.exposeFunction('emit', this.emit.bind(this))
+      }
+
+      await this.readyAngular(page)
+      await this.inject(page)
+      await this.clickSwitchAccount(page)
+    } catch (e) {
+      log.error('PuppetWebBridge', 'init() initPage() onLoad() exception: %s', e)
+      this.emit('error', e)
+    }
+  }
+
   public async initPage(browser: Browser): Promise<Page> {
     log.verbose('PuppetWebBridge', 'initPage()')
 
@@ -126,46 +168,10 @@ export class Bridge extends EventEmitter {
     // might be called before initPage() return.
     const page = this.page =  await browser.newPage()
 
-    const onDialog = async (dialog: Dialog) => {
-      log.warn('PuppetWebBridge', 'init() page.on(dialog) type:%s message:%s',
-                                  dialog.type, dialog.message())
-      try {
-        // XXX: Which ONE is better?
-        await dialog.accept()
-        // await dialog.dismiss()
-      } catch (e) {
-        log.error('PuppetWebBridge', 'init() dialog.dismiss() reject: %s', e)
-      }
-      this.emit('error', new Error(`${dialog.type}(${dialog.message()})`))
-    }
+    page.on('error',  e => this.emit('error', e))
+    page.on('load',   () => this.emit('load', page))
 
-    const onLoad = async (
-      resolve: ()         => void,
-      reject: (e: Error)  => void,
-    ) => {
-      log.verbose('PuppetWebBridge', 'initPage() on(load) %s', page.url())
-
-      if (this.state.off()) {
-        log.verbose('PuppetWebBridge', 'initPage() onLoad() OFF state detected. NOP')
-        return reject(new Error('onLoad() OFF state detected'))
-      }
-
-      try {
-        const emitExist = await page.evaluate(() => {
-          return typeof window['emit'] === 'function'
-        })
-        if (!emitExist) {
-          await page.exposeFunction('emit', this.emit.bind(this))
-        }
-        await this.readyAngular(page)
-        await this.inject(page)
-        await this.clickSwitchAccount(page)
-        return resolve()
-      } catch (e) {
-        log.error('PuppetWebBridge', 'init() initPage() onLoad() exception: %s', e)
-        return reject(e)
-      }
-    }
+    page.on('dialog', this.onDialog.bind(this))
 
     const cookieList = this.options.profile.get('cookies') as Cookie[]
     const url        = this.entryUrl(cookieList)
@@ -179,14 +185,7 @@ export class Bridge extends EventEmitter {
       log.silly('PuppetWebBridge', 'initPage() page.setCookie() %s cookies set back', cookieList.length)
     }
 
-    page.on('dialog', onDialog)
-    page.on('error', e => this.emit('error', e))
-
-    const loaded = new Promise((resolve, reject) => {
-      page.on('load', () => onLoad(resolve, reject))
-    })
     await page.reload() // reload page to make effect of the new cookie.
-    await loaded        // wait the page on load finish
 
     return page
   }
