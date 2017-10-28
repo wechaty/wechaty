@@ -149,14 +149,7 @@ export class Wechaty extends EventEmitter implements Sayable {
   public toString() { return `Wechaty<${this.options.puppet}, ${this.profile.name}>`}
 
   /**
-   * Return version of Wechaty
-   *
-   * @param {boolean} [forceNpm=false]  - if set to true, will only return the version in package.json.
-   *                                      otherwise will return git commit hash if .git exists.
-   * @returns {string}                  - the version number
-   * @example
-   * console.log(Wechaty.instance().version())       // return '#git[af39df]'
-   * console.log(Wechaty.instance().version(true))   // return '0.7.9'
+   * @private
    */
   public static version(forceNpm = false): string {
     if (!forceNpm) {
@@ -168,8 +161,15 @@ export class Wechaty extends EventEmitter implements Sayable {
     return config.npmVersion()
   }
 
-  /**
-   * @private
+ /**
+   * Return version of Wechaty
+   *
+   * @param {boolean} [forceNpm=false]  - if set to true, will only return the version in package.json.
+   *                                      otherwise will return git commit hash if .git exists.
+   * @returns {string}                  - the version number
+   * @example
+   * console.log(Wechaty.instance().version())       // return '#git[af39df]'
+   * console.log(Wechaty.instance().version(true))   // return '0.7.9'
    */
   public version(forceNpm?) {
     return Wechaty.version(forceNpm)
