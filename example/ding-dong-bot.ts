@@ -113,7 +113,9 @@ bot.start()
 
 bot.on('error', async e => {
   log.error('Bot', 'error: %s', e)
-  await bot.say('Wechaty error: ' + e.message).catch(console.error)
+  if (bot.logonoff()) {
+    await bot.say('Wechaty error: ' + e.message).catch(console.error)
+  }
   await bot.stop()
 })
 
