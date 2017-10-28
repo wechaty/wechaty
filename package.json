@@ -100,7 +100,7 @@
     "retry-promise": "^1.0.0",
     "rxjs": "^5.4.3",
     "state-switch": "^0.2.2",
-    "watchdog": "^0.1.16",
+    "watchdog": "^0.2.1",
     "ws": "^3.2.0",
     "xml2js": "^0.4.19"
   },
