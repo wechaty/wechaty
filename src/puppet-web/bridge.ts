@@ -173,7 +173,6 @@ export class Bridge extends EventEmitter {
     const page = this.page =  await browser.newPage()
 
     page.on('error',  e => this.emit('error', e))
-    page.on('load',   () => this.emit('load', page))
 
     page.on('dialog', this.onDialog.bind(this))
 
@@ -189,6 +188,7 @@ export class Bridge extends EventEmitter {
       log.silly('PuppetWebBridge', 'initPage() page.setCookie() %s cookies set back', cookieList.length)
     }
 
+    page.on('load',   () => this.emit('load', page))
     await page.reload() // reload page to make effect of the new cookie.
 
     return page
