@@ -287,7 +287,7 @@ export class Bridge extends EventEmitter {
       log.silly('PuppetWebBridge', 'quit() browser.close()-ed')
     } catch (e) {
       log.warn('PuppetWebBridge', 'quit() exception: %s', e)
-      this.emit('error', e)
+      // this.emit('error', e)
     } finally {
       this.state.off(true)
     }

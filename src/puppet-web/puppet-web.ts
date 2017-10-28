@@ -263,6 +263,7 @@ export class PuppetWeb extends Puppet {
     })
 
     this.bridge.on('ding'     , Event.onDing.bind(this))
+    this.bridge.on('error'    , e => this.emit('error', e))
     this.bridge.on('log'      , Event.onLog.bind(this))
     this.bridge.on('login'    , Event.onLogin.bind(this))
     this.bridge.on('logout'   , Event.onLogout.bind(this))
@@ -301,6 +302,11 @@ export class PuppetWeb extends Puppet {
   }
 
   public logined(): boolean {
+    log.warn('PuppetWeb', 'logined() DEPRECATED. use logonoff() instead.')
+    return this.logonoff()
+  }
+
+  public logonoff(): boolean {
     return !!(this.user)
   }
 
@@ -722,7 +728,7 @@ export class PuppetWeb extends Puppet {
    * send to `filehelper` for notice / log
    */
   public async say(content: string): Promise<boolean> {
-    if (!this.logined()) {
+    if (!this.logonoff()) {
       throw new Error('can not say before login')
     }
 
