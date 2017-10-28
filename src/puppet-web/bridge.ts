@@ -188,7 +188,7 @@ export class Bridge extends EventEmitter {
       log.silly('PuppetWebBridge', 'initPage() page.setCookie() %s cookies set back', cookieList.length)
     }
 
-    page.on('load',   () => this.emit('load', page))
+    page.on('load', () => this.emit('load', page))
     await page.reload() // reload page to make effect of the new cookie.
 
     return page
@@ -196,12 +196,11 @@ export class Bridge extends EventEmitter {
 
   public async readyAngular(page: Page): Promise<void> {
     log.verbose('PuppetWebBridge', 'readyAngular()')
-    const timeout = 10 * 1000
 
     try {
-      await page.waitForFunction(`typeof window.angular !== 'undefined'`, { timeout })
+      await page.waitForFunction(`typeof window.angular !== 'undefined'`)
     } catch (e) {
-      log.verbose('PuppetWebBridge', 'readyAngular() timeout')
+      log.verbose('PuppetWebBridge', 'readyAngular() exception: %s', e)
 
       const blockedMessage = await this.testBlockedMessage()
       if (blockedMessage) {  // Wechat Account Blocked
