@@ -196,36 +196,20 @@ export class Bridge extends EventEmitter {
 
   public async readyAngular(page: Page): Promise<void> {
     log.verbose('PuppetWebBridge', 'readyAngular()')
-    const TIMEOUT = 10 * 1000
-    await new Promise<void>(async (resolve, reject) => {
-      const timer = setTimeout(async () => {
-        log.verbose('PuppetWebBridge', 'readyAngular() timeout')
+    const timeout = 10 * 1000
 
-        try {
-          const text = await this.evaluate(() => {
-            return document.body.innerHTML
-          }) as any as string // BUG of Puppet Type Definition
+    try {
+      await page.waitForFunction(`typeof window.angular !== 'undefined'`, { timeout })
+    } catch (e) {
+      log.verbose('PuppetWebBridge', 'readyAngular() timeout')
 
-          const blockedMessage = await this.testBlockedMessage(text)
-
-          if (blockedMessage) {  // Wechat Account Blocked
-            const err = new Error(blockedMessage)
-            return reject(err)
-          }
-        } catch (e) {
-          log.verbose('PuppetWebBridge', 'readyAngular() timeout exception: %s', e)
-          return reject(e)
-        }
-
-        return reject(`readyAngular() timeout after ${TIMEOUT}`)
-
-      }, TIMEOUT)
-      await page.waitForFunction(`typeof window.angular !== 'undefined'`)
-
-      clearTimeout(timer)
-      log.silly('PuppetWebBridge', 'readyAngular() resolve-ed')
-      resolve()
-    })
+      const blockedMessage = await this.testBlockedMessage()
+      if (blockedMessage) {  // Wechat Account Blocked
+        throw new Error(blockedMessage)
+      } else {
+        throw e
+      }
+    }
   }
 
   public async inject(page: Page): Promise<void> {
@@ -694,13 +678,22 @@ export class Bridge extends EventEmitter {
   /**
    * Throw if there's a blocked message
    */
-  public async testBlockedMessage(text: string): Promise<string | false> {
+  public async testBlockedMessage(text?: string): Promise<string | false> {
+    if (!text) {
+      text = await this.evaluate(() => {
+        return document.body.innerHTML
+      })
+    }
+    if (!text) {
+      throw new Error('testBlockedMessage() no text found!')
+    }
+
     const textSnip = text.substr(0, 50).replace(/\n/, '')
     log.verbose('PuppetWebBridge', 'testBlockedMessage(%s)',
                                   textSnip)
 
     // see unit test for detail
-    text = this.preHtmlToXml(text)
+    const tryXmlText = this.preHtmlToXml(text)
 
     interface BlockedMessage {
       error?: {
@@ -710,7 +703,7 @@ export class Bridge extends EventEmitter {
     }
 
     return new Promise<string | false>((resolve, reject) => {
-      parseString(text, { explicitArray: false }, (err, obj: BlockedMessage) => {
+      parseString(tryXmlText, { explicitArray: false }, (err, obj: BlockedMessage) => {
         if (err) {  // HTML can not be parsed to JSON
           return resolve(false)
         }
