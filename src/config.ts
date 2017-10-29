@@ -22,7 +22,7 @@ import * as path  from 'path'
 
 import * as readPkgUp from 'read-pkg-up'
 
-const pkg = readPkgUp.sync().pkg
+const pkg = readPkgUp.sync({ cwd: __dirname }).pkg
 export const VERSION = pkg.version
 
 /**
