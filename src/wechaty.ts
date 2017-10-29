@@ -32,6 +32,7 @@ import {
   Raven,
   Sayable,
   log,
+  VERSION,
 }                     from './config'
 
 import Contact        from './contact'
@@ -153,12 +154,12 @@ export class Wechaty extends EventEmitter implements Sayable {
    */
   public static version(forceNpm = false): string {
     if (!forceNpm) {
-      const revision = config.gitVersion()
+      const revision = config.gitRevision()
       if (revision) {
         return `#git[${revision}]`
       }
     }
-    return config.npmVersion()
+    return VERSION
   }
 
  /**

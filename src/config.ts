@@ -20,6 +20,11 @@ import * as fs    from 'fs'
 import * as os    from 'os'
 import * as path  from 'path'
 
+import * as readPkgUp from 'read-pkg-up'
+
+const pkg = readPkgUp.sync().pkg
+export const VERSION = pkg.version
+
 /**
  * Raven.io
  */
@@ -31,7 +36,7 @@ Raven
   process.env.NODE_ENV === 'production'
     && 'https://f6770399ee65459a82af82650231b22c:d8d11b283deb441e807079b8bb2c45cd@sentry.io/179672',
   {
-    release: require('../package.json').version,
+    release: VERSION,
     tags: {
       git_commit: 'c0deb10c4',
       platform:   !!process.env['WECHATY_DOCKER']
@@ -113,14 +118,13 @@ export interface ConfigSetting {
   puppetInstance(instance: Puppet): void
   puppetInstance(instance?: Puppet | null): Puppet | void,
 
-  gitVersion(): string | null,
-  npmVersion(): string,
+  gitRevision(): string | null,
 
   docker: boolean,
 }
 /* tslint:disable:variable-name */
 /* tslint:disable:no-var-requires */
-export const config: ConfigSetting = require('../package.json').wechaty
+export const config: ConfigSetting = pkg.wechaty
 
 /**
  * 1. ENVIRONMENT VARIABLES + PACKAGES.JSON (default)
@@ -236,19 +240,8 @@ function gitVersion(): string | null {
   }
 }
 
-function npmVersion(): string {
-  try {
-    return require('../package.json').version
-  } catch (e) {
-    log.error('Wechaty', 'npmVersion() exception %s', e.message)
-    Raven.captureException(e)
-    return '0.0.0'
-  }
-}
-
 Object.assign(config, {
   gitVersion,
-  npmVersion,
   puppetInstance,
 })
 
