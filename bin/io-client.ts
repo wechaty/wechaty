@@ -47,7 +47,7 @@ let token = config.token
 if (!token) {
   log.error('Client', 'token not found: please set WECHATY_TOKEN in environment before run io-client')
   // process.exit(-1)
-  token = config.DEFAULT_TOKEN
+  token = config.default.DEFAULT_TOKEN
   log.warn('Client', `set token to "${token}" for demo purpose`)
 }
 

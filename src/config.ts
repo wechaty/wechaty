@@ -21,6 +21,10 @@ import * as os    from 'os'
 import * as path  from 'path'
 
 import * as readPkgUp from 'read-pkg-up'
+import * as Raven     from 'raven'
+import Brolog         from 'brolog'
+
+import Puppet from './puppet'
 
 const pkg = readPkgUp.sync({ cwd: __dirname }).pkg
 export const VERSION = pkg.version
@@ -28,7 +32,6 @@ export const VERSION = pkg.version
 /**
  * Raven.io
  */
-import * as Raven from 'raven'
 Raven.disableConsoleAlerts()
 
 Raven
@@ -38,7 +41,7 @@ Raven
   {
     release: VERSION,
     tags: {
-      git_commit: 'c0deb10c4',
+      git_commit: '',
       platform:   !!process.env['WECHATY_DOCKER']
                   ? 'docker'
                   : os.platform(),
@@ -59,11 +62,7 @@ Raven.context(function () {
 })
  */
 
-import Brolog from 'brolog'
 export const log = new Brolog()
-
-import { Puppet } from './puppet'
-
 const logLevel = process.env['WECHATY_LOG'] || 'info'
 if (logLevel) {
   log.level(logLevel.toLowerCase() as any)
@@ -73,14 +72,14 @@ if (logLevel) {
 /**
  * to handle unhandled exceptions
  */
-if (/verbose|silly/i.test(logLevel)) {
+if (/verbose|silly/i.test(log.level())) {
   log.info('Config', 'registering process.on("unhandledRejection") for development/debug')
   process.on('unhandledRejection', (reason, promise) => {
     log.error('Config', '###########################')
     log.error('Config', 'unhandledRejection: %s %s', reason, promise)
     log.error('Config', '###########################')
     promise.catch(err => {
-      log.error('Config', 'unhandledRejection::catch(%s)', err.message)
+      log.error('Config', 'process.on(unhandledRejection) promise.catch(%s)', err.message)
       console.error('Config', err) // I don't know if log.error has similar full trace print support like console.error
     })
   })
@@ -90,160 +89,108 @@ export type PuppetName = 'web'
                         | 'android'
                         | 'ios'
 
-export interface ConfigSetting {
-
+export interface DefaultSetting {
   DEFAULT_HEAD     : number,
   DEFAULT_PORT     : number,
-  DEFAULT_PUPPET   : PuppetName
-  DEFAULT_APIHOST  : string
-  DEFAULT_PROFILE  : string
-  DEFAULT_TOKEN    : string
-  DEFAULT_PROTOCOL : string
-
-  profile : string
-  token   : string
-  debug   : boolean
-
-  head: boolean
-  puppet: PuppetName
-
-  apihost: string
-  validApiHost: (host: string) => boolean
-
-  httpPort: number
-
-  _puppetInstance: Puppet | null
-  puppetInstance(): Puppet
-  puppetInstance(empty: null): void
-  puppetInstance(instance: Puppet): void
-  puppetInstance(instance?: Puppet | null): Puppet | void,
-
-  gitRevision(): string | null,
-
-  docker: boolean,
+  DEFAULT_PUPPET   : PuppetName,
+  DEFAULT_APIHOST  : string,
+  DEFAULT_PROFILE  : string,
+  DEFAULT_TOKEN    : string,
+  DEFAULT_PROTOCOL : string,
 }
+
 /* tslint:disable:variable-name */
 /* tslint:disable:no-var-requires */
-export const config: ConfigSetting = pkg.wechaty
+export const DEFAULT_SETTING = pkg.wechaty as DefaultSetting
 
-/**
- * 1. ENVIRONMENT VARIABLES + PACKAGES.JSON (default)
- */
-Object.assign(config, {
-  apihost:    process.env['WECHATY_APIHOST']    || config.DEFAULT_APIHOST,
-  head:       ('WECHATY_HEAD' in process.env) ? (!!process.env['WECHATY_HEAD']) : (!!(config.DEFAULT_HEAD)),
-  puppet:     process.env['WECHATY_PUPPET']     || config.DEFAULT_PUPPET,
-  validApiHost,
-})
+export class Config {
+  public default = DEFAULT_SETTING
 
-function validApiHost(apihost: string): boolean {
-  if (/^[a-zA-Z0-9\.\-\_]+:?[0-9]*$/.test(apihost)) {
-    return true
+  public apihost = process.env['WECHATY_APIHOST']    || DEFAULT_SETTING.DEFAULT_APIHOST
+  public head    = ('WECHATY_HEAD' in process.env) ? (!!process.env['WECHATY_HEAD']) : (!!(DEFAULT_SETTING.DEFAULT_HEAD))
+  public puppet  = (process.env['WECHATY_PUPPET']    || DEFAULT_SETTING.DEFAULT_PUPPET) as PuppetName
+
+  public profile = process.env['WECHATY_PROFILE']    || null    // DO NOT set DEFAULT_PROFILE, because sometimes user do not want to save session
+  public token   = process.env['WECHATY_TOKEN']      || null    // DO NOT set DEFAULT, because sometimes user do not want to connect to io cloud service
+  public debug   = !!(process.env['WECHATY_DEBUG'])
+
+  public httpPort = process.env['PORT'] || process.env['WECHATY_PORT'] || DEFAULT_SETTING.DEFAULT_PORT
+  public docker = !!(process.env['WECHATY_DOCKER'])
+
+  private _puppetInstance: Puppet | null = null
+
+  constructor() {
+    log.verbose('Config', 'constructor()')
+    this.validApiHost(this.apihost)
   }
-  throw new Error('validApiHost() fail for ' + apihost)
-}
-validApiHost(config.apihost)
 
-/**
- * 2. ENVIRONMENT VARIABLES (only)
- */
-Object.assign(config, {
-  // port:       process.env['WECHATY_PORT']     || null, // 0 for disable port
-  profile:  process.env['WECHATY_PROFILE']    || null, // DO NOT set DEFAULT_PROFILE, because sometimes user do not want to save session
-  token:    process.env['WECHATY_TOKEN']      || null, // DO NOT set DEFAULT, because sometimes user do not want to connect to io cloud service
-  debug:    !!(process.env['WECHATY_DEBUG'])  || false,
-})
-
-/**
- * 3. Service Settings
- */
-Object.assign(config, {
-  // get PORT form cloud service env, ie: heroku
-  httpPort: process.env['PORT'] || process.env['WECHATY_PORT'] || config.DEFAULT_PORT,
-})
-
-/**
- * 4. Envioronment Identify
- */
-Object.assign(config, {
-  docker: !!process.env['WECHATY_DOCKER'],
-  isGlobal:  isWechatyInstalledGlobal(),
-})
-
-function isWechatyInstalledGlobal() {
   /**
-   * TODO:
-   * 1. check /node_modules/wechaty
-   * 2. return true if exists
-   * 3. otherwise return false
+   * 5. live setting
    */
-   return false
-}
+  public puppetInstance(): Puppet
+  public puppetInstance(empty: null): void
+  public puppetInstance(instance: Puppet): void
 
-/**
- * 5. live setting
- */
-function puppetInstance(): Puppet
-function puppetInstance(empty: null): void
-function puppetInstance(instance: Puppet): void
+  public puppetInstance(instance?: Puppet | null): Puppet | void {
 
-function puppetInstance(instance?: Puppet | null): Puppet | void {
+    if (typeof instance === 'undefined') {
+      if (!this._puppetInstance) {
+        throw new Error('no puppet instance')
+      }
+      return this._puppetInstance
 
-  if (typeof instance === 'undefined') {
-    if (!this._puppetInstance) {
-      throw new Error('no puppet instance')
+    } else if (instance === null) {
+      log.verbose('Config', 'puppetInstance(null)')
+      this._puppetInstance = null
+      return
     }
-    return this._puppetInstance
 
-  } else if (instance === null) {
-    log.verbose('Config', 'puppetInstance(null)')
-    this._puppetInstance = null
+    log.verbose('Config', 'puppetInstance(%s)', instance.constructor.name)
+    this._puppetInstance = instance
     return
+
   }
 
-  log.verbose('Config', 'puppetInstance(%s)', instance.constructor.name)
-  this._puppetInstance = instance
-  return
+  public gitRevision(): string | null {
+    const dotGitPath  = path.join(__dirname, '..', '.git') // only for ts-node, not for dist
+    // const gitLogArgs  = ['log', '--oneline', '-1']
+    // TODO: use git rev-parse HEAD ?
+    const gitArgs  = ['rev-parse', 'HEAD']
 
-}
+    try {
+      // Make sure this is a Wechaty repository
+      fs.statSync(dotGitPath).isDirectory()
 
-function gitVersion(): string | null {
-  const dotGitPath  = path.join(__dirname, '..', '.git') // only for ts-node, not for dist
-  // const gitLogArgs  = ['log', '--oneline', '-1']
-  // TODO: use git rev-parse HEAD ?
-  const gitArgs  = ['rev-parse', 'HEAD']
+      const ss = require('child_process')
+                  .spawnSync('git', gitArgs, { cwd:  __dirname })
 
-  try {
-    // Make sure this is a Wechaty repository
-    fs.statSync(dotGitPath).isDirectory()
+      if (ss.status !== 0) {
+        throw new Error(ss.error)
+      }
 
-    const ss = require('child_process')
-                .spawnSync('git', gitArgs, { cwd:  __dirname })
+      const revision = ss.stdout
+                        .toString()
+                        .trim()
+                        .slice(0, 7)
+      return revision
 
-    if (ss.status !== 0) {
-      throw new Error(ss.error)
+    } catch (e) { /* fall safe */
+      /**
+       *  1. .git not exist
+       *  2. git log fail
+       */
+      log.silly('Wechaty', 'version() form development environment is not availble: %s', e.message)
+      return null
     }
+  }
 
-    const revision = ss.stdout
-                      .toString()
-                      .trim()
-                      .slice(0, 7)
-    return revision
-
-  } catch (e) { /* fall safe */
-    /**
-     *  1. .git not exist
-     *  2. git log fail
-     */
-    log.silly('Wechaty', 'version() form development environment is not availble: %s', e.message)
-    return null
+  public validApiHost(apihost: string): boolean {
+    if (/^[a-zA-Z0-9\.\-\_]+:?[0-9]*$/.test(apihost)) {
+      return true
+    }
+    throw new Error('validApiHost() fail for ' + apihost)
   }
 }
-
-Object.assign(config, {
-  gitVersion,
-  puppetInstance,
-})
 
 export interface Sayable {
   say(content: string, replyTo?: any|any[]): Promise<boolean>
@@ -257,4 +204,5 @@ export {
   Raven,
 }
 
+export const config = new Config()
 export default config

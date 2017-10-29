@@ -70,7 +70,7 @@ export class Io {
     private options: IoOptions,
   ) {
     options.apihost   = options.apihost   || config.apihost
-    options.protocol  = options.protocol  || config.DEFAULT_PROTOCOL
+    options.protocol  = options.protocol  || config.default.DEFAULT_PROTOCOL
 
     this.uuid = options.wechaty.uuid
 

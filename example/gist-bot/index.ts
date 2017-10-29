@@ -41,7 +41,7 @@ Please wait... I'm trying to login in...
 `
 console.log(welcome)
 
-Wechaty.instance({ profile: config.DEFAULT_PROFILE })
+Wechaty.instance({ profile: config.default.DEFAULT_PROFILE })
 
 .on('scan', (url, code) => {
   if (!/201|200/.test(String(code))) {

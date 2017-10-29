@@ -137,7 +137,7 @@ export class Wechaty extends EventEmitter implements Sayable {
     super()
     log.verbose('Wechaty', 'contructor()')
 
-    options.puppet  = options.puppet  || config.puppet
+    options.puppet  = options.puppet || config.puppet
 
     this.profile = new Profile(options.profile)
 

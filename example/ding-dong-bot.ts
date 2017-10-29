@@ -63,7 +63,7 @@ Please wait... I'm trying to login in...
 `
 
 console.log(welcome)
-const bot = Wechaty.instance({ profile: config.DEFAULT_PROFILE })
+const bot = Wechaty.instance({ profile: config.default.DEFAULT_PROFILE })
 
 bot
 .on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
