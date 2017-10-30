@@ -63,7 +63,7 @@
     hookRecalledMsgProcess()
 
     log('init() scanCode: ' + WechatyBro.vars.scanCode)
-    checkScan()
+    setTimeout(() => checkScan(), 1000)
 
     heartBeat(true)
 
@@ -258,12 +258,12 @@
 
     // WechatyBro.emit('logout', data)
     if (WechatyBro.glue.loginFactory) {
-      WechatyBro.glue.loginFactory.loginout()
+      WechatyBro.glue.loginFactory.loginout(0)
     } else {
       log('logout() WechatyBro.glue.loginFactory NOT found')
     }
 
-    checkScan()
+    setTimeout(() => checkScan(), 1000)
   }
 
   function ding(data) {
@@ -540,7 +540,7 @@
   }
 
   function getUserName() {
-    if (!WechatyBro.isLogin()) {
+    if (!WechatyBro.loginState()) {
       return null
     }
     var accountFactory = WechatyBro.glue.accountFactory
@@ -844,7 +844,7 @@
 
     // test purpose
     isLogin: () => {
-      log('DEPRECATED. use loginState() instead');
+      log('isLogin() DEPRECATED. use loginState() instead');
       return loginState()
     },
     loginState,

@@ -17,7 +17,7 @@ export class Profile {
   private file : string | null
 
   constructor(
-    public name: string = config.profile,
+    public name = config.profile,
   ) {
     log.verbose('Profile', 'constructor(%s)', name)
 

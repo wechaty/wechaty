@@ -64,13 +64,13 @@ test('login/logout events', sinonTest(async function (t: test.Test) {
 
     await pw.init()
     t.pass('should be inited')
-    t.is(pw.logined() , false  , 'should be not logined')
+    t.is(pw.loginout() , false  , 'should be not logined')
 
     const EXPECTED_CHIPER = 'loginFired'
     const loginPromise = new Promise(r => pw.once('login', _ => r(EXPECTED_CHIPER)))
     pw.bridge.emit('login', 'TestPuppetWeb')
     t.is(await loginPromise, EXPECTED_CHIPER, 'should fired login event')
-    t.is(pw.logined(), true  , 'should be logined')
+    t.is(pw.loginout(), true  , 'should be logined')
 
     t.ok((pw.bridge.getUserName as any).called, 'bridge.getUserName should be called')
     t.ok((pw.getContact as any).called,         'pw.getContact should be called')
@@ -81,7 +81,7 @@ test('login/logout events', sinonTest(async function (t: test.Test) {
     const logoutPromise = new Promise((res, rej) => pw.once('logout', _ => res('logoutFired')))
     pw.bridge.emit('logout')
     t.is(await logoutPromise, 'logoutFired', 'should fire logout event')
-    t.is(pw.logined(), false, 'should be logouted')
+    t.is(pw.loginout(), false, 'should be logouted')
 
     await pw.quit()
     profile.destroy()

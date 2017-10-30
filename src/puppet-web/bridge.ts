@@ -160,6 +160,7 @@ export class Bridge extends EventEmitter {
 
     } catch (e) {
       log.error('PuppetWebBridge', 'init() initPage() onLoad() exception: %s', e)
+      await page.close()
       this.emit('error', e)
     }
   }
@@ -172,7 +173,6 @@ export class Bridge extends EventEmitter {
     const page = this.page =  await browser.newPage()
 
     page.on('error',  e => this.emit('error', e))
-    page.on('load',   () => this.emit('load', page))
 
     page.on('dialog', this.onDialog.bind(this))
 
@@ -188,6 +188,7 @@ export class Bridge extends EventEmitter {
       log.silly('PuppetWebBridge', 'initPage() page.setCookie() %s cookies set back', cookieList.length)
     }
 
+    page.on('load', () => this.emit('load', page))
     await page.reload() // reload page to make effect of the new cookie.
 
     return page
@@ -195,31 +196,19 @@ export class Bridge extends EventEmitter {
 
   public async readyAngular(page: Page): Promise<void> {
     log.verbose('PuppetWebBridge', 'readyAngular()')
-    const TIMEOUT = 10 * 1000
-    await new Promise<void>(async (resolve, reject) => {
-      const timer = setTimeout(async () => {
-        log.verbose('PuppetWebBridge', 'readyAngular() timeout')
 
-        const text = await this.evaluate(() => {
-          return document.body.innerHTML
-        }) as any as string // BUG of Puppet Type Definition
-
-        const blockedMessage = await this.testBlockedMessage(text)
-
-        if (blockedMessage) {  // Wechat Account Blocked
-          const err = new Error(blockedMessage)
-          return reject(err)
-        }
-
-        reject(`readyAngular() timeout after ${TIMEOUT}`)
-
-      }, TIMEOUT)
+    try {
       await page.waitForFunction(`typeof window.angular !== 'undefined'`)
+    } catch (e) {
+      log.verbose('PuppetWebBridge', 'readyAngular() exception: %s', e)
 
-      clearTimeout(timer)
-      log.silly('PuppetWebBridge', 'readyAngular() resolve-ed')
-      resolve()
-    })
+      const blockedMessage = await this.testBlockedMessage()
+      if (blockedMessage) {  // Wechat Account Blocked
+        throw new Error(blockedMessage)
+      } else {
+        throw e
+      }
+    }
   }
 
   public async inject(page: Page): Promise<void> {
@@ -283,14 +272,18 @@ export class Bridge extends EventEmitter {
     try {
       await this.page.close()
       log.silly('PuppetWebBridge', 'quit() page.close()-ed')
+    } catch (e) {
+      log.warn('PuppetWebBridge', 'quit() page.close() exception: %s', e)
+    }
+
+    try {
       await this.browser.close()
       log.silly('PuppetWebBridge', 'quit() browser.close()-ed')
     } catch (e) {
-      log.warn('PuppetWebBridge', 'quit() exception: %s', e)
-      this.emit('error', e)
-    } finally {
-      this.state.off(true)
+      log.warn('PuppetWebBridge', 'quit() browser.close() exception: %s', e)
     }
+
+    this.state.off(true)
   }
 
   public async getUserName(): Promise<string> {
@@ -684,13 +677,22 @@ export class Bridge extends EventEmitter {
   /**
    * Throw if there's a blocked message
    */
-  public async testBlockedMessage(text: string): Promise<string | false> {
+  public async testBlockedMessage(text?: string): Promise<string | false> {
+    if (!text) {
+      text = await this.evaluate(() => {
+        return document.body.innerHTML
+      })
+    }
+    if (!text) {
+      throw new Error('testBlockedMessage() no text found!')
+    }
+
     const textSnip = text.substr(0, 50).replace(/\n/, '')
     log.verbose('PuppetWebBridge', 'testBlockedMessage(%s)',
                                   textSnip)
 
     // see unit test for detail
-    text = this.preHtmlToXml(text)
+    const tryXmlText = this.preHtmlToXml(text)
 
     interface BlockedMessage {
       error?: {
@@ -700,7 +702,7 @@ export class Bridge extends EventEmitter {
     }
 
     return new Promise<string | false>((resolve, reject) => {
-      parseString(text, { explicitArray: false }, (err, obj: BlockedMessage) => {
+      parseString(tryXmlText, { explicitArray: false }, (err, obj: BlockedMessage) => {
         if (err) {  // HTML can not be parsed to JSON
           return resolve(false)
         }
@@ -734,28 +736,35 @@ export class Bridge extends EventEmitter {
 
     // https://github.com/GoogleChrome/puppeteer/issues/537#issuecomment-334918553
     async function listXpath(thePage: Page, xpath: string): Promise<ElementHandle[]> {
-      const nodeHandleList = await (thePage as any).evaluateHandle(xpathInner => {
-        const nodeList: Node[] = []
-        const query = document.evaluate(xpathInner, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
-        for (let i = 0, length = query.snapshotLength; i < length; ++i) {
-          nodeList.push(query.snapshotItem(i))
+      log.verbose('PuppetWebBridge', 'clickSwitchAccount() listXpath()')
+
+      try {
+        const nodeHandleList = await (thePage as any).evaluateHandle(xpathInner => {
+          const nodeList: Node[] = []
+          const query = document.evaluate(xpathInner, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
+          for (let i = 0, length = query.snapshotLength; i < length; ++i) {
+            nodeList.push(query.snapshotItem(i))
+          }
+          return nodeList
+        }, xpath)
+        const properties = await nodeHandleList.getProperties()
+
+        const elementHandleList:  ElementHandle[] = []
+        const releasePromises:    Promise<void>[] = []
+
+        for (const property of properties.values()) {
+          const element = property.asElement()
+          if (element)
+            elementHandleList.push(element)
+          else
+            releasePromises.push(property.dispose())
         }
-        return nodeList
-      }, xpath)
-      const properties = await nodeHandleList.getProperties()
-
-      const elementHandleList:  ElementHandle[] = []
-      const releasePromises:    Promise<void>[] = []
-
-      for (const property of properties.values()) {
-        const element = property.asElement()
-        if (element)
-          elementHandleList.push(element)
-        else
-          releasePromises.push(property.dispose())
+        await Promise.all(releasePromises)
+        return elementHandleList
+      } catch (e) {
+        log.verbose('PuppetWebBridge', 'clickSwitchAccount() listXpath() exception: %s', e)
+        return []
       }
-      await Promise.all(releasePromises)
-      return elementHandleList
     }
 
     const XPATH_SELECTOR = `//div[contains(@class,'association') and contains(@class,'show')]/a[@ng-click='qrcodeLogin()']`
@@ -779,9 +788,15 @@ export class Bridge extends EventEmitter {
 
   public async hostname(): Promise<string | null> {
     log.verbose('PuppetWebBridge', 'hostname()')
-    const hostname = await this.page.evaluate(() => location.hostname) as any as string
-    log.silly('PuppetWebBridge', 'hostname() got %s', hostname)
-    return hostname
+    try {
+      const hostname = await this.page.evaluate(() => location.hostname) as any as string
+      log.silly('PuppetWebBridge', 'hostname() got %s', hostname)
+      return hostname
+    } catch (e) {
+      log.error('PuppetWebBridge', 'hostname() exception: %s', e)
+      this.emit('error', e)
+      return null
+    }
   }
 
   public async cookies(cookieList: Cookie[]): Promise<void>
@@ -850,9 +865,15 @@ export class Bridge extends EventEmitter {
     return
   }
 
-  public async evaluate(fn: () => any, ...args: any[]): Promise<() => any> {
+  public async evaluate(fn: () => any, ...args: any[]): Promise<any> {
     log.silly('PuppetWebBridge', 'evaluate()')
-    return await this.page.evaluate(fn, ...args)
+    try {
+      return await this.page.evaluate(fn, ...args)
+    } catch (e) {
+      log.error('PuppetWebBridge', 'evaluate() exception: %s', e)
+      this.emit('error', e)
+      return null
+    }
   }
 }
 

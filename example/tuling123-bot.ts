@@ -53,7 +53,7 @@ import {
 const TULING123_API_KEY = '18f25157e0446df58ade098479f74b21'
 const tuling = new Tuling123(TULING123_API_KEY)
 
-const bot = Wechaty.instance({ profile: config.DEFAULT_PROFILE })
+const bot = Wechaty.instance({ profile: config.default.DEFAULT_PROFILE })
 
 console.log(`
 Welcome to Tuling Wechaty Bot.
