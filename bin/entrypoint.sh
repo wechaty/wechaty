@@ -261,7 +261,7 @@ function main() {
       ;;
 
     test)
-      WECHATY_LOG=silent npm run test:linux
+      WECHATY_LOG=silent npm test
       ;;
 
     #
