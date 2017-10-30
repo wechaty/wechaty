@@ -38,10 +38,10 @@ RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key
     && apt-get update && apt-get install -y --no-install-recommends \
       google-chrome-unstable \
     && rm -rf /tmp/* /var/lib/apt/lists/* \
-    && apt-get purge --auto-remove \
+    && apt-get purge --auto-remove
 
 # Add chatie user.
-RUN groupadd -r bot && useradd -r -g bot -d /bot -m -G audio,video,sudo bot \
+RUN groupadd bot && useradd -g bot -d /bot -m -G audio,video,sudo bot \
     && mkdir -p /bot/Downloads \
     && chown -R bot:bot /bot \
     && echo "bot   ALL=NOPASSWD:ALL" >> /etc/sudoers
