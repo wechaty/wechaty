@@ -20,7 +20,7 @@ cache:
     - node_modules
 
 before_install:
-  - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then rvm use 2.3; fi
+  - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then rvm --default use 2.3; fi
 
 install:
   # - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew update; brew cleanup; brew cask cleanup; fi
