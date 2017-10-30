@@ -100,7 +100,7 @@
     "read-pkg-up": "^2.0",
     "request": "^2.83",
     "retry-promise": "^1.0",
-    "rx-queue": "0.0.7",
+    "rx-queue": "^0.0",
     "rxjs": "^5.4",
     "state-switch": "^0.2",
     "watchdog": "^0.3",
