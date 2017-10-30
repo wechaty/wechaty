@@ -111,8 +111,15 @@ export class Bridge extends EventEmitter {
     const browser = await launch({
       headless,
       args: [
+        '--audio-output-channels=0',
+        '--disable-default-apps',
+        '--disable-extensions',
+        '--disable-translate',
         '--disable-gpu',
         '--disable-setuid-sandbox',
+        '--disable-sync',
+        '--hide-scrollbars',
+        '--mute-audio',
         '--no-sandbox',
       ],
     })
