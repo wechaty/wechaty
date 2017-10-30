@@ -113,8 +113,8 @@ export class PuppetWeb extends Puppet {
 
       const throttleQueue = new ThrottleQueue(5 * 60 * 1000)
       this.on('heartbeat', data => throttleQueue.next(data))
-      throttleQueue.subscribe(async () => {
-        log.verbose('Wechaty', 'init() throttleQueue.subscribe() new event fired')
+      throttleQueue.subscribe(async data => {
+        log.verbose('Wechaty', 'init() throttleQueue.subscribe() new item: %s', data)
         await this.saveCookie()
       })
 
