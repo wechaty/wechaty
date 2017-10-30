@@ -1,4 +1,4 @@
-FROM node:7
+FROM ubuntu:17.10
 LABEL maintainer="Huan LI <zixia@zixia.net>"
 
 ENV NPM_CONFIG_LOGLEVEL warn
@@ -20,7 +20,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     sudo \
     ttf-freefont \
     vim \
-  && rm -rf /tmp/* /var/lib/apt/lists/*
+  && rm -rf /tmp/* /var/lib/apt/lists/* \
+  && apt-get purge --auto-remove
+
+RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
+    && apt-get update && apt-get install -y --no-install-recommends nodejs \
+    && rm -rf /tmp/* /var/lib/apt/lists/* \
+    && apt-get purge --auto-remove
 
 # https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md
 # https://github.com/ebidel/try-puppeteer/blob/master/backend/Dockerfile
