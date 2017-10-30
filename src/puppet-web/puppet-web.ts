@@ -20,6 +20,9 @@ import {
   Watchdog,
   WatchdogFood,
 }                   from 'watchdog'
+import {
+  ThrottleQueue,
+}                     from 'rx-queue'
 
 import {
   config,
@@ -38,7 +41,6 @@ import {
   ScanInfo,
 }                    from '../puppet'
 import Room          from '../room'
-import RxQueue       from '../rx-queue'
 import Misc          from '../misc'
 
 import {
@@ -109,10 +111,10 @@ export class PuppetWeb extends Puppet {
       }
       this.emit('watchdog', food)
 
-      const throttleQueue = new RxQueue('throttle', 5 * 60 * 1000)
-      this.on('heartbeat', data => throttleQueue.emit('i', data))
-      throttleQueue.on('o', async () => {
-        log.verbose('Wechaty', 'init() throttleQueue.on(o)')
+      const throttleQueue = new ThrottleQueue(5 * 60 * 1000)
+      this.on('heartbeat', data => throttleQueue.next(data))
+      throttleQueue.subscribe(async () => {
+        log.verbose('Wechaty', 'init() throttleQueue.subscribe() new event fired')
         await this.saveCookie()
       })
 
