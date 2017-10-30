@@ -300,11 +300,11 @@ export class PuppetWeb extends Puppet {
   }
 
   public logined(): boolean {
-    log.warn('PuppetWeb', 'logined() DEPRECATED. use loginout() instead.')
-    return this.loginout()
+    log.warn('PuppetWeb', 'logined() DEPRECATED. use logonoff() instead.')
+    return this.logonoff()
   }
 
-  public loginout(): boolean {
+  public logonoff(): boolean {
     return !!(this.user)
   }
 
@@ -726,7 +726,7 @@ export class PuppetWeb extends Puppet {
    * send to `filehelper` for notice / log
    */
   public async say(content: string): Promise<boolean> {
-    if (!this.loginout()) {
+    if (!this.logonoff()) {
       throw new Error('can not say before login')
     }
 

@@ -113,7 +113,7 @@ bot.start()
 
 bot.on('error', async e => {
   log.error('Bot', 'error: %s', e)
-  if (bot.loginout()) {
+  if (bot.logonoff()) {
     await bot.say('Wechaty error: ' + e.message).catch(console.error)
   }
   await bot.stop()
@@ -122,7 +122,7 @@ bot.on('error', async e => {
 finis((code, signal) => {
   const exitMsg = `Wechaty exit ${code} because of ${signal} `
   console.log(exitMsg)
-  if (bot.loginout()) {
+  if (bot.logonoff()) {
     bot.say(exitMsg).catch(console.error)
   }
 })

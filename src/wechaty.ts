@@ -529,17 +529,17 @@ export class Wechaty extends EventEmitter implements Sayable {
    *
    * @returns {boolean}
    * @example
-   * if (bot.loginout()) {
+   * if (bot.logonoff()) {
    *   console.log('Bot logined')
    * } else {
    *   console.log('Bot not logined')
    * }
    */
-  public loginout(): Boolean {
+  public logonoff(): Boolean {
     if (!this.puppet) {
       return false
     }
-    return this.puppet.loginout()
+    return this.puppet.logonoff()
   }
 
   /**

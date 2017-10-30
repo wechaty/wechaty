@@ -120,7 +120,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   /**
    * Login / Logout
    */
-  public abstract loginout()             : boolean
+  public abstract logonoff()             : boolean
   public abstract reset(reason?: string) : void
   public abstract logout()               : Promise<void>
   public abstract quit()                 : Promise<void>
