@@ -109,7 +109,7 @@ export class Contact implements Sayable {
   private static pool = new Map<string, Contact>()
 
   public obj: ContactObj | null
-  private dirtyObj: ContactObj | null
+  // private dirtyObj: ContactObj | null
   private rawObj: ContactRawObj
 
   /**
@@ -564,11 +564,6 @@ export class Contact implements Sayable {
     return !!(this.obj && this.obj.id && this.obj.name)
   }
 
-  // public refresh() {
-  //   log.warn('Contact', 'refresh() DEPRECATED. use reload() instead.')
-  //   return this.reload()
-  // }
-
   /**
    * Force reload data for Contact
    *
@@ -577,9 +572,10 @@ export class Contact implements Sayable {
    * await contact.refresh()
    */
   public async refresh(): Promise<this> {
-    if (this.isReady()) {
-      this.dirtyObj = this.obj
-    }
+    // TODO: make sure the contact.* works when we are refreshing the data
+    // if (this.isReady()) {
+    //   this.dirtyObj = this.obj
+    // }
     this.obj = null
     return this.ready()
   }

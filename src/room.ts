@@ -844,7 +844,7 @@ export class Room extends EventEmitter implements Sayable {
                                   .catch(e => {
                                     log.verbose('Room', 'findAll() rejected: %s', e.message)
                                     Raven.captureException(e)
-                                    return [] // fail safe
+                                    return [] as Room[] // fail safe
                                   })
 
     await Promise.all(roomList.map(room => room.ready()))
