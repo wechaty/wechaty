@@ -20,6 +20,9 @@ import {
   Watchdog,
   WatchdogFood,
 }                   from 'watchdog'
+import {
+  ThrottleQueue,
+}                     from 'rx-queue'
 
 import {
   config,
@@ -38,7 +41,6 @@ import {
   ScanInfo,
 }                    from '../puppet'
 import Room          from '../room'
-import RxQueue       from '../rx-queue'
 import Misc          from '../misc'
 
 import {
@@ -74,14 +76,16 @@ export class PuppetWeb extends Puppet {
     super(options)
     this.fileId = 0
 
-    const PUPPET_TIMEOUT  = 60 * 1000  // 1 minute
+    const PUPPET_TIMEOUT  = 1 * 60 * 1000  // 1 minute
     this.puppetWatchdog   = new Watchdog<PuppetFoodType>(PUPPET_TIMEOUT, 'PuppetWeb')
 
-    const SCAN_TIMEOUT  = 4 * 60 * 1000 // 4 minutes
+    const SCAN_TIMEOUT  = 2 * 60 * 1000 // 2 minutes
     this.scanWatchdog   = new Watchdog<ScanFoodType>(SCAN_TIMEOUT, 'Scan')
   }
 
-  public toString() { return `PuppetWeb<${this.options.profile.name}>` }
+  public toString() {
+    return `PuppetWeb<${this.options.profile.name}>`
+  }
 
   public async init(): Promise<void> {
     log.verbose('PuppetWeb', `init() with ${this.options.profile}`)
@@ -107,10 +111,10 @@ export class PuppetWeb extends Puppet {
       }
       this.emit('watchdog', food)
 
-      const throttleQueue = new RxQueue('throttle', 5 * 60 * 1000)
-      this.on('heartbeat', data => throttleQueue.emit('i', data))
-      throttleQueue.on('o', async () => {
-        log.verbose('Wechaty', 'init() throttleQueue.on(o)')
+      const throttleQueue = new ThrottleQueue(5 * 60 * 1000)
+      this.on('heartbeat', data => throttleQueue.next(data))
+      throttleQueue.subscribe(async data => {
+        log.verbose('Wechaty', 'init() throttleQueue.subscribe() new item: %s', data)
         await this.saveCookie()
       })
 
@@ -140,14 +144,14 @@ export class PuppetWeb extends Puppet {
 
     puppet.on('watchdog', food => dog.feed(food))
     dog.on('feed', food => {
-      log.silly('PuppetWeb', 'initWatchdogForPuppet() dog.on(feed)')
+      log.silly('PuppetWeb', 'initWatchdogForPuppet() dog.on(feed, food={type=%s, data=%s})', food.type, food.data)
       // feed the dog, heartbeat the puppet.
       puppet.emit('heartbeat', food.data)
     })
 
-    dog.on('reset', async (food, left) => {
-      log.warn('PuppetWeb', 'initWatchdogForPuppet() dog.on(reset) last food: %s',
-                            food.data)
+    dog.on('reset', async (food, timeout) => {
+      log.warn('PuppetWeb', 'initWatchdogForPuppet() dog.on(reset) last food:%s, timeout:%s',
+                            food.data, timeout)
       try {
         await this.quit()
         await this.init()
@@ -263,6 +267,7 @@ export class PuppetWeb extends Puppet {
     })
 
     this.bridge.on('ding'     , Event.onDing.bind(this))
+    this.bridge.on('error'    , e => this.emit('error', e))
     this.bridge.on('log'      , Event.onLog.bind(this))
     this.bridge.on('login'    , Event.onLogin.bind(this))
     this.bridge.on('logout'   , Event.onLogout.bind(this))
@@ -274,27 +279,8 @@ export class PuppetWeb extends Puppet {
       await this.bridge.init()
     } catch (e) {
       log.error('PuppetWeb', 'initBridge() exception: %s', e.message)
+      await this.bridge.quit().catch(console.error)
       this.emit('error', e)
-
-      // TypeError: Cannot read property 'evaluate' of undefined
-      if (!this.bridge) {
-        throw e
-      }
-
-      const text = await this.bridge.evaluate(() => {
-        return document.body.innerHTML
-      }) as any as string
-
-      try {
-        // Test if Wechat account is blocked
-        // will throw exception if blocked
-        await this.bridge.testBlockedMessage(text)
-      } catch (blockedError) {
-        // Wechat Account Blocked
-        log.error('PuppetWeb', 'initBridge() Wechat Account Blocked for using Web: %s', blockedError.message)
-        this.emit('error', blockedError)
-        throw blockedError
-      }
 
       Raven.captureException(e)
       throw e
@@ -303,24 +289,24 @@ export class PuppetWeb extends Puppet {
     return this.bridge
   }
 
-  public reset(reason?: string): void {
+  public async reset(reason?: string): Promise<void> {
     log.verbose('PuppetWeb', 'reset(%s)', reason)
-
-    this.bridge.quit().then(async () => {
-      try {
-        await this.bridge.init()
-        log.silly('PuppetWeb', 'reset() done')
-      } catch (e) {
-        log.error('PuppetWeb', 'reset(%s) bridge.init() reject: %s', reason, e)
-        this.emit('error', e)
-      }
-    }).catch(err => {
-      log.error('PuppetWeb', 'reset(%s) bridge.quit() reject: %s', reason, err)
+    try {
+      await this.bridge.quit()
+      await this.bridge.init()
+      log.silly('PuppetWeb', 'reset() done')
+    } catch (err) {
+      log.error('PuppetWeb', 'reset(%s) bridge.{quit,init}() exception: %s', reason, err)
       this.emit('error', err)
-    })
+    }
   }
 
   public logined(): boolean {
+    log.warn('PuppetWeb', 'logined() DEPRECATED. use logonoff() instead.')
+    return this.logonoff()
+  }
+
+  public logonoff(): boolean {
     return !!(this.user)
   }
 
@@ -742,7 +728,7 @@ export class PuppetWeb extends Puppet {
    * send to `filehelper` for notice / log
    */
   public async say(content: string): Promise<boolean> {
-    if (!this.logined()) {
+    if (!this.logonoff()) {
       throw new Error('can not say before login')
     }
 

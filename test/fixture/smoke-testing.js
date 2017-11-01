@@ -5,14 +5,14 @@ const { Wechaty } = require('wechaty')
 async function main() {
   const bot = Wechaty.instance()
   try {
-    await bot.init()
+    await bot.start()
     console.log(`Wechaty v${bot.version()} smoking test passed.`)
   } catch (e) {
     console.error(e)
     // Error!
     return 1
   } finally {
-    await bot.quit()
+    await bot.stop()
   }
   return 0
 }

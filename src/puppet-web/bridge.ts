@@ -36,7 +36,7 @@ const retryPromise  = require('retry-promise').default
 
 import { log }        from '../config'
 import Profile        from '../profile'
-
+import Misc           from '../misc'
 import {
   MediaData,
   MsgRawObj,
@@ -76,13 +76,30 @@ export class Bridge extends EventEmitter {
       this.browser = await this.initBrowser()
       log.verbose('PuppetWebBridge', 'init() initBrowser() done')
 
+      this.on('load', this.onLoad.bind(this))
+
+      const ready = new Promise(resolve => this.once('ready', resolve))
       this.page = await this.initPage(this.browser)
+      await ready
 
       this.state.on(true)
       log.verbose('PuppetWebBridge', 'init() initPage() done')
     } catch (e) {
-      this.state.off(true)
       log.error('PuppetWebBridge', 'init() exception: %s', e)
+      this.state.off(true)
+
+      try {
+        if (this.page) {
+          await this.page.close()
+        }
+        if (this.browser) {
+          await this.browser.close()
+        }
+      } catch (e2) {
+        log.error('PuppetWebBridge', 'init() exception %s, close page/browser exception %s', e, e2)
+      }
+
+      this.emit('error', e)
       throw e
     }
   }
@@ -94,8 +111,15 @@ export class Bridge extends EventEmitter {
     const browser = await launch({
       headless,
       args: [
+        '--audio-output-channels=0',
+        '--disable-default-apps',
+        '--disable-extensions',
+        '--disable-translate',
         '--disable-gpu',
         '--disable-setuid-sandbox',
+        '--disable-sync',
+        '--hide-scrollbars',
+        '--mute-audio',
         '--no-sandbox',
       ],
     })
@@ -106,79 +130,58 @@ export class Bridge extends EventEmitter {
     return browser
   }
 
+  public async onDialog(dialog: Dialog) {
+    log.warn('PuppetWebBridge', 'init() page.on(dialog) type:%s message:%s',
+                                dialog.type, dialog.message())
+    try {
+      // XXX: Which ONE is better?
+      await dialog.accept()
+      // await dialog.dismiss()
+    } catch (e) {
+      log.error('PuppetWebBridge', 'init() dialog.dismiss() reject: %s', e)
+    }
+    this.emit('error', new Error(`${dialog.type}(${dialog.message()})`))
+  }
+
+  public async onLoad(page: Page): Promise<void> {
+    log.verbose('PuppetWebBridge', 'initPage() on(load) %s', page.url())
+
+    if (this.state.off()) {
+      log.verbose('PuppetWebBridge', 'initPage() onLoad() OFF state detected. NOP')
+      return // reject(new Error('onLoad() OFF state detected'))
+    }
+
+    try {
+      const emitExist = await page.evaluate(() => {
+        return typeof window['emit'] === 'function'
+      })
+      if (!emitExist) {
+        await page.exposeFunction('emit', this.emit.bind(this))
+      }
+
+      await this.readyAngular(page)
+      await this.inject(page)
+      await this.clickSwitchAccount(page)
+
+      this.emit('ready')
+
+    } catch (e) {
+      log.error('PuppetWebBridge', 'init() initPage() onLoad() exception: %s', e)
+      await page.close()
+      this.emit('error', e)
+    }
+  }
+
   public async initPage(browser: Browser): Promise<Page> {
     log.verbose('PuppetWebBridge', 'initPage()')
 
-    const page = await browser.newPage()
     // set this in time because the following callbacks
     // might be called before initPage() return.
-    this.page = page
+    const page = this.page =  await browser.newPage()
 
-    const onDialog = async (dialog: Dialog) => {
-      log.warn('PuppetWebBridge', 'init() page.on(dialog) type:%s message:%s',
-                                  dialog.type, dialog.message())
-      try {
-        // XXX: Which ONE is better?
-        await dialog.accept()
-        // await dialog.dismiss()
-      } catch (e) {
-        log.error('PuppetWebBridge', 'init() dialog.dismiss() reject: %s', e)
-      }
+    page.on('error',  e => this.emit('error', e))
 
-      this.emit('error', new Error(`${dialog.type}(${dialog.message()})`))
-    }
-
-    const onLoad = async (done: () => void) => {
-      log.verbose('PuppetWebBridge', 'initPage() on(load) %s', page.url())
-
-      if (this.state.off()) {
-        log.verbose('PuppetWebBridge', 'initPage() onLoad() OFF state detected. NOP')
-        return
-      }
-
-      try {
-        await page.exposeFunction('emit', this.emit.bind(this))
-      } catch (e) {
-        if (this.state.off()) {
-          log.verbose('PuppetWebBridge', 'initPage() onLoad() OFF state detected. NOP')
-          return
-        }
-
-        // exposed function will stay in the browser after reload the page
-        log.verbose('PuppetWebBridge', 'initPage() onLoad() page.exposeFunction(emit) already exist')
-        log.silly('PuppetWebBridge', 'initPage() onLoad() page.exposeFunction(emit) exception: %s', e)
-      }
-
-      try {
-        await this.readyAngular(page)
-        await this.inject(page)
-
-        const clicked = await this.clickSwitchAccount(page)
-        if (clicked) {
-          log.verbose('PuppetWebBridge', 'initPage() onLoad() clickSwitchAccount() clicked')
-        } else {
-          log.silly('PuppetWebBridge', 'initPage() onLoad() clickSwitchAccount() NOP')
-        }
-
-      } catch (e) {
-        if (this.state.off()) {
-          log.verbose('PuppetWebBridge', 'initPage() onLoad() OFF state detected. NOP')
-          return
-        }
-
-        log.error('PuppetWebBridge', 'init() initPage() onLoad() exception: %s', e)
-        this.emit('error', e)
-      } finally {
-        done()
-      }
-    }
-
-    page.on('dialog', onDialog)
-    page.on('error', e => this.emit('error', e))
-
-    const loaded = new Promise(resolve => page.on('load', () => onLoad(resolve)))
-
-    ///////////////////
+    page.on('dialog', this.onDialog.bind(this))
 
     const cookieList = this.options.profile.get('cookies') as Cookie[]
     const url        = this.entryUrl(cookieList)
@@ -190,25 +193,29 @@ export class Bridge extends EventEmitter {
     if (cookieList && cookieList.length) {
       await page.setCookie(...cookieList)
       log.silly('PuppetWebBridge', 'initPage() page.setCookie() %s cookies set back', cookieList.length)
-      await page.reload() // reload page to make effect of the new cookie.
     }
 
-    await loaded  // wait the page on load finish
+    page.on('load', () => this.emit('load', page))
+    await page.reload() // reload page to make effect of the new cookie.
 
     return page
   }
 
   public async readyAngular(page: Page): Promise<void> {
     log.verbose('PuppetWebBridge', 'readyAngular()')
-    const TIMEOUT = 30 * 1000
-    await new Promise<void>(async (resolve, reject) => {
-      const timer = setTimeout(reject, TIMEOUT)
-      await page.waitForFunction(`typeof window.angular !== 'undefined'`)
 
-      clearTimeout(timer)
-      log.silly('PuppetWebBridge', 'readyAngular() resolve-ed')
-      resolve()
-    })
+    try {
+      await page.waitForFunction(`typeof window.angular !== 'undefined'`)
+    } catch (e) {
+      log.verbose('PuppetWebBridge', 'readyAngular() exception: %s', e)
+
+      const blockedMessage = await this.testBlockedMessage()
+      if (blockedMessage) {  // Wechat Account Blocked
+        throw new Error(blockedMessage)
+      } else {
+        throw e
+      }
+    }
   }
 
   public async inject(page: Page): Promise<void> {
@@ -272,14 +279,18 @@ export class Bridge extends EventEmitter {
     try {
       await this.page.close()
       log.silly('PuppetWebBridge', 'quit() page.close()-ed')
+    } catch (e) {
+      log.warn('PuppetWebBridge', 'quit() page.close() exception: %s', e)
+    }
+
+    try {
       await this.browser.close()
       log.silly('PuppetWebBridge', 'quit() browser.close()-ed')
     } catch (e) {
-      log.warn('PuppetWebBridge', 'quit() exception: %s', e)
-      this.emit('error', e)
-    } finally {
-      this.state.off(true)
+      log.warn('PuppetWebBridge', 'quit() browser.close() exception: %s', e)
     }
+
+    this.state.off(true)
   }
 
   public async getUserName(): Promise<string> {
@@ -659,12 +670,36 @@ export class Bridge extends EventEmitter {
     }
   }
 
+  public preHtmlToXml(text: string): string {
+    log.verbose('PuppetWebBridge', 'preHtmlToXml()')
+
+    const preRegex = /^<pre[^>]*>([^<]+)<\/pre>$/i
+    const matches = text.match(preRegex)
+    if (!matches) {
+      return text
+    }
+    return Misc.unescapeHtml(matches[1])
+  }
+
   /**
    * Throw if there's a blocked message
    */
-  public async testBlockedMessage(text: string): Promise<void> {
-    log.silly('PuppetWebBridge', 'testBlockedMessage(%s)',
-                                  text.substr(0, 50).replace(/\n/, ''))
+  public async testBlockedMessage(text?: string): Promise<string | false> {
+    if (!text) {
+      text = await this.evaluate(() => {
+        return document.body.innerHTML
+      })
+    }
+    if (!text) {
+      throw new Error('testBlockedMessage() no text found!')
+    }
+
+    const textSnip = text.substr(0, 50).replace(/\n/, '')
+    log.verbose('PuppetWebBridge', 'testBlockedMessage(%s)',
+                                  textSnip)
+
+    // see unit test for detail
+    const tryXmlText = this.preHtmlToXml(text)
 
     interface BlockedMessage {
       error?: {
@@ -673,28 +708,32 @@ export class Bridge extends EventEmitter {
       }
     }
 
-    return new Promise<void>((resolve, reject) => {
-      parseString(text, { explicitArray: false }, (err, obj: BlockedMessage) => {
-        if (err) {
-          return resolve()
+    return new Promise<string | false>((resolve, reject) => {
+      parseString(tryXmlText, { explicitArray: false }, (err, obj: BlockedMessage) => {
+        if (err) {  // HTML can not be parsed to JSON
+          return resolve(false)
+        }
+        if (!obj) {
+          // FIXME: when will this happen?
+          log.warn('PuppetWebBridge', 'testBlockedMessage() parseString(%s) return empty obj', textSnip)
+          return resolve(false)
         }
         if (!obj.error) {
-          return resolve()
+          return resolve(false)
         }
         const ret     = +obj.error.ret
         const message =  obj.error.message
 
-        const e = new Error(message)
+        log.warn('PuppetWebBridge', 'testBlockedMessage() error.ret=%s', ret)
 
         if (ret === 1203) {
           // <error>
           // <ret>1203</ret>
           // <message>当前登录环境异常。为了你的帐号安全，暂时不能登录web微信。你可以通过手机客户端或者windows微信登录。</message>
           // </error>
-          return reject(e)
+          return resolve(message)
         }
-        log.warn('PuppetWebBridge', 'testBlockedMessage() code: %s type: %s', ret, typeof ret)
-        return reject(e) // other error message
+        return resolve(message) // other error message
       })
     })
   }
@@ -704,28 +743,35 @@ export class Bridge extends EventEmitter {
 
     // https://github.com/GoogleChrome/puppeteer/issues/537#issuecomment-334918553
     async function listXpath(thePage: Page, xpath: string): Promise<ElementHandle[]> {
-      const nodeHandleList = await (thePage as any).evaluateHandle(xpathInner => {
-        const nodeList: Node[] = []
-        const query = document.evaluate(xpathInner, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
-        for (let i = 0, length = query.snapshotLength; i < length; ++i) {
-          nodeList.push(query.snapshotItem(i))
+      log.verbose('PuppetWebBridge', 'clickSwitchAccount() listXpath()')
+
+      try {
+        const nodeHandleList = await (thePage as any).evaluateHandle(xpathInner => {
+          const nodeList: Node[] = []
+          const query = document.evaluate(xpathInner, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
+          for (let i = 0, length = query.snapshotLength; i < length; ++i) {
+            nodeList.push(query.snapshotItem(i))
+          }
+          return nodeList
+        }, xpath)
+        const properties = await nodeHandleList.getProperties()
+
+        const elementHandleList:  ElementHandle[] = []
+        const releasePromises:    Promise<void>[] = []
+
+        for (const property of properties.values()) {
+          const element = property.asElement()
+          if (element)
+            elementHandleList.push(element)
+          else
+            releasePromises.push(property.dispose())
         }
-        return nodeList
-      }, xpath)
-      const properties = await nodeHandleList.getProperties()
-
-      const elementHandleList:  ElementHandle[] = []
-      const releasePromises:    Promise<void>[] = []
-
-      for (const property of properties.values()) {
-        const element = property.asElement()
-        if (element)
-          elementHandleList.push(element)
-        else
-          releasePromises.push(property.dispose())
+        await Promise.all(releasePromises)
+        return elementHandleList
+      } catch (e) {
+        log.verbose('PuppetWebBridge', 'clickSwitchAccount() listXpath() exception: %s', e)
+        return []
       }
-      await Promise.all(releasePromises)
-      return elementHandleList
     }
 
     const XPATH_SELECTOR = `//div[contains(@class,'association') and contains(@class,'show')]/a[@ng-click='qrcodeLogin()']`
@@ -735,10 +781,12 @@ export class Bridge extends EventEmitter {
         await button.click()
         log.silly('PuppetWebBridge', 'clickSwitchAccount() clicked!')
         return true
+
       } else {
         // log.silly('PuppetWebBridge', 'clickSwitchAccount() button not found')
         return false
       }
+
     } catch (e) {
       log.silly('PuppetWebBridge', 'clickSwitchAccount() exception: %s', e)
       throw e
@@ -747,9 +795,15 @@ export class Bridge extends EventEmitter {
 
   public async hostname(): Promise<string | null> {
     log.verbose('PuppetWebBridge', 'hostname()')
-    const hostname = await this.page.evaluate(() => location.hostname) as any as string
-    log.silly('PuppetWebBridge', 'hostname() got %s', hostname)
-    return hostname
+    try {
+      const hostname = await this.page.evaluate(() => location.hostname) as any as string
+      log.silly('PuppetWebBridge', 'hostname() got %s', hostname)
+      return hostname
+    } catch (e) {
+      log.error('PuppetWebBridge', 'hostname() exception: %s', e)
+      this.emit('error', e)
+      return null
+    }
   }
 
   public async cookies(cookieList: Cookie[]): Promise<void>
@@ -818,9 +872,15 @@ export class Bridge extends EventEmitter {
     return
   }
 
-  public async evaluate(fn: () => any, ...args: any[]): Promise<() => any> {
+  public async evaluate(fn: () => any, ...args: any[]): Promise<any> {
     log.silly('PuppetWebBridge', 'evaluate()')
-    return await this.page.evaluate(fn, ...args)
+    try {
+      return await this.page.evaluate(fn, ...args)
+    } catch (e) {
+      log.error('PuppetWebBridge', 'evaluate() exception: %s', e)
+      this.emit('error', e)
+      return null
+    }
   }
 }
 

@@ -88,14 +88,14 @@ test('WechatyBro.ding()', async t => {
 
     t.is(retDing, 'dong', 'should got dong after execute WechatyBro.ding()')
 
-    const retCode = await bridge.proxyWechaty('isLogin')
-    t.is(typeof retCode, 'boolean', 'should got a boolean after call proxyWechaty(isLogin)')
+    const retCode = await bridge.proxyWechaty('loginState')
+    t.is(typeof retCode, 'boolean', 'should got a boolean after call proxyWechaty(loginState)')
 
     await bridge.quit()
     t.pass('b.quit()')
-
-    profile.destroy()
   } catch (err) {
     t.fail('exception: ' + err.message)
+  } finally {
+    profile.destroy()
   }
 })

@@ -26,26 +26,40 @@ WECHATY CONTRIBUTORS
 
 # Change Log
 
-## [Unreleased](https://github.com/chatie/wechaty/tree/HEAD)
-
-[Full Changelog](https://github.com/chatie/wechaty/compare/v0.9.0...HEAD)
+## [v0.12.0](https://github.com/chatie/wechaty/tree/v0.12.0) (2017-10-30)
+[Full Changelog](https://github.com/chatie/wechaty/compare/v0.9.0...v0.12.0)
 
 **Implemented enhancements:**
 
+- Promote `rx-queue` to SOLO NPM Module [\#938](https://github.com/Chatie/wechaty/issues/938)
+- Add Wechaty.logonoff\(\) method [\#926](https://github.com/Chatie/wechaty/issues/926)
+- Registe Wechaty Listeners with a try {} catch {} block in order to prevent listener function crash the framework. [\#878](https://github.com/Chatie/wechaty/issues/878)
 - Upgrade CircleCI from 1.0 to 2.0 [\#863](https://github.com/Chatie/wechaty/issues/863)
 - Switch Docker Node Image from `alphin` to official `node:7` [\#862](https://github.com/Chatie/wechaty/issues/862)
+- Click Web Wechat `Switch Account` Automatically to get qrcode immediately when bot logout [\#636](https://github.com/Chatie/wechaty/issues/636)
+- Upgrade docker image from Node.js v7 to v8 [\#577](https://github.com/Chatie/wechaty/issues/577)
 - \[todo\] switch unit test tool from AVA to TAPE [\#513](https://github.com/Chatie/wechaty/issues/513)
 - \[ci\] Provide a Mock PuppetWeb Instance for Integration Test [\#237](https://github.com/Chatie/wechaty/issues/237)
 
 **Fixed bugs:**
 
+- \[CI\] Homebrew must be run under Ruby 2.3! You're running 2.0.0. \(RuntimeError\) [\#936](https://github.com/Chatie/wechaty/issues/936)
+- "PromiseRejectionHandledWarning: Promise rejection was handled asynchronously" when Wechat says "当前登录环境异常" [\#925](https://github.com/Chatie/wechaty/issues/925)
+- TypeError: cookieList.filter is not a function [\#919](https://github.com/Chatie/wechaty/issues/919)
+- TypeError: Cannot read property 'error' of null [\#918](https://github.com/Chatie/wechaty/issues/918)
+- ERR PuppetWebBridge init\(\) initPage\(\) onLoad\(\) exception: undefined [\#917](https://github.com/Chatie/wechaty/issues/917)
+- Sometimes Wechaty can't login \(with puppeteer\) [\#899](https://github.com/Chatie/wechaty/issues/899)
 - \[ci\] WebDriver Error: "no such session" [\#756](https://github.com/Chatie/wechaty/issues/756)
+- Click Web Wechat `Switch Account` Automatically to get qrcode immediately when bot logout [\#636](https://github.com/Chatie/wechaty/issues/636)
 - \[ci\] execute proxyWechaty\(init\) error: 503, init\(\) without a ready angular env [\#329](https://github.com/Chatie/wechaty/issues/329)
 - \[ci log\] watchdog reset after 120 seconds [\#195](https://github.com/Chatie/wechaty/issues/195)
 - Selenium WebDriver driver.getSession\(\) wait a long time [\#86](https://github.com/Chatie/wechaty/issues/86)
 
 **Closed issues:**
 
+- 在登录失败时的异常提示优化 [\#898](https://github.com/Chatie/wechaty/issues/898)
+- CANT RUN THE WECHATY-GETTING-STARTED, PUPPETWEBROWSER valid\(\) getSession\(\) [\#891](https://github.com/Chatie/wechaty/issues/891)
+- Error after restart  vps              invalid driver at ttl 0 [\#788](https://github.com/Chatie/wechaty/issues/788)
 - webdriver.executeScript wait a long time\(26s\) before page load [\#2](https://github.com/Chatie/wechaty/issues/2)
 
 **Merged pull requests:**
@@ -65,7 +79,6 @@ WECHATY CONTRIBUTORS
 - chrome-headless support [\#739](https://github.com/Chatie/wechaty/issues/739)
 - Add Transpond Message [\#726](https://github.com/Chatie/wechaty/issues/726)
 - Cannot send pdf file using MediaMessage [\#710](https://github.com/Chatie/wechaty/issues/710)
-- Click Web Wechat `Switch Account` Automatically to get qrcode immediately when bot logout [\#636](https://github.com/Chatie/wechaty/issues/636)
 - Use Sentry.io to report exceptions [\#580](https://github.com/Chatie/wechaty/issues/580)
 - \[enhancement\] Add pdf, docx etc support to MediaMessage\(now only picture is supported\) [\#538](https://github.com/Chatie/wechaty/issues/538)
 - use babel-node to run javascript\(.js\) file inside docker [\#507](https://github.com/Chatie/wechaty/issues/507)
@@ -88,7 +101,6 @@ WECHATY CONTRIBUTORS
 - \[tslint\] stuck on v5.3 and can not upgrade [\#762](https://github.com/Chatie/wechaty/issues/762)
 - Cannot send pdf file using MediaMessage [\#710](https://github.com/Chatie/wechaty/issues/710)
 - CI, green keeper and package-lock under npm 5 [\#656](https://github.com/Chatie/wechaty/issues/656)
-- Click Web Wechat `Switch Account` Automatically to get qrcode immediately when bot logout [\#636](https://github.com/Chatie/wechaty/issues/636)
 - watchDogReset\(\) watchdog reset after 60 seconds \(phantomjs head\) [\#633](https://github.com/Chatie/wechaty/issues/633)
 - \[test\] Unit Test for `mentioned` feature does not run at all [\#623](https://github.com/Chatie/wechaty/issues/623)
 - error TS2345: Argument of type 'string | MemberQueryFilter' is not assignable to parameter of type 'MemberQueryFilter' [\#622](https://github.com/Chatie/wechaty/issues/622)
@@ -123,12 +135,9 @@ WECHATY CONTRIBUTORS
 **Closed issues:**
 
 - vscode setting config error [\#843](https://github.com/Chatie/wechaty/issues/843)
-- An in-range update of sinon-test is breaking the build 🚨 [\#814](https://github.com/Chatie/wechaty/issues/814)
 - add static method `Message.findAll\(\)` [\#765](https://github.com/Chatie/wechaty/issues/765)
 - cannot find Chrome binary [\#746](https://github.com/Chatie/wechaty/issues/746)
 - UnhandledPromiseRejectionWarning: Unhandled promise rejection \(rejection id: 2\): Error: no puppet instance [\#738](https://github.com/Chatie/wechaty/issues/738)
-- An in-range update of @types/glob is breaking the build 🚨 [\#734](https://github.com/Chatie/wechaty/issues/734)
-- An in-range update of phantomjs-prebuilt is breaking the build 🚨 [\#730](https://github.com/Chatie/wechaty/issues/730)
 - MediaMessage.filename\(\) cannot get correct img name. [\#722](https://github.com/Chatie/wechaty/issues/722)
 - MediaMessage.ext\(\) cannot work as expect [\#721](https://github.com/Chatie/wechaty/issues/721)
 - the latest docker version 139 cannot send file [\#720](https://github.com/Chatie/wechaty/issues/720)
@@ -154,7 +163,6 @@ WECHATY CONTRIBUTORS
 - some strange session error [\#523](https://github.com/Chatie/wechaty/issues/523)
 - static Contact.find\(\) / static Contact.findAll\(\) throws exception [\#520](https://github.com/Chatie/wechaty/issues/520)
 - Cannot set alias of Contact Object getting from `message.from\(\)` method when Contact is not a friend [\#509](https://github.com/Chatie/wechaty/issues/509)
-- An in-range update of brolog is breaking the build 🚨 [\#499](https://github.com/Chatie/wechaty/issues/499)
 - room.member\(\) can not return right result [\#437](https://github.com/Chatie/wechaty/issues/437)
 - windows run program send images throw out error [\#427](https://github.com/Chatie/wechaty/issues/427)
 - group names have HTML in them [\#382](https://github.com/Chatie/wechaty/issues/382)
@@ -230,11 +238,8 @@ WECHATY CONTRIBUTORS
 
 **Closed issues:**
 
-- An in-range update of state-switch is breaking the build 🚨 [\#468](https://github.com/Chatie/wechaty/issues/468)
-- An in-range update of state-switch is breaking the build 🚨 [\#467](https://github.com/Chatie/wechaty/issues/467)
 - Always getSession timeout [\#463](https://github.com/Chatie/wechaty/issues/463)
 - how to create more bots at once [\#460](https://github.com/Chatie/wechaty/issues/460)
-- An in-range update of bl is breaking the build 🚨 [\#459](https://github.com/Chatie/wechaty/issues/459)
 - how do we get avatar link? [\#424](https://github.com/Chatie/wechaty/issues/424)
 - can't run the example [\#423](https://github.com/Chatie/wechaty/issues/423)
 - 有没有查找好友的方法？ [\#411](https://github.com/Chatie/wechaty/issues/411)
@@ -243,7 +248,6 @@ WECHATY CONTRIBUTORS
 - cannot remark friend in centos system [\#406](https://github.com/Chatie/wechaty/issues/406)
 - MediaMessage in ding-dong-bot example can not be create [\#399](https://github.com/Chatie/wechaty/issues/399)
 - wechaty can auto receive money\(red envolop/transfer\) on account. [\#398](https://github.com/Chatie/wechaty/issues/398)
-- An in-range update of chromedriver is breaking the build 🚨 [\#395](https://github.com/Chatie/wechaty/issues/395)
 - \[bug\] room.say\(\) return contact's alias when bot set alias for some one [\#394](https://github.com/Chatie/wechaty/issues/394)
 - `Room.fresh\(\)`not work; `Room.alias\(\)`returns null [\#391](https://github.com/Chatie/wechaty/issues/391)
 - should add`phantomjs-prebuilt` in package.json [\#385](https://github.com/Chatie/wechaty/issues/385)
@@ -338,13 +342,7 @@ WECHATY CONTRIBUTORS
 
 - too many levels of symbolic links [\#165](https://github.com/Chatie/wechaty/issues/165)
 - node dist/example/ding-dong-bot.js example运行异常 [\#159](https://github.com/Chatie/wechaty/issues/159)
-- An in-range update of tslint is breaking the build 🚨 [\#157](https://github.com/Chatie/wechaty/issues/157)
 - deploying to server problems \(running headless\) [\#154](https://github.com/Chatie/wechaty/issues/154)
-- An in-range update of @types/selenium-webdriver is breaking the build 🚨 [\#148](https://github.com/Chatie/wechaty/issues/148)
-- An in-range update of tslint is breaking the build 🚨 [\#144](https://github.com/Chatie/wechaty/issues/144)
-- An in-range update of tslint is breaking the build 🚨 [\#140](https://github.com/Chatie/wechaty/issues/140)
-- An in-range update of @types/node is breaking the build 🚨 [\#137](https://github.com/Chatie/wechaty/issues/137)
-- An in-range update of @types/sinon is breaking the build 🚨 [\#135](https://github.com/Chatie/wechaty/issues/135)
 - wechaty mybot.js start error [\#126](https://github.com/Chatie/wechaty/issues/126)
 - Room-join' para  inviteeList\[\] cannot always work well when contain emoji [\#125](https://github.com/Chatie/wechaty/issues/125)
 - \[help\] install wechaty and its types [\#124](https://github.com/Chatie/wechaty/issues/124)

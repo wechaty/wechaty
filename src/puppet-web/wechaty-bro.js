@@ -63,7 +63,7 @@
     hookRecalledMsgProcess()
 
     log('init() scanCode: ' + WechatyBro.vars.scanCode)
-    checkScan()
+    setTimeout(() => checkScan(), 1000)
 
     heartBeat(true)
 
@@ -165,25 +165,25 @@
 
     // get all we need from wx in browser(angularjs)
     WechatyBro.glue = {
-      injector:       injector
-      , http:         http
-      , mmHttp:       mmHttp
-      , state:        state
+      injector,
+      http,
+      mmHttp,
+      state,
 
-      , accountFactory:  accountFactory
-      , chatroomFactory: chatroomFactory
-      , chatFactory:     chatFactory
-      , confFactory:     confFactory
-      , contactFactory:  contactFactory
-      , emojiFactory:    emojiFactory
-      , loginFactory:    loginFactory
-      , utilFactory:     utilFactory
+      accountFactory,
+      chatroomFactory,
+      chatFactory,
+      confFactory,
+      contactFactory,
+      emojiFactory,
+      loginFactory,
+      utilFactory,
 
-      , rootScope:    rootScope
-      , appScope:     appScope
-      , loginScope:   loginScope
+      rootScope,
+      appScope,
+      loginScope,
 
-      , contentChatScope: contentChatScope
+      contentChatScope,
     }
 
     return true
@@ -196,10 +196,13 @@
       // login('checkScan found already login')
       return
     }
-    if (!WechatyBro.glue.loginScope) {
+
+    const loginScope = WechatyBro.glue.loginScope
+    if (!loginScope) {
       log('checkScan() - loginScope disappeared, TODO: find out the reason why this happen')
       // login('loginScope disappeared')
       // return
+      return setTimeout(checkScan, 1000)
     }
 
     // loginScope.code:
@@ -207,8 +210,8 @@
     // 408: 未确认（显示二维码后30秒触发）
     // 201: 扫描，未确认
     // 200: 登录成功
-    var code  = +WechatyBro.glue.loginScope.code
-    var url   =  WechatyBro.glue.loginScope.qrcodeUrl
+    var code  = +loginScope.code
+    var url   =  loginScope.qrcodeUrl
     log('checkScan() code:' + code + ' url:' + url + ' scanCode:' + WechatyBro.vars.scanCode)
 
     if (url && code !== WechatyBro.vars.scanCode) {
@@ -229,7 +232,7 @@
     }
 
     WechatyBro.vars.scanCode = null
-    WechatyBro.glue.loginScope.code = null
+    loginScope.code          = null
 
     return login('scan code 200')
   }
@@ -255,12 +258,12 @@
 
     // WechatyBro.emit('logout', data)
     if (WechatyBro.glue.loginFactory) {
-      WechatyBro.glue.loginFactory.loginout()
+      WechatyBro.glue.loginFactory.loginout(0)
     } else {
       log('logout() WechatyBro.glue.loginFactory NOT found')
     }
 
-    checkScan()
+    setTimeout(() => checkScan(), 1000)
   }
 
   function ding(data) {
@@ -537,7 +540,7 @@
   }
 
   function getUserName() {
-    if (!WechatyBro.isLogin()) {
+    if (!WechatyBro.loginState()) {
       return null
     }
     var accountFactory = WechatyBro.glue.accountFactory
@@ -603,12 +606,12 @@
         data: angular.extend({
           UserName: UserName,
           CmdId: confFactory.oplogCmdId.MODREMARKNAME,
-          RemarkName: emojiFactory.formatHTMLToSend(remark)
+          RemarkName: emojiFactory.formatHTMLToSend(remark),
         }, accountFactory.getBaseRequest()),
         MMRetry: {
           count: 3,
           timeout: 1e4,
-          serial: !0
+          serial: !0,
         }
       })
       .success(() => {
@@ -717,11 +720,11 @@
 
     return new Promise(resolve => {
       contactFactory.verifyUser({
-        UserName:        UserName
-        , Opcode:        confFactory.VERIFYUSER_OPCODE_SENDREQUEST
-        , Scene:         confFactory.ADDSCENE_PF_WEB
-        , Ticket:        Ticket
-        , VerifyContent: VerifyContent
+        Opcode: confFactory.VERIFYUSER_OPCODE_SENDREQUEST,
+        Scene:  confFactory.ADDSCENE_PF_WEB,
+        UserName,
+        Ticket,
+        VerifyContent,
       })
       .then(() => {  // succ
         // alert('ok')
@@ -741,10 +744,10 @@
 
     return new Promise(resolve => {
       contactFactory.verifyUser({
-        UserName:   UserName
-        , Opcode:   confFactory.VERIFYUSER_OPCODE_VERIFYOK
-        , Scene:    confFactory.ADDSCENE_PF_WEB
-        , Ticket:   Ticket
+        UserName: UserName,
+        Opcode:   confFactory.VERIFYUSER_OPCODE_VERIFYOK,
+        Scene:    confFactory.ADDSCENE_PF_WEB,
+        Ticket:   Ticket,
       }).then(() => {  // succ
         // alert('ok')
         log('friendVerify(' + UserName + ', ' + Ticket + ') done')
@@ -786,65 +789,65 @@
   var WechatyBro = {
     glue: {
       // will be initialized by glueToAngular() function
-    }
+    },
 
     // glue funcs
     // , getLoginStatusCode: function() { return WechatyBro.glue.loginScope.code }
     // , getLoginQrImgUrl:   function() { return WechatyBro.glue.loginScope.qrcodeUrl }
-    , angularIsReady:    angularIsReady
+    angularIsReady,
 
     // variable
-    , vars: {
+    vars: {
       loginState : false,
       initState  : false,
 
       scanCode        : null,
       heartBeatTimmer : null,
-    }
+    },
 
     // funcs
-    , ding:   ding         // simple return 'dong'
-    , emit:   window.emit  // send event to Node.js
-    , init:   init         // initialize WechatyBro @ Browser
-    , log:    log          // log to Node.js
-    , logout: logout       // logout current logined user
-    , send:   send         // send message to wechat user
+    ding,   // simple return 'dong'
+    emit:   window.emit,  // send event to Node.js
+    init,   // initialize WechatyBro @ Browser
+    log,    // log to Node.js
+    logout, // logout current logined user
+    send,   // send message to wechat user
 
-    , getContact:          getContact
-    , getUserName:         getUserName
-    , getMsgImg:           getMsgImg
-    , getMsgEmoticon:      getMsgEmoticon
-    , getMsgVideo:         getMsgVideo
-    , getMsgVoice:         getMsgVoice
-    , getMsgPublicLinkImg: getMsgPublicLinkImg
-    , getBaseRequest:      getBaseRequest
-    , getPassticket:       getPassticket
-    , getUploadMediaUrl:   getUploadMediaUrl
-    , sendMedia:           sendMedia
-    , forward:             forward
-    , getCheckUploadUrl:   getCheckUploadUrl
+    getContact,
+    getUserName,
+    getMsgImg,
+    getMsgEmoticon,
+    getMsgVideo,
+    getMsgVoice,
+    getMsgPublicLinkImg,
+    getBaseRequest,
+    getPassticket,
+    getUploadMediaUrl,
+    sendMedia,
+    forward,
+    getCheckUploadUrl,
 
     // for Wechaty Contact Class
-    , contactFind:        contactFind
-    , contactRemark:      contactRemark
+    contactFind,
+    contactRemark,
 
     // for Wechaty Room Class
-    , roomCreate:         roomCreate
-    , roomAddMember:      roomAddMember
-    , roomFind:           roomFind
-    , roomDelMember:      roomDelMember
-    , roomModTopic:       roomModTopic
+    roomCreate,
+    roomAddMember,
+    roomFind,
+    roomDelMember,
+    roomModTopic,
 
     // for Friend Request
-    , verifyUserRequest: verifyUserRequest
-    , verifyUserOk:      verifyUserOk
+    verifyUserRequest,
+    verifyUserOk,
 
     // test purpose
-    , isLogin: () => {
-      log('DEPRECATED. use loginState() instead');
+    isLogin: () => {
+      log('isLogin() DEPRECATED. use loginState() instead');
       return loginState()
-    }
-    , loginState: loginState
+    },
+    loginState,
   }
 
   this.WechatyBro = WechatyBro

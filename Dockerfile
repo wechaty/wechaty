@@ -1,4 +1,4 @@
-FROM node:7
+FROM ubuntu:17.10
 LABEL maintainer="Huan LI <zixia@zixia.net>"
 
 ENV NPM_CONFIG_LOGLEVEL warn
@@ -21,7 +21,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ttf-freefont \
     vim \
     wget \
-  && rm -rf /tmp/* /var/lib/apt/lists/*
+  && rm -rf /tmp/* /var/lib/apt/lists/* \
+  && apt-get purge --auto-remove
+
+RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
+    && apt-get update && apt-get install -y --no-install-recommends nodejs \
+    && rm -rf /tmp/* /var/lib/apt/lists/* \
+    && apt-get purge --auto-remove
 
 # https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md
 # https://github.com/ebidel/try-puppeteer/blob/master/backend/Dockerfile
@@ -29,14 +35,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Note: this also installs the necessary libs so we don't need the previous RUN command.
 RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
     && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
-    && apt-get update \
-    && apt-get install -y google-chrome-unstable \
-      --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/* \
+    && apt-get update && apt-get install -y --no-install-recommends \
+      google-chrome-unstable \
+    && rm -rf /tmp/* /var/lib/apt/lists/* \
     && apt-get purge --auto-remove
 
 # Add chatie user.
-RUN groupadd -r bot && useradd -r -g bot -d /bot -m -G audio,video,sudo bot \
+RUN groupadd bot && useradd -g bot -d /bot -m -G audio,video,sudo bot \
     && mkdir -p /bot/Downloads \
     && chown -R bot:bot /bot \
     && echo "bot   ALL=NOPASSWD:ALL" >> /etc/sudoers
@@ -82,7 +87,7 @@ LABEL org.label-schema.license="Apache-2.0" \
       org.label-schema.description="Wechat for Bot" \
       org.label-schema.usage="https://github.com/chatie/wechaty/wiki/Docker" \
       org.label-schema.url="https://www.chatie.io" \
-      org.label-schema.vendor="AKA Mobi" \
+      org.label-schema.vendor="Chatie" \
       org.label-schema.vcs-ref="$SOURCE_COMMIT" \
       org.label-schema.vcs-url="https://github.com/chatie/wechaty" \
       org.label-schema.docker.cmd="docker run -ti --rm zixia/wechaty <code.js>" \

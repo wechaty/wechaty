@@ -17,7 +17,7 @@ export class Profile {
   private file : string | null
 
   constructor(
-    public name: string = config.profile,
+    public name = config.profile,
   ) {
     log.verbose('Profile', 'constructor(%s)', name)
 
@@ -28,8 +28,11 @@ export class Profile {
         ? name
         : path.join(
             process.cwd(),
-            name + '.wechaty.json',
+            name,
           )
+      if (!/\.wechaty\.json$/.test(this.file)) {
+        this.file +=  '.wechaty.json'
+      }
     }
   }
 

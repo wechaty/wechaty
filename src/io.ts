@@ -70,7 +70,7 @@ export class Io {
     private options: IoOptions,
   ) {
     options.apihost   = options.apihost   || config.apihost
-    options.protocol  = options.protocol  || config.DEFAULT_PROTOCOL
+    options.protocol  = options.protocol  || config.default.DEFAULT_PROTOCOL
 
     this.uuid = options.wechaty.uuid
 
@@ -269,7 +269,7 @@ export class Io {
         break
 
       case 'shutdown':
-        log.warn('Io', 'on(shutdown): %s', ioEvent.payload)
+        log.info('Io', 'on(shutdown): %s', ioEvent.payload)
         process.exit(0)
         break
 
@@ -304,7 +304,7 @@ export class Io {
         break
 
       case 'logout':
-        log.warn('Io', 'on(logout): %s', ioEvent.payload)
+        log.info('Io', 'on(logout): %s', ioEvent.payload)
         this.options.wechaty.logout()
         break
 

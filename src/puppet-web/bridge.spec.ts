@@ -43,7 +43,40 @@ test('PuppetWebBridge', async t => {
   }
 })
 
+test('preHtmlToXml()', async t => {
+  const BLOCKED_HTML_ZH = [
+    '<pre style="word-wrap: break-word; white-space: pre-wrap;">',
+      '&lt;error&gt;',
+        '&lt;ret&gt;1203&lt;/ret&gt;',
+        '&lt;message&gt;当前登录环境异常。为了你的帐号安全，暂时不能登录web微信。你可以通过Windows微信、Mac微信或者手机客户端微信登录。&lt;/message&gt;',
+      '&lt;/error&gt;',
+    '</pre>',
+  ].join('')
+
+  const BLOCKED_XML_ZH = [
+    '<error>',
+      '<ret>1203</ret>',
+      '<message>当前登录环境异常。为了你的帐号安全，暂时不能登录web微信。你可以通过Windows微信、Mac微信或者手机客户端微信登录。</message>',
+    '</error>',
+  ].join('')
+
+  const profile = new Profile()
+  const bridge = new Bridge({ profile })
+
+  const xml = bridge.preHtmlToXml(BLOCKED_HTML_ZH)
+  t.equal(xml, BLOCKED_XML_ZH, 'should parse html to xml')
+})
+
 test('testBlockedMessage()', async t => {
+  const BLOCKED_HTML_ZH = [
+    '<pre style="word-wrap: break-word; white-space: pre-wrap;">',
+      '&lt;error&gt;',
+        '&lt;ret&gt;1203&lt;/ret&gt;',
+        '&lt;message&gt;当前登录环境异常。为了你的帐号安全，暂时不能登录web微信。你可以通过手机客户端或者windows微信登录。&lt;/message&gt;',
+      '&lt;/error&gt;',
+    '</pre>',
+  ].join('')
+
   const BLOCKED_XML_ZH = `
     <error>
      <ret>1203</ret>
@@ -70,36 +103,32 @@ test('testBlockedMessage()', async t => {
     const profile = new Profile()
     const bridge = new Bridge({ profile })
 
-    try {
-      await bridge.testBlockedMessage('this is not xml')
-      t.pass('should not throw when no block message')
-    } catch (e) {
-      t.fail('should throw when no block message')
-    }
+    const msg = await bridge.testBlockedMessage('this is not xml')
+    t.equal(msg, false, 'should return false when no block message')
+  })
+
+  test('html', async t => {
+    const profile = new Profile()
+    const bridge = new Bridge({ profile })
+
+    const msg = await bridge.testBlockedMessage(BLOCKED_HTML_ZH)
+    t.equal(msg, BLOCKED_TEXT_ZH, 'should get zh blocked message')
   })
 
   test('zh', async t => {
     const profile = new Profile()
     const bridge = new Bridge({ profile })
 
-    try {
-      await bridge.testBlockedMessage(BLOCKED_XML_ZH)
-      t.fail('should throw exception')
-    } catch (e) {
-      t.equal(e.message, BLOCKED_TEXT_ZH, 'should get zh blocked message')
-    }
+    const msg = await bridge.testBlockedMessage(BLOCKED_XML_ZH)
+    t.equal(msg, BLOCKED_TEXT_ZH, 'should get zh blocked message')
   })
 
   test('en', async t => {
     const profile = new Profile()
     const bridge = new Bridge({ profile })
 
-    try {
-      await bridge.testBlockedMessage(BLOCKED_XML_EN)
-      t.fail('should throw exception')
-    } catch (e) {
-      t.equal(e.message, BLOCKED_TEXT_EN, 'should get en blocked message')
-    }
+    const msg = await bridge.testBlockedMessage(BLOCKED_XML_EN)
+    t.equal(msg, BLOCKED_TEXT_EN, 'should get en blocked message')
   })
 })
 
@@ -117,7 +146,7 @@ test('clickSwitchAccount()', async t => {
 
   test('switch account needed', async t => {
     const browser = await launch()
-    const page = await browser.newPage()
+    const page    = await browser.newPage()
 
     await page.setContent(SWITCH_ACCOUNT_HTML)
     const clicked = await bridge.clickSwitchAccount(page)
@@ -130,7 +159,7 @@ test('clickSwitchAccount()', async t => {
 
   test('switch account not needed', async t => {
     const browser = await launch()
-    const page = await browser.newPage()
+    const page    = await browser.newPage()
 
     await page.setContent('<h1>ok</h1>')
     const clicked = await bridge.clickSwitchAccount(page)

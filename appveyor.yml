@@ -21,8 +21,7 @@ test_script:
   - npm --version
   # https://bugs.chromium.org/p/chromium/issues/detail?id=158372#c6
   - wmic datafile where name="C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe" get Version /value
-  - npm run lint
-  - npm run test
+  - npm run test:win32
 
 # Don't actually build.
 build: off
