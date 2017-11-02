@@ -12,10 +12,12 @@ ENV NPM_CONFIG_LOGLEVEL warn
 RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-utils \
     bash \
+    build-essential \
     ca-certificates \
     curl \
     coreutils \
     figlet \
+    git \
     jq \
     libav-tools \
     moreutils \
