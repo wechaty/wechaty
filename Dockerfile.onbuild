@@ -3,6 +3,8 @@ FROM zixia/wechaty
 ONBUILD ARG NODE_ENV
 ONBUILD ENV NODE_ENV $NODE_ENV
 
+ONBUILD WORKDIR /bot
+
 ONBUILD COPY package.json .
 ONBUILD RUN npm install && npm cache clean && rm -fr /tmp/* ~/.npm
 ONBUILD COPY . .
