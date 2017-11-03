@@ -51,7 +51,6 @@ RUN mkdir /wechaty \
     && mkdir /node_modules
 
 WORKDIR /wechaty
-VOLUME [ "/bot" ]
 
 # Run user as non privileged.
 USER bot
