@@ -2,6 +2,7 @@ FROM ubuntu:17.10
 LABEL maintainer="Huan LI <zixia@zixia.net>"
 
 ENV DEBIAN_FRONTEND     noninteractive
+ENV WECHATY_DOCKER      1
 ENV LC_ALL              C.UTF-8
 ENV NODE_ENV            $NODE_ENV
 ENV NPM_CONFIG_LOGLEVEL warn
@@ -61,23 +62,24 @@ VOLUME [ "/bot" ]
 USER bot
 
 COPY package.json .
-RUN  npm install \
+RUN npm install \
   && sudo rm -fr /tmp/* ~/.npm
 
 COPY . .
-RUN  npm run dist
+RUN npm run dist
 
 # Loading from node_modules Folders: https://nodejs.org/api/modules.html
 # If it is not found there, then it moves to the parent directory, and so on, until the root of the file system is reached.
 RUN sudo npm link \
     && sudo ln -s /wechaty /node_modules/wechaty \
     && sudo ln -s /wechaty/node_modules/* /node_modules/ \
+    && sudo ln -s /wechaty/node_modules/.bin/* /usr/local/bin/ \
     && sudo ln -s /wechaty/tsconfig.json / \
     && echo "export * from 'wechaty'" | sudo tee /index.ts \
-    && echo 'Linked wechaty to global'
+    && echo 'Linked Wechaty to Global'
 
-ENTRYPOINT [ "/wechaty/bin/entrypoint.sh" ]
-CMD [ "" ]
+ENTRYPOINT  [ "/wechaty/bin/entrypoint.sh" ]
+CMD         [ "" ]
 
 #
 # https://docs.docker.com/docker-cloud/builds/advanced/

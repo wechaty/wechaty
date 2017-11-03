@@ -9,8 +9,6 @@ set -e
 HOME=/bot
 PATH=$PATH:/wechaty/bin:/wechaty/node_modules/.bin
 
-export WECHATY_DOCKER=1
-
 function wechaty::banner() {
   echo
   figlet " Wechaty "
