@@ -1,8 +1,10 @@
 FROM ubuntu:17.10
 LABEL maintainer="Huan LI <zixia@zixia.net>"
 
-ENV NPM_CONFIG_LOGLEVEL warn
 ENV DEBIAN_FRONTEND     noninteractive
+ENV LC_ALL              C.UTF-8
+ENV NODE_ENV            $NODE_ENV
+ENV NPM_CONFIG_LOGLEVEL warn
 
 # Installing the 'apt-utils' package gets rid of the 'debconf: delaying package configuration, since apt-utils is not installed'
 # error message when installing any other package with the apt-get package manager.
@@ -10,10 +12,12 @@ ENV DEBIAN_FRONTEND     noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-utils \
     bash \
+    build-essential \
     ca-certificates \
     curl \
     coreutils \
     figlet \
+    git \
     jq \
     libav-tools \
     moreutils \

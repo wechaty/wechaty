@@ -50,13 +50,13 @@ const welcome = `
 =============== Powered by Wechaty ===============
 -------- https://github.com/chatie/wechaty --------
 
-I'm a bot, my super power is talk in Wechat.
+I'm a bot, my superpower is talk in Wechat.
 
 If you send me a 'ding', I will reply you a 'dong'!
 __________________________________________________
 
 Hope you like it, and you are very welcome to
-upgrade me for more super powers!
+upgrade me to more superpowers!
 
 Please wait... I'm trying to login in...
 
@@ -68,7 +68,7 @@ const bot = Wechaty.instance({ profile: config.default.DEFAULT_PROFILE })
 bot
 .on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
 .on('login'	  , user => {
-  log.info('Bot', `${user.name()} logined`)
+  log.info('Bot', `${user.name()} login`)
   bot.say('Wechaty login').catch(console.error)
 })
 .on('scan', (url, code) => {
@@ -76,7 +76,7 @@ bot
     const loginUrl = url.replace(/\/qrcode\//, '/l/')
     QrcodeTerminal.generate(loginUrl)
   }
-  console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
+  console.log(`${url}\n[${code}] Scan QR Code above url to log in: `)
 })
 .on('message', async m => {
   try {
