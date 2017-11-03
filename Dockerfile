@@ -42,6 +42,7 @@ RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key
     && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
     && apt-get update && apt-get install -y --no-install-recommends \
       google-chrome-unstable \
+    && rm -rf /opt/google/chrome-unstable \
     && rm -rf /tmp/* /var/lib/apt/lists/* \
     && apt-get purge --auto-remove
 
@@ -56,7 +57,6 @@ RUN mkdir /wechaty \
     && mkdir /node_modules
 
 WORKDIR /wechaty
-VOLUME [ "/bot" ]
 
 # Run user as non privileged.
 USER bot
