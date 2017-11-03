@@ -72,6 +72,7 @@ RUN  npm run dist
 RUN sudo npm link \
     && sudo ln -s /wechaty /node_modules/wechaty \
     && sudo ln -s /wechaty/node_modules/* /node_modules/ \
+    && sudo ln -s /wechaty/node_modules/.bin/* /usr/local/bin/ \
     && sudo ln -s /wechaty/tsconfig.json / \
     && echo "export * from 'wechaty'" | sudo tee /index.ts \
     && echo 'Linked wechaty to global'
