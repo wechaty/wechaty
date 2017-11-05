@@ -24,6 +24,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     moreutils \
     sudo \
     ttf-freefont \
+    tzdata \
     vim \
     wget \
   && rm -rf /tmp/* /var/lib/apt/lists/* \
