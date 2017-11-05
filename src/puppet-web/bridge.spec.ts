@@ -31,6 +31,14 @@ import Profile    from '../profile'
 
 import Bridge     from './bridge'
 
+const PUPPETEER_LAUNCH_OPTIONS = {
+  headless: true,
+  args: [
+    '--disable-gpu',
+    '--disable-setuid-sandbox',
+    '--no-sandbox',
+  ],
+}
 test('PuppetWebBridge', async t => {
   const profile = new Profile()
   const bridge = new Bridge({ profile })
@@ -145,7 +153,7 @@ test('clickSwitchAccount()', async t => {
   const bridge = new Bridge({ profile} )
 
   test('switch account needed', async t => {
-    const browser = await launch()
+    const browser = await launch(PUPPETEER_LAUNCH_OPTIONS)
     const page    = await browser.newPage()
 
     await page.setContent(SWITCH_ACCOUNT_HTML)
@@ -158,7 +166,7 @@ test('clickSwitchAccount()', async t => {
   })
 
   test('switch account not needed', async t => {
-    const browser = await launch()
+    const browser = await launch(PUPPETEER_LAUNCH_OPTIONS)
     const page    = await browser.newPage()
 
     await page.setContent('<h1>ok</h1>')
