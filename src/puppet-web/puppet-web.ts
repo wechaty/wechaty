@@ -197,9 +197,9 @@ export class PuppetWeb extends Puppet {
       type: 'logout',
     }))
 
-    dog.on('reset', async (food, left) => {
-      log.warn('PuppetWeb', 'initScanWatchdog() on(reset) lastFood: %s, timeLeft: %s',
-                            food.data, left)
+    dog.on('reset', async (food, time) => {
+      log.warn('PuppetWeb', 'initScanWatchdog() on(reset) lastFood: %s, time: %s',
+                            food.data, time)
       try {
         await this.bridge.reload()
       } catch (e) {
