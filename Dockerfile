@@ -22,18 +22,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     jq \
     libav-tools \
     moreutils \
+    shellcheck \
     sudo \
     ttf-freefont \
     tzdata \
     vim \
     wget \
-  && rm -rf /tmp/* /var/lib/apt/lists/* \
-  && apt-get purge --auto-remove
+  && apt-get purge --auto-remove \
+  && rm -rf /tmp/* /var/lib/apt/lists/*
 
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
     && apt-get update && apt-get install -y --no-install-recommends nodejs \
-    && rm -rf /tmp/* /var/lib/apt/lists/* \
-    && apt-get purge --auto-remove
+    && apt-get purge --auto-remove \
+    && rm -rf /tmp/* /var/lib/apt/lists/*
 
 # https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md
 # https://github.com/ebidel/try-puppeteer/blob/master/backend/Dockerfile
@@ -43,15 +44,15 @@ RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key
     && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
     && apt-get update && apt-get install -y --no-install-recommends \
       google-chrome-unstable \
-    && rm -rf /usr/bin/google-chrome* /opt/google/chrome-unstable \
     && apt-get purge --auto-remove \
-    && rm -rf /tmp/* /var/lib/apt/lists/*
+    && rm -rf /tmp/* /var/lib/apt/lists/* \
+    && rm -rf /usr/bin/google-chrome* /opt/google/chrome-unstable
 
 # Add chatie user.
-RUN groupadd bot && useradd -g bot -d /bot -m -G audio,video,sudo bot \
+RUN groupadd -r bot && useradd -r -m -G audio,video,sudo -g bot -d /bot bot \
     && mkdir -p /bot/Downloads \
     && chown -R bot:bot /bot \
-    && echo "bot   ALL=NOPASSWD:ALL" >> /etc/sudoers
+    && echo "bot ALL=NOPASSWD:ALL" >> /etc/sudoers
 
 RUN mkdir /wechaty \
     && chown -R bot:bot /wechaty \
@@ -100,6 +101,6 @@ LABEL org.label-schema.license="Apache-2.0" \
       org.label-schema.docker.cmd="docker run -ti --rm zixia/wechaty <code.js>" \
       org.label-schema.docker.cmd.test="docker run -ti --rm zixia/wechaty test" \
       org.label-schema.docker.cmd.help="docker run -ti --rm zixia/wechaty help" \
-      org.label-schema.docker.params="WECHATY_TOKEN=token token from https://www.chatie.io"
+      org.label-schema.docker.params="WECHATY_TOKEN=token token from https://www.chatie.io, WECHATY_LOG=verbose Set Verbose Log, TZ='Asia/Shanghai' TimeZone"
 
-#RUN npm test
+RUN npm test
