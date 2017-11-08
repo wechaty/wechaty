@@ -68,7 +68,8 @@ RUN npm install \
   && sudo rm -fr /tmp/* ~/.npm
 
 COPY . .
-RUN npm run dist
+RUN npm run test \
+  && npm run dist
 
 # Loading from node_modules Folders: https://nodejs.org/api/modules.html
 # If it is not found there, then it moves to the parent directory, and so on, until the root of the file system is reached.
@@ -103,4 +104,3 @@ LABEL org.label-schema.license="Apache-2.0" \
       org.label-schema.docker.cmd.help="docker run -ti --rm zixia/wechaty help" \
       org.label-schema.docker.params="WECHATY_TOKEN=token token from https://www.chatie.io, WECHATY_LOG=verbose Set Verbose Log, TZ='Asia/Shanghai' TimeZone"
 
-RUN npm test
