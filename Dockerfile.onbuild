@@ -9,7 +9,7 @@ ONBUILD COPY package.json .
 ONBUILD RUN sudo chown bot package.json \
     && jq 'del(.dependencies.wechaty)' package.json | sponge package.json \
     && npm install \
-    && rm -fr /tmp/* ~/.npm
+    && sudo rm -fr /tmp/* ~/.npm
 ONBUILD COPY . .
 
 CMD [ "npm", "start" ]
