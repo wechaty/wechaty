@@ -138,7 +138,7 @@ export class Room extends EventEmitter implements Sayable {
     } else if (this.isReady()) {
       return this
     } else if (this.obj && this.obj.id) {
-      log.warn('Room', 'ready() has obj.id but memberList empty in room %s. reloading', this.obj.topic)
+      log.verbose('Room', 'ready() is not full loaded in room<topic:%s>. reloading', this.obj.topic)
     }
 
     if (!contactGetter) {

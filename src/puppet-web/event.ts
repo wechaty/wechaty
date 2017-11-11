@@ -166,7 +166,10 @@ function onLogout(this: PuppetWeb, data) {
   this.emit('logout', bak)
 }
 
-async function onMessage(this: PuppetWeb, obj: MsgRawObj): Promise<void> {
+async function onMessage(
+  this: PuppetWeb,
+  obj: MsgRawObj,
+): Promise<void> {
   let m = new Message(obj)
 
   try {
@@ -217,6 +220,17 @@ async function onMessage(this: PuppetWeb, obj: MsgRawObj): Promise<void> {
     }
 
     await m.ready()
+    await m.from().ready()
+
+    const to   = m.to()
+    const room = m.room()
+    if (to) {
+      await to.ready()
+    }
+    if (room) {
+      await room.ready()
+    }
+
     this.emit('message', m)
 
   } catch (e) {
