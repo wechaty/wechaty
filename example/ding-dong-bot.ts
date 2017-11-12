@@ -81,9 +81,9 @@ bot
 .on('message', async m => {
   try {
     const room = m.room()
-    console.log((room ? '[' + room.topic() + ']' : '')
-                + '<' + m.from().name() + '>'
-                + ':' + m.toStringDigest(),
+    console.log(
+      (room ? `${room}` : '')
+      + `${m.from()}:${m}`,
     )
 
     if (/^(ding|ping|bing|code)$/i.test(m.content()) && !m.self()) {
@@ -119,11 +119,31 @@ bot.on('error', async e => {
   await bot.stop()
 })
 
+let quiting = false
 finis(async (code, signal) => {
-  const exitMsg = `Wechaty exit ${code} because of ${signal} `
-  console.log(exitMsg)
-  if (bot.logonoff()) {
-    await bot.say(exitMsg).catch(console.error)
+  if (quiting) {
+    log.warn('Bot', 'finis(%s, %s) called when quiting... just wait...', code, signal)
+    return
   }
-  process.exit(code)
+  quiting = true
+  log.info('Bot', 'finis(%s, %s)', code, signal)
+  const exitMsg = `Wechaty will exit ${code} because of ${signal} `
+  if (bot.logonoff()) {
+    log.info('Bot', 'finis() stoping bot')
+    await bot.say(exitMsg).catch(console.error)
+  } else {
+    log.info('Bot', 'finis() bot had been already stopped')
+  }
+  setTimeout(async () => {
+    log.info('Bot', 'finis() setTimeout() going to exit with %d', code)
+    try {
+      if (bot.logonoff()) {
+        await bot.stop()
+      }
+    } catch (e) {
+      log.error('Bot', 'finis() setTimeout() exception: %s', e)
+    } finally {
+      process.exit(code)
+    }
+  }, 3 * 1000)
 })
