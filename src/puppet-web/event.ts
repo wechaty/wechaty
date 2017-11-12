@@ -127,8 +127,8 @@ async function onLogin(this: PuppetWeb, memo: string, ttl = 30): Promise<void> {
 
     if (!this.userId) {
       log.verbose('PuppetWebEvent', 'onLogin() browser not fully loaded(ttl=%d), retry later', ttl)
-      const html = this.bridge.innerHTML()
-      log.silly('PuppetWebEvent', 'onLogin() innerHTML: %s', html)
+      const html = await this.bridge.innerHTML()
+      log.silly('PuppetWebEvent', 'onLogin() innerHTML: %s', html.substr(0, 500))
       setTimeout(onLogin.bind(this, memo, ttl - 1), TTL_WAIT_MILLISECONDS)
       return
     }
