@@ -165,12 +165,13 @@ export class Room extends EventEmitter implements Sayable {
 
         if (currNum) {
           if (prevNum === currNum) {
+            log.verbose('Room', `ready() contactGetter(${this.id}) done at ttl:%d`, ttl)
             break
           }
           this.rawObj = roomRawObj
         }
 
-        log.verbose('Room', `ready() contactGetter(${this.id}) retry at ttl:%d`, ttl)
+        log.silly('Room', `ready() contactGetter(${this.id}) retry at ttl:%d`, ttl)
         await new Promise(r => setTimeout(r, 1000)) // wait for 1 second
       }
 
@@ -527,7 +528,7 @@ export class Room extends EventEmitter implements Sayable {
    * })
    */
   public topic(newTopic?: string): string | void {
-    log.verbose('Room', 'topic(%s)', newTopic)
+    log.verbose('Room', 'topic(%s)', newTopic ? newTopic : '')
     if (!this.isReady()) {
       log.warn('Room', 'topic() room not ready')
     }

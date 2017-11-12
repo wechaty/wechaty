@@ -465,10 +465,14 @@ export class Wechaty extends EventEmitter implements Sayable {
   public async stop(): Promise<void> {
     log.verbose('Wechaty', 'stop()')
 
-    if (this.state.off() === 'pending') { // current() !== 'on' || !this.state.stable()) {
-      const err = new Error(`stop() must run on a inited instance.`)
-      log.error('Wechaty', err.message)
-      this.emit('error', err)
+    if (this.state.off()) {
+      if (this.state.off() === 'pending') { // current() !== 'on' || !this.state.stable()) {
+        const err = new Error(`stop() on a pending stop instance.`)
+        log.error('Wechaty', err.message)
+        this.emit('error', err)
+      } else {
+        log.warn('Wechaty', 'stop() on an already stopped instance.')
+      }
       return
     }
     this.state.off('pending')

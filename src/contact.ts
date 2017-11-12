@@ -309,7 +309,7 @@ export class Contact implements Sayable {
    *
    * @param {string} text
    */
-  public async say(text: string)
+  public async say(text: string): Promise<boolean>
 
   /**
    * Send Media File to Contact
@@ -317,7 +317,7 @@ export class Contact implements Sayable {
    * @param {MediaMessage} mediaMessage
    * @memberof Contact
    */
-  public async say(mediaMessage: MediaMessage)
+  public async say(mediaMessage: MediaMessage): Promise<boolean>
 
   /**
    * Send Text or Media File to Contact.
