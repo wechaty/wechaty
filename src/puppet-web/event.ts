@@ -95,12 +95,19 @@ function onLog(data: any): void {
   log.silly('PuppetWebEvent', 'onLog(%s)', data)
 }
 
-async function onLogin(this: PuppetWeb, memo: string, attempt = 0): Promise<void> {
-  log.verbose('PuppetWebEvent', 'onLogin(%s, %d)', memo, attempt)
+async function onLogin(this: PuppetWeb, memo: string, ttl = 30): Promise<void> {
+  log.verbose('PuppetWebEvent', 'onLogin(%s, %d)', memo, ttl)
+
+  const TTL_WAIT_MILLISECONDS = 1 * 1000
+  if (ttl <= 0) {
+    log.verbose('PuppetWebEvent', 'onLogin(%s) TTL expired')
+    this.emit('error', new Error('TTL expired.'))
+    return
+  }
 
   if (this.state.off()) {
     log.verbose('PuppetWebEvent', 'onLogin(%s, %d) state.off()=%s, NOOP',
-                                  memo, attempt, this.state.off())
+                                  memo, ttl, this.state.off())
     return
   }
 
@@ -119,8 +126,8 @@ async function onLogin(this: PuppetWeb, memo: string, attempt = 0): Promise<void
     this.userId = await this.bridge.getUserName()
 
     if (!this.userId) {
-      log.verbose('PuppetWebEvent', 'onLogin: browser not fully loaded(%d), retry later', attempt)
-      setTimeout(onLogin.bind(this, memo, ++attempt), 100)
+      log.verbose('PuppetWebEvent', 'onLogin: browser not fully loaded(ttl=%d), retry later', ttl)
+      setTimeout(onLogin.bind(this, memo, ttl - 1), TTL_WAIT_MILLISECONDS)
       return
     }
 
