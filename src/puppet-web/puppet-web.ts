@@ -725,7 +725,7 @@ export class PuppetWeb extends Puppet {
 
   /**
    * Bot say...
-   * send to `filehelper` for notice / log
+   * send to `self` for notice / log
    */
   public async say(content: string): Promise<boolean> {
     if (!this.logonoff()) {
@@ -737,11 +737,18 @@ export class PuppetWeb extends Puppet {
       return false
     }
 
-    const m = new Message()
-    m.to('filehelper')
-    m.content(content)
+    if (!this.user) {
+      log.warn('PuppetWeb', 'say(%s) can not say because no user', content)
+      this.emit('error', new Error('no this.user for PuppetWeb'))
+      return false
+    }
 
-    return await this.send(m)
+    // const m = new Message()
+    // m.to('filehelper')
+    // m.content(content)
+
+    // return await this.send(m)
+    return await this.user.say(content)
   }
 
   /**
