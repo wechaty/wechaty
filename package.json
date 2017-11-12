@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.13.28",
+  "version": "0.13.29",
   "description": "Wechat for Bot(Personal Account)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
