@@ -155,7 +155,7 @@ export class Room extends EventEmitter implements Sayable {
         const roomRawObj = await contactGetter(this.id) as RoomRawObj
 
         const currNum = roomRawObj.MemberList && roomRawObj.MemberList.length || 0
-        const prevNum = this.rawObj.MemberList && this.rawObj.MemberList.length || 0
+        const prevNum = this.rawObj && this.rawObj.MemberList && this.rawObj.MemberList.length || 0
 
         log.silly('Room', `ready() contactGetter(%s) MemberList.length:%d at ttl:%d`,
           this.id,
