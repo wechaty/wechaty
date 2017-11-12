@@ -536,8 +536,10 @@ export class Contact implements Sayable {
   public async avatar(): Promise<NodeJS.ReadableStream> {
     log.verbose('Contact', 'avatar()')
 
-    if (!this.obj || !this.obj.avatar) {
-      throw new Error('Can not get avatar: not ready')
+    if (!this.obj) {
+      throw new Error('Can not get avatar: no this.obj!')
+    } else if (!this.obj.avatar) {
+      throw new Error('Can not get avatar: no this.obj.avatar!')
     }
 
     try {
@@ -579,7 +581,8 @@ export class Contact implements Sayable {
     //   this.dirtyObj = this.obj
     // }
     this.obj = null
-    return this.ready()
+    await this.ready()
+    return this
   }
 
   /**

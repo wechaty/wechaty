@@ -150,11 +150,32 @@ export class Room extends EventEmitter implements Sayable {
     }
 
     try {
-      const data = await contactGetter(this.id)
-      log.silly('Room', `contactGetter(${this.id}) resolved`)
-      this.rawObj = data
+      let ttl = 7
+      while (ttl--) {
+        const roomRawObj = await contactGetter(this.id) as RoomRawObj
+
+        const currNum = roomRawObj.MemberList && roomRawObj.MemberList.length || 0
+        const prevNum = this.rawObj.MemberList && this.rawObj.MemberList.length || 0
+
+        log.silly('Room', `ready() contactGetter(%s) MemberList.length:%d at ttl:%d`,
+          this.id,
+          currNum,
+          ttl,
+        )
+
+        if (currNum) {
+          if (prevNum === currNum) {
+            break
+          }
+          this.rawObj = roomRawObj
+        }
+
+        log.verbose('Room', `ready() contactGetter(${this.id}) retry at ttl:%d`, ttl)
+        await new Promise(r => setTimeout(r, 1000)) // wait for 1 second
+      }
+
       await this.readyAllMembers(this.rawObj.MemberList || [])
-      this.obj    = this.parse(this.rawObj)
+      this.obj = this.parse(this.rawObj)
       if (!this.obj) {
         throw new Error('no this.obj set after contactGetter')
       }
@@ -506,27 +527,29 @@ export class Room extends EventEmitter implements Sayable {
    * })
    */
   public topic(newTopic?: string): string | void {
+    log.verbose('Room', 'topic(%s)', newTopic)
     if (!this.isReady()) {
       log.warn('Room', 'topic() room not ready')
     }
 
-    if (newTopic) {
-      log.verbose('Room', 'topic(%s)', newTopic)
-      config.puppetInstance()
-            .roomTopic(this, newTopic)
-            .catch(e => {
-              log.warn('Room', 'topic(newTopic=%s) exception: %s',
-                                newTopic, e && e.message || e,
-                      )
-              Raven.captureException(e)
-            })
-      if (!this.obj) {
-        this.obj = <RoomObj>{}
-      }
-      Object.assign(this.obj, { topic: newTopic })
-      return
+    if (typeof newTopic === 'undefined') {
+      return Misc.plainText(this.obj ? this.obj.topic : '')
     }
-    return Misc.plainText(this.obj ? this.obj.topic : '')
+
+    config.puppetInstance()
+          .roomTopic(this, newTopic)
+          .catch(e => {
+            log.warn('Room', 'topic(newTopic=%s) exception: %s',
+                              newTopic, e && e.message || e,
+                    )
+            Raven.captureException(e)
+          })
+
+    if (!this.obj) {
+      this.obj = <RoomObj>{}
+    }
+    this.obj['topic'] = newTopic
+    return
   }
 
   /**
