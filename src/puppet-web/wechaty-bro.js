@@ -234,7 +234,10 @@
     WechatyBro.vars.scanCode = null
     loginScope.code          = null
 
-    return login('scan code 200')
+    // wait a while because the account maybe blocked by tencent,
+    // then there will be a dialog should appear
+    setTimeout(() => login('scan code 200'), 1000)
+    return
   }
 
   function loginState(state) {
