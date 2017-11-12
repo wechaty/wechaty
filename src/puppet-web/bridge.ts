@@ -681,14 +681,19 @@ export class Bridge extends EventEmitter {
     return Misc.unescapeHtml(matches[1])
   }
 
+  public async innerHTML(): Promise<string> {
+    const html = await this.evaluate(() => {
+      return document.body.innerHTML
+    })
+    return html
+  }
+
   /**
    * Throw if there's a blocked message
    */
   public async testBlockedMessage(text?: string): Promise<string | false> {
     if (!text) {
-      text = await this.evaluate(() => {
-        return document.body.innerHTML
-      })
+      text = await this.innerHTML()
     }
     if (!text) {
       throw new Error('testBlockedMessage() no text found!')
