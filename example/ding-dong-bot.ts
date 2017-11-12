@@ -116,7 +116,7 @@ bot.on('error', async e => {
   if (bot.logonoff()) {
     await bot.say('Wechaty error: ' + e.message).catch(console.error)
   }
-  await bot.stop()
+  // await bot.stop()
 })
 
 let quiting = false
