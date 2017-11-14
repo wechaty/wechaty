@@ -113,7 +113,7 @@
     "@types/fluent-ffmpeg": "^2.1.0",
     "@types/glob": "^5.0.0p",
     "@types/mime": "^2.0.0",
-    "@types/puppeteer": "^0.12.0",
+    "@types/puppeteer": "^0.13.0",
     "@types/raven": "^2.1.0",
     "@types/read-pkg-up": "^2.0.0",
     "@types/request": "^2.0.0",
