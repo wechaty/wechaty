@@ -124,7 +124,7 @@
     "babel-eslint": "^8.0.0",
     "babel-preset-env": "^1.6.0",
     "blue-tape": "^1.0.0",
-    "check-node-version": "^2.1.0",
+    "check-node-version": "^3.0.0",
     "cookie-parser": "^1.4.0",
     "coveralls": "^3.0.0",
     "cross-env": "^5.0.0",
