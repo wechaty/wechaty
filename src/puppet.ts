@@ -110,14 +110,24 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   public abstract self() : Contact
 
+  /**
+   * Message
+   */
   public abstract forward(message: MediaMessage, contact: Contact | Room) : Promise<boolean>
   public abstract say(content: string)                                    : Promise<boolean>
   public abstract send(message: Message | MediaMessage)                   : Promise<boolean>
 
+  /**
+   * Login / Logout
+   */
+  public abstract logonoff()             : boolean
   public abstract reset(reason?: string) : void
   public abstract logout()               : Promise<void>
   public abstract quit()                 : Promise<void>
 
+  /**
+   * Misc
+   */
   public abstract ding() : Promise<string>
 
   /**

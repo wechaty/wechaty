@@ -32,6 +32,7 @@ import {
   Raven,
   Sayable,
   log,
+  VERSION,
 }                     from './config'
 
 import Contact        from './contact'
@@ -136,7 +137,7 @@ export class Wechaty extends EventEmitter implements Sayable {
     super()
     log.verbose('Wechaty', 'contructor()')
 
-    options.puppet  = options.puppet  || config.puppet
+    options.puppet  = options.puppet || config.puppet
 
     this.profile = new Profile(options.profile)
 
@@ -149,28 +150,28 @@ export class Wechaty extends EventEmitter implements Sayable {
   public toString() { return `Wechaty<${this.options.puppet}, ${this.profile.name}>`}
 
   /**
-   * Return version of Wechaty
-   *
-   * @param {boolean} [forceNpm=false]  - if set to true, will only return the version in package.json.
-   *                                      otherwise will return git commit hash if .git exists.
-   * @returns {string}                  - the version number
-   * @example
-   * console.log(Wechaty.instance().version())       // return '#git[af39df]'
-   * console.log(Wechaty.instance().version(true))   // return '0.7.9'
+   * @private
    */
   public static version(forceNpm = false): string {
     if (!forceNpm) {
-      const revision = config.gitVersion()
+      const revision = config.gitRevision()
       if (revision) {
         return `#git[${revision}]`
       }
     }
-    return config.npmVersion()
+    return VERSION
   }
 
-  /**
-   * @private
-   */
+ /**
+  * Return version of Wechaty
+  *
+  * @param {boolean} [forceNpm=false]  - if set to true, will only return the version in package.json.
+  *                                      otherwise will return git commit hash if .git exists.
+  * @returns {string}                  - the version number
+  * @example
+  * console.log(Wechaty.instance().version())       // return '#git[af39df]'
+  * console.log(Wechaty.instance().version(true))   // return '0.7.9'
+  */
   public version(forceNpm?) {
     return Wechaty.version(forceNpm)
   }
@@ -464,10 +465,14 @@ export class Wechaty extends EventEmitter implements Sayable {
   public async stop(): Promise<void> {
     log.verbose('Wechaty', 'stop()')
 
-    if (this.state.off() === 'pending') { // current() !== 'on' || !this.state.stable()) {
-      const err = new Error(`stop() must run on a inited instance.`)
-      log.error('Wechaty', err.message)
-      this.emit('error', err)
+    if (this.state.off()) {
+      if (this.state.off() === 'pending') { // current() !== 'on' || !this.state.stable()) {
+        const err = new Error(`stop() on a pending stop instance.`)
+        log.error('Wechaty', err.message)
+        this.emit('error', err)
+      } else {
+        log.warn('Wechaty', 'stop() on an already stopped instance.')
+      }
       return
     }
     this.state.off('pending')
@@ -521,6 +526,24 @@ export class Wechaty extends EventEmitter implements Sayable {
       throw e
     }
     return
+  }
+
+  /**
+   * Get the logon / logoff state
+   *
+   * @returns {boolean}
+   * @example
+   * if (bot.logonoff()) {
+   *   console.log('Bot logined')
+   * } else {
+   *   console.log('Bot not logined')
+   * }
+   */
+  public logonoff(): Boolean {
+    if (!this.puppet) {
+      return false
+    }
+    return this.puppet.logonoff()
   }
 
   /**

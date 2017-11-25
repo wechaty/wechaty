@@ -2,6 +2,7 @@ export {
   config,
   log,
   Sayable,
+  VERSION,
 }                     from './src/config'
 export { Contact }    from './src/contact'
 
@@ -23,8 +24,6 @@ export { Puppet }     from './src/puppet'
 export { PuppetWeb }  from './src/puppet-web/'
 export { Room }       from './src/room'
 export { Misc }       from './src/misc'
-
-export const VERSION = require('./package.json').version
 
 import Wechaty from './src/wechaty'
 export { Wechaty }

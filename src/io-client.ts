@@ -47,7 +47,7 @@ export class IoClient {
   ) {
     log.verbose('IoClient', 'constructor({ token = %s})', options.token)
 
-    options.token   = options.token   || config.token || config.DEFAULT_TOKEN,
+    options.token   = options.token   || config.token || config.default.DEFAULT_TOKEN
     options.wechaty = options.wechaty || Wechaty.instance({ profile: this.options.token })
 
     this.io = new Io({

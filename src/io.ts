@@ -70,7 +70,7 @@ export class Io {
     private options: IoOptions,
   ) {
     options.apihost   = options.apihost   || config.apihost
-    options.protocol  = options.protocol  || config.DEFAULT_PROTOCOL
+    options.protocol  = options.protocol  || config.default.DEFAULT_PROTOCOL
 
     this.uuid = options.wechaty.uuid
 
@@ -253,12 +253,17 @@ export class Io {
         const payload = ioEvent.payload
         if (payload.onMessage) {
           const script = payload.script
-          /* tslint:disable:no-eval */
-          const fn = eval(script)
-          if (typeof fn === 'function') {
-            this.onMessage = fn
-          } else {
-            log.warn('Io', 'server pushed function is invalid')
+          try {
+            /* tslint:disable:no-eval */
+            const fn = eval(script)
+            if (typeof fn === 'function') {
+              this.onMessage = fn
+            } else {
+              log.warn('Io', 'server pushed function is invalid')
+            }
+          } catch (e) {
+            log.warn('Io', 'server pushed function exception: %s', e)
+            this.options.wechaty.emit('error', e)
           }
         }
         break
@@ -269,7 +274,7 @@ export class Io {
         break
 
       case 'shutdown':
-        log.warn('Io', 'on(shutdown): %s', ioEvent.payload)
+        log.info('Io', 'on(shutdown): %s', ioEvent.payload)
         process.exit(0)
         break
 
@@ -304,7 +309,7 @@ export class Io {
         break
 
       case 'logout':
-        log.warn('Io', 'on(logout): %s', ioEvent.payload)
+        log.info('Io', 'on(logout): %s', ioEvent.payload)
         this.options.wechaty.logout()
         break
 
@@ -421,8 +426,11 @@ export class Io {
    * Prepare to be overwriten by server setting
    *
    */
-  private ioMessage(m) {
+  private async ioMessage(m): Promise<void> {
     log.silly('Io', 'ioMessage() is a nop function before be overwriten from cloud')
+    if (typeof this.onMessage === 'function') {
+      await this.onMessage(m)
+    }
   }
 
 }
