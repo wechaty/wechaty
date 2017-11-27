@@ -149,7 +149,7 @@ export class IoClient {
     //         )
 
     if (/^wechaty|chatie|botie/i.test(m.content()) && !m.self()) {
-      m.say('https://www.wechaty.io')
+      m.say('https://www.chatie.io')
         .then(_ => log.info('Bot', 'REPLIED to magic word "chatie"'))
     }
   }
