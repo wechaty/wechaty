@@ -175,7 +175,7 @@ export class Room extends EventEmitter implements Sayable {
         await new Promise(r => setTimeout(r, 1000)) // wait for 1 second
       }
 
-      await this.readyAllMembers(this.rawObj.MemberList || [])
+      await this.readyAllMembers(this.rawObj && this.rawObj.MemberList || [])
       this.obj = this.parse(this.rawObj)
       if (!this.obj) {
         throw new Error('no this.obj set after contactGetter')
