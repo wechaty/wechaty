@@ -50,7 +50,7 @@ import {
  * http://www.tuling123.com
  *
  */
-const TULING123_API_KEY = '18f25157e0446df58ade098479f74b21'
+const TULING123_API_KEY = '43886559309a4dc8abce3f65edb92c56'
 const tuling = new Tuling123(TULING123_API_KEY)
 
 const bot = Wechaty.instance({ profile: config.default.DEFAULT_PROFILE })
@@ -82,12 +82,14 @@ bot
   log.info('Bot', 'talk: %s'  , msg)
 
   try {
-    const reply = tuling.ask(msg.content(), {userid: msg.from()})
-    log.info('Tuling123', 'Talker reply:"%s" for "%s" ',
-                          reply,
-                          msg.content(),
-            )
-    msg.say(reply)
+    // const reply = tuling.ask(msg.content(), {userid: msg.from()})
+    tuling.ask(msg.content(), {userid: msg.from()}).then(data => {
+      log.info('Tuling123', 'Talker reply:"%s" for "%s" ',
+        data.text,
+        msg.content(),
+      )
+      msg.say(data.text)
+    })
   } catch (e) {
     log.error('Bot', 'on message tuling.ask() exception: %s' , e && e.message || e)
   }
