@@ -197,6 +197,10 @@ Howto [contribute](https://github.com/chatie/wechaty/blob/master/CONTRIBUTING.md
 
 Contributions in any form are highly encouraged and welcome! Be it new or improved presets, optimized streaming code or just some cleanup. So start forking!
 
+## Contributors List
+
+https://github.com/Chatie/wechaty/wiki/Contributors
+
 ## Code Contributions
 
 If you want to add new features or change the API, please submit an issue first to make sure no one else is already working on the same thing and discuss the implementation and API details with maintainers and users by creating an issue. When everything is settled down, you can submit a pull request.
@@ -208,17 +212,6 @@ Make sure to add tests for your features and bugfixes and update the documentati
 ## Documentation Contributions
 
 You can directly submit pull requests for documentation changes.
-
-## Main Contributors
-
-* [cherry-geqi](https://github.com/cherry-geqi)
-* [Gcaufy](https://github.com/Gcaufy)
-* [JasLin](https://github.com/JasLin)
-* [lijiarui](https://github.com/lijiarui)
-* [mukaiu](https://github.com/mukaiu)
-* [xinbenlv](https://github.com/xinbenlv)
-
-See more at <https://github.com/Chatie/wechaty/graphs/contributors>
 
 ## Join Us
 

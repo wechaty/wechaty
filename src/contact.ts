@@ -147,9 +147,9 @@ export class Contact implements Sayable {
    */
   private parse(rawObj: ContactRawObj): ContactObj | null {
     if (!rawObj || !rawObj.UserName) {
-      const e = new Error('parse() got empty rawObj!')
-      log.warn('Contact', e.message)
-      config.puppetInstance().emit('error', e)
+      log.warn('Contact', 'parse() got empty rawObj!')
+      // config.puppetInstance().emit('error', e)
+      return null
     }
 
     return !rawObj ? null : {

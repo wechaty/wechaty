@@ -39,12 +39,12 @@ test('important variables', async t => {
 
 test('validApiHost()', async t => {
   const OK_APIHOSTS = [
-    'api.wechaty.io',
-    'wechaty.io:8080',
+    'api.chatie.io',
+    'chatie.io:8080',
   ]
   const ERR_APIHOSTS = [
-    'https://api.wechaty.io',
-    'wechaty.io/',
+    'https://api.chatie.io',
+    'chatie.io/',
   ]
   OK_APIHOSTS.forEach(apihost => {
     t.doesNotThrow(() => {
