@@ -19,7 +19,7 @@ Wechaty is a Bot Framework for Wechat **Personal** Account which can help you cr
 ## Voice of the Developer
 
 > "Wechaty is a great solution, I believe there would be much more users recognize it." [link](https://github.com/chatie/wechaty/pull/310#issuecomment-285574472)  
-> -- @Gcaufy, Tencent
+> -- @Gcaufy, Tencent Engineer, Author of [WePY](https://github.com/Tencent/wepy)
 
 > "太好用，好用的想哭"  
 > -- @xinbenlv, Google Engineer, Founder of HaoShiYou.org
@@ -28,10 +28,10 @@ Wechaty is a Bot Framework for Wechat **Personal** Account which can help you cr
 > -- @Jarvis, Baidu Engineer
 
 > "Wechaty让运营人员更多的时间思考如何进行活动策划、留存用户，商业变现" [link](http://mp.weixin.qq.com/s/dWHAj8XtiKG-1fIS5Og79g)  
-> -- @lijiarui, Orange Interactive Founder.
+> -- @lijiarui, CEO of BotOrange.
 
 > "If you know js ... try Chatie/wechaty, it's easy to use."  
-> -- @Urinx Uri Lee, WeixinBot(Python) Author
+> -- @Urinx Uri Lee, Author of [WeixinBot(Python)](https://github.com/Urinx/WeixinBot)
 
 See more at [Wiki:VoiceOfDeveloper](https://github.com/Chatie/wechaty/wiki/VoiceOfDeveloper)
 
