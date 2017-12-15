@@ -82,7 +82,7 @@ bot
   log.info('Bot', 'talk: %s'  , msg)
 
   try {
-    const reply = tuling.ask(msg.content(), {userid: msg.from()})
+    const {text: reply} = await tuling.ask(msg.content(), {userid: msg.from()})
     log.info('Tuling123', 'Talker reply:"%s" for "%s" ',
                           reply,
                           msg.content(),
