@@ -44,7 +44,7 @@ Wechaty.instance() // Singleton
 .on('scan', (url, code) => console.log(`Scan QR Code to login: ${code}\n${url}`))
 .on('login',       user => console.log(`User ${user} logined`))
 .on('message',  message => console.log(`Message: ${message}`))
-.init()
+.start()
 ```
 > **Notice: Wechaty requires Node.js version >= 6.9.0**
 
