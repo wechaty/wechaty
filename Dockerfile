@@ -33,7 +33,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && rm -rf /tmp/* /var/lib/apt/lists/*
   
 # Set timezone for container
-RUN echo $TZ > /etc/timezone && \ rm /etc/localtime && \
+RUN echo $TZ > /etc/timezone && \ 
+    rm /etc/localtime && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
     dpkg-reconfigure -f noninteractive tzdata
 
