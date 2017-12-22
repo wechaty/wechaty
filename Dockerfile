@@ -2,6 +2,7 @@ FROM ubuntu:17.10
 LABEL maintainer="Huan LI <zixia@zixia.net>"
 
 ENV DEBIAN_FRONTEND     noninteractive
+ENV TZ                  Etc/UTC
 ENV WECHATY_DOCKER      1
 ENV LC_ALL              C.UTF-8
 ENV NODE_ENV            $NODE_ENV
@@ -30,6 +31,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
   && apt-get purge --auto-remove \
   && rm -rf /tmp/* /var/lib/apt/lists/*
+  
+# Set timezone for container
+RUN echo $TZ > /etc/timezone && \ 
+    rm /etc/localtime && \
+    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
+    dpkg-reconfigure -f noninteractive tzdata
 
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
     && apt-get update && apt-get install -y --no-install-recommends nodejs \
