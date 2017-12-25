@@ -113,6 +113,7 @@ const bot = Wechaty.instance()
 console.log(bot.version())
 _EOF_
 
+$ npm init
 $ node mybot.js
 ```
 
