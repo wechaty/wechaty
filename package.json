@@ -115,7 +115,7 @@
     "@types/mime": "^2.0.0",
     "@types/puppeteer": "^0.13.0",
     "@types/raven": "^2.1.0",
-    "@types/read-pkg-up": "^2.0.0",
+    "@types/read-pkg-up": "^3.0.0",
     "@types/request": "^2.0.0",
     "@types/sinon": "^4.0.0",
     "@types/xml2js": "^0.4.0",
