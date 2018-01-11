@@ -188,7 +188,7 @@ test('other demos', async t => {
       console.log('load:args:', args)
     })
 
-    await page.setRequestInterception(true)
+    // await page.setRequestInterception(true)
     page.on('request', interceptedRequest => {
       if (interceptedRequest.url.endsWith('.png')
         || interceptedRequest.url.endsWith('.jpg')
