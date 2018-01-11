@@ -38,7 +38,6 @@
   "no-empty-interface": true,
   "no-string-throw": true,
   "prefer-const": true,
-  "typeof-compare": true,
   "unified-signatures": false,
   "no-inferrable-types": [true, "ignore-params"],
     "member-access": true,
