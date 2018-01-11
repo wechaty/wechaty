@@ -21,6 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     jq \
     libav-tools \
+    libgconf-2-4 \
     moreutils \
     shellcheck \
     sudo \
@@ -48,20 +49,10 @@ RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key
     && rm -rf /tmp/* /var/lib/apt/lists/* \
     && rm -rf /usr/bin/google-chrome* /opt/google/chrome-unstable
 
-# Add chatie user.
-RUN groupadd -r bot && useradd -r -m -G audio,video,sudo -g bot -d /bot bot \
-    && mkdir -p /bot/Downloads \
-    && chown -R bot:bot /bot \
-    && echo "bot ALL=NOPASSWD:ALL" >> /etc/sudoers
-
 RUN mkdir /wechaty \
-    && chown -R bot:bot /wechaty \
     && mkdir /node_modules
 
 WORKDIR /wechaty
-
-# Run user as non privileged.
-USER bot
 
 COPY package.json .
 RUN npm install \
@@ -73,7 +64,8 @@ RUN npm run test \
 
 # Loading from node_modules Folders: https://nodejs.org/api/modules.html
 # If it is not found there, then it moves to the parent directory, and so on, until the root of the file system is reached.
-RUN sudo npm link \
+RUN sudo mkdir /bot \
+    && npm link \
     && sudo ln -s /wechaty /node_modules/wechaty \
     && sudo ln -s /wechaty/node_modules/* /node_modules/ \
     && sudo ln -s /wechaty/node_modules/.bin/* /usr/local/bin/ \
