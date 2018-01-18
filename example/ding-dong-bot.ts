@@ -36,7 +36,7 @@ import {
 
 const BOT_QR_CODE_IMAGE_FILE = path.join(
   __dirname,
-  '../docs/images/bot-qr-code.png',
+  '../docs/images/apple.png',
 )
 
 const welcome = `
@@ -87,7 +87,7 @@ bot
     )
 
     if (/^(ding|ping|bing|code)$/i.test(m.content()) && !m.self()) {
-      m.say('dong')
+      m.say('PONG!')
       log.info('Bot', 'REPLY: dong')
 
       const joinWechaty =  `Join Wechaty Developers' Community\n\n` +
@@ -96,7 +96,7 @@ bot
                             `you can join our Wechaty Developers' Home at once`
       await m.say(joinWechaty)
       await m.say(new MediaMessage(BOT_QR_CODE_IMAGE_FILE))
-      await m.say('Scan now, because other Wechaty developers want to talk with you too!\n\n(secret code: wechaty)')
+      await m.say('PSSSST: WHAT IS THIS?')
       log.info('Bot', 'REPLY: Image')
     }
   } catch (e) {
