@@ -93,9 +93,9 @@ bot
   }
 })
 
-bot.init()
+bot.start()
 .catch(e => {
-  log.error('Bot', 'init() fail:' + e)
-  bot.quit()
+  log.error('Bot', 'start() fail:' + e)
+  bot.stop()
   process.exit(-1)
 })
