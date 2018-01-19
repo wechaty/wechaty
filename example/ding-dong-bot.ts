@@ -38,6 +38,7 @@ const BOT_QR_CODE_IMAGE_FILE = path.join(
   __dirname,
   '../docs/images/apple.png',
 )
+var count = 0
 
 const welcome = `
 | __        __        _           _
@@ -86,18 +87,28 @@ bot
       + `${m.from()}:${m}`,
     )
 
-    if (/^(ding|ping|bing|code)$/i.test(m.content()) && !m.self()) {
-      m.say('PONG!')
-      log.info('Bot', 'REPLY: dong')
+    if (/^(play)$/i.test(m.content()) && !m.self()) {
+      await m.say('Starting Game!')
+      log.info('Bot', 'REPLY: Starting Game!')
+     
+      const playGame =  `Let's Review Today!\n\n` +
+                            `What is the following picture?`
 
-      const joinWechaty =  `Join Wechaty Developers' Community\n\n` +
-                            `Wechaty is used in many ChatBot projects by hundreds of developers.\n\n` +
-                            `If you want to talk with other developers, just scan the following QR Code in WeChat with secret code: wechaty,\n\n` +
-                            `you can join our Wechaty Developers' Home at once`
-      await m.say(joinWechaty)
+      m.say(playGame)
       await m.say(new MediaMessage(BOT_QR_CODE_IMAGE_FILE))
-      await m.say('PSSSST: WHAT IS THIS?')
+      //await m.say('PSSSST: WHAT IS THIS?')
       log.info('Bot', 'REPLY: Image')
+      // Don't forget to add && !m.self()
+      if (/^(apple|Apple)$/i.test(m.content())) {
+        m.say('Incorrect! Please try again.')
+        log.info('Bot', 'REPLY: Starting Game!')
+        log.info(m.content())
+      } else {
+        m.say('Correct. Say "play" to play again.')
+      }
+
+      log.info('Bot', 'REPLY: Starting Game!')
+
     }
   } catch (e) {
     log.error('Bot', 'on(message) exception: %s' , e)
