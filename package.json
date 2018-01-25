@@ -31,7 +31,7 @@
     "test:linux": "npm run pretest && parallel ts-node -- ./src/**/*.spec.ts ./test/**/*.spec.ts && npm run posttest",
     "test:pack": "npm run dist && export TMPDIR=/tmp/wechaty.$$ && npm pack && mkdir $TMPDIR && mv wechaty-*.*.*.tgz $TMPDIR && cp test/fixture/smoke-testing.js $TMPDIR && cd $TMPDIR && npm init -y && npm i wechaty-*.*.*.tgz && node smoke-testing.js",
     "test:shell": "shellcheck bin/*.sh",
-    "test:unit": "blue-tape -r ts-node/register -r source-map-support/register \"src/**/*.spec.ts\" \"tests/**/*.spec.ts\"",
+    "test:unit": "blue-tape -r ts-node/register -r source-map-support/register \"src/**/*.spec.ts\" \"src/*.spec.ts\" \"test/*.spec.ts\" \"tests/**/*.spec.ts\"",
     "test:win32": "npm run test:unit",
     "io-client": "ts-node bin/io-client",
     "demo": "ts-node example/ding-dong-bot.ts",

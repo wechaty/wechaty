@@ -119,7 +119,7 @@ test('page.on(console)', async t => {
   const spy = sinon.spy()
 
   page.on('console', spy)
-  await (page.evaluate as any)((...args) => {
+  await page.evaluate((...args) => {
     console.log.apply(console, args)
   }, EXPECTED_ARG1, EXPECTED_ARG2) // , EXPECTED_ARG3)
 
@@ -129,8 +129,8 @@ test('page.on(console)', async t => {
   t.ok(spy.calledOnce, 'should be called once')
 
   const consoleMessage = spy.firstCall.args[0]
-  t.equal(consoleMessage['type'], 'log', 'should get log type')
-  t.equal(consoleMessage['text'], EXPECTED_ARG1 + ' ' + EXPECTED_ARG2, 'should get console.log 1st/2nd arg')
+  t.equal(consoleMessage.type(), 'log', 'should get log type')
+  t.equal(consoleMessage.text(), EXPECTED_ARG1 + ' ' + EXPECTED_ARG2, 'should get console.log 1st/2nd arg')
 
   await page.close()
   await browser.close()
@@ -190,8 +190,8 @@ test('other demos', async t => {
 
     // await page.setRequestInterception(true)
     page.on('request', interceptedRequest => {
-      if (interceptedRequest.url.endsWith('.png')
-        || interceptedRequest.url.endsWith('.jpg')
+      if (interceptedRequest.url().endsWith('.png')
+        || interceptedRequest.url().endsWith('.jpg')
       ) {
         interceptedRequest.abort()
       } else {
