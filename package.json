@@ -21,7 +21,7 @@
     "changelog": "github_changelog_generator -u chatie -p wechaty && sed -i'.bak' /greenkeeper/d CHANGELOG.md && sed -i'.bak' '/An in-range update of/d' CHANGELOG.md && ts-node script/sort-contributiveness.ts < CHANGELOG.md > CHANGELOG.new.md 2>/dev/null && cat CHANGELOG.md >> CHANGELOG.new.md && mv CHANGELOG.new.md CHANGELOG.md",
     "doctor": "npm run check-node-version && ts-node bin/doctor",
     "clean": "shx rm -fr dist/*",
-    "check-node-version": "check-node-version --node \">= 7\"",
+    "check-node-version": "check-node-version --node \">= 8.5\"",
     "lint": "npm run check-node-version && npm run lint:ts && npm run lint:es && npm run lint:sh",
     "lint:es": "eslint \"{bin,example,src,test}/**/*.js\" --ignore-pattern=\"test/fixture/**\"",
     "lint:ts": "npm run clean && echo tslint v`tslint --version` && tslint --project tsconfig.json \"{bin,example,src,test}/**/*.ts\" --exclude \"test/fixture/**\" --exclude \"dist/\" && tsc --noEmit",
@@ -86,7 +86,7 @@
     }
   },
   "engines": {
-    "node": ">= 7"
+    "node": ">= 8.5"
   },
   "dependencies": {
     "@types/node": "^9.3.0",
