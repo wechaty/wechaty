@@ -196,8 +196,8 @@ export class Io {
 
     ws.on('open',     () => this.wsOnOpen(ws))
     ws.on('message',  data => this.wsOnMessage(data))
-    ws.on('error',    e => this.wsOnError(e))
-    ws.on('close',    (code, message) => this.wsOnClose(ws, code, message))
+    ws.on('error',    e => this.wsOnError(e.error))
+    ws.on('close',    (code, reason) => this.wsOnClose(ws, code, reason))
 
     return ws
   }
