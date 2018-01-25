@@ -105,6 +105,7 @@ $ docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.ts # for TypeSc
 [![Greenkeeper badge](https://badges.greenkeeper.io/Chatie/wechaty.svg)](https://greenkeeper.io/)
 
 ```shell
+$ npm init
 $ npm install wechaty
 
 $ cat > mybot.js <<'_EOF_'

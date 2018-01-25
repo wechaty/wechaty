@@ -143,7 +143,7 @@ function wechaty::runBot() {
     *.ts)
       # yarn add @types/node
       echo "Executing ts-node $*"
-      ts-node "$@" &
+      ts-node --type-check "$@" &
       ;;
     *)
       echo "ERROR: wechaty::runBot() neith .js nor .ts"
