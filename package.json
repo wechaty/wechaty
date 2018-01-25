@@ -140,7 +140,7 @@
     "sinon": "^4.2.0",
     "sinon-test": "^2.1.2",
     "sloc": "^0.2.0",
-    "ts-node": "^4.0.0",
+    "ts-node": "^4.1.0",
     "tslint": "^5.9.0",
     "tslint-jsdoc-rules": "^0.1.0",
     "tuling123-client": "^0.0.1",
