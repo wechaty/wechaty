@@ -95,7 +95,7 @@ bot
       const playGame =  `Let's Review Today!\n\n` +
                             `What is the following picture?`
 
-      m.say(playGame)
+      await m.say(playGame)
       await m.say(new MediaMessage(BOT_QR_CODE_IMAGE_FILE))
       //await m.say('PSSSST: WHAT IS THIS?')
       log.info('Bot', 'REPLY: Image')
@@ -105,11 +105,11 @@ bot
       bot.on('message',async play(n)=>{
         if(/^(play)$/.test(n.content()) || n.self()) return
         if (/^(apple|Apple)$/i.test(m.content())) {
-          m.say('Incorrect! Please try again.')
+         await m.say('Incorrect! Please try again.')
           log.info('Bot', 'REPLY: Starting Game!')
           log.info(m.content())
         } else {
-          m.say('Correct. Say "play" to play again.')
+          await m.say('Correct. Say "play" to play again.')
         }
         bot.removeListener('message',play)
         num--
