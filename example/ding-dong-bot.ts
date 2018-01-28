@@ -65,6 +65,7 @@ Please wait... I'm trying to login in...
 
 console.log(welcome)
 const bot = Wechaty.instance({ profile: config.default.DEFAULT_PROFILE })
+const num = 0
 
 bot
 .on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
@@ -99,13 +100,21 @@ bot
       //await m.say('PSSSST: WHAT IS THIS?')
       log.info('Bot', 'REPLY: Image')
       // Don't forget to add && !m.self()
-      if (/^(apple|Apple)$/i.test(m.content())) {
-        m.say('Incorrect! Please try again.')
-        log.info('Bot', 'REPLY: Starting Game!')
-        log.info(m.content())
-      } else {
-        m.say('Correct. Say "play" to play again.')
-      }
+      if(num>0) return
+      num++
+      bot.on('message',async play(n)=>{
+        if(/^(play)$/.test(n.content()) || n.self()) return
+        if (/^(apple|Apple)$/i.test(m.content())) {
+          m.say('Incorrect! Please try again.')
+          log.info('Bot', 'REPLY: Starting Game!')
+          log.info(m.content())
+        } else {
+          m.say('Correct. Say "play" to play again.')
+        }
+        bot.removeListener('message',play)
+        num--
+      })
+
 
       log.info('Bot', 'REPLY: Starting Game!')
 
