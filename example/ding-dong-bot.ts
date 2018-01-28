@@ -31,6 +31,7 @@ import {
   config,
   Wechaty,
   log,
+  Message,
   MediaMessage,
 }               from '../index'
 
@@ -102,7 +103,7 @@ bot
       // Don't forget to add && !m.self()
       if(num>0) return
       num++
-      bot.on('message',async play(n)=>{
+      bot.on('message',async play(n:Message)=>{
         if(/^(play)$/.test(n.content()) || n.self()) return
         if (/^(apple|Apple)$/i.test(m.content())) {
          await m.say('Incorrect! Please try again.')
