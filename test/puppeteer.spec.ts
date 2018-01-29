@@ -204,8 +204,8 @@ test('other demos', async t => {
     })
 
     page.on('response', (res, ...args) => {
-      console.log('response:res:', res)
-      console.log('response:args:', args)
+      // console.log('response:res:', res)
+      // console.log('response:args:', args)
     })
 
     // page.click(selector[, options])
