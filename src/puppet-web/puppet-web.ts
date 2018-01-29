@@ -233,6 +233,7 @@ export class PuppetWeb extends Puppet {
 
     log.verbose('PuppetWeb', 'quit() make watchdog sleep before do quit')
     this.puppetWatchdog.sleep()
+    this.scanWatchdog.sleep()
 
     this.state.off('pending')
 
