@@ -89,7 +89,7 @@
     "node": ">= 8.5"
   },
   "dependencies": {
-    "@types/node": "^9.3.0",
+    "@types/node": "^9.4.0",
     "@types/ws": "^4.0.0",
     "bl": "^1.2.0",
     "brolog": "^1.2.0",
