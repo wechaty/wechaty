@@ -938,7 +938,7 @@ export class MediaMessage extends Message {
    * The types of messages that can be forwarded are as follows:
    *
    * The return value of {@link Message#type} matches one of the following types:
-   * ```json
+   * ```
    * MsgType {
    *   TEXT                = 1,
    *   IMAGE               = 3,
@@ -951,7 +951,7 @@ export class MediaMessage extends Message {
    * ```
    *
    * When the return value of {@link Message#type} is `MsgType.APP`, the return value of {@link Message#typeApp} matches one of the following types:
-   * ```json
+   * ```
    * AppMsgType {
    *   TEXT                     = 1,
    *   IMG                      = 2,
