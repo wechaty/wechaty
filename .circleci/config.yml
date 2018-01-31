@@ -28,7 +28,7 @@ jobs:
             ./script/docker.sh build
       - run:
           name: Testing
-          command: ./script/safe-test.sh
+          command: ./script/docker.sh test
       - deploy:
           name: Deploy Wechaty Image to Docker Hub
           command: |

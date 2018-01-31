@@ -259,7 +259,8 @@ function main() {
       ;;
 
     test)
-      WECHATY_LOG=silent npm run test:unit
+      # WECHATY_LOG=silent npm run test:unit
+      WECHATY_LOG=silent ./script/safe-test.sh
       ;;
 
     #
