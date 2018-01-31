@@ -28,13 +28,7 @@ jobs:
             ./script/docker.sh build
       - run:
           name: Testing
-          command: |
-            n=0
-            ./script/docker.sh test
-            while ((n < 3 && $? > 0)); do
-              ((n++))
-              ./script/docker.sh test
-            done
+          command: ./script/safe-test.sh
       - deploy:
           name: Deploy Wechaty Image to Docker Hub
           command: |
