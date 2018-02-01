@@ -35,8 +35,8 @@ function wechaty::errorBotNotFound() {
       
     2. Are you sure your .js/.ts files aren't .js.txt/.ts.txt?
     
-       this could be a problem on new Windows installs (file 
-       extensions hidden by default).
+      this could be a problem on new Windows installs (file 
+      extensions hidden by default).
 
     if you still have issue, please have a look at
       https://github.com/chatie/wechaty/issues/66
