@@ -6,8 +6,7 @@ ONBUILD ENV NODE_ENV $NODE_ENV
 ONBUILD WORKDIR /bot
 
 ONBUILD COPY package.json .
-ONBUILD RUN sudo chown bot package.json \
-    && jq 'del(.dependencies.wechaty)' package.json | sponge package.json \
+ONBUILD RUN jq 'del(.dependencies.wechaty)' package.json | sponge package.json \
     && npm install \
     && sudo rm -fr /tmp/* ~/.npm
 ONBUILD COPY . .
