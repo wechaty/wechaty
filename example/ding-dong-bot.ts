@@ -16,11 +16,11 @@
  *   limitations under the License.
  *
  */
-import * as path      from 'path'
+import * as path from 'path'
 
 /* tslint:disable:variable-name */
-const QrcodeTerminal  = require('qrcode-terminal')
-const finis           = require('finis')
+const QrcodeTerminal = require('qrcode-terminal')
+const finis = require('finis')
 
 /**
  * Change `import { ... } from '../'`
@@ -31,13 +31,15 @@ import {
   config,
   Wechaty,
   log,
+  Message,
   MediaMessage,
-}               from '../index'
+} from '../index'
 
 const BOT_QR_CODE_IMAGE_FILE = path.join(
   __dirname,
-  '../docs/images/bot-qr-code.png',
+  '../docs/images/apple.png',
 )
+let play = false
 
 const welcome = `
 | __        __        _           _
@@ -66,55 +68,69 @@ console.log(welcome)
 const bot = Wechaty.instance({ profile: config.default.DEFAULT_PROFILE })
 
 bot
-.on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
-.on('login'	  , user => {
-  log.info('Bot', `${user.name()} login`)
-  bot.say('Wechaty login').catch(console.error)
-})
-.on('scan', (url, code) => {
-  if (!/201|200/.test(String(code))) {
-    const loginUrl = url.replace(/\/qrcode\//, '/l/')
-    QrcodeTerminal.generate(loginUrl)
-  }
-  console.log(`${url}\n[${code}] Scan QR Code above url to log in: `)
-})
-.on('message', async m => {
-  try {
-    const room = m.room()
-    console.log(
-      (room ? `${room}` : '')
-      + `${m.from()}:${m}`,
-    )
-
-    if (/^(ding|ping|bing|code)$/i.test(m.content()) && !m.self()) {
-      m.say('dong')
-      log.info('Bot', 'REPLY: dong')
-
-      const joinWechaty =  `Join Wechaty Developers' Community\n\n` +
-                            `Wechaty is used in many ChatBot projects by hundreds of developers.\n\n` +
-                            `If you want to talk with other developers, just scan the following QR Code in WeChat with secret code: wechaty,\n\n` +
-                            `you can join our Wechaty Developers' Home at once`
-      await m.say(joinWechaty)
-      await m.say(new MediaMessage(BOT_QR_CODE_IMAGE_FILE))
-      await m.say('Scan now, because other Wechaty developers want to talk with you too!\n\n(secret code: wechaty)')
-      log.info('Bot', 'REPLY: Image')
+  .on('logout', user => log.info('Bot', `${user.name()} logouted`))
+  .on('login', user => {
+    log.info('Bot', `${user.name()} login`)
+    bot.say('Wechaty login').catch(log.error)
+  })
+  .on('scan', (url, code) => {
+    if (!/201|200/.test(String(code))) {
+      const loginUrl = url.replace(/\/qrcode\//, '/l/')
+      QrcodeTerminal.generate(loginUrl)
     }
-  } catch (e) {
-    log.error('Bot', 'on(message) exception: %s' , e)
-  }
-})
+    console.log(`${url}\n[${code}] Scan QR Code above url to log in: `)
+  })
+  .on('message', async m => {
+    try {
+      const room = m.room()
+      const content = m.content()
+      log.info(
+        (room ? `${room}` : '')
+        + `${m.from()}:${m}`,
+      )
+      if (m.self()) { return }
+
+      if (/^(play)$/i.test(content)) {
+        await m.say('Starting Game!')
+        // start game
+        play = true
+        log.info('Bot', 'REPLY: Starting Game!')
+
+        const playGame = `Let's Review Today!\n\n` +
+          `What is the following picture?`
+
+        await m.say(playGame)
+        await m.say(new MediaMessage(BOT_QR_CODE_IMAGE_FILE))
+        // await m.say('PSSSST: WHAT IS THIS?')
+        log.info('Bot', 'REPLY: Image')
+        // Don't forget to add && !m.self()
+        log.info('Bot', 'REPLY: Starting Game!')
+      } else if (play) {
+        if (/^(apple|Apple)$/i.test(content)) {
+          m.say('Correct. Say "play" to play again.')
+          log.info('Bot', 'REPLY: Close Game!')
+          // close game
+          play = false
+        } else {
+          m.say('Incorrect! Please try again.')
+        }
+      }
+    } catch (e) {
+      log.error('Bot', 'on(message) exception: %s', e)
+    }
+  })
 
 bot.start()
-.catch(e => {
-  log.error('Bot', 'start() fail: %s', e)
-  bot.stop()
-  process.exit(-1)
-})
+  .catch(e => {
+    log.error('Bot', 'start() fail: %s', e)
+    bot.stop()
+    process.exit(-1)
+  })
 
 bot.on('error', async e => {
   log.error('Bot', 'error: %s', e)
   if (bot.logonoff()) {
-    await bot.say('Wechaty error: ' + e.message).catch(console.error)
+    await bot.say('Wechaty error: ' + e.message).catch(log.error)
   }
   // await bot.stop()
 })
@@ -130,7 +146,7 @@ finis(async (code, signal) => {
   const exitMsg = `Wechaty will exit ${code} because of ${signal} `
   if (bot.logonoff()) {
     log.info('Bot', 'finis() stoping bot')
-    await bot.say(exitMsg).catch(console.error)
+    await bot.say(exitMsg).catch(log.error)
   } else {
     log.info('Bot', 'finis() bot had been already stopped')
   }
