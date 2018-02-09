@@ -129,15 +129,15 @@ test('Room smoking test', async t => {
   const alias1 = r.alias(contact1)
   t.is(alias1, EXPECTED.memberNick1, 'should get roomAlias')
 
-  const name1 = r.alias(contact1)
-  t.is(name1, EXPECTED.memberNick1, 'should get roomAlias')
+  // const name1 = r.alias(contact1)
+  // t.is(name1, EXPECTED.memberNick1, 'should get roomAlias')
 
   const contact2 = new Contact(EXPECTED.memberId2)
   const alias2 = r.alias(contact2)
   t.is(alias2, null, 'should return null if not set roomAlias')
 
-  const name2 = r.alias(contact2)
-  t.is(name2, null, 'should return null if not set roomAlias')
+  // const name2 = r.alias(contact2)
+  // t.is(name2, null, 'should return null if not set roomAlias')
 
   t.ok(r.has(contact1), 'should has contact1')
   const noSuchContact = new Contact('not exist id')

@@ -39,24 +39,30 @@ const PUPPETEER_LAUNCH_OPTIONS = {
 }
 
 test('Puppeteer smoke testing', async t => {
+  let browser, page
   try {
-    const browser = await launch(PUPPETEER_LAUNCH_OPTIONS)
+    browser = await launch(PUPPETEER_LAUNCH_OPTIONS)
     t.ok(browser, 'Browser instnace')
 
     const version = await browser.version()
     t.ok(version, 'should get version')
 
-    const page = await browser.newPage()
+    page = await browser.newPage()
     await page.goto('https://wx.qq.com/')
     t.pass('should open wx.qq.com')
 
     const result = await page.evaluate(() => 42)
     t.is(result as any, 42, 'should get 42')
 
-    await page.close()
-    await browser.close()
   } catch (e) {
     t.fail(e && e.message || e)
+  } finally {
+    if (page) {
+      await page.close()
+    }
+    if (browser) {
+      await browser.close()
+    }
   }
 })
 
