@@ -137,7 +137,7 @@
     "express": "^4.15.0",
     "finis": "^0.4.1",
     "fluent-ffmpeg": "^2.1.0",
-    "git-scripts": "^0.2.1",
+    "git-scripts": "git+https://github.com/nkzawa/git-scripts.git",
     "glob": "^7.1.0",
     "jsdoc-to-markdown": "^4.0.0",
     "nyc": "^11.2.0",
