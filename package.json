@@ -37,6 +37,11 @@
     "demo": "ts-node example/ding-dong-bot.ts",
     "start": "npm run demo"
   },
+  "git": {
+    "scripts": {
+      "pre-push": "./script/pre-push.sh"
+    }
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/chatie/wechaty.git"
@@ -132,6 +137,7 @@
     "express": "^4.15.0",
     "finis": "^0.4.1",
     "fluent-ffmpeg": "^2.1.0",
+    "git-scripts": "^0.2.1",
     "glob": "^7.1.0",
     "jsdoc-to-markdown": "^4.0.0",
     "nyc": "^11.2.0",
