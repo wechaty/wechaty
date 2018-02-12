@@ -232,10 +232,10 @@ Wechaty is far from perfect. The following things should be addressed in the fut
 
 AUTHOR
 ------
-Huan LI \<zixia@zixia.net\> (http://linkedin.com/in/zixia)
+[Huan LI](http://linkedin.com/in/zixia) \<zixia@zixia.net\>
 
-<a href="http://stackoverflow.com/users/1123955/zixia">
-  <img src="http://stackoverflow.com/users/flair/1123955.png" width="208" height="58" alt="profile for zixia at Stack Overflow, Q&amp;A for professional and enthusiast programmers" title="profile for zixia at Stack Overflow, Q&amp;A for professional and enthusiast programmers">
+<a href="https://stackexchange.com/users/265499">
+  <img src="https://stackexchange.com/users/flair/265499.png" width="208" height="58" alt="profile for zixia on Stack Exchange, a network of free, community-driven Q&amp;A sites" title="profile for zixia on Stack Exchange, a network of free, community-driven Q&amp;A sites">
 </a>
 
 ## My Story
