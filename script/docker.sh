@@ -7,18 +7,19 @@ set -e
 
 imageName='wechaty'
 
-optRm='--rm'
-[ -n "$CIRCLECI" ] && optRm='--rm=false'
+options='--rm'
+[ -n "$CIRCLECI" ] && options='--rm=false'
+[ -n "$NO_CACHE" ] && options="$options --no-cache"
 
 declare -i ret=0
 
 case "$1" in
   build | '')
-    echo docker build "$optRm" -t "$imageName" .
-    exec docker build "$optRm" -t "$imageName" .
+    echo docker build $options -t "$imageName" .
+    exec docker build $options -t "$imageName" .
 
-#    echo docker build "$optRm" -t "${imageName}:onbuild" -f Dockerfile.onbuild .
-#    exec docker build "$optRm" -t "${imageName}:onbuild" -f Dockerfile.onbuild .
+#    echo docker build $options -t "${imageName}:onbuild" -f Dockerfile.onbuild .
+#    exec docker build $options -t "${imageName}:onbuild" -f Dockerfile.onbuild .
 
     ret=$?
     ;;
@@ -27,8 +28,8 @@ case "$1" in
     echo "bats test/"
     IMAGE_NAME="$imageName" bats test/
 
-    echo docker run -ti "$optRm" -v /dev/shm:/dev/shm "$imageName" test
-    exec docker run -ti "$optRm" -v /dev/shm:/dev/shm "$imageName" test
+    echo docker run -ti $options -v /dev/shm:/dev/shm "$imageName" test
+    exec docker run -ti $options -v /dev/shm:/dev/shm "$imageName" test
     ret=$?
     ;;
 
@@ -38,8 +39,8 @@ case "$1" in
     ;;
 
   *)
-    echo docker run -ti "$optRm" -v /dev/shm:/dev/shm "$imageName" "$@"
-    exec docker run -ti "$optRm" -v /dev/shm:/dev/shm "$imageName" "$@"
+    echo docker run -ti $options -v /dev/shm:/dev/shm "$imageName" "$@"
+    exec docker run -ti $options -v /dev/shm:/dev/shm "$imageName" "$@"
     ;;
 esac
 

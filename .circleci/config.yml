@@ -25,7 +25,7 @@ jobs:
           name: Build Wechaty
           command: |
             docker run -ti -v "$(pwd)":/mnt nlknguyen/alpine-shellcheck bin/*.sh
-            ./script/docker.sh build
+            NO_CACHE=1 ./script/docker.sh build
       - run:
           name: Testing
           command: ./script/docker.sh test
