@@ -59,7 +59,9 @@ RUN npm install \
   && sudo rm -fr /tmp/* ~/.npm
 
 COPY . .
-RUN ./script/safe-test.sh && npm run dist
+# RUN npm run test:debug
+RUN ./script/safe-test.sh
+RUN npm run dist
 
 # Loading from node_modules Folders: https://nodejs.org/api/modules.html
 # If it is not found there, then it moves to the parent directory, and so on, until the root of the file system is reached.

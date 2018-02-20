@@ -33,6 +33,7 @@
     "test:shell": "shellcheck bin/*.sh",
     "test:unit": "blue-tape -r ts-node/register -r source-map-support/register \"src/**/*.spec.ts\" \"src/*.spec.ts\" \"test/*.spec.ts\" \"tests/**/*.spec.ts\"",
     "test:win32": "npm run test:unit",
+    "test:debug": "blue-tape -r ts-node/register -r source-map-support/register src/puppet-web/bridge.spec.ts",
     "io-client": "ts-node bin/io-client",
     "demo": "ts-node example/ding-dong-bot.ts",
     "start": "npm run demo"
@@ -100,7 +101,7 @@
     "brolog": "^1.2.0",
     "hot-import": "^0.1.0",
     "mime": "^2.2.0",
-    "puppeteer": "^1.0.0",
+    "puppeteer": "^0.13.0",
     "raven": "^2.2.0",
     "read-pkg-up": "^3.0.0",
     "request": "^2.83.0",

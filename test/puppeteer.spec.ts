@@ -114,7 +114,8 @@ test('evaluate() a file and get the returns value', async t => {
   }
 })
 
-test('page.on(console)', async t => {
+// FIXME: restore me after upgrade puppeteer to v1.1 or above
+test.skip('page.on(console)', async t => {
   const EXPECTED_ARG1 = 'arg1'
   const EXPECTED_ARG2 = 2
   // const EXPECTED_ARG3 = { arg3: 3 }
