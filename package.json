@@ -16,7 +16,7 @@
   "scripts": {
     "ts-node": "ts-node",
     "dist": "npm run clean && tsc && shx cp src/puppet-web/*.js dist/src/puppet-web/",
-    "doc": "npm run dist && echo '# Wechaty v'$(jq -r .version package.json)' Documentation\n' > docs/index.md && jsdoc2md dist/src/{wechaty,room,contact,friend-request,message}.js dist/src/puppet-web/{friend-request,schema}.js>> docs/index.md",
+    "doc": "npm run dist && echo '# Wechaty v'$(jq -r .version package.json)' Documentation\n* https://blog.chatie.io\n' > docs/index.md && jsdoc2md dist/src/{wechaty,room,contact,friend-request,message}.js dist/src/puppet-web/{friend-request,schema}.js>> docs/index.md",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "changelog": "github_changelog_generator -u chatie -p wechaty && sed -i'.bak' /greenkeeper/d CHANGELOG.md && sed -i'.bak' '/An in-range update of/d' CHANGELOG.md && ts-node script/sort-contributiveness.ts < CHANGELOG.md > CHANGELOG.new.md 2>/dev/null && cat CHANGELOG.md >> CHANGELOG.new.md && mv CHANGELOG.new.md CHANGELOG.md",
     "doctor": "npm run check-node-version && ts-node bin/doctor",
