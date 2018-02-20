@@ -188,7 +188,8 @@ export class Io {
     let endpoint = 'wss://' + this.options.apihost + '/v0/websocket'
 
     // XXX quick and dirty: use no ssl for APIHOST other than official
-    if (!/api\.wechaty\.io/.test(this.options.apihost)) {
+    // FIXME: use a configuarable VARIABLE for the domain name at here:
+    if (!/api\.chatie\.io/.test(this.options.apihost)) {
       endpoint = 'ws://' + this.options.apihost + '/v0/websocket'
     }
 
