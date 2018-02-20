@@ -319,8 +319,10 @@ export class Io {
     }
   }
 
-  private wsOnError(e: Error) {
-    log.warn('Io', 'initWebSocket() error event[%s]', e.message)
+  // FIXME: it seems the parameter `e` might be `undefined`.
+  // @types/ws might has bug for `ws.on('error',    e => this.wsOnError(e))`
+  private wsOnError(e?: Error) {
+    log.warn('Io', 'initWebSocket() error event[%s]', e && e.message)
     this.options.wechaty.emit('error', e)
 
     // when `error`, there must have already a `close` event
