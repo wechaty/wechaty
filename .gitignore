@@ -67,3 +67,7 @@ tags
 *.bak
 package-lock.json
 .babel.json
+
+.idea
+example/.config
+example/.pki

@@ -445,7 +445,7 @@ export class Wechaty extends EventEmitter implements Sayable {
   /**
    * Quit the bot
    *
-   * @deprecated
+   * @deprecated use stop() instead
    * @returns {Promise<void>}
    * @example
    * await bot.quit()
