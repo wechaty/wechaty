@@ -20,6 +20,10 @@
 /**
  * Wechaty hot load dots demo
  *
+ * @deprecated
+ * Use hot-import-bot instead
+ * See: https://github.com/Chatie/wechaty/tree/master/example/hot-import-bot
+ *
  * DEV: docker run -ti -e --rm --volume="$(pwd)":/bot zixia/wechaty index.js
  * PROD: docker run -ti -e NODE_ENV=production --rm --volume="$(pwd)":/bot zixia/wechaty index.js
  *
@@ -105,5 +109,12 @@ EVENT_LIST.forEach(evt => {
     bot.on(evt, eventHandler[evt]);
 });
 
+console.log(`
+
+ATTENTION: This example is DEPRECATED.
+
+Please see https://github.com/Chatie/wechaty/tree/master/example/hot-reload-bot instead.
+
+`)
 
 bot.init();
