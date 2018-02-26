@@ -3,7 +3,7 @@
 | File Name        | Description |
 | ---                 | ---         |
 | gist-bot/           | Decouple functions to different files |
-| hot-reload-bot/     | Update code without restart program |
+| hot-reload-bot/     | Update code without restart program. @deprecated, see `hot-import-bot` instead |
 | api-ai-bot.ts       | Integrate with api.ai for Intents & Entities |
 | contact-bot.ts      | List All Contacts by Wechat ID & Name |
 | ding-dong-bot.ts    | Auto Reply Message |
