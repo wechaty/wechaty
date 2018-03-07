@@ -46,38 +46,56 @@ export const Firer = {
 
 const regexConfig = {
   friendConfirm: [
-    /^You have added (.+) as your WeChat contact. Start chatting!/,
-    /^你已添加了(.+)，现在可以开始聊天了。/,
-    /^(.+) just added you to his\/her contacts list. Send a message to him\/her now!/,
-    /^(.+)刚刚把你添加到通讯录，现在可以开始聊天了。/,
+    /^You have added (.+) as your WeChat contact. Start chatting!$/,
+    /^你已添加了(.+)，现在可以开始聊天了。$/,
+    /^(.+) just added you to his\/her contacts list. Send a message to him\/her now!$/,
+    /^(.+)刚刚把你添加到通讯录，现在可以开始聊天了。$/,
   ],
 
   roomJoinInvite: [
-    /^"?(.+?)"? invited "(.+)" to the group chat/,
-    /^"?(.+?)"?邀请"(.+)"加入了群聊/,
+    // There are 3 blank(charCode is 32) here. eg: You invited 管理员 to the group chat.
+    /^(.+?) invited (.+) to the group chat.   $/,
+
+    // There no no blank or punctuation here.  eg: 管理员 invited 小桔建群助手 to the group chat
+    /^(.+?) invited (.+) to the group chat$/,
+
+    // There are 2 blank(charCode is 32) here. eg: 你邀请"管理员"加入了群聊
+    /^(.+?)邀请"(.+)"加入了群聊  $/,
+
+    // There no no blank or punctuation here.  eg: "管理员"邀请"宁锐锋"加入了群聊
+    /^"(.+?)"邀请"(.+)"加入了群聊$/,
   ],
 
   roomJoinQrcode: [
-    /^" (.+)" joined the group chat via the QR Code shared by "?(.+?)"/,
-    /^"(.+)" joined the group chat via the QR Code shared by "?(.+?)"/,
-    /^"(.+)" joined the group chat via "?(.+?)"? shared QR Code./,
-    /^" (.+)"通过扫描"?(.+?)"?分享的二维码加入群聊/,
-    /^"(.+)"通过扫描"?(.+?)"?分享的二维码加入群聊/,
+    // Wechat change this, should desperate. See more in pr#651
+    // /^" (.+)" joined the group chat via the QR Code shared by "?(.+?)".$/,
+
+    // There are 2 blank(charCode is 32) here. Qrcode is shared by bot.     eg: "管理员" joined group chat via the QR code you shared.
+    /^"(.+)" joined group chat via the QR code "?(.+?)"? shared.  $/,
+
+    // There are no blank(charCode is 32) here. Qrcode isn't shared by bot. eg: "宁锐锋" joined the group chat via the QR Code shared by "管理员".
+    /^"(.+)" joined the group chat via the QR Code shared by "?(.+?)".$/,
+
+    // There are 2 blank(charCode is 32) here. Qrcode is shared by bot.     eg: "管理员"通过扫描你分享的二维码加入群聊
+    /^"(.+)"通过扫描(.+?)分享的二维码加入群聊  $/,
+
+    // There are 1 blank(charCode is 32) here. Qrode isn't shared by bot.  eg: " 苏轼"通过扫描"管理员"分享的二维码加入群聊
+    /^" (.+)"通过扫描"(.+?)"分享的二维码加入群聊$/,
   ],
 
   // no list
   roomLeaveByBot: [
-    /^You removed "(.+)" from the group chat/,
+    /^You removed "(.+)" from the group chat$/,
     /^你将"(.+)"移出了群聊$/,
   ],
   roomLeaveByOther: [
-    /^You were removed from the group chat by "(.+)"/,
-    /^你被"(.+)"移出群聊/,
+    /^You were removed from the group chat by "(.+)"$/,
+    /^你被"(.+)"移出群聊$/,
   ],
 
   roomTopic: [
-    /^"?(.+?)"? changed the group name to "(.+)"/,
-    /^"?(.+?)"?修改群名为“(.+)”/,
+    /^"?(.+?)"? changed the group name to "(.+)"$/,
+    /^"?(.+?)"?修改群名为“(.+)”$/,
   ],
 }
 
@@ -140,11 +158,11 @@ async function checkFriendConfirm(m: Message) {
  * try to find 'join' event for Room
  *
  * 1.
- *  You've invited "李卓桓" to the group chat
- *  You've invited "李卓桓.PreAngel、Bruce LEE" to the group chat
+ *  You invited 管理员 to the group chat.
+ *  You invited 李卓桓.PreAngel、Bruce LEE to the group chat.
  * 2.
- *  "李卓桓.PreAngel" invited "Bruce LEE" to the group chat
- *  "凌" invited "庆次、小桔妹" to the group chat
+ *  管理员 invited 小桔建群助手 to the group chat
+ *  管理员 invited 庆次、小桔妹 to the group chat
  */
 function parseRoomJoin(content: string): [string[], string] {
   log.verbose('PuppetWebFirer', 'checkRoomJoin(%s)', content)
@@ -160,8 +178,8 @@ function parseRoomJoin(content: string): [string[], string] {
     throw new Error('checkRoomJoin() not found matched re of ' + content)
   }
   /**
-   * "凌" invited "庆次、小桔妹" to the group chat
-   * "桔小秘"通过扫描你分享的二维码加入群聊
+   * 管理员 invited 庆次、小桔妹 to the group chat
+   * "管理员"通过扫描你分享的二维码加入群聊
    */
   const [inviter, inviteeStr] = foundInvite ? [ foundInvite[1], foundInvite[2] ] : [ foundQrcode[2], foundQrcode[1] ]
   const inviteeList = inviteeStr.split(/、/)
@@ -195,7 +213,7 @@ async function checkRoomJoin(m: Message): Promise<void> {
   let inviteeContactList: Contact[] = []
 
   try {
-    if (inviter === "You've" || inviter === '你' || inviter === 'your') {
+    if (inviter === 'You' || inviter === '你' || inviter === 'your' || inviter === 'you') {
       inviterContact = Contact.load(this.userId)
     }
 
