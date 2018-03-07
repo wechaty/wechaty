@@ -88,6 +88,7 @@ const regexConfig = {
     /^You removed "(.+)" from the group chat$/,
     /^你将"(.+)"移出了群聊$/,
   ],
+
   roomLeaveByOther: [
     /^You were removed from the group chat by "(.+)"$/,
     /^你被"(.+)"移出群聊$/,
@@ -213,7 +214,7 @@ async function checkRoomJoin(m: Message): Promise<void> {
   let inviteeContactList: Contact[] = []
 
   try {
-    if (inviter === 'You' || inviter === '你' || inviter === 'your' || inviter === 'you') {
+    if (inviter === 'You' || inviter === '你' || inviter === 'you') {
       inviterContact = Contact.load(this.userId)
     }
 
