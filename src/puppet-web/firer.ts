@@ -54,13 +54,13 @@ const regexConfig = {
 
   roomJoinInvite: [
     // There are 3 blank(charCode is 32) here. eg: You invited 管理员 to the group chat.
-    /^(.+?) invited (.+) to the group chat.   $/,
+    /^(.+?) invited (.+) to the group chat.\s+\s+\s+$/,
 
     // There no no blank or punctuation here.  eg: 管理员 invited 小桔建群助手 to the group chat
     /^(.+?) invited (.+) to the group chat$/,
 
     // There are 2 blank(charCode is 32) here. eg: 你邀请"管理员"加入了群聊
-    /^(.+?)邀请"(.+)"加入了群聊  $/,
+    /^(.+?)邀请"(.+)"加入了群聊\s+\s+$/,
 
     // There no no blank or punctuation here.  eg: "管理员"邀请"宁锐锋"加入了群聊
     /^"(.+?)"邀请"(.+)"加入了群聊$/,
@@ -71,16 +71,16 @@ const regexConfig = {
     // /^" (.+)" joined the group chat via the QR Code shared by "?(.+?)".$/,
 
     // There are 2 blank(charCode is 32) here. Qrcode is shared by bot.     eg: "管理员" joined group chat via the QR code you shared.
-    /^"(.+)" joined group chat via the QR code "?(.+?)"? shared.  $/,
+    /^"(.+)" joined group chat via the QR code "?(.+?)"? shared.\s+\s+$/,
 
     // There are no blank(charCode is 32) here. Qrcode isn't shared by bot. eg: "宁锐锋" joined the group chat via the QR Code shared by "管理员".
     /^"(.+)" joined the group chat via the QR Code shared by "?(.+?)".$/,
 
     // There are 2 blank(charCode is 32) here. Qrcode is shared by bot.     eg: "管理员"通过扫描你分享的二维码加入群聊
-    /^"(.+)"通过扫描(.+?)分享的二维码加入群聊  $/,
+    /^"(.+)"通过扫描(.+?)分享的二维码加入群聊\s+\s+$/,
 
     // There are 1 blank(charCode is 32) here. Qrode isn't shared by bot.  eg: " 苏轼"通过扫描"管理员"分享的二维码加入群聊
-    /^" (.+)"通过扫描"(.+?)"分享的二维码加入群聊$/,
+    /^"\s+(.+)"通过扫描"(.+?)"分享的二维码加入群聊$/,
   ],
 
   // no list
