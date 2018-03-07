@@ -46,38 +46,38 @@ export const Firer = {
 
 const regexConfig = {
   friendConfirm: [
-    /^You have added (.+) as your WeChat contact. Start chatting!$/,
-    /^你已添加了(.+)，现在可以开始聊天了。$/,
-    /^(.+) just added you to his\/her contacts list. Send a message to him\/her now!$/,
-    /^(.+)刚刚把你添加到通讯录，现在可以开始聊天了。$/,
+    /^You have added (.+) as your WeChat contact. Start chatting!/,
+    /^你已添加了(.+)，现在可以开始聊天了。/,
+    /^(.+) just added you to his\/her contacts list. Send a message to him\/her now!/,
+    /^(.+)刚刚把你添加到通讯录，现在可以开始聊天了。/,
   ],
 
   roomJoinInvite: [
-    /^"?(.+?)"? invited "(.+)" to the group chat$/,
-    /^"?(.+?)"?邀请"(.+)"加入了群聊$/,
+    /^"?(.+?)"? invited "(.+)" to the group chat/,
+    /^"?(.+?)"?邀请"(.+)"加入了群聊/,
   ],
 
   roomJoinQrcode: [
-    /^" (.+)" joined the group chat via the QR Code shared by "?(.+?)".$/,
-    /^"(.+)" joined the group chat via the QR Code shared by "?(.+?)".$/,
-    /^"(.+)" joined the group chat via "?(.+?)"? shared QR Code.$/,
+    /^" (.+)" joined the group chat via the QR Code shared by "?(.+?)"/,
+    /^"(.+)" joined the group chat via the QR Code shared by "?(.+?)"/,
+    /^"(.+)" joined the group chat via "?(.+?)"? shared QR Code./,
     /^" (.+)"通过扫描"?(.+?)"?分享的二维码加入群聊/,
     /^"(.+)"通过扫描"?(.+?)"?分享的二维码加入群聊/,
   ],
 
   // no list
   roomLeaveByBot: [
-    /^You removed "(.+)" from the group chat$/,
+    /^You removed "(.+)" from the group chat/,
     /^你将"(.+)"移出了群聊$/,
   ],
   roomLeaveByOther: [
-    /^You were removed from the group chat by "(.+)"$/,
-    /^你被"(.+)"移出群聊$/,
+    /^You were removed from the group chat by "(.+)"/,
+    /^你被"(.+)"移出群聊/,
   ],
 
   roomTopic: [
-    /^"?(.+?)"? changed the group name to "(.+)"$/,
-    /^"?(.+?)"?修改群名为“(.+)”$/,
+    /^"?(.+?)"? changed the group name to "(.+)"/,
+    /^"?(.+?)"?修改群名为“(.+)”/,
   ],
 }
 
