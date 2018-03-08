@@ -188,12 +188,12 @@ function parseRoomJoin(content: string): [string[], string] {
   return [inviteeList, inviter] // put invitee at first place
 }
 
-async function checkRoomJoin(m: Message): Promise<void> {
+async function checkRoomJoin(m: Message): Promise<boolean> {
 
   const room = m.room()
   if (!room) {
     log.warn('PuppetWebFirer', 'fireRoomJoin() `room` not found')
-    return
+    return false
   }
 
   const content = m.content()
@@ -203,7 +203,7 @@ async function checkRoomJoin(m: Message): Promise<void> {
     [inviteeList, inviter] = parseRoomJoin(content)
   } catch (e) {
     log.silly('PuppetWebFirer', 'fireRoomJoin() "%s" is not a join message', content)
-    return // not a room join message
+    return false // not a room join message
   }
   log.silly('PuppetWebFirer', 'fireRoomJoin() inviteeList: %s, inviter: %s',
                               inviteeList.join(','),
@@ -270,10 +270,12 @@ async function checkRoomJoin(m: Message): Promise<void> {
                                     inviteeContactList.map((c: Contact) => c.name()).join(','),
                                     inviterContact.name(),
                 )
-        return
+        return true
       }
 
-      throw new Error('not found(yet)')
+      log.error('PuppetWebFirer', 'fireRoomJoin() not found(yet)')
+      return false
+      // throw new Error('not found(yet)')
 
     }).catch(e => {
       log.warn('PuppetWebFirer', 'fireRoomJoin() reject() inviteeContactList: %s, inviterContact: %s',
@@ -284,7 +286,7 @@ async function checkRoomJoin(m: Message): Promise<void> {
 
     if (!inviterContact) {
       log.error('PuppetWebFirer', 'firmRoomJoin() inivter not found for %s , `room-join` & `join` event will not fired', inviter)
-      return
+      return false
     }
     if (!inviteeContactList.every(c => c instanceof Contact)) {
       log.error('PuppetWebFirer', 'firmRoomJoin() inviteeList not all found for %s , only part of them will in the `room-join` or `join` event',
@@ -293,7 +295,7 @@ async function checkRoomJoin(m: Message): Promise<void> {
       inviteeContactList = inviteeContactList.filter(c => (c instanceof Contact))
       if (inviteeContactList.length < 1) {
         log.error('PuppetWebFirer', 'firmRoomJoin() inviteeList empty.  `room-join` & `join` event will not fired')
-        return
+        return false
       }
     }
 
@@ -304,11 +306,12 @@ async function checkRoomJoin(m: Message): Promise<void> {
     this.emit('room-join', room , inviteeContactList, inviterContact)
     room.emit('join'            , inviteeContactList, inviterContact)
 
+    return true
   } catch (e) {
     log.error('PuppetWebFirer', 'exception: %s', e.stack)
+    return false
   }
 
-  return
 }
 
 function parseRoomLeave(content: string): [string, string] {
@@ -328,21 +331,21 @@ function parseRoomLeave(content: string): [string, string] {
 /**
  * You removed "Bruce LEE" from the group chat
  */
-async function checkRoomLeave(m: Message): Promise<void> {
+async function checkRoomLeave(m: Message): Promise<boolean> {
   log.verbose('PuppetWebFirer', 'fireRoomLeave(%s)', m.content())
 
   let leaver: string, remover: string
   try {
     [leaver, remover] = parseRoomLeave(m.content())
   } catch (e) {
-    return
+    return false
   }
   log.silly('PuppetWebFirer', 'fireRoomLeave() got leaver: %s', leaver)
 
   const room = m.room()
   if (!room) {
     log.warn('PuppetWebFirer', 'fireRoomLeave() room not found')
-    return
+    return false
   }
   /**
    * FIXME: leaver maybe is a list
@@ -356,7 +359,7 @@ async function checkRoomLeave(m: Message): Promise<void> {
     removerContact = room.member(remover)
     if (!removerContact) {
       log.error('PuppetWebFirer', 'fireRoomLeave() bot is removed from the room, but remover %s not found, event `room-leave` & `leave` will not be fired', remover)
-      return
+      return false
     }
   } else {
     removerContact = Contact.load(this.userId)
@@ -365,7 +368,7 @@ async function checkRoomLeave(m: Message): Promise<void> {
     leaverContact = room.member(remover)
     if (!leaverContact) {
       log.error('PuppetWebFirer', 'fireRoomLeave() bot removed someone from the room, but leaver %s not found, event `room-leave` & `leave` will not be fired', leaver)
-      return
+      return false
     }
   }
 
@@ -381,6 +384,7 @@ async function checkRoomLeave(m: Message): Promise<void> {
   room.emit('leave'           , leaverContact, removerContact)
 
   setTimeout(_ => { room.refresh() }, 10000) // reload the room data, especially for memberList
+  return true
 }
 
 function parseRoomTopic(content: string): [string, string] {
@@ -395,18 +399,18 @@ function parseRoomTopic(content: string): [string, string] {
   return [topic, changer]
 }
 
-async function checkRoomTopic(m: Message): Promise<void> {
+async function checkRoomTopic(m: Message): Promise<boolean> {
   let  topic, changer
   try {
     [topic, changer] = parseRoomTopic(m.content())
   } catch (e) { // not found
-    return
+    return false
   }
 
   const room = m.room()
   if (!room) {
     log.warn('PuppetWebFirer', 'fireRoomLeave() room not found')
-    return
+    return false
   }
 
   const oldTopic = room.topic()
@@ -420,7 +424,7 @@ async function checkRoomTopic(m: Message): Promise<void> {
 
   if (!changerContact) {
     log.error('PuppetWebFirer', 'fireRoomTopic() changer contact not found for %s', changer)
-    return
+    return false
   }
 
   try {
@@ -429,8 +433,10 @@ async function checkRoomTopic(m: Message): Promise<void> {
     this.emit('room-topic', room, topic, oldTopic, changerContact)
     room.emit('topic'           , topic, oldTopic, changerContact)
     room.refresh()
+    return true
   } catch (e) {
     log.error('PuppetWebFirer', 'fireRoomTopic() co exception: %s', e.stack)
+    return false
   }
 }
 
