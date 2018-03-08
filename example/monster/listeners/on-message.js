@@ -20,12 +20,15 @@
 const fs = require('fs')
 
 const { MediaMessage } = require('wechaty')
+const { Misc } = require('wechaty/misc')
 
 export default async function onMessage (message) {
-  console.log(`Received message: ${message.type()}:${message.typeSub()} ${message}`)
+  console.log(`Received type: ${message.type()}:${message.typeSub()}`)
   if (message instanceof MediaMessage) {
     saveMediaFile(message)
+    return
   }
+  console.log(`Received message: ${Misc.digestEmoji(message)}`)
 }
 
 async function saveMediaFile(message) {
