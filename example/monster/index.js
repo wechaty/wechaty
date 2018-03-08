@@ -34,7 +34,7 @@
  */
 const { Wechaty } = require('wechaty')
 
-const bot = Wechaty.instance()
+const bot = Wechaty.instance({ profile: "default"})
 .on('scan',     './listeners/on-scan')
 .on('login',    './listeners/on-login')
 .on('message',  './listeners/on-message')
