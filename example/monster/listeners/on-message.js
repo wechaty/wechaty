@@ -16,6 +16,34 @@
  *   limitations under the License.
  *
  */
+
+const fs = require('fs')
+
+const { MediaMessage } = require('wechaty')
+
 export default async function onMessage (message) {
-  console.log(`Received message: ${message}`)
+  console.log(`Received message: ${message.type()}:${message.typeSub()} ${message}`)
+  if (message instanceof MediaMessage) {
+    saveMediaFile(message)
+  }
+}
+
+async function saveMediaFile(message) {
+  const filename = message.filename()
+  console.log('IMAGE local filename: ' + filename)
+
+  const fileStream = fs.createWriteStream(filename)
+
+  console.log('start to readyStream()')
+  try {
+    const netStream = await message.readyStream()
+    netStream
+      .pipe(fileStream)
+      .on('close', _ => {
+        const stat = fs.statSync(filename)
+        console.log('finish readyStream() for ', filename, ' size: ', stat.size)
+      })
+  } catch (e) {
+    console.error('stream error:', e)
+  }
 }
