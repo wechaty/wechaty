@@ -32,6 +32,7 @@
  *   * https://www.npmjs.com/package/hot-import
  *
  */
+const finis = require('finis')
 const { Wechaty } = require('wechaty')
 
 const bot = Wechaty.instance({ profile: "default"})
@@ -40,3 +41,16 @@ const bot = Wechaty.instance({ profile: "default"})
 .on('message',  './listeners/on-message')
 .on('friend',   './listeners/on-friend')
 .start()
+.catch(async function(e) {
+  log.error('Bot', 'init() fail: %s', e)
+  await bot.stop()
+  process.exit(1)
+})
+
+finis((code, signal, error) => {
+  console.log(`Importand data saved at this step.`)
+  
+  await bot.stop()
+  console.log(`Wechaty exit ${code} because of ${signal}/${error})`)
+  process.exit(1)
+})
