@@ -35,6 +35,7 @@ async function unitTest() {
     ],
     {
       stdio: 'inherit',
+      shell: true,  // https://stackoverflow.com/a/39682805/1123955
     },
   )
   return new Promise<boolean>((resolve, reject) => {
