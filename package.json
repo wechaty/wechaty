@@ -28,6 +28,7 @@
     "lint:sh": "bash -n bin/*.sh",
     "sloc": "sloc bin example src test index.ts --details --format cli-table --keys total,source,comment && sloc bin example src test index.ts",
     "test": "npm run clean && npm run lint && npm run test:unit && npm run test:shell && npm run sloc",
+    "test:safe": "ts-node script/safe-test",
     "test:linux": "npm run pretest && parallel ts-node -- ./src/**/*.spec.ts ./test/**/*.spec.ts && npm run posttest",
     "test:pack": "npm run dist && export TMPDIR=/tmp/wechaty.$$ && npm pack && mkdir $TMPDIR && mv wechaty-*.*.*.tgz $TMPDIR && cp test/fixture/smoke-testing.js $TMPDIR && cd $TMPDIR && npm init -y && npm i wechaty-*.*.*.tgz && node smoke-testing.js",
     "test:shell": "shellcheck bin/*.sh",

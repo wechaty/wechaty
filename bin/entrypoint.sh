@@ -32,10 +32,10 @@ function wechaty::errorBotNotFound() {
         `--volume="$(pwd)":/bot`
 
       this will let the container visit your current directory.
-      
+
     2. Are you sure your .js/.ts files aren't .js.txt/.ts.txt?
-    
-      this could be a problem on new Windows installs (file 
+
+      this could be a problem on new Windows installs (file
       extensions hidden by default).
 
     if you still have issue, please have a look at
@@ -265,7 +265,7 @@ function main() {
 
     test)
       # WECHATY_LOG=silent npm run test:unit
-      WECHATY_LOG=silent ./script/safe-test.sh
+      WECHATY_LOG=silent npm run test:safe
       ;;
 
     #

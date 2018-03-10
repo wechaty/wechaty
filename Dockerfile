@@ -60,7 +60,7 @@ RUN npm install \
 
 COPY . .
 # RUN npm run test:debug
-RUN ./script/safe-test.sh
+RUN npm run test:safe
 RUN npm run dist
 
 # Loading from node_modules Folders: https://nodejs.org/api/modules.html

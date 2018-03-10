@@ -177,5 +177,4 @@ test('clickSwitchAccount()', async t => {
 
     t.equal(clicked, false, 'should no button found')
   })
-
 })
