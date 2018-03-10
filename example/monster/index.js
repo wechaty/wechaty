@@ -1,3 +1,11 @@
+////////////////////////////////////////////////////////////////////////////
+// Program: monster
+// Purpose: monster all-in-one demo of Wechaty hot
+// Authors: Tong Sun (c) 2018, All rights reserved
+//          Huan LI  (c) 2018, All rights reserved
+//          xinbenlv (c) 2017, All rights reserved
+////////////////////////////////////////////////////////////////////////////
+
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
@@ -18,38 +26,29 @@
  */
 
 /**
- * Wechaty hot import bot example
+ * Based on the Wechaty hot import bot example
  *
  * Hot import Wechaty listenser functions after change the source code without restart the program
- *
- * How to start:
- * ```shell
- * docker run -t -i --rm --name wechaty --mount type=bind,source="$(pwd)",target=/bot -m "300M" --memory-swap "1G" zixia/wechaty index.js
- * ```
  *
  * P.S. We are using the hot-import module:
  *   * Hot Module Replacement(HMR) for Node.js
  *   * https://www.npmjs.com/package/hot-import
  *
  */
+
 const finis = require('finis')
 const { Wechaty } = require('wechaty')
-const { hotImport } = require('hot-import')
 
 const bot = Wechaty.instance({ profile: "default"})
 
 async function main() {
-  const config = await hotImport('config.js')
 
   bot
     .on('scan',     './listeners/on-scan')
     .on('login',    './listeners/on-login')
     .on('message',  './listeners/on-message')
-
-  if (config.friend_enabled)
-    bot.on('friend',   './listeners/on-friend')
-
-  bot.start()
+    .on('friend',   './listeners/on-friend')
+    .start()
     .catch(async function(e) {
       console.log(`Init() fail: ${e}.`)
       await bot.stop()
@@ -60,7 +59,7 @@ async function main() {
 main()
 
 finis((code, signal, error) => {
-  console.log(`Importand data saved at this step.`)
+  console.log('Importand data saved at this step.')
   
   // await bot.stop()
   bot.stop()

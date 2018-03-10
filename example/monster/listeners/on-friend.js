@@ -1,3 +1,11 @@
+////////////////////////////////////////////////////////////////////////////
+// Program: monster
+// Purpose: monster all-in-one demo of Wechaty hot
+// Authors: Tong Sun (c) 2018, All rights reserved
+//          Huan LI  (c) 2018, All rights reserved
+//          xinbenlv (c) 2017, All rights reserved
+////////////////////////////////////////////////////////////////////////////
+
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
@@ -16,8 +24,14 @@
  *   limitations under the License.
  *
  */
+
+const { hotImport } = require('hot-import')
+
 export default async function onFriend (contact, request) {
-  if(request){
+  const config = await hotImport('config.js')
+  if (!config.friendEnabled) return
+
+  if (request) {
     let name = contact.name()
     // await request.accept()
 
