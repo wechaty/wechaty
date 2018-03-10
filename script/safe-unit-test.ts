@@ -8,7 +8,7 @@
  */
 import { spawn } from 'child_process'
 
-const MAX_RETRY_NUM = 1
+const MAX_RETRY_NUM = 3
 
 async function main(): Promise<number> {
   console.log('Safe Test: starting...')
@@ -17,7 +17,7 @@ async function main(): Promise<number> {
   let succ = false
   do {
     console.log(`Safe Test: running for round #${round}`)
-    succ = await npmTest()
+    succ = await unitTest()
     if (succ) { // success!
       console.log(`Safe Test: successed at round #${round}!`)
       return 0
@@ -26,11 +26,12 @@ async function main(): Promise<number> {
   return 1  // fail finally :(
 }
 
-async function npmTest() {
+async function unitTest() {
   const child = spawn(
     'npm',
     [
-      'test',
+      'run',
+      'test:unit',
     ],
     {
       stdio: 'inherit',
