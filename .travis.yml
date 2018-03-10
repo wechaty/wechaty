@@ -30,7 +30,7 @@ script:
   - echo $TRAVIS_OS_NAME
   - node --version
   - npm --version
-  - npm run test:safe
+  - npm test
 
 after_success:
   - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then npm run coverage; fi
