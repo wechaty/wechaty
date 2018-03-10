@@ -60,7 +60,7 @@ RUN npm install \
 
 COPY . .
 # RUN npm run test:debug
-RUN npm run test:safe
+RUN npm test
 RUN npm run dist
 
 # Loading from node_modules Folders: https://nodejs.org/api/modules.html
