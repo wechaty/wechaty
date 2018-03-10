@@ -1,3 +1,11 @@
+////////////////////////////////////////////////////////////////////////////
+// Program: monster
+// Purpose: monster all-in-one demo of Wechaty hot
+// Authors: Tong Sun (c) 2018, All rights reserved
+//          Huan LI  (c) 2018, All rights reserved
+//          xinbenlv (c) 2017, All rights reserved
+////////////////////////////////////////////////////////////////////////////
+
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
@@ -18,17 +26,43 @@
  */
 
 const fs = require('fs')
+const { hotImport } = require('hot-import')
 
-const { MediaMessage } = require('wechaty')
-const { Misc } = require('wechaty/misc')
+import { MediaMessage, Misc, log } from 'wechaty'
 
 export default async function onMessage (message) {
-  console.log(`Received type: ${message.type()}:${message.typeSub()}`)
-  if (message instanceof MediaMessage) {
-    saveMediaFile(message)
-    return
-  }
-  console.log(`Received message: ${Misc.digestEmoji(message)}`)
+  try {
+    const room      = message.room()
+    const sender    = message.from()
+    const content   = message.content()
+    const roomName  = room ? `[${room.topic()}] ` : ''
+
+    process.stdout.write(
+	`${roomName}<${sender.name()}>(${message.type()}:${message.typeSub()}): `)
+
+    if (message instanceof MediaMessage) {
+      saveMediaFile(message)
+      return
+    }
+    
+    console.log(`${Misc.digestEmoji(message)}`)
+    // add an extra CR if too long
+    if (content.length > 80) console.log("")
+    
+    const config = await hotImport('config.js')
+    // Hot import! Try to change the msgKW1&2 to 'ping' & 'pong'
+    // after the bot has already started!
+    if (content === config.msgKW1) {
+      await message.say(`${config.msgKW2}, thanks for ${config.msgKW1} me`)
+      log.info('Bot', `REPLY: ${config.msgKW2}`)
+    } else if (content === config.msgKW2) {
+      await sender.say('ok, ${config.msgKW2} me is welcome, too.')
+    } else if (/^hello/i.test(content)) {
+      return `How are you, ${sender.name()} from ${roomName}`
+    }
+  } catch (e) {
+    log.error('Bot', 'on(message) exception: %s' , e)
+  }    
 }
 
 async function saveMediaFile(message) {
@@ -37,14 +71,14 @@ async function saveMediaFile(message) {
 
   const fileStream = fs.createWriteStream(filename)
 
-  console.log('start to readyStream()')
+  process.stdout.write('saving...')
   try {
     const netStream = await message.readyStream()
     netStream
       .pipe(fileStream)
       .on('close', _ => {
         const stat = fs.statSync(filename)
-        console.log('finish readyStream() for ', filename, ' size: ', stat.size)
+        console.log(', saved as ', filename, ' size: ', stat.size)
       })
   } catch (e) {
     console.error('stream error:', e)

@@ -11,6 +11,8 @@ export default const config = {
     production: { host: '192.168.0.11' }
   },
   friendEnabled: false,
+  msgKW1: 'ding',
+  msgKW2: 'dong',
 }
 //^^^^^ Customization Ends ^^^^^
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
