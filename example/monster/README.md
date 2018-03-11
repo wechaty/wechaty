@@ -21,6 +21,18 @@ The following are the list of useful features incorporated into this demo:
 
 All in all, it will be a _turn key solution_ for getting started with wechaty customization seriously, a true blue-print solution for people to get started using wechaty.
 
+## Run
+
+```shell
+docker run -t -i --rm --name wechaty --mount type=bind,source="$(pwd)",target=/bot zixia/wechaty index.js
+```
+
+Or
+
+```shell
+./run-monster-bot.sh
+```
+
 ## About hot-import
 
 Hot import Wechaty listenser functions after change the source code without restart the program
