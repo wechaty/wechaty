@@ -53,16 +53,34 @@ const regexConfig = {
   ],
 
   roomJoinInvite: [
-    /^"?(.+?)"? invited "(.+)" to the group chat$/,
-    /^"?(.+?)"?邀请"(.+)"加入了群聊$/,
+    // There are 3 blank(charCode is 32) here. eg: You invited 管理员 to the group chat.
+    /^(.+?) invited (.+) to the group chat.\s+$/,
+
+    // There no no blank or punctuation here.  eg: 管理员 invited 小桔建群助手 to the group chat
+    /^(.+?) invited (.+) to the group chat$/,
+
+    // There are 2 blank(charCode is 32) here. eg: 你邀请"管理员"加入了群聊
+    /^(.+?)邀请"(.+)"加入了群聊\s+$/,
+
+    // There no no blank or punctuation here.  eg: "管理员"邀请"宁锐锋"加入了群聊
+    /^"(.+?)"邀请"(.+)"加入了群聊$/,
   ],
 
   roomJoinQrcode: [
-    /^" (.+)" joined the group chat via the QR Code shared by "?(.+?)".$/,
+    // Wechat change this, should desperate. See more in pr#651
+    // /^" (.+)" joined the group chat via the QR Code shared by "?(.+?)".$/,
+
+    // There are 2 blank(charCode is 32) here. Qrcode is shared by bot.     eg: "管理员" joined group chat via the QR code you shared.
+    /^"(.+)" joined group chat via the QR code "?(.+?)"? shared.\s+$/,
+
+    // There are no blank(charCode is 32) here. Qrcode isn't shared by bot. eg: "宁锐锋" joined the group chat via the QR Code shared by "管理员".
     /^"(.+)" joined the group chat via the QR Code shared by "?(.+?)".$/,
-    /^"(.+)" joined the group chat via "?(.+?)"? shared QR Code.$/,
-    /^" (.+)"通过扫描"?(.+?)"?分享的二维码加入群聊$/,
-    /^"(.+)"通过扫描"?(.+?)"?分享的二维码加入群聊$/,
+
+    // There are 2 blank(charCode is 32) here. Qrcode is shared by bot.     eg: "管理员"通过扫描你分享的二维码加入群聊
+    /^"(.+)"通过扫描(.+?)分享的二维码加入群聊\s+$/,
+
+    // There are 1 blank(charCode is 32) here. Qrode isn't shared by bot.  eg: " 苏轼"通过扫描"管理员"分享的二维码加入群聊
+    /^"\s+(.+)"通过扫描"(.+?)"分享的二维码加入群聊$/,
   ],
 
   // no list
@@ -70,6 +88,7 @@ const regexConfig = {
     /^You removed "(.+)" from the group chat$/,
     /^你将"(.+)"移出了群聊$/,
   ],
+
   roomLeaveByOther: [
     /^You were removed from the group chat by "(.+)"$/,
     /^你被"(.+)"移出群聊$/,
@@ -140,11 +159,11 @@ async function checkFriendConfirm(m: Message) {
  * try to find 'join' event for Room
  *
  * 1.
- *  You've invited "李卓桓" to the group chat
- *  You've invited "李卓桓.PreAngel、Bruce LEE" to the group chat
+ *  You invited 管理员 to the group chat.
+ *  You invited 李卓桓.PreAngel、Bruce LEE to the group chat.
  * 2.
- *  "李卓桓.PreAngel" invited "Bruce LEE" to the group chat
- *  "凌" invited "庆次、小桔妹" to the group chat
+ *  管理员 invited 小桔建群助手 to the group chat
+ *  管理员 invited 庆次、小桔妹 to the group chat
  */
 function parseRoomJoin(content: string): [string[], string] {
   log.verbose('PuppetWebFirer', 'checkRoomJoin(%s)', content)
@@ -160,8 +179,8 @@ function parseRoomJoin(content: string): [string[], string] {
     throw new Error('checkRoomJoin() not found matched re of ' + content)
   }
   /**
-   * "凌" invited "庆次、小桔妹" to the group chat
-   * "桔小秘"通过扫描你分享的二维码加入群聊
+   * 管理员 invited 庆次、小桔妹 to the group chat
+   * "管理员"通过扫描你分享的二维码加入群聊
    */
   const [inviter, inviteeStr] = foundInvite ? [ foundInvite[1], foundInvite[2] ] : [ foundQrcode[2], foundQrcode[1] ]
   const inviteeList = inviteeStr.split(/、/)
@@ -169,12 +188,12 @@ function parseRoomJoin(content: string): [string[], string] {
   return [inviteeList, inviter] // put invitee at first place
 }
 
-async function checkRoomJoin(m: Message): Promise<void> {
+async function checkRoomJoin(m: Message): Promise<boolean> {
 
   const room = m.room()
   if (!room) {
     log.warn('PuppetWebFirer', 'fireRoomJoin() `room` not found')
-    return
+    return false
   }
 
   const content = m.content()
@@ -184,7 +203,7 @@ async function checkRoomJoin(m: Message): Promise<void> {
     [inviteeList, inviter] = parseRoomJoin(content)
   } catch (e) {
     log.silly('PuppetWebFirer', 'fireRoomJoin() "%s" is not a join message', content)
-    return // not a room join message
+    return false // not a room join message
   }
   log.silly('PuppetWebFirer', 'fireRoomJoin() inviteeList: %s, inviter: %s',
                               inviteeList.join(','),
@@ -195,7 +214,7 @@ async function checkRoomJoin(m: Message): Promise<void> {
   let inviteeContactList: Contact[] = []
 
   try {
-    if (inviter === "You've" || inviter === '你' || inviter === 'your') {
+    if (inviter === 'You' || inviter === '你' || inviter === 'you') {
       inviterContact = Contact.load(this.userId)
     }
 
@@ -251,10 +270,12 @@ async function checkRoomJoin(m: Message): Promise<void> {
                                     inviteeContactList.map((c: Contact) => c.name()).join(','),
                                     inviterContact.name(),
                 )
-        return
+        return true
       }
 
-      throw new Error('not found(yet)')
+      log.error('PuppetWebFirer', 'fireRoomJoin() not found(yet)')
+      return false
+      // throw new Error('not found(yet)')
 
     }).catch(e => {
       log.warn('PuppetWebFirer', 'fireRoomJoin() reject() inviteeContactList: %s, inviterContact: %s',
@@ -265,7 +286,7 @@ async function checkRoomJoin(m: Message): Promise<void> {
 
     if (!inviterContact) {
       log.error('PuppetWebFirer', 'firmRoomJoin() inivter not found for %s , `room-join` & `join` event will not fired', inviter)
-      return
+      return false
     }
     if (!inviteeContactList.every(c => c instanceof Contact)) {
       log.error('PuppetWebFirer', 'firmRoomJoin() inviteeList not all found for %s , only part of them will in the `room-join` or `join` event',
@@ -274,7 +295,7 @@ async function checkRoomJoin(m: Message): Promise<void> {
       inviteeContactList = inviteeContactList.filter(c => (c instanceof Contact))
       if (inviteeContactList.length < 1) {
         log.error('PuppetWebFirer', 'firmRoomJoin() inviteeList empty.  `room-join` & `join` event will not fired')
-        return
+        return false
       }
     }
 
@@ -285,11 +306,12 @@ async function checkRoomJoin(m: Message): Promise<void> {
     this.emit('room-join', room , inviteeContactList, inviterContact)
     room.emit('join'            , inviteeContactList, inviterContact)
 
+    return true
   } catch (e) {
     log.error('PuppetWebFirer', 'exception: %s', e.stack)
+    return false
   }
 
-  return
 }
 
 function parseRoomLeave(content: string): [string, string] {
@@ -309,21 +331,21 @@ function parseRoomLeave(content: string): [string, string] {
 /**
  * You removed "Bruce LEE" from the group chat
  */
-async function checkRoomLeave(m: Message): Promise<void> {
+async function checkRoomLeave(m: Message): Promise<boolean> {
   log.verbose('PuppetWebFirer', 'fireRoomLeave(%s)', m.content())
 
   let leaver: string, remover: string
   try {
     [leaver, remover] = parseRoomLeave(m.content())
   } catch (e) {
-    return
+    return false
   }
   log.silly('PuppetWebFirer', 'fireRoomLeave() got leaver: %s', leaver)
 
   const room = m.room()
   if (!room) {
     log.warn('PuppetWebFirer', 'fireRoomLeave() room not found')
-    return
+    return false
   }
   /**
    * FIXME: leaver maybe is a list
@@ -337,7 +359,7 @@ async function checkRoomLeave(m: Message): Promise<void> {
     removerContact = room.member(remover)
     if (!removerContact) {
       log.error('PuppetWebFirer', 'fireRoomLeave() bot is removed from the room, but remover %s not found, event `room-leave` & `leave` will not be fired', remover)
-      return
+      return false
     }
   } else {
     removerContact = Contact.load(this.userId)
@@ -346,7 +368,7 @@ async function checkRoomLeave(m: Message): Promise<void> {
     leaverContact = room.member(remover)
     if (!leaverContact) {
       log.error('PuppetWebFirer', 'fireRoomLeave() bot removed someone from the room, but leaver %s not found, event `room-leave` & `leave` will not be fired', leaver)
-      return
+      return false
     }
   }
 
@@ -362,6 +384,7 @@ async function checkRoomLeave(m: Message): Promise<void> {
   room.emit('leave'           , leaverContact, removerContact)
 
   setTimeout(_ => { room.refresh() }, 10000) // reload the room data, especially for memberList
+  return true
 }
 
 function parseRoomTopic(content: string): [string, string] {
@@ -376,18 +399,18 @@ function parseRoomTopic(content: string): [string, string] {
   return [topic, changer]
 }
 
-async function checkRoomTopic(m: Message): Promise<void> {
+async function checkRoomTopic(m: Message): Promise<boolean> {
   let  topic, changer
   try {
     [topic, changer] = parseRoomTopic(m.content())
   } catch (e) { // not found
-    return
+    return false
   }
 
   const room = m.room()
   if (!room) {
     log.warn('PuppetWebFirer', 'fireRoomLeave() room not found')
-    return
+    return false
   }
 
   const oldTopic = room.topic()
@@ -401,7 +424,7 @@ async function checkRoomTopic(m: Message): Promise<void> {
 
   if (!changerContact) {
     log.error('PuppetWebFirer', 'fireRoomTopic() changer contact not found for %s', changer)
-    return
+    return false
   }
 
   try {
@@ -410,8 +433,10 @@ async function checkRoomTopic(m: Message): Promise<void> {
     this.emit('room-topic', room, topic, oldTopic, changerContact)
     room.emit('topic'           , topic, oldTopic, changerContact)
     room.refresh()
+    return true
   } catch (e) {
     log.error('PuppetWebFirer', 'fireRoomTopic() co exception: %s', e.stack)
+    return false
   }
 }
 

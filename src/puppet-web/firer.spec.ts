@@ -66,34 +66,39 @@ test('parseFriendConfirm()', async t => {
 test('parseRoomJoin()', async t => {
   const contentList: [string, string, string[]][] = [
     [
-      `You've invited "李卓桓" to the group chat`,
-      `You've`,
-      [`李卓桓`],
+      `You invited 管理员 to the group chat.   `,
+      `You`,
+      [`管理员`],
     ],
     [
-      `You've invited "李卓桓.PreAngel、Bruce LEE" to the group chat`,
-      `You've`,
+      `You invited 李卓桓.PreAngel、Bruce LEE to the group chat.   `,
+      `You`,
       [`李卓桓.PreAngel`, `Bruce LEE`],
     ],
     [
-      `"李卓桓.PreAngel" invited "Bruce LEE" to the group chat`,
-      `李卓桓.PreAngel`,
-      [`Bruce LEE`],
+      `管理员 invited 小桔建群助手 to the group chat`,
+      `管理员`,
+      [`小桔建群助手`],
     ],
     [
-      `"凌" invited "庆次、小桔妹" to the group chat`,
-      `凌`,
+      `管理员 invited 庆次、小桔妹 to the group chat`,
+      `管理员`,
       ['庆次', '小桔妹'],
     ],
     [
-      `你邀请"李佳芮"加入了群聊`,
+      `你邀请"管理员"加入了群聊  `,
       `你`,
-      ['李佳芮'],
+      ['管理员'],
     ],
     [
-      `"桔小秘"通过扫描你分享的二维码加入群聊`,
+      `"管理员"邀请"宁锐锋"加入了群聊`,
+      `管理员`,
+      ['宁锐锋'],
+    ],
+    [
+      `"管理员"通过扫描你分享的二维码加入群聊  `,
       `你`,
-      ['桔小秘'],
+      ['管理员'],
     ],
     [
       `" 桔小秘"通过扫描"李佳芮"分享的二维码加入群聊`,
@@ -101,24 +106,14 @@ test('parseRoomJoin()', async t => {
       ['桔小秘'],
     ],
     [
-      `"桔小秘"通过扫描"李佳芮"分享的二维码加入群聊`,
-      `李佳芮`,
-      ['桔小秘'],
+      `"管理员" joined group chat via the QR code you shared.  `,
+      `you`,
+      ['管理员'],
     ],
     [
-      `"桔小秘" joined the group chat via your shared QR Code.`,
-      `your`,
-      ['桔小秘'],
-    ],
-    [
-      `" 桔小秘" joined the group chat via the QR Code shared by "李佳芮".`,
-      `李佳芮`,
-      ['桔小秘'],
-    ],
-    [
-      `"桔小秘" joined the group chat via the QR Code shared by "李佳芮".`,
-      `李佳芮`,
-      ['桔小秘'],
+      `"宁锐锋" joined the group chat via the QR Code shared by "管理员".`,
+      `管理员`,
+      ['宁锐锋'],
     ],
   ]
 
