@@ -80,7 +80,7 @@ export interface MemberQueryFilter {
  * All wechat rooms(groups) will be encapsulated as a Room.
  *
  * `Room` is `Sayable`,
- * [Example/Room-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/room-bot.ts}
+ * [Examples/Room-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/room-bot.ts}
  */
 export class Room extends EventEmitter implements Sayable {
   private static pool = new Map<string, Room>()

@@ -1,4 +1,4 @@
-# Wechaty v0.13.79 Documentation
+# Wechaty v0.13.80 Documentation
 * https://blog.chatie.io
 
 ## Classes
@@ -7,7 +7,7 @@
 <dt><a href="#Contact">Contact</a></dt>
 <dd><p>All wechat contacts(friend) will be encapsulated as a Contact.</p>
 <p><code>Contact</code> is <code>Sayable</code>,
-<a href="https://github.com/Chatie/wechaty/blob/master/example/contact-bot.ts">Example/Contact-Bot</a></p>
+<a href="https://github.com/Chatie/wechaty/blob/master/examples/contact-bot.ts">Examples/Contact-Bot</a></p>
 </dd>
 <dt><a href="#FriendRequest">FriendRequest</a></dt>
 <dd><p>Send, receive friend request, and friend confirmation events.</p>
@@ -16,12 +16,12 @@
 <li>receive request(in friend event)</li>
 <li>confirmation friendship(friend event)</li>
 </ol>
-<p><a href="https://github.com/Chatie/wechaty/blob/master/example/friend-bot.ts">Example/Friend-Bot</a></p>
+<p><a href="https://github.com/Chatie/wechaty/blob/master/examples/friend-bot.ts">Examples/Friend-Bot</a></p>
 </dd>
 <dt><a href="#Message">Message</a></dt>
 <dd><p>All wechat messages will be encapsulated as a Message.</p>
 <p><code>Message</code> is <code>Sayable</code>,
-<a href="https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts">Example/Ding-Dong-Bot</a></p>
+<a href="https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts">Examples/Ding-Dong-Bot</a></p>
 </dd>
 <dt><a href="#MediaMessage">MediaMessage</a></dt>
 <dd><p>Meidia Type Message</p>
@@ -29,7 +29,7 @@
 <dt><a href="#Room">Room</a></dt>
 <dd><p>All wechat rooms(groups) will be encapsulated as a Room.</p>
 <p><code>Room</code> is <code>Sayable</code>,
-<a href="https://github.com/Chatie/wechaty/blob/master/example/room-bot.ts">Example/Room-Bot</a></p>
+<a href="https://github.com/Chatie/wechaty/blob/master/examples/room-bot.ts">Examples/Room-Bot</a></p>
 </dd>
 <dt><a href="#Wechaty">Wechaty</a></dt>
 <dd><p>Main bot class.</p>
@@ -69,7 +69,7 @@
 All wechat contacts(friend) will be encapsulated as a Contact.
 
 `Contact` is `Sayable`,
-[Example/Contact-Bot](https://github.com/Chatie/wechaty/blob/master/example/contact-bot.ts)
+[Examples/Contact-Bot](https://github.com/Chatie/wechaty/blob/master/examples/contact-bot.ts)
 
 **Kind**: global class  
 
@@ -347,7 +347,7 @@ Send, receive friend request, and friend confirmation events.
 2. receive request(in friend event)
 3. confirmation friendship(friend event)
 
-[Example/Friend-Bot](https://github.com/Chatie/wechaty/blob/master/example/friend-bot.ts)
+[Examples/Friend-Bot](https://github.com/Chatie/wechaty/blob/master/examples/friend-bot.ts)
 
 **Kind**: global class  
 
@@ -387,7 +387,7 @@ Accept a friend request
 All wechat messages will be encapsulated as a Message.
 
 `Message` is `Sayable`,
-[Example/Ding-Dong-Bot](https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts)
+[Examples/Ding-Dong-Bot](https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts)
 
 **Kind**: global class  
 
@@ -415,7 +415,7 @@ All wechat messages will be encapsulated as a Message.
 Reply a Text or Media File message to the sender.
 
 **Kind**: instance method of [<code>Message</code>](#Message)  
-**See**: [Example/ding-dong-bot](https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts)  
+**See**: [Examples/ding-dong-bot](https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts)  
 
 | Param | Type |
 | --- | --- |
@@ -675,7 +675,7 @@ You need to detect the following conditions in the message event, which can be f
 All wechat rooms(groups) will be encapsulated as a Room.
 
 `Room` is `Sayable`,
-[Example/Room-Bot](https://github.com/Chatie/wechaty/blob/master/example/room-bot.ts)
+[Examples/Room-Bot](https://github.com/Chatie/wechaty/blob/master/examples/room-bot.ts)
 
 **Kind**: global class  
 
@@ -1099,7 +1099,7 @@ await bot.start()
 **Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
 **Returns**: [<code>Wechaty</code>](#Wechaty) - - this for chain
 
-More Example Gist: [Example/Friend-Bot](https://github.com/wechaty/wechaty/blob/master/example/friend-bot.ts)  
+More Example Gist: [Examples/Friend-Bot](https://github.com/wechaty/wechaty/blob/master/examples/friend-bot.ts)  
 
 | Param | Type | Description |
 | --- | --- | --- |

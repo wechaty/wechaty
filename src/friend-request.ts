@@ -31,7 +31,7 @@ import Contact  from './contact'
  * 2. receive request(in friend event)
  * 3. confirmation friendship(friend event)
  *
- * [Example/Friend-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/friend-bot.ts}
+ * [Examples/Friend-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/friend-bot.ts}
  */
 export abstract class FriendRequest {
 
