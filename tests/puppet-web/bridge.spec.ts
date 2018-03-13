@@ -58,7 +58,7 @@ test('retryPromise()', async t => {
   })
   t.true(thenSpy.withArgs(EXPECTED_REJECT).calledOnce, 'should got EXPECTED_REJECT when wait not enough')
 
-  thenSpy.reset()
+  thenSpy.resetHistory()
   const anotherDelay50 = delayedFactory(50)
   await retryPromise({ max: 6, backoff: 10 }, function() {
     return anotherDelay50()

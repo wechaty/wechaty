@@ -39,15 +39,15 @@ test('Node.js function params destructuring behaviour test', async t => {
     paramSpy(n, s)
   }
 
-  paramSpy.reset()
+  paramSpy.resetHistory()
   paramTest()
   t.deepEqual(paramSpy.args[0], [DEFAULT_N, DEFAULT_S], 'should be equal to default args')
 
-  paramSpy.reset()
+  paramSpy.resetHistory()
   paramTest({n: 42})
   t.deepEqual(paramSpy.args[0], [42, DEFAULT_S], 'should be equal to default s args')
 
-  paramSpy.reset()
+  paramSpy.resetHistory()
   paramTest({s: 'life'})
   t.deepEqual(paramSpy.args[0], [DEFAULT_N, 'life'], 'should be equal to default n args')
 })
