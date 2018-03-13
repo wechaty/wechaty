@@ -69,5 +69,5 @@ package-lock.json
 .babel.json
 
 .idea
-example/.config
-example/.pki
+examples/.config
+examples/.pki

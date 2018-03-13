@@ -36,7 +36,7 @@
     "test:win32": "npm run test:unit:safe",
     "test:debug": "blue-tape -r ts-node/register -r source-map-support/register src/puppet-web/bridge.spec.ts",
     "io-client": "ts-node bin/io-client",
-    "demo": "ts-node example/ding-dong-bot.ts",
+    "demo": "ts-node examples/ding-dong-bot.ts",
     "start": "npm run demo"
   },
   "git": {

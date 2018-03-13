@@ -50,7 +50,7 @@ Wechaty.instance() // Singleton
 
 This bot can log all messages to the console.
 
-You can find more examples from [Wiki](https://github.com/chatie/wechaty/wiki/Example) and [Example Directory](https://github.com/chatie/wechaty/blob/master/example/).
+You can find more examples from [Wiki](https://github.com/chatie/wechaty/wiki/Examples) and [Example Directory](https://github.com/chatie/wechaty/blob/master/examples/).
 
 GETTING STARTED
 ---------------

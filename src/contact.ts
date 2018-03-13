@@ -102,7 +102,7 @@ const specialContactList: string[] = [
  * All wechat contacts(friend) will be encapsulated as a Contact.
  *
  * `Contact` is `Sayable`,
- * [Example/Contact-Bot]{@link https://github.com/Chatie/wechaty/blob/master/example/contact-bot.ts}
+ * [Example/Contact-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/contact-bot.ts}
  */
 export class Contact implements Sayable {
   private static pool = new Map<string, Contact>()

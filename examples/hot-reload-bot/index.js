@@ -22,7 +22,7 @@
  *
  * @deprecated
  * Use hot-import-bot instead
- * See: https://github.com/Chatie/wechaty/tree/master/example/hot-import-bot
+ * See: https://github.com/Chatie/wechaty/tree/master/examples/hot-import-bot
  *
  * DEV: docker run -ti -e --rm --volume="$(pwd)":/bot zixia/wechaty index.js
  * PROD: docker run -ti -e NODE_ENV=production --rm --volume="$(pwd)":/bot zixia/wechaty index.js
@@ -113,7 +113,7 @@ console.log(`
 
 ATTENTION: This example is DEPRECATED.
 
-Please see https://github.com/Chatie/wechaty/tree/master/example/hot-reload-bot instead.
+Please see https://github.com/Chatie/wechaty/tree/master/examples/hot-reload-bot instead.
 
 `)
 

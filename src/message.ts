@@ -53,7 +53,7 @@ export type TypeName =  'attachment'
  * All wechat messages will be encapsulated as a Message.
  *
  * `Message` is `Sayable`,
- * [Example/Ding-Dong-Bot]{@link https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts}
+ * [Example/Ding-Dong-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts}
  */
 export class Message implements Sayable {
   /**
@@ -186,7 +186,7 @@ export class Message implements Sayable {
   /**
    * Reply a Text or Media File message to the sender.
    *
-   * @see {@link https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts|Example/ding-dong-bot}
+   * @see {@link https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts|Example/ding-dong-bot}
    * @param {(string | MediaMessage)} textOrMedia
    * @param {(Contact|Contact[])} [replyTo]
    * @returns {Promise<any>}
