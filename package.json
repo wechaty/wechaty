@@ -18,7 +18,7 @@
     "dist": "npm run clean && tsc && shx cp src/puppet-web/*.js dist/src/puppet-web/",
     "doc": "npm run dist && echo '# Wechaty v'$(jq -r .version package.json)' Documentation\n* https://blog.chatie.io\n' > docs/index.md && jsdoc2md dist/src/{wechaty,room,contact,friend-request,message}.js dist/src/puppet-web/{friend-request,schema}.js>> docs/index.md",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
-    "changelog": "github_changelog_generator -u chatie -p wechaty && sed -i'.bak' /greenkeeper/d CHANGELOG.md && sed -i'.bak' '/An in-range update of/d' CHANGELOG.md && ts-node script/sort-contributiveness.ts < CHANGELOG.md > CHANGELOG.new.md 2>/dev/null && cat CHANGELOG.md >> CHANGELOG.new.md && mv CHANGELOG.new.md CHANGELOG.md",
+    "changelog": "github_changelog_generator -u chatie -p wechaty && sed -i'.bak' /greenkeeper/d CHANGELOG.md && sed -i'.bak' '/An in-range update of/d' CHANGELOG.md && ts-node scripts/sort-contributiveness.ts < CHANGELOG.md > CHANGELOG.new.md 2>/dev/null && cat CHANGELOG.md >> CHANGELOG.new.md && mv CHANGELOG.new.md CHANGELOG.md",
     "doctor": "npm run check-node-version && ts-node bin/doctor",
     "clean": "shx rm -fr dist/*",
     "check-node-version": "check-node-version --node \">= 8.5\"",
@@ -32,7 +32,7 @@
     "test:pack": "npm run dist && export TMPDIR=/tmp/wechaty.$$ && npm pack && mkdir $TMPDIR && mv wechaty-*.*.*.tgz $TMPDIR && cp tests/fixtures/smoke-testing.js $TMPDIR && cd $TMPDIR && npm init -y && npm i wechaty-*.*.*.tgz && (for i in {1..3}; do node smoke-testing.js && break || sleep 1; done)",
     "test:shell": "shellcheck bin/*.sh",
     "test:unit": "blue-tape -r ts-node/register -r source-map-support/register \"src/**/*.spec.ts\" \"src/*.spec.ts\" \"tests/*.spec.ts\" \"tests/**/*.spec.ts\"",
-    "test:unit:safe": "ts-node script/safe-unit-test",
+    "test:unit:safe": "ts-node scripts/safe-unit-test",
     "test:win32": "npm run test:unit:safe",
     "test:debug": "blue-tape -r ts-node/register -r source-map-support/register src/puppet-web/bridge.spec.ts",
     "io-client": "ts-node bin/io-client",
@@ -41,7 +41,7 @@
   },
   "git": {
     "scripts": {
-      "pre-push": "./script/pre-push.sh"
+      "pre-push": "./scripts/pre-push.sh"
     }
   },
   "repository": {
