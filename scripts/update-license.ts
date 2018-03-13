@@ -138,7 +138,7 @@ async function glob(pattern): Promise<string[]> {
 }
 
 async function main(): Promise<void> {
-  const pattern = '{bin/**/*.ts,examples/**/*.{js,ts},src/**/*.{ts,js},tests/**/*.ts}'
+  const pattern = '{bin/**/*.ts,examples/**/*.{js,ts},scripts/**/*.{ts,js},src/**/*.{ts,js},tests/**/*.ts}'
   // const pattern = 't.ts'
   const srcFileList = await glob(pattern)
   const promiseList = srcFileList.map(updateLicense)
