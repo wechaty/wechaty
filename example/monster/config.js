@@ -3,7 +3,7 @@
 //==========================================================================
 //vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 //vvvvv Customization Starts vvvvv
-export default const config = {
+export const config = {
   db: { host: 'localhost', port: 27017, name: 'db' },
   redis:
   { default: { port: 6379 },
@@ -18,3 +18,4 @@ export default const config = {
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //==========================================================================
 
+export default config
