@@ -93,7 +93,7 @@ test('evaluate() a file and get the returns value', async t => {
 
     const file = path.join(
       __dirname,
-      'fixture/inject-file.js',
+      'fixtures/inject-file.js',
     )
     const source = fs.readFileSync(file).toString()
 
