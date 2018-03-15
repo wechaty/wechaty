@@ -18,7 +18,11 @@ function wechaty::banner() {
 
 function wechaty::errorBotNotFound() {
   local file=$1
-  echo "ERROR: can not found bot file: $file"
+  echo "Container ERROR: can not found bot file: $file"
+
+  echo "Container PWD: $(pwd)"
+  echo "Container LS: $(ls -l)"
+
   figlet " Troubleshooting "
   cat <<'TROUBLESHOOTING'
 
