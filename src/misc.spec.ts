@@ -54,10 +54,14 @@ test('plainText()', async t => {
 test('digestEmoji()', async t => {
   const EMOJI_XML = [
     '<img class="emoji emoji1f4a4" text="[流汗]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />',
+    '<img class="qqemoji qqemoji13" text="[呲牙]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />',
+    '<img class="emoji emoji1f44d" text="_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />',
     '<span class="emoji emoji1f334"></span>',
   ]
   const EMOJI_AFTER_DIGEST  = [
     '[流汗]',
+    '[呲牙]',
+    '',
     '[emoji1f334]',
   ]
 
