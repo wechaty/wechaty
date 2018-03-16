@@ -21,7 +21,7 @@ function wechaty::errorBotNotFound() {
   echo "Container ERROR: can not found bot file: $file"
 
   echo "Container PWD: $(pwd)"
-  echo "Container LS: $(ls -l)"
+  echo "Container LS: $(ls -l /bot)"
 
   figlet " Troubleshooting "
   cat <<'TROUBLESHOOTING'
