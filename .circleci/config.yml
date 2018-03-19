@@ -3,6 +3,7 @@ version: 2
 jobs:
   build:
     machine: true
+    parallelism: 1
     steps:
       - checkout
       # - setup_remote_docker
