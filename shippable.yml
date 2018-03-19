@@ -17,10 +17,11 @@ build:
     - curl -sSL -o /tmp/bats_v0.4.0.tar.gz https://github.com/sstephenson/bats/archive/v0.4.0.tar.gz
     - tar -xf /tmp/bats_v0.4.0.tar.gz
     - sudo bats-0.4.0/install.sh /usr/local
-    - docker run -ti -v "$(pwd)":/mnt nlknguyen/alpine-shellcheck bin/*.sh
+    - docker run -v "$(pwd)":/mnt nlknguyen/alpine-shellcheck bin/*.sh
     - ./scripts/docker.sh build
     - ./scripts/docker.sh test
-    - curl -X POST -d '{"from":"circleci"}' "$DOCKER_REBUILD_URL"
+  on_success:
+    - curl -X POST -d '{"from":"shippable"}' https://registry.hub.docker.com/u/zixia/wechaty/trigger/ab820d46-568e-469c-9533-d6e525b27402/
 
 # Integrations are used to connect external resources to CI
 # http://docs.shippable.com/integrations/overview/
