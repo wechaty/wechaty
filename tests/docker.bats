@@ -1,13 +1,12 @@
 #!/usr/bin/env bats
 
-
 function dockerRun() {
   docker run -v "$(pwd)":/bot ${IMAGE_NAME:-'wechaty:test'} $@
 }
 
 fixtures=tests/fixtures/docker
 
-@test "should pass with a simple javascript" {
+@test "should succ with a simple javascript" {
   cd "$fixtures"
   run dockerRun js-bot.js
   [ "$status" -eq 0 ]
@@ -19,7 +18,7 @@ fixtures=tests/fixtures/docker
   [ "$status" -ne 0 ]
 }
 
-@test "should success with javascript es6 import syntax" {
+@test "should succ with javascript es6 import syntax" {
   cd "$fixtures"
   run dockerRun es6-import.js
   [ "$status" -eq 0 ] # should succ
@@ -31,7 +30,7 @@ fixtures=tests/fixtures/docker
   [ "$status" -ne 0 ] # should fail
 }
 
-@test "should pass with a simple typescript" {
+@test "should succ with a simple typescript" {
   cd "$fixtures"
   run dockerRun ts-bot.ts
   [ "$status" -eq 0 ]
@@ -43,13 +42,13 @@ fixtures=tests/fixtures/docker
   [ "$status" -ne 0 ]
 }
 
-@test "should pass when we using `import = require()` in typescript" {
+@test "should succ when we using 'import = require()' in typescript" {
   cd "$fixtures"
   run dockerRun import-require.ts
   [ "$status" -eq 0 ]
 }
 
-@test "should pass when using require with javascript" {
+@test "should succ when using require with javascript" {
   cd "$fixtures/with-package-json/"
   run dockerRun with-require.js
   [ "$status" -eq 0 ]
@@ -61,7 +60,7 @@ fixtures=tests/fixtures/docker
   [ "$status" -ne 0 ]
 }
 
-@test "should pass when using import in typescript" {
+@test "should succ when using import in typescript" {
   cd "$fixtures/with-package-json/"
   run dockerRun with-import.ts
   [ "$status" -eq 0 ]
@@ -73,12 +72,12 @@ fixtures=tests/fixtures/docker
   [ "$status" -ne 0 ]
 }
 
-@test "should pass with arg: `doctor` (which is the default by npm run)" {
+@test "should succ with arg: 'doctor' (which is the default by npm run)" {
   run dockerRun doctor
   [ "$status" -eq 0 ]
 }
 
-@test "should pass with arg: `run doctor`" {
+@test "should succ with arg: 'run doctor'" {
   run dockerRun run doctor
   [ "$status" -eq 0 ]
 }
