@@ -17,6 +17,8 @@ build:
     - curl -sSL -o /tmp/bats_v0.4.0.tar.gz https://github.com/sstephenson/bats/archive/v0.4.0.tar.gz
     - tar -xf /tmp/bats_v0.4.0.tar.gz
     - sudo bats-0.4.0/install.sh /usr/local
+    - pwd
+    - ls -l
     - docker run -v "$(pwd)":/mnt nlknguyen/alpine-shellcheck bin/*.sh
     - ./scripts/docker.sh build
     - ./scripts/docker.sh test
