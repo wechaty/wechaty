@@ -3,7 +3,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: golang
+      - image: docker
 
     parallelism: 1
     steps:
