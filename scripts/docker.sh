@@ -31,8 +31,8 @@ case "$1" in
 
     echo
     echo
-    echo docker run -ti $options -v /dev/shm:/dev/shm "$imageName" test
-    exec docker run -ti $options -v /dev/shm:/dev/shm "$imageName" test
+    echo docker run -i $options -v /dev/shm:/dev/shm "$imageName" test
+    exec docker run -i $options -v /dev/shm:/dev/shm "$imageName" test
     ret=$?
     ;;
 

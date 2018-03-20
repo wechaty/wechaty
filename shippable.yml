@@ -11,9 +11,13 @@ branches:
   only:
     - master
 
+env:
+  global:
+    - secure: x0+gSTZx9QXVhhnEu+7iRXBEE0O/nGTXAvSJVgc+wx/qPocyB2CQqAf7+UTq3jGsrcdZYKGe8MCgxFOmT2abcv8TQn02LT9LQVsSBo9I72U4tisJcpcbFad4XkjwUXHOMZfndubGgy58GfDTNl/x1v7DB/Olhwu6nlJRYnedj22l8kdEKBpabMmrnogrWesoKKpYbkhR9Vi3XHeZ3FA5hu14wbhq8A2jpcGqh35bDpViAL7f447nPdn20SAFGOrqF3yC/Ws8keG0ChQ2IhQ4cx/ucpGmswUw+ZLJEUCQL0ZlUgkXAAUVeAUAMMywE+yWYLnfDRqnVshRdb6+lHz6VA==
+
 build:
   pre_ci_boot:
-    options: "-v /root:/root"
+    options:  "-v /root/src:/root/src"
 
     # http://docs.shippable.com/ci/shippableyml/#ci
   ci:
@@ -26,7 +30,7 @@ build:
     - ./scripts/docker.sh build
     - ./scripts/docker.sh test
   on_success:
-    - curl -X POST -d '{"from":"shippable"}' https://registry.hub.docker.com/u/zixia/wechaty/trigger/ab820d46-568e-469c-9533-d6e525b27402/
+    - curl -X POST -d '{"from":"shippable"}' "$DOCKER_REBUILD_URL"
 
 # Integrations are used to connect external resources to CI
 # http://docs.shippable.com/integrations/overview/
