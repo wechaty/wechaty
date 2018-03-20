@@ -4,27 +4,103 @@ WECHATY CONTRIBUTORS
 
 ### Active Contributors
 
-1. @[lijiarui](https://github.com/lijiarui): [\#816](https://github.com/Chatie/wechaty/pull/816),[\#812](https://github.com/Chatie/wechaty/pull/812),[\#805](https://github.com/Chatie/wechaty/pull/805),[\#798](https://github.com/Chatie/wechaty/pull/798),[\#757](https://github.com/Chatie/wechaty/pull/757),[\#729](https://github.com/Chatie/wechaty/pull/729),[\#725](https://github.com/Chatie/wechaty/pull/725),[\#651](https://github.com/Chatie/wechaty/pull/651),[\#627](https://github.com/Chatie/wechaty/pull/627),[\#619](https://github.com/Chatie/wechaty/pull/619),[\#604](https://github.com/Chatie/wechaty/pull/604),[\#515](https://github.com/Chatie/wechaty/pull/515),[\#490](https://github.com/Chatie/wechaty/pull/490),[\#440](https://github.com/Chatie/wechaty/pull/440),[\#370](https://github.com/Chatie/wechaty/pull/370),[\#364](https://github.com/Chatie/wechaty/pull/364),[\#362](https://github.com/Chatie/wechaty/pull/362),[\#328](https://github.com/Chatie/wechaty/pull/328),[\#324](https://github.com/Chatie/wechaty/pull/324),[\#323](https://github.com/Chatie/wechaty/pull/323),[\#321](https://github.com/Chatie/wechaty/pull/321),[\#318](https://github.com/Chatie/wechaty/pull/318),[\#303](https://github.com/Chatie/wechaty/pull/303),[\#292](https://github.com/Chatie/wechaty/pull/292),[\#275](https://github.com/Chatie/wechaty/pull/275),[\#266](https://github.com/Chatie/wechaty/pull/266),[\#264](https://github.com/Chatie/wechaty/pull/264),[\#249](https://github.com/Chatie/wechaty/pull/249),[\#239](https://github.com/Chatie/wechaty/pull/239),[\#234](https://github.com/Chatie/wechaty/pull/234),[\#211](https://github.com/Chatie/wechaty/pull/211),[\#199](https://github.com/Chatie/wechaty/pull/199),[\#182](https://github.com/Chatie/wechaty/pull/182),[\#162](https://github.com/Chatie/wechaty/pull/162),[\#139](https://github.com/Chatie/wechaty/pull/139),[\#112](https://github.com/Chatie/wechaty/pull/112),[\#110](https://github.com/Chatie/wechaty/pull/110),[\#93](https://github.com/Chatie/wechaty/pull/93),[\#92](https://github.com/Chatie/wechaty/pull/92),[\#91](https://github.com/Chatie/wechaty/pull/91),[\#87](https://github.com/Chatie/wechaty/pull/87),[\#38](https://github.com/Chatie/wechaty/pull/38)
-1. @[zixia](https://github.com/zixia): [\#860](https://github.com/Chatie/wechaty/pull/860),[\#854](https://github.com/Chatie/wechaty/pull/854),[\#841](https://github.com/Chatie/wechaty/pull/841),[\#831](https://github.com/Chatie/wechaty/pull/831),[\#810](https://github.com/Chatie/wechaty/pull/810),[\#644](https://github.com/Chatie/wechaty/pull/644),[\#643](https://github.com/Chatie/wechaty/pull/643),[\#608](https://github.com/Chatie/wechaty/pull/608),[\#569](https://github.com/Chatie/wechaty/pull/569),[\#560](https://github.com/Chatie/wechaty/pull/560),[\#542](https://github.com/Chatie/wechaty/pull/542),[\#496](https://github.com/Chatie/wechaty/pull/496),[\#495](https://github.com/Chatie/wechaty/pull/495),[\#469](https://github.com/Chatie/wechaty/pull/469),[\#462](https://github.com/Chatie/wechaty/pull/462),[\#455](https://github.com/Chatie/wechaty/pull/455),[\#449](https://github.com/Chatie/wechaty/pull/449),[\#396](https://github.com/Chatie/wechaty/pull/396),[\#351](https://github.com/Chatie/wechaty/pull/351),[\#317](https://github.com/Chatie/wechaty/pull/317),[\#316](https://github.com/Chatie/wechaty/pull/316),[\#315](https://github.com/Chatie/wechaty/pull/315),[\#314](https://github.com/Chatie/wechaty/pull/314),[\#313](https://github.com/Chatie/wechaty/pull/313),[\#312](https://github.com/Chatie/wechaty/pull/312),[\#311](https://github.com/Chatie/wechaty/pull/311),[\#168](https://github.com/Chatie/wechaty/pull/168),[\#158](https://github.com/Chatie/wechaty/pull/158),[\#149](https://github.com/Chatie/wechaty/pull/149),[\#146](https://github.com/Chatie/wechaty/pull/146),[\#143](https://github.com/Chatie/wechaty/pull/143),[\#142](https://github.com/Chatie/wechaty/pull/142),[\#141](https://github.com/Chatie/wechaty/pull/141),[\#25](https://github.com/Chatie/wechaty/pull/25)
-1. @[mukaiu](https://github.com/mukaiu): [\#337](https://github.com/Chatie/wechaty/pull/337),[\#470](https://github.com/Chatie/wechaty/pull/470),[\#438](https://github.com/Chatie/wechaty/pull/438),[\#421](https://github.com/Chatie/wechaty/pull/421),[\#420](https://github.com/Chatie/wechaty/pull/420),[\#415](https://github.com/Chatie/wechaty/pull/415),[\#376](https://github.com/Chatie/wechaty/pull/376)
+1. @[lijiarui](https://github.com/lijiarui): [\#1116](https://github.com/Chatie/wechaty/pull/1116),[\#1086](https://github.com/Chatie/wechaty/pull/1086),[\#816](https://github.com/Chatie/wechaty/pull/816),[\#812](https://github.com/Chatie/wechaty/pull/812),[\#805](https://github.com/Chatie/wechaty/pull/805),[\#798](https://github.com/Chatie/wechaty/pull/798),[\#757](https://github.com/Chatie/wechaty/pull/757),[\#729](https://github.com/Chatie/wechaty/pull/729),[\#725](https://github.com/Chatie/wechaty/pull/725),[\#651](https://github.com/Chatie/wechaty/pull/651),[\#627](https://github.com/Chatie/wechaty/pull/627),[\#619](https://github.com/Chatie/wechaty/pull/619),[\#604](https://github.com/Chatie/wechaty/pull/604),[\#515](https://github.com/Chatie/wechaty/pull/515),[\#490](https://github.com/Chatie/wechaty/pull/490),[\#440](https://github.com/Chatie/wechaty/pull/440),[\#370](https://github.com/Chatie/wechaty/pull/370),[\#364](https://github.com/Chatie/wechaty/pull/364),[\#362](https://github.com/Chatie/wechaty/pull/362),[\#328](https://github.com/Chatie/wechaty/pull/328),[\#324](https://github.com/Chatie/wechaty/pull/324),[\#323](https://github.com/Chatie/wechaty/pull/323),[\#321](https://github.com/Chatie/wechaty/pull/321),[\#318](https://github.com/Chatie/wechaty/pull/318),[\#303](https://github.com/Chatie/wechaty/pull/303),[\#292](https://github.com/Chatie/wechaty/pull/292),[\#275](https://github.com/Chatie/wechaty/pull/275),[\#266](https://github.com/Chatie/wechaty/pull/266),[\#264](https://github.com/Chatie/wechaty/pull/264),[\#249](https://github.com/Chatie/wechaty/pull/249),[\#239](https://github.com/Chatie/wechaty/pull/239),[\#234](https://github.com/Chatie/wechaty/pull/234),[\#211](https://github.com/Chatie/wechaty/pull/211),[\#199](https://github.com/Chatie/wechaty/pull/199),[\#182](https://github.com/Chatie/wechaty/pull/182),[\#162](https://github.com/Chatie/wechaty/pull/162),[\#139](https://github.com/Chatie/wechaty/pull/139),[\#112](https://github.com/Chatie/wechaty/pull/112),[\#110](https://github.com/Chatie/wechaty/pull/110),[\#93](https://github.com/Chatie/wechaty/pull/93),[\#92](https://github.com/Chatie/wechaty/pull/92),[\#91](https://github.com/Chatie/wechaty/pull/91),[\#87](https://github.com/Chatie/wechaty/pull/87),[\#38](https://github.com/Chatie/wechaty/pull/38)
+1. @[zixia](https://github.com/zixia): [\#1131](https://github.com/Chatie/wechaty/pull/1131),[\#1083](https://github.com/Chatie/wechaty/pull/1083),[\#1075](https://github.com/Chatie/wechaty/pull/1075),[\#1074](https://github.com/Chatie/wechaty/pull/1074),[\#1073](https://github.com/Chatie/wechaty/pull/1073),[\#1072](https://github.com/Chatie/wechaty/pull/1072),[\#1071](https://github.com/Chatie/wechaty/pull/1071),[\#860](https://github.com/Chatie/wechaty/pull/860),[\#854](https://github.com/Chatie/wechaty/pull/854),[\#841](https://github.com/Chatie/wechaty/pull/841),[\#831](https://github.com/Chatie/wechaty/pull/831),[\#810](https://github.com/Chatie/wechaty/pull/810),[\#644](https://github.com/Chatie/wechaty/pull/644),[\#643](https://github.com/Chatie/wechaty/pull/643),[\#608](https://github.com/Chatie/wechaty/pull/608),[\#569](https://github.com/Chatie/wechaty/pull/569),[\#560](https://github.com/Chatie/wechaty/pull/560),[\#542](https://github.com/Chatie/wechaty/pull/542),[\#496](https://github.com/Chatie/wechaty/pull/496),[\#495](https://github.com/Chatie/wechaty/pull/495),[\#469](https://github.com/Chatie/wechaty/pull/469),[\#462](https://github.com/Chatie/wechaty/pull/462),[\#455](https://github.com/Chatie/wechaty/pull/455),[\#449](https://github.com/Chatie/wechaty/pull/449),[\#396](https://github.com/Chatie/wechaty/pull/396),[\#351](https://github.com/Chatie/wechaty/pull/351),[\#317](https://github.com/Chatie/wechaty/pull/317),[\#316](https://github.com/Chatie/wechaty/pull/316),[\#315](https://github.com/Chatie/wechaty/pull/315),[\#314](https://github.com/Chatie/wechaty/pull/314),[\#313](https://github.com/Chatie/wechaty/pull/313),[\#312](https://github.com/Chatie/wechaty/pull/312),[\#311](https://github.com/Chatie/wechaty/pull/311),[\#168](https://github.com/Chatie/wechaty/pull/168),[\#158](https://github.com/Chatie/wechaty/pull/158),[\#149](https://github.com/Chatie/wechaty/pull/149),[\#146](https://github.com/Chatie/wechaty/pull/146),[\#143](https://github.com/Chatie/wechaty/pull/143),[\#142](https://github.com/Chatie/wechaty/pull/142),[\#141](https://github.com/Chatie/wechaty/pull/141),[\#25](https://github.com/Chatie/wechaty/pull/25)
+1. @[mukaiu](https://github.com/mukaiu): [\#1089](https://github.com/Chatie/wechaty/pull/1089),[\#962](https://github.com/Chatie/wechaty/pull/962),[\#337](https://github.com/Chatie/wechaty/pull/337),[\#470](https://github.com/Chatie/wechaty/pull/470),[\#438](https://github.com/Chatie/wechaty/pull/438),[\#421](https://github.com/Chatie/wechaty/pull/421),[\#420](https://github.com/Chatie/wechaty/pull/420),[\#415](https://github.com/Chatie/wechaty/pull/415),[\#376](https://github.com/Chatie/wechaty/pull/376)
 1. @[binsee](https://github.com/binsee): [\#844](https://github.com/Chatie/wechaty/pull/844),[\#811](https://github.com/Chatie/wechaty/pull/811),[\#771](https://github.com/Chatie/wechaty/pull/771),[\#744](https://github.com/Chatie/wechaty/pull/744),[\#727](https://github.com/Chatie/wechaty/pull/727),[\#714](https://github.com/Chatie/wechaty/pull/714)
 1. @[JasLin](https://github.com/JasLin): [\#404](https://github.com/Chatie/wechaty/pull/404),[\#358](https://github.com/Chatie/wechaty/pull/358),[\#105](https://github.com/Chatie/wechaty/pull/105),[\#100](https://github.com/Chatie/wechaty/pull/100),[\#78](https://github.com/Chatie/wechaty/pull/78),[\#76](https://github.com/Chatie/wechaty/pull/76)
-1. @[xinbenlv](https://github.com/xinbenlv): [\#388](https://github.com/Chatie/wechaty/pull/388),[\#361](https://github.com/Chatie/wechaty/pull/361),[\#280](https://github.com/Chatie/wechaty/pull/280)
+1. @[xinbenlv](https://github.com/xinbenlv): [\#1017](https://github.com/Chatie/wechaty/pull/1017),[\#935](https://github.com/Chatie/wechaty/pull/935),[\#388](https://github.com/Chatie/wechaty/pull/388),[\#361](https://github.com/Chatie/wechaty/pull/361),[\#280](https://github.com/Chatie/wechaty/pull/280)
+1. @[suntong](https://github.com/suntong): [\#1129](https://github.com/Chatie/wechaty/pull/1129),[\#1123](https://github.com/Chatie/wechaty/pull/1123)
 1. @[hczhcz](https://github.com/hczhcz): [\#684](https://github.com/Chatie/wechaty/pull/684),[\#640](https://github.com/Chatie/wechaty/pull/640)
 
 ### Contributors
 
+1. @[zhenyong](https://github.com/zhenyong): [\#770](https://github.com/Chatie/wechaty/pull/770)
+1. @[IdiosApps](https://github.com/IdiosApps): [\#1087](https://github.com/Chatie/wechaty/pull/1087)
+1. @[hiwanz](https://github.com/hiwanz): [\#1036](https://github.com/Chatie/wechaty/pull/1036)
+1. @[TingYinHelen](https://github.com/TingYinHelen): [\#605](https://github.com/Chatie/wechaty/pull/605)
 1. @[imerse](https://github.com/imerse): [\#578](https://github.com/Chatie/wechaty/pull/578)
 1. @[FlyingBlazer](https://github.com/FlyingBlazer): [\#531](https://github.com/Chatie/wechaty/pull/531)
-1. @[zhenyong](https://github.com/zhenyong): [\#770](https://github.com/Chatie/wechaty/pull/770)
-1. @[lpmi-13](https://github.com/lpmi-13): [\#681](https://github.com/Chatie/wechaty/pull/681)
-1. @[TingYinHelen](https://github.com/TingYinHelen): [\#605](https://github.com/Chatie/wechaty/pull/605)
+1. @[xjchengo](https://github.com/xjchengo): [\#416](https://github.com/Chatie/wechaty/pull/416)
+1. @[htoooth](https://github.com/htoooth): [\#1014](https://github.com/Chatie/wechaty/pull/1014)
 1. @[ax4](https://github.com/ax4): [\#380](https://github.com/Chatie/wechaty/pull/380)
 1. @[Gcaufy](https://github.com/Gcaufy): [\#310](https://github.com/Chatie/wechaty/pull/310)
 1. @[cherry-geqi](https://github.com/cherry-geqi): [\#97](https://github.com/Chatie/wechaty/pull/97)
-1. @[xjchengo](https://github.com/xjchengo): [\#416](https://github.com/Chatie/wechaty/pull/416)
+1. @[lpmi-13](https://github.com/lpmi-13): [\#681](https://github.com/Chatie/wechaty/pull/681)
 
 # Change Log
+
+## [Unreleased](https://github.com/chatie/wechaty/tree/HEAD)
+
+[Full Changelog](https://github.com/chatie/wechaty/compare/v0.12.0...HEAD)
+
+**Implemented enhancements:**
+
+- Rename {test,fixture,example,...} to {tests,fixtures,examples,...} etc. [\#1127](https://github.com/Chatie/wechaty/issues/1127)
+- Trigger Deploy on Branch /v\d+\.\d+\$/ [\#956](https://github.com/Chatie/wechaty/issues/956)
+- Wechaty Version Numbering [\#905](https://github.com/Chatie/wechaty/issues/905)
+- \[New Puppet\] Puppeteer [\#790](https://github.com/Chatie/wechaty/issues/790)
+- \[enhancement\] Add timezone in to Dockerfile [\#594](https://github.com/Chatie/wechaty/issues/594)
+- \[docker\] to prevent docker users install a local dependence of wechaty [\#281](https://github.com/Chatie/wechaty/issues/281)
+
+**Fixed bugs:**
+
+- Pupeteer not work after upgrade to v1.1 [\#1103](https://github.com/Chatie/wechaty/issues/1103)
+- 关于MsgType 的介绍文档404了 [\#1079](https://github.com/Chatie/wechaty/issues/1079)
+- Docker test fail because ts-node behavior changed between v3 and v4 [\#1050](https://github.com/Chatie/wechaty/issues/1050)
+- fix description [\#1027](https://github.com/Chatie/wechaty/issues/1027)
+- ERR Profile save\(\) exception: Error: EACCES: permission denied, open '/bot/demo.wechaty.json' [\#982](https://github.com/Chatie/wechaty/issues/982)
+- Dockerfile.onbuild build error.Directory permissions wrong [\#961](https://github.com/Chatie/wechaty/issues/961)
+- \[docker\] onbuild failed to start when we put `wechaty` as dependency in package.json [\#500](https://github.com/Chatie/wechaty/issues/500)
+
+**Closed issues:**
+
+- Signals \(e.g. ^C\) handling [\#1122](https://github.com/Chatie/wechaty/issues/1122)
+- OK to add a .eslintrc.js file? [\#1120](https://github.com/Chatie/wechaty/issues/1120)
+- Q: All the media types [\#1115](https://github.com/Chatie/wechaty/issues/1115)
+- `TTL expired` error when login [\#1114](https://github.com/Chatie/wechaty/issues/1114)
+-  `Cannot read property 'MemberList' of undefined ` still exisit in the latest docker version [\#1111](https://github.com/Chatie/wechaty/issues/1111)
+- emoji suggestion [\#1108](https://github.com/Chatie/wechaty/issues/1108)
+- Regenerate docs/index.md by run `npm run doc` [\#1105](https://github.com/Chatie/wechaty/issues/1105)
+- hot-reload-bot adding hot-reloading config [\#1100](https://github.com/Chatie/wechaty/issues/1100)
+- Third options to run wechaty [\#1085](https://github.com/Chatie/wechaty/issues/1085)
+- issue [\#1076](https://github.com/Chatie/wechaty/issues/1076)
+- Session last only for 1 hour in Azure [\#1059](https://github.com/Chatie/wechaty/issues/1059)
+- 出现 no Url 错误后，程序崩溃 [\#1055](https://github.com/Chatie/wechaty/issues/1055)
+- 图片发送一次后,图片损坏 [\#1040](https://github.com/Chatie/wechaty/issues/1040)
+-  ERR PuppetWebBridge init\(\) exception [\#1018](https://github.com/Chatie/wechaty/issues/1018)
+- 我实在解决不了这个问题了~菜鸟一枚 [\#998](https://github.com/Chatie/wechaty/issues/998)
+- TypeError: Cannot read property 'MemberList' of undefined [\#984](https://github.com/Chatie/wechaty/issues/984)
+- Using hot-import cannot quit wechaty when quit the code [\#978](https://github.com/Chatie/wechaty/issues/978)
+- Error: Navigation Timeout Exceeded: 30000ms exceeded [\#966](https://github.com/Chatie/wechaty/issues/966)
+- hot-reload does not work [\#958](https://github.com/Chatie/wechaty/issues/958)
+- \[docker\] Login error [\#950](https://github.com/Chatie/wechaty/issues/950)
+-  Invalid audio output parameters received; using fake audio path.   [\#939](https://github.com/Chatie/wechaty/issues/939)
+- Keep getting "can not found bot file: src/main.ts" [\#937](https://github.com/Chatie/wechaty/issues/937)
+- glSetDrawRectangleCHROMIUM: failed on surface [\#934](https://github.com/Chatie/wechaty/issues/934)
+- \[FR\] Create an example for using hot-import for listener and other modules [\#923](https://github.com/Chatie/wechaty/issues/923)
+- Bot log out frequently and got some strange error between it logout and relogin automatically [\#612](https://github.com/Chatie/wechaty/issues/612)
+
+**Merged pull requests:**
+
+- chore\(package\): update puppeteer to version 1.2.0 [\#1131](https://github.com/Chatie/wechaty/pull/1131) ([zixia](https://github.com/zixia))
+- - \[+\] add one more test case for digestEmoji\(\), close \#1108 [\#1129](https://github.com/Chatie/wechaty/pull/1129) ([suntong](https://github.com/suntong))
+- hot-reload-bot adding hot-reloading config close \#1066, close \#1100 [\#1123](https://github.com/Chatie/wechaty/pull/1123) ([suntong](https://github.com/suntong))
+- cannot recognize room event [\#1116](https://github.com/Chatie/wechaty/pull/1116) ([lijiarui](https://github.com/lijiarui))
+- fix chown: invalid user: ‘bot’ [\#1089](https://github.com/Chatie/wechaty/pull/1089) ([mukaiu](https://github.com/mukaiu))
+- Add troubleshooting for hidden .txt files \(Windows\) [\#1087](https://github.com/Chatie/wechaty/pull/1087) ([IdiosApps](https://github.com/IdiosApps))
+- fix \#1079 [\#1086](https://github.com/Chatie/wechaty/pull/1086) ([lijiarui](https://github.com/lijiarui))
+- chore\(package\): update @types/node to version 9.4.0 [\#1083](https://github.com/Chatie/wechaty/pull/1083) ([zixia](https://github.com/zixia))
+- chore\(package\): update finis to version 0.4.1 [\#1075](https://github.com/Chatie/wechaty/pull/1075) ([zixia](https://github.com/zixia))
+- chore\(package\): update ts-node to version 4.1.0 [\#1074](https://github.com/Chatie/wechaty/pull/1074) ([zixia](https://github.com/zixia))
+- chore\(package\): update mime to version 2.2.0 [\#1073](https://github.com/Chatie/wechaty/pull/1073) ([zixia](https://github.com/zixia))
+- chore\(package\): update tslint to version 5.9.0 [\#1072](https://github.com/Chatie/wechaty/pull/1072) ([zixia](https://github.com/zixia))
+- chore\(package\): update sinon to version 4.2.0 [\#1071](https://github.com/Chatie/wechaty/pull/1071) ([zixia](https://github.com/zixia))
+- fail to install node dependencies [\#1036](https://github.com/Chatie/wechaty/pull/1036) ([hiwanz](https://github.com/hiwanz))
+- Change `init` to `start` in demo [\#1017](https://github.com/Chatie/wechaty/pull/1017) ([xinbenlv](https://github.com/xinbenlv))
+- Update tuling123-bot.ts [\#1014](https://github.com/Chatie/wechaty/pull/1014) ([htoooth](https://github.com/htoooth))
+- fix \#961 onbuild operation not permitted [\#962](https://github.com/Chatie/wechaty/pull/962) ([mukaiu](https://github.com/mukaiu))
+- Fix \#923 [\#935](https://github.com/Chatie/wechaty/pull/935) ([xinbenlv](https://github.com/xinbenlv))
 
 ## [v0.12.0](https://github.com/chatie/wechaty/tree/v0.12.0) (2017-10-30)
 [Full Changelog](https://github.com/chatie/wechaty/compare/v0.9.0...v0.12.0)
@@ -152,7 +228,6 @@ WECHATY CONTRIBUTORS
 - 获取不到avatar [\#645](https://github.com/Chatie/wechaty/issues/645)
 - Get ECONNREFUSED when bot logout and cannot re-login [\#617](https://github.com/Chatie/wechaty/issues/617)
 - Modify Function `Room.create` return type, from `Promise\<Room\>` to `Promise\<Room|null\>`  [\#616](https://github.com/Chatie/wechaty/issues/616)
-- Bot log out frequently and got some strange error between it logout and relogin automatically [\#612](https://github.com/Chatie/wechaty/issues/612)
 - init 后会打开扫码的网页？ [\#601](https://github.com/Chatie/wechaty/issues/601)
 - Error: ENOENT: no such file or directory, stat '/wechaty/dist/.git' [\#581](https://github.com/Chatie/wechaty/issues/581)
 - 在 Windows Server 上初始化的时候，chromedriver 报错。 [\#574](https://github.com/Chatie/wechaty/issues/574)
