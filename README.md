@@ -130,14 +130,14 @@ TEST
 [![Coverage Status](https://coveralls.io/repos/github/Chatie/wechaty/badge.svg?branch=master)](https://coveralls.io/github/Chatie/wechaty?branch=master)
 [![Known Vulnerabilities](https://snyk.io/test/github/chatie/wechaty/badge.svg)](https://snyk.io/test/github/chatie/wechaty)
 
-Wechaty is fully tested by unit tests and integration tests, with Continious Integration & Continious Deliver(CI/CD) support, which is powered by TravisCI, CircleCI and Appveyor CI.
+Wechaty is fully tested by unit tests and integration Ws, with Continious Integration & Continious Deliver(CI/CD) support, which is powered by TravisCI, CircleCI and Appveyor CI.
 
 To test Wechaty, run:
 ```shell
 npm test
 ```
 
-Get to know more about the tests from [Wiki:Test](https://github.com/chatie/wechaty/wiki/Test)
+Get to know more about the tests from [Wiki:Tests](https://github.com/chatie/wechaty/wiki/Tests)
 
 DOCUMATAION
 -------------
