@@ -8,7 +8,7 @@
  */
 import { spawn } from 'child_process'
 
-const MAX_RETRY_NUM = 5
+const MAX_RETRY_NUM = 3
 
 async function main(): Promise<number> {
   console.log('Safe Test: starting...')
