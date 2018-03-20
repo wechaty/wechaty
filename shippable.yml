@@ -13,7 +13,7 @@ branches:
 
 build
   pre_ci_boot:
-    options: -v /root:/root
+    options: "-v /root:/root"
 
     # http://docs.shippable.com/ci/shippableyml/#ci
   ci:
