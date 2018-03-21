@@ -143,7 +143,7 @@
     "glob": "^7.1.0",
     "jsdoc-to-markdown": "^4.0.0",
     "nyc": "^11.2.0",
-    "qrcode-terminal": "^0.11.0",
+    "qrcode-terminal": "^0.12.0",
     "shx": "^0.2.0",
     "sinon": "^4.2.0",
     "sinon-test": "^2.1.2",
