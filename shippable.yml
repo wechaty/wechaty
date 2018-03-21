@@ -30,7 +30,8 @@ build:
     - ./scripts/docker.sh build
     - ./scripts/docker.sh test
   on_success:
-    - curl -X POST -d '{"from":"shippable"}' "$DOCKER_REBUILD_URL"
+    - if [[ "$BRANCH" == "master" && ! "$PULL_REQUEST" ]]; then curl -X POST -d '{"from":"shippable"}' "$DOCKER_REBUILD_URL"; else echo "Skipping deployment for branch $BRANCH."; fi
+
 
 # Integrations are used to connect external resources to CI
 # http://docs.shippable.com/integrations/overview/
