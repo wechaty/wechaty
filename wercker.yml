@@ -1,0 +1,41 @@
+box: python
+
+build:
+  steps:
+    - script:
+        name: Prepare Packages
+        code: |
+          curl -sL https://deb.nodesource.com/setup_9.x | bash -
+          apt-get install -y nodejs
+          apt-get install -y libcairo2-dev libjpeg62-turbo-dev  libpango1.0-dev libgif-dev build-essential g++
+          curl -sSL -o /tmp/bats_v0.4.0.tar.gz https://github.com/sstephenson/bats/archive/v0.4.0.tar.gz
+          tar -xf /tmp/bats_v0.4.0.tar.gz
+          sudo bats-0.4.0/install.sh /usr/local
+
+    - script:
+        name: Build Wechaty Docker Image
+        code: |
+          docker run -ti -v "$(pwd)":/mnt nlknguyen/alpine-shellcheck bin/*.sh
+          NO_CACHE=1 ./scripts/docker.sh build
+
+    - script:
+        name: Test
+        code: ./scripts/docker.sh test
+
+    - script:
+        name: Environment Informations
+        code: |
+          echo "python version $(python --version) running"
+          echo "node version $(node -v) running"
+          echo "npm version $(npm -v) running"
+          docker --version
+          docker info
+          whoami
+          pwd
+          ls -lr
+
+deploy:
+  steps:
+    - script:
+        name: Deploy Wechaty Image to Docker Hub
+        code: curl -X POST -d '{"from":"Wercker"}' "$DOCKER_REBUILD_URL"

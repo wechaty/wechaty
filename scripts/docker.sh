@@ -25,11 +25,14 @@ case "$1" in
     ;;
 
   test)
+    echo "Testing the docker image behaviors to make sure it works as expected..."
     echo "bats tests/"
     IMAGE_NAME="$imageName" bats tests/
 
-    echo docker run -ti $options -v /dev/shm:/dev/shm "$imageName" test
-    exec docker run -ti $options -v /dev/shm:/dev/shm "$imageName" test
+    echo
+    echo
+    echo docker run -i $options -v /dev/shm:/dev/shm "$imageName" test
+    exec docker run -i $options -v /dev/shm:/dev/shm "$imageName" test
     ret=$?
     ;;
 
