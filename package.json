@@ -111,7 +111,7 @@
     "rxjs": "^5.5.0",
     "state-switch": "^0.3.0",
     "watchdog": "^0.3.0",
-    "ws": "^5.0.0",
+    "ws": "^5.1.0",
     "xml2js": "^0.4.0"
   },
   "devDependencies": {
