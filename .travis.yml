@@ -39,7 +39,8 @@ stages:
   - test
   - pack
   - name: deploy
-    if: branch =~ ^(master|v\d+\.\d+) AND type != cron
+    if: branch =~ ^(master|v\d+\.\d+)
+        AND (type NOT IN (cron, pull_request))
 
 jobs:
   include:
