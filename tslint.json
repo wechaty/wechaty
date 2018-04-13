@@ -1,6 +1,7 @@
 {
   "rulesDirectory": [
-    "node_modules/tslint-jsdoc-rules/lib"
+    "node_modules/tslint-jsdoc-rules/lib",
+    "node_modules/tslint-eslint-rules/dist/rules"
   ],
   "rules": {
     "align": [
@@ -60,7 +61,7 @@
     "no-switch-case-fall-through": true,
     "no-trailing-whitespace": true,
     "no-unused-expression": true,
-    "no-unused-variable": true,
+    "no-unused-variable": [true],
     "no-use-before-declare": true,
     "no-var-keyword": true,
     "no-var-requires": false,
@@ -76,7 +77,7 @@
       "avoid-escape"
     ],
     "radix": false,
-    "semicolon": false,
+    "semicolon": [true, "never"],
     "switch-default": false,
     "trailing-comma": [
       true,

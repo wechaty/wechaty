@@ -39,7 +39,7 @@ stages:
   - test
   - pack
   - name: deploy
-    if: branch =~ ^(master|v\d+\.\d+)
+    if: branch =~ ^(master|v\d+\.\d+) AND type != cron
 
 jobs:
   include:
