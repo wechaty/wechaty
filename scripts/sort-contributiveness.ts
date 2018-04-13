@@ -94,7 +94,7 @@ async function main() {
     input:    process.stdin,
     output:   process.stdout,
     terminal: false,
-  });
+  })
 
   rl.on('line', processLine)
   await new Promise(r => rl.on('close', r))
