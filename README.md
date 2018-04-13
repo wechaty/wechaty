@@ -252,7 +252,7 @@ At last, It's built for my personal study purpose of Automatically Testing.
 
 COPYRIGHT & LICENSE
 -------------------
-* Code & Docs © 2016-2017 Huan LI \<zixia@zixia.net\>
+* Code & Docs © 2016-2018 Huan LI \<zixia@zixia.net\>
 * Code released under the Apache-2.0 License
 * Docs released under Creative Commons
 
