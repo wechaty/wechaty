@@ -10,6 +10,7 @@ Wechaty is a Bot Framework for Wechat **Personal** Account which can help you cr
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
 [![Repo Size](https://reposs.herokuapp.com/?path=Chatie/wechaty)](https://github.com/chatie/wechaty)
+[![Donate Wechaty](https://img.shields.io/badge/Donate-Wechaty%20$-green.svg)](https://salt.bountysource.com/checkout/amount?team=chatie)
 
 :octocat: <https://github.com/chatie/wechaty>  
 :beetle: <https://github.com/chatie/wechaty/issues>  
