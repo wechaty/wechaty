@@ -2,7 +2,7 @@
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -214,10 +214,10 @@ test('mentioned()', async t => {
   const room13 = msg13.room()
   if (room13) {
     await room13.ready()
-    setTimeout(function () {
-      const mentionContactList13 = msg13.mentioned()
-      t.is(mentionContactList13.length, 0, '@_@ wow! my email is ruiruibupt@gmail.com in message should not be treat as contact')
-    }, 1 * 1000)
+    // setTimeout(function () {
+    const mentionContactList13 = msg13.mentioned()
+    t.is(mentionContactList13.length, 0, '@_@ wow! my email is ruiruibupt@gmail.com in message should not be treat as contact')
+    // }, 1 * 1000)
   }
 
   const msg21 = new Message(rawObj21)

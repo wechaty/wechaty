@@ -32,7 +32,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && apt-get purge --auto-remove \
   && rm -rf /tmp/* /var/lib/apt/lists/*
 
-RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
+RUN curl -sL https://deb.nodesource.com/setup_9.x | bash - \
     && apt-get update && apt-get install -y --no-install-recommends nodejs \
     && apt-get purge --auto-remove \
     && rm -rf /tmp/* /var/lib/apt/lists/*
@@ -59,8 +59,9 @@ RUN npm install \
   && sudo rm -fr /tmp/* ~/.npm
 
 COPY . .
-RUN npm run test \
-  && npm run dist
+# RUN npm run test:debug
+RUN npm test
+RUN npm run dist
 
 # Loading from node_modules Folders: https://nodejs.org/api/modules.html
 # If it is not found there, then it moves to the parent directory, and so on, until the root of the file system is reached.

@@ -5,7 +5,7 @@ WECHATY
 
 ## Connecting ChatBots.
 
-Wechaty is a Bot Framework for Wechat **Personal** Account which can help you create a bot in 6 lines of javascript, with cross-platform support include [Linux](https://travis-ci.org/chatie/wechaty), [Windows](https://ci.appveyor.com/project/chatie/wechaty), [Darwin(OSX/Mac)](https://travis-ci.org/chatie/wechaty) and [Docker](https://circleci.com/gh/chatie/wechaty).
+Wechaty is a Bot Framework for Wechat **Personal** Account which can help you create a bot in 6 lines of javascript, with cross-platform support include [Linux](https://travis-ci.org/chatie/wechaty), [Windows](https://ci.appveyor.com/project/chatie/wechaty), [Darwin(OSX/Mac)](https://travis-ci.org/chatie/wechaty) and [Docker](https://app.shippable.com/github/Chatie/wechaty).
 
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
@@ -46,11 +46,11 @@ Wechaty.instance() // Singleton
 .on('message',  message => console.log(`Message: ${message}`))
 .start()
 ```
-> **Notice: Wechaty requires Node.js version >= 6.9.0**
+> **Notice: Wechaty requires Node.js version >= 8.5**
 
 This bot can log all messages to the console.
 
-You can find more examples from [Wiki](https://github.com/chatie/wechaty/wiki/Example) and [Example Directory](https://github.com/chatie/wechaty/blob/master/example/).
+You can find more examples from [Wiki](https://github.com/chatie/wechaty/wiki/Examples) and [Example Directory](https://github.com/chatie/wechaty/blob/master/examples/).
 
 GETTING STARTED
 ---------------
@@ -123,20 +123,20 @@ TEST
 ----
 
 [![Linux/Mac Build Status](https://img.shields.io/travis/Chatie/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/Chatie/wechaty)
-[![Windows Build status](https://img.shields.io/appveyor/ci/chatie/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/chatie/wechaty)
-[![Docker CircleCI](https://img.shields.io/circleci/project/github/Chatie/wechaty/master.svg?label=Docker)](https://circleci.com/gh/Chatie/wechaty)
+[![Windows Build Status](https://img.shields.io/appveyor/ci/chatie/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/chatie/wechaty)
+[![Docker Build Status](https://img.shields.io/shippable/5aaf8667ec373f17004dcb66.svg?label=Docker&color=brightgreen)](https://app.shippable.com/github/Chatie/wechaty)
 
 [![Coverage Status](https://coveralls.io/repos/github/Chatie/wechaty/badge.svg?branch=master)](https://coveralls.io/github/Chatie/wechaty?branch=master)
 [![Known Vulnerabilities](https://snyk.io/test/github/chatie/wechaty/badge.svg)](https://snyk.io/test/github/chatie/wechaty)
 
-Wechaty is fully tested by unit tests and integration tests, with Continious Integration & Continious Deliver(CI/CD) support, which is powered by TravisCI, CircleCI and Appveyor CI.
+Wechaty is fully automatically tested by unit and integration tests, with Continious Integration & Continious Deliver(CI/CD) support powered by CI like Travis, Shippable and Appveyor.
 
 To test Wechaty, run:
 ```shell
 npm test
 ```
 
-Get to know more about the tests from [Wiki:Test](https://github.com/chatie/wechaty/wiki/Test)
+Get to know more about the tests from [Wiki:Tests](https://github.com/chatie/wechaty/wiki/Tests)
 
 DOCUMATAION
 -------------
@@ -214,9 +214,9 @@ Make sure to add tests for your features and bugfixes and update the documentati
 
 You can directly submit pull requests for documentation changes.
 
-## Join Us
+## Join US
 
-Wechaty is used in many ChatBot projects by hundreds of developers. If you want to talk with other developers, just scan the following QR Code in WeChat with secret code _wechaty_, join our **Wechaty Developers' Home** now.
+Wechaty is used in many ChatBot projects by hundreds of developers. If you want to talk with other developers, just scan the following QR Code in WeChat with secret code _wechaty_, join our **Wechaty Developers' Home**.
 
 ![Wechaty Developers' Home](https://chatie.io/wechaty/images/bot-qr-code.png)
 
@@ -232,10 +232,10 @@ Wechaty is far from perfect. The following things should be addressed in the fut
 
 AUTHOR
 ------
-Huan LI \<zixia@zixia.net\> (http://linkedin.com/in/zixia)
+[Huan LI](http://linkedin.com/in/zixia) \<zixia@zixia.net\>
 
-<a href="http://stackoverflow.com/users/1123955/zixia">
-  <img src="http://stackoverflow.com/users/flair/1123955.png" width="208" height="58" alt="profile for zixia at Stack Overflow, Q&amp;A for professional and enthusiast programmers" title="profile for zixia at Stack Overflow, Q&amp;A for professional and enthusiast programmers">
+<a href="https://stackexchange.com/users/265499">
+  <img src="https://stackexchange.com/users/flair/265499.png" width="208" height="58" alt="profile for zixia on Stack Exchange, a network of free, community-driven Q&amp;A sites" title="profile for zixia on Stack Exchange, a network of free, community-driven Q&amp;A sites">
 </a>
 
 ## My Story
@@ -252,7 +252,7 @@ At last, It's built for my personal study purpose of Automatically Testing.
 
 COPYRIGHT & LICENSE
 -------------------
-* Code & Docs © 2016-2017 Huan LI \<zixia@zixia.net\>
+* Code & Docs © 2016-2018 Huan LI \<zixia@zixia.net\>
 * Code released under the Apache-2.0 License
 * Docs released under Creative Commons
 

@@ -1,7 +1,7 @@
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import Contact  from './contact'
  * 2. receive request(in friend event)
  * 3. confirmation friendship(friend event)
  *
- * [Example/Friend-Bot]{@link https://github.com/Chatie/wechaty/blob/master/example/friend-bot.ts}
+ * [Examples/Friend-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/friend-bot.ts}
  */
 export abstract class FriendRequest {
 

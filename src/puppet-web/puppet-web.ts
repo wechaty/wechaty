@@ -1,7 +1,7 @@
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -233,6 +233,7 @@ export class PuppetWeb extends Puppet {
 
     log.verbose('PuppetWeb', 'quit() make watchdog sleep before do quit')
     this.puppetWatchdog.sleep()
+    this.scanWatchdog.sleep()
 
     this.state.off('pending')
 

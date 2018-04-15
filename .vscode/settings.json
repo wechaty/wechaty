@@ -1,6 +1,6 @@
 {
   "typescript.tsdk": "./node_modules/typescript/lib"
-, "typescript.check.tscVersion": false
+  , "update.channel": "none"
 , "files.exclude": {
     "dist/": true
   , "doc/": true

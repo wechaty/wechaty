@@ -2,7 +2,7 @@
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -54,10 +54,14 @@ test('plainText()', async t => {
 test('digestEmoji()', async t => {
   const EMOJI_XML = [
     '<img class="emoji emoji1f4a4" text="[流汗]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />',
+    '<img class="qqemoji qqemoji13" text="[呲牙]_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />',
+    '<img class="emoji emoji1f44d" text="_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />',
     '<span class="emoji emoji1f334"></span>',
   ]
   const EMOJI_AFTER_DIGEST  = [
     '[流汗]',
+    '[呲牙]',
+    '',
     '[emoji1f334]',
   ]
 

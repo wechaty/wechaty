@@ -1,7 +1,7 @@
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -294,7 +294,7 @@ export class Wechaty extends EventEmitter implements Sayable {
    * @param   {WechatyEventFunction}  listener   - Depends on the WechatyEvent
    * @return  {Wechaty}                          - this for chain
    *
-   * More Example Gist: [Example/Friend-Bot]{@link https://github.com/wechaty/wechaty/blob/master/example/friend-bot.ts}
+   * More Example Gist: [Examples/Friend-Bot]{@link https://github.com/wechaty/wechaty/blob/master/examples/friend-bot.ts}
    *
    * @example <caption>Event:scan </caption>
    * wechaty.on('scan', (url: string, code: number) => {
@@ -445,7 +445,7 @@ export class Wechaty extends EventEmitter implements Sayable {
   /**
    * Quit the bot
    *
-   * @deprecated
+   * @deprecated use stop() instead
    * @returns {Promise<void>}
    * @example
    * await bot.quit()

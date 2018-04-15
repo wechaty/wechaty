@@ -1,5 +1,6 @@
 language: node_js
 node_js:
+  - "9"
   - "8"
 
 os:
@@ -39,12 +40,13 @@ stages:
   - pack
   - name: deploy
     if: branch =~ ^(master|v\d+\.\d+)
+        AND (type NOT IN (cron, pull_request))
 
 jobs:
   include:
     - stage: pack
       script:
-        - npm run test:pack && echo 'Npm packing test is passed'
+        - npm run test:pack && echo 'Npm pack testing is passed'
 
     - stage: deploy
       script:

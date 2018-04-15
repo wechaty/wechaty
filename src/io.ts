@@ -1,7 +1,7 @@
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -188,7 +188,8 @@ export class Io {
     let endpoint = 'wss://' + this.options.apihost + '/v0/websocket'
 
     // XXX quick and dirty: use no ssl for APIHOST other than official
-    if (!/api\.wechaty\.io/.test(this.options.apihost)) {
+    // FIXME: use a configuarable VARIABLE for the domain name at here:
+    if (!/api\.chatie\.io/.test(this.options.apihost)) {
       endpoint = 'ws://' + this.options.apihost + '/v0/websocket'
     }
 
@@ -197,7 +198,7 @@ export class Io {
     ws.on('open',     () => this.wsOnOpen(ws))
     ws.on('message',  data => this.wsOnMessage(data))
     ws.on('error',    e => this.wsOnError(e))
-    ws.on('close',    (code, message) => this.wsOnClose(ws, code, message))
+    ws.on('close',    (code, reason) => this.wsOnClose(ws, code, reason))
 
     return ws
   }
@@ -319,8 +320,10 @@ export class Io {
     }
   }
 
-  private wsOnError(e: Error) {
-    log.warn('Io', 'initWebSocket() error event[%s]', e.message)
+  // FIXME: it seems the parameter `e` might be `undefined`.
+  // @types/ws might has bug for `ws.on('error',    e => this.wsOnError(e))`
+  private wsOnError(e?: Error) {
+    log.warn('Io', 'initWebSocket() error event[%s]', e && e.message)
     this.options.wechaty.emit('error', e)
 
     // when `error`, there must have already a `close` event

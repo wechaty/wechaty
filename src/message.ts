@@ -1,7 +1,7 @@
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ export type TypeName =  'attachment'
  * All wechat messages will be encapsulated as a Message.
  *
  * `Message` is `Sayable`,
- * [Example/Ding-Dong-Bot]{@link https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts}
+ * [Examples/Ding-Dong-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts}
  */
 export class Message implements Sayable {
   /**
@@ -186,7 +186,7 @@ export class Message implements Sayable {
   /**
    * Reply a Text or Media File message to the sender.
    *
-   * @see {@link https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts|Example/ding-dong-bot}
+   * @see {@link https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts|Examples/ding-dong-bot}
    * @param {(string | MediaMessage)} textOrMedia
    * @param {(Contact|Contact[])} [replyTo]
    * @returns {Promise<any>}
@@ -938,7 +938,7 @@ export class MediaMessage extends Message {
    * The types of messages that can be forwarded are as follows:
    *
    * The return value of {@link Message#type} matches one of the following types:
-   * ```json
+   * ```
    * MsgType {
    *   TEXT                = 1,
    *   IMAGE               = 3,
@@ -951,7 +951,7 @@ export class MediaMessage extends Message {
    * ```
    *
    * When the return value of {@link Message#type} is `MsgType.APP`, the return value of {@link Message#typeApp} matches one of the following types:
-   * ```json
+   * ```
    * AppMsgType {
    *   TEXT                     = 1,
    *   IMG                      = 2,

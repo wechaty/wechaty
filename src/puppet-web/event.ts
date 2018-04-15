@@ -1,7 +1,7 @@
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -195,9 +195,13 @@ async function onMessage(
 
       case MsgType.SYS:
         if (m.room()) {
-          Firer.checkRoomJoin.call(this  , m)
-          Firer.checkRoomLeave.call(this , m)
-          Firer.checkRoomTopic.call(this , m)
+          const joinResult  = await Firer.checkRoomJoin.call(this  , m)
+          const leaveResult = await Firer.checkRoomLeave.call(this , m)
+          const topicRestul = await Firer.checkRoomTopic.call(this , m)
+
+          if (!joinResult && !leaveResult && !topicRestul) {
+            log.warn('PuppetWebEvent', `checkRoomSystem message: <${m.content()}> not found`)
+          }
         } else {
           Firer.checkFriendConfirm.call(this, m)
         }

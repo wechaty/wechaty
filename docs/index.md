@@ -1,4 +1,5 @@
-# Wechaty v0.10.6 Documentation
+# Wechaty v0.13.80 Documentation
+* https://blog.chatie.io
 
 ## Classes
 
@@ -6,7 +7,7 @@
 <dt><a href="#Contact">Contact</a></dt>
 <dd><p>All wechat contacts(friend) will be encapsulated as a Contact.</p>
 <p><code>Contact</code> is <code>Sayable</code>,
-<a href="https://github.com/Chatie/wechaty/blob/master/example/contact-bot.ts">Example/Contact-Bot</a></p>
+<a href="https://github.com/Chatie/wechaty/blob/master/examples/contact-bot.ts">Examples/Contact-Bot</a></p>
 </dd>
 <dt><a href="#FriendRequest">FriendRequest</a></dt>
 <dd><p>Send, receive friend request, and friend confirmation events.</p>
@@ -15,12 +16,12 @@
 <li>receive request(in friend event)</li>
 <li>confirmation friendship(friend event)</li>
 </ol>
-<p><a href="https://github.com/Chatie/wechaty/blob/master/example/friend-bot.ts">Example/Friend-Bot</a></p>
+<p><a href="https://github.com/Chatie/wechaty/blob/master/examples/friend-bot.ts">Examples/Friend-Bot</a></p>
 </dd>
 <dt><a href="#Message">Message</a></dt>
 <dd><p>All wechat messages will be encapsulated as a Message.</p>
 <p><code>Message</code> is <code>Sayable</code>,
-<a href="https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts">Example/Ding-Dong-Bot</a></p>
+<a href="https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts">Examples/Ding-Dong-Bot</a></p>
 </dd>
 <dt><a href="#MediaMessage">MediaMessage</a></dt>
 <dd><p>Meidia Type Message</p>
@@ -28,7 +29,7 @@
 <dt><a href="#Room">Room</a></dt>
 <dd><p>All wechat rooms(groups) will be encapsulated as a Room.</p>
 <p><code>Room</code> is <code>Sayable</code>,
-<a href="https://github.com/Chatie/wechaty/blob/master/example/room-bot.ts">Example/Room-Bot</a></p>
+<a href="https://github.com/Chatie/wechaty/blob/master/examples/room-bot.ts">Examples/Room-Bot</a></p>
 </dd>
 <dt><a href="#Wechaty">Wechaty</a></dt>
 <dd><p>Main bot class.</p>
@@ -68,7 +69,7 @@
 All wechat contacts(friend) will be encapsulated as a Contact.
 
 `Contact` is `Sayable`,
-[Example/Contact-Bot](https://github.com/Chatie/wechaty/blob/master/example/contact-bot.ts)
+[Examples/Contact-Bot](https://github.com/Chatie/wechaty/blob/master/examples/contact-bot.ts)
 
 **Kind**: global class  
 
@@ -346,7 +347,7 @@ Send, receive friend request, and friend confirmation events.
 2. receive request(in friend event)
 3. confirmation friendship(friend event)
 
-[Example/Friend-Bot](https://github.com/Chatie/wechaty/blob/master/example/friend-bot.ts)
+[Examples/Friend-Bot](https://github.com/Chatie/wechaty/blob/master/examples/friend-bot.ts)
 
 **Kind**: global class  
 
@@ -386,7 +387,7 @@ Accept a friend request
 All wechat messages will be encapsulated as a Message.
 
 `Message` is `Sayable`,
-[Example/Ding-Dong-Bot](https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts)
+[Examples/Ding-Dong-Bot](https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts)
 
 **Kind**: global class  
 
@@ -396,10 +397,10 @@ All wechat messages will be encapsulated as a Message.
         * [.from()](#Message+from) ⇒ [<code>Contact</code>](#Contact)
         * [.room()](#Message+room) ⇒ [<code>Room</code>](#Room) \| <code>null</code>
         * [.content()](#Message+content) ⇒ <code>string</code>
-        * [.type()](#Message+type) ⇒ <code>MsgType</code>
-        * [.typeSub()](#Message+typeSub) ⇒ <code>MsgType</code>
-        * [.typeApp()](#Message+typeApp) ⇒ <code>AppMsgType</code>
-        * [.typeEx()](#Message+typeEx) ⇒ <code>MsgType</code>
+        * [.type()](#Message+type) ⇒ [<code>MsgType</code>](#MsgType)
+        * [.typeSub()](#Message+typeSub) ⇒ [<code>MsgType</code>](#MsgType)
+        * [.typeApp()](#Message+typeApp) ⇒ [<code>AppMsgType</code>](#AppMsgType)
+        * [.typeEx()](#Message+typeEx) ⇒ [<code>MsgType</code>](#MsgType)
         * [.self()](#Message+self) ⇒ <code>boolean</code>
         * [.mentioned()](#Message+mentioned) ⇒ [<code>Array.&lt;Contact&gt;</code>](#Contact)
         * [.to()](#Message+to) ⇒ [<code>Contact</code>](#Contact) \| <code>null</code>
@@ -414,7 +415,7 @@ All wechat messages will be encapsulated as a Message.
 Reply a Text or Media File message to the sender.
 
 **Kind**: instance method of [<code>Message</code>](#Message)  
-**See**: [Example/ding-dong-bot](https://github.com/Chatie/wechaty/blob/master/example/ding-dong-bot.ts)  
+**See**: [Examples/ding-dong-bot](https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts)  
 
 | Param | Type |
 | --- | --- |
@@ -455,32 +456,32 @@ Get the content of the message
 **Kind**: instance method of [<code>Message</code>](#Message)  
 <a name="Message+type"></a>
 
-### message.type() ⇒ <code>MsgType</code>
+### message.type() ⇒ [<code>MsgType</code>](#MsgType)
 Get the type from the message.
 
 If type is equal to `MsgType.RECALLED`, [Message#id](Message#id) is the msgId of the recalled message.
 
 **Kind**: instance method of [<code>Message</code>](#Message)  
-**See**: [MsgType](MsgType)  
+**See**: [MsgType](#MsgType)  
 <a name="Message+typeSub"></a>
 
-### message.typeSub() ⇒ <code>MsgType</code>
+### message.typeSub() ⇒ [<code>MsgType</code>](#MsgType)
 Get the typeSub from the message.
 
 If message is a location message: `m.type() === MsgType.TEXT && m.typeSub() === MsgType.LOCATION`
 
 **Kind**: instance method of [<code>Message</code>](#Message)  
-**See**: [MsgType](MsgType)  
+**See**: [MsgType](#MsgType)  
 <a name="Message+typeApp"></a>
 
-### message.typeApp() ⇒ <code>AppMsgType</code>
+### message.typeApp() ⇒ [<code>AppMsgType</code>](#AppMsgType)
 Get the typeApp from the message.
 
 **Kind**: instance method of [<code>Message</code>](#Message)  
-**See**: [AppMsgType](AppMsgType)  
+**See**: [AppMsgType](#AppMsgType)  
 <a name="Message+typeEx"></a>
 
-### message.typeEx() ⇒ <code>MsgType</code>
+### message.typeEx() ⇒ [<code>MsgType</code>](#MsgType)
 Get the typeEx from the message.
 
 **Kind**: instance method of [<code>Message</code>](#Message)  
@@ -559,6 +560,7 @@ Meidia Type Message
 
 * [MediaMessage](#MediaMessage)
     * [.ext()](#MediaMessage+ext) ⇒ <code>string</code>
+    * [.mimeType()](#MediaMessage+mimeType)
     * [.filename()](#MediaMessage+filename) ⇒ <code>string</code>
     * [.readyStream()](#MediaMessage+readyStream)
     * [.saveFile(filePath)](#MediaMessage+saveFile)
@@ -578,6 +580,12 @@ bot.on('message', async function (m) {
   }
 })
 ```
+<a name="MediaMessage+mimeType"></a>
+
+### mediaMessage.mimeType()
+return the MIME Type of this MediaMessage
+
+**Kind**: instance method of [<code>MediaMessage</code>](#MediaMessage)  
 <a name="MediaMessage+filename"></a>
 
 ### mediaMessage.filename() ⇒ <code>string</code>
@@ -617,7 +625,7 @@ Forward the received message.
 The types of messages that can be forwarded are as follows:
 
 The return value of [type](#Message+type) matches one of the following types:
-```json
+```
 MsgType {
   TEXT                = 1,
   IMAGE               = 3,
@@ -630,7 +638,7 @@ MsgType {
 ```
 
 When the return value of [type](#Message+type) is `MsgType.APP`, the return value of [typeApp](#Message+typeApp) matches one of the following types:
-```json
+```
 AppMsgType {
   TEXT                     = 1,
   IMG                      = 2,
@@ -667,7 +675,7 @@ You need to detect the following conditions in the message event, which can be f
 All wechat rooms(groups) will be encapsulated as a Room.
 
 `Room` is `Sayable`,
-[Example/Room-Bot](https://github.com/Chatie/wechaty/blob/master/example/room-bot.ts)
+[Examples/Room-Bot](https://github.com/Chatie/wechaty/blob/master/examples/room-bot.ts)
 
 **Kind**: global class  
 
@@ -1031,19 +1039,41 @@ Main bot class.
 
 * [Wechaty](#Wechaty)
     * _instance_
-        * [.init()](#Wechaty+init) ⇒ <code>Promise.&lt;void&gt;</code>
+        * [.version([forceNpm])](#Wechaty+version) ⇒ <code>string</code>
+        * ~~[.init()](#Wechaty+init) ⇒ <code>Promise.&lt;void&gt;</code>~~
+        * [.start()](#Wechaty+start) ⇒ <code>Promise.&lt;void&gt;</code>
         * [.on(event, listener)](#Wechaty+on) ⇒ [<code>Wechaty</code>](#Wechaty)
-        * [.quit()](#Wechaty+quit) ⇒ <code>Promise.&lt;void&gt;</code>
+        * ~~[.quit()](#Wechaty+quit) ⇒ <code>Promise.&lt;void&gt;</code>~~
+        * [.stop()](#Wechaty+stop) ⇒ <code>Promise.&lt;void&gt;</code>
         * [.logout()](#Wechaty+logout) ⇒ <code>Promise.&lt;void&gt;</code>
+        * [.logonoff()](#Wechaty+logonoff) ⇒ <code>boolean</code>
         * [.self()](#Wechaty+self) ⇒ [<code>Contact</code>](#Contact)
         * [.say(content)](#Wechaty+say) ⇒ <code>Promise.&lt;boolean&gt;</code>
     * _static_
         * [.instance()](#Wechaty.instance)
-        * [.version([forceNpm])](#Wechaty.version) ⇒ <code>string</code>
 
+<a name="Wechaty+version"></a>
+
+### wechaty.version([forceNpm]) ⇒ <code>string</code>
+Return version of Wechaty
+
+**Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
+**Returns**: <code>string</code> - - the version number  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| [forceNpm] | <code>boolean</code> | <code>false</code> | if set to true, will only return the version in package.json.                                      otherwise will return git commit hash if .git exists. |
+
+**Example**  
+```js
+console.log(Wechaty.instance().version())       // return '#git[af39df]'
+console.log(Wechaty.instance().version(true))   // return '0.7.9'
+```
 <a name="Wechaty+init"></a>
 
-### wechaty.init() ⇒ <code>Promise.&lt;void&gt;</code>
+### ~~wechaty.init() ⇒ <code>Promise.&lt;void&gt;</code>~~
+***Deprecated***
+
 Initialize the bot, return Promise.
 
 **Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
@@ -1052,13 +1082,24 @@ Initialize the bot, return Promise.
 await bot.init()
 // do other stuff with bot here
 ```
+<a name="Wechaty+start"></a>
+
+### wechaty.start() ⇒ <code>Promise.&lt;void&gt;</code>
+Start the bot, return Promise.
+
+**Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
+**Example**  
+```js
+await bot.start()
+// do other stuff with bot here
+```
 <a name="Wechaty+on"></a>
 
 ### wechaty.on(event, listener) ⇒ [<code>Wechaty</code>](#Wechaty)
 **Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
 **Returns**: [<code>Wechaty</code>](#Wechaty) - - this for chain
 
-More Example Gist: [Example/Friend-Bot](https://github.com/wechaty/wechaty/blob/master/example/friend-bot.ts)  
+More Example Gist: [Examples/Friend-Bot](https://github.com/wechaty/wechaty/blob/master/examples/friend-bot.ts)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -1126,13 +1167,25 @@ bot.on('room-topic', (room: Room, topic: string, oldTopic: string, changer: Cont
 ```
 <a name="Wechaty+quit"></a>
 
-### wechaty.quit() ⇒ <code>Promise.&lt;void&gt;</code>
+### ~~wechaty.quit() ⇒ <code>Promise.&lt;void&gt;</code>~~
+***Deprecated***
+
 Quit the bot
 
 **Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
 **Example**  
 ```js
 await bot.quit()
+```
+<a name="Wechaty+stop"></a>
+
+### wechaty.stop() ⇒ <code>Promise.&lt;void&gt;</code>
+Stop the bot
+
+**Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
+**Example**  
+```js
+await bot.stop()
 ```
 <a name="Wechaty+logout"></a>
 
@@ -1143,6 +1196,20 @@ Logout the bot
 **Example**  
 ```js
 await bot.logout()
+```
+<a name="Wechaty+logonoff"></a>
+
+### wechaty.logonoff() ⇒ <code>boolean</code>
+Get the logon / logoff state
+
+**Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
+**Example**  
+```js
+if (bot.logonoff()) {
+  console.log('Bot logined')
+} else {
+  console.log('Bot not logined')
+}
 ```
 <a name="Wechaty+self"></a>
 
@@ -1181,23 +1248,6 @@ Wechaty.instance() // Singleton
 .on('login',       user => console.log(`User ${user} logined`))
 .on('message',  message => console.log(`Message: ${message}`))
 .init()
-```
-<a name="Wechaty.version"></a>
-
-### Wechaty.version([forceNpm]) ⇒ <code>string</code>
-Return version of Wechaty
-
-**Kind**: static method of [<code>Wechaty</code>](#Wechaty)  
-**Returns**: <code>string</code> - - the version number  
-
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| [forceNpm] | <code>boolean</code> | <code>false</code> | if set to true, will only return the version in package.json.                                      otherwise will return git commit hash if .git exists. |
-
-**Example**  
-```js
-console.log(Wechaty.instance().version())       // return '#git[af39df]'
-console.log(Wechaty.instance().version(true))   // return '0.7.9'
 ```
 <a name="FriendRequest"></a>
 
@@ -1247,6 +1297,63 @@ Enum for Gender values.
 | Unknown | <code>number</code> | 0 for Unknown |
 | Male | <code>number</code> | 1 for Male |
 | Female | <code>number</code> | 2 for Female |
+
+<a name="AppMsgType"></a>
+
+## AppMsgType : <code>enum</code>
+Enum for AppMsgType values.
+
+**Kind**: global enum  
+**Properties**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| TEXT | <code>number</code> | AppMsgType.TEXT                     (1)     for TEXT |
+| IMG | <code>number</code> | AppMsgType.IMG                      (2)      for IMG |
+| AUDIO | <code>number</code> | AppMsgType.AUDIO                    (3)      for AUDIO |
+| VIDEO | <code>number</code> | AppMsgType.VIDEO                    (4)      for VIDEO |
+| URL | <code>number</code> | AppMsgType.URL                      (5)      for URL |
+| ATTACH | <code>number</code> | AppMsgType.ATTACH                   (6)      for ATTACH |
+| OPEN | <code>number</code> | AppMsgType.OPEN                     (7)      for OPEN |
+| EMOJI | <code>number</code> | AppMsgType.EMOJI                    (8)      for EMOJI |
+| VOICE_REMIND | <code>number</code> | AppMsgType.VOICE_REMIND             (9)      for VOICE_REMIND |
+| SCAN_GOOD | <code>number</code> | AppMsgType.SCAN_GOOD                (10)     for SCAN_GOOD |
+| GOOD | <code>number</code> | AppMsgType.GOOD                     (13)     for GOOD |
+| EMOTION | <code>number</code> | AppMsgType.EMOTION                  (15)     for EMOTION |
+| CARD_TICKET | <code>number</code> | AppMsgType.CARD_TICKET              (16)     for CARD_TICKET |
+| REALTIME_SHARE_LOCATION | <code>number</code> | AppMsgType.REALTIME_SHARE_LOCATION  (17)     for REALTIME_SHARE_LOCATION |
+| TRANSFERS | <code>number</code> | AppMsgType.TRANSFERS                (2e3)    for TRANSFERS |
+| RED_ENVELOPES | <code>number</code> | AppMsgType.RED_ENVELOPES            (2001)   for RED_ENVELOPES |
+| READER_TYPE | <code>number</code> | AppMsgType.READER_TYPE              (100001) for READER_TYPE |
+
+<a name="MsgType"></a>
+
+## MsgType : <code>enum</code>
+Enum for MsgType values.
+
+**Kind**: global enum  
+**Properties**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| TEXT | <code>number</code> | MsgType.TEXT                (1)     for TEXT |
+| IMAGE | <code>number</code> | MsgType.IMAGE               (3)     for IMAGE |
+| VOICE | <code>number</code> | MsgType.VOICE               (34)    for VOICE |
+| VERIFYMSG | <code>number</code> | MsgType.VERIFYMSG           (37)    for VERIFYMSG |
+| POSSIBLEFRIEND_MSG | <code>number</code> | MsgType.POSSIBLEFRIEND_MSG  (40)    for POSSIBLEFRIEND_MSG |
+| SHARECARD | <code>number</code> | MsgType.SHARECARD           (42)    for SHARECARD |
+| VIDEO | <code>number</code> | MsgType.VIDEO               (43)    for VIDEO |
+| EMOTICON | <code>number</code> | MsgType.EMOTICON            (47)    for EMOTICON |
+| LOCATION | <code>number</code> | MsgType.LOCATION            (48)    for LOCATION |
+| APP | <code>number</code> | MsgType.APP                 (49)    for APP |
+| VOIPMSG | <code>number</code> | MsgType.VOIPMSG             (50)    for VOIPMSG |
+| STATUSNOTIFY | <code>number</code> | MsgType.STATUSNOTIFY        (51)    for STATUSNOTIFY |
+| VOIPNOTIFY | <code>number</code> | MsgType.VOIPNOTIFY          (52)    for VOIPNOTIFY |
+| VOIPINVITE | <code>number</code> | MsgType.VOIPINVITE          (53)    for VOIPINVITE |
+| MICROVIDEO | <code>number</code> | MsgType.MICROVIDEO          (62)    for MICROVIDEO |
+| SYSNOTICE | <code>number</code> | MsgType.SYSNOTICE           (9999)  for SYSNOTICE |
+| SYS | <code>number</code> | MsgType.SYS                 (10000) for SYS |
+| RECALLED | <code>number</code> | MsgType.RECALLED            (10002) for RECALLED |
 
 <a name="ContactQueryFilter"></a>
 
@@ -1317,13 +1424,13 @@ Wechaty Class Event Type
 | error | <code>string</code> | When the bot get error, there will be a Wechaty error event fired. |
 | login | <code>string</code> | After the bot login full successful, the event login will be emitted, with a Contact of current logined user. |
 | logout | <code>string</code> | Logout will be emitted when bot detected log out, with a Contact of the current login user. |
-| scan | <code>string</code> | A scan event will be emitted when the bot needs to show you a QR Code for scanning. |
 | heartbeat | <code>string</code> | Get bot's heartbeat. |
 | friend | <code>string</code> | When someone sends you a friend request, there will be a Wechaty friend event fired. |
 | message | <code>string</code> | Emit when there's a new message. |
 | room-join | <code>string</code> | Emit when anyone join any room. |
 | room-topic | <code>string</code> | Get topic event, emitted when someone change room topic. |
 | room-leave | <code>string</code> | Emit when anyone leave the room.<br>                                    If someone leaves the room by themselves, wechat will not notice other people in the room, so the bot will never get the "leave" event. |
+| scan | <code>string</code> | A scan event will be emitted when the bot needs to show you a QR Code for scanning. |
 
 <a name="WechatyEventFunction"></a>
 

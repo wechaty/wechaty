@@ -58,7 +58,7 @@ yarn.lock
 .v8flags.*
 
 # why? forgot... 2017-05-18 by zixia
-/test/fixture/docker/package.json
+/tests/fixtures/docker/package.json
 
 tags
 *.wechaty.json
@@ -67,3 +67,7 @@ tags
 *.bak
 package-lock.json
 .babel.json
+
+.idea
+examples/.config
+examples/.pki

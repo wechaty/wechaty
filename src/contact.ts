@@ -1,8 +1,7 @@
 /**
- *
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -103,7 +102,7 @@ const specialContactList: string[] = [
  * All wechat contacts(friend) will be encapsulated as a Contact.
  *
  * `Contact` is `Sayable`,
- * [Example/Contact-Bot]{@link https://github.com/Chatie/wechaty/blob/master/example/contact-bot.ts}
+ * [Examples/Contact-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/contact-bot.ts}
  */
 export class Contact implements Sayable {
   private static pool = new Map<string, Contact>()

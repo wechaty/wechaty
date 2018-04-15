@@ -1,7 +1,7 @@
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -746,6 +746,9 @@ export class Bridge extends EventEmitter {
   public async clickSwitchAccount(page: Page): Promise<boolean> {
     log.verbose('PuppetWebBridge', 'clickSwitchAccount()')
 
+    // TODO: use page.$x() (with puppeteer v1.1 or above) to replace DIY version of listXpath() instead.
+    // See: https://github.com/GoogleChrome/puppeteer/blob/v1.1.0/docs/api.md#pagexexpression
+
     // https://github.com/GoogleChrome/puppeteer/issues/537#issuecomment-334918553
     async function listXpath(thePage: Page, xpath: string): Promise<ElementHandle[]> {
       log.verbose('PuppetWebBridge', 'clickSwitchAccount() listXpath()')
@@ -801,7 +804,7 @@ export class Bridge extends EventEmitter {
   public async hostname(): Promise<string | null> {
     log.verbose('PuppetWebBridge', 'hostname()')
     try {
-      const hostname = await this.page.evaluate(() => location.hostname) as any as string
+      const hostname = await this.page.evaluate(() => location.hostname) as string
       log.silly('PuppetWebBridge', 'hostname() got %s', hostname)
       return hostname
     } catch (e) {

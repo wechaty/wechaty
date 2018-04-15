@@ -3,7 +3,7 @@
 #
 
 /docs/                              @lijiarui @hczhcz @TingYinHelen @ax4
-/example/                           @Gcaufy @hczhcz
+/examples/                          @Gcaufy @hczhcz
 /src/puppet-web/bridge.*.ts         @mukaiu
 /src/puppet-web/browser.ts          @binsee
 /src/puppet-web/browser-driver.*.ts @xjchengo

@@ -3,9 +3,12 @@ version: 2
 jobs:
   build:
     machine: true
+    parallelism: 1
+
     steps:
       - checkout
-      # - setup_remote_docker
+      # - setup_remote_docker:
+      #     docker_layer_caching: true
       - run:
           name: Environment Information
           command: |
@@ -25,11 +28,10 @@ jobs:
           name: Build Wechaty
           command: |
             docker run -ti -v "$(pwd)":/mnt nlknguyen/alpine-shellcheck bin/*.sh
-            ./script/docker.sh build
+            NO_CACHE=1 ./scripts/docker.sh build
       - run:
           name: Testing
-          command: |
-            ./script/docker.sh test
+          command: ./scripts/docker.sh test
       - deploy:
           name: Deploy Wechaty Image to Docker Hub
           command: |

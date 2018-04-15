@@ -1,8 +1,7 @@
 /**
- *
  *   Wechaty - https://github.com/chatie/wechaty
  *
- *   @copyright 2016-2017 Huan LI <zixia@zixia.net>
+ *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -81,7 +80,7 @@ export interface MemberQueryFilter {
  * All wechat rooms(groups) will be encapsulated as a Room.
  *
  * `Room` is `Sayable`,
- * [Example/Room-Bot]{@link https://github.com/Chatie/wechaty/blob/master/example/room-bot.ts}
+ * [Examples/Room-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/room-bot.ts}
  */
 export class Room extends EventEmitter implements Sayable {
   private static pool = new Map<string, Room>()
