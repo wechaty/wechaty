@@ -54,9 +54,9 @@ function outputContributorMd() {
 
   console.log([
     '',
-    'WECHATY CONTRIBUTORS',
-    '--------------------',
+    '# CHANGELOG',
     '',
+    '## WECHATY CONTRIBUTORS',
     '### Active Contributors',
     '',
   ].join('\n'))

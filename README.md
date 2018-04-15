@@ -1,9 +1,8 @@
 [![Wechaty](https://chatie.io/wechaty/images/wechaty-logo-en.png)](https://github.com/chatie/wechaty)
 
-WECHATY
--------
+# WECHATY
 
-## Connecting ChatBots.
+## CONNECTING CHATBOTS
 
 Wechaty is a Bot Framework for Wechat **Personal** Account which can help you create a bot in 6 lines of javascript, with cross-platform support include [Linux](https://travis-ci.org/chatie/wechaty), [Windows](https://ci.appveyor.com/project/chatie/wechaty), [Darwin(OSX/Mac)](https://travis-ci.org/chatie/wechaty) and [Docker](https://app.shippable.com/github/Chatie/wechaty).
 
@@ -17,7 +16,7 @@ Wechaty is a Bot Framework for Wechat **Personal** Account which can help you cr
 :book: <https://github.com/chatie/wechaty/wiki>  
 :whale: <https://hub.docker.com/r/zixia/wechaty>  
 
-## Voice of the Developer
+## VOICE OF THE DEVELOPER
 
 > "Wechaty is a great solution, I believe there would be much more users recognize it." [link](https://github.com/chatie/wechaty/pull/310#issuecomment-285574472)  
 > -- @Gcaufy, Tencent Engineer, Author of [WePY](https://github.com/Tencent/wepy)
@@ -53,10 +52,9 @@ This bot can log all messages to the console.
 
 You can find more examples from [Wiki](https://github.com/chatie/wechaty/wiki/Examples) and [Example Directory](https://github.com/chatie/wechaty/blob/master/examples/).
 
-GETTING STARTED
----------------
+## GETTING STARTED
 
-## A Great Live Coding Tutorial
+### A Great Live Coding Tutorial
 
 <div align="center">
 <a target="_blank" href="https://blog.chatie.io/guide/2017/01/01/getting-started-wechaty.html"><img src="http://blog.chatie.io/download/2017/lijiarui-wechaty-quick-start-guide-video.jpg" border=0 width="60%"></a>
@@ -66,7 +64,7 @@ The above 15 minute video tutorial is a good start point if you are new to Wecha
 
 > Source code in the video can be found at: [Wechaty Starter Repository](https://github.com/lijiarui/wechaty-getting-started)
 
-## Run
+### Run
 
 Let's say, you have saved the above six line javascript example to `mybot.js`.
 
@@ -75,9 +73,9 @@ We have two options to run wechaty:
 1. Docker
 1. NPM
 
-Notice: The published versions have always passed the CI tests. We highly recommend running wechaty with the versions installed by docker or npm instead of the latest master branch unless you are prepared to deal with the broken code problems. 
+Notice: The published versions have always passed the CI tests. We highly recommend running wechaty with the versions installed by docker or npm instead of the latest master branch unless you are prepared to deal with the broken code problems.
 
-### Docker
+#### Docker
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Stars](https://img.shields.io/docker/stars/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
 
@@ -99,7 +97,7 @@ $ docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.js # for JavaSc
 $ docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.ts # for TypeScript
 ```
 
-### NPM
+#### NPM
 
 [![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty)
 [![Downloads][downloads-image]][downloads-url]
@@ -120,8 +118,7 @@ $ node mybot.js
 
 Get to know more about NPM at [Wiki:NPM](https://github.com/chatie/wechaty/wiki/NPM)
 
-TEST
-----
+## TEST
 
 [![Linux/Mac Build Status](https://img.shields.io/travis/Chatie/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/Chatie/wechaty)
 [![Windows Build Status](https://img.shields.io/appveyor/ci/chatie/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/chatie/wechaty)
@@ -133,35 +130,33 @@ TEST
 Wechaty is fully automatically tested by unit and integration tests, with Continious Integration & Continious Deliver(CI/CD) support powered by CI like Travis, Shippable and Appveyor.
 
 To test Wechaty, run:
+
 ```shell
 npm test
 ```
 
 Get to know more about the tests from [Wiki:Tests](https://github.com/chatie/wechaty/wiki/Tests)
 
-DOCUMATAION
--------------
+## DOCUMATAION
 
 In order to sync the doc with the lastest code, we are using [jsdoc](http://usejsdoc.org/) to describe the API, and use [jsdoc-to-markdown](https://github.com/jsdoc2md/jsdoc-to-markdown/wiki) to generate markdown format documents to the [docs](docs/index.md) directory.
 
 See: [Official API Reference](https://chatie.github.io/wechaty/)
 
-RELEASE NOTES
--------------
+## RELEASE NOTES
 
 * [Latest Release](https://github.com/chatie/wechaty/releases/latest)(All releases [here](https://github.com/chatie/wechaty/releases))
 * [Changelog](https://github.com/chatie/wechaty/blob/master/CHANGELOG.md)
 
-POWERED BY WECHATY
-------------------
+## POWERED BY WECHATY
 
 [![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/chatie/wechaty)
 
-## Wechaty Badge
+### Wechaty Badge
 
 Get embed html/markdown code from [Wiki:PoweredByWechaty](https://github.com/chatie/wechaty/wiki/PoweredByWechaty)
 
-## Projects Using Wechaty
+### Projects Using Wechaty
 
 1. [一个用CNN深度神剧网络给图片评分的wechaty项目](https://github.com/huyingxi/wechaty_selfie)
 1. [Relay between Telegram and WeChat](https://github.com/Firaenix/TeleChatRelay)
@@ -171,9 +166,9 @@ Get embed html/markdown code from [Wiki:PoweredByWechaty](https://github.com/cha
 
 Learn more about Projects Using Wechaty at [Wiki:PoweredByWechaty](https://github.com/chatie/wechaty/wiki/PoweredByWechaty)
 
-## Find a Good Server
+## FIND A GOOD SERVER
 
-The best practice for running Wechaty Docker/NPM is using a VPS(Virtual Private Server) outside of China, which can save you hours of time because `npm install` and `docker pull` will run smoothly without any problem. 
+The best practice for running Wechaty Docker/NPM is using a VPS(Virtual Private Server) outside of China, which can save you hours of time because `npm install` and `docker pull` will run smoothly without any problem.
 
 The following VPS providers are used by the Wechaty team, and they worked perfectly in production. You can use the following link to get one in minutes. Also, doing this can support Wechaty because you are referred by us.
 
@@ -184,12 +179,11 @@ The following VPS providers are used by the Wechaty team, and they worked perfec
 | Korea     | $10   | 1GB     | Alipay, Paypal    | [Netdedi](https://www.netdedi.com/?affid=35) |
 
 
-## See Also
+## SEE ALSO
 
 * [RelatedProject](https://github.com/chatie/wechaty/wiki/RelatedProject)
 
-CONTRIBUTING
---------------
+## CONTRIBUTING
 
 [![Issue Stats](http://issuestats.com/github/chatie/wechaty/badge/pr)](http://issuestats.com/github/chatie/wechaty)
 [![Issue Stats](http://issuestats.com/github/chatie/wechaty/badge/issue)](http://issuestats.com/github/chatie/wechaty)
@@ -199,11 +193,11 @@ Howto [contribute](https://github.com/chatie/wechaty/blob/master/CONTRIBUTING.md
 
 Contributions in any form are highly encouraged and welcome! Be it new or improved presets, optimized streaming code or just some cleanup. So start forking!
 
-## Contributors List
+### Contributors List
 
-https://github.com/Chatie/wechaty/wiki/Contributors
+<https://github.com/Chatie/wechaty/wiki/Contributors>
 
-## Code Contributions
+### Code Contributions
 
 If you want to add new features or change the API, please submit an issue first to make sure no one else is already working on the same thing and discuss the implementation and API details with maintainers and users by creating an issue. When everything is settled down, you can submit a pull request.
 
@@ -211,11 +205,11 @@ When fixing bugs, you can directly submit a pull request.
 
 Make sure to add tests for your features and bugfixes and update the documentation (see below) before submitting your code!
 
-## Documentation Contributions
+### Documentation Contributions
 
 You can directly submit pull requests for documentation changes.
 
-## Join US
+### Join Us
 
 Wechaty is used in many ChatBot projects by hundreds of developers. If you want to talk with other developers, just scan the following QR Code in WeChat with secret code _wechaty_, join our **Wechaty Developers' Home**.
 
@@ -223,16 +217,15 @@ Wechaty is used in many ChatBot projects by hundreds of developers. If you want 
 
 Scan now, because other Wechaty developers want to talk with you too! (secret code: _wechaty_)
 
-## Future Improvements
+## FUTURE IMPROVEMENTS
 
 Wechaty is far from perfect. The following things should be addressed in the future:
 
-- [ ] PuppetWine - Use DLL Inject to hook Windows Wechat Application, run from wine inside docker.
-- [ ] PuppetAndroid - Use Xposed to Hook Android Pad version of Wechat App, run from android emulator inside docker.
+* [ ] PuppetWine - Use DLL Inject to hook Windows Wechat Application, run from wine inside docker.
+* [ ] PuppetAndroid - Use Xposed to Hook Android Pad version of Wechat App, run from android emulator inside docker.
 
+## AUTHOR
 
-AUTHOR
-------
 [Huan LI](http://linkedin.com/in/zixia) \<zixia@zixia.net\>
 
 <a href="https://stackexchange.com/users/265499">
@@ -242,6 +235,7 @@ AUTHOR
 ## My Story
 
 My daily life/work depends on too much chat on wechat.
+
 * I almost have 14,000 wechat friends in May 2014, before wechat restricts a total number of friends to 5,000.
 * I almost have 400 wechat rooms, and most of them have more than 400 members.
 
@@ -251,12 +245,11 @@ So a tireless bot working for me 24x7 on wechat, monitoring/filtering the most i
 
 At last, It's built for my personal study purpose of Automatically Testing.
 
-COPYRIGHT & LICENSE
--------------------
+## COPYRIGHT & LICENSE
+
 * Code & Docs © 2016-2018 Huan LI \<zixia@zixia.net\>
 * Code released under the Apache-2.0 License
 * Docs released under Creative Commons
 
 [downloads-image]: http://img.shields.io/npm/dm/wechaty.svg?style=flat-square
 [downloads-url]: https://npmjs.org/package/wechaty
-
