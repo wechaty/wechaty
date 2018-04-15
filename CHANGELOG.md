@@ -30,9 +30,8 @@ WECHATY CONTRIBUTORS
 
 # Change Log
 
-## [Unreleased](https://github.com/chatie/wechaty/tree/HEAD)
-
-[Full Changelog](https://github.com/chatie/wechaty/compare/v0.12.0...HEAD)
+## [v0.14.0](https://github.com/chatie/wechaty/tree/v0.14.0) (2018-04-15)
+[Full Changelog](https://github.com/chatie/wechaty/compare/v0.12.0...v0.14.0)
 
 **Implemented enhancements:**
 
