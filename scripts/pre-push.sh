@@ -10,7 +10,7 @@ set -e
 
 [ -n "$NO_HOOK" ] && exit 0
 
-[ -n "$WECHATY_INNER_PRE_HOOK" ] && {
+[ -n "$HUAN_INNER_PRE_HOOK" ] && {
   # http://stackoverflow.com/a/21334985/1123955
   exit 0
 }
@@ -21,7 +21,7 @@ npm run lint
   # git rebase
   rm -f package-lock.json
   npm version patch --no-package-lock
-  WECHATY_INNER_PRE_HOOK=1 git push
+  HUAN_INNER_PRE_HOOK=1 git push
 
   cat <<'_STR_'
   ____ _ _        ____            _

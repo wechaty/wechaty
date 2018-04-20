@@ -85,9 +85,14 @@ if (/verbose|silly/i.test(log.level())) {
   })
 }
 
-export type PuppetName = 'web'
-                        | 'android'
-                        | 'ios'
+export type PuppetName =  'android-pad'
+                        | 'android-phone'
+                        | 'cat-king'
+                        | 'hostie'
+                        | 'ios-app-phone'
+                        | 'ios-app-pad'
+                        | 'web'
+                        | 'win32'
 
 export interface DefaultSetting {
   DEFAULT_HEAD     : number,
