@@ -62,7 +62,7 @@ test('login/logout events', sinonTest(async function (t: test.Test) {
 
     config.puppetInstance(pw)
 
-    await pw.init()
+    await pw.start()
     t.pass('should be inited')
     t.is(pw.logonoff() , false  , 'should be not logined')
 
@@ -83,7 +83,7 @@ test('login/logout events', sinonTest(async function (t: test.Test) {
     t.is(await logoutPromise, 'logoutFired', 'should fire logout event')
     t.is(pw.logonoff(), false, 'should be logouted')
 
-    await pw.quit()
+    await pw.stop()
     profile.destroy()
   } catch (e) {
     t.fail(e)

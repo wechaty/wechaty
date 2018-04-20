@@ -87,8 +87,8 @@ export class PuppetWeb extends Puppet {
     return `PuppetWeb<${this.options.profile.name}>`
   }
 
-  public async init(): Promise<void> {
-    log.verbose('PuppetWeb', `init() with ${this.options.profile}`)
+  public async start(): Promise<void> {
+    log.verbose('PuppetWeb', `start() with ${this.options.profile}`)
 
     this.state.on('pending')
 
@@ -114,19 +114,19 @@ export class PuppetWeb extends Puppet {
       const throttleQueue = new ThrottleQueue(5 * 60 * 1000)
       this.on('heartbeat', data => throttleQueue.next(data))
       throttleQueue.subscribe(async data => {
-        log.verbose('Wechaty', 'init() throttleQueue.subscribe() new item: %s', data)
+        log.verbose('Wechaty', 'start() throttleQueue.subscribe() new item: %s', data)
         await this.saveCookie()
       })
 
-      log.verbose('PuppetWeb', 'init() done')
+      log.verbose('PuppetWeb', 'start() done')
       return
 
     } catch (e) {
-      log.error('PuppetWeb', 'init() exception: %s', e)
+      log.error('PuppetWeb', 'start() exception: %s', e)
 
       this.state.off(true)
       this.emit('error', e)
-      await this.quit()
+      await this.stop()
 
       Raven.captureException(e)
       throw e
@@ -153,8 +153,8 @@ export class PuppetWeb extends Puppet {
       log.warn('PuppetWeb', 'initWatchdogForPuppet() dog.on(reset) last food:%s, timeout:%s',
                             food.data, timeout)
       try {
-        await this.quit()
-        await this.init()
+        await this.stop()
+        await this.start()
       } catch (e) {
         puppet.emit('error', e)
       }
@@ -217,18 +217,13 @@ export class PuppetWeb extends Puppet {
     })
   }
 
-  public async quit(): Promise<void> {
+  public async stop(): Promise<void> {
     log.verbose('PuppetWeb', 'quit()')
 
-    const off = this.state.off()
-    if (off === 'pending') {
-        const e = new Error('quit() is called on a PENDING OFF PuppetWeb')
-        log.warn('PuppetWeb', e.message)
-        this.emit('error', e)
-        return
-    } else if (off === true) {
-        log.warn('PuppetWeb', 'quit() is called on a OFF puppet. return directly.')
-        return
+    if (this.state.off()) {
+      log.warn('PuppetWeb', 'quit() is called on a OFF puppet. await ready(off) and return.')
+      await this.state.ready('off')
+      return
     }
 
     log.verbose('PuppetWeb', 'quit() make watchdog sleep before do quit')
@@ -288,18 +283,6 @@ export class PuppetWeb extends Puppet {
     }
 
     return this.bridge
-  }
-
-  public async reset(reason?: string): Promise<void> {
-    log.verbose('PuppetWeb', 'reset(%s)', reason)
-    try {
-      await this.bridge.quit()
-      await this.bridge.init()
-      log.silly('PuppetWeb', 'reset() done')
-    } catch (err) {
-      log.error('PuppetWeb', 'reset(%s) bridge.{quit,init}() exception: %s', reason, err)
-      this.emit('error', err)
-    }
   }
 
   public logined(): boolean {
@@ -759,7 +742,7 @@ export class PuppetWeb extends Puppet {
     log.verbose('PuppetWeb', 'logout()')
 
     const data = this.user || this.userId || ''
-    this.userId = this.user = null
+    this.userId = this.user = undefined
 
     try {
       await this.bridge.logout()
@@ -958,6 +941,12 @@ export class PuppetWeb extends Puppet {
 
   }
 
+  /**
+   * https://www.chatie.io:8080/api
+   * location.hostname = www.chatie.io
+   * location.host = www.chatie.io:8080
+   * See: https://stackoverflow.com/a/11379802/1123955
+   */
   public async hostname(): Promise<string> {
     try {
       const name = await this.bridge.hostname()

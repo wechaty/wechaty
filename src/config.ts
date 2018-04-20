@@ -196,9 +196,9 @@ export interface Sayable {
   say(content: string, replyTo?: any|any[]): Promise<boolean>
 }
 
-export interface Sleepable {
-  sleep(millisecond: number): Promise<void>
-}
+// export interface Sleepable {
+//   sleep(millisecond: number): Promise<void>
+// }
 
 export {
   Raven,
