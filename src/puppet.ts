@@ -25,6 +25,7 @@ import {
 
 import {
   Sayable,
+  WechatyEvent,
   log,
 }                       from './config'
 import Contact          from './contact'
@@ -35,11 +36,8 @@ import {
 }                       from './message'
 import Profile          from './profile'
 import Room             from './room'
-import {
-  WechatyEvent,
-}                       from './wechaty'
 
-export interface ScanInfo {
+export interface ScanData {
   avatar: string, // Image Data URL
   url:    string, // QR Code URL
   code:   number, // Code
@@ -55,10 +53,10 @@ export interface PuppetOptions {
  * Abstract Puppet Class
  */
 export abstract class Puppet extends EventEmitter implements Sayable {
-  protected userId?:  string
-  protected user?:    Contact
+  public userId?:  string
+  public user?:    Contact
 
-  protected state:   StateSwitch
+  public state:   StateSwitch
 
   constructor(public options: PuppetOptions) {
     super()
@@ -94,7 +92,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public on(event: 'room-join',   listener: (room: Room, inviteeList: Contact[],  inviter: Contact) => void)         : this
   public on(event: 'room-leave',  listener: (room: Room, leaverList: Contact[]) => void)                             : this
   public on(event: 'room-topic',  listener: (room: Room, topic: string, oldTopic: string, changer: Contact) => void) : this
-  public on(event: 'scan',        listener: (info: ScanInfo) => void)                                                : this
+  public on(event: 'scan',        listener: (info: ScanData) => void)                                                : this
   public on(event: 'watchdog',    listener: (data: WatchdogFood) => void)                                            : this
   public on(event: never,         listener: never)                                                                   : never
 
@@ -111,7 +109,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   public abstract self() : Contact
 
-  protected abstract getContact(id: string): Promise<any>
+  public abstract getContact(id: string): Promise<any>
 
   /**
    * Message

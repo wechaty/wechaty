@@ -710,7 +710,7 @@ export class MediaMessage extends Message {
     try {
       await super.ready()
 
-      let url: string|null = null
+      let url: string | undefined
       switch (this.type()) {
         case MsgType.EMOTICON:
           url = await this.bridge.getMsgEmoticon(this.id)

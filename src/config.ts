@@ -22,7 +22,7 @@ import * as path  from 'path'
 
 import * as readPkgUp from 'read-pkg-up'
 import * as Raven     from 'raven'
-import Brolog         from 'brolog'
+import { log }        from 'brolog'
 
 import Puppet from './puppet'
 
@@ -62,17 +62,16 @@ Raven.context(function () {
 })
  */
 
-export const log = new Brolog()
-const logLevel = process.env['WECHATY_LOG'] || 'info'
+const logLevel = process.env['WECHATY_LOG']
 if (logLevel) {
   log.level(logLevel.toLowerCase() as any)
-  log.silly('Brolog', 'WECHATY_LOG set level to %s', logLevel)
+  log.silly('Config', 'WECHATY_LOG set level to %s', logLevel)
 }
 
 /**
  * to handle unhandled exceptions
  */
-if (/verbose|silly/i.test(log.level())) {
+if (log.level() === 'verbose' || log.level() === 'silly') {
   log.info('Config', 'registering process.on("unhandledRejection") for development/debug')
   process.on('unhandledRejection', (reason, promise) => {
     log.error('Config', '###########################')
@@ -101,7 +100,7 @@ export interface DefaultSetting {
 
 /* tslint:disable:variable-name */
 /* tslint:disable:no-var-requires */
-export const DEFAULT_SETTING = pkg.wechaty as DefaultSetting
+const DEFAULT_SETTING = pkg.wechaty as DefaultSetting
 
 export class Config {
   public default = DEFAULT_SETTING
@@ -196,11 +195,23 @@ export interface Sayable {
   say(content: string, replyTo?: any|any[]): Promise<boolean>
 }
 
-// export interface Sleepable {
-//   sleep(millisecond: number): Promise<void>
-// }
+export type WechatEvent = 'friend'
+                          | 'login'
+                          | 'logout'
+                          | 'message'
+                          | 'room-join'
+                          | 'room-leave'
+                          | 'room-topic'
+                          | 'scan'
+
+export type WechatyEvent = WechatEvent
+                          | 'error'
+                          | 'heartbeat'
+                          | 'start'
+                          | 'stop'
 
 export {
+  log,
   Raven,
 }
 

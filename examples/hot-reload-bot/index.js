@@ -117,4 +117,4 @@ Please see https://github.com/Chatie/wechaty/tree/master/examples/hot-reload-bot
 
 `)
 
-bot.init();
+bot.start();

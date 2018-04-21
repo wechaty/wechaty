@@ -30,7 +30,7 @@ import PuppetWebFriendRequest from './friend-request'
 
 config.puppetInstance({
   userId: 'xxx',
-} as Puppet)
+} as any as Puppet)
 
 test('PuppetWebFriendRequest.receive smoke testing', async t => {
   /* tslint:disable:max-line-length */

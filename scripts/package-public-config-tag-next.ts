@@ -10,3 +10,5 @@ pkg.publishConfig.tag = 'next'
 
 fs.writeFileSync(PACKAGE_JSON, JSON.stringify(pkg, null, 2))
 // console.log(JSON.stringify(pkg, null, 2))
+
+console.log('set package.json:publicConfig.tag to next.')

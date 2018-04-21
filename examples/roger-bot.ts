@@ -44,5 +44,5 @@ bot
   await m.say('roger')                            // 1. reply others' msg
   console.log(`RECV: ${m}, REPLY: "roger"`) // 2. log message
 })
-.init()
+.start()
 .catch(e => console.error(e))

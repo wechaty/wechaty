@@ -17,6 +17,7 @@
  *
  *  @ignore
  */
+import * as cuid        from 'cuid'
 import { EventEmitter } from 'events'
 import * as os          from 'os'
 
@@ -28,11 +29,12 @@ import {
 
 import {
   config,
+  log,
   PuppetName,
   Raven,
   Sayable,
-  log,
   VERSION,
+  WechatyEvent,
 }                     from './config'
 
 import Contact        from './contact'
@@ -45,27 +47,12 @@ import Profile        from './profile'
 import Puppet         from './puppet'
 import PuppetWeb      from './puppet-web/'
 import Room           from './room'
-import Misc           from './misc'
+// import Misc           from './misc'
 
 export interface WechatyOptions {
   puppet?:  PuppetName,
   profile?: string,
 }
-
-export type WechatEvent = 'friend'
-                        | 'login'
-                        | 'logout'
-                        | 'message'
-                        | 'room-join'
-                        | 'room-leave'
-                        | 'room-topic'
-                        | 'scan'
-
-export type WechatyEvent = WechatEvent
-                        | 'error'
-                        | 'heartbeat'
-                        | 'start'
-                        | 'stop'
 
 /**
  * Main bot class.
@@ -99,10 +86,10 @@ export class Wechaty extends EventEmitter implements Sayable {
   private state = new StateSwitch('Wechaty', log)
 
   /**
-   * the uuid
+   * the cuid
    * @private
    */
-  public uuid:        string
+  public cuid:        string
 
   /**
    * get the singleton instance of Wechaty
@@ -141,7 +128,7 @@ export class Wechaty extends EventEmitter implements Sayable {
 
     this.profile = new Profile(options.profile)
 
-    this.uuid = Misc.guid()
+    this.cuid = cuid()
   }
 
   /**
@@ -177,20 +164,6 @@ export class Wechaty extends EventEmitter implements Sayable {
   }
 
   /**
-   * Initialize the bot, return Promise.
-   *
-   * @deprecated
-   * @returns {Promise<void>}
-   * @example
-   * await bot.init()
-   * // do other stuff with bot here
-   */
-  public async init(): Promise<void> {
-    log.warn('Wechaty', 'init() DEPRECATED and will be removed after Jun 2018. Use start() instead.')
-    await this.start()
-  }
-
-  /**
    * Start the bot, return Promise.
    *
    * @returns {Promise<void>}
@@ -200,15 +173,14 @@ export class Wechaty extends EventEmitter implements Sayable {
    */
   public async start(): Promise<void> {
     log.info('Wechaty', 'v%s starting...' , this.version())
-    log.verbose('Wechaty', 'puppet: %s'       , this.options.puppet)
-    log.verbose('Wechaty', 'profile: %s'      , this.options.profile)
-    log.verbose('Wechaty', 'uuid: %s'         , this.uuid)
+    log.verbose('Wechaty', 'puppet: %s'   , this.options.puppet)
+    log.verbose('Wechaty', 'profile: %s'  , this.options.profile)
+    log.verbose('Wechaty', 'cuid: %s'     , this.cuid)
 
-    if (this.state.on() === true) {
-      log.error('Wechaty', 'start() already started. return and do nothing.')
-      return
-    } else if (this.state.on() === 'pending') {
-      log.error('Wechaty', 'start() another task is starting. return and do nothing.')
+    if (this.state.on()) {
+      log.silly('Wechaty', 'start() on a starting/started instance')
+      await this.state.ready()
+      log.silly('Wechaty', 'start() state.ready() resolved')
       return
     }
 
@@ -443,19 +415,6 @@ export class Wechaty extends EventEmitter implements Sayable {
   }
 
   /**
-   * Quit the bot
-   *
-   * @deprecated use stop() instead
-   * @returns {Promise<void>}
-   * @example
-   * await bot.quit()
-   */
-  public async quit(): Promise<void> {
-    log.warn('Wechaty', 'quit() DEPRECATED and will be removed after Jun 2018. Use stop() instead.')
-    await this.stop()
-  }
-
-  /**
    * Stop the bot
    *
    * @returns {Promise<void>}
@@ -466,15 +425,12 @@ export class Wechaty extends EventEmitter implements Sayable {
     log.verbose('Wechaty', 'stop()')
 
     if (this.state.off()) {
-      if (this.state.off() === 'pending') { // current() !== 'on' || !this.state.stable()) {
-        const err = new Error(`stop() on a pending stop instance.`)
-        log.error('Wechaty', err.message)
-        this.emit('error', err)
-      } else {
-        log.warn('Wechaty', 'stop() on an already stopped instance.')
-      }
+      log.silly('Wechaty', 'stop() on an stopping/stopped instance')
+      await this.state.ready('off')
+      log.silly('Wechaty', 'stop() state.ready(off) resolved')
       return
     }
+
     this.state.off('pending')
 
     if (!this.puppet) {
@@ -641,7 +597,8 @@ export class Wechaty extends EventEmitter implements Sayable {
     if (!this.puppet) {
       throw new Error('no puppet')
     }
-    await this.puppet.reset(reason)
+    await this.puppet.stop()
+    await this.puppet.start()
     return
   }
 

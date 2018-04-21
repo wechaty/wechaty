@@ -70,7 +70,7 @@ test('puppetInstance()', async t => {
   }, Error, 'should throw when not initialized')
   config.puppetInstance(bak)
 
-  const EXPECTED = <Puppet>{userId: 'test'}
+  const EXPECTED: Puppet = {userId: 'test'} as any
   const mockPuppet = EXPECTED
 
   config.puppetInstance(mockPuppet)

@@ -77,10 +77,10 @@ bot
   console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
 })
 
-bot.init()
+bot.start()
 .catch(e => {
   log.error('Bot', 'init() fail: %s', e)
-  bot.quit()
+  bot.stop()
   process.exit(-1)
 })
 
@@ -157,5 +157,5 @@ async function onLogin() {
   // setTimeout(main, SLEEP * 1000)
 
   await bot.logout()
-  await bot.quit()
+  await bot.stop()
 }

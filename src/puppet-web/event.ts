@@ -29,7 +29,7 @@ import {
   MediaMessage,
 }                 from '../message'
 import {
-  ScanInfo,
+  ScanData,
 }                 from '../puppet'
 
 import Firer      from './firer'
@@ -58,7 +58,7 @@ function onDing(this: PuppetWeb, data): void {
   this.emit('watchdog', { data })
 }
 
-async function onScan(this: PuppetWeb, data: ScanInfo): Promise<void> {
+async function onScan(this: PuppetWeb, data: ScanData): Promise<void> {
   log.verbose('PuppetWebEvent', 'onScan({code: %d, url: %s})', data.code, data.url)
 
   if (this.state.off()) {
@@ -78,7 +78,7 @@ async function onScan(this: PuppetWeb, data: ScanInfo): Promise<void> {
     log.verbose('PuppetWebEvent', 'onScan() there has user when got a scan event. emit logout and set it to null')
 
     const bak = this.user || this.userId || ''
-    this.user = this.userId = null
+    this.user = this.userId = undefined
     this.emit('logout', bak)
   }
 
@@ -171,7 +171,7 @@ function onLogout(this: PuppetWeb, data) {
   }
 
   const bak = this.user || this.userId || ''
-  this.userId = this.user = null
+  this.userId = this.user = undefined
   this.emit('logout', bak)
 }
 

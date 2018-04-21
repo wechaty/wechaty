@@ -63,5 +63,5 @@ Wechaty.instance({ profile: config.default.DEFAULT_PROFILE })
 .on('friend',     onFriend)
 .on('room-join',  onRoomJoin)
 
-.init()
+.start()
 .catch(e => console.error(e))

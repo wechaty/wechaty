@@ -38,7 +38,7 @@ import Profile      from '../profile'
 import {
   Puppet,
   PuppetOptions,
-  ScanInfo,
+  ScanData,
 }                    from '../puppet'
 import Room          from '../room'
 import Misc          from '../misc'
@@ -63,7 +63,7 @@ export type ScanFoodType   = 'scan' | 'login' | 'logout'
 
 export class PuppetWeb extends Puppet {
   public bridge   : Bridge
-  public scanInfo : ScanInfo | null
+  public scanInfo : ScanData | null
 
   public puppetWatchdog : Watchdog<PuppetFoodType>
   public scanWatchdog   : Watchdog<ScanFoodType>

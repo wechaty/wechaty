@@ -244,7 +244,7 @@ bot
     }
   }
 })
-.init()
+.start()
 .catch(e => console.error(e))
 
 async function manageDingRoom() {
