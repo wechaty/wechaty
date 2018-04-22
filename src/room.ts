@@ -887,7 +887,7 @@ export class Room extends EventEmitter implements Sayable {
   public static async find(query: RoomQueryFilter): Promise<Room | null> {
     log.verbose('Room', 'find({ topic: %s })', query.topic)
 
-    const roomList = await Room.findAll(query)
+    const roomList = await this.findAll(query)
     if (!roomList || roomList.length < 1) {
       return null
     } else if (roomList.length > 1) {
@@ -942,10 +942,10 @@ export class Room extends EventEmitter implements Sayable {
       throw new Error('Room.load() no id')
     }
 
-    if (id in Room.pool) {
-      return Room.pool[id]
+    if (id in this.pool) {
+      return this.pool[id]
     }
-    return Room.pool[id] = new Room(id)
+    return this.pool[id] = new this(id)
   }
 
 }

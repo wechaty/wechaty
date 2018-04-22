@@ -206,7 +206,7 @@ export class Contact implements Sayable {
   public static async find(query: ContactQueryFilter): Promise<Contact | null> {
     log.verbose('Contact', 'find(%s)', JSON.stringify(query))
 
-    const contactList = await Contact.findAll(query)
+    const contactList = await this.findAll(query)
     if (!contactList || !contactList.length) {
       return null
     }
