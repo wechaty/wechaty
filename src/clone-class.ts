@@ -6,7 +6,7 @@
 
 // https://github.com/Microsoft/TypeScript/issues/10262
 // https://github.com/Microsoft/TypeScript/pull/13743
-type Constructor<T> = new(...args: any[]) => T
+export type Constructor<T> = new(...args: any[]) => T
 
 // tslint:disable-next-line:variable-name
 export function cloneClass<T extends Constructor<{}>>(OrignalClass: T): T {
