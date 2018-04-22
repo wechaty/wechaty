@@ -24,7 +24,7 @@ import * as readPkgUp from 'read-pkg-up'
 import * as Raven     from 'raven'
 import { log }        from 'brolog'
 
-import Puppet from './puppet'
+// import Puppet from './puppet'
 
 const pkg = readPkgUp.sync({ cwd: __dirname }).pkg
 export const VERSION = pkg.version
@@ -116,7 +116,7 @@ export class Config {
   public httpPort = process.env['PORT'] || process.env['WECHATY_PORT'] || DEFAULT_SETTING.DEFAULT_PORT
   public docker = !!(process.env['WECHATY_DOCKER'])
 
-  private _puppetInstance: Puppet | null = null
+  // private _puppetInstance: Puppet | null = null
 
   constructor() {
     log.verbose('Config', 'constructor()')
@@ -126,29 +126,29 @@ export class Config {
   /**
    * 5. live setting
    */
-  public puppetInstance(): Puppet
-  public puppetInstance(empty: null): void
-  public puppetInstance(instance: Puppet): void
+  // public puppetInstance(): Puppet
+  // public puppetInstance(empty: null): void
+  // public puppetInstance(instance: Puppet): void
 
-  public puppetInstance(instance?: Puppet | null): Puppet | void {
+  // public puppetInstance(instance?: Puppet | null): Puppet | void {
 
-    if (typeof instance === 'undefined') {
-      if (!this._puppetInstance) {
-        throw new Error('no puppet instance')
-      }
-      return this._puppetInstance
+  //   if (typeof instance === 'undefined') {
+  //     if (!this._puppetInstance) {
+  //       throw new Error('no puppet instance')
+  //     }
+  //     return this._puppetInstance
 
-    } else if (instance === null) {
-      log.verbose('Config', 'puppetInstance(null)')
-      this._puppetInstance = null
-      return
-    }
+  //   } else if (instance === null) {
+  //     log.verbose('Config', 'puppetInstance(null)')
+  //     this._puppetInstance = null
+  //     return
+  //   }
 
-    log.verbose('Config', 'puppetInstance(%s)', instance.constructor.name)
-    this._puppetInstance = instance
-    return
+  //   log.verbose('Config', 'puppetInstance(%s)', instance.constructor.name)
+  //   this._puppetInstance = instance
+  //   return
 
-  }
+  // }
 
   public gitRevision(): string | null {
     const dotGitPath  = path.join(__dirname, '..', '.git') // only for ts-node, not for dist

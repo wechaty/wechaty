@@ -177,7 +177,7 @@ function onLogout(this: PuppetWeb, data) {
 
 async function onMessage(
   this: PuppetWeb,
-  obj: MsgRawObj,
+  obj:  MsgRawObj,
 ): Promise<void> {
   let m = new Message(obj)
 

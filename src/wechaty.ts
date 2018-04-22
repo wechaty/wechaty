@@ -27,6 +27,7 @@ import {
   hotImport,
 }                       from 'hot-import'
 
+import cloneClass       from './clone-class'
 import {
   config,
   log,
@@ -36,16 +37,17 @@ import {
   VERSION,
   WechatyEvent,
 }                     from './config'
-
 import Contact        from './contact'
-import FriendRequest  from './friend-request'
 import {
   Message,
   MediaMessage,
 }                     from './message'
 import Profile        from './profile'
 import Puppet         from './puppet'
-import PuppetWeb      from './puppet-web/'
+import {
+  FriendRequest,
+  PuppetWeb,
+}                     from './puppet-web/'
 import Room           from './room'
 // import Misc           from './misc'
 
@@ -90,6 +92,15 @@ export class Wechaty extends EventEmitter implements Sayable {
    * @private
    */
   public cuid:        string
+
+  // tslint:disable-next-line:variable-name
+  public Contact        : typeof Contact
+  // tslint:disable-next-line:variable-name
+  public FriendRequest  : typeof FriendRequest
+  // tslint:disable-next-line:variable-name
+  public Message        : typeof Message
+  // tslint:disable-next-line:variable-name
+  public Room           : typeof Room
 
   /**
    * get the singleton instance of Wechaty
@@ -408,7 +419,17 @@ export class Wechaty extends EventEmitter implements Sayable {
     }
 
     // set puppet instance to Wechaty Static variable, for using by Contact/Room/Message/FriendRequest etc.
-    config.puppetInstance(puppet)
+    // config.puppetInstance(puppet)
+    this.Contact        = cloneClass(Contact)
+    this.FriendRequest  = cloneClass(FriendRequest)
+    this.Message        = cloneClass(Message)
+    this.Room           = cloneClass(Room)
+
+    this.Contact.puppet       = puppet
+    this.FriendRequest.puppet = puppet
+    this.Message.puppet       = puppet
+    this.Room.puppet          = puppet
+
     await puppet.start()
 
     return puppet
@@ -441,7 +462,11 @@ export class Wechaty extends EventEmitter implements Sayable {
     const puppet = this.puppet
 
     this.puppet = null
-    config.puppetInstance(null)
+    // config.puppetInstance(null)
+    // this.Contact.puppet       = undefined
+    // this.FriendRequest.puppet = undefined
+    // this.Message.puppet       = undefined
+    // this.Room.puppet          = undefined
 
     try {
       await puppet.stop()

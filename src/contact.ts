@@ -18,18 +18,20 @@
  *   @ignore
  */
 import {
-  config,
+  // config,
   Raven,
   Sayable,
   log,
-}                 from './config'
+}                       from './config'
 import {
   Message,
   MediaMessage,
-}                 from './message'
-import Misc       from './misc'
-import PuppetWeb  from './puppet-web'
-import Wechaty    from './wechaty'
+}                       from './message'
+import Misc             from './misc'
+import PuppetAccessory  from './puppet-accessory'
+import Wechaty          from './wechaty'
+
+import PuppetWeb        from './puppet-web/'
 
 export interface ContactObj {
   address:    string,
@@ -104,7 +106,7 @@ const specialContactList: string[] = [
  * `Contact` is `Sayable`,
  * [Examples/Contact-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/contact-bot.ts}
  */
-export class Contact implements Sayable {
+export class Contact extends PuppetAccessory implements Sayable {
   private static pool = new Map<string, Contact>()
 
   public obj: ContactObj | null
@@ -117,6 +119,7 @@ export class Contact implements Sayable {
   constructor(
     public readonly id: string,
   ) {
+    super()
     log.silly('Contact', `constructor(${id})`)
 
     if (typeof id !== 'string') {
@@ -277,7 +280,7 @@ export class Contact implements Sayable {
 
     /**
      * must be string because we need inject variable value
-     * into code as variable name
+     * into code as variable namespecialContactList
      */
     let filterFunction: string
 
@@ -291,7 +294,7 @@ export class Contact implements Sayable {
     }
 
     try {
-      const contactList = await config.puppetInstance()
+      const contactList = await this.puppet // config.puppetInstance()
                                   .contactFind(filterFunction)
 
       await Promise.all(contactList.map(c => c.ready()))
@@ -406,25 +409,25 @@ export class Contact implements Sayable {
       return this.obj && this.obj.alias || null
     }
 
-    return config.puppetInstance()
-                  .contactAlias(this, newAlias)
-                  .then(ret => {
-                    if (ret) {
-                      if (this.obj) {
-                        this.obj.alias = newAlias
-                      } else {
-                        log.error('Contact', 'alias() without this.obj?')
-                      }
+    return this.puppet // config.puppetInstance()
+                .contactAlias(this, newAlias)
+                .then(ret => {
+                  if (ret) {
+                    if (this.obj) {
+                      this.obj.alias = newAlias
                     } else {
-                      log.warn('Contact', 'alias(%s) fail', newAlias)
+                      log.error('Contact', 'alias() without this.obj?')
                     }
-                    return ret
-                  })
-                  .catch(e => {
-                    log.error('Contact', 'alias(%s) rejected: %s', newAlias, e.message)
-                    Raven.captureException(e)
-                    return false // fail safe
-                  })
+                  } else {
+                    log.warn('Contact', 'alias(%s) fail', newAlias)
+                  }
+                  return ret
+                })
+                .catch(e => {
+                  log.error('Contact', 'alias(%s) rejected: %s', newAlias, e.message)
+                  Raven.captureException(e)
+                  return false // fail safe
+                })
   }
 
   /**
@@ -542,9 +545,9 @@ export class Contact implements Sayable {
     }
 
     try {
-      const hostname = await (config.puppetInstance() as PuppetWeb).hostname()
+      const hostname = await (/* config.puppetInstance() */ this.puppet as PuppetWeb ).hostname()
       const avatarUrl = `http://${hostname}${this.obj.avatar}&type=big` // add '&type=big' to get big image
-      const cookies = await (config.puppetInstance() as PuppetWeb).cookies()
+      const cookies = await (/* config.puppetInstance() */ this.puppet as PuppetWeb).cookies()
       log.silly('Contact', 'avatar() url: %s', avatarUrl)
 
       return Misc.urlStream(avatarUrl, cookies)
@@ -599,9 +602,9 @@ export class Contact implements Sayable {
     }
 
     if (!contactGetter) {
-      log.silly('Contact', 'get contact via ' + config.puppetInstance().constructor.name)
-      contactGetter = config.puppetInstance()
-                            .getContact.bind(config.puppetInstance())
+      log.silly('Contact', 'get contact via ' + /* config.puppetInstance() */ this.puppet.constructor.name)
+      contactGetter = /* config.puppetInstance() */ this.puppet
+                            .getContact.bind(/* config.puppetInstance() */ this.puppet)
     }
     if (!contactGetter) {
       throw new Error('no contatGetter')
@@ -648,8 +651,8 @@ export class Contact implements Sayable {
    * const isSelf = contact.self()
    */
   public self(): boolean {
-    const userId = config.puppetInstance()
-                          .userId
+    const userId = this.puppet // config.puppetInstance()
+                        .userId
 
     const selfId = this.id
 

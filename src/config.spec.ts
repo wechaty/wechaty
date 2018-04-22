@@ -23,7 +23,7 @@ import * as test  from 'blue-tape'
 // const sinonTest   = require('sinon-test')(sinon)
 
 import { config } from './config'
-import { Puppet } from './puppet'
+// import { Puppet } from './puppet'
 
 test('important variables', async t => {
   t.true('puppet'   in config, 'should exist `puppet` in Config')
@@ -59,28 +59,28 @@ test('validApiHost()', async t => {
 
 })
 
-test('puppetInstance()', async t => {
-  // BUG Compitable with Win32 CI
-  // global instance infected across unit tests... :(
-  const bak = config.puppetInstance()
+// test('puppetInstance()', async t => {
+//   // BUG Compitable with Win32 CI
+//   // global instance infected across unit tests... :(
+//   const bak = config.puppetInstance()
 
-  config.puppetInstance(null)
-  t.throws(() => {
-    config.puppetInstance()
-  }, Error, 'should throw when not initialized')
-  config.puppetInstance(bak)
+//   config.puppetInstance(null)
+//   t.throws(() => {
+//     config.puppetInstance()
+//   }, Error, 'should throw when not initialized')
+//   config.puppetInstance(bak)
 
-  const EXPECTED: Puppet = {userId: 'test'} as any
-  const mockPuppet = EXPECTED
+//   const EXPECTED: Puppet = {userId: 'test'} as any
+//   const mockPuppet = EXPECTED
 
-  config.puppetInstance(mockPuppet)
-  const instance = config.puppetInstance()
-  t.deepEqual(instance, EXPECTED, 'should equal with initialized data')
+//   config.puppetInstance(mockPuppet)
+//   const instance = config.puppetInstance()
+//   t.deepEqual(instance, EXPECTED, 'should equal with initialized data')
 
-  config.puppetInstance(null)
-  t.throws(() => {
-    config.puppetInstance()
-  }, Error, 'should throw after set to null')
+//   config.puppetInstance(null)
+//   t.throws(() => {
+//     config.puppetInstance()
+//   }, Error, 'should throw after set to null')
 
-  config.puppetInstance(bak)
-})
+//   config.puppetInstance(bak)
+// })

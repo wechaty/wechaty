@@ -31,7 +31,7 @@ const sinonTest   = require('sinon-test')(sinon, {
 // log.level('silly')
 
 import {
-  config,
+  // config,
   Contact,
   Profile,
 }                 from '../../'
@@ -60,7 +60,8 @@ test('login/logout events', sinonTest(async function (t: test.Test) {
     const pw      = new PuppetWeb({ profile })
     t.ok(pw, 'should instantiated a PuppetWeb')
 
-    config.puppetInstance(pw)
+    // config.puppetInstance(pw)
+    Contact.puppet = pw
 
     await pw.start()
     t.pass('should be inited')

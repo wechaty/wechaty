@@ -22,15 +22,19 @@
 import * as test  from 'blue-tape'
 // import * as sinon from 'sinon'
 
-import config     from '../src/config'
+// import config     from '../src/config'
 import Contact    from '../src/contact'
+import Message    from '../src/message'
 import Profile    from '../src/profile'
 import PuppetWeb  from '../src/puppet-web'
 import Room       from '../src/room'
 
-config.puppetInstance(new PuppetWeb({
+// config.puppetInstance(new PuppetWeb({
+//   profile: new Profile(),
+// }))
+Room.puppet = new PuppetWeb({
   profile: new Profile(),
-}))
+})
 // Room.attach(new PuppetWeb())
 
 // test('Room smoke testing', async t => {
@@ -110,14 +114,15 @@ test('Room smoking test', async t => {
 
   t.is(r.id, EXPECTED.id, 'should set id/UserName right')
 
-  let puppet
-  try {
-    puppet = config.puppetInstance()
-    puppet.getContact = mockContactGetter
-  } catch (err) {
-    puppet = { getContact: mockContactGetter }
-    config.puppetInstance(puppet)
-  }
+  // let puppet
+  // try {
+  //   puppet = config.puppetInstance()
+  //   puppet.getContact = mockContactGetter
+  // } catch (err) {
+  //   puppet = { getContact: mockContactGetter }
+  //   config.puppetInstance(puppet)
+  // }
+  Contact.puppet = Message.puppet = Room.puppet = { getContact: mockContactGetter } as any
   await r.ready()
 
   t.is(r.get('id')      , EXPECTED.id, 'should set id/UserName')
@@ -175,6 +180,10 @@ test('Room smoking test', async t => {
 })
 
 test('Room static method', async t => {
+  Room.puppet = new PuppetWeb({
+    profile: new Profile(),
+  })
+
   try {
     const result = await Room.find({ topic: 'xxx' })
     t.is(result, null, `should return null if cannot find the room`)

@@ -29,7 +29,7 @@ const EXPECTED_PUPPET2 = {p: 2} as any as Puppet
 
 test('PuppetAccessory smoke testing', async t => {
   class FixtureClass extends PuppetAccessory {}
-  t.ok(FixtureClass.puppet === undefined, 'should be undefined initialy for static puppet')
+  t.throws(() => FixtureClass.puppet, 'should throw if read static puppet before initialize')
 
   const c = new FixtureClass()
   t.throws(() => c.puppet, 'should throw if read instance puppet before initialization')

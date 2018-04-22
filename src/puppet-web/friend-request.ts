@@ -31,7 +31,7 @@ const retryPromise  = require('retry-promise').default
 
 import { Contact }    from '../contact'
 import {
-  config,
+  // config,
   log,
 }                     from '../config'
 import FriendRequest  from '../friend-request'
@@ -114,7 +114,7 @@ export class PuppetWebFriendRequest extends FriendRequest {
       this.hello = hello
     }
 
-    return config.puppetInstance()
+    return this.puppet // config.puppetInstance()
                 .friendRequestSend(contact, hello)
   }
 
@@ -130,8 +130,8 @@ export class PuppetWebFriendRequest extends FriendRequest {
       throw new Error('request is not a `receive` type. it is a ' + this.type + ' type')
     }
 
-    const ret = await config.puppetInstance()
-                            .friendRequestAccept(this.contact, this.ticket)
+    const ret = await this.puppet // config.puppetInstance()
+                          .friendRequestAccept(this.contact, this.ticket)
 
     const max = 20
     const backoff = 300

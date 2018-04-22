@@ -25,15 +25,17 @@ import {
 import * as mime  from 'mime'
 
 import {
-  config,
+  // config,
   Raven,
   Sayable,
   log,
-}                 from './config'
+}                       from './config'
 
-import Contact    from './contact'
-import Room       from './room'
-import Misc       from './misc'
+import Contact          from './contact'
+import Room             from './room'
+import Misc             from './misc'
+import PuppetAccessory  from './puppet-accessory'
+
 import PuppetWeb  from './puppet-web/puppet-web'
 import Bridge     from './puppet-web/bridge'
 
@@ -55,7 +57,7 @@ export type TypeName =  'attachment'
  * `Message` is `Sayable`,
  * [Examples/Ding-Dong-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts}
  */
-export class Message implements Sayable {
+export class Message extends PuppetAccessory implements Sayable {
   /**
    * @private
    */
@@ -87,6 +89,7 @@ export class Message implements Sayable {
    * @private
    */
   constructor(public rawObj?: MsgRawObj) {
+    super()
     this._counter = Message.counter++
     log.silly('Message', 'constructor() SN:%d', this._counter)
 
@@ -243,8 +246,8 @@ export class Message implements Sayable {
       }
     }
 
-    return config.puppetInstance()
-                  .send(m)
+    return this.puppet // config.puppetInstance()
+                .send(m)
   }
 
   /**
@@ -403,7 +406,7 @@ export class Message implements Sayable {
    * }
    */
   public self(): boolean {
-    const userId = config.puppetInstance()
+    const userId = this.puppet // config.puppetInstance()
                         .userId
 
     const fromId = this.obj.from
@@ -690,7 +693,7 @@ export class MediaMessage extends Message {
     }
 
     // FIXME: decoupling needed
-    this.bridge = (config.puppetInstance() as PuppetWeb)
+    this.bridge = (/* config.puppetInstance() */ this.puppet as PuppetWeb)
                     .bridge
   }
 
@@ -886,7 +889,7 @@ export class MediaMessage extends Message {
     try {
       await this.ready()
       // FIXME: decoupling needed
-      const cookies = await (config.puppetInstance() as PuppetWeb).cookies()
+      const cookies = await (/* config.puppetInstance() */ this.puppet as PuppetWeb).cookies()
       if (!this.obj.url) {
         throw new Error('no url')
       }
@@ -983,7 +986,7 @@ export class MediaMessage extends Message {
    */
   public async forward(to: Room|Contact): Promise<boolean> {
     try {
-      const ret = await config.puppetInstance().forward(this, to)
+      const ret = await /* config.puppetInstance() */ this.puppet.forward(this, to)
       return ret
     } catch (e) {
       log.error('Message', 'forward(%s) exception: %s', to, e)

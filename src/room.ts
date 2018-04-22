@@ -17,20 +17,19 @@
  *
  *   @ignore
  */
-import { EventEmitter } from 'events'
-
 import {
-  config,
+  // config,
   Raven,
   Sayable,
   log,
-}                 from './config'
-import Contact    from './contact'
+}                       from './config'
+import Contact          from './contact'
 import {
   Message,
   MediaMessage,
-}                 from './message'
-import Misc       from './misc'
+}                       from './message'
+import Misc             from './misc'
+import PuppetAccessory  from './puppet-accessory'
 
 interface RoomObj {
   id:               string,
@@ -82,7 +81,7 @@ export interface MemberQueryFilter {
  * `Room` is `Sayable`,
  * [Examples/Room-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/room-bot.ts}
  */
-export class Room extends EventEmitter implements Sayable {
+export class Room extends PuppetAccessory implements Sayable {
   private static pool = new Map<string, Room>()
 
   private dirtyObj: RoomObj | null // when refresh, use this to save dirty data for query
@@ -141,8 +140,8 @@ export class Room extends EventEmitter implements Sayable {
     }
 
     if (!contactGetter) {
-      contactGetter = config.puppetInstance()
-                            .getContact.bind(config.puppetInstance())
+      contactGetter = this.puppet // config.puppetInstance()
+                            .getContact.bind(/* config.puppetInstance() */ this.puppet)
     }
     if (!contactGetter) {
       throw new Error('no contactGetter')
@@ -247,8 +246,8 @@ export class Room extends EventEmitter implements Sayable {
 
     m.room(this)
 
-    return config.puppetInstance()
-                  .send(m)
+    return this.puppet // config.puppetInstance()
+                .send(m)
   }
 
   public on(event: 'leave', listener: (this: Room, leaver: Contact) => void): this
@@ -427,8 +426,8 @@ export class Room extends EventEmitter implements Sayable {
       throw new Error('contact not found')
     }
 
-    const n = config.puppetInstance()
-                      .roomAdd(this, contact)
+    const n = this.puppet // config.puppetInstance()
+                  .roomAdd(this, contact)
     return n
   }
 
@@ -455,9 +454,9 @@ export class Room extends EventEmitter implements Sayable {
     if (!contact) {
       throw new Error('contact not found')
     }
-    const n = await config.puppetInstance()
-                            .roomDel(this, contact)
-                            .then(_ => this.delLocal(contact))
+    const n = await this.puppet // config.puppetInstance()
+                        .roomDel(this, contact)
+                        .then(_ => this.delLocal(contact))
     return n
   }
 
@@ -536,14 +535,14 @@ export class Room extends EventEmitter implements Sayable {
       return Misc.plainText(this.obj ? this.obj.topic : '')
     }
 
-    config.puppetInstance()
-          .roomTopic(this, newTopic)
-          .catch(e => {
-            log.warn('Room', 'topic(newTopic=%s) exception: %s',
-                              newTopic, e && e.message || e,
-                    )
-            Raven.captureException(e)
-          })
+    this.puppet // config.puppetInstance()
+        .roomTopic(this, newTopic)
+        .catch(e => {
+          log.warn('Room', 'topic(newTopic=%s) exception: %s',
+                            newTopic, e && e.message || e,
+                  )
+          Raven.captureException(e)
+        })
 
     if (!this.obj) {
       this.obj = <RoomObj>{}
@@ -820,13 +819,13 @@ export class Room extends EventEmitter implements Sayable {
       throw new Error('contactList not found')
     }
 
-    return config.puppetInstance()
-                  .roomCreate(contactList, topic)
-                  .catch(e => {
-                    log.error('Room', 'create() exception: %s', e && e.stack || e.message || e)
-                    Raven.captureException(e)
-                    throw e
-                  })
+    return this.puppet // config.puppetInstance()
+                .roomCreate(contactList, topic)
+                .catch(e => {
+                  log.error('Room', 'create() exception: %s', e && e.stack || e.message || e)
+                  Raven.captureException(e)
+                  throw e
+                })
   }
 
   /**
@@ -862,13 +861,13 @@ export class Room extends EventEmitter implements Sayable {
       throw new Error('unsupport topic type')
     }
 
-    const roomList = await config.puppetInstance()
-                                  .roomFind(filterFunction)
-                                  .catch(e => {
-                                    log.verbose('Room', 'findAll() rejected: %s', e.message)
-                                    Raven.captureException(e)
-                                    return [] as Room[] // fail safe
-                                  })
+    const roomList = await this.puppet // config.puppetInstance()
+                                .roomFind(filterFunction)
+                                .catch(e => {
+                                  log.verbose('Room', 'findAll() rejected: %s', e.message)
+                                  Raven.captureException(e)
+                                  return [] as Room[] // fail safe
+                                })
 
     await Promise.all(roomList.map(room => room.ready()))
     // for (let i = 0; i < roomList.length; i++) {
@@ -919,7 +918,7 @@ export class Room extends EventEmitter implements Sayable {
   public owner(): Contact | null {
     const ownerUin = this.obj && this.obj.ownerUin
 
-    const user = config.puppetInstance()
+    const user = this.puppet // config.puppetInstance()
                       .user
 
     if (user && user.get('uin') === ownerUin) {
