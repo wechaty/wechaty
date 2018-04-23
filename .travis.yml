@@ -29,17 +29,13 @@ jobs:
   include:
     - stage: test
       before_install:
-        - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew update; fi
-        - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew cleanup; fi
-        - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew cask cleanup; fi
-        - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew install jq; fi
-        - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew install moreutils; fi
-        - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew install shellcheck; fi
+        - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then ./scripts/prepare-osx.sh; fi
 
       script:
         - echo $TRAVIS_OS_NAME
         - node --version
         - npm --version
+        - echo "Testing started ..."
         - npm test
 
       after_success:

@@ -127,9 +127,9 @@ export class Wechaty extends EventEmitter implements Sayable {
   }
 
   /**
-   * @private
+   * @public
    */
-  private constructor(
+  constructor(
     private options: WechatyOptions = {},
   ) {
     super()
