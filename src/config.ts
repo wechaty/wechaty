@@ -22,9 +22,9 @@ import * as path  from 'path'
 
 import * as readPkgUp from 'read-pkg-up'
 import * as Raven     from 'raven'
-import Brolog         from 'brolog'
+import { log }        from 'brolog'
 
-import Puppet from './puppet'
+// import Puppet from './puppet'
 
 const pkg = readPkgUp.sync({ cwd: __dirname }).pkg
 export const VERSION = pkg.version
@@ -62,17 +62,16 @@ Raven.context(function () {
 })
  */
 
-export const log = new Brolog()
-const logLevel = process.env['WECHATY_LOG'] || 'info'
+const logLevel = process.env['WECHATY_LOG']
 if (logLevel) {
   log.level(logLevel.toLowerCase() as any)
-  log.silly('Brolog', 'WECHATY_LOG set level to %s', logLevel)
+  log.silly('Config', 'WECHATY_LOG set level to %s', logLevel)
 }
 
 /**
  * to handle unhandled exceptions
  */
-if (/verbose|silly/i.test(log.level())) {
+if (log.level() === 'verbose' || log.level() === 'silly') {
   log.info('Config', 'registering process.on("unhandledRejection") for development/debug')
   process.on('unhandledRejection', (reason, promise) => {
     log.error('Config', '###########################')
@@ -101,7 +100,7 @@ export interface DefaultSetting {
 
 /* tslint:disable:variable-name */
 /* tslint:disable:no-var-requires */
-export const DEFAULT_SETTING = pkg.wechaty as DefaultSetting
+const DEFAULT_SETTING = pkg.wechaty as DefaultSetting
 
 export class Config {
   public default = DEFAULT_SETTING
@@ -117,7 +116,7 @@ export class Config {
   public httpPort = process.env['PORT'] || process.env['WECHATY_PORT'] || DEFAULT_SETTING.DEFAULT_PORT
   public docker = !!(process.env['WECHATY_DOCKER'])
 
-  private _puppetInstance: Puppet | null = null
+  // private _puppetInstance: Puppet | null = null
 
   constructor() {
     log.verbose('Config', 'constructor()')
@@ -127,29 +126,29 @@ export class Config {
   /**
    * 5. live setting
    */
-  public puppetInstance(): Puppet
-  public puppetInstance(empty: null): void
-  public puppetInstance(instance: Puppet): void
+  // public puppetInstance(): Puppet
+  // public puppetInstance(empty: null): void
+  // public puppetInstance(instance: Puppet): void
 
-  public puppetInstance(instance?: Puppet | null): Puppet | void {
+  // public puppetInstance(instance?: Puppet | null): Puppet | void {
 
-    if (typeof instance === 'undefined') {
-      if (!this._puppetInstance) {
-        throw new Error('no puppet instance')
-      }
-      return this._puppetInstance
+  //   if (typeof instance === 'undefined') {
+  //     if (!this._puppetInstance) {
+  //       throw new Error('no puppet instance')
+  //     }
+  //     return this._puppetInstance
 
-    } else if (instance === null) {
-      log.verbose('Config', 'puppetInstance(null)')
-      this._puppetInstance = null
-      return
-    }
+  //   } else if (instance === null) {
+  //     log.verbose('Config', 'puppetInstance(null)')
+  //     this._puppetInstance = null
+  //     return
+  //   }
 
-    log.verbose('Config', 'puppetInstance(%s)', instance.constructor.name)
-    this._puppetInstance = instance
-    return
+  //   log.verbose('Config', 'puppetInstance(%s)', instance.constructor.name)
+  //   this._puppetInstance = instance
+  //   return
 
-  }
+  // }
 
   public gitRevision(): string | null {
     const dotGitPath  = path.join(__dirname, '..', '.git') // only for ts-node, not for dist
@@ -196,11 +195,23 @@ export interface Sayable {
   say(content: string, replyTo?: any|any[]): Promise<boolean>
 }
 
-export interface Sleepable {
-  sleep(millisecond: number): Promise<void>
-}
+export type WechatEvent = 'friend'
+                          | 'login'
+                          | 'logout'
+                          | 'message'
+                          | 'room-join'
+                          | 'room-leave'
+                          | 'room-topic'
+                          | 'scan'
+
+export type WechatyEvent = WechatEvent
+                          | 'error'
+                          | 'heartbeat'
+                          | 'start'
+                          | 'stop'
 
 export {
+  log,
   Raven,
 }
 

@@ -22,15 +22,18 @@ import * as test  from 'blue-tape'
 // import * as sinon from 'sinon'
 // const sinonTest   = require('sinon-test')(sinon)
 
-import config                 from '../config'
+// import config                 from '../config'
 import Contact                from '../contact'
 import Message                from '../message'
 import Puppet                 from '../puppet'
 import PuppetWebFriendRequest from './friend-request'
 
-config.puppetInstance({
+PuppetWebFriendRequest.puppet = {
   userId: 'xxx',
-} as Puppet)
+} as any as Puppet
+// config.puppetInstance({
+//   userId: 'xxx',
+// } as any as Puppet)
 
 test('PuppetWebFriendRequest.receive smoke testing', async t => {
   /* tslint:disable:max-line-length */
@@ -56,6 +59,7 @@ test('PuppetWebFriendRequest.confirm smoke testing', async t => {
   `
   const rawObj = JSON.parse(rawMessageData)
   const m = new Message(rawObj)
+  m.puppet = this.puppet
 
   t.true(/^You have added (.+) as your WeChat contact. Start chatting!$/.test(m.content()), 'should match confirm message')
 

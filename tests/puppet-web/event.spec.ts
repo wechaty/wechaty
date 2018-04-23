@@ -35,9 +35,9 @@ test('Puppet Web Event smoke testing', async t => {
   })
 
   try {
-    await pw.init()
+    await pw.start()
     t.pass('should be inited')
-    await pw.quit()
+    await pw.stop()
     t.pass('should be quited')
   } catch (e) {
     t.fail('exception: ' + e.message)

@@ -68,8 +68,8 @@ bot
   }
   // }
 })
-.init()
-.catch(e => console.error('bot.init() error: ' + e))
+.start()
+.catch(e => console.error('bot.start() error: ' + e))
 
 async function saveMediaFile(message: MediaMessage) {
   const filename = message.filename()

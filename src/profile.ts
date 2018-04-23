@@ -24,7 +24,7 @@ import {
   log,
 }           from './config'
 
-export type ProfileSection = 'cookies'
+export type ProfileSection = 'cookies' | 'ToBeAdded'
 
 export interface ProfileSchema {
   cookies?:   any[]

@@ -75,8 +75,8 @@ bot
   }
 
 })
-.init()
-.catch(e => console.error('bot.init() error: ' + e))
+.start()
+.catch(e => console.error('bot.start() error: ' + e))
 
 async function speechToText(mp3Stream: Readable): Promise<string> {
   const wavStream = mp3ToWav(mp3Stream)

@@ -22,14 +22,17 @@
 import * as test  from 'blue-tape'
 // import * as sinon from 'sinon'
 
-import config     from '../src/config'
+// import config     from '../src/config'
 import Contact    from '../src/contact'
 import Profile    from '../src/profile'
 import PuppetWeb  from '../src/puppet-web'
 
-config.puppetInstance(new PuppetWeb({
+// config.puppetInstance(new PuppetWeb({
+//   profile: new Profile(),
+// }))
+Contact.puppet = new PuppetWeb({
   profile: new Profile(),
-}))
+})
 
 test('Contact smoke testing', async t => {
   /* tslint:disable:variable-name */

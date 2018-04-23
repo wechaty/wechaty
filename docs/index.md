@@ -1079,7 +1079,7 @@ Initialize the bot, return Promise.
 **Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
 **Example**  
 ```js
-await bot.init()
+await bot.start()
 // do other stuff with bot here
 ```
 <a name="Wechaty+start"></a>
@@ -1175,7 +1175,7 @@ Quit the bot
 **Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
 **Example**  
 ```js
-await bot.quit()
+await bot.stop()
 ```
 <a name="Wechaty+stop"></a>
 
