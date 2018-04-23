@@ -29,7 +29,7 @@ import {
 }                       from './message'
 import Misc             from './misc'
 import PuppetAccessory  from './puppet-accessory'
-import Wechaty          from './wechaty'
+// import Wechaty          from './wechaty'
 
 import PuppetWeb        from './puppet-web/'
 
