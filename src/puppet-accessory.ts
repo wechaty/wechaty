@@ -9,7 +9,7 @@ export abstract class PuppetAccessory extends EventEmitter {
    */
   private static _puppet?: Puppet
   public static set puppet(puppet: Puppet) {
-    log.verbose('PuppetAssessory', 'static set puppet()')
+    log.silly('PuppetAssessory', 'static set puppet()')
     this._puppet = puppet
   }
   public static get puppet(): Puppet {
@@ -29,7 +29,7 @@ export abstract class PuppetAccessory extends EventEmitter {
   private _puppet?: Puppet
 
   public set puppet(puppet: Puppet) {
-    log.verbose('PuppetAssessory', 'set puppet()')
+    log.silly('PuppetAssessory', 'set puppet()')
     this._puppet = puppet
   }
   public get puppet(): Puppet {

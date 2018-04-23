@@ -18,7 +18,6 @@
  *  @ignore
  */
 import * as cuid        from 'cuid'
-import { EventEmitter } from 'events'
 import * as os          from 'os'
 
 import StateSwitch      from 'state-switch'
@@ -36,19 +35,20 @@ import {
   Sayable,
   VERSION,
   WechatyEvent,
-}                     from './config'
-import Contact        from './contact'
+}                       from './config'
+import Contact          from './contact'
 import {
   Message,
   MediaMessage,
-}                     from './message'
-import Profile        from './profile'
-import Puppet         from './puppet'
+}                       from './message'
+import Profile          from './profile'
+import Puppet           from './puppet'
+import PuppetAccessory  from './puppet-accessory'
 import {
   FriendRequest,
   PuppetWeb,
-}                     from './puppet-web/'
-import Room           from './room'
+}                       from './puppet-web/'
+import Room             from './room'
 // import Misc           from './misc'
 
 export interface WechatyOptions {
@@ -66,18 +66,12 @@ export interface WechatyOptions {
  * import { Wechaty } from 'wechaty'
  *
  */
-export class Wechaty extends EventEmitter implements Sayable {
+export class Wechaty extends PuppetAccessory implements Sayable {
   /**
    * singleton _instance
    * @private
    */
   private static _instance: Wechaty
-
-  /**
-   * the puppet
-   * @private
-   */
-  public puppet: Puppet | null
 
   private profile: Profile
 
@@ -199,7 +193,21 @@ export class Wechaty extends EventEmitter implements Sayable {
 
     try {
       this.profile.load()
-      this.puppet = await this.initPuppet()
+      this.puppet = this.initPuppet()
+
+      // set puppet instance to Wechaty Static variable, for using by Contact/Room/Message/FriendRequest etc.
+      // config.puppetInstance(puppet)
+      this.Contact        = cloneClass(Contact)
+      this.FriendRequest  = cloneClass(FriendRequest)
+      this.Message        = cloneClass(Message)
+      this.Room           = cloneClass(Room)
+
+      this.Contact.puppet       = this.puppet
+      this.FriendRequest.puppet = this.puppet
+      this.Message.puppet       = this.puppet
+      this.Room.puppet          = this.puppet
+
+      await this.puppet.start()
 
     } catch (e) {
       log.error('Wechaty', 'start() exception: %s', e && e.message)
@@ -382,7 +390,7 @@ export class Wechaty extends EventEmitter implements Sayable {
   /**
    * @private
    */
-  public async initPuppet(): Promise<Puppet> {
+  public initPuppet(): Puppet {
     log.verbose('Wechaty', 'initPuppet()')
     let puppet: Puppet
 
@@ -418,20 +426,6 @@ export class Wechaty extends EventEmitter implements Sayable {
       })
     }
 
-    // set puppet instance to Wechaty Static variable, for using by Contact/Room/Message/FriendRequest etc.
-    // config.puppetInstance(puppet)
-    this.Contact        = cloneClass(Contact)
-    this.FriendRequest  = cloneClass(FriendRequest)
-    this.Message        = cloneClass(Message)
-    this.Room           = cloneClass(Room)
-
-    this.Contact.puppet       = puppet
-    this.FriendRequest.puppet = puppet
-    this.Message.puppet       = puppet
-    this.Room.puppet          = puppet
-
-    await puppet.start()
-
     return puppet
   }
 
@@ -454,14 +448,15 @@ export class Wechaty extends EventEmitter implements Sayable {
 
     this.state.off('pending')
 
-    if (!this.puppet) {
+    let puppet: Puppet
+    try {
+      puppet = this.puppet
+    } catch (e) {
       log.warn('Wechaty', 'stop() without this.puppet')
       return
     }
 
-    const puppet = this.puppet
-
-    this.puppet = null
+    // this.puppet = null
     // config.puppetInstance(null)
     // this.Contact.puppet       = undefined
     // this.FriendRequest.puppet = undefined
@@ -495,10 +490,6 @@ export class Wechaty extends EventEmitter implements Sayable {
   public async logout(): Promise<void>  {
     log.verbose('Wechaty', 'logout()')
 
-    if (!this.puppet) {
-      throw new Error('no puppet')
-    }
-
     try {
       await this.puppet.logout()
     } catch (e) {
@@ -521,10 +512,11 @@ export class Wechaty extends EventEmitter implements Sayable {
    * }
    */
   public logonoff(): Boolean {
-    if (!this.puppet) {
+    try {
+      return this.puppet.logonoff()
+    } catch (e) {
       return false
     }
-    return this.puppet.logonoff()
   }
 
   /**
@@ -536,9 +528,6 @@ export class Wechaty extends EventEmitter implements Sayable {
    * console.log(`Bot is ${contact.name()}`)
    */
   public self(): Contact {
-    if (!this.puppet) {
-      throw new Error('Wechaty.self() no puppet')
-    }
     return this.puppet.self()
   }
 
@@ -546,9 +535,6 @@ export class Wechaty extends EventEmitter implements Sayable {
    * @private
    */
   public async send(message: Message | MediaMessage): Promise<boolean> {
-    if (!this.puppet) {
-      throw new Error('no puppet')
-    }
     try {
       return await this.puppet.send(message)
     } catch (e) {
@@ -566,10 +552,6 @@ export class Wechaty extends EventEmitter implements Sayable {
    */
   public async say(content: string): Promise<boolean> {
     log.verbose('Wechaty', 'say(%s)', content)
-
-    if (!this.puppet) {
-      throw new Error('no puppet')
-    }
     return await this.puppet.say(content)
   }
 
@@ -586,10 +568,6 @@ export class Wechaty extends EventEmitter implements Sayable {
    * @private
    */
   public async ding(): Promise<string> {
-    if (!this.puppet) {
-      return Promise.reject(new Error('wechaty cant ding coz no puppet'))
-    }
-
     try {
       return await this.puppet.ding() // should return 'dong'
     } catch (e) {
@@ -619,9 +597,6 @@ export class Wechaty extends EventEmitter implements Sayable {
    */
   public async reset(reason?: string): Promise<void> {
     log.verbose('Wechaty', 'reset() because %s', reason)
-    if (!this.puppet) {
-      throw new Error('no puppet')
-    }
     await this.puppet.stop()
     await this.puppet.start()
     return

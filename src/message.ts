@@ -198,7 +198,7 @@ export class Message extends PuppetAccessory implements Sayable {
    * @returns {Promise<any>}
    *
    * @example
-   * const bot = Wechaty.instance()
+   * const bot = new Wechaty()
    * bot
    * .on('message', async m => {
    *   if (/^ding$/i.test(m.content())) {

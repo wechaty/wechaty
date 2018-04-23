@@ -135,6 +135,8 @@
     "babel-cli": "^6.26.0",
     "babel-eslint": "^8.0.0",
     "babel-preset-env": "^1.6.0",
+    "blessed": "^0.1.81",
+    "blessed-contrib": "^4.8.5",
     "blue-tape": "^1.0.0",
     "check-node-version": "^3.0.0",
     "cookie-parser": "^1.4.0",

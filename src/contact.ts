@@ -335,8 +335,7 @@ export class Contact extends PuppetAccessory implements Sayable {
     const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
     log.verbose('Contact', 'say(%s)', content)
 
-    const bot = Wechaty.instance()
-    const user = bot.self()
+    const user = this.puppet.self()
 
     if (!user) {
       throw new Error('no user')
@@ -356,7 +355,7 @@ export class Contact extends PuppetAccessory implements Sayable {
     m.to(this)
     log.silly('Contact', 'say() from: %s to: %s content: %s', user.name(), this.name(), content)
 
-    return await bot.send(m)
+    return await this.puppet.send(m)
   }
 
   /**

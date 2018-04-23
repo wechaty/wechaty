@@ -20,5 +20,4 @@
 
 import Wechaty from '../src/wechaty'
 
-const w = Wechaty.instance()
-console.log(w.version())
+console.log(Wechaty.version())
