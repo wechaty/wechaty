@@ -25,12 +25,12 @@ stages:
     if: branch =~ ^(master|v\d+\.\d+)$
         AND (type NOT IN (cron, pull_request))
 
+before_install:
+  - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then ./scripts/prepare-osx.sh; fi
+
 jobs:
   include:
     - stage: test
-      before_install:
-        - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then ./scripts/prepare-osx.sh; fi
-
       script:
         - echo $TRAVIS_OS_NAME
         - node --version
