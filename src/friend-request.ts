@@ -20,7 +20,7 @@
 
 import {
   // config,
-  log,
+  // log,
 }                       from './config'
 import Contact          from './contact'
 import PuppetAccessory  from './puppet-accessory'
@@ -39,15 +39,6 @@ export abstract class FriendRequest extends PuppetAccessory {
   public contact: Contact
   public hello: string
   public type: 'send' | 'receive' | 'confirm'
-
-  constructor() {
-    super()
-    log.verbose('FriendRequest', 'constructor()')
-
-    // if (!config.puppetInstance()) {
-    //   throw new Error('no Config.puppetInstance() instanciated')
-    // }
-  }
 
   public abstract send(contact: Contact, hello: string): Promise<boolean>
   public abstract accept(): Promise<boolean>

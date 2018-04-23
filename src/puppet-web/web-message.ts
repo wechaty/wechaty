@@ -46,10 +46,10 @@ import {
   MsgType,
 }                 from './puppet-web/schema'
 
-export type TypeName =  'attachment'
-                      | 'audio'
-                      | 'image'
-                      | 'video'
+// export type TypeName =  'attachment'
+//                       | 'audio'
+//                       | 'image'
+//                       | 'video'
 
 /**
  * All wechat messages will be encapsulated as a Message.

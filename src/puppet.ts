@@ -28,14 +28,20 @@ import {
   WechatyEvent,
   log,
 }                       from './config'
-import Contact          from './contact'
+import {
+  Contact,
+  ContactQueryFilter,
+}                       from './contact'
 import FriendRequest    from './friend-request'
 import {
   Message,
   MediaMessage,
 }                       from './message'
 import Profile          from './profile'
-import Room             from './room'
+import {
+  Room,
+  RoomQueryFilter,
+}                       from './room'
 
 export interface ScanData {
   avatar: string, // Image Data URL
@@ -53,7 +59,6 @@ export interface PuppetOptions {
  * Abstract Puppet Class
  */
 export abstract class Puppet extends EventEmitter implements Sayable {
-  public userId?:  string
   public user?:    Contact
 
   public state:   StateSwitch
@@ -114,15 +119,15 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   /**
    * Message
    */
-  public abstract forward(message: MediaMessage, contact: Contact | Room) : Promise<boolean>
-  public abstract say(content: string)                                    : Promise<boolean>
-  public abstract send(message: Message | MediaMessage)                   : Promise<boolean>
+  public abstract forward(message: MediaMessage, contact: Contact | Room) : Promise<void>
+  public abstract say(content: string)                                    : Promise<void>
+  public abstract send(message: Message | MediaMessage)                   : Promise<void>
 
   /**
    * Login / Logout
    */
-  public abstract logonoff()             : boolean
-  public abstract logout()               : Promise<void>
+  public abstract logonoff()  : boolean
+  public abstract logout()    : Promise<void>
 
   /**
    * Misc
@@ -132,34 +137,24 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   /**
    * FriendRequest
    */
-  public abstract friendRequestSend(contact: Contact, hello?: string)   : Promise<any>
-  public abstract friendRequestAccept(contact: Contact, ticket: string) : Promise<any>
+  public abstract friendRequestSend(contact: Contact, hello?: string)   : Promise<void>
+  public abstract friendRequestAccept(contact: Contact, ticket: string) : Promise<void>
 
   /**
    * Room
    */
-  public abstract roomAdd(room: Room, contact: Contact)              : Promise<number>
-  public abstract roomDel(room: Room, contact: Contact)              : Promise<number>
-  public abstract roomTopic(room: Room, topic: string)               : Promise<string>
+  public abstract roomAdd(room: Room, contact: Contact)              : Promise<void>
   public abstract roomCreate(contactList: Contact[], topic?: string) : Promise<Room>
-  public abstract roomFind(filterFunc: string)                       : Promise<Room[]>
+  public abstract roomDel(room: Room, contact: Contact)              : Promise<void>
+  public abstract roomFindAll(filterFunc: RoomQueryFilter)           : Promise<Room[]>
+  public abstract roomTopic(room: Room, topic: string)               : Promise<string | void>
 
   /**
    * Contact
    */
-  public abstract contactFind(filterFunc: string)                    : Promise<Contact[]>
-  public abstract contactAlias(contact: Contact, alias: string|null) : Promise<boolean>
+  public abstract contactAlias(contact: Contact, alias: string|null) : Promise<void>
+  public abstract contactFindAll(filter: ContactQueryFilter)         : Promise<Contact[]>
 }
-
-/**
- * <error>
- *  <ret>1203</ret>
- *  <message>当前登录环境异常。为了你的帐号安全，暂时不能登录web微信。你可以通过手机客户端或者windows微信登录。</message>
- * </error>
- */
-// export enum WechatErrorCode {
-//   WebBlock = 1203,
-// }
 
 // export class WechatError extends Error {
 //   public code: WechatErrorCode

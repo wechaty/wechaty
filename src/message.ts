@@ -29,92 +29,10 @@ import Contact          from './contact'
 import Room             from './room'
 import PuppetAccessory  from './puppet-accessory'
 
-/**
- *
- * Enum for AppMsgType values.
- *
- * @enum {number}
- * @property {number} TEXT                    - AppMsgType.TEXT                     (1)     for TEXT
- * @property {number} IMG                     - AppMsgType.IMG                      (2)      for IMG
- * @property {number} AUDIO                   - AppMsgType.AUDIO                    (3)      for AUDIO
- * @property {number} VIDEO                   - AppMsgType.VIDEO                    (4)      for VIDEO
- * @property {number} URL                     - AppMsgType.URL                      (5)      for URL
- * @property {number} ATTACH                  - AppMsgType.ATTACH                   (6)      for ATTACH
- * @property {number} OPEN                    - AppMsgType.OPEN                     (7)      for OPEN
- * @property {number} EMOJI                   - AppMsgType.EMOJI                    (8)      for EMOJI
- * @property {number} VOICE_REMIND            - AppMsgType.VOICE_REMIND             (9)      for VOICE_REMIND
- * @property {number} SCAN_GOOD               - AppMsgType.SCAN_GOOD                (10)     for SCAN_GOOD
- * @property {number} GOOD                    - AppMsgType.GOOD                     (13)     for GOOD
- * @property {number} EMOTION                 - AppMsgType.EMOTION                  (15)     for EMOTION
- * @property {number} CARD_TICKET             - AppMsgType.CARD_TICKET              (16)     for CARD_TICKET
- * @property {number} REALTIME_SHARE_LOCATION - AppMsgType.REALTIME_SHARE_LOCATION  (17)     for REALTIME_SHARE_LOCATION
- * @property {number} TRANSFERS               - AppMsgType.TRANSFERS                (2e3)    for TRANSFERS
- * @property {number} RED_ENVELOPES           - AppMsgType.RED_ENVELOPES            (2001)   for RED_ENVELOPES
- * @property {number} READER_TYPE             - AppMsgType.READER_TYPE              (100001) for READER_TYPE
- */
-export enum AppMsgType {
-  TEXT                     = 1,
-  IMG                      = 2,
-  AUDIO                    = 3,
-  VIDEO                    = 4,
-  URL                      = 5,
-  ATTACH                   = 6,
-  OPEN                     = 7,
-  EMOJI                    = 8,
-  VOICE_REMIND             = 9,
-  SCAN_GOOD                = 10,
-  GOOD                     = 13,
-  EMOTION                  = 15,
-  CARD_TICKET              = 16,
-  REALTIME_SHARE_LOCATION  = 17,
-  TRANSFERS                = 2e3,
-  RED_ENVELOPES            = 2001,
-  READER_TYPE              = 100001,
-}
-
-/**
- *
- * Enum for MsgType values.
- * @enum {number}
- * @property {number} TEXT                - MsgType.TEXT                (1)     for TEXT
- * @property {number} IMAGE               - MsgType.IMAGE               (3)     for IMAGE
- * @property {number} VOICE               - MsgType.VOICE               (34)    for VOICE
- * @property {number} VERIFYMSG           - MsgType.VERIFYMSG           (37)    for VERIFYMSG
- * @property {number} POSSIBLEFRIEND_MSG  - MsgType.POSSIBLEFRIEND_MSG  (40)    for POSSIBLEFRIEND_MSG
- * @property {number} SHARECARD           - MsgType.SHARECARD           (42)    for SHARECARD
- * @property {number} VIDEO               - MsgType.VIDEO               (43)    for VIDEO
- * @property {number} EMOTICON            - MsgType.EMOTICON            (47)    for EMOTICON
- * @property {number} LOCATION            - MsgType.LOCATION            (48)    for LOCATION
- * @property {number} APP                 - MsgType.APP                 (49)    for APP
- * @property {number} VOIPMSG             - MsgType.VOIPMSG             (50)    for VOIPMSG
- * @property {number} STATUSNOTIFY        - MsgType.STATUSNOTIFY        (51)    for STATUSNOTIFY
- * @property {number} VOIPNOTIFY          - MsgType.VOIPNOTIFY          (52)    for VOIPNOTIFY
- * @property {number} VOIPINVITE          - MsgType.VOIPINVITE          (53)    for VOIPINVITE
- * @property {number} MICROVIDEO          - MsgType.MICROVIDEO          (62)    for MICROVIDEO
- * @property {number} SYSNOTICE           - MsgType.SYSNOTICE           (9999)  for SYSNOTICE
- * @property {number} SYS                 - MsgType.SYS                 (10000) for SYS
- * @property {number} RECALLED            - MsgType.RECALLED            (10002) for RECALLED
- */
-export enum MsgType {
-  TEXT                = 1,
-  IMAGE               = 3,
-  VOICE               = 34,
-  VERIFYMSG           = 37,
-  POSSIBLEFRIEND_MSG  = 40,
-  SHARECARD           = 42,
-  VIDEO               = 43,
-  EMOTICON            = 47,
-  LOCATION            = 48,
-  APP                 = 49,
-  VOIPMSG             = 50,
-  STATUSNOTIFY        = 51,
-  VOIPNOTIFY          = 52,
-  VOIPINVITE          = 53,
-  MICROVIDEO          = 62,
-  SYSNOTICE           = 9999,
-  SYS                 = 10000,
-  RECALLED            = 10002,
-}
+import {
+  MsgType,
+  AppMsgType,
+}                       from './puppet-web/schema'
 
 // export type TypeName =  'attachment'
 //                       | 'audio'
