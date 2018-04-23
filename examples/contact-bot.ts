@@ -29,7 +29,7 @@ const QrcodeTerminal = require('qrcode-terminal')
  */
 import {
   config,
-  Contact,
+  // Contact,
   Wechaty,
   log,
 }           from '../'
@@ -77,10 +77,10 @@ bot
   console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
 })
 
-bot.init()
+bot.start()
 .catch(e => {
   log.error('Bot', 'init() fail: %s', e)
-  bot.quit()
+  bot.stop()
   process.exit(-1)
 })
 
@@ -88,7 +88,7 @@ bot.init()
  * Main Contact Bot
  */
 async function onLogin() {
-  const contactList = await Contact.findAll()
+  const contactList = await bot.Contact.findAll()
 
   log.info('Bot', '#######################')
   log.info('Bot', 'Contact number: %d\n', contactList.length)
@@ -157,5 +157,5 @@ async function onLogin() {
   // setTimeout(main, SLEEP * 1000)
 
   await bot.logout()
-  await bot.quit()
+  await bot.stop()
 }

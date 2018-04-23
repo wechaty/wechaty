@@ -227,7 +227,7 @@ export class IoClient {
 
     try {
       if (this.options.wechaty) {
-        await this.options.wechaty.quit()
+        await this.options.wechaty.stop()
         // this.wechaty = null
       } else { log.warn('IoClient', 'quit() no this.wechaty') }
 

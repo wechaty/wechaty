@@ -24,10 +24,10 @@
  */
 import {
   Message,
-  Room,
+  Wechaty,
 } from '../../'
 
-export async function onMessage(message: Message): Promise<void> {
+export async function onMessage(this: Wechaty, message: Message): Promise<void> {
   try {
     const room      = message.room()
     const sender    = message.from()
@@ -52,7 +52,7 @@ export async function onMessage(message: Message): Promise<void> {
     if (content === 'ding') {
       await message.say('thanks for ding me')
 
-      const myRoom = await Room.find({ topic: 'ding' })
+      const myRoom = await this.Room.find({ topic: 'ding' })
       if (!myRoom) return
 
       if (myRoom.has(sender)) {

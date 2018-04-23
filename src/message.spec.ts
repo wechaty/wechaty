@@ -23,12 +23,14 @@ import * as test  from 'blue-tape'
 // const sinonTest   = require('sinon-test')(sinon)
 
 import {
-  config,
+  // config,
   log,
 }                 from './config'
+import Contact    from './contact'
 import Message    from './message'
 import Profile    from './profile'
 import PuppetWeb  from './puppet-web/'
+import Room       from './room'
 
 const MOCK_USER_ID = 'TEST-USER-ID'
 
@@ -36,7 +38,8 @@ const puppet = new PuppetWeb({
   profile: new Profile(),
 })
 puppet.userId = MOCK_USER_ID
-config.puppetInstance(puppet)
+// config.puppetInstance(puppet)
+Message.puppet = puppet
 
 test('constructor()', async t => {
   /* tslint:disable:max-line-length */
@@ -100,8 +103,12 @@ test('ready()', async t => {
     })
   }
 
-  config.puppetInstance()
-        .getContact = mockGetContact
+  // config.puppetInstance()
+  //       .getContact = mockGetContact
+  Room.puppet = Contact.puppet = Message.puppet = {
+    ...puppet,
+    getContact: mockGetContact,
+  } as any
 
   const m = new Message(rawData)
 
@@ -138,7 +145,8 @@ test('findAll()', async t => {
 })
 
 test('self()', async t => {
-  config.puppetInstance(puppet)
+  // config.puppetInstance(puppet)
+  Room.puppet = Contact.puppet = Message.puppet = puppet
 
   const m = new Message()
   m.from(MOCK_USER_ID)
@@ -186,14 +194,17 @@ test('mentioned()', async t => {
     })
   }
 
-  let puppet1
-  try {
-    puppet1 = config.puppetInstance()
-    puppet1.getContact = mockContactGetter
-  } catch (err) {
-    puppet1 = { getContact: mockContactGetter }
-    config.puppetInstance(puppet1)
-  }
+  // let puppet1
+  // try {
+  //   puppet1 = config.puppetInstance()
+  //   puppet1.getContact = mockContactGetter
+  // } catch (err) {
+  //   puppet1 = { getContact: mockContactGetter }
+  //   config.puppetInstance(puppet1)
+  // }
+  Contact.puppet = Room.puppet = Message.puppet = {
+    getContact: mockContactGetter,
+  } as any
   const msg11 = new Message(rawObj11)
   const room11 = msg11.room()
   if (room11) {

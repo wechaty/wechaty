@@ -25,7 +25,7 @@ import {
   Bridge,
   Event,
   PuppetWeb,
-} from './index'
+} from './'
 
 test('PuppetWeb Module Exports', async t => {
   t.ok(PuppetWeb  , 'should export PuppetWeb')

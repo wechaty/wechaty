@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.15.4",
+  "version": "0.15.9",
   "description": "Wechat for Bot(Personal Account)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -32,10 +32,10 @@
     "test:linux": "npm run pretest && parallel ts-node -- ./src/**/*.spec.ts ./tests/**/*.spec.ts && npm run posttest",
     "test:pack": "npm run dist && export TMPDIR=/tmp/wechaty.$$ && npm pack && mkdir $TMPDIR && mv wechaty-*.*.*.tgz $TMPDIR && cp tests/fixtures/smoke-testing.js $TMPDIR && cd $TMPDIR && npm init -y && npm i wechaty-*.*.*.tgz && (for i in {1..3}; do node smoke-testing.js && break || sleep 1; done)",
     "test:shell": "shellcheck bin/*.sh",
-    "test:unit": "blue-tape -r ts-node/register -r source-map-support/register \"src/**/*.spec.ts\" \"src/*.spec.ts\" \"tests/*.spec.ts\" \"tests/**/*.spec.ts\"",
+    "test:unit": "blue-tape -r ts-node/register \"src/**/*.spec.ts\" \"src/*.spec.ts\" \"tests/*.spec.ts\" \"tests/**/*.spec.ts\"",
     "test:unit:retry": "ts-node scripts/retry-unit-tests",
     "test:win32": "npm run test:unit:retry",
-    "test:debug": "blue-tape -r ts-node/register -r source-map-support/register src/puppet-web/bridge.spec.ts",
+    "test:debug": "blue-tape -r ts-node/register src/puppet-web/bridge.spec.ts",
     "io-client": "ts-node bin/io-client",
     "demo": "ts-node examples/ding-dong-bot.ts",
     "start": "npm run demo"
@@ -101,6 +101,7 @@
     "@types/ws": "^4.0.1",
     "bl": "^1.2.0",
     "brolog": "^1.2.0",
+    "cuid": "^2.1.1",
     "hot-import": "^0.1.0",
     "mime": "^2.2.0",
     "puppeteer": "^1.2.0",
@@ -110,13 +111,15 @@
     "retry-promise": "^1.0.0",
     "rx-queue": "^0.3.1",
     "rxjs": "^5.5.0",
-    "state-switch": "^0.4.1",
-    "watchdog": "^0.3.0",
+    "state-switch": "^0.4.5",
+    "watchdog": "^0.5.1",
+    "wechat4u": "^0.7.6",
     "ws": "^5.1.0",
     "xml2js": "^0.4.0"
   },
   "devDependencies": {
     "@types/blue-tape": "^0.1.0",
+    "@types/cuid": "^1.3.0",
     "@types/express": "^4.0.0",
     "@types/fluent-ffmpeg": "^2.1.0",
     "@types/glob": "^5.0.0p",
@@ -125,12 +128,15 @@
     "@types/raven": "^2.1.0",
     "@types/read-pkg-up": "^3.0.0",
     "@types/request": "^2.0.0",
+    "@types/semver": "^5.5.0",
     "@types/sinon": "^4.3.0",
     "@types/xml2js": "^0.4.0",
     "apiai": "^4.0.0",
     "babel-cli": "^6.26.0",
     "babel-eslint": "^8.0.0",
     "babel-preset-env": "^1.6.0",
+    "blessed": "^0.1.81",
+    "blessed-contrib": "^4.8.5",
     "blue-tape": "^1.0.0",
     "check-node-version": "^3.0.0",
     "cookie-parser": "^1.4.0",
@@ -146,6 +152,7 @@
     "markdownlint-cli": "^0.8.1",
     "nyc": "^11.2.0",
     "qrcode-terminal": "^0.12.0",
+    "semver": "^5.5.0",
     "shx": "^0.2.0",
     "sinon": "^5.0.0",
     "sinon-test": "^2.1.2",
@@ -170,6 +177,7 @@
     "src"
   ],
   "publishConfig": {
+    "access": "public",
     "tagBak": "next",
     "tag": "latest"
   }

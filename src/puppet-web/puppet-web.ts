@@ -22,8 +22,9 @@ import {
 }                   from 'watchdog'
 import {
   ThrottleQueue,
-}                     from 'rx-queue'
+}                   from 'rx-queue'
 
+import cloneClass   from '../clone-class'
 import {
   config,
   log,
@@ -38,16 +39,15 @@ import Profile      from '../profile'
 import {
   Puppet,
   PuppetOptions,
-  ScanInfo,
-}                    from '../puppet'
-import Room          from '../room'
-import Misc          from '../misc'
-
+  ScanData,
+}                   from '../puppet'
+import Room         from '../room'
+import Misc         from '../misc'
 import {
   Bridge,
   Cookie,
-}                    from './bridge'
-import Event         from './event'
+}                   from './bridge'
+import Event        from './event'
 
 import {
   MediaData,
@@ -63,7 +63,7 @@ export type ScanFoodType   = 'scan' | 'login' | 'logout'
 
 export class PuppetWeb extends Puppet {
   public bridge   : Bridge
-  public scanInfo : ScanInfo | null
+  public scanInfo : ScanData | null
 
   public puppetWatchdog : Watchdog<PuppetFoodType>
   public scanWatchdog   : Watchdog<ScanFoodType>
@@ -87,8 +87,8 @@ export class PuppetWeb extends Puppet {
     return `PuppetWeb<${this.options.profile.name}>`
   }
 
-  public async init(): Promise<void> {
-    log.verbose('PuppetWeb', `init() with ${this.options.profile}`)
+  public async start(): Promise<void> {
+    log.verbose('PuppetWeb', `start() with ${this.options.profile}`)
 
     this.state.on('pending')
 
@@ -114,19 +114,19 @@ export class PuppetWeb extends Puppet {
       const throttleQueue = new ThrottleQueue(5 * 60 * 1000)
       this.on('heartbeat', data => throttleQueue.next(data))
       throttleQueue.subscribe(async data => {
-        log.verbose('Wechaty', 'init() throttleQueue.subscribe() new item: %s', data)
+        log.verbose('Wechaty', 'start() throttleQueue.subscribe() new item: %s', data)
         await this.saveCookie()
       })
 
-      log.verbose('PuppetWeb', 'init() done')
+      log.verbose('PuppetWeb', 'start() done')
       return
 
     } catch (e) {
-      log.error('PuppetWeb', 'init() exception: %s', e)
+      log.error('PuppetWeb', 'start() exception: %s', e)
 
       this.state.off(true)
       this.emit('error', e)
-      await this.quit()
+      await this.stop()
 
       Raven.captureException(e)
       throw e
@@ -153,8 +153,8 @@ export class PuppetWeb extends Puppet {
       log.warn('PuppetWeb', 'initWatchdogForPuppet() dog.on(reset) last food:%s, timeout:%s',
                             food.data, timeout)
       try {
-        await this.quit()
-        await this.init()
+        await this.stop()
+        await this.start()
       } catch (e) {
         puppet.emit('error', e)
       }
@@ -217,18 +217,13 @@ export class PuppetWeb extends Puppet {
     })
   }
 
-  public async quit(): Promise<void> {
+  public async stop(): Promise<void> {
     log.verbose('PuppetWeb', 'quit()')
 
-    const off = this.state.off()
-    if (off === 'pending') {
-        const e = new Error('quit() is called on a PENDING OFF PuppetWeb')
-        log.warn('PuppetWeb', e.message)
-        this.emit('error', e)
-        return
-    } else if (off === true) {
-        log.warn('PuppetWeb', 'quit() is called on a OFF puppet. return directly.')
-        return
+    if (this.state.off()) {
+      log.warn('PuppetWeb', 'quit() is called on a OFF puppet. await ready(off) and return.')
+      await this.state.ready('off')
+      return
     }
 
     log.verbose('PuppetWeb', 'quit() make watchdog sleep before do quit')
@@ -288,18 +283,6 @@ export class PuppetWeb extends Puppet {
     }
 
     return this.bridge
-  }
-
-  public async reset(reason?: string): Promise<void> {
-    log.verbose('PuppetWeb', 'reset(%s)', reason)
-    try {
-      await this.bridge.quit()
-      await this.bridge.init()
-      log.silly('PuppetWeb', 'reset() done')
-    } catch (err) {
-      log.error('PuppetWeb', 'reset(%s) bridge.{quit,init}() exception: %s', reason, err)
-      this.emit('error', err)
-    }
   }
 
   public logined(): boolean {
@@ -759,7 +742,7 @@ export class PuppetWeb extends Puppet {
     log.verbose('PuppetWeb', 'logout()')
 
     const data = this.user || this.userId || ''
-    this.userId = this.user = null
+    this.userId = this.user = undefined
 
     try {
       await this.bridge.logout()
@@ -811,7 +794,11 @@ export class PuppetWeb extends Puppet {
   public async contactFind(filterFunc: string): Promise<Contact[]> {
     try {
       const idList = await this.bridge.contactFind(filterFunc)
-      return idList.map(id => Contact.load(id))
+      return idList.map(id => {
+        const c = Contact.load(id)
+        c.puppet = this
+        return c
+      })
     } catch (e) {
       log.warn('PuppetWeb', 'contactFind(%s) rejected: %s', filterFunc, e.message)
       Raven.captureException(e)
@@ -822,7 +809,11 @@ export class PuppetWeb extends Puppet {
   public async roomFind(filterFunc: string): Promise<Room[]> {
     try {
       const idList = await this.bridge.roomFind(filterFunc)
-      return idList.map(id => Room.load(id))
+      return idList.map(id => {
+        const r = Room.load(id)
+        r.puppet = this
+        return r
+      })
     } catch (e) {
       log.warn('PuppetWeb', 'roomFind(%s) rejected: %s', filterFunc, e.message)
       Raven.captureException(e)
@@ -881,7 +872,9 @@ export class PuppetWeb extends Puppet {
       if (!roomId) {
         throw new Error('PuppetWeb.roomCreate() roomId "' + roomId + '" not found')
       }
-      return  Room.load(roomId)
+      const r = Room.load(roomId)
+      r.puppet = this
+      return r
 
     } catch (e) {
       log.warn('PuppetWeb', 'roomCreate(%s, %s) rejected: %s', contactIdList.join(','), topic, e.message)
@@ -929,9 +922,14 @@ export class PuppetWeb extends Puppet {
     log.verbose('PuppetWeb', 'readyStable()')
     let counter = -1
 
+    // tslint:disable-next-line:variable-name
+    const MyContact = cloneClass(Contact)
+    MyContact.puppet = this
+
     async function stable(done: Function): Promise<void> {
       log.silly('PuppetWeb', 'readyStable() stable() counter=%d', counter)
-      const contactList = await Contact.findAll()
+
+      const contactList = await MyContact.findAll()
       if (counter === contactList.length) {
         log.verbose('PuppetWeb', 'readyStable() stable() READY counter=%d', counter)
         return done()
@@ -958,6 +956,12 @@ export class PuppetWeb extends Puppet {
 
   }
 
+  /**
+   * https://www.chatie.io:8080/api
+   * location.hostname = www.chatie.io
+   * location.host = www.chatie.io:8080
+   * See: https://stackoverflow.com/a/11379802/1123955
+   */
   public async hostname(): Promise<string> {
     try {
       const name = await this.bridge.hostname()

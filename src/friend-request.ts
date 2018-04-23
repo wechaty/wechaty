@@ -19,10 +19,11 @@
  */
 
 import {
-  config,
+  // config,
   log,
-}               from './config'
-import Contact  from './contact'
+}                       from './config'
+import Contact          from './contact'
+import PuppetAccessory  from './puppet-accessory'
 
 /**
  * Send, receive friend request, and friend confirmation events.
@@ -33,18 +34,19 @@ import Contact  from './contact'
  *
  * [Examples/Friend-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/friend-bot.ts}
  */
-export abstract class FriendRequest {
+export abstract class FriendRequest extends PuppetAccessory {
 
   public contact: Contact
   public hello: string
   public type: 'send' | 'receive' | 'confirm'
 
   constructor() {
+    super()
     log.verbose('FriendRequest', 'constructor()')
 
-    if (!config.puppetInstance()) {
-      throw new Error('no Config.puppetInstance() instanciated')
-    }
+    // if (!config.puppetInstance()) {
+    //   throw new Error('no Config.puppetInstance() instanciated')
+    // }
   }
 
   public abstract send(contact: Contact, hello: string): Promise<boolean>

@@ -95,10 +95,10 @@ bot
   // .catch(e => log.error('Bot', 'on message rejected: %s' , e))
 })
 
-bot.init()
+bot.start()
 .catch(e => {
   log.error('Bot', 'init() fail:' + e)
-  bot.quit()
+  bot.stop()
   process.exit(-1)
 })
 

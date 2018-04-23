@@ -53,7 +53,7 @@ interface IoEvent {
 }
 
 export class Io {
-  public uuid: string
+  public cuid: string
 
   private protocol    : string
   private eventBuffer : IoEvent[] = []
@@ -72,14 +72,14 @@ export class Io {
     options.apihost   = options.apihost   || config.apihost
     options.protocol  = options.protocol  || config.default.DEFAULT_PROTOCOL
 
-    this.uuid = options.wechaty.uuid
+    this.cuid = options.wechaty.cuid
 
-    this.protocol = options.protocol + '|' + options.wechaty.uuid
-    log.verbose('Io', 'instantiated with apihost[%s], token[%s], protocol[%s], uuid[%s]',
+    this.protocol = options.protocol + '|' + options.wechaty.cuid
+    log.verbose('Io', 'instantiated with apihost[%s], token[%s], protocol[%s], cuid[%s]',
                       options.apihost,
                       options.token,
                       options.protocol,
-                      this.uuid,
+                      this.cuid,
               )
   }
 
@@ -115,7 +115,7 @@ export class Io {
     const wechaty = this.options.wechaty
 
     wechaty.on('error'    , error =>        this.send({ name: 'error',      payload: error }))
-    wechaty.on('heartbeat', data  =>        this.send({ name: 'heartbeat',  payload: { uuid: this.uuid, data } }))
+    wechaty.on('heartbeat', data  =>        this.send({ name: 'heartbeat',  payload: { cuid: this.cuid, data } }))
     wechaty.on('login',     user =>         this.send({ name: 'login',      payload: user }))
     wechaty.on('logout' ,   user =>         this.send({ name: 'logout',     payload: user }))
     wechaty.on('message',   message =>      this.ioMessage(message))
@@ -150,7 +150,7 @@ export class Io {
 
         //   case 'heartbeat':
         //     ioEvent.payload = {
-        //       uuid: this.uuid
+        //       cuid: this.cuid
         //       , data: data
         //     }
         //     break
@@ -218,7 +218,7 @@ export class Io {
     this.reconnectTimeout = null
 
     const name    = 'sys'
-    const payload = 'Wechaty version ' + this.options.wechaty.version() + ` with UUID: ${this.uuid}`
+    const payload = 'Wechaty version ' + this.options.wechaty.version() + ` with CUID: ${this.cuid}`
 
     const initEvent: IoEvent = {
       name,

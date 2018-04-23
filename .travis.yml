@@ -18,32 +18,29 @@ cache:
   directories:
     - node_modules
 
-before_install:
-  - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew update; fi
-  - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew cleanup; fi
-  - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew cask cleanup; fi
-  - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew install jq; fi
-  - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew install moreutils; fi
-  - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then brew install shellcheck; fi
-
-script:
-  - echo $TRAVIS_OS_NAME
-  - node --version
-  - npm --version
-  - npm test
-
-after_success:
-  - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then npm run coverage; fi
-
 stages:
   - test
   - pack
   - name: deploy
-    if: branch =~ ^(master|v\d+\.\d+)
+    if: branch =~ ^(master|v\d+\.\d+)$
         AND (type NOT IN (cron, pull_request))
+
+before_install:
+  - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then ./scripts/prepare-osx.sh; fi
 
 jobs:
   include:
+    - stage: test
+      script:
+        - echo $TRAVIS_OS_NAME
+        - node --version
+        - npm --version
+        - echo "Testing started ..."
+        - npm test || travis_terminate 1
+
+      after_success:
+        - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then npm run coverage; fi
+
     - stage: pack
       script:
         - npm run test:pack && echo 'Npm pack testing is passed'
@@ -52,6 +49,7 @@ jobs:
       script:
         - echo "Deploying to NPM ..."
         - npm version
+        - if [ "$TRAVIS_BRANCH" = "master" -a ./scripts/development-release.ts ]; then ./scripts/package-public-config-tag-next.ts; fi
         - npm run dist
 
       deploy:
@@ -59,6 +57,8 @@ jobs:
         email: zixia@zixia.net
         api_key: "$NPM_TOKEN"
         skip_cleanup: true
+        on:
+          all_branches: true
 
 notifications:
   webhooks:
