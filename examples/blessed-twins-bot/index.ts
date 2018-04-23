@@ -287,30 +287,21 @@ screen.render()
 //   console.log('zixia')
 // }, 500)
 
-
-
-
-
-
-
-
 /**
+ *
+ *
+ *
  * Wechaty multi instance support example:
  * boy & girl twins
+ *
+ *
+ *
  */
 const boy   = new Wechaty({ profile: 'boy' })
 const girl  = new Wechaty({ profile: 'girl' })
 
 startBot(boy, boyConsole)
 startBot(girl, girlConsole)
-
-
-
-
-
-
-
-
 
 function startBot(bot: Wechaty, logElement: any) {
   // logElement.log('Initing...')

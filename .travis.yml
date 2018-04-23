@@ -36,7 +36,7 @@ jobs:
         - node --version
         - npm --version
         - echo "Testing started ..."
-        - npm test
+        - npm test || travis_terminate 1
 
       after_success:
         - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then npm run coverage; fi
