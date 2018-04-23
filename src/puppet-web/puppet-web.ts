@@ -16,15 +16,15 @@
  *   limitations under the License.
  *
  */
+import cloneClass   from 'clone-class'
+import {
+  ThrottleQueue,
+}                   from 'rx-queue'
 import {
   Watchdog,
   WatchdogFood,
 }                   from 'watchdog'
-import {
-  ThrottleQueue,
-}                   from 'rx-queue'
 
-import cloneClass   from '../clone-class'
 import {
   config,
   log,

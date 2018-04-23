@@ -26,6 +26,7 @@ import * as test  from 'blue-tape'
 import {
   launch,
 }                 from 'puppeteer'
+import { spy }    from 'sinon'
 
 import Profile    from '../profile'
 
@@ -177,4 +178,72 @@ test('clickSwitchAccount()', async t => {
 
     t.equal(clicked, false, 'should no button found')
   })
+})
+
+test('retryPromise()', async t => {
+  const EXPECTED_RESOLVE = 'Okey'
+  const EXPECTED_REJECT  = 'NotTheTime'
+
+  function delayedFactory(timeout) {
+    const startTime = Date.now()
+    return function() {
+      const nowTime = Date.now()
+      if (nowTime - startTime > timeout) {
+        return Promise.resolve(EXPECTED_RESOLVE)
+      }
+      return Promise.reject(EXPECTED_REJECT)
+    }
+  }
+
+  const thenSpy = spy()
+
+  const retryPromise = require('retry-promise').default
+
+  const delay500 = delayedFactory(500)
+  await retryPromise({ max: 1, backoff: 1 }, function() {
+    return delay500()
+  }).catch(e => {
+    thenSpy(e)
+  })
+  t.true(thenSpy.withArgs(EXPECTED_REJECT).calledOnce, 'should got EXPECTED_REJECT when wait not enough')
+
+  thenSpy.resetHistory()
+  const anotherDelay50 = delayedFactory(50)
+  await retryPromise({ max: 6, backoff: 10 }, function() {
+    return anotherDelay50()
+  })
+  .then(r => {
+    thenSpy(r)
+  })
+  t.true(thenSpy.withArgs(EXPECTED_RESOLVE).calledOnce, 'should got EXPECTED_RESOLVE when wait enough')
+})
+
+declare const WechatyBro
+test('WechatyBro.ding()', async t => {
+  const profile = new Profile(Math.random().toString(36).substr(2, 5))
+  const bridge = new Bridge({
+    profile,
+  })
+  t.ok(bridge, 'should instanciated a bridge')
+
+  try {
+    await bridge.init()
+    t.pass('should init Bridge')
+
+    const retDing = await bridge.evaluate(() => {
+      return WechatyBro.ding()
+    }) as any as string
+
+    t.is(retDing, 'dong', 'should got dong after execute WechatyBro.ding()')
+
+    const retCode = await bridge.proxyWechaty('loginState')
+    t.is(typeof retCode, 'boolean', 'should got a boolean after call proxyWechaty(loginState)')
+
+    await bridge.quit()
+    t.pass('b.quit()')
+  } catch (err) {
+    t.fail('exception: ' + err.message)
+  } finally {
+    profile.destroy()
+  }
 })

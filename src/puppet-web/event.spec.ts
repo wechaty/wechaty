@@ -22,12 +22,12 @@ import * as test  from 'blue-tape'
 // tslint:disable:no-shadowed-variable
 // import * as sinon from 'sinon'
 
-import Profile  from '../../src/profile'
+import Profile  from '../profile'
 
 import {
   // Event,
   PuppetWeb,
-} from '../../src/puppet-web/'
+} from './puppet-web'
 
 test('Puppet Web Event smoke testing', async t => {
   const pw = new PuppetWeb({

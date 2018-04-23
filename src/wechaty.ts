@@ -20,13 +20,13 @@
 import * as cuid        from 'cuid'
 import * as os          from 'os'
 
-import StateSwitch      from 'state-switch'
+import cloneClass       from 'clone-class'
 import {
   callerResolve,
   hotImport,
 }                       from 'hot-import'
+import StateSwitch      from 'state-switch'
 
-import cloneClass       from './clone-class'
 import {
   config,
   log,
