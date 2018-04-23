@@ -25,54 +25,25 @@ import {
 }                       from './config'
 import Contact          from './contact'
 import {
-  Message,
   MediaMessage,
 }                       from './message'
-import Misc             from './misc'
 import PuppetAccessory  from './puppet-accessory'
-
-interface RoomObj {
-  id:               string,
-  encryId:          string,
-  topic:            string,
-  ownerUin:         number,
-  memberList:       Contact[],
-  nameMap:          Map<string, string>,
-  roomAliasMap:     Map<string, string>,
-  contactAliasMap:  Map<string, string>,
-}
-
-type NameType = 'name' | 'alias' | 'roomAlias' | 'contactAlias'
-
-export interface RoomRawMember {
-  UserName:     string,
-  NickName:     string,
-  DisplayName:  string,
-}
-
-export interface RoomRawObj {
-  UserName:         string,
-  EncryChatRoomId:  string,
-  NickName:         string,
-  OwnerUin:         number,
-  ChatRoomOwner:    string,
-  MemberList?:      RoomRawMember[],
-}
 
 export type RoomEventName = 'join'
                           | 'leave'
                           | 'topic'
-                          | 'EVENT_PARAM_ERROR'
+                          | never
 
-export interface RoomQueryFilter {
-  topic: string | RegExp,
-}
+export type MemberQueryNameType = 'name' | 'roomAlias' | 'contactAlias'
 
 export interface MemberQueryFilter {
   name?:         string,
-  alias?:        string,
   roomAlias?:    string,
   contactAlias?: string,
+}
+
+export interface RoomQueryFilter {
+  topic: string | RegExp,
 }
 
 /**
@@ -81,12 +52,8 @@ export interface MemberQueryFilter {
  * `Room` is `Sayable`,
  * [Examples/Room-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/room-bot.ts}
  */
-export class Room extends PuppetAccessory implements Sayable {
+export abstract class Room extends PuppetAccessory implements Sayable {
   private static pool = new Map<string, Room>()
-
-  private dirtyObj: RoomObj | null // when refresh, use this to save dirty data for query
-  private obj:      RoomObj | null
-  private rawObj:   RoomRawObj
 
   /**
    * @private
@@ -104,100 +71,13 @@ export class Room extends PuppetAccessory implements Sayable {
   /**
    * @private
    */
-  public toStringEx()  { return `Room(${this.obj && this.obj.topic}[${this.id}])` }
+  public abstract async ready(): Promise<Room>
 
-  /**
-   * @private
-   */
-  public isReady(): boolean {
-    return !!(this.obj && this.obj.memberList && this.obj.memberList.length)
-  }
-
-  /**
-   * @private
-   */
-  private async readyAllMembers(memberList: RoomRawMember[]): Promise<void> {
-    for (const member of memberList) {
-      const contact = Contact.load(member.UserName)
-      contact.puppet = this.puppet
-      await contact.ready()
-    }
-    return
-  }
-
-  /**
-   * @private
-   */
-  public async ready(contactGetter?: (id: string) => Promise<any>): Promise<Room> {
-    log.silly('Room', 'ready(%s)', contactGetter ? contactGetter.constructor.name : '')
-    if (!this.id) {
-      const e = new Error('ready() on a un-inited Room')
-      log.warn('Room', e.message)
-      throw e
-    } else if (this.isReady()) {
-      return this
-    } else if (this.obj && this.obj.id) {
-      log.verbose('Room', 'ready() is not full loaded in room<topic:%s>. reloading', this.obj.topic)
-    }
-
-    if (!contactGetter) {
-      contactGetter = this.puppet // config.puppetInstance()
-                            .getContact.bind(/* config.puppetInstance() */ this.puppet)
-    }
-    if (!contactGetter) {
-      throw new Error('no contactGetter')
-    }
-
-    try {
-      let ttl = 7
-      while (ttl--) {
-        const roomRawObj = await contactGetter(this.id) as RoomRawObj
-
-        const currNum = roomRawObj.MemberList && roomRawObj.MemberList.length || 0
-        const prevNum = this.rawObj && this.rawObj.MemberList && this.rawObj.MemberList.length || 0
-
-        log.silly('Room', `ready() contactGetter(%s) MemberList.length:%d at ttl:%d`,
-          this.id,
-          currNum,
-          ttl,
-        )
-
-        if (currNum) {
-          if (prevNum === currNum) {
-            log.verbose('Room', `ready() contactGetter(${this.id}) done at ttl:%d`, ttl)
-            break
-          }
-          this.rawObj = roomRawObj
-        }
-
-        log.silly('Room', `ready() contactGetter(${this.id}) retry at ttl:%d`, ttl)
-        await new Promise(r => setTimeout(r, 1000)) // wait for 1 second
-      }
-
-      await this.readyAllMembers(this.rawObj && this.rawObj.MemberList || [])
-      this.obj = this.parse(this.rawObj)
-      if (!this.obj) {
-        throw new Error('no this.obj set after contactGetter')
-      }
-      await Promise.all(this.obj.memberList.map(c => c.ready(contactGetter)))
-
-      return this
-
-    } catch (e) {
-      log.error('Room', 'contactGetter(%s) exception: %s', this.id, e.message)
-      Raven.captureException(e)
-      throw e
-    }
-  }
-
-  public say(mediaMessage: MediaMessage)
-
-  public say(content: string)
-
-  public say(content: string, replyTo: Contact)
-
-  public say(content: string, replyTo: Contact[])
-
+  public abstract say(mediaMessage: MediaMessage)         : Promise<void>
+  public abstract say(content: string)                    : Promise<void>
+  public abstract say(content: string, replyTo: Contact)  : Promise<void>
+  public abstract say(content: string, replyTo: Contact[]): Promise<void>
+  public abstract say(content: never, ...args: never[])   : Promise<never>
   /**
    * Send message inside Room, if set [replyTo], wechaty will mention the contact as well.
    *
@@ -219,46 +99,12 @@ export class Room extends PuppetAccessory implements Sayable {
    * const room = await Room.find({name: 'wechaty'})        // change 'wechaty' to any of your room in wechat
    * await room.say('Hello world!', contact)
    */
-  public say(textOrMedia: string | MediaMessage, replyTo?: Contact|Contact[]): Promise<boolean> {
-    const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
-    log.verbose('Room', 'say(%s, %s)',
-                        content,
-                        Array.isArray(replyTo)
-                        ? replyTo.map(c => c.name()).join(', ')
-                        : replyTo ? replyTo.name() : '',
-    )
-
-    let m
-    if (typeof textOrMedia === 'string') {
-      m = new Message()
-      m.puppet = this.puppet
-
-      const replyToList: Contact[] = [].concat(replyTo as any || [])
-
-      if (replyToList.length > 0) {
-        const AT_SEPRATOR = String.fromCharCode(8197)
-        const mentionList = replyToList.map(c => '@' + c.name()).join(AT_SEPRATOR)
-        m.content(mentionList + ' ' + content)
-      } else {
-        m.content(content)
-      }
-      // m.to(replyToList[0])
-    } else
-      m = textOrMedia
-
-    m.room(this)
-
-    return this.puppet // config.puppetInstance()
-                .send(m)
-  }
+  public abstract say(textOrMedia: string | MediaMessage, replyTo?: Contact|Contact[]): Promise<void>
 
   public on(event: 'leave', listener: (this: Room, leaver: Contact) => void): this
-
   public on(event: 'join' , listener: (this: Room, inviteeList: Contact[] , inviter: Contact)  => void): this
-
   public on(event: 'topic', listener: (this: Room, topic: string, oldTopic: string, changer: Contact) => void): this
-
-  public on(event: 'EVENT_PARAM_ERROR', listener: () => void): this
+  public on(event: never, listener: never): never
 
    /**
     * @desc       Room Class Event Type
@@ -318,99 +164,6 @@ export class Room extends PuppetAccessory implements Sayable {
   }
 
   /**
-   * @private
-   */
-  public get(prop): string { return (this.obj && this.obj[prop]) || (this.dirtyObj && this.dirtyObj[prop]) }
-
-  /**
-   * @private
-   */
-  private parse(rawObj: RoomRawObj): RoomObj | null {
-    if (!rawObj) {
-      log.warn('Room', 'parse() on a empty rawObj?')
-      return null
-    }
-
-    const memberList = (rawObj.MemberList || [])
-                        .map(m => {
-                          const c = Contact.load(m.UserName)
-                          c.puppet = this.puppet
-                          return c
-                        })
-
-    const nameMap    = this.parseMap('name', rawObj.MemberList)
-    const roomAliasMap   = this.parseMap('roomAlias', rawObj.MemberList)
-    const contactAliasMap   = this.parseMap('contactAlias', rawObj.MemberList)
-
-    return {
-      id:         rawObj.UserName,
-      encryId:    rawObj.EncryChatRoomId, // ???
-      topic:      rawObj.NickName,
-      ownerUin:   rawObj.OwnerUin,
-      memberList,
-      nameMap,
-      roomAliasMap,
-      contactAliasMap,
-    }
-  }
-
-  /**
-   * @private
-   */
-  private parseMap(parseContent: NameType, memberList?: RoomRawMember[]): Map<string, string> {
-    const mapList: Map<string, string> = new Map<string, string>()
-    if (memberList && memberList.map) {
-      memberList.forEach(member => {
-        let tmpName: string
-        const contact = Contact.load(member.UserName)
-        contact.puppet = this.puppet
-
-        switch (parseContent) {
-          case 'name':
-            tmpName = contact.name()
-            break
-          case 'roomAlias':
-            tmpName = member.DisplayName
-            break
-          case 'contactAlias':
-            tmpName = contact.alias() || ''
-            break
-          default:
-            throw new Error('parseMap failed, member not found')
-        }
-        /**
-         * ISSUE #64 emoji need to be striped
-         * ISSUE #104 never use remark name because sys group message will never use that
-         * @rui: Wrong for 'never use remark name because sys group message will never use that', see more in the latest comment in #104
-         * @rui: webwx's NickName here return contactAlias, if not set contactAlias, return name
-         * @rui: 2017-7-2 webwx's NickName just ruturn name, no contactAlias
-         */
-        mapList[member.UserName] = Misc.stripEmoji(tmpName)
-      })
-    }
-    return mapList
-  }
-
-  /**
-   * @private
-   */
-  public dumpRaw() {
-    console.error('======= dump raw Room =======')
-    Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj[k]}`))
-  }
-
-  /**
-   * @private
-   */
-  public dump() {
-    console.error('======= dump Room =======')
-    if (!this.obj) {
-      throw new Error('no this.obj')
-    }
-    Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj && this.obj[k]}`))
-  }
-
-  /**
    * Add contact in a room
    *
    * @param {Contact} contact
@@ -427,17 +180,7 @@ export class Room extends PuppetAccessory implements Sayable {
    *   }
    * }
    */
-  public async add(contact: Contact): Promise<number> {
-    log.verbose('Room', 'add(%s)', contact)
-
-    if (!contact) {
-      throw new Error('contact not found')
-    }
-
-    const n = this.puppet // config.puppetInstance()
-                  .roomAdd(this, contact)
-    return n
-  }
+  public abstract async add(contact: Contact): Promise<void>
 
   /**
    * Delete a contact from the room
@@ -456,53 +199,15 @@ export class Room extends PuppetAccessory implements Sayable {
    *   }
    * }
    */
-  public async del(contact: Contact): Promise<number> {
-    log.verbose('Room', 'del(%s)', contact.name())
-
-    if (!contact) {
-      throw new Error('contact not found')
-    }
-    const n = await this.puppet // config.puppetInstance()
-                        .roomDel(this, contact)
-                        .then(_ => this.delLocal(contact))
-    return n
-  }
+  public abstract async del(contact: Contact): Promise<void>
 
   /**
    * @private
    */
-  private delLocal(contact: Contact): number {
-    log.verbose('Room', 'delLocal(%s)', contact)
+  public abstract quit(): Promise<void>
 
-    const memberList = this.obj && this.obj.memberList
-    if (!memberList || memberList.length === 0) {
-      return 0 // already in refreshing
-    }
-
-    let i
-    for (i = 0; i < memberList.length; i++) {
-      if (memberList[i].id === contact.id) {
-        break
-      }
-    }
-    if (i < memberList.length) {
-      memberList.splice(i, 1)
-      return 1
-    }
-    return 0
-  }
-
-  /**
-   * @private
-   */
-  public quit() {
-    throw new Error('wx web not implement yet')
-    // WechatyBro.glue.chatroomFactory.quit("@@1c066dfcab4ef467cd0a8da8bec90880035aa46526c44f504a83172a9086a5f7"
-  }
-
-  public topic(): string
-
-  public topic(newTopic: string): void
+  public abstract topic(): string
+  public abstract topic(newTopic: string): Promise<void>
 
   /**
    * SET/GET topic from the room
@@ -533,40 +238,7 @@ export class Room extends PuppetAccessory implements Sayable {
    *   }
    * })
    */
-  public topic(newTopic?: string): string | void {
-    log.verbose('Room', 'topic(%s)', newTopic ? newTopic : '')
-    if (!this.isReady()) {
-      log.warn('Room', 'topic() room not ready')
-    }
-
-    if (typeof newTopic === 'undefined') {
-      return Misc.plainText(this.obj ? this.obj.topic : '')
-    }
-
-    this.puppet // config.puppetInstance()
-        .roomTopic(this, newTopic)
-        .catch(e => {
-          log.warn('Room', 'topic(newTopic=%s) exception: %s',
-                            newTopic, e && e.message || e,
-                  )
-          Raven.captureException(e)
-        })
-
-    if (!this.obj) {
-      this.obj = <RoomObj>{}
-    }
-    this.obj['topic'] = newTopic
-    return
-  }
-
-  /**
-   * should be deprecated
-   * @private
-   */
-  public nick(contact: Contact): string | null {
-    log.warn('Room', 'nick(Contact) DEPRECATED, use alias(Contact) instead.')
-    return this.alias(contact)
-  }
+  public abstract topic(newTopic?: string): string | Promise<void>
 
   /**
    * Return contact's roomAlias in the room, the same as roomAlias
@@ -584,21 +256,14 @@ export class Room extends PuppetAccessory implements Sayable {
    *   }
    * })
    */
-  public alias(contact: Contact): string | null {
-    return this.roomAlias(contact)
-  }
+  public abstract alias(contact: Contact): string | null
 
   /**
    * Same as function alias
    * @param {Contact} contact
    * @returns {(string | null)}
    */
-  public roomAlias(contact: Contact): string | null {
-    if (!this.obj || !this.obj.roomAliasMap) {
-      return null
-    }
-    return this.obj.roomAliasMap[contact.id] || null
-  }
+  public abstract roomAlias(contact: Contact): string | null
 
   /**
    * Check if the room has member `contact`.
@@ -616,25 +281,16 @@ export class Room extends PuppetAccessory implements Sayable {
    *   }
    * }
    */
-  public has(contact: Contact): boolean {
-    if (!this.obj || !this.obj.memberList) {
-      return false
-    }
-    return this.obj.memberList
-                    .filter(c => c.id === contact.id)
-                    .length > 0
-  }
+  public abstract has(contact: Contact): boolean
 
-  public memberAll(filter: MemberQueryFilter): Contact[]
-
-  public memberAll(name: string): Contact[]
+  public abstract memberAll(filter: MemberQueryFilter): Contact[]
+  public abstract memberAll(name: string): Contact[]
 
   /**
    * The way to search member by Room.member()
    *
    * @typedef    MemberQueryFilter
    * @property   {string} name            -Find the contact by wechat name in a room, equal to `Contact.name()`.
-   * @property   {string} alias           -Find the contact by alias set by the bot for others in a room, equal to `roomAlias`.
    * @property   {string} roomAlias       -Find the contact by alias set by the bot for others in a room.
    * @property   {string} contactAlias    -Find the contact by alias set by the contact out of a room, equal to `Contact.alias()`.
    * [More Detail]{@link https://github.com/Chatie/wechaty/issues/365}
@@ -645,98 +301,16 @@ export class Room extends PuppetAccessory implements Sayable {
    *
    * #### definition
    * - `name`                 the name-string set by user-self, should be called name, equal to `Contact.name()`
-   * - `roomAlias` | `alias`  the name-string set by user-self in the room, should be called roomAlias
+   * - `roomAlias`            the name-string set by user-self in the room, should be called roomAlias
    * - `contactAlias`         the name-string set by bot for others, should be called alias, equal to `Contact.alias()`
    * @param {(MemberQueryFilter | string)} queryArg -When use memberAll(name:string), return all matched members, including name, roomAlias, contactAlias
    * @returns {Contact[]}
    * @memberof Room
    */
-  public memberAll(queryArg: MemberQueryFilter | string): Contact[] {
-    if (typeof queryArg === 'string') {
-      //
-      // use the following `return` statement to do this job.
-      //
+  public abstract memberAll(queryArg: MemberQueryFilter | string): Contact[]
 
-      // const nameList = this.memberAll({name: queryArg})
-      // const roomAliasList = this.memberAll({roomAlias: queryArg})
-      // const contactAliasList = this.memberAll({contactAlias: queryArg})
-
-      // if (nameList) {
-      //   contactList = contactList.concat(nameList)
-      // }
-      // if (roomAliasList) {
-      //   contactList = contactList.concat(roomAliasList)
-      // }
-      // if (contactAliasList) {
-      //   contactList = contactList.concat(contactAliasList)
-      // }
-
-      return ([] as Contact[]).concat(
-        this.memberAll({name:         queryArg}),
-        this.memberAll({roomAlias:    queryArg}),
-        this.memberAll({contactAlias: queryArg}),
-      )
-    }
-
-    /**
-     * We got filter parameter
-     */
-    log.silly('Room', 'memberAll({ %s })',
-                      Object.keys(queryArg)
-                            .map(k => `${k}: ${queryArg[k]}`)
-                            .join(', '),
-            )
-
-    if (Object.keys(queryArg).length !== 1) {
-      throw new Error('Room member find queryArg only support one key. multi key support is not availble now.')
-    }
-
-    if (!this.obj || !this.obj.memberList) {
-      log.warn('Room', 'member() not ready')
-      return []
-    }
-    const filterKey            = Object.keys(queryArg)[0]
-    /**
-     * ISSUE #64 emoji need to be striped
-     */
-    const filterValue: string  = Misc.stripEmoji(Misc.plainText(queryArg[filterKey]))
-
-    const keyMap = {
-      contactAlias: 'contactAliasMap',
-      name:         'nameMap',
-      alias:        'roomAliasMap',
-      roomAlias:    'roomAliasMap',
-    }
-
-    const filterMapName = keyMap[filterKey]
-    if (!filterMapName) {
-      throw new Error('unsupport filter key: ' + filterKey)
-    }
-
-    if (!filterValue) {
-      throw new Error('filterValue not found')
-    }
-
-    const filterMap = this.obj[filterMapName]
-    const idList = Object.keys(filterMap)
-                          .filter(id => filterMap[id] === filterValue)
-
-    log.silly('Room', 'memberAll() check %s from %s: %s', filterValue, filterKey, JSON.stringify(filterMap))
-
-    if (idList.length) {
-      return idList.map(id => {
-        const c = Contact.load(id)
-        c.puppet = this.puppet
-        return c
-      })
-    } else {
-      return []
-    }
-  }
-
-  public member(name: string): Contact | null
-
-  public member(filter: MemberQueryFilter): Contact | null
+  public abstract member(name: string): Contact | null
+  public abstract member(filter: MemberQueryFilter): Contact | null
 
   /**
    * Find all contacts in a room, if get many, return the first one.
@@ -766,46 +340,14 @@ export class Room extends PuppetAccessory implements Sayable {
    *   }
    * }
    */
-  public member(queryArg: MemberQueryFilter | string): Contact | null {
-    log.verbose('Room', 'member(%s)', JSON.stringify(queryArg))
-
-    let memberList: Contact[]
-    // ISSUE #622
-    // error TS2345: Argument of type 'string | MemberQueryFilter' is not assignable to parameter of type 'MemberQueryFilter' #622
-    if (typeof queryArg === 'string') {
-      memberList =  this.memberAll(queryArg)
-    } else {
-      memberList =  this.memberAll(queryArg)
-    }
-
-    if (!memberList || !memberList.length) {
-      return null
-    }
-
-    if (memberList.length > 1) {
-      log.warn('Room', 'member(%s) get %d contacts, use the first one by default', JSON.stringify(queryArg), memberList.length)
-    }
-    return memberList[0]
-  }
+  public abstract member(queryArg: MemberQueryFilter | string): Contact | null
 
   /**
    * Get all room member from the room
    *
    * @returns {Contact[]}
    */
-  public memberList(): Contact[] {
-    log.verbose('Room', 'memberList')
-
-    if (!this.obj || !this.obj.memberList || this.obj.memberList.length < 1) {
-      log.warn('Room', 'memberList() not ready')
-      log.verbose('Room', 'memberList() trying call refresh() to update')
-      this.refresh().then(() => {
-        log.verbose('Room', 'memberList() refresh() done')
-      })
-      return []
-    }
-    return this.obj.memberList
-  }
+  public abstract memberList(): Contact[]
 
   /**
    * Create a new room.
@@ -824,20 +366,21 @@ export class Room extends PuppetAccessory implements Sayable {
    * await room.topic('ding - created')
    * await room.say('ding - created')
    */
-  public static create(contactList: Contact[], topic?: string): Promise<Room> {
+  public static async create(contactList: Contact[], topic?: string): Promise<Room> {
     log.verbose('Room', 'create(%s, %s)', contactList.join(','), topic)
 
     if (!contactList || !Array.isArray(contactList)) {
       throw new Error('contactList not found')
     }
 
-    return this.puppet // config.puppetInstance()
-                .roomCreate(contactList, topic)
-                .catch(e => {
-                  log.error('Room', 'create() exception: %s', e && e.stack || e.message || e)
-                  Raven.captureException(e)
-                  throw e
-                })
+    try {
+      const room = await this.puppet.roomCreate(contactList, topic)
+      return room
+    } catch (e) {
+      log.error('Room', 'create() exception: %s', e && e.stack || e.message || e)
+      Raven.captureException(e)
+      throw e
+    }
   }
 
   /**
@@ -850,43 +393,26 @@ export class Room extends PuppetAccessory implements Sayable {
    * const roomList = await Room.findAll()                    // get the room list of the bot
    * const roomList = await Room.findAll({name: 'wechaty'})   // find all of the rooms with name 'wechaty'
    */
-  public static async findAll(query?: RoomQueryFilter): Promise<Room[]> {
-    if (!query) {
-      query = { topic: /.*/ }
-    }
+  public static async findAll(
+    query: RoomQueryFilter = { topic: /.*/ },
+  ): Promise<Room[]> {
     log.verbose('Room', 'findAll({ topic: %s })', query.topic)
 
-    let topicFilter = query.topic
-
-    if (!topicFilter) {
+    if (!query.topic) {
       throw new Error('topicFilter not found')
     }
 
-    let filterFunction: string
+    try {
+      const roomList = await this.puppet.roomFindAll(query)
+      await Promise.all(roomList.map(room => room.ready()))
 
-    if (topicFilter instanceof RegExp) {
-      filterFunction = `(function (c) { return ${topicFilter.toString()}.test(c) })`
-    } else if (typeof topicFilter === 'string') {
-      topicFilter = topicFilter.replace(/'/g, '\\\'')
-      filterFunction = `(function (c) { return c === '${topicFilter}' })`
-    } else {
-      throw new Error('unsupport topic type')
+      return roomList
+
+    } catch (e) {
+      log.verbose('Room', 'findAll() rejected: %s', e.message)
+      Raven.captureException(e)
+      return [] as Room[] // fail safe
     }
-
-    const roomList = await this.puppet // config.puppetInstance()
-                                .roomFind(filterFunction)
-                                .catch(e => {
-                                  log.verbose('Room', 'findAll() rejected: %s', e.message)
-                                  Raven.captureException(e)
-                                  return [] as Room[] // fail safe
-                                })
-
-    await Promise.all(roomList.map(room => room.ready()))
-    // for (let i = 0; i < roomList.length; i++) {
-    //   await roomList[i].ready()
-    // }
-
-    return roomList
   }
 
   /**
@@ -912,14 +438,7 @@ export class Room extends PuppetAccessory implements Sayable {
    *
    * @returns {Promise<void>}
    */
-  public async refresh(): Promise<void> {
-    if (this.isReady()) {
-      this.dirtyObj = this.obj
-    }
-    this.obj = null
-    await this.ready()
-    return
-  }
+  public abstract async refresh(): Promise<void>
 
   /**
    * @private
@@ -927,25 +446,7 @@ export class Room extends PuppetAccessory implements Sayable {
    * Not recommend, because cannot always get the owner
    * @returns {(Contact | null)}
    */
-  public owner(): Contact | null {
-    const ownerUin = this.obj && this.obj.ownerUin
-
-    const user = this.puppet // config.puppetInstance()
-                      .user
-
-    if (user && user.get('uin') === ownerUin) {
-      return user
-    }
-
-    if (this.rawObj.ChatRoomOwner) {
-      const c = Contact.load(this.rawObj.ChatRoomOwner)
-      c.puppet = this.puppet
-      return c
-    }
-
-    log.info('Room', 'owner() is limited by Tencent API, sometimes work sometimes not')
-    return null
-  }
+  public abstract owner(): Contact | null
 
   /**
    * @private
@@ -958,7 +459,7 @@ export class Room extends PuppetAccessory implements Sayable {
     if (id in this.pool) {
       return this.pool[id]
     }
-    return this.pool[id] = new this(id)
+    return this.pool[id] = new (this as any)(id)
   }
 
 }
