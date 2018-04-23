@@ -119,6 +119,7 @@ export class Room extends PuppetAccessory implements Sayable {
   private async readyAllMembers(memberList: RoomRawMember[]): Promise<void> {
     for (const member of memberList) {
       const contact = Contact.load(member.UserName)
+      contact.puppet = this.puppet
       await contact.ready()
     }
     return
@@ -230,6 +231,7 @@ export class Room extends PuppetAccessory implements Sayable {
     let m
     if (typeof textOrMedia === 'string') {
       m = new Message()
+      m.puppet = this.puppet
 
       const replyToList: Contact[] = [].concat(replyTo as any || [])
 
@@ -330,7 +332,11 @@ export class Room extends PuppetAccessory implements Sayable {
     }
 
     const memberList = (rawObj.MemberList || [])
-                        .map(m => Contact.load(m.UserName))
+                        .map(m => {
+                          const c = Contact.load(m.UserName)
+                          c.puppet = this.puppet
+                          return c
+                        })
 
     const nameMap    = this.parseMap('name', rawObj.MemberList)
     const roomAliasMap   = this.parseMap('roomAlias', rawObj.MemberList)
@@ -357,6 +363,8 @@ export class Room extends PuppetAccessory implements Sayable {
       memberList.forEach(member => {
         let tmpName: string
         const contact = Contact.load(member.UserName)
+        contact.puppet = this.puppet
+
         switch (parseContent) {
           case 'name':
             tmpName = contact.name()
@@ -716,7 +724,11 @@ export class Room extends PuppetAccessory implements Sayable {
     log.silly('Room', 'memberAll() check %s from %s: %s', filterValue, filterKey, JSON.stringify(filterMap))
 
     if (idList.length) {
-      return idList.map(id => Contact.load(id))
+      return idList.map(id => {
+        const c = Contact.load(id)
+        c.puppet = this.puppet
+        return c
+      })
     } else {
       return []
     }
@@ -926,7 +938,9 @@ export class Room extends PuppetAccessory implements Sayable {
     }
 
     if (this.rawObj.ChatRoomOwner) {
-      return Contact.load(this.rawObj.ChatRoomOwner)
+      const c = Contact.load(this.rawObj.ChatRoomOwner)
+      c.puppet = this.puppet
+      return c
     }
 
     log.info('Room', 'owner() is limited by Tencent API, sometimes work sometimes not')

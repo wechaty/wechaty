@@ -112,7 +112,7 @@
     "rx-queue": "^0.3.1",
     "rxjs": "^5.5.0",
     "state-switch": "^0.4.5",
-    "watchdog": "^0.3.0",
+    "watchdog": "^0.5.1",
     "wechat4u": "^0.7.6",
     "ws": "^5.1.0",
     "xml2js": "^0.4.0"

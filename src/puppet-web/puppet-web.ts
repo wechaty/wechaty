@@ -22,8 +22,9 @@ import {
 }                   from 'watchdog'
 import {
   ThrottleQueue,
-}                     from 'rx-queue'
+}                   from 'rx-queue'
 
+import cloneClass   from '../clone-class'
 import {
   config,
   log,
@@ -39,15 +40,14 @@ import {
   Puppet,
   PuppetOptions,
   ScanData,
-}                    from '../puppet'
-import Room          from '../room'
-import Misc          from '../misc'
-
+}                   from '../puppet'
+import Room         from '../room'
+import Misc         from '../misc'
 import {
   Bridge,
   Cookie,
-}                    from './bridge'
-import Event         from './event'
+}                   from './bridge'
+import Event        from './event'
 
 import {
   MediaData,
@@ -794,7 +794,11 @@ export class PuppetWeb extends Puppet {
   public async contactFind(filterFunc: string): Promise<Contact[]> {
     try {
       const idList = await this.bridge.contactFind(filterFunc)
-      return idList.map(id => Contact.load(id))
+      return idList.map(id => {
+        const c = Contact.load(id)
+        c.puppet = this
+        return c
+      })
     } catch (e) {
       log.warn('PuppetWeb', 'contactFind(%s) rejected: %s', filterFunc, e.message)
       Raven.captureException(e)
@@ -805,7 +809,11 @@ export class PuppetWeb extends Puppet {
   public async roomFind(filterFunc: string): Promise<Room[]> {
     try {
       const idList = await this.bridge.roomFind(filterFunc)
-      return idList.map(id => Room.load(id))
+      return idList.map(id => {
+        const r = Room.load(id)
+        r.puppet = this
+        return r
+      })
     } catch (e) {
       log.warn('PuppetWeb', 'roomFind(%s) rejected: %s', filterFunc, e.message)
       Raven.captureException(e)
@@ -864,7 +872,9 @@ export class PuppetWeb extends Puppet {
       if (!roomId) {
         throw new Error('PuppetWeb.roomCreate() roomId "' + roomId + '" not found')
       }
-      return  Room.load(roomId)
+      const r = Room.load(roomId)
+      r.puppet = this
+      return r
 
     } catch (e) {
       log.warn('PuppetWeb', 'roomCreate(%s, %s) rejected: %s', contactIdList.join(','), topic, e.message)
@@ -912,9 +922,14 @@ export class PuppetWeb extends Puppet {
     log.verbose('PuppetWeb', 'readyStable()')
     let counter = -1
 
+    // tslint:disable-next-line:variable-name
+    const MyContact = cloneClass(Contact)
+    MyContact.puppet = this
+
     async function stable(done: Function): Promise<void> {
       log.silly('PuppetWeb', 'readyStable() stable() counter=%d', counter)
-      const contactList = await Contact.findAll()
+
+      const contactList = await MyContact.findAll()
       if (counter === contactList.length) {
         log.verbose('PuppetWeb', 'readyStable() stable() READY counter=%d', counter)
         return done()

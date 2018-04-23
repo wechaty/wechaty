@@ -59,6 +59,7 @@ test('PuppetWebFriendRequest.confirm smoke testing', async t => {
   `
   const rawObj = JSON.parse(rawMessageData)
   const m = new Message(rawObj)
+  m.puppet = this.puppet
 
   t.true(/^You have added (.+) as your WeChat contact. Start chatting!$/.test(m.content()), 'should match confirm message')
 

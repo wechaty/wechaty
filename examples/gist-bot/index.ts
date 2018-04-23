@@ -41,8 +41,9 @@ Please wait... I'm trying to login in...
 `
 console.log(welcome)
 
-Wechaty.instance({ profile: config.default.DEFAULT_PROFILE })
+const bot = Wechaty.instance({ profile: config.default.DEFAULT_PROFILE })
 
+bot
 .on('scan', (url, code) => {
   if (!/201|200/.test(String(code))) {
     const loginUrl = url.replace(/\/qrcode\//, '/l/')

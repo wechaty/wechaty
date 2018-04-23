@@ -166,7 +166,10 @@ export class Message extends PuppetAccessory implements Sayable {
    * @private
    */
   public getSenderString() {
-    const fromName  = Contact.load(this.obj.from).name()
+    const from = Contact.load(this.obj.from)
+    from.puppet = this.puppet
+
+    const fromName  = from.name()
     const roomTopic = this.obj.room
                   ? (':' + Room.load(this.obj.room).topic())
                   : ''
@@ -213,6 +216,8 @@ export class Message extends PuppetAccessory implements Sayable {
     let m
     if (typeof textOrMedia === 'string') {
       m = new Message()
+      m.puppet = this.puppet
+
       const room = this.room()
       if (room) {
         m.room(room)
@@ -279,9 +284,8 @@ export class Message extends PuppetAccessory implements Sayable {
     }
 
     const loadedContact = Contact.load(this.obj.from)
-    if (!loadedContact) {
-      throw new Error('no from')
-    }
+    loadedContact.puppet = this.puppet
+
     return loadedContact
   }
 
@@ -315,7 +319,9 @@ export class Message extends PuppetAccessory implements Sayable {
       return
     }
     if (this.obj.room) {
-      return Room.load(this.obj.room)
+      const r = Room.load(this.obj.room)
+      r.puppet = this.puppet
+      return r
     }
     return null
   }
@@ -494,15 +500,20 @@ export class Message extends PuppetAccessory implements Sayable {
 
     try {
       const from  = Contact.load(this.obj.from)
+      from.puppet = this.puppet
+
       await from.ready()  // Contact from
 
       if (this.obj.to) {
         const to = Contact.load(this.obj.to)
+        to.puppet = this.puppet
+
         await to.ready()
       }
 
       if (this.obj.room) {
         const room  = Room.load(this.obj.room)
+        room.puppet = this.puppet
         await room.ready()  // Room member list
       }
 
@@ -616,7 +627,10 @@ export class Message extends PuppetAccessory implements Sayable {
     if (!this.obj.to) {
       return null
     }
-    return Contact.load(this.obj.to)
+    const to = Contact.load(this.obj.to)
+    to.puppet = this.puppet
+
+    return to
   }
 
   /**
@@ -691,10 +705,6 @@ export class MediaMessage extends Message {
     } else {
       throw new Error('not supported construct param')
     }
-
-    // FIXME: decoupling needed
-    this.bridge = (/* config.puppetInstance() */ this.puppet as PuppetWeb)
-                    .bridge
   }
 
   /**
@@ -709,6 +719,11 @@ export class MediaMessage extends Message {
    */
   public async ready(): Promise<void> {
     log.silly('MediaMessage', 'ready()')
+
+    // FIXME: decoupling needed
+    if (!this.bridge) {
+      this.bridge = (this.puppet as PuppetWeb).bridge
+    }
 
     try {
       await super.ready()

@@ -25,10 +25,11 @@
 import {
   Contact,
   FriendRequest,
-  Room,
+  Wechaty,
+  // Room,
 }                 from '../../'
 
-export async function onFriend(contact: Contact, request?: FriendRequest): Promise<void> {
+export async function onFriend(this: Wechaty, contact: Contact, request?: FriendRequest): Promise<void> {
   try {
     if (!request) {
       console.log('New friend ' + contact.name() + ' relationship confirmed!')
@@ -49,7 +50,7 @@ export async function onFriend(contact: Contact, request?: FriendRequest): Promi
     )
 
     if (request.hello === 'ding') {
-      const myRoom = await Room.find({ topic: 'ding' })
+      const myRoom = await this.Room.find({ topic: 'ding' })
       if (!myRoom) return
       setTimeout(
         async _ => {

@@ -135,6 +135,8 @@ async function onLogin(this: PuppetWeb, memo: string, ttl = 30): Promise<void> {
 
     log.silly('PuppetWebEvent', 'bridge.getUserName: %s', this.userId)
     this.user = Contact.load(this.userId)
+    this.user.puppet = this
+
     await this.user.ready()
     log.silly('PuppetWebEvent', `onLogin() user ${this.user.name()} logined`)
 
@@ -180,6 +182,7 @@ async function onMessage(
   obj:  MsgRawObj,
 ): Promise<void> {
   let m = new Message(obj)
+  m.puppet = this
 
   try {
     await m.ready()
@@ -222,6 +225,7 @@ async function onMessage(
       case MsgType.APP:
         log.verbose('PuppetWebEvent', 'onMessage() EMOTICON/IMAGE/VIDEO/VOICE/MICROVIDEO message')
         m = new MediaMessage(obj)
+        m.puppet = this
         break
 
       case MsgType.TEXT:

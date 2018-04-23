@@ -344,6 +344,8 @@ export class Contact extends PuppetAccessory implements Sayable {
     let m
     if (typeof textOrMedia === 'string') {
       m = new Message()
+      m.puppet = this.puppet
+
       m.content(textOrMedia)
     } else if (textOrMedia instanceof MediaMessage) {
       m = textOrMedia

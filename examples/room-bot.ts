@@ -157,7 +157,7 @@ bot
 /**
  * Global Event: message
  */
-.on('message', async function(this, message) {
+.on('message', async function(this: Wechaty, message) {
   const room    = message.room()
   const sender  = message.from()
   const content = message.content()
@@ -197,7 +197,7 @@ bot
        * find room name start with "ding"
        */
       try {
-        const dingRoom = await Room.find({ topic: /^ding/i })
+        const dingRoom = await this.Room.find({ topic: /^ding/i })
         if (dingRoom) {
           /**
            * room found
@@ -254,7 +254,7 @@ async function manageDingRoom() {
    * Find Room
    */
   try {
-    const room = await Room.find({ topic: /^ding/i })
+    const room = await bot.Room.find({ topic: /^ding/i })
     if (!room) {
       log.warn('Bot', 'there is no room topic ding(yet)')
       return

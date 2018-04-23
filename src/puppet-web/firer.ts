@@ -112,6 +112,8 @@ async function checkFriendRequest(m: Message) {
   }
 
   const request = new FriendRequest()
+  request.puppet = m.puppet
+
   request.receive(info)
 
   await request.contact.ready()
@@ -145,6 +147,8 @@ async function checkFriendConfirm(m: Message) {
     return
   }
   const request = new FriendRequest()
+  request.puppet = m.puppet
+
   const contact = m.from()
   request.confirm(contact)
 
@@ -216,6 +220,7 @@ async function checkRoomJoin(m: Message): Promise<boolean> {
   try {
     if (inviter === 'You' || inviter === '你' || inviter === 'you') {
       inviterContact = Contact.load(this.userId)
+      inviterContact.puppet = m.puppet
     }
 
     const max = 20
@@ -354,6 +359,8 @@ async function checkRoomLeave(m: Message): Promise<boolean> {
   let leaverContact: Contact | null, removerContact: Contact | null
   if (leaver === this.userId) {
     leaverContact = Contact.load(this.userId)
+    leaverContact.puppet = m.puppet
+
     // not sure which is better
     // removerContact = room.member({contactAlias: remover}) || room.member({name: remover})
     removerContact = room.member(remover)
@@ -361,8 +368,11 @@ async function checkRoomLeave(m: Message): Promise<boolean> {
       log.error('PuppetWebFirer', 'fireRoomLeave() bot is removed from the room, but remover %s not found, event `room-leave` & `leave` will not be fired', remover)
       return false
     }
+
   } else {
     removerContact = Contact.load(this.userId)
+    removerContact.puppet = m.puppet
+
     // not sure which is better
     // leaverContact = room.member({contactAlias: remover}) || room.member({name: leaver})
     leaverContact = room.member(remover)
@@ -418,6 +428,7 @@ async function checkRoomTopic(m: Message): Promise<boolean> {
   let changerContact: Contact | null
   if (/^You$/.test(changer) || /^你$/.test(changer)) {
     changerContact = Contact.load(this.userId)
+    changerContact.puppet = m.puppet
   } else {
     changerContact = room.member(changer)
   }

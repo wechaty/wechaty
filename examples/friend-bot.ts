@@ -27,7 +27,7 @@ const QrcodeTerminal = require('qrcode-terminal')
  */
 import {
   config,
-  Contact,
+  // Contact,
   log,
   Wechaty,
 }           from '../'
@@ -77,7 +77,7 @@ bot
  */
 .on('friend', async (contact, request) => {
   let logMsg
-  const fileHelper = Contact.load('filehelper')
+  const fileHelper = bot.Contact.load('filehelper')
 
   try {
     logMsg = 'received `friend` event from ' + contact.get('name')
