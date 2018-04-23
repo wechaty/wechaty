@@ -13,6 +13,7 @@
 | speech-to-text-bot.ts | Convert Voice Message to Text |
 | tuling123-bot.ts    | Answer Any Question |
 | hot-import-bot      | Use hot-import for updating code without restarting program |
+| blessed-twins-bot/  | Multi-Instance Twins Bot Powered by Blessed |
 
 Learn more about Wechaty from:
 1. API Document: <https://github.com/Chatie/wechaty/wiki/API>
