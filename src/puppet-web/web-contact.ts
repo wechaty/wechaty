@@ -22,18 +22,27 @@ import {
   Raven,
   Sayable,
   log,
-}                       from './config'
+}                       from '../config'
+
 import {
-  Message,
+  Contact,
+  Gender,
+  ContactQueryFilter,
+}                       from '../puppet/contact'
+
+import {
   MediaMessage,
-}                       from './message'
-import Misc             from './misc'
-import PuppetAccessory  from './puppet-accessory'
+  // PuppetAccessory,
+}                       from '../puppet/'
+
+import Misc             from '../misc'
+
 // import Wechaty          from './wechaty'
 
-import PuppetWeb        from './puppet-web/'
+import PuppetWeb        from './puppet-web'
+import WebMessage       from './web-message'
 
-export interface ContactObj {
+export interface WebContactObj {
   address:    string,
   city:       string,
   id:         string,
@@ -51,7 +60,7 @@ export interface ContactObj {
   special:    boolean,
 }
 
-export interface ContactRawObj {
+export interface WebContactRawObj {
   Alias:        string,
   City:         string,
   NickName:     string,
@@ -66,27 +75,6 @@ export interface ContactRawObj {
 
   stranger:     string, // assign by injectio.js
   VerifyFlag:   number,
-}
-
-/**
- * Enum for Gender values.
- *
- * @enum {number}
- * @property {number} Unknown   - 0 for Unknown
- * @property {number} Male      - 1 for Male
- * @property {number} Female    - 2 for Female
- */
-export enum Gender {
-  Unknown = 0,
-  Male    = 1,
-  Female  = 2,
-}
-
-export interface ContactQueryFilter {
-  name?:   string | RegExp,
-  alias?:  string | RegExp,
-  // remark is DEPRECATED
-  remark?: string | RegExp,
 }
 
 /**
@@ -106,12 +94,11 @@ const specialContactList: string[] = [
  * `Contact` is `Sayable`,
  * [Examples/Contact-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/contact-bot.ts}
  */
-export class Contact extends PuppetAccessory implements Sayable {
-  private static pool = new Map<string, Contact>()
+export class WebContact extends Contact implements Sayable {
 
-  public obj: ContactObj | null
+  public obj: WebContactObj | null
   // private dirtyObj: ContactObj | null
-  private rawObj: ContactRawObj
+  private rawObj: WebContactRawObj
 
   /**
    * @private
@@ -119,7 +106,7 @@ export class Contact extends PuppetAccessory implements Sayable {
   constructor(
     public readonly id: string,
   ) {
-    super()
+    super(id)
     log.silly('Contact', `constructor(${id})`)
 
     if (typeof id !== 'string') {
@@ -147,7 +134,7 @@ export class Contact extends PuppetAccessory implements Sayable {
   /**
    * @private
    */
-  private parse(rawObj: ContactRawObj): ContactObj | null {
+  private parse(rawObj: WebContactRawObj): WebContactObj | null {
     if (!rawObj || !rawObj.UserName) {
       log.warn('Contact', 'parse() got empty rawObj!')
       // config.puppetInstance().emit('error', e)
@@ -237,19 +224,9 @@ export class Contact extends PuppetAccessory implements Sayable {
    * const contactList = await Contact.findAll({name: 'ruirui'})    // find allof the contacts whose name is 'ruirui'
    * const contactList = await Contact.findAll({alias: 'lijiarui'}) // find all of the contacts whose alias is 'lijiarui'
    */
-  public static async findAll(queryArg?: ContactQueryFilter): Promise<Contact[]> {
-    let query: ContactQueryFilter
-    if (queryArg) {
-      if (queryArg.remark) {
-        log.warn('Contact', 'Contact.findAll({remark:%s}) DEPRECATED, use Contact.findAll({alias:%s}) instead.', queryArg.remark, queryArg.remark)
-        query = { alias: queryArg.remark}
-      } else {
-        query = queryArg
-      }
-    } else {
-      query = { name: /.*/ }
-    }
-
+  public static async findAll(
+    query: ContactQueryFilter = { name: /.*/ },
+  ): Promise<Contact[]> {
     // log.verbose('Cotnact', 'findAll({ name: %s })', query.name)
     log.verbose('Cotnact', 'findAll({ %s })',
                             Object.keys(query)
@@ -294,8 +271,7 @@ export class Contact extends PuppetAccessory implements Sayable {
     }
 
     try {
-      const contactList = await this.puppet // config.puppetInstance()
-                                  .contactFind(filterFunction)
+      const contactList = await this.puppet.contactFindAll(query)
 
       await Promise.all(contactList.map(c => c.ready()))
       return contactList
@@ -311,7 +287,7 @@ export class Contact extends PuppetAccessory implements Sayable {
    *
    * @param {string} text
    */
-  public async say(text: string): Promise<boolean>
+  public async say(text: string): Promise<void>
 
   /**
    * Send Media File to Contact
@@ -319,7 +295,7 @@ export class Contact extends PuppetAccessory implements Sayable {
    * @param {MediaMessage} mediaMessage
    * @memberof Contact
    */
-  public async say(mediaMessage: MediaMessage): Promise<boolean>
+  public async say(mediaMessage: MediaMessage): Promise<void>
 
   /**
    * Send Text or Media File to Contact.
@@ -331,7 +307,7 @@ export class Contact extends PuppetAccessory implements Sayable {
    * await contact.say('welcome to wechaty!')
    * await contact.say(new MediaMessage(__dirname + '/wechaty.png') // put the filePath you want to send here
    */
-  public async say(textOrMedia: string | MediaMessage): Promise<boolean> {
+  public async say(textOrMedia: string | MediaMessage): Promise<void> {
     const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
     log.verbose('Contact', 'say(%s)', content)
 
@@ -342,7 +318,7 @@ export class Contact extends PuppetAccessory implements Sayable {
     }
     let m
     if (typeof textOrMedia === 'string') {
-      m = new Message()
+      m = new WebMessage()
       m.puppet = this.puppet
 
       m.content(textOrMedia)
@@ -369,9 +345,9 @@ export class Contact extends PuppetAccessory implements Sayable {
 
   public alias(): string | null
 
-  public alias(newAlias: string): Promise<boolean>
+  public alias(newAlias: string): Promise<void>
 
-  public alias(empty: null): Promise<boolean>
+  public alias(empty: null): Promise<void>
 
   /**
    * GET / SET / DELETE the alias for a contact
@@ -403,32 +379,29 @@ export class Contact extends PuppetAccessory implements Sayable {
    *   console.log(`failed to delete ${contact.name()}'s alias!`)
    * }
    */
-  public alias(newAlias?: string|null): Promise<boolean> | string | null {
+  public alias(newAlias?: string|null): Promise<void> | string | null {
     // log.silly('Contact', 'alias(%s)', newAlias || '')
 
     if (newAlias === undefined) {
       return this.obj && this.obj.alias || null
     }
 
-    return this.puppet // config.puppetInstance()
-                .contactAlias(this, newAlias)
-                .then(ret => {
-                  if (ret) {
-                    if (this.obj) {
-                      this.obj.alias = newAlias
-                    } else {
-                      log.error('Contact', 'alias() without this.obj?')
-                    }
-                  } else {
-                    log.warn('Contact', 'alias(%s) fail', newAlias)
-                  }
-                  return ret
-                })
-                .catch(e => {
-                  log.error('Contact', 'alias(%s) rejected: %s', newAlias, e.message)
-                  Raven.captureException(e)
-                  return false // fail safe
-                })
+    const future = this.puppet.contactAlias(this, newAlias)
+
+    future
+    .then(() => {
+      if (this.obj) {
+        this.obj.alias = newAlias
+      } else {
+        log.error('Contact', 'alias() without this.obj?')
+      }
+    })
+    .catch(e => {
+      log.error('Contact', 'alias(%s) rejected: %s', newAlias, e.message)
+      Raven.captureException(e)
+    })
+
+    return future
   }
 
   /**
@@ -546,9 +519,9 @@ export class Contact extends PuppetAccessory implements Sayable {
     }
 
     try {
-      const hostname = await (/* config.puppetInstance() */ this.puppet as PuppetWeb ).hostname()
+      const hostname = await (this.puppet as any as PuppetWeb).hostname()
       const avatarUrl = `http://${hostname}${this.obj.avatar}&type=big` // add '&type=big' to get big image
-      const cookies = await (/* config.puppetInstance() */ this.puppet as PuppetWeb).cookies()
+      const cookies = await (this.puppet as any as PuppetWeb).cookies()
       log.silly('Contact', 'avatar() url: %s', avatarUrl)
 
       return Misc.urlStream(avatarUrl, cookies)
@@ -591,7 +564,7 @@ export class Contact extends PuppetAccessory implements Sayable {
   /**
    * @private
    */
-  public async ready(contactGetter?: (id: string) => Promise<ContactRawObj>): Promise<this> {
+  public async ready(contactGetter?: (id: string) => Promise<WebContactRawObj>): Promise<this> {
     // log.silly('Contact', 'ready(' + (contactGetter ? typeof contactGetter : '') + ')')
     if (!this.id) {
       const e = new Error('ready() call on an un-inited contact')
@@ -652,48 +625,13 @@ export class Contact extends PuppetAccessory implements Sayable {
    * const isSelf = contact.self()
    */
   public self(): boolean {
-    const userId = this.puppet // config.puppetInstance()
-                        .userId
+    const userId = this.puppet.user!.id
 
-    const selfId = this.id
-
-    if (!userId || !selfId) {
+    if (!userId || !this.id) {
       throw new Error('no user or no self id')
     }
 
-    return selfId === userId
-  }
-
-  /**
-   * @private
-   */
-  // function should be deprecated
-  public remark(newRemark?: string|null): Promise<boolean> | string | null {
-    log.warn('Contact', 'remark(%s) DEPRECATED, use alias(%s) instead.')
-    log.silly('Contact', 'remark(%s)', newRemark || '')
-
-    switch (newRemark) {
-      case undefined:
-        return this.alias()
-      case null:
-        return this.alias(null)
-      default:
-        return this.alias(newRemark)
-    }
-  }
-
-  /**
-   * @private
-   */
-  public static load(id: string): Contact {
-    if (!id || typeof id !== 'string') {
-      throw new Error('Contact.load(): id not found')
-    }
-
-    if (!(id in Contact.pool)) {
-      Contact.pool[id] = new Contact(id)
-    }
-    return Contact.pool[id]
+    return this.id === userId
   }
 
   /**

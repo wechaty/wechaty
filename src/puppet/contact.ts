@@ -20,10 +20,10 @@
 import {
   log,
   Sayable,
-}                       from './config'
+}                       from '../config'
 import {
   MediaMessage,
-}                       from './message'
+}                       from './media-message'
 import PuppetAccessory  from './puppet-accessory'
 
 /**
