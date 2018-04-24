@@ -22,21 +22,21 @@ import {
   Raven,
   Sayable,
   log,
-}                       from './config'
+}                       from '../config'
+
 import Contact          from './contact'
 import {
   MediaMessage,
-}                       from './message'
+}                       from './message-media'
 import PuppetAccessory  from './puppet-accessory'
 
 export type RoomEventName = 'join'
                           | 'leave'
                           | 'topic'
-                          | never
 
-export type MemberQueryNameType = 'name' | 'roomAlias' | 'contactAlias'
+export type RoomMemberQueryName = 'name' | 'roomAlias' | 'contactAlias'
 
-export interface MemberQueryFilter {
+export interface RoomMemberQueryFilter {
   name?:         string,
   roomAlias?:    string,
   contactAlias?: string,
@@ -53,7 +53,7 @@ export interface RoomQueryFilter {
  * [Examples/Room-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/room-bot.ts}
  */
 export abstract class Room extends PuppetAccessory implements Sayable {
-  private static pool = new Map<string, Room>()
+  protected static pool = new Map<string, Room>()
 
   /**
    * @private
@@ -104,7 +104,7 @@ export abstract class Room extends PuppetAccessory implements Sayable {
   public on(event: 'leave', listener: (this: Room, leaver: Contact) => void): this
   public on(event: 'join' , listener: (this: Room, inviteeList: Contact[] , inviter: Contact)  => void): this
   public on(event: 'topic', listener: (this: Room, topic: string, oldTopic: string, changer: Contact) => void): this
-  public on(event: never, listener: never): never
+  public on(event: never,   ...args: never[]): this
 
    /**
     * @desc       Room Class Event Type
@@ -283,7 +283,7 @@ export abstract class Room extends PuppetAccessory implements Sayable {
    */
   public abstract has(contact: Contact): boolean
 
-  public abstract memberAll(filter: MemberQueryFilter): Contact[]
+  public abstract memberAll(filter: RoomMemberQueryFilter): Contact[]
   public abstract memberAll(name: string): Contact[]
 
   /**
@@ -303,19 +303,19 @@ export abstract class Room extends PuppetAccessory implements Sayable {
    * - `name`                 the name-string set by user-self, should be called name, equal to `Contact.name()`
    * - `roomAlias`            the name-string set by user-self in the room, should be called roomAlias
    * - `contactAlias`         the name-string set by bot for others, should be called alias, equal to `Contact.alias()`
-   * @param {(MemberQueryFilter | string)} queryArg -When use memberAll(name:string), return all matched members, including name, roomAlias, contactAlias
+   * @param {(RoomMemberQueryFilter | string)} queryArg -When use memberAll(name:string), return all matched members, including name, roomAlias, contactAlias
    * @returns {Contact[]}
    * @memberof Room
    */
-  public abstract memberAll(queryArg: MemberQueryFilter | string): Contact[]
+  public abstract memberAll(queryArg: RoomMemberQueryFilter | string): Contact[]
 
   public abstract member(name: string): Contact | null
-  public abstract member(filter: MemberQueryFilter): Contact | null
+  public abstract member(filter: RoomMemberQueryFilter): Contact | null
 
   /**
    * Find all contacts in a room, if get many, return the first one.
    *
-   * @param {(MemberQueryFilter | string)} queryArg -When use member(name:string), return all matched members, including name, roomAlias, contactAlias
+   * @param {(RoomMemberQueryFilter | string)} queryArg -When use member(name:string), return all matched members, including name, roomAlias, contactAlias
    * @returns {(Contact | null)}
    *
    * @example <caption>Find member by name</caption>
@@ -340,7 +340,7 @@ export abstract class Room extends PuppetAccessory implements Sayable {
    *   }
    * }
    */
-  public abstract member(queryArg: MemberQueryFilter | string): Contact | null
+  public abstract member(queryArg: RoomMemberQueryFilter | string): Contact | null
 
   /**
    * Get all room member from the room
