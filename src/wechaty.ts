@@ -134,6 +134,14 @@ export class Wechaty extends PuppetAccessory implements Sayable {
     this.profile = new Profile(options.profile)
 
     this.cuid = cuid()
+
+    /**
+     * Clone Classes for this bot
+     */
+    this.Contact        = cloneClass(Contact)
+    this.FriendRequest  = cloneClass(FriendRequest)
+    this.Message        = cloneClass(Message)
+    this.Room           = cloneClass(Room)
   }
 
   /**
@@ -197,10 +205,18 @@ export class Wechaty extends PuppetAccessory implements Sayable {
 
       // set puppet instance to Wechaty Static variable, for using by Contact/Room/Message/FriendRequest etc.
       // config.puppetInstance(puppet)
-      this.Contact        = cloneClass(Contact)
-      this.FriendRequest  = cloneClass(FriendRequest)
-      this.Message        = cloneClass(Message)
-      this.Room           = cloneClass(Room)
+
+      if (this === Wechaty._instance) {
+        /**
+         * Here means `this` is the global instance of Wechaty (`Wechaty.instance()`)
+         * So we can fix the breaking changes for #518
+         * https://github.com/Chatie/wechaty/issues/518
+         */
+        Contact.puppet       = this.puppet
+        FriendRequest.puppet = this.puppet
+        Message.puppet       = this.puppet
+        Room.puppet          = this.puppet
+      }
 
       this.Contact.puppet       = this.puppet
       this.FriendRequest.puppet = this.puppet
