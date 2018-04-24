@@ -16,9 +16,11 @@
  *   limitations under the License.
  *   @ignore
  */
+
 import {
-  Readable,
-}                 from 'stream'
+  MsgType,
+  AppMsgType,
+}                       from './puppet-web/schema'
 
 import {
   Sayable,
@@ -29,10 +31,8 @@ import Contact          from './contact'
 import Room             from './room'
 import PuppetAccessory  from './puppet-accessory'
 
-import {
-  MsgType,
-  AppMsgType,
-}                       from './puppet-web/schema'
+// circuliar dependencies?
+import MediaMessage     from './message-media'
 
 // export type TypeName =  'attachment'
 //                       | 'audio'
@@ -234,58 +234,6 @@ export abstract class Message extends PuppetAccessory implements Sayable {
    */
   public abstract to(contact?: Contact | string): Contact | Room | null | void
 
-}
-
-/**
- * Meidia Type Message
- *
- */
-export abstract class MediaMessage extends Message {
-  /**
-   * @private
-   */
-  public toString() {
-    return `MediaMessage<${this.filename()}>`
-  }
-
-  /**
-   * Get the MediaMessage file extension, etc: `jpg`, `gif`, `pdf`, `word` ..
-   *
-   * @returns {string}
-   * @example
-   * bot.on('message', async function (m) {
-   *   if (m instanceof MediaMessage) {
-   *     console.log('media message file name extention is: ' + m.ext())
-   *   }
-   * })
-   */
-  public abstract ext(): string
-
-  /**
-   * return the MIME Type of this MediaMessage
-   *
-   */
-  public abstract  mimeType(): string | null
-
-  /**
-   * Get the MediaMessage filename, etc: `how to build a chatbot.pdf`..
-   *
-   * @returns {string}
-   * @example
-   * bot.on('message', async function (m) {
-   *   if (m instanceof MediaMessage) {
-   *     console.log('media message file name is: ' + m.filename())
-   *   }
-   * })
-   */
-  public abstract filename(): string
-
-  /**
-   * Get the read stream for attachment file
-   */
-  public abstract async readyStream(): Promise<Readable>
-
-  public abstract async forward(to: Room|Contact): Promise<void>
 }
 
 export default Message
