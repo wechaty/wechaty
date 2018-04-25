@@ -30,11 +30,11 @@ const sinonTest   = require('sinon-test')(sinon, {
 // import { log }    from '../../src/config'
 // log.level('silly')
 
+import Profile    from '../profile'
+
 import {
-  // config,
   Contact,
-  Profile,
-}                 from '../../'
+}                 from '../puppet/'
 
 import PuppetWeb  from '../../src/puppet-web/puppet-web'
 import Bridge     from '../../src/puppet-web/bridge'

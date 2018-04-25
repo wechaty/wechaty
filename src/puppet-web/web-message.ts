@@ -134,7 +134,7 @@ export class WebMessage extends Message {
    * @private
    */
   public toString() {
-    return `Message<${Misc.plainText(this.obj.content)}>`
+    return `WebMessage<${Misc.plainText(this.obj.content)}>`
   }
 
   /**
@@ -275,7 +275,7 @@ export class WebMessage extends Message {
   }
 
   public async say(textOrMessage: string | WebMessage, replyTo?: WebContact|WebContact[]): Promise<void> {
-    log.verbose('Message', 'say(%s, %s)', textOrMessage, replyTo)
+    log.verbose('WebMessage', 'say(%s, %s)', textOrMessage, replyTo)
 
     let m: WebMessage
 
@@ -290,7 +290,7 @@ export class WebMessage extends Message {
 
       if (!replyTo) {
         m.to(this.from())
-        m.content(textOrMessage)
+        m.text(textOrMessage)
 
       } else if (this.room()) {
         let mentionList
@@ -301,7 +301,7 @@ export class WebMessage extends Message {
           m.to(replyTo)
           mentionList = '@' + replyTo.name()
         }
-        m.content(mentionList + ' ' + textOrMessage)
+        m.text(mentionList + ' ' + textOrMessage)
       }
     /* tslint:disable:no-use-before-declare */
     } else if (textOrMessage instanceof Message) {
@@ -416,7 +416,7 @@ export class WebMessage extends Message {
     // define magic code `8197` to identify @xxx
     const AT_SEPRATOR = String.fromCharCode(8197)
 
-    const atList = this.content().split(AT_SEPRATOR)
+    const atList = this.text().split(AT_SEPRATOR)
 
     if (atList.length === 0) return contactList
 
@@ -503,7 +503,7 @@ export class WebMessage extends Message {
   }
 
   public async readyMedia(): Promise<this> {
-    log.silly('Message', 'readyMedia()')
+    log.silly('WebMessage', 'readyMedia()')
 
     const puppet = this.puppet as PuppetWeb
 
@@ -549,7 +549,7 @@ export class WebMessage extends Message {
 
             default:
               const e = new Error('ready() unsupported typeApp(): ' + this.typeApp())
-              log.warn('Message', e.message)
+              log.warn('WebMessage', e.message)
               this.dumpRaw()
               throw e
           }
@@ -570,7 +570,10 @@ export class WebMessage extends Message {
 
       if (!url) {
         if (!this.obj.url) {
-          throw new Error('no obj.url')
+          /**
+           * not a support media message, do nothing.
+           */
+          return this
         }
         url = this.obj.url
       }
@@ -578,7 +581,7 @@ export class WebMessage extends Message {
       this.obj.url = url
 
     } catch (e) {
-      log.warn('Message', 'ready() exception: %s', e.message)
+      log.warn('WebMessage', 'ready() exception: %s', e.message)
       Raven.captureException(e)
       throw e
     }
@@ -703,7 +706,7 @@ export class WebMessage extends Message {
    * @returns {Promise<Readable>}
    */
   public async readyStream(): Promise<Readable> {
-    log.verbose('Message', 'readyStream()')
+    log.verbose('WebMessage', 'readyStream()')
 
     /**
      * 1. local file
@@ -727,10 +730,10 @@ export class WebMessage extends Message {
       if (!this.obj.url) {
         throw new Error('no url')
       }
-      log.verbose('Message', 'readyStream() url: %s', this.obj.url)
+      log.verbose('WebMessage', 'readyStream() url: %s', this.obj.url)
       return Misc.urlStream(this.obj.url, cookies)
     } catch (e) {
-      log.warn('Message', 'readyStream() exception: %s', e.stack)
+      log.warn('WebMessage', 'readyStream() exception: %s', e.stack)
       Raven.captureException(e)
       throw e
     }
@@ -814,7 +817,7 @@ export class WebMessage extends Message {
         }
         break
     }
-    log.error('Message', `ext() got unknown type: ${this.type()}`)
+    log.error('WebMessage', `ext() got unknown type: ${this.type()}`)
     return String('.' + this.type())
   }
 
@@ -836,7 +839,7 @@ export class WebMessage extends Message {
     if (!filePath) {
       throw new Error('saveFile() filePath is invalid')
     }
-    log.silly('Message', `saveFile() filePath:'${filePath}'`)
+    log.silly('WebMessage', `saveFile() filePath:'${filePath}'`)
     if (fs.existsSync(filePath)) {
       throw new Error('saveFile() file does exist!')
     }
@@ -845,7 +848,7 @@ export class WebMessage extends Message {
     try {
       readStream = await this.readyStream()
     } catch (e) {
-      log.error('Message', `saveFile() call readyStream() error: ${e.message}`)
+      log.error('WebMessage', `saveFile() call readyStream() error: ${e.message}`)
       throw new Error(`saveFile() call readyStream() error: ${e.message}`)
     }
     await new Promise((resolve, reject) => {
@@ -855,7 +858,7 @@ export class WebMessage extends Message {
         .once('error', reject)
     })
       .catch(e => {
-        log.error('Message', `saveFile() error: ${e.message}`)
+        log.error('WebMessage', `saveFile() error: ${e.message}`)
         throw e
       })
   }

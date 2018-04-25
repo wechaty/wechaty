@@ -30,7 +30,7 @@ import {
   // Contact,
   log,
   Wechaty,
-}           from '../'
+}           from '../src/'
 
 const welcome = `
 =============== Powered by Wechaty ===============
@@ -80,7 +80,7 @@ bot
   const fileHelper = bot.Contact.load('filehelper')
 
   try {
-    logMsg = 'received `friend` event from ' + contact.get('name')
+    logMsg = 'received `friend` event from ' + contact.name()
     fileHelper.say(logMsg)
     console.log(logMsg)
 
@@ -105,7 +105,7 @@ bot
        * 2. Friend Ship Confirmed
        *
        */
-      logMsg = 'friend ship confirmed with ' + contact.get('name')
+      logMsg = 'friend ship confirmed with ' + contact.name()
     }
   } catch (e) {
     logMsg = e.message

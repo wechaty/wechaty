@@ -223,14 +223,14 @@ async function onMessage(
       case MsgType.MICROVIDEO:
       case MsgType.APP:
         log.verbose('PuppetWebEvent', 'onMessage() EMOTICON/IMAGE/VIDEO/VOICE/MICROVIDEO message')
-        m = new MediaMessage(obj)
+        m = new WebMessage(obj)
         m.puppet = this
         break
 
       case MsgType.TEXT:
         if (m.typeSub() === MsgType.LOCATION) {
           log.verbose('PuppetWebEvent', 'onMessage() (TEXT&LOCATION) message')
-          m = new MediaMessage(obj)
+          m = new WebMessage(obj)
         }
         break
     }

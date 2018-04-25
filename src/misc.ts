@@ -25,7 +25,6 @@ import {
 import * as url     from 'url'
 
 import { log }      from './config'
-import { MsgType }  from './message'
 
 export class Misc {
   public static stripHtml(html?: string): string {
@@ -247,22 +246,6 @@ export class Misc {
     const md5sum = crypto.createHash('md5')
     md5sum.update(buffer)
     return md5sum.digest('hex')
-  }
-
-  public static msgType(ext: string): MsgType {
-    switch (ext) {
-      case 'bmp':
-      case 'jpeg':
-      case 'jpg':
-      case 'png':
-        return MsgType.IMAGE
-      case 'gif':
-        return MsgType.EMOTICON
-      case 'mp4':
-        return MsgType.VIDEO
-      default:
-        return MsgType.APP
-    }
   }
 
   // public static mime(ext): string {

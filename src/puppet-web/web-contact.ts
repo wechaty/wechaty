@@ -27,13 +27,7 @@ import {
 import {
   Contact,
   Gender,
-  ContactQueryFilter,
 }                       from '../puppet/contact'
-
-import {
-  // MediaMessage,
-  // PuppetAccessory,
-}                       from '../puppet/'
 
 import Misc             from '../misc'
 
@@ -119,17 +113,17 @@ export class WebContact extends Contact implements Sayable {
    */
   public toString(): string {
     if (!this.obj) {
-      return `Contact<this.id>`
+      return `WebContact<this.id>`
     }
     const obj  = this.obj
     const name = obj.alias || obj.name || this.id
-    return `Contact<${name}>`
+    return `WebContact<${name}>`
   }
 
   /**
    * @private
    */
-  public toStringEx() { return `Contact(${this.obj && this.obj.name}[${this.id}])` }
+  public toStringEx() { return `WebContact(${this.obj && this.obj.name}[${this.id}])` }
 
   /**
    * @private
@@ -182,107 +176,6 @@ export class WebContact extends Contact implements Sayable {
    */
 
   /**
-   * Try to find a contact by filter: {name: string | RegExp} / {alias: string | RegExp}
-   *
-   * Find contact by name or alias, if the result more than one, return the first one.
-   *
-   * @static
-   * @param {ContactQueryFilter} query
-   * @returns {(Promise<Contact | null>)} If can find the contact, return Contact, or return null
-   * @example
-   * const contactFindByName = await Contact.find({ name:"ruirui"} )
-   * const contactFindByAlias = await Contact.find({ alias:"lijiarui"} )
-   */
-  public static async find(query: ContactQueryFilter): Promise<Contact | null> {
-    log.verbose('WebContact', 'find(%s)', JSON.stringify(query))
-
-    const contactList = await this.findAll(query)
-    if (!contactList || !contactList.length) {
-      return null
-    }
-
-    if (contactList.length > 1) {
-      log.warn('WebContact', 'function find(%s) get %d contacts, use the first one by default', JSON.stringify(query), contactList.length)
-    }
-    return contactList[0]
-  }
-
-  /**
-   * Find contact by `name` or `alias`
-   *
-   * If use Contact.findAll() get the contact list of the bot.
-   *
-   * #### definition
-   * - `name`   the name-string set by user-self, should be called name
-   * - `alias`  the name-string set by bot for others, should be called alias
-   *
-   * @static
-   * @param {ContactQueryFilter} [queryArg]
-   * @returns {Promise<Contact[]>}
-   * @example
-   * const contactList = await Contact.findAll()                    // get the contact list of the bot
-   * const contactList = await Contact.findAll({name: 'ruirui'})    // find allof the contacts whose name is 'ruirui'
-   * const contactList = await Contact.findAll({alias: 'lijiarui'}) // find all of the contacts whose alias is 'lijiarui'
-   */
-  public static async findAll(
-    query: ContactQueryFilter = { name: /.*/ },
-  ): Promise<Contact[]> {
-    // log.verbose('Cotnact', 'findAll({ name: %s })', query.name)
-    log.verbose('Cotnact', 'findAll({ %s })',
-                            Object.keys(query)
-                                  .map(k => `${k}: ${query[k]}`)
-                                  .join(', '),
-              )
-
-    if (Object.keys(query).length !== 1) {
-      throw new Error('query only support one key. multi key support is not availble now.')
-    }
-
-    // let filterKey                     = Object.keys(query)[0]
-    // let filterValue: string | RegExp  = query[filterKey]
-
-    // const keyMap = {
-    //   name:   'NickName',
-    //   alias:  'RemarkName',
-    // }
-
-    // filterKey = keyMap[filterKey]
-    // if (!filterKey) {
-    //   throw new Error('unsupport filter key')
-    // }
-
-    // if (!filterValue) {
-    //   throw new Error('filterValue not found')
-    // }
-
-    // /**
-    //  * must be string because we need inject variable value
-    //  * into code as variable namespecialContactList
-    //  */
-    // let filterFunction: string
-
-    // if (filterValue instanceof RegExp) {
-    //   filterFunction = `(function (c) { return ${filterValue.toString()}.test(c.${filterKey}) })`
-    // } else if (typeof filterValue === 'string') {
-    //   filterValue = filterValue.replace(/'/g, '\\\'')
-    //   filterFunction = `(function (c) { return c.${filterKey} === '${filterValue}' })`
-    // } else {
-    //   throw new Error('unsupport name type')
-    // }
-
-    try {
-      const contactList = await this.puppet.contactFindAll(query)
-
-      await Promise.all(contactList.map(c => c.ready()))
-      return contactList
-
-    } catch (e) {
-      log.error('WebContact', 'findAll() rejected: %s', e.message)
-      return [] // fail safe
-    }
-  }
-
-  /**
    * Sent Text to contact
    *
    * @param {string} text
@@ -295,21 +188,20 @@ export class WebContact extends Contact implements Sayable {
    * @param {MediaMessage} mediaMessage
    * @memberof Contact
    */
-  public async say(mediaMessage: MediaMessage): Promise<void>
+  public async say(message: WebMessage): Promise<void>
 
   /**
    * Send Text or Media File to Contact.
    *
-   * @param {(string | MediaMessage)} textOrMedia
+   * @param {(string | MediaMessage)} textOrMessage
    * @returns {Promise<boolean>}
    * @example
    * const contact = await Contact.find({name: 'lijiarui'})         // change 'lijiarui' to any of your contact name in wechat
    * await contact.say('welcome to wechaty!')
    * await contact.say(new MediaMessage(__dirname + '/wechaty.png') // put the filePath you want to send here
    */
-  public async say(textOrMedia: string | MediaMessage): Promise<void> {
-    const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
-    log.verbose('WebContact', 'say(%s)', content)
+  public async say(textOrMessage: string | WebMessage): Promise<void> {
+    log.verbose('WebContact', 'say(%s)', textOrMessage)
 
     const user = this.puppet.self()
 
@@ -317,19 +209,19 @@ export class WebContact extends Contact implements Sayable {
       throw new Error('no user')
     }
     let m
-    if (typeof textOrMedia === 'string') {
+    if (typeof textOrMessage === 'string') {
       m = new WebMessage()
       m.puppet = this.puppet
 
-      m.content(textOrMedia)
-    } else if (textOrMedia instanceof MediaMessage) {
-      m = textOrMedia
+      m.text(textOrMessage)
+    } else if (textOrMessage instanceof WebMessage) {
+      m = textOrMessage
     } else {
       throw new Error('not support args')
     }
     m.from(user)
     m.to(this)
-    log.silly('WebContact', 'say() from: %s to: %s content: %s', user.name(), this.name(), content)
+    log.silly('WebContact', 'say() from: %s to: %s content: %s', user.name(), this.name(), textOrMessage)
 
     return await this.puppet.send(m)
   }
@@ -382,7 +274,7 @@ export class WebContact extends Contact implements Sayable {
   public alias(newAlias?: string|null): Promise<void> | string | null {
     // log.silly('WebContact', 'alias(%s)', newAlias || '')
 
-    if (newAlias === undefined) {
+    if (typeof newAlias === 'undefined') {
       return this.obj && this.obj.alias || null
     }
 
@@ -576,7 +468,7 @@ export class WebContact extends Contact implements Sayable {
     }
 
     try {
-      const rawObj = await this.puppet.getContact(this.id)
+      const rawObj = await (this.puppet as any as PuppetWeb).getContact(this.id) as WebContactRawObj
       log.silly('WebContact', `contactGetter(${this.id}) resolved`)
 
       this.rawObj = rawObj

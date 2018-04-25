@@ -141,7 +141,7 @@ function parseFriendConfirm(content: string): boolean {
 }
 
 async function checkFriendConfirm(m: WebMessage) {
-  const content = m.content()
+  const content = m.text()
   log.silly('PuppetWebFirer', 'fireFriendConfirm(%s)', content)
 
   if (!parseFriendConfirm(content)) {
@@ -201,13 +201,13 @@ async function checkRoomJoin(m: WebMessage): Promise<boolean> {
     return false
   }
 
-  const content = m.content()
+  const text = m.text()
 
   let inviteeList: string[], inviter: string
   try {
-    [inviteeList, inviter] = parseRoomJoin(content)
+    [inviteeList, inviter] = parseRoomJoin(text)
   } catch (e) {
-    log.silly('PuppetWebFirer', 'fireRoomJoin() "%s" is not a join message', content)
+    log.silly('PuppetWebFirer', 'fireRoomJoin() "%s" is not a join message', text)
     return false // not a room join message
   }
   log.silly('PuppetWebFirer', 'fireRoomJoin() inviteeList: %s, inviter: %s',
@@ -338,11 +338,11 @@ function parseRoomLeave(content: string): [string, string] {
  * You removed "Bruce LEE" from the group chat
  */
 async function checkRoomLeave(m: WebMessage): Promise<boolean> {
-  log.verbose('PuppetWebFirer', 'fireRoomLeave(%s)', m.content())
+  log.verbose('PuppetWebFirer', 'fireRoomLeave(%s)', m.text())
 
   let leaver: string, remover: string
   try {
-    [leaver, remover] = parseRoomLeave(m.content())
+    [leaver, remover] = parseRoomLeave(m.text())
   } catch (e) {
     return false
   }
@@ -359,7 +359,7 @@ async function checkRoomLeave(m: WebMessage): Promise<boolean> {
    */
   let leaverContact: WebContact | null, removerContact: WebContact | null
   if (leaver === this.userId) {
-    leaverContact = WebContact.load(this.userId)
+    leaverContact = WebContact.load(this.userId) as WebContact
     leaverContact.puppet = m.puppet
 
     // not sure which is better
@@ -371,7 +371,7 @@ async function checkRoomLeave(m: WebMessage): Promise<boolean> {
     }
 
   } else {
-    removerContact = WebContact.load(this.userId)
+    removerContact = WebContact.load(this.userId) as WebContact
     removerContact.puppet = m.puppet
 
     // not sure which is better
@@ -413,7 +413,7 @@ function parseRoomTopic(content: string): [string, string] {
 async function checkRoomTopic(m: WebMessage): Promise<boolean> {
   let  topic, changer
   try {
-    [topic, changer] = parseRoomTopic(m.content())
+    [topic, changer] = parseRoomTopic(m.text())
   } catch (e) { // not found
     return false
   }
@@ -428,7 +428,7 @@ async function checkRoomTopic(m: WebMessage): Promise<boolean> {
 
   let changerContact: WebContact | null
   if (/^You$/.test(changer) || /^你$/.test(changer)) {
-    changerContact = WebContact.load(this.userId)
+    changerContact = WebContact.load(this.userId) as WebContact
     changerContact.puppet = m.puppet
   } else {
     changerContact = room.member(changer)

@@ -25,9 +25,7 @@ import {
 }                       from '../config'
 
 import Contact          from './contact'
-import {
-  MediaMessage,
-}                       from './media-message'
+import Message          from './message'
 import PuppetAccessory  from './puppet-accessory'
 
 export type RoomEventName = 'join'
@@ -58,7 +56,9 @@ export abstract class Room extends PuppetAccessory implements Sayable {
   /**
    * @private
    */
-  constructor(public id: string) {
+  constructor(
+    public id: string,
+  ) {
     super()
     log.silly('Room', `constructor(${id})`)
   }
@@ -73,15 +73,15 @@ export abstract class Room extends PuppetAccessory implements Sayable {
    */
   public abstract async ready(): Promise<Room>
 
-  public abstract say(mediaMessage: MediaMessage)         : Promise<void>
-  public abstract say(content: string)                    : Promise<void>
-  public abstract say(content: string, replyTo: Contact)  : Promise<void>
-  public abstract say(content: string, replyTo: Contact[]): Promise<void>
-  public abstract say(content: never, ...args: never[])   : Promise<never>
+  public abstract say(message: Message)                 : Promise<void>
+  public abstract say(text: string)                     : Promise<void>
+  public abstract say(text: string, replyTo: Contact)   : Promise<void>
+  public abstract say(text: string, replyTo: Contact[]) : Promise<void>
+  public abstract say(text: never, ...args: never[])    : Promise<never>
   /**
    * Send message inside Room, if set [replyTo], wechaty will mention the contact as well.
    *
-   * @param {(string | MediaMessage)} textOrMedia - Send `text` or `media file` inside Room.
+   * @param {(string | MediaMessage)} textOrMessage - Send `text` or `media file` inside Room.
    * @param {(Contact | Contact[])} [replyTo] - Optional parameter, send content inside Room, and mention @replyTo contact or contactList.
    * @returns {Promise<boolean>}
    * If bot send message successfully, it will return true. If the bot failed to send for blocking or any other reason, it will return false
@@ -99,7 +99,7 @@ export abstract class Room extends PuppetAccessory implements Sayable {
    * const room = await Room.find({name: 'wechaty'})        // change 'wechaty' to any of your room in wechat
    * await room.say('Hello world!', contact)
    */
-  public abstract say(textOrMedia: string | MediaMessage, replyTo?: Contact|Contact[]): Promise<void>
+  public abstract say(textOrMessage: string | Message, replyTo?: Contact|Contact[]): Promise<void>
 
   public on(event: 'leave', listener: (this: Room, leaver: Contact) => void): this
   public on(event: 'join' , listener: (this: Room, inviteeList: Contact[] , inviter: Contact)  => void): this

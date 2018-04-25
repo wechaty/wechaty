@@ -67,6 +67,15 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public state:     StateSwitch
   public watchdog:  Watchdog
 
+  // tslint:disable-next-line:variable-name
+  public Contact:       Contact
+  // tslint:disable-next-line:variable-name
+  public FriendRequest: FriendRequest
+  // tslint:disable-next-line:variable-name
+  public Message:       Message
+  // tslint:disable-next-line:variable-name
+  public Room:          Room
+
   constructor(public options: PuppetOptions) {
     super()
 
@@ -121,7 +130,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   public abstract self() : Contact
 
-  public abstract getContact(id: string): Promise<any>
+  // public abstract getContact(id: string): Promise<any>
 
   /**
    * Message
@@ -154,13 +163,16 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract roomCreate(contactList: Contact[], topic?: string) : Promise<Room>
   public abstract roomDel(room: Room, contact: Contact)              : Promise<void>
   public abstract roomFindAll(filterFunc: RoomQueryFilter)           : Promise<Room[]>
-  public abstract roomTopic(room: Room, topic: string)               : Promise<string | void>
+  public abstract roomTopic(room: Room, topic?: string)              : Promise<string | void>
 
   /**
    * Contact
    */
-  public abstract contactAlias(contact: Contact, alias: string|null) : Promise<void>
-  public abstract contactFindAll(filter: ContactQueryFilter)         : Promise<Contact[]>
+  public abstract contactAlias(contact: Contact)                      : Promise<string>
+  public abstract contactAlias(contact: Contact, alias: string | null): Promise<void>
+  public abstract contactAlias(contact: Contact, alias?: string|null) : Promise<string | void>
+
+  public abstract contactFindAll(filter: ContactQueryFilter)          : Promise<Contact[]>
 }
 
 // export class WechatError extends Error {

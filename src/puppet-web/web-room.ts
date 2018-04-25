@@ -28,9 +28,10 @@ import {
   // RoomEventName,
   RoomMemberQueryName,
   RoomMemberQueryFilter,
-  RoomQueryFilter,
+  // RoomQueryFilter,
 }                         from '../puppet/'
 
+import PuppetWeb          from './puppet-web'
 import {
   WebMessage,
 }                         from './web-message'
@@ -119,7 +120,7 @@ export class WebRoom extends Room {
     try {
       let ttl = 7
       while (ttl--) {
-        const roomRawObj = await this.puppet.getContact(this.id) as WebRoomRawObj
+        const roomRawObj = await (this.puppet as any as PuppetWeb).getContact(this.id) as WebRoomRawObj
 
         const currNum = roomRawObj.MemberList && roomRawObj.MemberList.length || 0
         const prevNum = this.rawObj && this.rawObj.MemberList && this.rawObj.MemberList.length || 0
@@ -158,16 +159,16 @@ export class WebRoom extends Room {
     }
   }
 
-  public say(mediaMessage: MediaMessage)          : Promise<void>
-  public say(content: string)                     : Promise<void>
-  public say(content: string, replyTo: WebContact)   : Promise<void>
-  public say(content: string, replyTo: WebContact[]) : Promise<void>
-  public say(content: never, ...args: never[])    : Promise<never>
+  public say(message: WebMessage)                 : Promise<void>
+  public say(text: string)                        : Promise<void>
+  public say(text: string, replyTo: WebContact)   : Promise<void>
+  public say(text: string, replyTo: WebContact[]) : Promise<void>
+  public say(text: never, ...args: never[])       : Promise<never>
 
   /**
    * Send message inside Room, if set [replyTo], wechaty will mention the contact as well.
    *
-   * @param {(string | MediaMessage)} textOrMedia - Send `text` or `media file` inside Room.
+   * @param {(string | MediaMessage)} textOrMessage - Send `text` or `media file` inside Room.
    * @param {(WebContact | WebContact[])} [replyTo] - Optional parameter, send content inside Room, and mention @replyTo contact or contactList.
    * @returns {Promise<boolean>}
    * If bot send message successfully, it will return true. If the bot failed to send for blocking or any other reason, it will return false
@@ -185,17 +186,16 @@ export class WebRoom extends Room {
    * const room = await Room.find({name: 'wechaty'})        // change 'wechaty' to any of your room in wechat
    * await room.say('Hello world!', contact)
    */
-  public async say(textOrMedia: string | MediaMessage, replyTo?: WebContact|WebContact[]): Promise<void> {
-    const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
+  public async say(textOrMessage: string | WebMessage, replyTo?: WebContact|WebContact[]): Promise<void> {
     log.verbose('WebRoom', 'say(%s, %s)',
-                        content,
+                        textOrMessage,
                         Array.isArray(replyTo)
                         ? replyTo.map(c => c.name()).join(', ')
                         : replyTo ? replyTo.name() : '',
     )
 
     let m
-    if (typeof textOrMedia === 'string') {
+    if (typeof textOrMessage === 'string') {
       m = new WebMessage()
       m.puppet = this.puppet
 
@@ -204,13 +204,13 @@ export class WebRoom extends Room {
       if (replyToList.length > 0) {
         const AT_SEPRATOR = String.fromCharCode(8197)
         const mentionList = replyToList.map(c => '@' + c.name()).join(AT_SEPRATOR)
-        m.content(mentionList + ' ' + content)
+        m.text(mentionList + ' ' + textOrMessage)
       } else {
-        m.content(content)
+        m.text(textOrMessage)
       }
       // m.to(replyToList[0])
     } else
-      m = textOrMedia
+      m = textOrMessage
 
     m.room(this)
 
@@ -735,51 +735,6 @@ export class WebRoom extends Room {
       Raven.captureException(e)
       throw e
     }
-  }
-
-  /**
-   * Find room by topic, return all the matched room
-   *
-   * @static
-   * @param {RoomQueryFilter} [query]
-   * @returns {Promise<WebRoom[]>}
-   * @example
-   * const roomList = await Room.findAll()                    // get the room list of the bot
-   * const roomList = await Room.findAll({name: 'wechaty'})   // find all of the rooms with name 'wechaty'
-   */
-  public static async findAll(query?: RoomQueryFilter): Promise<Room[]> {
-    if (!query) {
-      query = { topic: /.*/ }
-    }
-    log.verbose('WebRoom', 'findAll({ topic: %s })', query.topic)
-
-    try {
-      const roomList = await this.puppet.roomFindAll(query)
-      await Promise.all(roomList.map(room => room.ready()))
-      return roomList
-    } catch (e) {
-      log.verbose('WebRoom', 'findAll() rejected: %s', e.message)
-      Raven.captureException(e)
-      return [] as Room[] // fail safe
-    }
-  }
-
-  /**
-   * Try to find a room by filter: {topic: string | RegExp}. If get many, return the first one.
-   *
-   * @param {RoomQueryFilter} query
-   * @returns {Promise<WebRoom | null>} If can find the room, return Room, or return null
-   */
-  public static async find(query: RoomQueryFilter): Promise<Room | null> {
-    log.verbose('WebRoom', 'find({ topic: %s })', query.topic)
-
-    const roomList = await this.findAll(query)
-    if (!roomList || roomList.length < 1) {
-      return null
-    } else if (roomList.length > 1) {
-      log.warn('WebRoom', 'find() got more than one result, return the 1st one.')
-    }
-    return roomList[0]
   }
 
   /**

@@ -58,7 +58,7 @@ import {
   Room,
   Wechaty,
   log,
-}             from '../'
+}             from '../src/'
 
 const welcome = `
 =============== Powered by Wechaty ===============
@@ -164,7 +164,7 @@ bot
 
   console.log((room ? '[' + room.topic() + ']' : '')
               + '<' + sender.name() + '>'
-              + ':' + message.toStringDigest(),
+              + ':' + message,
   )
 
   if (message.self()) {

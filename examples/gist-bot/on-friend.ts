@@ -27,7 +27,7 @@ import {
   FriendRequest,
   Wechaty,
   // Room,
-}                 from '../../'
+}                 from '../../src/'
 
 export async function onFriend(this: Wechaty, contact: Contact, request?: FriendRequest): Promise<void> {
   try {

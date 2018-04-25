@@ -26,7 +26,7 @@ import {
   config,
   Wechaty,
   log,
-}           from '../../'
+}           from '../../src/'
 
 import { onMessage }  from './on-message'
 import { onFriend }   from './on-friend'

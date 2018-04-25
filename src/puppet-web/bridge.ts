@@ -37,10 +37,12 @@ const retryPromise  = require('retry-promise').default
 import { log }        from '../config'
 import Profile        from '../profile'
 import Misc           from '../misc'
+
 import {
   MediaData,
   MsgRawObj,
-}                     from './schema'
+}                           from './schema'
+import { WebContactRawObj } from './web-contact'
 
 export interface InjectResult {
   code:    number,
@@ -305,9 +307,9 @@ export class Bridge extends EventEmitter {
     }
   }
 
-  public async contactRemark(contactId: string, remark: string|null): Promise<boolean> {
+  public async contactAlias(contactId: string, alias: string|null): Promise<boolean> {
     try {
-      return await this.proxyWechaty('contactRemark', contactId, remark)
+      return await this.proxyWechaty('contactRemark', contactId, alias)
     } catch (e) {
       log.verbose('PuppetWebBridge', 'contactRemark() exception: %s', e.message)
       // Issue #509 return false instead of throw when contact is not a friend.
@@ -494,7 +496,7 @@ export class Bridge extends EventEmitter {
     }
   }
 
-  public async getContact(id: string): Promise<object> {
+  public async getContact(id: string): Promise<WebContactRawObj> {
     if (id !== id) { // NaN
       const err = new Error('NaN! where does it come from?')
       log.error('PuppetWebBridge', 'getContact(NaN): %s', err)

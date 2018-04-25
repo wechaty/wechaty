@@ -22,26 +22,33 @@
 import * as test  from 'blue-tape'
 // import * as sinon from 'sinon'
 
+import cloneClass from 'clone-class'
+
 // import config     from '../src/config'
-import Contact    from '../src/contact'
-import Profile    from '../src/profile'
-import PuppetWeb  from '../src/puppet-web'
+import WebContact from './web-contact'
+
+import Profile    from '../profile'
+import PuppetWeb  from './puppet-web'
 
 // config.puppetInstance(new PuppetWeb({
 //   profile: new Profile(),
 // }))
-Contact.puppet = new PuppetWeb({
-  profile: new Profile(),
-})
 
 test('Contact smoke testing', async t => {
+
+  // tslint:disable-next-line:variable-name
+  const MyContact = cloneClass(WebContact)
+
+  MyContact.puppet = new PuppetWeb({
+    profile: new Profile(),
+  })
+
   /* tslint:disable:variable-name */
   const UserName = '@0bb3e4dd746fdbd4a80546aef66f4085'
   const NickName = 'NickNameTest'
   const RemarkName = 'AliasTest'
 
-  // Mock
-  const mockContactGetter = function (id) {
+  MyContact.puppet['getContact'] = function(id) {
     return new Promise<any>((resolve, reject) => {
       if (id !== UserName) return resolve({})
       setTimeout(() => {
@@ -54,10 +61,10 @@ test('Contact smoke testing', async t => {
     })
   }
 
-  const c = new Contact(UserName)
+  const c = new MyContact(UserName)
 
   t.is(c.id, UserName, 'id/UserName right')
-  const r = await c.ready(mockContactGetter)
+  const r = await c.ready()
   t.is(r.get('id')   , UserName, 'UserName set')
   t.is(r.get('name') , NickName, 'NickName set')
   t.is(r.name(), NickName, 'should get the right name from Contact')

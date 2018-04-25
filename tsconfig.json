@@ -12,6 +12,8 @@
     , "noImplicitReturns": true
     , "noFallthroughCasesInSwitch": true
     , "strictNullChecks": true
+    , "experimentalDecorators": true
+    , "emitDecoratorMetadata": true
 
     , "noImplicitAny": false
     , "noUnusedParameters": false

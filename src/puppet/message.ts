@@ -26,7 +26,7 @@ import {
 }               from '../puppet-web/schema'
 
 import {
-  // log,
+  log,
   Sayable,
 }               from '../config'
 
@@ -46,21 +46,24 @@ import PuppetAccessory  from './puppet-accessory'
  * [Examples/Ding-Dong-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts}
  */
 export abstract class Message extends PuppetAccessory implements Sayable {
+  // tslint:disable-next-line:variable-name
+  public static Type = MsgType
+
   /**
    * @private
    */
-  // constructor(
-  //   readonly fileOrObj?: string | Object,
-  // ) {
-  //   super()
-  //   log.silly('Message', 'constructor()')
-  // }
+  constructor(
+    readonly fileOrObj?: string | Object,
+  ) {
+    super()
+    log.silly('Message', 'constructor()')
+  }
 
   /**
    * @private
    */
   public toString() {
-    if (this.type() === MsgType.TEXT) {
+    if (this.type() === Message.Type.TEXT) {
       return `Message<${this.text()}>`
     } else {
       return `Message<media:${this.filename()}>`
@@ -150,7 +153,7 @@ export abstract class Message extends PuppetAccessory implements Sayable {
    * const bot = new Wechaty()
    * bot
    * .on('message', async m => {
-   *   if (/^ding$/i.test(m.content())) {
+   *   if (/^ding$/i.test(m.text())) {
    *     await m.say('hello world')
    *     console.log('Bot REPLY: hello world')
    *     await m.say(new Message(__dirname + '/wechaty.png'))

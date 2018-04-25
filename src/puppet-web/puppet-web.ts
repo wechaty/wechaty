@@ -58,11 +58,18 @@ import {
   MediaData,
   MsgRawObj,
   MediaType,
+  MsgType,
 }                   from './schema'
 
-import WebContact   from './web-contact'
+import {
+  WebContact,
+  WebContactRawObj,
+}                   from './web-contact'
 import WebMessage   from './web-message'
-import WebRoom      from './web-room'
+import {
+  WebRoom,
+  WebRoomRawObj,
+}                   from './web-room'
 
 export type PuppetFoodType = 'scan' | 'ding'
 export type ScanFoodType   = 'scan' | 'login' | 'logout'
@@ -229,12 +236,11 @@ export class PuppetWeb extends Puppet {
       await this.state.ready('off')
       return
     }
+    this.state.off('pending')
 
     log.verbose('PuppetWeb', 'quit() make watchdog sleep before do quit')
     this.watchdog.sleep()
     this.scanWatchdog.sleep()
-
-    this.state.off('pending')
 
     try {
       await this.bridge.quit()
@@ -586,7 +592,7 @@ export class PuppetWeb extends Puppet {
     // console.log('mediaData.MsgType', mediaData.MsgType)
     // console.log('rawObj.MsgType', message.rawObj && message.rawObj.MsgType)
 
-    mediaData.MsgType = Misc.msgType(message.ext())
+    mediaData.MsgType = this.extToType(message.ext())
     log.silly('PuppetWeb', 'sendMedia() destination: %s, mediaId: %s, MsgType; %s)',
       destinationId,
       mediaData.MediaId,
@@ -607,7 +613,7 @@ export class PuppetWeb extends Puppet {
    * TODO: Test this function if it could work...
    */
   // public async forward(baseData: MsgRawObj, patchData: MsgRawObj): Promise<boolean> {
-  public async forward(message: WebMediaMessage, sendTo: WebContact | WebRoom): Promise<void> {
+  public async forward(message: WebMessage, sendTo: WebContact | WebRoom): Promise<void> {
 
     log.silly('PuppetWeb', 'forward() to: %s, message: %s)',
       sendTo, message.filename(),
@@ -689,13 +695,13 @@ export class PuppetWeb extends Puppet {
       destinationId = to.id
     }
 
-    if (message instanceof WebMediaMessage) {
+    if (message.type() !== MsgType.TEXT) {
       const ret = await this.sendMedia(message)
       if (!ret) {
         throw new Error('sendMedia fail')
       }
     } else {
-      const content = message.content()
+      const content = message.text()
 
       log.silly('PuppetWeb', 'send() destination: %s, content: %s)',
         destinationId,
@@ -759,7 +765,7 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public async getContact(id: string): Promise<object> {
+  public async getContact(id: string): Promise<WebContactRawObj | WebRoomRawObj> {
     try {
       return await this.bridge.getContact(id)
     } catch (e) {
@@ -779,17 +785,27 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public async contactAlias(contact: WebContact, remark: string|null): Promise<void> {
+  public contactAlias(contact: WebContact)                      : Promise<string>
+  public contactAlias(contact: WebContact, alias: string | null): Promise<void>
+
+  public async contactAlias(
+    contact: WebContact,
+    alias?: string | null,
+  ): Promise<string | void> {
+    if (typeof alias === 'undefined') {
+      throw new Error('to be implement')
+    }
+
     try {
-      const ret = await this.bridge.contactRemark(contact.id, remark)
+      const ret = await this.bridge.contactAlias(contact.id, alias)
       if (!ret) {
         log.warn('PuppetWeb', 'contactRemark(%s, %s) bridge.contactAlias() return false',
-                              contact.id, remark,
+                              contact.id, alias,
                             )
         throw new Error('bridge.contactAlias fail')
       }
     } catch (e) {
-      log.warn('PuppetWeb', 'contactRemark(%s, %s) rejected: %s', contact.id, remark, e.message)
+      log.warn('PuppetWeb', 'contactRemark(%s, %s) rejected: %s', contact.id, alias, e.message)
       Raven.captureException(e)
       throw e
     }
@@ -1060,6 +1076,23 @@ export class PuppetWeb extends Puppet {
     this.options.profile.set('cookies', cookieList)
     this.options.profile.save()
   }
+
+  public extToType(ext: string): MsgType {
+    switch (ext) {
+      case 'bmp':
+      case 'jpeg':
+      case 'jpg':
+      case 'png':
+        return MsgType.IMAGE
+      case 'gif':
+        return MsgType.EMOTICON
+      case 'mp4':
+        return MsgType.VIDEO
+      default:
+        return MsgType.APP
+    }
+  }
+
 }
 
 export default PuppetWeb

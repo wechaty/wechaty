@@ -31,7 +31,7 @@ import {
   config,
   Wechaty,
   log,
-}               from '../src/index'
+}               from '../src/'
 
 const BOT_QR_CODE_IMAGE_FILE = path.join(
   __dirname,

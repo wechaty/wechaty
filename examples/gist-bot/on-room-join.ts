@@ -25,11 +25,11 @@
 import {
   Contact,
   Room,
-  Sayable,
-}           from '../../'
+  Wechaty,
+}           from '../../src/'
 
 export async function onRoomJoin(
-  this: Sayable,
+  this: Wechaty,
   room: Room,
   inviteeList: Contact[],
   inviter: Contact,

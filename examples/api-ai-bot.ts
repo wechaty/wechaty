@@ -43,7 +43,7 @@ import { EventEmitter } from 'events'
 import {
   config,
   Wechaty,
-}           from '../'
+}           from '../src/'
 
 // log.level = 'verbose'
 // log.level = 'silly'

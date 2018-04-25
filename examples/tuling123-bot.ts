@@ -39,7 +39,7 @@ import {
   config,
   Wechaty,
   log,
-}           from '../'
+}           from '../src/'
 
 // log.level = 'verbose'
 // log.level = 'silly'

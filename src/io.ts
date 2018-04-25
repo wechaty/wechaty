@@ -286,7 +286,10 @@ export class Io {
         if (user) {
           const loginEvent: IoEvent = {
             name    : 'login',
-            payload : user.obj,
+            payload : {
+              id: user.id,
+              name: user.name(),
+            },
           }
           this.send(loginEvent)
         }
