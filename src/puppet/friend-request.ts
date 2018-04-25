@@ -18,11 +18,12 @@
  *
  */
 
+import Contact          from '../puppet/contact'
+
 import {
   // config,
   // log,
 }                       from './config'
-import Contact          from './contact'
 import PuppetAccessory  from './puppet-accessory'
 
 /**
@@ -40,8 +41,8 @@ export abstract class FriendRequest extends PuppetAccessory {
   public hello: string
   public type: 'send' | 'receive' | 'confirm'
 
-  public abstract send(contact: Contact, hello: string): Promise<boolean>
-  public abstract accept(): Promise<boolean>
+  public abstract send(contact: Contact, hello: string): Promise<void>
+  public abstract accept(): Promise<void>
 
 }
 

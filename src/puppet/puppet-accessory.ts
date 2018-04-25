@@ -1,13 +1,16 @@
 import { EventEmitter } from 'events'
 
-import { log }      from './config'
+import { log }  from '../config'
+
 import { Puppet }   from './puppet'
 
 export abstract class PuppetAccessory extends EventEmitter {
+
   /**
    * 1. Static puppet property
    */
   private static _puppet?: Puppet
+
   public static set puppet(puppet: Puppet) {
     log.silly('PuppetAssessory', 'static set puppet()')
     this._puppet = puppet

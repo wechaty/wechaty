@@ -16,23 +16,23 @@
  *   limitations under the License.
  *   @ignore
  */
+import {
+  Readable,
+}             from 'stream'
 
 import {
   MsgType,
   AppMsgType,
-}                       from './puppet-web/schema'
+}               from '../puppet-web/schema'
 
 import {
+  // log,
   Sayable,
-  log,
-}                       from './config'
+}               from '../config'
 
 import Contact          from './contact'
 import Room             from './room'
 import PuppetAccessory  from './puppet-accessory'
-
-// circuliar dependencies?
-import MediaMessage     from './message-media'
 
 // export type TypeName =  'attachment'
 //                       | 'audio'
@@ -49,44 +49,23 @@ export abstract class Message extends PuppetAccessory implements Sayable {
   /**
    * @private
    */
-  constructor(
-    readonly objOrId: Object | string,
-  ) {
-    super()
-    log.silly('Message', 'constructor()')
-  }
+  // constructor(
+  //   readonly fileOrObj?: string | Object,
+  // ) {
+  //   super()
+  //   log.silly('Message', 'constructor()')
+  // }
 
   /**
    * @private
    */
   public toString() {
-    return `Message`
+    if (this.type() === MsgType.TEXT) {
+      return `Message<${this.text()}>`
+    } else {
+      return `Message<media:${this.filename()}>`
+    }
   }
-
-  public abstract async say(text: string, replyTo?: Contact | Contact[])              : Promise<void>
-  public abstract async say(mediaMessage: MediaMessage, replyTo?: Contact | Contact[]): Promise<void>
-
-  /**
-   * Reply a Text or Media File message to the sender.
-   *
-   * @see {@link https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts|Examples/ding-dong-bot}
-   * @param {(string | MediaMessage)} textOrMedia
-   * @param {(Contact|Contact[])} [replyTo]
-   * @returns {Promise<any>}
-   *
-   * @example
-   * const bot = new Wechaty()
-   * bot
-   * .on('message', async m => {
-   *   if (/^ding$/i.test(m.content())) {
-   *     await m.say('hello world')
-   *     console.log('Bot REPLY: hello world')
-   *     await m.say(new MediaMessage(__dirname + '/wechaty.png'))
-   *     console.log('Bot REPLY: Image')
-   *   }
-   * })
-   */
-  public abstract async say(textOrMedia: string | MediaMessage, replyTo?: Contact|Contact[]): Promise<void>
 
   /**
    * @private
@@ -123,19 +102,63 @@ export abstract class Message extends PuppetAccessory implements Sayable {
   /**
    * Get the content of the message
    *
+   * @deprecated: use `text()` instead
    * @returns {string}
    */
-  public abstract content(): string
+  public content(): string
   /**
+   * @deprecated: use `text()` instead
    * @private
    */
-  public abstract content(content: string): void
+  public content(text: string): void
   /**
    * Get the content of the message
    *
+   * @deprecated: use `text()` instead
    * @returns {string}
    */
-  public abstract content(content?: string): string | void
+  public content(text?: string): string | void {
+    throw new Error('Deprecated. Use `text()` instead of `content()`. See https://github.com/Chatie/wechaty/issues/1163')
+  }
+
+  /**
+   * Get the text content of the message
+   *
+   * @returns {string}
+   */
+  public abstract text(): string
+  /**
+   * @private
+   */
+  public abstract text(text: string): void
+  /**
+   * Get the text content of the message
+   *
+   * @returns {string}
+   */
+  public abstract text(text: string): string | void
+
+  /**
+   * Reply a Text or Media File message to the sender.
+   *
+   * @see {@link https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts|Examples/ding-dong-bot}
+   * @param {(string | Message)} textOrMessage
+   * @param {(Contact|Contact[])} [replyTo]
+   * @returns {Promise<void>}
+   *
+   * @example
+   * const bot = new Wechaty()
+   * bot
+   * .on('message', async m => {
+   *   if (/^ding$/i.test(m.content())) {
+   *     await m.say('hello world')
+   *     console.log('Bot REPLY: hello world')
+   *     await m.say(new Message(__dirname + '/wechaty.png'))
+   *     console.log('Bot REPLY: Image')
+   *   }
+   * })
+   */
+  public abstract async say(textOrMessage: string | Message, replyTo?: Contact|Contact[]): Promise<void>
 
   /**
    * Get the type from the message.
@@ -233,6 +256,45 @@ export abstract class Message extends PuppetAccessory implements Sayable {
    * @returns {(Contact|null)}
    */
   public abstract to(contact?: Contact | string): Contact | Room | null | void
+
+  /**
+   * Get the MediaMessage filename, etc: `how to build a chatbot.pdf`..
+   *
+   * @returns {string}
+   * @example
+   * bot.on('message', async function (m) {
+   *   if (m instanceof MediaMessage) {
+   *     console.log('media message file name is: ' + m.filename())
+   *   }
+   * })
+   */
+  public abstract filename(): string
+
+  /**
+   * Get the MediaMessage file extension, etc: `jpg`, `gif`, `pdf`, `word` ..
+   *
+   * @returns {string}
+   * @example
+   * bot.on('message', async function (m) {
+   *   if (m instanceof MediaMessage) {
+   *     console.log('media message file name extention is: ' + m.ext())
+   *   }
+   * })
+   */
+  public abstract ext(): string
+
+  /**
+   * return the MIME Type of this MediaMessage
+   *
+   */
+  public abstract  mimeType(): string | null
+
+  /**
+   * Get the read stream for attachment file
+   */
+  public abstract async readyStream(): Promise<Readable>
+
+  public abstract async forward(to: Room | Contact): Promise<void>
 
 }
 

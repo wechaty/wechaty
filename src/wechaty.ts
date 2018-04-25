@@ -36,20 +36,20 @@ import {
   VERSION,
   WechatyEvent,
 }                       from './config'
-import Contact          from './contact'
 import {
-  Message,
-  MediaMessage,
 }                       from './message'
 import Profile          from './profile'
-import Puppet           from './puppet'
-import PuppetAccessory  from './puppet-accessory'
+
 import {
+  Contact,
   FriendRequest,
-  PuppetWeb,
-}                       from './puppet-web/'
-import Room             from './room'
-// import Misc           from './misc'
+  Message,
+  Puppet,
+  PuppetAccessory,
+  Room,
+}                       from './puppet/'
+
+import PuppetWeb        from './puppet-web/'
 
 export interface WechatyOptions {
   puppet?:  PuppetName,
@@ -550,9 +550,9 @@ export class Wechaty extends PuppetAccessory implements Sayable {
   /**
    * @private
    */
-  public async send(message: Message | MediaMessage): Promise<boolean> {
+  public async send(message: Message): Promise<void> {
     try {
-      return await this.puppet.send(message)
+      await this.puppet.send(message)
     } catch (e) {
       log.error('Wechaty', 'send() exception: %s', e.message)
       Raven.captureException(e)
@@ -563,12 +563,12 @@ export class Wechaty extends PuppetAccessory implements Sayable {
   /**
    * Send message to filehelper
    *
-   * @param {string} content
+   * @param {string} text
    * @returns {Promise<boolean>}
    */
-  public async say(content: string): Promise<boolean> {
-    log.verbose('Wechaty', 'say(%s)', content)
-    return await this.puppet.say(content)
+  public async say(text: string): Promise<void> {
+    log.verbose('Wechaty', 'say(%s)', text)
+    await this.puppet.say(text)
   }
 
   /**

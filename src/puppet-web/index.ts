@@ -16,14 +16,10 @@
  *   limitations under the License.
  *
  */
-export { Bridge }                           from './bridge'
-export { Event }                            from './event'
-export {
-  PuppetWebFriendRequest as FriendRequest,
-}                                           from './friend-request'
-import { PuppetWeb }                        from './puppet-web'
+import { PuppetWeb }  from './puppet-web'
 
-export default PuppetWeb
 export {
   PuppetWeb,
 }
+
+export default PuppetWeb

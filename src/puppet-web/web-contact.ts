@@ -31,7 +31,7 @@ import {
 }                       from '../puppet/contact'
 
 import {
-  MediaMessage,
+  // MediaMessage,
   // PuppetAccessory,
 }                       from '../puppet/'
 
@@ -107,7 +107,7 @@ export class WebContact extends Contact implements Sayable {
     public readonly id: string,
   ) {
     super(id)
-    log.silly('Contact', `constructor(${id})`)
+    log.silly('WebContact', `constructor(${id})`)
 
     if (typeof id !== 'string') {
       throw new Error('id must be string. found: ' + typeof id)
@@ -136,7 +136,7 @@ export class WebContact extends Contact implements Sayable {
    */
   private parse(rawObj: WebContactRawObj): WebContactObj | null {
     if (!rawObj || !rawObj.UserName) {
-      log.warn('Contact', 'parse() got empty rawObj!')
+      log.warn('WebContact', 'parse() got empty rawObj!')
       // config.puppetInstance().emit('error', e)
       return null
     }
@@ -194,7 +194,7 @@ export class WebContact extends Contact implements Sayable {
    * const contactFindByAlias = await Contact.find({ alias:"lijiarui"} )
    */
   public static async find(query: ContactQueryFilter): Promise<Contact | null> {
-    log.verbose('Contact', 'find(%s)', JSON.stringify(query))
+    log.verbose('WebContact', 'find(%s)', JSON.stringify(query))
 
     const contactList = await this.findAll(query)
     if (!contactList || !contactList.length) {
@@ -202,7 +202,7 @@ export class WebContact extends Contact implements Sayable {
     }
 
     if (contactList.length > 1) {
-      log.warn('Contact', 'function find(%s) get %d contacts, use the first one by default', JSON.stringify(query), contactList.length)
+      log.warn('WebContact', 'function find(%s) get %d contacts, use the first one by default', JSON.stringify(query), contactList.length)
     }
     return contactList[0]
   }
@@ -238,37 +238,37 @@ export class WebContact extends Contact implements Sayable {
       throw new Error('query only support one key. multi key support is not availble now.')
     }
 
-    let filterKey                     = Object.keys(query)[0]
-    let filterValue: string | RegExp  = query[filterKey]
+    // let filterKey                     = Object.keys(query)[0]
+    // let filterValue: string | RegExp  = query[filterKey]
 
-    const keyMap = {
-      name:   'NickName',
-      alias:  'RemarkName',
-    }
+    // const keyMap = {
+    //   name:   'NickName',
+    //   alias:  'RemarkName',
+    // }
 
-    filterKey = keyMap[filterKey]
-    if (!filterKey) {
-      throw new Error('unsupport filter key')
-    }
+    // filterKey = keyMap[filterKey]
+    // if (!filterKey) {
+    //   throw new Error('unsupport filter key')
+    // }
 
-    if (!filterValue) {
-      throw new Error('filterValue not found')
-    }
+    // if (!filterValue) {
+    //   throw new Error('filterValue not found')
+    // }
 
-    /**
-     * must be string because we need inject variable value
-     * into code as variable namespecialContactList
-     */
-    let filterFunction: string
+    // /**
+    //  * must be string because we need inject variable value
+    //  * into code as variable namespecialContactList
+    //  */
+    // let filterFunction: string
 
-    if (filterValue instanceof RegExp) {
-      filterFunction = `(function (c) { return ${filterValue.toString()}.test(c.${filterKey}) })`
-    } else if (typeof filterValue === 'string') {
-      filterValue = filterValue.replace(/'/g, '\\\'')
-      filterFunction = `(function (c) { return c.${filterKey} === '${filterValue}' })`
-    } else {
-      throw new Error('unsupport name type')
-    }
+    // if (filterValue instanceof RegExp) {
+    //   filterFunction = `(function (c) { return ${filterValue.toString()}.test(c.${filterKey}) })`
+    // } else if (typeof filterValue === 'string') {
+    //   filterValue = filterValue.replace(/'/g, '\\\'')
+    //   filterFunction = `(function (c) { return c.${filterKey} === '${filterValue}' })`
+    // } else {
+    //   throw new Error('unsupport name type')
+    // }
 
     try {
       const contactList = await this.puppet.contactFindAll(query)
@@ -277,7 +277,7 @@ export class WebContact extends Contact implements Sayable {
       return contactList
 
     } catch (e) {
-      log.error('Contact', 'findAll() rejected: %s', e.message)
+      log.error('WebContact', 'findAll() rejected: %s', e.message)
       return [] // fail safe
     }
   }
@@ -309,7 +309,7 @@ export class WebContact extends Contact implements Sayable {
    */
   public async say(textOrMedia: string | MediaMessage): Promise<void> {
     const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
-    log.verbose('Contact', 'say(%s)', content)
+    log.verbose('WebContact', 'say(%s)', content)
 
     const user = this.puppet.self()
 
@@ -329,7 +329,7 @@ export class WebContact extends Contact implements Sayable {
     }
     m.from(user)
     m.to(this)
-    log.silly('Contact', 'say() from: %s to: %s content: %s', user.name(), this.name(), content)
+    log.silly('WebContact', 'say() from: %s to: %s content: %s', user.name(), this.name(), content)
 
     return await this.puppet.send(m)
   }
@@ -380,7 +380,7 @@ export class WebContact extends Contact implements Sayable {
    * }
    */
   public alias(newAlias?: string|null): Promise<void> | string | null {
-    // log.silly('Contact', 'alias(%s)', newAlias || '')
+    // log.silly('WebContact', 'alias(%s)', newAlias || '')
 
     if (newAlias === undefined) {
       return this.obj && this.obj.alias || null
@@ -393,11 +393,11 @@ export class WebContact extends Contact implements Sayable {
       if (this.obj) {
         this.obj.alias = newAlias
       } else {
-        log.error('Contact', 'alias() without this.obj?')
+        log.error('WebContact', 'alias() without this.obj?')
       }
     })
     .catch(e => {
-      log.error('Contact', 'alias(%s) rejected: %s', newAlias, e.message)
+      log.error('WebContact', 'alias(%s) rejected: %s', newAlias, e.message)
       Raven.captureException(e)
     })
 
@@ -510,7 +510,7 @@ export class WebContact extends Contact implements Sayable {
    * log.info('Bot', 'Contact: %s: %s with avatar file: %s', contact.weixin(), contact.name(), avatarFileName)
    */
   public async avatar(): Promise<NodeJS.ReadableStream> {
-    log.verbose('Contact', 'avatar()')
+    log.verbose('WebContact', 'avatar()')
 
     if (!this.obj) {
       throw new Error('Can not get avatar: no this.obj!')
@@ -522,11 +522,11 @@ export class WebContact extends Contact implements Sayable {
       const hostname = await (this.puppet as any as PuppetWeb).hostname()
       const avatarUrl = `http://${hostname}${this.obj.avatar}&type=big` // add '&type=big' to get big image
       const cookies = await (this.puppet as any as PuppetWeb).cookies()
-      log.silly('Contact', 'avatar() url: %s', avatarUrl)
+      log.silly('WebContact', 'avatar() url: %s', avatarUrl)
 
       return Misc.urlStream(avatarUrl, cookies)
     } catch (err) {
-      log.warn('Contact', 'avatar() exception: %s', err.stack)
+      log.warn('WebContact', 'avatar() exception: %s', err.stack)
       Raven.captureException(err)
       throw err
     }
@@ -564,8 +564,8 @@ export class WebContact extends Contact implements Sayable {
   /**
    * @private
    */
-  public async ready(contactGetter?: (id: string) => Promise<WebContactRawObj>): Promise<this> {
-    // log.silly('Contact', 'ready(' + (contactGetter ? typeof contactGetter : '') + ')')
+  public async ready(): Promise<this> {
+    // log.silly('WebContact', 'ready(' + (contactGetter ? typeof contactGetter : '') + ')')
     if (!this.id) {
       const e = new Error('ready() call on an un-inited contact')
       throw e
@@ -575,24 +575,17 @@ export class WebContact extends Contact implements Sayable {
       return Promise.resolve(this)
     }
 
-    if (!contactGetter) {
-      log.silly('Contact', 'get contact via ' + /* config.puppetInstance() */ this.puppet.constructor.name)
-      contactGetter = /* config.puppetInstance() */ this.puppet
-                            .getContact.bind(/* config.puppetInstance() */ this.puppet)
-    }
-    if (!contactGetter) {
-      throw new Error('no contatGetter')
-    }
-
     try {
-      const rawObj = await contactGetter(this.id)
-      log.silly('Contact', `contactGetter(${this.id}) resolved`)
+      const rawObj = await this.puppet.getContact(this.id)
+      log.silly('WebContact', `contactGetter(${this.id}) resolved`)
+
       this.rawObj = rawObj
       this.obj    = this.parse(rawObj)
+
       return this
 
     } catch (e) {
-      log.error('Contact', `contactGetter(${this.id}) exception: %s`, e.message)
+      log.error('WebContact', `contactGetter(${this.id}) exception: %s`, e.message)
       Raven.captureException(e)
       throw e
     }
@@ -647,13 +640,13 @@ export class WebContact extends Contact implements Sayable {
   public weixin(): string | null {
     const wxId = this.obj && this.obj.weixin || null
     if (!wxId) {
-      log.verbose('Contact', `weixin() is not able to always work, it's limited by Tencent API`)
-      log.verbose('Contact', 'weixin() If you want to track a contact between sessions, see FAQ at')
-      log.verbose('Contact', 'https://github.com/Chatie/wechaty/wiki/FAQ#1-how-to-get-the-permanent-id-for-a-contact')
+      log.verbose('WebContact', `weixin() is not able to always work, it's limited by Tencent API`)
+      log.verbose('WebContact', 'weixin() If you want to track a contact between sessions, see FAQ at')
+      log.verbose('WebContact', 'https://github.com/Chatie/wechaty/wiki/FAQ#1-how-to-get-the-permanent-id-for-a-contact')
     }
     return wxId
   }
 
 }
 
-export default Contact
+export default WebContact

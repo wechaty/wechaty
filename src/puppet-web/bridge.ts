@@ -420,7 +420,7 @@ export class Bridge extends EventEmitter {
     }
   }
 
-  public async send(toUserName: string, content: string): Promise<boolean> {
+  public async send(toUserName: string, content: string): Promise<void> {
     if (!toUserName) {
       throw new Error('UserName not found')
     }
@@ -429,7 +429,10 @@ export class Bridge extends EventEmitter {
     }
 
     try {
-      return await this.proxyWechaty('send', toUserName, content)
+      const ret = await this.proxyWechaty('send', toUserName, content)
+      if (ret) {
+        throw new Error('send fail')
+      }
     } catch (e) {
       log.error('PuppetWebBridge', 'send() exception: %s', e.message)
       throw e

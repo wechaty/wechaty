@@ -21,9 +21,8 @@ import {
   log,
   Sayable,
 }                       from '../config'
-import {
-  MediaMessage,
-}                       from './media-message'
+
+import Message          from './message'
 import PuppetAccessory  from './puppet-accessory'
 
 /**
@@ -176,26 +175,26 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
   /**
    * Send Media File to Contact
    *
-   * @param {MediaMessage} mediaMessage
+   * @param {Message} Message
    * @memberof Contact
    */
-  public abstract async say(mediaMessage: MediaMessage): Promise<void>
+  public abstract async say(message: Message): Promise<void>
 
   /**
    * Send Text or Media File to Contact.
    *
-   * @param {(string | MediaMessage)} textOrMedia
+   * @param {(string | Message)} textOrMessage
    * @returns {Promise<void>}
    * @example
    * const contact = await Contact.find({name: 'lijiarui'})         // change 'lijiarui' to any of your contact name in wechat
    * try {
    *   await contact.say('welcome to wechaty!')
-   *   await contact.say(new MediaMessage(__dirname + '/wechaty.png') // put the filePath you want to send here
+   *   await contact.say(new Message(__dirname + '/wechaty.png') // put the filePath you want to send here
    * } catch (e) {
    *   console.error(e)
    * }
    */
-  public abstract async say(textOrMedia: string | MediaMessage): Promise<void>
+  public abstract async say(textOrMessage: string | Message): Promise<void>
 
   /**
    * Get the name from a contact
@@ -334,6 +333,11 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
    * @private
    */
   public abstract async ready(): Promise<this>
+
+  /**
+   * @private
+   */
+  public abstract isReady(): boolean
 
   /**
    * Check if contact is self

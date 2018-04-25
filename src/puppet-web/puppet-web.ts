@@ -29,13 +29,13 @@ import {
 }                   from 'watchdog'
 
 import {
-  Contact,
-  Message,
-  MediaMessage,
+  ContactQueryFilter,
+
   Puppet,
   PuppetOptions,
-  Room,
+
   RoomQueryFilter,
+
   ScanData,
 }                   from '../puppet/'
 
@@ -61,10 +61,7 @@ import {
 }                   from './schema'
 
 import WebContact   from './web-contact'
-import {
-  // WebMessage,
-  WebMediaMessage,
-}                   from './web-message'
+import WebMessage   from './web-message'
 import WebRoom      from './web-room'
 
 export type PuppetFoodType = 'scan' | 'ding'
@@ -304,11 +301,11 @@ export class PuppetWeb extends Puppet {
   /**
    * get self contact
    */
-  public self(): Contact {
+  public self(): WebContact {
     log.verbose('PuppetWeb', 'self()')
 
     if (this.user) {
-      return this.user
+      return this.user as WebContact
     }
     throw new Error('PuppetWeb.self() no this.user')
   }
@@ -325,7 +322,7 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  private async uploadMedia(mediaMessage: WebMediaMessage, toUserName: string): Promise<MediaData> {
+  private async uploadMedia(mediaMessage: WebMessage, toUserName: string): Promise<MediaData> {
     if (!mediaMessage)
       throw new Error('require mediaMessage')
 
@@ -545,7 +542,7 @@ export class PuppetWeb extends Puppet {
     return Object.assign(mediaData, { MediaId: mediaId as string })
   }
 
-  public async sendMedia(message: WebMediaMessage): Promise<boolean> {
+  public async sendMedia(message: WebMessage): Promise<boolean> {
     const to   = message.to()
     const room = message.room()
 
@@ -610,7 +607,7 @@ export class PuppetWeb extends Puppet {
    * TODO: Test this function if it could work...
    */
   // public async forward(baseData: MsgRawObj, patchData: MsgRawObj): Promise<boolean> {
-  public async forward(message: WebMediaMessage, sendTo: Contact | WebRoom): Promise<void> {
+  public async forward(message: WebMediaMessage, sendTo: WebContact | WebRoom): Promise<void> {
 
     log.silly('PuppetWeb', 'forward() to: %s, message: %s)',
       sendTo, message.filename(),
@@ -643,7 +640,7 @@ export class PuppetWeb extends Puppet {
       throw new Error('forward() Due to webWx restrictions, more than 25MB of files can not be downloaded and can not be forwarded.')
     }
 
-    newMsg.FromUserName         = this.user.id || ''
+    newMsg.FromUserName         = this.user && this.user.id || ''
     newMsg.isTranspond          = true
     newMsg.MsgIdBeforeTranspond = m.MsgIdBeforeTranspond || m.MsgId
     newMsg.MMSourceMsgId        = m.MsgId
@@ -677,7 +674,7 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-   public async send(message: Message | MediaMessage): Promise<void> {
+   public async send(message: WebMessage): Promise<void> {
     const to   = message.to()
     const room = message.room()
 
@@ -719,18 +716,18 @@ export class PuppetWeb extends Puppet {
    * Bot say...
    * send to `self` for notice / log
    */
-  public async say(content: string): Promise<void> {
+  public async say(text: string): Promise<void> {
     if (!this.logonoff()) {
       throw new Error('can not say before login')
     }
 
-    if (!content) {
-      log.warn('PuppetWeb', 'say(%s) can not say nothing', content)
+    if (!text) {
+      log.warn('PuppetWeb', 'say(%s) can not say nothing', text)
       return
     }
 
     if (!this.user) {
-      log.warn('PuppetWeb', 'say(%s) can not say because no user', content)
+      log.warn('PuppetWeb', 'say(%s) can not say because no user', text)
       this.emit('error', new Error('no this.user for PuppetWeb'))
       return
     }
@@ -740,7 +737,7 @@ export class PuppetWeb extends Puppet {
     // m.content(content)
 
     // return await this.send(m)
-    return await this.user.say(content)
+    return await this.user.say(text)
   }
 
   /**
@@ -782,7 +779,7 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public async contactAlias(contact: Contact, remark: string|null): Promise<void> {
+  public async contactAlias(contact: WebContact, remark: string|null): Promise<void> {
     try {
       const ret = await this.bridge.contactRemark(contact.id, remark)
       if (!ret) {
@@ -798,11 +795,62 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public async contactFindAll(filterFunc: string): Promise<Contact[]> {
+  private contactQueryFilterToFunctionString(
+    query: ContactQueryFilter,
+  ): string {
+    log.verbose('PuppetWeb', 'contactQueryFilterToFunctionString({ %s })',
+                            Object.keys(query)
+                                  .map(k => `${k}: ${query[k]}`)
+                                  .join(', '),
+              )
+
+    if (Object.keys(query).length !== 1) {
+      throw new Error('query only support one key. multi key support is not availble now.')
+    }
+
+    let filterKey                     = Object.keys(query)[0]
+    let filterValue: string | RegExp  = query[filterKey]
+
+    const keyMap = {
+      name:   'NickName',
+      alias:  'RemarkName',
+    }
+
+    filterKey = keyMap[filterKey]
+    if (!filterKey) {
+      throw new Error('unsupport filter key')
+    }
+
+    if (!filterValue) {
+      throw new Error('filterValue not found')
+    }
+
+    /**
+     * must be string because we need inject variable value
+     * into code as variable namespecialContactList
+     */
+    let filterFunction: string
+
+    if (filterValue instanceof RegExp) {
+      filterFunction = `(function (c) { return ${filterValue.toString()}.test(c.${filterKey}) })`
+    } else if (typeof filterValue === 'string') {
+      filterValue = filterValue.replace(/'/g, '\\\'')
+      filterFunction = `(function (c) { return c.${filterKey} === '${filterValue}' })`
+    } else {
+      throw new Error('unsupport name type')
+    }
+
+    return filterFunction
+  }
+
+  public async contactFindAll(query: ContactQueryFilter): Promise<WebContact[]> {
+
+    const filterFunc = this.contactQueryFilterToFunctionString(query)
+
     try {
       const idList = await this.bridge.contactFind(filterFunc)
       return idList.map(id => {
-        const c = Contact.load(id)
+        const c = WebContact.load(id) as WebContact
         c.puppet = this
         return c
       })
@@ -815,7 +863,7 @@ export class PuppetWeb extends Puppet {
 
   public async roomFindAll(
     query: RoomQueryFilter = { topic: /.*/ },
-  ): Promise<Room[]> {
+  ): Promise<WebRoom[]> {
 
     let topicFilter = query.topic
 
@@ -837,7 +885,7 @@ export class PuppetWeb extends Puppet {
     try {
       const idList = await this.bridge.roomFind(filterFunction)
       return idList.map(id => {
-        const r = WebRoom.load(id)
+        const r = WebRoom.load(id) as WebRoom
         r.puppet = this
         return r
       })
@@ -848,7 +896,7 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public async roomDel(room: WebRoom, contact: Contact): Promise<void> {
+  public async roomDel(room: WebRoom, contact: WebContact): Promise<void> {
     const roomId    = room.id
     const contactId = contact.id
     try {
@@ -860,7 +908,7 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public async roomAdd(room: WebRoom, contact: Contact): Promise<void> {
+  public async roomAdd(room: WebRoom, contact: WebContact): Promise<void> {
     const roomId    = room.id
     const contactId = contact.id
     try {
@@ -887,7 +935,7 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public async roomCreate(contactList: Contact[], topic: string): Promise<Room> {
+  public async roomCreate(contactList: WebContact[], topic: string): Promise<WebRoom> {
     if (!contactList || ! contactList.map) {
       throw new Error('contactList not found')
     }
@@ -899,7 +947,7 @@ export class PuppetWeb extends Puppet {
       if (!roomId) {
         throw new Error('PuppetWeb.roomCreate() roomId "' + roomId + '" not found')
       }
-      const r = WebRoom.load(roomId)
+      const r = WebRoom.load(roomId) as WebRoom
       r.puppet = this
       return r
 
@@ -913,7 +961,7 @@ export class PuppetWeb extends Puppet {
   /**
    * FriendRequest
    */
-  public async friendRequestSend(contact: Contact, hello: string): Promise<void> {
+  public async friendRequestSend(contact: WebContact, hello: string): Promise<void> {
     if (!contact) {
       throw new Error('contact not found')
     }
@@ -927,7 +975,7 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public async friendRequestAccept(contact: Contact, ticket: string): Promise<void> {
+  public async friendRequestAccept(contact: WebContact, ticket: string): Promise<void> {
     if (!contact || !ticket) {
       throw new Error('contact or ticket not found')
     }

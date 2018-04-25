@@ -21,8 +21,9 @@
 import * as test  from 'blue-tape'
 // import * as sinon from 'sinon'
 
-import Profile    from './profile'
-import PuppetWeb  from './puppet-web'
+import PuppetWeb  from '../puppet-web/'
+
+import Profile    from '../profile'
 
 test('Puppet smoke testing', async t => {
   const profile = new Profile(Math.random().toString(36).substr(2, 5))

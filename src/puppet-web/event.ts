@@ -23,14 +23,12 @@ import {
 import {
   log,
 }                 from '../config'
-import Contact    from '../contact'
-import {
-  Message,
-  MediaMessage,
-}                 from '../message'
 import {
   ScanData,
-}                 from '../puppet'
+}                 from '../puppet/'
+
+import WebContact from './web-contact'
+import WebMessage from './web-message'
 
 import Firer      from './firer'
 import PuppetWeb  from './puppet-web'
@@ -77,9 +75,9 @@ async function onScan(this: PuppetWeb, data: ScanData): Promise<void> {
   if (this.user) {
     log.verbose('PuppetWebEvent', 'onScan() there has user when got a scan event. emit logout and set it to null')
 
-    const bak = this.user || this.userId || ''
-    this.user = this.userId = undefined
-    this.emit('logout', bak)
+    const currentUser = this.user
+    this.user = undefined
+    this.emit('logout', currentUser)
   }
 
   // feed watchDog a `scan` type of food
@@ -95,8 +93,8 @@ function onLog(data: any): void {
   log.silly('PuppetWebEvent', 'onLog(%s)', data)
 }
 
-async function onLogin(this: PuppetWeb, memo: string, ttl = 30): Promise<void> {
-  log.verbose('PuppetWebEvent', 'onLogin(%s, %d)', memo, ttl)
+async function onLogin(this: PuppetWeb, note: string, ttl = 30): Promise<void> {
+  log.verbose('PuppetWebEvent', 'onLogin(%s, %d)', note, ttl)
 
   const TTL_WAIT_MILLISECONDS = 1 * 1000
   if (ttl <= 0) {
@@ -107,14 +105,14 @@ async function onLogin(this: PuppetWeb, memo: string, ttl = 30): Promise<void> {
 
   if (this.state.off()) {
     log.verbose('PuppetWebEvent', 'onLogin(%s, %d) state.off()=%s, NOOP',
-                                  memo, ttl, this.state.off())
+                                  note, ttl, this.state.off())
     return
   }
 
   this.scanInfo = null
 
-  if (this.userId) {
-    log.warn('PuppetWebEvent', 'onLogin(%s) userId had already set: "%s"', memo, this.userId)
+  if (this.user) {
+    log.warn('PuppetWebEvent', 'onLogin(%s) user had already set: "%s"', note, this.user)
   }
 
   try {
@@ -123,18 +121,18 @@ async function onLogin(this: PuppetWeb, memo: string, ttl = 30): Promise<void> {
      *
      * issue #772: this.bridge might not inited if the 'login' event fired too fast(because of auto login)
      */
-    this.userId = await this.bridge.getUserName()
+    const userId = await this.bridge.getUserName()
 
-    if (!this.userId) {
+    if (!userId) {
       log.verbose('PuppetWebEvent', 'onLogin() browser not fully loaded(ttl=%d), retry later', ttl)
       const html = await this.bridge.innerHTML()
       log.silly('PuppetWebEvent', 'onLogin() innerHTML: %s', html.substr(0, 500))
-      setTimeout(onLogin.bind(this, memo, ttl - 1), TTL_WAIT_MILLISECONDS)
+      setTimeout(onLogin.bind(this, note, ttl - 1), TTL_WAIT_MILLISECONDS)
       return
     }
 
-    log.silly('PuppetWebEvent', 'bridge.getUserName: %s', this.userId)
-    this.user = Contact.load(this.userId)
+    log.silly('PuppetWebEvent', 'bridge.getUserName: %s', userId)
+    this.user = WebContact.load(userId)
     this.user.puppet = this
 
     await this.user.ready()
@@ -168,20 +166,21 @@ async function onLogin(this: PuppetWeb, memo: string, ttl = 30): Promise<void> {
 function onLogout(this: PuppetWeb, data) {
   log.verbose('PuppetWebEvent', 'onLogout(%s)', data)
 
-  if (!this.user && !this.userId) {
-    log.warn('PuppetWebEvent', 'onLogout() without this.user or userId initialized')
-  }
+  const currentUser = this.user
+  this.user = undefined
 
-  const bak = this.user || this.userId || ''
-  this.userId = this.user = undefined
-  this.emit('logout', bak)
+  if (currentUser) {
+    this.emit('logout', currentUser)
+  } else {
+    log.error('PuppetWebEvent', 'onLogout() without this.user initialized')
+  }
 }
 
 async function onMessage(
   this: PuppetWeb,
   obj:  MsgRawObj,
 ): Promise<void> {
-  let m = new Message(obj)
+  let m = new WebMessage(obj)
   m.puppet = this
 
   try {
@@ -237,25 +236,12 @@ async function onMessage(
     }
 
     await m.ready()
-    await m.from().ready()
-
-    const to   = m.to()
-    const room = m.room()
-    if (to) {
-      await to.ready()
-    }
-    if (room) {
-      await room.ready()
-    }
-
     this.emit('message', m)
 
   } catch (e) {
     log.error('PuppetWebEvent', 'onMessage() exception: %s', e.stack)
     throw e
   }
-
-  return
 }
 
 async function onUnload(this: PuppetWeb): Promise<void> {

@@ -29,41 +29,41 @@
 /* tslint:disable:no-var-requires */
 const retryPromise  = require('retry-promise').default
 
-import { Contact }    from '../contact'
 import {
   // config,
   log,
 }                     from '../config'
-import FriendRequest  from '../friend-request'
+import FriendRequest  from '../puppet/friend-request'
 
 import {
   RecommendInfo,
 }                     from './schema'
+import WebContact     from './web-contact'
 
 /**
  * @alias FriendRequest
  */
-export class PuppetWebFriendRequest extends FriendRequest {
+export class WebFriendRequest extends FriendRequest {
 
   public info: RecommendInfo
 
   private ticket: string
 
   constructor() {
-    log.verbose('PuppetWebFriendRequest', 'constructor()')
+    log.verbose('WebFriendRequest', 'constructor()')
     super()
   }
 
   public receive(info: RecommendInfo): void {
-    log.verbose('PuppetWebFriendRequest', 'receive(%s)', info)
+    log.verbose('WebFriendRequest', 'receive(%s)', info)
 
     if (!info || !info.UserName) {
       throw new Error('not valid RecommendInfo: ' + info)
     }
     this.info       = info
 
-    const contact   = Contact.load(info.UserName)
-    contact.puppet = this.puppet
+    const contact   = WebContact.load(info.UserName)
+    contact.puppet  = this.puppet
 
     this.contact    = contact
     this.hello      = info.Content
@@ -79,8 +79,8 @@ export class PuppetWebFriendRequest extends FriendRequest {
     return
   }
 
-  public confirm(contact: Contact): void {
-    log.verbose('PuppetWebFriendRequest', 'confirm(%s)', contact)
+  public confirm(contact: WebContact): void {
+    log.verbose('WebFriendRequest', 'confirm(%s)', contact)
 
     if (!contact) {
       throw new Error('contact not found')
@@ -91,7 +91,7 @@ export class PuppetWebFriendRequest extends FriendRequest {
 
   /**
    * Send a new friend request
-   * @param {Contact} contact
+   * @param {WebContact} contact
    * @param {string} [hello='Hi']
    * @returns {Promise<boolean>} Return a Promise, true for accept successful, false for failure.
    * @example
@@ -99,37 +99,35 @@ export class PuppetWebFriendRequest extends FriendRequest {
    * const request = new FriendRequest()
    * request.send(from, 'hello~')
    */
-  public async send(contact: Contact, hello = 'Hi'): Promise<boolean> {
-    log.verbose('PuppetWebFriendRequest', 'send(%s)', contact)
+  public async send(contact: WebContact, hello = 'Hi'): Promise<void> {
+    log.verbose('WebFriendRequest', 'send(%s)', contact)
 
     if (!contact) {
       throw new Error('contact not found')
     }
     this.contact  = contact
-    this.type       = 'send'
+    this.type     = 'send'
 
     if (hello) {
       this.hello = hello
     }
 
-    return this.puppet // config.puppetInstance()
-                .friendRequestSend(contact, hello)
+    await this.puppet.friendRequestSend(contact, hello)
   }
 
   /**
    * Accept a friend request
    *
-   * @returns {Promise<boolean>} Return a Promise, true for accept successful, false for failure.
+   * @returns {Promise<void>} Return a Promise, true for accept successful, false for failure.
    */
-  public async accept(): Promise<boolean> {
+  public async accept(): Promise<void> {
     log.verbose('FriendRequest', 'accept() %s', this.contact)
 
     if (this.type !== 'receive') {
       throw new Error('request is not a `receive` type. it is a ' + this.type + ' type')
     }
 
-    const ret = await this.puppet // config.puppetInstance()
-                          .friendRequestAccept(this.contact, this.ticket)
+    await this.puppet.friendRequestAccept(this.contact, this.ticket)
 
     const max = 20
     const backoff = 300
@@ -141,23 +139,22 @@ export class PuppetWebFriendRequest extends FriendRequest {
     // refresh to wait contact ready
 
     await retryPromise({ max: max, backoff: backoff }, async (attempt: number) => {
-      log.silly('PuppetWebFriendRequest', 'accept() retryPromise() attempt %d with timeout %d', attempt, timeout)
+      log.silly('WebFriendRequest', 'accept() retryPromise() attempt %d with timeout %d', attempt, timeout)
 
       await this.contact.ready()
 
-      if (this.contact.isReady()) {
-        log.verbose('PuppetWebFriendRequest', 'accept() with contact %s ready()', this.contact.name())
+      if ((this.contact as WebContact).isReady()) {
+        log.verbose('WebFriendRequest', 'accept() with contact %s ready()', this.contact.name())
         return
       }
       throw new Error('FriendRequest.accept() content.ready() not ready')
 
     }).catch( e => {
-      log.warn('PuppetWebFriendRequest', 'accept() rejected for contact %s because %s', this.contact, e && e.message || e)
+      log.warn('WebFriendRequest', 'accept() rejected for contact %s because %s', this.contact, e && e.message || e)
     })
 
-    return ret
   }
 
 }
 
-export default PuppetWebFriendRequest
+export default WebFriendRequest

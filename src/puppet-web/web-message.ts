@@ -18,38 +18,35 @@
  */
 import * as fs    from 'fs'
 import * as path  from 'path'
+import * as mime  from 'mime'
 import {
   Readable,
 }                 from 'stream'
 
-import * as mime  from 'mime'
-
 import {
-  // config,
   Raven,
-  Sayable,
   log,
-}                       from './config'
+}                       from '../config'
+import Message          from '../puppet/message'
+import Misc             from '../misc'
 
-import Contact          from './contact'
-import Room             from './room'
-import Misc             from './misc'
-import PuppetAccessory  from './puppet-accessory'
-
-import PuppetWeb  from './puppet-web/puppet-web'
-import Bridge     from './puppet-web/bridge'
+import PuppetWeb  from './puppet-web'
+import WebContact from './web-contact'
+import WebRoom    from './web-room'
 
 import {
   AppMsgType,
   MsgObj,
   MsgRawObj,
   MsgType,
-}                 from './puppet-web/schema'
+}                 from './schema'
 
 // export type TypeName =  'attachment'
 //                       | 'audio'
 //                       | 'image'
 //                       | 'video'
+
+export type ParsedPath = Partial<path.ParsedPath>
 
 /**
  * All wechat messages will be encapsulated as a Message.
@@ -57,17 +54,7 @@ import {
  * `Message` is `Sayable`,
  * [Examples/Ding-Dong-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts}
  */
-export class Message extends PuppetAccessory implements Sayable {
-  /**
-   * @private
-   */
-  public static counter = 0
-
-  /**
-   * @private
-   */
-  public _counter: number
-
+export class WebMessage extends Message {
   /**
    * @private
    */
@@ -76,30 +63,36 @@ export class Message extends PuppetAccessory implements Sayable {
   /**
    * @private
    */
-  public obj = <MsgObj>{}
+  public obj:     MsgObj
+  public rawObj?: MsgRawObj
+
+  private parsedPath?:  ParsedPath
 
   /**
    * @private
    */
-  public filename(): string {
-    throw Error('not a media message')
-  }
-
-  /**
-   * @private
-   */
-  constructor(public rawObj?: MsgRawObj) {
+  constructor(
+    fileOrObj?: string | MsgRawObj,
+  ) {
     super()
-    this._counter = Message.counter++
-    log.silly('Message', 'constructor() SN:%d', this._counter)
+    log.silly('WebMessage', 'constructor()')
 
-    if (typeof rawObj === 'string') {
-      this.rawObj = JSON.parse(rawObj)
+    this.obj = {} as MsgObj
+
+    if (!fileOrObj) {
+      this.rawObj = <MsgRawObj>{}
+      return
     }
 
-    this.rawObj = rawObj = rawObj || <MsgRawObj>{}
-    this.obj = this.parse(rawObj)
-    this.id = this.obj.id
+    if (typeof fileOrObj === 'string') {
+      this.parsedPath = path.parse(fileOrObj)
+    } else if (typeof fileOrObj === 'object') {
+      this.rawObj = fileOrObj
+      this.obj = this.parse(this.rawObj)
+      this.id = this.obj.id
+    } else {
+      throw new Error('not supported construct param')
+    }
   }
 
   /**
@@ -126,7 +119,7 @@ export class Message extends PuppetAccessory implements Sayable {
       } else if (/^@@/.test(rawObj.ToUserName)) {
         obj.room = rawObj.ToUserName
       } else {
-        log.error('Message', 'parse found a room message, but neither FromUserName nor ToUserName is a room(/^@@/)')
+        log.error('WebMessage', 'parse found a room message, but neither FromUserName nor ToUserName is a room(/^@@/)')
         // obj.room = undefined // bug compatible
       }
       if (obj.to && /^@@/.test(obj.to)) { // if a message in room without any specific receiver, then it will set to be `undefined`
@@ -155,23 +148,13 @@ export class Message extends PuppetAccessory implements Sayable {
   /**
    * @private
    */
-  public toStringEx() {
-    let s = `${this.constructor.name}#${this._counter}`
-    s += '(' + this.getSenderString()
-    s += ':' + this.getContentString() + ')'
-    return s
-  }
-
-  /**
-   * @private
-   */
   public getSenderString() {
-    const from = Contact.load(this.obj.from)
+    const from = WebContact.load(this.obj.from)
     from.puppet = this.puppet
 
     const fromName  = from.name()
     const roomTopic = this.obj.room
-                  ? (':' + Room.load(this.obj.room).topic())
+                  ? (':' + WebRoom.load(this.obj.room).topic())
                   : ''
     return `<${fromName}${roomTopic}>`
   }
@@ -185,95 +168,25 @@ export class Message extends PuppetAccessory implements Sayable {
     return '{' + this.type() + '}' + content
   }
 
-  public say(text: string, replyTo?: Contact | Contact[]): Promise<any>
-
-  public say(mediaMessage: MediaMessage, replyTo?: Contact | Contact[]): Promise<any>
-
-  /**
-   * Reply a Text or Media File message to the sender.
-   *
-   * @see {@link https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts|Examples/ding-dong-bot}
-   * @param {(string | MediaMessage)} textOrMedia
-   * @param {(Contact|Contact[])} [replyTo]
-   * @returns {Promise<any>}
-   *
-   * @example
-   * const bot = new Wechaty()
-   * bot
-   * .on('message', async m => {
-   *   if (/^ding$/i.test(m.content())) {
-   *     await m.say('hello world')
-   *     console.log('Bot REPLY: hello world')
-   *     await m.say(new MediaMessage(__dirname + '/wechaty.png'))
-   *     console.log('Bot REPLY: Image')
-   *   }
-   * })
-   */
-  public say(textOrMedia: string | MediaMessage, replyTo?: Contact|Contact[]): Promise<any> {
-    /* tslint:disable:no-use-before-declare */
-    const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
-    log.verbose('Message', 'say(%s, %s)', content, replyTo)
-    let m
-    if (typeof textOrMedia === 'string') {
-      m = new Message()
-      m.puppet = this.puppet
-
-      const room = this.room()
-      if (room) {
-        m.room(room)
-      }
-
-      if (!replyTo) {
-        m.to(this.from())
-        m.content(textOrMedia)
-
-      } else if (this.room()) {
-        let mentionList
-        if (Array.isArray(replyTo)) {
-          m.to(replyTo[0])
-          mentionList = replyTo.map(c => '@' + c.name()).join(' ')
-        } else {
-          m.to(replyTo)
-          mentionList = '@' + replyTo.name()
-        }
-        m.content(mentionList + ' ' + textOrMedia)
-      }
-    /* tslint:disable:no-use-before-declare */
-    } else if (textOrMedia instanceof MediaMessage) {
-      m = textOrMedia
-      const room = this.room()
-      if (room) {
-        m.room(room)
-      }
-
-      if (!replyTo) {
-        m.to(this.from())
-      }
-    }
-
-    return this.puppet // config.puppetInstance()
-                .send(m)
-  }
-
   /**
    * @private
    */
-  public from(contact: Contact): void
+  public from(contact: WebContact): void
 
   /**
    * @private
    */
   public from(id: string): void
 
-  public from(): Contact
+  public from(): WebContact
 
   /**
    * Get the sender from a message.
    * @returns {Contact}
    */
-  public from(contact?: Contact|string): Contact|void {
+  public from(contact?: WebContact|string): WebContact|void {
     if (contact) {
-      if (contact instanceof Contact) {
+      if (contact instanceof WebContact) {
         this.obj.from = contact.id
       } else if (typeof contact === 'string') {
         this.obj.from = contact
@@ -283,7 +196,7 @@ export class Message extends PuppetAccessory implements Sayable {
       return
     }
 
-    const loadedContact = Contact.load(this.obj.from)
+    const loadedContact = WebContact.load(this.obj.from) as WebContact
     loadedContact.puppet = this.puppet
 
     return loadedContact
@@ -292,24 +205,24 @@ export class Message extends PuppetAccessory implements Sayable {
   /**
    * @private
    */
-  public room(room: Room): void
+  public room(room: WebRoom): void
 
   /**
    * @private
    */
   public room(id: string): void
 
-  public room(): Room|null
+  public room(): WebRoom|null
 
   /**
    * Get the room from the message.
    * If the message is not in a room, then will return `null`
    *
-   * @returns {(Room|null)}
+   * @returns {(WebRoom|null)}
    */
-  public room(room?: Room|string): Room|null|void {
+  public room(room?: WebRoom|string): WebRoom|null|void {
     if (room) {
-      if (room instanceof Room) {
+      if (room instanceof WebRoom) {
         this.obj.room = room.id
       } else if (typeof room === 'string') {
         this.obj.room = room
@@ -319,7 +232,7 @@ export class Message extends PuppetAccessory implements Sayable {
       return
     }
     if (this.obj.room) {
-      const r = Room.load(this.obj.room)
+      const r = WebRoom.load(this.obj.room) as WebRoom
       r.puppet = this.puppet
       return r
     }
@@ -338,17 +251,74 @@ export class Message extends PuppetAccessory implements Sayable {
    */
   public content(content: string): void
 
+  public content(content?: string) {
+    if (content) {
+      return this.text(content)
+    } else {
+      return this.text()
+    }
+  }
+
+  public text(): string
+  public text(content: string): void
   /**
-   * Get the content of the message
+   * Get the textcontent of the message
    *
    * @returns {string}
    */
-  public content(content?: string): string|void {
-    if (content) {
-      this.obj.content = content
+  public text(text?: string): string | void {
+    if (text) {
+      this.obj.content = text
       return
     }
     return this.obj.content
+  }
+
+  public async say(textOrMessage: string | WebMessage, replyTo?: WebContact|WebContact[]): Promise<void> {
+    log.verbose('Message', 'say(%s, %s)', textOrMessage, replyTo)
+
+    let m: WebMessage
+
+    if (typeof textOrMessage === 'string') {
+      m = new WebMessage()
+      m.puppet = this.puppet
+
+      const room = this.room()
+      if (room) {
+        m.room(room)
+      }
+
+      if (!replyTo) {
+        m.to(this.from())
+        m.content(textOrMessage)
+
+      } else if (this.room()) {
+        let mentionList
+        if (Array.isArray(replyTo)) {
+          m.to(replyTo[0])
+          mentionList = replyTo.map(c => '@' + c.name()).join(' ')
+        } else {
+          m.to(replyTo)
+          mentionList = '@' + replyTo.name()
+        }
+        m.content(mentionList + ' ' + textOrMessage)
+      }
+    /* tslint:disable:no-use-before-declare */
+    } else if (textOrMessage instanceof Message) {
+      m = textOrMessage
+      const room = this.room()
+      if (room) {
+        m.room(room)
+      }
+
+      if (!replyTo) {
+        m.to(this.from())
+      }
+    } else {
+      throw new Error('unknown parameter for say()')
+    }
+
+    await this.puppet.send(m)
   }
 
   /**
@@ -398,11 +368,6 @@ export class Message extends PuppetAccessory implements Sayable {
   public typeEx()  { return MsgType[this.obj.type] }
 
   /**
-   * @private
-   */
-  public count()   { return this._counter }
-
-  /**
    * Check if a message is sent by self.
    *
    * @returns {boolean} - Return `true` for send from self, `false` for send from others.
@@ -412,8 +377,7 @@ export class Message extends PuppetAccessory implements Sayable {
    * }
    */
   public self(): boolean {
-    const userId = this.puppet // config.puppetInstance()
-                        .userId
+    const userId = this.puppet.user!.id
 
     const fromId = this.obj.from
     if (!userId || !fromId) {
@@ -436,14 +400,14 @@ export class Message extends PuppetAccessory implements Sayable {
    * | Identify magic code (8197) by programming                                  |  ✘   |        ✘       |     ✘      |       ✘         |
    * | Identify two contacts with the same roomAlias by [You were  mentioned] tip |  ✘   |        ✘       |     √      |       √         |
    *
-   * @returns {Contact[]} - Return message mentioned contactList
+   * @returns {WebContact[]} - Return message mentioned contactList
    *
    * @example
    * const contactList = message.mentioned()
    * console.log(contactList)
    */
-  public mentioned(): Contact[] {
-    let contactList: Contact[] = []
+  public mentioned(): WebContact[] {
+    let contactList: WebContact[] = []
     const room = this.room()
     if (this.type() !== MsgType.TEXT || !room ) {
       return contactList
@@ -479,7 +443,7 @@ export class Message extends PuppetAccessory implements Sayable {
 
     // flatten array, see http://stackoverflow.com/a/10865042/1123955
     const mentionList = [].concat.apply([], rawMentionedList)
-    log.verbose('Message', 'mentioned(%s),get mentionList: %s', this.content(), JSON.stringify(mentionList))
+    log.verbose('WebMessage', 'mentioned(%s),get mentionList: %s', this.content(), JSON.stringify(mentionList))
 
     contactList = [].concat.apply([],
       mentionList.map(nameStr => room.memberAll(nameStr))
@@ -495,43 +459,138 @@ export class Message extends PuppetAccessory implements Sayable {
   /**
    * @private
    */
-  public async ready(): Promise<void> {
-    log.silly('Message', 'ready()')
+  public async ready(): Promise<this> {
+    log.silly('WebMessage', 'ready()')
 
     try {
-      const from  = Contact.load(this.obj.from)
+      /**
+       * 1. ready from contact
+       */
+      const from  = WebContact.load(this.obj.from)
       from.puppet = this.puppet
-
       await from.ready()  // Contact from
 
+      /**
+       * 2. ready to contact
+       */
       if (this.obj.to) {
-        const to = Contact.load(this.obj.to)
+        const to = WebContact.load(this.obj.to)
         to.puppet = this.puppet
-
         await to.ready()
       }
 
+      /**
+       * 3. ready the room
+       */
       if (this.obj.room) {
-        const room  = Room.load(this.obj.room)
+        const room  = WebRoom.load(this.obj.room)
         room.puppet = this.puppet
         await room.ready()  // Room member list
       }
 
     } catch (e) {
-      log.error('Message', 'ready() exception: %s', e.stack)
+      log.error('WebMessage', 'ready() exception: %s', e.stack)
       Raven.captureException(e)
       // console.log(e)
       // this.dump()
       // this.dumpRaw()
       throw e
     }
+
+    await this.readyMedia()
+
+    return this
+  }
+
+  public async readyMedia(): Promise<this> {
+    log.silly('Message', 'readyMedia()')
+
+    const puppet = this.puppet as PuppetWeb
+
+    try {
+
+      let url: string | undefined
+      switch (this.type()) {
+        case MsgType.EMOTICON:
+          url = await puppet.bridge.getMsgEmoticon(this.id)
+          break
+        case MsgType.IMAGE:
+          url = await puppet.bridge.getMsgImg(this.id)
+          break
+        case MsgType.VIDEO:
+        case MsgType.MICROVIDEO:
+          url = await puppet.bridge.getMsgVideo(this.id)
+          break
+        case MsgType.VOICE:
+          url = await puppet.bridge.getMsgVoice(this.id)
+          break
+
+        case MsgType.APP:
+          if (!this.rawObj) {
+            throw new Error('no rawObj')
+          }
+          switch (this.typeApp()) {
+            case AppMsgType.ATTACH:
+              if (!this.rawObj.MMAppMsgDownloadUrl) {
+                throw new Error('no MMAppMsgDownloadUrl')
+              }
+              // had set in Message
+              // url = this.rawObj.MMAppMsgDownloadUrl
+              break
+
+            case AppMsgType.URL:
+            case AppMsgType.READER_TYPE:
+              if (!this.rawObj.Url) {
+                throw new Error('no Url')
+              }
+              // had set in Message
+              // url = this.rawObj.Url
+              break
+
+            default:
+              const e = new Error('ready() unsupported typeApp(): ' + this.typeApp())
+              log.warn('Message', e.message)
+              this.dumpRaw()
+              throw e
+          }
+          break
+
+        case MsgType.TEXT:
+          if (this.typeSub() === MsgType.LOCATION) {
+            url = await puppet.bridge.getMsgPublicLinkImg(this.id)
+          }
+          break
+
+        default:
+          /**
+           * not a support media message, do nothing.
+           */
+          return this
+      }
+
+      if (!url) {
+        if (!this.obj.url) {
+          throw new Error('no obj.url')
+        }
+        url = this.obj.url
+      }
+
+      this.obj.url = url
+
+    } catch (e) {
+      log.warn('Message', 'ready() exception: %s', e.message)
+      Raven.captureException(e)
+      throw e
+    }
+
+    return this
   }
 
   /**
    * @private
    */
   public get(prop: string): string {
-    log.warn('Message', 'DEPRECATED get() at %s', new Error('stack').stack)
+    log.warn('WebMessage', 'DEPRECATED get() at %s', new Error('stack').stack)
 
     if (!prop || !(prop in this.obj)) {
       const s = '[' + Object.keys(this.obj).join(',') + ']'
@@ -544,7 +603,7 @@ export class Message extends PuppetAccessory implements Sayable {
    * @private
    */
   public set(prop: string, value: string): this {
-    log.warn('Message', 'DEPRECATED set() at %s', new Error('stack').stack)
+    log.warn('WebMessage', 'DEPRECATED set() at %s', new Error('stack').stack)
 
     if (typeof value !== 'string') {
       throw new Error('value must be string, we got: ' + typeof value)
@@ -576,7 +635,7 @@ export class Message extends PuppetAccessory implements Sayable {
    * @todo add function
    */
   public static async find(query) {
-    return Promise.resolve(new Message(<MsgRawObj>{MsgId: '-1'}))
+    return Promise.resolve(new WebMessage(<MsgRawObj>{MsgId: '-1'}))
   }
 
   /**
@@ -584,8 +643,8 @@ export class Message extends PuppetAccessory implements Sayable {
    */
   public static async findAll(query) {
     return Promise.resolve([
-      new Message   (<MsgRawObj>{MsgId: '-2'}),
-      new Message (<MsgRawObj>{MsgId: '-3'}),
+      new WebMessage   (<MsgRawObj>{MsgId: '-2'}),
+      new WebMessage (<MsgRawObj>{MsgId: '-3'}),
     ])
   }
 
@@ -596,23 +655,23 @@ export class Message extends PuppetAccessory implements Sayable {
   /**
    * @private
    */
-  public to(contact: Contact): void
+  public to(contact: WebContact): void
 
   /**
    * @private
    */
   public to(id: string): void
 
-  public to(): Contact|null // if to is not set, then room must had set
+  public to(): WebContact | null // if to is not set, then room must had set
 
   /**
    * Get the destination of the message
    * Message.to() will return null if a message is in a room, use Message.room() to get the room.
    * @returns {(Contact|null)}
    */
-  public to(contact?: Contact|string): Contact|Room|null|void {
+  public to(contact?: WebContact | string): WebContact | WebRoom | null | void {
     if (contact) {
-      if (contact instanceof Contact) {
+      if (contact instanceof WebContact) {
         this.obj.to = contact.id
       } else if (typeof contact === 'string') {
         this.obj.to = contact
@@ -627,7 +686,7 @@ export class Message extends PuppetAccessory implements Sayable {
     if (!this.obj.to) {
       return null
     }
-    const to = Contact.load(this.obj.to)
+    const to = WebContact.load(this.obj.to) as WebContact
     to.puppet = this.puppet
 
     return to
@@ -639,219 +698,42 @@ export class Message extends PuppetAccessory implements Sayable {
    * you will get a zero sized file, because it is not an attachment from the network,
    * but a local data, which is not supported by Wechaty yet.
    *
+   * Get the read stream for attachment file
+   *
    * @returns {Promise<Readable>}
    */
-  public readyStream(): Promise<Readable> {
-    throw Error('abstract method')
-  }
+  public async readyStream(): Promise<Readable> {
+    log.verbose('Message', 'readyStream()')
 
-  // DEPRECATED: TypeScript ENUM did this for us 201705
-  // public static initType() {
-  //   Object.keys(Message.TYPE).forEach(k => {
-  //     const v = Message.TYPE[k]
-  //     Message.TYPE[v] = k // Message.Type[1] = 'TEXT'
-  //   })
-  // }
-
-}
-
-// Message.initType()
-
-/**
- * Meidia Type Message
- *
- */
-export class MediaMessage extends Message {
-  /**
-   * @private
-   */
-  private bridge: Bridge
-
-  /**
-   * @private
-   */
-  private filePath: string
-
-  /**
-   * @private
-   */
-  private fileName: string // 'music'
-
-  /**
-   * @private
-   */
-  private fileExt: string // 'mp3'
-
-  /**
-   * @private
-   */
-  constructor(rawObj: Object)
-
-  /**
-   * @private
-   */
-  constructor(filePath: string)
-
-  constructor(rawObjOrFilePath: Object | string) {
-    if (typeof rawObjOrFilePath === 'string') {
-      super()
-      this.filePath = rawObjOrFilePath
-
-      const pathInfo = path.parse(rawObjOrFilePath)
-      this.fileName = pathInfo.name
-      this.fileExt = pathInfo.ext.replace(/^\./, '')
-    } else if (rawObjOrFilePath instanceof Object) {
-      super(rawObjOrFilePath as any)
-    } else {
-      throw new Error('not supported construct param')
-    }
-  }
-
-  /**
-   * @private
-   */
-  public toString() {
-    return `MediaMessage<${this.filename()}>`
-  }
-
-  /**
-   * @private
-   */
-  public async ready(): Promise<void> {
-    log.silly('MediaMessage', 'ready()')
-
-    // FIXME: decoupling needed
-    if (!this.bridge) {
-      this.bridge = (this.puppet as PuppetWeb).bridge
-    }
-
+    /**
+     * 1. local file
+     */
     try {
-      await super.ready()
-
-      let url: string | undefined
-      switch (this.type()) {
-        case MsgType.EMOTICON:
-          url = await this.bridge.getMsgEmoticon(this.id)
-          break
-        case MsgType.IMAGE:
-          url = await this.bridge.getMsgImg(this.id)
-          break
-        case MsgType.VIDEO:
-        case MsgType.MICROVIDEO:
-          url = await this.bridge.getMsgVideo(this.id)
-          break
-        case MsgType.VOICE:
-          url = await this.bridge.getMsgVoice(this.id)
-          break
-
-        case MsgType.APP:
-          if (!this.rawObj) {
-            throw new Error('no rawObj')
-          }
-          switch (this.typeApp()) {
-            case AppMsgType.ATTACH:
-              if (!this.rawObj.MMAppMsgDownloadUrl) {
-                throw new Error('no MMAppMsgDownloadUrl')
-              }
-              // had set in Message
-              // url = this.rawObj.MMAppMsgDownloadUrl
-              break
-
-            case AppMsgType.URL:
-            case AppMsgType.READER_TYPE:
-              if (!this.rawObj.Url) {
-                throw new Error('no Url')
-              }
-              // had set in Message
-              // url = this.rawObj.Url
-              break
-
-            default:
-              const e = new Error('ready() unsupported typeApp(): ' + this.typeApp())
-              log.warn('MediaMessage', e.message)
-              this.dumpRaw()
-              throw e
-          }
-          break
-
-        case MsgType.TEXT:
-          if (this.typeSub() === MsgType.LOCATION) {
-            url = await this.bridge.getMsgPublicLinkImg(this.id)
-          }
-          break
-
-        default:
-          throw new Error('not support message type for MediaMessage')
+      const filename = this.filename()
+      if (filename) {
+        return fs.createReadStream(filename)
       }
-
-      if (!url) {
-        if (!this.obj.url) {
-          throw new Error('no obj.url')
-        }
-        url = this.obj.url
-      }
-
-      this.obj.url = url
-
     } catch (e) {
-      log.warn('MediaMessage', 'ready() exception: %s', e.message)
+      // no filename
+    }
+
+    /**
+     * 2. remote url
+     */
+    try {
+      await this.ready()
+      // FIXME: decoupling needed
+      const cookies = await (this.puppet as any as PuppetWeb).cookies()
+      if (!this.obj.url) {
+        throw new Error('no url')
+      }
+      log.verbose('Message', 'readyStream() url: %s', this.obj.url)
+      return Misc.urlStream(this.obj.url, cookies)
+    } catch (e) {
+      log.warn('Message', 'readyStream() exception: %s', e.stack)
       Raven.captureException(e)
       throw e
     }
-  }
-
-  /**
-   * Get the MediaMessage file extension, etc: `jpg`, `gif`, `pdf`, `word` ..
-   *
-   * @returns {string}
-   * @example
-   * bot.on('message', async function (m) {
-   *   if (m instanceof MediaMessage) {
-   *     console.log('media message file name extention is: ' + m.ext())
-   *   }
-   * })
-   */
-  public ext(): string {
-    if (this.fileExt)
-      return this.fileExt
-
-    switch (this.type()) {
-      case MsgType.EMOTICON:
-        return 'gif'
-
-      case MsgType.IMAGE:
-        return 'jpg'
-
-      case MsgType.VIDEO:
-      case MsgType.MICROVIDEO:
-        return 'mp4'
-
-      case MsgType.VOICE:
-        return 'mp3'
-
-      case MsgType.APP:
-        switch (this.typeApp()) {
-          case AppMsgType.URL:
-            return 'url' // XXX
-        }
-        break
-
-      case MsgType.TEXT:
-        if (this.typeSub() === MsgType.LOCATION) {
-          return 'jpg'
-        }
-        break
-    }
-    log.error('MediaMessage', `ext() got unknown type: ${this.type()}`)
-    return String(this.type())
-  }
-
-  /**
-   * return the MIME Type of this MediaMessage
-   *
-   */
-  public mimeType(): string | null {
-    return mime.getType(this.ext())
   }
 
   /**
@@ -866,55 +748,83 @@ export class MediaMessage extends Message {
    * })
    */
   public filename(): string {
-    if (this.fileName && this.fileExt) {
-      return this.fileName + '.' + this.fileExt
+    if (this.parsedPath) {
+      // https://nodejs.org/api/path.html#path_path_parse_path
+      const filename = path.join(
+        this.parsedPath!.dir  || '',
+        this.parsedPath!.base || '',
+      )
+      return filename
     }
 
-    if (!this.rawObj) {
-      throw new Error('no rawObj')
+    if (this.rawObj) {
+      let filename = this.rawObj.FileName || this.rawObj.MediaId || this.rawObj.MsgId
+
+      const re = /\.[a-z0-9]{1,7}$/i
+      if (!re.test(filename)) {
+        const ext = this.rawObj.MMAppMsgFileExt || this.ext()
+        filename += '.' + ext
+      }
+      return filename
     }
 
-    let filename = this.rawObj.FileName || this.rawObj.MediaId || this.rawObj.MsgId
+    throw new Error('no rawObj')
 
-    const re = /\.[a-z0-9]{1,7}$/i
-    if (!re.test(filename)) {
-      const ext = this.rawObj.MMAppMsgFileExt || this.ext()
-      filename += '.' + ext
-    }
-    return filename
   }
 
-  // private getMsgImg(id: string): Promise<string> {
-  //   return this.bridge.getMsgImg(id)
-  //   .catch(e => {
-  //     log.warn('MediaMessage', 'getMsgImg(%d) exception: %s', id, e.message)
-  //     throw e
-  //   })
-  // }
+  /**
+   * Get the MediaMessage file extension(including the dot `.`), etc: `.jpg`, `.gif`, `.pdf`, `.word` ..
+   *
+   * @returns {string}
+   * @example
+   * bot.on('message', async function (m) {
+   *   if (m instanceof MediaMessage) {
+   *     console.log('media message file name extention is: ' + m.ext())
+   *   }
+   * })
+   */
+  public ext(): string {
+    if (this.parsedPath && this.parsedPath.ext)
+      return this.parsedPath.ext
+
+    switch (this.type()) {
+      case MsgType.EMOTICON:
+        return '.gif'
+
+      case MsgType.IMAGE:
+        return '.jpg'
+
+      case MsgType.VIDEO:
+      case MsgType.MICROVIDEO:
+        return '.mp4'
+
+      case MsgType.VOICE:
+        return '.mp3'
+
+      case MsgType.APP:
+        switch (this.typeApp()) {
+          case AppMsgType.URL:
+            return '.url' // XXX
+        }
+        break
+
+      case MsgType.TEXT:
+        if (this.typeSub() === MsgType.LOCATION) {
+          return '.jpg'
+        }
+        break
+    }
+    log.error('Message', `ext() got unknown type: ${this.type()}`)
+    return String('.' + this.type())
+  }
 
   /**
-   * Get the read stream for attachment file
+   * return the MIME Type of this MediaMessage
+   *
    */
-  public async readyStream(): Promise<Readable> {
-    log.verbose('MediaMessage', 'readyStream()')
-
-    if (this.filePath)
-      return fs.createReadStream(this.filePath)
-
-    try {
-      await this.ready()
-      // FIXME: decoupling needed
-      const cookies = await (/* config.puppetInstance() */ this.puppet as PuppetWeb).cookies()
-      if (!this.obj.url) {
-        throw new Error('no url')
-      }
-      log.verbose('MediaMessage', 'readyStream() url: %s', this.obj.url)
-      return Misc.urlStream(this.obj.url, cookies)
-    } catch (e) {
-      log.warn('MediaMessage', 'readyStream() exception: %s', e.stack)
-      Raven.captureException(e)
-      throw e
-    }
+  public mimeType(): string | null {
+    // getType support both 'js' & '.js' as arg
+    return mime.getType(this.ext())
   }
 
   /**
@@ -926,7 +836,7 @@ export class MediaMessage extends Message {
     if (!filePath) {
       throw new Error('saveFile() filePath is invalid')
     }
-    log.silly('MediaMessage', `saveFile() filePath:'${filePath}'`)
+    log.silly('Message', `saveFile() filePath:'${filePath}'`)
     if (fs.existsSync(filePath)) {
       throw new Error('saveFile() file does exist!')
     }
@@ -935,7 +845,7 @@ export class MediaMessage extends Message {
     try {
       readStream = await this.readyStream()
     } catch (e) {
-      log.error('MediaMessage', `saveFile() call readyStream() error: ${e.message}`)
+      log.error('Message', `saveFile() call readyStream() error: ${e.message}`)
       throw new Error(`saveFile() call readyStream() error: ${e.message}`)
     }
     await new Promise((resolve, reject) => {
@@ -945,7 +855,7 @@ export class MediaMessage extends Message {
         .once('error', reject)
     })
       .catch(e => {
-        log.error('MediaMessage', `saveFile() error: ${e.message}`)
+        log.error('Message', `saveFile() error: ${e.message}`)
         throw e
       })
   }
@@ -999,27 +909,26 @@ export class MediaMessage extends Message {
    * @returns {Promise<boolean>}
    * @memberof MediaMessage
    */
-  public async forward(to: Room|Contact): Promise<boolean> {
+  public async forward(to: WebRoom|WebContact): Promise<void> {
+    /**
+     * 1. Text message
+     */
+    if (this.type() === MsgType.TEXT) {
+      await to.say(this.text())
+      return
+    }
+
+    /**
+     * 2. Media message
+     */
     try {
-      const ret = await /* config.puppetInstance() */ this.puppet.forward(this, to)
-      return ret
+      await this.puppet.forward(this, to)
     } catch (e) {
-      log.error('Message', 'forward(%s) exception: %s', to, e)
+      log.error('WebMessage', 'forward(%s) exception: %s', to, e)
       throw e
     }
   }
 
 }
 
-/*
- * join room in mac client: https://support.weixin.qq.com/cgi-bin/
- * mmsupport-bin/addchatroombyinvite
- * ?ticket=AUbv%2B4GQA1Oo65ozlIqRNw%3D%3D&exportkey=AS9GWEg4L82fl3Y8e2OeDbA%3D
- * &lang=en&pass_ticket=T6dAZXE27Y6R29%2FFppQPqaBlNwZzw9DAN5RJzzzqeBA%3D
- * &wechat_real_lang=en
- */
-
-export {
-  MsgType,
-}
-export default Message
+export default WebMessage

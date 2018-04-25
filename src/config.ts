@@ -197,7 +197,7 @@ export class Config {
 }
 
 export interface Sayable {
-  say(content: string, replyTo?: any|any[]): Promise<void>
+  say(text: string, replyTo?: any|any[]): Promise<void>
 }
 
 export type WechatEvent = 'friend'

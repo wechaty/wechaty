@@ -20,6 +20,7 @@ import { EventEmitter } from 'events'
 
 import { StateSwitch }  from 'state-switch'
 import {
+  Watchdog,
   WatchdogFood,
 }                       from 'watchdog'
 
@@ -27,17 +28,16 @@ import {
   Sayable,
   WechatyEvent,
   log,
-}                       from './config'
+}                       from '../config'
+import Profile          from '../profile'
+
 import {
   Contact,
   ContactQueryFilter,
 }                       from './contact'
 import FriendRequest    from './friend-request'
-import {
-  Message,
-  MediaMessage,
-}                       from './message'
-import Profile          from './profile'
+import Message          from './message'
+
 import {
   Room,
   RoomQueryFilter,
@@ -55,17 +55,24 @@ export type PuppetEvent = WechatyEvent
 export interface PuppetOptions {
   profile: Profile,
 }
+
+const WATCHDOG_TIMEOUT  = 1 * 60 * 1000  // 1 minute
+
 /**
  * Abstract Puppet Class
  */
 export abstract class Puppet extends EventEmitter implements Sayable {
-  public user?:    Contact
+  public user?: Contact
 
-  public state:   StateSwitch
+  public state:     StateSwitch
+  public watchdog:  Watchdog
 
   constructor(public options: PuppetOptions) {
     super()
-    this.state = new StateSwitch('Puppet', log)
+
+    this.state    = new StateSwitch('Puppet', log)
+    this.watchdog = new Watchdog(WATCHDOG_TIMEOUT, 'Puppet')
+
   }
 
   public emit(event: 'error',       e: Error)                                                      : boolean
@@ -119,9 +126,9 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   /**
    * Message
    */
-  public abstract forward(message: MediaMessage, contact: Contact | Room) : Promise<void>
-  public abstract say(content: string)                                    : Promise<void>
-  public abstract send(message: Message | MediaMessage)                   : Promise<void>
+  public abstract forward(message: Message, contact: Contact | Room) : Promise<void>
+  public abstract say(text: string)                                  : Promise<void>
+  public abstract send(message: Message)                             : Promise<void>
 
   /**
    * Login / Logout

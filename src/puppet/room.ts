@@ -27,7 +27,7 @@ import {
 import Contact          from './contact'
 import {
   MediaMessage,
-}                       from './message-media'
+}                       from './media-message'
 import PuppetAccessory  from './puppet-accessory'
 
 export type RoomEventName = 'join'
