@@ -29,7 +29,7 @@ import {
   RoomMemberQueryName,
   RoomMemberQueryFilter,
   // RoomQueryFilter,
-}                         from '../puppet/'
+}                         from '../abstract-puppet/'
 
 import PuppetWeb          from './puppet-web'
 import {

@@ -27,7 +27,7 @@ import {
 import {
   Contact,
   Gender,
-}                       from '../puppet/contact'
+}                       from '../abstract-puppet/contact'
 
 import Misc             from '../misc'
 

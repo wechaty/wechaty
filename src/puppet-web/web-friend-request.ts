@@ -33,7 +33,7 @@ import {
   // config,
   log,
 }                     from '../config'
-import FriendRequest  from '../puppet/friend-request'
+import FriendRequest  from '../abstract-puppet/friend-request'
 
 import {
   RecommendInfo,

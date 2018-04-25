@@ -37,7 +37,7 @@ import {
   RoomQueryFilter,
 
   ScanData,
-}                   from '../puppet/'
+}                   from '../abstract-puppet/'
 
 import {
   config,

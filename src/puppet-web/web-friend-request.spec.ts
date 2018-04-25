@@ -26,7 +26,7 @@ import cloneClass from 'clone-class'
 
 import WebContact       from './web-contact'
 import WebMessage       from './web-message'
-import Puppet           from '../puppet/puppet'
+import Puppet           from '../abstract-puppet/puppet'
 import WebFriendRequest from './web-friend-request'
 
 test('PuppetWebFriendRequest.receive smoke testing', async t => {

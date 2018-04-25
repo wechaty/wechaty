@@ -34,7 +34,7 @@ import Profile    from '../profile'
 
 import {
   Contact,
-}                 from '../puppet/'
+}                 from '../abstract-puppet/'
 
 import PuppetWeb  from '../../src/puppet-web/puppet-web'
 import Bridge     from '../../src/puppet-web/bridge'

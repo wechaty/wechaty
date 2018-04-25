@@ -27,7 +27,7 @@ import {
   Raven,
   log,
 }                       from '../config'
-import Message          from '../puppet/message'
+import Message          from '../abstract-puppet/message'
 import Misc             from '../misc'
 
 import PuppetWeb  from './puppet-web'

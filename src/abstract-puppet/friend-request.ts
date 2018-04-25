@@ -18,7 +18,7 @@
  *
  */
 
-import Contact          from '../puppet/contact'
+import Contact          from '../abstract-puppet/contact'
 
 import {
   // config,

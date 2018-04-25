@@ -50,7 +50,7 @@ import {
   Puppet,
   PuppetAccessory,
   Room,
-}                       from './puppet/'
+}                       from './abstract-puppet/'
 
 import PuppetWeb        from './puppet-web/'
 

@@ -26,7 +26,7 @@ import {
 import {
   Contact,
   Gender,
-}                       from '../puppet/contact'
+}                       from '../abstract-puppet/contact'
 
 // import PuppetMock        from './puppet-mock'
 import MockMessage       from './mock-message'

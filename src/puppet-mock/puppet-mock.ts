@@ -24,7 +24,7 @@ import {
   PuppetOptions,
 
   RoomQueryFilter,
-}                   from '../puppet/'
+}                   from '../abstract-puppet/'
 
 import {
   log,

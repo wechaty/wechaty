@@ -9,7 +9,7 @@ export {
   FriendRequest,
   Message,
   Room,
-}                     from './puppet/'
+}                     from './abstract-puppet/'
 
 export {
   MediaMessage,

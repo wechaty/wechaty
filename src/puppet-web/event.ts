@@ -25,7 +25,7 @@ import {
 }                 from '../config'
 import {
   ScanData,
-}                 from '../puppet/'
+}                 from '../abstract-puppet/'
 
 import WebContact from './web-contact'
 import WebMessage from './web-message'

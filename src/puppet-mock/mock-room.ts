@@ -23,7 +23,7 @@ import {
 import {
   Room,
   RoomMemberQueryFilter,
-}                         from '../puppet/'
+}                         from '../abstract-puppet/'
 
 import MockMessage        from './mock-message'
 import MockContact        from './mock-contact'
