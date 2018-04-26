@@ -24,6 +24,10 @@ import * as test  from 'blue-tape'
 
 import cloneClass from 'clone-class'
 
+import PuppetMock from '../puppet-mock'
+import Profile    from '../profile'
+import Wechaty    from '../wechaty'
+
 import WebContact       from './web-contact'
 import WebMessage       from './web-message'
 import Puppet           from '../abstract-puppet/puppet'
@@ -70,7 +74,10 @@ test('PuppetWebFriendRequest.confirm smoke testing', async t => {
   `
   const rawObj = JSON.parse(rawMessageData)
   const m = new MyMessage(rawObj)
-  m.puppet = this.puppet
+  m.puppet = new PuppetMock({
+    profile: new Profile(),
+    wechaty: new Wechaty(),
+  })
 
   t.true(/^You have added (.+) as your WeChat contact. Start chatting!$/.test(m.content()), 'should match confirm message')
 
