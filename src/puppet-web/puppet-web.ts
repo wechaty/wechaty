@@ -329,18 +329,19 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  private async uploadMedia(mediaMessage: WebMessage, toUserName: string): Promise<MediaData> {
-    if (!mediaMessage)
-      throw new Error('require mediaMessage')
+  private async uploadMedia(message: WebMessage, toUserName: string): Promise<MediaData> {
+    if (message.type() === WebMessage.Type.TEXT) {
+      throw new Error('require a Media Message')
+    }
 
-    const filename = mediaMessage.filename()
-    const ext      = mediaMessage.ext()
+    const filename = message.filename()
+    const ext      = message.ext()
 
     // const contentType = Misc.mime(ext)
     // const contentType = mime.getType(ext)
-    const contentType = mediaMessage.mimeType()
+    const contentType = message.mimeType()
     if (!contentType) {
-      throw new Error('no MIME Type found on mediaMessage: ' + mediaMessage.filename())
+      throw new Error('no MIME Type found on mediaMessage: ' + message.filename())
     }
     let mediatype: MediaType
 
@@ -359,7 +360,7 @@ export class PuppetWeb extends Puppet {
         mediatype = MediaType.ATTACHMENT
     }
 
-    const readStream = await mediaMessage.readyStream()
+    const readStream = await message.readyStream()
     const buffer = <Buffer>await new Promise((resolve, reject) => {
       readStream.pipe(bl((err, data) => {
         if (err) reject(err)
@@ -682,6 +683,8 @@ export class PuppetWeb extends Puppet {
   }
 
    public async send(message: WebMessage): Promise<void> {
+    log.verbose('PuppetWeb', 'send(%s)', message)
+
     const to   = message.to()
     const room = message.room()
 
@@ -689,32 +692,34 @@ export class PuppetWeb extends Puppet {
 
     if (room) {
       destinationId = room.id
-    } else {
-      if (!to) {
-        throw new Error('PuppetWeb.send(): message with neither room nor to?')
-      }
+    } else if (to) {
       destinationId = to.id
+    } else {
+      throw new Error('PuppetWeb.send(): message with neither room nor to?')
     }
 
-    if (message.type() !== MsgType.TEXT) {
-      const ret = await this.sendMedia(message)
-      if (!ret) {
-        throw new Error('sendMedia fail')
-      }
-    } else {
-      const content = message.text()
+    if (message.type() === MsgType.TEXT) {
+      log.silly('PuppetWeb', 'send() TEXT message.')
+      const text = message.text()
 
-      log.silly('PuppetWeb', 'send() destination: %s, content: %s)',
-        destinationId,
-        content,
-      )
+      log.silly('PuppetWeb', 'send() destination: %s, text: %s)',
+                              destinationId,
+                              text,
+                )
 
       try {
-        await this.bridge.send(destinationId, content)
+        await this.bridge.send(destinationId, text)
       } catch (e) {
         log.error('PuppetWeb', 'send() exception: %s', e.message)
         Raven.captureException(e)
         throw e
+      }
+    } else {
+      log.silly('PuppetWeb', 'send() non-TEXT message.')
+
+      const ret = await this.sendMedia(message)
+      if (!ret) {
+        throw new Error('sendMedia fail')
       }
     }
   }

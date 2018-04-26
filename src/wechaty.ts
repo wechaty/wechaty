@@ -38,10 +38,10 @@ import {
   Sayable,
   VERSION,
   WechatyEvent,
-}                       from './config'
+}                     from './config'
 import {
-}                       from './message'
-import Profile          from './profile'
+}                     from './message'
+import Profile        from './profile'
 
 import {
   Contact,
@@ -50,9 +50,10 @@ import {
   Puppet,
   PuppetAccessory,
   Room,
-}                       from './abstract-puppet/'
+}                     from './abstract-puppet/'
 
-import PuppetWeb        from './puppet-web/'
+import PuppetWeb      from './puppet-web/'
+import PuppetMock     from './puppet-mock/'
 
 export interface WechatyOptions {
   puppet?:  PuppetName,
@@ -345,6 +346,13 @@ export class Wechaty extends PuppetAccessory implements Sayable {
     switch (this.options.puppet) {
       case 'web':
         puppet = new PuppetWeb({
+          profile:  this.profile,
+          wechaty:  this,
+        })
+        break
+
+      case 'mock':
+        puppet = new PuppetMock({
           profile:  this.profile,
           wechaty:  this,
         })

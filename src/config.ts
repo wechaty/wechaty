@@ -90,6 +90,7 @@ export type PuppetName =  'android-pad'
                         | 'hostie'
                         | 'ios-app-phone'
                         | 'ios-app-pad'
+                        | 'mock'
                         | 'web'
                         | 'win32'
 

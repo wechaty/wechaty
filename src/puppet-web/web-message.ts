@@ -329,7 +329,8 @@ export class WebMessage extends Message {
    * @returns {MsgType}
    */
   public type(): MsgType {
-    return this.obj.type
+    log.silly('WebMessage', 'type() = %s', MsgType[this.obj.type])
+    return this.obj.type || MsgType.TEXT
   }
 
   /**
@@ -817,7 +818,7 @@ export class WebMessage extends Message {
         }
         break
     }
-    log.error('WebMessage', `ext() got unknown type: ${this.type()}`)
+    log.silly('WebMessage', `ext() got unknown type: ${this.type()}`)
     return String('.' + this.type())
   }
 

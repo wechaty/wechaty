@@ -125,7 +125,7 @@ export class WebRoom extends Room {
         const currNum = roomRawObj.MemberList && roomRawObj.MemberList.length || 0
         const prevNum = this.rawObj && this.rawObj.MemberList && this.rawObj.MemberList.length || 0
 
-        log.silly('WebRoom', `ready() contactGetter(%s) MemberList.length:%d at ttl:%d`,
+        log.silly('WebRoom', `ready() puppet.getContact(%s) MemberList.length:%d at ttl:%d`,
           this.id,
           currNum,
           ttl,
@@ -133,27 +133,27 @@ export class WebRoom extends Room {
 
         if (currNum) {
           if (prevNum === currNum) {
-            log.verbose('WebRoom', `ready() contactGetter(${this.id}) done at ttl:%d`, ttl)
+            log.silly('WebRoom', `ready() puppet.getContact(${this.id}) done at ttl:%d`, ttl)
             break
           }
           this.rawObj = roomRawObj
         }
 
-        log.silly('WebRoom', `ready() contactGetter(${this.id}) retry at ttl:%d`, ttl)
+        log.silly('WebRoom', `ready() puppet.getContact(${this.id}) retry at ttl:%d`, ttl)
         await new Promise(r => setTimeout(r, 1000)) // wait for 1 second
       }
 
       await this.readyAllMembers(this.rawObj && this.rawObj.MemberList || [])
       this.obj = this.parse(this.rawObj)
       if (!this.obj) {
-        throw new Error('no this.obj set after contactGetter')
+        throw new Error('no this.obj set after puppet.getContact')
       }
       await Promise.all(this.obj.memberList.map(c => c.ready()))
 
       return this
 
     } catch (e) {
-      log.error('WebRoom', 'contactGetter(%s) exception: %s', this.id, e.message)
+      log.error('WebRoom', 'puppet.getContact(%s) exception: %s', this.id, e.message)
       Raven.captureException(e)
       throw e
     }

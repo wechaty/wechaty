@@ -34,11 +34,6 @@ import Contact          from './contact'
 import Room             from './room'
 import PuppetAccessory  from './puppet-accessory'
 
-// export type TypeName =  'attachment'
-//                       | 'audio'
-//                       | 'image'
-//                       | 'video'
-
 /**
  * All wechat messages will be encapsulated as a Message.
  *

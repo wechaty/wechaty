@@ -32,13 +32,13 @@ export type RoomEventName = 'join'
                           | 'leave'
                           | 'topic'
 
-export type RoomMemberQueryName = 'name' | 'roomAlias' | 'contactAlias'
-
 export interface RoomMemberQueryFilter {
   name?:         string,
   roomAlias?:    string,
   contactAlias?: string,
 }
+
+export type RoomMemberQueryName = keyof RoomMemberQueryFilter
 
 export interface RoomQueryFilter {
   topic: string | RegExp,

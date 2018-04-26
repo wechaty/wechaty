@@ -432,7 +432,7 @@ export class Bridge extends EventEmitter {
 
     try {
       const ret = await this.proxyWechaty('send', toUserName, content)
-      if (ret) {
+      if (!ret) {
         throw new Error('send fail')
       }
     } catch (e) {
