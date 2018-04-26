@@ -25,7 +25,7 @@
 import {
   Message,
   Wechaty,
-} from '../../'
+} from '../../src/'
 
 export async function onMessage(this: Wechaty, message: Message): Promise<void> {
   try {
@@ -35,7 +35,7 @@ export async function onMessage(this: Wechaty, message: Message): Promise<void> 
 
     console.log((room ? '[' + room.topic() + ']' : '')
                 + '<' + sender.name() + '>'
-                + ':' + message.toStringDigest(),
+                + ':' + message,
     )
 
     if (message.self() || room) {

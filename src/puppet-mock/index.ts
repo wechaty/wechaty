@@ -1,4 +1,3 @@
-#!/usr/bin/env ts-node
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
@@ -17,19 +16,10 @@
  *   limitations under the License.
  *
  */
-// tslint:disable:no-shadowed-variable
-import * as test  from 'blue-tape'
-// import * as sinon from 'sinon'
+import { PuppetMock }  from './puppet-mock'
 
-import Profile    from './profile'
-import PuppetWeb  from './puppet-web'
+export {
+  PuppetMock,
+}
 
-test('Puppet smoke testing', async t => {
-  const profile = new Profile(Math.random().toString(36).substr(2, 5))
-  const p = new PuppetWeb({ profile })
-
-  t.ok(p.state.off(), 'should be OFF state after instanciate')
-  p.state.on('pending')
-  t.ok(p.state.on(), 'should be ON state after set')
-  t.ok(p.state.pending(), 'should be pending state after set')
-})
+export default PuppetMock

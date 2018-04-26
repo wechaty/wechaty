@@ -22,20 +22,32 @@
 import * as test  from 'blue-tape'
 // import * as sinon from 'sinon'
 
-// import config     from '../src/config'
-import Contact    from '../src/contact'
-import Message    from '../src/message'
-import Profile    from '../src/profile'
-import PuppetWeb  from '../src/puppet-web'
-import Room       from '../src/room'
+import cloneClass from 'clone-class'
 
-// config.puppetInstance(new PuppetWeb({
-//   profile: new Profile(),
-// }))
-Room.puppet = new PuppetWeb({
+import Profile    from '../profile'
+import Wechaty    from '../wechaty'
+
+import PuppetWeb  from './puppet-web'
+import WebContact from './web-contact'
+import WebMessage from './web-message'
+import WebRoom    from './web-room'
+
+// tslint:disable-next-line:variable-name
+const MyRoom = cloneClass(WebRoom)
+// tslint:disable-next-line:variable-name
+const MyContact = cloneClass(WebContact)
+// tslint:disable-next-line:variable-name
+const MyMessage = cloneClass(WebMessage)
+
+const puppet = new PuppetWeb({
   profile: new Profile(),
+  wechaty: new Wechaty(),
 })
-// Room.attach(new PuppetWeb())
+
+const MOCK_USER_ID = 'TEST-USER-ID'
+puppet.user = MyContact.load(MOCK_USER_ID)
+
+MyContact.puppet = MyMessage.puppet = MyRoom.puppet = puppet
 
 // test('Room smoke testing', async t => {
 
@@ -110,7 +122,7 @@ test('Room smoking test', async t => {
     })
   }
 
-  const r = new Room(EXPECTED.id)
+  const r = new MyRoom(EXPECTED.id)
 
   t.is(r.id, EXPECTED.id, 'should set id/UserName right')
 
@@ -122,7 +134,7 @@ test('Room smoking test', async t => {
   //   puppet = { getContact: mockContactGetter }
   //   config.puppetInstance(puppet)
   // }
-  Contact.puppet = Message.puppet = Room.puppet = { getContact: mockContactGetter } as any
+  MyContact.puppet = MyMessage.puppet = MyRoom.puppet = { getContact: mockContactGetter } as any
   await r.ready()
 
   t.is(r.get('id')      , EXPECTED.id, 'should set id/UserName')
@@ -130,14 +142,14 @@ test('Room smoking test', async t => {
 
   t.is(r.topic()        , EXPECTED.topic, 'should set topic/NickName')
 
-  const contact1 = new Contact(EXPECTED.memberId1)
+  const contact1 = new MyContact(EXPECTED.memberId1)
   const alias1 = r.alias(contact1)
   t.is(alias1, EXPECTED.memberNick1, 'should get roomAlias')
 
   // const name1 = r.alias(contact1)
   // t.is(name1, EXPECTED.memberNick1, 'should get roomAlias')
 
-  const contact2 = new Contact(EXPECTED.memberId2)
+  const contact2 = new MyContact(EXPECTED.memberId2)
   const alias2 = r.alias(contact2)
   t.is(alias2, null, 'should return null if not set roomAlias')
 
@@ -145,11 +157,11 @@ test('Room smoking test', async t => {
   // t.is(name2, null, 'should return null if not set roomAlias')
 
   t.ok(r.has(contact1), 'should has contact1')
-  const noSuchContact = new Contact('not exist id')
+  const noSuchContact = new MyContact('not exist id')
   t.false(r.has(noSuchContact), 'should has no this member')
 
   const owner = r.owner()
-  t.true(owner === null || owner instanceof Contact, 'should get Contact instance for owner, or null')
+  t.true(owner === null || owner instanceof MyContact, 'should get Contact instance for owner, or null')
 
   // wxApp hide uin for all contacts.
   // t.is(r.owner().id, EXPECTED.ownerId, 'should get owner right by OwnerUin & Uin')
@@ -157,7 +169,7 @@ test('Room smoking test', async t => {
   const contactA = r.member(EXPECTED.memberNick1)
   const contactB = r.member(EXPECTED.memberNick2)
   const contactC = r.member(EXPECTED.memberNick3)
-  const contactD = r.member({alias: EXPECTED.memberNick1})
+  const contactD = r.member({roomAlias: EXPECTED.memberNick1})
   if (!contactA) {
     throw new Error(`member(${EXPECTED.memberNick1}) should get member by roomAlias by default`)
   }
@@ -180,18 +192,19 @@ test('Room smoking test', async t => {
 })
 
 test('Room static method', async t => {
-  Room.puppet = new PuppetWeb({
+  MyRoom.puppet = new PuppetWeb({
     profile: new Profile(),
+    wechaty: new Wechaty(),
   })
 
   try {
-    const result = await Room.find({ topic: 'xxx' })
+    const result = await MyRoom.find({ topic: 'xxx' })
     t.is(result, null, `should return null if cannot find the room`)
   } catch (e) {
     t.pass('should throw before login or not found')
   }
 
-  const roomList = await Room.findAll({
+  const roomList = await MyRoom.findAll({
     topic: 'yyy',
   })
 

@@ -1,9 +1,9 @@
 {
   "name": "wechaty",
-  "version": "0.15.11",
+  "version": "0.15.17",
   "description": "Wechat for Bot(Personal Account)",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "wechaty": {
     "DEFAULT_HEAD": 0,
     "DEFAULT_PORT": 8080,
@@ -26,7 +26,7 @@
     "lint:md": "markdownlint README.md",
     "lint:ts": "npm run clean && echo tslint v`tslint --version` && tslint --project tsconfig.json \"{bin,examples,scripts,src,tests}/**/*.ts\" --exclude \"tests/fixtures/**\" --exclude \"dist/\" && tsc --noEmit",
     "lint:sh": "bash -n bin/*.sh",
-    "sloc": "sloc bin examples scripts src tests index.ts --details --format cli-table --keys total,source,comment && sloc bin examples scripts src tests index.ts",
+    "sloc": "sloc bin examples scripts src tests --details --format cli-table --keys total,source,comment && sloc bin examples scripts src tests",
     "ts-node": "ts-node",
     "test": "npm run clean && npm run lint && npm run test:unit:retry && npm run test:shell && npm run sloc",
     "test:linux": "npm run pretest && parallel ts-node -- ./src/**/*.spec.ts ./tests/**/*.spec.ts && npm run posttest",
@@ -101,6 +101,7 @@
     "@types/ws": "^4.0.1",
     "bl": "^1.2.0",
     "brolog": "^1.2.0",
+    "clone-class": "^0.4.1",
     "cuid": "^2.1.1",
     "hot-import": "^0.1.0",
     "mime": "^2.2.0",
@@ -162,7 +163,7 @@
     "tslint-eslint-rules": "^5.1.0",
     "tslint-jsdoc-rules": "^0.1.0",
     "tuling123-client": "^0.0.1",
-    "typescript": "^2.6.1"
+    "typescript": "^2.8.3"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [

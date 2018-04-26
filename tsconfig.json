@@ -12,6 +12,8 @@
     , "noImplicitReturns": true
     , "noFallthroughCasesInSwitch": true
     , "strictNullChecks": true
+    , "experimentalDecorators": true
+    , "emitDecoratorMetadata": true
 
     , "noImplicitAny": false
     , "noUnusedParameters": false
@@ -27,8 +29,7 @@
     , "dist/"
   ]
   , "include": [
-       "*.ts"
-     , "bin/*.ts"
+       "bin/*.ts"
      , "scripts/**/*.ts"
      , "examples/**/*.ts"
      , "src/**/*.ts"

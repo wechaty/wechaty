@@ -253,3 +253,9 @@ At last, It's built for my personal study purpose of Automatically Testing.
 
 [downloads-image]: http://img.shields.io/npm/dm/wechaty.svg?style=flat-square
 [downloads-url]: https://npmjs.org/package/wechaty
+
+## NOTES
+
+* github.com/chatie-oos: Open Open Source for Chatie Community.
+* wechaty-puppet-abstract Plugin Design: strong support wechaty.
+* list all donation sponsors on README, and create a wechat group for sponsors.

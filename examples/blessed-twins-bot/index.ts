@@ -9,7 +9,7 @@ import * as qrcode from 'qrcode-terminal'
 
 import {
   Wechaty,
-}               from '../../index'
+}               from '../../src/'
 
 const screen = blessed.screen({
   smartCSR:     true,

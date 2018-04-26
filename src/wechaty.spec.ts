@@ -30,14 +30,17 @@ import {
   FriendRequest,
   IoClient,
   Message,
-  Puppet,
   PuppetWeb,
   Room,
   Wechaty,
 
   log,
   VERSION,
-}               from '../'
+}               from './'
+
+import {
+  Puppet,
+}               from './abstract-puppet/'
 
 test('Export of the Framework', async t => {
   t.ok(Contact      , 'should export Contact')

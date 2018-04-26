@@ -16,47 +16,58 @@
  *   limitations under the License.
  *
  */
+import * as request from 'request'
+import * as bl from 'bl'
+
+import cloneClass   from 'clone-class'
+import {
+  ThrottleQueue,
+}                   from 'rx-queue'
 import {
   Watchdog,
   WatchdogFood,
 }                   from 'watchdog'
-import {
-  ThrottleQueue,
-}                   from 'rx-queue'
 
-import cloneClass   from '../clone-class'
+import {
+  ContactQueryFilter,
+  Puppet,
+  PuppetOptions,
+  RoomQueryFilter,
+  ScanData,
+}                     from '../abstract-puppet/'
 import {
   config,
   log,
   Raven,
-}                   from '../config'
-import Contact      from '../contact'
+}                     from '../config'
 import {
-  Message,
-  MediaMessage,
-}                   from '../message'
-import Profile      from '../profile'
-import {
-  Puppet,
-  PuppetOptions,
-  ScanData,
-}                   from '../puppet'
-import Room         from '../room'
-import Misc         from '../misc'
+}                     from '../message'
+import Profile        from '../profile'
+import Misc           from '../misc'
+
 import {
   Bridge,
   Cookie,
-}                   from './bridge'
-import Event        from './event'
+}                       from './bridge'
+import Event            from './event'
 
 import {
   MediaData,
   MsgRawObj,
   MediaType,
-}                     from './schema'
+  MsgType,
+}                       from './schema'
 
-import * as request from 'request'
-import * as bl from 'bl'
+import {
+  WebContact,
+  WebContactRawObj,
+}                       from './web-contact'
+import WebMessage       from './web-message'
+import {
+  WebRoom,
+  WebRoomRawObj,
+}                       from './web-room'
+import WebFriendRequest from './web-friend-request'
 
 export type PuppetFoodType = 'scan' | 'ding'
 export type ScanFoodType   = 'scan' | 'login' | 'logout'
@@ -65,19 +76,21 @@ export class PuppetWeb extends Puppet {
   public bridge   : Bridge
   public scanInfo : ScanData | null
 
-  public puppetWatchdog : Watchdog<PuppetFoodType>
-  public scanWatchdog   : Watchdog<ScanFoodType>
+  public scanWatchdog: Watchdog<ScanFoodType>
 
-  private fileId   : number
+  private fileId: number
 
   constructor(
     public options: PuppetOptions,
   ) {
-    super(options)
-    this.fileId = 0
+    super(options, {
+      Contact:        WebContact,
+      FriendRequest:  WebFriendRequest,
+      Message:        WebMessage,
+      Room:           WebRoom,
+    })
 
-    const PUPPET_TIMEOUT  = 1 * 60 * 1000  // 1 minute
-    this.puppetWatchdog   = new Watchdog<PuppetFoodType>(PUPPET_TIMEOUT, 'PuppetWeb')
+    this.fileId = 0
 
     const SCAN_TIMEOUT  = 2 * 60 * 1000 // 2 minutes
     this.scanWatchdog   = new Watchdog<ScanFoodType>(SCAN_TIMEOUT, 'Scan')
@@ -93,7 +106,7 @@ export class PuppetWeb extends Puppet {
     this.state.on('pending')
 
     try {
-      this.initWatchdogForPuppet()
+      this.initWatchdog()
       this.initWatchdogForScan()
 
       this.bridge = await this.initBridge(this.options.profile)
@@ -133,23 +146,22 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public initWatchdogForPuppet(): void {
+  public initWatchdog(): void {
     log.verbose('PuppetWeb', 'initWatchdogForPuppet()')
 
     const puppet = this
-    const dog    = this.puppetWatchdog
 
     // clean the dog because this could be re-inited
-    dog.removeAllListeners()
+    this.watchdog.removeAllListeners()
 
-    puppet.on('watchdog', food => dog.feed(food))
-    dog.on('feed', food => {
+    puppet.on('watchdog', food => this.watchdog.feed(food))
+    this.watchdog.on('feed', food => {
       log.silly('PuppetWeb', 'initWatchdogForPuppet() dog.on(feed, food={type=%s, data=%s})', food.type, food.data)
       // feed the dog, heartbeat the puppet.
       puppet.emit('heartbeat', food.data)
     })
 
-    dog.on('reset', async (food, timeout) => {
+    this.watchdog.on('reset', async (food, timeout) => {
       log.warn('PuppetWeb', 'initWatchdogForPuppet() dog.on(reset) last food:%s, timeout:%s',
                             food.data, timeout)
       try {
@@ -225,12 +237,11 @@ export class PuppetWeb extends Puppet {
       await this.state.ready('off')
       return
     }
+    this.state.off('pending')
 
     log.verbose('PuppetWeb', 'quit() make watchdog sleep before do quit')
-    this.puppetWatchdog.sleep()
+    this.watchdog.sleep()
     this.scanWatchdog.sleep()
-
-    this.state.off('pending')
 
     try {
       await this.bridge.quit()
@@ -297,11 +308,11 @@ export class PuppetWeb extends Puppet {
   /**
    * get self contact
    */
-  public self(): Contact {
+  public self(): WebContact {
     log.verbose('PuppetWeb', 'self()')
 
     if (this.user) {
-      return this.user
+      return this.user as WebContact
     }
     throw new Error('PuppetWeb.self() no this.user')
   }
@@ -318,18 +329,19 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  private async uploadMedia(mediaMessage: MediaMessage, toUserName: string): Promise<MediaData> {
-    if (!mediaMessage)
-      throw new Error('require mediaMessage')
+  private async uploadMedia(message: WebMessage, toUserName: string): Promise<MediaData> {
+    if (message.type() === WebMessage.Type.TEXT) {
+      throw new Error('require a Media Message')
+    }
 
-    const filename = mediaMessage.filename()
-    const ext      = mediaMessage.ext()
+    const filename = message.filename()
+    const ext      = message.ext()
 
     // const contentType = Misc.mime(ext)
     // const contentType = mime.getType(ext)
-    const contentType = mediaMessage.mimeType()
+    const contentType = message.mimeType()
     if (!contentType) {
-      throw new Error('no MIME Type found on mediaMessage: ' + mediaMessage.filename())
+      throw new Error('no MIME Type found on mediaMessage: ' + message.filename())
     }
     let mediatype: MediaType
 
@@ -348,7 +360,7 @@ export class PuppetWeb extends Puppet {
         mediatype = MediaType.ATTACHMENT
     }
 
-    const readStream = await mediaMessage.readyStream()
+    const readStream = await message.readyStream()
     const buffer = <Buffer>await new Promise((resolve, reject) => {
       readStream.pipe(bl((err, data) => {
         if (err) reject(err)
@@ -538,7 +550,7 @@ export class PuppetWeb extends Puppet {
     return Object.assign(mediaData, { MediaId: mediaId as string })
   }
 
-  public async sendMedia(message: MediaMessage): Promise<boolean> {
+  public async sendMedia(message: WebMessage): Promise<boolean> {
     const to   = message.to()
     const room = message.room()
 
@@ -582,7 +594,7 @@ export class PuppetWeb extends Puppet {
     // console.log('mediaData.MsgType', mediaData.MsgType)
     // console.log('rawObj.MsgType', message.rawObj && message.rawObj.MsgType)
 
-    mediaData.MsgType = Misc.msgType(message.ext())
+    mediaData.MsgType = this.extToType(message.ext())
     log.silly('PuppetWeb', 'sendMedia() destination: %s, mediaId: %s, MsgType; %s)',
       destinationId,
       mediaData.MediaId,
@@ -603,7 +615,7 @@ export class PuppetWeb extends Puppet {
    * TODO: Test this function if it could work...
    */
   // public async forward(baseData: MsgRawObj, patchData: MsgRawObj): Promise<boolean> {
-  public async forward(message: MediaMessage, sendTo: Contact | Room): Promise<boolean> {
+  public async forward(message: WebMessage, sendTo: WebContact | WebRoom): Promise<void> {
 
     log.silly('PuppetWeb', 'forward() to: %s, message: %s)',
       sendTo, message.filename(),
@@ -633,16 +645,16 @@ export class PuppetWeb extends Puppet {
     if (m.FileSize >= largeFileSize && !m.Signature) {
       // if has RawObj.Signature, can forward the 25Mb+ file
       log.warn('MediaMessage', 'forward() Due to webWx restrictions, more than 25MB of files can not be downloaded and can not be forwarded.')
-      return false
+      throw new Error('forward() Due to webWx restrictions, more than 25MB of files can not be downloaded and can not be forwarded.')
     }
 
-    newMsg.FromUserName         = this.userId || ''
+    newMsg.FromUserName         = this.user && this.user.id || ''
     newMsg.isTranspond          = true
     newMsg.MsgIdBeforeTranspond = m.MsgIdBeforeTranspond || m.MsgId
     newMsg.MMSourceMsgId        = m.MsgId
     // In room msg, the content prefix sender:, need to be removed, otherwise the forwarded sender will display the source message sender, causing self () to determine the error
     newMsg.Content      = Misc.unescapeHtml(m.Content.replace(/^@\w+:<br\/>/, '')).replace(/^[\w\-]+:<br\/>/, '')
-    newMsg.MMIsChatRoom = sendTo instanceof Room ? true : false
+    newMsg.MMIsChatRoom = sendTo instanceof WebRoom ? true : false
 
     // The following parameters need to be overridden after calling createMessage()
 
@@ -658,18 +670,21 @@ export class PuppetWeb extends Puppet {
     const baseData  = m
     const patchData = newMsg
 
-    let ret = false
     try {
-      ret = await this.bridge.forward(baseData, patchData)
+      const ret = await this.bridge.forward(baseData, patchData)
+      if (!ret) {
+        throw new Error('forward failed')
+      }
     } catch (e) {
       log.error('PuppetWeb', 'forward() exception: %s', e.message)
       Raven.captureException(e)
       throw e
     }
-    return ret
   }
 
-   public async send(message: Message | MediaMessage): Promise<boolean> {
+   public async send(message: WebMessage): Promise<void> {
+    log.verbose('PuppetWeb', 'send(%s)', message)
+
     const to   = message.to()
     const room = message.room()
 
@@ -677,54 +692,56 @@ export class PuppetWeb extends Puppet {
 
     if (room) {
       destinationId = room.id
-    } else {
-      if (!to) {
-        throw new Error('PuppetWeb.send(): message with neither room nor to?')
-      }
+    } else if (to) {
       destinationId = to.id
+    } else {
+      throw new Error('PuppetWeb.send(): message with neither room nor to?')
     }
 
-    let ret = false
+    if (message.type() === MsgType.TEXT) {
+      log.silly('PuppetWeb', 'send() TEXT message.')
+      const text = message.text()
 
-    if (message instanceof MediaMessage) {
-      ret = await this.sendMedia(message)
-    } else {
-      const content = message.content()
-
-      log.silly('PuppetWeb', 'send() destination: %s, content: %s)',
-        destinationId,
-        content,
-      )
+      log.silly('PuppetWeb', 'send() destination: %s, text: %s)',
+                              destinationId,
+                              text,
+                )
 
       try {
-        ret = await this.bridge.send(destinationId, content)
+        await this.bridge.send(destinationId, text)
       } catch (e) {
         log.error('PuppetWeb', 'send() exception: %s', e.message)
         Raven.captureException(e)
         throw e
       }
+    } else {
+      log.silly('PuppetWeb', 'send() non-TEXT message.')
+
+      const ret = await this.sendMedia(message)
+      if (!ret) {
+        throw new Error('sendMedia fail')
+      }
     }
-    return ret
   }
 
   /**
    * Bot say...
    * send to `self` for notice / log
    */
-  public async say(content: string): Promise<boolean> {
+  public async say(text: string): Promise<void> {
     if (!this.logonoff()) {
       throw new Error('can not say before login')
     }
 
-    if (!content) {
-      log.warn('PuppetWeb', 'say(%s) can not say nothing', content)
-      return false
+    if (!text) {
+      log.warn('PuppetWeb', 'say(%s) can not say nothing', text)
+      return
     }
 
     if (!this.user) {
-      log.warn('PuppetWeb', 'say(%s) can not say because no user', content)
+      log.warn('PuppetWeb', 'say(%s) can not say because no user', text)
       this.emit('error', new Error('no this.user for PuppetWeb'))
-      return false
+      return
     }
 
     // const m = new Message()
@@ -732,7 +749,7 @@ export class PuppetWeb extends Puppet {
     // m.content(content)
 
     // return await this.send(m)
-    return await this.user.say(content)
+    return await this.user.say(text)
   }
 
   /**
@@ -741,8 +758,8 @@ export class PuppetWeb extends Puppet {
   public async logout(): Promise<void> {
     log.verbose('PuppetWeb', 'logout()')
 
-    const data = this.user || this.userId || ''
-    this.userId = this.user = undefined
+    const data = this.user || ''
+    this.user = undefined
 
     try {
       await this.bridge.logout()
@@ -754,7 +771,7 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public async getContact(id: string): Promise<object> {
+  public async getContact(id: string): Promise<WebContactRawObj | WebRoomRawObj> {
     try {
       return await this.bridge.getContact(id)
     } catch (e) {
@@ -774,28 +791,88 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public async contactAlias(contact: Contact, remark: string|null): Promise<boolean> {
-    try {
-      const ret = await this.bridge.contactRemark(contact.id, remark)
-      if (!ret) {
-        log.warn('PuppetWeb', 'contactRemark(%s, %s) bridge.contactRemark() return false',
-                              contact.id, remark,
-        )
-      }
-      return ret
+  public contactAlias(contact: WebContact)                      : Promise<string>
+  public contactAlias(contact: WebContact, alias: string | null): Promise<void>
 
+  public async contactAlias(
+    contact: WebContact,
+    alias?: string | null,
+  ): Promise<string | void> {
+    if (typeof alias === 'undefined') {
+      throw new Error('to be implement')
+    }
+
+    try {
+      const ret = await this.bridge.contactAlias(contact.id, alias)
+      if (!ret) {
+        log.warn('PuppetWeb', 'contactRemark(%s, %s) bridge.contactAlias() return false',
+                              contact.id, alias,
+                            )
+        throw new Error('bridge.contactAlias fail')
+      }
     } catch (e) {
-      log.warn('PuppetWeb', 'contactRemark(%s, %s) rejected: %s', contact.id, remark, e.message)
+      log.warn('PuppetWeb', 'contactRemark(%s, %s) rejected: %s', contact.id, alias, e.message)
       Raven.captureException(e)
       throw e
     }
   }
 
-  public async contactFind(filterFunc: string): Promise<Contact[]> {
+  private contactQueryFilterToFunctionString(
+    query: ContactQueryFilter,
+  ): string {
+    log.verbose('PuppetWeb', 'contactQueryFilterToFunctionString({ %s })',
+                            Object.keys(query)
+                                  .map(k => `${k}: ${query[k]}`)
+                                  .join(', '),
+              )
+
+    if (Object.keys(query).length !== 1) {
+      throw new Error('query only support one key. multi key support is not availble now.')
+    }
+
+    let filterKey                     = Object.keys(query)[0]
+    let filterValue: string | RegExp  = query[filterKey]
+
+    const keyMap = {
+      name:   'NickName',
+      alias:  'RemarkName',
+    }
+
+    filterKey = keyMap[filterKey]
+    if (!filterKey) {
+      throw new Error('unsupport filter key')
+    }
+
+    if (!filterValue) {
+      throw new Error('filterValue not found')
+    }
+
+    /**
+     * must be string because we need inject variable value
+     * into code as variable namespecialContactList
+     */
+    let filterFunction: string
+
+    if (filterValue instanceof RegExp) {
+      filterFunction = `(function (c) { return ${filterValue.toString()}.test(c.${filterKey}) })`
+    } else if (typeof filterValue === 'string') {
+      filterValue = filterValue.replace(/'/g, '\\\'')
+      filterFunction = `(function (c) { return c.${filterKey} === '${filterValue}' })`
+    } else {
+      throw new Error('unsupport name type')
+    }
+
+    return filterFunction
+  }
+
+  public async contactFindAll(query: ContactQueryFilter): Promise<WebContact[]> {
+
+    const filterFunc = this.contactQueryFilterToFunctionString(query)
+
     try {
       const idList = await this.bridge.contactFind(filterFunc)
       return idList.map(id => {
-        const c = Contact.load(id)
+        const c = WebContact.load(id) as WebContact
         c.puppet = this
         return c
       })
@@ -806,26 +883,46 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public async roomFind(filterFunc: string): Promise<Room[]> {
+  public async roomFindAll(
+    query: RoomQueryFilter = { topic: /.*/ },
+  ): Promise<WebRoom[]> {
+
+    let topicFilter = query.topic
+
+    if (!topicFilter) {
+      throw new Error('topicFilter not found')
+    }
+
+    let filterFunction: string
+
+    if (topicFilter instanceof RegExp) {
+      filterFunction = `(function (c) { return ${topicFilter.toString()}.test(c) })`
+    } else if (typeof topicFilter === 'string') {
+      topicFilter = topicFilter.replace(/'/g, '\\\'')
+      filterFunction = `(function (c) { return c === '${topicFilter}' })`
+    } else {
+      throw new Error('unsupport topic type')
+    }
+
     try {
-      const idList = await this.bridge.roomFind(filterFunc)
+      const idList = await this.bridge.roomFind(filterFunction)
       return idList.map(id => {
-        const r = Room.load(id)
+        const r = WebRoom.load(id) as WebRoom
         r.puppet = this
         return r
       })
     } catch (e) {
-      log.warn('PuppetWeb', 'roomFind(%s) rejected: %s', filterFunc, e.message)
+      log.warn('PuppetWeb', 'roomFind(%s) rejected: %s', filterFunction, e.message)
       Raven.captureException(e)
       throw e
     }
   }
 
-  public async roomDel(room: Room, contact: Contact): Promise<number> {
+  public async roomDel(room: WebRoom, contact: WebContact): Promise<void> {
     const roomId    = room.id
     const contactId = contact.id
     try {
-      return await this.bridge.roomDelMember(roomId, contactId)
+      await this.bridge.roomDelMember(roomId, contactId)
     } catch (e) {
       log.warn('PuppetWeb', 'roomDelMember(%s, %d) rejected: %s', roomId, contactId, e.message)
       Raven.captureException(e)
@@ -833,11 +930,11 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public async roomAdd(room: Room, contact: Contact): Promise<number> {
+  public async roomAdd(room: WebRoom, contact: WebContact): Promise<void> {
     const roomId    = room.id
     const contactId = contact.id
     try {
-      return await this.bridge.roomAddMember(roomId, contactId)
+      await this.bridge.roomAddMember(roomId, contactId)
     } catch (e) {
       log.warn('PuppetWeb', 'roomAddMember(%s) rejected: %s', contact, e.message)
       Raven.captureException(e)
@@ -845,7 +942,7 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public async roomTopic(room: Room, topic: string): Promise<string> {
+  public async roomTopic(room: WebRoom, topic: string): Promise<string> {
     if (!room || typeof topic === 'undefined') {
       return Promise.reject(new Error('room or topic not found'))
     }
@@ -860,7 +957,7 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public async roomCreate(contactList: Contact[], topic: string): Promise<Room> {
+  public async roomCreate(contactList: WebContact[], topic: string): Promise<WebRoom> {
     if (!contactList || ! contactList.map) {
       throw new Error('contactList not found')
     }
@@ -872,7 +969,7 @@ export class PuppetWeb extends Puppet {
       if (!roomId) {
         throw new Error('PuppetWeb.roomCreate() roomId "' + roomId + '" not found')
       }
-      const r = Room.load(roomId)
+      const r = WebRoom.load(roomId) as WebRoom
       r.puppet = this
       return r
 
@@ -886,13 +983,13 @@ export class PuppetWeb extends Puppet {
   /**
    * FriendRequest
    */
-  public async friendRequestSend(contact: Contact, hello: string): Promise<boolean> {
+  public async friendRequestSend(contact: WebContact, hello: string): Promise<void> {
     if (!contact) {
       throw new Error('contact not found')
     }
 
     try {
-      return await this.bridge.verifyUserRequest(contact.id, hello)
+      await this.bridge.verifyUserRequest(contact.id, hello)
     } catch (e) {
       log.warn('PuppetWeb', 'bridge.verifyUserRequest(%s, %s) rejected: %s', contact.id, hello, e.message)
       Raven.captureException(e)
@@ -900,13 +997,13 @@ export class PuppetWeb extends Puppet {
     }
   }
 
-  public async friendRequestAccept(contact: Contact, ticket: string): Promise<boolean> {
+  public async friendRequestAccept(contact: WebContact, ticket: string): Promise<void> {
     if (!contact || !ticket) {
       throw new Error('contact or ticket not found')
     }
 
     try {
-      return await this.bridge.verifyUserOk(contact.id, ticket)
+      await this.bridge.verifyUserOk(contact.id, ticket)
     } catch (e) {
       log.warn('PuppetWeb', 'bridge.verifyUserOk(%s, %s) rejected: %s', contact.id, ticket, e.message)
       Raven.captureException(e)
@@ -923,7 +1020,7 @@ export class PuppetWeb extends Puppet {
     let counter = -1
 
     // tslint:disable-next-line:variable-name
-    const MyContact = cloneClass(Contact)
+    const MyContact = cloneClass(WebContact)
     MyContact.puppet = this
 
     async function stable(done: Function): Promise<void> {
@@ -985,6 +1082,23 @@ export class PuppetWeb extends Puppet {
     this.options.profile.set('cookies', cookieList)
     this.options.profile.save()
   }
+
+  public extToType(ext: string): MsgType {
+    switch (ext) {
+      case 'bmp':
+      case 'jpeg':
+      case 'jpg':
+      case 'png':
+        return MsgType.IMAGE
+      case 'gif':
+        return MsgType.EMOTICON
+      case 'mp4':
+        return MsgType.VIDEO
+      default:
+        return MsgType.APP
+    }
+  }
+
 }
 
 export default PuppetWeb

@@ -25,7 +25,7 @@ const qrcodeTerminal = require('qrcode-terminal')
  * to     `import { ... } from 'wechaty'`
  * when you are runing with Docker or NPM instead of Git Source.
  */
-import { Wechaty } from '../'
+import { Wechaty } from '../src/'
 
 const bot = Wechaty.instance(/* no profile here because roger bot is too noisy */)
 

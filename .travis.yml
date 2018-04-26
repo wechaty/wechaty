@@ -43,13 +43,13 @@ jobs:
 
     - stage: pack
       script:
-        - npm run test:pack && echo 'Npm pack testing is passed'
+        - npm run test:pack && echo 'Npm pack testing is passed' || travis_terminate 1
 
     - stage: deploy
       script:
         - echo "Deploying to NPM ..."
         - npm version
-        - if ./scripts/development-release.ts; then ./scripts/package-public-config-tag-next.ts; fi
+        - if ./scripts/development-release.ts; then ./scripts/package-publish-config-tag-next.ts; fi
         - npm run dist
 
       deploy:

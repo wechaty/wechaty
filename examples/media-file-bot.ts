@@ -34,10 +34,11 @@ import * as qrcodeTerminal  from 'qrcode-terminal'
  */
 import {
   config,
-  MediaMessage,
+  Message,
   // MsgType,
   Wechaty,
-}           from '../'
+}           from '../src/'
+
 const bot = Wechaty.instance({ profile: config.default.DEFAULT_PROFILE })
 
 bot
@@ -63,7 +64,7 @@ bot
   //   || m.type() === MsgType.APP
   //   || (m.type() === MsgType.TEXT && m.typeSub() === MsgType.LOCATION)  // LOCATION
   // ) {
-  if (m instanceof MediaMessage) {
+  if (m.type() !== Message.Type.TEXT) {
     saveMediaFile(m)
   }
   // }
@@ -71,7 +72,7 @@ bot
 .start()
 .catch(e => console.error('bot.start() error: ' + e))
 
-async function saveMediaFile(message: MediaMessage) {
+async function saveMediaFile(message: Message) {
   const filename = message.filename()
   console.log('IMAGE local filename: ' + filename)
 

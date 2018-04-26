@@ -90,6 +90,7 @@ export type PuppetName =  'android-pad'
                         | 'hostie'
                         | 'ios-app-phone'
                         | 'ios-app-pad'
+                        | 'mock'
                         | 'web'
                         | 'win32'
 
@@ -197,7 +198,7 @@ export class Config {
 }
 
 export interface Sayable {
-  say(content: string, replyTo?: any|any[]): Promise<boolean>
+  say(text: string, replyTo?: any|any[]): Promise<void>
 }
 
 export type WechatEvent = 'friend'

@@ -31,8 +31,7 @@ import {
   config,
   Wechaty,
   log,
-  MediaMessage,
-}               from '../index'
+}               from '../src/'
 
 const BOT_QR_CODE_IMAGE_FILE = path.join(
   __dirname,
@@ -95,7 +94,7 @@ bot
                             `If you want to talk with other developers, just scan the following QR Code in WeChat with secret code: wechaty,\n\n` +
                             `you can join our Wechaty Developers' Home at once`
       await m.say(joinWechaty)
-      await m.say(new MediaMessage(BOT_QR_CODE_IMAGE_FILE))
+      await m.say(new bot.Message(BOT_QR_CODE_IMAGE_FILE))
       await m.say('Scan now, because other Wechaty developers want to talk with you too!\n\n(secret code: wechaty)')
       log.info('Bot', 'REPLY: Image')
     }

@@ -17,16 +17,19 @@
  *
  *  @ignore
  */
-import * as cuid        from 'cuid'
-import * as os          from 'os'
+import * as cuid    from 'cuid'
+import * as os      from 'os'
 
-import StateSwitch      from 'state-switch'
+import {
+  cloneClass,
+  Constructor,
+}                   from 'clone-class'
 import {
   callerResolve,
   hotImport,
-}                       from 'hot-import'
+}                   from 'hot-import'
+import StateSwitch  from 'state-switch'
 
-import cloneClass       from './clone-class'
 import {
   config,
   log,
@@ -35,21 +38,22 @@ import {
   Sayable,
   VERSION,
   WechatyEvent,
-}                       from './config'
-import Contact          from './contact'
+}                     from './config'
 import {
-  Message,
-  MediaMessage,
-}                       from './message'
-import Profile          from './profile'
-import Puppet           from './puppet'
-import PuppetAccessory  from './puppet-accessory'
+}                     from './message'
+import Profile        from './profile'
+
 import {
+  Contact,
   FriendRequest,
-  PuppetWeb,
-}                       from './puppet-web/'
-import Room             from './room'
-// import Misc           from './misc'
+  Message,
+  Puppet,
+  PuppetAccessory,
+  Room,
+}                     from './abstract-puppet/'
+
+import PuppetWeb      from './puppet-web/'
+import PuppetMock     from './puppet-mock/'
 
 export interface WechatyOptions {
   puppet?:  PuppetName,
@@ -88,13 +92,13 @@ export class Wechaty extends PuppetAccessory implements Sayable {
   public cuid:        string
 
   // tslint:disable-next-line:variable-name
-  public Contact        : typeof Contact
+  public Contact        : typeof Contact        & Constructor<{}>
   // tslint:disable-next-line:variable-name
-  public FriendRequest  : typeof FriendRequest
+  public FriendRequest  : typeof FriendRequest  & Constructor<{}>
   // tslint:disable-next-line:variable-name
-  public Message        : typeof Message
+  public Message        : typeof Message        & Constructor<{}>
   // tslint:disable-next-line:variable-name
-  public Room           : typeof Room
+  public Room           : typeof Room           & Constructor<{}>
 
   /**
    * get the singleton instance of Wechaty
@@ -166,61 +170,6 @@ export class Wechaty extends PuppetAccessory implements Sayable {
   */
   public version(forceNpm?) {
     return Wechaty.version(forceNpm)
-  }
-
-  /**
-   * Start the bot, return Promise.
-   *
-   * @returns {Promise<void>}
-   * @example
-   * await bot.start()
-   * // do other stuff with bot here
-   */
-  public async start(): Promise<void> {
-    log.info('Wechaty', 'v%s starting...' , this.version())
-    log.verbose('Wechaty', 'puppet: %s'   , this.options.puppet)
-    log.verbose('Wechaty', 'profile: %s'  , this.options.profile)
-    log.verbose('Wechaty', 'cuid: %s'     , this.cuid)
-
-    if (this.state.on()) {
-      log.silly('Wechaty', 'start() on a starting/started instance')
-      await this.state.ready()
-      log.silly('Wechaty', 'start() state.ready() resolved')
-      return
-    }
-
-    this.state.on('pending')
-
-    try {
-      this.profile.load()
-      this.puppet = this.initPuppet()
-
-      // set puppet instance to Wechaty Static variable, for using by Contact/Room/Message/FriendRequest etc.
-      // config.puppetInstance(puppet)
-      this.Contact        = cloneClass(Contact)
-      this.FriendRequest  = cloneClass(FriendRequest)
-      this.Message        = cloneClass(Message)
-      this.Room           = cloneClass(Room)
-
-      this.Contact.puppet       = this.puppet
-      this.FriendRequest.puppet = this.puppet
-      this.Message.puppet       = this.puppet
-      this.Room.puppet          = this.puppet
-
-      await this.puppet.start()
-
-    } catch (e) {
-      log.error('Wechaty', 'start() exception: %s', e && e.message)
-      Raven.captureException(e)
-      throw e
-    }
-
-    this.on('heartbeat', () => this.memoryCheck())
-
-    this.state.on(true)
-    this.emit('start')
-
-    return
   }
 
   public on(event: 'error'      , listener: string | ((this: Wechaty, error: Error) => void))                                                  : this
@@ -398,6 +347,14 @@ export class Wechaty extends PuppetAccessory implements Sayable {
       case 'web':
         puppet = new PuppetWeb({
           profile:  this.profile,
+          wechaty:  this,
+        })
+        break
+
+      case 'mock':
+        puppet = new PuppetMock({
+          profile:  this.profile,
+          wechaty:  this,
         })
         break
 
@@ -426,7 +383,87 @@ export class Wechaty extends PuppetAccessory implements Sayable {
       })
     }
 
+    /**
+     * Clone Classes for this bot
+     *
+     * Fixme:
+     *   https://stackoverflow.com/questions/36886082/abstract-constructor-type-in-typescript
+     *   https://github.com/Microsoft/TypeScript/issues/5843#issuecomment-290972055
+     *   https://github.com/Microsoft/TypeScript/issues/19197
+     */
+    this.Contact        = cloneClass(puppet.Contact       as any)
+    this.FriendRequest  = cloneClass(puppet.FriendRequest as any)
+    this.Message        = cloneClass(puppet.Message       as any)
+    this.Room           = cloneClass(puppet.Room          as any)
+
     return puppet
+  }
+
+  /**
+   * Start the bot, return Promise.
+   *
+   * @returns {Promise<void>}
+   * @example
+   * await bot.start()
+   * // do other stuff with bot here
+   */
+  public async start(): Promise<void> {
+    log.info('Wechaty', 'v%s starting...' , this.version())
+    log.verbose('Wechaty', 'puppet: %s'   , this.options.puppet)
+    log.verbose('Wechaty', 'profile: %s'  , this.options.profile)
+    log.verbose('Wechaty', 'cuid: %s'     , this.cuid)
+
+    if (this.state.on()) {
+      log.silly('Wechaty', 'start() on a starting/started instance')
+      await this.state.ready()
+      log.silly('Wechaty', 'start() state.ready() resolved')
+      return
+    }
+
+    this.state.on('pending')
+
+    try {
+      this.profile.load()
+      this.puppet = this.initPuppet()
+
+      // set puppet instance to Wechaty Static variable, for using by Contact/Room/Message/FriendRequest etc.
+      // config.puppetInstance(puppet)
+
+      if (this === Wechaty._instance) {
+        /**
+         * Here means `this` is the global instance of Wechaty (`Wechaty.instance()`)
+         * so we can keep using `Contact.find()` and `Room.find()`
+         *
+         * This workaround should be removed after v0.18
+         *
+         * See: fix the breaking changes for #518
+         * https://github.com/Chatie/wechaty/issues/518
+         */
+        Contact.puppet       = this.puppet
+        FriendRequest.puppet = this.puppet
+        Message.puppet       = this.puppet
+        Room.puppet          = this.puppet
+      }
+
+      this.Contact.puppet       = this.puppet
+      this.FriendRequest.puppet = this.puppet
+      this.Message.puppet       = this.puppet
+      this.Room.puppet          = this.puppet
+
+      await this.puppet.start()
+
+    } catch (e) {
+      log.error('Wechaty', 'start() exception: %s', e && e.message)
+      Raven.captureException(e)
+      throw e
+    }
+
+    this.on('heartbeat', () => this.memoryCheck())
+
+    this.state.on(true)
+    this.emit('start')
+
+    return
   }
 
   /**
@@ -534,9 +571,9 @@ export class Wechaty extends PuppetAccessory implements Sayable {
   /**
    * @private
    */
-  public async send(message: Message | MediaMessage): Promise<boolean> {
+  public async send(message: Message): Promise<void> {
     try {
-      return await this.puppet.send(message)
+      await this.puppet.send(message)
     } catch (e) {
       log.error('Wechaty', 'send() exception: %s', e.message)
       Raven.captureException(e)
@@ -547,12 +584,12 @@ export class Wechaty extends PuppetAccessory implements Sayable {
   /**
    * Send message to filehelper
    *
-   * @param {string} content
+   * @param {string} text
    * @returns {Promise<boolean>}
    */
-  public async say(content: string): Promise<boolean> {
-    log.verbose('Wechaty', 'say(%s)', content)
-    return await this.puppet.say(content)
+  public async say(text: string): Promise<void> {
+    log.verbose('Wechaty', 'say(%s)', text)
+    await this.puppet.say(text)
   }
 
   /**

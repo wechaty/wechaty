@@ -20,22 +20,33 @@ import { EventEmitter } from 'events'
 
 import { StateSwitch }  from 'state-switch'
 import {
+  Watchdog,
   WatchdogFood,
 }                       from 'watchdog'
+import {
+  Constructor,
+}                       from 'clone-class'
+
+import { Wechaty }      from '../wechaty'
 
 import {
   Sayable,
   WechatyEvent,
   log,
-}                       from './config'
-import Contact          from './contact'
-import FriendRequest    from './friend-request'
+}                       from '../config'
+import Profile          from '../profile'
+
 import {
-  Message,
-  MediaMessage,
-}                       from './message'
-import Profile          from './profile'
-import Room             from './room'
+  Contact,
+  ContactQueryFilter,
+}                       from './contact'
+import FriendRequest    from './friend-request'
+import Message          from './message'
+
+import {
+  Room,
+  RoomQueryFilter,
+}                       from './room'
 
 export interface ScanData {
   avatar: string, // Image Data URL
@@ -48,19 +59,64 @@ export type PuppetEvent = WechatyEvent
 
 export interface PuppetOptions {
   profile: Profile,
+  wechaty: Wechaty,
 }
+
+export type PuppetContactClass        = typeof Contact        & Constructor<{}>
+export type PuppetFriendRequestClass  = typeof FriendRequest  & Constructor<{}>
+export type PuppetMessageClass        = typeof Message        & Constructor<{}>
+export type PuppetRoomClass           = typeof Room           & Constructor<{}>
+
+export interface PuppetClasses {
+  Contact:        PuppetContactClass,
+  FriendRequest:  PuppetFriendRequestClass,
+  Message:        PuppetMessageClass,
+  Room:           PuppetRoomClass,
+}
+
 /**
  * Abstract Puppet Class
  */
 export abstract class Puppet extends EventEmitter implements Sayable {
-  public userId?:  string
-  public user?:    Contact
+  public WATCHDOG_TIMEOUT  = 1 * 60 * 1000  // 1 minute
 
-  public state:   StateSwitch
+  public user?: Contact
 
-  constructor(public options: PuppetOptions) {
+  public state:     StateSwitch
+  public watchdog:  Watchdog
+
+  // tslint:disable-next-line:variable-name
+  public Contact:       PuppetContactClass
+  // tslint:disable-next-line:variable-name
+  public FriendRequest: PuppetFriendRequestClass
+  // tslint:disable-next-line:variable-name
+  public Message:       PuppetMessageClass
+  // tslint:disable-next-line:variable-name
+  public Room:          PuppetRoomClass
+
+  constructor(
+    public options: PuppetOptions,
+    classes:        PuppetClasses,
+  ) {
     super()
-    this.state = new StateSwitch('Puppet', log)
+
+    this.state    = new StateSwitch('Puppet', log)
+    this.watchdog = new Watchdog((this.constructor as any as Puppet).WATCHDOG_TIMEOUT, 'Puppet')
+
+    this.Contact        = classes.Contact
+    this.FriendRequest  = classes.FriendRequest
+    this.Message        = classes.Message
+    this.Room           = classes.Room
+
+    // https://stackoverflow.com/questions/14486110/how-to-check-if-a-javascript-class-inherits-another-without-creating-an-obj
+    const check = this.Contact.prototype        instanceof Contact
+                && this.FriendRequest.prototype instanceof FriendRequest
+                && this.Message.prototype       instanceof Message
+                && this.Room.prototype          instanceof Room
+
+    if (!check) {
+      throw new Error('Puppet must set classes right! https://github.com/Chatie/wechaty/issues/1167')
+    }
   }
 
   public emit(event: 'error',       e: Error)                                                      : boolean
@@ -109,20 +165,20 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   public abstract self() : Contact
 
-  public abstract getContact(id: string): Promise<any>
+  // public abstract getContact(id: string): Promise<any>
 
   /**
    * Message
    */
-  public abstract forward(message: MediaMessage, contact: Contact | Room) : Promise<boolean>
-  public abstract say(content: string)                                    : Promise<boolean>
-  public abstract send(message: Message | MediaMessage)                   : Promise<boolean>
+  public abstract forward(message: Message, contact: Contact | Room) : Promise<void>
+  public abstract say(text: string)                                  : Promise<void>
+  public abstract send(message: Message)                             : Promise<void>
 
   /**
    * Login / Logout
    */
-  public abstract logonoff()             : boolean
-  public abstract logout()               : Promise<void>
+  public abstract logonoff()  : boolean
+  public abstract logout()    : Promise<void>
 
   /**
    * Misc
@@ -132,34 +188,27 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   /**
    * FriendRequest
    */
-  public abstract friendRequestSend(contact: Contact, hello?: string)   : Promise<any>
-  public abstract friendRequestAccept(contact: Contact, ticket: string) : Promise<any>
+  public abstract friendRequestSend(contact: Contact, hello?: string)   : Promise<void>
+  public abstract friendRequestAccept(contact: Contact, ticket: string) : Promise<void>
 
   /**
    * Room
    */
-  public abstract roomAdd(room: Room, contact: Contact)              : Promise<number>
-  public abstract roomDel(room: Room, contact: Contact)              : Promise<number>
-  public abstract roomTopic(room: Room, topic: string)               : Promise<string>
+  public abstract roomAdd(room: Room, contact: Contact)              : Promise<void>
   public abstract roomCreate(contactList: Contact[], topic?: string) : Promise<Room>
-  public abstract roomFind(filterFunc: string)                       : Promise<Room[]>
+  public abstract roomDel(room: Room, contact: Contact)              : Promise<void>
+  public abstract roomFindAll(filter: RoomQueryFilter)           : Promise<Room[]>
+  public abstract roomTopic(room: Room, topic?: string)              : Promise<string | void>
 
   /**
    * Contact
    */
-  public abstract contactFind(filterFunc: string)                    : Promise<Contact[]>
-  public abstract contactAlias(contact: Contact, alias: string|null) : Promise<boolean>
-}
+  public abstract contactAlias(contact: Contact)                      : Promise<string>
+  public abstract contactAlias(contact: Contact, alias: string | null): Promise<void>
+  public abstract contactAlias(contact: Contact, alias?: string|null) : Promise<string | void>
 
-/**
- * <error>
- *  <ret>1203</ret>
- *  <message>当前登录环境异常。为了你的帐号安全，暂时不能登录web微信。你可以通过手机客户端或者windows微信登录。</message>
- * </error>
- */
-// export enum WechatErrorCode {
-//   WebBlock = 1203,
-// }
+  public abstract contactFindAll(filter: ContactQueryFilter)          : Promise<Contact[]>
+}
 
 // export class WechatError extends Error {
 //   public code: WechatErrorCode

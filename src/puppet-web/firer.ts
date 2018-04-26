@@ -22,11 +22,12 @@ const retryPromise  = require('retry-promise').default
 
 import {
   log,
-}                     from '../config'
-import Contact        from '../contact'
-import Message        from '../message'
+}         from '../config'
 
-import FriendRequest  from './friend-request'
+import WebContact       from './web-contact'
+import WebMessage       from './web-message'
+
+import WebFriendRequest from './web-friend-request'
 
 /* tslint:disable:variable-name */
 export const Firer = {
@@ -100,7 +101,7 @@ const regexConfig = {
   ],
 }
 
-async function checkFriendRequest(m: Message) {
+async function checkFriendRequest(m: WebMessage) {
   if (!m.rawObj) {
     throw new Error('message empty')
   }
@@ -111,7 +112,7 @@ async function checkFriendRequest(m: Message) {
     throw new Error('no info')
   }
 
-  const request = new FriendRequest()
+  const request = new WebFriendRequest()
   request.puppet = m.puppet
 
   request.receive(info)
@@ -139,14 +140,14 @@ function parseFriendConfirm(content: string): boolean {
   }
 }
 
-async function checkFriendConfirm(m: Message) {
-  const content = m.content()
+async function checkFriendConfirm(m: WebMessage) {
+  const content = m.text()
   log.silly('PuppetWebFirer', 'fireFriendConfirm(%s)', content)
 
   if (!parseFriendConfirm(content)) {
     return
   }
-  const request = new FriendRequest()
+  const request = new WebFriendRequest()
   request.puppet = m.puppet
 
   const contact = m.from()
@@ -192,7 +193,7 @@ function parseRoomJoin(content: string): [string[], string] {
   return [inviteeList, inviter] // put invitee at first place
 }
 
-async function checkRoomJoin(m: Message): Promise<boolean> {
+async function checkRoomJoin(m: WebMessage): Promise<boolean> {
 
   const room = m.room()
   if (!room) {
@@ -200,13 +201,13 @@ async function checkRoomJoin(m: Message): Promise<boolean> {
     return false
   }
 
-  const content = m.content()
+  const text = m.text()
 
   let inviteeList: string[], inviter: string
   try {
-    [inviteeList, inviter] = parseRoomJoin(content)
+    [inviteeList, inviter] = parseRoomJoin(text)
   } catch (e) {
-    log.silly('PuppetWebFirer', 'fireRoomJoin() "%s" is not a join message', content)
+    log.silly('PuppetWebFirer', 'fireRoomJoin() "%s" is not a join message', text)
     return false // not a room join message
   }
   log.silly('PuppetWebFirer', 'fireRoomJoin() inviteeList: %s, inviter: %s',
@@ -214,12 +215,12 @@ async function checkRoomJoin(m: Message): Promise<boolean> {
                               inviter,
           )
 
-  let inviterContact: Contact | null = null
-  let inviteeContactList: Contact[] = []
+  let inviterContact: WebContact | null = null
+  let inviteeContactList: WebContact[] = []
 
   try {
     if (inviter === 'You' || inviter === '你' || inviter === 'you') {
-      inviterContact = Contact.load(this.userId)
+      inviterContact = WebContact.load(this.userId) as WebContact
       inviterContact.puppet = m.puppet
     }
 
@@ -237,7 +238,7 @@ async function checkRoomJoin(m: Message): Promise<boolean> {
       let inviteeListAllDone = true
 
       for (const i in inviteeList) {
-        const loaded = inviteeContactList[i] instanceof Contact
+        const loaded = inviteeContactList[i] instanceof WebContact
 
         if (!loaded) {
           const c = room.member(inviteeList[i])
@@ -254,7 +255,7 @@ async function checkRoomJoin(m: Message): Promise<boolean> {
           }
         }
 
-        if (inviteeContactList[i] instanceof Contact) {
+        if (inviteeContactList[i] instanceof WebContact) {
           const isReady = inviteeContactList[i].isReady()
           if (!isReady) {
             log.warn('PuppetWebFirer', 'fireRoomJoin() retryPromise() isReady false for contact %s', inviteeContactList[i].id)
@@ -272,7 +273,7 @@ async function checkRoomJoin(m: Message): Promise<boolean> {
 
       if (inviteeListAllDone && inviterContact) {
         log.silly('PuppetWebFirer', 'fireRoomJoin() resolve() inviteeContactList: %s, inviterContact: %s',
-                                    inviteeContactList.map((c: Contact) => c.name()).join(','),
+                                    inviteeContactList.map((c: WebContact) => c.name()).join(','),
                                     inviterContact.name(),
                 )
         return true
@@ -284,7 +285,7 @@ async function checkRoomJoin(m: Message): Promise<boolean> {
 
     }).catch(e => {
       log.warn('PuppetWebFirer', 'fireRoomJoin() reject() inviteeContactList: %s, inviterContact: %s',
-                                 inviteeContactList.map((c: Contact) => c.name()).join(','),
+                                 inviteeContactList.map((c: WebContact) => c.name()).join(','),
                                  inviter,
       )
     })
@@ -293,11 +294,11 @@ async function checkRoomJoin(m: Message): Promise<boolean> {
       log.error('PuppetWebFirer', 'firmRoomJoin() inivter not found for %s , `room-join` & `join` event will not fired', inviter)
       return false
     }
-    if (!inviteeContactList.every(c => c instanceof Contact)) {
+    if (!inviteeContactList.every(c => c instanceof WebContact)) {
       log.error('PuppetWebFirer', 'firmRoomJoin() inviteeList not all found for %s , only part of them will in the `room-join` or `join` event',
                                   inviteeContactList.join(','),
               )
-      inviteeContactList = inviteeContactList.filter(c => (c instanceof Contact))
+      inviteeContactList = inviteeContactList.filter(c => (c instanceof WebContact))
       if (inviteeContactList.length < 1) {
         log.error('PuppetWebFirer', 'firmRoomJoin() inviteeList empty.  `room-join` & `join` event will not fired')
         return false
@@ -336,12 +337,12 @@ function parseRoomLeave(content: string): [string, string] {
 /**
  * You removed "Bruce LEE" from the group chat
  */
-async function checkRoomLeave(m: Message): Promise<boolean> {
-  log.verbose('PuppetWebFirer', 'fireRoomLeave(%s)', m.content())
+async function checkRoomLeave(m: WebMessage): Promise<boolean> {
+  log.verbose('PuppetWebFirer', 'fireRoomLeave(%s)', m.text())
 
   let leaver: string, remover: string
   try {
-    [leaver, remover] = parseRoomLeave(m.content())
+    [leaver, remover] = parseRoomLeave(m.text())
   } catch (e) {
     return false
   }
@@ -356,9 +357,9 @@ async function checkRoomLeave(m: Message): Promise<boolean> {
    * FIXME: leaver maybe is a list
    * @lijiarui: I have checked, leaver will never be a list. If the bot remove 2 leavers at the same time, it will be 2 sys message, instead of 1 sys message contains 2 leavers.
    */
-  let leaverContact: Contact | null, removerContact: Contact | null
+  let leaverContact: WebContact | null, removerContact: WebContact | null
   if (leaver === this.userId) {
-    leaverContact = Contact.load(this.userId)
+    leaverContact = WebContact.load(this.userId) as WebContact
     leaverContact.puppet = m.puppet
 
     // not sure which is better
@@ -370,7 +371,7 @@ async function checkRoomLeave(m: Message): Promise<boolean> {
     }
 
   } else {
-    removerContact = Contact.load(this.userId)
+    removerContact = WebContact.load(this.userId) as WebContact
     removerContact.puppet = m.puppet
 
     // not sure which is better
@@ -409,10 +410,10 @@ function parseRoomTopic(content: string): [string, string] {
   return [topic, changer]
 }
 
-async function checkRoomTopic(m: Message): Promise<boolean> {
+async function checkRoomTopic(m: WebMessage): Promise<boolean> {
   let  topic, changer
   try {
-    [topic, changer] = parseRoomTopic(m.content())
+    [topic, changer] = parseRoomTopic(m.text())
   } catch (e) { // not found
     return false
   }
@@ -425,9 +426,9 @@ async function checkRoomTopic(m: Message): Promise<boolean> {
 
   const oldTopic = room.topic()
 
-  let changerContact: Contact | null
+  let changerContact: WebContact | null
   if (/^You$/.test(changer) || /^你$/.test(changer)) {
-    changerContact = Contact.load(this.userId)
+    changerContact = WebContact.load(this.userId) as WebContact
     changerContact.puppet = m.puppet
   } else {
     changerContact = room.member(changer)

@@ -37,10 +37,9 @@ const qrcodeTerminal = require('qrcode-terminal')
  */
 import {
   config,
-  MediaMessage,
-  MsgType,
+  Message,
   Wechaty,
-}                 from '../'
+}                 from '../src/'
 
 const bot = Wechaty.instance({ profile: config.default.DEFAULT_PROFILE })
 
@@ -56,11 +55,11 @@ bot
 .on('message', async function(this, msg) {
   console.log(`RECV: ${msg}`)
 
-  if (msg.type() !== MsgType.VOICE) {
+  if (msg.type() !== Message.Type.VOICE) {
     return // skip no-VOICE message
   }
 
-  const mp3Stream = await (msg as MediaMessage).readyStream()
+  const mp3Stream = await msg.readyStream()
 
   const file = createWriteStream(msg.filename())
   mp3Stream.pipe(file)
