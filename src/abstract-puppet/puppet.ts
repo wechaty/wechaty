@@ -23,6 +23,11 @@ import {
   Watchdog,
   WatchdogFood,
 }                       from 'watchdog'
+import {
+  Constructor,
+}                       from 'clone-class'
+
+import { Wechaty }      from '../wechaty'
 
 import {
   Sayable,
@@ -54,34 +59,64 @@ export type PuppetEvent = WechatyEvent
 
 export interface PuppetOptions {
   profile: Profile,
+  wechaty: Wechaty,
 }
 
-const WATCHDOG_TIMEOUT  = 1 * 60 * 1000  // 1 minute
+export type PuppetContactClass        = typeof Contact        & Constructor<{}>
+export type PuppetFriendRequestClass  = typeof FriendRequest  & Constructor<{}>
+export type PuppetMessageClass        = typeof Message        & Constructor<{}>
+export type PuppetRoomClass           = typeof Room           & Constructor<{}>
+
+export interface PuppetClasses {
+  Contact:        PuppetContactClass,
+  FriendRequest:  PuppetFriendRequestClass,
+  Message:        PuppetMessageClass,
+  Room:           PuppetRoomClass,
+}
 
 /**
  * Abstract Puppet Class
  */
 export abstract class Puppet extends EventEmitter implements Sayable {
+  public WATCHDOG_TIMEOUT  = 1 * 60 * 1000  // 1 minute
+
   public user?: Contact
 
   public state:     StateSwitch
   public watchdog:  Watchdog
 
   // tslint:disable-next-line:variable-name
-  public Contact:       Contact
+  public Contact:       PuppetContactClass
   // tslint:disable-next-line:variable-name
-  public FriendRequest: FriendRequest
+  public FriendRequest: PuppetFriendRequestClass
   // tslint:disable-next-line:variable-name
-  public Message:       Message
+  public Message:       PuppetMessageClass
   // tslint:disable-next-line:variable-name
-  public Room:          Room
+  public Room:          PuppetRoomClass
 
-  constructor(public options: PuppetOptions) {
+  constructor(
+    public options: PuppetOptions,
+    classes:        PuppetClasses,
+  ) {
     super()
 
     this.state    = new StateSwitch('Puppet', log)
-    this.watchdog = new Watchdog(WATCHDOG_TIMEOUT, 'Puppet')
+    this.watchdog = new Watchdog((this.constructor as any as Puppet).WATCHDOG_TIMEOUT, 'Puppet')
 
+    this.Contact        = classes.Contact
+    this.FriendRequest  = classes.FriendRequest
+    this.Message        = classes.Message
+    this.Room           = classes.Room
+
+    // https://stackoverflow.com/questions/14486110/how-to-check-if-a-javascript-class-inherits-another-without-creating-an-obj
+    const check = this.Contact.prototype        instanceof Contact
+                && this.FriendRequest.prototype instanceof FriendRequest
+                && this.Message.prototype       instanceof Message
+                && this.Room.prototype          instanceof Room
+
+    if (!check) {
+      throw new Error('Puppet must set classes right! https://github.com/Chatie/wechaty/issues/1167')
+    }
   }
 
   public emit(event: 'error',       e: Error)                                                      : boolean
@@ -162,7 +197,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract roomAdd(room: Room, contact: Contact)              : Promise<void>
   public abstract roomCreate(contactList: Contact[], topic?: string) : Promise<Room>
   public abstract roomDel(room: Room, contact: Contact)              : Promise<void>
-  public abstract roomFindAll(filterFunc: RoomQueryFilter)           : Promise<Room[]>
+  public abstract roomFindAll(filter: RoomQueryFilter)           : Promise<Room[]>
   public abstract roomTopic(room: Room, topic?: string)              : Promise<string | void>
 
   /**

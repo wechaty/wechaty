@@ -29,12 +29,12 @@ import {
   log,
 }                 from '../config'
 import Profile    from '../profile'
+import Wechaty    from '../wechaty'
 
 import PuppetWeb  from './puppet-web'
-
-import WebContact    from './web-contact'
-import WebMessage    from './web-message'
-import WebRoom       from './web-room'
+import WebContact from './web-contact'
+import WebMessage from './web-message'
+import WebRoom    from './web-room'
 
 // tslint:disable-next-line:variable-name
 const MyRoom = cloneClass(WebRoom)
@@ -45,6 +45,7 @@ const MyMessage = cloneClass(WebMessage)
 
 const puppet = new PuppetWeb({
   profile: new Profile(),
+  wechaty: new Wechaty(),
 })
 
 const MOCK_USER_ID = 'TEST-USER-ID'

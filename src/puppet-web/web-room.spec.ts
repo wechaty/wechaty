@@ -25,11 +25,12 @@ import * as test  from 'blue-tape'
 import cloneClass from 'clone-class'
 
 import Profile    from '../profile'
+import Wechaty    from '../wechaty'
 
-import PuppetWeb    from './puppet-web'
-import WebContact   from './web-contact'
-import WebMessage   from './web-message'
-import WebRoom      from './web-room'
+import PuppetWeb  from './puppet-web'
+import WebContact from './web-contact'
+import WebMessage from './web-message'
+import WebRoom    from './web-room'
 
 // tslint:disable-next-line:variable-name
 const MyRoom = cloneClass(WebRoom)
@@ -40,6 +41,7 @@ const MyMessage = cloneClass(WebMessage)
 
 const puppet = new PuppetWeb({
   profile: new Profile(),
+  wechaty: new Wechaty(),
 })
 
 const MOCK_USER_ID = 'TEST-USER-ID'
@@ -192,6 +194,7 @@ test('Room smoking test', async t => {
 test('Room static method', async t => {
   MyRoom.puppet = new PuppetWeb({
     profile: new Profile(),
+    wechaty: new Wechaty(),
   })
 
   try {

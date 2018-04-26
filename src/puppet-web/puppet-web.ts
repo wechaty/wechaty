@@ -30,46 +30,44 @@ import {
 
 import {
   ContactQueryFilter,
-
   Puppet,
   PuppetOptions,
-
   RoomQueryFilter,
-
   ScanData,
-}                   from '../abstract-puppet/'
-
+}                     from '../abstract-puppet/'
 import {
   config,
   log,
   Raven,
-}                   from '../config'
+}                     from '../config'
 import {
-}                   from '../message'
-import Profile      from '../profile'
-import Misc         from '../misc'
+}                     from '../message'
+import Profile        from '../profile'
+import Misc           from '../misc'
+
 import {
   Bridge,
   Cookie,
-}                   from './bridge'
-import Event        from './event'
+}                       from './bridge'
+import Event            from './event'
 
 import {
   MediaData,
   MsgRawObj,
   MediaType,
   MsgType,
-}                   from './schema'
+}                       from './schema'
 
 import {
   WebContact,
   WebContactRawObj,
-}                   from './web-contact'
-import WebMessage   from './web-message'
+}                       from './web-contact'
+import WebMessage       from './web-message'
 import {
   WebRoom,
   WebRoomRawObj,
-}                   from './web-room'
+}                       from './web-room'
+import WebFriendRequest from './web-friend-request'
 
 export type PuppetFoodType = 'scan' | 'ding'
 export type ScanFoodType   = 'scan' | 'login' | 'logout'
@@ -78,18 +76,21 @@ export class PuppetWeb extends Puppet {
   public bridge   : Bridge
   public scanInfo : ScanData | null
 
-  public scanWatchdog   : Watchdog<ScanFoodType>
+  public scanWatchdog: Watchdog<ScanFoodType>
 
-  private fileId   : number
+  private fileId: number
 
   constructor(
     public options: PuppetOptions,
   ) {
-    super(options)
-    this.fileId = 0
+    super(options, {
+      Contact:        WebContact,
+      FriendRequest:  WebFriendRequest,
+      Message:        WebMessage,
+      Room:           WebRoom,
+    })
 
-    // const PUPPET_TIMEOUT  = 1 * 60 * 1000  // 1 minute
-    // this.watchdog   = new Watchdog<PuppetFoodType>(PUPPET_TIMEOUT, 'PuppetWeb')
+    this.fileId = 0
 
     const SCAN_TIMEOUT  = 2 * 60 * 1000 // 2 minutes
     this.scanWatchdog   = new Watchdog<ScanFoodType>(SCAN_TIMEOUT, 'Scan')

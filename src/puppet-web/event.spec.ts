@@ -23,6 +23,7 @@ import * as test  from 'blue-tape'
 // import * as sinon from 'sinon'
 
 import Profile  from '../profile'
+import Wechaty  from '../wechaty'
 
 import {
   // Event,
@@ -32,6 +33,7 @@ import {
 test('Puppet Web Event smoke testing', async t => {
   const pw = new PuppetWeb({
     profile: new Profile(),
+    wechaty: new Wechaty(),
   })
 
   try {

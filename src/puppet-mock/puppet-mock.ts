@@ -32,9 +32,10 @@ import {
 import {
 }                   from '../message'
 
-import MockContact   from './mock-contact'
-import MockMessage   from './mock-message'
-import MockRoom      from './mock-room'
+import MockContact        from './mock-contact'
+import MockFriendRequest  from './mock-friend-request'
+import MockMessage        from './mock-message'
+import MockRoom           from './mock-room'
 
 export type PuppetFoodType = 'scan' | 'ding'
 export type ScanFoodType   = 'scan' | 'login' | 'logout'
@@ -44,7 +45,12 @@ export class PuppetMock extends Puppet {
   constructor(
     public options: PuppetOptions,
   ) {
-    super(options)
+    super(options, {
+      Contact:        MockContact,
+      FriendRequest:  MockFriendRequest,
+      Message:        MockMessage,
+      Room:           MockRoom,
+    })
   }
 
   public toString() {

@@ -30,15 +30,15 @@ const sinonTest   = require('sinon-test')(sinon, {
 // import { log }    from '../../src/config'
 // log.level('silly')
 
-import Profile    from '../profile'
+import Profile      from '../profile'
 
 import {
   Contact,
-}                 from '../abstract-puppet/'
-
-import PuppetWeb  from '../../src/puppet-web/puppet-web'
-import Bridge     from '../../src/puppet-web/bridge'
-import Event      from '../../src/puppet-web/event'
+}                   from '../abstract-puppet/'
+import PuppetWeb    from '../../src/puppet-web/puppet-web'
+import Bridge       from '../../src/puppet-web/bridge'
+import Event        from '../../src/puppet-web/event'
+import { Wechaty }  from '../wechaty'
 
 test('login/logout events', sinonTest(async function (t: test.Test) {
 
@@ -57,7 +57,12 @@ test('login/logout events', sinonTest(async function (t: test.Test) {
 
   try {
     const profile = new Profile()
-    const pw      = new PuppetWeb({ profile })
+    const wechaty = new Wechaty()
+
+    const pw = new PuppetWeb({
+      profile,
+      wechaty,
+    })
     t.ok(pw, 'should instantiated a PuppetWeb')
 
     // config.puppetInstance(pw)

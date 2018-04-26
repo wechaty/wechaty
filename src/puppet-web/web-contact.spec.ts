@@ -29,6 +29,7 @@ import WebContact from './web-contact'
 
 import Profile    from '../profile'
 import PuppetWeb  from './puppet-web'
+import Wechaty    from '../wechaty'
 
 // config.puppetInstance(new PuppetWeb({
 //   profile: new Profile(),
@@ -41,6 +42,7 @@ test('Contact smoke testing', async t => {
 
   MyContact.puppet = new PuppetWeb({
     profile: new Profile(),
+    wechaty: new Wechaty(),
   })
 
   /* tslint:disable:variable-name */

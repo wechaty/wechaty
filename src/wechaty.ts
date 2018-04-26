@@ -346,6 +346,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
       case 'web':
         puppet = new PuppetWeb({
           profile:  this.profile,
+          wechaty:  this,
         })
         break
 

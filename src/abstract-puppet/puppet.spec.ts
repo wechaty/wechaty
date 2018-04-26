@@ -24,10 +24,16 @@ import * as test  from 'blue-tape'
 import PuppetWeb  from '../puppet-web/'
 
 import Profile    from '../profile'
+import Wechaty    from '../wechaty'
 
 test('Puppet smoke testing', async t => {
   const profile = new Profile(Math.random().toString(36).substr(2, 5))
-  const p = new PuppetWeb({ profile })
+  const wechaty = new Wechaty()
+
+  const p = new PuppetWeb({
+    profile,
+    wechaty,
+  })
 
   t.ok(p.state.off(), 'should be OFF state after instanciate')
   p.state.on('pending')
