@@ -22,8 +22,9 @@ import * as os      from 'os'
 import * as semver  from 'semver'
 
 import {
-  cloneClass,
   Constructor,
+  cloneClass,
+  instanceToClass,
 }                   from 'clone-class'
 import {
   callerResolve,
@@ -416,8 +417,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
       Message.puppet       = puppet
       Room.puppet          = puppet
 
-      ; // seperator
-      (this.constructor as any as PuppetAccessory).puppet = puppet
+      instanceToClass(this, Wechaty).puppet = puppet
     }
 
     /**
