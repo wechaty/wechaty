@@ -49,6 +49,14 @@ import {
   RoomQueryFilter,
 }                       from './room'
 
+export interface NpmPackage {
+  version: string,
+  peerDependencies?: {
+    wechaty?: string,
+  },
+}
+
+// XXX: Name??? ScanInfo? ScanEvent? ScanXXX?
 export interface ScanData {
   avatar: string, // Image Data URL
   url:    string, // QR Code URL
@@ -83,21 +91,23 @@ export interface PuppetClasses {
  * Abstract Puppet Class
  */
 export abstract class Puppet extends EventEmitter implements Sayable {
-  public readonly WATCHDOG_TIMEOUT  = 1 * 60 * 1000  // 1 minute
+  private readonly WATCHDOG_TIMEOUT  = 1 * 60 * 1000  // default 1 minute
 
   public readonly state:     StateSwitch
   public readonly watchdog:  Watchdog
 
-  // tslint:disable-next-line:variable-name
-  public readonly Contact:       PuppetContact
-  // tslint:disable-next-line:variable-name
-  public readonly FriendRequest: PuppetFriendRequest
-  // tslint:disable-next-line:variable-name
-  public readonly Message:       PuppetMessage
-  // tslint:disable-next-line:variable-name
-  public readonly Room:          PuppetRoom
+  // // tslint:disable-next-line:variable-name
+  // public readonly Contact:       PuppetContact
+  // // tslint:disable-next-line:variable-name
+  // public readonly FriendRequest: PuppetFriendRequest
+  // // tslint:disable-next-line:variable-name
+  // public readonly Message:       PuppetMessage
+  // // tslint:disable-next-line:variable-name
+  // public readonly Room:          PuppetRoom
 
   public user?: Contact
+
+  private readonly pkg: NpmPackage
 
   constructor(
     public options: PuppetOptions,
@@ -108,20 +118,32 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     this.state    = new StateSwitch('Puppet', log)
     this.watchdog = new Watchdog((this.constructor as any as Puppet).WATCHDOG_TIMEOUT, 'Puppet')
 
-    this.Contact        = classes.Contact
-    this.FriendRequest  = classes.FriendRequest
-    this.Message        = classes.Message
-    this.Room           = classes.Room
-
+    /**
+     * 1. Check Classes for inherience correctly
+     */
     // https://stackoverflow.com/questions/14486110/how-to-check-if-a-javascript-class-inherits-another-without-creating-an-obj
-    const check = this.Contact.prototype        instanceof Contact
-                && this.FriendRequest.prototype instanceof FriendRequest
-                && this.Message.prototype       instanceof Message
-                && this.Room.prototype          instanceof Room
+    const check = classes.Contact.prototype        instanceof Contact
+                && classes.FriendRequest.prototype instanceof FriendRequest
+                && classes.Message.prototype       instanceof Message
+                && classes.Room.prototype          instanceof Room
 
     if (!check) {
       throw new Error('Puppet must set classes right! https://github.com/Chatie/wechaty/issues/1167')
     }
+
+    /**
+     * 2. Load the package.json for Puppet Plugin version range matching
+     */
+    try {
+      this.pkg = require('../package.json')
+    } catch (e) {
+      this.pkg = require('../../package.json')
+    } finally {
+      if (!this.pkg) {
+        throw new Error('Cannot found package.json for Puppet Plugin Module')
+      }
+    }
+
   }
 
   public emit(event: 'error',       e: Error)                                                      : boolean
@@ -165,12 +187,22 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     return this
   }
 
+  public version(): string {
+    return this.pkg.version
+  }
+
+  /**
+   * will be used by semver.satisfied(version, range)
+   */
+  public wechatyVersionRange(): string {
+    // FIXME: for development, we use `*` if not set
+    return this.pkg.peerDependencies && this.pkg.peerDependencies.wechaty || '*'
+  }
+
   public abstract async start() : Promise<void>
   public abstract async stop()  : Promise<void>
 
   public abstract self() : Contact
-
-  // public abstract getContact(id: string): Promise<any>
 
   /**
    * Message
