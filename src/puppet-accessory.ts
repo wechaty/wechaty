@@ -6,6 +6,8 @@ import { log }  from './config'
 
 import { Puppet } from './abstract-puppet/'
 
+export const NAME = Symbol('name')
+
 export abstract class PuppetAccessory extends EventEmitter {
 
   /**
@@ -14,12 +16,12 @@ export abstract class PuppetAccessory extends EventEmitter {
   private static _puppet?: Puppet
 
   public static set puppet(puppet: Puppet) {
-    log.silly('PuppetAssessory', 'static set puppet(%s)', puppet.constructor.name)
+    log.silly('PuppetAccessory', '<%s> static set puppet(%s)', this[NAME], puppet.constructor.name)
     this._puppet = puppet
   }
 
   public static get puppet(): Puppet {
-    log.silly('PuppetAssessory', 'static get puppet()')
+    log.silly('PuppetAccessory', '<%s> static get puppet()', this[NAME])
 
     if (this._puppet) {
       return this._puppet
@@ -29,17 +31,29 @@ export abstract class PuppetAccessory extends EventEmitter {
   }
 
   /**
-   * 2. Instance puppet property
+   * 2. constructor
+   */
+  private [NAME]: string
+
+  constructor(
+    name?: string,
+  ) {
+    super()
+    this[NAME] = name || this.constructor.name
+  }
+
+  /**
+   * 3. Instance puppet property
    */
   private _puppet?: Puppet
 
   public set puppet(puppet: Puppet) {
-    log.silly('PuppetAssessory', 'set puppet(%s)', puppet.constructor.name)
+    log.silly('PuppetAccessory', '<%s> set puppet(%s)', this[NAME], puppet.constructor.name)
     this._puppet = puppet
   }
 
   public get puppet(): Puppet {
-    log.silly('PuppetAssessory', 'get puppet() from instance')
+    log.silly('PuppetAccessory', '<%s> get puppet()', this[NAME])
 
     if (this._puppet) {
       return this._puppet
