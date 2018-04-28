@@ -21,9 +21,9 @@ import {
   log,
   Sayable,
 }                       from '../config'
+import PuppetAccessory  from '../puppet-accessory'
 
 import Message          from './message'
-import PuppetAccessory  from './puppet-accessory'
 
 /**
  * Enum for Gender values.
@@ -51,7 +51,7 @@ export interface ContactQueryFilter {
  * [Examples/Contact-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/contact-bot.ts}
  */
 export abstract class Contact extends PuppetAccessory implements Sayable {
-  private static pool = new Map<string, Contact>()
+  protected static readonly pool = new Map<string, Contact>()
 
   /**
    * @private

@@ -22,9 +22,9 @@ import * as test  from 'blue-tape'
 // import * as sinon from 'sinon'
 
 import {
-  PuppetWeb,
+  PuppetPuppeteer,
 } from './'
 
-test('PuppetWeb Module Exports', async t => {
-  t.ok(PuppetWeb  , 'should export PuppetWeb')
+test('PuppetPuppeteer Module Exports', async t => {
+  t.ok(PuppetPuppeteer  , 'should export PuppetPuppeteer')
 })

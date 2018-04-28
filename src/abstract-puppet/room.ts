@@ -23,10 +23,10 @@ import {
   Sayable,
   log,
 }                       from '../config'
+import PuppetAccessory  from '../puppet-accessory'
 
 import Contact          from './contact'
 import Message          from './message'
-import PuppetAccessory  from './puppet-accessory'
 
 export type RoomEventName = 'join'
                           | 'leave'
@@ -49,7 +49,7 @@ export interface RoomQueryFilter {
  * [Examples/Room-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/room-bot.ts}
  */
 export abstract class Room extends PuppetAccessory implements Sayable {
-  protected static pool = new Map<string, Room>()
+  protected static readonly pool = new Map<string, Room>()
 
   /**
    * @private

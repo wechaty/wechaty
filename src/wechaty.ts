@@ -31,32 +31,51 @@ import {
 import StateSwitch  from 'state-switch'
 
 import {
+  VERSION,
   config,
   log,
-  PuppetName,
   Raven,
   Sayable,
-  VERSION,
-  WechatyEvent,
-}                     from './config'
+}                       from './config'
+import Profile          from './profile'
+import PuppetAccessory  from './puppet-accessory'
 import {
-}                     from './message'
-import Profile        from './profile'
+  PUPPET_DICT,
+  PuppetName,
+}                       from './puppet-config'
 
 import {
   Contact,
   FriendRequest,
   Message,
   Puppet,
-  PuppetAccessory,
   Room,
-}                     from './abstract-puppet/'
+}                       from './abstract-puppet/'
 
-import PuppetWeb      from './puppet-web/'
-import PuppetMock     from './puppet-mock/'
+export const WECHAT_EVENT_DICT = {
+  friend      : 'tbw',
+  login       : 'tbw',
+  logout      : 'tbw',
+  message     : 'tbw',
+  'room-join' : 'tbw',
+  'room-leave': 'tbw',
+  'room-topic': 'tbw',
+  scan        : 'tbw',
+}
+
+export const WECHATY_EVENT_DICT = {
+  ...WECHAT_EVENT_DICT,
+  error: 'tbw',
+  heartbeat: 'tbw',
+  start: 'tbw',
+  stop: 'tbw',
+}
+
+export type WechatEventName   = keyof typeof WECHAT_EVENT_DICT
+export type WechatyEventName  = keyof typeof WECHATY_EVENT_DICT
 
 export interface WechatyOptions {
-  puppet?:  PuppetName,
+  puppet?:  PuppetName | Puppet,
   profile?: string,
 }
 
@@ -89,7 +108,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
    * the cuid
    * @private
    */
-  public cuid:        string
+  public readonly cuid:        string
 
   // tslint:disable-next-line:variable-name
   public Contact        : typeof Contact        & Constructor<{}>
@@ -230,7 +249,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
 
   /**
    * @listens Wechaty
-   * @param   {WechatyEvent}      event      - Emit WechatyEvent
+   * @param   {WechatyEventName}      event      - Emit WechatyEvent
    * @param   {WechatyEventFunction}  listener   - Depends on the WechatyEvent
    * @return  {Wechaty}                          - this for chain
    *
@@ -287,7 +306,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
    *   console.log(`Room ${room.topic()} topic changed from ${oldTopic} to ${topic} by ${changer.name()}`)
    * })
    */
-  public on(event: WechatyEvent, listener: string | ((...args: any[]) => any)): this {
+  public on(event: WechatyEventName, listener: string | ((...args: any[]) => any)): this {
     log.verbose('Wechaty', 'on(%s, %s) registered',
                             event,
                             typeof listener === 'string'
@@ -303,7 +322,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
     return this
   }
 
-  private onModulePath(event: WechatyEvent, modulePath: string): void {
+  private onModulePath(event: WechatyEventName, modulePath: string): void {
     const absoluteFilename = callerResolve(modulePath, __filename)
     log.verbose('Wechaty', 'onModulePath() hotImpor(%s)', absoluteFilename)
     hotImport(absoluteFilename)
@@ -323,7 +342,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
       })
   }
 
-  private onFunction(event: WechatyEvent, listener: Function): void {
+  private onFunction(event: WechatyEventName, listener: Function): void {
     log.verbose('Wechaty', 'onFunction(%s)', event)
 
     super.on(event, (...args: any[]) => {
@@ -339,43 +358,22 @@ export class Wechaty extends PuppetAccessory implements Sayable {
   /**
    * @private
    */
-  public initPuppet(): Puppet {
+  public initPuppet(): void {
     log.verbose('Wechaty', 'initPuppet()')
     let puppet: Puppet
 
-    switch (this.options.puppet) {
-      case 'web':
-        puppet = new PuppetWeb({
-          profile:  this.profile,
-          wechaty:  this,
-        })
-        break
-
-      case 'mock':
-        puppet = new PuppetMock({
-          profile:  this.profile,
-          wechaty:  this,
-        })
-        break
-
-      default:
-        throw new Error('Puppet unsupport(yet?): ' + this.options.puppet)
+    if (typeof this.options.puppet === 'string') {
+      puppet = new PUPPET_DICT[this.options.puppet]({
+        profile:  this.profile,
+        wechaty:  this,
+      })
+    } else if (this.options.puppet instanceof Puppet) {
+      puppet = this.options.puppet
+    } else {
+      throw new Error('unsupported options.puppet!')
     }
 
-    const eventList: WechatyEvent[] = [
-      'error',
-      'friend',
-      'heartbeat',
-      'login',
-      'logout',
-      'message',
-      'room-join',
-      'room-leave',
-      'room-topic',
-      'scan',
-    ]
-
-    for (const event of eventList) {
+    for (const event of Object.keys(WECHATY_EVENT_DICT)) {
       log.verbose('Wechaty', 'initPuppet() puppet.on(%s) registered', event)
       /// e as any ??? Maybe this is a bug of TypeScript v2.5.3
       puppet.on(event as any, (...args: any[]) => {
@@ -384,7 +382,23 @@ export class Wechaty extends PuppetAccessory implements Sayable {
     }
 
     /**
-     * Clone Classes for this bot
+     * When `this` is the global instance of Wechaty (`Wechaty.instance()`)
+     * so we can keep using `Contact.find()` and `Room.find()`
+     *
+     * This workaround should be removed after v0.18
+     *
+     * See: fix the breaking changes for #518
+     * https://github.com/Chatie/wechaty/issues/518
+     */
+    if (this === Wechaty._instance) {
+      Contact.puppet       = puppet
+      FriendRequest.puppet = puppet
+      Message.puppet       = puppet
+      Room.puppet          = puppet
+    }
+
+    /**
+     * Clone Classes for this bot and attach the `puppet` to the Class
      *
      * Fixme:
      *   https://stackoverflow.com/questions/36886082/abstract-constructor-type-in-typescript
@@ -396,7 +410,12 @@ export class Wechaty extends PuppetAccessory implements Sayable {
     this.Message        = cloneClass(puppet.Message       as any)
     this.Room           = cloneClass(puppet.Room          as any)
 
-    return puppet
+    this.Contact.puppet       = puppet
+    this.FriendRequest.puppet = puppet
+    this.Message.puppet       = puppet
+    this.Room.puppet          = puppet
+
+    this.puppet = puppet
   }
 
   /**
@@ -424,31 +443,10 @@ export class Wechaty extends PuppetAccessory implements Sayable {
 
     try {
       this.profile.load()
-      this.puppet = this.initPuppet()
+      this.initPuppet()
 
       // set puppet instance to Wechaty Static variable, for using by Contact/Room/Message/FriendRequest etc.
       // config.puppetInstance(puppet)
-
-      if (this === Wechaty._instance) {
-        /**
-         * Here means `this` is the global instance of Wechaty (`Wechaty.instance()`)
-         * so we can keep using `Contact.find()` and `Room.find()`
-         *
-         * This workaround should be removed after v0.18
-         *
-         * See: fix the breaking changes for #518
-         * https://github.com/Chatie/wechaty/issues/518
-         */
-        Contact.puppet       = this.puppet
-        FriendRequest.puppet = this.puppet
-        Message.puppet       = this.puppet
-        Room.puppet          = this.puppet
-      }
-
-      this.Contact.puppet       = this.puppet
-      this.FriendRequest.puppet = this.puppet
-      this.Message.puppet       = this.puppet
-      this.Room.puppet          = this.puppet
 
       await this.puppet.start()
 

@@ -27,36 +27,34 @@ import {
   RoomMemberQueryFilter,
 }                         from '../abstract-puppet/'
 
-import PuppetWeb          from './puppet-web'
-import {
-  WebMessage,
-}                         from './web-message'
-import WebContact         from './web-contact'
+import PuppetPuppeteer  from './puppet-puppeteer'
+import PuppeteerMessage from './puppeteer-message'
+import PuppeteerContact from './puppeteer-contact'
 
-export interface WebRoomObj {
+export interface PuppeteerRoomObj {
   id:               string,
   encryId:          string,
   topic:            string,
   ownerUin:         number,
-  memberList:       WebContact[],
+  memberList:       PuppeteerContact[],
   nameMap:          Map<string, string>,
   roomAliasMap:     Map<string, string>,
   contactAliasMap:  Map<string, string>,
 }
 
-export interface WebRoomRawMember {
+export interface PuppeteerRoomRawMember {
   UserName:     string,
   NickName:     string,
   DisplayName:  string,
 }
 
-export interface WebRoomRawObj {
+export interface PuppeteerRoomRawObj {
   UserName:         string,
   EncryChatRoomId:  string,
   NickName:         string,
   OwnerUin:         number,
   ChatRoomOwner:    string,
-  MemberList?:      WebRoomRawMember[],
+  MemberList?:      PuppeteerRoomRawMember[],
 }
 
 /**
@@ -65,18 +63,18 @@ export interface WebRoomRawObj {
  * `Room` is `Sayable`,
  * [Examples/Room-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/room-bot.ts}
  */
-export class WebRoom extends Room {
+export class PuppeteerRoom extends Room {
 
-  private dirtyObj: WebRoomObj | null // when refresh, use this to save dirty data for query
-  private obj:      WebRoomObj | null
-  private rawObj:   WebRoomRawObj
+  private dirtyObj: PuppeteerRoomObj | null // when refresh, use this to save dirty data for query
+  private obj:      PuppeteerRoomObj | null
+  private rawObj:   PuppeteerRoomRawObj
 
   /**
    * @private
    */
   constructor(public id: string) {
     super(id)
-    log.silly('WebRoom', `constructor(${id})`)
+    log.silly('PuppeteerRoom', `constructor(${id})`)
   }
 
   /**
@@ -89,9 +87,9 @@ export class WebRoom extends Room {
   /**
    * @private
    */
-  private async readyAllMembers(memberList: WebRoomRawMember[]): Promise<void> {
+  private async readyAllMembers(memberList: PuppeteerRoomRawMember[]): Promise<void> {
     for (const member of memberList) {
-      const contact = WebContact.load(member.UserName)
+      const contact = PuppeteerContact.load(member.UserName)
       contact.puppet = this.puppet
       await contact.ready()
     }
@@ -102,26 +100,26 @@ export class WebRoom extends Room {
    * @private
    */
   public async ready(): Promise<Room> {
-    log.silly('WebRoom', 'ready(%s)')
+    log.silly('PuppeteerRoom', 'ready(%s)')
     if (!this.id) {
       const e = new Error('ready() on a un-inited Room')
-      log.warn('WebRoom', e.message)
+      log.warn('PuppeteerRoom', e.message)
       throw e
     } else if (this.isReady()) {
       return this
     } else if (this.obj && this.obj.id) {
-      log.verbose('WebRoom', 'ready() is not full loaded in room<topic:%s>. reloading', this.obj.topic)
+      log.verbose('PuppeteerRoom', 'ready() is not full loaded in room<topic:%s>. reloading', this.obj.topic)
     }
 
     try {
       let ttl = 7
       while (ttl--) {
-        const roomRawObj = await (this.puppet as any as PuppetWeb).getContact(this.id) as WebRoomRawObj
+        const roomRawObj = await (this.puppet as any as PuppetPuppeteer).getContact(this.id) as PuppeteerRoomRawObj
 
         const currNum = roomRawObj.MemberList && roomRawObj.MemberList.length || 0
         const prevNum = this.rawObj && this.rawObj.MemberList && this.rawObj.MemberList.length || 0
 
-        log.silly('WebRoom', `ready() puppet.getContact(%s) MemberList.length:%d at ttl:%d`,
+        log.silly('PuppeteerRoom', `ready() puppet.getContact(%s) MemberList.length:%d at ttl:%d`,
           this.id,
           currNum,
           ttl,
@@ -129,13 +127,13 @@ export class WebRoom extends Room {
 
         if (currNum) {
           if (prevNum === currNum) {
-            log.silly('WebRoom', `ready() puppet.getContact(${this.id}) done at ttl:%d`, ttl)
+            log.silly('PuppeteerRoom', `ready() puppet.getContact(${this.id}) done at ttl:%d`, ttl)
             break
           }
           this.rawObj = roomRawObj
         }
 
-        log.silly('WebRoom', `ready() puppet.getContact(${this.id}) retry at ttl:%d`, ttl)
+        log.silly('PuppeteerRoom', `ready() puppet.getContact(${this.id}) retry at ttl:%d`, ttl)
         await new Promise(r => setTimeout(r, 1000)) // wait for 1 second
       }
 
@@ -149,23 +147,23 @@ export class WebRoom extends Room {
       return this
 
     } catch (e) {
-      log.error('WebRoom', 'puppet.getContact(%s) exception: %s', this.id, e.message)
+      log.error('PuppeteerRoom', 'puppet.getContact(%s) exception: %s', this.id, e.message)
       Raven.captureException(e)
       throw e
     }
   }
 
-  public say(message: WebMessage)                 : Promise<void>
+  public say(message: PuppeteerMessage)                 : Promise<void>
   public say(text: string)                        : Promise<void>
-  public say(text: string, replyTo: WebContact)   : Promise<void>
-  public say(text: string, replyTo: WebContact[]) : Promise<void>
+  public say(text: string, replyTo: PuppeteerContact)   : Promise<void>
+  public say(text: string, replyTo: PuppeteerContact[]) : Promise<void>
   public say(text: never, ...args: never[])       : Promise<never>
 
   /**
    * Send message inside Room, if set [replyTo], wechaty will mention the contact as well.
    *
    * @param {(string | MediaMessage)} textOrMessage - Send `text` or `media file` inside Room.
-   * @param {(WebContact | WebContact[])} [replyTo] - Optional parameter, send content inside Room, and mention @replyTo contact or contactList.
+   * @param {(PuppeteerContact | PuppeteerContact[])} [replyTo] - Optional parameter, send content inside Room, and mention @replyTo contact or contactList.
    * @returns {Promise<boolean>}
    * If bot send message successfully, it will return true. If the bot failed to send for blocking or any other reason, it will return false
    *
@@ -182,8 +180,8 @@ export class WebRoom extends Room {
    * const room = await Room.find({name: 'wechaty'})        // change 'wechaty' to any of your room in wechat
    * await room.say('Hello world!', contact)
    */
-  public async say(textOrMessage: string | WebMessage, replyTo?: WebContact|WebContact[]): Promise<void> {
-    log.verbose('WebRoom', 'say(%s, %s)',
+  public async say(textOrMessage: string | PuppeteerMessage, replyTo?: PuppeteerContact|PuppeteerContact[]): Promise<void> {
+    log.verbose('PuppeteerRoom', 'say(%s, %s)',
                         textOrMessage,
                         Array.isArray(replyTo)
                         ? replyTo.map(c => c.name()).join(', ')
@@ -192,10 +190,10 @@ export class WebRoom extends Room {
 
     let m
     if (typeof textOrMessage === 'string') {
-      m = new WebMessage()
+      m = new PuppeteerMessage()
       m.puppet = this.puppet
 
-      const replyToList: WebContact[] = [].concat(replyTo as any || [])
+      const replyToList: PuppeteerContact[] = [].concat(replyTo as any || [])
 
       if (replyToList.length > 0) {
         const AT_SEPRATOR = String.fromCharCode(8197)
@@ -221,15 +219,15 @@ export class WebRoom extends Room {
   /**
    * @private
    */
-  private parse(rawObj: WebRoomRawObj): WebRoomObj | null {
+  private parse(rawObj: PuppeteerRoomRawObj): PuppeteerRoomObj | null {
     if (!rawObj) {
-      log.warn('WebRoom', 'parse() on a empty rawObj?')
+      log.warn('PuppeteerRoom', 'parse() on a empty rawObj?')
       return null
     }
 
     const memberList = (rawObj.MemberList || [])
                         .map(m => {
-                          const c = WebContact.load(m.UserName) as WebContact
+                          const c = PuppeteerContact.load(m.UserName) as PuppeteerContact
                           c.puppet = this.puppet
                           return c
                         })
@@ -255,13 +253,13 @@ export class WebRoom extends Room {
    */
   private parseMap(
     parseSection: keyof RoomMemberQueryFilter,
-    memberList?:  WebRoomRawMember[],
+    memberList?:  PuppeteerRoomRawMember[],
   ): Map<string, string> {
     const mapList: Map<string, string> = new Map<string, string>()
     if (memberList && memberList.map) {
       memberList.forEach(member => {
         let tmpName: string
-        const contact = WebContact.load(member.UserName)
+        const contact = PuppeteerContact.load(member.UserName)
         contact.puppet = this.puppet
 
         switch (parseSection) {
@@ -312,7 +310,7 @@ export class WebRoom extends Room {
   /**
    * Add contact in a room
    *
-   * @param {WebContact} contact
+   * @param {PuppeteerContact} contact
    * @returns {Promise<number>}
    * @example
    * const contact = await Contact.find({name: 'lijiarui'}) // change 'lijiarui' to any contact in your wechat
@@ -326,8 +324,8 @@ export class WebRoom extends Room {
    *   }
    * }
    */
-  public async add(contact: WebContact): Promise<void> {
-    log.verbose('WebRoom', 'add(%s)', contact)
+  public async add(contact: PuppeteerContact): Promise<void> {
+    log.verbose('PuppeteerRoom', 'add(%s)', contact)
 
     if (!contact) {
       throw new Error('contact not found')
@@ -339,7 +337,7 @@ export class WebRoom extends Room {
   /**
    * Delete a contact from the room
    * It works only when the bot is the owner of the room
-   * @param {WebContact} contact
+   * @param {PuppeteerContact} contact
    * @returns {Promise<number>}
    * @example
    * const room = await Room.find({topic: 'wechat'})          // change 'wechat' to any room topic in your wechat
@@ -353,8 +351,8 @@ export class WebRoom extends Room {
    *   }
    * }
    */
-  public async del(contact: WebContact): Promise<void> {
-    log.verbose('WebRoom', 'del(%s)', contact.name())
+  public async del(contact: PuppeteerContact): Promise<void> {
+    log.verbose('PuppeteerRoom', 'del(%s)', contact.name())
 
     if (!contact) {
       throw new Error('contact not found')
@@ -366,8 +364,8 @@ export class WebRoom extends Room {
   /**
    * @private
    */
-  private delLocal(contact: WebContact): number {
-    log.verbose('WebRoom', 'delLocal(%s)', contact)
+  private delLocal(contact: PuppeteerContact): number {
+    log.verbose('PuppeteerRoom', 'delLocal(%s)', contact)
 
     const memberList = this.obj && this.obj.memberList
     if (!memberList || memberList.length === 0) {
@@ -429,9 +427,9 @@ export class WebRoom extends Room {
    * })
    */
   public topic(newTopic?: string): string | Promise<void> {
-    log.verbose('WebRoom', 'topic(%s)', newTopic ? newTopic : '')
+    log.verbose('PuppeteerRoom', 'topic(%s)', newTopic ? newTopic : '')
     if (!this.isReady()) {
-      log.warn('WebRoom', 'topic() room not ready')
+      log.warn('PuppeteerRoom', 'topic() room not ready')
     }
 
     if (typeof newTopic === 'undefined') {
@@ -441,14 +439,14 @@ export class WebRoom extends Room {
     this.puppet // config.puppetInstance()
         .roomTopic(this, newTopic)
         .catch(e => {
-          log.warn('WebRoom', 'topic(newTopic=%s) exception: %s',
+          log.warn('PuppeteerRoom', 'topic(newTopic=%s) exception: %s',
                             newTopic, e && e.message || e,
                   )
           Raven.captureException(e)
         })
 
     if (!this.obj) {
-      this.obj = <WebRoomObj>{}
+      this.obj = <PuppeteerRoomObj>{}
     }
     this.obj['topic'] = newTopic
     return Promise.resolve()
@@ -458,14 +456,14 @@ export class WebRoom extends Room {
    * should be deprecated
    * @private
    */
-  public nick(contact: WebContact): string | null {
-    log.warn('WebRoom', 'nick(Contact) DEPRECATED, use alias(Contact) instead.')
+  public nick(contact: PuppeteerContact): string | null {
+    log.warn('PuppeteerRoom', 'nick(Contact) DEPRECATED, use alias(Contact) instead.')
     return this.alias(contact)
   }
 
   /**
    * Return contact's roomAlias in the room, the same as roomAlias
-   * @param {WebContact} contact
+   * @param {PuppeteerContact} contact
    * @returns {string | null} - If a contact has an alias in room, return string, otherwise return null
    * @example
    * const bot = Wechaty.instance()
@@ -479,16 +477,16 @@ export class WebRoom extends Room {
    *   }
    * })
    */
-  public alias(contact: WebContact): string | null {
+  public alias(contact: PuppeteerContact): string | null {
     return this.roomAlias(contact)
   }
 
   /**
    * Same as function alias
-   * @param {WebContact} contact
+   * @param {PuppeteerContact} contact
    * @returns {(string | null)}
    */
-  public roomAlias(contact: WebContact): string | null {
+  public roomAlias(contact: PuppeteerContact): string | null {
     if (!this.obj || !this.obj.roomAliasMap) {
       return null
     }
@@ -498,7 +496,7 @@ export class WebRoom extends Room {
   /**
    * Check if the room has member `contact`.
    *
-   * @param {WebContact} contact
+   * @param {PuppeteerContact} contact
    * @returns {boolean} Return `true` if has contact, else return `false`.
    * @example <caption>Check whether 'lijiarui' is in the room 'wechaty'</caption>
    * const contact = await Contact.find({name: 'lijiarui'})   // change 'lijiarui' to any of contact in your wechat
@@ -511,7 +509,7 @@ export class WebRoom extends Room {
    *   }
    * }
    */
-  public has(contact: WebContact): boolean {
+  public has(contact: PuppeteerContact): boolean {
     if (!this.obj || !this.obj.memberList) {
       return false
     }
@@ -520,9 +518,9 @@ export class WebRoom extends Room {
                     .length > 0
   }
 
-  public memberAll(filter: RoomMemberQueryFilter): WebContact[]
+  public memberAll(filter: RoomMemberQueryFilter): PuppeteerContact[]
 
-  public memberAll(name: string): WebContact[]
+  public memberAll(name: string): PuppeteerContact[]
 
   /**
    * The way to search member by Room.member()
@@ -543,10 +541,10 @@ export class WebRoom extends Room {
    * - `roomAlias` | `alias`  the name-string set by user-self in the room, should be called roomAlias
    * - `contactAlias`         the name-string set by bot for others, should be called alias, equal to `Contact.alias()`
    * @param {(RoomMemberQueryFilter | string)} queryArg -When use memberAll(name:string), return all matched members, including name, roomAlias, contactAlias
-   * @returns {WebContact[]}
+   * @returns {PuppeteerContact[]}
    * @memberof Room
    */
-  public memberAll(queryArg: RoomMemberQueryFilter | string): WebContact[] {
+  public memberAll(queryArg: RoomMemberQueryFilter | string): PuppeteerContact[] {
     if (typeof queryArg === 'string') {
       //
       // use the following `return` statement to do this job.
@@ -566,7 +564,7 @@ export class WebRoom extends Room {
       //   contactList = contactList.concat(contactAliasList)
       // }
 
-      return ([] as WebContact[]).concat(
+      return ([] as PuppeteerContact[]).concat(
         this.memberAll({name:         queryArg}),
         this.memberAll({roomAlias:    queryArg}),
         this.memberAll({contactAlias: queryArg}),
@@ -576,7 +574,7 @@ export class WebRoom extends Room {
     /**
      * We got filter parameter
      */
-    log.silly('WebRoom', 'memberAll({ %s })',
+    log.silly('PuppeteerRoom', 'memberAll({ %s })',
                       Object.keys(queryArg)
                             .map(k => `${k}: ${queryArg[k]}`)
                             .join(', '),
@@ -587,7 +585,7 @@ export class WebRoom extends Room {
     }
 
     if (!this.obj || !this.obj.memberList) {
-      log.warn('WebRoom', 'member() not ready')
+      log.warn('PuppeteerRoom', 'member() not ready')
       return []
     }
     const filterKey            = Object.keys(queryArg)[0]
@@ -616,11 +614,11 @@ export class WebRoom extends Room {
     const idList = Object.keys(filterMap)
                           .filter(id => filterMap[id] === filterValue)
 
-    log.silly('WebRoom', 'memberAll() check %s from %s: %s', filterValue, filterKey, JSON.stringify(filterMap))
+    log.silly('PuppeteerRoom', 'memberAll() check %s from %s: %s', filterValue, filterKey, JSON.stringify(filterMap))
 
     if (idList.length) {
       return idList.map(id => {
-        const c = WebContact.load(id) as WebContact
+        const c = PuppeteerContact.load(id) as PuppeteerContact
         c.puppet = this.puppet
         return c
       })
@@ -629,15 +627,15 @@ export class WebRoom extends Room {
     }
   }
 
-  public member(name: string): WebContact | null
+  public member(name: string): PuppeteerContact | null
 
-  public member(filter: RoomMemberQueryFilter): WebContact | null
+  public member(filter: RoomMemberQueryFilter): PuppeteerContact | null
 
   /**
    * Find all contacts in a room, if get many, return the first one.
    *
    * @param {(RoomMemberQueryFilter | string)} queryArg -When use member(name:string), return all matched members, including name, roomAlias, contactAlias
-   * @returns {(WebContact | null)}
+   * @returns {(PuppeteerContact | null)}
    *
    * @example <caption>Find member by name</caption>
    * const room = await Room.find({topic: 'wechaty'})           // change 'wechaty' to any room name in your wechat
@@ -661,10 +659,10 @@ export class WebRoom extends Room {
    *   }
    * }
    */
-  public member(queryArg: RoomMemberQueryFilter | string): WebContact | null {
-    log.verbose('WebRoom', 'member(%s)', JSON.stringify(queryArg))
+  public member(queryArg: RoomMemberQueryFilter | string): PuppeteerContact | null {
+    log.verbose('PuppeteerRoom', 'member(%s)', JSON.stringify(queryArg))
 
-    let memberList: WebContact[]
+    let memberList: PuppeteerContact[]
     // ISSUE #622
     // error TS2345: Argument of type 'string | MemberQueryFilter' is not assignable to parameter of type 'MemberQueryFilter' #622
     if (typeof queryArg === 'string') {
@@ -678,7 +676,7 @@ export class WebRoom extends Room {
     }
 
     if (memberList.length > 1) {
-      log.warn('WebRoom', 'member(%s) get %d contacts, use the first one by default', JSON.stringify(queryArg), memberList.length)
+      log.warn('PuppeteerRoom', 'member(%s) get %d contacts, use the first one by default', JSON.stringify(queryArg), memberList.length)
     }
     return memberList[0]
   }
@@ -688,14 +686,14 @@ export class WebRoom extends Room {
    *
    * @returns {Contact[]}
    */
-  public memberList(): WebContact[] {
-    log.verbose('WebRoom', 'memberList')
+  public memberList(): PuppeteerContact[] {
+    log.verbose('PuppeteerRoom', 'memberList')
 
     if (!this.obj || !this.obj.memberList || this.obj.memberList.length < 1) {
-      log.warn('WebRoom', 'memberList() not ready')
-      log.verbose('WebRoom', 'memberList() trying call refresh() to update')
+      log.warn('PuppeteerRoom', 'memberList() not ready')
+      log.verbose('PuppeteerRoom', 'memberList() trying call refresh() to update')
       this.refresh().then(() => {
-        log.verbose('WebRoom', 'memberList() refresh() done')
+        log.verbose('PuppeteerRoom', 'memberList() refresh() done')
       })
       return []
     }
@@ -706,9 +704,9 @@ export class WebRoom extends Room {
    * Create a new room.
    *
    * @static
-   * @param {WebContact[]} contactList
+   * @param {PuppeteerContact[]} contactList
    * @param {string} [topic]
-   * @returns {Promise<WebRoom>}
+   * @returns {Promise<PuppeteerRoom>}
    * @example <caption>Creat a room with 'lijiarui' and 'juxiaomi', the room topic is 'ding - created'</caption>
    * const helperContactA = await Contact.find({ name: 'lijiarui' })  // change 'lijiarui' to any contact in your wechat
    * const helperContactB = await Contact.find({ name: 'juxiaomi' })  // change 'juxiaomi' to any contact in your wechat
@@ -719,8 +717,8 @@ export class WebRoom extends Room {
    * await room.topic('ding - created')
    * await room.say('ding - created')
    */
-  public static async create(contactList: WebContact[], topic?: string): Promise<Room> {
-    log.verbose('WebRoom', 'create(%s, %s)', contactList.join(','), topic)
+  public static async create(contactList: PuppeteerContact[], topic?: string): Promise<Room> {
+    log.verbose('PuppeteerRoom', 'create(%s, %s)', contactList.join(','), topic)
 
     if (!contactList || !Array.isArray(contactList)) {
       throw new Error('contactList not found')
@@ -730,7 +728,7 @@ export class WebRoom extends Room {
       const room = await this.puppet.roomCreate(contactList, topic)
       return room
     } catch (e) {
-      log.error('WebRoom', 'create() exception: %s', e && e.stack || e.message || e)
+      log.error('PuppeteerRoom', 'create() exception: %s', e && e.stack || e.message || e)
       Raven.captureException(e)
       throw e
     }
@@ -756,15 +754,15 @@ export class WebRoom extends Room {
    * Not recommend, because cannot always get the owner
    * @returns {(Contact | null)}
    */
-  public owner(): WebContact | null {
-    log.info('WebRoom', 'owner() is limited by Tencent API, sometimes work sometimes not')
+  public owner(): PuppeteerContact | null {
+    log.info('PuppeteerRoom', 'owner() is limited by Tencent API, sometimes work sometimes not')
     return null
   }
 
   // /**
   //  * @private
   //  */
-  // public static load(id: string): WebRoom {
+  // public static load(id: string): PuppeteerRoom {
   //   if (!id) {
   //     throw new Error('Room.load() no id')
   //   }
@@ -777,4 +775,4 @@ export class WebRoom extends Room {
 
 }
 
-export default WebRoom
+export default PuppeteerRoom

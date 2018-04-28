@@ -59,20 +59,20 @@ import {
 }                       from './schema'
 
 import {
-  WebContact,
-  WebContactRawObj,
-}                       from './web-contact'
-import WebMessage       from './web-message'
+  PuppeteerContact,
+  PuppeteerContactRawObj,
+}                       from './puppeteer-contact'
+import PuppeteerMessage       from './puppeteer-message'
 import {
-  WebRoom,
-  WebRoomRawObj,
-}                       from './web-room'
-import WebFriendRequest from './web-friend-request'
+  PuppeteerRoom,
+  PuppeteerRoomRawObj,
+}                       from './puppeteer-room'
+import PuppeteerFriendRequest from './puppeteer-friend-request'
 
 export type PuppetFoodType = 'scan' | 'ding'
 export type ScanFoodType   = 'scan' | 'login' | 'logout'
 
-export class PuppetWeb extends Puppet {
+export class PuppetPuppeteer extends Puppet {
   public bridge   : Bridge
   public scanInfo : ScanData | null
 
@@ -84,10 +84,10 @@ export class PuppetWeb extends Puppet {
     public options: PuppetOptions,
   ) {
     super(options, {
-      Contact:        WebContact,
-      FriendRequest:  WebFriendRequest,
-      Message:        WebMessage,
-      Room:           WebRoom,
+      Contact:        PuppeteerContact,
+      FriendRequest:  PuppeteerFriendRequest,
+      Message:        PuppeteerMessage,
+      Room:           PuppeteerRoom,
     })
 
     this.fileId = 0
@@ -97,11 +97,11 @@ export class PuppetWeb extends Puppet {
   }
 
   public toString() {
-    return `PuppetWeb<${this.options.profile.name}>`
+    return `PuppetPuppeteer<${this.options.profile.name}>`
   }
 
   public async start(): Promise<void> {
-    log.verbose('PuppetWeb', `start() with ${this.options.profile}`)
+    log.verbose('PuppetPuppeteer', `start() with ${this.options.profile}`)
 
     this.state.on('pending')
 
@@ -110,7 +110,7 @@ export class PuppetWeb extends Puppet {
       this.initWatchdogForScan()
 
       this.bridge = await this.initBridge(this.options.profile)
-      log.verbose('PuppetWeb', 'initBridge() done')
+      log.verbose('PuppetPuppeteer', 'initBridge() done')
 
       /**
        *  state must set to `live`
@@ -131,11 +131,11 @@ export class PuppetWeb extends Puppet {
         await this.saveCookie()
       })
 
-      log.verbose('PuppetWeb', 'start() done')
+      log.verbose('PuppetPuppeteer', 'start() done')
       return
 
     } catch (e) {
-      log.error('PuppetWeb', 'start() exception: %s', e)
+      log.error('PuppetPuppeteer', 'start() exception: %s', e)
 
       this.state.off(true)
       this.emit('error', e)
@@ -147,7 +147,7 @@ export class PuppetWeb extends Puppet {
   }
 
   public initWatchdog(): void {
-    log.verbose('PuppetWeb', 'initWatchdogForPuppet()')
+    log.verbose('PuppetPuppeteer', 'initWatchdogForPuppet()')
 
     const puppet = this
 
@@ -156,13 +156,13 @@ export class PuppetWeb extends Puppet {
 
     puppet.on('watchdog', food => this.watchdog.feed(food))
     this.watchdog.on('feed', food => {
-      log.silly('PuppetWeb', 'initWatchdogForPuppet() dog.on(feed, food={type=%s, data=%s})', food.type, food.data)
+      log.silly('PuppetPuppeteer', 'initWatchdogForPuppet() dog.on(feed, food={type=%s, data=%s})', food.type, food.data)
       // feed the dog, heartbeat the puppet.
       puppet.emit('heartbeat', food.data)
     })
 
     this.watchdog.on('reset', async (food, timeout) => {
-      log.warn('PuppetWeb', 'initWatchdogForPuppet() dog.on(reset) last food:%s, timeout:%s',
+      log.warn('PuppetPuppeteer', 'initWatchdogForPuppet() dog.on(reset) last food:%s, timeout:%s',
                             food.data, timeout)
       try {
         await this.stop()
@@ -181,7 +181,7 @@ export class PuppetWeb extends Puppet {
    * so we need to refresh the page after a while
    */
   public initWatchdogForScan(): void {
-    log.verbose('PuppetWeb', 'initWatchdogForScan()')
+    log.verbose('PuppetPuppeteer', 'initWatchdogForScan()')
 
     const puppet = this
     const dog    = this.scanWatchdog
@@ -210,19 +210,19 @@ export class PuppetWeb extends Puppet {
     }))
 
     dog.on('reset', async (food, timePast) => {
-      log.warn('PuppetWeb', 'initScanWatchdog() on(reset) lastFood: %s, timePast: %s',
+      log.warn('PuppetPuppeteer', 'initScanWatchdog() on(reset) lastFood: %s, timePast: %s',
                             food.data, timePast)
       try {
         await this.bridge.reload()
       } catch (e) {
-        log.error('PuppetWeb', 'initScanWatchdog() on(reset) exception: %s', e)
+        log.error('PuppetPuppeteer', 'initScanWatchdog() on(reset) exception: %s', e)
         try {
-          log.error('PuppetWeb', 'initScanWatchdog() on(reset) try to recover by bridge.{quit,init}()', e)
+          log.error('PuppetPuppeteer', 'initScanWatchdog() on(reset) try to recover by bridge.{quit,init}()', e)
           await this.bridge.quit()
           await this.bridge.init()
-          log.error('PuppetWeb', 'initScanWatchdog() on(reset) recover successful')
+          log.error('PuppetPuppeteer', 'initScanWatchdog() on(reset) recover successful')
         } catch (e) {
-          log.error('PuppetWeb', 'initScanWatchdog() on(reset) recover FAIL: %s', e)
+          log.error('PuppetPuppeteer', 'initScanWatchdog() on(reset) recover FAIL: %s', e)
           this.emit('error', e)
         }
       }
@@ -230,16 +230,16 @@ export class PuppetWeb extends Puppet {
   }
 
   public async stop(): Promise<void> {
-    log.verbose('PuppetWeb', 'quit()')
+    log.verbose('PuppetPuppeteer', 'quit()')
 
     if (this.state.off()) {
-      log.warn('PuppetWeb', 'quit() is called on a OFF puppet. await ready(off) and return.')
+      log.warn('PuppetPuppeteer', 'quit() is called on a OFF puppet. await ready(off) and return.')
       await this.state.ready('off')
       return
     }
     this.state.off('pending')
 
-    log.verbose('PuppetWeb', 'quit() make watchdog sleep before do quit')
+    log.verbose('PuppetPuppeteer', 'quit() make watchdog sleep before do quit')
     this.watchdog.sleep()
     this.scanWatchdog.sleep()
 
@@ -248,7 +248,7 @@ export class PuppetWeb extends Puppet {
       // register the removeListeners micro task at then end of the task queue
       setImmediate(() => this.bridge.removeAllListeners())
     } catch (e) {
-      log.error('PuppetWeb', 'quit() exception: %s', e.message)
+      log.error('PuppetPuppeteer', 'quit() exception: %s', e.message)
       Raven.captureException(e)
       throw e
     } finally {
@@ -257,11 +257,11 @@ export class PuppetWeb extends Puppet {
   }
 
   public async initBridge(profile: Profile): Promise<Bridge> {
-    log.verbose('PuppetWeb', 'initBridge()')
+    log.verbose('PuppetPuppeteer', 'initBridge()')
 
     if (this.state.off()) {
       const e = new Error('initBridge() found targetState != live, no init anymore')
-      log.warn('PuppetWeb', e.message)
+      log.warn('PuppetPuppeteer', e.message)
       throw e
     }
 
@@ -285,7 +285,7 @@ export class PuppetWeb extends Puppet {
     try {
       await this.bridge.init()
     } catch (e) {
-      log.error('PuppetWeb', 'initBridge() exception: %s', e.message)
+      log.error('PuppetPuppeteer', 'initBridge() exception: %s', e.message)
       await this.bridge.quit().catch(console.error)
       this.emit('error', e)
 
@@ -297,7 +297,7 @@ export class PuppetWeb extends Puppet {
   }
 
   public logined(): boolean {
-    log.warn('PuppetWeb', 'logined() DEPRECATED. use logonoff() instead.')
+    log.warn('PuppetPuppeteer', 'logined() DEPRECATED. use logonoff() instead.')
     return this.logonoff()
   }
 
@@ -308,13 +308,13 @@ export class PuppetWeb extends Puppet {
   /**
    * get self contact
    */
-  public self(): WebContact {
-    log.verbose('PuppetWeb', 'self()')
+  public self(): PuppeteerContact {
+    log.verbose('PuppetPuppeteer', 'self()')
 
     if (this.user) {
-      return this.user as WebContact
+      return this.user as PuppeteerContact
     }
-    throw new Error('PuppetWeb.self() no this.user')
+    throw new Error('PuppetPuppeteer.self() no this.user')
   }
 
   private async getBaseRequest(): Promise<any> {
@@ -323,14 +323,14 @@ export class PuppetWeb extends Puppet {
       const obj = JSON.parse(json)
       return obj.BaseRequest
     } catch (e) {
-      log.error('PuppetWeb', 'send() exception: %s', e.message)
+      log.error('PuppetPuppeteer', 'send() exception: %s', e.message)
       Raven.captureException(e)
       throw e
     }
   }
 
-  private async uploadMedia(message: WebMessage, toUserName: string): Promise<MediaData> {
-    if (message.type() === WebMessage.Type.TEXT) {
+  private async uploadMedia(message: PuppeteerMessage, toUserName: string): Promise<MediaData> {
+    if (message.type() === PuppeteerMessage.Type.TEXT) {
       throw new Error('require a Media Message')
     }
 
@@ -401,7 +401,7 @@ export class PuppetWeb extends Puppet {
       Cookie: cookie.map(c => c.name + '=' + c.value).join('; '),
     }
 
-    log.silly('PuppetWeb', 'uploadMedia() headers:%s', JSON.stringify(headers))
+    log.silly('PuppetPuppeteer', 'uploadMedia() headers:%s', JSON.stringify(headers))
 
     const uploadMediaRequest = {
       BaseRequest:   baseRequest,
@@ -455,18 +455,18 @@ export class PuppetWeb extends Puppet {
               } else {
                 let obj = body
                 if (typeof body !== 'object') {
-                  log.silly('PuppetWeb', 'updateMedia() typeof body = %s', typeof body)
+                  log.silly('PuppetPuppeteer', 'updateMedia() typeof body = %s', typeof body)
                   try {
                     obj = JSON.parse(body)
                   } catch (e) {
-                    log.error('PuppetWeb', 'updateMedia() body = %s', body)
-                    log.error('PuppetWeb', 'updateMedia() exception: %s', e)
+                    log.error('PuppetPuppeteer', 'updateMedia() body = %s', body)
+                    log.error('PuppetPuppeteer', 'updateMedia() exception: %s', e)
                     this.emit('error', e)
                   }
                 }
                 if (typeof obj !== 'object' || obj.BaseResponse.Ret !== 0) {
                   const errMsg = obj.BaseResponse || 'api return err'
-                  log.silly('PuppetWeb', 'uploadMedia() checkUpload err:%s \nreq:%s\nret:%s', JSON.stringify(errMsg), JSON.stringify(r), body)
+                  log.silly('PuppetPuppeteer', 'uploadMedia() checkUpload err:%s \nreq:%s\nret:%s', JSON.stringify(errMsg), JSON.stringify(r), body)
                   reject(new Error('chackUpload err:' + JSON.stringify(errMsg)))
                 }
                 resolve({
@@ -480,11 +480,11 @@ export class PuppetWeb extends Puppet {
           })
         })
       } catch (e) {
-        log.error('PuppetWeb', 'uploadMedia() checkUpload exception: %s', e.message)
+        log.error('PuppetPuppeteer', 'uploadMedia() checkUpload exception: %s', e.message)
         throw e
       }
       if (!ret.Signature) {
-        log.error('PuppetWeb', 'uploadMedia(): chackUpload failed to get Signature')
+        log.error('PuppetPuppeteer', 'uploadMedia(): chackUpload failed to get Signature')
         throw new Error('chackUpload failed to get Signature')
       }
       uploadMediaRequest.Signature = ret.Signature
@@ -495,8 +495,8 @@ export class PuppetWeb extends Puppet {
       delete uploadMediaRequest.AESKey
     }
 
-    log.verbose('PuppetWeb', 'uploadMedia() webwx_data_ticket: %s', webwxDataTicket)
-    log.verbose('PuppetWeb', 'uploadMedia() pass_ticket: %s', passTicket)
+    log.verbose('PuppetPuppeteer', 'uploadMedia() webwx_data_ticket: %s', webwxDataTicket)
+    log.verbose('PuppetPuppeteer', 'uploadMedia() pass_ticket: %s', passTicket)
 
     const formData = {
       id,
@@ -540,17 +540,17 @@ export class PuppetWeb extends Puppet {
         }
       })
     } catch (e) {
-      log.error('PuppetWeb', 'uploadMedia() uploadMedia exception: %s', e.message)
+      log.error('PuppetPuppeteer', 'uploadMedia() uploadMedia exception: %s', e.message)
       throw new Error('uploadMedia err: ' + e.message)
     }
     if (!mediaId) {
-      log.error('PuppetWeb', 'uploadMedia(): upload fail')
-      throw new Error('PuppetWeb.uploadMedia(): upload fail')
+      log.error('PuppetPuppeteer', 'uploadMedia(): upload fail')
+      throw new Error('PuppetPuppeteer.uploadMedia(): upload fail')
     }
     return Object.assign(mediaData, { MediaId: mediaId as string })
   }
 
-  public async sendMedia(message: WebMessage): Promise<boolean> {
+  public async sendMedia(message: PuppeteerMessage): Promise<boolean> {
     const to   = message.to()
     const room = message.room()
 
@@ -560,7 +560,7 @@ export class PuppetWeb extends Puppet {
       destinationId = room.id
     } else {
       if (!to) {
-        throw new Error('PuppetWeb.sendMedia(): message with neither room nor to?')
+        throw new Error('PuppetPuppeteer.sendMedia(): message with neither room nor to?')
       }
       destinationId = to.id
     }
@@ -571,14 +571,14 @@ export class PuppetWeb extends Puppet {
       try {
         mediaData = await this.uploadMedia(message, destinationId)
         message.rawObj = Object.assign(rawObj, mediaData)
-        log.silly('PuppetWeb', 'Upload completed, new rawObj:%s', JSON.stringify(message.rawObj))
+        log.silly('PuppetPuppeteer', 'Upload completed, new rawObj:%s', JSON.stringify(message.rawObj))
       } catch (e) {
-        log.error('PuppetWeb', 'sendMedia() exception: %s', e.message)
+        log.error('PuppetPuppeteer', 'sendMedia() exception: %s', e.message)
         return false
       }
     } else {
       // To support forward file
-      log.silly('PuppetWeb', 'skip upload file, rawObj:%s', JSON.stringify(rawObj))
+      log.silly('PuppetPuppeteer', 'skip upload file, rawObj:%s', JSON.stringify(rawObj))
       mediaData = {
         ToUserName : destinationId,
         MediaId    : rawObj.MediaId,
@@ -595,7 +595,7 @@ export class PuppetWeb extends Puppet {
     // console.log('rawObj.MsgType', message.rawObj && message.rawObj.MsgType)
 
     mediaData.MsgType = this.extToType(message.ext())
-    log.silly('PuppetWeb', 'sendMedia() destination: %s, mediaId: %s, MsgType; %s)',
+    log.silly('PuppetPuppeteer', 'sendMedia() destination: %s, mediaId: %s, MsgType; %s)',
       destinationId,
       mediaData.MediaId,
       mediaData.MsgType,
@@ -604,7 +604,7 @@ export class PuppetWeb extends Puppet {
     try {
       ret = await this.bridge.sendMedia(mediaData)
     } catch (e) {
-      log.error('PuppetWeb', 'sendMedia() exception: %s', e.message)
+      log.error('PuppetPuppeteer', 'sendMedia() exception: %s', e.message)
       Raven.captureException(e)
       return false
     }
@@ -615,9 +615,9 @@ export class PuppetWeb extends Puppet {
    * TODO: Test this function if it could work...
    */
   // public async forward(baseData: MsgRawObj, patchData: MsgRawObj): Promise<boolean> {
-  public async forward(message: WebMessage, sendTo: WebContact | WebRoom): Promise<void> {
+  public async forward(message: PuppeteerMessage, sendTo: PuppeteerContact | PuppeteerRoom): Promise<void> {
 
-    log.silly('PuppetWeb', 'forward() to: %s, message: %s)',
+    log.silly('PuppetPuppeteer', 'forward() to: %s, message: %s)',
       sendTo, message.filename(),
       // patchData.ToUserName,
       // patchData.MMActualContent,
@@ -654,7 +654,7 @@ export class PuppetWeb extends Puppet {
     newMsg.MMSourceMsgId        = m.MsgId
     // In room msg, the content prefix sender:, need to be removed, otherwise the forwarded sender will display the source message sender, causing self () to determine the error
     newMsg.Content      = Misc.unescapeHtml(m.Content.replace(/^@\w+:<br\/>/, '')).replace(/^[\w\-]+:<br\/>/, '')
-    newMsg.MMIsChatRoom = sendTo instanceof WebRoom ? true : false
+    newMsg.MMIsChatRoom = sendTo instanceof PuppeteerRoom ? true : false
 
     // The following parameters need to be overridden after calling createMessage()
 
@@ -676,14 +676,14 @@ export class PuppetWeb extends Puppet {
         throw new Error('forward failed')
       }
     } catch (e) {
-      log.error('PuppetWeb', 'forward() exception: %s', e.message)
+      log.error('PuppetPuppeteer', 'forward() exception: %s', e.message)
       Raven.captureException(e)
       throw e
     }
   }
 
-   public async send(message: WebMessage): Promise<void> {
-    log.verbose('PuppetWeb', 'send(%s)', message)
+   public async send(message: PuppeteerMessage): Promise<void> {
+    log.verbose('PuppetPuppeteer', 'send(%s)', message)
 
     const to   = message.to()
     const room = message.room()
@@ -695,14 +695,14 @@ export class PuppetWeb extends Puppet {
     } else if (to) {
       destinationId = to.id
     } else {
-      throw new Error('PuppetWeb.send(): message with neither room nor to?')
+      throw new Error('PuppetPuppeteer.send(): message with neither room nor to?')
     }
 
     if (message.type() === MsgType.TEXT) {
-      log.silly('PuppetWeb', 'send() TEXT message.')
+      log.silly('PuppetPuppeteer', 'send() TEXT message.')
       const text = message.text()
 
-      log.silly('PuppetWeb', 'send() destination: %s, text: %s)',
+      log.silly('PuppetPuppeteer', 'send() destination: %s, text: %s)',
                               destinationId,
                               text,
                 )
@@ -710,12 +710,12 @@ export class PuppetWeb extends Puppet {
       try {
         await this.bridge.send(destinationId, text)
       } catch (e) {
-        log.error('PuppetWeb', 'send() exception: %s', e.message)
+        log.error('PuppetPuppeteer', 'send() exception: %s', e.message)
         Raven.captureException(e)
         throw e
       }
     } else {
-      log.silly('PuppetWeb', 'send() non-TEXT message.')
+      log.silly('PuppetPuppeteer', 'send() non-TEXT message.')
 
       const ret = await this.sendMedia(message)
       if (!ret) {
@@ -734,13 +734,13 @@ export class PuppetWeb extends Puppet {
     }
 
     if (!text) {
-      log.warn('PuppetWeb', 'say(%s) can not say nothing', text)
+      log.warn('PuppetPuppeteer', 'say(%s) can not say nothing', text)
       return
     }
 
     if (!this.user) {
-      log.warn('PuppetWeb', 'say(%s) can not say because no user', text)
-      this.emit('error', new Error('no this.user for PuppetWeb'))
+      log.warn('PuppetPuppeteer', 'say(%s) can not say because no user', text)
+      this.emit('error', new Error('no this.user for PuppetPuppeteer'))
       return
     }
 
@@ -756,7 +756,7 @@ export class PuppetWeb extends Puppet {
    * logout from browser, then server will emit `logout` event
    */
   public async logout(): Promise<void> {
-    log.verbose('PuppetWeb', 'logout()')
+    log.verbose('PuppetPuppeteer', 'logout()')
 
     const data = this.user || ''
     this.user = undefined
@@ -765,17 +765,17 @@ export class PuppetWeb extends Puppet {
       await this.bridge.logout()
       this.emit('logout', data)
     } catch (e) {
-      log.error('PuppetWeb', 'logout() exception: %s', e.message)
+      log.error('PuppetPuppeteer', 'logout() exception: %s', e.message)
       Raven.captureException(e)
       throw e
     }
   }
 
-  public async getContact(id: string): Promise<WebContactRawObj | WebRoomRawObj> {
+  public async getContact(id: string): Promise<PuppeteerContactRawObj | PuppeteerRoomRawObj> {
     try {
       return await this.bridge.getContact(id)
     } catch (e) {
-      log.error('PuppetWeb', 'getContact(%d) exception: %s', id, e.message)
+      log.error('PuppetPuppeteer', 'getContact(%d) exception: %s', id, e.message)
       Raven.captureException(e)
       throw e
     }
@@ -785,17 +785,17 @@ export class PuppetWeb extends Puppet {
     try {
       return await this.bridge.ding(data)
     } catch (e) {
-      log.warn('PuppetWeb', 'ding(%s) rejected: %s', data, e.message)
+      log.warn('PuppetPuppeteer', 'ding(%s) rejected: %s', data, e.message)
       Raven.captureException(e)
       throw e
     }
   }
 
-  public contactAlias(contact: WebContact)                      : Promise<string>
-  public contactAlias(contact: WebContact, alias: string | null): Promise<void>
+  public contactAlias(contact: PuppeteerContact)                      : Promise<string>
+  public contactAlias(contact: PuppeteerContact, alias: string | null): Promise<void>
 
   public async contactAlias(
-    contact: WebContact,
+    contact: PuppeteerContact,
     alias?: string | null,
   ): Promise<string | void> {
     if (typeof alias === 'undefined') {
@@ -805,13 +805,13 @@ export class PuppetWeb extends Puppet {
     try {
       const ret = await this.bridge.contactAlias(contact.id, alias)
       if (!ret) {
-        log.warn('PuppetWeb', 'contactRemark(%s, %s) bridge.contactAlias() return false',
+        log.warn('PuppetPuppeteer', 'contactRemark(%s, %s) bridge.contactAlias() return false',
                               contact.id, alias,
                             )
         throw new Error('bridge.contactAlias fail')
       }
     } catch (e) {
-      log.warn('PuppetWeb', 'contactRemark(%s, %s) rejected: %s', contact.id, alias, e.message)
+      log.warn('PuppetPuppeteer', 'contactRemark(%s, %s) rejected: %s', contact.id, alias, e.message)
       Raven.captureException(e)
       throw e
     }
@@ -820,7 +820,7 @@ export class PuppetWeb extends Puppet {
   private contactQueryFilterToFunctionString(
     query: ContactQueryFilter,
   ): string {
-    log.verbose('PuppetWeb', 'contactQueryFilterToFunctionString({ %s })',
+    log.verbose('PuppetPuppeteer', 'contactQueryFilterToFunctionString({ %s })',
                             Object.keys(query)
                                   .map(k => `${k}: ${query[k]}`)
                                   .join(', '),
@@ -865,19 +865,19 @@ export class PuppetWeb extends Puppet {
     return filterFunction
   }
 
-  public async contactFindAll(query: ContactQueryFilter): Promise<WebContact[]> {
+  public async contactFindAll(query: ContactQueryFilter): Promise<PuppeteerContact[]> {
 
     const filterFunc = this.contactQueryFilterToFunctionString(query)
 
     try {
       const idList = await this.bridge.contactFind(filterFunc)
       return idList.map(id => {
-        const c = WebContact.load(id) as WebContact
+        const c = PuppeteerContact.load(id) as PuppeteerContact
         c.puppet = this
         return c
       })
     } catch (e) {
-      log.warn('PuppetWeb', 'contactFind(%s) rejected: %s', filterFunc, e.message)
+      log.warn('PuppetPuppeteer', 'contactFind(%s) rejected: %s', filterFunc, e.message)
       Raven.captureException(e)
       throw e
     }
@@ -885,7 +885,7 @@ export class PuppetWeb extends Puppet {
 
   public async roomFindAll(
     query: RoomQueryFilter = { topic: /.*/ },
-  ): Promise<WebRoom[]> {
+  ): Promise<PuppeteerRoom[]> {
 
     let topicFilter = query.topic
 
@@ -907,42 +907,42 @@ export class PuppetWeb extends Puppet {
     try {
       const idList = await this.bridge.roomFind(filterFunction)
       return idList.map(id => {
-        const r = WebRoom.load(id) as WebRoom
+        const r = PuppeteerRoom.load(id) as PuppeteerRoom
         r.puppet = this
         return r
       })
     } catch (e) {
-      log.warn('PuppetWeb', 'roomFind(%s) rejected: %s', filterFunction, e.message)
+      log.warn('PuppetPuppeteer', 'roomFind(%s) rejected: %s', filterFunction, e.message)
       Raven.captureException(e)
       throw e
     }
   }
 
-  public async roomDel(room: WebRoom, contact: WebContact): Promise<void> {
+  public async roomDel(room: PuppeteerRoom, contact: PuppeteerContact): Promise<void> {
     const roomId    = room.id
     const contactId = contact.id
     try {
       await this.bridge.roomDelMember(roomId, contactId)
     } catch (e) {
-      log.warn('PuppetWeb', 'roomDelMember(%s, %d) rejected: %s', roomId, contactId, e.message)
+      log.warn('PuppetPuppeteer', 'roomDelMember(%s, %d) rejected: %s', roomId, contactId, e.message)
       Raven.captureException(e)
       throw e
     }
   }
 
-  public async roomAdd(room: WebRoom, contact: WebContact): Promise<void> {
+  public async roomAdd(room: PuppeteerRoom, contact: PuppeteerContact): Promise<void> {
     const roomId    = room.id
     const contactId = contact.id
     try {
       await this.bridge.roomAddMember(roomId, contactId)
     } catch (e) {
-      log.warn('PuppetWeb', 'roomAddMember(%s) rejected: %s', contact, e.message)
+      log.warn('PuppetPuppeteer', 'roomAddMember(%s) rejected: %s', contact, e.message)
       Raven.captureException(e)
       throw e
     }
   }
 
-  public async roomTopic(room: WebRoom, topic: string): Promise<string> {
+  public async roomTopic(room: PuppeteerRoom, topic: string): Promise<string> {
     if (!room || typeof topic === 'undefined') {
       return Promise.reject(new Error('room or topic not found'))
     }
@@ -951,13 +951,13 @@ export class PuppetWeb extends Puppet {
     try {
       return await this.bridge.roomModTopic(roomId, topic)
     } catch (e) {
-      log.warn('PuppetWeb', 'roomTopic(%s) rejected: %s', topic, e.message)
+      log.warn('PuppetPuppeteer', 'roomTopic(%s) rejected: %s', topic, e.message)
       Raven.captureException(e)
       throw e
     }
   }
 
-  public async roomCreate(contactList: WebContact[], topic: string): Promise<WebRoom> {
+  public async roomCreate(contactList: PuppeteerContact[], topic: string): Promise<PuppeteerRoom> {
     if (!contactList || ! contactList.map) {
       throw new Error('contactList not found')
     }
@@ -967,14 +967,14 @@ export class PuppetWeb extends Puppet {
     try {
       const roomId = await this.bridge.roomCreate(contactIdList, topic)
       if (!roomId) {
-        throw new Error('PuppetWeb.roomCreate() roomId "' + roomId + '" not found')
+        throw new Error('PuppetPuppeteer.roomCreate() roomId "' + roomId + '" not found')
       }
-      const r = WebRoom.load(roomId) as WebRoom
+      const r = PuppeteerRoom.load(roomId) as PuppeteerRoom
       r.puppet = this
       return r
 
     } catch (e) {
-      log.warn('PuppetWeb', 'roomCreate(%s, %s) rejected: %s', contactIdList.join(','), topic, e.message)
+      log.warn('PuppetPuppeteer', 'roomCreate(%s, %s) rejected: %s', contactIdList.join(','), topic, e.message)
       Raven.captureException(e)
       throw e
     }
@@ -983,7 +983,7 @@ export class PuppetWeb extends Puppet {
   /**
    * FriendRequest
    */
-  public async friendRequestSend(contact: WebContact, hello: string): Promise<void> {
+  public async friendRequestSend(contact: PuppeteerContact, hello: string): Promise<void> {
     if (!contact) {
       throw new Error('contact not found')
     }
@@ -991,13 +991,13 @@ export class PuppetWeb extends Puppet {
     try {
       await this.bridge.verifyUserRequest(contact.id, hello)
     } catch (e) {
-      log.warn('PuppetWeb', 'bridge.verifyUserRequest(%s, %s) rejected: %s', contact.id, hello, e.message)
+      log.warn('PuppetPuppeteer', 'bridge.verifyUserRequest(%s, %s) rejected: %s', contact.id, hello, e.message)
       Raven.captureException(e)
       throw e
     }
   }
 
-  public async friendRequestAccept(contact: WebContact, ticket: string): Promise<void> {
+  public async friendRequestAccept(contact: PuppeteerContact, ticket: string): Promise<void> {
     if (!contact || !ticket) {
       throw new Error('contact or ticket not found')
     }
@@ -1005,7 +1005,7 @@ export class PuppetWeb extends Puppet {
     try {
       await this.bridge.verifyUserOk(contact.id, ticket)
     } catch (e) {
-      log.warn('PuppetWeb', 'bridge.verifyUserOk(%s, %s) rejected: %s', contact.id, ticket, e.message)
+      log.warn('PuppetPuppeteer', 'bridge.verifyUserOk(%s, %s) rejected: %s', contact.id, ticket, e.message)
       Raven.captureException(e)
       throw e
     }
@@ -1016,19 +1016,19 @@ export class PuppetWeb extends Puppet {
    * For issue #668
    */
   public async readyStable(): Promise<void> {
-    log.verbose('PuppetWeb', 'readyStable()')
+    log.verbose('PuppetPuppeteer', 'readyStable()')
     let counter = -1
 
     // tslint:disable-next-line:variable-name
-    const MyContact = cloneClass(WebContact)
+    const MyContact = cloneClass(PuppeteerContact)
     MyContact.puppet = this
 
     async function stable(done: Function): Promise<void> {
-      log.silly('PuppetWeb', 'readyStable() stable() counter=%d', counter)
+      log.silly('PuppetPuppeteer', 'readyStable() stable() counter=%d', counter)
 
       const contactList = await MyContact.findAll()
       if (counter === contactList.length) {
-        log.verbose('PuppetWeb', 'readyStable() stable() READY counter=%d', counter)
+        log.verbose('PuppetPuppeteer', 'readyStable() stable() READY counter=%d', counter)
         return done()
       }
       counter = contactList.length
@@ -1038,7 +1038,7 @@ export class PuppetWeb extends Puppet {
 
     return new Promise<void>((resolve, reject) => {
       const timer = setTimeout(() => {
-        log.warn('PuppetWeb', 'readyStable() stable() reject at counter=%d', counter)
+        log.warn('PuppetPuppeteer', 'readyStable() stable() reject at counter=%d', counter)
         return reject(new Error('timeout after 60 seconds'))
       }, 60 * 1000)
       timer.unref()
@@ -1067,7 +1067,7 @@ export class PuppetWeb extends Puppet {
       }
       return name
     } catch (e) {
-      log.error('PuppetWeb', 'hostname() exception:%s', e)
+      log.error('PuppetPuppeteer', 'hostname() exception:%s', e)
       this.emit('error', e)
       throw e
     }
@@ -1101,4 +1101,4 @@ export class PuppetWeb extends Puppet {
 
 }
 
-export default PuppetWeb
+export default PuppetPuppeteer

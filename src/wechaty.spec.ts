@@ -30,7 +30,6 @@ import {
   FriendRequest,
   IoClient,
   Message,
-  PuppetWeb,
   Room,
   Wechaty,
 
@@ -48,7 +47,6 @@ test('Export of the Framework', async t => {
   t.ok(IoClient     , 'should export IoClient')
   t.ok(Message      , 'should export Message')
   t.ok(Puppet       , 'should export Puppet')
-  t.ok(PuppetWeb    , 'should export PuppetWeb')
   t.ok(Room         , 'should export Room')
   t.ok(Wechaty      , 'should export Wechaty')
   t.ok(log          , 'should export log')

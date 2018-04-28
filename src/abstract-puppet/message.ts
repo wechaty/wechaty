@@ -23,16 +23,16 @@ import {
 import {
   MsgType,
   AppMsgType,
-}               from '../puppet-web/schema'
+}               from '../puppet-puppeteer/schema'
 
 import {
   log,
   Sayable,
-}               from '../config'
+}                       from '../config'
+import PuppetAccessory  from '../puppet-accessory'
 
 import Contact          from './contact'
 import Room             from './room'
-import PuppetAccessory  from './puppet-accessory'
 
 /**
  * All wechat messages will be encapsulated as a Message.
@@ -42,7 +42,7 @@ import PuppetAccessory  from './puppet-accessory'
  */
 export abstract class Message extends PuppetAccessory implements Sayable {
   // tslint:disable-next-line:variable-name
-  public static Type = MsgType
+  public static readonly Type = MsgType
 
   /**
    * @private

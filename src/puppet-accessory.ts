@@ -1,8 +1,8 @@
 import { EventEmitter } from 'events'
 
-import { log }  from '../config'
+import { log }  from './config'
 
-import { Puppet }   from './puppet'
+import { Puppet } from './abstract-puppet/'
 
 export abstract class PuppetAccessory extends EventEmitter {
 

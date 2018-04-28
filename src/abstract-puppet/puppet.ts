@@ -27,11 +27,12 @@ import {
   Constructor,
 }                       from 'clone-class'
 
-import { Wechaty }      from '../wechaty'
-
+import {
+  WECHATY_EVENT_DICT,
+  Wechaty,
+}                       from '../wechaty'
 import {
   Sayable,
-  WechatyEvent,
   log,
 }                       from '../config'
 import Profile          from '../profile'
@@ -54,8 +55,12 @@ export interface ScanData {
   code:   number, // Code
 }
 
-export type PuppetEvent = WechatyEvent
-                        | 'watchdog'
+export const PUPPET_EVENT_DICT = {
+  ...WECHATY_EVENT_DICT,
+  watchdog: 'tbw',
+}
+
+export type PuppetEventName = keyof typeof PUPPET_EVENT_DICT
 
 export interface PuppetOptions {
   profile: Profile,
@@ -78,21 +83,21 @@ export interface PuppetClasses {
  * Abstract Puppet Class
  */
 export abstract class Puppet extends EventEmitter implements Sayable {
-  public WATCHDOG_TIMEOUT  = 1 * 60 * 1000  // 1 minute
+  public readonly WATCHDOG_TIMEOUT  = 1 * 60 * 1000  // 1 minute
+
+  public readonly state:     StateSwitch
+  public readonly watchdog:  Watchdog
+
+  // tslint:disable-next-line:variable-name
+  public readonly Contact:       PuppetContact
+  // tslint:disable-next-line:variable-name
+  public readonly FriendRequest: PuppetFriendRequest
+  // tslint:disable-next-line:variable-name
+  public readonly Message:       PuppetMessage
+  // tslint:disable-next-line:variable-name
+  public readonly Room:          PuppetRoom
 
   public user?: Contact
-
-  public state:     StateSwitch
-  public watchdog:  Watchdog
-
-  // tslint:disable-next-line:variable-name
-  public Contact:       PuppetContact
-  // tslint:disable-next-line:variable-name
-  public FriendRequest: PuppetFriendRequest
-  // tslint:disable-next-line:variable-name
-  public Message:       PuppetMessage
-  // tslint:disable-next-line:variable-name
-  public Room:          PuppetRoom
 
   constructor(
     public options: PuppetOptions,
@@ -133,7 +138,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public emit(event: never, ...args: never[])                                                      : never
 
   public emit(
-    event:   PuppetEvent,
+    event:   PuppetEventName,
     ...args: any[],
   ): boolean {
     return super.emit(event, ...args)
@@ -153,7 +158,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public on(event: never,         listener: never)                                                                   : never
 
   public on(
-    event:    PuppetEvent,
+    event:    PuppetEventName,
     listener: (...args: any[]) => void,
   ): this {
     super.on(event, listener)

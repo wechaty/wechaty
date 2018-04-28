@@ -7,7 +7,7 @@
   "wechaty": {
     "DEFAULT_HEAD": 0,
     "DEFAULT_PORT": 8080,
-    "DEFAULT_PUPPET": "web",
+    "DEFAULT_PUPPET": "puppeteer",
     "DEFAULT_PROFILE": "demo",
     "DEFAULT_PROTOCOL": "io|0.0.1",
     "DEFAULT_TOKEN": "WECHATY_IO_TOKEN",
@@ -124,7 +124,7 @@
     "@types/fluent-ffmpeg": "^2.1.0",
     "@types/glob": "^5.0.0p",
     "@types/mime": "^2.0.0",
-    "@types/node": "^10.0.0",
+    "@types/node": "^9.6.7",
     "@types/puppeteer": "^1.0.0",
     "@types/raven": "^2.1.0",
     "@types/read-pkg-up": "^3.0.0",

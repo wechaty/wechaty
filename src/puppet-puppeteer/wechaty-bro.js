@@ -20,7 +20,7 @@
 /**
  * Wechaty - Wechat for Bot, and human who talk to bot.
  *
- * PuppetWeb: WechatyBro
+ * PuppetPuppeteer: WechatyBro
  *
  * Inject this js code to browser,
  * in order to interactive with wechat web program.

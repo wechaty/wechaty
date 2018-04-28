@@ -19,7 +19,9 @@
 import * as WebSocket from 'ws'
 import StateSwitch    from 'state-switch'
 
-import PuppetWeb  from './puppet-web/'
+import {
+  ScanData,
+}           from './abstract-puppet/'
 
 import {
   config,
@@ -34,18 +36,22 @@ export interface IoOptions {
   protocol?:  string,
 }
 
-type IoEventName =  'botie'
-                  | 'error'
-                  | 'heartbeat'
-                  | 'login'
-                  | 'logout'
-                  | 'message'
-                  | 'update'
-                  | 'raw'
-                  | 'reset'
-                  | 'scan'
-                  | 'sys'
-                  | 'shutdown'
+export const IO_EVENT_DICT = {
+  botie: 'tbw',
+  error: 'tbw',
+  heartbeat: 'tbw',
+  login: 'tbw',
+  logout: 'tbw',
+  message: 'tbw',
+  update: 'tbw',
+  raw: 'tbw',
+  reset: 'tbw',
+  scan: 'tbw',
+  sys: 'tbw',
+  shutdown: 'tbw',
+}
+
+type IoEventName = keyof typeof IO_EVENT_DICT
 
 interface IoEvent {
   name:     IoEventName,
@@ -53,18 +59,19 @@ interface IoEvent {
 }
 
 export class Io {
-  public cuid: string
-
-  private protocol    : string
+  private readonly cuid     : string
+  private readonly protocol : string
   private eventBuffer : IoEvent[] = []
   private ws          : WebSocket
 
-  private state = new StateSwitch('Io', log)
+  private readonly state = new StateSwitch('Io', log)
 
-  private reconnectTimer: NodeJS.Timer | null
-  private reconnectTimeout: number | null
+  private reconnectTimer?   : NodeJS.Timer
+  private reconnectTimeout? : number
 
   private onMessage: Function
+
+  private scanData: ScanData
 
   constructor(
     private options: IoOptions,
@@ -73,6 +80,8 @@ export class Io {
     options.protocol  = options.protocol  || config.default.DEFAULT_PROTOCOL
 
     this.cuid = options.wechaty.cuid
+
+    this.scanData = {} as any
 
     this.protocol = options.protocol + '|' + options.wechaty.cuid
     log.verbose('Io', 'instantiated with apihost[%s], token[%s], protocol[%s], cuid[%s]',
@@ -99,7 +108,10 @@ export class Io {
     try {
       await this.initEventHook()
       this.ws = this.initWebSocket()
-
+      this.options.wechaty.on('scan', (url, code) => {
+        this.scanData.url   = url
+        this.scanData.code  = code
+      })
       this.state.on(true)
 
       return
@@ -215,7 +227,7 @@ export class Io {
     // FIXME: how to keep alive???
     // ws._socket.setKeepAlive(true, 100)
 
-    this.reconnectTimeout = null
+    this.reconnectTimeout = undefined
 
     const name    = 'sys'
     const payload = 'Wechaty version ' + this.options.wechaty.version() + ` with CUID: ${this.cuid}`
@@ -294,16 +306,12 @@ export class Io {
           this.send(loginEvent)
         }
 
-        const puppet = this.options.wechaty.puppet
-        if (puppet instanceof PuppetWeb) {
-          const scanInfo = puppet.scanInfo
-          if (scanInfo) {
-            const scanEvent: IoEvent = {
-              name: 'scan',
-              payload: scanInfo,
-            }
-            this.send(scanEvent)
+        if (this.scanData) {
+          const scanEvent: IoEvent = {
+            name: 'scan',
+            payload: this.scanData,
           }
+          this.send(scanEvent)
         }
 
         break
@@ -371,7 +379,7 @@ export class Io {
 
     log.warn('Io', 'reconnect() will reconnect after %d s', Math.floor(this.reconnectTimeout / 1000))
     this.reconnectTimer = setTimeout(_ => {
-      this.reconnectTimer = null
+      this.reconnectTimer = undefined
       this.initWebSocket()
     }, this.reconnectTimeout)// as any as NodeJS.Timer
   }
@@ -418,7 +426,7 @@ export class Io {
 
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer)
-      this.reconnectTimer = null
+      this.reconnectTimer = undefined
     }
 
     this.ws.close()

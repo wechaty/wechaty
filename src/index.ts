@@ -15,18 +15,17 @@ export {
   MediaMessage,
 }                     from './deprecated'
 
-// TODO: move MsgType to Message.Type ?
-export {
-  MsgType,
-}                     from './puppet-web/schema'
-
 export { IoClient }   from './io-client'
 export { Profile }    from './profile'
 export { Misc }       from './misc'
 
-export { PuppetWeb }  from './puppet-web/'
+export {
+  PuppetPuppeteer,
+}                     from './puppet-puppeteer/'
 
-import Wechaty from './wechaty'
+import {
+  Wechaty,
+}                     from './wechaty'
 export {
   Wechaty,
 }

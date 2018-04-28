@@ -41,8 +41,8 @@ import Misc           from '../misc'
 import {
   MediaData,
   MsgRawObj,
-}                           from './schema'
-import { WebContactRawObj } from './web-contact'
+}                                 from './schema'
+import { PuppeteerContactRawObj } from './puppeteer-contact'
 
 export interface InjectResult {
   code:    number,
@@ -65,18 +65,18 @@ export class Bridge extends EventEmitter {
     public options: BridgeOptions,
   ) {
     super()
-    log.verbose('PuppetWebBridge', 'constructor()')
+    log.verbose('PuppetPuppeteerBridge', 'constructor()')
 
-    this.state = new StateSwitch('PuppetWebBridge', log)
+    this.state = new StateSwitch('PuppetPuppeteerBridge', log)
   }
 
   public async init(): Promise<void> {
-    log.verbose('PuppetWebBridge', 'init()')
+    log.verbose('PuppetPuppeteerBridge', 'init()')
 
     this.state.on('pending')
     try {
       this.browser = await this.initBrowser()
-      log.verbose('PuppetWebBridge', 'init() initBrowser() done')
+      log.verbose('PuppetPuppeteerBridge', 'init() initBrowser() done')
 
       this.on('load', this.onLoad.bind(this))
 
@@ -85,9 +85,9 @@ export class Bridge extends EventEmitter {
       await ready
 
       this.state.on(true)
-      log.verbose('PuppetWebBridge', 'init() initPage() done')
+      log.verbose('PuppetPuppeteerBridge', 'init() initPage() done')
     } catch (e) {
-      log.error('PuppetWebBridge', 'init() exception: %s', e)
+      log.error('PuppetPuppeteerBridge', 'init() exception: %s', e)
       this.state.off(true)
 
       try {
@@ -98,7 +98,7 @@ export class Bridge extends EventEmitter {
           await this.browser.close()
         }
       } catch (e2) {
-        log.error('PuppetWebBridge', 'init() exception %s, close page/browser exception %s', e, e2)
+        log.error('PuppetPuppeteerBridge', 'init() exception %s, close page/browser exception %s', e, e2)
       }
 
       this.emit('error', e)
@@ -107,7 +107,7 @@ export class Bridge extends EventEmitter {
   }
 
   public async initBrowser(): Promise<Browser> {
-    log.verbose('PuppetWebBridge', 'initBrowser()')
+    log.verbose('PuppetPuppeteerBridge', 'initBrowser()')
 
     const headless = this.options.head ? false : true
     const browser = await launch({
@@ -127,29 +127,29 @@ export class Bridge extends EventEmitter {
     })
 
     const version = await browser.version()
-    log.verbose('PUppetWebBridge', 'initBrowser() version: %s', version)
+    log.verbose('PuppetPuppeteerBridge', 'initBrowser() version: %s', version)
 
     return browser
   }
 
   public async onDialog(dialog: Dialog) {
-    log.warn('PuppetWebBridge', 'init() page.on(dialog) type:%s message:%s',
+    log.warn('PuppetPuppeteerBridge', 'init() page.on(dialog) type:%s message:%s',
                                 dialog.type, dialog.message())
     try {
       // XXX: Which ONE is better?
       await dialog.accept()
       // await dialog.dismiss()
     } catch (e) {
-      log.error('PuppetWebBridge', 'init() dialog.dismiss() reject: %s', e)
+      log.error('PuppetPuppeteerBridge', 'init() dialog.dismiss() reject: %s', e)
     }
     this.emit('error', new Error(`${dialog.type}(${dialog.message()})`))
   }
 
   public async onLoad(page: Page): Promise<void> {
-    log.verbose('PuppetWebBridge', 'initPage() on(load) %s', page.url())
+    log.verbose('PuppetPuppeteerBridge', 'initPage() on(load) %s', page.url())
 
     if (this.state.off()) {
-      log.verbose('PuppetWebBridge', 'initPage() onLoad() OFF state detected. NOP')
+      log.verbose('PuppetPuppeteerBridge', 'initPage() onLoad() OFF state detected. NOP')
       return // reject(new Error('onLoad() OFF state detected'))
     }
 
@@ -168,14 +168,14 @@ export class Bridge extends EventEmitter {
       this.emit('ready')
 
     } catch (e) {
-      log.error('PuppetWebBridge', 'init() initPage() onLoad() exception: %s', e)
+      log.error('PuppetPuppeteerBridge', 'init() initPage() onLoad() exception: %s', e)
       await page.close()
       this.emit('error', e)
     }
   }
 
   public async initPage(browser: Browser): Promise<Page> {
-    log.verbose('PuppetWebBridge', 'initPage()')
+    log.verbose('PuppetPuppeteerBridge', 'initPage()')
 
     // set this in time because the following callbacks
     // might be called before initPage() return.
@@ -185,16 +185,16 @@ export class Bridge extends EventEmitter {
 
     page.on('dialog', this.onDialog.bind(this))
 
-    const cookieList = this.options.profile.get('cookies') as Cookie[]
+    const cookieList = (await this.options.profile.get('cookies')) as Cookie[]
     const url        = this.entryUrl(cookieList)
 
-    log.verbose('PuppetWebBridge', 'initPage() before page.goto(url)')
+    log.verbose('PuppetPuppeteerBridge', 'initPage() before page.goto(url)')
     await page.goto(url) // Does this related to(?) the CI Error: exception: Navigation Timeout Exceeded: 30000ms exceeded
-    log.verbose('PuppetWebBridge', 'initPage() after page.goto(url)')
+    log.verbose('PuppetPuppeteerBridge', 'initPage() after page.goto(url)')
 
     if (cookieList && cookieList.length) {
       await page.setCookie(...cookieList)
-      log.silly('PuppetWebBridge', 'initPage() page.setCookie() %s cookies set back', cookieList.length)
+      log.silly('PuppetPuppeteerBridge', 'initPage() page.setCookie() %s cookies set back', cookieList.length)
     }
 
     page.on('load', () => this.emit('load', page))
@@ -204,12 +204,12 @@ export class Bridge extends EventEmitter {
   }
 
   public async readyAngular(page: Page): Promise<void> {
-    log.verbose('PuppetWebBridge', 'readyAngular()')
+    log.verbose('PuppetPuppeteerBridge', 'readyAngular()')
 
     try {
       await page.waitForFunction(`typeof window.angular !== 'undefined'`)
     } catch (e) {
-      log.verbose('PuppetWebBridge', 'readyAngular() exception: %s', e)
+      log.verbose('PuppetPuppeteerBridge', 'readyAngular() exception: %s', e)
 
       const blockedMessage = await this.testBlockedMessage()
       if (blockedMessage) {  // Wechat Account Blocked
@@ -221,7 +221,7 @@ export class Bridge extends EventEmitter {
   }
 
   public async inject(page: Page): Promise<void> {
-    log.verbose('PuppetWebBridge', 'inject()')
+    log.verbose('PuppetPuppeteerBridge', 'inject()')
 
     const WECHATY_BRO_JS_FILE = path.join(
       __dirname,
@@ -236,7 +236,7 @@ export class Bridge extends EventEmitter {
 
       if (retObj && /^(2|3)/.test(retObj.code.toString())) {
         // HTTP Code 2XX & 3XX
-        log.silly('PuppetWebBridge', 'inject() eval(Wechaty) return code[%d] message[%s]',
+        log.silly('PuppetPuppeteerBridge', 'inject() eval(Wechaty) return code[%d] message[%s]',
                                       retObj.code, retObj.message)
       } else {  // HTTP Code 4XX & 5XX
         throw new Error('execute injectio error: ' + retObj.code + ', ' + retObj.message)
@@ -245,7 +245,7 @@ export class Bridge extends EventEmitter {
       retObj = await this.proxyWechaty('init')
       if (retObj && /^(2|3)/.test(retObj.code.toString())) {
         // HTTP Code 2XX & 3XX
-        log.silly('PuppetWebBridge', 'inject() Wechaty.init() return code[%d] message[%s]',
+        log.silly('PuppetPuppeteerBridge', 'inject() Wechaty.init() return code[%d] message[%s]',
                                       retObj.code, retObj.message)
       } else {  // HTTP Code 4XX & 5XX
         throw new Error('execute proxyWechaty(init) error: ' + retObj.code + ', ' + retObj.message)
@@ -256,53 +256,53 @@ export class Bridge extends EventEmitter {
       if (r !== SUCCESS_CIPHER) {
         throw new Error('fail to get right return from call ding()')
       }
-      log.silly('PuppetWebBridge', 'inject() ding success')
+      log.silly('PuppetPuppeteerBridge', 'inject() ding success')
 
     } catch (e) {
-      log.verbose('PuppetWebBridge', 'inject() exception: %s. stack: %s', e.message, e.stack)
+      log.verbose('PuppetPuppeteerBridge', 'inject() exception: %s. stack: %s', e.message, e.stack)
       throw e
     }
   }
 
   public async logout(): Promise<any> {
-    log.verbose('PuppetWebBridge', 'logout()')
+    log.verbose('PuppetPuppeteerBridge', 'logout()')
     try {
       return await this.proxyWechaty('logout')
     } catch (e) {
-      log.error('PuppetWebBridge', 'logout() exception: %s', e.message)
+      log.error('PuppetPuppeteerBridge', 'logout() exception: %s', e.message)
       throw e
     }
   }
 
   public async quit(): Promise<void> {
-    log.verbose('PuppetWebBridge', 'quit()')
+    log.verbose('PuppetPuppeteerBridge', 'quit()')
     this.state.off('pending')
 
     try {
       await this.page.close()
-      log.silly('PuppetWebBridge', 'quit() page.close()-ed')
+      log.silly('PuppetPuppeteerBridge', 'quit() page.close()-ed')
     } catch (e) {
-      log.warn('PuppetWebBridge', 'quit() page.close() exception: %s', e)
+      log.warn('PuppetPuppeteerBridge', 'quit() page.close() exception: %s', e)
     }
 
     try {
       await this.browser.close()
-      log.silly('PuppetWebBridge', 'quit() browser.close()-ed')
+      log.silly('PuppetPuppeteerBridge', 'quit() browser.close()-ed')
     } catch (e) {
-      log.warn('PuppetWebBridge', 'quit() browser.close() exception: %s', e)
+      log.warn('PuppetPuppeteerBridge', 'quit() browser.close() exception: %s', e)
     }
 
     this.state.off(true)
   }
 
   public async getUserName(): Promise<string> {
-    log.verbose('PuppetWebBridge', 'getUserName()')
+    log.verbose('PuppetPuppeteerBridge', 'getUserName()')
 
     try {
       const userName = await this.proxyWechaty('getUserName')
       return userName
     } catch (e) {
-      log.error('PuppetWebBridge', 'getUserName() exception: %s', e.message)
+      log.error('PuppetPuppeteerBridge', 'getUserName() exception: %s', e.message)
       throw e
     }
   }
@@ -311,10 +311,10 @@ export class Bridge extends EventEmitter {
     try {
       return await this.proxyWechaty('contactRemark', contactId, alias)
     } catch (e) {
-      log.verbose('PuppetWebBridge', 'contactRemark() exception: %s', e.message)
+      log.verbose('PuppetPuppeteerBridge', 'contactRemark() exception: %s', e.message)
       // Issue #509 return false instead of throw when contact is not a friend.
       // throw e
-      log.warn('PuppetWebBridge', 'contactRemark() does not work on contact is not a friend')
+      log.warn('PuppetPuppeteerBridge', 'contactRemark() does not work on contact is not a friend')
       return false
     }
   }
@@ -323,7 +323,7 @@ export class Bridge extends EventEmitter {
     try {
       return await this.proxyWechaty('contactFind', filterFunc)
     } catch (e) {
-      log.error('PuppetWebBridge', 'contactFind() exception: %s', e.message)
+      log.error('PuppetPuppeteerBridge', 'contactFind() exception: %s', e.message)
       throw e
     }
   }
@@ -332,7 +332,7 @@ export class Bridge extends EventEmitter {
     try {
       return await this.proxyWechaty('roomFind', filterFunc)
     } catch (e) {
-      log.error('PuppetWebBridge', 'roomFind() exception: %s', e.message)
+      log.error('PuppetPuppeteerBridge', 'roomFind() exception: %s', e.message)
       throw e
     }
   }
@@ -344,13 +344,13 @@ export class Bridge extends EventEmitter {
     try {
       return await this.proxyWechaty('roomDelMember', roomId, contactId)
     } catch (e) {
-      log.error('PuppetWebBridge', 'roomDelMember(%s, %s) exception: %s', roomId, contactId, e.message)
+      log.error('PuppetPuppeteerBridge', 'roomDelMember(%s, %s) exception: %s', roomId, contactId, e.message)
       throw e
     }
   }
 
   public async roomAddMember(roomId, contactId): Promise<number> {
-    log.verbose('PuppetWebBridge', 'roomAddMember(%s, %s)', roomId, contactId)
+    log.verbose('PuppetPuppeteerBridge', 'roomAddMember(%s, %s)', roomId, contactId)
 
     if (!roomId || !contactId) {
       throw new Error('no roomId or contactId')
@@ -358,7 +358,7 @@ export class Bridge extends EventEmitter {
     try {
       return await this.proxyWechaty('roomAddMember', roomId, contactId)
     } catch (e) {
-      log.error('PuppetWebBridge', 'roomAddMember(%s, %s) exception: %s', roomId, contactId, e.message)
+      log.error('PuppetPuppeteerBridge', 'roomAddMember(%s, %s) exception: %s', roomId, contactId, e.message)
       throw e
     }
   }
@@ -371,7 +371,7 @@ export class Bridge extends EventEmitter {
       await this.proxyWechaty('roomModTopic', roomId, topic)
       return topic
     } catch (e) {
-      log.error('PuppetWebBridge', 'roomModTopic(%s, %s) exception: %s', roomId, topic, e.message)
+      log.error('PuppetPuppeteerBridge', 'roomModTopic(%s, %s) exception: %s', roomId, topic, e.message)
       throw e
     }
   }
@@ -389,13 +389,13 @@ export class Bridge extends EventEmitter {
       }
       return roomId
     } catch (e) {
-      log.error('PuppetWebBridge', 'roomCreate(%s) exception: %s', contactIdList, e.message)
+      log.error('PuppetPuppeteerBridge', 'roomCreate(%s) exception: %s', contactIdList, e.message)
       throw e
     }
   }
 
   public async verifyUserRequest(contactId, hello): Promise<boolean> {
-    log.verbose('PuppetWebBridge', 'verifyUserRequest(%s, %s)', contactId, hello)
+    log.verbose('PuppetPuppeteerBridge', 'verifyUserRequest(%s, %s)', contactId, hello)
 
     if (!contactId) {
       throw new Error('no valid contactId')
@@ -403,13 +403,13 @@ export class Bridge extends EventEmitter {
     try {
       return await this.proxyWechaty('verifyUserRequest', contactId, hello)
     } catch (e) {
-      log.error('PuppetWebBridge', 'verifyUserRequest(%s, %s) exception: %s', contactId, hello, e.message)
+      log.error('PuppetPuppeteerBridge', 'verifyUserRequest(%s, %s) exception: %s', contactId, hello, e.message)
       throw e
     }
   }
 
   public async verifyUserOk(contactId, ticket): Promise<boolean> {
-    log.verbose('PuppetWebBridge', 'verifyUserOk(%s, %s)', contactId, ticket)
+    log.verbose('PuppetPuppeteerBridge', 'verifyUserOk(%s, %s)', contactId, ticket)
 
     if (!contactId || !ticket) {
       throw new Error('no valid contactId or ticket')
@@ -417,7 +417,7 @@ export class Bridge extends EventEmitter {
     try {
       return await this.proxyWechaty('verifyUserOk', contactId, ticket)
     } catch (e) {
-      log.error('PuppetWebBridge', 'verifyUserOk(%s, %s) exception: %s', contactId, ticket, e.message)
+      log.error('PuppetPuppeteerBridge', 'verifyUserOk(%s, %s) exception: %s', contactId, ticket, e.message)
       throw e
     }
   }
@@ -436,70 +436,70 @@ export class Bridge extends EventEmitter {
         throw new Error('send fail')
       }
     } catch (e) {
-      log.error('PuppetWebBridge', 'send() exception: %s', e.message)
+      log.error('PuppetPuppeteerBridge', 'send() exception: %s', e.message)
       throw e
     }
   }
 
   public async getMsgImg(id): Promise<string> {
-    log.verbose('PuppetWebBridge', 'getMsgImg(%s)', id)
+    log.verbose('PuppetPuppeteerBridge', 'getMsgImg(%s)', id)
 
     try {
       return await this.proxyWechaty('getMsgImg', id)
     } catch (e) {
-      log.silly('PuppetWebBridge', 'proxyWechaty(getMsgImg, %d) exception: %s', id, e.message)
+      log.silly('PuppetPuppeteerBridge', 'proxyWechaty(getMsgImg, %d) exception: %s', id, e.message)
       throw e
     }
   }
 
   public async getMsgEmoticon(id): Promise<string> {
-    log.verbose('PuppetWebBridge', 'getMsgEmoticon(%s)', id)
+    log.verbose('PuppetPuppeteerBridge', 'getMsgEmoticon(%s)', id)
 
     try {
       return await this.proxyWechaty('getMsgEmoticon', id)
     } catch (e) {
-      log.silly('PuppetWebBridge', 'proxyWechaty(getMsgEmoticon, %d) exception: %s', id, e.message)
+      log.silly('PuppetPuppeteerBridge', 'proxyWechaty(getMsgEmoticon, %d) exception: %s', id, e.message)
       throw e
     }
   }
 
   public async getMsgVideo(id): Promise<string> {
-    log.verbose('PuppetWebBridge', 'getMsgVideo(%s)', id)
+    log.verbose('PuppetPuppeteerBridge', 'getMsgVideo(%s)', id)
 
     try {
       return await this.proxyWechaty('getMsgVideo', id)
     } catch (e) {
-      log.silly('PuppetWebBridge', 'proxyWechaty(getMsgVideo, %d) exception: %s', id, e.message)
+      log.silly('PuppetPuppeteerBridge', 'proxyWechaty(getMsgVideo, %d) exception: %s', id, e.message)
       throw e
     }
   }
 
   public async getMsgVoice(id): Promise<string> {
-    log.verbose('PuppetWebBridge', 'getMsgVoice(%s)', id)
+    log.verbose('PuppetPuppeteerBridge', 'getMsgVoice(%s)', id)
 
     try {
       return await this.proxyWechaty('getMsgVoice', id)
     } catch (e) {
-      log.silly('PuppetWebBridge', 'proxyWechaty(getMsgVoice, %d) exception: %s', id, e.message)
+      log.silly('PuppetPuppeteerBridge', 'proxyWechaty(getMsgVoice, %d) exception: %s', id, e.message)
       throw e
     }
   }
 
   public async getMsgPublicLinkImg(id): Promise<string> {
-    log.verbose('PuppetWebBridge', 'getMsgPublicLinkImg(%s)', id)
+    log.verbose('PuppetPuppeteerBridge', 'getMsgPublicLinkImg(%s)', id)
 
     try {
       return await this.proxyWechaty('getMsgPublicLinkImg', id)
     } catch (e) {
-      log.silly('PuppetWebBridge', 'proxyWechaty(getMsgPublicLinkImg, %d) exception: %s', id, e.message)
+      log.silly('PuppetPuppeteerBridge', 'proxyWechaty(getMsgPublicLinkImg, %d) exception: %s', id, e.message)
       throw e
     }
   }
 
-  public async getContact(id: string): Promise<WebContactRawObj> {
+  public async getContact(id: string): Promise<PuppeteerContactRawObj> {
     if (id !== id) { // NaN
       const err = new Error('NaN! where does it come from?')
-      log.error('PuppetWebBridge', 'getContact(NaN): %s', err)
+      log.error('PuppetPuppeteerBridge', 'getContact(NaN): %s', err)
       throw err
     }
     const max = 35
@@ -513,7 +513,7 @@ export class Bridge extends EventEmitter {
 
     try {
       return await retryPromise({ max: max, backoff: backoff }, async attempt => {
-        log.silly('PuppetWebBridge', 'getContact() retryPromise: attampt %s/%s time for timeout %s',
+        log.silly('PuppetPuppeteerBridge', 'getContact() retryPromise: attampt %s/%s time for timeout %s',
                                       attempt, max, timeout)
         try {
           const r = await this.proxyWechaty('getContact', id)
@@ -522,57 +522,57 @@ export class Bridge extends EventEmitter {
           }
           throw new Error('got empty return value at attempt: ' + attempt)
         } catch (e) {
-          log.silly('PuppetWebBridge', 'proxyWechaty(getContact, %s) exception: %s', id, e.message)
+          log.silly('PuppetPuppeteerBridge', 'proxyWechaty(getContact, %s) exception: %s', id, e.message)
           throw e
         }
       })
     } catch (e) {
-      log.warn('PuppetWebBridge', 'retryPromise() getContact() finally FAIL: %s', e.message)
+      log.warn('PuppetPuppeteerBridge', 'retryPromise() getContact() finally FAIL: %s', e.message)
       throw e
     }
     /////////////////////////////////
   }
 
   public async getBaseRequest(): Promise<string> {
-    log.verbose('PuppetWebBridge', 'getBaseRequest()')
+    log.verbose('PuppetPuppeteerBridge', 'getBaseRequest()')
 
     try {
       return await this.proxyWechaty('getBaseRequest')
     } catch (e) {
-      log.silly('PuppetWebBridge', 'proxyWechaty(getBaseRequest) exception: %s', e.message)
+      log.silly('PuppetPuppeteerBridge', 'proxyWechaty(getBaseRequest) exception: %s', e.message)
       throw e
     }
   }
 
   public async getPassticket(): Promise<string> {
-    log.verbose('PuppetWebBridge', 'getPassticket()')
+    log.verbose('PuppetPuppeteerBridge', 'getPassticket()')
 
     try {
       return await this.proxyWechaty('getPassticket')
     } catch (e) {
-      log.silly('PuppetWebBridge', 'proxyWechaty(getPassticket) exception: %s', e.message)
+      log.silly('PuppetPuppeteerBridge', 'proxyWechaty(getPassticket) exception: %s', e.message)
       throw e
     }
   }
 
   public async getCheckUploadUrl(): Promise<string> {
-    log.verbose('PuppetWebBridge', 'getCheckUploadUrl()')
+    log.verbose('PuppetPuppeteerBridge', 'getCheckUploadUrl()')
 
     try {
       return await this.proxyWechaty('getCheckUploadUrl')
     } catch (e) {
-      log.silly('PuppetWebBridge', 'proxyWechaty(getCheckUploadUrl) exception: %s', e.message)
+      log.silly('PuppetPuppeteerBridge', 'proxyWechaty(getCheckUploadUrl) exception: %s', e.message)
       throw e
     }
   }
 
   public async getUploadMediaUrl(): Promise<string> {
-    log.verbose('PuppetWebBridge', 'getUploadMediaUrl()')
+    log.verbose('PuppetPuppeteerBridge', 'getUploadMediaUrl()')
 
     try {
       return await this.proxyWechaty('getUploadMediaUrl')
     } catch (e) {
-      log.silly('PuppetWebBridge', 'proxyWechaty(getUploadMediaUrl) exception: %s', e.message)
+      log.silly('PuppetPuppeteerBridge', 'proxyWechaty(getUploadMediaUrl) exception: %s', e.message)
       throw e
     }
   }
@@ -587,7 +587,7 @@ export class Bridge extends EventEmitter {
     try {
       return await this.proxyWechaty('sendMedia', mediaData)
     } catch (e) {
-      log.error('PuppetWebBridge', 'sendMedia() exception: %s', e.message)
+      log.error('PuppetPuppeteerBridge', 'sendMedia() exception: %s', e.message)
       throw e
     }
   }
@@ -602,7 +602,7 @@ export class Bridge extends EventEmitter {
     try {
       return await this.proxyWechaty('forward', baseData, patchData)
     } catch (e) {
-      log.error('PuppetWebBridge', 'forward() exception: %s', e.message)
+      log.error('PuppetPuppeteerBridge', 'forward() exception: %s', e.message)
       throw e
     }
   }
@@ -614,7 +614,7 @@ export class Bridge extends EventEmitter {
     wechatyFunc : string,
     ...args     : any[],
   ): Promise<any> {
-    log.silly('PuppetWebBridge', 'proxyWechaty(%s%s)',
+    log.silly('PuppetPuppeteerBridge', 'proxyWechaty(%s%s)',
                                   wechatyFunc,
                                   args.length
                                   ? ' , ' + args.join(', ')
@@ -630,7 +630,7 @@ export class Bridge extends EventEmitter {
         throw e
       }
     } catch (e) {
-      log.warn('PuppetWebBridge', 'proxyWechaty() noWechaty exception: %s', e)
+      log.warn('PuppetPuppeteerBridge', 'proxyWechaty() noWechaty exception: %s', e)
       throw e
     }
 
@@ -650,7 +650,7 @@ export class Bridge extends EventEmitter {
           ${argsDecoded},
         )
     `.replace(/[\n\s]+/, ' ')
-    // log.silly('PuppetWebBridge', 'proxyWechaty(%s, ...args) %s', wechatyFunc, wechatyScript)
+    // log.silly('PuppetPuppeteerBridge', 'proxyWechaty(%s, ...args) %s', wechatyFunc, wechatyScript)
     // console.log('proxyWechaty wechatyFunc args[0]: ')
     // console.log(args[0])
 
@@ -658,25 +658,25 @@ export class Bridge extends EventEmitter {
       const ret = await this.page.evaluate(wechatyScript)
       return ret
     } catch (e) {
-      log.verbose('PuppetWebBridge', 'proxyWechaty(%s, %s) ', wechatyFunc, args.join(', '))
-      log.warn('PuppetWebBridge', 'proxyWechaty() exception: %s', e.message)
+      log.verbose('PuppetPuppeteerBridge', 'proxyWechaty(%s, %s) ', wechatyFunc, args.join(', '))
+      log.warn('PuppetPuppeteerBridge', 'proxyWechaty() exception: %s', e.message)
       throw e
     }
   }
 
   public async ding(data): Promise<any> {
-    log.verbose('PuppetWebBridge', 'ding(%s)', data)
+    log.verbose('PuppetPuppeteerBridge', 'ding(%s)', data)
 
     try {
       return await this.proxyWechaty('ding', data)
     } catch (e) {
-      log.error('PuppetWebBridge', 'ding(%s) exception: %s', data, e.message)
+      log.error('PuppetPuppeteerBridge', 'ding(%s) exception: %s', data, e.message)
       throw e
     }
   }
 
   public preHtmlToXml(text: string): string {
-    log.verbose('PuppetWebBridge', 'preHtmlToXml()')
+    log.verbose('PuppetPuppeteerBridge', 'preHtmlToXml()')
 
     const preRegex = /^<pre[^>]*>([^<]+)<\/pre>$/i
     const matches = text.match(preRegex)
@@ -705,7 +705,7 @@ export class Bridge extends EventEmitter {
     }
 
     const textSnip = text.substr(0, 50).replace(/\n/, '')
-    log.verbose('PuppetWebBridge', 'testBlockedMessage(%s)',
+    log.verbose('PuppetPuppeteerBridge', 'testBlockedMessage(%s)',
                                   textSnip)
 
     // see unit test for detail
@@ -725,7 +725,7 @@ export class Bridge extends EventEmitter {
         }
         if (!obj) {
           // FIXME: when will this happen?
-          log.warn('PuppetWebBridge', 'testBlockedMessage() parseString(%s) return empty obj', textSnip)
+          log.warn('PuppetPuppeteerBridge', 'testBlockedMessage() parseString(%s) return empty obj', textSnip)
           return resolve(false)
         }
         if (!obj.error) {
@@ -734,7 +734,7 @@ export class Bridge extends EventEmitter {
         const ret     = +obj.error.ret
         const message =  obj.error.message
 
-        log.warn('PuppetWebBridge', 'testBlockedMessage() error.ret=%s', ret)
+        log.warn('PuppetPuppeteerBridge', 'testBlockedMessage() error.ret=%s', ret)
 
         if (ret === 1203) {
           // <error>
@@ -749,14 +749,14 @@ export class Bridge extends EventEmitter {
   }
 
   public async clickSwitchAccount(page: Page): Promise<boolean> {
-    log.verbose('PuppetWebBridge', 'clickSwitchAccount()')
+    log.verbose('PuppetPuppeteerBridge', 'clickSwitchAccount()')
 
     // TODO: use page.$x() (with puppeteer v1.1 or above) to replace DIY version of listXpath() instead.
     // See: https://github.com/GoogleChrome/puppeteer/blob/v1.1.0/docs/api.md#pagexexpression
 
     // https://github.com/GoogleChrome/puppeteer/issues/537#issuecomment-334918553
     async function listXpath(thePage: Page, xpath: string): Promise<ElementHandle[]> {
-      log.verbose('PuppetWebBridge', 'clickSwitchAccount() listXpath()')
+      log.verbose('PuppetPuppeteerBridge', 'clickSwitchAccount() listXpath()')
 
       try {
         const nodeHandleList = await (thePage as any).evaluateHandle(xpathInner => {
@@ -782,7 +782,7 @@ export class Bridge extends EventEmitter {
         await Promise.all(releasePromises)
         return elementHandleList
       } catch (e) {
-        log.verbose('PuppetWebBridge', 'clickSwitchAccount() listXpath() exception: %s', e)
+        log.verbose('PuppetPuppeteerBridge', 'clickSwitchAccount() listXpath() exception: %s', e)
         return []
       }
     }
@@ -792,28 +792,28 @@ export class Bridge extends EventEmitter {
       const [button] = await listXpath(page, XPATH_SELECTOR)
       if (button) {
         await button.click()
-        log.silly('PuppetWebBridge', 'clickSwitchAccount() clicked!')
+        log.silly('PuppetPuppeteerBridge', 'clickSwitchAccount() clicked!')
         return true
 
       } else {
-        // log.silly('PuppetWebBridge', 'clickSwitchAccount() button not found')
+        // log.silly('PuppetPuppeteerBridge', 'clickSwitchAccount() button not found')
         return false
       }
 
     } catch (e) {
-      log.silly('PuppetWebBridge', 'clickSwitchAccount() exception: %s', e)
+      log.silly('PuppetPuppeteerBridge', 'clickSwitchAccount() exception: %s', e)
       throw e
     }
   }
 
   public async hostname(): Promise<string | null> {
-    log.verbose('PuppetWebBridge', 'hostname()')
+    log.verbose('PuppetPuppeteerBridge', 'hostname()')
     try {
       const hostname = await this.page.evaluate(() => location.hostname) as string
-      log.silly('PuppetWebBridge', 'hostname() got %s', hostname)
+      log.silly('PuppetPuppeteerBridge', 'hostname() got %s', hostname)
       return hostname
     } catch (e) {
-      log.error('PuppetWebBridge', 'hostname() exception: %s', e)
+      log.error('PuppetPuppeteerBridge', 'hostname() exception: %s', e)
       this.emit('error', e)
       return null
     }
@@ -827,7 +827,7 @@ export class Bridge extends EventEmitter {
       try {
         await this.page.setCookie(...cookieList)
       } catch (e) {
-        log.error('PuppetWebBridge', 'cookies(%s) reject: %s', cookieList, e)
+        log.error('PuppetPuppeteerBridge', 'cookies(%s) reject: %s', cookieList, e)
         this.emit('error', e)
       }
       return
@@ -842,23 +842,23 @@ export class Bridge extends EventEmitter {
    * name
    */
   public entryUrl(cookieList?: Cookie[]): string {
-    log.verbose('PuppetWebBridge', 'cookieDomain(%s)', cookieList)
+    log.verbose('PuppetPuppeteerBridge', 'cookieDomain(%s)', cookieList)
 
     const DEFAULT_URL = 'https://wx.qq.com'
 
     if (!cookieList || cookieList.length === 0) {
-      log.silly('PuppetWebBridge', 'cookieDomain() no cookie, return default %s', DEFAULT_URL)
+      log.silly('PuppetPuppeteerBridge', 'cookieDomain() no cookie, return default %s', DEFAULT_URL)
       return DEFAULT_URL
     }
 
     const wxCookieList = cookieList.filter(c => /^webwx_auth_ticket|webwxuvid$/.test(c.name))
     if (!wxCookieList.length) {
-      log.silly('PuppetWebBridge', 'cookieDomain() no valid cookie, return default hostname')
+      log.silly('PuppetPuppeteerBridge', 'cookieDomain() no valid cookie, return default hostname')
       return DEFAULT_URL
     }
     let domain = wxCookieList[0].domain
     if (!domain) {
-      log.silly('PuppetWebBridge', 'cookieDomain() no valid domain in cookies, return default hostname')
+      log.silly('PuppetPuppeteerBridge', 'cookieDomain() no valid domain in cookies, return default hostname')
       return DEFAULT_URL
     }
 
@@ -874,23 +874,23 @@ export class Bridge extends EventEmitter {
       // Protocol error (Page.navigate): Cannot navigate to invalid URL undefined
       url = `https://${domain}`
     }
-    log.silly('PuppetWebBridge', 'cookieDomain() got %s', url)
+    log.silly('PuppetPuppeteerBridge', 'cookieDomain() got %s', url)
 
     return url
   }
 
   public async reload(): Promise<void> {
-    log.verbose('PuppetWebBridge', 'reload()')
+    log.verbose('PuppetPuppeteerBridge', 'reload()')
     await this.page.reload()
     return
   }
 
   public async evaluate(fn: () => any, ...args: any[]): Promise<any> {
-    log.silly('PuppetWebBridge', 'evaluate()')
+    log.silly('PuppetPuppeteerBridge', 'evaluate()')
     try {
       return await this.page.evaluate(fn, ...args)
     } catch (e) {
-      log.error('PuppetWebBridge', 'evaluate() exception: %s', e)
+      log.error('PuppetPuppeteerBridge', 'evaluate() exception: %s', e)
       this.emit('error', e)
       return null
     }

@@ -21,8 +21,9 @@
 import * as test  from 'blue-tape'
 // import * as sinon from 'sinon'
 
-import Puppet           from './puppet'
 import PuppetAccessory  from './puppet-accessory'
+
+import { Puppet }       from './abstract-puppet/'
 
 const EXPECTED_PUPPET1 = {p: 1} as any as Puppet
 const EXPECTED_PUPPET2 = {p: 2} as any as Puppet

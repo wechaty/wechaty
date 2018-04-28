@@ -18,13 +18,13 @@
  *
  */
 
-import Contact          from '../abstract-puppet/contact'
+import PuppetAccessory  from '../puppet-accessory'
 
 import {
   // config,
   // log,
 }                       from './config'
-import PuppetAccessory  from './puppet-accessory'
+import Contact          from './contact'
 
 /**
  * Send, receive friend request, and friend confirmation events.

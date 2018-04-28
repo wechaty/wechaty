@@ -40,7 +40,7 @@ const PUPPETEER_LAUNCH_OPTIONS = {
     '--no-sandbox',
   ],
 }
-test('PuppetWebBridge', async t => {
+test('PuppetPuppeteerBridge', async t => {
   const profile = new Profile()
   const bridge = new Bridge({ profile })
   try {

@@ -27,13 +27,12 @@ import {
 import Message      from '../abstract-puppet/message'
 
 import MockContact  from './mock-contact'
-import WebRoom      from './mock-room'
+import MockRoom     from './mock-room'
 
 import {
-  MsgRawObj,
   MsgType,
   AppMsgType,
-}                 from '../puppet-web/schema'
+}                 from '../puppet-puppeteer/schema'
 
 export type ParsedPath = Partial<path.ParsedPath>
 
@@ -41,7 +40,7 @@ export class MockMessage extends Message {
   public readonly id: string
 
   constructor(
-    fileOrObj?: string | MsgRawObj,
+    fileOrObj?: string | Object,
   ) {
     super()
     log.silly('MockMessage', 'constructor()')
@@ -65,11 +64,11 @@ export class MockMessage extends Message {
     return loadedContact
   }
 
-  public room(room: WebRoom): void
+  public room(room: MockRoom): void
   public room(id: string): void
-  public room(): WebRoom|null
+  public room(): MockRoom|null
 
-  public room(room?: WebRoom|string): WebRoom|null|void {
+  public room(room?: MockRoom|string): MockRoom|null|void {
     if (room) {
       return
     }
@@ -122,13 +121,13 @@ export class MockMessage extends Message {
   }
 
   public static async find(query) {
-    return Promise.resolve(new MockMessage(<MsgRawObj>{MsgId: '-1'}))
+    return Promise.resolve(new MockMessage({MsgId: '-1'}))
   }
 
   public static async findAll(query) {
     return Promise.resolve([
-      new MockMessage   (<MsgRawObj>{MsgId: '-2'}),
-      new MockMessage (<MsgRawObj>{MsgId: '-3'}),
+      new MockMessage({MsgId: '-2'}),
+      new MockMessage({MsgId: '-3'}),
     ])
   }
 
@@ -136,7 +135,7 @@ export class MockMessage extends Message {
   public to(id: string): void
   public to(): MockContact | null // if to is not set, then room must had set
 
-  public to(contact?: MockContact | string): MockContact | WebRoom | null | void {
+  public to(contact?: MockContact | string): MockContact | MockRoom | null | void {
     if (contact) {
       return
     }
@@ -164,7 +163,7 @@ export class MockMessage extends Message {
     return 'text/plain'
   }
 
-  public async forward(to: WebRoom|MockContact): Promise<void> {
+  public async forward(to: MockRoom|MockContact): Promise<void> {
     /**
      * 1. Text message
      */

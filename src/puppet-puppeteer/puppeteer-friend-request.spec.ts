@@ -24,18 +24,23 @@ import * as test  from 'blue-tape'
 
 import cloneClass from 'clone-class'
 
-import PuppetMock from '../puppet-mock'
 import Profile    from '../profile'
 import Wechaty    from '../wechaty'
 
-import WebContact       from './web-contact'
-import WebMessage       from './web-message'
-import Puppet           from '../abstract-puppet/puppet'
-import WebFriendRequest from './web-friend-request'
+import {
+  Puppet,
+}                 from '../abstract-puppet/'
+import {
+  PuppetMock,
+}                 from '../puppet-mock/'
 
-test('PuppetWebFriendRequest.receive smoke testing', async t => {
+import PuppeteerContact       from './puppeteer-contact'
+import PuppeteerMessage       from './puppeteer-message'
+import PuppeteerFriendRequest from './puppeteer-friend-request'
+
+test('PuppetPuppeteerFriendRequest.receive smoke testing', async t => {
   // tslint:disable-next-line:variable-name
-  const MyFriendRequest = cloneClass(WebFriendRequest)
+  const MyFriendRequest = cloneClass(PuppeteerFriendRequest)
   MyFriendRequest.puppet = {
     userId: 'xxx',
   } as any as Puppet
@@ -52,17 +57,17 @@ test('PuppetWebFriendRequest.receive smoke testing', async t => {
 
   t.true(typeof fr.info === 'object', 'should has info object')
   t.is(fr.hello, '我是群聊"Wechaty"的李卓桓.PreAngel', 'should has right request message')
-  t.true(fr.contact instanceof WebContact, 'should have a Contact instance')
+  t.true(fr.contact instanceof PuppeteerContact, 'should have a Contact instance')
   t.is(fr.type as any, 'receive', 'should be receive type')
 })
 
-test('PuppetWebFriendRequest.confirm smoke testing', async t => {
+test('PuppetPuppeteerFriendRequest.confirm smoke testing', async t => {
   // tslint:disable-next-line:variable-name
-  const MyFriendRequest = cloneClass(WebFriendRequest)
+  const MyFriendRequest = cloneClass(PuppeteerFriendRequest)
   // tslint:disable-next-line:variable-name
-  const MyContact = cloneClass(WebContact)
+  const MyContact = cloneClass(PuppeteerContact)
   // tslint:disable-next-line:variable-name
-  const MyMessage = cloneClass(WebMessage)
+  const MyMessage = cloneClass(PuppeteerMessage)
 
   MyContact.puppet = MyMessage.puppet = MyFriendRequest.puppet = {
     userId: 'xxx',
@@ -85,6 +90,6 @@ test('PuppetWebFriendRequest.confirm smoke testing', async t => {
   const contact = m.from()
   fr.confirm(contact || new MyContact('xx'))
 
-  t.true(fr.contact instanceof WebContact, 'should have a Contact instance')
+  t.true(fr.contact instanceof PuppeteerContact, 'should have a Contact instance')
   t.is(fr.type as any, 'confirm', 'should be confirm type')
 })

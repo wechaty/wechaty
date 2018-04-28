@@ -31,14 +31,30 @@ const sinonTest   = require('sinon-test')(sinon, {
 // log.level('silly')
 
 import Profile      from '../profile'
+import Wechaty      from '../wechaty'
 
 import {
   Contact,
 }                   from '../abstract-puppet/'
-import PuppetWeb    from '../../src/puppet-web/puppet-web'
-import Bridge       from '../../src/puppet-web/bridge'
-import Event        from '../../src/puppet-web/event'
-import { Wechaty }  from '../wechaty'
+
+import PuppetPuppeteer  from './puppet-puppeteer'
+import Bridge           from './bridge'
+import Event            from './event'
+
+test('Puppet smoke testing', async t => {
+  const profile = new Profile(Math.random().toString(36).substr(2, 5))
+  const wechaty = new Wechaty()
+
+  const p = new PuppetPuppeteer({
+    profile,
+    wechaty,
+  })
+
+  t.ok(p.state.off(), 'should be OFF state after instanciate')
+  p.state.on('pending')
+  t.ok(p.state.on(), 'should be ON state after set')
+  t.ok(p.state.pending(), 'should be pending state after set')
+})
 
 test('login/logout events', sinonTest(async function (t: test.Test) {
 
@@ -50,7 +66,7 @@ test('login/logout events', sinonTest(async function (t: test.Test) {
   sinon.stub(Event, 'onScan') // block the scan event to prevent reset logined user
 
   sinon.stub(Bridge.prototype,    'getUserName').resolves('mockedUserName')
-  sinon.stub(PuppetWeb.prototype, 'getContact') .resolves({
+  sinon.stub(PuppetPuppeteer.prototype, 'getContact') .resolves({
     NickName: 'mockedNickName',
     UserName: 'mockedUserName',
   })
@@ -59,11 +75,11 @@ test('login/logout events', sinonTest(async function (t: test.Test) {
     const profile = new Profile()
     const wechaty = new Wechaty()
 
-    const pw = new PuppetWeb({
+    const pw = new PuppetPuppeteer({
       profile,
       wechaty,
     })
-    t.ok(pw, 'should instantiated a PuppetWeb')
+    t.ok(pw, 'should instantiated a PuppetPuppeteer')
 
     // config.puppetInstance(pw)
     Contact.puppet = pw
@@ -74,7 +90,7 @@ test('login/logout events', sinonTest(async function (t: test.Test) {
 
     const EXPECTED_CHIPER = 'loginFired'
     const loginPromise = new Promise(r => pw.once('login', _ => r(EXPECTED_CHIPER)))
-    pw.bridge.emit('login', 'TestPuppetWeb')
+    pw.bridge.emit('login', 'TestPuppetPuppeteer')
     t.is(await loginPromise, EXPECTED_CHIPER, 'should fired login event')
     t.is(pw.logonoff(), true  , 'should be logined')
 

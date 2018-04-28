@@ -24,23 +24,18 @@ import * as test  from 'blue-tape'
 
 import cloneClass from 'clone-class'
 
-// import config     from '../src/config'
-import WebContact from './web-contact'
+import PuppetPuppeteer  from './puppet-puppeteer'
+import PuppeteerContact from './puppeteer-contact'
 
-import Profile    from '../profile'
-import PuppetWeb  from './puppet-web'
-import Wechaty    from '../wechaty'
-
-// config.puppetInstance(new PuppetWeb({
-//   profile: new Profile(),
-// }))
+import Profile          from '../profile'
+import Wechaty          from '../wechaty'
 
 test('Contact smoke testing', async t => {
 
   // tslint:disable-next-line:variable-name
-  const MyContact = cloneClass(WebContact)
+  const MyContact = cloneClass(PuppeteerContact)
 
-  MyContact.puppet = new PuppetWeb({
+  MyContact.puppet = new PuppetPuppeteer({
     profile: new Profile(),
     wechaty: new Wechaty(),
   })

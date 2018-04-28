@@ -31,12 +31,10 @@ import {
 
 import Misc             from '../misc'
 
-// import Wechaty          from './wechaty'
+import PuppetPuppeteer  from './puppet-puppeteer'
+import PuppeteerMessage from './puppeteer-message'
 
-import PuppetWeb        from './puppet-web'
-import WebMessage       from './web-message'
-
-export interface WebContactObj {
+export interface PuppeteerContactObj {
   address:    string,
   city:       string,
   id:         string,
@@ -54,7 +52,7 @@ export interface WebContactObj {
   special:    boolean,
 }
 
-export interface WebContactRawObj {
+export interface PuppeteerContactRawObj {
   Alias:        string,
   City:         string,
   NickName:     string,
@@ -88,11 +86,11 @@ const specialContactList: string[] = [
  * `Contact` is `Sayable`,
  * [Examples/Contact-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/contact-bot.ts}
  */
-export class WebContact extends Contact implements Sayable {
+export class PuppeteerContact extends Contact implements Sayable {
 
-  public obj: WebContactObj | null
+  public obj: PuppeteerContactObj | null
   // private dirtyObj: ContactObj | null
-  private rawObj: WebContactRawObj
+  private rawObj: PuppeteerContactRawObj
 
   /**
    * @private
@@ -101,7 +99,7 @@ export class WebContact extends Contact implements Sayable {
     public readonly id: string,
   ) {
     super(id)
-    log.silly('WebContact', `constructor(${id})`)
+    log.silly('PuppeteerContact', `constructor(${id})`)
 
     if (typeof id !== 'string') {
       throw new Error('id must be string. found: ' + typeof id)
@@ -113,24 +111,24 @@ export class WebContact extends Contact implements Sayable {
    */
   public toString(): string {
     if (!this.obj) {
-      return `WebContact<this.id>`
+      return `PuppeteerContact<this.id>`
     }
     const obj  = this.obj
     const name = obj.alias || obj.name || this.id
-    return `WebContact<${name}>`
+    return `PuppeteerContact<${name}>`
   }
 
   /**
    * @private
    */
-  public toStringEx() { return `WebContact(${this.obj && this.obj.name}[${this.id}])` }
+  public toStringEx() { return `PuppeteerContact(${this.obj && this.obj.name}[${this.id}])` }
 
   /**
    * @private
    */
-  private parse(rawObj: WebContactRawObj): WebContactObj | null {
+  private parse(rawObj: PuppeteerContactRawObj): PuppeteerContactObj | null {
     if (!rawObj || !rawObj.UserName) {
-      log.warn('WebContact', 'parse() got empty rawObj!')
+      log.warn('PuppeteerContact', 'parse() got empty rawObj!')
       // config.puppetInstance().emit('error', e)
       return null
     }
@@ -188,7 +186,7 @@ export class WebContact extends Contact implements Sayable {
    * @param {MediaMessage} mediaMessage
    * @memberof Contact
    */
-  public async say(message: WebMessage): Promise<void>
+  public async say(message: PuppeteerMessage): Promise<void>
 
   /**
    * Send Text or Media File to Contact.
@@ -200,8 +198,8 @@ export class WebContact extends Contact implements Sayable {
    * await contact.say('welcome to wechaty!')
    * await contact.say(new MediaMessage(__dirname + '/wechaty.png') // put the filePath you want to send here
    */
-  public async say(textOrMessage: string | WebMessage): Promise<void> {
-    log.verbose('WebContact', 'say(%s)', textOrMessage)
+  public async say(textOrMessage: string | PuppeteerMessage): Promise<void> {
+    log.verbose('PuppeteerContact', 'say(%s)', textOrMessage)
 
     const user = this.puppet.self()
 
@@ -210,18 +208,18 @@ export class WebContact extends Contact implements Sayable {
     }
     let m
     if (typeof textOrMessage === 'string') {
-      m = new WebMessage()
+      m = new PuppeteerMessage()
       m.puppet = this.puppet
 
       m.text(textOrMessage)
-    } else if (textOrMessage instanceof WebMessage) {
+    } else if (textOrMessage instanceof PuppeteerMessage) {
       m = textOrMessage
     } else {
       throw new Error('not support args')
     }
     m.from(user)
     m.to(this)
-    log.silly('WebContact', 'say() from: %s to: %s content: %s', user.name(), this.name(), textOrMessage)
+    log.silly('PuppeteerContact', 'say() from: %s to: %s content: %s', user.name(), this.name(), textOrMessage)
 
     return await this.puppet.send(m)
   }
@@ -272,7 +270,7 @@ export class WebContact extends Contact implements Sayable {
    * }
    */
   public alias(newAlias?: string|null): Promise<void> | string | null {
-    // log.silly('WebContact', 'alias(%s)', newAlias || '')
+    // log.silly('PuppeteerContact', 'alias(%s)', newAlias || '')
 
     if (typeof newAlias === 'undefined') {
       return this.obj && this.obj.alias || null
@@ -285,11 +283,11 @@ export class WebContact extends Contact implements Sayable {
       if (this.obj) {
         this.obj.alias = newAlias
       } else {
-        log.error('WebContact', 'alias() without this.obj?')
+        log.error('PuppeteerContact', 'alias() without this.obj?')
       }
     })
     .catch(e => {
-      log.error('WebContact', 'alias(%s) rejected: %s', newAlias, e.message)
+      log.error('PuppeteerContact', 'alias(%s) rejected: %s', newAlias, e.message)
       Raven.captureException(e)
     })
 
@@ -402,7 +400,7 @@ export class WebContact extends Contact implements Sayable {
    * log.info('Bot', 'Contact: %s: %s with avatar file: %s', contact.weixin(), contact.name(), avatarFileName)
    */
   public async avatar(): Promise<NodeJS.ReadableStream> {
-    log.verbose('WebContact', 'avatar()')
+    log.verbose('PuppeteerContact', 'avatar()')
 
     if (!this.obj) {
       throw new Error('Can not get avatar: no this.obj!')
@@ -411,14 +409,14 @@ export class WebContact extends Contact implements Sayable {
     }
 
     try {
-      const hostname = await (this.puppet as any as PuppetWeb).hostname()
+      const hostname = await (this.puppet as any as PuppetPuppeteer).hostname()
       const avatarUrl = `http://${hostname}${this.obj.avatar}&type=big` // add '&type=big' to get big image
-      const cookies = await (this.puppet as any as PuppetWeb).cookies()
-      log.silly('WebContact', 'avatar() url: %s', avatarUrl)
+      const cookies = await (this.puppet as any as PuppetPuppeteer).cookies()
+      log.silly('PuppeteerContact', 'avatar() url: %s', avatarUrl)
 
       return Misc.urlStream(avatarUrl, cookies)
     } catch (err) {
-      log.warn('WebContact', 'avatar() exception: %s', err.stack)
+      log.warn('PuppeteerContact', 'avatar() exception: %s', err.stack)
       Raven.captureException(err)
       throw err
     }
@@ -457,7 +455,7 @@ export class WebContact extends Contact implements Sayable {
    * @private
    */
   public async ready(): Promise<this> {
-    // log.silly('WebContact', 'ready(' + (contactGetter ? typeof contactGetter : '') + ')')
+    // log.silly('PuppeteerContact', 'ready(' + (contactGetter ? typeof contactGetter : '') + ')')
     if (!this.id) {
       const e = new Error('ready() call on an un-inited contact')
       throw e
@@ -468,8 +466,8 @@ export class WebContact extends Contact implements Sayable {
     }
 
     try {
-      const rawObj = await (this.puppet as any as PuppetWeb).getContact(this.id) as WebContactRawObj
-      log.silly('WebContact', `contactGetter(${this.id}) resolved`)
+      const rawObj = await (this.puppet as any as PuppetPuppeteer).getContact(this.id) as PuppeteerContactRawObj
+      log.silly('PuppeteerContact', `contactGetter(${this.id}) resolved`)
 
       this.rawObj = rawObj
       this.obj    = this.parse(rawObj)
@@ -477,7 +475,7 @@ export class WebContact extends Contact implements Sayable {
       return this
 
     } catch (e) {
-      log.error('WebContact', `contactGetter(${this.id}) exception: %s`, e.message)
+      log.error('PuppeteerContact', `contactGetter(${this.id}) exception: %s`, e.message)
       Raven.captureException(e)
       throw e
     }
@@ -532,13 +530,13 @@ export class WebContact extends Contact implements Sayable {
   public weixin(): string | null {
     const wxId = this.obj && this.obj.weixin || null
     if (!wxId) {
-      log.verbose('WebContact', `weixin() is not able to always work, it's limited by Tencent API`)
-      log.verbose('WebContact', 'weixin() If you want to track a contact between sessions, see FAQ at')
-      log.verbose('WebContact', 'https://github.com/Chatie/wechaty/wiki/FAQ#1-how-to-get-the-permanent-id-for-a-contact')
+      log.verbose('PuppeteerContact', `weixin() is not able to always work, it's limited by Tencent API`)
+      log.verbose('PuppeteerContact', 'weixin() If you want to track a contact between sessions, see FAQ at')
+      log.verbose('PuppeteerContact', 'https://github.com/Chatie/wechaty/wiki/FAQ#1-how-to-get-the-permanent-id-for-a-contact')
     }
     return wxId
   }
 
 }
 
-export default WebContact
+export default PuppeteerContact

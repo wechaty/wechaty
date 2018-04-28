@@ -10,13 +10,10 @@ export {
 }                         from './message'
 export {
   Puppet,
-  PuppetEvent,
+  PuppetEventName,
   PuppetOptions,
   ScanData,
 }                         from './puppet'
-export {
-  PuppetAccessory,
-}                         from './puppet-accessory'
 export {
   Room,
   RoomMemberQueryFilter,

@@ -31,19 +31,19 @@ import {
 import Profile    from '../profile'
 import Wechaty    from '../wechaty'
 
-import PuppetWeb  from './puppet-web'
-import WebContact from './web-contact'
-import WebMessage from './web-message'
-import WebRoom    from './web-room'
+import PuppetPuppeteer  from './puppet-puppeteer'
+import PuppeteerContact from './puppeteer-contact'
+import PuppeteerMessage from './puppeteer-message'
+import PuppeteerRoom    from './puppeteer-room'
 
 // tslint:disable-next-line:variable-name
-const MyRoom = cloneClass(WebRoom)
+const MyRoom = cloneClass(PuppeteerRoom)
 // tslint:disable-next-line:variable-name
-const MyContact = cloneClass(WebContact)
+const MyContact = cloneClass(PuppeteerContact)
 // tslint:disable-next-line:variable-name
-const MyMessage = cloneClass(WebMessage)
+const MyMessage = cloneClass(PuppeteerMessage)
 
-const puppet = new PuppetWeb({
+const puppet = new PuppetPuppeteer({
   profile: new Profile(),
   wechaty: new Wechaty(),
 })

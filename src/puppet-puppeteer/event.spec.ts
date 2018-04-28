@@ -1,3 +1,5 @@
+#!/usr/bin/env ts-node
+
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
@@ -16,10 +18,30 @@
  *   limitations under the License.
  *
  */
-import { PuppetWeb }  from './puppet-web'
+import * as test  from 'blue-tape'
+// tslint:disable:no-shadowed-variable
+// import * as sinon from 'sinon'
 
-export {
-  PuppetWeb,
-}
+import Profile  from '../profile'
+import Wechaty  from '../wechaty'
 
-export default PuppetWeb
+import {
+  // Event,
+  PuppetPuppeteer,
+}                   from './puppet-puppeteer'
+
+test('Puppet Puppeteer Event smoke testing', async t => {
+  const pw = new PuppetPuppeteer({
+    profile: new Profile(),
+    wechaty: new Wechaty(),
+  })
+
+  try {
+    await pw.start()
+    t.pass('should be inited')
+    await pw.stop()
+    t.pass('should be quited')
+  } catch (e) {
+    t.fail('exception: ' + e.message)
+  }
+})

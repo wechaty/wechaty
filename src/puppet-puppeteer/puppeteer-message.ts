@@ -27,12 +27,15 @@ import {
   Raven,
   log,
 }                       from '../config'
-import Message          from '../abstract-puppet/message'
 import Misc             from '../misc'
 
-import PuppetWeb  from './puppet-web'
-import WebContact from './web-contact'
-import WebRoom    from './web-room'
+import {
+  Message,
+}           from '../abstract-puppet/'
+
+import PuppetPuppeteer  from './puppet-puppeteer'
+import PuppeteerContact from './puppeteer-contact'
+import PuppeteerRoom    from './puppeteer-room'
 
 import {
   AppMsgType,
@@ -54,7 +57,7 @@ export type ParsedPath = Partial<path.ParsedPath>
  * `Message` is `Sayable`,
  * [Examples/Ding-Dong-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts}
  */
-export class WebMessage extends Message {
+export class PuppeteerMessage extends Message {
   /**
    * @private
    */
@@ -75,7 +78,7 @@ export class WebMessage extends Message {
     fileOrObj?: string | MsgRawObj,
   ) {
     super()
-    log.silly('WebMessage', 'constructor()')
+    log.silly('PuppeteerMessage', 'constructor()')
 
     this.obj = {} as MsgObj
 
@@ -119,7 +122,7 @@ export class WebMessage extends Message {
       } else if (/^@@/.test(rawObj.ToUserName)) {
         obj.room = rawObj.ToUserName
       } else {
-        log.error('WebMessage', 'parse found a room message, but neither FromUserName nor ToUserName is a room(/^@@/)')
+        log.error('PuppeteerMessage', 'parse found a room message, but neither FromUserName nor ToUserName is a room(/^@@/)')
         // obj.room = undefined // bug compatible
       }
       if (obj.to && /^@@/.test(obj.to)) { // if a message in room without any specific receiver, then it will set to be `undefined`
@@ -134,7 +137,7 @@ export class WebMessage extends Message {
    * @private
    */
   public toString() {
-    return `WebMessage<${Misc.plainText(this.obj.content)}>`
+    return `PuppeteerMessage<${Misc.plainText(this.obj.content)}>`
   }
 
   /**
@@ -149,12 +152,12 @@ export class WebMessage extends Message {
    * @private
    */
   public getSenderString() {
-    const from = WebContact.load(this.obj.from)
+    const from = PuppeteerContact.load(this.obj.from)
     from.puppet = this.puppet
 
     const fromName  = from.name()
     const roomTopic = this.obj.room
-                  ? (':' + WebRoom.load(this.obj.room).topic())
+                  ? (':' + PuppeteerRoom.load(this.obj.room).topic())
                   : ''
     return `<${fromName}${roomTopic}>`
   }
@@ -171,22 +174,22 @@ export class WebMessage extends Message {
   /**
    * @private
    */
-  public from(contact: WebContact): void
+  public from(contact: PuppeteerContact): void
 
   /**
    * @private
    */
   public from(id: string): void
 
-  public from(): WebContact
+  public from(): PuppeteerContact
 
   /**
    * Get the sender from a message.
    * @returns {Contact}
    */
-  public from(contact?: WebContact|string): WebContact|void {
+  public from(contact?: PuppeteerContact|string): PuppeteerContact|void {
     if (contact) {
-      if (contact instanceof WebContact) {
+      if (contact instanceof PuppeteerContact) {
         this.obj.from = contact.id
       } else if (typeof contact === 'string') {
         this.obj.from = contact
@@ -196,7 +199,7 @@ export class WebMessage extends Message {
       return
     }
 
-    const loadedContact = WebContact.load(this.obj.from) as WebContact
+    const loadedContact = PuppeteerContact.load(this.obj.from) as PuppeteerContact
     loadedContact.puppet = this.puppet
 
     return loadedContact
@@ -205,24 +208,24 @@ export class WebMessage extends Message {
   /**
    * @private
    */
-  public room(room: WebRoom): void
+  public room(room: PuppeteerRoom): void
 
   /**
    * @private
    */
   public room(id: string): void
 
-  public room(): WebRoom|null
+  public room(): PuppeteerRoom|null
 
   /**
    * Get the room from the message.
    * If the message is not in a room, then will return `null`
    *
-   * @returns {(WebRoom|null)}
+   * @returns {(PuppeteerRoom|null)}
    */
-  public room(room?: WebRoom|string): WebRoom|null|void {
+  public room(room?: PuppeteerRoom|string): PuppeteerRoom|null|void {
     if (room) {
-      if (room instanceof WebRoom) {
+      if (room instanceof PuppeteerRoom) {
         this.obj.room = room.id
       } else if (typeof room === 'string') {
         this.obj.room = room
@@ -232,7 +235,7 @@ export class WebMessage extends Message {
       return
     }
     if (this.obj.room) {
-      const r = WebRoom.load(this.obj.room) as WebRoom
+      const r = PuppeteerRoom.load(this.obj.room) as PuppeteerRoom
       r.puppet = this.puppet
       return r
     }
@@ -274,13 +277,13 @@ export class WebMessage extends Message {
     return this.obj.content
   }
 
-  public async say(textOrMessage: string | WebMessage, replyTo?: WebContact|WebContact[]): Promise<void> {
-    log.verbose('WebMessage', 'say(%s, %s)', textOrMessage, replyTo)
+  public async say(textOrMessage: string | PuppeteerMessage, replyTo?: PuppeteerContact|PuppeteerContact[]): Promise<void> {
+    log.verbose('PuppeteerMessage', 'say(%s, %s)', textOrMessage, replyTo)
 
-    let m: WebMessage
+    let m: PuppeteerMessage
 
     if (typeof textOrMessage === 'string') {
-      m = new WebMessage()
+      m = new PuppeteerMessage()
       m.puppet = this.puppet
 
       const room = this.room()
@@ -329,7 +332,7 @@ export class WebMessage extends Message {
    * @returns {MsgType}
    */
   public type(): MsgType {
-    log.silly('WebMessage', 'type() = %s', MsgType[this.obj.type])
+    log.silly('PuppeteerMessage', 'type() = %s', MsgType[this.obj.type])
     return this.obj.type || MsgType.TEXT
   }
 
@@ -401,14 +404,14 @@ export class WebMessage extends Message {
    * | Identify magic code (8197) by programming                                  |  ✘   |        ✘       |     ✘      |       ✘         |
    * | Identify two contacts with the same roomAlias by [You were  mentioned] tip |  ✘   |        ✘       |     √      |       √         |
    *
-   * @returns {WebContact[]} - Return message mentioned contactList
+   * @returns {PuppeteerContact[]} - Return message mentioned contactList
    *
    * @example
    * const contactList = message.mentioned()
    * console.log(contactList)
    */
-  public mentioned(): WebContact[] {
-    let contactList: WebContact[] = []
+  public mentioned(): PuppeteerContact[] {
+    let contactList: PuppeteerContact[] = []
     const room = this.room()
     if (this.type() !== MsgType.TEXT || !room ) {
       return contactList
@@ -444,7 +447,7 @@ export class WebMessage extends Message {
 
     // flatten array, see http://stackoverflow.com/a/10865042/1123955
     const mentionList = [].concat.apply([], rawMentionedList)
-    log.verbose('WebMessage', 'mentioned(%s),get mentionList: %s', this.content(), JSON.stringify(mentionList))
+    log.verbose('PuppeteerMessage', 'mentioned(%s),get mentionList: %s', this.content(), JSON.stringify(mentionList))
 
     contactList = [].concat.apply([],
       mentionList.map(nameStr => room.memberAll(nameStr))
@@ -461,13 +464,13 @@ export class WebMessage extends Message {
    * @private
    */
   public async ready(): Promise<this> {
-    log.silly('WebMessage', 'ready()')
+    log.silly('PuppeteerMessage', 'ready()')
 
     try {
       /**
        * 1. ready from contact
        */
-      const from  = WebContact.load(this.obj.from)
+      const from  = PuppeteerContact.load(this.obj.from)
       from.puppet = this.puppet
       await from.ready()  // Contact from
 
@@ -475,7 +478,7 @@ export class WebMessage extends Message {
        * 2. ready to contact
        */
       if (this.obj.to) {
-        const to = WebContact.load(this.obj.to)
+        const to = PuppeteerContact.load(this.obj.to)
         to.puppet = this.puppet
         await to.ready()
       }
@@ -484,13 +487,13 @@ export class WebMessage extends Message {
        * 3. ready the room
        */
       if (this.obj.room) {
-        const room  = WebRoom.load(this.obj.room)
+        const room  = PuppeteerRoom.load(this.obj.room)
         room.puppet = this.puppet
         await room.ready()  // Room member list
       }
 
     } catch (e) {
-      log.error('WebMessage', 'ready() exception: %s', e.stack)
+      log.error('PuppeteerMessage', 'ready() exception: %s', e.stack)
       Raven.captureException(e)
       // console.log(e)
       // this.dump()
@@ -504,9 +507,9 @@ export class WebMessage extends Message {
   }
 
   public async readyMedia(): Promise<this> {
-    log.silly('WebMessage', 'readyMedia()')
+    log.silly('PuppeteerMessage', 'readyMedia()')
 
-    const puppet = this.puppet as PuppetWeb
+    const puppet = this.puppet as PuppetPuppeteer
 
     try {
 
@@ -550,7 +553,7 @@ export class WebMessage extends Message {
 
             default:
               const e = new Error('ready() unsupported typeApp(): ' + this.typeApp())
-              log.warn('WebMessage', e.message)
+              log.warn('PuppeteerMessage', e.message)
               this.dumpRaw()
               throw e
           }
@@ -582,7 +585,7 @@ export class WebMessage extends Message {
       this.obj.url = url
 
     } catch (e) {
-      log.warn('WebMessage', 'ready() exception: %s', e.message)
+      log.warn('PuppeteerMessage', 'ready() exception: %s', e.message)
       Raven.captureException(e)
       throw e
     }
@@ -594,7 +597,7 @@ export class WebMessage extends Message {
    * @private
    */
   public get(prop: string): string {
-    log.warn('WebMessage', 'DEPRECATED get() at %s', new Error('stack').stack)
+    log.warn('PuppeteerMessage', 'DEPRECATED get() at %s', new Error('stack').stack)
 
     if (!prop || !(prop in this.obj)) {
       const s = '[' + Object.keys(this.obj).join(',') + ']'
@@ -607,7 +610,7 @@ export class WebMessage extends Message {
    * @private
    */
   public set(prop: string, value: string): this {
-    log.warn('WebMessage', 'DEPRECATED set() at %s', new Error('stack').stack)
+    log.warn('PuppeteerMessage', 'DEPRECATED set() at %s', new Error('stack').stack)
 
     if (typeof value !== 'string') {
       throw new Error('value must be string, we got: ' + typeof value)
@@ -639,7 +642,7 @@ export class WebMessage extends Message {
    * @todo add function
    */
   public static async find(query) {
-    return Promise.resolve(new WebMessage(<MsgRawObj>{MsgId: '-1'}))
+    return Promise.resolve(new PuppeteerMessage(<MsgRawObj>{MsgId: '-1'}))
   }
 
   /**
@@ -647,8 +650,8 @@ export class WebMessage extends Message {
    */
   public static async findAll(query) {
     return Promise.resolve([
-      new WebMessage   (<MsgRawObj>{MsgId: '-2'}),
-      new WebMessage (<MsgRawObj>{MsgId: '-3'}),
+      new PuppeteerMessage   (<MsgRawObj>{MsgId: '-2'}),
+      new PuppeteerMessage (<MsgRawObj>{MsgId: '-3'}),
     ])
   }
 
@@ -659,23 +662,23 @@ export class WebMessage extends Message {
   /**
    * @private
    */
-  public to(contact: WebContact): void
+  public to(contact: PuppeteerContact): void
 
   /**
    * @private
    */
   public to(id: string): void
 
-  public to(): WebContact | null // if to is not set, then room must had set
+  public to(): PuppeteerContact | null // if to is not set, then room must had set
 
   /**
    * Get the destination of the message
    * Message.to() will return null if a message is in a room, use Message.room() to get the room.
    * @returns {(Contact|null)}
    */
-  public to(contact?: WebContact | string): WebContact | WebRoom | null | void {
+  public to(contact?: PuppeteerContact | string): PuppeteerContact | PuppeteerRoom | null | void {
     if (contact) {
-      if (contact instanceof WebContact) {
+      if (contact instanceof PuppeteerContact) {
         this.obj.to = contact.id
       } else if (typeof contact === 'string') {
         this.obj.to = contact
@@ -690,7 +693,7 @@ export class WebMessage extends Message {
     if (!this.obj.to) {
       return null
     }
-    const to = WebContact.load(this.obj.to) as WebContact
+    const to = PuppeteerContact.load(this.obj.to) as PuppeteerContact
     to.puppet = this.puppet
 
     return to
@@ -707,7 +710,7 @@ export class WebMessage extends Message {
    * @returns {Promise<Readable>}
    */
   public async readyStream(): Promise<Readable> {
-    log.verbose('WebMessage', 'readyStream()')
+    log.verbose('PuppeteerMessage', 'readyStream()')
 
     /**
      * 1. local file
@@ -727,14 +730,14 @@ export class WebMessage extends Message {
     try {
       await this.ready()
       // FIXME: decoupling needed
-      const cookies = await (this.puppet as any as PuppetWeb).cookies()
+      const cookies = await (this.puppet as any as PuppetPuppeteer).cookies()
       if (!this.obj.url) {
         throw new Error('no url')
       }
-      log.verbose('WebMessage', 'readyStream() url: %s', this.obj.url)
+      log.verbose('PuppeteerMessage', 'readyStream() url: %s', this.obj.url)
       return Misc.urlStream(this.obj.url, cookies)
     } catch (e) {
-      log.warn('WebMessage', 'readyStream() exception: %s', e.stack)
+      log.warn('PuppeteerMessage', 'readyStream() exception: %s', e.stack)
       Raven.captureException(e)
       throw e
     }
@@ -818,7 +821,7 @@ export class WebMessage extends Message {
         }
         break
     }
-    log.silly('WebMessage', `ext() got unknown type: ${this.type()}`)
+    log.silly('PuppeteerMessage', `ext() got unknown type: ${this.type()}`)
     return String('.' + this.type())
   }
 
@@ -840,7 +843,7 @@ export class WebMessage extends Message {
     if (!filePath) {
       throw new Error('saveFile() filePath is invalid')
     }
-    log.silly('WebMessage', `saveFile() filePath:'${filePath}'`)
+    log.silly('PuppeteerMessage', `saveFile() filePath:'${filePath}'`)
     if (fs.existsSync(filePath)) {
       throw new Error('saveFile() file does exist!')
     }
@@ -849,7 +852,7 @@ export class WebMessage extends Message {
     try {
       readStream = await this.readyStream()
     } catch (e) {
-      log.error('WebMessage', `saveFile() call readyStream() error: ${e.message}`)
+      log.error('PuppeteerMessage', `saveFile() call readyStream() error: ${e.message}`)
       throw new Error(`saveFile() call readyStream() error: ${e.message}`)
     }
     await new Promise((resolve, reject) => {
@@ -859,7 +862,7 @@ export class WebMessage extends Message {
         .once('error', reject)
     })
       .catch(e => {
-        log.error('WebMessage', `saveFile() error: ${e.message}`)
+        log.error('PuppeteerMessage', `saveFile() error: ${e.message}`)
         throw e
       })
   }
@@ -913,7 +916,7 @@ export class WebMessage extends Message {
    * @returns {Promise<boolean>}
    * @memberof MediaMessage
    */
-  public async forward(to: WebRoom|WebContact): Promise<void> {
+  public async forward(to: PuppeteerRoom|PuppeteerContact): Promise<void> {
     /**
      * 1. Text message
      */
@@ -928,11 +931,11 @@ export class WebMessage extends Message {
     try {
       await this.puppet.forward(this, to)
     } catch (e) {
-      log.error('WebMessage', 'forward(%s) exception: %s', to, e)
+      log.error('PuppeteerMessage', 'forward(%s) exception: %s', to, e)
       throw e
     }
   }
 
 }
 
-export default WebMessage
+export default PuppeteerMessage
