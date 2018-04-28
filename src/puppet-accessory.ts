@@ -1,4 +1,6 @@
-import { EventEmitter } from 'events'
+import { EventEmitter }     from 'events'
+
+import { instanceToClass }  from 'clone-class'
 
 import { log }  from './config'
 
@@ -43,8 +45,12 @@ export abstract class PuppetAccessory extends EventEmitter {
       return this._puppet
     }
 
-    // use the Class Static puppet
-    return (this.constructor as any as PuppetAccessory).puppet
+    /**
+     * Get `puppet` from Class Static puppet property
+     * note: use `instanceToClass` at here is because
+     *    we might have many copy/child of `PuppetAccessory` Classes
+     */
+    return instanceToClass(this, PuppetAccessory).puppet
   }
 }
 

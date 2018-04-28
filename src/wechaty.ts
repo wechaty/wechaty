@@ -417,7 +417,8 @@ export class Wechaty extends PuppetAccessory implements Sayable {
       Message.puppet       = puppet
       Room.puppet          = puppet
 
-      instanceToClass(this, Wechaty).puppet = puppet
+      //
+      instanceToClass(this, PuppetAccessory).puppet = puppet
     }
 
     /**

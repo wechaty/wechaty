@@ -116,7 +116,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     super()
 
     this.state    = new StateSwitch('Puppet', log)
-    this.watchdog = new Watchdog((this.constructor as any as Puppet).WATCHDOG_TIMEOUT, 'Puppet')
+    this.watchdog = new Watchdog(this.WATCHDOG_TIMEOUT, 'Puppet')
 
     /**
      * 1. Check Classes for inherience correctly
