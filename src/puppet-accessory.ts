@@ -15,6 +15,7 @@ export abstract class PuppetAccessory extends EventEmitter {
     log.silly('PuppetAssessory', 'static set puppet(%s)', puppet.constructor.name)
     this._puppet = puppet
   }
+
   public static get puppet(): Puppet {
     log.silly('PuppetAssessory', 'static get puppet()')
 
@@ -34,6 +35,7 @@ export abstract class PuppetAccessory extends EventEmitter {
     log.silly('PuppetAssessory', 'set puppet(%s)', puppet.constructor.name)
     this._puppet = puppet
   }
+
   public get puppet(): Puppet {
     log.silly('PuppetAssessory', 'get puppet() from instance')
 

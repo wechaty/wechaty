@@ -8,14 +8,14 @@
     "DEFAULT_HEAD": 0,
     "DEFAULT_PORT": 8080,
     "DEFAULT_PUPPET": "puppeteer",
-    "DEFAULT_PROFILE": "demo",
+    "DEFAULT_PROFILE": "default",
     "DEFAULT_PROTOCOL": "io|0.0.1",
     "DEFAULT_TOKEN": "WECHATY_IO_TOKEN",
     "DEFAULT_APIHOST": "api.chatie.io"
   },
   "scripts": {
     "clean": "shx rm -fr dist/*",
-    "dist": "npm run clean && tsc && shx cp src/puppet-web/*.js dist/src/puppet-web/",
+    "dist": "npm run clean && tsc && shx cp src/puppet-puppeteer/*.js dist/src/puppet-puppeteer/",
     "doc": "npm run dist && echo '# Wechaty v'$(jq -r .version package.json)' Documentation\n* https://blog.chatie.io\n' > docs/index.md && jsdoc2md dist/src/{wechaty,room,contact,friend-request,message}.js dist/src/puppet-web/{friend-request,schema}.js>> docs/index.md",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "changelog": "github_changelog_generator -u chatie -p wechaty && sed -i'.bak' /greenkeeper/d CHANGELOG.md && sed -i'.bak' '/An in-range update of/d' CHANGELOG.md && ts-node scripts/sort-contributiveness.ts < CHANGELOG.md > CHANGELOG.new.md 2>/dev/null && cat CHANGELOG.md >> CHANGELOG.new.md && mv CHANGELOG.new.md CHANGELOG.md",

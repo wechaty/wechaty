@@ -28,7 +28,6 @@ const finis           = require('finis')
  * when you are runing with Docker or NPM instead of Git Source.
  */
 import {
-  config,
   Wechaty,
   log,
 }               from '../src/'
@@ -62,7 +61,7 @@ Please wait... I'm trying to login in...
 `
 
 console.log(welcome)
-const bot = Wechaty.instance({ profile: config.default.DEFAULT_PROFILE })
+const bot = Wechaty.instance()
 
 bot
 .on('logout'	, user => log.info('Bot', `${user.name()} logouted`))

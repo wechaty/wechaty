@@ -28,9 +28,12 @@ import PuppetAccessory  from '../puppet-accessory'
 import Contact          from './contact'
 import Message          from './message'
 
-export type RoomEventName = 'join'
-                          | 'leave'
-                          | 'topic'
+export const ROOM_EVENT_DICT = {
+  join: 'tbw',
+  leave: 'tbw',
+  topic: 'tbw',
+}
+export type RoomEventName = keyof typeof ROOM_EVENT_DICT
 
 export interface RoomMemberQueryFilter {
   name?:         string,
@@ -50,6 +53,104 @@ export interface RoomQueryFilter {
  */
 export abstract class Room extends PuppetAccessory implements Sayable {
   protected static readonly pool = new Map<string, Room>()
+
+  /**
+   * Create a new room.
+   *
+   * @static
+   * @param {Contact[]} contactList
+   * @param {string} [topic]
+   * @returns {Promise<Room>}
+   * @example <caption>Creat a room with 'lijiarui' and 'juxiaomi', the room topic is 'ding - created'</caption>
+   * const helperContactA = await Contact.find({ name: 'lijiarui' })  // change 'lijiarui' to any contact in your wechat
+   * const helperContactB = await Contact.find({ name: 'juxiaomi' })  // change 'juxiaomi' to any contact in your wechat
+   * const contactList = [helperContactA, helperContactB]
+   * console.log('Bot', 'contactList: %s', contactList.join(','))
+   * const room = await Room.create(contactList, 'ding')
+   * console.log('Bot', 'createDingRoom() new ding room created: %s', room)
+   * await room.topic('ding - created')
+   * await room.say('ding - created')
+   */
+  public static async create(contactList: Contact[], topic?: string): Promise<Room> {
+    log.verbose('Room', 'create(%s, %s)', contactList.join(','), topic)
+
+    if (!contactList || !Array.isArray(contactList)) {
+      throw new Error('contactList not found')
+    }
+
+    try {
+      const room = await this.puppet.roomCreate(contactList, topic)
+      return room
+    } catch (e) {
+      log.error('Room', 'create() exception: %s', e && e.stack || e.message || e)
+      Raven.captureException(e)
+      throw e
+    }
+  }
+
+  /**
+   * Find room by topic, return all the matched room
+   *
+   * @static
+   * @param {RoomQueryFilter} [query]
+   * @returns {Promise<Room[]>}
+   * @example
+   * const roomList = await Room.findAll()                    // get the room list of the bot
+   * const roomList = await Room.findAll({name: 'wechaty'})   // find all of the rooms with name 'wechaty'
+   */
+  public static async findAll(
+    query: RoomQueryFilter = { topic: /.*/ },
+  ): Promise<Room[]> {
+    log.verbose('Room', 'findAll({ topic: %s })', query.topic)
+
+    if (!query.topic) {
+      throw new Error('topicFilter not found')
+    }
+
+    try {
+      const roomList = await this.puppet.roomFindAll(query)
+      await Promise.all(roomList.map(room => room.ready()))
+
+      return roomList
+
+    } catch (e) {
+      log.verbose('Room', 'findAll() rejected: %s', e.message)
+      Raven.captureException(e)
+      return [] as Room[] // fail safe
+    }
+  }
+
+  /**
+   * Try to find a room by filter: {topic: string | RegExp}. If get many, return the first one.
+   *
+   * @param {RoomQueryFilter} query
+   * @returns {Promise<Room | null>} If can find the room, return Room, or return null
+   */
+  public static async find(query: RoomQueryFilter): Promise<Room | null> {
+    log.verbose('Room', 'find({ topic: %s })', query.topic)
+
+    const roomList = await this.findAll(query)
+    if (!roomList || roomList.length < 1) {
+      return null
+    } else if (roomList.length > 1) {
+      log.warn('Room', 'find() got more than one result, return the 1st one.')
+    }
+    return roomList[0]
+  }
+
+  /**
+   * @private
+   */
+  public static load(id: string): Room {
+    if (!id) {
+      throw new Error('Room.load() no id')
+    }
+
+    if (id in this.pool) {
+      return this.pool[id]
+    }
+    return this.pool[id] = new (this as any)(id)
+  }
 
   /**
    * @private
@@ -348,90 +449,6 @@ export abstract class Room extends PuppetAccessory implements Sayable {
   public abstract memberList(): Contact[]
 
   /**
-   * Create a new room.
-   *
-   * @static
-   * @param {Contact[]} contactList
-   * @param {string} [topic]
-   * @returns {Promise<Room>}
-   * @example <caption>Creat a room with 'lijiarui' and 'juxiaomi', the room topic is 'ding - created'</caption>
-   * const helperContactA = await Contact.find({ name: 'lijiarui' })  // change 'lijiarui' to any contact in your wechat
-   * const helperContactB = await Contact.find({ name: 'juxiaomi' })  // change 'juxiaomi' to any contact in your wechat
-   * const contactList = [helperContactA, helperContactB]
-   * console.log('Bot', 'contactList: %s', contactList.join(','))
-   * const room = await Room.create(contactList, 'ding')
-   * console.log('Bot', 'createDingRoom() new ding room created: %s', room)
-   * await room.topic('ding - created')
-   * await room.say('ding - created')
-   */
-  public static async create(contactList: Contact[], topic?: string): Promise<Room> {
-    log.verbose('Room', 'create(%s, %s)', contactList.join(','), topic)
-
-    if (!contactList || !Array.isArray(contactList)) {
-      throw new Error('contactList not found')
-    }
-
-    try {
-      const room = await this.puppet.roomCreate(contactList, topic)
-      return room
-    } catch (e) {
-      log.error('Room', 'create() exception: %s', e && e.stack || e.message || e)
-      Raven.captureException(e)
-      throw e
-    }
-  }
-
-  /**
-   * Find room by topic, return all the matched room
-   *
-   * @static
-   * @param {RoomQueryFilter} [query]
-   * @returns {Promise<Room[]>}
-   * @example
-   * const roomList = await Room.findAll()                    // get the room list of the bot
-   * const roomList = await Room.findAll({name: 'wechaty'})   // find all of the rooms with name 'wechaty'
-   */
-  public static async findAll(
-    query: RoomQueryFilter = { topic: /.*/ },
-  ): Promise<Room[]> {
-    log.verbose('Room', 'findAll({ topic: %s })', query.topic)
-
-    if (!query.topic) {
-      throw new Error('topicFilter not found')
-    }
-
-    try {
-      const roomList = await this.puppet.roomFindAll(query)
-      await Promise.all(roomList.map(room => room.ready()))
-
-      return roomList
-
-    } catch (e) {
-      log.verbose('Room', 'findAll() rejected: %s', e.message)
-      Raven.captureException(e)
-      return [] as Room[] // fail safe
-    }
-  }
-
-  /**
-   * Try to find a room by filter: {topic: string | RegExp}. If get many, return the first one.
-   *
-   * @param {RoomQueryFilter} query
-   * @returns {Promise<Room | null>} If can find the room, return Room, or return null
-   */
-  public static async find(query: RoomQueryFilter): Promise<Room | null> {
-    log.verbose('Room', 'find({ topic: %s })', query.topic)
-
-    const roomList = await this.findAll(query)
-    if (!roomList || roomList.length < 1) {
-      return null
-    } else if (roomList.length > 1) {
-      log.warn('Room', 'find() got more than one result, return the 1st one.')
-    }
-    return roomList[0]
-  }
-
-  /**
    * Force reload data for Room
    *
    * @returns {Promise<void>}
@@ -445,20 +462,6 @@ export abstract class Room extends PuppetAccessory implements Sayable {
    * @returns {(Contact | null)}
    */
   public abstract owner(): Contact | null
-
-  /**
-   * @private
-   */
-  public static load(id: string): Room {
-    if (!id) {
-      throw new Error('Room.load() no id')
-    }
-
-    if (id in this.pool) {
-      return this.pool[id]
-    }
-    return this.pool[id] = new (this as any)(id)
-  }
 
 }
 

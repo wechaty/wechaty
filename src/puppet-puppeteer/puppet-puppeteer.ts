@@ -56,17 +56,17 @@ import {
   MsgRawObj,
   MediaType,
   MsgType,
-}                       from './schema'
+}                           from './schema'
 
 import {
   PuppeteerContact,
   PuppeteerContactRawObj,
-}                       from './puppeteer-contact'
+}                             from './puppeteer-contact'
 import PuppeteerMessage       from './puppeteer-message'
 import {
   PuppeteerRoom,
   PuppeteerRoomRawObj,
-}                       from './puppeteer-room'
+}                             from './puppeteer-room'
 import PuppeteerFriendRequest from './puppeteer-friend-request'
 
 export type PuppetFoodType = 'scan' | 'ding'
@@ -74,7 +74,7 @@ export type ScanFoodType   = 'scan' | 'login' | 'logout'
 
 export class PuppetPuppeteer extends Puppet {
   public bridge   : Bridge
-  public scanInfo : ScanData | null
+  public scanInfo?: ScanData
 
   public scanWatchdog: Watchdog<ScanFoodType>
 

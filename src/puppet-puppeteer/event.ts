@@ -109,7 +109,7 @@ async function onLogin(this: PuppetPuppeteer, note: string, ttl = 30): Promise<v
     return
   }
 
-  this.scanInfo = null
+  this.scanInfo = undefined
 
   if (this.user) {
     log.warn('PuppetPuppeteerEvent', 'onLogin(%s) user had already set: "%s"', note, this.user)

@@ -776,7 +776,7 @@
 
   /*
    * WechatyBro injectio must return this object.
-   * PuppetWebBridge need this to decide if injection is successful.
+   * PuppetPuppeteerBridge need this to decide if injection is successful.
    */
   var retObj = {
     code: 200, // 2XX ok, 4XX/5XX error. HTTP like

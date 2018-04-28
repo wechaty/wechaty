@@ -4,6 +4,14 @@ export {
   VERSION,
 }                     from './config'
 
+/**
+ * We need to put `Wechaty` at the beginning of this file for import
+ * because we have circluar dependencies between `Puppet` & `Wechaty`
+ */
+import {
+  Wechaty,
+}                     from './wechaty'
+
 export {
   Contact,
   FriendRequest,
@@ -16,16 +24,13 @@ export {
 }                     from './deprecated'
 
 export { IoClient }   from './io-client'
-export { Profile }    from './profile'
 export { Misc }       from './misc'
+export { Profile }    from './profile'
 
 export {
   PuppetPuppeteer,
 }                     from './puppet-puppeteer/'
 
-import {
-  Wechaty,
-}                     from './wechaty'
 export {
   Wechaty,
 }
