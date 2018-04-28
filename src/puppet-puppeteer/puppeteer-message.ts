@@ -174,12 +174,7 @@ export class PuppeteerMessage extends Message {
   /**
    * @private
    */
-  public from(contact: PuppeteerContact): void
-
-  /**
-   * @private
-   */
-  public from(id: string): void
+  public from(contact: PuppeteerContact): this
 
   public from(): PuppeteerContact
 
@@ -187,16 +182,14 @@ export class PuppeteerMessage extends Message {
    * Get the sender from a message.
    * @returns {Contact}
    */
-  public from(contact?: PuppeteerContact|string): PuppeteerContact|void {
+  public from(contact?: PuppeteerContact): this | PuppeteerContact {
     if (contact) {
       if (contact instanceof PuppeteerContact) {
         this.obj.from = contact.id
-      } else if (typeof contact === 'string') {
-        this.obj.from = contact
       } else {
         throw new Error('unsupport from param: ' + typeof contact)
       }
-      return
+      return this
     }
 
     const loadedContact = PuppeteerContact.load(this.obj.from) as PuppeteerContact
@@ -208,14 +201,37 @@ export class PuppeteerMessage extends Message {
   /**
    * @private
    */
-  public room(room: PuppeteerRoom): void
+  public to(contact: PuppeteerContact): this
+
+  public to(): PuppeteerContact | null // if to is not set, then room must had set
+
+  /**
+   * Get the destination of the message
+   * Message.to() will return null if a message is in a room, use Message.room() to get the room.
+   * @returns {(Contact|null)}
+   */
+  public to(contact?: PuppeteerContact): this | PuppeteerContact | null {
+    if (contact) {
+      this.obj.to = contact.id
+      return this
+    }
+
+    // no parameter
+    if (!this.obj.to) {
+      return null
+    }
+    const to = PuppeteerContact.load(this.obj.to) as PuppeteerContact
+    to.puppet = this.puppet
+
+    return to
+  }
 
   /**
    * @private
    */
-  public room(id: string): void
+  public room(room: PuppeteerRoom): this
 
-  public room(): PuppeteerRoom|null
+  public room(): PuppeteerRoom | null
 
   /**
    * Get the room from the message.
@@ -223,22 +239,18 @@ export class PuppeteerMessage extends Message {
    *
    * @returns {(PuppeteerRoom|null)}
    */
-  public room(room?: PuppeteerRoom|string): PuppeteerRoom|null|void {
+  public room(room?: PuppeteerRoom): this | PuppeteerRoom | null {
     if (room) {
-      if (room instanceof PuppeteerRoom) {
-        this.obj.room = room.id
-      } else if (typeof room === 'string') {
-        this.obj.room = room
-      } else {
-        throw new Error('unsupport room param ' + typeof room)
-      }
-      return
+      this.obj.room = room.id
+      return this
     }
+
     if (this.obj.room) {
       const r = PuppeteerRoom.load(this.obj.room) as PuppeteerRoom
       r.puppet = this.puppet
       return r
     }
+
     return null
   }
 
@@ -251,10 +263,12 @@ export class PuppeteerMessage extends Message {
 
   /**
    * @private
+   * @deprecated
    */
-  public content(content: string): void
+  public content(content: string): this
 
   public content(content?: string) {
+    log.warn('PuppeteerMessage', 'content() DEPRECATED. use text() instead.')
     if (content) {
       return this.text(content)
     } else {
@@ -263,16 +277,16 @@ export class PuppeteerMessage extends Message {
   }
 
   public text(): string
-  public text(content: string): void
+  public text(content: string): this
   /**
    * Get the textcontent of the message
    *
    * @returns {string}
    */
-  public text(text?: string): string | void {
+  public text(text?: string):  this | string {
     if (text) {
       this.obj.content = text
-      return
+      return this
     }
     return this.obj.content
   }
@@ -381,14 +395,15 @@ export class PuppeteerMessage extends Message {
    * }
    */
   public self(): boolean {
-    const userId = this.puppet.user!.id
+    const user = this.puppet.userSelf()
 
-    const fromId = this.obj.from
-    if (!userId || !fromId) {
-      throw new Error('no user or no from')
+    if (!user) {
+      return false
     }
 
-    return fromId === userId
+    const selfId = user.id
+    const fromId = this.from().id
+    return selfId === fromId
   }
 
   /**
@@ -658,46 +673,6 @@ export class PuppeteerMessage extends Message {
   // public to(room: Room): void
   // public to(): Contact|Room
   // public to(contact?: Contact|Room|string): Contact|Room|void {
-
-  /**
-   * @private
-   */
-  public to(contact: PuppeteerContact): void
-
-  /**
-   * @private
-   */
-  public to(id: string): void
-
-  public to(): PuppeteerContact | null // if to is not set, then room must had set
-
-  /**
-   * Get the destination of the message
-   * Message.to() will return null if a message is in a room, use Message.room() to get the room.
-   * @returns {(Contact|null)}
-   */
-  public to(contact?: PuppeteerContact | string): PuppeteerContact | PuppeteerRoom | null | void {
-    if (contact) {
-      if (contact instanceof PuppeteerContact) {
-        this.obj.to = contact.id
-      } else if (typeof contact === 'string') {
-        this.obj.to = contact
-      } else {
-        throw new Error('unsupport to param ' + typeof contact)
-      }
-      return
-    }
-
-    // no parameter
-
-    if (!this.obj.to) {
-      return null
-    }
-    const to = PuppeteerContact.load(this.obj.to) as PuppeteerContact
-    to.puppet = this.puppet
-
-    return to
-  }
 
   /**
    * Please notice that when we are running Wechaty,

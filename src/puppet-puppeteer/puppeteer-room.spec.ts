@@ -45,7 +45,7 @@ const puppet = new PuppetPuppeteer({
 })
 
 const MOCK_USER_ID = 'TEST-USER-ID'
-puppet.user = MyContact.load(MOCK_USER_ID)
+puppet.login(MyContact.load(MOCK_USER_ID))
 
 MyContact.puppet = MyMessage.puppet = MyRoom.puppet = puppet
 

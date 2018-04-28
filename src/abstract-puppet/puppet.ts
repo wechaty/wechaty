@@ -105,8 +105,6 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   // // tslint:disable-next-line:variable-name
   // public readonly Room:          PuppetRoom
 
-  public user?: Contact
-
   private readonly pkg: NpmPackage
 
   constructor(
@@ -202,7 +200,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async start() : Promise<void>
   public abstract async stop()  : Promise<void>
 
-  public abstract self() : Contact
+  public abstract userSelf(): Contact | null
 
   /**
    * Message
@@ -214,8 +212,9 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   /**
    * Login / Logout
    */
-  public abstract logonoff()  : boolean
-  public abstract logout()    : Promise<void>
+  public abstract logonoff()          : boolean
+  public abstract login(user: Contact): Promise<void>
+  public abstract logout()            : Promise<void>
 
   /**
    * Misc

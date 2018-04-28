@@ -292,8 +292,9 @@ export class Io {
         break
 
       case 'update':
-        log.verbose('Io', 'on(report): %s', ioEvent.payload)
-        const user = this.options.wechaty.puppet ? this.options.wechaty.puppet.user : null
+        log.verbose('Io', 'on(update): %s', ioEvent.payload)
+
+        const user = this.options.wechaty.puppet.userSelf()
 
         if (user) {
           const loginEvent: IoEvent = {
@@ -308,8 +309,8 @@ export class Io {
 
         if (this.scanData) {
           const scanEvent: IoEvent = {
-            name: 'scan',
-            payload: this.scanData,
+            name:     'scan',
+            payload:  this.scanData,
           }
           this.send(scanEvent)
         }

@@ -30,6 +30,10 @@ import MockContact        from './mock-contact'
 
 export class MockRoom extends Room {
 
+  public static load(id: string) {
+    return super.load(id) as MockRoom
+  }
+
   constructor(
     public id: string,
   ) {

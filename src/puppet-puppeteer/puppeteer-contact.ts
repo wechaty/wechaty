@@ -88,7 +88,11 @@ const specialContactList: string[] = [
  */
 export class PuppeteerContact extends Contact implements Sayable {
 
-  public obj: PuppeteerContactObj | null
+  public static load(id: string) {
+    return super.load(id) as PuppeteerContact
+  }
+
+  private obj?: PuppeteerContactObj
   // private dirtyObj: ContactObj | null
   private rawObj: PuppeteerContactRawObj
 
@@ -126,14 +130,13 @@ export class PuppeteerContact extends Contact implements Sayable {
   /**
    * @private
    */
-  private parse(rawObj: PuppeteerContactRawObj): PuppeteerContactObj | null {
+  private parse(rawObj: PuppeteerContactRawObj): PuppeteerContactObj | undefined {
     if (!rawObj || !rawObj.UserName) {
       log.warn('PuppeteerContact', 'parse() got empty rawObj!')
-      // config.puppetInstance().emit('error', e)
-      return null
+      return undefined
     }
 
-    return !rawObj ? null : {
+    return !rawObj ? undefined : {
       id:         rawObj.UserName, // MMActualSender??? MMPeerUserName??? `getUserContact(message.MMActualSender,message.MMPeerUserName).HeadImgUrl`
       uin:        rawObj.Uin,    // stable id: 4763975 || getCookie("wxuin")
       weixin:     rawObj.Alias,  // Wechat ID
@@ -201,11 +204,12 @@ export class PuppeteerContact extends Contact implements Sayable {
   public async say(textOrMessage: string | PuppeteerMessage): Promise<void> {
     log.verbose('PuppeteerContact', 'say(%s)', textOrMessage)
 
-    const user = this.puppet.self()
+    const user = this.puppet.userSelf()
 
     if (!user) {
       throw new Error('no user')
     }
+
     let m
     if (typeof textOrMessage === 'string') {
       m = new PuppeteerMessage()
@@ -377,7 +381,9 @@ export class PuppeteerContact extends Contact implements Sayable {
    * @example
    * const province = contact.province()
    */
-  public province() { return this.obj && this.obj.province }
+  public province() {
+    return this.obj && this.obj.province || null
+  }
 
   /**
    * Get the region 'city' from a contact
@@ -386,7 +392,9 @@ export class PuppeteerContact extends Contact implements Sayable {
    * @example
    * const city = contact.city()
    */
-  public city()     { return this.obj && this.obj.city }
+  public city() {
+    return this.obj && this.obj.city || null
+  }
 
   /**
    * Get avatar picture file stream
@@ -446,7 +454,7 @@ export class PuppeteerContact extends Contact implements Sayable {
     // if (this.isReady()) {
     //   this.dirtyObj = this.obj
     // }
-    this.obj = null
+    this.obj = undefined
     await this.ready()
     return this
   }
@@ -508,11 +516,13 @@ export class PuppeteerContact extends Contact implements Sayable {
    * const isSelf = contact.self()
    */
   public self(): boolean {
-    const userId = this.puppet.user!.id
+    const user = this.puppet.userSelf()
 
-    if (!userId || !this.id) {
-      throw new Error('no user or no self id')
+    if (!user) {
+      return false
     }
+
+    const userId = user.id
 
     return this.id === userId
   }

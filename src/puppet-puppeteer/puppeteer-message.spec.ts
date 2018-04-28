@@ -49,7 +49,7 @@ const puppet = new PuppetPuppeteer({
 })
 
 const MOCK_USER_ID = 'TEST-USER-ID'
-puppet.user = MyContact.load(MOCK_USER_ID)
+puppet.login(MyContact.load(MOCK_USER_ID))
 
 MyContact.puppet = MyMessage.puppet = MyRoom.puppet = puppet
 
@@ -161,11 +161,11 @@ test('self()', async t => {
   MyRoom.puppet = MyContact.puppet = MyMessage.puppet = puppet
 
   const m = new MyMessage()
-  m.from(MOCK_USER_ID)
+  m.from(PuppeteerContact.load(MOCK_USER_ID))
 
   t.true(m.self(), 'should identify self message true where message from userId')
 
-  m.from('fdsafasfsfa')
+  m.from(PuppeteerContact.load('fdsafasfsfa'))
   t.false(m.self(), 'should identify self message false when from a different fromId')
 })
 

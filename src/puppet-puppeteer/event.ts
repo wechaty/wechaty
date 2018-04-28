@@ -72,12 +72,9 @@ async function onScan(this: PuppetPuppeteer, data: ScanData): Promise<void> {
    */
   await this.saveCookie()
 
-  if (this.user) {
+  if (this.userSelf()) {
     log.verbose('PuppetPuppeteerEvent', 'onScan() there has user when got a scan event. emit logout and set it to null')
-
-    const currentUser = this.user
-    this.user = undefined
-    this.emit('logout', currentUser)
+    await this.logout()
   }
 
   // feed watchDog a `scan` type of food
@@ -111,8 +108,9 @@ async function onLogin(this: PuppetPuppeteer, note: string, ttl = 30): Promise<v
 
   this.scanInfo = undefined
 
-  if (this.user) {
-    log.warn('PuppetPuppeteerEvent', 'onLogin(%s) user had already set: "%s"', note, this.user)
+  if (this.userSelf()) {
+    log.warn('PuppetPuppeteerEvent', 'onLogin(%s) user had already set: "%s"', note, this.userSelf())
+    await this.logout()
   }
 
   try {
@@ -132,11 +130,12 @@ async function onLogin(this: PuppetPuppeteer, note: string, ttl = 30): Promise<v
     }
 
     log.silly('PuppetPuppeteerEvent', 'bridge.getUserName: %s', userId)
-    this.user = PuppeteerContact.load(userId)
-    this.user.puppet = this
 
-    await this.user.ready()
-    log.silly('PuppetPuppeteerEvent', `onLogin() user ${this.user.name()} logined`)
+    const user = PuppeteerContact.load(userId)
+    user.puppet = this
+    await user.ready()
+
+    log.silly('PuppetPuppeteerEvent', `onLogin() user ${user.name()} logined`)
 
     try {
       if (this.state.on() === true) {
@@ -153,7 +152,8 @@ async function onLogin(this: PuppetPuppeteer, note: string, ttl = 30): Promise<v
       log.warn('PuppetPuppeteerEvent', 'readyStable() exception: %s', e && e.message || e)
     }
 
-    this.emit('login', this.user)
+    this.login(user)
+    // this.emit('login', user)
 
   } catch (e) {
     log.error('PuppetPuppeteerEvent', 'onLogin() exception: %s', e)
@@ -163,16 +163,14 @@ async function onLogin(this: PuppetPuppeteer, note: string, ttl = 30): Promise<v
   return
 }
 
-function onLogout(this: PuppetPuppeteer, data) {
+async function onLogout(this: PuppetPuppeteer, data): Promise<void> {
   log.verbose('PuppetPuppeteerEvent', 'onLogout(%s)', data)
 
-  const currentUser = this.user
-  this.user = undefined
-
-  if (currentUser) {
-    this.emit('logout', currentUser)
+  if (this.userSelf()) {
+    await this.logout()
   } else {
-    log.error('PuppetPuppeteerEvent', 'onLogout() without this.user initialized')
+    // not logged-in???
+    log.error('PuppetPuppeteerEvent', 'onLogout() without self-user')
   }
 }
 

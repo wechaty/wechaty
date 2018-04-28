@@ -50,12 +50,12 @@ export class MockMessage extends Message {
     return `MockMessage`
   }
 
-  public from(contact: MockContact): void
-  public from(id: string): void
+  public from(contact: MockContact): this
   public from(): MockContact
-  public from(contact?: MockContact|string): MockContact|void {
+  public from(contact?: MockContact): this | MockContact {
     if (contact) {
-      return
+      // set from to contact...
+      return this
     }
 
     const loadedContact = MockContact.load('mockid') as MockContact
@@ -64,27 +64,30 @@ export class MockMessage extends Message {
     return loadedContact
   }
 
-  public room(room: MockRoom): void
-  public room(id: string): void
-  public room(): MockRoom|null
+  public room(room: MockRoom): this
+  public room(): MockRoom | null
 
-  public room(room?: MockRoom|string): MockRoom|null|void {
+  public room(room?: MockRoom): this | MockRoom | null {
     if (room) {
-      return
+      // set room to room...
+      return this
     }
     return null
   }
 
   public text(): string
-  public text(content: string): void
-  public text(text?: string): string | void {
+  public text(content: string): this
+  public text(text?: string): string | this {
     if (text) {
-      return
+      return this
     }
     return 'mock text'
   }
 
-  public async say(textOrMessage: string | MockMessage, replyTo?: MockContact|MockContact[]): Promise<void> {
+  public async say(
+    textOrMessage: string | MockMessage,
+    replyTo?: MockContact | MockContact[],
+  ): Promise<void> {
     log.verbose('MockMessage', 'say(%s, %s)', textOrMessage, replyTo)
     const m = new MockMessage()
     await this.puppet.send(m)
@@ -95,12 +98,14 @@ export class MockMessage extends Message {
   }
 
   public self(): boolean {
-    const userId = this.puppet.user!.id
-    const fromId = this.from().id
+    const user = this.puppet.userSelf()
 
-    if (!userId || !fromId) {
-      throw new Error('no user or no from')
+    if (!user) {
+      return false
     }
+
+    const userId = user.id
+    const fromId = this.from().id
 
     return fromId === userId
   }
@@ -131,13 +136,13 @@ export class MockMessage extends Message {
     ])
   }
 
-  public to(contact: MockContact): void
-  public to(id: string): void
+  public to(contact: MockContact): this
+  public to(id: string): this
   public to(): MockContact | null // if to is not set, then room must had set
 
-  public to(contact?: MockContact | string): MockContact | MockRoom | null | void {
+  public to(contact?: MockContact | string): MockContact | null | this {
     if (contact) {
-      return
+      return this
     }
 
     const to = MockContact.load('mockid') as MockContact

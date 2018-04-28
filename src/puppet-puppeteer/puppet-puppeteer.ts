@@ -79,6 +79,7 @@ export class PuppetPuppeteer extends Puppet {
   public scanWatchdog: Watchdog<ScanFoodType>
 
   private fileId: number
+  private user? : PuppeteerContact
 
   constructor(
     public options: PuppetOptions,
@@ -296,25 +297,14 @@ export class PuppetPuppeteer extends Puppet {
     return this.bridge
   }
 
-  public logined(): boolean {
-    log.warn('PuppetPuppeteer', 'logined() DEPRECATED. use logonoff() instead.')
-    return this.logonoff()
-  }
-
-  public logonoff(): boolean {
-    return !!(this.user)
-  }
-
   /**
    * get self contact
    */
-  public self(): PuppeteerContact {
+  public userSelf(): PuppeteerContact | null {
     log.verbose('PuppetPuppeteer', 'self()')
-
-    if (this.user) {
-      return this.user as PuppeteerContact
-    }
-    throw new Error('PuppetPuppeteer.self() no this.user')
+    return this.user
+      ? this.user
+      : null
   }
 
   private async getBaseRequest(): Promise<any> {
@@ -390,7 +380,7 @@ export class PuppetPuppeteer extends Puppet {
     const first           = cookie.find(c => c.name === 'webwx_data_ticket')
     const webwxDataTicket = first && first.value
     const size            = buffer.length
-    const fromUserName    = this.self().id
+    const fromUserName    = this.userSelf()!.id
     const id              = 'WU_FILE_' + this.fileId
     this.fileId++
 
@@ -752,22 +742,37 @@ export class PuppetPuppeteer extends Puppet {
     return await this.user.say(text)
   }
 
+  public async login(user: PuppeteerContact): Promise<void> {
+    log.warn('PuppetPuppeteer', 'login(%s)', user)
+    this.user = user
+    this.emit('login', user)
+  }
+
+  public logonoff(): boolean {
+    return !!(this.user)
+  }
+
   /**
    * logout from browser, then server will emit `logout` event
    */
   public async logout(): Promise<void> {
     log.verbose('PuppetPuppeteer', 'logout()')
 
-    const data = this.user || ''
-    this.user = undefined
+    const user = this.userSelf()
+    if (!user) {
+      log.warn('PuppetPuppeteer', 'logout() without self()')
+      return
+    }
 
     try {
       await this.bridge.logout()
-      this.emit('logout', data)
     } catch (e) {
       log.error('PuppetPuppeteer', 'logout() exception: %s', e.message)
       Raven.captureException(e)
       throw e
+    } finally {
+      this.user = undefined
+      this.emit('logout', user)
     }
   }
 

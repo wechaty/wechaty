@@ -375,7 +375,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
       puppet = new PUPPET_DICT[this.options.puppet]({
         profile:  this.profile,
         wechaty:  this,
-      }) as Puppet
+      })
     } else if (this.options.puppet instanceof Puppet) {
       puppet = this.options.puppet
     } else {
@@ -579,15 +579,28 @@ export class Wechaty extends PuppetAccessory implements Sayable {
   }
 
   /**
+   * @deprecated
+   */
+  public self(): Contact {
+    log.warn('Wechaty', 'self() DEPRECATED')
+    return this.userSelf()
+  }
+
+  /**
    * Get current user
    *
    * @returns {Contact}
    * @example
-   * const contact = bot.self()
+   * const contact = bot.userSelf()
    * console.log(`Bot is ${contact.name()}`)
    */
-  public self(): Contact {
-    return this.puppet.self()
+  public userSelf(): Contact {
+    const user = this.puppet.userSelf()
+    if (!user) {
+      throw new Error('no user logged in!')
+    }
+
+    return user
   }
 
   /**

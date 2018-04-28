@@ -303,7 +303,7 @@ async function checkRoomJoin(room: Room, inviteeList: Contact[], inviter: Contac
 
   try {
     // let to, content
-    const user = bot.self()
+    const user = bot.userSelf()
     if (!user) {
       throw new Error('no user')
     }

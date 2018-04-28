@@ -42,6 +42,8 @@ export type ScanFoodType   = 'scan' | 'login' | 'logout'
 
 export class PuppetMock extends Puppet {
 
+  private user?: MockContact
+
   constructor(
     public options: PuppetOptions,
   ) {
@@ -63,9 +65,23 @@ export class PuppetMock extends Puppet {
 
   public async start(): Promise<void> {
     log.verbose('PuppetMock', `start() with ${this.options.profile}`)
+
     this.state.on('pending')
     // await some tasks...
     this.state.on(true)
+
+    const from = MockContact.load('from')
+    const to = MockContact.load('to')
+    const m = new MockMessage()
+    m.from(from).to(to).text('mock hello')
+
+    this.emit('login', to)
+
+    setInterval(() => {
+      log.verbose('PuppetMock', `start() setInterval() pretending received a new message: ${m}`)
+      this.emit('message', m)
+    }, 3000)
+
   }
 
   public async stop(): Promise<void> {
@@ -82,16 +98,18 @@ export class PuppetMock extends Puppet {
   }
 
   public logonoff(): boolean {
-    return !!(this.user)
+    if (this.userSelf()) {
+      return true
+    } else {
+      return false
+    }
   }
 
-  public self(): MockContact {
+  public userSelf(): MockContact | null {
     log.verbose('PuppetMock', 'self()')
-
-    if (this.user) {
-      return this.user as MockContact
-    }
-    throw new Error('PuppetMock.self() no this.user')
+    return this.user
+      ? this.user
+      : null
   }
 
   public async forward(message: MockMessage, sendTo: MockContact | MockRoom): Promise<void> {
@@ -125,9 +143,22 @@ export class PuppetMock extends Puppet {
     return await this.user.say(text)
   }
 
+  public async login(user: MockContact): Promise<void> {
+    log.verbose('PuppetMock', 'login(%s)', user)
+    this.user = user
+    this.emit('login', user)
+  }
+
   public async logout(): Promise<void> {
     log.verbose('PuppetMock', 'logout()')
+
+    const user = this.user
+    if (!user) {
+      throw new Error('logout without user?')
+    }
+
     this.user = undefined
+    this.emit('logout', user)
   }
 
   public contactAlias(contact: MockContact)                      : Promise<string>
