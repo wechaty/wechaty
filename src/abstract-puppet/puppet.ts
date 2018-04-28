@@ -62,16 +62,16 @@ export interface PuppetOptions {
   wechaty: Wechaty,
 }
 
-export type PuppetContactClass        = typeof Contact        & Constructor<{}>
-export type PuppetFriendRequestClass  = typeof FriendRequest  & Constructor<{}>
-export type PuppetMessageClass        = typeof Message        & Constructor<{}>
-export type PuppetRoomClass           = typeof Room           & Constructor<{}>
+export type PuppetContact        = typeof Contact        & Constructor<{}>
+export type PuppetFriendRequest  = typeof FriendRequest  & Constructor<{}>
+export type PuppetMessage        = typeof Message        & Constructor<{}>
+export type PuppetRoom           = typeof Room           & Constructor<{}>
 
 export interface PuppetClasses {
-  Contact:        PuppetContactClass,
-  FriendRequest:  PuppetFriendRequestClass,
-  Message:        PuppetMessageClass,
-  Room:           PuppetRoomClass,
+  Contact:        PuppetContact,
+  FriendRequest:  PuppetFriendRequest,
+  Message:        PuppetMessage,
+  Room:           PuppetRoom,
 }
 
 /**
@@ -86,17 +86,17 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public watchdog:  Watchdog
 
   // tslint:disable-next-line:variable-name
-  public Contact:       PuppetContactClass
+  public Contact:       PuppetContact
   // tslint:disable-next-line:variable-name
-  public FriendRequest: PuppetFriendRequestClass
+  public FriendRequest: PuppetFriendRequest
   // tslint:disable-next-line:variable-name
-  public Message:       PuppetMessageClass
+  public Message:       PuppetMessage
   // tslint:disable-next-line:variable-name
-  public Room:          PuppetRoomClass
+  public Room:          PuppetRoom
 
   constructor(
     public options: PuppetOptions,
-    classes:        PuppetClasses,
+    public classes: PuppetClasses,
   ) {
     super()
 

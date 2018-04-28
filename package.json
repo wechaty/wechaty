@@ -97,7 +97,6 @@
     "node": ">= 8.5"
   },
   "dependencies": {
-    "@types/node": "^9.4.0",
     "@types/ws": "^4.0.1",
     "bl": "^1.2.0",
     "brolog": "^1.2.0",
@@ -125,6 +124,7 @@
     "@types/fluent-ffmpeg": "^2.1.0",
     "@types/glob": "^5.0.0p",
     "@types/mime": "^2.0.0",
+    "@types/node": "^10.0.0",
     "@types/puppeteer": "^1.0.0",
     "@types/raven": "^2.1.0",
     "@types/read-pkg-up": "^3.0.0",
@@ -159,7 +159,7 @@
     "sinon-test": "^2.1.2",
     "sloc": "^0.2.0",
     "ts-node": "^6.0.0",
-    "tslint": "^5.9.0",
+    "tslint": "^5.9.1",
     "tslint-eslint-rules": "^5.1.0",
     "tslint-jsdoc-rules": "^0.1.0",
     "tuling123-client": "^0.0.1",

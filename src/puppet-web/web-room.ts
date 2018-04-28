@@ -18,17 +18,13 @@
  *   @ignore
  */
 import {
-  // config,
   Raven,
   log,
 }                       from '../config'
 import Misc             from '../misc'
 import {
   Room,
-  // RoomEventName,
-  RoomMemberQueryName,
   RoomMemberQueryFilter,
-  // RoomQueryFilter,
 }                         from '../abstract-puppet/'
 
 import PuppetWeb          from './puppet-web'
@@ -257,7 +253,10 @@ export class WebRoom extends Room {
   /**
    * @private
    */
-  private parseMap(parseContent: RoomMemberQueryName, memberList?: WebRoomRawMember[]): Map<string, string> {
+  private parseMap(
+    parseSection: keyof RoomMemberQueryFilter,
+    memberList?:  WebRoomRawMember[],
+  ): Map<string, string> {
     const mapList: Map<string, string> = new Map<string, string>()
     if (memberList && memberList.map) {
       memberList.forEach(member => {
@@ -265,7 +264,7 @@ export class WebRoom extends Room {
         const contact = WebContact.load(member.UserName)
         contact.puppet = this.puppet
 
-        switch (parseContent) {
+        switch (parseSection) {
           case 'name':
             tmpName = contact.name()
             break

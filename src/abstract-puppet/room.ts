@@ -38,8 +38,6 @@ export interface RoomMemberQueryFilter {
   contactAlias?: string,
 }
 
-export type RoomMemberQueryName = keyof RoomMemberQueryFilter
-
 export interface RoomQueryFilter {
   topic: string | RegExp,
 }

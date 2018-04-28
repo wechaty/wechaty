@@ -19,7 +19,6 @@ export {
 }                         from './puppet-accessory'
 export {
   Room,
-  RoomMemberQueryName,
   RoomMemberQueryFilter,
   RoomQueryFilter,
 }                         from './room'

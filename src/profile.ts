@@ -24,15 +24,15 @@ import {
   log,
 }           from './config'
 
-export type ProfileSection = 'cookies' | 'ToBeAdded'
-
 export interface ProfileSchema {
-  cookies?:   any[]
+  cookies?: any[]
 }
 
+export type ProfileSection = keyof ProfileSchema
+
 export class Profile {
-  private obj  : ProfileSchema
-  private file : string | null
+  private obj   : ProfileSchema
+  private file? : string
 
   constructor(
     public name = config.profile,
@@ -40,7 +40,7 @@ export class Profile {
     log.verbose('Profile', 'constructor(%s)', name)
 
     if (!name) {
-      this.file = null
+      this.file = undefined
     } else {
       this.file = path.isAbsolute(name)
         ? name
@@ -58,7 +58,7 @@ export class Profile {
     return `Profile<${this.name}>`
   }
 
-  public load(): void {
+  public async load(): Promise<void> {
     log.verbose('Profile', 'load() file: %s', this.file)
     this.obj = {}
 
@@ -80,7 +80,7 @@ export class Profile {
     }
   }
 
-  public save(): void {
+  public async save(): Promise<void> {
     log.verbose('Profile', 'save() file: %s', this.file)
     if (!this.file) {
       log.verbose('Profile', 'save() no file, NOOP')
@@ -100,15 +100,15 @@ export class Profile {
     }
   }
 
-  public get(section: ProfileSection): null | any {
+  public async get<T = any>(section: ProfileSection): Promise<null | T> {
     log.verbose('Profile', 'get(%s)', section)
     if (!this.obj) {
       return null
     }
-    return this.obj[section]
+    return this.obj[section] as any as T
   }
 
-  public set(section: ProfileSection, data: any): void {
+  public async set(section: ProfileSection, data: any): Promise<void> {
     log.verbose('Profile', 'set(%s, %s)', section, data)
     if (!this.obj) {
       this.obj = {}
@@ -116,12 +116,12 @@ export class Profile {
     this.obj[section] = data
   }
 
-  public destroy(): void {
+  public async destroy(): Promise<void> {
     log.verbose('Profile', 'destroy() file: %s', this.file)
     this.obj = {}
     if (this.file && fs.existsSync(this.file)) {
       fs.unlinkSync(this.file)
-      this.file = null
+      this.file = undefined
     }
   }
 }

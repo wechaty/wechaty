@@ -44,8 +44,6 @@ export interface ContactQueryFilter {
   alias?:  string | RegExp,
 }
 
-export type ContactQueryName = keyof ContactQueryFilter
-
 /**
  * All wechat contacts(friend) will be encapsulated as a Contact.
  *
