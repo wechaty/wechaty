@@ -156,11 +156,11 @@ export class Wechaty extends PuppetAccessory implements Sayable {
 
     options.puppet  = options.puppet || config.puppet
 
-    const name = options.profile === null
+    options.profile = options.profile === null
                       ? null
-                      : options.profile || config.default.DEFAULT_PROFILE
+                      : (options.profile || config.default.DEFAULT_PROFILE)
 
-    this.profile = new Profile(name)
+    this.profile = new Profile(options.profile)
 
     this.cuid = cuid()
   }
@@ -375,7 +375,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
       puppet = new PUPPET_DICT[this.options.puppet]({
         profile:  this.profile,
         wechaty:  this,
-      })
+      }) as Puppet
     } else if (this.options.puppet instanceof Puppet) {
       puppet = this.options.puppet
     } else {

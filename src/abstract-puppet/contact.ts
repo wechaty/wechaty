@@ -83,8 +83,8 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
    * @private
    */
   public toString(): string {
-    const text = this.alias() || this.name() || this.id
-    return `Contact<${text}>`
+    const identity = this.alias() || this.name() || this.id
+    return `Contact<${identity}>`
   }
 
   /**

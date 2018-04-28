@@ -99,6 +99,7 @@ bot
     }
   } catch (e) {
     log.error('Bot', 'on(message) exception: %s' , e)
+    console.error(e)
   }
 })
 
