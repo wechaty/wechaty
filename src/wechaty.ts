@@ -19,6 +19,7 @@
  */
 import * as cuid    from 'cuid'
 import * as os      from 'os'
+import * as semver  from 'semver'
 
 import {
   cloneClass,
@@ -65,10 +66,10 @@ export const WECHAT_EVENT_DICT = {
 
 export const WECHATY_EVENT_DICT = {
   ...WECHAT_EVENT_DICT,
-  error: 'tbw',
-  heartbeat: 'tbw',
-  start: 'tbw',
-  stop: 'tbw',
+  error     : 'tbw',
+  heartbeat : 'tbw',
+  start     : 'tbw',
+  stop      : 'tbw',
 }
 
 export type WechatEventName   = keyof typeof WECHAT_EVENT_DICT
@@ -76,7 +77,7 @@ export type WechatyEventName  = keyof typeof WECHATY_EVENT_DICT
 
 export interface WechatyOptions {
   puppet?:  PuppetName | Puppet,
-  profile?: string,
+  profile?: string | null,
 }
 
 /**
@@ -91,10 +92,10 @@ export interface WechatyOptions {
  */
 export class Wechaty extends PuppetAccessory implements Sayable {
   /**
-   * singleton _instance
+   * singleton globalInstance
    * @private
    */
-  private static _instance: Wechaty
+  private static globalInstance: Wechaty
 
   private profile: Profile
 
@@ -134,13 +135,13 @@ export class Wechaty extends PuppetAccessory implements Sayable {
   public static instance(
     options?: WechatyOptions,
   ) {
-    if (options && this._instance) {
+    if (options && this.globalInstance) {
       throw new Error('there has already a instance. no params will be allowed any more')
     }
-    if (!this._instance) {
-      this._instance = new Wechaty(options)
+    if (!this.globalInstance) {
+      this.globalInstance = new Wechaty(options)
     }
-    return this._instance
+    return this.globalInstance
   }
 
   /**
@@ -154,7 +155,11 @@ export class Wechaty extends PuppetAccessory implements Sayable {
 
     options.puppet  = options.puppet || config.puppet
 
-    this.profile = new Profile(options.profile)
+    const name = options.profile === null
+                      ? null
+                      : options.profile || config.default.DEFAULT_PROFILE
+
+    this.profile = new Profile(name)
 
     this.cuid = cuid()
   }
@@ -187,7 +192,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
   * console.log(Wechaty.instance().version())       // return '#git[af39df]'
   * console.log(Wechaty.instance().version(true))   // return '0.7.9'
   */
-  public version(forceNpm?) {
+  public version(forceNpm = false): string {
     return Wechaty.version(forceNpm)
   }
 
@@ -362,6 +367,9 @@ export class Wechaty extends PuppetAccessory implements Sayable {
     log.verbose('Wechaty', 'initPuppet()')
     let puppet: Puppet
 
+    /**
+     * 1. Init the Puppet
+     */
     if (typeof this.options.puppet === 'string') {
       puppet = new PUPPET_DICT[this.options.puppet]({
         profile:  this.profile,
@@ -371,6 +379,18 @@ export class Wechaty extends PuppetAccessory implements Sayable {
       puppet = this.options.puppet
     } else {
       throw new Error('unsupported options.puppet!')
+    }
+
+    /**
+     * 2. Plugin Version Range Check
+     */
+    if (!semver.satisfies(
+      this.version(true),
+      puppet.wechatyVersionRange(),
+    )) {
+      throw new Error(`The Puppet Plugin(${puppet.constructor.name}) `
+                    + `requires a version range(${puppet.wechatyVersionRange()}) `
+                    + `that is not satisfying the Wechaty version: ${this.version()}.`)
     }
 
     for (const event of Object.keys(WECHATY_EVENT_DICT)) {
@@ -390,11 +410,14 @@ export class Wechaty extends PuppetAccessory implements Sayable {
      * See: fix the breaking changes for #518
      * https://github.com/Chatie/wechaty/issues/518
      */
-    if (this === Wechaty._instance) {
+    if (this === Wechaty.globalInstance) {
       Contact.puppet       = puppet
       FriendRequest.puppet = puppet
       Message.puppet       = puppet
       Room.puppet          = puppet
+
+      ; // seperator
+      (this.constructor as any as PuppetAccessory).puppet = puppet
     }
 
     /**
@@ -405,10 +428,10 @@ export class Wechaty extends PuppetAccessory implements Sayable {
      *   https://github.com/Microsoft/TypeScript/issues/5843#issuecomment-290972055
      *   https://github.com/Microsoft/TypeScript/issues/19197
      */
-    this.Contact        = cloneClass(puppet.Contact       as any)
-    this.FriendRequest  = cloneClass(puppet.FriendRequest as any)
-    this.Message        = cloneClass(puppet.Message       as any)
-    this.Room           = cloneClass(puppet.Room          as any)
+    this.Contact        = cloneClass(puppet.classes.Contact)
+    this.FriendRequest  = cloneClass(puppet.classes.FriendRequest)
+    this.Message        = cloneClass(puppet.classes.Message)
+    this.Room           = cloneClass(puppet.classes.Room)
 
     this.Contact.puppet       = puppet
     this.FriendRequest.puppet = puppet
