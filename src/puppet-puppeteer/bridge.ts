@@ -422,16 +422,18 @@ export class Bridge extends EventEmitter {
     }
   }
 
-  public async send(toUserName: string, content: string): Promise<void> {
+  public async send(toUserName: string, text: string): Promise<void> {
+    log.verbose('PuppetPuppeteerBridge', 'send(%s, %s)', toUserName, text)
+
     if (!toUserName) {
       throw new Error('UserName not found')
     }
-    if (!content) {
+    if (!text) {
       throw new Error('cannot say nothing')
     }
 
     try {
-      const ret = await this.proxyWechaty('send', toUserName, content)
+      const ret = await this.proxyWechaty('send', toUserName, text)
       if (!ret) {
         throw new Error('send fail')
       }
@@ -578,6 +580,8 @@ export class Bridge extends EventEmitter {
   }
 
   public async sendMedia(mediaData: MediaData): Promise<boolean> {
+    log.verbose('PuppetPuppeteerBridge', 'sendMedia(mediaData)')
+
     if (!mediaData.ToUserName) {
       throw new Error('UserName not found')
     }
@@ -593,6 +597,8 @@ export class Bridge extends EventEmitter {
   }
 
   public async forward(baseData: MsgRawObj, patchData: MsgRawObj): Promise<boolean> {
+    log.verbose('PuppetPuppeteerBridge', 'forward()')
+
     if (!baseData.ToUserName) {
       throw new Error('UserName not found')
     }
