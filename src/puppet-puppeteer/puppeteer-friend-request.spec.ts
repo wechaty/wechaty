@@ -84,7 +84,7 @@ test('PuppetPuppeteerFriendRequest.confirm smoke testing', async t => {
     wechaty: new Wechaty(),
   })
 
-  t.true(/^You have added (.+) as your WeChat contact. Start chatting!$/.test(m.content()), 'should match confirm message')
+  t.true(/^You have added (.+) as your WeChat contact. Start chatting!$/.test(m.text()), 'should match confirm message')
 
   const fr = new MyFriendRequest()
   const contact = m.from()

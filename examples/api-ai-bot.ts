@@ -166,7 +166,7 @@ const Talkers: Talker[] = []
 function talk(m) {
   const fromId  = m.from().id
   const roomId = m.room().id
-  const content = m.content()
+  const content = m.text()
 
   const talkerName = fromId + roomId
   if (!Talkers[talkerName]) {

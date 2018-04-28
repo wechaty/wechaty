@@ -462,7 +462,7 @@ export class PuppeteerMessage extends Message {
 
     // flatten array, see http://stackoverflow.com/a/10865042/1123955
     const mentionList = [].concat.apply([], rawMentionedList)
-    log.verbose('PuppeteerMessage', 'mentioned(%s),get mentionList: %s', this.content(), JSON.stringify(mentionList))
+    log.verbose('PuppeteerMessage', 'mentioned(%s),get mentionList: %s', this.text(), JSON.stringify(mentionList))
 
     contactList = [].concat.apply([],
       mentionList.map(nameStr => room.memberAll(nameStr))

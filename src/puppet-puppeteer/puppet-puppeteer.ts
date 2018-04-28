@@ -736,7 +736,7 @@ export class PuppetPuppeteer extends Puppet {
 
     // const m = new Message()
     // m.to('filehelper')
-    // m.content(content)
+    // m.text(content)
 
     // return await this.send(m)
     return await this.user.say(text)

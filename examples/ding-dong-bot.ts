@@ -84,7 +84,7 @@ bot
       + `${m.from()}:${m}`,
     )
 
-    if (/^(ding|ping|bing|code)$/i.test(m.content()) && !m.self()) {
+    if (/^(ding|ping|bing|code)$/i.test(m.text()) && !m.self()) {
       m.say('dong')
       log.info('Bot', 'REPLY: dong')
 
