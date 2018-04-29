@@ -219,8 +219,12 @@ export class PuppeteerContact extends Contact implements Sayable {
     }
     m.from(user)
     m.to(this)
-    log.silly('PuppeteerContact', 'say() from: %s to: %s content: %s', user.name(), this.name(), textOrMessage)
 
+    log.silly('PuppeteerContact', 'say() from: %s to: %s content: %s',
+                                  user,
+                                  this,
+                                  textOrMessage,
+              )
     return await this.puppet.send(m)
   }
 
