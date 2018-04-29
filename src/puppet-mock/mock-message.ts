@@ -46,10 +46,6 @@ export class MockMessage extends Message {
     log.silly('MockMessage', 'constructor()')
   }
 
-  public toString() {
-    return `MockMessage`
-  }
-
   public from(contact: MockContact): this
   public from(): MockContact
   public from(contact?: MockContact): this | MockContact {

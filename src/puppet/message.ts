@@ -82,9 +82,9 @@ export abstract class Message extends PuppetAccessory implements Sayable {
    */
   public toString() {
     if (this.type() === Message.Type.TEXT) {
-      return `Message<${this.text()}>`
+      return `Message#${MsgType[this.type()]}<${this.text()}>`
     } else {
-      return `Message<media:${this.filename()}>`
+      return `Message#${MsgType[this.type()]}<${this.filename()}>`
     }
   }
 

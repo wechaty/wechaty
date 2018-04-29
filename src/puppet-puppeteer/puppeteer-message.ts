@@ -136,13 +136,6 @@ export class PuppeteerMessage extends Message {
   /**
    * @private
    */
-  public toString() {
-    return `PuppeteerMessage<${Misc.plainText(this.obj.content)}>`
-  }
-
-  /**
-   * @private
-   */
   public toStringDigest() {
     const text = Misc.digestEmoji(this.obj.digest)
     return '{' + this.typeEx() + '}' + text
