@@ -98,9 +98,10 @@ export abstract class Room extends PuppetAccessory implements Sayable {
    * const roomList = await Room.findAll()                    // get the room list of the bot
    * const roomList = await Room.findAll({name: 'wechaty'})   // find all of the rooms with name 'wechaty'
    */
-  public static async findAll(
-    query: RoomQueryFilter = { topic: /.*/ },
-  ): Promise<Room[]> {
+  public static async findAll<T extends typeof Room>(
+    this  : T,
+    query : RoomQueryFilter = { topic: /.*/ },
+  ): Promise<T['prototype'][]> {
     log.verbose('Room', 'findAll({ topic: %s })', query.topic)
 
     if (!query.topic) {
@@ -126,7 +127,10 @@ export abstract class Room extends PuppetAccessory implements Sayable {
    * @param {RoomQueryFilter} query
    * @returns {Promise<Room | null>} If can find the room, return Room, or return null
    */
-  public static async find(query: RoomQueryFilter): Promise<Room | null> {
+  public static async find<T extends typeof Room>(
+    this  : T,
+    query : RoomQueryFilter,
+  ): Promise<T['prototype'] | null> {
     log.verbose('Room', 'find({ topic: %s })', query.topic)
 
     const roomList = await this.findAll(query)
@@ -140,8 +144,9 @@ export abstract class Room extends PuppetAccessory implements Sayable {
 
   /**
    * @private
+   * About the Generic: https://stackoverflow.com/q/43003970/1123955
    */
-  public static load(id: string): Room {
+  public static load<T extends typeof Room>(this: T, id: string): T['prototype'] {
     if (!id) {
       throw new Error('Room.load() no id')
     }

@@ -55,8 +55,9 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
 
   /**
    * @private
+   * About the Generic: https://stackoverflow.com/q/43003970/1123955
    */
-  public static load(id: string): Contact {
+  public static load<T extends typeof Contact>(this: T, id: string): T['prototype'] {
     if (!id || typeof id !== 'string') {
       throw new Error('Contact.load(): id not found')
     }
@@ -67,24 +68,6 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
       Contact.pool[id] = new (this as any)(id)
     }
     return this.pool[id]
-  }
-
-  /**
-   * @private
-   */
-  constructor(
-    public readonly id: string,
-  ) {
-    super()
-    log.silly('Contact', `constructor(${id})`)
-  }
-
-  /**
-   * @private
-   */
-  public toString(): string {
-    const identity = this.alias() || this.name() || this.id
-    return `Contact<${identity}>`
   }
 
   /**
@@ -108,7 +91,10 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
    * const contactFindByName = await Contact.find({ name:"ruirui"} )
    * const contactFindByAlias = await Contact.find({ alias:"lijiarui"} )
    */
-  public static async find(query: ContactQueryFilter): Promise<Contact | null> {
+  public static async find<T extends typeof Contact>(
+    this  : T,
+    query : ContactQueryFilter,
+  ): Promise<T['prototype'] | null> {
     log.verbose('Contact', 'find(%s)', JSON.stringify(query))
 
     const contactList = await this.findAll(query)
@@ -139,9 +125,10 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
    * const contactList = await Contact.findAll({name: 'ruirui'})    // find allof the contacts whose name is 'ruirui'
    * const contactList = await Contact.findAll({alias: 'lijiarui'}) // find all of the contacts whose alias is 'lijiarui'
    */
-  public static async findAll(
-    query: ContactQueryFilter = { name: /.*/ },
-  ): Promise<Contact[]> {
+  public static async findAll<T extends typeof Contact>(
+    this  : T,
+    query : ContactQueryFilter = { name: /.*/ },
+  ): Promise<T['prototype'][]> {
     // log.verbose('Cotnact', 'findAll({ name: %s })', query.name)
     log.verbose('Cotnact', 'findAll({ %s })',
                             Object.keys(query)
@@ -163,6 +150,24 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
       log.error('Contact', 'this.puppet.contactFindAll() rejected: %s', e.message)
       return [] // fail safe
     }
+  }
+
+  /**
+   * @private
+   */
+  constructor(
+    public readonly id: string,
+  ) {
+    super()
+    log.silly('Contact', `constructor(${id})`)
+  }
+
+  /**
+   * @private
+   */
+  public toString(): string {
+    const identity = this.alias() || this.name() || this.id
+    return `Contact<${identity}>`
   }
 
   /**

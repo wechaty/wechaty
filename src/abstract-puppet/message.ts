@@ -45,6 +45,29 @@ export abstract class Message extends PuppetAccessory implements Sayable {
   public static readonly Type = MsgType
 
   /**
+   * @todo add function
+   */
+  public static async find<T extends typeof Message>(
+    this: T,
+    query,
+  ): Promise<T['prototype'] | null> {
+    return this.findAll(query)[0]
+  }
+
+  /**
+   * @todo add function
+   */
+  public static async findAll<T extends typeof Message>(
+    this: T,
+    query,
+  ): Promise<T['prototype'][]> {
+    return Promise.resolve([
+      new (this as any)(1),
+      new (this as any)(2),
+    ])
+  }
+
+  /**
    * @private
    */
   constructor(
@@ -237,23 +260,6 @@ export abstract class Message extends PuppetAccessory implements Sayable {
    * @private
    */
   public abstract async ready(): Promise<this>
-
-  /**
-   * @todo add function
-   */
-  public static async find(query) {
-    return this.findAll(query)[0]
-  }
-
-  /**
-   * @todo add function
-   */
-  public static async findAll(query) {
-    return Promise.resolve([
-      new (this as any)(1),
-      new (this as any)(2),
-    ])
-  }
 
   /**
    * Get the MediaMessage filename, etc: `how to build a chatbot.pdf`..

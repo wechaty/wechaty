@@ -33,10 +33,6 @@ import MockMessage       from './mock-message'
 
 export class MockContact extends Contact implements Sayable {
 
-  public static load(id: string) {
-    return super.load(id) as MockContact
-  }
-
   constructor(
     public readonly id: string,
   ) {

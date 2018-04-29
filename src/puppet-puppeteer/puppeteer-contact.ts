@@ -88,10 +88,6 @@ const specialContactList: string[] = [
  */
 export class PuppeteerContact extends Contact implements Sayable {
 
-  public static load(id: string) {
-    return super.load(id) as PuppeteerContact
-  }
-
   private obj?: PuppeteerContactObj
   // private dirtyObj: ContactObj | null
   private rawObj: PuppeteerContactRawObj

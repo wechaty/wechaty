@@ -65,10 +65,6 @@ export interface PuppeteerRoomRawObj {
  */
 export class PuppeteerRoom extends Room {
 
-  public static load(id: string) {
-    return super.load(id) as PuppeteerRoom
-  }
-
   private dirtyObj: PuppeteerRoomObj | null // when refresh, use this to save dirty data for query
   private obj:      PuppeteerRoomObj | null
   private rawObj:   PuppeteerRoomRawObj
