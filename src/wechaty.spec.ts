@@ -39,7 +39,7 @@ import {
 
 import {
   Puppet,
-}                 from './abstract-puppet/'
+}                 from './puppet/'
 
 test('Export of the Framework', async t => {
   t.ok(Contact        , 'should export Contact')

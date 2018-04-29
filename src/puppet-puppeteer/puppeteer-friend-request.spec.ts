@@ -29,7 +29,7 @@ import Wechaty    from '../wechaty'
 
 import {
   Puppet,
-}                 from '../abstract-puppet/'
+}                 from '../puppet/'
 import {
   PuppetMock,
 }                 from '../puppet-mock/'

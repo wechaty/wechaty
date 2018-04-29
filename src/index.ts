@@ -17,7 +17,7 @@ export {
   FriendRequest,
   Message,
   Room,
-}                     from './abstract-puppet/'
+}                     from './puppet/'
 
 export {
   MediaMessage,

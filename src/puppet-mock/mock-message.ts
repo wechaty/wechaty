@@ -24,7 +24,7 @@ import {
 import {
   log,
 }                   from '../config'
-import Message      from '../abstract-puppet/message'
+import { Message }  from '../puppet/'
 
 import MockContact  from './mock-contact'
 import MockRoom     from './mock-room'

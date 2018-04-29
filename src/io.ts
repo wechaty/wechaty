@@ -21,7 +21,7 @@ import StateSwitch    from 'state-switch'
 
 import {
   ScanData,
-}           from './abstract-puppet/'
+}           from './puppet/'
 
 import {
   config,

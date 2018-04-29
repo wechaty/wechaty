@@ -4,7 +4,7 @@ import { instanceToClass }  from 'clone-class'
 
 import { log }  from './config'
 
-import { Puppet } from './abstract-puppet/'
+import { Puppet } from './puppet/'
 
 export abstract class PuppetAccessory extends EventEmitter {
   // use Symbol to prevent conflicting with the child class properties

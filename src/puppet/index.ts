@@ -1,6 +1,7 @@
 export {
   Contact,
   ContactQueryFilter,
+  Gender,
 }                         from './contact'
 export {
   FriendRequest,

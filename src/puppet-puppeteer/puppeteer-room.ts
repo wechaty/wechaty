@@ -25,7 +25,7 @@ import Misc             from '../misc'
 import {
   Room,
   RoomMemberQueryFilter,
-}                         from '../abstract-puppet/'
+}                         from '../puppet/'
 
 import PuppetPuppeteer  from './puppet-puppeteer'
 import PuppeteerMessage from './puppeteer-message'

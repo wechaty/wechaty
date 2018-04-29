@@ -31,7 +31,7 @@ import Misc             from '../misc'
 
 import {
   Message,
-}           from '../abstract-puppet/'
+}           from '../puppet/'
 
 import PuppetPuppeteer  from './puppet-puppeteer'
 import PuppeteerContact from './puppeteer-contact'

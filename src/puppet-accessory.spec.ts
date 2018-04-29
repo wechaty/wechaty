@@ -23,7 +23,7 @@ import * as test  from 'blue-tape'
 
 import PuppetAccessory  from './puppet-accessory'
 
-import { Puppet }       from './abstract-puppet/'
+import { Puppet }       from './puppet/'
 
 const EXPECTED_PUPPET1 = {p: 1} as any as Puppet
 const EXPECTED_PUPPET2 = {p: 2} as any as Puppet

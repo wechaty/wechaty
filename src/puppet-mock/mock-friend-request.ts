@@ -21,7 +21,8 @@ import {
   // config,
   log,
 }                     from '../config'
-import FriendRequest  from '../abstract-puppet/friend-request'
+
+import { FriendRequest }  from '../puppet/'
 
 import MockContact     from './mock-contact'
 

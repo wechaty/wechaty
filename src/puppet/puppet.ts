@@ -105,7 +105,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
     const WATCHDOG_TIMEOUT = 1 * 60 * 1000  // default 1 minute
 
-    this.state    = new StateSwitch('AbstractPuppet', log)
+    this.state    = new StateSwitch(this.constructor.name, log)
     this.watchdog = new Watchdog(WATCHDOG_TIMEOUT, 'Puppet')
 
     /**

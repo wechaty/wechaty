@@ -25,7 +25,7 @@ import {
 }                 from '../config'
 import {
   ScanData,
-}                 from '../abstract-puppet/'
+}                 from '../puppet/'
 
 import PuppeteerContact from './puppeteer-contact'
 import PuppeteerMessage from './puppeteer-message'

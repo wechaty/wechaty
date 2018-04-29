@@ -35,7 +35,7 @@ import {
 }                     from '../config'
 import {
   FriendRequest,
-}                     from '../abstract-puppet/'
+}                     from '../puppet/'
 
 import {
   RecommendInfo,

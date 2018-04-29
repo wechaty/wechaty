@@ -52,7 +52,7 @@ import {
   Message,
   Puppet,
   Room,
-}                       from './abstract-puppet/'
+}                       from './puppet/'
 
 export const WECHAT_EVENT_DICT = {
   friend      : 'tbw',
