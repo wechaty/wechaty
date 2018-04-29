@@ -19,8 +19,8 @@
 import * as path      from 'path'
 
 /* tslint:disable:variable-name */
-const QrcodeTerminal  = require('qrcode-terminal')
-const finis           = require('finis')
+import * as QrcodeTerminal  from 'qrcode-terminal'
+import finis                from 'finis'
 
 /**
  * Change `import { ... } from '../'`
@@ -103,13 +103,6 @@ bot
   }
 })
 
-bot.start()
-.catch(e => {
-  log.error('Bot', 'start() fail: %s', e)
-  bot.stop()
-  process.exit(-1)
-})
-
 bot.on('error', async e => {
   log.error('Bot', 'error: %s', e)
   if (bot.logonoff()) {
@@ -118,31 +111,80 @@ bot.on('error', async e => {
   // await bot.stop()
 })
 
+let killChrome: NodeJS.SignalsListener
+
+bot.start()
+.then(() => {
+  const listenerList = process.listeners('SIGINT')
+  for (const listener of listenerList) {
+    if (listener.name === 'killChrome') {
+      process.removeListener('SIGINT', listener)
+      killChrome = listener
+    }
+  }
+})
+.catch(e => {
+  log.error('Bot', 'start() fail: %s', e)
+  bot.stop()
+  process.exit(-1)
+})
+
 let quiting = false
-finis(async (code, signal) => {
+finis((code, signal) => {
+  log.info('Bot', 'finis(%s, %s)', code, signal)
+
+  if (!bot.logonoff()) {
+    log.info('Bot', 'finis() bot had been already stopped')
+    doExit(code)
+  }
+
   if (quiting) {
-    log.warn('Bot', 'finis(%s, %s) called when quiting... just wait...', code, signal)
+    log.warn('Bot', 'finis() already quiting... return and wait...')
     return
   }
+
   quiting = true
-  log.info('Bot', 'finis(%s, %s)', code, signal)
+  let done = false
+  // let checkNum = 0
+
   const exitMsg = `Wechaty will exit ${code} because of ${signal} `
-  if (bot.logonoff()) {
-    log.info('Bot', 'finis() stoping bot')
-    await bot.say(exitMsg).catch(console.error)
-  } else {
-    log.info('Bot', 'finis() bot had been already stopped')
-  }
-  setTimeout(async () => {
-    log.info('Bot', 'finis() setTimeout() going to exit with %d', code)
-    try {
-      if (bot.logonoff()) {
-        await bot.stop()
-      }
-    } catch (e) {
-      log.error('Bot', 'finis() setTimeout() exception: %s', e)
-    } finally {
-      process.exit(code)
+
+  log.info('Bot', 'finis() broadcast quiting message for bot')
+  bot.say(exitMsg)
+      // .then(() => bot.stop())
+      .catch(e => log.error('Bot', 'finis() catch rejection: %s', e))
+      .then(() => done = true)
+
+  setImmediate(checkForExit)
+
+  function checkForExit() {
+    // if (checkNum++ % 100 === 0) {
+    log.info('Bot', 'finis() checkForExit() checking done: %s', done)
+    // }
+    if (done) {
+      log.info('Bot', 'finis() checkForExit() done!')
+      setTimeout(() => doExit(code), 1000)  // delay 1 second
+      return
     }
-  }, 3 * 1000)
+    // death loop to wait for `done`
+    // process.nextTick(checkForExit)
+    // setImmediate(checkForExit)
+    setTimeout(checkForExit, 100)
+  }
 })
+
+function doExit(code: number): void {
+  log.info('Bot', 'doExit(%d)', code)
+  if (killChrome) {
+    killChrome('SIGINT')
+  }
+  process.exit(code)
+}
+
+// process.on('SIGINT', function() {
+//   console.log('Nice SIGINT-handler')
+//   const listeners = process.listeners('SIGINT')
+//   for (let i = 0; i < listeners.length; i++) {
+//       console.log(listeners[i].toString())
+//   }
+// })
