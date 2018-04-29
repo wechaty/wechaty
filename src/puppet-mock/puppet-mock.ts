@@ -24,13 +24,11 @@ import {
   PuppetOptions,
 
   RoomQueryFilter,
-}                   from '../abstract-puppet/'
+}                     from '../abstract-puppet/'
 
 import {
   log,
-}                   from '../config'
-import {
-}                   from '../message'
+}         from '../config'
 
 import MockContact        from './mock-contact'
 import MockFriendRequest  from './mock-friend-request'

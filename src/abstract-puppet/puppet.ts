@@ -70,11 +70,6 @@ export const PUPPET_EVENT_DICT = {
 
 export type PuppetEventName = keyof typeof PUPPET_EVENT_DICT
 
-export interface PuppetOptions {
-  profile: Profile,
-  wechaty: Wechaty,
-}
-
 export type PuppetContact        = typeof Contact        & Constructor<{}>
 export type PuppetFriendRequest  = typeof FriendRequest  & Constructor<{}>
 export type PuppetMessage        = typeof Message        & Constructor<{}>
@@ -87,23 +82,18 @@ export interface PuppetClasses {
   Room:           PuppetRoom,
 }
 
+export interface PuppetOptions {
+  profile: Profile,
+  wechaty: Wechaty,
+}
+
 /**
  * Abstract Puppet Class
  */
 export abstract class Puppet extends EventEmitter implements Sayable {
-  private readonly WATCHDOG_TIMEOUT  = 1 * 60 * 1000  // default 1 minute
+  public readonly state: StateSwitch
 
-  public readonly state:     StateSwitch
-  public readonly watchdog:  Watchdog
-
-  // // tslint:disable-next-line:variable-name
-  // public readonly Contact:       PuppetContact
-  // // tslint:disable-next-line:variable-name
-  // public readonly FriendRequest: PuppetFriendRequest
-  // // tslint:disable-next-line:variable-name
-  // public readonly Message:       PuppetMessage
-  // // tslint:disable-next-line:variable-name
-  // public readonly Room:          PuppetRoom
+  protected readonly watchdog: Watchdog
 
   private readonly pkg: NpmPackage
 
@@ -113,8 +103,10 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   ) {
     super()
 
-    this.state    = new StateSwitch('Puppet', log)
-    this.watchdog = new Watchdog(this.WATCHDOG_TIMEOUT, 'Puppet')
+    const WATCHDOG_TIMEOUT = 1 * 60 * 1000  // default 1 minute
+
+    this.state    = new StateSwitch('AbstractPuppet', log)
+    this.watchdog = new Watchdog(WATCHDOG_TIMEOUT, 'Puppet')
 
     /**
      * 1. Check Classes for inherience correctly
