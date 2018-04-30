@@ -197,18 +197,18 @@ export class Wechaty extends PuppetAccessory implements Sayable {
     return Wechaty.version(forceNpm)
   }
 
-  public on(event: 'error'      , listener: string | ((this: Wechaty, error: Error) => void))                                                  : this
-  public on(event: 'friend'     , listener: string | ((this: Wechaty, friend: Contact, request?: FriendRequest) => void))                      : this
-  public on(event: 'heartbeat'  , listener: string | ((this: Wechaty, data: any) => void))                                                     : this
-  public on(event: 'logout'     , listener: string | ((this: Wechaty, user: Contact) => void))                                                 : this
-  public on(event: 'login'      , listener: string | ((this: Wechaty, user: Contact) => void))                                                 : this
-  public on(event: 'message'    , listener: string | ((this: Wechaty, message: Message) => void))                                              : this
-  public on(event: 'room-join'  , listener: string | ((this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void))         : this
-  public on(event: 'room-leave' , listener: string | ((this: Wechaty, room: Room, leaverList: Contact[]) => void))                             : this
-  public on(event: 'room-topic' , listener: string | ((this: Wechaty, room: Room, topic: string, oldTopic: string, changer: Contact) => void)) : this
-  public on(event: 'scan'       , listener: string | ((this: Wechaty, url: string, code: number) => void))                                     : this
-  public on(event: 'start'      , listener: string | ((this: Wechaty) => void))                                                                : this
-  public on(event: 'stop'       , listener: string | ((this: Wechaty) => void))                                                                : this
+  public on(event: 'error'      , listener: string | ((this: Wechaty, error: Error) => void))                                                 : this
+  public on(event: 'friend'     , listener: string | ((this: Wechaty, friend: Contact, request?: FriendRequest) => void))                     : this
+  public on(event: 'heartbeat'  , listener: string | ((this: Wechaty, data: any) => void))                                                    : this
+  public on(event: 'logout'     , listener: string | ((this: Wechaty, user: Contact) => void))                                                : this
+  public on(event: 'login'      , listener: string | ((this: Wechaty, user: Contact) => void))                                                : this
+  public on(event: 'message'    , listener: string | ((this: Wechaty, message: Message) => void))                                             : this
+  public on(event: 'room-join'  , listener: string | ((this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void))        : this
+  public on(event: 'room-leave' , listener: string | ((this: Wechaty, room: Room, leaverList: Contact[], remover?: Contact) => void))         : this
+  public on(event: 'room-topic' , listener: string | ((this: Wechaty, room: Room, topic: string, oldTopic: string, changer: Contact) => void)): this
+  public on(event: 'scan'       , listener: string | ((this: Wechaty, url: string,  code: number) => void))                                   : this
+  public on(event: 'start'      , listener: string | ((this: Wechaty) => void))                                                               : this
+  public on(event: 'stop'       , listener: string | ((this: Wechaty) => void))                                                               : this
   // guard for the above event: make sure it includes all the possible values
   public on(event: never,         listener: any): this
 
