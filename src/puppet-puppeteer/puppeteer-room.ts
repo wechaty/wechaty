@@ -40,6 +40,7 @@ export interface PuppeteerRoomObj {
   nameMap:          Map<string, string>,
   roomAliasMap:     Map<string, string>,
   contactAliasMap:  Map<string, string>,
+  [index: string]:  Map<string, string> | string | number | PuppeteerContact[],
 }
 
 export interface PuppeteerRoomRawMember {
@@ -214,7 +215,9 @@ export class PuppeteerRoom extends Room {
   /**
    * @private
    */
-  public get(prop): string { return (this.obj && this.obj[prop]) || (this.dirtyObj && this.dirtyObj[prop]) }
+  public get(prop: keyof PuppeteerRoomObj): any {
+    return (this.obj && this.obj[prop]) || (this.dirtyObj && this.dirtyObj[prop])
+  }
 
   /**
    * @private
@@ -282,7 +285,7 @@ export class PuppeteerRoom extends Room {
          * @rui: webwx's NickName here return contactAlias, if not set contactAlias, return name
          * @rui: 2017-7-2 webwx's NickName just ruturn name, no contactAlias
          */
-        mapList[member.UserName] = Misc.stripEmoji(tmpName)
+        mapList.set(member.UserName, Misc.stripEmoji(tmpName))
       })
     }
     return mapList
@@ -293,7 +296,7 @@ export class PuppeteerRoom extends Room {
    */
   public dumpRaw() {
     console.error('======= dump raw Room =======')
-    Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj[k]}`))
+    Object.keys(this.rawObj).forEach((k: keyof PuppeteerRoomRawObj) => console.error(`${k}: ${this.rawObj[k]}`))
   }
 
   /**
@@ -304,7 +307,7 @@ export class PuppeteerRoom extends Room {
     if (!this.obj) {
       throw new Error('no this.obj')
     }
-    Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj && this.obj[k]}`))
+    Object.keys(this.obj).forEach((k: keyof PuppeteerRoomObj) => console.error(`${k}: ${this.obj && this.obj[k]}`))
   }
 
   /**
@@ -490,7 +493,7 @@ export class PuppeteerRoom extends Room {
     if (!this.obj || !this.obj.roomAliasMap) {
       return null
     }
-    return this.obj.roomAliasMap[contact.id] || null
+    return this.obj.roomAliasMap.get(contact.id) || null
   }
 
   /**
@@ -576,7 +579,7 @@ export class PuppeteerRoom extends Room {
      */
     log.silly('PuppeteerRoom', 'memberAll({ %s })',
                       Object.keys(queryArg)
-                            .map(k => `${k}: ${queryArg[k]}`)
+                            .map((k: keyof RoomMemberQueryFilter) => `${k}: ${queryArg[k]}`)
                             .join(', '),
             )
 
@@ -588,7 +591,7 @@ export class PuppeteerRoom extends Room {
       log.warn('PuppeteerRoom', 'member() not ready')
       return []
     }
-    const filterKey            = Object.keys(queryArg)[0]
+    const filterKey = Object.keys(queryArg)[0] as keyof RoomMemberQueryFilter
     /**
      * ISSUE #64 emoji need to be striped
      */
@@ -610,9 +613,9 @@ export class PuppeteerRoom extends Room {
       throw new Error('filterValue not found')
     }
 
-    const filterMap = this.obj[filterMapName]
+    const filterMap = this.obj[filterMapName] as Map<string, string>
     const idList = Object.keys(filterMap)
-                          .filter(id => filterMap[id] === filterValue)
+                          .filter(id => filterMap.get(id) === filterValue)
 
     log.silly('PuppeteerRoom', 'memberAll() check %s from %s: %s', filterValue, filterKey, JSON.stringify(filterMap))
 
