@@ -300,11 +300,14 @@ export class PuppetPuppeteer extends Puppet {
   /**
    * get self contact
    */
-  public userSelf(): PuppeteerContact | null {
+  public userSelf(): PuppeteerContact {
     log.verbose('PuppetPuppeteer', 'self()')
+
+    if (!this.user) {
+      throw new Error('not logged in, no userSelf yet.')
+    }
+
     return this.user
-      ? this.user
-      : null
   }
 
   private async getBaseRequest(): Promise<any> {

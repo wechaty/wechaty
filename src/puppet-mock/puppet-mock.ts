@@ -73,6 +73,7 @@ export class PuppetMock extends Puppet {
     const m = new MockMessage()
     m.from(from).to(to).text('mock hello')
 
+    this.user = to
     this.emit('login', to)
 
     setInterval(() => {
@@ -96,18 +97,21 @@ export class PuppetMock extends Puppet {
   }
 
   public logonoff(): boolean {
-    if (this.userSelf()) {
+    if (this.user) {
       return true
     } else {
       return false
     }
   }
 
-  public userSelf(): MockContact | null {
+  public userSelf(): MockContact {
     log.verbose('PuppetMock', 'self()')
+
+    if (!this.user) {
+      throw new Error('not logged in, no userSelf yet.')
+    }
+
     return this.user
-      ? this.user
-      : null
   }
 
   public async forward(message: MockMessage, sendTo: MockContact | MockRoom): Promise<void> {
@@ -132,13 +136,7 @@ export class PuppetMock extends Puppet {
       return
     }
 
-    if (!this.user) {
-      log.warn('PuppetMock', 'say(%s) can not say because no user', text)
-      this.emit('error', new Error('no this.user for PuppetMock'))
-      return
-    }
-
-    return await this.user.say(text)
+    return await this.userSelf().say(text)
   }
 
   public async login(user: MockContact): Promise<void> {
@@ -150,13 +148,12 @@ export class PuppetMock extends Puppet {
   public async logout(): Promise<void> {
     log.verbose('PuppetMock', 'logout()')
 
-    const user = this.user
-    if (!user) {
-      throw new Error('logout without user?')
+    if (!this.logonoff()) {
+      throw new Error('logout before login?')
     }
 
+    this.emit('logout', this.user!) // becore we will throw above by logonoff() when this.user===undefined
     this.user = undefined
-    this.emit('logout', user)
   }
 
   public contactAlias(contact: MockContact)                      : Promise<string>

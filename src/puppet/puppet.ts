@@ -192,7 +192,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async start() : Promise<void>
   public abstract async stop()  : Promise<void>
 
-  public abstract userSelf(): Contact | null
+  public abstract userSelf(): Contact
 
   /**
    * Message
