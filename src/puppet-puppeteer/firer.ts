@@ -24,10 +24,11 @@ import {
   log,
 }         from '../config'
 
-import PuppeteerContact       from './puppeteer-contact'
-import PuppeteerMessage       from './puppeteer-message'
+import PuppetPuppeteer        from './puppet-puppeteer'
 
+import PuppeteerContact       from './puppeteer-contact'
 import PuppeteerFriendRequest from './puppeteer-friend-request'
+import PuppeteerMessage       from './puppeteer-message'
 
 /* tslint:disable:variable-name */
 export const Firer = {
@@ -283,7 +284,7 @@ async function checkRoomJoin(m: PuppeteerMessage): Promise<boolean> {
       return false
       // throw new Error('not found(yet)')
 
-    }).catch(e => {
+    }).catch((e: Error) => {
       log.warn('PuppetPuppeteerFirer', 'fireRoomJoin() reject() inviteeContactList: %s, inviterContact: %s',
                                  inviteeContactList.map((c: PuppeteerContact) => c.name()).join(','),
                                  inviter,
@@ -337,7 +338,10 @@ function parseRoomLeave(content: string): [string, string] {
 /**
  * You removed "Bruce LEE" from the group chat
  */
-async function checkRoomLeave(m: PuppeteerMessage): Promise<boolean> {
+async function checkRoomLeave(
+  this: PuppetPuppeteer,
+  m:    PuppeteerMessage,
+): Promise<boolean> {
   log.verbose('PuppetPuppeteerFirer', 'fireRoomLeave(%s)', m.text())
 
   let leaver: string, remover: string
@@ -358,20 +362,20 @@ async function checkRoomLeave(m: PuppeteerMessage): Promise<boolean> {
    * @lijiarui: I have checked, leaver will never be a list. If the bot remove 2 leavers at the same time, it will be 2 sys message, instead of 1 sys message contains 2 leavers.
    */
   let leaverContact: PuppeteerContact | null, removerContact: PuppeteerContact | null
-  if (leaver === this.userId) {
-    leaverContact = PuppeteerContact.load(this.userId) as PuppeteerContact
+  if (leaver === this.userSelf().id) {
+    leaverContact = PuppeteerContact.load(this.userSelf().id)
     leaverContact.puppet = m.puppet
 
     // not sure which is better
     // removerContact = room.member({contactAlias: remover}) || room.member({name: remover})
     removerContact = room.member(remover)
-    if (!removerContact) {
-      log.error('PuppetPuppeteerFirer', 'fireRoomLeave() bot is removed from the room, but remover %s not found, event `room-leave` & `leave` will not be fired', remover)
-      return false
-    }
+    // if (!removerContact) {
+    //   log.error('PuppetPuppeteerFirer', 'fireRoomLeave() bot is removed from the room, but remover %s not found, event `room-leave` & `leave` will not be fired', remover)
+    //   return false
+    // }
 
   } else {
-    removerContact = PuppeteerContact.load(this.userId) as PuppeteerContact
+    removerContact = PuppeteerContact.load(this.userSelf().id)
     removerContact.puppet = m.puppet
 
     // not sure which is better
@@ -383,16 +387,20 @@ async function checkRoomLeave(m: PuppeteerMessage): Promise<boolean> {
     }
   }
 
-  await removerContact.ready()
+  if (removerContact) {
+    await removerContact.ready()
+  }
   await leaverContact.ready()
   await room.ready()
 
   /**
    * FIXME: leaver maybe is a list
-   * @lijiarui: I have checked, leaver will never be a list. If the bot remove 2 leavers at the same time, it will be 2 sys message, instead of 1 sys message contains 2 leavers.
+   * @lijiarui 2017: I have checked, leaver will never be a list. If the bot remove 2 leavers at the same time,
+   *                  it will be 2 sys message, instead of 1 sys message contains 2 leavers.
+   * @huan 2018 May: we need to generilize the pattern for future usage.
    */
-  this.emit('room-leave', room, leaverContact, removerContact)
-  room.emit('leave'           , leaverContact, removerContact)
+  this.emit('room-leave', room, [leaverContact] /* , [removerContact] */)
+  room.emit('leave'           , [leaverContact], removerContact || undefined)
 
   setTimeout(_ => { room.refresh() }, 10000) // reload the room data, especially for memberList
   return true
