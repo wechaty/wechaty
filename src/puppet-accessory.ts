@@ -24,7 +24,9 @@ export abstract class PuppetAccessory extends EventEmitter {
   }
 
   public static get puppet(): Puppet {
-    log.silly('PuppetAccessory', '<%s> static get puppet()', this[this.PUPPET_ACCESSORY_NAME])
+    log.silly('PuppetAccessory', '<%s> static get puppet()',
+                                  this[this.PUPPET_ACCESSORY_NAME] || this.constructor.name,
+              )
 
     if (this._puppet) {
       return this._puppet
