@@ -85,17 +85,30 @@ bot
     )
 
     if (/^(ding|ping|bing|code)$/i.test(m.text()) && !m.self()) {
-      m.say('dong')
+      /**
+       * 1. reply 'dong'
+       */
       log.info('Bot', 'REPLY: dong')
+      m.say('dong')
 
       const joinWechaty =  `Join Wechaty Developers' Community\n\n` +
                             `Wechaty is used in many ChatBot projects by hundreds of developers.\n\n` +
                             `If you want to talk with other developers, just scan the following QR Code in WeChat with secret code: wechaty,\n\n` +
                             `you can join our Wechaty Developers' Home at once`
       await m.say(joinWechaty)
-      await m.say(new bot.Message(BOT_QR_CODE_IMAGE_FILE))
+
+      /**
+       * 2. reply qrcode image
+       */
+      const imageMessage = new bot.Message(BOT_QR_CODE_IMAGE_FILE)
+      log.info('Bot', 'REPLY: %s', imageMessage)
+      await m.say(imageMessage)
+
+      /**
+       * 3. reply 'scan now!'
+       */
       await m.say('Scan now, because other Wechaty developers want to talk with you too!\n\n(secret code: wechaty)')
-      log.info('Bot', 'REPLY: Image')
+
     }
   } catch (e) {
     log.error('Bot', 'on(message) exception: %s' , e)

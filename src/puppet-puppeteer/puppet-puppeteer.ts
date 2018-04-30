@@ -336,14 +336,14 @@ export class PuppetPuppeteer extends Puppet {
     let mediatype: MediaType
 
     switch (ext) {
-      case 'bmp':
-      case 'jpeg':
-      case 'jpg':
-      case 'png':
-      case 'gif':
+      case '.bmp':
+      case '.jpeg':
+      case '.jpg':
+      case '.png':
+      case '.gif':
         mediatype = MediaType.IMAGE
         break
-      case 'mp4':
+      case '.mp4':
         mediatype = MediaType.VIDEO
         break
       default:
@@ -507,7 +507,7 @@ export class PuppetPuppeteer extends Puppet {
         },
       },
     }
-    let mediaId
+    let mediaId: string
     try {
       mediaId = <string>await new Promise((resolve, reject) => {
         try {
@@ -537,7 +537,7 @@ export class PuppetPuppeteer extends Puppet {
       log.error('PuppetPuppeteer', 'uploadMedia(): upload fail')
       throw new Error('PuppetPuppeteer.uploadMedia(): upload fail')
     }
-    return Object.assign(mediaData, { MediaId: mediaId as string })
+    return Object.assign(mediaData, { MediaId: mediaId })
   }
 
   public async sendMedia(message: PuppeteerMessage): Promise<boolean> {
@@ -556,8 +556,9 @@ export class PuppetPuppeteer extends Puppet {
     }
 
     let mediaData: MediaData
-    const rawObj = message.rawObj as MsgRawObj
-    if (!rawObj.MediaId) {
+    const rawObj = message.rawObj || {} as MsgRawObj
+
+    if (!rawObj || !rawObj.MediaId) {
       try {
         mediaData = await this.uploadMedia(message, destinationId)
         message.rawObj = Object.assign(rawObj, mediaData)
@@ -1090,14 +1091,14 @@ export class PuppetPuppeteer extends Puppet {
 
   public extToType(ext: string): MsgType {
     switch (ext) {
-      case 'bmp':
-      case 'jpeg':
-      case 'jpg':
-      case 'png':
+      case '.bmp':
+      case '.jpeg':
+      case '.jpg':
+      case '.png':
         return MsgType.IMAGE
-      case 'gif':
+      case '.gif':
         return MsgType.EMOTICON
-      case 'mp4':
+      case '.mp4':
         return MsgType.VIDEO
       default:
         return MsgType.APP
