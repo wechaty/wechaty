@@ -15,7 +15,7 @@
     , "experimentalDecorators": true
     , "emitDecoratorMetadata": true
 
-    , "noImplicitAny": false
+    , "noImplicitAny": true
     , "noUnusedParameters": false
     , "noImplicitThis": false
     , "traceResolution": false

@@ -76,6 +76,10 @@ async function saveMediaFile(message: Message) {
   const filename = message.filename()
   console.log('IMAGE local filename: ' + filename)
 
+  if (!filename) {
+    throw new Error('no filename found for media file')
+  }
+
   const fileStream = createWriteStream(filename)
 
   console.log('start to readyStream()')

@@ -74,7 +74,10 @@ export abstract class Message extends PuppetAccessory implements Sayable {
     readonly fileOrObj?: string | Object,
   ) {
     super()
-    log.silly('Message', 'constructor()')
+    log.silly('Message', 'constructor(%s) for class %s',
+                          fileOrObj || '',
+                          this.constructor.name,
+              )
   }
 
   /**
@@ -264,7 +267,7 @@ export abstract class Message extends PuppetAccessory implements Sayable {
   /**
    * Get the MediaMessage filename, etc: `how to build a chatbot.pdf`..
    *
-   * @returns {string}
+   * @returns {string | null}
    * @example
    * bot.on('message', async function (m) {
    *   if (m instanceof MediaMessage) {
@@ -272,7 +275,7 @@ export abstract class Message extends PuppetAccessory implements Sayable {
    *   }
    * })
    */
-  public abstract filename(): string
+  public abstract filename(): string | null
 
   /**
    * Get the MediaMessage file extension, etc: `jpg`, `gif`, `pdf`, `word` ..

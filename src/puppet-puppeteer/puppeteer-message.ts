@@ -80,10 +80,10 @@ export class PuppeteerMessage extends Message {
     super()
     log.silly('PuppeteerMessage', 'constructor()')
 
-    this.obj = {} as MsgObj
+    this.obj    = {} as MsgObj
+    // this.rawObj = {} as MsgRawObj
 
     if (!fileOrObj) {
-      this.rawObj = <MsgRawObj>{}
       return
     }
 
@@ -133,36 +133,43 @@ export class PuppeteerMessage extends Message {
     return obj
   }
 
-  /**
-   * @private
-   */
-  public toStringDigest() {
-    const text = Misc.digestEmoji(this.obj.digest)
-    return '{' + this.typeEx() + '}' + text
-  }
+  // /**
+  //  * @private
+  //  */
+  // public toString() {
+  //   return `PuppeteerMessage<${Misc.plainText(this.obj && this.obj.content)}>`
+  // }
 
-  /**
-   * @private
-   */
-  public getSenderString() {
-    const from = PuppeteerContact.load(this.obj.from)
-    from.puppet = this.puppet
+  // /**
+  //  * @private
+  //  */
+  // public toStringDigest() {
+  //   const text = Misc.digestEmoji(this.obj.digest)
+  //   return '{' + this.typeEx() + '}' + text
+  // }
 
-    const fromName  = from.name()
-    const roomTopic = this.obj.room
-                  ? (':' + PuppeteerRoom.load(this.obj.room).topic())
-                  : ''
-    return `<${fromName}${roomTopic}>`
-  }
+  // /**
+  //  * @private
+  //  */
+  // public getSenderString() {
+  //   const from = PuppeteerContact.load(this.obj.from)
+  //   from.puppet = this.puppet
 
-  /**
-   * @private
-   */
-  public getContentString() {
-    let content = Misc.plainText(this.obj.content)
-    if (content.length > 20) { content = content.substring(0, 17) + '...' }
-    return '{' + this.type() + '}' + content
-  }
+  //   const fromName  = from.name()
+  //   const roomTopic = this.obj.room
+  //                 ? (':' + PuppeteerRoom.load(this.obj.room).topic())
+  //                 : ''
+  //   return `<${fromName}${roomTopic}>`
+  // }
+
+  // /**
+  //  * @private
+  //  */
+  // public getContentString() {
+  //   let content = Misc.plainText(this.obj.content)
+  //   if (content.length > 20) { content = content.substring(0, 17) + '...' }
+  //   return '{' + this.type() + '}' + content
+  // }
 
   /**
    * @private
@@ -340,7 +347,43 @@ export class PuppeteerMessage extends Message {
    */
   public type(): MsgType {
     log.silly('PuppeteerMessage', 'type() = %s', MsgType[this.obj.type])
-    return this.obj.type || MsgType.TEXT
+
+    /**
+     * 1. A message created with rawObj
+     */
+    if (this.obj.type) {
+      return this.obj.type
+    }
+
+    /**
+     * 2. A message created with TEXT
+     */
+    const ext = this.extFromFile()
+    if (!ext) {
+      return MsgType.TEXT
+    }
+
+    /**
+     * 3. A message created with local file
+     */
+    switch (ext.toLowerCase()) {
+      case '.bmp':
+      case '.jpg':
+      case '.jpeg':
+      case '.png':
+        return MsgType.IMAGE
+
+      case '.gif':
+        return  MsgType.EMOTICON
+
+      case '.mp4':
+        return MsgType.VIDEO
+
+      case '.mp3':
+        return MsgType.VOICE
+    }
+
+    throw new Error('unknown type: ' + ext)
   }
 
   /**
@@ -371,12 +414,12 @@ export class PuppeteerMessage extends Message {
     return this.rawObj.AppMsgType
   }
 
-  /**
-   * Get the typeEx from the message.
-   *
-   * @returns {MsgType}
-   */
-  public typeEx()  { return MsgType[this.obj.type] }
+  // /**
+  //  * Get the typeEx from the message.
+  //  *
+  //  * @returns {MsgType}
+  //  */
+  // public typeEx()  { return MsgType[this.obj.type] }
 
   /**
    * Check if a message is sent by self.
@@ -601,38 +644,38 @@ export class PuppeteerMessage extends Message {
     return this
   }
 
-  /**
-   * @private
-   */
-  public get(prop: string): string {
-    log.warn('PuppeteerMessage', 'DEPRECATED get() at %s', new Error('stack').stack)
+  // /**
+  //  * @private
+  //  */
+  // public get(prop: string): string {
+  //   log.warn('PuppeteerMessage', 'DEPRECATED get() at %s', new Error('stack').stack)
 
-    if (!prop || !(prop in this.obj)) {
-      const s = '[' + Object.keys(this.obj).join(',') + ']'
-      throw new Error(`Message.get(${prop}) must be in: ${s}`)
-    }
-    return this.obj[prop]
-  }
+  //   if (!prop || !(prop in this.obj)) {
+  //     const s = '[' + Object.keys(this.obj).join(',') + ']'
+  //     throw new Error(`Message.get(${prop}) must be in: ${s}`)
+  //   }
+  //   return this.obj[prop]
+  // }
 
-  /**
-   * @private
-   */
-  public set(prop: string, value: string): this {
-    log.warn('PuppeteerMessage', 'DEPRECATED set() at %s', new Error('stack').stack)
+  // /**
+  //  * @private
+  //  */
+  // public set(prop: string, value: string): this {
+  //   log.warn('PuppeteerMessage', 'DEPRECATED set() at %s', new Error('stack').stack)
 
-    if (typeof value !== 'string') {
-      throw new Error('value must be string, we got: ' + typeof value)
-    }
-    this.obj[prop] = value
-    return this
-  }
+  //   if (typeof value !== 'string') {
+  //     throw new Error('value must be string, we got: ' + typeof value)
+  //   }
+  //   this.obj[prop] = value
+  //   return this
+  // }
 
   /**
    * @private
    */
   public dump() {
     console.error('======= dump message =======')
-    Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj[k]}`))
+    Object.keys(this.obj!).forEach(k => console.error(`${k}: ${this.obj![k]}`))
   }
 
   /**
@@ -641,7 +684,7 @@ export class PuppeteerMessage extends Message {
   public dumpRaw() {
     console.error('======= dump raw message =======')
     if (!this.rawObj) {
-      throw new Error('no this.obj')
+      throw new Error('no this.rawObj')
     }
     Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj && this.rawObj[k]}`))
   }
@@ -722,13 +765,16 @@ export class PuppeteerMessage extends Message {
    *   }
    * })
    */
-  public filename(): string {
+  public filename(): string | null {
+    log.verbose('PuppeteerMessage', 'filename()')
+
     if (this.parsedPath) {
       // https://nodejs.org/api/path.html#path_path_parse_path
       const filename = path.join(
         this.parsedPath!.dir  || '',
         this.parsedPath!.base || '',
       )
+      log.silly('PuppeteerMessage', 'filename()=%s, build from parsedPath', filename)
       return filename
     }
 
@@ -740,10 +786,12 @@ export class PuppeteerMessage extends Message {
         const ext = this.rawObj.MMAppMsgFileExt || this.ext()
         filename += '.' + ext
       }
+
+      log.silly('PuppeteerMessage', 'filename()=%s, build from rawObj', filename)
       return filename
     }
 
-    throw new Error('no rawObj')
+    return null
 
   }
 
@@ -759,38 +807,75 @@ export class PuppeteerMessage extends Message {
    * })
    */
   public ext(): string {
-    if (this.parsedPath && this.parsedPath.ext)
-      return this.parsedPath.ext
+    const fileExt = this.extFromFile()
+    if (fileExt) {
+      return fileExt
+    }
 
-    switch (this.type()) {
+    const typeExt = this.extFromType()
+    if (typeExt) {
+      return typeExt
+    }
+
+    throw new Error('unknown ext()')
+  }
+
+  private extFromFile(): string | null {
+    if (this.parsedPath && this.parsedPath.ext) {
+      return this.parsedPath.ext
+    }
+    return null
+  }
+
+  private extFromType(): string {
+    let ext: string
+
+    const type = this.type()
+
+    switch (type) {
       case MsgType.EMOTICON:
-        return '.gif'
+        ext = '.gif'
+        break
 
       case MsgType.IMAGE:
-        return '.jpg'
+        ext = '.jpg'
+        break
 
       case MsgType.VIDEO:
       case MsgType.MICROVIDEO:
-        return '.mp4'
+        ext = '.mp4'
+        break
 
       case MsgType.VOICE:
-        return '.mp3'
+        ext = '.mp3'
+        break
 
       case MsgType.APP:
         switch (this.typeApp()) {
           case AppMsgType.URL:
-            return '.url' // XXX
+            ext = '.url' // XXX
+            break
+          default:
+            ext = '.' + this.type()
+            break
         }
         break
 
       case MsgType.TEXT:
         if (this.typeSub() === MsgType.LOCATION) {
-          return '.jpg'
+          ext = '.jpg'
         }
+        ext = '.' + this.type()
+
         break
+
+      default:
+        log.silly('PuppeteerMessage', `ext() got unknown type: ${this.type()}`)
+        ext = '.' + this.type()
     }
-    log.silly('PuppeteerMessage', `ext() got unknown type: ${this.type()}`)
-    return String('.' + this.type())
+
+    return ext
+
   }
 
   /**

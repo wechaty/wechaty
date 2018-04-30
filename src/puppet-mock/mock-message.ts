@@ -152,7 +152,7 @@ export class MockMessage extends Message {
     throw new Error('to be mocked')
   }
 
-  public filename(): string {
+  public filename(): string | null {
     return 'mocked_filename.txt'
   }
 

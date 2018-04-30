@@ -72,7 +72,7 @@ async function onScan(this: PuppetPuppeteer, data: ScanData): Promise<void> {
    */
   await this.saveCookie()
 
-  if (this.userSelf()) {
+  if (this.logonoff()) {
     log.verbose('PuppetPuppeteerEvent', 'onScan() there has user when got a scan event. emit logout and set it to null')
     await this.logout()
   }
@@ -108,7 +108,7 @@ async function onLogin(this: PuppetPuppeteer, note: string, ttl = 30): Promise<v
 
   this.scanInfo = undefined
 
-  if (this.userSelf()) {
+  if (this.logonoff()) {
     log.warn('PuppetPuppeteerEvent', 'onLogin(%s) user had already set: "%s"', note, this.userSelf())
     await this.logout()
   }
@@ -166,7 +166,7 @@ async function onLogin(this: PuppetPuppeteer, note: string, ttl = 30): Promise<v
 async function onLogout(this: PuppetPuppeteer, data): Promise<void> {
   log.verbose('PuppetPuppeteerEvent', 'onLogout(%s)', data)
 
-  if (this.userSelf()) {
+  if (this.logonoff()) {
     await this.logout()
   } else {
     // not logged-in???

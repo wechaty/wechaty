@@ -4,9 +4,7 @@
 
 /docs/                              @lijiarui @hczhcz @TingYinHelen @ax4
 /examples/                          @Gcaufy @hczhcz
-/src/puppet-web/bridge.*.ts         @mukaiu
-/src/puppet-web/browser.ts          @binsee
-/src/puppet-web/browser-driver.*.ts @xjchengo
-/src/puppet-web/event.ts            @binsee
-/src/puppet-web/firer.*.ts          @xinbenlv
-/src/puppet-web/wechaty-bro.js      @binsee @mukaiu @hczhcz @cherry-geqi @zhenyong
+/src/puppet-puppeteer/bridge.*.ts         @mukaiu @xjchengo
+/src/puppet-puppeteer/event.ts            @binsee
+/src/puppet-puppeteer/firer.*.ts          @xinbenlv
+/src/puppet-puppeteer/wechaty-bro.js      @binsee @mukaiu @hczhcz @cherry-geqi @zhenyong

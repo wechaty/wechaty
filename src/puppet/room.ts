@@ -52,6 +52,7 @@ export interface RoomQueryFilter {
  * [Examples/Room-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/room-bot.ts}
  */
 export abstract class Room extends PuppetAccessory implements Sayable {
+
   protected static readonly pool = new Map<string, Room>()
 
   /**
@@ -151,10 +152,15 @@ export abstract class Room extends PuppetAccessory implements Sayable {
       throw new Error('Room.load() no id')
     }
 
-    if (id in this.pool) {
-      return this.pool[id]
+    const existingRoom = this.pool.get(id)
+    if (existingRoom) {
+      return existingRoom
     }
-    return this.pool[id] = new (this as any)(id)
+
+    const newRoom = new (this as any)(id)
+    this.pool.set(id, newRoom)
+
+    return newRoom
   }
 
   /**
@@ -205,10 +211,22 @@ export abstract class Room extends PuppetAccessory implements Sayable {
    */
   public abstract say(textOrMessage: string | Message, replyTo?: Contact|Contact[]): Promise<void>
 
-  public on(event: 'leave', listener: (this: Room, leaver: Contact) => void): this
-  public on(event: 'join' , listener: (this: Room, inviteeList: Contact[] , inviter: Contact)  => void): this
-  public on(event: 'topic', listener: (this: Room, topic: string, oldTopic: string, changer: Contact) => void): this
-  public on(event: never,   ...args: never[]): this
+  public emit(event: 'leave', leaver:       Contact[],  remover?: Contact)                    : boolean
+  public emit(event: 'join' , inviteeList:  Contact[] , inviter:  Contact)                    : boolean
+  public emit(event: 'topic', topic:        string,     oldTopic: string,   changer: Contact) : boolean
+  public emit(event: never, ...args: never[]): never
+
+  public emit(
+    event:   RoomEventName,
+    ...args: any[],
+  ): boolean {
+    return super.emit(event, ...args)
+  }
+
+  public on(event: 'leave', listener: (this: Room, leaver:      Contact,    remover?: Contact) => void)                 : this
+  public on(event: 'join' , listener: (this: Room, inviteeList: Contact[] , inviter:  Contact) => void)                 : this
+  public on(event: 'topic', listener: (this: Room, topic:       string,     oldTopic: string, changer: Contact) => void): this
+  public on(event: never,   ...args: never[]): never
 
    /**
     * @desc       Room Class Event Type
