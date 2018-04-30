@@ -571,11 +571,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
    * }
    */
   public logonoff(): Boolean {
-    try {
-      return this.puppet.logonoff()
-    } catch (e) {
-      return false
-    }
+    return this.puppet.logonoff()
   }
 
   /**
@@ -595,12 +591,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
    * console.log(`Bot is ${contact.name()}`)
    */
   public userSelf(): Contact {
-    const user = this.puppet.userSelf()
-    if (!user) {
-      throw new Error('no user logged in!')
-    }
-
-    return user
+    return this.puppet.userSelf()
   }
 
   /**

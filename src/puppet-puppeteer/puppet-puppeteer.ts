@@ -301,7 +301,7 @@ export class PuppetPuppeteer extends Puppet {
    * get self contact
    */
   public userSelf(): PuppeteerContact {
-    log.verbose('PuppetPuppeteer', 'self()')
+    log.verbose('PuppetPuppeteer', 'userSelf()')
 
     if (!this.user) {
       throw new Error('not logged in, no userSelf yet.')
