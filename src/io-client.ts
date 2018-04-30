@@ -16,7 +16,7 @@
  *   limitations under the License.
  *
  */
-
+import * as express from 'express'
 /**
  * DO NOT use `require('../')` here!
  * because it will casue a LOOP require ERROR
@@ -24,13 +24,14 @@
 // import Brolog       from 'brolog'
 import StateSwitch  from 'state-switch'
 
+import { Message }      from './puppet/'
+
 import {
   config,
   log,
 }                       from './config'
 import { Io }           from './io'
 import { Wechaty }      from './wechaty'
-
 export interface IoClientOptions {
   token    : string,
   wechaty? : Wechaty,
@@ -120,7 +121,7 @@ export class IoClient {
   public initWeb(port = config.httpPort) {
 //    if (process.env.DYNO) {
 //    }
-    const app = require('express')()
+    const app = express()
 
     app.get('/', function (req, res) {
       res.send('Wechaty IO Bot Alive!')
@@ -136,7 +137,7 @@ export class IoClient {
     })
   }
 
-  private onMessage(m) {
+  private onMessage(m: Message) {
     // const from = m.from()
     // const to = m.to()
     // const content = m.toString()

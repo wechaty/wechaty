@@ -122,7 +122,7 @@ function mp3ToWav(mp3Stream: Readable): NodeJS.ReadableStream {
     // .on('end', function() {
     //   console.log('Finished processing');
     // })
-    .on('error', function(err, stdout, stderr) {
+    .on('error', function(err: Error /*, stdout, stderr */) {
       console.log('Cannot process video: ' + err.message)
     })
 

@@ -22,6 +22,7 @@ import * as test  from 'blue-tape'
 // import * as sinon from 'sinon'
 // const sinonTest   = require('sinon-test')(sinon)
 
+import * as http      from 'http'
 import * as express   from 'express'
 
 import Misc        from './misc'
@@ -121,7 +122,7 @@ test('downloadStream() for media', async t => {
     res.end('dong')
   })
 
-  const server = require('http').createServer(app)
+  const server = http.createServer(app)
   server.on('clientError', (err, socket) => {
     t.fail('server on clientError')
     socket.end('HTTP/1.1 400 Bad Request\r\n\r\n')

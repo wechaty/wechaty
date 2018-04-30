@@ -85,7 +85,7 @@ test('ready()', async t => {
   const expectedMsgId        = '3009511950433684462'
 
   // Mock
-  function mockGetContact(id) {
+  function mockGetContact(id: string) {
     log.silly('TestMessage', `mocked getContact(${id})`)
     return new Promise((resolve, reject) => {
       let obj = {}
@@ -192,7 +192,7 @@ test('mentioned()', async t => {
   const ROOM_ID = '@@9cdc696e490bd76c57e7dd54792dc1408e27d65e312178b1943e88579b7939f4'
 
   // Mock
-  const mockContactGetter = function (id) {
+  const mockContactGetter = function (id: string) {
     return new Promise((resolve, reject) => {
       if (id !== ROOM_ID && !(id in CONTACT_LIST)) return resolve({})
       if (id === ROOM_ID) {

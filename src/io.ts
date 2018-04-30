@@ -20,6 +20,7 @@ import * as WebSocket from 'ws'
 import StateSwitch    from 'state-switch'
 
 import {
+  Message,
   ScanData,
 }           from './puppet/'
 
@@ -27,7 +28,9 @@ import {
   config,
   log,
 }                 from './config'
-import Wechaty    from './wechaty'
+import {
+  Wechaty,
+}                 from './wechaty'
 
 export interface IoOptions {
   wechaty:    Wechaty,
@@ -441,7 +444,7 @@ export class Io {
    * Prepare to be overwriten by server setting
    *
    */
-  private async ioMessage(m): Promise<void> {
+  private async ioMessage(m: Message): Promise<void> {
     log.silly('Io', 'ioMessage() is a nop function before be overwriten from cloud')
     if (typeof this.onMessage === 'function') {
       await this.onMessage(m)

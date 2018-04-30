@@ -264,7 +264,7 @@ async function manageDingRoom() {
     /**
      * Event: Join
      */
-    room.on('join', function(this, inviteeList, inviter) {
+    room.on('join', function(inviteeList, inviter) {
       log.verbose('Bot', 'Room EVENT: join - %s, %s',
                          inviteeList.map(c => c.name()).join(', '),
                          inviter.name(),
@@ -337,7 +337,7 @@ async function checkRoomJoin(room: Room, inviteeList: Contact[], inviter: Contac
 
 }
 
-async function putInRoom(contact, room) {
+async function putInRoom(contact: Contact, room: Room) {
   log.info('Bot', 'putInRoom(%s, %s)', contact.name(), room.topic())
 
   try {
@@ -369,7 +369,7 @@ function getHelperContact() {
   return Contact.find({ name: HELPER_CONTACT_NAME })
 }
 
-async function createDingRoom(contact): Promise<any> {
+async function createDingRoom(contact: Contact): Promise<any> {
   log.info('Bot', 'createDingRoom(%s)', contact)
 
   try {

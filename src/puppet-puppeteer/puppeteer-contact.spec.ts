@@ -20,7 +20,7 @@
  */
 // tslint:disable:no-shadowed-variable
 import * as test  from 'blue-tape'
-// import * as sinon from 'sinon'
+import * as sinon from 'sinon'
 
 import cloneClass from 'clone-class'
 
@@ -45,7 +45,7 @@ test('Contact smoke testing', async t => {
   const NickName = 'NickNameTest'
   const RemarkName = 'AliasTest'
 
-  MyContact.puppet['getContact'] = function(id) {
+  sinon.stub((MyContact.puppet as PuppetPuppeteer), 'getContact', function(id: string) {
     return new Promise<any>((resolve, reject) => {
       if (id !== UserName) return resolve({})
       setTimeout(() => {
@@ -56,15 +56,14 @@ test('Contact smoke testing', async t => {
         })
       }, 200)
     })
-  }
+  })
 
   const c = new MyContact(UserName)
 
   t.is(c.id, UserName, 'id/UserName right')
   const r = await c.ready()
-  t.is(r.get('id')   , UserName, 'UserName set')
-  t.is(r.get('name') , NickName, 'NickName set')
-  t.is(r.name(), NickName, 'should get the right name from Contact')
+  t.is(r.id   , UserName, 'UserName set')
+  t.is(r.name(), NickName, 'NickName set')
   t.is(r.alias(), RemarkName, 'should get the right alias from Contact')
 
   const s = r.toString()

@@ -184,7 +184,7 @@ test('retryPromise()', async t => {
   const EXPECTED_RESOLVE = 'Okey'
   const EXPECTED_REJECT  = 'NotTheTime'
 
-  function delayedFactory(timeout) {
+  function delayedFactory(timeout: number) {
     const startTime = Date.now()
     return function() {
       const nowTime = Date.now()
@@ -202,7 +202,7 @@ test('retryPromise()', async t => {
   const delay500 = delayedFactory(500)
   await retryPromise({ max: 1, backoff: 1 }, function() {
     return delay500()
-  }).catch(e => {
+  }).catch((e: any) => {
     thenSpy(e)
   })
   t.true(thenSpy.withArgs(EXPECTED_REJECT).calledOnce, 'should got EXPECTED_REJECT when wait not enough')
@@ -212,13 +212,12 @@ test('retryPromise()', async t => {
   await retryPromise({ max: 6, backoff: 10 }, function() {
     return anotherDelay50()
   })
-  .then(r => {
+  .then((r: string) => {
     thenSpy(r)
   })
   t.true(thenSpy.withArgs(EXPECTED_RESOLVE).calledOnce, 'should got EXPECTED_RESOLVE when wait enough')
 })
 
-declare const WechatyBro
 test('WechatyBro.ding()', async t => {
   const profile = new Profile(Math.random().toString(36).substr(2, 5))
   const bridge = new Bridge({

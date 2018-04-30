@@ -2,7 +2,9 @@
 
 import * as readline from 'readline'
 
-const contributeMap = {}
+const contributeMap: {
+  [contributor: string]: string[],
+} = {}
 
 function parseLine(line: string): string[] | null {
   // [\#264](https://github.com/Chatie/wechaty/pull/264) ([lijiarui](https://github.com/lijiarui))

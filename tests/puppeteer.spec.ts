@@ -205,7 +205,7 @@ test('other demos', async t => {
       }
     })
 
-    page.on('requestfailed', (...args) => {
+    page.on('requestfailed', (...args: any[]) => {
       console.log('requestfailed:args:', args)
     })
 

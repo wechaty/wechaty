@@ -150,7 +150,7 @@ export interface MsgObj {
   content:  string,
   status:   string,
   digest:   string,
-  date:     string,
+  date:     number,
 
   url?:     string,  // for MessageMedia class
 }

@@ -106,7 +106,7 @@ test('Room smoking test', async t => {
   }
 
   // Mock
-  const mockContactGetter = function (id) {
+  const mockContactGetter = function (id: string) {
     return new Promise((resolve, reject) => {
       if (id !== EXPECTED.id && !(id in CONTACT_LIST)) return resolve({})
       if (id === EXPECTED.id) {

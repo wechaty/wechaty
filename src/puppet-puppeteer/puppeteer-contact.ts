@@ -200,7 +200,7 @@ export class PuppeteerContact extends Contact implements Sayable {
   public async say(textOrMessage: string | PuppeteerMessage): Promise<void> {
     log.verbose('PuppeteerContact', 'say(%s)', textOrMessage)
 
-    const user = this.puppet.userSelf()
+    const user = this.puppet.userSelf() as PuppeteerContact
 
     if (!user) {
       throw new Error('no user')
@@ -430,10 +430,10 @@ export class PuppeteerContact extends Contact implements Sayable {
     }
   }
 
-  /**
-   * @private
-   */
-  public get(prop)  { return this.obj && this.obj[prop] }
+  // /**
+  //  * @private
+  //  */
+  // public get(prop)  { return this.obj && this.obj[prop] }
 
   /**
    * @private
@@ -494,7 +494,7 @@ export class PuppeteerContact extends Contact implements Sayable {
    */
   public dumpRaw() {
     console.error('======= dump raw contact =======')
-    Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj[k]}`))
+    Object.keys(this.rawObj).forEach((k: keyof PuppeteerContactRawObj) => console.error(`${k}: ${this.rawObj[k]}`))
   }
 
   /**
@@ -505,7 +505,7 @@ export class PuppeteerContact extends Contact implements Sayable {
     if (!this.obj) {
       throw new Error('no this.obj')
     }
-    Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj && this.obj[k]}`))
+    Object.keys(this.obj).forEach((k: keyof PuppeteerContactObj) => console.error(`${k}: ${this.obj && this.obj[k]}`))
   }
 
   /**

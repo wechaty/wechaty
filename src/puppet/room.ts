@@ -159,7 +159,6 @@ export abstract class Room extends PuppetAccessory implements Sayable {
 
     const newRoom = new (this as any)(id)
     this.pool.set(id, newRoom)
-
     return newRoom
   }
 

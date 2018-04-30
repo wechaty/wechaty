@@ -49,9 +49,9 @@ export abstract class Message extends PuppetAccessory implements Sayable {
    */
   public static async find<T extends typeof Message>(
     this: T,
-    query,
+    query: any,
   ): Promise<T['prototype'] | null> {
-    return this.findAll(query)[0]
+    return (await this.findAll(query))[0]
   }
 
   /**
@@ -59,12 +59,12 @@ export abstract class Message extends PuppetAccessory implements Sayable {
    */
   public static async findAll<T extends typeof Message>(
     this: T,
-    query,
+    query: any,
   ): Promise<T['prototype'][]> {
-    return Promise.resolve([
+    return [
       new (this as any)(1),
       new (this as any)(2),
-    ])
+    ]
   }
 
   /**

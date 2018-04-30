@@ -62,12 +62,16 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
       throw new Error('Contact.load(): id not found')
     }
 
-    if (!(id in this.pool)) {
-      // when we call `load()`, `this` should already be extend-ed a child class.
-      // so we force `this as any` at here to make the call.
-      Contact.pool[id] = new (this as any)(id)
+    const existingContact = this.pool.get(id)
+    if (existingContact) {
+      return existingContact
     }
-    return this.pool[id]
+
+    // when we call `load()`, `this` should already be extend-ed a child class.
+    // so we force `this as any` at here to make the call.
+    const newContact = new (this as any)(id)
+    Contact.pool.set(id, newContact)
+    return newContact
   }
 
   /**
@@ -132,7 +136,7 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
     // log.verbose('Cotnact', 'findAll({ name: %s })', query.name)
     log.verbose('Cotnact', 'findAll({ %s })',
                             Object.keys(query)
-                                  .map(k => `${k}: ${query[k]}`)
+                                  .map((k: keyof ContactQueryFilter) => `${k}: ${query[k]}`)
                                   .join(', '),
               )
 

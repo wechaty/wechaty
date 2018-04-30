@@ -64,7 +64,7 @@ client.init()
 client.initWeb()
     .catch(onError.bind(client))
 
-function onError(e) {
+function onError(e: Error) {
   log.error('Client', 'initWeb() fail: %s', e)
   this.quit()
   process.exit(-1)

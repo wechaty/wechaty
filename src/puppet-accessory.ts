@@ -6,9 +6,15 @@ import { log }  from './config'
 
 import { Puppet } from './puppet/'
 
+// use Symbol to prevent conflicting with the child class properties
+export const PUPPET_ACCESSORY_NAME = Symbol('name')
+
 export abstract class PuppetAccessory extends EventEmitter {
-  // use Symbol to prevent conflicting with the child class properties
-  private static readonly PUPPET_ACCESSORY_NAME = Symbol('name')
+  // Not work???
+  // private static readonly PUPPET_ACCESSORY_NAME = Symbol('name')
+
+  private static  [PUPPET_ACCESSORY_NAME]: string
+  private         [PUPPET_ACCESSORY_NAME]: string
 
   /**
    * 1. Static puppet property
@@ -17,7 +23,7 @@ export abstract class PuppetAccessory extends EventEmitter {
 
   public static set puppet(puppet: Puppet) {
     log.silly('PuppetAccessory', '<%s> static set puppet(%s)',
-                                  this[this.PUPPET_ACCESSORY_NAME] || this.name,
+                                  this[PUPPET_ACCESSORY_NAME] || this.name,
                                   puppet.constructor.name,
               )
     this._puppet = puppet
@@ -25,7 +31,7 @@ export abstract class PuppetAccessory extends EventEmitter {
 
   public static get puppet(): Puppet {
     log.silly('PuppetAccessory', '<%s> static get puppet()',
-                                  this[this.PUPPET_ACCESSORY_NAME] || this.name,
+                                  this[PUPPET_ACCESSORY_NAME] || this.name,
               )
 
     if (this._puppet) {
@@ -42,7 +48,7 @@ export abstract class PuppetAccessory extends EventEmitter {
     name?: string,
   ) {
     super()
-    this[PuppetAccessory.PUPPET_ACCESSORY_NAME] = name || this.constructor.name
+    this[PUPPET_ACCESSORY_NAME] = name || this.constructor.name
   }
 
   /**
@@ -51,12 +57,12 @@ export abstract class PuppetAccessory extends EventEmitter {
   private _puppet?: Puppet
 
   public set puppet(puppet: Puppet) {
-    log.silly('PuppetAccessory', '<%s> set puppet(%s)', this[PuppetAccessory.PUPPET_ACCESSORY_NAME], puppet.constructor.name)
+    log.silly('PuppetAccessory', '<%s> set puppet(%s)', this[PUPPET_ACCESSORY_NAME], puppet.constructor.name)
     this._puppet = puppet
   }
 
   public get puppet(): Puppet {
-    log.silly('PuppetAccessory', '<%s> get puppet()', this[PuppetAccessory.PUPPET_ACCESSORY_NAME])
+    log.silly('PuppetAccessory', '<%s> get puppet()', this[PUPPET_ACCESSORY_NAME])
 
     if (this._puppet) {
       return this._puppet

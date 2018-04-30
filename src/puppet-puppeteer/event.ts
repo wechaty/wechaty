@@ -51,7 +51,10 @@ export const Event = {
 
 }
 
-function onDing(this: PuppetPuppeteer, data): void {
+function onDing(
+  this: PuppetPuppeteer,
+  data: any,
+): void {
   log.silly('PuppetPuppeteerEvent', 'onDing(%s)', data)
   this.emit('watchdog', { data })
 }
@@ -163,7 +166,10 @@ async function onLogin(this: PuppetPuppeteer, note: string, ttl = 30): Promise<v
   return
 }
 
-async function onLogout(this: PuppetPuppeteer, data): Promise<void> {
+async function onLogout(
+  this: PuppetPuppeteer,
+  data: any,
+): Promise<void> {
   log.verbose('PuppetPuppeteerEvent', 'onLogout(%s)', data)
 
   if (this.logonoff()) {

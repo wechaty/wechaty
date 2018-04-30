@@ -249,7 +249,7 @@ setInterval(function() {
    screen.render()
 }, 500)
 
-function setLineData(mockData, line) {
+function setLineData(mockData: any, line: any) {
   for (let i = 0; i < mockData.length; i++) {
     const last = mockData[i].y[mockData[i].y.length - 1]
     mockData[i].y.shift()
@@ -321,7 +321,7 @@ function startBot(bot: Wechaty, logElement: any) {
         {
           small: true,
         },
-        qrData => logElement.setContent(qrData),
+        (qrData: string) => logElement.setContent(qrData),
       )
     }
     // logElement.log(`${url}\n[${code}] Scan QR Code above url to log in: `)

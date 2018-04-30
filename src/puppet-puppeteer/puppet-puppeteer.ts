@@ -17,7 +17,7 @@
  *
  */
 import * as request from 'request'
-import * as bl from 'bl'
+import * as bl      from 'bl'
 
 import cloneClass   from 'clone-class'
 import {
@@ -40,8 +40,6 @@ import {
   log,
   Raven,
 }                     from '../config'
-import {
-}                     from '../message'
 import Profile        from '../profile'
 import Misc           from '../misc'
 
@@ -355,7 +353,7 @@ export class PuppetPuppeteer extends Puppet {
 
     const readStream = await message.readyStream()
     const buffer = <Buffer>await new Promise((resolve, reject) => {
-      readStream.pipe(bl((err, data) => {
+      readStream.pipe(bl((err: Error, data: Buffer) => {
         if (err) reject(err)
         else resolve(data)
       }))
@@ -831,7 +829,7 @@ export class PuppetPuppeteer extends Puppet {
   ): string {
     log.verbose('PuppetPuppeteer', 'contactQueryFilterToFunctionString({ %s })',
                             Object.keys(query)
-                                  .map(k => `${k}: ${query[k]}`)
+                                  .map((k: keyof ContactQueryFilter) => `${k}: ${query[k]}`)
                                   .join(', '),
               )
 
@@ -839,21 +837,21 @@ export class PuppetPuppeteer extends Puppet {
       throw new Error('query only support one key. multi key support is not availble now.')
     }
 
-    let filterKey                     = Object.keys(query)[0]
-    let filterValue: string | RegExp  = query[filterKey]
+    const filterKey = Object.keys(query)[0] as keyof ContactQueryFilter
 
-    const keyMap = {
+    let filterValue: string | RegExp | undefined  = query[filterKey]
+    if (!filterValue) {
+      throw new Error('filterValue not found')
+    }
+
+    const protocolKeyMap = {
       name:   'NickName',
       alias:  'RemarkName',
     }
 
-    filterKey = keyMap[filterKey]
-    if (!filterKey) {
-      throw new Error('unsupport filter key')
-    }
-
-    if (!filterValue) {
-      throw new Error('filterValue not found')
+    const protocolFilterKey = protocolKeyMap[filterKey]
+    if (!protocolFilterKey) {
+      throw new Error('unsupport protocol filter key')
     }
 
     /**
@@ -863,10 +861,10 @@ export class PuppetPuppeteer extends Puppet {
     let filterFunction: string
 
     if (filterValue instanceof RegExp) {
-      filterFunction = `(function (c) { return ${filterValue.toString()}.test(c.${filterKey}) })`
+      filterFunction = `(function (c) { return ${filterValue.toString()}.test(c.${protocolFilterKey}) })`
     } else if (typeof filterValue === 'string') {
       filterValue = filterValue.replace(/'/g, '\\\'')
-      filterFunction = `(function (c) { return c.${filterKey} === '${filterValue}' })`
+      filterFunction = `(function (c) { return c.${protocolFilterKey} === '${filterValue}' })`
     } else {
       throw new Error('unsupport name type')
     }

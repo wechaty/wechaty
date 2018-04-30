@@ -121,11 +121,11 @@ export class MockMessage extends Message {
     return this
   }
 
-  public static async find(query) {
+  public static async find(query: any) {
     return Promise.resolve(new MockMessage({MsgId: '-1'}))
   }
 
-  public static async findAll(query) {
+  public static async findAll(query: any) {
     return Promise.resolve([
       new MockMessage({MsgId: '-2'}),
       new MockMessage({MsgId: '-3'}),

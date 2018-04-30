@@ -45,7 +45,7 @@ class LicenseTransformer extends Transform {
     super(options)
   }
 
-  public _transform(chunk, encoding, done) {
+  public _transform(chunk: any, encoding: string, done: Function) {
     if (this.updated) {
       this.push(chunk)
     } else {
@@ -56,7 +56,7 @@ class LicenseTransformer extends Transform {
     done()
   }
 
-  private updateChunk(chunk): string {
+  private updateChunk(chunk: any): string {
     const buffer  = this.lineBuf + chunk.toString()
     this.lineBuf    = ''
 
@@ -106,7 +106,7 @@ class LicenseTransformer extends Transform {
     return updatedLineList.join('\n')
   }
 
-  public _flush(done) {
+  public _flush(done: Function) {
     if (this.lineBuf) {
       this.push(this.lineBuf)
       this.lineBuf = ''
@@ -133,7 +133,7 @@ async function updateLicense(file: string): Promise<void> {
   await promisify(unlinkCallback)(tmpFile)
 }
 
-async function glob(pattern): Promise<string[]> {
+async function glob(pattern: string): Promise<string[]> {
   return promisify<string, string[]>(globCallback as any)(pattern)
 }
 

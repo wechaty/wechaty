@@ -151,7 +151,7 @@ export class PuppeteerFriendRequest extends FriendRequest {
       }
       throw new Error('FriendRequest.accept() content.ready() not ready')
 
-    }).catch( e => {
+    }).catch((e: Error) => {
       log.warn('PuppeteerFriendRequest', 'accept() rejected for contact %s because %s', this.contact, e && e.message || e)
     })
 

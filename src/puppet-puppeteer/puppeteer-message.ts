@@ -102,7 +102,7 @@ export class PuppeteerMessage extends Message {
    * @private
    */
   // Transform rawObj to local obj
-  private parse(rawObj): MsgObj {
+  private parse(rawObj: MsgRawObj): MsgObj {
     const obj: MsgObj = {
       id:           rawObj.MsgId,
       type:         rawObj.MsgType,
@@ -497,7 +497,7 @@ export class PuppeteerMessage extends Message {
     }
 
     // flatten array, see http://stackoverflow.com/a/10865042/1123955
-    const mentionList = [].concat.apply([], rawMentionedList)
+    const mentionList: string[] = [].concat.apply([], rawMentionedList)
     log.verbose('PuppeteerMessage', 'mentioned(%s),get mentionList: %s', this.text(), JSON.stringify(mentionList))
 
     contactList = [].concat.apply([],
@@ -675,7 +675,7 @@ export class PuppeteerMessage extends Message {
    */
   public dump() {
     console.error('======= dump message =======')
-    Object.keys(this.obj!).forEach(k => console.error(`${k}: ${this.obj![k]}`))
+    Object.keys(this.obj!).forEach((k: keyof MsgObj) => console.error(`${k}: ${this.obj![k]}`))
   }
 
   /**
@@ -686,20 +686,20 @@ export class PuppeteerMessage extends Message {
     if (!this.rawObj) {
       throw new Error('no this.rawObj')
     }
-    Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj && this.rawObj[k]}`))
+    Object.keys(this.rawObj).forEach((k: keyof MsgRawObj) => console.error(`${k}: ${this.rawObj && this.rawObj[k]}`))
   }
 
   /**
    * @todo add function
    */
-  public static async find(query) {
+  public static async find(query: any) {
     return Promise.resolve(new PuppeteerMessage(<MsgRawObj>{MsgId: '-1'}))
   }
 
   /**
    * @todo add function
    */
-  public static async findAll(query) {
+  public static async findAll(query: any) {
     return Promise.resolve([
       new PuppeteerMessage   (<MsgRawObj>{MsgId: '-2'}),
       new PuppeteerMessage (<MsgRawObj>{MsgId: '-3'}),
@@ -901,7 +901,7 @@ export class PuppeteerMessage extends Message {
       throw new Error('saveFile() file does exist!')
     }
     const writeStream = fs.createWriteStream(filePath)
-    let readStream
+    let readStream: Readable
     try {
       readStream = await this.readyStream()
     } catch (e) {

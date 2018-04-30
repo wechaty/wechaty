@@ -24,7 +24,7 @@ import {
   Browser,
   Cookie,
   Dialog,
-  ElementHandle,
+  // ElementHandle,
   launch,
   Page,
 }                       from 'puppeteer'
@@ -53,8 +53,6 @@ export interface BridgeOptions {
   head?   : boolean,
   profile : Profile,
 }
-
-declare const WechatyBro
 
 export class Bridge extends EventEmitter {
   private browser : Browser
@@ -337,7 +335,10 @@ export class Bridge extends EventEmitter {
     }
   }
 
-  public async roomDelMember(roomId, contactId): Promise<number> {
+  public async roomDelMember(
+    roomId:     string,
+    contactId:  string,
+  ): Promise<number> {
     if (!roomId || !contactId) {
       throw new Error('no roomId or contactId')
     }
@@ -349,7 +350,10 @@ export class Bridge extends EventEmitter {
     }
   }
 
-  public async roomAddMember(roomId, contactId): Promise<number> {
+  public async roomAddMember(
+    roomId:     string,
+    contactId:  string,
+  ): Promise<number> {
     log.verbose('PuppetPuppeteerBridge', 'roomAddMember(%s, %s)', roomId, contactId)
 
     if (!roomId || !contactId) {
@@ -363,7 +367,10 @@ export class Bridge extends EventEmitter {
     }
   }
 
-  public async roomModTopic(roomId, topic): Promise<string> {
+  public async roomModTopic(
+    roomId: string,
+    topic:  string,
+  ): Promise<string> {
     if (!roomId) {
       throw new Error('no roomId')
     }
@@ -394,7 +401,10 @@ export class Bridge extends EventEmitter {
     }
   }
 
-  public async verifyUserRequest(contactId, hello): Promise<boolean> {
+  public async verifyUserRequest(
+    contactId:  string,
+    hello:      string,
+  ): Promise<boolean> {
     log.verbose('PuppetPuppeteerBridge', 'verifyUserRequest(%s, %s)', contactId, hello)
 
     if (!contactId) {
@@ -408,7 +418,10 @@ export class Bridge extends EventEmitter {
     }
   }
 
-  public async verifyUserOk(contactId, ticket): Promise<boolean> {
+  public async verifyUserOk(
+    contactId:  string,
+    ticket:     string,
+  ): Promise<boolean> {
     log.verbose('PuppetPuppeteerBridge', 'verifyUserOk(%s, %s)', contactId, ticket)
 
     if (!contactId || !ticket) {
@@ -422,7 +435,10 @@ export class Bridge extends EventEmitter {
     }
   }
 
-  public async send(toUserName: string, text: string): Promise<void> {
+  public async send(
+    toUserName: string,
+    text:       string,
+  ): Promise<void> {
     log.verbose('PuppetPuppeteerBridge', 'send(%s, %s)', toUserName, text)
 
     if (!toUserName) {
@@ -443,7 +459,7 @@ export class Bridge extends EventEmitter {
     }
   }
 
-  public async getMsgImg(id): Promise<string> {
+  public async getMsgImg(id: string): Promise<string> {
     log.verbose('PuppetPuppeteerBridge', 'getMsgImg(%s)', id)
 
     try {
@@ -454,7 +470,7 @@ export class Bridge extends EventEmitter {
     }
   }
 
-  public async getMsgEmoticon(id): Promise<string> {
+  public async getMsgEmoticon(id: string): Promise<string> {
     log.verbose('PuppetPuppeteerBridge', 'getMsgEmoticon(%s)', id)
 
     try {
@@ -465,7 +481,7 @@ export class Bridge extends EventEmitter {
     }
   }
 
-  public async getMsgVideo(id): Promise<string> {
+  public async getMsgVideo(id: string): Promise<string> {
     log.verbose('PuppetPuppeteerBridge', 'getMsgVideo(%s)', id)
 
     try {
@@ -476,7 +492,7 @@ export class Bridge extends EventEmitter {
     }
   }
 
-  public async getMsgVoice(id): Promise<string> {
+  public async getMsgVoice(id: string): Promise<string> {
     log.verbose('PuppetPuppeteerBridge', 'getMsgVoice(%s)', id)
 
     try {
@@ -487,7 +503,7 @@ export class Bridge extends EventEmitter {
     }
   }
 
-  public async getMsgPublicLinkImg(id): Promise<string> {
+  public async getMsgPublicLinkImg(id: string): Promise<string> {
     log.verbose('PuppetPuppeteerBridge', 'getMsgPublicLinkImg(%s)', id)
 
     try {
@@ -514,8 +530,8 @@ export class Bridge extends EventEmitter {
     const timeout = max * (backoff * max) / 2
 
     try {
-      return await retryPromise({ max: max, backoff: backoff }, async attempt => {
-        log.silly('PuppetPuppeteerBridge', 'getContact() retryPromise: attampt %s/%s time for timeout %s',
+      return await retryPromise({ max: max, backoff: backoff }, async (attempt: number) => {
+        log.silly('PuppetPuppeteerBridge', 'getContact() retryPromise: attampt %d/%d time for timeout %d',
                                       attempt, max, timeout)
         try {
           const r = await this.proxyWechaty('getContact', id)
@@ -670,7 +686,7 @@ export class Bridge extends EventEmitter {
     }
   }
 
-  public async ding(data): Promise<any> {
+  public async ding(data: any): Promise<any> {
     log.verbose('PuppetPuppeteerBridge', 'ding(%s)', data)
 
     try {
@@ -757,52 +773,53 @@ export class Bridge extends EventEmitter {
   public async clickSwitchAccount(page: Page): Promise<boolean> {
     log.verbose('PuppetPuppeteerBridge', 'clickSwitchAccount()')
 
+    // https://github.com/GoogleChrome/puppeteer/issues/537#issuecomment-334918553
+    // async function listXpath(thePage: Page, xpath: string): Promise<ElementHandle[]> {
+    //   log.verbose('PuppetPuppeteerBridge', 'clickSwitchAccount() listXpath()')
+
+    //   try {
+    //     const nodeHandleList = await (thePage as any).evaluateHandle(xpathInner => {
+    //       const nodeList: Node[] = []
+    //       const query = document.evaluate(xpathInner, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
+    //       for (let i = 0, length = query.snapshotLength; i < length; ++i) {
+    //         nodeList.push(query.snapshotItem(i))
+    //       }
+    //       return nodeList
+    //     }, xpath)
+    //     const properties = await nodeHandleList.getProperties()
+
+    //     const elementHandleList:  ElementHandle[] = []
+    //     const releasePromises:    Promise<void>[] = []
+
+    //     for (const property of properties.values()) {
+    //       const element = property.asElement()
+    //       if (element)
+    //         elementHandleList.push(element)
+    //       else
+    //         releasePromises.push(property.dispose())
+    //     }
+    //     await Promise.all(releasePromises)
+    //     return elementHandleList
+    //   } catch (e) {
+    //     log.verbose('PuppetPuppeteerBridge', 'clickSwitchAccount() listXpath() exception: %s', e)
+    //     return []
+    //   }
+    // }
+
     // TODO: use page.$x() (with puppeteer v1.1 or above) to replace DIY version of listXpath() instead.
     // See: https://github.com/GoogleChrome/puppeteer/blob/v1.1.0/docs/api.md#pagexexpression
 
-    // https://github.com/GoogleChrome/puppeteer/issues/537#issuecomment-334918553
-    async function listXpath(thePage: Page, xpath: string): Promise<ElementHandle[]> {
-      log.verbose('PuppetPuppeteerBridge', 'clickSwitchAccount() listXpath()')
-
-      try {
-        const nodeHandleList = await (thePage as any).evaluateHandle(xpathInner => {
-          const nodeList: Node[] = []
-          const query = document.evaluate(xpathInner, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null)
-          for (let i = 0, length = query.snapshotLength; i < length; ++i) {
-            nodeList.push(query.snapshotItem(i))
-          }
-          return nodeList
-        }, xpath)
-        const properties = await nodeHandleList.getProperties()
-
-        const elementHandleList:  ElementHandle[] = []
-        const releasePromises:    Promise<void>[] = []
-
-        for (const property of properties.values()) {
-          const element = property.asElement()
-          if (element)
-            elementHandleList.push(element)
-          else
-            releasePromises.push(property.dispose())
-        }
-        await Promise.all(releasePromises)
-        return elementHandleList
-      } catch (e) {
-        log.verbose('PuppetPuppeteerBridge', 'clickSwitchAccount() listXpath() exception: %s', e)
-        return []
-      }
-    }
-
     const XPATH_SELECTOR = `//div[contains(@class,'association') and contains(@class,'show')]/a[@ng-click='qrcodeLogin()']`
     try {
-      const [button] = await listXpath(page, XPATH_SELECTOR)
+      // const [button] = await listXpath(page, XPATH_SELECTOR)
+      const [button] = await page.$x(XPATH_SELECTOR)
       if (button) {
         await button.click()
         log.silly('PuppetPuppeteerBridge', 'clickSwitchAccount() clicked!')
         return true
 
       } else {
-        // log.silly('PuppetPuppeteerBridge', 'clickSwitchAccount() button not found')
+        log.silly('PuppetPuppeteerBridge', 'clickSwitchAccount() button not found')
         return false
       }
 
@@ -874,7 +891,7 @@ export class Bridge extends EventEmitter {
     }
 
     let url
-    if (/^http/.test(url)) {
+    if (/^http/.test(domain)) {
       url = domain
     } else {
       // Protocol error (Page.navigate): Cannot navigate to invalid URL undefined

@@ -87,7 +87,7 @@ async function saveMediaFile(message: Message) {
     const netStream = await message.readyStream()
     netStream
       .pipe(fileStream)
-      .on('close', _ => {
+      .on('close', () => {
         const stat = statSync(filename)
         console.log('finish readyStream() for ', filename, ' size: ', stat.size)
       })

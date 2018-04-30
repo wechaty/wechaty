@@ -20,10 +20,6 @@
 
 import PuppetAccessory  from '../puppet-accessory'
 
-import {
-  // config,
-  // log,
-}                       from './config'
 import Contact          from './contact'
 
 /**
