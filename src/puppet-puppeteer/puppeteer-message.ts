@@ -39,8 +39,8 @@ import PuppeteerRoom    from './puppeteer-room'
 
 import {
   AppMsgType,
-  MsgObj,
-  MsgRawObj,
+  MsgPayload,
+  MsgRawPayload,
   MsgType,
 }                 from './schema'
 
@@ -66,8 +66,8 @@ export class PuppeteerMessage extends Message {
   /**
    * @private
    */
-  public obj:     MsgObj
-  public rawObj?: MsgRawObj
+  public obj:     MsgPayload
+  public rawObj?: MsgRawPayload
 
   private parsedPath?:  ParsedPath
 
@@ -75,12 +75,12 @@ export class PuppeteerMessage extends Message {
    * @private
    */
   constructor(
-    fileOrObj?: string | MsgRawObj,
+    fileOrObj?: string | MsgRawPayload,
   ) {
     super()
     log.silly('PuppeteerMessage', 'constructor()')
 
-    this.obj    = {} as MsgObj
+    this.obj    = {} as MsgPayload
     // this.rawObj = {} as MsgRawObj
 
     if (!fileOrObj) {
@@ -102,8 +102,8 @@ export class PuppeteerMessage extends Message {
    * @private
    */
   // Transform rawObj to local obj
-  private parse(rawObj: MsgRawObj): MsgObj {
-    const obj: MsgObj = {
+  private parse(rawObj: MsgRawPayload): MsgPayload {
+    const obj: MsgPayload = {
       id:           rawObj.MsgId,
       type:         rawObj.MsgType,
       from:         rawObj.MMActualSender, // MMPeerUserName
@@ -675,7 +675,7 @@ export class PuppeteerMessage extends Message {
    */
   public dump() {
     console.error('======= dump message =======')
-    Object.keys(this.obj!).forEach((k: keyof MsgObj) => console.error(`${k}: ${this.obj![k]}`))
+    Object.keys(this.obj!).forEach((k: keyof MsgPayload) => console.error(`${k}: ${this.obj![k]}`))
   }
 
   /**
@@ -686,14 +686,14 @@ export class PuppeteerMessage extends Message {
     if (!this.rawObj) {
       throw new Error('no this.rawObj')
     }
-    Object.keys(this.rawObj).forEach((k: keyof MsgRawObj) => console.error(`${k}: ${this.rawObj && this.rawObj[k]}`))
+    Object.keys(this.rawObj).forEach((k: keyof MsgRawPayload) => console.error(`${k}: ${this.rawObj && this.rawObj[k]}`))
   }
 
   /**
    * @todo add function
    */
   public static async find(query: any) {
-    return Promise.resolve(new PuppeteerMessage(<MsgRawObj>{MsgId: '-1'}))
+    return Promise.resolve(new PuppeteerMessage(<MsgRawPayload>{MsgId: '-1'}))
   }
 
   /**
@@ -701,8 +701,8 @@ export class PuppeteerMessage extends Message {
    */
   public static async findAll(query: any) {
     return Promise.resolve([
-      new PuppeteerMessage   (<MsgRawObj>{MsgId: '-2'}),
-      new PuppeteerMessage (<MsgRawObj>{MsgId: '-3'}),
+      new PuppeteerMessage   (<MsgRawPayload>{MsgId: '-2'}),
+      new PuppeteerMessage (<MsgRawPayload>{MsgId: '-3'}),
     ])
   }
 

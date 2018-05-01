@@ -16,7 +16,7 @@
  *   limitations under the License.
  *
  */
-export interface MediaData {
+export interface MsgMediaPayload {
   ToUserName: string,
   MsgType:    number,
   MediaId:    string,
@@ -28,7 +28,7 @@ export interface MediaData {
   Signature?: string,
 }
 
-export interface MsgRawObj {
+export interface MsgRawPayload {
   MsgId:            string,
 
   MMActualSender:   string, // getUserContact(message.MMActualSender,message.MMPeerUserName).isContact()
@@ -127,7 +127,7 @@ export interface MsgRawObj {
    * MsgType == CONF.MSGTYPE_SHARECARD" ng-click="showProfile($event,message.RecommendInfo.UserName)
    * MsgType == CONF.MSGTYPE_VERIFYMSG
    */
-  RecommendInfo?:   RecommendInfo,
+  RecommendInfo?:   RecommendPayload,
 
   /**
    * Transpond Message
@@ -141,7 +141,7 @@ export interface MsgRawObj {
 
 }
 
-export interface MsgObj {
+export interface MsgPayload {
   id:       string,
   type:     MsgType,
   from:     string,
@@ -161,7 +161,7 @@ export interface MsgObj {
 
 // export type MessageTypeValue = 1 | 3 | 34 | 37 | 40 | 42 | 43 | 47 | 48 | 49 | 50 | 51 | 52 | 53 | 62 | 9999 | 10000 | 10002
 
-export interface MsgTypeMap {
+export interface MsgTypeDict {
   [index: string]: string|number,
   //   MessageTypeName:  MessageTypeValue
   // , MessageTypeValue: MessageTypeName
@@ -257,7 +257,7 @@ export enum MsgType {
 /**
  * from Message
  */
-export interface RecommendInfo {
+export interface RecommendPayload {
   UserName:   string,
   NickName:   string,  // display_name
   Content:    string,  // request message

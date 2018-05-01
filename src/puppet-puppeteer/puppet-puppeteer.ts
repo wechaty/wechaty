@@ -50,8 +50,8 @@ import {
 import Event            from './event'
 
 import {
-  MediaData,
-  MsgRawObj,
+  MsgMediaPayload,
+  MsgRawPayload,
   MediaType,
   MsgType,
 }                           from './schema'
@@ -320,7 +320,7 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  private async uploadMedia(message: PuppeteerMessage, toUserName: string): Promise<MediaData> {
+  private async uploadMedia(message: PuppeteerMessage, toUserName: string): Promise<MsgMediaPayload> {
     if (message.type() === PuppeteerMessage.Type.TEXT) {
       throw new Error('require a Media Message')
     }
@@ -426,7 +426,7 @@ export class PuppetPuppeteer extends Puppet {
       FileSize:   size,
       FileMd5:    md5,
       MMFileExt:  ext,
-    } as MediaData
+    } as MsgMediaPayload
 
     // If file size > 25M, must first call checkUpload to get Signature and AESKey, otherwise it will fail to upload
     // https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L1132 #1182
@@ -556,8 +556,8 @@ export class PuppetPuppeteer extends Puppet {
       destinationId = to.id
     }
 
-    let mediaData: MediaData
-    const rawObj = message.rawObj || {} as MsgRawObj
+    let mediaData: MsgMediaPayload
+    const rawObj = message.rawObj || {} as MsgRawPayload
 
     if (!rawObj || !rawObj.MediaId) {
       try {
@@ -607,7 +607,10 @@ export class PuppetPuppeteer extends Puppet {
    * TODO: Test this function if it could work...
    */
   // public async forward(baseData: MsgRawObj, patchData: MsgRawObj): Promise<boolean> {
-  public async forward(message: PuppeteerMessage, sendTo: PuppeteerContact | PuppeteerRoom): Promise<void> {
+  public async forward(
+    message: PuppeteerMessage,
+    sendTo: PuppeteerContact | PuppeteerRoom,
+  ): Promise<void> {
 
     log.silly('PuppetPuppeteer', 'forward() to: %s, message: %s)',
       sendTo, message.filename(),
@@ -620,7 +623,7 @@ export class PuppetPuppeteer extends Puppet {
     }
 
     let m = Object.assign({}, message.rawObj)
-    const newMsg = <MsgRawObj>{}
+    const newMsg = <MsgRawPayload>{}
     const largeFileSize = 25 * 1024 * 1024
     // let ret = false
     // if you know roomId or userId, you can use `Room.load(roomId)` or `Contact.load(userId)`
@@ -736,11 +739,6 @@ export class PuppetPuppeteer extends Puppet {
       return
     }
 
-    // const m = new Message()
-    // m.to('filehelper')
-    // m.text(content)
-
-    // return await this.send(m)
     return await this.user.say(text)
   }
 

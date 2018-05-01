@@ -39,8 +39,8 @@ import Profile        from '../profile'
 import Misc           from '../misc'
 
 import {
-  MediaData,
-  MsgRawObj,
+  MsgMediaPayload,
+  MsgRawPayload,
 }                                 from './schema'
 import { PuppeteerContactRawObj } from './puppeteer-contact'
 
@@ -595,7 +595,7 @@ export class Bridge extends EventEmitter {
     }
   }
 
-  public async sendMedia(mediaData: MediaData): Promise<boolean> {
+  public async sendMedia(mediaData: MsgMediaPayload): Promise<boolean> {
     log.verbose('PuppetPuppeteerBridge', 'sendMedia(mediaData)')
 
     if (!mediaData.ToUserName) {
@@ -612,7 +612,7 @@ export class Bridge extends EventEmitter {
     }
   }
 
-  public async forward(baseData: MsgRawObj, patchData: MsgRawObj): Promise<boolean> {
+  public async forward(baseData: MsgRawPayload, patchData: MsgRawPayload): Promise<boolean> {
     log.verbose('PuppetPuppeteerBridge', 'forward()')
 
     if (!baseData.ToUserName) {
