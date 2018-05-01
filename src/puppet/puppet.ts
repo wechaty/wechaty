@@ -85,6 +85,7 @@ export interface PuppetClasses {
 export interface PuppetOptions {
   profile: Profile,
   wechaty: Wechaty,
+  executablePath?: string
 }
 
 /**

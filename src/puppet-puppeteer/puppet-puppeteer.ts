@@ -265,10 +265,12 @@ export class PuppetPuppeteer extends Puppet {
     }
 
     const head = config.head
+    const executablePath = this.options.executablePath;
     // we have to set this.bridge right now,
     // because the Event.onXXX might arrive while we are initializing.
     this.bridge = new Bridge({
       head,
+      executablePath,
       profile,
     })
 
