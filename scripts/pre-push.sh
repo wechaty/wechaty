@@ -50,7 +50,7 @@ _STR_
 }
 
 # must run this after the above `test` ([ -z ...]),
-# or will whow a error: error: failed to push some refs to 'git@github.com:wechaty/wechaty.git'
+# or will whow a error: error: failed to push some refs to 'git@github.com:Chatie/wechaty.git'
 echo "PRE-PUSH HOOK PASSED"
 echo
 

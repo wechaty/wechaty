@@ -34,7 +34,7 @@ import {
 
 const welcome = `
 =============== Powered by Wechaty ===============
--------- https://github.com/wechaty/wechaty --------
+-------- https://github.com/Chatie/wechaty --------
 
 Hello,
 

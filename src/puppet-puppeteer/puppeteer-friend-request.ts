@@ -18,7 +18,7 @@
  */
 
 /**
- * request/accept: https://github.com/wechaty/wechaty/issues/33
+ * request/accept: https://github.com/Chatie/wechaty/issues/33
  *
  * 1. send request
  * 2. receive request(in friend event)
@@ -38,7 +38,7 @@ import {
 }                     from '../puppet/'
 
 import {
-  RecommendInfo,
+  RecommendPayload,
 }                       from './schema'
 import PuppeteerContact from './puppeteer-contact'
 
@@ -47,7 +47,7 @@ import PuppeteerContact from './puppeteer-contact'
  */
 export class PuppeteerFriendRequest extends FriendRequest {
 
-  public info: RecommendInfo
+  public payload: RecommendPayload
 
   private ticket: string
 
@@ -56,20 +56,20 @@ export class PuppeteerFriendRequest extends FriendRequest {
     super()
   }
 
-  public receive(info: RecommendInfo): void {
-    log.verbose('PuppeteerFriendRequest', 'receive(%s)', info)
+  public receive(payload: RecommendPayload): void {
+    log.verbose('PuppeteerFriendRequest', 'receive(%s)', payload)
 
-    if (!info || !info.UserName) {
-      throw new Error('not valid RecommendInfo: ' + info)
+    if (!payload || !payload.UserName) {
+      throw new Error('not valid RecommendInfo: ' + payload)
     }
-    this.info       = info
+    this.payload    = payload
 
-    const contact   = PuppeteerContact.load(info.UserName)
+    const contact   = PuppeteerContact.load(payload.UserName)
     contact.puppet  = this.puppet
 
     this.contact    = contact
-    this.hello      = info.Content
-    this.ticket     = info.Ticket
+    this.hello      = payload.Content
+    this.ticket     = payload.Ticket
     // ??? this.nick = info.NickName
 
     if (!this.ticket) {

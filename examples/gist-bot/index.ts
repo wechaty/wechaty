@@ -34,7 +34,7 @@ import { onRoomJoin } from './on-room-join'
 
 const welcome = `
 =============== Powered by Wechaty ===============
--------- https://github.com/wechaty/wechaty --------
+-------- https://github.com/Chatie/wechaty --------
 
 Please wait... I'm trying to login in...
 

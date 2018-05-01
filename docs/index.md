@@ -82,7 +82,7 @@ console.log(Wechaty.instance().version(true))   // return '0.7.9'
 **Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
 **Returns**: [<code>Wechaty</code>](#Wechaty) - - this for chain
 
-More Example Gist: [Examples/Friend-Bot](https://github.com/wechaty/wechaty/blob/master/examples/friend-bot.ts)  
+More Example Gist: [Examples/Friend-Bot](https://github.com/Chatie/wechaty/blob/master/examples/friend-bot.ts)  
 
 | Param | Type | Description |
 | --- | --- | --- |

@@ -62,7 +62,7 @@ import {
 
 const welcome = `
 =============== Powered by Wechaty ===============
--------- https://github.com/wechaty/wechaty --------
+-------- https://github.com/Chatie/wechaty --------
 
 Hello,
 
@@ -303,11 +303,9 @@ async function checkRoomJoin(room: Room, inviteeList: Contact[], inviter: Contac
 
   try {
     // let to, content
-    const user = bot.userSelf()
-    if (!user) {
-      throw new Error('no user')
-    }
-    if (inviter.id !== user.id) {
+    const userSelf = bot.userSelf()
+
+    if (inviter.id !== userSelf.id) {
 
       await room.say('RULE1: Invitation is limited to me, the owner only. Please do not invit people without notify me.',
                       inviter,
@@ -366,7 +364,7 @@ function getHelperContact() {
   log.info('Bot', 'getHelperContact()')
 
   // create a new room at least need 3 contacts
-  return Contact.find({ name: HELPER_CONTACT_NAME })
+  return bot.Contact.find({ name: HELPER_CONTACT_NAME })
 }
 
 async function createDingRoom(contact: Contact): Promise<any> {
@@ -385,7 +383,7 @@ async function createDingRoom(contact: Contact): Promise<any> {
     const contactList = [contact, helperContact]
     log.verbose('Bot', 'contactList: %s', contactList.join(','))
 
-    const room = await Room.create(contactList, 'ding')
+    const room = await bot.Room.create(contactList, 'ding')
     log.info('Bot', 'createDingRoom() new ding room created: %s', room)
 
     await room.topic('ding - created')
