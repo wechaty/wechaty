@@ -198,7 +198,7 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
    * const contact = await Contact.find({name: 'lijiarui'})         // change 'lijiarui' to any of your contact name in wechat
    * try {
    *   await contact.say('welcome to wechaty!')
-   *   await contact.say(new Message(__dirname + '/wechaty.png') // put the filePath you want to send here
+   *   await contact.say(bot.Message.create(__dirname + '/wechaty.png') // put the filePath you want to send here
    * } catch (e) {
    *   console.error(e)
    * }
