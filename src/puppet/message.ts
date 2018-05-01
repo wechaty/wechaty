@@ -67,6 +67,13 @@ export abstract class Message extends PuppetAccessory implements Sayable {
     ]
   }
 
+  public static create<T extends Message>(
+    this: { new (...args: any[]): T },
+    ...args: any[],
+  ): T {
+    return new this(...args)
+  }
+
   /**
    * @private
    */
@@ -190,7 +197,7 @@ export abstract class Message extends PuppetAccessory implements Sayable {
    *   if (/^ding$/i.test(m.text())) {
    *     await m.say('hello world')
    *     console.log('Bot REPLY: hello world')
-   *     await m.say(new Message(__dirname + '/wechaty.png'))
+   *     await m.say(new bot.Message.create(__dirname + '/wechaty.png'))
    *     console.log('Bot REPLY: Image')
    *   }
    * })

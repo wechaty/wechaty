@@ -22,7 +22,7 @@ import * as os      from 'os'
 import * as semver  from 'semver'
 
 import {
-  Constructor,
+  // Constructor,
   cloneClass,
   instanceToClass,
 }                   from 'clone-class'
@@ -113,13 +113,14 @@ export class Wechaty extends PuppetAccessory implements Sayable {
   public readonly cuid:        string
 
   // tslint:disable-next-line:variable-name
-  public Contact        : typeof Contact        & Constructor<{}>
+  public Contact        : typeof Contact //       & Constructor<{}>
   // tslint:disable-next-line:variable-name
-  public FriendRequest  : typeof FriendRequest  & Constructor<{}>
+  public FriendRequest  : typeof FriendRequest // & Constructor<{}>
   // tslint:disable-next-line:variable-name
-  public Message        : typeof Message        & Constructor<{}>
+  public Message        : typeof Message //       & Constructor<{}>
   // tslint:disable-next-line:variable-name
-  public Room           : typeof Room           & Constructor<{}>
+  public Room           : typeof Room //           & Constructor<{}>
+  // public Room           : typeof Room           & Constructor<{}>
 
   /**
    * get the singleton instance of Wechaty
@@ -259,7 +260,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
    * @param   {WechatyEventFunction}  listener   - Depends on the WechatyEvent
    * @return  {Wechaty}                          - this for chain
    *
-   * More Example Gist: [Examples/Friend-Bot]{@link https://github.com/wechaty/wechaty/blob/master/examples/friend-bot.ts}
+   * More Example Gist: [Examples/Friend-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/friend-bot.ts}
    *
    * @example <caption>Event:scan </caption>
    * wechaty.on('scan', (url: string, code: number) => {
