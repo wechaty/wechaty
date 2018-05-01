@@ -18,7 +18,6 @@
  *   @ignore
  */
 import {
-  // config,
   Sayable,
   log,
 }                       from '../config'
@@ -28,7 +27,6 @@ import {
   Gender,
 }                       from '../puppet/'
 
-// import PuppetMock        from './puppet-mock'
 import MockMessage       from './mock-message'
 
 export class MockContact extends Contact implements Sayable {
@@ -113,7 +111,8 @@ export class MockContact extends Contact implements Sayable {
   }
 
   public self(): boolean {
-    return false
+    const userSelf = this.puppet.userSelf()
+    return userSelf.id === this.id
   }
 
   public weixin(): string | null {

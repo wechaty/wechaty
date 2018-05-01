@@ -29,7 +29,11 @@ import {
   // Room,
 }                 from '../../src/'
 
-export async function onFriend(this: Wechaty, contact: Contact, request?: FriendRequest): Promise<void> {
+export async function onFriend(
+  this:     Wechaty,
+  contact:  Contact,
+  request?: FriendRequest,
+): Promise<void> {
   try {
     if (!request) {
       console.log('New friend ' + contact.name() + ' relationship confirmed!')

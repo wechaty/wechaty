@@ -27,7 +27,7 @@ const qrcodeTerminal = require('qrcode-terminal')
  */
 import { Wechaty } from '../src/'
 
-const bot = Wechaty.instance(/* no profile here because roger bot is too noisy */)
+const bot = Wechaty.instance()
 
 bot
 .on('scan', (url, code) => {
@@ -41,7 +41,7 @@ bot
   if (m.self()) {
     return // skip self
   }
-  await m.say('roger')                            // 1. reply others' msg
+  await m.say('roger')                      // 1. reply others' msg
   console.log(`RECV: ${m}, REPLY: "roger"`) // 2. log message
 })
 .start()

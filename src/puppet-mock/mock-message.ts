@@ -37,6 +37,36 @@ import {
 export type ParsedPath = Partial<path.ParsedPath>
 
 export class MockMessage extends Message {
+
+  /**
+   * Static Methods
+   */
+
+  public static async find(query: any): Promise<MockMessage | null> {
+    const messageList = await this.findAll(query)
+
+    if (messageList.length <= 0) {
+      return null
+    }
+
+    if (messageList.length > 1) {
+      log.warn('MockMessage', 'find() return multiple results, return the first one.')
+    }
+
+    return messageList[0]
+  }
+
+  public static async findAll(query: any): Promise<MockMessage[]> {
+    return Promise.resolve([
+      new MockMessage({MsgId: '-2'}),
+      new MockMessage({MsgId: '-3'}),
+    ])
+  }
+
+  /**
+   * Instance Properties & Methods
+   */
+
   public readonly id: string
 
   constructor(
@@ -46,15 +76,16 @@ export class MockMessage extends Message {
     log.silly('MockMessage', 'constructor()')
   }
 
-  public from(contact: MockContact): this
-  public from(): MockContact
+  public from(contact: MockContact) : this
+  public from()                     : MockContact
+
   public from(contact?: MockContact): this | MockContact {
     if (contact) {
       // set from to contact...
       return this
     }
 
-    const loadedContact = MockContact.load('mockid') as MockContact
+    const loadedContact = MockContact.load('mockid')
     loadedContact.puppet = this.puppet
 
     return loadedContact
@@ -94,13 +125,7 @@ export class MockMessage extends Message {
   }
 
   public self(): boolean {
-    const user = this.puppet.userSelf()
-
-    if (!user) {
-      return false
-    }
-
-    const userId = user.id
+    const userId = this.puppet.userSelf().id
     const fromId = this.from().id
 
     return fromId === userId
@@ -119,17 +144,6 @@ export class MockMessage extends Message {
   public async readyMedia(): Promise<this> {
     log.silly('MockMessage', 'readyMedia()')
     return this
-  }
-
-  public static async find(query: any) {
-    return Promise.resolve(new MockMessage({MsgId: '-1'}))
-  }
-
-  public static async findAll(query: any) {
-    return Promise.resolve([
-      new MockMessage({MsgId: '-2'}),
-      new MockMessage({MsgId: '-3'}),
-    ])
   }
 
   public to(contact: MockContact): this

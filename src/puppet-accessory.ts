@@ -17,7 +17,7 @@ export abstract class PuppetAccessory extends EventEmitter {
   private         [PUPPET_ACCESSORY_NAME]: string
 
   /**
-   * 1. Static puppet property
+   * 1. Static Property & Methods
    */
   private static _puppet?: Puppet
 
@@ -42,17 +42,7 @@ export abstract class PuppetAccessory extends EventEmitter {
   }
 
   /**
-   * 2. constructor
-   */
-  constructor(
-    name?: string,
-  ) {
-    super()
-    this[PUPPET_ACCESSORY_NAME] = name || this.constructor.name
-  }
-
-  /**
-   * 3. Instance puppet property
+   * 2. Instance Properties & Methods
    */
   private _puppet?: Puppet
 
@@ -75,6 +65,20 @@ export abstract class PuppetAccessory extends EventEmitter {
      */
     return instanceToClass(this, PuppetAccessory).puppet
   }
+
+  constructor(
+    name?: string,
+  ) {
+    super()
+
+    this[PUPPET_ACCESSORY_NAME] = name || this.constructor.name
+
+    log.verbose('PuppetAccessory', '<%s> constructor(%s)',
+                                    this[PUPPET_ACCESSORY_NAME],
+                                    name,
+                )
+  }
+
 }
 
 export default PuppetAccessory
