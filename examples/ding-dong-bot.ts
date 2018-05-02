@@ -100,7 +100,7 @@ bot
       /**
        * 2. reply qrcode image
        */
-      const imageMessage = bot.Message.create(BOT_QR_CODE_IMAGE_FILE)
+      const imageMessage = new bot.Message(BOT_QR_CODE_IMAGE_FILE)
       log.info('Bot', 'REPLY: %s', imageMessage)
       await m.say(imageMessage)
 

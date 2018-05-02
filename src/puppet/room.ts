@@ -128,6 +128,7 @@ export abstract class Room extends PuppetAccessory implements Sayable {
    * @param {RoomQueryFilter} query
    * @returns {Promise<Room | null>} If can find the room, return Room, or return null
    */
+
   public static async find<T extends typeof Room>(
     this  : T,
     query : RoomQueryFilter,
