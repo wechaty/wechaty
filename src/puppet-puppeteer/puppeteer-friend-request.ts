@@ -35,6 +35,7 @@ import {
 }                     from '../config'
 import {
   FriendRequest,
+  FriendRequestType,
 }                     from '../puppet/'
 
 import {
@@ -50,6 +51,9 @@ export class PuppeteerFriendRequest extends FriendRequest {
   public payload: RecommendPayload
 
   private ticket: string
+  private _contact: PuppeteerContact
+  private _hello: string
+  private _type: FriendRequestType
 
   constructor() {
     log.verbose('PuppeteerFriendRequest', 'constructor()')
@@ -67,8 +71,8 @@ export class PuppeteerFriendRequest extends FriendRequest {
     const contact   = PuppeteerContact.load(payload.UserName)
     contact.puppet  = this.puppet
 
-    this.contact    = contact
-    this.hello      = payload.Content
+    this._contact    = contact
+    this._hello      = payload.Content
     this.ticket     = payload.Ticket
     // ??? this.nick = info.NickName
 
@@ -76,7 +80,7 @@ export class PuppeteerFriendRequest extends FriendRequest {
       throw new Error('ticket not found')
     }
 
-    this.type = 'receive'
+    this._type = FriendRequestType.RECEIVE
 
     return
   }
@@ -87,8 +91,8 @@ export class PuppeteerFriendRequest extends FriendRequest {
     if (!contact) {
       throw new Error('contact not found')
     }
-    this.contact  = contact
-    this.type     = 'confirm'
+    this._contact  = contact
+    this._type     = FriendRequestType.CONFIRM
   }
 
   /**
@@ -107,11 +111,11 @@ export class PuppeteerFriendRequest extends FriendRequest {
     if (!contact) {
       throw new Error('contact not found')
     }
-    this.contact  = contact
-    this.type     = 'send'
+    this._contact  = contact
+    this._type     = FriendRequestType.SEND
 
     if (hello) {
-      this.hello = hello
+      this._hello = hello
     }
 
     await this.puppet.friendRequestSend(contact, hello)
@@ -125,11 +129,11 @@ export class PuppeteerFriendRequest extends FriendRequest {
   public async accept(): Promise<void> {
     log.verbose('FriendRequest', 'accept() %s', this.contact)
 
-    if (this.type !== 'receive') {
+    if (this._type !== FriendRequestType.RECEIVE) {
       throw new Error('request is not a `receive` type. it is a ' + this.type + ' type')
     }
 
-    await this.puppet.friendRequestAccept(this.contact, this.ticket)
+    await this.puppet.friendRequestAccept(this.contact(), this.ticket)
 
     const max = 20
     const backoff = 300
@@ -143,10 +147,10 @@ export class PuppeteerFriendRequest extends FriendRequest {
     await retryPromise({ max: max, backoff: backoff }, async (attempt: number) => {
       log.silly('PuppeteerFriendRequest', 'accept() retryPromise() attempt %d with timeout %d', attempt, timeout)
 
-      await this.contact.ready()
+      await this.contact().ready()
 
-      if ((this.contact as PuppeteerContact).isReady()) {
-        log.verbose('PuppeteerFriendRequest', 'accept() with contact %s ready()', this.contact.name())
+      if (this.contact().isReady()) {
+        log.verbose('PuppeteerFriendRequest', 'accept() with contact %s ready()', this.contact().name())
         return
       }
       throw new Error('FriendRequest.accept() content.ready() not ready')
@@ -157,6 +161,22 @@ export class PuppeteerFriendRequest extends FriendRequest {
 
   }
 
+  public hello(): string {
+    return this._hello
+  }
+
+  public contact(): PuppeteerContact {
+    return this._contact
+  }
+
+  public async reject(): Promise<void> {
+    log.warn('PuppeteerFriendRequest', 'reject() not necessary, NOP.')
+    return
+  }
+
+  public type(): FriendRequestType {
+    return this._type
+  }
 }
 
 export default PuppeteerFriendRequest

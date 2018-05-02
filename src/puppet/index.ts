@@ -5,6 +5,7 @@ export {
 }                         from './contact'
 export {
   FriendRequest,
+  FriendRequestType,
 }                         from './friend-request'
 export {
   Message,

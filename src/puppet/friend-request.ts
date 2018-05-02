@@ -22,6 +22,12 @@ import PuppetAccessory  from '../puppet-accessory'
 
 import Contact          from './contact'
 
+export enum FriendRequestType {
+  SEND,
+  RECEIVE,
+  CONFIRM,
+}
+
 /**
  * Send, receive friend request, and friend confirmation events.
  *
@@ -33,13 +39,14 @@ import Contact          from './contact'
  */
 export abstract class FriendRequest extends PuppetAccessory {
 
-  // TODO: hide all the belowing properties
-  public contact: Contact
-  public hello: string
-  public type: 'send' | 'receive' | 'confirm'
-
   public abstract send(contact: Contact, hello: string): Promise<void>
+
   public abstract accept(): Promise<void>
+  public abstract reject(): Promise<void>
+
+  public abstract contact() : Contact
+  public abstract hello()   : string
+  public abstract type()    : FriendRequestType
 
 }
 

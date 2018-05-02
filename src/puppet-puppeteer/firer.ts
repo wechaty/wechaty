@@ -104,12 +104,12 @@ const regexConfig = {
 
 async function checkFriendRequest(
   this: PuppetPuppeteer,
-  m: PuppeteerMessage,
+  msg:  PuppeteerMessage,
 ) {
-  if (!m.rawObj) {
+  if (!msg.rawObj) {
     throw new Error('message empty')
   }
-  const info = m.rawObj.RecommendInfo
+  const info = msg.rawObj.RecommendInfo
   log.verbose('PuppetPuppeteerFirer', 'fireFriendRequest(%s)', info)
 
   if (!info) {
@@ -117,16 +117,16 @@ async function checkFriendRequest(
   }
 
   const request = new PuppeteerFriendRequest()
-  request.puppet = m.puppet
+  request.puppet = msg.puppet
 
   request.receive(info)
 
-  await request.contact.ready()
-  if (!request.contact.isReady()) {
+  await request.contact().ready()
+  if (!request.contact().isReady()) {
     log.warn('PuppetPuppeteerFirer', 'fireFriendConfirm() contact still not ready after `ready()` call')
   }
 
-  this.emit('friend', request.contact, request)
+  this.emit('friend', request.contact(), request)
 }
 
 /**
