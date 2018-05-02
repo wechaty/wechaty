@@ -30,7 +30,9 @@ import * as test  from 'blue-tape'
 import { PuppetPuppeteer }  from './puppet-puppeteer'
 import { Firer }            from './firer'
 
-const mockPuppetPuppeteer = {} as PuppetPuppeteer
+const mockPuppetPuppeteer = {
+  userSelf: () => ({}),
+} as any as PuppetPuppeteer
 
 test('parseFriendConfirm()', async t => {
   const contentList = [

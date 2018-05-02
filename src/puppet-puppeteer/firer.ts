@@ -208,16 +208,16 @@ function parseRoomJoin(
 
 async function checkRoomJoin(
   this: PuppetPuppeteer,
-  m: PuppeteerMessage,
+  msg:  PuppeteerMessage,
 ): Promise<boolean> {
 
-  const room = m.room()
+  const room = msg.room()
   if (!room) {
     log.warn('PuppetPuppeteerFirer', 'fireRoomJoin() `room` not found')
     return false
   }
 
-  const text = m.text()
+  const text = msg.text()
 
   let inviteeList: string[], inviter: string
   try {
