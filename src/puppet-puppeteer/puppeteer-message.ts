@@ -75,7 +75,7 @@ export class PuppeteerMessage extends Message {
    * @private
    */
   constructor(
-    fileOrObj?: string | MsgRawPayload,
+    fileOrPayload?: string | MsgRawPayload,
   ) {
     super()
     log.silly('PuppeteerMessage', 'constructor()')
@@ -83,14 +83,14 @@ export class PuppeteerMessage extends Message {
     this.obj    = {} as MsgPayload
     // this.rawObj = {} as MsgRawObj
 
-    if (!fileOrObj) {
+    if (!fileOrPayload) {
       return
     }
 
-    if (typeof fileOrObj === 'string') {
-      this.parsedPath = path.parse(fileOrObj)
-    } else if (typeof fileOrObj === 'object') {
-      this.rawObj = fileOrObj
+    if (typeof fileOrPayload === 'string') {
+      this.parsedPath = path.parse(fileOrPayload)
+    } else if (typeof fileOrPayload === 'object') {
+      this.rawObj = fileOrPayload
       this.obj = this.parse(this.rawObj)
       this.id = this.obj.id
     } else {
@@ -506,7 +506,7 @@ export class PuppeteerMessage extends Message {
     )
 
     if (contactList.length === 0) {
-      log.warn(`Message`, `message.mentioned() can not found member using room.member() from mentionList, metion string: ${JSON.stringify(mentionList)}`)
+      log.warn('PuppeteerMessage', `message.mentioned() can not found member using room.member() from mentionList, metion string: ${JSON.stringify(mentionList)}`)
     }
     return contactList
   }

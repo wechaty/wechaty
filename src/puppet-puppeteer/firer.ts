@@ -102,7 +102,10 @@ const regexConfig = {
   ],
 }
 
-async function checkFriendRequest(m: PuppeteerMessage) {
+async function checkFriendRequest(
+  this: PuppetPuppeteer,
+  m: PuppeteerMessage,
+) {
   if (!m.rawObj) {
     throw new Error('message empty')
   }
@@ -129,7 +132,10 @@ async function checkFriendRequest(m: PuppeteerMessage) {
 /**
  * try to find FriendRequest Confirmation Message
  */
-function parseFriendConfirm(content: string): boolean {
+function parseFriendConfirm(
+  this: PuppetPuppeteer,
+  content: string,
+): boolean {
   const reList = regexConfig.friendConfirm
   let found = false
 
@@ -141,11 +147,14 @@ function parseFriendConfirm(content: string): boolean {
   }
 }
 
-async function checkFriendConfirm(m: PuppeteerMessage) {
+async function checkFriendConfirm(
+  this: PuppetPuppeteer,
+  m: PuppeteerMessage,
+) {
   const content = m.text()
   log.silly('PuppetPuppeteerFirer', 'fireFriendConfirm(%s)', content)
 
-  if (!parseFriendConfirm(content)) {
+  if (!parseFriendConfirm.call(this, content)) {
     return
   }
   const request = new PuppeteerFriendRequest()
@@ -171,7 +180,10 @@ async function checkFriendConfirm(m: PuppeteerMessage) {
  *  管理员 invited 小桔建群助手 to the group chat
  *  管理员 invited 庆次、小桔妹 to the group chat
  */
-function parseRoomJoin(content: string): [string[], string] {
+function parseRoomJoin(
+  this: PuppetPuppeteer,
+  content: string,
+): [string[], string] {
   log.verbose('PuppetPuppeteerFirer', 'checkRoomJoin(%s)', content)
 
   const reListInvite = regexConfig.roomJoinInvite
@@ -194,7 +206,10 @@ function parseRoomJoin(content: string): [string[], string] {
   return [inviteeList, inviter] // put invitee at first place
 }
 
-async function checkRoomJoin(m: PuppeteerMessage): Promise<boolean> {
+async function checkRoomJoin(
+  this: PuppetPuppeteer,
+  m: PuppeteerMessage,
+): Promise<boolean> {
 
   const room = m.room()
   if (!room) {
@@ -206,7 +221,7 @@ async function checkRoomJoin(m: PuppeteerMessage): Promise<boolean> {
 
   let inviteeList: string[], inviter: string
   try {
-    [inviteeList, inviter] = parseRoomJoin(text)
+    [inviteeList, inviter] = parseRoomJoin.call(this, text)
   } catch (e) {
     log.silly('PuppetPuppeteerFirer', 'fireRoomJoin() "%s" is not a join message', text)
     return false // not a room join message
@@ -221,8 +236,7 @@ async function checkRoomJoin(m: PuppeteerMessage): Promise<boolean> {
 
   try {
     if (inviter === 'You' || inviter === '你' || inviter === 'you') {
-      inviterContact = PuppeteerContact.load(this.userId) as PuppeteerContact
-      inviterContact.puppet = m.puppet
+      inviterContact = this.userSelf()
     }
 
     const max = 20
@@ -321,7 +335,10 @@ async function checkRoomJoin(m: PuppeteerMessage): Promise<boolean> {
 
 }
 
-function parseRoomLeave(content: string): [string, string] {
+function parseRoomLeave(
+  this: PuppetPuppeteer,
+  content: string,
+): [string, string] {
   const reListByBot = regexConfig.roomLeaveByBot
   const reListByOther = regexConfig.roomLeaveByOther
   let foundByBot: string[]|null = []
@@ -331,7 +348,7 @@ function parseRoomLeave(content: string): [string, string] {
   if ((!foundByBot || !foundByBot.length) && (!foundByOther || !foundByOther.length)) {
     throw new Error('checkRoomLeave() no matched re for ' + content)
   }
-  const [leaver, remover] = foundByBot ? [ foundByBot[1], this.userId ] : [ this.userId, foundByOther[1] ]
+  const [leaver, remover] = foundByBot ? [ foundByBot[1], this.userSelf().id ] : [ this.userSelf().id, foundByOther[1] ]
   return [leaver, remover]
 }
 
@@ -346,7 +363,7 @@ async function checkRoomLeave(
 
   let leaver: string, remover: string
   try {
-    [leaver, remover] = parseRoomLeave(m.text())
+    [leaver, remover] = parseRoomLeave.call(this, m.text())
   } catch (e) {
     return false
   }
@@ -363,8 +380,7 @@ async function checkRoomLeave(
    */
   let leaverContact: PuppeteerContact | null, removerContact: PuppeteerContact | null
   if (leaver === this.userSelf().id) {
-    leaverContact = PuppeteerContact.load(this.userSelf().id)
-    leaverContact.puppet = m.puppet
+    leaverContact = this.userSelf()
 
     // not sure which is better
     // removerContact = room.member({contactAlias: remover}) || room.member({name: remover})
@@ -406,7 +422,10 @@ async function checkRoomLeave(
   return true
 }
 
-function parseRoomTopic(content: string): [string, string] {
+function parseRoomTopic(
+  this: PuppetPuppeteer,
+  content: string,
+): [string, string] {
   const reList = regexConfig.roomTopic
 
   let found: string[]|null = []
@@ -418,10 +437,12 @@ function parseRoomTopic(content: string): [string, string] {
   return [topic, changer]
 }
 
-async function checkRoomTopic(m: PuppeteerMessage): Promise<boolean> {
+async function checkRoomTopic(
+  this: PuppetPuppeteer,
+  m: PuppeteerMessage): Promise<boolean> {
   let  topic, changer
   try {
-    [topic, changer] = parseRoomTopic(m.text())
+    [topic, changer] = parseRoomTopic.call(this, m.text())
   } catch (e) { // not found
     return false
   }
@@ -436,7 +457,7 @@ async function checkRoomTopic(m: PuppeteerMessage): Promise<boolean> {
 
   let changerContact: PuppeteerContact | null
   if (/^You$/.test(changer) || /^你$/.test(changer)) {
-    changerContact = PuppeteerContact.load(this.userId) as PuppeteerContact
+    changerContact = this.userSelf()
     changerContact.puppet = m.puppet
   } else {
     changerContact = room.member(changer)

@@ -59,7 +59,10 @@ function onDing(
   this.emit('watchdog', { data })
 }
 
-async function onScan(this: PuppetPuppeteer, data: ScanData): Promise<void> {
+async function onScan(
+  this: PuppetPuppeteer,
+  data: ScanData,
+): Promise<void> {
   log.verbose('PuppetPuppeteerEvent', 'onScan({code: %d, url: %s})', data.code, data.url)
 
   if (this.state.off()) {
@@ -93,7 +96,11 @@ function onLog(data: any): void {
   log.silly('PuppetPuppeteerEvent', 'onLog(%s)', data)
 }
 
-async function onLogin(this: PuppetPuppeteer, note: string, ttl = 30): Promise<void> {
+async function onLogin(
+  this: PuppetPuppeteer,
+  note: string,
+  ttl = 30,
+): Promise<void> {
   log.verbose('PuppetPuppeteerEvent', 'onLogin(%s, %d)', note, ttl)
 
   const TTL_WAIT_MILLISECONDS = 1 * 1000
