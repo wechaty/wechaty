@@ -91,6 +91,7 @@ export class PuppetMock extends Puppet {
       await this.state.ready('off')
       return
     }
+
     this.state.off('pending')
     // await some tasks...
     this.state.off(true)
@@ -137,12 +138,6 @@ export class PuppetMock extends Puppet {
     }
 
     return await this.userSelf().say(text)
-  }
-
-  public async login(user: MockContact): Promise<void> {
-    log.verbose('PuppetMock', 'login(%s)', user)
-    this.user = user
-    this.emit('login', user)
   }
 
   public async logout(): Promise<void> {

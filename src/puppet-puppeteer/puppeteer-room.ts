@@ -101,7 +101,7 @@ export class PuppeteerRoom extends Room {
    * @private
    */
   public async ready(): Promise<Room> {
-    log.silly('PuppeteerRoom', 'ready(%s)')
+    log.silly('PuppeteerRoom', 'ready()')
     if (!this.id) {
       const e = new Error('ready() on a un-inited Room')
       log.warn('PuppeteerRoom', e.message)
@@ -614,7 +614,7 @@ export class PuppeteerRoom extends Room {
     }
 
     const filterMap = this.obj[filterMapName] as Map<string, string>
-    const idList = Object.keys(filterMap)
+    const idList = Array.from(filterMap.keys())
                           .filter(id => filterMap.get(id) === filterValue)
 
     log.silly('PuppeteerRoom', 'memberAll() check %s from %s: %s', filterValue, filterKey, JSON.stringify(filterMap))

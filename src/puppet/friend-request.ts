@@ -33,6 +33,7 @@ import Contact          from './contact'
  */
 export abstract class FriendRequest extends PuppetAccessory {
 
+  // TODO: hide all the belowing properties
   public contact: Contact
   public hello: string
   public type: 'send' | 'receive' | 'confirm'
