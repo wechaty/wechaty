@@ -52,6 +52,7 @@ export interface InjectResult {
 export interface BridgeOptions {
   head?   : boolean,
   profile : Profile,
+  executablePath?: string
 }
 
 export class Bridge extends EventEmitter {
@@ -108,8 +109,11 @@ export class Bridge extends EventEmitter {
     log.verbose('PuppetPuppeteerBridge', 'initBrowser()')
 
     const headless = this.options.head ? false : true
+    const executablePath = this.options.executablePath
+
     const browser = await launch({
       headless,
+      executablePath,
       args: [
         '--audio-output-channels=0',
         '--disable-default-apps',
