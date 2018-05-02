@@ -109,7 +109,7 @@ export class Bridge extends EventEmitter {
     log.verbose('PuppetPuppeteerBridge', 'initBrowser()')
 
     const headless = this.options.head ? false : true
-    const executablePath = this.options.executablePath;
+    const executablePath = this.options.executablePath
 
     const browser = await launch({
       headless,
