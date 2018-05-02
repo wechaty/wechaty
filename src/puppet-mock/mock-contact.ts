@@ -27,7 +27,7 @@ import {
   Gender,
 }                       from '../puppet/'
 
-import MockMessage       from './mock-message'
+import { MockMessage }  from './mock-message'
 
 export class MockContact extends Contact implements Sayable {
 

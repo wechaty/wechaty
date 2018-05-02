@@ -26,8 +26,8 @@ import {
 }                   from '../config'
 import { Message }  from '../puppet/'
 
-import MockContact  from './mock-contact'
-import MockRoom     from './mock-room'
+import { MockContact }  from './mock-contact'
+import { MockRoom }     from './mock-room'
 
 import {
   MsgType,

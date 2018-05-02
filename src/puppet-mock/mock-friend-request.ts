@@ -24,7 +24,7 @@ import {
 
 import { FriendRequest, FriendRequestType }  from '../puppet/'
 
-import MockContact     from './mock-contact'
+import { MockContact }  from './mock-contact'
 
 export class MockFriendRequest extends FriendRequest {
 

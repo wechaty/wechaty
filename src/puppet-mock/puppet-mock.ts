@@ -30,10 +30,10 @@ import {
   log,
 }         from '../config'
 
-import MockContact        from './mock-contact'
-import MockFriendRequest  from './mock-friend-request'
-import MockMessage        from './mock-message'
-import MockRoom           from './mock-room'
+import { MockContact }        from './mock-contact'
+import { MockFriendRequest }  from './mock-friend-request'
+import { MockMessage }        from './mock-message'
+import { MockRoom }           from './mock-room'
 
 export type PuppetFoodType = 'scan' | 'ding'
 export type ScanFoodType   = 'scan' | 'login' | 'logout'

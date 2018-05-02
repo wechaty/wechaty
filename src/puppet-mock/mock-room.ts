@@ -25,8 +25,8 @@ import {
   RoomMemberQueryFilter,
 }                         from '../puppet/'
 
-import MockMessage        from './mock-message'
-import MockContact        from './mock-contact'
+import { MockMessage }    from './mock-message'
+import { MockContact }    from './mock-contact'
 
 export class MockRoom extends Room {
 
