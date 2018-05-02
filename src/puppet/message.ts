@@ -74,7 +74,7 @@ export abstract class Message extends PuppetAccessory implements Sayable {
     readonly fileOrPayload?: string | Object,
   ) {
     super()
-    log.silly('Message', 'constructor(%s) for class %s',
+    log.silly('Message', 'constructor(%s) for child class %s',
                           fileOrPayload || '',
                           this.constructor.name,
               )

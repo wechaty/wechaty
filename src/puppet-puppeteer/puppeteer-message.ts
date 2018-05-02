@@ -246,7 +246,7 @@ export class PuppeteerMessage extends Message {
     }
 
     if (this.obj.room) {
-      const r = PuppeteerRoom.load(this.obj.room) as PuppeteerRoom
+      const r = PuppeteerRoom.load(this.obj.room)
       r.puppet = this.puppet
       return r
     }
