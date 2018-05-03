@@ -126,7 +126,7 @@
     "@types/fluent-ffmpeg": "^2.1.0",
     "@types/glob": "^5.0.0p",
     "@types/mime": "^2.0.0",
-    "@types/node": "^9.6.7",
+    "@types/node": "^10.0.3",
     "@types/normalize-package-data": "^2.4.0",
     "@types/puppeteer": "^1.0.0",
     "@types/raven": "^2.1.0",
