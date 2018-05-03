@@ -97,7 +97,7 @@
     "node": ">= 8.5"
   },
   "dependencies": {
-    "@types/ws": "^4.0.1",
+    "@types/ws": "^5.1.0",
     "bl": "^1.2.0",
     "brolog": "^1.2.0",
     "clone-class": "^0.6.3",
