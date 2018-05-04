@@ -123,11 +123,22 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
     /**
      * 2. Load the package.json for Puppet Plugin version range matching
+     *
+     * For: dist/src/puppet/puppet.ts
+     *  We need to up 3 times: ../../../package.json
      */
     try {
       this.pkg = require('../package.json')
     } catch (e) {
-      this.pkg = require('../../package.json')
+      try {
+        this.pkg = require('../../package.json')
+      } catch (e) {
+        try {
+          this.pkg = require('../../../package.json')
+        } catch (e) {
+          //
+        }
+      }
     } finally {
       if (!this.pkg) {
         throw new Error('Cannot found package.json for Puppet Plugin Module')
