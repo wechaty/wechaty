@@ -24,7 +24,6 @@ import {
   Browser,
   Cookie,
   Dialog,
-  // ElementHandle,
   launch,
   Page,
 }                       from 'puppeteer'
@@ -634,7 +633,7 @@ export class Bridge extends EventEmitter {
    */
   public async proxyWechaty(
     wechatyFunc : string,
-    ...args     : any[],
+    ...args     : any[]
   ): Promise<any> {
     log.silly('PuppetPuppeteerBridge', 'proxyWechaty(%s%s)',
                                   wechatyFunc,
