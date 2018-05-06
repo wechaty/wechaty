@@ -67,11 +67,11 @@ export abstract class Message extends PuppetAccessory implements Sayable {
     ]
   }
 
-  public static create<T extends Message>(
-    this: { new (...args: any[]): T },
-    ...args: any[],
-  ): T {
-    return new this(...args)
+  public static create<T extends typeof Message>(
+    this: T,
+    ...args: any[]
+  ): T['prototype'] {
+    return new (this as any)(...args)
   }
 
   /**

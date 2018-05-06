@@ -70,10 +70,10 @@ export const PUPPET_EVENT_DICT = {
 
 export type PuppetEventName = keyof typeof PUPPET_EVENT_DICT
 
-export type PuppetContact        = typeof Contact        & Constructor<{}>
-export type PuppetFriendRequest  = typeof FriendRequest  & Constructor<{}>
-export type PuppetMessage        = typeof Message        & Constructor<{}>
-export type PuppetRoom           = typeof Room           & Constructor<{}>
+export type PuppetContact        = typeof Contact        & Constructor<Contact>
+export type PuppetFriendRequest  = typeof FriendRequest  & Constructor<FriendRequest>
+export type PuppetMessage        = typeof Message        & Constructor<Message>
+export type PuppetRoom           = typeof Room           & Constructor<Room>
 
 export interface PuppetClasses {
   Contact:        PuppetContact,
@@ -162,7 +162,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   public emit(
     event:   PuppetEventName,
-    ...args: any[],
+    ...args: any[]
   ): boolean {
     return super.emit(event, ...args)
   }

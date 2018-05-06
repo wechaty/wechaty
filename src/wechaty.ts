@@ -113,14 +113,13 @@ export class Wechaty extends PuppetAccessory implements Sayable {
   public readonly cuid:        string
 
   // tslint:disable-next-line:variable-name
-  public Contact        : typeof Contact //       & Constructor<{}>
+  public Contact        : typeof Contact
   // tslint:disable-next-line:variable-name
-  public FriendRequest  : typeof FriendRequest // & Constructor<{}>
+  public FriendRequest  : typeof FriendRequest
   // tslint:disable-next-line:variable-name
-  public Message        : typeof Message //       & Constructor<{}>
+  public Message        : typeof Message
   // tslint:disable-next-line:variable-name
-  public Room           : typeof Room //           & Constructor<{}>
-  // public Room           : typeof Room           & Constructor<{}>
+  public Room           : typeof Room
 
   /**
    * get the singleton instance of Wechaty
