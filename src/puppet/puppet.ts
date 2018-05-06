@@ -158,7 +158,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public emit(event: 'room-topic',  room: Room, topic: string, oldTopic: string, changer: Contact) : boolean
   public emit(event: 'scan',        url: string, code: number)                                     : boolean
   public emit(event: 'watchdog',    food: WatchdogFood)                                            : boolean
-  public emit(event: never, ...args: never[])                                                      : never
+  public emit(event: never, ...args: never[]): never
 
   public emit(
     event:   PuppetEventName,
@@ -216,7 +216,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
    * Login / Logout
    */
   public abstract logonoff()          : boolean
-  public abstract login(user: Contact): Promise<void>
+  // public abstract login(user: Contact): Promise<void>
   public abstract logout()            : Promise<void>
 
   /**

@@ -91,6 +91,21 @@ export class MockMessage extends Message {
     return loadedContact
   }
 
+  public to(contact: MockContact): this
+  public to(id: string): this
+  public to(): MockContact | null // if to is not set, then room must had set
+
+  public to(contact?: MockContact | string): MockContact | null | this {
+    if (contact) {
+      return this
+    }
+
+    const to = MockContact.load('mockid') as MockContact
+    to.puppet = this.puppet
+
+    return to
+  }
+
   public room(room: MockRoom): this
   public room(): MockRoom | null
 
@@ -112,12 +127,24 @@ export class MockMessage extends Message {
   }
 
   public async say(
-    textOrMessage: string | MockMessage,
-    replyTo?: MockContact | MockContact[],
+    textOrMessage:  string | MockMessage,
+    replyTo?:       MockContact | MockContact[],
   ): Promise<void> {
     log.verbose('MockMessage', 'say(%s, %s)', textOrMessage, replyTo)
-    const m = new MockMessage()
-    await this.puppet.send(m)
+
+    const message = new MockMessage()
+
+    message.from(this.puppet.userSelf() as MockContact)
+    message.to(this.from())
+
+    const room = this.room()
+    if (room) {
+      message.room(room)
+    }
+
+    // TODO: implement the replyTo
+
+    await this.puppet.send(message)
   }
 
   public type(): MsgType {
@@ -146,21 +173,6 @@ export class MockMessage extends Message {
     return this
   }
 
-  public to(contact: MockContact): this
-  public to(id: string): this
-  public to(): MockContact | null // if to is not set, then room must had set
-
-  public to(contact?: MockContact | string): MockContact | null | this {
-    if (contact) {
-      return this
-    }
-
-    const to = MockContact.load('mockid') as MockContact
-    to.puppet = this.puppet
-
-    return to
-  }
-
   public async readyStream(): Promise<Readable> {
     log.verbose('MockMessage', 'readyStream()')
     throw new Error('to be mocked')
@@ -178,7 +190,7 @@ export class MockMessage extends Message {
     return 'text/plain'
   }
 
-  public async forward(to: MockRoom|MockContact): Promise<void> {
+  public async forward(to: MockRoom | MockContact): Promise<void> {
     /**
      * 1. Text message
      */

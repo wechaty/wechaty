@@ -29,10 +29,11 @@ import Wechaty    from '../wechaty'
 
 import {
   Puppet,
-}                 from '../puppet/'
+  FriendRequestType,
+}                     from '../puppet/'
 import {
   PuppetMock,
-}                 from '../puppet-mock/'
+}                     from '../puppet-mock/'
 
 import PuppeteerContact       from './puppeteer-contact'
 import PuppeteerMessage       from './puppeteer-message'
@@ -55,9 +56,9 @@ test('PuppetPuppeteerFriendRequest.receive smoke testing', async t => {
   fr.receive(rawObj.RecommendInfo)
 
   t.true(typeof fr.payload === 'object', 'should has info object')
-  t.is(fr.hello, '我是群聊"Wechaty"的李卓桓.PreAngel', 'should has right request message')
-  t.true(fr.contact instanceof PuppeteerContact, 'should have a Contact instance')
-  t.is(fr.type as any, 'receive', 'should be receive type')
+  t.is(fr.hello(), '我是群聊"Wechaty"的李卓桓.PreAngel', 'should has right request message')
+  t.true(fr.contact() instanceof PuppeteerContact, 'should have a Contact instance')
+  t.is(fr.type(), FriendRequestType.RECEIVE, 'should be receive type')
 })
 
 test('PuppetPuppeteerFriendRequest.confirm smoke testing', async t => {
@@ -89,6 +90,6 @@ test('PuppetPuppeteerFriendRequest.confirm smoke testing', async t => {
   const contact = m.from()
   fr.confirm(contact || new MyContact('xx'))
 
-  t.true(fr.contact instanceof PuppeteerContact, 'should have a Contact instance')
-  t.is(fr.type as any, 'confirm', 'should be confirm type')
+  t.true(fr.contact() instanceof PuppeteerContact, 'should have a Contact instance')
+  t.is(fr.type(), FriendRequestType.CONFIRM, 'should be confirm type')
 })

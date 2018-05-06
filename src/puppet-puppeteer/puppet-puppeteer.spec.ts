@@ -58,15 +58,17 @@ test('Puppet smoke testing', async t => {
 
 test('login/logout events', sinonTest(async function (t: test.Test) {
 
-  sinon.stub(Contact, 'findAll')
+  const sandbox = sinon.sandbox.create()
+
+  sandbox.stub(Contact, 'findAll')
         .onFirstCall().resolves([])
         .onSecondCall().resolves([1])
         .resolves([1, 2])
 
-  sinon.stub(Event, 'onScan') // block the scan event to prevent reset logined user
+  sandbox.stub(Event, 'onScan') // block the scan event to prevent reset logined user
 
-  sinon.stub(Bridge.prototype,    'getUserName').resolves('mockedUserName')
-  sinon.stub(PuppetPuppeteer.prototype, 'getContact') .resolves({
+  sandbox.stub(Bridge.prototype,    'getUserName').resolves('mockedUserName')
+  sandbox.stub(PuppetPuppeteer.prototype, 'getContact') .resolves({
     NickName: 'mockedNickName',
     UserName: 'mockedUserName',
   })
@@ -110,6 +112,7 @@ test('login/logout events', sinonTest(async function (t: test.Test) {
   } catch (e) {
     t.fail(e)
   } finally {
+    sandbox.restore()
     t.end()
   }
 }))

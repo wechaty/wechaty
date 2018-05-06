@@ -22,23 +22,27 @@ import {
   log,
 }                     from '../config'
 
-import { FriendRequest }  from '../puppet/'
+import { FriendRequest, FriendRequestType }  from '../puppet/'
 
 import MockContact     from './mock-contact'
 
 export class MockFriendRequest extends FriendRequest {
 
-  public info: any
+  public payload: any
 
   private ticket: string
+  private _contact: MockContact
+  private _type:    FriendRequestType
+  private _hello:   string
 
   constructor() {
     log.verbose('MockFriendRequest', 'constructor()')
     super()
   }
 
-  public receive(info: any): void {
-    log.verbose('MockFriendRequest', 'receive(%s)', info)
+  public receive(payload: any): void {
+    log.verbose('MockFriendRequest', 'receive(%s)', payload)
+    this.payload = payload
   }
 
   public confirm(contact: MockContact): void {
@@ -52,9 +56,24 @@ export class MockFriendRequest extends FriendRequest {
 
   public async accept(): Promise<void> {
     log.verbose('FriendRequest', 'accept() %s', this.contact)
-    await this.puppet.friendRequestAccept(this.contact, this.ticket)
+    await this.puppet.friendRequestAccept(this.contact(), this.ticket)
   }
 
+  public contact(): MockContact {
+    return this._contact
+  }
+
+  public type(): FriendRequestType {
+    return this._type
+  }
+
+  public async reject(): Promise<void> {
+    log.verbose('MockFriendRequest', 'reject()')
+  }
+
+  public hello(): string {
+    return this._hello
+  }
 }
 
 export default MockFriendRequest

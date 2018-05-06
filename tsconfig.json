@@ -29,12 +29,12 @@
     , "dist/"
   ]
   , "include": [
-       "bin/*.ts"
-     , "scripts/**/*.ts"
+       "app/**/*.ts"
+     , "bin/*.ts"
+     , "bot/**/*.ts"
      , "examples/**/*.ts"
+     , "scripts/**/*.ts"
      , "src/**/*.ts"
      , "tests/**/*.spec.ts"
-     , "bot/**/*.ts"
-     , "app/**/*.ts"
   ]
 }

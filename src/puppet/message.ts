@@ -78,11 +78,11 @@ export abstract class Message extends PuppetAccessory implements Sayable {
    * @private
    */
   constructor(
-    readonly fileOrObj?: string | Object,
+    readonly fileOrPayload?: string | Object,
   ) {
     super()
-    log.silly('Message', 'constructor(%s) for class %s',
-                          fileOrObj || '',
+    log.silly('Message', 'constructor(%s) for child class %s',
+                          fileOrPayload || '',
                           this.constructor.name,
               )
   }
@@ -197,7 +197,7 @@ export abstract class Message extends PuppetAccessory implements Sayable {
    *   if (/^ding$/i.test(m.text())) {
    *     await m.say('hello world')
    *     console.log('Bot REPLY: hello world')
-   *     await m.say(new bot.Message.create(__dirname + '/wechaty.png'))
+   *     await m.say(new bot.Message(__dirname + '/wechaty.png'))
    *     console.log('Bot REPLY: Image')
    *   }
    * })

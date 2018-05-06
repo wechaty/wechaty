@@ -214,9 +214,12 @@ test('mentioned()', async t => {
   //   puppet1 = { getContact: mockContactGetter }
   //   config.puppetInstance(puppet1)
   // }
-  MyContact.puppet = MyRoom.puppet = MyMessage.puppet = {
+  const puppet = MyRoom.puppet = MyMessage.puppet = {
     getContact: mockContactGetter,
-  } as any
+  } as PuppetPuppeteer
+
+  MyContact.puppet = puppet
+
   const msg11 = new MyMessage(rawObj11)
   const room11 = msg11.room()
   if (room11) {

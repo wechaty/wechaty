@@ -24,18 +24,17 @@ import * as sinon from 'sinon'
 
 import cloneClass from 'clone-class'
 
+import Profile          from '../profile'
+import Wechaty          from '../wechaty' // `Wechaty` need to be imported before `Puppet`
+
 import PuppetPuppeteer  from './puppet-puppeteer'
 import PuppeteerContact from './puppeteer-contact'
-
-import Profile          from '../profile'
-import Wechaty          from '../wechaty'
 
 test('Contact smoke testing', async t => {
 
   // tslint:disable-next-line:variable-name
   const MyContact = cloneClass(PuppeteerContact)
-
-  MyContact.puppet = new PuppetPuppeteer({
+  const puppet    = new PuppetPuppeteer({
     profile: new Profile(),
     wechaty: new Wechaty(),
   })
@@ -45,18 +44,23 @@ test('Contact smoke testing', async t => {
   const NickName = 'NickNameTest'
   const RemarkName = 'AliasTest'
 
-  sinon.stub((MyContact.puppet as PuppetPuppeteer), 'getContact', function(id: string) {
+  const sandbox = sinon.sandbox.create()
+
+  sandbox.stub(puppet, 'getContact')
+  .callsFake(function(id: string) {
     return new Promise<any>((resolve, reject) => {
       if (id !== UserName) return resolve({})
       setTimeout(() => {
         return resolve({
-          UserName: UserName,
-          NickName: NickName,
+          UserName:   UserName,
+          NickName:   NickName,
           RemarkName: RemarkName,
         })
-      }, 200)
+      }, 10)
     })
   })
+
+  MyContact.puppet = puppet
 
   const c = new MyContact(UserName)
 
@@ -66,8 +70,7 @@ test('Contact smoke testing', async t => {
   t.is(r.name(), NickName, 'NickName set')
   t.is(r.alias(), RemarkName, 'should get the right alias from Contact')
 
-  const s = r.toString()
-  t.is(typeof s, 'string', 'toString()')
+  sandbox.restore()
 
   // const contact1 = await Contact.find({name: 'NickNameTest'})
   // t.is(contact1.id, UserName, 'should find contact by name')

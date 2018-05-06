@@ -53,7 +53,7 @@ export async function onFriend(
       3000,
     )
 
-    if (request.hello === 'ding') {
+    if (request.hello() === 'ding') {
       const myRoom = await this.Room.find({ topic: 'ding' })
       if (!myRoom) return
       setTimeout(
