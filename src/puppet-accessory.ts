@@ -7,6 +7,8 @@ import { log }  from './config'
 import { Puppet } from './puppet/'
 
 // use Symbol to prevent conflicting with the child class properties
+// This symbol must be exported (for now).
+// See: https://github.com/Microsoft/TypeScript/issues/20080
 export const PUPPET_ACCESSORY_NAME = Symbol('name')
 
 export abstract class PuppetAccessory extends EventEmitter {
