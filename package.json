@@ -111,7 +111,7 @@
     "request": "^2.83.0",
     "retry-promise": "^1.0.0",
     "rx-queue": "^0.4.4",
-    "rxjs": "^5.5.0",
+    "rxjs": "^6",
     "state-switch": "^0.4.5",
     "watchdog": "^0.8.1",
     "wechat4u": "^0.7.6",
