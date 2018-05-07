@@ -18,7 +18,15 @@
  */
 import { EventEmitter } from 'events'
 
-import { StateSwitch }  from 'state-switch'
+import * as normalize   from 'normalize-package-data'
+import * as readPkgUp   from 'read-pkg-up'
+
+import {
+  callerResolve,
+}                       from 'hot-import'
+import {
+  StateSwitch,
+}                       from 'state-switch'
 import {
   Watchdog,
   WatchdogFood,
@@ -48,13 +56,6 @@ import {
   Room,
   RoomQueryFilter,
 }                       from './room'
-
-export interface NpmPackage {
-  version: string,
-  peerDependencies?: {
-    wechaty?: string,
-  },
-}
 
 // XXX: Name??? ScanInfo? ScanEvent? ScanXXX?
 export interface ScanData {
@@ -95,7 +96,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   protected readonly watchdog: Watchdog
 
-  private readonly pkg: NpmPackage
+  private readonly pkg: normalize.Package
 
   constructor(
     public options: PuppetOptions,
@@ -123,17 +124,19 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
     /**
      * 2. Load the package.json for Puppet Plugin version range matching
+     *
+     * For: dist/src/puppet/puppet.ts
+     *  We need to up 3 times: ../../../package.json
      */
     try {
-      this.pkg = require('../package.json')
-    } catch (e) {
-      this.pkg = require('../../package.json')
+      const childClassPath = callerResolve('.', __filename)
+      this.pkg = readPkgUp.sync({ cwd: childClassPath }).pkg
     } finally {
       if (!this.pkg) {
         throw new Error('Cannot found package.json for Puppet Plugin Module')
       }
     }
-
+    normalize(this.pkg)
   }
 
   public emit(event: 'error',       e: Error)                                                      : boolean
@@ -151,7 +154,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   public emit(
     event:   PuppetEventName,
-    ...args: any[],
+    ...args: any[]
   ): boolean {
     return super.emit(event, ...args)
   }
@@ -186,7 +189,23 @@ export abstract class Puppet extends EventEmitter implements Sayable {
    */
   public wechatyVersionRange(): string {
     // FIXME: for development, we use `*` if not set
-    return this.pkg.peerDependencies && this.pkg.peerDependencies.wechaty || '*'
+    return '*'
+
+    // TODO: test and uncomment the following codes after promote the `wehcaty-puppet` as a solo NPM module
+
+    // if (this.pkg.dependencies && this.pkg.dependencies.wechaty) {
+    //   throw new Error('Wechaty Puppet Implementation should add `wechaty` from `dependencies` to `peerDependencies` in package.json')
+    // }
+
+    // if (!this.pkg.peerDependencies || !this.pkg.peerDependencies.wechaty) {
+    //   throw new Error('Wechaty Puppet Implementation should add `wechaty` to `peerDependencies`')
+    // }
+
+    // if (!this.pkg.engines || !this.pkg.engines.wechaty) {
+    //   throw new Error('Wechaty Puppet Implementation must define `package.engines.wechaty` for a required Version Range')
+    // }
+
+    // return this.pkg.engines.wechaty
   }
 
   public abstract async start() : Promise<void>

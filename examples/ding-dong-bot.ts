@@ -72,9 +72,12 @@ bot
 .on('scan', (url, code) => {
   if (!/201|200/.test(String(code))) {
     const loginUrl = url.replace(/\/qrcode\//, '/l/')
-    QrcodeTerminal.generate(loginUrl)
+    QrcodeTerminal.generate(loginUrl, { small: true }, (qrcode: string) => {
+      console.log(qrcode)
+      console.log(url)
+      console.log(`[${code}] Scan QR Code above url to log in: `)
+    })
   }
-  console.log(`${url}\n[${code}] Scan QR Code above url to log in: `)
 })
 .on('message', async m => {
   try {
@@ -100,7 +103,7 @@ bot
       /**
        * 2. reply qrcode image
        */
-      const imageMessage = new bot.Message(BOT_QR_CODE_IMAGE_FILE)
+      const imageMessage = bot.Message.create(BOT_QR_CODE_IMAGE_FILE)
       log.info('Bot', 'REPLY: %s', imageMessage)
       await m.say(imageMessage)
 

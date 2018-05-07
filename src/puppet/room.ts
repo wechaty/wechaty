@@ -218,7 +218,7 @@ export abstract class Room extends PuppetAccessory implements Sayable {
 
   public emit(
     event:   RoomEventName,
-    ...args: any[],
+    ...args: any[]
   ): boolean {
     return super.emit(event, ...args)
   }

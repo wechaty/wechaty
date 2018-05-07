@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.15.30",
+  "version": "0.15.31",
   "description": "Wechat for Bot(Personal Account)",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -24,7 +24,7 @@
     "lint": "npm run check-node-version && npm run lint:ts && npm run lint:es && npm run lint:sh",
     "lint:es": "eslint \"{bin,examples,scripts,src,tests}/**/*.js\" --ignore-pattern=\"tests/fixtures/**\"",
     "lint:md": "markdownlint README.md",
-    "lint:ts": "npm run clean && echo tslint v`tslint --version` && tslint --project tsconfig.json --exclude \"tests/fixtures/**\" --exclude \"dist/\" && tsc --noEmit",
+    "lint:ts": "tslint --project tsconfig.json --exclude \"tests/fixtures/**\" && tsc --noEmit",
     "lint:sh": "bash -n bin/*.sh",
     "sloc": "sloc bin examples scripts src tests --details --format cli-table --keys total,source,comment && sloc bin examples scripts src tests",
     "ts-node": "ts-node",
@@ -39,11 +39,6 @@
     "io-client": "ts-node bin/io-client",
     "demo": "ts-node examples/ding-dong-bot.ts",
     "start": "npm run demo"
-  },
-  "git": {
-    "scripts": {
-      "pre-push": "./scripts/pre-push.sh"
-    }
   },
   "repository": {
     "type": "git",
@@ -97,7 +92,7 @@
     "node": ">= 8.5"
   },
   "dependencies": {
-    "@types/ws": "^4.0.1",
+    "@types/ws": "^5.1.0",
     "bl": "^1.2.0",
     "brolog": "^1.2.0",
     "clone-class": "^0.6.3",
@@ -110,8 +105,8 @@
     "read-pkg-up": "^3.0.0",
     "request": "^2.83.0",
     "retry-promise": "^1.0.0",
-    "rx-queue": "^0.3.1",
-    "rxjs": "^5.5.0",
+    "rx-queue": "^0.4.4",
+    "rxjs": "^6",
     "state-switch": "^0.4.5",
     "watchdog": "^0.8.1",
     "wechat4u": "^0.7.6",
@@ -126,7 +121,7 @@
     "@types/fluent-ffmpeg": "^2.1.0",
     "@types/glob": "^5.0.0p",
     "@types/mime": "^2.0.0",
-    "@types/node": "^9.6.7",
+    "@types/node": "^10.0.3",
     "@types/normalize-package-data": "^2.4.0",
     "@types/puppeteer": "^1.0.0",
     "@types/raven": "^2.1.0",
@@ -180,9 +175,13 @@
     "dist/src",
     "src"
   ],
+  "git": {
+    "scripts": {
+      "pre-push": "./scripts/pre-push.sh"
+    }
+  },
   "publishConfig": {
     "access": "public",
-    "tagBak": "next",
     "tag": "latest"
   }
 }
