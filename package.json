@@ -40,11 +40,6 @@
     "demo": "ts-node examples/ding-dong-bot.ts",
     "start": "npm run demo"
   },
-  "git": {
-    "scripts": {
-      "pre-push": "./scripts/pre-push.sh"
-    }
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/chatie/wechaty.git"
@@ -180,6 +175,11 @@
     "dist/src",
     "src"
   ],
+  "git": {
+    "scripts": {
+      "pre-push": "./scripts/pre-push.sh"
+    }
+  },
   "publishConfig": {
     "access": "public",
     "tag": "latest"
