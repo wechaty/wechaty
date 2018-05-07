@@ -175,12 +175,15 @@ export abstract class Message extends PuppetAccessory implements Sayable {
    */
   public abstract text(text: string): this | string
 
+  public abstract async say(text: string, mention?: Contact | Contact[]): Promise<void>
+  public abstract async say(message: Message): Promise<void>
+
   /**
    * Reply a Text or Media File message to the sender.
    *
    * @see {@link https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts|Examples/ding-dong-bot}
    * @param {(string | Message)} textOrMessage
-   * @param {(Contact|Contact[])} [replyTo]
+   * @param {(Contact|Contact[])} [mention]
    * @returns {Promise<void>}
    *
    * @example
@@ -197,7 +200,7 @@ export abstract class Message extends PuppetAccessory implements Sayable {
    */
   public abstract async say(
     textOrMessage : string | Message,
-    replyTo?      : Contact | Contact[],
+    mention?      : Contact | Contact[],
   ): Promise<void>
 
   /**

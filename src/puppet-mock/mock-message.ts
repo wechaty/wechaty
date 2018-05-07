@@ -36,7 +36,17 @@ import {
 
 export type ParsedPath = Partial<path.ParsedPath>
 
+export interface MockMessagePayload {
+  text:   string,
+  from:   MockContact,
+  to?:    MockContact,
+  room?:  MockRoom,
+  type:   MsgType,
+}
+
 export class MockMessage extends Message {
+
+  private payload: MockMessagePayload
 
   /**
    * Static Methods
@@ -74,6 +84,8 @@ export class MockMessage extends Message {
   ) {
     super()
     log.silly('MockMessage', 'constructor()')
+
+    this.payload = {} as MockMessagePayload
   }
 
   public from(contact: MockContact) : this
@@ -81,29 +93,23 @@ export class MockMessage extends Message {
 
   public from(contact?: MockContact): this | MockContact {
     if (contact) {
-      // set from to contact...
+      this.payload.from = contact
       return this
     }
 
-    const loadedContact = MockContact.load('mockid')
-    loadedContact.puppet = this.puppet
-
-    return loadedContact
+    return this.payload.from
   }
 
   public to(contact: MockContact): this
-  public to(id: string): this
   public to(): MockContact | null // if to is not set, then room must had set
 
-  public to(contact?: MockContact | string): MockContact | null | this {
+  public to(contact?: MockContact): MockContact | null | this {
     if (contact) {
+      this.payload.to = contact
       return this
     }
 
-    const to = MockContact.load('mockid') as MockContact
-    to.puppet = this.puppet
-
-    return to
+    return this.payload.to || null
   }
 
   public room(room: MockRoom): this
@@ -111,26 +117,30 @@ export class MockMessage extends Message {
 
   public room(room?: MockRoom): this | MockRoom | null {
     if (room) {
-      // set room to room...
+      this.payload.room = room
       return this
     }
-    return null
+    return this.payload.room || null
   }
 
   public text(): string
   public text(content: string): this
   public text(text?: string): string | this {
     if (text) {
+      this.payload.text = text
       return this
     }
-    return 'mock text'
+    return this.payload.text || ''
   }
+
+  public async say(text: string, mention?: MockContact | MockContact[]): Promise<void>
+  public async say(message: MockMessage): Promise<void>
 
   public async say(
     textOrMessage:  string | MockMessage,
-    replyTo?:       MockContact | MockContact[],
+    mention?:       MockContact | MockContact[],
   ): Promise<void> {
-    log.verbose('MockMessage', 'say(%s, %s)', textOrMessage, replyTo)
+    log.verbose('MockMessage', 'say(%s, %s)', textOrMessage, mention)
 
     const message = new MockMessage()
 
@@ -142,7 +152,7 @@ export class MockMessage extends Message {
       message.room(room)
     }
 
-    // TODO: implement the replyTo
+    // TODO: implement the `mention`
 
     await this.puppet.send(message)
   }
