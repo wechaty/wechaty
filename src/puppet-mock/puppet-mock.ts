@@ -16,13 +16,18 @@
  *   limitations under the License.
  *
  */
+import * as fs    from 'fs'
+import * as path  from 'path'
 
 import {
   ContactQueryFilter,
+  Gender,
+  ContactType,
 
   Puppet,
   PuppetOptions,
 
+  RoomPayload,
   RoomQueryFilter,
 }                     from '../puppet/'
 
@@ -30,7 +35,13 @@ import {
   log,
 }         from '../config'
 
-import { MockContact }        from './mock-contact'
+import {
+  ContactPayload,
+}                           from '../puppet/contact'
+
+import {
+  MockContact,
+}                             from './mock-contact'
 import { MockFriendRequest }  from './mock-friend-request'
 import { MockMessage }        from './mock-message'
 import { MockRoom }           from './mock-room'
@@ -68,17 +79,20 @@ export class PuppetMock extends Puppet {
     // await some tasks...
     this.state.on(true)
 
-    const from = MockContact.load('from')
-    const to = MockContact.load('to')
-    const m = new MockMessage()
-    m.from(from).to(to).text('mock hello')
+    const from = MockContact.load('xxx_from')
+    const to = MockContact.load('xxx_to')
+    const msg = new MockMessage()
+
+    msg.from(from)
+    msg.to(to)
+    msg.text('mock hello')
 
     this.user = to
     this.emit('login', to)
 
     setInterval(() => {
-      log.verbose('PuppetMock', `start() setInterval() pretending received a new message: ${m}`)
-      this.emit('message', m)
+      log.verbose('PuppetMock', `start() setInterval() pretending received a new message: ${msg}`)
+      this.emit('message', msg)
     }, 3000)
 
   }
@@ -124,7 +138,8 @@ export class PuppetMock extends Puppet {
   }
 
   public async send(message: MockMessage): Promise<void> {
-    //
+    log.verbose('PuppetMock', 'send(%s)', message)
+    // TODO
   }
 
   public async say(text: string): Promise<void> {
@@ -132,12 +147,14 @@ export class PuppetMock extends Puppet {
       throw new Error('can not say before login')
     }
 
-    if (!text) {
-      log.warn('PuppetMock', 'say(%s) can not say nothing', text)
-      return
-    }
+    const msg = new MockMessage()
+    msg.puppet = this
 
-    return await this.userSelf().say(text)
+    msg.from(this.userSelf())
+    msg.to(this.userSelf())
+    msg.text(text)
+
+    await this.send(msg)
   }
 
   public async logout(): Promise<void> {
@@ -163,6 +180,29 @@ export class PuppetMock extends Puppet {
 
   public async contactFindAll(query: ContactQueryFilter): Promise<MockContact[]> {
     return []
+  }
+
+  public async contactAvatar(contact: MockContact): Promise<NodeJS.ReadableStream> {
+    const WECHATY_ICON_PNG = path.resolve('../../docs/images/wechaty-icon.png')
+    return fs.createReadStream(WECHATY_ICON_PNG)
+  }
+
+  public async contactPayload(contact: MockContact): Promise<ContactPayload> {
+    return {
+      gender: Gender.UNKNOWN,
+      type:   ContactType.UNKNOWN,
+    }
+
+  }
+
+  public async roomPayload(room: MockRoom): Promise<RoomPayload> {
+    return {
+      topic          : 'mock topic',
+      memberList     : [],
+      nameMap        : {} as any,
+      roomAliasMap   : {} as any,
+      contactAliasMap: {} as any,
+    }
   }
 
   public async roomFindAll(

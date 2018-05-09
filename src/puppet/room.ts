@@ -45,6 +45,19 @@ export interface RoomQueryFilter {
   topic: string | RegExp,
 }
 
+export interface RoomPayload {
+  // id:               string,
+  // encryId:          string,
+  topic:            string,
+  memberList:       Contact[],
+  owner?:           Contact,
+
+  nameMap:          Map<string, string>,
+  roomAliasMap:     Map<string, string>,
+  contactAliasMap:  Map<string, string>,
+  // [index: string]:  Map<string, string> | string | number | PuppeteerContact[],
+}
+
 /**
  * All wechat rooms(groups) will be encapsulated as a Room.
  *
@@ -163,6 +176,8 @@ export abstract class Room extends PuppetAccessory implements Sayable {
     return newRoom
   }
 
+  protected payload?: RoomPayload
+
   /**
    * @private
    */
@@ -176,12 +191,12 @@ export abstract class Room extends PuppetAccessory implements Sayable {
   /**
    * @private
    */
-  public toString()    { return `@Room<${this.topic()}>` }
+  public toString()    { return `@@Room<${this.topic()}>` }
 
   /**
    * @private
    */
-  public abstract async ready(): Promise<Room>
+  public abstract async ready(): Promise<void>
 
   public abstract say(message: Message)                 : Promise<void>
   public abstract say(text: string)                     : Promise<void>
@@ -473,10 +488,17 @@ export abstract class Room extends PuppetAccessory implements Sayable {
 
   /**
    * Force reload data for Room
-   *
+   * @deprecated use sync() instead
    * @returns {Promise<void>}
    */
   public abstract async refresh(): Promise<void>
+
+  /**
+   * Sync data for Room
+   *
+   * @returns {Promise<void>}
+   */
+  public abstract async sync(): Promise<void>
 
   /**
    * @private

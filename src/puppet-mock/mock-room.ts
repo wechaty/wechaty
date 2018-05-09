@@ -40,8 +40,13 @@ export class MockRoom extends Room {
   public isReady(): boolean {
     return true
   }
-  public async ready(): Promise<Room> {
-    return this
+
+  public async sync(): Promise<void> {
+    return
+  }
+
+  public async ready(): Promise<void> {
+    return
   }
 
   public say(message: MockMessage)                  : Promise<void>

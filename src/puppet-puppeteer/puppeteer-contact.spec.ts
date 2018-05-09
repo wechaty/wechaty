@@ -46,7 +46,7 @@ test('Contact smoke testing', async t => {
 
   const sandbox = sinon.sandbox.create()
 
-  sandbox.stub(puppet, 'getContact')
+  sandbox.stub(puppet, 'contactPayload')
   .callsFake(function(id: string) {
     return new Promise<any>((resolve, reject) => {
       if (id !== UserName) return resolve({})
@@ -65,10 +65,10 @@ test('Contact smoke testing', async t => {
   const c = new MyContact(UserName)
 
   t.is(c.id, UserName, 'id/UserName right')
-  const r = await c.ready()
-  t.is(r.id   , UserName, 'UserName set')
-  t.is(r.name(), NickName, 'NickName set')
-  t.is(r.alias(), RemarkName, 'should get the right alias from Contact')
+  await c.ready()
+  t.is(c.id   , UserName, 'UserName set')
+  t.is(c.name(), NickName, 'NickName set')
+  t.is(c.alias(), RemarkName, 'should get the right alias from Contact')
 
   sandbox.restore()
 

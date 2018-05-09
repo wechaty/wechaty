@@ -40,7 +40,7 @@ import PuppeteerRoom    from './puppeteer-room'
 import {
   AppMsgType,
   MsgPayload,
-  MsgRawPayload,
+  PuppeteerMessageRawPayload,
   MsgType,
 }                 from './schema'
 
@@ -66,8 +66,8 @@ export class PuppeteerMessage extends Message {
   /**
    * @private
    */
-  public obj:     MsgPayload
-  public rawObj?: MsgRawPayload
+  private payload: MsgPayload
+  public rawObj?: PuppeteerMessageRawPayload
 
   private parsedPath?:  ParsedPath
 
@@ -75,12 +75,12 @@ export class PuppeteerMessage extends Message {
    * @private
    */
   constructor(
-    fileOrPayload?: string | MsgRawPayload,
+    fileOrPayload?: string | PuppeteerMessageRawPayload,
   ) {
     super()
     log.silly('PuppeteerMessage', 'constructor()')
 
-    this.obj    = {} as MsgPayload
+    this.payload    = {} as MsgPayload
     // this.rawObj = {} as MsgRawObj
 
     if (!fileOrPayload) {
@@ -91,8 +91,8 @@ export class PuppeteerMessage extends Message {
       this.parsedPath = path.parse(fileOrPayload)
     } else if (typeof fileOrPayload === 'object') {
       this.rawObj = fileOrPayload
-      this.obj = this.parse(this.rawObj)
-      this.id = this.obj.id
+      this.payload = this.parse(this.rawObj)
+      this.id = this.payload.id
     } else {
       throw new Error('not supported construct param')
     }
@@ -102,7 +102,7 @@ export class PuppeteerMessage extends Message {
    * @private
    */
   // Transform rawObj to local obj
-  private parse(rawObj: MsgRawPayload): MsgPayload {
+  private parse(rawObj: PuppeteerMessageRawPayload): MsgPayload {
     const obj: MsgPayload = {
       id:           rawObj.MsgId,
       type:         rawObj.MsgType,
@@ -133,120 +133,60 @@ export class PuppeteerMessage extends Message {
     return obj
   }
 
-  // /**
-  //  * @private
-  //  */
-  // public toString() {
-  //   return `PuppeteerMessage<${Misc.plainText(this.obj && this.obj.content)}>`
-  // }
+  public from(contact: PuppeteerContact): void
+  public from()                         : PuppeteerContact
 
-  // /**
-  //  * @private
-  //  */
-  // public toStringDigest() {
-  //   const text = Misc.digestEmoji(this.obj.digest)
-  //   return '{' + this.typeEx() + '}' + text
-  // }
-
-  // /**
-  //  * @private
-  //  */
-  // public getSenderString() {
-  //   const from = PuppeteerContact.load(this.obj.from)
-  //   from.puppet = this.puppet
-
-  //   const fromName  = from.name()
-  //   const roomTopic = this.obj.room
-  //                 ? (':' + PuppeteerRoom.load(this.obj.room).topic())
-  //                 : ''
-  //   return `<${fromName}${roomTopic}>`
-  // }
-
-  // /**
-  //  * @private
-  //  */
-  // public getContentString() {
-  //   let content = Misc.plainText(this.obj.content)
-  //   if (content.length > 20) { content = content.substring(0, 17) + '...' }
-  //   return '{' + this.type() + '}' + content
-  // }
-
-  /**
-   * @private
-   */
-  public from(contact: PuppeteerContact): this
-
-  public from(): PuppeteerContact
-
-  /**
-   * Get the sender from a message.
-   * @returns {Contact}
-   */
-  public from(contact?: PuppeteerContact): this | PuppeteerContact {
+  public from(contact?: PuppeteerContact): void | PuppeteerContact {
     if (contact) {
       if (contact instanceof PuppeteerContact) {
-        this.obj.from = contact.id
+        this.payload.from = contact.id
       } else {
         throw new Error('unsupport from param: ' + typeof contact)
       }
-      return this
+      return
     }
 
-    const loadedContact = PuppeteerContact.load(this.obj.from) as PuppeteerContact
+    const loadedContact = PuppeteerContact.load(this.payload.from) as PuppeteerContact
     loadedContact.puppet = this.puppet
 
     return loadedContact
   }
 
-  /**
-   * @private
-   */
-  public to(contact: PuppeteerContact): this
-
-  public to(): PuppeteerContact | null // if to is not set, then room must had set
+  public to(contact: PuppeteerContact): void
+  public to()                         : PuppeteerContact | null // if to is not set, then room must had set
 
   /**
    * Get the destination of the message
    * Message.to() will return null if a message is in a room, use Message.room() to get the room.
    * @returns {(Contact|null)}
    */
-  public to(contact?: PuppeteerContact): this | PuppeteerContact | null {
+  public to(contact?: PuppeteerContact): void | null | PuppeteerContact {
     if (contact) {
-      this.obj.to = contact.id
-      return this
+      this.payload.to = contact.id
+      return
     }
 
     // no parameter
-    if (!this.obj.to) {
+    if (!this.payload.to) {
       return null
     }
-    const to = PuppeteerContact.load(this.obj.to) as PuppeteerContact
+    const to = PuppeteerContact.load(this.payload.to) as PuppeteerContact
     to.puppet = this.puppet
 
     return to
   }
 
-  /**
-   * @private
-   */
-  public room(room: PuppeteerRoom): this
+  public room(room: PuppeteerRoom): void
+  public room()                   : null | PuppeteerRoom
 
-  public room(): PuppeteerRoom | null
-
-  /**
-   * Get the room from the message.
-   * If the message is not in a room, then will return `null`
-   *
-   * @returns {(PuppeteerRoom|null)}
-   */
-  public room(room?: PuppeteerRoom): this | PuppeteerRoom | null {
+  public room(room?: PuppeteerRoom): void | null | PuppeteerRoom {
     if (room) {
-      this.obj.room = room.id
-      return this
+      this.payload.room = room.id
+      return
     }
 
-    if (this.obj.room) {
-      const r = PuppeteerRoom.load(this.obj.room)
+    if (this.payload.room) {
+      const r = PuppeteerRoom.load(this.payload.room)
       r.puppet = this.puppet
       return r
     }
@@ -265,9 +205,9 @@ export class PuppeteerMessage extends Message {
    * @private
    * @deprecated
    */
-  public content(content: string): this
+  public content(content: string): void
 
-  public content(content?: string) {
+  public content(content?: string): void | string {
     log.warn('PuppeteerMessage', 'content() DEPRECATED. use text() instead.')
     if (content) {
       return this.text(content)
@@ -277,22 +217,28 @@ export class PuppeteerMessage extends Message {
   }
 
   public text(): string
-  public text(content: string): this
+  public text(content: string): void
   /**
    * Get the textcontent of the message
    *
    * @returns {string}
    */
-  public text(text?: string):  this | string {
+  public text(text?: string):  void | string {
     if (text) {
-      this.obj.content = text
-      return this
+      this.payload.content = text
+      return
     }
-    return this.obj.content
+    return this.payload.content
   }
 
-  public async say(textOrMessage: string | PuppeteerMessage, replyTo?: PuppeteerContact|PuppeteerContact[]): Promise<void> {
-    log.verbose('PuppeteerMessage', 'say(%s, %s)', textOrMessage, replyTo)
+  public async say(text: string, mention?: PuppeteerContact | PuppeteerContact[]): Promise<void>
+  public async say(message: PuppeteerMessage)                                    : Promise<void>
+
+  public async say(
+    textOrMessage: string | PuppeteerMessage,
+    mention?: PuppeteerContact | PuppeteerContact[],
+  ): Promise<void> {
+    log.verbose('PuppeteerMessage', 'say(%s, %s)', textOrMessage, mention)
 
     let m: PuppeteerMessage
 
@@ -305,18 +251,18 @@ export class PuppeteerMessage extends Message {
         m.room(room)
       }
 
-      if (!replyTo) {
+      if (!mention) {
         m.to(this.from())
         m.text(textOrMessage)
 
       } else if (this.room()) {
         let mentionList
-        if (Array.isArray(replyTo)) {
-          m.to(replyTo[0])
-          mentionList = replyTo.map(c => '@' + c.name()).join(' ')
+        if (Array.isArray(mention)) {
+          m.to(mention[0])
+          mentionList = mention.map(c => '@' + c.name()).join(' ')
         } else {
-          m.to(replyTo)
-          mentionList = '@' + replyTo.name()
+          m.to(mention)
+          mentionList = '@' + mention.name()
         }
         m.text(mentionList + ' ' + textOrMessage)
       }
@@ -328,7 +274,7 @@ export class PuppeteerMessage extends Message {
         m.room(room)
       }
 
-      if (!replyTo) {
+      if (!mention) {
         m.to(this.from())
       }
     } else {
@@ -346,13 +292,13 @@ export class PuppeteerMessage extends Message {
    * @returns {MsgType}
    */
   public type(): MsgType {
-    log.silly('PuppeteerMessage', 'type() = %s', MsgType[this.obj.type])
+    log.silly('PuppeteerMessage', 'type() = %s', MsgType[this.payload.type])
 
     /**
      * 1. A message created with rawObj
      */
-    if (this.obj.type) {
-      return this.obj.type
+    if (this.payload.type) {
+      return this.payload.type
     }
 
     /**
@@ -521,15 +467,15 @@ export class PuppeteerMessage extends Message {
       /**
        * 1. ready from contact
        */
-      const from  = PuppeteerContact.load(this.obj.from)
+      const from  = PuppeteerContact.load(this.payload.from)
       from.puppet = this.puppet
       await from.ready()  // Contact from
 
       /**
        * 2. ready to contact
        */
-      if (this.obj.to) {
-        const to = PuppeteerContact.load(this.obj.to)
+      if (this.payload.to) {
+        const to = PuppeteerContact.load(this.payload.to)
         to.puppet = this.puppet
         await to.ready()
       }
@@ -537,8 +483,8 @@ export class PuppeteerMessage extends Message {
       /**
        * 3. ready the room
        */
-      if (this.obj.room) {
-        const room  = PuppeteerRoom.load(this.obj.room)
+      if (this.payload.room) {
+        const room  = PuppeteerRoom.load(this.payload.room)
         room.puppet = this.puppet
         await room.ready()  // Room member list
       }
@@ -624,16 +570,16 @@ export class PuppeteerMessage extends Message {
       }
 
       if (!url) {
-        if (!this.obj.url) {
+        if (!this.payload.url) {
           /**
            * not a support media message, do nothing.
            */
           return this
         }
-        url = this.obj.url
+        url = this.payload.url
       }
 
-      this.obj.url = url
+      this.payload.url = url
 
     } catch (e) {
       log.warn('PuppeteerMessage', 'ready() exception: %s', e.message)
@@ -675,7 +621,7 @@ export class PuppeteerMessage extends Message {
    */
   public dump() {
     console.error('======= dump message =======')
-    Object.keys(this.obj!).forEach((k: keyof MsgPayload) => console.error(`${k}: ${this.obj![k]}`))
+    Object.keys(this.payload!).forEach((k: keyof MsgPayload) => console.error(`${k}: ${this.payload![k]}`))
   }
 
   /**
@@ -686,25 +632,25 @@ export class PuppeteerMessage extends Message {
     if (!this.rawObj) {
       throw new Error('no this.rawObj')
     }
-    Object.keys(this.rawObj).forEach((k: keyof MsgRawPayload) => console.error(`${k}: ${this.rawObj && this.rawObj[k]}`))
+    Object.keys(this.rawObj).forEach((k: keyof PuppeteerMessageRawPayload) => console.error(`${k}: ${this.rawObj && this.rawObj[k]}`))
   }
+
+  // /**
+  //  * @todo add function
+  //  */
+  // public static async find(query: any) {
+  //   return Promise.resolve(new PuppeteerMessage(<MsgRawPayload>{MsgId: '-1'}))
+  // }
 
   /**
    * @todo add function
    */
-  public static async find(query: any) {
-    return Promise.resolve(new PuppeteerMessage(<MsgRawPayload>{MsgId: '-1'}))
-  }
-
-  /**
-   * @todo add function
-   */
-  public static async findAll(query: any) {
-    return Promise.resolve([
-      new PuppeteerMessage   (<MsgRawPayload>{MsgId: '-2'}),
-      new PuppeteerMessage (<MsgRawPayload>{MsgId: '-3'}),
-    ])
-  }
+  // public static async findAll(query: any) {
+  //   return Promise.resolve([
+  //     new PuppeteerMessage   (<MsgRawPayload>{MsgId: '-2'}),
+  //     new PuppeteerMessage (<MsgRawPayload>{MsgId: '-3'}),
+  //   ])
+  // }
 
   // public to(room: Room): void
   // public to(): Contact|Room
@@ -742,11 +688,11 @@ export class PuppeteerMessage extends Message {
       await this.ready()
       // FIXME: decoupling needed
       const cookies = await (this.puppet as any as PuppetPuppeteer).cookies()
-      if (!this.obj.url) {
+      if (!this.payload.url) {
         throw new Error('no url')
       }
-      log.verbose('PuppeteerMessage', 'readyStream() url: %s', this.obj.url)
-      return Misc.urlStream(this.obj.url, cookies)
+      log.verbose('PuppeteerMessage', 'readyStream() url: %s', this.payload.url)
+      return Misc.urlStream(this.payload.url, cookies)
     } catch (e) {
       log.warn('PuppeteerMessage', 'readyStream() exception: %s', e.stack)
       Raven.captureException(e)

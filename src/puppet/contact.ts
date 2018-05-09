@@ -34,14 +34,36 @@ import Message          from './message'
  * @property {number} Female    - 2 for Female
  */
 export enum Gender {
-  Unknown = 0,
-  Male    = 1,
-  Female  = 2,
+  UNKNOWN = 0,
+  MALE    = 1,
+  FEMALE  = 2,
+}
+
+export enum ContactType {
+  UNKNOWN = 0,
+  PERSONAL,
+  OFFICIAL,
 }
 
 export interface ContactQueryFilter {
   name?:   string | RegExp,
   alias?:  string | RegExp,
+}
+
+export interface ContactPayload {
+  gender:     Gender,
+  type:       ContactType,
+
+  address?:   string,
+  alias?:     string | null,
+  avatar?:    string,
+  city?:      string,
+  friend?:    boolean,
+  name?:      string,
+  province?:  string,
+  signature?: string,
+  star?:      boolean,
+  weixin?:    string,
 }
 
 /**
@@ -52,6 +74,10 @@ export interface ContactQueryFilter {
  */
 export abstract class Contact extends PuppetAccessory implements Sayable {
   protected static readonly pool = new Map<string, Contact>()
+
+  // tslint:disable-next-line:variable-name
+  public static Type    = ContactType
+  public static Gender  = Gender
 
   /**
    * @private
@@ -157,6 +183,11 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
   }
 
   /**
+   * Instance properties
+   */
+  protected payload?: ContactPayload
+
+  /**
    * @private
    */
   constructor(
@@ -171,13 +202,20 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
    */
   public toString(): string {
     const identity = this.alias() || this.name() || this.id
-    return `Contact<${identity}>`
+    return `@Contact<${identity}>`
   }
 
   /**
    * Sent Text to contact
    *
    * @param {string} text
+   * @example
+   * const contact = await Contact.find({name: 'lijiarui'})         // change 'lijiarui' to any of your contact name in wechat
+   * try {
+   *   await contact.say('welcome to wechaty!')
+   * } catch (e) {
+   *   console.error(e)
+   * }
    */
   public abstract async say(text: string): Promise<void>
 
@@ -185,25 +223,15 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
    * Send Media File to Contact
    *
    * @param {Message} Message
-   * @memberof Contact
-   */
-  public abstract async say(message: Message): Promise<void>
-
-  /**
-   * Send Text or Media File to Contact.
-   *
-   * @param {(string | Message)} textOrMessage
-   * @returns {Promise<void>}
    * @example
    * const contact = await Contact.find({name: 'lijiarui'})         // change 'lijiarui' to any of your contact name in wechat
    * try {
-   *   await contact.say('welcome to wechaty!')
    *   await contact.say(bot.Message.create(__dirname + '/wechaty.png') // put the filePath you want to send here
    * } catch (e) {
    *   console.error(e)
    * }
    */
-  public abstract async say(textOrMessage: string | Message): Promise<void>
+  public abstract async say(message: Message): Promise<void>
 
   /**
    * Get the name from a contact
@@ -249,10 +277,12 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
    *   console.log(`failed to delete ${contact.name()}'s alias!`)
    * }
    */
-  public abstract alias(newAlias?: string|null): Promise<void | string | null> | string | null
+  public abstract alias(newAlias?: null | string): string | null | Promise<void>
 
   /**
    * Check if contact is stranger
+   *
+   * @deprecated use friend() instead
    *
    * @returns {boolean | null} - True for not friend of the bot, False for friend of the bot, null for unknown.
    * @example
@@ -261,7 +291,18 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
   public abstract stranger(): boolean | null
 
   /**
+   * Check if contact is friend
+   *
+   * @returns {boolean | null} - True for friend of the bot, False for not friend of the bot, null for unknown.
+   * @example
+   * const isFriend = contact.friend()
+   */
+  public abstract friend(): boolean | null
+
+  /**
    * Check if it's a offical account
+   *
+   * @deprecated use type() instead
    *
    * @returns {boolean | null} - True for official account, Flase for contact is not a official account, null for unknown
    * @see {@link https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3243|webwxApp.js#L324}
@@ -269,16 +310,27 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
    * @example
    * const isOfficial = contact.official()
    */
-  public abstract official(): boolean | null
+  public abstract official(): boolean
 
   /**
    * Check if it's a personal account
    *
-   * @returns {boolean | null} - True for personal account, Flase for contact is not a personal account
+   * @deprecated use type() instead
+   *
+   * @returns {boolean} - True for personal account, Flase for contact is not a personal account
    * @example
    * const isPersonal = contact.personal()
    */
-  public abstract personal(): boolean | null
+  public abstract personal(): boolean
+
+  /**
+   * Return the type of the Contact
+   *
+   * @returns ContactType - Contact.Type.PERSONAL for personal account, Contact.Type.OFFICIAL for official account
+   * @example
+   * const isOfficial = contact.type() === Contact.Type.OFFICIAL
+   */
+  public abstract type(): ContactType
 
   /**
    * Check if the contact is star contact.
@@ -292,7 +344,7 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
   /**
    * Contact gender
    *
-   * @returns {Gender.Male(2)|Gender.Female(1)|Gender.Unknown(0)}
+   * @returns {Gender.MALE(2)|Gender.Female(1)|Gender.Unknown(0)}
    * @example
    * const gender = contact.gender()
    */
@@ -332,16 +384,27 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
   /**
    * Force reload(re-ready()) data for Contact
    *
+   * @deprecated use sync() instead
+   *
    * @returns {Promise<this>}
    * @example
    * await contact.refresh()
    */
-  public abstract async refresh(): Promise<this>
+  public abstract async refresh(): Promise<void>
+
+  /**
+   * sycc data for Contact
+   *
+   * @returns {Promise<this>}
+   * @example
+   * await contact.sync()
+   */
+  public abstract async sync(): Promise<void>
 
   /**
    * @private
    */
-  public abstract async ready(): Promise<this>
+  public abstract async ready(): Promise<void>
 
   /**
    * @private

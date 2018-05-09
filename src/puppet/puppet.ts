@@ -47,6 +47,7 @@ import Profile          from '../profile'
 
 import {
   Contact,
+  ContactPayload,
   ContactQueryFilter,
 }                       from './contact'
 import FriendRequest    from './friend-request'
@@ -54,6 +55,7 @@ import Message          from './message'
 
 import {
   Room,
+  RoomPayload,
   RoomQueryFilter,
 }                       from './room'
 
@@ -216,45 +218,59 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   /**
    * Message
    */
-  public abstract forward(message: Message, contact: Contact | Room) : Promise<void>
-  public abstract say(text: string)                                  : Promise<void>
-  public abstract send(message: Message)                             : Promise<void>
+  public abstract async forward(message: Message, to: Contact | Room) : Promise<void>
+  // TODO: change Message to File
+  public abstract async say(textOrMessage: string | Message)          : Promise<void>
+  public abstract async send(message: Message)                        : Promise<void>
 
   /**
    * Login / Logout
    */
-  public abstract logonoff()          : boolean
+  public abstract logonoff()   : boolean
   // public abstract login(user: Contact): Promise<void>
-  public abstract logout()            : Promise<void>
+  public abstract async logout(): Promise<void>
 
   /**
+   *
    * Misc
+   *
    */
-  public abstract ding(data?: any) : Promise<string>
+  public abstract async ding(data?: any) : Promise<string>
 
   /**
+   *
    * FriendRequest
+   *
    */
-  public abstract friendRequestSend(contact: Contact, hello?: string)   : Promise<void>
-  public abstract friendRequestAccept(contact: Contact, ticket: string) : Promise<void>
+  public abstract async friendRequestSend(contact: Contact, hello?: string)   : Promise<void>
+  public abstract async friendRequestAccept(contact: Contact, ticket: string) : Promise<void>
 
   /**
+   *
    * Room
+   *
    */
-  public abstract roomAdd(room: Room, contact: Contact)              : Promise<void>
-  public abstract roomCreate(contactList: Contact[], topic?: string) : Promise<Room>
-  public abstract roomDel(room: Room, contact: Contact)              : Promise<void>
-  public abstract roomFindAll(filter: RoomQueryFilter)           : Promise<Room[]>
-  public abstract roomTopic(room: Room, topic?: string)              : Promise<string | void>
+  public abstract async roomAdd(room: Room, contact: Contact)               : Promise<void>
+  public abstract async roomCreate(contactList: Contact[], topic?: string)  : Promise<Room>
+  public abstract async roomDel(room: Room, contact: Contact)               : Promise<void>
+  public abstract async roomFindAll(query?: RoomQueryFilter)                : Promise<Room[]>
+  public abstract async roomPayload(room: Room)                             : Promise<RoomPayload>
+  public abstract async roomTopic(room: Room, topic?: string)               : Promise<string | void>
 
   /**
+   *
    * Contact
+   *
    */
-  public abstract contactAlias(contact: Contact)                      : Promise<string>
-  public abstract contactAlias(contact: Contact, alias: string | null): Promise<void>
-  public abstract contactAlias(contact: Contact, alias?: string|null) : Promise<string | void>
+  public abstract async contactAlias(contact: Contact)                      : Promise<string>
+  public abstract async contactAlias(contact: Contact, alias: string | null): Promise<void>
+  public abstract async contactAlias(contact: Contact, alias?: string|null) : Promise<string | void>
 
-  public abstract contactFindAll(filter: ContactQueryFilter)          : Promise<Contact[]>
+  // TODO: change the return type from NodeJS.ReadableStream to File(vinyl)
+  public abstract async contactAvatar(contact: Contact)                     : Promise<NodeJS.ReadableStream>
+  public abstract async contactPayload(contact: Contact)                    : Promise<ContactPayload>
+
+  public abstract async contactFindAll(query?: ContactQueryFilter)          : Promise<Contact[]>
 }
 
 // export class WechatError extends Error {

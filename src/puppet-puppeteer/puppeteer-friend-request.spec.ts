@@ -29,7 +29,6 @@ import Wechaty    from '../wechaty'
 
 import {
   Puppet,
-  FriendRequestType,
 }                     from '../puppet/'
 import {
   PuppetMock,
@@ -58,7 +57,7 @@ test('PuppetPuppeteerFriendRequest.receive smoke testing', async t => {
   t.true(typeof fr.payload === 'object', 'should has info object')
   t.is(fr.hello(), '我是群聊"Wechaty"的李卓桓.PreAngel', 'should has right request message')
   t.true(fr.contact() instanceof PuppeteerContact, 'should have a Contact instance')
-  t.is(fr.type(), FriendRequestType.RECEIVE, 'should be receive type')
+  t.is(fr.type(), MyFriendRequest.Type.RECEIVE, 'should be receive type')
 })
 
 test('PuppetPuppeteerFriendRequest.confirm smoke testing', async t => {
@@ -91,5 +90,5 @@ test('PuppetPuppeteerFriendRequest.confirm smoke testing', async t => {
   fr.confirm(contact || new MyContact('xx'))
 
   t.true(fr.contact() instanceof PuppeteerContact, 'should have a Contact instance')
-  t.is(fr.type(), FriendRequestType.CONFIRM, 'should be confirm type')
+  t.is(fr.type(), MyFriendRequest.Type.CONFIRM, 'should be confirm type')
 })

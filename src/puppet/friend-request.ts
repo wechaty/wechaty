@@ -39,6 +39,9 @@ export enum FriendRequestType {
  */
 export abstract class FriendRequest extends PuppetAccessory {
 
+  // tslint:disable-next-line:variable-name
+  public static Type = FriendRequestType
+
   public abstract send(contact: Contact, hello: string): Promise<void>
 
   public abstract accept(): Promise<void>

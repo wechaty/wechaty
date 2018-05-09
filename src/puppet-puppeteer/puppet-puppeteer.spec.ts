@@ -68,7 +68,7 @@ test('login/logout events', sinonTest(async function (t: test.Test) {
   sandbox.stub(Event, 'onScan') // block the scan event to prevent reset logined user
 
   sandbox.stub(Bridge.prototype,    'getUserName').resolves('mockedUserName')
-  sandbox.stub(PuppetPuppeteer.prototype, 'getContact') .resolves({
+  sandbox.stub(PuppetPuppeteer.prototype, 'contactPayload').resolves({
     NickName: 'mockedNickName',
     UserName: 'mockedUserName',
   })
@@ -97,7 +97,7 @@ test('login/logout events', sinonTest(async function (t: test.Test) {
     t.is(pw.logonoff(), true  , 'should be logined')
 
     t.ok((pw.bridge.getUserName as any).called, 'bridge.getUserName should be called')
-    t.ok((pw.getContact as any).called,         'pw.getContact should be called')
+    t.ok((pw.contactPayload as any).called,         'pw.getContact should be called')
 
     t.ok((Contact.findAll as any).called,       'contactFind stub should be called')
     t.is((Contact.findAll as any).callCount, 4, 'should call stubContactFind 4 times')

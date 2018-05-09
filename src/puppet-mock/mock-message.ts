@@ -49,31 +49,6 @@ export class MockMessage extends Message {
   private payload: MockMessagePayload
 
   /**
-   * Static Methods
-   */
-
-  public static async find(query: any): Promise<MockMessage | null> {
-    const messageList = await this.findAll(query)
-
-    if (messageList.length <= 0) {
-      return null
-    }
-
-    if (messageList.length > 1) {
-      log.warn('MockMessage', 'find() return multiple results, return the first one.')
-    }
-
-    return messageList[0]
-  }
-
-  public static async findAll(query: any): Promise<MockMessage[]> {
-    return Promise.resolve([
-      new MockMessage({MsgId: '-2'}),
-      new MockMessage({MsgId: '-3'}),
-    ])
-  }
-
-  /**
    * Instance Properties & Methods
    */
 
@@ -88,37 +63,37 @@ export class MockMessage extends Message {
     this.payload = {} as MockMessagePayload
   }
 
-  public from(contact: MockContact) : this
+  public from(contact: MockContact) : void
   public from()                     : MockContact
 
-  public from(contact?: MockContact): this | MockContact {
+  public from(contact?: MockContact): void | MockContact {
     if (contact) {
       this.payload.from = contact
-      return this
+      return
     }
 
     return this.payload.from
   }
 
-  public to(contact: MockContact): this
-  public to(): MockContact | null // if to is not set, then room must had set
+  public to(contact: MockContact) : void
+  public to()                     : MockContact | null // if no `to` there must be a `room`
 
-  public to(contact?: MockContact): MockContact | null | this {
+  public to(contact?: MockContact): void | MockContact | null {
     if (contact) {
       this.payload.to = contact
-      return this
+      return
     }
 
     return this.payload.to || null
   }
 
-  public room(room: MockRoom): this
-  public room(): MockRoom | null
+  public room(room: MockRoom) : void
+  public room()               : null | MockRoom
 
-  public room(room?: MockRoom): this | MockRoom | null {
+  public room(room?: MockRoom): void | null | MockRoom {
     if (room) {
       this.payload.room = room
-      return this
+      return
     }
     return this.payload.room || null
   }
@@ -142,19 +117,24 @@ export class MockMessage extends Message {
   ): Promise<void> {
     log.verbose('MockMessage', 'say(%s, %s)', textOrMessage, mention)
 
-    const message = new MockMessage()
+    if (textOrMessage instanceof Message) {
+      await this.puppet.send(textOrMessage)
+      return
+    }
 
-    message.from(this.puppet.userSelf() as MockContact)
-    message.to(this.from())
+    const msg = new MockMessage()
+
+    msg.from(this.puppet.userSelf())
+    msg.to(this.from())
 
     const room = this.room()
     if (room) {
-      message.room(room)
+      msg.room(room)
     }
 
     // TODO: implement the `mention`
 
-    await this.puppet.send(message)
+    await this.puppet.send(msg)
   }
 
   public type(): MsgType {
