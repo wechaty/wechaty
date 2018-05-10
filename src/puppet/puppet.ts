@@ -71,10 +71,10 @@ export const PUPPET_EVENT_DICT = {
 
 export type PuppetEventName = keyof typeof PUPPET_EVENT_DICT
 
-export type PuppetContact        = typeof Contact        & Constructor<Contact>
-export type PuppetFriendRequest  = typeof FriendRequest  & Constructor<FriendRequest>
-export type PuppetMessage        = typeof Message        & Constructor<Message>
-export type PuppetRoom           = typeof Room           & Constructor<Room>
+export type PuppetContact        = typeof Contact       & Constructor<Contact>
+export type PuppetFriendRequest  = typeof FriendRequest & Constructor<FriendRequest>
+export type PuppetMessage        = typeof Message       & Constructor<Message>
+export type PuppetRoom           = typeof Room          & Constructor<Room>
 
 export interface PuppetClasses {
   Contact:        PuppetContact,
@@ -96,7 +96,10 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   protected readonly watchdog: Watchdog
 
-  private readonly pkg: normalize.Package
+  /**
+   * childPkg stores the `package.json` that the NPM module who extends the `Puppet`
+   */
+  private readonly childPkg: normalize.Package
 
   constructor(
     public options: PuppetOptions,
@@ -130,13 +133,13 @@ export abstract class Puppet extends EventEmitter implements Sayable {
      */
     try {
       const childClassPath = callerResolve('.', __filename)
-      this.pkg = readPkgUp.sync({ cwd: childClassPath }).pkg
+      this.childPkg = readPkgUp.sync({ cwd: childClassPath }).pkg
     } finally {
-      if (!this.pkg) {
+      if (!this.childPkg) {
         throw new Error('Cannot found package.json for Puppet Plugin Module')
       }
     }
-    normalize(this.pkg)
+    normalize(this.childPkg)
   }
 
   public emit(event: 'error',       e: Error)                                                      : boolean
@@ -181,14 +184,18 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   }
 
   public version(): string {
-    return this.pkg.version
+    return this.childPkg.version
   }
 
   /**
    * will be used by semver.satisfied(version, range)
    */
-  public wechatyVersionRange(): string {
+  public wechatyVersionRange(strict = false): string {
     // FIXME: for development, we use `*` if not set
+    if (strict) {
+      return '^0.16.0'
+    }
+
     return '*'
 
     // TODO: test and uncomment the following codes after promote the `wehcaty-puppet` as a solo NPM module
