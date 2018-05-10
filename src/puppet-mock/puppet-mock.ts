@@ -39,18 +39,19 @@ import {
 // import Wechaty      from '../wechaty'
 
 import {
-  MockContact,
-}                             from './mock-contact'
-import { MockFriendRequest }  from './mock-friend-request'
+  Contact,
+}                             from '../puppet/contact'
+import { FriendRequest }  from '../puppet/friend-request'
+import { Room }           from '../puppet/room'
+
 import { MockMessage }        from './mock-message'
-import { MockRoom }           from './mock-room'
 
 export type PuppetFoodType = 'scan' | 'ding'
 export type ScanFoodType   = 'scan' | 'login' | 'logout'
 
 export class PuppetMock extends Puppet {
 
-  private user?: MockContact
+  private user?: Contact
 
   constructor(
     public options: PuppetOptions,
@@ -58,10 +59,10 @@ export class PuppetMock extends Puppet {
     super(
       options,
       {
-        Contact:        MockContact,
-        FriendRequest:  MockFriendRequest,
+        Contact:        Contact,
+        FriendRequest:  FriendRequest,
         Message:        MockMessage,
-        Room:           MockRoom,
+        Room:           Room,
       },
     )
   }
@@ -81,8 +82,8 @@ export class PuppetMock extends Puppet {
     // await some tasks...
     this.state.on(true)
 
-    const from = MockContact.load('xxx_from')
-    const to = MockContact.load('xxx_to')
+    const from = Contact.load('xxx_from')
+    const to = Contact.load('xxx_to')
     const msg = new MockMessage()
 
     msg.from(from)
@@ -121,7 +122,7 @@ export class PuppetMock extends Puppet {
     }
   }
 
-  public userSelf(): MockContact {
+  public userSelf(): Contact {
     log.verbose('PuppetMock', 'self()')
 
     if (!this.user) {
@@ -131,7 +132,7 @@ export class PuppetMock extends Puppet {
     return this.user
   }
 
-  public async forward(message: MockMessage, sendTo: MockContact | MockRoom): Promise<void> {
+  public async forward(message: MockMessage, sendTo: Contact | Room): Promise<void> {
     log.silly('PuppetMock', 'forward() to: %s, message: %s)',
                             sendTo, message.filename(),
                             // patchData.ToUserName,
@@ -170,26 +171,26 @@ export class PuppetMock extends Puppet {
     this.user = undefined
   }
 
-  public contactAlias(contact: MockContact)                      : Promise<string>
-  public contactAlias(contact: MockContact, alias: string | null): Promise<void>
+  public contactAlias(contact: Contact)                      : Promise<string>
+  public contactAlias(contact: Contact, alias: string | null): Promise<void>
 
-  public async contactAlias(contact: MockContact, alias?: string|null): Promise<void | string> {
+  public async contactAlias(contact: Contact, alias?: string|null): Promise<void | string> {
     if (typeof alias === 'undefined') {
       return 'mock alias'
     }
     return
   }
 
-  public async contactFindAll(query: ContactQueryFilter): Promise<MockContact[]> {
+  public async contactFindAll(query: ContactQueryFilter): Promise<Contact[]> {
     return []
   }
 
-  public async contactAvatar(contact: MockContact): Promise<NodeJS.ReadableStream> {
+  public async contactAvatar(contact: Contact): Promise<NodeJS.ReadableStream> {
     const WECHATY_ICON_PNG = path.resolve('../../docs/images/wechaty-icon.png')
     return fs.createReadStream(WECHATY_ICON_PNG)
   }
 
-  public async contactPayload(contact: MockContact): Promise<ContactPayload> {
+  public async contactPayload(contact: Contact): Promise<ContactPayload> {
     return {
       gender: Gender.UNKNOWN,
       type:   ContactType.UNKNOWN,
@@ -197,7 +198,7 @@ export class PuppetMock extends Puppet {
 
   }
 
-  public async roomPayload(room: MockRoom): Promise<RoomPayload> {
+  public async roomPayload(room: Room): Promise<RoomPayload> {
     return {
       topic          : 'mock topic',
       memberList     : [],
@@ -209,45 +210,49 @@ export class PuppetMock extends Puppet {
 
   public async roomFindAll(
     query: RoomQueryFilter = { topic: /.*/ },
-  ): Promise<MockRoom[]> {
+  ): Promise<Room[]> {
     return []
   }
 
   public async roomDel(
-    room: MockRoom,
-    contact: MockContact,
+    room: Room,
+    contact: Contact,
   ): Promise<void> {
     //
   }
 
   public async roomAdd(
-    room: MockRoom,
-    contact: MockContact,
+    room: Room,
+    contact: Contact,
   ): Promise<void> {
     //
   }
 
-  public async roomTopic(room: MockRoom, topic?: string): Promise<void | string> {
+  public async roomTopic(room: Room, topic?: string): Promise<void | string> {
     if (typeof topic === 'undefined') {
       return 'mock room topic'
     }
     return
   }
 
-  public async roomCreate(contactList: MockContact[], topic: string): Promise<MockRoom> {
+  public async roomCreate(contactList: Contact[], topic: string): Promise<Room> {
     if (!contactList || ! contactList.map) {
       throw new Error('contactList not found')
     }
-    const r = MockRoom.load('mock room id') as MockRoom
+    const r = Room.load('mock room id') as Room
     r.puppet = this
     return r
   }
 
-  public async friendRequestSend(contact: MockContact, hello: string): Promise<void> {
+  public async roomQuit(room: Room): Promise<void> {
     //
   }
 
-  public async friendRequestAccept(contact: MockContact, ticket: string): Promise<void> {
+  public async friendRequestSend(contact: Contact, hello: string): Promise<void> {
+    //
+  }
+
+  public async friendRequestAccept(contact: Contact, ticket: string): Promise<void> {
     //
   }
 

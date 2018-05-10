@@ -24,10 +24,10 @@ import {
 import {
   log,
 }                   from '../config'
-import { Message }  from '../puppet/'
+import { Message }  from '../puppet/message'
 
-import { MockContact }  from './mock-contact'
-import { MockRoom }     from './mock-room'
+import { Contact }  from '../puppet/contact'
+import { Room }     from '../puppet/room'
 
 import {
   WebMsgType,
@@ -38,9 +38,9 @@ export type ParsedPath = Partial<path.ParsedPath>
 
 export interface MockMessagePayload {
   text:   string,
-  from:   MockContact,
-  to?:    MockContact,
-  room?:  MockRoom,
+  from:   Contact,
+  to?:    Contact,
+  room?:  Room,
   type:   WebMsgType,
 }
 
@@ -63,10 +63,10 @@ export class MockMessage extends Message {
     this.payload = {} as MockMessagePayload
   }
 
-  public from(contact: MockContact) : void
-  public from()                     : MockContact
+  public from(contact: Contact) : void
+  public from()                     : Contact
 
-  public from(contact?: MockContact): void | MockContact {
+  public from(contact?: Contact): void | Contact {
     if (contact) {
       this.payload.from = contact
       return
@@ -75,10 +75,10 @@ export class MockMessage extends Message {
     return this.payload.from
   }
 
-  public to(contact: MockContact) : void
-  public to()                     : MockContact | null // if no `to` there must be a `room`
+  public to(contact: Contact) : void
+  public to()                     : Contact | null // if no `to` there must be a `room`
 
-  public to(contact?: MockContact): void | MockContact | null {
+  public to(contact?: Contact): void | Contact | null {
     if (contact) {
       this.payload.to = contact
       return
@@ -87,10 +87,10 @@ export class MockMessage extends Message {
     return this.payload.to || null
   }
 
-  public room(room: MockRoom) : void
-  public room()               : null | MockRoom
+  public room(room: Room) : void
+  public room()               : null | Room
 
-  public room(room?: MockRoom): void | null | MockRoom {
+  public room(room?: Room): void | null | Room {
     if (room) {
       this.payload.room = room
       return
@@ -108,12 +108,12 @@ export class MockMessage extends Message {
     return this.payload.text || ''
   }
 
-  public async say(text: string, mention?: MockContact | MockContact[]): Promise<void>
+  public async say(text: string, mention?: Contact | Contact[]): Promise<void>
   public async say(message: MockMessage): Promise<void>
 
   public async say(
     textOrMessage:  string | MockMessage,
-    mention?:       MockContact | MockContact[],
+    mention?:       Contact | Contact[],
   ): Promise<void> {
     log.verbose('MockMessage', 'say(%s, %s)', textOrMessage, mention)
 
@@ -148,7 +148,7 @@ export class MockMessage extends Message {
     return fromId === userId
   }
 
-  public mentioned(): MockContact[] {
+  public mentioned(): Contact[] {
     return []
   }
 
@@ -180,7 +180,7 @@ export class MockMessage extends Message {
     return 'text/plain'
   }
 
-  public async forward(to: MockRoom | MockContact): Promise<void> {
+  public async forward(to: Room | Contact): Promise<void> {
     /**
      * 1. Text message
      */

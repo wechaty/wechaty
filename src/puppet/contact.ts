@@ -240,31 +240,24 @@ export class Contact extends PuppetAccessory implements Sayable {
   public async say(textOrMessage: string | Message): Promise<void> {
     log.verbose('Contact', 'say(%s)', textOrMessage)
 
-    const user = this.puppet.userSelf() as Contact
-
-    if (!user) {
-      throw new Error('no user')
-    }
-
-    let m
-    if (typeof textOrMessage === 'string') {
-      m = new PuppeteerMessage()
-      m.puppet = this.puppet
-      m.text(textOrMessage)
-    } else if (textOrMessage instanceof Message) {
-      m = textOrMessage
+    let msg
+    if (textOrMessage instanceof Message) {
+      msg = textOrMessage
     } else {
-      throw new Error('not support args')
+      msg = new PuppeteerMessage()
+      msg.puppet = this.puppet
+      msg.text(textOrMessage)
     }
-    m.from(user)
-    m.to(this)
+
+    msg.from(this.puppet.userSelf())
+    msg.to(this)
 
     log.silly('Contact', 'say() from: %s to: %s content: %s',
-                                  user,
+                                  this.puppet.userSelf(),
                                   this,
-                                  textOrMessage,
+                                  msg,
               )
-    await this.puppet.send(m)
+    await this.puppet.send(msg)
   }
 
   /**
