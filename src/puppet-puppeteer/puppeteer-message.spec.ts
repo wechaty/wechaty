@@ -87,11 +87,11 @@ test('ready()', async t => {
   const expectedMsgId        = '3009511950433684462'
 
   // Mock
-  function mockContactPayload(id: string) {
-    log.silly('TestMessage', `mocked getContact(${id})`)
+  function mockContactPayload(contact: PuppeteerContact) {
+    log.silly('TestMessage', `mocked getContact(%s)`, contact)
     return new Promise((resolve, reject) => {
       let obj = {}
-      switch (id) {
+      switch (contact.id) {
         case expectedFromUserName:
           obj = {
             UserName: expectedFromUserName,
@@ -105,7 +105,7 @@ test('ready()', async t => {
           }
           break
         default:
-          log.error('TestMessage', `mocked getContact(${id}) unknown`)
+          log.error('TestMessage', `mocked getContact(%s) unknown`, contact)
           t.fail('mocked getContact(${id}) unknown')
           break
       }
@@ -117,12 +117,13 @@ test('ready()', async t => {
     })
   }
 
-  // config.puppetInstance()
-  //       .getContact = mockGetContact
   const sandbox = sinon.createSandbox()
-  const puppet = new PuppetMock()
+  const puppet = new PuppetPuppeteer({
+    profile: new Profile(),
+    wechaty: new Wechaty(),
+  })
 
-  sandbox.stub(puppet, 'contactPayload').callsFake(mockContactPayload)
+  sandbox.stub(puppet as any, 'contactRawPayload').callsFake(mockContactPayload)
   MyRoom.puppet = MyContact.puppet = MyMessage.puppet = puppet
 
   const m = new MyMessage(rawData)
@@ -197,15 +198,15 @@ test('mentioned()', async t => {
   const ROOM_ID = '@@9cdc696e490bd76c57e7dd54792dc1408e27d65e312178b1943e88579b7939f4'
 
   // Mock
-  const contactPayloadMock = function (id: string) {
+  const contactPayloadMock = function (contact: PuppeteerContact) {
     return new Promise((resolve, reject) => {
-      if (id !== ROOM_ID && !(id in CONTACT_LIST)) return resolve({})
-      if (id === ROOM_ID) {
+      if (contact.id !== ROOM_ID && !(contact.id in CONTACT_LIST)) return resolve({})
+      if (contact.id === ROOM_ID) {
         resolve(RAW_OBJ)
       }
-      if (id in CONTACT_LIST) {
+      if (contact.id in CONTACT_LIST) {
         setTimeout(() => {
-          return resolve(CONTACT_LIST[id])
+          return resolve(CONTACT_LIST[contact.id])
         }, 10)
       }
     })

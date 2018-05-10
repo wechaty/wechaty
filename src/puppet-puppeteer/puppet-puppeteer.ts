@@ -842,16 +842,24 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async contactPayload(contact: PuppeteerContact): Promise<ContactPayload> {
-    log.verbose('PuppetPuppeteer', 'contactPayload(%s)', contact)
+  private async contactRawPayload(contact: PuppeteerContact): Promise<PuppeteerContactRawPayload> {
+    log.verbose('PuppetPuppeteer', 'contactRawPayload(%s)', contact)
     try {
       const rawPayload = await this.bridge.getContact(contact.id) as PuppeteerContactRawPayload
-      return this.contactParseRawPayload(rawPayload)
+      return rawPayload
     } catch (e) {
-      log.error('PuppetPuppeteer', 'getContact(%d) exception: %s', contact.id, e.message)
+      log.error('PuppetPuppeteer', 'contactRawPayload(%d) exception: %s', contact, e.message)
       Raven.captureException(e)
       throw e
     }
+
+  }
+
+  public async contactPayload(contact: PuppeteerContact): Promise<ContactPayload> {
+    log.verbose('PuppetPuppeteer', 'contactPayload(%s)', contact)
+    const rawPayload  = await this.contactRawPayload(contact)
+    const payload     = this.contactParseRawPayload(rawPayload)
+    return payload
   }
 
   public async ding(data?: any): Promise<string> {

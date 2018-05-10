@@ -155,11 +155,6 @@ export class PuppeteerMessage extends Message {
   public to(contact: PuppeteerContact): void
   public to()                         : PuppeteerContact | null // if to is not set, then room must had set
 
-  /**
-   * Get the destination of the message
-   * Message.to() will return null if a message is in a room, use Message.room() to get the room.
-   * @returns {(Contact|null)}
-   */
   public to(contact?: PuppeteerContact): void | null | PuppeteerContact {
     if (contact) {
       this.payload.to = contact.id
@@ -194,17 +189,7 @@ export class PuppeteerMessage extends Message {
     return null
   }
 
-  /**
-   * Get the content of the message
-   *
-   * @returns {string}
-   */
   public content(): string
-
-  /**
-   * @private
-   * @deprecated
-   */
   public content(content: string): void
 
   public content(content?: string): void | string {
@@ -217,7 +202,7 @@ export class PuppeteerMessage extends Message {
   }
 
   public text(): string
-  public text(content: string): void
+  public text(text: string): void
   /**
    * Get the textcontent of the message
    *

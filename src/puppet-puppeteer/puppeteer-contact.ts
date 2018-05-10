@@ -191,7 +191,7 @@ export class PuppeteerContact extends Contact implements Sayable {
     try {
       this.payload = await this.puppet.contactPayload(this)
       log.silly('PuppeteerContact', `ready() this.puppet.contactPayload(%s) resolved`, this)
-      console.log(this.payload)
+      // console.log(this.payload)
 
     } catch (e) {
       log.error('PuppeteerContact', `ready() this.puppet.contactPayload(%s) exception: %s`,
