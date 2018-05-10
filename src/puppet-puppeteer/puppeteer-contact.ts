@@ -81,7 +81,9 @@ export class PuppeteerContact extends Contact implements Sayable {
     await this.puppet.send(m)
   }
 
-  public name()     { return Misc.plainText(this.payload && this.payload.name || '') }
+  public name(): string {
+    return Misc.plainText(this.payload && this.payload.name || '')
+  }
 
   public alias()                  : string | null
   public alias(newAlias:  string) : Promise<void>
@@ -179,22 +181,23 @@ export class PuppeteerContact extends Contact implements Sayable {
   }
 
   public async ready(): Promise<void> {
-    // log.silly('PuppeteerContact', 'ready(' + (contactGetter ? typeof contactGetter : '') + ')')
-    if (!this.id) {
-      const e = new Error('ready() call on an un-inited contact')
-      throw e
-    }
+    log.silly('PuppeteerContact', 'ready()')
 
     if (this.isReady()) { // already ready
+      log.silly('PuppeteerContact', 'ready() isReady() true')
       return
     }
 
     try {
       this.payload = await this.puppet.contactPayload(this)
-      log.silly('PuppeteerContact', `contactGetter(${this.id}) resolved`)
+      log.silly('PuppeteerContact', `ready() this.puppet.contactPayload(%s) resolved`, this)
+      console.log(this.payload)
 
     } catch (e) {
-      log.error('PuppeteerContact', `contactGetter(${this.id}) exception: %s`, e.message)
+      log.error('PuppeteerContact', `ready() this.puppet.contactPayload(%s) exception: %s`,
+                                    this,
+                                    e.message,
+                )
       Raven.captureException(e)
       throw e
     }

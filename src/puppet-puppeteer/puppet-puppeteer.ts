@@ -801,6 +801,7 @@ export class PuppetPuppeteer extends Puppet {
   private contactParseRawPayload(
     rawPayload: PuppeteerContactRawPayload,
   ): ContactPayload {
+    log.verbose('PuppetPuppeteer', 'contactParseRawPayload(%s)', rawPayload)
     if (!rawPayload.UserName) {
       throw new Error('contactParsePayload() got empty rawPayload!')
     }
@@ -842,6 +843,7 @@ export class PuppetPuppeteer extends Puppet {
   }
 
   public async contactPayload(contact: PuppeteerContact): Promise<ContactPayload> {
+    log.verbose('PuppetPuppeteer', 'contactPayload(%s)', contact)
     try {
       const rawPayload = await this.bridge.getContact(contact.id) as PuppeteerContactRawPayload
       return this.contactParseRawPayload(rawPayload)

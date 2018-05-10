@@ -57,9 +57,7 @@ test('Puppet smoke testing', async t => {
 })
 
 test('login/logout events', sinonTest(async function (t: test.Test) {
-
-  const sandbox = sinon.sandbox.create()
-
+  const sandbox = sinon.createSandbox()
   sandbox.stub(Contact, 'findAll')
         .onFirstCall().resolves([])
         .onSecondCall().resolves([1])

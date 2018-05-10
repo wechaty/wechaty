@@ -73,11 +73,12 @@ export interface ContactPayload {
  * [Examples/Contact-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/contact-bot.ts}
  */
 export abstract class Contact extends PuppetAccessory implements Sayable {
-  protected static readonly pool = new Map<string, Contact>()
 
   // tslint:disable-next-line:variable-name
   public static Type    = ContactType
   public static Gender  = Gender
+
+  protected static readonly pool = new Map<string, Contact>()
 
   /**
    * @private

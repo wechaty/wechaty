@@ -87,7 +87,7 @@ test('ready()', async t => {
   const expectedMsgId        = '3009511950433684462'
 
   // Mock
-  function mockGetContact(id: string) {
+  function mockContactPayload(id: string) {
     log.silly('TestMessage', `mocked getContact(${id})`)
     return new Promise((resolve, reject) => {
       let obj = {}
@@ -119,10 +119,11 @@ test('ready()', async t => {
 
   // config.puppetInstance()
   //       .getContact = mockGetContact
-  MyRoom.puppet = MyContact.puppet = MyMessage.puppet = {
-    ...puppet,
-    getContact: mockGetContact,
-  } as any
+  const sandbox = sinon.createSandbox()
+  const puppet = new PuppetMock()
+
+  sandbox.stub(puppet, 'contactPayload').callsFake(mockContactPayload)
+  MyRoom.puppet = MyContact.puppet = MyMessage.puppet = puppet
 
   const m = new MyMessage(rawData)
 
@@ -140,6 +141,8 @@ test('ready()', async t => {
   t.is(fc.name()  , expectedFromNickName, 'contact ready for FromNickName')
   t.is(tc.id      , expectedToUserName  , 'contact ready for ToUserName')
   t.is(tc.name()  , expectedToNickName  , 'contact ready for ToNickName')
+
+  sandbox.restore()
 })
 
 test('find()', async t => {
@@ -216,7 +219,7 @@ test('mentioned()', async t => {
   //   puppet1 = { getContact: mockContactGetter }
   //   config.puppetInstance(puppet1)
   // }
-  const sandbox = sinon.sandbox.create()
+  const sandbox = sinon.createSandbox()
 
   const puppet = new PuppetMock({
     profile: new Profile(),

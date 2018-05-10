@@ -24,49 +24,49 @@ import * as sinon from 'sinon'
 
 import cloneClass from 'clone-class'
 
-import Profile          from '../profile'
-import Wechaty          from '../wechaty' // `Wechaty` need to be imported before `Puppet`
+import {
+  log,
+}                       from '../config'
 
-import PuppetPuppeteer  from './puppet-puppeteer'
+import {
+  PuppetMock,
+}                       from '../puppet-mock/puppet-mock'
+
 import PuppeteerContact from './puppeteer-contact'
 
 test('Contact smoke testing', async t => {
-
-  // tslint:disable-next-line:variable-name
-  const MyContact = cloneClass(PuppeteerContact)
-  const puppet    = new PuppetPuppeteer({
-    profile: new Profile(),
-    wechaty: new Wechaty(),
-  })
 
   /* tslint:disable:variable-name */
   const UserName = '@0bb3e4dd746fdbd4a80546aef66f4085'
   const NickName = 'NickNameTest'
   const RemarkName = 'AliasTest'
 
-  const sandbox = sinon.sandbox.create()
+  const sandbox = sinon.createSandbox()
 
-  sandbox.stub(puppet, 'contactPayload')
-  .callsFake(function(id: string) {
+  function mockContactPayload(id: string) {
+    log.verbose('PuppeteerContactTest', 'mockContactPayload(%s)', id)
     return new Promise<any>((resolve, reject) => {
       if (id !== UserName) return resolve({})
-      setTimeout(() => {
-        return resolve({
-          UserName:   UserName,
-          NickName:   NickName,
-          RemarkName: RemarkName,
-        })
-      }, 10)
+      setImmediate(() => resolve({
+        UserName:   UserName,
+        NickName:   NickName,
+        RemarkName: RemarkName,
+      }))
     })
-  })
+  }
 
+  const puppet = new PuppetMock()
+  sandbox.stub(puppet, 'contactPayload').callsFake(mockContactPayload)
+
+  // tslint:disable-next-line:variable-name
+  const MyContact = cloneClass(PuppeteerContact)
   MyContact.puppet = puppet
 
   const c = new MyContact(UserName)
-
   t.is(c.id, UserName, 'id/UserName right')
+
   await c.ready()
-  t.is(c.id   , UserName, 'UserName set')
+
   t.is(c.name(), NickName, 'NickName set')
   t.is(c.alias(), RemarkName, 'should get the right alias from Contact')
 

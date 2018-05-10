@@ -33,11 +33,12 @@ import {
 
 import {
   log,
-}         from '../config'
-
+}                   from '../config'
 import {
   ContactPayload,
-}                           from '../puppet/contact'
+}                   from '../puppet/contact'
+import Profile      from '../profile'
+import Wechaty      from '../wechaty'
 
 import {
   MockContact,
@@ -54,14 +55,23 @@ export class PuppetMock extends Puppet {
   private user?: MockContact
 
   constructor(
-    public options: PuppetOptions,
+    public options: PuppetOptions = {} as any,
   ) {
-    super(options, {
-      Contact:        MockContact,
-      FriendRequest:  MockFriendRequest,
-      Message:        MockMessage,
-      Room:           MockRoom,
-    })
+    super(
+      options.profile
+        ? options
+        : {
+            profile: new Profile(),
+            wechaty: new Wechaty(),
+          }
+      ,
+      {
+          Contact:        MockContact,
+          FriendRequest:  MockFriendRequest,
+          Message:        MockMessage,
+          Room:           MockRoom,
+      },
+    )
   }
 
   public toString() {
