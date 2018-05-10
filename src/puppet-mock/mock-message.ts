@@ -31,7 +31,7 @@ import { MockRoom }     from './mock-room'
 
 import {
   WebMsgType,
-  AppMsgType,
+  WebAppMsgType,
 }                 from '../puppet/schemas/'
 
 export type ParsedPath = Partial<path.ParsedPath>
@@ -204,8 +204,8 @@ export class MockMessage extends Message {
     return WebMsgType.TEXT
   }
 
-  public typeApp(): AppMsgType {
-    return AppMsgType.TEXT
+  public typeApp(): WebAppMsgType {
+    return WebAppMsgType.TEXT
   }
 
 }

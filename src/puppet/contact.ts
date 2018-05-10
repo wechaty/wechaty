@@ -26,6 +26,8 @@ import PuppetAccessory  from '../puppet-accessory'
 
 import Message          from './message'
 
+import PuppeteerMessage from '../puppet-puppeteer/puppeteer-message'
+
 /**
  * Enum for Gender values.
  *
@@ -246,7 +248,7 @@ export class Contact extends PuppetAccessory implements Sayable {
 
     let m
     if (typeof textOrMessage === 'string') {
-      m = new Message()
+      m = new PuppeteerMessage()
       m.puppet = this.puppet
       m.text(textOrMessage)
     } else if (textOrMessage instanceof Message) {

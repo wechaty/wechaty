@@ -105,7 +105,7 @@ export interface WebMessageRawPayload {
    * MsgType == CONF.MSGTYPE_VOICE : ng-style="{'width':40 + 7*message.VoiceLength/1000}
    */
   MsgType:          number,
-  AppMsgType:       AppMsgType,  // message.MsgType == CONF.MSGTYPE_APP && message.AppMsgType == CONF.APPMSGTYPE_URL
+  AppMsgType:       WebAppMsgType,  // message.MsgType == CONF.MSGTYPE_APP && message.AppMsgType == CONF.APPMSGTYPE_URL
                                  // message.MsgType == CONF.MSGTYPE_TEXT && message.SubMsgType != CONF.MSGTYPE_LOCATION
 
   SubMsgType:       WebMsgType, // "msgType":"{{message.MsgType}}","subType":{{message.SubMsgType||0}},"msgId":"{{message.MsgId}}"
@@ -162,31 +162,17 @@ export interface WebMessageRawPayload {
 
 }
 
-export interface WebMsgPayload {
-  id:       string,
-  type:     WebMsgType,
-  from:     string,
-  to?:      string,  // if to is not set, then room must be set
-  room?:    string,
-  content:  string,
-  status:   string,
-  digest:   string,
-  date:     number,
-
-  url?:     string,  // for MessageMedia class
-}
-
 // export type MessageTypeName = 'TEXT' | 'IMAGE' | 'VOICE' | 'VERIFYMSG' | 'POSSIBLEFRIEND_MSG'
 // | 'SHARECARD' | 'VIDEO' | 'EMOTICON' | 'LOCATION' | 'APP' | 'VOIPMSG' | 'STATUSNOTIFY'
 // | 'VOIPNOTIFY' | 'VOIPINVITE' | 'MICROVIDEO' | 'SYSNOTICE' | 'SYS' | 'RECALLED'
 
 // export type MessageTypeValue = 1 | 3 | 34 | 37 | 40 | 42 | 43 | 47 | 48 | 49 | 50 | 51 | 52 | 53 | 62 | 9999 | 10000 | 10002
 
-export interface WebMsgTypeDict {
-  [index: string]: string|number,
-  //   MessageTypeName:  MessageTypeValue
-  // , MessageTypeValue: MessageTypeName
-}
+// export interface WebMsgTypeDict {
+//   [index: string]: string|number,
+//   //   MessageTypeName:  MessageTypeValue
+//   // , MessageTypeValue: MessageTypeName
+// }
 
 /**
  *
@@ -211,7 +197,7 @@ export interface WebMsgTypeDict {
  * @property {number} RED_ENVELOPES           - AppMsgType.RED_ENVELOPES            (2001)   for RED_ENVELOPES
  * @property {number} READER_TYPE             - AppMsgType.READER_TYPE              (100001) for READER_TYPE
  */
-export enum AppMsgType {
+export enum WebAppMsgType {
   TEXT                     = 1,
   IMG                      = 2,
   AUDIO                    = 3,

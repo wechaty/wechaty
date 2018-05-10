@@ -22,7 +22,7 @@ import {
 
 import {
   WebMsgType,
-  AppMsgType,
+  WebAppMsgType,
 }               from '../puppet/schemas/'
 
 import {
@@ -41,6 +41,13 @@ import Room             from './room'
  * [Examples/Ding-Dong-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts}
  */
 export abstract class Message extends PuppetAccessory implements Sayable {
+
+  /**
+   *
+   * Static Properties
+   *
+   */
+
   // tslint:disable-next-line:variable-name
   public static readonly Type = WebMsgType
 
@@ -238,10 +245,10 @@ export abstract class Message extends PuppetAccessory implements Sayable {
   /**
    * Get the typeApp from the message.
    *
-   * @returns {AppMsgType}
+   * @returns {WebAppMsgType}
    * @see {@link AppMsgType}
    */
-  public abstract typeApp(): AppMsgType
+  public abstract typeApp(): WebAppMsgType
 
   /**
    * Check if a message is sent by self.

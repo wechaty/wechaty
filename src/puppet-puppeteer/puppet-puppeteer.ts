@@ -1064,7 +1064,7 @@ export class PuppetPuppeteer extends Puppet {
     const roomPayload: RoomPayload = {
       // id:         rawPayload.UserName,
       // encryId:    rawPayload.EncryChatRoomId, // ???
-      topic:      rawPayload.NickName,
+      topic:      Misc.plainText(rawPayload.NickName || ''),
       // ownerUin:   rawPayload.OwnerUin,
       memberList,
 
@@ -1217,6 +1217,10 @@ export class PuppetPuppeteer extends Puppet {
       Raven.captureException(e)
       throw e
     }
+  }
+
+  public async roomQuit(room: PuppeteerRoom): Promise<void> {
+    log.warn('PuppetPuppeteer', 'roomQuit(%s) not supported by Web API', room)
   }
 
   /**

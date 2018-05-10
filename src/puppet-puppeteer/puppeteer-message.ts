@@ -38,42 +38,65 @@ import PuppeteerContact from './puppeteer-contact'
 import PuppeteerRoom    from './puppeteer-room'
 
 import {
-  AppMsgType,
-  WebMsgPayload,
+  WebAppMsgType,
   WebMessageRawPayload,
   WebMsgType,
 }                 from '../puppet/schemas/'
 
-// export type TypeName =  'attachment'
-//                       | 'audio'
-//                       | 'image'
-//                       | 'video'
+export interface WebMsgPayload {
+  id:       string,
+  type:     WebMsgType,
+  from:     string,
+  to?:      string,  // if to is not set, then room must be set
+  room?:    string,
+  content:  string,
+  status:   string,
+  digest:   string,
+  date:     number,
+
+  url?:     string,  // for MessageMedia class
+}
+
+export enum MessageType {
+  UNKNOWN = 0,
+  ATTACHMENT,
+  AUDIO,
+  IMAGE,
+  TEXT,
+  VIDEO,
+}
+
+export interface MessagePayloadBase {
+  type:     MessageType,
+  from:     PuppeteerContact,
+  text:     string,
+  date:     Date,
+
+  url?:     string,  // for MessageMedia class
+}
+
+export interface MessagePayloadTo {
+  room? : PuppeteerRoom,
+  to    : PuppeteerContact,   // if to is not set, then room must be set
+}
+
+export interface MessagePayloadRoom {
+  room : PuppeteerRoom,
+  to?  : PuppeteerContact,   // if to is not set, then room must be set
+}
+
+export type MessagePayload = MessagePayloadBase & (MessagePayloadTo | MessagePayloadRoom)
 
 export type ParsedPath = Partial<path.ParsedPath>
 
-/**
- * All wechat messages will be encapsulated as a Message.
- *
- * `Message` is `Sayable`,
- * [Examples/Ding-Dong-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts}
- */
 export class PuppeteerMessage extends Message {
-  /**
-   * @private
-   */
   public readonly id: string
 
-  /**
-   * @private
-   */
   private payload: WebMsgPayload
   public rawObj?: WebMessageRawPayload
 
   private parsedPath?:  ParsedPath
 
-  /**
-   * @private
-   */
   constructor(
     fileOrPayload?: string | WebMessageRawPayload,
   ) {
@@ -98,9 +121,6 @@ export class PuppeteerMessage extends Message {
     }
   }
 
-  /**
-   * @private
-   */
   // Transform rawObj to local obj
   private parse(rawObj: WebMessageRawPayload): WebMsgPayload {
     const obj: WebMsgPayload = {
@@ -338,7 +358,7 @@ export class PuppeteerMessage extends Message {
    * @returns {AppMsgType}
    * @see {@link AppMsgType}
    */
-  public typeApp(): AppMsgType {
+  public typeApp(): WebAppMsgType {
     if (!this.rawObj) {
       throw new Error('no rawObj')
     }
@@ -518,7 +538,7 @@ export class PuppeteerMessage extends Message {
             throw new Error('no rawObj')
           }
           switch (this.typeApp()) {
-            case AppMsgType.ATTACH:
+            case WebAppMsgType.ATTACH:
               if (!this.rawObj.MMAppMsgDownloadUrl) {
                 throw new Error('no MMAppMsgDownloadUrl')
               }
@@ -526,8 +546,8 @@ export class PuppeteerMessage extends Message {
               // url = this.rawObj.MMAppMsgDownloadUrl
               break
 
-            case AppMsgType.URL:
-            case AppMsgType.READER_TYPE:
+            case WebAppMsgType.URL:
+            case WebAppMsgType.READER_TYPE:
               if (!this.rawObj.Url) {
                 throw new Error('no Url')
               }
@@ -785,7 +805,7 @@ export class PuppeteerMessage extends Message {
 
       case WebMsgType.APP:
         switch (this.typeApp()) {
-          case AppMsgType.URL:
+          case WebAppMsgType.URL:
             ext = '.url' // XXX
             break
           default:

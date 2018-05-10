@@ -18,9 +18,10 @@
  *   @ignore
  */
 import {
-  Contact,
-}                       from '../puppet/'
+  Contact as PuppeteerContact,
+}                       from '../puppet/contact'
 
-export class PuppeteerContact extends Contact {}
-
+export {
+  PuppeteerContact,
+}
 export default PuppeteerContact
