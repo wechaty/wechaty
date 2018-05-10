@@ -26,12 +26,11 @@ import cloneClass from 'clone-class'
 
 import {
   log,
-}                       from '../config'
+}              from '../config'
+import Profile from '../profile'
+import Wechaty from '../wechaty'
 
-import {
-  PuppetMock,
-}                       from '../puppet-mock/puppet-mock'
-
+import PuppetPuppeteer  from './puppet-puppeteer'
 import PuppeteerContact from './puppeteer-contact'
 
 test('Contact smoke testing', async t => {
@@ -43,10 +42,10 @@ test('Contact smoke testing', async t => {
 
   const sandbox = sinon.createSandbox()
 
-  function mockContactPayload(id: string) {
-    log.verbose('PuppeteerContactTest', 'mockContactPayload(%s)', id)
+  function mockContactPayload(contact: PuppeteerContact) {
+    log.verbose('PuppeteerContactTest', 'mockContactPayload(%s)', contact.id)
     return new Promise<any>((resolve, reject) => {
-      if (id !== UserName) return resolve({})
+      if (contact.id !== UserName) return resolve({})
       setImmediate(() => resolve({
         UserName:   UserName,
         NickName:   NickName,
@@ -55,8 +54,11 @@ test('Contact smoke testing', async t => {
     })
   }
 
-  const puppet = new PuppetMock()
-  sandbox.stub(puppet, 'contactPayload').callsFake(mockContactPayload)
+  const puppet = new PuppetPuppeteer({
+    profile: new Profile(),
+    wechaty: new Wechaty(),
+  })
+  sandbox.stub(puppet as any, 'contactRawPayload').callsFake(mockContactPayload)
 
   // tslint:disable-next-line:variable-name
   const MyContact = cloneClass(PuppeteerContact)

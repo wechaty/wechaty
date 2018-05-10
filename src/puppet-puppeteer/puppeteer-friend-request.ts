@@ -39,7 +39,7 @@ import {
 }                     from '../puppet/'
 
 import {
-  RecommendPayload,
+  WebRecommendPayload,
 }                       from './schema'
 import PuppeteerContact from './puppeteer-contact'
 
@@ -48,7 +48,7 @@ import PuppeteerContact from './puppeteer-contact'
  */
 export class PuppeteerFriendRequest extends FriendRequest {
 
-  public payload: RecommendPayload
+  public payload: WebRecommendPayload
 
   private ticket: string
   private _contact: PuppeteerContact
@@ -60,7 +60,7 @@ export class PuppeteerFriendRequest extends FriendRequest {
     super()
   }
 
-  public receive(payload: RecommendPayload): void {
+  public receive(payload: WebRecommendPayload): void {
     log.verbose('PuppeteerFriendRequest', 'receive(%s)', payload)
 
     if (!payload || !payload.UserName) {

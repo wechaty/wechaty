@@ -30,7 +30,7 @@ import { MockContact }  from './mock-contact'
 import { MockRoom }     from './mock-room'
 
 import {
-  MsgType,
+  WebMsgType,
   AppMsgType,
 }                 from '../puppet-puppeteer/schema'
 
@@ -41,7 +41,7 @@ export interface MockMessagePayload {
   from:   MockContact,
   to?:    MockContact,
   room?:  MockRoom,
-  type:   MsgType,
+  type:   WebMsgType,
 }
 
 export class MockMessage extends Message {
@@ -137,8 +137,8 @@ export class MockMessage extends Message {
     await this.puppet.send(msg)
   }
 
-  public type(): MsgType {
-    return MsgType.TEXT
+  public type(): WebMsgType {
+    return WebMsgType.TEXT
   }
 
   public self(): boolean {
@@ -184,7 +184,7 @@ export class MockMessage extends Message {
     /**
      * 1. Text message
      */
-    if (this.type() === MsgType.TEXT) {
+    if (this.type() === WebMsgType.TEXT) {
       await to.say(this.text())
       return
     }
@@ -200,8 +200,8 @@ export class MockMessage extends Message {
     }
   }
 
-  public typeSub(): MsgType {
-    return MsgType.TEXT
+  public typeSub(): WebMsgType {
+    return WebMsgType.TEXT
   }
 
   public typeApp(): AppMsgType {

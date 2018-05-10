@@ -203,7 +203,7 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
    */
   public toString(): string {
     const identity = this.alias() || this.name() || this.id
-    return `@Contact<${identity}>`
+    return `Contact<${identity}>`
   }
 
   /**

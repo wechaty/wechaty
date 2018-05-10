@@ -176,6 +176,13 @@ export abstract class Room extends PuppetAccessory implements Sayable {
     return newRoom
   }
 
+  /**
+   *
+   *
+   * Instance Properties
+   *
+   *
+   */
   protected payload?: RoomPayload
 
   /**
@@ -191,7 +198,10 @@ export abstract class Room extends PuppetAccessory implements Sayable {
   /**
    * @private
    */
-  public toString()    { return `@@Room<${this.topic()}>` }
+  public toString() {
+    const identity = this.topic() || this.id
+    return `Room<${identity}>`
+  }
 
   /**
    * @private

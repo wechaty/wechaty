@@ -39,9 +39,9 @@ import PuppeteerRoom    from './puppeteer-room'
 
 import {
   AppMsgType,
-  MsgPayload,
-  PuppeteerMessageRawPayload,
-  MsgType,
+  WebMsgPayload,
+  WebMessageRawPayload,
+  WebMsgType,
 }                 from './schema'
 
 // export type TypeName =  'attachment'
@@ -66,8 +66,8 @@ export class PuppeteerMessage extends Message {
   /**
    * @private
    */
-  private payload: MsgPayload
-  public rawObj?: PuppeteerMessageRawPayload
+  private payload: WebMsgPayload
+  public rawObj?: WebMessageRawPayload
 
   private parsedPath?:  ParsedPath
 
@@ -75,12 +75,12 @@ export class PuppeteerMessage extends Message {
    * @private
    */
   constructor(
-    fileOrPayload?: string | PuppeteerMessageRawPayload,
+    fileOrPayload?: string | WebMessageRawPayload,
   ) {
     super()
     log.silly('PuppeteerMessage', 'constructor()')
 
-    this.payload    = {} as MsgPayload
+    this.payload    = {} as WebMsgPayload
     // this.rawObj = {} as MsgRawObj
 
     if (!fileOrPayload) {
@@ -94,7 +94,7 @@ export class PuppeteerMessage extends Message {
       this.payload = this.parse(this.rawObj)
       this.id = this.payload.id
     } else {
-      throw new Error('not supported construct param')
+      throw new Error('not supported construct param: ' + typeof fileOrPayload)
     }
   }
 
@@ -102,8 +102,8 @@ export class PuppeteerMessage extends Message {
    * @private
    */
   // Transform rawObj to local obj
-  private parse(rawObj: PuppeteerMessageRawPayload): MsgPayload {
-    const obj: MsgPayload = {
+  private parse(rawObj: WebMessageRawPayload): WebMsgPayload {
+    const obj: WebMsgPayload = {
       id:           rawObj.MsgId,
       type:         rawObj.MsgType,
       from:         rawObj.MMActualSender, // MMPeerUserName
@@ -274,10 +274,10 @@ export class PuppeteerMessage extends Message {
    *
    * If type is equal to `MsgType.RECALLED`, {@link Message#id} is the msgId of the recalled message.
    * @see {@link MsgType}
-   * @returns {MsgType}
+   * @returns {WebMsgType}
    */
-  public type(): MsgType {
-    log.silly('PuppeteerMessage', 'type() = %s', MsgType[this.payload.type])
+  public type(): WebMsgType {
+    log.silly('PuppeteerMessage', 'type() = %s', WebMsgType[this.payload.type])
 
     /**
      * 1. A message created with rawObj
@@ -291,7 +291,7 @@ export class PuppeteerMessage extends Message {
      */
     const ext = this.extFromFile()
     if (!ext) {
-      return MsgType.TEXT
+      return WebMsgType.TEXT
     }
 
     /**
@@ -302,16 +302,16 @@ export class PuppeteerMessage extends Message {
       case '.jpg':
       case '.jpeg':
       case '.png':
-        return MsgType.IMAGE
+        return WebMsgType.IMAGE
 
       case '.gif':
-        return  MsgType.EMOTICON
+        return  WebMsgType.EMOTICON
 
       case '.mp4':
-        return MsgType.VIDEO
+        return WebMsgType.VIDEO
 
       case '.mp3':
-        return MsgType.VOICE
+        return WebMsgType.VOICE
     }
 
     throw new Error('unknown type: ' + ext)
@@ -323,9 +323,9 @@ export class PuppeteerMessage extends Message {
    * If message is a location message: `m.type() === MsgType.TEXT && m.typeSub() === MsgType.LOCATION`
    *
    * @see {@link MsgType}
-   * @returns {MsgType}
+   * @returns {WebMsgType}
    */
-  public typeSub(): MsgType {
+  public typeSub(): WebMsgType {
     if (!this.rawObj) {
       throw new Error('no rawObj')
     }
@@ -393,9 +393,11 @@ export class PuppeteerMessage extends Message {
    * console.log(contactList)
    */
   public mentioned(): PuppeteerContact[] {
+    log.verbose('PuppeteerMessage', 'mentioned()')
+
     let contactList: PuppeteerContact[] = []
     const room = this.room()
-    if (this.type() !== MsgType.TEXT || !room ) {
+    if (this.type() !== WebMsgType.TEXT || !room ) {
       return contactList
     }
 
@@ -497,21 +499,21 @@ export class PuppeteerMessage extends Message {
 
       let url: string | undefined
       switch (this.type()) {
-        case MsgType.EMOTICON:
+        case WebMsgType.EMOTICON:
           url = await puppet.bridge.getMsgEmoticon(this.id)
           break
-        case MsgType.IMAGE:
+        case WebMsgType.IMAGE:
           url = await puppet.bridge.getMsgImg(this.id)
           break
-        case MsgType.VIDEO:
-        case MsgType.MICROVIDEO:
+        case WebMsgType.VIDEO:
+        case WebMsgType.MICROVIDEO:
           url = await puppet.bridge.getMsgVideo(this.id)
           break
-        case MsgType.VOICE:
+        case WebMsgType.VOICE:
           url = await puppet.bridge.getMsgVoice(this.id)
           break
 
-        case MsgType.APP:
+        case WebMsgType.APP:
           if (!this.rawObj) {
             throw new Error('no rawObj')
           }
@@ -541,8 +543,8 @@ export class PuppeteerMessage extends Message {
           }
           break
 
-        case MsgType.TEXT:
-          if (this.typeSub() === MsgType.LOCATION) {
+        case WebMsgType.TEXT:
+          if (this.typeSub() === WebMsgType.LOCATION) {
             url = await puppet.bridge.getMsgPublicLinkImg(this.id)
           }
           break
@@ -606,7 +608,7 @@ export class PuppeteerMessage extends Message {
    */
   public dump() {
     console.error('======= dump message =======')
-    Object.keys(this.payload!).forEach((k: keyof MsgPayload) => console.error(`${k}: ${this.payload![k]}`))
+    Object.keys(this.payload!).forEach((k: keyof WebMsgPayload) => console.error(`${k}: ${this.payload![k]}`))
   }
 
   /**
@@ -617,7 +619,7 @@ export class PuppeteerMessage extends Message {
     if (!this.rawObj) {
       throw new Error('no this.rawObj')
     }
-    Object.keys(this.rawObj).forEach((k: keyof PuppeteerMessageRawPayload) => console.error(`${k}: ${this.rawObj && this.rawObj[k]}`))
+    Object.keys(this.rawObj).forEach((k: keyof WebMessageRawPayload) => console.error(`${k}: ${this.rawObj && this.rawObj[k]}`))
   }
 
   // /**
@@ -764,24 +766,24 @@ export class PuppeteerMessage extends Message {
     const type = this.type()
 
     switch (type) {
-      case MsgType.EMOTICON:
+      case WebMsgType.EMOTICON:
         ext = '.gif'
         break
 
-      case MsgType.IMAGE:
+      case WebMsgType.IMAGE:
         ext = '.jpg'
         break
 
-      case MsgType.VIDEO:
-      case MsgType.MICROVIDEO:
+      case WebMsgType.VIDEO:
+      case WebMsgType.MICROVIDEO:
         ext = '.mp4'
         break
 
-      case MsgType.VOICE:
+      case WebMsgType.VOICE:
         ext = '.mp3'
         break
 
-      case MsgType.APP:
+      case WebMsgType.APP:
         switch (this.typeApp()) {
           case AppMsgType.URL:
             ext = '.url' // XXX
@@ -792,8 +794,8 @@ export class PuppeteerMessage extends Message {
         }
         break
 
-      case MsgType.TEXT:
-        if (this.typeSub() === MsgType.LOCATION) {
+      case WebMsgType.TEXT:
+        if (this.typeSub() === WebMsgType.LOCATION) {
           ext = '.jpg'
         }
         ext = '.' + this.type()
@@ -904,7 +906,7 @@ export class PuppeteerMessage extends Message {
     /**
      * 1. Text message
      */
-    if (this.type() === MsgType.TEXT) {
+    if (this.type() === WebMsgType.TEXT) {
       await to.say(this.text())
       return
     }

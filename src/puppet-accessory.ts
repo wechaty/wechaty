@@ -80,7 +80,7 @@ export abstract class PuppetAccessory extends EventEmitter {
 
     this[PUPPET_ACCESSORY_NAME] = name || this.constructor.name
 
-    log.verbose('PuppetAccessory', '<%s> constructor(%s)',
+    log.silly('PuppetAccessory', '<%s> constructor(%s)',
                                     this[PUPPET_ACCESSORY_NAME],
                                     name || '',
                 )

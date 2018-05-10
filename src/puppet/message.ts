@@ -21,7 +21,7 @@ import {
 }             from 'stream'
 
 import {
-  MsgType,
+  WebMsgType,
   AppMsgType,
 }               from '../puppet-puppeteer/schema'
 
@@ -42,7 +42,7 @@ import Room             from './room'
  */
 export abstract class Message extends PuppetAccessory implements Sayable {
   // tslint:disable-next-line:variable-name
-  public static readonly Type = MsgType
+  public static readonly Type = WebMsgType
 
   /**
    * @todo add function
@@ -62,8 +62,8 @@ export abstract class Message extends PuppetAccessory implements Sayable {
     query: any,
   ): Promise<T['prototype'][]> {
     return [
-      new (this as any)(1),
-      new (this as any)(2),
+      new (this as any)({ MsgId: 'id1' }),
+      new (this as any)({ MsdId: 'id2' }),
     ]
   }
 
@@ -98,9 +98,9 @@ export abstract class Message extends PuppetAccessory implements Sayable {
    */
   public toString() {
     if (this.type() === Message.Type.TEXT) {
-      return `Message#${MsgType[this.type()]}<${this.text()}>`
+      return `Message#${WebMsgType[this.type()]}<${this.text()}>`
     } else {
-      return `Message#${MsgType[this.type()]}<${this.filename()}>`
+      return `Message#${WebMsgType[this.type()]}<${this.filename()}>`
     }
   }
 
@@ -221,9 +221,9 @@ export abstract class Message extends PuppetAccessory implements Sayable {
    *
    * If type is equal to `MsgType.RECALLED`, {@link Message#id} is the msgId of the recalled message.
    * @see {@link MsgType}
-   * @returns {MsgType}
+   * @returns {WebMsgType}
    */
-  public abstract type(): MsgType
+  public abstract type(): WebMsgType
 
   /**
    * Get the typeSub from the message.
@@ -231,9 +231,9 @@ export abstract class Message extends PuppetAccessory implements Sayable {
    * If message is a location message: `m.type() === MsgType.TEXT && m.typeSub() === MsgType.LOCATION`
    *
    * @see {@link MsgType}
-   * @returns {MsgType}
+   * @returns {WebMsgType}
    */
-  public abstract typeSub(): MsgType
+  public abstract typeSub(): WebMsgType
 
   /**
    * Get the typeApp from the message.

@@ -20,7 +20,7 @@ import {
   Gender,
 }           from '../puppet/'
 
-export interface PuppeteerContactRawPayload {
+export interface WebContactRawPayload {
   Alias:        string,
   City:         string,
   NickName:     string,
@@ -37,7 +37,7 @@ export interface PuppeteerContactRawPayload {
   VerifyFlag:   number,
 }
 
-export interface PuppeteerMessageMediaPayload {
+export interface WebMessageMediaPayload {
   ToUserName: string,
   MsgType:    number,
   MediaId:    string,
@@ -49,7 +49,7 @@ export interface PuppeteerMessageMediaPayload {
   Signature?: string,
 }
 
-export interface PuppeteerMessageRawPayload {
+export interface WebMessageRawPayload {
   MsgId:            string,
 
   MMActualSender:   string, // getUserContact(message.MMActualSender,message.MMPeerUserName).isContact()
@@ -108,7 +108,7 @@ export interface PuppeteerMessageRawPayload {
   AppMsgType:       AppMsgType,  // message.MsgType == CONF.MSGTYPE_APP && message.AppMsgType == CONF.APPMSGTYPE_URL
                                  // message.MsgType == CONF.MSGTYPE_TEXT && message.SubMsgType != CONF.MSGTYPE_LOCATION
 
-  SubMsgType:       MsgType, // "msgType":"{{message.MsgType}}","subType":{{message.SubMsgType||0}},"msgId":"{{message.MsgId}}"
+  SubMsgType:       WebMsgType, // "msgType":"{{message.MsgType}}","subType":{{message.SubMsgType||0}},"msgId":"{{message.MsgId}}"
 
   /**
    * Status-es
@@ -148,7 +148,7 @@ export interface PuppeteerMessageRawPayload {
    * MsgType == CONF.MSGTYPE_SHARECARD" ng-click="showProfile($event,message.RecommendInfo.UserName)
    * MsgType == CONF.MSGTYPE_VERIFYMSG
    */
-  RecommendInfo?:   RecommendPayload,
+  RecommendInfo?:   WebRecommendPayload,
 
   /**
    * Transpond Message
@@ -162,9 +162,9 @@ export interface PuppeteerMessageRawPayload {
 
 }
 
-export interface MsgPayload {
+export interface WebMsgPayload {
   id:       string,
-  type:     MsgType,
+  type:     WebMsgType,
   from:     string,
   to?:      string,  // if to is not set, then room must be set
   room?:    string,
@@ -182,7 +182,7 @@ export interface MsgPayload {
 
 // export type MessageTypeValue = 1 | 3 | 34 | 37 | 40 | 42 | 43 | 47 | 48 | 49 | 50 | 51 | 52 | 53 | 62 | 9999 | 10000 | 10002
 
-export interface MsgTypeDict {
+export interface WebMsgTypeDict {
   [index: string]: string|number,
   //   MessageTypeName:  MessageTypeValue
   // , MessageTypeValue: MessageTypeName
@@ -254,7 +254,7 @@ export enum AppMsgType {
  * @property {number} SYS                 - MsgType.SYS                 (10000) for SYS
  * @property {number} RECALLED            - MsgType.RECALLED            (10002) for RECALLED
  */
-export enum MsgType {
+export enum WebMsgType {
   TEXT                = 1,
   IMAGE               = 3,
   VOICE               = 34,
@@ -278,7 +278,7 @@ export enum MsgType {
 /**
  * from Message
  */
-export interface RecommendPayload {
+export interface WebRecommendPayload {
   UserName:   string,
   NickName:   string,  // display_name
   Content:    string,  // request message
@@ -289,7 +289,7 @@ export interface RecommendPayload {
 
 }
 
-export const enum MediaType {
+export const enum WebMediaType {
   IMAGE      = 1,
   VIDEO      = 2,
   AUDIO      = 3,

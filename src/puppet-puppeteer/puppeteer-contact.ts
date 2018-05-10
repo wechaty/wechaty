@@ -90,7 +90,11 @@ export class PuppeteerContact extends Contact implements Sayable {
   public alias(empty:     null)   : Promise<void>
 
   public alias(newAlias?: null | string): null | string | Promise<void> {
-    log.verbose('PuppeteerContact', 'alias(%s)', newAlias)
+    log.verbose('PuppeteerContact', 'alias(%s)',
+                                    newAlias === undefined
+                                      ? ''
+                                      : newAlias,
+                )
 
     if (typeof newAlias === 'undefined') {
       return this.payload && this.payload.alias || null

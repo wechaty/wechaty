@@ -17,6 +17,8 @@
  *
  *   @ignore
  */
+import * as util from 'util'
+
 import {
   Raven,
   log,
@@ -82,15 +84,25 @@ export class PuppeteerRoom extends Room {
       return
     }
 
-    this.payload = await this.puppet.roomPayload(this)
+    const payload = await this.puppet.roomPayload(this)
+    await Promise.all(
+      payload.memberList.map(
+        contact => contact.ready(),
+      ),
+    )
+    log.silly('PuppeteerRoom', 'ready() this.payload="%s"',
+                                util.inspect(payload),
+              )
+
+    this.payload = payload
   }
 
   public say(message: PuppeteerMessage)                 : Promise<void>
   public say(text: string)                              : Promise<void>
   public say(text: string, mention: PuppeteerContact)   : Promise<void>
   public say(text: string, mention: PuppeteerContact[]) : Promise<void>
-  public say(text: never, ...args: never[])       : Promise<never>
 
+  public say(text: never, ...args: never[]): Promise<never>
   public async say(
     textOrMessage : string | PuppeteerMessage,
     mention?      : PuppeteerContact | PuppeteerContact[],
@@ -184,7 +196,7 @@ export class PuppeteerRoom extends Room {
       return Misc.plainText(this.payload ? this.payload.topic : '')
     }
 
-    this.puppet // config.puppetInstance()
+    this.puppet
         .roomTopic(this, newTopic)
         .catch(e => {
           log.warn('PuppeteerRoom', 'topic(newTopic=%s) exception: %s',
@@ -196,7 +208,7 @@ export class PuppeteerRoom extends Room {
     if (!this.payload) {
       this.payload = <RoomPayload>{}
     }
-    this.payload['topic'] = newTopic
+    this.payload.topic = newTopic
     return Promise.resolve()
   }
 
@@ -294,24 +306,7 @@ export class PuppeteerRoom extends Room {
    */
   public memberAll(queryArg: RoomMemberQueryFilter | string): PuppeteerContact[] {
     if (typeof queryArg === 'string') {
-      //
-      // use the following `return` statement to do this job.
-      //
-
-      // const nameList = this.memberAll({name: queryArg})
-      // const roomAliasList = this.memberAll({roomAlias: queryArg})
-      // const contactAliasList = this.memberAll({contactAlias: queryArg})
-
-      // if (nameList) {
-      //   contactList = contactList.concat(nameList)
-      // }
-      // if (roomAliasList) {
-      //   contactList = contactList.concat(roomAliasList)
-      // }
-      // if (contactAliasList) {
-      //   contactList = contactList.concat(contactAliasList)
-      // }
-
+      // TODO: filter the duplicated result
       return ([] as PuppeteerContact[]).concat(
         this.memberAll({name:         queryArg}),
         this.memberAll({roomAlias:    queryArg}),
@@ -323,10 +318,11 @@ export class PuppeteerRoom extends Room {
      * We got filter parameter
      */
     log.silly('PuppeteerRoom', 'memberAll({ %s })',
-                      Object.keys(queryArg)
-                            .map((k: keyof RoomMemberQueryFilter) => `${k}: ${queryArg[k]}`)
-                            .join(', '),
-            )
+                                JSON.stringify(queryArg),
+                      // Object.keys(queryArg)
+                      //       .map((k: keyof RoomMemberQueryFilter) => `${k}: ${queryArg[k]}`)
+                      //       .join(', '),
+              )
 
     if (Object.keys(queryArg).length !== 1) {
       throw new Error('Room member find queryArg only support one key. multi key support is not availble now.')
@@ -340,7 +336,7 @@ export class PuppeteerRoom extends Room {
     /**
      * ISSUE #64 emoji need to be striped
      */
-    const filterValue: string  = Misc.stripEmoji(Misc.plainText(queryArg[filterKey]))
+    const filterValue: string = Misc.stripEmoji(Misc.plainText(queryArg[filterKey]))
 
     const keyMap = {
       contactAlias: 'contactAliasMap',

@@ -33,8 +33,8 @@ import PuppeteerMessage from './puppeteer-message'
 import Firer            from './firer'
 import PuppetPuppeteer  from './puppet-puppeteer'
 import {
-  MsgType,
-  PuppeteerMessageRawPayload,
+  WebMsgType,
+  WebMessageRawPayload,
 }                       from './schema'
 
 /* tslint:disable:variable-name */
@@ -189,7 +189,7 @@ async function onLogout(
 
 async function onMessage(
   this: PuppetPuppeteer,
-  obj:  PuppeteerMessageRawPayload,
+  obj:  WebMessageRawPayload,
 ): Promise<void> {
   let m = new PuppeteerMessage(obj)
   m.puppet = this
@@ -202,11 +202,11 @@ async function onMessage(
      */
     switch (m.type()) {
 
-      case MsgType.VERIFYMSG:
+      case WebMsgType.VERIFYMSG:
         Firer.checkFriendRequest.call(this, m)
         break
 
-      case MsgType.SYS:
+      case WebMsgType.SYS:
         if (m.room()) {
           const joinResult  = await Firer.checkRoomJoin.call(this  , m)
           const leaveResult = await Firer.checkRoomLeave.call(this , m)
@@ -227,19 +227,19 @@ async function onMessage(
      */
 
     switch (m.type()) {
-      case MsgType.EMOTICON:
-      case MsgType.IMAGE:
-      case MsgType.VIDEO:
-      case MsgType.VOICE:
-      case MsgType.MICROVIDEO:
-      case MsgType.APP:
+      case WebMsgType.EMOTICON:
+      case WebMsgType.IMAGE:
+      case WebMsgType.VIDEO:
+      case WebMsgType.VOICE:
+      case WebMsgType.MICROVIDEO:
+      case WebMsgType.APP:
         log.verbose('PuppetPuppeteerEvent', 'onMessage() EMOTICON/IMAGE/VIDEO/VOICE/MICROVIDEO message')
         m = new PuppeteerMessage(obj)
         m.puppet = this
         break
 
-      case MsgType.TEXT:
-        if (m.typeSub() === MsgType.LOCATION) {
+      case WebMsgType.TEXT:
+        if (m.typeSub() === WebMsgType.LOCATION) {
           log.verbose('PuppetPuppeteerEvent', 'onMessage() (TEXT&LOCATION) message')
           m = new PuppeteerMessage(obj)
         }

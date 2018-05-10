@@ -38,9 +38,9 @@ import Profile        from '../profile'
 import Misc           from '../misc'
 
 import {
-  PuppeteerMessageMediaPayload,
-  PuppeteerMessageRawPayload,
-  PuppeteerContactRawPayload,
+  WebMessageMediaPayload,
+  WebMessageRawPayload,
+  WebContactRawPayload,
 }                               from './schema'
 import {
   PuppeteerRoomRawPayload,
@@ -516,7 +516,7 @@ export class Bridge extends EventEmitter {
     }
   }
 
-  public async getContact(id: string): Promise<PuppeteerContactRawPayload | PuppeteerRoomRawPayload> {
+  public async getContact(id: string): Promise<WebContactRawPayload | PuppeteerRoomRawPayload> {
     if (id !== id) { // NaN
       const err = new Error('NaN! where does it come from?')
       log.error('PuppetPuppeteerBridge', 'getContact(NaN): %s', err)
@@ -597,7 +597,7 @@ export class Bridge extends EventEmitter {
     }
   }
 
-  public async sendMedia(mediaData: PuppeteerMessageMediaPayload): Promise<boolean> {
+  public async sendMedia(mediaData: WebMessageMediaPayload): Promise<boolean> {
     log.verbose('PuppetPuppeteerBridge', 'sendMedia(mediaData)')
 
     if (!mediaData.ToUserName) {
@@ -614,7 +614,7 @@ export class Bridge extends EventEmitter {
     }
   }
 
-  public async forward(baseData: PuppeteerMessageRawPayload, patchData: PuppeteerMessageRawPayload): Promise<boolean> {
+  public async forward(baseData: WebMessageRawPayload, patchData: WebMessageRawPayload): Promise<boolean> {
     log.verbose('PuppetPuppeteerBridge', 'forward()')
 
     if (!baseData.ToUserName) {

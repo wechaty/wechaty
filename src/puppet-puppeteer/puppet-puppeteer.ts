@@ -31,7 +31,7 @@ import {
 import {
   ContactQueryFilter,
   ContactPayload,
-  // Gender,
+  Gender,
 
   Puppet,
   PuppetOptions,
@@ -49,7 +49,7 @@ import Profile        from '../profile'
 import Misc           from '../misc'
 
 import {
-  PuppeteerContactRawPayload,
+  WebContactRawPayload,
 }                               from './schema'
 import {
   Bridge,
@@ -58,10 +58,10 @@ import {
 import Event            from './event'
 
 import {
-  PuppeteerMessageMediaPayload,
-  PuppeteerMessageRawPayload,
-  MediaType,
-  MsgType,
+  WebMessageMediaPayload,
+  WebMessageRawPayload,
+  WebMediaType,
+  WebMsgType,
 }                           from './schema'
 
 import {
@@ -342,7 +342,7 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  private async uploadMedia(message: PuppeteerMessage, toUserName: string): Promise<PuppeteerMessageMediaPayload> {
+  private async uploadMedia(message: PuppeteerMessage, toUserName: string): Promise<WebMessageMediaPayload> {
     if (message.type() === PuppeteerMessage.Type.TEXT) {
       throw new Error('require a Media Message')
     }
@@ -356,7 +356,7 @@ export class PuppetPuppeteer extends Puppet {
     if (!contentType) {
       throw new Error('no MIME Type found on mediaMessage: ' + message.filename())
     }
-    let mediatype: MediaType
+    let mediatype: WebMediaType
 
     switch (ext) {
       case '.bmp':
@@ -364,13 +364,13 @@ export class PuppetPuppeteer extends Puppet {
       case '.jpg':
       case '.png':
       case '.gif':
-        mediatype = MediaType.IMAGE
+        mediatype = WebMediaType.IMAGE
         break
       case '.mp4':
-        mediatype = MediaType.VIDEO
+        mediatype = WebMediaType.VIDEO
         break
       default:
-        mediatype = MediaType.ATTACHMENT
+        mediatype = WebMediaType.ATTACHMENT
     }
 
     const readStream = await message.readyStream()
@@ -387,7 +387,7 @@ export class PuppetPuppeteer extends Puppet {
     const LARGE_FILE_SIZE = 25 * 1024 * 1024
     const MAX_VIDEO_SIZE  = 20 * 1024 * 1024
 
-    if (mediatype === MediaType.VIDEO && buffer.length > MAX_VIDEO_SIZE)
+    if (mediatype === WebMediaType.VIDEO && buffer.length > MAX_VIDEO_SIZE)
       throw new Error(`Sending video files is not allowed to exceed ${MAX_VIDEO_SIZE / 1024 / 1024}MB`)
     if (buffer.length > MAX_FILE_SIZE) {
       throw new Error(`Sending files is not allowed to exceed ${MAX_FILE_SIZE / 1024 / 1024}MB`)
@@ -423,7 +423,7 @@ export class PuppetPuppeteer extends Puppet {
       ToUserName:    toUserName,
       UploadType:    2,
       ClientMediaId: +new Date,
-      MediaType:     MediaType.ATTACHMENT,
+      MediaType:     WebMediaType.ATTACHMENT,
       StartPos:      0,
       DataLen:       size,
       TotalLen:      size,
@@ -448,7 +448,7 @@ export class PuppetPuppeteer extends Puppet {
       FileSize:   size,
       FileMd5:    md5,
       MMFileExt:  ext,
-    } as PuppeteerMessageMediaPayload
+    } as WebMessageMediaPayload
 
     // If file size > 25M, must first call checkUpload to get Signature and AESKey, otherwise it will fail to upload
     // https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L1132 #1182
@@ -578,8 +578,8 @@ export class PuppetPuppeteer extends Puppet {
       destinationId = to.id
     }
 
-    let mediaData: PuppeteerMessageMediaPayload
-    const rawObj = message.rawObj || {} as PuppeteerMessageRawPayload
+    let mediaData: WebMessageMediaPayload
+    const rawObj = message.rawObj || {} as WebMessageRawPayload
 
     if (!rawObj || !rawObj.MediaId) {
       try {
@@ -645,7 +645,7 @@ export class PuppetPuppeteer extends Puppet {
     }
 
     let m = Object.assign({}, message.rawObj)
-    const newMsg = <PuppeteerMessageRawPayload>{}
+    const newMsg = <WebMessageRawPayload>{}
     const largeFileSize = 25 * 1024 * 1024
     // let ret = false
     // if you know roomId or userId, you can use `Room.load(roomId)` or `Contact.load(userId)`
@@ -715,7 +715,7 @@ export class PuppetPuppeteer extends Puppet {
       throw new Error('PuppetPuppeteer.send(): message with neither room nor to?')
     }
 
-    if (message.type() === MsgType.TEXT) {
+    if (message.type() === WebMsgType.TEXT) {
       log.silly('PuppetPuppeteer', 'send() TEXT message.')
       const text = message.text()
 
@@ -799,11 +799,17 @@ export class PuppetPuppeteer extends Puppet {
   }
 
   private contactParseRawPayload(
-    rawPayload: PuppeteerContactRawPayload,
+    rawPayload: WebContactRawPayload,
   ): ContactPayload {
-    log.verbose('PuppetPuppeteer', 'contactParseRawPayload(%s)', rawPayload)
-    if (!rawPayload.UserName) {
-      throw new Error('contactParsePayload() got empty rawPayload!')
+    log.verbose('PuppetPuppeteer', 'contactParseRawPayload(Object.keys(payload).length=%d)',
+                                    Object.keys(rawPayload).length,
+                )
+    if (!Object.keys(rawPayload).length) {
+      log.error('PuppetPuppeteer', 'contactParseRawPayload() got empty rawPayload!')
+      return {
+        gender: Gender.UNKNOWN,
+        type:   PuppeteerContact.Type.UNKNOWN,
+      }
     }
 
     // this.id = rawPayload.UserName   // MMActualSender??? MMPeerUserName??? `getUserContact(message.MMActualSender,message.MMPeerUserName).HeadImgUrl`
@@ -842,10 +848,10 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  private async contactRawPayload(contact: PuppeteerContact): Promise<PuppeteerContactRawPayload> {
+  private async contactRawPayload(contact: PuppeteerContact): Promise<WebContactRawPayload> {
     log.verbose('PuppetPuppeteer', 'contactRawPayload(%s)', contact)
     try {
-      const rawPayload = await this.bridge.getContact(contact.id) as PuppeteerContactRawPayload
+      const rawPayload = await this.bridge.getContact(contact.id) as WebContactRawPayload
       return rawPayload
     } catch (e) {
       log.error('PuppetPuppeteer', 'contactRawPayload(%d) exception: %s', contact, e.message)
@@ -984,8 +990,8 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async roomPayload(room: PuppeteerRoom): Promise<RoomPayload> {
-    log.verbose('PuppetPuppeteer', 'roomPayload(%s)', room)
+  private async roomRawPayload(room: PuppeteerRoom): Promise<PuppeteerRoomRawPayload> {
+    log.verbose('PuppetPuppeteer', 'roomRawPayload(%s)', room)
 
     try {
       let rawPayload: PuppeteerRoomRawPayload | undefined  // = await this.bridge.getContact(room.id) as PuppeteerRoomRawPayload
@@ -1022,36 +1028,40 @@ export class PuppetPuppeteer extends Puppet {
         throw new Error('no payload')
       }
 
-      const payload = await this.roomParseRawPayload(rawPayload)
-      if (!payload) {
-        throw new Error('no payload set after puppet.getContact')
-      }
-      await Promise.all(payload.memberList.map(c => c.ready()))
-
-      return payload
-
+      return rawPayload
     } catch (e) {
-      log.error('PuppetPuppeteer', 'roomPayload.getContact(%s) exception: %s', room.id, e.message)
+      log.error('PuppetPuppeteer', 'roomRawPayload(%s) exception: %s', room.id, e.message)
       Raven.captureException(e)
       throw e
     }
   }
 
-  private async roomParseRawPayload(rawPayload: PuppeteerRoomRawPayload): Promise<RoomPayload> {
-    log.verbose('PuppetPuppeteer', 'roomParseRawPayload()')
+  public async roomPayload(room: PuppeteerRoom): Promise<RoomPayload> {
+    log.verbose('PuppetPuppeteer', 'roomPayload(%s)', room)
 
+    const rawPayload  = await this.roomRawPayload(room)
+    const payload     = await this.roomParseRawPayload(rawPayload)
+
+    return payload
+  }
+
+  private async roomParseRawPayload(rawPayload: PuppeteerRoomRawPayload): Promise<RoomPayload> {
+    log.verbose('PuppetPuppeteer', 'roomParseRawPayload(%s)', rawPayload)
+
+    // console.log(rawPayload)
     const memberList = (rawPayload.MemberList || [])
                         .map(m => {
                           const c = PuppeteerContact.load(m.UserName)
                           c.puppet = this
                           return c
                         })
+    await Promise.all(memberList.map(c => c.ready()))
 
     const nameMap         = this.roomParseMap('name'        , rawPayload.MemberList)
     const roomAliasMap    = this.roomParseMap('roomAlias'   , rawPayload.MemberList)
     const contactAliasMap = this.roomParseMap('contactAlias', rawPayload.MemberList)
 
-    return {
+    const roomPayload: RoomPayload = {
       // id:         rawPayload.UserName,
       // encryId:    rawPayload.EncryChatRoomId, // ???
       topic:      rawPayload.NickName,
@@ -1062,18 +1072,29 @@ export class PuppetPuppeteer extends Puppet {
       roomAliasMap,
       contactAliasMap,
     }
+    // console.log(roomPayload)
+    return roomPayload
   }
 
   private roomParseMap(
     parseSection: keyof RoomMemberQueryFilter,
     memberList?:  PuppeteerRoomRawMember[],
   ): Map<string, string> {
-    const mapList: Map<string, string> = new Map<string, string>()
+    log.verbose('PuppetPuppeteer', 'roomParseMap(%s, memberList.length=%d)',
+                                    parseSection,
+                                    memberList && memberList.length,
+                )
+
+    const dict: Map<string, string> = new Map<string, string>()
     if (memberList && memberList.map) {
       memberList.forEach(member => {
         let tmpName: string
+        // console.log(member)
         const contact = PuppeteerContact.load(member.UserName)
         contact.puppet = this
+        // contact.ready().then(() => console.log('###############', contact.name()))
+        // console.log(contact)
+        // log.silly('PuppetPuppeteer', 'roomParseMap() memberList.forEach(contact=%s)', contact)
 
         switch (parseSection) {
           case 'name':
@@ -1095,10 +1116,10 @@ export class PuppetPuppeteer extends Puppet {
          * @rui: webwx's NickName here return contactAlias, if not set contactAlias, return name
          * @rui: 2017-7-2 webwx's NickName just ruturn name, no contactAlias
          */
-        mapList.set(member.UserName, Misc.stripEmoji(tmpName))
+        dict.set(member.UserName, Misc.stripEmoji(tmpName))
       })
     }
-    return mapList
+    return dict
   }
 
   public async roomFindAll(
@@ -1301,19 +1322,19 @@ export class PuppetPuppeteer extends Puppet {
     this.options.profile.save()
   }
 
-  public extToType(ext: string): MsgType {
+  public extToType(ext: string): WebMsgType {
     switch (ext) {
       case '.bmp':
       case '.jpeg':
       case '.jpg':
       case '.png':
-        return MsgType.IMAGE
+        return WebMsgType.IMAGE
       case '.gif':
-        return MsgType.EMOTICON
+        return WebMsgType.EMOTICON
       case '.mp4':
-        return MsgType.VIDEO
+        return WebMsgType.VIDEO
       default:
-        return MsgType.APP
+        return WebMsgType.APP
     }
   }
 

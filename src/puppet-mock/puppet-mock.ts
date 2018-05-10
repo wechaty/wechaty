@@ -23,6 +23,7 @@ import {
   ContactQueryFilter,
   Gender,
   ContactType,
+  ContactPayload,
 
   Puppet,
   PuppetOptions,
@@ -34,11 +35,8 @@ import {
 import {
   log,
 }                   from '../config'
-import {
-  ContactPayload,
-}                   from '../puppet/contact'
-import Profile      from '../profile'
-import Wechaty      from '../wechaty'
+// import Profile      from '../profile'
+// import Wechaty      from '../wechaty'
 
 import {
   MockContact,
@@ -55,21 +53,15 @@ export class PuppetMock extends Puppet {
   private user?: MockContact
 
   constructor(
-    public options: PuppetOptions = {} as any,
+    public options: PuppetOptions,
   ) {
     super(
-      options.profile
-        ? options
-        : {
-            profile: new Profile(),
-            wechaty: new Wechaty(),
-          }
-      ,
+      options,
       {
-          Contact:        MockContact,
-          FriendRequest:  MockFriendRequest,
-          Message:        MockMessage,
-          Room:           MockRoom,
+        Contact:        MockContact,
+        FriendRequest:  MockFriendRequest,
+        Message:        MockMessage,
+        Room:           MockRoom,
       },
     )
   }
