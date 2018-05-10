@@ -817,9 +817,9 @@ export class PuppetPuppeteer extends Puppet {
 
     return {
       weixin:     rawPayload.Alias,  // Wechat ID
-      name:       rawPayload.NickName,
+      name:       Misc.plainText(rawPayload.NickName || ''),
       alias:      rawPayload.RemarkName,
-      gender:        rawPayload.Sex,
+      gender:     rawPayload.Sex,
       province:   rawPayload.Province,
       city:       rawPayload.City,
       signature:  rawPayload.Signature,

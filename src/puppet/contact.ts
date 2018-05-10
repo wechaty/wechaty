@@ -19,6 +19,7 @@
  */
 import {
   log,
+  Raven,
   Sayable,
 }                       from '../config'
 import PuppetAccessory  from '../puppet-accessory'
@@ -72,7 +73,7 @@ export interface ContactPayload {
  * `Contact` is `Sayable`,
  * [Examples/Contact-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/contact-bot.ts}
  */
-export abstract class Contact extends PuppetAccessory implements Sayable {
+export class Contact extends PuppetAccessory implements Sayable {
 
   // tslint:disable-next-line:variable-name
   public static Type    = ContactType
@@ -218,7 +219,7 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
    *   console.error(e)
    * }
    */
-  public abstract async say(text: string): Promise<void>
+  public async say(text: string): Promise<void>
 
   /**
    * Send Media File to Contact
@@ -232,7 +233,37 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
    *   console.error(e)
    * }
    */
-  public abstract async say(message: Message): Promise<void>
+  public async say(message: Message): Promise<void>
+
+  public async say(textOrMessage: string | Message): Promise<void> {
+    log.verbose('Contact', 'say(%s)', textOrMessage)
+
+    const user = this.puppet.userSelf() as Contact
+
+    if (!user) {
+      throw new Error('no user')
+    }
+
+    let m
+    if (typeof textOrMessage === 'string') {
+      m = new Message()
+      m.puppet = this.puppet
+      m.text(textOrMessage)
+    } else if (textOrMessage instanceof Message) {
+      m = textOrMessage
+    } else {
+      throw new Error('not support args')
+    }
+    m.from(user)
+    m.to(this)
+
+    log.silly('Contact', 'say() from: %s to: %s content: %s',
+                                  user,
+                                  this,
+                                  textOrMessage,
+              )
+    await this.puppet.send(m)
+  }
 
   /**
    * Get the name from a contact
@@ -241,11 +272,13 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
    * @example
    * const name = contact.name()
    */
-  public abstract name(): string
+  public name(): string {
+    return this.payload && this.payload.name || ''
+  }
 
-  public abstract alias():                        string | null
-  public abstract async alias(newAlias: string):  Promise<void>
-  public abstract async alias(empty: null):       Promise<void>
+  public alias()                  : null | string
+  public alias(newAlias:  string) : Promise<void>
+  public alias(empty:     null)   : Promise<void>
 
   /**
    * GET / SET / DELETE the alias for a contact
@@ -278,7 +311,28 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
    *   console.log(`failed to delete ${contact.name()}'s alias!`)
    * }
    */
-  public abstract alias(newAlias?: null | string): string | null | Promise<void>
+  public alias(newAlias?: null | string): null | string | Promise<void> {
+    log.verbose('Contact', 'alias(%s)',
+                            newAlias === undefined
+                              ? ''
+                              : newAlias,
+                )
+
+    if (typeof newAlias === 'undefined') {
+      return this.payload && this.payload.alias || null
+    }
+
+    const future = this.puppet.contactAlias(this, newAlias)
+
+    future
+      .then(() => this.payload!.alias = newAlias)
+      .catch(e => {
+        log.error('Contact', 'alias(%s) rejected: %s', newAlias, e.message)
+        Raven.captureException(e)
+      })
+
+    return future
+  }
 
   /**
    * Check if contact is stranger
@@ -289,7 +343,11 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
    * @example
    * const isStranger = contact.stranger()
    */
-  public abstract stranger(): boolean | null
+  public stranger(): null | boolean {
+    log.warn('Contact', 'stranger() DEPRECATED. use friend() instead.')
+    if (!this.payload) return null
+    return !this.friend()
+  }
 
   /**
    * Check if contact is friend
@@ -298,7 +356,13 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
    * @example
    * const isFriend = contact.friend()
    */
-  public abstract friend(): boolean | null
+  public friend(): null | boolean {
+    log.verbose('Contact', 'friend()')
+    if (!this.payload) {
+      return null
+    }
+    return this.payload.friend || null
+  }
 
   /**
    * Check if it's a offical account
@@ -311,7 +375,10 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
    * @example
    * const isOfficial = contact.official()
    */
-  public abstract official(): boolean
+  public official(): boolean {
+    log.warn('Contact', 'official() DEPRECATED. use type() instead')
+    return !!this.payload && this.payload.type === ContactType.OFFICIAL
+  }
 
   /**
    * Check if it's a personal account
@@ -322,7 +389,10 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
    * @example
    * const isPersonal = contact.personal()
    */
-  public abstract personal(): boolean
+  public personal(): boolean {
+    log.warn('Contact', 'personal() DEPRECATED. use type() instead')
+    return !this.official()
+  }
 
   /**
    * Return the type of the Contact
@@ -331,7 +401,9 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
    * @example
    * const isOfficial = contact.type() === Contact.Type.OFFICIAL
    */
-  public abstract type(): ContactType
+  public type(): ContactType {
+    return this.payload!.type
+  }
 
   /**
    * Check if the contact is star contact.
@@ -340,7 +412,14 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
    * @example
    * const isStar = contact.star()
    */
-  public abstract star(): boolean | null
+  public star(): null | boolean {
+    if (!this.payload) {
+      return null
+    }
+    return this.payload.star === undefined
+      ? null
+      : this.payload.star
+  }
 
   /**
    * Contact gender
@@ -349,7 +428,11 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
    * @example
    * const gender = contact.gender()
    */
-  public abstract gender(): Gender
+  public gender(): Gender {
+    return this.payload
+      ? this.payload.gender
+      : Gender.UNKNOWN
+  }
 
   /**
    * Get the region 'province' from a contact
@@ -358,7 +441,9 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
    * @example
    * const province = contact.province()
    */
-  public abstract province(): string | null
+  public province(): null | string {
+    return this.payload && this.payload.province || null
+  }
 
   /**
    * Get the region 'city' from a contact
@@ -367,7 +452,9 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
    * @example
    * const city = contact.city()
    */
-  public abstract city(): string | null
+  public city(): null | string {
+    return this.payload && this.payload.city || null
+  }
 
   /**
    * Get avatar picture file stream
@@ -380,7 +467,12 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
    * avatarReadStream.pipe(avatarWriteStream)
    * log.info('Bot', 'Contact: %s: %s with avatar file: %s', contact.weixin(), contact.name(), avatarFileName)
    */
-  public abstract async avatar(): Promise<NodeJS.ReadableStream>
+  // TODO: use File to replace ReadableStream
+  public async avatar(): Promise<NodeJS.ReadableStream> {
+    log.verbose('Contact', 'avatar()')
+
+    return this.puppet.contactAvatar(this)
+  }
 
   /**
    * Force reload(re-ready()) data for Contact
@@ -391,7 +483,10 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
    * @example
    * await contact.refresh()
    */
-  public abstract async refresh(): Promise<void>
+  public refresh(): Promise<void> {
+    log.warn('Contact', 'refresh() DEPRECATED. use sync() instead.')
+    return this.sync()
+  }
 
   /**
    * sycc data for Contact
@@ -400,17 +495,47 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
    * @example
    * await contact.sync()
    */
-  public abstract async sync(): Promise<void>
+  public async sync(): Promise<void> {
+    // TODO: make sure the contact.* works when we are refreshing the data
+    // if (this.isReady()) {
+    //   this.dirtyObj = this.obj
+    // }
+    this.payload = undefined
+    await this.ready()
+  }
 
   /**
    * @private
    */
-  public abstract async ready(): Promise<void>
+  public async ready(): Promise<void> {
+    log.silly('Contact', 'ready()')
+
+    if (this.isReady()) { // already ready
+      log.silly('Contact', 'ready() isReady() true')
+      return
+    }
+
+    try {
+      this.payload = await this.puppet.contactPayload(this)
+      log.silly('Contact', `ready() this.puppet.contactPayload(%s) resolved`, this)
+      // console.log(this.payload)
+
+    } catch (e) {
+      log.error('Contact', `ready() this.puppet.contactPayload(%s) exception: %s`,
+                            this,
+                            e.message,
+                )
+      Raven.captureException(e)
+      throw e
+    }
+  }
 
   /**
    * @private
    */
-  public abstract isReady(): boolean
+  public isReady(): boolean {
+    return !!(this.payload && this.payload.name)
+  }
 
   /**
    * Check if contact is self
@@ -419,7 +544,15 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
    * @example
    * const isSelf = contact.self()
    */
-  public abstract self(): boolean
+  public self(): boolean {
+    const user = this.puppet.userSelf()
+
+    if (!user) {
+      return false
+    }
+
+    return this.id === user.id
+  }
 
   /**
    * Get the weixin number from a contact.
@@ -431,7 +564,9 @@ export abstract class Contact extends PuppetAccessory implements Sayable {
    * @example
    * const weixin = contact.weixin()
    */
-  public abstract weixin(): string | null
+  public weixin(): null | string {
+    return this.payload && this.payload.weixin || null
+  }
 
 }
 
