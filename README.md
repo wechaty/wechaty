@@ -17,6 +17,8 @@ Wechaty is a Bot Framework for Wechat **Personal** Account which can help you cr
 
 ## VOICE OF THE DEVELOPER
 
+[![Donate Wechaty](https://img.shields.io/badge/Donate-Wechaty%20$-green.svg)](https://salt.bountysource.com/checkout/amount?team=chatie)
+
 > "Wechaty is a great solution, I believe there would be much more users recognize it." [link](https://github.com/chatie/wechaty/pull/310#issuecomment-285574472)  
 > -- @Gcaufy, Tencent Engineer, Author of [WePY](https://github.com/Tencent/wepy)
 
@@ -153,8 +155,6 @@ See: [Official API Reference](https://chatie.github.io/wechaty/)
 * [Changelog](https://github.com/chatie/wechaty/blob/master/CHANGELOG.md)
 
 ## POWERED BY WECHATY
-
-[![Donate Wechaty](https://img.shields.io/badge/Donate-Wechaty%20$-green.svg)](https://salt.bountysource.com/checkout/amount?team=chatie)
 
 [![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/chatie/wechaty)
 
