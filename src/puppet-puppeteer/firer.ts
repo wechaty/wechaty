@@ -24,10 +24,16 @@ import {
   log,
 }         from '../config'
 
+import {
+  WebRecomendInfo,
+  FriendRequest,
+}                             from '../puppet/'
 import PuppetPuppeteer        from './puppet-puppeteer'
 
 import PuppeteerContact       from './puppeteer-contact'
-import PuppeteerFriendRequest from './puppeteer-friend-request'
+import {
+  PuppeteerFriendRequest,
+}                             from './puppeteer-friend-request'
 import PuppeteerMessage       from './puppeteer-message'
 
 /* tslint:disable:variable-name */
@@ -105,28 +111,38 @@ const regexConfig = {
 async function checkFriendRequest(
   this: PuppetPuppeteer,
   msg:  PuppeteerMessage,
-) {
+): Promise<void> {
   if (!msg.rawObj) {
-    throw new Error('message empty')
+    throw new Error('no rawPayload')
+  } else if (!msg.rawObj.RecommendInfo) {
+    throw new Error('no RecommendInfo')
   }
-  const info = msg.rawObj.RecommendInfo
-  log.verbose('PuppetPuppeteerFirer', 'fireFriendRequest(%s)', info)
+  const rawPayload: WebRecomendInfo = msg.rawObj.RecommendInfo
+  log.verbose('PuppetPuppeteerFirer', 'fireFriendRequest(%s)', rawPayload)
 
-  if (!info) {
-    throw new Error('no info')
+  if (!rawPayload) {
+    throw new Error('no rawPayload')
   }
 
-  const request = new PuppeteerFriendRequest()
-  request.puppet = msg.puppet
+  const contact   = PuppeteerContact.load(rawPayload.UserName)
+  contact.puppet  = msg.puppet
 
-  request.receive(info)
+  const hello = rawPayload.Content
+  const ticket = rawPayload.Ticket
 
-  await request.contact().ready()
-  if (!request.contact().isReady()) {
+  await contact.ready()
+  if (!contact.isReady()) {
     log.warn('PuppetPuppeteerFirer', 'fireFriendConfirm() contact still not ready after `ready()` call')
   }
 
-  this.emit('friend', request.contact(), request)
+  const receivedRequest = FriendRequest.createReceive(
+    contact,
+    hello,
+    ticket,
+  )
+  receivedRequest.puppet = msg.puppet
+
+  this.emit('friend', receivedRequest)
 }
 
 /**
@@ -157,17 +173,20 @@ async function checkFriendConfirm(
   if (!parseFriendConfirm.call(this, content)) {
     return
   }
-  const request = new PuppeteerFriendRequest()
-  request.puppet = m.puppet
 
   const contact = m.from()
-  request.confirm(contact)
+
+  const confirmedRequest = PuppeteerFriendRequest.createConfirm(
+    contact,
+  )
+  confirmedRequest.puppet = m.puppet
 
   await contact.ready()
   if (!contact.isReady()) {
     log.warn('PuppetPuppeteerFirer', 'fireFriendConfirm() contact still not ready after `ready()` call')
   }
-  this.emit('friend', contact)
+
+  this.emit('friend', confirmedRequest)
 }
 
 /**

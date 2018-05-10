@@ -6,10 +6,9 @@
 
 Wechaty is a Bot Framework for Wechat **Personal** Account which can help you create a bot in 6 lines of javascript, with cross-platform support include [Linux](https://travis-ci.org/chatie/wechaty), [Windows](https://ci.appveyor.com/project/chatie/wechaty), [Darwin(OSX/Mac)](https://travis-ci.org/chatie/wechaty) and [Docker](https://app.shippable.com/github/Chatie/wechaty).
 
-[![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800)](https://nodejs.org/)
+[![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty)
+[![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
-[![Repo Size](https://reposs.herokuapp.com/?path=Chatie/wechaty)](https://github.com/chatie/wechaty)
-[![Donate Wechaty](https://img.shields.io/badge/Donate-Wechaty%20$-green.svg)](https://salt.bountysource.com/checkout/amount?team=chatie)
 
 :octocat: <https://github.com/chatie/wechaty>  
 :beetle: <https://github.com/chatie/wechaty/issues>  
@@ -54,6 +53,9 @@ You can find more examples from [Wiki](https://github.com/chatie/wechaty/wiki/Ex
 
 ## GETTING STARTED
 
+[![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800)](https://nodejs.org/)
+[![Repo Size](https://reposs.herokuapp.com/?path=Chatie/wechaty)](https://github.com/chatie/wechaty)
+
 ### A Great Live Coding Tutorial
 
 <div align="center">
@@ -77,7 +79,9 @@ Notice: The published versions have always passed the CI tests. We highly recomm
 
 #### Docker
 
-[![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Stars](https://img.shields.io/docker/stars/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
+[![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) 
+[![Docker Stars](https://img.shields.io/docker/stars/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) 
+[![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
 
 The **best practice** to use Wechaty is running with docker, because it's not only the most easy way to get started, but also protects you from the troubles of dependency problems. 
 
@@ -149,6 +153,8 @@ See: [Official API Reference](https://chatie.github.io/wechaty/)
 * [Changelog](https://github.com/chatie/wechaty/blob/master/CHANGELOG.md)
 
 ## POWERED BY WECHATY
+
+[![Donate Wechaty](https://img.shields.io/badge/Donate-Wechaty%20$-green.svg)](https://salt.bountysource.com/checkout/amount?team=chatie)
 
 [![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/chatie/wechaty)
 

@@ -35,7 +35,7 @@ import PuppetPuppeteer  from './puppet-puppeteer'
 import {
   WebMsgType,
   WebMessageRawPayload,
-}                       from './schema'
+}                       from '../puppet/schemas/'
 
 /* tslint:disable:variable-name */
 export const Event = {

@@ -198,7 +198,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
   }
 
   public on(event: 'error'      , listener: string | ((this: Wechaty, error: Error) => void))                                                 : this
-  public on(event: 'friend'     , listener: string | ((this: Wechaty, friend: Contact, request?: FriendRequest) => void))                     : this
+  public on(event: 'friend'     , listener: string | ((this: Wechaty, request: FriendRequest) => void))                     : this
   public on(event: 'heartbeat'  , listener: string | ((this: Wechaty, data: any) => void))                                                    : this
   public on(event: 'logout'     , listener: string | ((this: Wechaty, user: Contact) => void))                                                : this
   public on(event: 'login'      , listener: string | ((this: Wechaty, user: Contact) => void))                                                : this
@@ -246,7 +246,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
    * <li>408 waits for scan</li>
    * </ul>
    * @property   {Function} heartbeat       -(this: Wechaty, data: any) => void
-   * @property   {Function} friend          -(this: Wechaty, friend: Contact, request?: FriendRequest) => void
+   * @property   {Function} friend          -(this: Wechaty, request?: FriendRequest) => void
    * @property   {Function} message         -(this: Wechaty, message: Message) => void
    * @property   {Function} room-join       -(this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void
    * @property   {Function} room-topic      -(this: Wechaty, room: Room, topic: string, oldTopic: string, changer: Contact) => void
@@ -282,15 +282,16 @@ export class Wechaty extends PuppetAccessory implements Sayable {
    * })
    *
    * @example <caption>Event:friend </caption>
-   * bot.on('friend', (contact: Contact, request: FriendRequest) => {
-   *   if(request){ // 1. request to be friend from new contact
+   * bot.on('friend', (request: FriendRequest) => {
+   *   if(request.type === FriendRequest.Type.RECEIVE){ // 1. receive new friend request from new contact
+   *     const contact = request.contact()
    *     let result = await request.accept()
    *       if(result){
    *         console.log(`Request from ${contact.name()} is accept succesfully!`)
    *       } else{
    *         console.log(`Request from ${contact.name()} failed to accept!`)
    *       }
-   * 	  } else { // 2. confirm friend ship
+   * 	  } else if (request.type === FriendRequest.Type.CONFIRM) { // 2. confirm friend ship
    *       console.log(`new friendship confirmed with ${contact.name()}`)
    *    }
    *  })

@@ -49,8 +49,7 @@ import Profile        from '../profile'
 import Misc           from '../misc'
 
 import {
-  WebContactRawPayload,
-}                               from './schema'
+}                               from '../puppet/schemas/'
 import {
   Bridge,
   Cookie,
@@ -58,11 +57,12 @@ import {
 import Event            from './event'
 
 import {
+  WebContactRawPayload,
   WebMessageMediaPayload,
   WebMessageRawPayload,
   WebMediaType,
   WebMsgType,
-}                           from './schema'
+}                           from '../puppet/'
 
 import {
   PuppeteerContact,

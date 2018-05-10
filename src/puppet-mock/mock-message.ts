@@ -32,7 +32,7 @@ import { MockRoom }     from './mock-room'
 import {
   WebMsgType,
   AppMsgType,
-}                 from '../puppet-puppeteer/schema'
+}                 from '../puppet/schemas/'
 
 export type ParsedPath = Partial<path.ParsedPath>
 

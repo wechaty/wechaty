@@ -41,7 +41,7 @@ import {
   WebMessageMediaPayload,
   WebMessageRawPayload,
   WebContactRawPayload,
-}                               from './schema'
+}                               from '../puppet/schemas/'
 import {
   PuppeteerRoomRawPayload,
 }                               from './puppet-puppeteer'

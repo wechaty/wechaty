@@ -23,7 +23,7 @@ import {
 import {
   WebMsgType,
   AppMsgType,
-}               from '../puppet-puppeteer/schema'
+}               from '../puppet/schemas/'
 
 import {
   log,

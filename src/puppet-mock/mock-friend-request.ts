@@ -17,63 +17,8 @@
  *   @ignore
  */
 
-import {
-  // config,
-  log,
-}                     from '../config'
+import { FriendRequest }  from '../puppet/'
 
-import { FriendRequest, FriendRequestType }  from '../puppet/'
-
-import { MockContact }  from './mock-contact'
-
-export class MockFriendRequest extends FriendRequest {
-
-  public payload: any
-
-  private ticket: string
-  private _contact: MockContact
-  private _type:    FriendRequestType
-  private _hello:   string
-
-  constructor() {
-    log.verbose('MockFriendRequest', 'constructor()')
-    super()
-  }
-
-  public receive(payload: any): void {
-    log.verbose('MockFriendRequest', 'receive(%s)', payload)
-    this.payload = payload
-  }
-
-  public confirm(contact: MockContact): void {
-    log.verbose('MockFriendRequest', 'confirm(%s)', contact)
-  }
-
-  public async send(contact: MockContact, hello = 'Hi'): Promise<void> {
-    log.verbose('MockFriendRequest', 'send(%s)', contact)
-    await this.puppet.friendRequestSend(contact, hello)
-  }
-
-  public async accept(): Promise<void> {
-    log.verbose('FriendRequest', 'accept() %s', this.contact)
-    await this.puppet.friendRequestAccept(this.contact(), this.ticket)
-  }
-
-  public contact(): MockContact {
-    return this._contact
-  }
-
-  public type(): FriendRequestType {
-    return this._type
-  }
-
-  public async reject(): Promise<void> {
-    log.verbose('MockFriendRequest', 'reject()')
-  }
-
-  public hello(): string {
-    return this._hello
-  }
-}
+export class MockFriendRequest extends FriendRequest {}
 
 export default MockFriendRequest

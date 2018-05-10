@@ -30,6 +30,7 @@ import {
   // Contact,
   log,
   Wechaty,
+  FriendRequest,
 }           from '../src/'
 
 const welcome = `
@@ -75,16 +76,16 @@ bot
  * Wechaty Event: `friend`
  *
  */
-.on('friend', async (contact, request) => {
+.on('friend', async request => {
   let logMsg
   const fileHelper = bot.Contact.load('filehelper')
 
   try {
-    logMsg = 'received `friend` event from ' + contact.name()
+    logMsg = 'received `friend` event from ' + request.contact().name()
     fileHelper.say(logMsg)
     console.log(logMsg)
 
-    if (request) {
+    switch (request.type()) {
       /**
        *
        * 1. New Friend Request
@@ -92,20 +93,24 @@ bot
        * when request is set, we can get verify message from `request.hello`,
        * and accept this request by `request.accept()`
        */
-      if (request.hello() === 'ding') {
-        logMsg = 'accepted because verify messsage is "ding"'
-        request.accept()
+      case FriendRequest.Type.RECEIVE:
+        if (request.hello() === 'ding') {
+          logMsg = 'accepted because verify messsage is "ding"'
+          request.accept()
 
-      } else {
-        logMsg = 'not auto accepted, because verify message is: ' + request.hello
-      }
-    } else {
-      /**
-       *
-       * 2. Friend Ship Confirmed
-       *
-       */
-      logMsg = 'friend ship confirmed with ' + contact.name()
+        } else {
+          logMsg = 'not auto accepted, because verify message is: ' + request.hello
+        }
+        break
+
+        /**
+         *
+         * 2. Friend Ship Confirmed
+         *
+         */
+      case FriendRequest.Type.CONFIRM:
+        logMsg = 'friend ship confirmed with ' + request.contact().name()
+        break
     }
   } catch (e) {
     logMsg = e.message

@@ -23,7 +23,6 @@
  * when you are runing with Docker or NPM instead of Git Source.
  */
 import {
-  Contact,
   FriendRequest,
   Wechaty,
   // Room,
@@ -31,14 +30,16 @@ import {
 
 export async function onFriend(
   this:     Wechaty,
-  contact:  Contact,
-  request?: FriendRequest,
+  request: FriendRequest,
 ): Promise<void> {
   try {
-    if (!request) {
+    const contact = request.contact()
+
+    if (request.type() === FriendRequest.Type.CONFIRM) {
       console.log('New friend ' + contact.name() + ' relationship confirmed!')
       return
     }
+
     /********************************************
      *
      * 从这里开始修改 vvvvvvvvvvvv

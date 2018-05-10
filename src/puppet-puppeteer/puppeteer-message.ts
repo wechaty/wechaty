@@ -42,7 +42,7 @@ import {
   WebMsgPayload,
   WebMessageRawPayload,
   WebMsgType,
-}                 from './schema'
+}                 from '../puppet/schemas/'
 
 // export type TypeName =  'attachment'
 //                       | 'audio'

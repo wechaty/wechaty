@@ -151,7 +151,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   }
 
   public emit(event: 'error',       e: Error)                                                      : boolean
-  public emit(event: 'friend',      friend: Contact, request?: FriendRequest)                      : boolean
+  public emit(event: 'friend',      request: FriendRequest)                                       : boolean
   public emit(event: 'heartbeat',   data: any)                                                     : boolean
   public emit(event: 'login',       user: Contact)                                                 : boolean
   public emit(event: 'logout',      user: Contact | string)                                        : boolean
@@ -161,7 +161,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public emit(event: 'room-topic',  room: Room, topic: string, oldTopic: string, changer: Contact) : boolean
   public emit(event: 'scan',        url: string, code: number)                                     : boolean
   public emit(event: 'watchdog',    food: WatchdogFood)                                            : boolean
-  public emit(event: never, ...args: never[]): never
+  public emit(event: never, ...args: never[])                                                      : never
 
   public emit(
     event:   PuppetEventName,
@@ -171,7 +171,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   }
 
   public on(event: 'error',       listener: (e: Error) => void)                                                      : this
-  public on(event: 'friend',      listener: (friend: Contact, request?: FriendRequest) => void)                      : this
+  public on(event: 'friend',      listener: (request: FriendRequest) => void)                      : this
   public on(event: 'heartbeat',   listener: (data: any) => void)                                                     : this
   public on(event: 'login',       listener: (user: Contact) => void)                                                 : this
   public on(event: 'logout',      listener: (user: Contact) => void)                                                 : this

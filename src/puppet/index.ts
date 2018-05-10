@@ -7,6 +7,7 @@ export {
 }                         from './contact'
 export {
   FriendRequest,
+  FriendRequestPayload,
   FriendRequestType,
 }                         from './friend-request'
 export {
@@ -25,3 +26,5 @@ export {
   PuppetOptions,
   ScanData,
 }                         from './puppet'
+
+export * from './schemas/'
