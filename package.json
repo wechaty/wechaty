@@ -163,7 +163,7 @@
     "tslint-eslint-rules": "^5.1.0",
     "tslint-jsdoc-rules": "^0.1.0",
     "tuling123-client": "^0.0.1",
-    "typescript": "^2.8.3"
+    "typescript": "^2.9.0-dev.20180509"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [

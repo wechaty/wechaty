@@ -22,7 +22,7 @@ import * as os      from 'os'
 import * as semver  from 'semver'
 
 import {
-  // Constructor,
+  Constructor,
   cloneClass,
   instanceToClass,
 }                   from 'clone-class'
@@ -372,10 +372,15 @@ export class Wechaty extends PuppetAccessory implements Sayable {
      * 1. Init the Puppet
      */
     if (typeof this.options.puppet === 'string') {
-      puppet = new PUPPET_DICT[this.options.puppet]({
+      // tslint:disable-next-line:variable-name
+      const MyPuppet = PUPPET_DICT[this.options.puppet] as typeof Puppet & Constructor<Puppet>
+      const options = {
         profile:  this.profile,
         wechaty:  this,
-      })
+      }
+
+      puppet = new MyPuppet(options)
+
     } else if (this.options.puppet instanceof Puppet) {
       puppet = this.options.puppet
     } else {

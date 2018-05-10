@@ -94,15 +94,16 @@ export interface PuppetOptions {
  * Abstract Puppet Class
  */
 export abstract class Puppet extends EventEmitter implements Sayable {
-  public readonly state: StateSwitch
+  public readonly state   : StateSwitch
+  public readonly classes : PuppetClasses
 
   protected readonly watchdog: Watchdog
 
   private readonly pkg: normalize.Package
 
   constructor(
-    public options: PuppetOptions,
-    public classes: PuppetClasses,
+    public options:   PuppetOptions,
+    classes?:         PuppetClasses,
   ) {
     super()
 
@@ -114,6 +115,10 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     /**
      * 1. Check Classes for inherience correctly
      */
+    if (!classes) {
+      throw new Error('no classes found')
+    }
+
     // https://stackoverflow.com/questions/14486110/how-to-check-if-a-javascript-class-inherits-another-without-creating-an-obj
     const check = classes.Contact.prototype        instanceof Contact
                 && classes.FriendRequest.prototype instanceof FriendRequest
@@ -123,6 +128,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     if (!check) {
       throw new Error('Puppet must set classes right! https://github.com/Chatie/wechaty/issues/1167')
     }
+    this.classes = classes
 
     /**
      * 2. Load the package.json for Puppet Plugin version range matching
