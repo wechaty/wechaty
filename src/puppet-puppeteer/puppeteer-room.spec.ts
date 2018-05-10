@@ -20,11 +20,12 @@
  */
 // tslint:disable:no-shadowed-variable
 import * as test  from 'blue-tape'
-// import * as sinon from 'sinon'
+import * as sinon from 'sinon'
 
 import cloneClass from 'clone-class'
 
 import Profile    from '../profile'
+import PuppetMock from '../puppet-mock'
 import Wechaty    from '../wechaty'
 
 import PuppetPuppeteer  from './puppet-puppeteer'
@@ -39,13 +40,10 @@ const MyContact = cloneClass(PuppeteerContact)
 // tslint:disable-next-line:variable-name
 const MyMessage = cloneClass(PuppeteerMessage)
 
-const puppet = new PuppetPuppeteer({
-  profile: new Profile(),
-  wechaty: new Wechaty(),
-})
+const puppet = new PuppetMock()
 
 const MOCK_USER_ID = 'TEST-USER-ID'
-puppet.login(MyContact.load(MOCK_USER_ID))
+puppet.emit('login', MyContact.load(MOCK_USER_ID))
 
 MyContact.puppet = MyMessage.puppet = MyRoom.puppet = puppet
 
@@ -106,7 +104,7 @@ test('Room smoking test', async t => {
   }
 
   // Mock
-  const mockContactGetter = function (id: string) {
+  const mockContactPayload = function (id: string) {
     return new Promise((resolve, reject) => {
       if (id !== EXPECTED.id && !(id in CONTACT_LIST)) return resolve({})
       if (id === EXPECTED.id) {
@@ -134,11 +132,15 @@ test('Room smoking test', async t => {
   //   puppet = { getContact: mockContactGetter }
   //   config.puppetInstance(puppet)
   // }
-  MyContact.puppet = MyMessage.puppet = MyRoom.puppet = { getContact: mockContactGetter } as any
+  const sandbox = sinon.createSandbox()
+  const puppet = new PuppetMock()
+
+  sandbox.stub(puppet, 'contactPayload').callsFake(mockContactPayload)
+  MyContact.puppet = MyMessage.puppet = MyRoom.puppet = puppet
   await r.ready()
 
-  t.is(r.get('id')      , EXPECTED.id, 'should set id/UserName')
-  t.is(r.get('encryId') , EXPECTED.encryId, 'should set EncryChatRoomId')
+  t.is((r as any).payload['id']      , EXPECTED.id, 'should set id/UserName')
+  // t.is((r as any).payload[.('encryId') , EXPECTED.encryId, 'should set EncryChatRoomId')
 
   t.is(r.topic()        , EXPECTED.topic, 'should set topic/NickName')
 

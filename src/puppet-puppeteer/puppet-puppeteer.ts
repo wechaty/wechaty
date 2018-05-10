@@ -30,8 +30,13 @@ import {
 
 import {
   ContactQueryFilter,
+  ContactPayload,
+  // Gender,
+
   Puppet,
   PuppetOptions,
+  RoomMemberQueryFilter,
+  RoomPayload,
   RoomQueryFilter,
   ScanData,
 }                     from '../puppet/'
@@ -44,31 +49,48 @@ import Profile        from '../profile'
 import Misc           from '../misc'
 
 import {
+  PuppeteerContactRawPayload,
+}                               from './schema'
+import {
   Bridge,
   Cookie,
 }                       from './bridge'
 import Event            from './event'
 
 import {
-  MsgMediaPayload,
-  MsgRawPayload,
+  PuppeteerMessageMediaPayload,
+  PuppeteerMessageRawPayload,
   MediaType,
   MsgType,
 }                           from './schema'
 
 import {
   PuppeteerContact,
-  PuppeteerContactRawObj,
 }                             from './puppeteer-contact'
 import PuppeteerMessage       from './puppeteer-message'
 import {
   PuppeteerRoom,
-  PuppeteerRoomRawObj,
+  // PuppeteerRoomRawObj,
 }                             from './puppeteer-room'
 import PuppeteerFriendRequest from './puppeteer-friend-request'
 
 export type PuppetFoodType = 'scan' | 'ding'
 export type ScanFoodType   = 'scan' | 'login' | 'logout'
+
+export interface PuppeteerRoomRawMember {
+  UserName:     string,
+  NickName:     string,
+  DisplayName:  string,
+}
+
+export interface PuppeteerRoomRawPayload {
+  UserName:         string,
+  EncryChatRoomId:  string,
+  NickName:         string,
+  OwnerUin:         number,
+  ChatRoomOwner:    string,
+  MemberList?:      PuppeteerRoomRawMember[],
+}
 
 export class PuppetPuppeteer extends Puppet {
   public bridge   : Bridge
@@ -320,7 +342,7 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  private async uploadMedia(message: PuppeteerMessage, toUserName: string): Promise<MsgMediaPayload> {
+  private async uploadMedia(message: PuppeteerMessage, toUserName: string): Promise<PuppeteerMessageMediaPayload> {
     if (message.type() === PuppeteerMessage.Type.TEXT) {
       throw new Error('require a Media Message')
     }
@@ -426,7 +448,7 @@ export class PuppetPuppeteer extends Puppet {
       FileSize:   size,
       FileMd5:    md5,
       MMFileExt:  ext,
-    } as MsgMediaPayload
+    } as PuppeteerMessageMediaPayload
 
     // If file size > 25M, must first call checkUpload to get Signature and AESKey, otherwise it will fail to upload
     // https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L1132 #1182
@@ -556,8 +578,8 @@ export class PuppetPuppeteer extends Puppet {
       destinationId = to.id
     }
 
-    let mediaData: MsgMediaPayload
-    const rawObj = message.rawObj || {} as MsgRawPayload
+    let mediaData: PuppeteerMessageMediaPayload
+    const rawObj = message.rawObj || {} as PuppeteerMessageRawPayload
 
     if (!rawObj || !rawObj.MediaId) {
       try {
@@ -608,8 +630,8 @@ export class PuppetPuppeteer extends Puppet {
    */
   // public async forward(baseData: MsgRawObj, patchData: MsgRawObj): Promise<boolean> {
   public async forward(
-    message: PuppeteerMessage,
-    sendTo: PuppeteerContact | PuppeteerRoom,
+    message : PuppeteerMessage,
+    sendTo  : PuppeteerContact | PuppeteerRoom,
   ): Promise<void> {
 
     log.silly('PuppetPuppeteer', 'forward() to: %s, message: %s)',
@@ -623,7 +645,7 @@ export class PuppetPuppeteer extends Puppet {
     }
 
     let m = Object.assign({}, message.rawObj)
-    const newMsg = <MsgRawPayload>{}
+    const newMsg = <PuppeteerMessageRawPayload>{}
     const largeFileSize = 25 * 1024 * 1024
     // let ret = false
     // if you know roomId or userId, you can use `Room.load(roomId)` or `Contact.load(userId)`
@@ -776,11 +798,57 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async getContact(id: string): Promise<PuppeteerContactRawObj | PuppeteerRoomRawObj> {
+  private contactParseRawPayload(
+    rawPayload: PuppeteerContactRawPayload,
+  ): ContactPayload {
+    log.verbose('PuppetPuppeteer', 'contactParseRawPayload(%s)', rawPayload)
+    if (!rawPayload.UserName) {
+      throw new Error('contactParsePayload() got empty rawPayload!')
+    }
+
+    // this.id = rawPayload.UserName   // MMActualSender??? MMPeerUserName??? `getUserContact(message.MMActualSender,message.MMPeerUserName).HeadImgUrl`
+    // uin:        rawPayload.Uin,    // stable id: 4763975 || getCookie("wxuin")
+
+    return {
+      weixin:     rawPayload.Alias,  // Wechat ID
+      name:       rawPayload.NickName,
+      alias:      rawPayload.RemarkName,
+      gender:        rawPayload.Sex,
+      province:   rawPayload.Province,
+      city:       rawPayload.City,
+      signature:  rawPayload.Signature,
+
+      address:    rawPayload.Alias, // XXX: need a stable address for user
+
+      star:       !!rawPayload.StarFriend,
+      friend:     rawPayload.stranger === undefined
+                    ? undefined
+                    : !rawPayload.stranger, // assign by injectio.js
+      avatar:     rawPayload.HeadImgUrl,
+      /**
+       * @see 1. https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3243
+       * @see 2. https://github.com/Urinx/WeixinBot/blob/master/README.md
+       * @ignore
+       */
+      // tslint:disable-next-line
+      type:      (!!rawPayload.UserName && !rawPayload.UserName.startsWith('@@') && !!(rawPayload.VerifyFlag & 8))
+                    ? PuppeteerContact.Type.OFFICIAL
+                    : PuppeteerContact.Type.PERSONAL,
+      /**
+       * @see 1. https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3246
+       * @ignore
+       */
+      // special:       specialContactList.indexOf(rawPayload.UserName) > -1 || /@qqim$/.test(rawPayload.UserName),
+    }
+  }
+
+  public async contactPayload(contact: PuppeteerContact): Promise<ContactPayload> {
+    log.verbose('PuppetPuppeteer', 'contactPayload(%s)', contact)
     try {
-      return await this.bridge.getContact(id)
+      const rawPayload = await this.bridge.getContact(contact.id) as PuppeteerContactRawPayload
+      return this.contactParseRawPayload(rawPayload)
     } catch (e) {
-      log.error('PuppetPuppeteer', 'getContact(%d) exception: %s', id, e.message)
+      log.error('PuppetPuppeteer', 'getContact(%d) exception: %s', contact.id, e.message)
       Raven.captureException(e)
       throw e
     }
@@ -793,6 +861,26 @@ export class PuppetPuppeteer extends Puppet {
       log.warn('PuppetPuppeteer', 'ding(%s) rejected: %s', data, e.message)
       Raven.captureException(e)
       throw e
+    }
+  }
+
+  public async contactAvatar(contact: PuppeteerContact): Promise<NodeJS.ReadableStream> {
+    const payload = await this.contactPayload(contact)
+    if (!payload.avatar) {
+      throw new Error('Can not get avatar: no payload.avatar!')
+    }
+
+    try {
+      const hostname = await this.hostname()
+      const avatarUrl = `http://${hostname}${payload.avatar}&type=big` // add '&type=big' to get big image
+      const cookies = await this.cookies()
+      log.silly('PuppeteerContact', 'avatar() url: %s', avatarUrl)
+
+      return Misc.urlStream(avatarUrl, cookies)
+    } catch (err) {
+      log.warn('PuppeteerContact', 'avatar() exception: %s', err.stack)
+      Raven.captureException(err)
+      throw err
     }
   }
 
@@ -886,6 +974,123 @@ export class PuppetPuppeteer extends Puppet {
       Raven.captureException(e)
       throw e
     }
+  }
+
+  public async roomPayload(room: PuppeteerRoom): Promise<RoomPayload> {
+    log.verbose('PuppetPuppeteer', 'roomPayload(%s)', room)
+
+    try {
+      let rawPayload: PuppeteerRoomRawPayload | undefined  // = await this.bridge.getContact(room.id) as PuppeteerRoomRawPayload
+
+      // let currNum = rawPayload.MemberList && rawPayload.MemberList.length || 0
+      // let prevNum = room.memberList().length  // rawPayload && rawPayload.MemberList && this.rawObj.MemberList.length || 0
+
+      let ttl = 7
+      while (ttl--/* && currNum !== prevNum */) {
+        rawPayload = await this.bridge.getContact(room.id) as PuppeteerRoomRawPayload
+
+        const currNum = rawPayload.MemberList && rawPayload.MemberList.length || 0
+        const prevNum = room.memberList().length  // rawPayload && rawPayload.MemberList && this.rawObj.MemberList.length || 0
+
+        log.silly('PuppetPuppeteer', `roomPayload() this.bridge.getContact(%s) MemberList.length:%d at ttl:%d`,
+          room.id,
+          currNum,
+          ttl,
+        )
+
+        if (currNum) {
+          if (prevNum === currNum) {
+            log.silly('PuppetPuppeteer', `roomPayload() puppet.getContact(${room.id}) done at ttl:%d`, ttl)
+            break
+          }
+        }
+
+        log.silly('PuppetPuppeteer', `roomPayload() puppet.getContact(${room.id}) retry at ttl:%d`, ttl)
+        await new Promise(r => setTimeout(r, 1000)) // wait for 1 second
+      }
+
+      // await this.readyAllMembers(rawPayload && rawPayload.MemberList || [])
+      if (!rawPayload) {
+        throw new Error('no payload')
+      }
+
+      const payload = await this.roomParseRawPayload(rawPayload)
+      if (!payload) {
+        throw new Error('no payload set after puppet.getContact')
+      }
+      await Promise.all(payload.memberList.map(c => c.ready()))
+
+      return payload
+
+    } catch (e) {
+      log.error('PuppetPuppeteer', 'roomPayload.getContact(%s) exception: %s', room.id, e.message)
+      Raven.captureException(e)
+      throw e
+    }
+  }
+
+  private async roomParseRawPayload(rawPayload: PuppeteerRoomRawPayload): Promise<RoomPayload> {
+    log.verbose('PuppetPuppeteer', 'roomParseRawPayload()')
+
+    const memberList = (rawPayload.MemberList || [])
+                        .map(m => {
+                          const c = PuppeteerContact.load(m.UserName)
+                          c.puppet = this
+                          return c
+                        })
+
+    const nameMap         = this.roomParseMap('name'        , rawPayload.MemberList)
+    const roomAliasMap    = this.roomParseMap('roomAlias'   , rawPayload.MemberList)
+    const contactAliasMap = this.roomParseMap('contactAlias', rawPayload.MemberList)
+
+    return {
+      // id:         rawPayload.UserName,
+      // encryId:    rawPayload.EncryChatRoomId, // ???
+      topic:      rawPayload.NickName,
+      // ownerUin:   rawPayload.OwnerUin,
+      memberList,
+
+      nameMap,
+      roomAliasMap,
+      contactAliasMap,
+    }
+  }
+
+  private roomParseMap(
+    parseSection: keyof RoomMemberQueryFilter,
+    memberList?:  PuppeteerRoomRawMember[],
+  ): Map<string, string> {
+    const mapList: Map<string, string> = new Map<string, string>()
+    if (memberList && memberList.map) {
+      memberList.forEach(member => {
+        let tmpName: string
+        const contact = PuppeteerContact.load(member.UserName)
+        contact.puppet = this
+
+        switch (parseSection) {
+          case 'name':
+            tmpName = contact.name()
+            break
+          case 'roomAlias':
+            tmpName = member.DisplayName
+            break
+          case 'contactAlias':
+            tmpName = contact.alias() || ''
+            break
+          default:
+            throw new Error('parseMap failed, member not found')
+        }
+        /**
+         * ISSUE #64 emoji need to be striped
+         * ISSUE #104 never use remark name because sys group message will never use that
+         * @rui: Wrong for 'never use remark name because sys group message will never use that', see more in the latest comment in #104
+         * @rui: webwx's NickName here return contactAlias, if not set contactAlias, return name
+         * @rui: 2017-7-2 webwx's NickName just ruturn name, no contactAlias
+         */
+        mapList.set(member.UserName, Misc.stripEmoji(tmpName))
+      })
+    }
+    return mapList
   }
 
   public async roomFindAll(

@@ -26,8 +26,8 @@ import {
 }                   from '../config'
 import { Message }  from '../puppet/'
 
-import MockContact  from './mock-contact'
-import MockRoom     from './mock-room'
+import { MockContact }  from './mock-contact'
+import { MockRoom }     from './mock-room'
 
 import {
   MsgType,
@@ -36,32 +36,17 @@ import {
 
 export type ParsedPath = Partial<path.ParsedPath>
 
+export interface MockMessagePayload {
+  text:   string,
+  from:   MockContact,
+  to?:    MockContact,
+  room?:  MockRoom,
+  type:   MsgType,
+}
+
 export class MockMessage extends Message {
 
-  /**
-   * Static Methods
-   */
-
-  public static async find(query: any): Promise<MockMessage | null> {
-    const messageList = await this.findAll(query)
-
-    if (messageList.length <= 0) {
-      return null
-    }
-
-    if (messageList.length > 1) {
-      log.warn('MockMessage', 'find() return multiple results, return the first one.')
-    }
-
-    return messageList[0]
-  }
-
-  public static async findAll(query: any): Promise<MockMessage[]> {
-    return Promise.resolve([
-      new MockMessage({MsgId: '-2'}),
-      new MockMessage({MsgId: '-3'}),
-    ])
-  }
+  private payload: MockMessagePayload
 
   /**
    * Instance Properties & Methods
@@ -74,77 +59,82 @@ export class MockMessage extends Message {
   ) {
     super()
     log.silly('MockMessage', 'constructor()')
+
+    this.payload = {} as MockMessagePayload
   }
 
-  public from(contact: MockContact) : this
+  public from(contact: MockContact) : void
   public from()                     : MockContact
 
-  public from(contact?: MockContact): this | MockContact {
+  public from(contact?: MockContact): void | MockContact {
     if (contact) {
-      // set from to contact...
-      return this
+      this.payload.from = contact
+      return
     }
 
-    const loadedContact = MockContact.load('mockid')
-    loadedContact.puppet = this.puppet
-
-    return loadedContact
+    return this.payload.from
   }
 
-  public to(contact: MockContact): this
-  public to(id: string): this
-  public to(): MockContact | null // if to is not set, then room must had set
+  public to(contact: MockContact) : void
+  public to()                     : MockContact | null // if no `to` there must be a `room`
 
-  public to(contact?: MockContact | string): MockContact | null | this {
+  public to(contact?: MockContact): void | MockContact | null {
     if (contact) {
-      return this
+      this.payload.to = contact
+      return
     }
 
-    const to = MockContact.load('mockid') as MockContact
-    to.puppet = this.puppet
-
-    return to
+    return this.payload.to || null
   }
 
-  public room(room: MockRoom): this
-  public room(): MockRoom | null
+  public room(room: MockRoom) : void
+  public room()               : null | MockRoom
 
-  public room(room?: MockRoom): this | MockRoom | null {
+  public room(room?: MockRoom): void | null | MockRoom {
     if (room) {
-      // set room to room...
-      return this
+      this.payload.room = room
+      return
     }
-    return null
+    return this.payload.room || null
   }
 
   public text(): string
   public text(content: string): this
   public text(text?: string): string | this {
     if (text) {
+      this.payload.text = text
       return this
     }
-    return 'mock text'
+    return this.payload.text || ''
   }
+
+  public async say(text: string, mention?: MockContact | MockContact[]): Promise<void>
+  public async say(message: MockMessage): Promise<void>
 
   public async say(
     textOrMessage:  string | MockMessage,
-    replyTo?:       MockContact | MockContact[],
+    mention?:       MockContact | MockContact[],
   ): Promise<void> {
-    log.verbose('MockMessage', 'say(%s, %s)', textOrMessage, replyTo)
+    log.verbose('MockMessage', 'say(%s, %s)', textOrMessage, mention)
 
-    const message = new MockMessage()
+    if (textOrMessage instanceof Message) {
+      await this.puppet.send(textOrMessage)
+      return
+    }
 
-    message.from(this.puppet.userSelf() as MockContact)
-    message.to(this.from())
+    const msg = new MockMessage()
+
+    msg.from(this.puppet.userSelf())
+    msg.to(this.from())
 
     const room = this.room()
     if (room) {
-      message.room(room)
+      msg.room(room)
     }
 
-    // TODO: implement the replyTo
+    // TODO: implement the `mention`
 
-    await this.puppet.send(message)
+    await this.puppet.send(msg)
   }
 
   public type(): MsgType {

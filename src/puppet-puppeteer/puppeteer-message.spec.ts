@@ -19,7 +19,7 @@
  */
 // tslint:disable:no-shadowed-variable
 import * as test  from 'blue-tape'
-// import * as sinon from 'sinon'
+import * as sinon from 'sinon'
 // const sinonTest   = require('sinon-test')(sinon)
 
 import cloneClass from 'clone-class'
@@ -30,6 +30,8 @@ import {
 }                 from '../config'
 import Profile    from '../profile'
 import Wechaty    from '../wechaty'
+
+import { PuppetMock } from '../puppet-mock/'
 
 import PuppetPuppeteer  from './puppet-puppeteer'
 import PuppeteerContact from './puppeteer-contact'
@@ -85,7 +87,7 @@ test('ready()', async t => {
   const expectedMsgId        = '3009511950433684462'
 
   // Mock
-  function mockGetContact(id: string) {
+  function mockContactPayload(id: string) {
     log.silly('TestMessage', `mocked getContact(${id})`)
     return new Promise((resolve, reject) => {
       let obj = {}
@@ -117,10 +119,11 @@ test('ready()', async t => {
 
   // config.puppetInstance()
   //       .getContact = mockGetContact
-  MyRoom.puppet = MyContact.puppet = MyMessage.puppet = {
-    ...puppet,
-    getContact: mockGetContact,
-  } as any
+  const sandbox = sinon.createSandbox()
+  const puppet = new PuppetMock()
+
+  sandbox.stub(puppet, 'contactPayload').callsFake(mockContactPayload)
+  MyRoom.puppet = MyContact.puppet = MyMessage.puppet = puppet
 
   const m = new MyMessage(rawData)
 
@@ -138,6 +141,8 @@ test('ready()', async t => {
   t.is(fc.name()  , expectedFromNickName, 'contact ready for FromNickName')
   t.is(tc.id      , expectedToUserName  , 'contact ready for ToUserName')
   t.is(tc.name()  , expectedToNickName  , 'contact ready for ToNickName')
+
+  sandbox.restore()
 })
 
 test('find()', async t => {
@@ -145,7 +150,8 @@ test('find()', async t => {
     id: 'xxx',
   })
 
-  t.ok(m.id, 'Message.find')
+  t.ok(m, 'Message found')
+  t.ok(m!.id, 'Message.find')
 })
 
 test('findAll()', async t => {
@@ -157,7 +163,6 @@ test('findAll()', async t => {
 })
 
 test('self()', async t => {
-  // config.puppetInstance(puppet)
   MyRoom.puppet = MyContact.puppet = MyMessage.puppet = puppet
 
   const m = new MyMessage()
@@ -192,7 +197,7 @@ test('mentioned()', async t => {
   const ROOM_ID = '@@9cdc696e490bd76c57e7dd54792dc1408e27d65e312178b1943e88579b7939f4'
 
   // Mock
-  const mockContactGetter = function (id: string) {
+  const contactPayloadMock = function (id: string) {
     return new Promise((resolve, reject) => {
       if (id !== ROOM_ID && !(id in CONTACT_LIST)) return resolve({})
       if (id === ROOM_ID) {
@@ -214,11 +219,15 @@ test('mentioned()', async t => {
   //   puppet1 = { getContact: mockContactGetter }
   //   config.puppetInstance(puppet1)
   // }
-  const puppet = MyRoom.puppet = MyMessage.puppet = {
-    getContact: mockContactGetter,
-  } as PuppetPuppeteer
+  const sandbox = sinon.createSandbox()
 
-  MyContact.puppet = puppet
+  const puppet = new PuppetMock({
+    profile: new Profile(),
+    wechaty: new Wechaty(),
+  })
+  sandbox.stub(puppet, 'contactPayload').callsFake(contactPayloadMock)
+
+  MyRoom.puppet = MyMessage.puppet = MyContact.puppet = puppet
 
   const msg11 = new MyMessage(rawObj11)
   const room11 = msg11.room()
@@ -284,4 +293,6 @@ test('mentioned()', async t => {
     t.is(mentionContactList32[0].id, '@36d55130f6a91bae4a2ed2cc5f19c56a9258c65ce3db9777f74f607223ef0855', 'should get wuli舞哩客服 id right in rawObj32')
     t.is(mentionContactList32[1].id, '@cd7d467d7464e8ff6b0acd29364654f3666df5d04551f6082bfc875f90a6afd2', 'should get 小桔同学 id right in rawObj32')
   }
+
+  sandbox.restore()
 })

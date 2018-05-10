@@ -25,8 +25,8 @@ import {
   RoomMemberQueryFilter,
 }                         from '../puppet/'
 
-import MockMessage        from './mock-message'
-import MockContact        from './mock-contact'
+import { MockMessage }    from './mock-message'
+import { MockContact }    from './mock-contact'
 
 export class MockRoom extends Room {
 
@@ -40,8 +40,13 @@ export class MockRoom extends Room {
   public isReady(): boolean {
     return true
   }
-  public async ready(): Promise<Room> {
-    return this
+
+  public async sync(): Promise<void> {
+    return
+  }
+
+  public async ready(): Promise<void> {
+    return
   }
 
   public say(message: MockMessage)                  : Promise<void>

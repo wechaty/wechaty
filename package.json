@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.15.31",
+  "version": "0.15.33",
   "description": "Wechat for Bot(Personal Account)",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -97,7 +97,7 @@
     "brolog": "^1.2.0",
     "clone-class": "^0.6.3",
     "cuid": "^2.1.1",
-    "hot-import": "^0.1.0",
+    "hot-import": "^0.2.1",
     "mime": "^2.2.0",
     "normalize-package-data": "^2.4.0",
     "puppeteer": "^1.2.0",
@@ -105,9 +105,10 @@
     "read-pkg-up": "^3.0.0",
     "request": "^2.83.0",
     "retry-promise": "^1.0.0",
-    "rx-queue": "^0.4.4",
-    "rxjs": "^6",
+    "rx-queue": "^0.4.7",
+    "rxjs": "^6.1.0",
     "state-switch": "^0.4.5",
+    "vinyl": "^2.1.0",
     "watchdog": "^0.8.1",
     "wechat4u": "^0.7.6",
     "ws": "^5.1.0",
@@ -129,6 +130,7 @@
     "@types/request": "^2.0.0",
     "@types/semver": "^5.5.0",
     "@types/sinon": "^4.3.1",
+    "@types/vinyl": "^2.0.2",
     "@types/xml2js": "^0.4.0",
     "apiai": "^4.0.0",
     "babel-cli": "^6.26.0",
@@ -161,7 +163,7 @@
     "tslint-eslint-rules": "^5.1.0",
     "tslint-jsdoc-rules": "^0.1.0",
     "tuling123-client": "^0.0.1",
-    "typescript": "^2.8.3"
+    "typescript": "^2.9.0-dev.20180509"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [

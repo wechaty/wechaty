@@ -1,6 +1,8 @@
 export {
   Contact,
+  ContactPayload,
   ContactQueryFilter,
+  ContactType,
   Gender,
 }                         from './contact'
 export {
@@ -13,6 +15,7 @@ export {
 export {
   Room,
   RoomMemberQueryFilter,
+  RoomPayload,
   RoomQueryFilter,
 }                         from './room'
 

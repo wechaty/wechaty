@@ -75,6 +75,12 @@ export abstract class Message extends PuppetAccessory implements Sayable {
   }
 
   /**
+   *
+   * Instance Properties
+   *
+   */
+
+  /**
    * @private
    */
   constructor(
@@ -101,7 +107,7 @@ export abstract class Message extends PuppetAccessory implements Sayable {
   /**
    * @private
    */
-  public abstract from(contact: Contact): this
+  public abstract from(contact: Contact): void
   /**
    * @private
    */
@@ -110,12 +116,12 @@ export abstract class Message extends PuppetAccessory implements Sayable {
    * Get the sender from a message.
    * @returns {Contact}
    */
-  public abstract from(contact?: Contact): this | Contact
+  public abstract from(contact?: Contact): void | Contact
 
   /**
    * @private
    */
-  public abstract to(contact: Contact): this
+  public abstract to(contact: Contact): void
   /**
    * @private
    */
@@ -125,12 +131,12 @@ export abstract class Message extends PuppetAccessory implements Sayable {
    * Message.to() will return null if a message is in a room, use Message.room() to get the room.
    * @returns {(Contact|null)}
    */
-  public abstract to(contact?: Contact): this | Contact | null
+  public abstract to(contact?: Contact): void | null | Contact
 
   /**
    * @private
    */
-  public abstract room(room: Room): this
+  public abstract room(room: Room): void
   /**
    * @private
    */
@@ -141,7 +147,7 @@ export abstract class Message extends PuppetAccessory implements Sayable {
    *
    * @returns {(Room | null)}
    */
-  public abstract room(room?: Room): this | Room | null
+  public abstract room(room?: Room): void | null | Room
 
   /**
    * Get the content of the message
@@ -154,14 +160,14 @@ export abstract class Message extends PuppetAccessory implements Sayable {
    * @deprecated: use `text()` instead
    * @private
    */
-  public content(text: string): this
+  public content(text: string): void
   /**
    * Get the content of the message
    *
    * @deprecated: use `text()` instead
    * @returns {string}
    */
-  public content(text?: string): this | string {
+  public content(text?: string): void | string {
     throw new Error('Deprecated. Use `text()` instead of `content()`. See https://github.com/Chatie/wechaty/issues/1163')
   }
 
@@ -174,20 +180,23 @@ export abstract class Message extends PuppetAccessory implements Sayable {
   /**
    * @private
    */
-  public abstract text(text: string): this
+  public abstract text(text: string): void
   /**
    * Get the text content of the message
    *
    * @returns {string}
    */
-  public abstract text(text: string): this | string
+  public abstract text(text: string): void | string
+
+  public abstract async say(text: string, mention?: Contact | Contact[]): Promise<void>
+  public abstract async say(message: Message): Promise<void>
 
   /**
    * Reply a Text or Media File message to the sender.
    *
    * @see {@link https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts|Examples/ding-dong-bot}
    * @param {(string | Message)} textOrMessage
-   * @param {(Contact|Contact[])} [replyTo]
+   * @param {(Contact|Contact[])} [mention]
    * @returns {Promise<void>}
    *
    * @example
@@ -204,7 +213,7 @@ export abstract class Message extends PuppetAccessory implements Sayable {
    */
   public abstract async say(
     textOrMessage : string | Message,
-    replyTo?      : Contact | Contact[],
+    mention?      : Contact | Contact[],
   ): Promise<void>
 
   /**

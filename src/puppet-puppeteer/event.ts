@@ -34,7 +34,7 @@ import Firer            from './firer'
 import PuppetPuppeteer  from './puppet-puppeteer'
 import {
   MsgType,
-  MsgRawPayload,
+  PuppeteerMessageRawPayload,
 }                       from './schema'
 
 /* tslint:disable:variable-name */
@@ -189,7 +189,7 @@ async function onLogout(
 
 async function onMessage(
   this: PuppetPuppeteer,
-  obj:  MsgRawPayload,
+  obj:  PuppeteerMessageRawPayload,
 ): Promise<void> {
   let m = new PuppeteerMessage(obj)
   m.puppet = this

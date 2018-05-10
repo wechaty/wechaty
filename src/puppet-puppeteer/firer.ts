@@ -262,7 +262,9 @@ async function checkRoomJoin(
             continue
           }
 
-          inviteeContactList[i] = await c.ready()
+          await c.ready()
+          inviteeContactList[i] = c
+
           const isReady = c.isReady()
           if (!isReady) {
             inviteeListAllDone = false

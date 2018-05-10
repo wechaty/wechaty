@@ -16,7 +16,28 @@
  *   limitations under the License.
  *
  */
-export interface MsgMediaPayload {
+import {
+  Gender,
+}           from '../puppet/'
+
+export interface PuppeteerContactRawPayload {
+  Alias:        string,
+  City:         string,
+  NickName:     string,
+  Province:     string,
+  RemarkName:   string,
+  Sex:          Gender,
+  Signature:    string,
+  StarFriend:   string,
+  Uin:          string,
+  UserName:     string,
+  HeadImgUrl:   string,
+
+  stranger:     string, // assign by injectio.js
+  VerifyFlag:   number,
+}
+
+export interface PuppeteerMessageMediaPayload {
   ToUserName: string,
   MsgType:    number,
   MediaId:    string,
@@ -28,7 +49,7 @@ export interface MsgMediaPayload {
   Signature?: string,
 }
 
-export interface MsgRawPayload {
+export interface PuppeteerMessageRawPayload {
   MsgId:            string,
 
   MMActualSender:   string, // getUserContact(message.MMActualSender,message.MMPeerUserName).isContact()

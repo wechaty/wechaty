@@ -17,17 +17,19 @@
  *
  *   @ignore
  */
+
 import {
   Sayable,
   log,
 }                       from '../config'
-
 import {
   Contact,
+  ContactType,
   Gender,
+  Message,
 }                       from '../puppet/'
 
-import MockMessage       from './mock-message'
+import { MockMessage }  from './mock-message'
 
 export class MockContact extends Contact implements Sayable {
 
@@ -42,14 +44,34 @@ export class MockContact extends Contact implements Sayable {
     return `MockContact<${this.id}>`
   }
 
-  public async say(text: string): Promise<void>
+  public async say(text: string)        : Promise<void>
   public async say(message: MockMessage): Promise<void>
-  public async say(textOrMessage: string | MockMessage): Promise<void> {
+
+  public async say(
+    textOrMessage : string | MockMessage,
+  ): Promise<void> {
     log.verbose('MockContact', 'say(%s)', textOrMessage)
+
+    let msg
+
+    if (textOrMessage instanceof Message) {
+      msg = textOrMessage
+    } else {
+      msg = new MockMessage()
+      msg.text(textOrMessage)
+    }
+
+    msg.from(this.puppet.userSelf())
+    msg.to(this)
+
+    await this.puppet.send(msg)
   }
 
-  public name() {
-    return 'MockName'
+  public name(): string {
+    if (!this.payload) {
+      throw new Error('no payload')
+    }
+    return this.payload.name || ''
   }
 
   public alias()                : string | null
@@ -59,55 +81,125 @@ export class MockContact extends Contact implements Sayable {
   public alias(newAlias?: string|null): Promise<void> | string | null {
     log.verbose('MockContact', 'alias(%s)', newAlias)
     if (newAlias === undefined) {
-      return 'MockAlias'
+      return this.payload && this.payload.alias || null
     }
-    // pretend modified...
-    return Promise.resolve()
+
+    return this.puppet.contactAlias(this, newAlias)
   }
 
+  /**
+   * @deprecated
+   */
   public stranger(): boolean | null {
-    return null
+    if (!this.payload) {
+      return null
+    }
+
+    return this.payload.friend === undefined
+      ? null
+      : !(this.payload.friend)
   }
 
-  public official(): boolean {
-    return false
+  public friend(): boolean | null {
+    if (!this.payload) {
+      return null
+    }
+
+    return this.payload.friend === undefined
+      ? null
+      : this.payload.friend
   }
+
+  /**
+   * @deprecated
+   */
   public personal(): boolean {
-    return !this.official()
+    if (this.type() === ContactType.UNKNOWN) {
+      throw new Error('unknown type')
+    }
+    return this.type() === Contact.Type.PERSONAL
+  }
+
+  /**
+   * @deprecated
+   */
+  public official(): boolean {
+    if (this.type() === ContactType.UNKNOWN) {
+      throw new Error('unknown type')
+    }
+    return this.type() === Contact.Type.OFFICIAL
+  }
+
+  public type(): ContactType {
+    if (!this.payload) {
+      return ContactType.UNKNOWN
+    }
+    return this.payload.type
   }
 
   public star(): boolean | null {
-    return null
+    if (!this.payload) {
+      return null
+    }
+    return this.payload.star === undefined
+      ? null
+      : this.payload.star
   }
 
   public gender(): Gender {
-    return Gender.Unknown
+    if (!this.payload) {
+      return Gender.UNKNOWN
+    }
+    return this.payload.gender
   }
 
-  public province() {
-    return 'Guangdong'
+  public province(): string | null {
+    if (!this.payload) {
+      return null
+    }
+    return this.payload.province === undefined
+      ? null
+      : this.payload.province
   }
 
-  public city() {
-    return 'Shenzhen'
+  public city(): string | null {
+    if (!this.payload) {
+      return null
+    }
+    return this.payload.city === undefined
+      ? null
+      : this.payload.city
   }
 
   public async avatar(): Promise<NodeJS.ReadableStream> {
     log.verbose('MockContact', 'avatar()')
 
-    throw new Error('To Be Mocked...')
+    return this.puppet.contactAvatar(this)
   }
 
   public isReady(): boolean {
-    return true
+    return this.payload !== undefined
   }
 
-  public async refresh(): Promise<this> {
-    return this
+  /**
+   * @deprecated use sync() instead
+   */
+  public async refresh(): Promise<void> {
+    log.verbose('MockContact', 'refresh() DEPRECATED use sync instead')
+    return this.sync()
   }
 
-  public async ready(): Promise<this> {
-    return this
+  public async sync(): Promise<void> {
+    log.verbose('MockContact', 'sync()')
+    this.payload = undefined
+    await this.ready()
+  }
+
+  public async ready(): Promise<void> {
+    log.verbose('MockContact', 'ready()')
+    if (!this.payload) {
+      this.payload = await this.puppet.contactPayload(this)
+    }
   }
 
   public self(): boolean {
@@ -116,7 +208,10 @@ export class MockContact extends Contact implements Sayable {
   }
 
   public weixin(): string | null {
-    return null
+    if (!this.payload) {
+      throw new Error('no payload')
+    }
+    return this.payload.weixin || null
   }
 
 }
