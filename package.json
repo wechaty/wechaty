@@ -97,7 +97,7 @@
     "brolog": "^1.2.0",
     "clone-class": "^0.6.3",
     "cuid": "^2.1.1",
-    "hot-import": "^0.1.0",
+    "hot-import": "^0.2.1",
     "mime": "^2.2.0",
     "normalize-package-data": "^2.4.0",
     "puppeteer": "^1.2.0",
