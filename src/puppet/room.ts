@@ -207,6 +207,13 @@ export class Room extends PuppetAccessory implements Sayable {
     return `Room<${identity}>`
   }
 
+  public *[Symbol.iterator](): IterableIterator<Contact> {
+    const memberList = this.memberList()
+    for (const contact of memberList) {
+      yield contact
+    }
+  }
+
   /**
    * @private
    */
