@@ -16,7 +16,7 @@
   "scripts": {
     "clean": "shx rm -fr dist/*",
     "dist": "npm run clean && tsc && shx cp src/puppet-puppeteer/*.js dist/src/puppet-puppeteer/",
-    "doc": "npm run dist && echo '# Wechaty v'$(jq -r .version package.json)' Documentation\n* https://blog.chatie.io\n' > docs/index.md && jsdoc2md dist/src/{wechaty,room,contact,friend-request,message}.js dist/src/puppet-puppeteer/schema.js>> docs/index.md",
+    "doc": "bash -x scripts/generate-docs.sh",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "changelog": "github_changelog_generator -u chatie -p wechaty && sed -i'.bak' /greenkeeper/d CHANGELOG.md && sed -i'.bak' '/An in-range update of/d' CHANGELOG.md && ts-node scripts/sort-contributiveness.ts < CHANGELOG.md > CHANGELOG.new.md 2>/dev/null && cat CHANGELOG.md >> CHANGELOG.new.md && mv CHANGELOG.new.md CHANGELOG.md",
     "doctor": "npm run check-node-version && ts-node bin/doctor",
@@ -92,7 +92,6 @@
     "node": ">= 8.5"
   },
   "dependencies": {
-    "@types/ws": "^5.1.0",
     "bl": "^1.2.0",
     "brolog": "^1.2.0",
     "clone-class": "^0.6.3",
@@ -131,6 +130,7 @@
     "@types/semver": "^5.5.0",
     "@types/sinon": "^4.3.1",
     "@types/vinyl": "^2.0.2",
+    "@types/ws": "^5.1.0",
     "@types/xml2js": "^0.4.0",
     "apiai": "^4.0.0",
     "babel-cli": "^6.26.0",
