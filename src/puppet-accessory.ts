@@ -9,14 +9,14 @@ import { Puppet } from './puppet/'
 // use Symbol to prevent conflicting with the child class properties
 // This symbol must be exported (for now).
 // See: https://github.com/Microsoft/TypeScript/issues/20080
-export const PUPPET_ACCESSORY_NAME = Symbol('name')
+export const NAME = Symbol('name')
 
 export abstract class PuppetAccessory extends EventEmitter {
   // Not work???
   // private static readonly PUPPET_ACCESSORY_NAME = Symbol('name')
 
-  private static  [PUPPET_ACCESSORY_NAME]: string
-  private         [PUPPET_ACCESSORY_NAME]: string
+  private static  [NAME]: string
+  private         [NAME]: string
 
   /**
    * 1. Static Property & Methods
@@ -25,7 +25,7 @@ export abstract class PuppetAccessory extends EventEmitter {
 
   public static set puppet(puppet: Puppet) {
     log.silly('PuppetAccessory', '<%s> static set puppet(%s)',
-                                  this[PUPPET_ACCESSORY_NAME] || this.name,
+                                  this[NAME] || this.name,
                                   puppet.constructor.name,
               )
     this._puppet = puppet
@@ -33,7 +33,7 @@ export abstract class PuppetAccessory extends EventEmitter {
 
   public static get puppet(): Puppet {
     log.silly('PuppetAccessory', '<%s> static get puppet()',
-                                  this[PUPPET_ACCESSORY_NAME] || this.name,
+                                  this[NAME] || this.name,
               )
 
     if (this._puppet) {
@@ -50,7 +50,7 @@ export abstract class PuppetAccessory extends EventEmitter {
 
   public set puppet(puppet: Puppet) {
     log.silly('PuppetAccessory', '<%s> set puppet(%s)',
-                                  this[PUPPET_ACCESSORY_NAME],
+                                  this[NAME],
                                   puppet.constructor.name,
               )
     this._puppet = puppet
@@ -58,7 +58,7 @@ export abstract class PuppetAccessory extends EventEmitter {
 
   public get puppet(): Puppet {
     log.silly('PuppetAccessory', '<%s> get puppet()',
-                                  this[PUPPET_ACCESSORY_NAME],
+                                  this[NAME],
               )
 
     if (this._puppet) {
@@ -78,10 +78,10 @@ export abstract class PuppetAccessory extends EventEmitter {
   ) {
     super()
 
-    this[PUPPET_ACCESSORY_NAME] = name || this.constructor.name
+    this[NAME] = name || this.constructor.name
 
     log.silly('PuppetAccessory', '<%s> constructor(%s)',
-                                    this[PUPPET_ACCESSORY_NAME],
+                                    this[NAME],
                                     name || '',
                 )
   }
