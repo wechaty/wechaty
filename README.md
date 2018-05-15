@@ -17,8 +17,6 @@ Wechaty is a Bot SDK for Wechat **Personal** Account which can help you create a
 
 ## VOICE OF THE DEVELOPER
 
-[![Donate Wechaty](https://img.shields.io/badge/Donate-Wechaty%20$-green.svg)](https://salt.bountysource.com/checkout/amount?team=chatie)
-
 > "Wechaty is a great solution, I believe there would be much more users recognize it." [link](https://github.com/chatie/wechaty/pull/310#issuecomment-285574472)  
 > -- @Gcaufy, Tencent Engineer, Author of [WePY](https://github.com/Tencent/wepy)
 
@@ -157,6 +155,7 @@ See: [Official API Reference](https://chatie.github.io/wechaty/)
 ## POWERED BY WECHATY
 
 [![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/chatie/wechaty)
+[![Donate Wechaty](https://img.shields.io/badge/Donate-Wechaty%20$-green.svg)](https://salt.bountysource.com/checkout/amount?team=chatie)
 
 ### Wechaty Badge
 
@@ -227,8 +226,7 @@ Scan now, because other Wechaty developers want to talk with you too! (secret co
 
 Wechaty is far from perfect. The following things should be addressed in the future:
 
-* [ ] PuppetWine - Use DLL Inject to hook Windows Wechat Application, run from wine inside docker.
-* [ ] PuppetAndroid - Use Xposed to Hook Android Pad version of Wechat App, run from android emulator inside docker.
+* [Create New Puppets for Wechaty #1167](https://github.com/Chatie/wechaty/issues/1167)
 
 ## AUTHOR
 

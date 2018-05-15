@@ -3,22 +3,25 @@
     "target": "es6"
     , "module": "commonjs"
     , "outDir": "dist"
+
+    , "experimentalDecorators": true
+    , "emitDecoratorMetadata": true
     , "declaration": true
     , "sourceMap": true
-    , "noLib": false
+    , "traceResolution": false
 
     , "noEmitOnError": true
     , "noUnusedLocals": true
     , "noImplicitReturns": true
     , "noFallthroughCasesInSwitch": true
-    , "strictNullChecks": true
-    , "experimentalDecorators": true
-    , "emitDecoratorMetadata": true
-
     , "noImplicitAny": true
-    , "noUnusedParameters": false
-    , "noImplicitThis": false
-    , "traceResolution": false
+    , "noUnusedParameters": true
+    , "noImplicitThis": true
+    , "strictNullChecks": true
+
+
+    , "noLib": false
+    , "skipLibCheck": true
     , "lib": [
         "esnext"
       , "dom"
