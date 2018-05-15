@@ -116,7 +116,7 @@ export class FriendRequest extends PuppetAccessory {
    * Instance Properties
    *
    */
-  constructor(
+  private constructor(
     protected payload?: FriendRequestPayload,
   ) {
     super()

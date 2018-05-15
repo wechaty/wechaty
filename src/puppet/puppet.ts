@@ -50,9 +50,13 @@ import {
   ContactPayload,
   ContactQueryFilter,
 }                       from './contact'
-import FriendRequest    from './friend-request'
-import Message          from './message'
-
+import {
+  FriendRequest,
+}                       from './friend-request'
+import {
+  Message,
+  MessagePayload,
+}                       from './message'
 import {
   Room,
   RoomPayload,
@@ -245,6 +249,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
    *
    */
   public abstract async messageForward(message: Message, to: Contact | Room) : Promise<void>
+  public abstract async messagePayload(message: Message): Promise<MessagePayload>
 
   /**
    *

@@ -29,15 +29,8 @@ import {
 }                   from 'watchdog'
 
 import {
-  ContactQueryFilter,
-  ContactPayload,
-  Gender,
-
   Puppet,
   PuppetOptions,
-  RoomMemberQueryFilter,
-  RoomPayload,
-  RoomQueryFilter,
   ScanData,
 }                     from '../puppet/'
 import {
@@ -65,14 +58,25 @@ import {
 }                           from '../puppet/'
 
 import {
-  PuppeteerContact,
-}                             from './puppeteer-contact'
+  Contact,
+  ContactPayload,
+  ContactQueryFilter,
+  Gender,
+}                             from '../puppet/contact'
+import {
+  Message,
+  MessagePayload,
+}                             from '../puppet/message'
 import PuppeteerMessage       from './puppeteer-message'
 import {
-  PuppeteerRoom,
-  // PuppeteerRoomRawObj,
-}                             from './puppeteer-room'
-import PuppeteerFriendRequest from './puppeteer-friend-request'
+  Room,
+  RoomMemberQueryFilter,
+  RoomPayload,
+  RoomQueryFilter,
+}                             from '../puppet/room'
+import {
+  FriendRequest,
+}                             from '../puppet/friend-request'
 
 export type PuppetFoodType = 'scan' | 'ding'
 export type ScanFoodType   = 'scan' | 'login' | 'logout'
@@ -99,16 +103,16 @@ export class PuppetPuppeteer extends Puppet {
   public scanWatchdog: Watchdog<ScanFoodType>
 
   private fileId: number
-  private user? : PuppeteerContact
+  private user? : Contact
 
   constructor(
     public options: PuppetOptions,
   ) {
     super(options, {
-      Contact:        PuppeteerContact,
-      FriendRequest:  PuppeteerFriendRequest,
+      Contact:        Contact,
+      FriendRequest:  FriendRequest,
       Message:        PuppeteerMessage,
-      Room:           PuppeteerRoom,
+      Room:           Room,
     })
 
     this.fileId = 0
@@ -320,7 +324,7 @@ export class PuppetPuppeteer extends Puppet {
   /**
    * get self contact
    */
-  public userSelf(): PuppeteerContact {
+  public userSelf(): Contact {
     log.verbose('PuppetPuppeteer', 'userSelf()')
 
     if (!this.user) {
@@ -343,7 +347,7 @@ export class PuppetPuppeteer extends Puppet {
   }
 
   private async uploadMedia(message: PuppeteerMessage, toUserName: string): Promise<WebMessageMediaPayload> {
-    if (message.type() === PuppeteerMessage.Type.TEXT) {
+    if (message.type() === PuppeteerMessage.Type.Text) {
       throw new Error('require a Media Message')
     }
 
@@ -461,7 +465,7 @@ export class PuppetPuppeteer extends Puppet {
             headers,
             json: checkData,
           }
-          request.post(r, function (err, res, body) {
+          request.post(r, (err, _ /* res */, body) => {
             try {
               if (err) {
                 reject(err)
@@ -625,13 +629,33 @@ export class PuppetPuppeteer extends Puppet {
     return ret
   }
 
+  public async messagePayload(
+    message: Message,
+  ): Promise<MessagePayload> {
+    const rawPayload = await this.messageRawPayload(message.id)
+    const payload = this.messageParseRawPayload(rawPayload)
+    return payload
+  }
+
+  private async messageParseRawPayload(
+    rawPayload: PuppeteerMessageRawPayload,
+  ): Promise<MessagePayload> {
+    return rawPayload as MessagePayload
+  }
+
+  private async messageRawPayload(
+    id: string,
+  ): Promise<PuppeteerMessageRawPayload> {
+
+  }
+
   /**
    * TODO: Test this function if it could work...
    */
   // public async forward(baseData: MsgRawObj, patchData: MsgRawObj): Promise<boolean> {
   public async messageForward(
     message : PuppeteerMessage,
-    sendTo  : PuppeteerContact | PuppeteerRoom,
+    sendTo  : Contact | Room,
   ): Promise<void> {
 
     log.silly('PuppetPuppeteer', 'forward() to: %s, message: %s)',
@@ -671,7 +695,7 @@ export class PuppetPuppeteer extends Puppet {
     newMsg.MMSourceMsgId        = m.MsgId
     // In room msg, the content prefix sender:, need to be removed, otherwise the forwarded sender will display the source message sender, causing self () to determine the error
     newMsg.Content      = Misc.unescapeHtml(m.Content.replace(/^@\w+:<br\/>/, '')).replace(/^[\w\-]+:<br\/>/, '')
-    newMsg.MMIsChatRoom = sendTo instanceof PuppeteerRoom ? true : false
+    newMsg.MMIsChatRoom = sendTo instanceof Room ? true : false
 
     // The following parameters need to be overridden after calling createMessage()
 
@@ -764,7 +788,7 @@ export class PuppetPuppeteer extends Puppet {
     return await this.user.say(text)
   }
 
-  public async login(user: PuppeteerContact): Promise<void> {
+  public async login(user: Contact): Promise<void> {
     log.warn('PuppetPuppeteer', 'login(%s)', user)
     this.user = user
     this.emit('login', user)
@@ -808,7 +832,7 @@ export class PuppetPuppeteer extends Puppet {
       log.error('PuppetPuppeteer', 'contactParseRawPayload() got empty rawPayload!')
       return {
         gender: Gender.Unknown,
-        type:   PuppeteerContact.Type.Unknown,
+        type:   Contact.Type.Unknown,
       }
     }
 
@@ -838,8 +862,8 @@ export class PuppetPuppeteer extends Puppet {
        */
       // tslint:disable-next-line
       type:      (!!rawPayload.UserName && !rawPayload.UserName.startsWith('@@') && !!(rawPayload.VerifyFlag & 8))
-                    ? PuppeteerContact.Type.Official
-                    : PuppeteerContact.Type.Personal,
+                    ? Contact.Type.Official
+                    : Contact.Type.Personal,
       /**
        * @see 1. https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3246
        * @ignore
@@ -848,7 +872,7 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  private async contactRawPayload(contact: PuppeteerContact): Promise<WebContactRawPayload> {
+  private async contactRawPayload(contact: Contact): Promise<WebContactRawPayload> {
     log.verbose('PuppetPuppeteer', 'contactRawPayload(%s)', contact)
     try {
       const rawPayload = await this.bridge.getContact(contact.id) as WebContactRawPayload
@@ -861,7 +885,7 @@ export class PuppetPuppeteer extends Puppet {
 
   }
 
-  public async contactPayload(contact: PuppeteerContact): Promise<ContactPayload> {
+  public async contactPayload(contact: Contact): Promise<ContactPayload> {
     log.verbose('PuppetPuppeteer', 'contactPayload(%s)', contact)
     const rawPayload  = await this.contactRawPayload(contact)
     const payload     = this.contactParseRawPayload(rawPayload)
@@ -878,7 +902,7 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async contactAvatar(contact: PuppeteerContact): Promise<NodeJS.ReadableStream> {
+  public async contactAvatar(contact: Contact): Promise<NodeJS.ReadableStream> {
     const payload = await this.contactPayload(contact)
     if (!payload.avatar) {
       throw new Error('Can not get avatar: no payload.avatar!')
@@ -898,11 +922,11 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public contactAlias(contact: PuppeteerContact)                      : Promise<string>
-  public contactAlias(contact: PuppeteerContact, alias: string | null): Promise<void>
+  public contactAlias(contact: Contact)                      : Promise<string>
+  public contactAlias(contact: Contact, alias: string | null): Promise<void>
 
   public async contactAlias(
-    contact: PuppeteerContact,
+    contact: Contact,
     alias?: string | null,
   ): Promise<string | void> {
     if (typeof alias === 'undefined') {
@@ -972,14 +996,14 @@ export class PuppetPuppeteer extends Puppet {
     return filterFunction
   }
 
-  public async contactFindAll(query: ContactQueryFilter): Promise<PuppeteerContact[]> {
+  public async contactFindAll(query: ContactQueryFilter): Promise<Contact[]> {
 
     const filterFunc = this.contactQueryFilterToFunctionString(query)
 
     try {
       const idList = await this.bridge.contactFind(filterFunc)
       return idList.map(id => {
-        const c = PuppeteerContact.load(id) as PuppeteerContact
+        const c = Contact.load(id) as Contact
         c.puppet = this
         return c
       })
@@ -990,7 +1014,7 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  private async roomRawPayload(room: PuppeteerRoom): Promise<PuppeteerRoomRawPayload> {
+  private async roomRawPayload(room: Room): Promise<PuppeteerRoomRawPayload> {
     log.verbose('PuppetPuppeteer', 'roomRawPayload(%s)', room)
 
     try {
@@ -1036,7 +1060,7 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async roomPayload(room: PuppeteerRoom): Promise<RoomPayload> {
+  public async roomPayload(room: Room): Promise<RoomPayload> {
     log.verbose('PuppetPuppeteer', 'roomPayload(%s)', room)
 
     const rawPayload  = await this.roomRawPayload(room)
@@ -1051,7 +1075,7 @@ export class PuppetPuppeteer extends Puppet {
     // console.log(rawPayload)
     const memberList = (rawPayload.MemberList || [])
                         .map(m => {
-                          const c = PuppeteerContact.load(m.UserName)
+                          const c = Contact.load(m.UserName)
                           c.puppet = this
                           return c
                         })
@@ -1090,7 +1114,7 @@ export class PuppetPuppeteer extends Puppet {
       memberList.forEach(member => {
         let tmpName: string
         // console.log(member)
-        const contact = PuppeteerContact.load(member.UserName)
+        const contact = Contact.load(member.UserName)
         contact.puppet = this
         // contact.ready().then(() => console.log('###############', contact.name()))
         // console.log(contact)
@@ -1124,7 +1148,7 @@ export class PuppetPuppeteer extends Puppet {
 
   public async roomFindAll(
     query: RoomQueryFilter = { topic: /.*/ },
-  ): Promise<PuppeteerRoom[]> {
+  ): Promise<Room[]> {
 
     let topicFilter = query.topic
 
@@ -1146,7 +1170,7 @@ export class PuppetPuppeteer extends Puppet {
     try {
       const idList = await this.bridge.roomFind(filterFunction)
       return idList.map(id => {
-        const r = PuppeteerRoom.load(id) as PuppeteerRoom
+        const r = Room.load(id) as Room
         r.puppet = this
         return r
       })
@@ -1157,7 +1181,7 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async roomDel(room: PuppeteerRoom, contact: PuppeteerContact): Promise<void> {
+  public async roomDel(room: Room, contact: Contact): Promise<void> {
     const roomId    = room.id
     const contactId = contact.id
     try {
@@ -1169,7 +1193,7 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async roomAdd(room: PuppeteerRoom, contact: PuppeteerContact): Promise<void> {
+  public async roomAdd(room: Room, contact: Contact): Promise<void> {
     const roomId    = room.id
     const contactId = contact.id
     try {
@@ -1181,7 +1205,7 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async roomTopic(room: PuppeteerRoom, topic: string): Promise<string> {
+  public async roomTopic(room: Room, topic: string): Promise<string> {
     if (!room || typeof topic === 'undefined') {
       return Promise.reject(new Error('room or topic not found'))
     }
@@ -1196,7 +1220,7 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async roomCreate(contactList: PuppeteerContact[], topic: string): Promise<PuppeteerRoom> {
+  public async roomCreate(contactList: Contact[], topic: string): Promise<Room> {
     if (!contactList || ! contactList.map) {
       throw new Error('contactList not found')
     }
@@ -1208,7 +1232,7 @@ export class PuppetPuppeteer extends Puppet {
       if (!roomId) {
         throw new Error('PuppetPuppeteer.roomCreate() roomId "' + roomId + '" not found')
       }
-      const r = PuppeteerRoom.load(roomId) as PuppeteerRoom
+      const r = Room.load(roomId) as Room
       r.puppet = this
       return r
 
@@ -1219,14 +1243,14 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async roomQuit(room: PuppeteerRoom): Promise<void> {
+  public async roomQuit(room: Room): Promise<void> {
     log.warn('PuppetPuppeteer', 'roomQuit(%s) not supported by Web API', room)
   }
 
   /**
    * FriendRequest
    */
-  public async friendRequestSend(contact: PuppeteerContact, hello: string): Promise<void> {
+  public async friendRequestSend(contact: Contact, hello: string): Promise<void> {
     if (!contact) {
       throw new Error('contact not found')
     }
@@ -1240,7 +1264,7 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async friendRequestAccept(contact: PuppeteerContact, ticket: string): Promise<void> {
+  public async friendRequestAccept(contact: Contact, ticket: string): Promise<void> {
     if (!contact || !ticket) {
       throw new Error('contact or ticket not found')
     }
@@ -1263,7 +1287,7 @@ export class PuppetPuppeteer extends Puppet {
     let counter = -1
 
     // tslint:disable-next-line:variable-name
-    const MyContact = cloneClass(PuppeteerContact)
+    const MyContact = cloneClass(Contact)
     MyContact.puppet = this
 
     async function stable(done: Function): Promise<void> {

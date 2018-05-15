@@ -21,9 +21,42 @@ import {
 }             from 'stream'
 
 import {
-  WebMsgType,
-  WebAppMsgType,
-}               from '../puppet/schemas/'
+  FileBox,
+}             from 'file-box'
+
+// import {
+//   WebMsgType,
+//   WebAppMsgType,
+// }               from '../puppet/schemas/'
+
+export enum MessageType {
+  Unknown = 0,
+  Attachment,
+  Audio,
+  Image,
+  Text,
+  Video,
+}
+
+export interface MessagePayloadBase {
+  type : MessageType,
+  from : Contact,
+  text : string,
+  date : Date,
+  box? : FileBox,       // for MessageMedia class
+}
+
+export interface MessagePayloadTo {
+  room? : Room,
+  to    : Contact,   // if to is not set, then room must be set
+}
+
+export interface MessagePayloadRoom {
+  room : Room,
+  to?  : Contact,   // if to is not set, then room must be set
+}
+
+export type MessagePayload = MessagePayloadBase & (MessagePayloadTo | MessagePayloadRoom)
 
 import {
   log,
@@ -40,7 +73,7 @@ import Room             from './room'
  * `Message` is `Sayable`,
  * [Examples/Ding-Dong-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts}
  */
-export abstract class Message extends PuppetAccessory implements Sayable {
+export class Message extends PuppetAccessory implements Sayable {
 
   /**
    *
@@ -49,7 +82,7 @@ export abstract class Message extends PuppetAccessory implements Sayable {
    */
 
   // tslint:disable-next-line:variable-name
-  public static readonly Type = WebMsgType
+  public static readonly Type = MessageType
 
   /**
    * @todo add function
@@ -68,6 +101,7 @@ export abstract class Message extends PuppetAccessory implements Sayable {
     this: T,
     query: any,
   ): Promise<T['prototype'][]> {
+    log.verbose('Message', 'findAll(%s)', query)
     return [
       new (this as any)({ MsgId: 'id1' }),
       new (this as any)({ MsdId: 'id2' }),
@@ -82,20 +116,46 @@ export abstract class Message extends PuppetAccessory implements Sayable {
   }
 
   /**
+   * "mobile originated" or "mobile terminated"
+   * https://www.tatango.com/resources/video-lessons/video-mo-mt-sms-messaging/
+   */
+  public static createMobileOriginated(
+
+  ) {
+
+  }
+
+  public static createMobileTerminated(
+
+  ) {
+
+  }
+
+  public static createMO() {
+    return this.createMobileOriginated(...this.arguments)
+  }
+
+  public static createMT() {
+    return this.createMobileTerminated(...this.arguments)
+  }
+
+  /**
    *
    * Instance Properties
    *
    */
 
+  private payload?: MessagePayload
+
   /**
    * @private
    */
-  constructor(
-    readonly fileOrPayload?: string | Object,
+  private constructor(
+    readonly id: string,
   ) {
     super()
     log.silly('Message', 'constructor(%s) for child class %s',
-                          fileOrPayload || '',
+                          id || '',
                           this.constructor.name,
               )
   }
@@ -104,10 +164,10 @@ export abstract class Message extends PuppetAccessory implements Sayable {
    * @private
    */
   public toString() {
-    if (this.type() === Message.Type.TEXT) {
-      return `Message#${WebMsgType[this.type()]}<${this.text()}>`
+    if (this.type() === Message.Type.Text) {
+      return `Message#${MessageType[this.type()]}<${this.text()}>`
     } else {
-      return `Message#${WebMsgType[this.type()]}<${this.filename()}>`
+      return `Message#${MessageType[this.type()]}<${this.filename()}>`
     }
   }
 
@@ -230,25 +290,25 @@ export abstract class Message extends PuppetAccessory implements Sayable {
    * @see {@link MsgType}
    * @returns {WebMsgType}
    */
-  public abstract type(): WebMsgType
+  public abstract type(): MessageType
 
-  /**
-   * Get the typeSub from the message.
-   *
-   * If message is a location message: `m.type() === MsgType.TEXT && m.typeSub() === MsgType.LOCATION`
-   *
-   * @see {@link MsgType}
-   * @returns {WebMsgType}
-   */
-  public abstract typeSub(): WebMsgType
+  // /**
+  //  * Get the typeSub from the message.
+  //  *
+  //  * If message is a location message: `m.type() === MsgType.TEXT && m.typeSub() === MsgType.LOCATION`
+  //  *
+  //  * @see {@link MsgType}
+  //  * @returns {WebMsgType}
+  //  */
+  // public abstract typeSub(): WebMsgType
 
-  /**
-   * Get the typeApp from the message.
-   *
-   * @returns {WebAppMsgType}
-   * @see {@link AppMsgType}
-   */
-  public abstract typeApp(): WebAppMsgType
+  // /**
+  //  * Get the typeApp from the message.
+  //  *
+  //  * @returns {WebAppMsgType}
+  //  * @see {@link AppMsgType}
+  //  */
+  // public abstract typeApp(): WebAppMsgType
 
   /**
    * Check if a message is sent by self.
@@ -280,12 +340,24 @@ export abstract class Message extends PuppetAccessory implements Sayable {
    * const contactList = message.mentioned()
    * console.log(contactList)
    */
-  public abstract mentioned(): Contact[]
+  public mentioned(): Contact[] {
+
+  }
 
   /**
    * @private
    */
-  public abstract async ready(): Promise<this>
+  public async ready(): Promise<void> {
+    log.verbose('Message', 'ready()')
+
+    if (this.isReady()) {
+      return
+    }
+
+    this.payload = await this.puppet.messagePayload(this)
+
+    // TODO ... the rest
+  }
 
   /**
    * Get the MediaMessage filename, etc: `how to build a chatbot.pdf`..

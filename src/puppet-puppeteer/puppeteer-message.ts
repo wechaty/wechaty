@@ -39,36 +39,6 @@ export interface WebMsgPayload {
   url?:     string,  // for MessageMedia class
 }
 
-export enum MessageType {
-  Unknown = 0,
-  Attachment,
-  Audio,
-  Image,
-  Text,
-  Video,
-}
-
-export interface MessagePayloadBase {
-  type:     MessageType,
-  from:     PuppeteerContact,
-  text:     string,
-  date:     Date,
-
-  url?:     string,  // for MessageMedia class
-}
-
-export interface MessagePayloadTo {
-  room? : PuppeteerRoom,
-  to    : PuppeteerContact,   // if to is not set, then room must be set
-}
-
-export interface MessagePayloadRoom {
-  room : PuppeteerRoom,
-  to?  : PuppeteerContact,   // if to is not set, then room must be set
-}
-
-export type MessagePayload = MessagePayloadBase & (MessagePayloadTo | MessagePayloadRoom)
-
 export type ParsedPath = Partial<path.ParsedPath>
 
 export class PuppeteerMessage extends Message {
