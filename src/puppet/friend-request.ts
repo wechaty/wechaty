@@ -30,10 +30,10 @@ import {
 }                       from '../config'
 
 export enum FriendRequestType {
-  UNKNOWN = 0,
-  SEND,
-  RECEIVE,
-  CONFIRM,
+  Unknown = 0,
+  Send,
+  Receive,
+  Confirm,
 }
 
 export interface FriendRequestPayload {
@@ -67,7 +67,7 @@ export class FriendRequest extends PuppetAccessory {
                 )
 
     const sentRequest = new this({
-      type: FriendRequestType.SEND,
+      type: FriendRequestType.Send,
       contact,
       hello,
     })
@@ -83,7 +83,7 @@ export class FriendRequest extends PuppetAccessory {
                 )
 
     const confirmedRequest = new this({
-      type: FriendRequestType.CONFIRM,
+      type: FriendRequestType.Confirm,
       contact,
     })
 
@@ -102,7 +102,7 @@ export class FriendRequest extends PuppetAccessory {
                 )
 
     const receivedRequest = new this({
-      type: FriendRequestType.RECEIVE,
+      type: FriendRequestType.Receive,
       contact,
       hello,
       ticket,
@@ -128,7 +128,7 @@ export class FriendRequest extends PuppetAccessory {
       throw new Error('no payload')
     } else if (!this.payload.contact) {
       throw new Error('no contact')
-    } else if (this.payload.type !== FriendRequest.Type.SEND) {
+    } else if (this.payload.type !== FriendRequest.Type.Send) {
       throw new Error('not a send request')
     }
     log.verbose('PuppeteerFriendRequest', 'send() to %s', this.payload.contact)
@@ -146,7 +146,7 @@ export class FriendRequest extends PuppetAccessory {
       throw new Error('no contact')
     } else if (!this.payload.ticket) {
       throw new Error('no ticket')
-    } else if (this.payload.type !== FriendRequest.Type.RECEIVE) {
+    } else if (this.payload.type !== FriendRequest.Type.Receive) {
       throw new Error('not a receive request, its a ' + FriendRequest.Type[this.payload.type!])
     }
     log.verbose('FriendRequest', 'accept() to %s', this.payload.contact)

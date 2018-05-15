@@ -74,7 +74,7 @@ test('PuppetPuppeteerFriendRequest.receive smoke testing', async t => {
 
   t.is(fr.hello(), '我是群聊"Wechaty"的李卓桓.PreAngel', 'should has right request message')
   t.true(fr.contact() instanceof PuppeteerContact, 'should have a Contact instance')
-  t.is(fr.type(), MyFriendRequest.Type.RECEIVE, 'should be receive type')
+  t.is(fr.type(), MyFriendRequest.Type.Receive, 'should be receive type')
 })
 
 test('PuppetPuppeteerFriendRequest.confirm smoke testing', async t => {
@@ -106,5 +106,5 @@ test('PuppetPuppeteerFriendRequest.confirm smoke testing', async t => {
   const fr = MyFriendRequest.createConfirm(contact || new MyContact('xx'))
 
   t.true(fr.contact() instanceof PuppeteerContact, 'should have a Contact instance')
-  t.is(fr.type(), MyFriendRequest.Type.CONFIRM, 'should be confirm type')
+  t.is(fr.type(), MyFriendRequest.Type.Confirm, 'should be confirm type')
 })

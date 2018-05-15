@@ -35,7 +35,7 @@ export async function onFriend(
   try {
     const contact = request.contact()
 
-    if (request.type() === FriendRequest.Type.CONFIRM) {
+    if (request.type() === FriendRequest.Type.Confirm) {
       console.log('New friend ' + contact.name() + ' relationship confirmed!')
       return
     }

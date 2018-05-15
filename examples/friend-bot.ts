@@ -93,7 +93,7 @@ bot
        * when request is set, we can get verify message from `request.hello`,
        * and accept this request by `request.accept()`
        */
-      case FriendRequest.Type.RECEIVE:
+      case FriendRequest.Type.Receive:
         if (request.hello() === 'ding') {
           logMsg = 'accepted because verify messsage is "ding"'
           request.accept()
@@ -108,7 +108,7 @@ bot
          * 2. Friend Ship Confirmed
          *
          */
-      case FriendRequest.Type.CONFIRM:
+      case FriendRequest.Type.Confirm:
         logMsg = 'friend ship confirmed with ' + request.contact().name()
         break
     }

@@ -1,21 +1,3 @@
-/**
- *   Wechaty - https://github.com/chatie/wechaty
- *
- *   @copyright 2016-2018 Huan LI <zixia@zixia.net>
- *
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
- *   @ignore
- */
 import * as fs    from 'fs'
 import * as path  from 'path'
 import * as mime  from 'mime'
@@ -58,12 +40,12 @@ export interface WebMsgPayload {
 }
 
 export enum MessageType {
-  UNKNOWN = 0,
-  ATTACHMENT,
-  AUDIO,
-  IMAGE,
-  TEXT,
-  VIDEO,
+  Unknown = 0,
+  Attachment,
+  Audio,
+  Image,
+  Text,
+  Video,
 }
 
 export interface MessagePayloadBase {
@@ -289,13 +271,6 @@ export class PuppeteerMessage extends Message {
     await this.puppet.send(m)
   }
 
-  /**
-   * Get the type from the message.
-   *
-   * If type is equal to `MsgType.RECALLED`, {@link Message#id} is the msgId of the recalled message.
-   * @see {@link MsgType}
-   * @returns {WebMsgType}
-   */
   public type(): WebMsgType {
     log.silly('PuppeteerMessage', 'type() = %s', WebMsgType[this.payload.type])
 
@@ -337,14 +312,6 @@ export class PuppeteerMessage extends Message {
     throw new Error('unknown type: ' + ext)
   }
 
-  /**
-   * Get the typeSub from the message.
-   *
-   * If message is a location message: `m.type() === MsgType.TEXT && m.typeSub() === MsgType.LOCATION`
-   *
-   * @see {@link MsgType}
-   * @returns {WebMsgType}
-   */
   public typeSub(): WebMsgType {
     if (!this.rawObj) {
       throw new Error('no rawObj')
@@ -352,12 +319,6 @@ export class PuppeteerMessage extends Message {
     return this.rawObj.SubMsgType
   }
 
-  /**
-   * Get the typeApp from the message.
-   *
-   * @returns {AppMsgType}
-   * @see {@link AppMsgType}
-   */
   public typeApp(): WebAppMsgType {
     if (!this.rawObj) {
       throw new Error('no rawObj')
@@ -365,22 +326,6 @@ export class PuppeteerMessage extends Message {
     return this.rawObj.AppMsgType
   }
 
-  // /**
-  //  * Get the typeEx from the message.
-  //  *
-  //  * @returns {MsgType}
-  //  */
-  // public typeEx()  { return MsgType[this.obj.type] }
-
-  /**
-   * Check if a message is sent by self.
-   *
-   * @returns {boolean} - Return `true` for send from self, `false` for send from others.
-   * @example
-   * if (message.self()) {
-   *  console.log('this message is sent by myself!')
-   * }
-   */
   public self(): boolean {
     const user = this.puppet.userSelf()
 
@@ -393,25 +338,6 @@ export class PuppeteerMessage extends Message {
     return selfId === fromId
   }
 
-  /**
-   *
-   * Get message mentioned contactList.
-   *
-   * Message event table as follows
-   *
-   * |                                                                            | Web  |  Mac PC Client | iOS Mobile |  android Mobile |
-   * | :---                                                                       | :--: |     :----:     |   :---:    |     :---:       |
-   * | [You were mentioned] tip ([有人@我]的提示)                                   |  ✘   |        √       |     √      |       √         |
-   * | Identify magic code (8197) by copy & paste in mobile                       |  ✘   |        √       |     √      |       ✘         |
-   * | Identify magic code (8197) by programming                                  |  ✘   |        ✘       |     ✘      |       ✘         |
-   * | Identify two contacts with the same roomAlias by [You were  mentioned] tip |  ✘   |        ✘       |     √      |       √         |
-   *
-   * @returns {PuppeteerContact[]} - Return message mentioned contactList
-   *
-   * @example
-   * const contactList = message.mentioned()
-   * console.log(contactList)
-   */
   public mentioned(): PuppeteerContact[] {
     log.verbose('PuppeteerMessage', 'mentioned()')
 
@@ -558,7 +484,6 @@ export class PuppeteerMessage extends Message {
             default:
               const e = new Error('ready() unsupported typeApp(): ' + this.typeApp())
               log.warn('PuppeteerMessage', e.message)
-              this.dumpRaw()
               throw e
           }
           break
@@ -597,82 +522,6 @@ export class PuppeteerMessage extends Message {
     return this
   }
 
-  // /**
-  //  * @private
-  //  */
-  // public get(prop: string): string {
-  //   log.warn('PuppeteerMessage', 'DEPRECATED get() at %s', new Error('stack').stack)
-
-  //   if (!prop || !(prop in this.obj)) {
-  //     const s = '[' + Object.keys(this.obj).join(',') + ']'
-  //     throw new Error(`Message.get(${prop}) must be in: ${s}`)
-  //   }
-  //   return this.obj[prop]
-  // }
-
-  // /**
-  //  * @private
-  //  */
-  // public set(prop: string, value: string): this {
-  //   log.warn('PuppeteerMessage', 'DEPRECATED set() at %s', new Error('stack').stack)
-
-  //   if (typeof value !== 'string') {
-  //     throw new Error('value must be string, we got: ' + typeof value)
-  //   }
-  //   this.obj[prop] = value
-  //   return this
-  // }
-
-  /**
-   * @private
-   */
-  public dump() {
-    console.error('======= dump message =======')
-    Object.keys(this.payload!).forEach((k: keyof WebMsgPayload) => console.error(`${k}: ${this.payload![k]}`))
-  }
-
-  /**
-   * @private
-   */
-  public dumpRaw() {
-    console.error('======= dump raw message =======')
-    if (!this.rawObj) {
-      throw new Error('no this.rawObj')
-    }
-    Object.keys(this.rawObj).forEach((k: keyof WebMessageRawPayload) => console.error(`${k}: ${this.rawObj && this.rawObj[k]}`))
-  }
-
-  // /**
-  //  * @todo add function
-  //  */
-  // public static async find(query: any) {
-  //   return Promise.resolve(new PuppeteerMessage(<MsgRawPayload>{MsgId: '-1'}))
-  // }
-
-  /**
-   * @todo add function
-   */
-  // public static async findAll(query: any) {
-  //   return Promise.resolve([
-  //     new PuppeteerMessage   (<MsgRawPayload>{MsgId: '-2'}),
-  //     new PuppeteerMessage (<MsgRawPayload>{MsgId: '-3'}),
-  //   ])
-  // }
-
-  // public to(room: Room): void
-  // public to(): Contact|Room
-  // public to(contact?: Contact|Room|string): Contact|Room|void {
-
-  /**
-   * Please notice that when we are running Wechaty,
-   * if you use the browser that controlled by Wechaty to send attachment files,
-   * you will get a zero sized file, because it is not an attachment from the network,
-   * but a local data, which is not supported by Wechaty yet.
-   *
-   * Get the read stream for attachment file
-   *
-   * @returns {Promise<Readable>}
-   */
   public async readyStream(): Promise<Readable> {
     log.verbose('PuppeteerMessage', 'readyStream()')
 
@@ -707,17 +556,6 @@ export class PuppeteerMessage extends Message {
     }
   }
 
-  /**
-   * Get the MediaMessage filename, etc: `how to build a chatbot.pdf`..
-   *
-   * @returns {string}
-   * @example
-   * bot.on('message', async function (m) {
-   *   if (m instanceof MediaMessage) {
-   *     console.log('media message file name is: ' + m.filename())
-   *   }
-   * })
-   */
   public filename(): string | null {
     log.verbose('PuppeteerMessage', 'filename()')
 
@@ -748,17 +586,6 @@ export class PuppeteerMessage extends Message {
 
   }
 
-  /**
-   * Get the MediaMessage file extension(including the dot `.`), etc: `.jpg`, `.gif`, `.pdf`, `.word` ..
-   *
-   * @returns {string}
-   * @example
-   * bot.on('message', async function (m) {
-   *   if (m instanceof MediaMessage) {
-   *     console.log('media message file name extention is: ' + m.ext())
-   *   }
-   * })
-   */
   public ext(): string {
     const fileExt = this.extFromFile()
     if (fileExt) {
@@ -873,55 +700,6 @@ export class PuppeteerMessage extends Message {
       })
   }
 
-  /**
-   * Forward the received message.
-   *
-   * The types of messages that can be forwarded are as follows:
-   *
-   * The return value of {@link Message#type} matches one of the following types:
-   * ```
-   * MsgType {
-   *   TEXT                = 1,
-   *   IMAGE               = 3,
-   *   VIDEO               = 43,
-   *   EMOTICON            = 47,
-   *   LOCATION            = 48,
-   *   APP                 = 49,
-   *   MICROVIDEO          = 62,
-   * }
-   * ```
-   *
-   * When the return value of {@link Message#type} is `MsgType.APP`, the return value of {@link Message#typeApp} matches one of the following types:
-   * ```
-   * AppMsgType {
-   *   TEXT                     = 1,
-   *   IMG                      = 2,
-   *   VIDEO                    = 4,
-   *   ATTACH                   = 6,
-   *   EMOJI                    = 8,
-   * }
-   * ```
-   * It should be noted that when forwarding ATTACH type message, if the file size is greater than 25Mb, the forwarding will fail.
-   * The reason is that the server shields the web wx to download more than 25Mb files with a file size of 0.
-   *
-   * But if the file is uploaded by you using wechaty, you can forward it.
-   * You need to detect the following conditions in the message event, which can be forwarded if it is met.
-   *
-   * ```javasrcipt
-   * .on('message', async m => {
-   *   if (m.self() && m.rawObj && m.rawObj.Signature) {
-   *     // Filter the contacts you have forwarded
-   *     const msg = <MediaMessage> m
-   *     await msg.forward()
-   *   }
-   * })
-   * ```
-   *
-   * @param {(Sayable | Sayable[])} to Room or Contact
-   * The recipient of the message, the room, or the contact
-   * @returns {Promise<boolean>}
-   * @memberof MediaMessage
-   */
   public async forward(to: PuppeteerRoom|PuppeteerContact): Promise<void> {
     /**
      * 1. Text message
@@ -935,7 +713,7 @@ export class PuppeteerMessage extends Message {
      * 2. Media message
      */
     try {
-      await this.puppet.forward(this, to)
+      await this.puppet.messageForward(this, to)
     } catch (e) {
       log.error('PuppeteerMessage', 'forward(%s) exception: %s', to, e)
       throw e

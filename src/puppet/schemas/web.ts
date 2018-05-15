@@ -275,8 +275,8 @@ export interface WebRecomendInfo {
 }
 
 export const enum WebMediaType {
-  IMAGE      = 1,
-  VIDEO      = 2,
-  AUDIO      = 3,
-  ATTACHMENT = 4,
+  Image      = 1,
+  Video      = 2,
+  Audio      = 3,
+  Attachment = 4,
 }

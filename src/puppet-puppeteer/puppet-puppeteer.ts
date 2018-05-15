@@ -364,13 +364,13 @@ export class PuppetPuppeteer extends Puppet {
       case '.jpg':
       case '.png':
       case '.gif':
-        mediatype = WebMediaType.IMAGE
+        mediatype = WebMediaType.Image
         break
       case '.mp4':
-        mediatype = WebMediaType.VIDEO
+        mediatype = WebMediaType.Video
         break
       default:
-        mediatype = WebMediaType.ATTACHMENT
+        mediatype = WebMediaType.Attachment
     }
 
     const readStream = await message.readyStream()
@@ -387,7 +387,7 @@ export class PuppetPuppeteer extends Puppet {
     const LARGE_FILE_SIZE = 25 * 1024 * 1024
     const MAX_VIDEO_SIZE  = 20 * 1024 * 1024
 
-    if (mediatype === WebMediaType.VIDEO && buffer.length > MAX_VIDEO_SIZE)
+    if (mediatype === WebMediaType.Video && buffer.length > MAX_VIDEO_SIZE)
       throw new Error(`Sending video files is not allowed to exceed ${MAX_VIDEO_SIZE / 1024 / 1024}MB`)
     if (buffer.length > MAX_FILE_SIZE) {
       throw new Error(`Sending files is not allowed to exceed ${MAX_FILE_SIZE / 1024 / 1024}MB`)
@@ -423,7 +423,7 @@ export class PuppetPuppeteer extends Puppet {
       ToUserName:    toUserName,
       UploadType:    2,
       ClientMediaId: +new Date,
-      MediaType:     WebMediaType.ATTACHMENT,
+      MediaType:     WebMediaType.Attachment,
       StartPos:      0,
       DataLen:       size,
       TotalLen:      size,
@@ -629,7 +629,7 @@ export class PuppetPuppeteer extends Puppet {
    * TODO: Test this function if it could work...
    */
   // public async forward(baseData: MsgRawObj, patchData: MsgRawObj): Promise<boolean> {
-  public async forward(
+  public async messageForward(
     message : PuppeteerMessage,
     sendTo  : PuppeteerContact | PuppeteerRoom,
   ): Promise<void> {
@@ -807,8 +807,8 @@ export class PuppetPuppeteer extends Puppet {
     if (!Object.keys(rawPayload).length) {
       log.error('PuppetPuppeteer', 'contactParseRawPayload() got empty rawPayload!')
       return {
-        gender: Gender.UNKNOWN,
-        type:   PuppeteerContact.Type.UNKNOWN,
+        gender: Gender.Unknown,
+        type:   PuppeteerContact.Type.Unknown,
       }
     }
 
@@ -838,8 +838,8 @@ export class PuppetPuppeteer extends Puppet {
        */
       // tslint:disable-next-line
       type:      (!!rawPayload.UserName && !rawPayload.UserName.startsWith('@@') && !!(rawPayload.VerifyFlag & 8))
-                    ? PuppeteerContact.Type.OFFICIAL
-                    : PuppeteerContact.Type.PERSONAL,
+                    ? PuppeteerContact.Type.Official
+                    : PuppeteerContact.Type.Personal,
       /**
        * @see 1. https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3246
        * @ignore

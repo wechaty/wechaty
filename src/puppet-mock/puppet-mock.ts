@@ -132,7 +132,7 @@ export class PuppetMock extends Puppet {
     return this.user
   }
 
-  public async forward(message: MockMessage, sendTo: Contact | Room): Promise<void> {
+  public async messageForward(message: MockMessage, sendTo: Contact | Room): Promise<void> {
     log.silly('PuppetMock', 'forward() to: %s, message: %s)',
                             sendTo, message.filename(),
                             // patchData.ToUserName,
@@ -192,8 +192,8 @@ export class PuppetMock extends Puppet {
 
   public async contactPayload(contact: Contact): Promise<ContactPayload> {
     return {
-      gender: Gender.UNKNOWN,
-      type:   ContactType.UNKNOWN,
+      gender: Gender.Unknown,
+      type:   ContactType.Unknown,
     }
 
   }
