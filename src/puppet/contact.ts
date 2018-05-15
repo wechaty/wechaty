@@ -37,15 +37,15 @@ import PuppeteerMessage from '../puppet-puppeteer/puppeteer-message'
  * @property {number} Female    - 2 for Female
  */
 export enum Gender {
-  UNKNOWN = 0,
-  MALE    = 1,
-  FEMALE  = 2,
+  Unknown = 0,
+  Male    = 1,
+  Female  = 2,
 }
 
 export enum ContactType {
-  UNKNOWN = 0,
-  PERSONAL,
-  OFFICIAL,
+  Unknown = 0,
+  Personal,
+  Official,
 }
 
 export interface ContactQueryFilter {
@@ -372,7 +372,7 @@ export class Contact extends PuppetAccessory implements Sayable {
    */
   public official(): boolean {
     log.warn('Contact', 'official() DEPRECATED. use type() instead')
-    return !!this.payload && this.payload.type === ContactType.OFFICIAL
+    return !!this.payload && this.payload.type === ContactType.Official
   }
 
   /**
@@ -419,14 +419,14 @@ export class Contact extends PuppetAccessory implements Sayable {
   /**
    * Contact gender
    *
-   * @returns {Gender.MALE(2)|Gender.Female(1)|Gender.Unknown(0)}
+   * @returns {Gender.Male(2)|Gender.Female(1)|Gender.Unknown(0)}
    * @example
    * const gender = contact.gender()
    */
   public gender(): Gender {
     return this.payload
       ? this.payload.gender
-      : Gender.UNKNOWN
+      : Gender.Unknown
   }
 
   /**
