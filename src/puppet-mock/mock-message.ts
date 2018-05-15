@@ -193,7 +193,7 @@ export class MockMessage extends Message {
      * 2. Media message
      */
     try {
-      await this.puppet.forward(this, to)
+      await this.puppet.messageForward(this, to)
     } catch (e) {
       log.error('MockMessage', 'forward(%s) exception: %s', to, e)
       throw e

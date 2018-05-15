@@ -228,10 +228,6 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   public abstract userSelf(): Contact
 
-  /**
-   * Message
-   */
-  public abstract async forward(message: Message, to: Contact | Room) : Promise<void>
   // TODO: change Message to File
   public abstract async say(textOrMessage: string | Message)          : Promise<void>
   public abstract async send(message: Message)                        : Promise<void>
@@ -245,10 +241,10 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   /**
    *
-   * Misc
+   * Message
    *
    */
-  public abstract async ding(data?: any) : Promise<string>
+  public abstract async messageForward(message: Message, to: Contact | Room) : Promise<void>
 
   /**
    *
@@ -285,6 +281,14 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async contactPayload(contact: Contact)                    : Promise<ContactPayload>
 
   public abstract async contactFindAll(query?: ContactQueryFilter)          : Promise<Contact[]>
+
+  /**
+   *
+   * Misc
+   *
+   */
+  public abstract async ding(data?: any) : Promise<string>
+
 }
 
 // export class WechatError extends Error {
