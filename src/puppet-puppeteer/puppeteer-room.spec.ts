@@ -211,3 +211,26 @@ test('Room static method', async t => {
 
   t.is(roomList.length, 0, 'should return empty array before login')
 })
+
+test('Room iterator for contact in it', async t => {
+  class Collection {
+    [idx: number]: number
+
+    public *[Symbol.iterator]() {
+      let i = 0
+      while (this[i] !== undefined) {
+        yield this[i]
+        ++i
+      }
+    }
+
+  }
+  const myCollection = new Collection()
+  myCollection[0] = 1
+  myCollection[1] = 2
+  for (const value of myCollection) {
+      console.log(value) // 1, then 2
+  }
+
+  t.skip('to be write')
+})
