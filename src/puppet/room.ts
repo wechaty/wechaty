@@ -718,7 +718,7 @@ export class Room extends PuppetAccessory implements Sayable {
     if (!this.payload || !this.payload.memberList || this.payload.memberList.length < 1) {
       log.warn('Room', 'memberList() not ready')
       log.verbose('Room', 'memberList() trying call refresh() to update')
-      this.refresh().then(() => {
+      this.sync().then(() => {
         log.verbose('Room', 'memberList() refresh() done')
       })
       return []

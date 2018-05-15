@@ -324,6 +324,55 @@ export abstract class Message extends PuppetAccessory implements Sayable {
    */
   public abstract async readyStream(): Promise<Readable>
 
+  /**
+   * Forward the received message.
+   *
+   * The types of messages that can be forwarded are as follows:
+   *
+   * The return value of {@link Message#type} matches one of the following types:
+   * ```
+   * MsgType {
+   *   TEXT                = 1,
+   *   IMAGE               = 3,
+   *   VIDEO               = 43,
+   *   EMOTICON            = 47,
+   *   LOCATION            = 48,
+   *   APP                 = 49,
+   *   MICROVIDEO          = 62,
+   * }
+   * ```
+   *
+   * When the return value of {@link Message#type} is `MsgType.APP`, the return value of {@link Message#typeApp} matches one of the following types:
+   * ```
+   * AppMsgType {
+   *   TEXT                     = 1,
+   *   IMG                      = 2,
+   *   VIDEO                    = 4,
+   *   ATTACH                   = 6,
+   *   EMOJI                    = 8,
+   * }
+   * ```
+   * It should be noted that when forwarding ATTACH type message, if the file size is greater than 25Mb, the forwarding will fail.
+   * The reason is that the server shields the web wx to download more than 25Mb files with a file size of 0.
+   *
+   * But if the file is uploaded by you using wechaty, you can forward it.
+   * You need to detect the following conditions in the message event, which can be forwarded if it is met.
+   *
+   * ```javasrcipt
+   * .on('message', async m => {
+   *   if (m.self() && m.rawObj && m.rawObj.Signature) {
+   *     // Filter the contacts you have forwarded
+   *     const msg = <MediaMessage> m
+   *     await msg.forward()
+   *   }
+   * })
+   * ```
+   *
+   * @param {(Sayable | Sayable[])} to Room or Contact
+   * The recipient of the message, the room, or the contact
+   * @returns {Promise<boolean>}
+   * @memberof MediaMessage
+   */
   public abstract async forward(to: Room | Contact): Promise<void>
 
 }
