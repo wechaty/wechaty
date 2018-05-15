@@ -96,6 +96,7 @@
     "brolog": "^1.2.0",
     "clone-class": "^0.6.3",
     "cuid": "^2.1.1",
+    "file-box": "^0.2.1",
     "hot-import": "^0.2.1",
     "mime": "^2.2.0",
     "normalize-package-data": "^2.4.0",
