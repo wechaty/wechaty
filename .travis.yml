@@ -38,7 +38,7 @@ jobs:
         - npm test || travis_terminate 1
 
       after_success:
-        - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then npm run coverage; fi
+        - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then npm run coverage; fi
 
     - stage: pack
       script:
