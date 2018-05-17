@@ -45,7 +45,7 @@ class LicenseTransformer extends Transform {
     super(options)
   }
 
-  public _transform(chunk: any, encoding: string, done: Function) {
+  public _transform(chunk: any, _: string /* encoding: string */, done: Function) {
     if (this.updated) {
       this.push(chunk)
     } else {
@@ -127,6 +127,7 @@ async function updateLicense(file: string): Promise<void> {
       .pipe(tranStream)
       .pipe(writeStream)
       .on('close', resolve)
+      .on('error', reject)
   })
   await promisify(unlinkCallback)(file)
   await promisify(linkCallback)(tmpFile, file)

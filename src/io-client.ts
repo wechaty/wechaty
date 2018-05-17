@@ -123,7 +123,7 @@ export class IoClient {
 //    }
     const app = express()
 
-    app.get('/', function (req, res) {
+    app.get('/', function (_ /* req */, res) {
       res.send('Wechaty IO Bot Alive!')
     })
 

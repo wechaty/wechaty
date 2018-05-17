@@ -320,9 +320,10 @@ async function checkRoomJoin(
       // throw new Error('not found(yet)')
 
     }).catch((e: Error) => {
-      log.warn('PuppetPuppeteerFirer', 'fireRoomJoin() reject() inviteeContactList: %s, inviterContact: %s',
+      log.warn('PuppetPuppeteerFirer', 'fireRoomJoin() reject() inviteeContactList: %s, inviterContact: %s, error %s',
                                  inviteeContactList.map((c: PuppeteerContact) => c.name()).join(','),
                                  inviter,
+                                 e.message,
       )
     })
 

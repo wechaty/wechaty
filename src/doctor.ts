@@ -69,7 +69,7 @@ export class Doctor {
           client.write('ding')
         })
 
-        client.on('data', function(data) {
+        client.on('data', function() {
           /**
            * Promise Resolve
            */
@@ -82,7 +82,7 @@ export class Doctor {
          */
         client.on('error', reject)
 
-        client.on('close', err => server.close())
+        client.on('close', _ => server.close())
       })
     })
   }

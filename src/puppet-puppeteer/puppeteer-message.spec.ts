@@ -33,17 +33,18 @@ import Wechaty    from '../wechaty'
 
 // import { PuppetMock } from '../puppet-mock/'
 
+import Contact from '../puppet/contact'
+import Message from '../puppet/message'
+import Room    from '../puppet/room'
+
 import PuppetPuppeteer  from './puppet-puppeteer'
-import PuppeteerContact from './puppeteer-contact'
-import PuppeteerMessage from './puppeteer-message'
-import PuppeteerRoom    from './puppeteer-room'
 
 // tslint:disable-next-line:variable-name
-const MyRoom = cloneClass(PuppeteerRoom)
+const MyRoom = cloneClass(Room)
 // tslint:disable-next-line:variable-name
-const MyContact = cloneClass(PuppeteerContact)
+const MyContact = cloneClass(Contact)
 // tslint:disable-next-line:variable-name
-const MyMessage = cloneClass(PuppeteerMessage)
+const MyMessage = cloneClass(Message)
 
 const puppet = new PuppetPuppeteer({
   profile: new Profile(),
@@ -87,9 +88,9 @@ test('ready()', async t => {
   const expectedMsgId        = '3009511950433684462'
 
   // Mock
-  function mockContactPayload(contact: PuppeteerContact) {
+  function mockContactPayload(contact: Contact) {
     log.silly('TestMessage', `mocked getContact(%s)`, contact)
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve => {
       let obj = {}
       switch (contact.id) {
         case expectedFromUserName:
@@ -110,7 +111,7 @@ test('ready()', async t => {
           break
       }
       log.silly('TestMessage', 'setTimeout mocked getContact')
-      setTimeout(r => {
+      setTimeout(_ => {
         log.silly('TestMessage', 'mocked getContact resolved')
         return resolve(obj)
       }, 100)
@@ -166,13 +167,17 @@ test('findAll()', async t => {
 test('self()', async t => {
   MyRoom.puppet = MyContact.puppet = MyMessage.puppet = puppet
 
-  const m = new MyMessage()
-  m.from(PuppeteerContact.load(MOCK_USER_ID))
+  const selfMsg = MyMessage.createMO({
+    from: Contact.load(MOCK_USER_ID),
+  })
 
-  t.true(m.self(), 'should identify self message true where message from userId')
+  t.true(selfMsg.self(), 'should identify self message true where message from userId')
 
-  m.from(PuppeteerContact.load('fdsafasfsfa'))
-  t.false(m.self(), 'should identify self message false when from a different fromId')
+  const otherMsg = MyMessage.createMO({
+    from: Contact.load('fdsafasfsfa'),
+  })
+
+  t.false(otherMsg.self(), 'should identify self message false when from a different fromId')
 })
 
 test('mentioned()', async t => {
@@ -198,9 +203,9 @@ test('mentioned()', async t => {
   const ROOM_ID = '@@9cdc696e490bd76c57e7dd54792dc1408e27d65e312178b1943e88579b7939f4'
 
   // Mock
-  const contactRawPayloadMock = function (contact: PuppeteerContact | PuppeteerRoom) {
+  const contactRawPayloadMock = function (contact: Contact | Room) {
     log.silly('PuppeteerMessageTest', 'contactRawPayloadMock(%s)', contact)
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve => {
       if (contact.id === ROOM_ID) {
         resolve(ROOM_RAW_PAYLOAD)
       } else if (contact.id in CONTACT_RAW_PAYLOAD_DICT) {

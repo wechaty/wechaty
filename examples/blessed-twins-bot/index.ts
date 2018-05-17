@@ -261,6 +261,7 @@ function setLineData(mockData: any, line: any) {
 }
 
 screen.key(['escape', 'q', 'C-c'], function(ch, key) {
+  console.log(ch, key)
   return process.exit(0)
 })
 

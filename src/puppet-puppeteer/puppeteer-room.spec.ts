@@ -30,16 +30,16 @@ import Profile    from '../profile'
 import Wechaty    from '../wechaty'
 
 import PuppetPuppeteer  from './puppet-puppeteer'
-import PuppeteerContact from './puppeteer-contact'
-import PuppeteerMessage from './puppeteer-message'
-import PuppeteerRoom    from './puppeteer-room'
+import Contact from '../puppet/contact'
+import Message from '../puppet/message'
+import Room    from '../puppet/room'
 
 // tslint:disable-next-line:variable-name
-const MyRoom = cloneClass(PuppeteerRoom)
+const MyRoom = cloneClass(Room)
 // tslint:disable-next-line:variable-name
-const MyContact = cloneClass(PuppeteerContact)
+const MyContact = cloneClass(Contact)
 // tslint:disable-next-line:variable-name
-const MyMessage = cloneClass(PuppeteerMessage)
+const MyMessage = cloneClass(Message)
 
 const puppet = new PuppetPuppeteer({
   profile: new Profile(),
@@ -108,9 +108,9 @@ test('Room smoking test', async t => {
   }
 
   // Mock
-  const mockRawPayload = function (contact: PuppeteerContact) {
+  const mockRawPayload = function (contact: Contact) {
     log.verbose('PuppeteerRoomTest', 'mockContactRawPayload(%s)', contact)
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve => {
       if (contact.id === EXPECTED.id) {
         setImmediate(() => resolve(ROOM_RAW_PAYLOAD))
       } else if (contact.id in CONTACT_RAW_PAYLOAD_DICT) {

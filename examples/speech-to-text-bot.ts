@@ -17,7 +17,7 @@
  *
  */
 
-import { createWriteStream }  from 'fs'
+import { createWriteStream, createReadStream }  from 'fs'
 import {
   PassThrough,
   Readable,
@@ -55,20 +55,21 @@ bot
 .on('message', async function(msg) {
   console.log(`RECV: ${msg}`)
 
-  if (msg.type() !== Message.Type.VOICE) {
+  if (msg.type() !== Message.Type.Audio) {
     return // skip no-VOICE message
   }
 
-  const mp3Stream = await msg.readyStream()
+  // const mp3Stream = await msg.readyStream()
 
-  const filename = msg.filename()
+  const filename = msg.file().name
   if (!filename) {
     throw new Error('no filename for media message')
   }
 
   const file = createWriteStream(filename)
-  mp3Stream.pipe(file)
+  msg.file().pipe(file)
 
+  const mp3Stream = createReadStream(filename)
   const text = await speechToText(mp3Stream)
   console.log('VOICE TO TEXT: ' + text)
 
@@ -166,7 +167,7 @@ async function wavToText(wavStream: NodeJS.ReadableStream): Promise<string> {
   }
 
   return new Promise<string>((resolve, reject) => {
-    wavStream.pipe(request.post(apiUrl, options, (err, httpResponse, body) => {
+    wavStream.pipe(request.post(apiUrl, options, (err, _ /* httpResponse */, body) => {
       // "err_msg":"success.","err_no":0,"result":["这是一个测试测试语音转文字，"]
       if (err) {
         return reject(err)

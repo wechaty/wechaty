@@ -22,6 +22,9 @@ import * as normalize   from 'normalize-package-data'
 import * as readPkgUp   from 'read-pkg-up'
 
 import {
+  FileBox,
+}                       from 'file-box'
+import {
   callerResolve,
 }                       from 'hot-import'
 import {
@@ -55,8 +58,10 @@ import {
 }                       from './friend-request'
 import {
   Message,
-  MessagePayload,
 }                       from './message'
+import {
+  MessagePayload,
+}                       from './message.type'
 import {
   Room,
   RoomPayload,
@@ -110,7 +115,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   constructor(
     public options:   PuppetOptions,
-    classes?:         PuppetClasses,
+    // classes?:         PuppetClasses,
   ) {
     super()
 
@@ -122,20 +127,20 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     /**
      * 1. Check Classes for inherience correctly
      */
-    if (!classes) {
-      throw new Error('no classes found')
-    }
+    // if (!classes) {
+    //   throw new Error('no classes found')
+    // }
 
     // https://stackoverflow.com/questions/14486110/how-to-check-if-a-javascript-class-inherits-another-without-creating-an-obj
-    const check = classes.Contact.prototype        instanceof Contact
-                && classes.FriendRequest.prototype instanceof FriendRequest
-                && classes.Message.prototype       instanceof Message
-                && classes.Room.prototype          instanceof Room
+    // const check = classes.Contact.prototype        instanceof Contact
+    //             && classes.FriendRequest.prototype instanceof FriendRequest
+    //             && classes.Message.prototype       instanceof Message
+    //             && classes.Room.prototype          instanceof Room
 
-    if (!check) {
-      throw new Error('Puppet must set classes right! https://github.com/Chatie/wechaty/issues/1167')
-    }
-    this.classes = classes
+    // if (!check) {
+    //   throw new Error('Puppet must set classes right! https://github.com/Chatie/wechaty/issues/1167')
+    // }
+    // this.classes = classes
 
     /**
      * 2. Load the package.json for Puppet Plugin version range matching
@@ -233,8 +238,8 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract userSelf(): Contact
 
   // TODO: change Message to File
-  public abstract async say(textOrMessage: string | Message)          : Promise<void>
-  public abstract async send(message: Message)                        : Promise<void>
+  public abstract async say(textOrFile: string | File) : Promise<void>
+  // public abstract async send(file: FileBox)               : Promise<void>
 
   /**
    * Login / Logout
@@ -249,7 +254,8 @@ export abstract class Puppet extends EventEmitter implements Sayable {
    *
    */
   public abstract async messageForward(message: Message, to: Contact | Room) : Promise<void>
-  public abstract async messagePayload(message: Message): Promise<MessagePayload>
+  public abstract async messagePayload(message: Message)                     : Promise<MessagePayload>
+  public abstract async messageSend(message: Message)                        : Promise<void>
 
   /**
    *
@@ -282,7 +288,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async contactAlias(contact: Contact, alias?: string|null) : Promise<string | void>
 
   // TODO: change the return type from NodeJS.ReadableStream to File(vinyl)
-  public abstract async contactAvatar(contact: Contact)                     : Promise<NodeJS.ReadableStream>
+  public abstract async contactAvatar(contact: Contact)                     : Promise<FileBox>
   public abstract async contactPayload(contact: Contact)                    : Promise<ContactPayload>
 
   public abstract async contactFindAll(query?: ContactQueryFilter)          : Promise<Contact[]>

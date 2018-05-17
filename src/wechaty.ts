@@ -423,7 +423,6 @@ export class Wechaty extends PuppetAccessory implements Sayable {
       Message.puppet       = puppet
       Room.puppet          = puppet
 
-      //
       instanceToClass(this, PuppetAccessory).puppet = puppet
     }
 
@@ -435,10 +434,16 @@ export class Wechaty extends PuppetAccessory implements Sayable {
      *   https://github.com/Microsoft/TypeScript/issues/5843#issuecomment-290972055
      *   https://github.com/Microsoft/TypeScript/issues/19197
      */
-    this.Contact        = cloneClass(puppet.classes.Contact)
-    this.FriendRequest  = cloneClass(puppet.classes.FriendRequest)
-    this.Message        = cloneClass(puppet.classes.Message)
-    this.Room           = cloneClass(puppet.classes.Room)
+    // this.Contact        = cloneClass(puppet.classes.Contact)
+    // this.FriendRequest  = cloneClass(puppet.classes.FriendRequest)
+    // this.Message        = cloneClass(puppet.classes.Message)
+    // this.Room           = cloneClass(puppet.classes.Room)
+
+    // TODO: make Message & Room constructor private???
+    this.Contact        = cloneClass(Contact)
+    this.FriendRequest  = cloneClass(FriendRequest)
+    this.Message        = cloneClass(Message)
+    this.Room           = cloneClass(Room)
 
     this.Contact.puppet       = puppet
     this.FriendRequest.puppet = puppet
@@ -472,8 +477,8 @@ export class Wechaty extends PuppetAccessory implements Sayable {
     this.state.on('pending')
 
     try {
-      this.profile.load()
-      this.initPuppet()
+      await this.profile.load()
+      await this.initPuppet()
 
       // set puppet instance to Wechaty Static variable, for using by Contact/Room/Message/FriendRequest etc.
       // config.puppetInstance(puppet)
@@ -605,7 +610,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
    */
   public async send(message: Message): Promise<void> {
     try {
-      await this.puppet.send(message)
+      await this.puppet.messageSend(message)
     } catch (e) {
       log.error('Wechaty', 'send() exception: %s', e.message)
       Raven.captureException(e)

@@ -78,7 +78,7 @@ bot
   console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
 })
 .on('login'  , user => log.info('Bot', `bot login: ${user}`))
-.on('logout' , e => log.info('Bot', 'bot logout.'))
+.on('logout' , user => log.info('Bot', 'bot %s logout.', user))
 .on('message', m => {
   if (m.self()) { return }
 

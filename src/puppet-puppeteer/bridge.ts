@@ -41,7 +41,7 @@ import {
   WebMessageMediaPayload,
   WebMessageRawPayload,
   WebContactRawPayload,
-}                               from '../puppet/schemas/'
+}                               from '../puppet-puppeteer/web-schemas'
 import {
   PuppeteerRoomRawPayload,
 }                               from './puppet-puppeteer'
@@ -516,12 +516,12 @@ export class Bridge extends EventEmitter {
     }
   }
 
+  public async getMessage(id: string): Promise<WebMessageRawPayload> {
+    const rawPayload = await this.proxyWechaty('getMessage', id)
+    return rawPayload
+  }
+
   public async getContact(id: string): Promise<WebContactRawPayload | PuppeteerRoomRawPayload> {
-    if (id !== id) { // NaN
-      const err = new Error('NaN! where does it come from?')
-      log.error('PuppetPuppeteerBridge', 'getContact(NaN): %s', err)
-      throw err
-    }
     const max = 35
     const backoff = 500
 
@@ -742,7 +742,7 @@ export class Bridge extends EventEmitter {
       }
     }
 
-    return new Promise<string | false>((resolve, reject) => {
+    return new Promise<string | false>(resolve => {
       parseString(tryXmlText, { explicitArray: false }, (err, obj: BlockedMessage) => {
         if (err) {  // HTML can not be parsed to JSON
           return resolve(false)

@@ -30,8 +30,9 @@ import {
 import Profile from '../profile'
 import Wechaty from '../wechaty'
 
+import Contact from '../puppet/contact'
+
 import PuppetPuppeteer  from './puppet-puppeteer'
-import PuppeteerContact from './puppeteer-contact'
 
 test('Contact smoke testing', async t => {
 
@@ -42,9 +43,9 @@ test('Contact smoke testing', async t => {
 
   const sandbox = sinon.createSandbox()
 
-  function mockContactPayload(contact: PuppeteerContact) {
+  function mockContactPayload(contact: Contact) {
     log.verbose('PuppeteerContactTest', 'mockContactPayload(%s)', contact.id)
-    return new Promise<any>((resolve, reject) => {
+    return new Promise<any>(resolve => {
       if (contact.id !== UserName) return resolve({})
       setImmediate(() => resolve({
         UserName:   UserName,
@@ -61,7 +62,7 @@ test('Contact smoke testing', async t => {
   sandbox.stub(puppet as any, 'contactRawPayload').callsFake(mockContactPayload)
 
   // tslint:disable-next-line:variable-name
-  const MyContact = cloneClass(PuppeteerContact)
+  const MyContact = cloneClass(Contact)
   MyContact.puppet = puppet
 
   const c = new MyContact(UserName)

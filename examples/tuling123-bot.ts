@@ -66,7 +66,7 @@ Loading...
 
 bot
 .on('login'  , user => log.info('Bot', `bot login: ${user}`))
-.on('logout' , e => log.info('Bot', 'bot logout.'))
+.on('logout' , user => log.info('Bot', 'bot %s logout.', user))
 .on('scan', (url, code) => {
   if (!/201|200/.test(String(code))) {
     const loginUrl = url.replace(/\/qrcode\//, '/l/')
