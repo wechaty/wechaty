@@ -26,15 +26,18 @@ import {
 
 import {
   WebRecomendInfo,
-  FriendRequest,
-}                             from '../puppet/'
+  WebMessageRawPayload,
+  // FriendRequest,
+}                             from './web-schemas'
 import PuppetPuppeteer        from './puppet-puppeteer'
 
-import PuppeteerContact       from './puppeteer-contact'
+import PuppeteerContact       from '../puppet/contact'
 import {
-  PuppeteerFriendRequest,
-}                             from './puppeteer-friend-request'
-import PuppeteerMessage       from './puppeteer-message'
+  FriendRequest,
+}                             from '../puppet/friend-request'
+import {
+  Message,
+}                             from '../puppet/message'
 
 /* tslint:disable:variable-name */
 export const Firer = {
@@ -109,26 +112,24 @@ const regexConfig = {
 }
 
 async function checkFriendRequest(
-  this: PuppetPuppeteer,
-  msg:  PuppeteerMessage,
+  this       : PuppetPuppeteer,
+  rawPayload : WebMessageRawPayload,
 ): Promise<void> {
-  if (!msg.rawObj) {
-    throw new Error('no rawPayload')
-  } else if (!msg.rawObj.RecommendInfo) {
+  if (!rawPayload.RecommendInfo) {
     throw new Error('no RecommendInfo')
   }
-  const rawPayload: WebRecomendInfo = msg.rawObj.RecommendInfo
-  log.verbose('PuppetPuppeteerFirer', 'fireFriendRequest(%s)', rawPayload)
+  const recommendInfo: WebRecomendInfo = rawPayload.RecommendInfo
+  log.verbose('PuppetPuppeteerFirer', 'fireFriendRequest(%s)', recommendInfo)
 
-  if (!rawPayload) {
-    throw new Error('no rawPayload')
+  if (!recommendInfo) {
+    throw new Error('no recommendInfo')
   }
 
-  const contact   = PuppeteerContact.load(rawPayload.UserName)
-  contact.puppet  = msg.puppet
+  const contact   = PuppeteerContact.load(recommendInfo.UserName)
+  contact.puppet  = this
 
-  const hello = rawPayload.Content
-  const ticket = rawPayload.Ticket
+  const hello = recommendInfo.Content
+  const ticket = recommendInfo.Ticket
 
   await contact.ready()
   if (!contact.isReady()) {
@@ -140,7 +141,7 @@ async function checkFriendRequest(
     hello,
     ticket,
   )
-  receivedRequest.puppet = msg.puppet
+  receivedRequest.puppet = this
 
   this.emit('friend', receivedRequest)
 }
@@ -165,7 +166,7 @@ function parseFriendConfirm(
 
 async function checkFriendConfirm(
   this: PuppetPuppeteer,
-  m: PuppeteerMessage,
+  m: Message,
 ) {
   const content = m.text()
   log.silly('PuppetPuppeteerFirer', 'fireFriendConfirm(%s)', content)
@@ -176,7 +177,7 @@ async function checkFriendConfirm(
 
   const contact = m.from()
 
-  const confirmedRequest = PuppeteerFriendRequest.createConfirm(
+  const confirmedRequest = FriendRequest.createConfirm(
     contact,
   )
   confirmedRequest.puppet = m.puppet
@@ -227,7 +228,7 @@ function parseRoomJoin(
 
 async function checkRoomJoin(
   this: PuppetPuppeteer,
-  msg:  PuppeteerMessage,
+  msg:  Message,
 ): Promise<boolean> {
 
   const room = msg.room()
@@ -379,7 +380,7 @@ function parseRoomLeave(
  */
 async function checkRoomLeave(
   this: PuppetPuppeteer,
-  m:    PuppeteerMessage,
+  m:    Message,
 ): Promise<boolean> {
   log.verbose('PuppetPuppeteerFirer', 'fireRoomLeave(%s)', m.text())
 
@@ -461,7 +462,7 @@ function parseRoomTopic(
 
 async function checkRoomTopic(
   this: PuppetPuppeteer,
-  m: PuppeteerMessage): Promise<boolean> {
+  m: Message): Promise<boolean> {
   let  topic, changer
   try {
     [topic, changer] = parseRoomTopic.call(this, m.text())

@@ -21,6 +21,7 @@ import * as path      from 'path'
 /* tslint:disable:variable-name */
 import * as QrcodeTerminal  from 'qrcode-terminal'
 import finis                from 'finis'
+import { FileBox }          from 'file-box'
 
 /**
  * Change `import { ... } from '../'`
@@ -103,9 +104,10 @@ bot
       /**
        * 2. reply qrcode image
        */
-      const imageMessage = bot.Message.create(BOT_QR_CODE_IMAGE_FILE)
-      log.info('Bot', 'REPLY: %s', imageMessage)
-      await m.say(imageMessage)
+      const fileBox = FileBox.fromLocal(BOT_QR_CODE_IMAGE_FILE)
+
+      log.info('Bot', 'REPLY: %s', fileBox)
+      await m.say(fileBox)
 
       /**
        * 3. reply 'scan now!'

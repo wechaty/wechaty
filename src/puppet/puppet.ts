@@ -108,6 +108,8 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   protected readonly watchdog: Watchdog
 
+  protected user?: Contact
+
   /**
    * childPkg stores the `package.json` that the NPM module who extends the `Puppet`
    */
@@ -157,6 +159,10 @@ export abstract class Puppet extends EventEmitter implements Sayable {
       }
     }
     normalize(this.childPkg)
+  }
+
+  public toString() {
+    return `Puppet<${this.options.profile.name}>`
   }
 
   public emit(event: 'error',       e: Error)                                                      : boolean
@@ -235,16 +241,52 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async start() : Promise<void>
   public abstract async stop()  : Promise<void>
 
-  public abstract userSelf(): Contact
+  public userSelf(): Contact {
+    log.verbose('Puppet', 'self()')
 
-  // TODO: change Message to File
-  public abstract async say(textOrFile: string | File) : Promise<void>
-  // public abstract async send(file: FileBox)               : Promise<void>
+    if (!this.user) {
+      throw new Error('not logged in, no userSelf yet.')
+    }
+
+    return this.user
+  }
+
+  public async say(textOrFile: string | FileBox) : Promise<void> {
+    if (!this.logonoff()) {
+      throw new Error('can not say before login')
+    }
+
+    let msg: Message
+
+    if (typeof textOrFile === 'string') {
+      msg = Message.createMO({
+        text : textOrFile,
+        to   : this.userSelf(),
+      })
+    } else if (textOrFile instanceof FileBox) {
+      msg = Message.createMO({
+        file: textOrFile,
+        to: this.userSelf(),
+      })
+    } else {
+      throw new Error('say() arg unknown')
+    }
+
+    msg.puppet = this
+    await this.messageSend(msg)
+  }
 
   /**
    * Login / Logout
    */
-  public abstract logonoff()   : boolean
+  public logonoff(): boolean {
+    if (this.user) {
+      return true
+    } else {
+      return false
+    }
+  }
+
   // public abstract login(user: Contact): Promise<void>
   public abstract async logout(): Promise<void>
 
@@ -254,7 +296,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
    *
    */
   public abstract async messageForward(message: Message, to: Contact | Room) : Promise<void>
-  public abstract async messagePayload(message: Message)                     : Promise<MessagePayload>
+  public abstract async messagePayload(id: string)                           : Promise<MessagePayload>
   public abstract async messageSend(message: Message)                        : Promise<void>
 
   /**
@@ -274,7 +316,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async roomCreate(contactList: Contact[], topic?: string)  : Promise<Room>
   public abstract async roomDel(room: Room, contact: Contact)               : Promise<void>
   public abstract async roomFindAll(query?: RoomQueryFilter)                : Promise<Room[]>
-  public abstract async roomPayload(room: Room)                             : Promise<RoomPayload>
+  public abstract async roomPayload(id: string)                             : Promise<RoomPayload>
   public abstract async roomQuit(room: Room)                                : Promise<void>
   public abstract async roomTopic(room: Room, topic?: string)               : Promise<string | void>
 
@@ -289,7 +331,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   // TODO: change the return type from NodeJS.ReadableStream to File(vinyl)
   public abstract async contactAvatar(contact: Contact)                     : Promise<FileBox>
-  public abstract async contactPayload(contact: Contact)                    : Promise<ContactPayload>
+  public abstract async contactPayload(id: string)                    : Promise<ContactPayload>
 
   public abstract async contactFindAll(query?: ContactQueryFilter)          : Promise<Contact[]>
 

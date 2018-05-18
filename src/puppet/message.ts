@@ -38,9 +38,6 @@ import {
   MessageMOOptionsText,
   MessageMOOptionsFile,
   MessagePayload,
-  MessagePayloadText,
-  MessagePayloadFile,
-  MessagePayloadDirectionMT,
   MessageType,
 }                       from './message.type'
 
@@ -85,11 +82,8 @@ export class Message extends PuppetAccessory implements Sayable {
     ]
   }
 
-  public static create<T extends typeof Message>(
-    this: T,
-    ...args: any[]
-  ): T['prototype'] {
-    return new (this as any)(...args)
+  public static create(options: MessageMOOptions): Message {
+    return this.createMO(options)
   }
 
   /**
@@ -216,7 +210,7 @@ export class Message extends PuppetAccessory implements Sayable {
       if (!this.payload) {
         throw new Error('no payload')
       }
-      const file = (this.payload as MessagePayloadFile).file
+      const file = this.payload.file
       if (!file) {
         throw new Error('no file')
       }
@@ -249,7 +243,7 @@ export class Message extends PuppetAccessory implements Sayable {
     //   return
     // }
 
-    const from = (<MessagePayloadDirectionMT>this.payload).from
+    const from = this.payload.from
     if (!from) {
       throw new Error('no from')
     }
@@ -349,7 +343,7 @@ export class Message extends PuppetAccessory implements Sayable {
     //   return
     // }
 
-    return (<MessagePayloadText>this.payload).text || ''
+    return this.payload.text || ''
   }
 
   public async say(text: string, mention?: Contact | Contact[]): Promise<void>
@@ -457,7 +451,7 @@ export class Message extends PuppetAccessory implements Sayable {
     if (!this.payload) {
       throw new Error('no payload')
     }
-    const file = (<MessagePayloadFile> this.payload).file
+    const file = this.payload.file
     if (!file) {
       throw new Error('no file')
     }
@@ -645,7 +639,7 @@ export class Message extends PuppetAccessory implements Sayable {
       return
     }
 
-    this.payload = await this.puppet.messagePayload(this)
+    this.payload = await this.puppet.messagePayload(this.id)
 
     // TODO ... the rest
   }

@@ -70,7 +70,6 @@ import {
   MessagePayload,
   MessageType,
 }                             from '../puppet/message'
-import PuppeteerMessage       from './puppeteer-message'
 import {
   Room,
   RoomMemberQueryFilter,
@@ -106,28 +105,16 @@ export class PuppetPuppeteer extends Puppet {
   public scanWatchdog: Watchdog<ScanFoodType>
 
   // private fileId: number
-  private user? : Contact
 
   constructor(
     public options: PuppetOptions,
   ) {
-    super(options,
-  //     {
-  //     Contact:        Contact,
-  //     FriendRequest:  FriendRequest,
-  //     Message:        PuppeteerMessage,
-  //     Room:           Room,
-  //   }
-    )
+    super(options)
 
     // this.fileId = 0
 
     const SCAN_TIMEOUT  = 2 * 60 * 1000 // 2 minutes
     this.scanWatchdog   = new Watchdog<ScanFoodType>(SCAN_TIMEOUT, 'Scan')
-  }
-
-  public toString() {
-    return `PuppetPuppeteer<${this.options.profile.name}>`
   }
 
   public async start(): Promise<void> {
@@ -326,32 +313,17 @@ export class PuppetPuppeteer extends Puppet {
     return this.bridge
   }
 
-  /**
-   * get self contact
-   */
-  public userSelf(): Contact {
-    log.verbose('PuppetPuppeteer', 'userSelf()')
+  public async messagePayload(id: string): Promise<MessagePayload> {
+    log.verbose('PuppetPuppeteer', 'messagePayload(%s)', id)
 
-    if (!this.user) {
-      throw new Error('not logged in, no userSelf yet.')
-    }
-
-    return this.user
-  }
-
-  public async messagePayload(
-    message: Message,
-  ): Promise<MessagePayload> {
-    log.verbose('PuppetPuppeteer', 'messagePayload(%s)', message)
-
-    const rawPayload = await this.messageRawPayload(message)
+    const rawPayload = await this.messageRawPayload(id)
     const payload    = this.messageParseRawPayload(rawPayload)
 
     return payload
   }
 
-  private messageRawPayload(message: Message) {
-    return this.bridge.getMessage(message.id)
+  private messageRawPayload(id: string) {
+    return this.bridge.getMessage(id)
   }
 
   private messageParseRawPayload(
@@ -446,7 +418,7 @@ export class PuppetPuppeteer extends Puppet {
    */
   // public async forward(baseData: MsgRawObj, patchData: MsgRawObj): Promise<boolean> {
   public async messageForward(
-    message : PuppeteerMessage,
+    message : Message,
     to      : Contact | Room,
   ): Promise<void> {
 
@@ -455,7 +427,7 @@ export class PuppetPuppeteer extends Puppet {
                                   to,
     )
 
-    let rawPayload = await this.messageRawPayload(message)
+    let rawPayload = await this.messageRawPayload(message.id)
 
     // rawPayload = Object.assign({}, rawPayload)
 
@@ -513,7 +485,7 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-   public async messageSend(message: PuppeteerMessage): Promise<void> {
+   public async messageSend(message: Message): Promise<void> {
     log.verbose('PuppetPuppeteer', 'send(%s)', message)
 
     const to   = message.to()
@@ -555,29 +527,6 @@ export class PuppetPuppeteer extends Puppet {
       //   throw new Error('sendMedia fail')
       // }
     }
-  }
-
-  /**
-   * Bot say...
-   * send to `self` for notice / log
-   */
-  public async say(text: string): Promise<void> {
-    if (!this.logonoff()) {
-      throw new Error('can not say before login')
-    }
-
-    if (!text) {
-      log.warn('PuppetPuppeteer', 'say(%s) can not say nothing', text)
-      return
-    }
-
-    if (!this.user) {
-      log.warn('PuppetPuppeteer', 'say(%s) can not say because no user', text)
-      this.emit('error', new Error('no this.user for PuppetPuppeteer'))
-      return
-    }
-
-    return await this.user.say(text)
   }
 
   public async login(user: Contact): Promise<void> {
@@ -664,22 +613,22 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  private async contactRawPayload(contact: Contact): Promise<WebContactRawPayload> {
-    log.verbose('PuppetPuppeteer', 'contactRawPayload(%s)', contact)
+  private async contactRawPayload(id: string): Promise<WebContactRawPayload> {
+    log.verbose('PuppetPuppeteer', 'contactRawPayload(%s)', id)
     try {
-      const rawPayload = await this.bridge.getContact(contact.id) as WebContactRawPayload
+      const rawPayload = await this.bridge.getContact(id) as WebContactRawPayload
       return rawPayload
     } catch (e) {
-      log.error('PuppetPuppeteer', 'contactRawPayload(%d) exception: %s', contact, e.message)
+      log.error('PuppetPuppeteer', 'contactRawPayload(%d) exception: %s', id, e.message)
       Raven.captureException(e)
       throw e
     }
 
   }
 
-  public async contactPayload(contact: Contact): Promise<ContactPayload> {
-    log.verbose('PuppetPuppeteer', 'contactPayload(%s)', contact)
-    const rawPayload  = await this.contactRawPayload(contact)
+  public async contactPayload(id: string): Promise<ContactPayload> {
+    log.verbose('PuppetPuppeteer', 'contactPayload(%s)', id)
+    const rawPayload  = await this.contactRawPayload(id)
     const payload     = this.contactParseRawPayload(rawPayload)
     return payload
   }
@@ -695,7 +644,7 @@ export class PuppetPuppeteer extends Puppet {
   }
 
   public async contactAvatar(contact: Contact): Promise<FileBox> {
-    const payload = await this.contactPayload(contact)
+    const payload = await this.contactPayload(contact.id)
     if (!payload.avatar) {
       throw new Error('Can not get avatar: no payload.avatar!')
     }
@@ -819,8 +768,8 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  private async roomRawPayload(room: Room): Promise<PuppeteerRoomRawPayload> {
-    log.verbose('PuppetPuppeteer', 'roomRawPayload(%s)', room)
+  private async roomRawPayload(id: string): Promise<PuppeteerRoomRawPayload> {
+    log.verbose('PuppetPuppeteer', 'roomRawPayload(%s)', id)
 
     try {
       let rawPayload: PuppeteerRoomRawPayload | undefined  // = await this.bridge.getContact(room.id) as PuppeteerRoomRawPayload
@@ -828,27 +777,27 @@ export class PuppetPuppeteer extends Puppet {
       // let currNum = rawPayload.MemberList && rawPayload.MemberList.length || 0
       // let prevNum = room.memberList().length  // rawPayload && rawPayload.MemberList && this.rawObj.MemberList.length || 0
 
+      let prevNum = 0
+
       let ttl = 7
       while (ttl--/* && currNum !== prevNum */) {
-        rawPayload = await this.bridge.getContact(room.id) as PuppeteerRoomRawPayload
+        rawPayload = await this.bridge.getContact(id) as PuppeteerRoomRawPayload
 
         const currNum = rawPayload.MemberList && rawPayload.MemberList.length || 0
-        const prevNum = room.memberList().length  // rawPayload && rawPayload.MemberList && this.rawObj.MemberList.length || 0
 
         log.silly('PuppetPuppeteer', `roomPayload() this.bridge.getContact(%s) MemberList.length:%d at ttl:%d`,
-          room.id,
+          id,
           currNum,
           ttl,
         )
 
-        if (currNum) {
-          if (prevNum === currNum) {
-            log.silly('PuppetPuppeteer', `roomPayload() puppet.getContact(${room.id}) done at ttl:%d`, ttl)
-            break
-          }
+        if (currNum > 0 && prevNum === currNum) {
+          log.silly('PuppetPuppeteer', `roomPayload() puppet.getContact(${id}) done at ttl:%d`, ttl)
+          break
         }
+        prevNum = currNum
 
-        log.silly('PuppetPuppeteer', `roomPayload() puppet.getContact(${room.id}) retry at ttl:%d`, ttl)
+        log.silly('PuppetPuppeteer', `roomPayload() puppet.getContact(${id}) retry at ttl:%d`, ttl)
         await new Promise(r => setTimeout(r, 1000)) // wait for 1 second
       }
 
@@ -859,16 +808,16 @@ export class PuppetPuppeteer extends Puppet {
 
       return rawPayload
     } catch (e) {
-      log.error('PuppetPuppeteer', 'roomRawPayload(%s) exception: %s', room.id, e.message)
+      log.error('PuppetPuppeteer', 'roomRawPayload(%s) exception: %s', id, e.message)
       Raven.captureException(e)
       throw e
     }
   }
 
-  public async roomPayload(room: Room): Promise<RoomPayload> {
-    log.verbose('PuppetPuppeteer', 'roomPayload(%s)', room)
+  public async roomPayload(id: string): Promise<RoomPayload> {
+    log.verbose('PuppetPuppeteer', 'roomPayload(%s)', id)
 
-    const rawPayload  = await this.roomRawPayload(room)
+    const rawPayload  = await this.roomRawPayload(id)
     const payload     = await this.roomParseRawPayload(rawPayload)
 
     return payload

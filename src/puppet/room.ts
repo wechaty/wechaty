@@ -19,6 +19,8 @@
  */
 import * as util from 'util'
 
+import { FileBox } from 'file-box'
+
 import {
   // config,
   Raven,
@@ -29,8 +31,6 @@ import PuppetAccessory  from '../puppet-accessory'
 
 import Contact          from './contact'
 import Message          from './message'
-
-import PuppeteerMessage from '../puppet-puppeteer/puppeteer-message'
 
 export const ROOM_EVENT_DICT = {
   join: 'tbw',
@@ -224,7 +224,7 @@ export class Room extends PuppetAccessory implements Sayable {
       return
     }
 
-    const payload = await this.puppet.roomPayload(this)
+    const payload = await this.puppet.roomPayload(this.id)
     await Promise.all(
       payload.memberList.map(
         contact => contact.ready(),
@@ -247,13 +247,13 @@ export class Room extends PuppetAccessory implements Sayable {
   public say(text: string)                     : Promise<void>
   public say(text: string, mention: Contact)   : Promise<void>
   public say(text: string, mention: Contact[]) : Promise<void>
-  public say(message: Message)                 : Promise<void>
+  public say(file: FileBox)                    : Promise<void>
   public say(text: never, ...args: never[])    : never
 
   /**
    * Send message inside Room, if set [replyTo], wechaty will mention the contact as well.
    *
-   * @param {(string | MediaMessage)} textOrMessage - Send `text` or `media file` inside Room.
+   * @param {(string | MediaMessage)} textOrFile - Send `text` or `media file` inside Room.
    * @param {(Contact | Contact[])} [replyTo] - Optional parameter, send content inside Room, and mention @replyTo contact or contactList.
    * @returns {Promise<boolean>}
    * If bot send message successfully, it will return true. If the bot failed to send for blocking or any other reason, it will return false
@@ -272,36 +272,46 @@ export class Room extends PuppetAccessory implements Sayable {
    * await room.say('Hello world!', contact)
    */
   public async say(
-    textOrMessage : string | Message,
+    textOrFile : string | FileBox,
     mention?      : Contact | Contact[],
   ): Promise<void> {
     log.verbose('Room', 'say(%s, %s)',
-                                  textOrMessage,
+                                  textOrFile,
                                   Array.isArray(mention)
                                   ? mention.map(c => c.name()).join(', ')
                                   : mention ? mention.name() : '',
                 )
     let msg: Message
-    if (textOrMessage instanceof Message) {
-      msg = textOrMessage
-    } else {
-      msg = new PuppeteerMessage()  // FIXME
-      msg.puppet = this.puppet
+    let text: string
 
-      const replyToList: Contact[] = [].concat(mention as any || [])
+    const replyToList: Contact[] = [].concat(mention as any || [])
+
+    if (typeof textOrFile === 'string') {
 
       if (replyToList.length > 0) {
         const AT_SEPRATOR = String.fromCharCode(8197)
         const mentionList = replyToList.map(c => '@' + c.name()).join(AT_SEPRATOR)
-        msg.text(mentionList + ' ' + textOrMessage)
+        text = mentionList + ' ' + textOrFile
       } else {
-        msg.text(textOrMessage)
+        text = textOrFile
       }
-      // m.to(replyToList[0])
+      msg = Message.createMO({
+        room : this,
+        to   : replyToList[0],   // FIXME: is this right?
+        text,
+      })
+    } else if (textOrFile instanceof FileBox) {
+      msg = Message.createMO({
+        room: this,
+        to: replyToList[0],
+        file: textOrFile,
+      })
+    } else {
+      throw new Error('arg unsupported')
     }
-    msg.room(this)
 
-    await this.puppet.send(msg)
+    msg.puppet = this.puppet
+    await this.puppet.messageSend(msg)
   }
 
   public emit(event: 'leave', leaver:       Contact[],  remover?: Contact)                    : boolean

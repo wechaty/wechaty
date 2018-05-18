@@ -33,9 +33,16 @@ import Wechaty    from '../wechaty'
 
 // import { PuppetMock } from '../puppet-mock/'
 
-import Contact from '../puppet/contact'
-import Message from '../puppet/message'
-import Room    from '../puppet/room'
+import {
+  Contact,
+}                   from '../puppet/contact'
+import {
+  Message,
+  MessagePayload,
+ }                  from '../puppet/message'
+import {
+  Room,
+}                   from '../puppet/room'
 
 import PuppetPuppeteer  from './puppet-puppeteer'
 
@@ -167,15 +174,29 @@ test('findAll()', async t => {
 test('self()', async t => {
   MyRoom.puppet = MyContact.puppet = MyMessage.puppet = puppet
 
-  const selfMsg = MyMessage.createMO({
-    from: Contact.load(MOCK_USER_ID),
+  const MOCK_CONTACT = Contact.load(MOCK_USER_ID)
+
+  const sandbox = sinon.createSandbox()
+  sandbox.stub(puppet, 'messagePayload').callsFake(() => {
+    const payload: MessagePayload = {
+      from      : MOCK_CONTACT,
+      to        : {} as any,
+      type      : {} as any,
+      direction : {} as any,
+      date      : {} as any,
+    }
+    return payload
   })
+  sandbox.stub((puppet as any as { 'user': Contact }), 'user').value(MOCK_CONTACT)
+
+  const selfMsg = MyMessage.createMT('xxx')
 
   t.true(selfMsg.self(), 'should identify self message true where message from userId')
 
-  const otherMsg = MyMessage.createMO({
-    from: Contact.load('fdsafasfsfa'),
-  })
+  sandbox.stub((puppet as any as { 'user': Contact }), 'user').value(
+    Contact.load('fsadfjas;dlkdjfl;asjflk;sjfl;as'),
+  )
+  const otherMsg = MyMessage.createMT('xxx')
 
   t.false(otherMsg.self(), 'should identify self message false when from a different fromId')
 })

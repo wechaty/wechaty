@@ -26,5 +26,3 @@ export {
   PuppetOptions,
   ScanData,
 }                         from './puppet'
-
-export * from './schemas/'

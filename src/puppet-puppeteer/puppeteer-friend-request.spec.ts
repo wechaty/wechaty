@@ -31,21 +31,21 @@ import {
   // Puppet,
   // FriendRequest,
   WebRecomendInfo,
-}                     from '../puppet/'
+}                     from './web-schemas'
 // import {
 //   PuppetMock,
 // }                     from '../puppet-mock/'
 
-import PuppeteerContact       from './puppeteer-contact'
-import PuppeteerMessage       from './puppeteer-message'
-import PuppeteerFriendRequest from './puppeteer-friend-request'
+import Contact       from '../puppet/contact'
+import Message       from '../puppet/message'
+import FriendRequest from '../puppet/friend-request'
 import { PuppetPuppeteer } from './puppet-puppeteer'
 
 test('PuppetPuppeteerFriendRequest.receive smoke testing', async t => {
   // tslint:disable-next-line:variable-name
-  const MyFriendRequest = cloneClass(PuppeteerFriendRequest)
+  const MyFriendRequest = cloneClass(FriendRequest)
   // tslint:disable-next-line:variable-name
-  const MyContact = cloneClass(PuppeteerContact)
+  const MyContact = cloneClass(Contact)
 
   const puppet = new PuppetPuppeteer({
     profile: new Profile(),
@@ -73,17 +73,17 @@ test('PuppetPuppeteerFriendRequest.receive smoke testing', async t => {
   )
 
   t.is(fr.hello(), '我是群聊"Wechaty"的李卓桓.PreAngel', 'should has right request message')
-  t.true(fr.contact() instanceof PuppeteerContact, 'should have a Contact instance')
+  t.true(fr.contact() instanceof Contact, 'should have a Contact instance')
   t.is(fr.type(), MyFriendRequest.Type.Receive, 'should be receive type')
 })
 
 test('PuppetPuppeteerFriendRequest.confirm smoke testing', async t => {
   // tslint:disable-next-line:variable-name
-  const MyFriendRequest = cloneClass(PuppeteerFriendRequest)
+  const MyFriendRequest = cloneClass(FriendRequest)
   // tslint:disable-next-line:variable-name
-  const MyContact = cloneClass(PuppeteerContact)
+  const MyContact = cloneClass(Contact)
   // tslint:disable-next-line:variable-name
-  const MyMessage = cloneClass(PuppeteerMessage)
+  const MyMessage = cloneClass(Message)
 
   const puppet = new PuppetPuppeteer({
     profile: new Profile(),
@@ -105,6 +105,6 @@ test('PuppetPuppeteerFriendRequest.confirm smoke testing', async t => {
   const contact = m.from()
   const fr = MyFriendRequest.createConfirm(contact || new MyContact('xx'))
 
-  t.true(fr.contact() instanceof PuppeteerContact, 'should have a Contact instance')
+  t.true(fr.contact() instanceof Contact, 'should have a Contact instance')
   t.is(fr.type(), MyFriendRequest.Type.Confirm, 'should be confirm type')
 })

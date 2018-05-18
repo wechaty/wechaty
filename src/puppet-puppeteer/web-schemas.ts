@@ -16,17 +16,13 @@
  *   limitations under the License.
  *
  */
-import {
-  Gender,
-}           from '../contact'
-
 export interface WebContactRawPayload {
   Alias:        string,
   City:         string,
   NickName:     string,
   Province:     string,
   RemarkName:   string,
-  Sex:          Gender,
+  Sex:          number,
   Signature:    string,
   StarFriend:   string,
   Uin:          string,
