@@ -35,7 +35,7 @@ import Wechaty      from '../wechaty'
 
 import {
   Contact,
-}                   from '../puppet/'
+}                   from '../contact'
 
 import PuppetPuppeteer  from './puppet-puppeteer'
 import Bridge           from './bridge'

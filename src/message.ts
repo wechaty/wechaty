@@ -26,8 +26,8 @@ import {
 import {
   log,
   Sayable,
-}                       from '../config'
-import PuppetAccessory  from '../puppet-accessory'
+}                       from './config'
+import PuppetAccessory  from './puppet-accessory'
 
 import Contact          from './contact'
 import Room             from './room'

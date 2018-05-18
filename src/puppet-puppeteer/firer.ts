@@ -31,13 +31,15 @@ import {
 }                             from './web-schemas'
 import PuppetPuppeteer        from './puppet-puppeteer'
 
-import PuppeteerContact       from '../puppet/contact'
+import {
+  Contact,
+}                       from '../contact'
 import {
   FriendRequest,
-}                             from '../puppet/friend-request'
+}                       from '../friend-request'
 import {
   Message,
-}                             from '../puppet/message'
+}                       from '../message'
 
 /* tslint:disable:variable-name */
 export const Firer = {
@@ -125,7 +127,7 @@ async function checkFriendRequest(
     throw new Error('no recommendInfo')
   }
 
-  const contact   = PuppeteerContact.load(recommendInfo.UserName)
+  const contact   = Contact.load(recommendInfo.UserName)
   contact.puppet  = this
 
   const hello = recommendInfo.Content
@@ -251,8 +253,8 @@ async function checkRoomJoin(
                               inviter,
           )
 
-  let inviterContact: PuppeteerContact | null = null
-  let inviteeContactList: PuppeteerContact[] = []
+  let inviterContact: Contact | null = null
+  let inviteeContactList: Contact[] = []
 
   try {
     if (inviter === 'You' || inviter === '你' || inviter === 'you') {
@@ -273,7 +275,7 @@ async function checkRoomJoin(
       let inviteeListAllDone = true
 
       for (const i in inviteeList) {
-        const loaded = inviteeContactList[i] instanceof PuppeteerContact
+        const loaded = inviteeContactList[i] instanceof Contact
 
         if (!loaded) {
           const c = room.member(inviteeList[i])
@@ -292,7 +294,7 @@ async function checkRoomJoin(
           }
         }
 
-        if (inviteeContactList[i] instanceof PuppeteerContact) {
+        if (inviteeContactList[i] instanceof Contact) {
           const isReady = inviteeContactList[i].isReady()
           if (!isReady) {
             log.warn('PuppetPuppeteerFirer', 'fireRoomJoin() retryPromise() isReady false for contact %s', inviteeContactList[i].id)
@@ -310,7 +312,7 @@ async function checkRoomJoin(
 
       if (inviteeListAllDone && inviterContact) {
         log.silly('PuppetPuppeteerFirer', 'fireRoomJoin() resolve() inviteeContactList: %s, inviterContact: %s',
-                                    inviteeContactList.map((c: PuppeteerContact) => c.name()).join(','),
+                                    inviteeContactList.map((c: Contact) => c.name()).join(','),
                                     inviterContact.name(),
                 )
         return true
@@ -322,7 +324,7 @@ async function checkRoomJoin(
 
     }).catch((e: Error) => {
       log.warn('PuppetPuppeteerFirer', 'fireRoomJoin() reject() inviteeContactList: %s, inviterContact: %s, error %s',
-                                 inviteeContactList.map((c: PuppeteerContact) => c.name()).join(','),
+                                 inviteeContactList.map((c: Contact) => c.name()).join(','),
                                  inviter,
                                  e.message,
       )
@@ -332,11 +334,11 @@ async function checkRoomJoin(
       log.error('PuppetPuppeteerFirer', 'firmRoomJoin() inivter not found for %s , `room-join` & `join` event will not fired', inviter)
       return false
     }
-    if (!inviteeContactList.every(c => c instanceof PuppeteerContact)) {
+    if (!inviteeContactList.every(c => c instanceof Contact)) {
       log.error('PuppetPuppeteerFirer', 'firmRoomJoin() inviteeList not all found for %s , only part of them will in the `room-join` or `join` event',
                                   inviteeContactList.join(','),
               )
-      inviteeContactList = inviteeContactList.filter(c => (c instanceof PuppeteerContact))
+      inviteeContactList = inviteeContactList.filter(c => (c instanceof Contact))
       if (inviteeContactList.length < 1) {
         log.error('PuppetPuppeteerFirer', 'firmRoomJoin() inviteeList empty.  `room-join` & `join` event will not fired')
         return false
@@ -401,7 +403,7 @@ async function checkRoomLeave(
    * FIXME: leaver maybe is a list
    * @lijiarui: I have checked, leaver will never be a list. If the bot remove 2 leavers at the same time, it will be 2 sys message, instead of 1 sys message contains 2 leavers.
    */
-  let leaverContact: PuppeteerContact | null, removerContact: PuppeteerContact | null
+  let leaverContact: Contact | null, removerContact: Contact | null
   if (leaver === this.userSelf().id) {
     leaverContact = this.userSelf()
 
@@ -414,7 +416,7 @@ async function checkRoomLeave(
     // }
 
   } else {
-    removerContact = PuppeteerContact.load(this.userSelf().id)
+    removerContact = Contact.load(this.userSelf().id)
     removerContact.puppet = m.puppet
 
     // not sure which is better
@@ -478,7 +480,7 @@ async function checkRoomTopic(
 
   const oldTopic = room.topic()
 
-  let changerContact: PuppeteerContact | null
+  let changerContact: Contact | null
   if (/^You$/.test(changer) || /^你$/.test(changer)) {
     changerContact = this.userSelf()
     changerContact.puppet = m.puppet

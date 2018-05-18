@@ -26,8 +26,8 @@ import {
   Raven,
   Sayable,
   log,
-}                       from '../config'
-import PuppetAccessory  from '../puppet-accessory'
+}                       from './config'
+import PuppetAccessory  from './puppet-accessory'
 
 import Contact          from './contact'
 import Message          from './message'

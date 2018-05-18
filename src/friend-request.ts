@@ -21,13 +21,13 @@
  /* tslint:disable:no-var-requires */
 const retryPromise  = require('retry-promise').default
 
-import PuppetAccessory  from '../puppet-accessory'
+import PuppetAccessory  from './puppet-accessory'
 
 import Contact          from './contact'
 
 import {
   log,
-}                       from '../config'
+}                       from './config'
 
 export enum FriendRequestType {
   Unknown = 0,

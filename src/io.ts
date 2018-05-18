@@ -21,8 +21,11 @@ import StateSwitch    from 'state-switch'
 
 import {
   Message,
+}             from './message'
+
+import {
   ScanData,
-}           from './puppet/'
+}             from './puppet/'
 
 import {
   config,

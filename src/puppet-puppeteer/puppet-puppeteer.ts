@@ -63,19 +63,19 @@ import {
   ContactPayload,
   ContactQueryFilter,
   Gender,
-}                             from '../puppet/contact'
+}                             from '../contact'
 import {
   Message,
   MessageDirection,
   MessagePayload,
   MessageType,
-}                             from '../puppet/message'
+}                             from '../message'
 import {
   Room,
   RoomMemberQueryFilter,
   RoomPayload,
   RoomQueryFilter,
-}                             from '../puppet/room'
+}                             from '../room'
 // import {
 //   FriendRequest,
 // }                             from '../puppet/friend-request'

@@ -48,10 +48,18 @@ import {
 
 import {
   Contact,
+}                       from './contact'
+import {
   FriendRequest,
+}                       from './friend-request'
+import {
   Message,
-  Puppet,
+}                       from './message'
+import {
   Room,
+}                       from './room'
+import {
+  Puppet,
 }                       from './puppet/'
 
 export const WECHAT_EVENT_DICT = {

@@ -52,21 +52,19 @@ import {
   Contact,
   ContactPayload,
   ContactQueryFilter,
-}                       from './contact'
+}                       from '../contact'
 import {
   FriendRequest,
-}                       from './friend-request'
+}                       from '../friend-request'
 import {
   Message,
-}                       from './message'
-import {
   MessagePayload,
-}                       from './message.type'
+}                       from '../message'
 import {
   Room,
   RoomPayload,
   RoomQueryFilter,
-}                       from './room'
+}                       from '../room'
 
 // XXX: Name??? ScanInfo? ScanEvent? ScanXXX?
 export interface ScanData {

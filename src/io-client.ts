@@ -24,7 +24,7 @@ import * as express from 'express'
 // import Brolog       from 'brolog'
 import StateSwitch  from 'state-switch'
 
-import { Message }      from './puppet/'
+import { Message }      from './message'
 
 import {
   config,

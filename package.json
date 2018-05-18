@@ -24,7 +24,7 @@
     "lint": "npm run check-node-version && npm run lint:ts && npm run lint:es && npm run lint:sh",
     "lint:es": "eslint \"{bin,examples,scripts,src,tests}/**/*.js\" --ignore-pattern=\"tests/fixtures/**\"",
     "lint:md": "markdownlint README.md",
-    "lint:ts": "tslint --project tsconfig.json --exclude \"tests/fixtures/**\" && tsc --noEmit",
+    "lint:ts": "tslint --project tsconfig.json && tsc --noEmit",
     "lint:sh": "bash -n bin/*.sh",
     "sloc": "sloc bin examples scripts src tests --details --format cli-table --keys total,source,comment && sloc bin examples scripts src tests",
     "ts-node": "ts-node",

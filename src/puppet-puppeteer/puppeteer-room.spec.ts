@@ -30,9 +30,9 @@ import Profile    from '../profile'
 import Wechaty    from '../wechaty'
 
 import PuppetPuppeteer  from './puppet-puppeteer'
-import Contact from '../puppet/contact'
-import Message from '../puppet/message'
-import Room    from '../puppet/room'
+import Contact from '../contact'
+import Message from '../message'
+import Room    from '../room'
 
 // tslint:disable-next-line:variable-name
 const MyRoom = cloneClass(Room)

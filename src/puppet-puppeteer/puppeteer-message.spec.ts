@@ -35,14 +35,14 @@ import Wechaty    from '../wechaty'
 
 import {
   Contact,
-}                   from '../puppet/contact'
+}                   from '../contact'
 import {
   Message,
   MessagePayload,
- }                  from '../puppet/message'
+ }                  from '../message'
 import {
   Room,
-}                   from '../puppet/room'
+}                   from '../room'
 
 import PuppetPuppeteer  from './puppet-puppeteer'
 

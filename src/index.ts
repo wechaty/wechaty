@@ -14,10 +14,25 @@ import {
 
 export {
   Contact,
+  ContactPayload,
+  ContactQueryFilter,
+  ContactType,
+  Gender,
+}                         from './contact'
+export {
   FriendRequest,
+  FriendRequestPayload,
+  FriendRequestType,
+}                         from './friend-request'
+export {
   Message,
+}                         from './message'
+export {
   Room,
-}                     from './puppet/'
+  RoomMemberQueryFilter,
+  RoomPayload,
+  RoomQueryFilter,
+}                         from './room'
 
 export {
   MediaMessage,

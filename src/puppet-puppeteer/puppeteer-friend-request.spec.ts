@@ -36,9 +36,9 @@ import {
 //   PuppetMock,
 // }                     from '../puppet-mock/'
 
-import Contact       from '../puppet/contact'
-import Message       from '../puppet/message'
-import FriendRequest from '../puppet/friend-request'
+import Contact       from '../contact'
+import Message       from '../message'
+import FriendRequest from '../friend-request'
 import { PuppetPuppeteer } from './puppet-puppeteer'
 
 test('PuppetPuppeteerFriendRequest.receive smoke testing', async t => {

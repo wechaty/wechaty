@@ -27,8 +27,8 @@ import {
   ScanData,
 }                 from '../puppet/'
 
-import Contact from '../puppet/contact'
-import Message from '../puppet/message'
+import { Contact } from '../contact'
+import { Message } from '../message'
 
 import Firer            from './firer'
 import PuppetPuppeteer  from './puppet-puppeteer'

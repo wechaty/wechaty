@@ -30,7 +30,7 @@ import {
 import Profile from '../profile'
 import Wechaty from '../wechaty'
 
-import Contact from '../puppet/contact'
+import Contact from '../contact'
 
 import PuppetPuppeteer  from './puppet-puppeteer'
 
