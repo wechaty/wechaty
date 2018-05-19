@@ -19,7 +19,7 @@
 // import * as request from 'request'
 // import * as bl      from 'bl'
 
-import cloneClass   from 'clone-class'
+// import cloneClass   from 'clone-class'
 import {
   FileBox,
 }                   from 'file-box'
