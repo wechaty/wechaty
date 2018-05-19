@@ -34,9 +34,9 @@ import PuppetPuppeteer        from './puppet-puppeteer'
 import {
   Contact,
 }                       from '../contact'
-import {
-  FriendRequest,
-}                       from '../friend-request'
+// import {
+//   FriendRequest,
+// }                       from '../friend-request'
 import {
   Message,
 }                       from '../message'

@@ -24,7 +24,7 @@ import * as semver  from 'semver'
 import {
   // Constructor,
   cloneClass,
-  instanceToClass,
+  // instanceToClass,
 }                   from 'clone-class'
 import {
   callerResolve,
