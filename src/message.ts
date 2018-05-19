@@ -56,7 +56,9 @@ export class Message extends PuppetAccessory implements Sayable {
    */
 
   // tslint:disable-next-line:variable-name
-  public static readonly Type = MessageType
+  public static readonly Type      = MessageType
+  // tslint:disable-next-line:variable-name
+  public static readonly Direction = MessageDirection
 
   /**
    * @todo add function
@@ -95,7 +97,13 @@ export class Message extends PuppetAccessory implements Sayable {
   ): Message {
     log.verbose('Message', 'static createMobileOriginated()',
                 )
-    const msg = new Message(cuid())
+    /**
+     * Must NOT use `Message` at here
+     * MUST use `this` at here
+     *
+     * because the class will be `cloneClass`-ed
+     */
+    const msg = new this(cuid())
 
     const direction = MessageDirection.MO
     const to        = options.to
@@ -166,7 +174,13 @@ export class Message extends PuppetAccessory implements Sayable {
     log.verbose('Message', 'static createMobileTerminated(%s)',
                             id,
                 )
-    const msg = new Message(id)
+    /**
+     * Must NOT use `Message` at here
+     * MUST use `this` at here
+     *
+     * because the class will be `cloneClass`-ed
+     */
+    const msg = new this(id)
     msg.direction = MessageDirection.MT
 
     return msg
@@ -191,8 +205,10 @@ export class Message extends PuppetAccessory implements Sayable {
                           id || '',
                           this.constructor.name,
               )
-    super()
     log.silly('Message', 'constructor()')
+
+    // default set to MT because there's a id param
+    this.direction = MessageDirection.MT
 }
 
   /**

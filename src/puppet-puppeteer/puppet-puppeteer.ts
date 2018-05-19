@@ -80,23 +80,11 @@ import {
 //   FriendRequest,
 // }                             from '../puppet/friend-request'
 
-export type PuppetFoodType = 'scan' | 'ding'
-export type ScanFoodType   = 'scan' | 'login' | 'logout'
-
-export interface PuppeteerRoomRawMember {
-  UserName:     string,
-  NickName:     string,
-  DisplayName:  string,
-}
-
-export interface PuppeteerRoomRawPayload {
-  UserName:         string,
-  EncryChatRoomId:  string,
-  NickName:         string,
-  OwnerUin:         number,
-  ChatRoomOwner:    string,
-  MemberList?:      PuppeteerRoomRawMember[],
-}
+import {
+  ScanFoodType,
+  PuppeteerRoomRawMember,
+  PuppeteerRoomRawPayload,
+}                             from './puppet-puppeteer.type'
 
 export class PuppetPuppeteer extends Puppet {
   public bridge   : Bridge
@@ -313,22 +301,14 @@ export class PuppetPuppeteer extends Puppet {
     return this.bridge
   }
 
-  public async messagePayload(id: string): Promise<MessagePayload> {
-    log.verbose('PuppetPuppeteer', 'messagePayload(%s)', id)
-
-    const rawPayload = await this.messageRawPayload(id)
-    const payload    = this.messageParseRawPayload(rawPayload)
-
-    return payload
+  public async messageRawPayload(id: string): Promise <WebMessageRawPayload> {
+    const rawPayload = await this.bridge.getMessage(id)
+    return rawPayload
   }
 
-  private messageRawPayload(id: string) {
-    return this.bridge.getMessage(id)
-  }
-
-  private messageParseRawPayload(
+  public async messageRawPayloadParser(
     rawPayload: WebMessageRawPayload,
-  ): MessagePayload {
+  ): Promise<MessagePayload> {
     const from: Contact     = Contact.load(rawPayload.MMActualSender)  // MMPeerUserName
     const text: string      = rawPayload.MMActualContent               // Content has @id prefix added by wx
     const date: Date        = new Date(rawPayload.MMDisplayTime)       // Javascript timestamp of milliseconds
@@ -563,9 +543,22 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  private contactParseRawPayload(
+  public async contactRawPayload(id: string): Promise<WebContactRawPayload> {
+    log.verbose('PuppetPuppeteer', 'contactRawPayload(%s)', id)
+    try {
+      const rawPayload = await this.bridge.getContact(id) as WebContactRawPayload
+      return rawPayload
+    } catch (e) {
+      log.error('PuppetPuppeteer', 'contactRawPayload(%d) exception: %s', id, e.message)
+      Raven.captureException(e)
+      throw e
+    }
+
+  }
+
+  public async contactRawPayloadParser(
     rawPayload: WebContactRawPayload,
-  ): ContactPayload {
+  ): Promise<ContactPayload> {
     log.verbose('PuppetPuppeteer', 'contactParseRawPayload(Object.keys(payload).length=%d)',
                                     Object.keys(rawPayload).length,
                 )
@@ -613,23 +606,10 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  private async contactRawPayload(id: string): Promise<WebContactRawPayload> {
-    log.verbose('PuppetPuppeteer', 'contactRawPayload(%s)', id)
-    try {
-      const rawPayload = await this.bridge.getContact(id) as WebContactRawPayload
-      return rawPayload
-    } catch (e) {
-      log.error('PuppetPuppeteer', 'contactRawPayload(%d) exception: %s', id, e.message)
-      Raven.captureException(e)
-      throw e
-    }
-
-  }
-
   public async contactPayload(id: string): Promise<ContactPayload> {
     log.verbose('PuppetPuppeteer', 'contactPayload(%s)', id)
     const rawPayload  = await this.contactRawPayload(id)
-    const payload     = this.contactParseRawPayload(rawPayload)
+    const payload     = await this.contactRawPayloadParser(rawPayload)
     return payload
   }
 
@@ -768,7 +748,7 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  private async roomRawPayload(id: string): Promise<PuppeteerRoomRawPayload> {
+  public async roomRawPayload(id: string): Promise<PuppeteerRoomRawPayload> {
     log.verbose('PuppetPuppeteer', 'roomRawPayload(%s)', id)
 
     try {
@@ -814,17 +794,10 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async roomPayload(id: string): Promise<RoomPayload> {
-    log.verbose('PuppetPuppeteer', 'roomPayload(%s)', id)
-
-    const rawPayload  = await this.roomRawPayload(id)
-    const payload     = await this.roomParseRawPayload(rawPayload)
-
-    return payload
-  }
-
-  private async roomParseRawPayload(rawPayload: PuppeteerRoomRawPayload): Promise<RoomPayload> {
-    log.verbose('PuppetPuppeteer', 'roomParseRawPayload(%s)', rawPayload)
+  public async roomRawPayloadParser(
+    rawPayload: PuppeteerRoomRawPayload,
+  ): Promise<RoomPayload> {
+    log.verbose('PuppetPuppeteer', 'roomRawPayloadParser(%s)', rawPayload)
 
     // console.log(rawPayload)
     const memberList = (rawPayload.MemberList || [])
@@ -1664,4 +1637,7 @@ export class PuppetPuppeteer extends Puppet {
 
 }
 
+export {
+  PuppeteerRoomRawPayload,
+}
 export default PuppetPuppeteer

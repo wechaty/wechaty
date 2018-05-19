@@ -34,9 +34,9 @@ import {
   Watchdog,
   WatchdogFood,
 }                       from 'watchdog'
-import {
-  Constructor,
-}                       from 'clone-class'
+// import {
+//   Constructor,
+// }                       from 'clone-class'
 
 import {
   WECHATY_EVENT_DICT,
@@ -80,17 +80,17 @@ export const PUPPET_EVENT_DICT = {
 
 export type PuppetEventName = keyof typeof PUPPET_EVENT_DICT
 
-export type PuppetContact        = typeof Contact       & Constructor<Contact>
-export type PuppetFriendRequest  = typeof FriendRequest & Constructor<FriendRequest>
-export type PuppetMessage        = typeof Message       & Constructor<Message>
-export type PuppetRoom           = typeof Room          & Constructor<Room>
+// export type PuppetContact        = typeof Contact       & Constructor<Contact>
+// export type PuppetFriendRequest  = typeof FriendRequest & Constructor<FriendRequest>
+// export type PuppetMessage        = typeof Message       & Constructor<Message>
+// export type PuppetRoom           = typeof Room          & Constructor<Room>
 
-export interface PuppetClasses {
-  Contact:        PuppetContact,
-  FriendRequest:  PuppetFriendRequest,
-  Message:        PuppetMessage,
-  Room:           PuppetRoom,
-}
+// export interface PuppetClasses {
+//   Contact:        PuppetContact,
+//   FriendRequest:  PuppetFriendRequest,
+//   Message:        PuppetMessage,
+//   Room:           PuppetRoom,
+// }
 
 export interface PuppetOptions {
   profile: Profile,
@@ -102,7 +102,7 @@ export interface PuppetOptions {
  */
 export abstract class Puppet extends EventEmitter implements Sayable {
   public readonly state   : StateSwitch
-  public readonly classes : PuppetClasses
+  // public readonly classes : PuppetClasses
 
   protected readonly watchdog: Watchdog
 
@@ -294,8 +294,30 @@ export abstract class Puppet extends EventEmitter implements Sayable {
    *
    */
   public abstract async messageForward(message: Message, to: Contact | Room) : Promise<void>
-  public abstract async messagePayload(id: string)                           : Promise<MessagePayload>
   public abstract async messageSend(message: Message)                        : Promise<void>
+  public abstract async messageRawPayload(id: string)                        : Promise<any>
+  public abstract async messageRawPayloadParser(rawPayload: any)             : Promise<MessagePayload>
+
+  public async messagePayload(id: string): Promise<MessagePayload> {
+    log.verbose('Puppet', 'messagePayload(%s)', id)
+    const rawPayload = await this.messageRawPayload(id)
+    const payload    = await this.messageRawPayloadParser(rawPayload)
+
+    /**
+     * Make sure all the contacts & room have already been ready
+     */
+    if (payload.from && !payload.from.isReady()) {
+      await payload.from.ready()
+    }
+    if (payload.to && !payload.to.isReady()) {
+      await payload.to.ready()
+    }
+    if (payload.room && !payload.room.isReady()) {
+      await payload.room.ready()
+    }
+
+    return payload
+  }
 
   /**
    *
@@ -310,28 +332,41 @@ export abstract class Puppet extends EventEmitter implements Sayable {
    * Room
    *
    */
-  public abstract async roomAdd(room: Room, contact: Contact)               : Promise<void>
-  public abstract async roomCreate(contactList: Contact[], topic?: string)  : Promise<Room>
-  public abstract async roomDel(room: Room, contact: Contact)               : Promise<void>
-  public abstract async roomFindAll(query?: RoomQueryFilter)                : Promise<Room[]>
-  public abstract async roomPayload(id: string)                             : Promise<RoomPayload>
-  public abstract async roomQuit(room: Room)                                : Promise<void>
-  public abstract async roomTopic(room: Room, topic?: string)               : Promise<string | void>
+  public abstract async roomAdd(room: Room, contact: Contact)              : Promise<void>
+  public abstract async roomCreate(contactList: Contact[], topic?: string) : Promise<Room>
+  public abstract async roomDel(room: Room, contact: Contact)              : Promise<void>
+  public abstract async roomFindAll(query?: RoomQueryFilter)               : Promise<Room[]>
+  public abstract async roomQuit(room: Room)                               : Promise<void>
+  public abstract async roomTopic(room: Room, topic?: string)              : Promise<string | void>
+  public abstract async roomRawPayload(id: string)                         : Promise<any>
+  public abstract async roomRawPayloadParser(rawPayload: any)              : Promise<RoomPayload>
+
+  public async roomPayload(id: string): Promise<RoomPayload> {
+    log.verbose('Puppet', 'roomPayload(%s)', id)
+    const rawPayload = await this.roomPayload(id)
+    const payload    = await this.roomRawPayloadParser(rawPayload)
+    return payload
+  }
 
   /**
    *
    * Contact
    *
    */
-  public abstract async contactAlias(contact: Contact)                      : Promise<string>
-  public abstract async contactAlias(contact: Contact, alias: string | null): Promise<void>
-  public abstract async contactAlias(contact: Contact, alias?: string|null) : Promise<string | void>
+  public abstract async contactAlias(contact: Contact)                       : Promise<string>
+  public abstract async contactAlias(contact: Contact, alias: string | null) : Promise<void>
+  public abstract async contactAlias(contact: Contact, alias?: string|null)  : Promise<string | void>
+  public abstract async contactAvatar(contact: Contact)                      : Promise<FileBox>
+  public abstract async contactFindAll(query?: ContactQueryFilter)           : Promise<Contact[]>
+  public abstract async contactRawPayload(id: string)                        : Promise<any>
+  public abstract async contactRawPayloadParser(rawPayload: any)             : Promise<ContactPayload>
 
-  // TODO: change the return type from NodeJS.ReadableStream to File(vinyl)
-  public abstract async contactAvatar(contact: Contact)                     : Promise<FileBox>
-  public abstract async contactPayload(id: string)                    : Promise<ContactPayload>
-
-  public abstract async contactFindAll(query?: ContactQueryFilter)          : Promise<Contact[]>
+  public async contactPayload(id: string): Promise<ContactPayload> {
+    log.verbose('Puppet', 'contactPayload(%s)', id)
+    const rawPayload = await this.contactRawPayload(id)
+    const payload    = await this.contactRawPayloadParser(rawPayload)
+    return payload
+  }
 
   /**
    *

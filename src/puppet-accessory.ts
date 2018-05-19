@@ -40,7 +40,9 @@ export abstract class PuppetAccessory extends EventEmitter {
       return this._puppet
     }
 
-    throw new Error('static puppet not found')
+    throw new Error('static puppet not found for '
+                      + this[NAME] || this.name,
+                    )
   }
 
   /**

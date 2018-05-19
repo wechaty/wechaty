@@ -54,6 +54,22 @@ import {
 export type PuppetFoodType = 'scan' | 'ding'
 export type ScanFoodType   = 'scan' | 'login' | 'logout'
 
+export interface MockContactRawPayload {
+  name : string,
+}
+
+export interface MockMessageRawPayload {
+  from : string,
+  to   : string,
+  text : string
+}
+
+export interface MockRoomRawPayload {
+  topic: string,
+  memberList: string[],
+  owner: string,
+}
+
 export class PuppetMock extends Puppet {
 
   constructor(
@@ -147,14 +163,22 @@ export class PuppetMock extends Puppet {
     return FileBox.fromLocal(WECHATY_ICON_PNG)
   }
 
-  public async contactPayload(id: string): Promise<ContactPayload> {
-    log.verbose('PuppetMock', 'contactPayload(%s)', id)
+  public async contactRawPayload(id: string): Promise<MockContactRawPayload> {
+    log.verbose('PuppetMock', 'contactRawPayload(%s)', id)
+    const rawPayload: MockContactRawPayload = {
+      name : 'mock name',
+    }
+    return rawPayload
+  }
 
-    return {
+  public async contactRawPayloadParser(rawPayload: MockContactRawPayload): Promise<ContactPayload> {
+    log.verbose('PuppetMock', 'contactRawPayloadParser(%s)', rawPayload)
+
+    const payload: ContactPayload = {
       gender: Gender.Unknown,
       type:   ContactType.Unknown,
     }
-
+    return payload
   }
 
   /**
@@ -162,8 +186,18 @@ export class PuppetMock extends Puppet {
    * Message
    *
    */
-  public async messagePayload(id: string): Promise<MessagePayload> {
-    log.verbose('PuppetMock', 'messagePayload(%s)', id)
+  public async messageRawPayload(id: string): Promise<MockMessageRawPayload> {
+    log.verbose('PuppetMock', 'messageRawPayload(%s)', id)
+    const rawPayload: MockMessageRawPayload = {
+      from : 'from_id',
+      text : 'mock message text',
+      to   : 'to_id',
+    }
+    return rawPayload
+  }
+
+  public async messageRawPayloadParser(rawPayload: MockMessageRawPayload): Promise<MessagePayload> {
+    log.verbose('PuppetMock', 'messagePayload(%s)', rawPayload)
     const payload: MessagePayload = {
       date      : new Date(),
       direction : MessageDirection.MT,
@@ -191,16 +225,29 @@ export class PuppetMock extends Puppet {
    * Room
    *
    */
-  public async roomPayload(id: string): Promise<RoomPayload> {
-    log.verbose('PuppetMock', 'roomPayload(%s)', id)
+  public async roomRawPayload(id: string): Promise<MockRoomRawPayload> {
+    log.verbose('PuppetMock', 'roomRawPayload(%s)', id)
 
-    return {
+    const rawPayload: MockRoomRawPayload = {
+      owner      : 'mock_room_owner_id',
+      topic      : 'mock topic',
+      memberList : [],
+    }
+    return rawPayload
+  }
+
+  public async roomRawPayloadParser(rawPayload: MockRoomRawPayload): Promise<RoomPayload> {
+    log.verbose('PuppetMock', 'roomRawPayloadParser(%s)', rawPayload)
+
+    const payload: RoomPayload = {
       topic          : 'mock topic',
       memberList     : [],
       nameMap        : {} as any,
       roomAliasMap   : {} as any,
       contactAliasMap: {} as any,
     }
+
+    return payload
   }
 
   public async roomFindAll(

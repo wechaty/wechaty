@@ -43,10 +43,10 @@ test('Contact smoke testing', async t => {
 
   const sandbox = sinon.createSandbox()
 
-  function mockContactPayload(contact: Contact) {
-    log.verbose('PuppeteerContactTest', 'mockContactPayload(%s)', contact.id)
+  function mockContactPayload(id: string) {
+    log.verbose('PuppeteerContactTest', 'mockContactPayload(%s)', id)
     return new Promise<any>(resolve => {
-      if (contact.id !== UserName) return resolve({})
+      if (id !== UserName) return resolve({})
       setImmediate(() => resolve({
         UserName:   UserName,
         NickName:   NickName,
