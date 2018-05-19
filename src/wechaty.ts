@@ -85,8 +85,8 @@ export type WechatEventName   = keyof typeof WECHAT_EVENT_DICT
 export type WechatyEventName  = keyof typeof WECHATY_EVENT_DICT
 
 export interface WechatyOptions {
-  puppet  : PuppetName | Puppet,
-  profile : null | string,
+  puppet?  : PuppetName | Puppet,
+  profile? : null | string,
 }
 
 /**
@@ -104,7 +104,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
    * singleton globalInstance
    * @private
    */
-  private static globalInstance: Wechaty
+  private static singletonInstance: Wechaty
 
   private profile: Profile
 
@@ -144,20 +144,20 @@ export class Wechaty extends PuppetAccessory implements Sayable {
   public static instance(
     options?: WechatyOptions,
   ) {
-    if (options && this.globalInstance) {
+    if (options && this.singletonInstance) {
       throw new Error('there has already a instance. no params will be allowed any more')
     }
-    if (!this.globalInstance) {
-      this.globalInstance = new Wechaty(options)
+    if (!this.singletonInstance) {
+      this.singletonInstance = new Wechaty(options)
     }
-    return this.globalInstance
+    return this.singletonInstance
   }
 
   /**
    * @public
    */
   constructor(
-    private options: WechatyOptions = {} as any,
+    private options: WechatyOptions = {},
   ) {
     super()
     log.verbose('Wechaty', 'contructor()')
@@ -388,6 +388,10 @@ export class Wechaty extends PuppetAccessory implements Sayable {
    */
   public initPuppet(): void {
     log.verbose('Wechaty', 'initPuppet()')
+
+    if (!this.options.puppet) {
+      throw new Error('no puppet')
+    }
 
     const puppet = this.initPuppetResolver(this.options.puppet)
 
