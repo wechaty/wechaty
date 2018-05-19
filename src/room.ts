@@ -19,7 +19,12 @@
  */
 import * as util from 'util'
 
-import { FileBox } from 'file-box'
+import {
+  FileBox,
+}                   from 'file-box'
+import {
+  instanceToClass,
+}                   from 'clone-class'
 
 import {
   // config,
@@ -197,6 +202,18 @@ export class Room extends PuppetAccessory implements Sayable {
   ) {
     super()
     log.silly('Room', `constructor(${id})`)
+
+    // tslint:disable-next-line:variable-name
+    const MyClass = instanceToClass(this, Room)
+
+    if (MyClass === Room) {
+      throw new Error('Room class can not be instanciated directly! See: https://github.com/Chatie/wechaty/issues/1217')
+    }
+
+    if (!this.puppet) {
+      throw new Error('Room class can not be instanciated without a puppet!')
+    }
+
   }
 
   /**
@@ -295,13 +312,13 @@ export class Room extends PuppetAccessory implements Sayable {
       } else {
         text = textOrFile
       }
-      msg = Message.createMO({
+      msg = this.puppet.Message.createMO({
         room : this,
         to   : replyToList[0],   // FIXME: is this right?
         text,
       })
     } else if (textOrFile instanceof FileBox) {
-      msg = Message.createMO({
+      msg = this.puppet.Message.createMO({
         room: this,
         to: replyToList[0],
         file: textOrFile,
@@ -310,7 +327,6 @@ export class Room extends PuppetAccessory implements Sayable {
       throw new Error('arg unsupported')
     }
 
-    msg.puppet = this.puppet
     await this.puppet.messageSend(msg)
   }
 
@@ -652,11 +668,7 @@ export class Room extends PuppetAccessory implements Sayable {
     log.silly('Room', 'memberAll() check %s from %s: %s', filterValue, filterKey, JSON.stringify(filterMap))
 
     if (idList.length) {
-      return idList.map(id => {
-        const c = Contact.load(id)
-        c.puppet = this.puppet
-        return c
-      })
+      return idList.map(id => this.puppet.Contact.load(id))
     } else {
       return []
     }

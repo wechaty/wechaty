@@ -25,7 +25,6 @@ import {
 import {
   Message,
   MessagePayload,
-  MessageDirection,
 }                       from '../message'
 import {
   Contact,
@@ -93,8 +92,8 @@ export class PuppetMock extends Puppet {
     // await some tasks...
     this.state.on(true)
 
-    const user = Contact.load('logined_user_id')
-    const msg  = Message.createMT('mock_id')
+    const user = this.Contact.load('logined_user_id')
+    const msg  = this.Message.createMT('mock_id')
 
     this.user = user
     this.emit('login', user)
@@ -200,11 +199,11 @@ export class PuppetMock extends Puppet {
     log.verbose('PuppetMock', 'messagePayload(%s)', rawPayload)
     const payload: MessagePayload = {
       date      : new Date(),
-      direction : MessageDirection.MT,
-      from      : Contact.load('xxx'),
+      direction : this.Message.Direction.MT,
+      from      : this.Contact.load('xxx'),
       text      : 'mock message text',
       to        : this.userSelf(),
-      type      : Message.Type.Text,
+      type      : this.Message.Type.Text,
     }
     return payload
   }
@@ -287,8 +286,7 @@ export class PuppetMock extends Puppet {
     if (!contactList || ! contactList.map) {
       throw new Error('contactList not found')
     }
-    const r = Room.load('mock room id') as Room
-    r.puppet = this
+    const r = this.Room.load('mock room id') as Room
     return r
   }
 

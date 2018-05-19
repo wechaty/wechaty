@@ -85,8 +85,8 @@ export type WechatEventName   = keyof typeof WECHAT_EVENT_DICT
 export type WechatyEventName  = keyof typeof WECHATY_EVENT_DICT
 
 export interface WechatyOptions {
-  puppet?:  PuppetName | Puppet,
-  profile?: string | null,
+  puppet  : PuppetName | Puppet,
+  profile : null | string,
 }
 
 /**
@@ -118,16 +118,16 @@ export class Wechaty extends PuppetAccessory implements Sayable {
    * the cuid
    * @private
    */
-  public readonly cuid:        string
+  public readonly cuid : string
 
   // tslint:disable-next-line:variable-name
-  public Contact        : typeof Contact
+  public readonly Contact       : typeof Contact
   // tslint:disable-next-line:variable-name
-  public FriendRequest  : typeof FriendRequest
+  public readonly FriendRequest : typeof FriendRequest
   // tslint:disable-next-line:variable-name
-  public Message        : typeof Message
+  public readonly Message       : typeof Message
   // tslint:disable-next-line:variable-name
-  public Room           : typeof Room
+  public readonly Room          : typeof Room
 
   /**
    * get the singleton instance of Wechaty
@@ -157,7 +157,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
    * @public
    */
   constructor(
-    private options: WechatyOptions = {},
+    private options: WechatyOptions = {} as any,
   ) {
     super()
     log.verbose('Wechaty', 'contructor()')
@@ -171,6 +171,19 @@ export class Wechaty extends PuppetAccessory implements Sayable {
     this.profile = new Profile(options.profile)
 
     this.cuid = cuid()
+
+    /**
+     * Clone Classes for this bot and attach the `puppet` to the Class
+     *
+     *   https://stackoverflow.com/questions/36886082/abstract-constructor-type-in-typescript
+     *   https://github.com/Microsoft/TypeScript/issues/5843#issuecomment-290972055
+     *   https://github.com/Microsoft/TypeScript/issues/19197
+     */
+    // TODO: make Message & Room constructor private???
+    this.Contact        = cloneClass(Contact)
+    this.FriendRequest  = cloneClass(FriendRequest)
+    this.Message        = cloneClass(Message)
+    this.Room           = cloneClass(Room)
   }
 
   /**
@@ -375,83 +388,72 @@ export class Wechaty extends PuppetAccessory implements Sayable {
    */
   public initPuppet(): void {
     log.verbose('Wechaty', 'initPuppet()')
-    let puppet: Puppet
 
-    /**
-     * 1. Init the Puppet
-     */
-    if (typeof this.options.puppet === 'string') {
+    const puppet = this.initPuppetResolver(this.options.puppet)
+
+    if (!this.initPuppetSemverSatisfy(
+      puppet.wechatyVersionRange(),
+    )) {
+      throw new Error(`The Puppet Plugin(${puppet.constructor.name}) `
+          + `requires a version range(${puppet.wechatyVersionRange()}) `
+          + `that is not satisfying the Wechaty version: ${this.version()}.`,
+        )
+    }
+
+    this.initPuppetEventBridge(puppet)
+    this.initPuppetAccessory(puppet)
+  }
+
+  /**
+   * Init the Puppet
+   */
+  private initPuppetResolver(puppet: PuppetName | Puppet): Puppet {
+    log.verbose('Wechaty', 'initPuppetResolver(%s)', puppet)
+
+    if (typeof puppet === 'string') {
       // tslint:disable-next-line:variable-name
-      const MyPuppet = PUPPET_DICT[this.options.puppet]
+      const MyPuppet = PUPPET_DICT[puppet]
+      if (!MyPuppet) {
+        throw new Error('no such puppet: ' + puppet)
+      }
+
       const options = {
         profile:  this.profile,
         wechaty:  this,
       }
 
-      puppet = new MyPuppet(options)
+      return new MyPuppet(options)
 
-    } else if (this.options.puppet instanceof Puppet) {
-      puppet = this.options.puppet
+    } else if (puppet instanceof Puppet) {
+      return puppet
     } else {
       throw new Error('unsupported options.puppet!')
     }
+  }
 
-    /**
-     * 2. Plugin Version Range Check
-     */
-    if (!semver.satisfies(
+  /**
+   * Plugin Version Range Check
+   */
+  private initPuppetSemverSatisfy(versionRange: string) {
+    log.verbose('Wechaty', 'initPuppet(%s)', versionRange)
+    return semver.satisfies(
       this.version(true),
-      puppet.wechatyVersionRange(),
-    )) {
-      throw new Error(`The Puppet Plugin(${puppet.constructor.name}) `
-                    + `requires a version range(${puppet.wechatyVersionRange()}) `
-                    + `that is not satisfying the Wechaty version: ${this.version()}.`)
-    }
+      versionRange,
+    )
+  }
 
+  private initPuppetEventBridge(puppet: Puppet) {
     for (const event of Object.keys(WECHATY_EVENT_DICT)) {
-      log.verbose('Wechaty', 'initPuppet() puppet.on(%s) registered', event)
+      log.verbose('Wechaty', 'initPuppetEventBridge() puppet.on(%s) registered', event)
       /// e as any ??? Maybe this is a bug of TypeScript v2.5.3
       puppet.on(event as any, (...args: any[]) => {
         this.emit(event, ...args)
       })
     }
+  }
 
-    /**
-     * When `this` is the global instance of Wechaty (`Wechaty.instance()`)
-     * so we can keep using `Contact.find()` and `Room.find()`
-     *
-     * This workaround should be removed after v0.18
-     *
-     * See: fix the breaking changes for #518
-     * https://github.com/Chatie/wechaty/issues/518
-     */
-    if (this === Wechaty.globalInstance) {
-      Contact.puppet       = puppet
-      FriendRequest.puppet = puppet
-      Message.puppet       = puppet
-      Room.puppet          = puppet
-
-      instanceToClass(this, PuppetAccessory).puppet = puppet
-    }
-
-    /**
-     * Clone Classes for this bot and attach the `puppet` to the Class
-     *
-     * Fixme:
-     *   https://stackoverflow.com/questions/36886082/abstract-constructor-type-in-typescript
-     *   https://github.com/Microsoft/TypeScript/issues/5843#issuecomment-290972055
-     *   https://github.com/Microsoft/TypeScript/issues/19197
-     */
-    // this.Contact        = cloneClass(puppet.classes.Contact)
-    // this.FriendRequest  = cloneClass(puppet.classes.FriendRequest)
-    // this.Message        = cloneClass(puppet.classes.Message)
-    // this.Room           = cloneClass(puppet.classes.Room)
-
-    // TODO: make Message & Room constructor private???
-    this.Contact        = cloneClass(Contact)
-    this.FriendRequest  = cloneClass(FriendRequest)
-    this.Message        = cloneClass(Message)
-    this.Room           = cloneClass(Room)
+  private initPuppetAccessory(puppet: Puppet) {
+    log.verbose('Wechaty', 'initPuppetAccessory(%s)', puppet)
 
     this.Contact.puppet       = puppet
     this.FriendRequest.puppet = puppet

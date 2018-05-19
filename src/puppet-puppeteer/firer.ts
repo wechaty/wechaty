@@ -127,7 +127,7 @@ async function checkFriendRequest(
     throw new Error('no recommendInfo')
   }
 
-  const contact   = Contact.load(recommendInfo.UserName)
+  const contact   = this.Contact.load(recommendInfo.UserName)
   contact.puppet  = this
 
   const hello = recommendInfo.Content
@@ -138,12 +138,11 @@ async function checkFriendRequest(
     log.warn('PuppetPuppeteerFirer', 'fireFriendConfirm() contact still not ready after `ready()` call')
   }
 
-  const receivedRequest = FriendRequest.createReceive(
+  const receivedRequest = this.FriendRequest.createReceive(
     contact,
     hello,
     ticket,
   )
-  receivedRequest.puppet = this
 
   this.emit('friend', receivedRequest)
 }
@@ -179,10 +178,9 @@ async function checkFriendConfirm(
 
   const contact = m.from()
 
-  const confirmedRequest = FriendRequest.createConfirm(
+  const confirmedRequest = this.FriendRequest.createConfirm(
     contact,
   )
-  confirmedRequest.puppet = m.puppet
 
   await contact.ready()
   if (!contact.isReady()) {
@@ -416,8 +414,7 @@ async function checkRoomLeave(
     // }
 
   } else {
-    removerContact = Contact.load(this.userSelf().id)
-    removerContact.puppet = m.puppet
+    removerContact = this.userSelf()
 
     // not sure which is better
     // leaverContact = room.member({contactAlias: remover}) || room.member({name: leaver})
@@ -483,7 +480,6 @@ async function checkRoomTopic(
   let changerContact: Contact | null
   if (/^You$/.test(changer) || /^你$/.test(changer)) {
     changerContact = this.userSelf()
-    changerContact.puppet = m.puppet
   } else {
     changerContact = room.member(changer)
   }

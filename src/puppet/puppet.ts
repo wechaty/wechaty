@@ -80,18 +80,6 @@ export const PUPPET_EVENT_DICT = {
 
 export type PuppetEventName = keyof typeof PUPPET_EVENT_DICT
 
-// export type PuppetContact        = typeof Contact       & Constructor<Contact>
-// export type PuppetFriendRequest  = typeof FriendRequest & Constructor<FriendRequest>
-// export type PuppetMessage        = typeof Message       & Constructor<Message>
-// export type PuppetRoom           = typeof Room          & Constructor<Room>
-
-// export interface PuppetClasses {
-//   Contact:        PuppetContact,
-//   FriendRequest:  PuppetFriendRequest,
-//   Message:        PuppetMessage,
-//   Room:           PuppetRoom,
-// }
-
 export interface PuppetOptions {
   profile: Profile,
   wechaty: Wechaty,
@@ -107,6 +95,15 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   protected readonly watchdog: Watchdog
 
   protected user?: Contact
+
+  /* tslint:disable:variable-name */
+  public readonly Contact       : typeof Contact
+  /* tslint:disable:variable-name */
+  public readonly FriendRequest : typeof FriendRequest
+  /* tslint:disable:variable-name */
+  public readonly Message       : typeof Message
+  /* tslint:disable:variable-name */
+  public readonly Room          : typeof Room
 
   /**
    * childPkg stores the `package.json` that the NPM module who extends the `Puppet`
@@ -124,23 +121,10 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     this.state    = new StateSwitch(this.constructor.name, log)
     this.watchdog = new Watchdog(WATCHDOG_TIMEOUT, 'Puppet')
 
-    /**
-     * 1. Check Classes for inherience correctly
-     */
-    // if (!classes) {
-    //   throw new Error('no classes found')
-    // }
-
-    // https://stackoverflow.com/questions/14486110/how-to-check-if-a-javascript-class-inherits-another-without-creating-an-obj
-    // const check = classes.Contact.prototype        instanceof Contact
-    //             && classes.FriendRequest.prototype instanceof FriendRequest
-    //             && classes.Message.prototype       instanceof Message
-    //             && classes.Room.prototype          instanceof Room
-
-    // if (!check) {
-    //   throw new Error('Puppet must set classes right! https://github.com/Chatie/wechaty/issues/1167')
-    // }
-    // this.classes = classes
+    this.Contact       = this.options.wechaty.Contact
+    this.FriendRequest = this.options.wechaty.FriendRequest
+    this.Message       = this.options.wechaty.Message
+    this.Room          = this.options.wechaty.Room
 
     /**
      * 2. Load the package.json for Puppet Plugin version range matching
@@ -257,12 +241,12 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     let msg: Message
 
     if (typeof textOrFile === 'string') {
-      msg = Message.createMO({
+      msg = this.Message.createMO({
         text : textOrFile,
         to   : this.userSelf(),
       })
     } else if (textOrFile instanceof FileBox) {
-      msg = Message.createMO({
+      msg = this.Message.createMO({
         file: textOrFile,
         to: this.userSelf(),
       })
@@ -270,7 +254,6 @@ export abstract class Puppet extends EventEmitter implements Sayable {
       throw new Error('say() arg unknown')
     }
 
-    msg.puppet = this
     await this.messageSend(msg)
   }
 

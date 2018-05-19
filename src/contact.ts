@@ -18,6 +18,7 @@
  *   @ignore
  */
 import { FileBox } from 'file-box'
+import { instanceToClass } from 'clone-class'
 
 import {
   log,
@@ -199,6 +200,17 @@ export class Contact extends PuppetAccessory implements Sayable {
   ) {
     super()
     log.silly('Contact', `constructor(${id})`)
+
+    // tslint:disable-next-line:variable-name
+    const MyClass = instanceToClass(this, Contact)
+
+    if (MyClass === Contact) {
+      throw new Error('Contact class can not be instanciated directly! See: https://github.com/Chatie/wechaty/issues/1217')
+    }
+
+    if (!this.puppet) {
+      throw new Error('Contact class can not be instanciated without a puppet!')
+    }
   }
 
   /**
@@ -254,8 +266,6 @@ export class Contact extends PuppetAccessory implements Sayable {
     } else {
       throw new Error('unsupported')
     }
-
-    msg.puppet = this.puppet
 
     log.silly('Contact', 'say() from: %s to: %s content: %s',
                                   this.puppet.userSelf(),

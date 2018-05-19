@@ -81,7 +81,7 @@ test('login/logout events', sinonTest(async function (t: test.Test) {
     })
     t.ok(pw, 'should instantiated a PuppetPuppeteer')
 
-    // config.puppetInstance(pw)
+    // FIXME: do not modify global instance
     Contact.puppet = pw
 
     await pw.start()

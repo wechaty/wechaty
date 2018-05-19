@@ -21,7 +21,10 @@ import * as cuid from 'cuid'
 
 import {
   FileBox,
-}             from 'file-box'
+}                     from 'file-box'
+import {
+  instanceToClass,
+}                     from 'clone-class'
 
 import {
   log,
@@ -206,6 +209,17 @@ export class Message extends PuppetAccessory implements Sayable {
                           this.constructor.name,
               )
     log.silly('Message', 'constructor()')
+
+    // tslint:disable-next-line:variable-name
+    const MyClass = instanceToClass(this, Message)
+
+    if (MyClass === Message) {
+      throw new Error('Message class can not be instanciated directly! See: https://github.com/Chatie/wechaty/issues/1217')
+    }
+
+    if (!this.puppet) {
+      throw new Error('Message class can not be instanciated without a puppet!')
+    }
 
     // default set to MT because there's a id param
     this.direction = MessageDirection.MT
@@ -408,7 +422,7 @@ export class Message extends PuppetAccessory implements Sayable {
       /**
        * File Message
        */
-      const msg = Message.createMO({
+      const msg = this.puppet.Message.createMO({
         file : textOrFile,
         to   : from,
         room,
@@ -429,7 +443,7 @@ export class Message extends PuppetAccessory implements Sayable {
       /**
        * 1. to Individual
        */
-      msg = Message.createMO({
+      msg = this.puppet.Message.createMO({
         to,
         text,
       })
@@ -443,7 +457,7 @@ export class Message extends PuppetAccessory implements Sayable {
          */
         const mentionContact = mentionList[0]
         const textMentionList = mentionList.map(c => '@' + c.name()).join(' ')
-        msg = Message.createMO({
+        msg = this.puppet.Message.createMO({
           to: mentionContact,
           room,
           text: textMentionList + ' ' + text,
@@ -452,14 +466,13 @@ export class Message extends PuppetAccessory implements Sayable {
         /**
          * 2.2 did not mention anyone
          */
-        msg = Message.createMO({
+        msg = this.puppet.Message.createMO({
           to,
           room,
           text,
         })
       }
     }
-    msg.puppet = this.puppet
     await this.puppet.messageSend(msg)
   }
 

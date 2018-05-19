@@ -309,7 +309,7 @@ export class PuppetPuppeteer extends Puppet {
   public async messageRawPayloadParser(
     rawPayload: WebMessageRawPayload,
   ): Promise<MessagePayload> {
-    const from: Contact     = Contact.load(rawPayload.MMActualSender)  // MMPeerUserName
+    const from: Contact     = this.Contact.load(rawPayload.MMActualSender)  // MMPeerUserName
     const text: string      = rawPayload.MMActualContent               // Content has @id prefix added by wx
     const date: Date        = new Date(rawPayload.MMDisplayTime)       // Javascript timestamp of milliseconds
 
@@ -319,9 +319,9 @@ export class PuppetPuppeteer extends Puppet {
     // FIXME: has there any better method to know the room ID?
     if (rawPayload.MMIsChatRoom) {
       if (/^@@/.test(rawPayload.FromUserName)) {
-        room = Room.load(rawPayload.FromUserName) // MMPeerUserName always eq FromUserName ?
+        room = this.Room.load(rawPayload.FromUserName) // MMPeerUserName always eq FromUserName ?
       } else if (/^@@/.test(rawPayload.ToUserName)) {
-        room = Room.load(rawPayload.ToUserName)
+        room = this.Room.load(rawPayload.ToUserName)
       } else {
         throw new Error('parse found a room message, but neither FromUserName nor ToUserName is a room(/^@@/)')
       }
@@ -330,7 +330,7 @@ export class PuppetPuppeteer extends Puppet {
 
     if (rawPayload.ToUserName) {
       if (!/^@@/.test(rawPayload.ToUserName)) { // if a message in room without any specific receiver, then it will set to be `undefined`
-        to = Contact.load(rawPayload.ToUserName)
+        to = this.Contact.load(rawPayload.ToUserName)
       }
     }
 
@@ -737,8 +737,7 @@ export class PuppetPuppeteer extends Puppet {
     try {
       const idList = await this.bridge.contactFind(filterFunc)
       return idList.map(id => {
-        const c = Contact.load(id) as Contact
-        c.puppet = this
+        const c = this.Contact.load(id)
         return c
       })
     } catch (e) {
@@ -801,11 +800,7 @@ export class PuppetPuppeteer extends Puppet {
 
     // console.log(rawPayload)
     const memberList = (rawPayload.MemberList || [])
-                        .map(m => {
-                          const c = Contact.load(m.UserName)
-                          c.puppet = this
-                          return c
-                        })
+                        .map(m => this.Contact.load(m.UserName))
     await Promise.all(memberList.map(c => c.ready()))
 
     const nameMap         = this.roomParseMap('name'        , rawPayload.MemberList)
@@ -841,8 +836,7 @@ export class PuppetPuppeteer extends Puppet {
       memberList.forEach(member => {
         let tmpName: string
         // console.log(member)
-        const contact = Contact.load(member.UserName)
-        contact.puppet = this
+        const contact = this.Contact.load(member.UserName)
         // contact.ready().then(() => console.log('###############', contact.name()))
         // console.log(contact)
         // log.silly('PuppetPuppeteer', 'roomParseMap() memberList.forEach(contact=%s)', contact)
@@ -897,8 +891,7 @@ export class PuppetPuppeteer extends Puppet {
     try {
       const idList = await this.bridge.roomFind(filterFunction)
       return idList.map(id => {
-        const r = Room.load(id) as Room
-        r.puppet = this
+        const r = this.Room.load(id) as Room
         return r
       })
     } catch (e) {
@@ -959,8 +952,7 @@ export class PuppetPuppeteer extends Puppet {
       if (!roomId) {
         throw new Error('PuppetPuppeteer.roomCreate() roomId "' + roomId + '" not found')
       }
-      const r = Room.load(roomId) as Room
-      r.puppet = this
+      const r = this.Room.load(roomId) as Room
       return r
 
     } catch (e) {
@@ -1013,14 +1005,10 @@ export class PuppetPuppeteer extends Puppet {
     log.verbose('PuppetPuppeteer', 'readyStable()')
     let counter = -1
 
-    // tslint:disable-next-line:variable-name
-    const MyContact = cloneClass(Contact)
-    MyContact.puppet = this
-
-    async function stable(done: Function): Promise<void> {
+    const stable = async (done: Function): Promise<void> => {
       log.silly('PuppetPuppeteer', 'readyStable() stable() counter=%d', counter)
 
-      const contactList = await MyContact.findAll()
+      const contactList = await this.Contact.findAll()
       if (counter === contactList.length) {
         log.verbose('PuppetPuppeteer', 'readyStable() stable() READY counter=%d', counter)
         return done()

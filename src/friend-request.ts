@@ -21,9 +21,11 @@
  /* tslint:disable:no-var-requires */
 const retryPromise  = require('retry-promise').default
 
-import PuppetAccessory  from './puppet-accessory'
+import { instanceToClass } from 'clone-class'
 
-import Contact          from './contact'
+import { PuppetAccessory }  from './puppet-accessory'
+
+import { Contact }          from './contact'
 
 import {
   log,
@@ -121,6 +123,17 @@ export class FriendRequest extends PuppetAccessory {
   ) {
     super()
     log.verbose('PuppeteerFriendRequest', 'constructor(%s)', payload)
+
+    // tslint:disable-next-line:variable-name
+    const MyClass = instanceToClass(this, FriendRequest)
+
+    if (MyClass === FriendRequest) {
+      throw new Error('FriendRequest class can not be instanciated directly! See: https://github.com/Chatie/wechaty/issues/1217')
+    }
+
+    if (!this.puppet) {
+      throw new Error('FriendRequest class can not be instanciated without a puppet!')
+    }
   }
 
   public async send(): Promise<void> {

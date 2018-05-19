@@ -141,8 +141,7 @@ async function onLogin(
 
     log.silly('PuppetPuppeteerEvent', 'bridge.getUserName: %s', userId)
 
-    const user = Contact.load(userId)
-    user.puppet = this
+    const user = this.Contact.load(userId)
     await user.ready()
 
     log.silly('PuppetPuppeteerEvent', `onLogin() user ${user.name()} logined`)
@@ -191,8 +190,7 @@ async function onMessage(
   this       : PuppetPuppeteer,
   rawPayload : WebMessageRawPayload,
 ): Promise<void> {
-  let msg = Message.createMT(rawPayload.MsgId)
-  msg.puppet = this
+  let msg = this.Message.createMT(rawPayload.MsgId)
 
   try {
     await msg.ready()
@@ -234,14 +232,13 @@ async function onMessage(
       case WebMsgType.MICROVIDEO:
       case WebMsgType.APP:
         log.verbose('PuppetPuppeteerEvent', 'onMessage() EMOTICON/IMAGE/VIDEO/VOICE/MICROVIDEO message')
-        msg = Message.createMT(rawPayload.MsgId)
-        msg.puppet = this
+        msg = this.Message.createMT(rawPayload.MsgId)
         break
 
       case WebMsgType.TEXT:
         if (rawPayload.SubMsgType === WebMsgType.LOCATION) {
           log.verbose('PuppetPuppeteerEvent', 'onMessage() (TEXT&LOCATION) message')
-          msg = Message.createMT(rawPayload.MsgId)
+          msg = this.Message.createMT(rawPayload.MsgId)
         }
         break
     }
