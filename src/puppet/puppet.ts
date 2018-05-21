@@ -336,7 +336,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   public async roomPayload(id: string): Promise<RoomPayload> {
     log.verbose('Puppet', 'roomPayload(%s)', id)
-    const rawPayload = await this.roomPayload(id)
+    const rawPayload = await this.roomRawPayload(id)
     const payload    = await this.roomRawPayloadParser(rawPayload)
     return payload
   }

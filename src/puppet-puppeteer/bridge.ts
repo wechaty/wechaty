@@ -43,7 +43,7 @@ import {
   WebContactRawPayload,
 }                               from '../puppet-puppeteer/web-schemas'
 import {
-  PuppeteerRoomRawPayload,
+  WebRoomRawPayload,
 }                               from './puppet-puppeteer'
 
 export interface InjectResult {
@@ -521,7 +521,7 @@ export class Bridge extends EventEmitter {
     return rawPayload
   }
 
-  public async getContact(id: string): Promise<WebContactRawPayload | PuppeteerRoomRawPayload> {
+  public async getContact(id: string): Promise<WebContactRawPayload | WebRoomRawPayload> {
     const max = 35
     const backoff = 500
 

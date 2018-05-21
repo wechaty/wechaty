@@ -17,7 +17,7 @@
  *
  *   @ignore
  */
-import * as util from 'util'
+// import * as util from 'util'
 
 import {
   FileBox,
@@ -247,9 +247,9 @@ export class Room extends PuppetAccessory implements Sayable {
         contact => contact.ready(),
       ),
     )
-    log.silly('Room', 'ready() this.payload="%s"',
-                                util.inspect(payload),
-              )
+    // log.silly('Room', 'ready() this.payload="%s"',
+    //                             util.inspect(payload),
+    //           )
 
     this.payload = payload
   }

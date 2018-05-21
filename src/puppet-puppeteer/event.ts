@@ -33,7 +33,7 @@ import {
 import Firer            from './firer'
 import PuppetPuppeteer  from './puppet-puppeteer'
 import {
-  WebMsgType,
+  WebMessageType,
   WebMessageRawPayload,
 }                       from './web-schemas'
 
@@ -200,11 +200,11 @@ async function onMessage(
      */
     switch (rawPayload.MsgType) {
 
-      case WebMsgType.VERIFYMSG:
+      case WebMessageType.VERIFYMSG:
         Firer.checkFriendRequest.call(this, msg)
         break
 
-      case WebMsgType.SYS:
+      case WebMessageType.SYS:
         if (msg.room()) {
           const joinResult  = await Firer.checkRoomJoin.call(this  , msg)
           const leaveResult = await Firer.checkRoomLeave.call(this , msg)
@@ -225,18 +225,18 @@ async function onMessage(
      */
 
     switch (rawPayload.MsgType) {
-      case WebMsgType.EMOTICON:
-      case WebMsgType.IMAGE:
-      case WebMsgType.VIDEO:
-      case WebMsgType.VOICE:
-      case WebMsgType.MICROVIDEO:
-      case WebMsgType.APP:
+      case WebMessageType.EMOTICON:
+      case WebMessageType.IMAGE:
+      case WebMessageType.VIDEO:
+      case WebMessageType.VOICE:
+      case WebMessageType.MICROVIDEO:
+      case WebMessageType.APP:
         log.verbose('PuppetPuppeteerEvent', 'onMessage() EMOTICON/IMAGE/VIDEO/VOICE/MICROVIDEO message')
         msg = this.Message.createMT(rawPayload.MsgId)
         break
 
-      case WebMsgType.TEXT:
-        if (rawPayload.SubMsgType === WebMsgType.LOCATION) {
+      case WebMessageType.TEXT:
+        if (rawPayload.SubMsgType === WebMessageType.LOCATION) {
           log.verbose('PuppetPuppeteerEvent', 'onMessage() (TEXT&LOCATION) message')
           msg = this.Message.createMT(rawPayload.MsgId)
         }

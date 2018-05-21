@@ -62,6 +62,7 @@ test('PuppetPuppeteerFriendRequest.receive smoke testing', async t => {
 
   const info = (rawObj.RecommendInfo as WebRecomendInfo)
 
+  // FIXME: use wechaty.Contact.load
   const contact = MyContact.load(info.UserName)
   const hello = info.Content
   const ticket = info.Ticket
@@ -97,6 +98,7 @@ test('PuppetPuppeteerFriendRequest.confirm smoke testing', async t => {
     {"MsgId":"3382012679535022763","FromUserName":"@04a0fa314d0d8d50dc54e2ec908744ebf46b87404d143fd9a6692182dd90bd49","ToUserName":"@f7321198e0349f1b38c9f2ef158f70eb","MsgType":10000,"Content":"You have added 李卓桓.PreAngel as your WeChat contact. Start chatting!","Status":4,"ImgStatus":1,"CreateTime":1475569920,"VoiceLength":0,"PlayLength":0,"FileName":"","FileSize":"","MediaId":"","Url":"","AppMsgType":0,"StatusNotifyCode":0,"StatusNotifyUserName":"","RecommendInfo":{"UserName":"","NickName":"","QQNum":0,"Province":"","City":"","Content":"","Signature":"","Alias":"","Scene":0,"VerifyFlag":0,"AttrStatus":0,"Sex":0,"Ticket":"","OpCode":0},"ForwardFlag":0,"AppInfo":{"AppID":"","Type":0},"HasProductId":0,"Ticket":"","ImgHeight":0,"ImgWidth":0,"SubMsgType":0,"NewMsgId":3382012679535022600,"MMPeerUserName":"@04a0fa314d0d8d50dc54e2ec908744ebf46b87404d143fd9a6692182dd90bd49","MMDigest":"You have added 李卓桓.PreAngel as your WeChat contact. Start chatting!","MMIsSend":false,"MMIsChatRoom":false,"LocalID":"3382012679535022763","ClientMsgId":"3382012679535022763","MMActualContent":"You have added 李卓桓.PreAngel as your WeChat contact. Start chatting!","MMActualSender":"@04a0fa314d0d8d50dc54e2ec908744ebf46b87404d143fd9a6692182dd90bd49","MMDigestTime":"16:32","MMDisplayTime":1475569920,"MMTime":"16:32"}
   `
   const rawObj = JSON.parse(rawMessageData)
+  // FIXME: use wechaty.Message.create...()
   const m = new MyMessage(rawObj)
   m.puppet = puppet
 

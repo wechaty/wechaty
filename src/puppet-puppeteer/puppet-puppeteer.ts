@@ -55,7 +55,9 @@ import {
   // WebMessageMediaPayload,
   WebMessageRawPayload,
   // WebMediaType,
-  WebMsgType,
+  WebMessageType,
+  WebRoomRawMember,
+  WebRoomRawPayload,
 }                           from './web-schemas'
 
 import {
@@ -82,8 +84,6 @@ import {
 
 import {
   ScanFoodType,
-  PuppeteerRoomRawMember,
-  PuppeteerRoomRawPayload,
 }                             from './puppet-puppeteer.type'
 
 export class PuppetPuppeteer extends Puppet {
@@ -359,23 +359,23 @@ export class PuppetPuppeteer extends Puppet {
     return payload
   }
 
-  private messageTypeFromWeb(webMsgType: WebMsgType): MessageType {
+  private messageTypeFromWeb(webMsgType: WebMessageType): MessageType {
     switch (webMsgType) {
-      case WebMsgType.TEXT:
+      case WebMessageType.TEXT:
         return MessageType.Text
 
-      case WebMsgType.EMOTICON:
-      case WebMsgType.IMAGE:
+      case WebMessageType.EMOTICON:
+      case WebMessageType.IMAGE:
         return MessageType.Image
 
-      case WebMsgType.VOICE:
+      case WebMessageType.VOICE:
       return MessageType.Audio
 
-      case WebMsgType.MICROVIDEO:
-      case WebMsgType.VIDEO:
+      case WebMessageType.MICROVIDEO:
+      case WebMessageType.VIDEO:
       return MessageType.Video
 
-      case WebMsgType.TEXT:
+      case WebMessageType.TEXT:
       return MessageType.Text
 
       // VERIFYMSG           = 37,
@@ -545,6 +545,11 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
+  /**
+   *
+   * Contact
+   *
+   */
   public async contactRawPayload(id: string): Promise<WebContactRawPayload> {
     log.verbose('PuppetPuppeteer', 'contactRawPayload(%s)', id)
     try {
@@ -749,11 +754,16 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async roomRawPayload(id: string): Promise<PuppeteerRoomRawPayload> {
+  /**
+   *
+   * Room
+   *
+   */
+  public async roomRawPayload(id: string): Promise<WebRoomRawPayload> {
     log.verbose('PuppetPuppeteer', 'roomRawPayload(%s)', id)
 
     try {
-      let rawPayload: PuppeteerRoomRawPayload | undefined  // = await this.bridge.getContact(room.id) as PuppeteerRoomRawPayload
+      let rawPayload: WebRoomRawPayload | undefined  // = await this.bridge.getContact(room.id) as PuppeteerRoomRawPayload
 
       // let currNum = rawPayload.MemberList && rawPayload.MemberList.length || 0
       // let prevNum = room.memberList().length  // rawPayload && rawPayload.MemberList && this.rawObj.MemberList.length || 0
@@ -762,7 +772,7 @@ export class PuppetPuppeteer extends Puppet {
 
       let ttl = 7
       while (ttl--/* && currNum !== prevNum */) {
-        rawPayload = await this.bridge.getContact(id) as PuppeteerRoomRawPayload
+        rawPayload = await this.bridge.getContact(id) as WebRoomRawPayload
 
         const currNum = rawPayload.MemberList && rawPayload.MemberList.length || 0
 
@@ -796,7 +806,7 @@ export class PuppetPuppeteer extends Puppet {
   }
 
   public async roomRawPayloadParser(
-    rawPayload: PuppeteerRoomRawPayload,
+    rawPayload: WebRoomRawPayload,
   ): Promise<RoomPayload> {
     log.verbose('PuppetPuppeteer', 'roomRawPayloadParser(%s)', rawPayload)
 
@@ -826,7 +836,7 @@ export class PuppetPuppeteer extends Puppet {
 
   private roomParseMap(
     parseSection: keyof RoomMemberQueryFilter,
-    memberList?:  PuppeteerRoomRawMember[],
+    memberList?:  WebRoomRawMember[],
   ): Map<string, string> {
     log.verbose('PuppetPuppeteer', 'roomParseMap(%s, memberList.length=%d)',
                                     parseSection,
@@ -969,7 +979,9 @@ export class PuppetPuppeteer extends Puppet {
   }
 
   /**
+   *
    * FriendRequest
+   *
    */
   public async friendRequestSend(contact: Contact, hello: string): Promise<void> {
     if (!contact) {
@@ -1067,19 +1079,19 @@ export class PuppetPuppeteer extends Puppet {
     this.options.profile.save()
   }
 
-  public extToType(ext: string): WebMsgType {
+  public extToType(ext: string): WebMessageType {
     switch (ext) {
       case '.bmp':
       case '.jpeg':
       case '.jpg':
       case '.png':
-        return WebMsgType.IMAGE
+        return WebMessageType.IMAGE
       case '.gif':
-        return WebMsgType.EMOTICON
+        return WebMessageType.EMOTICON
       case '.mp4':
-        return WebMsgType.VIDEO
+        return WebMessageType.VIDEO
       default:
-        return WebMsgType.APP
+        return WebMessageType.APP
     }
   }
 
@@ -1628,6 +1640,6 @@ export class PuppetPuppeteer extends Puppet {
 }
 
 export {
-  PuppeteerRoomRawPayload,
+  WebRoomRawPayload,
 }
 export default PuppetPuppeteer
