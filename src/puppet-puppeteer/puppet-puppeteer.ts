@@ -82,9 +82,8 @@ import {
 //   FriendRequest,
 // }                             from '../puppet/friend-request'
 
-import {
-  ScanFoodType,
-}                             from './puppet-puppeteer.type'
+export type PuppetFoodType = 'scan' | 'ding'
+export type ScanFoodType   = 'scan' | 'login' | 'logout'
 
 export class PuppetPuppeteer extends Puppet {
   public bridge   : Bridge
@@ -379,6 +378,7 @@ export class PuppetPuppeteer extends Puppet {
         return MessageType.Text
 
       case WebMessageType.SYS:
+        // FriendRequest is a SYS message
         // FIXME: should we use better message type at here???
         return MessageType.Text
 

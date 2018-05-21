@@ -106,6 +106,9 @@ test('PuppetPuppeteerFriendRequest.confirm smoke testing', async t => {
   sandbox.stub((puppet as any), 'messageRawPayload').callsFake(mockMessageRawPayload)
   sandbox.stub(puppet, 'contactPayload')            .callsFake(mockContactPayload)
 
+  // ;
+  // (puppet as any).messageRawPayload()
+
   const msg = wechaty.Message.createMT(rawMessagePayload.MsgId)
   await msg.ready()
 
@@ -117,5 +120,6 @@ test('PuppetPuppeteerFriendRequest.confirm smoke testing', async t => {
   t.true(fr.contact() instanceof Contact, 'should have a Contact instance')
   t.is(fr.type(), wechaty.FriendRequest.Type.Confirm, 'should be confirm type')
 
+  // t.ok('ok')
   sandbox.restore()
 })

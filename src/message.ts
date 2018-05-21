@@ -87,10 +87,6 @@ export class Message extends PuppetAccessory implements Sayable {
     ]
   }
 
-  public static create(options: MessageMOOptions): Message {
-    return this.createMO(options)
-  }
-
   /**
    * "mobile originated" or "mobile terminated"
    * https://www.tatango.com/resources/video-lessons/video-mo-mt-sms-messaging/
@@ -98,8 +94,7 @@ export class Message extends PuppetAccessory implements Sayable {
   public static createMO(
     options: MessageMOOptions,
   ): Message {
-    log.verbose('Message', 'static createMobileOriginated()',
-                )
+    log.verbose('Message', 'static createMobileOriginated()')
     /**
      * Must NOT use `Message` at here
      * MUST use `this` at here
@@ -187,6 +182,10 @@ export class Message extends PuppetAccessory implements Sayable {
     msg.direction = MessageDirection.MT
 
     return msg
+  }
+
+  public static create(options: MessageMOOptions): Message {
+    return this.createMO(options)
   }
 
   /**
