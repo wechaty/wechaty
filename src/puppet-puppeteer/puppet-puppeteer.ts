@@ -369,14 +369,18 @@ export class PuppetPuppeteer extends Puppet {
         return MessageType.Image
 
       case WebMessageType.VOICE:
-      return MessageType.Audio
+        return MessageType.Audio
 
       case WebMessageType.MICROVIDEO:
       case WebMessageType.VIDEO:
-      return MessageType.Video
+        return MessageType.Video
 
       case WebMessageType.TEXT:
-      return MessageType.Text
+        return MessageType.Text
+
+      case WebMessageType.SYS:
+        // FIXME: should we use better message type at here???
+        return MessageType.Text
 
       // VERIFYMSG           = 37,
       // POSSIBLEFRIEND_MSG  = 40,
@@ -388,7 +392,6 @@ export class PuppetPuppeteer extends Puppet {
       // VOIPNOTIFY          = 52,
       // VOIPINVITE          = 53,
       // SYSNOTICE           = 9999,
-      // SYS                 = 10000,
       // RECALLED            = 10002,
       default:
         throw new Error('un-supported WebMsgType: ' + webMsgType)
@@ -556,7 +559,7 @@ export class PuppetPuppeteer extends Puppet {
       const rawPayload = await this.bridge.getContact(id) as WebContactRawPayload
       return rawPayload
     } catch (e) {
-      log.error('PuppetPuppeteer', 'contactRawPayload(%d) exception: %s', id, e.message)
+      log.error('PuppetPuppeteer', 'contactRawPayload(%s) exception: %s', id, e.message)
       Raven.captureException(e)
       throw e
     }

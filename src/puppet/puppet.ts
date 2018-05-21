@@ -112,7 +112,6 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   constructor(
     public options:   PuppetOptions,
-    // classes?:         PuppetClasses,
   ) {
     super()
 
@@ -121,6 +120,9 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     this.state    = new StateSwitch(this.constructor.name, log)
     this.watchdog = new Watchdog(WATCHDOG_TIMEOUT, 'Puppet')
 
+    /**
+     * 1. Init Classes
+     */
     if (  !this.options.wechaty.Contact
         || !this.options.wechaty.FriendRequest
         || !this.options.wechaty.Message

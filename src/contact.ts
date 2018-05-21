@@ -90,7 +90,7 @@ export class Contact extends PuppetAccessory implements Sayable {
    */
   public static load<T extends typeof Contact>(this: T, id: string): T['prototype'] {
     if (!id || typeof id !== 'string') {
-      throw new Error('Contact.load(): id not found')
+      throw new Error('Contact.load(): id not found: ' + id)
     }
 
     const existingContact = this.pool.get(id)

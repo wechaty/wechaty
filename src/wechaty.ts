@@ -231,7 +231,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
   public on(event: 'start'      , listener: string | ((this: Wechaty) => void))                                                               : this
   public on(event: 'stop'       , listener: string | ((this: Wechaty) => void))                                                               : this
   // guard for the above event: make sure it includes all the possible values
-  public on(event: never,         listener: any): this
+  public on(event: never,         listener: never): never
 
   /**
    * @desc       Wechaty Class Event Type
@@ -603,7 +603,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
    * @deprecated
    */
   public self(): Contact {
-    log.warn('Wechaty', 'self() DEPRECATED')
+    log.warn('Wechaty', 'self() DEPRECATED. use userSelf() instead.')
     return this.userSelf()
   }
 
@@ -684,7 +684,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
    * @private
    */
   public async reset(reason?: string): Promise<void> {
-    log.verbose('Wechaty', 'reset() because %s', reason)
+    log.verbose('Wechaty', 'reset() because %s', reason || 'no reason')
     await this.puppet.stop()
     await this.puppet.start()
     return
