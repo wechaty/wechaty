@@ -309,9 +309,11 @@ export class PuppetPuppeteer extends Puppet {
   public async messageRawPayloadParser(
     rawPayload: WebMessageRawPayload,
   ): Promise<MessagePayload> {
+    log.verbose('PuppetPuppeteer', 'messageRawPayloadParser(%s)', rawPayload)
+
     const from: Contact     = this.Contact.load(rawPayload.MMActualSender)  // MMPeerUserName
-    const text: string      = rawPayload.MMActualContent               // Content has @id prefix added by wx
-    const date: Date        = new Date(rawPayload.MMDisplayTime)       // Javascript timestamp of milliseconds
+    const text: string      = rawPayload.MMActualContent                    // Content has @id prefix added by wx
+    const date: Date        = new Date(rawPayload.MMDisplayTime)            // Javascript timestamp of milliseconds
 
     let room : undefined | Room
     let to   : undefined | Contact

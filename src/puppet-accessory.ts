@@ -19,7 +19,9 @@ export abstract class PuppetAccessory extends EventEmitter {
   private         [NAME]: string
 
   /**
-   * 1. Static Property & Methods
+   *
+   * 1. Static Properties & Methods
+   *
    */
   private static _puppet?: Puppet
 
@@ -46,7 +48,9 @@ export abstract class PuppetAccessory extends EventEmitter {
   }
 
   /**
+   *
    * 2. Instance Properties & Methods
+   *
    */
   private _puppet?: Puppet
 

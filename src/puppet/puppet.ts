@@ -121,6 +121,14 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     this.state    = new StateSwitch(this.constructor.name, log)
     this.watchdog = new Watchdog(WATCHDOG_TIMEOUT, 'Puppet')
 
+    if (  !this.options.wechaty.Contact
+        || !this.options.wechaty.FriendRequest
+        || !this.options.wechaty.Message
+        || !this.options.wechaty.Room
+    ) {
+      throw new Error('wechaty classes are not inited')
+    }
+
     this.Contact       = this.options.wechaty.Contact
     this.FriendRequest = this.options.wechaty.FriendRequest
     this.Message       = this.options.wechaty.Message
@@ -278,8 +286,9 @@ export abstract class Puppet extends EventEmitter implements Sayable {
    */
   public abstract async messageForward(message: Message, to: Contact | Room) : Promise<void>
   public abstract async messageSend(message: Message)                        : Promise<void>
-  public abstract async messageRawPayload(id: string)                        : Promise<any>
-  public abstract async messageRawPayloadParser(rawPayload: any)             : Promise<MessagePayload>
+
+  public abstract async messageRawPayload(id: string)            : Promise<any>
+  public abstract async messageRawPayloadParser(rawPayload: any) : Promise<MessagePayload>
 
   public async messagePayload(id: string): Promise<MessagePayload> {
     log.verbose('Puppet', 'messagePayload(%s)', id)
@@ -321,8 +330,9 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async roomFindAll(query?: RoomQueryFilter)               : Promise<Room[]>
   public abstract async roomQuit(room: Room)                               : Promise<void>
   public abstract async roomTopic(room: Room, topic?: string)              : Promise<string | void>
-  public abstract async roomRawPayload(id: string)                         : Promise<any>
-  public abstract async roomRawPayloadParser(rawPayload: any)              : Promise<RoomPayload>
+
+  public abstract async roomRawPayload(id: string)            : Promise<any>
+  public abstract async roomRawPayloadParser(rawPayload: any) : Promise<RoomPayload>
 
   public async roomPayload(id: string): Promise<RoomPayload> {
     log.verbose('Puppet', 'roomPayload(%s)', id)
@@ -341,8 +351,9 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async contactAlias(contact: Contact, alias?: string|null)  : Promise<string | void>
   public abstract async contactAvatar(contact: Contact)                      : Promise<FileBox>
   public abstract async contactFindAll(query?: ContactQueryFilter)           : Promise<Contact[]>
-  public abstract async contactRawPayload(id: string)                        : Promise<any>
-  public abstract async contactRawPayloadParser(rawPayload: any)             : Promise<ContactPayload>
+
+  public abstract async contactRawPayload(id: string)            : Promise<any>
+  public abstract async contactRawPayloadParser(rawPayload: any) : Promise<ContactPayload>
 
   public async contactPayload(id: string): Promise<ContactPayload> {
     log.verbose('Puppet', 'contactPayload(%s)', id)

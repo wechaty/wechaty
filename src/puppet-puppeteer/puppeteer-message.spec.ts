@@ -44,8 +44,12 @@ import {
   Room,
 }                   from '../room'
 
-import PuppetPuppeteer  from './puppet-puppeteer'
-import { WebMessageRawPayload } from './web-schemas'
+import {
+  PuppetPuppeteer,
+}                         from './puppet-puppeteer'
+import {
+  WebMessageRawPayload,
+}                         from './web-schemas'
 
 // tslint:disable-next-line:variable-name
 const MyRoom = cloneClass(Room)
@@ -54,15 +58,38 @@ const MyContact = cloneClass(Contact)
 // tslint:disable-next-line:variable-name
 const MyMessage = cloneClass(Message)
 
+const wechaty = new Wechaty()
+
 const puppet = new PuppetPuppeteer({
   profile: new Profile(),
-  wechaty: new Wechaty(),
+  wechaty,
 })
+
+/**
+ *
+ * Init puppet for testing
+ *
+ */
+wechaty.puppet
+  // wechaty.XXX
+  = wechaty.Contact.puppet
+  = wechaty.FriendRequest.puppet
+  = wechaty.Room.puppet
+  = wechaty.Message.puppet
+  // MyXXX
+  = MyContact.puppet
+  = MyMessage.puppet
+  = MyRoom.puppet
+  // puppet.XXX
+  = puppet.Contact.puppet
+  = puppet.FriendRequest.puppet
+  = puppet.Room.puppet
+  = puppet.Message.puppet
+  // puppet
+  = puppet
 
 const MOCK_USER_ID = 'TEST-USER-ID'
 puppet.login(MyContact.load(MOCK_USER_ID))
-
-MyContact.puppet = MyMessage.puppet = MyRoom.puppet = puppet
 
 test('constructor()', async t => {
   /* tslint:disable:max-line-length */
@@ -149,18 +176,33 @@ test.only('ready()', async t => {
   }
 
   const sandbox = sinon.createSandbox()
+
+  const wechaty = new Wechaty()
+
   const puppet = new PuppetPuppeteer({
     profile: new Profile(),
-    wechaty: new Wechaty(),
+    wechaty,
   })
+
+  wechaty.puppet
+  // wechaty.XXX
+  = wechaty.Contact.puppet
+  = wechaty.FriendRequest.puppet
+  = wechaty.Room.puppet
+  = wechaty.Message.puppet
+  // MyXXX
+  = MyRoom.puppet
+  = MyContact.puppet
+  = MyMessage.puppet
+  = puppet
 
   sandbox.stub(puppet as any, 'contactRawPayload').callsFake(mockContactRawPayload)
   sandbox.stub(puppet as any, 'messageRawPayload').callsFake(mockMessageRawPayload)
-  MyRoom.puppet = MyContact.puppet = MyMessage.puppet = puppet
 
   const m = MyMessage.createMT(rawPayload.MsgId)
 
   t.is(m.id, expectedMsgId, 'id/MsgId right')
+
   await m.ready()
 
   const fc = m.from()

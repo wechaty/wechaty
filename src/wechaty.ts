@@ -386,7 +386,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
   /**
    * @private
    */
-  public initPuppet(): void {
+  private initPuppet(): void {
     log.verbose('Wechaty', 'initPuppet()')
 
     if (!this.options.puppet) {

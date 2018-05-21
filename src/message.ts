@@ -204,11 +204,10 @@ export class Message extends PuppetAccessory implements Sayable {
     public readonly id: string,
   ) {
     super()
-    log.silly('Message', 'constructor(%s) for class %s',
+    log.verbose('Message', 'constructor(%s) for class %s',
                           id || '',
                           this.constructor.name,
               )
-    log.silly('Message', 'constructor()')
 
     // tslint:disable-next-line:variable-name
     const MyClass = instanceToClass(this, Message)
