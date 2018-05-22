@@ -101,7 +101,7 @@ export class Contact extends PuppetAccessory implements Sayable {
     // when we call `load()`, `this` should already be extend-ed a child class.
     // so we force `this as any` at here to make the call.
     const newContact = new (this as any)(id)
-    Contact.pool.set(id, newContact)
+    this.pool.set(id, newContact)
     return newContact
   }
 
@@ -518,7 +518,7 @@ export class Contact extends PuppetAccessory implements Sayable {
    * @private
    */
   public async ready(): Promise<void> {
-    log.silly('Contact', 'ready()')
+    log.silly('Contact', 'ready() @ %s', this.puppet)
 
     if (this.isReady()) { // already ready
       log.silly('Contact', 'ready() isReady() true')
