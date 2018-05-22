@@ -16,55 +16,65 @@
  *   limitations under the License.
  *
  */
-import * as fs    from 'fs'
 import * as path  from 'path'
 
 import {
+  FileBox,
+}             from 'file-box'
+
+import {
+  Message,
+  MessagePayload,
+}                       from '../message'
+import {
+  Contact,
   ContactQueryFilter,
   Gender,
   ContactType,
   ContactPayload,
-
-  Puppet,
-  PuppetOptions,
-
+}                       from '../contact'
+import {
+  Room,
   RoomPayload,
   RoomQueryFilter,
-}                     from '../puppet/'
+}                       from '../room'
+// import {
+//   FriendRequest,
+// }                       from '../puppet/friend-request'
+import {
+  Puppet,
+  PuppetOptions,
+}                       from '../puppet/'
 
 import {
   log,
-}                   from '../config'
-// import Profile      from '../profile'
-// import Wechaty      from '../wechaty'
-
-import {
-  Contact,
-}                             from '../puppet/contact'
-import { FriendRequest }  from '../puppet/friend-request'
-import { Room }           from '../puppet/room'
-
-import { MockMessage }        from './mock-message'
+}                       from '../config'
 
 export type PuppetFoodType = 'scan' | 'ding'
 export type ScanFoodType   = 'scan' | 'login' | 'logout'
 
-export class PuppetMock extends Puppet {
+export interface MockContactRawPayload {
+  name : string,
+}
 
-  private user?: Contact
+export interface MockMessageRawPayload {
+  from : string,
+  to   : string,
+  text : string
+}
+
+export interface MockRoomRawPayload {
+  topic: string,
+  memberList: string[],
+  owner: string,
+}
+
+export class PuppetMock extends Puppet {
 
   constructor(
     public options: PuppetOptions,
   ) {
-    super(
-      options,
-      {
-        Contact:        Contact,
-        FriendRequest:  FriendRequest,
-        Message:        MockMessage,
-        Room:           Room,
-      },
-    )
+    super(options)
   }
 
   public toString() {
@@ -82,16 +92,11 @@ export class PuppetMock extends Puppet {
     // await some tasks...
     this.state.on(true)
 
-    const from = Contact.load('xxx_from')
-    const to = Contact.load('xxx_to')
-    const msg = new MockMessage()
+    const user = this.Contact.load('logined_user_id')
+    const msg  = this.Message.createMT('mock_id')
 
-    msg.from(from)
-    msg.to(to)
-    msg.text('mock hello')
-
-    this.user = to
-    this.emit('login', to)
+    this.user = user
+    this.emit('login', user)
 
     setInterval(() => {
       log.verbose('PuppetMock', `start() setInterval() pretending received a new message: ${msg}`)
@@ -114,52 +119,6 @@ export class PuppetMock extends Puppet {
     this.state.off(true)
   }
 
-  public logonoff(): boolean {
-    if (this.user) {
-      return true
-    } else {
-      return false
-    }
-  }
-
-  public userSelf(): Contact {
-    log.verbose('PuppetMock', 'self()')
-
-    if (!this.user) {
-      throw new Error('not logged in, no userSelf yet.')
-    }
-
-    return this.user
-  }
-
-  public async messageForward(message: MockMessage, sendTo: Contact | Room): Promise<void> {
-    log.silly('PuppetMock', 'forward() to: %s, message: %s)',
-                            sendTo, message.filename(),
-                            // patchData.ToUserName,
-                            // patchData.MMActualContent,
-              )
-  }
-
-  public async send(message: MockMessage): Promise<void> {
-    log.verbose('PuppetMock', 'send(%s)', message)
-    // TODO
-  }
-
-  public async say(text: string): Promise<void> {
-    if (!this.logonoff()) {
-      throw new Error('can not say before login')
-    }
-
-    const msg = new MockMessage()
-    msg.puppet = this
-
-    msg.from(this.userSelf())
-    msg.to(this.userSelf())
-    msg.text(text)
-
-    await this.send(msg)
-  }
-
   public async logout(): Promise<void> {
     log.verbose('PuppetMock', 'logout()')
 
@@ -169,12 +128,21 @@ export class PuppetMock extends Puppet {
 
     this.emit('logout', this.user!) // becore we will throw above by logonoff() when this.user===undefined
     this.user = undefined
+
+    // TODO: do the logout job
   }
 
+  /**
+   *
+   * Contact
+   *
+   */
   public contactAlias(contact: Contact)                      : Promise<string>
   public contactAlias(contact: Contact, alias: string | null): Promise<void>
 
   public async contactAlias(contact: Contact, alias?: string|null): Promise<void | string> {
+    log.verbose('PuppetMock', 'contactAlias(%s, %s)', contact, alias)
+
     if (typeof alias === 'undefined') {
       return 'mock alias'
     }
@@ -182,53 +150,130 @@ export class PuppetMock extends Puppet {
   }
 
   public async contactFindAll(query: ContactQueryFilter): Promise<Contact[]> {
+    log.verbose('PuppetMock', 'contactFindAll(%s)', query)
+
     return []
   }
 
-  public async contactAvatar(contact: Contact): Promise<NodeJS.ReadableStream> {
+  public async contactAvatar(contact: Contact): Promise<FileBox> {
+    log.verbose('PuppetMock', 'contactAvatar(%s)', contact)
+
     const WECHATY_ICON_PNG = path.resolve('../../docs/images/wechaty-icon.png')
-    return fs.createReadStream(WECHATY_ICON_PNG)
+    return FileBox.fromLocal(WECHATY_ICON_PNG)
   }
 
-  public async contactPayload(contact: Contact): Promise<ContactPayload> {
-    return {
+  public async contactRawPayload(id: string): Promise<MockContactRawPayload> {
+    log.verbose('PuppetMock', 'contactRawPayload(%s)', id)
+    const rawPayload: MockContactRawPayload = {
+      name : 'mock name',
+    }
+    return rawPayload
+  }
+
+  public async contactRawPayloadParser(rawPayload: MockContactRawPayload): Promise<ContactPayload> {
+    log.verbose('PuppetMock', 'contactRawPayloadParser(%s)', rawPayload)
+
+    const payload: ContactPayload = {
       gender: Gender.Unknown,
       type:   ContactType.Unknown,
     }
-
+    return payload
   }
 
-  public async roomPayload(room: Room): Promise<RoomPayload> {
-    return {
+  /**
+   *
+   * Message
+   *
+   */
+  public async messageRawPayload(id: string): Promise<MockMessageRawPayload> {
+    log.verbose('PuppetMock', 'messageRawPayload(%s)', id)
+    const rawPayload: MockMessageRawPayload = {
+      from : 'from_id',
+      text : 'mock message text',
+      to   : 'to_id',
+    }
+    return rawPayload
+  }
+
+  public async messageRawPayloadParser(rawPayload: MockMessageRawPayload): Promise<MessagePayload> {
+    log.verbose('PuppetMock', 'messagePayload(%s)', rawPayload)
+    const payload: MessagePayload = {
+      date      : new Date(),
+      direction : this.Message.Direction.MT,
+      from      : this.Contact.load('xxx'),
+      text      : 'mock message text',
+      to        : this.userSelf(),
+      type      : this.Message.Type.Text,
+    }
+    return payload
+  }
+
+  public async messageSend(message: Message): Promise<void> {
+    log.verbose('PuppetMock', 'messageSend(%s)', message)
+  }
+
+  public async messageForward(message: Message, to: Contact | Room): Promise<void> {
+    log.verbose('PuppetMock', 'messageForward(%s, %s)',
+                              message,
+                              to,
+              )
+  }
+
+  /**
+   *
+   * Room
+   *
+   */
+  public async roomRawPayload(id: string): Promise<MockRoomRawPayload> {
+    log.verbose('PuppetMock', 'roomRawPayload(%s)', id)
+
+    const rawPayload: MockRoomRawPayload = {
+      owner      : 'mock_room_owner_id',
+      topic      : 'mock topic',
+      memberList : [],
+    }
+    return rawPayload
+  }
+
+  public async roomRawPayloadParser(rawPayload: MockRoomRawPayload): Promise<RoomPayload> {
+    log.verbose('PuppetMock', 'roomRawPayloadParser(%s)', rawPayload)
+
+    const payload: RoomPayload = {
       topic          : 'mock topic',
       memberList     : [],
       nameMap        : {} as any,
       roomAliasMap   : {} as any,
       contactAliasMap: {} as any,
     }
+
+    return payload
   }
 
   public async roomFindAll(
     query: RoomQueryFilter = { topic: /.*/ },
   ): Promise<Room[]> {
+    log.verbose('PuppetMock', 'roomFindAll(%s)', query)
+
     return []
   }
 
   public async roomDel(
-    room: Room,
-    contact: Contact,
+    room    : Room,
+    contact : Contact,
   ): Promise<void> {
-    //
+    log.verbose('PuppetMock', 'roomDel(%s, %s)', room, contact)
   }
 
   public async roomAdd(
-    room: Room,
-    contact: Contact,
+    room    : Room,
+    contact : Contact,
   ): Promise<void> {
-    //
+    log.verbose('PuppetMock', 'roomAdd(%s, %s)', room, contact)
   }
 
   public async roomTopic(room: Room, topic?: string): Promise<void | string> {
+    log.verbose('PuppetMock', 'roomTopic(%s, %s)', room, topic)
+
     if (typeof topic === 'undefined') {
       return 'mock room topic'
     }
@@ -236,24 +281,31 @@ export class PuppetMock extends Puppet {
   }
 
   public async roomCreate(contactList: Contact[], topic: string): Promise<Room> {
+    log.verbose('PuppetMock', 'roomCreate(%s, %s)', contactList, topic)
+
     if (!contactList || ! contactList.map) {
       throw new Error('contactList not found')
     }
-    const r = Room.load('mock room id') as Room
-    r.puppet = this
+    const r = this.Room.load('mock room id') as Room
     return r
   }
 
   public async roomQuit(room: Room): Promise<void> {
-    //
+    log.verbose('PuppetMock', 'roomQuit(%s)', room)
   }
 
+  /**
+   *
+   *
+   * FriendRequest
+   *
+   */
   public async friendRequestSend(contact: Contact, hello: string): Promise<void> {
-    //
+    log.verbose('PuppetMock', 'friendRequestSend(%s, %s)', contact, hello)
   }
 
   public async friendRequestAccept(contact: Contact, ticket: string): Promise<void> {
-    //
+    log.verbose('PuppetMock', 'friendRequestAccept(%s, %s)', contact, ticket)
   }
 
 }

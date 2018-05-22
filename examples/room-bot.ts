@@ -144,10 +144,11 @@ bot
  */
 .on('room-topic', function(this, room, topic, oldTopic, changer) {
   try {
-    log.info('Bot', 'EVENT: room-topic - Room %s change topic to %s by member %s',
+    log.info('Bot', 'EVENT: room-topic - Room %s change topic from %s to %s by member %s',
+                    room,
                     oldTopic,
                     topic,
-                    changer.name(),
+                    changer,
                 )
   } catch (e) {
     log.error('Bot', 'room-topic event exception: %s', e.stack)

@@ -24,7 +24,7 @@ import * as express from 'express'
 // import Brolog       from 'brolog'
 import StateSwitch  from 'state-switch'
 
-import { Message }      from './puppet/'
+import { Message }      from './message'
 
 import {
   config,
@@ -123,7 +123,7 @@ export class IoClient {
 //    }
     const app = express()
 
-    app.get('/', function (req, res) {
+    app.get('/', function (_ /* req */, res) {
       res.send('Wechaty IO Bot Alive!')
     })
 

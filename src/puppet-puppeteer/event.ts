@@ -27,15 +27,15 @@ import {
   ScanData,
 }                 from '../puppet/'
 
-import PuppeteerContact from './puppeteer-contact'
-import PuppeteerMessage from './puppeteer-message'
+// import { Contact } from '../contact'
+// import { Message } from '../message'
 
 import Firer            from './firer'
 import PuppetPuppeteer  from './puppet-puppeteer'
 import {
-  WebMsgType,
+  WebMessageType,
   WebMessageRawPayload,
-}                       from '../puppet/schemas/'
+}                       from './web-schemas'
 
 /* tslint:disable:variable-name */
 export const Event = {
@@ -141,8 +141,7 @@ async function onLogin(
 
     log.silly('PuppetPuppeteerEvent', 'bridge.getUserName: %s', userId)
 
-    const user = PuppeteerContact.load(userId)
-    user.puppet = this
+    const user = this.Contact.load(userId)
     await user.ready()
 
     log.silly('PuppetPuppeteerEvent', `onLogin() user ${user.name()} logined`)
@@ -188,35 +187,34 @@ async function onLogout(
 }
 
 async function onMessage(
-  this: PuppetPuppeteer,
-  obj:  WebMessageRawPayload,
+  this       : PuppetPuppeteer,
+  rawPayload : WebMessageRawPayload,
 ): Promise<void> {
-  let m = new PuppeteerMessage(obj)
-  m.puppet = this
+  let msg = this.Message.createMT(rawPayload.MsgId)
 
   try {
-    await m.ready()
+    await msg.ready()
 
     /**
      * Fire Events if match message type & content
      */
-    switch (m.type()) {
+    switch (rawPayload.MsgType) {
 
-      case WebMsgType.VERIFYMSG:
-        Firer.checkFriendRequest.call(this, m)
+      case WebMessageType.VERIFYMSG:
+        Firer.checkFriendRequest.call(this, msg)
         break
 
-      case WebMsgType.SYS:
-        if (m.room()) {
-          const joinResult  = await Firer.checkRoomJoin.call(this  , m)
-          const leaveResult = await Firer.checkRoomLeave.call(this , m)
-          const topicRestul = await Firer.checkRoomTopic.call(this , m)
+      case WebMessageType.SYS:
+        if (msg.room()) {
+          const joinResult  = await Firer.checkRoomJoin.call(this  , msg)
+          const leaveResult = await Firer.checkRoomLeave.call(this , msg)
+          const topicRestul = await Firer.checkRoomTopic.call(this , msg)
 
           if (!joinResult && !leaveResult && !topicRestul) {
-            log.warn('PuppetPuppeteerEvent', `checkRoomSystem message: <${m.text()}> not found`)
+            log.warn('PuppetPuppeteerEvent', `checkRoomSystem message: <${msg.text()}> not found`)
           }
         } else {
-          Firer.checkFriendConfirm.call(this, m)
+          Firer.checkFriendConfirm.call(this, msg)
         }
         break
     }
@@ -226,28 +224,27 @@ async function onMessage(
      * reload if needed
      */
 
-    switch (m.type()) {
-      case WebMsgType.EMOTICON:
-      case WebMsgType.IMAGE:
-      case WebMsgType.VIDEO:
-      case WebMsgType.VOICE:
-      case WebMsgType.MICROVIDEO:
-      case WebMsgType.APP:
+    switch (rawPayload.MsgType) {
+      case WebMessageType.EMOTICON:
+      case WebMessageType.IMAGE:
+      case WebMessageType.VIDEO:
+      case WebMessageType.VOICE:
+      case WebMessageType.MICROVIDEO:
+      case WebMessageType.APP:
         log.verbose('PuppetPuppeteerEvent', 'onMessage() EMOTICON/IMAGE/VIDEO/VOICE/MICROVIDEO message')
-        m = new PuppeteerMessage(obj)
-        m.puppet = this
+        msg = this.Message.createMT(rawPayload.MsgId)
         break
 
-      case WebMsgType.TEXT:
-        if (m.typeSub() === WebMsgType.LOCATION) {
+      case WebMessageType.TEXT:
+        if (rawPayload.SubMsgType === WebMessageType.LOCATION) {
           log.verbose('PuppetPuppeteerEvent', 'onMessage() (TEXT&LOCATION) message')
-          m = new PuppeteerMessage(obj)
+          msg = this.Message.createMT(rawPayload.MsgId)
         }
         break
     }
 
-    await m.ready()
-    this.emit('message', m)
+    await msg.ready()
+    this.emit('message', msg)
 
   } catch (e) {
     log.error('PuppetPuppeteerEvent', 'onMessage() exception: %s', e.stack)

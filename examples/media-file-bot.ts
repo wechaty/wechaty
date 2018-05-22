@@ -50,8 +50,8 @@ bot
   console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
 })
 .on('login'	  , user => console.log(`${user} logined`))
-.on('message', m => {
-  console.log(`RECV: ${m}`)
+.on('message', msg => {
+  console.log(`RECV: ${msg}`)
 
   // console.log(inspect(m))
   // saveRawObj(m.rawObj)
@@ -64,8 +64,8 @@ bot
   //   || m.type() === MsgType.APP
   //   || (m.type() === MsgType.TEXT && m.typeSub() === MsgType.LOCATION)  // LOCATION
   // ) {
-  if (m.type() !== Message.Type.TEXT) {
-    saveMediaFile(m)
+  if (msg.type() !== Message.Type.Text) {
+    saveMediaFile(msg)
   }
   // }
 })
@@ -73,7 +73,9 @@ bot
 .catch(e => console.error('bot.start() error: ' + e))
 
 async function saveMediaFile(message: Message) {
-  const filename = message.filename()
+  const fileBox = message.file()
+
+  const filename = fileBox.name
   console.log('IMAGE local filename: ' + filename)
 
   if (!filename) {
@@ -84,8 +86,7 @@ async function saveMediaFile(message: Message) {
 
   console.log('start to readyStream()')
   try {
-    const netStream = await message.readyStream()
-    netStream
+    fileBox
       .pipe(fileStream)
       .on('close', () => {
         const stat = statSync(filename)

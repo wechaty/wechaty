@@ -16,17 +16,13 @@
  *   limitations under the License.
  *
  */
-import {
-  Gender,
-}           from '../contact'
-
 export interface WebContactRawPayload {
   Alias:        string,
   City:         string,
   NickName:     string,
   Province:     string,
   RemarkName:   string,
-  Sex:          Gender,
+  Sex:          number,
   Signature:    string,
   StarFriend:   string,
   Uin:          string,
@@ -108,7 +104,7 @@ export interface WebMessageRawPayload {
   AppMsgType:       WebAppMsgType,  // message.MsgType == CONF.MSGTYPE_APP && message.AppMsgType == CONF.APPMSGTYPE_URL
                                  // message.MsgType == CONF.MSGTYPE_TEXT && message.SubMsgType != CONF.MSGTYPE_LOCATION
 
-  SubMsgType:       WebMsgType, // "msgType":"{{message.MsgType}}","subType":{{message.SubMsgType||0}},"msgId":"{{message.MsgId}}"
+  SubMsgType:       WebMessageType, // "msgType":"{{message.MsgType}}","subType":{{message.SubMsgType||0}},"msgId":"{{message.MsgId}}"
 
   /**
    * Status-es
@@ -240,7 +236,7 @@ export enum WebAppMsgType {
  * @property {number} SYS                 - MsgType.SYS                 (10000) for SYS
  * @property {number} RECALLED            - MsgType.RECALLED            (10002) for RECALLED
  */
-export enum WebMsgType {
+export enum WebMessageType {
   TEXT                = 1,
   IMAGE               = 3,
   VOICE               = 34,
@@ -279,4 +275,19 @@ export const enum WebMediaType {
   Video      = 2,
   Audio      = 3,
   Attachment = 4,
+}
+
+export interface WebRoomRawMember {
+  UserName:     string,
+  NickName:     string,
+  DisplayName:  string,
+}
+
+export interface WebRoomRawPayload {
+  UserName:         string,
+  EncryChatRoomId:  string,
+  NickName:         string,
+  OwnerUin:         number,
+  ChatRoomOwner:    string,
+  MemberList?:      WebRoomRawMember[],
 }

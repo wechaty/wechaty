@@ -199,7 +199,7 @@ export class Misc {
     log.silly('UtilLib', 'getPort(%d)', port)
     let tryPort = nextPort(port || 38788)
 
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve => {
       // https://gist.github.com/mikeal/1840641
       function _getPort(cb: (port: number) => void) {
         const server = net.createServer()

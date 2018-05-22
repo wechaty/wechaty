@@ -17,16 +17,17 @@
  *
  *   @ignore
  */
+import { FileBox } from 'file-box'
+import { instanceToClass } from 'clone-class'
+
 import {
   log,
   Raven,
   Sayable,
-}                       from '../config'
-import PuppetAccessory  from '../puppet-accessory'
+}                       from './config'
+import PuppetAccessory  from './puppet-accessory'
 
 import Message          from './message'
-
-import PuppeteerMessage from '../puppet-puppeteer/puppeteer-message'
 
 /**
  * Enum for Gender values.
@@ -89,7 +90,7 @@ export class Contact extends PuppetAccessory implements Sayable {
    */
   public static load<T extends typeof Contact>(this: T, id: string): T['prototype'] {
     if (!id || typeof id !== 'string') {
-      throw new Error('Contact.load(): id not found')
+      throw new Error('Contact.load(): id not found: ' + id)
     }
 
     const existingContact = this.pool.get(id)
@@ -199,6 +200,17 @@ export class Contact extends PuppetAccessory implements Sayable {
   ) {
     super()
     log.silly('Contact', `constructor(${id})`)
+
+    // tslint:disable-next-line:variable-name
+    const MyClass = instanceToClass(this, Contact)
+
+    if (MyClass === Contact) {
+      throw new Error('Contact class can not be instanciated directly! See: https://github.com/Chatie/wechaty/issues/1217')
+    }
+
+    if (!this.puppet) {
+      throw new Error('Contact class can not be instanciated without a puppet!')
+    }
   }
 
   /**
@@ -235,29 +247,32 @@ export class Contact extends PuppetAccessory implements Sayable {
    *   console.error(e)
    * }
    */
-  public async say(message: Message): Promise<void>
+  public async say(file: FileBox): Promise<void>
 
-  public async say(textOrMessage: string | Message): Promise<void> {
-    log.verbose('Contact', 'say(%s)', textOrMessage)
+  public async say(textOrFile: string | FileBox): Promise<void> {
+    log.verbose('Contact', 'say(%s)', textOrFile)
 
-    let msg
-    if (textOrMessage instanceof Message) {
-      msg = textOrMessage
+    let msg: Message
+    if (typeof textOrFile === 'string') {
+      msg = Message.createMO({
+        text : textOrFile,
+        to   : this,
+      })
+    } else if (textOrFile instanceof FileBox) {
+      msg = Message.createMO({
+        to   : this,
+        file : textOrFile,
+      })
     } else {
-      msg = new PuppeteerMessage()
-      msg.puppet = this.puppet
-      msg.text(textOrMessage)
+      throw new Error('unsupported')
     }
-
-    msg.from(this.puppet.userSelf())
-    msg.to(this)
 
     log.silly('Contact', 'say() from: %s to: %s content: %s',
                                   this.puppet.userSelf(),
                                   this,
                                   msg,
               )
-    await this.puppet.send(msg)
+    await this.puppet.messageSend(msg)
   }
 
   /**
@@ -454,16 +469,16 @@ export class Contact extends PuppetAccessory implements Sayable {
   /**
    * Get avatar picture file stream
    *
-   * @returns {Promise<NodeJS.ReadableStream>}
+   * @returns {Promise<FileBox>}
    * @example
    * const avatarFileName = contact.name() + `.jpg`
-   * const avatarReadStream = await contact.avatar()
+   * const fileBox = await contact.avatar()
    * const avatarWriteStream = createWriteStream(avatarFileName)
-   * avatarReadStream.pipe(avatarWriteStream)
+   * fileBox.pipe(avatarWriteStream)
    * log.info('Bot', 'Contact: %s: %s with avatar file: %s', contact.weixin(), contact.name(), avatarFileName)
    */
   // TODO: use File to replace ReadableStream
-  public async avatar(): Promise<NodeJS.ReadableStream> {
+  public async avatar(): Promise<FileBox> {
     log.verbose('Contact', 'avatar()')
 
     return this.puppet.contactAvatar(this)
@@ -511,7 +526,7 @@ export class Contact extends PuppetAccessory implements Sayable {
     }
 
     try {
-      this.payload = await this.puppet.contactPayload(this)
+      this.payload = await this.puppet.contactPayload(this.id)
       log.silly('Contact', `ready() this.puppet.contactPayload(%s) resolved`, this)
       // console.log(this.payload)
 

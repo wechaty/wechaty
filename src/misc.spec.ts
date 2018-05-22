@@ -124,7 +124,7 @@ test('downloadStream() for media', async t => {
 
   const server = http.createServer(app)
   server.on('clientError', (err, socket) => {
-    t.fail('server on clientError')
+    t.fail('server on clientError' + err)
     socket.end('HTTP/1.1 400 Bad Request\r\n\r\n')
   })
   server.listen(65534)

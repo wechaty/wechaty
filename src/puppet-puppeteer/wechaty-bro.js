@@ -486,6 +486,26 @@
     }
     return true
   }
+
+  function getMessage(id) {
+    var chatFactory = WechatyBro.glue.chatFactory
+    if (!chatFactory) {
+      log('chatFactory not inited')
+      return null
+    }
+    var msg = chatFactory.getMsg(id)
+    var msgWithoutFunction = {}
+
+    if (msg) {
+      Object.keys(msg).forEach(function(k) {
+        if (typeof msg[k] !== 'function') {
+          msgWithoutFunction[k] = msg[k]
+        }
+      })
+    }
+    return msgWithoutFunction
+  }
+
   function getContact(id) {
     var contactFactory = WechatyBro.glue.contactFactory
     if (!contactFactory) {

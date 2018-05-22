@@ -35,7 +35,7 @@ import Wechaty      from '../wechaty'
 
 import {
   Contact,
-}                   from '../puppet/'
+}                   from '../contact'
 
 import PuppetPuppeteer  from './puppet-puppeteer'
 import Bridge           from './bridge'
@@ -81,7 +81,7 @@ test('login/logout events', sinonTest(async function (t: test.Test) {
     })
     t.ok(pw, 'should instantiated a PuppetPuppeteer')
 
-    // config.puppetInstance(pw)
+    // FIXME: do not modify global instance
     Contact.puppet = pw
 
     await pw.start()
@@ -100,7 +100,7 @@ test('login/logout events', sinonTest(async function (t: test.Test) {
     t.ok((Contact.findAll as any).called,       'contactFind stub should be called')
     t.is((Contact.findAll as any).callCount, 4, 'should call stubContactFind 4 times')
 
-    const logoutPromise = new Promise((res, rej) => pw.once('logout', _ => res('logoutFired')))
+    const logoutPromise = new Promise(resolve => pw.once('logout', _ => resolve('logoutFired')))
     pw.bridge.emit('logout')
     t.is(await logoutPromise, 'logoutFired', 'should fire logout event')
     t.is(pw.logonoff(), false, 'should be logouted')

@@ -108,7 +108,7 @@ test('testBlockedMessage()', async t => {
     ' To use WeChat on a computer, use Windows WeChat or Mac WeChat at http://wechat.com',
   ].join('')
 
-  test('not blocked', async t => {
+  t.test('not blocked', async t => {
     const profile = new Profile()
     const bridge = new Bridge({ profile })
 
@@ -116,7 +116,7 @@ test('testBlockedMessage()', async t => {
     t.equal(msg, false, 'should return false when no block message')
   })
 
-  test('html', async t => {
+  t.test('html', async t => {
     const profile = new Profile()
     const bridge = new Bridge({ profile })
 
@@ -124,7 +124,7 @@ test('testBlockedMessage()', async t => {
     t.equal(msg, BLOCKED_TEXT_ZH, 'should get zh blocked message')
   })
 
-  test('zh', async t => {
+  t.test('zh', async t => {
     const profile = new Profile()
     const bridge = new Bridge({ profile })
 
@@ -153,7 +153,7 @@ test('clickSwitchAccount()', async t => {
   const profile = new Profile()
   const bridge = new Bridge({ profile} )
 
-  test('switch account needed', async t => {
+  t.test('switch account needed', async t => {
     const browser = await launch(PUPPETEER_LAUNCH_OPTIONS)
     const page    = await browser.newPage()
 
@@ -166,7 +166,7 @@ test('clickSwitchAccount()', async t => {
     t.equal(clicked, true, 'should click the switch account button')
   })
 
-  test('switch account not needed', async t => {
+  t.test('switch account not needed', async t => {
     const browser = await launch(PUPPETEER_LAUNCH_OPTIONS)
     const page    = await browser.newPage()
 

@@ -22,6 +22,9 @@ import * as normalize   from 'normalize-package-data'
 import * as readPkgUp   from 'read-pkg-up'
 
 import {
+  FileBox,
+}                       from 'file-box'
+import {
   callerResolve,
 }                       from 'hot-import'
 import {
@@ -31,9 +34,9 @@ import {
   Watchdog,
   WatchdogFood,
 }                       from 'watchdog'
-import {
-  Constructor,
-}                       from 'clone-class'
+// import {
+//   Constructor,
+// }                       from 'clone-class'
 
 import {
   WECHATY_EVENT_DICT,
@@ -49,15 +52,19 @@ import {
   Contact,
   ContactPayload,
   ContactQueryFilter,
-}                       from './contact'
-import FriendRequest    from './friend-request'
-import Message          from './message'
-
+}                       from '../contact'
+import {
+  FriendRequest,
+}                       from '../friend-request'
+import {
+  Message,
+  MessagePayload,
+}                       from '../message'
 import {
   Room,
   RoomPayload,
   RoomQueryFilter,
-}                       from './room'
+}                       from '../room'
 
 // XXX: Name??? ScanInfo? ScanEvent? ScanXXX?
 export interface ScanData {
@@ -73,18 +80,6 @@ export const PUPPET_EVENT_DICT = {
 
 export type PuppetEventName = keyof typeof PUPPET_EVENT_DICT
 
-export type PuppetContact        = typeof Contact       & Constructor<Contact>
-export type PuppetFriendRequest  = typeof FriendRequest & Constructor<FriendRequest>
-export type PuppetMessage        = typeof Message       & Constructor<Message>
-export type PuppetRoom           = typeof Room          & Constructor<Room>
-
-export interface PuppetClasses {
-  Contact:        PuppetContact,
-  FriendRequest:  PuppetFriendRequest,
-  Message:        PuppetMessage,
-  Room:           PuppetRoom,
-}
-
 export interface PuppetOptions {
   profile: Profile,
   wechaty: Wechaty,
@@ -95,9 +90,20 @@ export interface PuppetOptions {
  */
 export abstract class Puppet extends EventEmitter implements Sayable {
   public readonly state   : StateSwitch
-  public readonly classes : PuppetClasses
+  // public readonly classes : PuppetClasses
 
   protected readonly watchdog: Watchdog
+
+  protected user?: Contact
+
+  /* tslint:disable:variable-name */
+  public readonly Contact       : typeof Contact
+  /* tslint:disable:variable-name */
+  public readonly FriendRequest : typeof FriendRequest
+  /* tslint:disable:variable-name */
+  public readonly Message       : typeof Message
+  /* tslint:disable:variable-name */
+  public readonly Room          : typeof Room
 
   /**
    * childPkg stores the `package.json` that the NPM module who extends the `Puppet`
@@ -106,7 +112,6 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   constructor(
     public options:   PuppetOptions,
-    classes?:         PuppetClasses,
   ) {
     super()
 
@@ -116,22 +121,20 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     this.watchdog = new Watchdog(WATCHDOG_TIMEOUT, 'Puppet')
 
     /**
-     * 1. Check Classes for inherience correctly
+     * 1. Init Classes
      */
-    if (!classes) {
-      throw new Error('no classes found')
+    if (  !this.options.wechaty.Contact
+        || !this.options.wechaty.FriendRequest
+        || !this.options.wechaty.Message
+        || !this.options.wechaty.Room
+    ) {
+      throw new Error('wechaty classes are not inited')
     }
 
-    // https://stackoverflow.com/questions/14486110/how-to-check-if-a-javascript-class-inherits-another-without-creating-an-obj
-    const check = classes.Contact.prototype        instanceof Contact
-                && classes.FriendRequest.prototype instanceof FriendRequest
-                && classes.Message.prototype       instanceof Message
-                && classes.Room.prototype          instanceof Room
-
-    if (!check) {
-      throw new Error('Puppet must set classes right! https://github.com/Chatie/wechaty/issues/1167')
-    }
-    this.classes = classes
+    this.Contact       = this.options.wechaty.Contact
+    this.FriendRequest = this.options.wechaty.FriendRequest
+    this.Message       = this.options.wechaty.Message
+    this.Room          = this.options.wechaty.Room
 
     /**
      * 2. Load the package.json for Puppet Plugin version range matching
@@ -148,6 +151,10 @@ export abstract class Puppet extends EventEmitter implements Sayable {
       }
     }
     normalize(this.childPkg)
+  }
+
+  public toString() {
+    return `Puppet<${this.options.profile.name}>`
   }
 
   public emit(event: 'error',       e: Error)                                                      : boolean
@@ -226,16 +233,51 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async start() : Promise<void>
   public abstract async stop()  : Promise<void>
 
-  public abstract userSelf(): Contact
+  public userSelf(): Contact {
+    log.verbose('Puppet', 'self()')
 
-  // TODO: change Message to File
-  public abstract async say(textOrMessage: string | Message)          : Promise<void>
-  public abstract async send(message: Message)                        : Promise<void>
+    if (!this.user) {
+      throw new Error('not logged in, no userSelf yet.')
+    }
+
+    return this.user
+  }
+
+  public async say(textOrFile: string | FileBox) : Promise<void> {
+    if (!this.logonoff()) {
+      throw new Error('can not say before login')
+    }
+
+    let msg: Message
+
+    if (typeof textOrFile === 'string') {
+      msg = this.Message.createMO({
+        text : textOrFile,
+        to   : this.userSelf(),
+      })
+    } else if (textOrFile instanceof FileBox) {
+      msg = this.Message.createMO({
+        file: textOrFile,
+        to: this.userSelf(),
+      })
+    } else {
+      throw new Error('say() arg unknown')
+    }
+
+    await this.messageSend(msg)
+  }
 
   /**
    * Login / Logout
    */
-  public abstract logonoff()   : boolean
+  public logonoff(): boolean {
+    if (this.user) {
+      return true
+    } else {
+      return false
+    }
+  }
+
   // public abstract login(user: Contact): Promise<void>
   public abstract async logout(): Promise<void>
 
@@ -245,6 +287,31 @@ export abstract class Puppet extends EventEmitter implements Sayable {
    *
    */
   public abstract async messageForward(message: Message, to: Contact | Room) : Promise<void>
+  public abstract async messageSend(message: Message)                        : Promise<void>
+
+  public abstract async messageRawPayload(id: string)            : Promise<any>
+  public abstract async messageRawPayloadParser(rawPayload: any) : Promise<MessagePayload>
+
+  public async messagePayload(id: string): Promise<MessagePayload> {
+    log.verbose('Puppet', 'messagePayload(%s)', id)
+    const rawPayload = await this.messageRawPayload(id)
+    const payload    = await this.messageRawPayloadParser(rawPayload)
+
+    /**
+     * Make sure all the contacts & room have already been ready
+     */
+    if (payload.from && !payload.from.isReady()) {
+      await payload.from.ready()
+    }
+    if (payload.to && !payload.to.isReady()) {
+      await payload.to.ready()
+    }
+    if (payload.room && !payload.room.isReady()) {
+      await payload.room.ready()
+    }
+
+    return payload
+  }
 
   /**
    *
@@ -259,28 +326,43 @@ export abstract class Puppet extends EventEmitter implements Sayable {
    * Room
    *
    */
-  public abstract async roomAdd(room: Room, contact: Contact)               : Promise<void>
-  public abstract async roomCreate(contactList: Contact[], topic?: string)  : Promise<Room>
-  public abstract async roomDel(room: Room, contact: Contact)               : Promise<void>
-  public abstract async roomFindAll(query?: RoomQueryFilter)                : Promise<Room[]>
-  public abstract async roomPayload(room: Room)                             : Promise<RoomPayload>
-  public abstract async roomQuit(room: Room)                                : Promise<void>
-  public abstract async roomTopic(room: Room, topic?: string)               : Promise<string | void>
+  public abstract async roomAdd(room: Room, contact: Contact)              : Promise<void>
+  public abstract async roomCreate(contactList: Contact[], topic?: string) : Promise<Room>
+  public abstract async roomDel(room: Room, contact: Contact)              : Promise<void>
+  public abstract async roomFindAll(query?: RoomQueryFilter)               : Promise<Room[]>
+  public abstract async roomQuit(room: Room)                               : Promise<void>
+  public abstract async roomTopic(room: Room, topic?: string)              : Promise<string | void>
+
+  public abstract async roomRawPayload(id: string)            : Promise<any>
+  public abstract async roomRawPayloadParser(rawPayload: any) : Promise<RoomPayload>
+
+  public async roomPayload(id: string): Promise<RoomPayload> {
+    log.verbose('Puppet', 'roomPayload(%s)', id)
+    const rawPayload = await this.roomRawPayload(id)
+    const payload    = await this.roomRawPayloadParser(rawPayload)
+    return payload
+  }
 
   /**
    *
    * Contact
    *
    */
-  public abstract async contactAlias(contact: Contact)                      : Promise<string>
-  public abstract async contactAlias(contact: Contact, alias: string | null): Promise<void>
-  public abstract async contactAlias(contact: Contact, alias?: string|null) : Promise<string | void>
+  public abstract async contactAlias(contact: Contact)                       : Promise<string>
+  public abstract async contactAlias(contact: Contact, alias: string | null) : Promise<void>
+  public abstract async contactAlias(contact: Contact, alias?: string|null)  : Promise<string | void>
+  public abstract async contactAvatar(contact: Contact)                      : Promise<FileBox>
+  public abstract async contactFindAll(query?: ContactQueryFilter)           : Promise<Contact[]>
 
-  // TODO: change the return type from NodeJS.ReadableStream to File(vinyl)
-  public abstract async contactAvatar(contact: Contact)                     : Promise<NodeJS.ReadableStream>
-  public abstract async contactPayload(contact: Contact)                    : Promise<ContactPayload>
+  public abstract async contactRawPayload(id: string)            : Promise<any>
+  public abstract async contactRawPayloadParser(rawPayload: any) : Promise<ContactPayload>
 
-  public abstract async contactFindAll(query?: ContactQueryFilter)          : Promise<Contact[]>
+  public async contactPayload(id: string): Promise<ContactPayload> {
+    log.verbose('Puppet', 'contactPayload(%s)', id)
+    const rawPayload = await this.contactRawPayload(id)
+    const payload    = await this.contactRawPayloadParser(rawPayload)
+    return payload
+  }
 
   /**
    *

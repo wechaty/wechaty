@@ -209,7 +209,7 @@ test('other demos', async t => {
       console.log('requestfailed:args:', args)
     })
 
-    page.on('response', (res, ...args) => {
+    page.on('response', (/*res, ...args*/) => {
       // console.log('response:res:', res)
       // console.log('response:args:', args)
     })

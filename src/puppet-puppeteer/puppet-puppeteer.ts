@@ -16,10 +16,13 @@
  *   limitations under the License.
  *
  */
-import * as request from 'request'
-import * as bl      from 'bl'
+// import * as request from 'request'
+// import * as bl      from 'bl'
 
-import cloneClass   from 'clone-class'
+// import cloneClass   from 'clone-class'
+import {
+  FileBox,
+}                   from 'file-box'
 import {
   ThrottleQueue,
 }                   from 'rx-queue'
@@ -29,15 +32,8 @@ import {
 }                   from 'watchdog'
 
 import {
-  ContactQueryFilter,
-  ContactPayload,
-  Gender,
-
   Puppet,
   PuppetOptions,
-  RoomMemberQueryFilter,
-  RoomPayload,
-  RoomQueryFilter,
   ScanData,
 }                     from '../puppet/'
 import {
@@ -49,8 +45,6 @@ import Profile        from '../profile'
 import Misc           from '../misc'
 
 import {
-}                               from '../puppet/schemas/'
-import {
   Bridge,
   Cookie,
 }                       from './bridge'
@@ -58,39 +52,38 @@ import Event            from './event'
 
 import {
   WebContactRawPayload,
-  WebMessageMediaPayload,
+  // WebMessageMediaPayload,
   WebMessageRawPayload,
-  WebMediaType,
-  WebMsgType,
-}                           from '../puppet/'
+  // WebMediaType,
+  WebMessageType,
+  WebRoomRawMember,
+  WebRoomRawPayload,
+}                           from './web-schemas'
 
 import {
-  PuppeteerContact,
-}                             from './puppeteer-contact'
-import PuppeteerMessage       from './puppeteer-message'
+  Contact,
+  ContactPayload,
+  ContactQueryFilter,
+  Gender,
+}                             from '../contact'
 import {
-  PuppeteerRoom,
-  // PuppeteerRoomRawObj,
-}                             from './puppeteer-room'
-import PuppeteerFriendRequest from './puppeteer-friend-request'
+  Message,
+  MessageDirection,
+  MessagePayload,
+  MessageType,
+}                             from '../message'
+import {
+  Room,
+  RoomMemberQueryFilter,
+  RoomPayload,
+  RoomQueryFilter,
+}                             from '../room'
+// import {
+//   FriendRequest,
+// }                             from '../puppet/friend-request'
 
 export type PuppetFoodType = 'scan' | 'ding'
 export type ScanFoodType   = 'scan' | 'login' | 'logout'
-
-export interface PuppeteerRoomRawMember {
-  UserName:     string,
-  NickName:     string,
-  DisplayName:  string,
-}
-
-export interface PuppeteerRoomRawPayload {
-  UserName:         string,
-  EncryChatRoomId:  string,
-  NickName:         string,
-  OwnerUin:         number,
-  ChatRoomOwner:    string,
-  MemberList?:      PuppeteerRoomRawMember[],
-}
 
 export class PuppetPuppeteer extends Puppet {
   public bridge   : Bridge
@@ -98,27 +91,17 @@ export class PuppetPuppeteer extends Puppet {
 
   public scanWatchdog: Watchdog<ScanFoodType>
 
-  private fileId: number
-  private user? : PuppeteerContact
+  // private fileId: number
 
   constructor(
     public options: PuppetOptions,
   ) {
-    super(options, {
-      Contact:        PuppeteerContact,
-      FriendRequest:  PuppeteerFriendRequest,
-      Message:        PuppeteerMessage,
-      Room:           PuppeteerRoom,
-    })
+    super(options)
 
-    this.fileId = 0
+    // this.fileId = 0
 
     const SCAN_TIMEOUT  = 2 * 60 * 1000 // 2 minutes
     this.scanWatchdog   = new Watchdog<ScanFoodType>(SCAN_TIMEOUT, 'Scan')
-  }
-
-  public toString() {
-    return `PuppetPuppeteer<${this.options.profile.name}>`
   }
 
   public async start(): Promise<void> {
@@ -317,312 +300,102 @@ export class PuppetPuppeteer extends Puppet {
     return this.bridge
   }
 
-  /**
-   * get self contact
-   */
-  public userSelf(): PuppeteerContact {
-    log.verbose('PuppetPuppeteer', 'userSelf()')
-
-    if (!this.user) {
-      throw new Error('not logged in, no userSelf yet.')
-    }
-
-    return this.user
+  public async messageRawPayload(id: string): Promise <WebMessageRawPayload> {
+    const rawPayload = await this.bridge.getMessage(id)
+    return rawPayload
   }
 
-  private async getBaseRequest(): Promise<any> {
-    try {
-      const json = await this.bridge.getBaseRequest()
-      const obj = JSON.parse(json)
-      return obj.BaseRequest
-    } catch (e) {
-      log.error('PuppetPuppeteer', 'send() exception: %s', e.message)
-      Raven.captureException(e)
-      throw e
+  public async messageRawPayloadParser(
+    rawPayload: WebMessageRawPayload,
+  ): Promise<MessagePayload> {
+    log.verbose('PuppetPuppeteer', 'messageRawPayloadParser(%s)', rawPayload)
+
+    const from: Contact     = this.Contact.load(rawPayload.MMActualSender)  // MMPeerUserName
+    const text: string      = rawPayload.MMActualContent                    // Content has @id prefix added by wx
+    const date: Date        = new Date(rawPayload.MMDisplayTime)            // Javascript timestamp of milliseconds
+
+    let room : undefined | Room
+    let to   : undefined | Contact
+
+    // FIXME: has there any better method to know the room ID?
+    if (rawPayload.MMIsChatRoom) {
+      if (/^@@/.test(rawPayload.FromUserName)) {
+        room = this.Room.load(rawPayload.FromUserName) // MMPeerUserName always eq FromUserName ?
+      } else if (/^@@/.test(rawPayload.ToUserName)) {
+        room = this.Room.load(rawPayload.ToUserName)
+      } else {
+        throw new Error('parse found a room message, but neither FromUserName nor ToUserName is a room(/^@@/)')
+      }
+      room = room
     }
+
+    if (rawPayload.ToUserName) {
+      if (!/^@@/.test(rawPayload.ToUserName)) { // if a message in room without any specific receiver, then it will set to be `undefined`
+        to = this.Contact.load(rawPayload.ToUserName)
+      }
+    }
+
+    const file: FileBox | undefined = undefined
+
+    const type: MessageType = this.messageTypeFromWeb(rawPayload.MsgType)
+
+    const payload: MessagePayload = {
+      direction: MessageDirection.MT,
+      type,
+      from,
+      to,
+      room,
+      text,
+      // status:       rawPayload.Status,
+      // digest:       rawPayload.MMDigest,
+      date,
+      file,
+      // url:          rawPayload.Url || rawObj.MMAppMsgDownloadUrl || rawObj.MMLocationUrl,
+    }
+
+    // TODO: parse the url to FileBox
+
+    return payload
   }
 
-  private async uploadMedia(message: PuppeteerMessage, toUserName: string): Promise<WebMessageMediaPayload> {
-    if (message.type() === PuppeteerMessage.Type.TEXT) {
-      throw new Error('require a Media Message')
-    }
+  private messageTypeFromWeb(webMsgType: WebMessageType): MessageType {
+    switch (webMsgType) {
+      case WebMessageType.TEXT:
+        return MessageType.Text
 
-    const filename = message.filename()
-    const ext      = message.ext()
+      case WebMessageType.EMOTICON:
+      case WebMessageType.IMAGE:
+        return MessageType.Image
 
-    // const contentType = Misc.mime(ext)
-    // const contentType = mime.getType(ext)
-    const contentType = message.mimeType()
-    if (!contentType) {
-      throw new Error('no MIME Type found on mediaMessage: ' + message.filename())
-    }
-    let mediatype: WebMediaType
+      case WebMessageType.VOICE:
+        return MessageType.Audio
 
-    switch (ext) {
-      case '.bmp':
-      case '.jpeg':
-      case '.jpg':
-      case '.png':
-      case '.gif':
-        mediatype = WebMediaType.Image
-        break
-      case '.mp4':
-        mediatype = WebMediaType.Video
-        break
+      case WebMessageType.MICROVIDEO:
+      case WebMessageType.VIDEO:
+        return MessageType.Video
+
+      case WebMessageType.TEXT:
+        return MessageType.Text
+
+      case WebMessageType.SYS:
+        // FriendRequest is a SYS message
+        // FIXME: should we use better message type at here???
+        return MessageType.Text
+
+      // VERIFYMSG           = 37,
+      // POSSIBLEFRIEND_MSG  = 40,
+      // SHARECARD           = 42,
+      // LOCATION            = 48,
+      // APP                 = 49,
+      // VOIPMSG             = 50,
+      // STATUSNOTIFY        = 51,
+      // VOIPNOTIFY          = 52,
+      // VOIPINVITE          = 53,
+      // SYSNOTICE           = 9999,
+      // RECALLED            = 10002,
       default:
-        mediatype = WebMediaType.Attachment
+        throw new Error('un-supported WebMsgType: ' + webMsgType)
     }
-
-    const readStream = await message.readyStream()
-    const buffer = <Buffer>await new Promise((resolve, reject) => {
-      readStream.pipe(bl((err: Error, data: Buffer) => {
-        if (err) reject(err)
-        else resolve(data)
-      }))
-    })
-
-    // Sending video files is not allowed to exceed 20MB
-    // https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L1115
-    const MAX_FILE_SIZE   = 100 * 1024 * 1024
-    const LARGE_FILE_SIZE = 25 * 1024 * 1024
-    const MAX_VIDEO_SIZE  = 20 * 1024 * 1024
-
-    if (mediatype === WebMediaType.Video && buffer.length > MAX_VIDEO_SIZE)
-      throw new Error(`Sending video files is not allowed to exceed ${MAX_VIDEO_SIZE / 1024 / 1024}MB`)
-    if (buffer.length > MAX_FILE_SIZE) {
-      throw new Error(`Sending files is not allowed to exceed ${MAX_FILE_SIZE / 1024 / 1024}MB`)
-    }
-
-    const md5 = Misc.md5(buffer)
-
-    const baseRequest     = await this.getBaseRequest()
-    const passTicket      = await this.bridge.getPassticket()
-    const uploadMediaUrl  = await this.bridge.getUploadMediaUrl()
-    const checkUploadUrl  = await this.bridge.getCheckUploadUrl()
-    const cookie          = await this.bridge.cookies()
-    const first           = cookie.find(c => c.name === 'webwx_data_ticket')
-    const webwxDataTicket = first && first.value
-    const size            = buffer.length
-    const fromUserName    = this.userSelf()!.id
-    const id              = 'WU_FILE_' + this.fileId
-    this.fileId++
-
-    const hostname = await this.bridge.hostname()
-    const headers = {
-      Referer: `https://${hostname}`,
-      'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36',
-      Cookie: cookie.map(c => c.name + '=' + c.value).join('; '),
-    }
-
-    log.silly('PuppetPuppeteer', 'uploadMedia() headers:%s', JSON.stringify(headers))
-
-    const uploadMediaRequest = {
-      BaseRequest:   baseRequest,
-      FileMd5:       md5,
-      FromUserName:  fromUserName,
-      ToUserName:    toUserName,
-      UploadType:    2,
-      ClientMediaId: +new Date,
-      MediaType:     WebMediaType.Attachment,
-      StartPos:      0,
-      DataLen:       size,
-      TotalLen:      size,
-      Signature:     '',
-      AESKey:        '',
-    }
-
-    const checkData = {
-      BaseRequest:  baseRequest,
-      FromUserName: fromUserName,
-      ToUserName:   toUserName,
-      FileName:     filename,
-      FileSize:     size,
-      FileMd5:      md5,
-      FileType:     7,              // If do not have this parameter, the api will fail
-    }
-
-    const mediaData = {
-      ToUserName: toUserName,
-      MediaId:    '',
-      FileName:   filename,
-      FileSize:   size,
-      FileMd5:    md5,
-      MMFileExt:  ext,
-    } as WebMessageMediaPayload
-
-    // If file size > 25M, must first call checkUpload to get Signature and AESKey, otherwise it will fail to upload
-    // https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L1132 #1182
-    if (size > LARGE_FILE_SIZE) {
-      let ret
-      try {
-        ret = <any> await new Promise((resolve, reject) => {
-          const r = {
-            url: `https://${hostname}${checkUploadUrl}`,
-            headers,
-            json: checkData,
-          }
-          request.post(r, function (err, res, body) {
-            try {
-              if (err) {
-                reject(err)
-              } else {
-                let obj = body
-                if (typeof body !== 'object') {
-                  log.silly('PuppetPuppeteer', 'updateMedia() typeof body = %s', typeof body)
-                  try {
-                    obj = JSON.parse(body)
-                  } catch (e) {
-                    log.error('PuppetPuppeteer', 'updateMedia() body = %s', body)
-                    log.error('PuppetPuppeteer', 'updateMedia() exception: %s', e)
-                    this.emit('error', e)
-                  }
-                }
-                if (typeof obj !== 'object' || obj.BaseResponse.Ret !== 0) {
-                  const errMsg = obj.BaseResponse || 'api return err'
-                  log.silly('PuppetPuppeteer', 'uploadMedia() checkUpload err:%s \nreq:%s\nret:%s', JSON.stringify(errMsg), JSON.stringify(r), body)
-                  reject(new Error('chackUpload err:' + JSON.stringify(errMsg)))
-                }
-                resolve({
-                  Signature : obj.Signature,
-                  AESKey    : obj.AESKey,
-                })
-              }
-            } catch (e) {
-              reject(e)
-            }
-          })
-        })
-      } catch (e) {
-        log.error('PuppetPuppeteer', 'uploadMedia() checkUpload exception: %s', e.message)
-        throw e
-      }
-      if (!ret.Signature) {
-        log.error('PuppetPuppeteer', 'uploadMedia(): chackUpload failed to get Signature')
-        throw new Error('chackUpload failed to get Signature')
-      }
-      uploadMediaRequest.Signature = ret.Signature
-      uploadMediaRequest.AESKey    = ret.AESKey
-      mediaData.Signature          = ret.Signature
-    } else {
-      delete uploadMediaRequest.Signature
-      delete uploadMediaRequest.AESKey
-    }
-
-    log.verbose('PuppetPuppeteer', 'uploadMedia() webwx_data_ticket: %s', webwxDataTicket)
-    log.verbose('PuppetPuppeteer', 'uploadMedia() pass_ticket: %s', passTicket)
-
-    const formData = {
-      id,
-      name: filename,
-      type: contentType,
-      lastModifiedDate: Date().toString(),
-      size,
-      mediatype,
-      uploadmediarequest: JSON.stringify(uploadMediaRequest),
-      webwx_data_ticket: webwxDataTicket,
-      pass_ticket: passTicket || '',
-      filename: {
-        value: buffer,
-        options: {
-          filename,
-          contentType,
-          size,
-        },
-      },
-    }
-    let mediaId: string
-    try {
-      mediaId = <string>await new Promise((resolve, reject) => {
-        try {
-          request.post({
-            url: uploadMediaUrl + '?f=json',
-            headers,
-            formData,
-          }, function (err, res, body) {
-            if (err) { reject(err) }
-            else {
-              let obj = body
-              if (typeof body !== 'object') {
-                obj = JSON.parse(body)
-              }
-              resolve(obj.MediaId || '')
-            }
-          })
-        } catch (e) {
-          reject(e)
-        }
-      })
-    } catch (e) {
-      log.error('PuppetPuppeteer', 'uploadMedia() uploadMedia exception: %s', e.message)
-      throw new Error('uploadMedia err: ' + e.message)
-    }
-    if (!mediaId) {
-      log.error('PuppetPuppeteer', 'uploadMedia(): upload fail')
-      throw new Error('PuppetPuppeteer.uploadMedia(): upload fail')
-    }
-    return Object.assign(mediaData, { MediaId: mediaId })
-  }
-
-  public async sendMedia(message: PuppeteerMessage): Promise<boolean> {
-    const to   = message.to()
-    const room = message.room()
-
-    let destinationId
-
-    if (room) {
-      destinationId = room.id
-    } else {
-      if (!to) {
-        throw new Error('PuppetPuppeteer.sendMedia(): message with neither room nor to?')
-      }
-      destinationId = to.id
-    }
-
-    let mediaData: WebMessageMediaPayload
-    const rawObj = message.rawObj || {} as WebMessageRawPayload
-
-    if (!rawObj || !rawObj.MediaId) {
-      try {
-        mediaData = await this.uploadMedia(message, destinationId)
-        message.rawObj = Object.assign(rawObj, mediaData)
-        log.silly('PuppetPuppeteer', 'Upload completed, new rawObj:%s', JSON.stringify(message.rawObj))
-      } catch (e) {
-        log.error('PuppetPuppeteer', 'sendMedia() exception: %s', e.message)
-        return false
-      }
-    } else {
-      // To support forward file
-      log.silly('PuppetPuppeteer', 'skip upload file, rawObj:%s', JSON.stringify(rawObj))
-      mediaData = {
-        ToUserName : destinationId,
-        MediaId    : rawObj.MediaId,
-        MsgType    : rawObj.MsgType,
-        FileName   : rawObj.FileName,
-        FileSize   : rawObj.FileSize,
-        MMFileExt  : rawObj.MMFileExt,
-      }
-      if (rawObj.Signature) {
-        mediaData.Signature = rawObj.Signature
-      }
-    }
-    // console.log('mediaData.MsgType', mediaData.MsgType)
-    // console.log('rawObj.MsgType', message.rawObj && message.rawObj.MsgType)
-
-    mediaData.MsgType = this.extToType(message.ext())
-    log.silly('PuppetPuppeteer', 'sendMedia() destination: %s, mediaId: %s, MsgType; %s)',
-      destinationId,
-      mediaData.MediaId,
-      mediaData.MsgType,
-    )
-    let ret = false
-    try {
-      ret = await this.bridge.sendMedia(mediaData)
-    } catch (e) {
-      log.error('PuppetPuppeteer', 'sendMedia() exception: %s', e.message)
-      Raven.captureException(e)
-      return false
-    }
-    return ret
   }
 
   /**
@@ -630,21 +403,19 @@ export class PuppetPuppeteer extends Puppet {
    */
   // public async forward(baseData: MsgRawObj, patchData: MsgRawObj): Promise<boolean> {
   public async messageForward(
-    message : PuppeteerMessage,
-    sendTo  : PuppeteerContact | PuppeteerRoom,
+    message : Message,
+    to      : Contact | Room,
   ): Promise<void> {
 
-    log.silly('PuppetPuppeteer', 'forward() to: %s, message: %s)',
-      sendTo, message.filename(),
-      // patchData.ToUserName,
-      // patchData.MMActualContent,
+    log.silly('PuppetPuppeteer', 'forward(%s, %s)',
+                                  message,
+                                  to,
     )
 
-    if (!message.rawObj) {
-      throw new Error('no rawObj')
-    }
+    let rawPayload = await this.messageRawPayload(message.id)
 
-    let m = Object.assign({}, message.rawObj)
+    // rawPayload = Object.assign({}, rawPayload)
+
     const newMsg = <WebMessageRawPayload>{}
     const largeFileSize = 25 * 1024 * 1024
     // let ret = false
@@ -659,7 +430,7 @@ export class PuppetPuppeteer extends Puppet {
     // if (sendToList.length < 1) {
     //   throw new Error('param must be Room or Contact and array')
     // }
-    if (m.FileSize >= largeFileSize && !m.Signature) {
+    if (rawPayload.FileSize >= largeFileSize && !rawPayload.Signature) {
       // if has RawObj.Signature, can forward the 25Mb+ file
       log.warn('MediaMessage', 'forward() Due to webWx restrictions, more than 25MB of files can not be downloaded and can not be forwarded.')
       throw new Error('forward() Due to webWx restrictions, more than 25MB of files can not be downloaded and can not be forwarded.')
@@ -667,24 +438,24 @@ export class PuppetPuppeteer extends Puppet {
 
     newMsg.FromUserName         = this.user && this.user.id || ''
     newMsg.isTranspond          = true
-    newMsg.MsgIdBeforeTranspond = m.MsgIdBeforeTranspond || m.MsgId
-    newMsg.MMSourceMsgId        = m.MsgId
+    newMsg.MsgIdBeforeTranspond = rawPayload.MsgIdBeforeTranspond || rawPayload.MsgId
+    newMsg.MMSourceMsgId        = rawPayload.MsgId
     // In room msg, the content prefix sender:, need to be removed, otherwise the forwarded sender will display the source message sender, causing self () to determine the error
-    newMsg.Content      = Misc.unescapeHtml(m.Content.replace(/^@\w+:<br\/>/, '')).replace(/^[\w\-]+:<br\/>/, '')
-    newMsg.MMIsChatRoom = sendTo instanceof PuppeteerRoom ? true : false
+    newMsg.Content      = Misc.unescapeHtml(rawPayload.Content.replace(/^@\w+:<br\/>/, '')).replace(/^[\w\-]+:<br\/>/, '')
+    newMsg.MMIsChatRoom = to instanceof Room ? true : false
 
     // The following parameters need to be overridden after calling createMessage()
 
-    m = Object.assign(m, newMsg)
+    rawPayload = Object.assign(rawPayload, newMsg)
     // for (let i = 0; i < sendToList.length; i++) {
       // newMsg.ToUserName = sendToList[i].id
       // // all call success return true
       // ret = (i === 0 ? true : ret) && await config.puppetInstance().forward(m, newMsg)
     // }
-    newMsg.ToUserName = sendTo.id
+    newMsg.ToUserName = to.id
     // ret = await config.puppetInstance().forward(m, newMsg)
     // return ret
-    const baseData  = m
+    const baseData  = rawPayload
     const patchData = newMsg
 
     try {
@@ -699,7 +470,7 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-   public async send(message: PuppeteerMessage): Promise<void> {
+   public async messageSend(message: Message): Promise<void> {
     log.verbose('PuppetPuppeteer', 'send(%s)', message)
 
     const to   = message.to()
@@ -715,7 +486,7 @@ export class PuppetPuppeteer extends Puppet {
       throw new Error('PuppetPuppeteer.send(): message with neither room nor to?')
     }
 
-    if (message.type() === WebMsgType.TEXT) {
+    if (message.type() === MessageType.Text) {
       log.silly('PuppetPuppeteer', 'send() TEXT message.')
       const text = message.text()
 
@@ -734,37 +505,16 @@ export class PuppetPuppeteer extends Puppet {
     } else {
       log.silly('PuppetPuppeteer', 'send() non-TEXT message.')
 
-      const ret = await this.sendMedia(message)
-      if (!ret) {
-        throw new Error('sendMedia fail')
-      }
+      log.error('PuppetPuppeteer', 'messageSend() sendMedia un-implement yet!!!')
+      // TODO: implement this!
+      // const ret = await this.sendMedia(message)
+      // if (!ret) {
+      //   throw new Error('sendMedia fail')
+      // }
     }
   }
 
-  /**
-   * Bot say...
-   * send to `self` for notice / log
-   */
-  public async say(text: string): Promise<void> {
-    if (!this.logonoff()) {
-      throw new Error('can not say before login')
-    }
-
-    if (!text) {
-      log.warn('PuppetPuppeteer', 'say(%s) can not say nothing', text)
-      return
-    }
-
-    if (!this.user) {
-      log.warn('PuppetPuppeteer', 'say(%s) can not say because no user', text)
-      this.emit('error', new Error('no this.user for PuppetPuppeteer'))
-      return
-    }
-
-    return await this.user.say(text)
-  }
-
-  public async login(user: PuppeteerContact): Promise<void> {
+  public async login(user: Contact): Promise<void> {
     log.warn('PuppetPuppeteer', 'login(%s)', user)
     this.user = user
     this.emit('login', user)
@@ -798,9 +548,27 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  private contactParseRawPayload(
+  /**
+   *
+   * Contact
+   *
+   */
+  public async contactRawPayload(id: string): Promise<WebContactRawPayload> {
+    log.verbose('PuppetPuppeteer', 'contactRawPayload(%s)', id)
+    try {
+      const rawPayload = await this.bridge.getContact(id) as WebContactRawPayload
+      return rawPayload
+    } catch (e) {
+      log.error('PuppetPuppeteer', 'contactRawPayload(%s) exception: %s', id, e.message)
+      Raven.captureException(e)
+      throw e
+    }
+
+  }
+
+  public async contactRawPayloadParser(
     rawPayload: WebContactRawPayload,
-  ): ContactPayload {
+  ): Promise<ContactPayload> {
     log.verbose('PuppetPuppeteer', 'contactParseRawPayload(Object.keys(payload).length=%d)',
                                     Object.keys(rawPayload).length,
                 )
@@ -808,7 +576,7 @@ export class PuppetPuppeteer extends Puppet {
       log.error('PuppetPuppeteer', 'contactParseRawPayload() got empty rawPayload!')
       return {
         gender: Gender.Unknown,
-        type:   PuppeteerContact.Type.Unknown,
+        type:   Contact.Type.Unknown,
       }
     }
 
@@ -838,8 +606,8 @@ export class PuppetPuppeteer extends Puppet {
        */
       // tslint:disable-next-line
       type:      (!!rawPayload.UserName && !rawPayload.UserName.startsWith('@@') && !!(rawPayload.VerifyFlag & 8))
-                    ? PuppeteerContact.Type.Official
-                    : PuppeteerContact.Type.Personal,
+                    ? Contact.Type.Official
+                    : Contact.Type.Personal,
       /**
        * @see 1. https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3246
        * @ignore
@@ -848,23 +616,10 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  private async contactRawPayload(contact: PuppeteerContact): Promise<WebContactRawPayload> {
-    log.verbose('PuppetPuppeteer', 'contactRawPayload(%s)', contact)
-    try {
-      const rawPayload = await this.bridge.getContact(contact.id) as WebContactRawPayload
-      return rawPayload
-    } catch (e) {
-      log.error('PuppetPuppeteer', 'contactRawPayload(%d) exception: %s', contact, e.message)
-      Raven.captureException(e)
-      throw e
-    }
-
-  }
-
-  public async contactPayload(contact: PuppeteerContact): Promise<ContactPayload> {
-    log.verbose('PuppetPuppeteer', 'contactPayload(%s)', contact)
-    const rawPayload  = await this.contactRawPayload(contact)
-    const payload     = this.contactParseRawPayload(rawPayload)
+  public async contactPayload(id: string): Promise<ContactPayload> {
+    log.verbose('PuppetPuppeteer', 'contactPayload(%s)', id)
+    const rawPayload  = await this.contactRawPayload(id)
+    const payload     = await this.contactRawPayloadParser(rawPayload)
     return payload
   }
 
@@ -878,8 +633,8 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async contactAvatar(contact: PuppeteerContact): Promise<NodeJS.ReadableStream> {
-    const payload = await this.contactPayload(contact)
+  public async contactAvatar(contact: Contact): Promise<FileBox> {
+    const payload = await this.contactPayload(contact.id)
     if (!payload.avatar) {
       throw new Error('Can not get avatar: no payload.avatar!')
     }
@@ -887,10 +642,23 @@ export class PuppetPuppeteer extends Puppet {
     try {
       const hostname = await this.hostname()
       const avatarUrl = `http://${hostname}${payload.avatar}&type=big` // add '&type=big' to get big image
-      const cookies = await this.cookies()
+      const cookieList = await this.cookies()
       log.silly('PuppeteerContact', 'avatar() url: %s', avatarUrl)
 
-      return Misc.urlStream(avatarUrl, cookies)
+      /**
+       * FileBox headers
+       */
+      const headers = {
+        cookie: cookieList.map(c => `${c['name']}=${c['value']}`).join('; '),
+      }
+      // return Misc.urlStream(avatarUrl, cookies)
+
+      return FileBox.fromRemote(
+        avatarUrl,
+        contact.name() || 'unknown' + '-avatar.jpg',
+        headers,
+      )
+
     } catch (err) {
       log.warn('PuppeteerContact', 'avatar() exception: %s', err.stack)
       Raven.captureException(err)
@@ -898,11 +666,11 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public contactAlias(contact: PuppeteerContact)                      : Promise<string>
-  public contactAlias(contact: PuppeteerContact, alias: string | null): Promise<void>
+  public contactAlias(contact: Contact)                      : Promise<string>
+  public contactAlias(contact: Contact, alias: string | null): Promise<void>
 
   public async contactAlias(
-    contact: PuppeteerContact,
+    contact: Contact,
     alias?: string | null,
   ): Promise<string | void> {
     if (typeof alias === 'undefined') {
@@ -972,15 +740,14 @@ export class PuppetPuppeteer extends Puppet {
     return filterFunction
   }
 
-  public async contactFindAll(query: ContactQueryFilter): Promise<PuppeteerContact[]> {
+  public async contactFindAll(query: ContactQueryFilter): Promise<Contact[]> {
 
     const filterFunc = this.contactQueryFilterToFunctionString(query)
 
     try {
       const idList = await this.bridge.contactFind(filterFunc)
       return idList.map(id => {
-        const c = PuppeteerContact.load(id) as PuppeteerContact
-        c.puppet = this
+        const c = this.Contact.load(id)
         return c
       })
     } catch (e) {
@@ -990,36 +757,41 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  private async roomRawPayload(room: PuppeteerRoom): Promise<PuppeteerRoomRawPayload> {
-    log.verbose('PuppetPuppeteer', 'roomRawPayload(%s)', room)
+  /**
+   *
+   * Room
+   *
+   */
+  public async roomRawPayload(id: string): Promise<WebRoomRawPayload> {
+    log.verbose('PuppetPuppeteer', 'roomRawPayload(%s)', id)
 
     try {
-      let rawPayload: PuppeteerRoomRawPayload | undefined  // = await this.bridge.getContact(room.id) as PuppeteerRoomRawPayload
+      let rawPayload: WebRoomRawPayload | undefined  // = await this.bridge.getContact(room.id) as PuppeteerRoomRawPayload
 
       // let currNum = rawPayload.MemberList && rawPayload.MemberList.length || 0
       // let prevNum = room.memberList().length  // rawPayload && rawPayload.MemberList && this.rawObj.MemberList.length || 0
 
+      let prevNum = 0
+
       let ttl = 7
       while (ttl--/* && currNum !== prevNum */) {
-        rawPayload = await this.bridge.getContact(room.id) as PuppeteerRoomRawPayload
+        rawPayload = await this.bridge.getContact(id) as WebRoomRawPayload
 
         const currNum = rawPayload.MemberList && rawPayload.MemberList.length || 0
-        const prevNum = room.memberList().length  // rawPayload && rawPayload.MemberList && this.rawObj.MemberList.length || 0
 
         log.silly('PuppetPuppeteer', `roomPayload() this.bridge.getContact(%s) MemberList.length:%d at ttl:%d`,
-          room.id,
+          id,
           currNum,
           ttl,
         )
 
-        if (currNum) {
-          if (prevNum === currNum) {
-            log.silly('PuppetPuppeteer', `roomPayload() puppet.getContact(${room.id}) done at ttl:%d`, ttl)
-            break
-          }
+        if (currNum > 0 && prevNum === currNum) {
+          log.silly('PuppetPuppeteer', `roomPayload() puppet.getContact(${id}) done at ttl:%d`, ttl)
+          break
         }
+        prevNum = currNum
 
-        log.silly('PuppetPuppeteer', `roomPayload() puppet.getContact(${room.id}) retry at ttl:%d`, ttl)
+        log.silly('PuppetPuppeteer', `roomPayload() puppet.getContact(${id}) retry at ttl:%d`, ttl)
         await new Promise(r => setTimeout(r, 1000)) // wait for 1 second
       }
 
@@ -1030,31 +802,20 @@ export class PuppetPuppeteer extends Puppet {
 
       return rawPayload
     } catch (e) {
-      log.error('PuppetPuppeteer', 'roomRawPayload(%s) exception: %s', room.id, e.message)
+      log.error('PuppetPuppeteer', 'roomRawPayload(%s) exception: %s', id, e.message)
       Raven.captureException(e)
       throw e
     }
   }
 
-  public async roomPayload(room: PuppeteerRoom): Promise<RoomPayload> {
-    log.verbose('PuppetPuppeteer', 'roomPayload(%s)', room)
-
-    const rawPayload  = await this.roomRawPayload(room)
-    const payload     = await this.roomParseRawPayload(rawPayload)
-
-    return payload
-  }
-
-  private async roomParseRawPayload(rawPayload: PuppeteerRoomRawPayload): Promise<RoomPayload> {
-    log.verbose('PuppetPuppeteer', 'roomParseRawPayload(%s)', rawPayload)
+  public async roomRawPayloadParser(
+    rawPayload: WebRoomRawPayload,
+  ): Promise<RoomPayload> {
+    log.verbose('PuppetPuppeteer', 'roomRawPayloadParser(%s)', rawPayload)
 
     // console.log(rawPayload)
     const memberList = (rawPayload.MemberList || [])
-                        .map(m => {
-                          const c = PuppeteerContact.load(m.UserName)
-                          c.puppet = this
-                          return c
-                        })
+                        .map(m => this.Contact.load(m.UserName))
     await Promise.all(memberList.map(c => c.ready()))
 
     const nameMap         = this.roomParseMap('name'        , rawPayload.MemberList)
@@ -1078,7 +839,7 @@ export class PuppetPuppeteer extends Puppet {
 
   private roomParseMap(
     parseSection: keyof RoomMemberQueryFilter,
-    memberList?:  PuppeteerRoomRawMember[],
+    memberList?:  WebRoomRawMember[],
   ): Map<string, string> {
     log.verbose('PuppetPuppeteer', 'roomParseMap(%s, memberList.length=%d)',
                                     parseSection,
@@ -1090,8 +851,7 @@ export class PuppetPuppeteer extends Puppet {
       memberList.forEach(member => {
         let tmpName: string
         // console.log(member)
-        const contact = PuppeteerContact.load(member.UserName)
-        contact.puppet = this
+        const contact = this.Contact.load(member.UserName)
         // contact.ready().then(() => console.log('###############', contact.name()))
         // console.log(contact)
         // log.silly('PuppetPuppeteer', 'roomParseMap() memberList.forEach(contact=%s)', contact)
@@ -1124,7 +884,7 @@ export class PuppetPuppeteer extends Puppet {
 
   public async roomFindAll(
     query: RoomQueryFilter = { topic: /.*/ },
-  ): Promise<PuppeteerRoom[]> {
+  ): Promise<Room[]> {
 
     let topicFilter = query.topic
 
@@ -1146,8 +906,7 @@ export class PuppetPuppeteer extends Puppet {
     try {
       const idList = await this.bridge.roomFind(filterFunction)
       return idList.map(id => {
-        const r = PuppeteerRoom.load(id) as PuppeteerRoom
-        r.puppet = this
+        const r = this.Room.load(id) as Room
         return r
       })
     } catch (e) {
@@ -1157,7 +916,7 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async roomDel(room: PuppeteerRoom, contact: PuppeteerContact): Promise<void> {
+  public async roomDel(room: Room, contact: Contact): Promise<void> {
     const roomId    = room.id
     const contactId = contact.id
     try {
@@ -1169,7 +928,7 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async roomAdd(room: PuppeteerRoom, contact: PuppeteerContact): Promise<void> {
+  public async roomAdd(room: Room, contact: Contact): Promise<void> {
     const roomId    = room.id
     const contactId = contact.id
     try {
@@ -1181,7 +940,7 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async roomTopic(room: PuppeteerRoom, topic: string): Promise<string> {
+  public async roomTopic(room: Room, topic: string): Promise<string> {
     if (!room || typeof topic === 'undefined') {
       return Promise.reject(new Error('room or topic not found'))
     }
@@ -1196,7 +955,7 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async roomCreate(contactList: PuppeteerContact[], topic: string): Promise<PuppeteerRoom> {
+  public async roomCreate(contactList: Contact[], topic: string): Promise<Room> {
     if (!contactList || ! contactList.map) {
       throw new Error('contactList not found')
     }
@@ -1208,8 +967,7 @@ export class PuppetPuppeteer extends Puppet {
       if (!roomId) {
         throw new Error('PuppetPuppeteer.roomCreate() roomId "' + roomId + '" not found')
       }
-      const r = PuppeteerRoom.load(roomId) as PuppeteerRoom
-      r.puppet = this
+      const r = this.Room.load(roomId) as Room
       return r
 
     } catch (e) {
@@ -1219,14 +977,16 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async roomQuit(room: PuppeteerRoom): Promise<void> {
+  public async roomQuit(room: Room): Promise<void> {
     log.warn('PuppetPuppeteer', 'roomQuit(%s) not supported by Web API', room)
   }
 
   /**
+   *
    * FriendRequest
+   *
    */
-  public async friendRequestSend(contact: PuppeteerContact, hello: string): Promise<void> {
+  public async friendRequestSend(contact: Contact, hello: string): Promise<void> {
     if (!contact) {
       throw new Error('contact not found')
     }
@@ -1240,7 +1000,7 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async friendRequestAccept(contact: PuppeteerContact, ticket: string): Promise<void> {
+  public async friendRequestAccept(contact: Contact, ticket: string): Promise<void> {
     if (!contact || !ticket) {
       throw new Error('contact or ticket not found')
     }
@@ -1262,14 +1022,10 @@ export class PuppetPuppeteer extends Puppet {
     log.verbose('PuppetPuppeteer', 'readyStable()')
     let counter = -1
 
-    // tslint:disable-next-line:variable-name
-    const MyContact = cloneClass(PuppeteerContact)
-    MyContact.puppet = this
-
-    async function stable(done: Function): Promise<void> {
+    const stable = async (done: Function): Promise<void> => {
       log.silly('PuppetPuppeteer', 'readyStable() stable() counter=%d', counter)
 
-      const contactList = await MyContact.findAll()
+      const contactList = await this.Contact.findAll()
       if (counter === contactList.length) {
         log.verbose('PuppetPuppeteer', 'readyStable() stable() READY counter=%d', counter)
         return done()
@@ -1326,22 +1082,567 @@ export class PuppetPuppeteer extends Puppet {
     this.options.profile.save()
   }
 
-  public extToType(ext: string): WebMsgType {
+  public extToType(ext: string): WebMessageType {
     switch (ext) {
       case '.bmp':
       case '.jpeg':
       case '.jpg':
       case '.png':
-        return WebMsgType.IMAGE
+        return WebMessageType.IMAGE
       case '.gif':
-        return WebMsgType.EMOTICON
+        return WebMessageType.EMOTICON
       case '.mp4':
-        return WebMsgType.VIDEO
+        return WebMessageType.VIDEO
       default:
-        return WebMsgType.APP
+        return WebMessageType.APP
     }
   }
 
+  /**
+   *
+   *
+   *
+   *
+   *
+   *  THE FOLLOWING COMMENT OUTED CODE
+   *
+   *  IS: TO BE MERGE
+   *
+   *
+   *
+   *
+   *
+   *
+   *
+   */
+
+  // public async readyMedia(): Promise<this> {
+  //   log.silly('PuppetPuppeteer', 'readyMedia()')
+
+  //   try {
+
+  //     let url: string | undefined
+  //     switch (this.type()) {
+  //       case WebMsgType.EMOTICON:
+  //         url = await puppet.bridge.getMsgEmoticon(this.id)
+  //         break
+  //       case WebMsgType.IMAGE:
+  //         url = await puppet.bridge.getMsgImg(this.id)
+  //         break
+  //       case WebMsgType.VIDEO:
+  //       case WebMsgType.MICROVIDEO:
+  //         url = await puppet.bridge.getMsgVideo(this.id)
+  //         break
+  //       case WebMsgType.VOICE:
+  //         url = await puppet.bridge.getMsgVoice(this.id)
+  //         break
+
+  //       case WebMsgType.APP:
+  //         if (!this.rawObj) {
+  //           throw new Error('no rawObj')
+  //         }
+  //         switch (this.typeApp()) {
+  //           case WebAppMsgType.ATTACH:
+  //             if (!this.rawObj.MMAppMsgDownloadUrl) {
+  //               throw new Error('no MMAppMsgDownloadUrl')
+  //             }
+  //             // had set in Message
+  //             // url = this.rawObj.MMAppMsgDownloadUrl
+  //             break
+
+  //           case WebAppMsgType.URL:
+  //           case WebAppMsgType.READER_TYPE:
+  //             if (!this.rawObj.Url) {
+  //               throw new Error('no Url')
+  //             }
+  //             // had set in Message
+  //             // url = this.rawObj.Url
+  //             break
+
+  //           default:
+  //             const e = new Error('ready() unsupported typeApp(): ' + this.typeApp())
+  //             log.warn('PuppeteerMessage', e.message)
+  //             throw e
+  //         }
+  //         break
+
+  //       case WebMsgType.TEXT:
+  //         if (this.typeSub() === WebMsgType.LOCATION) {
+  //           url = await puppet.bridge.getMsgPublicLinkImg(this.id)
+  //         }
+  //         break
+
+  //       default:
+  //         /**
+  //          * not a support media message, do nothing.
+  //          */
+  //         return this
+  //     }
+
+  //     if (!url) {
+  //       if (!this.payload.url) {
+  //         /**
+  //          * not a support media message, do nothing.
+  //          */
+  //         return this
+  //       }
+  //       url = this.payload.url
+  //     }
+
+  //     this.payload.url = url
+
+  //   } catch (e) {
+  //     log.warn('PuppetPuppeteer', 'ready() exception: %s', e.message)
+  //     Raven.captureException(e)
+  //     throw e
+  //   }
+
+  //   return this
+  // }
+
+  // public async readyStream(): Promise<Readable> {
+  //   log.verbose('PuppetPuppeteer', 'readyStream()')
+
+  //   /**
+  //    * 1. local file
+  //    */
+  //   try {
+  //     const filename = this.filename()
+  //     if (filename) {
+  //       return fs.createReadStream(filename)
+  //     }
+  //   } catch (e) {
+  //     // no filename
+  //   }
+
+  //   /**
+  //    * 2. remote url
+  //    */
+  //   try {
+  //     await this.ready()
+  //     // FIXME: decoupling needed
+  //     const cookies = await (this.puppet as any as PuppetPuppeteer).cookies()
+  //     if (!this.payload.url) {
+  //       throw new Error('no url')
+  //     }
+  //     log.verbose('PuppetPuppeteer', 'readyStream() url: %s', this.payload.url)
+  //     return Misc.urlStream(this.payload.url, cookies)
+  //   } catch (e) {
+  //     log.warn('PuppetPuppeteer', 'readyStream() exception: %s', e.stack)
+  //     Raven.captureException(e)
+  //     throw e
+  //   }
+  // }
+
+  // public filename(): string | null {
+  //   log.verbose('PuppetPuppeteer', 'filename()')
+
+  //   if (this.parsedPath) {
+  //     // https://nodejs.org/api/path.html#path_path_parse_path
+  //     const filename = path.join(
+  //       this.parsedPath!.dir  || '',
+  //       this.parsedPath!.base || '',
+  //     )
+  //     log.silly('PuppetPuppeteer', 'filename()=%s, build from parsedPath', filename)
+  //     return filename
+  //   }
+
+  //   if (this.rawObj) {
+  //     let filename = this.rawObj.FileName || this.rawObj.MediaId || this.rawObj.MsgId
+
+  //     const re = /\.[a-z0-9]{1,7}$/i
+  //     if (!re.test(filename)) {
+  //       const ext = this.rawObj.MMAppMsgFileExt || this.ext()
+  //       filename += '.' + ext
+  //     }
+
+  //     log.silly('PuppetPuppeteer', 'filename()=%s, build from rawObj', filename)
+  //     return filename
+  //   }
+
+  //   return null
+
+  // }
+
+  // public ext(): string {
+  //   const fileExt = this.extFromFile()
+  //   if (fileExt) {
+  //     return fileExt
+  //   }
+
+  //   const typeExt = this.extFromType()
+  //   if (typeExt) {
+  //     return typeExt
+  //   }
+
+  //   throw new Error('unknown ext()')
+  // }
+
+  // private extFromFile(): string | null {
+  //   if (this.parsedPath && this.parsedPath.ext) {
+  //     return this.parsedPath.ext
+  //   }
+  //   return null
+  // }
+
+  // private extFromType(): string {
+  //   let ext: string
+
+  //   const type = this.type()
+
+  //   switch (type) {
+  //     case WebMsgType.EMOTICON:
+  //       ext = '.gif'
+  //       break
+
+  //     case WebMsgType.IMAGE:
+  //       ext = '.jpg'
+  //       break
+
+  //     case WebMsgType.VIDEO:
+  //     case WebMsgType.MICROVIDEO:
+  //       ext = '.mp4'
+  //       break
+
+  //     case WebMsgType.VOICE:
+  //       ext = '.mp3'
+  //       break
+
+  //     case WebMsgType.APP:
+  //       switch (this.typeApp()) {
+  //         case WebAppMsgType.URL:
+  //           ext = '.url' // XXX
+  //           break
+  //         default:
+  //           ext = '.' + this.type()
+  //           break
+  //       }
+  //       break
+
+  //     case WebMsgType.TEXT:
+  //       if (this.typeSub() === WebMsgType.LOCATION) {
+  //         ext = '.jpg'
+  //       }
+  //       ext = '.' + this.type()
+
+  //       break
+
+  //     default:
+  //       log.silly('PuppeteerMessage', `ext() got unknown type: ${this.type()}`)
+  //       ext = '.' + this.type()
+  //   }
+
+  //   return ext
+
+  // }
+
+  // /**
+  //  * return the MIME Type of this MediaMessage
+  //  *
+  //  */
+  // public mimeType(): string | null {
+  //   // getType support both 'js' & '.js' as arg
+  //   return mime.getType(this.ext())
+  // }
+
+  // private async uploadMedia(message: PuppeteerMessage, toUserName: string): Promise<WebMessageMediaPayload> {
+  //   if (message.type() === PuppeteerMessage.Type.Text) {
+  //     throw new Error('require a Media Message')
+  //   }
+
+  //   const filename = message.filename()
+  //   const ext      = message.ext()
+
+  //   // const contentType = Misc.mime(ext)
+  //   // const contentType = mime.getType(ext)
+  //   const contentType = message.mimeType()
+  //   if (!contentType) {
+  //     throw new Error('no MIME Type found on mediaMessage: ' + message.filename())
+  //   }
+  //   let mediatype: WebMediaType
+
+  //   switch (ext) {
+  //     case '.bmp':
+  //     case '.jpeg':
+  //     case '.jpg':
+  //     case '.png':
+  //     case '.gif':
+  //       mediatype = WebMediaType.Image
+  //       break
+  //     case '.mp4':
+  //       mediatype = WebMediaType.Video
+  //       break
+  //     default:
+  //       mediatype = WebMediaType.Attachment
+  //   }
+
+  //   const readStream = await message.readyStream()
+  //   const buffer = <Buffer>await new Promise((resolve, reject) => {
+  //     readStream.pipe(bl((err: Error, data: Buffer) => {
+  //       if (err) reject(err)
+  //       else resolve(data)
+  //     }))
+  //   })
+
+  //   // Sending video files is not allowed to exceed 20MB
+  //   // https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L1115
+  //   const MAX_FILE_SIZE   = 100 * 1024 * 1024
+  //   const LARGE_FILE_SIZE = 25 * 1024 * 1024
+  //   const MAX_VIDEO_SIZE  = 20 * 1024 * 1024
+
+  //   if (mediatype === WebMediaType.Video && buffer.length > MAX_VIDEO_SIZE)
+  //     throw new Error(`Sending video files is not allowed to exceed ${MAX_VIDEO_SIZE / 1024 / 1024}MB`)
+  //   if (buffer.length > MAX_FILE_SIZE) {
+  //     throw new Error(`Sending files is not allowed to exceed ${MAX_FILE_SIZE / 1024 / 1024}MB`)
+  //   }
+
+  //   const md5 = Misc.md5(buffer)
+
+  //   const baseRequest     = await this.getBaseRequest()
+  //   const passTicket      = await this.bridge.getPassticket()
+  //   const uploadMediaUrl  = await this.bridge.getUploadMediaUrl()
+  //   const checkUploadUrl  = await this.bridge.getCheckUploadUrl()
+  //   const cookie          = await this.bridge.cookies()
+  //   const first           = cookie.find(c => c.name === 'webwx_data_ticket')
+  //   const webwxDataTicket = first && first.value
+  //   const size            = buffer.length
+  //   const fromUserName    = this.userSelf()!.id
+  //   const id              = 'WU_FILE_' + this.fileId
+  //   this.fileId++
+
+  //   const hostname = await this.bridge.hostname()
+  //   const headers = {
+  //     Referer: `https://${hostname}`,
+  //     'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36',
+  //     Cookie: cookie.map(c => c.name + '=' + c.value).join('; '),
+  //   }
+
+  //   log.silly('PuppetPuppeteer', 'uploadMedia() headers:%s', JSON.stringify(headers))
+
+  //   const uploadMediaRequest = {
+  //     BaseRequest:   baseRequest,
+  //     FileMd5:       md5,
+  //     FromUserName:  fromUserName,
+  //     ToUserName:    toUserName,
+  //     UploadType:    2,
+  //     ClientMediaId: +new Date,
+  //     MediaType:     WebMediaType.Attachment,
+  //     StartPos:      0,
+  //     DataLen:       size,
+  //     TotalLen:      size,
+  //     Signature:     '',
+  //     AESKey:        '',
+  //   }
+
+  //   const checkData = {
+  //     BaseRequest:  baseRequest,
+  //     FromUserName: fromUserName,
+  //     ToUserName:   toUserName,
+  //     FileName:     filename,
+  //     FileSize:     size,
+  //     FileMd5:      md5,
+  //     FileType:     7,              // If do not have this parameter, the api will fail
+  //   }
+
+  //   const mediaData = {
+  //     ToUserName: toUserName,
+  //     MediaId:    '',
+  //     FileName:   filename,
+  //     FileSize:   size,
+  //     FileMd5:    md5,
+  //     MMFileExt:  ext,
+  //   } as WebMessageMediaPayload
+
+  //   // If file size > 25M, must first call checkUpload to get Signature and AESKey, otherwise it will fail to upload
+  //   // https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L1132 #1182
+  //   if (size > LARGE_FILE_SIZE) {
+  //     let ret
+  //     try {
+  //       ret = <any> await new Promise((resolve, reject) => {
+  //         const r = {
+  //           url: `https://${hostname}${checkUploadUrl}`,
+  //           headers,
+  //           json: checkData,
+  //         }
+  //         request.post(r, (err, _ /* res */, body) => {
+  //           try {
+  //             if (err) {
+  //               reject(err)
+  //             } else {
+  //               let obj = body
+  //               if (typeof body !== 'object') {
+  //                 log.silly('PuppetPuppeteer', 'updateMedia() typeof body = %s', typeof body)
+  //                 try {
+  //                   obj = JSON.parse(body)
+  //                 } catch (e) {
+  //                   log.error('PuppetPuppeteer', 'updateMedia() body = %s', body)
+  //                   log.error('PuppetPuppeteer', 'updateMedia() exception: %s', e)
+  //                   this.emit('error', e)
+  //                 }
+  //               }
+  //               if (typeof obj !== 'object' || obj.BaseResponse.Ret !== 0) {
+  //                 const errMsg = obj.BaseResponse || 'api return err'
+  //                 log.silly('PuppetPuppeteer', 'uploadMedia() checkUpload err:%s \nreq:%s\nret:%s', JSON.stringify(errMsg), JSON.stringify(r), body)
+  //                 reject(new Error('chackUpload err:' + JSON.stringify(errMsg)))
+  //               }
+  //               resolve({
+  //                 Signature : obj.Signature,
+  //                 AESKey    : obj.AESKey,
+  //               })
+  //             }
+  //           } catch (e) {
+  //             reject(e)
+  //           }
+  //         })
+  //       })
+  //     } catch (e) {
+  //       log.error('PuppetPuppeteer', 'uploadMedia() checkUpload exception: %s', e.message)
+  //       throw e
+  //     }
+  //     if (!ret.Signature) {
+  //       log.error('PuppetPuppeteer', 'uploadMedia(): chackUpload failed to get Signature')
+  //       throw new Error('chackUpload failed to get Signature')
+  //     }
+  //     uploadMediaRequest.Signature = ret.Signature
+  //     uploadMediaRequest.AESKey    = ret.AESKey
+  //     mediaData.Signature          = ret.Signature
+  //   } else {
+  //     delete uploadMediaRequest.Signature
+  //     delete uploadMediaRequest.AESKey
+  //   }
+
+  //   log.verbose('PuppetPuppeteer', 'uploadMedia() webwx_data_ticket: %s', webwxDataTicket)
+  //   log.verbose('PuppetPuppeteer', 'uploadMedia() pass_ticket: %s', passTicket)
+
+  //   const formData = {
+  //     id,
+  //     name: filename,
+  //     type: contentType,
+  //     lastModifiedDate: Date().toString(),
+  //     size,
+  //     mediatype,
+  //     uploadmediarequest: JSON.stringify(uploadMediaRequest),
+  //     webwx_data_ticket: webwxDataTicket,
+  //     pass_ticket: passTicket || '',
+  //     filename: {
+  //       value: buffer,
+  //       options: {
+  //         filename,
+  //         contentType,
+  //         size,
+  //       },
+  //     },
+  //   }
+  //   let mediaId: string
+  //   try {
+  //     mediaId = <string>await new Promise((resolve, reject) => {
+  //       try {
+  //         request.post({
+  //           url: uploadMediaUrl + '?f=json',
+  //           headers,
+  //           formData,
+  //         }, function (err, res, body) {
+  //           if (err) { reject(err) }
+  //           else {
+  //             let obj = body
+  //             if (typeof body !== 'object') {
+  //               obj = JSON.parse(body)
+  //             }
+  //             resolve(obj.MediaId || '')
+  //           }
+  //         })
+  //       } catch (e) {
+  //         reject(e)
+  //       }
+  //     })
+  //   } catch (e) {
+  //     log.error('PuppetPuppeteer', 'uploadMedia() uploadMedia exception: %s', e.message)
+  //     throw new Error('uploadMedia err: ' + e.message)
+  //   }
+  //   if (!mediaId) {
+  //     log.error('PuppetPuppeteer', 'uploadMedia(): upload fail')
+  //     throw new Error('PuppetPuppeteer.uploadMedia(): upload fail')
+  //   }
+  //   return Object.assign(mediaData, { MediaId: mediaId })
+  // }
+
+  // public async sendMedia(message: PuppeteerMessage): Promise<boolean> {
+  //   const to   = message.to()
+  //   const room = message.room()
+
+  //   let destinationId
+
+  //   if (room) {
+  //     destinationId = room.id
+  //   } else {
+  //     if (!to) {
+  //       throw new Error('PuppetPuppeteer.sendMedia(): message with neither room nor to?')
+  //     }
+  //     destinationId = to.id
+  //   }
+
+  //   let mediaData: WebMessageMediaPayload
+  //   const rawObj = message.rawObj || {} as WebMessageRawPayload
+
+  //   if (!rawObj || !rawObj.MediaId) {
+  //     try {
+  //       mediaData = await this.uploadMedia(message, destinationId)
+  //       message.rawObj = Object.assign(rawObj, mediaData)
+  //       log.silly('PuppetPuppeteer', 'Upload completed, new rawObj:%s', JSON.stringify(message.rawObj))
+  //     } catch (e) {
+  //       log.error('PuppetPuppeteer', 'sendMedia() exception: %s', e.message)
+  //       return false
+  //     }
+  //   } else {
+  //     // To support forward file
+  //     log.silly('PuppetPuppeteer', 'skip upload file, rawObj:%s', JSON.stringify(rawObj))
+  //     mediaData = {
+  //       ToUserName : destinationId,
+  //       MediaId    : rawObj.MediaId,
+  //       MsgType    : rawObj.MsgType,
+  //       FileName   : rawObj.FileName,
+  //       FileSize   : rawObj.FileSize,
+  //       MMFileExt  : rawObj.MMFileExt,
+  //     }
+  //     if (rawObj.Signature) {
+  //       mediaData.Signature = rawObj.Signature
+  //     }
+  //   }
+  //   // console.log('mediaData.MsgType', mediaData.MsgType)
+  //   // console.log('rawObj.MsgType', message.rawObj && message.rawObj.MsgType)
+
+  //   mediaData.MsgType = this.extToType(message.ext())
+  //   log.silly('PuppetPuppeteer', 'sendMedia() destination: %s, mediaId: %s, MsgType; %s)',
+  //     destinationId,
+  //     mediaData.MediaId,
+  //     mediaData.MsgType,
+  //   )
+  //   let ret = false
+  //   try {
+  //     ret = await this.bridge.sendMedia(mediaData)
+  //   } catch (e) {
+  //     log.error('PuppetPuppeteer', 'sendMedia() exception: %s', e.message)
+  //     Raven.captureException(e)
+  //     return false
+  //   }
+  //   return ret
+  // }
+
+  // private async getBaseRequest(): Promise<any> {
+  //   try {
+  //     const json = await this.bridge.getBaseRequest()
+  //     const obj = JSON.parse(json)
+  //     return obj.BaseRequest
+  //   } catch (e) {
+  //     log.error('PuppetPuppeteer', 'send() exception: %s', e.message)
+  //     Raven.captureException(e)
+  //     throw e
+  //   }
+  // }
+
 }
 
+export {
+  WebRoomRawPayload,
+}
 export default PuppetPuppeteer
