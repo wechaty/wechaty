@@ -184,6 +184,10 @@ export class Message extends PuppetAccessory implements Sayable {
     return msg
   }
 
+  /**
+   * Create a Mobile Originated Message
+   * @param options MO Options
+   */
   public static create(options: MessageMOOptions): Message {
     return this.createMO(options)
   }
