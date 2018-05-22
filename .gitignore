@@ -71,3 +71,4 @@ package-lock.json
 .idea
 examples/.config
 examples/.pki
+.config/
