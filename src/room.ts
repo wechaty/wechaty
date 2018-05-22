@@ -172,7 +172,7 @@ export class Room extends PuppetAccessory implements Sayable {
    */
   public static load<T extends typeof Room>(this: T, id: string): T['prototype'] {
     if (!id) {
-      throw new Error('Room.load() no id')
+      throw new Error('no id')
     }
 
     const existingRoom = this.pool.get(id)
