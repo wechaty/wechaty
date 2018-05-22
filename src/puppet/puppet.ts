@@ -85,6 +85,8 @@ export interface PuppetOptions {
   wechaty: Wechaty,
 }
 
+let PUPPET_COUNTER = 0
+
 /**
  * Abstract Puppet Class
  */
@@ -105,15 +107,19 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   /* tslint:disable:variable-name */
   public readonly Room          : typeof Room
 
+  public counter: number
+
   /**
    * childPkg stores the `package.json` that the NPM module who extends the `Puppet`
    */
   private readonly childPkg: normalize.Package
 
   constructor(
-    public options:   PuppetOptions,
+    public options: PuppetOptions,
   ) {
     super()
+
+    this.counter = PUPPET_COUNTER++
 
     const WATCHDOG_TIMEOUT = 1 * 60 * 1000  // default 1 minute
 
@@ -154,7 +160,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   }
 
   public toString() {
-    return `Puppet<${this.options.profile.name}>`
+    return `Puppet<${this.constructor.name}>#${this.counter}(${this.options.profile.name})`
   }
 
   public emit(event: 'error',       e: Error)                                                      : boolean
@@ -297,6 +303,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     const rawPayload = await this.messageRawPayload(id)
     const payload    = await this.messageRawPayloadParser(rawPayload)
 
+    console.log('this.messageRawPayloadParser().payload.from.puppet = ', payload.from!.puppet + '')
     /**
      * Make sure all the contacts & room have already been ready
      */
@@ -306,6 +313,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     if (payload.to && !payload.to.isReady()) {
       await payload.to.ready()
     }
+
     if (payload.room && !payload.room.isReady()) {
       await payload.room.ready()
     }
@@ -358,7 +366,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async contactRawPayloadParser(rawPayload: any) : Promise<ContactPayload>
 
   public async contactPayload(id: string): Promise<ContactPayload> {
-    log.verbose('Puppet', 'contactPayload(%s)', id)
+    log.verbose('Puppet', 'contactPayload(%s) @ %s', id, this)
     const rawPayload = await this.contactRawPayload(id)
     const payload    = await this.contactRawPayloadParser(rawPayload)
     return payload
