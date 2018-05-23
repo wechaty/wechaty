@@ -160,7 +160,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   }
 
   public toString() {
-    return `Puppet<${this.constructor.name}>#${this.counter}(${this.options.profile.name})`
+    return `Puppet#${this.counter}<${this.constructor.name}>(${this.options.profile.name})`
   }
 
   public emit(event: 'error',       e: Error)                                                      : boolean

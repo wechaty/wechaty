@@ -189,7 +189,17 @@ export class Wechaty extends PuppetAccessory implements Sayable {
   /**
    * @private
    */
-  public toString() { return `Wechaty<${this.options.puppet}, ${this.profile.name}>`}
+  public toString() {
+    if (!this.options) {
+      return this.constructor.name
+    }
+
+    return [
+      'Wechaty',
+      `<${this.options && this.options.puppet || ''}>`,
+      `(${this.profile && this.profile.name   || ''})`,
+    ].join('')
+  }
 
   /**
    * @private

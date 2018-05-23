@@ -308,7 +308,7 @@ export class PuppetPuppeteer extends Puppet {
   public async messageRawPayloadParser(
     rawPayload: WebMessageRawPayload,
   ): Promise<MessagePayload> {
-    log.verbose('PuppetPuppeteer', 'messageRawPayloadParser(%s)', rawPayload)
+    log.verbose('PuppetPuppeteer', 'messageRawPayloadParser(%s) @ %s', rawPayload, this)
 
     const from: Contact     = this.Contact.load(rawPayload.MMActualSender)  // MMPeerUserName
     const text: string      = rawPayload.MMActualContent                    // Content has @id prefix added by wx
@@ -554,7 +554,7 @@ export class PuppetPuppeteer extends Puppet {
    *
    */
   public async contactRawPayload(id: string): Promise<WebContactRawPayload> {
-    log.verbose('PuppetPuppeteer', 'contactRawPayload(%s)', id)
+    log.verbose('PuppetPuppeteer', 'contactRawPayload(%s) @ %s', id, this)
     try {
       const rawPayload = await this.bridge.getContact(id) as WebContactRawPayload
       return rawPayload
@@ -614,13 +614,6 @@ export class PuppetPuppeteer extends Puppet {
        */
       // special:       specialContactList.indexOf(rawPayload.UserName) > -1 || /@qqim$/.test(rawPayload.UserName),
     }
-  }
-
-  public async contactPayload(id: string): Promise<ContactPayload> {
-    log.verbose('PuppetPuppeteer', 'contactPayload(%s)', id)
-    const rawPayload  = await this.contactRawPayload(id)
-    const payload     = await this.contactRawPayloadParser(rawPayload)
-    return payload
   }
 
   public async ding(data?: any): Promise<string> {

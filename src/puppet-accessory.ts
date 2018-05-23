@@ -9,13 +9,17 @@ import { Puppet } from './puppet/'
 // use Symbol to prevent conflicting with the child class properties
 // This symbol must be exported (for now).
 // See: https://github.com/Microsoft/TypeScript/issues/20080
-export const NAME    = Symbol('name')
+export const SYMBOL_NAME    = Symbol('name')
+export const SYMBOL_COUNTER = Symbol('counter')
+
+let COUNTER = 0
 
 export abstract class PuppetAccessory extends EventEmitter {
   // Not work???
   // private static readonly PUPPET_ACCESSORY_NAME = Symbol('name')
 
-  private [NAME]: string
+  private [SYMBOL_NAME]    : string
+  private [SYMBOL_COUNTER] : number
 
   /**
    *
@@ -55,15 +59,16 @@ export abstract class PuppetAccessory extends EventEmitter {
 
   public set puppet(puppet: Puppet) {
     log.silly('PuppetAccessory', '<%s> set puppet(%s)',
-                                  this[NAME],
+                                  this[SYMBOL_NAME] || this,
                                   puppet,
               )
     this._puppet = puppet
   }
 
   public get puppet(): Puppet {
-    log.silly('PuppetAccessory', '<%s> get puppet()',
-                                  this[NAME],
+    log.silly('PuppetAccessory', '#%d<%s> get puppet()',
+                                  this[SYMBOL_COUNTER],
+                                  this[SYMBOL_NAME] || this,
               )
 
     if (this._puppet) {
@@ -83,10 +88,12 @@ export abstract class PuppetAccessory extends EventEmitter {
   ) {
     super()
 
-    this[NAME] = name || this.constructor.name
+    this[SYMBOL_NAME]    = name || this.toString()
+    this[SYMBOL_COUNTER] = COUNTER++
 
-    log.silly('PuppetAccessory', '<%s> constructor(%s)',
-                                    this[NAME],
+    log.silly('PuppetAccessory', '#%d<%s> constructor(%s)',
+                                    this[SYMBOL_COUNTER],
+                                    this[SYMBOL_NAME],
                                     name || '',
                 )
   }

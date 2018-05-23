@@ -231,6 +231,10 @@ export class Message extends PuppetAccessory implements Sayable {
    * @private
    */
   public toString() {
+    if (!this.isReady()) {
+      return this.constructor.name
+    }
+
     const msgStrList = [
       'Message',
       `#${MessageDirection[this.direction]}`,
