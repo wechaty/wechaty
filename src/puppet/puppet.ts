@@ -83,6 +83,7 @@ export type PuppetEventName = keyof typeof PUPPET_EVENT_DICT
 export interface PuppetOptions {
   profile: Profile,
   wechaty: Wechaty,
+  executablePath?: string
 }
 
 /**
