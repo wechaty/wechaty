@@ -79,20 +79,28 @@ export interface ContactPayload {
 export class Contact extends PuppetAccessory implements Sayable {
 
   // tslint:disable-next-line:variable-name
-  public static Type    = ContactType
-  public static Gender  = Gender
+  public static Type   = ContactType
+  public static Gender = Gender
 
-  protected static readonly pool = new Map<string, Contact>()
+  protected static pool: Map<string, Contact>
 
   /**
    * @private
    * About the Generic: https://stackoverflow.com/q/43003970/1123955
    */
-  public static load<T extends typeof Contact>(this: T, id: string): T['prototype'] {
-    if (!id || typeof id !== 'string') {
-      throw new Error('Contact.load(): id not found: ' + id)
+  public static load<T extends typeof Contact>(
+    this : T,
+    id   : string,
+  ): T['prototype'] {
+    if (!this.pool) {
+      this.pool = new Map<string, Contact>()
     }
-
+    if (this === Contact) {
+      throw new Error('must not use the global Contact. use a cloned child via cloneClass instead.')
+    }
+    if (this.pool === Contact.pool) {
+      throw new Error('the current pool is equal to the global pool error!')
+    }
     const existingContact = this.pool.get(id)
     if (existingContact) {
       return existingContact
@@ -217,8 +225,11 @@ export class Contact extends PuppetAccessory implements Sayable {
    * @private
    */
   public toString(): string {
+    if (!this.payload) {
+      return this.constructor.name
+    }
     const identity = this.alias() || this.name() || this.id
-    return `Contact<${identity}>`
+    return `Contact<${identity || 'Unknown'}>`
   }
 
   /**
