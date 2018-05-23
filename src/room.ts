@@ -75,7 +75,7 @@ export interface RoomPayload {
  */
 export class Room extends PuppetAccessory implements Sayable {
 
-  protected static readonly pool = new Map<string, Room>()
+  protected static pool: Map<string, Room>
 
   /**
    * Create a new room.
@@ -173,6 +173,10 @@ export class Room extends PuppetAccessory implements Sayable {
   public static load<T extends typeof Room>(this: T, id: string): T['prototype'] {
     if (!id) {
       throw new Error('no id')
+    }
+
+    if (!this.pool) {
+      this.pool = new Map<string, Room>()
     }
 
     const existingRoom = this.pool.get(id)

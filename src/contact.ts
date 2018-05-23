@@ -93,10 +93,8 @@ export class Contact extends PuppetAccessory implements Sayable {
     id   : string,
   ): T['prototype'] {
     if (!this.pool) {
+      log.verbose('Contact', 'load(%s) init pool', id)
       this.pool = new Map<string, Contact>()
-    }
-    if (this === Contact) {
-      throw new Error('must not use the global Contact. use a cloned child via cloneClass instead.')
     }
     if (this.pool === Contact.pool) {
       throw new Error('the current pool is equal to the global pool error!')
@@ -213,7 +211,10 @@ export class Contact extends PuppetAccessory implements Sayable {
     const MyClass = instanceToClass(this, Contact)
 
     if (MyClass === Contact) {
-      throw new Error('Contact class can not be instanciated directly! See: https://github.com/Chatie/wechaty/issues/1217')
+      throw new Error(
+        'Contact class can not be instanciated directly!'
+        + 'See: https://github.com/Chatie/wechaty/issues/1217',
+      )
     }
 
     if (!this.puppet) {
