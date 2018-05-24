@@ -94,7 +94,7 @@
   "dependencies": {
     "bl": "^1.2.0",
     "brolog": "^1.2.0",
-    "clone-class": "^0.6.10",
+    "clone-class": "^0.6.11",
     "cuid": "^2.1.1",
     "file-box": "^0.2.1",
     "hot-import": "^0.2.1",

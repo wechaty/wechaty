@@ -445,7 +445,7 @@ export class PuppetPuppeteer extends Puppet {
       throw new Error('forward() Due to webWx restrictions, more than 25MB of files can not be downloaded and can not be forwarded.')
     }
 
-    newMsg.FromUserName         = this.user && this.user.id || ''
+    newMsg.FromUserName         = this.userId || ''
     newMsg.isTranspond          = true
     newMsg.MsgIdBeforeTranspond = rawPayload.MsgIdBeforeTranspond || rawPayload.MsgId
     newMsg.MMSourceMsgId        = rawPayload.MsgId
@@ -525,12 +525,8 @@ export class PuppetPuppeteer extends Puppet {
 
   public async login(user: Contact): Promise<void> {
     log.warn('PuppetPuppeteer', 'login(%s)', user)
-    this.user = user
+    this.userId = user.id
     this.emit('login', user)
-  }
-
-  public logonoff(): boolean {
-    return !!(this.user)
   }
 
   /**
@@ -552,7 +548,7 @@ export class PuppetPuppeteer extends Puppet {
       Raven.captureException(e)
       throw e
     } finally {
-      this.user = undefined
+      this.userId = undefined
       this.emit('logout', user)
     }
   }

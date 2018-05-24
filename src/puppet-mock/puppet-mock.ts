@@ -77,10 +77,6 @@ export class PuppetMock extends Puppet {
     super(options)
   }
 
-  public toString() {
-    return `PuppetMock<${this.options.profile.name}>`
-  }
-
   public ding(data?: any): Promise<string> {
     return data
   }
@@ -92,14 +88,15 @@ export class PuppetMock extends Puppet {
     // await some tasks...
     this.state.on(true)
 
-    const user = this.Contact.load('logined_user_id')
-    const msg  = this.Message.createMT('mock_id')
-
-    this.user = user
+    this.userId = 'logined_user_id'
+    const user = this.Contact.load(this.userId)
     this.emit('login', user)
 
+    const msg  = this.Message.createMT('mock_id')
+    await msg.ready()
+
     setInterval(() => {
-      log.verbose('PuppetMock', `start() setInterval() pretending received a new message: ${msg}`)
+      log.verbose('PuppetMock', `start() setInterval() pretending received a new message: ${msg + ''}`)
       this.emit('message', msg)
     }, 3000)
 
@@ -126,8 +123,8 @@ export class PuppetMock extends Puppet {
       throw new Error('logout before login?')
     }
 
-    this.emit('logout', this.user!) // becore we will throw above by logonoff() when this.user===undefined
-    this.user = undefined
+    this.emit('logout', this.userId!) // becore we will throw above by logonoff() when this.user===undefined
+    this.userId = undefined
 
     // TODO: do the logout job
   }
@@ -224,7 +221,9 @@ export class PuppetMock extends Puppet {
    * Room
    *
    */
-  public async roomRawPayload(id: string): Promise<MockRoomRawPayload> {
+  public async roomRawPayload(
+    id: string,
+  ): Promise<MockRoomRawPayload> {
     log.verbose('PuppetMock', 'roomRawPayload(%s)', id)
 
     const rawPayload: MockRoomRawPayload = {
@@ -235,7 +234,9 @@ export class PuppetMock extends Puppet {
     return rawPayload
   }
 
-  public async roomRawPayloadParser(rawPayload: MockRoomRawPayload): Promise<RoomPayload> {
+  public async roomRawPayloadParser(
+    rawPayload: MockRoomRawPayload,
+  ): Promise<RoomPayload> {
     log.verbose('PuppetMock', 'roomRawPayloadParser(%s)', rawPayload)
 
     const payload: RoomPayload = {
