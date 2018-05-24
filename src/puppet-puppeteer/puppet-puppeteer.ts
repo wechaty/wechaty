@@ -122,12 +122,18 @@ export class PuppetPuppeteer extends Puppet {
        */
       this.state.on(true)
 
+      /**
+       * Feed the dog and start watch
+       */
       const food: WatchdogFood = {
         data: 'inited',
         timeout: 2 * 60 * 1000, // 2 mins for first login
       }
       this.emit('watchdog', food)
 
+      /**
+       * Save cookie for every 5 minutes
+       */
       const throttleQueue = new ThrottleQueue(5 * 60 * 1000)
       this.on('heartbeat', data => throttleQueue.next(data))
       throttleQueue.subscribe(async data => {
@@ -157,6 +163,9 @@ export class PuppetPuppeteer extends Puppet {
 
     // clean the dog because this could be re-inited
     this.watchdog.removeAllListeners()
+
+    // fix issue #981
+    puppet.removeAllListeners('watchdog')
 
     puppet.on('watchdog', food => this.watchdog.feed(food))
     this.watchdog.on('feed', food => {
