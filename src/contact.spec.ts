@@ -4,7 +4,6 @@ import * as test  from 'blue-tape'
 
 import { cloneClass } from 'clone-class'
 
-console.log('pool::', (cloneClass as any).pool)
 import { Contact as GlobalContact } from './contact'
 
 // tslint:disable-next-line:variable-name
