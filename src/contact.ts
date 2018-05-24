@@ -70,6 +70,8 @@ export interface ContactPayload {
   weixin?:    string,
 }
 
+export const POOL = Symbol('pool')
+
 /**
  * All wechat contacts(friend) will be encapsulated as a Contact.
  *
@@ -82,7 +84,19 @@ export class Contact extends PuppetAccessory implements Sayable {
   public static Type   = ContactType
   public static Gender = Gender
 
-  protected static pool: Map<string, Contact>
+  protected static [POOL]: Map<string, Contact>
+  protected static get pool() {
+    return this[POOL]
+  }
+  protected static set pool(newPool: Map<string, Contact>) {
+    if (this === Contact) {
+      throw new Error(
+        'The global Contact class can not be used directly!'
+        + 'See: https://github.com/Chatie/wechaty/issues/1217',
+      )
+    }
+    this[POOL] = newPool
+  }
 
   /**
    * @private
@@ -95,6 +109,12 @@ export class Contact extends PuppetAccessory implements Sayable {
     if (!this.pool) {
       log.verbose('Contact', 'load(%s) init pool', id)
       this.pool = new Map<string, Contact>()
+    }
+    if (this === Contact) {
+      throw new Error(
+        'The lgobal Contact class can not be used directly!'
+        + 'See: https://github.com/Chatie/wechaty/issues/1217',
+      )
     }
     if (this.pool === Contact.pool) {
       throw new Error('the current pool is equal to the global pool error!')
@@ -194,7 +214,9 @@ export class Contact extends PuppetAccessory implements Sayable {
   }
 
   /**
+   *
    * Instance properties
+   *
    */
   protected payload?: ContactPayload
 
