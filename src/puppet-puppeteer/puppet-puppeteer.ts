@@ -500,8 +500,8 @@ export class PuppetPuppeteer extends Puppet {
       const text = message.text()
 
       log.silly('PuppetPuppeteer', 'send() destination: %s, text: %s)',
-                              destinationId,
-                              text,
+                                    destinationId,
+                                    text,
                 )
 
       try {

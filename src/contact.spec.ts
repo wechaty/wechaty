@@ -4,6 +4,7 @@ import * as test  from 'blue-tape'
 
 import { cloneClass } from 'clone-class'
 
+console.log('pool::', (cloneClass as any).pool)
 import { Contact as GlobalContact } from './contact'
 
 // tslint:disable-next-line:variable-name
@@ -13,9 +14,9 @@ test('Should not be able to instanciate directly', async t => {
   // tslint:disable-next-line:variable-name
   const MyContact = cloneClass(Contact)
   t.throws(() => {
-    const c = new MyContact('xxx')
+    const c = MyContact.load('xxx')
     t.fail(c.name())
-  }, 'should throw when `new Contact()`')
+  }, 'should throw when `Contact.load()`')
 
   t.throws(() => {
     const c = MyContact.load('xxx')
@@ -28,9 +29,9 @@ test('Should not be able to instanciate through cloneClass without puppet', asyn
   const MyContact = cloneClass(Contact)
 
   t.throws(() => {
-    const c = new MyContact('xxx')
+    const c = MyContact.load('xxx')
     t.fail(c.name())
-  }, 'should throw when `new MyContact()` without puppet')
+  }, 'should throw when `MyContact.load()` without puppet')
 
   t.throws(() => {
     const c = MyContact.load('xxx')
@@ -45,9 +46,9 @@ test('should be able to instanciate through cloneClass with puppet', async t => 
   MyContact.puppet = {} as any
 
   t.doesNotThrow(() => {
-    const c = new MyContact('xxx')
-    t.ok(c, 'should get contact instance from `new MyContact()')
-  }, 'should not throw when `new MyContact()`')
+    const c = MyContact.load('xxx')
+    t.ok(c, 'should get contact instance from `MyContact.load()')
+  }, 'should not throw when `MyContact().load`')
 
   t.doesNotThrow(() => {
     const c = MyContact.load('xxx')
