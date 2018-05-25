@@ -39,10 +39,10 @@ export enum FriendRequestType {
 }
 
 export interface FriendRequestPayload {
-  contact? : Contact,
-  hello?   : string,
-  ticket?  : string
-  type?    : FriendRequestType,
+  contactId? : string,
+  hello?     : string,
+  ticket?    : string
+  type?      : FriendRequestType,
 }
 
 /**
@@ -69,8 +69,8 @@ export class FriendRequest extends PuppetAccessory {
                 )
 
     const sentRequest = new this({
-      type: FriendRequestType.Send,
-      contact,
+      type      : FriendRequestType.Send,
+      contactId : contact.id,
       hello,
     })
 
@@ -85,8 +85,8 @@ export class FriendRequest extends PuppetAccessory {
                 )
 
     const confirmedRequest = new this({
-      type: FriendRequestType.Confirm,
-      contact,
+      type      : FriendRequestType.Confirm,
+      contactId : contact.id,
     })
 
     return confirmedRequest
@@ -104,8 +104,8 @@ export class FriendRequest extends PuppetAccessory {
                 )
 
     const receivedRequest = new this({
-      type: FriendRequestType.Receive,
-      contact,
+      type      : FriendRequestType.Receive,
+      contactId : contact.id,
       hello,
       ticket,
     })
@@ -139,15 +139,15 @@ export class FriendRequest extends PuppetAccessory {
   public async send(): Promise<void> {
     if (!this.payload) {
       throw new Error('no payload')
-    } else if (!this.payload.contact) {
+    } else if (!this.payload.contactId) {
       throw new Error('no contact')
     } else if (this.payload.type !== FriendRequest.Type.Send) {
       throw new Error('not a send request')
     }
-    log.verbose('PuppeteerFriendRequest', 'send() to %s', this.payload.contact)
+    log.verbose('PuppeteerFriendRequest', 'send() to %s', this.payload.contactId)
 
     await this.puppet.friendRequestSend(
-      this.payload.contact.id,
+      this.payload.contactId,
       this.payload.hello,
     )
   }
@@ -155,16 +155,16 @@ export class FriendRequest extends PuppetAccessory {
   public async accept(): Promise<void> {
     if (!this.payload) {
       throw new Error('no payload')
-    } else if (!this.payload.contact) {
-      throw new Error('no contact')
+    } else if (!this.payload.contactId) {
+      throw new Error('no contactId')
     } else if (!this.payload.ticket) {
       throw new Error('no ticket')
     } else if (this.payload.type !== FriendRequest.Type.Receive) {
       throw new Error('not a receive request, its a ' + FriendRequest.Type[this.payload.type!])
     }
-    log.verbose('FriendRequest', 'accept() to %s', this.payload.contact)
+    log.verbose('FriendRequest', 'accept() to %s', this.payload.contactId)
 
-    await this.puppet.friendRequestAccept(this.payload.contact.id, this.payload.ticket)
+    await this.puppet.friendRequestAccept(this.payload.contactId, this.payload.ticket)
 
     const max = 20
     const backoff = 300
@@ -202,10 +202,12 @@ export class FriendRequest extends PuppetAccessory {
   public contact(): Contact {
     if (!this.payload) {
       throw new Error('no payload')
-    } else if (!this.payload.contact) {
+    } else if (!this.payload.contactId) {
       throw new Error('no contact')
     }
-    return this.payload.contact
+
+    const contact = this.puppet.Contact.load(this.payload.contactId)
+    return contact
   }
 
   public async reject(): Promise<void> {
