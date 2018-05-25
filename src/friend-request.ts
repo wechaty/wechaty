@@ -147,7 +147,7 @@ export class FriendRequest extends PuppetAccessory {
     log.verbose('PuppeteerFriendRequest', 'send() to %s', this.payload.contact)
 
     await this.puppet.friendRequestSend(
-      this.payload.contact,
+      this.payload.contact.id,
       this.payload.hello,
     )
   }
@@ -164,7 +164,7 @@ export class FriendRequest extends PuppetAccessory {
     }
     log.verbose('FriendRequest', 'accept() to %s', this.payload.contact)
 
-    await this.puppet.friendRequestAccept(this.payload.contact, this.payload.ticket)
+    await this.puppet.friendRequestAccept(this.payload.contact.id, this.payload.ticket)
 
     const max = 20
     const backoff = 300

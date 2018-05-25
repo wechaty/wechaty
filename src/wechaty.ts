@@ -632,15 +632,15 @@ export class Wechaty extends PuppetAccessory implements Sayable {
   /**
    * @private
    */
-  public async send(message: Message): Promise<void> {
-    try {
-      await this.puppet.messageSend(message)
-    } catch (e) {
-      log.error('Wechaty', 'send() exception: %s', e.message)
-      Raven.captureException(e)
-      throw e
-    }
-  }
+  // public async send(message: Message): Promise<void> {
+  //   try {
+  //     await this.puppet.messageSend(message)
+  //   } catch (e) {
+  //     log.error('Wechaty', 'send() exception: %s', e.message)
+  //     Raven.captureException(e)
+  //     throw e
+  //   }
+  // }
 
   /**
    * Send message to filehelper

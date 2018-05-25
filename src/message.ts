@@ -428,12 +428,10 @@ export class Message extends PuppetAccessory implements Sayable {
       /**
        * File Message
        */
-      const msg = this.puppet.Message.createMO({
-        file : textOrFile,
-        to   : from,
-        room,
-      })
-      await this.puppet.messageSend(msg)
+      await this.puppet.messageSendFile({
+        roomId    : room && room.id || undefined,
+        contactId : from.id,
+      }, textOrFile)
     }
   }
 
@@ -443,43 +441,25 @@ export class Message extends PuppetAccessory implements Sayable {
     room        : Room | null,
     mentionList : Contact[],
   ): Promise<void> {
-    let msg: Message
-
-    if (!room) {
+    if (room && mentionList.length > 0) {
       /**
-       * 1. to Individual
+       * 1 had mentioned someone
        */
-      msg = this.puppet.Message.createMO({
-        to,
-        text,
-      })
+      const mentionContact = mentionList[0]
+      const textMentionList = mentionList.map(c => '@' + c.name()).join(' ')
+      await this.puppet.messageSendText({
+        contactId: mentionContact.id,
+        roomId: room.id,
+      }, textMentionList + ' ' + text)
     } else {
       /**
-       * 2. in Room
+       * 2 did not mention anyone
        */
-      if (mentionList.length > 0) {
-        /**
-         * 2.1 had mentioned someone
-         */
-        const mentionContact = mentionList[0]
-        const textMentionList = mentionList.map(c => '@' + c.name()).join(' ')
-        msg = this.puppet.Message.createMO({
-          to: mentionContact,
-          room,
-          text: textMentionList + ' ' + text,
-        })
-      } else {
-        /**
-         * 2.2 did not mention anyone
-         */
-        msg = this.puppet.Message.createMO({
-          to,
-          room,
-          text,
-        })
-      }
+      await this.puppet.messageSendText({
+        contactId : to.id,
+        roomId    : room && room.id || undefined,
+      }, text)
     }
-    await this.puppet.messageSend(msg)
   }
 
   public file(): FileBox {
@@ -822,8 +802,22 @@ export class Message extends PuppetAccessory implements Sayable {
   public async forward(to: Room | Contact): Promise<void> {
     log.verbose('Message', 'forward(%s)', to)
 
+    let roomId, contactId
+
+    if (to instanceof Room) {
+      roomId = to.id
+    }
+    if (to instanceof Contact) {
+      contactId = to.id
+    }
     try {
-      await this.puppet.messageForward(this, to)
+      await this.puppet.messageForward(
+        {
+          contactId,
+          roomId,
+        },
+        this.id,
+      )
     } catch (e) {
       log.error('Message', 'forward(%s) exception: %s', to, e)
       throw e

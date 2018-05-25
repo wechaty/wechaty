@@ -34,6 +34,7 @@ import {
 import {
   Puppet,
   PuppetOptions,
+  Receiver,
   ScanData,
 }                     from '../puppet/'
 import {
@@ -67,7 +68,6 @@ import {
   Gender,
 }                             from '../contact'
 import {
-  Message,
   MessageDirection,
   MessagePayload,
   MessageType,
@@ -412,16 +412,16 @@ export class PuppetPuppeteer extends Puppet {
    */
   // public async forward(baseData: MsgRawObj, patchData: MsgRawObj): Promise<boolean> {
   public async messageForward(
-    message : Message,
-    to      : Contact | Room,
+    receiver  : Receiver,
+    messageId : string,
   ): Promise<void> {
 
-    log.silly('PuppetPuppeteer', 'forward(%s, %s)',
-                                  message,
-                                  to,
-    )
+    log.silly('PuppetPuppeteer', 'forward(receiver=%s, messageId=%s)',
+                                  receiver,
+                                  messageId,
+              )
 
-    let rawPayload = await this.messageRawPayload(message.id)
+    let rawPayload = await this.messageRawPayload(messageId)
 
     // rawPayload = Object.assign({}, rawPayload)
 
@@ -451,7 +451,7 @@ export class PuppetPuppeteer extends Puppet {
     newMsg.MMSourceMsgId        = rawPayload.MsgId
     // In room msg, the content prefix sender:, need to be removed, otherwise the forwarded sender will display the source message sender, causing self () to determine the error
     newMsg.Content      = Misc.unescapeHtml(rawPayload.Content.replace(/^@\w+:<br\/>/, '')).replace(/^[\w\-]+:<br\/>/, '')
-    newMsg.MMIsChatRoom = to instanceof Room ? true : false
+    newMsg.MMIsChatRoom = receiver instanceof Room ? true : false
 
     // The following parameters need to be overridden after calling createMessage()
 
@@ -461,7 +461,7 @@ export class PuppetPuppeteer extends Puppet {
       // // all call success return true
       // ret = (i === 0 ? true : ret) && await config.puppetInstance().forward(m, newMsg)
     // }
-    newMsg.ToUserName = to.id
+    newMsg.ToUserName = receiver.contactId || receiver.roomId as string
     // ret = await config.puppetInstance().forward(m, newMsg)
     // return ret
     const baseData  = rawPayload
@@ -479,48 +479,58 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-   public async messageSend(message: Message): Promise<void> {
-    log.verbose('PuppetPuppeteer', 'send(%s)', message)
-
-    const to   = message.to()
-    const room = message.room()
+  public async messageSendText(
+    receiver : Receiver,
+    text     : string,
+  ): Promise<void> {
+    log.verbose('PuppetPuppeteer', 'messageSendText(receiver=%s, text=%s)', receiver, text)
 
     let destinationId
 
-    if (room) {
-      destinationId = room.id
-    } else if (to) {
-      destinationId = to.id
+    if (receiver.roomId) {
+      destinationId = receiver.roomId
+    } else if (receiver.contactId) {
+      destinationId = receiver.contactId
     } else {
-      throw new Error('PuppetPuppeteer.send(): message with neither room nor to?')
+      throw new Error('PuppetPuppeteer.messageSendText(): message with neither room nor to?')
     }
 
-    if (message.type() === MessageType.Text) {
-      log.silly('PuppetPuppeteer', 'send() TEXT message.')
-      const text = message.text()
+    log.silly('PuppetPuppeteer', 'messageSendText() destination: %s, text: %s)',
+                                  destinationId,
+                                  text,
+              )
 
-      log.silly('PuppetPuppeteer', 'send() destination: %s, text: %s)',
-                                    destinationId,
-                                    text,
-                )
-
-      try {
-        await this.bridge.send(destinationId, text)
-      } catch (e) {
-        log.error('PuppetPuppeteer', 'send() exception: %s', e.message)
-        Raven.captureException(e)
-        throw e
-      }
-    } else {
-      log.silly('PuppetPuppeteer', 'send() non-TEXT message.')
-
-      log.error('PuppetPuppeteer', 'messageSend() sendMedia un-implement yet!!!')
-      // TODO: implement this!
-      // const ret = await this.sendMedia(message)
-      // if (!ret) {
-      //   throw new Error('sendMedia fail')
-      // }
+    try {
+      await this.bridge.send(destinationId, text)
+    } catch (e) {
+      log.error('PuppetPuppeteer', 'messageSendText() exception: %s', e.message)
+      Raven.captureException(e)
+      throw e
     }
+  }
+
+  public async messageSendFile(
+    receiver : Receiver,
+    file     : FileBox,
+  ): Promise<void> {
+    log.verbose('PuppetPuppeteer', 'messageSendFile(receiver=%s, file=%s)', receiver, file)
+
+    let destinationId
+
+    if (receiver.roomId) {
+      destinationId = receiver.roomId
+    } else if (receiver.contactId) {
+      destinationId = receiver.contactId
+    } else {
+      throw new Error('PuppetPuppeteer.messageSendFile(): message with neither room nor to?')
+    }
+
+    log.error('PuppetPuppeteer', 'messageSend() sendMedia un-implement yet!!! id: %s', destinationId)
+    // TODO: implement this!
+    // const ret = await this.sendMedia(message)
+    // if (!ret) {
+    //   throw new Error('sendMedia fail')
+    // }
   }
 
   public async login(user: Contact): Promise<void> {
@@ -631,8 +641,8 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async contactAvatar(contact: Contact): Promise<FileBox> {
-    const payload = await this.contactPayload(contact.id)
+  public async contactAvatar(contactId: string): Promise<FileBox> {
+    const payload = await this.contactPayload(contactId)
     if (!payload.avatar) {
       throw new Error('Can not get avatar: no payload.avatar!')
     }
@@ -651,6 +661,9 @@ export class PuppetPuppeteer extends Puppet {
       }
       // return Misc.urlStream(avatarUrl, cookies)
 
+      const contact = this.Contact.load(contactId)
+      await contact.ready()
+
       return FileBox.fromRemote(
         avatarUrl,
         contact.name() || 'unknown' + '-avatar.jpg',
@@ -664,27 +677,27 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public contactAlias(contact: Contact)                      : Promise<string>
-  public contactAlias(contact: Contact, alias: string | null): Promise<void>
+  public contactAlias(contactId: string)                      : Promise<string>
+  public contactAlias(contactId: string, alias: string | null): Promise<void>
 
   public async contactAlias(
-    contact: Contact,
-    alias?: string | null,
+    contactId : string,
+    alias?    : string | null,
   ): Promise<string | void> {
     if (typeof alias === 'undefined') {
       throw new Error('to be implement')
     }
 
     try {
-      const ret = await this.bridge.contactAlias(contact.id, alias)
+      const ret = await this.bridge.contactAlias(contactId, alias)
       if (!ret) {
         log.warn('PuppetPuppeteer', 'contactRemark(%s, %s) bridge.contactAlias() return false',
-                              contact.id, alias,
+                              contactId, alias,
                             )
         throw new Error('bridge.contactAlias fail')
       }
     } catch (e) {
-      log.warn('PuppetPuppeteer', 'contactRemark(%s, %s) rejected: %s', contact.id, alias, e.message)
+      log.warn('PuppetPuppeteer', 'contactRemark(%s, %s) rejected: %s', contactId, alias, e.message)
       Raven.captureException(e)
       throw e
     }
@@ -738,16 +751,13 @@ export class PuppetPuppeteer extends Puppet {
     return filterFunction
   }
 
-  public async contactFindAll(query: ContactQueryFilter): Promise<Contact[]> {
+  public async contactFindAll(query: ContactQueryFilter): Promise<string[]> {
 
     const filterFunc = this.contactQueryFilterToFunctionString(query)
 
     try {
       const idList = await this.bridge.contactFind(filterFunc)
-      return idList.map(id => {
-        const c = this.Contact.load(id)
-        return c
-      })
+      return idList
     } catch (e) {
       log.warn('PuppetPuppeteer', 'contactFind(%s) rejected: %s', filterFunc, e.message)
       Raven.captureException(e)
@@ -882,7 +892,7 @@ export class PuppetPuppeteer extends Puppet {
 
   public async roomFindAll(
     query: RoomQueryFilter = { topic: /.*/ },
-  ): Promise<Room[]> {
+  ): Promise<string[]> {
 
     let topicFilter = query.topic
 
@@ -903,10 +913,7 @@ export class PuppetPuppeteer extends Puppet {
 
     try {
       const idList = await this.bridge.roomFind(filterFunction)
-      return idList.map(id => {
-        const r = this.Room.load(id) as Room
-        return r
-      })
+      return idList
     } catch (e) {
       log.warn('PuppetPuppeteer', 'roomFind(%s) rejected: %s', filterFunction, e.message)
       Raven.captureException(e)
@@ -914,9 +921,10 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async roomDel(room: Room, contact: Contact): Promise<void> {
-    const roomId    = room.id
-    const contactId = contact.id
+  public async roomDel(
+    roomId    : string,
+    contactId : string,
+  ): Promise<void> {
     try {
       await this.bridge.roomDelMember(roomId, contactId)
     } catch (e) {
@@ -926,24 +934,23 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async roomAdd(room: Room, contact: Contact): Promise<void> {
-    const roomId    = room.id
-    const contactId = contact.id
+  public async roomAdd(
+    roomId    : string,
+    contactId : string,
+  ): Promise<void> {
     try {
       await this.bridge.roomAddMember(roomId, contactId)
     } catch (e) {
-      log.warn('PuppetPuppeteer', 'roomAddMember(%s) rejected: %s', contact, e.message)
+      log.warn('PuppetPuppeteer', 'roomAddMember(%s) rejected: %s', contactId, e.message)
       Raven.captureException(e)
       throw e
     }
   }
 
-  public async roomTopic(room: Room, topic: string): Promise<string> {
-    if (!room || typeof topic === 'undefined') {
-      return Promise.reject(new Error('room or topic not found'))
-    }
-
-    const roomId = room.id
+  public async roomTopic(
+    roomId : string,
+    topic  : string,
+  ): Promise<string> {
     try {
       return await this.bridge.roomModTopic(roomId, topic)
     } catch (e) {
@@ -953,20 +960,16 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async roomCreate(contactList: Contact[], topic: string): Promise<Room> {
-    if (!contactList || ! contactList.map) {
-      throw new Error('contactList not found')
-    }
-
-    const contactIdList = contactList.map(c => c.id)
-
+  public async roomCreate(
+    contactIdList : string[],
+    topic         : string,
+  ): Promise<string> {
     try {
       const roomId = await this.bridge.roomCreate(contactIdList, topic)
       if (!roomId) {
         throw new Error('PuppetPuppeteer.roomCreate() roomId "' + roomId + '" not found')
       }
-      const r = this.Room.load(roomId) as Room
-      return r
+      return roomId
 
     } catch (e) {
       log.warn('PuppetPuppeteer', 'roomCreate(%s, %s) rejected: %s', contactIdList.join(','), topic, e.message)
@@ -975,8 +978,8 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async roomQuit(room: Room): Promise<void> {
-    log.warn('PuppetPuppeteer', 'roomQuit(%s) not supported by Web API', room)
+  public async roomQuit(roomId: string): Promise<void> {
+    log.warn('PuppetPuppeteer', 'roomQuit(%s) not supported by Web API', roomId)
   }
 
   /**
@@ -984,29 +987,27 @@ export class PuppetPuppeteer extends Puppet {
    * FriendRequest
    *
    */
-  public async friendRequestSend(contact: Contact, hello: string): Promise<void> {
-    if (!contact) {
-      throw new Error('contact not found')
-    }
-
+  public async friendRequestSend(
+    contactId : string,
+    hello     : string,
+  ): Promise<void> {
     try {
-      await this.bridge.verifyUserRequest(contact.id, hello)
+      await this.bridge.verifyUserRequest(contactId, hello)
     } catch (e) {
-      log.warn('PuppetPuppeteer', 'bridge.verifyUserRequest(%s, %s) rejected: %s', contact.id, hello, e.message)
+      log.warn('PuppetPuppeteer', 'bridge.verifyUserRequest(%s, %s) rejected: %s', contactId, hello, e.message)
       Raven.captureException(e)
       throw e
     }
   }
 
-  public async friendRequestAccept(contact: Contact, ticket: string): Promise<void> {
-    if (!contact || !ticket) {
-      throw new Error('contact or ticket not found')
-    }
-
+  public async friendRequestAccept(
+    contactId : string,
+    ticket    : string,
+  ): Promise<void> {
     try {
-      await this.bridge.verifyUserOk(contact.id, ticket)
+      await this.bridge.verifyUserOk(contactId, ticket)
     } catch (e) {
-      log.warn('PuppetPuppeteer', 'bridge.verifyUserOk(%s, %s) rejected: %s', contact.id, ticket, e.message)
+      log.warn('PuppetPuppeteer', 'bridge.verifyUserOk(%s, %s) rejected: %s', contactId, ticket, e.message)
       Raven.captureException(e)
       throw e
     }

@@ -25,9 +25,9 @@ import {
   Raven,
   Sayable,
 }                       from './config'
-import PuppetAccessory  from './puppet-accessory'
+import { PuppetAccessory }  from './puppet-accessory'
 
-import Message          from './message'
+// import Message          from './message'
 
 /**
  * Enum for Gender values.
@@ -202,7 +202,8 @@ export class Contact extends PuppetAccessory implements Sayable {
     }
 
     try {
-      const contactList: Contact[] = await this.puppet.contactFindAll(query)
+      const contactIdList: string[] = await this.puppet.contactFindAll(query)
+      const contactList = contactIdList.map(id => this.load(id))
 
       await Promise.all(contactList.map(c => c.ready()))
       return contactList
@@ -286,27 +287,33 @@ export class Contact extends PuppetAccessory implements Sayable {
   public async say(textOrFile: string | FileBox): Promise<void> {
     log.verbose('Contact', 'say(%s)', textOrFile)
 
-    let msg: Message
+    // let msg: Message
     if (typeof textOrFile === 'string') {
-      msg = Message.createMO({
-        text : textOrFile,
-        to   : this,
-      })
+      await this.puppet.messageSendText({
+        contactId: this.id,
+      }, textOrFile)
+      // msg = Message.createMO({
+      //   text : textOrFile,
+      //   to   : this,
+      // })
     } else if (textOrFile instanceof FileBox) {
-      msg = Message.createMO({
-        to   : this,
-        file : textOrFile,
-      })
+      await this.puppet.messageSendFile({
+        contactId: this.id,
+      }, textOrFile)
+      // msg = Message.createMO({
+      //   to   : this,
+      //   file : textOrFile,
+      // })
     } else {
       throw new Error('unsupported')
     }
 
-    log.silly('Contact', 'say() from: %s to: %s content: %s',
-                                  this.puppet.userSelf(),
-                                  this,
-                                  msg,
-              )
-    await this.puppet.messageSend(msg)
+    // log.silly('Contact', 'say() from: %s to: %s content: %s',
+    //                               this.puppet.userSelf(),
+    //                               this,
+    //                               msg,
+    //           )
+    // await this.puppet.messageSend(msg)
   }
 
   /**
@@ -366,7 +373,7 @@ export class Contact extends PuppetAccessory implements Sayable {
       return this.payload && this.payload.alias || null
     }
 
-    const future = this.puppet.contactAlias(this, newAlias)
+    const future = this.puppet.contactAlias(this.id, newAlias)
 
     future
       .then(() => this.payload!.alias = newAlias)
@@ -515,7 +522,7 @@ export class Contact extends PuppetAccessory implements Sayable {
   public async avatar(): Promise<FileBox> {
     log.verbose('Contact', 'avatar()')
 
-    return this.puppet.contactAvatar(this)
+    return this.puppet.contactAvatar(this.id)
   }
 
   /**

@@ -32,10 +32,10 @@ import {
   Sayable,
   log,
 }                       from './config'
-import PuppetAccessory  from './puppet-accessory'
+import { PuppetAccessory }  from './puppet-accessory'
 
-import Contact          from './contact'
-import Message          from './message'
+import { Contact }          from './contact'
+// import Message          from './message'
 
 export const ROOM_EVENT_DICT = {
   join: 'tbw',
@@ -102,7 +102,9 @@ export class Room extends PuppetAccessory implements Sayable {
     }
 
     try {
-      const room = await this.puppet.roomCreate(contactList, topic)
+      const contactIdList = contactList.map(contact => contact.id)
+      const roomId = await this.puppet.roomCreate(contactIdList, topic)
+      const room = this.load(roomId)
       return room
     } catch (e) {
       log.error('Room', 'create() exception: %s', e && e.stack || e.message || e)
@@ -132,7 +134,8 @@ export class Room extends PuppetAccessory implements Sayable {
     }
 
     try {
-      const roomList = await this.puppet.roomFindAll(query)
+      const roomIdList = await this.puppet.roomFindAll(query)
+      const roomList = roomIdList.map(id => this.load(id))
       await Promise.all(roomList.map(room => room.ready()))
 
       return roomList
@@ -302,7 +305,6 @@ export class Room extends PuppetAccessory implements Sayable {
                                   ? mention.map(c => c.name()).join(', ')
                                   : mention ? mention.name() : '',
                 )
-    let msg: Message
     let text: string
 
     const replyToList: Contact[] = [].concat(mention as any || [])
@@ -316,22 +318,17 @@ export class Room extends PuppetAccessory implements Sayable {
       } else {
         text = textOrFile
       }
-      msg = this.puppet.Message.createMO({
-        room : this,
-        to   : replyToList[0],   // FIXME: is this right?
-        text,
-      })
+      await this.puppet.messageSendText({
+        roomId: this.id,
+        contactId: replyToList[0].id,
+      }, text)
     } else if (textOrFile instanceof FileBox) {
-      msg = this.puppet.Message.createMO({
-        room: this,
-        to: replyToList[0],
-        file: textOrFile,
-      })
+      await this.puppet.messageSendFile({
+        roomId: this.id,
+      }, textOrFile)
     } else {
       throw new Error('arg unsupported')
     }
-
-    await this.puppet.messageSend(msg)
   }
 
   public emit(event: 'leave', leaver:       Contact[],  remover?: Contact)                    : boolean
@@ -427,7 +424,7 @@ export class Room extends PuppetAccessory implements Sayable {
    */
   public async add(contact: Contact): Promise<void> {
     log.verbose('Room', 'add(%s)', contact)
-    await this.puppet.roomAdd(this, contact)
+    await this.puppet.roomAdd(this.id, contact.id)
   }
 
   /**
@@ -449,7 +446,7 @@ export class Room extends PuppetAccessory implements Sayable {
    */
   public async del(contact: Contact): Promise<void> {
     log.verbose('Room', 'del(%s)', contact)
-    await this.puppet.roomDel(this, contact)
+    await this.puppet.roomDel(this.id, contact.id)
     this.delLocal(contact)
   }
 
@@ -472,7 +469,7 @@ export class Room extends PuppetAccessory implements Sayable {
    */
   public async quit(): Promise<void> {
     log.verbose('Room', 'quit() %s', this)
-    await this.puppet.roomQuit(this)
+    await this.puppet.roomQuit(this.id)
   }
 
   public topic()                : string
@@ -518,7 +515,7 @@ export class Room extends PuppetAccessory implements Sayable {
     }
 
     const future = this.puppet
-        .roomTopic(this, newTopic)
+        .roomTopic(this.id, newTopic)
         .then(() => {
           this.payload = {
             ...this.payload || {} as RoomPayload,
