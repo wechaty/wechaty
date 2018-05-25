@@ -19,8 +19,9 @@
 import * as path      from 'path'
 
 /* tslint:disable:variable-name */
-const QrcodeTerminal  = require('qrcode-terminal')
-const finis           = require('finis')
+import * as QrcodeTerminal  from 'qrcode-terminal'
+import finis                from 'finis'
+import { FileBox }          from 'file-box'
 
 /**
  * Change `import { ... } from '../'`
@@ -28,11 +29,9 @@ const finis           = require('finis')
  * when you are runing with Docker or NPM instead of Git Source.
  */
 import {
-  config,
   Wechaty,
   log,
-  MediaMessage,
-}               from '../index'
+}               from '../src/'
 
 const BOT_QR_CODE_IMAGE_FILE = path.join(
   __dirname,
@@ -63,7 +62,7 @@ Please wait... I'm trying to login in...
 `
 
 console.log(welcome)
-const bot = Wechaty.instance({ profile: config.default.DEFAULT_PROFILE })
+const bot = Wechaty.instance()
 
 bot
 .on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
@@ -74,41 +73,48 @@ bot
 .on('scan', (url, code) => {
   if (!/201|200/.test(String(code))) {
     const loginUrl = url.replace(/\/qrcode\//, '/l/')
-    QrcodeTerminal.generate(loginUrl)
+    QrcodeTerminal.generate(loginUrl, { small: true }, (qrcode: string) => {
+      console.log(qrcode)
+      console.log(url)
+      console.log(`[${code}] Scan QR Code above url to log in: `)
+    })
   }
-  console.log(`${url}\n[${code}] Scan QR Code above url to log in: `)
 })
-.on('message', async m => {
+.on('message', async msg => {
   try {
-    const room = m.room()
-    console.log(
-      (room ? `${room}` : '')
-      + `${m.from()}:${m}`,
-    )
+    console.log(msg.toString())
 
-    if (/^(ding|ping|bing|code)$/i.test(m.content()) && !m.self()) {
-      m.say('dong')
+    if (/^(ding|ping|bing|code)$/i.test(msg.text()) && !msg.self()) {
+      /**
+       * 1. reply 'dong'
+       */
       log.info('Bot', 'REPLY: dong')
+      msg.say('dong')
 
       const joinWechaty =  `Join Wechaty Developers' Community\n\n` +
                             `Wechaty is used in many ChatBot projects by hundreds of developers.\n\n` +
                             `If you want to talk with other developers, just scan the following QR Code in WeChat with secret code: wechaty,\n\n` +
                             `you can join our Wechaty Developers' Home at once`
-      await m.say(joinWechaty)
-      await m.say(new MediaMessage(BOT_QR_CODE_IMAGE_FILE))
-      await m.say('Scan now, because other Wechaty developers want to talk with you too!\n\n(secret code: wechaty)')
-      log.info('Bot', 'REPLY: Image')
+      await msg.say(joinWechaty)
+
+      /**
+       * 2. reply qrcode image
+       */
+      const fileBox = FileBox.fromLocal(BOT_QR_CODE_IMAGE_FILE)
+
+      log.info('Bot', 'REPLY: %s', fileBox)
+      await msg.say(fileBox)
+
+      /**
+       * 3. reply 'scan now!'
+       */
+      await msg.say('Scan now, because other Wechaty developers want to talk with you too!\n\n(secret code: wechaty)')
+
     }
   } catch (e) {
     log.error('Bot', 'on(message) exception: %s' , e)
+    console.error(e)
   }
-})
-
-bot.start()
-.catch(e => {
-  log.error('Bot', 'start() fail: %s', e)
-  bot.stop()
-  process.exit(-1)
 })
 
 bot.on('error', async e => {
@@ -119,31 +125,80 @@ bot.on('error', async e => {
   // await bot.stop()
 })
 
+let killChrome: NodeJS.SignalsListener
+
+bot.start()
+.then(() => {
+  const listenerList = process.listeners('SIGINT')
+  for (const listener of listenerList) {
+    if (listener.name === 'killChrome') {
+      process.removeListener('SIGINT', listener)
+      killChrome = listener
+    }
+  }
+})
+.catch(e => {
+  log.error('Bot', 'start() fail: %s', e)
+  bot.stop()
+  process.exit(-1)
+})
+
 let quiting = false
-finis(async (code, signal) => {
+finis((code, signal) => {
+  log.info('Bot', 'finis(%s, %s)', code, signal)
+
+  if (!bot.logonoff()) {
+    log.info('Bot', 'finis() bot had been already stopped')
+    doExit(code)
+  }
+
   if (quiting) {
-    log.warn('Bot', 'finis(%s, %s) called when quiting... just wait...', code, signal)
+    log.warn('Bot', 'finis() already quiting... return and wait...')
     return
   }
+
   quiting = true
-  log.info('Bot', 'finis(%s, %s)', code, signal)
+  let done = false
+  // let checkNum = 0
+
   const exitMsg = `Wechaty will exit ${code} because of ${signal} `
-  if (bot.logonoff()) {
-    log.info('Bot', 'finis() stoping bot')
-    await bot.say(exitMsg).catch(console.error)
-  } else {
-    log.info('Bot', 'finis() bot had been already stopped')
-  }
-  setTimeout(async () => {
-    log.info('Bot', 'finis() setTimeout() going to exit with %d', code)
-    try {
-      if (bot.logonoff()) {
-        await bot.stop()
-      }
-    } catch (e) {
-      log.error('Bot', 'finis() setTimeout() exception: %s', e)
-    } finally {
-      process.exit(code)
+
+  log.info('Bot', 'finis() broadcast quiting message for bot')
+  bot.say(exitMsg)
+      // .then(() => bot.stop())
+      .catch(e => log.error('Bot', 'finis() catch rejection: %s', e))
+      .then(() => done = true)
+
+  setImmediate(checkForExit)
+
+  function checkForExit() {
+    // if (checkNum++ % 100 === 0) {
+    log.info('Bot', 'finis() checkForExit() checking done: %s', done)
+    // }
+    if (done) {
+      log.info('Bot', 'finis() checkForExit() done!')
+      setTimeout(() => doExit(code), 1000)  // delay 1 second
+      return
     }
-  }, 3 * 1000)
+    // death loop to wait for `done`
+    // process.nextTick(checkForExit)
+    // setImmediate(checkForExit)
+    setTimeout(checkForExit, 100)
+  }
 })
+
+function doExit(code: number): void {
+  log.info('Bot', 'doExit(%d)', code)
+  if (killChrome) {
+    killChrome('SIGINT')
+  }
+  process.exit(code)
+}
+
+// process.on('SIGINT', function() {
+//   console.log('Nice SIGINT-handler')
+//   const listeners = process.listeners('SIGINT')
+//   for (let i = 0; i < listeners.length; i++) {
+//       console.log(listeners[i].toString())
+//   }
+// })

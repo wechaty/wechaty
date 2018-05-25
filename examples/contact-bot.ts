@@ -28,15 +28,13 @@ const QrcodeTerminal = require('qrcode-terminal')
  * when you are runing with Docker or NPM instead of Git Source.
  */
 import {
-  config,
-  // Contact,
   Wechaty,
   log,
-}           from '../'
+}           from '../src/'
 
 const welcome = `
 =============== Powered by Wechaty ===============
--------- https://github.com/wechaty/wechaty --------
+-------- https://github.com/Chatie/wechaty --------
 
 Hello,
 
@@ -54,7 +52,7 @@ Please wait... I'm trying to login in...
 `
 
 console.log(welcome)
-const bot = Wechaty.instance({ profile: config.default.DEFAULT_PROFILE })
+const bot = Wechaty.instance()
 
 bot
 .on('login'	  , function(this, user) {
@@ -103,16 +101,16 @@ async function onLogin() {
     }
   }
 
-  /**
-   *  Special contact list
-   */
+  // /**
+  //  *  Special contact list
+  //  */
 
-  for (let i = 0; i < contactList.length; i++) {
-    const contact = contactList[i]
-    if (contact.special()) {
-      log.info('Bot', `special ${i}: ${contact.name()}`)
-    }
-  }
+  // for (let i = 0; i < contactList.length; i++) {
+  //   const contact = contactList[i]
+  //   if (contact.special()) {
+  //     log.info('Bot', `special ${i}: ${contact.name()}`)
+  //   }
+  // }
 
   /**
    *  personal contact list
@@ -121,7 +119,7 @@ async function onLogin() {
   for (let i = 0; i < contactList.length; i++) {
     const contact = contactList[i]
     if (contact.personal()) {
-      log.info('Bot', `personal ${i}: ${contact.get('name')} : ${contact.id}`)
+      log.info('Bot', `personal ${i}: ${contact.name()} : ${contact.id}`)
     }
   }
 

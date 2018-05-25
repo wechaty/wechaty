@@ -22,22 +22,24 @@ import * as test  from 'blue-tape'
 // tslint:disable:no-shadowed-variable
 // import * as sinon from 'sinon'
 
-import Profile  from '../../src/profile'
+import Profile  from '../profile'
+import Wechaty  from '../wechaty'
 
 import {
   // Event,
-  PuppetWeb,
-} from '../../src/puppet-web/'
+  PuppetPuppeteer,
+}                   from './puppet-puppeteer'
 
-test('Puppet Web Event smoke testing', async t => {
-  const pw = new PuppetWeb({
+test('Puppet Puppeteer Event smoke testing', async t => {
+  const puppet = new PuppetPuppeteer({
     profile: new Profile(),
+    wechaty: new Wechaty(),
   })
 
   try {
-    await pw.start()
+    await puppet.start()
     t.pass('should be inited')
-    await pw.stop()
+    await puppet.stop()
     t.pass('should be quited')
   } catch (e) {
     t.fail('exception: ' + e.message)

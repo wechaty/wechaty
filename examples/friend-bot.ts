@@ -30,11 +30,12 @@ import {
   // Contact,
   log,
   Wechaty,
-}           from '../'
+  FriendRequest,
+}           from '../src/'
 
 const welcome = `
 =============== Powered by Wechaty ===============
--------- https://github.com/wechaty/wechaty --------
+-------- https://github.com/Chatie/wechaty --------
 
 Hello,
 
@@ -75,16 +76,16 @@ bot
  * Wechaty Event: `friend`
  *
  */
-.on('friend', async (contact, request) => {
+.on('friend', async request => {
   let logMsg
   const fileHelper = bot.Contact.load('filehelper')
 
   try {
-    logMsg = 'received `friend` event from ' + contact.get('name')
+    logMsg = 'received `friend` event from ' + request.contact().name()
     fileHelper.say(logMsg)
     console.log(logMsg)
 
-    if (request) {
+    switch (request.type()) {
       /**
        *
        * 1. New Friend Request
@@ -92,20 +93,24 @@ bot
        * when request is set, we can get verify message from `request.hello`,
        * and accept this request by `request.accept()`
        */
-      if (request.hello === 'ding') {
-        logMsg = 'accepted because verify messsage is "ding"'
-        request.accept()
+      case FriendRequest.Type.Receive:
+        if (request.hello() === 'ding') {
+          logMsg = 'accepted because verify messsage is "ding"'
+          request.accept()
 
-      } else {
-        logMsg = 'not auto accepted, because verify message is: ' + request.hello
-      }
-    } else {
-      /**
-       *
-       * 2. Friend Ship Confirmed
-       *
-       */
-      logMsg = 'friend ship confirmed with ' + contact.get('name')
+        } else {
+          logMsg = 'not auto accepted, because verify message is: ' + request.hello
+        }
+        break
+
+        /**
+         *
+         * 2. Friend Ship Confirmed
+         *
+         */
+      case FriendRequest.Type.Confirm:
+        logMsg = 'friend ship confirmed with ' + request.contact().name()
+        break
     }
   } catch (e) {
     logMsg = e.message

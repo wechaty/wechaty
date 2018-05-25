@@ -36,10 +36,9 @@ const Tuling123       = require('tuling123-client')
  * when you are runing with Docker or NPM instead of Git Source.
  */
 import {
-  config,
   Wechaty,
   log,
-}           from '../'
+}           from '../src/'
 
 // log.level = 'verbose'
 // log.level = 'silly'
@@ -53,7 +52,7 @@ import {
 const TULING123_API_KEY = '18f25157e0446df58ade098479f74b21'
 const tuling = new Tuling123(TULING123_API_KEY)
 
-const bot = Wechaty.instance({ profile: config.default.DEFAULT_PROFILE })
+const bot = Wechaty.instance()
 
 console.log(`
 Welcome to Tuling Wechaty Bot.
@@ -67,7 +66,7 @@ Loading...
 
 bot
 .on('login'  , user => log.info('Bot', `bot login: ${user}`))
-.on('logout' , e => log.info('Bot', 'bot logout.'))
+.on('logout' , user => log.info('Bot', 'bot %s logout.', user))
 .on('scan', (url, code) => {
   if (!/201|200/.test(String(code))) {
     const loginUrl = url.replace(/\/qrcode\//, '/l/')
@@ -82,10 +81,10 @@ bot
   log.info('Bot', 'talk: %s'  , msg)
 
   try {
-    const {text: reply} = await tuling.ask(msg.content(), {userid: msg.from()})
+    const {text: reply} = await tuling.ask(msg.text(), {userid: msg.from()})
     log.info('Tuling123', 'Talker reply:"%s" for "%s" ',
                           reply,
-                          msg.content(),
+                          msg.text(),
             )
     msg.say(reply)
   } catch (e) {

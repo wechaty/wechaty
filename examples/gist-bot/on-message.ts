@@ -25,17 +25,17 @@
 import {
   Message,
   Wechaty,
-} from '../../'
+} from '../../src/'
 
 export async function onMessage(this: Wechaty, message: Message): Promise<void> {
   try {
     const room      = message.room()
     const sender    = message.from()
-    const content   = message.content()
+    const content   = message.text()
 
     console.log((room ? '[' + room.topic() + ']' : '')
                 + '<' + sender.name() + '>'
-                + ':' + message.toStringDigest(),
+                + ':' + message,
     )
 
     if (message.self() || room) {

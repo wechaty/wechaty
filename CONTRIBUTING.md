@@ -6,18 +6,18 @@ Thank you for your time on Wechaty.
 
 Contribute by marketing: Add **Powered by Wechaty** Badge to your Project Homepage:
 
-[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/wechaty/wechaty)
+[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/Chatie/wechaty)
 
 ## Markdown
 
 ```markdown
-[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/wechaty/wechaty)
+[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/Chatie/wechaty)
 ```
 
 ## Html
 
 ```html
-<a href="https://github.com/wechaty/wechaty" target="_blank">
+<a href="https://github.com/Chatie/wechaty" target="_blank">
   <img src="https://img.shields.io/badge/Powered%20By-Wechaty-green.svg" alt="Powered by Wechaty" border="0">
 </a>
 ```

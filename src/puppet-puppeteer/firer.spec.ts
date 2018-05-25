@@ -27,11 +27,12 @@ import * as test  from 'blue-tape'
 // import * as sinon from 'sinon'
 // const sinonTest   = require('sinon-test')(sinon)
 
-import { Firer }  from './firer'
+import { PuppetPuppeteer }  from './puppet-puppeteer'
+import { Firer }            from './firer'
 
-test('Firer smoke testing', async t => {
-  t.true(true, 'should be true')
-})
+const mockPuppetPuppeteer = {
+  userSelf: () => ({}),
+} as any as PuppetPuppeteer
 
 test('parseFriendConfirm()', async t => {
   const contentList = [
@@ -55,11 +56,11 @@ test('parseFriendConfirm()', async t => {
   let result: boolean
 
   contentList.forEach(([content]) => {
-    result = Firer.parseFriendConfirm(content)
+    result = Firer.parseFriendConfirm.call(mockPuppetPuppeteer, content)
     t.true(result, 'should be truthy for confirm msg: ' + content)
   })
 
-  result = Firer.parseFriendConfirm('fsdfsdfasdfasdfadsa')
+  result = Firer.parseFriendConfirm.call(mockPuppetPuppeteer, 'fsdfsdfasdfasdfadsa')
   t.false(result, 'should be falsy for other msg')
 })
 
@@ -119,14 +120,14 @@ test('parseRoomJoin()', async t => {
 
   let result
   contentList.forEach(([content, inviter, inviteeList]) => {
-    result = Firer.parseRoomJoin(content)
+    result = Firer.parseRoomJoin.call(mockPuppetPuppeteer, content)
     t.ok(result, 'should check room join message right for ' + content)
     t.deepEqual(result[0], inviteeList, 'should get inviteeList right')
     t.is(result[1], inviter, 'should get inviter right')
   })
 
   t.throws(() => {
-    Firer.parseRoomJoin('fsadfsadfsdfsdfs')
+    Firer.parseRoomJoin.call(mockPuppetPuppeteer, 'fsadfsadfsdfsdfs')
   }, Error, 'should throws if message is not expected')
 })
 
@@ -154,19 +155,19 @@ test('parseRoomLeave()', async t => {
   ]
 
   contentLeaverList.forEach(([content, leaver]) => {
-    const resultLeaver = Firer.parseRoomLeave(content)[0]
+    const resultLeaver = Firer.parseRoomLeave.call(mockPuppetPuppeteer, content)[0]
     t.ok(resultLeaver, 'should get leaver for leave message: ' + content)
     t.is(resultLeaver, leaver, 'should get leaver name right')
   })
 
   contentRemoverList.forEach(([content, remover]) => {
-    const resultRemover = Firer.parseRoomLeave(content)[1]
+    const resultRemover = Firer.parseRoomLeave.call(mockPuppetPuppeteer, content)[1]
     t.ok(resultRemover, 'should get remover for leave message: ' + content)
     t.is(resultRemover, remover, 'should get leaver name right')
   })
 
   t.throws(() => {
-    Firer.parseRoomLeave('fafdsfsdfafa')
+    Firer.parseRoomLeave.call(mockPuppetPuppeteer, 'fafdsfsdfafa')
   }, Error, 'should throw if message is not expected')
 })
 
@@ -186,14 +187,14 @@ test('parseRoomTopic()', async t => {
 
   let result
   contentList.forEach(([content, changer, topic]) => {
-    result = Firer.parseRoomTopic(content)
+    result = Firer.parseRoomTopic.call(mockPuppetPuppeteer, content)
     t.ok(result, 'should check topic right for content: ' + content)
     t.is(topic  , result[0], 'should get right topic')
     t.is(changer, result[1], 'should get right changer')
   })
 
   t.throws(() => {
-    Firer.parseRoomTopic('fafdsfsdfafa')
+    Firer.parseRoomTopic.call(mockPuppetPuppeteer, 'fafdsfsdfafa')
   }, Error, 'should throw if message is not expected')
 
 })

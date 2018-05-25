@@ -43,7 +43,8 @@ import { EventEmitter } from 'events'
 import {
   config,
   Wechaty,
-}           from '../'
+  Message,
+}           from '../src/'
 
 // log.level = 'verbose'
 // log.level = 'silly'
@@ -77,7 +78,7 @@ bot
   console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
 })
 .on('login'  , user => log.info('Bot', `bot login: ${user}`))
-.on('logout' , e => log.info('Bot', 'bot logout.'))
+.on('logout' , user => log.info('Bot', 'bot %s logout.', user))
 .on('message', m => {
   if (m.self()) { return }
 
@@ -103,11 +104,16 @@ bot.start()
 })
 
 class Talker extends EventEmitter {
-  private thinker
-  private obj
-  private timer
+  private thinker: (text: string) => Promise<string>
+  private obj: {
+    text: string[],
+    time: number[],
+  }
+  private timer?: number
 
-  constructor(thinker) {
+  constructor(
+    thinker: (text: string) => Promise<string>,
+  ) {
     log.verbose('Talker()')
     super()
     this.thinker = thinker
@@ -115,10 +121,9 @@ class Talker extends EventEmitter {
       text: [],
       time: [],
     }
-    this.timer = null
   }
 
-  public save(text) {
+  public save(text: string) {
     log.verbose('Talker', 'save(%s)', text)
     this.obj.text.push(text)
     this.obj.time.push(Date.now())
@@ -131,7 +136,7 @@ class Talker extends EventEmitter {
     return text
   }
 
-  public updateTimer(delayTime?) {
+  public updateTimer(delayTime?: number) {
     delayTime = delayTime || this.delayTime()
     log.verbose('Talker', 'updateTimer(%s)', delayTime)
 
@@ -139,7 +144,7 @@ class Talker extends EventEmitter {
     this.timer = setTimeout(this.say.bind(this), delayTime)
   }
 
-  public hear(text) {
+  public hear(text: string) {
     log.verbose('Talker', `hear(${text})`)
     this.save(text)
     this.updateTimer()
@@ -149,7 +154,7 @@ class Talker extends EventEmitter {
     const text  = this.load()
     this.thinker(text)
     .then(reply => this.emit('say', reply))
-    this.timer = null
+    this.timer = undefined
   }
 
   public delayTime() {
@@ -161,19 +166,22 @@ class Talker extends EventEmitter {
 }
 
 /* tslint:disable:variable-name */
-const Talkers: Talker[] = []
+const Talkers: {
+  [index: string]: Talker,
+ } = {}
 
-function talk(m) {
+function talk(m: Message) {
   const fromId  = m.from().id
-  const roomId = m.room().id
-  const content = m.content()
+  const room = m.room()
+  const roomId = room && room.id
+  const content = m.text()
 
   const talkerName = fromId + roomId
   if (!Talkers[talkerName]) {
-    Talkers[talkerName] = new Talker(function(text) {
+    Talkers[talkerName] = new Talker(function(text: string) {
       return new Promise((resolve, reject) => {
         brainApiAi.textRequest(text)
-        .on('response', function(response) {
+        .on('response', function(response: any) {
           console.log(response)
           /*
 { id: 'a09381bb-8195-4139-b49c-a2d03ad5e014',
@@ -188,7 +196,7 @@ function talk(m) {
      score: 0 },
   status: { code: 200, errorType: 'success' } }
           */
-          const reply = response.result.fulfillment.speech
+          const reply: string = response.result.fulfillment.speech
           if (!reply) {
             log.info('ApiAi', `Talker do not want to talk for "${text}"`)
             return reject()
@@ -196,7 +204,7 @@ function talk(m) {
           log.info('ApiAi', 'Talker reply:"%s" for "%s" ', reply, text)
           return resolve(reply)
         })
-        .on('error', function(error) {
+        .on('error', function(error: Error) {
           log.error('ApiAi', error)
           reject(error)
         })

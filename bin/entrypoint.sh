@@ -2,7 +2,7 @@
 #
 # Wechaty - Connect ChatBots
 #
-# https://github.com/wechaty/wechaty
+# https://github.com/Chatie/wechaty
 #
 set -e
 

@@ -16,7 +16,24 @@
  *   limitations under the License.
  *
  */
-export interface MediaData {
+export interface WebContactRawPayload {
+  Alias:        string,
+  City:         string,
+  NickName:     string,
+  Province:     string,
+  RemarkName:   string,
+  Sex:          number,
+  Signature:    string,
+  StarFriend:   string,
+  Uin:          string,
+  UserName:     string,
+  HeadImgUrl:   string,
+
+  stranger:     string, // assign by injectio.js
+  VerifyFlag:   number,
+}
+
+export interface WebMessageMediaPayload {
   ToUserName: string,
   MsgType:    number,
   MediaId:    string,
@@ -28,7 +45,7 @@ export interface MediaData {
   Signature?: string,
 }
 
-export interface MsgRawObj {
+export interface WebMessageRawPayload {
   MsgId:            string,
 
   MMActualSender:   string, // getUserContact(message.MMActualSender,message.MMPeerUserName).isContact()
@@ -84,10 +101,10 @@ export interface MsgRawObj {
    * MsgType == CONF.MSGTYPE_VOICE : ng-style="{'width':40 + 7*message.VoiceLength/1000}
    */
   MsgType:          number,
-  AppMsgType:       AppMsgType,  // message.MsgType == CONF.MSGTYPE_APP && message.AppMsgType == CONF.APPMSGTYPE_URL
+  AppMsgType:       WebAppMsgType,  // message.MsgType == CONF.MSGTYPE_APP && message.AppMsgType == CONF.APPMSGTYPE_URL
                                  // message.MsgType == CONF.MSGTYPE_TEXT && message.SubMsgType != CONF.MSGTYPE_LOCATION
 
-  SubMsgType:       MsgType, // "msgType":"{{message.MsgType}}","subType":{{message.SubMsgType||0}},"msgId":"{{message.MsgId}}"
+  SubMsgType:       WebMessageType, // "msgType":"{{message.MsgType}}","subType":{{message.SubMsgType||0}},"msgId":"{{message.MsgId}}"
 
   /**
    * Status-es
@@ -127,7 +144,7 @@ export interface MsgRawObj {
    * MsgType == CONF.MSGTYPE_SHARECARD" ng-click="showProfile($event,message.RecommendInfo.UserName)
    * MsgType == CONF.MSGTYPE_VERIFYMSG
    */
-  RecommendInfo?:   RecommendInfo,
+  RecommendInfo?:   WebRecomendInfo,
 
   /**
    * Transpond Message
@@ -141,31 +158,17 @@ export interface MsgRawObj {
 
 }
 
-export interface MsgObj {
-  id:       string,
-  type:     MsgType,
-  from:     string,
-  to?:      string,  // if to is not set, then room must be set
-  room?:    string,
-  content:  string,
-  status:   string,
-  digest:   string,
-  date:     string,
-
-  url?:     string,  // for MessageMedia class
-}
-
 // export type MessageTypeName = 'TEXT' | 'IMAGE' | 'VOICE' | 'VERIFYMSG' | 'POSSIBLEFRIEND_MSG'
 // | 'SHARECARD' | 'VIDEO' | 'EMOTICON' | 'LOCATION' | 'APP' | 'VOIPMSG' | 'STATUSNOTIFY'
 // | 'VOIPNOTIFY' | 'VOIPINVITE' | 'MICROVIDEO' | 'SYSNOTICE' | 'SYS' | 'RECALLED'
 
 // export type MessageTypeValue = 1 | 3 | 34 | 37 | 40 | 42 | 43 | 47 | 48 | 49 | 50 | 51 | 52 | 53 | 62 | 9999 | 10000 | 10002
 
-export interface MsgTypeMap {
-  [index: string]: string|number,
-  //   MessageTypeName:  MessageTypeValue
-  // , MessageTypeValue: MessageTypeName
-}
+// export interface WebMsgTypeDict {
+//   [index: string]: string|number,
+//   //   MessageTypeName:  MessageTypeValue
+//   // , MessageTypeValue: MessageTypeName
+// }
 
 /**
  *
@@ -190,7 +193,7 @@ export interface MsgTypeMap {
  * @property {number} RED_ENVELOPES           - AppMsgType.RED_ENVELOPES            (2001)   for RED_ENVELOPES
  * @property {number} READER_TYPE             - AppMsgType.READER_TYPE              (100001) for READER_TYPE
  */
-export enum AppMsgType {
+export enum WebAppMsgType {
   TEXT                     = 1,
   IMG                      = 2,
   AUDIO                    = 3,
@@ -233,7 +236,7 @@ export enum AppMsgType {
  * @property {number} SYS                 - MsgType.SYS                 (10000) for SYS
  * @property {number} RECALLED            - MsgType.RECALLED            (10002) for RECALLED
  */
-export enum MsgType {
+export enum WebMessageType {
   TEXT                = 1,
   IMAGE               = 3,
   VOICE               = 34,
@@ -257,7 +260,7 @@ export enum MsgType {
 /**
  * from Message
  */
-export interface RecommendInfo {
+export interface WebRecomendInfo {
   UserName:   string,
   NickName:   string,  // display_name
   Content:    string,  // request message
@@ -265,12 +268,26 @@ export interface RecommendInfo {
 
   Ticket:     string,  // a pass token
   VerifyFlag: number,
-
 }
 
-export const enum MediaType {
-  IMAGE      = 1,
-  VIDEO      = 2,
-  AUDIO      = 3,
-  ATTACHMENT = 4,
+export const enum WebMediaType {
+  Image      = 1,
+  Video      = 2,
+  Audio      = 3,
+  Attachment = 4,
+}
+
+export interface WebRoomRawMember {
+  UserName:     string,
+  NickName:     string,
+  DisplayName:  string,
+}
+
+export interface WebRoomRawPayload {
+  UserName:         string,
+  EncryChatRoomId:  string,
+  NickName:         string,
+  OwnerUin:         number,
+  ChatRoomOwner:    string,
+  MemberList?:      WebRoomRawMember[],
 }

@@ -19,7 +19,7 @@
 exports = module.exports = async function onMessage (message) {
     const room      = message.room();
     const sender    = message.from();
-    const content   = message.content();
+    const content   = message.text();
 
     const topic = room ? '[' + room.topic() + ']' : '';
 

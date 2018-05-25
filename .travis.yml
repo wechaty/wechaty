@@ -1,7 +1,6 @@
 language: node_js
 node_js:
   - "9"
-  - "8"
   - "10"
 
 os:
@@ -40,17 +39,17 @@ jobs:
         - npm test || travis_terminate 1
 
       after_success:
-        - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then npm run coverage; fi
+        - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then npm run coverage; fi
 
     - stage: pack
       script:
-        - npm run test:pack && echo 'Npm pack testing is passed'
+        - npm run test:pack && echo 'Npm pack testing is passed' || travis_terminate 1
 
     - stage: deploy
       script:
         - echo "Deploying to NPM ..."
         - npm version
-        - if ./scripts/development-release.ts; then ./scripts/package-public-config-tag-next.ts; fi
+        - if ./scripts/development-release.ts; then ./scripts/package-publish-config-tag-next.ts; fi
         - npm run dist
 
       deploy:

@@ -24,7 +24,9 @@ import * as readPkgUp from 'read-pkg-up'
 import * as Raven     from 'raven'
 import { log }        from 'brolog'
 
-// import Puppet from './puppet'
+import {
+  PuppetName,
+}             from './puppet-config'
 
 const pkg = readPkgUp.sync({ cwd: __dirname }).pkg
 export const VERSION = pkg.version
@@ -83,15 +85,6 @@ if (log.level() === 'verbose' || log.level() === 'silly') {
     })
   })
 }
-
-export type PuppetName =  'android-pad'
-                        | 'android-phone'
-                        | 'cat-king'
-                        | 'hostie'
-                        | 'ios-app-phone'
-                        | 'ios-app-pad'
-                        | 'web'
-                        | 'win32'
 
 export interface DefaultSetting {
   DEFAULT_HEAD     : number,
@@ -197,23 +190,8 @@ export class Config {
 }
 
 export interface Sayable {
-  say(content: string, replyTo?: any|any[]): Promise<boolean>
+  say(text: string, replyTo?: any|any[]): Promise<void>
 }
-
-export type WechatEvent = 'friend'
-                          | 'login'
-                          | 'logout'
-                          | 'message'
-                          | 'room-join'
-                          | 'room-leave'
-                          | 'room-topic'
-                          | 'scan'
-
-export type WechatyEvent = WechatEvent
-                          | 'error'
-                          | 'heartbeat'
-                          | 'start'
-                          | 'stop'
 
 export {
   log,

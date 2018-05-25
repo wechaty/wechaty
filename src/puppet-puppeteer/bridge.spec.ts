@@ -26,6 +26,7 @@ import * as test  from 'blue-tape'
 import {
   launch,
 }                 from 'puppeteer'
+import { spy }    from 'sinon'
 
 import Profile    from '../profile'
 
@@ -39,7 +40,7 @@ const PUPPETEER_LAUNCH_OPTIONS = {
     '--no-sandbox',
   ],
 }
-test('PuppetWebBridge', async t => {
+test('PuppetPuppeteerBridge', async t => {
   const profile = new Profile()
   const bridge = new Bridge({ profile })
   try {
@@ -107,7 +108,7 @@ test('testBlockedMessage()', async t => {
     ' To use WeChat on a computer, use Windows WeChat or Mac WeChat at http://wechat.com',
   ].join('')
 
-  test('not blocked', async t => {
+  t.test('not blocked', async t => {
     const profile = new Profile()
     const bridge = new Bridge({ profile })
 
@@ -115,7 +116,7 @@ test('testBlockedMessage()', async t => {
     t.equal(msg, false, 'should return false when no block message')
   })
 
-  test('html', async t => {
+  t.test('html', async t => {
     const profile = new Profile()
     const bridge = new Bridge({ profile })
 
@@ -123,7 +124,7 @@ test('testBlockedMessage()', async t => {
     t.equal(msg, BLOCKED_TEXT_ZH, 'should get zh blocked message')
   })
 
-  test('zh', async t => {
+  t.test('zh', async t => {
     const profile = new Profile()
     const bridge = new Bridge({ profile })
 
@@ -152,7 +153,7 @@ test('clickSwitchAccount()', async t => {
   const profile = new Profile()
   const bridge = new Bridge({ profile} )
 
-  test('switch account needed', async t => {
+  t.test('switch account needed', async t => {
     const browser = await launch(PUPPETEER_LAUNCH_OPTIONS)
     const page    = await browser.newPage()
 
@@ -165,7 +166,7 @@ test('clickSwitchAccount()', async t => {
     t.equal(clicked, true, 'should click the switch account button')
   })
 
-  test('switch account not needed', async t => {
+  t.test('switch account not needed', async t => {
     const browser = await launch(PUPPETEER_LAUNCH_OPTIONS)
     const page    = await browser.newPage()
 
@@ -177,4 +178,71 @@ test('clickSwitchAccount()', async t => {
 
     t.equal(clicked, false, 'should no button found')
   })
+})
+
+test('retryPromise()', async t => {
+  const EXPECTED_RESOLVE = 'Okey'
+  const EXPECTED_REJECT  = 'NotTheTime'
+
+  function delayedFactory(timeout: number) {
+    const startTime = Date.now()
+    return function() {
+      const nowTime = Date.now()
+      if (nowTime - startTime > timeout) {
+        return Promise.resolve(EXPECTED_RESOLVE)
+      }
+      return Promise.reject(EXPECTED_REJECT)
+    }
+  }
+
+  const thenSpy = spy()
+
+  const retryPromise = require('retry-promise').default
+
+  const delay500 = delayedFactory(500)
+  await retryPromise({ max: 1, backoff: 1 }, function() {
+    return delay500()
+  }).catch((e: any) => {
+    thenSpy(e)
+  })
+  t.true(thenSpy.withArgs(EXPECTED_REJECT).calledOnce, 'should got EXPECTED_REJECT when wait not enough')
+
+  thenSpy.resetHistory()
+  const anotherDelay50 = delayedFactory(50)
+  await retryPromise({ max: 6, backoff: 10 }, function() {
+    return anotherDelay50()
+  })
+  .then((r: string) => {
+    thenSpy(r)
+  })
+  t.true(thenSpy.withArgs(EXPECTED_RESOLVE).calledOnce, 'should got EXPECTED_RESOLVE when wait enough')
+})
+
+test('WechatyBro.ding()', async t => {
+  const profile = new Profile(Math.random().toString(36).substr(2, 5))
+  const bridge = new Bridge({
+    profile,
+  })
+  t.ok(bridge, 'should instanciated a bridge')
+
+  try {
+    await bridge.init()
+    t.pass('should init Bridge')
+
+    const retDing = await bridge.evaluate(() => {
+      return WechatyBro.ding()
+    }) as any as string
+
+    t.is(retDing, 'dong', 'should got dong after execute WechatyBro.ding()')
+
+    const retCode = await bridge.proxyWechaty('loginState')
+    t.is(typeof retCode, 'boolean', 'should got a boolean after call proxyWechaty(loginState)')
+
+    await bridge.quit()
+    t.pass('b.quit()')
+  } catch (err) {
+    t.fail('exception: ' + err.message)
+  } finally {
+    profile.destroy()
+  }
 })

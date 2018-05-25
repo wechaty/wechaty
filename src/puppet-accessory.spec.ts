@@ -21,14 +21,21 @@
 import * as test  from 'blue-tape'
 // import * as sinon from 'sinon'
 
-import Puppet           from './puppet'
+import {
+  cloneClass,
+}               from 'clone-class'
+
 import PuppetAccessory  from './puppet-accessory'
+
+import { Puppet }       from './puppet/'
 
 const EXPECTED_PUPPET1 = {p: 1} as any as Puppet
 const EXPECTED_PUPPET2 = {p: 2} as any as Puppet
 
 test('PuppetAccessory smoke testing', async t => {
+
   class FixtureClass extends PuppetAccessory {}
+
   t.throws(() => FixtureClass.puppet, 'should throw if read static puppet before initialize')
 
   const c = new FixtureClass()
@@ -41,4 +48,23 @@ test('PuppetAccessory smoke testing', async t => {
   c.puppet = EXPECTED_PUPPET2
   t.equal(FixtureClass.puppet,  EXPECTED_PUPPET1, 'should get EXPECTED_PUPPET1 from static puppet after set instance puppet to EXPECTED_PUPPET2')
   t.equal(c.puppet,             EXPECTED_PUPPET2, 'should get EXPECTED_PUPPET2 from instance puppet after set instance puppet to EXPECTED_PUPPET2')
+})
+
+test('Two clone-ed classes', async t => {
+
+  class FixtureClass extends PuppetAccessory {}
+
+  // tslint:disable-next-line:variable-name
+  const ClonedClass1 = cloneClass(FixtureClass)
+  // tslint:disable-next-line:variable-name
+  const ClonedClass2 = cloneClass(FixtureClass)
+
+  ClonedClass1.puppet = EXPECTED_PUPPET1
+  ClonedClass2.puppet = EXPECTED_PUPPET2
+
+  const c1 = new ClonedClass1()
+  const c2 = new ClonedClass2()
+
+  t.equal(c1.puppet, EXPECTED_PUPPET1, 'should get the puppet as 1 from 1st cloned class')
+  t.equal(c2.puppet, EXPECTED_PUPPET2, 'should get the puppet as 2 from 2nd cloned class')
 })

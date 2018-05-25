@@ -17,43 +17,76 @@
  *
  *  @ignore
  */
-import * as cuid        from 'cuid'
-import * as os          from 'os'
+import * as cuid    from 'cuid'
+import * as os      from 'os'
+import * as semver  from 'semver'
 
-import StateSwitch      from 'state-switch'
+import {
+  // Constructor,
+  cloneClass,
+  // instanceToClass,
+}                   from 'clone-class'
 import {
   callerResolve,
   hotImport,
-}                       from 'hot-import'
+}                   from 'hot-import'
+import StateSwitch  from 'state-switch'
 
-import cloneClass       from './clone-class'
 import {
+  VERSION,
   config,
   log,
-  PuppetName,
   Raven,
   Sayable,
-  VERSION,
-  WechatyEvent,
 }                       from './config'
-import Contact          from './contact'
-import {
-  Message,
-  MediaMessage,
-}                       from './message'
 import Profile          from './profile'
-import Puppet           from './puppet'
 import PuppetAccessory  from './puppet-accessory'
 import {
+  PUPPET_DICT,
+  PuppetName,
+}                       from './puppet-config'
+
+import {
+  Contact,
+}                       from './contact'
+import {
   FriendRequest,
-  PuppetWeb,
-}                       from './puppet-web/'
-import Room             from './room'
-// import Misc           from './misc'
+}                       from './friend-request'
+import {
+  Message,
+}                       from './message'
+import {
+  Room,
+}                       from './room'
+import {
+  Puppet,
+}                       from './puppet/'
+
+export const WECHAT_EVENT_DICT = {
+  friend      : 'tbw',
+  login       : 'tbw',
+  logout      : 'tbw',
+  message     : 'tbw',
+  'room-join' : 'tbw',
+  'room-leave': 'tbw',
+  'room-topic': 'tbw',
+  scan        : 'tbw',
+}
+
+export const WECHATY_EVENT_DICT = {
+  ...WECHAT_EVENT_DICT,
+  error     : 'tbw',
+  heartbeat : 'tbw',
+  start     : 'tbw',
+  stop      : 'tbw',
+}
+
+export type WechatEventName   = keyof typeof WECHAT_EVENT_DICT
+export type WechatyEventName  = keyof typeof WECHATY_EVENT_DICT
 
 export interface WechatyOptions {
-  puppet?:  PuppetName,
-  profile?: string,
+  puppet?  : PuppetName | Puppet,
+  profile? : null | string,
 }
 
 /**
@@ -68,10 +101,10 @@ export interface WechatyOptions {
  */
 export class Wechaty extends PuppetAccessory implements Sayable {
   /**
-   * singleton _instance
+   * singleton globalInstance
    * @private
    */
-  private static _instance: Wechaty
+  private static singletonInstance: Wechaty
 
   private profile: Profile
 
@@ -85,16 +118,16 @@ export class Wechaty extends PuppetAccessory implements Sayable {
    * the cuid
    * @private
    */
-  public cuid:        string
+  public readonly cuid : string
 
   // tslint:disable-next-line:variable-name
-  public Contact        : typeof Contact
+  public readonly Contact       : typeof Contact
   // tslint:disable-next-line:variable-name
-  public FriendRequest  : typeof FriendRequest
+  public readonly FriendRequest : typeof FriendRequest
   // tslint:disable-next-line:variable-name
-  public Message        : typeof Message
+  public readonly Message       : typeof Message
   // tslint:disable-next-line:variable-name
-  public Room           : typeof Room
+  public readonly Room          : typeof Room
 
   /**
    * get the singleton instance of Wechaty
@@ -111,13 +144,13 @@ export class Wechaty extends PuppetAccessory implements Sayable {
   public static instance(
     options?: WechatyOptions,
   ) {
-    if (options && this._instance) {
+    if (options && this.singletonInstance) {
       throw new Error('there has already a instance. no params will be allowed any more')
     }
-    if (!this._instance) {
-      this._instance = new Wechaty(options)
+    if (!this.singletonInstance) {
+      this.singletonInstance = new Wechaty(options)
     }
-    return this._instance
+    return this.singletonInstance
   }
 
   /**
@@ -131,15 +164,42 @@ export class Wechaty extends PuppetAccessory implements Sayable {
 
     options.puppet  = options.puppet || config.puppet
 
+    options.profile = options.profile === null
+                      ? null
+                      : (options.profile || config.default.DEFAULT_PROFILE)
+
     this.profile = new Profile(options.profile)
 
     this.cuid = cuid()
+
+    /**
+     * Clone Classes for this bot and attach the `puppet` to the Class
+     *
+     *   https://stackoverflow.com/questions/36886082/abstract-constructor-type-in-typescript
+     *   https://github.com/Microsoft/TypeScript/issues/5843#issuecomment-290972055
+     *   https://github.com/Microsoft/TypeScript/issues/19197
+     */
+    // TODO: make Message & Room constructor private???
+    this.Contact        = cloneClass(Contact)
+    this.FriendRequest  = cloneClass(FriendRequest)
+    this.Message        = cloneClass(Message)
+    this.Room           = cloneClass(Room)
   }
 
   /**
    * @private
    */
-  public toString() { return `Wechaty<${this.options.puppet}, ${this.profile.name}>`}
+  public toString() {
+    if (!this.options) {
+      return this.constructor.name
+    }
+
+    return [
+      'Wechaty',
+      `<${this.options && this.options.puppet || ''}>`,
+      `(${this.profile && this.profile.name   || ''})`,
+    ].join('')
+  }
 
   /**
    * @private
@@ -164,79 +224,24 @@ export class Wechaty extends PuppetAccessory implements Sayable {
   * console.log(Wechaty.instance().version())       // return '#git[af39df]'
   * console.log(Wechaty.instance().version(true))   // return '0.7.9'
   */
-  public version(forceNpm?) {
+  public version(forceNpm = false): string {
     return Wechaty.version(forceNpm)
   }
 
-  /**
-   * Start the bot, return Promise.
-   *
-   * @returns {Promise<void>}
-   * @example
-   * await bot.start()
-   * // do other stuff with bot here
-   */
-  public async start(): Promise<void> {
-    log.info('Wechaty', 'v%s starting...' , this.version())
-    log.verbose('Wechaty', 'puppet: %s'   , this.options.puppet)
-    log.verbose('Wechaty', 'profile: %s'  , this.options.profile)
-    log.verbose('Wechaty', 'cuid: %s'     , this.cuid)
-
-    if (this.state.on()) {
-      log.silly('Wechaty', 'start() on a starting/started instance')
-      await this.state.ready()
-      log.silly('Wechaty', 'start() state.ready() resolved')
-      return
-    }
-
-    this.state.on('pending')
-
-    try {
-      this.profile.load()
-      this.puppet = this.initPuppet()
-
-      // set puppet instance to Wechaty Static variable, for using by Contact/Room/Message/FriendRequest etc.
-      // config.puppetInstance(puppet)
-      this.Contact        = cloneClass(Contact)
-      this.FriendRequest  = cloneClass(FriendRequest)
-      this.Message        = cloneClass(Message)
-      this.Room           = cloneClass(Room)
-
-      this.Contact.puppet       = this.puppet
-      this.FriendRequest.puppet = this.puppet
-      this.Message.puppet       = this.puppet
-      this.Room.puppet          = this.puppet
-
-      await this.puppet.start()
-
-    } catch (e) {
-      log.error('Wechaty', 'start() exception: %s', e && e.message)
-      Raven.captureException(e)
-      throw e
-    }
-
-    this.on('heartbeat', () => this.memoryCheck())
-
-    this.state.on(true)
-    this.emit('start')
-
-    return
-  }
-
-  public on(event: 'error'      , listener: string | ((this: Wechaty, error: Error) => void))                                                  : this
-  public on(event: 'friend'     , listener: string | ((this: Wechaty, friend: Contact, request?: FriendRequest) => void))                      : this
-  public on(event: 'heartbeat'  , listener: string | ((this: Wechaty, data: any) => void))                                                     : this
-  public on(event: 'logout'     , listener: string | ((this: Wechaty, user: Contact) => void))                                                 : this
-  public on(event: 'login'      , listener: string | ((this: Wechaty, user: Contact) => void))                                                 : this
-  public on(event: 'message'    , listener: string | ((this: Wechaty, message: Message) => void))                                              : this
-  public on(event: 'room-join'  , listener: string | ((this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void))         : this
-  public on(event: 'room-leave' , listener: string | ((this: Wechaty, room: Room, leaverList: Contact[]) => void))                             : this
-  public on(event: 'room-topic' , listener: string | ((this: Wechaty, room: Room, topic: string, oldTopic: string, changer: Contact) => void)) : this
-  public on(event: 'scan'       , listener: string | ((this: Wechaty, url: string, code: number) => void))                                     : this
-  public on(event: 'start'      , listener: string | ((this: Wechaty) => void))                                                                : this
-  public on(event: 'stop'       , listener: string | ((this: Wechaty) => void))                                                                : this
+  public on(event: 'error'      , listener: string | ((this: Wechaty, error: Error) => void))                                                 : this
+  public on(event: 'friend'     , listener: string | ((this: Wechaty, request: FriendRequest) => void))                     : this
+  public on(event: 'heartbeat'  , listener: string | ((this: Wechaty, data: any) => void))                                                    : this
+  public on(event: 'logout'     , listener: string | ((this: Wechaty, user: Contact) => void))                                                : this
+  public on(event: 'login'      , listener: string | ((this: Wechaty, user: Contact) => void))                                                : this
+  public on(event: 'message'    , listener: string | ((this: Wechaty, message: Message) => void))                                             : this
+  public on(event: 'room-join'  , listener: string | ((this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void))        : this
+  public on(event: 'room-leave' , listener: string | ((this: Wechaty, room: Room, leaverList: Contact[], remover?: Contact) => void))         : this
+  public on(event: 'room-topic' , listener: string | ((this: Wechaty, room: Room, topic: string, oldTopic: string, changer: Contact) => void)): this
+  public on(event: 'scan'       , listener: string | ((this: Wechaty, url: string,  code: number) => void))                                   : this
+  public on(event: 'start'      , listener: string | ((this: Wechaty) => void))                                                               : this
+  public on(event: 'stop'       , listener: string | ((this: Wechaty) => void))                                                               : this
   // guard for the above event: make sure it includes all the possible values
-  public on(event: never,         listener: any): this
+  public on(event: never,         listener: never): never
 
   /**
    * @desc       Wechaty Class Event Type
@@ -272,7 +277,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
    * <li>408 waits for scan</li>
    * </ul>
    * @property   {Function} heartbeat       -(this: Wechaty, data: any) => void
-   * @property   {Function} friend          -(this: Wechaty, friend: Contact, request?: FriendRequest) => void
+   * @property   {Function} friend          -(this: Wechaty, request?: FriendRequest) => void
    * @property   {Function} message         -(this: Wechaty, message: Message) => void
    * @property   {Function} room-join       -(this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void
    * @property   {Function} room-topic      -(this: Wechaty, room: Room, topic: string, oldTopic: string, changer: Contact) => void
@@ -281,11 +286,11 @@ export class Wechaty extends PuppetAccessory implements Sayable {
 
   /**
    * @listens Wechaty
-   * @param   {WechatyEvent}      event      - Emit WechatyEvent
+   * @param   {WechatyEventName}      event      - Emit WechatyEvent
    * @param   {WechatyEventFunction}  listener   - Depends on the WechatyEvent
    * @return  {Wechaty}                          - this for chain
    *
-   * More Example Gist: [Examples/Friend-Bot]{@link https://github.com/wechaty/wechaty/blob/master/examples/friend-bot.ts}
+   * More Example Gist: [Examples/Friend-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/friend-bot.ts}
    *
    * @example <caption>Event:scan </caption>
    * wechaty.on('scan', (url: string, code: number) => {
@@ -308,15 +313,16 @@ export class Wechaty extends PuppetAccessory implements Sayable {
    * })
    *
    * @example <caption>Event:friend </caption>
-   * bot.on('friend', (contact: Contact, request: FriendRequest) => {
-   *   if(request){ // 1. request to be friend from new contact
+   * bot.on('friend', (request: FriendRequest) => {
+   *   if(request.type === FriendRequest.Type.RECEIVE){ // 1. receive new friend request from new contact
+   *     const contact = request.contact()
    *     let result = await request.accept()
    *       if(result){
    *         console.log(`Request from ${contact.name()} is accept succesfully!`)
    *       } else{
    *         console.log(`Request from ${contact.name()} failed to accept!`)
    *       }
-   * 	  } else { // 2. confirm friend ship
+   * 	  } else if (request.type === FriendRequest.Type.CONFIRM) { // 2. confirm friend ship
    *       console.log(`new friendship confirmed with ${contact.name()}`)
    *    }
    *  })
@@ -338,7 +344,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
    *   console.log(`Room ${room.topic()} topic changed from ${oldTopic} to ${topic} by ${changer.name()}`)
    * })
    */
-  public on(event: WechatyEvent, listener: string | ((...args: any[]) => any)): this {
+  public on(event: WechatyEventName, listener: string | ((...args: any[]) => any)): this {
     log.verbose('Wechaty', 'on(%s, %s) registered',
                             event,
                             typeof listener === 'string'
@@ -354,7 +360,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
     return this
   }
 
-  private onModulePath(event: WechatyEvent, modulePath: string): void {
+  private onModulePath(event: WechatyEventName, modulePath: string): void {
     const absoluteFilename = callerResolve(modulePath, __filename)
     log.verbose('Wechaty', 'onModulePath() hotImpor(%s)', absoluteFilename)
     hotImport(absoluteFilename)
@@ -374,7 +380,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
       })
   }
 
-  private onFunction(event: WechatyEvent, listener: Function): void {
+  private onFunction(event: WechatyEventName, listener: Function): void {
     log.verbose('Wechaty', 'onFunction(%s)', event)
 
     super.on(event, (...args: any[]) => {
@@ -390,43 +396,131 @@ export class Wechaty extends PuppetAccessory implements Sayable {
   /**
    * @private
    */
-  public initPuppet(): Puppet {
+  private initPuppet(): void {
     log.verbose('Wechaty', 'initPuppet()')
-    let puppet: Puppet
 
-    switch (this.options.puppet) {
-      case 'web':
-        puppet = new PuppetWeb({
-          profile:  this.profile,
-        })
-        break
-
-      default:
-        throw new Error('Puppet unsupport(yet?): ' + this.options.puppet)
+    if (!this.options.puppet) {
+      throw new Error('no puppet')
     }
 
-    const eventList: WechatyEvent[] = [
-      'error',
-      'friend',
-      'heartbeat',
-      'login',
-      'logout',
-      'message',
-      'room-join',
-      'room-leave',
-      'room-topic',
-      'scan',
-    ]
+    const puppet = this.initPuppetResolver(this.options.puppet)
 
-    for (const event of eventList) {
-      log.verbose('Wechaty', 'initPuppet() puppet.on(%s) registered', event)
+    if (!this.initPuppetSemverSatisfy(
+      puppet.wechatyVersionRange(),
+    )) {
+      throw new Error(`The Puppet Plugin(${puppet.constructor.name}) `
+          + `requires a version range(${puppet.wechatyVersionRange()}) `
+          + `that is not satisfying the Wechaty version: ${this.version()}.`,
+        )
+    }
+
+    this.initPuppetEventBridge(puppet)
+    this.initPuppetAccessory(puppet)
+  }
+
+  /**
+   * Init the Puppet
+   */
+  private initPuppetResolver(puppet: PuppetName | Puppet): Puppet {
+    log.verbose('Wechaty', 'initPuppetResolver(%s)', puppet)
+
+    if (typeof puppet === 'string') {
+      // tslint:disable-next-line:variable-name
+      const MyPuppet = PUPPET_DICT[puppet]
+      if (!MyPuppet) {
+        throw new Error('no such puppet: ' + puppet)
+      }
+
+      const options = {
+        profile:  this.profile,
+        wechaty:  this,
+      }
+
+      return new MyPuppet(options)
+
+    } else if (puppet instanceof Puppet) {
+      return puppet
+    } else {
+      throw new Error('unsupported options.puppet!')
+    }
+  }
+
+  /**
+   * Plugin Version Range Check
+   */
+  private initPuppetSemverSatisfy(versionRange: string) {
+    log.verbose('Wechaty', 'initPuppet(%s)', versionRange)
+    return semver.satisfies(
+      this.version(true),
+      versionRange,
+    )
+  }
+
+  private initPuppetEventBridge(puppet: Puppet) {
+    for (const event of Object.keys(WECHATY_EVENT_DICT)) {
+      log.verbose('Wechaty', 'initPuppetEventBridge() puppet.on(%s) registered', event)
       /// e as any ??? Maybe this is a bug of TypeScript v2.5.3
       puppet.on(event as any, (...args: any[]) => {
         this.emit(event, ...args)
       })
     }
+  }
 
-    return puppet
+  private initPuppetAccessory(puppet: Puppet) {
+    log.verbose('Wechaty', 'initPuppetAccessory(%s)', puppet)
+
+    this.Contact.puppet       = puppet
+    this.FriendRequest.puppet = puppet
+    this.Message.puppet       = puppet
+    this.Room.puppet          = puppet
+
+    this.puppet = puppet
+  }
+
+  /**
+   * Start the bot, return Promise.
+   *
+   * @returns {Promise<void>}
+   * @example
+   * await bot.start()
+   * // do other stuff with bot here
+   */
+  public async start(): Promise<void> {
+    log.info('Wechaty', 'v%s starting...' , this.version())
+    log.verbose('Wechaty', 'puppet: %s'   , this.options.puppet)
+    log.verbose('Wechaty', 'profile: %s'  , this.options.profile)
+    log.verbose('Wechaty', 'cuid: %s'     , this.cuid)
+
+    if (this.state.on()) {
+      log.silly('Wechaty', 'start() on a starting/started instance')
+      await this.state.ready()
+      log.silly('Wechaty', 'start() state.ready() resolved')
+      return
+    }
+
+    this.state.on('pending')
+
+    try {
+      await this.profile.load()
+      await this.initPuppet()
+
+      // set puppet instance to Wechaty Static variable, for using by Contact/Room/Message/FriendRequest etc.
+      // config.puppetInstance(puppet)
+
+      await this.puppet.start()
+
+    } catch (e) {
+      log.error('Wechaty', 'start() exception: %s', e && e.message)
+      Raven.captureException(e)
+      throw e
+    }
+
+    this.on('heartbeat', () => this.memoryCheck())
+
+    this.state.on(true)
+    this.emit('start')
+
+    return
   }
 
   /**
@@ -512,11 +606,15 @@ export class Wechaty extends PuppetAccessory implements Sayable {
    * }
    */
   public logonoff(): Boolean {
-    try {
-      return this.puppet.logonoff()
-    } catch (e) {
-      return false
-    }
+    return this.puppet.logonoff()
+  }
+
+  /**
+   * @deprecated
+   */
+  public self(): Contact {
+    log.warn('Wechaty', 'self() DEPRECATED. use userSelf() instead.')
+    return this.userSelf()
   }
 
   /**
@@ -524,19 +622,19 @@ export class Wechaty extends PuppetAccessory implements Sayable {
    *
    * @returns {Contact}
    * @example
-   * const contact = bot.self()
+   * const contact = bot.userSelf()
    * console.log(`Bot is ${contact.name()}`)
    */
-  public self(): Contact {
-    return this.puppet.self()
+  public userSelf(): Contact {
+    return this.puppet.userSelf()
   }
 
   /**
    * @private
    */
-  public async send(message: Message | MediaMessage): Promise<boolean> {
+  public async send(message: Message): Promise<void> {
     try {
-      return await this.puppet.send(message)
+      await this.puppet.messageSend(message)
     } catch (e) {
       log.error('Wechaty', 'send() exception: %s', e.message)
       Raven.captureException(e)
@@ -547,12 +645,12 @@ export class Wechaty extends PuppetAccessory implements Sayable {
   /**
    * Send message to filehelper
    *
-   * @param {string} content
+   * @param {string} text
    * @returns {Promise<boolean>}
    */
-  public async say(content: string): Promise<boolean> {
-    log.verbose('Wechaty', 'say(%s)', content)
-    return await this.puppet.say(content)
+  public async say(text: string): Promise<void> {
+    log.verbose('Wechaty', 'say(%s)', text)
+    await this.puppet.say(text)
   }
 
   /**
@@ -596,7 +694,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
    * @private
    */
   public async reset(reason?: string): Promise<void> {
-    log.verbose('Wechaty', 'reset() because %s', reason)
+    log.verbose('Wechaty', 'reset() because %s', reason || 'no reason')
     await this.puppet.stop()
     await this.puppet.start()
     return

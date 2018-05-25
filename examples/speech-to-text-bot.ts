@@ -17,7 +17,7 @@
  *
  */
 
-import { createWriteStream }  from 'fs'
+import { createWriteStream, createReadStream }  from 'fs'
 import {
   PassThrough,
   Readable,
@@ -37,10 +37,9 @@ const qrcodeTerminal = require('qrcode-terminal')
  */
 import {
   config,
-  MediaMessage,
-  MsgType,
+  Message,
   Wechaty,
-}                 from '../'
+}                 from '../src/'
 
 const bot = Wechaty.instance({ profile: config.default.DEFAULT_PROFILE })
 
@@ -53,18 +52,24 @@ bot
   console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
 })
 .on('login'	  , user => console.log(`${user} logined`))
-.on('message', async function(this, msg) {
+.on('message', async function(msg) {
   console.log(`RECV: ${msg}`)
 
-  if (msg.type() !== MsgType.VOICE) {
+  if (msg.type() !== Message.Type.Audio) {
     return // skip no-VOICE message
   }
 
-  const mp3Stream = await (msg as MediaMessage).readyStream()
+  // const mp3Stream = await msg.readyStream()
 
-  const file = createWriteStream(msg.filename())
-  mp3Stream.pipe(file)
+  const filename = msg.file().name
+  if (!filename) {
+    throw new Error('no filename for media message')
+  }
 
+  const file = createWriteStream(filename)
+  msg.file().pipe(file)
+
+  const mp3Stream = createReadStream(filename)
   const text = await speechToText(mp3Stream)
   console.log('VOICE TO TEXT: ' + text)
 
@@ -118,7 +123,7 @@ function mp3ToWav(mp3Stream: Readable): NodeJS.ReadableStream {
     // .on('end', function() {
     //   console.log('Finished processing');
     // })
-    .on('error', function(err, stdout, stderr) {
+    .on('error', function(err: Error /*, stdout, stderr */) {
       console.log('Cannot process video: ' + err.message)
     })
 
@@ -162,7 +167,7 @@ async function wavToText(wavStream: NodeJS.ReadableStream): Promise<string> {
   }
 
   return new Promise<string>((resolve, reject) => {
-    wavStream.pipe(request.post(apiUrl, options, (err, httpResponse, body) => {
+    wavStream.pipe(request.post(apiUrl, options, (err, _ /* httpResponse */, body) => {
       // "err_msg":"success.","err_no":0,"result":["这是一个测试测试语音转文字，"]
       if (err) {
         return reject(err)

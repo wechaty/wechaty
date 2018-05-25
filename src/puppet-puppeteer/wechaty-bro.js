@@ -20,7 +20,7 @@
 /**
  * Wechaty - Wechat for Bot, and human who talk to bot.
  *
- * PuppetWeb: WechatyBro
+ * PuppetPuppeteer: WechatyBro
  *
  * Inject this js code to browser,
  * in order to interactive with wechat web program.
@@ -486,6 +486,26 @@
     }
     return true
   }
+
+  function getMessage(id) {
+    var chatFactory = WechatyBro.glue.chatFactory
+    if (!chatFactory) {
+      log('chatFactory not inited')
+      return null
+    }
+    var msg = chatFactory.getMsg(id)
+    var msgWithoutFunction = {}
+
+    if (msg) {
+      Object.keys(msg).forEach(function(k) {
+        if (typeof msg[k] !== 'function') {
+          msgWithoutFunction[k] = msg[k]
+        }
+      })
+    }
+    return msgWithoutFunction
+  }
+
   function getContact(id) {
     var contactFactory = WechatyBro.glue.contactFactory
     if (!contactFactory) {
@@ -776,7 +796,7 @@
 
   /*
    * WechatyBro injectio must return this object.
-   * PuppetWebBridge need this to decide if injection is successful.
+   * PuppetPuppeteerBridge need this to decide if injection is successful.
    */
   var retObj = {
     code: 200, // 2XX ok, 4XX/5XX error. HTTP like

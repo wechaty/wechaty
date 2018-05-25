@@ -83,7 +83,8 @@
       true,
       {
         "multiline": "always",
-        "singleline": "never"
+        "singleline": "never",
+        "esSpecCompliant": true
       }
     ],
     "triple-equals": [true],

@@ -16,40 +16,33 @@
  *   limitations under the License.
  *   @ignore
  */
-import * as fs    from 'fs'
-import * as path  from 'path'
-import {
-  Readable,
-}                 from 'stream'
-
-import * as mime  from 'mime'
+import * as path from 'path'
+import * as cuid from 'cuid'
 
 import {
-  // config,
-  Raven,
-  Sayable,
+  FileBox,
+}                     from 'file-box'
+import {
+  instanceToClass,
+}                     from 'clone-class'
+
+import {
   log,
+  Sayable,
 }                       from './config'
+import PuppetAccessory  from './puppet-accessory'
 
 import Contact          from './contact'
 import Room             from './room'
-import Misc             from './misc'
-import PuppetAccessory  from './puppet-accessory'
-
-import PuppetWeb  from './puppet-web/puppet-web'
-import Bridge     from './puppet-web/bridge'
 
 import {
-  AppMsgType,
-  MsgObj,
-  MsgRawObj,
-  MsgType,
-}                 from './puppet-web/schema'
-
-export type TypeName =  'attachment'
-                      | 'audio'
-                      | 'image'
-                      | 'video'
+  MessageDirection,
+  MessageMOOptions,
+  MessageMOOptionsText,
+  MessageMOOptionsFile,
+  MessagePayload,
+  MessageType,
+}                       from './message.type'
 
 /**
  * All wechat messages will be encapsulated as a Message.
@@ -58,297 +51,446 @@ export type TypeName =  'attachment'
  * [Examples/Ding-Dong-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts}
  */
 export class Message extends PuppetAccessory implements Sayable {
-  /**
-   * @private
-   */
-  public static counter = 0
 
   /**
-   * @private
+   *
+   * Static Properties
+   *
    */
-  public _counter: number
+
+  // tslint:disable-next-line:variable-name
+  public static readonly Type      = MessageType
+  // tslint:disable-next-line:variable-name
+  public static readonly Direction = MessageDirection
 
   /**
-   * @private
+   * @todo add function
    */
-  public readonly id: string
-
-  /**
-   * @private
-   */
-  public obj = <MsgObj>{}
-
-  /**
-   * @private
-   */
-  public filename(): string {
-    throw Error('not a media message')
+  public static async find<T extends typeof Message>(
+    this: T,
+    query: any,
+  ): Promise<T['prototype'] | null> {
+    return (await this.findAll(query))[0]
   }
 
   /**
+   * @todo add function
+   */
+  public static async findAll<T extends typeof Message>(
+    this: T,
+    query: any,
+  ): Promise<T['prototype'][]> {
+    log.verbose('Message', 'findAll(%s)', query)
+    return [
+      new (this as any)({ MsgId: 'id1' }),
+      new (this as any)({ MsdId: 'id2' }),
+    ]
+  }
+
+  /**
+   * "mobile originated" or "mobile terminated"
+   * https://www.tatango.com/resources/video-lessons/video-mo-mt-sms-messaging/
+   */
+  public static createMO(
+    options: MessageMOOptions,
+  ): Message {
+    log.verbose('Message', 'static createMobileOriginated()')
+    /**
+     * Must NOT use `Message` at here
+     * MUST use `this` at here
+     *
+     * because the class will be `cloneClass`-ed
+     */
+    const msg = new this(cuid())
+
+    const direction = MessageDirection.MO
+    const to        = options.to
+    const room      = options.room
+    const text      = (options as MessageMOOptionsText).text
+    const date      = new Date()
+    const file      = (options as MessageMOOptionsFile).file
+
+    if (text) {
+      /**
+       * 1. Text
+       */
+      msg.payload = {
+        type: MessageType.Text,
+        direction,
+        to,
+        room,
+        text,
+        date,
+      }
+    } else if (file) {
+      /**
+       * 2. File
+       */
+      let type: MessageType
+
+      const ext = path.extname(file.name)
+
+      switch (ext.toLowerCase()) {
+        case '.bmp':
+        case '.jpg':
+        case '.jpeg':
+        case '.png':
+        case '.gif': // type =  WebMsgType.EMOTICON
+          type = MessageType.Image
+          break
+
+        case '.mp4':
+          type = MessageType.Video
+          break
+
+        case '.mp3':
+          type = MessageType.Audio
+          break
+
+        default:
+          throw new Error('unknown ext:' + ext)
+      }
+
+      msg.payload = {
+        type,
+        direction,
+        to,
+        room,
+        file,
+        date,
+      }
+    } else {
+      throw new Error('neither text nor file!?')
+    }
+
+    return msg
+  }
+
+  public static createMT(
+    id: string,
+  ): Message {
+    log.verbose('Message', 'static createMobileTerminated(%s)',
+                            id,
+                )
+    /**
+     * Must NOT use `Message` at here
+     * MUST use `this` at here
+     *
+     * because the class will be `cloneClass`-ed
+     */
+    const msg = new this(id)
+    msg.direction = MessageDirection.MT
+
+    return msg
+  }
+
+  /**
+   * Create a Mobile Originated Message
+   * @param options MO Options
+   */
+  public static create(options: MessageMOOptions): Message {
+    return this.createMO(options)
+  }
+
+  /**
+   *
+   * Instance Properties
+   *
+   */
+  private payload?  : MessagePayload
+  private direction : MessageDirection
+
+  /**
    * @private
    */
-  constructor(public rawObj?: MsgRawObj) {
+  constructor(
+    public readonly id: string,
+  ) {
     super()
-    this._counter = Message.counter++
-    log.silly('Message', 'constructor() SN:%d', this._counter)
+    log.verbose('Message', 'constructor(%s) for class %s',
+                          id || '',
+                          this.constructor.name,
+              )
 
-    if (typeof rawObj === 'string') {
-      this.rawObj = JSON.parse(rawObj)
+    // tslint:disable-next-line:variable-name
+    const MyClass = instanceToClass(this, Message)
+
+    if (MyClass === Message) {
+      throw new Error('Message class can not be instanciated directly! See: https://github.com/Chatie/wechaty/issues/1217')
     }
 
-    this.rawObj = rawObj = rawObj || <MsgRawObj>{}
-    this.obj = this.parse(rawObj)
-    this.id = this.obj.id
-  }
-
-  /**
-   * @private
-   */
-  // Transform rawObj to local obj
-  private parse(rawObj): MsgObj {
-    const obj: MsgObj = {
-      id:           rawObj.MsgId,
-      type:         rawObj.MsgType,
-      from:         rawObj.MMActualSender, // MMPeerUserName
-      to:           rawObj.ToUserName,
-      content:      rawObj.MMActualContent, // Content has @id prefix added by wx
-      status:       rawObj.Status,
-      digest:       rawObj.MMDigest,
-      date:         rawObj.MMDisplayTime,  // Javascript timestamp of milliseconds
-      url:          rawObj.Url || rawObj.MMAppMsgDownloadUrl || rawObj.MMLocationUrl,
+    if (!this.puppet) {
+      throw new Error('Message class can not be instanciated without a puppet!')
     }
 
-    // FIXME: has there any better method to know the room ID?
-    if (rawObj.MMIsChatRoom) {
-      if (/^@@/.test(rawObj.FromUserName)) {
-        obj.room =  rawObj.FromUserName // MMPeerUserName always eq FromUserName ?
-      } else if (/^@@/.test(rawObj.ToUserName)) {
-        obj.room = rawObj.ToUserName
-      } else {
-        log.error('Message', 'parse found a room message, but neither FromUserName nor ToUserName is a room(/^@@/)')
-        // obj.room = undefined // bug compatible
-      }
-      if (obj.to && /^@@/.test(obj.to)) { // if a message in room without any specific receiver, then it will set to be `undefined`
-        obj.to = undefined
-      }
-    }
-
-    return obj
-  }
+    // default set to MT because there's a id param
+    this.direction = MessageDirection.MT
+}
 
   /**
    * @private
    */
   public toString() {
-    return `Message<${Misc.plainText(this.obj.content)}>`
+    if (!this.isReady()) {
+      return this.constructor.name
+    }
+
+    const msgStrList = [
+      'Message',
+      `#${MessageDirection[this.direction]}`,
+      `#${MessageType[this.type()]}`,
+    ]
+    if (this.type() === Message.Type.Text) {
+      msgStrList.push(`<${this.text()}>`)
+    } else {
+      if (!this.payload) {
+        throw new Error('no payload')
+      }
+      const file = this.payload.file
+      if (!file) {
+        throw new Error('no file')
+      }
+      msgStrList.push(`<${file.name}>`)
+    }
+
+    return msgStrList.join('')
   }
 
-  /**
-   * @private
-   */
-  public toStringDigest() {
-    const text = Misc.digestEmoji(this.obj.digest)
-    return '{' + this.typeEx() + '}' + text
+  // /**
+  //  * @private
+  //  */
+  // public from(contact: Contact): void
+  // /**
+  //  * @private
+  //  */
+  // public from(): Contact
+  // /**
+  //  * Get the sender from a message.
+  //  * @returns {Contact}
+  //  */
+  // public from(contact?: Contact): void | Contact {
+  public from(): Contact {
+    if (!this.payload) {
+      throw new Error('no payload')
+    }
+
+    // if (contact) {
+    //   this.payload.from = contact
+    //   return
+    // }
+
+    const from = this.payload.from
+    if (!from) {
+      throw new Error('no from')
+    }
+
+    return from
   }
 
-  /**
-   * @private
-   */
-  public toStringEx() {
-    let s = `${this.constructor.name}#${this._counter}`
-    s += '(' + this.getSenderString()
-    s += ':' + this.getContentString() + ')'
-    return s
+  // /**
+  //  * @private
+  //  */
+  // public to(contact: Contact): void
+  // /**
+  //  * @private
+  //  */
+  // public to(): Contact | null // if to is not set, then room must had set
+  // /**
+  //  * Get the destination of the message
+  //  * Message.to() will return null if a message is in a room, use Message.room() to get the room.
+  //  * @returns {(Contact|null)}
+  //  */
+  // public to(contact?: Contact): void | null | Contact {
+  public to(): null | Contact {
+    if (!this.payload) {
+      throw new Error('no payload')
+    }
+
+    // if (contact) {
+    //   this.payload.to = contact
+    //   return
+    // }
+
+    return this.payload.to || null
   }
 
-  /**
-   * @private
-   */
-  public getSenderString() {
-    const from = Contact.load(this.obj.from)
-    from.puppet = this.puppet
+  // /**
+  //  * @private
+  //  */
+  // public room(room: Room): void
+  // /**
+  //  * @private
+  //  */
+  // public room(): Room | null
+  // /**
+  //  * Get the room from the message.
+  //  * If the message is not in a room, then will return `null`
+  //  *
+  //  * @returns {(Room | null)}
+  //  */
+  // public room(room?: Room): void | null | Room {
+  public room(): null | Room {
+    if (!this.payload) {
+      throw new Error('no payload')
+    }
 
-    const fromName  = from.name()
-    const roomTopic = this.obj.room
-                  ? (':' + Room.load(this.obj.room).topic())
-                  : ''
-    return `<${fromName}${roomTopic}>`
+    // if (room) {
+    //   this.payload.room = room
+    //   return
+    // }
+
+    return this.payload.room || null
   }
 
-  /**
-   * @private
-   */
-  public getContentString() {
-    let content = Misc.plainText(this.obj.content)
-    if (content.length > 20) { content = content.substring(0, 17) + '...' }
-    return '{' + this.type() + '}' + content
+  // /**
+  //  * Get the text of the message
+  //  *
+  //  * @deprecated: use `text()` instead
+  //  * @returns {string}
+  //  */
+  // public content(text?: string): void | string {
+  //   log.warn('Message', 'content() Deprecated. Use `text()` instead of `content()`. See https://github.com/Chatie/wechaty/issues/1163')
+  //   return this.text(text!)
+  // }
+
+  // /**
+  //  * Get the text content of the message
+  //  *
+  //  * @returns {string}
+  //  */
+  // public text(): string
+  // /**
+  //  * @private
+  //  */
+  // public text(text: string): void
+  // /**
+  //  * Get the text content of the message
+  //  *
+  //  * @returns {string}
+  //  */
+  // public text(text?: string): void | string {
+  public text(): string {
+    if (!this.payload) {
+      throw new Error('no payload')
+    }
+
+    // if (text) {
+    //   this.payload.text = text
+    //   return
+    // }
+
+    return this.payload.text || ''
   }
 
-  public say(text: string, replyTo?: Contact | Contact[]): Promise<any>
-
-  public say(mediaMessage: MediaMessage, replyTo?: Contact | Contact[]): Promise<any>
+  public async say(text: string, mention?: Contact | Contact[]): Promise<void>
+  public async say(file: FileBox): Promise<void>
 
   /**
    * Reply a Text or Media File message to the sender.
    *
    * @see {@link https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts|Examples/ding-dong-bot}
-   * @param {(string | MediaMessage)} textOrMedia
-   * @param {(Contact|Contact[])} [replyTo]
-   * @returns {Promise<any>}
+   * @param {(string | FileBox)} textOrFile
+   * @param {(Contact|Contact[])} [mention]
+   * @returns {Promise<void>}
    *
    * @example
    * const bot = new Wechaty()
    * bot
    * .on('message', async m => {
-   *   if (/^ding$/i.test(m.content())) {
+   *   if (/^ding$/i.test(m.text())) {
    *     await m.say('hello world')
    *     console.log('Bot REPLY: hello world')
-   *     await m.say(new MediaMessage(__dirname + '/wechaty.png'))
+   *     await m.say(new bot.Message(__dirname + '/wechaty.png'))
    *     console.log('Bot REPLY: Image')
    *   }
    * })
    */
-  public say(textOrMedia: string | MediaMessage, replyTo?: Contact|Contact[]): Promise<any> {
-    /* tslint:disable:no-use-before-declare */
-    const content = textOrMedia instanceof MediaMessage ? textOrMedia.filename() : textOrMedia
-    log.verbose('Message', 'say(%s, %s)', content, replyTo)
-    let m
-    if (typeof textOrMedia === 'string') {
-      m = new Message()
-      m.puppet = this.puppet
+  public async say(
+    textOrFile : string | FileBox,
+    mention?   : Contact | Contact[],
+  ): Promise<void> {
+    log.verbose('Message', 'say(%s, %s)', textOrFile, mention)
 
-      const room = this.room()
-      if (room) {
-        m.room(room)
-      }
+    // const user = this.puppet.userSelf()
+    const from = this.from()
+    // const to   = this.to()
+    const room = this.room()
 
-      if (!replyTo) {
-        m.to(this.from())
-        m.content(textOrMedia)
+    const mentionList = mention
+                          ? Array.isArray(mention)
+                            ? mention
+                            : [mention]
+                          : []
 
-      } else if (this.room()) {
-        let mentionList
-        if (Array.isArray(replyTo)) {
-          m.to(replyTo[0])
-          mentionList = replyTo.map(c => '@' + c.name()).join(' ')
-        } else {
-          m.to(replyTo)
-          mentionList = '@' + replyTo.name()
-        }
-        m.content(mentionList + ' ' + textOrMedia)
-      }
-    /* tslint:disable:no-use-before-declare */
-    } else if (textOrMedia instanceof MediaMessage) {
-      m = textOrMedia
-      const room = this.room()
-      if (room) {
-        m.room(room)
-      }
-
-      if (!replyTo) {
-        m.to(this.from())
-      }
+    if (typeof textOrFile === 'string') {
+      await this.sayText(textOrFile, from, room, mentionList)
+    } else {
+      /**
+       * File Message
+       */
+      const msg = this.puppet.Message.createMO({
+        file : textOrFile,
+        to   : from,
+        room,
+      })
+      await this.puppet.messageSend(msg)
     }
-
-    return this.puppet // config.puppetInstance()
-                .send(m)
   }
 
-  /**
-   * @private
-   */
-  public from(contact: Contact): void
+  private async sayText(
+    text        : string,
+    to          : Contact,
+    room        : Room | null,
+    mentionList : Contact[],
+  ): Promise<void> {
+    let msg: Message
 
-  /**
-   * @private
-   */
-  public from(id: string): void
-
-  public from(): Contact
-
-  /**
-   * Get the sender from a message.
-   * @returns {Contact}
-   */
-  public from(contact?: Contact|string): Contact|void {
-    if (contact) {
-      if (contact instanceof Contact) {
-        this.obj.from = contact.id
-      } else if (typeof contact === 'string') {
-        this.obj.from = contact
+    if (!room) {
+      /**
+       * 1. to Individual
+       */
+      msg = this.puppet.Message.createMO({
+        to,
+        text,
+      })
+    } else {
+      /**
+       * 2. in Room
+       */
+      if (mentionList.length > 0) {
+        /**
+         * 2.1 had mentioned someone
+         */
+        const mentionContact = mentionList[0]
+        const textMentionList = mentionList.map(c => '@' + c.name()).join(' ')
+        msg = this.puppet.Message.createMO({
+          to: mentionContact,
+          room,
+          text: textMentionList + ' ' + text,
+        })
       } else {
-        throw new Error('unsupport from param: ' + typeof contact)
+        /**
+         * 2.2 did not mention anyone
+         */
+        msg = this.puppet.Message.createMO({
+          to,
+          room,
+          text,
+        })
       }
-      return
     }
-
-    const loadedContact = Contact.load(this.obj.from)
-    loadedContact.puppet = this.puppet
-
-    return loadedContact
+    await this.puppet.messageSend(msg)
   }
 
-  /**
-   * @private
-   */
-  public room(room: Room): void
-
-  /**
-   * @private
-   */
-  public room(id: string): void
-
-  public room(): Room|null
-
-  /**
-   * Get the room from the message.
-   * If the message is not in a room, then will return `null`
-   *
-   * @returns {(Room|null)}
-   */
-  public room(room?: Room|string): Room|null|void {
-    if (room) {
-      if (room instanceof Room) {
-        this.obj.room = room.id
-      } else if (typeof room === 'string') {
-        this.obj.room = room
-      } else {
-        throw new Error('unsupport room param ' + typeof room)
-      }
-      return
+  public file(): FileBox {
+    if (!this.payload) {
+      throw new Error('no payload')
     }
-    if (this.obj.room) {
-      const r = Room.load(this.obj.room)
-      r.puppet = this.puppet
-      return r
+    const file = this.payload.file
+    if (!file) {
+      throw new Error('no file')
     }
-    return null
-  }
-
-  /**
-   * Get the content of the message
-   *
-   * @returns {string}
-   */
-  public content(): string
-
-  /**
-   * @private
-   */
-  public content(content: string): void
-
-  /**
-   * Get the content of the message
-   *
-   * @returns {string}
-   */
-  public content(content?: string): string|void {
-    if (content) {
-      this.obj.content = content
-      return
-    }
-    return this.obj.content
+    return file
   }
 
   /**
@@ -356,51 +498,73 @@ export class Message extends PuppetAccessory implements Sayable {
    *
    * If type is equal to `MsgType.RECALLED`, {@link Message#id} is the msgId of the recalled message.
    * @see {@link MsgType}
-   * @returns {MsgType}
+   * @returns {WebMsgType}
    */
-  public type(): MsgType {
-    return this.obj.type
-  }
-
-  /**
-   * Get the typeSub from the message.
-   *
-   * If message is a location message: `m.type() === MsgType.TEXT && m.typeSub() === MsgType.LOCATION`
-   *
-   * @see {@link MsgType}
-   * @returns {MsgType}
-   */
-  public typeSub(): MsgType {
-    if (!this.rawObj) {
-      throw new Error('no rawObj')
+  public type(): MessageType {
+    if (!this.payload) {
+      throw new Error('no payload')
     }
-    return this.rawObj.SubMsgType
+    return this.payload.type || MessageType.Unknown
   }
 
-  /**
-   * Get the typeApp from the message.
-   *
-   * @returns {AppMsgType}
-   * @see {@link AppMsgType}
-   */
-  public typeApp(): AppMsgType {
-    if (!this.rawObj) {
-      throw new Error('no rawObj')
-    }
-    return this.rawObj.AppMsgType
-  }
+  // public typeBak(): MessageType {
+  //   log.silly('Message', 'type() = %s', WebMsgType[this.payload.type])
 
-  /**
-   * Get the typeEx from the message.
-   *
-   * @returns {MsgType}
-   */
-  public typeEx()  { return MsgType[this.obj.type] }
+  //   /**
+  //    * 1. A message created with rawObj
+  //    */
+  //   if (this.payload.type) {
+  //     return this.payload.type
+  //   }
 
-  /**
-   * @private
-   */
-  public count()   { return this._counter }
+  //   /**
+  //    * 2. A message created with TEXT
+  //    */
+  //   const ext = this.extFromFile()
+  //   if (!ext) {
+  //     return WebMsgType.TEXT
+  //   }
+
+  //   /**
+  //    * 3. A message created with local file
+  //    */
+  //   switch (ext.toLowerCase()) {
+  //     case '.bmp':
+  //     case '.jpg':
+  //     case '.jpeg':
+  //     case '.png':
+  //       return WebMsgType.IMAGE
+
+  //     case '.gif':
+  //       return  WebMsgType.EMOTICON
+
+  //     case '.mp4':
+  //       return WebMsgType.VIDEO
+
+  //     case '.mp3':
+  //       return WebMsgType.VOICE
+  //   }
+
+  //   throw new Error('unknown type: ' + ext)
+  // }
+
+  // /**
+  //  * Get the typeSub from the message.
+  //  *
+  //  * If message is a location message: `m.type() === MsgType.TEXT && m.typeSub() === MsgType.LOCATION`
+  //  *
+  //  * @see {@link MsgType}
+  //  * @returns {WebMsgType}
+  //  */
+  // public abstract typeSub(): WebMsgType
+
+  // /**
+  //  * Get the typeApp from the message.
+  //  *
+  //  * @returns {WebAppMsgType}
+  //  * @see {@link AppMsgType}
+  //  */
+  // public abstract typeApp(): WebAppMsgType
 
   /**
    * Check if a message is sent by self.
@@ -412,15 +576,10 @@ export class Message extends PuppetAccessory implements Sayable {
    * }
    */
   public self(): boolean {
-    const userId = this.puppet // config.puppetInstance()
-                        .userId
+    const user = this.puppet.userSelf()
+    const from = this.from()
 
-    const fromId = this.obj.from
-    if (!userId || !fromId) {
-      throw new Error('no user or no from')
-    }
-
-    return fromId === userId
+    return from.id === user.id
   }
 
   /**
@@ -443,16 +602,18 @@ export class Message extends PuppetAccessory implements Sayable {
    * console.log(contactList)
    */
   public mentioned(): Contact[] {
+    log.verbose('Message', 'mentioned()')
+
     let contactList: Contact[] = []
     const room = this.room()
-    if (this.type() !== MsgType.TEXT || !room ) {
+    if (this.type() !== MessageType.Text || !room ) {
       return contactList
     }
 
     // define magic code `8197` to identify @xxx
     const AT_SEPRATOR = String.fromCharCode(8197)
 
-    const atList = this.content().split(AT_SEPRATOR)
+    const atList = this.text().split(AT_SEPRATOR)
 
     if (atList.length === 0) return contactList
 
@@ -478,8 +639,8 @@ export class Message extends PuppetAccessory implements Sayable {
     }
 
     // flatten array, see http://stackoverflow.com/a/10865042/1123955
-    const mentionList = [].concat.apply([], rawMentionedList)
-    log.verbose('Message', 'mentioned(%s),get mentionList: %s', this.content(), JSON.stringify(mentionList))
+    const mentionList: string[] = [].concat.apply([], rawMentionedList)
+    log.verbose('Message', 'mentioned(%s),get mentionList: %s', this.text(), JSON.stringify(mentionList))
 
     contactList = [].concat.apply([],
       mentionList.map(nameStr => room.memberAll(nameStr))
@@ -487,7 +648,7 @@ export class Message extends PuppetAccessory implements Sayable {
     )
 
     if (contactList.length === 0) {
-      log.warn(`Message`, `message.mentioned() can not found member using room.member() from mentionList, metion string: ${JSON.stringify(mentionList)}`)
+      log.warn('Message', `message.mentioned() can not found member using room.member() from mentionList, metion string: ${JSON.stringify(mentionList)}`)
     }
     return contactList
   }
@@ -495,460 +656,119 @@ export class Message extends PuppetAccessory implements Sayable {
   /**
    * @private
    */
+  public isReady(): boolean {
+    return !!this.payload
+  }
+
+  /**
+   * @private
+   */
   public async ready(): Promise<void> {
-    log.silly('Message', 'ready()')
+    log.verbose('Message', 'ready()')
 
-    try {
-      const from  = Contact.load(this.obj.from)
-      from.puppet = this.puppet
-
-      await from.ready()  // Contact from
-
-      if (this.obj.to) {
-        const to = Contact.load(this.obj.to)
-        to.puppet = this.puppet
-
-        await to.ready()
-      }
-
-      if (this.obj.room) {
-        const room  = Room.load(this.obj.room)
-        room.puppet = this.puppet
-        await room.ready()  // Room member list
-      }
-
-    } catch (e) {
-      log.error('Message', 'ready() exception: %s', e.stack)
-      Raven.captureException(e)
-      // console.log(e)
-      // this.dump()
-      // this.dumpRaw()
-      throw e
+    if (this.direction !== MessageDirection.MT) {
+      throw new Error('only Mobile Terminated message is permit to call ready()!')
     }
-  }
 
-  /**
-   * @private
-   */
-  public get(prop: string): string {
-    log.warn('Message', 'DEPRECATED get() at %s', new Error('stack').stack)
-
-    if (!prop || !(prop in this.obj)) {
-      const s = '[' + Object.keys(this.obj).join(',') + ']'
-      throw new Error(`Message.get(${prop}) must be in: ${s}`)
-    }
-    return this.obj[prop]
-  }
-
-  /**
-   * @private
-   */
-  public set(prop: string, value: string): this {
-    log.warn('Message', 'DEPRECATED set() at %s', new Error('stack').stack)
-
-    if (typeof value !== 'string') {
-      throw new Error('value must be string, we got: ' + typeof value)
-    }
-    this.obj[prop] = value
-    return this
-  }
-
-  /**
-   * @private
-   */
-  public dump() {
-    console.error('======= dump message =======')
-    Object.keys(this.obj).forEach(k => console.error(`${k}: ${this.obj[k]}`))
-  }
-
-  /**
-   * @private
-   */
-  public dumpRaw() {
-    console.error('======= dump raw message =======')
-    if (!this.rawObj) {
-      throw new Error('no this.obj')
-    }
-    Object.keys(this.rawObj).forEach(k => console.error(`${k}: ${this.rawObj && this.rawObj[k]}`))
-  }
-
-  /**
-   * @todo add function
-   */
-  public static async find(query) {
-    return Promise.resolve(new Message(<MsgRawObj>{MsgId: '-1'}))
-  }
-
-  /**
-   * @todo add function
-   */
-  public static async findAll(query) {
-    return Promise.resolve([
-      new Message   (<MsgRawObj>{MsgId: '-2'}),
-      new Message (<MsgRawObj>{MsgId: '-3'}),
-    ])
-  }
-
-  // public to(room: Room): void
-  // public to(): Contact|Room
-  // public to(contact?: Contact|Room|string): Contact|Room|void {
-
-  /**
-   * @private
-   */
-  public to(contact: Contact): void
-
-  /**
-   * @private
-   */
-  public to(id: string): void
-
-  public to(): Contact|null // if to is not set, then room must had set
-
-  /**
-   * Get the destination of the message
-   * Message.to() will return null if a message is in a room, use Message.room() to get the room.
-   * @returns {(Contact|null)}
-   */
-  public to(contact?: Contact|string): Contact|Room|null|void {
-    if (contact) {
-      if (contact instanceof Contact) {
-        this.obj.to = contact.id
-      } else if (typeof contact === 'string') {
-        this.obj.to = contact
-      } else {
-        throw new Error('unsupport to param ' + typeof contact)
-      }
+    if (this.isReady()) {
       return
     }
 
-    // no parameter
+    this.payload = await this.puppet.messagePayload(this.id)
 
-    if (!this.obj.to) {
-      return null
-    }
-    const to = Contact.load(this.obj.to)
-    to.puppet = this.puppet
-
-    return to
+    // TODO ... the rest
   }
 
-  /**
-   * Please notice that when we are running Wechaty,
-   * if you use the browser that controlled by Wechaty to send attachment files,
-   * you will get a zero sized file, because it is not an attachment from the network,
-   * but a local data, which is not supported by Wechaty yet.
-   *
-   * @returns {Promise<Readable>}
-   */
-  public readyStream(): Promise<Readable> {
-    throw Error('abstract method')
-  }
+  // public async readyMedia(): Promise<this> {
+  //   log.silly('PuppeteerMessage', 'readyMedia()')
 
-  // DEPRECATED: TypeScript ENUM did this for us 201705
-  // public static initType() {
-  //   Object.keys(Message.TYPE).forEach(k => {
-  //     const v = Message.TYPE[k]
-  //     Message.TYPE[v] = k // Message.Type[1] = 'TEXT'
-  //   })
-  // }
+  //   const puppet = this.puppet
 
-}
+  //   try {
 
-// Message.initType()
+  //     let url: string | undefined
+  //     switch (this.type()) {
+  //       case WebMsgType.EMOTICON:
+  //         url = await puppet.bridge.getMsgEmoticon(this.id)
+  //         break
+  //       case WebMsgType.IMAGE:
+  //         url = await puppet.bridge.getMsgImg(this.id)
+  //         break
+  //       case WebMsgType.VIDEO:
+  //       case WebMsgType.MICROVIDEO:
+  //         url = await puppet.bridge.getMsgVideo(this.id)
+  //         break
+  //       case WebMsgType.VOICE:
+  //         url = await puppet.bridge.getMsgVoice(this.id)
+  //         break
 
-/**
- * Meidia Type Message
- *
- */
-export class MediaMessage extends Message {
-  /**
-   * @private
-   */
-  private bridge: Bridge
+  //       case WebMsgType.APP:
+  //         if (!this.rawObj) {
+  //           throw new Error('no rawObj')
+  //         }
+  //         switch (this.typeApp()) {
+  //           case WebAppMsgType.ATTACH:
+  //             if (!this.rawObj.MMAppMsgDownloadUrl) {
+  //               throw new Error('no MMAppMsgDownloadUrl')
+  //             }
+  //             // had set in Message
+  //             // url = this.rawObj.MMAppMsgDownloadUrl
+  //             break
 
-  /**
-   * @private
-   */
-  private filePath: string
+  //           case WebAppMsgType.URL:
+  //           case WebAppMsgType.READER_TYPE:
+  //             if (!this.rawObj.Url) {
+  //               throw new Error('no Url')
+  //             }
+  //             // had set in Message
+  //             // url = this.rawObj.Url
+  //             break
 
-  /**
-   * @private
-   */
-  private fileName: string // 'music'
+  //           default:
+  //             const e = new Error('ready() unsupported typeApp(): ' + this.typeApp())
+  //             log.warn('PuppeteerMessage', e.message)
+  //             throw e
+  //         }
+  //         break
 
-  /**
-   * @private
-   */
-  private fileExt: string // 'mp3'
+  //       case WebMsgType.TEXT:
+  //         if (this.typeSub() === WebMsgType.LOCATION) {
+  //           url = await puppet.bridge.getMsgPublicLinkImg(this.id)
+  //         }
+  //         break
 
-  /**
-   * @private
-   */
-  constructor(rawObj: Object)
+  //       default:
+  //         /**
+  //          * not a support media message, do nothing.
+  //          */
+  //         return this
+  //     }
 
-  /**
-   * @private
-   */
-  constructor(filePath: string)
+  //     if (!url) {
+  //       if (!this.payload.url) {
+  //         /**
+  //          * not a support media message, do nothing.
+  //          */
+  //         return this
+  //       }
+  //       url = this.payload.url
+  //     }
 
-  constructor(rawObjOrFilePath: Object | string) {
-    if (typeof rawObjOrFilePath === 'string') {
-      super()
-      this.filePath = rawObjOrFilePath
+  //     this.payload.url = url
 
-      const pathInfo = path.parse(rawObjOrFilePath)
-      this.fileName = pathInfo.name
-      this.fileExt = pathInfo.ext.replace(/^\./, '')
-    } else if (rawObjOrFilePath instanceof Object) {
-      super(rawObjOrFilePath as any)
-    } else {
-      throw new Error('not supported construct param')
-    }
-  }
-
-  /**
-   * @private
-   */
-  public toString() {
-    return `MediaMessage<${this.filename()}>`
-  }
-
-  /**
-   * @private
-   */
-  public async ready(): Promise<void> {
-    log.silly('MediaMessage', 'ready()')
-
-    // FIXME: decoupling needed
-    if (!this.bridge) {
-      this.bridge = (this.puppet as PuppetWeb).bridge
-    }
-
-    try {
-      await super.ready()
-
-      let url: string | undefined
-      switch (this.type()) {
-        case MsgType.EMOTICON:
-          url = await this.bridge.getMsgEmoticon(this.id)
-          break
-        case MsgType.IMAGE:
-          url = await this.bridge.getMsgImg(this.id)
-          break
-        case MsgType.VIDEO:
-        case MsgType.MICROVIDEO:
-          url = await this.bridge.getMsgVideo(this.id)
-          break
-        case MsgType.VOICE:
-          url = await this.bridge.getMsgVoice(this.id)
-          break
-
-        case MsgType.APP:
-          if (!this.rawObj) {
-            throw new Error('no rawObj')
-          }
-          switch (this.typeApp()) {
-            case AppMsgType.ATTACH:
-              if (!this.rawObj.MMAppMsgDownloadUrl) {
-                throw new Error('no MMAppMsgDownloadUrl')
-              }
-              // had set in Message
-              // url = this.rawObj.MMAppMsgDownloadUrl
-              break
-
-            case AppMsgType.URL:
-            case AppMsgType.READER_TYPE:
-              if (!this.rawObj.Url) {
-                throw new Error('no Url')
-              }
-              // had set in Message
-              // url = this.rawObj.Url
-              break
-
-            default:
-              const e = new Error('ready() unsupported typeApp(): ' + this.typeApp())
-              log.warn('MediaMessage', e.message)
-              this.dumpRaw()
-              throw e
-          }
-          break
-
-        case MsgType.TEXT:
-          if (this.typeSub() === MsgType.LOCATION) {
-            url = await this.bridge.getMsgPublicLinkImg(this.id)
-          }
-          break
-
-        default:
-          throw new Error('not support message type for MediaMessage')
-      }
-
-      if (!url) {
-        if (!this.obj.url) {
-          throw new Error('no obj.url')
-        }
-        url = this.obj.url
-      }
-
-      this.obj.url = url
-
-    } catch (e) {
-      log.warn('MediaMessage', 'ready() exception: %s', e.message)
-      Raven.captureException(e)
-      throw e
-    }
-  }
-
-  /**
-   * Get the MediaMessage file extension, etc: `jpg`, `gif`, `pdf`, `word` ..
-   *
-   * @returns {string}
-   * @example
-   * bot.on('message', async function (m) {
-   *   if (m instanceof MediaMessage) {
-   *     console.log('media message file name extention is: ' + m.ext())
-   *   }
-   * })
-   */
-  public ext(): string {
-    if (this.fileExt)
-      return this.fileExt
-
-    switch (this.type()) {
-      case MsgType.EMOTICON:
-        return 'gif'
-
-      case MsgType.IMAGE:
-        return 'jpg'
-
-      case MsgType.VIDEO:
-      case MsgType.MICROVIDEO:
-        return 'mp4'
-
-      case MsgType.VOICE:
-        return 'mp3'
-
-      case MsgType.APP:
-        switch (this.typeApp()) {
-          case AppMsgType.URL:
-            return 'url' // XXX
-        }
-        break
-
-      case MsgType.TEXT:
-        if (this.typeSub() === MsgType.LOCATION) {
-          return 'jpg'
-        }
-        break
-    }
-    log.error('MediaMessage', `ext() got unknown type: ${this.type()}`)
-    return String(this.type())
-  }
-
-  /**
-   * return the MIME Type of this MediaMessage
-   *
-   */
-  public mimeType(): string | null {
-    return mime.getType(this.ext())
-  }
-
-  /**
-   * Get the MediaMessage filename, etc: `how to build a chatbot.pdf`..
-   *
-   * @returns {string}
-   * @example
-   * bot.on('message', async function (m) {
-   *   if (m instanceof MediaMessage) {
-   *     console.log('media message file name is: ' + m.filename())
-   *   }
-   * })
-   */
-  public filename(): string {
-    if (this.fileName && this.fileExt) {
-      return this.fileName + '.' + this.fileExt
-    }
-
-    if (!this.rawObj) {
-      throw new Error('no rawObj')
-    }
-
-    let filename = this.rawObj.FileName || this.rawObj.MediaId || this.rawObj.MsgId
-
-    const re = /\.[a-z0-9]{1,7}$/i
-    if (!re.test(filename)) {
-      const ext = this.rawObj.MMAppMsgFileExt || this.ext()
-      filename += '.' + ext
-    }
-    return filename
-  }
-
-  // private getMsgImg(id: string): Promise<string> {
-  //   return this.bridge.getMsgImg(id)
-  //   .catch(e => {
-  //     log.warn('MediaMessage', 'getMsgImg(%d) exception: %s', id, e.message)
+  //   } catch (e) {
+  //     log.warn('PuppeteerMessage', 'ready() exception: %s', e.message)
+  //     Raven.captureException(e)
   //     throw e
-  //   })
+  //   }
+
+  //   return this
   // }
 
   /**
    * Get the read stream for attachment file
    */
-  public async readyStream(): Promise<Readable> {
-    log.verbose('MediaMessage', 'readyStream()')
-
-    if (this.filePath)
-      return fs.createReadStream(this.filePath)
-
-    try {
-      await this.ready()
-      // FIXME: decoupling needed
-      const cookies = await (/* config.puppetInstance() */ this.puppet as PuppetWeb).cookies()
-      if (!this.obj.url) {
-        throw new Error('no url')
-      }
-      log.verbose('MediaMessage', 'readyStream() url: %s', this.obj.url)
-      return Misc.urlStream(this.obj.url, cookies)
-    } catch (e) {
-      log.warn('MediaMessage', 'readyStream() exception: %s', e.stack)
-      Raven.captureException(e)
-      throw e
-    }
-  }
-
-  /**
-   * save file
-   *
-   * @param filePath save file
-   */
-  public async saveFile(filePath: string): Promise<void> {
-    if (!filePath) {
-      throw new Error('saveFile() filePath is invalid')
-    }
-    log.silly('MediaMessage', `saveFile() filePath:'${filePath}'`)
-    if (fs.existsSync(filePath)) {
-      throw new Error('saveFile() file does exist!')
-    }
-    const writeStream = fs.createWriteStream(filePath)
-    let readStream
-    try {
-      readStream = await this.readyStream()
-    } catch (e) {
-      log.error('MediaMessage', `saveFile() call readyStream() error: ${e.message}`)
-      throw new Error(`saveFile() call readyStream() error: ${e.message}`)
-    }
-    await new Promise((resolve, reject) => {
-      readStream.pipe(writeStream)
-      readStream
-        .once('end', resolve)
-        .once('error', reject)
-    })
-      .catch(e => {
-        log.error('MediaMessage', `saveFile() error: ${e.message}`)
-        throw e
-      })
-  }
+  // public abstract async readyStream(): Promise<Readable>
 
   /**
    * Forward the received message.
@@ -999,27 +819,21 @@ export class MediaMessage extends Message {
    * @returns {Promise<boolean>}
    * @memberof MediaMessage
    */
-  public async forward(to: Room|Contact): Promise<boolean> {
+  public async forward(to: Room | Contact): Promise<void> {
+    log.verbose('Message', 'forward(%s)', to)
+
     try {
-      const ret = await /* config.puppetInstance() */ this.puppet.forward(this, to)
-      return ret
+      await this.puppet.messageForward(this, to)
     } catch (e) {
       log.error('Message', 'forward(%s) exception: %s', to, e)
       throw e
     }
   }
-
 }
 
-/*
- * join room in mac client: https://support.weixin.qq.com/cgi-bin/
- * mmsupport-bin/addchatroombyinvite
- * ?ticket=AUbv%2B4GQA1Oo65ozlIqRNw%3D%3D&exportkey=AS9GWEg4L82fl3Y8e2OeDbA%3D
- * &lang=en&pass_ticket=T6dAZXE27Y6R29%2FFppQPqaBlNwZzw9DAN5RJzzzqeBA%3D
- * &wechat_real_lang=en
- */
-
 export {
-  MsgType,
+  MessageDirection,
+  MessagePayload,
+  MessageType,
 }
 export default Message

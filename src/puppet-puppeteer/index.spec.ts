@@ -1,3 +1,4 @@
+#!/usr/bin/env ts-node
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
@@ -16,14 +17,14 @@
  *   limitations under the License.
  *
  */
-export { Bridge }                           from './bridge'
-export { Event }                            from './event'
-export {
-  PuppetWebFriendRequest as FriendRequest,
-}                                           from './friend-request'
-import { PuppetWeb }                        from './puppet-web'
+// tslint:disable:no-shadowed-variable
+import * as test  from 'blue-tape'
+// import * as sinon from 'sinon'
 
-export default PuppetWeb
-export {
-  PuppetWeb,
-}
+import {
+  PuppetPuppeteer,
+} from './'
+
+test('PuppetPuppeteer Module Exports', async t => {
+  t.ok(PuppetPuppeteer  , 'should export PuppetPuppeteer')
+})

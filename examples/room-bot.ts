@@ -58,11 +58,11 @@ import {
   Room,
   Wechaty,
   log,
-}             from '../'
+}             from '../src/'
 
 const welcome = `
 =============== Powered by Wechaty ===============
--------- https://github.com/wechaty/wechaty --------
+-------- https://github.com/Chatie/wechaty --------
 
 Hello,
 
@@ -144,10 +144,11 @@ bot
  */
 .on('room-topic', function(this, room, topic, oldTopic, changer) {
   try {
-    log.info('Bot', 'EVENT: room-topic - Room %s change topic to %s by member %s',
+    log.info('Bot', 'EVENT: room-topic - Room %s change topic from %s to %s by member %s',
+                    room,
                     oldTopic,
                     topic,
-                    changer.name(),
+                    changer,
                 )
   } catch (e) {
     log.error('Bot', 'room-topic event exception: %s', e.stack)
@@ -160,11 +161,11 @@ bot
 .on('message', async function(this: Wechaty, message) {
   const room    = message.room()
   const sender  = message.from()
-  const content = message.content()
+  const content = message.text()
 
   console.log((room ? '[' + room.topic() + ']' : '')
               + '<' + sender.name() + '>'
-              + ':' + message.toStringDigest(),
+              + ':' + message,
   )
 
   if (message.self()) {
@@ -264,7 +265,7 @@ async function manageDingRoom() {
     /**
      * Event: Join
      */
-    room.on('join', function(this, inviteeList, inviter) {
+    room.on('join', function(inviteeList, inviter) {
       log.verbose('Bot', 'Room EVENT: join - %s, %s',
                          inviteeList.map(c => c.name()).join(', '),
                          inviter.name(),
@@ -303,11 +304,9 @@ async function checkRoomJoin(room: Room, inviteeList: Contact[], inviter: Contac
 
   try {
     // let to, content
-    const user = bot.self()
-    if (!user) {
-      throw new Error('no user')
-    }
-    if (inviter.id !== user.id) {
+    const userSelf = bot.userSelf()
+
+    if (inviter.id !== userSelf.id) {
 
       await room.say('RULE1: Invitation is limited to me, the owner only. Please do not invit people without notify me.',
                       inviter,
@@ -337,7 +336,7 @@ async function checkRoomJoin(room: Room, inviteeList: Contact[], inviter: Contac
 
 }
 
-async function putInRoom(contact, room) {
+async function putInRoom(contact: Contact, room: Room) {
   log.info('Bot', 'putInRoom(%s, %s)', contact.name(), room.topic())
 
   try {
@@ -366,10 +365,10 @@ function getHelperContact() {
   log.info('Bot', 'getHelperContact()')
 
   // create a new room at least need 3 contacts
-  return Contact.find({ name: HELPER_CONTACT_NAME })
+  return bot.Contact.find({ name: HELPER_CONTACT_NAME })
 }
 
-async function createDingRoom(contact): Promise<any> {
+async function createDingRoom(contact: Contact): Promise<any> {
   log.info('Bot', 'createDingRoom(%s)', contact)
 
   try {
@@ -385,7 +384,7 @@ async function createDingRoom(contact): Promise<any> {
     const contactList = [contact, helperContact]
     log.verbose('Bot', 'contactList: %s', contactList.join(','))
 
-    const room = await Room.create(contactList, 'ding')
+    const room = await bot.Room.create(contactList, 'ding')
     log.info('Bot', 'createDingRoom() new ding room created: %s', room)
 
     await room.topic('ding - created')

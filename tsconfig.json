@@ -3,20 +3,25 @@
     "target": "es6"
     , "module": "commonjs"
     , "outDir": "dist"
+
+    , "experimentalDecorators": true
+    , "emitDecoratorMetadata": true
     , "declaration": true
     , "sourceMap": true
-    , "noLib": false
+    , "traceResolution": false
 
     , "noEmitOnError": true
     , "noUnusedLocals": true
     , "noImplicitReturns": true
     , "noFallthroughCasesInSwitch": true
+    , "noImplicitAny": true
+    , "noUnusedParameters": true
+    , "noImplicitThis": true
     , "strictNullChecks": true
 
-    , "noImplicitAny": false
-    , "noUnusedParameters": false
-    , "noImplicitThis": false
-    , "traceResolution": false
+
+    , "noLib": false
+    , "skipLibCheck": true
     , "lib": [
         "esnext"
       , "dom"
@@ -27,13 +32,12 @@
     , "dist/"
   ]
   , "include": [
-       "*.ts"
+       "app/**/*.ts"
      , "bin/*.ts"
-     , "scripts/**/*.ts"
+     , "bot/**/*.ts"
      , "examples/**/*.ts"
+     , "scripts/**/*.ts"
      , "src/**/*.ts"
      , "tests/**/*.spec.ts"
-     , "bot/**/*.ts"
-     , "app/**/*.ts"
   ]
 }

@@ -34,7 +34,7 @@ export default async function onMessage (message) {
   try {
     const room      = message.room()
     const sender    = message.from()
-    const content   = message.content()
+    const content   = message.text()
     const roomName  = room ? `[${room.topic()}] ` : ''
 
     process.stdout.write(
@@ -44,11 +44,11 @@ export default async function onMessage (message) {
       saveMediaFile(message)
       return
     }
-    
+
     console.log(`${Misc.digestEmoji(message)}`)
     // add an extra CR if too long
     if (content.length > 80) console.log("")
-    
+
     const config = await hotImport('config.js')
     // Hot import! Try to change the msgKW1&2 to 'ping' & 'pong'
     // after the bot has already started!
@@ -62,7 +62,7 @@ export default async function onMessage (message) {
     }
   } catch (e) {
     log.error('Bot', 'on(message) exception: %s' , e)
-  }    
+  }
 }
 
 async function saveMediaFile(message) {

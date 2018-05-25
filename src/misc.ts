@@ -19,13 +19,13 @@
 import * as crypto  from 'crypto'
 import * as https   from 'https'
 import * as http    from 'http'
+import * as net     from 'net'
 import {
   Readable,
 }                   from 'stream'
 import * as url     from 'url'
 
 import { log }      from './config'
-import { MsgType }  from './message'
 
 export class Misc {
   public static stripHtml(html?: string): string {
@@ -112,22 +112,22 @@ export class Misc {
     // const myurl = 'http://wx.qq.com/cgi-bin/mmwebwx-bin/webwxgetmsgimg?&MsgID=3080011908135131569&skey=%40crypt_c117402d_53a58f8fbb21978167a3fc7d3be7f8c9'
     href = href.replace(/^https/i, 'http') // use http instead of https, because https will only success on the very first request!
 
-    const u = url.parse(href)
-    const protocol = u.protocol as 'https:'|'http:'
+    const parsedUrl = url.parse(href)
+    const protocol  = parsedUrl.protocol as 'https:'|'http:'
 
-    let options
+    let options: http.RequestOptions | https.RequestOptions
     // let request
-    let get
+    let get: typeof https.get
 
     if (protocol === 'https:') {
       // request       = https.request.bind(https)
       get           = https.get
-      options       = u as any as https.RequestOptions
+      options       = parsedUrl as any as https.RequestOptions
       options.agent = https.globalAgent
     } else if (protocol === 'http:') {
       // request       = http.request.bind(http)
       get           = http.get
-      options       = u as any as http.RequestOptions
+      options       = parsedUrl as any as http.RequestOptions
       options.agent = http.globalAgent
     } else {
       throw new Error('protocol unknown: ' + protocol)
@@ -199,16 +199,16 @@ export class Misc {
     log.silly('UtilLib', 'getPort(%d)', port)
     let tryPort = nextPort(port || 38788)
 
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve => {
       // https://gist.github.com/mikeal/1840641
-      function _getPort(cb) {
-        const server = require('net').createServer()
+      function _getPort(cb: (port: number) => void) {
+        const server = net.createServer()
         server.on('error', function(err) {
           if (err) {/* fail safe */ }
           tryPort = nextPort(port)
           _getPort(cb)
         })
-        server.listen(tryPort, function(err) {
+        server.listen(tryPort, function(err: any) {
           if (err) {/* fail safe */}
           server.once('close', function() {
             cb(tryPort)
@@ -247,22 +247,6 @@ export class Misc {
     const md5sum = crypto.createHash('md5')
     md5sum.update(buffer)
     return md5sum.digest('hex')
-  }
-
-  public static msgType(ext: string): MsgType {
-    switch (ext) {
-      case 'bmp':
-      case 'jpeg':
-      case 'jpg':
-      case 'png':
-        return MsgType.IMAGE
-      case 'gif':
-        return MsgType.EMOTICON
-      case 'mp4':
-        return MsgType.VIDEO
-      default:
-        return MsgType.APP
-    }
   }
 
   // public static mime(ext): string {

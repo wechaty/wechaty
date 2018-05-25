@@ -20,51 +20,60 @@
  */
 // tslint:disable:no-shadowed-variable
 import * as test  from 'blue-tape'
-// import * as sinon from 'sinon'
+import * as sinon from 'sinon'
 
-// import config     from '../src/config'
-import Contact    from '../src/contact'
-import Profile    from '../src/profile'
-import PuppetWeb  from '../src/puppet-web'
+import cloneClass from 'clone-class'
 
-// config.puppetInstance(new PuppetWeb({
-//   profile: new Profile(),
-// }))
-Contact.puppet = new PuppetWeb({
-  profile: new Profile(),
-})
+import {
+  log,
+}              from '../config'
+import Profile from '../profile'
+import Wechaty from '../wechaty'
+
+import Contact from '../contact'
+
+import PuppetPuppeteer  from './puppet-puppeteer'
 
 test('Contact smoke testing', async t => {
+
   /* tslint:disable:variable-name */
   const UserName = '@0bb3e4dd746fdbd4a80546aef66f4085'
   const NickName = 'NickNameTest'
   const RemarkName = 'AliasTest'
 
-  // Mock
-  const mockContactGetter = function (id) {
-    return new Promise<any>((resolve, reject) => {
+  const sandbox = sinon.createSandbox()
+
+  function mockContactPayload(id: string) {
+    log.verbose('PuppeteerContactTest', 'mockContactPayload(%s)', id)
+    return new Promise<any>(resolve => {
       if (id !== UserName) return resolve({})
-      setTimeout(() => {
-        return resolve({
-          UserName: UserName,
-          NickName: NickName,
-          RemarkName: RemarkName,
-        })
-      }, 200)
+      setImmediate(() => resolve({
+        UserName:   UserName,
+        NickName:   NickName,
+        RemarkName: RemarkName,
+      }))
     })
   }
 
-  const c = new Contact(UserName)
+  const puppet = new PuppetPuppeteer({
+    profile: new Profile(),
+    wechaty: new Wechaty(),
+  })
+  sandbox.stub(puppet as any, 'contactRawPayload').callsFake(mockContactPayload)
 
+  // tslint:disable-next-line:variable-name
+  const MyContact = cloneClass(Contact)
+  MyContact.puppet = puppet
+
+  const c = new MyContact(UserName)
   t.is(c.id, UserName, 'id/UserName right')
-  const r = await c.ready(mockContactGetter)
-  t.is(r.get('id')   , UserName, 'UserName set')
-  t.is(r.get('name') , NickName, 'NickName set')
-  t.is(r.name(), NickName, 'should get the right name from Contact')
-  t.is(r.alias(), RemarkName, 'should get the right alias from Contact')
 
-  const s = r.toString()
-  t.is(typeof s, 'string', 'toString()')
+  await c.ready()
+
+  t.is(c.name(), NickName, 'NickName set')
+  t.is(c.alias(), RemarkName, 'should get the right alias from Contact')
+
+  sandbox.restore()
 
   // const contact1 = await Contact.find({name: 'NickNameTest'})
   // t.is(contact1.id, UserName, 'should find contact by name')

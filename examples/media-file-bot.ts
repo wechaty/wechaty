@@ -34,10 +34,11 @@ import * as qrcodeTerminal  from 'qrcode-terminal'
  */
 import {
   config,
-  MediaMessage,
+  Message,
   // MsgType,
   Wechaty,
-}           from '../'
+}           from '../src/'
+
 const bot = Wechaty.instance({ profile: config.default.DEFAULT_PROFILE })
 
 bot
@@ -49,8 +50,8 @@ bot
   console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
 })
 .on('login'	  , user => console.log(`${user} logined`))
-.on('message', m => {
-  console.log(`RECV: ${m}`)
+.on('message', msg => {
+  console.log(`RECV: ${msg}`)
 
   // console.log(inspect(m))
   // saveRawObj(m.rawObj)
@@ -63,26 +64,31 @@ bot
   //   || m.type() === MsgType.APP
   //   || (m.type() === MsgType.TEXT && m.typeSub() === MsgType.LOCATION)  // LOCATION
   // ) {
-  if (m instanceof MediaMessage) {
-    saveMediaFile(m)
+  if (msg.type() !== Message.Type.Text) {
+    saveMediaFile(msg)
   }
   // }
 })
 .start()
 .catch(e => console.error('bot.start() error: ' + e))
 
-async function saveMediaFile(message: MediaMessage) {
-  const filename = message.filename()
+async function saveMediaFile(message: Message) {
+  const fileBox = message.file()
+
+  const filename = fileBox.name
   console.log('IMAGE local filename: ' + filename)
+
+  if (!filename) {
+    throw new Error('no filename found for media file')
+  }
 
   const fileStream = createWriteStream(filename)
 
   console.log('start to readyStream()')
   try {
-    const netStream = await message.readyStream()
-    netStream
+    fileBox
       .pipe(fileStream)
-      .on('close', _ => {
+      .on('close', () => {
         const stat = statSync(filename)
         console.log('finish readyStream() for ', filename, ' size: ', stat.size)
       })

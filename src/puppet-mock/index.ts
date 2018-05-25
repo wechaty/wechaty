@@ -1,4 +1,3 @@
-#!/usr/bin/env ts-node
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
@@ -17,18 +16,10 @@
  *   limitations under the License.
  *
  */
-// tslint:disable:no-shadowed-variable
-import * as test  from 'blue-tape'
-// import * as sinon from 'sinon'
+import { PuppetMock }  from './puppet-mock'
 
-import {
-  Bridge,
-  Event,
-  PuppetWeb,
-} from './'
+export {
+  PuppetMock,
+}
 
-test('PuppetWeb Module Exports', async t => {
-  t.ok(PuppetWeb  , 'should export PuppetWeb')
-  t.ok(Event      , 'should export Event')
-  t.ok(Bridge     , 'should export Bridge')
-})
+export default PuppetMock

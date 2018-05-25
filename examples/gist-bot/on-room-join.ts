@@ -25,14 +25,14 @@
 import {
   Contact,
   Room,
-  Sayable,
-}           from '../../'
+  Wechaty,
+}           from '../../src/'
 
 export async function onRoomJoin(
-  this: Sayable,
-  room: Room,
-  inviteeList: Contact[],
-  inviter: Contact,
+  this:         Wechaty,
+  room:         Room,
+  inviteeList:  Contact[],
+  inviter:      Contact,
 ): Promise<void> {
   try {
     const inviteeName = inviteeList.map(c => c.name()).join(', ')

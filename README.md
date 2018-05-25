@@ -4,12 +4,11 @@
 
 ## CONNECTING CHATBOTS
 
-Wechaty is a Bot Framework for Wechat **Personal** Account which can help you create a bot in 6 lines of javascript, with cross-platform support include [Linux](https://travis-ci.org/chatie/wechaty), [Windows](https://ci.appveyor.com/project/chatie/wechaty), [Darwin(OSX/Mac)](https://travis-ci.org/chatie/wechaty) and [Docker](https://app.shippable.com/github/Chatie/wechaty).
+Wechaty is a Bot SDK for Wechat **Personal** Account which can help you create a bot in 6 lines of javascript, with cross-platform support include [Linux](https://travis-ci.com/chatie/wechaty), [Windows](https://ci.appveyor.com/project/chatie/wechaty), [Darwin(OSX/Mac)](https://travis-ci.com/chatie/wechaty) and [Docker](https://app.shippable.com/github/Chatie/wechaty).
 
-[![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800)](https://nodejs.org/)
+[![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty)
+[![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
-[![Repo Size](https://reposs.herokuapp.com/?path=Chatie/wechaty)](https://github.com/chatie/wechaty)
-[![Donate Wechaty](https://img.shields.io/badge/Donate-Wechaty%20$-green.svg)](https://salt.bountysource.com/checkout/amount?team=chatie)
 
 :octocat: <https://github.com/chatie/wechaty>  
 :beetle: <https://github.com/chatie/wechaty/issues>  
@@ -54,6 +53,9 @@ You can find more examples from [Wiki](https://github.com/chatie/wechaty/wiki/Ex
 
 ## GETTING STARTED
 
+[![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800)](https://nodejs.org/)
+[![Repo Size](https://reposs.herokuapp.com/?path=Chatie/wechaty)](https://github.com/chatie/wechaty)
+
 ### A Great Live Coding Tutorial
 
 <div align="center">
@@ -77,7 +79,9 @@ Notice: The published versions have always passed the CI tests. We highly recomm
 
 #### Docker
 
-[![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Stars](https://img.shields.io/docker/stars/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) [![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
+[![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) 
+[![Docker Stars](https://img.shields.io/docker/stars/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) 
+[![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
 
 The **best practice** to use Wechaty is running with docker, because it's not only the most easy way to get started, but also protects you from the troubles of dependency problems. 
 
@@ -120,7 +124,7 @@ Get to know more about NPM at [Wiki:NPM](https://github.com/chatie/wechaty/wiki/
 
 ## TEST
 
-[![Linux/Mac Build Status](https://img.shields.io/travis/Chatie/wechaty.svg?label=Linux/Mac)](https://travis-ci.org/Chatie/wechaty)
+[![Linux/Mac Build Status](https://travis-ci.com/Chatie/wechaty.svg?branch=master)](https://travis-ci.com/Chatie/wechaty)
 [![Windows Build Status](https://img.shields.io/appveyor/ci/chatie/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/chatie/wechaty)
 [![Docker Build Status](https://img.shields.io/shippable/5aaf8667ec373f17004dcb66.svg?label=Docker&color=brightgreen)](https://app.shippable.com/github/Chatie/wechaty)
 
@@ -151,6 +155,7 @@ See: [Official API Reference](https://chatie.github.io/wechaty/)
 ## POWERED BY WECHATY
 
 [![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-green.svg)](https://github.com/chatie/wechaty)
+[![Donate Wechaty](https://img.shields.io/badge/Donate-Wechaty%20$-green.svg)](https://salt.bountysource.com/checkout/amount?team=chatie)
 
 ### Wechaty Badge
 
@@ -221,8 +226,7 @@ Scan now, because other Wechaty developers want to talk with you too! (secret co
 
 Wechaty is far from perfect. The following things should be addressed in the future:
 
-* [ ] PuppetWine - Use DLL Inject to hook Windows Wechat Application, run from wine inside docker.
-* [ ] PuppetAndroid - Use Xposed to Hook Android Pad version of Wechat App, run from android emulator inside docker.
+* [Create New Puppets for Wechaty #1167](https://github.com/Chatie/wechaty/issues/1167)
 
 ## AUTHOR
 
@@ -253,3 +257,9 @@ At last, It's built for my personal study purpose of Automatically Testing.
 
 [downloads-image]: http://img.shields.io/npm/dm/wechaty.svg?style=flat-square
 [downloads-url]: https://npmjs.org/package/wechaty
+
+## NOTES
+
+* github.com/chatie-oos: Open Open Source for Chatie Community.
+* wechaty-puppet-abstract Plugin Design: strong support wechaty.
+* list all donation sponsors on README, and create a wechat group for sponsors.

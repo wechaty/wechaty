@@ -23,18 +23,23 @@
  * when you are runing with Docker or NPM instead of Git Source.
  */
 import {
-  Contact,
   FriendRequest,
   Wechaty,
   // Room,
-}                 from '../../'
+}                 from '../../src/'
 
-export async function onFriend(this: Wechaty, contact: Contact, request?: FriendRequest): Promise<void> {
+export async function onFriend(
+  this:     Wechaty,
+  request: FriendRequest,
+): Promise<void> {
   try {
-    if (!request) {
+    const contact = request.contact()
+
+    if (request.type() === FriendRequest.Type.Confirm) {
       console.log('New friend ' + contact.name() + ' relationship confirmed!')
       return
     }
+
     /********************************************
      *
      * 从这里开始修改 vvvvvvvvvvvv
@@ -49,7 +54,7 @@ export async function onFriend(this: Wechaty, contact: Contact, request?: Friend
       3000,
     )
 
-    if (request.hello === 'ding') {
+    if (request.hello() === 'ding') {
       const myRoom = await this.Room.find({ topic: 'ding' })
       if (!myRoom) return
       setTimeout(
