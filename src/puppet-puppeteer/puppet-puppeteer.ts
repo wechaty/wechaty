@@ -404,7 +404,8 @@ export class PuppetPuppeteer extends Puppet {
       // SYSNOTICE           = 9999,
       // RECALLED            = 10002,
       default:
-        throw new Error('un-supported WebMsgType: ' + webMsgType)
+        log.warn('PuppetPuppeteer', 'messageTypeFromWeb(%d) un-supported WebMsgType, treat as TEXT', webMsgType)
+        return MessageType.Text
     }
   }
 

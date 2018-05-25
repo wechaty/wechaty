@@ -639,12 +639,11 @@ export class Bridge extends EventEmitter {
     ...args     : any[]
   ): Promise<any> {
     log.silly('PuppetPuppeteerBridge', 'proxyWechaty(%s%s)',
-                                  wechatyFunc,
-                                  args.length
-                                  ? ' , ' + args.join(', ')
-                                  : '',
+                                        wechatyFunc,
+                                        args.length === 0
+                                          ? ''
+                                          : ', ' + args.join(', '),
               )
-
     try {
       const noWechaty = await this.page.evaluate(() => {
         return typeof WechatyBro === 'undefined'

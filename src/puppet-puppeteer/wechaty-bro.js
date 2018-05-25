@@ -837,6 +837,7 @@
     send,   // send message to wechat user
 
     getContact,
+    getMessage,
     getUserName,
     getMsgImg,
     getMsgEmoticon,
