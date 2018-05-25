@@ -303,19 +303,25 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     const rawPayload = await this.messageRawPayload(id)
     const payload    = await this.messageRawPayloadParser(rawPayload)
 
-    console.log('this.messageRawPayloadParser().payload.from.puppet = ', payload.from!.puppet + '')
     /**
      * Make sure all the contacts & room have already been ready
      */
-    if (payload.from && !payload.from.isReady()) {
-      await payload.from.ready()
-    }
-    if (payload.to && !payload.to.isReady()) {
-      await payload.to.ready()
-    }
+    const fromId = payload.fromId
+    const roomId = payload.roomId
+    const toId   = payload.toId
 
-    if (payload.room && !payload.room.isReady()) {
-      await payload.room.ready()
+    const from = fromId && this.Contact.load(fromId)
+    const room = roomId && this.Room.load(roomId)
+    const to   = toId   && this.Contact.load(toId)
+
+    if (from && !from.isReady()) {
+      await from.ready()
+    }
+    if (to && !to.isReady()) {
+      await to.ready()
+    }
+    if (room && !room.isReady()) {
+      await room.ready()
     }
 
     return payload

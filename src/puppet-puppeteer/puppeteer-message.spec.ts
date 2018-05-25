@@ -253,8 +253,8 @@ test('self()', async t => {
 
   function mockMessagePayload() {
     const payload: MessagePayload = {
-      from      : MOCK_CONTACT,
-      to        : {} as any,
+      fromId      : MOCK_CONTACT.id,
+      toId        : 'to_id',
       type      : {} as any,
       direction : {} as any,
       date      : {} as any,

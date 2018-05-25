@@ -348,18 +348,19 @@ export class PuppetPuppeteer extends Puppet {
 
     const type: MessageType = this.messageTypeFromWeb(rawPayload.MsgType)
 
+    const fromId = from && from.id
+    const roomId = room && room.id
+    const toId   = to   && to.id
+
     const payload: MessagePayload = {
       direction: MessageDirection.MT,
       type,
-      from,
-      to,
-      room,
+      fromId,
+      toId,
+      roomId,
       text,
-      // status:       rawPayload.Status,
-      // digest:       rawPayload.MMDigest,
       date,
       file,
-      // url:          rawPayload.Url || rawObj.MMAppMsgDownloadUrl || rawObj.MMLocationUrl,
     }
 
     // TODO: parse the url to FileBox

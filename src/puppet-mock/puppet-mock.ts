@@ -198,9 +198,9 @@ export class PuppetMock extends Puppet {
     const payload: MessagePayload = {
       date      : new Date(),
       direction : this.Message.Direction.MT,
-      from      : this.Contact.load('xxx'),
+      fromId    : 'xxx',
       text      : 'mock message text',
-      to        : this.userSelf(),
+      toId      : this.userSelf().id,
       type      : this.Message.Type.Text,
     }
     return payload

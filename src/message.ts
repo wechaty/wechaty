@@ -110,6 +110,9 @@ export class Message extends PuppetAccessory implements Sayable {
     const date      = new Date()
     const file      = (options as MessageMOOptionsFile).file
 
+    const roomId = room && room.id
+    const toId   = to && to.id
+
     if (text) {
       /**
        * 1. Text
@@ -117,8 +120,8 @@ export class Message extends PuppetAccessory implements Sayable {
       msg.payload = {
         type: MessageType.Text,
         direction,
-        to,
-        room,
+        toId,
+        roomId,
         text,
         date,
       }
@@ -154,8 +157,8 @@ export class Message extends PuppetAccessory implements Sayable {
       msg.payload = {
         type,
         direction,
-        to,
-        room,
+        toId,
+        roomId,
         file,
         date,
       }
@@ -279,11 +282,12 @@ export class Message extends PuppetAccessory implements Sayable {
     //   return
     // }
 
-    const from = this.payload.from
-    if (!from) {
+    const fromId = this.payload.fromId
+    if (!fromId) {
       throw new Error('no from')
     }
 
+    const from = this.puppet.Contact.load(fromId)
     return from
   }
 
@@ -311,7 +315,13 @@ export class Message extends PuppetAccessory implements Sayable {
     //   return
     // }
 
-    return this.payload.to || null
+    const toId = this.payload.toId
+    if (!toId) {
+      return null
+    }
+
+    const to = this.puppet.Contact.load(toId)
+    return to
   }
 
   // /**
@@ -338,8 +348,13 @@ export class Message extends PuppetAccessory implements Sayable {
     //   this.payload.room = room
     //   return
     // }
+    const roomId = this.payload.roomId
+    if (!roomId) {
+      return null
+    }
 
-    return this.payload.room || null
+    const room = this.puppet.Room.load(roomId)
+    return room
   }
 
   // /**
