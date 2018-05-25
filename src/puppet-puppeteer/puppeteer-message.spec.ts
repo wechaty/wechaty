@@ -108,10 +108,8 @@ test('constructor()', async t => {
   const sandbox = sinon.createSandbox()
   sandbox.stub(puppet, 'messagePayload').callsFake((_: string) => {
     const payload = {
-      type: Message.Type.Text,
-      from: {
-        id: EXPECTED.from,
-      },
+      type   : Message.Type.Text,
+      fromId : EXPECTED.from,
     }
     return payload
   })
