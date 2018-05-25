@@ -57,9 +57,9 @@ export interface RoomQueryFilter {
 export interface RoomPayload {
   // id:               string,
   // encryId:          string,
-  topic:            string,
-  memberList:       Contact[],
-  owner?:           Contact,
+  topic        : string,
+  memberIdList : string[],
+  ownerId?     : string,
 
   nameMap:          Map<string, string>,
   roomAliasMap:     Map<string, string>,
@@ -173,11 +173,10 @@ export class Room extends PuppetAccessory implements Sayable {
    * @private
    * About the Generic: https://stackoverflow.com/q/43003970/1123955
    */
-  public static load<T extends typeof Room>(this: T, id: string): T['prototype'] {
-    if (!id) {
-      throw new Error('no id')
-    }
-
+  public static load<T extends typeof Room>(
+    this : T,
+    id   : string,
+  ): T['prototype'] {
     if (!this.pool) {
       this.pool = new Map<string, Room>()
     }
@@ -191,6 +190,15 @@ export class Room extends PuppetAccessory implements Sayable {
     this.pool.set(id, newRoom)
     return newRoom
   }
+
+  // public load(
+  //   this : Room,
+  //   id   : string,
+  // ): Room {
+  //   const klass = instanceToClass(this, Room)
+  //   const room = klass.load(id)
+  //   return room
+  // }
 
   /**
    *
@@ -250,9 +258,9 @@ export class Room extends PuppetAccessory implements Sayable {
 
     const payload = await this.puppet.roomPayload(this.id)
     await Promise.all(
-      payload.memberList.map(
-        contact => contact.ready(),
-      ),
+      payload.memberIdList
+      .map(id => this.puppet.Contact.load(id))
+      .map(contact => contact.ready()),
     )
     log.silly('Room', 'ready() this.payload="%s"',
                                 util.inspect(payload),
@@ -265,7 +273,7 @@ export class Room extends PuppetAccessory implements Sayable {
    * @private
    */
   public isReady(): boolean {
-    return !!(this.payload && this.payload.memberList && this.payload.memberList.length)
+    return !!(this.payload && this.payload.memberIdList && this.payload.memberIdList.length)
   }
 
   public say(text: string)                     : Promise<void>
@@ -453,11 +461,11 @@ export class Room extends PuppetAccessory implements Sayable {
   private delLocal(contact: Contact): void {
     log.verbose('Room', 'delLocal(%s)', contact)
 
-    const memberList = this.payload && this.payload.memberList
-    if (memberList && memberList.length > 0) {
-      for (let i = 0; i < memberList.length; i++) {
-        if (memberList[i].id === contact.id) {
-          memberList.splice(i, 1)
+    const memberIdList = this.payload && this.payload.memberIdList
+    if (memberIdList && memberIdList.length > 0) {
+      for (let i = 0; i < memberIdList.length; i++) {
+        if (memberIdList[i] === contact.id) {
+          memberIdList.splice(i, 1)
           break
         }
       }
@@ -581,11 +589,11 @@ export class Room extends PuppetAccessory implements Sayable {
    * }
    */
   public has(contact: Contact): boolean {
-    if (!this.payload || !this.payload.memberList) {
+    if (!this.payload || !this.payload.memberIdList) {
       return false
     }
-    return this.payload.memberList
-                        .filter(c => c.id === contact.id)
+    return this.payload.memberIdList
+                        .filter(id => id === contact.id)
                         .length > 0
   }
 
@@ -637,7 +645,7 @@ export class Room extends PuppetAccessory implements Sayable {
       throw new Error('Room member find queryArg only support one key. multi key support is not availble now.')
     }
 
-    if (!this.payload || !this.payload.memberList) {
+    if (!this.payload || !this.payload.memberIdList) {
       log.warn('Room', 'member() not ready')
       return []
     }
@@ -738,7 +746,7 @@ export class Room extends PuppetAccessory implements Sayable {
   public memberList(): Contact[] {
     log.verbose('Room', 'memberList')
 
-    if (!this.payload || !this.payload.memberList || this.payload.memberList.length < 1) {
+    if (!this.payload || !this.payload.memberIdList || this.payload.memberIdList.length < 1) {
       log.warn('Room', 'memberList() not ready')
       log.verbose('Room', 'memberList() trying call refresh() to update')
       this.sync().then(() => {
@@ -746,7 +754,8 @@ export class Room extends PuppetAccessory implements Sayable {
       })
       return []
     }
-    return this.payload.memberList
+    const memberList = this.payload.memberIdList.map(id => this.puppet.Contact.load(id))
+    return memberList
   }
 
   /**
@@ -782,7 +791,13 @@ export class Room extends PuppetAccessory implements Sayable {
   public owner(): Contact | null {
     log.info('Room', 'owner()')
 
-    return this.payload && this.payload.owner || null
+    const ownerId = this.payload && this.payload.ownerId
+    if (!ownerId) {
+      return null
+    }
+
+    const owner = this.puppet.Contact.load(ownerId)
+    return owner
   }
 
 }

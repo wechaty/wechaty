@@ -835,7 +835,7 @@ export class PuppetPuppeteer extends Puppet {
       // encryId:    rawPayload.EncryChatRoomId, // ???
       topic:      Misc.plainText(rawPayload.NickName || ''),
       // ownerUin:   rawPayload.OwnerUin,
-      memberList,
+      memberIdList: memberList.map(c => c.id),
 
       nameMap,
       roomAliasMap,
