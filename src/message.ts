@@ -16,8 +16,8 @@
  *   limitations under the License.
  *   @ignore
  */
-import * as path from 'path'
-import * as cuid from 'cuid'
+// import * as path from 'path'
+// import * as cuid from 'cuid'
 
 import {
   FileBox,
@@ -37,9 +37,9 @@ import Room             from './room'
 
 import {
   MessageDirection,
-  MessageMOOptions,
-  MessageMOOptionsText,
-  MessageMOOptionsFile,
+  // MessageMOOptions,
+  // MessageMOOptionsText,
+  // MessageMOOptionsFile,
   MessagePayload,
   MessageType,
 }                       from './message.type'
@@ -91,89 +91,95 @@ export class Message extends PuppetAccessory implements Sayable {
    * "mobile originated" or "mobile terminated"
    * https://www.tatango.com/resources/video-lessons/video-mo-mt-sms-messaging/
    */
-  public static createMO(
-    options: MessageMOOptions,
-  ): Message {
-    log.verbose('Message', 'static createMobileOriginated()')
-    /**
-     * Must NOT use `Message` at here
-     * MUST use `this` at here
-     *
-     * because the class will be `cloneClass`-ed
-     */
-    const msg = new this(cuid())
+  // private static createMO(
+  //   options: MessageMOOptions,
+  // ): Message {
+  //   log.verbose('Message', 'static createMobileOriginated()')
+  //   /**
+  //    * Must NOT use `Message` at here
+  //    * MUST use `this` at here
+  //    *
+  //    * because the class will be `cloneClass`-ed
+  //    */
+  //   const msg = new this(cuid())
 
-    const direction = MessageDirection.MO
-    const to        = options.to
-    const room      = options.room
-    const text      = (options as MessageMOOptionsText).text
-    const date      = new Date()
-    const file      = (options as MessageMOOptionsFile).file
+  //   const direction = MessageDirection.MO
+  //   const to        = options.to
+  //   const room      = options.room
+  //   const text      = (options as MessageMOOptionsText).text
+  //   const date      = new Date()
+  //   const file      = (options as MessageMOOptionsFile).file
 
-    const roomId = room && room.id
-    const toId   = to && to.id
+  //   const roomId = room && room.id
+  //   const toId   = to && to.id
 
-    if (text) {
-      /**
-       * 1. Text
-       */
-      msg.payload = {
-        type: MessageType.Text,
-        direction,
-        toId,
-        roomId,
-        text,
-        date,
-      }
-    } else if (file) {
-      /**
-       * 2. File
-       */
-      let type: MessageType
+  //   if (text) {
+  //     /**
+  //      * 1. Text
+  //      */
+  //     msg.payload = {
+  //       type: MessageType.Text,
+  //       direction,
+  //       toId,
+  //       roomId,
+  //       text,
+  //       date,
+  //     }
+  //   } else if (file) {
+  //     /**
+  //      * 2. File
+  //      */
+  //     let type: MessageType
 
-      const ext = path.extname(file.name)
+  //     const ext = path.extname(file.name)
 
-      switch (ext.toLowerCase()) {
-        case '.bmp':
-        case '.jpg':
-        case '.jpeg':
-        case '.png':
-        case '.gif': // type =  WebMsgType.EMOTICON
-          type = MessageType.Image
-          break
+  //     switch (ext.toLowerCase()) {
+  //       case '.bmp':
+  //       case '.jpg':
+  //       case '.jpeg':
+  //       case '.png':
+  //       case '.gif': // type =  WebMsgType.EMOTICON
+  //         type = MessageType.Image
+  //         break
 
-        case '.mp4':
-          type = MessageType.Video
-          break
+  //       case '.mp4':
+  //         type = MessageType.Video
+  //         break
 
-        case '.mp3':
-          type = MessageType.Audio
-          break
+  //       case '.mp3':
+  //         type = MessageType.Audio
+  //         break
 
-        default:
-          throw new Error('unknown ext:' + ext)
-      }
+  //       default:
+  //         throw new Error('unknown ext:' + ext)
+  //     }
 
-      msg.payload = {
-        type,
-        direction,
-        toId,
-        roomId,
-        file,
-        date,
-      }
-    } else {
-      throw new Error('neither text nor file!?')
-    }
+  //     msg.payload = {
+  //       type,
+  //       direction,
+  //       toId,
+  //       roomId,
+  //       file,
+  //       date,
+  //     }
+  //   } else {
+  //     throw new Error('neither text nor file!?')
+  //   }
 
-    return msg
-  }
+  //   return msg
+  // }
 
+ /**
+  * "mobile originated" or "mobile terminated"
+  * https://www.tatango.com/resources/video-lessons/video-mo-mt-sms-messaging/
+  */
   public static createMT(
-    id: string,
+    id       : string,
+    payload? : MessagePayload,
   ): Message {
-    log.verbose('Message', 'static createMobileTerminated(%s)',
+    log.verbose('Message', 'static createMobileTerminated(%s, %s)',
                             id,
+                            payload,
                 )
     /**
      * Must NOT use `Message` at here
@@ -184,15 +190,25 @@ export class Message extends PuppetAccessory implements Sayable {
     const msg = new this(id)
     msg.direction = MessageDirection.MT
 
+    if (payload) {
+      msg.payload = payload
+    }
+
     return msg
   }
 
   /**
-   * Create a Mobile Originated Message
-   * @param options MO Options
+   * @alias createMT
+   * Create a Mobile Terminated Message
    */
-  public static create(options: MessageMOOptions): Message {
-    return this.createMO(options)
+  public static create(
+    id       : string,
+    payload? : MessagePayload,
+  ): Message {
+    return this.createMT(
+      id,
+      payload,
+    )
   }
 
   /**
@@ -246,6 +262,8 @@ export class Message extends PuppetAccessory implements Sayable {
     if (this.type() === Message.Type.Text) {
       msgStrList.push(`<${this.text()}>`)
     } else {
+      log.verbose('Message', 'toString() this.type()=%s', Message.Type[this.type()])
+
       if (!this.payload) {
         throw new Error('no payload')
       }
@@ -424,7 +442,10 @@ export class Message extends PuppetAccessory implements Sayable {
     textOrFile : string | FileBox,
     mention?   : Contact | Contact[],
   ): Promise<void> {
-    log.verbose('Message', 'say(%s, %s)', textOrFile, mention)
+    log.verbose('Message', 'say(%s, %s)',
+                            textOrFile.toString(),
+                            mention,
+                )
 
     // const user = this.puppet.userSelf()
     const from = this.from()

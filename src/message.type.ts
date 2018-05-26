@@ -10,7 +10,7 @@ import {
 }           from './room'
 
 export enum MessageDirection {
-  MO,
+  // MO,
   MT,
 }
 
@@ -18,6 +18,7 @@ export enum MessageType {
   Unknown = 0,
   Attachment,
   Audio,
+  Emoticon,
   Image,
   Text,
   Video,

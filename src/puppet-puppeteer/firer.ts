@@ -204,7 +204,7 @@ function parseRoomJoin(
   this: PuppetPuppeteer,
   content: string,
 ): [string[], string] {
-  log.verbose('PuppetPuppeteerFirer', 'checkRoomJoin(%s)', content)
+  log.verbose('PuppetPuppeteerFirer', 'parseRoomJoin(%s)', content)
 
   const reListInvite = regexConfig.roomJoinInvite
   const reListQrcode = regexConfig.roomJoinQrcode
@@ -214,7 +214,7 @@ function parseRoomJoin(
   let foundQrcode: string[]|null = []
   reListQrcode.some(re => !!(foundQrcode = content.match(re)))
   if ((!foundInvite || !foundInvite.length) && (!foundQrcode || !foundQrcode.length)) {
-    throw new Error('checkRoomJoin() not found matched re of ' + content)
+    throw new Error('parseRoomJoin() not found matched re of ' + content)
   }
   /**
    * 管理员 invited 庆次、小桔妹 to the group chat
@@ -233,7 +233,7 @@ async function checkRoomJoin(
 
   const room = msg.room()
   if (!room) {
-    log.warn('PuppetPuppeteerFirer', 'fireRoomJoin() `room` not found')
+    log.warn('PuppetPuppeteerFirer', 'checkRoomJoin() `room` not found')
     return false
   }
 
@@ -243,23 +243,23 @@ async function checkRoomJoin(
   try {
     [inviteeList, inviter] = parseRoomJoin.call(this, text)
   } catch (e) {
-    log.silly('PuppetPuppeteerFirer', 'fireRoomJoin() "%s" is not a join message', text)
+    log.silly('PuppetPuppeteerFirer', 'checkRoomJoin() "%s" is not a join message', text)
     return false // not a room join message
   }
-  log.silly('PuppetPuppeteerFirer', 'fireRoomJoin() inviteeList: %s, inviter: %s',
+  log.silly('PuppetPuppeteerFirer', 'checkRoomJoin() inviteeList: %s, inviter: %s',
                               inviteeList.join(','),
                               inviter,
           )
 
-  let inviterContact: Contact | null = null
-  let inviteeContactList: Contact[] = []
+  let inviterContact: null | Contact = null
+  let inviteeContactList: Contact[]  = []
 
   try {
     if (inviter === 'You' || inviter === '你' || inviter === 'you') {
       inviterContact = this.userSelf()
     }
 
-    const max = 20
+    const max     = 20
     const backoff = 300
     const timeout = max * (backoff * max) / 2
     // 20 / 300 => 63,000
