@@ -95,7 +95,7 @@ bot
        */
       case FriendRequest.Type.Receive:
         if (request.hello() === 'ding') {
-          logMsg = 'accepted because verify messsage is "ding"'
+          logMsg = 'accepted automatically because verify messsage is "ding"'
           request.accept()
 
         } else {

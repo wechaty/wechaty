@@ -193,7 +193,7 @@ export class Contact extends PuppetAccessory implements Sayable {
     // log.verbose('Cotnact', 'findAll({ name: %s })', query.name)
     log.verbose('Cotnact', 'findAll({ %s })',
                             Object.keys(query)
-                                  .map((k: keyof ContactQueryFilter) => `${k}: ${query[k]}`)
+                                  .map(k => `${k}: ${query[k as keyof ContactQueryFilter]}`)
                                   .join(', '),
               )
 

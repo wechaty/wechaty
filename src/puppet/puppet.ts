@@ -116,7 +116,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   /**
    * childPkg stores the `package.json` that the NPM module who extends the `Puppet`
    */
-  private readonly childPkg: normalize.Package
+  private readonly childPkg: undefined | normalize.Package
 
   constructor(
     public options: PuppetOptions,
@@ -209,7 +209,10 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   }
 
   public version(): string {
-    return this.childPkg.version
+    if (this.childPkg) {
+      return this.childPkg.version
+    }
+    return '0.0.0'
   }
 
   /**

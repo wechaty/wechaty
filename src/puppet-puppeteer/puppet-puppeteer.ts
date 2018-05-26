@@ -47,7 +47,7 @@ import {
   log,
   Raven,
 }                     from '../config'
-import Profile        from '../profile'
+// import Profile        from '../profile'
 import Misc           from '../misc'
 
 import {
@@ -104,7 +104,11 @@ export class PuppetPuppeteer extends Puppet {
   ) {
     super(options)
 
-    // this.fileId = 0
+    this.fileId = 0
+    this.bridge = new Bridge({
+      head    : config.head,
+      profile : this.options.profile,
+    })
 
     const SCAN_TIMEOUT  = 2 * 60 * 1000 // 2 minutes
     this.scanWatchdog   = new Watchdog<ScanFoodType>(SCAN_TIMEOUT, 'Scan')
@@ -119,7 +123,7 @@ export class PuppetPuppeteer extends Puppet {
       this.initWatchdog()
       this.initWatchdogForScan()
 
-      this.bridge = await this.initBridge(this.options.profile)
+      this.bridge = await this.initBridge()
       log.verbose('PuppetPuppeteer', 'initBridge() done')
 
       /**
@@ -275,7 +279,7 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async initBridge(profile: Profile): Promise<Bridge> {
+  public async initBridge(): Promise<Bridge> {
     log.verbose('PuppetPuppeteer', 'initBridge()')
 
     if (this.state.off()) {
@@ -283,14 +287,6 @@ export class PuppetPuppeteer extends Puppet {
       log.warn('PuppetPuppeteer', e.message)
       throw e
     }
-
-    const head = config.head
-    // we have to set this.bridge right now,
-    // because the Event.onXXX might arrive while we are initializing.
-    this.bridge = new Bridge({
-      head,
-      profile,
-    })
 
     this.bridge.on('ding'     , Event.onDing.bind(this))
     this.bridge.on('error'    , e => this.emit('error', e))
@@ -749,7 +745,7 @@ export class PuppetPuppeteer extends Puppet {
   ): string {
     log.verbose('PuppetPuppeteer', 'contactQueryFilterToFunctionString({ %s })',
                             Object.keys(query)
-                                  .map((k: keyof ContactQueryFilter) => `${k}: ${query[k]}`)
+                                  .map(k => `${k}: ${query[k as keyof ContactQueryFilter]}`)
                                   .join(', '),
               )
 

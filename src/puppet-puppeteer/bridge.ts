@@ -57,8 +57,8 @@ export interface BridgeOptions {
 }
 
 export class Bridge extends EventEmitter {
-  private browser : Browser
-  private page    : Page
+  private browser : undefined | Browser
+  private page    : undefined | Page
   private state   : StateSwitch
 
   constructor(
@@ -276,6 +276,14 @@ export class Bridge extends EventEmitter {
 
   public async quit(): Promise<void> {
     log.verbose('PuppetPuppeteerBridge', 'quit()')
+
+    if (!this.page) {
+      throw new Error('no page')
+    }
+    if (!this.browser) {
+      throw new Error('no browser')
+    }
+
     this.state.off('pending')
 
     try {
@@ -644,6 +652,11 @@ export class Bridge extends EventEmitter {
                                           ? ''
                                           : ', ' + args.join(', '),
               )
+
+    if (!this.page) {
+      throw new Error('no page')
+    }
+
     try {
       const noWechaty = await this.page.evaluate(() => {
         return typeof WechatyBro === 'undefined'
@@ -832,6 +845,11 @@ export class Bridge extends EventEmitter {
 
   public async hostname(): Promise<string | null> {
     log.verbose('PuppetPuppeteerBridge', 'hostname()')
+
+    if (!this.page) {
+      throw new Error('no page')
+    }
+
     try {
       const hostname = await this.page.evaluate(() => location.hostname) as string
       log.silly('PuppetPuppeteerBridge', 'hostname() got %s', hostname)
@@ -847,6 +865,10 @@ export class Bridge extends EventEmitter {
   public async cookies(): Promise<Cookie[]>
 
   public async cookies(cookieList?: Cookie[]): Promise<void | Cookie[]> {
+    if (!this.page) {
+      throw new Error('no page')
+    }
+
     if (cookieList) {
       try {
         await this.page.setCookie(...cookieList)
@@ -905,12 +927,22 @@ export class Bridge extends EventEmitter {
 
   public async reload(): Promise<void> {
     log.verbose('PuppetPuppeteerBridge', 'reload()')
+
+    if (!this.page) {
+      throw new Error('no page')
+    }
+
     await this.page.reload()
     return
   }
 
   public async evaluate(fn: () => any, ...args: any[]): Promise<any> {
     log.silly('PuppetPuppeteerBridge', 'evaluate()')
+
+    if (!this.page) {
+      throw new Error('no page')
+    }
+
     try {
       return await this.page.evaluate(fn, ...args)
     } catch (e) {
