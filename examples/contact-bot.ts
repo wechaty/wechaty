@@ -16,9 +16,6 @@
  *   limitations under the License.
  *
  */
-
-import { createWriteStream } from 'fs'
-
 /* tslint:disable:variable-name */
 const QrcodeTerminal = require('qrcode-terminal')
 
