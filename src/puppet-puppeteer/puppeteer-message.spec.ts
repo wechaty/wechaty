@@ -103,7 +103,7 @@ test('constructor()', async t => {
     id:     '179242112323992762',
     from:   '@0bb3e4dd746fdbd4a80546aef66f4085',
   }
-  const msg = wechaty.Message.createMT(rawPayload.MsgId)
+  const msg = wechaty.Message.create(rawPayload.MsgId)
 
   const sandbox = sinon.createSandbox()
   sandbox.stub(puppet, 'messagePayload').callsFake((_: string) => {
@@ -204,7 +204,7 @@ test('ready()', async t => {
   sandbox.stub(puppet as any, 'contactRawPayload').callsFake(mockContactRawPayload)
   sandbox.stub(puppet as any, 'messageRawPayload').callsFake(mockMessageRawPayload)
 
-  const m = wechaty.Message.createMT(rawPayload.MsgId)
+  const m = wechaty.Message.create(rawPayload.MsgId)
 
   t.is(m.id, expectedMsgId, 'id/MsgId right')
 
@@ -254,7 +254,6 @@ test('self()', async t => {
       fromId      : MOCK_CONTACT.id,
       toId        : 'to_id',
       type      : {} as any,
-      direction : {} as any,
       date      : {} as any,
     }
     return payload
@@ -264,14 +263,14 @@ test('self()', async t => {
   sandbox.stub((puppet as any as { 'userId': string }), 'userId')
           .value(MOCK_CONTACT.id)
 
-  const selfMsg = wechaty.Message.createMT('xxx')
+  const selfMsg = wechaty.Message.create('xxx')
   await selfMsg.ready()
 
   t.true(selfMsg.self(), 'should identify self message true where message from userId')
 
   sandbox.stub((puppet as any as { 'userId': string }), 'userId')
           .value('fasdfafasdfsdf')
-  const otherMsg = wechaty.Message.createMT('xxx')
+  const otherMsg = wechaty.Message.create('xxx')
   await otherMsg.ready()
 
   t.false(otherMsg.self(), 'should identify self message false when from a different fromId')
@@ -365,7 +364,7 @@ test('mentioned()', async t => {
   sandbox.stub(puppet as any, 'messageRawPayload').callsFake(mockMessageRawPayload)
   // MyRoom.puppet = wechaty.Message.puppet = MyContact.puppet = puppet
 
-  const msg11 = wechaty.Message.createMT(rawPayload11.MsgId)
+  const msg11 = wechaty.Message.create(rawPayload11.MsgId)
   await msg11.ready()
 
   const room11 = msg11.room()
@@ -375,7 +374,7 @@ test('mentioned()', async t => {
     t.is(mentionContactList11.length, 0, '@_@ in message should not be treat as contact')
   }
 
-  const msg12 = wechaty.Message.createMT(rawPayload12.MsgId)
+  const msg12 = wechaty.Message.create(rawPayload12.MsgId)
   await msg12.ready()
   const room12 = msg12.room()
   if (room12) {
@@ -384,7 +383,7 @@ test('mentioned()', async t => {
     t.is(mentionContactList12.length, 0, 'user@email.com in message should not be treat as contact')
   }
 
-  const msg13 = wechaty.Message.createMT(rawPayload13.MsgId)
+  const msg13 = wechaty.Message.create(rawPayload13.MsgId)
   await msg13.ready()
   const room13 = msg13.room()
   if (room13) {
@@ -395,7 +394,7 @@ test('mentioned()', async t => {
     // }, 1 * 1000)
   }
 
-  const msg21 = wechaty.Message.createMT(rawPayload21.MsgId)
+  const msg21 = wechaty.Message.create(rawPayload21.MsgId)
   await msg21.ready()
   const room21 = msg21.room()
   if (room21) {
@@ -405,7 +404,7 @@ test('mentioned()', async t => {
     t.is(mentionContactList21[0].id, '@cd7d467d7464e8ff6b0acd29364654f3666df5d04551f6082bfc875f90a6afd2', 'should get 小桔同学 id right in rawPayload21')
   }
 
-  const msg22 = wechaty.Message.createMT(rawPayload22.MsgId)
+  const msg22 = wechaty.Message.create(rawPayload22.MsgId)
   await msg22.ready()
 
   const room22 = msg22.room()
@@ -418,7 +417,7 @@ test('mentioned()', async t => {
     t.is(mentionContactList22[1].id, '@cd7d467d7464e8ff6b0acd29364654f3666df5d04551f6082bfc875f90a6afd2', 'should get wuli舞哩客服 id right in rawPayload22')
   }
 
-  const msg31 = wechaty.Message.createMT(rawPayload31.MsgId)
+  const msg31 = wechaty.Message.create(rawPayload31.MsgId)
   await msg31.ready()
 
   const room31 = msg31.room()
@@ -429,7 +428,7 @@ test('mentioned()', async t => {
     t.is(mentionContactList31[0].id, '@36d55130f6a91bae4a2ed2cc5f19c56a9258c65ce3db9777f74f607223ef0855', 'should get wuli舞哩客服 id right in rawPayload31')
   }
 
-  const msg32 = wechaty.Message.createMT(rawPayload32.MsgId)
+  const msg32 = wechaty.Message.create(rawPayload32.MsgId)
   await msg32.ready()
 
   const room32 = msg32.room()

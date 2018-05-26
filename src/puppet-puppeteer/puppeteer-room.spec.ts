@@ -29,7 +29,9 @@ import Profile    from '../profile'
 
 import Wechaty    from '../wechaty'
 
-import PuppetPuppeteer, { WebRoomRawPayload }  from './puppet-puppeteer'
+import { PuppetPuppeteer }  from './puppet-puppeteer'
+import { WebRoomRawPayload } from './web-schemas'
+
 // import Contact from '../contact'
 // import Message from '../message'
 // import Room    from '../room'

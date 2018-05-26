@@ -190,7 +190,7 @@ async function onMessage(
   this       : PuppetPuppeteer,
   rawPayload : WebMessageRawPayload,
 ): Promise<void> {
-  const msg = this.Message.createMT(rawPayload.MsgId)
+  const msg = this.Message.create(rawPayload.MsgId)
 
   try {
     await msg.ready()
@@ -232,13 +232,13 @@ async function onMessage(
     //   case WebMessageType.MICROVIDEO:
     //   case WebMessageType.APP:
     //     log.verbose('PuppetPuppeteerEvent', 'onMessage() EMOTICON/IMAGE/VIDEO/VOICE/MICROVIDEO message')
-    //     msg = this.Message.createMT(rawPayload.MsgId)
+    //     msg = this.Message.create(rawPayload.MsgId)
     //     break
 
     //   case WebMessageType.TEXT:
     //     if (rawPayload.SubMsgType === WebMessageType.LOCATION) {
     //       log.verbose('PuppetPuppeteerEvent', 'onMessage() (TEXT&LOCATION) message')
-    //       msg = this.Message.createMT(rawPayload.MsgId)
+    //       msg = this.Message.create(rawPayload.MsgId)
     //     }
     //     break
     // }

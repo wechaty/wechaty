@@ -35,14 +35,31 @@ import PuppetAccessory  from './puppet-accessory'
 import Contact          from './contact'
 import Room             from './room'
 
-import {
-  MessageDirection,
-  // MessageMOOptions,
-  // MessageMOOptionsText,
-  // MessageMOOptionsFile,
-  MessagePayload,
-  MessageType,
-}                       from './message.type'
+export enum MessageType {
+  Unknown = 0,
+  Attachment,
+  Audio,
+  Emoticon,
+  Image,
+  Text,
+  Video,
+}
+
+/**
+ *
+ * MessagePayload
+ *
+ */
+export interface MessagePayload {
+  type      : MessageType,
+  text?     : string,
+  file?     : FileBox,
+  // direction : MessageDirection,
+  fromId?   : string,
+  date      : Date,
+  toId?     : null | string,      // if to is not set, then room must be set
+  roomId?   : null | string,
+}
 
 /**
  * All wechat messages will be encapsulated as a Message.
@@ -59,9 +76,9 @@ export class Message extends PuppetAccessory implements Sayable {
    */
 
   // tslint:disable-next-line:variable-name
-  public static readonly Type      = MessageType
+  public static readonly Type = MessageType
   // tslint:disable-next-line:variable-name
-  public static readonly Direction = MessageDirection
+  // public static readonly Direction = MessageDirection
 
   /**
    * @todo add function
@@ -170,14 +187,16 @@ export class Message extends PuppetAccessory implements Sayable {
   // }
 
  /**
+  * Create a Mobile Terminated Message
+  *
   * "mobile originated" or "mobile terminated"
   * https://www.tatango.com/resources/video-lessons/video-mo-mt-sms-messaging/
   */
-  public static createMT(
+  public static create(
     id       : string,
     payload? : MessagePayload,
   ): Message {
-    log.verbose('Message', 'static createMobileTerminated(%s, %s)',
+    log.verbose('Message', 'static create(%s, %s)',
                             id,
                             payload ? payload : '',
                 )
@@ -188,7 +207,7 @@ export class Message extends PuppetAccessory implements Sayable {
      * because the class will be `cloneClass`-ed
      */
     const msg = new this(id)
-    msg.direction = MessageDirection.MT
+    // msg.direction = MessageDirection.MT
 
     if (payload) {
       msg.payload = payload
@@ -201,15 +220,15 @@ export class Message extends PuppetAccessory implements Sayable {
    * @alias createMT
    * Create a Mobile Terminated Message
    */
-  public static create(
-    id       : string,
-    payload? : MessagePayload,
-  ): Message {
-    return this.createMT(
-      id,
-      payload,
-    )
-  }
+  // public static create(
+  //   id       : string,
+  //   payload? : MessagePayload,
+  // ): Message {
+  //   return this.createMT(
+  //     id,
+  //     payload,
+  //   )
+  // }
 
   /**
    *
@@ -217,7 +236,7 @@ export class Message extends PuppetAccessory implements Sayable {
    *
    */
   private payload?  : MessagePayload
-  private direction : MessageDirection
+  // private direction : MessageDirection
 
   /**
    * @private
@@ -243,7 +262,7 @@ export class Message extends PuppetAccessory implements Sayable {
     }
 
     // default set to MT because there's a id param
-    this.direction = MessageDirection.MT
+    // this.direction = MessageDirection.MT
 }
 
   /**
@@ -256,7 +275,7 @@ export class Message extends PuppetAccessory implements Sayable {
 
     const msgStrList = [
       'Message',
-      `#${MessageDirection[this.direction]}`,
+      // `#${MessageDirection[this.direction]}`,
       `#${MessageType[this.type()]}`,
     ]
     if (this.type() === Message.Type.Text) {
@@ -682,9 +701,9 @@ export class Message extends PuppetAccessory implements Sayable {
   public async ready(): Promise<void> {
     log.verbose('Message', 'ready()')
 
-    if (this.direction !== MessageDirection.MT) {
-      throw new Error('only Mobile Terminated message is permit to call ready()!')
-    }
+    // if (this.direction !== MessageDirection.MT) {
+    //   throw new Error('only Mobile Terminated message is permit to call ready()!')
+    // }
 
     if (this.isReady()) {
       return
@@ -861,9 +880,4 @@ export class Message extends PuppetAccessory implements Sayable {
   }
 }
 
-export {
-  MessageDirection,
-  MessagePayload,
-  MessageType,
-}
 export default Message

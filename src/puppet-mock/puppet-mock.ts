@@ -93,7 +93,7 @@ export class PuppetMock extends Puppet {
     const user = this.Contact.load(this.userId)
     this.emit('login', user)
 
-    const msg  = this.Message.createMT('mock_id')
+    const msg  = this.Message.create('mock_id')
     await msg.ready()
 
     setInterval(() => {
@@ -197,7 +197,6 @@ export class PuppetMock extends Puppet {
     log.verbose('PuppetMock', 'messagePayload(%s)', rawPayload)
     const payload: MessagePayload = {
       date      : new Date(),
-      direction : this.Message.Direction.MT,
       fromId    : 'xxx',
       text      : 'mock message text',
       toId      : this.userSelf().id,

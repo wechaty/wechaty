@@ -109,7 +109,7 @@ test('PuppetPuppeteerFriendRequest.confirm smoke testing', async t => {
   // ;
   // (puppet as any).messageRawPayload()
 
-  const msg = wechaty.Message.createMT(rawMessagePayload.MsgId)
+  const msg = wechaty.Message.create(rawMessagePayload.MsgId)
   await msg.ready()
 
   t.true(/^You have added (.+) as your WeChat contact. Start chatting!$/.test(msg.text()), 'should match confirm message')

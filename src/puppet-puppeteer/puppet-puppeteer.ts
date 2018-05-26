@@ -74,7 +74,7 @@ import {
   Gender,
 }                             from '../contact'
 import {
-  MessageDirection,
+  // MessageDirection,
   MessagePayload,
   MessageType,
 }                             from '../message'
@@ -337,7 +337,6 @@ export class PuppetPuppeteer extends Puppet {
       } else {
         throw new Error('parse found a room message, but neither FromUserName nor ToUserName is a room(/^@@/)')
       }
-      room = room
     }
 
     if (rawPayload.ToUserName) {
@@ -346,7 +345,7 @@ export class PuppetPuppeteer extends Puppet {
       }
     }
 
-    const file: FileBox | undefined = undefined
+    const file: undefined | FileBox = undefined
 
     const type: MessageType = this.messageTypeFromWeb(rawPayload.MsgType)
 
@@ -355,7 +354,7 @@ export class PuppetPuppeteer extends Puppet {
     const toId   = to   && to.id
 
     const payload: MessagePayload = {
-      direction: MessageDirection.MT,
+      // direction: MessageDirection.MT,
       type,
       fromId,
       toId,
@@ -1697,7 +1696,4 @@ export class PuppetPuppeteer extends Puppet {
 
 }
 
-export {
-  WebRoomRawPayload,
-}
 export default PuppetPuppeteer

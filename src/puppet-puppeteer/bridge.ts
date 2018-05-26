@@ -44,7 +44,7 @@ import {
 }                               from '../puppet-puppeteer/web-schemas'
 import {
   WebRoomRawPayload,
-}                               from './puppet-puppeteer'
+}                               from './web-schemas'
 
 export interface InjectResult {
   code:    number,
