@@ -25,9 +25,9 @@ import {
   Raven,
   Sayable,
 }                       from './config'
-import PuppetAccessory  from './puppet-accessory'
+import { PuppetAccessory }  from './puppet-accessory'
 
-import Message          from './message'
+// import Message          from './message'
 
 /**
  * Enum for Gender values.
@@ -70,6 +70,8 @@ export interface ContactPayload {
   weixin?:    string,
 }
 
+export const POOL = Symbol('pool')
+
 /**
  * All wechat contacts(friend) will be encapsulated as a Contact.
  *
@@ -79,20 +81,44 @@ export interface ContactPayload {
 export class Contact extends PuppetAccessory implements Sayable {
 
   // tslint:disable-next-line:variable-name
-  public static Type    = ContactType
-  public static Gender  = Gender
+  public static Type   = ContactType
+  public static Gender = Gender
 
-  protected static readonly pool = new Map<string, Contact>()
+  protected static [POOL]: Map<string, Contact>
+  protected static get pool() {
+    return this[POOL]
+  }
+  protected static set pool(newPool: Map<string, Contact>) {
+    if (this === Contact) {
+      throw new Error(
+        'The global Contact class can not be used directly!'
+        + 'See: https://github.com/Chatie/wechaty/issues/1217',
+      )
+    }
+    this[POOL] = newPool
+  }
 
   /**
    * @private
    * About the Generic: https://stackoverflow.com/q/43003970/1123955
    */
-  public static load<T extends typeof Contact>(this: T, id: string): T['prototype'] {
-    if (!id || typeof id !== 'string') {
-      throw new Error('Contact.load(): id not found: ' + id)
+  public static load<T extends typeof Contact>(
+    this : T,
+    id   : string,
+  ): T['prototype'] {
+    if (!this.pool) {
+      log.verbose('Contact', 'load(%s) init pool', id)
+      this.pool = new Map<string, Contact>()
     }
-
+    if (this === Contact) {
+      throw new Error(
+        'The lgobal Contact class can not be used directly!'
+        + 'See: https://github.com/Chatie/wechaty/issues/1217',
+      )
+    }
+    if (this.pool === Contact.pool) {
+      throw new Error('the current pool is equal to the global pool error!')
+    }
     const existingContact = this.pool.get(id)
     if (existingContact) {
       return existingContact
@@ -101,7 +127,7 @@ export class Contact extends PuppetAccessory implements Sayable {
     // when we call `load()`, `this` should already be extend-ed a child class.
     // so we force `this as any` at here to make the call.
     const newContact = new (this as any)(id)
-    Contact.pool.set(id, newContact)
+    this.pool.set(id, newContact)
     return newContact
   }
 
@@ -167,7 +193,7 @@ export class Contact extends PuppetAccessory implements Sayable {
     // log.verbose('Cotnact', 'findAll({ name: %s })', query.name)
     log.verbose('Cotnact', 'findAll({ %s })',
                             Object.keys(query)
-                                  .map((k: keyof ContactQueryFilter) => `${k}: ${query[k]}`)
+                                  .map(k => `${k}: ${query[k as keyof ContactQueryFilter]}`)
                                   .join(', '),
               )
 
@@ -176,7 +202,8 @@ export class Contact extends PuppetAccessory implements Sayable {
     }
 
     try {
-      const contactList: Contact[] = await this.puppet.contactFindAll(query)
+      const contactIdList: string[] = await this.puppet.contactFindAll(query)
+      const contactList = contactIdList.map(id => this.load(id))
 
       await Promise.all(contactList.map(c => c.ready()))
       return contactList
@@ -188,7 +215,9 @@ export class Contact extends PuppetAccessory implements Sayable {
   }
 
   /**
+   *
    * Instance properties
+   *
    */
   protected payload?: ContactPayload
 
@@ -205,7 +234,10 @@ export class Contact extends PuppetAccessory implements Sayable {
     const MyClass = instanceToClass(this, Contact)
 
     if (MyClass === Contact) {
-      throw new Error('Contact class can not be instanciated directly! See: https://github.com/Chatie/wechaty/issues/1217')
+      throw new Error(
+        'Contact class can not be instanciated directly!'
+        + 'See: https://github.com/Chatie/wechaty/issues/1217',
+      )
     }
 
     if (!this.puppet) {
@@ -217,8 +249,11 @@ export class Contact extends PuppetAccessory implements Sayable {
    * @private
    */
   public toString(): string {
+    if (!this.payload) {
+      return this.constructor.name
+    }
     const identity = this.alias() || this.name() || this.id
-    return `Contact<${identity}>`
+    return `Contact<${identity || 'Unknown'}>`
   }
 
   /**
@@ -252,27 +287,33 @@ export class Contact extends PuppetAccessory implements Sayable {
   public async say(textOrFile: string | FileBox): Promise<void> {
     log.verbose('Contact', 'say(%s)', textOrFile)
 
-    let msg: Message
+    // let msg: Message
     if (typeof textOrFile === 'string') {
-      msg = Message.createMO({
-        text : textOrFile,
-        to   : this,
-      })
+      await this.puppet.messageSendText({
+        contactId: this.id,
+      }, textOrFile)
+      // msg = Message.createMO({
+      //   text : textOrFile,
+      //   to   : this,
+      // })
     } else if (textOrFile instanceof FileBox) {
-      msg = Message.createMO({
-        to   : this,
-        file : textOrFile,
-      })
+      await this.puppet.messageSendFile({
+        contactId: this.id,
+      }, textOrFile)
+      // msg = Message.createMO({
+      //   to   : this,
+      //   file : textOrFile,
+      // })
     } else {
       throw new Error('unsupported')
     }
 
-    log.silly('Contact', 'say() from: %s to: %s content: %s',
-                                  this.puppet.userSelf(),
-                                  this,
-                                  msg,
-              )
-    await this.puppet.messageSend(msg)
+    // log.silly('Contact', 'say() from: %s to: %s content: %s',
+    //                               this.puppet.userSelf(),
+    //                               this,
+    //                               msg,
+    //           )
+    // await this.puppet.messageSend(msg)
   }
 
   /**
@@ -332,7 +373,7 @@ export class Contact extends PuppetAccessory implements Sayable {
       return this.payload && this.payload.alias || null
     }
 
-    const future = this.puppet.contactAlias(this, newAlias)
+    const future = this.puppet.contactAlias(this.id, newAlias)
 
     future
       .then(() => this.payload!.alias = newAlias)
@@ -481,7 +522,7 @@ export class Contact extends PuppetAccessory implements Sayable {
   public async avatar(): Promise<FileBox> {
     log.verbose('Contact', 'avatar()')
 
-    return this.puppet.contactAvatar(this)
+    return this.puppet.contactAvatar(this.id)
   }
 
   /**
@@ -518,7 +559,7 @@ export class Contact extends PuppetAccessory implements Sayable {
    * @private
    */
   public async ready(): Promise<void> {
-    log.silly('Contact', 'ready()')
+    log.silly('Contact', 'ready() @ %s', this.puppet)
 
     if (this.isReady()) { // already ready
       log.silly('Contact', 'ready() isReady() true')

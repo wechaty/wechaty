@@ -68,14 +68,14 @@ export class Io {
   private readonly cuid     : string
   private readonly protocol : string
   private eventBuffer : IoEvent[] = []
-  private ws          : WebSocket
+  private ws          : undefined | WebSocket
 
   private readonly state = new StateSwitch('Io', log)
 
   private reconnectTimer?   : NodeJS.Timer
   private reconnectTimeout? : number
 
-  private onMessage: Function
+  private onMessage: undefined | Function
 
   private scanData: ScanData
 
@@ -392,6 +392,12 @@ export class Io {
   }
 
   private async send(ioEvent?: IoEvent): Promise<void> {
+    if (!this.ws) {
+      throw new Error('no ws')
+    }
+
+    const ws = this.ws
+
     if (ioEvent) {
       log.silly('Io', 'send(%s: %s)', ioEvent.name, ioEvent.payload)
       this.eventBuffer.push(ioEvent)
@@ -404,7 +410,7 @@ export class Io {
 
     const list: Promise<any>[] = []
     while (this.eventBuffer.length) {
-      const p = new Promise((resolve, reject) => this.ws.send(
+      const p = new Promise((resolve, reject) => ws.send(
         JSON.stringify(
           this.eventBuffer.shift(),
         ),
@@ -425,6 +431,10 @@ export class Io {
   }
 
   public async quit(): Promise<void> {
+    if (!this.ws) {
+      throw new Error('no ws')
+    }
+
     this.state.off('pending')
 
     // try to send IoEvents in buffer

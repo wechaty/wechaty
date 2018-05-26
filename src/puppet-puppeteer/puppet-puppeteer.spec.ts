@@ -33,9 +33,9 @@ const sinonTest   = require('sinon-test')(sinon, {
 import Profile      from '../profile'
 import Wechaty      from '../wechaty'
 
-import {
-  Contact,
-}                   from '../contact'
+// import {
+//   Contact as GlobalContact,
+// }                             from '../contact'
 
 import PuppetPuppeteer  from './puppet-puppeteer'
 import Bridge           from './bridge'
@@ -45,67 +45,69 @@ test('Puppet smoke testing', async t => {
   const profile = new Profile(Math.random().toString(36).substr(2, 5))
   const wechaty = new Wechaty()
 
-  const p = new PuppetPuppeteer({
+  const puppet = new PuppetPuppeteer({
     profile,
     wechaty,
   })
+  ;
+  (wechaty as any).initPuppetAccessory(puppet)
 
-  t.ok(p.state.off(), 'should be OFF state after instanciate')
-  p.state.on('pending')
-  t.ok(p.state.on(), 'should be ON state after set')
-  t.ok(p.state.pending(), 'should be pending state after set')
+  t.ok(puppet.state.off(), 'should be OFF state after instanciate')
+  puppet.state.on('pending')
+  t.ok(puppet.state.on(), 'should be ON state after set')
+  t.ok(puppet.state.pending(), 'should be pending state after set')
 })
 
 test('login/logout events', sinonTest(async function (t: test.Test) {
   const sandbox = sinon.createSandbox()
-  sandbox.stub(Contact, 'findAll')
-        .onFirstCall().resolves([])
-        .onSecondCall().resolves([1])
-        .resolves([1, 2])
-
-  sandbox.stub(Event, 'onScan') // block the scan event to prevent reset logined user
-
-  sandbox.stub(Bridge.prototype,    'getUserName').resolves('mockedUserName')
-  sandbox.stub(PuppetPuppeteer.prototype, 'contactPayload').resolves({
-    NickName: 'mockedNickName',
-    UserName: 'mockedUserName',
-  })
-
   try {
     const profile = new Profile()
     const wechaty = new Wechaty()
 
-    const pw = new PuppetPuppeteer({
+    const puppet = new PuppetPuppeteer({
       profile,
       wechaty,
     })
-    t.ok(pw, 'should instantiated a PuppetPuppeteer')
+    ;
+    (wechaty as any).initPuppetAccessory(puppet)
 
-    // FIXME: do not modify global instance
-    Contact.puppet = pw
+    t.ok(puppet, 'should instantiated a PuppetPuppeteer')
 
-    await pw.start()
+    sandbox.stub(wechaty.Contact, 'findAll')
+      .onFirstCall().resolves([])
+      .onSecondCall().resolves([1])
+      .resolves([1, 2])
+
+    sandbox.stub(Event, 'onScan') // block the scan event to prevent reset logined user
+
+    sandbox.stub(Bridge.prototype,    'getUserName').resolves('mockedUserName')
+    sandbox.stub(puppet, 'contactRawPayload').resolves({
+      NickName: 'mockedNickName',
+      UserName: 'mockedUserName',
+    })
+
+    await puppet.start()
     t.pass('should be inited')
-    t.is(pw.logonoff() , false  , 'should be not logined')
+    t.is(puppet.logonoff() , false  , 'should be not logined')
 
     const EXPECTED_CHIPER = 'loginFired'
-    const loginPromise = new Promise(r => pw.once('login', _ => r(EXPECTED_CHIPER)))
-    pw.bridge.emit('login', 'TestPuppetPuppeteer')
+    const loginPromise = new Promise(r => puppet.once('login', _ => r(EXPECTED_CHIPER)))
+    puppet.bridge.emit('login', 'TestPuppetPuppeteer')
     t.is(await loginPromise, EXPECTED_CHIPER, 'should fired login event')
-    t.is(pw.logonoff(), true  , 'should be logined')
+    t.is(puppet.logonoff(), true  , 'should be logined')
 
-    t.ok((pw.bridge.getUserName as any).called, 'bridge.getUserName should be called')
-    t.ok((pw.contactPayload as any).called,         'pw.getContact should be called')
+    t.ok((puppet.bridge.getUserName as any).called, 'bridge.getUserName should be called')
+    t.ok((puppet.contactRawPayload as any).called,  'puppet.contactRawPayload should be called')
 
-    t.ok((Contact.findAll as any).called,       'contactFind stub should be called')
-    t.is((Contact.findAll as any).callCount, 4, 'should call stubContactFind 4 times')
+    t.ok((wechaty.Contact.findAll as any).called,       'contactFind stub should be called')
+    t.is((wechaty.Contact.findAll as any).callCount, 4, 'should call stubContactFind 4 times')
 
-    const logoutPromise = new Promise(resolve => pw.once('logout', _ => resolve('logoutFired')))
-    pw.bridge.emit('logout')
+    const logoutPromise = new Promise(resolve => puppet.once('logout', _ => resolve('logoutFired')))
+    puppet.bridge.emit('logout')
     t.is(await logoutPromise, 'logoutFired', 'should fire logout event')
-    t.is(pw.logonoff(), false, 'should be logouted')
+    t.is(puppet.logonoff(), false, 'should be logouted')
 
-    await pw.stop()
+    await puppet.stop()
     profile.destroy()
   } catch (e) {
     t.fail(e)

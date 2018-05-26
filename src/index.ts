@@ -1,4 +1,8 @@
 export {
+  FileBox,
+}           from 'file-box'
+
+export {
   config,
   log,
   VERSION,

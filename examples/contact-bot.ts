@@ -16,9 +16,6 @@
  *   limitations under the License.
  *
  */
-
-import { createWriteStream } from 'fs'
-
 /* tslint:disable:variable-name */
 const QrcodeTerminal = require('qrcode-terminal')
 
@@ -30,7 +27,8 @@ const QrcodeTerminal = require('qrcode-terminal')
 import {
   Wechaty,
   log,
-}           from '../src/'
+  Contact,
+}               from '../src/'
 
 const welcome = `
 =============== Powered by Wechaty ===============
@@ -62,7 +60,7 @@ bot
   /**
    * Main Contact Bot start from here
    */
-  onLogin()
+  main()
 
 })
 .on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
@@ -85,7 +83,7 @@ bot.start()
 /**
  * Main Contact Bot
  */
-async function onLogin() {
+async function main() {
   const contactList = await bot.Contact.findAll()
 
   log.info('Bot', '#######################')
@@ -96,21 +94,10 @@ async function onLogin() {
    */
   for (let i = 0; i < contactList.length; i++) {
     const contact = contactList[i]
-    if (contact.official()) {
+    if (contact.type() === Contact.Type.Official) {
       log.info('Bot', `official ${i}: ${contact}`)
     }
   }
-
-  // /**
-  //  *  Special contact list
-  //  */
-
-  // for (let i = 0; i < contactList.length; i++) {
-  //   const contact = contactList[i]
-  //   if (contact.special()) {
-  //     log.info('Bot', `special ${i}: ${contact.name()}`)
-  //   }
-  // }
 
   /**
    *  personal contact list
@@ -118,7 +105,7 @@ async function onLogin() {
 
   for (let i = 0; i < contactList.length; i++) {
     const contact = contactList[i]
-    if (contact.personal()) {
+    if (contact.type() === Contact.Type.Personal) {
       log.info('Bot', `personal ${i}: ${contact.name()} : ${contact.id}`)
     }
   }
@@ -127,22 +114,17 @@ async function onLogin() {
   for (let i = 0; i < contactList.length; i++ ) {
     const contact = contactList[i]
 
-    if (!contact.weixin()) {
-      await contact.refresh()
-    }
-
     /**
      * Save avatar to file like: "1-name.jpg"
      */
-    const avatarFileName = `${i}-${contact.name()}.jpg`
-    const avatarReadStream = await contact.avatar()
-    const avatarWriteStream = createWriteStream(avatarFileName)
+    const file = await contact.avatar()
+    const name = file.name
+    await file.save(name)
 
-    const wait = new Promise(r => avatarWriteStream.once('close', r))
-    avatarReadStream.pipe(avatarWriteStream)
-    await wait
-
-    log.info('Bot', 'Contact: %s: %s with avatar file: %s', contact.weixin(), contact.name(), avatarFileName)
+    log.info('Bot', 'Contact: "%s" with avatar file: "%s"',
+                    contact.name(),
+                    name,
+            )
 
     if (i > MAX) {
       log.info('Bot', 'Contacts too many, I only show you the first %d ... ', MAX)
@@ -150,10 +132,8 @@ async function onLogin() {
     }
   }
 
-  // const SLEEP = 7
-  // log.info('Bot', 'I will re-dump contact weixin id & names after %d second... ', SLEEP)
-  // setTimeout(main, SLEEP * 1000)
+  const SLEEP = 7
+  log.info('Bot', 'I will re-dump contact weixin id & names after %d second... ', SLEEP)
+  setTimeout(main, SLEEP * 1000)
 
-  await bot.logout()
-  await bot.stop()
 }

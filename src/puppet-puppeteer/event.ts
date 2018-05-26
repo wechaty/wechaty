@@ -190,7 +190,7 @@ async function onMessage(
   this       : PuppetPuppeteer,
   rawPayload : WebMessageRawPayload,
 ): Promise<void> {
-  let msg = this.Message.createMT(rawPayload.MsgId)
+  const msg = this.Message.createMT(rawPayload.MsgId)
 
   try {
     await msg.ready()
@@ -206,9 +206,9 @@ async function onMessage(
 
       case WebMessageType.SYS:
         if (msg.room()) {
-          const joinResult  = await Firer.checkRoomJoin.call(this  , msg)
-          const leaveResult = await Firer.checkRoomLeave.call(this , msg)
-          const topicRestul = await Firer.checkRoomTopic.call(this , msg)
+          const joinResult  = await Firer.checkRoomJoin.call(this, msg)
+          const leaveResult = await Firer.checkRoomLeave.call(this, msg)
+          const topicRestul = await Firer.checkRoomTopic.call(this, msg)
 
           if (!joinResult && !leaveResult && !topicRestul) {
             log.warn('PuppetPuppeteerEvent', `checkRoomSystem message: <${msg.text()}> not found`)
@@ -219,31 +219,31 @@ async function onMessage(
         break
     }
 
-    /**
-     * Check Type for special Message
-     * reload if needed
-     */
+    // /**
+    //  * Check Type for special Message
+    //  * reload if needed
+    //  */
 
-    switch (rawPayload.MsgType) {
-      case WebMessageType.EMOTICON:
-      case WebMessageType.IMAGE:
-      case WebMessageType.VIDEO:
-      case WebMessageType.VOICE:
-      case WebMessageType.MICROVIDEO:
-      case WebMessageType.APP:
-        log.verbose('PuppetPuppeteerEvent', 'onMessage() EMOTICON/IMAGE/VIDEO/VOICE/MICROVIDEO message')
-        msg = this.Message.createMT(rawPayload.MsgId)
-        break
+    // switch (rawPayload.MsgType) {
+    //   case WebMessageType.EMOTICON:
+    //   case WebMessageType.IMAGE:
+    //   case WebMessageType.VIDEO:
+    //   case WebMessageType.VOICE:
+    //   case WebMessageType.MICROVIDEO:
+    //   case WebMessageType.APP:
+    //     log.verbose('PuppetPuppeteerEvent', 'onMessage() EMOTICON/IMAGE/VIDEO/VOICE/MICROVIDEO message')
+    //     msg = this.Message.createMT(rawPayload.MsgId)
+    //     break
 
-      case WebMessageType.TEXT:
-        if (rawPayload.SubMsgType === WebMessageType.LOCATION) {
-          log.verbose('PuppetPuppeteerEvent', 'onMessage() (TEXT&LOCATION) message')
-          msg = this.Message.createMT(rawPayload.MsgId)
-        }
-        break
-    }
+    //   case WebMessageType.TEXT:
+    //     if (rawPayload.SubMsgType === WebMessageType.LOCATION) {
+    //       log.verbose('PuppetPuppeteerEvent', 'onMessage() (TEXT&LOCATION) message')
+    //       msg = this.Message.createMT(rawPayload.MsgId)
+    //     }
+    //     break
+    // }
+    // await msg.ready()
 
-    await msg.ready()
     this.emit('message', msg)
 
   } catch (e) {

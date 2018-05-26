@@ -1,6 +1,7 @@
 language: node_js
 node_js:
   - "9"
+  - "10"
 
 os:
   - linux
@@ -21,24 +22,21 @@ stages:
   - test
   - pack
   - name: deploy
-    if: branch =~ ^(master|v\d+\.\d+)$
-        AND (type NOT IN (cron, pull_request))
+    if: branch =~ ^(master|v\d+\.\d+)$ AND (type NOT IN (cron, pull_request))
 
 before_install:
   - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then ./scripts/prepare-osx.sh; fi
 
+script:
+  - echo $TRAVIS_OS_NAME
+  - node --version
+  - npm --version
+  - echo "Testing started ..."
+  - npm test || travis_terminate 1
+  # - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then npm run coverage; fi
+
 jobs:
   include:
-    - stage: test
-      script:
-        - echo $TRAVIS_OS_NAME
-        - node --version
-        - npm --version
-        - echo "Testing started ..."
-        - npm test || travis_terminate 1
-
-      after_success:
-        - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then npm run coverage; fi
 
     - stage: pack
       script:

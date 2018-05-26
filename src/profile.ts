@@ -25,14 +25,15 @@ import {
 }           from './config'
 
 export interface ProfileSchema {
-  cookies?: any[]
+  cookies?      : any[]
+  [idx: string] : any
 }
 
 export type ProfileSection = keyof ProfileSchema
 
 export class Profile {
-  private obj   : ProfileSchema
-  private file? : string
+  private payload : ProfileSchema
+  private file?   : string
 
   constructor(
     public name = config.profile,
@@ -44,7 +45,7 @@ export class Profile {
     } else {
       this.file = path.isAbsolute(name)
         ? name
-        : path.join(
+        : path.resolve(
             process.cwd(),
             name,
           )
@@ -52,6 +53,8 @@ export class Profile {
         this.file +=  '.wechaty.json'
       }
     }
+
+    this.payload = {}
   }
 
   public toString() {
@@ -60,7 +63,7 @@ export class Profile {
 
   public async load(): Promise<void> {
     log.verbose('Profile', 'load() file: %s', this.file)
-    this.obj = {}
+    this.payload = {}
 
     if (!this.file) {
       log.verbose('Profile', 'load() no file, NOOP')
@@ -74,7 +77,7 @@ export class Profile {
 
     const text = fs.readFileSync(this.file).toString()
     try {
-      this.obj = JSON.parse(text)
+      this.payload = JSON.parse(text)
     } catch (e) {
       log.error('Profile', 'load() exception: %s', e)
     }
@@ -86,13 +89,13 @@ export class Profile {
       log.verbose('Profile', 'save() no file, NOOP')
       return
     }
-    if (!this.obj) {
+    if (!this.payload) {
       log.verbose('Profile', 'save() no obj, NOOP')
       return
     }
 
     try {
-      const text = JSON.stringify(this.obj)
+      const text = JSON.stringify(this.payload)
       fs.writeFileSync(this.file, text)
     } catch (e) {
       log.error('Profile', 'save() exception: %s', e)
@@ -102,23 +105,23 @@ export class Profile {
 
   public async get<T = any>(section: ProfileSection): Promise<null | T> {
     log.verbose('Profile', 'get(%s)', section)
-    if (!this.obj) {
+    if (!this.payload) {
       return null
     }
-    return this.obj[section] as any as T
+    return this.payload[section] as any as T
   }
 
   public async set(section: ProfileSection, data: any): Promise<void> {
     log.verbose('Profile', 'set(%s, %s)', section, data)
-    if (!this.obj) {
-      this.obj = {}
+    if (!this.payload) {
+      this.payload = {}
     }
-    this.obj[section] = data
+    this.payload[section] = data
   }
 
   public async destroy(): Promise<void> {
     log.verbose('Profile', 'destroy() file: %s', this.file)
-    this.obj = {}
+    this.payload = {}
     if (this.file && fs.existsSync(this.file)) {
       fs.unlinkSync(this.file)
       this.file = undefined

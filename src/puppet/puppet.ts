@@ -85,16 +85,22 @@ export interface PuppetOptions {
   wechaty: Wechaty,
 }
 
+export interface Receiver {
+  contactId? : string,
+  roomId?    : string,
+}
+
+let PUPPET_COUNTER = 0
+
 /**
  * Abstract Puppet Class
  */
 export abstract class Puppet extends EventEmitter implements Sayable {
-  public readonly state   : StateSwitch
-  // public readonly classes : PuppetClasses
 
-  protected readonly watchdog: Watchdog
+  protected readonly watchdog : Watchdog
+  protected readonly counter  : number
 
-  protected user?: Contact
+  protected userId?: string
 
   /* tslint:disable:variable-name */
   public readonly Contact       : typeof Contact
@@ -105,15 +111,19 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   /* tslint:disable:variable-name */
   public readonly Room          : typeof Room
 
+  public readonly state : StateSwitch
+
   /**
    * childPkg stores the `package.json` that the NPM module who extends the `Puppet`
    */
-  private readonly childPkg: normalize.Package
+  private readonly childPkg: undefined | normalize.Package
 
   constructor(
-    public options:   PuppetOptions,
+    public options: PuppetOptions,
   ) {
     super()
+
+    this.counter = PUPPET_COUNTER++
 
     const WATCHDOG_TIMEOUT = 1 * 60 * 1000  // default 1 minute
 
@@ -154,7 +164,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   }
 
   public toString() {
-    return `Puppet<${this.options.profile.name}>`
+    return `Puppet#${this.counter}<${this.constructor.name}>(${this.options.profile.name})`
   }
 
   public emit(event: 'error',       e: Error)                                                      : boolean
@@ -199,7 +209,10 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   }
 
   public version(): string {
-    return this.childPkg.version
+    if (this.childPkg) {
+      return this.childPkg.version
+    }
+    return '0.0.0'
   }
 
   /**
@@ -236,11 +249,12 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public userSelf(): Contact {
     log.verbose('Puppet', 'self()')
 
-    if (!this.user) {
+    if (!this.userId) {
       throw new Error('not logged in, no userSelf yet.')
     }
 
-    return this.user
+    const user = this.Contact.load(this.userId)
+    return user
   }
 
   public async say(textOrFile: string | FileBox) : Promise<void> {
@@ -248,30 +262,24 @@ export abstract class Puppet extends EventEmitter implements Sayable {
       throw new Error('can not say before login')
     }
 
-    let msg: Message
-
     if (typeof textOrFile === 'string') {
-      msg = this.Message.createMO({
-        text : textOrFile,
-        to   : this.userSelf(),
-      })
+      await this.messageSendText({
+        contactId: this.userSelf().id,
+      }, textOrFile)
     } else if (textOrFile instanceof FileBox) {
-      msg = this.Message.createMO({
-        file: textOrFile,
-        to: this.userSelf(),
-      })
+      await this.messageSendFile({
+        contactId: this.userSelf().id,
+      }, textOrFile)
     } else {
       throw new Error('say() arg unknown')
     }
-
-    await this.messageSend(msg)
   }
 
   /**
    * Login / Logout
    */
   public logonoff(): boolean {
-    if (this.user) {
+    if (this.userId) {
       return true
     } else {
       return false
@@ -286,8 +294,9 @@ export abstract class Puppet extends EventEmitter implements Sayable {
    * Message
    *
    */
-  public abstract async messageForward(message: Message, to: Contact | Room) : Promise<void>
-  public abstract async messageSend(message: Message)                        : Promise<void>
+  public abstract async messageForward(to: Receiver, messageId: string) : Promise<void>
+  public abstract async messageSendText(to: Receiver, text: string)     : Promise<void>
+  public abstract async messageSendFile(to: Receiver, file: FileBox)    : Promise<void>
 
   public abstract async messageRawPayload(id: string)            : Promise<any>
   public abstract async messageRawPayloadParser(rawPayload: any) : Promise<MessagePayload>
@@ -300,14 +309,22 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     /**
      * Make sure all the contacts & room have already been ready
      */
-    if (payload.from && !payload.from.isReady()) {
-      await payload.from.ready()
+    const fromId = payload.fromId
+    const roomId = payload.roomId
+    const toId   = payload.toId
+
+    const from = fromId && this.Contact.load(fromId)
+    const room = roomId && this.Room.load(roomId)
+    const to   = toId   && this.Contact.load(toId)
+
+    if (from && !from.isReady()) {
+      await from.ready()
     }
-    if (payload.to && !payload.to.isReady()) {
-      await payload.to.ready()
+    if (to && !to.isReady()) {
+      await to.ready()
     }
-    if (payload.room && !payload.room.isReady()) {
-      await payload.room.ready()
+    if (room && !room.isReady()) {
+      await room.ready()
     }
 
     return payload
@@ -318,20 +335,20 @@ export abstract class Puppet extends EventEmitter implements Sayable {
    * FriendRequest
    *
    */
-  public abstract async friendRequestSend(contact: Contact, hello?: string)   : Promise<void>
-  public abstract async friendRequestAccept(contact: Contact, ticket: string) : Promise<void>
+  public abstract async friendRequestSend(contactId: string, hello?: string)   : Promise<void>
+  public abstract async friendRequestAccept(contactId: string, ticket: string) : Promise<void>
 
   /**
    *
    * Room
    *
    */
-  public abstract async roomAdd(room: Room, contact: Contact)              : Promise<void>
-  public abstract async roomCreate(contactList: Contact[], topic?: string) : Promise<Room>
-  public abstract async roomDel(room: Room, contact: Contact)              : Promise<void>
-  public abstract async roomFindAll(query?: RoomQueryFilter)               : Promise<Room[]>
-  public abstract async roomQuit(room: Room)                               : Promise<void>
-  public abstract async roomTopic(room: Room, topic?: string)              : Promise<string | void>
+  public abstract async roomAdd(roomId: string, contactId: string)          : Promise<void>
+  public abstract async roomCreate(contactIdList: string[], topic?: string) : Promise<string>
+  public abstract async roomDel(roomId: string, contactId: string)          : Promise<void>
+  public abstract async roomFindAll(query?: RoomQueryFilter)                : Promise<string[]>
+  public abstract async roomQuit(roomId: string)                            : Promise<void>
+  public abstract async roomTopic(roomId: string, topic?: string)           : Promise<string | void>
 
   public abstract async roomRawPayload(id: string)            : Promise<any>
   public abstract async roomRawPayloadParser(rawPayload: any) : Promise<RoomPayload>
@@ -348,17 +365,17 @@ export abstract class Puppet extends EventEmitter implements Sayable {
    * Contact
    *
    */
-  public abstract async contactAlias(contact: Contact)                       : Promise<string>
-  public abstract async contactAlias(contact: Contact, alias: string | null) : Promise<void>
-  public abstract async contactAlias(contact: Contact, alias?: string|null)  : Promise<string | void>
-  public abstract async contactAvatar(contact: Contact)                      : Promise<FileBox>
-  public abstract async contactFindAll(query?: ContactQueryFilter)           : Promise<Contact[]>
+  public abstract async contactAlias(contactId: string)                       : Promise<string>
+  public abstract async contactAlias(contactId: string, alias: string | null) : Promise<void>
+  public abstract async contactAlias(contactId: string, alias?: string|null)  : Promise<string | void>
+  public abstract async contactAvatar(contactId: string)                      : Promise<FileBox>
+  public abstract async contactFindAll(query?: ContactQueryFilter)            : Promise<string[]>
 
   public abstract async contactRawPayload(id: string)            : Promise<any>
   public abstract async contactRawPayloadParser(rawPayload: any) : Promise<ContactPayload>
 
   public async contactPayload(id: string): Promise<ContactPayload> {
-    log.verbose('Puppet', 'contactPayload(%s)', id)
+    log.verbose('Puppet', 'contactPayload(%s) @ %s', id, this)
     const rawPayload = await this.contactRawPayload(id)
     const payload    = await this.contactRawPayloadParser(rawPayload)
     return payload

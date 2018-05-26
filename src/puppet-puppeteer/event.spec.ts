@@ -31,15 +31,15 @@ import {
 }                   from './puppet-puppeteer'
 
 test('Puppet Puppeteer Event smoke testing', async t => {
-  const pw = new PuppetPuppeteer({
+  const puppet = new PuppetPuppeteer({
     profile: new Profile(),
     wechaty: new Wechaty(),
   })
 
   try {
-    await pw.start()
+    await puppet.start()
     t.pass('should be inited')
-    await pw.stop()
+    await puppet.stop()
     t.pass('should be quited')
   } catch (e) {
     t.fail('exception: ' + e.message)

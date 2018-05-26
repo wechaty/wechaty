@@ -10,7 +10,7 @@ import {
 }           from './room'
 
 export enum MessageDirection {
-  MO,
+  // MO,
   MT,
 }
 
@@ -18,6 +18,7 @@ export enum MessageType {
   Unknown = 0,
   Attachment,
   Audio,
+  Emoticon,
   Image,
   Text,
   Video,
@@ -65,8 +66,8 @@ export interface MessagePayload {
   text?     : string,
   file?     : FileBox,
   direction : MessageDirection,
-  from?     : Contact,
+  fromId?   : string,
   date      : Date,
-  to?       : null | Contact,     // if to is not set, then room must be set
-  room?     : null | Room,
+  toId?     : null | string,      // if to is not set, then room must be set
+  roomId?   : null | string,
 }

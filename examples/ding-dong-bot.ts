@@ -16,7 +16,8 @@
  *   limitations under the License.
  *
  */
-import * as path      from 'path'
+import * as fs    from 'fs'
+import * as path  from 'path'
 
 /* tslint:disable:variable-name */
 import * as QrcodeTerminal  from 'qrcode-terminal'
@@ -33,7 +34,7 @@ import {
   log,
 }               from '../src/'
 
-const BOT_QR_CODE_IMAGE_FILE = path.join(
+const BOT_QR_CODE_IMAGE_FILE = path.resolve(
   __dirname,
   '../docs/images/bot-qr-code.png',
 )
@@ -80,39 +81,39 @@ bot
     })
   }
 })
-.on('message', async m => {
+.on('message', async msg => {
   try {
-    const room = m.room()
-    console.log(
-      (room ? `${room}` : '')
-      + `${m.from()}:${m}`,
-    )
+    console.log(msg.toString())
 
-    if (/^(ding|ping|bing|code)$/i.test(m.text()) && !m.self()) {
+    if (/^(ding|ping|bing|code)$/i.test(msg.text()) /*&& !msg.self()*/) {
       /**
        * 1. reply 'dong'
        */
       log.info('Bot', 'REPLY: dong')
-      m.say('dong')
+      msg.say('dong')
 
       const joinWechaty =  `Join Wechaty Developers' Community\n\n` +
                             `Wechaty is used in many ChatBot projects by hundreds of developers.\n\n` +
                             `If you want to talk with other developers, just scan the following QR Code in WeChat with secret code: wechaty,\n\n` +
                             `you can join our Wechaty Developers' Home at once`
-      await m.say(joinWechaty)
+      await msg.say(joinWechaty)
 
       /**
        * 2. reply qrcode image
        */
-      const fileBox = FileBox.fromLocal(BOT_QR_CODE_IMAGE_FILE)
+      // const fileBox = FileBox.fromLocal(BOT_QR_CODE_IMAGE_FILE)
+      const fileBox = FileBox.fromStream(
+        fs.createReadStream(BOT_QR_CODE_IMAGE_FILE),
+        BOT_QR_CODE_IMAGE_FILE,
+      )
 
       log.info('Bot', 'REPLY: %s', fileBox)
-      await m.say(fileBox)
+      await msg.say(fileBox)
 
       /**
        * 3. reply 'scan now!'
        */
-      await m.say('Scan now, because other Wechaty developers want to talk with you too!\n\n(secret code: wechaty)')
+      await msg.say('Scan now, because other Wechaty developers want to talk with you too!\n\n(secret code: wechaty)')
 
     }
   } catch (e) {

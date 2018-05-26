@@ -33,9 +33,9 @@ import Wechaty    from '../wechaty'
 
 // import { PuppetMock } from '../puppet-mock/'
 
-import {
-  Contact,
-}                   from '../contact'
+// import {
+//   Contact,
+// }                   from '../contact'
 import {
   Message,
   MessagePayload,
@@ -108,10 +108,8 @@ test('constructor()', async t => {
   const sandbox = sinon.createSandbox()
   sandbox.stub(puppet, 'messagePayload').callsFake((_: string) => {
     const payload = {
-      type: Message.Type.Text,
-      from: {
-        id: EXPECTED.from,
-      },
+      type   : Message.Type.Text,
+      fromId : EXPECTED.from,
     }
     return payload
   })
@@ -253,8 +251,8 @@ test('self()', async t => {
 
   function mockMessagePayload() {
     const payload: MessagePayload = {
-      from      : MOCK_CONTACT,
-      to        : {} as any,
+      fromId      : MOCK_CONTACT.id,
+      toId        : 'to_id',
       type      : {} as any,
       direction : {} as any,
       date      : {} as any,
@@ -263,17 +261,16 @@ test('self()', async t => {
   }
 
   sandbox.stub(puppet, 'messagePayload').callsFake(mockMessagePayload)
-  sandbox.stub((puppet as any as { 'user': Contact }), 'user').value(MOCK_CONTACT)
+  sandbox.stub((puppet as any as { 'userId': string }), 'userId')
+          .value(MOCK_CONTACT.id)
 
   const selfMsg = wechaty.Message.createMT('xxx')
   await selfMsg.ready()
 
   t.true(selfMsg.self(), 'should identify self message true where message from userId')
 
-  sandbox.stub((puppet as any as { 'user': Contact }), 'user').value(
-    // FIXME: use wechaty.Contact.load()
-    wechaty.Contact.load('fsadfjas;dlkdjfl;asjflk;sjfl;as'),
-  )
+  sandbox.stub((puppet as any as { 'userId': string }), 'userId')
+          .value('fasdfafasdfsdf')
   const otherMsg = wechaty.Message.createMT('xxx')
   await otherMsg.ready()
 

@@ -189,7 +189,17 @@ export class Wechaty extends PuppetAccessory implements Sayable {
   /**
    * @private
    */
-  public toString() { return `Wechaty<${this.options.puppet}, ${this.profile.name}>`}
+  public toString() {
+    if (!this.options) {
+      return this.constructor.name
+    }
+
+    return [
+      'Wechaty',
+      `<${this.options && this.options.puppet || ''}>`,
+      `(${this.profile && this.profile.name   || ''})`,
+    ].join('')
+  }
 
   /**
    * @private
@@ -622,15 +632,15 @@ export class Wechaty extends PuppetAccessory implements Sayable {
   /**
    * @private
    */
-  public async send(message: Message): Promise<void> {
-    try {
-      await this.puppet.messageSend(message)
-    } catch (e) {
-      log.error('Wechaty', 'send() exception: %s', e.message)
-      Raven.captureException(e)
-      throw e
-    }
-  }
+  // public async send(message: Message): Promise<void> {
+  //   try {
+  //     await this.puppet.messageSend(message)
+  //   } catch (e) {
+  //     log.error('Wechaty', 'send() exception: %s', e.message)
+  //     Raven.captureException(e)
+  //     throw e
+  //   }
+  // }
 
   /**
    * Send message to filehelper
@@ -690,6 +700,9 @@ export class Wechaty extends PuppetAccessory implements Sayable {
     return
   }
 
+  public unref(): void {
+    log.warn('Wechaty', 'unref() To Be Implemented. See: https://github.com/Chatie/wechaty/issues/1197')
+  }
 }
 
 export default Wechaty

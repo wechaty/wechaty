@@ -16,13 +16,7 @@
  *   limitations under the License.
  *
  */
-
 // import { inspect }            from 'util'
-import {
-  createWriteStream,
-  statSync,
-  // writeFileSync,
-}                           from 'fs'
 
 /* tslint:disable:variable-name */
 import * as qrcodeTerminal  from 'qrcode-terminal'
@@ -35,7 +29,6 @@ import * as qrcodeTerminal  from 'qrcode-terminal'
 import {
   config,
   Message,
-  // MsgType,
   Wechaty,
 }           from '../src/'
 
@@ -53,50 +46,12 @@ bot
 .on('message', msg => {
   console.log(`RECV: ${msg}`)
 
-  // console.log(inspect(m))
-  // saveRawObj(m.rawObj)
-
-  // if ( m.type() === MsgType.IMAGE
-  //   || m.type() === MsgType.EMOTICON
-  //   || m.type() === MsgType.VIDEO
-  //   || m.type() === MsgType.VOICE
-  //   || m.type() === MsgType.MICROVIDEO
-  //   || m.type() === MsgType.APP
-  //   || (m.type() === MsgType.TEXT && m.typeSub() === MsgType.LOCATION)  // LOCATION
-  // ) {
   if (msg.type() !== Message.Type.Text) {
-    saveMediaFile(msg)
+    const file = msg.file()
+    const name = msg.file().name
+    file.save(name)
   }
-  // }
+
 })
 .start()
 .catch(e => console.error('bot.start() error: ' + e))
-
-async function saveMediaFile(message: Message) {
-  const fileBox = message.file()
-
-  const filename = fileBox.name
-  console.log('IMAGE local filename: ' + filename)
-
-  if (!filename) {
-    throw new Error('no filename found for media file')
-  }
-
-  const fileStream = createWriteStream(filename)
-
-  console.log('start to readyStream()')
-  try {
-    fileBox
-      .pipe(fileStream)
-      .on('close', () => {
-        const stat = statSync(filename)
-        console.log('finish readyStream() for ', filename, ' size: ', stat.size)
-      })
-  } catch (e) {
-    console.error('stream error:', e)
-  }
-}
-
-// function saveRawObj(o) {
-//   writeFileSync('rawObj.log', JSON.stringify(o, null, '  ') + '\n\n\n', { flag: 'a' })
-// }
