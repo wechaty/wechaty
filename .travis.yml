@@ -33,7 +33,7 @@ script:
   - npm --version
   - echo "Testing started ..."
   - npm test || travis_terminate 1
-  - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then npm run coverage; fi
+  # - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then npm run coverage; fi
 
 jobs:
   include:
