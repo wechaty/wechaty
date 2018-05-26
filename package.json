@@ -149,6 +149,7 @@
     "finis": "^0.4.1",
     "fluent-ffmpeg": "^2.1.0",
     "git-scripts": "git+https://github.com/nkzawa/git-scripts.git",
+    "gl-matrix": "^2.6.1",
     "glob": "^7.1.0",
     "jsdoc-to-markdown": "^4.0.0",
     "markdownlint-cli": "^0.9.0",
