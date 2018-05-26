@@ -700,6 +700,9 @@ export class Wechaty extends PuppetAccessory implements Sayable {
     return
   }
 
+  public unref(): void {
+    log.warn('Wechaty', 'unref() To Be Implemented. See: https://github.com/Chatie/wechaty/issues/1197')
+  }
 }
 
 export default Wechaty
