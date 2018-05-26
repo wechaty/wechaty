@@ -23,24 +23,18 @@ import {
 }             from 'file-box'
 
 import {
-  // Message,
   MessagePayload,
 }                       from '../message'
 import {
-  // Contact,
   ContactQueryFilter,
   Gender,
   ContactType,
   ContactPayload,
 }                       from '../contact'
 import {
-  // Room,
   RoomPayload,
   RoomQueryFilter,
 }                       from '../room'
-// import {
-//   FriendRequest,
-// }                       from '../puppet/friend-request'
 import {
   Puppet,
   PuppetOptions,
@@ -65,9 +59,9 @@ export interface MockMessageRawPayload {
 }
 
 export interface MockRoomRawPayload {
-  topic: string,
-  memberList: string[],
-  owner: string,
+  topic      : string,
+  memberList : string[],
+  ownerId    : string,
 }
 
 export class PuppetMock extends Puppet {
@@ -76,10 +70,6 @@ export class PuppetMock extends Puppet {
     public options: PuppetOptions,
   ) {
     super(options)
-  }
-
-  public ding(data?: any): Promise<string> {
-    return data
   }
 
   public async start(): Promise<void> {
@@ -157,7 +147,7 @@ export class PuppetMock extends Puppet {
     log.verbose('PuppetMock', 'contactAvatar(%s)', contactId)
 
     const WECHATY_ICON_PNG = path.resolve('../../docs/images/wechaty-icon.png')
-    return FileBox.fromLocal(WECHATY_ICON_PNG)
+    return FileBox.packLocal(WECHATY_ICON_PNG)
   }
 
   public async contactRawPayload(id: string): Promise<MockContactRawPayload> {
@@ -240,7 +230,7 @@ export class PuppetMock extends Puppet {
     log.verbose('PuppetMock', 'roomRawPayload(%s)', id)
 
     const rawPayload: MockRoomRawPayload = {
-      owner      : 'mock_room_owner_id',
+      ownerId      : 'mock_room_owner_id',
       topic      : 'mock topic',
       memberList : [],
     }
@@ -312,7 +302,6 @@ export class PuppetMock extends Puppet {
 
   /**
    *
-   *
    * FriendRequest
    *
    */
@@ -328,6 +317,10 @@ export class PuppetMock extends Puppet {
     ticket    : string,
   ): Promise<void> {
     log.verbose('PuppetMock', 'friendRequestAccept(%s, %s)', contactId, ticket)
+  }
+
+  public ding(data?: any): Promise<string> {
+    return data
   }
 
 }

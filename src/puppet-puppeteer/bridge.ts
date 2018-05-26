@@ -670,7 +670,7 @@ export class Bridge extends EventEmitter {
       throw e
     }
 
-    const argsEncoded = new Buffer(
+    const argsEncoded = Buffer.from(
       encodeURIComponent(
         JSON.stringify(args),
       ),

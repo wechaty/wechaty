@@ -166,7 +166,7 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public initWatchdog(): void {
+  private initWatchdog(): void {
     log.verbose('PuppetPuppeteer', 'initWatchdogForPuppet()')
 
     const puppet = this
@@ -203,7 +203,7 @@ export class PuppetPuppeteer extends Puppet {
    * sometimes the qrcode will not refresh, leave there expired.
    * so we need to refresh the page after a while
    */
-  public initWatchdogForScan(): void {
+  private initWatchdogForScan(): void {
     log.verbose('PuppetPuppeteer', 'initWatchdogForScan()')
 
     const puppet = this
@@ -279,7 +279,7 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async initBridge(): Promise<Bridge> {
+  private async initBridge(): Promise<Bridge> {
     log.verbose('PuppetPuppeteer', 'initBridge()')
 
     if (this.state.off()) {
@@ -420,7 +420,7 @@ export class PuppetPuppeteer extends Puppet {
       Cookie: cookies.map(c => `${c['name']}=${c['value']}`).join('; '),
     }
 
-    const fileBox = FileBox.fromRemote(url, filename, headers)
+    const fileBox = FileBox.packRemote(url, filename, headers)
 
     return fileBox
   }
@@ -700,7 +700,7 @@ export class PuppetPuppeteer extends Puppet {
       await contact.ready()
 
       const fileName = (contact.name() || 'unknown') + '-avatar.jpg'
-      return FileBox.fromRemote(
+      return FileBox.packRemote(
         avatarUrl,
         fileName,
         headers,
@@ -1093,7 +1093,7 @@ export class PuppetPuppeteer extends Puppet {
    * location.host = www.chatie.io:8080
    * See: https://stackoverflow.com/a/11379802/1123955
    */
-  public async hostname(): Promise<string> {
+  private async hostname(): Promise<string> {
     try {
       const name = await this.bridge.hostname()
       if (!name) {
@@ -1107,7 +1107,7 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async cookies(): Promise<Cookie[]> {
+  private async cookies(): Promise<Cookie[]> {
     return await this.bridge.cookies()
   }
 
@@ -1132,24 +1132,6 @@ export class PuppetPuppeteer extends Puppet {
         return WebMessageType.APP
     }
   }
-
-  /**
-   *
-   *
-   *
-   *
-   *
-   *  THE FOLLOWING COMMENT OUTED CODE
-   *
-   *  IS: TO BE MERGE
-   *
-   *
-   *
-   *
-   *
-   *
-   *
-   */
 
   // public async readyMedia(): Promise<this> {
   private async messageRawPayloadToUrl(
@@ -1248,54 +1230,10 @@ export class PuppetPuppeteer extends Puppet {
 
   }
 
-  // public async readyStream(): Promise<Readable> {
-  //   log.verbose('PuppetPuppeteer', 'readyStream()')
-
-  //   /**
-  //    * 1. local file
-  //    */
-  //   try {
-  //     const filename = this.filename()
-  //     if (filename) {
-  //       return fs.createReadStream(filename)
-  //     }
-  //   } catch (e) {
-  //     // no filename
-  //   }
-
-  //   /**
-  //    * 2. remote url
-  //    */
-  //   try {
-  //     await this.ready()
-  //     // FIXME: decoupling needed
-  //     const cookies = await (this.puppet as any as PuppetPuppeteer).cookies()
-  //     if (!this.payload.url) {
-  //       throw new Error('no url')
-  //     }
-  //     log.verbose('PuppetPuppeteer', 'readyStream() url: %s', this.payload.url)
-  //     return Misc.urlStream(this.payload.url, cookies)
-  //   } catch (e) {
-  //     log.warn('PuppetPuppeteer', 'readyStream() exception: %s', e.stack)
-  //     Raven.captureException(e)
-  //     throw e
-  //   }
-  // }
-
   private filename(
     rawPayload: WebMessageRawPayload,
   ): null | string {
     log.verbose('PuppetPuppeteer', 'filename()')
-
-    // if (this.parsedPath) {
-    //   // https://nodejs.org/api/path.html#path_path_parse_path
-    //   const filename = path.join(
-    //     this.parsedPath!.dir  || '',
-    //     this.parsedPath!.base || '',
-    //   )
-    //   log.silly('PuppetPuppeteer', 'filename()=%s, build from parsedPath', filename)
-    //   return filename
-    // }
 
     let filename = rawPayload.FileName || rawPayload.MediaId || rawPayload.MsgId
 
@@ -1311,27 +1249,6 @@ export class PuppetPuppeteer extends Puppet {
     log.silly('PuppetPuppeteer', 'filename()=%s, build from rawPayload', filename)
     return filename
   }
-
-  // public ext(): string {
-  //   const fileExt = this.extFromFile()
-  //   if (fileExt) {
-  //     return fileExt
-  //   }
-
-  //   const typeExt = this.extFromType()
-  //   if (typeExt) {
-  //     return typeExt
-  //   }
-
-  //   throw new Error('unknown ext()')
-  // }
-
-  // private extFromFile(): string | null {
-  //   if (this.parsedPath && this.parsedPath.ext) {
-  //     return this.parsedPath.ext
-  //   }
-  //   return null
-  // }
 
   private extname(
     rawPayload: WebMessageRawPayload,
@@ -1385,15 +1302,6 @@ export class PuppetPuppeteer extends Puppet {
     return ext
 
   }
-
-  // /**
-  //  * return the MIME Type of this MediaMessage
-  //  *
-  //  */
-  // public mimeType(): string | null {
-  //   // getType support both 'js' & '.js' as arg
-  //   return mime.getType(this.ext())
-  // }
 
   private async uploadMedia(
     file       : FileBox,

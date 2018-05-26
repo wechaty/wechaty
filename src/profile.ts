@@ -25,7 +25,7 @@ import {
 }           from './config'
 
 export interface ProfileSchema {
-  cookies?      : any[]
+  // cookies?      : any
   [idx: string] : any
 }
 
@@ -111,7 +111,7 @@ export class Profile {
     return this.payload[section] as any as T
   }
 
-  public async set(section: ProfileSection, data: any): Promise<void> {
+  public async set<T = any>(section: ProfileSection, data: T): Promise<void> {
     log.verbose('Profile', 'set(%s, %s)', section, data)
     if (!this.payload) {
       this.payload = {}

@@ -145,7 +145,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
     options?: WechatyOptions,
   ) {
     if (options && this.singletonInstance) {
-      throw new Error('there has already a instance. no params will be allowed any more')
+      throw new Error('instance can be only set once!')
     }
     if (!this.singletonInstance) {
       this.singletonInstance = new Wechaty(options)
@@ -161,8 +161,6 @@ export class Wechaty extends PuppetAccessory implements Sayable {
   ) {
     super()
     log.verbose('Wechaty', 'contructor()')
-
-    options.puppet  = options.puppet || config.puppet
 
     options.profile = options.profile === null
                       ? null
@@ -394,13 +392,35 @@ export class Wechaty extends PuppetAccessory implements Sayable {
   }
 
   /**
+   * Will be called from the Puppet.
+   */
+  public attach(puppet: Puppet) {
+    log.verbose('Wechaty', 'attach(%s) this.options.puppet="%s"',
+                            puppet,
+                            this.options.puppet &&　this.options.puppet.toString(),
+                )
+
+    if (this.options.puppet instanceof Puppet) {
+      if (this.options.puppet === puppet) {
+        log.silly('Wechaty', 'attach(%s) called again', puppet)
+        return
+      } else {
+        throw new Error('puppet can only be attached once!')
+      }
+    }
+
+    this.options.puppet = puppet
+  }
+
+  /**
    * @private
    */
   private initPuppet(): void {
     log.verbose('Wechaty', 'initPuppet()')
 
     if (!this.options.puppet) {
-      throw new Error('no puppet')
+      log.warn('Wechaty', 'initPuppet() using default puppet: %s', config.puppet)
+      this.options.puppet  = config.puppet
     }
 
     const puppet = this.initPuppetResolver(this.options.puppet)

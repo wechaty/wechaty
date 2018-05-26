@@ -1,14 +1,13 @@
 # PUPPET-MOCK
 
 ```ts
-import PuppetMock from 'wechaty-puppet-mock'
+import PuppetMock from '@chatie/wechaty-puppet-mock'
+
+const wechaty = new Wechaty()
 
 const puppet = new PuppetMock({
   profile,
-})
-
-const wechaty = new Wechaty({
-  puppet,
+  wechaty,
 })
 ```
 
@@ -35,7 +34,8 @@ await this.state.ready('off')
 ### Profile
 
 ```ts
-this.profile.set('config', { id: 1, key: 'xxx' })
+await this.profile.set('config', { id: 1, key: 'xxx' })
 const config = await this.profile.get('config')
+console.log(config)
+// Output: { id: 1, key: 'xxx' }
 ```
-

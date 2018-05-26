@@ -66,7 +66,7 @@ test('Config setting', async t => {
 })
 
 test('event:start/stop', async t => {
-  const wechaty = Wechaty.instance()
+  const wechaty = new Wechaty()
 
   const startSpy = sinon.spy()
   const stopSpy  = sinon.spy()

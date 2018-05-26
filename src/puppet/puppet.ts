@@ -81,8 +81,8 @@ export const PUPPET_EVENT_DICT = {
 export type PuppetEventName = keyof typeof PUPPET_EVENT_DICT
 
 export interface PuppetOptions {
-  profile: Profile,
-  wechaty: Wechaty,
+  profile : Profile,
+  wechaty : Wechaty,
 }
 
 export interface Receiver {
@@ -134,9 +134,9 @@ export abstract class Puppet extends EventEmitter implements Sayable {
      * 1. Init Classes
      */
     if (  !this.options.wechaty.Contact
-        || !this.options.wechaty.FriendRequest
-        || !this.options.wechaty.Message
-        || !this.options.wechaty.Room
+      || !this.options.wechaty.FriendRequest
+      || !this.options.wechaty.Message
+      || !this.options.wechaty.Room
     ) {
       throw new Error('wechaty classes are not inited')
     }
@@ -145,6 +145,8 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     this.FriendRequest = this.options.wechaty.FriendRequest
     this.Message       = this.options.wechaty.Message
     this.Room          = this.options.wechaty.Room
+
+    this.options.wechaty.attach(this)
 
     /**
      * 2. Load the package.json for Puppet Plugin version range matching
@@ -168,7 +170,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   }
 
   public emit(event: 'error',       e: Error)                                                      : boolean
-  public emit(event: 'friend',      request: FriendRequest)                                       : boolean
+  public emit(event: 'friend',      request: FriendRequest)                                        : boolean
   public emit(event: 'heartbeat',   data: any)                                                     : boolean
   public emit(event: 'login',       user: Contact)                                                 : boolean
   public emit(event: 'logout',      user: Contact | string)                                        : boolean
@@ -178,7 +180,8 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public emit(event: 'room-topic',  room: Room, topic: string, oldTopic: string, changer: Contact) : boolean
   public emit(event: 'scan',        url: string, code: number)                                     : boolean
   public emit(event: 'watchdog',    food: WatchdogFood)                                            : boolean
-  public emit(event: never, ...args: never[])                                                      : never
+
+  public emit(event: never, ...args: never[]): never
 
   public emit(
     event:   PuppetEventName,
