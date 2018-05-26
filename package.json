@@ -97,7 +97,7 @@
     "clone-class": "^0.6.11",
     "cuid": "^2.1.1",
     "express": "^4.16.3",
-    "file-box": "^0.2.1",
+    "file-box": "^0.3.1",
     "hot-import": "^0.2.1",
     "mime": "^2.2.0",
     "normalize-package-data": "^2.4.0",

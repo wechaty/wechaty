@@ -179,7 +179,7 @@ export class Message extends PuppetAccessory implements Sayable {
   ): Message {
     log.verbose('Message', 'static createMobileTerminated(%s, %s)',
                             id,
-                            payload,
+                            payload ? payload : '',
                 )
     /**
      * Must NOT use `Message` at here

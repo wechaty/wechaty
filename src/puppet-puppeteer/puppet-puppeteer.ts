@@ -704,9 +704,10 @@ export class PuppetPuppeteer extends Puppet {
       const contact = this.Contact.load(contactId)
       await contact.ready()
 
+      const fileName = (contact.name() || 'unknown') + '-avatar.jpg'
       return FileBox.fromRemote(
         avatarUrl,
-        contact.name() || 'unknown' + '-avatar.jpg',
+        fileName,
         headers,
       )
 
@@ -1305,8 +1306,11 @@ export class PuppetPuppeteer extends Puppet {
 
     const re = /\.[a-z0-9]{1,7}$/i
     if (!re.test(filename)) {
-      const ext = rawPayload.MMAppMsgFileExt || this.extname(rawPayload)
-      filename += '.' + ext
+      if (rawPayload.MMAppMsgFileExt) {
+        filename += '.' + rawPayload.MMAppMsgFileExt
+      } else {
+        filename += this.extname(rawPayload)
+      }
     }
 
     log.silly('PuppetPuppeteer', 'filename()=%s, build from rawPayload', filename)
