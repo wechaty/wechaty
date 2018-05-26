@@ -16,7 +16,8 @@
  *   limitations under the License.
  *
  */
-import * as path      from 'path'
+import * as fs    from 'fs'
+import * as path  from 'path'
 
 /* tslint:disable:variable-name */
 import * as QrcodeTerminal  from 'qrcode-terminal'
@@ -33,7 +34,7 @@ import {
   log,
 }               from '../src/'
 
-const BOT_QR_CODE_IMAGE_FILE = path.join(
+const BOT_QR_CODE_IMAGE_FILE = path.resolve(
   __dirname,
   '../docs/images/bot-qr-code.png',
 )
@@ -84,7 +85,7 @@ bot
   try {
     console.log(msg.toString())
 
-    if (/^(ding|ping|bing|code)$/i.test(msg.text()) && !msg.self()) {
+    if (/^(ding|ping|bing|code)$/i.test(msg.text()) /*&& !msg.self()*/) {
       /**
        * 1. reply 'dong'
        */
@@ -100,7 +101,11 @@ bot
       /**
        * 2. reply qrcode image
        */
-      const fileBox = FileBox.fromLocal(BOT_QR_CODE_IMAGE_FILE)
+      // const fileBox = FileBox.fromLocal(BOT_QR_CODE_IMAGE_FILE)
+      const fileBox = FileBox.fromStream(
+        fs.createReadStream(BOT_QR_CODE_IMAGE_FILE),
+        BOT_QR_CODE_IMAGE_FILE,
+      )
 
       log.info('Bot', 'REPLY: %s', fileBox)
       await msg.say(fileBox)
