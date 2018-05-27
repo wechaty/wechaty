@@ -10,16 +10,7 @@
     , "declaration": true
     , "sourceMap": true
     , "traceResolution": false
-
     , "noEmitOnError": true
-    , "noUnusedLocals": true
-    , "noImplicitReturns": true
-    , "noFallthroughCasesInSwitch": true
-    , "noImplicitAny": true
-    , "noUnusedParameters": true
-    , "noImplicitThis": true
-    , "strictNullChecks": true
-
 
     , "noLib": false
     , "skipLibCheck": true
