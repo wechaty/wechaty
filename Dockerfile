@@ -1,4 +1,4 @@
-FROM ubuntu:17.10
+FROM ubuntu:18.04
 LABEL maintainer="Huan LI <zixia@zixia.net>"
 
 ENV DEBIAN_FRONTEND     noninteractive
@@ -17,15 +17,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
     coreutils \
+    ffmpeg \
     figlet \
     git \
+    gnupg2 \
     jq \
-    libav-tools \
     libgconf-2-4 \
     moreutils \
     shellcheck \
     sudo \
-    ttf-freefont \
     tzdata \
     vim \
     wget \
