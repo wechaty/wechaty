@@ -161,8 +161,7 @@ async function onLogin(
       log.warn('PuppetPuppeteerEvent', 'readyStable() exception: %s', e && e.message || e)
     }
 
-    this.login(user)
-    // this.emit('login', user)
+    this.login(userId)
 
   } catch (e) {
     log.error('PuppetPuppeteerEvent', 'onLogin() exception: %s', e)

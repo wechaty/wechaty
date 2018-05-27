@@ -569,10 +569,10 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async login(user: Contact): Promise<void> {
-    log.warn('PuppetPuppeteer', 'login(%s)', user)
-    this.userId = user.id
-    this.emit('login', user)
+  public async login(userId: string): Promise<void> {
+    log.verbose('PuppetPuppeteer', 'login(%s)', userId)
+    this.userId = userId
+    this.emit('login', this.Contact.load(userId))
   }
 
   /**

@@ -63,7 +63,7 @@ const puppet = new PuppetPuppeteer({
 (wechaty as any).initPuppetAccessory(puppet)
 
 const MOCK_USER_ID = 'TEST-USER-ID'
-puppet.login(wechaty.Contact.load(MOCK_USER_ID))
+puppet.login(MOCK_USER_ID)
 
 test('constructor()', async t => {
   /* tslint:disable:max-line-length */
