@@ -32,7 +32,9 @@ build:
     - ./scripts/docker.sh build
     - ./scripts/docker.sh test
   on_success:
-    - if [[ "$BRANCH" == "master" && ! "$PULL_REQUEST" ]]; then curl -X POST -d '{"from":"shippable"}' "$DOCKER_REBUILD_URL"; else echo "Skipping deployment for branch $BRANCH."; fi
+    - echo $BRANCH
+    - echo $IS_PULL_REQUEST
+    - if [ "$BRANCH" == "master" ] && [ "$IS_PULL_REQUEST" == false ]; then curl -X POST -d '{"from":"shippable"}' "$DOCKER_REBUILD_URL"; fi
 
 
 # Integrations are used to connect external resources to CI
