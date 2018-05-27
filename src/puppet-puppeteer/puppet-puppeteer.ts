@@ -71,10 +71,10 @@ import {
   Contact,
   ContactPayload,
   ContactQueryFilter,
-  Gender,
+  // Gender,
 }                             from '../contact'
 import {
-  // MessageDirection,
+  // Messageirection,
   MessagePayload,
   MessageType,
 }                             from '../message'
@@ -84,9 +84,6 @@ import {
   RoomPayload,
   RoomQueryFilter,
 }                             from '../room'
-// import {
-//   FriendRequest,
-// }                             from '../puppet/friend-request'
 
 export type PuppetFoodType = 'scan' | 'ding'
 export type ScanFoodType   = 'scan' | 'login' | 'logout'
@@ -365,13 +362,13 @@ export class PuppetPuppeteer extends Puppet {
     }
 
     if (type !== MessageType.Text && type !== MessageType.Unknown) {
-      payload.file = await this.messageRawPayloadFile(rawPayload)
+      payload.file = await this.messageRawPayloadToFile(rawPayload)
     }
 
     return payload
   }
 
-  private async messageRawPayloadFile(
+  private async messageRawPayloadToFile(
     rawPayload: WebMessageRawPayload,
   ): Promise<FileBox> {
     let url = await this.messageRawPayloadToUrl(rawPayload)
@@ -444,16 +441,20 @@ export class PuppetPuppeteer extends Puppet {
       case WebMessageType.TEXT:
         return MessageType.Text
 
+      /**
+       * Treat those Types as TEXT
+       *
+       * FriendRequest is a SYS message
+       * FIXME: should we use better message type at here???
+       */
       case WebMessageType.SYS:
-        // FriendRequest is a SYS message
-        // FIXME: should we use better message type at here???
+      case WebMessageType.APP:
         return MessageType.Text
 
       // VERIFYMSG           = 37,
       // POSSIBLEFRIEND_MSG  = 40,
       // SHARECARD           = 42,
       // LOCATION            = 48,
-      // APP                 = 49,
       // VOIPMSG             = 50,
       // STATUSNOTIFY        = 51,
       // VOIPNOTIFY          = 52,
@@ -604,7 +605,7 @@ export class PuppetPuppeteer extends Puppet {
    *
    */
   public async contactRawPayload(id: string): Promise<WebContactRawPayload> {
-    log.verbose('PuppetPuppeteer', 'contactRawPayload(%s) @ %s', id, this)
+    log.silly('PuppetPuppeteer', 'contactRawPayload(%s) @ %s', id, this)
     try {
       const rawPayload = await this.bridge.getContact(id) as WebContactRawPayload
       return rawPayload
@@ -619,15 +620,19 @@ export class PuppetPuppeteer extends Puppet {
   public async contactRawPayloadParser(
     rawPayload: WebContactRawPayload,
   ): Promise<ContactPayload> {
-    log.verbose('PuppetPuppeteer', 'contactParseRawPayload(Object.keys(payload).length=%d)',
+    log.silly('PuppetPuppeteer', 'contactParseRawPayload(Object.keys(payload).length=%d)',
                                     Object.keys(rawPayload).length,
                 )
     if (!Object.keys(rawPayload).length) {
+      log.error('PuppetPuppeteer', 'contactParseRawPayload(Object.keys(payload).length=%d)',
+                                    Object.keys(rawPayload).length,
+                )
       log.error('PuppetPuppeteer', 'contactParseRawPayload() got empty rawPayload!')
-      return {
-        gender: Gender.Unknown,
-        type:   Contact.Type.Unknown,
-      }
+      throw new Error('empty raw payload')
+      // return {
+      //   gender: Gender.Unknown,
+      //   type:   Contact.Type.Unknown,
+      // }
     }
 
     // this.id = rawPayload.UserName   // MMActualSender??? MMPeerUserName??? `getUserContact(message.MMActualSender,message.MMPeerUserName).HeadImgUrl`
@@ -677,6 +682,7 @@ export class PuppetPuppeteer extends Puppet {
   }
 
   public async contactAvatar(contactId: string): Promise<FileBox> {
+    log.verbose('PuppetPuppeteer', 'contactAvatar(%s)', contactId)
     const payload = await this.contactPayload(contactId)
     if (!payload.avatar) {
       throw new Error('Can not get avatar: no payload.avatar!')
@@ -1333,7 +1339,7 @@ export class PuppetPuppeteer extends Puppet {
         mediatype = WebMediaType.Attachment
     }
 
-    const buffer = <Buffer>await new Promise((resolve, reject) => {
+    const buffer = await new Promise<Buffer>((resolve, reject) => {
       file.pipe(bl((err: Error, data: Buffer) => {
         if (err) reject(err)
         else resolve(data)

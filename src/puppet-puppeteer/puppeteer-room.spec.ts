@@ -124,7 +124,7 @@ test('Room smoking test', async t => {
         setImmediate(() => resolve(CONTACT_RAW_PAYLOAD_DICT[id]))
       } else {
         // ignore other ids
-        setImmediate(() => resolve({}))
+        setImmediate(() => resolve({id}))
       }
     })
   }
@@ -141,7 +141,6 @@ test('Room smoking test', async t => {
 
   sandbox.stub(puppet as any, 'contactRawPayload').callsFake(mockRoomRawPayload)
   sandbox.stub(puppet as any, 'roomRawPayload').callsFake(mockRoomRawPayload)
-  // MyContact.puppet = MyMessage.puppet = MyRoom.puppet = puppet
 
   const r = wechaty.Room.load(EXPECTED.id)
   await r.ready()

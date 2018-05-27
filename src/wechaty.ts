@@ -392,12 +392,17 @@ export class Wechaty extends PuppetAccessory implements Sayable {
   }
 
   /**
-   * Will be called from the Puppet.
+   * set Wechaty attach to the puppet,
+   * this function should be called before `start()`
+   *
+   * Will be called from the Puppet in constructor:
+   *  When we declare a wechaty without a puppet instance,
+   *  the wechaty need to attach to puppet at here.
    */
   public attach(puppet: Puppet) {
     log.verbose('Wechaty', 'attach(%s) this.options.puppet="%s"',
                             puppet,
-                            this.options.puppet &&　this.options.puppet.toString(),
+                            this.options.puppet &&　this.options.puppet.toString() || '',
                 )
 
     if (this.options.puppet instanceof Puppet) {

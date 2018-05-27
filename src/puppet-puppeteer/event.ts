@@ -191,65 +191,33 @@ async function onMessage(
   rawPayload : WebMessageRawPayload,
 ): Promise<void> {
   const msg = this.Message.create(rawPayload.MsgId)
+  await msg.ready()
 
-  try {
-    await msg.ready()
+  /**
+   * Fire Events if match message type & content
+   */
+  switch (rawPayload.MsgType) {
 
-    /**
-     * Fire Events if match message type & content
-     */
-    switch (rawPayload.MsgType) {
+    case WebMessageType.VERIFYMSG:
+      Firer.checkFriendRequest.call(this, msg)
+      break
 
-      case WebMessageType.VERIFYMSG:
-        Firer.checkFriendRequest.call(this, msg)
-        break
+    case WebMessageType.SYS:
+      if (msg.room()) {
+        const joinResult  = await Firer.checkRoomJoin.call(this, msg)
+        const leaveResult = await Firer.checkRoomLeave.call(this, msg)
+        const topicRestul = await Firer.checkRoomTopic.call(this, msg)
 
-      case WebMessageType.SYS:
-        if (msg.room()) {
-          const joinResult  = await Firer.checkRoomJoin.call(this, msg)
-          const leaveResult = await Firer.checkRoomLeave.call(this, msg)
-          const topicRestul = await Firer.checkRoomTopic.call(this, msg)
-
-          if (!joinResult && !leaveResult && !topicRestul) {
-            log.warn('PuppetPuppeteerEvent', `checkRoomSystem message: <${msg.text()}> not found`)
-          }
-        } else {
-          Firer.checkFriendConfirm.call(this, msg)
+        if (!joinResult && !leaveResult && !topicRestul) {
+          log.warn('PuppetPuppeteerEvent', `checkRoomSystem message: <${msg.text()}> not found`)
         }
-        break
-    }
-
-    // /**
-    //  * Check Type for special Message
-    //  * reload if needed
-    //  */
-
-    // switch (rawPayload.MsgType) {
-    //   case WebMessageType.EMOTICON:
-    //   case WebMessageType.IMAGE:
-    //   case WebMessageType.VIDEO:
-    //   case WebMessageType.VOICE:
-    //   case WebMessageType.MICROVIDEO:
-    //   case WebMessageType.APP:
-    //     log.verbose('PuppetPuppeteerEvent', 'onMessage() EMOTICON/IMAGE/VIDEO/VOICE/MICROVIDEO message')
-    //     msg = this.Message.create(rawPayload.MsgId)
-    //     break
-
-    //   case WebMessageType.TEXT:
-    //     if (rawPayload.SubMsgType === WebMessageType.LOCATION) {
-    //       log.verbose('PuppetPuppeteerEvent', 'onMessage() (TEXT&LOCATION) message')
-    //       msg = this.Message.create(rawPayload.MsgId)
-    //     }
-    //     break
-    // }
-    // await msg.ready()
-
-    this.emit('message', msg)
-
-  } catch (e) {
-    log.error('PuppetPuppeteerEvent', 'onMessage() exception: %s', e.stack)
-    throw e
+      } else {
+        Firer.checkFriendConfirm.call(this, msg)
+      }
+      break
   }
+
+  this.emit('message', msg)
 }
 
 async function onUnload(this: PuppetPuppeteer): Promise<void> {

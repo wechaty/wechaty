@@ -701,17 +701,25 @@ export class Message extends PuppetAccessory implements Sayable {
   public async ready(): Promise<void> {
     log.verbose('Message', 'ready()')
 
-    // if (this.direction !== MessageDirection.MT) {
-    //   throw new Error('only Mobile Terminated message is permit to call ready()!')
-    // }
-
     if (this.isReady()) {
       return
     }
 
     this.payload = await this.puppet.messagePayload(this.id)
 
-    // TODO ... the rest
+    const fromId = this.payload.fromId
+    const roomId = this.payload.roomId
+    const toId   = this.payload.toId
+
+    if (fromId) {
+      await this.puppet.Contact.load(fromId).ready()
+    }
+    if (roomId) {
+      await this.puppet.Room.load(roomId).ready()
+    }
+    if (toId) {
+      await this.puppet.Contact.load(toId).ready()
+    }
   }
 
   // public async readyMedia(): Promise<this> {

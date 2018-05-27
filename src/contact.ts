@@ -363,7 +363,7 @@ export class Contact extends PuppetAccessory implements Sayable {
    * }
    */
   public alias(newAlias?: null | string): null | string | Promise<void> {
-    log.verbose('Contact', 'alias(%s)',
+    log.silly('Contact', 'alias(%s)',
                             newAlias === undefined
                               ? ''
                               : newAlias,

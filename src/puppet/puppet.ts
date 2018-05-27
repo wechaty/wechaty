@@ -146,6 +146,12 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     this.Message       = this.options.wechaty.Message
     this.Room          = this.options.wechaty.Room
 
+    /**
+     * Make sure that Wechaty had attached to this puppet
+     *
+     * When we declare a wechaty without a puppet instance,
+     * the wechaty need to attach to puppet later.
+     */
     this.options.wechaty.attach(this)
 
     /**
@@ -378,7 +384,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async contactRawPayloadParser(rawPayload: any) : Promise<ContactPayload>
 
   public async contactPayload(id: string): Promise<ContactPayload> {
-    log.verbose('Puppet', 'contactPayload(%s) @ %s', id, this)
+    log.silly('Puppet', 'contactPayload(%s) @ %s', id, this)
     const rawPayload = await this.contactRawPayload(id)
     const payload    = await this.contactRawPayloadParser(rawPayload)
     return payload

@@ -52,13 +52,6 @@ import {
   WebRoomRawPayload,
 }                         from './web-schemas'
 
-// // tslint:disable-next-line:variable-name
-// const MyRoom = cloneClass(Room)
-// // tslint:disable-next-line:variable-name
-// const MyContact = cloneClass(Contact)
-// // tslint:disable-next-line:variable-name
-// const MyMessage = cloneClass(Message)
-
 const wechaty = new Wechaty()
 
 const puppet = new PuppetPuppeteer({
@@ -69,35 +62,12 @@ const puppet = new PuppetPuppeteer({
 ;
 (wechaty as any).initPuppetAccessory(puppet)
 
-/**
- *
- * Init puppet for testing
- *
- */
-// wechaty.puppet
-//   // wechaty.XXX
-//   = wechaty.Contact.puppet
-//   = wechaty.FriendRequest.puppet
-//   = wechaty.Room.puppet
-//   = wechaty.Message.puppet
-//   // MyXXX
-//   = MyContact.puppet
-//   = MyMessage.puppet
-//   = MyRoom.puppet
-//   // puppet.XXX
-//   = puppet.Contact.puppet
-//   = puppet.FriendRequest.puppet
-//   = puppet.Room.puppet
-//   = puppet.Message.puppet
-//   // puppet
-//   = puppet
-
 const MOCK_USER_ID = 'TEST-USER-ID'
 puppet.login(wechaty.Contact.load(MOCK_USER_ID))
 
 test('constructor()', async t => {
   /* tslint:disable:max-line-length */
-  const rawPayload = JSON.parse('{"MsgId":"179242112323992762","FromUserName":"@0bb3e4dd746fdbd4a80546aef66f4085","ToUserName":"@16d20edf23a3bf3bc71bb4140e91619f3ff33b4e33f7fcd25e65c1b02c7861ab","MsgType":1,"Content":"test123","Status":3,"ImgStatus":1,"CreateTime":1461652670,"VoiceLength":0,"PlayLength":0,"FileName":"","FileSize":"","MediaId":"","Url":"","AppMsgType":0,"StatusNotifyCode":0,"StatusNotifyUserName":"","RecommendInfo":{"UserName":"","NickName":"","QQNum":0,"Province":"","City":"","Content":"","Signature":"","Alias":"","Scene":0,"VerifyFlag":0,"AttrStatus":0,"Sex":0,"Ticket":"","OpCode":0},"ForwardFlag":0,"AppInfo":{"AppID":"","Type":0},"HasProductId":0,"Ticket":"","ImgHeight":0,"ImgWidth":0,"SubMsgType":0,"NewMsgId":179242112323992770,"MMPeerUserName":"@0bb3e4dd746fdbd4a80546aef66f4085","MMDigest":"test123","MMIsSend":false,"MMIsChatRoom":false,"MMUnread":true,"LocalID":"179242112323992762","ClientMsgId":"179242112323992762","MMActualContent":"test123","MMActualSender":"@0bb3e4dd746fdbd4a80546aef66f4085","MMDigestTime":"14:37","MMDisplayTime":1461652670,"MMTime":"14:37"}')
+  const rawPayload: WebMessageRawPayload = JSON.parse('{"MsgId":"179242112323992762","FromUserName":"@0bb3e4dd746fdbd4a80546aef66f4085","ToUserName":"@16d20edf23a3bf3bc71bb4140e91619f3ff33b4e33f7fcd25e65c1b02c7861ab","MsgType":1,"Content":"test123","Status":3,"ImgStatus":1,"CreateTime":1461652670,"VoiceLength":0,"PlayLength":0,"FileName":"","FileSize":"","MediaId":"","Url":"","AppMsgType":0,"StatusNotifyCode":0,"StatusNotifyUserName":"","RecommendInfo":{"UserName":"","NickName":"","QQNum":0,"Province":"","City":"","Content":"","Signature":"","Alias":"","Scene":0,"VerifyFlag":0,"AttrStatus":0,"Sex":0,"Ticket":"","OpCode":0},"ForwardFlag":0,"AppInfo":{"AppID":"","Type":0},"HasProductId":0,"Ticket":"","ImgHeight":0,"ImgWidth":0,"SubMsgType":0,"NewMsgId":179242112323992770,"MMPeerUserName":"@0bb3e4dd746fdbd4a80546aef66f4085","MMDigest":"test123","MMIsSend":false,"MMIsChatRoom":false,"MMUnread":true,"LocalID":"179242112323992762","ClientMsgId":"179242112323992762","MMActualContent":"test123","MMActualSender":"@0bb3e4dd746fdbd4a80546aef66f4085","MMDigestTime":"14:37","MMDisplayTime":1461652670,"MMTime":"14:37"}')
 
   const EXPECTED = {
     id:     '179242112323992762',
@@ -107,12 +77,15 @@ test('constructor()', async t => {
 
   const sandbox = sinon.createSandbox()
   sandbox.stub(puppet, 'messagePayload').callsFake((_: string) => {
-    const payload = {
+    const payload: MessagePayload = {
       type   : Message.Type.Text,
       fromId : EXPECTED.from,
+      date   : new Date(),
     }
     return payload
   })
+  sandbox.stub(puppet, 'contactPayload').returns({})
+  sandbox.stub(puppet, 'roomPayload').returns({})
 
   await msg.ready()
 
@@ -189,18 +162,6 @@ test('ready()', async t => {
   ;
   (wechaty as any).initPuppetAccessory(puppet)
 
-  // wechaty.puppet
-  // // wechaty.XXX
-  // = wechaty.Contact.puppet
-  // = wechaty.FriendRequest.puppet
-  // = wechaty.Room.puppet
-  // = wechaty.Message.puppet
-  // // MyXXX
-  // = MyRoom.puppet
-  // = MyContact.puppet
-  // = MyMessage.puppet
-  // = puppet
-
   sandbox.stub(puppet as any, 'contactRawPayload').callsFake(mockContactRawPayload)
   sandbox.stub(puppet as any, 'messageRawPayload').callsFake(mockMessageRawPayload)
 
@@ -243,8 +204,6 @@ test('findAll()', async t => {
 })
 
 test('self()', async t => {
-  // MyRoom.puppet = MyContact.puppet = MyMessage.puppet = puppet
-
   const sandbox = sinon.createSandbox()
 
   const MOCK_CONTACT = wechaty.Contact.load(MOCK_USER_ID)
@@ -262,6 +221,8 @@ test('self()', async t => {
   sandbox.stub(puppet, 'messagePayload').callsFake(mockMessagePayload)
   sandbox.stub((puppet as any as { 'userId': string }), 'userId')
           .value(MOCK_CONTACT.id)
+  sandbox.stub(puppet, 'roomPayload').returns({})
+  sandbox.stub(puppet, 'contactPayload').returns({})
 
   const selfMsg = wechaty.Message.create('xxx')
   await selfMsg.ready()

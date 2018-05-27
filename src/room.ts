@@ -235,8 +235,10 @@ export class Room extends PuppetAccessory implements Sayable {
    * @private
    */
   public toString() {
-    const identity = this.topic() || this.id
-    return `Room<${identity}>`
+    if (this.isReady()) {
+      return `Room<${this.topic()}>`
+    }
+    return `Room<${this.id}>`
   }
 
   public *[Symbol.iterator](): IterableIterator<Contact> {
@@ -250,7 +252,7 @@ export class Room extends PuppetAccessory implements Sayable {
    * @private
    */
   public async ready(): Promise<void> {
-    log.silly('Room', 'ready()')
+    log.verbose('Room', 'ready()')
 
     if (this.isReady()) {
       return
@@ -516,6 +518,7 @@ export class Room extends PuppetAccessory implements Sayable {
     log.verbose('Room', 'topic(%s)', newTopic ? newTopic : '')
     if (!this.isReady()) {
       log.warn('Room', 'topic() room not ready')
+      throw new Error('not ready')
     }
 
     if (typeof newTopic === 'undefined') {
