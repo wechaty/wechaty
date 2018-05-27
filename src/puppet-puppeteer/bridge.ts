@@ -530,24 +530,34 @@ export class Bridge extends EventEmitter {
   }
 
   public async getContact(id: string): Promise<WebContactRawPayload | WebRoomRawPayload> {
-    // const max = 35
-    // const backoff = 500
-
-    // const timeout = max * (backoff * max) / 2
-
     try {
       return await Misc.retry(async (retry, attempt) => {
-        log.silly('PuppetPuppeteerBridge', 'getContact() promiseRetry: attempt %d',
-                                            attempt,
+        log.silly('PuppetPuppeteerBridge', 'getContact(%s) retry attempt %d',
+                                          id,
+                                          attempt,
                   )
+
+        if (attempt > 1) {
+          log.warn('PuppetPuppeteerBridge', 'getContact(%s) retry attempt %d',
+              id,
+              attempt,
+          )
+        }
+
         try {
-          const r = await this.proxyWechaty('getContact', id)
-          if (r) {
-            return r
+          const rawPayload = await this.proxyWechaty('getContact', id)
+
+          const testNum = Object.keys(rawPayload).length
+          if (!testNum) {
+            console.log('rawPayload keys: ', testNum)
+          }
+
+          if (rawPayload && Object.keys(rawPayload).length > 0) {
+            return rawPayload
           }
           throw new Error('got empty return value at attempt: ' + attempt)
         } catch (e) {
-          log.silly('PuppetPuppeteerBridge', 'proxyWechaty(getContact, %s) exception: %s', id, e.message)
+          log.warn('PuppetPuppeteerBridge', 'proxyWechaty(getContact, %s) exception: %s', id, e.message)
           retry(e)
         }
       })
@@ -567,7 +577,7 @@ export class Bridge extends EventEmitter {
       //   }
       // })
     } catch (e) {
-      log.warn('PuppetPuppeteerBridge', 'promiseRetry() getContact() finally FAIL: %s', e.message)
+      log.error('PuppetPuppeteerBridge', 'promiseRetry() getContact() finally FAIL: %s', e.message)
       throw e
     }
     /////////////////////////////////

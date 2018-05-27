@@ -494,15 +494,17 @@
       return null
     }
     var msg = chatFactory.getMsg(id)
-    var msgWithoutFunction = {}
 
-    if (msg) {
-      Object.keys(msg).forEach(function(k) {
-        if (typeof msg[k] !== 'function') {
-          msgWithoutFunction[k] = msg[k]
-        }
-      })
+    if (!msg) {
+      return null
     }
+
+    var msgWithoutFunction = {}
+    Object.keys(msg).forEach(function(k) {
+      if (typeof msg[k] !== 'function') {
+        msgWithoutFunction[k] = msg[k]
+      }
+    })
     return msgWithoutFunction
   }
 
@@ -512,18 +514,18 @@
       log('contactFactory not inited')
       return null
     }
-    var c = contactFactory.getContact(id)
+    var contact = contactFactory.getContact(id)
     var contactWithoutFunction = {}
 
-    if (c) {
-      if (c.isContact) {
+    if (contact) {
+      if (contact.isContact) {
         // extend rawObj to identify `stranger`
-        c.stranger = !(c.isContact())
+        contact.stranger = !(contact.isContact())
       }
 
-      Object.keys(c).forEach(function(k) {
-        if (typeof c[k] !== 'function') {
-          contactWithoutFunction[k] = c[k]
+      Object.keys(contact).forEach(function(k) {
+        if (typeof contact[k] !== 'function') {
+          contactWithoutFunction[k] = contact[k]
         }
       })
 
@@ -533,7 +535,7 @@
        * when `id` does not exist in _contact Array, maybe it is belongs to a stranger in a room.
        * try to find in room's member list for this `id`, and return the contact info, if any.
        */
-      c = Object.keys(_contacts)
+      contact = Object.keys(_contacts)
                 .filter(id => id.match(/^@@/))    // only search in room
                 .map(id => _contacts[id])         // map to room array
                 .filter(r => r.MemberList.length) // get rid of room without member list
@@ -547,14 +549,17 @@
                 )
                 [0]
 
-      if (c) {
-        c.stranger = true
+      if (contact) {
+        contact.stranger = true
 
-        Object.keys(c).forEach(k => {
-          if (typeof c[k] !== 'function') {
-            contactWithoutFunction[k] = c[k]
+        Object.keys(contact).forEach(k => {
+          if (typeof contact[k] !== 'function') {
+            contactWithoutFunction[k] = contact[k]
           }
         })
+      } else {
+        // Not found contact id
+        contactWithoutFunction = null
       }
 
     }
