@@ -27,7 +27,6 @@ before_install:
   - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then ./scripts/prepare-osx.sh; fi
 
 script:
-  - echo $TRAVIS_OS_NAME
   - node --version
   - npm --version
   - echo "Testing started ..."
