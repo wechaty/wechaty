@@ -21,10 +21,12 @@ stages:
   - test
   - pack
   - name: deploy
-    if: branch =~ ^(master|v\d+\.\d+)$ AND (type NOT IN (cron, pull_request))
+    if: branch =~ ^(master|v\d+\.\d+)$
+        AND (type NOT IN (cron, pull_request))
 
 before_install:
   - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then ./scripts/prepare-osx.sh; fi
+  - npm install -g npm
 
 script:
   - node --version
@@ -38,11 +40,13 @@ jobs:
 
     - stage: pack
       script:
+        - echo "NPM Pack Testing ..."
+        - npm version
         - npm run test:pack && echo 'Npm pack testing is passed' || travis_terminate 1
 
     - stage: deploy
       script:
-        - echo "Deploying to NPM ..."
+        - echo "NPM Deploying ..."
         - npm version
         - if ./scripts/development-release.ts; then ./scripts/package-publish-config-tag-next.ts; fi
         - npm run dist
