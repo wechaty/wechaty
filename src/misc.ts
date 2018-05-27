@@ -25,6 +25,9 @@ import {
 }                   from 'stream'
 import * as url     from 'url'
 
+import promiseRetry = require('promise-retry')
+import { WrapOptions } from 'retry'
+
 import { log }      from './config'
 
 export class Misc {
@@ -269,6 +272,28 @@ export class Misc {
   //       return 'application/octet-stream'
   //   }
   // }
+
+  public static async retry<T>(
+    retryableFn: (
+      retry: (error: Error) => never,
+      attempt: number,
+    ) => Promise<T>,
+  ): Promise<T> {
+    const factor     = 3
+    const minTimeout = 10
+    const maxTimeout = 20 * 1000
+    const retries    = 9
+    const unref      = true
+
+    const retryOptions: WrapOptions = {
+      minTimeout,
+      maxTimeout,
+      retries,
+      unref,
+      factor,
+    }
+    return await promiseRetry(retryOptions, retryableFn)
+  }
 }
 
 export default Misc

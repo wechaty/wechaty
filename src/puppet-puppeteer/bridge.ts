@@ -31,7 +31,7 @@ import StateSwitch      from 'state-switch'
 import { parseString }  from 'xml2js'
 
 /* tslint:disable:no-var-requires */
-const retryPromise  = require('retry-promise').default
+// const retryPromise  = require('retry-promise').default
 
 import { log }        from '../config'
 import Profile        from '../profile'
@@ -530,19 +530,16 @@ export class Bridge extends EventEmitter {
   }
 
   public async getContact(id: string): Promise<WebContactRawPayload | WebRoomRawPayload> {
-    const max = 35
-    const backoff = 500
+    // const max = 35
+    // const backoff = 500
 
-    // max = (2*totalTime/backoff) ^ (1/2)
-    // timeout = 11,250 for {max: 15, backoff: 100}
-    // timeout = 45,000 for {max: 30, backoff: 100}
-    // timeout = 30,6250 for {max: 35, backoff: 500}
-    const timeout = max * (backoff * max) / 2
+    // const timeout = max * (backoff * max) / 2
 
     try {
-      return await retryPromise({ max: max, backoff: backoff }, async (attempt: number) => {
-        log.silly('PuppetPuppeteerBridge', 'getContact() retryPromise: attampt %d/%d time for timeout %d',
-                                      attempt, max, timeout)
+      return await Misc.retry(async (retry, attempt) => {
+        log.silly('PuppetPuppeteerBridge', 'getContact() promiseRetry: attempt %d',
+                                            attempt,
+                  )
         try {
           const r = await this.proxyWechaty('getContact', id)
           if (r) {
@@ -551,11 +548,26 @@ export class Bridge extends EventEmitter {
           throw new Error('got empty return value at attempt: ' + attempt)
         } catch (e) {
           log.silly('PuppetPuppeteerBridge', 'proxyWechaty(getContact, %s) exception: %s', id, e.message)
-          throw e
+          retry(e)
         }
       })
+
+      // return await retryPromise({ max: max, backoff: backoff }, async (attempt: number) => {
+      //   log.silly('PuppetPuppeteerBridge', 'getContact() retryPromise: attampt %d/%d time for timeout %d',
+      //                                 attempt, max, timeout)
+      //   try {
+      //     const r = await this.proxyWechaty('getContact', id)
+      //     if (r) {
+      //       return r
+      //     }
+      //     throw new Error('got empty return value at attempt: ' + attempt)
+      //   } catch (e) {
+      //     log.silly('PuppetPuppeteerBridge', 'proxyWechaty(getContact, %s) exception: %s', id, e.message)
+      //     throw e
+      //   }
+      // })
     } catch (e) {
-      log.warn('PuppetPuppeteerBridge', 'retryPromise() getContact() finally FAIL: %s', e.message)
+      log.warn('PuppetPuppeteerBridge', 'promiseRetry() getContact() finally FAIL: %s', e.message)
       throw e
     }
     /////////////////////////////////

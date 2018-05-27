@@ -18,11 +18,12 @@
  */
 
 /* tslint:disable:no-var-requires */
-const retryPromise  = require('retry-promise').default
+// const retryPromise  = require('retry-promise').default
 
 import {
   log,
 }         from '../config'
+import { Misc } from '../misc'
 
 import {
   WebRecomendInfo,
@@ -239,7 +240,9 @@ async function checkRoomJoin(
 
   const text = msg.text()
 
-  let inviteeList: string[], inviter: string
+  let inviteeList : string[]
+  let inviter     : string
+
   try {
     [inviteeList, inviter] = parseRoomJoin.call(this, text)
   } catch (e) {
@@ -247,57 +250,52 @@ async function checkRoomJoin(
     return false // not a room join message
   }
   log.silly('PuppetPuppeteerFirer', 'checkRoomJoin() inviteeList: %s, inviter: %s',
-                              inviteeList.join(','),
-                              inviter,
-          )
+                                    inviteeList.join(','),
+                                    inviter,
+            )
 
   let inviterContact: null | Contact = null
   let inviteeContactList: Contact[]  = []
 
   try {
-    if (inviter === 'You' || inviter === '你' || inviter === 'you') {
+    if (/^You|你$/i.test(inviter)) { //  === 'You' || inviter === '你' || inviter === 'you'
       inviterContact = this.userSelf()
     }
 
-    const max     = 20
-    const backoff = 300
-    const timeout = max * (backoff * max) / 2
+    // const max     = 20
+    // const backoff = 300
+    // const timeout = max * (backoff * max) / 2
     // 20 / 300 => 63,000
     // max = (2*totalTime/backoff) ^ (1/2)
     // timeout = 11,250 for {max: 15, backoff: 100}
 
-    await retryPromise({ max: max, backoff: backoff }, async (attempt: number) => {
-      log.silly('PuppetPuppeteerFirer', 'fireRoomJoin() retryPromise() attempt %d with timeout %d', attempt, timeout)
+    await Misc.retry(async (retry, attempt) => {
+      log.silly('PuppetPuppeteerFirer', 'fireRoomJoin() retry() attempt %d', attempt)
 
-      await room.refresh()
+      await room.sync()
       let inviteeListAllDone = true
 
       for (const i in inviteeList) {
-        const loaded = inviteeContactList[i] instanceof Contact
-
-        if (!loaded) {
-          const c = room.member(inviteeList[i])
-          if (!c) {
+        const inviteeContact = inviteeContactList[i]
+        if (inviteeContact instanceof Contact) {
+          if (!inviteeContact.isReady()) {
+            log.warn('PuppetPuppeteerFirer', 'fireRoomJoin() retryPromise() isReady false for contact %s', inviteeContact.id)
+            inviteeListAllDone = false
+            await inviteeContact.refresh()
+            continue
+          }
+        } else {
+          const member = room.member(inviteeList[i])
+          if (!member) {
             inviteeListAllDone = false
             continue
           }
 
-          await c.ready()
-          inviteeContactList[i] = c
+          await member.ready()
+          inviteeContactList[i] = member
 
-          const isReady = c.isReady()
-          if (!isReady) {
+          if (!member.isReady()) {
             inviteeListAllDone = false
-            continue
-          }
-        }
-
-        if (inviteeContactList[i] instanceof Contact) {
-          const isReady = inviteeContactList[i].isReady()
-          if (!isReady) {
-            log.warn('PuppetPuppeteerFirer', 'fireRoomJoin() retryPromise() isReady false for contact %s', inviteeContactList[i].id)
-            inviteeListAllDone = false
-            await inviteeContactList[i].refresh()
             continue
           }
         }
@@ -317,8 +315,7 @@ async function checkRoomJoin(
       }
 
       log.error('PuppetPuppeteerFirer', 'fireRoomJoin() not found(yet)')
-      return false
-      // throw new Error('not found(yet)')
+      return retry(new Error('fireRoomJoin() not found(yet)'))
 
     }).catch((e: Error) => {
       log.warn('PuppetPuppeteerFirer', 'fireRoomJoin() reject() inviteeContactList: %s, inviterContact: %s, error %s',

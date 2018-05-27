@@ -19,13 +19,18 @@
  */
 // tslint:disable:no-shadowed-variable
 import * as test  from 'blue-tape'
-// import * as sinon from 'sinon'
+import * as sinon from 'sinon'
 // const sinonTest   = require('sinon-test')(sinon)
 
 import * as http      from 'http'
 import * as express   from 'express'
 
-import Misc        from './misc'
+import promiseRetry = require('promise-retry')
+
+import Misc     from './misc'
+import {
+  log,
+}               from './config'
 
 test('stripHtml()', async t => {
   const HTML_BEFORE_STRIP = 'Outer<html>Inner</html>'
@@ -163,4 +168,53 @@ test('getPort() for an available socket port', async t => {
     }
   }
   t.pass('should has no exception after loop test')
+})
+
+test('promiseRetry()', async t => {
+  const EXPECTED_RESOLVE = 'Okey'
+  const EXPECTED_REJECT  = 'NotTheTime'
+
+  function delayedFactory(timeout: number) {
+    const startTime = Date.now()
+    return function() {
+      const nowTime = Date.now()
+      log.silly('MiscTest', 'promiseRetry() delayedFactory(' + timeout + '): ' + (nowTime - startTime))
+      if (nowTime - startTime > timeout) {
+        return Promise.resolve(EXPECTED_RESOLVE)
+      }
+      return Promise.reject(EXPECTED_REJECT)
+    }
+  }
+
+  const thenSpy = sinon.spy()
+
+  const delay500 = delayedFactory(500)
+  await promiseRetry(
+    {
+      minTimeout : 1,
+      retries    : 1,
+    },
+    function(retry) {
+      return delay500().catch(retry)
+    },
+  ).catch((e: any) => {
+    thenSpy(e)
+  })
+  t.true(thenSpy.withArgs(EXPECTED_REJECT).calledOnce, 'should got EXPECTED_REJECT when wait not enough')
+
+  thenSpy.resetHistory()
+  const anotherDelay50 = delayedFactory(50)
+  await promiseRetry(
+    {
+      minTimeout: 1,
+      retries: 100,
+    },
+    function(retry) {
+      return anotherDelay50().catch(retry)
+    },
+  )
+  .then((r: string) => {
+    thenSpy(r)
+  })
+  t.true(thenSpy.withArgs(EXPECTED_RESOLVE).calledOnce, 'should got EXPECTED_RESOLVE when wait enough')
 })
