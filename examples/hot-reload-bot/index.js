@@ -113,7 +113,7 @@ console.log(`
 
 ATTENTION: This example is DEPRECATED.
 
-Please see https://github.com/Chatie/wechaty/tree/master/examples/hot-reload-bot instead.
+Please see https://github.com/Chatie/wechaty/tree/master/examples/hot-import-bot instead.
 
 `)
 

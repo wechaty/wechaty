@@ -1,6 +1,6 @@
 # HOT-IMPORT LISTENSER
 
-**PR from @xinbenlv**
+## PR From @xinbenlv
 
 Hot import Wechaty listenser functions after change the source code without restart the program
 
@@ -12,16 +12,20 @@ The hot-import is based on an npm package [hot-import](https://www.npmjs.com/pac
 Not to be confused by the directory `../hot-reload-bot` which is a hand written
 hot reload approach proposed by [Gcaufy](https://github.com/Gcaufy)
 
-
 ## Run
 
- ```shell
- docker run -t -i --rm --name wechaty --mount type=bind,source="$(pwd)",target=/bot zixia/wechaty index.js
- ```
+```shell
+$ docker run -t -i --rm --name wechaty --mount type=bind,source="$(pwd)",target=/bot zixia/wechaty index.js
+
+# Enable LOG
+$ docker run -t -i --rm --name wechaty -e WECHATY_LOG=verbose --mount type=bind,source="$(pwd)",target=/bot zixia/wechaty index.js
+```
 
 Or
 
 ```shell
-./run-hot-import-bot.sh
-```
+$ ./run-hot-import-bot.sh
 
+# Enable LOG
+$ WECHATY_LOG=verbose ./run-hot-import-bot.sh
+```
