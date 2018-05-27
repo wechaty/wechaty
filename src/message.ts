@@ -277,6 +277,11 @@ export class Message extends PuppetAccessory implements Sayable {
       'Message',
       // `#${MessageDirection[this.direction]}`,
       `#${MessageType[this.type()]}`,
+      '(',
+        this.from(),
+        this.room() ? '@' + this.room() : '',
+        this.to(),
+      ')',
     ]
     if (this.type() === Message.Type.Text) {
       msgStrList.push(`<${this.text()}>`)
