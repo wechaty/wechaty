@@ -283,13 +283,13 @@ export class Misc {
     const minTimeout = 10
     const maxTimeout = 20 * 1000
     const retries    = 9
-    const unref      = true
+    // const unref      = true
 
     const retryOptions: WrapOptions = {
       minTimeout,
       maxTimeout,
       retries,
-      unref,
+      // unref,
       factor,
     }
     return await promiseRetry(retryOptions, retryableFn)
