@@ -31,25 +31,28 @@ before_install:
 script:
   - node --version
   - npm --version
-  - echo "Testing started ..."
-  - npm test || travis_terminate 1
+  - echo "Testing Started ..."
+  - npm test
   # - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then npm run coverage; fi
+    - echo "Testing Finished."
 
 jobs:
   include:
 
     - stage: pack
       script:
-        - echo "NPM Pack Testing ..."
+        - echo "NPM Pack Testing Started ..."
         - npm version
-        - npm run test:pack && echo 'Npm pack testing is passed' || travis_terminate 1
+        - npm run test:pack
+        - echo "NPM Pack Testing Finished."
 
     - stage: deploy
       script:
-        - echo "NPM Deploying ..."
+        - echo "NPM Deploying Started ..."
         - npm version
         - if ./scripts/development-release.ts; then ./scripts/package-publish-config-tag-next.ts; fi
         - npm run dist
+        - echo "NPM Building Finished."
 
       deploy:
         provider: npm
