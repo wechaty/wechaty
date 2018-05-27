@@ -295,8 +295,21 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     }
   }
 
-  // public abstract login(user: Contact): Promise<void>
   public abstract async logout(): Promise<void>
+  protected async login(userId: string): Promise<void> {
+    log.verbose('Puppet', 'login(%s)', userId)
+
+    if (this.userId) {
+      throw new Error('can only login once!')
+    }
+
+    this.userId = userId
+
+    const userSelf = this.Contact.load(userId)
+    await userSelf.ready()
+
+    this.emit('login', userSelf)
+  }
 
   /**
    *

@@ -116,12 +116,12 @@ async function onLogin(
     return
   }
 
-  this.scanInfo = undefined
-
   if (this.logonoff()) {
-    log.warn('PuppetPuppeteerEvent', 'onLogin(%s) user had already set: "%s"', note, this.userSelf())
-    await this.logout()
+    throw new Error('onLogin() user had already logined: ' + this.userSelf())
+    // await this.logout()
   }
+
+  this.scanInfo = undefined
 
   try {
     /**
@@ -146,20 +146,12 @@ async function onLogin(
 
     log.silly('PuppetPuppeteerEvent', `onLogin() user ${user.name()} logined`)
 
-    try {
-      if (this.state.on() === true) {
-        await this.saveCookie()
-      }
-    } catch (e) { // fail safe
-      log.verbose('PuppetPuppeteerEvent', 'onLogin() this.saveCookie() exception: %s', e.message)
+    if (this.state.on() === true) {
+      await this.saveCookie()
     }
 
     // fix issue #668
-    try {
-      await this.readyStable()
-    } catch (e) { // fail safe
-      log.warn('PuppetPuppeteerEvent', 'readyStable() exception: %s', e && e.message || e)
-    }
+    await this.readyStable()
 
     this.login(userId)
 

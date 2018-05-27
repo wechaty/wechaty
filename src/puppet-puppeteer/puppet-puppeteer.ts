@@ -570,9 +570,7 @@ export class PuppetPuppeteer extends Puppet {
   }
 
   public async login(userId: string): Promise<void> {
-    log.verbose('PuppetPuppeteer', 'login(%s)', userId)
-    this.userId = userId
-    this.emit('login', this.Contact.load(userId))
+    return super.login(userId)
   }
 
   /**
