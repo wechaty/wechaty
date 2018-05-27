@@ -245,9 +245,9 @@ export class PuppetMock extends Puppet {
     const payload: RoomPayload = {
       topic          : 'mock topic',
       memberIdList   : [],
-      nameMap        : {} as any,
-      roomAliasMap   : {} as any,
-      contactAliasMap: {} as any,
+      nameMap         : new Map<string, string>(),
+      roomAliasMap    : new Map<string, string>(),
+      contactAliasMap : new Map<string, string>(),
     }
 
     return payload
