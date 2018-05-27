@@ -536,28 +536,15 @@ export class Bridge extends EventEmitter {
                                           id,
                                           attempt,
                   )
-
-        if (attempt > 1) {
-          log.warn('PuppetPuppeteerBridge', 'getContact(%s) retry attempt %d',
-              id,
-              attempt,
-          )
-        }
-
         try {
           const rawPayload = await this.proxyWechaty('getContact', id)
-
-          const testNum = Object.keys(rawPayload).length
-          if (!testNum) {
-            console.log('rawPayload keys: ', testNum)
-          }
 
           if (rawPayload && Object.keys(rawPayload).length > 0) {
             return rawPayload
           }
           throw new Error('got empty return value at attempt: ' + attempt)
         } catch (e) {
-          log.warn('PuppetPuppeteerBridge', 'proxyWechaty(getContact, %s) exception: %s', id, e.message)
+          log.verbose('PuppetPuppeteerBridge', 'getContact() proxyWechaty(getContact, %s) exception: %s', id, e.message)
           retry(e)
         }
       })
