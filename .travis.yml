@@ -20,7 +20,8 @@ cache:
 stages:
   - test
   - pack
-  - deploy
+  - name: deploy
+    if: (type = push) AND branch =~ ^(master|v\d+\.\d+)$
 
 before_install:
   - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then ./scripts/prepare-osx.sh; fi
@@ -60,6 +61,10 @@ jobs:
         email: zixia@zixia.net
         api_key: "$NPM_TOKEN"
         skip_cleanup: true
+        on:
+          branch:
+            - master
+            - /^v\d+\.\d+$/
 
 notifications:
   webhooks:
