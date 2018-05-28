@@ -34,7 +34,7 @@ script:
   - echo "Testing Started ..."
   - npm test
   # - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then npm run coverage; fi
-    - echo "Testing Finished."
+  - echo "Testing Finished."
 
 jobs:
   include:
