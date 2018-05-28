@@ -20,8 +20,7 @@ cache:
 stages:
   - test
   - pack
-  - name: deploy
-    if: branch =~ ^(master|v\d+\.\d+)$ AND (type = push)
+  - deploy
 
 before_install:
   - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then ./scripts/prepare-osx.sh; fi
@@ -46,10 +45,6 @@ jobs:
         - echo "NPM Pack Testing Finished."
 
     - stage: deploy
-      branches:
-        only:
-          - master
-          - /^v\d+\.\d+*$/
       script:
         - echo "NPM Deploying Started ..."
         - npm version
