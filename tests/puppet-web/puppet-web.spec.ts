@@ -88,6 +88,6 @@ test('login/logout events', sinonTest(async function (t: test.Test) {
   } catch (e) {
     t.fail(e)
   } finally {
-    t.end()
+    // t.end()
   }
 }))

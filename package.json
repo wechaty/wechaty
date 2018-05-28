@@ -146,7 +146,7 @@
     "qrcode-terminal": "^0.12.0",
     "shx": "^0.2.0",
     "sinon": "^5.0.0",
-    "sinon-test": "^2.1.2",
+    "sinon-test": "^2.2.0",
     "sloc": "^0.2.0",
     "ts-node": "^5.0.0",
     "tslint": "^5.9.0",
