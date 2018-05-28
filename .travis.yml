@@ -45,6 +45,10 @@ jobs:
         - echo "NPM Pack Testing Finished."
 
     - stage: deploy
+      branches:
+        only:
+          - master
+          - /^v\d+\.\d+$/
       script:
         - echo "NPM Deploying Started ..."
         - npm version
@@ -56,10 +60,6 @@ jobs:
         email: zixia@zixia.net
         api_key: "$NPM_TOKEN"
         skip_cleanup: true
-        on:
-          branch:
-            - master
-            - /^v\d+\.\d+$/
 
 notifications:
   webhooks:
