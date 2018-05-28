@@ -48,6 +48,7 @@ test('Puppeteer smoke testing', async t => {
     t.ok(version, 'should get version')
 
     page = await browser.newPage()
+    t.pass('should create newPage for browser')
     await page.goto('https://wx.qq.com/')
     t.pass('should open wx.qq.com')
 
@@ -158,7 +159,7 @@ test('page.exposeFunction()', async t => {
 })
 
 test('other demos', async t => {
-  const EXPECTED_URL = 'https://www.zixia.net/'
+  const EXPECTED_URL = 'https://github.com/'
 
   try {
     const browser = await launch(PUPPETEER_LAUNCH_OPTIONS)

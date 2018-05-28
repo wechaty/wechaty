@@ -109,5 +109,6 @@ test('login/logout events', sinonTest(async function (t: test.Test) {
     t.fail(e)
   } finally {
     sandbox.restore()
+    // t.end()
   }
 }))
