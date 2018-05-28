@@ -20,8 +20,9 @@ cache:
 stages:
   - test
   - pack
-  - name: deploy
-    if: (type = push) AND branch =~ ^(master|v\d+\.\d+)$
+  - deploy
+  # - name: deploy
+  #   if: (type = push) AND branch =~ ^(master|v\d+\.\d+)$
 
 before_install:
   - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then ./scripts/prepare-osx.sh; fi
