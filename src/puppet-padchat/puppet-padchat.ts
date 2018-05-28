@@ -25,7 +25,7 @@ import {
 }             from 'file-box'
 
 import {
-  Message,
+  // Message,
   MessagePayload,
 }                       from '../message'
 
@@ -38,7 +38,7 @@ import {
 }                       from '../contact'
 
 import {
-  Room,
+  // Room,
   RoomPayload,
   RoomQueryFilter,
 }                       from '../room'
@@ -69,7 +69,6 @@ import {
   Bridge,
   resolverDict,
   AutoDataType,
-  LoginType,
 }                       from './bridge'
 
 import {

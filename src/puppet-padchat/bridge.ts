@@ -32,19 +32,6 @@ export interface AutoDataType {
   nick_name?: string,
 }
 
-/**
- * result of autologin function
- * @enum     {number}
- * @property {number} SUCCED             - LoginType.SUCCED              AutoLogin Succed.
- * @property {number} WXGetQRCode        - LoginType.WXGetQRCode         Token unvalid, AutoLogin Failed, should getQrcode again.
- * @property {number} WXLoginRequest     - LoginType.WXLoginRequest      Token valid but cannot get login, user should tap on phone.
- */
-export enum LoginType {
-  SUCCED          = 0,
-  WXGetQRCode     = 1,
-  WXLoginRequest  = 2,
-}
-
 export interface InitType {
   message : string,
   status  : number,

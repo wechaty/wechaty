@@ -17,7 +17,7 @@ async function onMessage(
   this       : PuppetPadchat,
   rawPayload : PadchatMessageRawPayload,
 ): Promise<void> {
-  let msg = this.Message.createMT(rawPayload.msg_id)
+  let msg = this.Message.create(rawPayload.msg_id)
 
   try {
     await msg.ready()
@@ -60,12 +60,12 @@ async function onMessage(
       case PadchatMessageType.MICROVIDEO:
       case PadchatMessageType.APP:
         log.verbose('PuppetPadchatEvent', 'onMessage() EMOTICON/IMAGE/VIDEO/VOICE/MICROVIDEO message')
-        msg = this.Message.createMT(rawPayload.msg_id)
+        msg = this.Message.create(rawPayload.msg_id)
         break
 
       case PadchatMessageType.TEXT:
         log.verbose('PuppetPadchatEvent', 'onMessage() (TEXT&LOCATION) message')
-        msg = this.Message.createMT(rawPayload.msg_id)
+        msg = this.Message.create(rawPayload.msg_id)
     }
 
     await msg.ready()
