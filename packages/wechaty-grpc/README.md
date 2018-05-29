@@ -16,7 +16,17 @@ $ npm install
 * [gRPC in 3 minutes (Node.js)](https://github.com/grpc/grpc/tree/master/examples/node)
 * [Listen gRPC and HTTP requests on the same port](https://medium.com/@drgarcia1986/listen-grpc-and-http-requests-on-the-same-port-263c40cb45ff)
 * [gRPC to JSON proxy generator following the gRPC HTTP spec](https://github.com/grpc-ecosystem/grpc-gateway)
+
+### gRPC Web
+
 * [gRPC-Web: Moving past REST+JSON towards type-safe Web APIs](https://improbable.io/games/blog/grpc-web-moving-past-restjson-towards-type-safe-web-apis)
+* [Library for making gRPC-Web requests intended for TypeScript from either a browser or Node.js.](https://github.com/improbable-eng/grpc-web/tree/master/ts)
+
+### TypeScript Generator
+
+* [A Typescript definition file generator for gRPC services](https://github.com/anfema/grpc-code-generator)
+* [gRPC Web TypeScript Code Generation](https://github.com/improbable-eng/grpc-web/blob/master/ts/docs/code-generation.md)
+* [Protocol Buffers Compiler (protoc) plugin for TypeScript and gRPC-Web.](https://github.com/improbable-eng/ts-protoc-gen)
 
 ### Zoo Keeper
 

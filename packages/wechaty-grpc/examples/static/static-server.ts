@@ -7,7 +7,6 @@ const PROTO_FILE = path.resolve(__dirname, 'books.proto')
 req.setUsername('johndoe')
 client.getUser(req, (err, user) => { /* ... */ })
 
-
 const bookStream = new EventEmitter()
 const booksProto = grpc.load(PROTO_FILE)
 
