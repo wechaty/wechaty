@@ -358,8 +358,6 @@ export class PuppetPadchat extends Puppet {
       await user.ready()
       this.emit('login', user)
 
-      this.test()
-
       log.verbose('PuppetPadchatBridge', 'loginSucceed: Send login to the bot, user_name: %s', this.bridge.username)
       await this.bridge.WXSendMsg(this.bridge.autoData.user_name, 'Bot on line!')
 
@@ -372,11 +370,6 @@ export class PuppetPadchat extends Puppet {
       }, 2 * 1000)
       return
     }
-  }
-
-  public async test() {
-    const ret = await this.bridge.WXGetChatRoomMember('5616634434@chatroom')
-    console.log(ret)
   }
 
   public async stop(): Promise<void> {
