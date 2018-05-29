@@ -189,18 +189,6 @@ export class PuppetPadchat extends Puppet {
 
       this.checkLogin()
     })
-
-    // const user = this.Contact.load('logined_user_id')
-    // const msg  = this.Message.createMT('padchat_id')
-
-    // this.user = user
-    // this.emit('login', user)
-
-    // setInterval(() => {
-    //   log.verbose('PuppetPadchat', `start() setInterval() pretending received a new message: ${msg}`)
-    //   this.emit('message', msg)
-    // }, 3000)
-
   }
 
   public checkLogin() {
@@ -536,6 +524,20 @@ export class PuppetPadchat extends Puppet {
       payload.roomId = rawPayload.from_user
       payload.fromId = rawPayload.content.split(':\n')[0]
       payload.text = rawPayload.content.split(':\n')[1]
+
+      if (!payload.roomId || !payload.fromId) {
+        throw Error('empty roomId or empty contactId!')
+      }
+      const room = this.Room.load(payload.roomId)
+      const contact = this.Contact.load(payload.fromId)
+      await room.ready()
+      await contact.ready()
+    } else {
+      if (!payload.fromId) {
+        throw Error('empty contactId!')
+      }
+      const contact = this.Contact.load(payload.fromId)
+      await contact.ready()
     }
 
     log.verbose('PuppetPadchat', 'messagePayload(%s)', JSON.stringify(payload))
