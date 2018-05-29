@@ -258,18 +258,58 @@ export class Bridge extends EventEmitter {
     return result
   }
 
-  // /**
-  //  * Load all Contact and Room
-  //  * see issue https://github.com/lijiarui/test-ipad-puppet/issues/39
-  //  * @returns {Promise<WXSyncContactType[]>}
-  //  */
-  // public async WXSyncContact(): Promise<WXSyncContactType[]> {
-  //   const result = this.sendToWebSocket('WXSyncContact', [])
-  //   if (!result) {
-  //     throw Error('WXSyncContact error! canot get result from websocket server')
-  //   }
-  //   return result
-  // }
+  /**
+   * Load all Contact and Room
+   * see issue https://github.com/lijiarui/test-ipad-puppet/issues/39
+   * @returns {Promise<(PadchatRoomRawPayload | PadchatContactRawPayload)[]>}
+   */
+  private async WXSyncContact(): Promise<(PadchatRoomRawPayload | PadchatContactRawPayload)[]> {
+    const result = await this.sendToWebSocket('WXSyncContact', [])
+    if (!result) {
+      throw Error('WXSyncContact error! canot get result from websocket server')
+    }
+    return result
+  }
+
+  public async checkSyncContactOrRoom(): Promise<[Map<string, PadchatContactRawPayload>, Map<string, PadchatRoomRawPayload>]> {
+    log.silly('PuppetPadchat', `checkSyncContact`)
+
+    let cont = true
+    const syncContactMap = new Map<string, PadchatContactRawPayload>()
+    const syncRoomMap = new Map<string, PadchatRoomRawPayload>()
+
+    while (cont) {
+      const syncContactList = await this.WXSyncContact()
+
+      await new Promise(r => setTimeout(r, 3 * 1000))
+
+      if (!Array.isArray(syncContactList)) {
+        log.error('PuppetPadchat', 'checkSyncContact cannot get array result!')
+        continue
+      }
+
+      syncContactList.forEach(syncContact => {
+        if (syncContact.continue === 0) {
+          log.info('PuppetPadchat', 'checkSyncContact sync contact done!')
+          cont = false
+          return
+        }
+
+        if (syncContact.continue === 1 && syncContact.msg_type === 2) {
+          if (/@chatroom$/.test(syncContact.user_name)) {
+            syncRoomMap.set(syncContact.user_name, syncContact as PadchatRoomRawPayload)
+          } else {
+            syncContactMap.set(syncContact.user_name, syncContact as PadchatContactRawPayload)
+          }
+        }
+        return
+      })
+
+      log.info('PuppetPadchat', `checkSyncContact, not load yet, continue to WXSyncContact`)
+    }
+
+    return [syncContactMap, syncRoomMap]
+  }
 
   /**
    * Generate 62 data
@@ -532,4 +572,71 @@ export class Bridge extends EventEmitter {
     log.warn('PuppetPadchatBridge', 'checkQrcode: not know the reason, return data: %s', JSON.stringify(result))
     return
   }
+
+  public async WXSetUserRemark(id: string, remark: string): Promise<any> {
+    const result = await this.sendToWebSocket('WXSetUserRemark', [id, remark])
+    console.log(result)
+    return result
+  }
+
+  public async WXDeleteChatRoomMember(roomId: string, contactId: string): Promise<any> {
+    const result = await this.sendToWebSocket('WXDeleteChatRoomMember', [roomId, contactId])
+    console.log(result)
+    return result
+  }
+
+  public async WXAddChatRoomMember(roomId: string, contactId: string): Promise<any> {
+    const result = await this.sendToWebSocket('WXAddChatRoomMember', [roomId, contactId])
+    console.log(result)
+    return result
+  }
+
+  public async WXSetChatroomName(roomId: string, topic: string): Promise<any> {
+    const result = await this.sendToWebSocket('WXSetChatroomName', [roomId, topic])
+    console.log(result)
+    return result
+  }
+
+  // TODO
+  // public async WXCreateChatRoom(userList: string[]): Promise<any> {
+  //   const result = await this.sendToWebSocket('WXCreateChatRoom', userList)
+  //   console.log(result)
+  //   return result
+  // }
+
+  public async WXQuitChatRoom(roomId: string): Promise<any> {
+    const result = await this.sendToWebSocket('WXQuitChatRoom', [roomId])
+    console.log(result)
+    return result
+  }
+
+  // friendRequestSend
+  // type来源值：
+  // 2                 -通过搜索邮箱
+  // 3                  -通过微信号搜索
+  // 5                  -通过朋友验证消息
+  // 7                  -通过朋友验证消息(可回复)
+  // 12                -通过QQ好友添加
+  // 14                -通过群来源
+  // 15                -通过搜索手机号
+  // 16                -通过朋友验证消息
+  // 17                -通过名片分享
+  // 22                -通过摇一摇打招呼方式
+  // 25                -通过漂流瓶
+  // 30                -通过二维码方式
+  public async WXAddUser(strangerV1: string, strangerV2: string, type: string, verify: string): Promise<any> {
+    // TODO:
+    type = '14'
+    verify = 'hello'
+    const result = await this.sendToWebSocket('WXAddUser', [strangerV1, strangerV2, type, verify])
+    console.log(result)
+    return result
+  }
+
+  public async WXAcceptUser(stranger: string, ticket: string): Promise<any> {
+    const result = await this.sendToWebSocket('WXAcceptUser', [stranger, ticket])
+    console.log(result)
+    return result
+  }
+
 }
