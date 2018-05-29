@@ -6,13 +6,6 @@ os:
   - linux
   - osx
 
-addons:
-  apt:
-    packages:
-      - jq
-      - shellcheck
-      - moreutils
-
 cache:
   directories:
     - node_modules
@@ -21,11 +14,9 @@ stages:
   - test
   - pack
   - name: deploy
-    if: branch =~ ^(master|v\d+\.\d+)$
-        AND (type NOT IN (cron, pull_request))
+    if: (type = push) AND branch =~ ^(master|v\d+\.\d+)$
 
 before_install:
-  - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then ./scripts/prepare-osx.sh; fi
   - npm install -g npm
 
 script:
@@ -33,7 +24,6 @@ script:
   - npm --version
   - echo "Testing Started ..."
   - npm test
-  # - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then npm run coverage; fi
   - echo "Testing Finished."
 
 jobs:
