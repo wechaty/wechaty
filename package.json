@@ -3,7 +3,7 @@
   "version": "0.15.86",
   "description": "Wechat for Bot(Personal Account)",
   "main": "dist/src/index.js",
-  "types": "dist/src/index.d.ts",
+  "typings": "dist/src/index.d.ts",
   "wechaty": {
     "DEFAULT_HEAD": 0,
     "DEFAULT_PORT": 8080,
