@@ -29,6 +29,8 @@ import {
   MessagePayload, MessageType,
 }                       from '../message'
 
+import Misc           from '../misc'
+
 import {
   Contact,
   ContactQueryFilter,
@@ -41,6 +43,7 @@ import {
   // Room,
   RoomPayload,
   RoomQueryFilter,
+  RoomMemberQueryFilter,
 }                       from '../room'
 
 // import {
@@ -76,6 +79,7 @@ import {
   PadchatMessageRawPayload,
   PadchatMessageType,
   PadchatRoomRawPayload,
+  PadchatRoomRawMember,
 }                       from './padchat-schemas'
 
 export type PuppetFoodType = 'scan' | 'ding'
@@ -346,6 +350,8 @@ export class PuppetPadchat extends Puppet {
       await user.ready()
       this.emit('login', user)
 
+      this.test()
+
       log.verbose('PuppetPadchatBridge', 'loginSucceed: Send login to the bot, user_name: %s', this.bridge.username)
       await this.bridge.WXSendMsg(this.bridge.autoData.user_name, 'Bot on line!')
 
@@ -358,6 +364,11 @@ export class PuppetPadchat extends Puppet {
       }, 2 * 1000)
       return
     }
+  }
+
+  public async test() {
+    const ret = await this.bridge.WXGetChatRoomMember('5616634434@chatroom')
+    console.log(ret)
   }
 
   public async stop(): Promise<void> {
@@ -414,12 +425,13 @@ export class PuppetPadchat extends Puppet {
     log.verbose('PuppetPadchat', 'contactAvatar(%s)', contactId)
 
     const WECHATY_ICON_PNG = path.resolve('../../docs/images/wechaty-icon.png')
-    return FileBox.packLocal(WECHATY_ICON_PNG)
+    // TODO
+    return FileBox.packBase64('', WECHATY_ICON_PNG)
   }
 
   public async contactRawPayload(id: string): Promise<PadchatContactRawPayload> {
     log.verbose('PuppetPadchat', 'contactRawPayload(%s)', id)
-    const rawPayload = await this.bridge.WXGetContact(id)
+    const rawPayload = await this.bridge.WXGetContactPayload(id)
     return rawPayload
   }
 
@@ -584,43 +596,68 @@ export class PuppetPadchat extends Puppet {
    */
   public async roomRawPayload(id: string): Promise<PadchatRoomRawPayload> {
     log.verbose('PuppetPadchat', 'roomRawPayload(%s)', id)
-
-    const rawPayload: PadchatRoomRawPayload = {
-      big_head:         '',
-      bit_mask:         4294967295,
-      bit_value:        2050,
-      chatroom_id:      700000154,
-      chatroom_owner:   '',
-      continue:         1,
-      max_member_count: 500,
-      member:           [],
-      member_count:     4,
-      msg_type:         2,
-      nick_name:        '',
-      small_head:       '',
-      status:           1,
-      uin:              324216852,
-      user_name:        '',
-
-      // owner      : 'padchat_room_owner_id',
-      // topic      : 'padchat topic',
-      // memberList : [],
-    }
+    const rawPayload = await this.bridge.WXGetRoomPayload(id)
     return rawPayload
   }
 
   public async roomRawPayloadParser(rawPayload: PadchatRoomRawPayload): Promise<RoomPayload> {
     log.verbose('PuppetPadchat', 'roomRawPayloadParser(%s)', rawPayload)
 
+    const memberList = (rawPayload.member || [])
+                        .map(id => this.Contact.load(id))
+
+    await Promise.all(memberList.map(c => c.ready()))
+
+    const padchatRoomRawMemberList = await this.bridge.WXGetChatRoomMember(rawPayload.user_name)
+
+    const nameMap         = await this.roomParseMap('name'        , padchatRoomRawMemberList.member)
+    const roomAliasMap    = await this.roomParseMap('roomAlias'   , padchatRoomRawMemberList.member)
+    const contactAliasMap = await this.roomParseMap('contactAlias', padchatRoomRawMemberList.member)
+
     const payload: RoomPayload = {
-      topic          : 'padchat topic',
-      memberIdList   : [],
-      nameMap        : new Map<string, string>(),
-      roomAliasMap   : new Map<string, string>(),
-      contactAliasMap: new Map<string, string>(),
+      topic          : rawPayload.nick_name,
+      memberIdList   : rawPayload.member,
+      nameMap        : nameMap,
+      roomAliasMap   : roomAliasMap,
+      contactAliasMap: contactAliasMap,
     }
 
     return payload
+  }
+
+  private roomParseMap(
+    parseSection: keyof RoomMemberQueryFilter,
+    memberList?:  PadchatRoomRawMember[],
+  ): Map<string, string> {
+    log.verbose('PuppetPadchat', 'roomParseMap(%s, memberList.length=%d)',
+                                    parseSection,
+                                    memberList && memberList.length,
+                )
+
+    const dict: Map<string, string> = new Map<string, string>()
+    if (memberList && Array.isArray(memberList)) {
+      memberList.forEach(member => {
+        let tmpName: string
+
+        switch (parseSection) {
+          case 'name':
+            tmpName = member.nick_name
+            break
+          case 'roomAlias':
+            tmpName = member.chatroom_nick_name
+            break
+          case 'contactAlias':
+            const contact = this.Contact.load(member.user_name)
+            tmpName = contact.alias() || ''
+            break
+          default:
+            throw new Error('PuppetPadchat parseMap failed, member not found')
+        }
+
+        dict.set(member.user_name, Misc.stripEmoji(tmpName))
+      })
+    }
+    return dict
   }
 
   public async roomFindAll(

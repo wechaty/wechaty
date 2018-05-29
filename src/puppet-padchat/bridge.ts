@@ -352,7 +352,7 @@ export class Bridge extends EventEmitter {
    * Get contact by contact id
    * @param {any} id        user_name
    */
-  public async WXGetContact(id: string): Promise<PadchatContactRawPayload> {
+  private async WXGetContact(id: string): Promise<PadchatContactRawPayload | PadchatRoomRawPayload> {
     const result = await this.sendToWebSocket('WXGetContact', [id])
     if (!result) {
       throw Error('PuppetPadchatBridge, WXGetContact, cannot get result from websocket server!')
@@ -360,6 +360,33 @@ export class Bridge extends EventEmitter {
     if (!result.user_name) {
       log.warn('PuppetPadchatBridge', 'WXGetContact cannot get user_name, id: %s', id)
     }
+    if (result.member) {
+      result.member = JSON.parse(decodeURIComponent(result.member))
+    }
+    return result
+  }
+
+  /**
+   * Get contact by contact id
+   * @param {any} id        user_name
+   */
+  public async WXGetContactPayload(id: string): Promise<PadchatContactRawPayload> {
+    if (/@chatroom$/.test(id)) {
+      throw Error(`should use WXGetRoomPayload because get a room id :${id}`)
+    }
+    const result = await this.WXGetContact(id) as PadchatContactRawPayload
+    return result
+  }
+
+  /**
+   * Get contact by contact id
+   * @param {any} id        user_name
+   */
+  public async WXGetRoomPayload(id: string): Promise<PadchatRoomRawPayload> {
+    if (!(/@chatroom$/.test(id))) {
+      throw Error(`should use WXGetContactPayload because get a contact id :${id}`)
+    }
+    const result = await this.WXGetContact(id) as PadchatRoomRawPayload
     return result
   }
 
@@ -373,7 +400,7 @@ export class Bridge extends EventEmitter {
       throw Error('PuppetPadchatBridge, WXGetChatRoomMember, cannot get result from websocket server!')
     }
     if (!result.user_name || !result.member) {
-      log.warn('PuppetPadchatBridge', 'WXGetChatRoomMember cannot get user_name or member: %s, id: %s', id, result.member)
+      log.warn('PuppetPadchatBridge', 'WXGetChatRoomMember cannot get user_name or member! user_name: %s, member: %s', id, result.member)
     }
 
     // tslint:disable-next-line:max-line-length

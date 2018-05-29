@@ -255,7 +255,7 @@ export enum PadchatMessageType {
 
 export interface PadchatRoomRawMember {
   big_head           : string,   // "http://wx.qlogo.cn/mmhead/ver_1/DpS0ZssJ5s8tEpSr9JuPTRxEUrCK0USrZcR3PjOMfUKDwpnZLxWXlD4Q38bJpcXBtwXWwevsul1lJqwsQzwItQ/0",
-  chatroom_nick_name : string,   // "",
+  chatroom_nick_name : string,   // "李佳芮-群里设置的备注", roomAlias
   invited_by         : string,   // "wxid_7708837087612",
   nick_name          : string,   // "李佳芮",
   small_head         : string,   // "http://wx.qlogo.cn/mmhead/ver_1/DpS0ZssJ5s8tEpSr9JuPTRxEUrCK0USrZcR3PjOMfUKDwpnZLxWXlD4Q38bJpcXBtwXWwevsul1lJqwsQzwItQ/132",
@@ -298,7 +298,7 @@ export interface PadchatRoomRawPayload {
   chatroom_owner:   string,   // "qq512436430",
   continue:         number,   // 1,
   max_member_count: number,   // 500,
-  member:           string[], // "[\"qq512436430\",\"mengjunjun001\",\"wxid_zj2cahpwzgie12\",\"wxid_7708837087612\"]\n",
+  member:           string[], // JSON.parse(decodeURIComponent(member)) | "[\"qq512436430\",\"mengjunjun001\",\"wxid_zj2cahpwzgie12\",\"wxid_7708837087612\"]\n",
   member_count:     number,   // 4,
   nick_name:        string,   // room-topic:"facenet",
   py_initial:       string,   // 'FACENET',
