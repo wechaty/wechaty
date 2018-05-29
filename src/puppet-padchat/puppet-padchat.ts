@@ -355,6 +355,7 @@ export class PuppetPadchat extends Puppet {
 
       this.userId = this.bridge.autoData.user_name // Puppet userId different with WebSocket userId
       const user = this.Contact.load(this.userId)
+      await user.ready()
       this.emit('login', user)
 
       log.verbose('PuppetPadchatBridge', 'loginSucceed: Send login to the bot, user_name: %s', this.bridge.username)
@@ -462,7 +463,7 @@ export class PuppetPadchat extends Puppet {
       city      : rawPayload.city,
       name      : rawPayload.nick_name,
       province  : rawPayload.provincia,
-      signature : (rawPayload.signature).replace('+', ''),   // Stay+Foolish
+      signature : (rawPayload.signature).replace('+', ' '),   // Stay+Foolish
     }
     return payload
   }
