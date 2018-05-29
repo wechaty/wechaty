@@ -149,7 +149,6 @@ export class Bridge extends EventEmitter {
     this.botWs  = new WebSocket(ADDRESS, { perMessageDeflate: true })
 
     this.autoData = options.autoData || {}
-    // this.state = new StateSwitch('PuppetPadchatBridge', log)
   }
 
   private async sendToWebSocket(name: string, args: string[]): Promise<any> {
@@ -271,7 +270,10 @@ export class Bridge extends EventEmitter {
     return result
   }
 
-  public async checkSyncContactOrRoom(): Promise<[Map<string, PadchatContactRawPayload>, Map<string, PadchatRoomRawPayload>]> {
+  public async checkSyncContactOrRoom(): Promise<{
+    contactMap: Map<string, PadchatContactRawPayload>,
+    roomMap: Map<string, PadchatRoomRawPayload>,
+  }> {
     log.silly('PuppetPadchat', `checkSyncContact`)
 
     let cont = true
@@ -308,7 +310,10 @@ export class Bridge extends EventEmitter {
       log.info('PuppetPadchat', `checkSyncContact, not load yet, continue to WXSyncContact`)
     }
 
-    return [syncContactMap, syncRoomMap]
+    return {
+      contactMap: syncContactMap,
+      roomMap: syncRoomMap,
+    }
   }
 
   /**

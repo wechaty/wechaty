@@ -17,9 +17,9 @@
  *
  */
 
-import * as path  from 'path'
-import * as fs    from 'fs'
-import * as cuid from 'cuid'
+// import * as path  from 'path'
+// import * as fs    from 'fs'
+// import * as cuid from 'cuid'
 
 import {
   FileBox,
@@ -459,22 +459,79 @@ export class PuppetPadchat extends Puppet {
       return payload.alias || ''
     }
 
-    // TODO: modify alias in bridge
+    await this.bridge.WXSetUserRemark(contactId, alias || '')
 
     return
   }
 
   public async contactFindAll(query: ContactQueryFilter): Promise<string[]> {
     log.verbose('PuppetPadchat', 'contactFindAll(%s)', query)
-    // TODO: query
-    const contactMap = (await this.bridge.checkSyncContactOrRoom())[0]
-    const contactIdList: string[] = []
-    contactMap.forEach(async (value , key) => {
-      contactIdList.push(key)
-      this.Contact.load(key, await this.contactRawPayloadParser(value))
-    })
 
+    // const contactRawPayloadMap = (await this.bridge.checkSyncContactOrRoom()).contactMap
+
+    const contactIdList: string[] = []
+    // for (const contactRawPayload in contactRawPayloadMap) {
+
+    // }
+
+    // contactRawPayloadMap.forEach((value , id) => {
+    //   contactIdList.push(id)
+    //   this.Contact.load(
+    //     id,
+    //     await this.contactRawPayloadParser(value),
+    //   )
+    // })
+
+    // // const payloadList = await Promise.all(
+    // //   contactIdList.map(
+    // //     id => this.contactPayload(id),
+    // //   ),
+    // // )
+
+    // const contactList = contactIdList.filter(id => {
+    //   await this.contactPayload(id)
+    //   return true
+    // })
     return contactIdList
+  }
+
+  protected contactQueryFilterToFunction(
+    query: ContactQueryFilter,
+  ): (payload: ContactPayload) => boolean {
+    log.verbose('PuppetPadchat', 'contactQueryFilterToFunctionString({ %s })',
+                            Object.keys(query)
+                                  .map(k => `${k}: ${query[k as keyof ContactQueryFilter]}`)
+                                  .join(', '),
+              )
+
+    if (Object.keys(query).length !== 1) {
+      throw new Error('query only support one key. multi key support is not availble now.')
+    }
+
+    const filterKey = Object.keys(query)[0] as keyof ContactQueryFilter
+
+    let filterValue: string | RegExp | undefined  = query[filterKey]
+    if (!filterValue) {
+      throw new Error('filterValue not found')
+    }
+
+    /**
+     * must be string because we need inject variable value
+     * into code as variable namespecialContactList
+     */
+    let filterFunction: (payload: ContactPayload) => boolean
+
+    if (filterValue instanceof RegExp) {
+      const regex = filterValue
+      filterFunction = (payload: ContactPayload) => regex.test(payload[filterKey] || '')
+    } else if (typeof filterValue === 'string') {
+      filterValue = filterValue.replace(/'/g, '\\\'')
+      filterFunction = (payload: ContactPayload) => payload[filterKey] === filterValue
+    } else {
+      throw new Error('unsupport name type')
+    }
+
+    return filterFunction
   }
 
   public async contactAvatar(contactId: string): Promise<FileBox> {
@@ -767,11 +824,11 @@ export class PuppetPadchat extends Puppet {
     log.verbose('PuppetPadchat', 'roomFindAll(%s)', query)
 
     // TODO: query
-    const rooomMap = (await this.bridge.checkSyncContactOrRoom())[1]
+    const rooomMap = (await this.bridge.checkSyncContactOrRoom()).roomMap
     const roomIdList: string[] = []
-    rooomMap.forEach(async (value , key) => {
-      roomIdList.push(key)
-      this.Room.load(key, await this.roomRawPayloadParser(value))
+    rooomMap.forEach(async (value , id) => {
+      roomIdList.push(id)
+      this.Room.load(id, await this.roomRawPayloadParser(value))
     })
 
     return roomIdList
@@ -783,6 +840,7 @@ export class PuppetPadchat extends Puppet {
   ): Promise<void> {
     log.verbose('PuppetPadchat', 'roomDel(%s, %s)', roomId, contactId)
 
+    await this.bridge.WXDeleteChatRoomMember(roomId, contactId)
   }
 
   public async roomAdd(
@@ -790,6 +848,7 @@ export class PuppetPadchat extends Puppet {
     contactId : string,
   ): Promise<void> {
     log.verbose('PuppetPadchat', 'roomAdd(%s, %s)', roomId, contactId)
+    await this.bridge.WXAddChatRoomMember(roomId, contactId)
   }
 
   public async roomTopic(
@@ -804,7 +863,7 @@ export class PuppetPadchat extends Puppet {
       return payload.topic
     }
 
-    // TODO: modify
+    await this.bridge.WXSetChatroomName(roomId, topic)
 
     return
   }
@@ -815,11 +874,13 @@ export class PuppetPadchat extends Puppet {
   ): Promise<string> {
     log.verbose('PuppetPadchat', 'roomCreate(%s, %s)', contactIdList, topic)
 
+    // await this.bridge.crea
     return 'mock_room_id'
   }
 
   public async roomQuit(roomId: string): Promise<void> {
     log.verbose('PuppetPadchat', 'roomQuit(%s)', roomId)
+    await this.bridge.WXQuitChatRoom(roomId)
   }
 
   /**
@@ -832,6 +893,25 @@ export class PuppetPadchat extends Puppet {
     hello     : string,
   ): Promise<void> {
     log.verbose('PuppetPadchat', 'friendRequestSend(%s, %s)', contactId, hello)
+
+    const rawPayload = await this.contactRawPayload(contactId)
+
+    let strangerV1
+    let strangerV2
+    if (/^v1_/i.test(rawPayload.stranger)) {
+      strangerV1 = rawPayload.stranger
+    } else if (/^v2_/i.test(rawPayload.stranger)) {
+      strangerV2 = rawPayload.stranger
+    } else {
+      throw new Error('stranger neither v1 nor v2!')
+    }
+
+    await this.bridge.WXAddUser(
+      strangerV1 || '',
+      strangerV2 || '',
+      '14',
+      hello,
+    )
   }
 
   public async friendRequestAccept(
@@ -839,6 +919,17 @@ export class PuppetPadchat extends Puppet {
     ticket    : string,
   ): Promise<void> {
     log.verbose('PuppetPadchat', 'friendRequestAccept(%s, %s)', contactId, ticket)
+
+    const rawPayload = await this.contactRawPayload(contactId)
+
+    if (!rawPayload.ticket) {
+      throw new Error('no ticket')
+    }
+
+    await this.bridge.WXAcceptUser(
+      rawPayload.stranger,
+      rawPayload.ticket,
+    )
   }
 
 }
