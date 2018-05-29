@@ -77,6 +77,7 @@ test('event:start/stop', async t => {
   await wechaty.start()
   await wechaty.stop()
 
+  // console.log(startSpy.callCount)
   t.ok(startSpy.calledOnce, 'should get event:start once')
   t.ok(stopSpy.calledOnce,  'should get event:stop once')
 })

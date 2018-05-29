@@ -216,6 +216,9 @@ test('findAll()', async t => {
   ;
   (wechaty as any).initPuppetAccessory(puppet)
 
+  const sandbox = sinon.createSandbox()
+  sandbox.stub(puppet, 'contactPayload').resolves({})
+
   const MOCK_USER_ID = 'TEST-USER-ID'
   puppet.login(MOCK_USER_ID)
 
@@ -224,6 +227,8 @@ test('findAll()', async t => {
   })
 
   t.is(msgList.length, 2, 'Message.findAll with limit 2')
+
+  sandbox.restore()
 })
 
 test('self()', async t => {

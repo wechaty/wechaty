@@ -530,18 +530,23 @@ export class Wechaty extends PuppetAccessory implements Sayable {
           break
 
         case 'start':
-          puppet.removeAllListeners('start')
-          puppet.on('start', () => {
-            this.emit('start')
-          } )
+        case 'stop':
+          // do not emit 'start'/'stop' again for wechaty
           break
 
-        case 'stop':
-          puppet.removeAllListeners('stop')
-          puppet.on('stop', () => {
-            this.emit('stop')
-          } )
-          break
+        // case 'start':
+        //   puppet.removeAllListeners('start')
+        //   puppet.on('start', () => {
+        //     this.emit('start')
+        //   } )
+        //   break
+
+        // case 'stop':
+        //   puppet.removeAllListeners('stop')
+        //   puppet.on('stop', () => {
+        //     this.emit('stop')
+        //   } )
+        //   break
 
         case 'friend':
           puppet.removeAllListeners('friend')

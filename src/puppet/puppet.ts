@@ -357,7 +357,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     await userSelf.ready()
 
     this.id = userId
-    console.log('this.id=', this.id)
+    // console.log('this.id=', this.id)
     this.emit('login', userId)
   }
 
