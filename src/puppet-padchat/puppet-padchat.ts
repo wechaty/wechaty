@@ -276,7 +276,7 @@ export class PuppetPadchat extends Puppet {
       msgRawPayloadList.forEach(async (msgRawPayload) => {
         log.silly('PuppetPadchat', 'WebSocket Server rawData result: %s', JSON.stringify(msgRawPayload))
         if (!msgRawPayload['msg_id']) {
-          log.warn('PuppetPadchat', 'WebSocket Server Error: get empty message msg_id form Tencent server')
+          log.silly('PuppetPadchat', 'WebSocket Server: get empty message msg_id form Tencent server')
           return
         }
 

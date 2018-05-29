@@ -346,7 +346,7 @@ export class Bridge extends EventEmitter {
     if (!result) {
       throw Error('PuppetPadchatBridge, WXGetContact, cannot get result from websocket server!')
     }
-    if (result.user_name) {
+    if (!result.user_name) {
       log.warn('PuppetPadchatBridge', 'WXGetContact cannot get user_name, id: %s', id)
     }
     return result
