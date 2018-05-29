@@ -466,9 +466,15 @@ export class PuppetPadchat extends Puppet {
 
   public async contactFindAll(query: ContactQueryFilter): Promise<string[]> {
     log.verbose('PuppetPadchat', 'contactFindAll(%s)', query)
+    // TODO: query
+    const contactMap = (await this.bridge.checkSyncContactOrRoom())[0]
+    const contactIdList: string[] = []
+    contactMap.forEach(async (value , key) => {
+      contactIdList.push(key)
+      this.Contact.load(key, await this.contactRawPayloadParser(value))
+    })
 
-    // this.bridge.WX
-    return []
+    return contactIdList
   }
 
   public async contactAvatar(contactId: string): Promise<FileBox> {
@@ -760,7 +766,15 @@ export class PuppetPadchat extends Puppet {
   ): Promise<string[]> {
     log.verbose('PuppetPadchat', 'roomFindAll(%s)', query)
 
-    return []
+    // TODO: query
+    const rooomMap = (await this.bridge.checkSyncContactOrRoom())[1]
+    const roomIdList: string[] = []
+    rooomMap.forEach(async (value , key) => {
+      roomIdList.push(key)
+      this.Room.load(key, await this.roomRawPayloadParser(value))
+    })
+
+    return roomIdList
   }
 
   public async roomDel(
