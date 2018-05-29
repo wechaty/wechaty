@@ -1,9 +1,9 @@
 {
   "name": "wechaty",
-  "version": "0.15.75",
+  "version": "0.15.88",
   "description": "Wechat for Bot(Personal Account)",
   "main": "dist/src/index.js",
-  "types": "dist/src/index.d.ts",
+  "typings": "dist/src/index.d.ts",
   "wechaty": {
     "DEFAULT_HEAD": 0,
     "DEFAULT_PORT": 8080,
@@ -161,7 +161,7 @@
     "semver": "^5.5.0",
     "shx": "^0.2.0",
     "sinon": "^5.0.2",
-    "sinon-test": "^2.1.2",
+    "sinon-test": "^2.2.0",
     "sloc": "^0.2.0",
     "ts-node": "^6.0.5",
     "tslint": "^5.9.1",

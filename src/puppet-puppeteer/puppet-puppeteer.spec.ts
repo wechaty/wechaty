@@ -30,16 +30,12 @@ const sinonTest   = require('sinon-test')(sinon, {
 // import { log }    from '../../src/config'
 // log.level('silly')
 
-import Profile      from '../profile'
-import Wechaty      from '../wechaty'
+import { Profile }      from '../profile'
+import { Wechaty }      from '../wechaty'
 
-// import {
-//   Contact as GlobalContact,
-// }                             from '../contact'
-
-import PuppetPuppeteer  from './puppet-puppeteer'
-import Bridge           from './bridge'
-import Event            from './event'
+import { PuppetPuppeteer }  from './puppet-puppeteer'
+import { Bridge }           from './bridge'
+import { Event }            from './event'
 
 test('Puppet smoke testing', async t => {
   const profile = new Profile(Math.random().toString(36).substr(2, 5))
@@ -80,7 +76,7 @@ test('login/logout events', sinonTest(async function (t: test.Test) {
 
     sandbox.stub(Event, 'onScan') // block the scan event to prevent reset logined user
 
-    sandbox.stub(Bridge.prototype,    'getUserName').resolves('mockedUserName')
+    sandbox.stub(Bridge.prototype, 'getUserName').resolves('mockedUserName')
     sandbox.stub(puppet, 'contactRawPayload').resolves({
       NickName: 'mockedNickName',
       UserName: 'mockedUserName',
@@ -94,7 +90,7 @@ test('login/logout events', sinonTest(async function (t: test.Test) {
     const loginPromise = new Promise(r => puppet.once('login', _ => r(EXPECTED_CHIPER)))
     puppet.bridge.emit('login', 'TestPuppetPuppeteer')
     t.is(await loginPromise, EXPECTED_CHIPER, 'should fired login event')
-    t.is(puppet.logonoff(), true  , 'should be logined')
+    t.is(puppet.logonoff(), true, 'should be logined')
 
     t.ok((puppet.bridge.getUserName as any).called, 'bridge.getUserName should be called')
     t.ok((puppet.contactRawPayload as any).called,  'puppet.contactRawPayload should be called')
@@ -108,11 +104,11 @@ test('login/logout events', sinonTest(async function (t: test.Test) {
     t.is(puppet.logonoff(), false, 'should be logouted')
 
     await puppet.stop()
-    profile.destroy()
+    await profile.destroy()
   } catch (e) {
     t.fail(e)
   } finally {
     sandbox.restore()
-    t.end()
+    // t.end()
   }
 }))

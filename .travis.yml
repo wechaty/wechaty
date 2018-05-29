@@ -21,8 +21,7 @@ stages:
   - test
   - pack
   - name: deploy
-    if: branch =~ ^(master|v\d+\.\d+)$
-        AND (type NOT IN (cron, pull_request))
+    if: (type = push) AND branch =~ ^(master|v\d+\.\d+)$
 
 before_install:
   - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then ./scripts/prepare-osx.sh; fi
@@ -47,20 +46,25 @@ jobs:
         - echo "NPM Pack Testing Finished."
 
     - stage: deploy
+      # branches:
+      #   only:
+      #     - master
+      #     - /^v\d+\.\d+$/
       script:
         - echo "NPM Deploying Started ..."
         - npm version
         - if ./scripts/development-release.ts; then ./scripts/package-publish-config-tag-next.ts; fi
         - npm run dist
         - echo "NPM Building Finished."
-
       deploy:
         provider: npm
         email: zixia@zixia.net
         api_key: "$NPM_TOKEN"
         skip_cleanup: true
-        on:
-          all_branches: true
+        # on:
+        #   branch:
+        #     - master
+        #     - /^v\d+\.\d+$/
 
 notifications:
   webhooks:

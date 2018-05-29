@@ -261,5 +261,5 @@ At last, It's built for my personal study purpose of Automatically Testing.
 ## NOTES
 
 * github.com/chatie-oos: Open Open Source for Chatie Community.
-* wechaty-puppet-abstract Plugin Design: strong support wechaty.
+* wechaty-puppet Plugin Design: strong support wechaty.
 * list all donation sponsors on README, and create a wechat group for sponsors.
