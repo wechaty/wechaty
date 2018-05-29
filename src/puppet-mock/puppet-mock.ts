@@ -79,8 +79,8 @@ export class PuppetMock extends Puppet {
     // await some tasks...
     this.state.on(true)
 
-    this.userId = 'logined_user_id'
-    const user = this.Contact.load(this.userId)
+    this.id = 'logined_user_id'
+    const user = this.Contact.load(this.id)
     this.emit('login', user.id)
 
     const msg  = this.Message.create('mock_id')
@@ -110,12 +110,12 @@ export class PuppetMock extends Puppet {
   public async logout(): Promise<void> {
     log.verbose('PuppetMock', 'logout()')
 
-    if (!this.userId) {
+    if (!this.id) {
       throw new Error('logout before login?')
     }
 
-    this.emit('logout', this.userId) // becore we will throw above by logonoff() when this.user===undefined
-    this.userId = undefined
+    this.emit('logout', this.id) // becore we will throw above by logonoff() when this.user===undefined
+    this.id = undefined
 
     // TODO: do the logout job
   }

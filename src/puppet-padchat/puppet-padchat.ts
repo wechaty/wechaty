@@ -296,7 +296,10 @@ export class PuppetPadchat extends Puppet {
           return
         }
 
-        const msg  = this.Message.create(msgRawPayload['msg_id'], await this.messageRawPayloadParser(msgRawPayload))
+        const msg  = this.Message.create(
+          msgRawPayload['msg_id'],
+          await this.messagePayload(msgRawPayload.msg_id),
+        )
         await msg.ready()
 
         this.emit('message', msg.id)
@@ -381,10 +384,10 @@ export class PuppetPadchat extends Puppet {
       log.verbose('PuppetPadchatBridge', 'loginSucceed: Send ding to the bot, username: %s', this.bridge.username)
       await this.bridge.WXSendMsg(this.bridge.autoData.user_name, 'ding')
 
-      this.userId = this.bridge.autoData.user_name // Puppet userId different with WebSocket userId
-      const user = this.Contact.load(this.userId)
+      this.id = this.bridge.autoData.user_name // Puppet userId different with WebSocket userId
+      const user = this.Contact.load(this.id)
       await user.ready()
-      this.emit('login', this.userId)
+      this.emit('login', this.id)
 
       log.verbose('PuppetPadchatBridge', 'loginSucceed: Send login to the bot, user_name: %s', this.bridge.username)
       await this.bridge.WXSendMsg(this.bridge.autoData.user_name, 'Bot on line!')
@@ -429,12 +432,12 @@ export class PuppetPadchat extends Puppet {
   public async logout(): Promise<void> {
     log.verbose('PuppetPadchat', 'logout()')
 
-    if (!this.userId) {
+    if (!this.id) {
       throw new Error('logout before login?')
     }
 
-    this.emit('logout', this.userId) // becore we will throw above by logonoff() when this.user===undefined
-    this.userId = undefined
+    this.emit('logout', this.id) // becore we will throw above by logonoff() when this.user===undefined
+    this.id = undefined
 
     // TODO: this.bridge.logout
   }
@@ -471,8 +474,7 @@ export class PuppetPadchat extends Puppet {
   public async contactAvatar(contactId: string): Promise<FileBox> {
     log.verbose('PuppetPadchat', 'contactAvatar(%s)', contactId)
 
-    const rawPayload = await this.contactRawPayload(contactId)
-    const payload = await this.contactRawPayloadParser(rawPayload)
+    const payload = await this.contactPayload(contactId)
 
     if (!payload.avatar) {
       throw new Error('no avatar')
@@ -651,16 +653,10 @@ export class PuppetPadchat extends Puppet {
       throw new Error('no id!')
     }
 
-    const xxx = cuid()
-    const tmpFile = path.join('/tmp/' + xxx)
-
-    file.save(tmpFile)
-
-    const bitmap = fs.readFileSync(tmpFile)
-    const base64 = new Buffer(bitmap).toString('base64')
-    fs.unlinkSync(tmpFile)
-
-    await this.bridge.WXSendImage(id, base64)
+    await this.bridge.WXSendImage(
+      id,
+      await file.base64(),
+    )
   }
 
   public async messageForward(

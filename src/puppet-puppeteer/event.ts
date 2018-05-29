@@ -183,7 +183,7 @@ async function onMessage(
 ): Promise<void> {
   const msg = this.Message.create(
     rawPayload.MsgId,
-    await this.messageRawPayloadParser(rawPayload),
+    await this.messagePayload(rawPayload.MsgId),
   )
 
   /**

@@ -97,7 +97,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   protected readonly watchdog : Watchdog
   protected readonly counter  : number
 
-  protected userId?: string
+  protected id?: string
 
   /* tslint:disable:variable-name */
   public readonly Contact       : typeof Contact
@@ -309,11 +309,11 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public selfId(): string {
     log.verbose('Puppet', 'self()')
 
-    if (!this.userId) {
+    if (!this.id) {
       throw new Error('not logged in, no userSelf yet.')
     }
 
-    return this.userId
+    return this.id
   }
 
   public async say(textOrFile: string | FileBox) : Promise<void> {
@@ -338,7 +338,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
    * Login / Logout
    */
   public logonoff(): boolean {
-    if (this.userId) {
+    if (this.id) {
       return true
     } else {
       return false
@@ -349,14 +349,15 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   protected async login(userId: string): Promise<void> {
     log.verbose('Puppet', 'login(%s)', userId)
 
-    if (this.userId) {
+    if (this.id) {
       throw new Error('can only login once!')
     }
 
     const userSelf = this.Contact.load(userId)
     await userSelf.ready()
 
-    this.userId = userId
+    this.id = userId
+    console.log('this.id=', this.id)
     this.emit('login', userId)
   }
 

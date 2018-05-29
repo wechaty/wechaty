@@ -30,8 +30,9 @@ import * as test  from 'blue-tape'
 import { PuppetPuppeteer }  from './puppet-puppeteer'
 import { Firer }            from './firer'
 
+const SELF_ID = 'self-id'
 const mockPuppetPuppeteer = {
-  userSelf: () => ({}),
+  selfId: () => SELF_ID,
 } as any as PuppetPuppeteer
 
 test('parseFriendConfirm()', async t => {
