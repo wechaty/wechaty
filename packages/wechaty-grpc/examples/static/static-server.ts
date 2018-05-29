@@ -4,9 +4,8 @@ import * as path from 'path'
 
 const PROTO_FILE = path.resolve(__dirname, 'books.proto')
 
-req.setUsername("johndoe");
-client.getUser(req, (err, user) => { /* ... */ });
-
+req.setUsername('johndoe')
+client.getUser(req, (err, user) => { /* ... */ })
 
 
 const bookStream = new EventEmitter()
