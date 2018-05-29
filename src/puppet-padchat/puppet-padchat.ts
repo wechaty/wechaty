@@ -86,6 +86,8 @@ export type PuppetFoodType = 'scan' | 'ding'
 export type ScanFoodType   = 'scan' | 'login' | 'logout'
 
 export interface RawWebSocketDataType {
+  type?:   number, // -1 when logout
+  msg?:    string, // '掉线了' when logout
   apiName: string, // raw function name
   data:    string,
   msgId:   string,
@@ -280,7 +282,11 @@ export class PuppetPadchat extends Puppet {
 
     // Data Return From WebSocket Client
     } else {
-      console.log(rawWebSocketData)
+      // check logout:
+      if (rawWebSocketData.type === -1) {
+        this.emit('logout', this.userSelf())
+      }
+
       log.silly('PuppetPadchat', 'return apiName: %s, msgId: %s', rawWebSocketData.apiName, rawWebSocketData.msgId)
       const msgId = rawWebSocketData.msgId
 
