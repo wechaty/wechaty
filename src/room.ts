@@ -174,8 +174,9 @@ export class Room extends PuppetAccessory implements Sayable {
    * About the Generic: https://stackoverflow.com/q/43003970/1123955
    */
   public static load<T extends typeof Room>(
-    this : T,
-    id   : string,
+    this     : T,
+    id       : string,
+    payload? : RoomPayload,
   ): T['prototype'] {
     if (!this.pool) {
       this.pool = new Map<string, Room>()
@@ -183,10 +184,17 @@ export class Room extends PuppetAccessory implements Sayable {
 
     const existingRoom = this.pool.get(id)
     if (existingRoom) {
+      if (payload) {
+        existingRoom.payload = payload
+      }
       return existingRoom
     }
 
     const newRoom = new (this as any)(id)
+    if (payload) {
+      newRoom.payload = payload
+    }
+
     this.pool.set(id, newRoom)
     return newRoom
   }
