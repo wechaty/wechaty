@@ -280,8 +280,17 @@ export class PuppetPadchat extends Puppet {
 
     // Data Return From WebSocket Client
     } else {
+      console.log(rawWebSocketData)
       log.silly('PuppetPadchat', 'return apiName: %s, msgId: %s', rawWebSocketData.apiName, rawWebSocketData.msgId)
       const msgId = rawWebSocketData.msgId
+
+      let rawData: Object
+      if (!rawWebSocketData.data) {
+        log.silly('PuppetPadchat', 'WebSocket Server get empty message data form API call: %s', rawWebSocketData.apiName)
+        rawData = {}
+      } else {
+        rawData = JSON.parse(decodeURIComponent(rawWebSocketData.data))
+      }
 
       // rawWebSocketData:
       // {
@@ -290,7 +299,6 @@ export class PuppetPadchat extends Puppet {
       //     "msgId": "abc231923912983",
       //     "userId": "test"
       // }
-      const rawData: Object | string = JSON.parse(decodeURIComponent(rawWebSocketData.data))
 
       if (resolverDict[msgId]) {
         const resolve = resolverDict[msgId]

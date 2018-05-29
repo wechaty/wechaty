@@ -199,17 +199,25 @@ export class Bridge extends EventEmitter {
     return result
   }
 
-  // TODO: should generate qrcode here
   public async WXGetQRCode(): Promise<WXGetQRCodeType> {
-    const result = await this.sendToWebSocket('WXGetQRCode', [])
+    let result = await this.sendToWebSocket('WXGetQRCode', [])
     if (!result || !(result.qr_code)) {
-      throw Error('WXGetQRCode error! canot get result from websocket server')
+      result = await this.WXGetQRCodeTwice()
     }
 
-    log.silly('PuppetPadchatBridge', 'WXGetQRCode get qrcode successfullt')
+    log.silly('PuppetPadchatBridge', 'WXGetQRCode get qrcode successfully')
     this.checkQrcode()
     fs.writeFileSync('./demo.jpg', result.qr_code, {encoding: 'base64'})
     return result
+  }
+
+  private async WXGetQRCodeTwice(): Promise<WXGetQRCodeType> {
+    await this.WXInitialize()
+    const resultTwice = await this.sendToWebSocket('WXGetQRCode', [])
+    if (!resultTwice || !(resultTwice.qr_code)) {
+      throw Error('WXGetQRCodeTwice error! canot get result from websocket server when calling WXGetQRCode after WXInitialize')
+    }
+    return resultTwice
   }
 
   public async WXCheckQRCode(): Promise<WXCheckQRCodeType> {
@@ -284,18 +292,20 @@ export class Bridge extends EventEmitter {
    * @param {string} token    autoData.token
    * @returns {string} user_name | ''
    */
-  public async WXAutoLogin(token: string): Promise<WXAutoLoginType> {
+  public async WXAutoLogin(token: string): Promise<WXAutoLoginType | ''> {
     const result = await this.sendToWebSocket('WXAutoLogin', [token])
     log.silly('PuppetPadchatBridge', 'WXAutoLogin result: %s, type: %s', JSON.stringify(result), typeof result)
 
     // should get qrcode again
     if (!result) {
       await this.WXGetQRCode()
+      return ''
     }
 
     // should send wxloginRequest
     if (result.status !== 0) {
       await this.WXLoginRequest(token)
+      return ''
     }
 
     // login succeed!
@@ -309,12 +319,13 @@ export class Bridge extends EventEmitter {
    * Login with QRcode
    * @param {string} token    autoData.token
    */
-  public async WXLoginRequest(token: string): Promise<WXLoginRequestType> {
+  public async WXLoginRequest(token: string): Promise<WXLoginRequestType | ''> {
     // TODO: should show result here
     const result = await this.sendToWebSocket('WXLoginRequest', [token])
     log.silly('PuppetPadchatBridge', 'WXLoginRequest result: %s, type: %s', JSON.stringify(result), typeof result)
     if (!result || result.status !== 0) {
-      this.WXGetQRCode()
+      await this.WXGetQRCode()
+      return ''
     } else {
       // check qrcode status
       log.silly('PuppetPadchatBridge', 'WXLoginRequest begin to check whether user has clicked confirm login')
