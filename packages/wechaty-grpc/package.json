@@ -1,0 +1,53 @@
+{
+  "name": "@chatie/grpc",
+  "version": "0.0.1",
+  "description": "gRPC for Chatie",
+  "main": "index.js",
+  "directories": {
+    "example": "examples",
+    "test": "tests"
+  },
+  "scripts": {
+    "example:server": "nodemon --exec ts-node examples/server.ts",
+    "example:client": "ts-node examples/client.ts",
+    "lint": "npm run lint:ts",
+    "lint:ts": "tslint --project tsconfig.json --exclude \"tests/fixtures/**\" && tsc --noEmit",
+    "test": "echo test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Chatie/grpc.git"
+  },
+  "keywords": [
+    "grpc",
+    "chatie",
+    "chatbot",
+    "hostie",
+    "puppet",
+    "wechaty"
+  ],
+  "author": "Huan LI <zixia@zixia.net>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/Chatie/grpc/issues"
+  },
+  "homepage": "https://github.com/Chatie/grpc#readme",
+  "dependencies": {
+    "brolog": "^1.4.9",
+    "grpc": "^1.11.3",
+    "protobufjs": "^6.8.6"
+  },
+  "devDependencies": {
+    "@types/blue-tape": "^0.1.31",
+    "@types/node": "^10.0.4",
+    "@types/protobufjs": "^6.0.0",
+    "blue-tape": "^1.0.0",
+    "grpc-tools": "^1.6.6",
+    "nodemon": "^1.17.4",
+    "ts-node": "^6.0.2",
+    "ts-protoc-gen": "^0.6.0",
+    "tslint": "^5.10.0",
+    "tslint-eslint-rules": "^5.1.0",
+    "typescript": "^2.8.3"
+  }
+}

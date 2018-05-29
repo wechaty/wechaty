@@ -1,0 +1,1 @@
+export { log } from 'brolog'

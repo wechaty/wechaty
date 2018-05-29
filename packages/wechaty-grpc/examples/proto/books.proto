@@ -1,0 +1,28 @@
+syntax = "proto3";
+package books;
+service BookService {
+  rpc Insert (Book) returns (Empty) {}
+  rpc List (Empty) returns (BookList) {}
+  rpc Get (BookIdRequest) returns (Book) {}
+  // add the delete method definition
+  rpc Delete (BookIdRequest) returns (Empty) {}
+  // add the watch method definition
+  rpc Watch (Empty) returns (stream Book) {}
+}
+
+message Empty {}
+
+message Book {
+  int32 id = 1;
+  string title = 2;
+  string author = 3;
+}
+
+message BookList {
+  repeated Book books = 1;
+}
+
+// add the message definition below
+message BookIdRequest {
+  int32 id = 1;
+}

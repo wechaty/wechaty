@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "es6"
+    , "module": "commonjs"
+    , "outDir": "dist"
+    , "declaration": true
+    , "sourceMap": true
+    , "strict": true
+    , "traceResolution": false
+    , "lib": [
+        "esnext"
+    ]
+  }
+  , "exclude": [
+      "node_modules/"
+    , "dist/"
+  ]
+  , "include": [
+       "bin/*.ts"
+     , "scripts/**/*.ts"
+     , "examples/**/*.ts"
+     , "src/**/*.ts"
+     , "tests/**/*.spec.ts"
+  ]
+}
