@@ -4,6 +4,9 @@ import { EventEmitter } from 'events'
 import * as cuid        from 'cuid'
 import * as WebSocket   from 'ws'
 import * as fs          from 'fs'
+import {
+  PadchatContactRawPayload,
+}                       from './padchat-schemas'
 
 export const resolverDict: {
   [idx: string]: Function,
@@ -338,8 +341,15 @@ export class Bridge extends EventEmitter {
    * Get contact by contact id
    * @param {any} id        user_name
    */
-  public WXGetContact(id: string): void {
-    this.sendToWebSocket('WXGetContact', [id])
+  public async WXGetContact(id: string): Promise<PadchatContactRawPayload> {
+    const result = await this.sendToWebSocket('WXGetContact', [id])
+    if (!result) {
+      throw Error('PuppetPadchatBridge, WXGetContact, cannot get result from websocket server!')
+    }
+    if (result.user_name) {
+      log.warn('PuppetPadchatBridge', 'WXGetContact cannot get user_name')
+    }
+    return result
   }
 
   /**

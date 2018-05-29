@@ -31,7 +31,7 @@ export interface PadchatContactRawPayload {
   nick_name:          string,       // "梦君君", Contact:用户昵称， Room: 群昵称
   provincia:          string,       // "Beijing",
   remark:             string,       // "女儿",
-  sex:                number,       // 2 Female, 1 Male, 0 Not Known
+  sex:                0 | 1 | 2,       // 2 Female, 1 Male, 0 Not Known
   signature:          string,       // "且行且珍惜",
   small_head:         string,       // "http://wx.qlogo.cn/mmhead/ver_1/xfCMmibHH74xGLoyeDFJadrZXX3eOEznPefiaCa3iczxZGMwPtDuSbRQKx3Xdm18un303mf0NFia3USY2nO2VEYILw/132",
   // source:             number,    // 14, // 0, 14, don't know why

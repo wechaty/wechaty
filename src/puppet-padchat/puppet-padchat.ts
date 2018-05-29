@@ -26,7 +26,7 @@ import {
 
 import {
   // Message,
-  MessagePayload,
+  MessagePayload, MessageType,
 }                       from '../message'
 
 import {
@@ -94,7 +94,7 @@ import * as WebSocket from 'ws'
 const TOKEN = 'padchattest'
 
 export class PuppetPadchat extends Puppet {
-  public bridge:  Bridge | undefined
+  public bridge:  Bridge
   public botWs:   WebSocket
 
   constructor(
@@ -103,6 +103,13 @@ export class PuppetPadchat extends Puppet {
     super(options)
 
     this.botWs  = new WebSocket(ADDRESS, { perMessageDeflate: true })
+
+    this.bridge = new Bridge({
+      userId   : TOKEN,
+      botWs    : this.botWs,
+      autoData : {},
+      // profile:  profile, // should be profile in the future
+    })
 
     this.botWs.on('message', data => this.wsOnMessage(data))
 
@@ -226,13 +233,7 @@ export class PuppetPadchat extends Puppet {
 
     const autoData: AutoDataType = await this.options.profile.get('autoData')
     log.silly('PuppetPadchat', 'initBridge, get autoData: %s', JSON.stringify(autoData))
-
-    this.bridge = new Bridge({
-      userId   : TOKEN,
-      botWs    : this.botWs,
-      autoData : autoData,
-      // profile:  profile, // should be profile in the future
-    })
+    this.bridge.autoData = autoData
 
     // this.bridge.on('ding'     , Event.onDing.bind(this))
     // this.bridge.on('error'    , e => this.emit('error', e))
@@ -266,44 +267,24 @@ export class PuppetPadchat extends Puppet {
       //   "userId": "test"
       // }
       if (!rawWebSocketData.data) {
-        log.warn('PuppetPadchat', 'WebSocket Server Error: get empty message data form Tencent server')
+        log.silly('PuppetPadchat', 'WebSocket Server get empty message data form Tencent server')
         return
       }
 
-      // JSON.parse(decodeURIComponent(rawWebSocketData.data):
-      // [
-      //     {
-      //         "content": "XXXX",
-      //         "continue": 1,
-      //         "data": "XXX",
-      //         "description": "李佳芮+:+[语音]",
-      //         "from_user": "qq512436430",
-      //         "msg_id": "8502371723610127059",
-      //         "msg_source": "",
-      //         "msg_type": 5,
-      //         "status": 1,
-      //         "sub_type": 34,
-      //         "timestamp": 1526984922,
-      //         "to_user": "wxid_zj2cahpwzgie12",
-      //         "uin": 324216852
-      //     }
-      // ]
-      const rawData = JSON.parse(decodeURIComponent(rawWebSocketData.data))[0]
-      log.silly('PuppetPadchat', 'WebSocket Server rawData result: %s', JSON.stringify(rawData))
+      const msgRawPayloadList: PadchatMessageRawPayload[] = JSON.parse(decodeURIComponent(rawWebSocketData.data))
 
-      let msg
+      msgRawPayloadList.forEach(async (msgRawPayload) => {
+        log.silly('PuppetPadchat', 'WebSocket Server rawData result: %s', JSON.stringify(msgRawPayload))
+        if (!msgRawPayload['msg_id']) {
+          log.warn('PuppetPadchat', 'WebSocket Server Error: get empty message msg_id form Tencent server')
+          return
+        }
 
-      if (!rawData['msg_id']) {
-        msg  = this.Message.create('emptyId')
-        log.warn('PuppetPadchat', 'WebSocket Server Error: get empty message msg_id form Tencent server')
-      }
+        const msg  = this.Message.create(msgRawPayload['msg_id'], await this.messageRawPayloadParser(msgRawPayload))
+        await msg.ready()
 
-      msg  = this.Message.create(rawData['msg_id'])
-      ;
-      (msg as any).payload = this.messageRawPayloadParser(rawData as PadchatMessageRawPayload)
-      await msg.ready()
-
-      this.emit('message', msg)
+        this.emit('message', msg)
+      })
 
     // Data Return From WebSocket Client
     } else {
@@ -449,29 +430,39 @@ export class PuppetPadchat extends Puppet {
 
   public async contactRawPayload(id: string): Promise<PadchatContactRawPayload> {
     log.verbose('PuppetPadchat', 'contactRawPayload(%s)', id)
-
-    const rawPayload: PadchatContactRawPayload = {
-      big_head :  'padchat name',
-      city:       '',
-      country:    '',
-      nick_name:  '',
-      provincia:  '',
-      remark:     '',
-      sex:        1,
-      signature:  '',
-      small_head: '',
-      stranger:   '',
-      user_name:  '',
-    }
+    const rawPayload = await this.bridge.WXGetContact(id)
     return rawPayload
   }
 
   public async contactRawPayloadParser(rawPayload: PadchatContactRawPayload): Promise<ContactPayload> {
     log.verbose('PuppetPadchat', 'contactRawPayloadParser(%s)', rawPayload)
 
+    const gender = {
+      0: Gender.Unknown,
+      1: Gender.Male,
+      2: Gender.Female,
+    }
+
+    if (/@chatroom$/.test(rawPayload.user_name)) {
+      throw Error('Room Object instead of Contact!')
+    }
+
+    let contactType = this.Contact.Type.Unknown
+    if (/^gh_/.test(rawPayload.user_name)) {
+      contactType = this.Contact.Type.Official
+    } else {
+      contactType = this.Contact.Type.Personal
+    }
+
     const payload: ContactPayload = {
-      gender: Gender.Unknown,
-      type:   ContactType.Unknown,
+      gender    : gender[rawPayload.sex],
+      type      : contactType,
+      alias     : rawPayload.remark,
+      avatar    : rawPayload.big_head,
+      city      : rawPayload.city,
+      name      : rawPayload.nick_name,
+      province  : rawPayload.provincia,
+      signature : (rawPayload.signature).replace('+', ''),   // Stay+Foolish
     }
     return payload
   }
@@ -482,38 +473,71 @@ export class PuppetPadchat extends Puppet {
    *
    */
   public async messageRawPayload(id: string): Promise<PadchatMessageRawPayload> {
-    log.verbose('PuppetPadchat', 'messageRawPayload(%s)', id)
-    const rawPayload: PadchatMessageRawPayload = {
-      content:      '',
-      data:         '',
-      continue:     1,
-      description:  '',
-      from_user:    '',
-      msg_id:       '',
-      msg_source:   '',
-      msg_type:     5,
-      status:       1,
-      sub_type:     PadchatMessageType.TEXT,
-      timestamp:    11111111,
-      to_user:      '',
-      uin:          111111,
+    throw Error('should not call messageRawPayload')
+    // log.verbose('PuppetPadchat', 'messageRawPayload(%s)', id)
+    // const rawPayload: PadchatMessageRawPayload = {
+    //   content:      '',
+    //   data:         '',
+    //   continue:     1,
+    //   description:  '',
+    //   from_user:    '',
+    //   msg_id:       '',
+    //   msg_source:   '',
+    //   msg_type:     5,
+    //   status:       1,
+    //   sub_type:     PadchatMessageType.TEXT,
+    //   timestamp:    11111111,
+    //   to_user:      '',
+    //   uin:          111111,
 
-      // from : 'from_id',
-      // text : 'padchat message text',
-      // to   : 'to_id',
-    }
-    return rawPayload
+    //   // from : 'from_id',
+    //   // text : 'padchat message text',
+    //   // to   : 'to_id',
+    // }
+    // return rawPayload
   }
 
   public async messageRawPayloadParser(rawPayload: PadchatMessageRawPayload): Promise<MessagePayload> {
-    log.verbose('PuppetPadchat', 'messagePayload(%s)', rawPayload)
+    let type: MessageType = this.Message.Type.Unknown
+
+    switch (rawPayload.sub_type) {
+      case PadchatMessageType.TEXT:
+        type = this.Message.Type.Text
+        break
+      case PadchatMessageType.IMAGE:
+        type = this.Message.Type.Image
+        break
+      case PadchatMessageType.VOICE:
+        type = this.Message.Type.Audio
+        break
+      case PadchatMessageType.EMOTICON:
+        type = this.Message.Type.Emoticon
+        break
+      case PadchatMessageType.APP:
+        type = this.Message.Type.Attachment
+        break
+      case PadchatMessageType.VIDEO:
+        type = this.Message.Type.Video
+        break
+      default:
+        type = this.Message.Type.Text
+    }
+
     const payload: MessagePayload = {
       date      : new Date(),
-      fromId    : 'xxx',
-      text      : 'padchat message text',
-      toId      : this.userSelf().id,
-      type      : this.Message.Type.Text,
+      fromId    : rawPayload.from_user,
+      text      : rawPayload.content,
+      toId      : rawPayload.to_user,
+      type      : type,
     }
+
+    if (/@chatroom$/.test(rawPayload.from_user)) {
+      payload.roomId = rawPayload.from_user
+      payload.fromId = rawPayload.content.split(':\n')[0]
+      payload.text = rawPayload.content.split(':\n')[1]
+    }
+
+    log.verbose('PuppetPadchat', 'messagePayload(%s)', JSON.stringify(payload))
     return payload
   }
 
@@ -522,6 +546,11 @@ export class PuppetPadchat extends Puppet {
     text     : string,
   ): Promise<void> {
     log.verbose('PuppetPadchat', 'messageSend(%s, %s)', receiver, text)
+    const id = receiver.contactId || receiver.roomId
+    if (!id) {
+      throw Error('No id')
+    }
+    await this.bridge.WXSendMsg(id, text)
   }
 
   public async messageSendFile(
