@@ -17,31 +17,57 @@
  *
  */
 
-// msg_type = 2
+/**
+ * There are two functions to generate PadchatContactRawPayload
+ * - WXSyncContact (only when msg_type = 2)
+ * - WXGetContact
+ * @interface PadchatContactRawPayload
+ */
 export interface PadchatContactRawPayload {
-  big_head:           string,       // "http://wx.qlogo.cn/mmhead/ver_1/xfCMmibHH74xGLoyeDFJadrZXX3eOEznPefiaCa3iczxZGMwPtDuSbRQKx3Xdm18un303mf0NFia3USY2nO2VEYILw/0",
-  city:               string,       // 'Haidian'
-  // continue:           number,    // 1: Not Load Ready, 0: Load Ready, Only WXSyncContact has this key, WXGetContact donot has this.
-  country:            string,       // "CN"
-  // img_flag:           number,    // 1 || 2, don't know why
-  // level:              number,    // 5,7, don't know why
-  // max_member_count:   number,    // 0,
-  // member_count:       number,    // 0,
-  // msg_type:           number,    // 2: Contact Or Room whole content
-  nick_name:          string,       // "梦君君", Contact:用户昵称， Room: 群昵称
-  provincia:          string,       // "Beijing",
-  remark:             string,       // "女儿",
-  sex:                0 | 1 | 2,       // 2 Female, 1 Male, 0 Not Known
-  signature:          string,       // "且行且珍惜",
-  small_head:         string,       // "http://wx.qlogo.cn/mmhead/ver_1/xfCMmibHH74xGLoyeDFJadrZXX3eOEznPefiaCa3iczxZGMwPtDuSbRQKx3Xdm18un303mf0NFia3USY2nO2VEYILw/132",
-  // source:             number,    // 14, // 0, 14, don't know why
-  // status:             number,    // 1, don't know why
-  stranger:           string,       // "v1_0468f2cd3f0efe7ca2589d57c3f9ba952a3789e41b6e78ee00ed53d1e6096b88@stranger",
-  // uin:                number,    // 324216852,
-  user_name:          string,       // "mengjunjun001" | "qq512436430" Unique name
 
-  // Differenc with web: No stranger, and No starFriend
-  // No intro, no weixinid, no tag.....
+  /**
+   * Sometimes, WXSyncContact can only get the following result:
+   * {
+   *    "continue": 1,
+   *     "msg_type": 2048,
+   *     "status": 1,
+   *     "uin": 324216852
+   * },
+   *
+   * The following 4 only exist in [WXSyncContact], see more: https://github.com/lijiarui/test-ipad-puppet/issues/39
+   * continue:           number,    // 1: Not Load Ready, 0: Load Ready.
+   * msg_type:           number,    // 2: Contact Or Room whole content.
+   * source:             number,    // 14, // 0, 14, don't know why
+   * uin:                number,    // 324216852,
+   */
+
+  /**
+   * The following 2 only exsit in [WXGetContact], see more: https://github.com/lijiarui/test-ipad-puppet/issues/40
+   * message: string, // '',
+   * ticket: string, // '',
+   */
+
+  big_head          : string,      // "http://wx.qlogo.cn/mmhead/ver_1/xfCMmibHH74xGLoyeDFJadrZXX3eOEznPefiaCa3iczxZGMwPtDuSbRQKx3Xdm18un303mf0NFia3USY2nO2VEYILw/0",
+  city              : string,      // 'Haidian'
+  country           : string,      // "CN"
+  intro             : string,      // '',
+  label             : string,      // '1', if no label, it is '', but not really sure
+  nick_name         : string,      // "梦君君", Contact:用户昵称， Room: 群昵称
+  provincia         : string,      // "Beijing",
+  py_initial        : string,      // 'LJR',
+  remark            : string,      // "女儿",
+  remark_py_initial : string,      // 'lijiaruibeizhu',
+  remark_quan_pin   : string,      // 'LJRBZ',
+  sex               : 0 | 1 | 2,   // 2 Female, 1 Male, 0 Not Known
+  signature         : string,      // "且行且珍惜",
+  small_head        : string,      // "http://wx.qlogo.cn/mmhead/ver_1/xfCMmibHH74xGLoyeDFJadrZXX3eOEznPefiaCa3iczxZGMwPtDuSbRQKx3Xdm18un303mf0NFia3USY2nO2VEYILw/132",
+  status            : number,      // 1 when use WXSyncContact, 0 when use WXGetContact
+  stranger          : string,      // "v1_0468f2cd3f0efe7ca2589d57c3f9ba952a3789e41b6e78ee00ed53d1e6096b88@stranger",
+  user_name         : string,      // "mengjunjun001" | "qq512436430" Unique name
+
+  /**
+   * Differenc with web: No stranger, starFriend, intro, weixinid, tag...
+   */
 }
 
 // msg_type = 5
@@ -238,21 +264,47 @@ export interface PadchatRoomRawMember {
   // no displa_name here?? not sure
 }
 
-// msg_type: 2,
+/**
+ * There are two functions to generate PadchatContactRawPayload
+ * - WXSyncContact (only when msg_type = 2)
+ * - WXGetContact
+ * @interface PadchatRoomRawPayload
+ */
 export interface PadchatRoomRawPayload {
+  /**
+   * Sometimes, WXSyncContact can only get the following result:
+   * {
+   *    "continue": 1,
+   *    "msg_type": 2048,
+   *    "status": 1,
+   *    "uin": 324216852
+   * },
+   *
+   * The following 4 only exist in [WXSyncContact], see more: https://github.com/lijiarui/test-ipad-puppet/issues/39
+   * continue:           number,    // 1: Not Load Ready, 0: Load Ready.
+   * msg_type:           number,    // 2: Contact Or Room whole content.
+   * source:             number,    // 14, // 0, 14, don't know why
+   * uin:                number,    // 324216852,
+   */
+
+  /**
+   * The following 2 only exsit in [WXGetContact], see more: https://github.com/lijiarui/test-ipad-puppet/issues/40
+   * message: string, // '',
+   * ticket: string,  // '',
+   */
+
   big_head:         string,   // "",
-  bit_mask:         number,   // 4294967295,
-  bit_value:        number,   // 2050,
-  chatroom_id:      number,   // 700000154,
+  chatroom_id:      number,   // 700000154 in WXGetContact, 0 in WXSyncContact
   chatroom_owner:   string,   // "qq512436430",
   continue:         number,   // 1,
   max_member_count: number,   // 500,
   member:           string[], // "[\"qq512436430\",\"mengjunjun001\",\"wxid_zj2cahpwzgie12\",\"wxid_7708837087612\"]\n",
   member_count:     number,   // 4,
-  msg_type:         number,   // 2,
   nick_name:        string,   // room-topic:"facenet",
+  py_initial:       string,   // 'FACENET',
+  quan_pin:         string,   // 'facenet',
   small_head:       string,   // "http://wx.qlogo.cn/mmcrhead/hqDXUD6csU99edRCJy18nZyEicsEdXGu2IsEzxJfgwM13N7PB88ibWk8oDL6ce7pHzc77WicTzKzR0ewkc9eL0jLQNypIfGmdPP/0",
-  status:           number,   // 1,
+  status:           number,   // 1 when use WXSyncContact, 0 when use WXGetContact
   uin:              number,   // 324216852,
   user_name:        string,   // room-id "6350854677@chatroom"
 }
