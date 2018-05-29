@@ -59,10 +59,22 @@ export class FriendRequest extends PuppetAccessory {
   // tslint:disable-next-line:variable-name
   public static Type = FriendRequestType
 
-  public static createSend(
+  /**
+   * Send a Friend Request to a `contact` with message `hello`.
+   * @param contact
+   * @param hello
+   */
+  public static create(
     contact : Contact,
     hello   : string,
-    ): FriendRequest {
+  ): FriendRequest {
+    return this.createSend(contact, hello)
+  }
+
+  private static createSend(
+    contact : Contact,
+    hello   : string,
+  ): FriendRequest {
     log.verbose('PuppeteerFriendRequest', 'createSend(%s, %s)',
                                           contact,
                                           hello,
@@ -113,6 +125,11 @@ export class FriendRequest extends PuppetAccessory {
     return receivedRequest
   }
 
+  public static fromJSON(payloadJsonStr: string): FriendRequest {
+    const payload: FriendRequestPayload = JSON.parse(payloadJsonStr)
+    return new this(payload)
+  }
+
   /**
    *
    * Instance Properties
@@ -134,6 +151,17 @@ export class FriendRequest extends PuppetAccessory {
     if (!this.puppet) {
       throw new Error('FriendRequest class can not be instanciated without a puppet!')
     }
+  }
+
+  public toString() {
+    return 'FriendRequest'
+  }
+
+  public toJSON() {
+    if (!this.payload) {
+      throw new Error('no payload')
+    }
+    return JSON.stringify(this.payload)
   }
 
   public async send(): Promise<void> {

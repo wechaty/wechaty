@@ -81,14 +81,14 @@ export class PuppetMock extends Puppet {
 
     this.userId = 'logined_user_id'
     const user = this.Contact.load(this.userId)
-    this.emit('login', user)
+    this.emit('login', user.id)
 
     const msg  = this.Message.create('mock_id')
     await msg.ready()
 
     setInterval(() => {
       log.verbose('PuppetMock', `start() setInterval() pretending received a new message: ${msg + ''}`)
-      this.emit('message', msg)
+      this.emit('message', msg.id)
     }, 3000)
 
   }
@@ -110,11 +110,11 @@ export class PuppetMock extends Puppet {
   public async logout(): Promise<void> {
     log.verbose('PuppetMock', 'logout()')
 
-    if (!this.logonoff()) {
+    if (!this.userId) {
       throw new Error('logout before login?')
     }
 
-    this.emit('logout', this.userId!) // becore we will throw above by logonoff() when this.user===undefined
+    this.emit('logout', this.userId) // becore we will throw above by logonoff() when this.user===undefined
     this.userId = undefined
 
     // TODO: do the logout job
@@ -173,6 +173,13 @@ export class PuppetMock extends Puppet {
    * Message
    *
    */
+  public async messageFile(id: string): Promise<FileBox> {
+    return FileBox.packBase64(
+      'cRH9qeL3XyVnaXJkppBuH20tf5JlcG9uFX1lL2IvdHRRRS9kMMQxOPLKNYIzQQ==',
+      'mock-file.txt',
+    )
+  }
+
   public async messageRawPayload(id: string): Promise<MockMessageRawPayload> {
     log.verbose('PuppetMock', 'messageRawPayload(%s)', id)
     const rawPayload: MockMessageRawPayload = {
@@ -186,10 +193,10 @@ export class PuppetMock extends Puppet {
   public async messageRawPayloadParser(rawPayload: MockMessageRawPayload): Promise<MessagePayload> {
     log.verbose('PuppetMock', 'messagePayload(%s)', rawPayload)
     const payload: MessagePayload = {
-      date      : new Date(),
+      timestamp : Date.now(),
       fromId    : 'xxx',
       text      : 'mock message text',
-      toId      : this.userSelf().id,
+      toId      : this.selfId(),
       type      : this.Message.Type.Text,
     }
     return payload

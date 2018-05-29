@@ -17,7 +17,10 @@
  *
  */
 
-import { createWriteStream, createReadStream }  from 'fs'
+import {
+  // createWriteStream,
+  createReadStream,
+}                     from 'fs'
 import {
   PassThrough,
   Readable,
@@ -61,13 +64,9 @@ bot
 
   // const mp3Stream = await msg.readyStream()
 
-  const filename = msg.file().name
-  if (!filename) {
-    throw new Error('no filename for media message')
-  }
-
-  const file = createWriteStream(filename)
-  msg.file().pipe(file)
+  const msgFile = await msg.file()
+  const filename = msgFile.name
+  msgFile.save(filename)
 
   const mp3Stream = createReadStream(filename)
   const text = await speechToText(mp3Stream)

@@ -40,7 +40,7 @@ import {
   Puppet,
   PuppetOptions,
   Receiver,
-  ScanData,
+  ScanPayload,
 }                     from '../puppet/'
 import {
   config,
@@ -89,8 +89,8 @@ export type PuppetFoodType = 'scan' | 'ding'
 export type ScanFoodType   = 'scan' | 'login' | 'logout'
 
 export class PuppetPuppeteer extends Puppet {
-  public bridge   : Bridge
-  public scanInfo?: ScanData
+  public bridge       : Bridge
+  public scanPayload? : ScanPayload
 
   public scanWatchdog: Watchdog<ScanFoodType>
 
@@ -149,6 +149,8 @@ export class PuppetPuppeteer extends Puppet {
       })
 
       log.verbose('PuppetPuppeteer', 'start() done')
+
+      this.emit('start')
       return
 
     } catch (e) {
@@ -274,6 +276,8 @@ export class PuppetPuppeteer extends Puppet {
     } finally {
       this.state.off(true)
     }
+
+    this.emit('stop')
   }
 
   private async initBridge(): Promise<Bridge> {
@@ -318,19 +322,20 @@ export class PuppetPuppeteer extends Puppet {
   ): Promise<MessagePayload> {
     log.verbose('PuppetPuppeteer', 'messageRawPayloadParser(%s) @ %s', rawPayload, this)
 
-    const from: Contact     = this.Contact.load(rawPayload.MMActualSender)  // MMPeerUserName
-    const text: string      = rawPayload.MMActualContent                    // Content has @id prefix added by wx
-    const date: Date        = new Date(rawPayload.MMDisplayTime)            // Javascript timestamp of milliseconds
+    const fromId                       = rawPayload.MMActualSender               // MMPeerUserName
+    const text: string                 = rawPayload.MMActualContent              // Content has @id prefix added by wx
+    const timestamp: number            = rawPayload.MMDisplayTime                // Javascript timestamp of milliseconds
+    const filename: undefined | string = this.filename(rawPayload) || undefined
 
-    let room : undefined | Room
-    let to   : undefined | Contact
+    let roomId : undefined | string
+    let toId   : undefined | string
 
     // FIXME: has there any better method to know the room ID?
     if (rawPayload.MMIsChatRoom) {
       if (/^@@/.test(rawPayload.FromUserName)) {
-        room = this.Room.load(rawPayload.FromUserName) // MMPeerUserName always eq FromUserName ?
+        roomId = rawPayload.FromUserName // MMPeerUserName always eq FromUserName ?
       } else if (/^@@/.test(rawPayload.ToUserName)) {
-        room = this.Room.load(rawPayload.ToUserName)
+        roomId = rawPayload.ToUserName
       } else {
         throw new Error('parse found a room message, but neither FromUserName nor ToUserName is a room(/^@@/)')
       }
@@ -338,34 +343,29 @@ export class PuppetPuppeteer extends Puppet {
 
     if (rawPayload.ToUserName) {
       if (!/^@@/.test(rawPayload.ToUserName)) { // if a message in room without any specific receiver, then it will set to be `undefined`
-        to = this.Contact.load(rawPayload.ToUserName)
+        toId = rawPayload.ToUserName
       }
     }
 
-    const file: undefined | FileBox = undefined
-
     const type: MessageType = this.messageTypeFromWeb(rawPayload.MsgType)
 
-    const fromId = from && from.id
-    const roomId = room && room.id
-    const toId   = to   && to.id
-
     const payload: MessagePayload = {
-      // direction: MessageDirection.MT,
       type,
       fromId,
+      filename,
       toId,
       roomId,
       text,
-      date,
-      file,
-    }
-
-    if (type !== MessageType.Text && type !== MessageType.Unknown) {
-      payload.file = await this.messageRawPayloadToFile(rawPayload)
+      timestamp,
     }
 
     return payload
+  }
+
+  public async messageFile(messageId: string): Promise<FileBox> {
+    const rawPayload = await this.messageRawPayload(messageId)
+    const fileBox = await this.messageRawPayloadToFile(rawPayload)
+    return fileBox
   }
 
   private async messageRawPayloadToFile(
@@ -579,7 +579,7 @@ export class PuppetPuppeteer extends Puppet {
   public async logout(): Promise<void> {
     log.verbose('PuppetPuppeteer', 'logout()')
 
-    const user = this.userSelf()
+    const user = this.selfId()
     if (!user) {
       log.warn('PuppetPuppeteer', 'logout() without self()')
       return
@@ -1366,7 +1366,7 @@ export class PuppetPuppeteer extends Puppet {
     const first           = cookie.find(c => c.name === 'webwx_data_ticket')
     const webwxDataTicket = first && first.value
     const size            = buffer.length
-    const fromUserName    = this.userSelf()!.id
+    const fromUserName    = this.selfId()
     const id              = 'WU_FILE_' + this.fileId
     this.fileId++
 

@@ -43,12 +43,13 @@ bot
   console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
 })
 .on('login'	  , user => console.log(`${user} logined`))
-.on('message', msg => {
+.on('message', async msg => {
   console.log(`RECV: ${msg}`)
 
   if (msg.type() !== Message.Type.Text) {
-    const file = msg.file()
-    const name = msg.file().name
+    const file = await msg.file()
+    const name = file.name
+    console.log('Save file to: ' + name)
     file.save(name)
   }
 

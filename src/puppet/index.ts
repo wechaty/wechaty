@@ -3,5 +3,5 @@ export {
   PuppetEventName,
   PuppetOptions,
   Receiver,
-  ScanData,
+  ScanPayload,
 }                         from './puppet'

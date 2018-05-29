@@ -104,7 +104,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
    * singleton globalInstance
    * @private
    */
-  private static singletonInstance: Wechaty
+  private static globalInstance: Wechaty
 
   private profile: Profile
 
@@ -144,13 +144,13 @@ export class Wechaty extends PuppetAccessory implements Sayable {
   public static instance(
     options?: WechatyOptions,
   ) {
-    if (options && this.singletonInstance) {
+    if (options && this.globalInstance) {
       throw new Error('instance can be only set once!')
     }
-    if (!this.singletonInstance) {
-      this.singletonInstance = new Wechaty(options)
+    if (!this.globalInstance) {
+      this.globalInstance = new Wechaty(options)
     }
-    return this.singletonInstance
+    return this.globalInstance
   }
 
   /**
@@ -226,6 +226,29 @@ export class Wechaty extends PuppetAccessory implements Sayable {
     return Wechaty.version(forceNpm)
   }
 
+  public emit(event: 'error'      , error: Error)                                                  : boolean
+  public emit(event: 'friend'     , request: FriendRequest)                                        : boolean
+  public emit(event: 'heartbeat'  , data: any)                                                     : boolean
+  public emit(event: 'logout'     , user: Contact)                                                 : boolean
+  public emit(event: 'login'      , user: Contact)                                                 : boolean
+  public emit(event: 'message'    , message: Message)                                              : boolean
+  public emit(event: 'room-join'  , room: Room, inviteeList : Contact[], inviter  : Contact)       : boolean
+  public emit(event: 'room-leave' , room: Room, leaverList  : Contact[], remover? : Contact)       : boolean
+  public emit(event: 'room-topic' , room: Room, topic: string, oldTopic: string, changer: Contact) : boolean
+  public emit(event: 'scan'       , qrCode: string, code: number, data?: string)                   : boolean
+  public emit(event: 'start')                                                                      : boolean
+  public emit(event: 'stop')                                                                       : boolean
+
+  // guard for the above event: make sure it includes all the possible values
+  public emit(event: never, listener: never): never
+
+  public emit(
+    event:   WechatyEventName,
+    ...args: any[]
+  ): boolean {
+    return super.emit(event, ...args)
+  }
+
   public on(event: 'error'      , listener: string | ((this: Wechaty, error: Error) => void))                                                 : this
   public on(event: 'friend'     , listener: string | ((this: Wechaty, request: FriendRequest) => void))                     : this
   public on(event: 'heartbeat'  , listener: string | ((this: Wechaty, data: any) => void))                                                    : this
@@ -235,11 +258,12 @@ export class Wechaty extends PuppetAccessory implements Sayable {
   public on(event: 'room-join'  , listener: string | ((this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void))        : this
   public on(event: 'room-leave' , listener: string | ((this: Wechaty, room: Room, leaverList: Contact[], remover?: Contact) => void))         : this
   public on(event: 'room-topic' , listener: string | ((this: Wechaty, room: Room, topic: string, oldTopic: string, changer: Contact) => void)): this
-  public on(event: 'scan'       , listener: string | ((this: Wechaty, url: string,  code: number) => void))                                   : this
+  public on(event: 'scan'       , listener: string | ((this: Wechaty, url: string, code: number) => void))                                   : this
   public on(event: 'start'      , listener: string | ((this: Wechaty) => void))                                                               : this
   public on(event: 'stop'       , listener: string | ((this: Wechaty) => void))                                                               : this
+
   // guard for the above event: make sure it includes all the possible values
-  public on(event: never,         listener: never): never
+  public on(event: never, listener: never): never
 
   /**
    * @desc       Wechaty Class Event Type
@@ -474,7 +498,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
    * Plugin Version Range Check
    */
   private initPuppetSemverSatisfy(versionRange: string) {
-    log.verbose('Wechaty', 'initPuppet(%s)', versionRange)
+    log.verbose('Wechaty', 'initPuppetSemverSatisfy(%s)', versionRange)
     return semver.satisfies(
       this.version(true),
       versionRange,
@@ -482,12 +506,131 @@ export class Wechaty extends PuppetAccessory implements Sayable {
   }
 
   private initPuppetEventBridge(puppet: Puppet) {
-    for (const event of Object.keys(WECHATY_EVENT_DICT)) {
-      log.verbose('Wechaty', 'initPuppetEventBridge() puppet.on(%s) registered', event)
-      /// e as any ??? Maybe this is a bug of TypeScript v2.5.3
-      puppet.on(event as any, (...args: any[]) => {
-        this.emit(event, ...args)
-      })
+    const eventNameList: WechatyEventName[] = Object.keys(WECHATY_EVENT_DICT) as any
+    for (const eventName of eventNameList) {
+      log.verbose('Wechaty', 'initPuppetEventBridge() puppet.on(%s) registered', eventName)
+      // /// e as any ??? Maybe this is a bug of TypeScript v2.5.3
+      // puppet.on(event as any, (...args: any[]) => {
+      //   this.emit(event, ...args)
+      // })
+
+      switch (eventName) {
+        case 'error':
+          puppet.removeAllListeners('error')
+          puppet.on('error', error => {
+            this.emit('error', new Error(error))
+          })
+          break
+
+        case 'heartbeat':
+          puppet.removeAllListeners('heartbeat')
+          puppet.on('heartbeat', data => {
+            this.emit('heartbeat', data)
+          })
+          break
+
+        case 'start':
+          puppet.removeAllListeners('start')
+          puppet.on('start', () => {
+            this.emit('start')
+          } )
+          break
+
+        case 'stop':
+          puppet.removeAllListeners('stop')
+          puppet.on('stop', () => {
+            this.emit('stop')
+          } )
+          break
+
+        case 'friend':
+          puppet.removeAllListeners('friend')
+          puppet.on('friend', payload => {
+            const request = this.FriendRequest.fromJSON(payload)
+            this.emit('friend', request)
+          })
+          break
+
+        case 'login':
+          puppet.removeAllListeners('login')
+          puppet.on('login', async contactId => {
+            const contact = this.Contact.load(contactId)
+            await contact.ready()
+            this.emit('login', contact)
+          })
+          break
+
+        case 'logout':
+          puppet.removeAllListeners('logout')
+          puppet.on('logout', async contactId => {
+            const contact = this.Contact.load(contactId)
+            await contact.ready()
+            this.emit('logout', contact)
+          })
+          break
+
+        case 'message':
+          puppet.removeAllListeners('message')
+          puppet.on('message', async messageId => {
+            const msg = this.Message.create(messageId)
+            await msg.ready()
+            this.emit('message', msg)
+          })
+          break
+
+        case 'room-join':
+          puppet.removeAllListeners('room-join')
+          puppet.on('room-join', async (roomId, inviteeIdList, inviterId) => {
+            const room = this.Room.load(roomId)
+            await room.ready()
+
+            const inviteeList = inviteeIdList.map(id => this.Contact.load(id))
+            await Promise.all(inviteeList.map(c => c.ready()))
+
+            const inviter = this.Contact.load(inviterId)
+            await inviter.ready()
+
+            this.emit('room-join', room, inviteeList, inviter)
+          })
+          break
+
+        case 'room-leave':
+          puppet.removeAllListeners('room-leave')
+          puppet.on('room-leave', async (roomId, leaverIdList) => {
+            const room = this.Room.load(roomId)
+            await room.ready()
+
+            const leaverList = leaverIdList.map(id => this.Contact.load(id))
+            await Promise.all(leaverList.map(c => c.ready()))
+
+            this.emit('room-leave', room, leaverList)
+          })
+          break
+
+        case 'room-topic':
+          puppet.removeAllListeners('room-topic')
+          puppet.on('room-topic', async (roomId, topic, oldTopic, changerId) => {
+            const room = this.Room.load(roomId)
+            await room.ready()
+
+            const changer = this.Contact.load(changerId)
+            await changer.ready()
+
+            this.emit('room-topic', room, topic, oldTopic, changer)
+          })
+          break
+
+        case 'scan':
+          puppet.removeAllListeners('scan')
+          puppet.on('scan', async (qrCode, code, data) => {
+            this.emit('scan', qrCode, code, data)
+          })
+          break
+
+        default:
+          throw new Error('eventName ' + eventName + 'unsupported!')
+
+      }
     }
   }
 
@@ -529,12 +672,10 @@ export class Wechaty extends PuppetAccessory implements Sayable {
       await this.profile.load()
       await this.initPuppet()
 
-      // set puppet instance to Wechaty Static variable, for using by Contact/Room/Message/FriendRequest etc.
-      // config.puppetInstance(puppet)
-
       await this.puppet.start()
 
     } catch (e) {
+      // console.log(e)
       log.error('Wechaty', 'start() exception: %s', e && e.message)
       Raven.captureException(e)
       throw e
@@ -574,13 +715,6 @@ export class Wechaty extends PuppetAccessory implements Sayable {
       log.warn('Wechaty', 'stop() without this.puppet')
       return
     }
-
-    // this.puppet = null
-    // config.puppetInstance(null)
-    // this.Contact.puppet       = undefined
-    // this.FriendRequest.puppet = undefined
-    // this.Message.puppet       = undefined
-    // this.Room.puppet          = undefined
 
     try {
       await puppet.stop()
@@ -651,21 +785,10 @@ export class Wechaty extends PuppetAccessory implements Sayable {
    * console.log(`Bot is ${contact.name()}`)
    */
   public userSelf(): Contact {
-    return this.puppet.userSelf()
+    const userId = this.puppet.selfId()
+    const user = this.Contact.load(userId)
+    return user
   }
-
-  /**
-   * @private
-   */
-  // public async send(message: Message): Promise<void> {
-  //   try {
-  //     await this.puppet.messageSend(message)
-  //   } catch (e) {
-  //     log.error('Wechaty', 'send() exception: %s', e.message)
-  //     Raven.captureException(e)
-  //     throw e
-  //   }
-  // }
 
   /**
    * Send message to filehelper

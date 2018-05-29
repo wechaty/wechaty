@@ -145,7 +145,7 @@ async function checkFriendRequest(
     ticket,
   )
 
-  this.emit('friend', receivedRequest)
+  this.emit('friend', receivedRequest.toJSON())
 }
 
 /**
@@ -188,7 +188,7 @@ async function checkFriendConfirm(
     log.warn('PuppetPuppeteerFirer', 'fireFriendConfirm() contact still not ready after `ready()` call')
   }
 
-  this.emit('friend', confirmedRequest)
+  this.emit('friend', confirmedRequest.toJSON())
 }
 
 /**
@@ -259,7 +259,7 @@ async function checkRoomJoin(
 
   try {
     if (/^You|你$/i.test(inviter)) { //  === 'You' || inviter === '你' || inviter === 'you'
-      inviterContact = this.userSelf()
+      inviterContact = this.Contact.load(this.selfId())
     }
 
     // const max     = 20
@@ -344,8 +344,8 @@ async function checkRoomJoin(
     await inviterContact.ready()
     await room.ready()
 
-    this.emit('room-join', room , inviteeContactList, inviterContact)
-    room.emit('join'            , inviteeContactList, inviterContact)
+    this.emit('room-join', room.id, inviteeContactList.map(c => c.id), inviterContact.id)
+    room.emit('join'              , inviteeContactList, inviterContact)
 
     return true
   } catch (e) {
@@ -368,7 +368,7 @@ function parseRoomLeave(
   if ((!foundByBot || !foundByBot.length) && (!foundByOther || !foundByOther.length)) {
     throw new Error('checkRoomLeave() no matched re for ' + content)
   }
-  const [leaver, remover] = foundByBot ? [ foundByBot[1], this.userSelf().id ] : [ this.userSelf().id, foundByOther[1] ]
+  const [leaver, remover] = foundByBot ? [ foundByBot[1], this.selfId() ] : [ this.selfId(), foundByOther[1] ]
   return [leaver, remover]
 }
 
@@ -399,8 +399,8 @@ async function checkRoomLeave(
    * @lijiarui: I have checked, leaver will never be a list. If the bot remove 2 leavers at the same time, it will be 2 sys message, instead of 1 sys message contains 2 leavers.
    */
   let leaverContact: Contact | null, removerContact: Contact | null
-  if (leaver === this.userSelf().id) {
-    leaverContact = this.userSelf()
+  if (leaver === this.selfId()) {
+    leaverContact = this.Contact.load(this.selfId())
 
     // not sure which is better
     // removerContact = room.member({contactAlias: remover}) || room.member({name: remover})
@@ -411,7 +411,7 @@ async function checkRoomLeave(
     // }
 
   } else {
-    removerContact = this.userSelf()
+    removerContact = this.Contact.load(this.selfId())
 
     // not sure which is better
     // leaverContact = room.member({contactAlias: remover}) || room.member({name: leaver})
@@ -434,8 +434,8 @@ async function checkRoomLeave(
    *                  it will be 2 sys message, instead of 1 sys message contains 2 leavers.
    * @huan 2018 May: we need to generilize the pattern for future usage.
    */
-  this.emit('room-leave', room, [leaverContact] /* , [removerContact] */)
-  room.emit('leave'           , [leaverContact], removerContact || undefined)
+  this.emit('room-leave', room.id , [leaverContact.id] /* , [removerContact] */)
+  room.emit('leave'               , [leaverContact], removerContact || undefined)
 
   setTimeout(_ => { room.refresh() }, 10000) // reload the room data, especially for memberList
   return true
@@ -476,7 +476,7 @@ async function checkRoomTopic(
 
   let changerContact: Contact | null
   if (/^You$/.test(changer) || /^你$/.test(changer)) {
-    changerContact = this.userSelf()
+    changerContact = this.Contact.load(this.selfId())
   } else {
     changerContact = room.member(changer)
   }
@@ -489,8 +489,8 @@ async function checkRoomTopic(
   try {
     await changerContact.ready()
     await room.ready()
-    this.emit('room-topic', room, topic, oldTopic, changerContact)
-    room.emit('topic'           , topic, oldTopic, changerContact)
+    this.emit('room-topic', room.id , topic, oldTopic, changerContact.id)
+    room.emit('topic'               , topic, oldTopic, changerContact)
     room.refresh()
     return true
   } catch (e) {

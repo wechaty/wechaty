@@ -605,13 +605,13 @@ export class Contact extends PuppetAccessory implements Sayable {
    * const isSelf = contact.self()
    */
   public self(): boolean {
-    const user = this.puppet.userSelf()
+    const userId = this.puppet.selfId()
 
-    if (!user) {
+    if (!userId) {
       return false
     }
 
-    return this.id === user.id
+    return this.id === userId
   }
 
   /**
