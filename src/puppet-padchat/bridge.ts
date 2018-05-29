@@ -11,6 +11,10 @@ import {
   PadchatRoomMemberRawPayload,
 }                       from './padchat-schemas'
 
+import {
+  ADDRESS,
+}                       from './config'
+
 export const resolverDict: {
   [idx: string]: Function,
 } = {}
@@ -19,7 +23,7 @@ export interface BridgeOptions {
   // head?   : boolean,
   userId:    string,
   // profile:  Profile,
-  botWs:    WebSocket,
+  // botWs:    WebSocket,
   // desperate in the future
   autoData: AutoDataType,
 }
@@ -141,7 +145,9 @@ export class Bridge extends EventEmitter {
     log.verbose('PuppetPadchatBridge', 'constructor()')
 
     this.userId   = options.userId
-    this.botWs    = options.botWs
+
+    this.botWs  = new WebSocket(ADDRESS, { perMessageDeflate: true })
+
     this.autoData = options.autoData || {}
     // this.state = new StateSwitch('PuppetPadchatBridge', log)
   }
@@ -173,6 +179,19 @@ export class Bridge extends EventEmitter {
       }, 30000)
 
     })
+  }
+
+  public async initWs(): Promise<void> {
+    this.botWs.on('message', wsMsg => {
+      this.emit('ws', wsMsg)
+    })
+    this.botWs.on('open', () => {
+      this.emit('open')
+    })
+  }
+
+  public closeWs(): void {
+    this.botWs.close()
   }
 
   /**

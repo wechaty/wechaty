@@ -78,9 +78,9 @@ test('constructor()', async t => {
   const sandbox = sinon.createSandbox()
   sandbox.stub(puppet, 'messagePayload').callsFake((_: string) => {
     const payload: MessagePayload = {
-      type   : Message.Type.Text,
-      fromId : EXPECTED.from,
-      date   : new Date(),
+      type      : Message.Type.Text,
+      fromId    : EXPECTED.from,
+      timestamp : Date.now(),
     }
     return payload
   })
@@ -210,10 +210,10 @@ test('self()', async t => {
 
   function mockMessagePayload() {
     const payload: MessagePayload = {
-      fromId      : MOCK_CONTACT.id,
-      toId        : 'to_id',
-      type      : {} as any,
-      date      : {} as any,
+      fromId    : MOCK_CONTACT.id,
+      toId      : 'to_id',
+      type      : wechaty.Message.Type.Text,
+      timestamp : Date.now(),
     }
     return payload
   }

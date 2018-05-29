@@ -21,11 +21,11 @@ import StateSwitch    from 'state-switch'
 
 import {
   Message,
-}             from './message'
+}                 from './message'
 
 import {
-  ScanData,
-}             from './puppet/'
+  ScanPayload,
+}                 from './puppet/'
 
 import {
   config,
@@ -77,7 +77,7 @@ export class Io {
 
   private onMessage: undefined | Function
 
-  private scanData: ScanData
+  private scanPayload?: ScanPayload
 
   constructor(
     private options: IoOptions,
@@ -86,8 +86,6 @@ export class Io {
     options.protocol  = options.protocol  || config.default.DEFAULT_PROTOCOL
 
     this.cuid = options.wechaty.cuid
-
-    this.scanData = {} as any
 
     this.protocol = options.protocol + '|' + options.wechaty.cuid
     log.verbose('Io', 'instantiated with apihost[%s], token[%s], protocol[%s], cuid[%s]',
@@ -115,8 +113,10 @@ export class Io {
       await this.initEventHook()
       this.ws = this.initWebSocket()
       this.options.wechaty.on('scan', (url, code) => {
-        this.scanData.url   = url
-        this.scanData.code  = code
+        this.scanPayload = Object.assign(this.scanPayload || {}, {
+          url,
+          code,
+        })
       })
       this.state.on(true)
 
@@ -300,23 +300,23 @@ export class Io {
       case 'update':
         log.verbose('Io', 'on(update): %s', ioEvent.payload)
 
-        const user = this.options.wechaty.puppet.userSelf()
+        const userId = this.options.wechaty.puppet.selfId()
 
-        if (user) {
+        if (userId) {
           const loginEvent: IoEvent = {
             name    : 'login',
             payload : {
-              id: user.id,
-              name: user.name(),
+              id: userId,
+              name: this.options.wechaty.Contact.load(userId).name(),
             },
           }
           this.send(loginEvent)
         }
 
-        if (this.scanData) {
+        if (this.scanPayload) {
           const scanEvent: IoEvent = {
             name:     'scan',
-            payload:  this.scanData,
+            payload:  this.scanPayload,
           }
           this.send(scanEvent)
         }
@@ -342,6 +342,9 @@ export class Io {
   // @types/ws might has bug for `ws.on('error',    e => this.wsOnError(e))`
   private wsOnError(e?: Error) {
     log.warn('Io', 'initWebSocket() error event[%s]', e && e.message)
+    if (!e) {
+      return
+    }
     this.options.wechaty.emit('error', e)
 
     // when `error`, there must have already a `close` event

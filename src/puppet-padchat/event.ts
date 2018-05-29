@@ -69,7 +69,7 @@ async function onMessage(
     }
 
     await msg.ready()
-    this.emit('message', msg)
+    this.emit('message', msg.id)
 
   } catch (e) {
     log.error('PuppetPadchatEvent', 'onMessage() exception: %s', e.stack)

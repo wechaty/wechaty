@@ -24,7 +24,7 @@ import {
   log,
 }                 from '../config'
 import {
-  ScanData,
+  ScanPayload,
 }                 from '../puppet/'
 
 // import { Contact } from '../contact'
@@ -60,18 +60,18 @@ function onDing(
 }
 
 async function onScan(
-  this: PuppetPuppeteer,
-  data: ScanData,
+  this    : PuppetPuppeteer,
+  payload : ScanPayload,
 ): Promise<void> {
-  log.verbose('PuppetPuppeteerEvent', 'onScan({code: %d, url: %s})', data.code, data.url)
+  log.verbose('PuppetPuppeteerEvent', 'onScan({code: %d, url: %s})', payload.code, payload.url)
 
   if (this.state.off()) {
     log.verbose('PuppetPuppeteerEvent', 'onScan(%s) state.off()=%s, NOOP',
-                                  data, this.state.off())
+                                  payload, this.state.off())
     return
   }
 
-  this.scanInfo = data
+  this.scanPayload = payload
 
   /**
    * When wx.qq.com push a new QRCode to Scan, there will be cookie updates(?)
@@ -85,11 +85,11 @@ async function onScan(
 
   // feed watchDog a `scan` type of food
   const food: WatchdogFood = {
-    data,
+    data: payload,
     type: 'scan',
   }
   this.emit('watchdog', food)
-  this.emit('scan'    , data.url, data.code)
+  this.emit('scan'    , payload.url, payload.code)
 }
 
 function onLog(data: any): void {
@@ -106,7 +106,7 @@ async function onLogin(
   const TTL_WAIT_MILLISECONDS = 1 * 1000
   if (ttl <= 0) {
     log.verbose('PuppetPuppeteerEvent', 'onLogin(%s) TTL expired')
-    this.emit('error', new Error('TTL expired.'))
+    this.emit('error', 'onLogin() TTL expired.')
     return
   }
 
@@ -117,11 +117,11 @@ async function onLogin(
   }
 
   if (this.logonoff()) {
-    throw new Error('onLogin() user had already logined: ' + this.userSelf())
+    throw new Error('onLogin() user had already logined: ' + this.selfId())
     // await this.logout()
   }
 
-  this.scanInfo = undefined
+  this.scanPayload = undefined
 
   try {
     /**
@@ -181,8 +181,10 @@ async function onMessage(
   this       : PuppetPuppeteer,
   rawPayload : WebMessageRawPayload,
 ): Promise<void> {
-  const msg = this.Message.create(rawPayload.MsgId)
-  await msg.ready()
+  const msg = this.Message.create(
+    rawPayload.MsgId,
+    await this.messageRawPayloadParser(rawPayload),
+  )
 
   /**
    * Fire Events if match message type & content
@@ -208,7 +210,7 @@ async function onMessage(
       break
   }
 
-  this.emit('message', msg)
+  this.emit('message', msg.id)
 }
 
 async function onUnload(this: PuppetPuppeteer): Promise<void> {

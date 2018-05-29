@@ -34,9 +34,6 @@ import {
   Watchdog,
   WatchdogFood,
 }                       from 'watchdog'
-// import {
-//   Constructor,
-// }                       from 'clone-class'
 
 import {
   WECHATY_EVENT_DICT,
@@ -55,6 +52,7 @@ import {
 }                       from '../contact'
 import {
   FriendRequest,
+  // FriendRequestPayload,
 }                       from '../friend-request'
 import {
   Message,
@@ -66,11 +64,10 @@ import {
   RoomQueryFilter,
 }                       from '../room'
 
-// XXX: Name??? ScanInfo? ScanEvent? ScanXXX?
-export interface ScanData {
-  avatar: string, // Image Data URL
-  url:    string, // QR Code URL
-  code:   number, // Code
+export interface ScanPayload {
+  code  : number,   // Code
+  data? : string,   // Image Data URL
+  url   : string,   // QR Code URL
 }
 
 export const PUPPET_EVENT_DICT = {
@@ -162,6 +159,8 @@ export abstract class Puppet extends EventEmitter implements Sayable {
      */
     try {
       const childClassPath = callerResolve('.', __filename)
+      log.verbose('Puppet', 'constructor() childClassPath=%s', childClassPath)
+
       this.childPkg = readPkgUp.sync({ cwd: childClassPath }).pkg
     } finally {
       if (!this.childPkg) {
@@ -175,17 +174,47 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     return `Puppet#${this.counter}<${this.constructor.name}>(${this.options.profile.name})`
   }
 
-  public emit(event: 'error',       e: Error)                                                      : boolean
-  public emit(event: 'friend',      request: FriendRequest)                                        : boolean
-  public emit(event: 'heartbeat',   data: any)                                                     : boolean
-  public emit(event: 'login',       user: Contact)                                                 : boolean
-  public emit(event: 'logout',      user: Contact | string)                                        : boolean
-  public emit(event: 'message',     message: Message)                                              : boolean
-  public emit(event: 'room-join',   room: Room, inviteeList: Contact[],  inviter: Contact)         : boolean
-  public emit(event: 'room-leave',  room: Room, leaverList: Contact[])                             : boolean
-  public emit(event: 'room-topic',  room: Room, topic: string, oldTopic: string, changer: Contact) : boolean
-  public emit(event: 'scan',        url: string, code: number)                                     : boolean
-  public emit(event: 'watchdog',    food: WatchdogFood)                                            : boolean
+  // private abstract async emitError(err: string)                                                            : Promise<void>
+  // private abstract async emitFriend(payload: FriendRequestPayload)                                         : Promise<void>
+  // private abstract async emitHeartbeat(data: string)                                                       : Promise<void>
+  // private abstract async emitLogin(contactId: string)                                                      : Promise<void>
+  // private abstract async emitLogout(contactId: string)                                                     : Promise<void>
+  // private abstract async emitMessage(messageId: string)                                                    : Promise<void>
+  // private abstract async emitRoomJoin(roomId: string, inviteeIdList: string[], inviterId: string)          : Promise<void>
+  // private abstract async emitRoomLeave(roomId: string, leaverIdList: string[])                             : Promise<void>
+  // private abstract async emitRoomTopic(roomId: string, topic: string, oldTopic: string, changerId: string) : Promise<void>
+  // private abstract async emitScan(url: string, code: number, data?: string)                                : Promise<void>
+  // private abstract async emitWatchdog(...)                                                                 : Promise<void>
+
+  // public emit(event: 'error',       e: Error)                                                      : boolean
+  // public emit(event: 'friend',      request: FriendRequest)                                        : boolean
+  // public emit(event: 'heartbeat',   data: string)                                                  : boolean
+  // public emit(event: 'login',       user: Contact)                                                 : boolean
+  // public emit(event: 'logout',      user: Contact)                                                 : boolean
+  // public emit(event: 'message',     message: Message)                                              : boolean
+  // public emit(event: 'room-join',   room: Room, inviteeList: Contact[],  inviter: Contact)         : boolean
+  // public emit(event: 'room-leave',  room: Room, leaverList: Contact[])                             : boolean
+  // public emit(event: 'room-topic',  room: Room, topic: string, oldTopic: string, changer: Contact) : boolean
+  // public emit(event: 'scan',        url: string, code: number, data?: string)                      : boolean
+  // public emit(event: 'watchdog',    food: WatchdogFood)                                            : boolean
+
+  public emit(event: 'error',       error: string)                                                      : boolean
+  public emit(event: 'friend',      payload: string)                                                    : boolean
+  public emit(event: 'heartbeat',   data: string)                                                       : boolean
+  public emit(event: 'login',       contactId: string)                                                  : boolean
+  public emit(event: 'logout',      contactId: string)                                                  : boolean
+  public emit(event: 'message',     messageId: string)                                                  : boolean
+  public emit(event: 'room-join',   roomId: string, inviteeIdList: string[],  inviterId: string)        : boolean
+  public emit(event: 'room-leave',  roomId: string, leaverIdList: string[])                             : boolean
+  public emit(event: 'room-topic',  roomId: string, topic: string, oldTopic: string, changerId: string) : boolean
+  public emit(event: 'scan',        qrCode: string, code: number, data?: string)                        : boolean
+  public emit(event: 'start')                                                                           : boolean
+  public emit(event: 'stop')                                                                            : boolean
+
+  /**
+   * Internal Usage
+   */
+  public emit(event: 'watchdog',    food: WatchdogFood) : boolean
 
   public emit(event: never, ...args: never[]): never
 
@@ -196,18 +225,40 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     return super.emit(event, ...args)
   }
 
-  public on(event: 'error',       listener: (e: Error) => void)                                                      : this
-  public on(event: 'friend',      listener: (request: FriendRequest) => void)                      : this
-  public on(event: 'heartbeat',   listener: (data: any) => void)                                                     : this
-  public on(event: 'login',       listener: (user: Contact) => void)                                                 : this
-  public on(event: 'logout',      listener: (user: Contact) => void)                                                 : this
-  public on(event: 'message',     listener: (message: Message) => void)                                              : this
-  public on(event: 'room-join',   listener: (room: Room, inviteeList: Contact[],  inviter: Contact) => void)         : this
-  public on(event: 'room-leave',  listener: (room: Room, leaverList: Contact[]) => void)                             : this
-  public on(event: 'room-topic',  listener: (room: Room, topic: string, oldTopic: string, changer: Contact) => void) : this
-  public on(event: 'scan',        listener: (info: ScanData) => void)                                                : this
-  public on(event: 'watchdog',    listener: (data: WatchdogFood) => void)                                            : this
-  public on(event: never,         listener: never)                                                                   : never
+  // public on(event: 'error',       listener: (e: Error) => void)                                                      : this
+  // public on(event: 'friend',      listener: (request: FriendRequest) => void)                                        : this
+  // public on(event: 'heartbeat',   listener: (data: string) => void)                                                  : this
+  // public on(event: 'login',       listener: (user: Contact) => void)                                                 : this
+  // public on(event: 'logout',      listener: (user: Contact) => void)                                                 : this
+  // public on(event: 'message',     listener: (message: Message) => void)                                              : this
+  // public on(event: 'room-join',   listener: (room: Room, inviteeList: Contact[],  inviter: Contact) => void)         : this
+  // public on(event: 'room-leave',  listener: (room: Room, leaverList: Contact[]) => void)                             : this
+  // public on(event: 'room-topic',  listener: (room: Room, topic: string, oldTopic: string, changer: Contact) => void) : this
+  // public on(event: 'scan',        listener: (info: ScanPayload) => void)                                             : this
+
+  // /**
+  //  * Internal Usage
+  //  */
+  // public on(event: 'watchdog',    listener: (data: WatchdogFood) => void) : this
+
+  public on(event: 'error',       listener: (error: string) => void)                                                      : this
+  public on(event: 'friend',      listener: (payload: string) => void)                                                    : this
+  public on(event: 'heartbeat',   listener: (data: string) => void)                                                       : this
+  public on(event: 'login',       listener: (contactId: string) => void)                                                  : this
+  public on(event: 'logout',      listener: (contactId: string) => void)                                                  : this
+  public on(event: 'message',     listener: (messageId: string) => void)                                                  : this
+  public on(event: 'room-join',   listener: (roomId: string, inviteeIdList: string[],  inviterId: string) => void)        : this
+  public on(event: 'room-leave',  listener: (roomId: string, leaverIdList: string[]) => void)                             : this
+  public on(event: 'room-topic',  listener: (roomId: string, topic: string, oldTopic: string, changerId: string) => void) : this
+  public on(event: 'scan',        listener: (qrCode: string, code: number, data?: string) => void)                        : this
+  public on(event: 'start',       listener: () => void)                                                                   : this
+  public on(event: 'stop',        listener: () => void)                                                                   : this
+  /**
+   * Internal Usage
+   */
+  public on(event: 'watchdog',    listener: (data: WatchdogFood) => void) : this
+
+  public on(event: never, listener: never): never
 
   public on(
     event:    PuppetEventName,
@@ -255,15 +306,14 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async start() : Promise<void>
   public abstract async stop()  : Promise<void>
 
-  public userSelf(): Contact {
+  public selfId(): string {
     log.verbose('Puppet', 'self()')
 
     if (!this.userId) {
       throw new Error('not logged in, no userSelf yet.')
     }
 
-    const user = this.Contact.load(this.userId)
-    return user
+    return this.userId
   }
 
   public async say(textOrFile: string | FileBox) : Promise<void> {
@@ -273,11 +323,11 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
     if (typeof textOrFile === 'string') {
       await this.messageSendText({
-        contactId: this.userSelf().id,
+        contactId: this.selfId(),
       }, textOrFile)
     } else if (textOrFile instanceof FileBox) {
       await this.messageSendFile({
-        contactId: this.userSelf().id,
+        contactId: this.selfId(),
       }, textOrFile)
     } else {
       throw new Error('say() arg unknown')
@@ -303,12 +353,11 @@ export abstract class Puppet extends EventEmitter implements Sayable {
       throw new Error('can only login once!')
     }
 
-    this.userId = userId
-
     const userSelf = this.Contact.load(userId)
     await userSelf.ready()
 
-    this.emit('login', userSelf)
+    this.userId = userId
+    this.emit('login', userId)
   }
 
   /**
@@ -316,6 +365,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
    * Message
    *
    */
+  public abstract async messageFile(messageId: string)                  : Promise<FileBox>
   public abstract async messageForward(to: Receiver, messageId: string) : Promise<void>
   public abstract async messageSendText(to: Receiver, text: string)     : Promise<void>
   public abstract async messageSendFile(to: Receiver, file: FileBox)    : Promise<void>
