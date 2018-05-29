@@ -1,0 +1,74 @@
+language: node_js
+node_js:
+  - "10"
+
+os:
+  - linux
+  - osx
+
+addons:
+  apt:
+    packages:
+      - jq
+      - shellcheck
+      - moreutils
+
+cache:
+  directories:
+    - node_modules
+
+stages:
+  - test
+  - pack
+  - name: deploy
+    if: branch =~ ^(master|v\d+\.\d+)$
+        AND (type NOT IN (cron, pull_request))
+
+before_install:
+  - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then ./scripts/prepare-osx.sh; fi
+  - npm install -g npm
+
+script:
+  - node --version
+  - npm --version
+  - echo "Testing Started ..."
+  - npm test
+  # - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then npm run coverage; fi
+  - echo "Testing Finished."
+
+jobs:
+  include:
+
+    - stage: pack
+      script:
+        - echo "NPM Pack Testing Started ..."
+        - npm version
+        - npm run test:pack
+        - echo "NPM Pack Testing Finished."
+
+    - stage: deploy
+      script:
+        - echo "NPM Deploying Started ..."
+        - npm version
+        - if ./scripts/development-release.ts; then ./scripts/package-publish-config-tag-next.ts; fi
+        - npm run dist
+        - echo "NPM Building Finished."
+
+      deploy:
+        provider: npm
+        email: zixia@zixia.net
+        api_key: "$NPM_TOKEN"
+        skip_cleanup: true
+        on:
+          all_branches: true
+
+notifications:
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/41a19fbf1d54a04e5217
+    on_success: always  # options: [always|never|change] default: always
+    on_failure: always  # options: [always|never|change] default: always
+    on_start: never     # options: [always|never|change] default: always
+  email:
+    on_success: change
+    on_failure: change
