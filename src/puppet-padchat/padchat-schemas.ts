@@ -46,6 +46,8 @@ export interface PadchatContactRawPayload {
    * message: string, // '',
    * ticket: string, // '',
    */
+  msg_type?:        number,
+  continue?:        number,
 
   big_head          : string,      // "http://wx.qlogo.cn/mmhead/ver_1/xfCMmibHH74xGLoyeDFJadrZXX3eOEznPefiaCa3iczxZGMwPtDuSbRQKx3Xdm18un303mf0NFia3USY2nO2VEYILw/0",
   city              : string,      // 'Haidian'
@@ -292,11 +294,12 @@ export interface PadchatRoomRawPayload {
    * message: string, // '',
    * ticket: string,  // '',
    */
+  msg_type?:        number,
 
   big_head:         string,   // "",
   chatroom_id:      number,   // 700000154 in WXGetContact, 0 in WXSyncContact
   chatroom_owner:   string,   // "qq512436430",
-  continue:         number,   // 1,
+  continue?:         number,   // 1,
   max_member_count: number,   // 500,
   member:           string[], // JSON.parse(decodeURIComponent(member)) | "[\"qq512436430\",\"mengjunjun001\",\"wxid_zj2cahpwzgie12\",\"wxid_7708837087612\"]\n",
   member_count:     number,   // 4,
