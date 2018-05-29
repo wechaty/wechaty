@@ -21,7 +21,7 @@
 export interface PadchatContactRawPayload {
   big_head:           string,       // "http://wx.qlogo.cn/mmhead/ver_1/xfCMmibHH74xGLoyeDFJadrZXX3eOEznPefiaCa3iczxZGMwPtDuSbRQKx3Xdm18un303mf0NFia3USY2nO2VEYILw/0",
   city:               string,       // 'Haidian'
-  // continue:           number,    // 1: Not Load Ready, 0: Load Ready
+  // continue:           number,    // 1: Not Load Ready, 0: Load Ready, Only WXSyncContact has this key, WXGetContact donot has this.
   country:            string,       // "CN"
   // img_flag:           number,    // 1 || 2, don't know why
   // level:              number,    // 5,7, don't know why

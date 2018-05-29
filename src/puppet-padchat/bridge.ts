@@ -231,9 +231,17 @@ export class Bridge extends EventEmitter {
     return result
   }
 
-  // TODO
-  // public WXSyncContact(): void {
-  //   this.sendToWebSocket('WXSyncContact', [])
+  // /**
+  //  * Load all Contact and Room
+  //  * see issue https://github.com/lijiarui/test-ipad-puppet/issues/39
+  //  * @returns {Promise<WXSyncContactType[]>}
+  //  */
+  // public async WXSyncContact(): Promise<WXSyncContactType[]> {
+  //   const result = this.sendToWebSocket('WXSyncContact', [])
+  //   if (!result) {
+  //     throw Error('WXSyncContact error! canot get result from websocket server')
+  //   }
+  //   return result
   // }
 
   /**

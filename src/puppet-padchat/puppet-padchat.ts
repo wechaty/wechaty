@@ -426,6 +426,10 @@ export class PuppetPadchat extends Puppet {
   public async contactRawPayloadParser(rawPayload: PadchatContactRawPayload): Promise<ContactPayload> {
     log.verbose('PuppetPadchat', 'contactRawPayloadParser(%s)', rawPayload)
 
+    if (!rawPayload.user_name) {
+      throw Error('cannot get user_name(wxid)!')
+    }
+
     const gender = {
       0: Gender.Unknown,
       1: Gender.Male,
