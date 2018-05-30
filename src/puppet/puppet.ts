@@ -20,6 +20,7 @@ import { EventEmitter } from 'events'
 
 import * as normalize   from 'normalize-package-data'
 import * as readPkgUp   from 'read-pkg-up'
+import * as LRU         from 'lru-cache'
 
 import {
   FileBox,
@@ -37,7 +38,7 @@ import {
 
 import {
   WECHATY_EVENT_DICT,
-  Wechaty,
+  // Wechaty,
 }                       from '../wechaty'
 import {
   Sayable,
@@ -46,20 +47,20 @@ import {
 import Profile          from '../profile'
 
 import {
-  Contact,
+  // Contact,
   ContactPayload,
   ContactQueryFilter,
 }                       from '../contact'
 import {
-  FriendRequest,
-  // FriendRequestPayload,
+  FriendRequestType,
+  FriendRequestPayload,
 }                       from '../friend-request'
 import {
-  Message,
+  // Message,
   MessagePayload,
 }                       from '../message'
 import {
-  Room,
+  // Room,
   RoomPayload,
   RoomQueryFilter,
 }                       from '../room'
@@ -79,7 +80,7 @@ export type PuppetEventName = keyof typeof PUPPET_EVENT_DICT
 
 export interface PuppetOptions {
   profile : Profile,
-  wechaty : Wechaty,
+  // wechaty : Wechaty,
 }
 
 export interface Receiver {
@@ -97,16 +98,21 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   protected readonly watchdog : Watchdog
   protected readonly counter  : number
 
+  protected readonly cacheContactPayload       : LRU.Cache<string, ContactPayload>
+  protected readonly cacheFriendRequestPayload : LRU.Cache<string, FriendRequestPayload>
+  protected readonly cacheMessagePayload       : LRU.Cache<string, MessagePayload>
+  protected readonly cacheRoomPayload          : LRU.Cache<string, RoomPayload>
+
   protected id?: string
 
-  /* tslint:disable:variable-name */
-  public readonly Contact       : typeof Contact
-  /* tslint:disable:variable-name */
-  public readonly FriendRequest : typeof FriendRequest
-  /* tslint:disable:variable-name */
-  public readonly Message       : typeof Message
-  /* tslint:disable:variable-name */
-  public readonly Room          : typeof Room
+  // /* tslint:disable:variable-name */
+  // public readonly Contact       : typeof Contact
+  // /* tslint:disable:variable-name */
+  // public readonly FriendRequest : typeof FriendRequest
+  // /* tslint:disable:variable-name */
+  // public readonly Message       : typeof Message
+  // /* tslint:disable:variable-name */
+  // public readonly Room          : typeof Room
 
   public readonly state : StateSwitch
 
@@ -127,21 +133,35 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     this.state    = new StateSwitch(this.constructor.name, log)
     this.watchdog = new Watchdog(WATCHDOG_TIMEOUT, 'Puppet')
 
+    const lruOptions: LRU.Options = {
+      max: 10000,
+      // length: function (n) { return n * 2},
+      dispose: function (key: string, val: Object) {
+        log.silly('Puppet', 'constructor() lruOptions.dispose(%s, %s)', key, JSON.stringify(val))
+      },
+      maxAge: 1000 * 60 * 60,
+    }
+
+    this.cacheContactPayload       = new LRU<string, ContactPayload>(lruOptions)
+    this.cacheFriendRequestPayload = new LRU<string, FriendRequestPayload>(lruOptions)
+    this.cacheMessagePayload       = new LRU<string, MessagePayload>(lruOptions)
+    this.cacheRoomPayload          = new LRU<string, RoomPayload>(lruOptions)
+
     /**
      * 1. Init Classes
      */
-    if (  !this.options.wechaty.Contact
-      || !this.options.wechaty.FriendRequest
-      || !this.options.wechaty.Message
-      || !this.options.wechaty.Room
-    ) {
-      throw new Error('wechaty classes are not inited')
-    }
+    // if (  !this.options.wechaty.Contact
+    //   || !this.options.wechaty.FriendRequest
+    //   || !this.options.wechaty.Message
+    //   || !this.options.wechaty.Room
+    // ) {
+    //   throw new Error('wechaty classes are not inited')
+    // }
 
-    this.Contact       = this.options.wechaty.Contact
-    this.FriendRequest = this.options.wechaty.FriendRequest
-    this.Message       = this.options.wechaty.Message
-    this.Room          = this.options.wechaty.Room
+    // this.Contact       = this.options.wechaty.Contact
+    // this.FriendRequest = this.options.wechaty.FriendRequest
+    // this.Message       = this.options.wechaty.Message
+    // this.Room          = this.options.wechaty.Room
 
     /**
      * Make sure that Wechaty had attached to this puppet
@@ -149,7 +169,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
      * When we declare a wechaty without a puppet instance,
      * the wechaty need to attach to puppet later.
      */
-    this.options.wechaty.attach(this)
+    // this.options.wechaty.attach(this)
 
     /**
      * 2. Load the package.json for Puppet Plugin version range matching
@@ -199,7 +219,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   // public emit(event: 'watchdog',    food: WatchdogFood)                                            : boolean
 
   public emit(event: 'error',       error: string)                                                      : boolean
-  public emit(event: 'friend',      payload: string)                                                    : boolean
+  public emit(event: 'friend',      requestId: string)                                                  : boolean
   public emit(event: 'heartbeat',   data: string)                                                       : boolean
   public emit(event: 'login',       contactId: string)                                                  : boolean
   public emit(event: 'logout',      contactId: string)                                                  : boolean
@@ -353,9 +373,6 @@ export abstract class Puppet extends EventEmitter implements Sayable {
       throw new Error('can only login once!')
     }
 
-    const userSelf = this.Contact.load(userId)
-    await userSelf.ready()
-
     this.id = userId
     // console.log('this.id=', this.id)
     this.emit('login', userId)
@@ -374,31 +391,29 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async messageRawPayload(id: string)            : Promise<any>
   public abstract async messageRawPayloadParser(rawPayload: any) : Promise<MessagePayload>
 
-  public async messagePayload(id: string): Promise<MessagePayload> {
-    log.verbose('Puppet', 'messagePayload(%s)', id)
+  public async messagePayload(
+    id: string,
+    noCache = false,
+  ): Promise<MessagePayload> {
+    log.verbose('Puppet', 'messagePayload(id=%s, noCache=%s)', id, noCache)
+
+    if (noCache) {
+      log.silly('Puppet', 'messagePayload() cache PURGE')
+      this.cacheMessagePayload.del(id)
+    }
+
+    const hitPayload = this.cacheMessagePayload.get(id)
+
+    if (hitPayload) {
+      log.silly('Puppet', 'messagePayload() cache HIT')
+
+      return hitPayload
+    }
+
+    log.silly('Puppet', 'messagePayload() cache MISS')
+
     const rawPayload = await this.messageRawPayload(id)
     const payload    = await this.messageRawPayloadParser(rawPayload)
-
-    /**
-     * Make sure all the contacts & room have already been ready
-     */
-    const fromId = payload.fromId
-    const roomId = payload.roomId
-    const toId   = payload.toId
-
-    const from = fromId && this.Contact.load(fromId)
-    const room = roomId && this.Room.load(roomId)
-    const to   = toId   && this.Contact.load(toId)
-
-    if (from && !from.isReady()) {
-      await from.ready()
-    }
-    if (to && !to.isReady()) {
-      await to.ready()
-    }
-    if (room && !room.isReady()) {
-      await room.ready()
-    }
 
     return payload
   }
@@ -411,6 +426,28 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async friendRequestSend(contactId: string, hello?: string)   : Promise<void>
   public abstract async friendRequestAccept(contactId: string, ticket: string) : Promise<void>
 
+  public async friendRequestPayload(
+    id: string,
+    noCache = false,
+  ): Promise<FriendRequestPayload> {
+    log.verbose('Puppet', 'friendRequestPayload(id=%s, noCache=%s)', id, noCache)
+
+    if (noCache) {
+      log.silly('Puppet', 'friendRequestPayload() cache PURGE')
+      this.cacheFriendRequestPayload.del(id)
+    }
+
+    const hitPayload = this.cacheFriendRequestPayload.get(id)
+
+    if (hitPayload) {
+      log.silly('Puppet', 'friendRequestPayload() cache HIT')
+      return hitPayload
+    }
+
+    log.silly('Puppet', 'friendRequestPayload() cache MISS')
+
+    throw new Error('no payload')
+  }
   /**
    *
    * Room
@@ -426,8 +463,26 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async roomRawPayload(id: string)            : Promise<any>
   public abstract async roomRawPayloadParser(rawPayload: any) : Promise<RoomPayload>
 
-  public async roomPayload(id: string): Promise<RoomPayload> {
-    log.verbose('Puppet', 'roomPayload(%s)', id)
+  public async roomPayload(
+    id: string,
+    noCache = false,
+  ): Promise<RoomPayload> {
+    log.verbose('Puppet', 'roomPayload(id=%s, noCache=%s)', id, noCache)
+
+    if (noCache) {
+      log.silly('Puppet', 'roomPayload() cache PURGE')
+      this.cacheRoomPayload.del(id)
+    }
+
+    const hitPayload = this.cacheRoomPayload.get(id)
+
+    if (hitPayload) {
+      log.silly('Puppet', 'roomPayload() cache HIT')
+      return hitPayload
+    }
+
+    log.silly('Puppet', 'roomPayload() cache MISS')
+
     const rawPayload = await this.roomRawPayload(id)
     const payload    = await this.roomRawPayloadParser(rawPayload)
     return payload
@@ -447,8 +502,26 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async contactRawPayload(id: string)            : Promise<any>
   public abstract async contactRawPayloadParser(rawPayload: any) : Promise<ContactPayload>
 
-  public async contactPayload(id: string): Promise<ContactPayload> {
-    log.silly('Puppet', 'contactPayload(%s) @ %s', id, this)
+  public async contactPayload(
+    id: string,
+    noCache = false,
+  ): Promise<ContactPayload> {
+    log.silly('Puppet', 'contactPayload(id=%s, noCache=%s) @ %s', id, noCache, this)
+
+    if (noCache) {
+      log.silly('Puppet', 'contactPayload() cache PURGE')
+      this.cacheContactPayload.del(id)
+    }
+
+    const hitPayload = this.cacheContactPayload.get(id)
+
+    if (hitPayload) {
+      log.silly('Puppet', 'contactPayload() cache HIT')
+      return hitPayload
+    }
+
+    log.silly('Puppet', 'contactPayload() cache MISS')
+
     const rawPayload = await this.contactRawPayload(id)
     const payload    = await this.contactRawPayloadParser(rawPayload)
     return payload
