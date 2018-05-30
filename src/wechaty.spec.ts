@@ -77,6 +77,7 @@ test('event:start/stop', async t => {
   await wechaty.start()
   await wechaty.stop()
 
+  // console.log(startSpy.callCount)
   t.ok(startSpy.calledOnce, 'should get event:start once')
   t.ok(stopSpy.calledOnce,  'should get event:stop once')
 })
@@ -133,7 +134,7 @@ test('on(event, Function)', async t => {
   wechaty.on('error',   spy)
 
   const messageFuture  = new Promise(resolve => wechaty.once('message', resolve))
-  wechaty.emit('message')
+  wechaty.emit('message', {} as any)
 
   await messageFuture
   await wechaty.stop()

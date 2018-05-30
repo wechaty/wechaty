@@ -733,7 +733,7 @@ export class Bridge extends EventEmitter {
 
   public async innerHTML(): Promise<string> {
     const html = await this.evaluate(() => {
-      return document.body.innerHTML
+      return window.document.body.innerHTML
     })
     return html
   }
@@ -860,7 +860,7 @@ export class Bridge extends EventEmitter {
     }
 
     try {
-      const hostname = await this.page.evaluate(() => location.hostname) as string
+      const hostname = await this.page.evaluate(() => window.location.hostname) as string
       log.silly('PuppetPuppeteerBridge', 'hostname() got %s', hostname)
       return hostname
     } catch (e) {

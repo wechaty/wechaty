@@ -54,7 +54,7 @@ const puppet = new PuppetPuppeteer({
 
 const MOCK_USER_ID = 'TEST-USER-ID'
 // FIXME: use wechaty.Contact.load()
-puppet.emit('login', wechaty.Contact.load(MOCK_USER_ID))
+puppet.emit('login', MOCK_USER_ID)
 
 // MyContact.puppet = MyMessage.puppet = MyRoom.puppet = puppet
 

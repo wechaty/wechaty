@@ -53,11 +53,10 @@ export enum MessageType {
 export interface MessagePayload {
   type      : MessageType,
   text?     : string,
-  file?     : FileBox,
-  // direction : MessageDirection,
   fromId?   : string,
-  date      : Date,
-  toId?     : null | string,      // if to is not set, then room must be set
+  filename? : string,
+  timestamp : number,          // milliseconds
+  toId?     : null | string,   // if to is not set, then room must be set
   roomId?   : null | string,
 }
 
@@ -77,8 +76,6 @@ export class Message extends PuppetAccessory implements Sayable {
 
   // tslint:disable-next-line:variable-name
   public static readonly Type = MessageType
-  // tslint:disable-next-line:variable-name
-  // public static readonly Direction = MessageDirection
 
   /**
    * @todo add function
@@ -104,102 +101,15 @@ export class Message extends PuppetAccessory implements Sayable {
     ]
   }
 
-  /**
-   * "mobile originated" or "mobile terminated"
-   * https://www.tatango.com/resources/video-lessons/video-mo-mt-sms-messaging/
-   */
-  // private static createMO(
-  //   options: MessageMOOptions,
-  // ): Message {
-  //   log.verbose('Message', 'static createMobileOriginated()')
-  //   /**
-  //    * Must NOT use `Message` at here
-  //    * MUST use `this` at here
-  //    *
-  //    * because the class will be `cloneClass`-ed
-  //    */
-  //   const msg = new this(cuid())
-
-  //   const direction = MessageDirection.MO
-  //   const to        = options.to
-  //   const room      = options.room
-  //   const text      = (options as MessageMOOptionsText).text
-  //   const date      = new Date()
-  //   const file      = (options as MessageMOOptionsFile).file
-
-  //   const roomId = room && room.id
-  //   const toId   = to && to.id
-
-  //   if (text) {
-  //     /**
-  //      * 1. Text
-  //      */
-  //     msg.payload = {
-  //       type: MessageType.Text,
-  //       direction,
-  //       toId,
-  //       roomId,
-  //       text,
-  //       date,
-  //     }
-  //   } else if (file) {
-  //     /**
-  //      * 2. File
-  //      */
-  //     let type: MessageType
-
-  //     const ext = path.extname(file.name)
-
-  //     switch (ext.toLowerCase()) {
-  //       case '.bmp':
-  //       case '.jpg':
-  //       case '.jpeg':
-  //       case '.png':
-  //       case '.gif': // type =  WebMsgType.EMOTICON
-  //         type = MessageType.Image
-  //         break
-
-  //       case '.mp4':
-  //         type = MessageType.Video
-  //         break
-
-  //       case '.mp3':
-  //         type = MessageType.Audio
-  //         break
-
-  //       default:
-  //         throw new Error('unknown ext:' + ext)
-  //     }
-
-  //     msg.payload = {
-  //       type,
-  //       direction,
-  //       toId,
-  //       roomId,
-  //       file,
-  //       date,
-  //     }
-  //   } else {
-  //     throw new Error('neither text nor file!?')
-  //   }
-
-  //   return msg
-  // }
-
  /**
   * Create a Mobile Terminated Message
   *
   * "mobile originated" or "mobile terminated"
   * https://www.tatango.com/resources/video-lessons/video-mo-mt-sms-messaging/
   */
-  public static create(
-    id       : string,
-    payload? : MessagePayload,
-  ): Message {
-    log.verbose('Message', 'static create(%s, %s)',
-                            id,
-                            payload ? payload : '',
-                )
+  public static create(id: string): Message {
+    log.verbose('Message', 'static create(%s)', id)
+
     /**
      * Must NOT use `Message` at here
      * MUST use `this` at here
@@ -207,28 +117,11 @@ export class Message extends PuppetAccessory implements Sayable {
      * because the class will be `cloneClass`-ed
      */
     const msg = new this(id)
-    // msg.direction = MessageDirection.MT
 
-    if (payload) {
-      msg.payload = payload
-    }
+    msg.payload = this.puppet.cacheMessagePayload.get(id)
 
     return msg
   }
-
-  /**
-   * @alias createMT
-   * Create a Mobile Terminated Message
-   */
-  // public static create(
-  //   id       : string,
-  //   payload? : MessagePayload,
-  // ): Message {
-  //   return this.createMT(
-  //     id,
-  //     payload,
-  //   )
-  // }
 
   /**
    *
@@ -236,7 +129,6 @@ export class Message extends PuppetAccessory implements Sayable {
    *
    */
   private payload?  : MessagePayload
-  // private direction : MessageDirection
 
   /**
    * @private
@@ -260,10 +152,7 @@ export class Message extends PuppetAccessory implements Sayable {
     if (!this.puppet) {
       throw new Error('Message class can not be instanciated without a puppet!')
     }
-
-    // default set to MT because there's a id param
-    // this.direction = MessageDirection.MT
-}
+  }
 
   /**
    * @private
@@ -291,29 +180,19 @@ export class Message extends PuppetAccessory implements Sayable {
       if (!this.payload) {
         throw new Error('no payload')
       }
-      const file = this.payload.file
-      if (!file) {
+      const filename = this.payload.filename
+      if (!filename) {
         throw new Error('no file')
       }
-      msgStrList.push(`<${file.name}>`)
+      msgStrList.push(`<${filename}>`)
     }
 
     return msgStrList.join('')
   }
-
-  // /**
-  //  * @private
-  //  */
-  // public from(contact: Contact): void
-  // /**
-  //  * @private
-  //  */
-  // public from(): Contact
-  // /**
-  //  * Get the sender from a message.
-  //  * @returns {Contact}
-  //  */
-  // public from(contact?: Contact): void | Contact {
+  /**
+   * Get the sender from a message.
+   * @returns {Contact}
+   */
   public from(): Contact {
     if (!this.payload) {
       throw new Error('no payload')
@@ -333,29 +212,15 @@ export class Message extends PuppetAccessory implements Sayable {
     return from
   }
 
-  // /**
-  //  * @private
-  //  */
-  // public to(contact: Contact): void
-  // /**
-  //  * @private
-  //  */
-  // public to(): Contact | null // if to is not set, then room must had set
-  // /**
-  //  * Get the destination of the message
-  //  * Message.to() will return null if a message is in a room, use Message.room() to get the room.
-  //  * @returns {(Contact|null)}
-  //  */
-  // public to(contact?: Contact): void | null | Contact {
+  /**
+   * Get the destination of the message
+   * Message.to() will return null if a message is in a room, use Message.room() to get the room.
+   * @returns {(Contact|null)}
+   */
   public to(): null | Contact {
     if (!this.payload) {
       throw new Error('no payload')
     }
-
-    // if (contact) {
-    //   this.payload.to = contact
-    //   return
-    // }
 
     const toId = this.payload.toId
     if (!toId) {
@@ -366,30 +231,16 @@ export class Message extends PuppetAccessory implements Sayable {
     return to
   }
 
-  // /**
-  //  * @private
-  //  */
-  // public room(room: Room): void
-  // /**
-  //  * @private
-  //  */
-  // public room(): Room | null
-  // /**
-  //  * Get the room from the message.
-  //  * If the message is not in a room, then will return `null`
-  //  *
-  //  * @returns {(Room | null)}
-  //  */
-  // public room(room?: Room): void | null | Room {
+  /**
+   * Get the room from the message.
+   * If the message is not in a room, then will return `null`
+   *
+   * @returns {(Room | null)}
+   */
   public room(): null | Room {
     if (!this.payload) {
       throw new Error('no payload')
     }
-
-    // if (room) {
-    //   this.payload.room = room
-    //   return
-    // }
     const roomId = this.payload.roomId
     if (!roomId) {
       return null
@@ -399,42 +250,15 @@ export class Message extends PuppetAccessory implements Sayable {
     return room
   }
 
-  // /**
-  //  * Get the text of the message
-  //  *
-  //  * @deprecated: use `text()` instead
-  //  * @returns {string}
-  //  */
-  // public content(text?: string): void | string {
-  //   log.warn('Message', 'content() Deprecated. Use `text()` instead of `content()`. See https://github.com/Chatie/wechaty/issues/1163')
-  //   return this.text(text!)
-  // }
-
-  // /**
-  //  * Get the text content of the message
-  //  *
-  //  * @returns {string}
-  //  */
-  // public text(): string
-  // /**
-  //  * @private
-  //  */
-  // public text(text: string): void
-  // /**
-  //  * Get the text content of the message
-  //  *
-  //  * @returns {string}
-  //  */
-  // public text(text?: string): void | string {
+  /**
+   * Get the text content of the message
+   *
+   * @returns {string}
+   */
   public text(): string {
     if (!this.payload) {
       throw new Error('no payload')
     }
-
-    // if (text) {
-    //   this.payload.text = text
-    //   return
-    // }
 
     return this.payload.text || ''
   }
@@ -522,15 +346,12 @@ export class Message extends PuppetAccessory implements Sayable {
     }
   }
 
-  public file(): FileBox {
-    if (!this.payload) {
-      throw new Error('no payload')
+  public async file(): Promise<FileBox> {
+    if (this.type() === Message.Type.Text) {
+      throw new Error('text message no file')
     }
-    const file = this.payload.file
-    if (!file) {
-      throw new Error('no file')
-    }
-    return file
+    const fileBox = await this.puppet.messageFile(this.id)
+    return fileBox
   }
 
   /**
@@ -616,10 +437,10 @@ export class Message extends PuppetAccessory implements Sayable {
    * }
    */
   public self(): boolean {
-    const user = this.puppet.userSelf()
+    const userId = this.puppet.selfId()
     const from = this.from()
 
-    return from.id === user.id
+    return from.id === userId
   }
 
   /**

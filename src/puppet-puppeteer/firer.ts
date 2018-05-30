@@ -22,7 +22,7 @@
 
 import {
   log,
-}         from '../config'
+}               from '../config'
 import { Misc } from '../misc'
 
 import {
@@ -35,30 +35,16 @@ import PuppetPuppeteer        from './puppet-puppeteer'
 import {
   Contact,
 }                       from '../contact'
-// import {
-//   FriendRequest,
-// }                       from '../friend-request'
+
 import {
   Message,
 }                       from '../message'
+import {
+  FriendRequestPayload,
+  FriendRequestType,
+}                       from '../friend-request'
 
-/* tslint:disable:variable-name */
-export const Firer = {
-  checkFriendConfirm,
-  checkFriendRequest,
-
-  checkRoomJoin,
-  checkRoomLeave,
-  checkRoomTopic,
-
-  parseFriendConfirm,
-  parseRoomJoin,
-  parseRoomLeave,
-  parseRoomTopic,
-
-}
-
-const regexConfig = {
+const REGEX_CONFIG = {
   friendConfirm: [
     /^You have added (.+) as your WeChat contact. Start chatting!$/,
     /^你已添加了(.+)，现在可以开始聊天了。$/,
@@ -114,389 +100,394 @@ const regexConfig = {
   ],
 }
 
-async function checkFriendRequest(
-  this       : PuppetPuppeteer,
-  rawPayload : WebMessageRawPayload,
-): Promise<void> {
-  if (!rawPayload.RecommendInfo) {
-    throw new Error('no RecommendInfo')
-  }
-  const recommendInfo: WebRecomendInfo = rawPayload.RecommendInfo
-  log.verbose('PuppetPuppeteerFirer', 'fireFriendRequest(%s)', recommendInfo)
-
-  if (!recommendInfo) {
-    throw new Error('no recommendInfo')
+export class Firer {
+  constructor(
+    public puppet: PuppetPuppeteer,
+  ) {
+    //
   }
 
-  const contact   = this.Contact.load(recommendInfo.UserName)
-  contact.puppet  = this
+  public async checkFriendRequest(
+    this       : PuppetPuppeteer,
+    rawPayload : WebMessageRawPayload,
+  ): Promise<void> {
+    if (!rawPayload.RecommendInfo) {
+      throw new Error('no RecommendInfo')
+    }
+    const recommendInfo: WebRecomendInfo = rawPayload.RecommendInfo
+    log.verbose('PuppetPuppeteerFirer', 'fireFriendRequest(%s)', recommendInfo)
 
-  const hello = recommendInfo.Content
-  const ticket = recommendInfo.Ticket
-
-  await contact.ready()
-  if (!contact.isReady()) {
-    log.warn('PuppetPuppeteerFirer', 'fireFriendConfirm() contact still not ready after `ready()` call')
-  }
-
-  const receivedRequest = this.FriendRequest.createReceive(
-    contact,
-    hello,
-    ticket,
-  )
-
-  this.emit('friend', receivedRequest)
-}
-
-/**
- * try to find FriendRequest Confirmation Message
- */
-function parseFriendConfirm(
-  this: PuppetPuppeteer,
-  content: string,
-): boolean {
-  const reList = regexConfig.friendConfirm
-  let found = false
-
-  reList.some(re => !!(found = re.test(content)))
-  if (found) {
-    return true
-  } else {
-    return false
-  }
-}
-
-async function checkFriendConfirm(
-  this: PuppetPuppeteer,
-  m: Message,
-) {
-  const content = m.text()
-  log.silly('PuppetPuppeteerFirer', 'fireFriendConfirm(%s)', content)
-
-  if (!parseFriendConfirm.call(this, content)) {
-    return
-  }
-
-  const contact = m.from()
-
-  const confirmedRequest = this.FriendRequest.createConfirm(
-    contact,
-  )
-
-  await contact.ready()
-  if (!contact.isReady()) {
-    log.warn('PuppetPuppeteerFirer', 'fireFriendConfirm() contact still not ready after `ready()` call')
-  }
-
-  this.emit('friend', confirmedRequest)
-}
-
-/**
- * try to find 'join' event for Room
- *
- * 1.
- *  You invited 管理员 to the group chat.
- *  You invited 李卓桓.PreAngel、Bruce LEE to the group chat.
- * 2.
- *  管理员 invited 小桔建群助手 to the group chat
- *  管理员 invited 庆次、小桔妹 to the group chat
- */
-function parseRoomJoin(
-  this: PuppetPuppeteer,
-  content: string,
-): [string[], string] {
-  log.verbose('PuppetPuppeteerFirer', 'parseRoomJoin(%s)', content)
-
-  const reListInvite = regexConfig.roomJoinInvite
-  const reListQrcode = regexConfig.roomJoinQrcode
-
-  let foundInvite: string[]|null = []
-  reListInvite.some(re => !!(foundInvite = content.match(re)))
-  let foundQrcode: string[]|null = []
-  reListQrcode.some(re => !!(foundQrcode = content.match(re)))
-  if ((!foundInvite || !foundInvite.length) && (!foundQrcode || !foundQrcode.length)) {
-    throw new Error('parseRoomJoin() not found matched re of ' + content)
-  }
-  /**
-   * 管理员 invited 庆次、小桔妹 to the group chat
-   * "管理员"通过扫描你分享的二维码加入群聊
-   */
-  const [inviter, inviteeStr] = foundInvite ? [ foundInvite[1], foundInvite[2] ] : [ foundQrcode[2], foundQrcode[1] ]
-  const inviteeList = inviteeStr.split(/、/)
-
-  return [inviteeList, inviter] // put invitee at first place
-}
-
-async function checkRoomJoin(
-  this: PuppetPuppeteer,
-  msg:  Message,
-): Promise<boolean> {
-
-  const room = msg.room()
-  if (!room) {
-    log.warn('PuppetPuppeteerFirer', 'checkRoomJoin() `room` not found')
-    return false
-  }
-
-  const text = msg.text()
-
-  let inviteeList : string[]
-  let inviter     : string
-
-  try {
-    [inviteeList, inviter] = parseRoomJoin.call(this, text)
-  } catch (e) {
-    log.silly('PuppetPuppeteerFirer', 'checkRoomJoin() "%s" is not a join message', text)
-    return false // not a room join message
-  }
-  log.silly('PuppetPuppeteerFirer', 'checkRoomJoin() inviteeList: %s, inviter: %s',
-                                    inviteeList.join(','),
-                                    inviter,
-            )
-
-  let inviterContact: null | Contact = null
-  let inviteeContactList: Contact[]  = []
-
-  try {
-    if (/^You|你$/i.test(inviter)) { //  === 'You' || inviter === '你' || inviter === 'you'
-      inviterContact = this.userSelf()
+    if (!recommendInfo) {
+      throw new Error('no recommendInfo')
     }
 
-    // const max     = 20
-    // const backoff = 300
-    // const timeout = max * (backoff * max) / 2
-    // 20 / 300 => 63,000
-    // max = (2*totalTime/backoff) ^ (1/2)
-    // timeout = 11,250 for {max: 15, backoff: 100}
+    const contact   = this.Contact.load(recommendInfo.UserName)
+    contact.puppet  = this
 
-    await Misc.retry(async (retry, attempt) => {
-      log.silly('PuppetPuppeteerFirer', 'fireRoomJoin() retry() attempt %d', attempt)
+    const hello = recommendInfo.Content
+    const ticket = recommendInfo.Ticket
 
-      await room.sync()
-      let inviteeListAllDone = true
+    await contact.ready()
+    if (!contact.isReady()) {
+      log.warn('PuppetPuppeteerFirer', 'fireFriendConfirm() contact still not ready after `ready()` call')
+    }
 
-      for (const i in inviteeList) {
-        const inviteeContact = inviteeContactList[i]
-        if (inviteeContact instanceof Contact) {
-          if (!inviteeContact.isReady()) {
-            log.warn('PuppetPuppeteerFirer', 'fireRoomJoin() retryPromise() isReady false for contact %s', inviteeContact.id)
-            inviteeListAllDone = false
-            await inviteeContact.refresh()
-            continue
-          }
-        } else {
-          const member = room.member(inviteeList[i])
-          if (!member) {
-            inviteeListAllDone = false
-            continue
-          }
+    const receivedRequest = this.FriendRequest.createReceive(
+      contact,
+      hello,
+      ticket,
+    )
 
-          await member.ready()
-          inviteeContactList[i] = member
+    this.emit('friend', receivedRequest.toJSON())
+  }
 
-          if (!member.isReady()) {
-            inviteeListAllDone = false
-            continue
-          }
-        }
+  public async checkFriendConfirm(
+    rawPayload : WebMessageRawPayload,
+  ) {
+    const content = rawPayload.Content
+    log.silly('PuppetPuppeteerFirer', 'fireFriendConfirm(%s)', content)
 
-      }
+    if (!this.parseFriendConfirm(content)) {
+      return
+    }
 
-      if (!inviterContact) {
-        inviterContact = room.member(inviter)
-      }
+    const contactId = rawPayload.FromUserName
 
-      if (inviteeListAllDone && inviterContact) {
-        log.silly('PuppetPuppeteerFirer', 'fireRoomJoin() resolve() inviteeContactList: %s, inviterContact: %s',
-                                    inviteeContactList.map((c: Contact) => c.name()).join(','),
-                                    inviterContact.name(),
-                )
-        return true
-      }
+    const confirmedRequest = this.FriendRequest.createConfirm(
+      contactId,
+    )
 
-      log.error('PuppetPuppeteerFirer', 'fireRoomJoin() not found(yet)')
-      return retry(new Error('fireRoomJoin() not found(yet)'))
+    // await contact.ready()
+    // if (!contact.isReady()) {
+    //   log.warn('PuppetPuppeteerFirer', 'fireFriendConfirm() contact still not ready after `ready()` call')
+    // }
 
-    }).catch((e: Error) => {
-      log.warn('PuppetPuppeteerFirer', 'fireRoomJoin() reject() inviteeContactList: %s, inviterContact: %s, error %s',
-                                 inviteeContactList.map((c: Contact) => c.name()).join(','),
-                                 inviter,
-                                 e.message,
-      )
-    })
+    this.puppet.emit('friend', contactId, FriendRequestType.Confirm)
+  }
 
-    if (!inviterContact) {
-      log.error('PuppetPuppeteerFirer', 'firmRoomJoin() inivter not found for %s , `room-join` & `join` event will not fired', inviter)
+  public async checkRoomJoin(
+    msg:  Message,
+  ): Promise<boolean> {
+
+    const room = msg.room()
+    if (!room) {
+      log.warn('PuppetPuppeteerFirer', 'checkRoomJoin() `room` not found')
       return false
     }
-    if (!inviteeContactList.every(c => c instanceof Contact)) {
-      log.error('PuppetPuppeteerFirer', 'firmRoomJoin() inviteeList not all found for %s , only part of them will in the `room-join` or `join` event',
-                                  inviteeContactList.join(','),
+
+    const text = msg.text()
+
+    let inviteeList : string[]
+    let inviter     : string
+
+    try {
+      [inviteeList, inviter] = this.parseRoomJoin(text)
+    } catch (e) {
+      log.silly('PuppetPuppeteerFirer', 'checkRoomJoin() "%s" is not a join message', text)
+      return false // not a room join message
+    }
+    log.silly('PuppetPuppeteerFirer', 'checkRoomJoin() inviteeList: %s, inviter: %s',
+                                      inviteeList.join(','),
+                                      inviter,
               )
-      inviteeContactList = inviteeContactList.filter(c => (c instanceof Contact))
-      if (inviteeContactList.length < 1) {
-        log.error('PuppetPuppeteerFirer', 'firmRoomJoin() inviteeList empty.  `room-join` & `join` event will not fired')
+
+    let inviterContact: null | Contact = null
+    let inviteeContactList: Contact[]  = []
+
+    try {
+      if (/^You|你$/i.test(inviter)) { //  === 'You' || inviter === '你' || inviter === 'you'
+        inviterContact = this.Contact.load(this.selfId())
+      }
+
+      // const max     = 20
+      // const backoff = 300
+      // const timeout = max * (backoff * max) / 2
+      // 20 / 300 => 63,000
+      // max = (2*totalTime/backoff) ^ (1/2)
+      // timeout = 11,250 for {max: 15, backoff: 100}
+
+      await Misc.retry(async (retry, attempt) => {
+        log.silly('PuppetPuppeteerFirer', 'fireRoomJoin() retry() attempt %d', attempt)
+
+        await room.sync()
+        let inviteeListAllDone = true
+
+        for (const i in inviteeList) {
+          const inviteeContact = inviteeContactList[i]
+          if (inviteeContact instanceof Contact) {
+            if (!inviteeContact.isReady()) {
+              log.warn('PuppetPuppeteerFirer', 'fireRoomJoin() retryPromise() isReady false for contact %s', inviteeContact.id)
+              inviteeListAllDone = false
+              await inviteeContact.refresh()
+              continue
+            }
+          } else {
+            const member = room.member(inviteeList[i])
+            if (!member) {
+              inviteeListAllDone = false
+              continue
+            }
+
+            await member.ready()
+            inviteeContactList[i] = member
+
+            if (!member.isReady()) {
+              inviteeListAllDone = false
+              continue
+            }
+          }
+
+        }
+
+        if (!inviterContact) {
+          inviterContact = room.member(inviter)
+        }
+
+        if (inviteeListAllDone && inviterContact) {
+          log.silly('PuppetPuppeteerFirer', 'fireRoomJoin() resolve() inviteeContactList: %s, inviterContact: %s',
+                                      inviteeContactList.map((c: Contact) => c.name()).join(','),
+                                      inviterContact.name(),
+                  )
+          return true
+        }
+
+        log.error('PuppetPuppeteerFirer', 'fireRoomJoin() not found(yet)')
+        return retry(new Error('fireRoomJoin() not found(yet)'))
+
+      }).catch((e: Error) => {
+        log.warn('PuppetPuppeteerFirer', 'fireRoomJoin() reject() inviteeContactList: %s, inviterContact: %s, error %s',
+                                   inviteeContactList.map((c: Contact) => c.name()).join(','),
+                                   inviter,
+                                   e.message,
+        )
+      })
+
+      if (!inviterContact) {
+        log.error('PuppetPuppeteerFirer', 'firmRoomJoin() inivter not found for %s , `room-join` & `join` event will not fired', inviter)
+        return false
+      }
+      if (!inviteeContactList.every(c => c instanceof Contact)) {
+        log.error('PuppetPuppeteerFirer', 'firmRoomJoin() inviteeList not all found for %s , only part of them will in the `room-join` or `join` event',
+                                    inviteeContactList.join(','),
+                )
+        inviteeContactList = inviteeContactList.filter(c => (c instanceof Contact))
+        if (inviteeContactList.length < 1) {
+          log.error('PuppetPuppeteerFirer', 'firmRoomJoin() inviteeList empty.  `room-join` & `join` event will not fired')
+          return false
+        }
+      }
+
+      await Promise.all(inviteeContactList.map(c => c.ready()))
+      await inviterContact.ready()
+      await room.ready()
+
+      this.puppet.emit('room-join', room.id, inviteeContactList.map(c => c.id), inviterContact.id)
+      // room.emit('join'              , inviteeContactList, inviterContact)
+
+      return true
+    } catch (e) {
+      log.error('PuppetPuppeteerFirer', 'exception: %s', e.stack)
+      return false
+    }
+
+  }
+
+  /**
+   * You removed "Bruce LEE" from the group chat
+   */
+  public async checkRoomLeave(
+    m:    Message,
+  ): Promise<boolean> {
+    log.verbose('PuppetPuppeteerFirer', 'fireRoomLeave(%s)', m.text())
+
+    let leaverName  : string
+    let removerName : string
+
+    try {
+      [leaverName, removerName] = this.parseRoomLeave(m.text())
+    } catch (e) {
+      return false
+    }
+    log.silly('PuppetPuppeteerFirer', 'fireRoomLeave() got leaver: %s', leaverName)
+
+    const room = m.room()
+    if (!room) {
+      log.warn('PuppetPuppeteerFirer', 'fireRoomLeave() room not found')
+      return false
+    }
+    /**
+     * FIXME: leaver maybe is a list
+     * @lijiarui: I have checked, leaver will never be a list. If the bot remove 2 leavers at the same time, it will be 2 sys message, instead of 1 sys message contains 2 leavers.
+     */
+    let leaverContact: Contact | null, removerContact: Contact | null
+    if (leaverName === this.puppet.selfId()) {
+      leaverContact = this.Contact.load(this.selfId())
+
+      // not sure which is better
+      // removerContact = room.member({contactAlias: remover}) || room.member({name: remover})
+      removerContact = room.member(removerName)
+      // if (!removerContact) {
+      //   log.error('PuppetPuppeteerFirer', 'fireRoomLeave() bot is removed from the room, but remover %s not found, event `room-leave` & `leave` will not be fired', remover)
+      //   return false
+      // }
+
+    } else {
+      removerContact = this.Contact.load(this.selfId())
+
+      // not sure which is better
+      // leaverContact = room.member({contactAlias: remover}) || room.member({name: leaver})
+      leaverContact = room.member(removerName)
+      if (!leaverContact) {
+        log.error('PuppetPuppeteerFirer', 'fireRoomLeave() bot removed someone from the room, but leaver %s not found, event `room-leave` & `leave` will not be fired', leaverName)
         return false
       }
     }
 
-    await Promise.all(inviteeContactList.map(c => c.ready()))
-    await inviterContact.ready()
+    if (removerContact) {
+      await removerContact.ready()
+    }
+    await leaverContact.ready()
     await room.ready()
 
-    this.emit('room-join', room , inviteeContactList, inviterContact)
-    room.emit('join'            , inviteeContactList, inviterContact)
+    /**
+     * FIXME: leaver maybe is a list
+     * @lijiarui 2017: I have checked, leaver will never be a list. If the bot remove 2 leavers at the same time,
+     *                  it will be 2 sys message, instead of 1 sys message contains 2 leavers.
+     * @huan 2018 May: we need to generilize the pattern for future usage.
+     */
+    this.emit('room-leave', room.id , [leaverContact.id] /* , [removerContact] */)
+    room.emit('leave'               , [leaverContact], removerContact || undefined)
 
+    setTimeout(_ => { room.refresh() }, 10000) // reload the room data, especially for memberList
     return true
-  } catch (e) {
-    log.error('PuppetPuppeteerFirer', 'exception: %s', e.stack)
-    return false
   }
 
-}
+  public async checkRoomTopic(
+    m: Message
+  ): Promise<boolean> {
+    let  topic, changer
+    try {
+      [topic, changer] = parseRoomTopic.call(this, m.text())
+    } catch (e) { // not found
+      return false
+    }
 
-function parseRoomLeave(
-  this: PuppetPuppeteer,
-  content: string,
-): [string, string] {
-  const reListByBot = regexConfig.roomLeaveByBot
-  const reListByOther = regexConfig.roomLeaveByOther
-  let foundByBot: string[]|null = []
-  reListByBot.some(re => !!(foundByBot = content.match(re)))
-  let foundByOther: string[]|null = []
-  reListByOther.some(re => !!(foundByOther = content.match(re)))
-  if ((!foundByBot || !foundByBot.length) && (!foundByOther || !foundByOther.length)) {
-    throw new Error('checkRoomLeave() no matched re for ' + content)
-  }
-  const [leaver, remover] = foundByBot ? [ foundByBot[1], this.userSelf().id ] : [ this.userSelf().id, foundByOther[1] ]
-  return [leaver, remover]
-}
+    const room = m.room()
+    if (!room) {
+      log.warn('PuppetPuppeteerFirer', 'fireRoomLeave() room not found')
+      return false
+    }
 
-/**
- * You removed "Bruce LEE" from the group chat
- */
-async function checkRoomLeave(
-  this: PuppetPuppeteer,
-  m:    Message,
-): Promise<boolean> {
-  log.verbose('PuppetPuppeteerFirer', 'fireRoomLeave(%s)', m.text())
+    const oldTopic = room.topic()
 
-  let leaver: string, remover: string
-  try {
-    [leaver, remover] = parseRoomLeave.call(this, m.text())
-  } catch (e) {
-    return false
-  }
-  log.silly('PuppetPuppeteerFirer', 'fireRoomLeave() got leaver: %s', leaver)
+    let changerContact: Contact | null
+    if (/^You$/.test(changer) || /^你$/.test(changer)) {
+      changerContact = this.Contact.load(this.selfId())
+    } else {
+      changerContact = room.member(changer)
+    }
 
-  const room = m.room()
-  if (!room) {
-    log.warn('PuppetPuppeteerFirer', 'fireRoomLeave() room not found')
-    return false
-  }
-  /**
-   * FIXME: leaver maybe is a list
-   * @lijiarui: I have checked, leaver will never be a list. If the bot remove 2 leavers at the same time, it will be 2 sys message, instead of 1 sys message contains 2 leavers.
-   */
-  let leaverContact: Contact | null, removerContact: Contact | null
-  if (leaver === this.userSelf().id) {
-    leaverContact = this.userSelf()
+    if (!changerContact) {
+      log.error('PuppetPuppeteerFirer', 'fireRoomTopic() changer contact not found for %s', changer)
+      return false
+    }
 
-    // not sure which is better
-    // removerContact = room.member({contactAlias: remover}) || room.member({name: remover})
-    removerContact = room.member(remover)
-    // if (!removerContact) {
-    //   log.error('PuppetPuppeteerFirer', 'fireRoomLeave() bot is removed from the room, but remover %s not found, event `room-leave` & `leave` will not be fired', remover)
-    //   return false
-    // }
-
-  } else {
-    removerContact = this.userSelf()
-
-    // not sure which is better
-    // leaverContact = room.member({contactAlias: remover}) || room.member({name: leaver})
-    leaverContact = room.member(remover)
-    if (!leaverContact) {
-      log.error('PuppetPuppeteerFirer', 'fireRoomLeave() bot removed someone from the room, but leaver %s not found, event `room-leave` & `leave` will not be fired', leaver)
+    try {
+      await changerContact.ready()
+      await room.ready()
+      this.emit('room-topic', room.id , topic, oldTopic, changerContact.id)
+      room.emit('topic'               , topic, oldTopic, changerContact)
+      room.refresh()
+      return true
+    } catch (e) {
+      log.error('PuppetPuppeteerFirer', 'fireRoomTopic() co exception: %s', e.stack)
       return false
     }
   }
 
-  if (removerContact) {
-    await removerContact.ready()
+  /**
+   * try to find FriendRequest Confirmation Message
+   */
+  private parseFriendConfirm(
+    content: string,
+  ): boolean {
+    const reList = REGEX_CONFIG.friendConfirm
+    let found = false
+
+    reList.some(re => !!(found = re.test(content)))
+    if (found) {
+      return true
+    } else {
+      return false
+    }
   }
-  await leaverContact.ready()
-  await room.ready()
+
 
   /**
-   * FIXME: leaver maybe is a list
-   * @lijiarui 2017: I have checked, leaver will never be a list. If the bot remove 2 leavers at the same time,
-   *                  it will be 2 sys message, instead of 1 sys message contains 2 leavers.
-   * @huan 2018 May: we need to generilize the pattern for future usage.
+   * try to find 'join' event for Room
+   *
+   * 1.
+   *  You invited 管理员 to the group chat.
+   *  You invited 李卓桓.PreAngel、Bruce LEE to the group chat.
+   * 2.
+   *  管理员 invited 小桔建群助手 to the group chat
+   *  管理员 invited 庆次、小桔妹 to the group chat
    */
-  this.emit('room-leave', room, [leaverContact] /* , [removerContact] */)
-  room.emit('leave'           , [leaverContact], removerContact || undefined)
+  private parseRoomJoin(
+    content: string,
+  ): [string[], string] {
+    log.verbose('PuppetPuppeteerFirer', 'parseRoomJoin(%s)', content)
 
-  setTimeout(_ => { room.refresh() }, 10000) // reload the room data, especially for memberList
-  return true
-}
+    const reListInvite = REGEX_CONFIG.roomJoinInvite
+    const reListQrcode = REGEX_CONFIG.roomJoinQrcode
 
-function parseRoomTopic(
-  this: PuppetPuppeteer,
-  content: string,
-): [string, string] {
-  const reList = regexConfig.roomTopic
+    let foundInvite: string[]|null = []
+    reListInvite.some(re => !!(foundInvite = content.match(re)))
+    let foundQrcode: string[]|null = []
+    reListQrcode.some(re => !!(foundQrcode = content.match(re)))
+    if ((!foundInvite || !foundInvite.length) && (!foundQrcode || !foundQrcode.length)) {
+      throw new Error('parseRoomJoin() not found matched re of ' + content)
+    }
+    /**
+     * 管理员 invited 庆次、小桔妹 to the group chat
+     * "管理员"通过扫描你分享的二维码加入群聊
+     */
+    const [inviter, inviteeStr] = foundInvite ? [ foundInvite[1], foundInvite[2] ] : [ foundQrcode[2], foundQrcode[1] ]
+    const inviteeList = inviteeStr.split(/、/)
 
-  let found: string[]|null = []
-  reList.some(re => !!(found = content.match(re)))
-  if (!found || !found.length) {
-    throw new Error('checkRoomTopic() not found')
-  }
-  const [, changer, topic] = found
-  return [topic, changer]
-}
-
-async function checkRoomTopic(
-  this: PuppetPuppeteer,
-  m: Message): Promise<boolean> {
-  let  topic, changer
-  try {
-    [topic, changer] = parseRoomTopic.call(this, m.text())
-  } catch (e) { // not found
-    return false
+    return [inviteeList, inviter] // put invitee at first place
   }
 
-  const room = m.room()
-  if (!room) {
-    log.warn('PuppetPuppeteerFirer', 'fireRoomLeave() room not found')
-    return false
+  private parseRoomLeave(
+    content: string,
+  ): [string, string] {
+    const reListByBot = REGEX_CONFIG.roomLeaveByBot
+    const reListByOther = REGEX_CONFIG.roomLeaveByOther
+    let foundByBot: string[]|null = []
+    reListByBot.some(re => !!(foundByBot = content.match(re)))
+    let foundByOther: string[]|null = []
+    reListByOther.some(re => !!(foundByOther = content.match(re)))
+    if ((!foundByBot || !foundByBot.length) && (!foundByOther || !foundByOther.length)) {
+      throw new Error('checkRoomLeave() no matched re for ' + content)
+    }
+    const [leaver, remover] = foundByBot ? [ foundByBot[1], this.selfId() ] : [ this.selfId(), foundByOther[1] ]
+    return [leaver, remover]
   }
 
-  const oldTopic = room.topic()
+  private parseRoomTopic(
+    content: string,
+  ): [string, string] {
+    const reList = REGEX_CONFIG.roomTopic
 
-  let changerContact: Contact | null
-  if (/^You$/.test(changer) || /^你$/.test(changer)) {
-    changerContact = this.userSelf()
-  } else {
-    changerContact = room.member(changer)
+    let found: string[]|null = []
+    reList.some(re => !!(found = content.match(re)))
+    if (!found || !found.length) {
+      throw new Error('checkRoomTopic() not found')
+    }
+    const [, changer, topic] = found
+    return [topic, changer]
   }
 
-  if (!changerContact) {
-    log.error('PuppetPuppeteerFirer', 'fireRoomTopic() changer contact not found for %s', changer)
-    return false
-  }
-
-  try {
-    await changerContact.ready()
-    await room.ready()
-    this.emit('room-topic', room, topic, oldTopic, changerContact)
-    room.emit('topic'           , topic, oldTopic, changerContact)
-    room.refresh()
-    return true
-  } catch (e) {
-    log.error('PuppetPuppeteerFirer', 'fireRoomTopic() co exception: %s', e.stack)
-    return false
-  }
 }
 
 export default Firer

@@ -55,8 +55,6 @@ export interface RoomQueryFilter {
 }
 
 export interface RoomPayload {
-  // id:               string,
-  // encryId:          string,
   topic        : string,
   memberIdList : string[],
   ownerId?     : string,
@@ -174,9 +172,8 @@ export class Room extends PuppetAccessory implements Sayable {
    * About the Generic: https://stackoverflow.com/q/43003970/1123955
    */
   public static load<T extends typeof Room>(
-    this     : T,
-    id       : string,
-    payload? : RoomPayload,
+    this : T,
+    id   : string,
   ): T['prototype'] {
     if (!this.pool) {
       this.pool = new Map<string, Room>()
@@ -184,29 +181,18 @@ export class Room extends PuppetAccessory implements Sayable {
 
     const existingRoom = this.pool.get(id)
     if (existingRoom) {
-      if (payload) {
-        existingRoom.payload = payload
+      if (!existingRoom.payload) {
+        existingRoom.payload = this.puppet.cacheRoomPayload.get(id)
       }
       return existingRoom
     }
 
     const newRoom = new (this as any)(id)
-    if (payload) {
-      newRoom.payload = payload
-    }
+    newRoom.payload = this.puppet.cacheRoomPayload.get(id)
 
     this.pool.set(id, newRoom)
     return newRoom
   }
-
-  // public load(
-  //   this : Room,
-  //   id   : string,
-  // ): Room {
-  //   const klass = instanceToClass(this, Room)
-  //   const room = klass.load(id)
-  //   return room
-  // }
 
   /**
    *
@@ -349,7 +335,7 @@ export class Room extends PuppetAccessory implements Sayable {
     }
   }
 
-  public emit(event: 'leave', leaver:       Contact[],  remover?: Contact)                    : boolean
+  public emit(event: 'leave', leaverList:   Contact[],  remover?: Contact)                    : boolean
   public emit(event: 'join' , inviteeList:  Contact[] , inviter:  Contact)                    : boolean
   public emit(event: 'topic', topic:        string,     oldTopic: string,   changer: Contact) : boolean
   public emit(event: never, ...args: never[]): never

@@ -106,9 +106,6 @@ test('PuppetPuppeteerFriendRequest.confirm smoke testing', async t => {
   sandbox.stub((puppet as any), 'messageRawPayload').callsFake(mockMessageRawPayload)
   sandbox.stub(puppet, 'contactPayload')            .callsFake(mockContactPayload)
 
-  // ;
-  // (puppet as any).messageRawPayload()
-
   const msg = wechaty.Message.create(rawMessagePayload.MsgId)
   await msg.ready()
 

@@ -279,6 +279,13 @@ export class Misc {
       attempt: number,
     ) => Promise<T>,
   ): Promise<T> {
+    /**
+     * 60 seconds: (to be confirmed)
+     *  factor: 3
+     *  minTimeout: 10
+     *  maxTimeout: 20 * 1000
+     *  retries: 9
+     */
     const factor     = 3
     const minTimeout = 10
     const maxTimeout = 20 * 1000

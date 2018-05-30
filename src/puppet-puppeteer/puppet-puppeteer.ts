@@ -40,7 +40,7 @@ import {
   Puppet,
   PuppetOptions,
   Receiver,
-  ScanData,
+  ScanPayload,
 }                     from '../puppet/'
 import {
   config,
@@ -89,8 +89,8 @@ export type PuppetFoodType = 'scan' | 'ding'
 export type ScanFoodType   = 'scan' | 'login' | 'logout'
 
 export class PuppetPuppeteer extends Puppet {
-  public bridge   : Bridge
-  public scanInfo?: ScanData
+  public bridge       : Bridge
+  public scanPayload? : ScanPayload
 
   public scanWatchdog: Watchdog<ScanFoodType>
 
@@ -149,6 +149,8 @@ export class PuppetPuppeteer extends Puppet {
       })
 
       log.verbose('PuppetPuppeteer', 'start() done')
+
+      this.emit('start')
       return
 
     } catch (e) {
@@ -274,6 +276,8 @@ export class PuppetPuppeteer extends Puppet {
     } finally {
       this.state.off(true)
     }
+
+    this.emit('stop')
   }
 
   private async initBridge(): Promise<Bridge> {
@@ -318,19 +322,20 @@ export class PuppetPuppeteer extends Puppet {
   ): Promise<MessagePayload> {
     log.verbose('PuppetPuppeteer', 'messageRawPayloadParser(%s) @ %s', rawPayload, this)
 
-    const from: Contact     = this.Contact.load(rawPayload.MMActualSender)  // MMPeerUserName
-    const text: string      = rawPayload.MMActualContent                    // Content has @id prefix added by wx
-    const date: Date        = new Date(rawPayload.MMDisplayTime)            // Javascript timestamp of milliseconds
+    const fromId                       = rawPayload.MMActualSender               // MMPeerUserName
+    const text: string                 = rawPayload.MMActualContent              // Content has @id prefix added by wx
+    const timestamp: number            = rawPayload.MMDisplayTime                // Javascript timestamp of milliseconds
+    const filename: undefined | string = this.filename(rawPayload) || undefined
 
-    let room : undefined | Room
-    let to   : undefined | Contact
+    let roomId : undefined | string
+    let toId   : undefined | string
 
     // FIXME: has there any better method to know the room ID?
     if (rawPayload.MMIsChatRoom) {
       if (/^@@/.test(rawPayload.FromUserName)) {
-        room = this.Room.load(rawPayload.FromUserName) // MMPeerUserName always eq FromUserName ?
+        roomId = rawPayload.FromUserName // MMPeerUserName always eq FromUserName ?
       } else if (/^@@/.test(rawPayload.ToUserName)) {
-        room = this.Room.load(rawPayload.ToUserName)
+        roomId = rawPayload.ToUserName
       } else {
         throw new Error('parse found a room message, but neither FromUserName nor ToUserName is a room(/^@@/)')
       }
@@ -338,34 +343,29 @@ export class PuppetPuppeteer extends Puppet {
 
     if (rawPayload.ToUserName) {
       if (!/^@@/.test(rawPayload.ToUserName)) { // if a message in room without any specific receiver, then it will set to be `undefined`
-        to = this.Contact.load(rawPayload.ToUserName)
+        toId = rawPayload.ToUserName
       }
     }
 
-    const file: undefined | FileBox = undefined
-
     const type: MessageType = this.messageTypeFromWeb(rawPayload.MsgType)
 
-    const fromId = from && from.id
-    const roomId = room && room.id
-    const toId   = to   && to.id
-
     const payload: MessagePayload = {
-      // direction: MessageDirection.MT,
       type,
       fromId,
+      filename,
       toId,
       roomId,
       text,
-      date,
-      file,
-    }
-
-    if (type !== MessageType.Text && type !== MessageType.Unknown) {
-      payload.file = await this.messageRawPayloadToFile(rawPayload)
+      timestamp,
     }
 
     return payload
+  }
+
+  public async messageFile(messageId: string): Promise<FileBox> {
+    const rawPayload = await this.messageRawPayload(messageId)
+    const fileBox = await this.messageRawPayloadToFile(rawPayload)
+    return fileBox
   }
 
   private async messageRawPayloadToFile(
@@ -505,7 +505,7 @@ export class PuppetPuppeteer extends Puppet {
       throw new Error('forward() Due to webWx restrictions, more than 25MB of files can not be downloaded and can not be forwarded.')
     }
 
-    newMsg.FromUserName         = this.userId || ''
+    newMsg.FromUserName         = this.id || ''
     newMsg.isTranspond          = true
     newMsg.MsgIdBeforeTranspond = rawPayload.MsgIdBeforeTranspond || rawPayload.MsgId
     newMsg.MMSourceMsgId        = rawPayload.MsgId
@@ -579,7 +579,7 @@ export class PuppetPuppeteer extends Puppet {
   public async logout(): Promise<void> {
     log.verbose('PuppetPuppeteer', 'logout()')
 
-    const user = this.userSelf()
+    const user = this.selfId()
     if (!user) {
       log.warn('PuppetPuppeteer', 'logout() without self()')
       return
@@ -592,7 +592,7 @@ export class PuppetPuppeteer extends Puppet {
       Raven.captureException(e)
       throw e
     } finally {
-      this.userId = undefined
+      this.id = undefined
       this.emit('logout', user)
     }
   }
@@ -700,10 +700,10 @@ export class PuppetPuppeteer extends Puppet {
       }
       // return Misc.urlStream(avatarUrl, cookies)
 
-      const contact = this.Contact.load(contactId)
-      await contact.ready()
+      // const contact = this.Contact.load(contactId)
+      // await contact.ready()
 
-      const fileName = (contact.name() || 'unknown') + '-avatar.jpg'
+      const fileName = (payload.name || 'unknown') + '-avatar.jpg'
       return FileBox.packRemote(
         avatarUrl,
         fileName,
@@ -791,7 +791,9 @@ export class PuppetPuppeteer extends Puppet {
     return filterFunction
   }
 
-  public async contactFindAll(query: ContactQueryFilter): Promise<string[]> {
+  public async contactFindAll(
+    query: ContactQueryFilter = { name: /.*/ },
+  ): Promise<string[]> {
 
     const filterFunc = this.contactQueryFilterToFunctionString(query)
 
@@ -819,36 +821,37 @@ export class PuppetPuppeteer extends Puppet {
       // let currNum = rawPayload.MemberList && rawPayload.MemberList.length || 0
       // let prevNum = room.memberList().length  // rawPayload && rawPayload.MemberList && this.rawObj.MemberList.length || 0
 
-      let prevNum = 0
+      let prevLength = -1
 
+      /**
+       * @todo use Misc.retry() to replace the following loop
+       */
       let ttl = 7
       while (ttl--/* && currNum !== prevNum */) {
-        rawPayload = await this.bridge.getContact(id) as WebRoomRawPayload
+        rawPayload = await this.bridge.getContact(id) as undefined | WebRoomRawPayload
 
-        const currNum = rawPayload.MemberList && rawPayload.MemberList.length || 0
+        if (rawPayload) {
+          const currLength = rawPayload.MemberList && rawPayload.MemberList.length || 0
 
-        log.silly('PuppetPuppeteer', `roomPayload() this.bridge.getContact(%s) MemberList.length:%d at ttl:%d`,
-          id,
-          currNum,
-          ttl,
-        )
+          log.silly('PuppetPuppeteer', `roomPayload() this.bridge.getContact(%s) MemberList.length:%d at ttl:%d`,
+            id,
+            currLength,
+            ttl,
+          )
 
-        if (currNum > 0 && prevNum === currNum) {
-          log.silly('PuppetPuppeteer', `roomPayload() puppet.getContact(${id}) done at ttl:%d`, ttl)
-          break
+          if (prevLength === currLength) {
+            log.silly('PuppetPuppeteer', `roomPayload() puppet.getContact(${id}) done at ttl:%d`, ttl)
+            return rawPayload
+          }
+          prevLength = currLength
         }
-        prevNum = currNum
 
         log.silly('PuppetPuppeteer', `roomPayload() puppet.getContact(${id}) retry at ttl:%d`, ttl)
         await new Promise(r => setTimeout(r, 1000)) // wait for 1 second
       }
 
-      // await this.readyAllMembers(rawPayload && rawPayload.MemberList || [])
-      if (!rawPayload) {
-        throw new Error('no payload')
-      }
+      throw new Error('no payload')
 
-      return rawPayload
     } catch (e) {
       log.error('PuppetPuppeteer', 'roomRawPayload(%s) exception: %s', id, e.message)
       Raven.captureException(e)
@@ -861,21 +864,23 @@ export class PuppetPuppeteer extends Puppet {
   ): Promise<RoomPayload> {
     log.verbose('PuppetPuppeteer', 'roomRawPayloadParser(%s)', rawPayload)
 
-    // console.log(rawPayload)
-    const memberList = (rawPayload.MemberList || [])
-                        .map(m => this.Contact.load(m.UserName))
-    await Promise.all(memberList.map(c => c.ready()))
+    // const payload = await this.roomPayload(rawPayload.UserName)
 
-    const nameMap         = this.roomParseMap('name'        , rawPayload.MemberList)
-    const roomAliasMap    = this.roomParseMap('roomAlias'   , rawPayload.MemberList)
-    const contactAliasMap = this.roomParseMap('contactAlias', rawPayload.MemberList)
+    // console.log(rawPayload)
+    // const memberList = (rawPayload.MemberList || [])
+    //                     .map(m => this.Contact.load(m.UserName))
+    // await Promise.all(memberList.map(c => c.ready()))
+
+    const rawMemberList = rawPayload.MemberList || []
+    const memberIdList  = rawMemberList.map(rawMember => rawMember.UserName)
+
+    const nameMap         = await this.roomParseMap('name'        , rawPayload.MemberList)
+    const roomAliasMap    = await this.roomParseMap('roomAlias'   , rawPayload.MemberList)
+    const contactAliasMap = await this.roomParseMap('contactAlias', rawPayload.MemberList)
 
     const roomPayload: RoomPayload = {
-      // id:         rawPayload.UserName,
-      // encryId:    rawPayload.EncryChatRoomId, // ???
       topic:      Misc.plainText(rawPayload.NickName || ''),
-      // ownerUin:   rawPayload.OwnerUin,
-      memberIdList: memberList.map(c => c.id),
+      memberIdList,
 
       nameMap,
       roomAliasMap,
@@ -885,47 +890,49 @@ export class PuppetPuppeteer extends Puppet {
     return roomPayload
   }
 
-  private roomParseMap(
+  private async roomParseMap(
     parseSection: keyof RoomMemberQueryFilter,
     memberList?:  WebRoomRawMember[],
-  ): Map<string, string> {
+  ): Promise<Map<string, string>> {
     log.verbose('PuppetPuppeteer', 'roomParseMap(%s, memberList.length=%d)',
                                     parseSection,
                                     memberList && memberList.length,
                 )
 
     const dict: Map<string, string> = new Map<string, string>()
-    if (memberList && memberList.map) {
-      memberList.forEach(member => {
-        let tmpName: string
-        // console.log(member)
-        const contact = this.Contact.load(member.UserName)
-        // contact.ready().then(() => console.log('###############', contact.name()))
-        // console.log(contact)
-        // log.silly('PuppetPuppeteer', 'roomParseMap() memberList.forEach(contact=%s)', contact)
 
-        switch (parseSection) {
-          case 'name':
-            tmpName = contact.name()
-            break
-          case 'roomAlias':
-            tmpName = member.DisplayName
-            break
-          case 'contactAlias':
-            tmpName = contact.alias() || ''
-            break
-          default:
-            throw new Error('parseMap failed, member not found')
-        }
-        /**
-         * ISSUE #64 emoji need to be striped
-         * ISSUE #104 never use remark name because sys group message will never use that
-         * @rui: Wrong for 'never use remark name because sys group message will never use that', see more in the latest comment in #104
-         * @rui: webwx's NickName here return contactAlias, if not set contactAlias, return name
-         * @rui: 2017-7-2 webwx's NickName just ruturn name, no contactAlias
-         */
-        dict.set(member.UserName, Misc.stripEmoji(tmpName))
-      })
+    const updateMember = async (member: WebRoomRawMember) => {
+      let tmpName: string
+      // console.log(member)
+      const payload = await this.contactPayload(member.UserName)
+      // contact.ready().then(() => console.log('###############', contact.name()))
+      // console.log(contact)
+      // log.silly('PuppetPuppeteer', 'roomParseMap() memberList.forEach(contact=%s)', contact)
+
+      switch (parseSection) {
+        case 'name':
+          tmpName = payload.name || ''
+          break
+        case 'roomAlias':
+          tmpName = member.DisplayName
+          break
+        case 'contactAlias':
+          tmpName = payload.alias || ''
+          break
+        default:
+          throw new Error('parseMap failed, member not found')
+      }
+      /**
+       * ISSUE #64 emoji need to be striped
+       * ISSUE #104 never use remark name because sys group message will never use that
+       * @rui: Wrong for 'never use remark name because sys group message will never use that', see more in the latest comment in #104
+       * @rui: webwx's NickName here return contactAlias, if not set contactAlias, return name
+       * @rui: 2017-7-2 webwx's NickName just ruturn name, no contactAlias
+       */
+      dict.set(member.UserName, Misc.stripEmoji(tmpName))
+    }
+    if (Array.isArray(memberList)) {
+      await Promise.all(memberList.map(updateMember))
     }
     return dict
   }
@@ -1057,38 +1064,25 @@ export class PuppetPuppeteer extends Puppet {
    * @private
    * For issue #668
    */
-  public async readyStable(): Promise<void> {
+  public async waitStable(): Promise<void> {
     log.verbose('PuppetPuppeteer', 'readyStable()')
-    let counter = -1
 
-    const stable = async (done: Function): Promise<void> => {
-      log.silly('PuppetPuppeteer', 'readyStable() stable() counter=%d', counter)
+    let   prevLength = -1
+    let   ttl        = 60
+    const sleepTime  = 60 * 1000 / ttl
 
-      const contactList = await this.Contact.findAll()
-      if (counter === contactList.length) {
-        log.verbose('PuppetPuppeteer', 'readyStable() stable() READY counter=%d', counter)
-        return done()
+    while (ttl-- > 0) {
+      const contactIdList = await this.contactFindAll()
+      if (prevLength === contactIdList.length) {
+        log.verbose('PuppetPuppeteer', 'readyStable() stable() READY length=%d', prevLength)
+        return
       }
-      counter = contactList.length
-      setTimeout(() => stable(done), 1000)
-        .unref()
+      prevLength = contactIdList.length
+
+      await new Promise(r => setTimeout(r, sleepTime))
     }
 
-    return new Promise<void>((resolve, reject) => {
-      const timer = setTimeout(() => {
-        log.warn('PuppetPuppeteer', 'readyStable() stable() reject at counter=%d', counter)
-        return reject(new Error('timeout after 60 seconds'))
-      }, 60 * 1000)
-      timer.unref()
-
-      const done = () => {
-        clearTimeout(timer)
-        return resolve()
-      }
-
-      return stable(done)
-    })
-
+    log.warn('PuppetPuppeteer', 'readyStable() TTL expired. Final length=%d', prevLength)
   }
 
   /**
@@ -1366,7 +1360,7 @@ export class PuppetPuppeteer extends Puppet {
     const first           = cookie.find(c => c.name === 'webwx_data_ticket')
     const webwxDataTicket = first && first.value
     const size            = buffer.length
-    const fromUserName    = this.userSelf()!.id
+    const fromUserName    = this.selfId()
     const id              = 'WU_FILE_' + this.fileId
     this.fileId++
 

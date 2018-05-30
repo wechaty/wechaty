@@ -22,8 +22,6 @@ import * as test  from 'blue-tape'
 import * as sinon from 'sinon'
 // const sinonTest   = require('sinon-test')(sinon)
 
-// import cloneClass from 'clone-class'
-
 import {
   // config,
   log,
@@ -31,18 +29,10 @@ import {
 import Profile    from '../profile'
 import Wechaty    from '../wechaty'
 
-// import { PuppetMock } from '../puppet-mock/'
-
-// import {
-//   Contact,
-// }                   from '../contact'
 import {
   Message,
   MessagePayload,
  }                  from '../message'
-// import {
-//   Room,
-// }                   from '../room'
 
 import {
   PuppetPuppeteer,
@@ -52,20 +42,19 @@ import {
   WebRoomRawPayload,
 }                         from './web-schemas'
 
-const wechaty = new Wechaty()
-
-const puppet = new PuppetPuppeteer({
-  profile: new Profile(),
-  wechaty,
-})
-
-;
-(wechaty as any).initPuppetAccessory(puppet)
-
-const MOCK_USER_ID = 'TEST-USER-ID'
-puppet.login(MOCK_USER_ID)
-
 test('constructor()', async t => {
+  const wechaty = new Wechaty()
+
+  const puppet = new PuppetPuppeteer({
+    profile: new Profile(),
+    wechaty,
+  })
+
+  ;
+  (wechaty as any).initPuppetAccessory(puppet)
+
+  const MOCK_USER_ID = 'TEST-USER-ID'
+
   /* tslint:disable:max-line-length */
   const rawPayload: WebMessageRawPayload = JSON.parse('{"MsgId":"179242112323992762","FromUserName":"@0bb3e4dd746fdbd4a80546aef66f4085","ToUserName":"@16d20edf23a3bf3bc71bb4140e91619f3ff33b4e33f7fcd25e65c1b02c7861ab","MsgType":1,"Content":"test123","Status":3,"ImgStatus":1,"CreateTime":1461652670,"VoiceLength":0,"PlayLength":0,"FileName":"","FileSize":"","MediaId":"","Url":"","AppMsgType":0,"StatusNotifyCode":0,"StatusNotifyUserName":"","RecommendInfo":{"UserName":"","NickName":"","QQNum":0,"Province":"","City":"","Content":"","Signature":"","Alias":"","Scene":0,"VerifyFlag":0,"AttrStatus":0,"Sex":0,"Ticket":"","OpCode":0},"ForwardFlag":0,"AppInfo":{"AppID":"","Type":0},"HasProductId":0,"Ticket":"","ImgHeight":0,"ImgWidth":0,"SubMsgType":0,"NewMsgId":179242112323992770,"MMPeerUserName":"@0bb3e4dd746fdbd4a80546aef66f4085","MMDigest":"test123","MMIsSend":false,"MMIsChatRoom":false,"MMUnread":true,"LocalID":"179242112323992762","ClientMsgId":"179242112323992762","MMActualContent":"test123","MMActualSender":"@0bb3e4dd746fdbd4a80546aef66f4085","MMDigestTime":"14:37","MMDisplayTime":1461652670,"MMTime":"14:37"}')
 
@@ -78,14 +67,16 @@ test('constructor()', async t => {
   const sandbox = sinon.createSandbox()
   sandbox.stub(puppet, 'messagePayload').callsFake((_: string) => {
     const payload: MessagePayload = {
-      type   : Message.Type.Text,
-      fromId : EXPECTED.from,
-      date   : new Date(),
+      type      : Message.Type.Text,
+      fromId    : EXPECTED.from,
+      timestamp : Date.now(),
     }
     return payload
   })
   sandbox.stub(puppet, 'contactPayload').returns({})
   sandbox.stub(puppet, 'roomPayload').returns({})
+
+  puppet.login(MOCK_USER_ID)
 
   await msg.ready()
 
@@ -187,50 +178,107 @@ test('ready()', async t => {
 })
 
 test('find()', async t => {
+  const wechaty = new Wechaty()
+
+  const puppet = new PuppetPuppeteer({
+    profile: new Profile(),
+    wechaty,
+  })
+
+  ;
+  (wechaty as any).initPuppetAccessory(puppet)
+
+  const sandbox = sinon.createSandbox()
+
+  sandbox.stub(puppet, 'contactPayload').resolves({})
+
+  const MOCK_USER_ID = 'TEST-USER-ID'
+  puppet.login(MOCK_USER_ID)
+
   const msg = await wechaty.Message.find({
     id: 'xxx',
   })
 
   t.ok(msg, 'Message found')
   t.ok(msg!.id, 'Message.id is ok')
+
+  sandbox.restore()
 })
 
 test('findAll()', async t => {
+  const wechaty = new Wechaty()
+
+  const puppet = new PuppetPuppeteer({
+    profile: new Profile(),
+    wechaty,
+  })
+
+  ;
+  (wechaty as any).initPuppetAccessory(puppet)
+
+  const sandbox = sinon.createSandbox()
+  sandbox.stub(puppet, 'contactPayload').resolves({})
+
+  const MOCK_USER_ID = 'TEST-USER-ID'
+  puppet.login(MOCK_USER_ID)
+
   const msgList = await wechaty.Message.findAll({
     from: 'yyy',
   })
 
   t.is(msgList.length, 2, 'Message.findAll with limit 2')
+
+  sandbox.restore()
 })
 
 test('self()', async t => {
+  const wechaty = new Wechaty()
+
+  const puppet = new PuppetPuppeteer({
+    profile: new Profile(),
+    wechaty,
+  })
+
+  ;
+  (wechaty as any).initPuppetAccessory(puppet)
+
+  const MOCK_USER_ID = 'TEST-USER-ID'
+
   const sandbox = sinon.createSandbox()
 
   const MOCK_CONTACT = wechaty.Contact.load(MOCK_USER_ID)
 
   function mockMessagePayload() {
     const payload: MessagePayload = {
-      fromId      : MOCK_CONTACT.id,
-      toId        : 'to_id',
-      type      : {} as any,
-      date      : {} as any,
+      fromId    : MOCK_CONTACT.id,
+      toId      : 'to_id',
+      type      : wechaty.Message.Type.Text,
+      timestamp : Date.now(),
     }
     return payload
   }
 
   sandbox.stub(puppet, 'messagePayload').callsFake(mockMessagePayload)
-  sandbox.stub((puppet as any as { 'userId': string }), 'userId')
-          .value(MOCK_CONTACT.id)
-  sandbox.stub(puppet, 'roomPayload').returns({})
-  sandbox.stub(puppet, 'contactPayload').returns({})
+  sandbox.stub(puppet, 'messageRawPayload').resolves({})
+  sandbox.stub(puppet, 'roomPayload').resolves({})
+  sandbox.stub(puppet, 'contactPayload').resolves({})
+  const selfIdStub = sandbox.stub(puppet, 'selfId').returns(MOCK_CONTACT.id)
+
+  // XXX
+  // function isNonExistentOwnProperty(object, property) {
+  //   return object && typeof property !== "undefined" && !(property in object);
+  // }
+
+  puppet.login(MOCK_USER_ID)
 
   const selfMsg = wechaty.Message.create('xxx')
   await selfMsg.ready()
 
-  t.true(selfMsg.self(), 'should identify self message true where message from userId')
+  t.true(selfMsg.self(), 'should identify self message true where message from MOCK_CONTACT')
 
-  sandbox.stub((puppet as any as { 'userId': string }), 'userId')
-          .value('fasdfafasdfsdf')
+  selfIdStub.restore()
+  sandbox.stub(puppet, 'selfId').returns('fadsfasdfasdfasfas')
+
   const otherMsg = wechaty.Message.create('xxx')
   await otherMsg.ready()
 
@@ -323,7 +371,6 @@ test('mentioned()', async t => {
   sandbox.stub(puppet as any, 'contactRawPayload').callsFake(mockContactRawPayload)
   sandbox.stub(puppet as any, 'roomRawPayload')   .callsFake(mockRoomRawPayload)
   sandbox.stub(puppet as any, 'messageRawPayload').callsFake(mockMessageRawPayload)
-  // MyRoom.puppet = wechaty.Message.puppet = MyContact.puppet = puppet
 
   const msg11 = wechaty.Message.create(rawPayload11.MsgId)
   await msg11.ready()
