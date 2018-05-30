@@ -729,6 +729,7 @@ export class PuppetPadchat extends Puppet {
               )
 
     const msg = this.Message.create(messageId)
+
     await msg.ready()
 
     if (msg.type() === this.Message.Type.Text) {
@@ -838,6 +839,7 @@ export class PuppetPadchat extends Puppet {
   ): Promise<void> {
     log.verbose('PuppetPadchat', 'roomDel(%s, %s)', roomId, contactId)
 
+    // Should check whether user is in the room. WXDeleteChatRoomMember won't check if user in the room automatically
     await this.bridge.WXDeleteChatRoomMember(roomId, contactId)
   }
 

@@ -52,6 +52,11 @@ export interface WXInitializeType {
   status  : number,
 }
 
+export interface WXAddChatRoomMemberType {
+  message : string, // "\n\u0010Everything+is+OK" (succeed)  || "\n\u0014MemberList+are+wrong" ('user has in the room')
+  status  : number, // 0
+}
+
 export interface WXGetQRCodeType {
   qr_code : string,
 }
@@ -80,6 +85,11 @@ export interface WXGenerateWxDatType {
 export interface WXLoadWxDatType {
   status  : number,   // 0
   message : string,   // ok
+}
+
+export interface StandardType {
+  status  : number,   // 0
+  message : string,   // ''
 }
 
 export interface WXGetLoginTokenType {
@@ -578,27 +588,51 @@ export class Bridge extends EventEmitter {
     return
   }
 
-  public async WXSetUserRemark(id: string, remark: string): Promise<any> {
+  public async WXSetUserRemark(id: string, remark: string): Promise<StandardType> {
     const result = await this.sendToWebSocket('WXSetUserRemark', [id, remark])
-    console.log(result)
+    log.silly('PuppetPadchatBridge', 'WXSetUserRemark result: %s', JSON.stringify(result))
+    if (!result || result.status !== 0) {
+      throw Error('WXSetUserRemark error! canot get result from websocket server')
+    }
     return result
   }
 
-  public async WXDeleteChatRoomMember(roomId: string, contactId: string): Promise<any> {
+  public async WXDeleteChatRoomMember(roomId: string, contactId: string): Promise<StandardType> {
     const result = await this.sendToWebSocket('WXDeleteChatRoomMember', [roomId, contactId])
-    console.log(result)
+    log.silly('PuppetPadchatBridge', 'WXDeleteChatRoomMember result: %s', JSON.stringify(result))
+    if (!result || result.status !== 0) {
+      throw Error('WXDeleteChatRoomMember error! canot get result from websocket server')
+    }
     return result
   }
 
-  public async WXAddChatRoomMember(roomId: string, contactId: string): Promise<any> {
-    const result = await this.sendToWebSocket('WXAddChatRoomMember', [roomId, contactId])
-    console.log(result)
-    return result
+  public async WXAddChatRoomMember(roomId: string, contactId: string): Promise<boolean> {
+    const result = (await this.sendToWebSocket('WXAddChatRoomMember', [roomId, contactId])) as WXAddChatRoomMemberType
+    log.silly('PuppetPadchatBridge', 'WXAddChatRoomMember result: %s', JSON.stringify(result))
+    if (result && result.status === -2028) {
+      // result: {"message":"","status":-2028}
+      // May be the owner has see not allow other people to join in the room (群聊邀请确认)
+      log.warn('PuppetPadchatBridge', 'WXAddChatRoomMember failed! maybe owner open the should confirm first to invited others to join in the room.')
+      return false
+    }
+
+    if (!result || result.status !== 0) {
+      throw Error('WXAddChatRoomMember error! canot get result from websocket server')
+    }
+
+    // see more in WXAddChatRoomMemberType
+    if (/OK/i.test(result.message)) {
+      return true
+    }
+    return false
   }
 
-  public async WXSetChatroomName(roomId: string, topic: string): Promise<any> {
+  public async WXSetChatroomName(roomId: string, topic: string): Promise<StandardType> {
     const result = await this.sendToWebSocket('WXSetChatroomName', [roomId, topic])
-    console.log(result)
+    log.silly('PuppetPadchatBridge', 'WXSetChatroomName result: %s', JSON.stringify(result))
+    if (!result || result.status !== 0) {
+      throw Error('WXSetChatroomName error! canot get result from websocket server')
+    }
     return result
   }
 
@@ -609,9 +643,12 @@ export class Bridge extends EventEmitter {
   //   return result
   // }
 
-  public async WXQuitChatRoom(roomId: string): Promise<any> {
+  public async WXQuitChatRoom(roomId: string): Promise<StandardType> {
     const result = await this.sendToWebSocket('WXQuitChatRoom', [roomId])
-    console.log(result)
+    log.silly('PuppetPadchatBridge', 'WXQuitChatRoom result: %s', JSON.stringify(result))
+    if (!result || result.status !== 0) {
+      throw Error('WXQuitChatRoom error! canot get result from websocket server')
+    }
     return result
   }
 
@@ -634,13 +671,13 @@ export class Bridge extends EventEmitter {
     type = '14'
     verify = 'hello'
     const result = await this.sendToWebSocket('WXAddUser', [strangerV1, strangerV2, type, verify])
-    console.log(result)
+    log.silly('PuppetPadchatBridge', 'WXAddUser result: %s', JSON.stringify(result))
     return result
   }
 
   public async WXAcceptUser(stranger: string, ticket: string): Promise<any> {
     const result = await this.sendToWebSocket('WXAcceptUser', [stranger, ticket])
-    console.log(result)
+    log.silly('PuppetPadchatBridge', 'WXAcceptUser result: %s', JSON.stringify(result))
     return result
   }
 
