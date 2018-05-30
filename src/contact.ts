@@ -105,7 +105,6 @@ export class Contact extends PuppetAccessory implements Sayable {
   public static load<T extends typeof Contact>(
     this     : T,
     id       : string,
-    payload? : ContactPayload,
   ): T['prototype'] {
     if (!this.pool) {
       log.verbose('Contact', 'load(%s) init pool', id)
@@ -122,8 +121,8 @@ export class Contact extends PuppetAccessory implements Sayable {
     }
     const existingContact = this.pool.get(id)
     if (existingContact) {
-      if (payload) {
-        existingContact.payload = payload
+      if (!existingContact.payload) {
+        existingContact.payload = this.puppet.cacheContactPayload.get(id)
       }
       return existingContact
     }
@@ -131,11 +130,9 @@ export class Contact extends PuppetAccessory implements Sayable {
     // when we call `load()`, `this` should already be extend-ed a child class.
     // so we force `this as any` at here to make the call.
     const newContact = new (this as any)(id)
-    this.pool.set(id, newContact)
+    newContact.payload = this.puppet.cacheContactPayload.get(id)
 
-    if (payload) {
-      newContact.payload = payload
-    }
+    this.pool.set(id, newContact)
 
     return newContact
   }

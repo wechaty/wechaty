@@ -550,9 +550,11 @@ export class Wechaty extends PuppetAccessory implements Sayable {
 
         case 'friend':
           puppet.removeAllListeners('friend')
-          puppet.on('friend', payload => {
-            const request = this.FriendRequest.fromJSON(payload)
+          puppet.on('friend', async requestId => {
+            const request = this.FriendRequest.load(requestId)
+            await request.ready()
             this.emit('friend', request)
+            request.contact().emit('friend', request)
           })
           break
 
@@ -596,6 +598,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
             await inviter.ready()
 
             this.emit('room-join', room, inviteeList, inviter)
+            room.emit('join', inviteeList, inviter)
           })
           break
 
@@ -609,6 +612,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
             await Promise.all(leaverList.map(c => c.ready()))
 
             this.emit('room-leave', room, leaverList)
+            room.emit('leave', leaverList)
           })
           break
 
@@ -622,6 +626,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
             await changer.ready()
 
             this.emit('room-topic', room, topic, oldTopic, changer)
+            room.emit('topic', topic, oldTopic, changer)
           })
           break
 

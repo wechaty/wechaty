@@ -59,6 +59,20 @@ export class FriendRequest extends PuppetAccessory {
   // tslint:disable-next-line:variable-name
   public static Type = FriendRequestType
 
+  public static load<T extends typeof FriendRequest>(
+    this     : T,
+    id       : string,
+    payload? : FriendRequestPayload,
+  ): T['prototype'] {
+    const newFriendRequest = new (this as any)(id)
+
+    const hitPayload = this.puppet.cacheFriendRequestPayload.get(id)
+    if (hitPayload) {
+      newFriendRequest.payload = hitPayload
+    }
+    return newFriendRequest
+  }
+
   /**
    * Send a Friend Request to a `contact` with message `hello`.
    * @param contact
@@ -68,21 +82,21 @@ export class FriendRequest extends PuppetAccessory {
     contact : Contact,
     hello   : string,
   ): FriendRequest {
-    return this.createSend(contact, hello)
+    return this.createSend(contact.id, hello)
   }
 
   private static createSend(
-    contact : Contact,
-    hello   : string,
+    contactId : string,
+    hello     : string,
   ): FriendRequest {
     log.verbose('PuppeteerFriendRequest', 'createSend(%s, %s)',
-                                          contact,
+                                          contactId,
                                           hello,
                 )
 
     const sentRequest = new this({
       type      : FriendRequestType.Send,
-      contactId : contact.id,
+      contactId,
       hello,
     })
 
@@ -90,34 +104,34 @@ export class FriendRequest extends PuppetAccessory {
   }
 
   public static createConfirm(
-    contact: Contact,
+    contactId: string,
   ): FriendRequest {
     log.verbose('PuppeteerFriendRequest', 'createConfirm(%s)',
-                                          contact,
+                                          contactId,
                 )
 
     const confirmedRequest = new this({
       type      : FriendRequestType.Confirm,
-      contactId : contact.id,
+      contactId,
     })
 
     return confirmedRequest
   }
 
   public static createReceive(
-    contact : Contact,
-    hello   : string,
-    ticket  : string,
+    contactId : string,
+    hello     : string,
+    ticket    : string,
   ): FriendRequest {
     log.verbose('PuppeteerFriendRequest', 'createReceive(%s, %s, %s)',
-                                          contact,
+                                          contactId,
                                           hello,
                                           ticket,
                 )
 
     const receivedRequest = new this({
       type      : FriendRequestType.Receive,
-      contactId : contact.id,
+      contactId,
       hello,
       ticket,
     })
@@ -125,8 +139,8 @@ export class FriendRequest extends PuppetAccessory {
     return receivedRequest
   }
 
-  public static fromJSON(payloadJsonStr: string): FriendRequest {
-    const payload: FriendRequestPayload = JSON.parse(payloadJsonStr)
+  public static fromJSON(payloadJsonText: string): FriendRequest {
+    const payload: FriendRequestPayload = JSON.parse(payloadJsonText)
     return new this(payload)
   }
 

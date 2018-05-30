@@ -52,7 +52,7 @@ import {
   ContactQueryFilter,
 }                       from '../contact'
 import {
-  FriendRequestType,
+  // FriendRequestType,
   FriendRequestPayload,
 }                       from '../friend-request'
 import {
@@ -95,26 +95,17 @@ let PUPPET_COUNTER = 0
  */
 export abstract class Puppet extends EventEmitter implements Sayable {
 
+  public readonly cacheContactPayload       : LRU.Cache<string, ContactPayload>
+  public readonly cacheFriendRequestPayload : LRU.Cache<string, FriendRequestPayload>
+  public readonly cacheMessagePayload       : LRU.Cache<string, MessagePayload>
+  public readonly cacheRoomPayload          : LRU.Cache<string, RoomPayload>
+
+  public readonly state : StateSwitch
+
   protected readonly watchdog : Watchdog
   protected readonly counter  : number
 
-  protected readonly cacheContactPayload       : LRU.Cache<string, ContactPayload>
-  protected readonly cacheFriendRequestPayload : LRU.Cache<string, FriendRequestPayload>
-  protected readonly cacheMessagePayload       : LRU.Cache<string, MessagePayload>
-  protected readonly cacheRoomPayload          : LRU.Cache<string, RoomPayload>
-
   protected id?: string
-
-  // /* tslint:disable:variable-name */
-  // public readonly Contact       : typeof Contact
-  // /* tslint:disable:variable-name */
-  // public readonly FriendRequest : typeof FriendRequest
-  // /* tslint:disable:variable-name */
-  // public readonly Message       : typeof Message
-  // /* tslint:disable:variable-name */
-  // public readonly Room          : typeof Room
-
-  public readonly state : StateSwitch
 
   /**
    * childPkg stores the `package.json` that the NPM module who extends the `Puppet`
@@ -262,7 +253,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   // public on(event: 'watchdog',    listener: (data: WatchdogFood) => void) : this
 
   public on(event: 'error',       listener: (error: string) => void)                                                      : this
-  public on(event: 'friend',      listener: (payload: string) => void)                                                    : this
+  public on(event: 'friend',      listener: (requestId: string) => void)                                                  : this
   public on(event: 'heartbeat',   listener: (data: string) => void)                                                       : this
   public on(event: 'login',       listener: (contactId: string) => void)                                                  : this
   public on(event: 'logout',      listener: (contactId: string) => void)                                                  : this
@@ -380,6 +371,80 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   /**
    *
+   * Contact
+   *
+   */
+  public abstract async contactAlias(contactId: string)                       : Promise<string>
+  public abstract async contactAlias(contactId: string, alias: string | null) : Promise<void>
+  public abstract async contactAlias(contactId: string, alias?: string|null)  : Promise<string | void>
+  public abstract async contactAvatar(contactId: string)                      : Promise<FileBox>
+  public abstract async contactFindAll(query?: ContactQueryFilter)            : Promise<string[]>
+
+  public abstract async contactRawPayload(id: string)            : Promise<any>
+  public abstract async contactRawPayloadParser(rawPayload: any) : Promise<ContactPayload>
+
+  public async contactPayload(
+    id: string,
+    noCache = false,
+  ): Promise<ContactPayload> {
+    log.silly('Puppet', 'contactPayload(id=%s, noCache=%s) @ %s', id, noCache, this)
+
+    if (noCache) {
+      log.silly('Puppet', 'contactPayload() cache PURGE')
+      this.cacheContactPayload.del(id)
+    }
+
+    const hitPayload = this.cacheContactPayload.get(id)
+
+    if (hitPayload) {
+      log.silly('Puppet', 'contactPayload() cache HIT')
+      return hitPayload
+    }
+
+    log.silly('Puppet', 'contactPayload() cache MISS')
+
+    const rawPayload = await this.contactRawPayload(id)
+    const payload    = await this.contactRawPayloadParser(rawPayload)
+
+    this.cacheContactPayload.set(id, payload)
+    log.silly('Puppet', 'contactPayload() cache SET')
+
+    return payload
+  }
+
+  /**
+   *
+   * FriendRequest
+   *
+   */
+  public abstract async friendRequestSend(contactId: string, hello?: string)   : Promise<void>
+  public abstract async friendRequestAccept(contactId: string, ticket: string) : Promise<void>
+
+  public async friendRequestPayload(
+    id: string,
+    noCache = false,
+  ): Promise<FriendRequestPayload> {
+    log.verbose('Puppet', 'friendRequestPayload(id=%s, noCache=%s)', id, noCache)
+
+    if (noCache) {
+      log.silly('Puppet', 'friendRequestPayload() cache PURGE')
+      this.cacheFriendRequestPayload.del(id)
+    }
+
+    const hitPayload = this.cacheFriendRequestPayload.get(id)
+
+    if (hitPayload) {
+      log.silly('Puppet', 'friendRequestPayload() cache HIT')
+      return hitPayload
+    }
+
+    log.silly('Puppet', 'friendRequestPayload() cache MISS')
+
+    throw new Error('no payload')
+  }
+
+  /**
+   *
    * Message
    *
    */
@@ -415,39 +480,12 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     const rawPayload = await this.messageRawPayload(id)
     const payload    = await this.messageRawPayloadParser(rawPayload)
 
+    this.cacheMessagePayload.set(id, payload)
+    log.silly('Puppet', 'messagePayload() cache SET')
+
     return payload
   }
 
-  /**
-   *
-   * FriendRequest
-   *
-   */
-  public abstract async friendRequestSend(contactId: string, hello?: string)   : Promise<void>
-  public abstract async friendRequestAccept(contactId: string, ticket: string) : Promise<void>
-
-  public async friendRequestPayload(
-    id: string,
-    noCache = false,
-  ): Promise<FriendRequestPayload> {
-    log.verbose('Puppet', 'friendRequestPayload(id=%s, noCache=%s)', id, noCache)
-
-    if (noCache) {
-      log.silly('Puppet', 'friendRequestPayload() cache PURGE')
-      this.cacheFriendRequestPayload.del(id)
-    }
-
-    const hitPayload = this.cacheFriendRequestPayload.get(id)
-
-    if (hitPayload) {
-      log.silly('Puppet', 'friendRequestPayload() cache HIT')
-      return hitPayload
-    }
-
-    log.silly('Puppet', 'friendRequestPayload() cache MISS')
-
-    throw new Error('no payload')
-  }
   /**
    *
    * Room
@@ -485,45 +523,10 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
     const rawPayload = await this.roomRawPayload(id)
     const payload    = await this.roomRawPayloadParser(rawPayload)
-    return payload
-  }
 
-  /**
-   *
-   * Contact
-   *
-   */
-  public abstract async contactAlias(contactId: string)                       : Promise<string>
-  public abstract async contactAlias(contactId: string, alias: string | null) : Promise<void>
-  public abstract async contactAlias(contactId: string, alias?: string|null)  : Promise<string | void>
-  public abstract async contactAvatar(contactId: string)                      : Promise<FileBox>
-  public abstract async contactFindAll(query?: ContactQueryFilter)            : Promise<string[]>
+    this.cacheRoomPayload.set(id, payload)
+    log.silly('Puppet', 'roomPayload() cache SET')
 
-  public abstract async contactRawPayload(id: string)            : Promise<any>
-  public abstract async contactRawPayloadParser(rawPayload: any) : Promise<ContactPayload>
-
-  public async contactPayload(
-    id: string,
-    noCache = false,
-  ): Promise<ContactPayload> {
-    log.silly('Puppet', 'contactPayload(id=%s, noCache=%s) @ %s', id, noCache, this)
-
-    if (noCache) {
-      log.silly('Puppet', 'contactPayload() cache PURGE')
-      this.cacheContactPayload.del(id)
-    }
-
-    const hitPayload = this.cacheContactPayload.get(id)
-
-    if (hitPayload) {
-      log.silly('Puppet', 'contactPayload() cache HIT')
-      return hitPayload
-    }
-
-    log.silly('Puppet', 'contactPayload() cache MISS')
-
-    const rawPayload = await this.contactRawPayload(id)
-    const payload    = await this.contactRawPayloadParser(rawPayload)
     return payload
   }
 
