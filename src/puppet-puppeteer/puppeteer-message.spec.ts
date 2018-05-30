@@ -264,6 +264,11 @@ test('self()', async t => {
   sandbox.stub(puppet, 'contactPayload').resolves({})
   const selfIdStub = sandbox.stub(puppet, 'selfId').returns(MOCK_CONTACT.id)
 
+  // XXX
+  // function isNonExistentOwnProperty(object, property) {
+  //   return object && typeof property !== "undefined" && !(property in object);
+  // }
+
   puppet.login(MOCK_USER_ID)
 
   const selfMsg = wechaty.Message.create('xxx')
