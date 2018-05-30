@@ -141,17 +141,17 @@ async function onLogin(
 
     log.silly('PuppetPuppeteerEvent', 'bridge.getUserName: %s', userId)
 
-    const user = this.Contact.load(userId)
-    await user.ready()
+    // const user = this.Contact.load(userId)
+    // await user.ready()
 
-    log.silly('PuppetPuppeteerEvent', `onLogin() user ${user.name()} logined`)
+    log.silly('PuppetPuppeteerEvent', `onLogin() user ${userId} logined`)
 
     if (this.state.on() === true) {
       await this.saveCookie()
     }
 
     // fix issue #668
-    await this.readyStable()
+    await this.waitStable()
 
     this.login(userId)
 
@@ -181,10 +181,10 @@ async function onMessage(
   this       : PuppetPuppeteer,
   rawPayload : WebMessageRawPayload,
 ): Promise<void> {
-  const msg = this.Message.create(
-    rawPayload.MsgId,
-    await this.messagePayload(rawPayload.MsgId),
-  )
+  // const msg = this.Message.create(
+  //   rawPayload.MsgId,
+  //   await this.messagePayload(rawPayload.MsgId),
+  // )
 
   /**
    * Fire Events if match message type & content
@@ -192,25 +192,28 @@ async function onMessage(
   switch (rawPayload.MsgType) {
 
     case WebMessageType.VERIFYMSG:
-      Firer.checkFriendRequest.call(this, msg)
+      Firer.checkFriendRequest.call(this, rawPayload.Content)
       break
 
     case WebMessageType.SYS:
-      if (msg.room()) {
-        const joinResult  = await Firer.checkRoomJoin.call(this, msg)
-        const leaveResult = await Firer.checkRoomLeave.call(this, msg)
-        const topicRestul = await Firer.checkRoomTopic.call(this, msg)
+      /**
+       * /^@@/.test() return true means it's a room
+       */
+      if (/^@@/.test(rawPayload.FromUserName)) {
+        const joinResult  = await Firer.checkRoomJoin.call(this, rawPayload.Content)
+        const leaveResult = await Firer.checkRoomLeave.call(this, rawPayload.Content)
+        const topicRestul = await Firer.checkRoomTopic.call(this, rawPayload.Content)
 
         if (!joinResult && !leaveResult && !topicRestul) {
-          log.warn('PuppetPuppeteerEvent', `checkRoomSystem message: <${msg.text()}> not found`)
+          log.warn('PuppetPuppeteerEvent', `checkRoomSystem message: <${rawPayload.Content}> not found`)
         }
       } else {
-        Firer.checkFriendConfirm.call(this, msg)
+        Firer.checkFriendConfirm.call(this, rawPayload.Content)
       }
       break
   }
 
-  this.emit('message', msg.id)
+  this.emit('message', rawPayload.MsgId)
 }
 
 async function onUnload(this: PuppetPuppeteer): Promise<void> {

@@ -291,18 +291,18 @@ export class PuppetPadchat extends Puppet {
 
       msgRawPayloadList.forEach(async (msgRawPayload) => {
         log.silly('PuppetPadchat', 'WebSocket Server rawData result: %s', JSON.stringify(msgRawPayload))
-        if (!msgRawPayload['msg_id']) {
+        if (!msgRawPayload.msg_id) {
           log.silly('PuppetPadchat', 'WebSocket Server: get empty message msg_id form Tencent server')
           return
         }
 
-        const msg  = this.Message.create(
-          msgRawPayload['msg_id'],
-          await this.messagePayload(msgRawPayload.msg_id),
-        )
-        await msg.ready()
+        // const msg  = this.Message.create(
+        //   msgRawPayload['msg_id'],
+        //   await this.messagePayload(msgRawPayload.msg_id),
+        // )
+        // await msg.ready()
 
-        this.emit('message', msg.id)
+        this.emit('message', msgRawPayload.msg_id)
       })
 
     // Data Return From WebSocket Client
@@ -385,8 +385,8 @@ export class PuppetPadchat extends Puppet {
       await this.bridge.WXSendMsg(this.bridge.autoData.user_name, 'ding')
 
       this.id = this.bridge.autoData.user_name // Puppet userId different with WebSocket userId
-      const user = this.Contact.load(this.id)
-      await user.ready()
+      // const user = this.Contact.load(this.id)
+      // await user.ready()
       this.emit('login', this.id)
 
       log.verbose('PuppetPadchatBridge', 'loginSucceed: Send login to the bot, user_name: %s', this.bridge.username)
@@ -570,11 +570,11 @@ export class PuppetPadchat extends Puppet {
       throw Error('Room Object instead of Contact!')
     }
 
-    let contactType = this.Contact.Type.Unknown
+    let contactType = ContactType.Unknown
     if (/^gh_/.test(rawPayload.user_name)) {
-      contactType = this.Contact.Type.Official
+      contactType = ContactType.Official
     } else {
-      contactType = this.Contact.Type.Personal
+      contactType = ContactType.Personal
     }
 
     const payload: ContactPayload = {
@@ -636,29 +636,29 @@ export class PuppetPadchat extends Puppet {
   }
 
   public async messageRawPayloadParser(rawPayload: PadchatMessageRawPayload): Promise<MessagePayload> {
-    let type: MessageType = this.Message.Type.Unknown
+    let type = MessageType.Unknown
 
     switch (rawPayload.sub_type) {
       case PadchatMessageType.TEXT:
-        type = this.Message.Type.Text
+        type = MessageType.Text
         break
       case PadchatMessageType.IMAGE:
-        type = this.Message.Type.Image
+        type = MessageType.Image
         break
       case PadchatMessageType.VOICE:
-        type = this.Message.Type.Audio
+        type = MessageType.Audio
         break
       case PadchatMessageType.EMOTICON:
-        type = this.Message.Type.Emoticon
+        type = MessageType.Emoticon
         break
       case PadchatMessageType.APP:
-        type = this.Message.Type.Attachment
+        type = MessageType.Attachment
         break
       case PadchatMessageType.VIDEO:
-        type = this.Message.Type.Video
+        type = MessageType.Video
         break
       default:
-        type = this.Message.Type.Text
+        type = MessageType.Text
     }
 
     const payload: MessagePayload = {
@@ -677,16 +677,16 @@ export class PuppetPadchat extends Puppet {
       if (!payload.roomId || !payload.fromId) {
         throw Error('empty roomId or empty contactId!')
       }
-      const room = this.Room.load(payload.roomId)
-      const contact = this.Contact.load(payload.fromId)
-      await room.ready()
-      await contact.ready()
+      // const room = this.Room.load(payload.roomId)
+      // const contact = this.Contact.load(payload.fromId)
+      // await room.ready()
+      // await contact.ready()
     } else {
       if (!payload.fromId) {
         throw Error('empty contactId!')
       }
-      const contact = this.Contact.load(payload.fromId)
-      await contact.ready()
+      // const contact = this.Contact.load(payload.fromId)
+      // await contact.ready()
     }
 
     log.verbose('PuppetPadchat', 'messagePayload(%s)', JSON.stringify(payload))
@@ -731,18 +731,24 @@ export class PuppetPadchat extends Puppet {
                               messageId,
               )
 
-    const msg = this.Message.create(messageId)
-    await msg.ready()
+    // const msg = this.Message.create(messageId)
+    // await msg.ready()
 
-    if (msg.type() === this.Message.Type.Text) {
+    const payload = await this.messagePayload(messageId)
+
+    if (payload.type === MessageType.Text) {
+      if (!payload.text) {
+        throw new Error('no text!')
+      }
       await this.messageSendText(
         receiver,
-        msg.text(),
+        payload.text,
       )
     } else {
+      const file = await this.messageFile(messageId)
       await this.messageSendFile(
         receiver,
-        await msg.file(),
+        file,
       )
     }
   }
@@ -761,10 +767,10 @@ export class PuppetPadchat extends Puppet {
   public async roomRawPayloadParser(rawPayload: PadchatRoomRawPayload): Promise<RoomPayload> {
     log.verbose('PuppetPadchat', 'roomRawPayloadParser(%s)', rawPayload)
 
-    const memberList = (rawPayload.member || [])
-                        .map(id => this.Contact.load(id))
+    // const memberList = (rawPayload.member || [])
+    //                     .map(id => this.Contact.load(id))
 
-    await Promise.all(memberList.map(c => c.ready()))
+    // await Promise.all(memberList.map(c => c.ready()))
 
     const padchatRoomRawMemberList = await this.bridge.WXGetChatRoomMember(rawPayload.user_name)
 
@@ -783,10 +789,10 @@ export class PuppetPadchat extends Puppet {
     return payload
   }
 
-  private roomParseMap(
+  private async roomParseMap(
     parseSection: keyof RoomMemberQueryFilter,
     memberList?:  PadchatRoomRawMember[],
-  ): Map<string, string> {
+  ): Promise<Map<string, string>> {
     log.verbose('PuppetPadchat', 'roomParseMap(%s, memberList.length=%d)',
                                     parseSection,
                                     memberList && memberList.length,
@@ -794,7 +800,7 @@ export class PuppetPadchat extends Puppet {
 
     const dict: Map<string, string> = new Map<string, string>()
     if (memberList && Array.isArray(memberList)) {
-      memberList.forEach(member => {
+      for (const member of memberList) {
         let tmpName: string
 
         switch (parseSection) {
@@ -805,15 +811,17 @@ export class PuppetPadchat extends Puppet {
             tmpName = member.chatroom_nick_name
             break
           case 'contactAlias':
-            const contact = this.Contact.load(member.user_name)
-            tmpName = contact.alias() || ''
+            const payload = await this.contactPayload(member.user_name)
+            tmpName = payload.alias || ''
+            // const contact = this.Contact.load(member.user_name)
+            // tmpName = contact.alias() || ''
             break
           default:
             throw new Error('PuppetPadchat parseMap failed, member not found')
         }
 
         dict.set(member.user_name, Misc.stripEmoji(tmpName))
-      })
+      }
     }
     return dict
   }
@@ -828,8 +836,10 @@ export class PuppetPadchat extends Puppet {
     const roomIdList: string[] = []
     rooomMap.forEach(async (value , id) => {
       roomIdList.push(id)
-      this.Room.load(id, await this.roomRawPayloadParser(value))
+      // this.Room.load(id, await this.roomRawPayloadParser(value))
     })
+
+    // TODO implenmentation
 
     return roomIdList
   }
