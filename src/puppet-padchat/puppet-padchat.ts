@@ -17,8 +17,9 @@
  *
  */
 
-import * as path  from 'path'
+// import * as path  from 'path'
 // import * as fs    from 'fs'
+// import * as cuid from 'cuid'
 
 import {
   FileBox,
@@ -65,10 +66,6 @@ import {
 // }                       from '../profile'
 
 import {
-  ADDRESS,
-}                       from './config'
-
-import {
   Bridge,
   resolverDict,
   AutoDataType,
@@ -101,23 +98,20 @@ const TOKEN = 'padchattest'
 
 export class PuppetPadchat extends Puppet {
   public bridge:  Bridge
-  public botWs:   WebSocket
+  // public botWs:   WebSocket
 
   constructor(
     public options: PuppetOptions,
   ) {
     super(options)
 
-    this.botWs  = new WebSocket(ADDRESS, { perMessageDeflate: true })
-
     this.bridge = new Bridge({
       userId   : TOKEN,
-      botWs    : this.botWs,
       autoData : {},
       // profile:  profile, // should be profile in the future
     })
 
-    this.botWs.on('message', data => this.wsOnMessage(data))
+    this.bridge.on('ws', data => this.wsOnMessage(data))
 
   }
 
@@ -129,49 +123,74 @@ export class PuppetPadchat extends Puppet {
     return data
   }
 
-  // public initWatchdog(): void {
-  //   log.verbose('PuppetPadchat', 'initWatchdogForPuppet()')
+  public initWatchdog(): void {
+    log.verbose('PuppetPadchat', 'initWatchdogForPuppet()')
 
-  //   const puppet = this
+    const puppet = this
 
-  //   // clean the dog because this could be re-inited
-  //   this.watchdog.removeAllListeners()
+    // clean the dog because this could be re-inited
+    this.watchdog.removeAllListeners()
 
-  //   puppet.on('watchdog', food => this.watchdog.feed(food))
-  //   this.watchdog.on('feed', food => {
-  //     log.silly('PuppetPadchat', 'initWatchdogForPuppet() dog.on(feed, food={type=%s, data=%s})', food.type, food.data)
-  //     // feed the dog, heartbeat the puppet.
-  //     puppet.emit('heartbeat', food.data)
-  //   })
+    puppet.on('watchdog', food => this.watchdog.feed(food))
+    this.watchdog.on('feed', async food => {
+      log.silly('PuppetPadchat', 'initWatchdogForPuppet() dog.on(feed, food={type=%s, data=%s})', food.type, food.data)
+      // feed the dog, heartbeat the puppet.
+      puppet.emit('heartbeat', food.data)
 
-  //   this.watchdog.on('reset', async (food, timeout) => {
-  //     log.warn('PuppetPadchat', 'initWatchdogForPuppet() dog.on(reset) last food:%s, timeout:%s',
-  //                           food.data, timeout)
-  //     try {
-  //       await this.stop()
-  //       await this.start()
-  //     } catch (e) {
-  //       puppet.emit('error', e)
-  //     }
-  //   })
-  // }
+      const feedAfterTenSeconds = async () => {
+        this.bridge.WXHeartBeat()
+        .then(() => {
+          this.emit('watchdog', {
+            data: 'WXHeartBeat()',
+          })
+        })
+        .catch(e => {
+          log.warn('PuppetPadchat', 'initWatchdogForPuppet() feedAfterTenSeconds rejected: %s', e && e.message || '')
+        })
+      }
+
+      setTimeout(feedAfterTenSeconds, 15 * 1000)
+
+    })
+
+    this.watchdog.on('reset', async (food, timeout) => {
+      log.warn('PuppetPadchat', 'initWatchdogForPuppet() dog.on(reset) last food:%s, timeout:%s',
+                            food.data, timeout)
+      try {
+        await this.stop()
+        await this.start()
+      } catch (e) {
+        puppet.emit('error', e)
+      }
+    })
+  }
 
   public async start(): Promise<void> {
     // Connect with websocket server
-    const botWs = this.botWs
-
-    const bridge = this.bridge = await this.initBridge()
 
     if (!this.bridge) {
       throw Error('cannot init bridge successfully!')
     }
 
+    /**
+     * state has two main state: ON / OFF
+     * ON (pending)
+     * OFF (pending)
+     */
+    this.state.on('pending')
+
+    const bridge = this.bridge = await this.initBridge()
+
     this.bridge.loginSucceed = false
 
     log.verbose('PuppetPadchat', `start() with ${this.options.profile}`)
-    this.state.on('pending')
 
-    botWs.on('open', async() => {
+    this.bridge.once('open', async() => {
+
+      this.emit('watchdog', {
+        data: 'start',
+      })
+
       // await some tasks...
       await bridge.init()
       await bridge.WXInitialize()
@@ -219,11 +238,14 @@ export class PuppetPadchat extends Puppet {
 
   public async initBridge(): Promise<Bridge> {
     log.verbose('PuppetPadchat', 'initBridge()')
-    // if (this.state.off()) {
-    //   const e = new Error('initBridge() found targetState != live, no init anymore')
-    //   log.warn('PuppetPadchat', e.message)
-    //   throw e
-    // }
+
+    if (this.state.off()) {
+      const e = new Error('initBridge() found targetState != live, no init anymore')
+      log.warn('PuppetPadchat', e.message)
+      throw e
+    }
+
+    await this.bridge.initWs()
 
     const autoData: AutoDataType = await this.options.profile.get('autoData')
     log.silly('PuppetPadchat', 'initBridge, get autoData: %s', JSON.stringify(autoData))
@@ -368,6 +390,9 @@ export class PuppetPadchat extends Puppet {
       await this.bridge.WXSendMsg(this.bridge.autoData.user_name, 'Bot on line!')
 
       this.state.on(true)
+      // this.emit('start')
+      this.initWatchdog()
+
       return
     } else {
       log.verbose('PuppetPadchatBridge', 'no enough data, save again, %s', JSON.stringify(this.bridge.autoData))
@@ -388,21 +413,30 @@ export class PuppetPadchat extends Puppet {
     }
 
     this.state.off('pending')
+
+    this.watchdog.sleep()
+    setImmediate(() => this.bridge.removeAllListeners())
+
+    await this.logout()
+    this.bridge.closeWs()
+
     // await some tasks...
     this.state.off(true)
+
+    // this.emit('stop')
   }
 
   public async logout(): Promise<void> {
     log.verbose('PuppetPadchat', 'logout()')
 
-    if (!this.logonoff()) {
+    if (!this.userId) {
       throw new Error('logout before login?')
     }
 
-    // this.emit('logout', this.user!) // becore we will throw above by logonoff() when this.user===undefined
-    // this.user = undefined
+    this.emit('logout', this.userId) // becore we will throw above by logonoff() when this.user===undefined
+    this.userId = undefined
 
-    // TODO: do the logout job
+    // TODO: this.bridge.logout
   }
 
   /**
@@ -416,24 +450,98 @@ export class PuppetPadchat extends Puppet {
   public async contactAlias(contactId: string, alias?: string|null): Promise<void | string> {
     log.verbose('PuppetPadchat', 'contactAlias(%s, %s)', contactId, alias)
 
+    const payload = await this.contactPayload(contactId)
+
     if (typeof alias === 'undefined') {
-      return 'padchat alias'
+      return payload.alias || ''
     }
+
+    await this.bridge.WXSetUserRemark(contactId, alias || '')
+
     return
   }
 
   public async contactFindAll(query: ContactQueryFilter): Promise<string[]> {
     log.verbose('PuppetPadchat', 'contactFindAll(%s)', query)
 
-    return []
+    // const contactRawPayloadMap = (await this.bridge.checkSyncContactOrRoom()).contactMap
+
+    const contactIdList: string[] = []
+    // for (const contactRawPayload in contactRawPayloadMap) {
+
+    // }
+
+    // contactRawPayloadMap.forEach((value , id) => {
+    //   contactIdList.push(id)
+    //   this.Contact.load(
+    //     id,
+    //     await this.contactRawPayloadParser(value),
+    //   )
+    // })
+
+    // // const payloadList = await Promise.all(
+    // //   contactIdList.map(
+    // //     id => this.contactPayload(id),
+    // //   ),
+    // // )
+
+    // const contactList = contactIdList.filter(id => {
+    //   await this.contactPayload(id)
+    //   return true
+    // })
+    return contactIdList
+  }
+
+  protected contactQueryFilterToFunction(
+    query: ContactQueryFilter,
+  ): (payload: ContactPayload) => boolean {
+    log.verbose('PuppetPadchat', 'contactQueryFilterToFunctionString({ %s })',
+                            Object.keys(query)
+                                  .map(k => `${k}: ${query[k as keyof ContactQueryFilter]}`)
+                                  .join(', '),
+              )
+
+    if (Object.keys(query).length !== 1) {
+      throw new Error('query only support one key. multi key support is not availble now.')
+    }
+
+    const filterKey = Object.keys(query)[0] as keyof ContactQueryFilter
+
+    let filterValue: string | RegExp | undefined  = query[filterKey]
+    if (!filterValue) {
+      throw new Error('filterValue not found')
+    }
+
+    /**
+     * must be string because we need inject variable value
+     * into code as variable namespecialContactList
+     */
+    let filterFunction: (payload: ContactPayload) => boolean
+
+    if (filterValue instanceof RegExp) {
+      const regex = filterValue
+      filterFunction = (payload: ContactPayload) => regex.test(payload[filterKey] || '')
+    } else if (typeof filterValue === 'string') {
+      filterValue = filterValue.replace(/'/g, '\\\'')
+      filterFunction = (payload: ContactPayload) => payload[filterKey] === filterValue
+    } else {
+      throw new Error('unsupport name type')
+    }
+
+    return filterFunction
   }
 
   public async contactAvatar(contactId: string): Promise<FileBox> {
     log.verbose('PuppetPadchat', 'contactAvatar(%s)', contactId)
 
-    const WECHATY_ICON_PNG = path.resolve('../../docs/images/wechaty-icon.png')
-    // TODO
-    return FileBox.packBase64('', WECHATY_ICON_PNG)
+    const payload = await this.contactPayload(contactId)
+
+    if (!payload.avatar) {
+      throw new Error('no avatar')
+    }
+
+    const file = FileBox.packRemote(payload.avatar)
+    return file
   }
 
   public async contactRawPayload(id: string): Promise<PadchatContactRawPayload> {
@@ -484,6 +592,21 @@ export class PuppetPadchat extends Puppet {
    * Message
    *
    */
+
+  public async messageFile(id: string): Promise<FileBox> {
+    // const rawPayload = await this.messageRawPayload(id)
+
+    const base64 = 'cRH9qeL3XyVnaXJkppBuH20tf5JlcG9uFX1lL2IvdHRRRS9kMMQxOPLKNYIzQQ=='
+    const filename = 'test.txt'
+
+    const file = FileBox.packBase64(
+      base64,
+      filename,
+    )
+
+    return file
+  }
+
   public async messageRawPayload(id: string): Promise<PadchatMessageRawPayload> {
     throw Error('should not call messageRawPayload')
     // log.verbose('PuppetPadchat', 'messageRawPayload(%s)', id)
@@ -584,6 +707,16 @@ export class PuppetPadchat extends Puppet {
     file     : FileBox,
   ): Promise<void> {
     log.verbose('PuppetPadchat', 'messageSend(%s, %s)', receiver, file)
+
+    const id = receiver.contactId || receiver.roomId
+    if (!id) {
+      throw new Error('no id!')
+    }
+
+    await this.bridge.WXSendImage(
+      id,
+      await file.base64(),
+    )
   }
 
   public async messageForward(
@@ -594,6 +727,21 @@ export class PuppetPadchat extends Puppet {
                               receiver,
                               messageId,
               )
+
+    const msg = this.Message.create(messageId)
+    await msg.ready()
+
+    if (msg.type() === this.Message.Type.Text) {
+      await this.messageSendText(
+        receiver,
+        msg.text(),
+      )
+    } else {
+      await this.messageSendFile(
+        receiver,
+        await msg.file(),
+      )
+    }
   }
 
   /**
@@ -672,6 +820,15 @@ export class PuppetPadchat extends Puppet {
   ): Promise<string[]> {
     log.verbose('PuppetPadchat', 'roomFindAll(%s)', query)
 
+    // TODO: query
+    // const rooomMap = (await this.bridge.checkSyncContactOrRoom()).roomMap
+    // const roomIdList: string[] = []
+    // rooomMap.forEach(async (value , id) => {
+    //   roomIdList.push(id)
+    //   this.Room.load(id, await this.roomRawPayloadParser(value))
+    // })
+
+    // return roomIdList
     return []
   }
 
@@ -680,6 +837,8 @@ export class PuppetPadchat extends Puppet {
     contactId : string,
   ): Promise<void> {
     log.verbose('PuppetPadchat', 'roomDel(%s, %s)', roomId, contactId)
+
+    await this.bridge.WXDeleteChatRoomMember(roomId, contactId)
   }
 
   public async roomAdd(
@@ -687,6 +846,7 @@ export class PuppetPadchat extends Puppet {
     contactId : string,
   ): Promise<void> {
     log.verbose('PuppetPadchat', 'roomAdd(%s, %s)', roomId, contactId)
+    await this.bridge.WXAddChatRoomMember(roomId, contactId)
   }
 
   public async roomTopic(
@@ -695,9 +855,14 @@ export class PuppetPadchat extends Puppet {
   ): Promise<void | string> {
     log.verbose('PuppetPadchat', 'roomTopic(%s, %s)', roomId, topic)
 
+    const payload = await this.roomPayload(roomId)
+
     if (typeof topic === 'undefined') {
-      return 'padchat room topic'
+      return payload.topic
     }
+
+    await this.bridge.WXSetChatroomName(roomId, topic)
+
     return
   }
 
@@ -707,11 +872,13 @@ export class PuppetPadchat extends Puppet {
   ): Promise<string> {
     log.verbose('PuppetPadchat', 'roomCreate(%s, %s)', contactIdList, topic)
 
+    // await this.bridge.crea
     return 'mock_room_id'
   }
 
   public async roomQuit(roomId: string): Promise<void> {
     log.verbose('PuppetPadchat', 'roomQuit(%s)', roomId)
+    await this.bridge.WXQuitChatRoom(roomId)
   }
 
   /**
@@ -724,6 +891,25 @@ export class PuppetPadchat extends Puppet {
     hello     : string,
   ): Promise<void> {
     log.verbose('PuppetPadchat', 'friendRequestSend(%s, %s)', contactId, hello)
+
+    const rawPayload = await this.contactRawPayload(contactId)
+
+    let strangerV1
+    let strangerV2
+    if (/^v1_/i.test(rawPayload.stranger)) {
+      strangerV1 = rawPayload.stranger
+    } else if (/^v2_/i.test(rawPayload.stranger)) {
+      strangerV2 = rawPayload.stranger
+    } else {
+      throw new Error('stranger neither v1 nor v2!')
+    }
+
+    await this.bridge.WXAddUser(
+      strangerV1 || '',
+      strangerV2 || '',
+      '14',
+      hello,
+    )
   }
 
   public async friendRequestAccept(
@@ -731,6 +917,17 @@ export class PuppetPadchat extends Puppet {
     ticket    : string,
   ): Promise<void> {
     log.verbose('PuppetPadchat', 'friendRequestAccept(%s, %s)', contactId, ticket)
+
+    // const rawPayload = await this.contactRawPayload(contactId)
+
+    // if (!rawPayload.ticket) {
+    //   throw new Error('no ticket')
+    // }
+
+    // await this.bridge.WXAcceptUser(
+    //   rawPayload.stranger,
+    //   rawPayload.ticket,
+    // )
   }
 
 }
