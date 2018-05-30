@@ -729,7 +729,6 @@ export class PuppetPadchat extends Puppet {
               )
 
     const msg = this.Message.create(messageId)
-
     await msg.ready()
 
     if (msg.type() === this.Message.Type.Text) {
