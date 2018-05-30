@@ -655,7 +655,7 @@ export class PuppetPadchat extends Puppet {
         type = this.Message.Type.Video
         break
       default:
-        type = this.Message.Type.Text
+        type = this.Message.Type.Unknown
     }
 
     const payload: MessagePayload = {
