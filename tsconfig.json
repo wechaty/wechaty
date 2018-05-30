@@ -12,6 +12,15 @@
     , "traceResolution": false
     , "noEmitOnError": true
 
+    , "noUnusedLocals": true
+    , "noImplicitReturns": true
+    , "noFallthroughCasesInSwitch": true
+    , "strictNullChecks": true
+
+    , "noImplicitAny": false
+    , "noUnusedParameters": false
+    , "noImplicitThis": false
+
     , "noLib": false
     , "skipLibCheck": true
     , "lib": [
