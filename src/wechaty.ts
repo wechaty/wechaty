@@ -30,7 +30,12 @@ import {
   callerResolve,
   hotImport,
 }                   from 'hot-import'
-import StateSwitch  from 'state-switch'
+import {
+  StateSwitch,
+}                   from 'state-switch'
+import {
+  MemoryCard,
+}                   from 'memory-card'
 
 import {
   Accessory,
@@ -42,14 +47,14 @@ import {
   Raven,
   Sayable,
 }                       from './config'
-import Profile          from './profile'
 
 import {
   PUPPET_DICT,
   PuppetName,
 }                       from './puppet-config'
 import {
-  Puppet, PuppetOptions,
+  Puppet,
+  PuppetOptions,
 }                       from './puppet/'
 
 import {
@@ -65,26 +70,32 @@ import {
   Room,
 }                       from './room'
 
-export const WECHAT_EVENT_DICT = {
-  friend      : 'tbw',
-  login       : 'tbw',
-  logout      : 'tbw',
-  message     : 'tbw',
-  'room-join' : 'tbw',
-  'room-leave': 'tbw',
-  'room-topic': 'tbw',
-  scan        : 'tbw',
-}
+import {
+  CHAT_EVENT_DICT,
+  PUPPET_EVENT_DICT,
+  PuppetEventName,
+  // ChatEventName,
+}                       from './puppet/schemas/puppet'
+
+// export const WECHAT_EVENT_DICT = {
+//   friend      : 'tbw',
+//   login       : 'tbw',
+//   logout      : 'tbw',
+//   message     : 'tbw',
+//   'room-join' : 'tbw',
+//   'room-leave': 'tbw',
+//   'room-topic': 'tbw',
+//   scan        : 'tbw',
+// }
 
 export const WECHATY_EVENT_DICT = {
-  ...WECHAT_EVENT_DICT,
+  ...CHAT_EVENT_DICT,
   error     : 'tbw',
   heartbeat : 'tbw',
   start     : 'tbw',
   stop      : 'tbw',
 }
 
-export type WechatEventName   = keyof typeof WECHAT_EVENT_DICT
 export type WechatyEventName  = keyof typeof WECHATY_EVENT_DICT
 
 export interface WechatyOptions {
@@ -109,7 +120,7 @@ export class Wechaty extends Accessory implements Sayable {
    */
   private static globalInstance: Wechaty
 
-  private profile: Profile
+  private memory: MemoryCard
 
   /**
    * the state
@@ -169,7 +180,7 @@ export class Wechaty extends Accessory implements Sayable {
                       ? null
                       : (options.profile || config.default.DEFAULT_PROFILE)
 
-    this.profile = new Profile(options.profile)
+    this.memory = new MemoryCard(options.profile)
 
     this.id = cuid()
 
@@ -199,7 +210,7 @@ export class Wechaty extends Accessory implements Sayable {
       'Wechaty#',
       this.id,
       `<${this.options && this.options.puppet || ''}>`,
-      `(${this.profile && this.profile.name   || ''})`,
+      `(${this.memory  && this.memory.name    || ''})`,
     ].join('')
   }
 
@@ -485,8 +496,7 @@ export class Wechaty extends Accessory implements Sayable {
       }
 
       const options: PuppetOptions = {
-        profile : this.profile,
-        // wechaty:  this,
+        memory : this.memory,
       }
 
       return new MyPuppet(options)
@@ -510,7 +520,7 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   private initPuppetEventBridge(puppet: Puppet) {
-    const eventNameList: WechatyEventName[] = Object.keys(WECHATY_EVENT_DICT) as any
+    const eventNameList: PuppetEventName[] = Object.keys(PUPPET_EVENT_DICT) as any
     for (const eventName of eventNameList) {
       log.verbose('Wechaty', 'initPuppetEventBridge() puppet.on(%s) registered', eventName)
       // /// e as any ??? Maybe this is a bug of TypeScript v2.5.3
@@ -526,16 +536,21 @@ export class Wechaty extends Accessory implements Sayable {
           })
           break
 
-        case 'heartbeat':
+        case 'watchdog':
           puppet.removeAllListeners('heartbeat')
-          puppet.on('heartbeat', data => {
+          puppet.on('watchdog', data => {
+            /**
+             * Use `watchdog` event from Puppet to `heartbeat` Wechaty.
+             */
             this.emit('heartbeat', data)
           })
           break
 
         case 'start':
         case 'stop':
-          // do not emit 'start'/'stop' again for wechaty
+          // do not emit 'start'/'stop' again for wechaty:
+          // because both puppet & wechaty should have their own
+          // `start`/`stop` event seprately
           break
 
         // case 'start':
@@ -641,6 +656,9 @@ export class Wechaty extends Accessory implements Sayable {
           })
           break
 
+        case 'watchdog':
+          break
+
         default:
           throw new Error('eventName ' + eventName + 'unsupported!')
 
@@ -698,7 +716,7 @@ export class Wechaty extends Accessory implements Sayable {
     this.state.on('pending')
 
     try {
-      await this.profile.load()
+      await this.memory.load()
       await this.initPuppet()
 
       await this.puppet.start()
@@ -736,17 +754,10 @@ export class Wechaty extends Accessory implements Sayable {
     }
 
     this.state.off('pending')
-
-    let puppet: Puppet
-    try {
-      puppet = this.puppet
-    } catch (e) {
-      log.warn('Wechaty', 'stop() without this.puppet')
-      return
-    }
+    await this.memory.save()
 
     try {
-      await puppet.stop()
+      await this.puppet.stop()
     } catch (e) {
       log.error('Wechaty', 'stop() exception: %s', e.message)
       Raven.captureException(e)
@@ -757,7 +768,7 @@ export class Wechaty extends Accessory implements Sayable {
 
       // MUST use setImmediate at here(the end of this function),
       // because we need to run the micro task registered by the `emit` method
-      setImmediate(() => puppet.removeAllListeners())
+      setImmediate(() => this.puppet.removeAllListeners())
     }
     return
   }

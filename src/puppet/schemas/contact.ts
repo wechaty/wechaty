@@ -1,4 +1,4 @@
-export enum ContantGender {
+export enum ContactGender {
   Unknown = 0,
   Male    = 1,
   Female  = 2,
@@ -17,7 +17,7 @@ export interface ContactQueryFilter {
 
 export interface ContactPayload {
   id:         string,
-  gender:     ContantGender,
+  gender:     ContactGender,
   type:       ContactType,
 
   address?:   string,

@@ -577,15 +577,8 @@
             : null
   }
 
-  function contactFind(filterFunction) {
+  function contactList() {
     var contactFactory = WechatyBro.glue.contactFactory
-
-    var match
-    if (!filterFunction) {
-      match = () => true
-    } else {
-      match = eval(filterFunction)
-    }
 
     return new Promise(resolve => retryFind(0, resolve))
 
@@ -595,13 +588,12 @@
     function retryFind(attempt, callback) {
       attempt = attempt || 0
 
-      var contactList = contactFactory
+      var contactIdList = contactFactory
                           .getAllFriendContact()
-                          .filter(c => match(c))
                           .map(c => c.UserName)
 
-      if (contactList && contactList.length) {
-        callback(contactList)
+      if (contactIdList && contactIdList.length) {
+        callback(contactIdList)
       } else if (attempt > 3) {
         callback([])
       } else {
@@ -857,7 +849,7 @@
     getCheckUploadUrl,
 
     // for Wechaty Contact Class
-    contactFind,
+    contactList,
     contactRemark,
 
     // for Wechaty Room Class

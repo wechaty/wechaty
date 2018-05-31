@@ -36,57 +36,36 @@ import {
   WatchdogFood,
 }                       from 'watchdog'
 
-import {
-  WECHATY_EVENT_DICT,
-  // Wechaty,
-}                       from '../wechaty'
+// import {
+//   PUPPET_EVENT_DICT,
+// }                       from './schemas/puppet'
 import {
   Sayable,
   log,
 }                       from '../config'
-import Profile          from '../profile'
 
 import {
-  // Contact,
   ContactPayload,
   ContactQueryFilter,
-}                       from '../contact'
+  ContactPayloadFilterFunction,
+}                                 from './schemas/contact'
 import {
-  // FriendRequestType,
   FriendRequestPayload,
-}                       from '../friend-request'
+}                                 from './schemas/friend-request'
 import {
-  // Message,
   MessagePayload,
-}                       from '../message'
+}                                 from './schemas/message'
 import {
-  // Room,
   RoomPayload,
   RoomQueryFilter,
-}                       from '../room'
+  RoomPayloadFilterFunction,
+}                                 from './schemas/room'
 
-export interface ScanPayload {
-  code  : number,   // Code
-  data? : string,   // Image Data URL
-  url   : string,   // QR Code URL
-}
-
-export const PUPPET_EVENT_DICT = {
-  ...WECHATY_EVENT_DICT,
-  watchdog: 'tbw',
-}
-
-export type PuppetEventName = keyof typeof PUPPET_EVENT_DICT
-
-export interface PuppetOptions {
-  profile : Profile,
-  // wechaty : Wechaty,
-}
-
-export interface Receiver {
-  contactId? : string,
-  roomId?    : string,
-}
+import {
+  PuppetEventName,
+  PuppetOptions,
+  Receiver,
+}                       from './schemas/puppet'
 
 let PUPPET_COUNTER = 0
 
@@ -182,7 +161,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   }
 
   public toString() {
-    return `Puppet#${this.counter}<${this.constructor.name}>(${this.options.profile.name})`
+    return `Puppet#${this.counter}<${this.constructor.name}>(${this.options.memory.name})`
   }
 
   // private abstract async emitError(err: string)                                                            : Promise<void>
@@ -211,7 +190,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   public emit(event: 'error',       error: string)                                                      : boolean
   public emit(event: 'friend',      requestId: string)                                                  : boolean
-  public emit(event: 'heartbeat',   data: string)                                                       : boolean
+  // public emit(event: 'heartbeat',   data: string)                                                       : boolean
   public emit(event: 'login',       contactId: string)                                                  : boolean
   public emit(event: 'logout',      contactId: string)                                                  : boolean
   public emit(event: 'message',     messageId: string)                                                  : boolean
@@ -254,7 +233,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   public on(event: 'error',       listener: (error: string) => void)                                                      : this
   public on(event: 'friend',      listener: (requestId: string) => void)                                                  : this
-  public on(event: 'heartbeat',   listener: (data: string) => void)                                                       : this
+  // public on(event: 'heartbeat',   listener: (data: string) => void)                                                       : this
   public on(event: 'login',       listener: (contactId: string) => void)                                                  : this
   public on(event: 'logout',      listener: (contactId: string) => void)                                                  : this
   public on(event: 'message',     listener: (messageId: string) => void)                                                  : this
@@ -346,8 +325,12 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   }
 
   /**
+   *
    * Login / Logout
+   *
    */
+  public abstract async logout(): Promise<void>
+
   public logonoff(): boolean {
     if (this.id) {
       return true
@@ -356,7 +339,6 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     }
   }
 
-  public abstract async logout(): Promise<void>
   protected async login(userId: string): Promise<void> {
     log.verbose('Puppet', 'login(%s)', userId)
 
@@ -378,10 +360,67 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async contactAlias(contactId: string, alias: string | null) : Promise<void>
   public abstract async contactAlias(contactId: string, alias?: string|null)  : Promise<string | void>
   public abstract async contactAvatar(contactId: string)                      : Promise<FileBox>
-  public abstract async contactFindAll(query?: ContactQueryFilter)            : Promise<string[]>
+  public abstract async contactList()                                         : Promise<string[]>
 
   public abstract async contactRawPayload(id: string)            : Promise<any>
   public abstract async contactRawPayloadParser(rawPayload: any) : Promise<ContactPayload>
+
+  public async contactFindAll(query?: ContactQueryFilter): Promise<string[]> {
+    log.verbose('Puppet', 'contactFindAll(%s)', JSON.stringify(query))
+
+    const allContactIdList      = await this.contactList()
+    const allContactPayloadList = await Promise.all(
+      allContactIdList.map(
+        id => this.contactPayload(id),
+      ),
+    )
+
+    if (!query) {
+      return allContactIdList
+    }
+
+    const filterFuncion = this.contactQueryFilterFactory(query)
+
+    const idList = allContactPayloadList
+                    .filter(filterFuncion)
+                    .map(payload => payload.id)
+
+    return idList
+  }
+
+  private contactQueryFilterFactory(
+    query: ContactQueryFilter,
+  ): ContactPayloadFilterFunction {
+    log.verbose('Puppet', 'contactQueryFilterFactory({ %s })',
+                            Object.keys(query)
+                                  .map(k => `${k}: ${query[k as keyof ContactQueryFilter]}`)
+                                  .join(', '),
+              )
+
+    if (Object.keys(query).length !== 1) {
+      throw new Error('query only support one key. multi key support is not availble now.')
+    }
+
+    // TypeScript bug: have to set `undefined | string | RegExp` at here, or the later code type check will get error
+    const filterKey: undefined | string | RegExp = Object.keys(query)[0] as keyof ContactQueryFilter
+
+    const filterValue = query[filterKey]
+    if (!filterValue) {
+      throw new Error('filterValue not found for filterKey: ' + filterKey)
+    }
+
+    let filterFunction
+
+    if (filterValue instanceof RegExp) {
+      filterFunction = (payload: ContactPayload) => filterValue.test(payload[filterKey])
+    } else if (typeof filterValue === 'string') {
+      filterFunction = (payload: ContactPayload) => filterValue === payload[filterKey]
+    } else {
+      throw new Error('unsupport filterValue type: ' + typeof filterValue)
+    }
+
+    return filterFunction
+  }
 
   public async contactPayload(
     id: string,
@@ -494,12 +533,76 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async roomAdd(roomId: string, contactId: string)          : Promise<void>
   public abstract async roomCreate(contactIdList: string[], topic?: string) : Promise<string>
   public abstract async roomDel(roomId: string, contactId: string)          : Promise<void>
-  public abstract async roomFindAll(query?: RoomQueryFilter)                : Promise<string[]>
   public abstract async roomQuit(roomId: string)                            : Promise<void>
   public abstract async roomTopic(roomId: string, topic?: string)           : Promise<string | void>
+  public abstract async roomList()                                          : Promise<string[]>
 
   public abstract async roomRawPayload(id: string)            : Promise<any>
   public abstract async roomRawPayloadParser(rawPayload: any) : Promise<RoomPayload>
+
+  public async roomMember(name: string): Promise<string[]> {
+    log.verbose('Puppet', 'roomMember(%s)', name)
+
+    return []
+  }
+
+  public async roomFindAll(query?: RoomQueryFilter): Promise<string[]> {
+    log.verbose('Puppet', 'roomFindAll(%s)', JSON.stringify(query))
+
+    const allRoomIdList = await this.roomList()
+
+    if (!query) {
+      return allRoomIdList
+    }
+
+    const roomPayloadList = await Promise.all(
+      allRoomIdList.map(
+        id => this.roomPayload(id),
+      ),
+    )
+
+    const filterFunction = this.roomQueryFilterFactory(query)
+
+    const roomIdList = roomPayloadList
+                        .filter(filterFunction)
+                        .map(payload => payload.id)
+
+    return roomIdList
+  }
+
+  private roomQueryFilterFactory(
+    query: RoomQueryFilter,
+  ): RoomPayloadFilterFunction {
+    log.verbose('Puppet', 'roomQueryFilterFactory({ %s })',
+                            Object.keys(query)
+                                  .map(k => `${k}: ${query[k as keyof ContactQueryFilter]}`)
+                                  .join(', '),
+              )
+
+    if (Object.keys(query).length !== 1) {
+      throw new Error('query only support one key. multi key support is not availble now.')
+    }
+
+    // TypeScript bug: have to set `undefined | string | RegExp` at here, or the later code type check will get error
+    const filterKey: undefined | string | RegExp = Object.keys(query)[0] as keyof ContactQueryFilter
+
+    const filterValue = query[filterKey]
+    if (!filterValue) {
+      throw new Error('filterValue not found for filterKey: ' + filterKey)
+    }
+
+    let filterFunction: RoomPayloadFilterFunction
+
+    if (filterValue instanceof RegExp) {
+      filterFunction = (payload: RoomPayload) => filterValue.test(payload[filterKey])
+    } else if (typeof filterValue === 'string') {
+      filterFunction = (payload: RoomPayload) => filterValue === payload[filterKey]
+    } else {
+      throw new Error('unsupport filterValue: ' + typeof filterValue)
+    }
+
+    return filterFunction
+  }
 
   public async roomPayload(
     id: string,

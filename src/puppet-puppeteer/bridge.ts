@@ -327,11 +327,11 @@ export class Bridge extends EventEmitter {
     }
   }
 
-  public async contactFind(filterFunc: string): Promise<string[]> {
+  public async contactList(): Promise<string[]> {
     try {
-      return await this.proxyWechaty('contactFind', filterFunc)
+      return await this.proxyWechaty('contactList')
     } catch (e) {
-      log.error('PuppetPuppeteerBridge', 'contactFind() exception: %s', e.message)
+      log.error('PuppetPuppeteerBridge', 'contactList() exception: %s', e.message)
       throw e
     }
   }

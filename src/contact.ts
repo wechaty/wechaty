@@ -32,7 +32,7 @@ import {
 // import Message          from './message'
 
 import {
-  ContantGender,
+  ContactGender,
   ContactPayload,
   ContactQueryFilter,
   ContactType,
@@ -51,7 +51,7 @@ export class Contact extends Accessory implements Sayable {
   // tslint:disable-next-line:variable-name
   public static Type   = ContactType
   // tslint:disable-next-line:variable-name
-  public static Gender = ContantGender
+  public static Gender = ContactGender
 
   protected static [POOL]: Map<string, Contact>
   protected static get pool() {
@@ -450,14 +450,14 @@ export class Contact extends Accessory implements Sayable {
   /**
    * Contact gender
    *
-   * @returns {ContantGender.Male(2)|Gender.Female(1)|Gender.Unknown(0)}
+   * @returns {ContactGender.Male(2)|Gender.Female(1)|Gender.Unknown(0)}
    * @example
    * const gender = contact.gender()
    */
-  public gender(): ContantGender {
+  public gender(): ContactGender {
     return this.payload
       ? this.payload.gender
-      : ContantGender.Unknown
+      : ContactGender.Unknown
   }
 
   /**

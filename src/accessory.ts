@@ -37,7 +37,7 @@ export abstract class Accessory extends EventEmitter {
               )
 
     if (this._puppet) {
-      throw new Error('puppet can not be set twice!')
+      throw new Error('puppet can not be set twice')
     }
     this._puppet = puppet
   }
@@ -61,6 +61,9 @@ export abstract class Accessory extends EventEmitter {
                                   this.name,
                                   wechaty,
               )
+    if (this._wechaty) {
+      throw new Error('wechaty can not be set twice')
+    }
     this._wechaty = wechaty
   }
 
