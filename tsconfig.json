@@ -24,7 +24,7 @@
     , "noLib": false
     , "skipLibCheck": true
     , "lib": [
-      "esnext"
+      "esnext", "dom"
     ]
   }
   , "exclude": [
