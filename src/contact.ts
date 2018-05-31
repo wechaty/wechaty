@@ -24,8 +24,10 @@ import {
   log,
   Raven,
   Sayable,
-}                       from './config'
-import { PuppetAccessory }  from './puppet-accessory'
+}             from './config'
+import {
+  Accessory,
+}             from './accessory'
 
 // import Message          from './message'
 
@@ -78,7 +80,7 @@ export const POOL = Symbol('pool')
  * `Contact` is `Sayable`,
  * [Examples/Contact-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/contact-bot.ts}
  */
-export class Contact extends PuppetAccessory implements Sayable {
+export class Contact extends Accessory implements Sayable {
 
   // tslint:disable-next-line:variable-name
   public static Type   = ContactType

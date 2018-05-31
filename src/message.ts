@@ -29,11 +29,17 @@ import {
 import {
   log,
   Sayable,
-}                       from './config'
-import PuppetAccessory  from './puppet-accessory'
+}                 from './config'
+import {
+  Accessory,
+}                 from './accessory'
 
-import Contact          from './contact'
-import Room             from './room'
+import {
+  Contact,
+}                 from './contact'
+import {
+  Room,
+}                 from './room'
 
 export enum MessageType {
   Unknown = 0,
@@ -66,7 +72,7 @@ export interface MessagePayload {
  * `Message` is `Sayable`,
  * [Examples/Ding-Dong-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts}
  */
-export class Message extends PuppetAccessory implements Sayable {
+export class Message extends Accessory implements Sayable {
 
   /**
    *
@@ -208,7 +214,7 @@ export class Message extends PuppetAccessory implements Sayable {
       throw new Error('no from')
     }
 
-    const from = this.puppet.Contact.load(fromId)
+    const from = this.wechaty.Contact.load(fromId)
     return from
   }
 
@@ -227,7 +233,7 @@ export class Message extends PuppetAccessory implements Sayable {
       return null
     }
 
-    const to = this.puppet.Contact.load(toId)
+    const to = this.wechaty.Contact.load(toId)
     return to
   }
 
@@ -246,7 +252,7 @@ export class Message extends PuppetAccessory implements Sayable {
       return null
     }
 
-    const room = this.puppet.Room.load(roomId)
+    const room = this.wechaty.Room.load(roomId)
     return room
   }
 
@@ -538,13 +544,13 @@ export class Message extends PuppetAccessory implements Sayable {
     const toId   = this.payload.toId
 
     if (fromId) {
-      await this.puppet.Contact.load(fromId).ready()
+      await this.wechaty.Contact.load(fromId).ready()
     }
     if (roomId) {
-      await this.puppet.Room.load(roomId).ready()
+      await this.wechaty.Room.load(roomId).ready()
     }
     if (toId) {
-      await this.puppet.Contact.load(toId).ready()
+      await this.wechaty.Contact.load(toId).ready()
     }
   }
 

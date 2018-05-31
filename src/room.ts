@@ -32,9 +32,13 @@ import {
   Sayable,
   log,
 }                       from './config'
-import { PuppetAccessory }  from './puppet-accessory'
+import {
+  Accessory,
+}               from './accessory'
 
-import { Contact }          from './contact'
+import {
+  Contact,
+}               from './contact'
 // import Message          from './message'
 
 export const ROOM_EVENT_DICT = {
@@ -71,7 +75,7 @@ export interface RoomPayload {
  * `Room` is `Sayable`,
  * [Examples/Room-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/room-bot.ts}
  */
-export class Room extends PuppetAccessory implements Sayable {
+export class Room extends Accessory implements Sayable {
 
   protected static pool: Map<string, Room>
 
@@ -245,17 +249,19 @@ export class Room extends PuppetAccessory implements Sayable {
   /**
    * @private
    */
-  public async ready(): Promise<void> {
+  public async ready(
+    noCache = false,
+  ): Promise<void> {
     log.verbose('Room', 'ready()')
 
-    if (this.isReady()) {
+    if (!noCache && this.isReady()) {
       return
     }
 
-    const payload = await this.puppet.roomPayload(this.id)
+    const payload = await this.puppet.roomPayload(this.id, noCache)
     await Promise.all(
       payload.memberIdList
-      .map(id => this.puppet.Contact.load(id))
+      .map(id => this.wechaty.Contact.load(id))
       .map(contact => contact.ready()),
     )
     // log.silly('Room', 'ready() this.payload="%s"',
@@ -674,7 +680,7 @@ export class Room extends PuppetAccessory implements Sayable {
     log.silly('Room', 'memberAll() check %s from %s: %s', filterValue, filterKey, JSON.stringify(filterMap))
 
     if (idList.length) {
-      return idList.map(id => this.puppet.Contact.load(id))
+      return idList.map(id => this.wechaty.Contact.load(id))
     } else {
       return []
     }
@@ -751,7 +757,7 @@ export class Room extends PuppetAccessory implements Sayable {
       })
       return []
     }
-    const memberList = this.payload.memberIdList.map(id => this.puppet.Contact.load(id))
+    const memberList = this.payload.memberIdList.map(id => this.wechaty.Contact.load(id))
     return memberList
   }
 
@@ -793,7 +799,7 @@ export class Room extends PuppetAccessory implements Sayable {
       return null
     }
 
-    const owner = this.puppet.Contact.load(ownerId)
+    const owner = this.wechaty.Contact.load(ownerId)
     return owner
   }
 

@@ -33,6 +33,9 @@ import {
 import StateSwitch  from 'state-switch'
 
 import {
+  Accessory,
+}                       from './accessory'
+import {
   VERSION,
   config,
   log,
@@ -40,11 +43,14 @@ import {
   Sayable,
 }                       from './config'
 import Profile          from './profile'
-import PuppetAccessory  from './puppet-accessory'
+
 import {
   PUPPET_DICT,
   PuppetName,
 }                       from './puppet-config'
+import {
+  Puppet, PuppetOptions,
+}                       from './puppet/'
 
 import {
   Contact,
@@ -58,9 +64,6 @@ import {
 import {
   Room,
 }                       from './room'
-import {
-  Puppet,
-}                       from './puppet/'
 
 export const WECHAT_EVENT_DICT = {
   friend      : 'tbw',
@@ -99,7 +102,7 @@ export interface WechatyOptions {
  * import { Wechaty } from 'wechaty'
  *
  */
-export class Wechaty extends PuppetAccessory implements Sayable {
+export class Wechaty extends Accessory implements Sayable {
   /**
    * singleton globalInstance
    * @private
@@ -118,7 +121,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
    * the cuid
    * @private
    */
-  public readonly cuid : string
+  public readonly id : string
 
   // tslint:disable-next-line:variable-name
   public readonly Contact       : typeof Contact
@@ -168,7 +171,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
 
     this.profile = new Profile(options.profile)
 
-    this.cuid = cuid()
+    this.id = cuid()
 
     /**
      * Clone Classes for this bot and attach the `puppet` to the Class
@@ -193,7 +196,8 @@ export class Wechaty extends PuppetAccessory implements Sayable {
     }
 
     return [
-      'Wechaty',
+      'Wechaty#',
+      this.id,
       `<${this.options && this.options.puppet || ''}>`,
       `(${this.profile && this.profile.name   || ''})`,
     ].join('')
@@ -375,14 +379,14 @@ export class Wechaty extends PuppetAccessory implements Sayable {
                 )
 
     if (typeof listener === 'function') {
-      this.onFunction(event, listener)
+      this.addListenerFunction(event, listener)
     } else {
-      this.onModulePath(event, listener)
+      this.addListenerModuleFile(event, listener)
     }
     return this
   }
 
-  private onModulePath(event: WechatyEventName, modulePath: string): void {
+  private addListenerModuleFile(event: WechatyEventName, modulePath: string): void {
     const absoluteFilename = callerResolve(modulePath, __filename)
     log.verbose('Wechaty', 'onModulePath() hotImpor(%s)', absoluteFilename)
     hotImport(absoluteFilename)
@@ -402,7 +406,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
       })
   }
 
-  private onFunction(event: WechatyEventName, listener: Function): void {
+  private addListenerFunction(event: WechatyEventName, listener: Function): void {
     log.verbose('Wechaty', 'onFunction(%s)', event)
 
     super.on(event, (...args: any[]) => {
@@ -423,23 +427,23 @@ export class Wechaty extends PuppetAccessory implements Sayable {
    *  When we declare a wechaty without a puppet instance,
    *  the wechaty need to attach to puppet at here.
    */
-  public attach(puppet: Puppet) {
-    log.verbose('Wechaty', 'attach(%s) this.options.puppet="%s"',
-                            puppet,
-                            this.options.puppet &&　this.options.puppet.toString() || '',
-                )
+  // public attach(puppet: Puppet) {
+  //   log.verbose('Wechaty', 'attach(%s) this.options.puppet="%s"',
+  //                           puppet,
+  //                           this.options.puppet &&　this.options.puppet.toString() || '',
+  //               )
 
-    if (this.options.puppet instanceof Puppet) {
-      if (this.options.puppet === puppet) {
-        log.silly('Wechaty', 'attach(%s) called again', puppet)
-        return
-      } else {
-        throw new Error('puppet can only be attached once!')
-      }
-    }
+  //   if (this.options.puppet instanceof Puppet) {
+  //     if (this.options.puppet === puppet) {
+  //       log.silly('Wechaty', 'attach(%s) called again', puppet)
+  //       return
+  //     } else {
+  //       throw new Error('puppet can only be attached once!')
+  //     }
+  //   }
 
-    this.options.puppet = puppet
-  }
+  //   this.options.puppet = puppet
+  // }
 
   /**
    * @private
@@ -480,9 +484,9 @@ export class Wechaty extends PuppetAccessory implements Sayable {
         throw new Error('no such puppet: ' + puppet)
       }
 
-      const options = {
-        profile:  this.profile,
-        wechaty:  this,
+      const options: PuppetOptions = {
+        profile : this.profile,
+        // wechaty:  this,
       }
 
       return new MyPuppet(options)
@@ -652,7 +656,13 @@ export class Wechaty extends PuppetAccessory implements Sayable {
     this.Message.puppet       = puppet
     this.Room.puppet          = puppet
 
-    this.puppet = puppet
+    this.Contact.wechaty       = this
+    this.FriendRequest.wechaty = this
+    this.Message.wechaty       = this
+    this.Room.wechaty          = this
+
+    this.puppet  = puppet
+    this.wechaty = this
   }
 
   /**
@@ -667,7 +677,7 @@ export class Wechaty extends PuppetAccessory implements Sayable {
     log.info('Wechaty', 'v%s starting...' , this.version())
     log.verbose('Wechaty', 'puppet: %s'   , this.options.puppet)
     log.verbose('Wechaty', 'profile: %s'  , this.options.profile)
-    log.verbose('Wechaty', 'cuid: %s'     , this.cuid)
+    log.verbose('Wechaty', 'id: %s'       , this.id)
 
     if (this.state.on()) {
       log.silly('Wechaty', 'start() on a starting/started instance')
