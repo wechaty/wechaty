@@ -14,10 +14,10 @@ export interface RoomPayload {
   topic        : string,
   memberIdList : string[],
   ownerId?     : string,
-
-  nameMap         : Map<string, string>,
-  roomAliasMap    : Map<string, string>,
-  contactAliasMap : Map<string, string>,
+  aliasDict    : { [contactId: string]: string | undefined }  // room alias
+  // nameMap         : Map<string, string>,
+  // roomAliasMap    : Map<string, string>,
+  // contactAliasMap : Map<string, string>,
   // [index: string]:  Map<string, string> | string | number | PuppeteerContact[],
 }
 

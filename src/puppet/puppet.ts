@@ -58,6 +58,7 @@ import {
 import {
   RoomPayload,
   RoomQueryFilter,
+  RoomMemberQueryFilter,
   RoomPayloadFilterFunction,
 }                                 from './schemas/room'
 
@@ -91,6 +92,13 @@ export abstract class Puppet extends EventEmitter implements Sayable {
    */
   private readonly childPkg: undefined | normalize.Package
 
+  /**
+   *
+   *
+   * Constructor
+   *
+   *
+   */
   constructor(
     public options: PuppetOptions,
   ) {
@@ -164,33 +172,15 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     return `Puppet#${this.counter}<${this.constructor.name}>(${this.options.memory.name})`
   }
 
-  // private abstract async emitError(err: string)                                                            : Promise<void>
-  // private abstract async emitFriend(payload: FriendRequestPayload)                                         : Promise<void>
-  // private abstract async emitHeartbeat(data: string)                                                       : Promise<void>
-  // private abstract async emitLogin(contactId: string)                                                      : Promise<void>
-  // private abstract async emitLogout(contactId: string)                                                     : Promise<void>
-  // private abstract async emitMessage(messageId: string)                                                    : Promise<void>
-  // private abstract async emitRoomJoin(roomId: string, inviteeIdList: string[], inviterId: string)          : Promise<void>
-  // private abstract async emitRoomLeave(roomId: string, leaverIdList: string[])                             : Promise<void>
-  // private abstract async emitRoomTopic(roomId: string, topic: string, oldTopic: string, changerId: string) : Promise<void>
-  // private abstract async emitScan(url: string, code: number, data?: string)                                : Promise<void>
-  // private abstract async emitWatchdog(...)                                                                 : Promise<void>
-
-  // public emit(event: 'error',       e: Error)                                                      : boolean
-  // public emit(event: 'friend',      request: FriendRequest)                                        : boolean
-  // public emit(event: 'heartbeat',   data: string)                                                  : boolean
-  // public emit(event: 'login',       user: Contact)                                                 : boolean
-  // public emit(event: 'logout',      user: Contact)                                                 : boolean
-  // public emit(event: 'message',     message: Message)                                              : boolean
-  // public emit(event: 'room-join',   room: Room, inviteeList: Contact[],  inviter: Contact)         : boolean
-  // public emit(event: 'room-leave',  room: Room, leaverList: Contact[])                             : boolean
-  // public emit(event: 'room-topic',  room: Room, topic: string, oldTopic: string, changer: Contact) : boolean
-  // public emit(event: 'scan',        url: string, code: number, data?: string)                      : boolean
-  // public emit(event: 'watchdog',    food: WatchdogFood)                                            : boolean
-
+  /**
+   *
+   *
+   * Events
+   *
+   *
+   */
   public emit(event: 'error',       error: string)                                                      : boolean
   public emit(event: 'friend',      requestId: string)                                                  : boolean
-  // public emit(event: 'heartbeat',   data: string)                                                       : boolean
   public emit(event: 'login',       contactId: string)                                                  : boolean
   public emit(event: 'logout',      contactId: string)                                                  : boolean
   public emit(event: 'message',     messageId: string)                                                  : boolean
@@ -200,10 +190,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public emit(event: 'scan',        qrCode: string, code: number, data?: string)                        : boolean
   public emit(event: 'start')                                                                           : boolean
   public emit(event: 'stop')                                                                            : boolean
-
-  /**
-   * Internal Usage
-   */
+  // Internal Usage: watchdog
   public emit(event: 'watchdog',    food: WatchdogFood) : boolean
 
   public emit(event: never, ...args: never[]): never
@@ -215,25 +202,15 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     return super.emit(event, ...args)
   }
 
-  // public on(event: 'error',       listener: (e: Error) => void)                                                      : this
-  // public on(event: 'friend',      listener: (request: FriendRequest) => void)                                        : this
-  // public on(event: 'heartbeat',   listener: (data: string) => void)                                                  : this
-  // public on(event: 'login',       listener: (user: Contact) => void)                                                 : this
-  // public on(event: 'logout',      listener: (user: Contact) => void)                                                 : this
-  // public on(event: 'message',     listener: (message: Message) => void)                                              : this
-  // public on(event: 'room-join',   listener: (room: Room, inviteeList: Contact[],  inviter: Contact) => void)         : this
-  // public on(event: 'room-leave',  listener: (room: Room, leaverList: Contact[]) => void)                             : this
-  // public on(event: 'room-topic',  listener: (room: Room, topic: string, oldTopic: string, changer: Contact) => void) : this
-  // public on(event: 'scan',        listener: (info: ScanPayload) => void)                                             : this
-
-  // /**
-  //  * Internal Usage
-  //  */
-  // public on(event: 'watchdog',    listener: (data: WatchdogFood) => void) : this
-
+  /**
+   *
+   *
+   * Listeners
+   *
+   *
+   */
   public on(event: 'error',       listener: (error: string) => void)                                                      : this
   public on(event: 'friend',      listener: (requestId: string) => void)                                                  : this
-  // public on(event: 'heartbeat',   listener: (data: string) => void)                                                       : this
   public on(event: 'login',       listener: (contactId: string) => void)                                                  : this
   public on(event: 'logout',      listener: (contactId: string) => void)                                                  : this
   public on(event: 'message',     listener: (messageId: string) => void)                                                  : this
@@ -243,9 +220,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public on(event: 'scan',        listener: (qrCode: string, code: number, data?: string) => void)                        : this
   public on(event: 'start',       listener: () => void)                                                                   : this
   public on(event: 'stop',        listener: () => void)                                                                   : this
-  /**
-   * Internal Usage
-   */
+  // Internal Usage: watchdog
   public on(event: 'watchdog',    listener: (data: WatchdogFood) => void) : this
 
   public on(event: never, listener: never): never
@@ -257,6 +232,66 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     super.on(event, listener)
     return this
   }
+
+  /**
+   *
+   *
+   * Start / Stop
+   *
+   *
+   */
+  public abstract async start() : Promise<void>
+  public abstract async stop()  : Promise<void>
+
+  /**
+   *
+   *
+   * Login / Logout
+   *
+   *
+   */
+
+  /**
+   * `this.id = undefined`
+   */
+  public abstract async logout(): Promise<void>
+
+  public selfId(): string {
+    log.verbose('Puppet', 'self()')
+
+    if (!this.id) {
+      throw new Error('not logged in, no userSelf yet.')
+    }
+
+    return this.id
+  }
+
+  public logonoff(): boolean {
+    if (this.id) {
+      return true
+    } else {
+      return false
+    }
+  }
+
+  protected async login(userId: string): Promise<void> {
+    log.verbose('Puppet', 'login(%s)', userId)
+
+    if (this.id) {
+      throw new Error('must logout first before login again!')
+    }
+
+    this.id = userId
+    // console.log('this.id=', this.id)
+    this.emit('login', userId)
+  }
+
+  /**
+   *
+   * Misc
+   *
+   */
+  public abstract async ding(data?: any) : Promise<string>
 
   public version(): string {
     if (this.childPkg) {
@@ -293,19 +328,6 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     // return this.pkg.engines.wechaty
   }
 
-  public abstract async start() : Promise<void>
-  public abstract async stop()  : Promise<void>
-
-  public selfId(): string {
-    log.verbose('Puppet', 'self()')
-
-    if (!this.id) {
-      throw new Error('not logged in, no userSelf yet.')
-    }
-
-    return this.id
-  }
-
   public async say(textOrFile: string | FileBox) : Promise<void> {
     if (!this.logonoff()) {
       throw new Error('can not say before login')
@@ -326,33 +348,6 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   /**
    *
-   * Login / Logout
-   *
-   */
-  public abstract async logout(): Promise<void>
-
-  public logonoff(): boolean {
-    if (this.id) {
-      return true
-    } else {
-      return false
-    }
-  }
-
-  protected async login(userId: string): Promise<void> {
-    log.verbose('Puppet', 'login(%s)', userId)
-
-    if (this.id) {
-      throw new Error('can only login once!')
-    }
-
-    this.id = userId
-    // console.log('this.id=', this.id)
-    this.emit('login', userId)
-  }
-
-  /**
-   *
    * Contact
    *
    */
@@ -365,23 +360,32 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async contactRawPayload(id: string)            : Promise<any>
   public abstract async contactRawPayloadParser(rawPayload: any) : Promise<ContactPayload>
 
-  public async contactFindAll(query?: ContactQueryFilter): Promise<string[]> {
-    log.verbose('Puppet', 'contactFindAll(%s)', JSON.stringify(query))
+  public async contactSearch(
+    query?        : ContactQueryFilter,
+    searchIdList? : string[],
+  ): Promise<string[]> {
+    log.verbose('Puppet', 'contactSearch(query=%s, searchIdList=%s)',
+                          JSON.stringify(query),
+                          searchIdList && searchIdList.length || 'all',
+                )
 
-    const allContactIdList      = await this.contactList()
-    const allContactPayloadList = await Promise.all(
-      allContactIdList.map(
+    if (!searchIdList) {
+      searchIdList = await this.contactList()
+    }
+
+    if (!query) {
+      return searchIdList
+    }
+
+    const searchContactPayloadList = await Promise.all(
+      searchIdList.map(
         id => this.contactPayload(id),
       ),
     )
 
-    if (!query) {
-      return allContactIdList
-    }
-
     const filterFuncion = this.contactQueryFilterFactory(query)
 
-    const idList = allContactPayloadList
+    const idList = searchContactPayloadList
                     .filter(filterFuncion)
                     .map(payload => payload.id)
 
@@ -540,14 +544,41 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async roomRawPayload(id: string)            : Promise<any>
   public abstract async roomRawPayloadParser(rawPayload: any) : Promise<RoomPayload>
 
-  public async roomMember(name: string): Promise<string[]> {
-    log.verbose('Puppet', 'roomMember(%s)', name)
+  public async roomMemberSearch(
+    roomId : string,
+    query  : RoomMemberQueryFilter,
+  ): Promise<string[]> {
+    log.verbose('Puppet', 'roomMember(%s, %s)', roomId, JSON.stringify(query))
 
-    return []
+    const roomPayload = await this.roomPayload(roomId)
+
+    const idList: string[] = []
+
+    if (query.contactAlias || query.name) {
+      const contactQueryFilter: ContactQueryFilter = {
+        name  : query.name,
+        alias : query.contactAlias,
+      }
+
+      idList.concat(await this.contactSearch(
+        contactQueryFilter,
+        roomPayload.memberIdList,
+      ))
+    }
+
+    if (query.roomAlias) {
+      idList.concat(
+        Object.keys(roomPayload.aliasDict).filter(
+          id => roomPayload.aliasDict[id] === query.roomAlias,
+        ),
+      )
+    }
+
+    return idList
   }
 
-  public async roomFindAll(query?: RoomQueryFilter): Promise<string[]> {
-    log.verbose('Puppet', 'roomFindAll(%s)', JSON.stringify(query))
+  public async roomSearch(query?: RoomQueryFilter): Promise<string[]> {
+    log.verbose('Puppet', 'roomSearch(%s)', JSON.stringify(query))
 
     const allRoomIdList = await this.roomList()
 
@@ -632,13 +663,6 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
     return payload
   }
-
-  /**
-   *
-   * Misc
-   *
-   */
-  public abstract async ding(data?: any) : Promise<string>
 
 }
 
