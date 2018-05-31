@@ -27,15 +27,16 @@ import {
   ScanPayload,
 }                 from '../puppet/'
 
-// import { Contact } from '../contact'
-// import { Message } from '../message'
-
-import Firer            from './firer'
-import PuppetPuppeteer  from './puppet-puppeteer'
+import {
+  Firer,
+}                         from './firer'
+import {
+  PuppetPuppeteer,
+}                         from './puppet-puppeteer'
 import {
   WebMessageType,
   WebMessageRawPayload,
-}                       from './web-schemas'
+}                         from './web-schemas'
 
 /* tslint:disable:variable-name */
 export const Event = {
@@ -89,7 +90,7 @@ async function onScan(
     type: 'scan',
   }
   this.emit('watchdog', food)
-  this.emit('scan'    , payload.url, payload.code)
+  this.emit('scan'    , payload.url, payload.code, payload.data)
 }
 
 function onLog(data: any): void {
@@ -186,13 +187,15 @@ async function onMessage(
   //   await this.messagePayload(rawPayload.MsgId),
   // )
 
+  const firer = new Firer(this)
+
   /**
    * Fire Events if match message type & content
    */
   switch (rawPayload.MsgType) {
 
     case WebMessageType.VERIFYMSG:
-      Firer.checkFriendRequest.call(this, rawPayload.Content)
+      firer.checkFriendRequest(rawPayload)
       break
 
     case WebMessageType.SYS:
@@ -200,15 +203,15 @@ async function onMessage(
        * /^@@/.test() return true means it's a room
        */
       if (/^@@/.test(rawPayload.FromUserName)) {
-        const joinResult  = await Firer.checkRoomJoin.call(this, rawPayload.Content)
-        const leaveResult = await Firer.checkRoomLeave.call(this, rawPayload.Content)
-        const topicRestul = await Firer.checkRoomTopic.call(this, rawPayload.Content)
+        const joinResult  = await firer.checkRoomJoin(rawPayload)
+        const leaveResult = await firer.checkRoomLeave(rawPayload)
+        const topicRestul = await firer.checkRoomTopic(rawPayload)
 
         if (!joinResult && !leaveResult && !topicRestul) {
           log.warn('PuppetPuppeteerEvent', `checkRoomSystem message: <${rawPayload.Content}> not found`)
         }
       } else {
-        Firer.checkFriendConfirm.call(this, rawPayload.Content)
+        firer.checkFriendConfirm(rawPayload)
       }
       break
   }
