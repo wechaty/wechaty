@@ -177,7 +177,7 @@ export class Contact extends Accessory implements Sayable {
     }
 
     try {
-      const contactIdList: string[] = await this.puppet.contactFindAll(query)
+      const contactIdList: string[] = await this.puppet.contactSearch(query)
       const contactList = contactIdList.map(id => this.load(id))
 
       await Promise.all(contactList.map(c => c.ready()))

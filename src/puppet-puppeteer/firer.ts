@@ -24,28 +24,19 @@ import * as cuid from 'cuid'
 import {
   log,
 }               from '../config'
-import { Misc } from '../misc'
 
 import {
   WebRecomendInfo,
   WebMessageRawPayload,
-  // FriendRequest,
 }                             from './web-schemas'
 import PuppetPuppeteer        from './puppet-puppeteer'
 
-import {
-  Contact,
-}                             from '../contact'
-
-// import {
-//   Message,
-// }                       from '../message'
 import {
   // FriendRequestPayload,
   FriendRequestType,
   FriendRequestPayloadReceive,
   FriendRequestPayloadConfirm,
-}                               from '../friend-request'
+}                               from '../puppet/'
 
 const REGEX_CONFIG = {
   friendConfirm: [
@@ -87,14 +78,14 @@ const REGEX_CONFIG = {
   ],
 
   // no list
-  roomLeaveByBot: [
-    /^You removed "(.+)" from the group chat$/,
-    /^你将"(.+)"移出了群聊$/,
+  roomLeaveIKickOther: [
+    /^(You) removed "(.+)" from the group chat$/,
+    /^(你)将"(.+)"移出了群聊$/,
   ],
 
-  roomLeaveByOther: [
-    /^You were removed from the group chat by "(.+)"$/,
-    /^你被"(.+)"移出群聊$/,
+  roomLeaveOtherKickMe: [
+    /^(You) were removed from the group chat by "(.+)"$/,
+    /^(你)被"(.+)"移出群聊$/,
   ],
 
   roomTopic: [
@@ -127,15 +118,16 @@ export class Firer {
     const hello     = recommendInfo.Content
     const ticket    = recommendInfo.Ticket
     const type      = FriendRequestType.Receive
+    const id        = cuid()
 
     const payloadReceive: FriendRequestPayloadReceive = {
+      id,
       contactId,
       hello,
       ticket,
       type,
     }
 
-    const id = cuid()
     this.puppet.cacheFriendRequestPayload.set(id, payloadReceive)
 
     this.puppet.emit('friend', id)
@@ -154,12 +146,14 @@ export class Firer {
     const contactId = rawPayload.FromUserName
     const type = FriendRequestType.Confirm
 
+    const id = cuid()
+
     const payloadConfirm: FriendRequestPayloadConfirm = {
+      id,
       contactId,
       type,
     }
 
-    const id = cuid()
     this.puppet.cacheFriendRequestPayload.set(id, payloadConfirm)
 
     this.puppet.emit('friend', id)
@@ -169,8 +163,12 @@ export class Firer {
     rawPayload : WebMessageRawPayload,
   ): Promise<boolean> {
 
-    const text = rawPayload.Content
+    const text   = rawPayload.Content
+    const roomId = rawPayload.FromUserName
 
+    /**
+     * Get the display names of invitee & inviter
+     */
     let inviteeNameList : string[]
     let inviterName     : string
 
@@ -185,105 +183,113 @@ export class Firer {
                                       inviterName,
               )
 
-    let inviterContactId: undefined | string = undefined
-    let inviteeContactIdList: string[]  = []
+    /**
+     * Convert the display name to Contact ID
+     */
+    let   inviterContactId: undefined | string = undefined
+    const inviteeContactIdList: string[]       = []
 
-    try {
-      if (/^You|你$/i.test(inviterName)) { //  === 'You' || inviter === '你' || inviter === 'you'
-        inviterContactId = this.puppet.selfId()
+    if (/^You|你$/i.test(inviterName)) { //  === 'You' || inviter === '你' || inviter === 'you'
+      inviterContactId = this.puppet.selfId()
+    }
+
+    const sleep   = 1000
+    const timeout = 60 * 1000
+    let   ttl     = timeout / sleep
+
+    let ready = true
+
+    while (ttl-- > 0) {
+      log.silly('PuppetPuppeteerFirer', 'fireRoomJoin() retry() ttl %d', ttl)
+
+      if (!ready) {
+        await new Promise(r => setTimeout(r, timeout))
+        ready = true
       }
 
-      // const max     = 20
-      // const backoff = 300
-      // const timeout = max * (backoff * max) / 2
-      // 20 / 300 => 63,000
-      // max = (2*totalTime/backoff) ^ (1/2)
-      // timeout = 11,250 for {max: 15, backoff: 100}
+      /**
+       * loop inviteeNameList
+       * set inviteeContactIdList
+       */
+      for (const i in inviteeNameList) {
+        const inviteeName = inviteeNameList[i]
 
-      await Misc.retry(async (retry, attempt) => {
-        log.silly('PuppetPuppeteerFirer', 'fireRoomJoin() retry() attempt %d', attempt)
+        const inviteeContactId = inviteeContactIdList[i]
+        if (inviteeContactId) {
+          /**
+           * had already got ContactId for Room Member
+           * try to resolve the ContactPayload
+           */
+          try {
+            await this.puppet.contactPayload(inviteeContactId)
+          } catch (e) {
+            log.warn('PuppetPuppeteerFirer', 'fireRoomJoin() contactPayload(%s) exception: %s', inviteeContactId, e.message)
+            ready = false
+          }
+        } else {
+          /**
+           * only had Name of RoomMember
+           * try to resolve the ContactId & ContactPayload
+           */
+          const memberIdList = await this.puppet.roomMemberSearch(roomId, inviteeName)
 
-        await room.sync()
-        let inviteeListAllDone = true
+          if (memberIdList.length <= 0) {
+            ready = false
+          }
 
-        for (const i in inviteeNameList) {
-          const inviteeContact = inviteeContactIdList[i]
-          if (inviteeContact instanceof Contact) {
-            if (!inviteeContact.isReady()) {
-              log.warn('PuppetPuppeteerFirer', 'fireRoomJoin() retryPromise() isReady false for contact %s', inviteeContact.id)
-              inviteeListAllDone = false
-              await inviteeContact.refresh()
-              continue
-            }
-          } else {
-            const member = room.member(inviteeNameList[i])
-            if (!member) {
-              inviteeListAllDone = false
-              continue
-            }
+          const contactId = memberIdList[0]
+          // XXX: Take out the first one if we have matched many contact.
+          inviteeContactIdList[i] = contactId
 
-            await member.ready()
-            inviteeContactIdList[i] = member
-
-            if (!member.isReady()) {
-              inviteeListAllDone = false
-              continue
-            }
+          try {
+            await this.puppet.contactPayload(contactId)
+          } catch (e) {
+            ready = false
           }
 
         }
 
-        if (!inviterContactId) {
-          inviterContactId = room.member(inviterName)
-        }
-
-        if (inviteeListAllDone && inviterContactId) {
-          log.silly('PuppetPuppeteerFirer', 'fireRoomJoin() resolve() inviteeContactList: %s, inviterContact: %s',
-                                      inviteeContactIdList.map((c: Contact) => c.name()).join(','),
-                                      inviterContactId.name(),
-                  )
-          return true
-        }
-
-        log.error('PuppetPuppeteerFirer', 'fireRoomJoin() not found(yet)')
-        return retry(new Error('fireRoomJoin() not found(yet)'))
-
-      }).catch((e: Error) => {
-        log.warn('PuppetPuppeteerFirer', 'fireRoomJoin() reject() inviteeContactList: %s, inviterContact: %s, error %s',
-                                   inviteeContactIdList.map((c: Contact) => c.name()).join(','),
-                                   inviterName,
-                                   e.message,
-        )
-      })
+      }
 
       if (!inviterContactId) {
-        log.error('PuppetPuppeteerFirer', 'firmRoomJoin() inivter not found for %s , `room-join` & `join` event will not fired', inviterName)
-        return false
-      }
-      if (!inviteeContactIdList.every(c => c instanceof Contact)) {
-        log.error('PuppetPuppeteerFirer', 'firmRoomJoin() inviteeList not all found for %s , only part of them will in the `room-join` or `join` event',
-                                    inviteeContactIdList.join(','),
-                )
-        inviteeContactIdList = inviteeContactIdList.filter(c => (c instanceof Contact))
-        if (inviteeContactIdList.length < 1) {
-          log.error('PuppetPuppeteerFirer', 'firmRoomJoin() inviteeList empty.  `room-join` & `join` event will not fired')
-          return false
+        const contactIdList = await this.puppet.roomMemberSearch(roomId, inviterName)
+
+        if (contactIdList.length > 0) {
+          inviterContactId = contactIdList[0]
+        } else {
+          ready = false
         }
       }
 
-      await Promise.all(inviteeContactIdList.map(c => c.ready()))
-      await inviterContactId.ready()
-      await room.ready()
+      if (ready) {
+        log.silly('PuppetPuppeteerFirer', 'fireRoomJoin() resolve() inviteeContactIdList: %s, inviterContactId: %s',
+                                            inviteeContactIdList.join(','),
+                                            inviterContactId,
+                  )
+        /**
+         * Resolve All Payload again to make sure the data is ready.
+         */
+        await Promise.all(
+          inviteeContactIdList.map(
+            id => this.puppet.contactPayload(id),
+          ),
+        )
 
-      this.puppet.emit('room-join', room.id, inviteeContactIdList.map(c => c.id), inviterContactId.id)
-      // room.emit('join'              , inviteeContactList, inviterContact)
+        if (!inviterContactId) {
+          throw new Error('no inviterContactId')
+        }
 
-      return true
-    } catch (e) {
-      log.error('PuppetPuppeteerFirer', 'exception: %s', e.stack)
-      return false
+        await this.puppet.contactPayload(inviterContactId)
+        await this.puppet.roomPayload(roomId)
+
+        this.puppet.emit('room-join', roomId, inviteeContactIdList, inviterContactId)
+
+        return true
+      }
     }
 
+    log.warn('PuppetPuppeteerFier', 'fireRoomJoin() resolve payload fail.')
+    return false
   }
 
   /**
@@ -294,15 +300,18 @@ export class Firer {
   ): Promise<boolean> {
     log.verbose('PuppetPuppeteerFirer', 'fireRoomLeave(%s)', rawPayload.Content)
 
+    const roomId = rawPayload.FromUserName
+
     let leaverName  : string
     let removerName : string
 
     try {
       [leaverName, removerName] = this.parseRoomLeave(rawPayload.Content)
     } catch (e) {
+      log.warn('PuppetPuppeteerFirer', 'fireRoomLeave() exception: %s', e.message)
       return false
     }
-    log.silly('PuppetPuppeteerFirer', 'fireRoomLeave() got leaver: %s', leaverName)
+    log.silly('PuppetPuppeteerFirer', 'fireRoomLeave() got leaverName: %s', leaverName)
 
     /**
      * FIXME: leaver maybe is a list
@@ -311,61 +320,58 @@ export class Firer {
     let leaverContactId  : undefined | string
     let removerContactId : undefined | string
 
-    if (leaverName === this.puppet.selfId()) {
-      leaverContactId = this.Contact.load(this.selfId())
-
-      // not sure which is better
-      // removerContact = room.member({contactAlias: remover}) || room.member({name: remover})
-      removerContactId = room.member(removerName)
-      // if (!removerContact) {
-      //   log.error('PuppetPuppeteerFirer', 'fireRoomLeave() bot is removed from the room, but remover %s not found, event `room-leave` & `leave` will not be fired', remover)
-      //   return false
-      // }
-
-    } else {
+    if (/^(You|你)$/i.test(leaverName)) {
+      leaverContactId = this.puppet.selfId()
+    } else if (/^(You|你)$/i.test(removerName)) {
       removerContactId = this.puppet.selfId()
-
-      // not sure which is better
-      // leaverContact = room.member({contactAlias: remover}) || room.member({name: leaver})
-      leaverContactId = room.member(removerName)
-      if (!leaverContactId) {
-        log.error('PuppetPuppeteerFirer', 'fireRoomLeave() bot removed someone from the room, but leaver %s not found, event `room-leave` & `leave` will not be fired', leaverName)
-        return false
-      }
     }
 
-    // TODO
-    const roomId = ''
+    if (!leaverContactId) {
+      leaverContactId = await this.puppet.roomMemberSearch(roomId, leaverName)[0]
+    }
 
+    if (!removerContactId) {
+      removerContactId = await this.puppet.roomMemberSearch(roomId, removerName)[0]
+    }
+
+    if (!leaverContactId || !removerContactId) {
+      throw new Error('no id')
+    }
     /**
      * FIXME: leaver maybe is a list
      * @lijiarui 2017: I have checked, leaver will never be a list. If the bot remove 2 leavers at the same time,
      *                  it will be 2 sys message, instead of 1 sys message contains 2 leavers.
      * @huan 2018 May: we need to generilize the pattern for future usage.
      */
-    this.puppet.emit('room-leave', roomId , [leaverContactId] /* , [removerContact] */)
+    this.puppet.emit('room-leave', roomId , [leaverContactId], removerContactId)
 
-    setTimeout(_ => { room.refresh() }, 10000) // reload the room data, especially for memberList
+    setTimeout(_ => this.puppet.roomPayload(roomId, true), 10 * 1000) // reload the room data, especially for memberList
+
     return true
   }
 
   public async checkRoomTopic(
     rawPayload : WebMessageRawPayload,
   ): Promise<boolean> {
-    let  topic, changer
+    let topic   : string
+    let changer : string
+
     try {
       [topic, changer] = this.parseRoomTopic(rawPayload.Content)
     } catch (e) { // not found
       return false
     }
 
-    const oldTopic = room.topic()
+    const roomId = rawPayload.ToUserName
+
+    const roomPayload = await this.puppet.roomPayload(roomId)
+    const oldTopic = roomPayload.topic
 
     let changerContactId: undefined | string
-    if (/^You$/.test(changer) || /^你$/.test(changer)) {
-      changerContactId = this.Contact.load(this.selfId())
+    if (/^(You|你)$/.test(changer)) {
+      changerContactId = this.puppet.selfId()
     } else {
-      changerContactId = room.member(changer)
+      changerContactId = (await this.puppet.roomMemberSearch(roomId, changer))[0]
     }
 
     if (!changerContactId) {
@@ -374,7 +380,7 @@ export class Firer {
     }
 
     try {
-      this.emit('room-topic', roomId , topic, oldTopic, changerContactId)
+      this.puppet.emit('room-topic', roomId , topic, oldTopic, changerContactId)
       return true
     } catch (e) {
       log.error('PuppetPuppeteerFirer', 'fireRoomTopic() co exception: %s', e.stack)
@@ -437,17 +443,34 @@ export class Firer {
   private parseRoomLeave(
     content: string,
   ): [string, string] {
-    const reListByBot = REGEX_CONFIG.roomLeaveByBot
-    const reListByOther = REGEX_CONFIG.roomLeaveByOther
-    let foundByBot: string[]|null = []
-    reListByBot.some(re => !!(foundByBot = content.match(re)))
-    let foundByOther: string[]|null = []
-    reListByOther.some(re => !!(foundByOther = content.match(re)))
-    if ((!foundByBot || !foundByBot.length) && (!foundByOther || !foundByOther.length)) {
-      throw new Error('checkRoomLeave() no matched re for ' + content)
+    let matchIKickOther: null | string[] = []
+    REGEX_CONFIG.roomLeaveIKickOther.some(
+      regex => !!(
+        matchIKickOther = content.match(regex)
+      ),
+    )
+
+    let matchOtherKickMe: null | string[] = []
+    REGEX_CONFIG.roomLeaveOtherKickMe.some(
+      re => !!(
+        matchOtherKickMe = content.match(re)
+      ),
+    )
+
+    let leaverName  : undefined | string
+    let removerName : undefined | string
+
+    if (matchIKickOther && matchIKickOther.length) {
+      leaverName  = matchIKickOther[2]
+      removerName = matchIKickOther[1]
+    } else if (matchOtherKickMe && matchOtherKickMe.length) {
+      leaverName  = matchOtherKickMe[1]
+      removerName = matchOtherKickMe[2]
+    } else {
+      throw new Error('no match')
     }
-    const [leaver, remover] = foundByBot ? [ foundByBot[1], this.selfId() ] : [ this.selfId(), foundByOther[1] ]
-    return [leaver, remover]
+
+    return [leaverName, removerName]
   }
 
   private parseRoomTopic(

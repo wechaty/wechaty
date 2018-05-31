@@ -30,7 +30,8 @@ const sinonTest   = require('sinon-test')(sinon, {
 // import { log }    from '../../src/config'
 // log.level('silly')
 
-import { Profile }      from '../profile'
+import { MemoryCard }      from 'memory-card'
+
 import { Wechaty }      from '../wechaty'
 
 import { PuppetPuppeteer }  from './puppet-puppeteer'
@@ -38,15 +39,14 @@ import { Bridge }           from './bridge'
 import { Event }            from './event'
 
 test('Puppet smoke testing', async t => {
-  const profile = new Profile(Math.random().toString(36).substr(2, 5))
-  const wechaty = new Wechaty()
+  const memory = new MemoryCard(Math.random().toString(36).substr(2, 5))
 
   const puppet = new PuppetPuppeteer({
-    profile,
-    wechaty,
+    memory,
+    // wechaty,
   })
-  ;
-  (wechaty as any).initPuppetAccessory(puppet)
+
+  // const wechaty = new Wechaty({ puppet })
 
   t.ok(puppet.state.off(), 'should be OFF state after instanciate')
   puppet.state.on('pending')
@@ -57,15 +57,14 @@ test('Puppet smoke testing', async t => {
 test('login/logout events', sinonTest(async function (t: test.Test) {
   const sandbox = sinon.createSandbox()
   try {
-    const profile = new Profile()
-    const wechaty = new Wechaty()
+    const memory = new MemoryCard()
 
     const puppet = new PuppetPuppeteer({
-      profile,
-      wechaty,
+      memory,
+      // wechaty,
     })
-    ;
-    (wechaty as any).initPuppetAccessory(puppet)
+
+    const wechaty = new Wechaty({ puppet })
 
     t.ok(puppet, 'should instantiated a PuppetPuppeteer')
 
@@ -104,7 +103,7 @@ test('login/logout events', sinonTest(async function (t: test.Test) {
     t.is(puppet.logonoff(), false, 'should be logouted')
 
     await puppet.stop()
-    await profile.destroy()
+    await memory.destroy()
   } catch (e) {
     t.fail(e)
   } finally {

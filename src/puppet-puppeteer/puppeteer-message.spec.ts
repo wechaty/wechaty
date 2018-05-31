@@ -23,15 +23,21 @@ import * as sinon from 'sinon'
 // const sinonTest   = require('sinon-test')(sinon)
 
 import {
+  MemoryCard,
+}               from 'memory-card'
+
+import {
   // config,
   log,
 }                 from '../config'
-import Profile    from '../profile'
 import Wechaty    from '../wechaty'
 
 import {
-  Message,
   MessagePayload,
+}                 from '../puppet/'
+
+import {
+  Message,
  }                  from '../message'
 
 import {
@@ -46,8 +52,8 @@ test('constructor()', async t => {
   const wechaty = new Wechaty()
 
   const puppet = new PuppetPuppeteer({
-    profile: new Profile(),
-    wechaty,
+    memory: new MemoryCard(),
+    // wechaty,
   })
 
   ;
@@ -67,6 +73,7 @@ test('constructor()', async t => {
   const sandbox = sinon.createSandbox()
   sandbox.stub(puppet, 'messagePayload').callsFake((_: string) => {
     const payload: MessagePayload = {
+      id        : 'id',
       type      : Message.Type.Text,
       fromId    : EXPECTED.from,
       timestamp : Date.now(),
@@ -146,8 +153,8 @@ test('ready()', async t => {
   const wechaty = new Wechaty()
 
   const puppet = new PuppetPuppeteer({
-    profile: new Profile(),
-    wechaty,
+    memory: new MemoryCard,
+    // wechaty,
   })
 
   ;
@@ -181,8 +188,8 @@ test('find()', async t => {
   const wechaty = new Wechaty()
 
   const puppet = new PuppetPuppeteer({
-    profile: new Profile(),
-    wechaty,
+    memory: new MemoryCard(),
+    // wechaty,
   })
 
   ;
@@ -209,8 +216,8 @@ test('findAll()', async t => {
   const wechaty = new Wechaty()
 
   const puppet = new PuppetPuppeteer({
-    profile: new Profile(),
-    wechaty,
+    memory: new MemoryCard(),
+    // wechaty,
   })
 
   ;
@@ -235,8 +242,8 @@ test('self()', async t => {
   const wechaty = new Wechaty()
 
   const puppet = new PuppetPuppeteer({
-    profile: new Profile(),
-    wechaty,
+    memory: new MemoryCard(),
+    // wechaty,
   })
 
   ;
@@ -250,6 +257,7 @@ test('self()', async t => {
 
   function mockMessagePayload() {
     const payload: MessagePayload = {
+      id        : 'id',
       fromId    : MOCK_CONTACT.id,
       toId      : 'to_id',
       type      : wechaty.Message.Type.Text,
@@ -361,8 +369,8 @@ test('mentioned()', async t => {
 
   const wechaty = new Wechaty()
   const puppet = new PuppetPuppeteer({
-    profile: new Profile(),
-    wechaty,
+    memory: new MemoryCard(),
+    // wechaty,
   })
 
   ;

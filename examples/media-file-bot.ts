@@ -50,7 +50,7 @@ bot
     const file = await msg.file()
     const name = file.name
     console.log('Save file to: ' + name)
-    file.save(name)
+    file.toFile(name)
   }
 
 })

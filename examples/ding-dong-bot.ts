@@ -102,7 +102,7 @@ bot
        * 2. reply qrcode image
        */
       // const fileBox = FileBox.packLocal(BOT_QR_CODE_IMAGE_FILE)
-      const fileBox = FileBox.packStream(
+      const fileBox = FileBox.fromStream(
         fs.createReadStream(BOT_QR_CODE_IMAGE_FILE),
         BOT_QR_CODE_IMAGE_FILE,
       )

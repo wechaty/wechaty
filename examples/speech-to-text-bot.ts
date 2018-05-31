@@ -66,7 +66,7 @@ bot
 
   const msgFile = await msg.file()
   const filename = msgFile.name
-  msgFile.save(filename)
+  msgFile.toFile(filename)
 
   const mp3Stream = createReadStream(filename)
   const text = await speechToText(mp3Stream)

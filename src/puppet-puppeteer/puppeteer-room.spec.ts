@@ -23,9 +23,11 @@ import * as test  from 'blue-tape'
 import * as sinon from 'sinon'
 
 // import cloneClass from 'clone-class'
+import {
+  MemoryCard,
+}               from 'memory-card'
 
 import { log }    from '../config'
-import Profile    from '../profile'
 
 import Wechaty    from '../wechaty'
 
@@ -45,8 +47,8 @@ import { WebRoomRawPayload } from './web-schemas'
 
 const wechaty = new Wechaty()
 const puppet = new PuppetPuppeteer({
-  profile: new Profile(),
-  wechaty,
+  memory: new MemoryCard(),
+  // wechaty,
 })
 
 ;
@@ -132,8 +134,8 @@ test('Room smoking test', async t => {
   const sandbox = sinon.createSandbox()
   const wechaty = new Wechaty()
   const puppet = new PuppetPuppeteer({
-    profile: new Profile(),
-    wechaty,
+    memory: new MemoryCard(),
+    // wechaty,
   })
 
   ;
@@ -175,10 +177,10 @@ test('Room smoking test', async t => {
   // wxApp hide uin for all contacts.
   // t.is(r.owner().id, EXPECTED.ownerId, 'should get owner right by OwnerUin & Uin')
 
-  const contactA = r.member(EXPECTED.memberNick1)
-  const contactB = r.member(EXPECTED.memberNick2)
-  const contactC = r.member(EXPECTED.memberNick3)
-  const contactD = r.member({roomAlias: EXPECTED.memberNick1})
+  const contactA = await r.member(EXPECTED.memberNick1)
+  const contactB = await r.member(EXPECTED.memberNick2)
+  const contactC = await r.member(EXPECTED.memberNick3)
+  const contactD = await r.member({roomAlias: EXPECTED.memberNick1})
   if (!contactA) {
     throw new Error(`member(${EXPECTED.memberNick1}) should get member by roomAlias by default`)
   }

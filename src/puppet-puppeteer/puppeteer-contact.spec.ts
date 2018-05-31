@@ -22,13 +22,18 @@
 import * as test  from 'blue-tape'
 import * as sinon from 'sinon'
 
-import cloneClass from 'clone-class'
+import {
+  cloneClass,
+}               from 'clone-class'
+import {
+  MemoryCard,
+}               from 'memory-card'
 
 import {
   log,
 }              from '../config'
-import Profile from '../profile'
-import Wechaty from '../wechaty'
+
+// import Wechaty from '../wechaty'
 
 import Contact from '../contact'
 
@@ -56,8 +61,8 @@ test('Contact smoke testing', async t => {
   }
 
   const puppet = new PuppetPuppeteer({
-    profile: new Profile(),
-    wechaty: new Wechaty(),
+    memory: new MemoryCard(),
+    // wechaty: new Wechaty(),
   })
   sandbox.stub(puppet as any, 'contactRawPayload').callsFake(mockContactPayload)
 

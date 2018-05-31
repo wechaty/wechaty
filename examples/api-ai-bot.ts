@@ -109,7 +109,7 @@ class Talker extends EventEmitter {
     text: string[],
     time: number[],
   }
-  private timer?: NodeJS.Timer
+  private timer?: number
 
   constructor(
     thinker: (text: string) => Promise<string>,

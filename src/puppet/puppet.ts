@@ -185,7 +185,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public emit(event: 'logout',      contactId: string)                                                  : boolean
   public emit(event: 'message',     messageId: string)                                                  : boolean
   public emit(event: 'room-join',   roomId: string, inviteeIdList: string[],  inviterId: string)        : boolean
-  public emit(event: 'room-leave',  roomId: string, leaverIdList: string[])                             : boolean
+  public emit(event: 'room-leave',  roomId: string, leaverIdList: string[], remover?: string)           : boolean
   public emit(event: 'room-topic',  roomId: string, topic: string, oldTopic: string, changerId: string) : boolean
   public emit(event: 'scan',        qrCode: string, code: number, data?: string)                        : boolean
   public emit(event: 'start')                                                                           : boolean
@@ -214,8 +214,8 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public on(event: 'login',       listener: (contactId: string) => void)                                                  : this
   public on(event: 'logout',      listener: (contactId: string) => void)                                                  : this
   public on(event: 'message',     listener: (messageId: string) => void)                                                  : this
-  public on(event: 'room-join',   listener: (roomId: string, inviteeIdList: string[],  inviterId: string) => void)        : this
-  public on(event: 'room-leave',  listener: (roomId: string, leaverIdList: string[]) => void)                             : this
+  public on(event: 'room-join',   listener: (roomId: string, inviteeIdList: string[], inviterId:  string) => void)        : this
+  public on(event: 'room-leave',  listener: (roomId: string, leaverIdList : string[], removerId?: string) => void)         : this
   public on(event: 'room-topic',  listener: (roomId: string, topic: string, oldTopic: string, changerId: string) => void) : this
   public on(event: 'scan',        listener: (qrCode: string, code: number, data?: string) => void)                        : this
   public on(event: 'start',       listener: () => void)                                                                   : this
@@ -546,10 +546,28 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   public async roomMemberSearch(
     roomId : string,
-    query  : RoomMemberQueryFilter,
+    query  : string | RoomMemberQueryFilter,
   ): Promise<string[]> {
     log.verbose('Puppet', 'roomMember(%s, %s)', roomId, JSON.stringify(query))
 
+    /**
+     * 1. for Text Query
+     */
+    if (typeof query === 'string') {
+      const concatIdList: string[] = []
+      concatIdList.concat(
+        await this.roomMemberSearch(roomId, { name:          query }),
+        await this.roomMemberSearch(roomId, { contactAlias:  query }),
+        await this.roomMemberSearch(roomId, { roomAlias:     query }),
+      )
+      // only keep the unique id
+      // https://stackoverflow.com/a/14438954/1123955
+      return [...new Set(concatIdList)]
+    }
+
+    /**
+     * 2. for RoomMemberQueryFilter
+     */
     const roomPayload = await this.roomPayload(roomId)
 
     const idList: string[] = []

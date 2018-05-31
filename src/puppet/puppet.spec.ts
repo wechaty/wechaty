@@ -190,9 +190,7 @@ test('roomQueryFilterFunction()', async t => {
 
   const DUMMY = {
     memberIdList    : {} as any,
-    nameMap         : {} as any,
-    roomAliasMap    : {} as any,
-    contactAliasMap : {} as any,
+    aliasDict       : {} as any,
   }
 
   const PAYLOAD_LIST: RoomPayload[] = [

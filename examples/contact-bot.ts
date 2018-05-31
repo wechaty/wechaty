@@ -119,7 +119,7 @@ async function main() {
      */
     const file = await contact.avatar()
     const name = file.name
-    await file.save(name)
+    await file.toFile(name)
 
     log.info('Bot', 'Contact: "%s" with avatar file: "%s"',
                     contact.name(),

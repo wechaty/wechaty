@@ -16,26 +16,19 @@ import {
   Wechaty,
 }                     from './wechaty'
 
+// export * from './puppet/'
+
 export {
   Contact,
-  ContactPayload,
-  ContactQueryFilter,
-  ContactType,
-  Gender,
 }                         from './contact'
 export {
   FriendRequest,
-  FriendRequestPayload,
-  FriendRequestType,
 }                         from './friend-request'
 export {
   Message,
 }                         from './message'
 export {
   Room,
-  RoomMemberQueryFilter,
-  RoomPayload,
-  RoomQueryFilter,
 }                         from './room'
 
 export {
@@ -44,7 +37,6 @@ export {
 
 export { IoClient }   from './io-client'
 export { Misc }       from './misc'
-export { Profile }    from './profile'
 
 export {
   PuppetPuppeteer,
