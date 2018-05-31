@@ -826,7 +826,8 @@ export class PuppetPadchat extends Puppet {
 
     log.verbose('PuppetPadchat', 'roomFindAll() TBD')
 
-    // TODO: query
+    // TODO: Issue #1255
+
     // const rooomMap = (await this.bridge.checkSyncContactOrRoom()).roomMap
     // const roomIdList: string[] = []
     // rooomMap.forEach(async (value , id) => {
