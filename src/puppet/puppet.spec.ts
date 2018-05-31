@@ -37,7 +37,7 @@ class Fixture extends Puppet {
   public async start() : Promise<void> { return {} as any }
   public async stop()  : Promise<void> { return {} as any }
 
-  public async ding(data?: any) : Promise<string> { return {} as any }
+  public async ding(data?: any) : Promise<string> { return {data} as any }
   public async logout(): Promise<void> { return {} as any }
 
   /**
@@ -47,49 +47,49 @@ class Fixture extends Puppet {
    */
   public async contactAlias(contactId: string)                       : Promise<string>
   public async contactAlias(contactId: string, alias: string | null) : Promise<void>
-  public async contactAlias(contactId: string, alias?: string|null)  : Promise<string | void> { return {} as any }
-  public async contactAvatar(contactId: string)                      : Promise<FileBox> { return {} as any }
+  public async contactAlias(contactId: string, alias?: string|null)  : Promise<string | void> { return {contactId, alias} as any }
+  public async contactAvatar(contactId: string)                      : Promise<FileBox> { return {contactId} as any }
   public async contactList()                                         : Promise<string[]> { return {} as any }
 
-  public async contactRawPayload(id: string)            : Promise<any> { return {} as any }
-  public async contactRawPayloadParser(rawPayload: any) : Promise<ContactPayload> { return {} as any }
+  public async contactRawPayload(id: string)            : Promise<any> { return {id} as any }
+  public async contactRawPayloadParser(rawPayload: any) : Promise<ContactPayload> { return {rawPayload} as any }
 
   /**
    *
    * FriendRequest
    *
    */
-  public async friendRequestSend(contactId: string, hello?: string)   : Promise<void> { return {} as any }
-  public async friendRequestAccept(contactId: string, ticket: string) : Promise<void> { return {} as any }
+  public async friendRequestSend(contactId: string, hello?: string)   : Promise<void> { return {contactId, hello} as any }
+  public async friendRequestAccept(contactId: string, ticket: string) : Promise<void> { return {contactId, ticket} as any }
 
   /**
    *
    * Message
    *
    */
-  public async messageFile(messageId: string)                  : Promise<FileBox> { return {} as any }
-  public async messageForward(to: Receiver, messageId: string) : Promise<void> { return {} as any }
-  public async messageSendText(to: Receiver, text: string)     : Promise<void> { return {} as any }
-  public async messageSendFile(to: Receiver, file: FileBox)    : Promise<void> { return {} as any }
+  public async messageFile(messageId: string)                  : Promise<FileBox> { return {messageId} as any }
+  public async messageForward(to: Receiver, messageId: string) : Promise<void> { return {to, messageId} as any }
+  public async messageSendText(to: Receiver, text: string)     : Promise<void> { return {to, text} as any }
+  public async messageSendFile(to: Receiver, file: FileBox)    : Promise<void> { return {to, file} as any }
 
-  public async messageRawPayload(id: string)            : Promise<any> { return {} as any }
-  public async messageRawPayloadParser(rawPayload: any) : Promise<MessagePayload> { return {} as any }
+  public async messageRawPayload(id: string)            : Promise<any> { return {id} as any }
+  public async messageRawPayloadParser(rawPayload: any) : Promise<MessagePayload> { return {rawPayload} as any }
 
   /**
    *
    * Room
    *
    */
-  public async roomAdd(roomId: string, contactId: string)          : Promise<void> { return {} as any }
-  public async roomCreate(contactIdList: string[], topic?: string) : Promise<string> { return {} as any }
-  public async roomDel(roomId: string, contactId: string)          : Promise<void> { return {} as any }
-  public async roomQuit(roomId: string)                            : Promise<void> { return {} as any }
-  public async roomTopic(roomId: string, topic?: string)           : Promise<string | void> { return {} as any }
+  public async roomAdd(roomId: string, contactId: string)          : Promise<void> { return {roomId, contactId} as any }
+  public async roomCreate(contactIdList: string[], topic?: string) : Promise<string> { return {contactIdList, topic} as any }
+  public async roomDel(roomId: string, contactId: string)          : Promise<void> { return {roomId, contactId} as any }
+  public async roomQuit(roomId: string)                            : Promise<void> { return {roomId} as any }
+  public async roomTopic(roomId: string, topic?: string)           : Promise<string | void> { return {roomId, topic} as any }
 
   public async roomList() : Promise<string[]> { return {} as any }
 
-  public async roomRawPayload(id: string)            : Promise<any> { return {} as any }
-  public async roomRawPayloadParser(rawPayload: any) : Promise<RoomPayload> { return {} as any }
+  public async roomRawPayload(id: string)            : Promise<any> { return {id} as any }
+  public async roomRawPayloadParser(rawPayload: any) : Promise<RoomPayload> { return {rawPayload} as any }
 
 }
 

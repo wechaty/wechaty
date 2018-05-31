@@ -24,21 +24,20 @@ import {
 
 import {
   MessagePayload,
-}                       from '../message'
-import {
-  ContactQueryFilter,
-  Gender,
+
+  // ContactQueryFilter,
+  ContactGender,
   ContactType,
   ContactPayload,
-}                       from '../contact'
-import {
+
   RoomPayload,
-  RoomQueryFilter,
-}                       from '../room'
+  // RoomQueryFilter,
+}                       from '../puppet/'
 import {
   Puppet,
   PuppetOptions,
   Receiver,
+  MessageType,
 }                       from '../puppet/'
 
 import {
@@ -53,6 +52,7 @@ export interface MockContactRawPayload {
 }
 
 export interface MockMessageRawPayload {
+  id   : string,
   from : string,
   to   : string,
   text : string
@@ -73,22 +73,27 @@ export class PuppetMock extends Puppet {
   }
 
   public async start(): Promise<void> {
-    log.verbose('PuppetMock', `start() with ${this.options.profile}`)
+    log.verbose('PuppetMock', `start() with ${this.options.memory.name}`)
 
     this.state.on('pending')
     // await some tasks...
     this.state.on(true)
 
     this.id = 'logined_user_id'
-    const user = this.Contact.load(this.id)
-    this.emit('login', user.id)
+    // const user = this.Contact.load(this.id)
+    this.emit('login', this.id)
 
-    const msg  = this.Message.create('mock_id')
-    await msg.ready()
+    const MOCK_MSG_ID = 'mockid'
+    this.cacheMessagePayload.set(MOCK_MSG_ID, {
+      id        : MOCK_MSG_ID,
+      type      : MessageType.Text,
+      text      : 'mock text',
+      timestamp : Date.now(),
+    })
 
     setInterval(() => {
-      log.verbose('PuppetMock', `start() setInterval() pretending received a new message: ${msg + ''}`)
-      this.emit('message', msg.id)
+      log.verbose('PuppetMock', `start() setInterval() pretending received a new message: ${MOCK_MSG_ID}`)
+      this.emit('message', MOCK_MSG_ID)
     }, 3000)
 
   }
@@ -137,8 +142,8 @@ export class PuppetMock extends Puppet {
     return
   }
 
-  public async contactFindAll(query: ContactQueryFilter): Promise<string[]> {
-    log.verbose('PuppetMock', 'contactFindAll(%s)', query)
+  public async contactList(): Promise<string[]> {
+    log.verbose('PuppetMock', 'contactList()')
 
     return []
   }
@@ -147,7 +152,7 @@ export class PuppetMock extends Puppet {
     log.verbose('PuppetMock', 'contactAvatar(%s)', contactId)
 
     const WECHATY_ICON_PNG = path.resolve('../../docs/images/wechaty-icon.png')
-    return FileBox.packLocal(WECHATY_ICON_PNG)
+    return FileBox.fromLocal(WECHATY_ICON_PNG)
   }
 
   public async contactRawPayload(id: string): Promise<MockContactRawPayload> {
@@ -162,8 +167,9 @@ export class PuppetMock extends Puppet {
     log.verbose('PuppetMock', 'contactRawPayloadParser(%s)', rawPayload)
 
     const payload: ContactPayload = {
-      gender: Gender.Unknown,
-      type:   ContactType.Unknown,
+      id     : 'id',
+      gender : ContactGender.Unknown,
+      type   : ContactType.Unknown,
     }
     return payload
   }
@@ -174,15 +180,16 @@ export class PuppetMock extends Puppet {
    *
    */
   public async messageFile(id: string): Promise<FileBox> {
-    return FileBox.packBase64(
+    return FileBox.fromBase64(
       'cRH9qeL3XyVnaXJkppBuH20tf5JlcG9uFX1lL2IvdHRRRS9kMMQxOPLKNYIzQQ==',
-      'mock-file.txt',
+      'mock-file' + id + '.txt',
     )
   }
 
   public async messageRawPayload(id: string): Promise<MockMessageRawPayload> {
     log.verbose('PuppetMock', 'messageRawPayload(%s)', id)
     const rawPayload: MockMessageRawPayload = {
+      id   : 'id',
       from : 'from_id',
       text : 'mock message text',
       to   : 'to_id',
@@ -193,11 +200,12 @@ export class PuppetMock extends Puppet {
   public async messageRawPayloadParser(rawPayload: MockMessageRawPayload): Promise<MessagePayload> {
     log.verbose('PuppetMock', 'messagePayload(%s)', rawPayload)
     const payload: MessagePayload = {
+      id        : rawPayload.id,
       timestamp : Date.now(),
       fromId    : 'xxx',
       text      : 'mock message text',
       toId      : this.selfId(),
-      type      : this.Message.Type.Text,
+      type      : MessageType.Text,
     }
     return payload
   }
@@ -250,20 +258,17 @@ export class PuppetMock extends Puppet {
     log.verbose('PuppetMock', 'roomRawPayloadParser(%s)', rawPayload)
 
     const payload: RoomPayload = {
-      topic          : 'mock topic',
-      memberIdList   : [],
-      nameMap         : new Map<string, string>(),
-      roomAliasMap    : new Map<string, string>(),
-      contactAliasMap : new Map<string, string>(),
+      id           : 'id',
+      topic        : 'mock topic',
+      memberIdList : [],
+      aliasDict    : {},
     }
 
     return payload
   }
 
-  public async roomFindAll(
-    query: RoomQueryFilter = { topic: /.*/ },
-  ): Promise<string[]> {
-    log.verbose('PuppetMock', 'roomFindAll(%s)', query)
+  public async roomList(): Promise<string[]> {
+    log.verbose('PuppetMock', 'roomList()')
 
     return []
   }

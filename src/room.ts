@@ -121,7 +121,7 @@ export class Room extends Accessory implements Sayable {
     }
 
     try {
-      const roomIdList = await this.puppet.roomFindAll(query)
+      const roomIdList = await this.puppet.roomSearch(query)
       const roomList = roomIdList.map(id => this.load(id))
       await Promise.all(roomList.map(room => room.ready()))
 
@@ -554,10 +554,10 @@ export class Room extends Accessory implements Sayable {
    * @returns {(string | null)}
    */
   public roomAlias(contact: Contact): null | string {
-    if (!this.payload || !this.payload.roomAliasMap) {
+    if (!this.payload || !this.payload.aliasDict) {
       return null
     }
-    return this.payload.roomAliasMap.get(contact.id) || null
+    return this.payload.aliasDict[contact.id] || null
   }
 
   /**
@@ -585,8 +585,8 @@ export class Room extends Accessory implements Sayable {
                         .length > 0
   }
 
-  public memberAll(filter: RoomMemberQueryFilter): Contact[]
-  public memberAll(name: string): Contact[]
+  public async memberAll(filter: RoomMemberQueryFilter): Promise<Contact[]>
+  public async memberAll(name: string): Promise<Contact[]>
 
   /**
    * The way to search member by Room.member()
@@ -609,21 +609,23 @@ export class Room extends Accessory implements Sayable {
    * @returns {Contact[]}
    * @memberof Room
    */
-  public memberAll(queryArg: RoomMemberQueryFilter | string): Contact[] {
+  public async memberAll(
+    queryArg: string | RoomMemberQueryFilter,
+  ): Promise<Contact[]> {
     if (typeof queryArg === 'string') {
       // TODO: filter the duplicated result
       return ([] as Contact[]).concat(
-        this.memberAll({name:         queryArg}),
-        this.memberAll({roomAlias:    queryArg}),
-        this.memberAll({contactAlias: queryArg}),
+        await this.memberAll({name:         queryArg}),
+        await this.memberAll({roomAlias:    queryArg}),
+        await this.memberAll({contactAlias: queryArg}),
       )
     }
 
     /**
      * We got filter parameter
      */
-    log.silly('Room', 'memberAll({ %s })',
-                                JSON.stringify(queryArg),
+    log.silly('Room', 'memberAll(%s)',
+                      JSON.stringify(queryArg),
                       // Object.keys(queryArg)
                       //       .map((k: keyof RoomMemberQueryFilter) => `${k}: ${queryArg[k]}`)
                       //       .join(', '),
@@ -646,23 +648,24 @@ export class Room extends Accessory implements Sayable {
       throw new Error('filterValue not found')
     }
 
-    const keyMap = {
-      contactAlias: 'contactAliasMap',
-      name:         'nameMap',
-      alias:        'roomAliasMap',
-      roomAlias:    'roomAliasMap',
-    }
+    const idList = await this.puppet.roomMemberSearch(this.id, queryArg)
+    // const keyMap = {
+    //   contactAlias: 'contactAliasMap',
+    //   name:         'nameMap',
+    //   alias:        'roomAliasMap',
+    //   roomAlias:    'roomAliasMap',
+    // }
 
-    const filterMapName = keyMap[filterKey] as keyof RoomPayload
-    if (!filterMapName) {
-      throw new Error('unsupport filter key: ' + filterKey)
-    }
+    // const filterMapName = keyMap[filterKey] as keyof RoomPayload
+    // if (!filterMapName) {
+    //   throw new Error('unsupport filter key: ' + filterKey)
+    // }
 
-    const filterMap = this.payload[filterMapName] as Map<string, string>
-    const idList = Array.from(filterMap.keys())
-                          .filter(id => filterMap.get(id) === filterValue)
+    // const filterMap = this.payload[filterMapName] as Map<string, string>
+    // const idList = Array.from(filterMap.keys())
+    //                       .filter(id => filterMap.get(id) === filterValue)
 
-    log.silly('Room', 'memberAll() check %s from %s: %s', filterValue, filterKey, JSON.stringify(filterMap))
+    // log.silly('Room', 'memberAll() check %s from %s: %s', filterValue, filterKey, JSON.stringify(filterMap))
 
     if (idList.length) {
       return idList.map(id => this.wechaty.Contact.load(id))
@@ -671,8 +674,8 @@ export class Room extends Accessory implements Sayable {
     }
   }
 
-  public member(name  : string)               : null | Contact
-  public member(filter: RoomMemberQueryFilter): null | Contact
+  public async member(name  : string)               : Promise<null | Contact>
+  public async member(filter: RoomMemberQueryFilter): Promise<null | Contact>
 
   /**
    * Find all contacts in a room, if get many, return the first one.
@@ -702,18 +705,18 @@ export class Room extends Accessory implements Sayable {
    *   }
    * }
    */
-  public member(
+  public async member(
     queryArg: string | RoomMemberQueryFilter,
-  ): null | Contact {
+  ): Promise<null | Contact> {
     log.verbose('Room', 'member(%s)', JSON.stringify(queryArg))
 
     let memberList: Contact[]
     // ISSUE #622
     // error TS2345: Argument of type 'string | MemberQueryFilter' is not assignable to parameter of type 'MemberQueryFilter' #622
     if (typeof queryArg === 'string') {
-      memberList =  this.memberAll(queryArg)
+      memberList =  await this.memberAll(queryArg)
     } else {
-      memberList =  this.memberAll(queryArg)
+      memberList =  await this.memberAll(queryArg)
     }
 
     if (!memberList || !memberList.length) {
@@ -742,8 +745,8 @@ export class Room extends Accessory implements Sayable {
       })
       return []
     }
-    const memberList = this.payload.memberIdList.map(id => this.wechaty.Contact.load(id))
-    return memberList
+    const contactList = this.payload.memberIdList.map(id => this.wechaty.Contact.load(id))
+    return contactList
   }
 
   /**

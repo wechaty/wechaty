@@ -26,44 +26,28 @@ import {
 }             from 'file-box'
 
 import {
-  // Message,
-  MessagePayload, MessageType,
-}                       from '../message'
+  MessagePayload,
+  MessageType,
 
-import Misc           from '../misc'
-
-import {
-  Contact,
   ContactQueryFilter,
-  Gender,
+  ContactGender,
   ContactType,
   ContactPayload,
-}                       from '../contact'
 
-import {
-  // Room,
   RoomPayload,
-  RoomQueryFilter,
-  RoomMemberQueryFilter,
-}                       from '../room'
+  // RoomQueryFilter,
+  // RoomMemberQueryFilter,
 
-// import {
-//   FriendRequest,
-// }                       from '../puppet/friend-request'
-
-import {
   Puppet,
   PuppetOptions,
   Receiver,
 }                       from '../puppet/'
 
+// import Misc           from '../misc'
+
 import {
   log,
 }                       from '../config'
-
-// import {
-//   Profile,
-// }                       from '../profile'
 
 import {
   Bridge,
@@ -76,7 +60,7 @@ import {
   PadchatMessageRawPayload,
   PadchatMessageType,
   PadchatRoomRawPayload,
-  PadchatRoomRawMember,
+  // PadchatRoomRawMember,
 }                       from './padchat-schemas'
 
 export type PuppetFoodType = 'scan' | 'ding'
@@ -116,7 +100,7 @@ export class PuppetPadchat extends Puppet {
   }
 
   public toString() {
-    return `PuppetPadchat<${this.options.profile.name}>`
+    return `PuppetPadchat<${this.options.memory.name}>`
   }
 
   public ding(data?: any): Promise<string> {
@@ -135,7 +119,7 @@ export class PuppetPadchat extends Puppet {
     this.watchdog.on('feed', async food => {
       log.silly('PuppetPadchat', 'initWatchdogForPuppet() dog.on(feed, food={type=%s, data=%s})', food.type, food.data)
       // feed the dog, heartbeat the puppet.
-      puppet.emit('heartbeat', food.data)
+      // puppet.emit('heartbeat', food.data)
 
       const feedAfterTenSeconds = async () => {
         this.bridge.WXHeartBeat()
@@ -183,7 +167,7 @@ export class PuppetPadchat extends Puppet {
 
     this.bridge.loginSucceed = false
 
-    log.verbose('PuppetPadchat', `start() with ${this.options.profile}`)
+    log.verbose('PuppetPadchat', `start() with ${this.options.memory.name}`)
 
     this.bridge.once('open', async() => {
 
@@ -247,7 +231,7 @@ export class PuppetPadchat extends Puppet {
 
     await this.bridge.initWs()
 
-    const autoData: AutoDataType = await this.options.profile.get('autoData')
+    const autoData: AutoDataType = await this.options.memory.get('autoData')
     log.silly('PuppetPadchat', 'initBridge, get autoData: %s', JSON.stringify(autoData))
     this.bridge.autoData = autoData
 
@@ -378,8 +362,8 @@ export class PuppetPadchat extends Puppet {
     log.verbose('PuppetPadchatBridge', 'saveConfig, autoData: %s', JSON.stringify(this.bridge.autoData))
     if (this.bridge.autoData.wxData && this.bridge.autoData.token && this.bridge.autoData.user_name) {
       log.verbose('PuppetPadchatBridge', 'saveConfig: begin to save data to file')
-      await this.options.profile.set('autoData', this.bridge.autoData)
-      await this.options.profile.save()
+      await this.options.memory.set('autoData', this.bridge.autoData)
+      await this.options.memory.save()
 
       log.verbose('PuppetPadchatBridge', 'loginSucceed: Send ding to the bot, username: %s', this.bridge.username)
       await this.bridge.WXSendMsg(this.bridge.autoData.user_name, 'ding')
@@ -432,12 +416,12 @@ export class PuppetPadchat extends Puppet {
   public async logout(): Promise<void> {
     log.verbose('PuppetPadchat', 'logout()')
 
-    if (!this.userId) {
+    if (!this.id) {
       throw new Error('logout before login?')
     }
 
-    this.emit('logout', this.userId) // becore we will throw above by logonoff() when this.user===undefined
-    this.userId = undefined
+    this.emit('logout', this.id) // becore we will throw above by logonoff() when this.user===undefined
+    this.id = undefined
 
     // TODO: this.bridge.logout
   }
@@ -464,8 +448,9 @@ export class PuppetPadchat extends Puppet {
     return
   }
 
-  public async contactFindAll(query: ContactQueryFilter): Promise<string[]> {
-    log.verbose('PuppetPadchat', 'contactFindAll(%s)', query)
+  // public async contactFindAll(query: ContactQueryFilter): Promise<string[]> {
+  public async contactList(): Promise<string[]> {
+    log.verbose('PuppetPadchat', 'contactList()')
 
     // const contactRawPayloadMap = (await this.bridge.checkSyncContactOrRoom()).contactMap
 
@@ -543,7 +528,7 @@ export class PuppetPadchat extends Puppet {
       throw new Error('no avatar')
     }
 
-    const file = FileBox.packRemote(payload.avatar)
+    const file = FileBox.fromRemote(payload.avatar)
     return file
   }
 
@@ -561,9 +546,9 @@ export class PuppetPadchat extends Puppet {
     }
 
     const gender = {
-      0: Gender.Unknown,
-      1: Gender.Male,
-      2: Gender.Female,
+      0: ContactGender.Unknown,
+      1: ContactGender.Male,
+      2: ContactGender.Female,
     }
 
     if (/@chatroom$/.test(rawPayload.user_name)) {
@@ -578,6 +563,7 @@ export class PuppetPadchat extends Puppet {
     }
 
     const payload: ContactPayload = {
+      id        : rawPayload.user_name,
       gender    : gender[rawPayload.sex],
       type      : contactType,
       alias     : rawPayload.remark,
@@ -600,9 +586,9 @@ export class PuppetPadchat extends Puppet {
     // const rawPayload = await this.messageRawPayload(id)
 
     const base64 = 'cRH9qeL3XyVnaXJkppBuH20tf5JlcG9uFX1lL2IvdHRRRS9kMMQxOPLKNYIzQQ=='
-    const filename = 'test.txt'
+    const filename = 'test-' + id + '.txt'
 
-    const file = FileBox.packBase64(
+    const file = FileBox.fromBase64(
       base64,
       filename,
     )
@@ -611,7 +597,7 @@ export class PuppetPadchat extends Puppet {
   }
 
   public async messageRawPayload(id: string): Promise<PadchatMessageRawPayload> {
-    throw Error('should not call messageRawPayload')
+    throw Error('should not call messageRawPayload: ' + id)
     // log.verbose('PuppetPadchat', 'messageRawPayload(%s)', id)
     // const rawPayload: PadchatMessageRawPayload = {
     //   content:      '',
@@ -658,10 +644,11 @@ export class PuppetPadchat extends Puppet {
         type = MessageType.Video
         break
       default:
-        type = this.Message.Type.Unknown
+        type = MessageType.Unknown
     }
 
     const payload: MessagePayload = {
+      id        : rawPayload.msg_id,
       timestamp : Date.now(),
       fromId    : rawPayload.from_user,
       text      : rawPayload.content,
@@ -718,7 +705,7 @@ export class PuppetPadchat extends Puppet {
 
     await this.bridge.WXSendImage(
       id,
-      await file.base64(),
+      await file.toBase64(),
     )
   }
 
@@ -730,19 +717,20 @@ export class PuppetPadchat extends Puppet {
                               receiver,
                               messageId,
               )
+    const payload = await this.messagePayload(messageId)
 
-    const msg = this.Message.create(messageId)
-    await msg.ready()
-
-    if (msg.type() === this.Message.Type.Text) {
+    if (payload.type === MessageType.Text) {
+      if (!payload.text) {
+        throw new Error('no text')
+      }
       await this.messageSendText(
         receiver,
-        msg.text(),
+        payload.text,
       )
     } else {
       await this.messageSendFile(
         receiver,
-        await msg.file(),
+        await this.messageFile(messageId),
       )
     }
   }
@@ -768,62 +756,75 @@ export class PuppetPadchat extends Puppet {
 
     const padchatRoomRawMemberList = await this.bridge.WXGetChatRoomMember(rawPayload.user_name)
 
-    const nameMap         = await this.roomParseMap('name'        , padchatRoomRawMemberList.member)
-    const roomAliasMap    = await this.roomParseMap('roomAlias'   , padchatRoomRawMemberList.member)
-    const contactAliasMap = await this.roomParseMap('contactAlias', padchatRoomRawMemberList.member)
+    // const nameMap         = await this.roomParseMap('name'        , padchatRoomRawMemberList.member)
+    // const roomAliasMap    = await this.roomParseMap('roomAlias'   , padchatRoomRawMemberList.member)
+    // const contactAliasMap = await this.roomParseMap('contactAlias', padchatRoomRawMemberList.member)
+
+    const aliasDict = {}
+
+    if (Array.isArray(padchatRoomRawMemberList.member)) {
+      const memberListPayload = await Promise.all(
+        padchatRoomRawMemberList.member
+          .map(rawMember => rawMember.user_name)
+          .map(contactId => this.contactPayload(contactId)),
+      )
+      memberListPayload.forEach(contactPayload => aliasDict[contactPayload.id] = contactPayload.alias)
+    }
 
     const payload: RoomPayload = {
-      topic          : rawPayload.nick_name,
-      memberIdList   : rawPayload.member,
-      nameMap        : nameMap,
-      roomAliasMap   : roomAliasMap,
-      contactAliasMap: contactAliasMap,
+      id           : rawPayload.user_name,
+      topic        : rawPayload.nick_name,
+      memberIdList : rawPayload.member,
+      aliasDict,
+      // nameMap        : nameMap,
+      // roomAliasMap   : roomAliasMap,
+      // contactAliasMap: contactAliasMap,
     }
 
     return payload
   }
 
-  private async roomParseMap(
-    parseSection: keyof RoomMemberQueryFilter,
-    memberList?:  PadchatRoomRawMember[],
-  ): Promise<Map<string, string>> {
-    log.verbose('PuppetPadchat', 'roomParseMap(%s, memberList.length=%d)',
-                                    parseSection,
-                                    memberList && memberList.length,
-                )
+  // private async roomParseMap(
+  //   parseSection: keyof RoomMemberQueryFilter,
+  //   memberList?:  PadchatRoomRawMember[],
+  // ): Promise<Map<string, string>> {
+  //   log.verbose('PuppetPadchat', 'roomParseMap(%s, memberList.length=%d)',
+  //                                   parseSection,
+  //                                   memberList && memberList.length,
+  //               )
 
-    const dict: Map<string, string> = new Map<string, string>()
-    if (memberList && Array.isArray(memberList)) {
-      for (const member of memberList) {
-        let tmpName: string
+  //   const dict: Map<string, string> = new Map<string, string>()
+  //   if (memberList && Array.isArray(memberList)) {
+  //     for (const member of memberList) {
+  //       let tmpName: string
 
-        switch (parseSection) {
-          case 'name':
-            tmpName = member.nick_name
-            break
-          case 'roomAlias':
-            tmpName = member.chatroom_nick_name
-            break
-          case 'contactAlias':
-            const payload = await this.contactPayload(member.user_name)
-            tmpName = payload.alias || ''
-            // const contact = this.Contact.load(member.user_name)
-            // tmpName = contact.alias() || ''
-            break
-          default:
-            throw new Error('PuppetPadchat parseMap failed, member not found')
-        }
+  //       switch (parseSection) {
+  //         case 'name':
+  //           tmpName = member.nick_name
+  //           break
+  //         case 'roomAlias':
+  //           tmpName = member.chatroom_nick_name
+  //           break
+  //         case 'contactAlias':
+  //           const payload = await this.contactPayload(member.user_name)
+  //           tmpName = payload.alias || ''
+  //           // const contact = this.Contact.load(member.user_name)
+  //           // tmpName = contact.alias() || ''
+  //           break
+  //         default:
+  //           throw new Error('PuppetPadchat parseMap failed, member not found')
+  //       }
 
-        dict.set(member.user_name, Misc.stripEmoji(tmpName))
-      }
-    }
-    return dict
-  }
+  //       dict.set(member.user_name, Misc.stripEmoji(tmpName))
+  //     }
+  //   }
+  //   return dict
+  // }
 
-  public async roomFindAll(
-    query: RoomQueryFilter = { topic: /.*/ },
-  ): Promise<string[]> {
-    log.verbose('PuppetPadchat', 'roomFindAll(%s)', query)
+  public async roomList(): Promise<string[]> {
+    // query: RoomQueryFilter = { topic: /.*/ },
+
+    log.verbose('PuppetPadchat', 'roomFindAll() TBD')
 
     // TODO: query
     // const rooomMap = (await this.bridge.checkSyncContactOrRoom()).roomMap

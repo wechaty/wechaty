@@ -2,11 +2,11 @@ import {
   MemoryCard,
 }                       from 'memory-card'
 
-// export interface ScanPayload {
-//   code  : number,   // Code
-//   data? : string,   // Image Data URL
-//   url   : string,   // QR Code URL
-// }
+export interface ScanPayload {
+  code  : number,   // Code
+  data? : string,   // Image Data URL
+  url   : string,   // QR Code URL
+}
 
 export const CHAT_EVENT_DICT = {
   friend      : 'document can be writen at here',

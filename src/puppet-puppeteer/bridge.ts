@@ -30,11 +30,14 @@ import {
 import StateSwitch      from 'state-switch'
 import { parseString }  from 'xml2js'
 
+import {
+  MemoryCard,
+}                       from 'memory-card'
+
 /* tslint:disable:no-var-requires */
 // const retryPromise  = require('retry-promise').default
 
 import { log }        from '../config'
-import Profile        from '../profile'
 import Misc           from '../misc'
 
 import {
@@ -53,7 +56,7 @@ export interface InjectResult {
 
 export interface BridgeOptions {
   head?   : boolean,
-  profile : Profile,
+  profile : MemoryCard,
 }
 
 export class Bridge extends EventEmitter {
@@ -336,11 +339,11 @@ export class Bridge extends EventEmitter {
     }
   }
 
-  public async roomFind(filterFunc: string): Promise<string[]> {
+  public async roomList(): Promise<string[]> {
     try {
-      return await this.proxyWechaty('roomFind', filterFunc)
+      return await this.proxyWechaty('roomList')
     } catch (e) {
-      log.error('PuppetPuppeteerBridge', 'roomFind() exception: %s', e.message)
+      log.error('PuppetPuppeteerBridge', 'roomList() exception: %s', e.message)
       throw e
     }
   }

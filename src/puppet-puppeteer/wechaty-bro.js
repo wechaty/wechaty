@@ -644,18 +644,19 @@
     })
   }
 
-  function roomFind(filterFunction) {
+  // function roomFind(filterFunction) {
+  function roomList() {
     var contactFactory = WechatyBro.glue.contactFactory
 
-    var match
-    if (!filterFunction) {
-      match = () => true
-    } else {
-      match = eval(filterFunction)
-    }
+    // var match
+    // if (!filterFunction) {
+    //   match = () => true
+    // } else {
+    //   match = eval(filterFunction)
+    // }
     // log(match.toString())
     return contactFactory.getAllChatroomContact()
-                         .filter(r => match(r.NickName))
+                        //  .filter(r => match(r.NickName))
                          .map(r => r.UserName)
   }
 
@@ -855,7 +856,7 @@
     // for Wechaty Room Class
     roomCreate,
     roomAddMember,
-    roomFind,
+    roomList,
     roomDelMember,
     roomModTopic,
 

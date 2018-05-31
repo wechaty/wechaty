@@ -1,15 +1,17 @@
 {
   "compilerOptions": {
-    "target": "es6"
+      "target": "es6"
     , "module": "commonjs"
     , "outDir": "dist"
     , "strict": true
+
+    , "traceResolution": false
+    , "noLib": false
 
     , "experimentalDecorators": true
     , "emitDecoratorMetadata": true
     , "declaration": true
     , "sourceMap": true
-    , "traceResolution": false
     , "noEmitOnError": true
 
     , "noUnusedLocals": true
@@ -17,19 +19,19 @@
     , "noFallthroughCasesInSwitch": true
     , "strictNullChecks": true
 
-    , "noImplicitAny": false
-    , "noUnusedParameters": false
-    , "noImplicitThis": false
+    , "noImplicitAny": true
+    , "noUnusedParameters": true
+    , "noImplicitThis": true
 
-    , "noLib": false
     , "skipLibCheck": true
     , "lib": [
-      "esnext", "dom"
+      "esnext"
     ]
   }
   , "exclude": [
       "node_modules/"
     , "dist/"
+    , "tests/fixtures/"
   ]
   , "include": [
        "app/**/*.ts"
