@@ -393,7 +393,7 @@ export class PuppetPadchat extends Puppet {
       await this.bridge.WXSendMsg(this.bridge.autoData.user_name, 'Bot on line!')
 
       this.state.on(true)
-      this.emit('start')
+      // this.emit('start')
       this.initWatchdog()
 
       return
@@ -426,18 +426,18 @@ export class PuppetPadchat extends Puppet {
     // await some tasks...
     this.state.off(true)
 
-    this.emit('stop')
+    // this.emit('stop')
   }
 
   public async logout(): Promise<void> {
     log.verbose('PuppetPadchat', 'logout()')
 
-    if (!this.id) {
+    if (!this.userId) {
       throw new Error('logout before login?')
     }
 
-    this.emit('logout', this.id) // becore we will throw above by logonoff() when this.user===undefined
-    this.id = undefined
+    this.emit('logout', this.userId) // becore we will throw above by logonoff() when this.user===undefined
+    this.userId = undefined
 
     // TODO: this.bridge.logout
   }
@@ -658,7 +658,7 @@ export class PuppetPadchat extends Puppet {
         type = MessageType.Video
         break
       default:
-        type = MessageType.Text
+        type = this.Message.Type.Unknown
     }
 
     const payload: MessagePayload = {
@@ -731,24 +731,18 @@ export class PuppetPadchat extends Puppet {
                               messageId,
               )
 
-    // const msg = this.Message.create(messageId)
-    // await msg.ready()
+    const msg = this.Message.create(messageId)
+    await msg.ready()
 
-    const payload = await this.messagePayload(messageId)
-
-    if (payload.type === MessageType.Text) {
-      if (!payload.text) {
-        throw new Error('no text!')
-      }
+    if (msg.type() === this.Message.Type.Text) {
       await this.messageSendText(
         receiver,
-        payload.text,
+        msg.text(),
       )
     } else {
-      const file = await this.messageFile(messageId)
       await this.messageSendFile(
         receiver,
-        file,
+        await msg.file(),
       )
     }
   }
@@ -832,16 +826,15 @@ export class PuppetPadchat extends Puppet {
     log.verbose('PuppetPadchat', 'roomFindAll(%s)', query)
 
     // TODO: query
-    const rooomMap = (await this.bridge.checkSyncContactOrRoom()).roomMap
-    const roomIdList: string[] = []
-    rooomMap.forEach(async (value , id) => {
-      roomIdList.push(id)
-      // this.Room.load(id, await this.roomRawPayloadParser(value))
-    })
+    // const rooomMap = (await this.bridge.checkSyncContactOrRoom()).roomMap
+    // const roomIdList: string[] = []
+    // rooomMap.forEach(async (value , id) => {
+    //   roomIdList.push(id)
+    //   this.Room.load(id, await this.roomRawPayloadParser(value))
+    // })
 
-    // TODO implenmentation
-
-    return roomIdList
+    // return roomIdList
+    return []
   }
 
   public async roomDel(
@@ -850,6 +843,7 @@ export class PuppetPadchat extends Puppet {
   ): Promise<void> {
     log.verbose('PuppetPadchat', 'roomDel(%s, %s)', roomId, contactId)
 
+    // Should check whether user is in the room. WXDeleteChatRoomMember won't check if user in the room automatically
     await this.bridge.WXDeleteChatRoomMember(roomId, contactId)
   }
 
@@ -930,16 +924,16 @@ export class PuppetPadchat extends Puppet {
   ): Promise<void> {
     log.verbose('PuppetPadchat', 'friendRequestAccept(%s, %s)', contactId, ticket)
 
-    const rawPayload = await this.contactRawPayload(contactId)
+    // const rawPayload = await this.contactRawPayload(contactId)
 
-    if (!rawPayload.ticket) {
-      throw new Error('no ticket')
-    }
+    // if (!rawPayload.ticket) {
+    //   throw new Error('no ticket')
+    // }
 
-    await this.bridge.WXAcceptUser(
-      rawPayload.stranger,
-      rawPayload.ticket,
-    )
+    // await this.bridge.WXAcceptUser(
+    //   rawPayload.stranger,
+    //   rawPayload.ticket,
+    // )
   }
 
 }
