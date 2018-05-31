@@ -902,7 +902,7 @@ export class PuppetPuppeteer extends Puppet {
     // const roomAliasMap    = await this.roomParseMap('roomAlias'   , rawPayload.MemberList)
     // const contactAliasMap = await this.roomParseMap('contactAlias', rawPayload.MemberList)
 
-    const aliasDict = {}
+    const aliasDict = {} as { [id: string]: string | undefined }
 
     if (Array.isArray(rawPayload.MemberList)) {
       const memberListPayload = await Promise.all(

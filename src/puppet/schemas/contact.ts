@@ -21,7 +21,7 @@ export interface ContactPayload {
   type:       ContactType,
 
   address?:   string,
-  alias?:     string | null,
+  alias?:     string,
   avatar?:    string,
   city?:      string,
   friend?:    boolean,

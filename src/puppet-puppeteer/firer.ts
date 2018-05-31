@@ -327,11 +327,13 @@ export class Firer {
     }
 
     if (!leaverContactId) {
-      leaverContactId = await this.puppet.roomMemberSearch(roomId, leaverName)[0]
+      const idList = await this.puppet.roomMemberSearch(roomId, leaverName)
+      leaverContactId = idList[0]
     }
 
     if (!removerContactId) {
-      removerContactId = await this.puppet.roomMemberSearch(roomId, removerName)[0]
+      const idList = await this.puppet.roomMemberSearch(roomId, removerName)
+      removerContactId = idList[0]
     }
 
     if (!leaverContactId || !removerContactId) {

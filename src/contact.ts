@@ -344,6 +344,10 @@ export class Contact extends Accessory implements Sayable {
                               : newAlias,
                 )
 
+    if (!this.payload) {
+      throw new Error('no payload')
+    }
+
     if (typeof newAlias === 'undefined') {
       return this.payload && this.payload.alias || null
     }
@@ -351,7 +355,7 @@ export class Contact extends Accessory implements Sayable {
     const future = this.puppet.contactAlias(this.id, newAlias)
 
     future
-      .then(() => this.payload!.alias = newAlias)
+      .then(() => this.payload!.alias = (newAlias || undefined))
       .catch(e => {
         log.error('Contact', 'alias(%s) rejected: %s', newAlias, e.message)
         Raven.captureException(e)

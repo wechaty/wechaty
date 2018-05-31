@@ -109,7 +109,7 @@ class Talker extends EventEmitter {
     text: string[],
     time: number[],
   }
-  private timer?: number
+  private timer?: NodeJS.Timer
 
   constructor(
     thinker: (text: string) => Promise<string>,
@@ -141,7 +141,7 @@ class Talker extends EventEmitter {
     log.verbose('Talker', 'updateTimer(%s)', delayTime)
 
     if (this.timer) { clearTimeout(this.timer) }
-    this.timer = setTimeout(this.say.bind(this), delayTime)
+    this.timer = setTimeout(this.say.bind(this), delayTime, 3)
   }
 
   public hear(text: string) {

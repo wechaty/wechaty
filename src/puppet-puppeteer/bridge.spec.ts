@@ -28,7 +28,9 @@ import {
 }                 from 'puppeteer'
 // import { spy }    from 'sinon'
 
-import Profile    from '../profile'
+import {
+  MemoryCard,
+}                 from 'memory-card'
 
 import Bridge     from './bridge'
 
@@ -41,7 +43,7 @@ const PUPPETEER_LAUNCH_OPTIONS = {
   ],
 }
 test('PuppetPuppeteerBridge', async t => {
-  const profile = new Profile()
+  const profile = new MemoryCard()
   const bridge = new Bridge({ profile })
   try {
     await bridge.init()
@@ -69,7 +71,7 @@ test('preHtmlToXml()', async t => {
     '</error>',
   ].join('')
 
-  const profile = new Profile()
+  const profile = new MemoryCard()
   const bridge = new Bridge({ profile })
 
   const xml = bridge.preHtmlToXml(BLOCKED_HTML_ZH)
@@ -109,7 +111,7 @@ test('testBlockedMessage()', async t => {
   ].join('')
 
   t.test('not blocked', async t => {
-    const profile = new Profile()
+    const profile = new MemoryCard()
     const bridge = new Bridge({ profile })
 
     const msg = await bridge.testBlockedMessage('this is not xml')
@@ -117,7 +119,7 @@ test('testBlockedMessage()', async t => {
   })
 
   t.test('html', async t => {
-    const profile = new Profile()
+    const profile = new MemoryCard()
     const bridge = new Bridge({ profile })
 
     const msg = await bridge.testBlockedMessage(BLOCKED_HTML_ZH)
@@ -125,7 +127,7 @@ test('testBlockedMessage()', async t => {
   })
 
   t.test('zh', async t => {
-    const profile = new Profile()
+    const profile = new MemoryCard()
     const bridge = new Bridge({ profile })
 
     const msg = await bridge.testBlockedMessage(BLOCKED_XML_ZH)
@@ -133,7 +135,7 @@ test('testBlockedMessage()', async t => {
   })
 
   test('en', async t => {
-    const profile = new Profile()
+    const profile = new MemoryCard()
     const bridge = new Bridge({ profile })
 
     const msg = await bridge.testBlockedMessage(BLOCKED_XML_EN)
@@ -150,7 +152,7 @@ test('clickSwitchAccount()', async t => {
     <a href="javascript:;" ng-click="qrcodeLogin()" class="button button_default">Switch Account</a>
     </div>
   `
-  const profile = new Profile()
+  const profile = new MemoryCard()
   const bridge = new Bridge({ profile} )
 
   t.test('switch account needed', async t => {
@@ -181,7 +183,7 @@ test('clickSwitchAccount()', async t => {
 })
 
 test('WechatyBro.ding()', async t => {
-  const profile = new Profile(Math.random().toString(36).substr(2, 5))
+  const profile = new MemoryCard(Math.random().toString(36).substr(2, 5))
   const bridge = new Bridge({
     profile,
   })

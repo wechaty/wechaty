@@ -89,7 +89,6 @@ export class PuppetPadchat extends Puppet {
   public readonly cachePadchatMessageRawPayload       : LRU.Cache<string, PadchatMessageRawPayload>
   public readonly cachePadchatRoomRawPayload          : LRU.Cache<string, PadchatRoomRawPayload>
 
-
   public bridge:  Bridge
   // public botWs:   WebSocket
 

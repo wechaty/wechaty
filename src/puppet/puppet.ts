@@ -406,9 +406,9 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     }
 
     // TypeScript bug: have to set `undefined | string | RegExp` at here, or the later code type check will get error
-    const filterKey: undefined | string | RegExp = Object.keys(query)[0] as keyof ContactQueryFilter
+    const filterKey = Object.keys(query)[0] as keyof ContactQueryFilter
 
-    const filterValue = query[filterKey]
+    const filterValue: undefined | string | RegExp = query[filterKey]
     if (!filterValue) {
       throw new Error('filterValue not found for filterKey: ' + filterKey)
     }
@@ -416,7 +416,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     let filterFunction
 
     if (filterValue instanceof RegExp) {
-      filterFunction = (payload: ContactPayload) => filterValue.test(payload[filterKey])
+      filterFunction = (payload: ContactPayload) => !!payload[filterKey] && filterValue.test(payload[filterKey]!)
     } else if (typeof filterValue === 'string') {
       filterFunction = (payload: ContactPayload) => filterValue === payload[filterKey]
     } else {
@@ -624,7 +624,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   ): RoomPayloadFilterFunction {
     log.verbose('Puppet', 'roomQueryFilterFactory({ %s })',
                             Object.keys(query)
-                                  .map(k => `${k}: ${query[k as keyof ContactQueryFilter]}`)
+                                  .map(k => `${k}: ${query[k as keyof RoomQueryFilter]}`)
                                   .join(', '),
               )
 
@@ -633,9 +633,9 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     }
 
     // TypeScript bug: have to set `undefined | string | RegExp` at here, or the later code type check will get error
-    const filterKey: undefined | string | RegExp = Object.keys(query)[0] as keyof ContactQueryFilter
+    const filterKey = Object.keys(query)[0] as keyof RoomQueryFilter
 
-    const filterValue = query[filterKey]
+    const filterValue: undefined | string | RegExp = query[filterKey]
     if (!filterValue) {
       throw new Error('filterValue not found for filterKey: ' + filterKey)
     }

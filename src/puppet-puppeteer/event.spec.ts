@@ -22,8 +22,11 @@ import * as test  from 'blue-tape'
 // tslint:disable:no-shadowed-variable
 // import * as sinon from 'sinon'
 
-import Profile  from '../profile'
-import Wechaty  from '../wechaty'
+import {
+  MemoryCard,
+}               from 'memory-card'
+
+// import Wechaty  from '../wechaty'
 
 import {
   // Event,
@@ -32,8 +35,7 @@ import {
 
 test('Puppet Puppeteer Event smoke testing', async t => {
   const puppet = new PuppetPuppeteer({
-    profile: new Profile(),
-    wechaty: new Wechaty(),
+    memory: new MemoryCard(),
   })
 
   try {
