@@ -85,9 +85,9 @@ export class Io {
     options.apihost   = options.apihost   || config.apihost
     options.protocol  = options.protocol  || config.default.DEFAULT_PROTOCOL
 
-    this.cuid = options.wechaty.cuid
+    this.cuid = options.wechaty.id
 
-    this.protocol = options.protocol + '|' + options.wechaty.cuid
+    this.protocol = options.protocol + '|' + options.wechaty.id
     log.verbose('Io', 'instantiated with apihost[%s], token[%s], protocol[%s], cuid[%s]',
                       options.apihost,
                       options.token,

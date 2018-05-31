@@ -468,7 +468,7 @@ export class Wechaty extends Accessory implements Sayable {
     }
 
     this.initPuppetEventBridge(puppet)
-    this.initPuppetAccessory(puppet)
+    this.initAccessory(puppet)
   }
 
   /**
@@ -648,19 +648,28 @@ export class Wechaty extends Accessory implements Sayable {
     }
   }
 
-  private initPuppetAccessory(puppet: Puppet) {
-    log.verbose('Wechaty', 'initPuppetAccessory(%s)', puppet)
+  private initAccessory(puppet: Puppet) {
+    log.verbose('Wechaty', 'initAccessory(%s)', puppet)
 
+    /**
+     * 1. Set Puppet
+     */
     this.Contact.puppet       = puppet
     this.FriendRequest.puppet = puppet
     this.Message.puppet       = puppet
     this.Room.puppet          = puppet
 
+    /**
+     * 2. Set Wechaty
+     */
     this.Contact.wechaty       = this
     this.FriendRequest.wechaty = this
     this.Message.wechaty       = this
     this.Room.wechaty          = this
 
+    /**
+     * 3. Set Puppet/Wechaty for Wechaty-self
+     */
     this.puppet  = puppet
     this.wechaty = this
   }
