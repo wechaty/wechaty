@@ -37,27 +37,10 @@ import {
   Misc,
 }                   from './misc'
 
-export enum FriendRequestType {
-  Unknown = 0,
-  Receive,
-  Confirm,
-}
-
-export interface FriendRequestPayloadConfirm {
-  contactId : string,
-  hello?    : string,
-  type      : FriendRequestType.Confirm,
-}
-
-export interface FriendRequestPayloadReceive {
-  contactId : string,
-  hello?    : string,
-  ticket    : string
-  type      : FriendRequestType.Receive,
-}
-
-export type FriendRequestPayload = FriendRequestPayloadReceive
-                                  | FriendRequestPayloadConfirm
+import {
+  FriendRequestPayload,
+  FriendRequestType,
+}                         from './puppet/'
 
 /**
  * Send, receive friend request, and friend confirmation events.

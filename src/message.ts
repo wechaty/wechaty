@@ -41,31 +41,10 @@ import {
   Room,
 }                 from './room'
 
-export enum MessageType {
-  Unknown = 0,
-  Attachment,
-  Audio,
-  Emoticon,
-  Image,
-  Text,
-  Video,
-}
-
-/**
- *
- * MessagePayload
- *
- */
-export interface MessagePayload {
-  type      : MessageType,
-  text?     : string,
-  fromId?   : string,
-  filename? : string,
-  timestamp : number,          // milliseconds
-  toId?     : null | string,   // if to is not set, then room must be set
-  roomId?   : null | string,
-}
-
+import {
+  MessagePayload,
+  MessageType,
+}                 from './puppet/'
 /**
  * All wechat messages will be encapsulated as a Message.
  *

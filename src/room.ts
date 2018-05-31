@@ -48,26 +48,11 @@ export const ROOM_EVENT_DICT = {
 }
 export type RoomEventName = keyof typeof ROOM_EVENT_DICT
 
-export interface RoomMemberQueryFilter {
-  name?:         string,
-  roomAlias?:    string,
-  contactAlias?: string,
-}
-
-export interface RoomQueryFilter {
-  topic: string | RegExp,
-}
-
-export interface RoomPayload {
-  topic        : string,
-  memberIdList : string[],
-  ownerId?     : string,
-
-  nameMap:          Map<string, string>,
-  roomAliasMap:     Map<string, string>,
-  contactAliasMap:  Map<string, string>,
-  // [index: string]:  Map<string, string> | string | number | PuppeteerContact[],
-}
+import {
+  RoomMemberQueryFilter,
+  RoomPayload,
+  RoomQueryFilter,
+}                         from './puppet/'
 
 /**
  * All wechat rooms(groups) will be encapsulated as a Room.

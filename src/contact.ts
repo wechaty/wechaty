@@ -31,46 +31,12 @@ import {
 
 // import Message          from './message'
 
-/**
- * Enum for Gender values.
- *
- * @enum {number}
- * @property {number} Unknown   - 0 for Unknown
- * @property {number} Male      - 1 for Male
- * @property {number} Female    - 2 for Female
- */
-export enum Gender {
-  Unknown = 0,
-  Male    = 1,
-  Female  = 2,
-}
-
-export enum ContactType {
-  Unknown = 0,
-  Personal,
-  Official,
-}
-
-export interface ContactQueryFilter {
-  name?:   string | RegExp,
-  alias?:  string | RegExp,
-}
-
-export interface ContactPayload {
-  gender:     Gender,
-  type:       ContactType,
-
-  address?:   string,
-  alias?:     string | null,
-  avatar?:    string,
-  city?:      string,
-  friend?:    boolean,
-  name?:      string,
-  province?:  string,
-  signature?: string,
-  star?:      boolean,
-  weixin?:    string,
-}
+import {
+  ContantGender,
+  ContactPayload,
+  ContactQueryFilter,
+  ContactType,
+}                         from './puppet/'
 
 export const POOL = Symbol('pool')
 
@@ -84,7 +50,8 @@ export class Contact extends Accessory implements Sayable {
 
   // tslint:disable-next-line:variable-name
   public static Type   = ContactType
-  public static Gender = Gender
+  // tslint:disable-next-line:variable-name
+  public static Gender = ContantGender
 
   protected static [POOL]: Map<string, Contact>
   protected static get pool() {
@@ -483,14 +450,14 @@ export class Contact extends Accessory implements Sayable {
   /**
    * Contact gender
    *
-   * @returns {Gender.Male(2)|Gender.Female(1)|Gender.Unknown(0)}
+   * @returns {ContantGender.Male(2)|Gender.Female(1)|Gender.Unknown(0)}
    * @example
    * const gender = contact.gender()
    */
-  public gender(): Gender {
+  public gender(): ContantGender {
     return this.payload
       ? this.payload.gender
-      : Gender.Unknown
+      : ContantGender.Unknown
   }
 
   /**
