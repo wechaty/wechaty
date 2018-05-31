@@ -21,9 +21,11 @@
 // import * as fs    from 'fs'
 // import * as cuid from 'cuid'
 
+import * as LRU from 'lru-cache'
+
 import {
   FileBox,
-}             from 'file-box'
+}               from 'file-box'
 
 import {
   MessagePayload,
@@ -81,6 +83,13 @@ import * as WebSocket from 'ws'
 const TOKEN = 'padchattest'
 
 export class PuppetPadchat extends Puppet {
+
+  public readonly cachePadchatContactRawPayload       : LRU.Cache<string, PadchatContactRawPayload>
+  // public readonly cachePadchatFriendRequestRawPayload : LRU.Cache<string, FriendRequestRawPayload>
+  public readonly cachePadchatMessageRawPayload       : LRU.Cache<string, PadchatMessageRawPayload>
+  public readonly cachePadchatRoomRawPayload          : LRU.Cache<string, PadchatRoomRawPayload>
+
+
   public bridge:  Bridge
   // public botWs:   WebSocket
 
@@ -88,6 +97,20 @@ export class PuppetPadchat extends Puppet {
     public options: PuppetOptions,
   ) {
     super(options)
+
+    const lruOptions: LRU.Options = {
+      max: 1000,
+      // length: function (n) { return n * 2},
+      dispose: function (key: string, val: Object) {
+        log.silly('Puppet', 'constructor() lruOptions.dispose(%s, %s)', key, JSON.stringify(val))
+      },
+      maxAge: 1000 * 60 * 60,
+    }
+
+    this.cachePadchatContactRawPayload       = new LRU<string, PadchatContactRawPayload>(lruOptions)
+    // this.cacheFriendRequestPayload = new LRU<string, FriendRequestPayload>(lruOptions)
+    this.cachePadchatMessageRawPayload       = new LRU<string, PadchatMessageRawPayload>(lruOptions)
+    this.cachePadchatRoomRawPayload          = new LRU<string, PadchatRoomRawPayload>(lruOptions)
 
     this.bridge = new Bridge({
       userId   : TOKEN,
@@ -597,7 +620,24 @@ export class PuppetPadchat extends Puppet {
   }
 
   public async messageRawPayload(id: string): Promise<PadchatMessageRawPayload> {
-    throw Error('should not call messageRawPayload: ' + id)
+    // throw Error('should not call messageRawPayload: ' + id)
+
+    /**
+     * Issue #1249
+     */
+    this.cachePadchatMessageRawPayload.set(id, {
+      id: 'xxx',
+      data: 'xxx',
+    } as any)
+
+    const rawPayload = this.cachePadchatMessageRawPayload.get(id)
+
+    if (!rawPayload) {
+      throw new Error('no rawPayload')
+    }
+
+    return rawPayload
+
     // log.verbose('PuppetPadchat', 'messageRawPayload(%s)', id)
     // const rawPayload: PadchatMessageRawPayload = {
     //   content:      '',
