@@ -952,6 +952,8 @@ export class PuppetPadchat extends Puppet {
       throw new Error('stranger neither v1 nor v2!')
     }
 
+    // Issue #1252 : what's wrong here?
+
     await this.bridge.WXAddUser(
       strangerV1 || '',
       strangerV2 || '',
