@@ -62,6 +62,7 @@ import {
   WebMessageRawPayload,
   WebMediaType,
   WebMessageType,
+  WebRecomendInfo,
   // WebRoomRawMember,
   WebRoomRawPayload,
 }                           from './web-schemas'
@@ -70,6 +71,11 @@ import {
   ContactPayload,
   // ContactQueryFilter,
   ContactType,
+
+  FriendRequestPayload,
+  FriendRequestPayloadReceive,
+  FriendRequestPayloadConfirm,
+  FriendRequestType,
 
   MessagePayload,
   MessageType,
@@ -1110,6 +1116,51 @@ export class PuppetPuppeteer extends Puppet {
    * FriendRequest
    *
    */
+  public async friendRequestRawPayload(id: string): Promise<WebMessageRawPayload> {
+    log.warn('PuppetPuppeteer', 'friendRequestRawPayload(%s)', id)
+
+    const rawPayload = await this.bridge.getMessage(id)
+    if (!rawPayload) {
+      throw new Error('no rawPayload')
+    }
+    return rawPayload
+  }
+
+  public async friendRequestRawPayloadParser(rawPayload: WebMessageRawPayload): Promise<FriendRequestPayload> {
+    log.warn('PuppetPuppeteer', 'friendRequestRawPayloadParser(%s)', rawPayload)
+
+    switch (rawPayload.MsgType) {
+      case WebMessageType.VERIFYMSG:
+        if (!rawPayload.RecommendInfo) {
+          throw new Error('no RecommendInfo')
+        }
+        const recommendInfo: WebRecomendInfo = rawPayload.RecommendInfo
+
+        if (!recommendInfo) {
+          throw new Error('no recommendInfo')
+        }
+
+        const payloadReceive: FriendRequestPayloadReceive = {
+          id        : rawPayload.MsgId,
+          contactId : recommendInfo.UserName,
+          hello     : recommendInfo.Content,
+          ticket    : recommendInfo.Ticket,
+          type      : FriendRequestType.Receive,
+        }
+        return payloadReceive
+
+      case WebMessageType.SYS:
+        const payloadConfirm: FriendRequestPayloadConfirm = {
+          id        : rawPayload.MsgId,
+          contactId : rawPayload.FromUserName,
+          type      : FriendRequestType.Confirm,
+        }
+        return payloadConfirm
+      default:
+        throw new Error('not supported friend request message raw payload')
+    }
+  }
+
   public async friendRequestSend(
     contactId : string,
     hello     : string,
@@ -1306,7 +1357,7 @@ export class PuppetPuppeteer extends Puppet {
 
   private filename(
     rawPayload: WebMessageRawPayload,
-  ): null | string {
+  ): string {
     log.verbose('PuppetPuppeteer', 'filename()')
 
     let filename = rawPayload.FileName || rawPayload.MediaId || rawPayload.MsgId

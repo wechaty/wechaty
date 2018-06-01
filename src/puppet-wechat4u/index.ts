@@ -16,10 +16,10 @@
  *   limitations under the License.
  *
  */
-import { PuppetMock }  from './puppet-mock'
+import { PuppetWechat4u }  from './puppet-wechat4u'
 
 export {
-  PuppetMock,
+  PuppetWechat4u,
 }
 
-export default PuppetMock
+export default PuppetWechat4u

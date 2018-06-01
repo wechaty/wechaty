@@ -30,6 +30,8 @@ import {
   ContactType,
   ContactPayload,
 
+  FriendRequestPayload,
+
   RoomPayload,
   // RoomQueryFilter,
 }                       from '../puppet/'
@@ -319,6 +321,13 @@ export class PuppetMock extends Puppet {
    * FriendRequest
    *
    */
+  public async friendRequestRawPayload(id: string)            : Promise<any> {
+    return {id} as any
+  }
+  public async friendRequestRawPayloadParser(rawPayload: any) : Promise<FriendRequestPayload> {
+    return rawPayload
+  }
+
   public async friendRequestSend(
     contactId : string,
     hello     : string,

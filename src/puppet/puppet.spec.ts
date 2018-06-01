@@ -18,7 +18,7 @@ import {
   // ContactPayloadFilterFactory,
 }                                 from '../puppet/schemas/contact'
 import {
-  // FriendRequestPayload,
+  FriendRequestPayload,
 }                                 from '../puppet/schemas/friend-request'
 import {
   MessagePayload,
@@ -62,6 +62,9 @@ class PuppetTest extends Puppet {
    * FriendRequest
    *
    */
+  public async friendRequestRawPayload(id: string)            : Promise<any> { return {id} as any }
+  public async friendRequestRawPayloadParser(rawPayload: any) : Promise<FriendRequestPayload> { return rawPayload }
+
   public async friendRequestSend(contactId: string, hello?: string)   : Promise<void> { return {contactId, hello} as any }
   public async friendRequestAccept(contactId: string, ticket: string) : Promise<void> { return {contactId, ticket} as any }
 

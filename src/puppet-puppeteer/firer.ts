@@ -19,24 +19,24 @@
 
 /* tslint:disable:no-var-requires */
 // const retryPromise  = require('retry-promise').default
-import * as cuid from 'cuid'
+// import * as cuid from 'cuid'
 
 import {
   log,
 }               from '../config'
 
 import {
-  WebRecomendInfo,
+  // WebRecomendInfo,
   WebMessageRawPayload,
 }                             from './web-schemas'
 import PuppetPuppeteer        from './puppet-puppeteer'
 
-import {
-  // FriendRequestPayload,
-  FriendRequestType,
-  FriendRequestPayloadReceive,
-  FriendRequestPayloadConfirm,
-}                               from '../puppet/'
+// import {
+//   // FriendRequestPayload,
+//   FriendRequestType,
+//   FriendRequestPayloadReceive,
+//   FriendRequestPayloadConfirm,
+// }                               from '../puppet/'
 
 const REGEX_CONFIG = {
   friendConfirm: [
@@ -101,37 +101,37 @@ export class Firer {
     //
   }
 
-  public async checkFriendRequest(
-    rawPayload : WebMessageRawPayload,
-  ): Promise<void> {
-    if (!rawPayload.RecommendInfo) {
-      throw new Error('no RecommendInfo')
-    }
-    const recommendInfo: WebRecomendInfo = rawPayload.RecommendInfo
-    log.verbose('PuppetPuppeteerFirer', 'fireFriendRequest(%s)', recommendInfo)
+  // public async checkFriendRequest(
+  //   rawPayload : WebMessageRawPayload,
+  // ): Promise<void> {
+  //   if (!rawPayload.RecommendInfo) {
+  //     throw new Error('no RecommendInfo')
+  //   }
+  //   const recommendInfo: WebRecomendInfo = rawPayload.RecommendInfo
+  //   log.verbose('PuppetPuppeteerFirer', 'fireFriendRequest(%s)', recommendInfo)
 
-    if (!recommendInfo) {
-      throw new Error('no recommendInfo')
-    }
+  //   if (!recommendInfo) {
+  //     throw new Error('no recommendInfo')
+  //   }
 
-    const contactId = recommendInfo.UserName
-    const hello     = recommendInfo.Content
-    const ticket    = recommendInfo.Ticket
-    const type      = FriendRequestType.Receive
-    const id        = cuid()
+  //   const contactId = recommendInfo.UserName
+  //   const hello     = recommendInfo.Content
+  //   const ticket    = recommendInfo.Ticket
+  //   const type      = FriendRequestType.Receive
+  //   const id        = cuid()
 
-    const payloadReceive: FriendRequestPayloadReceive = {
-      id,
-      contactId,
-      hello,
-      ticket,
-      type,
-    }
+  //   const payloadReceive: FriendRequestPayloadReceive = {
+  //     id,
+  //     contactId,
+  //     hello,
+  //     ticket,
+  //     type,
+  //   }
 
-    this.puppet.cacheFriendRequestPayload.set(id, payloadReceive)
+  //   this.puppet.cacheFriendRequestPayload.set(id, payloadReceive)
 
-    this.puppet.emit('friend', id)
-  }
+  //   this.puppet.emit('friend', id)
+  // }
 
   public async checkFriendConfirm(
     rawPayload : WebMessageRawPayload,
@@ -143,20 +143,20 @@ export class Firer {
       return
     }
 
-    const contactId = rawPayload.FromUserName
-    const type = FriendRequestType.Confirm
+    // const contactId = rawPayload.FromUserName
+    // const type = FriendRequestType.Confirm
 
-    const id = cuid()
+    // const id = cuid()
 
-    const payloadConfirm: FriendRequestPayloadConfirm = {
-      id,
-      contactId,
-      type,
-    }
+    // const payloadConfirm: FriendRequestPayloadConfirm = {
+    //   id,
+    //   contactId,
+    //   type,
+    // }
 
-    this.puppet.cacheFriendRequestPayload.set(id, payloadConfirm)
+    // this.puppet.cacheFriendRequestPayload.set(id, payloadConfirm)
 
-    this.puppet.emit('friend', id)
+    this.puppet.emit('friend', rawPayload.MsgId)
   }
 
   public async checkRoomJoin(
