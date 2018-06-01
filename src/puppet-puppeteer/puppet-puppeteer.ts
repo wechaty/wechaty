@@ -365,15 +365,31 @@ export class PuppetPuppeteer extends Puppet {
 
     const type: MessageType = this.messageTypeFromWeb(rawPayload.MsgType)
 
-    const payload: MessagePayload = {
+    const payloadBase = {
       id,
       type,
       fromId,
       filename,
-      toId,
-      roomId,
       text,
       timestamp,
+    }
+
+    let payload: MessagePayload
+
+    if (toId) {
+      payload = {
+        ...payloadBase,
+        toId,
+        roomId,
+      }
+    } else if (roomId) {
+      payload = {
+        ...payloadBase,
+        toId,
+        roomId,
+      }
+    } else {
+      throw new Error('neither roomId nor toId')
     }
 
     return payload

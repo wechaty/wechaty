@@ -89,6 +89,8 @@ export class PuppetMock extends Puppet {
       type      : MessageType.Text,
       text      : 'mock text',
       timestamp : Date.now(),
+      fromId    : 'xxx',
+      toId      : 'xxx',
     })
 
     setInterval(() => {

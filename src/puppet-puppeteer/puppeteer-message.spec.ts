@@ -89,6 +89,7 @@ test('constructor()', async t => {
       type      : Message.Type.Text,
       fromId    : EXPECTED.from,
       timestamp : Date.now(),
+      toId      : 'toId',
     }
     return payload
   })
