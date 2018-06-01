@@ -2,9 +2,19 @@
 import * as test  from 'blue-tape'
 // import * as sinon from 'sinon'
 
-import { cloneClass } from 'clone-class'
+import {
+  cloneClass,
+}                           from 'clone-class'
+import {
+  MemoryCard,
+}                           from 'memory-card'
 
-import { Contact as GlobalContact } from './contact'
+import {
+  Contact as GlobalContact,
+}                           from './contact'
+import {
+  PuppetMock,
+}                           from './puppet-mock'
 
 // tslint:disable-next-line:variable-name
 const Contact = cloneClass(GlobalContact)
@@ -42,7 +52,8 @@ test('Should not be able to instanciate through cloneClass without puppet', asyn
 test('should be able to instanciate through cloneClass with puppet', async t => {
   // tslint:disable-next-line:variable-name
   const MyContact = cloneClass(Contact)
-  MyContact.puppet = {} as any
+
+  MyContact.puppet = new PuppetMock({ memory: new MemoryCard })
 
   t.doesNotThrow(() => {
     const c = MyContact.load('xxx')
