@@ -159,7 +159,7 @@ export class Wechaty extends Accessory implements Sayable {
     options?: WechatyOptions,
   ) {
     if (options && this.globalInstance) {
-      throw new Error('instance can be only set once!')
+      throw new Error('instance can be only inited once by options!')
     }
     if (!this.globalInstance) {
       this.globalInstance = new Wechaty(options)
@@ -180,7 +180,7 @@ export class Wechaty extends Accessory implements Sayable {
                       ? null
                       : (options.profile || config.default.DEFAULT_PROFILE)
 
-    this.memory = new MemoryCard(options.profile)
+    this.memory = new MemoryCard(options.profile || undefined)
 
     this.id = cuid()
 
@@ -430,63 +430,44 @@ export class Wechaty extends Accessory implements Sayable {
     })
   }
 
-  /**
-   * set Wechaty attach to the puppet,
-   * this function should be called before `start()`
-   *
-   * Will be called from the Puppet in constructor:
-   *  When we declare a wechaty without a puppet instance,
-   *  the wechaty need to attach to puppet at here.
-   */
-  // public attach(puppet: Puppet) {
-  //   log.verbose('Wechaty', 'attach(%s) this.options.puppet="%s"',
-  //                           puppet,
-  //                           this.options.puppet &&　this.options.puppet.toString() || '',
-  //               )
+  private initPuppet(): void {
+    log.verbose('Wechaty', 'initPuppet(%s)', this.options.puppet)
 
-  //   if (this.options.puppet instanceof Puppet) {
-  //     if (this.options.puppet === puppet) {
-  //       log.silly('Wechaty', 'attach(%s) called again', puppet)
-  //       return
-  //     } else {
-  //       throw new Error('puppet can only be attached once!')
-  //     }
-  //   }
+    const puppet = this.initPuppetResolver(this.options.puppet)
 
-  //   this.options.puppet = puppet
-  // }
+    this.initPuppetVersionSatisfy(puppet)
+    this.initPuppetEventBridge(puppet)
+    this.initPuppetAccessory(puppet)
+  }
 
   /**
    * @private
    */
-  private initPuppet(): void {
-    log.verbose('Wechaty', 'initPuppet()')
+  private initPuppetVersionSatisfy(puppet: Puppet): void {
+    log.verbose('Wechaty', 'initPuppetVersionSatisfy(%s)', puppet)
 
-    if (!this.options.puppet) {
-      log.info('Wechaty', 'initPuppet() using default puppet: %s', config.puppet)
-      this.options.puppet  = config.puppet
-    }
-
-    const puppet = this.initPuppetResolver(this.options.puppet)
-
-    if (!this.initPuppetSemverSatisfy(
+    if (this.initPuppetSemverSatisfy(
       puppet.wechatyVersionRange(),
     )) {
-      throw new Error(`The Puppet Plugin(${puppet.constructor.name}) `
-          + `requires a version range(${puppet.wechatyVersionRange()}) `
-          + `that is not satisfying the Wechaty version: ${this.version()}.`,
-        )
+      return
     }
 
-    this.initPuppetEventBridge(puppet)
-    this.initAccessory(puppet)
+    throw new Error(`The Puppet Plugin(${puppet.constructor.name}) `
+      + `requires a version range(${puppet.wechatyVersionRange()}) `
+      + `that is not satisfying the Wechaty version: ${this.version()}.`,
+    )
   }
 
   /**
    * Init the Puppet
    */
-  private initPuppetResolver(puppet: PuppetName | Puppet): Puppet {
+  private initPuppetResolver(puppet?: PuppetName | Puppet): Puppet {
     log.verbose('Wechaty', 'initPuppetResolver(%s)', puppet)
+
+    if (!puppet) {
+      log.info('Wechaty', 'initPuppet() using default puppet: %s', config.puppet)
+      puppet  = config.puppet
+    }
 
     if (typeof puppet === 'string') {
       // tslint:disable-next-line:variable-name
@@ -542,6 +523,7 @@ export class Wechaty extends Accessory implements Sayable {
             /**
              * Use `watchdog` event from Puppet to `heartbeat` Wechaty.
              */
+            // TODO: use a throttle queue to prevent beat too fast.
             this.emit('heartbeat', data)
           })
           break
@@ -672,19 +654,11 @@ export class Wechaty extends Accessory implements Sayable {
     }
   }
 
-  private initAccessory(puppet: Puppet) {
+  protected initPuppetAccessory(puppet: Puppet) {
     log.verbose('Wechaty', 'initAccessory(%s)', puppet)
 
     /**
-     * 1. Set Puppet
-     */
-    this.Contact.puppet       = puppet
-    this.FriendRequest.puppet = puppet
-    this.Message.puppet       = puppet
-    this.Room.puppet          = puppet
-
-    /**
-     * 2. Set Wechaty
+     * 1. Set Wechaty
      */
     this.Contact.wechaty       = this
     this.FriendRequest.wechaty = this
@@ -692,10 +666,14 @@ export class Wechaty extends Accessory implements Sayable {
     this.Room.wechaty          = this
 
     /**
-     * 3. Set Puppet/Wechaty for Wechaty-self
+     * 2. Set Puppet
      */
-    this.puppet  = puppet
-    this.wechaty = this
+    this.Contact.puppet       = puppet
+    this.FriendRequest.puppet = puppet
+    this.Message.puppet       = puppet
+    this.Room.puppet          = puppet
+
+    this.puppet               = puppet
   }
 
   /**
@@ -714,7 +692,7 @@ export class Wechaty extends Accessory implements Sayable {
 
     if (this.state.on()) {
       log.silly('Wechaty', 'start() on a starting/started instance')
-      await this.state.ready()
+      await this.state.ready('on')
       log.silly('Wechaty', 'start() state.ready() resolved')
       return
     }
@@ -723,7 +701,8 @@ export class Wechaty extends Accessory implements Sayable {
 
     try {
       await this.memory.load()
-      await this.initPuppet()
+
+      this.initPuppet()
 
       await this.puppet.start()
 

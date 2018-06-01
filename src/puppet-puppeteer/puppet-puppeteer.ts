@@ -905,12 +905,17 @@ export class PuppetPuppeteer extends Puppet {
     const aliasDict = {} as { [id: string]: string | undefined }
 
     if (Array.isArray(rawPayload.MemberList)) {
-      const memberListPayload = await Promise.all(
-        rawPayload.MemberList
-          .map(rawMember => rawMember.UserName)
-          .map(contactId => this.contactPayload(contactId)),
-      )
-      memberListPayload.forEach(payload => aliasDict[payload.id] = payload.alias)
+      rawPayload.MemberList.forEach(rawMember => {
+        aliasDict[rawMember.UserName] = rawMember.DisplayName
+      })
+      // const memberListPayload = await Promise.all(
+      //   rawPayload.MemberList
+      //     .map(rawMember => rawMember.UserName)
+      //     .map(contactId => this.contactPayload(contactId)),
+      // )
+      // console.log(memberListPayload)
+      // memberListPayload.forEach(payload => aliasDict[payload.id] = payload.alias)
+      // console.log(aliasDict)
     }
 
     const roomPayload: RoomPayload = {

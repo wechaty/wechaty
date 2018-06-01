@@ -169,7 +169,16 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   }
 
   public toString() {
-    return `Puppet#${this.counter}<${this.constructor.name}>(${this.options.memory.name})`
+    return [
+      `Puppet#`,
+      this.counter,
+      '<',
+      this.constructor.name,
+      '>',
+      '(',
+      this.options.memory.name,
+      ')',
+    ].join('')
   }
 
   /**
@@ -364,9 +373,11 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     query?        : ContactQueryFilter,
     searchIdList? : string[],
   ): Promise<string[]> {
-    log.verbose('Puppet', 'contactSearch(query=%s, searchIdList=%s)',
+    log.verbose('Puppet', 'contactSearch(query=%s, %s)',
                           JSON.stringify(query),
-                          searchIdList && searchIdList.length || 'all',
+                          searchIdList
+                            ? `idList.length = ${searchIdList.length}`
+                            : '',
                 )
 
     if (!searchIdList) {
@@ -395,11 +406,21 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   private contactQueryFilterFactory(
     query: ContactQueryFilter,
   ): ContactPayloadFilterFunction {
-    log.verbose('Puppet', 'contactQueryFilterFactory({ %s })',
-                            Object.keys(query)
-                                  .map(k => `${k}: ${query[k as keyof ContactQueryFilter]}`)
-                                  .join(', '),
-              )
+    log.verbose('Puppet', 'contactQueryFilterFactory(%s)',
+                            JSON.stringify(query),
+                )
+
+    // Object.keys(query).forEach((key: keyof ContactQueryFilter) => {
+    //   if (typeof query[key] === 'undefined') {
+    //     delete query[key]
+    //   }
+    // })
+
+    Object.keys(query).forEach(key => {
+      if (query[key as keyof ContactQueryFilter] === undefined) {
+        delete query[key as keyof ContactQueryFilter]
+      }
+    })
 
     if (Object.keys(query).length !== 1) {
       throw new Error('query only support one key. multi key support is not availble now.')
@@ -554,15 +575,15 @@ export abstract class Puppet extends EventEmitter implements Sayable {
      * 1. for Text Query
      */
     if (typeof query === 'string') {
-      const concatIdList: string[] = []
-      concatIdList.concat(
+      let contactIdList: string[] = []
+      contactIdList = contactIdList.concat(
         await this.roomMemberSearch(roomId, { name:          query }),
         await this.roomMemberSearch(roomId, { contactAlias:  query }),
         await this.roomMemberSearch(roomId, { roomAlias:     query }),
       )
-      // only keep the unique id
+      // Keep the unique id only
       // https://stackoverflow.com/a/14438954/1123955
-      return [...new Set(concatIdList)]
+      return [...new Set(contactIdList)]
     }
 
     /**
@@ -570,7 +591,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
      */
     const roomPayload = await this.roomPayload(roomId)
 
-    const idList: string[] = []
+    let idList: string[] = []
 
     if (query.contactAlias || query.name) {
       const contactQueryFilter: ContactQueryFilter = {
@@ -578,14 +599,14 @@ export abstract class Puppet extends EventEmitter implements Sayable {
         alias : query.contactAlias,
       }
 
-      idList.concat(await this.contactSearch(
+      idList = idList.concat(await this.contactSearch(
         contactQueryFilter,
         roomPayload.memberIdList,
       ))
     }
 
     if (query.roomAlias) {
-      idList.concat(
+      idList = idList.concat(
         Object.keys(roomPayload.aliasDict).filter(
           id => roomPayload.aliasDict[id] === query.roomAlias,
         ),

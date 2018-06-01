@@ -218,10 +218,10 @@ export class Room extends Accessory implements Sayable {
    * @private
    */
   public toString() {
-    if (this.isReady()) {
+    if (this.payload && this.payload.topic) {
       return `Room<${this.topic()}>`
     }
-    return `Room<${this.id}>`
+    return `Room<${this.id || 'noid'}>`
   }
 
   public *[Symbol.iterator](): IterableIterator<Contact> {
@@ -585,8 +585,8 @@ export class Room extends Accessory implements Sayable {
                         .length > 0
   }
 
-  public async memberAll(filter: RoomMemberQueryFilter): Promise<Contact[]>
-  public async memberAll(name: string): Promise<Contact[]>
+  public async memberAll(name: string)                  : Promise<Contact[]>
+  public async memberAll(filter: RoomMemberQueryFilter) : Promise<Contact[]>
 
   /**
    * The way to search member by Room.member()
@@ -605,73 +605,85 @@ export class Room extends Accessory implements Sayable {
    * - `name`                 the name-string set by user-self, should be called name, equal to `Contact.name()`
    * - `roomAlias`            the name-string set by user-self in the room, should be called roomAlias
    * - `contactAlias`         the name-string set by bot for others, should be called alias, equal to `Contact.alias()`
-   * @param {(RoomMemberQueryFilter | string)} queryArg -When use memberAll(name:string), return all matched members, including name, roomAlias, contactAlias
+   * @param {(RoomMemberQueryFilter | string)} query -When use memberAll(name:string), return all matched members, including name, roomAlias, contactAlias
    * @returns {Contact[]}
    * @memberof Room
    */
   public async memberAll(
-    queryArg: string | RoomMemberQueryFilter,
+    query: string | RoomMemberQueryFilter,
   ): Promise<Contact[]> {
-    if (typeof queryArg === 'string') {
-      // TODO: filter the duplicated result
-      return ([] as Contact[]).concat(
-        await this.memberAll({name:         queryArg}),
-        await this.memberAll({roomAlias:    queryArg}),
-        await this.memberAll({contactAlias: queryArg}),
-      )
-    }
+    log.silly('Room', 'memberAll(%s)',
+                      JSON.stringify(query),
+              )
+
+    const contactIdList = await this.puppet.roomMemberSearch(this.id, query)
+    const contactList   = contactIdList.map(id => this.wechaty.Contact.load(id))
+
+    return contactList
+
+    // if (typeof query === 'string') {
+    //   // TODO: filter the duplicated result
+    //   return ([] as Contact[]).concat(
+    //     await this.memberAll({name:         query}),
+    //     await this.memberAll({roomAlias:    query}),
+    //     await this.memberAll({contactAlias: query}),
+    //   )
+    // }
 
     /**
      * We got filter parameter
      */
-    log.silly('Room', 'memberAll(%s)',
-                      JSON.stringify(queryArg),
-                      // Object.keys(queryArg)
-                      //       .map((k: keyof RoomMemberQueryFilter) => `${k}: ${queryArg[k]}`)
-                      //       .join(', '),
-              )
 
-    if (Object.keys(queryArg).length !== 1) {
-      throw new Error('Room member find queryArg only support one key. multi key support is not availble now.')
-    }
-
-    if (!this.payload || !this.payload.memberIdList) {
-      log.warn('Room', 'member() not ready')
-      return []
-    }
-    const filterKey = Object.keys(queryArg)[0] as keyof RoomMemberQueryFilter
-    /**
-     * ISSUE #64 emoji need to be striped
-     */
-    const filterValue: string | undefined = /* Misc.stripEmoji(Misc.plainText( */ queryArg[filterKey] // ))
-    if (!filterValue) {
-      throw new Error('filterValue not found')
-    }
-
-    const idList = await this.puppet.roomMemberSearch(this.id, queryArg)
-    // const keyMap = {
-    //   contactAlias: 'contactAliasMap',
-    //   name:         'nameMap',
-    //   alias:        'roomAliasMap',
-    //   roomAlias:    'roomAliasMap',
+    // if (Object.keys(query).length !== 1) {
+    //   throw new Error('Room member find queryArg only support one key. multi key support is not availble now.')
     // }
 
-    // const filterMapName = keyMap[filterKey] as keyof RoomPayload
-    // if (!filterMapName) {
-    //   throw new Error('unsupport filter key: ' + filterKey)
+    // if (!this.payload || !this.payload.memberIdList) {
+    //   log.warn('Room', 'member() not ready')
+    //   return []
+    // }
+    // const filterKey = Object.keys(query)[0] as keyof RoomMemberQueryFilter
+
+    // /**
+    //  * ISSUE #64 emoji need to be striped
+    //  */
+    // const filterValue: string | undefined = /* Misc.stripEmoji(Misc.plainText( */ query[filterKey] // ))
+    // if (!filterValue) {
+    //   throw new Error('filterValue not found')
     // }
 
-    // const filterMap = this.payload[filterMapName] as Map<string, string>
-    // const idList = Array.from(filterMap.keys())
-    //                       .filter(id => filterMap.get(id) === filterValue)
+    // const idList = await this.puppet.roomMemberSearch(this.id, query)
 
-    // log.silly('Room', 'memberAll() check %s from %s: %s', filterValue, filterKey, JSON.stringify(filterMap))
+    // if (query.roomAlias === '田美坤') {
+    //   console.log('田美坤:')
+    //   console.log(this.payload.aliasDict)
 
-    if (idList.length) {
-      return idList.map(id => this.wechaty.Contact.load(id))
-    } else {
-      return []
-    }
+    //   console.log(idList)
+    // }
+
+    // // const keyMap = {
+    // //   contactAlias: 'contactAliasMap',
+    // //   name:         'nameMap',
+    // //   alias:        'roomAliasMap',
+    // //   roomAlias:    'roomAliasMap',
+    // // }
+
+    // // const filterMapName = keyMap[filterKey] as keyof RoomPayload
+    // // if (!filterMapName) {
+    // //   throw new Error('unsupport filter key: ' + filterKey)
+    // // }
+
+    // // const filterMap = this.payload[filterMapName] as Map<string, string>
+    // // const idList = Array.from(filterMap.keys())
+    // //                       .filter(id => filterMap.get(id) === filterValue)
+
+    // // log.silly('Room', 'memberAll() check %s from %s: %s', filterValue, filterKey, JSON.stringify(filterMap))
+
+    // if (idList.length) {
+    //   return idList.map(id => this.wechaty.Contact.load(id))
+    // } else {
+    //   return []
+    // }
   }
 
   public async member(name  : string)               : Promise<null | Contact>

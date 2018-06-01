@@ -94,7 +94,7 @@
   },
   "dependencies": {
     "bl": "^2.0.0",
-    "brolog": "^1.2.0",
+    "brolog": "^1.6.2",
     "clone-class": "^0.6.11",
     "cuid": "^2.1.1",
     "express": "^4.16.3",

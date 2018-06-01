@@ -25,13 +25,16 @@ import * as sinon from 'sinon'
 // import * as asyncHooks from 'async_hooks'
 
 import {
+  Wechaty,
+}                             from './wechaty'
+
+import {
   config,
   Contact,
   FriendRequest,
   IoClient,
   Message,
   Room,
-  Wechaty,
 
   log,
   VERSION,
@@ -40,6 +43,8 @@ import {
 import {
   Puppet,
 }                 from './puppet/'
+import { PuppetMock } from './puppet-mock'
+import { MemoryCard } from 'memory-card'
 
 test('Export of the Framework', async t => {
   t.ok(Contact        , 'should export Contact')
@@ -142,6 +147,19 @@ test('on(event, Function)', async t => {
   t.ok(spy.calledOnce, 'should get event:error once')
   t.equal(spy.firstCall.args[0], EXPECTED_ERROR, 'should get error from message listener')
 
+})
+
+test('initPuppetAccessory()', async t => {
+  class WechatyTest extends Wechaty {
+    public initPuppetAccessoryTest(puppet: Puppet): void {
+      return this.initPuppetAccessory(puppet)
+    }
+  }
+  const wechatyTest = new WechatyTest()
+
+  const puppet = new PuppetMock({ memory: new MemoryCard() })
+  t.doesNotThrow(() => wechatyTest.initPuppetAccessoryTest(puppet), 'should not throw for the 1st time init')
+  t.throws(() => wechatyTest.initPuppetAccessoryTest(puppet),       'should throw for the 2nd time init')
 })
 
 // TODO: add test for event args

@@ -27,100 +27,45 @@ import {
   MemoryCard,
 }               from 'memory-card'
 
-import { log }    from '../config'
+import {
+  log,
+}                 from '../config'
 
-import Wechaty    from '../wechaty'
+import {
+  Wechaty,
+}                 from '../wechaty'
 
-import { PuppetPuppeteer }  from './puppet-puppeteer'
-import { WebRoomRawPayload } from './web-schemas'
+import {
+  PuppetPuppeteer,
+}                     from './puppet-puppeteer'
+import {
+  WebRoomRawPayload,
+}                     from './web-schemas'
 
-// import Contact from '../contact'
-// import Message from '../message'
-// import Room    from '../room'
+// tslint:disable:max-line-length
+const ROOM_RAW_PAYLOAD: WebRoomRawPayload = JSON.parse(`{"RemarkPYQuanPin":"","RemarkPYInitial":"","PYInitial":"TZZGQNTSHGFJ","PYQuanPin":"tongzhizhongguoqingniantianshihuiguanfangjia","Uin":0,"UserName":"@@e2355db381dc46a77c0b95516d05e7486135cb6370d8a6af66925d89d50ec278","NickName":"（通知）中国青年天使会官方家","HeadImgUrl":"/cgi-bin/mmwebwx-bin/webwxgetheadimg?seq=670397504&username=@@e2355db381dc46a77c0b95516d05e7486135cb6370d8a6af66925d89d50ec278&skey=","ContactFlag":2,"MemberCount":146,"MemberList":[{"Uin":0,"UserName":"@ecff4a7a86f23455dc42317269aa36ab","NickName":"童玮亮","AttrStatus":103423,"PYInitial":"","PYQuanPin":"","RemarkPYInitial":"","RemarkPYQuanPin":"","MemberStatus":0,"DisplayName":"","KeyWord":"dap","HeadImgUrl":"/cgi-bin/mmwebwx-bin/webwxgeticon?seq=0&username=@ecff4a7a86f23455dc42317269aa36ab&skey=@crypt_f9cec94b_f23a307a23231cfb5098faf91ff759ca&chatroomid=@4b8baa99bdfc354443711412126d2aaf"},{"Uin":0,"UserName":"@eac4377ecfd59e4321262f892177169f","NickName":"麦刚","AttrStatus":33674247,"PYInitial":"","PYQuanPin":"","RemarkPYInitial":"","RemarkPYQuanPin":"","MemberStatus":0,"DisplayName":"","KeyWord":"mai","HeadImgUrl":"/cgi-bin/mmwebwx-bin/webwxgeticon?seq=0&username=@eac4377ecfd59e4321262f892177169f&skey=@crypt_f9cec94b_f23a307a23231cfb5098faf91ff759ca&chatroomid=@4b8baa99bdfc354443711412126d2aaf"},{"Uin":0,"UserName":"@ad85207730aa94e006ddce28f74e6878","NickName":"田美坤Maggie","AttrStatus":112679,"PYInitial":"","PYQuanPin":"","RemarkPYInitial":"","RemarkPYQuanPin":"","MemberStatus":0,"DisplayName":"田美坤","KeyWord":"tia","HeadImgUrl":"/cgi-bin/mmwebwx-bin/webwxgeticon?seq=0&username=@ad85207730aa94e006ddce28f74e6878&skey=@crypt_f9cec94b_f23a307a23231cfb5098faf91ff759ca&chatroomid=@4b8baa99bdfc354443711412126d2aaf"},{"Uin":2351423900,"UserName":"@33cc239d22b20d56395bbbd0967b28b9","NickName":"周宏光","AttrStatus":327869,"PYInitial":"","PYQuanPin":"","RemarkPYInitial":"","RemarkPYQuanPin":"","MemberStatus":0,"DisplayName":"周宏光","KeyWord":"acc","HeadImgUrl":"/cgi-bin/mmwebwx-bin/webwxgeticon?seq=0&username=@33cc239d22b20d56395bbbd0967b28b9&skey=@crypt_f9cec94b_f23a307a23231cfb5098faf91ff759ca&chatroomid=@4b8baa99bdfc354443711412126d2aaf"},{"Uin":0,"UserName":"@5e77381e1e3b5641ddcee44670b6e83a","NickName":"牛文文","AttrStatus":100349,"PYInitial":"","PYQuanPin":"","RemarkPYInitial":"","RemarkPYQuanPin":"","MemberStatus":0,"DisplayName":"","KeyWord":"niu","HeadImgUrl":"/cgi-bin/mmwebwx-bin/webwxgeticon?seq=0&username=@5e77381e1e3b5641ddcee44670b6e83a&skey=@crypt_f9cec94b_f23a307a23231cfb5098faf91ff759ca&chatroomid=@4b8baa99bdfc354443711412126d2aaf"},{"Uin":0,"UserName":"@56941ef97f3e9c70af88667fdd613b44","NickName":"羊东 东方红酒窖","AttrStatus":33675367,"PYInitial":"","PYQuanPin":"","RemarkPYInitial":"","RemarkPYQuanPin":"","MemberStatus":0,"DisplayName":"","KeyWord":"Yan","HeadImgUrl":"/cgi-bin/mmwebwx-bin/webwxgeticon?seq=0&username=@56941ef97f3e9c70af88667fdd613b44&skey=@crypt_f9cec94b_f23a307a23231cfb5098faf91ff759ca&chatroomid=@4b8baa99bdfc354443711412126d2aaf"},{"Uin":0,"UserName":"@72c4767ce32db488871fdd1c27173b81","NickName":"李竹～英诺天使（此号已满）","AttrStatus":235261,"PYInitial":"","PYQuanPin":"","RemarkPYInitial":"","RemarkPYQuanPin":"","MemberStatus":0,"DisplayName":"","KeyWord":"liz","HeadImgUrl":"/cgi-bin/mmwebwx-bin/webwxgeticon?seq=0&username=@72c4767ce32db488871fdd1c27173b81&skey=@crypt_f9cec94b_f23a307a23231cfb5098faf91ff759ca&chatroomid=@4b8baa99bdfc354443711412126d2aaf"},{"Uin":0,"UserName":"@0b0e2eb9501ab2d84f9f800f6a0b4216","NickName":"周静彤 杨宁助理","AttrStatus":230885,"PYInitial":"","PYQuanPin":"","RemarkPYInitial":"","RemarkPYQuanPin":"","MemberStatus":0,"DisplayName":"","KeyWord":"zlo","HeadImgUrl":"/cgi-bin/mmwebwx-bin/webwxgeticon?seq=0&username=@0b0e2eb9501ab2d84f9f800f6a0b4216&skey=@crypt_f9cec94b_f23a307a23231cfb5098faf91ff759ca&chatroomid=@4b8baa99bdfc354443711412126d2aaf"},{"Uin":0,"UserName":"@4bfa767be0cd3fb78409b9735d1dcc57","NickName":"周哲 Jeremy","AttrStatus":33791995,"PYInitial":"","PYQuanPin":"","RemarkPYInitial":"","RemarkPYQuanPin":"","MemberStatus":0,"DisplayName":"","KeyWord":"zho","HeadImgUrl":"/cgi-bin/mmwebwx-bin/webwxgeticon?seq=0&username=@4bfa767be0cd3fb78409b9735d1dcc57&skey=@crypt_f9cec94b_f23a307a23231cfb5098faf91ff759ca&chatroomid=@4b8baa99bdfc354443711412126d2aaf"},{"Uin":0,"UserName":"@ad954bf2159a572b7743a5bc134739f4","NickName":"vicky张","AttrStatus":100477,"PYInitial":"","PYQuanPin":"","RemarkPYInitial":"","RemarkPYQuanPin":"","MemberStatus":0,"DisplayName":"","KeyWord":"hua","HeadImgUrl":"/cgi-bin/mmwebwx-bin/webwxgeticon?seq=0&username=@ad954bf2159a572b7743a5bc134739f4&skey=@crypt_f9cec94b_f23a307a23231cfb5098faf91ff759ca&chatroomid=@4b8baa99bdfc354443711412126d2aaf"}],"RemarkName":"","HideInputBarFlag":0,"Sex":0,"Signature":"","VerifyFlag":0,"OwnerUin":2351423900,"StarFriend":0,"AppAccountFlag":0,"Statues":0,"AttrStatus":0,"Province":"","City":"","Alias":"","SnsFlag":0,"UniFriend":0,"DisplayName":"","ChatRoomId":0,"KeyWord":"","EncryChatRoomId":"@4b8baa99bdfc354443711412126d2aaf","MMFromBatchGet":true,"MMOrderSymbol":"TONGZHIZHONGGUOQINGNIANTIANSHIHUIGUANFANGJIA","MMFromBatchget":true,"MMInChatroom":true}`)
+const CONTACT_RAW_PAYLOAD_DICT            = JSON.parse(`{"@ad85207730aa94e006ddce28f74e6878":{ "UserName": "@ad85207730aa94e006ddce28f74e6878","NickName": "田美坤Maggie","RemarkName": "" },"@72c4767ce32db488871fdd1c27173b81":{ "UserName": "@72c4767ce32db488871fdd1c27173b81","NickName": "李竹～英诺天使（此号已满）","RemarkName": "" },"@ecff4a7a86f23455dc42317269aa36ab":{ "UserName": "@ecff4a7a86f23455dc42317269aa36ab","NickName": "童玮亮","RemarkName": "童玮亮备注" }}`)
 
-// // tslint:disable-next-line:variable-name
-// const MyRoom = cloneClass(Room)
-// // tslint:disable-next-line:variable-name
-// const MyContact = cloneClass(Contact)
-// // tslint:disable-next-line:variable-name
-// const MyMessage = cloneClass(Message)
+const ROOM_EXPECTED = {
+  id:           '@@e2355db381dc46a77c0b95516d05e7486135cb6370d8a6af66925d89d50ec278',
+  topic:        '（通知）中国青年天使会官方家',
+  encryId:      '@4b8baa99bdfc354443711412126d2aaf',
+  memberId1:    '@ad85207730aa94e006ddce28f74e6878',
+  memberNick1:  '田美坤',
+  memberId2:    '@72c4767ce32db488871fdd1c27173b81',
+  memberNick2:  '李竹～英诺天使（此号已满）',
+  memberId3:    '@ecff4a7a86f23455dc42317269aa36ab',
+  memberNick3:  '童玮亮备注',
+  ownerId:      '@33cc239d22b20d56395bbbd0967b28b9',
+}
 
-const wechaty = new Wechaty()
-const puppet = new PuppetPuppeteer({
-  memory: new MemoryCard(),
-  // wechaty,
-})
-
-;
-(wechaty as any).initPuppetAccessory(puppet)
-
-const MOCK_USER_ID = 'TEST-USER-ID'
-// FIXME: use wechaty.Contact.load()
-puppet.emit('login', MOCK_USER_ID)
-
-// MyContact.puppet = MyMessage.puppet = MyRoom.puppet = puppet
-
-// test('Room smoke testing', async t => {
-
-//   const UserName = '@0bb3e4dd746fdbd4a80546aef66f4085'
-//   const NickName = 'Nick Name Test'
-//   const EncryChatRoomId = '123456abcdef'
-
-//   // Mock
-//   const mockContactGetter = function (id) {
-//     return new Promise((resolve,reject) => {
-//       if (id!=UserName) return resolve({});
-//       setTimeout(() => {
-//         return resolve({
-//           UserName: UserName
-//           , NickName: NickName
-//           , EncryChatRoomId: EncryChatRoomId
-//         })
-//       }, 200)
-//     })
-//   }
-
-//   const r = new Room(UserName)
-
-//   t.is(r.id, UserName, 'id/UserName right')
-
-//   await r.ready(mockContactGetter)
-
-//   // .then(r => {
-//     t.is(r.get('id')   , UserName, 'UserName set')
-//     t.is(r.get('topic') , NickName, 'NickName set')
-//     t.is(r.get('encryId') , EncryChatRoomId, 'EncryChatRoomId set')
-
-//     const s = r.toString()
-//     t.is(typeof s, 'string', 'toString()')
-//   // })
-//   // .catch(e => t.fail('ready() rejected: ' + e))
-//   // .then(_ => t.end()) // test end
-// })
-
-test('Room smoking test', async t => {
-  /* tslint:disable:max-line-length */
-  const ROOM_RAW_PAYLOAD: WebRoomRawPayload = JSON.parse(`{"RemarkPYQuanPin":"","RemarkPYInitial":"","PYInitial":"TZZGQNTSHGFJ","PYQuanPin":"tongzhizhongguoqingniantianshihuiguanfangjia","Uin":0,"UserName":"@@e2355db381dc46a77c0b95516d05e7486135cb6370d8a6af66925d89d50ec278","NickName":"（通知）中国青年天使会官方家","HeadImgUrl":"/cgi-bin/mmwebwx-bin/webwxgetheadimg?seq=670397504&username=@@e2355db381dc46a77c0b95516d05e7486135cb6370d8a6af66925d89d50ec278&skey=","ContactFlag":2,"MemberCount":146,"MemberList":[{"Uin":0,"UserName":"@ecff4a7a86f23455dc42317269aa36ab","NickName":"童玮亮","AttrStatus":103423,"PYInitial":"","PYQuanPin":"","RemarkPYInitial":"","RemarkPYQuanPin":"","MemberStatus":0,"DisplayName":"","KeyWord":"dap","HeadImgUrl":"/cgi-bin/mmwebwx-bin/webwxgeticon?seq=0&username=@ecff4a7a86f23455dc42317269aa36ab&skey=@crypt_f9cec94b_f23a307a23231cfb5098faf91ff759ca&chatroomid=@4b8baa99bdfc354443711412126d2aaf"},{"Uin":0,"UserName":"@eac4377ecfd59e4321262f892177169f","NickName":"麦刚","AttrStatus":33674247,"PYInitial":"","PYQuanPin":"","RemarkPYInitial":"","RemarkPYQuanPin":"","MemberStatus":0,"DisplayName":"","KeyWord":"mai","HeadImgUrl":"/cgi-bin/mmwebwx-bin/webwxgeticon?seq=0&username=@eac4377ecfd59e4321262f892177169f&skey=@crypt_f9cec94b_f23a307a23231cfb5098faf91ff759ca&chatroomid=@4b8baa99bdfc354443711412126d2aaf"},{"Uin":0,"UserName":"@ad85207730aa94e006ddce28f74e6878","NickName":"田美坤Maggie","AttrStatus":112679,"PYInitial":"","PYQuanPin":"","RemarkPYInitial":"","RemarkPYQuanPin":"","MemberStatus":0,"DisplayName":"田美坤","KeyWord":"tia","HeadImgUrl":"/cgi-bin/mmwebwx-bin/webwxgeticon?seq=0&username=@ad85207730aa94e006ddce28f74e6878&skey=@crypt_f9cec94b_f23a307a23231cfb5098faf91ff759ca&chatroomid=@4b8baa99bdfc354443711412126d2aaf"},{"Uin":2351423900,"UserName":"@33cc239d22b20d56395bbbd0967b28b9","NickName":"周宏光","AttrStatus":327869,"PYInitial":"","PYQuanPin":"","RemarkPYInitial":"","RemarkPYQuanPin":"","MemberStatus":0,"DisplayName":"周宏光","KeyWord":"acc","HeadImgUrl":"/cgi-bin/mmwebwx-bin/webwxgeticon?seq=0&username=@33cc239d22b20d56395bbbd0967b28b9&skey=@crypt_f9cec94b_f23a307a23231cfb5098faf91ff759ca&chatroomid=@4b8baa99bdfc354443711412126d2aaf"},{"Uin":0,"UserName":"@5e77381e1e3b5641ddcee44670b6e83a","NickName":"牛文文","AttrStatus":100349,"PYInitial":"","PYQuanPin":"","RemarkPYInitial":"","RemarkPYQuanPin":"","MemberStatus":0,"DisplayName":"","KeyWord":"niu","HeadImgUrl":"/cgi-bin/mmwebwx-bin/webwxgeticon?seq=0&username=@5e77381e1e3b5641ddcee44670b6e83a&skey=@crypt_f9cec94b_f23a307a23231cfb5098faf91ff759ca&chatroomid=@4b8baa99bdfc354443711412126d2aaf"},{"Uin":0,"UserName":"@56941ef97f3e9c70af88667fdd613b44","NickName":"羊东 东方红酒窖","AttrStatus":33675367,"PYInitial":"","PYQuanPin":"","RemarkPYInitial":"","RemarkPYQuanPin":"","MemberStatus":0,"DisplayName":"","KeyWord":"Yan","HeadImgUrl":"/cgi-bin/mmwebwx-bin/webwxgeticon?seq=0&username=@56941ef97f3e9c70af88667fdd613b44&skey=@crypt_f9cec94b_f23a307a23231cfb5098faf91ff759ca&chatroomid=@4b8baa99bdfc354443711412126d2aaf"},{"Uin":0,"UserName":"@72c4767ce32db488871fdd1c27173b81","NickName":"李竹～英诺天使（此号已满）","AttrStatus":235261,"PYInitial":"","PYQuanPin":"","RemarkPYInitial":"","RemarkPYQuanPin":"","MemberStatus":0,"DisplayName":"","KeyWord":"liz","HeadImgUrl":"/cgi-bin/mmwebwx-bin/webwxgeticon?seq=0&username=@72c4767ce32db488871fdd1c27173b81&skey=@crypt_f9cec94b_f23a307a23231cfb5098faf91ff759ca&chatroomid=@4b8baa99bdfc354443711412126d2aaf"},{"Uin":0,"UserName":"@0b0e2eb9501ab2d84f9f800f6a0b4216","NickName":"周静彤 杨宁助理","AttrStatus":230885,"PYInitial":"","PYQuanPin":"","RemarkPYInitial":"","RemarkPYQuanPin":"","MemberStatus":0,"DisplayName":"","KeyWord":"zlo","HeadImgUrl":"/cgi-bin/mmwebwx-bin/webwxgeticon?seq=0&username=@0b0e2eb9501ab2d84f9f800f6a0b4216&skey=@crypt_f9cec94b_f23a307a23231cfb5098faf91ff759ca&chatroomid=@4b8baa99bdfc354443711412126d2aaf"},{"Uin":0,"UserName":"@4bfa767be0cd3fb78409b9735d1dcc57","NickName":"周哲 Jeremy","AttrStatus":33791995,"PYInitial":"","PYQuanPin":"","RemarkPYInitial":"","RemarkPYQuanPin":"","MemberStatus":0,"DisplayName":"","KeyWord":"zho","HeadImgUrl":"/cgi-bin/mmwebwx-bin/webwxgeticon?seq=0&username=@4bfa767be0cd3fb78409b9735d1dcc57&skey=@crypt_f9cec94b_f23a307a23231cfb5098faf91ff759ca&chatroomid=@4b8baa99bdfc354443711412126d2aaf"},{"Uin":0,"UserName":"@ad954bf2159a572b7743a5bc134739f4","NickName":"vicky张","AttrStatus":100477,"PYInitial":"","PYQuanPin":"","RemarkPYInitial":"","RemarkPYQuanPin":"","MemberStatus":0,"DisplayName":"","KeyWord":"hua","HeadImgUrl":"/cgi-bin/mmwebwx-bin/webwxgeticon?seq=0&username=@ad954bf2159a572b7743a5bc134739f4&skey=@crypt_f9cec94b_f23a307a23231cfb5098faf91ff759ca&chatroomid=@4b8baa99bdfc354443711412126d2aaf"}],"RemarkName":"","HideInputBarFlag":0,"Sex":0,"Signature":"","VerifyFlag":0,"OwnerUin":2351423900,"StarFriend":0,"AppAccountFlag":0,"Statues":0,"AttrStatus":0,"Province":"","City":"","Alias":"","SnsFlag":0,"UniFriend":0,"DisplayName":"","ChatRoomId":0,"KeyWord":"","EncryChatRoomId":"@4b8baa99bdfc354443711412126d2aaf","MMFromBatchGet":true,"MMOrderSymbol":"TONGZHIZHONGGUOQINGNIANTIANSHIHUIGUANFANGJIA","MMFromBatchget":true,"MMInChatroom":true}`)
-  const CONTACT_RAW_PAYLOAD_DICT            = JSON.parse(`{"@ad85207730aa94e006ddce28f74e6878":{ "UserName": "@ad85207730aa94e006ddce28f74e6878","NickName": "田美坤Maggie","RemarkName": "" },"@72c4767ce32db488871fdd1c27173b81":{ "UserName": "@72c4767ce32db488871fdd1c27173b81","NickName": "李竹～英诺天使（此号已满）","RemarkName": "" },"@ecff4a7a86f23455dc42317269aa36ab":{ "UserName": "@ecff4a7a86f23455dc42317269aa36ab","NickName": "童玮亮","RemarkName": "童玮亮备注" }}`)
-
-  const EXPECTED = {
-    id:           '@@e2355db381dc46a77c0b95516d05e7486135cb6370d8a6af66925d89d50ec278',
-    topic:        '（通知）中国青年天使会官方家',
-    encryId:      '@4b8baa99bdfc354443711412126d2aaf',
-    memberId1:    '@ad85207730aa94e006ddce28f74e6878',
-    memberNick1:  '田美坤',
-    memberId2:    '@72c4767ce32db488871fdd1c27173b81',
-    memberNick2:  '李竹～英诺天使（此号已满）',
-    memberId3:    '@ecff4a7a86f23455dc42317269aa36ab',
-    memberNick3:  '童玮亮备注',
-    ownerId:      '@33cc239d22b20d56395bbbd0967b28b9',
-  }
+test('Room smok testing', async t => {
 
   // Mock
-  const mockRoomRawPayload = function (id: string) {
+  const mockContactRoomRawPayload = function (id: string) {
     log.verbose('PuppeteerRoomTest', 'mockContactRawPayload(%s)', id)
     return new Promise(resolve => {
-      if (id === EXPECTED.id) {
+      if (id === ROOM_EXPECTED.id) {
         setImmediate(() => resolve(ROOM_RAW_PAYLOAD))
       } else if (id in CONTACT_RAW_PAYLOAD_DICT) {
         setImmediate(() => resolve(CONTACT_RAW_PAYLOAD_DICT[id]))
@@ -132,73 +77,78 @@ test('Room smoking test', async t => {
   }
 
   const sandbox = sinon.createSandbox()
-  const wechaty = new Wechaty()
+
   const puppet = new PuppetPuppeteer({
     memory: new MemoryCard(),
-    // wechaty,
   })
 
-  ;
-  (wechaty as any).initPuppetAccessory(puppet)
+  class WechatyTest extends Wechaty {
+    public initPuppetAccessory(puppet: PuppetPuppeteer) {
+      super.initPuppetAccessory(puppet)
+    }
+  }
+  const wechaty = new WechatyTest({ puppet })
+  wechaty.initPuppetAccessory(puppet)
 
-  sandbox.stub(puppet as any, 'contactRawPayload').callsFake(mockRoomRawPayload)
-  sandbox.stub(puppet as any, 'roomRawPayload').callsFake(mockRoomRawPayload)
+  sandbox.stub(puppet, 'contactRawPayload').callsFake(mockContactRoomRawPayload)
+  sandbox.stub(puppet, 'roomRawPayload').callsFake(mockContactRoomRawPayload)
 
-  const r = wechaty.Room.load(EXPECTED.id)
-  await r.ready()
+  const room = wechaty.Room.load(ROOM_EXPECTED.id)
+  await room.ready()
 
-  t.is(r.id, EXPECTED.id, 'should set id/UserName right')
+  t.is(room.id, ROOM_EXPECTED.id, 'should set id/UserName right')
 
   // t.is((r as any).payload[.('encryId') , EXPECTED.encryId, 'should set EncryChatRoomId')
 
-  t.is(r.topic(), EXPECTED.topic, 'should set topic/NickName')
+  t.is(room.topic(), ROOM_EXPECTED.topic, 'should set topic/NickName')
 
-  const contact1 = new wechaty.Contact(EXPECTED.memberId1)
-  const alias1 = r.alias(contact1)
-  t.is(alias1, EXPECTED.memberNick1, 'should get roomAlias')
+  const contact1 = new wechaty.Contact(ROOM_EXPECTED.memberId1)
+  const alias1 = room.alias(contact1)
+  t.is(alias1, ROOM_EXPECTED.memberNick1, 'should get roomAlias')
 
   // const name1 = r.alias(contact1)
   // t.is(name1, EXPECTED.memberNick1, 'should get roomAlias')
 
-  const contact2 = wechaty.Contact.load(EXPECTED.memberId2)
-  const alias2 = r.alias(contact2)
+  const contact2 = wechaty.Contact.load(ROOM_EXPECTED.memberId2)
+  const alias2 = room.alias(contact2)
   t.is(alias2, null, 'should return null if not set roomAlias')
 
   // const name2 = r.alias(contact2)
   // t.is(name2, null, 'should return null if not set roomAlias')
 
-  t.ok(r.has(contact1), 'should has contact1')
+  t.ok(room.has(contact1), 'should has contact1')
   const noSuchContact = wechaty.Contact.load('not exist id')
-  t.false(r.has(noSuchContact), 'should has no this member')
+  t.false(room.has(noSuchContact), 'should has no this member')
 
-  const owner = r.owner()
+  const owner = room.owner()
   t.true(owner === null || owner instanceof wechaty.Contact, 'should get Contact instance for owner, or null')
 
   // wxApp hide uin for all contacts.
   // t.is(r.owner().id, EXPECTED.ownerId, 'should get owner right by OwnerUin & Uin')
 
-  const contactA = await r.member(EXPECTED.memberNick1)
-  const contactB = await r.member(EXPECTED.memberNick2)
-  const contactC = await r.member(EXPECTED.memberNick3)
-  const contactD = await r.member({roomAlias: EXPECTED.memberNick1})
+  const contactA = await room.member(ROOM_EXPECTED.memberNick1)
   if (!contactA) {
-    throw new Error(`member(${EXPECTED.memberNick1}) should get member by roomAlias by default`)
+    throw new Error(`member(${ROOM_EXPECTED.memberNick1}) should get member by roomAlias by default`)
   }
+
+  const contactB = await room.member(ROOM_EXPECTED.memberNick2)
+  const contactC = await room.member(ROOM_EXPECTED.memberNick3)
+  const contactD = await room.member({roomAlias: ROOM_EXPECTED.memberNick1})
   if (!contactB) {
-    throw new Error(`member(${EXPECTED.memberNick2}) should get member by name by default`)
+    throw new Error(`member(${ROOM_EXPECTED.memberNick2}) should get member by name by default`)
   }
   if (!contactC) {
-    throw new Error(`member(${EXPECTED.memberNick3}) should get member by name by default`)
+    throw new Error(`member(${ROOM_EXPECTED.memberNick3}) should get member by name by default`)
   }
   if (!contactD) {
-    throw new Error(`member({alias: ${EXPECTED.memberNick3}}) should get member by roomAlias`)
+    throw new Error(`member({alias: ${ROOM_EXPECTED.memberNick3}}) should get member by roomAlias`)
   }
-  t.is(contactA.id, EXPECTED.memberId1, `should get the right id from ${EXPECTED.memberId1}, find member by default`)
-  t.is(contactB.id, EXPECTED.memberId2, `should get the right id from ${EXPECTED.memberId2}, find member by default`)
-  t.is(contactC.id, EXPECTED.memberId3, `should get the right id from ${EXPECTED.memberId3}, find member by default`)
-  t.is(contactD.id, EXPECTED.memberId1, `should get the right id from ${EXPECTED.memberId1}, find member by roomAlias`)
+  t.is(contactA.id, ROOM_EXPECTED.memberId1, `should get the right id from ${ROOM_EXPECTED.memberId1}, find member by default`)
+  t.is(contactB.id, ROOM_EXPECTED.memberId2, `should get the right id from ${ROOM_EXPECTED.memberId2}, find member by default`)
+  t.is(contactC.id, ROOM_EXPECTED.memberId3, `should get the right id from ${ROOM_EXPECTED.memberId3}, find member by default`)
+  t.is(contactD.id, ROOM_EXPECTED.memberId1, `should get the right id from ${ROOM_EXPECTED.memberId1}, find member by roomAlias`)
 
-  const s = r.toString()
+  const s = room.toString()
   t.is(typeof s, 'string', 'toString()')
 
   sandbox.restore()
@@ -209,6 +159,12 @@ test('Room static method', async t => {
   //   profile: new Profile(),
   //   wechaty: new Wechaty(),
   // })
+
+  const puppet = new PuppetPuppeteer({
+    memory: new MemoryCard(),
+    // wechaty,
+  })
+  const wechaty = new Wechaty({ puppet })
 
   try {
     const result = await wechaty.Room.find({ topic: 'xxx' })
@@ -225,24 +181,48 @@ test('Room static method', async t => {
 })
 
 test('Room iterator for contact in it', async t => {
-  class Collection {
-    [idx: number]: number
-
-    public *[Symbol.iterator]() {
-      let i = 0
-      while (this[i] !== undefined) {
-        yield this[i]
-        ++i
+  // Mock
+  const mockContactRoomRawPayload = function (id: string) {
+    log.verbose('PuppeteerRoomTest', 'mockContactRawPayload(%s)', id)
+    return new Promise(resolve => {
+      if (id === ROOM_EXPECTED.id) {
+        setImmediate(() => resolve(ROOM_RAW_PAYLOAD))
+      } else if (id in CONTACT_RAW_PAYLOAD_DICT) {
+        setImmediate(() => resolve(CONTACT_RAW_PAYLOAD_DICT[id]))
+      } else {
+        // ignore other ids
+        setImmediate(() => resolve({id}))
       }
+    })
+  }
+
+  const sandbox = sinon.createSandbox()
+
+  const puppet = new PuppetPuppeteer({
+    memory: new MemoryCard(),
+  })
+
+  class WechatyTest extends Wechaty {
+    public initPuppetAccessory(puppet: PuppetPuppeteer) {
+      super.initPuppetAccessory(puppet)
     }
-
   }
-  const myCollection = new Collection()
-  myCollection[0] = 1
-  myCollection[1] = 2
-  for (const value of myCollection) {
-      console.log(value) // 1, then 2
+  const wechaty = new WechatyTest({ puppet })
+  wechaty.initPuppetAccessory(puppet)
+
+  sandbox.stub(puppet, 'contactRawPayload').callsFake(mockContactRoomRawPayload)
+  sandbox.stub(puppet, 'roomRawPayload').callsFake(mockContactRoomRawPayload)
+
+  const room = wechaty.Room.load(ROOM_EXPECTED.id)
+  await room.ready()
+
+  const MEMBER_CONTACT_ID_LIST = ROOM_RAW_PAYLOAD.MemberList!.map(rawMember => rawMember.UserName)
+
+  let n = 0
+  for (const memberContact of room) {
+    t.ok(MEMBER_CONTACT_ID_LIST.includes(memberContact.id), 'should get one of the room member: ' + memberContact.id)
+    n++
   }
 
-  t.skip('to be write')
+  t.equal(n, room.memberList().length, 'should iterate all the members of the room')
 })

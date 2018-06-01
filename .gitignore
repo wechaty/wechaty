@@ -61,6 +61,7 @@ yarn.lock
 /tests/fixtures/docker/package.json
 
 tags
+*.memory-card.json
 *.wechaty.json
 /package
 /wechaty-*.*.*.tgz

@@ -31,7 +31,7 @@ export abstract class Accessory extends EventEmitter {
   private static _wechaty? : Wechaty
 
   public static set puppet(puppet: Puppet) {
-    log.silly('Accessory', '<%s> static set puppet(%s)',
+    log.silly('Accessory', '<%s> static set puppet = %s',
                                   this.name,
                                   puppet,
               )
@@ -57,7 +57,7 @@ export abstract class Accessory extends EventEmitter {
   }
 
   public static set wechaty(wechaty: Wechaty) {
-    log.silly('Accessory', '<%s> static set wechaty(%s)',
+    log.silly('Accessory', '<%s> static set wechaty = %s',
                                   this.name,
                                   wechaty,
               )
@@ -85,24 +85,41 @@ export abstract class Accessory extends EventEmitter {
    *
    * 2. Instance Properties & Methods
    *
+   * The ability of set different `puppet` to the instance is required.
+   * For example: the Wechaty instances have to have different `puppet`.
    */
+  private _puppet?  : Puppet
+
   public set puppet(puppet: Puppet) {
-    log.silly('Accessory', '<%s> set puppet(%s)',
+    log.silly('Accessory', '<%s> set puppet = %s',
                                   this[SYMBOL_NAME] || this,
                                   puppet,
               )
-    instanceToClass(this, Accessory).puppet = puppet
+    if (this._puppet) {
+      throw new Error('puppet can not be set twice')
+    }
+    this._puppet = puppet
   }
 
+  /**
+   * instance.puppet
+   *
+   * Needs to support different `puppet` between instances.
+   *
+   * For example: every Wechaty instance needs its own `puppet`
+   *
+   * So: that's the reason that there's no `private _wechaty: Wechaty` for the instance.
+   *
+   */
   public get puppet(): Puppet {
     log.silly('Accessory', '#%d<%s> get puppet()',
                                   this[SYMBOL_COUNTER],
                                   this[SYMBOL_NAME] || this,
               )
 
-    // if (this._puppet) {
-    //   return this._puppet
-    // }
+    if (this._puppet) {
+      return this._puppet
+    }
 
     /**
      * Get `puppet` from Class Static puppet property
@@ -112,22 +129,37 @@ export abstract class Accessory extends EventEmitter {
     return instanceToClass(this, Accessory).puppet
   }
 
-  public set wechaty(wechaty: Wechaty) {
-    log.silly('Accessory', '<%s> set wechaty(%s)',
-                                  this[SYMBOL_NAME] || this,
-                                  wechaty,
-              )
-    instanceToClass(this, Accessory).wechaty = wechaty
-  }
+  // public set wechaty(wechaty: Wechaty) {
+  //   log.silly('Accessory', '<%s> set wechaty = %s',
+  //                                 this[SYMBOL_NAME] || this,
+  //                                 wechaty,
+  //             )
+  //   if (this._wechaty) {
+  //     throw new Error('set twice')
+  //   }
+  //   this._wechaty = wechaty
+  // }
 
+  /**
+   * instance.wechaty is for:
+   *  Contact.wechaty
+   *  FriendRequest.wechaty
+   *  Message.wechaty
+   *  Room.wechaty
+   *
+   * So it only need one `wechaty` for all the instances
+   */
   public get wechaty(): Wechaty {
     log.silly('Accessory', '#%d<%s> get wechaty()',
                                   this[SYMBOL_COUNTER],
                                   this[SYMBOL_NAME] || this,
               )
 
+    // if (this._wechaty) {
+    //   return this._wechaty
+    // }
     /**
-     * Get `puppet` from Class Static puppet property
+     * Get `wechaty` from Class Static puppet property
      * note: use `instanceToClass` at here is because
      *    we might have many copy/child of `Accessory` Classes
      */
