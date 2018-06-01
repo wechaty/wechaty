@@ -355,6 +355,10 @@ export class PuppetPuppeteer extends Puppet {
       } else {
         throw new Error('parse found a room message, but neither FromUserName nor ToUserName is a room(/^@@/)')
       }
+
+      // console.log('rawPayload.FromUserName: ', rawPayload.FromUserName)
+      // console.log('rawPayload.ToUserName: ', rawPayload.ToUserName)
+      // console.log('rawPayload.MMPeerUserName: ', rawPayload.MMPeerUserName)
     }
 
     if (rawPayload.ToUserName) {
@@ -576,7 +580,7 @@ export class PuppetPuppeteer extends Puppet {
     receiver : Receiver,
     text     : string,
   ): Promise<void> {
-    log.verbose('PuppetPuppeteer', 'messageSendText(receiver=%s, text=%s)', receiver, text)
+    log.verbose('PuppetPuppeteer', 'messageSendText(receiver=%s, text=%s)', JSON.stringify(receiver), text)
 
     let destinationId
 
@@ -860,7 +864,7 @@ export class PuppetPuppeteer extends Puppet {
       // let currNum = rawPayload.MemberList && rawPayload.MemberList.length || 0
       // let prevNum = room.memberList().length  // rawPayload && rawPayload.MemberList && this.rawObj.MemberList.length || 0
 
-      let prevLength = -1
+      let prevLength = 0
 
       /**
        * @todo use Misc.retry() to replace the following loop
@@ -870,19 +874,27 @@ export class PuppetPuppeteer extends Puppet {
         rawPayload = await this.bridge.getContact(id) as undefined | WebRoomRawPayload
 
         if (rawPayload) {
-          const currLength = rawPayload.MemberList && rawPayload.MemberList.length || 0
+          const currLength = rawPayload.MemberList && rawPayload.MemberList.length || -1
 
-          log.silly('PuppetPuppeteer', `roomPayload() this.bridge.getContact(%s) MemberList.length:%d at ttl:%d`,
+          log.silly('PuppetPuppeteer', `roomPayload() this.bridge.getContact(%s) MemberList.length:(prev:%d, curr:%d) at ttl:%d`,
             id,
+            prevLength,
             currLength,
             ttl,
           )
 
           if (prevLength === currLength) {
-            log.silly('PuppetPuppeteer', `roomPayload() puppet.getContact(${id}) done at ttl:%d`, ttl)
+            log.silly('PuppetPuppeteer', `roomPayload() puppet.getContact(%s) done at ttl:%d with length:%d`, this.id, ttl, currLength)
             return rawPayload
           }
-          prevLength = currLength
+          if (currLength >= prevLength) {
+            prevLength = currLength
+          } else {
+            log.warn('PuppetPuppeteer', 'roomRawPayload() currLength(%d) <= prevLength(%d) ???',
+                                        currLength,
+                                        prevLength,
+                    )
+          }
         }
 
         log.silly('PuppetPuppeteer', `roomPayload() puppet.getContact(${id}) retry at ttl:%d`, ttl)
@@ -1589,7 +1601,7 @@ export class PuppetPuppeteer extends Puppet {
     file     : FileBox,
   ): Promise<void> {
     log.verbose('PuppetPuppeteer', 'messageSendFile(receiver=%s, file=%s)',
-                                    receiver,
+                                    JSON.stringify(receiver),
                                     file.toString(),
                 )
 

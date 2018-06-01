@@ -90,7 +90,7 @@ bot
        * 1. reply 'dong'
        */
       log.info('Bot', 'REPLY: dong')
-      msg.say('dong')
+      await msg.say('dong')
 
       const joinWechaty =  `Join Wechaty Developers' Community\n\n` +
                             `Wechaty is used in many ChatBot projects by hundreds of developers.\n\n` +
@@ -107,7 +107,7 @@ bot
         BOT_QR_CODE_IMAGE_FILE,
       )
 
-      log.info('Bot', 'REPLY: %s', fileBox)
+      log.info('Bot', 'REPLY: %s', fileBox.toString())
       await msg.say(fileBox)
 
       /**

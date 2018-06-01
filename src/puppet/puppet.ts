@@ -457,6 +457,10 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   ): Promise<ContactPayload> {
     log.silly('Puppet', 'contactPayload(id=%s, noCache=%s) @ %s', id, noCache, this)
 
+    if (!id) {
+      throw new Error('no id')
+    }
+
     if (noCache) {
       log.silly('Puppet', 'contactPayload() cache PURGE')
       this.cacheContactPayload.del(id)
@@ -494,6 +498,10 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   ): Promise<FriendRequestPayload> {
     log.verbose('Puppet', 'friendRequestPayload(id=%s, noCache=%s)', id, noCache)
 
+    if (!id) {
+      throw new Error('no id')
+    }
+
     if (noCache) {
       log.silly('Puppet', 'friendRequestPayload() cache PURGE')
       this.cacheFriendRequestPayload.del(id)
@@ -529,6 +537,10 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     noCache = false,
   ): Promise<MessagePayload> {
     log.verbose('Puppet', 'messagePayload(id=%s, noCache=%s)', id, noCache)
+
+    if (!id) {
+      throw new Error('no id')
+    }
 
     if (noCache) {
       log.silly('Puppet', 'messagePayload() cache PURGE')
@@ -686,6 +698,10 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     noCache = false,
   ): Promise<RoomPayload> {
     log.verbose('Puppet', 'roomPayload(id=%s, noCache=%s)', id, noCache)
+
+    if (!id) {
+      throw new Error('no id')
+    }
 
     if (noCache) {
       log.silly('Puppet', 'roomPayload() cache PURGE')

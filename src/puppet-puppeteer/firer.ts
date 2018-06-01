@@ -308,7 +308,7 @@ export class Firer {
     try {
       [leaverName, removerName] = this.parseRoomLeave(rawPayload.Content)
     } catch (e) {
-      log.warn('PuppetPuppeteerFirer', 'fireRoomLeave() exception: %s', e.message)
+      log.silly('PuppetPuppeteerFirer', 'fireRoomLeave() %s', e.message)
       return false
     }
     log.silly('PuppetPuppeteerFirer', 'fireRoomLeave() got leaverName: %s', leaverName)

@@ -152,15 +152,16 @@ export class Message extends Accessory implements Sayable {
       // `#${MessageDirection[this.direction]}`,
       `#${MessageType[this.type()]}`,
       '(',
+        this.room() ? (this.room() + '▲') : '',
         this.from(),
-        this.room() ? '@' + this.room() : '',
+        '►',
         this.to(),
       ')',
     ]
     if (this.type() === Message.Type.Text) {
       msgStrList.push(`<${this.text()}>`)
     } else {
-      log.verbose('Message', 'toString() this.type()=%s', Message.Type[this.type()])
+      log.silly('Message', 'toString() for message type: ', Message.Type[this.type()])
 
       if (!this.payload) {
         throw new Error('no payload')

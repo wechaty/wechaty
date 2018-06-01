@@ -528,8 +528,29 @@ export class Bridge extends EventEmitter {
   }
 
   public async getMessage(id: string): Promise<WebMessageRawPayload> {
-    const rawPayload = await this.proxyWechaty('getMessage', id)
-    return rawPayload
+    try {
+      return await Misc.retry(async (retry, attempt) => {
+        log.silly('PuppetPuppeteerBridge', 'getMessage(%s) retry attempt %d',
+                                          id,
+                                          attempt,
+                  )
+        try {
+          const rawPayload = await this.proxyWechaty('getMessage', id)
+
+          if (rawPayload && Object.keys(rawPayload).length > 0) {
+            return rawPayload
+          }
+          throw new Error('got empty return value at attempt: ' + attempt)
+        } catch (e) {
+          log.verbose('PuppetPuppeteerBridge', 'getMessage() proxyWechaty(getMessage, %s) exception: %s', id, e.message)
+          retry(e)
+        }
+      })
+
+    } catch (e) {
+      log.error('PuppetPuppeteerBridge', 'promiseRetry() getContact() finally FAIL: %s', e.message)
+      throw e
+    }
   }
 
   public async getContact(id: string): Promise<WebContactRawPayload | WebRoomRawPayload> {
@@ -552,20 +573,6 @@ export class Bridge extends EventEmitter {
         }
       })
 
-      // return await retryPromise({ max: max, backoff: backoff }, async (attempt: number) => {
-      //   log.silly('PuppetPuppeteerBridge', 'getContact() retryPromise: attampt %d/%d time for timeout %d',
-      //                                 attempt, max, timeout)
-      //   try {
-      //     const r = await this.proxyWechaty('getContact', id)
-      //     if (r) {
-      //       return r
-      //     }
-      //     throw new Error('got empty return value at attempt: ' + attempt)
-      //   } catch (e) {
-      //     log.silly('PuppetPuppeteerBridge', 'proxyWechaty(getContact, %s) exception: %s', id, e.message)
-      //     throw e
-      //   }
-      // })
     } catch (e) {
       log.error('PuppetPuppeteerBridge', 'promiseRetry() getContact() finally FAIL: %s', e.message)
       throw e

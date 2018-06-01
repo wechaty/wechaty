@@ -219,7 +219,7 @@ export class Room extends Accessory implements Sayable {
    */
   public toString() {
     if (this.payload && this.payload.topic) {
-      return `Room<${this.topic()}>`
+      return `Room<${this.payload.topic}>`
     }
     return `Room<${this.id || ''}>`
   }
@@ -776,13 +776,7 @@ export class Room extends Accessory implements Sayable {
    * @returns {Promise<void>}
    */
   public async sync(): Promise<void> {
-    // TODO: make it work with the old dirty payload when in re-syncing...
-
-    // if (this.isReady()) {
-    //   this.dirtyObj = this.payload
-    // }
-    this.payload = undefined
-    await this.ready()
+    await this.ready(true)
   }
 
   /**

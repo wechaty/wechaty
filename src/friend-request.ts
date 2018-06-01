@@ -61,11 +61,7 @@ export class FriendRequest extends Accessory {
     id   : string,
   ): T['prototype'] {
     const newFriendRequest = new (this as any)(id)
-
-    const hitPayload = this.puppet.cacheFriendRequestPayload.get(id)
-    if (hitPayload) {
-      newFriendRequest.payload = hitPayload
-    }
+    newFriendRequest.payload = this.puppet.cacheFriendRequestPayload.get(id)
     return newFriendRequest
   }
 
