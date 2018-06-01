@@ -221,7 +221,7 @@ export class Room extends Accessory implements Sayable {
     if (this.payload && this.payload.topic) {
       return `Room<${this.topic()}>`
     }
-    return `Room<${this.id || 'noid'}>`
+    return `Room<${this.id || ''}>`
   }
 
   public *[Symbol.iterator](): IterableIterator<Contact> {

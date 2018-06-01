@@ -11,29 +11,32 @@ import {
 }                       from 'memory-card'
 import {
   ContactPayload,
+  ContactQueryFilter,
+  ContactPayloadFilterFunction,
   ContactType,
   ContactGender,
-  ContactPayloadFilterFactory,
-}                               from '../puppet/schemas/contact'
+  // ContactPayloadFilterFactory,
+}                                 from '../puppet/schemas/contact'
 import {
   // FriendRequestPayload,
-}                               from '../puppet/schemas/friend-request'
+}                                 from '../puppet/schemas/friend-request'
 import {
   MessagePayload,
-}                               from '../puppet/schemas/message'
+}                                 from '../puppet/schemas/message'
 import {
   RoomPayload,
-  RoomPayloadFilterFactory,
-}                               from '../puppet/schemas/room'
+  RoomQueryFilter,
+  RoomPayloadFilterFunction,
+}                                 from '../puppet/schemas/room'
 import {
   Receiver,
-}                               from '../puppet/schemas/puppet'
+}                                 from '../puppet/schemas/puppet'
 
 import {
   Puppet,
-}                               from '../puppet/puppet'
+}                                 from '../puppet/puppet'
 
-class Fixture extends Puppet {
+class PuppetTest extends Puppet {
   public async start() : Promise<void> { return {} as any }
   public async stop()  : Promise<void> { return {} as any }
 
@@ -91,6 +94,21 @@ class Fixture extends Puppet {
   public async roomRawPayload(id: string)            : Promise<any> { return {id} as any }
   public async roomRawPayloadParser(rawPayload: any) : Promise<RoomPayload> { return {rawPayload} as any }
 
+  /**
+   * expose to public for internal methods:
+   */
+  public roomQueryFilterFactory(
+    query: RoomQueryFilter,
+  ): RoomPayloadFilterFunction {
+    return super.roomQueryFilterFactory(query)
+  }
+
+  public contactQueryFilterFactory(
+    query: ContactQueryFilter,
+  ): ContactPayloadFilterFunction {
+    return super.contactQueryFilterFactory(query)
+  }
+
 }
 
 test('contactQueryFilterFunction()', async t => {
@@ -132,14 +150,13 @@ test('contactQueryFilterFunction()', async t => {
   const REGEX_VALUE = new RegExp(TEXT_REGEX)
   const TEXT_VALUE  = TEXT_TEXT
 
-  const puppet = new Fixture({ memory: new MemoryCard })
-  const filterFactory: ContactPayloadFilterFactory = (puppet as any).contactQueryFilterFactory
+  const puppet = new PuppetTest({ memory: new MemoryCard })
 
   t.test('filter name by regex', async t => {
     const QUERY   = { name: REGEX_VALUE }
     const ID_LIST = ['id1', 'id3']
 
-    const func = filterFactory(QUERY)
+    const func = puppet.contactQueryFilterFactory(QUERY)
     const idList = PAYLOAD_LIST.filter(func).map(payload => payload.id)
     t.deepEqual(idList, ID_LIST, 'should filter the query to id list')
   })
@@ -148,7 +165,7 @@ test('contactQueryFilterFunction()', async t => {
     const QUERY = { name: TEXT_VALUE }
     const ID_LIST = ['id2', 'id4']
 
-    const func = filterFactory(QUERY)
+    const func = puppet.contactQueryFilterFactory(QUERY)
     const idList = PAYLOAD_LIST.filter(func).map(payload => payload.id)
     t.deepEqual(idList, ID_LIST, 'should filter query to id list')
   })
@@ -157,7 +174,7 @@ test('contactQueryFilterFunction()', async t => {
     const QUERY = { alias: REGEX_VALUE }
     const ID_LIST = ['id2', 'id4']
 
-    const func = filterFactory(QUERY)
+    const func = puppet.contactQueryFilterFactory(QUERY)
     const idList = PAYLOAD_LIST.filter(func).map(payload => payload.id)
     t.deepEqual(idList, ID_LIST, 'should filter query to id list')
   })
@@ -166,17 +183,17 @@ test('contactQueryFilterFunction()', async t => {
     const QUERY = { alias: TEXT_VALUE }
     const ID_LIST = ['id1', 'id3']
 
-    const func = filterFactory(QUERY)
+    const func = puppet.contactQueryFilterFactory(QUERY)
     const idList = PAYLOAD_LIST.filter(func).map(payload => payload.id)
     t.deepEqual(idList, ID_LIST, 'should filter query to id list')
   })
 
   t.test('throw if filter key unknown', async t => {
-    t.throws(() => filterFactory({ xxxx: 'test' } as any), 'should throw')
+    t.throws(() => puppet.contactQueryFilterFactory({ xxxx: 'test' } as any), 'should throw')
   })
 
   t.test('throw if filter key are more than one', async t => {
-    t.throws(() => filterFactory({
+    t.throws(() => puppet.contactQueryFilterFactory({
       name: 'test',
       alias: 'test',
     }), 'should throw')
@@ -219,33 +236,32 @@ test('roomQueryFilterFunction()', async t => {
   const REGEX_VALUE = new RegExp(TEXT_REGEX)
   const TEXT_VALUE  = TEXT_TEXT
 
-  const puppet = new Fixture({ memory: new MemoryCard() })
-  const filterFactory: RoomPayloadFilterFactory = (puppet as any).roomQueryFilterFactory
+  const puppet = new PuppetTest({ memory: new MemoryCard() })
 
   t.test('filter name by regex', async t => {
     const QUERY   = { topic: REGEX_VALUE }
-    const ID_LIST = ['id1', 'id3']
+    const ID_LIST = ['id2', 'id4']
 
-    const func = filterFactory(QUERY)
+    const func = puppet.roomQueryFilterFactory(QUERY)
     const idList = PAYLOAD_LIST.filter(func).map(payload => payload.id)
     t.deepEqual(idList, ID_LIST, 'should filter the query to id list')
   })
 
   t.test('filter name by text', async t => {
     const QUERY = { topic: TEXT_VALUE }
-    const ID_LIST = ['id2', 'id4']
+    const ID_LIST = ['id1', 'id3']
 
-    const func = filterFactory(QUERY)
+    const func = puppet.roomQueryFilterFactory(QUERY)
     const idList = PAYLOAD_LIST.filter(func).map(payload => payload.id)
     t.deepEqual(idList, ID_LIST, 'should filter query to id list')
   })
 
   t.test('throw if filter key unknown', async t => {
-    t.throws(() => filterFactory({ xxxx: 'test' } as any), 'should throw')
+    t.throws(() => puppet.roomQueryFilterFactory({ xxx: 'test' } as any), 'should throw')
   })
 
   t.test('throw if filter key are more than one', async t => {
-    t.throws(() => filterFactory({
+    t.throws(() => puppet.roomQueryFilterFactory({
       topic: 'test',
       alias: 'test',
     } as any), 'should throw')

@@ -31,7 +31,7 @@ export abstract class Accessory extends EventEmitter {
   private static _wechaty? : Wechaty
 
   public static set puppet(puppet: Puppet) {
-    log.silly('Accessory', '<%s> static set puppet = %s',
+    log.silly('Accessory', '<%s> static set puppet = "%s"',
                                   this.name,
                                   puppet,
               )
@@ -57,7 +57,7 @@ export abstract class Accessory extends EventEmitter {
   }
 
   public static set wechaty(wechaty: Wechaty) {
-    log.silly('Accessory', '<%s> static set wechaty = %s',
+    log.silly('Accessory', '<%s> static set wechaty = "%s"',
                                   this.name,
                                   wechaty,
               )
@@ -91,7 +91,7 @@ export abstract class Accessory extends EventEmitter {
   private _puppet?  : Puppet
 
   public set puppet(puppet: Puppet) {
-    log.silly('Accessory', '<%s> set puppet = %s',
+    log.silly('Accessory', '<%s> set puppet = "%s"',
                                   this[SYMBOL_NAME] || this,
                                   puppet,
               )

@@ -38,15 +38,31 @@ import { PuppetPuppeteer }  from './puppet-puppeteer'
 import { Bridge }           from './bridge'
 import { Event }            from './event'
 
+class WechatyTest extends Wechaty {
+  public initPuppetAccessory(puppet: PuppetPuppeteer) {
+    super.initPuppetAccessory(puppet)
+  }
+  public initPuppetEventBridge(puppet: PuppetPuppeteer) {
+    super.initPuppetEventBridge(puppet)
+  }
+}
+
+class PuppetTest extends PuppetPuppeteer {
+  public contactRawPayload(id: string) {
+    return super.contactRawPayload(id)
+  }
+  public roomRawPayload(id: string) {
+    return super.roomRawPayload(id)
+  }
+  public messageRawPayload(id: string) {
+    return super.messageRawPayload(id)
+  }
+}
+
 test('Puppet smoke testing', async t => {
-  const memory = new MemoryCard(Math.random().toString(36).substr(2, 5))
-
-  const puppet = new PuppetPuppeteer({
-    memory,
-    // wechaty,
-  })
-
-  // const wechaty = new Wechaty({ puppet })
+  const puppet  = new PuppetTest({ memory: new MemoryCard() })
+  const wechaty = new WechatyTest({ puppet })
+  wechaty.initPuppetAccessory(puppet)
 
   t.ok(puppet.state.off(), 'should be OFF state after instanciate')
   puppet.state.on('pending')
@@ -57,45 +73,42 @@ test('Puppet smoke testing', async t => {
 test('login/logout events', sinonTest(async function (t: test.Test) {
   const sandbox = sinon.createSandbox()
   try {
-    const memory = new MemoryCard()
+    const puppet  = new PuppetTest({ memory: new MemoryCard() })
+    const wechaty = new WechatyTest({ puppet })
 
-    const puppet = new PuppetPuppeteer({
-      memory,
-      // wechaty,
-    })
-
-    const wechaty = new Wechaty({ puppet })
-
-    t.ok(puppet, 'should instantiated a PuppetPuppeteer')
-
-    sandbox.stub(wechaty.Contact, 'findAll')
-      .onFirstCall().resolves([])
-      .onSecondCall().resolves([1])
-      .resolves([1, 2])
+    wechaty.initPuppetAccessory(puppet)
+    wechaty.initPuppetEventBridge(puppet)
 
     sandbox.stub(Event, 'onScan') // block the scan event to prevent reset logined user
 
     sandbox.stub(Bridge.prototype, 'getUserName').resolves('mockedUserName')
+    sandbox.stub(Bridge.prototype, 'contactList')
+      .onFirstCall().resolves([])
+      .onSecondCall().resolves([1])
+      .resolves([1, 2])
+
     sandbox.stub(puppet, 'contactRawPayload').resolves({
       NickName: 'mockedNickName',
       UserName: 'mockedUserName',
     })
+    // sandbox.stub(puppet, 'waitStable').resolves()
 
     await puppet.start()
     t.pass('should be inited')
     t.is(puppet.logonoff() , false  , 'should be not logined')
 
-    const EXPECTED_CHIPER = 'loginFired'
-    const loginPromise = new Promise(r => puppet.once('login', _ => r(EXPECTED_CHIPER)))
+    const future = new Promise(r => wechaty.once('login', r))
+              .catch(e => t.fail(e))
     puppet.bridge.emit('login', 'TestPuppetPuppeteer')
-    t.is(await loginPromise, EXPECTED_CHIPER, 'should fired login event')
+    await future
+
     t.is(puppet.logonoff(), true, 'should be logined')
 
     t.ok((puppet.bridge.getUserName as any).called, 'bridge.getUserName should be called')
     t.ok((puppet.contactRawPayload as any).called,  'puppet.contactRawPayload should be called')
 
-    t.ok((wechaty.Contact.findAll as any).called,       'contactFind stub should be called')
-    t.is((wechaty.Contact.findAll as any).callCount, 4, 'should call stubContactFind 4 times')
+    t.ok((Bridge.prototype.contactList as any).called,       'contactList stub should be called')
+    t.is((Bridge.prototype.contactList as any).callCount, 4, 'should call stubContacList 4 times')
 
     const logoutPromise = new Promise(resolve => puppet.once('logout', _ => resolve('logoutFired')))
     puppet.bridge.emit('logout')
@@ -103,11 +116,9 @@ test('login/logout events', sinonTest(async function (t: test.Test) {
     t.is(puppet.logonoff(), false, 'should be logouted')
 
     await puppet.stop()
-    await memory.destroy()
   } catch (e) {
     t.fail(e)
   } finally {
     sandbox.restore()
-    // t.end()
   }
 }))

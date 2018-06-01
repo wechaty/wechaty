@@ -447,27 +447,25 @@ export class Message extends Accessory implements Sayable {
    * const contactList = message.mentioned()
    * console.log(contactList)
    */
-  public mentioned(): Contact[] {
+  public async mentioned(): Promise<Contact[]> {
     log.verbose('Message', 'mentioned()')
 
-    let contactList: Contact[] = []
     const room = this.room()
     if (this.type() !== MessageType.Text || !room ) {
-      return contactList
+      return []
     }
 
     // define magic code `8197` to identify @xxx
     const AT_SEPRATOR = String.fromCharCode(8197)
 
     const atList = this.text().split(AT_SEPRATOR)
-
-    if (atList.length === 0) return contactList
+    // console.log('atList: ', atList)
+    if (atList.length === 0) return []
 
     // Using `filter(e => e.indexOf('@') > -1)` to filter the string without `@`
     const rawMentionedList = atList
       .filter(str => str.includes('@'))
       .map(str => multipleAt(str))
-      .filter(str => !!str) // filter blank string
 
     // convert 'hello@a@b@c' to [ 'c', 'b@c', 'a@b@c' ]
     function multipleAt(str: string) {
@@ -478,23 +476,36 @@ export class Message extends Accessory implements Sayable {
         .filter(mentionName => !!mentionName)
         .reverse()
         .forEach(mentionName => {
+          // console.log('mentionName: ', mentionName)
           name = mentionName + '@' + name
           nameList.push(name.slice(0, -1)) // get rid of the `@` at beginning
         })
       return nameList
     }
 
-    // flatten array, see http://stackoverflow.com/a/10865042/1123955
-    const mentionList: string[] = [].concat.apply([], rawMentionedList)
-    log.verbose('Message', 'mentioned(%s),get mentionList: %s', this.text(), JSON.stringify(mentionList))
+    let mentionNameList: string[] = []
+    // Flatten Array
+    // see http://stackoverflow.com/a/10865042/1123955
+    mentionNameList = mentionNameList.concat.apply([], rawMentionedList)
+    // filter blank string
+    mentionNameList = mentionNameList.filter(s => !!s)
 
-    contactList = [].concat.apply([],
-      mentionList.map(nameStr => room.memberAll(nameStr))
-        .filter(contact => !!contact),
+    log.verbose('Message', 'mentioned() text = "%s", mentionNameList = "%s"',
+                            this.text(),
+                            JSON.stringify(mentionNameList),
+                )
+
+    const contactListNested = await Promise.all(
+      mentionNameList.map(
+        name => room.memberAll(name),
+      ),
     )
 
+    let contactList: Contact[] = []
+    contactList = contactList.concat.apply([], contactListNested)
+
     if (contactList.length === 0) {
-      log.warn('Message', `message.mentioned() can not found member using room.member() from mentionList, metion string: ${JSON.stringify(mentionList)}`)
+      log.warn('Message', `message.mentioned() can not found member using room.member() from mentionList, metion string: ${JSON.stringify(mentionNameList)}`)
     }
     return contactList
   }

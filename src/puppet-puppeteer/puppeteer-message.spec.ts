@@ -48,16 +48,28 @@ import {
   WebRoomRawPayload,
 }                         from './web-schemas'
 
+class WechatyTest extends Wechaty {
+  public initPuppetAccessory(puppet: PuppetPuppeteer) {
+    super.initPuppetAccessory(puppet)
+  }
+}
+
+class PuppetTest extends PuppetPuppeteer {
+  public contactRawPayload(id: string) {
+    return super.contactRawPayload(id)
+  }
+  public roomRawPayload(id: string) {
+    return super.roomRawPayload(id)
+  }
+  public messageRawPayload(id: string) {
+    return super.messageRawPayload(id)
+  }
+}
+
 test('constructor()', async t => {
-  const wechaty = new Wechaty()
-
-  const puppet = new PuppetPuppeteer({
-    memory: new MemoryCard(),
-    // wechaty,
-  })
-
-  ;
-  (wechaty as any).initPuppetAccessory(puppet)
+  const puppet  = new PuppetTest({ memory: new MemoryCard() })
+  const wechaty = new WechatyTest({ puppet })
+  wechaty.initPuppetAccessory(puppet)
 
   const MOCK_USER_ID = 'TEST-USER-ID'
 
@@ -150,18 +162,13 @@ test('ready()', async t => {
 
   const sandbox = sinon.createSandbox()
 
-  const wechaty = new Wechaty()
+  const puppet = new PuppetTest({ memory: new MemoryCard })
 
-  const puppet = new PuppetPuppeteer({
-    memory: new MemoryCard,
-    // wechaty,
-  })
+  const wechaty = new WechatyTest({ puppet })
+  wechaty.initPuppetAccessory(puppet)
 
-  ;
-  (wechaty as any).initPuppetAccessory(puppet)
-
-  sandbox.stub(puppet as any, 'contactRawPayload').callsFake(mockContactRawPayload)
-  sandbox.stub(puppet as any, 'messageRawPayload').callsFake(mockMessageRawPayload)
+  sandbox.stub(puppet, 'contactRawPayload').callsFake(mockContactRawPayload)
+  sandbox.stub(puppet, 'messageRawPayload').callsFake(mockMessageRawPayload)
 
   const m = wechaty.Message.create(rawPayload.MsgId)
 
@@ -185,15 +192,9 @@ test('ready()', async t => {
 })
 
 test('find()', async t => {
-  const wechaty = new Wechaty()
-
-  const puppet = new PuppetPuppeteer({
-    memory: new MemoryCard(),
-    // wechaty,
-  })
-
-  ;
-  (wechaty as any).initPuppetAccessory(puppet)
+  const puppet  = new PuppetPuppeteer({ memory: new MemoryCard() })
+  const wechaty = new WechatyTest({ puppet })
+  wechaty.initPuppetAccessory(puppet)
 
   const sandbox = sinon.createSandbox()
 
@@ -213,15 +214,9 @@ test('find()', async t => {
 })
 
 test('findAll()', async t => {
-  const wechaty = new Wechaty()
-
-  const puppet = new PuppetPuppeteer({
-    memory: new MemoryCard(),
-    // wechaty,
-  })
-
-  ;
-  (wechaty as any).initPuppetAccessory(puppet)
+  const puppet  = new PuppetTest({ memory: new MemoryCard() })
+  const wechaty = new WechatyTest({ puppet })
+  wechaty.initPuppetAccessory(puppet)
 
   const sandbox = sinon.createSandbox()
   sandbox.stub(puppet, 'contactPayload').resolves({})
@@ -239,15 +234,9 @@ test('findAll()', async t => {
 })
 
 test('self()', async t => {
-  const wechaty = new Wechaty()
-
-  const puppet = new PuppetPuppeteer({
-    memory: new MemoryCard(),
-    // wechaty,
-  })
-
-  ;
-  (wechaty as any).initPuppetAccessory(puppet)
+  const puppet  = new PuppetPuppeteer({ memory: new MemoryCard() })
+  const wechaty = new WechatyTest({ puppet })
+  wechaty.initPuppetAccessory(puppet)
 
   const MOCK_USER_ID = 'TEST-USER-ID'
 
@@ -367,18 +356,14 @@ test('mentioned()', async t => {
 
   const sandbox = sinon.createSandbox()
 
-  const wechaty = new Wechaty()
-  const puppet = new PuppetPuppeteer({
-    memory: new MemoryCard(),
-    // wechaty,
-  })
+  const puppet = new PuppetPuppeteer({ memory: new MemoryCard() })
 
-  ;
-  (wechaty as any).initPuppetAccessory(puppet)
+  const wechaty = new WechatyTest({ puppet })
+  wechaty.initPuppetAccessory(puppet)
 
-  sandbox.stub(puppet as any, 'contactRawPayload').callsFake(mockContactRawPayload)
-  sandbox.stub(puppet as any, 'roomRawPayload')   .callsFake(mockRoomRawPayload)
-  sandbox.stub(puppet as any, 'messageRawPayload').callsFake(mockMessageRawPayload)
+  sandbox.stub(puppet, 'contactRawPayload').callsFake(mockContactRawPayload)
+  sandbox.stub(puppet, 'roomRawPayload')   .callsFake(mockRoomRawPayload)
+  sandbox.stub(puppet, 'messageRawPayload').callsFake(mockMessageRawPayload)
 
   const msg11 = wechaty.Message.create(rawPayload11.MsgId)
   await msg11.ready()
@@ -386,7 +371,7 @@ test('mentioned()', async t => {
   const room11 = msg11.room()
   if (room11) {
     await room11.ready()
-    const mentionContactList11 = msg11.mentioned()
+    const mentionContactList11 = await msg11.mentioned()
     t.is(mentionContactList11.length, 0, '@_@ in message should not be treat as contact')
   }
 
@@ -395,7 +380,7 @@ test('mentioned()', async t => {
   const room12 = msg12.room()
   if (room12) {
     await room12.ready()
-    const mentionContactList12 = msg12.mentioned()
+    const mentionContactList12 = await msg12.mentioned()
     t.is(mentionContactList12.length, 0, 'user@email.com in message should not be treat as contact')
   }
 
@@ -405,7 +390,7 @@ test('mentioned()', async t => {
   if (room13) {
     await room13.ready()
     // setTimeout(function () {
-    const mentionContactList13 = msg13.mentioned()
+    const mentionContactList13 = await msg13.mentioned()
     t.is(mentionContactList13.length, 0, '@_@ wow! my email is ruiruibupt@gmail.com in message should not be treat as contact')
     // }, 1 * 1000)
   }
@@ -415,7 +400,7 @@ test('mentioned()', async t => {
   const room21 = msg21.room()
   if (room21) {
     await room21.ready()
-    const mentionContactList21 = msg21.mentioned()
+    const mentionContactList21 = await msg21.mentioned()
     t.is(mentionContactList21.length, 1, '@小桔同学 is a contact')
     t.is(mentionContactList21[0].id, '@cd7d467d7464e8ff6b0acd29364654f3666df5d04551f6082bfc875f90a6afd2', 'should get 小桔同学 id right in rawPayload21')
   }
@@ -426,7 +411,7 @@ test('mentioned()', async t => {
   const room22 = msg22.room()
   if (room22) {
     await room22.ready()
-    const mentionContactList22 = msg22.mentioned()
+    const mentionContactList22 = await msg22.mentioned()
     t.is(mentionContactList22.length, 2, '@小桔同学 and @wuli舞哩客服 is a contact')
     // not sure the rela serial
     t.is(mentionContactList22[0].id, '@36d55130f6a91bae4a2ed2cc5f19c56a9258c65ce3db9777f74f607223ef0855', 'should get 小桔同学 id right in rawPayload22')
@@ -439,7 +424,7 @@ test('mentioned()', async t => {
   const room31 = msg31.room()
   if (room31) {
     await room31.ready()
-    const mentionContactList31 = msg31.mentioned()
+    const mentionContactList31 = await msg31.mentioned()
     t.is(mentionContactList31.length, 1, '@wuli舞哩客服 is a contact')
     t.is(mentionContactList31[0].id, '@36d55130f6a91bae4a2ed2cc5f19c56a9258c65ce3db9777f74f607223ef0855', 'should get wuli舞哩客服 id right in rawPayload31')
   }
@@ -450,7 +435,7 @@ test('mentioned()', async t => {
   const room32 = msg32.room()
   if (room32) {
     await room32.ready()
-    const mentionContactList32 = msg32.mentioned()
+    const mentionContactList32 = await msg32.mentioned()
     t.is(mentionContactList32.length, 2, '@小桔同学 and @wuli舞哩客服 is a contact')
     t.is(mentionContactList32[0].id, '@36d55130f6a91bae4a2ed2cc5f19c56a9258c65ce3db9777f74f607223ef0855', 'should get wuli舞哩客服 id right in rawPayload32')
     t.is(mentionContactList32[1].id, '@cd7d467d7464e8ff6b0acd29364654f3666df5d04551f6082bfc875f90a6afd2', 'should get 小桔同学 id right in rawPayload32')

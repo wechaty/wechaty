@@ -403,7 +403,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     return idList
   }
 
-  private contactQueryFilterFactory(
+  protected contactQueryFilterFactory(
     query: ContactQueryFilter,
   ): ContactPayloadFilterFunction {
     log.verbose('Puppet', 'contactQueryFilterFactory(%s)',
@@ -428,6 +428,10 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
     // TypeScript bug: have to set `undefined | string | RegExp` at here, or the later code type check will get error
     const filterKey = Object.keys(query)[0] as keyof ContactQueryFilter
+
+    if (!/^name|alias$/.test(filterKey)) {
+      throw new Error('key not supported: ' + filterKey)
+    }
 
     const filterValue: undefined | string | RegExp = query[filterKey]
     if (!filterValue) {
@@ -640,7 +644,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     return roomIdList
   }
 
-  private roomQueryFilterFactory(
+  protected roomQueryFilterFactory(
     query: RoomQueryFilter,
   ): RoomPayloadFilterFunction {
     log.verbose('Puppet', 'roomQueryFilterFactory({ %s })',
@@ -655,6 +659,9 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
     // TypeScript bug: have to set `undefined | string | RegExp` at here, or the later code type check will get error
     const filterKey = Object.keys(query)[0] as keyof RoomQueryFilter
+    if (filterKey !== 'topic') {
+      throw new Error('query key unknown: ' + filterKey)
+    }
 
     const filterValue: undefined | string | RegExp = query[filterKey]
     if (!filterValue) {

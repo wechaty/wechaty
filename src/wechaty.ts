@@ -500,7 +500,7 @@ export class Wechaty extends Accessory implements Sayable {
     )
   }
 
-  private initPuppetEventBridge(puppet: Puppet) {
+  protected initPuppetEventBridge(puppet: Puppet) {
     const eventNameList: PuppetEventName[] = Object.keys(PUPPET_EVENT_DICT) as any
     for (const eventName of eventNameList) {
       log.verbose('Wechaty', 'initPuppetEventBridge() puppet.on(%s) registered', eventName)
