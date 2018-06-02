@@ -71,13 +71,12 @@ bot
   log.info('Bot', `${user.name()} login`)
   bot.say('Wechaty login').catch(console.error)
 })
-.on('scan', (url, code) => {
-  if (!/201|200/.test(String(code))) {
-    const loginUrl = url.replace(/\/qrcode\//, '/l/')
-    QrcodeTerminal.generate(loginUrl, { small: true }, (qrcode: string) => {
+.on('scan', (qrCode, statusCode) => {
+  if (!/201|200/.test(String(statusCode))) {
+    QrcodeTerminal.generate(qrCode, { small: true }, (qrcode: string) => {
       console.log(qrcode)
-      console.log(url)
-      console.log(`[${code}] Scan QR Code above url to log in: `)
+      console.log(qrCode)
+      console.log(`[${statusCode}] Scan QR Code above url to log in: `)
     })
   }
 })

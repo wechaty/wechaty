@@ -71,7 +71,11 @@ import {
 let PUPPET_COUNTER = 0
 
 /**
- * Abstract Puppet Class
+ *
+ * Puppet Base Class
+ *
+ * See: https://github.com/Chatie/wechaty/wiki/Puppet
+ *
  */
 export abstract class Puppet extends EventEmitter implements Sayable {
 
@@ -492,6 +496,9 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async friendRequestSend(contactId: string, hello?: string)   : Promise<void>
   public abstract async friendRequestAccept(contactId: string, ticket: string) : Promise<void>
 
+  public abstract async friendRequestRawPayload(id: string)            : Promise<any>
+  public abstract async friendRequestRawPayloadParser(rawPayload: any) : Promise<FriendRequestPayload>
+
   public async friendRequestPayload(
     id: string,
     noCache = false,
@@ -516,7 +523,12 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
     log.silly('Puppet', 'friendRequestPayload() cache MISS')
 
-    throw new Error('no payload')
+    const rawPayload = await this.friendRequestRawPayload(id)
+    const payload    = await this.friendRequestRawPayloadParser(rawPayload)
+
+    this.cacheFriendRequestPayload.set(id, payload)
+
+    return payload
   }
 
   /**
@@ -585,7 +597,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     roomId : string,
     query  : string | RoomMemberQueryFilter,
   ): Promise<string[]> {
-    log.verbose('Puppet', 'roomMember(%s, %s)', roomId, JSON.stringify(query))
+    log.verbose('Puppet', 'roomMemberSearch(%s, %s)', roomId, JSON.stringify(query))
 
     /**
      * 1. for Text Query

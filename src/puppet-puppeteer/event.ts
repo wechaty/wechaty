@@ -90,7 +90,11 @@ async function onScan(
     type: 'scan',
   }
   this.emit('watchdog', food)
-  this.emit('scan'    , payload.url, payload.code, payload.data)
+
+  // BREAKING CHANGE: Issue #1262
+  const qrCode = payload.url.replace(/\/qrcode\//, '/l/')
+
+  this.emit('scan', qrCode, payload.code, payload.data)
 }
 
 function onLog(data: any): void {
@@ -195,7 +199,8 @@ async function onMessage(
   switch (rawPayload.MsgType) {
 
     case WebMessageType.VERIFYMSG:
-      firer.checkFriendRequest(rawPayload)
+      this.emit('friend', rawPayload.MsgId)
+      // firer.checkFriendRequest(rawPayload)
       break
 
     case WebMessageType.SYS:

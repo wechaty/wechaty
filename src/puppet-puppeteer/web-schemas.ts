@@ -57,6 +57,7 @@ export interface WebMessageRawPayload {
 
   MMDigest:         string,
   MMDisplayTime:    number,  // Javascript timestamp of milliseconds
+  CreateTime:       number,
 
   /**
    * MsgType == MSGTYPE_APP && message.AppMsgType == CONF.APPMSGTYPE_URL

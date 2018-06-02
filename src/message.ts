@@ -191,6 +191,7 @@ export class Message extends Accessory implements Sayable {
 
     const fromId = this.payload.fromId
     if (!fromId) {
+      console.log(this.payload)
       throw new Error('no from')
     }
 
