@@ -799,7 +799,7 @@ export class PuppetPadchat extends Puppet {
     // const roomAliasMap    = await this.roomParseMap('roomAlias'   , padchatRoomRawMemberList.member)
     // const contactAliasMap = await this.roomParseMap('contactAlias', padchatRoomRawMemberList.member)
 
-    const aliasDict = {}
+    const aliasDict = {} as { [id: string]: string | undefined }
 
     if (Array.isArray(padchatRoomRawMemberList.member)) {
       const memberListPayload = await Promise.all(
