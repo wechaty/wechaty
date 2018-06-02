@@ -649,7 +649,8 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
     const allRoomIdList = await this.roomList()
 
-    if (!query) {
+    console.log('allRoomIdList length=' + allRoomIdList.length)
+    if (!query || Object.keys(query).length <= 0) {
       return allRoomIdList
     }
 
@@ -658,12 +659,15 @@ export abstract class Puppet extends EventEmitter implements Sayable {
         id => this.roomPayload(id),
       ),
     )
+    console.log('roomPayload resolved.')
 
     const filterFunction = this.roomQueryFilterFactory(query)
 
     const roomIdList = roomPayloadList
                         .filter(filterFunction)
                         .map(payload => payload.id)
+
+    console.log('roomIdList filtered. result length=' + roomIdList.length)
 
     return roomIdList
   }

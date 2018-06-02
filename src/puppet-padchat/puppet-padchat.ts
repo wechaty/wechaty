@@ -31,7 +31,7 @@ import {
   MessagePayload,
   MessageType,
 
-  ContactQueryFilter,
+  // ContactQueryFilter,
   ContactGender,
   ContactType,
   ContactPayload,
@@ -43,9 +43,10 @@ import {
   Puppet,
   PuppetOptions,
   Receiver,
+  FriendRequestPayload,
 }                       from '../puppet/'
 
-// import Misc           from '../misc'
+import Misc           from '../misc'
 
 import {
   log,
@@ -54,7 +55,7 @@ import {
 import {
   Bridge,
   resolverDict,
-  AutoDataType,
+  // AutoDataType,
 }                       from './bridge'
 
 import {
@@ -112,13 +113,11 @@ export class PuppetPadchat extends Puppet {
     this.cachePadchatRoomRawPayload          = new LRU<string, PadchatRoomRawPayload>(lruOptions)
 
     this.bridge = new Bridge({
+      memory   : this.options.memory,
       userId   : TOKEN,
       autoData : {},
       // profile:  profile, // should be profile in the future
     })
-
-    this.bridge.on('ws', data => this.wsOnMessage(data))
-
   }
 
   public toString() {
@@ -129,7 +128,7 @@ export class PuppetPadchat extends Puppet {
     return data
   }
 
-  public initWatchdog(): void {
+  public startWatchdog(): void {
     log.verbose('PuppetPadchat', 'initWatchdogForPuppet()')
 
     const puppet = this
@@ -169,14 +168,15 @@ export class PuppetPadchat extends Puppet {
         puppet.emit('error', e)
       }
     })
+
+    this.emit('watchdog', {
+      data: 'inited',
+    })
+
   }
 
   public async start(): Promise<void> {
-    // Connect with websocket server
-
-    if (!this.bridge) {
-      throw Error('cannot init bridge successfully!')
-    }
+    log.verbose('PuppetPadchat', `start() with ${this.options.memory.name}`)
 
     /**
      * state has two main state: ON / OFF
@@ -185,65 +185,16 @@ export class PuppetPadchat extends Puppet {
      */
     this.state.on('pending')
 
-    const bridge = this.bridge = await this.initBridge()
+    await this.startBridge()
+    await this.startWatchdog()
 
-    this.bridge.loginSucceed = false
+    this.state.on(true)
+    // this.emit('start')
 
-    log.verbose('PuppetPadchat', `start() with ${this.options.memory.name}`)
-
-    this.bridge.once('open', async() => {
-
-      this.emit('watchdog', {
-        data: 'start',
-      })
-
-      // await some tasks...
-      await bridge.init()
-      await bridge.WXInitialize()
-
-      // Check for 62 data, if has, then use WXLoadWxDat
-      if (bridge.autoData && bridge.autoData.wxData) {
-        log.info('PuppetPadchat', `start, get 62 data`)
-        // bridge.WXLoadWxDat(bridge.autoData.wxData)
-        await bridge.WXLoadWxDat(bridge.autoData.wxData)
-      }
-
-      if (bridge.autoData && bridge.autoData.token) {
-        log.info('PuppetPadchat', `get ${bridge.autoData.nick_name || 'no nick_name'} token`)
-
-        // Offline, then relogin
-        log.info('PuppetPadchat', `offline, trying to relogin`)
-        await bridge.WXAutoLogin(bridge.autoData.token)
-      } else {
-        await bridge.WXGetQRCode()
-      }
-
-      this.checkLogin()
-    })
   }
 
-  public checkLogin() {
-    log.silly('PuppetPadchat', `checkLogin`)
-
-    if (!this.bridge) {
-      throw Error('cannot init bridge successfully!')
-    }
-
-    if (this.bridge.loginSucceed === true) {
-      log.silly('PuppetPadchat', `checkLogin, login successfully`)
-      this.loginSucceed()
-      return
-    } else {
-      log.silly('PuppetPadchat', `checkLogin, not login yet`)
-      setTimeout(() => {
-        this.checkLogin()
-      }, 2000)
-      return
-    }
-  }
-
-  public async initBridge(): Promise<Bridge> {
-    log.verbose('PuppetPadchat', 'initBridge()')
+  public async startBridge(): Promise<void> {
+    log.verbose('PuppetPadchat', 'startBridge()')
 
     if (this.state.off()) {
       const e = new Error('initBridge() found targetState != live, no init anymore')
@@ -251,22 +202,24 @@ export class PuppetPadchat extends Puppet {
       throw e
     }
 
-    await this.bridge.initWs()
-
-    const autoData: AutoDataType = await this.options.memory.get('autoData')
-    log.silly('PuppetPadchat', 'initBridge, get autoData: %s', JSON.stringify(autoData))
-    this.bridge.autoData = autoData
-
+    this.bridge.removeAllListeners()
     // this.bridge.on('ding'     , Event.onDing.bind(this))
     // this.bridge.on('error'    , e => this.emit('error', e))
     // this.bridge.on('log'      , Event.onLog.bind(this))
-    // this.bridge.on('login'    , Event.onLogin.bind(this))
+    this.bridge.on('login'    , (userId: string) => {
+      this.login(userId)
+      this.bridge.syncContactsAndRooms()
+    })
+    this.bridge.on('ws', data => this.wsOnMessage(data))
+
     // this.bridge.on('logout'   , Event.onLogout.bind(this))
     // this.bridge.on('message'  , Event.onMessage.bind(this))
-    // this.bridge.on('scan'     , Event.onScan.bind(this))
+    this.bridge.on('scan', (qrCode, statusCode, data) => {
+      this.emit('scan', qrCode, statusCode, data)
+    })
     // this.bridge.on('unload'   , Event.onUnload.bind(this))
 
-    return this.bridge
+    await this.bridge.start()
   }
 
   private async wsOnMessage(data: WebSocket.Data) {
@@ -277,10 +230,10 @@ export class PuppetPadchat extends Puppet {
     }
 
     const rawWebSocketData = JSON.parse(data) as RawWebSocketDataType
+    log.silly('PuppetPadchat', 'WebSocket Server result: %s', JSON.stringify(rawWebSocketData))
 
     // Data From Tencent
-    if (rawWebSocketData.msgId === '') {
-      log.silly('PuppetPadchat', 'WebSocket Server result: %s', JSON.stringify(rawWebSocketData))
+    if (!rawWebSocketData.msgId) {
       // rawWebSocketData:
       // {
       //   "apiName": "",
@@ -288,7 +241,7 @@ export class PuppetPadchat extends Puppet {
       //   "msgId": "",
       //   "userId": "test"
       // }
-      if (!rawWebSocketData.data) {
+      if (!rawWebSocketData.data && !rawWebSocketData.apiName) {
         log.silly('PuppetPadchat', 'WebSocket Server get empty message data form Tencent server')
         return
       }
@@ -298,7 +251,9 @@ export class PuppetPadchat extends Puppet {
       msgRawPayloadList.forEach(async (msgRawPayload) => {
         log.silly('PuppetPadchat', 'WebSocket Server rawData result: %s', JSON.stringify(msgRawPayload))
         if (!msgRawPayload.msg_id) {
-          log.silly('PuppetPadchat', 'WebSocket Server: get empty message msg_id form Tencent server')
+          log.silly('PuppetPadchat', 'WebSocket Server: get empty message msg_id form Tencent server for payoad: %s',
+                                      JSON.stringify(msgRawPayload),
+                    )
           return
         }
 
@@ -308,6 +263,8 @@ export class PuppetPadchat extends Puppet {
         // )
         // await msg.ready()
 
+        this.cachePadchatMessageRawPayload.set(msgRawPayload.msg_id, msgRawPayload)
+
         this.emit('message', msgRawPayload.msg_id)
       })
 
@@ -315,7 +272,8 @@ export class PuppetPadchat extends Puppet {
     } else {
       // check logout:
       if (rawWebSocketData.type === -1) {
-        this.emit('logout', this.selfId())
+        // this.emit('logout', this.selfId())
+        this.logout() // no need to await
       }
 
       log.silly('PuppetPadchat', 'return apiName: %s, msgId: %s', rawWebSocketData.apiName, rawWebSocketData.msgId)
@@ -342,73 +300,9 @@ export class PuppetPadchat extends Puppet {
         delete resolverDict[msgId]
         // resolve({rawData: rawData, msgId: rawWebSocketData.msgId})
         resolve(rawData)
+      } else {
+        log.warn('PuppetPadchat', 'wsOnMessage() msgId %s not in resolverDict', msgId)
       }
-    }
-  }
-
-  public async loginSucceed() {
-    if (!(this.bridge)) {
-      throw Error('cannot init bridge successfully!')
-    }
-
-    log.verbose('PuppetPadchatBridge', 'loginSucceed: Set heatbeat to websocket server')
-    await this.bridge.WXHeartBeat()
-
-    log.verbose('PuppetPadchatBridge', 'loginSucceed: Set token to websocket server')
-    this.bridge.autoData.token = (await this.bridge.WXGetLoginToken()).token
-
-    // Check 62 data. If has then use, or save 62 data here.
-    if (!this.bridge.autoData.wxData || this.bridge.autoData.user_name !== this.bridge.username) {
-      log.info('PuppetPadchatBridge', 'loginSucceed: No 62 data, or wrong 62 data')
-      this.bridge.autoData.user_name = this.bridge.username
-      this.bridge.autoData.nick_name = this.bridge.nickname
-      this.bridge.autoData.wxData    = (await this.bridge.WXGenerateWxDat()).data
-    }
-
-    setTimeout(() => {
-      this.saveConfig()
-    }, 2 * 1000)
-
-    return
-
-    // Think more, whether it is need to syncContact
-    // log.verbose('PuppetPadchatBridge', 'loginSucceed: SyncContact')
-    // this.WXSyncContact()
-  }
-
-  public async saveConfig() {
-    if (!(this.bridge)) {
-      throw Error('cannot init bridge successfully!')
-    }
-
-    log.verbose('PuppetPadchatBridge', 'saveConfig, autoData: %s', JSON.stringify(this.bridge.autoData))
-    if (this.bridge.autoData.wxData && this.bridge.autoData.token && this.bridge.autoData.user_name) {
-      log.verbose('PuppetPadchatBridge', 'saveConfig: begin to save data to file')
-      await this.options.memory.set('autoData', this.bridge.autoData)
-      await this.options.memory.save()
-
-      log.verbose('PuppetPadchatBridge', 'loginSucceed: Send ding to the bot, username: %s', this.bridge.username)
-      await this.bridge.WXSendMsg(this.bridge.autoData.user_name, 'ding')
-
-      this.id = this.bridge.autoData.user_name // Puppet userId different with WebSocket userId
-      // const user = this.Contact.load(this.id)
-      // await user.ready()
-      this.emit('login', this.id)
-
-      log.verbose('PuppetPadchatBridge', 'loginSucceed: Send login to the bot, user_name: %s', this.bridge.username)
-      await this.bridge.WXSendMsg(this.bridge.autoData.user_name, 'Bot on line!')
-
-      this.state.on(true)
-      // this.emit('start')
-      this.initWatchdog()
-
-      return
-    } else {
-      log.verbose('PuppetPadchatBridge', 'no enough data, save again, %s', JSON.stringify(this.bridge.autoData))
-      setTimeout( () => {
-        this.saveConfig()
-      }, 2 * 1000)
-      return
     }
   }
 
@@ -424,10 +318,10 @@ export class PuppetPadchat extends Puppet {
     this.state.off('pending')
 
     this.watchdog.sleep()
-    setImmediate(() => this.bridge.removeAllListeners())
-
     await this.logout()
-    this.bridge.closeWs()
+
+    setImmediate(() => this.bridge.removeAllListeners())
+    await this.bridge.stop()
 
     // await some tasks...
     this.state.off(true)
@@ -459,9 +353,8 @@ export class PuppetPadchat extends Puppet {
   public async contactAlias(contactId: string, alias?: string|null): Promise<void | string> {
     log.verbose('PuppetPadchat', 'contactAlias(%s, %s)', contactId, alias)
 
-    const payload = await this.contactPayload(contactId)
-
     if (typeof alias === 'undefined') {
+      const payload = await this.contactPayload(contactId)
       return payload.alias || ''
     }
 
@@ -476,7 +369,7 @@ export class PuppetPadchat extends Puppet {
 
     // const contactRawPayloadMap = (await this.bridge.checkSyncContactOrRoom()).contactMap
 
-    const contactIdList: string[] = []
+    const contactIdList = this.bridge.getContactIdList()
     // for (const contactRawPayload in contactRawPayloadMap) {
 
     // }
@@ -502,44 +395,44 @@ export class PuppetPadchat extends Puppet {
     return contactIdList
   }
 
-  protected contactQueryFilterToFunction(
-    query: ContactQueryFilter,
-  ): (payload: ContactPayload) => boolean {
-    log.verbose('PuppetPadchat', 'contactQueryFilterToFunctionString({ %s })',
-                            Object.keys(query)
-                                  .map(k => `${k}: ${query[k as keyof ContactQueryFilter]}`)
-                                  .join(', '),
-              )
+  // protected contactQueryFilterToFunction(
+  //   query: ContactQueryFilter,
+  // ): (payload: ContactPayload) => boolean {
+  //   log.verbose('PuppetPadchat', 'contactQueryFilterToFunctionString({ %s })',
+  //                           Object.keys(query)
+  //                                 .map(k => `${k}: ${query[k as keyof ContactQueryFilter]}`)
+  //                                 .join(', '),
+  //             )
 
-    if (Object.keys(query).length !== 1) {
-      throw new Error('query only support one key. multi key support is not availble now.')
-    }
+  //   if (Object.keys(query).length !== 1) {
+  //     throw new Error('query only support one key. multi key support is not availble now.')
+  //   }
 
-    const filterKey = Object.keys(query)[0] as keyof ContactQueryFilter
+  //   const filterKey = Object.keys(query)[0] as keyof ContactQueryFilter
 
-    let filterValue: string | RegExp | undefined  = query[filterKey]
-    if (!filterValue) {
-      throw new Error('filterValue not found')
-    }
+  //   let filterValue: string | RegExp | undefined  = query[filterKey]
+  //   if (!filterValue) {
+  //     throw new Error('filterValue not found')
+  //   }
 
-    /**
-     * must be string because we need inject variable value
-     * into code as variable namespecialContactList
-     */
-    let filterFunction: (payload: ContactPayload) => boolean
+  //   /**
+  //    * must be string because we need inject variable value
+  //    * into code as variable namespecialContactList
+  //    */
+  //   let filterFunction: (payload: ContactPayload) => boolean
 
-    if (filterValue instanceof RegExp) {
-      const regex = filterValue
-      filterFunction = (payload: ContactPayload) => regex.test(payload[filterKey] || '')
-    } else if (typeof filterValue === 'string') {
-      filterValue = filterValue.replace(/'/g, '\\\'')
-      filterFunction = (payload: ContactPayload) => payload[filterKey] === filterValue
-    } else {
-      throw new Error('unsupport name type')
-    }
+  //   if (filterValue instanceof RegExp) {
+  //     const regex = filterValue
+  //     filterFunction = (payload: ContactPayload) => regex.test(payload[filterKey] || '')
+  //   } else if (typeof filterValue === 'string') {
+  //     filterValue = filterValue.replace(/'/g, '\\\'')
+  //     filterFunction = (payload: ContactPayload) => payload[filterKey] === filterValue
+  //   } else {
+  //     throw new Error('unsupport name type')
+  //   }
 
-    return filterFunction
-  }
+  //   return filterFunction
+  // }
 
   public async contactAvatar(contactId: string): Promise<FileBox> {
     log.verbose('PuppetPadchat', 'contactAvatar(%s)', contactId)
@@ -556,7 +449,20 @@ export class PuppetPadchat extends Puppet {
 
   public async contactRawPayload(id: string): Promise<PadchatContactRawPayload> {
     log.verbose('PuppetPadchat', 'contactRawPayload(%s)', id)
-    const rawPayload = await this.bridge.WXGetContactPayload(id)
+
+    const rawPayload = await Misc.retry(async (retry, attempt) => {
+      log.verbose('PuppetPadchat', 'contactRawPayload(%s) retry() attempt=%d', id, attempt)
+      const tryRawPayload = this.bridge.contactRawPayloadDict[id] // await this.bridge.WXGetContactPayload(id)
+      if (tryRawPayload) {
+        return tryRawPayload
+      }
+      return retry(new Error('tryRawPayload empty'))
+    })
+
+    if (!rawPayload) {
+      throw new Error('no rawPayload')
+    }
+
     return rawPayload
   }
 
@@ -607,6 +513,8 @@ export class PuppetPadchat extends Puppet {
   public async messageFile(id: string): Promise<FileBox> {
     // const rawPayload = await this.messageRawPayload(id)
 
+    // TODO
+
     const base64 = 'cRH9qeL3XyVnaXJkppBuH20tf5JlcG9uFX1lL2IvdHRRRS9kMMQxOPLKNYIzQQ=='
     const filename = 'test-' + id + '.txt'
 
@@ -624,10 +532,11 @@ export class PuppetPadchat extends Puppet {
     /**
      * Issue #1249
      */
-    this.cachePadchatMessageRawPayload.set(id, {
-      id: 'xxx',
-      data: 'xxx',
-    } as any)
+
+    // this.cachePadchatMessageRawPayload.set(id, {
+    //   id: 'xxx',
+    //   data: 'xxx',
+    // } as any)
 
     const rawPayload = this.cachePadchatMessageRawPayload.get(id)
 
@@ -781,19 +690,31 @@ export class PuppetPadchat extends Puppet {
    */
   public async roomRawPayload(id: string): Promise<PadchatRoomRawPayload> {
     log.verbose('PuppetPadchat', 'roomRawPayload(%s)', id)
-    const rawPayload = await this.bridge.WXGetRoomPayload(id)
+
+    const rawPayload = await Misc.retry(async (retry, attempt) => {
+      log.silly('PuppetPadchat', 'roomRawPayload(%s) retry() attempt=%d', id, attempt)
+      const tryRawPayload = this.bridge.roomRawPayloadDict[id] // await this.bridge.WXGetRoomPayload(id)
+      if (tryRawPayload) {
+        return tryRawPayload
+      }
+      return retry(new Error('tryRawPayload empty'))
+    })
+
+    if (!rawPayload) {
+      throw new Error('no rawPayload')
+    }
     return rawPayload
   }
 
   public async roomRawPayloadParser(rawPayload: PadchatRoomRawPayload): Promise<RoomPayload> {
-    log.verbose('PuppetPadchat', 'roomRawPayloadParser(%s)', rawPayload)
+    log.verbose('PuppetPadchat', 'roomRawPayloadParser(%s)', rawPayload.user_name)
 
     // const memberList = (rawPayload.member || [])
     //                     .map(id => this.Contact.load(id))
 
     // await Promise.all(memberList.map(c => c.ready()))
 
-    const padchatRoomRawMemberList = await this.bridge.WXGetChatRoomMember(rawPayload.user_name)
+    const padchatRoomRawMemberList = (await this.bridge.WXGetChatRoomMember(rawPayload.user_name)).member
 
     // const nameMap         = await this.roomParseMap('name'        , padchatRoomRawMemberList.member)
     // const roomAliasMap    = await this.roomParseMap('roomAlias'   , padchatRoomRawMemberList.member)
@@ -801,13 +722,18 @@ export class PuppetPadchat extends Puppet {
 
     const aliasDict = {} as { [id: string]: string | undefined }
 
-    if (Array.isArray(padchatRoomRawMemberList.member)) {
-      const memberListPayload = await Promise.all(
-        padchatRoomRawMemberList.member
-          .map(rawMember => rawMember.user_name)
-          .map(contactId => this.contactPayload(contactId)),
+    if (Array.isArray(padchatRoomRawMemberList)) {
+      // const memberListPayload = await Promise.all(
+      //   padchatRoomRawMemberList.member
+      //     .map(rawMember => rawMember.user_name)
+      //     .map(contactId => this.contactPayload(contactId)),
+      // )
+      // memberListPayload.forEach(
+      padchatRoomRawMemberList.forEach(
+        rawMember => {
+          aliasDict[rawMember.user_name] = rawMember.chatroom_nick_name
+        },
       )
-      memberListPayload.forEach(contactPayload => aliasDict[contactPayload.id] = contactPayload.alias)
     }
 
     const payload: RoomPayload = {
@@ -861,9 +787,9 @@ export class PuppetPadchat extends Puppet {
   // }
 
   public async roomList(): Promise<string[]> {
-    // query: RoomQueryFilter = { topic: /.*/ },
+    log.verbose('PuppetPadchat', 'roomList()')
 
-    log.verbose('PuppetPadchat', 'roomFindAll() TBD')
+    const roomIdList = this.bridge.getRoomIdList()
 
     // TODO: Issue #1255
 
@@ -875,7 +801,7 @@ export class PuppetPadchat extends Puppet {
     // })
 
     // return roomIdList
-    return []
+    return roomIdList
   }
 
   public async roomDel(
@@ -902,9 +828,8 @@ export class PuppetPadchat extends Puppet {
   ): Promise<void | string> {
     log.verbose('PuppetPadchat', 'roomTopic(%s, %s)', roomId, topic)
 
-    const payload = await this.roomPayload(roomId)
-
     if (typeof topic === 'undefined') {
+      const payload = await this.roomPayload(roomId)
       return payload.topic
     }
 
@@ -919,6 +844,7 @@ export class PuppetPadchat extends Puppet {
   ): Promise<string> {
     log.verbose('PuppetPadchat', 'roomCreate(%s, %s)', contactIdList, topic)
 
+    // TODO
     // await this.bridge.crea
     return 'mock_room_id'
   }
@@ -967,6 +893,8 @@ export class PuppetPadchat extends Puppet {
   ): Promise<void> {
     log.verbose('PuppetPadchat', 'friendRequestAccept(%s, %s)', contactId, ticket)
 
+    // TODO
+
     // const rawPayload = await this.contactRawPayload(contactId)
 
     // if (!rawPayload.ticket) {
@@ -977,6 +905,59 @@ export class PuppetPadchat extends Puppet {
     //   rawPayload.stranger,
     //   rawPayload.ticket,
     // )
+  }
+
+  public async friendRequestRawPayloadParser(rawPayload: any) : Promise<FriendRequestPayload> {
+    log.verbose('PuppetWechat4u', 'friendRequestRawPayloadParser(%s)', rawPayload)
+
+    // TODO
+
+    return rawPayload
+    // switch (rawPayload.MsgType) {
+    //   case WebMessageType.VERIFYMSG:
+    //     if (!rawPayload.RecommendInfo) {
+    //       throw new Error('no RecommendInfo')
+    //     }
+    //     const recommendInfo: WebRecomendInfo = rawPayload.RecommendInfo
+
+    //     if (!recommendInfo) {
+    //       throw new Error('no recommendInfo')
+    //     }
+
+    //     const payloadReceive: FriendRequestPayloadReceive = {
+    //       id        : rawPayload.MsgId,
+    //       contactId : recommendInfo.UserName,
+    //       hello     : recommendInfo.Content,
+    //       ticket    : recommendInfo.Ticket,
+    //       type      : FriendRequestType.Receive,
+    //     }
+    //     return payloadReceive
+
+    //   case WebMessageType.SYS:
+    //     const payloadConfirm: FriendRequestPayloadConfirm = {
+    //       id        : rawPayload.MsgId,
+    //       contactId : rawPayload.FromUserName,
+    //       type      : FriendRequestType.Confirm,
+    //     }
+    //     return payloadConfirm
+
+    //   default:
+    //     throw new Error('not supported friend request message raw payload')
+    // }
+  }
+
+  public async friendRequestRawPayload(id: string)            : Promise<any> {
+    // log.verbose('PuppetWechat4u', 'friendRequestRawPayload(%s)', id)
+
+    // TODO
+
+    console.log(id)
+    // const rawPayload = this.cacheMessageRawPayload.get(id)
+    // if (!rawPayload) {
+    //   throw new Error('no rawPayload')
+    // }
+
+    // return rawPayload
   }
 
 }
