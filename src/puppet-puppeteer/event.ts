@@ -90,7 +90,11 @@ async function onScan(
     type: 'scan',
   }
   this.emit('watchdog', food)
-  this.emit('scan'    , payload.url, payload.code, payload.data)
+
+  // BREAKING CHANGE: Issue #1262
+  const qrCode = payload.url.replace(/\/qrcode\//, '/l/')
+
+  this.emit('scan', qrCode, payload.code, payload.data)
 }
 
 function onLog(data: any): void {

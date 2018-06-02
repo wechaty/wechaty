@@ -639,8 +639,8 @@ export class Wechaty extends Accessory implements Sayable {
 
         case 'scan':
           puppet.removeAllListeners('scan')
-          puppet.on('scan', async (qrCode, code, data) => {
-            this.emit('scan', qrCode, code, data)
+          puppet.on('scan', async (qrCode, statusCode, data) => {
+            this.emit('scan', qrCode, statusCode, data)
           })
           break
 
