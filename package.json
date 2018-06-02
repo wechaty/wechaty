@@ -157,7 +157,7 @@
     "glob": "^7.1.0",
     "jsdoc-to-markdown": "^4.0.0",
     "markdownlint-cli": "^0.10.0",
-    "nyc": "^11.2.0",
+    "nyc": "^12.0.1",
     "qrcode-terminal": "^0.12.0",
     "semver": "^5.5.0",
     "shx": "^0.2.0",
