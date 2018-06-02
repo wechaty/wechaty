@@ -127,7 +127,7 @@
     "@types/glob": "^5.0.0p",
     "@types/lru-cache": "^4.1.0",
     "@types/mime": "^2.0.0",
-    "@types/node": "^10.1.2",
+    "@types/node": "^10.3.0",
     "@types/normalize-package-data": "^2.4.0",
     "@types/promise-retry": "^1.1.1",
     "@types/puppeteer": "^1.0.0",
