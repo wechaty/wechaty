@@ -597,7 +597,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     roomId : string,
     query  : string | RoomMemberQueryFilter,
   ): Promise<string[]> {
-    log.verbose('Puppet', 'roomMember(%s, %s)', roomId, JSON.stringify(query))
+    log.verbose('Puppet', 'roomMemberSearch(%s, %s)', roomId, JSON.stringify(query))
 
     /**
      * 1. for Text Query

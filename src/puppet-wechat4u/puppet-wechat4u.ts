@@ -16,8 +16,6 @@
  *   limitations under the License.
  *
  */
-// import * as path  from 'path'
-
 import * as LRU from 'lru-cache'
 
 import {
@@ -25,7 +23,9 @@ import {
 }             from 'file-box'
 
 // tslint:disable-next-line
-const Wechat4u = require('wechat4u')
+import * as Wechat4u from 'wechat4u'
+
+import { Misc } from '../misc'
 
 import {
   MessagePayload,
@@ -37,6 +37,7 @@ import {
 
   FriendRequestPayload,
   FriendRequestPayloadReceive,
+  FriendRequestPayloadConfirm,
   FriendRequestType,
 
   RoomPayload,
@@ -101,8 +102,7 @@ export class PuppetWechat4u extends Puppet {
 
   private scanQrCode?: string
 
-  public readonly cacheWechat4uMessageRawPayload       : LRU.Cache<string, WebMessageRawPayload>
-  public readonly cacheWechat4uFriendRequestRawPayload : LRU.Cache<string, WebMessageRawPayload>
+  public readonly cacheMessageRawPayload       : LRU.Cache<string, WebMessageRawPayload>
 
   constructor(
     public options: PuppetOptions,
@@ -110,7 +110,7 @@ export class PuppetWechat4u extends Puppet {
     super(options)
 
     const lruOptions: LRU.Options = {
-      max: 1000,
+      max: 10000,
       // length: function (n) { return n * 2},
       dispose: function (key: string, val: Object) {
         log.silly('Puppet', 'constructor() lruOptions.dispose(%s, %s)', key, JSON.stringify(val))
@@ -118,9 +118,7 @@ export class PuppetWechat4u extends Puppet {
       maxAge: 1000 * 60 * 60,
     }
 
-    this.cacheWechat4uMessageRawPayload       = new LRU<string, WebMessageRawPayload>(lruOptions)
-    this.cacheWechat4uFriendRequestRawPayload = new LRU<string, WebMessageRawPayload>(lruOptions)
-
+    this.cacheMessageRawPayload       = new LRU<string, WebMessageRawPayload>(lruOptions)
   }
 
   public async start(): Promise<void> {
@@ -135,14 +133,14 @@ export class PuppetWechat4u extends Puppet {
       this.wechat4u = new Wechat4u()
     }
 
+    this.initHookEvents(this.wechat4u)
+
     if (this.wechat4u.PROP.uin) {
       // 存在登录数据时，可以随时调用restart进行重启
-      this.wechat4u.restart()
+      await this.wechat4u.restart()
     } else {
-      this.wechat4u.start()
+      await this.wechat4u.start()
     }
-
-    this.initHookEvents(this.wechat4u)
 
     // await some tasks...
     this.state.on(true)
@@ -156,13 +154,13 @@ export class PuppetWechat4u extends Puppet {
      */
     this.wechat4u.on('uuid', (uuid: string) => {
       this.scanQrCode = 'https://login.weixin.qq.com/l/' + uuid
-      this.emit('scan', this.scanQrCode, 200)
+      this.emit('scan', this.scanQrCode, 0)
     })
     /**
      * 登录用户头像事件，手机扫描后可以得到登录用户头像的Data URL
      */
     wechat4u.on('user-avatar', (avatarDataUrl: string) => {
-      this.emit('scan', this.scanQrCode || '', 408, avatarDataUrl)
+      this.emit('scan', this.scanQrCode || '', 200, avatarDataUrl)
     })
     /**
      * 登录成功事件
@@ -177,22 +175,27 @@ export class PuppetWechat4u extends Puppet {
       this.login(userId)
       // 保存数据，将数据序列化之后保存到任意位置
       await this.options.memory.set(SYNC_DATA_SLOT, wechat4u.botData)
+      await this.options.memory.save()
     })
     /**
      * 登出成功事件
      */
     wechat4u.on('logout', async () => {
-      this.logout()
+      if (this.logonoff()) {
+        this.logout()
+      }
       // 清除数据
       await this.options.memory.delete(SYNC_DATA_SLOT)
+      await this.options.memory.save()
     })
     /**
      * 联系人更新事件，参数为被更新的联系人列表
      */
-    wechat4u.on('contacts-updated', (contacts: any[]) => {
-      // TODO: save them for the future usage
-      console.log(contacts)
-      console.log('联系人数量：', Object.keys(wechat4u.contacts).length)
+    wechat4u.on('contacts-updated', (contacts: WebContactRawPayload[]) => {
+      // Just for memory
+      return contacts
+      // console.log('contacts.length: ', contacts[0])
+      // console.log('联系人数量：', Object.keys(wechat4u.contacts).length)
     })
     /**
      * 错误事件，参数一般为Error对象
@@ -206,15 +209,33 @@ export class PuppetWechat4u extends Puppet {
      */
     wechat4u.on('message', (msg: WebMessageRawPayload) => {
 
-      this.cacheWechat4uMessageRawPayload.set(msg.MsgId, msg)
-
-      this.emit('message', msg.MsgId)
-
-      if (msg.MsgType === wechat4u.CONF.MSGTYPE_VERIFYMSG) {
-        this.cacheWechat4uFriendRequestRawPayload.set(msg.MsgId, msg)
-        this.emit('friend', msg.MsgId)
+      if (!msg.MsgId) {
+        console.log(msg)
+        throw new Error('no id')
       }
+      this.cacheMessageRawPayload.set(msg.MsgId, msg)
 
+      switch (msg.MsgType) {
+
+        case WebMessageType.STATUSNOTIFY:
+          // Skip this internal type
+          break
+
+        case WebMessageType.VERIFYMSG:
+          this.emit('friend', msg.MsgId)
+          break
+
+        case WebMessageType.SYS:
+          if (this.isFriendConfirm(msg.Content)) {
+            this.emit('friend', msg.MsgId)
+          }
+          this.emit('message', msg.MsgId)
+          break
+
+        default:
+          this.emit('message', msg.MsgId)
+          break
+      }
       /**
        * 获取消息时间
        */
@@ -223,10 +244,6 @@ export class PuppetWechat4u extends Puppet {
        * 获取消息发送者的显示名
        */
       // console.log(wechat4u.contacts[msg.FromUserName].getDisplayName())
-    })
-
-    wechat4u.on('logout', () => {
-      this.logout()
     })
   }
 
@@ -305,15 +322,22 @@ export class PuppetWechat4u extends Puppet {
   }
 
   public async contactRawPayload(id: string): Promise<WebContactRawPayload> {
-    log.verbose('PuppetWechat4u', 'contactRawPayload(%s)', id)
+    log.verbose('PuppetWechat4u', 'contactRawPayload(%s) with contacts.length=%d',
+                                  id,
+                                  Object.keys(this.wechat4u.contacts).length,
+                )
 
-    const rawPayload: WebContactRawPayload = this.wechat4u.contacts[id]
+    const rawPayload: WebContactRawPayload = await Misc.retry<WebContactRawPayload>((retry, attempt) => {
+      log.verbose('PuppetWechat4u', 'contactRawPayload(%s) retry() attempt=%d', id, attempt)
 
-    if (!rawPayload) {
-      throw new Error('no rawPayload')
-    }
+      if (id in this.wechat4u.contacts) {
+        return this.wechat4u.contacts[id]
+      }
+      retry(new Error('no this.wechat4u.contacts[' + id + ']'))
+    })
 
     return rawPayload
+
   }
 
   public async contactRawPayloadParser(
@@ -448,7 +472,7 @@ export class PuppetWechat4u extends Puppet {
   public async messageRawPayload(id: string): Promise<WebMessageRawPayload> {
     log.verbose('PuppetWechat4u', 'messageRawPayload(%s)', id)
 
-    const rawPayload = this.cacheWechat4uMessageRawPayload.get(id)
+    const rawPayload = this.cacheMessageRawPayload.get(id)
 
     if (!rawPayload) {
       throw new Error('id not found')
@@ -461,33 +485,59 @@ export class PuppetWechat4u extends Puppet {
   ): Promise<MessagePayload> {
     log.verbose('PuppetPuppeteer', 'messageRawPayloadParser(%s) @ %s', rawPayload, this)
 
+    console.log(rawPayload)
     const id                           = rawPayload.MsgId
-    const fromId                       = rawPayload.MMActualSender               // MMPeerUserName
-    const text: string                 = rawPayload.MMActualContent              // Content has @id prefix added by wx
-    const timestamp: number            = rawPayload.MMDisplayTime                // Javascript timestamp of milliseconds
+    const text: string                 = rawPayload.Content.replace(/^\n/, '')
+    const timestamp: number            = rawPayload.CreateTime
     const filename: undefined | string = this.filename(rawPayload) || undefined
+    const toId = rawPayload.ToUserName
 
-    let roomId : undefined | string
-    let toId   : undefined | string
+    let roomId : undefined | string = undefined
+    let fromId = rawPayload.FromUserName
 
-    // FIXME: has there any better method to know the room ID?
-    if (rawPayload.MMIsChatRoom) {
-      if (/^@@/.test(rawPayload.FromUserName)) {
-        roomId = rawPayload.FromUserName // MMPeerUserName always eq FromUserName ?
-      } else if (/^@@/.test(rawPayload.ToUserName)) {
-        roomId = rawPayload.ToUserName
-      } else {
-        throw new Error('parse found a room message, but neither FromUserName nor ToUserName is a room(/^@@/)')
+    /**
+     * Check for the ChatRoom
+     *
+     * { MsgId: '7445285040940022284',
+     *   FromUserName:
+     *   '@@2820dea1c91c9f65b25cead37cd81d4fcd15c1fef052e29668b2dc6897a8093f',
+     *   ToUserName:
+     *   '@06ddf0d988fcfe903207835cfb636356525231459b0361649813bebb2836d225',
+     *   MsgType: 1,
+     *   Content: '@c9af79da3582391bff5f291108d987e7:\n说的就是我',
+     *   Status: 3,
+     *   ...
+     * }
+     *
+     * { MsgId: '2311479263190931912',
+     *   FromUserName:
+     *   '@@b2829390b8a0f4613cee9763322274db18ad76498b5fe07dd1b3699e423e869a',
+     *   ToUserName:
+     *   '@06ddf0d988fcfe903207835cfb636356525231459b0361649813bebb2836d225',
+     *   MsgType: 1,
+     *   Content: '高阳:\n我是说错误上报的库',,
+     */
+    if (/^@@/.test(fromId)) {
+      roomId = rawPayload.FromUserName
+
+      const header = rawPayload.Content.split('\n')[0]
+      const matches = header.match(/^(.+):$/)
+      if (!matches) {
+        throw new Error('no matches')
       }
 
-      // console.log('rawPayload.FromUserName: ', rawPayload.FromUserName)
-      // console.log('rawPayload.ToUserName: ', rawPayload.ToUserName)
-      // console.log('rawPayload.MMPeerUserName: ', rawPayload.MMPeerUserName)
-    }
-
-    if (rawPayload.ToUserName) {
-      if (!/^@@/.test(rawPayload.ToUserName)) { // if a message in room without any specific receiver, then it will set to be `undefined`
-        toId = rawPayload.ToUserName
+      const idOrName = matches[1]
+      if (this.wechat4u.contacts[idOrName]) {
+        fromId = matches[1]
+      } else {
+        const memberContactList = await this.roomMemberSearch(roomId, idOrName)
+        if (memberContactList.length <= 0) {
+          throw new Error('from not found')
+        }
+        if (memberContactList.length > 1) {
+          log.warn('PuppetWechat4u', 'messageRawPayloadParser() found more than one possible fromId, use the first one.')
+        }
+        fromId = memberContactList[0]
       }
     }
 
@@ -539,6 +589,11 @@ export class PuppetWechat4u extends Puppet {
      * 发送文本消息，可以包含emoji(😒)和QQ表情([坏笑])
      */
     await this.wechat4u.sendMsg(text, id)
+    /**
+     * { BaseResponse: { Ret: 0, ErrMsg: '' },
+     *  MsgID: '830582407297708303',
+     *  LocalID: '15279119663740094' }
+     */
   }
 
   public async messageSendFile(
@@ -573,7 +628,6 @@ export class PuppetWechat4u extends Puppet {
       file     : await file.toStream(),
       filename : file.name,
     }, id)
-
   }
 
   public async messageForward(
@@ -612,11 +666,15 @@ export class PuppetWechat4u extends Puppet {
   ): Promise<WebRoomRawPayload> {
     log.verbose('PuppetWechat4u', 'roomRawPayload(%s)', id)
 
-    const rawPayload: WebRoomRawPayload = this.wechat4u.contacts[id]
+    const rawPayload: WebRoomRawPayload = await Misc.retry<WebRoomRawPayload>((retry, attempt) => {
+      log.verbose('PuppetWechat4u', 'contactRawPayload(%s) retry() attempt=%d', id, attempt)
 
-    if (!rawPayload) {
-      throw new Error('no rawPayload')
-    }
+      if (!this.wechat4u.contacts[id]) {
+        retry(new Error('no this.wechat4u.contacts[' + id + ']'))
+      }
+
+      return this.wechat4u.contacts[id]
+    })
 
     return rawPayload
   }
@@ -732,8 +790,7 @@ export class PuppetWechat4u extends Puppet {
   public async friendRequestRawPayload(id: string)            : Promise<any> {
     log.verbose('PuppetWechat4u', 'friendRequestRawPayload(%s)', id)
 
-    const rawPayload = this.cacheWechat4uFriendRequestRawPayload.get(id)
-
+    const rawPayload = this.cacheMessageRawPayload.get(id)
     if (!rawPayload) {
       throw new Error('no rawPayload')
     }
@@ -744,26 +801,37 @@ export class PuppetWechat4u extends Puppet {
   public async friendRequestRawPayloadParser(rawPayload: any) : Promise<FriendRequestPayload> {
     log.verbose('PuppetWechat4u', 'friendRequestRawPayloadParser(%s)', rawPayload)
 
-    const recommendInfo: WebRecomendInfo = rawPayload.RecommendInfo
+    switch (rawPayload.MsgType) {
+      case WebMessageType.VERIFYMSG:
+        if (!rawPayload.RecommendInfo) {
+          throw new Error('no RecommendInfo')
+        }
+        const recommendInfo: WebRecomendInfo = rawPayload.RecommendInfo
 
-    if (!recommendInfo) {
-      throw new Error('no recommendInfo')
+        if (!recommendInfo) {
+          throw new Error('no recommendInfo')
+        }
+
+        const payloadReceive: FriendRequestPayloadReceive = {
+          id        : rawPayload.MsgId,
+          contactId : recommendInfo.UserName,
+          hello     : recommendInfo.Content,
+          ticket    : recommendInfo.Ticket,
+          type      : FriendRequestType.Receive,
+        }
+        return payloadReceive
+
+      case WebMessageType.SYS:
+        const payloadConfirm: FriendRequestPayloadConfirm = {
+          id        : rawPayload.MsgId,
+          contactId : rawPayload.FromUserName,
+          type      : FriendRequestType.Confirm,
+        }
+        return payloadConfirm
+
+      default:
+        throw new Error('not supported friend request message raw payload')
     }
-
-    const contactId = recommendInfo.UserName
-    const hello     = recommendInfo.Content
-    const ticket    = recommendInfo.Ticket
-    const type      = FriendRequestType.Receive
-    const id        = rawPayload.MsgId
-
-    const payloadReceive: FriendRequestPayloadReceive = {
-      id,
-      contactId,
-      hello,
-      ticket,
-      type,
-    }
-    return payloadReceive
   }
 
   public ding(data?: any): Promise<string> {
@@ -886,6 +954,23 @@ export class PuppetWechat4u extends Puppet {
         log.warn('Wechat4uPuppeteer', 'messageTypeFromWeb(%d) un-supported WebMsgType, treat as TEXT', webMsgType)
         return MessageType.Text
     }
+  }
+
+  private isFriendConfirm(
+    text: string,
+  ): boolean {
+    const friendConfirmRegexpList = [
+      /^You have added (.+) as your WeChat contact. Start chatting!$/,
+      /^你已添加了(.+)，现在可以开始聊天了。$/,
+      /^(.+) just added you to his\/her contacts list. Send a message to him\/her now!$/,
+      /^(.+)刚刚把你添加到通讯录，现在可以开始聊天了。$/,
+    ]
+
+    let found = false
+
+    friendConfirmRegexpList.some(re => !!(found = re.test(text)))
+
+    return found
   }
 
 }
