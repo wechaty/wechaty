@@ -1,7 +1,7 @@
 import PuppetPadchat        from './puppet-padchat'
 // import Firer                from './firer'
 import {
-  PadchatMessageRawPayload,
+  PadchatMessagePayload,
   // PadchatMessageType,
 }                           from './padchat-schemas'
 import {
@@ -14,9 +14,9 @@ export const Event = {
 }
 
 async function onMessage(
-  this       : PuppetPadchat,
-  rawPayload : PadchatMessageRawPayload,
-): Promise<void> {
+  this    : PuppetPadchat,
+  payload : PadchatMessagePayload,
+  ): Promise<void> {
 
   try {
     /**
@@ -73,7 +73,7 @@ async function onMessage(
     // }
 
     // await msg.ready()
-    this.emit('message', rawPayload.msg_id)
+    this.emit('message', payload.msg_id)
 
   } catch (e) {
     log.error('PuppetPadchatEvent', 'onMessage() exception: %s', e.stack)

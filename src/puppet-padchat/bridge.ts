@@ -1,32 +1,25 @@
-// import Profile          from '../profile'
-import { log }          from '../config'
 import { EventEmitter } from 'events'
 import * as cuid        from 'cuid'
 import * as WebSocket   from 'ws'
 // import * as fs          from 'fs'
 
-import { MemoryCard } from 'memory-card'
+import { MemoryCard }   from 'memory-card'
+import { StateSwitch }  from 'state-switch'
 
 // tslint:disable-next-line
-const QrCode = require('qrcode-reader')
-// const sizeOf = require('image-size')
-import * as Jimp from 'jimp'
+import jsQR       from 'jsqr'
+import * as Jimp  from 'jimp'
 
 import {
-  PadchatContactRawPayload,
-  PadchatRoomRawPayload,
-  PadchatRoomRawMember,
-  PadchatRoomMemberRawPayload,
-  PadchatContactRawPayloadMsgType,
-  PadchatContactRawPayloadContinueType,
+  PadchatContactPayload,
+  PadchatRoomPayload,
+  PadchatRoomMember,
+  PadchatRoomMemberPayload,
+  PadchatContactMsgType,
+    PadchatContinue,
 }                                         from './padchat-schemas'
 
-import {
-  ADDRESS,
-}                       from './config'
-import { StateSwitch } from 'state-switch'
-
-// import { Room } from '..';
+import { log }          from '../config'
 
 export const resolverDict: {
   [idx: string]: Function,
@@ -35,7 +28,8 @@ export const resolverDict: {
 export interface BridgeOptions {
   memory: MemoryCard,
   // head?   : boolean,
-  userId:    string,
+  token:    string,
+  endpoint: string,
   // profile:  Profile,
   // botWs:    WebSocket,
   // desperate in the future
@@ -75,7 +69,15 @@ export interface WXGetQRCodeType {
   qr_code : string,
 }
 
-export interface WXCheckQRCodeType {
+export enum WXCheckQRCodeStatus {
+  WaitScan    = 0,
+  WaitConfirm = 1,
+  Confirmed   = 2,
+  Timeout     = 3,
+  Cancel      = 4,
+}
+
+export interface WXCheckQRCodePayload {
   device_type  ?: string,   // android,
   expired_time  : number,   // 238,
   head_url     ?: string,   // http://wx.qlogo.cn/mmhead/ver_1/NkOvv1rTx3Dsqpicnhe0j7cVOR3psEAVfuhFLbmoAcwaob4eENNZlp3KIEsMgibfH4kRjDicFFXN3qdP6SGRXbo7GBs8YpN52icxSeBUX8xkZBA/0,
@@ -162,8 +164,8 @@ export class Bridge extends EventEmitter {
 
   public loginSucceed = false
 
-  public roomRawPayloadDict    : { [id: string]: PadchatRoomRawPayload }
-  public contactRawPayloadDict : { [id: string]: PadchatContactRawPayload }
+  public cachePadchatRoomPayload    : { [id: string]: PadchatRoomPayload }
+  public cachePadchatContactPayload : { [id: string]: PadchatContactPayload }
 
   private readonly state: StateSwitch
 
@@ -173,21 +175,24 @@ export class Bridge extends EventEmitter {
     super() // for EventEmitter
     log.verbose('PuppetPadchatBridge', 'constructor()')
 
-    this.userId   = options.userId
+    this.userId   = options.token
 
-    this.botWs  = new WebSocket(ADDRESS, { perMessageDeflate: true })
+    this.botWs  = new WebSocket(
+      this.options.endpoint,
+      { perMessageDeflate: true },
+    )
 
     this.autoData = options.autoData || {}
 
-    this.roomRawPayloadDict = {}
-    this.contactRawPayloadDict = {}
+    this.cachePadchatRoomPayload = {}
+    this.cachePadchatContactPayload = {}
 
     this.state = new StateSwitch('PuppetPadchatBridge')
   }
 
   public async start(): Promise<void> {
-    this.roomRawPayloadDict    = {}
-    this.contactRawPayloadDict = {}
+    this.cachePadchatRoomPayload    = {}
+    this.cachePadchatContactPayload = {}
     this.loginSucceed          = false
 
     this.state.on('pending')
@@ -228,8 +233,8 @@ export class Bridge extends EventEmitter {
 
     this.state.off('pending')
 
-    this.roomRawPayloadDict = {}
-    this.contactRawPayloadDict = {}
+    this.cachePadchatRoomPayload = {}
+    this.cachePadchatContactPayload = {}
 
     await this.closeWs()
 
@@ -327,23 +332,22 @@ export class Bridge extends EventEmitter {
         // console.log('err:', err)
         return
       }
-      const qr = new QrCode()
-      qr.callback = (qrError: Error, value: any) => {
-          if (qrError) {
-            this.emit('error', qrError)
-          }
 
-          this.emit('scan', value.result, 0)
-          // console.log('xxx:', value)
+      const qrCodeImageArray = new Uint8ClampedArray(image.bitmap.data.buffer)
 
+      const qrCode = jsQR(
+        qrCodeImageArray,
+        image.bitmap.width,
+        image.bitmap.height,
+      )
+
+      if (qrCode) {
+        this.emit('scan', qrCode.data, 0)
+      } else {
+        log.warn('PuppetPadChatBridge', 'WXGetQRCode() qrCode decode fail.')
       }
-      qr.decode(image.bitmap)
+
     })
-
-    // fs.writeFileSync('./demo.jpg', result.qr_code, {encoding: 'base64'})
-    // console.log('XXX')
-
-    this.emit('scan', result.qr_code, 0)
 
     return result
   }
@@ -357,7 +361,7 @@ export class Bridge extends EventEmitter {
     return resultTwice
   }
 
-  public async WXCheckQRCode(): Promise<WXCheckQRCodeType> {
+  public async WXCheckQRCode(): Promise<WXCheckQRCodePayload> {
     // this.checkQrcode()
     const result = await this.sendToWebSocket('WXCheckQRCode', [])
     log.silly('PuppetPadchatBridge', 'WXCheckQRCode result: %s', JSON.stringify(result))
@@ -379,9 +383,9 @@ export class Bridge extends EventEmitter {
   /**
    * Load all Contact and Room
    * see issue https://github.com/lijiarui/test-ipad-puppet/issues/39
-   * @returns {Promise<(PadchatRoomRawPayload | PadchatContactRawPayload)[]>}
+   * @returns {Promise<(PadchatRoomPayload | PadchatContactPayload)[]>}
    */
-  private async WXSyncContact(): Promise<(PadchatRoomRawPayload | PadchatContactRawPayload)[]> {
+  private async WXSyncContact(): Promise<(PadchatRoomPayload | PadchatContactPayload)[]> {
     const result = await this.sendToWebSocket('WXSyncContact', [])
     if (!result) {
       throw Error('WXSyncContact error! canot get result from websocket server')
@@ -390,7 +394,7 @@ export class Bridge extends EventEmitter {
   }
 
   public async getContactIdList(): Promise<string[]> {
-    return Object.keys(this.contactRawPayloadDict)
+    return Object.keys(this.cachePadchatContactPayload)
   //   const result = await this.syncContactOrRoom()
   //   if (result.contactIdList.length < 0) {
   //     throw Error('getContactIdList error! canot get contactIdList')
@@ -399,7 +403,7 @@ export class Bridge extends EventEmitter {
   }
 
   public async getRoomIdList(): Promise<string[]> {
-    const idList = Object.keys(this.roomRawPayloadDict)
+    const idList = Object.keys(this.cachePadchatRoomPayload)
     log.verbose('PuppetPadchatBridge', 'getRoomIdList() = %d', idList.length)
     return idList
   //   const result = await this.syncContactOrRoom()
@@ -436,21 +440,21 @@ export class Bridge extends EventEmitter {
       log.verbose('PuppetPadchat', 'syncContactsAndRooms() sync contact, got new/total: %d/%d',
                                     syncContactList.length,
                                     (
-                                      Object.keys(this.contactRawPayloadDict).length
-                                      + Object.keys(this.roomRawPayloadDict).length
+                                      Object.keys(this.cachePadchatContactPayload).length
+                                      + Object.keys(this.cachePadchatRoomPayload).length
                                     ),
                   )
 
       syncContactList
       .forEach(syncContact => {
-        if (syncContact.continue === PadchatContactRawPayloadContinueType.Continue) {
-          if (syncContact.msg_type === PadchatContactRawPayloadMsgType.Contact) {
+        if (syncContact.continue === PadchatContinue.Go) {
+          if (syncContact.msg_type === PadchatContactMsgType.Contact) {
             console.log('syncContact:', syncContact.user_name, syncContact.nick_name)
             if (/@chatroom$/.test(syncContact.user_name)) {
-              this.roomRawPayloadDict[syncContact.user_name] = syncContact as PadchatRoomRawPayload
+              this.cachePadchatRoomPayload[syncContact.user_name] = syncContact as PadchatRoomPayload
               // syncRoomMap.set(syncContact.user_name, syncContact as PadchatRoomRawPayload)
             } else if (syncContact.user_name) {
-              this.contactRawPayloadDict[syncContact.user_name] = syncContact as PadchatContactRawPayload
+              this.cachePadchatContactPayload[syncContact.user_name] = syncContact as PadchatContactPayload
               // syncContactMap.set(syncContact.user_name, syncContact as PadchatContactRawPayload)
             } else {
               throw new Error('no user_name')
@@ -593,7 +597,7 @@ export class Bridge extends EventEmitter {
    * Get contact by contact id
    * @param {any} id        user_name
    */
-  private async WXGetContact(id: string): Promise<PadchatContactRawPayload | PadchatRoomRawPayload> {
+  private async WXGetContact(id: string): Promise<PadchatContactPayload | PadchatRoomPayload> {
     const result = await this.sendToWebSocket('WXGetContact', [id])
 
     if (!result) {
@@ -615,11 +619,11 @@ export class Bridge extends EventEmitter {
    * Get contact by contact id
    * @param {any} id        user_name
    */
-  public async WXGetContactPayload(id: string): Promise<PadchatContactRawPayload> {
+  public async WXGetContactPayload(id: string): Promise<PadchatContactPayload> {
     if (/@chatroom$/.test(id)) {
       throw Error(`should use WXGetRoomPayload because get a room id :${id}`)
     }
-    const result = await this.WXGetContact(id) as PadchatContactRawPayload
+    const result = await this.WXGetContact(id) as PadchatContactPayload
     return result
   }
 
@@ -627,11 +631,11 @@ export class Bridge extends EventEmitter {
    * Get contact by contact id
    * @param {any} id        user_name
    */
-  public async WXGetRoomPayload(id: string): Promise<PadchatRoomRawPayload> {
+  public async WXGetRoomPayload(id: string): Promise<PadchatRoomPayload> {
     if (!(/@chatroom$/.test(id))) {
       throw Error(`should use WXGetContactPayload because get a contact id :${id}`)
     }
-    const result = await this.WXGetContact(id) as PadchatRoomRawPayload
+    const result = await this.WXGetContact(id) as PadchatRoomPayload
     return result
   }
 
@@ -639,7 +643,7 @@ export class Bridge extends EventEmitter {
    * Get room member by contact id
    * @param {any} id        chatroom_id
    */
-  public async WXGetChatRoomMember(id: string): Promise<PadchatRoomMemberRawPayload> {
+  public async WXGetChatRoomMember(id: string): Promise<PadchatRoomMemberPayload> {
     const result = await this.sendToWebSocket('WXGetChatRoomMember', [id])
     if (!result) {
       throw Error('PuppetPadchatBridge, WXGetChatRoomMember, cannot get result from websocket server!')
@@ -658,7 +662,7 @@ export class Bridge extends EventEmitter {
       log.error('PuppetPadchatBridge', 'WXGetChatRoomMember member: %s', result.member)
       throw Error('faild to parse chatroom member!')
     }
-    result.member = JSON.parse(decodeURIComponent(result.member)) as PadchatRoomRawMember[]
+    result.member = JSON.parse(decodeURIComponent(result.member)) as PadchatRoomMember[]
 
     return result
   }
@@ -702,7 +706,7 @@ export class Bridge extends EventEmitter {
     log.verbose('PuppetPadchatBridge', 'checkQrcode')
     const result = await this.WXCheckQRCode()
 
-    if (result && result.status === 0) {
+    if (result && result.status === WXCheckQRCodeStatus.WaitScan) {
       log.verbose('PuppetPadchatBridge', 'checkQrcode: Please scan the Qrcode!')
 
       setTimeout(() => {
@@ -712,7 +716,7 @@ export class Bridge extends EventEmitter {
       return
     }
 
-    if (result && result.status === 1) {
+    if (result && result.status === WXCheckQRCodeStatus.WaitConfirm) {
       log.info('PuppetPadchatBridge', 'checkQrcode: Had scan the Qrcode, but not Login!')
 
       setTimeout(() => {
@@ -722,7 +726,7 @@ export class Bridge extends EventEmitter {
       return
     }
 
-    if (result && result.status === 2) {
+    if (result && result.status === WXCheckQRCodeStatus.Confirmed) {
       log.info('PuppetPadchatBridge', 'checkQrcode: Trying to login... please wait')
 
       if (!result.user_name || !result.password) {
@@ -737,12 +741,12 @@ export class Bridge extends EventEmitter {
       return
     }
 
-    if (result && result.status === 3) {
+    if (result && result.status === WXCheckQRCodeStatus.Timeout) {
       log.info('PuppetPadchatBridge', 'checkQrcode: Timeout')
       return
     }
 
-    if (result && result.status === 4) {
+    if (result && result.status === WXCheckQRCodeStatus.Cancel) {
       log.info('PuppetPadchatBridge', 'checkQrcode: Cancel by user')
       return
     }
