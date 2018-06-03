@@ -643,22 +643,24 @@ export class PuppetPadchat extends Puppet {
 
     // await Promise.all(memberList.map(c => c.ready()))
 
-    const padchatRoomMemberList = (await this.bridge.WXGetChatRoomMember(rawPayload.user_name)).member
+    const roomRawMemberList = (await this.bridge.WXGetChatRoomMember(rawPayload.user_name)).member
 
     const aliasDict = {} as { [id: string]: string | undefined }
 
-    if (Array.isArray(padchatRoomMemberList)) {
-      padchatRoomMemberList.forEach(
+    if (Array.isArray(roomRawMemberList)) {
+      roomRawMemberList.forEach(
         rawMember => {
           aliasDict[rawMember.user_name] = rawMember.chatroom_nick_name
         },
       )
     }
 
+    const memberIdList = roomRawMemberList.map(m => m.user_name)
+
     const payload: RoomPayload = {
       id           : rawPayload.user_name,
       topic        : rawPayload.nick_name,
-      memberIdList : rawPayload.member || [],
+      memberIdList,
       aliasDict,
     }
 

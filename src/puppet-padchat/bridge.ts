@@ -102,7 +102,7 @@ export class Bridge extends EventEmitter {
     this.state.on('pending')
 
     const autoData: AutoDataType = await this.options.memory.get(AUTO_DATA_SLOT)
-    log.silly('PuppetPadchat', 'initBridge, get autoData: %s', JSON.stringify(autoData))
+    log.silly('PuppetPadchatBridge', 'initBridge, get autoData: %s', JSON.stringify(autoData))
     this.autoData = autoData || {}
 
     await this.openWebSocket()
@@ -113,16 +113,16 @@ export class Bridge extends EventEmitter {
 
     // Check for 62 data, if has, then use WXLoadWxDat
     if (this.autoData && this.autoData.wxData) {
-      log.info('PuppetPadchat', `start, get 62 data`)
+      log.info('PuppetPadchatBridge', `start, get 62 data`)
       // this.WXLoadWxDat(bridge.autoData.wxData)
       await this.WXLoadWxDat(this.autoData.wxData)
     }
 
     if (this.autoData && this.autoData.token) {
-      log.info('PuppetPadchat', `get ${this.autoData.nick_name || 'no nick_name'} token`)
+      log.info('PuppetPadchatBridge', `get ${this.autoData.nick_name || 'no nick_name'} token`)
 
       // Offline, then relogin
-      log.info('PuppetPadchat', `offline, trying to relogin`)
+      log.info('PuppetPadchatBridge', `offline, trying to relogin`)
       await this.WXAutoLogin(this.autoData.token)
     } else {
       await this.WXGetQRCode()
@@ -228,7 +228,7 @@ export class Bridge extends EventEmitter {
     // if ( !payload.data
     //   && !payload.apiName
     // ) {
-    //   log.silly('PuppetPadchat', 'WebSocket Server get empty message data form Tencent server')
+    //   log.silly('PuppetPadchatBridge', 'WebSocket Server get empty message data form Tencent server')
     //   return
     // }
 
@@ -274,14 +274,14 @@ export class Bridge extends EventEmitter {
     messagePayloadList.forEach(messagePayload => {
       if (!messagePayload.msg_id) {
         // {"continue":0,"msg_type":32768,"status":1,"uin":1928023446}
-        log.silly('PuppetPadchat', 'WebSocket Server: get empty message msg_id form Tencent server for payoad: %s',
+        log.silly('PuppetPadchatBridge', 'WebSocket Server: get empty message msg_id form Tencent server for payoad: %s',
                                     JSON.stringify(messagePayload),
                   )
         return
       }
-      log.silly('PuppetPadchat', 'WebSocket Server rawData result: %s', JSON.stringify(messagePayload))
+      log.silly('PuppetPadchatBridge', 'WebSocket Server rawData result: %s', JSON.stringify(messagePayload))
 
-      this.emit('message', messagePayload.msg_id, messagePayload)
+      this.emit('message', messagePayload)
     })
   }
 
@@ -294,12 +294,12 @@ export class Bridge extends EventEmitter {
       this.emit('logout')
     }
 
-    log.silly('PuppetPadchat', 'return apiName: %s, msgId: %s', payload.apiName, payload.msgId)
+    log.silly('PuppetPadchatBridge', 'return apiName: %s, msgId: %s', payload.apiName, payload.msgId)
     const msgId = payload.msgId
 
     let rawData: Object
     if (!payload.data) {
-      log.silly('PuppetPadchat', 'WebSocket Server get empty message data form API call: %s', payload.apiName)
+      log.silly('PuppetPadchatBridge', 'WebSocket Server get empty message data form API call: %s', payload.apiName)
       rawData = {}
     } else {
       rawData = JSON.parse(decodeURIComponent(payload.data))
@@ -319,7 +319,7 @@ export class Bridge extends EventEmitter {
       // resolve({rawData: rawData, msgId: rawWebSocketData.msgId})
       resolve(rawData)
     } else {
-      log.warn('PuppetPadchat', 'wsOnMessage() msgId %s not in resolverDict', msgId)
+      log.warn('PuppetPadchatBridge', 'wsOnMessage() msgId %s not in resolverDict', msgId)
     }
   }
 
@@ -449,7 +449,7 @@ export class Bridge extends EventEmitter {
   }
 
   public async syncContactsAndRooms(): Promise<void> {
-    log.verbose('PuppetPadchat', `syncContactsAndRooms()`)
+    log.verbose('PuppetPadchatBridge', `syncContactsAndRooms()`)
 
     let cont = true
     // const syncContactMap = new Map<string, PadchatContactRawPayload>()
@@ -458,7 +458,7 @@ export class Bridge extends EventEmitter {
     // let roomIdList: string[] = []
 
     while (cont && this.state.on() && this.loginSucceed) {
-      log.silly('PuppetPadchat', `syncContactsAndRooms() while()`)
+      log.silly('PuppetPadchatBridge', `syncContactsAndRooms() while()`)
 
       const syncContactList = await this.WXSyncContact()
 
@@ -468,11 +468,11 @@ export class Bridge extends EventEmitter {
 
       if (!Array.isArray(syncContactList) || syncContactList.length <= 0) {
         console.log('syncContactList:', syncContactList)
-        log.error('PuppetPadchat', 'syncContactsAndRooms() cannot get array result!')
+        log.error('PuppetPadchatBridge', 'syncContactsAndRooms() cannot get array result!')
         continue
       }
 
-      log.verbose('PuppetPadchat', 'syncContactsAndRooms() sync contact, got new/total: %d/%d',
+      log.verbose('PuppetPadchatBridge', 'syncContactsAndRooms() sync contact, got new/total: %d/%d',
                                     syncContactList.length,
                                     (
                                       Object.keys(this.cacheContactRawPayload).length
@@ -496,13 +496,13 @@ export class Bridge extends EventEmitter {
             }
           }
         } else {
-          log.info('PuppetPadchat', 'syncContactsAndRooms() sync contact done!')
+          log.info('PuppetPadchatBridge', 'syncContactsAndRooms() sync contact done!')
           cont = false
           return
         }
       })
 
-      log.verbose('PuppetPadchat', `syncContactsAndRooms(), continue to load via WXSyncContact ...`)
+      log.verbose('PuppetPadchatBridge', `syncContactsAndRooms(), continue to load via WXSyncContact ...`)
     }
 
     // contactIdList = contactIdList.filter(id => !!id)
@@ -884,18 +884,18 @@ export class Bridge extends EventEmitter {
   }
 
   public checkLogin() {
-    log.silly('PuppetPadchat', `checkLogin`)
+    log.silly('PuppetPadchatBridge', `checkLogin`)
 
     // if (!this.bridge) {
     //   throw Error('cannot init bridge successfully!')
     // }
 
     if (this.loginSucceed === true) {
-      log.silly('PuppetPadchat', `checkLogin, login successfully`)
+      log.silly('PuppetPadchatBridge', `checkLogin, login successfully`)
       this.postLogin()
       return
     } else {
-      log.silly('PuppetPadchat', `checkLogin, not login yet`)
+      log.silly('PuppetPadchatBridge', `checkLogin, not login yet`)
       setTimeout(() => {
         this.checkLogin()
       }, 2000)
@@ -989,7 +989,7 @@ export class Bridge extends EventEmitter {
     log.verbose('PuppetPadchatBridge', 'roomRawPayload(%s)', id)
 
     const rawPayload = await Misc.retry(async (retry, attempt) => {
-      log.silly('PuppetPadchat', 'roomRawPayload(%s) retry() attempt=%d', id, attempt)
+      log.silly('PuppetPadchatBridge', 'roomRawPayload(%s) retry() attempt=%d', id, attempt)
 
       if (id in this.cacheRoomRawPayload) {
         return this.cacheRoomRawPayload[id]
