@@ -79,13 +79,6 @@
     "radix": false,
     "semicolon": [true, "never"],
     "switch-default": false,
-    "trailing-comma": [
-      true,
-      {
-        "multiline": "always",
-        "singleline": "never"
-      }
-    ],
     "triple-equals": [true],
     "typedef": [false],
     "typedef-whitespace": [

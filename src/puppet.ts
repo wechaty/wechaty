@@ -80,7 +80,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   public emit(
     event:   PuppetEvent,
-    ...args: any[],
+    ...args: any[]
   ): boolean {
     return super.emit(event, ...args)
   }
