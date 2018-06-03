@@ -73,20 +73,19 @@ bot
   log.info('Bot', `${user.name()} login`)
   bot.say('Wechaty login').catch(console.error)
 })
-.on('scan', (url, code) => {
-  if (!/201|200/.test(String(code))) {
-    const loginUrl = url.replace(/\/qrcode\//, '/l/')
-    QrcodeTerminal.generate(loginUrl, { small: true }, (qrcode: string) => {
-      console.log(qrcode)
-      console.log(url)
-      console.log(`[${code}] Scan QR Code above url to log in: `)
-    })
-  }
+.on('scan', (qrData, status, data) => {
+  QrcodeTerminal.generate(qrData, { small: true }, (asciiArt: string) => {
+    console.log(asciiArt)
+    console.log(`[${status}] Scan QR Code above url to log in: `)
+    if (data) {
+      console.log(data)
+    }
+  })
 })
 .on('message', async msg => {
   console.log('on message:')
   try {
-    // console.log(msg.toString()) // on(message) exception: Error: no file
+    console.log(msg.toString()) // on(message) exception: Error: no file
     const text = msg.text()
     const from = msg.from()
 
