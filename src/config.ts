@@ -22,7 +22,12 @@ import * as path  from 'path'
 
 import * as readPkgUp from 'read-pkg-up'
 import * as Raven     from 'raven'
-import { log }        from 'brolog'
+import * as qrImage   from 'qr-image'
+
+import { log }    from 'brolog'
+import {
+  FileBox,
+}                 from 'file-box'
 
 import {
   PuppetName,
@@ -187,6 +192,17 @@ export class Config {
     }
     throw new Error('validApiHost() fail for ' + apihost)
   }
+}
+
+export const CHATIE_OFFICIAL_ACCOUNT_ID = 'gh_051c89260e5d'
+
+export function qrCodeForChatie(): FileBox {
+  const CHATIE_OFFICIAL_ACCOUNT_QRCODE = 'http://weixin.qq.com/r/qymXj7DEO_1ErfTs93y5'
+  const name                           = 'qrcode-for-chatie.png'
+  const type                           = 'png'
+
+  const qrStream = qrImage.image(CHATIE_OFFICIAL_ACCOUNT_QRCODE, { type })
+  return FileBox.fromStream(qrStream, name)
 }
 
 export interface Sayable {

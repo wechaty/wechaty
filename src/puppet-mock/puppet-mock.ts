@@ -44,6 +44,7 @@ import {
 
 import {
   log,
+  qrCodeForChatie,
 }                       from '../config'
 
 export type PuppetFoodType = 'scan' | 'ding'
@@ -282,6 +283,18 @@ export class PuppetMock extends Puppet {
     contactId : string,
   ): Promise<void> {
     log.verbose('PuppetMock', 'roomDel(%s, %s)', roomId, contactId)
+  }
+
+  public async roomAvatar(roomId: string): Promise<FileBox> {
+    log.verbose('PuppetMock', 'roomAvatar(%s)', roomId)
+
+    const payload = await this.roomPayload(roomId)
+
+    if (payload.avatar) {
+      return FileBox.fromUrl(payload.avatar)
+    }
+    log.warn('PuppetMock', 'roomAvatar() avatar not found, use the chatie default.')
+    return qrCodeForChatie()
   }
 
   public async roomAdd(

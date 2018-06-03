@@ -39,6 +39,8 @@ const BOT_QR_CODE_IMAGE_FILE = path.resolve(
   '../docs/images/bot-qr-code.png',
 )
 
+const bot = Wechaty.instance()
+
 const welcome = `
 | __        __        _           _
 | \\ \\      / /__  ___| |__   __ _| |_ _   _
@@ -49,6 +51,7 @@ const welcome = `
 
 =============== Powered by Wechaty ===============
 -------- https://github.com/chatie/wechaty --------
+          Version: ${bot.version(true)}
 
 I'm a bot, my superpower is talk in Wechat.
 
@@ -63,7 +66,6 @@ Please wait... I'm trying to login in...
 `
 
 console.log(welcome)
-const bot = Wechaty.instance()
 
 bot
 .on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
@@ -71,14 +73,14 @@ bot
   log.info('Bot', `${user.name()} login`)
   bot.say('Wechaty login').catch(console.error)
 })
-.on('scan', (qrCode, statusCode) => {
-  if (!/201|200/.test(String(statusCode))) {
-    QrcodeTerminal.generate(qrCode, { small: true }, (qrcode: string) => {
-      console.log(qrcode)
-      console.log(qrCode)
-      console.log(`[${statusCode}] Scan QR Code above url to log in: `)
-    })
-  }
+.on('scan', (qrData, status, data) => {
+  QrcodeTerminal.generate(qrData, { small: true }, (asciiArt: string) => {
+    console.log(asciiArt)
+    console.log(`[${status}] Scan QR Code above url to log in: `)
+    if (data) {
+      console.log(data)
+    }
+  })
 })
 .on('message', async msg => {
   try {

@@ -87,6 +87,7 @@ class PuppetTest extends Puppet {
    *
    */
   public async roomAdd(roomId: string, contactId: string)          : Promise<void> { return {roomId, contactId} as any }
+  public async roomAvatar(roomId: string)                          : Promise<FileBox> { return {roomId} as any }
   public async roomCreate(contactIdList: string[], topic?: string) : Promise<string> { return {contactIdList, topic} as any }
   public async roomDel(roomId: string, contactId: string)          : Promise<void> { return {roomId, contactId} as any }
   public async roomQuit(roomId: string)                            : Promise<void> { return {roomId} as any }

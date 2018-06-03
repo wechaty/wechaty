@@ -797,6 +797,12 @@ export class Room extends Accessory implements Sayable {
     return owner
   }
 
+  public async avatar(): Promise<FileBox> {
+    log.verbose('Room', 'avatar()')
+
+    return this.puppet.roomAvatar(this.id)
+  }
+
 }
 
 export default Room

@@ -52,6 +52,7 @@ import {
 
 import {
   log,
+  qrCodeForChatie,
 }                       from '../config'
 
 import {
@@ -65,6 +66,10 @@ import {
   WebRecomendInfo,
   WebRoomRawPayload,
 }                           from '../puppet-puppeteer/web-schemas'
+
+import {
+  isRoomId,
+}                         from './misc'
 
 export type PuppetFoodType = 'scan' | 'ding'
 export type ScanFoodType   = 'scan' | 'login' | 'logout'
@@ -343,14 +348,14 @@ export class PuppetWechat4u extends Puppet {
   public async contactRawPayloadParser(
     rawPayload: WebContactRawPayload,
   ): Promise<ContactPayload> {
-    log.silly('PuppetPuppeteer', 'contactParseRawPayload(Object.keys(payload).length=%d)',
+    log.silly('PuppetWechat4u', 'contactParseRawPayload(Object.keys(payload).length=%d)',
                                     Object.keys(rawPayload).length,
                 )
     if (!Object.keys(rawPayload).length) {
-      log.error('PuppetPuppeteer', 'contactParseRawPayload(Object.keys(payload).length=%d)',
+      log.error('PuppetWechat4u', 'contactParseRawPayload(Object.keys(payload).length=%d)',
                                     Object.keys(rawPayload).length,
                 )
-      log.error('PuppetPuppeteer', 'contactParseRawPayload() got empty rawPayload!')
+      log.error('PuppetWechat4u', 'contactParseRawPayload() got empty rawPayload!')
       throw new Error('empty raw payload')
       // return {
       //   gender: Gender.Unknown,
@@ -483,17 +488,17 @@ export class PuppetWechat4u extends Puppet {
   public async messageRawPayloadParser(
     rawPayload: WebMessageRawPayload,
   ): Promise<MessagePayload> {
-    log.verbose('PuppetPuppeteer', 'messageRawPayloadParser(%s) @ %s', rawPayload, this)
+    log.verbose('PuppetWechat4u', 'messageRawPayloadParser(%s) @ %s', rawPayload, this)
 
-    console.log(rawPayload)
+    // console.log(rawPayload)
     const id                           = rawPayload.MsgId
     const text: string                 = rawPayload.Content.replace(/^\n/, '')
     const timestamp: number            = rawPayload.CreateTime
     const filename: undefined | string = this.filename(rawPayload) || undefined
-    const toId = rawPayload.ToUserName
 
-    let roomId : undefined | string = undefined
-    let fromId = rawPayload.FromUserName
+    let fromId : string
+    let roomId : undefined | string
+    let toId   : undefined | string
 
     /**
      * Check for the ChatRoom
@@ -517,7 +522,8 @@ export class PuppetWechat4u extends Puppet {
      *   MsgType: 1,
      *   Content: '高阳:\n我是说错误上报的库',,
      */
-    if (/^@@/.test(fromId)) {
+    if (isRoomId(rawPayload.FromUserName)) {
+      // set room id
       roomId = rawPayload.FromUserName
 
       const header = rawPayload.Content.split('\n')[0]
@@ -528,6 +534,7 @@ export class PuppetWechat4u extends Puppet {
 
       const idOrName = matches[1]
       if (this.wechat4u.contacts[idOrName]) {
+        // set from id from contact id in the message content
         fromId = matches[1]
       } else {
         const memberContactList = await this.roomMemberSearch(roomId, idOrName)
@@ -537,8 +544,18 @@ export class PuppetWechat4u extends Puppet {
         if (memberContactList.length > 1) {
           log.warn('PuppetWechat4u', 'messageRawPayloadParser() found more than one possible fromId, use the first one.')
         }
+        // set from id from contact name in the message content
         fromId = memberContactList[0]
       }
+    } else {
+      fromId = rawPayload.FromUserName
+    }
+
+    if (isRoomId(rawPayload.ToUserName)) {
+      // The message is to room only, no specific receiver.
+      // TODO: if message is mention someone, toId should set to the mentioned contact(?)
+    } else {
+      toId = rawPayload.ToUserName
     }
 
     const type: MessageType = this.messageTypeFromWeb(rawPayload.MsgType)
@@ -682,7 +699,7 @@ export class PuppetWechat4u extends Puppet {
   public async roomRawPayloadParser(
     rawPayload: WebRoomRawPayload,
   ): Promise<RoomPayload> {
-    log.verbose('PuppetPuppeteer', 'roomRawPayloadParser(%s)', rawPayload)
+    log.verbose('PuppetWechat4u', 'roomRawPayloadParser(%s)', rawPayload)
 
     const id            = rawPayload.UserName
     const rawMemberList = rawPayload.MemberList || []
@@ -725,6 +742,19 @@ export class PuppetWechat4u extends Puppet {
     const type = 'delmember'
     this.wechat4u.updateChatroom(roomId, [contactId], type)
 
+  }
+
+  public async roomAvatar(roomId: string): Promise<FileBox> {
+    log.verbose('PuppetWechat4u', 'roomAvatar(%s)', roomId)
+
+    const payload = await this.roomPayload(roomId)
+
+    if (payload.avatar) {
+      // FIXME: set http headers with cookies
+      return FileBox.fromUrl(payload.avatar)
+    }
+    log.warn('PuppetWechat4u', 'roomAvatar() avatar not found, use the chatie default.')
+    return qrCodeForChatie()
   }
 
   public async roomAdd(

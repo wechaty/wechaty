@@ -1,171 +1,80 @@
 import { EventEmitter } from 'events'
+
 import * as cuid        from 'cuid'
+import jsQR             from 'jsqr'
+import * as Jimp        from 'jimp'
 import * as WebSocket   from 'ws'
-// import * as fs          from 'fs'
 
 import { MemoryCard }   from 'memory-card'
 import { StateSwitch }  from 'state-switch'
 
-// tslint:disable-next-line
-import jsQR       from 'jsqr'
-import * as Jimp  from 'jimp'
+import Misc           from '../misc'
 
 import {
-  PadchatContactPayload,
-  PadchatRoomPayload,
+  PadchatContinue,
+  // PadchatMsgType,
+  // PadchatStatus,
+
+  PadchatPayload,
+  PadchatPayloadType,
+
+  PadchatContactMsgType,
+  PadchatContactRawPayload,
+
+  PadchatMessagePayload,
+
   PadchatRoomMember,
   PadchatRoomMemberPayload,
-  PadchatContactMsgType,
-    PadchatContinue,
-}                                         from './padchat-schemas'
+  PadchatRoomRawPayload,
+}                             from './padchat-schemas'
+
+import {
+  AutoDataType,
+  FunctionType,
+  InitType,
+  WXGenerateWxDatType,
+  WXGetQRCodeType,
+  WXInitializeType,
+  WXCheckQRCodePayload,
+  WXHeartBeatType,
+  WXGetLoginTokenType,
+  WXAutoLoginType,
+  WXLoginRequestType,
+  WXSendMsgType,
+  WXLoadWxDatType,
+  WXQRCodeLoginType,
+  WXCheckQRCodeStatus,
+  StandardType,
+  WXAddChatRoomMemberType,
+}                             from './bridge.type'
 
 import { log }          from '../config'
+
+const AUTO_DATA_SLOT = 'autoData'
 
 export const resolverDict: {
   [idx: string]: Function,
 } = {}
 
 export interface BridgeOptions {
-  memory: MemoryCard,
-  // head?   : boolean,
-  token:    string,
-  endpoint: string,
-  // profile:  Profile,
-  // botWs:    WebSocket,
-  // desperate in the future
-  autoData: AutoDataType,
-}
-
-export interface FunctionType {
-  userId:   string,
-  msgId:    string,
-  apiName:  string,
-  param:    string[],
-}
-
-export interface AutoDataType {
-  wxData?:    string,
-  token?:     string,
-  user_name?: string,
-  nick_name?: string,
-}
-
-export interface InitType {
-  message : string,
-  status  : number,
-}
-
-export interface WXInitializeType {
-  message : string, // WxUserInit成功
-  status  : number,
-}
-
-export interface WXAddChatRoomMemberType {
-  message : string, // "\n\u0010Everything+is+OK" (succeed)  || "\n\u0014MemberList+are+wrong" ('user has in the room')
-  status  : number, // 0
-}
-
-export interface WXGetQRCodeType {
-  qr_code : string,
-}
-
-export enum WXCheckQRCodeStatus {
-  WaitScan    = 0,
-  WaitConfirm = 1,
-  Confirmed   = 2,
-  Timeout     = 3,
-  Cancel      = 4,
-}
-
-export interface WXCheckQRCodePayload {
-  device_type  ?: string,   // android,
-  expired_time  : number,   // 238,
-  head_url     ?: string,   // http://wx.qlogo.cn/mmhead/ver_1/NkOvv1rTx3Dsqpicnhe0j7cVOR3psEAVfuhFLbmoAcwaob4eENNZlp3KIEsMgibfH4kRjDicFFXN3qdP6SGRXbo7GBs8YpN52icxSeBUX8xkZBA/0,
-  nick_name    ?: string,   // 苏轼,
-  password     ?: string,
-  status        : number,   // 2 = success
-  user_name    ?: string,   // wxid_zj2cahpwzgie12
-}
-
-export interface WXHeartBeatType {
-  status  : number,   // 0
-  message : string,   // ok
-}
-
-export interface WXGenerateWxDatType {
-  data    : string,   // 62data,
-  message : string,   // '',
-  status  : number,   // 0
-}
-
-export interface WXLoadWxDatType {
-  status  : number,   // 0
-  message : string,   // ok
-}
-
-export interface StandardType {
-  status  : number,   // 0
-  message : string,   // ''
-}
-
-export interface WXGetLoginTokenType {
-  message : string,
-  status  : number,   // 0,
-  token   : string,   // XXXXXXXX,
-  uin     : number,   // 324216852
-}
-
-export interface WXAutoLoginType {
-  email              : string,
-  external?          : number,   // 0,
-  long_link_server?  : string,   // szlong.weixin.qq.com,
-  message            : string,   // �Everything+is+ok,
-  nick_name          : string,
-  phone_number       : string,
-  qq                 : number,   // 0,
-  short_link_server? : string    // szshort.weixin.qq.com:80,
-  status             : number    // 0,
-  uin?               : number    // 324216852,
-  user_name          : string    // wxid_zj2cahpwzgie12
-}
-
-export interface WXLoginRequestType {
-  status: number // 0
-}
-
-export interface WXSendMsgType {
-  message : string,
-  msg_id  : string,   // '5612827783578738216',
-  status  : number,   // 0
-}
-
-export interface WXQRCodeLoginType {
-  email             : string,   // sushishigeshiren@163.com,
-  external          : number,   // 1,
-  long_link_server  : string,   // szlong.weixin.qq.com,
-  message           : string,   // �Everything+is+ok,
-  nick_name         : string,   // 苏轼,
-  phone_number      : string,   // 17326998117,
-  qq                : number,   // 0,
-  short_link_server : string,   // szshort.weixin.qq.com:80,
-  status            : number,   // 0,
-  uin               : number,   // 324216852,
-  user_name         : string,   // wxid_zj2cahpwzgie12
+  autoData : AutoDataType,  // desperate in the future
+  endpoint : string,
+  memory   : MemoryCard,
+  token    : string,
 }
 
 export class Bridge extends EventEmitter {
-  public botWs:       WebSocket
-  public userId:      string        // User Token
-  public autoData:    AutoDataType
+  private serverWebSocket? : WebSocket
+  private autoData         : AutoDataType
 
-  public username:    string | undefined
-  public password:    string | undefined
-  public nickname:    string | undefined
+  private username:    string | undefined
+  private password:    string | undefined
+  private nickname:    string | undefined
 
-  public loginSucceed = false
+  private loginSucceed = false
 
-  public cachePadchatRoomPayload    : { [id: string]: PadchatRoomPayload }
-  public cachePadchatContactPayload : { [id: string]: PadchatContactPayload }
+  private cacheRoomRawPayload    : { [id: string]: PadchatRoomRawPayload }
+  private cacheContactRawPayload : { [id: string]: PadchatContactRawPayload }
 
   private readonly state: StateSwitch
 
@@ -175,33 +84,28 @@ export class Bridge extends EventEmitter {
     super() // for EventEmitter
     log.verbose('PuppetPadchatBridge', 'constructor()')
 
-    this.userId   = options.token
-
-    this.botWs  = new WebSocket(
-      this.options.endpoint,
-      { perMessageDeflate: true },
-    )
+    // this.userId   = options.token
 
     this.autoData = options.autoData || {}
 
-    this.cachePadchatRoomPayload = {}
-    this.cachePadchatContactPayload = {}
+    this.cacheRoomRawPayload = {}
+    this.cacheContactRawPayload = {}
 
     this.state = new StateSwitch('PuppetPadchatBridge')
   }
 
   public async start(): Promise<void> {
-    this.cachePadchatRoomPayload    = {}
-    this.cachePadchatContactPayload = {}
-    this.loginSucceed          = false
+    this.cacheRoomRawPayload    = {}
+    this.cacheContactRawPayload = {}
+    this.loginSucceed               = false
 
     this.state.on('pending')
 
-    const autoData: AutoDataType = await this.options.memory.get('autoData')
+    const autoData: AutoDataType = await this.options.memory.get(AUTO_DATA_SLOT)
     log.silly('PuppetPadchat', 'initBridge, get autoData: %s', JSON.stringify(autoData))
     this.autoData = autoData || {}
 
-    await this.initWs()
+    await this.openWebSocket()
 
     // await some tasks...
     await this.init()
@@ -233,10 +137,10 @@ export class Bridge extends EventEmitter {
 
     this.state.off('pending')
 
-    this.cachePadchatRoomPayload = {}
-    this.cachePadchatContactPayload = {}
+    this.cacheContactRawPayload = {}
+    this.cacheRoomRawPayload    = {}
 
-    await this.closeWs()
+    await this.closeWebSocket()
 
     this.state.off(true)
   }
@@ -244,7 +148,7 @@ export class Bridge extends EventEmitter {
   private async sendToWebSocket(name: string, args: string[]): Promise<any> {
     const msgId = cuid()
     const data: FunctionType = {
-      userId:   this.userId,
+      userId:   this.options.token,
       msgId:    msgId,
       apiName:  name,
       param:    [],
@@ -254,9 +158,13 @@ export class Bridge extends EventEmitter {
       data.param.push(encodeURIComponent(arg))
     })
 
+    if (!this.serverWebSocket) {
+      throw new Error('no web socket')
+    }
+
     const sendData = JSON.stringify(data)
     log.silly('PuppetPadchatBridge', 'sendToWebSocket: %s', sendData)
-    this.botWs.send(sendData)
+    this.serverWebSocket.send(sendData)
 
     return new Promise((resolve, reject) => {
       resolverDict[msgId] = resolve
@@ -270,31 +178,155 @@ export class Bridge extends EventEmitter {
     })
   }
 
-  public async initWs(): Promise<void> {
-    this.botWs.removeAllListeners()
+  public async openWebSocket(): Promise<void> {
+    log.verbose('PuppetPadchatBridge', 'openWebSocket()')
 
-    this.botWs.on('message', wsMsg => {
-      this.emit('ws', wsMsg)
+    if (this.serverWebSocket) {
+      throw new Error('websocket had already been opened!')
+    }
+
+    const ws = new WebSocket(
+      this.options.endpoint,
+      { perMessageDeflate: true },
+    )
+
+    this.serverWebSocket = ws
+
+    ws.on('message', (data: string) => {
+      const payload: PadchatPayload = JSON.parse(data)
+      this.onServerPayload(payload)
     })
-    // this.botWs.on('open', () => {
-    //   console.log('3333')
-    //   this.emit('open')
-    // })
 
     await new Promise((resolve, reject) => {
-      this.botWs.once('open', resolve)
-      this.botWs.once('error', reject)
+      ws.once('open', resolve)
+      ws.once('error', reject)
+      ws.once('close', reject)
     })
   }
 
-  public closeWs(): void {
-    this.botWs.close()
+  public closeWebSocket(): void {
+    log.verbose('PuppetPadchatBridge', 'closeWebSocket()')
+
+    if (!this.serverWebSocket) {
+      log.warn('PuppetPadchatBridge', 'closeWebSocket() no serverWebSocket, return.')
+      return
+    }
+
+    this.serverWebSocket.removeAllListeners()
+    this.serverWebSocket.close()
+
+    this.serverWebSocket = undefined
+  }
+
+  private onServerPayload(payload: PadchatPayload) {
+    console.log('server payload:', payload)
+
+    log.verbose('PuppetPadchatBridge', 'onServerPayload(%s)',
+                                        JSON.stringify(payload).substr(0, 140),
+                )
+
+    // if ( !payload.data
+    //   && !payload.apiName
+    // ) {
+    //   log.silly('PuppetPadchat', 'WebSocket Server get empty message data form Tencent server')
+    //   return
+    // }
+
+    if (!payload.msgId && !payload.data && !payload.apiName) {
+      log.warn('PuppetPadchatBridge', 'onServerPayload() payload empty, noop and skipped')
+      return
+    }
+
+    if (payload.msgId) {
+      // Data Return From WebSocket Client
+      this.onServerMessagePadchat(payload)
+    } else {
+      // Data From Tencent
+      const tencentPayloadList: PadchatMessagePayload[] = JSON.parse(decodeURIComponent(payload.data))
+      this.onServerMessageTencent(tencentPayloadList)
+    }
+  }
+
+  private onServerMessageTencent(messagePayloadList: PadchatMessagePayload[]) {
+    console.log('tencent messagePayloadList:', messagePayloadList)
+    // if (   payload.continue  === PadchatContinue.Done
+    //     && payload.msg_type  === PadchatMsgType.N15_32768
+    //     && payload.status    === PadchatStatus.One
+    // ) {
+    //   // Skip empty message. "continue":0,"msg_type":32768,"status":1,"
+    //   return
+    // }
+
+    // rawWebSocketData:
+    // {
+    //   "apiName": "",
+    //   "data": "XXXX",
+    //   "msgId": "",
+    //   "userId": "test"
+    // }
+
+    // if (!payload.data) {
+    //   console.error('data: no payload.data')
+    //   return
+    // }
+    // const messagePayloadList: PadchatMessagePayload[] = JSON.parse(decodeURIComponent(payload.data))
+
+    messagePayloadList.forEach(messagePayload => {
+      if (!messagePayload.msg_id) {
+        // {"continue":0,"msg_type":32768,"status":1,"uin":1928023446}
+        log.silly('PuppetPadchat', 'WebSocket Server: get empty message msg_id form Tencent server for payoad: %s',
+                                    JSON.stringify(messagePayload),
+                  )
+        return
+      }
+      log.silly('PuppetPadchat', 'WebSocket Server rawData result: %s', JSON.stringify(messagePayload))
+
+      this.emit('message', messagePayload.msg_id, messagePayload)
+    })
+  }
+
+  private onServerMessagePadchat(payload: PadchatPayload) {
+    console.log('onServerMessagePadChat:', payload)
+
+    // check logout:
+    if (payload.type === PadchatPayloadType.Logout) {
+      // this.emit('logout', this.selfId())
+      this.emit('logout')
+    }
+
+    log.silly('PuppetPadchat', 'return apiName: %s, msgId: %s', payload.apiName, payload.msgId)
+    const msgId = payload.msgId
+
+    let rawData: Object
+    if (!payload.data) {
+      log.silly('PuppetPadchat', 'WebSocket Server get empty message data form API call: %s', payload.apiName)
+      rawData = {}
+    } else {
+      rawData = JSON.parse(decodeURIComponent(payload.data))
+    }
+
+    // rawWebSocketData:
+    // {
+    //     "apiName": "WXHeartBeat",
+    //     "data": "%7B%22status%22%3A0%2C%22message%22%3A%22ok%22%7D",
+    //     "msgId": "abc231923912983",
+    //     "userId": "test"
+    // }
+
+    if (resolverDict[msgId]) {
+      const resolve = resolverDict[msgId]
+      delete resolverDict[msgId]
+      // resolve({rawData: rawData, msgId: rawWebSocketData.msgId})
+      resolve(rawData)
+    } else {
+      log.warn('PuppetPadchat', 'wsOnMessage() msgId %s not in resolverDict', msgId)
+    }
   }
 
   /**
    * Init with WebSocket Server
    */
-  public async init(): Promise<InitType> {
+  private async init(): Promise<InitType> {
     const result: InitType = await this.sendToWebSocket('init', [])
     log.silly('PuppetPadchatBridge', 'init result: %s', JSON.stringify(result))
     if (!result || result.status !== 0) {
@@ -326,29 +358,32 @@ export class Bridge extends EventEmitter {
 
     const qrCodeImageBuffer = Buffer.from(result.qr_code, 'base64')
 
-    Jimp.read(qrCodeImageBuffer, (err, image) => {
-      if (err) {
-        this.emit('error', err)
-        // console.log('err:', err)
-        return
-      }
+    const future = new Promise((resolve, reject) => {
+      Jimp.read(qrCodeImageBuffer, (err, image) => {
+        if (err) {
+          return reject(err)
+        }
 
-      const qrCodeImageArray = new Uint8ClampedArray(image.bitmap.data.buffer)
+        const qrCodeImageArray = new Uint8ClampedArray(image.bitmap.data.buffer)
 
-      const qrCode = jsQR(
-        qrCodeImageArray,
-        image.bitmap.width,
-        image.bitmap.height,
-      )
+        const qrCodeResult = jsQR(
+          qrCodeImageArray,
+          image.bitmap.width,
+          image.bitmap.height,
+        )
 
-      if (qrCode) {
-        this.emit('scan', qrCode.data, 0)
-      } else {
-        log.warn('PuppetPadChatBridge', 'WXGetQRCode() qrCode decode fail.')
-      }
-
+        if (qrCodeResult) {
+          return resolve(qrCodeResult.data)
+        } else {
+          return reject(new Error('WXGetQRCode() qrCode decode fail'))
+        }
+      })
     })
 
+    const qrCode = await future
+    this.emit('scan', qrCode, 0)
+
+    // TODO: refactor
     return result
   }
 
@@ -383,9 +418,9 @@ export class Bridge extends EventEmitter {
   /**
    * Load all Contact and Room
    * see issue https://github.com/lijiarui/test-ipad-puppet/issues/39
-   * @returns {Promise<(PadchatRoomPayload | PadchatContactPayload)[]>}
+   * @returns {Promise<(PadchatRoomRawPayload | PadchatContactRawPayload)[]>}
    */
-  private async WXSyncContact(): Promise<(PadchatRoomPayload | PadchatContactPayload)[]> {
+  private async WXSyncContact(): Promise<(PadchatRoomRawPayload | PadchatContactRawPayload)[]> {
     const result = await this.sendToWebSocket('WXSyncContact', [])
     if (!result) {
       throw Error('WXSyncContact error! canot get result from websocket server')
@@ -394,7 +429,7 @@ export class Bridge extends EventEmitter {
   }
 
   public async getContactIdList(): Promise<string[]> {
-    return Object.keys(this.cachePadchatContactPayload)
+    return Object.keys(this.cacheContactRawPayload)
   //   const result = await this.syncContactOrRoom()
   //   if (result.contactIdList.length < 0) {
   //     throw Error('getContactIdList error! canot get contactIdList')
@@ -403,7 +438,7 @@ export class Bridge extends EventEmitter {
   }
 
   public async getRoomIdList(): Promise<string[]> {
-    const idList = Object.keys(this.cachePadchatRoomPayload)
+    const idList = Object.keys(this.cacheRoomRawPayload)
     log.verbose('PuppetPadchatBridge', 'getRoomIdList() = %d', idList.length)
     return idList
   //   const result = await this.syncContactOrRoom()
@@ -427,7 +462,7 @@ export class Bridge extends EventEmitter {
 
       const syncContactList = await this.WXSyncContact()
 
-      await new Promise(r => setTimeout(r, 1 * 1000))
+      await new Promise(r => setTimeout(r, 1 * 100))
 
       // console.log('syncContactList:', syncContactList)
 
@@ -440,8 +475,8 @@ export class Bridge extends EventEmitter {
       log.verbose('PuppetPadchat', 'syncContactsAndRooms() sync contact, got new/total: %d/%d',
                                     syncContactList.length,
                                     (
-                                      Object.keys(this.cachePadchatContactPayload).length
-                                      + Object.keys(this.cachePadchatRoomPayload).length
+                                      Object.keys(this.cacheContactRawPayload).length
+                                      + Object.keys(this.cacheRoomRawPayload).length
                                     ),
                   )
 
@@ -451,10 +486,10 @@ export class Bridge extends EventEmitter {
           if (syncContact.msg_type === PadchatContactMsgType.Contact) {
             console.log('syncContact:', syncContact.user_name, syncContact.nick_name)
             if (/@chatroom$/.test(syncContact.user_name)) {
-              this.cachePadchatRoomPayload[syncContact.user_name] = syncContact as PadchatRoomPayload
+              this.cacheRoomRawPayload[syncContact.user_name] = syncContact as PadchatRoomRawPayload
               // syncRoomMap.set(syncContact.user_name, syncContact as PadchatRoomRawPayload)
             } else if (syncContact.user_name) {
-              this.cachePadchatContactPayload[syncContact.user_name] = syncContact as PadchatContactPayload
+              this.cacheContactRawPayload[syncContact.user_name] = syncContact as PadchatContactRawPayload
               // syncContactMap.set(syncContact.user_name, syncContact as PadchatContactRawPayload)
             } else {
               throw new Error('no user_name')
@@ -597,7 +632,7 @@ export class Bridge extends EventEmitter {
    * Get contact by contact id
    * @param {any} id        user_name
    */
-  private async WXGetContact(id: string): Promise<PadchatContactPayload | PadchatRoomPayload> {
+  private async WXGetContact(id: string): Promise<PadchatContactRawPayload | PadchatRoomRawPayload> {
     const result = await this.sendToWebSocket('WXGetContact', [id])
 
     if (!result) {
@@ -619,11 +654,11 @@ export class Bridge extends EventEmitter {
    * Get contact by contact id
    * @param {any} id        user_name
    */
-  public async WXGetContactPayload(id: string): Promise<PadchatContactPayload> {
+  public async WXGetContactPayload(id: string): Promise<PadchatContactRawPayload> {
     if (/@chatroom$/.test(id)) {
       throw Error(`should use WXGetRoomPayload because get a room id :${id}`)
     }
-    const result = await this.WXGetContact(id) as PadchatContactPayload
+    const result = await this.WXGetContact(id) as PadchatContactRawPayload
     return result
   }
 
@@ -631,11 +666,11 @@ export class Bridge extends EventEmitter {
    * Get contact by contact id
    * @param {any} id        user_name
    */
-  public async WXGetRoomPayload(id: string): Promise<PadchatRoomPayload> {
+  public async WXGetRoomPayload(id: string): Promise<PadchatRoomRawPayload> {
     if (!(/@chatroom$/.test(id))) {
       throw Error(`should use WXGetContactPayload because get a contact id :${id}`)
     }
-    const result = await this.WXGetContact(id) as PadchatRoomPayload
+    const result = await this.WXGetContact(id) as PadchatRoomRawPayload
     return result
   }
 
@@ -902,7 +937,7 @@ export class Bridge extends EventEmitter {
     log.verbose('PuppetPadchatBridge', 'saveConfig, autoData: %s', JSON.stringify(this.autoData))
     if (this.autoData.wxData && this.autoData.token && this.autoData.user_name) {
       log.verbose('PuppetPadchatBridge', 'saveConfig: begin to save data to file')
-      await this.options.memory.set('autoData', this.autoData)
+      await this.options.memory.set(AUTO_DATA_SLOT, this.autoData)
       await this.options.memory.save()
 
       log.verbose('PuppetPadchatBridge', 'loginSucceed: Send ding to the bot, username: %s', this.username)
@@ -926,4 +961,51 @@ export class Bridge extends EventEmitter {
     }
   }
 
+  public async contactRawPayload(id: string): Promise<PadchatContactRawPayload> {
+    log.verbose('PuppetPadchatBridge', 'contactRawPayload(%s)', id)
+
+    const rawPayload = await Misc.retry(async (retry, attempt) => {
+      log.verbose('PuppetPadchatBridge', 'contactRawPayload(%s) retry() attempt=%d', id, attempt)
+
+      if (id in this.cacheContactRawPayload) {
+        return this.cacheContactRawPayload[id]
+      }
+
+      const tryRawPayload =  await this.WXGetContactPayload(id)
+      if (tryRawPayload) {
+        this.cacheContactRawPayload[id] = tryRawPayload
+        return tryRawPayload
+      }
+      return retry(new Error('tryRawPayload empty'))
+    })
+
+    if (!rawPayload) {
+      throw new Error('no raw payload')
+    }
+    return rawPayload
+  }
+
+  public async roomRawPayload(id: string): Promise<PadchatRoomRawPayload> {
+    log.verbose('PuppetPadchatBridge', 'roomRawPayload(%s)', id)
+
+    const rawPayload = await Misc.retry(async (retry, attempt) => {
+      log.silly('PuppetPadchat', 'roomRawPayload(%s) retry() attempt=%d', id, attempt)
+
+      if (id in this.cacheRoomRawPayload) {
+        return this.cacheRoomRawPayload[id]
+      }
+
+      const tryRawPayload = await this.WXGetRoomPayload(id)
+      if (tryRawPayload) {
+        this.cacheRoomRawPayload[id] = tryRawPayload
+        return tryRawPayload
+      }
+      return retry(new Error('tryRawPayload empty'))
+    })
+
+    if (!rawPayload) {
+      throw new Error('no raw payload')
+    }
+    return rawPayload
+  }
 }

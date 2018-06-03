@@ -16,6 +16,10 @@
  *   limitations under the License.
  *
  */
+import {
+  ContactGender,
+}                 from '../puppet/'
+
 // 1 when use WXSyncContact, 0 when use WXGetContact
 export enum PadchatContactRoomStatus {
   Get  = 0,
@@ -48,16 +52,17 @@ export enum PadchatMsgType {
 }
 
 export enum PadchatContinue {
-  Stop = 0, // Load Ready
-  Go   = 1, // NOT Load Ready
+  Done = 0,   // Load Ready
+  Go   = 1,   // NOT Load Ready
 }
 
 // 2 Female, 1 Male, 0 Not Known
-export enum PadchatContactGender {
-  Unknown = 0,
-  Male    = 1,
-  Female ,
-}
+// The same as ContactGender.
+// export enum PadchatContactGender {
+//   Unknown = 0,
+//   Male    = 1,
+//   Female ,
+// }
 
 export enum PadchatPayloadType {
   Logout = -1, // -1 when logout
@@ -82,7 +87,7 @@ export interface PadchatPayload {
  * - WXGetContact
  * @interface PadchatContactPayload
  */
-export interface PadchatContactPayload {
+export interface PadchatContactRawPayload {
   /**
    * Sometimes, WXSyncContact can only get the following result:
    * {
@@ -119,7 +124,7 @@ export interface PadchatContactPayload {
   remark            : string,      // "女儿",
   remark_py_initial : string,      // 'lijiaruibeizhu',
   remark_quan_pin   : string,      // 'LJRBZ',
-  sex               : PadchatContactGender,
+  sex               : ContactGender,
   signature         : string,      // "且行且珍惜",
   small_head        : string,      // "http://wx.qlogo.cn/mmhead/ver_1/xfCMmibHH74xGLoyeDFJadrZXX3eOEznPefiaCa3iczxZGMwPtDuSbRQKx3Xdm18un303mf0NFia3USY2nO2VEYILw/132",
   status            : PadchatContactRoomStatus,      // 1 when use WXSyncContact, 0 when use WXGetContact
@@ -331,7 +336,7 @@ export interface PadchatRoomMember {
  * - WXGetContact
  * @interface PadchatRoomPayload
  */
-export interface PadchatRoomPayload {
+export interface PadchatRoomRawPayload {
   /**
    * Sometimes, WXSyncContact can only get the following result:
    * {
@@ -360,7 +365,7 @@ export interface PadchatRoomPayload {
   chatroom_owner:   string,   // "qq512436430",
   continue?:        PadchatContinue,   // 1,
   max_member_count: number,   // 500,
-  member:           string[], // JSON.parse(decodeURIComponent(member)) | "[\"qq512436430\",\"mengjunjun001\",\"wxid_zj2cahpwzgie12\",\"wxid_7708837087612\"]\n",
+  member?:          string[], // JSON.parse(decodeURIComponent(member)) | "[\"qq512436430\",\"mengjunjun001\",\"wxid_zj2cahpwzgie12\",\"wxid_7708837087612\"]\n",
   member_count:     number,   // 4,
   nick_name:        string,   // room-topic:"facenet",
   py_initial:       string,   // 'FACENET',
@@ -375,7 +380,7 @@ export interface PadchatRoomMemberPayload {
   chatroom_id : number,                   // not know: 700000156,
   count       : number,                   // 4,
   // tslint:disable-next-line:max-line-length
-  member      : PadchatRoomMember[],   // JSON.parse(decodeURIComponent(member)): PadchatRoomRawMember[] |  '[{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/DpS0ZssJ5s8tEpSr9JuPTRxEUrCK0USrZcR3PjOMfUKDwpnZLxWXlD4Q38bJpcXBtwXWwevsul1lJqwsQzwItQ/0","chatroom_nick_name":"","invited_by":"wxid_7708837087612","nick_name":"李佳芮","small_head":"http://wx.qlogo.cn/mmhead/ver_1/DpS0ZssJ5s8tEpSr9JuPTRxEUrCK0USrZcR3PjOMfUKDwpnZLxWXlD4Q38bJpcXBtwXWwevsul1lJqwsQzwItQ/132","user_name":"qq512436430"},{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/kcBj3gSibfFd2I9vQ8PBFyQ77cpPIfqkFlpTdkFZzBicMT6P567yj9IO6xG68WsibhqdPuG82tjXsveFATSDiaXRjw/0","chatroom_nick_name":"","invited_by":"wxid_7708837087612","nick_name":"梦君君","small_head":"http://wx.qlogo.cn/mmhead/ver_1/kcBj3gSibfFd2I9vQ8PBFyQ77cpPIfqkFlpTdkFZzBicMT6P567yj9IO6xG68WsibhqdPuG82tjXsveFATSDiaXRjw/132","user_name":"mengjunjun001"},{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/3CsKibSktDV05eReoAicV0P8yfmuHSowfXAMvRuU7HEy8wMcQ2eibcaO1ccS95PskZchEWqZibeiap6Gpb9zqJB1WmNc6EdD6nzQiblSx7dC1eGtA/0","chatroom_nick_name":"","invited_by":"wxid_7708837087612","nick_name":"苏轼","small_head":"http://wx.qlogo.cn/mmhead/ver_1/3CsKibSktDV05eReoAicV0P8yfmuHSowfXAMvRuU7HEy8wMcQ2eibcaO1ccS95PskZchEWqZibeiap6Gpb9zqJB1WmNc6EdD6nzQiblSx7dC1eGtA/132","user_name":"wxid_zj2cahpwzgie12"},{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/piaHuicak41b6ibmcEVxoWKnnhgGDG5EbaD0hibwkrRvKeDs3gs7XQrkym3Q5MlUeSKY8vw2FRVVstialggUxf2zic2O8CvaEsicSJcghf41nibA940/0","chatroom_nick_name":"","invited_by":"wxid_zj2cahpwzgie12","nick_name":"王宁","small_head":"http://wx.qlogo.cn/mmhead/ver_1/piaHuicak41b6ibmcEVxoWKnnhgGDG5EbaD0hibwkrRvKeDs3gs7XQrkym3Q5MlUeSKY8vw2FRVVstialggUxf2zic2O8CvaEsicSJcghf41nibA940/132","user_name":"wxid_7708837087612"}]\n',
+  member?     : PadchatRoomMember[],   // JSON.parse(decodeURIComponent(member)): PadchatRoomRawMember[] |  '[{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/DpS0ZssJ5s8tEpSr9JuPTRxEUrCK0USrZcR3PjOMfUKDwpnZLxWXlD4Q38bJpcXBtwXWwevsul1lJqwsQzwItQ/0","chatroom_nick_name":"","invited_by":"wxid_7708837087612","nick_name":"李佳芮","small_head":"http://wx.qlogo.cn/mmhead/ver_1/DpS0ZssJ5s8tEpSr9JuPTRxEUrCK0USrZcR3PjOMfUKDwpnZLxWXlD4Q38bJpcXBtwXWwevsul1lJqwsQzwItQ/132","user_name":"qq512436430"},{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/kcBj3gSibfFd2I9vQ8PBFyQ77cpPIfqkFlpTdkFZzBicMT6P567yj9IO6xG68WsibhqdPuG82tjXsveFATSDiaXRjw/0","chatroom_nick_name":"","invited_by":"wxid_7708837087612","nick_name":"梦君君","small_head":"http://wx.qlogo.cn/mmhead/ver_1/kcBj3gSibfFd2I9vQ8PBFyQ77cpPIfqkFlpTdkFZzBicMT6P567yj9IO6xG68WsibhqdPuG82tjXsveFATSDiaXRjw/132","user_name":"mengjunjun001"},{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/3CsKibSktDV05eReoAicV0P8yfmuHSowfXAMvRuU7HEy8wMcQ2eibcaO1ccS95PskZchEWqZibeiap6Gpb9zqJB1WmNc6EdD6nzQiblSx7dC1eGtA/0","chatroom_nick_name":"","invited_by":"wxid_7708837087612","nick_name":"苏轼","small_head":"http://wx.qlogo.cn/mmhead/ver_1/3CsKibSktDV05eReoAicV0P8yfmuHSowfXAMvRuU7HEy8wMcQ2eibcaO1ccS95PskZchEWqZibeiap6Gpb9zqJB1WmNc6EdD6nzQiblSx7dC1eGtA/132","user_name":"wxid_zj2cahpwzgie12"},{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/piaHuicak41b6ibmcEVxoWKnnhgGDG5EbaD0hibwkrRvKeDs3gs7XQrkym3Q5MlUeSKY8vw2FRVVstialggUxf2zic2O8CvaEsicSJcghf41nibA940/0","chatroom_nick_name":"","invited_by":"wxid_zj2cahpwzgie12","nick_name":"王宁","small_head":"http://wx.qlogo.cn/mmhead/ver_1/piaHuicak41b6ibmcEVxoWKnnhgGDG5EbaD0hibwkrRvKeDs3gs7XQrkym3Q5MlUeSKY8vw2FRVVstialggUxf2zic2O8CvaEsicSJcghf41nibA940/132","user_name":"wxid_7708837087612"}]\n',
   message     : string,                   // '',
   status      : PadchatRoomMemberStatus,  // number,                       // 0,
   user_name   : string,                   // '6350854677@chatroom'

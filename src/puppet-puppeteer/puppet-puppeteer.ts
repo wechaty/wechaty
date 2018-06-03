@@ -45,9 +45,14 @@ import {
   config,
   log,
   Raven,
+  qrCodeForChatie,
 }                     from '../config'
-// import Profile        from '../profile'
+
 import Misc           from '../misc'
+
+import {
+  isRoomId,
+}                   from './misc'
 
 import {
   Bridge,
@@ -354,9 +359,9 @@ export class PuppetPuppeteer extends Puppet {
 
     // FIXME: has there any better method to know the room ID?
     if (rawPayload.MMIsChatRoom) {
-      if (/^@@/.test(rawPayload.FromUserName)) {
+      if (isRoomId(rawPayload.FromUserName)) {
         roomId = rawPayload.FromUserName // MMPeerUserName always eq FromUserName ?
-      } else if (/^@@/.test(rawPayload.ToUserName)) {
+      } else if (isRoomId(rawPayload.ToUserName)) {
         roomId = rawPayload.ToUserName
       } else {
         throw new Error('parse found a room message, but neither FromUserName nor ToUserName is a room(/^@@/)')
@@ -368,7 +373,7 @@ export class PuppetPuppeteer extends Puppet {
     }
 
     if (rawPayload.ToUserName) {
-      if (!/^@@/.test(rawPayload.ToUserName)) { // if a message in room without any specific receiver, then it will set to be `undefined`
+      if (!isRoomId(rawPayload.ToUserName)) { // if a message in room without any specific receiver, then it will set to be `undefined`
         toId = rawPayload.ToUserName
       }
     }
@@ -1061,6 +1066,18 @@ export class PuppetPuppeteer extends Puppet {
       Raven.captureException(e)
       throw e
     }
+  }
+
+  public async roomAvatar(roomId: string): Promise<FileBox> {
+    log.verbose('PuppetPuppeteer', 'roomAvatar(%s)', roomId)
+
+    const payload = await this.roomPayload(roomId)
+
+    if (payload.avatar) {
+      return FileBox.fromUrl(payload.avatar)
+    }
+    log.warn('PuppetPuppeteer', 'roomAvatar() avatar not found, use the chatie default.')
+    return qrCodeForChatie()
   }
 
   public async roomAdd(

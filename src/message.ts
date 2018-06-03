@@ -159,7 +159,7 @@ export class Message extends Accessory implements Sayable {
       ')',
     ]
     if (this.type() === Message.Type.Text) {
-      msgStrList.push(`<${this.text()}>`)
+      msgStrList.push(`<${this.text().substr(0, 70)}>`)
     } else {
       log.silly('Message', 'toString() for message type: %s(%s)', Message.Type[this.type()], this.type())
 

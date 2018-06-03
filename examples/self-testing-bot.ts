@@ -41,6 +41,8 @@ const BOT_QR_CODE_IMAGE_FILE = path.resolve(
   '../docs/images/bot-qr-code.png',
 )
 
+const bot = Wechaty.instance()
+
 const welcome = `
 | __        __        _           _
 | \\ \\      / /__  ___| |__   __ _| |_ _   _
@@ -51,6 +53,7 @@ const welcome = `
 
 =============== Powered by Wechaty ===============
 -------- https://github.com/chatie/wechaty --------
+                Version: ${bot.version(true)}
 
 I'm a bot, my superpower is talk in Wechat.
 
@@ -65,7 +68,6 @@ Please wait... I'm trying to login in...
 `
 
 console.log(welcome)
-const bot = Wechaty.instance()
 
 bot
 .on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
@@ -83,7 +85,6 @@ bot
   })
 })
 .on('message', async msg => {
-  console.log('on message:')
   try {
     console.log(msg.toString()) // on(message) exception: Error: no file
     const text = msg.text()

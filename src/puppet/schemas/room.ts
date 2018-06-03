@@ -12,6 +12,7 @@ export interface RoomPayload {
   id : string,
 
   topic        : string,
+  avatar?      : string,
   memberIdList : string[],
   ownerId?     : string,
   aliasDict    : { [contactId: string]: string | undefined }  // room alias
@@ -22,4 +23,4 @@ export interface RoomPayload {
 }
 
 export type RoomPayloadFilterFunction = (payload: RoomPayload)    => boolean
-export type RoomPayloadFilterFactory  = (query: RoomQueryFilter)    => RoomPayloadFilterFunction
+export type RoomPayloadFilterFactory  = (query: RoomQueryFilter)  => RoomPayloadFilterFunction

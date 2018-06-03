@@ -20,13 +20,13 @@ export interface MessagePayloadBase {
 }
 
 export interface MessagePayloadRoom {
-  roomId : null | string,
-  toId?  : null | string,   // if to is not set, then room must be set
+  roomId : string,
+  toId?  : string,   // if to is not set, then room must be set
 }
 
 export interface MessagePayloadTo {
-  roomId?   : null | string,
-  toId     : null | string,   // if to is not set, then room must be set
+  roomId? : string,
+  toId    : string,   // if to is not set, then room must be set
 }
 
 export type MessagePayload = MessagePayloadBase & (MessagePayloadRoom | MessagePayloadTo)
