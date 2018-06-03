@@ -161,7 +161,7 @@ export class Message extends Accessory implements Sayable {
     if (this.type() === Message.Type.Text) {
       msgStrList.push(`<${this.text()}>`)
     } else {
-      log.silly('Message', 'toString() for message type: ', Message.Type[this.type()])
+      log.silly('Message', 'toString() for message type: %s(%s)', Message.Type[this.type()], this.type())
 
       if (!this.payload) {
         throw new Error('no payload')
