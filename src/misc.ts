@@ -25,6 +25,8 @@ import {
 }                   from 'stream'
 import * as url     from 'url'
 
+import * as cuid    from 'cuid'
+
 import promiseRetry = require('promise-retry')
 import { WrapOptions } from 'retry'
 
@@ -300,6 +302,11 @@ export class Misc {
       factor,
     }
     return await promiseRetry(retryOptions, retryableFn)
+  }
+
+  public static generateToken() {
+    const token = cuid().substr(1) + cuid().substr(1) // substr: get rid of the starting `c`
+    return token.toUpperCase()
   }
 }
 
