@@ -3,23 +3,37 @@ import { log }          from '../config'
 import { EventEmitter } from 'events'
 import * as cuid        from 'cuid'
 import * as WebSocket   from 'ws'
-import * as fs          from 'fs'
+// import * as fs          from 'fs'
+
+import { MemoryCard } from 'memory-card'
+
+// tslint:disable-next-line
+const QrCode = require('qrcode-reader')
+// const sizeOf = require('image-size')
+import * as Jimp from 'jimp'
+
 import {
   PadchatContactRawPayload,
   PadchatRoomRawPayload,
   PadchatRoomRawMember,
   PadchatRoomMemberRawPayload,
-}                       from './padchat-schemas'
+  PadchatContactRawPayloadMsgType,
+  PadchatContactRawPayloadContinueType,
+}                                         from './padchat-schemas'
 
 import {
   ADDRESS,
 }                       from './config'
+import { StateSwitch } from 'state-switch'
+
+// import { Room } from '..';
 
 export const resolverDict: {
   [idx: string]: Function,
 } = {}
 
 export interface BridgeOptions {
+  memory: MemoryCard,
   // head?   : boolean,
   userId:    string,
   // profile:  Profile,
@@ -148,6 +162,11 @@ export class Bridge extends EventEmitter {
 
   public loginSucceed = false
 
+  public roomRawPayloadDict    : { [id: string]: PadchatRoomRawPayload }
+  public contactRawPayloadDict : { [id: string]: PadchatContactRawPayload }
+
+  private readonly state: StateSwitch
+
   constructor(
     public options: BridgeOptions,
   ) {
@@ -159,6 +178,62 @@ export class Bridge extends EventEmitter {
     this.botWs  = new WebSocket(ADDRESS, { perMessageDeflate: true })
 
     this.autoData = options.autoData || {}
+
+    this.roomRawPayloadDict = {}
+    this.contactRawPayloadDict = {}
+
+    this.state = new StateSwitch('PuppetPadchatBridge')
+  }
+
+  public async start(): Promise<void> {
+    this.roomRawPayloadDict    = {}
+    this.contactRawPayloadDict = {}
+    this.loginSucceed          = false
+
+    this.state.on('pending')
+
+    const autoData: AutoDataType = await this.options.memory.get('autoData')
+    log.silly('PuppetPadchat', 'initBridge, get autoData: %s', JSON.stringify(autoData))
+    this.autoData = autoData || {}
+
+    await this.initWs()
+
+    // await some tasks...
+    await this.init()
+    await this.WXInitialize()
+
+    // Check for 62 data, if has, then use WXLoadWxDat
+    if (this.autoData && this.autoData.wxData) {
+      log.info('PuppetPadchat', `start, get 62 data`)
+      // this.WXLoadWxDat(bridge.autoData.wxData)
+      await this.WXLoadWxDat(this.autoData.wxData)
+    }
+
+    if (this.autoData && this.autoData.token) {
+      log.info('PuppetPadchat', `get ${this.autoData.nick_name || 'no nick_name'} token`)
+
+      // Offline, then relogin
+      log.info('PuppetPadchat', `offline, trying to relogin`)
+      await this.WXAutoLogin(this.autoData.token)
+    } else {
+      await this.WXGetQRCode()
+    }
+
+    await this.checkLogin()
+
+    this.state.on(true)
+  }
+
+  public async stop(): Promise<void> {
+
+    this.state.off('pending')
+
+    this.roomRawPayloadDict = {}
+    this.contactRawPayloadDict = {}
+
+    await this.closeWs()
+
+    this.state.off(true)
   }
 
   private async sendToWebSocket(name: string, args: string[]): Promise<any> {
@@ -184,18 +259,26 @@ export class Bridge extends EventEmitter {
       setTimeout(() => {
         delete resolverDict[msgId]
         // TODO: send json again or detect init()
-        reject('PadChat Server timeout')
+        reject('PadChat Server timeout for msgId: ' + msgId + ', apiName: ' + name + ', args: ' + args.join(', '))
       }, 30000)
 
     })
   }
 
   public async initWs(): Promise<void> {
+    this.botWs.removeAllListeners()
+
     this.botWs.on('message', wsMsg => {
       this.emit('ws', wsMsg)
     })
-    this.botWs.on('open', () => {
-      this.emit('open')
+    // this.botWs.on('open', () => {
+    //   console.log('3333')
+    //   this.emit('open')
+    // })
+
+    await new Promise((resolve, reject) => {
+      this.botWs.once('open', resolve)
+      this.botWs.once('error', reject)
     })
   }
 
@@ -235,7 +318,33 @@ export class Bridge extends EventEmitter {
 
     log.silly('PuppetPadchatBridge', 'WXGetQRCode get qrcode successfully')
     this.checkQrcode()
-    fs.writeFileSync('./demo.jpg', result.qr_code, {encoding: 'base64'})
+
+    const qrCodeImageBuffer = Buffer.from(result.qr_code, 'base64')
+
+    Jimp.read(qrCodeImageBuffer, (err, image) => {
+      if (err) {
+        this.emit('error', err)
+        // console.log('err:', err)
+        return
+      }
+      const qr = new QrCode()
+      qr.callback = (qrError: Error, value: any) => {
+          if (qrError) {
+            this.emit('error', qrError)
+          }
+
+          this.emit('scan', value.result, 0)
+          // console.log('xxx:', value)
+
+      }
+      qr.decode(image.bitmap)
+    })
+
+    // fs.writeFileSync('./demo.jpg', result.qr_code, {encoding: 'base64'})
+    // console.log('XXX')
+
+    this.emit('scan', result.qr_code, 0)
+
     return result
   }
 
@@ -267,64 +376,110 @@ export class Bridge extends EventEmitter {
     return result
   }
 
-  // /**
-  //  * Load all Contact and Room
-  //  * see issue https://github.com/lijiarui/test-ipad-puppet/issues/39
-  //  * @returns {Promise<(PadchatRoomRawPayload | PadchatContactRawPayload)[]>}
-  //  */
-  // private async WXSyncContact(): Promise<(PadchatRoomRawPayload | PadchatContactRawPayload)[]> {
-  //   const result = await this.sendToWebSocket('WXSyncContact', [])
-  //   if (!result) {
-  //     throw Error('WXSyncContact error! canot get result from websocket server')
+  /**
+   * Load all Contact and Room
+   * see issue https://github.com/lijiarui/test-ipad-puppet/issues/39
+   * @returns {Promise<(PadchatRoomRawPayload | PadchatContactRawPayload)[]>}
+   */
+  private async WXSyncContact(): Promise<(PadchatRoomRawPayload | PadchatContactRawPayload)[]> {
+    const result = await this.sendToWebSocket('WXSyncContact', [])
+    if (!result) {
+      throw Error('WXSyncContact error! canot get result from websocket server')
+    }
+    return result
+  }
+
+  public async getContactIdList(): Promise<string[]> {
+    return Object.keys(this.contactRawPayloadDict)
+  //   const result = await this.syncContactOrRoom()
+  //   if (result.contactIdList.length < 0) {
+  //     throw Error('getContactIdList error! canot get contactIdList')
   //   }
-  //   return result
-  // }
+  //   return result.contactIdList
+  }
 
-  // public async checkSyncContactOrRoom(): Promise<{
-  //   contactMap: Map<string, PadchatContactRawPayload>,
-  //   roomMap: Map<string, PadchatRoomRawPayload>,
-  // }> {
-  //   log.silly('PuppetPadchat', `checkSyncContact`)
-
-  //   let cont = true
-  //   const syncContactMap = new Map<string, PadchatContactRawPayload>()
-  //   const syncRoomMap = new Map<string, PadchatRoomRawPayload>()
-
-  //   while (cont) {
-  //     const syncContactList = await this.WXSyncContact()
-
-  //     await new Promise(r => setTimeout(r, 3 * 1000))
-
-  //     if (!Array.isArray(syncContactList)) {
-  //       log.error('PuppetPadchat', 'checkSyncContact cannot get array result!')
-  //       continue
-  //     }
-
-  //     syncContactList.forEach(syncContact => {
-  //       if (syncContact.continue === 0) {
-  //         log.info('PuppetPadchat', 'checkSyncContact sync contact done!')
-  //         cont = false
-  //         return
-  //       }
-
-  //       if (syncContact.continue === 1 && syncContact.msg_type === 2) {
-  //         if (/@chatroom$/.test(syncContact.user_name)) {
-  //           syncRoomMap.set(syncContact.user_name, syncContact as PadchatRoomRawPayload)
-  //         } else {
-  //           syncContactMap.set(syncContact.user_name, syncContact as PadchatContactRawPayload)
-  //         }
-  //       }
-  //       return
-  //     })
-
-  //     log.info('PuppetPadchat', `checkSyncContact, not load yet, continue to WXSyncContact`)
+  public async getRoomIdList(): Promise<string[]> {
+    const idList = Object.keys(this.roomRawPayloadDict)
+    log.verbose('PuppetPadchatBridge', 'getRoomIdList() = %d', idList.length)
+    return idList
+  //   const result = await this.syncContactOrRoom()
+  //   if (result.roomIdList.length < 0) {
+  //     throw Error('getRoomIdList error! canot get contactIdList')
   //   }
+  //   return result.roomIdList
+  }
 
-  //   return {
-  //     contactMap: syncContactMap,
-  //     roomMap: syncRoomMap,
-  //   }
-  // }
+  public async syncContactsAndRooms(): Promise<void> {
+    log.verbose('PuppetPadchat', `syncContactsAndRooms()`)
+
+    let cont = true
+    // const syncContactMap = new Map<string, PadchatContactRawPayload>()
+    // const syncRoomMap = new Map<string, PadchatRoomRawPayload>()
+    // let contactIdList: string[] = []
+    // let roomIdList: string[] = []
+
+    while (cont && this.state.on() && this.loginSucceed) {
+      log.silly('PuppetPadchat', `syncContactsAndRooms() while()`)
+
+      const syncContactList = await this.WXSyncContact()
+
+      await new Promise(r => setTimeout(r, 1 * 1000))
+
+      // console.log('syncContactList:', syncContactList)
+
+      if (!Array.isArray(syncContactList) || syncContactList.length <= 0) {
+        console.log('syncContactList:', syncContactList)
+        log.error('PuppetPadchat', 'syncContactsAndRooms() cannot get array result!')
+        continue
+      }
+
+      log.verbose('PuppetPadchat', 'syncContactsAndRooms() sync contact, got new/total: %d/%d',
+                                    syncContactList.length,
+                                    (
+                                      Object.keys(this.contactRawPayloadDict).length
+                                      + Object.keys(this.roomRawPayloadDict).length
+                                    ),
+                  )
+
+      syncContactList
+      .forEach(syncContact => {
+        if (syncContact.continue === PadchatContactRawPayloadContinueType.Continue) {
+          if (syncContact.msg_type === PadchatContactRawPayloadMsgType.Contact) {
+            console.log('syncContact:', syncContact.user_name, syncContact.nick_name)
+            if (/@chatroom$/.test(syncContact.user_name)) {
+              this.roomRawPayloadDict[syncContact.user_name] = syncContact as PadchatRoomRawPayload
+              // syncRoomMap.set(syncContact.user_name, syncContact as PadchatRoomRawPayload)
+            } else if (syncContact.user_name) {
+              this.contactRawPayloadDict[syncContact.user_name] = syncContact as PadchatContactRawPayload
+              // syncContactMap.set(syncContact.user_name, syncContact as PadchatContactRawPayload)
+            } else {
+              throw new Error('no user_name')
+            }
+          }
+        } else {
+          log.info('PuppetPadchat', 'syncContactsAndRooms() sync contact done!')
+          cont = false
+          return
+        }
+      })
+
+      log.verbose('PuppetPadchat', `syncContactsAndRooms(), continue to load via WXSyncContact ...`)
+    }
+
+    // contactIdList = contactIdList.filter(id => !!id)
+    // roomIdList = roomIdList.filter(id => !!id)
+    // if (contactIdList.length < 0) {
+    //   throw Error('getContactIdList error! canot get contactIdList')
+    // }
+
+    // if (roomIdList.length < 0) {
+    //   throw Error('getRoomIdList error! canot get getRoomIdList')
+    // }
+    // return {
+    //   contactIdList: contactIdList,
+    //   roomIdList: roomIdList,
+    // }
+  }
 
   /**
    * Generate 62 data
@@ -358,6 +513,7 @@ export class Bridge extends EventEmitter {
       throw Error('WXGetLoginToken error! canot get result from websocket server')
     }
     this.autoData.token = result.token
+
     return result
   }
 
@@ -439,9 +595,13 @@ export class Bridge extends EventEmitter {
    */
   private async WXGetContact(id: string): Promise<PadchatContactRawPayload | PadchatRoomRawPayload> {
     const result = await this.sendToWebSocket('WXGetContact', [id])
+
     if (!result) {
       throw Error('PuppetPadchatBridge, WXGetContact, cannot get result from websocket server!')
     }
+
+    log.silly('PuppetPadchatBridge', 'WXGetContact(%s) result: %s', id, JSON.stringify(result))
+
     if (!result.user_name) {
       log.warn('PuppetPadchatBridge', 'WXGetContact cannot get user_name, id: %s', id)
     }
@@ -484,6 +644,9 @@ export class Bridge extends EventEmitter {
     if (!result) {
       throw Error('PuppetPadchatBridge, WXGetChatRoomMember, cannot get result from websocket server!')
     }
+
+    log.silly('PuppetPadchatBridge', 'WXGetChatRoomMember() result: %s', JSON.stringify(result))
+
     if (!result.user_name || !result.member) {
       log.warn('PuppetPadchatBridge', 'WXGetChatRoomMember cannot get user_name or member! user_name: %s, member: %s', id, result.member)
     }
@@ -540,7 +703,7 @@ export class Bridge extends EventEmitter {
     const result = await this.WXCheckQRCode()
 
     if (result && result.status === 0) {
-      log.info('PuppetPadchatBridge', 'checkQrcode: Please scan the Qrcode!')
+      log.verbose('PuppetPadchatBridge', 'checkQrcode: Please scan the Qrcode!')
 
       setTimeout(() => {
         this.checkQrcode()
@@ -679,6 +842,84 @@ export class Bridge extends EventEmitter {
     const result = await this.sendToWebSocket('WXAcceptUser', [stranger, ticket])
     log.silly('PuppetPadchatBridge', 'WXAcceptUser result: %s', JSON.stringify(result))
     return result
+  }
+
+  public checkLogin() {
+    log.silly('PuppetPadchat', `checkLogin`)
+
+    // if (!this.bridge) {
+    //   throw Error('cannot init bridge successfully!')
+    // }
+
+    if (this.loginSucceed === true) {
+      log.silly('PuppetPadchat', `checkLogin, login successfully`)
+      this.postLogin()
+      return
+    } else {
+      log.silly('PuppetPadchat', `checkLogin, not login yet`)
+      setTimeout(() => {
+        this.checkLogin()
+      }, 2000)
+      return
+    }
+  }
+
+  public async postLogin() {
+    // if (!(this.bridge)) {
+    //   throw Error('cannot init bridge successfully!')
+    // }
+
+    log.verbose('PuppetPadchatBridge', 'loginSucceed: Set heatbeat to websocket server')
+    await this.WXHeartBeat()
+
+    log.verbose('PuppetPadchatBridge', 'loginSucceed: Set token to websocket server')
+    this.autoData.token = (await this.WXGetLoginToken()).token
+
+    // Check 62 data. If has then use, or save 62 data here.
+    if (!this.autoData.wxData || this.autoData.user_name !== this.username) {
+      log.info('PuppetPadchatBridge', 'loginSucceed: No 62 data, or wrong 62 data')
+      this.autoData.user_name = this.username
+      this.autoData.nick_name = this.nickname
+      this.autoData.wxData    = (await this.WXGenerateWxDat()).data
+    }
+
+    setTimeout(() => {
+      this.saveConfig()
+    }, 2 * 1000)
+
+    return
+
+    // Think more, whether it is need to syncContact
+    // log.verbose('PuppetPadchatBridge', 'loginSucceed: SyncContact')
+    // this.WXSyncContact()
+  }
+
+  public async saveConfig() {
+    log.verbose('PuppetPadchatBridge', 'saveConfig, autoData: %s', JSON.stringify(this.autoData))
+    if (this.autoData.wxData && this.autoData.token && this.autoData.user_name) {
+      log.verbose('PuppetPadchatBridge', 'saveConfig: begin to save data to file')
+      await this.options.memory.set('autoData', this.autoData)
+      await this.options.memory.save()
+
+      log.verbose('PuppetPadchatBridge', 'loginSucceed: Send ding to the bot, username: %s', this.username)
+      await this.WXSendMsg(this.autoData.user_name, 'ding')
+
+      const userId = this.autoData.user_name // Puppet userId different with WebSocket userId
+      // const user = this.Contact.load(this.id)
+      // await user.ready()
+      this.emit('login', userId)
+
+      log.verbose('PuppetPadchatBridge', 'loginSucceed: Send login to the bot, user_name: %s', this.username)
+      await this.WXSendMsg(this.autoData.user_name, 'Bot on line!')
+
+      return
+    } else {
+      log.verbose('PuppetPadchatBridge', 'no enough data, save again, %s', JSON.stringify(this.autoData))
+      setTimeout( () => {
+        this.saveConfig()
+      }, 2 * 1000)
+      return
+    }
   }
 
 }

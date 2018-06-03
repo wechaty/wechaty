@@ -1,8 +1,8 @@
 import PuppetPadchat        from './puppet-padchat'
-import Firer                from './firer'
+// import Firer                from './firer'
 import {
   PadchatMessageRawPayload,
-  PadchatMessageType,
+  // PadchatMessageType,
 }                           from './padchat-schemas'
 import {
   log,
@@ -17,68 +17,63 @@ async function onMessage(
   this       : PuppetPadchat,
   rawPayload : PadchatMessageRawPayload,
 ): Promise<void> {
-  let msg = this.Message.create(
-    rawPayload.msg_id,
-    await this.messagePayload(rawPayload.msg_id),
-  )
 
   try {
-    await msg.ready()
-
     /**
      * Fire Events if match message type & content
      */
-    switch (rawPayload.sub_type) {
+    // switch (rawPayload.sub_type) {
 
-      // case PadchatMessageType.VERIFYMSG:
-      //   Firer.checkFriendRequest.call(this, msg)
-      //   break
+    //   // case PadchatMessageType.VERIFYMSG:
+    //   //   Firer.checkFriendRequest.call(this, msg)
+    //   //   break
 
-      case PadchatMessageType.SYS:
-        if (msg.room()) {
-          const joinResult  = await Firer.checkRoomJoin.call(this  , msg)
-          const leaveResult = await Firer.checkRoomLeave.call(this , msg)
-          const topicRestul = await Firer.checkRoomTopic.call(this , msg)
+    //   case PadchatMessageType.SYS:
+    //     // if (msg.room()) {
+    //     if (/@chatroom/.test(rawPayload.from_user)) {
+    //       const joinResult  = await Firer.checkRoomJoin(rawPayload)
+    //       const leaveResult = await Firer.checkRoomLeave(rawPayload)
+    //       const topicRestul = await Firer.checkRoomTopic(rawPayload)
 
-          if (!joinResult && !leaveResult && !topicRestul) {
-            log.warn('PuppetPadchatEvent', `checkRoomSystem message: <${msg.text()}> not found`)
-          }
-        }
-        // else {
-        //   Firer.checkFriendConfirm.call(this, msg)
-        // }
-        break
-    }
+    //       if (!joinResult && !leaveResult && !topicRestul) {
+    //         log.warn('PuppetPadchatEvent', `checkRoomSystem message: <${msg.text()}> not found`)
+    //       }
+    //     }
+    //     // else {
+    //     //   Firer.checkFriendConfirm.call(this, msg)
+    //     // }
+    //     break
+    // }
 
     /**
      * Check Type for special Message
      * reload if needed
      */
 
-    switch (rawPayload.sub_type) {
-      case PadchatMessageType.EMOTICON:
-      case PadchatMessageType.IMAGE:
-      case PadchatMessageType.VIDEO:
-      case PadchatMessageType.VOICE:
-      case PadchatMessageType.MICROVIDEO:
-      case PadchatMessageType.APP:
-        log.verbose('PuppetPadchatEvent', 'onMessage() EMOTICON/IMAGE/VIDEO/VOICE/MICROVIDEO message')
-        msg = this.Message.create(
-          rawPayload.msg_id,
-          await this.messagePayload(rawPayload.msg_id),
-        )
-        break
+    // switch (rawPayload.sub_type) {
+    //   case PadchatMessageType.EMOTICON:
+    //   case PadchatMessageType.IMAGE:
+    //   case PadchatMessageType.VIDEO:
+    //   case PadchatMessageType.VOICE:
+    //   case PadchatMessageType.MICROVIDEO:
+    //   case PadchatMessageType.APP:
+    //     log.verbose('PuppetPadchatEvent', 'onMessage() EMOTICON/IMAGE/VIDEO/VOICE/MICROVIDEO message')
+    //     msg = this.Message.create(
+    //       rawPayload.msg_id,
+    //       await this.messagePayload(rawPayload.msg_id),
+    //     )
+    //     break
 
-      case PadchatMessageType.TEXT:
-        log.verbose('PuppetPadchatEvent', 'onMessage() (TEXT&LOCATION) message')
-        msg = this.Message.create(
-          rawPayload.msg_id,
-          await this.messagePayload(rawPayload.msg_id),
-        )
-    }
+    //   case PadchatMessageType.TEXT:
+    //     log.verbose('PuppetPadchatEvent', 'onMessage() (TEXT&LOCATION) message')
+    //     msg = this.Message.create(
+    //       rawPayload.msg_id,
+    //       await this.messagePayload(rawPayload.msg_id),
+    //     )
+    // }
 
-    await msg.ready()
-    this.emit('message', msg.id)
+    // await msg.ready()
+    this.emit('message', rawPayload.msg_id)
 
   } catch (e) {
     log.error('PuppetPadchatEvent', 'onMessage() exception: %s', e.stack)

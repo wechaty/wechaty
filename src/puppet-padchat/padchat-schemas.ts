@@ -17,6 +17,16 @@
  *
  */
 
+export enum PadchatContactRawPayloadMsgType {
+   Unknown = 0,
+   Contact = 2,
+}
+
+export enum PadchatContactRawPayloadContinueType {
+  Unknown  = 0,
+  Continue = 1,
+}
+
 /**
  * There are two functions to generate PadchatContactRawPayload
  * - WXSyncContact (only when msg_type = 2)
@@ -24,7 +34,6 @@
  * @interface PadchatContactRawPayload
  */
 export interface PadchatContactRawPayload {
-
   /**
    * Sometimes, WXSyncContact can only get the following result:
    * {
@@ -46,8 +55,8 @@ export interface PadchatContactRawPayload {
    * message: string, // '',
    * ticket: string, // '',
    */
-  msg_type? : number,
-  continue? : number,
+  msg_type  : PadchatContactRawPayloadMsgType,
+  continue? : PadchatContactRawPayloadContinueType,
   ticket?   : string,
 
   big_head          : string,      // "http://wx.qlogo.cn/mmhead/ver_1/xfCMmibHH74xGLoyeDFJadrZXX3eOEznPefiaCa3iczxZGMwPtDuSbRQKx3Xdm18un303mf0NFia3USY2nO2VEYILw/0",
