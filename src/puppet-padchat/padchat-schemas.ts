@@ -16,24 +16,73 @@
  *   limitations under the License.
  *
  */
-
-export enum PadchatContactRawPayloadMsgType {
-   Unknown = 0,
-   Contact = 2,
+// 1 when use WXSyncContact, 0 when use WXGetContact
+export enum PadchatContactRoomStatus {
+  Get  = 0,
+  Sync = 1,
 }
 
-export enum PadchatContactRawPayloadContinueType {
-  Unknown  = 0,
-  Continue = 1,
+export enum PadchatRoomMemberStatus {
+  Todo,
+}
+
+export enum PadchatMessageMsgType {
+  Five = 5,
+}
+
+export enum PadchatMessageStatus {
+  One = 1,
+}
+
+export enum PadchatStatus {
+  One  = 1,
+}
+
+export enum PadchatContactMsgType {
+  Contact = 2,
+}
+
+export enum PadchatMsgType {
+  N11_2048  = 2048,  // 2048   = 1 << 11
+  N15_32768 = 32768, // 32768  = 1 << 15
+}
+
+export enum PadchatContinue {
+  Stop = 0, // Load Ready
+  Go   = 1, // NOT Load Ready
+}
+
+// 2 Female, 1 Male, 0 Not Known
+export enum PadchatContactGender {
+  Unknown = 0,
+  Male    = 1,
+  Female ,
+}
+
+export enum PadchatPayloadType {
+  Logout = -1, // -1 when logout
+}
+
+export interface PadchatPayload {
+  msg_type? : PadchatMsgType,
+  continue? : PadchatContinue,
+  status?   : PadchatStatus,
+
+  type    : PadchatPayloadType,   // -1 when logout
+  msg?    : string,               // '掉线了' when logout
+  apiName : string,               // raw function name
+  data    : string,
+  msgId   : string,
+  userId  : string,               // token
 }
 
 /**
  * There are two functions to generate PadchatContactRawPayload
  * - WXSyncContact (only when msg_type = 2)
  * - WXGetContact
- * @interface PadchatContactRawPayload
+ * @interface PadchatContactPayload
  */
-export interface PadchatContactRawPayload {
+export interface PadchatContactPayload {
   /**
    * Sometimes, WXSyncContact can only get the following result:
    * {
@@ -55,9 +104,9 @@ export interface PadchatContactRawPayload {
    * message: string, // '',
    * ticket: string, // '',
    */
-  msg_type  : PadchatContactRawPayloadMsgType,
-  continue? : PadchatContactRawPayloadContinueType,
-  ticket?   : string,
+  msg_type : PadchatContactMsgType,
+  continue : PadchatContinue,
+  ticket?  : string,
 
   big_head          : string,      // "http://wx.qlogo.cn/mmhead/ver_1/xfCMmibHH74xGLoyeDFJadrZXX3eOEznPefiaCa3iczxZGMwPtDuSbRQKx3Xdm18un303mf0NFia3USY2nO2VEYILw/0",
   city              : string,      // 'Haidian'
@@ -70,10 +119,10 @@ export interface PadchatContactRawPayload {
   remark            : string,      // "女儿",
   remark_py_initial : string,      // 'lijiaruibeizhu',
   remark_quan_pin   : string,      // 'LJRBZ',
-  sex               : 0 | 1 | 2,   // 2 Female, 1 Male, 0 Not Known
+  sex               : PadchatContactGender,
   signature         : string,      // "且行且珍惜",
   small_head        : string,      // "http://wx.qlogo.cn/mmhead/ver_1/xfCMmibHH74xGLoyeDFJadrZXX3eOEznPefiaCa3iczxZGMwPtDuSbRQKx3Xdm18un303mf0NFia3USY2nO2VEYILw/132",
-  status            : number,      // 1 when use WXSyncContact, 0 when use WXGetContact
+  status            : PadchatContactRoomStatus,      // 1 when use WXSyncContact, 0 when use WXGetContact
   stranger          : string,      // "v1_0468f2cd3f0efe7ca2589d57c3f9ba952a3789e41b6e78ee00ed53d1e6096b88@stranger",
   user_name         : string,      // "mengjunjun001" | "qq512436430" Unique name
 
@@ -88,7 +137,7 @@ export interface PadchatContactRawPayload {
 // }
 
 // msg_type = 5
-export interface PadchatMessageRawPayload {
+export interface PadchatMessagePayload {
   // tslint:disable-next-line:max-line-length
   // Private Voice Message:   "<msg><voicemsg+endflag=\"1\"+length=\"5095\"+voicelength=\"2700\"+clientmsgid=\"49c81578fd517c7679f143e8cf0be116wxid_zj2cahpwzgie12104_1526984920\"+fromusername=\"qq512436430\"+downcount=\"0\"+cancelflag=\"0\"+voiceformat=\"4\"+forwardflag=\"0\"+bufid=\"434549088970015139\"+/></msg>"
   // tslint:disable-next-line:max-line-length
@@ -104,7 +153,7 @@ export interface PadchatMessageRawPayload {
 
   content:      string,
   data?:        string,     // Stream Message has data, Text Message don't need data
-  continue:     number,     // 1
+  continue:     PadchatContinue,     // 1
 
   // Voice Message:           "李佳芮+:+[语音]"
   // Change Room Topic:       ""
@@ -135,8 +184,8 @@ export interface PadchatMessageRawPayload {
   // Private Text:            "<msgsource+/>"
   // Room Text:               "<msgsource><silence>0</silence><membercount>4</membercount></msgsource>"
   msg_source:   string,
-  msg_type:     number        // 5
-  status:       number,       // 1
+  msg_type:     PadchatMessageMsgType        // 5
+  status:       PadchatMessageStatus,       // 1
   sub_type:     PadchatMessageType,
   timestamp:    number,
   to_user:      string,            // Contact['user_name']  "wxid_zj2cahpwzgie12"
@@ -225,24 +274,24 @@ export interface PadchatMessageRawPayload {
  * @property {number} RECALLED            - MsgType.RECALLED            (10002) for RECALLED
  */
 export enum PadchatMessageType {
-  TEXT                = 1,
-  IMAGE               = 3,
-  VOICE               = 34,
-  VERIFYMSG           = 37,
-  POSSIBLEFRIEND_MSG  = 40,
-  SHARECARD           = 42,
-  VIDEO               = 43,
-  EMOTICON            = 47,
-  LOCATION            = 48,
-  APP                 = 49,
-  VOIPMSG             = 50,
-  STATUSNOTIFY        = 51,
-  VOIPNOTIFY          = 52,
-  VOIPINVITE          = 53,
-  MICROVIDEO          = 62,
-  SYSNOTICE           = 9999,
-  SYS                 = 10000,
-  RECALLED            = 10002,
+  Text              = 1,
+  Image             = 3,
+  Voice             = 34,
+  VerifyMsg         = 37,
+  PossibleFriendMsg = 40,
+  ShareCard         = 42,
+  Video             = 43,
+  Emoticon          = 47,
+  Location          = 48,
+  App               = 49,
+  VoipMsg           = 50,
+  StatusNotify      = 51,
+  VoipNotify        = 52,
+  VoipInvite        = 53,
+  MicroVideo        = 62,
+  SysNotice         = 9999,
+  Sys               = 10000,
+  Recalled          = 10002,
 }
 
 /**
@@ -265,7 +314,7 @@ export enum PadchatMessageType {
 //   Attachment = 4,
 // }
 
-export interface PadchatRoomRawMember {
+export interface PadchatRoomMember {
   big_head           : string,   // "http://wx.qlogo.cn/mmhead/ver_1/DpS0ZssJ5s8tEpSr9JuPTRxEUrCK0USrZcR3PjOMfUKDwpnZLxWXlD4Q38bJpcXBtwXWwevsul1lJqwsQzwItQ/0",
   chatroom_nick_name : string,   // "李佳芮-群里设置的备注", roomAlias
   invited_by         : string,   // "wxid_7708837087612",
@@ -280,9 +329,9 @@ export interface PadchatRoomRawMember {
  * There are two functions to generate PadchatContactRawPayload
  * - WXSyncContact (only when msg_type = 2)
  * - WXGetContact
- * @interface PadchatRoomRawPayload
+ * @interface PadchatRoomPayload
  */
-export interface PadchatRoomRawPayload {
+export interface PadchatRoomPayload {
   /**
    * Sometimes, WXSyncContact can only get the following result:
    * {
@@ -309,7 +358,7 @@ export interface PadchatRoomRawPayload {
   big_head:         string,   // "",
   chatroom_id:      number,   // 700000154 in WXGetContact, 0 in WXSyncContact
   chatroom_owner:   string,   // "qq512436430",
-  continue?:         number,   // 1,
+  continue?:        PadchatContinue,   // 1,
   max_member_count: number,   // 500,
   member:           string[], // JSON.parse(decodeURIComponent(member)) | "[\"qq512436430\",\"mengjunjun001\",\"wxid_zj2cahpwzgie12\",\"wxid_7708837087612\"]\n",
   member_count:     number,   // 4,
@@ -317,17 +366,17 @@ export interface PadchatRoomRawPayload {
   py_initial:       string,   // 'FACENET',
   quan_pin:         string,   // 'facenet',
   small_head:       string,   // "http://wx.qlogo.cn/mmcrhead/hqDXUD6csU99edRCJy18nZyEicsEdXGu2IsEzxJfgwM13N7PB88ibWk8oDL6ce7pHzc77WicTzKzR0ewkc9eL0jLQNypIfGmdPP/0",
-  status:           number,   // 1 when use WXSyncContact, 0 when use WXGetContact
+  status:           PadchatContactRoomStatus, // 1 | 0,   // 1 when use WXSyncContact, 0 when use WXGetContact
   uin:              number,   // 324216852,
   user_name:        string,   // room-id "6350854677@chatroom"
 }
 
-export interface PadchatRoomMemberRawPayload {
+export interface PadchatRoomMemberPayload {
   chatroom_id : number,                   // not know: 700000156,
   count       : number,                   // 4,
   // tslint:disable-next-line:max-line-length
-  member      : PadchatRoomRawMember[],   // JSON.parse(decodeURIComponent(member)): PadchatRoomRawMember[] |  '[{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/DpS0ZssJ5s8tEpSr9JuPTRxEUrCK0USrZcR3PjOMfUKDwpnZLxWXlD4Q38bJpcXBtwXWwevsul1lJqwsQzwItQ/0","chatroom_nick_name":"","invited_by":"wxid_7708837087612","nick_name":"李佳芮","small_head":"http://wx.qlogo.cn/mmhead/ver_1/DpS0ZssJ5s8tEpSr9JuPTRxEUrCK0USrZcR3PjOMfUKDwpnZLxWXlD4Q38bJpcXBtwXWwevsul1lJqwsQzwItQ/132","user_name":"qq512436430"},{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/kcBj3gSibfFd2I9vQ8PBFyQ77cpPIfqkFlpTdkFZzBicMT6P567yj9IO6xG68WsibhqdPuG82tjXsveFATSDiaXRjw/0","chatroom_nick_name":"","invited_by":"wxid_7708837087612","nick_name":"梦君君","small_head":"http://wx.qlogo.cn/mmhead/ver_1/kcBj3gSibfFd2I9vQ8PBFyQ77cpPIfqkFlpTdkFZzBicMT6P567yj9IO6xG68WsibhqdPuG82tjXsveFATSDiaXRjw/132","user_name":"mengjunjun001"},{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/3CsKibSktDV05eReoAicV0P8yfmuHSowfXAMvRuU7HEy8wMcQ2eibcaO1ccS95PskZchEWqZibeiap6Gpb9zqJB1WmNc6EdD6nzQiblSx7dC1eGtA/0","chatroom_nick_name":"","invited_by":"wxid_7708837087612","nick_name":"苏轼","small_head":"http://wx.qlogo.cn/mmhead/ver_1/3CsKibSktDV05eReoAicV0P8yfmuHSowfXAMvRuU7HEy8wMcQ2eibcaO1ccS95PskZchEWqZibeiap6Gpb9zqJB1WmNc6EdD6nzQiblSx7dC1eGtA/132","user_name":"wxid_zj2cahpwzgie12"},{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/piaHuicak41b6ibmcEVxoWKnnhgGDG5EbaD0hibwkrRvKeDs3gs7XQrkym3Q5MlUeSKY8vw2FRVVstialggUxf2zic2O8CvaEsicSJcghf41nibA940/0","chatroom_nick_name":"","invited_by":"wxid_zj2cahpwzgie12","nick_name":"王宁","small_head":"http://wx.qlogo.cn/mmhead/ver_1/piaHuicak41b6ibmcEVxoWKnnhgGDG5EbaD0hibwkrRvKeDs3gs7XQrkym3Q5MlUeSKY8vw2FRVVstialggUxf2zic2O8CvaEsicSJcghf41nibA940/132","user_name":"wxid_7708837087612"}]\n',
+  member      : PadchatRoomMember[],   // JSON.parse(decodeURIComponent(member)): PadchatRoomRawMember[] |  '[{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/DpS0ZssJ5s8tEpSr9JuPTRxEUrCK0USrZcR3PjOMfUKDwpnZLxWXlD4Q38bJpcXBtwXWwevsul1lJqwsQzwItQ/0","chatroom_nick_name":"","invited_by":"wxid_7708837087612","nick_name":"李佳芮","small_head":"http://wx.qlogo.cn/mmhead/ver_1/DpS0ZssJ5s8tEpSr9JuPTRxEUrCK0USrZcR3PjOMfUKDwpnZLxWXlD4Q38bJpcXBtwXWwevsul1lJqwsQzwItQ/132","user_name":"qq512436430"},{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/kcBj3gSibfFd2I9vQ8PBFyQ77cpPIfqkFlpTdkFZzBicMT6P567yj9IO6xG68WsibhqdPuG82tjXsveFATSDiaXRjw/0","chatroom_nick_name":"","invited_by":"wxid_7708837087612","nick_name":"梦君君","small_head":"http://wx.qlogo.cn/mmhead/ver_1/kcBj3gSibfFd2I9vQ8PBFyQ77cpPIfqkFlpTdkFZzBicMT6P567yj9IO6xG68WsibhqdPuG82tjXsveFATSDiaXRjw/132","user_name":"mengjunjun001"},{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/3CsKibSktDV05eReoAicV0P8yfmuHSowfXAMvRuU7HEy8wMcQ2eibcaO1ccS95PskZchEWqZibeiap6Gpb9zqJB1WmNc6EdD6nzQiblSx7dC1eGtA/0","chatroom_nick_name":"","invited_by":"wxid_7708837087612","nick_name":"苏轼","small_head":"http://wx.qlogo.cn/mmhead/ver_1/3CsKibSktDV05eReoAicV0P8yfmuHSowfXAMvRuU7HEy8wMcQ2eibcaO1ccS95PskZchEWqZibeiap6Gpb9zqJB1WmNc6EdD6nzQiblSx7dC1eGtA/132","user_name":"wxid_zj2cahpwzgie12"},{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/piaHuicak41b6ibmcEVxoWKnnhgGDG5EbaD0hibwkrRvKeDs3gs7XQrkym3Q5MlUeSKY8vw2FRVVstialggUxf2zic2O8CvaEsicSJcghf41nibA940/0","chatroom_nick_name":"","invited_by":"wxid_zj2cahpwzgie12","nick_name":"王宁","small_head":"http://wx.qlogo.cn/mmhead/ver_1/piaHuicak41b6ibmcEVxoWKnnhgGDG5EbaD0hibwkrRvKeDs3gs7XQrkym3Q5MlUeSKY8vw2FRVVstialggUxf2zic2O8CvaEsicSJcghf41nibA940/132","user_name":"wxid_7708837087612"}]\n',
   message     : string,                   // '',
-  status      : number,                   // 0,
+  status      : PadchatRoomMemberStatus,  // number,                       // 0,
   user_name   : string,                   // '6350854677@chatroom'
 }

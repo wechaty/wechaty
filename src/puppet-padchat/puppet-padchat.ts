@@ -53,42 +53,38 @@ import {
 }                       from '../config'
 
 import {
+  WECHATY_PUPPET_PADCHAT_TOKEN,
+  WECHATY_PUPPET_PADCHAT_ENDPOINT,
+}                                   from './config'
+
+import {
   Bridge,
   resolverDict,
   // AutoDataType,
 }                       from './bridge'
 
 import {
-  PadchatContactRawPayload,
-  PadchatMessageRawPayload,
+  PadchatPayload,
+  PadchatContactPayload,
+  PadchatMessagePayload,
+  PadchatRoomPayload,
+
   PadchatMessageType,
-  PadchatRoomRawPayload,
+  PadchatContinue,
+  PadchatMsgType,
+  PadchatStatus,
   // PadchatRoomRawMember,
-}                       from './padchat-schemas'
+}                           from './padchat-schemas'
 
 export type PuppetFoodType = 'scan' | 'ding'
 export type ScanFoodType   = 'scan' | 'login' | 'logout'
 
-export interface RawWebSocketDataType {
-  type?:   number, // -1 when logout
-  msg?:    string, // '掉线了' when logout
-  apiName: string, // raw function name
-  data:    string,
-  msgId:   string,
-  userId:  string, // token
-}
-
-import * as WebSocket from 'ws'
-
-// Mock userid
-const TOKEN = 'padchattest'
-
 export class PuppetPadchat extends Puppet {
 
-  public readonly cachePadchatContactRawPayload       : LRU.Cache<string, PadchatContactRawPayload>
+  public readonly cachePadchatContactPayload       : LRU.Cache<string, PadchatContactPayload>
   // public readonly cachePadchatFriendRequestRawPayload : LRU.Cache<string, FriendRequestRawPayload>
-  public readonly cachePadchatMessageRawPayload       : LRU.Cache<string, PadchatMessageRawPayload>
-  public readonly cachePadchatRoomRawPayload          : LRU.Cache<string, PadchatRoomRawPayload>
+  public readonly cachePadchatMessagePayload       : LRU.Cache<string, PadchatMessagePayload>
+  public readonly cachePadchatRoomPayload          : LRU.Cache<string, PadchatRoomPayload>
 
   public bridge:  Bridge
   // public botWs:   WebSocket
@@ -107,14 +103,15 @@ export class PuppetPadchat extends Puppet {
       maxAge: 1000 * 60 * 60,
     }
 
-    this.cachePadchatContactRawPayload       = new LRU<string, PadchatContactRawPayload>(lruOptions)
+    this.cachePadchatContactPayload       = new LRU<string, PadchatContactPayload>(lruOptions)
     // this.cacheFriendRequestPayload = new LRU<string, FriendRequestPayload>(lruOptions)
-    this.cachePadchatMessageRawPayload       = new LRU<string, PadchatMessageRawPayload>(lruOptions)
-    this.cachePadchatRoomRawPayload          = new LRU<string, PadchatRoomRawPayload>(lruOptions)
+    this.cachePadchatMessagePayload       = new LRU<string, PadchatMessagePayload>(lruOptions)
+    this.cachePadchatRoomPayload          = new LRU<string, PadchatRoomPayload>(lruOptions)
 
     this.bridge = new Bridge({
       memory   : this.options.memory,
-      userId   : TOKEN,
+      token   : WECHATY_PUPPET_PADCHAT_TOKEN,
+      endpoint: WECHATY_PUPPET_PADCHAT_ENDPOINT,
       autoData : {},
       // profile:  profile, // should be profile in the future
     })
@@ -210,7 +207,10 @@ export class PuppetPadchat extends Puppet {
       this.login(userId)
       this.bridge.syncContactsAndRooms()
     })
-    this.bridge.on('ws', data => this.wsOnMessage(data))
+    this.bridge.on('ws', (data: string) => {
+      const payload: PadchatPayload = JSON.parse(data)
+      this.wsOnMessage(payload)
+    })
 
     // this.bridge.on('logout'   , Event.onLogout.bind(this))
     // this.bridge.on('message'  , Event.onMessage.bind(this))
@@ -222,18 +222,24 @@ export class PuppetPadchat extends Puppet {
     await this.bridge.start()
   }
 
-  private async wsOnMessage(data: WebSocket.Data) {
-    if (typeof data !== 'string') {
-      const e = new Error('Ipad Websocket return wrong data!')
-      log.warn('PuppetPadchat', e.message)
-      throw e
-    }
+  private async wsOnMessage(payload: PadchatPayload) {
+    // if (typeof data !== 'string') {
+    //   const e = new Error('Ipad Websocket return wrong data!')
+    //   log.warn('PuppetPadchat', e.message)
+    //   throw e
+    // }
+    // const payload: PadchatPayload = JSON.parse(data)
 
-    const rawWebSocketData = JSON.parse(data) as RawWebSocketDataType
-    log.silly('PuppetPadchat', 'WebSocket Server result: %s', JSON.stringify(rawWebSocketData))
+    if (  payload.continue   === PadchatContinue.Stop
+        && payload.msg_type  === PadchatMsgType.N15_32768
+        && payload.status    === PadchatStatus.One
+    ) {
+      // "continue":0,"msg_type":32768,"status":1,"
+    }
+    log.silly('PuppetPadchat', 'WebSocket Server result: %s', JSON.stringify(payload))
 
     // Data From Tencent
-    if (!rawWebSocketData.msgId) {
+    if (!payload.msgId) {
       // rawWebSocketData:
       // {
       //   "apiName": "",
@@ -241,12 +247,12 @@ export class PuppetPadchat extends Puppet {
       //   "msgId": "",
       //   "userId": "test"
       // }
-      if (!rawWebSocketData.data && !rawWebSocketData.apiName) {
+      if (!payload.data && !payload.apiName) {
         log.silly('PuppetPadchat', 'WebSocket Server get empty message data form Tencent server')
         return
       }
 
-      const msgRawPayloadList: PadchatMessageRawPayload[] = JSON.parse(decodeURIComponent(rawWebSocketData.data))
+      const msgRawPayloadList: PadchatMessagePayload[] = JSON.parse(decodeURIComponent(payload.data))
 
       msgRawPayloadList.forEach(async (msgRawPayload) => {
         log.silly('PuppetPadchat', 'WebSocket Server rawData result: %s', JSON.stringify(msgRawPayload))
@@ -263,7 +269,7 @@ export class PuppetPadchat extends Puppet {
         // )
         // await msg.ready()
 
-        this.cachePadchatMessageRawPayload.set(msgRawPayload.msg_id, msgRawPayload)
+        this.cachePadchatMessagePayload.set(msgRawPayload.msg_id, msgRawPayload)
 
         this.emit('message', msgRawPayload.msg_id)
       })
@@ -271,20 +277,20 @@ export class PuppetPadchat extends Puppet {
     // Data Return From WebSocket Client
     } else {
       // check logout:
-      if (rawWebSocketData.type === -1) {
+      if (payload.type === -1) {
         // this.emit('logout', this.selfId())
         this.logout() // no need to await
       }
 
-      log.silly('PuppetPadchat', 'return apiName: %s, msgId: %s', rawWebSocketData.apiName, rawWebSocketData.msgId)
-      const msgId = rawWebSocketData.msgId
+      log.silly('PuppetPadchat', 'return apiName: %s, msgId: %s', payload.apiName, payload.msgId)
+      const msgId = payload.msgId
 
       let rawData: Object
-      if (!rawWebSocketData.data) {
-        log.silly('PuppetPadchat', 'WebSocket Server get empty message data form API call: %s', rawWebSocketData.apiName)
+      if (!payload.data) {
+        log.silly('PuppetPadchat', 'WebSocket Server get empty message data form API call: %s', payload.apiName)
         rawData = {}
       } else {
-        rawData = JSON.parse(decodeURIComponent(rawWebSocketData.data))
+        rawData = JSON.parse(decodeURIComponent(payload.data))
       }
 
       // rawWebSocketData:
@@ -447,16 +453,25 @@ export class PuppetPadchat extends Puppet {
     return file
   }
 
-  public async contactRawPayload(id: string): Promise<PadchatContactRawPayload> {
+  public async contactRawPayload(id: string): Promise<PadchatContactPayload> {
     log.verbose('PuppetPadchat', 'contactRawPayload(%s)', id)
 
     const rawPayload = await Misc.retry(async (retry, attempt) => {
       log.verbose('PuppetPadchat', 'contactRawPayload(%s) retry() attempt=%d', id, attempt)
-      const tryRawPayload = this.bridge.contactRawPayloadDict[id] // await this.bridge.WXGetContactPayload(id)
+
+      let tryRawPayload = this.bridge.cachePadchatContactPayload[id]
+      if (!tryRawPayload) {
+        tryRawPayload =  await this.bridge.WXGetContactPayload(id)
+        if (tryRawPayload) {
+          this.bridge.cachePadchatContactPayload[id] = tryRawPayload
+        }
+      }
+
       if (tryRawPayload) {
         return tryRawPayload
+      } else {
+        return retry(new Error('tryRawPayload empty'))
       }
-      return retry(new Error('tryRawPayload empty'))
     })
 
     if (!rawPayload) {
@@ -466,7 +481,7 @@ export class PuppetPadchat extends Puppet {
     return rawPayload
   }
 
-  public async contactRawPayloadParser(rawPayload: PadchatContactRawPayload): Promise<ContactPayload> {
+  public async contactRawPayloadParser(rawPayload: PadchatContactPayload): Promise<ContactPayload> {
     log.verbose('PuppetPadchat', 'contactRawPayloadParser(%s)', rawPayload)
 
     if (!rawPayload.user_name) {
@@ -526,7 +541,7 @@ export class PuppetPadchat extends Puppet {
     return file
   }
 
-  public async messageRawPayload(id: string): Promise<PadchatMessageRawPayload> {
+  public async messageRawPayload(id: string): Promise<PadchatMessagePayload> {
     // throw Error('should not call messageRawPayload: ' + id)
 
     /**
@@ -538,7 +553,7 @@ export class PuppetPadchat extends Puppet {
     //   data: 'xxx',
     // } as any)
 
-    const rawPayload = this.cachePadchatMessageRawPayload.get(id)
+    const rawPayload = this.cachePadchatMessagePayload.get(id)
 
     if (!rawPayload) {
       throw new Error('no rawPayload')
@@ -569,30 +584,36 @@ export class PuppetPadchat extends Puppet {
     // return rawPayload
   }
 
-  public async messageRawPayloadParser(rawPayload: PadchatMessageRawPayload): Promise<MessagePayload> {
-    let type = MessageType.Unknown
+  public async messageRawPayloadParser(rawPayload: PadchatMessagePayload): Promise<MessagePayload> {
+    log.warn('PuppetPadChat', 'messageRawPayloadParser(rawPayload.msg_id=%s)', rawPayload.msg_id)
+
+    let type: MessageType
 
     switch (rawPayload.sub_type) {
-      case PadchatMessageType.TEXT:
+      case PadchatMessageType.Text:
         type = MessageType.Text
         break
-      case PadchatMessageType.IMAGE:
+      case PadchatMessageType.Image:
         type = MessageType.Image
         break
-      case PadchatMessageType.VOICE:
+      case PadchatMessageType.Voice:
         type = MessageType.Audio
         break
-      case PadchatMessageType.EMOTICON:
+      case PadchatMessageType.Emoticon:
         type = MessageType.Emoticon
         break
-      case PadchatMessageType.APP:
+      case PadchatMessageType.App:
         type = MessageType.Attachment
         break
-      case PadchatMessageType.VIDEO:
+      case PadchatMessageType.Video:
         type = MessageType.Video
         break
       default:
-        type = MessageType.Unknown
+        log.warn('PuppetPadChat', 'messageRawPayloadParser() unknown type %s[%s], treat as Text',
+                                  PadchatMessageType[rawPayload.sub_type],
+                                  rawPayload.sub_type,
+                )
+        type = MessageType.Text
     }
 
     const payload: MessagePayload = {
@@ -688,16 +709,25 @@ export class PuppetPadchat extends Puppet {
    * Room
    *
    */
-  public async roomRawPayload(id: string): Promise<PadchatRoomRawPayload> {
+  public async roomRawPayload(id: string): Promise<PadchatRoomPayload> {
     log.verbose('PuppetPadchat', 'roomRawPayload(%s)', id)
 
     const rawPayload = await Misc.retry(async (retry, attempt) => {
       log.silly('PuppetPadchat', 'roomRawPayload(%s) retry() attempt=%d', id, attempt)
-      const tryRawPayload = this.bridge.roomRawPayloadDict[id] // await this.bridge.WXGetRoomPayload(id)
+
+      let tryRawPayload = this.bridge.cachePadchatRoomPayload[id]
+      if (!tryRawPayload) {
+        tryRawPayload = await this.bridge.WXGetRoomPayload(id)
+        if (tryRawPayload) {
+          this.bridge.cachePadchatRoomPayload[id] = tryRawPayload
+        }
+      }
+
       if (tryRawPayload) {
         return tryRawPayload
+      } else {
+        return retry(new Error('tryRawPayload empty'))
       }
-      return retry(new Error('tryRawPayload empty'))
     })
 
     if (!rawPayload) {
@@ -706,7 +736,7 @@ export class PuppetPadchat extends Puppet {
     return rawPayload
   }
 
-  public async roomRawPayloadParser(rawPayload: PadchatRoomRawPayload): Promise<RoomPayload> {
+  public async roomRawPayloadParser(rawPayload: PadchatRoomPayload): Promise<RoomPayload> {
     log.verbose('PuppetPadchat', 'roomRawPayloadParser(%s)', rawPayload.user_name)
 
     // const memberList = (rawPayload.member || [])
@@ -716,19 +746,9 @@ export class PuppetPadchat extends Puppet {
 
     const padchatRoomRawMemberList = (await this.bridge.WXGetChatRoomMember(rawPayload.user_name)).member
 
-    // const nameMap         = await this.roomParseMap('name'        , padchatRoomRawMemberList.member)
-    // const roomAliasMap    = await this.roomParseMap('roomAlias'   , padchatRoomRawMemberList.member)
-    // const contactAliasMap = await this.roomParseMap('contactAlias', padchatRoomRawMemberList.member)
-
     const aliasDict = {} as { [id: string]: string | undefined }
 
     if (Array.isArray(padchatRoomRawMemberList)) {
-      // const memberListPayload = await Promise.all(
-      //   padchatRoomRawMemberList.member
-      //     .map(rawMember => rawMember.user_name)
-      //     .map(contactId => this.contactPayload(contactId)),
-      // )
-      // memberListPayload.forEach(
       padchatRoomRawMemberList.forEach(
         rawMember => {
           aliasDict[rawMember.user_name] = rawMember.chatroom_nick_name
@@ -741,66 +761,17 @@ export class PuppetPadchat extends Puppet {
       topic        : rawPayload.nick_name,
       memberIdList : rawPayload.member,
       aliasDict,
-      // nameMap        : nameMap,
-      // roomAliasMap   : roomAliasMap,
-      // contactAliasMap: contactAliasMap,
     }
 
     return payload
   }
 
-  // private async roomParseMap(
-  //   parseSection: keyof RoomMemberQueryFilter,
-  //   memberList?:  PadchatRoomRawMember[],
-  // ): Promise<Map<string, string>> {
-  //   log.verbose('PuppetPadchat', 'roomParseMap(%s, memberList.length=%d)',
-  //                                   parseSection,
-  //                                   memberList && memberList.length,
-  //               )
-
-  //   const dict: Map<string, string> = new Map<string, string>()
-  //   if (memberList && Array.isArray(memberList)) {
-  //     for (const member of memberList) {
-  //       let tmpName: string
-
-  //       switch (parseSection) {
-  //         case 'name':
-  //           tmpName = member.nick_name
-  //           break
-  //         case 'roomAlias':
-  //           tmpName = member.chatroom_nick_name
-  //           break
-  //         case 'contactAlias':
-  //           const payload = await this.contactPayload(member.user_name)
-  //           tmpName = payload.alias || ''
-  //           // const contact = this.Contact.load(member.user_name)
-  //           // tmpName = contact.alias() || ''
-  //           break
-  //         default:
-  //           throw new Error('PuppetPadchat parseMap failed, member not found')
-  //       }
-
-  //       dict.set(member.user_name, Misc.stripEmoji(tmpName))
-  //     }
-  //   }
-  //   return dict
-  // }
-
   public async roomList(): Promise<string[]> {
     log.verbose('PuppetPadchat', 'roomList()')
 
-    const roomIdList = this.bridge.getRoomIdList()
+    const roomIdList = await this.bridge.getRoomIdList()
+    log.silly('PuppetPadchat', 'roomList()=%d', roomIdList.length)
 
-    // TODO: Issue #1255
-
-    // const rooomMap = (await this.bridge.checkSyncContactOrRoom()).roomMap
-    // const roomIdList: string[] = []
-    // rooomMap.forEach(async (value , id) => {
-    //   roomIdList.push(id)
-    //   this.Room.load(id, await this.roomRawPayloadParser(value))
-    // })
-
-    // return roomIdList
     return roomIdList
   }
 
@@ -908,7 +879,7 @@ export class PuppetPadchat extends Puppet {
   }
 
   public async friendRequestRawPayloadParser(rawPayload: any) : Promise<FriendRequestPayload> {
-    log.verbose('PuppetWechat4u', 'friendRequestRawPayloadParser(%s)', rawPayload)
+    log.verbose('PuppetPadchat', 'friendRequestRawPayloadParser(%s)', rawPayload)
 
     // TODO
 
@@ -946,8 +917,8 @@ export class PuppetPadchat extends Puppet {
     // }
   }
 
-  public async friendRequestRawPayload(id: string)            : Promise<any> {
-    // log.verbose('PuppetWechat4u', 'friendRequestRawPayload(%s)', id)
+  public async friendRequestRawPayload(id: string): Promise<any> {
+    // log.verbose('PuppetPadchat', 'friendRequestRawPayload(%s)', id)
 
     // TODO
 
