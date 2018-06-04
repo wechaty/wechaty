@@ -157,7 +157,7 @@ export class PuppetMock extends Puppet {
     log.verbose('PuppetMock', 'contactAvatar(%s)', contactId)
 
     const WECHATY_ICON_PNG = path.resolve('../../docs/images/wechaty-icon.png')
-    return FileBox.fromLocal(WECHATY_ICON_PNG)
+    return FileBox.fromFile(WECHATY_ICON_PNG)
   }
 
   public async contactRawPayload(id: string): Promise<MockContactRawPayload> {

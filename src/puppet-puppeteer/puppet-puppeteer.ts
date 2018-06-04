@@ -465,7 +465,7 @@ export class PuppetPuppeteer extends Puppet {
       Cookie: cookies.map(c => `${c['name']}=${c['value']}`).join('; '),
     }
 
-    const fileBox = FileBox.fromRemote(url, filename, headers)
+    const fileBox = FileBox.fromUrl(url, filename, headers)
 
     return fileBox
   }
@@ -753,7 +753,7 @@ export class PuppetPuppeteer extends Puppet {
       // await contact.ready()
 
       const fileName = (payload.name || 'unknown') + '-avatar.jpg'
-      return FileBox.fromRemote(
+      return FileBox.fromUrl(
         avatarUrl,
         fileName,
         headers,

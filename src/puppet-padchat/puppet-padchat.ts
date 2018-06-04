@@ -368,7 +368,7 @@ export class PuppetPadchat extends Puppet {
       throw new Error('no avatar')
     }
 
-    const file = FileBox.fromRemote(payload.avatar)
+    const file = FileBox.fromUrl(payload.avatar)
     return file
   }
 
