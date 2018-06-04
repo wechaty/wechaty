@@ -48,6 +48,10 @@ import {
   WXAddChatRoomMemberType,
 }                             from './bridge.type'
 
+import {
+  PadchatPureFunctionHelper as pfHelper,
+}                                           from './pure-function-helper'
+
 import { log }          from '../config'
 
 const AUTO_DATA_SLOT = 'autoData'
@@ -194,7 +198,7 @@ export class Bridge extends EventEmitter {
 
     ws.on('message', (data: string) => {
       const payload: PadchatPayload = JSON.parse(data)
-      this.onServerPayload(payload)
+      this.onServerMessage(payload)
     })
 
     await new Promise((resolve, reject) => {
@@ -218,7 +222,7 @@ export class Bridge extends EventEmitter {
     this.serverWebSocket = undefined
   }
 
-  private onServerPayload(payload: PadchatPayload) {
+  private onServerMessage(payload: PadchatPayload) {
     console.log('server payload:', payload)
 
     log.verbose('PuppetPadchatBridge', 'onServerPayload(%s)',
@@ -485,7 +489,7 @@ export class Bridge extends EventEmitter {
         if (syncContact.continue === PadchatContinue.Go) {
           if (syncContact.msg_type === PadchatContactMsgType.Contact) {
             console.log('syncContact:', syncContact.user_name, syncContact.nick_name)
-            if (/@chatroom$/.test(syncContact.user_name)) {
+            if (pfHelper.isRoomId(syncContact.user_name)) { // /@chatroom$/.test(syncContact.user_name)) {
               this.cacheRoomRawPayload[syncContact.user_name] = syncContact as PadchatRoomRawPayload
               // syncRoomMap.set(syncContact.user_name, syncContact as PadchatRoomRawPayload)
             } else if (syncContact.user_name) {
@@ -655,7 +659,7 @@ export class Bridge extends EventEmitter {
    * @param {any} id        user_name
    */
   public async WXGetContactPayload(id: string): Promise<PadchatContactRawPayload> {
-    if (/@chatroom$/.test(id)) {
+    if (!pfHelper.isContactId(id)) { // /@chatroom$/.test(id)) {
       throw Error(`should use WXGetRoomPayload because get a room id :${id}`)
     }
     const result = await this.WXGetContact(id) as PadchatContactRawPayload
@@ -667,7 +671,7 @@ export class Bridge extends EventEmitter {
    * @param {any} id        user_name
    */
   public async WXGetRoomPayload(id: string): Promise<PadchatRoomRawPayload> {
-    if (!(/@chatroom$/.test(id))) {
+    if (!pfHelper.isRoomId(id)) { // (/@chatroom$/.test(id))) {
       throw Error(`should use WXGetContactPayload because get a contact id :${id}`)
     }
     const result = await this.WXGetContact(id) as PadchatRoomRawPayload
