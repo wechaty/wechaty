@@ -1,4 +1,4 @@
-export interface FunctionType {
+export interface PadchatRpcRequest {
   userId:   string,
   msgId:    string,
   apiName:  string,

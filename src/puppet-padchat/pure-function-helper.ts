@@ -22,14 +22,14 @@ import {
 }                       from '../puppet/'
 
 import {
-  PadchatContactRawPayload,
+  PadchatContactPayload,
   PadchatMessagePayload,
   // PadchatContactMsgType,
 
   // PadchatMessageStatus,
   PadchatMessageType,
 
-  PadchatRoomRawPayload,
+  PadchatRoomPayload,
   PadchatRoomMember,
 }                             from './padchat-schemas'
 
@@ -74,7 +74,7 @@ export class PadchatPureFunctionHelper {
   }
 
   public static contactRawPayloadParser(
-    rawPayload: PadchatContactRawPayload,
+    rawPayload: PadchatContactPayload,
   ): ContactPayload {
     if (!rawPayload.user_name) {
       throw Error('cannot get user_name(wxid)!')
@@ -203,7 +203,7 @@ export class PadchatPureFunctionHelper {
   }
 
   public static roomRawPayloadParser(
-    rawPayload        : PadchatRoomRawPayload,
+    rawPayload        : PadchatRoomPayload,
     roomRawMemberList : PadchatRoomMember[],
   ): RoomPayload {
     const aliasDict = {} as { [id: string]: string | undefined }

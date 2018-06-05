@@ -19,18 +19,18 @@ import {
   PadchatPayloadType,
 
   PadchatContactMsgType,
-  PadchatContactRawPayload,
+  PadchatContactPayload,
 
   PadchatMessagePayload,
 
   PadchatRoomMember,
   PadchatRoomMemberPayload,
-  PadchatRoomRawPayload,
+  PadchatRoomPayload,
 }                             from './padchat-schemas'
 
 import {
   AutoDataType,
-  FunctionType,
+  PadchatRpcRequest,
   InitType,
   WXGenerateWxDatType,
   WXGetQRCodeType,
@@ -46,7 +46,7 @@ import {
   WXCheckQRCodeStatus,
   StandardType,
   WXAddChatRoomMemberType,
-}                             from './bridge.type'
+}                             from './padchat-rpc.type'
 
 import {
   PadchatPureFunctionHelper as pfHelper,
@@ -77,8 +77,8 @@ export class Bridge extends EventEmitter {
 
   private loginSucceed = false
 
-  private cacheRoomRawPayload    : { [id: string]: PadchatRoomRawPayload }
-  private cacheContactRawPayload : { [id: string]: PadchatContactRawPayload }
+  private cacheRoomRawPayload    : { [id: string]: PadchatRoomPayload }
+  private cacheContactRawPayload : { [id: string]: PadchatContactPayload }
 
   private readonly state: StateSwitch
 
@@ -151,7 +151,7 @@ export class Bridge extends EventEmitter {
 
   private async sendToWebSocket(name: string, args: string[]): Promise<any> {
     const msgId = cuid()
-    const data: FunctionType = {
+    const data: PadchatRpcRequest = {
       userId:   this.options.token,
       msgId:    msgId,
       apiName:  name,
@@ -422,9 +422,9 @@ export class Bridge extends EventEmitter {
   /**
    * Load all Contact and Room
    * see issue https://github.com/lijiarui/test-ipad-puppet/issues/39
-   * @returns {Promise<(PadchatRoomRawPayload | PadchatContactRawPayload)[]>}
+   * @returns {Promise<(PadchatRoomPayload | PadchatContactPayload)[]>}
    */
-  private async WXSyncContact(): Promise<(PadchatRoomRawPayload | PadchatContactRawPayload)[]> {
+  private async WXSyncContact(): Promise<(PadchatRoomPayload | PadchatContactPayload)[]> {
     const result = await this.sendToWebSocket('WXSyncContact', [])
     if (!result) {
       throw Error('WXSyncContact error! canot get result from websocket server')
@@ -456,8 +456,8 @@ export class Bridge extends EventEmitter {
     log.verbose('PuppetPadchatBridge', `syncContactsAndRooms()`)
 
     let cont = true
-    // const syncContactMap = new Map<string, PadchatContactRawPayload>()
-    // const syncRoomMap = new Map<string, PadchatRoomRawPayload>()
+    // const syncContactMap = new Map<string, PadchatContactPayload>()
+    // const syncRoomMap = new Map<string, PadchatRoomPayload>()
     // let contactIdList: string[] = []
     // let roomIdList: string[] = []
 
@@ -490,11 +490,11 @@ export class Bridge extends EventEmitter {
           if (syncContact.msg_type === PadchatContactMsgType.Contact) {
             console.log('syncContact:', syncContact.user_name, syncContact.nick_name)
             if (pfHelper.isRoomId(syncContact.user_name)) { // /@chatroom$/.test(syncContact.user_name)) {
-              this.cacheRoomRawPayload[syncContact.user_name] = syncContact as PadchatRoomRawPayload
-              // syncRoomMap.set(syncContact.user_name, syncContact as PadchatRoomRawPayload)
+              this.cacheRoomRawPayload[syncContact.user_name] = syncContact as PadchatRoomPayload
+              // syncRoomMap.set(syncContact.user_name, syncContact as PadchatRoomPayload)
             } else if (syncContact.user_name) {
-              this.cacheContactRawPayload[syncContact.user_name] = syncContact as PadchatContactRawPayload
-              // syncContactMap.set(syncContact.user_name, syncContact as PadchatContactRawPayload)
+              this.cacheContactRawPayload[syncContact.user_name] = syncContact as PadchatContactPayload
+              // syncContactMap.set(syncContact.user_name, syncContact as PadchatContactPayload)
             } else {
               throw new Error('no user_name')
             }
@@ -636,7 +636,7 @@ export class Bridge extends EventEmitter {
    * Get contact by contact id
    * @param {any} id        user_name
    */
-  private async WXGetContact(id: string): Promise<PadchatContactRawPayload | PadchatRoomRawPayload> {
+  private async WXGetContact(id: string): Promise<PadchatContactPayload | PadchatRoomPayload> {
     const result = await this.sendToWebSocket('WXGetContact', [id])
 
     if (!result) {
@@ -658,11 +658,11 @@ export class Bridge extends EventEmitter {
    * Get contact by contact id
    * @param {any} id        user_name
    */
-  public async WXGetContactPayload(id: string): Promise<PadchatContactRawPayload> {
+  public async WXGetContactPayload(id: string): Promise<PadchatContactPayload> {
     if (!pfHelper.isContactId(id)) { // /@chatroom$/.test(id)) {
       throw Error(`should use WXGetRoomPayload because get a room id :${id}`)
     }
-    const result = await this.WXGetContact(id) as PadchatContactRawPayload
+    const result = await this.WXGetContact(id) as PadchatContactPayload
     return result
   }
 
@@ -670,11 +670,11 @@ export class Bridge extends EventEmitter {
    * Get contact by contact id
    * @param {any} id        user_name
    */
-  public async WXGetRoomPayload(id: string): Promise<PadchatRoomRawPayload> {
+  public async WXGetRoomPayload(id: string): Promise<PadchatRoomPayload> {
     if (!pfHelper.isRoomId(id)) { // (/@chatroom$/.test(id))) {
       throw Error(`should use WXGetContactPayload because get a contact id :${id}`)
     }
-    const result = await this.WXGetContact(id) as PadchatRoomRawPayload
+    const result = await this.WXGetContact(id) as PadchatRoomPayload
     return result
   }
 
@@ -965,7 +965,7 @@ export class Bridge extends EventEmitter {
     }
   }
 
-  public async contactRawPayload(id: string): Promise<PadchatContactRawPayload> {
+  public async contactRawPayload(id: string): Promise<PadchatContactPayload> {
     log.verbose('PuppetPadchatBridge', 'contactRawPayload(%s)', id)
 
     const rawPayload = await Misc.retry(async (retry, attempt) => {
@@ -989,7 +989,7 @@ export class Bridge extends EventEmitter {
     return rawPayload
   }
 
-  public async roomRawPayload(id: string): Promise<PadchatRoomRawPayload> {
+  public async roomRawPayload(id: string): Promise<PadchatRoomPayload> {
     log.verbose('PuppetPadchatBridge', 'roomRawPayload(%s)', id)
 
     const rawPayload = await Misc.retry(async (retry, attempt) => {

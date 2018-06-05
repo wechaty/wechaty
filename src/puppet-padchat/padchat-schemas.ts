@@ -87,7 +87,7 @@ export interface PadchatPayload {
  * - WXGetContact
  * @interface PadchatContactPayload
  */
-export interface PadchatContactRawPayload {
+export interface PadchatContactPayload {
   /**
    * Sometimes, WXSyncContact can only get the following result:
    * {
@@ -336,7 +336,7 @@ export interface PadchatRoomMember {
  * - WXGetContact
  * @interface PadchatRoomPayload
  */
-export interface PadchatRoomRawPayload {
+export interface PadchatRoomPayload {
   /**
    * Sometimes, WXSyncContact can only get the following result:
    * {

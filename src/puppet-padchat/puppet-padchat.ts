@@ -68,9 +68,9 @@ import {
 
 import {
   // PadchatPayload,
-  PadchatContactRawPayload,
+  PadchatContactPayload,
   PadchatMessagePayload,
-  PadchatRoomRawPayload,
+  PadchatRoomPayload,
 
   // PadchatMessageType,
   // PadchatContinue,
@@ -90,8 +90,7 @@ export class PuppetPadchat extends Puppet {
   private readonly cachePadchatMessagePayload       : LRU.Cache<string, PadchatMessagePayload>
   // private readonly cachePadchatRoomPayload          : LRU.Cache<string, PadchatRoomRawPayload>
 
-  public bridge:  Bridge
-  // public botWs:   WebSocket
+  public readonly bridge:  Bridge
 
   constructor(
     public options: PuppetOptions,
@@ -179,6 +178,12 @@ export class PuppetPadchat extends Puppet {
   public async start(): Promise<void> {
     log.verbose('PuppetPadchat', `start() with ${this.options.memory.name}`)
 
+    if (this.state.on()) {
+      log.warn('PuppetPadchat', 'start() already on(pending)?')
+      await this.state.ready('on')
+      return
+    }
+
     /**
      * state has two main state: ON / OFF
      * ON (pending)
@@ -190,7 +195,7 @@ export class PuppetPadchat extends Puppet {
     await this.startWatchdog()
 
     this.state.on(true)
-    // this.emit('start')
+    this.emit('start')
 
   }
 
@@ -198,9 +203,7 @@ export class PuppetPadchat extends Puppet {
     log.verbose('PuppetPadchat', 'startBridge()')
 
     if (this.state.off()) {
-      const e = new Error('startBridge() state is off')
-      log.warn('PuppetPadchat', e.message)
-      throw e
+      throw new Error('startBridge() state is off')
     }
 
     this.bridge.removeAllListeners()
@@ -221,8 +224,8 @@ export class PuppetPadchat extends Puppet {
       )
       this.emit('message', messagePayload.msg_id)
     })
-    this.bridge.on('scan', (qrCode: string, statusCode: number, data?: string) => {
-      this.emit('scan', qrCode, statusCode, data)
+    this.bridge.on('scan', (qrCode: string, status: number, data?: string) => {
+      this.emit('scan', qrCode, status, data)
     })
 
     await this.bridge.start()
@@ -232,7 +235,7 @@ export class PuppetPadchat extends Puppet {
     log.verbose('PuppetPadchat', 'quit()')
 
     if (this.state.off()) {
-      log.warn('PuppetPadchat', 'quit() is called on a OFF puppet. await ready(off) and return.')
+      log.warn('PuppetPadchat', 'stop() is called on a OFF puppet. await ready(off) and return.')
       await this.state.ready('off')
       return
     }
@@ -247,8 +250,7 @@ export class PuppetPadchat extends Puppet {
 
     // await some tasks...
     this.state.off(true)
-
-    // this.emit('stop')
+    this.emit('stop')
   }
 
   public async logout(): Promise<void> {
@@ -285,7 +287,6 @@ export class PuppetPadchat extends Puppet {
     return
   }
 
-  // public async contactFindAll(query: ContactQueryFilter): Promise<string[]> {
   public async contactList(): Promise<string[]> {
     log.verbose('PuppetPadchat', 'contactList()')
 
@@ -307,14 +308,14 @@ export class PuppetPadchat extends Puppet {
     return file
   }
 
-  public async contactRawPayload(id: string): Promise<PadchatContactRawPayload> {
-    log.verbose('PuppetPadchat', 'contactRawPayload(%s)', id)
+  public async contactRawPayload(contactId: string): Promise<PadchatContactPayload> {
+    log.verbose('PuppetPadchat', 'contactRawPayload(%s)', contactId)
 
-    const rawPayload = await this.bridge.contactRawPayload(id)
+    const rawPayload = await this.bridge.contactRawPayload(contactId)
     return rawPayload
   }
 
-  public async contactRawPayloadParser(rawPayload: PadchatContactRawPayload): Promise<ContactPayload> {
+  public async contactRawPayloadParser(rawPayload: PadchatContactPayload): Promise<ContactPayload> {
     log.verbose('PuppetPadchat', 'contactRawPayloadParser(rawPayload.user_name="%s")', rawPayload.user_name)
 
     const payload: ContactPayload = pfHelper.contactRawPayloadParser(rawPayload)
@@ -433,14 +434,14 @@ export class PuppetPadchat extends Puppet {
    * Room
    *
    */
-  public async roomRawPayload(id: string): Promise<PadchatRoomRawPayload> {
+  public async roomRawPayload(id: string): Promise<PadchatRoomPayload> {
     log.verbose('PuppetPadchat', 'roomRawPayload(%s)', id)
 
     const rawPayload = await this.bridge.roomRawPayload(id)
     return rawPayload
   }
 
-  public async roomRawPayloadParser(rawPayload: PadchatRoomRawPayload): Promise<RoomPayload> {
+  public async roomRawPayloadParser(rawPayload: PadchatRoomPayload): Promise<RoomPayload> {
     log.verbose('PuppetPadchat', 'roomRawPayloadParser(rawPayload.user_name="%s")', rawPayload.user_name)
 
     const roomRawMemberList = (await this.bridge.WXGetChatRoomMember(rawPayload.user_name)).member

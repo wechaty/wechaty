@@ -59,16 +59,16 @@ class PuppetTest extends PuppetPuppeteer {
   }
 }
 
-test('Puppet smoke testing', async t => {
-  const puppet  = new PuppetTest({ memory: new MemoryCard() })
-  const wechaty = new WechatyTest({ puppet })
-  wechaty.initPuppetAccessory(puppet)
+// test('Puppet smoke testing', async t => {
+//   const puppet  = new PuppetTest({ memory: new MemoryCard() })
+//   const wechaty = new WechatyTest({ puppet })
+//   wechaty.initPuppetAccessory(puppet)
 
-  t.ok(puppet.state.off(), 'should be OFF state after instanciate')
-  puppet.state.on('pending')
-  t.ok(puppet.state.on(), 'should be ON state after set')
-  t.ok(puppet.state.pending(), 'should be pending state after set')
-})
+//   t.ok(puppet.state.off(), 'should be OFF state after instanciate')
+//   puppet.state.on('pending')
+//   t.ok(puppet.state.on(), 'should be ON state after set')
+//   t.ok(puppet.state.pending(), 'should be pending state after set')
+// })
 
 test('login/logout events', sinonTest(async function (t: test.Test) {
   const sandbox = sinon.createSandbox()

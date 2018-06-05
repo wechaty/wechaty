@@ -66,11 +66,11 @@ async function onScan(
 ): Promise<void> {
   log.verbose('PuppetPuppeteerEvent', 'onScan({code: %d, url: %s})', payload.code, payload.url)
 
-  if (this.state.off()) {
-    log.verbose('PuppetPuppeteerEvent', 'onScan(%s) state.off()=%s, NOOP',
-                                  payload, this.state.off())
-    return
-  }
+  // if (this.state.off()) {
+  //   log.verbose('PuppetPuppeteerEvent', 'onScan(%s) state.off()=%s, NOOP',
+  //                                 payload, this.state.off())
+  //   return
+  // }
 
   this.scanPayload = payload
 
@@ -115,11 +115,11 @@ async function onLogin(
     return
   }
 
-  if (this.state.off()) {
-    log.verbose('PuppetPuppeteerEvent', 'onLogin(%s, %d) state.off()=%s, NOOP',
-                                  note, ttl, this.state.off())
-    return
-  }
+  // if (this.state.off()) {
+  //   log.verbose('PuppetPuppeteerEvent', 'onLogin(%s, %d) state.off()=%s, NOOP',
+  //                                 note, ttl, this.state.off())
+  //   return
+  // }
 
   if (this.logonoff()) {
     throw new Error('onLogin() user had already logined: ' + this.selfId())
@@ -151,9 +151,9 @@ async function onLogin(
 
     log.silly('PuppetPuppeteerEvent', `onLogin() user ${userId} logined`)
 
-    if (this.state.on() === true) {
-      await this.saveCookie()
-    }
+    // if (this.state.on() === true) {
+    await this.saveCookie()
+    // }
 
     // fix issue #668
     await this.waitStable()
