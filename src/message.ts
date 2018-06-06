@@ -16,8 +16,8 @@
  *   limitations under the License.
  *   @ignore
  */
-// import * as path from 'path'
-// import * as cuid from 'cuid'
+// import path from 'path'
+// import cuid from 'cuid'
 
 import {
   FileBox,

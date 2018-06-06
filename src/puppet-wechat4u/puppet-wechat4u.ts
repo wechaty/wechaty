@@ -16,14 +16,14 @@
  *   limitations under the License.
  *
  */
-import * as LRU from 'lru-cache'
+import LRU from 'lru-cache'
 
 import {
   FileBox,
 }             from 'file-box'
 
 // tslint:disable-next-line
-import * as Wechat4u from 'wechat4u'
+import Wechat4u from 'wechat4u'
 
 import { Misc } from '../misc'
 

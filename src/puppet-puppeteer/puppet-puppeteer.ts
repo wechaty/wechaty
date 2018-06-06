@@ -16,13 +16,13 @@
  *   limitations under the License.
  *
  */
-// import * as http    from 'http'
-import * as path    from 'path'
-import * as nodeUrl from 'url'
+// import http    from 'http'
+import path    from 'path'
+import nodeUrl from 'url'
 
-import * as bl      from 'bl'
-import * as mime  from 'mime'
-import * as request from 'request'
+import bl      from 'bl'
+import mime  from 'mime'
+import request from 'request'
 
 // import cloneClass   from 'clone-class'
 import {

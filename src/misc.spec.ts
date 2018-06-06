@@ -18,12 +18,12 @@
  *
  */
 // tslint:disable:no-shadowed-variable
-import * as test  from 'blue-tape'
-import * as sinon from 'sinon'
+import test  from 'blue-tape'
+import sinon from 'sinon'
 // const sinonTest   = require('sinon-test')(sinon)
 
-import * as http      from 'http'
-import * as express   from 'express'
+import http      from 'http'
+import express   from 'express'
 
 import promiseRetry = require('promise-retry')
 

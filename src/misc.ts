@@ -16,16 +16,16 @@
  *   limitations under the License.
  *
  */
-import * as crypto  from 'crypto'
-import * as https   from 'https'
-import * as http    from 'http'
-import * as net     from 'net'
+import crypto  from 'crypto'
+import https   from 'https'
+import http    from 'http'
+import net     from 'net'
 import {
   Readable,
 }                   from 'stream'
-import * as url     from 'url'
+import url     from 'url'
 
-import * as cuid    from 'cuid'
+import cuid    from 'cuid'
 
 import promiseRetry = require('promise-retry')
 import { WrapOptions } from 'retry'

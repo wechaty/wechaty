@@ -19,8 +19,8 @@
  *
  */
 // tslint:disable:no-shadowed-variable
-import * as test  from 'blue-tape'
-import * as sinon from 'sinon'
+import test  from 'blue-tape'
+import sinon from 'sinon'
 
 // import cloneClass from 'clone-class'
 import {

@@ -17,9 +17,9 @@
  *
  *  @ignore
  */
-import * as cuid    from 'cuid'
-import * as os      from 'os'
-import * as semver  from 'semver'
+import cuid    from 'cuid'
+import os      from 'os'
+import semver  from 'semver'
 
 import {
   // Constructor,

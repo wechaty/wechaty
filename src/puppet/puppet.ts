@@ -18,9 +18,9 @@
  */
 import { EventEmitter } from 'events'
 
-import * as normalize   from 'normalize-package-data'
-import * as readPkgUp   from 'read-pkg-up'
-import * as LRU         from 'lru-cache'
+import normalize   from 'normalize-package-data'
+import readPkgUp   from 'read-pkg-up'
+import LRU         from 'lru-cache'
 
 import {
   FileBox,

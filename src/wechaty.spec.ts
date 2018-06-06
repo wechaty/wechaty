@@ -19,10 +19,10 @@
  *
  */
 // tslint:disable:no-shadowed-variable
-import * as test  from 'blue-tape'
-import * as sinon from 'sinon'
+import test  from 'blue-tape'
+import sinon from 'sinon'
 
-// import * as asyncHooks from 'async_hooks'
+// import asyncHooks from 'async_hooks'
 
 import {
   Wechaty,

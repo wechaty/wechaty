@@ -17,10 +17,10 @@
  *   limitations under the License.
  *
  */
-import * as test  from 'blue-tape'
+import test  from 'blue-tape'
 // tslint:disable:no-shadowed-variable
 
-// import * as sinon from 'sinon'
+// import sinon from 'sinon'
 // const sinonTest   = require('sinon-test')(sinon)
 
 import {

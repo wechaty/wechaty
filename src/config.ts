@@ -16,13 +16,13 @@
  *   limitations under the License.
  *
  */
-import * as fs    from 'fs'
-import * as os    from 'os'
-import * as path  from 'path'
+import fs    from 'fs'
+import os    from 'os'
+import path  from 'path'
 
-import * as readPkgUp from 'read-pkg-up'
-import * as Raven     from 'raven'
-import * as qrImage   from 'qr-image'
+import readPkgUp from 'read-pkg-up'
+import Raven     from 'raven'
+import qrImage   from 'qr-image'
 
 import { log }    from 'brolog'
 import {

@@ -19,7 +19,7 @@
 
 /* tslint:disable:no-var-requires */
 // const retryPromise  = require('retry-promise').default
-// import * as cuid from 'cuid'
+// import cuid from 'cuid'
 
 import {
   log,

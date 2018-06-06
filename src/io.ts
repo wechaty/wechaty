@@ -16,7 +16,7 @@
  *   limitations under the License.
  *
  */
-import * as WebSocket from 'ws'
+import WebSocket from 'ws'
 import StateSwitch    from 'state-switch'
 
 import {

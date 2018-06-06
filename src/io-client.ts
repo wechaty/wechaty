@@ -16,7 +16,7 @@
  *   limitations under the License.
  *
  */
-import * as express from 'express'
+import express from 'express'
 /**
  * DO NOT use `require('../')` here!
  * because it will casue a LOOP require ERROR

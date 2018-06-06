@@ -1,7 +1,7 @@
 #!/usr/bin/env ts-node
 
 // tslint:disable:no-shadowed-variable
-import * as test  from 'blue-tape'
+import test  from 'blue-tape'
 
 import {
   FileBox,
