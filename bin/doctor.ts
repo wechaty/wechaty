@@ -18,7 +18,7 @@
  *
  */
 
-import * as os from 'os'
+import os from 'os'
 
 import { config }   from '../src/config'
 import { Doctor }   from '../src/doctor'
