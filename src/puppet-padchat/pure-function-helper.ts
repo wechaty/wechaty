@@ -8,6 +8,8 @@
  *  [Master the JavaScript Interview: What is a Pure Function?](https://medium.com/javascript-scene/master-the-javascript-interview-what-is-a-pure-function-d1c076bec976)
  *
  */
+import jsQR        from 'jsqr'
+import Jimp        from 'jimp'
 
 import {
   ContactPayload,
@@ -266,6 +268,39 @@ export class PadchatPureFunctionHelper {
     //     throw new Error('not supported friend request message raw payload')
     // }
 
+  }
+
+  public static async imageBase64ToQrCode(base64: string): Promise<string> {
+    const imageBuffer = Buffer.from(base64, 'base64')
+
+    const future = new Promise<string>((resolve, reject) => {
+      Jimp.read(imageBuffer, (err, image) => {
+        if (err) {
+          return reject(err)
+        }
+
+        const qrCodeImageArray = new Uint8ClampedArray(image.bitmap.data.buffer)
+
+        const qrCodeResult = jsQR(
+          qrCodeImageArray,
+          image.bitmap.width,
+          image.bitmap.height,
+        )
+
+        if (qrCodeResult) {
+          return resolve(qrCodeResult.data)
+        } else {
+          return reject(new Error('WXGetQRCode() qrCode decode fail'))
+        }
+      })
+    })
+
+    try {
+      const qrCode = await future
+      return qrCode
+    } catch (e) {
+      throw new Error('no qrcode in image: ' + e.message)
+    }
   }
 }
 

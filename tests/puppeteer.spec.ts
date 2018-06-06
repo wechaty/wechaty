@@ -17,12 +17,12 @@
  *   limitations under the License.
  *
  */
-import * as fs    from 'fs'
-import * as path  from 'path'
+import fs    from 'fs'
+import path  from 'path'
 
 // tslint:disable:no-shadowed-variable
-import * as test  from 'blue-tape'
-import * as sinon from 'sinon'
+import test  from 'blue-tape'
+import sinon from 'sinon'
 
 import {
   Cookie,

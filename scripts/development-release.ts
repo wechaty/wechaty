@@ -1,4 +1,9 @@
 #!/usr/bin/env ts-node
+/**
+ * Author: Huan LI <zixia@zixia.net>
+ * https://github.com/zixia
+ * License: Apache-2.0
+ */
 import { minor } from 'semver'
 
 const version: string = require('../package.json').version

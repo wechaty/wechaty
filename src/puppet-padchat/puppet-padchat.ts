@@ -21,7 +21,7 @@
 // import * as fs    from 'fs'
 // import * as cuid from 'cuid'
 
-import * as LRU from 'lru-cache'
+import LRU from 'lru-cache'
 
 import {
   FileBox,
@@ -115,7 +115,6 @@ export class PuppetPadchat extends Puppet {
       memory   : this.options.memory,
       token   : WECHATY_PUPPET_PADCHAT_TOKEN,
       endpoint: WECHATY_PUPPET_PADCHAT_ENDPOINT,
-      autoData : {},
       // profile:  profile, // should be profile in the future
     })
   }

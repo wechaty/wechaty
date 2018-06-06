@@ -1,7 +1,18 @@
 import { EventEmitter } from 'events'
 
-import * as cuid        from 'cuid'
-import * as WebSocket   from 'ws'
+// import cuid        from 'cuid'
+import WebSocket   from 'ws'
+
+import {
+  Peer,
+  // JsonRpcPayload,
+  JsonRpcPayloadRequest,
+  // JsonRpcPayloadNotification,
+  JsonRpcPayloadResponse,
+  // JsonRpcPayloadError,
+  // JsonRpcParamsSchemaByName,
+  JsonRpcParamsSchemaByPositional,
+}                                   from 'json-rpc-peer'
 
 // import { MemoryCard }   from 'memory-card'
 
@@ -51,34 +62,60 @@ import { log }          from '../config'
 
 // const AUTO_DATA_SLOT = 'autoData'
 
-export interface PadChatRpcPromiseDict {
-  [rpcId: string]: {
-    resolver : Function,
-    reject   : Function,
-  }
-}
-
-export class PadchatRpc {
-  // private socket? : WebSocket
+export class PadchatRpc extends EventEmitter {
+  private socket?          : WebSocket
+  private readonly jsonRpc : Peer
 
   // private readonly rpcPromiseWaittingDict: PadChatRpcPromiseDict
 
-  private constructor(
-    // private endpoint : string,
-    // private token    : string,
+  constructor(
+    protected endpoint : string,
+    protected token    : string,
   ) {
-    throw new Error('should not be instanciated, use static methods only.')
-    // super() // for EventEmitter
-    // log.verbose('PadchatRpc', 'constructor(%s, %s)', endpoint, token)
+    super() // for EventEmitter
+    log.verbose('PadchatRpc', 'constructor(%s, %s)', endpoint, token)
 
-    // this.rpcPromiseWaittingDict = {}
+    this.jsonRpc = new Peer()
   }
 
   public async start(): Promise<void> {
     log.verbose('PadchatRpc', 'start()')
 
+    await this.initWebSocket()
+    await this.initJsonRpcPeer()
+
+    await this.init()
+    await this.WXInitialize()
+  }
+
+  protected async initJsonRpcPeer(): Promise<void> {
+    if (!this.socket) {
+      throw new Error('socket had not been opened yet!')
+    }
+
+    this.jsonRpc.on('data', (payload: JsonRpcPayloadRequest) => {
+      if (!this.socket) {
+        throw new Error('no web socket')
+      }
+
+      console.log('jsonRpc.on(data) = ', payload.type, ', ', typeof payload, ': ', payload)
+
+      const encodedParam = (payload.params as JsonRpcParamsSchemaByPositional).map(encodeURIComponent)
+
+      const message: PadchatRpcRequest = {
+        userId:   this.token,
+        msgId:    payload.id as string,
+        apiName:  payload.method,
+        param:    encodedParam,
+      }
+
+      this.socket.send(JSON.stringify(message))
+    })
+  }
+
+  protected async initWebSocket(): Promise<void> {
     if (this.socket) {
-      throw new Error('websocket had already been opened!')
+      throw new Error('socket had already been opened!')
     }
 
     const ws = new WebSocket(
@@ -89,8 +126,13 @@ export class PadchatRpc {
     this.socket = ws
 
     ws.on('message', (data: string) => {
-      const payload: PadchatPayload = JSON.parse(data)
-      this.onServerMessage(payload)
+      try {
+        const payload: PadchatPayload = JSON.parse(data)
+        this.onServer(payload)
+      } catch (e) {
+        log.warn('PuppetPadchatBridge', 'startJsonRpc() ws.on(message) exception: %s', e)
+        this.emit('error', e)
+      }
     })
 
     ws.on('error', err => this.emit('error', err))
@@ -99,6 +141,7 @@ export class PadchatRpc {
 
     await new Promise((resolve, reject) => {
       ws.once('open', resolve)
+
       ws.once('error', reject)
       ws.once('close', reject)
     })
@@ -108,9 +151,11 @@ export class PadchatRpc {
     log.verbose('PadchatRpc', 'stop()')
 
     if (!this.socket) {
-      log.warn('PadchatRpc', 'stop() no serverWebSocket, return.')
-      return
+      throw new Error('socket not exist')
     }
+
+    this.jsonRpc.removeAllListeners()
+    this.jsonRpc.end()
 
     this.socket.removeAllListeners()
     this.socket.close()
@@ -118,64 +163,63 @@ export class PadchatRpc {
     this.socket = undefined
   }
 
-  private async sendToWebSocket(
+  private async rpcCall(
     apiName   : string,
     ...params : string[]
   ): Promise<any> {
-    if (!this.socket) {
-      throw new Error('no web socket')
-    }
 
-    const msgId            = cuid()
-    const paramEncodedList = params.map(
-      arg => encodeURIComponent(arg),
-    )
+    return await this.jsonRpc.request(apiName, params)
 
-    const request: PadchatRpcRequest = {
-      userId: this.token,
-      msgId,
-      apiName,
-      param: paramEncodedList,
-    }
+    // if (!this.socket) {
+    //   throw new Error('no web socket')
+    // }
 
-    const payload = JSON.stringify(request)
-    log.silly('PadchatRpc', 'sendToWebSocket: %s', payload)
+    // const msgId            = cuid()
+    // const paramEncodedList = params.map(
+    //   arg => encodeURIComponent(arg),
+    // )
 
-    this.socket.send(payload)
+    // const request: PadchatRpcRequest = {
+    //   userId: this.token,
+    //   msgId,
+    //   apiName,
+    //   param: paramEncodedList,
+    // }
 
-    return new Promise((resolve, reject) => {
+    // const payload = JSON.stringify(request)
+    // log.silly('PadchatRpc', 'sendToWebSocket: %s', payload)
 
-      const timer = setTimeout(() => {
-        delete this.rpcPromiseWaittingDict[msgId]
-        reject('PadChat Server timeout for msgId: ' + msgId + ', apiName: ' + apiName + ', args: ' + params.join(', '))
-        // TODO: send json again or detect init()
-      }, 30000)
+    // this.socket.send(payload)
 
-      this.rpcPromiseWaittingDict[msgId] = {
-        resolver: (...args: any[]) => {
-          delete this.rpcPromiseWaittingDict[msgId]
-          clearTimeout(timer)
-          resolve(...args)
-        },
-        reject: (...args: any[]) => {
-          delete this.rpcPromiseWaittingDict[msgId]
-          clearTimeout(timer)
-          reject(...args)
-        },
-      }
+    // return new Promise((resolve, reject) => {
 
-    })
+    //   const timer = setTimeout(() => {
+    //     delete this.rpcPromiseWaittingDict[msgId]
+    //     reject('PadChat Server timeout for msgId: ' + msgId + ', apiName: ' + apiName + ', args: ' + params.join(', '))
+    //     // TODO: send json again or detect init()
+    //   }, 30000)
+
+    //   this.rpcPromiseWaittingDict[msgId] = {
+    //     resolver: (...args: any[]) => {
+    //       delete this.rpcPromiseWaittingDict[msgId]
+    //       clearTimeout(timer)
+    //       resolve(...args)
+    //     },
+    //     reject: (...args: any[]) => {
+    //       delete this.rpcPromiseWaittingDict[msgId]
+    //       clearTimeout(timer)
+    //       reject(...args)
+    //     },
+    //   }
+
+    // })
   }
+  protected onServer(payload: PadchatPayload) {
+    console.log('server payload:', payload)
 
-  private onServerMessage(payload: PadchatPayload) {
-    log.verbose('PadchatRpc', 'onServerPayload(%s)',
+    log.verbose('PuppetPadchatBridge', 'onWebSocket(%s)',
                                         JSON.stringify(payload).substr(0, 140),
                 )
-
-    if (!payload.msgId && !payload.data) {
-      log.warn('PadchatRpc', 'onServerPayload() payload neither `msgId` nor `data`, noop and skipped')
-      return
-    }
 
     // check logout:
     if (payload.type === PadchatPayloadType.Logout) {
@@ -185,27 +229,22 @@ export class PadchatRpc {
       return
     }
 
+    if (!payload.msgId && !payload.data) {
+      log.warn('PadchatRpc', 'onServerPayload() discard payload without `msgId` and `data`')
+      return
+    }
+
     if (payload.msgId) {
       // Data Return From WebSocket Client
-      const msgId = payload.msgId
-      const rawData = this.onServerMessagePadchat(payload)
-      if (msgId in this.rpcPromiseWaittingDict) {
-        const resolve = this.rpcPromiseWaittingDict[msgId].resolver
-        delete this.rpcPromiseWaittingDict[msgId]
-        // resolve({rawData: rawData, msgId: rawWebSocketData.msgId})
-        return resolve(rawData)
-      } else {
-        log.warn('PadchatRpc', 'wsOnMessage() msgId %s not in resolverDict', msgId)
-      }
-
+      this.onServerPadchat(payload)
     } else {
       // Data From Tencent
       const tencentPayloadList: PadchatMessagePayload[] = JSON.parse(decodeURIComponent(payload.data))
-      this.onServerMessageTencent(tencentPayloadList)
+      this.onServerTencent(tencentPayloadList)
     }
   }
 
-  private onServerMessageTencent(messagePayloadList: PadchatMessagePayload[]) {
+  protected onServerTencent(messagePayloadList: PadchatMessagePayload[]) {
     console.log('tencent messagePayloadList:', messagePayloadList)
     // if (   payload.continue  === PadchatContinue.Done
     //     && payload.msg_type  === PadchatMsgType.N15_32768
@@ -232,29 +271,45 @@ export class PadchatRpc {
     messagePayloadList.forEach(messagePayload => {
       if (!messagePayload.msg_id) {
         // {"continue":0,"msg_type":32768,"status":1,"uin":1928023446}
-        log.silly('PadchatRpc', 'WebSocket Server: get empty message msg_id form Tencent server for payoad: %s',
+        log.silly('PuppetPadchatBridge', 'WebSocket Server: get empty message msg_id form Tencent server for payoad: %s',
                                     JSON.stringify(messagePayload),
                   )
         return
       }
-      log.silly('PadchatRpc', 'WebSocket Server rawData result: %s', JSON.stringify(messagePayload))
+      log.silly('PuppetPadchatBridge', 'WebSocket Server rawData result: %s', JSON.stringify(messagePayload))
 
       this.emit('message', messagePayload)
     })
   }
 
-  private onServerMessagePadchat(payload: PadchatPayload): any {
+  protected onServerPadchat(payload: PadchatPayload) {
     console.log('onServerMessagePadChat:', payload)
 
-    log.silly('PadchatRpc', 'return apiName: %s, msgId: %s', payload.apiName, payload.msgId)
-
-    let rawData: Object
-    if (!payload.data) {
-      log.silly('PadchatRpc', 'WebSocket Server get empty message data form API call: %s', payload.apiName)
-      rawData = {}
-    } else {
-      rawData = JSON.parse(decodeURIComponent(payload.data))
+    // check logout:
+    if (payload.type === PadchatPayloadType.Logout) {
+      // this.emit('logout', this.selfId())
+      this.emit('logout')
     }
+
+    log.silly('PuppetPadchatBridge', 'return apiName: %s, msgId: %s', payload.apiName, payload.msgId)
+
+    let result: any
+
+    if (payload.data) {
+      result = JSON.parse(decodeURIComponent(payload.data))
+    } else {
+      log.silly('PuppetPadchatBridge', 'onServerMessagePadchat() discard empty payload.data for apiName: %s', payload.apiName)
+      result = {}
+    }
+
+    const jsonRpcResponse: JsonRpcPayloadResponse = {
+      id: payload.msgId,
+      jsonrpc: '2.0',
+      result: result,
+      type: 'response',
+    }
+
+    this.jsonRpc.write(jsonRpcResponse)
 
     // rawWebSocketData:
     // {
@@ -263,14 +318,22 @@ export class PadchatRpc {
     //     "msgId": "abc231923912983",
     //     "userId": "test"
     // }
-    return rawData
+
+    // if (resolverDict[msgId]) {
+    //   const resolve = resolverDict[msgId]
+    //   delete resolverDict[msgId]
+    //   // resolve({rawData: rawData, msgId: rawWebSocketData.msgId})
+    //   resolve(rawData)
+    // } else {
+    //   log.warn('PuppetPadchatBridge', 'wsOnMessage() msgId %s not in resolverDict', msgId)
+    // }
   }
 
   /**
    * Init with WebSocket Server
    */
   public async init(): Promise<InitType> {
-    const result: InitType = await this.sendToWebSocket('init')
+    const result: InitType = await this.rpcCall('init')
     log.silly('PadchatRpc', 'init result: %s', JSON.stringify(result))
     if (!result || result.status !== 0) {
       throw Error('cannot connect to WebSocket init')
@@ -282,7 +345,7 @@ export class PadchatRpc {
    * Get WX block memory
    */
   public async WXInitialize(): Promise<WXInitializeType> {
-    const result = await this.sendToWebSocket('WXInitialize')
+    const result = await this.rpcCall('WXInitialize')
     log.silly('PadchatRpc', 'WXInitialize result: %s', JSON.stringify(result))
     if (!result || result.status !== 0) {
       throw Error('cannot connect to WebSocket WXInitialize')
@@ -291,7 +354,7 @@ export class PadchatRpc {
   }
 
   public async WXGetQRCode(): Promise<WXGetQRCodeType> {
-    let result = await this.sendToWebSocket('WXGetQRCode')
+    let result = await this.rpcCall('WXGetQRCode')
     if (!result || !(result.qr_code)) {
       result = await this.WXGetQRCodeTwice()
     }
@@ -301,7 +364,7 @@ export class PadchatRpc {
 
   private async WXGetQRCodeTwice(): Promise<WXGetQRCodeType> {
     await this.WXInitialize()
-    const resultTwice = await this.sendToWebSocket('WXGetQRCode')
+    const resultTwice = await this.rpcCall('WXGetQRCode')
     if (!resultTwice || !(resultTwice.qr_code)) {
       throw Error('WXGetQRCodeTwice error! canot get result from websocket server when calling WXGetQRCode after WXInitialize')
     }
@@ -310,7 +373,7 @@ export class PadchatRpc {
 
   public async WXCheckQRCode(): Promise<WXCheckQRCodePayload> {
     // this.checkQrcode()
-    const result = await this.sendToWebSocket('WXCheckQRCode')
+    const result = await this.rpcCall('WXCheckQRCode')
     log.silly('PadchatRpc', 'WXCheckQRCode result: %s', JSON.stringify(result))
     if (!result) {
       throw Error('cannot connect to WebSocket WXCheckQRCode')
@@ -318,8 +381,8 @@ export class PadchatRpc {
     return result
   }
 
-  public async WXHeartBeat(): Promise<WXHeartBeatType> {
-    const result = await this.sendToWebSocket('WXHeartBeat')
+  public async WXHeartBeat(data: string): Promise<WXHeartBeatType> {
+    const result = await this.rpcCall('WXHeartBeat', data)
     log.silly('PadchatRpc', 'WXHeartBeat result: %s', JSON.stringify(result))
     if (!result || result.status !== 0) {
       throw Error('WXHeartBeat error! canot get result from websocket server')
@@ -332,8 +395,8 @@ export class PadchatRpc {
    * see issue https://github.com/lijiarui/test-ipad-puppet/issues/39
    * @returns {Promise<(PadchatRoomPayload | PadchatContactPayload)[]>}
    */
-  private async WXSyncContact(): Promise<(PadchatRoomPayload | PadchatContactPayload)[]> {
-    const result = await this.sendToWebSocket('WXSyncContact')
+  public async WXSyncContact(): Promise<(PadchatRoomPayload | PadchatContactPayload)[]> {
+    const result = await this.rpcCall('WXSyncContact')
     if (!result) {
       throw Error('WXSyncContact error! canot get result from websocket server')
     }
@@ -344,12 +407,12 @@ export class PadchatRpc {
    * Generate 62 data
    */
   public async WXGenerateWxDat(): Promise<WXGenerateWxDatType> {
-    const result = await this.sendToWebSocket('WXGenerateWxDat')
+    const result = await this.rpcCall('WXGenerateWxDat')
     log.silly('PadchatRpc', 'WXGenerateWxDat result: %s', JSON.stringify(result))
     if (!result || !(result.data) || result.status !== 0) {
       throw Error('WXGenerateWxDat error! canot get result from websocket server')
     }
-    this.autoData.wxData = result.data
+    // this.autoData.wxData = result.data
     return result
   }
 
@@ -358,7 +421,7 @@ export class PadchatRpc {
    * @param {string} wxData     autoData.wxData
    */
   public async WXLoadWxDat(wxData: string): Promise<WXLoadWxDatType> {
-    const result = await this.sendToWebSocket('WXLoadWxDat', wxData)
+    const result = await this.rpcCall('WXLoadWxDat', wxData)
     if (!result || result.status !== 0) {
       throw Error('WXLoadWxDat error! canot get result from websocket server')
     }
@@ -366,12 +429,12 @@ export class PadchatRpc {
   }
 
   public async WXGetLoginToken(): Promise<WXGetLoginTokenType> {
-    const result = await this.sendToWebSocket('WXGetLoginToken')
+    const result = await this.rpcCall('WXGetLoginToken')
     log.silly('PadchatRpc', 'WXGetLoginToken result: %s', JSON.stringify(result))
     if (!result || !result.token || result.status !== 0) {
       throw Error('WXGetLoginToken error! canot get result from websocket server')
     }
-    this.autoData.token = result.token
+    // this.autoData.token = result.token
 
     return result
   }
@@ -381,26 +444,9 @@ export class PadchatRpc {
    * @param {string} token    autoData.token
    * @returns {string} user_name | ''
    */
-  public async WXAutoLogin(token: string): Promise<WXAutoLoginType | ''> {
-    const result = await this.sendToWebSocket('WXAutoLogin', token)
+  public async WXAutoLogin(token: string): Promise<undefined | WXAutoLoginType> {
+    const result = await this.rpcCall('WXAutoLogin', token)
     log.silly('PadchatRpc', 'WXAutoLogin result: %s, type: %s', JSON.stringify(result), typeof result)
-
-    // should get qrcode again
-    if (!result) {
-      await this.WXGetQRCode()
-      return ''
-    }
-
-    // should send wxloginRequest
-    if (result.status !== 0) {
-      await this.WXLoginRequest(token)
-      return ''
-    }
-
-    // login succeed!
-    this.username = result.user_name
-    log.silly('PadchatRpc', 'WXAutoLogin bridge autoData user_name: %s', this.username)
-    this.loginSucceed = true
     return result
   }
 
@@ -408,13 +454,13 @@ export class PadchatRpc {
    * Login with QRcode
    * @param {string} token    autoData.token
    */
-  public async WXLoginRequest(token: string): Promise<WXLoginRequestType | ''> {
+  public async WXLoginRequest(token: string): Promise<undefined | WXLoginRequestType> {
     // TODO: should show result here
-    const result = await this.sendToWebSocket('WXLoginRequest', token)
+    const result = await this.rpcCall('WXLoginRequest', token)
     log.silly('PadchatRpc', 'WXLoginRequest result: %s, type: %s', JSON.stringify(result), typeof result)
     if (!result || result.status !== 0) {
       await this.WXGetQRCode()
-      return ''
+      return
     } else {
       // check qrcode status
       log.silly('PadchatRpc', 'WXLoginRequest begin to check whether user has clicked confirm login')
@@ -430,7 +476,7 @@ export class PadchatRpc {
    */
   public async WXSendMsg(to: string, content: string, at = ''): Promise<WXSendMsgType> {
     if (to) {
-      const result = await this.sendToWebSocket('WXSendMsg', to, content, at)
+      const result = await this.rpcCall('WXSendMsg', to, content, at)
       if (!result || result.status !== 0) {
         throw Error('WXSendMsg error! canot get result from websocket server')
       }
@@ -445,15 +491,15 @@ export class PadchatRpc {
    * @param {string} data   image_data
    */
   public WXSendImage(to: string, data: string): void {
-    this.sendToWebSocket('WXSendImage', to, data)
+    this.rpcCall('WXSendImage', to, data)
   }
 
   /**
    * Get contact by contact id
    * @param {any} id        user_name
    */
-  private async WXGetContact(id: string): Promise<any> {
-    const result = await this.sendToWebSocket('WXGetContact', id)
+  public async WXGetContact(id: string): Promise<any> {
+    const result = await this.rpcCall('WXGetContact', id)
 
     if (!result) {
       throw Error('PadchatRpc, WXGetContact, cannot get result from websocket server!')
@@ -501,7 +547,7 @@ export class PadchatRpc {
    * @param {any} id        chatroom_id
    */
   public async WXGetChatRoomMember(id: string): Promise<PadchatRoomMemberPayload> {
-    const result = await this.sendToWebSocket('WXGetChatRoomMember', id)
+    const result = await this.rpcCall('WXGetChatRoomMember', id)
     if (!result) {
       throw Error('PadchatRpc, WXGetChatRoomMember, cannot get result from websocket server!')
     }
@@ -526,37 +572,35 @@ export class PadchatRpc {
 
   /**
    * Login successfully by qrcode
-   * @param {any} id        user_name
+   * @param {any} username        user_name
    * @param {any} password  password
    */
-  public async WXQRCodeLogin(id: string, password: string): Promise<WXQRCodeLoginType> {
-    const result = await this.sendToWebSocket('WXQRCodeLogin', id, password)
-
-    if (result && result.status === 0) {
-      log.info('PadchatRpc', 'WXQRCodeLogin, login successfully!')
-      this.username = result.user_name
-      this.nickname = result.nick_name
-      this.loginSucceed = true
-    }
-
-    if (result && (result.status === -3)) {
-      throw Error('PadchatRpc, WXQRCodeLogin, wrong user_name or password')
-    }
-
-    if (result && (result.status === -301)) {
-      log.warn('PadchatRpc', 'WXQRCodeLogin, redirect 301')
-
-      if (!this.username || !this.password) {
-        throw Error('PadchatRpc, WXQRCodeLogin, redirect 301 and cannot get username or password here, return!')
-      }
-      this.WXQRCodeLogin(this.username, this.password)
-    }
+  public async WXQRCodeLogin(username: string, password: string): Promise<WXQRCodeLoginType> {
+    const result = await this.rpcCall('WXQRCodeLogin', username, password)
 
     if (!result) {
       throw Error(`PadchatRpc, WXQRCodeLogin, unknown error, data: ${JSON.stringify(result)}`)
     }
 
-    return result
+    if (result.status === 0) {
+      log.info('PadchatRpc', 'WXQRCodeLogin, login successfully!')
+      // this.username = result.user_name
+      // this.nickname = result.nick_name
+      // this.loginSucceed = true
+      return result
+    }
+
+    if (result.status === -3) {
+      throw Error('PadchatRpc, WXQRCodeLogin, wrong user_name or password')
+    } else if (result.status === -301) {
+      log.warn('PadchatRpc', 'WXQRCodeLogin, redirect 301')
+      return this.WXQRCodeLogin(username, password)
+      // if (!this.username || !this.password) {
+      //   throw Error('PadchatRpc, WXQRCodeLogin, redirect 301 and cannot get username or password here, return!')
+      // }
+      // this.WXQRCodeLogin(this.username, this.password)
+    }
+    throw Error('PadchatRpc, WXQRCodeLogin, unknown status: ' + result.status)
   }
 
   public async checkQrcode(): Promise<void> {
@@ -590,11 +634,11 @@ export class PadchatRpc {
         throw Error('PadchatRpc, checkQrcode, cannot get username or password here, return!')
       }
 
-      this.username = result.user_name
+      // this.username = result.user_name
       // this.nickname = result.nick_name
-      this.password = result.password
+      // this.password = result.password
 
-      this.WXQRCodeLogin(this.username, this.password)
+      // this.WXQRCodeLogin(this.username, this.password)
       return
     }
 
@@ -613,7 +657,7 @@ export class PadchatRpc {
   }
 
   public async WXSetUserRemark(id: string, remark: string): Promise<StandardType> {
-    const result = await this.sendToWebSocket('WXSetUserRemark', id, remark)
+    const result = await this.rpcCall('WXSetUserRemark', id, remark)
     log.silly('PadchatRpc', 'WXSetUserRemark result: %s', JSON.stringify(result))
     if (!result || result.status !== 0) {
       throw Error('WXSetUserRemark error! canot get result from websocket server')
@@ -622,7 +666,7 @@ export class PadchatRpc {
   }
 
   public async WXDeleteChatRoomMember(roomId: string, contactId: string): Promise<StandardType> {
-    const result = await this.sendToWebSocket('WXDeleteChatRoomMember', roomId, contactId)
+    const result = await this.rpcCall('WXDeleteChatRoomMember', roomId, contactId)
     log.silly('PadchatRpc', 'WXDeleteChatRoomMember result: %s', JSON.stringify(result))
     if (!result || result.status !== 0) {
       throw Error('WXDeleteChatRoomMember error! canot get result from websocket server')
@@ -630,29 +674,34 @@ export class PadchatRpc {
     return result
   }
 
-  public async WXAddChatRoomMember(roomId: string, contactId: string): Promise<boolean> {
-    const result = (await this.sendToWebSocket('WXAddChatRoomMember', roomId, contactId)) as WXAddChatRoomMemberType
+  public async WXAddChatRoomMember(roomId: string, contactId: string): Promise<number> {
+    const result: WXAddChatRoomMemberType = await this.rpcCall('WXAddChatRoomMember', roomId, contactId)
     log.silly('PadchatRpc', 'WXAddChatRoomMember result: %s', JSON.stringify(result))
-    if (result && result.status === -2028) {
-      // result: {"message":"","status":-2028}
-      // May be the owner has see not allow other people to join in the room (群聊邀请确认)
-      log.warn('PadchatRpc', 'WXAddChatRoomMember failed! maybe owner open the should confirm first to invited others to join in the room.')
-      return false
-    }
 
-    if (!result || result.status !== 0) {
+    if (!result) {
       throw Error('WXAddChatRoomMember error! canot get result from websocket server')
     }
 
-    // see more in WXAddChatRoomMemberType
-    if (/OK/i.test(result.message)) {
-      return true
+    if (result.status === 0) {
+      // see more in WXAddChatRoomMemberType
+      if (/OK/i.test(result.message)) {
+        return 0
+      }
+      log.warn('PadchatRpc', 'WXAddChatRoomMember() status = 0 but message is not OK: ' + result.message)
+      return -1
     }
-    return false
+
+    if (result.status === -2028) {
+      // result: {"message":"","status":-2028}
+      // May be the owner has see not allow other people to join in the room (群聊邀请确认)
+      log.warn('PadchatRpc', 'WXAddChatRoomMember failed! maybe owner open the should confirm first to invited others to join in the room.')
+    }
+
+    return result.status
   }
 
   public async WXSetChatroomName(roomId: string, topic: string): Promise<StandardType> {
-    const result = await this.sendToWebSocket('WXSetChatroomName', roomId, topic)
+    const result = await this.rpcCall('WXSetChatroomName', roomId, topic)
     log.silly('PadchatRpc', 'WXSetChatroomName result: %s', JSON.stringify(result))
     if (!result || result.status !== 0) {
       throw Error('WXSetChatroomName error! canot get result from websocket server')
@@ -668,7 +717,7 @@ export class PadchatRpc {
   // }
 
   public async WXQuitChatRoom(roomId: string): Promise<StandardType> {
-    const result = await this.sendToWebSocket('WXQuitChatRoom', roomId)
+    const result = await this.rpcCall('WXQuitChatRoom', roomId)
     log.silly('PadchatRpc', 'WXQuitChatRoom result: %s', JSON.stringify(result))
     if (!result || result.status !== 0) {
       throw Error('WXQuitChatRoom error! canot get result from websocket server')
@@ -694,13 +743,13 @@ export class PadchatRpc {
     // TODO:
     type = '14'
     verify = 'hello'
-    const result = await this.sendToWebSocket('WXAddUser', strangerV1, strangerV2, type, verify)
+    const result = await this.rpcCall('WXAddUser', strangerV1, strangerV2, type, verify)
     log.silly('PadchatRpc', 'WXAddUser result: %s', JSON.stringify(result))
     return result
   }
 
   public async WXAcceptUser(stranger: string, ticket: string): Promise<any> {
-    const result = await this.sendToWebSocket('WXAcceptUser', stranger, ticket)
+    const result = await this.rpcCall('WXAcceptUser', stranger, ticket)
     log.silly('PadchatRpc', 'WXAcceptUser result: %s', JSON.stringify(result))
     return result
   }

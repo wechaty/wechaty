@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+#
+# Author: Huan LI <zixia@zixia.net>
+# https://github.com/zixia
+# License: Apache-2.0
+#
 
 [ -z "$1" ] && {
   echo

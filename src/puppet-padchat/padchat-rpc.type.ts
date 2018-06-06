@@ -32,6 +32,7 @@ export interface WXGetQRCodeType {
 }
 
 export enum WXCheckQRCodeStatus {
+  Unknown     = -1,
   WaitScan    = 0,
   WaitConfirm = 1,
   Confirmed   = 2,
@@ -45,7 +46,7 @@ export interface WXCheckQRCodePayload {
   head_url     ?: string,   // http://wx.qlogo.cn/mmhead/ver_1/NkOvv1rTx3Dsqpicnhe0j7cVOR3psEAVfuhFLbmoAcwaob4eENNZlp3KIEsMgibfH4kRjDicFFXN3qdP6SGRXbo7GBs8YpN52icxSeBUX8xkZBA/0,
   nick_name    ?: string,   // 苏轼,
   password     ?: string,
-  status        : number,   // 2 = success
+  status        : WXCheckQRCodeStatus,   // 2 = success
   user_name    ?: string,   // wxid_zj2cahpwzgie12
 }
 
