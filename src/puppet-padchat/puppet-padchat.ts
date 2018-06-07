@@ -365,11 +365,11 @@ export class PuppetPadchat extends Puppet {
   }
 
   public async messageRawPayloadParser(rawPayload: PadchatMessagePayload): Promise<MessagePayload> {
-    log.warn('PuppetPadChat', 'messageRawPayloadParser(rawPayload.msg_id=%s)', rawPayload.msg_id)
+    log.verbose('PuppetPadChat', 'messageRawPayloadParser(rawPayload.msg_id=%s)', rawPayload.msg_id)
 
     const payload: MessagePayload = pfHelper.messageRawPayloadParser(rawPayload)
 
-    log.verbose('PuppetPadchat', 'messagePayload(%s)', JSON.stringify(payload))
+    log.silly('PuppetPadchat', 'messagePayload(%s)', JSON.stringify(payload))
     return payload
   }
 

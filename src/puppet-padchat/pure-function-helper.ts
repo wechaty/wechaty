@@ -116,7 +116,6 @@ export class PadchatPureFunctionHelper {
 
     switch (rawPayload.sub_type) {
 
-      case PadchatMessageType.StatusNotify:   // fall down
       case PadchatMessageType.Sys:            // fall down
       case PadchatMessageType.Text:
         type = MessageType.Text
@@ -140,6 +139,10 @@ export class PadchatPureFunctionHelper {
 
       case PadchatMessageType.Video:
         type = MessageType.Video
+        break
+
+      case PadchatMessageType.StatusNotify:
+        type = MessageType.Unknown
         break
 
       default:

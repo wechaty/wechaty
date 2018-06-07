@@ -444,7 +444,10 @@ export class Bridge extends EventEmitter {
         }
 
         if (syncContact.msg_type === PadchatContactMsgType.Contact) {
-          console.log('syncContact:', syncContact.user_name, syncContact.nick_name)
+          log.verbose('PuppetPadchatBridge', 'syncContactsAndRooms() sync for %s(%s)',
+                                              syncContact.nick_name,
+                                              syncContact.user_name,
+                      )
 
           if (pfHelper.isRoomId(syncContact.user_name)) { // /@chatroom$/.test(syncContact.user_name)) {
             /**
@@ -464,9 +467,10 @@ export class Bridge extends EventEmitter {
             throw new Error('id is neither room nor contact')
           }
         } else {
-          log.silly('PuppetPadchatBridge', `syncContactsAndRooms() syncContact.msg_type=%s(%s)`,
+          log.silly('PuppetPadchatBridge', `syncContactsAndRooms() skip for syncContact.msg_type=%s(%s) %s`,
                                             syncContact.msg_type && PadchatContactMsgType[syncContact.msg_type],
                                             syncContact.msg_type,
+                                            JSON.stringify(syncContact),
                     )
         }
       }
@@ -595,7 +599,7 @@ export class Bridge extends EventEmitter {
   public async WXGetChatRoomMember(id: string): Promise<PadchatRoomMemberPayload> {
     log.verbose('PuppetPadchatBridge', 'WXGetChatRoomMember(%s)', id)
 
-    let lastResult: undefined | PadchatRoomMemberPayload
+    let lastResult: PadchatRoomMemberPayload
     const result = await Misc.retry(async (retry, attempt) => {
       log.silly('PuppetPadchatBridge', 'WXGetChatRoomMember(%s) retry() attempt=%d', id, attempt)
 
@@ -608,9 +612,12 @@ export class Bridge extends EventEmitter {
       } catch (e) {
         return retry(e)
       }
+    }).catch(e => {
+      log.silly('PuppetPadchatBridge', 'WXGetChatRoomMember(%s) retry() fail: %s', id, e)
+      return lastResult
     })
 
-    return result || lastResult
+    return result
   }
 
   public async WXDeleteChatRoomMember(roomId: string, contactId: string): Promise<StandardType> {

@@ -43,7 +43,8 @@ export enum PadchatStatus {
 }
 
 export enum PadchatContactMsgType {
-  Contact = 2,
+  Contact  = 2,
+  N11_2048 = 2048,
 }
 
 export enum PadchatMsgType {

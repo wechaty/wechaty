@@ -158,7 +158,9 @@ export class Message extends Accessory implements Sayable {
         this.to(),
       ')',
     ]
-    if (this.type() === Message.Type.Text) {
+    if (   this.type() === Message.Type.Text
+        || this.type() === Message.Type.Unknown
+    ) {
       msgStrList.push(`<${this.text().substr(0, 70)}>`)
     } else {
       log.silly('Message', 'toString() for message type: %s(%s)', Message.Type[this.type()], this.type())
