@@ -110,6 +110,7 @@ export class Bridge extends EventEmitter {
 
     await this.padchatRpc.start()
     this.padchatRpc.on('message', messageRawPayload => {
+      log.silly('PuppetPadchatBridge', `start() padchatRpc.on('message')`)
       this.emit('message', messageRawPayload)
     })
 
@@ -122,6 +123,26 @@ export class Bridge extends EventEmitter {
     }
 
     this.state.on(true)
+  }
+
+  public async stop(): Promise<void> {
+    log.verbose('PuppetPadchatBridge', `stop()`)
+
+    this.state.off('pending')
+
+    await this.padchatRpc.stop()
+
+    this.cacheContactRawPayload = {}
+    this.cacheRoomRawPayload    = {}
+
+    this.selfId          = undefined
+    this.loginScanQrCode = undefined
+    if (this.loginTimer) {
+      clearTimeout(this.loginTimer)
+      this.loginTimer = undefined
+    }
+
+    this.state.off(true)
   }
 
   protected async login(username: string): Promise<void> {
@@ -174,8 +195,8 @@ export class Bridge extends EventEmitter {
     /**
      * 2. Wait user response
      */
-    let waitUser = true
-    while (waitUser) {
+    let waitUserResponse = true
+    while (waitUserResponse) {
       const result = await this.padchatRpc.WXCheckQRCode()
 
       if (this.loginScanStatus !== result.status && this.loginScanQrCode) {
@@ -190,7 +211,7 @@ export class Bridge extends EventEmitter {
       if (result.expired_time && result.expired_time < 10) {
         // result.expire_time is second
         // emit new qrcode before the old one expired
-        waitUser = false
+        waitUserResponse = false
       }
 
       switch (result.status) {
@@ -221,21 +242,21 @@ export class Bridge extends EventEmitter {
           log.silly('PuppetPadchatBridge', 'checkQrcode: Timeout')
           this.loginScanQrCode = undefined
           this.loginScanStatus = undefined
-          waitUser = false
+          waitUserResponse = false
           break
 
         case WXCheckQRCodeStatus.Cancel:
           log.silly('PuppetPadchatBridge', 'user cancel')
           this.loginScanQrCode = undefined
           this.loginScanStatus = undefined
-          waitUser = false
+          waitUserResponse = false
           break
 
         default:
           log.warn('PadchatBridge', 'startLogin() unknown WXCheckQRCodeStatus: ' + result.status)
           this.loginScanQrCode = undefined
           this.loginScanStatus = undefined
-          waitUser = false
+          waitUserResponse = false
           break
       }
 
@@ -345,19 +366,6 @@ export class Bridge extends EventEmitter {
       log.silly('PuppetPadchatBridge', `start(), get 62 data`)
       await this.padchatRpc.WXLoadWxDat(this.autoData.wxData)
     }
-  }
-
-  public async stop(): Promise<void> {
-    log.verbose('PuppetPadchatBridge', `stop()`)
-
-    this.state.off('pending')
-
-    this.cacheContactRawPayload = {}
-    this.cacheRoomRawPayload    = {}
-
-    await this.padchatRpc.stop()
-
-    this.state.off(true)
   }
 
   public async getContactIdList(): Promise<string[]> {

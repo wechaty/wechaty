@@ -3,18 +3,20 @@ import { EventEmitter } from 'events'
 // import cuid        from 'cuid'
 import WebSocket   from 'ws'
 
-import {
-  Peer,
+import Peer, {
+  parse,
+}           from 'json-rpc-peer'
+
+// , {
   // JsonRpcPayload,
-  JsonRpcPayloadRequest,
+  // JsonRpcPayloadRequest,
   // JsonRpcPayloadNotification,
-  JsonRpcPayloadResponse,
+  // JsonRpcPayloadResponse,
   // JsonRpcPayloadError,
   // JsonRpcParamsSchemaByName,
-  JsonRpcParamsSchemaByPositional,
-
-  parse,
-}                                   from 'json-rpc-peer'
+  // JsonRpcParamsSchemaByPositional,
+  // parse,
+// }                                   from 'json-rpc-peer'
 
 // import { MemoryCard }   from 'memory-card'
 
@@ -66,7 +68,7 @@ import { log }          from '../config'
 
 export class PadchatRpc extends EventEmitter {
   private socket?          : WebSocket
-  private readonly jsonRpc : Peer
+  private readonly jsonRpc : any // Peer
 
   // private readonly rpcPromiseWaittingDict: PadChatRpcPromiseDict
 
@@ -104,7 +106,7 @@ export class PadchatRpc extends EventEmitter {
       }
 
       const text = String(buffer)
-      const payload = parse(text) as JsonRpcPayloadRequest
+      const payload = parse(text) // as JsonRpcPayloadRequest
 
       log.silly('PadchatRpc', 'initJsonRpcPeer() jsonRpc.on(data) buffer="%s"', text)
 
@@ -115,7 +117,8 @@ export class PadchatRpc extends EventEmitter {
        *  2. Send payload to padchat server
        *
        */
-      const encodedParam = (payload.params as JsonRpcParamsSchemaByPositional).map(encodeURIComponent)
+      // const encodedParam = (payload.params as JsonRpcParamsSchemaByPositional).map(encodeURIComponent)
+      const encodedParam = payload.params.map(encodeURIComponent)
 
       const message: PadchatRpcRequest = {
         userId:   this.token,
@@ -131,6 +134,8 @@ export class PadchatRpc extends EventEmitter {
   }
 
   protected async initWebSocket(): Promise<void> {
+    log.verbose('PadchatRpc', 'initWebSocket()')
+
     if (this.socket) {
       throw new Error('socket had already been opened!')
     }
@@ -143,11 +148,12 @@ export class PadchatRpc extends EventEmitter {
     this.socket = ws
 
     ws.on('message', (data: string) => {
+      log.silly('PadchatRpc', 'initWebSocket() ws.on(message)')
       try {
         const payload: PadchatPayload = JSON.parse(data)
         this.onServer(payload)
       } catch (e) {
-        log.warn('PuppetPadchatBridge', 'startJsonRpc() ws.on(message) exception: %s', e)
+        log.warn('PadchatRpc', 'startJsonRpc() ws.on(message) exception: %s', e)
         this.emit('error', e)
       }
     })
@@ -232,7 +238,7 @@ export class PadchatRpc extends EventEmitter {
     // })
   }
   protected onServer(payload: PadchatPayload) {
-    log.verbose('PuppetPadchatBridge', 'onServer(payload.length=%d)',
+    log.verbose('PadchatRpc', 'onServer(payload.length=%d)',
                                         JSON.stringify(payload).length,
                 )
 
@@ -285,22 +291,22 @@ export class PadchatRpc extends EventEmitter {
     // }
     // const messagePayloadList: PadchatMessagePayload[] = JSON.parse(decodeURIComponent(payload.data))
 
-    messagePayloadList.forEach(messagePayload => {
+    for (const messagePayload of messagePayloadList) {
       if (!messagePayload.msg_id) {
         // {"continue":0,"msg_type":32768,"status":1,"uin":1928023446}
-        log.silly('PuppetPadchatBridge', 'WebSocket Server: get empty message msg_id form Tencent server for payoad: %s',
-                                    JSON.stringify(messagePayload),
+        log.silly('PadchatRpc', 'onServerTencent() discard empty message msg_id payoad: %s',
+                                JSON.stringify(messagePayload),
                   )
-        return
+        continue
       }
-      log.silly('PuppetPadchatBridge', 'WebSocket Server rawData result: %s', JSON.stringify(messagePayload))
+      log.silly('PadchatRpc', 'onServerTencent() messagePayload: %s', JSON.stringify(messagePayload))
 
       this.emit('message', messagePayload)
-    })
+    }
   }
 
   protected onServerPadchat(padchatPayload: PadchatPayload) {
-    log.verbose('PuppetPadchatBridge', 'onServerPadchat({apiName="%s", msgId="%s", ...})',
+    log.verbose('PadchatRpc', 'onServerPadchat({apiName="%s", msgId="%s", ...})',
                                         padchatPayload.apiName,
                                         padchatPayload.msgId,
                 )
@@ -311,7 +317,7 @@ export class PadchatRpc extends EventEmitter {
     //     "msgId": "abc231923912983",
     //     "userId": "test"
     // }
-    log.silly('PuppetPadchatBridge', 'onServerPadchat(%s)', JSON.stringify(padchatPayload).substr(0, 500))
+    log.silly('PadchatRpc', 'onServerPadchat(%s)', JSON.stringify(padchatPayload).substr(0, 500))
 
     // check logout:
     if (padchatPayload.type === PadchatPayloadType.Logout) {
@@ -324,19 +330,20 @@ export class PadchatRpc extends EventEmitter {
     if (padchatPayload.data) {
       result = JSON.parse(decodeURIComponent(padchatPayload.data))
     } else {
-      log.silly('PuppetPadchatBridge', 'onServerMessagePadchat() discard empty payload.data for apiName: %s', padchatPayload.apiName)
+      log.silly('PadchatRpc', 'onServerMessagePadchat() discard empty payload.data for apiName: %s', padchatPayload.apiName)
       result = {}
     }
 
-    const jsonRpcResponse: JsonRpcPayloadResponse = {
-      id: padchatPayload.msgId,
+    // const jsonRpcResponse: JsonRpcPayloadResponse = {
+    const jsonRpcResponse = {
+        id: padchatPayload.msgId,
       jsonrpc: '2.0',
       result: result,
       type: 'response',
     }
 
     const responseText = JSON.stringify(jsonRpcResponse)
-    log.silly('PuppetPadchatBridge', 'onServerPadchat() converted to JsonRpc payload="%s"', responseText.substr(0, 500))
+    log.silly('PadchatRpc', 'onServerPadchat() converted to JsonRpc payload="%s"', responseText.substr(0, 500))
 
     this.jsonRpc.write(responseText)
 
@@ -346,7 +353,7 @@ export class PadchatRpc extends EventEmitter {
     //   // resolve({rawData: rawData, msgId: rawWebSocketData.msgId})
     //   resolve(rawData)
     // } else {
-    //   log.warn('PuppetPadchatBridge', 'wsOnMessage() msgId %s not in resolverDict', msgId)
+    //   log.warn('PadchatRpc', 'wsOnMessage() msgId %s not in resolverDict', msgId)
     // }
   }
 

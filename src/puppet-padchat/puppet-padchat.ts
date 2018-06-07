@@ -217,6 +217,7 @@ export class PuppetPadchat extends Puppet {
       this.logout()
     })
     this.bridge.on('message', (messagePayload: PadchatMessagePayload) => {
+      log.silly('PuppetPadchat', 'startBridge()', 'bridge.on(message)')
       this.cachePadchatMessagePayload.set(
         messagePayload.msg_id,
         messagePayload,
