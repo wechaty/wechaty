@@ -115,7 +115,6 @@ export class PuppetPadchat extends Puppet {
       memory   : this.options.memory,
       token   : WECHATY_PUPPET_PADCHAT_TOKEN,
       endpoint: WECHATY_PUPPET_PADCHAT_ENDPOINT,
-      // profile:  profile, // should be profile in the future
     })
   }
 
@@ -263,7 +262,7 @@ export class PuppetPadchat extends Puppet {
     this.emit('logout', this.id) // becore we will throw above by logonoff() when this.user===undefined
     this.id = undefined
 
-    // TODO: this.bridge.logout
+    await this.bridge.logout()
   }
 
   /**
@@ -381,7 +380,7 @@ export class PuppetPadchat extends Puppet {
     log.verbose('PuppetPadchat', 'messageSend(%s, %s)', receiver, text)
     const id = receiver.contactId || receiver.roomId
     if (!id) {
-      throw Error('No id')
+      throw Error('no id')
     }
     await this.bridge.WXSendMsg(id, text)
   }

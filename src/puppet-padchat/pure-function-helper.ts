@@ -116,7 +116,8 @@ export class PadchatPureFunctionHelper {
 
     switch (rawPayload.sub_type) {
 
-      case PadchatMessageType.Sys:  // fall down
+      case PadchatMessageType.StatusNotify:   // fall down
+      case PadchatMessageType.Sys:            // fall down
       case PadchatMessageType.Text:
         type = MessageType.Text
         break
@@ -142,7 +143,7 @@ export class PadchatPureFunctionHelper {
         break
 
       default:
-        throw new Error('unsupported type')
+        throw new Error('unsupported type: ' + PadchatMessageType[rawPayload.sub_type] + '(' + rawPayload.sub_type + ')')
     }
 
     const payloadBase = {
