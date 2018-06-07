@@ -593,8 +593,24 @@ export class Bridge extends EventEmitter {
   }
 
   public async WXGetChatRoomMember(id: string): Promise<PadchatRoomMemberPayload> {
-    const result = this.padchatRpc.WXGetChatRoomMember(id)
-    return result
+    log.verbose('PuppetPadchatBridge', 'WXGetChatRoomMember(%s)', id)
+
+    let lastResult: undefined | PadchatRoomMemberPayload
+    const result = await Misc.retry(async (retry, attempt) => {
+      log.silly('PuppetPadchatBridge', 'WXGetChatRoomMember(%s) retry() attempt=%d', id, attempt)
+
+      try {
+        lastResult = await this.padchatRpc.WXGetChatRoomMember(id)
+        if (lastResult.member.length <= 0) {
+          throw new Error('no room member for room ' + id)
+        }
+        return lastResult
+      } catch (e) {
+        return retry(e)
+      }
+    })
+
+    return result || lastResult
   }
 
   public async WXDeleteChatRoomMember(roomId: string, contactId: string): Promise<StandardType> {

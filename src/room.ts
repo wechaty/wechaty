@@ -114,7 +114,7 @@ export class Room extends Accessory implements Sayable {
     this  : T,
     query : RoomQueryFilter = { topic: /.*/ },
   ): Promise<T['prototype'][]> {
-    log.verbose('Room', 'findAll({ topic: %s })', query.topic)
+    log.verbose('Room', 'findAll()', JSON.stringify(query))
 
     if (!query.topic) {
       throw new Error('topicFilter not found')

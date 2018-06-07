@@ -188,7 +188,7 @@ export class PadchatRpc extends EventEmitter {
     apiName   : string,
     ...params : string[]
   ): Promise<any> {
-    log.silly('PadchatRpc', 'rpcCall(%s, %s)', apiName, params.join(', '))
+    log.silly('PadchatRpc', 'rpcCall(%s, %s)', apiName, JSON.stringify(params))
     return await this.jsonRpc.request(apiName, params)
   }
 
@@ -548,18 +548,21 @@ export class PadchatRpc extends EventEmitter {
 
     log.silly('PadchatRpc', 'WXGetChatRoomMember() result: %s', JSON.stringify(result))
 
+    // 00:40:44 SILL PadchatRpc WXGetChatRoomMember() result: {"chatroom_id":0,"count":0,"member":"null\n","message":"","status":0,"user_name":""}
     if (!result.user_name || !result.member) {
-      log.warn('PadchatRpc', 'WXGetChatRoomMember cannot get user_name or member! user_name: %s, member: %s', id, result.member)
+      throw new Error('WXGetChatRoomMember cannot get user_name or member!')
     }
 
     // tslint:disable-next-line:max-line-length
     // change '[{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/DpS0ZssJ5s8tEpSr9JuPTRxEUrCK0USrZcR3PjOMfUKDwpnZLxWXlD4Q38bJpcXBtwXWwevsul1lJqwsQzwItQ/0","chatroom_nick_name":"","invited_by":"wxid_7708837087612","nick_name":"李佳芮","small_head":"http://wx.qlogo.cn/mmhead/ver_1/DpS0ZssJ5s8tEpSr9JuPTRxEUrCK0USrZcR3PjOMfUKDwpnZLxWXlD4Q38bJpcXBtwXWwevsul1lJqwsQzwItQ/132","user_name":"qq512436430"},{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/kcBj3gSibfFd2I9vQ8PBFyQ77cpPIfqkFlpTdkFZzBicMT6P567yj9IO6xG68WsibhqdPuG82tjXsveFATSDiaXRjw/0","chatroom_nick_name":"","invited_by":"wxid_7708837087612","nick_name":"梦君君","small_head":"http://wx.qlogo.cn/mmhead/ver_1/kcBj3gSibfFd2I9vQ8PBFyQ77cpPIfqkFlpTdkFZzBicMT6P567yj9IO6xG68WsibhqdPuG82tjXsveFATSDiaXRjw/132","user_name":"mengjunjun001"},{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/3CsKibSktDV05eReoAicV0P8yfmuHSowfXAMvRuU7HEy8wMcQ2eibcaO1ccS95PskZchEWqZibeiap6Gpb9zqJB1WmNc6EdD6nzQiblSx7dC1eGtA/0","chatroom_nick_name":"","invited_by":"wxid_7708837087612","nick_name":"苏轼","small_head":"http://wx.qlogo.cn/mmhead/ver_1/3CsKibSktDV05eReoAicV0P8yfmuHSowfXAMvRuU7HEy8wMcQ2eibcaO1ccS95PskZchEWqZibeiap6Gpb9zqJB1WmNc6EdD6nzQiblSx7dC1eGtA/132","user_name":"wxid_zj2cahpwzgie12"},{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/piaHuicak41b6ibmcEVxoWKnnhgGDG5EbaD0hibwkrRvKeDs3gs7XQrkym3Q5MlUeSKY8vw2FRVVstialggUxf2zic2O8CvaEsicSJcghf41nibA940/0","chatroom_nick_name":"","invited_by":"wxid_zj2cahpwzgie12","nick_name":"王宁","small_head":"http://wx.qlogo.cn/mmhead/ver_1/piaHuicak41b6ibmcEVxoWKnnhgGDG5EbaD0hibwkrRvKeDs3gs7XQrkym3Q5MlUeSKY8vw2FRVVstialggUxf2zic2O8CvaEsicSJcghf41nibA940/132","user_name":"wxid_7708837087612"}]'
     // to Array (PadchatRoomRawMember[])
-    if (!Array.isArray(JSON.parse(decodeURIComponent(result.member)))) {
-      log.error('PadchatRpc', 'WXGetChatRoomMember member: %s', result.member)
+    if (Array.isArray(JSON.parse(decodeURIComponent(result.member)))) {
+      result.member = JSON.parse(decodeURIComponent(result.member)) as PadchatRoomMember[]
+    } else {
+      log.warn('PadchatRpc', 'WXGetChatRoomMember(%s) member: %s', id, JSON.stringify(result.member))
       throw Error('faild to parse chatroom member!')
+      // result.member = []
     }
-    result.member = JSON.parse(decodeURIComponent(result.member)) as PadchatRoomMember[]
 
     return result
   }

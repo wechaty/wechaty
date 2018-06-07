@@ -17,10 +17,10 @@
  *
  */
 // import * as fs    from 'fs'
-import * as path  from 'path'
+import path  from 'path'
 
 /* tslint:disable:variable-name */
-import * as QrcodeTerminal  from 'qrcode-terminal'
+import QrcodeTerminal  from 'qrcode-terminal'
 // import finis                from 'finis'
 import { FileBox }          from 'file-box'
 
