@@ -64,13 +64,9 @@ import {
 
 import { log }          from '../config'
 
-// const AUTO_DATA_SLOT = 'autoData'
-
 export class PadchatRpc extends EventEmitter {
   private socket?          : WebSocket
   private readonly jsonRpc : any // Peer
-
-  // private readonly rpcPromiseWaittingDict: PadChatRpcPromiseDict
 
   constructor(
     protected endpoint : string,
@@ -86,20 +82,21 @@ export class PadchatRpc extends EventEmitter {
     log.verbose('PadchatRpc', 'start()')
 
     await this.initWebSocket()
-    await this.initJsonRpcPeer()
+    await this.initJsonRpc()
+
     await this.init()
     await this.WXInitialize()
   }
 
-  protected async initJsonRpcPeer(): Promise<void> {
-    log.verbose('PadchatRpc', 'initJsonRpcPeer()')
+  protected async initJsonRpc(): Promise<void> {
+    log.verbose('PadchatRpc', 'initJsonRpc()')
 
     if (!this.socket) {
       throw new Error('socket had not been opened yet!')
     }
 
     this.jsonRpc.on('data', (buffer: string | Buffer) => {
-      log.silly('PadchatRpc', 'initJsonRpcPeer() jsonRpc.on(data)')
+      log.silly('PadchatRpc', 'initJsonRpc() jsonRpc.on(data)')
 
       if (!this.socket) {
         throw new Error('no web socket')
@@ -108,7 +105,7 @@ export class PadchatRpc extends EventEmitter {
       const text = String(buffer)
       const payload = parse(text) // as JsonRpcPayloadRequest
 
-      log.silly('PadchatRpc', 'initJsonRpcPeer() jsonRpc.on(data) buffer="%s"', text)
+      log.silly('PadchatRpc', 'initJsonRpc() jsonRpc.on(data) buffer="%s"', text)
 
       /**
        * A Gateway at here:
@@ -127,7 +124,7 @@ export class PadchatRpc extends EventEmitter {
         param:    encodedParam,
       }
 
-      log.silly('PadchatRpc', 'initJsonRpcPeer() jsonRpc.on(data) converted to padchat payload="%s"', JSON.stringify(message))
+      log.silly('PadchatRpc', 'initJsonRpc() jsonRpc.on(data) converted to padchat payload="%s"', JSON.stringify(message))
 
       this.socket.send(JSON.stringify(message))
     })
@@ -151,7 +148,7 @@ export class PadchatRpc extends EventEmitter {
       log.silly('PadchatRpc', 'initWebSocket() ws.on(message)')
       try {
         const payload: PadchatPayload = JSON.parse(data)
-        this.onServer(payload)
+        this.onSocket(payload)
       } catch (e) {
         log.warn('PadchatRpc', 'startJsonRpc() ws.on(message) exception: %s', e)
         this.emit('error', e)
@@ -190,54 +187,11 @@ export class PadchatRpc extends EventEmitter {
     apiName   : string,
     ...params : string[]
   ): Promise<any> {
-
+    log.silly('PadchatRpc', 'rpcCall(%s, %s)', apiName, params.join(', '))
     return await this.jsonRpc.request(apiName, params)
-
-    // if (!this.socket) {
-    //   throw new Error('no web socket')
-    // }
-
-    // const msgId            = cuid()
-    // const paramEncodedList = params.map(
-    //   arg => encodeURIComponent(arg),
-    // )
-
-    // const request: PadchatRpcRequest = {
-    //   userId: this.token,
-    //   msgId,
-    //   apiName,
-    //   param: paramEncodedList,
-    // }
-
-    // const payload = JSON.stringify(request)
-    // log.silly('PadchatRpc', 'sendToWebSocket: %s', payload)
-
-    // this.socket.send(payload)
-
-    // return new Promise((resolve, reject) => {
-
-    //   const timer = setTimeout(() => {
-    //     delete this.rpcPromiseWaittingDict[msgId]
-    //     reject('PadChat Server timeout for msgId: ' + msgId + ', apiName: ' + apiName + ', args: ' + params.join(', '))
-    //     // TODO: send json again or detect init()
-    //   }, 30000)
-
-    //   this.rpcPromiseWaittingDict[msgId] = {
-    //     resolver: (...args: any[]) => {
-    //       delete this.rpcPromiseWaittingDict[msgId]
-    //       clearTimeout(timer)
-    //       resolve(...args)
-    //     },
-    //     reject: (...args: any[]) => {
-    //       delete this.rpcPromiseWaittingDict[msgId]
-    //       clearTimeout(timer)
-    //       reject(...args)
-    //     },
-    //   }
-
-    // })
   }
-  protected onServer(payload: PadchatPayload) {
+
+  protected onSocket(payload: PadchatPayload) {
     log.verbose('PadchatRpc', 'onServer(payload.length=%d)',
                                         JSON.stringify(payload).length,
                 )
@@ -258,31 +212,49 @@ export class PadchatRpc extends EventEmitter {
     }
 
     if (payload.msgId) {
-      // Data Return From WebSocket Client
-      this.onServerPadchat(payload)
+      // 1. Padchat Payload
+      //
+      // padchatPayload:
+      // {
+      //     "apiName": "WXHeartBeat",
+      //     "data": "%7B%22status%22%3A0%2C%22message%22%3A%22ok%22%7D",
+      //     "msgId": "abc231923912983",
+      //     "userId": "test"
+      // }
+      this.onSocketPadchat(payload)
     } else {
-      // Data From Tencent
+      // 2. Tencent Payload
+      //
+      // messagePayload:
+      // {
+      //   "apiName": "",
+      //   "data": "XXXX",
+      //   "msgId": "",
+      //   "userId": "test"
+      // }
+
       const tencentPayloadList: PadchatMessagePayload[] = JSON.parse(decodeURIComponent(payload.data))
-      this.onServerTencent(tencentPayloadList)
+      this.onSocketTencent(tencentPayloadList)
     }
   }
 
-  protected onServerTencent(messagePayloadList: PadchatMessagePayload[]) {
+  protected onSocketTencent(messagePayloadList: PadchatMessagePayload[]) {
     console.log('tencent messagePayloadList:', messagePayloadList)
+
+    // messagePayload:
+    // {
+    //   "apiName": "",
+    //   "data": "XXXX",
+    //   "msgId": "",
+    //   "userId": "test"
+    // }
+
     // if (   payload.continue  === PadchatContinue.Done
     //     && payload.msg_type  === PadchatMsgType.N15_32768
     //     && payload.status    === PadchatStatus.One
     // ) {
     //   // Skip empty message. "continue":0,"msg_type":32768,"status":1,"
     //   return
-    // }
-
-    // rawWebSocketData:
-    // {
-    //   "apiName": "",
-    //   "data": "XXXX",
-    //   "msgId": "",
-    //   "userId": "test"
     // }
 
     // if (!payload.data) {
@@ -305,18 +277,11 @@ export class PadchatRpc extends EventEmitter {
     }
   }
 
-  protected onServerPadchat(padchatPayload: PadchatPayload) {
+  protected onSocketPadchat(padchatPayload: PadchatPayload) {
     log.verbose('PadchatRpc', 'onServerPadchat({apiName="%s", msgId="%s", ...})',
                                         padchatPayload.apiName,
                                         padchatPayload.msgId,
                 )
-    // padchatPayload:
-    // {
-    //     "apiName": "WXHeartBeat",
-    //     "data": "%7B%22status%22%3A0%2C%22message%22%3A%22ok%22%7D",
-    //     "msgId": "abc231923912983",
-    //     "userId": "test"
-    // }
     log.silly('PadchatRpc', 'onServerPadchat(%s)', JSON.stringify(padchatPayload).substr(0, 500))
 
     // check logout:
@@ -409,8 +374,8 @@ export class PadchatRpc extends EventEmitter {
     return result
   }
 
-  public async WXHeartBeat(data: string): Promise<WXHeartBeatType> {
-    const result = await this.rpcCall('WXHeartBeat', data)
+  public async WXHeartBeat(): Promise<WXHeartBeatType> {
+    const result = await this.rpcCall('WXHeartBeat')
     log.silly('PadchatRpc', 'WXHeartBeat result: %s', JSON.stringify(result))
     if (!result || result.status !== 0) {
       throw Error('WXHeartBeat error! canot get result from websocket server')

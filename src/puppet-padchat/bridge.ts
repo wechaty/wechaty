@@ -342,6 +342,8 @@ export class Bridge extends EventEmitter {
   protected async saveAutoData(): Promise<void> {
     log.verbose('PuppetPadchatBridge', `loadAutoData()`)
 
+    await this.padchatRpc.WXHeartBeat()
+
     // Check 62 data. If has then use, or save 62 data here.
     this.autoData.token  = (await this.padchatRpc.WXGetLoginToken()).token
     this.autoData.wxData = (await this.padchatRpc.WXGenerateWxDat()).data
@@ -533,8 +535,8 @@ export class Bridge extends EventEmitter {
     return rawPayload
   }
 
-  public async ding(data: string): Promise<string> {
-    const result = await this.padchatRpc.WXHeartBeat(data)
+  public async ding(): Promise<string> {
+    const result = await this.padchatRpc.WXHeartBeat()
     return result.message
   }
 
@@ -577,10 +579,5 @@ export class Bridge extends EventEmitter {
 
   public async WXAddUser(strangerV1: string, strangerV2: string, type: string, verify: string): Promise<void> {
     await this.padchatRpc.WXAddUser(strangerV1, strangerV2, type, verify)
-  }
-
-  public async WXHeartBeat(data = 'ding'): Promise<string> {
-    const result = await this.padchatRpc.WXHeartBeat(data)
-    return result.message
   }
 }
