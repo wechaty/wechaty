@@ -707,7 +707,7 @@ export class Wechaty extends Accessory implements Sayable {
       await this.puppet.start()
 
     } catch (e) {
-      // console.log(e)
+      console.error(e)
       log.error('Wechaty', 'start() exception: %s', e && e.message)
       Raven.captureException(e)
       throw e

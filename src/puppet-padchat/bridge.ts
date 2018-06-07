@@ -65,7 +65,8 @@ export class Bridge extends EventEmitter {
   private readonly padchatRpc: PadchatRpc
   private autoData         : AutoDataType
 
-  private loginQrCode?: string
+  private loginScanQrCode? : string
+  private loginScanStatus? : number
 
   private loginTimer?: NodeJS.Timer
 
@@ -114,9 +115,11 @@ export class Bridge extends EventEmitter {
 
     await this.loadAutoData()
 
-    await this.restoreLogin()
+    const restoreSucceed = await this.restoreLogin()
 
-    this.startLogin()
+    if (!restoreSucceed) {
+      this.startLogin()
+    }
 
     this.state.on(true)
   }
@@ -130,7 +133,8 @@ export class Bridge extends EventEmitter {
 
     this.saveAutoData()
 
-    this.emit('login', this.selfId = username)
+    this.selfId = username
+    this.emit('login', this.selfId)
   }
 
   public logout(): void {
@@ -149,7 +153,8 @@ export class Bridge extends EventEmitter {
       clearTimeout(this.loginTimer)
       this.loginTimer = undefined
     }
-    this.loginQrCode = undefined
+    this.loginScanQrCode = undefined
+    this.loginScanStatus = undefined
   }
 
   protected async startLogin(): Promise<void> {
@@ -169,14 +174,23 @@ export class Bridge extends EventEmitter {
     /**
      * 2. Wait user response
      */
-    let lastStatus = WXCheckQRCodeStatus.Unknown
-    let loop = true
-    while (loop) {
+    let waitUser = true
+    while (waitUser) {
       const result = await this.padchatRpc.WXCheckQRCode()
 
-      if (lastStatus !== result.status && this.loginQrCode) {
-        lastStatus = result.status
-        this.emit('scan', this.loginQrCode, result.status)
+      if (this.loginScanStatus !== result.status && this.loginScanQrCode) {
+        this.loginScanStatus = result.status
+        this.emit(
+          'scan',
+          this.loginScanQrCode,
+          this.loginScanStatus,
+        )
+      }
+
+      if (result.expired_time && result.expired_time < 10) {
+        // result.expire_time is second
+        // emit new qrcode before the old one expired
+        waitUser = false
       }
 
       switch (result.status) {
@@ -205,29 +219,38 @@ export class Bridge extends EventEmitter {
 
         case WXCheckQRCodeStatus.Timeout:
           log.silly('PuppetPadchatBridge', 'checkQrcode: Timeout')
-          this.loginQrCode = undefined
-          loop = false
+          this.loginScanQrCode = undefined
+          this.loginScanStatus = undefined
+          waitUser = false
           break
 
         case WXCheckQRCodeStatus.Cancel:
           log.silly('PuppetPadchatBridge', 'user cancel')
-          this.loginQrCode = undefined
-          loop = false
+          this.loginScanQrCode = undefined
+          this.loginScanStatus = undefined
+          waitUser = false
           break
 
         default:
-          throw new Error('unknown status: ' + result.status)
+          log.warn('PadchatBridge', 'startLogin() unknown WXCheckQRCodeStatus: ' + result.status)
+          this.loginScanQrCode = undefined
+          this.loginScanStatus = undefined
+          waitUser = false
+          break
       }
 
       await new Promise(r => setTimeout(r, 1000))
     }
 
     await this.emitLoginQrCode()
-    this.loginTimer = setTimeout(this.startLogin.bind(this), 1000)
+    this.loginTimer = setTimeout(() => {
+      this.loginTimer = undefined
+      this.startLogin()
+    }, 1000)
     return
   }
 
-  protected async restoreLogin(): Promise<void> {
+  protected async restoreLogin(): Promise<boolean> {
     /**
      * 1. The following `if/else` block: emit qrcode or send login request to the user.
      */
@@ -243,8 +266,8 @@ export class Bridge extends EventEmitter {
           /**
            * 1.1 Auto Login Success, return username as the result
            */
-          this.selfId = autoLoginResult.user_name
-          return
+          this.login(autoLoginResult.user_name)
+          return true
 
         } else {
           /**
@@ -266,13 +289,13 @@ export class Bridge extends EventEmitter {
         await this.emitLoginQrCode()
       }
     }
-    return
+    return false
   }
 
   protected async emitLoginQrCode(): Promise<void> {
     log.verbose('PuppetPadchatBridge', `emitLoginQrCode()`)
 
-    if (this.loginQrCode) {
+    if (this.loginScanQrCode) {
       throw new Error('qrcode exist')
     }
 
@@ -284,10 +307,13 @@ export class Bridge extends EventEmitter {
 
     const qrCodeText = await pfHelper.imageBase64ToQrCode(result.qr_code)
 
+    this.loginScanQrCode = qrCodeText
+    this.loginScanStatus = WXCheckQRCodeStatus.WaitScan
+
     this.emit(
       'scan',
-      this.loginQrCode = qrCodeText,
-      0,
+      this.loginScanQrCode,
+      this.loginScanStatus,
     )
 
   }
@@ -310,13 +336,14 @@ export class Bridge extends EventEmitter {
   protected async loadAutoData(): Promise<void> {
     log.verbose('PuppetPadchatBridge', `loadAutoData()`)
 
-    const autoData: AutoDataType = await this.options.memory.get(AUTO_DATA_SLOT)
-    this.autoData = { ...autoData || {} }
+    this.autoData = {
+      ...await this.options.memory.get(AUTO_DATA_SLOT),
+    }
 
     // Check for 62 data, if has, then use WXLoadWxDat
-    if (autoData.wxData) {
+    if (this.autoData.wxData) {
       log.silly('PuppetPadchatBridge', `start(), get 62 data`)
-      await this.padchatRpc.WXLoadWxDat(autoData.wxData)
+      await this.padchatRpc.WXLoadWxDat(this.autoData.wxData)
     }
   }
 
@@ -346,13 +373,12 @@ export class Bridge extends EventEmitter {
   public async syncContactsAndRooms(): Promise<void> {
     log.verbose('PuppetPadchatBridge', `syncContactsAndRooms()`)
 
-    let cont = true
     // const syncContactMap = new Map<string, PadchatContactPayload>()
     // const syncRoomMap = new Map<string, PadchatRoomPayload>()
     // let contactIdList: string[] = []
     // let roomIdList: string[] = []
 
-    while (cont && this.state.on() && this.selfId) {
+    while (this.state.on() && this.selfId) {
       log.silly('PuppetPadchatBridge', `syncContactsAndRooms() while()`)
 
       const syncContactList = await this.padchatRpc.WXSyncContact()
@@ -375,29 +401,27 @@ export class Bridge extends EventEmitter {
                                     ),
                   )
 
-      syncContactList
-      .forEach(syncContact => {
+      for (const syncContact of syncContactList) {
         if (syncContact.continue === PadchatContinue.Go) {
           if (syncContact.msg_type === PadchatContactMsgType.Contact) {
             console.log('syncContact:', syncContact.user_name, syncContact.nick_name)
             if (pfHelper.isRoomId(syncContact.user_name)) { // /@chatroom$/.test(syncContact.user_name)) {
               this.cacheRoomRawPayload[syncContact.user_name] = syncContact as PadchatRoomPayload
               // syncRoomMap.set(syncContact.user_name, syncContact as PadchatRoomPayload)
-            } else if (syncContact.user_name) {
+            } else if (pfHelper.isContactId(syncContact.user_name)) {
               this.cacheContactRawPayload[syncContact.user_name] = syncContact as PadchatContactPayload
               // syncContactMap.set(syncContact.user_name, syncContact as PadchatContactPayload)
             } else {
-              throw new Error('no user_name')
+              throw new Error('id is neither room nor contact')
             }
           }
         } else {
-          log.info('PuppetPadchatBridge', 'syncContactsAndRooms() sync contact done!')
-          cont = false
-          return
+          log.verbose('PuppetPadchatBridge', 'syncContactsAndRooms() sync contact done!')
+          break
         }
-      })
+        log.silly('PuppetPadchatBridge', `syncContactsAndRooms(), continue to load via WXSyncContact ...`)
+      }
 
-      log.verbose('PuppetPadchatBridge', `syncContactsAndRooms(), continue to load via WXSyncContact ...`)
     }
 
     // contactIdList = contactIdList.filter(id => !!id)

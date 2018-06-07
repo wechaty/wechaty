@@ -141,32 +141,32 @@ export class PuppetPadchat extends Puppet {
       // feed the dog, heartbeat the puppet.
       // puppet.emit('heartbeat', food.data)
 
-      const feedAfterTenSeconds = async () => {
-        this.bridge.WXHeartBeat()
-        .then(() => {
-          this.emit('watchdog', {
-            data: 'WXHeartBeat()',
-          })
-        })
-        .catch(e => {
-          log.warn('PuppetPadchat', 'initWatchdogForPuppet() feedAfterTenSeconds rejected: %s', e && e.message || '')
-        })
-      }
+      // const feedAfterTenSeconds = async () => {
+      //   this.bridge.WXHeartBeat()
+      //   .then(() => {
+      //     this.emit('watchdog', {
+      //       data: 'WXHeartBeat()',
+      //     })
+      //   })
+      //   .catch(e => {
+      //     log.warn('PuppetPadchat', 'initWatchdogForPuppet() feedAfterTenSeconds rejected: %s', e && e.message || '')
+      //   })
+      // }
 
-      setTimeout(feedAfterTenSeconds, 15 * 1000)
+      // setTimeout(feedAfterTenSeconds, 15 * 1000)
 
     })
 
-    // this.watchdog.on('reset', async (food, timeout) => {
-    //   log.warn('PuppetPadchat', 'initWatchdogForPuppet() dog.on(reset) last food:%s, timeout:%s',
-    //                         food.data, timeout)
+    this.watchdog.on('reset', async (food, timeout) => {
+      log.warn('PuppetPadchat', 'initWatchdogForPuppet() dog.on(reset) last food:%s, timeout:%s',
+                            food.data, timeout)
     //   try {
     //     await this.stop()
     //     await this.start()
     //   } catch (e) {
     //     puppet.emit('error', e)
     //   }
-    // })
+    })
 
     this.emit('watchdog', {
       data: 'inited',

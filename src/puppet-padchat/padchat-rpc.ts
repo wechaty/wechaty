@@ -12,6 +12,8 @@ import {
   // JsonRpcPayloadError,
   // JsonRpcParamsSchemaByName,
   JsonRpcParamsSchemaByPositional,
+
+  parse,
 }                                   from 'json-rpc-peer'
 
 // import { MemoryCard }   from 'memory-card'
@@ -83,23 +85,36 @@ export class PadchatRpc extends EventEmitter {
 
     await this.initWebSocket()
     await this.initJsonRpcPeer()
-
     await this.init()
     await this.WXInitialize()
   }
 
   protected async initJsonRpcPeer(): Promise<void> {
+    log.verbose('PadchatRpc', 'initJsonRpcPeer()')
+
     if (!this.socket) {
       throw new Error('socket had not been opened yet!')
     }
 
-    this.jsonRpc.on('data', (payload: JsonRpcPayloadRequest) => {
+    this.jsonRpc.on('data', (buffer: string | Buffer) => {
+      log.silly('PadchatRpc', 'initJsonRpcPeer() jsonRpc.on(data)')
+
       if (!this.socket) {
         throw new Error('no web socket')
       }
 
-      console.log('jsonRpc.on(data) = ', payload.type, ', ', typeof payload, ': ', payload)
+      const text = String(buffer)
+      const payload = parse(text) as JsonRpcPayloadRequest
 
+      log.silly('PadchatRpc', 'initJsonRpcPeer() jsonRpc.on(data) buffer="%s"', text)
+
+      /**
+       * A Gateway at here:
+       *
+       *  1. Convert Payload format from JsonRpc to Padchat, then
+       *  2. Send payload to padchat server
+       *
+       */
       const encodedParam = (payload.params as JsonRpcParamsSchemaByPositional).map(encodeURIComponent)
 
       const message: PadchatRpcRequest = {
@@ -108,6 +123,8 @@ export class PadchatRpc extends EventEmitter {
         apiName:  payload.method,
         param:    encodedParam,
       }
+
+      log.silly('PadchatRpc', 'initJsonRpcPeer() jsonRpc.on(data) converted to padchat payload="%s"', JSON.stringify(message))
 
       this.socket.send(JSON.stringify(message))
     })
@@ -215,11 +232,11 @@ export class PadchatRpc extends EventEmitter {
     // })
   }
   protected onServer(payload: PadchatPayload) {
-    console.log('server payload:', payload)
-
-    log.verbose('PuppetPadchatBridge', 'onWebSocket(%s)',
-                                        JSON.stringify(payload).substr(0, 140),
+    log.verbose('PuppetPadchatBridge', 'onServer(payload.length=%d)',
+                                        JSON.stringify(payload).length,
                 )
+
+    // console.log('server payload:', payload)
 
     // check logout:
     if (payload.type === PadchatPayloadType.Logout) {
@@ -282,42 +299,46 @@ export class PadchatRpc extends EventEmitter {
     })
   }
 
-  protected onServerPadchat(payload: PadchatPayload) {
-    console.log('onServerMessagePadChat:', payload)
-
-    // check logout:
-    if (payload.type === PadchatPayloadType.Logout) {
-      // this.emit('logout', this.selfId())
-      this.emit('logout')
-    }
-
-    log.silly('PuppetPadchatBridge', 'return apiName: %s, msgId: %s', payload.apiName, payload.msgId)
-
-    let result: any
-
-    if (payload.data) {
-      result = JSON.parse(decodeURIComponent(payload.data))
-    } else {
-      log.silly('PuppetPadchatBridge', 'onServerMessagePadchat() discard empty payload.data for apiName: %s', payload.apiName)
-      result = {}
-    }
-
-    const jsonRpcResponse: JsonRpcPayloadResponse = {
-      id: payload.msgId,
-      jsonrpc: '2.0',
-      result: result,
-      type: 'response',
-    }
-
-    this.jsonRpc.write(jsonRpcResponse)
-
-    // rawWebSocketData:
+  protected onServerPadchat(padchatPayload: PadchatPayload) {
+    log.verbose('PuppetPadchatBridge', 'onServerPadchat({apiName="%s", msgId="%s", ...})',
+                                        padchatPayload.apiName,
+                                        padchatPayload.msgId,
+                )
+    // padchatPayload:
     // {
     //     "apiName": "WXHeartBeat",
     //     "data": "%7B%22status%22%3A0%2C%22message%22%3A%22ok%22%7D",
     //     "msgId": "abc231923912983",
     //     "userId": "test"
     // }
+    log.silly('PuppetPadchatBridge', 'onServerPadchat(%s)', JSON.stringify(padchatPayload).substr(0, 500))
+
+    // check logout:
+    if (padchatPayload.type === PadchatPayloadType.Logout) {
+      // this.emit('logout', this.selfId())
+      this.emit('logout')
+    }
+
+    let result: any
+
+    if (padchatPayload.data) {
+      result = JSON.parse(decodeURIComponent(padchatPayload.data))
+    } else {
+      log.silly('PuppetPadchatBridge', 'onServerMessagePadchat() discard empty payload.data for apiName: %s', padchatPayload.apiName)
+      result = {}
+    }
+
+    const jsonRpcResponse: JsonRpcPayloadResponse = {
+      id: padchatPayload.msgId,
+      jsonrpc: '2.0',
+      result: result,
+      type: 'response',
+    }
+
+    const responseText = JSON.stringify(jsonRpcResponse)
+    log.silly('PuppetPadchatBridge', 'onServerPadchat() converted to JsonRpc payload="%s"', responseText.substr(0, 500))
+
+    this.jsonRpc.write(responseText)
 
     // if (resolverDict[msgId]) {
     //   const resolve = resolverDict[msgId]
