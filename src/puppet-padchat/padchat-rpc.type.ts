@@ -55,6 +55,11 @@ export interface WXHeartBeatType {
   message : string,   // ok
 }
 
+export interface WXLogoutType {
+  status  : number,   // 0
+  message : string,   // ''
+}
+
 export interface WXGenerateWxDatType {
   data    : string,   // 62data,
   message : string,   // '',
@@ -114,4 +119,9 @@ export interface WXQRCodeLoginType {
   status            : number,   // 0,
   uin               : number,   // 324216852,
   user_name         : string,   // wxid_zj2cahpwzgie12
+}
+
+export interface WXHeartBeatType {
+  status  : number,   // 0
+  message : string,   // ok
 }

@@ -112,6 +112,7 @@ export class Bridge extends EventEmitter {
       this.emit('message', messageRawPayload)
     })
 
+    // TODO: 顺序变一下，要check user_name 的
     await this.loadAutoData()
 
     const restoreSucceed = await this.restoreLogin()
@@ -312,6 +313,7 @@ export class Bridge extends EventEmitter {
         /**
          * 3.1 Login Request Not Valid, emit QrCode for scan.
          */
+        await this.padchatRpc.WXInitialize()
         await this.emitLoginQrCode()
         return false
 
@@ -383,6 +385,7 @@ export class Bridge extends EventEmitter {
     }
 
     // Check for 62 data, if has, then use WXLoadWxDat
+    // TODO: should check this.autoData.user_name here
     if (this.autoData.wxData) {
       log.silly('PuppetPadchatBridge', `loadAutoData() load 62 data`)
       await this.padchatRpc.WXLoadWxDat(this.autoData.wxData)
