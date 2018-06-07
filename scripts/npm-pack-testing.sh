@@ -2,7 +2,7 @@
 set -e
 
 npm run dist
-npm pack
+npm run pack
 
 TMPDIR="/tmp/npm-pack-testing.$$"
 mkdir "$TMPDIR"
@@ -15,10 +15,11 @@ npm install *-*.*.*.tgz \
   @types/node \
   rxjs \
   brolog \
-  typescript@latest
+  typescript
 
 ./node_modules/.bin/tsc \
-  --lib esnext,dom \
+  --lib esnext \
+  --strict \
   --noEmitOnError \
   --noImplicitAny \
   --skipLibCheck \
