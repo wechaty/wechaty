@@ -411,7 +411,8 @@ export class Bridge extends EventEmitter {
     // let contactIdList: string[] = []
     // let roomIdList: string[] = []
 
-    while (this.state.on() && this.selfId) {
+    let cont = true
+    while (cont && this.state.on() && this.selfId) {
       log.silly('PuppetPadchatBridge', `syncContactsAndRooms() while()`)
 
       const syncContactList = await this.padchatRpc.WXSyncContact()
@@ -435,26 +436,41 @@ export class Bridge extends EventEmitter {
                   )
 
       for (const syncContact of syncContactList) {
-        if (syncContact.continue === PadchatContinue.Go) {
-          if (syncContact.msg_type === PadchatContactMsgType.Contact) {
-            console.log('syncContact:', syncContact.user_name, syncContact.nick_name)
-            if (pfHelper.isRoomId(syncContact.user_name)) { // /@chatroom$/.test(syncContact.user_name)) {
-              this.cacheRoomRawPayload[syncContact.user_name] = syncContact as PadchatRoomPayload
-              // syncRoomMap.set(syncContact.user_name, syncContact as PadchatRoomPayload)
-            } else if (pfHelper.isContactId(syncContact.user_name)) {
-              this.cacheContactRawPayload[syncContact.user_name] = syncContact as PadchatContactPayload
-              // syncContactMap.set(syncContact.user_name, syncContact as PadchatContactPayload)
-            } else {
-              throw new Error('id is neither room nor contact')
-            }
-          }
-        } else {
+
+        if (syncContact.continue !== PadchatContinue.Go) {
           log.verbose('PuppetPadchatBridge', 'syncContactsAndRooms() sync contact done!')
+          cont = false
           break
         }
-        log.silly('PuppetPadchatBridge', `syncContactsAndRooms(), continue to load via WXSyncContact ...`)
-      }
 
+        if (syncContact.msg_type === PadchatContactMsgType.Contact) {
+          console.log('syncContact:', syncContact.user_name, syncContact.nick_name)
+
+          if (pfHelper.isRoomId(syncContact.user_name)) { // /@chatroom$/.test(syncContact.user_name)) {
+            /**
+             * Room
+             */
+            this.cacheRoomRawPayload[syncContact.user_name] = syncContact as PadchatRoomPayload
+            // syncRoomMap.set(syncContact.user_name, syncContact as PadchatRoomPayload)
+
+          } else if (pfHelper.isContactId(syncContact.user_name)) {
+            /**
+             * Contact
+             */
+            this.cacheContactRawPayload[syncContact.user_name] = syncContact as PadchatContactPayload
+            // syncContactMap.set(syncContact.user_name, syncContact as PadchatContactPayload)
+
+          } else {
+            throw new Error('id is neither room nor contact')
+          }
+        } else {
+          log.silly('PuppetPadchatBridge', `syncContactsAndRooms() syncContact.msg_type=%s(%s)`,
+                                            syncContact.msg_type && PadchatContactMsgType[syncContact.msg_type],
+                                            syncContact.msg_type,
+                    )
+        }
+      }
+      // log.silly('PuppetPadchatBridge', `syncContactsAndRooms(), continue to load via WXSyncContact ...`)
     }
 
     // contactIdList = contactIdList.filter(id => !!id)
