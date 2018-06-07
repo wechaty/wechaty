@@ -313,7 +313,6 @@ export class Bridge extends EventEmitter {
         /**
          * 3.1 Login Request Not Valid, emit QrCode for scan.
          */
-        await this.padchatRpc.WXInitialize()
         await this.emitLoginQrCode()
         return false
 
@@ -337,6 +336,8 @@ export class Bridge extends EventEmitter {
     if (!result) {
       log.verbose('PuppetPadchatBridge', `emitLoginQrCode() result not found. Call WXInitialize() and try again ...`)
       await this.padchatRpc.WXInitialize()
+      // wait 1 second and try again
+      await new Promise(r => setTimeout(r, 1000))
       return await this.emitLoginQrCode()
     }
 
