@@ -82,7 +82,7 @@ export interface PadchatPayload {
 }
 
 /**
- * There are two functions to generate PadchatContactRawPayload
+ * There are two functions to generate PadchatContactPayload
  * - WXSyncContact (only when msg_type = 2)
  * - WXGetContact
  * @interface PadchatContactPayload
@@ -331,7 +331,7 @@ export interface PadchatRoomMember {
 }
 
 /**
- * There are two functions to generate PadchatContactRawPayload
+ * There are two functions to generate PadchatContactPayload
  * - WXSyncContact (only when msg_type = 2)
  * - WXGetContact
  * @interface PadchatRoomPayload

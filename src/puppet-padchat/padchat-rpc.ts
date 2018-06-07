@@ -56,6 +56,7 @@ import {
   WXCheckQRCodeStatus,
   StandardType,
   WXAddChatRoomMemberType,
+  WXLogoutType,
 }                             from './padchat-rpc.type'
 
 import {
@@ -737,13 +738,6 @@ export class PadchatRpc extends EventEmitter {
     return result
   }
 
-  // TODO
-  // public async WXCreateChatRoom(userList: string[]): Promise<any> {
-  //   const result = await this.sendToWebSocket('WXCreateChatRoom', userList)
-  //   console.log(result)
-  //   return result
-  // }
-
   public async WXQuitChatRoom(roomId: string): Promise<StandardType> {
     const result = await this.rpcCall('WXQuitChatRoom', roomId)
     log.silly('PadchatRpc', 'WXQuitChatRoom result: %s', JSON.stringify(result))
@@ -779,6 +773,78 @@ export class PadchatRpc extends EventEmitter {
   public async WXAcceptUser(stranger: string, ticket: string): Promise<any> {
     const result = await this.rpcCall('WXAcceptUser', stranger, ticket)
     log.silly('PadchatRpc', 'WXAcceptUser result: %s', JSON.stringify(result))
+    return result
+  }
+
+  public async WXLogout(): Promise<WXLogoutType> {
+    const result = await this.rpcCall('WXLogout')
+    log.silly('PadchatRpc', 'WXLogout result: %s', JSON.stringify(result))
+    if (!result || result.status !== 0) {
+      throw Error('WXLogout error! canot get result from websocket server')
+    }
+    return result
+  }
+
+  // TODO: check any
+  public async WXSendMoments(text: string): Promise<any> {
+    const result = await this.rpcCall('WXSendMoments', text)
+    log.silly('PadchatRpc', 'WXSendMoments result: %s', JSON.stringify(result))
+    if (!result || result.status !== 0) {
+      throw Error('WXSendMoments error! canot get result from websocket server')
+    }
+    return result
+  }
+
+  // Sync Chat Message
+  public async WXSyncMessage(): Promise<any> {
+    const result = await this.rpcCall('WXSyncMessage')
+    log.silly('PadchatRpc', 'WXSyncMessage result: %s', JSON.stringify(result))
+    if (!result || result.status !== 0) {
+      throw Error('WXSyncMessage error! canot get result from websocket server')
+    }
+    return result
+  }
+
+  // TODO: check any
+  // For add new friends by id
+  public async WXSearchContact(): Promise<any> {
+    const result = await this.rpcCall('WXSearchContact')
+    log.silly('PadchatRpc', 'WXSearchContact result: %s', JSON.stringify(result))
+    if (!result || result.status !== 0) {
+      throw Error('WXSearchContact error! canot get result from websocket server')
+    }
+    return result
+  }
+
+  // TODO: check any
+  // send hello to strange
+  public async WXSayHello(stranger: string, text: string): Promise<any> {
+    const result = await this.rpcCall('WXSayHello', stranger, text)
+    log.silly('PadchatRpc', 'WXSayHello , stranger,result: %s', JSON.stringify(result))
+    if (!result || result.status !== 0) {
+      throw Error('WXSayHello , stranger,error! canot get result from websocket server')
+    }
+    return result
+  }
+
+  // TODO: check any
+  // delete friend
+  public async WXDeleteUser(id: string): Promise<any> {
+    const result = await this.rpcCall('WXDeleteUser', id)
+    log.silly('PadchatRpc', 'WXDeleteUser , stranger,result: %s', JSON.stringify(result))
+    if (!result || result.status !== 0) {
+      throw Error('WXDeleteUser , stranger,error! canot get result from websocket server')
+    }
+    return result
+  }
+
+  // TODO: check any
+  public async WXCreateChatRoom(userList: string[]): Promise<any> {
+    const result = await this.rpcCall('WXCreateChatRoom', JSON.stringify(userList))
+    log.silly('PadchatRpc', 'WXCreateChatRoom , stranger,result: %s', JSON.stringify(result))
+    if (!result || result.status !== 0) {
+      throw Error('WXCreateChatRoom , stranger,error! canot get result from websocket server')
+    }
     return result
   }
 
