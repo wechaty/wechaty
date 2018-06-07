@@ -114,6 +114,7 @@ export class Bridge extends EventEmitter {
       this.emit('message', messageRawPayload)
     })
 
+    // TODO: 顺序变一下，要check user_name 的
     await this.loadAutoData()
 
     const restoreSucceed = await this.restoreLogin()
@@ -307,6 +308,7 @@ export class Bridge extends EventEmitter {
         /**
          * 1.3. No Auto Login, emit QrCode for scan
          */
+        await this.padchatRpc.WXInitialize()
         await this.emitLoginQrCode()
       }
     }
@@ -344,6 +346,8 @@ export class Bridge extends EventEmitter {
 
     // Check 62 data. If has then use, or save 62 data here.
     this.autoData.token  = (await this.padchatRpc.WXGetLoginToken()).token
+
+    // TODO: should not WXGenerateWxDat immediately, check user_name
     this.autoData.wxData = (await this.padchatRpc.WXGenerateWxDat()).data
 
     if (!this.autoData.user_name || !this.autoData.wxData || !this.autoData.token) {
@@ -362,6 +366,7 @@ export class Bridge extends EventEmitter {
     }
 
     // Check for 62 data, if has, then use WXLoadWxDat
+    // TODO: should check this.autoData.user_name here
     if (this.autoData.wxData) {
       log.silly('PuppetPadchatBridge', `start(), get 62 data`)
       await this.padchatRpc.WXLoadWxDat(this.autoData.wxData)
