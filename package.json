@@ -16,6 +16,7 @@
   "scripts": {
     "clean": "shx rm -fr dist/*",
     "dist": "npm run clean && tsc && shx cp src/puppet-puppeteer/*.js dist/src/puppet-puppeteer/",
+    "pack": "npm pack",
     "doc": "bash -x scripts/generate-docs.sh",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "changelog": "github_changelog_generator -u chatie -p wechaty && sed -i'.bak' /greenkeeper/d CHANGELOG.md && sed -i'.bak' '/An in-range update of/d' CHANGELOG.md && ts-node scripts/sort-contributiveness.ts < CHANGELOG.md > CHANGELOG.new.md 2>/dev/null && cat CHANGELOG.md >> CHANGELOG.new.md && mv CHANGELOG.new.md CHANGELOG.md",
@@ -67,7 +68,7 @@
   "author": {
     "name": "Huan LI",
     "email": "zixia@zixia.net",
-    "url": "www.zixia.net"
+    "url": "https://www.zixia.net"
   },
   "license": "Apache-2.0",
   "bugs": {
