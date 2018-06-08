@@ -31,8 +31,8 @@ import {
   ContactPayload,
 
   FriendRequestPayload,
-
   RoomPayload,
+  RoomMemberPayload,
   // RoomQueryFilter,
 }                       from '../puppet/'
 import {
@@ -265,8 +265,6 @@ export class PuppetMock extends Puppet {
     const payload: RoomPayload = {
       id           : 'id',
       topic        : 'mock topic',
-      memberIdList : [],
-      aliasDict    : {},
     }
 
     return payload
@@ -304,6 +302,9 @@ export class PuppetMock extends Puppet {
     log.verbose('PuppetMock', 'roomAdd(%s, %s)', roomId, contactId)
   }
 
+  public async roomTopic(roomId: string)                : Promise<string>
+  public async roomTopic(roomId: string, topic: string) : Promise<void>
+
   public async roomTopic(
     roomId: string,
     topic?: string,
@@ -327,6 +328,24 @@ export class PuppetMock extends Puppet {
 
   public async roomQuit(roomId: string): Promise<void> {
     log.verbose('PuppetMock', 'roomQuit(%s)', roomId)
+  }
+
+  public async roomMemberList(roomId: string) : Promise<string[]> {
+    log.verbose('PuppetMock', 'roommemberList(%s)', roomId)
+    return []
+  }
+
+  public async roomMemberRawPayload(roomId: string, contactId: string): Promise<any>  {
+    log.verbose('PuppetMock', 'roomMemberRawPayload(%s, %s)', roomId, contactId)
+    return {}
+  }
+
+  public async roomMemberRawPayloadParser(rawPayload: any): Promise<RoomMemberPayload>  {
+    log.verbose('PuppetMock', 'roomMemberRawPayloadParser(%s)', rawPayload)
+    return {
+      id: 'xx',
+      roomAlias: 'yy',
+    }
   }
 
   /**

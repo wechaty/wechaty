@@ -60,6 +60,7 @@ import {
   RoomQueryFilter,
   RoomMemberQueryFilter,
   RoomPayloadFilterFunction,
+  RoomMemberPayload,
 }                                 from './schemas/room'
 
 import {
@@ -83,6 +84,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public readonly cacheFriendRequestPayload : LRU.Cache<string, FriendRequestPayload>
   public readonly cacheMessagePayload       : LRU.Cache<string, MessagePayload>
   public readonly cacheRoomPayload          : LRU.Cache<string, RoomPayload>
+  public readonly cacheRoomMemberPayload    : LRU.Cache<string, RoomMemberPayload>
 
   protected readonly state    : StateSwitch
   protected readonly watchdog : Watchdog
@@ -130,6 +132,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     this.cacheFriendRequestPayload = new LRU<string, FriendRequestPayload>(lruOptions)
     this.cacheMessagePayload       = new LRU<string, MessagePayload>(lruOptions)
     this.cacheRoomPayload          = new LRU<string, RoomPayload>(lruOptions)
+    this.cacheRoomMemberPayload    = new LRU<string, RoomMemberPayload>(lruOptions)
 
     /**
      * 2. Load the package.json for Puppet Plugin version range matching
@@ -434,6 +437,22 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     return filterFunction
   }
 
+  public contactPayloadCache(contactId: string): undefined | ContactPayload {
+    log.silly('Puppet', 'contactPayloadCache(id=%s) @ %s', contactId, this)
+    if (!contactId) {
+      throw new Error('no id')
+    }
+    const cachedPayload = this.cacheContactPayload.get(contactId)
+
+    if (cachedPayload) {
+      log.silly('Puppet', 'contactPayload() cache HIT')
+    } else {
+      log.silly('Puppet', 'contactPayload() cache MISS')
+    }
+
+    return cachedPayload
+  }
+
   public async contactPayload(
     contactId: string,
     noCache = false,
@@ -446,18 +465,21 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
     if (noCache) {
       log.silly('Puppet', 'contactPayload() cache PURGE')
+
       this.cacheContactPayload.del(contactId)
+
+    } else {
+      const cachedPayload = this.contactPayloadCache(contactId)
+      if (cachedPayload) {
+
+        return cachedPayload
+
+      }
     }
 
-    const hitPayload = this.cacheContactPayload.get(contactId)
-
-    if (hitPayload) {
-      log.silly('Puppet', 'contactPayload() cache HIT')
-      return hitPayload
-    }
-
-    log.silly('Puppet', 'contactPayload() cache MISS')
-
+    /**
+     * Cache not found
+     */
     const rawPayload = await this.contactRawPayload(contactId)
     const payload    = await this.contactRawPayloadParser(rawPayload)
 
@@ -478,6 +500,22 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async friendRequestRawPayload(friendRequestId: string) : Promise<any>
   public abstract async friendRequestRawPayloadParser(rawPayload: any)   : Promise<FriendRequestPayload>
 
+  public friendRequestPayloadCache(friendRequestId: string): undefined | FriendRequestPayload {
+    log.silly('Puppet', 'friendRequestPayloadCache(id=%s) @ %s', friendRequestId, this)
+    if (!friendRequestId) {
+      throw new Error('no id')
+    }
+    const cachedPayload = this.cacheFriendRequestPayload.get(friendRequestId)
+
+    if (cachedPayload) {
+      log.silly('Puppet', 'friendRequestPayload() cache HIT')
+    } else {
+      log.silly('Puppet', 'friendRequestPayload() cache MISS')
+    }
+
+    return cachedPayload
+  }
+
   public async friendRequestPayload(
     friendRequestId: string,
     noCache = false,
@@ -490,18 +528,21 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
     if (noCache) {
       log.silly('Puppet', 'friendRequestPayload() cache PURGE')
+
       this.cacheFriendRequestPayload.del(friendRequestId)
+
+    } else {
+      const cachedPayload = this.friendRequestPayloadCache(friendRequestId)
+      if (cachedPayload) {
+
+        return cachedPayload
+
+      }
     }
 
-    const hitPayload = this.cacheFriendRequestPayload.get(friendRequestId)
-
-    if (hitPayload) {
-      log.silly('Puppet', 'friendRequestPayload() cache HIT')
-      return hitPayload
-    }
-
-    log.silly('Puppet', 'friendRequestPayload() cache MISS')
-
+    /**
+     * Cache not found
+     */
     const rawPayload = await this.friendRequestRawPayload(friendRequestId)
     const payload    = await this.friendRequestRawPayloadParser(rawPayload)
 
@@ -515,16 +556,31 @@ export abstract class Puppet extends EventEmitter implements Sayable {
    * Message
    *
    */
-  public abstract async messageFile(messageId: string)                  : Promise<FileBox>
+  public abstract async messageFile(messageId: string)                        : Promise<FileBox>
   public abstract async messageForward(receiver: Receiver, messageId: string) : Promise<void>
   public abstract async messageSendText(receiver: Receiver, text: string)     : Promise<void>
   public abstract async messageSendFile(receiver: Receiver, file: FileBox)    : Promise<void>
 
-  public abstract async messageRawPayload(messageId: string)            : Promise<any>
+  public abstract async messageRawPayload(messageId: string)     : Promise<any>
   public abstract async messageRawPayloadParser(rawPayload: any) : Promise<MessagePayload>
 
+  public messagePayloadCache(messageId: string): undefined | MessagePayload {
+    log.silly('Puppet', 'messagePayloadCache(id=%s) @ %s', messageId, this)
+    if (!messageId) {
+      throw new Error('no id')
+    }
+    const cachedPayload = this.cacheMessagePayload.get(messageId)
+    if (cachedPayload) {
+      log.silly('Puppet', 'messagePayloadCache() cache HIT')
+    } else {
+      log.silly('Puppet', 'messagePayloadCache() cache MISS')
+    }
+
+    return cachedPayload
+  }
+
   public async messagePayload(
-    messageId : string,
+    messageId: string,
     noCache = false,
   ): Promise<MessagePayload> {
     log.verbose('Puppet', 'messagePayload(id=%s, noCache=%s)', messageId, noCache)
@@ -535,19 +591,21 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
     if (noCache) {
       log.silly('Puppet', 'messagePayload() cache PURGE')
+
       this.cacheMessagePayload.del(messageId)
+
+    } else {
+      const cachedPayload = this.messagePayloadCache(messageId)
+      if (cachedPayload) {
+
+        return cachedPayload
+
+      }
     }
 
-    const hitPayload = this.cacheMessagePayload.get(messageId)
-
-    if (hitPayload) {
-      log.silly('Puppet', 'messagePayload() cache HIT')
-
-      return hitPayload
-    }
-
-    log.silly('Puppet', 'messagePayload() cache MISS')
-
+    /**
+     * Cache not found
+     */
     const rawPayload = await this.messageRawPayload(messageId)
     const payload    = await this.messageRawPayloadParser(rawPayload)
 
@@ -567,11 +625,19 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async roomCreate(contactIdList: string[], topic?: string) : Promise<string>
   public abstract async roomDel(roomId: string, contactId: string)          : Promise<void>
   public abstract async roomQuit(roomId: string)                            : Promise<void>
-  public abstract async roomTopic(roomId: string, topic?: string)           : Promise<string | void>
-  public abstract async roomList()                                          : Promise<string[]>
 
-  public abstract async roomRawPayload(roomId: string)            : Promise<any>
+  public abstract async roomTopic(roomId: string)                 : Promise<string>
+  public abstract async roomTopic(roomId: string, topic: string)  : Promise<void>
+  public abstract async roomTopic(roomId: string, topic?: string) : Promise<string | void>
+
+  public abstract async roomList()                     : Promise<string[]>
+  public abstract async roomMemberList(roomId: string) : Promise<string[]>
+
+  public abstract async roomRawPayload(roomId: string)        : Promise<any>
   public abstract async roomRawPayloadParser(rawPayload: any) : Promise<RoomPayload>
+
+  public abstract async roomMemberRawPayload(roomId: string, contactId: string) : Promise<any>
+  public abstract async roomMemberRawPayloadParser(rawPayload: any)             : Promise<RoomMemberPayload>
 
   public async roomMemberSearch(
     roomId : string,
@@ -597,7 +663,8 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     /**
      * 2. for RoomMemberQueryFilter
      */
-    const roomPayload = await this.roomPayload(roomId)
+    // const roomPayload = await this.roomPayload(roomId)
+    const memberIdList = await this.roomMemberList(roomId)
 
     let idList: string[] = []
 
@@ -607,17 +674,28 @@ export abstract class Puppet extends EventEmitter implements Sayable {
         alias : query.contactAlias,
       }
 
-      idList = idList.concat(await this.contactSearch(
-        contactQueryFilter,
-        roomPayload.memberIdList,
-      ))
+      idList = idList.concat(
+        await this.contactSearch(
+          contactQueryFilter,
+          memberIdList,
+        ),
+      )
     }
+
+    const memberPayloadList = await Promise.all(
+      memberIdList.map(
+        async contactId => await this.roomMemberPayload(roomId, contactId),
+      ),
+    )
 
     if (query.roomAlias) {
       idList = idList.concat(
-        Object.keys(roomPayload.aliasDict).filter(
-          id => roomPayload.aliasDict[id] === query.roomAlias,
-        ),
+        // Object.keys(roomPayload.aliasDict).filter(
+        //   id => roomPayload.aliasDict[id] === query.roomAlias,
+        // ),
+        memberPayloadList.filter(
+          payload => payload.roomAlias === query.roomAlias,
+        ).map(payload => payload.id),
       )
     }
 
@@ -687,35 +765,117 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     return filterFunction
   }
 
+  public roomPayloadCache(roomId: string): undefined | RoomPayload {
+    log.silly('Puppet', 'roomPayloadCache(id=%s) @ %s', roomId, this)
+    if (!roomId) {
+      throw new Error('no id')
+    }
+    const cachedPayload = this.cacheRoomPayload.get(roomId)
+    if (cachedPayload) {
+      log.silly('Puppet', 'roomPayloadCache() cache HIT')
+    } else {
+      log.silly('Puppet', 'roomPayloadCache() cache MISS')
+    }
+
+    return cachedPayload
+  }
+
   public async roomPayload(
-    id: string,
+    roomId: string,
     noCache = false,
   ): Promise<RoomPayload> {
-    log.verbose('Puppet', 'roomPayload(id=%s, noCache=%s)', id, noCache)
+    log.verbose('Puppet', 'roomPayload(id=%s, noCache=%s)', roomId, noCache)
 
-    if (!id) {
+    if (!roomId) {
       throw new Error('no id')
     }
 
     if (noCache) {
       log.silly('Puppet', 'roomPayload() cache PURGE')
-      this.cacheRoomPayload.del(id)
+
+      this.cacheRoomPayload.del(roomId)
+
+    } else {
+      const cachedPayload = this.roomPayloadCache(roomId)
+      if (cachedPayload) {
+
+        return cachedPayload
+
+      }
     }
 
-    const hitPayload = this.cacheRoomPayload.get(id)
-
-    if (hitPayload) {
-      log.silly('Puppet', 'roomPayload() cache HIT')
-      return hitPayload
-    }
-
-    log.silly('Puppet', 'roomPayload() cache MISS')
-
-    const rawPayload = await this.roomRawPayload(id)
+    /**
+     * Cache not found
+     */
+    const rawPayload = await this.roomRawPayload(roomId)
     const payload    = await this.roomRawPayloadParser(rawPayload)
 
-    this.cacheRoomPayload.set(id, payload)
+    this.cacheRoomPayload.set(roomId, payload)
     log.silly('Puppet', 'roomPayload() cache SET')
+
+    return payload
+  }
+
+  private cacheKeyRoomMember(
+    roomId    : string,
+    contactId : string,
+  ): string {
+    return contactId + '@@@' + roomId
+  }
+
+  public roomMemberPayloadCache(roomId: string, contactId: string): undefined | RoomMemberPayload {
+    log.silly('Puppet', 'roomMemberPayloadCache(id=%s) @ %s', roomId, this)
+
+    if (!roomId || !contactId) {
+      throw new Error('no id')
+    }
+
+    const cacheKey      = this.cacheKeyRoomMember(roomId, contactId)
+    const cachedPayload = this.cacheRoomMemberPayload.get(cacheKey)
+
+    if (cachedPayload) {
+      log.silly('Puppet', 'roomMemberPayloadCache() cache HIT')
+    } else {
+      log.silly('Puppet', 'roomMemberPayloadCache() cache MISS')
+    }
+
+    return cachedPayload
+  }
+
+  public async roomMemberPayload(
+    roomId    : string,
+    contactId : string,
+    noCache = false,
+  ): Promise<RoomMemberPayload> {
+    log.verbose('Puppet', 'roomMemberPayload(roomId=%s, contactId=%s noCache=%s)', roomId, contactId, noCache)
+
+    if (!roomId || !contactId) {
+      throw new Error('no id')
+    }
+
+    const cacheKey = this.cacheKeyRoomMember(roomId, contactId)
+
+    if (noCache) {
+      log.silly('Puppet', 'roomMemberPayload() cache PURGE')
+
+      this.cacheRoomMemberPayload.del(cacheKey)
+
+    } else {
+      const cachedPayload = this.roomMemberPayloadCache(roomId, contactId)
+
+      if (cachedPayload) {
+        return cachedPayload
+      }
+    }
+
+    /**
+     * Cache not found
+     */
+    const rawPayload = await this.roomMemberRawPayload(roomId, contactId)
+    const payload    = await this.roomMemberRawPayloadParser(rawPayload)
+
+    this.cacheRoomMemberPayload.set(cacheKey, payload)
+    log.silly('Puppet', 'roomMemberPayload() cache SET')
 
     return payload
   }

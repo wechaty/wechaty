@@ -32,7 +32,7 @@ import {
   PadchatMessageType,
 
   PadchatRoomPayload,
-  PadchatRoomMember,
+  // PadchatRoomMemberPayload,
 }                             from './padchat-schemas'
 
 export class PadchatPureFunctionHelper {
@@ -210,25 +210,26 @@ export class PadchatPureFunctionHelper {
 
   public static roomRawPayloadParser(
     rawPayload        : PadchatRoomPayload,
-    roomRawMemberList : PadchatRoomMember[],
+    // roomRawMemberList : PadchatRoomMember[],
   ): RoomPayload {
-    const aliasDict = {} as { [id: string]: string | undefined }
+    // const aliasDict = {} as { [id: string]: string | undefined }
 
-    if (Array.isArray(roomRawMemberList)) {
-      roomRawMemberList.forEach(
-        rawMember => {
-          aliasDict[rawMember.user_name] = rawMember.chatroom_nick_name
-        },
-      )
-    }
+    // if (Array.isArray(roomRawMemberList)) {
+    //   roomRawMemberList.forEach(
+    //     rawMember => {
+    //       aliasDict[rawMember.user_name] = rawMember.chatroom_nick_name
+    //     },
+    //   )
+    // }
 
-    const memberIdList = roomRawMemberList.map(m => m.user_name)
+    // const memberIdList = roomRawMemberList.map(m => m.user_name)
 
     const payload: RoomPayload = {
-      id           : rawPayload.user_name,
-      topic        : rawPayload.nick_name,
-      memberIdList,
-      aliasDict,
+      id      : rawPayload.user_name,
+      topic   : rawPayload.nick_name,
+      ownerId : rawPayload.chatroom_owner,
+      // memberIdList,
+      // aliasDict,
     }
 
     return payload

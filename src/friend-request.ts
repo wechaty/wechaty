@@ -61,7 +61,7 @@ export class FriendRequest extends Accessory {
     id   : string,
   ): T['prototype'] {
     const newFriendRequest = new (this as any)(id)
-    newFriendRequest.payload = this.puppet.cacheFriendRequestPayload.get(id)
+    // newFriendRequest.payload = this.puppet.cacheFriendRequestPayload.get(id)
     return newFriendRequest
   }
 
@@ -123,7 +123,9 @@ export class FriendRequest extends Accessory {
    *
    */
 
-  protected payload?: FriendRequestPayload
+  protected get payload(): undefined | FriendRequestPayload {
+    return this.puppet.friendRequestPayloadCache(this.id)
+  }
 
   constructor(
     public id: string,
@@ -168,28 +170,12 @@ export class FriendRequest extends Accessory {
       return
     }
 
-    this.payload = await this.puppet.friendRequestPayload(this.id)
+    await this.puppet.friendRequestPayload(this.id)
 
     if (!this.payload) {
       throw new Error('no payload')
     }
   }
-
-  // public async send(): Promise<void> {
-  //   if (!this.payload) {
-  //     throw new Error('no payload')
-  //   } else if (!this.payload.contactId) {
-  //     throw new Error('no contact')
-  //   } else if (this.payload.type !== FriendRequest.Type.Send) {
-  //     throw new Error('not a send request')
-  //   }
-  //   log.verbose('PuppeteerFriendRequest', 'send() to %s', this.payload.contactId)
-
-  //   await this.puppet.friendRequestSend(
-  //     this.payload.contactId,
-  //     this.payload.hello,
-  //   )
-  // }
 
   public async accept(): Promise<void> {
     log.verbose('FriendRequest', 'accept()')

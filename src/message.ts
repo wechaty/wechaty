@@ -92,6 +92,7 @@ export class Message extends Accessory implements Sayable {
   * "mobile originated" or "mobile terminated"
   * https://www.tatango.com/resources/video-lessons/video-mo-mt-sms-messaging/
   */
+  // TODO: rename create to load ??? Huan 201806
   public static create(id: string): Message {
     log.verbose('Message', 'static create(%s)', id)
 
@@ -103,7 +104,7 @@ export class Message extends Accessory implements Sayable {
      */
     const msg = new this(id)
 
-    msg.payload = this.puppet.cacheMessagePayload.get(id)
+    // msg.payload = this.puppet.cacheMessagePayload.get(id)
 
     return msg
   }
@@ -113,7 +114,9 @@ export class Message extends Accessory implements Sayable {
    * Instance Properties
    *
    */
-  private payload?  : MessagePayload
+  private get payload(): undefined | MessagePayload {
+    return this.puppet.messagePayloadCache(this.id)
+  }
 
   /**
    * @private
@@ -531,7 +534,11 @@ export class Message extends Accessory implements Sayable {
       return
     }
 
-    this.payload = await this.puppet.messagePayload(this.id)
+    await this.puppet.messagePayload(this.id)
+
+    if (!this.payload) {
+      throw new Error('no payload')
+    }
 
     const fromId = this.payload.fromId
     const roomId = this.payload.roomId

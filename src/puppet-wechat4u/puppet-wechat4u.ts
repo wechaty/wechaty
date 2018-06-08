@@ -41,6 +41,7 @@ import {
   FriendRequestType,
 
   RoomPayload,
+  RoomMemberPayload,
   // RoomQueryFilter,
 }                       from '../puppet/'
 import {
@@ -57,14 +58,18 @@ import {
 
 import {
   WebAppMsgType,
+
   WebContactRawPayload,
   // WebMessageMediaPayload,
+  WebRecomendInfo,
+
   WebMessageRawPayload,
   // WebMediaType,
   WebMessageType,
+
   // WebRoomRawMember,
-  WebRecomendInfo,
   WebRoomRawPayload,
+  WebRoomRawMember,
 }                           from '../puppet-puppeteer/web-schemas'
 
 import {
@@ -702,22 +707,22 @@ export class PuppetWechat4u extends Puppet {
     log.verbose('PuppetWechat4u', 'roomRawPayloadParser(%s)', rawPayload)
 
     const id            = rawPayload.UserName
-    const rawMemberList = rawPayload.MemberList || []
-    const memberIdList  = rawMemberList.map(rawMember => rawMember.UserName)
+    // const rawMemberList = rawPayload.MemberList || []
+    // const memberIdList  = rawMemberList.map(rawMember => rawMember.UserName)
 
-    const aliasDict = {} as { [id: string]: string | undefined }
+    // const aliasDict = {} as { [id: string]: string | undefined }
 
-    if (Array.isArray(rawPayload.MemberList)) {
-      rawPayload.MemberList.forEach(rawMember => {
-        aliasDict[rawMember.UserName] = rawMember.DisplayName
-      })
-    }
+    // if (Array.isArray(rawPayload.MemberList)) {
+    //   rawPayload.MemberList.forEach(rawMember => {
+    //     aliasDict[rawMember.UserName] = rawMember.DisplayName
+    //   })
+    // }
 
     const roomPayload: RoomPayload = {
       id,
       topic:      rawPayload.NickName || '',
-      memberIdList,
-      aliasDict,
+      // memberIdList,
+      // aliasDict,
     }
     return roomPayload
   }
@@ -768,6 +773,9 @@ export class PuppetWechat4u extends Puppet {
     this.wechat4u.updateChatroom(roomId, [contactId], type)
   }
 
+  public async roomTopic(roomId: string)                : Promise<string>
+  public async roomTopic(roomId: string, topic: string) : Promise<void>
+
   public async roomTopic(
     roomId: string,
     topic?: string,
@@ -792,6 +800,40 @@ export class PuppetWechat4u extends Puppet {
 
   public async roomQuit(roomId: string): Promise<void> {
     log.verbose('PuppetWechat4u', 'roomQuit(%s)', roomId)
+  }
+
+  public async roomMemberList(roomId: string) : Promise<string[]> {
+    log.verbose('PuppetWechat4u', 'roommemberList(%s)', roomId)
+    const rawPayload = await this.roomRawPayload(roomId)
+
+    const memberIdList = (rawPayload.MemberList || [])
+                        .map(member => member.UserName)
+
+    return memberIdList
+  }
+
+  public async roomMemberRawPayload(roomId: string, contactId: string): Promise<WebRoomRawMember>  {
+    log.verbose('PuppetWechat4u', 'roomMemberRawPayload(%s, %s)', roomId, contactId)
+    const rawPayload = await this.roomRawPayload(roomId)
+
+    const memberPayloadList = rawPayload.MemberList || []
+
+    const memberPayloadResult = memberPayloadList.filter(payload => payload.UserName === contactId)
+    if (memberPayloadResult.length > 0) {
+      return memberPayloadResult[0]
+    } else {
+      throw new Error('not found')
+    }
+  }
+
+  public async roomMemberRawPayloadParser(rawPayload: WebRoomRawMember): Promise<RoomMemberPayload>  {
+    log.verbose('PuppetWechat4u', 'roomMemberRawPayloadParser(%s)', rawPayload)
+
+    const payload: RoomMemberPayload = {
+      id        : rawPayload.UserName,
+      roomAlias : rawPayload.DisplayName,
+    }
+    return payload
   }
 
   /**

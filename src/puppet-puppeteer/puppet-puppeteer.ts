@@ -20,11 +20,10 @@
 import path    from 'path'
 import nodeUrl from 'url'
 
-import bl      from 'bl'
-import mime  from 'mime'
-import request from 'request'
+import bl       from 'bl'
+import mime     from 'mime'
+import request  from 'request'
 
-// import cloneClass   from 'clone-class'
 import {
   FileBox,
 }                   from 'file-box'
@@ -70,6 +69,7 @@ import {
   WebRecomendInfo,
   // WebRoomRawMember,
   WebRoomRawPayload,
+  WebRoomRawMember,
 }                           from './web-schemas'
 
 import {
@@ -87,6 +87,7 @@ import {
 
   // RoomMemberQueryFilter,
   RoomPayload,
+  RoomMemberPayload,
   // RoomQueryFilter,
 
   ScanPayload,
@@ -934,34 +935,34 @@ export class PuppetPuppeteer extends Puppet {
     // await Promise.all(memberList.map(c => c.ready()))
 
     const id            = rawPayload.UserName
-    const rawMemberList = rawPayload.MemberList || []
-    const memberIdList  = rawMemberList.map(rawMember => rawMember.UserName)
+    // const rawMemberList = rawPayload.MemberList || []
+    // const memberIdList  = rawMemberList.map(rawMember => rawMember.UserName)
 
     // const nameMap         = await this.roomParseMap('name'        , rawPayload.MemberList)
     // const roomAliasMap    = await this.roomParseMap('roomAlias'   , rawPayload.MemberList)
     // const contactAliasMap = await this.roomParseMap('contactAlias', rawPayload.MemberList)
 
-    const aliasDict = {} as { [id: string]: string | undefined }
+    // const aliasDict = {} as { [id: string]: string | undefined }
 
-    if (Array.isArray(rawPayload.MemberList)) {
-      rawPayload.MemberList.forEach(rawMember => {
-        aliasDict[rawMember.UserName] = rawMember.DisplayName
-      })
-      // const memberListPayload = await Promise.all(
-      //   rawPayload.MemberList
-      //     .map(rawMember => rawMember.UserName)
-      //     .map(contactId => this.contactPayload(contactId)),
-      // )
-      // console.log(memberListPayload)
-      // memberListPayload.forEach(payload => aliasDict[payload.id] = payload.alias)
-      // console.log(aliasDict)
-    }
+    // if (Array.isArray(rawPayload.MemberList)) {
+    //   rawPayload.MemberList.forEach(rawMember => {
+    //     aliasDict[rawMember.UserName] = rawMember.DisplayName
+    //   })
+    //   // const memberListPayload = await Promise.all(
+    //   //   rawPayload.MemberList
+    //   //     .map(rawMember => rawMember.UserName)
+    //   //     .map(contactId => this.contactPayload(contactId)),
+    //   // )
+    //   // console.log(memberListPayload)
+    //   // memberListPayload.forEach(payload => aliasDict[payload.id] = payload.alias)
+    //   // console.log(aliasDict)
+    // }
 
     const roomPayload: RoomPayload = {
       id,
       topic:      Misc.plainText(rawPayload.NickName || ''),
-      memberIdList,
-      aliasDict,
+      // memberIdList,
+      // aliasDict,
       // nameMap,
       // roomAliasMap,
       // contactAliasMap,
@@ -970,90 +971,12 @@ export class PuppetPuppeteer extends Puppet {
     return roomPayload
   }
 
-  // private async roomParseMap(
-  //   parseSection   : keyof RoomMemberQueryFilter,
-  //   rawMemberList? : WebRoomRawMember[],
-  // ): Promise<{ string, string }> {
-  //   log.verbose('PuppetPuppeteer', 'roomParseMap(%s, rawMemberList.length=%d)',
-  //                                   parseSection,
-  //                                   rawMemberList && rawMemberList.length,
-  //               )
-
-  //   const dict: Map<string, string> = new Map<string, string>()
-
-  //   const updateMember = async (member: WebRoomRawMember) => {
-  //     let tmpName: string
-  //     // console.log(member)
-  //     const payload = await this.contactPayload(member.UserName)
-  //     // contact.ready().then(() => console.log('###############', contact.name()))
-  //     // console.log(contact)
-  //     // log.silly('PuppetPuppeteer', 'roomParseMap() memberList.forEach(contact=%s)', contact)
-
-  //     switch (parseSection) {
-  //       case 'name':
-  //         tmpName = payload.name || ''
-  //         break
-  //       case 'roomAlias':
-  //         tmpName = member.DisplayName
-  //         break
-  //       case 'contactAlias':
-  //         tmpName = payload.alias || ''
-  //         break
-  //       default:
-  //         throw new Error('parseMap failed, member not found')
-  //     }
-  //     /**
-  //      * ISSUE #64 emoji need to be striped
-  //      * ISSUE #104 never use remark name because sys group message will never use that
-  //      * @rui: Wrong for 'never use remark name because sys group message will never use that', see more in the latest comment in #104
-  //      * @rui: webwx's NickName here return contactAlias, if not set contactAlias, return name
-  //      * @rui: 2017-7-2 webwx's NickName just ruturn name, no contactAlias
-  //      */
-  //     dict.set(member.UserName, Misc.stripEmoji(tmpName))
-  //   }
-  //   if (Array.isArray(rawMemberList)) {
-  //     await Promise.all(rawMemberList.map(updateMember))
-  //   }
-  //   return dict
-  // }
-
   public async roomList(): Promise<string[]> {
     log.verbose('PuppetPupppeteer', 'roomList()')
 
     const idList = await this.bridge.roomList()
     return idList
   }
-
-  // public async roomFindAll(
-  //   query: RoomQueryFilter = { topic: /.*/ },
-  // ): Promise<string[]> {
-
-  //   let topicFilter = query.topic
-
-  //   if (!topicFilter) {
-  //     throw new Error('topicFilter not found')
-  //   }
-
-  //   let filterFunction: string
-
-  //   if (topicFilter instanceof RegExp) {
-  //     filterFunction = `(function (c) { return ${topicFilter.toString()}.test(c) })`
-  //   } else if (typeof topicFilter === 'string') {
-  //     topicFilter = topicFilter.replace(/'/g, '\\\'')
-  //     filterFunction = `(function (c) { return c === '${topicFilter}' })`
-  //   } else {
-  //     throw new Error('unsupport topic type')
-  //   }
-
-  //   try {
-  //     const idList = await this.bridge.roomFind(filterFunction)
-  //     return idList
-  //   } catch (e) {
-  //     log.warn('PuppetPuppeteer', 'roomFind(%s) rejected: %s', filterFunction, e.message)
-  //     Raven.captureException(e)
-  //     throw e
-  //   }
-  // }
 
   public async roomDel(
     roomId    : string,
@@ -1093,12 +1016,20 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
+  public async roomTopic(roomId: string)                : Promise<string>
+  public async roomTopic(roomId: string, topic: string) : Promise<void>
+
   public async roomTopic(
     roomId : string,
-    topic  : string,
-  ): Promise<string> {
+    topic? : string,
+  ): Promise<void | string> {
+    if (!topic) {
+      const payload = await this.roomPayload(roomId)
+      return payload.topic
+    }
+
     try {
-      return await this.bridge.roomModTopic(roomId, topic)
+      await this.bridge.roomModTopic(roomId, topic)
     } catch (e) {
       log.warn('PuppetPuppeteer', 'roomTopic(%s) rejected: %s', topic, e.message)
       Raven.captureException(e)
@@ -1126,6 +1057,40 @@ export class PuppetPuppeteer extends Puppet {
 
   public async roomQuit(roomId: string): Promise<void> {
     log.warn('PuppetPuppeteer', 'roomQuit(%s) not supported by Web API', roomId)
+  }
+
+  public async roomMemberList(roomId: string) : Promise<string[]> {
+    log.verbose('PuppetPuppeteer', 'roommemberList(%s)', roomId)
+    const rawPayload = await this.roomRawPayload(roomId)
+
+    const memberIdList = (rawPayload.MemberList || [])
+                        .map(member => member.UserName)
+
+    return memberIdList
+  }
+
+  public async roomMemberRawPayload(roomId: string, contactId: string): Promise<WebRoomRawMember>  {
+    log.verbose('PuppetPuppeteer', 'roomMemberRawPayload(%s, %s)', roomId, contactId)
+    const rawPayload = await this.roomRawPayload(roomId)
+
+    const memberPayloadList = rawPayload.MemberList || []
+
+    const memberPayloadResult = memberPayloadList.filter(payload => payload.UserName === contactId)
+    if (memberPayloadResult.length > 0) {
+      return memberPayloadResult[0]
+    } else {
+      throw new Error('not found')
+    }
+  }
+
+  public async roomMemberRawPayloadParser(rawPayload: WebRoomRawMember): Promise<RoomMemberPayload>  {
+    log.verbose('PuppetPuppeteer', 'roomMemberRawPayloadParser(%s)', rawPayload)
+
+    const payload: RoomMemberPayload = {
+      id        : rawPayload.UserName,
+      roomAlias : rawPayload.DisplayName,
+    }
+    return payload
   }
 
   /**

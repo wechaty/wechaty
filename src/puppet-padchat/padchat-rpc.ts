@@ -33,8 +33,8 @@ import {
 
   PadchatMessagePayload,
 
-  PadchatRoomMember,
   PadchatRoomMemberPayload,
+  PadchatRoomMemberListPayload,
   PadchatRoomPayload,
 }                             from './padchat-schemas'
 
@@ -518,11 +518,15 @@ export class PadchatRpc extends EventEmitter {
   }
 
   /**
-   * Get room member by contact id
-   * @param {any} id        chatroom_id
+   * Get all member of a room by room id
+   * @param {any} roomId        chatroom_id
    */
-  public async WXGetChatRoomMember(id: string): Promise<PadchatRoomMemberPayload> {
-    const result = await this.rpcCall('WXGetChatRoomMember', id)
+  public async WXGetChatRoomMember(roomId: string): Promise<PadchatRoomMemberListPayload> {
+    // XXX: chatroom_id, or user_name ???
+    console.error('XXX: chatroom_id, or user_name ???')
+    console.error('XXX: chatroom_id, or user_name ???')
+    console.error('XXX: chatroom_id, or user_name ???')
+    const result = await this.rpcCall('WXGetChatRoomMember', roomId)
     if (!result) {
       throw Error('PadchatRpc, WXGetChatRoomMember, cannot get result from websocket server!')
     }
@@ -539,9 +543,9 @@ export class PadchatRpc extends EventEmitter {
     // change '[{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/DpS0ZssJ5s8tEpSr9JuPTRxEUrCK0USrZcR3PjOMfUKDwpnZLxWXlD4Q38bJpcXBtwXWwevsul1lJqwsQzwItQ/0","chatroom_nick_name":"","invited_by":"wxid_7708837087612","nick_name":"李佳芮","small_head":"http://wx.qlogo.cn/mmhead/ver_1/DpS0ZssJ5s8tEpSr9JuPTRxEUrCK0USrZcR3PjOMfUKDwpnZLxWXlD4Q38bJpcXBtwXWwevsul1lJqwsQzwItQ/132","user_name":"qq512436430"},{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/kcBj3gSibfFd2I9vQ8PBFyQ77cpPIfqkFlpTdkFZzBicMT6P567yj9IO6xG68WsibhqdPuG82tjXsveFATSDiaXRjw/0","chatroom_nick_name":"","invited_by":"wxid_7708837087612","nick_name":"梦君君","small_head":"http://wx.qlogo.cn/mmhead/ver_1/kcBj3gSibfFd2I9vQ8PBFyQ77cpPIfqkFlpTdkFZzBicMT6P567yj9IO6xG68WsibhqdPuG82tjXsveFATSDiaXRjw/132","user_name":"mengjunjun001"},{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/3CsKibSktDV05eReoAicV0P8yfmuHSowfXAMvRuU7HEy8wMcQ2eibcaO1ccS95PskZchEWqZibeiap6Gpb9zqJB1WmNc6EdD6nzQiblSx7dC1eGtA/0","chatroom_nick_name":"","invited_by":"wxid_7708837087612","nick_name":"苏轼","small_head":"http://wx.qlogo.cn/mmhead/ver_1/3CsKibSktDV05eReoAicV0P8yfmuHSowfXAMvRuU7HEy8wMcQ2eibcaO1ccS95PskZchEWqZibeiap6Gpb9zqJB1WmNc6EdD6nzQiblSx7dC1eGtA/132","user_name":"wxid_zj2cahpwzgie12"},{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/piaHuicak41b6ibmcEVxoWKnnhgGDG5EbaD0hibwkrRvKeDs3gs7XQrkym3Q5MlUeSKY8vw2FRVVstialggUxf2zic2O8CvaEsicSJcghf41nibA940/0","chatroom_nick_name":"","invited_by":"wxid_zj2cahpwzgie12","nick_name":"王宁","small_head":"http://wx.qlogo.cn/mmhead/ver_1/piaHuicak41b6ibmcEVxoWKnnhgGDG5EbaD0hibwkrRvKeDs3gs7XQrkym3Q5MlUeSKY8vw2FRVVstialggUxf2zic2O8CvaEsicSJcghf41nibA940/132","user_name":"wxid_7708837087612"}]'
     // to Array (PadchatRoomRawMember[])
     if (Array.isArray(JSON.parse(decodeURIComponent(result.member)))) {
-      result.member = JSON.parse(decodeURIComponent(result.member)) as PadchatRoomMember[]
+      result.member = JSON.parse(decodeURIComponent(result.member)) as PadchatRoomMemberPayload[]
     } else {
-      log.warn('PadchatRpc', 'WXGetChatRoomMember(%s) member is not array: %s', id, JSON.stringify(result.member))
+      log.warn('PadchatRpc', 'WXGetChatRoomMember(%s) member is not array: %s', roomId, JSON.stringify(result.member))
       // throw Error('faild to parse chatroom member!')
       result.member = []
     }

@@ -90,16 +90,13 @@ export class Contact extends Accessory implements Sayable {
     }
     const existingContact = this.pool.get(id)
     if (existingContact) {
-      if (!existingContact.payload) {
-        existingContact.payload = this.puppet.cacheContactPayload.get(id)
-      }
       return existingContact
     }
 
     // when we call `load()`, `this` should already be extend-ed a child class.
     // so we force `this as any` at here to make the call.
-    const newContact = new (this as any)(id)
-    newContact.payload = this.puppet.cacheContactPayload.get(id)
+    const newContact = new (this as any)(id) as Contact
+    // newContact.payload = this.puppet.cacheContactPayload.get(id)
 
     this.pool.set(id, newContact)
 
@@ -194,7 +191,9 @@ export class Contact extends Accessory implements Sayable {
    * Instance properties
    *
    */
-  protected payload?: ContactPayload
+  protected get payload(): undefined | ContactPayload {
+    return this.puppet.contactPayloadCache(this.id)
+  }
 
   /**
    * @private
@@ -530,14 +529,14 @@ export class Contact extends Accessory implements Sayable {
     // if (this.isReady()) {
     //   this.dirtyObj = this.obj
     // }
-    this.payload = undefined
-    await this.ready()
+    // this.payload = undefined
+    await this.ready(true)
   }
 
   /**
    * @private
    */
-  public async ready(): Promise<void> {
+  public async ready(noCache = false): Promise<void> {
     log.silly('Contact', 'ready() @ %s', this.puppet)
 
     if (this.isReady()) { // already ready
@@ -546,7 +545,7 @@ export class Contact extends Accessory implements Sayable {
     }
 
     try {
-      this.payload = await this.puppet.contactPayload(this.id)
+      await this.puppet.contactPayload(this.id, noCache)
       log.silly('Contact', `ready() this.puppet.contactPayload(%s) resolved`, this)
       // console.log(this.payload)
 

@@ -24,9 +24,10 @@ import {
   MessagePayload,
 }                                 from '../puppet/schemas/message'
 import {
+  RoomMemberPayload,
   RoomPayload,
-  RoomQueryFilter,
   RoomPayloadFilterFunction,
+  RoomQueryFilter,
 }                                 from '../puppet/schemas/room'
 import {
   Receiver,
@@ -91,12 +92,19 @@ class PuppetTest extends Puppet {
   public async roomCreate(contactIdList: string[], topic?: string) : Promise<string> { return {contactIdList, topic} as any }
   public async roomDel(roomId: string, contactId: string)          : Promise<void> { return {roomId, contactId} as any }
   public async roomQuit(roomId: string)                            : Promise<void> { return {roomId} as any }
-  public async roomTopic(roomId: string, topic?: string)           : Promise<string | void> { return {roomId, topic} as any }
+
+  public async roomTopic(roomId: string)                 : Promise<string>
+  public async roomTopic(roomId: string, topic: string)  : Promise<void>
+  public async roomTopic(roomId: string, topic?: string) : Promise<string | void> { return {roomId, topic} as any }
 
   public async roomList() : Promise<string[]> { return {} as any }
+  public async roomMemberList(roomId: string) : Promise<string[]> { return {roomId} as any }
 
   public async roomRawPayload(id: string)            : Promise<any> { return {id} as any }
   public async roomRawPayloadParser(rawPayload: any) : Promise<RoomPayload> { return {rawPayload} as any }
+
+  public async roomMemberRawPayload(roomId: string, contactId: string) : Promise<any> { return {roomId, contactId} as any}
+  public async roomMemberRawPayloadParser(rawPayload: any)             : Promise<RoomMemberPayload> { return rawPayload as any}
 
   /**
    * expose to public for internal methods:
@@ -209,31 +217,22 @@ test('roomQueryFilterFunction()', async t => {
   const TEXT_REGEX = 'query by regex'
   const TEXT_TEXT  = 'query by text'
 
-  const DUMMY = {
-    memberIdList    : {} as any,
-    aliasDict       : {} as any,
-  }
-
   const PAYLOAD_LIST: RoomPayload[] = [
     {
       id     : 'id1',
       topic  : TEXT_TEXT,
-      ...DUMMY,
     },
     {
       id     : 'id2',
       topic  : TEXT_REGEX,
-      ...DUMMY,
     },
     {
       id     : 'id3',
       topic  : TEXT_TEXT,
-      ...DUMMY,
     },
     {
       id     : 'id4',
       topic  : TEXT_REGEX,
-      ...DUMMY,
     },
   ]
 

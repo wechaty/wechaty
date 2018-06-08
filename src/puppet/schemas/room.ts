@@ -13,13 +13,19 @@ export interface RoomPayload {
 
   topic        : string,
   avatar?      : string,
-  memberIdList : string[],
+  // memberIdList : string[],
   ownerId?     : string,
-  aliasDict    : { [contactId: string]: string | undefined }  // room alias
+  // aliasDict    : { [contactId: string]: undefined | string }  // room alias
   // nameMap         : Map<string, string>,
   // roomAliasMap    : Map<string, string>,
   // contactAliasMap : Map<string, string>,
   // [index: string]:  Map<string, string> | string | number | PuppeteerContact[],
+}
+
+export interface RoomMemberPayload {
+  id         : string
+  roomAlias? : string,   // "李佳芮-群里设置的备注", roomAlias
+  inviterId? : string,   // "wxid_7708837087612",
 }
 
 export type RoomPayloadFilterFunction = (payload: RoomPayload)    => boolean

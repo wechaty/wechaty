@@ -37,6 +37,7 @@ import {
   ContactPayload,
 
   RoomPayload,
+  RoomMemberPayload,
   // RoomQueryFilter,
   // RoomMemberQueryFilter,
 
@@ -71,6 +72,8 @@ import {
   PadchatContactPayload,
   PadchatMessagePayload,
   PadchatRoomPayload,
+  // PadchatRoomMemberListPayload,
+  PadchatRoomMemberPayload,
 
   // PadchatMessageType,
   // PadchatContinue,
@@ -433,21 +436,55 @@ export class PuppetPadchat extends Puppet {
    * Room
    *
    */
-  public async roomRawPayload(id: string): Promise<PadchatRoomPayload> {
-    log.verbose('PuppetPadchat', 'roomRawPayload(%s)', id)
+  public async roomMemberRawPayload(
+    roomId    : string,
+    contactId : string,
+  ): Promise<PadchatRoomMemberPayload> {
+    log.silly('PuppetPadchat', 'roomMemberRawPayload(%s)', roomId)
 
-    const rawPayload = await this.bridge.roomRawPayload(id)
+    const rawPayload = await this.bridge.roomMemberRawPayload(roomId, contactId)
+    return rawPayload
+  }
+
+  public async roomMemberRawPayloadParser(
+    rawPayload: PadchatRoomMemberPayload,
+  ): Promise<RoomMemberPayload> {
+    log.silly('PuppetPadchat', 'roomMemberRawPayloadParser(%s)', rawPayload)
+
+    const payload: RoomMemberPayload = {
+      id        : rawPayload.user_name,
+      inviterId : rawPayload.invited_by,
+      roomAlias : rawPayload.chatroom_nick_name,
+    }
+
+    return payload
+  }
+
+  public async roomRawPayload(roomId: string): Promise<PadchatRoomPayload> {
+    log.verbose('PuppetPadchat', 'roomRawPayload(%s)', roomId)
+
+    const rawPayload = await this.bridge.roomRawPayload(roomId)
     return rawPayload
   }
 
   public async roomRawPayloadParser(rawPayload: PadchatRoomPayload): Promise<RoomPayload> {
     log.verbose('PuppetPadchat', 'roomRawPayloadParser(rawPayload.user_name="%s")', rawPayload.user_name)
 
-    const roomRawMemberList = (await this.bridge.WXGetChatRoomMember(rawPayload.user_name)).member
+    // const memberIdList = await this.bridge.getRoomMemberIdList()
+    //  WXGetChatRoomMember(rawPayload.user_name)
 
-    const payload: RoomPayload = pfHelper.roomRawPayloadParser(rawPayload, roomRawMemberList)
+    const payload: RoomPayload = pfHelper.roomRawPayloadParser(rawPayload)
 
     return payload
+  }
+
+  public async roomMemberList(roomId: string): Promise<string[]> {
+    log.verbose('PuppetPadchat', 'roomMemberList(%s)', roomId)
+
+    const memberIdList = await this.bridge.getRoomMemberIdList(roomId)
+    log.silly('PuppetPadchat', 'roomMemberList()=%d', memberIdList.length)
+
+    return memberIdList
   }
 
   public async roomList(): Promise<string[]> {
@@ -489,6 +526,9 @@ export class PuppetPadchat extends Puppet {
     log.verbose('PuppetPadchat', 'roomAdd(%s, %s)', roomId, contactId)
     await this.bridge.WXAddChatRoomMember(roomId, contactId)
   }
+
+  public async roomTopic(roomId: string)                : Promise<string>
+  public async roomTopic(roomId: string, topic: string) : Promise<void>
 
   public async roomTopic(
     roomId: string,

@@ -171,14 +171,11 @@ export class Room extends Accessory implements Sayable {
 
     const existingRoom = this.pool.get(id)
     if (existingRoom) {
-      if (!existingRoom.payload) {
-        existingRoom.payload = this.puppet.cacheRoomPayload.get(id)
-      }
       return existingRoom
     }
 
-    const newRoom = new (this as any)(id)
-    newRoom.payload = this.puppet.cacheRoomPayload.get(id)
+    const newRoom = new (this as any)(id) as Room
+    // newRoom.payload = this.puppet.cacheRoomPayload.get(id)
 
     this.pool.set(id, newRoom)
     return newRoom
@@ -191,7 +188,10 @@ export class Room extends Accessory implements Sayable {
    *
    *
    */
-  protected payload?: RoomPayload
+  protected get payload(): undefined | RoomPayload {
+    const readyPayload = this.puppet.roomPayloadCache(this.id)
+    return readyPayload
+  }
 
   /**
    * @private
@@ -225,8 +225,8 @@ export class Room extends Accessory implements Sayable {
     return `Room<${this.id || ''}>`
   }
 
-  public *[Symbol.iterator](): IterableIterator<Contact> {
-    const memberList = this.memberList()
+  public async *[Symbol.asyncIterator](): AsyncIterableIterator<Contact> {
+    const memberList = await this.memberList()
     for (const contact of memberList) {
       yield contact
     }
@@ -244,24 +244,22 @@ export class Room extends Accessory implements Sayable {
       return
     }
 
-    const payload = await this.puppet.roomPayload(this.id, noCache)
-    await Promise.all(
-      payload.memberIdList
-      .map(id => this.wechaty.Contact.load(id))
-      .map(contact => contact.ready()),
-    )
-    // log.silly('Room', 'ready() this.payload="%s"',
-    //                             util.inspect(payload),
-    //           )
+    await this.puppet.roomPayload(this.id, noCache)
 
-    this.payload = payload
+    const memberIdList = await this.puppet.roomMemberList(this.id)
+
+    await Promise.all(
+      memberIdList
+        .map(id => this.wechaty.Contact.load(id))
+        .map(contact => contact.ready()),
+    )
   }
 
   /**
    * @private
    */
   public isReady(): boolean {
-    return !!(this.payload && this.payload.memberIdList && this.payload.memberIdList.length)
+    return !!(this.payload)
   }
 
   public say(text: string)                     : Promise<void>
@@ -443,22 +441,22 @@ export class Room extends Accessory implements Sayable {
   public async del(contact: Contact): Promise<void> {
     log.verbose('Room', 'del(%s)', contact)
     await this.puppet.roomDel(this.id, contact.id)
-    this.delLocal(contact)
+    // this.delLocal(contact)
   }
 
-  private delLocal(contact: Contact): void {
-    log.verbose('Room', 'delLocal(%s)', contact)
+  // private delLocal(contact: Contact): void {
+  //   log.verbose('Room', 'delLocal(%s)', contact)
 
-    const memberIdList = this.payload && this.payload.memberIdList
-    if (memberIdList && memberIdList.length > 0) {
-      for (let i = 0; i < memberIdList.length; i++) {
-        if (memberIdList[i] === contact.id) {
-          memberIdList.splice(i, 1)
-          break
-        }
-      }
-    }
-  }
+  //   const memberIdList = this.payload && this.payload.memberIdList
+  //   if (memberIdList && memberIdList.length > 0) {
+  //     for (let i = 0; i < memberIdList.length; i++) {
+  //       if (memberIdList[i] === contact.id) {
+  //         memberIdList.splice(i, 1)
+  //         break
+  //       }
+  //     }
+  //   }
+  // }
 
   /**
    * @private
@@ -513,12 +511,6 @@ export class Room extends Accessory implements Sayable {
 
     const future = this.puppet
         .roomTopic(this.id, newTopic)
-        .then(() => {
-          this.payload = {
-            ...this.payload || {} as RoomPayload,
-            topic: newTopic,
-          }
-        })
         .catch(e => {
           log.warn('Room', 'topic(newTopic=%s) exception: %s',
                             newTopic, e && e.message || e,
@@ -555,10 +547,14 @@ export class Room extends Accessory implements Sayable {
    * @returns {(string | null)}
    */
   public roomAlias(contact: Contact): null | string {
-    if (!this.payload || !this.payload.aliasDict) {
-      return null
+
+    const memberPayload = this.puppet.roomMemberPayloadCache(this.id, contact.id)
+
+    if (memberPayload && memberPayload.roomAlias) {
+      return memberPayload.roomAlias
     }
-    return this.payload.aliasDict[contact.id] || null
+
+    return null
   }
 
   /**
@@ -577,13 +573,16 @@ export class Room extends Accessory implements Sayable {
    *   }
    * }
    */
-  public has(contact: Contact): boolean {
-    if (!this.payload || !this.payload.memberIdList) {
+  public async has(contact: Contact): Promise<boolean> {
+    const memberIdList = await this.puppet.roomMemberList(this.id)
+
+    if (!memberIdList) {
       return false
     }
-    return this.payload.memberIdList
-                        .filter(id => id === contact.id)
-                        .length > 0
+
+    return memberIdList
+            .filter(id => id === contact.id)
+            .length > 0
   }
 
   public async memberAll(name: string)                  : Promise<Contact[]>
@@ -621,70 +620,6 @@ export class Room extends Accessory implements Sayable {
     const contactList   = contactIdList.map(id => this.wechaty.Contact.load(id))
 
     return contactList
-
-    // if (typeof query === 'string') {
-    //   // TODO: filter the duplicated result
-    //   return ([] as Contact[]).concat(
-    //     await this.memberAll({name:         query}),
-    //     await this.memberAll({roomAlias:    query}),
-    //     await this.memberAll({contactAlias: query}),
-    //   )
-    // }
-
-    /**
-     * We got filter parameter
-     */
-
-    // if (Object.keys(query).length !== 1) {
-    //   throw new Error('Room member find queryArg only support one key. multi key support is not availble now.')
-    // }
-
-    // if (!this.payload || !this.payload.memberIdList) {
-    //   log.warn('Room', 'member() not ready')
-    //   return []
-    // }
-    // const filterKey = Object.keys(query)[0] as keyof RoomMemberQueryFilter
-
-    // /**
-    //  * ISSUE #64 emoji need to be striped
-    //  */
-    // const filterValue: string | undefined = /* Misc.stripEmoji(Misc.plainText( */ query[filterKey] // ))
-    // if (!filterValue) {
-    //   throw new Error('filterValue not found')
-    // }
-
-    // const idList = await this.puppet.roomMemberSearch(this.id, query)
-
-    // if (query.roomAlias === '田美坤') {
-    //   console.log('田美坤:')
-    //   console.log(this.payload.aliasDict)
-
-    //   console.log(idList)
-    // }
-
-    // // const keyMap = {
-    // //   contactAlias: 'contactAliasMap',
-    // //   name:         'nameMap',
-    // //   alias:        'roomAliasMap',
-    // //   roomAlias:    'roomAliasMap',
-    // // }
-
-    // // const filterMapName = keyMap[filterKey] as keyof RoomPayload
-    // // if (!filterMapName) {
-    // //   throw new Error('unsupport filter key: ' + filterKey)
-    // // }
-
-    // // const filterMap = this.payload[filterMapName] as Map<string, string>
-    // // const idList = Array.from(filterMap.keys())
-    // //                       .filter(id => filterMap.get(id) === filterValue)
-
-    // // log.silly('Room', 'memberAll() check %s from %s: %s', filterValue, filterKey, JSON.stringify(filterMap))
-
-    // if (idList.length) {
-    //   return idList.map(id => this.wechaty.Contact.load(id))
-    // } else {
-    //   return []
-    // }
   }
 
   public async member(name  : string)               : Promise<null | Contact>
@@ -747,18 +682,19 @@ export class Room extends Accessory implements Sayable {
    *
    * @returns {Contact[]}
    */
-  public memberList(): Contact[] {
-    log.verbose('Room', 'memberList')
+  public async memberList(): Promise<Contact[]> {
+    log.verbose('Room', 'memberList()')
 
-    if (!this.payload || !this.payload.memberIdList || this.payload.memberIdList.length < 1) {
+    const memberIdList = await this.puppet.roomMemberList(this.id)
+
+    if (!memberIdList) {
       log.warn('Room', 'memberList() not ready')
-      log.verbose('Room', 'memberList() trying call refresh() to update')
-      this.sync().then(() => {
-        log.verbose('Room', 'memberList() refresh() done')
-      })
       return []
     }
-    const contactList = this.payload.memberIdList.map(id => this.wechaty.Contact.load(id))
+
+    const contactList = memberIdList.map(
+      id => this.wechaty.Contact.load(id),
+    )
     return contactList
   }
 

@@ -219,10 +219,11 @@ test('Room iterator for contact in it', async t => {
   const MEMBER_CONTACT_ID_LIST = ROOM_RAW_PAYLOAD.MemberList!.map(rawMember => rawMember.UserName)
 
   let n = 0
-  for (const memberContact of room) {
+  for await (const memberContact of room) {
     t.ok(MEMBER_CONTACT_ID_LIST.includes(memberContact.id), 'should get one of the room member: ' + memberContact.id)
     n++
   }
 
-  t.equal(n, room.memberList().length, 'should iterate all the members of the room')
+  const memberList = await room.memberList()
+  t.equal(n, memberList.length, 'should iterate all the members of the room')
 })
