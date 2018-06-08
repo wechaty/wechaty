@@ -110,28 +110,32 @@ export interface PadchatContactPayload {
    * message: string, // '',
    * ticket: string, // '',
    */
-  msg_type : PadchatContactMsgType,
-  continue : PadchatContinue,
-  ticket?  : string,
+  msg_type? : PadchatContactMsgType,
+  continue? : PadchatContinue,
+  ticket?   : string,
 
-  big_head          : string,      // "http://wx.qlogo.cn/mmhead/ver_1/xfCMmibHH74xGLoyeDFJadrZXX3eOEznPefiaCa3iczxZGMwPtDuSbRQKx3Xdm18un303mf0NFia3USY2nO2VEYILw/0",
-  city              : string,      // 'Haidian'
-  country           : string,      // "CN"
-  intro             : string,      // '',
-  label             : string,      // '1', if no label, it is '', but not really sure
-  nick_name         : string,      // "梦君君", Contact:用户昵称， Room: 群昵称
-  provincia         : string,      // "Beijing",
-  py_initial        : string,      // 'LJR',
-  remark            : string,      // "女儿",
-  remark_py_initial : string,      // 'lijiaruibeizhu',
-  remark_quan_pin   : string,      // 'LJRBZ',
+  big_head          : string,                     // "http://wx.qlogo.cn/mmhead/ver_1/xfCMmibHH74xGLoyeDFJadrZXX3eOEznPefiaCa3iczxZGMwPtDuSbRQKx3Xdm18un303mf0NFia3USY2nO2VEYILw/0",
+  city              : string,                     // 'Haidian'
+  country           : string,                     // "CN"
+  intro             : string,                     // '',
+  label             : string,                     // '1', if no label, it is '', but not really sure
+  nick_name         : string,                     // "梦君君", Contact:用户昵称， Room: 群昵称
+  provincia         : string,                     // "Beijing",
+  py_initial        : string,                     // 'LJR',
+  remark            : string,                     // "女儿",
+  remark_py_initial : string,                     // 'lijiaruibeizhu',
+  remark_quan_pin   : string,                     // 'LJRBZ',
   sex               : ContactGender,
-  signature         : string,      // "且行且珍惜",
-  small_head        : string,      // "http://wx.qlogo.cn/mmhead/ver_1/xfCMmibHH74xGLoyeDFJadrZXX3eOEznPefiaCa3iczxZGMwPtDuSbRQKx3Xdm18un303mf0NFia3USY2nO2VEYILw/132",
-  status            : PadchatContactRoomStatus,      // 1 when use WXSyncContact, 0 when use WXGetContact
-  stranger          : string,      // "v1_0468f2cd3f0efe7ca2589d57c3f9ba952a3789e41b6e78ee00ed53d1e6096b88@stranger",
-  user_name         : string,      // "mengjunjun001" | "qq512436430" Unique name
+  signature         : string,                     // "且行且珍惜",
 
+  // "http://wx.qlogo.cn/mmhead/ver_1/xfCMmibHH74xGLoyeDFJadrZXX3eOEznPefiaCa3iczxZGMwPtDuSbRQKx3Xdm18un303mf0NFia3USY2nO2VEYILw/132",
+  small_head        : string,
+  status            : PadchatContactRoomStatus,   // 1 when use WXSyncContact, 0 when use WXGetContact
+  stranger          : string,                     // "v1_0468f2cd3f0efe7ca2589d57c3f9ba952a3789e41b6e78ee00ed53d1e6096b88@stranger",
+  user_name         : string,                     // "mengjunjun001" | "qq512436430" Unique name
+
+  message?  : string,
+  quan_pin? : string,
   /**
    * Differenc with web: No stranger, starFriend, intro, weixinid, tag...
    */

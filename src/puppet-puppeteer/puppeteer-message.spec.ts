@@ -83,7 +83,7 @@ test('constructor()', async t => {
   const msg = wechaty.Message.create(rawPayload.MsgId)
 
   const sandbox = sinon.createSandbox()
-  sandbox.stub(puppet, 'messagePayload').callsFake((_: string) => {
+  const mockMessagePayload = (_: string) => {
     const payload: MessagePayload = {
       id        : 'id',
       type      : Message.Type.Text,
@@ -92,9 +92,16 @@ test('constructor()', async t => {
       toId      : 'toId',
     }
     return payload
-  })
+  }
+
   sandbox.stub(puppet, 'contactPayload').returns({})
+  sandbox.stub(puppet, 'contactPayloadCache').returns({})
+
   sandbox.stub(puppet, 'roomPayload').returns({})
+  sandbox.stub(puppet, 'roomPayloadCache').returns({})
+
+  sandbox.stub(puppet, 'messagePayload').callsFake(mockMessagePayload)
+  sandbox.stub(puppet, 'messagePayloadCache').callsFake(mockMessagePayload)
 
   puppet.login(MOCK_USER_ID)
 
@@ -200,6 +207,7 @@ test('find()', async t => {
   const sandbox = sinon.createSandbox()
 
   sandbox.stub(puppet, 'contactPayload').resolves({})
+  sandbox.stub(puppet, 'contactPayloadCache').returns({})
 
   const MOCK_USER_ID = 'TEST-USER-ID'
   puppet.login(MOCK_USER_ID)
@@ -220,7 +228,9 @@ test('findAll()', async t => {
   wechaty.initPuppetAccessory(puppet)
 
   const sandbox = sinon.createSandbox()
+
   sandbox.stub(puppet, 'contactPayload').resolves({})
+  sandbox.stub(puppet, 'contactPayloadCache').returns({})
 
   const MOCK_USER_ID = 'TEST-USER-ID'
   puppet.login(MOCK_USER_ID)
@@ -257,15 +267,17 @@ test('self()', async t => {
   }
 
   sandbox.stub(puppet, 'messagePayload').callsFake(mockMessagePayload)
-  sandbox.stub(puppet, 'messageRawPayload').resolves({})
-  sandbox.stub(puppet, 'roomPayload').resolves({})
-  sandbox.stub(puppet, 'contactPayload').resolves({})
-  const selfIdStub = sandbox.stub(puppet, 'selfId').returns(MOCK_CONTACT.id)
+  sandbox.stub(puppet, 'messagePayloadCache').callsFake(mockMessagePayload)
 
-  // XXX
-  // function isNonExistentOwnProperty(object, property) {
-  //   return object && typeof property !== "undefined" && !(property in object);
-  // }
+  sandbox.stub(puppet, 'messageRawPayload').resolves({})
+
+  sandbox.stub(puppet, 'roomPayload').resolves({})
+  sandbox.stub(puppet, 'roomPayloadCache').returns({})
+
+  sandbox.stub(puppet, 'contactPayload').resolves({})
+  sandbox.stub(puppet, 'contactPayloadCache').returns({})
+
+  const selfIdStub = sandbox.stub(puppet, 'selfId').returns(MOCK_CONTACT.id)
 
   puppet.login(MOCK_USER_ID)
 

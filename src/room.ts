@@ -189,6 +189,10 @@ export class Room extends Accessory implements Sayable {
    *
    */
   protected get payload(): undefined | RoomPayload {
+    if (!this.id) {
+      return undefined
+    }
+
     const readyPayload = this.puppet.roomPayloadCache(this.id)
     return readyPayload
   }
@@ -537,7 +541,7 @@ export class Room extends Accessory implements Sayable {
    *   }
    * })
    */
-  public alias(contact: Contact): null | string {
+  public async alias(contact: Contact): Promise<null | string> {
     return this.roomAlias(contact)
   }
 
@@ -546,9 +550,9 @@ export class Room extends Accessory implements Sayable {
    * @param {Contact} contact
    * @returns {(string | null)}
    */
-  public roomAlias(contact: Contact): null | string {
+  public async roomAlias(contact: Contact): Promise<null | string> {
 
-    const memberPayload = this.puppet.roomMemberPayloadCache(this.id, contact.id)
+    const memberPayload = await this.puppet.roomMemberPayload(this.id, contact.id)
 
     if (memberPayload && memberPayload.roomAlias) {
       return memberPayload.roomAlias

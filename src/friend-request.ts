@@ -124,6 +124,10 @@ export class FriendRequest extends Accessory {
    */
 
   protected get payload(): undefined | FriendRequestPayload {
+    if (!this.id) {
+      return undefined
+    }
+
     return this.puppet.friendRequestPayloadCache(this.id)
   }
 

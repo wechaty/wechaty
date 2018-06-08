@@ -75,7 +75,6 @@ test('PuppetPuppeteerFriendRequest.receive smoke testing', async t => {
 
   const info = rawMessagePayload.RecommendInfo!
 
-  // FIXME: use wechaty.Contact.load
   const contact = wechaty.Contact.load(info.UserName)
   const hello   = info.Content
   const ticket  = info.Ticket
@@ -92,6 +91,7 @@ test('PuppetPuppeteerFriendRequest.receive smoke testing', async t => {
 
   const sandbox = sinon.createSandbox()
   sandbox.stub(puppet, 'friendRequestPayload').resolves(payload)
+  sandbox.stub(puppet, 'friendRequestPayloadCache').returns(payload)
 
   const fr = wechaty.FriendRequest.load(id)
   await fr.ready()
@@ -121,9 +121,14 @@ test('PuppetPuppeteerFriendRequest.confirm smoke testing', async t => {
   }
 
   const sandbox = sinon.createSandbox()
+
   sandbox.stub(puppet, 'messageRawPayload')   .resolves(rawMessagePayload)
+
   sandbox.stub(puppet, 'contactPayload')      .resolves({})
-  sandbox.stub(puppet, 'friendRequestPayload').resolves(friendRequestPayload)
+  sandbox.stub(puppet, 'contactPayloadCache') .returns({})
+
+  sandbox.stub(puppet, 'friendRequestPayload')      .resolves(friendRequestPayload)
+  sandbox.stub(puppet, 'friendRequestPayloadCache') .returns(friendRequestPayload)
 
   const msg = wechaty.Message.create(rawMessagePayload.MsgId)
   await msg.ready()

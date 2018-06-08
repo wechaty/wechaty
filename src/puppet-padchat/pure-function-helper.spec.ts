@@ -58,20 +58,20 @@ test('isStrangerV1()', async t => {
   const STRANGER_V1     = 'v1_999999'
   const NOT_STRANGER_V1 = '9999991'
 
-  t.ok(pfHelper.isContactOfficialId(STRANGER_V1), 'should return true for STRANGER_V1')
-  t.notOk(pfHelper.isContactOfficialId(NOT_STRANGER_V1), 'should return false for NOT_STRANGER_V1')
+  t.equal(pfHelper.isStrangerV1(STRANGER_V1),      true,   'should return true for STRANGER_V1')
+  t.equal(pfHelper.isStrangerV1(NOT_STRANGER_V1),  false,  'should return false for NOT_STRANGER_V1')
 })
 
 test('isStrangerV2()', async t => {
   const STRANGER_V2     = 'v2_999999'
   const NOT_STRANGER_V2 = '999999v2'
 
-  t.ok(pfHelper.isContactOfficialId(STRANGER_V2), 'should return true for STRANGER_V2')
-  t.notOk(pfHelper.isContactOfficialId(NOT_STRANGER_V2), 'should return false for NOT_STRANGER_V2')
+  t.equal(pfHelper.isStrangerV2(STRANGER_V2),     true, 'should return true for STRANGER_V2')
+  t.equal(pfHelper.isStrangerV2(NOT_STRANGER_V2), false, 'should return false for NOT_STRANGER_V2')
 })
 
 test('contactRawPayloadParser', async t => {
-  const PADCHAT_CONTACT_PAYLOAD: PadchatContactPayload = {
+  const PADCHAT_CONTACT_PAYLOAD_PERSONAL: PadchatContactPayload = {
     msg_type          : PadchatContactMsgType.Contact,
     continue          : PadchatContinue.Done,
     ticket            : '',
@@ -95,29 +95,29 @@ test('contactRawPayloadParser', async t => {
   }
 
   const PADCHAT_CONTACT_PAYLOAD_OFFICIAL: PadchatContactPayload = {
-    msg_type          : PadchatContactMsgType.Contact,
-    continue          : PadchatContinue.Done,
-    ticket            : '',
-    big_head          : 'http://wx.qlogo.cn/mmhead/ver_1/xfCMmibHH74xGLoyeDFJadrZXX3eOEznPefiaCa3iczxZGMwPtDuSbRQKx3Xdm18un303mf0NFia3USY2nO2VEYILw/0',
+    big_head          : 'http://wx.qlogo.cn/mmhead/ver_1/TR8EDh3MgMsu20pxjrDPBpaGySuEAGf3MUuoeUOV2LiaqvZxeMqb1U7hgiciaQZBC8LYN0boVLCKOIYg71pxdl1fQabiaxsn7CnNeGWVrK3jSIY/0',
     city              : 'Haidian',
     country           : 'CN',
-    intro             : '',
-    label             : '1',
-    nick_name         : '梦君君',
+    intro             : 'CARPE+DIEM+-+if+not+us,+who?+if+not+now,+when?',
+    label             : '',
+    message           : '',
+    nick_name         : '李卓桓',
     provincia         : 'Beijing',
-    py_initial        : 'LJR',
-    remark            : '女儿',
-    remark_py_initial : 'lijiaruibeizhu',
-    remark_quan_pin   : 'LJRBZ',
-    sex               : ContactGender.Female,
-    signature         : '且行且珍惜',
-    small_head        : 'http://wx.qlogo.cn/mmhead/ver_1/xfCMmibHH74xGLoyeDFJadrZXX3eOEznPefiaCa3iczxZGMwPtDuSbRQKx3Xdm18un303mf0NFia3USY2nO2VEYILw/132',
-    status            : PadchatContactRoomStatus.Get,
-    stranger          : 'v1_0468f2cd3f0efe7ca2589d57c3f9ba952a3789e41b6e78ee00ed53d1e6096b88@stranger',
-    user_name         : 'gh_672f4fa64015',
+    py_initial        : 'LZH',
+    quan_pin          : 'lizhuohuan',
+    remark            : '',
+    remark_py_initial : '',
+    remark_quan_pin   : '',
+    sex               : 0,
+    signature         : 'CARPE+DIEM+-+if+not+us,+who?+if+not+now,+when?',
+    small_head        : 'http://wx.qlogo.cn/mmhead/ver_1/TR8EDh3MgMsu20pxjrDPBpaGySuEAGf3MUuoeUOV2LiaqvZxeMqb1U7hgiciaQZBC8LYN0boVLCKOIYg71pxdl1fQabiaxsn7CnNeGWVrK3jSIY/132',
+    status            : 0,
+    stranger          : 'v1_cd6656d42f505e5ffbb7eab65fed448fc8f02eade29a873ec3e758c7553db424@stranger',
+    ticket            : '',
+    user_name         : 'gh_59d7c8ad720c',
   }
 
-  const CONTACT_PAYLOAD: ContactPayload = {
+  const EXPECTED_CONTACT_PAYLOAD_PERSONAL: ContactPayload = {
     id        : 'mengjunjun001',
     gender    : ContactGender.Female,
     type      : ContactType.Personal,
@@ -129,22 +129,24 @@ test('contactRawPayloadParser', async t => {
     signature : 'Stay Foolish',
   }
 
-  const CONTACT_PAYLOAD_OFFICIAL: ContactPayload = {
-    id        : 'mengjunjun001',
-    gender    : ContactGender.Female,
+  const EXPECTED_CONTACT_PAYLOAD_OFFICIAL: ContactPayload = {
+    id        : 'gh_59d7c8ad720c',
+    gender    : ContactGender.Unknown,
     type      : ContactType.Official,
-    alias     : '女儿',
-    avatar    : 'http://wx.qlogo.cn/mmhead/ver_1/xfCMmibHH74xGLoyeDFJadrZXX3eOEznPefiaCa3iczxZGMwPtDuSbRQKx3Xdm18un303mf0NFia3USY2nO2VEYILw/0',
+    alias     : '',
+    avatar    : 'http://wx.qlogo.cn/mmhead/ver_1/TR8EDh3MgMsu20pxjrDPBpaGySuEAGf3MUuoeUOV2LiaqvZxeMqb1U7hgiciaQZBC8LYN0boVLCKOIYg71pxdl1fQabiaxsn7CnNeGWVrK3jSIY/0',
     city      : 'Haidian',
-    name      : '梦君君',
+    name      : '李卓桓',
     province  : 'Beijing',
-    signature : '且行且珍惜',
+    signature : 'CARPE DIEM+-+if+not+us,+who?+if+not+now,+when?',
   }
 
-  const result = pfHelper.contactRawPayloadParser(PADCHAT_CONTACT_PAYLOAD)
-  t.deepEqual(result, CONTACT_PAYLOAD, 'should parse ContactPayload result')
+  const resultPersonal = pfHelper.contactRawPayloadParser(PADCHAT_CONTACT_PAYLOAD_PERSONAL)
+  t.deepEqual(resultPersonal, EXPECTED_CONTACT_PAYLOAD_PERSONAL, 'should parse ContactPayload for personal account payload')
+
   const resultOfficial = pfHelper.contactRawPayloadParser(PADCHAT_CONTACT_PAYLOAD_OFFICIAL)
-  t.deepEqual(resultOfficial, CONTACT_PAYLOAD_OFFICIAL, 'should parse ContactPayload result when test official account')
+  t.deepEqual(resultOfficial, EXPECTED_CONTACT_PAYLOAD_OFFICIAL, 'should parse ContactPayload for official account payload')
+
   t.throws(() => pfHelper.contactRawPayloadParser({} as any), 'should throw exception for invalid object')
   t.throws(() => pfHelper.contactRawPayloadParser(undefined as any), 'should throw exception for undifined')
 })

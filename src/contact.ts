@@ -192,6 +192,9 @@ export class Contact extends Accessory implements Sayable {
    *
    */
   protected get payload(): undefined | ContactPayload {
+    if (!this.id) {
+      return undefined
+    }
     return this.puppet.contactPayloadCache(this.id)
   }
 
