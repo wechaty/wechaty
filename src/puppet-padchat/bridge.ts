@@ -501,7 +501,11 @@ export class Bridge extends EventEmitter {
     const memberDict: { [contactId: string]: PadchatRoomMemberPayload } = {}
 
     for (const memberPayload of memberListPayload.member) {
-      log.info('PuppetPadchatBridge', 'syncRoomMember(%s) = "%s"', roomId, JSON.stringify(memberPayload))
+      log.info('PuppetPadchatBridge', 'syncRoomMember(%s) member(%s)="%s"',
+                                      roomId,
+                                      memberPayload.user_name,
+                                      JSON.stringify(memberPayload),
+                )
 
       const      contactId  = memberPayload.user_name
       memberDict[contactId] = memberPayload
@@ -580,11 +584,20 @@ export class Bridge extends EventEmitter {
             throw new Error('id is neither room nor contact')
           }
         } else {
-          log.silly('PuppetPadchatBridge', `syncContactsAndRooms() skip for syncContact.msg_type=%s(%s) %s`,
-                                            syncContact.msg_type && PadchatContactMsgType[syncContact.msg_type],
-                                            syncContact.msg_type,
-                                            JSON.stringify(syncContact),
-                    )
+          // {"continue":1,"msg_type":2048,"status":1,"uin":4763975}
+          if (   syncContact.continue === PadchatContinue.Go
+              && syncContact.msg_type === PadchatContactMsgType.N11_2048
+              && typeof syncContact.uin !== 'undefined'
+          ) {
+            // XXX: HeartBeat???
+            // discard it in silent
+          } else {
+            log.silly('PuppetPadchatBridge', `syncContactsAndRooms() skip for syncContact.msg_type=%s(%s) %s`,
+              syncContact.msg_type && PadchatContactMsgType[syncContact.msg_type],
+              syncContact.msg_type,
+              JSON.stringify(syncContact),
+            )
+          }
         }
       }
     }

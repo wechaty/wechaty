@@ -177,7 +177,7 @@ export class Message extends Accessory implements Sayable {
       }
       const filename = this.payload.filename
       if (!filename) {
-        throw new Error('no file')
+        throw new Error('no file for message id: ' + this.id + ' with type: ' + this.payload.type)
       }
       msgStrList.push(`<${filename}>`)
     }

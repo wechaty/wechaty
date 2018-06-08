@@ -528,7 +528,26 @@ export class PadchatRpc extends EventEmitter {
 
     // 00:40:44 SILL PadchatRpc WXGetChatRoomMember() result: {"chatroom_id":0,"count":0,"member":"null\n","message":"","status":0,"user_name":""}
     if (!result.user_name || !result.member) {
-      throw new Error('WXGetChatRoomMember cannot get user_name or member!')
+      /**
+       * { chatroom_id: 0,
+       *  count: 0,
+       *  member: 'null\n',
+       *  message: '',
+       *  status: 0,
+       *  user_name: '' }
+       */
+      // console.error(result)
+      // throw new Error('WXGetChatRoomMember cannot get user_name or member!')
+      log.warn('PadchatRpc', 'WXGetChatRoomMember(%s) cannot get user_name or member!', roomId)
+      const emptyResult: PadchatRoomMemberListPayload = {
+        chatroom_id : 0,
+        count       : 0,
+        member      : [],
+        message     : '',
+        status      : 0,
+        user_name   : '',
+      }
+      return emptyResult
     }
 
     // tslint:disable-next-line:max-line-length

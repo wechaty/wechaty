@@ -79,7 +79,29 @@ export class PadchatPureFunctionHelper {
     rawPayload: PadchatContactPayload,
   ): ContactPayload {
     if (!rawPayload.user_name) {
-      console.log(rawPayload)
+      /**
+       * { big_head: '',
+       *  city: '',
+       *  country: '',
+       *  intro: '',
+       *  label: '',
+       *  message: '',
+       *  nick_name: '',
+       *  provincia: '',
+       *  py_initial: '',
+       *  quan_pin: '',
+       *  remark: '',
+       *  remark_py_initial: '',
+       *  remark_quan_pin: '',
+       *  sex: 0,
+       *  signature: '',
+       *  small_head: '',
+       *  status: 0,
+       *  stranger: '',
+       *  ticket: '',
+       *  user_name: '' }
+       */
+      // console.log(rawPayload)
       throw Error('cannot get user_name for payload: ' + JSON.stringify(rawPayload))
     }
 

@@ -113,6 +113,7 @@ export interface PadchatContactPayload {
   msg_type? : PadchatContactMsgType,
   continue? : PadchatContinue,
   ticket?   : string,
+  uin?      : number,
 
   big_head          : string,                     // "http://wx.qlogo.cn/mmhead/ver_1/xfCMmibHH74xGLoyeDFJadrZXX3eOEznPefiaCa3iczxZGMwPtDuSbRQKx3Xdm18un303mf0NFia3USY2nO2VEYILw/0",
   city              : string,                     // 'Haidian'
