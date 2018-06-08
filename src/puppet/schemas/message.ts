@@ -1,11 +1,11 @@
 export enum MessageType {
-  Unknown = 0,
-  Attachment,
-  Audio,
-  Emoticon,
-  Image,
-  Text,
-  Video,
+  Unknown    = 0,
+  Attachment = 1,
+  Audio      = 2,
+  Emoticon   = 3,
+  Image      = 4,
+  Text       = 5,
+  Video      = 6,
 }
 
 export interface MessagePayloadBase {

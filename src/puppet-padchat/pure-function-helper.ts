@@ -163,6 +163,7 @@ export class PadchatPureFunctionHelper {
         type = MessageType.Video
         break
 
+      case PadchatMessageType.Recalled:
       case PadchatMessageType.StatusNotify:
       case PadchatMessageType.Sys:
         type = MessageType.Unknown
