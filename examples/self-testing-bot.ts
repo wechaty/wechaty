@@ -86,6 +86,7 @@ bot
 })
 .on('message', async msg => {
   if (msg.type() !== bot.Message.Type.Text) {
+    log.info('Bot', 'on(message) skip non-text message ' + msg)
     return
   }
 
@@ -94,31 +95,29 @@ bot
     const text = msg.text()
     const from = msg.from()
 
-    const nameList: string[] = []
-    // console.log('msg text:', text.substr(0, 20))
-
     // Room.findAll()
     if (/^testRoom$/.test(text)) {
-      console.log('before findAll')
       const roomList = await bot.Room.findAll()
-      await from.say('roomList: ' + (roomList && roomList.length))
-      for (const room of roomList) {
-        nameList.push(room.topic())
-      }
-      from.say(nameList.join() || 'not found')
+      let n = 0
+      from.say(
+        roomList
+          .map(room => room.topic())
+          .map(topic => n++ + '. ' + topic)
+          .join('\n'),
+      )
       return
     }
 
     // Contact.findAll()
     if (/^testContact$/.test(text)) {
       const contactList = await bot.Contact.findAll()
-      for (let i = 0; i < 5; i ++) {
-        const contact = contactList[i]
-        console.log(`begin to test num ${i} contact`)
-        console.log(contact)
-        nameList.push(contact.name())
-      }
-      from.say(nameList.join())
+      let n = 0
+      from.say(
+        contactList
+          .map(contact => contact.name())
+          .map(name => n++ + '. ' + name)
+          .join('\n'),
+      )
       return
     }
 

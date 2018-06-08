@@ -79,7 +79,8 @@ export class PadchatPureFunctionHelper {
     rawPayload: PadchatContactPayload,
   ): ContactPayload {
     if (!rawPayload.user_name) {
-      throw Error('cannot get user_name(wxid)!')
+      console.log(rawPayload)
+      throw Error('cannot get user_name for payload: ' + JSON.stringify(rawPayload))
     }
 
     if (this.isRoomId(rawPayload.user_name)) {
@@ -116,7 +117,6 @@ export class PadchatPureFunctionHelper {
 
     switch (rawPayload.sub_type) {
 
-      case PadchatMessageType.Sys:            // fall down
       case PadchatMessageType.Text:
         type = MessageType.Text
         break
@@ -142,6 +142,7 @@ export class PadchatPureFunctionHelper {
         break
 
       case PadchatMessageType.StatusNotify:
+      case PadchatMessageType.Sys:
         type = MessageType.Unknown
         break
 

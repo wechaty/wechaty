@@ -193,16 +193,17 @@ export class PadchatRpc extends EventEmitter {
   }
 
   protected onSocket(payload: PadchatPayload) {
-    // log.verbose('PadchatRpc', 'onSocket(payload.length=%d)',
+    // log.silly('PadchatRpc', 'onSocket(payload.length=%d)',
     //                           JSON.stringify(payload).length,
     //             )
 
     // console.log('server payload:', payload)
 
-    // check logout:
     if (payload.type === PadchatPayloadType.Logout) {
-      // this.emit('logout', this.selfId())
-      console.log('payload logout: ', payload)
+      log.verbose('PadchatRpc', 'onSocket(payload.type=%s) logout, payload=%s',
+                                payload.type,
+                                JSON.stringify(payload),
+                  )
       this.emit('logout')
       return
     }
@@ -211,7 +212,7 @@ export class PadchatRpc extends EventEmitter {
       /**
        * Discard message that have neither msgId(Padchat API Call) nor data(Tencent Message)
        */
-      // log.warn('PadchatRpc', 'onServerPayload() discard payload without `msgId` and `data` for: %s', JSON.stringify(payload))
+      log.silly('PadchatRpc', 'onSocket() discard payload without `msgId` and `data` for: %s', JSON.stringify(payload))
       return
     }
 
@@ -238,8 +239,48 @@ export class PadchatRpc extends EventEmitter {
       // }
 
       const tencentPayloadList: PadchatMessagePayload[] = JSON.parse(decodeURIComponent(payload.data))
+
+      if (!Array.isArray(tencentPayloadList)) {
+        throw new Error('not array')
+      }
+
       this.onSocketTencent(tencentPayloadList)
     }
+  }
+
+  protected onSocketPadchat(padchatPayload: PadchatPayload): void {
+    // log.verbose('PadchatRpc', 'onSocketPadchat({apiName="%s", msgId="%s", ...})',
+    //                                     padchatPayload.apiName,
+    //                                     padchatPayload.msgId,
+    //             )
+    // log.silly('PadchatRpc', 'onSocketPadchat(%s)', JSON.stringify(padchatPayload).substr(0, 500))
+
+    if (padchatPayload.type === PadchatPayloadType.Logout) {
+      // this.emit('logout', this.selfId())
+      this.emit('logout')
+    }
+
+    let result: any
+
+    if (padchatPayload.data) {
+      result = JSON.parse(decodeURIComponent(padchatPayload.data))
+    } else {
+      log.silly('PadchatRpc', 'onServerMessagePadchat() discard empty payload.data for apiName: %s', padchatPayload.apiName)
+      result = {}
+    }
+
+    // const jsonRpcResponse: JsonRpcPayloadResponse = {
+    const jsonRpcResponse = {
+      id      : padchatPayload.msgId,
+      jsonrpc : '2.0',
+      result  : result,
+      type    : 'response',
+    }
+
+    const responseText = JSON.stringify(jsonRpcResponse)
+    // log.silly('PadchatRpc', 'onSocketPadchat() converted to JsonRpc payload="%s"', responseText.substr(0, 500))
+
+    this.jsonRpc.write(responseText)
   }
 
   protected onSocketTencent(messagePayloadList: PadchatMessagePayload[]) {
@@ -257,51 +298,6 @@ export class PadchatRpc extends EventEmitter {
 
       this.emit('message', messagePayload)
     }
-  }
-
-  protected onSocketPadchat(padchatPayload: PadchatPayload) {
-    // log.verbose('PadchatRpc', 'onSocketPadchat({apiName="%s", msgId="%s", ...})',
-    //                                     padchatPayload.apiName,
-    //                                     padchatPayload.msgId,
-    //             )
-    // log.silly('PadchatRpc', 'onSocketPadchat(%s)', JSON.stringify(padchatPayload).substr(0, 500))
-
-    // check logout:
-    if (padchatPayload.type === PadchatPayloadType.Logout) {
-      // this.emit('logout', this.selfId())
-      this.emit('logout')
-    }
-
-    let result: any
-
-    if (padchatPayload.data) {
-      result = JSON.parse(decodeURIComponent(padchatPayload.data))
-    } else {
-      log.silly('PadchatRpc', 'onServerMessagePadchat() discard empty payload.data for apiName: %s', padchatPayload.apiName)
-      result = {}
-    }
-
-    // const jsonRpcResponse: JsonRpcPayloadResponse = {
-    const jsonRpcResponse = {
-        id: padchatPayload.msgId,
-      jsonrpc: '2.0',
-      result: result,
-      type: 'response',
-    }
-
-    const responseText = JSON.stringify(jsonRpcResponse)
-    // log.silly('PadchatRpc', 'onSocketPadchat() converted to JsonRpc payload="%s"', responseText.substr(0, 500))
-
-    this.jsonRpc.write(responseText)
-
-    // if (resolverDict[msgId]) {
-    //   const resolve = resolverDict[msgId]
-    //   delete resolverDict[msgId]
-    //   // resolve({rawData: rawData, msgId: rawWebSocketData.msgId})
-    //   resolve(rawData)
-    // } else {
-    //   log.warn('PadchatRpc', 'wsOnMessage() msgId %s not in resolverDict', msgId)
-    // }
   }
 
   /**
@@ -522,10 +518,6 @@ export class PadchatRpc extends EventEmitter {
    * @param {any} roomId        chatroom_id
    */
   public async WXGetChatRoomMember(roomId: string): Promise<PadchatRoomMemberListPayload> {
-    // XXX: chatroom_id, or user_name ???
-    console.error('XXX: chatroom_id, or user_name ???')
-    console.error('XXX: chatroom_id, or user_name ???')
-    console.error('XXX: chatroom_id, or user_name ???')
     const result = await this.rpcCall('WXGetChatRoomMember', roomId)
     if (!result) {
       throw Error('PadchatRpc, WXGetChatRoomMember, cannot get result from websocket server!')

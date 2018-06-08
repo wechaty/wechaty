@@ -237,6 +237,15 @@ export class Bridge extends EventEmitter {
           break
 
         case WXCheckQRCodeStatus.WaitConfirm:
+          /**
+           * WXCheckQRCode result:
+           * {
+           *  "expired_time": 236,
+           *  "head_url": "http://wx.qlogo.cn/mmhead/ver_1/5VaXXlAx53wb3M46gQpVtLiaVMd4ezhxOibJiaZXLf2ajTNPZloJI7QEpVxd4ibgpEnLF8gHVuLricaJesjJpsFiciaOw/0",
+           *  "nick_name": "李卓桓",
+           *  "status": 1
+           * }
+           */
           log.silly('PuppetPadchatBridge', 'checkQrcode: Had scan the Qrcode, but not Login!')
           break
 
@@ -303,6 +312,25 @@ export class Bridge extends EventEmitter {
                                     this.autoData.nick_name || 'no nick_name',
               )
 
+    /**
+     * PadchatRpc WXAutoLogin result:
+     * {
+     *  "email": "",
+     *  "external": "",
+     *  "long_link_server": "hklong.weixin.qq.com",
+     *  "message": "\n�\u0003<e>\n<ShowType>1</ShowType>\n<Content>
+     *    <![CDATA[当前帐号于02:10在iPad设备上登录。若非本人操作，你的登录密码可能已经泄漏，请及时改密。紧急情况可前往http://weixin110.qq.com冻结帐号。]]></Content>
+     *    \n<Url><![CDATA[]]></Url>\n<DispSec>30</DispSec>\n<Title><![CDATA[]]></Title>\n<Action>4</Action>\n<DelayConnSec>0</DelayConnSec>
+     *    \n<Countdown>0</Countdown>\n<Ok><![CDATA[]]></Ok>\n<Cancel><![CDATA[]]></Cancel>\n</e>\n",
+     *  "nick_name": "",
+     *  "phone_number": "",
+     *  "qq": 0,
+     *  "short_link_server": "hkshort.weixin.qq.com:80",
+     *  "status": -2023,
+     *  "uin": 1928023446,
+     *  "user_name": "wxid_5zj4i5htp9ih22"
+     * }
+     */
     const autoLoginResult = await this.padchatRpc.WXAutoLogin(this.autoData.token)
 
     if (!autoLoginResult) {
@@ -424,13 +452,15 @@ export class Bridge extends EventEmitter {
     return roomIdList
   }
 
-  public getRoomMemberIdList(roomId: string): string[] {
+  public async getRoomMemberIdList(roomId: string): Promise<string[]> {
     log.verbose('PuppetPadchatBridge', 'getRoomMemberIdList(%d)', roomId)
 
     const memberRawPayloadDict = this.cacheRoomMemberRawPayload[roomId]
+                                || await this.syncRoomMember(roomId)
+
     if (!memberRawPayloadDict) {
       // or return [] ?
-      throw new Error('roomId not found in cache')
+      throw new Error('roomId not found: ' + roomId)
     }
 
     const memberIdList = Object.keys(memberRawPayloadDict)
@@ -440,9 +470,13 @@ export class Bridge extends EventEmitter {
   }
 
   public async roomMemberRawPayload(roomId: string, contactId: string): Promise<PadchatRoomMemberPayload> {
+    log.verbose('PuppetPadchatBridge', 'roomMemberRawPayload(%s)', roomId)
+
     const memberRawPayloadDict = this.cacheRoomMemberRawPayload[roomId]
+                                || await this.syncRoomMember(roomId)
+
     if (!memberRawPayloadDict) {
-      throw new Error('roomId not found in cache')
+      throw new Error('roomId not found: ' + roomId)
     }
 
     const memberRawPayload = memberRawPayloadDict[contactId]
@@ -453,7 +487,9 @@ export class Bridge extends EventEmitter {
     return memberRawPayload
   }
 
-  public async syncRoomMember(roomId: string): Promise<void> {
+  public async syncRoomMember(
+    roomId: string,
+  ): Promise<{ [contactId: string]: PadchatRoomMemberPayload }> {
     log.verbose('PuppetPadchatBridge', 'syncRoomMember(%s)', roomId)
 
     const memberListPayload = await this.padchatRpc.WXGetChatRoomMember(roomId)
@@ -462,16 +498,21 @@ export class Bridge extends EventEmitter {
       throw new Error('no memberListPayload')
     }
 
+    const memberDict: { [contactId: string]: PadchatRoomMemberPayload } = {}
+
     for (const memberPayload of memberListPayload.member) {
-      log.info('PuppetPadchatBridge', 'syncRoomMember(%s) = ', roomId, JSON.stringify(memberPayload))
+      log.info('PuppetPadchatBridge', 'syncRoomMember(%s) = "%s"', roomId, JSON.stringify(memberPayload))
 
-      const contactId = memberPayload.user_name
-
-      if (!(roomId in this.cacheRoomMemberRawPayload)) {
-        this.cacheRoomMemberRawPayload[roomId] = {}
-      }
-      this.cacheRoomMemberRawPayload[roomId][contactId] = memberPayload
+      const      contactId  = memberPayload.user_name
+      memberDict[contactId] = memberPayload
     }
+
+    this.cacheRoomMemberRawPayload[roomId] = {
+      ...this.cacheRoomMemberRawPayload[roomId],
+      ...memberDict,
+    }
+
+    return this.cacheRoomMemberRawPayload[roomId]
   }
 
   public async syncContactsAndRooms(): Promise<void> {
