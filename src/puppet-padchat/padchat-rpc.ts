@@ -527,7 +527,8 @@ export class PadchatRpc extends EventEmitter {
       throw Error('PadchatRpc, WXGetChatRoomMember, cannot get result from websocket server!')
     }
 
-    log.silly('PadchatRpc', 'WXGetChatRoomMember() result: %s', JSON.stringify(result))
+    log.silly('PadchatRpc', 'WXGetChatRoomMember() result: %s', JSON.stringify(result).substr(0, 500))
+    // console.log(result)
 
     // 00:40:44 SILL PadchatRpc WXGetChatRoomMember() result: {"chatroom_id":0,"count":0,"member":"null\n","message":"","status":0,"user_name":""}
     if (!result.user_name || !result.member) {

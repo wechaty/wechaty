@@ -85,13 +85,17 @@ bot
   })
 })
 .on('message', async msg => {
+  if (msg.type() !== bot.Message.Type.Text) {
+    return
+  }
+
   try {
     console.log(msg.toString()) // on(message) exception: Error: no file
     const text = msg.text()
     const from = msg.from()
 
     const nameList: string[] = []
-    console.log('msg text:', text.substr(0, 20))
+    // console.log('msg text:', text.substr(0, 20))
 
     // Room.findAll()
     if (/^testRoom$/.test(text)) {

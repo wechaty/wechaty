@@ -129,6 +129,7 @@ export class Room extends Accessory implements Sayable {
 
     } catch (e) {
       log.verbose('Room', 'findAll() rejected: %s', e.message)
+      console.error(e)
       Raven.captureException(e)
       return [] as Room[] // fail safe
     }

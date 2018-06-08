@@ -413,7 +413,7 @@ export class Bridge extends EventEmitter {
 
     let cont = true
     while (cont && this.state.on() && this.selfId) {
-      log.silly('PuppetPadchatBridge', `syncContactsAndRooms() while()`)
+      log.silly('PuppetPadchatBridge', `syncContactsAndRooms() while() syncing WXSyncContact ...`)
 
       const syncContactList = await this.padchatRpc.WXSyncContact()
 
@@ -474,7 +474,6 @@ export class Bridge extends EventEmitter {
                     )
         }
       }
-      // log.silly('PuppetPadchatBridge', `syncContactsAndRooms(), continue to load via WXSyncContact ...`)
     }
 
     // contactIdList = contactIdList.filter(id => !!id)
