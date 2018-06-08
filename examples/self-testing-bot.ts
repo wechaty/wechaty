@@ -96,26 +96,29 @@ bot
     const from = msg.from()
 
     // Room.findAll()
-    if (/^testRoom$/.test(text)) {
+    if (/^testRoom$/i.test(text)) {
       const roomList = await bot.Room.findAll()
+      const topicList = await Promise.all(
+        roomList.map(async room => await room.topic()),
+      )
+
       let n = 0
-      from.say(
-        roomList
-          .map(room => room.topic())
-          .map(topic => n++ + '. ' + topic)
+      await from.say(
+        topicList
+          .map(topic => ++n + '. ' + topic)
           .join('\n'),
       )
       return
     }
 
     // Contact.findAll()
-    if (/^testContact$/.test(text)) {
+    if (/^testContact$/i.test(text)) {
       const contactList = await bot.Contact.findAll()
       let n = 0
-      from.say(
+      await from.say(
         contactList
           .map(contact => contact.name())
-          .map(name => n++ + '. ' + name)
+          .map(name => ++n + '. ' + name)
           .join('\n'),
       )
       return
@@ -131,14 +134,14 @@ bot
         console.error('contact not found')
         return
       }
-      msg.forward(contact)
+      await msg.forward(contact)
       return
     }
 
     if (/^froom$/.test(text)) {
       console.log('begin to check msg forward room')
       const room = bot.Room.load('6350854677@chatroom')
-      msg.forward(room)
+      await msg.forward(room)
       return
     }
 

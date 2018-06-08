@@ -470,14 +470,14 @@ export class Room extends Accessory implements Sayable {
     await this.puppet.roomQuit(this.id)
   }
 
-  public topic()                : string
-  public topic(newTopic: string): Promise<void>
+  public async topic()                : Promise<string>
+  public async topic(newTopic: string): Promise<void>
 
   /**
    * SET/GET topic from the room
    *
    * @param {string} [newTopic] If set this para, it will change room topic.
-   * @returns {(string | void)}
+   * @returns {Promise<string | void>}
    *
    * @example <caption>When you say anything in a room, it will get room topic. </caption>
    * const bot = Wechaty.instance()
@@ -485,7 +485,7 @@ export class Room extends Accessory implements Sayable {
    * .on('message', async m => {
    *   const room = m.room()
    *   if (room) {
-   *     const topic = room.topic()
+   *     const topic = await room.topic()
    *     console.log(`room topic is : ${topic}`)
    *   }
    * })
@@ -502,7 +502,7 @@ export class Room extends Accessory implements Sayable {
    *   }
    * })
    */
-  public topic(newTopic?: string): string | Promise<void> {
+  public async topic(newTopic?: string): Promise<void | string> {
     log.verbose('Room', 'topic(%s)', newTopic ? newTopic : '')
     if (!this.isReady()) {
       log.warn('Room', 'topic() room not ready')
@@ -510,7 +510,20 @@ export class Room extends Accessory implements Sayable {
     }
 
     if (typeof newTopic === 'undefined') {
-      return this.payload && this.payload.topic || ''
+      if (this.payload && this.payload.topic) {
+        return this.payload.topic
+      } else {
+        const memberIdList = await this.puppet.roomMemberList(this.id)
+        const memberList = memberIdList
+                            .filter(id => id !== this.puppet.selfId())
+                            .map(id => this.wechaty.Contact.load(id))
+
+        let defaultTopic = memberList[0].name()
+        for (let i = 1; i < 3 && memberList[i]; i++) {
+          defaultTopic += ',' + memberList[i].name()
+        }
+        return defaultTopic
+      }
     }
 
     const future = this.puppet

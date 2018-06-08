@@ -188,7 +188,7 @@ export class PadchatRpc extends EventEmitter {
     apiName   : string,
     ...params : string[]
   ): Promise<any> {
-    log.silly('PadchatRpc', 'rpcCall(%s, %s)', apiName, JSON.stringify(params))
+    log.silly('PadchatRpc', 'rpcCall(%s, %s)', apiName, JSON.stringify(params).substr(0, 500))
     return await this.jsonRpc.request(apiName, params)
   }
 
@@ -200,11 +200,13 @@ export class PadchatRpc extends EventEmitter {
     // console.log('server payload:', payload)
 
     if (payload.type === PadchatPayloadType.Logout) {
-      log.verbose('PadchatRpc', 'onSocket(payload.type=%s) logout, payload=%s',
+      // {"type":-1,"msg":"掉线了"}
+      log.verbose('PadchatRpc', 'onSocket(payload.type=%s) logout, payload=%s(%s)',
+                                PadchatPayloadType[payload.type],
                                 payload.type,
                                 JSON.stringify(payload),
                   )
-      this.emit('logout')
+      this.emit('logout', payload.msg)
       return
     }
 

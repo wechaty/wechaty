@@ -445,9 +445,9 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     const cachedPayload = this.cacheContactPayload.get(contactId)
 
     if (cachedPayload) {
-      log.silly('Puppet', 'contactPayload() cache HIT')
+      log.silly('Puppet', 'contactPayload(%s) cache HIT', contactId)
     } else {
-      log.silly('Puppet', 'contactPayload() cache MISS')
+      log.silly('Puppet', 'contactPayload(%s) cache MISS', contactId)
     }
 
     return cachedPayload
@@ -508,9 +508,9 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     const cachedPayload = this.cacheFriendRequestPayload.get(friendRequestId)
 
     if (cachedPayload) {
-      log.silly('Puppet', 'friendRequestPayload() cache HIT')
+      log.silly('Puppet', 'friendRequestPayload(%s) cache HIT', friendRequestId)
     } else {
-      log.silly('Puppet', 'friendRequestPayload() cache MISS')
+      log.silly('Puppet', 'friendRequestPayload(%s) cache MISS', friendRequestId)
     }
 
     return cachedPayload
@@ -571,9 +571,9 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     }
     const cachedPayload = this.cacheMessagePayload.get(messageId)
     if (cachedPayload) {
-      log.silly('Puppet', 'messagePayloadCache() cache HIT')
+      log.silly('Puppet', 'messagePayloadCache(%s) cache HIT', messageId)
     } else {
-      log.silly('Puppet', 'messagePayloadCache() cache MISS')
+      log.silly('Puppet', 'messagePayloadCache(%s) cache MISS', messageId)
     }
 
     return cachedPayload
@@ -717,7 +717,6 @@ export abstract class Puppet extends EventEmitter implements Sayable {
         id => this.roomPayload(id),
       ),
     )
-    console.log('roomPayload resolved.')
 
     const filterFunction = this.roomQueryFilterFactory(query)
 
@@ -725,7 +724,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
                         .filter(filterFunction)
                         .map(payload => payload.id)
 
-    console.log('roomIdList filtered. result length=' + roomIdList.length)
+    log.silly('Puppet', 'roomSearch() roomIdList filtered. result length=%d', roomIdList.length)
 
     return roomIdList
   }
@@ -772,9 +771,9 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     }
     const cachedPayload = this.cacheRoomPayload.get(roomId)
     if (cachedPayload) {
-      log.silly('Puppet', 'roomPayloadCache() cache HIT')
+      log.silly('Puppet', 'roomPayloadCache(%s) cache HIT', roomId)
     } else {
-      log.silly('Puppet', 'roomPayloadCache() cache MISS')
+      log.silly('Puppet', 'roomPayloadCache(%s) cache MISS', roomId)
     }
 
     return cachedPayload

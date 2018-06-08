@@ -106,7 +106,7 @@ test('Room smok testing', async t => {
 
   // t.is((r as any).payload[.('encryId') , EXPECTED.encryId, 'should set EncryChatRoomId')
 
-  t.is(room.topic(), ROOM_EXPECTED.topic, 'should set topic/NickName')
+  t.is(await room.topic(), ROOM_EXPECTED.topic, 'should set topic/NickName')
 
   const contact1 = new wechaty.Contact(ROOM_EXPECTED.memberId1)
   const alias1 = await room.alias(contact1)

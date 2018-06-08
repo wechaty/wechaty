@@ -21,7 +21,7 @@ exports = module.exports = async function onMessage (message) {
     const sender    = message.from();
     const content   = message.text();
 
-    const topic = room ? '[' + room.topic() + ']' : '';
+    const topic = room ? '[' + await room.topic() + ']' : '';
 
 
     console.log(`${topic} <${sender.name()}> : ${message.toStringDigest()}`);

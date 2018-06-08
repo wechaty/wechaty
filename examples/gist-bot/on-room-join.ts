@@ -42,8 +42,8 @@ export async function onRoomJoin(
      *
      */
 
-    if (room.topic() !== 'ding') {
-      await this.say('Room ' + room.topic()
+    if (await room.topic() !== 'ding') {
+      await this.say('Room ' + await room.topic()
                       + ' got new memeber ' + inviteeName
                       + ' invited by ' + inviter.name(),
                     )

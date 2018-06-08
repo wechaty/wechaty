@@ -121,9 +121,9 @@ bot
 /**
  * Global Event: room-join
  */
-.on('room-join', function(this, room, inviteeList, inviter) {
+.on('room-join', async function(this, room, inviteeList, inviter) {
   log.info( 'Bot', 'EVENT: room-join - Room %s got new member %s, invited by %s',
-            room.topic(),
+            await room.topic(),
             inviteeList.map(c => c.name()).join(','),
             inviter.name(),
           )
@@ -132,9 +132,9 @@ bot
 /**
  * Global Event: room-leave
  */
-.on('room-leave', function(this, room, leaverList) {
+.on('room-leave', async function(this, room, leaverList) {
   log.info('Bot', 'EVENT: room-leave - Room %s lost member %s',
-                  room.topic(),
+                  await room.topic(),
                   leaverList.map(c => c.name()).join(','),
               )
 })
@@ -163,7 +163,7 @@ bot
   const sender  = message.from()
   const content = message.text()
 
-  console.log((room ? '[' + room.topic() + ']' : '')
+  console.log((room ? '[' + await room.topic() + ']' : '')
               + '<' + sender.name() + '>'
               + ':' + message,
   )
@@ -182,7 +182,7 @@ bot
      *  in-room message
      */
     if (room) {
-      if (/^ding/i.test(room.topic())) {
+      if (/^ding/i.test(await room.topic())) {
         /**
          * move contact out of room
          */
@@ -297,7 +297,7 @@ async function manageDingRoom() {
 
 async function checkRoomJoin(room: Room, inviteeList: Contact[], inviter: Contact) {
   log.info('Bot', 'checkRoomJoin(%s, %s, %s)',
-                  room.topic(),
+                  await room.topic(),
                   inviteeList.map(c => c.name()).join(','),
                   inviter.name(),
           )
@@ -315,7 +315,7 @@ async function checkRoomJoin(room: Room, inviteeList: Contact[], inviter: Contac
                       inviteeList,
                     )
 
-      room.topic('ding - warn ' + inviter.name())
+      await room.topic('ding - warn ' + inviter.name())
       setTimeout(
         _ => inviteeList.forEach(c => room.del(c)),
         10 * 1000,
@@ -337,7 +337,7 @@ async function checkRoomJoin(room: Room, inviteeList: Contact[], inviter: Contac
 }
 
 async function putInRoom(contact: Contact, room: Room) {
-  log.info('Bot', 'putInRoom(%s, %s)', contact.name(), room.topic())
+  log.info('Bot', 'putInRoom(%s, %s)', contact.name(), await room.topic())
 
   try {
     await room.add(contact)

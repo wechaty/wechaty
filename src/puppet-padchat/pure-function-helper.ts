@@ -135,6 +135,8 @@ export class PadchatPureFunctionHelper {
     rawPayload: PadchatMessagePayload,
   ): MessagePayload {
 
+    console.log(rawPayload)
+
     let type: MessageType
 
     switch (rawPayload.sub_type) {

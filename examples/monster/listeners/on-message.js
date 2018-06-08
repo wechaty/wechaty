@@ -35,7 +35,7 @@ export default async function onMessage (message) {
     const room      = message.room()
     const sender    = message.from()
     const content   = message.text()
-    const roomName  = room ? `[${room.topic()}] ` : ''
+    const roomName  = room ? `[${await room.topic()}] ` : ''
 
     process.stdout.write(
 	`${roomName}<${sender.name()}>(${message.type()}:${message.typeSub()}): `)

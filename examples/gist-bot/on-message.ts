@@ -33,7 +33,7 @@ export async function onMessage(this: Wechaty, message: Message): Promise<void> 
     const sender    = message.from()
     const content   = message.text()
 
-    console.log((room ? '[' + room.topic() + ']' : '')
+    console.log((room ? '[' + await room.topic() + ']' : '')
                 + '<' + sender.name() + '>'
                 + ':' + message,
     )

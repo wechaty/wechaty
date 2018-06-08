@@ -79,14 +79,14 @@ bot
 })
 .on('login'  , user => log.info('Bot', `bot login: ${user}`))
 .on('logout' , user => log.info('Bot', 'bot %s logout.', user))
-.on('message', m => {
+.on('message', async m => {
   if (m.self()) { return }
 
   // co(function* () {
   //   const msg = yield m.load()
   const room = m.room()
 
-  if (room && /Wechaty/i.test(room.topic())) {
+  if (room && /Wechaty/i.test(await room.topic())) {
     log.info('Bot', 'talk: %s'  , m)
     talk(m)
   } else {

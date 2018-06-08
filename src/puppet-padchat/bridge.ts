@@ -124,11 +124,19 @@ export class Bridge extends EventEmitter {
 
     await this.padchatRpc.start()
     this.padchatRpc.on('message', messageRawPayload => {
-      log.silly('PuppetPadchatBridge', `start() padchatRpc.on('message')`)
+      log.silly('PuppetPadchatBridge', 'start() padchatRpc.on(message)')
       this.emit('message', messageRawPayload)
     })
+    this.padchatRpc.on('logout', data => {
+      log.silly('PuppetPadchatBridge', 'start() padchatRpc.on(logout, %s)', data)
+      if (this.selfId) {
+        this.selfId = undefined
+        this.emit('logout', data)
+      } else {
+        log.warn('PuppetPadchatBridge', 'start() padchatRpc.on(logout) received `logout` event when no `selfId`')
+      }
+    })
 
-    // TODO: 顺序变一下，要check user_name 的
     await this.loadAutoData()
 
     const restoreSucceed = await this.restoreLogin()
@@ -228,6 +236,8 @@ export class Bridge extends EventEmitter {
       if (result.expired_time && result.expired_time < 10) {
         // result.expire_time is second
         // emit new qrcode before the old one expired
+        this.loginScanQrCode = undefined
+        this.loginScanStatus = undefined
         waitUserResponse = false
       }
 
@@ -331,6 +341,24 @@ export class Bridge extends EventEmitter {
      *  "user_name": "wxid_5zj4i5htp9ih22"
      * }
      */
+
+     /**
+      * WXAutoLoginresult: {
+      *   "email": "",
+      *   "external": "",
+      *   "long_link_server": "",
+      *   "message": "\n�\u0002<e>\n<ShowType>1</ShowType>\n<Content><![CDATA[你已退出微信]]></Content>\n
+      *     <Url><![CDATA[]]></Url>\n<DispSec>30</DispSec>\n<Title><![CDATA[]]></Title>\n<Action>4</Action>\n
+      *     <DelayConnSec>0</DelayConnSec>\n<Countdown>0</Countdown>\n<Ok><![CDATA[]]></Ok>\n<Cancel><![CDATA[]]></Cancel>\n</e>\n",
+      *   "nick_name": "",
+      *   "phone_number": "",
+      *   "qq": 0,
+      *   "short_link_server": "",
+      *   "status": -2023,
+      *   "uin": 4763975,
+      *   "user_name": "lizhuohuan"
+      * }
+      */
     const autoLoginResult = await this.padchatRpc.WXAutoLogin(this.autoData.token)
 
     if (!autoLoginResult) {
@@ -538,12 +566,10 @@ export class Bridge extends EventEmitter {
         continue
       }
 
-      log.verbose('PuppetPadchatBridge', 'syncContactsAndRooms() sync contact, got new/total: %d/%d',
-                                    syncContactList.length,
-                                    (
-                                      Object.keys(this.cacheContactRawPayload).length
-                                      + Object.keys(this.cacheRoomRawPayload).length
-                                    ),
+      log.verbose('PuppetPadchatBridge', 'syncContactsAndRooms() adding new %d to Contact(%d) & Room(%d) ...',
+                                          syncContactList.length,
+                                          Object.keys(this.cacheContactRawPayload).length,
+                                          Object.keys(this.cacheRoomRawPayload).length,
                   )
 
       for (const syncContact of syncContactList) {
@@ -555,16 +581,14 @@ export class Bridge extends EventEmitter {
         }
 
         if (syncContact.msg_type === PadchatContactMsgType.Contact) {
-          log.verbose('PuppetPadchatBridge', 'syncContactsAndRooms() sync for %s(%s)',
-                                              syncContact.nick_name,
-                                              syncContact.user_name,
-                      )
-
           if (pfHelper.isRoomId(syncContact.user_name)) { // /@chatroom$/.test(syncContact.user_name)) {
             /**
              * Room
              */
-            // user_name or chatroom_id ?
+            log.verbose('PuppetPadchatBridge', 'syncContactsAndRooms() sync Room %s(%s)',
+                        syncContact.nick_name,
+                        syncContact.user_name,
+            )
             const roomId = syncContact.user_name
             const roomPayload = syncContact as PadchatRoomPayload
 
@@ -575,6 +599,10 @@ export class Bridge extends EventEmitter {
             /**
              * Contact
              */
+            log.verbose('PuppetPadchatBridge', 'syncContactsAndRooms() sync Contact %s(%s)',
+                        syncContact.nick_name,
+                        syncContact.user_name,
+            )
             const contactPayload = syncContact as PadchatContactPayload
             const contactId = contactPayload.user_name
 
