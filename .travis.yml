@@ -27,13 +27,16 @@ before_install:
   - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then ./scripts/prepare-osx.sh; fi
   - npm install -g npm
 
+install:
+  - npm install
+
 script:
   - node --version
   - npm --version
   - echo "Testing Started ..."
   - npm test
   # - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then npm run coverage; fi
-  - echo "Testing Finished."
+  - echo "Testing Finished: TRAVIS_TEST_RESULT=$TRAVIS_TEST_RESULT"
 
 jobs:
   include:
@@ -43,7 +46,7 @@ jobs:
         - echo "NPM Pack Testing Started ..."
         - npm version
         - npm run test:pack
-        - echo "NPM Pack Testing Finished."
+        - echo "NPM Pack Testing Finished:  TRAVIS_TEST_RESULT=$TRAVIS_TEST_RESULT"
 
     - stage: deploy
       script:
@@ -51,7 +54,8 @@ jobs:
         - npm version
         - if ./scripts/development-release.ts; then ./scripts/package-publish-config-tag-next.ts; fi
         - npm run dist
-        - echo "NPM Building Finished."
+        - echo "NPM Building Finished: TRAVIS_TEST_RESULT=$TRAVIS_TEST_RESULT"
+
       deploy:
         provider: npm
         email: zixia@zixia.net
