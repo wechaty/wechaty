@@ -45,7 +45,8 @@ import {
   PuppetOptions,
   Receiver,
   FriendRequestPayload,
-}                       from '../puppet/'
+  FriendRequestPayloadReceive,
+}                                 from '../puppet/'
 
 import {
   PadchatPureFunctionHelper as pfHelper,
@@ -273,7 +274,7 @@ export class PuppetPadchat extends Puppet {
     this.emit('stop')
   }
 
-  public async logout(): Promise<void> {
+  public async logout(passive = false): Promise<void> {
     log.verbose('PuppetPadchat', 'logout()')
 
     if (!this.id) {
@@ -282,6 +283,10 @@ export class PuppetPadchat extends Puppet {
 
     this.emit('logout', this.id) // becore we will throw above by logonoff() when this.user===undefined
     this.id = undefined
+
+    // if (!passive) {
+    //   await this.bridge.WXLogout()
+    // }
 
     await this.bridge.logout()
   }
@@ -565,6 +570,15 @@ export class PuppetPadchat extends Puppet {
     await this.bridge.WXDeleteChatRoomMember(roomId, contactId)
   }
 
+  public async roomQrCode(roomId: string): Promise<string> {
+    log.verbose('PuppetPadchat', 'roomQrCode(%s)', roomId)
+
+    // TODO
+
+    throw new Error('not support')
+
+  }
+
   public async roomAvatar(roomId: string): Promise<FileBox> {
     log.verbose('PuppetPadchat', 'roomAvatar(%s)', roomId)
 
@@ -583,7 +597,20 @@ export class PuppetPadchat extends Puppet {
     contactId : string,
   ): Promise<void> {
     log.verbose('PuppetPadchat', 'roomAdd(%s, %s)', roomId, contactId)
-    await this.bridge.WXAddChatRoomMember(roomId, contactId)
+
+    // XXX: did there need to calc the total number of the members in this room?
+    // if n <= 40 then add() else invite() ?
+
+    try {
+      log.verbose('PuppetPadchat', 'roomAdd(%s, %s) try to Add', roomId, contactId)
+      await this.bridge.WXAddChatRoomMember(roomId, contactId)
+    } catch (e) {
+      // FIXME
+      console.error(e)
+      log.warn('PuppetPadchat', 'roomAdd(%s, %s) Add exception: %s', e)
+      log.verbose('PuppetPadchat', 'roomAdd(%s, %s) try to Invite', roomId, contactId)
+      await this.bridge.WXInviteChatRoomMember(roomId, contactId)
+    }
   }
 
   public async roomTopic(roomId: string)                : Promise<string>
@@ -611,9 +638,11 @@ export class PuppetPadchat extends Puppet {
   ): Promise<string> {
     log.verbose('PuppetPadchat', 'roomCreate(%s, %s)', contactIdList, topic)
 
-    // TODO
-    // await this.bridge.crea
-    return 'mock_room_id'
+    // FIXME:
+    const roomId = this.bridge.WXCreateChatRoom(contactIdList)
+    console.log('roomCreate returl:', roomId)
+
+    return roomId
   }
 
   public async roomQuit(roomId: string): Promise<void> {
@@ -646,50 +675,50 @@ export class PuppetPadchat extends Puppet {
 
     const rawPayload = await this.contactRawPayload(contactId)
 
-    let strangerV1
-    let strangerV2
-    if (pfHelper.isStrangerV1(rawPayload.stranger)) { // /^v1_/i.test(rawPayload.stranger)) {
-      strangerV1 = rawPayload.stranger
-    } else if (pfHelper.isStrangerV2(rawPayload.stranger)) { // /^v2_/i.test(rawPayload.stranger)) {
-      strangerV2 = rawPayload.stranger
-    } else {
-      throw new Error('stranger neither v1 nor v2!')
-    }
+    // XXX
+    console.log('rawPayload.stranger: ', rawPayload)
+
+    // let strangerV1
+    // let strangerV2
+    // if (pfHelper.isStrangerV1(rawPayload.stranger)) {
+    //   strangerV1 = rawPayload.stranger
+    // } else if (pfHelper.isStrangerV2(rawPayload.stranger)) {
+    //   strangerV2 = rawPayload.stranger
+    // } else {
+    //   throw new Error('stranger neither v1 nor v2!')
+    // }
 
     // Issue #1252 : what's wrong here?
 
     await this.bridge.WXAddUser(
-      strangerV1 || '',
-      strangerV2 || '',
+      rawPayload.stranger || '',
+      rawPayload.ticket   || '',
       '14',
       hello,
     )
   }
 
   public async friendRequestAccept(
-    contactId : string,
-    ticket    : string,
+    friendRequestId : string,
   ): Promise<void> {
-    log.verbose('PuppetPadchat', 'friendRequestAccept(%s, %s)', contactId, ticket)
+    log.verbose('PuppetPadchat', 'friendRequestAccept(%s)', friendRequestId)
 
-    // TODO
+    const payload = await this.friendRequestPayload(friendRequestId) as FriendRequestPayloadReceive
 
-    // const rawPayload = await this.contactRawPayload(contactId)
+    if (!payload.ticket) {
+      throw new Error('no ticket')
+    }
 
-    // if (!rawPayload.ticket) {
-    //   throw new Error('no ticket')
-    // }
-
-    // await this.bridge.WXAcceptUser(
-    //   rawPayload.stranger,
-    //   rawPayload.ticket,
-    // )
+    await this.bridge.WXAcceptUser(
+      payload.contactId,
+      payload.ticket,
+    )
   }
 
   public async friendRequestRawPayloadParser(rawPayload: PadchatMessagePayload) : Promise<FriendRequestPayload> {
     log.verbose('PuppetPadchat', 'friendRequestRawPayloadParser(%s)', rawPayload)
 
-    const payload: FriendRequestPayload = pfHelper.friendRequestRawPayloadParser(rawPayload)
+    const payload: FriendRequestPayload = await pfHelper.friendRequestRawPayloadParser(rawPayload)
     return payload
   }
 

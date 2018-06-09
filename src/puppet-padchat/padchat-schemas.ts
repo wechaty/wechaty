@@ -113,7 +113,6 @@ export interface PadchatContactPayload {
    */
   msg_type? : PadchatContactMsgType,
   continue? : PadchatContinue,
-  ticket?   : string,
   uin?      : number,
 
   big_head          : string,                     // "http://wx.qlogo.cn/mmhead/ver_1/xfCMmibHH74xGLoyeDFJadrZXX3eOEznPefiaCa3iczxZGMwPtDuSbRQKx3Xdm18un303mf0NFia3USY2nO2VEYILw/0",
@@ -133,7 +132,8 @@ export interface PadchatContactPayload {
   // "http://wx.qlogo.cn/mmhead/ver_1/xfCMmibHH74xGLoyeDFJadrZXX3eOEznPefiaCa3iczxZGMwPtDuSbRQKx3Xdm18un303mf0NFia3USY2nO2VEYILw/132",
   small_head        : string,
   status            : PadchatContactRoomStatus,   // 1 when use WXSyncContact, 0 when use WXGetContact
-  stranger          : string,                     // "v1_0468f2cd3f0efe7ca2589d57c3f9ba952a3789e41b6e78ee00ed53d1e6096b88@stranger",
+  stranger?         : string,                     // 用户v1码，从未加过好友则为空 "v1_0468f2cd3f0efe7ca2589d57c3f9ba952a3789e41b6e78ee00ed53d1e6096b88@stranger"
+  ticket?           : string,                     // 用户v2码，如果非空则为单向好友(非对方好友) 'v2_xxx@stranger'
   user_name         : string,                     // "mengjunjun001" | "qq512436430" Unique name
 
   message?  : string,
@@ -391,4 +391,55 @@ export interface PadchatRoomMemberListPayload {
   message     : string,                   // '',
   status      : PadchatRoomMemberStatus,  // number,                       // 0,
   user_name   : string,                   // '6350854677@chatroom'
+}
+
+// xml2js.parseString(str.replace(/\+/g, ' '), (err, data) => console.log(data))
+// { msg:
+//    { '$':
+//       { fromusername: 'lizhuohuan',
+//         encryptusername:
+//          'v1_cf269def9b946093f9d131a5e733ba169351013c95e46a860cddecaf485c4b10@stranger',
+//         fromnickname: '李卓桓',
+//         content: 'xixixi',
+//         fullpy: 'lizhuohuan',
+//         shortpy: 'LZH',
+//         imagestatus: '3',
+//         scene: '6',
+//         country: 'CN',
+//         province: 'Beijing',
+//         city: 'Haidian',
+//         sign: 'PreAngel投资人。水木清华BBS站长。投资人中最会飞的AI程序员。',
+//         percard: '1',
+//         sex: '1',
+//         alias: '',
+//         weibo: '',
+//         weibonickname: '',
+//         albumflag: '0',
+//         albumstyle: '0',
+//         albumbgimgid: '913943270785024_913943270785024',
+//         snsflag: '177',
+//         snsbgimgid:
+//          'http://shmmsns.qpic.cn/mmsns/NoFChqEQomEyhyNjzExH3v78BHSVmIzHBIdOECg9jgcTpRNwThgXJicCsGicI6Kib4xLETc2PuKwhM/0',
+//         snsbgobjectid: '12683064081608282338',
+//         mhash: 'd98b28f4cb1708bb584f3e66078e0a0d',
+//         mfullhash: 'd98b28f4cb1708bb584f3e66078e0a0d',
+//         bigheadimgurl:
+//          'http://wx.qlogo.cn/mmhead/ver_1/ciaaFRTCqfHIKLY0wBjv3h0LSPkCEEcJ0fo6kQkMxQLBiahJWFk7rS9G4VLU5n9OfAnXWlMaIV01oeTITYS0OHlg/0',
+//         smallheadimgurl:
+//          'http://wx.qlogo.cn/mmhead/ver_1/ciaaFRTCqfHIKLY0wBjv3h0LSPkCEEcJ0fo6kQkMxQLBiahJWFk7rS9G4VLU5n9OfAnXWlMaIV01oeTITYS0OHlg/96',
+//         ticket:
+//          'v2_1a0d2cf325e64b6f74bed09e944529e7cc7a7580cb323475050664566dd0302d89b8e2ed95b596b459cf762d94a0ce606da39babbae0dc26b18a62e079bfc120@stranger',
+//         opcode: '2',
+//         googlecontact: '',
+//         qrticket: '',
+//         chatroomusername: '',
+//         sourceusername: '',
+//         sourcenickname: '' },
+//      brandlist: [ [Object] ] } }
+
+export interface PadchatFriendRequestPayload {
+  fromusername    : string,   // 'lizhuohuan'
+  encryptusername : string    // v1_xxx@stranger'
+  content         : string,   // 'hello'
+  ticket          : string,   // 'v2_1a0d2cf325e64b6f74bed09e944529e7cc7a7580cb323475050664566dd0302d89b8e2ed95b596b459cf762d94a0ce606da39babbae0dc26b18a62e079bfc120@stranger',
 }

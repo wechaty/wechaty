@@ -8,8 +8,9 @@
  *  [Master the JavaScript Interview: What is a Pure Function?](https://medium.com/javascript-scene/master-the-javascript-interview-what-is-a-pure-function-d1c076bec976)
  *
  */
-import jsQR        from 'jsqr'
-import Jimp        from 'jimp'
+import jsQR             from 'jsqr'
+import Jimp             from 'jimp'
+import { parseString }  from 'xml2js'
 
 import {
   ContactPayload,
@@ -21,6 +22,7 @@ import {
   RoomPayload,
 
   FriendRequestPayload,
+  FriendRequestType,
 }                       from '../puppet/'
 
 import {
@@ -32,6 +34,7 @@ import {
   PadchatMessageType,
 
   PadchatRoomPayload,
+  PadchatFriendRequestPayload,
   // PadchatRoomMemberPayload,
 }                             from './padchat-schemas'
 
@@ -168,6 +171,7 @@ export class PadchatPureFunctionHelper {
       case PadchatMessageType.Recalled:
       case PadchatMessageType.StatusNotify:
       case PadchatMessageType.Sys:
+      case PadchatMessageType.SysNotice:
         type = MessageType.Unknown
         break
 
@@ -247,10 +251,48 @@ export class PadchatPureFunctionHelper {
     return payload
   }
 
-  public static friendRequestRawPayloadParser(
+  public static async friendRequestRawPayloadParser(
     rawPayload: PadchatMessagePayload,
-  ) : FriendRequestPayload {
-    throw new Error('to do ' + rawPayload)
+  ) : Promise<FriendRequestPayload> {
+
+    let tryXmlText = rawPayload.content
+    tryXmlText = tryXmlText.replace(/\+/g, ' ')
+
+    interface XmlSchema {
+      msg?: {
+        $?: PadchatFriendRequestPayload,
+      }
+    }
+
+    const padchatFriendRequestPayload = await new Promise<PadchatFriendRequestPayload>((resolve, reject) => {
+      parseString(tryXmlText, { explicitArray: false }, (err, obj: XmlSchema) => {
+        if (err) {  // HTML can not be parsed to JSON
+          return reject(err)
+        }
+        if (!obj) {
+          // FIXME: when will this happen?
+          return reject(new Error('parseString() return empty obj'))
+        }
+        if (!obj.msg || !obj.msg.$) {
+          return reject(new Error('parseString() return unknown obj'))
+        }
+        return resolve(obj.msg.$)
+      })
+    })
+
+    console.log(padchatFriendRequestPayload)
+
+    const friendRequestPayload: FriendRequestPayload = {
+      id        : rawPayload.msg_id,
+      // use v1 stranger id as contactid at here:
+      contactId : padchatFriendRequestPayload.encryptusername,
+      hello     : padchatFriendRequestPayload.content,
+      ticket    : padchatFriendRequestPayload.ticket,
+      type      : FriendRequestType.Receive,
+    }
+
+    return friendRequestPayload
+
     // switch (rawPayload.sub_type) {
     //   case PadchatMessageType.VerifyMsg:
     //     if (!rawPayload.RecommendInfo) {

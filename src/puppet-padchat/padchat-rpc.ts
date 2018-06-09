@@ -197,7 +197,8 @@ export class PadchatRpc extends EventEmitter {
     //                           JSON.stringify(payload).length,
     //             )
 
-    // console.log('server payload:', payload)
+    // XXX
+    console.log('server payload:', payload)
 
     if (payload.type === PadchatPayloadType.Logout) {
       // {"type":-1,"msg":"掉线了"}
@@ -750,8 +751,8 @@ export class PadchatRpc extends EventEmitter {
   // 30                -通过二维码方式
   public async WXAddUser(strangerV1: string, strangerV2: string, type: string, verify: string): Promise<any> {
     // TODO:
-    type = '14'
-    verify = 'hello'
+    // type = '14'
+    // verify = 'hello'
     const result = await this.rpcCall('WXAddUser', strangerV1, strangerV2, type, verify)
     log.silly('PadchatRpc', 'WXAddUser result: %s', JSON.stringify(result))
     return result
