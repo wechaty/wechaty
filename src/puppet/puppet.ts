@@ -635,6 +635,8 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async roomTopic(roomId: string, topic: string)  : Promise<void>
   public abstract async roomTopic(roomId: string, topic?: string) : Promise<string | void>
 
+  public abstract async roomQrCode(roomId: string) : Promise<string>
+
   public abstract async roomList()                     : Promise<string[]>
   public abstract async roomMemberList(roomId: string) : Promise<string[]>
 

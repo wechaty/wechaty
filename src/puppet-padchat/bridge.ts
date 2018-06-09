@@ -161,7 +161,7 @@ export class Bridge extends PadchatRpc {
       log.silly('PuppetPadchatBridge', 'start() on(logout, %s)', data)
       if (this.selfId) {
         this.selfId = undefined
-        this.emit('logout', data)
+        this.logout()
       } else {
         log.warn('PuppetPadchatBridge', 'start() on(logout) received `logout` event when no `selfId`')
       }
@@ -199,6 +199,8 @@ export class Bridge extends PadchatRpc {
   }
 
   protected async login(username: string): Promise<void> {
+    log.verbose('PuppetPadchatBridge', `login(%s)`, username)
+
     if (this.selfId) {
       throw new Error('username exist')
     }
@@ -211,7 +213,9 @@ export class Bridge extends PadchatRpc {
     this.emit('login', this.selfId)
   }
 
-  public logout(): void {
+  public async logout(): Promise<void> {
+    log.verbose('PuppetPadchatBridge', `logout()`)
+
     if (!this.selfId) {
       // throw new Error('no username')
       log.warn('PuppetPadchatBridge', 'logout() selfId not exist, already logout-ed')
@@ -220,6 +224,8 @@ export class Bridge extends PadchatRpc {
 
     this.selfId = undefined
     this.releaseCache()
+
+    this.emit('logout')
 
     this.startLogin()
   }
