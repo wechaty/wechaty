@@ -199,7 +199,11 @@ export class PuppetPadchat extends Puppet {
 
     this.state.on(true)
     this.emit('start')
+  }
 
+  protected async login(selfId: string): Promise<void> {
+    await super.login(selfId)
+    this.bridge.syncContactsAndRooms()
   }
 
   public async startBridge(): Promise<void> {
@@ -213,19 +217,10 @@ export class PuppetPadchat extends Puppet {
     // this.bridge.on('ding'     , Event.onDing.bind(this))
     // this.bridge.on('error'    , e => this.emit('error', e))
     // this.bridge.on('log'      , Event.onLog.bind(this))
-    this.bridge.on('login', (userId: string) => {
-      this.bridge.syncContactsAndRooms()
-      this.login(userId)
-    })
-    this.bridge.on('logout', () => {
-      this.logout()
-    })
-    this.bridge.on('message', (rawPayload: PadchatMessagePayload) => {
-      this.onPadchatMessage(rawPayload)
-    })
-    this.bridge.on('scan', (qrCode: string, status: number, data?: string) => {
-      this.emit('scan', qrCode, status, data)
-    })
+    this.bridge.on('scan',    (qrCode: string, status: number, data?: string) => this.emit('scan', qrCode, status, data))
+    this.bridge.on('login',   (userId: string)                                => this.login(userId))
+    this.bridge.on('message', (rawPayload: PadchatMessagePayload)             => this.onPadchatMessage(rawPayload))
+    this.bridge.on('logout',  ()                                              => this.logout())
 
     await this.bridge.start()
   }
@@ -238,7 +233,10 @@ export class PuppetPadchat extends Puppet {
               )
     switch (rawPayload.sub_type) {
       case PadchatMessageType.VerifyMsg:
-        this.cachePadchatFriendRequestPayload.set(rawPayload.msg_id, rawPayload)
+        this.cachePadchatFriendRequestPayload.set(
+          rawPayload.msg_id,
+          rawPayload,
+        )
         this.emit('friend', rawPayload.msg_id)
         break
 
@@ -381,6 +379,8 @@ export class PuppetPadchat extends Puppet {
    */
 
   public async messageFile(id: string): Promise<FileBox> {
+    log.warn('PuppetPadchat', 'messageFile(%s) not implemented yet', id)
+
     // const rawPayload = await this.messageRawPayload(id)
 
     // TODO
@@ -418,7 +418,7 @@ export class PuppetPadchat extends Puppet {
   }
 
   public async messageRawPayloadParser(rawPayload: PadchatMessagePayload): Promise<MessagePayload> {
-    log.verbose('PuppetPadChat', 'messageRawPayloadParser(rawPayload.msg_id=%s)', rawPayload.msg_id)
+    log.verbose('PuppetPadChat', 'messageRawPayloadParser({msg_id="%s"})', rawPayload.msg_id)
 
     const payload: MessagePayload = pfHelper.messageRawPayloadParser(rawPayload)
 
@@ -705,18 +705,23 @@ export class PuppetPadchat extends Puppet {
 
     const payload = await this.friendRequestPayload(friendRequestId) as FriendRequestPayloadReceive
 
+    console.log('friendRequestAccept: ', payload)
+
     if (!payload.ticket) {
       throw new Error('no ticket')
     }
+    if (!payload.stranger) {
+      throw new Error('no stranger')
+    }
 
     await this.bridge.WXAcceptUser(
-      payload.contactId,
+      payload.stranger,
       payload.ticket,
     )
   }
 
   public async friendRequestRawPayloadParser(rawPayload: PadchatMessagePayload) : Promise<FriendRequestPayload> {
-    log.verbose('PuppetPadchat', 'friendRequestRawPayloadParser(%s)', rawPayload)
+    log.verbose('PuppetPadchat', 'friendRequestRawPayloadParser({id=%s})', rawPayload.msg_id)
 
     const payload: FriendRequestPayload = await pfHelper.friendRequestRawPayloadParser(rawPayload)
     return payload
@@ -727,7 +732,7 @@ export class PuppetPadchat extends Puppet {
 
     const rawPayload = this.cachePadchatFriendRequestPayload.get(friendRequestId)
     if (!rawPayload) {
-      throw new Error('no rawPayload')
+      throw new Error('no rawPayload for id ' + friendRequestId)
     }
 
     return rawPayload

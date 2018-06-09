@@ -1190,13 +1190,14 @@ export class PuppetPuppeteer extends Puppet {
   }
 
   public async friendRequestAccept(
-    contactId : string,
-    ticket    : string,
+    friendRequestId : string,
   ): Promise<void> {
+    const payload = await this.friendRequestPayload(friendRequestId) as FriendRequestPayloadReceive
+
     try {
-      await this.bridge.verifyUserOk(contactId, ticket)
+      await this.bridge.verifyUserOk(payload.contactId, payload.ticket)
     } catch (e) {
-      log.warn('PuppetPuppeteer', 'bridge.verifyUserOk(%s, %s) rejected: %s', contactId, ticket, e.message)
+      log.warn('PuppetPuppeteer', 'bridge.verifyUserOk(%s, %s) rejected: %s', payload.contactId, payload.ticket, e.message)
       Raven.captureException(e)
       throw e
     }

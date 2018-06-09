@@ -404,10 +404,9 @@ export class PuppetMock extends Puppet {
   }
 
   public async friendRequestAccept(
-    contactId : string,
-    ticket    : string,
+    friendRequestId : string,
   ): Promise<void> {
-    log.verbose('PuppetMock', 'friendRequestAccept(%s, %s)', contactId, ticket)
+    log.verbose('PuppetMock', 'friendRequestAccept(%s)', friendRequestId)
   }
 
   public ding(data?: any): Promise<string> {

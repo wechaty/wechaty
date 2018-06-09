@@ -194,7 +194,7 @@ export class FriendRequest extends Accessory {
 
     log.silly('FriendRequest', 'accept() to %s', this.payload.contactId)
 
-    await this.puppet.friendRequestAccept(this.payload.contactId, this.payload.ticket)
+    await this.puppet.friendRequestAccept(this.id)
 
     const contact = this.contact()
 

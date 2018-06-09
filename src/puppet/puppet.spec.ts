@@ -71,8 +71,8 @@ class PuppetTest extends Puppet {
   public async friendRequestRawPayload(id: string)            : Promise<any> { return {id} as any }
   public async friendRequestRawPayloadParser(rawPayload: any) : Promise<FriendRequestPayload> { return rawPayload }
 
-  public async friendRequestSend(contactId: string, hello?: string)   : Promise<void> { return {contactId, hello} as any }
-  public async friendRequestAccept(contactId: string, ticket: string) : Promise<void> { return {contactId, ticket} as any }
+  public async friendRequestSend(contactId: string, hello?: string) : Promise<void> { return {contactId, hello} as any }
+  public async friendRequestAccept(friendRequestId: string)         : Promise<void> { return {friendRequestId} as any }
 
   /**
    *

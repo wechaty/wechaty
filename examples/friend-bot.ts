@@ -96,10 +96,12 @@ bot
       case FriendRequest.Type.Receive:
         if (request.hello() === 'ding') {
           logMsg = 'accepted automatically because verify messsage is "ding"'
-          request.accept()
+          console.log('before accept')
+          await request.accept()
+          console.log('after accept')
 
         } else {
-          logMsg = 'not auto accepted, because verify message is: ' + request.hello
+          logMsg = 'not auto accepted, because verify message is: ' + request.hello()
         }
         break
 

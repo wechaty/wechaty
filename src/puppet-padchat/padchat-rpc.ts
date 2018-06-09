@@ -241,7 +241,10 @@ export class PadchatRpc extends EventEmitter {
       //   "userId": "test"
       // }
 
-      const tencentPayloadList: PadchatMessagePayload[] = JSON.parse(decodeURIComponent(payload.data))
+      // https://stackoverflow.com/a/24417399/1123955
+      const data = payload.data.replace(/\+/g, '%20')
+
+      const tencentPayloadList: PadchatMessagePayload[] = JSON.parse(decodeURIComponent(data))
 
       if (!Array.isArray(tencentPayloadList)) {
         throw new Error('not array')
@@ -267,7 +270,10 @@ export class PadchatRpc extends EventEmitter {
     let result: any
 
     if (padchatPayload.data) {
-      result = JSON.parse(decodeURIComponent(padchatPayload.data))
+      // https://stackoverflow.com/a/24417399/1123955
+      const data = padchatPayload.data.replace(/\+/g, '%20')
+
+      result = JSON.parse(decodeURIComponent(data))
     } else {
       log.silly('PadchatRpc', 'onServerMessagePadchat() discard empty payload.data for apiName: %s', padchatPayload.apiName)
       result = {}
@@ -511,7 +517,10 @@ export class PadchatRpc extends EventEmitter {
     const result = await this.WXGetContact(id)
 
     if (result.member) {
-      result.member = JSON.parse(decodeURIComponent(result.member))
+      // https://stackoverflow.com/a/24417399/1123955
+      const data = result.member.replace(/\+/g, '%20')
+
+      result.member = JSON.parse(decodeURIComponent(data))
     }
 
     return result
@@ -558,13 +567,19 @@ export class PadchatRpc extends EventEmitter {
       // tslint:disable-next-line:max-line-length
       // change '[{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/DpS0ZssJ5s8tEpSr9JuPTRxEUrCK0USrZcR3PjOMfUKDwpnZLxWXlD4Q38bJpcXBtwXWwevsul1lJqwsQzwItQ/0","chatroom_nick_name":"","invited_by":"wxid_7708837087612","nick_name":"李佳芮","small_head":"http://wx.qlogo.cn/mmhead/ver_1/DpS0ZssJ5s8tEpSr9JuPTRxEUrCK0USrZcR3PjOMfUKDwpnZLxWXlD4Q38bJpcXBtwXWwevsul1lJqwsQzwItQ/132","user_name":"qq512436430"},{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/kcBj3gSibfFd2I9vQ8PBFyQ77cpPIfqkFlpTdkFZzBicMT6P567yj9IO6xG68WsibhqdPuG82tjXsveFATSDiaXRjw/0","chatroom_nick_name":"","invited_by":"wxid_7708837087612","nick_name":"梦君君","small_head":"http://wx.qlogo.cn/mmhead/ver_1/kcBj3gSibfFd2I9vQ8PBFyQ77cpPIfqkFlpTdkFZzBicMT6P567yj9IO6xG68WsibhqdPuG82tjXsveFATSDiaXRjw/132","user_name":"mengjunjun001"},{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/3CsKibSktDV05eReoAicV0P8yfmuHSowfXAMvRuU7HEy8wMcQ2eibcaO1ccS95PskZchEWqZibeiap6Gpb9zqJB1WmNc6EdD6nzQiblSx7dC1eGtA/0","chatroom_nick_name":"","invited_by":"wxid_7708837087612","nick_name":"苏轼","small_head":"http://wx.qlogo.cn/mmhead/ver_1/3CsKibSktDV05eReoAicV0P8yfmuHSowfXAMvRuU7HEy8wMcQ2eibcaO1ccS95PskZchEWqZibeiap6Gpb9zqJB1WmNc6EdD6nzQiblSx7dC1eGtA/132","user_name":"wxid_zj2cahpwzgie12"},{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/piaHuicak41b6ibmcEVxoWKnnhgGDG5EbaD0hibwkrRvKeDs3gs7XQrkym3Q5MlUeSKY8vw2FRVVstialggUxf2zic2O8CvaEsicSJcghf41nibA940/0","chatroom_nick_name":"","invited_by":"wxid_zj2cahpwzgie12","nick_name":"王宁","small_head":"http://wx.qlogo.cn/mmhead/ver_1/piaHuicak41b6ibmcEVxoWKnnhgGDG5EbaD0hibwkrRvKeDs3gs7XQrkym3Q5MlUeSKY8vw2FRVVstialggUxf2zic2O8CvaEsicSJcghf41nibA940/132","user_name":"wxid_7708837087612"}]'
       // to Array (PadchatRoomRawMember[])
-      if (Array.isArray(JSON.parse(decodeURIComponent(result.member)))) {
-        result.member = JSON.parse(decodeURIComponent(result.member)) as PadchatRoomMemberPayload[]
+
+      // https://stackoverflow.com/a/24417399/1123955
+      const data          = result.member.data.replace(/\+/g, '%20')
+      const tryMemberList = JSON.parse(decodeURIComponent(data)) as PadchatRoomMemberPayload[]
+
+      if (Array.isArray(tryMemberList)) {
+        result.member = tryMemberList
       } else {
         log.warn('PadchatRpc', 'WXGetChatRoomMember(%s) member is not array: %s', roomId, JSON.stringify(result.member))
         // throw Error('faild to parse chatroom member!')
         result.member = []
       }
+
     } catch (e) {
       // 18:27:54 SILL Puppet contactPayload(shanzhifeng644634) cache MISS
       // tslint:disable-next-line:max-line-length
@@ -600,7 +615,7 @@ export class PadchatRpc extends EventEmitter {
     }
 
     if (result.status === 0) {
-      log.info('PadchatRpc', 'WXQRCodeLogin, login successfully!')
+      log.silly('PadchatRpc', 'WXQRCodeLogin, login successfully!')
       // this.username = result.user_name
       // this.nickname = result.nick_name
       // this.loginSucceed = true
@@ -635,7 +650,7 @@ export class PadchatRpc extends EventEmitter {
     }
 
     if (result && result.status === WXCheckQRCodeStatus.WaitConfirm) {
-      log.info('PadchatRpc', 'checkQrcode: Had scan the Qrcode, but not Login!')
+      log.silly('PadchatRpc', 'checkQrcode: Had scan the Qrcode, but not Login!')
 
       setTimeout(() => {
         this.checkQrcode()
@@ -645,7 +660,7 @@ export class PadchatRpc extends EventEmitter {
     }
 
     if (result && result.status === WXCheckQRCodeStatus.Confirmed) {
-      log.info('PadchatRpc', 'checkQrcode: Trying to login... please wait')
+      log.silly('PadchatRpc', 'checkQrcode: Trying to login... please wait')
 
       if (!result.user_name || !result.password) {
         throw Error('PadchatRpc, checkQrcode, cannot get username or password here, return!')
@@ -660,12 +675,12 @@ export class PadchatRpc extends EventEmitter {
     }
 
     if (result && result.status === WXCheckQRCodeStatus.Timeout) {
-      log.info('PadchatRpc', 'checkQrcode: Timeout')
+      log.silly('PadchatRpc', 'checkQrcode: Timeout')
       return
     }
 
     if (result && result.status === WXCheckQRCodeStatus.Cancel) {
-      log.info('PadchatRpc', 'checkQrcode: Cancel by user')
+      log.silly('PadchatRpc', 'checkQrcode: Cancel by user')
       return
     }
 

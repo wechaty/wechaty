@@ -280,13 +280,13 @@ export class PadchatPureFunctionHelper {
       })
     })
 
-    console.log(padchatFriendRequestPayload)
+    // console.log(padchatFriendRequestPayload)
 
     const friendRequestPayload: FriendRequestPayload = {
       id        : rawPayload.msg_id,
-      // use v1 stranger id as contactid at here:
-      contactId : padchatFriendRequestPayload.encryptusername,
+      contactId : padchatFriendRequestPayload.fromusername,
       hello     : padchatFriendRequestPayload.content,
+      stranger  : padchatFriendRequestPayload.encryptusername,
       ticket    : padchatFriendRequestPayload.ticket,
       type      : FriendRequestType.Receive,
     }

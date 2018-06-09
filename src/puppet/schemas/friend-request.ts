@@ -16,7 +16,8 @@ export type FriendRequestPayloadConfirm = FriendRequestPayloadBase & {
 }
 
 export type FriendRequestPayloadReceive = FriendRequestPayloadBase & {
-  ticket    : string
+  stranger? : string,
+  ticket    : string,
   type      : FriendRequestType.Receive,
 }
 

@@ -156,16 +156,10 @@ export class Bridge extends PadchatRpc {
     //   log.silly('PuppetPadchatBridge', 'start() padchatRpc.on(message)')
     //   this.emit('message', messageRawPayload)
     // })
+
+    // No need to call logout() in bridge, because PupetPadchat will call logout() when received the 'logout' event
     // this.padchatRpc.on('logout', data => {
-    this.on('logout', data => {
-      log.silly('PuppetPadchatBridge', 'start() on(logout, %s)', data)
-      if (this.selfId) {
-        this.selfId = undefined
-        this.logout()
-      } else {
-        log.warn('PuppetPadchatBridge', 'start() on(logout) received `logout` event when no `selfId`')
-      }
-    })
+    // this.on('logout', () => this.logout())
 
     await this.loadAutoData()
 
@@ -183,6 +177,11 @@ export class Bridge extends PadchatRpc {
 
     this.state.off('pending')
 
+    if (this.loginTimer) {
+      clearTimeout(this.loginTimer)
+      this.loginTimer = undefined
+    }
+
     // await this.padchatRpc.stop()
     await super.stop()
 
@@ -190,10 +189,6 @@ export class Bridge extends PadchatRpc {
 
     this.selfId          = undefined
     this.loginScanQrCode = undefined
-    if (this.loginTimer) {
-      clearTimeout(this.loginTimer)
-      this.loginTimer = undefined
-    }
 
     this.state.off(true)
   }
@@ -224,8 +219,6 @@ export class Bridge extends PadchatRpc {
 
     this.selfId = undefined
     this.releaseCache()
-
-    this.emit('logout')
 
     this.startLogin()
   }
@@ -278,6 +271,7 @@ export class Bridge extends PadchatRpc {
         this.loginScanQrCode = undefined
         this.loginScanStatus = undefined
         waitUserResponse = false
+        continue
       }
 
       switch (result.status) {
@@ -482,7 +476,6 @@ export class Bridge extends PadchatRpc {
                                           this.autoData.user_name,
                                           selfId,
                   )
-      this.autoData.wxData = (await this.WXGenerateWxDat()).data
       this.autoData.wxData = (await this.WXGenerateWxDat()).data
     }
 

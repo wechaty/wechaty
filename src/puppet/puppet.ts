@@ -499,11 +499,10 @@ export abstract class Puppet extends EventEmitter implements Sayable {
    * FriendRequest
    *
    */
-  public abstract async friendRequestSend(contactId: string, hello?: string)   : Promise<void>
-  public abstract async friendRequestAccept(contactId: string, ticket: string) : Promise<void>
-
-  public abstract async friendRequestRawPayload(friendRequestId: string) : Promise<any>
-  public abstract async friendRequestRawPayloadParser(rawPayload: any)   : Promise<FriendRequestPayload>
+  public abstract async friendRequestSend(contactId: string, hello?: string) : Promise<void>
+  public abstract async friendRequestAccept(friendRequestId: string)         : Promise<void>
+  public abstract async friendRequestRawPayload(friendRequestId: string)     : Promise<any>
+  public abstract async friendRequestRawPayloadParser(rawPayload: any)       : Promise<FriendRequestPayload>
 
   public friendRequestPayloadCache(friendRequestId: string): undefined | FriendRequestPayload {
     log.silly('Puppet', 'friendRequestPayloadCache(id=%s) @ %s', friendRequestId, this)

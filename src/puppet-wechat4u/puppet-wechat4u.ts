@@ -883,12 +883,12 @@ export class PuppetWechat4u extends Puppet {
   }
 
   public async friendRequestAccept(
-    contactId : string,
-    ticket    : string,
+    friendRequestId : string,
   ): Promise<void> {
-    log.verbose('PuppetWechat4u', 'friendRequestAccept(%s, %s)', contactId, ticket)
+    log.verbose('PuppetWechat4u', 'friendRequestAccept(%s)', friendRequestId)
 
-    await this.wechat4u.verifyUser(contactId, ticket)
+    const payload = await this.friendRequestPayload(friendRequestId) as FriendRequestPayloadReceive
+    await this.wechat4u.verifyUser(payload.contactId, payload.ticket)
   }
 
   public async friendRequestRawPayload(id: string)            : Promise<any> {
