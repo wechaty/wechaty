@@ -24,6 +24,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     jq \
     libgconf-2-4 \
     moreutils \
+    python-dev \
     shellcheck \
     sudo \
     tzdata \
