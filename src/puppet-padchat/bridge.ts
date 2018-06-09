@@ -2,8 +2,6 @@ import path   from 'path'
 import os     from 'os'
 import fs     from 'fs-extra'
 
-import { EventEmitter } from 'events'
-
 import { MemoryCard }     from 'memory-card'
 import { StateSwitch }    from 'state-switch'
 import { FlashStoreSync } from 'flash-store'
@@ -23,7 +21,6 @@ import {
 import {
   AutoDataType,
   WXCheckQRCodeStatus,
-  StandardType,
 }                             from './padchat-rpc.type'
 
 import {
@@ -44,8 +41,8 @@ export interface BridgeOptions {
   token    : string,
 }
 
-export class Bridge extends EventEmitter {
-  private readonly padchatRpc : PadchatRpc
+export class Bridge extends PadchatRpc {
+  // private readonly padchatRpc : PadchatRpc
   private autoData            : AutoDataType
 
   private loginScanQrCode? : string
@@ -83,12 +80,12 @@ export class Bridge extends EventEmitter {
   constructor(
     public options: BridgeOptions,
   ) {
-    super() // for EventEmitter
+    super(options.endpoint, options.token)
     log.verbose('PuppetPadchatBridge', 'constructor()')
 
     this.autoData = {}
 
-    this.padchatRpc = new PadchatRpc(options.endpoint, options.token)
+    // this.padchatRpc = new PadchatRpc(options.endpoint, options.token)
     this.state      = new StateSwitch('PuppetPadchatBridge')
   }
 
@@ -152,18 +149,21 @@ export class Bridge extends EventEmitter {
 
     this.state.on('pending')
 
-    await this.padchatRpc.start()
-    this.padchatRpc.on('message', messageRawPayload => {
-      log.silly('PuppetPadchatBridge', 'start() padchatRpc.on(message)')
-      this.emit('message', messageRawPayload)
-    })
-    this.padchatRpc.on('logout', data => {
-      log.silly('PuppetPadchatBridge', 'start() padchatRpc.on(logout, %s)', data)
+    // await this.padchatRpc.start()
+    await super.start()
+
+    // this.padchatRpc.on('message', messageRawPayload => {
+    //   log.silly('PuppetPadchatBridge', 'start() padchatRpc.on(message)')
+    //   this.emit('message', messageRawPayload)
+    // })
+    // this.padchatRpc.on('logout', data => {
+    this.on('logout', data => {
+      log.silly('PuppetPadchatBridge', 'start() on(logout, %s)', data)
       if (this.selfId) {
         this.selfId = undefined
         this.emit('logout', data)
       } else {
-        log.warn('PuppetPadchatBridge', 'start() padchatRpc.on(logout) received `logout` event when no `selfId`')
+        log.warn('PuppetPadchatBridge', 'start() on(logout) received `logout` event when no `selfId`')
       }
     })
 
@@ -183,7 +183,8 @@ export class Bridge extends EventEmitter {
 
     this.state.off('pending')
 
-    await this.padchatRpc.stop()
+    // await this.padchatRpc.stop()
+    await super.stop()
 
     this.releaseCache()
 
@@ -253,7 +254,8 @@ export class Bridge extends EventEmitter {
      */
     let waitUserResponse = true
     while (waitUserResponse) {
-      const result = await this.padchatRpc.WXCheckQRCode()
+      // const result = await this.padchatRpc.WXCheckQRCode()
+      const result = await this.WXCheckQRCode()
 
       if (this.loginScanStatus !== result.status && this.loginScanQrCode) {
         this.loginScanStatus = result.status
@@ -297,7 +299,8 @@ export class Bridge extends EventEmitter {
             throw Error('PuppetPadchatBridge, checkQrcode, cannot get username or password here, return!')
           }
 
-          const loginResult = await this.padchatRpc.WXQRCodeLogin(result.user_name, result.password)
+          // const loginResult = await this.padchatRpc.WXQRCodeLogin(result.user_name, result.password)
+          const loginResult = await this.WXQRCodeLogin(result.user_name, result.password)
 
           this.autoData.nick_name = loginResult.nick_name
           this.autoData.user_name = loginResult.user_name
@@ -390,7 +393,8 @@ export class Bridge extends EventEmitter {
       *   "user_name": "lizhuohuan"
       * }
       */
-    const autoLoginResult = await this.padchatRpc.WXAutoLogin(this.autoData.token)
+    const autoLoginResult = await this.WXAutoLogin(this.autoData.token)
+    //  const autoLoginResult = await this.padchatRpc.WXAutoLogin(this.autoData.token)
 
     if (!autoLoginResult) {
       /**
@@ -411,7 +415,8 @@ export class Bridge extends EventEmitter {
       /**
        * 3. Send Login Request to User to be confirm(the same as the user had scaned the QrCode)
        */
-      const loginRequestResult = await this.padchatRpc.WXLoginRequest(this.autoData.token)
+      // const loginRequestResult = await this.padchatRpc.WXLoginRequest(this.autoData.token)
+      const loginRequestResult = await this.WXLoginRequest(this.autoData.token)
 
       if (!loginRequestResult || loginRequestResult.status !== 0) {
         /**
@@ -436,10 +441,12 @@ export class Bridge extends EventEmitter {
       throw new Error('qrcode exist')
     }
 
-    const result = await this.padchatRpc.WXGetQRCode()
+    // const result = await this.padchatRpc.WXGetQRCode()
+    const result = await this.WXGetQRCode()
     if (!result) {
       log.verbose('PuppetPadchatBridge', `emitLoginQrCode() result not found. Call WXInitialize() and try again ...`)
-      await this.padchatRpc.WXInitialize()
+      // await this.padchatRpc.WXInitialize()
+      await this.WXInitialize()
       // wait 1 second and try again
       await new Promise(r => setTimeout(r, 1000))
       return await this.emitLoginQrCode()
@@ -461,18 +468,21 @@ export class Bridge extends EventEmitter {
   protected async saveAutoData(selfId: string): Promise<void> {
     log.verbose('PuppetPadchatBridge', `loadAutoData(%s)`, selfId)
 
-    await this.padchatRpc.WXHeartBeat()
+    // await this.padchatRpc.WXHeartBeat()
+    await this.WXHeartBeat()
 
     if (!this.autoData.wxData || this.autoData.user_name !== selfId) {
       log.verbose('PuppetPadchatBridge', `loadAutoData() user_name(%s) !== selfId(%s)`,
                                           this.autoData.user_name,
                                           selfId,
                   )
-      this.autoData.wxData = (await this.padchatRpc.WXGenerateWxDat()).data
+      this.autoData.wxData = (await this.WXGenerateWxDat()).data
+      this.autoData.wxData = (await this.WXGenerateWxDat()).data
     }
 
     // Check 62 data. If has then use, or save 62 data here.
-    this.autoData.token  = (await this.padchatRpc.WXGetLoginToken()).token
+    // this.autoData.token  = (await this.padchatRpc.WXGetLoginToken()).token
+    this.autoData.token  = (await this.WXGetLoginToken()).token
 
     if (!this.autoData.user_name || !this.autoData.wxData || !this.autoData.token) {
       throw new Error('autoData error')
@@ -498,7 +508,8 @@ export class Bridge extends EventEmitter {
     // TODO: should check this.autoData.user_name here
     if (this.autoData.wxData) {
       log.silly('PuppetPadchatBridge', `loadAutoData() load 62 data`)
-      await this.padchatRpc.WXLoadWxDat(this.autoData.wxData)
+      // await this.padchatRpc.WXLoadWxDat(this.autoData.wxData)
+      await this.WXLoadWxDat(this.autoData.wxData)
     }
   }
 
@@ -569,7 +580,8 @@ export class Bridge extends EventEmitter {
   ): Promise<{ [contactId: string]: PadchatRoomMemberPayload }> {
     log.silly('PuppetPadchatBridge', 'syncRoomMember(%s)', roomId)
 
-    const memberListPayload = await this.padchatRpc.WXGetChatRoomMember(roomId)
+    // const memberListPayload = await this.padchatRpc.WXGetChatRoomMember(roomId)
+    const memberListPayload = await this.WXGetChatRoomMember(roomId)
 
     if (!memberListPayload) {
       throw new Error('no memberListPayload')
@@ -608,7 +620,8 @@ export class Bridge extends EventEmitter {
     while (cont && this.state.on() && this.selfId) {
       log.silly('PuppetPadchatBridge', `syncContactsAndRooms() while() syncing WXSyncContact ...`)
 
-      const syncContactList = await this.padchatRpc.WXSyncContact()
+      // const syncContactList = await this.padchatRpc.WXSyncContact()
+      const syncContactList = await this.WXSyncContact()
 
       await new Promise(r => setTimeout(r, 1 * 1000))
 
@@ -705,7 +718,8 @@ export class Bridge extends EventEmitter {
         return this.cacheContactRawPayload.get(contactid)
       }
 
-      const tryRawPayload =  await this.padchatRpc.WXGetContactPayload(contactid)
+      // const tryRawPayload =  await this.padchatRpc.WXGetContactPayload(contactid)
+      const tryRawPayload =  await this.WXGetContactPayload(contactid)
       if (tryRawPayload) {
         this.cacheContactRawPayload.set(contactid, tryRawPayload)
         return tryRawPayload
@@ -733,7 +747,8 @@ export class Bridge extends EventEmitter {
         return this.cacheRoomRawPayload.get(id)
       }
 
-      const tryRawPayload = await this.padchatRpc.WXGetRoomPayload(id)
+      // const tryRawPayload = await this.padchatRpc.WXGetRoomPayload(id)
+      const tryRawPayload = await this.WXGetRoomPayload(id)
       if (tryRawPayload) {
         this.cacheRoomRawPayload.set(id, tryRawPayload)
         return tryRawPayload
@@ -748,22 +763,23 @@ export class Bridge extends EventEmitter {
   }
 
   public async ding(): Promise<string> {
-    const result = await this.padchatRpc.WXHeartBeat()
+    // const result = await this.padchatRpc.WXHeartBeat()
+    const result = await this.WXHeartBeat()
     return result.message
   }
 
-  public async WXSetUserRemark(contactId: string, alias: string): Promise<void> {
-    await this.padchatRpc.WXSetUserRemark(contactId, alias)
-  }
+  // public async WXSetUserRemark(contactId: string, alias: string): Promise<void> {
+  //   await this.padchatRpc.WXSetUserRemark(contactId, alias)
+  // }
 
-  public async WXSendMsg(to: string, content: string, at = ''): Promise<void> {
-    await this.padchatRpc.WXSendMsg(to, content, at)
-    return
-  }
+  // public async WXSendMsg(to: string, content: string, at = ''): Promise<void> {
+  //   await this.padchatRpc.WXSendMsg(to, content, at)
+  //   return
+  // }
 
-  public async WXSendImage(to: string, data: string): Promise<void> {
-    await this.padchatRpc.WXSendImage(to, data)
-  }
+  // public async WXSendImage(to: string, data: string): Promise<void> {
+  //   await this.padchatRpc.WXSendImage(to, data)
+  // }
 
   // public async WXGetChatRoomMember(id: string): Promise<PadchatRoomMemberPayload> {
   //   log.verbose('PuppetPadchatBridge', 'WXGetChatRoomMember(%s)', id)
@@ -789,34 +805,34 @@ export class Bridge extends EventEmitter {
   //   return result
   // }
 
-  public async WXDeleteChatRoomMember(roomId: string, contactId: string): Promise<StandardType> {
-    const result = await this.padchatRpc.WXDeleteChatRoomMember(roomId, contactId)
-    return result
-  }
+  // public async WXDeleteChatRoomMember(roomId: string, contactId: string): Promise<StandardType> {
+  //   const result = await this.padchatRpc.WXDeleteChatRoomMember(roomId, contactId)
+  //   return result
+  // }
 
-  public async WXAddChatRoomMember(roomId: string, contactId: string): Promise<number> {
-    const result = await this.padchatRpc.WXAddChatRoomMember(roomId, contactId)
-    return result
-  }
+  // public async WXAddChatRoomMember(roomId: string, contactId: string): Promise<number> {
+  //   const result = await this.padchatRpc.WXAddChatRoomMember(roomId, contactId)
+  //   return result
+  // }
 
-  public async WXSetChatroomName(roomId: string, topic: string): Promise<void> {
-    await this.padchatRpc.WXSetChatroomName(roomId, topic)
-    return
-  }
+  // public async WXSetChatroomName(roomId: string, topic: string): Promise<void> {
+  //   await this.padchatRpc.WXSetChatroomName(roomId, topic)
+  //   return
+  // }
 
-  public async WXQuitChatRoom(roomId: string): Promise<void> {
-    await this.padchatRpc.WXQuitChatRoom(roomId)
-  }
+  // public async WXQuitChatRoom(roomId: string): Promise<void> {
+  //   await this.padchatRpc.WXQuitChatRoom(roomId)
+  // }
 
-  public async WXAddUser(strangerV1: string, strangerV2: string, type: string, verify: string): Promise<void> {
-    await this.padchatRpc.WXAddUser(strangerV1, strangerV2, type, verify)
-  }
+  // public async WXAddUser(strangerV1: string, strangerV2: string, type: string, verify: string): Promise<void> {
+  //   await this.padchatRpc.WXAddUser(strangerV1, strangerV2, type, verify)
+  // }
 
-  public async WXSetChatroomAnnouncement(chatroom: string, content: string): Promise<void> {
-    await this.padchatRpc.WXSetChatroomAnnouncement(chatroom, content)
-  }
-  public async WXGetChatroomAnnouncement(chatroom: string): Promise<string> {
-    return await this.padchatRpc.WXGetChatroomAnnouncement(chatroom)
-  }
+  // public async WXSetChatroomAnnouncement(chatroom: string, content: string): Promise<void> {
+  //   await this.padchatRpc.WXSetChatroomAnnouncement(chatroom, content)
+  // }
+  // public async WXGetChatroomAnnouncement(chatroom: string): Promise<string> {
+  //   return await this.padchatRpc.WXGetChatroomAnnouncement(chatroom)
+  // }
 
 }

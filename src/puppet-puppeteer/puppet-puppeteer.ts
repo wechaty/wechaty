@@ -1055,6 +1055,18 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
+  public async roomAnnounce(roomId: string)                : Promise<string>
+  public async roomAnnounce(roomId: string, text: string)  : Promise<void>
+
+  public async roomAnnounce(roomId: string, text?: string) : Promise<void | string> {
+    log.warn('PuppetPuppeteer', 'roomAnnounce(%s, %s) not supported', roomId, text ? text : '')
+
+    if (text) {
+      return
+    }
+    return ''
+  }
+
   public async roomQuit(roomId: string): Promise<void> {
     log.warn('PuppetPuppeteer', 'roomQuit(%s) not supported by Web API', roomId)
   }

@@ -348,6 +348,16 @@ export class PuppetMock extends Puppet {
     }
   }
 
+  public async roomAnnounce(roomId: string)                : Promise<string>
+  public async roomAnnounce(roomId: string, text: string)  : Promise<void>
+
+  public async roomAnnounce(roomId: string, text?: string) : Promise<void | string> {
+    if (text) {
+      return
+    }
+    return 'mock announcement for ' + roomId
+  }
+
   /**
    *
    * FriendRequest

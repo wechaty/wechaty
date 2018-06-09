@@ -798,6 +798,18 @@ export class PuppetWechat4u extends Puppet {
     return roomId
   }
 
+  public async roomAnnounce(roomId: string)                : Promise<string>
+  public async roomAnnounce(roomId: string, text: string)  : Promise<void>
+
+  public async roomAnnounce(roomId: string, text?: string) : Promise<void | string> {
+    log.warn('PuppetWechat4u', 'roomAnnounce(%s, %s) not supported', roomId, text ? text : '')
+
+    if (text) {
+      return
+    }
+    return ''
+  }
+
   public async roomQuit(roomId: string): Promise<void> {
     log.verbose('PuppetWechat4u', 'roomQuit(%s)', roomId)
   }
