@@ -27,6 +27,7 @@ export enum PadchatContactRoomStatus {
 }
 
 export enum PadchatRoomMemberStatus {
+  Zero = 0,
   Todo,
 }
 

@@ -135,7 +135,7 @@ export class PadchatPureFunctionHelper {
     rawPayload: PadchatMessagePayload,
   ): MessagePayload {
 
-    console.log(rawPayload)
+    // console.log(rawPayload)
 
     let type: MessageType
 
@@ -189,10 +189,11 @@ export class PadchatPureFunctionHelper {
 
     // Msg from room
     if (this.isRoomId(rawPayload.from_user)) {
+      const parts = rawPayload.content.split(':\n')
       // update fromId to actual sender instead of the room
-      payloadBase.fromId = rawPayload.content.split(':\n')[0]
+      payloadBase.fromId = parts[0]
       // update the text to actual text of the message
-      payloadBase.text = rawPayload.content.split(':\n')[1]
+      payloadBase.text = parts[1]
 
       roomId = rawPayload.from_user
 
@@ -236,39 +237,22 @@ export class PadchatPureFunctionHelper {
 
   public static roomRawPayloadParser(
     rawPayload        : PadchatRoomPayload,
-    // roomRawMemberList : PadchatRoomMember[],
   ): RoomPayload {
-    // const aliasDict = {} as { [id: string]: string | undefined }
-
-    // if (Array.isArray(roomRawMemberList)) {
-    //   roomRawMemberList.forEach(
-    //     rawMember => {
-    //       aliasDict[rawMember.user_name] = rawMember.chatroom_nick_name
-    //     },
-    //   )
-    // }
-
-    // const memberIdList = roomRawMemberList.map(m => m.user_name)
-
     const payload: RoomPayload = {
       id      : rawPayload.user_name,
       topic   : rawPayload.nick_name,
       ownerId : rawPayload.chatroom_owner,
-      // memberIdList,
-      // aliasDict,
     }
 
     return payload
   }
 
   public static friendRequestRawPayloadParser(
-    rawPayload: any,
+    rawPayload: PadchatMessagePayload,
   ) : FriendRequestPayload {
-    // to do:
-    throw new Error('todo' + rawPayload)
-
-    // switch (rawPayload.MsgType) {
-    //   case WebMessageType.VERIFYMSG:
+    throw new Error('to do ' + rawPayload)
+    // switch (rawPayload.sub_type) {
+    //   case PadchatMessageType.VerifyMsg:
     //     if (!rawPayload.RecommendInfo) {
     //       throw new Error('no RecommendInfo')
     //     }
@@ -287,7 +271,7 @@ export class PadchatPureFunctionHelper {
     //     }
     //     return payloadReceive
 
-    //   case WebMessageType.SYS:
+    //   case PadchatMessageType.Sys:
     //     const payloadConfirm: FriendRequestPayloadConfirm = {
     //       id        : rawPayload.MsgId,
     //       contactId : rawPayload.FromUserName,
@@ -298,7 +282,6 @@ export class PadchatPureFunctionHelper {
     //   default:
     //     throw new Error('not supported friend request message raw payload')
     // }
-
   }
 
   public static async imageBase64ToQrCode(base64: string): Promise<string> {

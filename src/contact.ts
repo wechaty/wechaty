@@ -186,6 +186,11 @@ export class Contact extends Accessory implements Sayable {
     }
   }
 
+  // TODO
+  public static async delete(contact: Contact): Promise<void> {
+    log.verbose('Cotnact', 'static delete(%s)', contact.id)
+  }
+
   /**
    *
    * Instance properties
@@ -600,6 +605,28 @@ export class Contact extends Accessory implements Sayable {
     return this.payload && this.payload.weixin || null
   }
 
+  /**
+   *
+   * Need a new class for manage user profile
+   *
+   */
+  // TODO:
+  public async qrcode(): Promise<string> {
+    log.verbose('Contact', 'qrcode()')
+
+    if (!this.self()) {
+      throw new Error('only can get qrcode for the login userself')
+    }
+
+    return 'url of qrcode data for this contact(self only)'
+  }
+
+  public async setAvatar(file: FileBox): Promise<void> {
+    log.verbose('Contact', 'setAvatar(%s)', file.name)
+
+    // should not in contact class ?
+    // too many methods that can only use on the login-ed userself.
+  }
 }
 
 export default Contact

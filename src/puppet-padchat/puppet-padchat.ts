@@ -74,6 +74,7 @@ import {
   PadchatRoomPayload,
   // PadchatRoomMemberListPayload,
   PadchatRoomMemberPayload,
+  PadchatMessageType,
 
   // PadchatMessageType,
   // PadchatContinue,
@@ -89,7 +90,7 @@ export type ScanFoodType   = 'scan' | 'login' | 'logout'
 export class PuppetPadchat extends Puppet {
 
   // private readonly cachePadchatContactPayload       : LRU.Cache<string, PadchatContactRawPayload>
-  // private readonly cachePadchatFriendRequestRawPayload : LRU.Cache<string, FriendRequestRawPayload>
+  private readonly cachePadchatFriendRequestPayload : LRU.Cache<string, PadchatMessagePayload>
   private readonly cachePadchatMessagePayload       : LRU.Cache<string, PadchatMessagePayload>
   // private readonly cachePadchatRoomPayload          : LRU.Cache<string, PadchatRoomRawPayload>
 
@@ -110,7 +111,7 @@ export class PuppetPadchat extends Puppet {
     }
 
     // this.cachePadchatContactPayload       = new LRU<string, PadchatContactRawPayload>(lruOptions)
-    // this.cacheFriendRequestPayload = new LRU<string, FriendRequestPayload>(lruOptions)
+    this.cachePadchatFriendRequestPayload = new LRU<string, PadchatMessagePayload>(lruOptions)
     this.cachePadchatMessagePayload       = new LRU<string, PadchatMessagePayload>(lruOptions)
     // this.cachePadchatRoomPayload          = new LRU<string, PadchatRoomRawPayload>(lruOptions)
 
@@ -218,19 +219,36 @@ export class PuppetPadchat extends Puppet {
     this.bridge.on('logout', () => {
       this.logout()
     })
-    this.bridge.on('message', (messagePayload: PadchatMessagePayload) => {
-      log.silly('PuppetPadchat', 'startBridge() bridge.on(message)')
-      this.cachePadchatMessagePayload.set(
-        messagePayload.msg_id,
-        messagePayload,
-      )
-      this.emit('message', messagePayload.msg_id)
+    this.bridge.on('message', (rawPayload: PadchatMessagePayload) => {
+      this.onPadchatMessage(rawPayload)
     })
     this.bridge.on('scan', (qrCode: string, status: number, data?: string) => {
       this.emit('scan', qrCode, status, data)
     })
 
     await this.bridge.start()
+  }
+
+  protected onPadchatMessage(rawPayload: PadchatMessagePayload) {
+    log.verbose('PuppetPadchat', 'onPadchatMessage({id=%s, type=%s(%s)})',
+                                rawPayload.msg_id,
+                                PadchatMessageType[rawPayload.sub_type],
+                                rawPayload.msg_type,
+              )
+    switch (rawPayload.sub_type) {
+      case PadchatMessageType.VerifyMsg:
+        this.cachePadchatFriendRequestPayload.set(rawPayload.msg_id, rawPayload)
+        this.emit('friend', rawPayload.msg_id)
+        break
+
+      default:
+        this.cachePadchatMessagePayload.set(
+          rawPayload.msg_id,
+          rawPayload,
+        )
+        this.emit('message', rawPayload.msg_id)
+        break
+    }
   }
 
   public async stop(): Promise<void> {
@@ -311,14 +329,14 @@ export class PuppetPadchat extends Puppet {
   }
 
   public async contactRawPayload(contactId: string): Promise<PadchatContactPayload> {
-    log.verbose('PuppetPadchat', 'contactRawPayload(%s)', contactId)
+    log.silly('PuppetPadchat', 'contactRawPayload(%s)', contactId)
 
     const rawPayload = await this.bridge.contactRawPayload(contactId)
     return rawPayload
   }
 
   public async contactRawPayloadParser(rawPayload: PadchatContactPayload): Promise<ContactPayload> {
-    log.verbose('PuppetPadchat', 'contactRawPayloadParser(rawPayload.user_name="%s")', rawPayload.user_name)
+    log.silly('PuppetPadchat', 'contactRawPayloadParser({user_name="%s"})', rawPayload.user_name)
 
     const payload: ContactPayload = pfHelper.contactRawPayloadParser(rawPayload)
     return payload
@@ -562,6 +580,18 @@ export class PuppetPadchat extends Puppet {
     await this.bridge.WXQuitChatRoom(roomId)
   }
 
+  public async roomAnnounce(roomId: string)             : Promise<string>
+  public async roomAnnounce(roomId: string, text: string) : Promise<void>
+
+  public async roomAnnounce(roomId: string, text?: string): Promise<void | string> {
+    log.verbose('PuppetPadchat', 'roomAnnounce(%s, %s)', roomId, text ? text : '')
+    if (text) {
+      await this.bridge.WXSetChatroomAnnouncement(roomId, text)
+    } else {
+      return await this.bridge.WXGetChatroomAnnouncement(roomId)
+    }
+  }
+
   /**
    *
    * FriendRequest
@@ -615,23 +645,22 @@ export class PuppetPadchat extends Puppet {
     // )
   }
 
-  public async friendRequestRawPayloadParser(rawPayload: any) : Promise<FriendRequestPayload> {
+  public async friendRequestRawPayloadParser(rawPayload: PadchatMessagePayload) : Promise<FriendRequestPayload> {
     log.verbose('PuppetPadchat', 'friendRequestRawPayloadParser(%s)', rawPayload)
 
     const payload: FriendRequestPayload = pfHelper.friendRequestRawPayloadParser(rawPayload)
     return payload
   }
 
-  public async friendRequestRawPayload(id: string): Promise<any> {
-    // log.verbose('PuppetPadchat', 'friendRequestRawPayload(%s)', id)
+  public async friendRequestRawPayload(friendRequestId: string): Promise<PadchatMessagePayload> {
+    log.verbose('PuppetPadchat', 'friendRequestRawPayload(%s)', friendRequestId)
 
-    throw new Error('todo: ' + id)
-    // const rawPayload = this.cacheMessageRawPayload.get(id)
-    // if (!rawPayload) {
-    //   throw new Error('no rawPayload')
-    // }
+    const rawPayload = this.cachePadchatFriendRequestPayload.get(friendRequestId)
+    if (!rawPayload) {
+      throw new Error('no rawPayload')
+    }
 
-    // return rawPayload
+    return rawPayload
   }
 
 }

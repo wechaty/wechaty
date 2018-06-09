@@ -538,6 +538,25 @@ export class Room extends Accessory implements Sayable {
     return future
   }
 
+  public async announce()             : Promise<string>
+  public async announce(text: string) : Promise<void>
+
+  public async announce(text?: string): Promise<void | string> {
+    log.verbose('Room', 'announce(%s)', text ? text : '')
+
+    if (text) {
+      await this.puppet.roomAnnounce(this.id, text)
+    } else {
+      return await this.puppet.roomAnnounce(this.id)
+    }
+  }
+
+  // TODO
+  public async qrcode(): Promise<string> {
+    log.verbose('Room', 'qrcode()')
+    return 'qrcode url for entry room'
+  }
+
   /**
    * Return contact's roomAlias in the room, the same as roomAlias
    * @param {Contact} contact

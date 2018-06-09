@@ -354,7 +354,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
    */
   public abstract async contactAlias(contactId: string)                       : Promise<string>
   public abstract async contactAlias(contactId: string, alias: string | null) : Promise<void>
-  public abstract async contactAlias(contactId: string, alias?: string|null)  : Promise<string | void>
+  // public abstract async contactAlias(contactId: string, alias?: string|null)  : Promise<string | void>
   public abstract async contactAvatar(contactId: string)                      : Promise<FileBox>
   public abstract async contactList()                                         : Promise<string[]>
 
@@ -464,7 +464,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     }
 
     if (noCache) {
-      log.silly('Puppet', 'contactPayload() cache PURGE')
+      log.silly('Puppet', 'contactPayload(%s) cache PURGE', contactId)
 
       this.cacheContactPayload.del(contactId)
 
@@ -484,7 +484,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     const payload    = await this.contactRawPayloadParser(rawPayload)
 
     this.cacheContactPayload.set(contactId, payload)
-    log.silly('Puppet', 'contactPayload() cache SET')
+    log.silly('Puppet', 'contactPayload(%s) cache SET', contactId)
 
     return payload
   }
@@ -527,7 +527,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     }
 
     if (noCache) {
-      log.silly('Puppet', 'friendRequestPayload() cache PURGE')
+      log.silly('Puppet', 'friendRequestPayload(%s) cache PURGE', friendRequestId)
 
       this.cacheFriendRequestPayload.del(friendRequestId)
 
@@ -590,7 +590,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     }
 
     if (noCache) {
-      log.silly('Puppet', 'messagePayload() cache PURGE')
+      log.silly('Puppet', 'messagePayload(%s) cache PURGE', messageId)
 
       this.cacheMessagePayload.del(messageId)
 
@@ -610,7 +610,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     const payload    = await this.messageRawPayloadParser(rawPayload)
 
     this.cacheMessagePayload.set(messageId, payload)
-    log.silly('Puppet', 'messagePayload() cache SET')
+    log.silly('Puppet', 'messagePayload(%s) cache SET', messageId)
 
     return payload
   }
@@ -638,6 +638,9 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   public abstract async roomMemberRawPayload(roomId: string, contactId: string) : Promise<any>
   public abstract async roomMemberRawPayloadParser(rawPayload: any)             : Promise<RoomMemberPayload>
+
+  public abstract async roomAnnounce(roomId: string)               : Promise<string>
+  public abstract async roomAnnounce(roomId: string, text: string) : Promise<void>
 
   public async roomMemberSearch(
     roomId : string,
@@ -790,7 +793,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     }
 
     if (noCache) {
-      log.silly('Puppet', 'roomPayload() cache PURGE')
+      log.silly('Puppet', 'roomPayload(%s) cache PURGE', roomId)
 
       this.cacheRoomPayload.del(roomId)
 
@@ -810,7 +813,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     const payload    = await this.roomRawPayloadParser(rawPayload)
 
     this.cacheRoomPayload.set(roomId, payload)
-    log.silly('Puppet', 'roomPayload() cache SET')
+    log.silly('Puppet', 'roomPayload(%s) cache SET', roomId)
 
     return payload
   }
@@ -833,9 +836,9 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     const cachedPayload = this.cacheRoomMemberPayload.get(cacheKey)
 
     if (cachedPayload) {
-      log.silly('Puppet', 'roomMemberPayloadCache() cache HIT')
+      log.silly('Puppet', 'roomMemberPayloadCache(%s) cache HIT', roomId)
     } else {
-      log.silly('Puppet', 'roomMemberPayloadCache() cache MISS')
+      log.silly('Puppet', 'roomMemberPayloadCache(%s) cache MISS', roomId)
     }
 
     return cachedPayload
@@ -855,7 +858,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     const cacheKey = this.cacheKeyRoomMember(roomId, contactId)
 
     if (noCache) {
-      log.silly('Puppet', 'roomMemberPayload() cache PURGE')
+      log.silly('Puppet', 'roomMemberPayload(%s) cache PURGE', roomId)
 
       this.cacheRoomMemberPayload.del(cacheKey)
 
@@ -874,7 +877,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     const payload    = await this.roomMemberRawPayloadParser(rawPayload)
 
     this.cacheRoomMemberPayload.set(cacheKey, payload)
-    log.silly('Puppet', 'roomMemberPayload() cache SET')
+    log.silly('Puppet', 'roomMemberPayload(%s) cache SET', roomId)
 
     return payload
   }
