@@ -830,6 +830,10 @@ export class PuppetWechat4u extends Puppet {
     log.verbose('PuppetWechat4u', 'roomQuit(%s)', roomId)
   }
 
+  public async roomQrCode(roomId: string): Promise<string> {
+    throw new Error('not support ' + roomId)
+  }
+
   public async roomMemberList(roomId: string) : Promise<string[]> {
     log.verbose('PuppetWechat4u', 'roommemberList(%s)', roomId)
     const rawPayload = await this.roomRawPayload(roomId)

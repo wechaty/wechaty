@@ -352,6 +352,10 @@ export class PuppetMock extends Puppet {
     log.verbose('PuppetMock', 'roomQuit(%s)', roomId)
   }
 
+  public async roomQrCode(roomId: string): Promise<string> {
+    return roomId + ' mock qrcode'
+  }
+
   public async roomMemberList(roomId: string) : Promise<string[]> {
     log.verbose('PuppetMock', 'roommemberList(%s)', roomId)
     return []

@@ -1088,6 +1088,10 @@ export class PuppetPuppeteer extends Puppet {
     log.warn('PuppetPuppeteer', 'roomQuit(%s) not supported by Web API', roomId)
   }
 
+  public async roomQrCode(roomId: string): Promise<string> {
+    throw new Error('not support ' + roomId)
+  }
+
   public async roomMemberList(roomId: string) : Promise<string[]> {
     log.verbose('PuppetPuppeteer', 'roommemberList(%s)', roomId)
     const rawPayload = await this.roomRawPayload(roomId)
