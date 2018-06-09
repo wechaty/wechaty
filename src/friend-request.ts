@@ -74,9 +74,9 @@ export class FriendRequest extends Accessory {
     contact : Contact,
     hello   : string,
   ): Promise<void> {
-    log.verbose('PuppeteerFriendRequest', 'static send(%s, %s)',
-                                          contact.id,
-                                          hello,
+    log.verbose('FriendRequest', 'static send(%s, %s)',
+                                  contact.id,
+                                  hello,
                 )
     await this.puppet.friendRequestSend(contact.id, hello)
   }
@@ -84,7 +84,7 @@ export class FriendRequest extends Accessory {
   // public static createConfirm(
   //   contactId: string,
   // ): FriendRequestPayload {
-  //   log.verbose('PuppeteerFriendRequest', 'createConfirm(%s)',
+  //   log.verbose('FriendRequest', 'createConfirm(%s)',
   //                                         contactId,
   //               )
 
@@ -101,7 +101,7 @@ export class FriendRequest extends Accessory {
   //   hello     : string,
   //   ticket    : string,
   // ): FriendRequestPayload {
-  //   log.verbose('PuppeteerFriendRequest', 'createReceive(%s, %s, %s)',
+  //   log.verbose('FriendRequest', 'createReceive(%s, %s, %s)',
   //                                         contactId,
   //                                         hello,
   //                                         ticket,
@@ -135,7 +135,7 @@ export class FriendRequest extends Accessory {
     public id: string,
   ) {
     super()
-    log.verbose('PuppeteerFriendRequest', 'constructor(id=%s)', id)
+    log.verbose('FriendRequest', 'constructor(id=%s)', id)
 
     // tslint:disable-next-line:variable-name
     const MyClass = instanceToClass(this, FriendRequest)
@@ -199,18 +199,18 @@ export class FriendRequest extends Accessory {
     const contact = this.contact()
 
     await Misc.retry(async (retry, attempt) => {
-      log.silly('PuppeteerFriendRequest', 'accept() retry() ready() attempt %d', attempt)
+      log.silly('FriendRequest', 'accept() retry() ready() attempt %d', attempt)
 
       await contact.ready()
 
       if (contact.isReady()) {
-        log.verbose('PuppeteerFriendRequest', 'accept() with contact %s ready()', contact.name())
+        log.verbose('FriendRequest', 'accept() with contact %s ready()', contact.name())
         return
       }
       retry(new Error('FriendRequest.accept() content.ready() not ready'))
 
     }).catch((e: Error) => {
-      log.warn('PuppeteerFriendRequest', 'accept() contact %s not ready because of %s', contact, e && e.message || e)
+      log.warn('FriendRequest', 'accept() contact %s not ready because of %s', contact, e && e.message || e)
     })
 
   }
@@ -232,7 +232,7 @@ export class FriendRequest extends Accessory {
   }
 
   public async reject(): Promise<void> {
-    log.warn('PuppeteerFriendRequest', 'reject() not necessary, NOP.')
+    log.warn('FriendRequest', 'reject() not necessary, NOP.')
     return
   }
 
