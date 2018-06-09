@@ -53,7 +53,7 @@ import {
   WXSendMsgType,
   WXLoadWxDatType,
   WXQRCodeLoginType,
-  WXCheckQRCodeStatus,
+  // WXCheckQRCodeStatus,
   StandardType,
   WXAddChatRoomMemberType,
   WXLogoutType,
@@ -335,22 +335,21 @@ export class PadchatRpc extends EventEmitter {
   }
 
   public async WXGetQRCode(): Promise<WXGetQRCodeType> {
-    let result = await this.rpcCall('WXGetQRCode')
-    if (!result || !(result.qr_code)) {
-      result = await this.WXGetQRCodeTwice()
-    }
-
+    const result = await this.rpcCall('WXGetQRCode')
+    // if (!result || !(result.qr_code)) {
+    //   result = await this.WXGetQRCodeTwice()
+    // }
     return result
   }
 
-  private async WXGetQRCodeTwice(): Promise<WXGetQRCodeType> {
-    await this.WXInitialize()
-    const resultTwice = await this.rpcCall('WXGetQRCode')
-    if (!resultTwice || !(resultTwice.qr_code)) {
-      throw Error('WXGetQRCodeTwice error! canot get result from websocket server when calling WXGetQRCode after WXInitialize')
-    }
-    return resultTwice
-  }
+  // private async WXGetQRCodeTwice(): Promise<WXGetQRCodeType> {
+  //   await this.WXInitialize()
+  //   const resultTwice = await this.rpcCall('WXGetQRCode')
+  //   if (!resultTwice || !(resultTwice.qr_code)) {
+  //     throw Error('WXGetQRCodeTwice error! canot get result from websocket server when calling WXGetQRCode after WXInitialize')
+  //   }
+  //   return resultTwice
+  // }
 
   public async WXCheckQRCode(): Promise<WXCheckQRCodePayload> {
     // this.checkQrcode()
@@ -439,14 +438,14 @@ export class PadchatRpc extends EventEmitter {
     // TODO: should show result here
     const result = await this.rpcCall('WXLoginRequest', token)
     log.silly('PadchatRpc', 'WXLoginRequest result: %s, type: %s', JSON.stringify(result), typeof result)
-    if (!result || result.status !== 0) {
-      await this.WXGetQRCode()
-      return
-    } else {
-      // check qrcode status
-      log.silly('PadchatRpc', 'WXLoginRequest begin to check whether user has clicked confirm login')
-      this.checkQrcode()
-    }
+    // if (!result || result.status !== 0) {
+    //   await this.WXGetQRCode()
+    //   return
+    // } else {
+    //   // check qrcode status
+    //   log.silly('PadchatRpc', 'WXLoginRequest begin to check whether user has clicked confirm login')
+    //   this.checkQrcode()
+    // }
     return result
   }
 
@@ -635,58 +634,58 @@ export class PadchatRpc extends EventEmitter {
     throw Error('PadchatRpc, WXQRCodeLogin, unknown status: ' + result.status)
   }
 
-  public async checkQrcode(): Promise<void> {
-    log.verbose('PadchatRpc', 'checkQrcode')
-    const result = await this.WXCheckQRCode()
+  // public async checkQrcode(): Promise<void> {
+  //   log.verbose('PadchatRpc', 'checkQrcode')
+  //   const result = await this.WXCheckQRCode()
 
-    if (result && result.status === WXCheckQRCodeStatus.WaitScan) {
-      log.verbose('PadchatRpc', 'checkQrcode: Please scan the Qrcode!')
+  //   if (result && result.status === WXCheckQRCodeStatus.WaitScan) {
+  //     log.verbose('PadchatRpc', 'checkQrcode: Please scan the Qrcode!')
 
-      setTimeout(() => {
-        this.checkQrcode()
-      }, 1000)
+  //     setTimeout(() => {
+  //       this.checkQrcode()
+  //     }, 1000)
 
-      return
-    }
+  //     return
+  //   }
 
-    if (result && result.status === WXCheckQRCodeStatus.WaitConfirm) {
-      log.silly('PadchatRpc', 'checkQrcode: Had scan the Qrcode, but not Login!')
+  //   if (result && result.status === WXCheckQRCodeStatus.WaitConfirm) {
+  //     log.silly('PadchatRpc', 'checkQrcode: Had scan the Qrcode, but not Login!')
 
-      setTimeout(() => {
-        this.checkQrcode()
-      }, 1000)
+  //     setTimeout(() => {
+  //       this.checkQrcode()
+  //     }, 1000)
 
-      return
-    }
+  //     return
+  //   }
 
-    if (result && result.status === WXCheckQRCodeStatus.Confirmed) {
-      log.silly('PadchatRpc', 'checkQrcode: Trying to login... please wait')
+  //   if (result && result.status === WXCheckQRCodeStatus.Confirmed) {
+  //     log.silly('PadchatRpc', 'checkQrcode: Trying to login... please wait')
 
-      if (!result.user_name || !result.password) {
-        throw Error('PadchatRpc, checkQrcode, cannot get username or password here, return!')
-      }
+  //     if (!result.user_name || !result.password) {
+  //       throw Error('PadchatRpc, checkQrcode, cannot get username or password here, return!')
+  //     }
 
-      // this.username = result.user_name
-      // this.nickname = result.nick_name
-      // this.password = result.password
+  //     // this.username = result.user_name
+  //     // this.nickname = result.nick_name
+  //     // this.password = result.password
 
-      // this.WXQRCodeLogin(this.username, this.password)
-      return
-    }
+  //     // this.WXQRCodeLogin(this.username, this.password)
+  //     return
+  //   }
 
-    if (result && result.status === WXCheckQRCodeStatus.Timeout) {
-      log.silly('PadchatRpc', 'checkQrcode: Timeout')
-      return
-    }
+  //   if (result && result.status === WXCheckQRCodeStatus.Timeout) {
+  //     log.silly('PadchatRpc', 'checkQrcode: Timeout')
+  //     return
+  //   }
 
-    if (result && result.status === WXCheckQRCodeStatus.Cancel) {
-      log.silly('PadchatRpc', 'checkQrcode: Cancel by user')
-      return
-    }
+  //   if (result && result.status === WXCheckQRCodeStatus.Cancel) {
+  //     log.silly('PadchatRpc', 'checkQrcode: Cancel by user')
+  //     return
+  //   }
 
-    log.warn('PadchatRpc', 'checkQrcode: not know the reason, return data: %s', JSON.stringify(result))
-    return
-  }
+  //   log.warn('PadchatRpc', 'checkQrcode: not know the reason, return data: %s', JSON.stringify(result))
+  //   return
+  // }
 
   public async WXSetUserRemark(id: string, remark: string): Promise<StandardType> {
     const result = await this.rpcCall('WXSetUserRemark', id, remark)

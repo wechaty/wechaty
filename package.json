@@ -133,7 +133,6 @@
     "@types/fluent-ffmpeg": "^2.1.0",
     "@types/fs-extra": "^5.0.3",
     "@types/glob": "^5.0.0p",
-    "@types/jimp": "^0.2.28",
     "@types/lru-cache": "^4.1.0",
     "@types/mime": "^2.0.0",
     "@types/node": "^10.3.0",
