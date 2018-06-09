@@ -729,8 +729,16 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async contactAvatar(contactId: string): Promise<FileBox> {
+  public async contactAvatar(contactId: string)                : Promise<FileBox>
+  public async contactAvatar(contactId: string, file: FileBox) : Promise<void>
+
+  public async contactAvatar(contactId: string, file?: FileBox): Promise<void | FileBox> {
     log.verbose('PuppetPuppeteer', 'contactAvatar(%s)', contactId)
+
+    if (file) {
+      throw new Error('not support')
+    }
+
     const payload = await this.contactPayload(contactId)
     if (!payload.avatar) {
       throw new Error('Can not get avatar: no payload.avatar!')
@@ -765,6 +773,15 @@ export class PuppetPuppeteer extends Puppet {
       Raven.captureException(err)
       throw err
     }
+  }
+
+  public async contactQrCode(contactId: string): Promise<string> {
+    if (contactId !== this.selfId()) {
+      throw new Error('can not set avatar for others')
+    }
+
+    throw new Error('not supported')
+    // return await this.bridge.WXqr
   }
 
   public contactAlias(contactId: string)                      : Promise<string>

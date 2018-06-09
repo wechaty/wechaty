@@ -355,8 +355,13 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async contactAlias(contactId: string)                       : Promise<string>
   public abstract async contactAlias(contactId: string, alias: string | null) : Promise<void>
   // public abstract async contactAlias(contactId: string, alias?: string|null)  : Promise<string | void>
-  public abstract async contactAvatar(contactId: string)                      : Promise<FileBox>
-  public abstract async contactList()                                         : Promise<string[]>
+
+  public abstract async contactAvatar(contactId: string)                : Promise<FileBox>
+  public abstract async contactAvatar(contactId: string, file: FileBox) : Promise<void>
+
+  public abstract async contactList()                    : Promise<string[]>
+
+  public abstract async contactQrCode(contactId: string) : Promise<string>
 
   public abstract async contactRawPayload(contactId: string)     : Promise<any>
   public abstract async contactRawPayloadParser(rawPayload: any) : Promise<ContactPayload>

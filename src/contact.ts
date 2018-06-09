@@ -604,29 +604,42 @@ export class Contact extends Accessory implements Sayable {
   public weixin(): null | string {
     return this.payload && this.payload.weixin || null
   }
+}
 
-  /**
-   *
-   * Need a new class for manage user profile
-   *
-   */
-  // TODO:
+export class ContactSelf extends Contact {
+  constructor(
+    id: string,
+  ) {
+    super(id)
+  }
+
+  public async avatar()              : Promise<FileBox>
+  public async avatar(file: FileBox) : Promise<void>
+
+  public async avatar(file?: FileBox): Promise<void | FileBox> {
+    log.verbose('Contact', 'avatar(%s)', file ? file.name : '')
+
+    if (!file) {
+      return await super.avatar()
+    }
+
+    if (this.id !== this.puppet.selfId()) {
+      throw new Error('set avatar only available for user self')
+    }
+
+    await this.puppet.contactAvatar(this.id, file)
+  }
+
   public async qrcode(): Promise<string> {
     log.verbose('Contact', 'qrcode()')
 
-    if (!this.self()) {
+    if (this.id !== this.puppet.selfId()) {
       throw new Error('only can get qrcode for the login userself')
     }
 
-    return 'url of qrcode data for this contact(self only)'
+    return await this.puppet.contactQrCode(this.id)
   }
 
-  public async setAvatar(file: FileBox): Promise<void> {
-    log.verbose('Contact', 'setAvatar(%s)', file.name)
-
-    // should not in contact class ?
-    // too many methods that can only use on the login-ed userself.
-  }
 }
 
 export default Contact

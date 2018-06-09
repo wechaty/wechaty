@@ -52,8 +52,13 @@ class PuppetTest extends Puppet {
   public async contactAlias(contactId: string)                       : Promise<string>
   public async contactAlias(contactId: string, alias: string | null) : Promise<void>
   public async contactAlias(contactId: string, alias?: string|null)  : Promise<string | void> { return {contactId, alias} as any }
-  public async contactAvatar(contactId: string)                      : Promise<FileBox> { return {contactId} as any }
-  public async contactList()                                         : Promise<string[]> { return {} as any }
+
+  public async contactAvatar(contactId: string)                 : Promise<FileBox>
+  public async contactAvatar(contactId: string, file: FileBox)  : Promise<void>
+  public async contactAvatar(contactId: string, file?: FileBox) : Promise<void | FileBox> { return {contactId, file} as any }
+
+  public async contactList()                    : Promise<string[]> { return {} as any }
+  public async contactQrCode(contactId: string) : Promise<string> { return {contactId} as any }
 
   public async contactRawPayload(id: string)            : Promise<any> { return {id} as any }
   public async contactRawPayloadParser(rawPayload: any) : Promise<ContactPayload> { return {rawPayload} as any }

@@ -316,8 +316,24 @@ export class PuppetWechat4u extends Puppet {
     return idList
   }
 
-  public async contactAvatar(contactId: string): Promise<FileBox> {
+  public async contactQrCode(contactId: string): Promise<string> {
+    if (contactId !== this.selfId()) {
+      throw new Error('can not set avatar for others')
+    }
+
+    throw new Error('not supported')
+    // return await this.bridge.WXqr
+  }
+
+  public async contactAvatar(contactId: string)                : Promise<FileBox>
+  public async contactAvatar(contactId: string, file: FileBox) : Promise<void>
+
+  public async contactAvatar(contactId: string, file?: FileBox): Promise<void | FileBox> {
     log.verbose('PuppetWechat4u', 'contactAvatar(%s)', contactId)
+
+    if (file) {
+      throw new Error('not supported')
+    }
 
     const rawPayload = await this.contactRawPayload(contactId)
 

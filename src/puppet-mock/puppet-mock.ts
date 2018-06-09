@@ -153,9 +153,31 @@ export class PuppetMock extends Puppet {
     return []
   }
 
-  public async contactAvatar(contactId: string): Promise<FileBox> {
+  public async contactQrCode(contactId: string): Promise<string> {
+    if (contactId !== this.selfId()) {
+      throw new Error('can not set avatar for others')
+    }
+
+    throw new Error('not supported')
+    // return await this.bridge.WXqr
+  }
+
+  public async contactAvatar(contactId: string)                : Promise<FileBox>
+  public async contactAvatar(contactId: string, file: FileBox) : Promise<void>
+
+  public async contactAvatar(contactId: string, file?: FileBox): Promise<void | FileBox> {
     log.verbose('PuppetMock', 'contactAvatar(%s)', contactId)
 
+    /**
+     * 1. set
+     */
+    if (file) {
+      return
+    }
+
+    /**
+     * 2. get
+     */
     const WECHATY_ICON_PNG = path.resolve('../../docs/images/wechaty-icon.png')
     return FileBox.fromFile(WECHATY_ICON_PNG)
   }

@@ -59,6 +59,7 @@ import {
 
 import {
   Contact,
+  ContactSelf,
 }                       from './contact'
 import {
   FriendRequest,
@@ -137,6 +138,8 @@ export class Wechaty extends Accessory implements Sayable {
   // tslint:disable-next-line:variable-name
   public readonly Contact       : typeof Contact
   // tslint:disable-next-line:variable-name
+  public readonly ContactSelf   : typeof ContactSelf
+  // tslint:disable-next-line:variable-name
   public readonly FriendRequest : typeof FriendRequest
   // tslint:disable-next-line:variable-name
   public readonly Message       : typeof Message
@@ -193,6 +196,7 @@ export class Wechaty extends Accessory implements Sayable {
      */
     // TODO: make Message & Room constructor private???
     this.Contact        = cloneClass(Contact)
+    this.ContactSelf    = cloneClass(ContactSelf)
     this.FriendRequest  = cloneClass(FriendRequest)
     this.Message        = cloneClass(Message)
     this.Room           = cloneClass(Room)
@@ -244,8 +248,8 @@ export class Wechaty extends Accessory implements Sayable {
   public emit(event: 'error'      , error: Error)                                                  : boolean
   public emit(event: 'friend'     , request: FriendRequest)                                        : boolean
   public emit(event: 'heartbeat'  , data: any)                                                     : boolean
-  public emit(event: 'logout'     , user: Contact)                                                 : boolean
-  public emit(event: 'login'      , user: Contact)                                                 : boolean
+  public emit(event: 'logout'     , user: ContactSelf)                                                 : boolean
+  public emit(event: 'login'      , user: ContactSelf)                                                 : boolean
   public emit(event: 'message'    , message: Message)                                              : boolean
   public emit(event: 'room-join'  , room: Room, inviteeList : Contact[], inviter  : Contact)       : boolean
   public emit(event: 'room-leave' , room: Room, leaverList  : Contact[], remover? : Contact)       : boolean
@@ -267,8 +271,8 @@ export class Wechaty extends Accessory implements Sayable {
   public on(event: 'error'      , listener: string | ((this: Wechaty, error: Error) => void))                                                  : this
   public on(event: 'friend'     , listener: string | ((this: Wechaty, request: FriendRequest) => void))                                        : this
   public on(event: 'heartbeat'  , listener: string | ((this: Wechaty, data: any) => void))                                                     : this
-  public on(event: 'logout'     , listener: string | ((this: Wechaty, user: Contact) => void))                                                 : this
-  public on(event: 'login'      , listener: string | ((this: Wechaty, user: Contact) => void))                                                 : this
+  public on(event: 'logout'     , listener: string | ((this: Wechaty, user: ContactSelf) => void))                                                 : this
+  public on(event: 'login'      , listener: string | ((this: Wechaty, user: ContactSelf) => void))                                                 : this
   public on(event: 'message'    , listener: string | ((this: Wechaty, message: Message) => void))                                              : this
   public on(event: 'room-join'  , listener: string | ((this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void))         : this
   public on(event: 'room-leave' , listener: string | ((this: Wechaty, room: Room, leaverList: Contact[], remover?: Contact) => void))          : this
@@ -300,8 +304,8 @@ export class Wechaty extends Accessory implements Sayable {
    * @desc       Wechaty Class Event Function
    * @typedef    WechatyEventFunction
    * @property   {Function} error           -(this: Wechaty, error: Error) => void callback function
-   * @property   {Function} login           -(this: Wechaty, user: Contact)=> void
-   * @property   {Function} logout          -(this: Wechaty, user: Contact) => void
+   * @property   {Function} login           -(this: Wechaty, user: ContactSelf)=> void
+   * @property   {Function} logout          -(this: Wechaty, user: ContactSelf) => void
    * @property   {Function} scan            -(this: Wechaty, url: string, code: number) => void <br>
    * <ol>
    * <li>URL: {String} the QR code image URL</li>
@@ -335,12 +339,12 @@ export class Wechaty extends Accessory implements Sayable {
    * })
    *
    * @example <caption>Event:login </caption>
-   * bot.on('login', (user: Contact) => {
+   * bot.on('login', (user: ContactSelf) => {
    *   console.log(`user ${user} login`)
    * })
    *
    * @example <caption>Event:logout </caption>
-   * bot.on('logout', (user: Contact) => {
+   * bot.on('logout', (user: ContactSelf) => {
    *   console.log(`user ${user} logout`)
    * })
    *
@@ -562,7 +566,7 @@ export class Wechaty extends Accessory implements Sayable {
         case 'login':
           puppet.removeAllListeners('login')
           puppet.on('login', async contactId => {
-            const contact = this.Contact.load(contactId)
+            const contact = this.ContactSelf.load(contactId)
             await contact.ready()
             this.emit('login', contact)
           })
@@ -571,7 +575,7 @@ export class Wechaty extends Accessory implements Sayable {
         case 'logout':
           puppet.removeAllListeners('logout')
           puppet.on('logout', async contactId => {
-            const contact = this.Contact.load(contactId)
+            const contact = this.ContactSelf.load(contactId)
             await contact.ready()
             this.emit('logout', contact)
           })
@@ -661,6 +665,7 @@ export class Wechaty extends Accessory implements Sayable {
      * 1. Set Wechaty
      */
     this.Contact.wechaty       = this
+    this.ContactSelf.wechaty   = this
     this.FriendRequest.wechaty = this
     this.Message.wechaty       = this
     this.Room.wechaty          = this
@@ -669,6 +674,7 @@ export class Wechaty extends Accessory implements Sayable {
      * 2. Set Puppet
      */
     this.Contact.puppet       = puppet
+    this.ContactSelf.puppet   = puppet
     this.FriendRequest.puppet = puppet
     this.Message.puppet       = puppet
     this.Room.puppet          = puppet
@@ -811,7 +817,7 @@ export class Wechaty extends Accessory implements Sayable {
    */
   public userSelf(): Contact {
     const userId = this.puppet.selfId()
-    const user = this.Contact.load(userId)
+    const user = this.ContactSelf.load(userId)
     return user
   }
 
