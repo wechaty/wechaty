@@ -103,9 +103,10 @@ export class Bridge extends PadchatRpc {
     }
 
     const baseDir = path.join(
-      os.tmpdir(),
+      os.homedir(),
       path.sep,
-      'wechaty-puppet-padchat',
+      '.wechaty',
+      'puppet-padchat-token-cache',
       path.sep,
       token,
       path.sep,

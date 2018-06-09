@@ -18,8 +18,6 @@ import Peer, {
   // parse,
 // }                                   from 'json-rpc-peer'
 
-// import { MemoryCard }   from 'memory-card'
-
 import {
   // PadchatContinue,
   // PadchatMsgType,
@@ -568,7 +566,7 @@ export class PadchatRpc extends EventEmitter {
       // to Array (PadchatRoomRawMember[])
 
       // https://stackoverflow.com/a/24417399/1123955
-      const data          = result.member.data.replace(/\+/g, '%20')
+      const data          = result.member && result.member.data && result.member.data.replace(/\+/g, '%20') || null
       const tryMemberList = JSON.parse(decodeURIComponent(data)) as PadchatRoomMemberPayload[]
 
       if (Array.isArray(tryMemberList)) {
