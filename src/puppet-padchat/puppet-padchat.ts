@@ -274,7 +274,7 @@ export class PuppetPadchat extends Puppet {
     this.emit('stop')
   }
 
-  public async logout(passive = false): Promise<void> {
+  public async logout(): Promise<void> {
     log.verbose('PuppetPadchat', 'logout()')
 
     if (!this.id) {
