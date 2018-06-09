@@ -17,7 +17,7 @@
  *
  */
 
-// import path  from 'path'
+import path  from 'path'
 // import fs    from 'fs'
 // import cuid from 'cuid'
 
@@ -350,8 +350,9 @@ export class PuppetPadchat extends Puppet {
       throw new Error('can not set avatar for others')
     }
 
-    throw new Error('not supported')
-    // return await this.bridge.WXqr
+    const base64 = await this.bridge.WXGetUserQRCode(contactId, 0)
+    const qrcode = await pfHelper.imageBase64ToQrCode(base64)
+    return qrcode
   }
 
   public async contactRawPayload(contactId: string): Promise<PadchatContactPayload> {
@@ -443,10 +444,24 @@ export class PuppetPadchat extends Puppet {
       throw new Error('no id!')
     }
 
-    await this.bridge.WXSendImage(
-      id,
-      await file.toBase64(),
-    )
+    const type = file.mimeType || path.extname(file.name)
+    switch (type) {
+      case '.slk':
+        // 发送语音消息(微信silk格式语音)
+        await this.bridge.WXSendVoice(
+          id,
+          await file.toBase64(),
+          60,
+        )
+        break
+
+      default:
+        await this.bridge.WXSendImage(
+          id,
+          await file.toBase64(),
+        )
+        break
+    }
   }
 
   public async messageForward(

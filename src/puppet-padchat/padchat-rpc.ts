@@ -1284,8 +1284,8 @@ export class PadchatRpc extends EventEmitter {
   // 获取用户二维码(自己或者已加入的群)
   // user			用户名
   // style			是否使用风格化二维码
-  public async WXGetUserQRCode(user: string, style: string): Promise<any> {
-    const result = await this.rpcCall('WXGetUserQRCode', user, style)
+  public async WXGetUserQRCode(user: string, style: number): Promise<any> {
+    const result = await this.rpcCall('WXGetUserQRCode', user, String(style))
     log.silly('PadchatRpc', 'WXGetUserQRCode , stranger,result: %s', JSON.stringify(result))
     if (!result || result.status !== 0) {
       throw Error('WXGetUserQRCode , stranger,error! canot get result from websocket server')
@@ -1311,8 +1311,8 @@ export class PadchatRpc extends EventEmitter {
   // voice_data	语音数据
   // voice_size	语音大小 (应该不需要)
   // voice_time	语音时间(毫秒，最大60 * 1000)
-  public async WXSendVoice(user: string, data: string, time: string): Promise<any> {
-    const result = await this.rpcCall('WXSendVoice', user, data, time)
+  public async WXSendVoice(user: string, data: string, time: number): Promise<any> {
+    const result = await this.rpcCall('WXSendVoice', user, data, String(time))
     log.silly('PadchatRpc', 'WXSendVoice , stranger,result: %s', JSON.stringify(result))
     if (!result || result.status !== 0) {
       throw Error('WXSendVoice , stranger,error! canot get result from websocket server')
