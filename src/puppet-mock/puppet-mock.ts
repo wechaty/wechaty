@@ -251,6 +251,14 @@ export class PuppetMock extends Puppet {
     log.verbose('PuppetMock', 'messageSend(%s, %s)', receiver, file)
   }
 
+  public async messageSendContact(
+    receiver  : Receiver,
+    contactId : string,
+  ): Promise<void> {
+    log.verbose('PuppetMock', 'messageSend("%s", %s)', JSON.stringify(receiver), contactId)
+    return
+  }
+
   public async messageForward(
     receiver  : Receiver,
     messageId : string,

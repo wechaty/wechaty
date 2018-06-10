@@ -108,7 +108,7 @@ test('constructor()', async t => {
   await msg.ready()
 
   t.is(msg.id         , EXPECTED.id   , 'id right')
-  t.is(msg.from().id  , EXPECTED.from , 'from right')
+  t.is(msg.from()!.id  , EXPECTED.from , 'from right')
 
   const s = msg.toString()
   t.is(typeof s, 'string', 'toString()')

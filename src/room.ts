@@ -275,7 +275,7 @@ export class Room extends Accessory implements Sayable {
   /**
    * Send message inside Room, if set [replyTo], wechaty will mention the contact as well.
    *
-   * @param {(string | MediaMessage)} textOrFile - Send `text` or `media file` inside Room.
+   * @param {(string | MediaMessage)} textOrContactOrFile - Send `text` or `media file` inside Room.
    * @param {(Contact | Contact[])} [replyTo] - Optional parameter, send content inside Room, and mention @replyTo contact or contactList.
    * @returns {Promise<boolean>}
    * If bot send message successfully, it will return true. If the bot failed to send for blocking or any other reason, it will return false
@@ -294,11 +294,11 @@ export class Room extends Accessory implements Sayable {
    * await room.say('Hello world!', contact)
    */
   public async say(
-    textOrFile : string | FileBox,
-    mention?      : Contact | Contact[],
+    textOrContactOrFile : string | Contact | FileBox,
+    mention?            : Contact | Contact[],
   ): Promise<void> {
     log.verbose('Room', 'say(%s, %s)',
-                                  textOrFile,
+                                  textOrContactOrFile,
                                   Array.isArray(mention)
                                   ? mention.map(c => c.name()).join(', ')
                                   : mention ? mention.name() : '',
@@ -307,23 +307,27 @@ export class Room extends Accessory implements Sayable {
 
     const replyToList: Contact[] = [].concat(mention as any || [])
 
-    if (typeof textOrFile === 'string') {
+    if (typeof textOrContactOrFile === 'string') {
 
       if (replyToList.length > 0) {
         const AT_SEPRATOR = String.fromCharCode(8197)
         const mentionList = replyToList.map(c => '@' + c.name()).join(AT_SEPRATOR)
-        text = mentionList + ' ' + textOrFile
+        text = mentionList + ' ' + textOrContactOrFile
       } else {
-        text = textOrFile
+        text = textOrContactOrFile
       }
       await this.puppet.messageSendText({
         roomId: this.id,
         contactId: replyToList[0].id,
       }, text)
-    } else if (textOrFile instanceof FileBox) {
+    } else if (textOrContactOrFile instanceof FileBox) {
       await this.puppet.messageSendFile({
         roomId: this.id,
-      }, textOrFile)
+      }, textOrContactOrFile)
+    } else if (textOrContactOrFile instanceof Contact) {
+      await this.puppet.messageSendContact({
+        roomId: this.id,
+      }, textOrContactOrFile.id)
     } else {
       throw new Error('arg unsupported')
     }

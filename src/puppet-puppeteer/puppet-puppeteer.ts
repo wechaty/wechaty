@@ -1731,6 +1731,14 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
+  public async messageSendContact(
+    receiver  : Receiver,
+    contactId : string,
+  ): Promise<void> {
+    log.verbose('PuppetPuppeteer', 'messageSend("%s", %s)', JSON.stringify(receiver), contactId)
+    throw new Error('not support')
+  }
+
   private async getBaseRequest(): Promise<any> {
     try {
       const json = await this.bridge.getBaseRequest()

@@ -668,6 +668,14 @@ export class PuppetWechat4u extends Puppet {
     }, id)
   }
 
+  public async messageSendContact(
+    receiver  : Receiver,
+    contactId : string,
+  ): Promise<void> {
+    log.verbose('PuppetWechat4u', 'messageSend("%s", %s)', JSON.stringify(receiver), contactId)
+    throw new Error('not support')
+  }
+
   public async messageForward(
     receiver  : Receiver,
     messageId : string,

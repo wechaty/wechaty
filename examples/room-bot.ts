@@ -163,6 +163,10 @@ bot
   const sender  = message.from()
   const content = message.text()
 
+  if (!sender) {
+    return
+  }
+
   console.log((room ? '[' + await room.topic() + ']' : '')
               + '<' + sender.name() + '>'
               + ':' + message,

@@ -266,36 +266,33 @@ export class Contact extends Accessory implements Sayable {
    */
   public async say(file: FileBox): Promise<void>
 
-  public async say(textOrFile: string | FileBox): Promise<void> {
-    log.verbose('Contact', 'say(%s)', textOrFile)
+  public async say(textOrContactOrFile: string | Contact | FileBox): Promise<void> {
+    log.verbose('Contact', 'say(%s)', textOrContactOrFile)
 
-    // let msg: Message
-    if (typeof textOrFile === 'string') {
+    if (typeof textOrContactOrFile === 'string') {
+      /**
+       * Text
+       */
       await this.puppet.messageSendText({
         contactId: this.id,
-      }, textOrFile)
-      // msg = Message.createMO({
-      //   text : textOrFile,
-      //   to   : this,
-      // })
-    } else if (textOrFile instanceof FileBox) {
+      }, textOrContactOrFile)
+    } else if (textOrContactOrFile instanceof Contact) {
+      /**
+       * Contact
+       */
+      await this.puppet.messageSendContact({
+        contactId: this.id,
+      }, textOrContactOrFile.id)
+    } else if (textOrContactOrFile instanceof FileBox) {
+      /**
+       * File
+       */
       await this.puppet.messageSendFile({
         contactId: this.id,
-      }, textOrFile)
-      // msg = Message.createMO({
-      //   to   : this,
-      //   file : textOrFile,
-      // })
+      }, textOrContactOrFile)
     } else {
       throw new Error('unsupported')
     }
-
-    // log.silly('Contact', 'say() from: %s to: %s content: %s',
-    //                               this.puppet.userSelf(),
-    //                               this,
-    //                               msg,
-    //           )
-    // await this.puppet.messageSend(msg)
   }
 
   /**

@@ -264,19 +264,18 @@ export class PadchatRpc extends EventEmitter {
   public stop(): void {
     log.verbose('PadchatRpc', 'stop()')
 
-    if (!this.socket) {
-      throw new Error('socket not exist')
-    }
-
     this.jsonRpc.removeAllListeners()
-
     // TODO: use huan's version of JsonRpcPeer, to support end at here.
     // this.jsonRpc.end()
 
-    this.socket.removeAllListeners()
-    this.socket.close()
+    if (this.socket) {
+      this.socket.removeAllListeners()
+      this.socket.close()
 
-    this.socket = undefined
+      this.socket = undefined
+    } else {
+      log.warn('PadchatRpc', 'stop() no socket')
+    }
   }
 
   private async rpcCall(
@@ -651,21 +650,8 @@ export class PadchatRpc extends EventEmitter {
       }
 
     } catch (e) {
-      // 18:27:54 SILL Puppet contactPayload(shanzhifeng644634) cache MISS
-      // tslint:disable-next-line:max-line-length
-      // 18:27:55 SILL PadchatRpc WXGetChatRoomMember() result: {"chatroom_id":700002836,"count":442,"member":"[{\"big_head\":\"http://wx.qlogo.cn/mmhead/ver_1/VCnC8c3icQpcsCpMeSq1w2MZm6Q3ZNqHINoOUhUic9icB3Tm6BK9hyyB9XiaFxjVNIHF0oO11zZTez0nictu2nRWLH7OaKcRkZQdiaz0UjjYlBeWk/0\",\"chatroom_nick_name\":\"宁杰+野生土蜂蜜\",\"invited_by\":\"\",\"nick_name\":\"宁杰￥野生土蜂蜜\",\"small_head\":\"http://wx.qlogo.cn/mmhead/ver_1/VCnC8c3icQpcsCpMeSq1w2MZm6Q3ZNqHINoOUhUic9icB3Tm6BK9hyyB9XiaFxjVNIHF0oO11zZTez0nictu2nRWLH7OaKcRkZQdiaz0UjjYlBeWk/132\",\"user_name\":\"jack_85802\"},{\"b
-      // 18:27:55 ERR Config ###########################
-      // 18:27:55 ERR Config unhandledRejection: URIError: URI malformed [object Promise]
-      // 18:27:55 ERR Config ###########################
-      // 18:27:55 ERR Config process.on(unhandledRejection) promise.catch(URI malformed)
-      // Config URIError: URI malformed
-      //     at decodeURIComponent (<anonymous>)
-      //     at PadchatRpc.<anonymous> (/home/zixia/chatie/wechaty/src/puppet-padchat/padchat-rpc.ts:559:34)
-      //     at Generator.next (<anonymous>)
-      //     at fulfilled (/home/zixia/chatie/wechaty/src/puppet-padchat/padchat-rpc.ts:4:58)
-      //     at process._tickCallback (internal/process/next_tick.js:68:7)
-      // (node:22232) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 834)
       console.error(e)
+      console.error('decode error data: ', result.member)
       log.warn('PadchatRpc', 'WXGetChatRoomMember(%s) result.member decode error: %s', roomId, e)
       result.member = []
     }

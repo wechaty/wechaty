@@ -14,17 +14,18 @@ export interface MessagePayloadBase {
   type : MessageType,
 
   filename? : string,
-  fromId    : string,
   text?     : string,
   timestamp : number,   // unit timestamp, in seconds
 }
 
 export interface MessagePayloadRoom {
-  roomId : string,
-  toId?  : string,   // if to is not set, then room must be set
+  fromId? : string,
+  roomId  : string,
+  toId?   : string,   // if to is not set, then room must be set
 }
 
 export interface MessagePayloadTo {
+  fromId  : string,
   roomId? : string,
   toId    : string,   // if to is not set, then room must be set
 }

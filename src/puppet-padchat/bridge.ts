@@ -164,19 +164,20 @@ export class Bridge extends PadchatRpc {
     log.verbose('PuppetPadchatBridge', 'releaseCache()')
 
     if (   this.cacheRoomRawPayload
-      && this.cacheRoomMemberRawPayload
-      && this.cacheContactRawPayload
+        && this.cacheRoomMemberRawPayload
+        && this.cacheContactRawPayload
     ) {
       await Promise.all([
-        this.cacheContactRawPayload.ready(),
-        this.cacheRoomMemberRawPayload.ready(),
-        this.cacheRoomRawPayload.ready(),
+        this.cacheContactRawPayload.close(),
+        this.cacheRoomMemberRawPayload.close(),
+        this.cacheRoomRawPayload.close(),
       ])
+
       this.cacheContactRawPayload    = undefined
       this.cacheRoomMemberRawPayload = undefined
       this.cacheRoomRawPayload       = undefined
     } else {
-      throw new Error('cache not exist')
+      log.warn('PuppetPadchatBridge', 'releaseCache() cache not exist.')
     }
   }
 
@@ -732,7 +733,7 @@ export class Bridge extends PadchatRpc {
   }
 
   public async syncContactsAndRooms(): Promise<void> {
-    log.verbose('PuppetPadchatBridge', `synctactsAndRooms()`)
+    log.verbose('PuppetPadchatBridge', `syncContactsAndRooms()`)
 
     let cont = true
     while (cont && this.state.on() && this.selfId) {

@@ -85,6 +85,13 @@ bot
   })
 })
 .on('message', async msg => {
+  const from = msg.from()
+
+  if (!from) {
+    log.info('Bot', 'on(message) skip no-from() message: %s', msg)
+    return
+  }
+
   if (msg.type() !== bot.Message.Type.Text) {
     log.info('Bot', 'on(message) skip non-text message: %s', msg)
     return
@@ -92,14 +99,13 @@ bot
 
   const msgAge = Date.now() - msg.date().getTime()
   if (msgAge > 1000 * 60) {
-    log.info('Bot', 'on(message) skip message older than 60 seconds: %s', msg)
+    log.info('Bot', 'on(message) skip message older(%d) than 60 seconds: %s', Math.floor(msgAge / 1000), msg)
     return
   }
 
   try {
     console.log(msg.toString()) // on(message) exception: Error: no file
     const text = msg.text()
-    const from = msg.from()
 
     // Room.findAll()
     if (/^testRoom$/i.test(text)) {

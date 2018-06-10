@@ -159,9 +159,9 @@ export class Message extends Accessory implements Sayable {
       `#${MessageType[this.type()]}`,
       '(',
         this.room() ? (this.room() + '▲') : '',
-        this.from(),
+        this.from() || '',
         '►',
-        this.to(),
+        this.to() || '',
       ')',
     ]
     if (   this.type() === Message.Type.Text
@@ -175,14 +175,14 @@ export class Message extends Accessory implements Sayable {
         throw new Error('no payload')
       }
       const filename = this.payload.filename
-      if (!filename) {
-        throw new Error(
-          'no file for message id: ' + this.id
-          + ' with type: ' + Message.Type[this.payload.type]
-          + '(' + this.payload.type + ')',
-        )
-      }
-      msgStrList.push(`<${filename}>`)
+      // if (!filename) {
+      //   throw new Error(
+      //     'no file for message id: ' + this.id
+      //     + ' with type: ' + Message.Type[this.payload.type]
+      //     + '(' + this.payload.type + ')',
+      //   )
+      // }
+      msgStrList.push(`<${filename || 'unknown file name'}>`)
     }
 
     return msgStrList.join('')
@@ -191,7 +191,7 @@ export class Message extends Accessory implements Sayable {
    * Get the sender from a message.
    * @returns {Contact}
    */
-  public from(): Contact {
+  public from(): null | Contact {
     if (!this.payload) {
       throw new Error('no payload')
     }
@@ -203,8 +203,7 @@ export class Message extends Accessory implements Sayable {
 
     const fromId = this.payload.fromId
     if (!fromId) {
-      console.log(this.payload)
-      throw new Error('no from')
+      return null
     }
 
     const from = this.wechaty.Contact.load(fromId)
@@ -269,7 +268,7 @@ export class Message extends Accessory implements Sayable {
    * Reply a Text or Media File message to the sender.
    *
    * @see {@link https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts|Examples/ding-dong-bot}
-   * @param {(string | FileBox)} textOrFile
+   * @param {(string | FileBox)} textOrContactOrFile
    * @param {(Contact|Contact[])} [mention]
    * @returns {Promise<void>}
    *
@@ -286,11 +285,11 @@ export class Message extends Accessory implements Sayable {
    * })
    */
   public async say(
-    textOrFile : string | FileBox,
+    textOrContactOrFile : string | Contact | FileBox,
     mention?   : Contact | Contact[],
   ): Promise<void> {
     log.verbose('Message', 'say(%s, %s)',
-                            textOrFile.toString(),
+                            textOrContactOrFile.toString(),
                             mention,
                 )
 
@@ -305,26 +304,39 @@ export class Message extends Accessory implements Sayable {
                             : [mention]
                           : []
 
-    if (typeof textOrFile === 'string') {
-      await this.sayText(textOrFile, from, room, mentionList)
+    if (typeof textOrContactOrFile === 'string') {
+      await this.sayText(
+        textOrContactOrFile,
+        from || undefined,
+        room || undefined,
+        mentionList,
+      )
+    } else if (textOrContactOrFile instanceof Contact) {
+      /**
+       * Contact Card
+       */
+      await this.puppet.messageSendContact({
+        roomId    : room && room.id || undefined,
+        contactId : from && from.id || undefined,
+      }, textOrContactOrFile.id)
     } else {
       /**
        * File Message
        */
       await this.puppet.messageSendFile({
         roomId    : room && room.id || undefined,
-        contactId : from.id,
-      }, textOrFile)
+        contactId : from && from.id || undefined,
+      }, textOrContactOrFile)
     }
   }
 
   private async sayText(
-    text        : string,
-    to          : Contact,
-    room        : Room | null,
-    mentionList : Contact[],
+    text         : string,
+    to?          : Contact,
+    room?        : Room,
+    mentionList? : Contact[],
   ): Promise<void> {
-    if (room && mentionList.length > 0) {
+    if (room && mentionList && mentionList.length > 0) {
       /**
        * 1 had mentioned someone
        */
@@ -339,8 +351,8 @@ export class Message extends Accessory implements Sayable {
        * 2 did not mention anyone
        */
       await this.puppet.messageSendText({
-        contactId : to.id,
-        roomId    : room && room.id || undefined,
+        contactId : to && to.id,
+        roomId    : room && room.id,
       }, text)
     }
   }
@@ -439,7 +451,7 @@ export class Message extends Accessory implements Sayable {
     const userId = this.puppet.selfId()
     const from = this.from()
 
-    return from.id === userId
+    return !!from && from.id === userId
   }
 
   /**

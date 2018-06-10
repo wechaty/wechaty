@@ -141,7 +141,7 @@ export class PadchatPureFunctionHelper {
     rawPayload: PadchatMessagePayload,
   ): MessagePayload {
 
-    // console.log(rawPayload)
+    // console.log('messageRawPayloadParser:', rawPayload)
 
     let type: MessageType
 
@@ -153,27 +153,35 @@ export class PadchatPureFunctionHelper {
 
       case PadchatMessageType.Image:
         type = MessageType.Image
+        // console.log(rawPayload)
         break
 
       case PadchatMessageType.Voice:
         type = MessageType.Audio
+        // console.log(rawPayload)
         break
 
       case PadchatMessageType.Emoticon:
         type = MessageType.Emoticon
+        // console.log(rawPayload)
         break
 
       case PadchatMessageType.App:
         type = MessageType.Attachment
+        // console.log(rawPayload)
         break
 
       case PadchatMessageType.Video:
         type = MessageType.Video
+        // console.log(rawPayload)
+        break
+
+      case PadchatMessageType.Sys:
+        type = MessageType.Unknown
         break
 
       case PadchatMessageType.Recalled:
       case PadchatMessageType.StatusNotify:
-      case PadchatMessageType.Sys:
       case PadchatMessageType.SysNotice:
         type = MessageType.Unknown
         break
@@ -185,28 +193,36 @@ export class PadchatPureFunctionHelper {
     const payloadBase = {
       id        : rawPayload.msg_id,
       timestamp : rawPayload.timestamp,  // Padchat message timestamp is seconds
-      fromId    : rawPayload.from_user,
       text      : rawPayload.content,
       // toId      : rawPayload.to_user,
       type      : type,
     }
 
+    let fromId: undefined | string = undefined
     let roomId: undefined | string = undefined
     let toId:   undefined | string = undefined
 
     // Msg from room
     if (this.isRoomId(rawPayload.from_user)) {
-      const parts = rawPayload.content.split(':\n')
-      // update fromId to actual sender instead of the room
-      payloadBase.fromId = parts[0]
-      // update the text to actual text of the message
-      payloadBase.text = parts[1]
 
       roomId = rawPayload.from_user
 
-      if (!roomId || !payloadBase.fromId) {
-        throw Error('empty roomId or empty contactId!')
+      const parts = rawPayload.content.split(':\n')
+      if (parts.length > 1) {
+        /**
+         * there's from id in content.
+         */
+        // update fromId to actual sender instead of the room
+        fromId = parts[0]
+        // update the text to actual text of the message
+        payloadBase.text = parts[1]
+
       }
+      if (!roomId && !fromId) {
+        throw Error('empty roomId and empty fromId!')
+      }
+    } else {
+      fromId = rawPayload.from_user
     }
 
     // Msg to room
@@ -223,15 +239,17 @@ export class PadchatPureFunctionHelper {
 
     // Two branch is the same code.
     // Only for making TypeScript happy
-    if (toId) {
+    if (fromId && toId) {
       payload = {
         ...payloadBase,
+        fromId,
         toId,
         roomId,
       }
     } else if (roomId) {
       payload = {
         ...payloadBase,
+        fromId,
         toId,
         roomId,
       }
@@ -372,8 +390,16 @@ export class PadchatPureFunctionHelper {
 
     let decodedText: string
 
-    decodedText = encodedText.replace(/\+/g, '%20')
-    decodedText = decodeURIComponent(decodedText)
+    // it seems the different server API version (bond with different wechat accounts)
+    // will return URIEncoded / Plain JSON Text.
+    try {
+      // Server return data need decodeURIComponent
+      decodedText = encodedText.replace(/\+/g, '%20')
+      decodedText = decodeURIComponent(decodedText)
+    } catch (e) {
+      // Server return data no need decodeURIComponent
+      decodedText = encodedText
+    }
 
     const decodedObject: T = JSON.parse(decodedText)
     return decodedObject

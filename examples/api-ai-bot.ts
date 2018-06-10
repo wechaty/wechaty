@@ -171,12 +171,15 @@ const Talkers: {
  } = {}
 
 function talk(m: Message) {
-  const fromId  = m.from().id
-  const room = m.room()
-  const roomId = room && room.id
+  const from    = m.from()
+  const fromId  = from && from.id
+
+  const room    = m.room()
+  const roomId  = room && room.id
+
   const content = m.text()
 
-  const talkerName = fromId + roomId
+  const talkerName = roomId + (fromId || '')
   if (!Talkers[talkerName]) {
     Talkers[talkerName] = new Talker(function(text: string) {
       return new Promise((resolve, reject) => {

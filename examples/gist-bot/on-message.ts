@@ -34,7 +34,7 @@ export async function onMessage(this: Wechaty, message: Message): Promise<void> 
     const content   = message.text()
 
     console.log((room ? '[' + await room.topic() + ']' : '')
-                + '<' + sender.name() + '>'
+                + '<' + (sender && sender.name()) + '>'
                 + ':' + message,
     )
 
@@ -48,6 +48,7 @@ export async function onMessage(this: Wechaty, message: Message): Promise<void> 
      * 从下面开始修改vvvvvvvvvvvv
      *
      */
+    if (!sender) return
 
     if (content === 'ding') {
       await message.say('thanks for ding me')

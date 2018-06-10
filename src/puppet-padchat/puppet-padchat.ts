@@ -131,7 +131,7 @@ export class PuppetPadchat extends Puppet {
     this.watchdog.removeAllListeners()
 
     /**
-     * Use puppet's heartbeat to feed dog
+     * Use bridge's heartbeat to feed dog
      */
     this.bridge.on('heartbeat', (data: string) => {
       log.silly('PuppetPadchat', 'startWatchdog() bridge.on(heartbeat)')
@@ -232,6 +232,8 @@ export class PuppetPadchat extends Puppet {
                                 PadchatMessageType[rawPayload.sub_type],
                                 rawPayload.msg_type,
               )
+    console.log('rawPayload:', rawPayload)
+
     switch (rawPayload.sub_type) {
       case PadchatMessageType.VerifyMsg:
         this.cachePadchatFriendRequestPayload.set(
@@ -239,6 +241,14 @@ export class PuppetPadchat extends Puppet {
           rawPayload,
         )
         this.emit('friend', rawPayload.msg_id)
+        break
+
+      case PadchatMessageType.Sys:
+        console.log('sys message:', rawPayload)
+        // this.emit('room-join',   roomId, inviteeIdList,  inviterId)
+        // this.emit('room-leave',  roomId, leaverIdList, remover)
+        // this.emit('room-topic',  roomId, topic, oldTopic, changerId)
+
         break
 
       default:
@@ -405,15 +415,54 @@ export class PuppetPadchat extends Puppet {
    *
    */
 
-  public async messageFile(id: string): Promise<FileBox> {
-    log.warn('PuppetPadchat', 'messageFile(%s) not implemented yet', id)
+  public async messageFile(messageId: string): Promise<FileBox> {
+    log.warn('PuppetPadchat', 'messageFile(%s) not implemented yet', messageId)
 
     // const rawPayload = await this.messageRawPayload(id)
 
     // TODO
 
+    if (!this.bridge) {
+      throw new Error('no bridge')
+    }
+
+    const rawPayload = await this.messageRawPayload(messageId)
+    const payload    = await this.messagePayload(messageId)
+
+    const rawText = JSON.stringify(rawPayload)
+
+    let result
+
+    switch (payload.type) {
+      case MessageType.Attachment:
+        break
+
+      case MessageType.Audio:
+        result = await this.bridge.WXGetMsgVoice(rawText)
+        console.log(result)
+        return FileBox.fromBase64(result.data.image, 'test.slk')
+
+      case MessageType.Emoticon:
+        result = await this.bridge.WXGetMsgImage(rawText)
+        console.log(result)
+        return FileBox.fromBase64(result.data.image, 'test.gif')
+
+      case MessageType.Image:
+        result = await this.bridge.WXGetMsgImage(rawText)
+        console.log(result)
+        return FileBox.fromBase64(result.data.image, 'test.jpg')
+
+      case MessageType.Video:
+        result = await this.bridge.WXGetMsgVideo(rawText)
+        console.log(result)
+        return FileBox.fromBase64(result.data.image, 'test.mp4')
+
+      default:
+        throw new Error('unsupport type: ' + PadchatMessageType[rawPayload.sub_type] + ':' + rawPayload.sub_type)
+    }
+
     const base64 = 'cRH9qeL3XyVnaXJkppBuH20tf5JlcG9uFX1lL2IvdHRRRS9kMMQxOPLKNYIzQQ=='
-    const filename = 'test-' + id + '.txt'
+    const filename = 'test-' + messageId + '.txt'
 
     const file = FileBox.fromBase64(
       base64,
@@ -457,7 +506,7 @@ export class PuppetPadchat extends Puppet {
     receiver : Receiver,
     text     : string,
   ): Promise<void> {
-    log.verbose('PuppetPadchat', 'messageSend(%s, %s)', receiver, text)
+    log.verbose('PuppetPadchat', 'messageSend(%s, %s)', JSON.stringify(receiver), text)
     const id = receiver.contactId || receiver.roomId
     if (!id) {
       throw Error('no id')
@@ -501,6 +550,26 @@ export class PuppetPadchat extends Puppet {
         )
         break
     }
+  }
+
+  public async messageSendContact(
+    receiver  : Receiver,
+    contactId : string,
+  ): Promise<void> {
+    log.verbose('PuppetPadchat', 'messageSend("%s", %s)', JSON.stringify(receiver), contactId)
+
+    if (!this.bridge) {
+      throw new Error('no bridge')
+    }
+
+    const id = receiver.contactId || receiver.roomId
+    if (!id) {
+      throw Error('no id')
+    }
+
+    const payload = await this.contactPayload(contactId)
+    const title = payload.name + '名片'
+    await this.bridge.WXShareCard(id, contactId, title)
   }
 
   public async messageForward(

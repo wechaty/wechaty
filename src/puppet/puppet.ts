@@ -270,10 +270,10 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async logout(): Promise<void>
 
   public selfId(): string {
-    log.verbose('Puppet', 'self()')
+    log.verbose('Puppet', 'selfId()')
 
     if (!this.id) {
-      throw new Error('not logged in, no userSelf yet.')
+      throw new Error('not logged in, no this.id yet.')
     }
 
     return this.id
@@ -560,10 +560,11 @@ export abstract class Puppet extends EventEmitter implements Sayable {
    * Message
    *
    */
-  public abstract async messageFile(messageId: string)                        : Promise<FileBox>
-  public abstract async messageForward(receiver: Receiver, messageId: string) : Promise<void>
-  public abstract async messageSendText(receiver: Receiver, text: string)     : Promise<void>
-  public abstract async messageSendFile(receiver: Receiver, file: FileBox)    : Promise<void>
+  public abstract async messageFile(messageId: string)                            : Promise<FileBox>
+  public abstract async messageForward(receiver: Receiver, messageId: string)     : Promise<void>
+  public abstract async messageSendText(receiver: Receiver, text: string)         : Promise<void>
+  public abstract async messageSendContact(receiver: Receiver, contactId: string) : Promise<void>
+  public abstract async messageSendFile(receiver: Receiver, file: FileBox)        : Promise<void>
 
   public abstract async messageRawPayload(messageId: string)     : Promise<any>
   public abstract async messageRawPayloadParser(rawPayload: any) : Promise<MessagePayload>
