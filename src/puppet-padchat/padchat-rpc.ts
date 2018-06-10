@@ -324,8 +324,11 @@ export class PadchatRpc extends EventEmitter {
    * Get WX block memory
    */
   public async WXInitialize(): Promise<WXInitializeType> {
+    log.verbose('PadchatRpc', 'WXInitialize()')
+
     const result = await this.rpcCall('WXInitialize')
     log.silly('PadchatRpc', 'WXInitialize result: %s', JSON.stringify(result))
+
     if (!result || result.status !== 0) {
       throw Error('cannot connect to WebSocket WXInitialize')
     }
@@ -384,14 +387,14 @@ export class PadchatRpc extends EventEmitter {
   /**
    * Generate 62 data
    */
-  public async WXGenerateWxDat(): Promise<WXGenerateWxDatType> {
-    const result = await this.rpcCall('WXGenerateWxDat')
+  public async WXGenerateWxDat(): Promise<string> {
+    const result: WXGenerateWxDatType = await this.rpcCall('WXGenerateWxDat')
     log.silly('PadchatRpc', 'WXGenerateWxDat result: %s', JSON.stringify(result))
     if (!result || !(result.data) || result.status !== 0) {
       throw Error('WXGenerateWxDat error! canot get result from websocket server')
     }
     // this.autoData.wxData = result.data
-    return result
+    return result.data
   }
 
   /**
@@ -406,15 +409,14 @@ export class PadchatRpc extends EventEmitter {
     return result
   }
 
-  public async WXGetLoginToken(): Promise<WXGetLoginTokenType> {
-    const result = await this.rpcCall('WXGetLoginToken')
+  public async WXGetLoginToken(): Promise<string> {
+    const result: WXGetLoginTokenType = await this.rpcCall('WXGetLoginToken')
     log.silly('PadchatRpc', 'WXGetLoginToken result: %s', JSON.stringify(result))
     if (!result || !result.token || result.status !== 0) {
       throw Error('WXGetLoginToken error! canot get result from websocket server')
     }
     // this.autoData.token = result.token
-
-    return result
+    return result.token
   }
 
   /**

@@ -217,7 +217,7 @@ export class PuppetPadchat extends Puppet {
     // this.bridge.on('ding'     , Event.onDing.bind(this))
     // this.bridge.on('error'    , e => this.emit('error', e))
     // this.bridge.on('log'      , Event.onLog.bind(this))
-    this.bridge.on('scan',    (qrCode: string, status: number, data?: string) => this.emit('scan', qrCode, status, data))
+    this.bridge.on('scan',    (qrcode: string, status: number, data?: string) => this.emit('scan', qrcode, status, data))
     this.bridge.on('login',   (userId: string)                                => this.login(userId))
     this.bridge.on('message', (rawPayload: PadchatMessagePayload)             => this.onPadchatMessage(rawPayload))
     this.bridge.on('logout',  ()                                              => this.logout())
@@ -354,7 +354,7 @@ export class PuppetPadchat extends Puppet {
     }
 
     const base64 = await this.bridge.WXGetUserQRCode(contactId, 0)
-    const qrcode = await pfHelper.imageBase64ToQrCode(base64)
+    const qrcode = await pfHelper.imageBase64ToQrcode(base64)
     return qrcode
   }
 

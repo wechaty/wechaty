@@ -164,10 +164,13 @@ export class Bridge extends PadchatRpc {
 
     await this.loadAutoData()
 
-    const restoreSucceed = await this.restoreLogin()
+    let autoLoginSucceed = false
+    if (this.autoData.token) {
+      autoLoginSucceed = await this.tryAutoLogin(this.autoData.token)
+    }
 
-    if (!restoreSucceed) {
-      this.startLogin()
+    if (!autoLoginSucceed) {
+      this.startCheckScan()
     }
 
     this.state.on(true)
@@ -202,7 +205,7 @@ export class Bridge extends PadchatRpc {
     }
     this.selfId = username
 
-    await this.stopLogin()
+    await this.stopCheckScan()
     await this.saveAutoData(this.selfId)
     await this.initCache(this.options.token, this.selfId)
 
@@ -221,11 +224,11 @@ export class Bridge extends PadchatRpc {
     this.selfId = undefined
     this.releaseCache()
 
-    this.startLogin()
+    this.startCheckScan()
   }
 
-  protected async stopLogin(): Promise<void> {
-    log.verbose('PuppetPadchatBridge', `stopLogin()`)
+  protected async stopCheckScan(): Promise<void> {
+    log.verbose('PuppetPadchatBridge', `stopCheckScan()`)
 
     if (this.loginTimer) {
       clearTimeout(this.loginTimer)
@@ -235,17 +238,17 @@ export class Bridge extends PadchatRpc {
     this.loginScanStatus = undefined
   }
 
-  protected async startLogin(): Promise<void> {
-    log.verbose('PuppetPadchatBridge', `startLogin()`)
+  protected async startCheckScan(): Promise<void> {
+    log.verbose('PuppetPadchatBridge', `startCheckScan()`)
 
     if (this.selfId) {
-      log.warn('PuppetPadchatBridge', 'startLogin() this.username exist.')
+      log.warn('PuppetPadchatBridge', 'startCheckScan() this.username exist.')
       this.login(this.selfId)
       return
     }
 
     if (this.loginTimer) {
-      log.warn('PuppetPadchatBridge', 'startLogin() this.scanTimer exist.')
+      log.warn('PuppetPadchatBridge', 'startCheckScan() this.scanTimer exist.')
       return
     }
 
@@ -324,7 +327,7 @@ export class Bridge extends PadchatRpc {
           break
 
         default:
-          log.warn('PadchatBridge', 'startLogin() unknown WXCheckQRCodeStatus: ' + result.status)
+          log.warn('PadchatBridge', 'startCheckScan() unknown WXCheckQRCodeStatus: ' + result.status)
           this.loginScanQrcode = undefined
           this.loginScanStatus = undefined
           waitUserResponse = false
@@ -337,7 +340,7 @@ export class Bridge extends PadchatRpc {
     await this.emitLoginQrcode()
     this.loginTimer = setTimeout(() => {
       this.loginTimer = undefined
-      this.startLogin()
+      this.startCheckScan()
     }, 1000)
     return
   }
@@ -346,16 +349,17 @@ export class Bridge extends PadchatRpc {
    * Offline, then relogin
    * emit qrcode or send login request to the user.
    */
-  protected async restoreLogin(): Promise<boolean> {
-    log.verbose('PuppetPadchatBridge', `initLogin()`)
+  protected async tryAutoLogin(token: string): Promise<boolean> {
+    log.verbose('PuppetPadchatBridge', `tryAutoLogin(%s)`, token)
 
-    if (!this.autoData.token) {
+    if (!token) {
+      log.warn('PuppetPadchatBridge', 'tryAutoLogin() token not found')
       return false
     }
 
-    log.silly('PuppetPadchatBridge', `initLogin() autoData.token exist for %s`,
-                                    this.autoData.nick_name || 'no nick_name',
-              )
+    // log.silly('PuppetPadchatBridge', `initLogin() autoData.token exist for %s`,
+    //                                 this.autoData.nick_name || 'no nick_name',
+    //           )
 
     /**
      * PadchatRpc WXAutoLogin result:
@@ -394,45 +398,42 @@ export class Bridge extends PadchatRpc {
       *   "user_name": "lizhuohuan"
       * }
       */
-    const autoLoginResult = await this.WXAutoLogin(this.autoData.token)
-    //  const autoLoginResult = await this.padchatRpc.WXAutoLogin(this.autoData.token)
 
+    /**
+     * 1. Auto Login data invalid, emit QrCode for scan
+     */
+    const autoLoginResult = await this.WXAutoLogin(token)
+    //  const autoLoginResult = await this.padchatRpc.WXAutoLogin(this.autoData.token)
     if (!autoLoginResult) {
-      /**
-       * 1. No Auto Login, emit QrCode for scan
-       */
       await this.emitLoginQrcode()
       return false
     }
 
+    /**
+     * 2 Auto Login Success
+     */
     if (autoLoginResult.status === 0) {
-      /**
-       * 2 Auto Login Success
-       */
       this.login(autoLoginResult.user_name)
       return true
 
-    } else {
-      /**
-       * 3. Send Login Request to User to be confirm(the same as the user had scaned the QrCode)
-       */
-      // const loginRequestResult = await this.padchatRpc.WXLoginRequest(this.autoData.token)
-      const loginRequestResult = await this.WXLoginRequest(this.autoData.token)
-
-      if (!loginRequestResult || loginRequestResult.status !== 0) {
-        /**
-         * 3.1 Login Request Not Valid, emit QrCode for scan.
-         */
-        await this.emitLoginQrcode()
-        return false
-
-      } else {
-        /**
-         * 3.2 Login Request Valid, wait user to confirm on the phone.
-         */
-        return false
-      }
     }
+
+    /**
+     * 3. Auto Login data valid, but need user to confirm.
+     *  Send Login Request to User to be confirm(the same as the user had scaned the QrCode)
+     *  with a valid Login Request, wait user to confirm on the phone.
+     */
+    const loginRequestResult = await this.WXLoginRequest(token)
+    // const loginRequestResult = await this.padchatRpc.WXLoginRequest(this.autoData.token)
+    if (loginRequestResult && loginRequestResult.status === 0) {
+      return false
+    }
+
+    /**
+     * 4 Send Login Request to user fail, emit QrCode for scan.
+     */
+    await this.emitLoginQrcode()
+    return false
   }
 
   protected async emitLoginQrcode(): Promise<void> {
@@ -453,9 +454,9 @@ export class Bridge extends PadchatRpc {
       return await this.emitLoginQrcode()
     }
 
-    const qrCodeText = await pfHelper.imageBase64ToQrCode(result.qr_code)
+    const qrcodeDecoded = await pfHelper.imageBase64ToQrcode(result.qr_code)
 
-    this.loginScanQrcode = qrCodeText
+    this.loginScanQrcode = qrcodeDecoded
     this.loginScanStatus = WXCheckQRCodeStatus.WaitScan
 
     this.emit(
@@ -463,7 +464,6 @@ export class Bridge extends PadchatRpc {
       this.loginScanQrcode,
       this.loginScanStatus,
     )
-
   }
 
   protected async saveAutoData(selfId: string): Promise<void> {
@@ -477,12 +477,12 @@ export class Bridge extends PadchatRpc {
                                           this.autoData.user_name,
                                           selfId,
                   )
-      this.autoData.wxData = (await this.WXGenerateWxDat()).data
+      this.autoData.wxData = await this.WXGenerateWxDat()
     }
 
     // Check 62 data. If has then use, or save 62 data here.
     // this.autoData.token  = (await this.padchatRpc.WXGetLoginToken()).token
-    this.autoData.token  = (await this.WXGetLoginToken()).token
+    this.autoData.token  = await this.WXGetLoginToken()
 
     if (!this.autoData.user_name || !this.autoData.wxData || !this.autoData.token) {
       throw new Error('autoData error')
@@ -505,7 +505,6 @@ export class Bridge extends PadchatRpc {
     }
 
     // Check for 62 data, if has, then use WXLoadWxDat
-    // TODO: should check this.autoData.user_name here
     if (this.autoData.wxData) {
       log.silly('PuppetPadchatBridge', `loadAutoData() load 62 data`)
       // await this.padchatRpc.WXLoadWxDat(this.autoData.wxData)
