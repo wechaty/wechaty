@@ -39,9 +39,9 @@ const MEMORY_SLOT_WECHATY_PUPPET_PADCHAT = 'WECHATY_PUPPET_PADCHAT'
 export interface PadchatMemorySlot {
   device: {
     [userId: string]: undefined | {
-      token? : string,
-      name?  : string,
-      data   : string,
+      token : string,
+      name? : string,
+      data  : string,
     },
   },
   currentUserId?: string,
@@ -198,10 +198,7 @@ export class Bridge extends PadchatRpc {
 
     this.state.off('pending')
 
-    if (this.loginTimer) {
-      clearTimeout(this.loginTimer)
-      this.loginTimer = undefined
-    }
+    this.stopCheckScan()
 
     // await this.padchatRpc.stop()
     await super.stop()
@@ -230,7 +227,7 @@ export class Bridge extends PadchatRpc {
     /**
      * Update Memory Slot
      */
-    this.memorySlot = await this.refresh62Data(
+    this.memorySlot = await this.refresh62DataForMemory(
       this.memorySlot,
       userId,
       userName,
@@ -516,40 +513,90 @@ export class Bridge extends PadchatRpc {
     )
   }
 
-  protected async refresh62Data(
+  protected async refresh62DataForMemory(
     memorySlot: PadchatMemorySlot,
     userId   : string,
     userName?: string,
   ): Promise<PadchatMemorySlot> {
-    log.verbose('PuppetPadchatBridge', `save62Data(%s, %s)`, userId, userName)
+    log.verbose('PuppetPadchatBridge', `refresh62Data(%s, %s)`, userId, userName)
 
-    // await this.padchatRpc.WXHeartBeat()
+    /**
+     * must do a HeatBeat before WXGenerateWxData()
+     */
     await this.WXHeartBeat()
 
-    const deviceCurrentUserId = memorySlot.currentUserId
-    const deviceInfoDict      = memorySlot.device
+    // const deviceCurrentUserId = memorySlot.currentUserId
+    // const deviceInfoDict      = memorySlot.device
 
-    // if (!this.autoData.wxData || this.autoData.user_name !== userId) {
-    if (deviceCurrentUserId !== userId) {
-      log.verbose('PuppetPadchatBridge', `save62Data() user switch detected: from "%s(%s)" to "%s(%s)"`,
-                                          deviceCurrentUserId && deviceInfoDict[deviceCurrentUserId]!.name,
-                                          deviceCurrentUserId,
+    /**
+     * 1. Empty memorySlot, init & return it
+     */
+    if (!memorySlot.currentUserId) {
+      log.silly('PuppetPadchatBridge', 'refresh62Data() memorySlot is empty, init & return it')
+
+      const name  = userName
+      const data  = await this.WXGenerateWxDat()
+      const token = await this.WXGetLoginToken()
+
+      memorySlot.currentUserId = userId
+      memorySlot.device[userId] = {
+        data,
+        name,
+        token,
+      }
+
+      return memorySlot
+    }
+
+    /**
+     * 2. User account not changed between this and the last login session
+     */
+    if (memorySlot.currentUserId === userId) {
+      log.silly('PuppetPadchatBridge', 'refresh62Data() userId did not change since last login, keep the data as the same')
+      return memorySlot
+    }
+
+    /**
+     * 3. Current user is a user that had used this memorySlot, use the old data for it.
+     */
+    if (userId in memorySlot.device) {
+      log.silly('PuppetPadchatBridge', 'refresh62Data() current userId has existing device info, set %s(%s) as currentUserId and use old data for it',
+                                        userId,
+                                        userName,
+                )
+      memorySlot.currentUserId = userId
+
+      memorySlot.device[userId] = {
+        ...memorySlot.device[userId]!,
+        name  : userName,
+        token : await this.WXGetLoginToken(),
+      }
+
+      return memorySlot
+    } else {
+      /**
+       * 4. New user login, generate 62data for it
+       */
+      log.verbose('PuppetPadchatBridge', `refresh62Data() user switch detected: from "%s(%s)" to "%s(%s)"`,
+                                          memorySlot.currentUserId && memorySlot.device[memorySlot.currentUserId]!.name,
+                                          memorySlot.currentUserId,
                                           userName,
                                           userId,
                   )
+
+      const name  = userName
+      const data  = await this.WXGenerateWxDat()
+      const token = await this.WXGetLoginToken()
+
       memorySlot.currentUserId = userId
-      memorySlot.device = {
-        ...memorySlot.device,
-        [userId]: {
-          data : await this.WXGenerateWxDat(),
-          name : userName,
-        },
+      memorySlot.device[userId] = {
+        data,
+        name,
+        token,
       }
+
+      return memorySlot
     }
-
-    memorySlot.device[userId]!.token = await this.WXGetLoginToken()
-
-    return memorySlot
   }
 
   protected async tryLoad62Data(): Promise<void> {
