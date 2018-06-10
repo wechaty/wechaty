@@ -145,17 +145,17 @@ export interface WebMessageRawPayload {
    * MsgType == CONF.MSGTYPE_SHARECARD" ng-click="showProfile($event,message.RecommendInfo.UserName)
    * MsgType == CONF.MSGTYPE_VERIFYMSG
    */
-  RecommendInfo?:   WebRecomendInfo,
+  RecommendInfo? : WebRecomendInfo,
 
   /**
    * Transpond Message
    */
-  MsgIdBeforeTranspond?: string,  // oldMsg.MsgIdBeforeTranspond || oldMsg.MsgId,
-  isTranspond?: boolean,
-  MMSourceMsgId?: string,
-  MMSendContent?: string,
+  MsgIdBeforeTranspond? : string,    // oldMsg.MsgIdBeforeTranspond || oldMsg.MsgId,
+  isTranspond?          : boolean,
+  MMSourceMsgId?        : string,
+  MMSendContent?        : string,
 
-  MMIsChatRoom?: boolean,
+  MMIsChatRoom? : boolean,
 
 }
 
@@ -262,13 +262,13 @@ export enum WebMessageType {
  * from Message
  */
 export interface WebRecomendInfo {
-  UserName:   string,
-  NickName:   string,  // display_name
-  Content:    string,  // request message
-  HeadImgUrl: string,  // message.RecommendInfo.HeadImgUrl
+  UserName   : string,
+  NickName   : string,   // display_name
+  Content    : string,   // request message
+  HeadImgUrl : string,   // message.RecommendInfo.HeadImgUrl
 
-  Ticket:     string,  // a pass token
-  VerifyFlag: number,
+  Ticket     : string,   // a pass token
+  VerifyFlag : number,
 }
 
 export const enum WebMediaType {

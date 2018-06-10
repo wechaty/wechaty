@@ -28,18 +28,13 @@ import {
 }               from 'file-box'
 
 import {
+  ContactPayload,
+
   MessagePayload,
   MessageType,
 
-  // ContactQueryFilter,
-  // ContactGender,
-  // ContactType,
-  ContactPayload,
-
   RoomPayload,
   RoomMemberPayload,
-  // RoomQueryFilter,
-  // RoomMemberQueryFilter,
 
   Puppet,
   PuppetOptions,
