@@ -19,7 +19,7 @@ import {
 }                             from './padchat-schemas'
 
 import {
-  AutoDataType,
+  // AutoDataType,
   WXCheckQRCodeStatus,
 }                             from './padchat-rpc.type'
 
@@ -31,9 +31,21 @@ import {
   PadchatPureFunctionHelper as pfHelper,
 }                                           from './pure-function-helper'
 
-import { log }          from '../config'
+import {
+  log,
+}           from '../config'
 
-const AUTO_DATA_SLOT = 'autoData'
+const MEMORY_SLOT_WECHATY_PUPPET_PADCHAT = 'WECHATY_PUPPET_PADCHAT'
+export interface PadchatMemorySlot {
+  device: {
+    [userId: string]: undefined | {
+      token? : string,
+      name?  : string,
+      data   : string,
+    },
+  },
+  currentUserId?: string,
+}
 
 export interface BridgeOptions {
   memory   : MemoryCard,
@@ -43,14 +55,16 @@ export interface BridgeOptions {
 
 export class Bridge extends PadchatRpc {
   // private readonly padchatRpc : PadchatRpc
-  private autoData            : AutoDataType
+  // private autoData            : AutoDataType
+  private memorySlot: PadchatMemorySlot
 
   private loginScanQrcode? : string
   private loginScanStatus? : number
 
   private loginTimer?: NodeJS.Timer
 
-  private selfId? : string
+  private selfId?   : string
+  private selfName? : string
   // private password? : string
   // private nickname? : string
 
@@ -83,7 +97,9 @@ export class Bridge extends PadchatRpc {
     super(options.endpoint, options.token)
     log.verbose('PuppetPadchatBridge', 'constructor()')
 
-    this.autoData = {}
+    this.memorySlot = {
+      device: {},
+    }
 
     // this.padchatRpc = new PadchatRpc(options.endpoint, options.token)
     this.state      = new StateSwitch('PuppetPadchatBridge')
@@ -150,6 +166,11 @@ export class Bridge extends PadchatRpc {
 
     this.state.on('pending')
 
+    this.memorySlot = {
+      ...this.memorySlot,
+      ...await this.options.memory.get<PadchatMemorySlot>(MEMORY_SLOT_WECHATY_PUPPET_PADCHAT),
+    }
+
     // await this.padchatRpc.start()
     await super.start()
 
@@ -162,14 +183,10 @@ export class Bridge extends PadchatRpc {
     // this.padchatRpc.on('logout', data => {
     // this.on('logout', () => this.logout())
 
-    await this.loadAutoData()
+    await this.tryLoad62Data()
 
-    let autoLoginSucceed = false
-    if (this.autoData.token) {
-      autoLoginSucceed = await this.tryAutoLogin(this.autoData.token)
-    }
-
-    if (!autoLoginSucceed) {
+    const succeed = await this.tryAutoLogin(this.memorySlot)
+    if (!succeed) {
       this.startCheckScan()
     }
 
@@ -197,16 +214,33 @@ export class Bridge extends PadchatRpc {
     this.state.off(true)
   }
 
-  protected async login(username: string): Promise<void> {
-    log.verbose('PuppetPadchatBridge', `login(%s)`, username)
+  protected async login(userId: string, userName?: string): Promise<void> {
+    log.verbose('PuppetPadchatBridge', `login(%s)`, userId)
 
     if (this.selfId) {
-      throw new Error('username exist')
+      throw new Error('userId exist')
     }
-    this.selfId = username
+    this.selfId = userId
+    if (userName) {
+      this.selfName  = userName
+    }
 
     await this.stopCheckScan()
-    await this.saveAutoData(this.selfId)
+
+    /**
+     * Update Memory Slot
+     */
+    this.memorySlot = await this.refresh62Data(
+      this.memorySlot,
+      userId,
+      userName,
+    )
+    await this.options.memory.set(MEMORY_SLOT_WECHATY_PUPPET_PADCHAT, this.memorySlot)
+    await this.options.memory.save()
+
+    /**
+     * Init persistence cache
+     */
     await this.initCache(this.options.token, this.selfId)
 
     this.emit('login', this.selfId)
@@ -306,10 +340,13 @@ export class Bridge extends PadchatRpc {
           // const loginResult = await this.padchatRpc.WXQRCodeLogin(result.user_name, result.password)
           const loginResult = await this.WXQRCodeLogin(result.user_name, result.password)
 
-          this.autoData.nick_name = loginResult.nick_name
-          this.autoData.user_name = loginResult.user_name
+          // this.autoData.nick_name = loginResult.nick_name
+          // this.autoData.user_name = loginResult.user_name
 
-          this.login(loginResult.user_name)
+          this.login(
+            loginResult.user_name,
+            loginResult.nick_name,
+          )
           return
 
         case WXCheckQRCodeStatus.Timeout:
@@ -349,11 +386,24 @@ export class Bridge extends PadchatRpc {
    * Offline, then relogin
    * emit qrcode or send login request to the user.
    */
-  protected async tryAutoLogin(token: string): Promise<boolean> {
-    log.verbose('PuppetPadchatBridge', `tryAutoLogin(%s)`, token)
+  protected async tryAutoLogin(memorySlot: PadchatMemorySlot): Promise<boolean> {
+    log.verbose('PuppetPadchatBridge', `tryAutoLogin(%s)`, memorySlot.currentUserId)
 
+    const currentUserId = memorySlot.currentUserId
+    if (!currentUserId) {
+      log.silly('PuppetPadchatBridge', 'tryAutoLogin() currentUserId not found in memorySlot')
+      return false
+    }
+
+    const deviceInfo = memorySlot.device[currentUserId]
+    if (!deviceInfo) {
+      log.silly('PuppetPadchatBridge', 'tryAutoLogin() deviceInfo not found for userId "%s"', currentUserId)
+      return false
+    }
+
+    const token = deviceInfo.token
     if (!token) {
-      log.warn('PuppetPadchatBridge', 'tryAutoLogin() token not found')
+      log.silly('PuppetPadchatBridge', 'tryAutoLogin() token not found for userId "%s"', currentUserId)
       return false
     }
 
@@ -466,49 +516,60 @@ export class Bridge extends PadchatRpc {
     )
   }
 
-  protected async saveAutoData(selfId: string): Promise<void> {
-    log.verbose('PuppetPadchatBridge', `loadAutoData(%s)`, selfId)
+  protected async refresh62Data(
+    memorySlot: PadchatMemorySlot,
+    userId   : string,
+    userName?: string,
+  ): Promise<PadchatMemorySlot> {
+    log.verbose('PuppetPadchatBridge', `save62Data(%s, %s)`, userId, userName)
 
     // await this.padchatRpc.WXHeartBeat()
     await this.WXHeartBeat()
 
-    if (!this.autoData.wxData || this.autoData.user_name !== selfId) {
-      log.verbose('PuppetPadchatBridge', `loadAutoData() user_name(%s) !== selfId(%s)`,
-                                          this.autoData.user_name,
-                                          selfId,
+    const deviceCurrentUserId = memorySlot.currentUserId
+    const deviceInfoDict      = memorySlot.device
+
+    // if (!this.autoData.wxData || this.autoData.user_name !== userId) {
+    if (deviceCurrentUserId !== userId) {
+      log.verbose('PuppetPadchatBridge', `save62Data() user switch detected: from "%s(%s)" to "%s(%s)"`,
+                                          deviceCurrentUserId && deviceInfoDict[deviceCurrentUserId]!.name,
+                                          deviceCurrentUserId,
+                                          userName,
+                                          userId,
                   )
-      this.autoData.wxData = await this.WXGenerateWxDat()
+      memorySlot.currentUserId = userId
+      memorySlot.device = {
+        ...memorySlot.device,
+        [userId]: {
+          data : await this.WXGenerateWxDat(),
+          name : userName,
+        },
+      }
     }
 
-    // Check 62 data. If has then use, or save 62 data here.
-    // this.autoData.token  = (await this.padchatRpc.WXGetLoginToken()).token
-    this.autoData.token  = await this.WXGetLoginToken()
+    memorySlot.device[userId]!.token = await this.WXGetLoginToken()
 
-    if (!this.autoData.user_name || !this.autoData.wxData || !this.autoData.token) {
-      throw new Error('autoData error')
-    }
-
-    /**
-     * TODO: autoData multi username support.
-     * so that we do not re-generate 62 data everytime we switch the login user.
-     * which means we could be able to reuse the old 62 data for user who use this token and logined before
-     */
-    await this.options.memory.set(AUTO_DATA_SLOT, this.autoData)
-    await this.options.memory.save()
+    return memorySlot
   }
 
-  protected async loadAutoData(): Promise<void> {
-    log.verbose('PuppetPadchatBridge', `loadAutoData()`)
+  protected async tryLoad62Data(): Promise<void> {
+    log.verbose('PuppetPadchatBridge', `tryLoad62Data()`)
 
-    this.autoData = {
-      ...await this.options.memory.get(AUTO_DATA_SLOT),
-    }
+    const deviceUserId   = this.memorySlot.currentUserId
+    const deviceInfoDict = this.memorySlot.device
 
-    // Check for 62 data, if has, then use WXLoadWxDat
-    if (this.autoData.wxData) {
-      log.silly('PuppetPadchatBridge', `loadAutoData() load 62 data`)
-      // await this.padchatRpc.WXLoadWxDat(this.autoData.wxData)
-      await this.WXLoadWxDat(this.autoData.wxData)
+    if (   deviceUserId
+        && deviceInfoDict
+        && deviceUserId in deviceInfoDict
+    ) {
+      const deviceInfo = deviceInfoDict[deviceUserId]
+      if (!deviceInfo) {
+        throw new Error('deviceInfo not found')
+      }
+      log.silly('PuppetPadchatBridge', `tryLoad62Data() 62 data found: "%s"`, deviceInfo.data)
+      await this.WXLoadWxDat(deviceInfo.data)
+    } else {
+      log.silly('PuppetPadchatBridge', `tryLoad62Data() 62 data not found`)
     }
   }
 
