@@ -75,9 +75,9 @@ bot
   log.info('Bot', `${user.name()} login`)
   bot.say('Wechaty login').catch(console.error)
 })
-.on('scan', (qrData, status, data) => {
-  QrcodeTerminal.generate(qrData, { small: true }, (asciiArt: string) => {
-    console.log(asciiArt)
+.on('scan', (qrcode, status, data) => {
+  QrcodeTerminal.generate(qrcode, { small: true }, (asciiart: string) => {
+    console.log(asciiart)
     console.log(`[${status}] Scan QR Code above url to log in: `)
     if (data) {
       console.log(data)

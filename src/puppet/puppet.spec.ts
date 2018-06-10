@@ -58,7 +58,7 @@ class PuppetTest extends Puppet {
   public async contactAvatar(contactId: string, file?: FileBox) : Promise<void | FileBox> { return {contactId, file} as any }
 
   public async contactList()                    : Promise<string[]> { return {} as any }
-  public async contactQrCode(contactId: string) : Promise<string> { return {contactId} as any }
+  public async contactQrcode(contactId: string) : Promise<string> { return {contactId} as any }
 
   public async contactRawPayload(id: string)            : Promise<any> { return {id} as any }
   public async contactRawPayloadParser(rawPayload: any) : Promise<ContactPayload> { return {rawPayload} as any }
@@ -101,7 +101,7 @@ class PuppetTest extends Puppet {
   public async roomCreate(contactIdList: string[], topic?: string) : Promise<string> { return {contactIdList, topic} as any }
   public async roomDel(roomId: string, contactId: string)          : Promise<void> { return {roomId, contactId} as any }
   public async roomQuit(roomId: string)                            : Promise<void> { return {roomId} as any }
-  public async roomQrCode(roomId: string)                          : Promise<string> { return {roomId} as any }
+  public async roomQrcode(roomId: string)                          : Promise<string> { return {roomId} as any }
 
   public async roomTopic(roomId: string)                 : Promise<string>
   public async roomTopic(roomId: string, topic: string)  : Promise<void>

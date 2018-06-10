@@ -348,7 +348,7 @@ export class PuppetPadchat extends Puppet {
     return fileBox
   }
 
-  public async contactQrCode(contactId: string): Promise<string> {
+  public async contactQrcode(contactId: string): Promise<string> {
     if (contactId !== this.selfId()) {
       throw new Error('can not set avatar for others')
     }
@@ -570,7 +570,7 @@ export class PuppetPadchat extends Puppet {
     await this.bridge.WXDeleteChatRoomMember(roomId, contactId)
   }
 
-  public async roomQrCode(roomId: string): Promise<string> {
+  public async roomQrcode(roomId: string): Promise<string> {
     log.verbose('PuppetPadchat', 'roomQrCode(%s)', roomId)
 
     // TODO

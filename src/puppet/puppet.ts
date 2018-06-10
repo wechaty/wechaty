@@ -181,7 +181,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public emit(event: 'room-join',   roomId: string, inviteeIdList: string[],  inviterId: string)        : boolean
   public emit(event: 'room-leave',  roomId: string, leaverIdList: string[], remover?: string)           : boolean
   public emit(event: 'room-topic',  roomId: string, topic: string, oldTopic: string, changerId: string) : boolean
-  public emit(event: 'scan',        qrCode: string, status: number, data?: string)                      : boolean
+  public emit(event: 'scan',        qrcode: string, status: number, data?: string)                      : boolean
   public emit(event: 'start')                                                                           : boolean
   public emit(event: 'stop')                                                                            : boolean
   // Internal Usage: watchdog
@@ -211,7 +211,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public on(event: 'room-join',   listener: (roomId: string, inviteeIdList: string[], inviterId:  string) => void)        : this
   public on(event: 'room-leave',  listener: (roomId: string, leaverIdList : string[], removerId?: string) => void)        : this
   public on(event: 'room-topic',  listener: (roomId: string, topic: string, oldTopic: string, changerId: string) => void) : this
-  public on(event: 'scan',        listener: (qrCode: string, status: number, data?: string) => void)                      : this
+  public on(event: 'scan',        listener: (qrcode: string, status: number, data?: string) => void)                      : this
   public on(event: 'start',       listener: () => void)                                                                   : this
   public on(event: 'stop',        listener: () => void)                                                                   : this
   // Internal Usage: watchdog
@@ -361,7 +361,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   public abstract async contactList()                    : Promise<string[]>
 
-  public abstract async contactQrCode(contactId: string) : Promise<string>
+  public abstract async contactQrcode(contactId: string) : Promise<string>
 
   public abstract async contactRawPayload(contactId: string)     : Promise<any>
   public abstract async contactRawPayloadParser(rawPayload: any) : Promise<ContactPayload>
@@ -634,7 +634,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async roomTopic(roomId: string, topic: string)  : Promise<void>
   public abstract async roomTopic(roomId: string, topic?: string) : Promise<string | void>
 
-  public abstract async roomQrCode(roomId: string) : Promise<string>
+  public abstract async roomQrcode(roomId: string) : Promise<string>
 
   public abstract async roomList()                     : Promise<string[]>
   public abstract async roomMemberList(roomId: string) : Promise<string[]>

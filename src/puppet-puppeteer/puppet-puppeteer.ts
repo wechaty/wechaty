@@ -775,7 +775,7 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async contactQrCode(contactId: string): Promise<string> {
+  public async contactQrcode(contactId: string): Promise<string> {
     if (contactId !== this.selfId()) {
       throw new Error('can not set avatar for others')
     }
@@ -1088,7 +1088,7 @@ export class PuppetPuppeteer extends Puppet {
     log.warn('PuppetPuppeteer', 'roomQuit(%s) not supported by Web API', roomId)
   }
 
-  public async roomQrCode(roomId: string): Promise<string> {
+  public async roomQrcode(roomId: string): Promise<string> {
     throw new Error('not support ' + roomId)
   }
 

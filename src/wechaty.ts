@@ -254,7 +254,7 @@ export class Wechaty extends Accessory implements Sayable {
   public emit(event: 'room-join'  , room: Room, inviteeList : Contact[], inviter  : Contact)       : boolean
   public emit(event: 'room-leave' , room: Room, leaverList  : Contact[], remover? : Contact)       : boolean
   public emit(event: 'room-topic' , room: Room, topic: string, oldTopic: string, changer: Contact) : boolean
-  public emit(event: 'scan'       , qrData: string, status: number, data?: string)                 : boolean
+  public emit(event: 'scan'       , qrcode: string, status: number, data?: string)                 : boolean
   public emit(event: 'start')                                                                      : boolean
   public emit(event: 'stop')                                                                       : boolean
 
@@ -277,7 +277,7 @@ export class Wechaty extends Accessory implements Sayable {
   public on(event: 'room-join'  , listener: string | ((this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void))         : this
   public on(event: 'room-leave' , listener: string | ((this: Wechaty, room: Room, leaverList: Contact[], remover?: Contact) => void))          : this
   public on(event: 'room-topic' , listener: string | ((this: Wechaty, room: Room, topic: string, oldTopic: string, changer: Contact) => void)) : this
-  public on(event: 'scan'       , listener: string | ((this: Wechaty, qrData: string, status: number, data?: string) => void))                 : this
+  public on(event: 'scan'       , listener: string | ((this: Wechaty, qrcode: string, status: number, data?: string) => void))                 : this
   public on(event: 'start'      , listener: string | ((this: Wechaty) => void))                                                                : this
   public on(event: 'stop'       , listener: string | ((this: Wechaty) => void))                                                                : this
 
@@ -643,8 +643,8 @@ export class Wechaty extends Accessory implements Sayable {
 
         case 'scan':
           puppet.removeAllListeners('scan')
-          puppet.on('scan', async (qrCode, statusCode, data) => {
-            this.emit('scan', qrCode, statusCode, data)
+          puppet.on('scan', async (qrcode, status, data) => {
+            this.emit('scan', qrcode, status, data)
           })
           break
 

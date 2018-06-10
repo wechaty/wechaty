@@ -637,7 +637,7 @@ export class ContactSelf extends Contact {
       throw new Error('only can get qrcode for the login userself')
     }
 
-    return await this.puppet.contactQrCode(this.id)
+    return await this.puppet.contactQrcode(this.id)
   }
 
 }

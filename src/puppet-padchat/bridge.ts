@@ -45,7 +45,7 @@ export class Bridge extends PadchatRpc {
   // private readonly padchatRpc : PadchatRpc
   private autoData            : AutoDataType
 
-  private loginScanQrCode? : string
+  private loginScanQrcode? : string
   private loginScanStatus? : number
 
   private loginTimer?: NodeJS.Timer
@@ -189,7 +189,7 @@ export class Bridge extends PadchatRpc {
     this.releaseCache()
 
     this.selfId          = undefined
-    this.loginScanQrCode = undefined
+    this.loginScanQrcode = undefined
 
     this.state.off(true)
   }
@@ -231,7 +231,7 @@ export class Bridge extends PadchatRpc {
       clearTimeout(this.loginTimer)
       this.loginTimer = undefined
     }
-    this.loginScanQrCode = undefined
+    this.loginScanQrcode = undefined
     this.loginScanStatus = undefined
   }
 
@@ -257,11 +257,11 @@ export class Bridge extends PadchatRpc {
       // const result = await this.padchatRpc.WXCheckQRCode()
       const result = await this.WXCheckQRCode()
 
-      if (this.loginScanStatus !== result.status && this.loginScanQrCode) {
+      if (this.loginScanStatus !== result.status && this.loginScanQrcode) {
         this.loginScanStatus = result.status
         this.emit(
           'scan',
-          this.loginScanQrCode,
+          this.loginScanQrcode,
           this.loginScanStatus,
         )
       }
@@ -269,7 +269,7 @@ export class Bridge extends PadchatRpc {
       if (result.expired_time && result.expired_time < 10) {
         // result.expire_time is second
         // emit new qrcode before the old one expired
-        this.loginScanQrCode = undefined
+        this.loginScanQrcode = undefined
         this.loginScanStatus = undefined
         waitUserResponse = false
         continue
@@ -311,21 +311,21 @@ export class Bridge extends PadchatRpc {
 
         case WXCheckQRCodeStatus.Timeout:
           log.silly('PuppetPadchatBridge', 'checkQrcode: Timeout')
-          this.loginScanQrCode = undefined
+          this.loginScanQrcode = undefined
           this.loginScanStatus = undefined
           waitUserResponse = false
           break
 
         case WXCheckQRCodeStatus.Cancel:
           log.silly('PuppetPadchatBridge', 'user cancel')
-          this.loginScanQrCode = undefined
+          this.loginScanQrcode = undefined
           this.loginScanStatus = undefined
           waitUserResponse = false
           break
 
         default:
           log.warn('PadchatBridge', 'startLogin() unknown WXCheckQRCodeStatus: ' + result.status)
-          this.loginScanQrCode = undefined
+          this.loginScanQrcode = undefined
           this.loginScanStatus = undefined
           waitUserResponse = false
           break
@@ -334,7 +334,7 @@ export class Bridge extends PadchatRpc {
       await new Promise(r => setTimeout(r, 1000))
     }
 
-    await this.emitLoginQrCode()
+    await this.emitLoginQrcode()
     this.loginTimer = setTimeout(() => {
       this.loginTimer = undefined
       this.startLogin()
@@ -401,7 +401,7 @@ export class Bridge extends PadchatRpc {
       /**
        * 1. No Auto Login, emit QrCode for scan
        */
-      await this.emitLoginQrCode()
+      await this.emitLoginQrcode()
       return false
     }
 
@@ -423,7 +423,7 @@ export class Bridge extends PadchatRpc {
         /**
          * 3.1 Login Request Not Valid, emit QrCode for scan.
          */
-        await this.emitLoginQrCode()
+        await this.emitLoginQrcode()
         return false
 
       } else {
@@ -435,10 +435,10 @@ export class Bridge extends PadchatRpc {
     }
   }
 
-  protected async emitLoginQrCode(): Promise<void> {
+  protected async emitLoginQrcode(): Promise<void> {
     log.verbose('PuppetPadchatBridge', `emitLoginQrCode()`)
 
-    if (this.loginScanQrCode) {
+    if (this.loginScanQrcode) {
       throw new Error('qrcode exist')
     }
 
@@ -450,17 +450,17 @@ export class Bridge extends PadchatRpc {
       await this.WXInitialize()
       // wait 1 second and try again
       await new Promise(r => setTimeout(r, 1000))
-      return await this.emitLoginQrCode()
+      return await this.emitLoginQrcode()
     }
 
     const qrCodeText = await pfHelper.imageBase64ToQrCode(result.qr_code)
 
-    this.loginScanQrCode = qrCodeText
+    this.loginScanQrcode = qrCodeText
     this.loginScanStatus = WXCheckQRCodeStatus.WaitScan
 
     this.emit(
       'scan',
-      this.loginScanQrCode,
+      this.loginScanQrcode,
       this.loginScanStatus,
     )
 
