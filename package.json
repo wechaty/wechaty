@@ -118,7 +118,7 @@
     "request": "^2.87.0",
     "rx-queue": "^0.4.19",
     "rxjs": "^6.1.0",
-    "state-switch": "^0.4.5",
+    "state-switch": "^0.4.6",
     "watchdog": "^0.8.1",
     "wechat4u": "^0.7.6",
     "ws": "^5.2.0",

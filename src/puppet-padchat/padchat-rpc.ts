@@ -7,6 +7,11 @@ import Peer, {
   parse,
 }           from 'json-rpc-peer'
 
+import {
+  ThrottleQueue,
+  DebounceQueue,
+}                 from 'rx-queue'
+
 // , {
   // JsonRpcPayload,
   // JsonRpcPayloadRequest,
@@ -63,9 +68,15 @@ import {
 
 import { log }          from '../config'
 
+let HEART_BEAT_COUNTER = 0
+
 export class PadchatRpc extends EventEmitter {
   private socket?          : WebSocket
   private readonly jsonRpc : any // Peer
+
+  private readonly throttleQueue: ThrottleQueue<string>
+  private readonly debounceQueue: DebounceQueue<string>
+  private readonly logoutThrottleQueue: ThrottleQueue<string>
 
   constructor(
     protected endpoint : string,
@@ -75,6 +86,22 @@ export class PadchatRpc extends EventEmitter {
     log.verbose('PadchatRpc', 'constructor(%s, %s)', endpoint, token)
 
     this.jsonRpc = new Peer()
+
+    /**
+     * Throttle for 10 seconds
+     */
+    this.throttleQueue = new ThrottleQueue<string>(1000 * 10)
+    /**
+     * Debounce for 20 seconds
+     */
+    this.debounceQueue = new DebounceQueue<string>(1000 * 10 * 2)
+
+    /**
+     * Throttle for 5 seconds for the `logout` event:
+     *  we should only fire once for logout,
+     *  but the server will send many events of 'logout'
+     */
+    this.logoutThrottleQueue = new ThrottleQueue<string>(1000 * 5)
   }
 
   public async start(): Promise<void> {
@@ -85,6 +112,12 @@ export class PadchatRpc extends EventEmitter {
 
     await this.init()
     await this.WXInitialize()
+
+    await this.initHearteat()
+
+    this.logoutThrottleQueue.subscribe(msg => {
+      this.destroy(msg)
+    })
   }
 
   protected async initJsonRpc(): Promise<void> {
@@ -144,6 +177,7 @@ export class PadchatRpc extends EventEmitter {
     this.socket = ws
 
     ws.on('message', (data: string) => {
+
       // log.silly('PadchatRpc', 'initWebSocket() ws.on(message)')
       try {
         const payload: PadchatPayload = JSON.parse(data)
@@ -156,14 +190,75 @@ export class PadchatRpc extends EventEmitter {
 
     ws.on('error', err => this.emit('error', err))
 
-    // TODO: add reconnect logic here when disconnected, or throw Error
-
     await new Promise((resolve, reject) => {
       ws.once('open', resolve)
 
       ws.once('error', reject)
       ws.once('close', reject)
     })
+
+    /**
+     * emit reset to broadcast that it need to be reseted
+     * when the websocket is closed
+     */
+    ws.on('close', e => {
+      log.warn('PadchatRpc', 'initWebSocket() ws.on(close) %s', e)
+      this.logoutThrottleQueue.next('ws.on(close, ' + e)
+    })
+
+    /**
+     * use websocket message as heartbeat source
+     */
+    ws.on('message', () => {
+      this.throttleQueue.next('ws.on(message)')
+      this.debounceQueue.next('ws.on(message)')
+    })
+    ws.on('pong', data => {
+      this.throttleQueue.next(data.toString())
+      this.debounceQueue.next(data.toString())
+    })
+
+  }
+
+  private initHearteat(): void {
+    log.verbose('PadchatRpc', 'initHeartbeat()')
+
+    this.throttleQueue.subscribe(e => {
+      /**
+       * This block will only be run once in a period,
+       *  no matter than how many message the queue received.
+       */
+      log.silly('PadchatRpc', 'initHeartbeat() throttleQueue.subscribe(%s)', e)
+      this.emit('heartbeat', e)
+    })
+
+    this.debounceQueue.subscribe(e => {
+      /**
+       * This block will be run when:
+       *  the queue did not receive any message after a period.
+       */
+      log.silly('PadchatRpc', 'initHeartbeat() debounceQueue.subscribe(%s)', e)
+      if (!this.socket) {
+        throw new Error('no socket')
+      }
+      // expect the server will response a 'pong' message
+      this.socket.ping(`#${HEART_BEAT_COUNTER++} from debounceQueue`)
+    })
+
+  }
+
+  private async destroy(reason = 'unknown reason'): Promise<void> {
+    log.verbose('PadchatRpc', 'destroy(%s)', reason)
+
+    this.emit('destroy', reason)
+
+    try {
+      this.stop()
+    } catch (e) {
+      // fall safe
+    }
+
+    this.removeAllListeners()
   }
 
   public stop(): void {
@@ -174,7 +269,9 @@ export class PadchatRpc extends EventEmitter {
     }
 
     this.jsonRpc.removeAllListeners()
-    this.jsonRpc.end()
+
+    // TODO: use huan's version of JsonRpcPeer, to support end at here.
+    // this.jsonRpc.end()
 
     this.socket.removeAllListeners()
     this.socket.close()
@@ -196,7 +293,7 @@ export class PadchatRpc extends EventEmitter {
     //             )
 
     // XXX
-    console.log('server payload:', payload)
+    // console.log('server payload:', payload)
 
     if (payload.type === PadchatPayloadType.Logout) {
       // {"type":-1,"msg":"掉线了"}
@@ -205,7 +302,7 @@ export class PadchatRpc extends EventEmitter {
                                 payload.type,
                                 JSON.stringify(payload),
                   )
-      this.emit('padchat-logout', payload.msg)
+      this.logoutThrottleQueue.next(payload.msg || 'onSocket(logout)')
       return
     }
 
@@ -213,6 +310,11 @@ export class PadchatRpc extends EventEmitter {
       /**
        * Discard message that have neither msgId(Padchat API Call) nor data(Tencent Message)
        */
+      if (Object.keys(payload).length === 4) {
+        // {"apiName":"","data":"","msgId":"","userId":"padchat-token-zixia"}
+        // just return for this message
+        return
+      }
       log.silly('PadchatRpc', 'onSocket() discard payload without `msgId` and `data` for: %s', JSON.stringify(payload))
       return
     }
@@ -239,10 +341,7 @@ export class PadchatRpc extends EventEmitter {
       //   "userId": "test"
       // }
 
-      // https://stackoverflow.com/a/24417399/1123955
-      const data = payload.data.replace(/\+/g, '%20')
-
-      const tencentPayloadList: PadchatMessagePayload[] = JSON.parse(decodeURIComponent(data))
+      const tencentPayloadList: PadchatMessagePayload[] = pfHelper.padchatDecode(payload.data)
 
       if (!Array.isArray(tencentPayloadList)) {
         throw new Error('not array')
@@ -268,10 +367,7 @@ export class PadchatRpc extends EventEmitter {
     let result: any
 
     if (padchatPayload.data) {
-      // https://stackoverflow.com/a/24417399/1123955
-      const data = padchatPayload.data.replace(/\+/g, '%20')
-
-      result = JSON.parse(decodeURIComponent(data))
+      result = pfHelper.padchatDecode(padchatPayload.data)
     } else {
       log.silly('PadchatRpc', 'onServerMessagePadchat() discard empty payload.data for apiName: %s', padchatPayload.apiName)
       result = {}
@@ -491,7 +587,7 @@ export class PadchatRpc extends EventEmitter {
     log.silly('PadchatRpc', 'WXGetContact(%s) result: %s', id, JSON.stringify(result))
 
     if (!result.user_name) {
-      log.warn('PadchatRpc', 'WXGetContact cannot get user_name, id: %s', id)
+      log.warn('PadchatRpc', 'WXGetContact cannot get user_name, id: %s, "%s"', id, JSON.stringify(result))
     }
     return result
   }
@@ -519,10 +615,7 @@ export class PadchatRpc extends EventEmitter {
     const result = await this.WXGetContact(id)
 
     if (result.member) {
-      // https://stackoverflow.com/a/24417399/1123955
-      const data = result.member.replace(/\+/g, '%20')
-
-      result.member = JSON.parse(decodeURIComponent(data))
+      result.member = pfHelper.padchatDecode(result.member)
     }
 
     return result
@@ -539,45 +632,20 @@ export class PadchatRpc extends EventEmitter {
     }
 
     log.silly('PadchatRpc', 'WXGetChatRoomMember() result: %s', JSON.stringify(result).substr(0, 500))
-    // console.log(result)
 
     // 00:40:44 SILL PadchatRpc WXGetChatRoomMember() result: {"chatroom_id":0,"count":0,"member":"null\n","message":"","status":0,"user_name":""}
-    if (!result.user_name || !result.member) {
-      /**
-       * { chatroom_id: 0,
-       *  count: 0,
-       *  member: 'null\n',
-       *  message: '',
-       *  status: 0,
-       *  user_name: '' }
-       */
-      // console.error(result)
-      // throw new Error('WXGetChatRoomMember cannot get user_name or member!')
-      log.warn('PadchatRpc', 'WXGetChatRoomMember(%s) cannot get user_name or member!', roomId)
-      const emptyResult: PadchatRoomMemberListPayload = {
-        chatroom_id : 0,
-        count       : 0,
-        member      : [],
-        message     : '',
-        status      : 0,
-        user_name   : '',
-      }
-      return emptyResult
-    }
 
     try {
       // tslint:disable-next-line:max-line-length
       // change '[{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/DpS0ZssJ5s8tEpSr9JuPTRxEUrCK0USrZcR3PjOMfUKDwpnZLxWXlD4Q38bJpcXBtwXWwevsul1lJqwsQzwItQ/0","chatroom_nick_name":"","invited_by":"wxid_7708837087612","nick_name":"李佳芮","small_head":"http://wx.qlogo.cn/mmhead/ver_1/DpS0ZssJ5s8tEpSr9JuPTRxEUrCK0USrZcR3PjOMfUKDwpnZLxWXlD4Q38bJpcXBtwXWwevsul1lJqwsQzwItQ/132","user_name":"qq512436430"},{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/kcBj3gSibfFd2I9vQ8PBFyQ77cpPIfqkFlpTdkFZzBicMT6P567yj9IO6xG68WsibhqdPuG82tjXsveFATSDiaXRjw/0","chatroom_nick_name":"","invited_by":"wxid_7708837087612","nick_name":"梦君君","small_head":"http://wx.qlogo.cn/mmhead/ver_1/kcBj3gSibfFd2I9vQ8PBFyQ77cpPIfqkFlpTdkFZzBicMT6P567yj9IO6xG68WsibhqdPuG82tjXsveFATSDiaXRjw/132","user_name":"mengjunjun001"},{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/3CsKibSktDV05eReoAicV0P8yfmuHSowfXAMvRuU7HEy8wMcQ2eibcaO1ccS95PskZchEWqZibeiap6Gpb9zqJB1WmNc6EdD6nzQiblSx7dC1eGtA/0","chatroom_nick_name":"","invited_by":"wxid_7708837087612","nick_name":"苏轼","small_head":"http://wx.qlogo.cn/mmhead/ver_1/3CsKibSktDV05eReoAicV0P8yfmuHSowfXAMvRuU7HEy8wMcQ2eibcaO1ccS95PskZchEWqZibeiap6Gpb9zqJB1WmNc6EdD6nzQiblSx7dC1eGtA/132","user_name":"wxid_zj2cahpwzgie12"},{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/piaHuicak41b6ibmcEVxoWKnnhgGDG5EbaD0hibwkrRvKeDs3gs7XQrkym3Q5MlUeSKY8vw2FRVVstialggUxf2zic2O8CvaEsicSJcghf41nibA940/0","chatroom_nick_name":"","invited_by":"wxid_zj2cahpwzgie12","nick_name":"王宁","small_head":"http://wx.qlogo.cn/mmhead/ver_1/piaHuicak41b6ibmcEVxoWKnnhgGDG5EbaD0hibwkrRvKeDs3gs7XQrkym3Q5MlUeSKY8vw2FRVVstialggUxf2zic2O8CvaEsicSJcghf41nibA940/132","user_name":"wxid_7708837087612"}]'
       // to Array (PadchatRoomRawMember[])
 
-      // https://stackoverflow.com/a/24417399/1123955
-      const data          = result.member && result.member.data && result.member.data.replace(/\+/g, '%20') || null
-      const tryMemberList = JSON.parse(decodeURIComponent(data)) as PadchatRoomMemberPayload[]
+      const tryMemberList: null | PadchatRoomMemberPayload[] = pfHelper.padchatDecode(result.member)
 
       if (Array.isArray(tryMemberList)) {
         result.member = tryMemberList
-      } else {
-        log.warn('PadchatRpc', 'WXGetChatRoomMember(%s) member is not array: %s', roomId, JSON.stringify(result.member))
+      } else if (tryMemberList !== null) {
+        log.warn('PadchatRpc', 'WXGetChatRoomMember(%s) member is neither array nor null: %s', roomId, JSON.stringify(result.member))
         // throw Error('faild to parse chatroom member!')
         result.member = []
       }

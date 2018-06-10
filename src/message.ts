@@ -726,6 +726,16 @@ export class Message extends Accessory implements Sayable {
       throw e
     }
   }
+
+  public date(): Date {
+    if (!this.payload) {
+      throw new Error('no payload')
+    }
+
+    // convert the unit timestamp to milliseconds
+    // (from seconds to milliseconds)
+    return new Date(1000 * this.payload.timestamp)
+  }
 }
 
 export default Message

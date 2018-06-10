@@ -18,7 +18,7 @@ function padchatToken() {
       Learn more about it at: https://github.com/Chatie/wechaty/issues/1296
 
     `)
-    throw new Error('set WECHATY_PUPPET_PADCHAT_TOKEN and try again')
+    throw new Error('You need a valid WECHATY_PUPPET_PADCHAT_TOKEN to use PuppetPadchat')
   }
   return token
 }

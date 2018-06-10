@@ -16,7 +16,7 @@ export interface MessagePayloadBase {
   filename? : string,
   fromId    : string,
   text?     : string,
-  timestamp : number,   // milliseconds
+  timestamp : number,   // unit timestamp, in seconds
 }
 
 export interface MessagePayloadRoom {

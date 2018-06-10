@@ -443,14 +443,14 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   }
 
   public contactPayloadCache(contactId: string): undefined | ContactPayload {
-    log.silly('Puppet', 'contactPayloadCache(id=%s) @ %s', contactId, this)
+    // log.silly('Puppet', 'contactPayloadCache(id=%s) @ %s', contactId, this)
     if (!contactId) {
       throw new Error('no id')
     }
     const cachedPayload = this.cacheContactPayload.get(contactId)
 
     if (cachedPayload) {
-      log.silly('Puppet', 'contactPayload(%s) cache HIT', contactId)
+      // log.silly('Puppet', 'contactPayload(%s) cache HIT', contactId)
     } else {
       log.silly('Puppet', 'contactPayload(%s) cache MISS', contactId)
     }
@@ -462,7 +462,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     contactId: string,
     noCache = false,
   ): Promise<ContactPayload> {
-    log.silly('Puppet', 'contactPayload(id=%s, noCache=%s) @ %s', contactId, noCache, this)
+    // log.silly('Puppet', 'contactPayload(id=%s, noCache=%s) @ %s', contactId, noCache, this)
 
     if (!contactId) {
       throw new Error('no id')

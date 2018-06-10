@@ -554,8 +554,7 @@ export class Contact extends Accessory implements Sayable {
 
     try {
       await this.puppet.contactPayload(this.id, noCache)
-      log.silly('Contact', `ready() this.puppet.contactPayload(%s) resolved`, this)
-      // console.log(this.payload)
+      // log.silly('Contact', `ready() this.puppet.contactPayload(%s) resolved`, this)
 
     } catch (e) {
       log.error('Contact', `ready() this.puppet.contactPayload(%s) exception: %s`,

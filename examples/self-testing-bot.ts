@@ -86,7 +86,13 @@ bot
 })
 .on('message', async msg => {
   if (msg.type() !== bot.Message.Type.Text) {
-    log.info('Bot', 'on(message) skip non-text message ' + msg)
+    log.info('Bot', 'on(message) skip non-text message: %s', msg)
+    return
+  }
+
+  const msgAge = Date.now() - msg.date().getTime()
+  if (msgAge > 1000 * 60) {
+    log.info('Bot', 'on(message) skip message older than 60 seconds: %s', msg)
     return
   }
 

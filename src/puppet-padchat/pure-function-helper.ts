@@ -2,6 +2,9 @@
  *
  * Pure Function Helpers
  *
+ * Huan LI <zixia@zixia.net> https://github.com/zixia
+ * License: Apache 2.0
+ *
  * See: What's Pure Function Programming
  *  [Functional Programming Concepts: Pure Functions](https://hackernoon.com/functional-programming-concepts-pure-functions-cafa2983f757)
  *  [What Are Pure Functions And Why Use Them?](https://medium.com/@jamesjefferyuk/javascript-what-are-pure-functions-4d4d5392d49c)
@@ -181,7 +184,7 @@ export class PadchatPureFunctionHelper {
 
     const payloadBase = {
       id        : rawPayload.msg_id,
-      timestamp : Date.now(),
+      timestamp : rawPayload.timestamp,  // Padchat message timestamp is seconds
       fromId    : rawPayload.from_user,
       text      : rawPayload.content,
       // toId      : rawPayload.to_user,
@@ -359,6 +362,21 @@ export class PadchatPureFunctionHelper {
     } catch (e) {
       throw new Error('no qrcode in image: ' + e.message)
     }
+  }
+
+  // https://stackoverflow.com/a/24417399/1123955
+  public static padchatDecode<T = Object>(encodedText: string): T {
+    if (!encodedText) {
+      throw new Error('no encodedText')
+    }
+
+    let decodedText: string
+
+    decodedText = encodedText.replace(/\+/g, '%20')
+    decodedText = decodeURIComponent(decodedText)
+
+    const decodedObject: T = JSON.parse(decodedText)
+    return decodedObject
   }
 }
 

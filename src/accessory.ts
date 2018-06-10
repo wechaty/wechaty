@@ -43,9 +43,9 @@ export abstract class Accessory extends EventEmitter {
   }
 
   public static get puppet(): Puppet {
-    log.silly('Accessory', '<%s> static get puppet()',
-                                  this.name,
-              )
+    // log.silly('Accessory', '<%s> static get puppet()',
+    //                               this.name,
+    //           )
 
     if (this._puppet) {
       return this._puppet
@@ -68,9 +68,9 @@ export abstract class Accessory extends EventEmitter {
   }
 
   public static get wechaty(): Wechaty {
-    log.silly('Accessory', '<%s> static get wechaty()',
-                                  this.name,
-              )
+    // log.silly('Accessory', '<%s> static get wechaty()',
+    //                               this.name,
+    //           )
 
     if (this._wechaty) {
       return this._wechaty
@@ -112,10 +112,10 @@ export abstract class Accessory extends EventEmitter {
    *
    */
   public get puppet(): Puppet {
-    log.silly('Accessory', '#%d<%s> get puppet()',
-                                  this[SYMBOL_COUNTER],
-                                  this[SYMBOL_NAME] || this,
-              )
+    // log.silly('Accessory', '#%d<%s> get puppet()',
+    //                               this[SYMBOL_COUNTER],
+    //                               this[SYMBOL_NAME] || this,
+    //           )
 
     if (this._puppet) {
       return this._puppet
@@ -129,17 +129,6 @@ export abstract class Accessory extends EventEmitter {
     return instanceToClass(this, Accessory).puppet
   }
 
-  // public set wechaty(wechaty: Wechaty) {
-  //   log.silly('Accessory', '<%s> set wechaty = %s',
-  //                                 this[SYMBOL_NAME] || this,
-  //                                 wechaty,
-  //             )
-  //   if (this._wechaty) {
-  //     throw new Error('set twice')
-  //   }
-  //   this._wechaty = wechaty
-  // }
-
   /**
    * instance.wechaty is for:
    *  Contact.wechaty
@@ -150,14 +139,11 @@ export abstract class Accessory extends EventEmitter {
    * So it only need one `wechaty` for all the instances
    */
   public get wechaty(): Wechaty {
-    log.silly('Accessory', '#%d<%s> get wechaty()',
-                                  this[SYMBOL_COUNTER],
-                                  this[SYMBOL_NAME] || this,
-              )
+    // log.silly('Accessory', '#%d<%s> get wechaty()',
+    //                               this[SYMBOL_COUNTER],
+    //                               this[SYMBOL_NAME] || this,
+    //           )
 
-    // if (this._wechaty) {
-    //   return this._wechaty
-    // }
     /**
      * Get `wechaty` from Class Static puppet property
      * note: use `instanceToClass` at here is because
