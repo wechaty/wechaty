@@ -327,6 +327,8 @@ export class PadchatPureFunctionHelper {
   }
 
   public static async imageBase64ToQrcode(base64: string): Promise<string> {
+    // console.log('base64: ', typeof base64, String(base64).substr(0, 500))
+
     const imageBuffer = Buffer.from(base64, 'base64')
 
     const future = new Promise<string>((resolve, reject) => {

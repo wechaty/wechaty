@@ -53,7 +53,7 @@ import {
 }                   from '../config'
 
 import {
-  WECHATY_PUPPET_PADCHAT_TOKEN,
+  padchatToken,
   WECHATY_PUPPET_PADCHAT_ENDPOINT,
 }                                   from './config'
 
@@ -113,7 +113,7 @@ export class PuppetPadchat extends Puppet {
 
     this.bridge = new Bridge({
       memory   : this.options.memory,
-      token    : WECHATY_PUPPET_PADCHAT_TOKEN,
+      token    : padchatToken(),
       endpoint : WECHATY_PUPPET_PADCHAT_ENDPOINT,
     })
   }

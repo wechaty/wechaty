@@ -64,7 +64,7 @@ export class Bridge extends PadchatRpc {
   private loginTimer?: NodeJS.Timer
 
   private selfId?   : string
-  private selfName? : string
+  // private selfName? : string
   // private password? : string
   // private nickname? : string
 
@@ -139,7 +139,16 @@ export class Bridge extends PadchatRpc {
     this.cacheRoomRawPayload       = new FlashStoreSync(path.join(baseDir, 'room-raw-payload'))
     this.cacheRoomMemberRawPayload = new FlashStoreSync(path.join(baseDir, 'room-member-raw-payload'))
 
-    log.silly('PuppetPadchatBridge', 'initCache() workdir="%s"', baseDir)
+    await this.cacheContactRawPayload.ready()
+    await this.cacheRoomRawPayload.ready()
+    await this.cacheRoomMemberRawPayload.ready()
+
+    log.verbose('PuppetPadchatBridge', 'initCache() inited %d Contacts, %d Rooms, %d RoomMembers, cachedir="%s"',
+                                      this.cacheContactRawPayload.size,
+                                      this.cacheRoomRawPayload.size,
+                                      this.cacheRoomMemberRawPayload.size,
+                                      baseDir,
+              )
   }
 
   private releaseCache(): void {
@@ -173,6 +182,17 @@ export class Bridge extends PadchatRpc {
 
     // await this.padchatRpc.start()
     await super.start()
+
+    this.on('padchat-logout', () => {
+      if (this.selfId) {
+        this.emit('logout')
+      } else {
+        /**
+         * PadchatRpc will receive 'logout' message multiple times when the server is logouted.
+         */
+        log.warn('PuppetPadchatBridge', 'start() on(padchat-logout) received but selfId is undefined')
+      }
+    })
 
     // this.padchatRpc.on('message', messageRawPayload => {
     //   log.silly('PuppetPadchatBridge', 'start() padchatRpc.on(message)')
@@ -218,9 +238,9 @@ export class Bridge extends PadchatRpc {
       throw new Error('userId exist')
     }
     this.selfId = userId
-    if (userName) {
-      this.selfName  = userName
-    }
+    // if (userName) {
+    //   this.selfName  = userName
+    // }
 
     await this.stopCheckScan()
 
@@ -492,7 +512,7 @@ export class Bridge extends PadchatRpc {
 
     // const result = await this.padchatRpc.WXGetQRCode()
     const result = await this.WXGetQRCode()
-    if (!result) {
+    if (!result || !result.qr_code) {
       log.verbose('PuppetPadchatBridge', `emitLoginQrCode() result not found. Call WXInitialize() and try again ...`)
       // await this.padchatRpc.WXInitialize()
       await this.WXInitialize()

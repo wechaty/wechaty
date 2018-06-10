@@ -205,7 +205,7 @@ export class PadchatRpc extends EventEmitter {
                                 payload.type,
                                 JSON.stringify(payload),
                   )
-      this.emit('logout', payload.msg)
+      this.emit('padchat-logout', payload.msg)
       return
     }
 
@@ -259,11 +259,11 @@ export class PadchatRpc extends EventEmitter {
     //             )
     // log.silly('PadchatRpc', 'onSocketPadchat(%s)', JSON.stringify(padchatPayload).substr(0, 500))
 
-    if (padchatPayload.type === PadchatPayloadType.Logout) {
-      // this.emit('logout', this.selfId())
-      console.log('onSocketPadchat: ', JSON.stringify(padchatPayload))
-      this.emit('logout')
-    }
+    // if (padchatPayload.type === PadchatPayloadType.Logout) {
+    //   // this.emit('logout', this.selfId())
+    //   console.log('onSocketPadchat: ', JSON.stringify(padchatPayload))
+    //   this.emit('logout')
+    // }
 
     let result: any
 
