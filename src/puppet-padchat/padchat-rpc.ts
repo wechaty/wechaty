@@ -311,7 +311,7 @@ export class PadchatRpc extends EventEmitter {
   /**
    * Init with WebSocket Server
    */
-  public async init(): Promise<InitType> {
+  protected async init(): Promise<InitType> {
     const result: InitType = await this.rpcCall('init')
     log.silly('PadchatRpc', 'init result: %s', JSON.stringify(result))
     if (!result || result.status !== 0) {
@@ -323,7 +323,7 @@ export class PadchatRpc extends EventEmitter {
   /**
    * Get WX block memory
    */
-  public async WXInitialize(): Promise<WXInitializeType> {
+  protected async WXInitialize(): Promise<WXInitializeType> {
     log.verbose('PadchatRpc', 'WXInitialize()')
 
     const result = await this.rpcCall('WXInitialize')
@@ -335,7 +335,7 @@ export class PadchatRpc extends EventEmitter {
     return result
   }
 
-  public async WXGetQRCode(): Promise<WXGetQRCodeType> {
+  protected async WXGetQRCode(): Promise<WXGetQRCodeType> {
     const result = await this.rpcCall('WXGetQRCode')
     // if (!result || !(result.qr_code)) {
     //   result = await this.WXGetQRCodeTwice()
@@ -386,6 +386,9 @@ export class PadchatRpc extends EventEmitter {
 
   /**
    * Generate 62 data
+   *
+   * 1. Call multiple times in the same session, will return the same data
+   * 2. Call multiple times between sessions with the same token, will return the same data
    */
   public async WXGenerateWxDat(): Promise<string> {
     const result: WXGenerateWxDatType = await this.rpcCall('WXGenerateWxDat')

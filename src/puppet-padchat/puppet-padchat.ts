@@ -101,7 +101,7 @@ export class PuppetPadchat extends Puppet {
       max: 1000,
       // length: function (n) { return n * 2},
       dispose: function (key: string, val: any) {
-        log.silly('Puppet', 'constructor() lruOptions.dispose(%s, %s)', key, JSON.stringify(val))
+        log.silly('PuppetPadchat', 'constructor() lruOptions.dispose(%s, %s)', key, JSON.stringify(val))
       },
       maxAge: 1000 * 60 * 60,
     }
@@ -113,8 +113,8 @@ export class PuppetPadchat extends Puppet {
 
     this.bridge = new Bridge({
       memory   : this.options.memory,
-      token   : WECHATY_PUPPET_PADCHAT_TOKEN,
-      endpoint: WECHATY_PUPPET_PADCHAT_ENDPOINT,
+      token    : WECHATY_PUPPET_PADCHAT_TOKEN,
+      endpoint : WECHATY_PUPPET_PADCHAT_ENDPOINT,
     })
   }
 
