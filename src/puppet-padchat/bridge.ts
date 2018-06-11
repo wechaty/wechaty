@@ -93,9 +93,9 @@ export class Bridge extends PadchatRpc {
 
     /**
      * Executer Queue: execute one task at a time,
-     *  delay between them for 3 second
+     *  delay between them for 15 second
      */
-    this.delayQueueExecutor = new DelayQueueExector(1000 * 3)
+    this.delayQueueExecutor = new DelayQueueExector(1000 * 15)
 
   }
 
