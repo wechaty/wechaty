@@ -41,6 +41,24 @@ import {
   // PadchatRoomMemberPayload,
 }                             from './padchat-schemas'
 
+export interface RoomJoinType {
+  inviteeNameList : string[],
+  inviterName     : string,
+  roomId          : string,
+}
+
+export interface RoomLeaveType {
+  leaverNameList : string[],
+  removerName    : string,
+  roomId         : string,
+}
+
+export interface RoomTopicType {
+  changeName : string,
+  topic      : string,
+  roomId     : string,
+}
+
 export class PadchatPureFunctionHelper {
   private constructor() {
     throw new Error('should not be instanciated. use static methods only.')
@@ -403,6 +421,10 @@ export class PadchatPureFunctionHelper {
 
     const decodedObject: T = JSON.parse(decodedText)
     return decodedObject
+  }
+
+  public static roomJoinMessageParser(rawPayload: PadchatMessagePayload): RoomJoinType {
+    const content = rawPayload.content
   }
 }
 
