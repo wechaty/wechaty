@@ -34,6 +34,8 @@ import {
   RoomPayload,
   RoomMemberPayload,
   // RoomQueryFilter,
+
+  WATCHDOG_TIMEOUT,
 }                       from '../puppet/'
 import {
   Puppet,
@@ -68,6 +70,11 @@ export interface MockRoomRawPayload {
 }
 
 export class PuppetMock extends Puppet {
+  /**
+   * Watchdog Timeout in Seconds
+   *  if set this value, the parent Puppet class will use it to init watchdog
+   */
+  protected [WATCHDOG_TIMEOUT] = 30
 
   constructor(
     public options: PuppetOptions,

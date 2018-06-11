@@ -45,6 +45,7 @@ import {
   MessagePayload,
   MessageType,
 }                 from './puppet/'
+import { Agent } from 'http';
 /**
  * All wechat messages will be encapsulated as a Message.
  *
@@ -748,6 +749,17 @@ export class Message extends Accessory implements Sayable {
     // (from seconds to milliseconds)
     return new Date(1000 * this.payload.timestamp)
   }
+
+  /**
+   * Message Age:
+   *  in seconds.
+   */
+  public age(): number {
+    const ageMilliseconds = Date.now() - this.date().getTime()
+    const ageSeconds = Math.floor(ageMilliseconds / 1000)
+    return ageSeconds
+  }
+
 }
 
 export default Message
