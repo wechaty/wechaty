@@ -170,7 +170,7 @@
     "qrcode-terminal": "^0.12.0",
     "semver": "^5.5.0",
     "shx": "^0.3.0",
-    "sinon": "^5.0.2",
+    "sinon": "^6.0.0",
     "sinon-test": "^2.2.0",
     "sloc": "^0.2.0",
     "ts-node": "^6.0.5",
