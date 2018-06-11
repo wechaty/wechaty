@@ -48,8 +48,15 @@ import {
 }                                 from '../puppet/'
 
 import {
-  PadchatPureFunctionHelper as pfHelper,
-}                                         from './pure-function-helper'
+  contactRawPayloadParser,
+  fileBoxToQrcode,
+  friendRequestRawPayloadParser,
+  messageRawPayloadParser,
+  roomJoinEventMessageParser,
+  roomLeaveEventMessageParser,
+  roomRawPayloadParser,
+  roomTopicEventMessageParser,
+}                                         from './pure-function-helpers'
 
 import {
   log,
@@ -253,7 +260,7 @@ export class PuppetPadchat extends Puppet {
       case PadchatMessageType.Sys:
         console.log('sys message:', rawPayload)
 
-        const roomJoin = pfHelper.roomJoinMessageParser(rawPayload)
+        const roomJoin = roomJoinEventMessageParser(rawPayload)
         if (roomJoin) {
           const inviteeNameList = roomJoin.inviteeNameList
           const inviterName     = roomJoin.inviterName
@@ -267,7 +274,7 @@ export class PuppetPadchat extends Puppet {
           this.emit('room-join',   roomId, inviteeIdList,  inviterId)
         }
 
-        const roomLeave = pfHelper.roomLeaveMessageParser(rawPayload)
+        const roomLeave = roomLeaveEventMessageParser(rawPayload)
         if (roomLeave) {
           const leaverNameList = roomLeave.leaverNameList
           const removerName    = roomLeave.removerName
@@ -281,7 +288,7 @@ export class PuppetPadchat extends Puppet {
           this.emit('room-leave',  roomId, leaverIdList, removerId)
         }
 
-        const roomTopic = pfHelper.roomTopicMessageParser(rawPayload)
+        const roomTopic = roomTopicEventMessageParser(rawPayload)
         if (roomTopic) {
           const changerName = roomTopic.changerName
           const newTopic    = roomTopic.topic
@@ -434,7 +441,7 @@ export class PuppetPadchat extends Puppet {
       throw new Error('no bridge')
     }
     const base64 = await this.bridge.WXGetUserQRCode(contactId, 0)
-    const qrcode = await pfHelper.imageBase64ToQrcode(base64)
+    const qrcode = await fileBoxToQrcode(base64)
     return qrcode
   }
 
@@ -451,7 +458,7 @@ export class PuppetPadchat extends Puppet {
   public async contactRawPayloadParser(rawPayload: PadchatContactPayload): Promise<ContactPayload> {
     log.silly('PuppetPadchat', 'contactRawPayloadParser({user_name="%s"})', rawPayload.user_name)
 
-    const payload: ContactPayload = pfHelper.contactRawPayloadParser(rawPayload)
+    const payload: ContactPayload = contactRawPayloadParser(rawPayload)
     return payload
   }
 
@@ -542,7 +549,7 @@ export class PuppetPadchat extends Puppet {
   public async messageRawPayloadParser(rawPayload: PadchatMessagePayload): Promise<MessagePayload> {
     log.verbose('PuppetPadChat', 'messageRawPayloadParser({msg_id="%s"})', rawPayload.msg_id)
 
-    const payload: MessagePayload = pfHelper.messageRawPayloadParser(rawPayload)
+    const payload: MessagePayload = messageRawPayloadParser(rawPayload)
 
     log.silly('PuppetPadchat', 'messagePayload(%s)', JSON.stringify(payload))
     return payload
@@ -694,7 +701,7 @@ export class PuppetPadchat extends Puppet {
     // const memberIdList = await this.bridge.getRoomMemberIdList()
     //  WXGetChatRoomMember(rawPayload.user_name)
 
-    const payload: RoomPayload = pfHelper.roomRawPayloadParser(rawPayload)
+    const payload: RoomPayload = roomRawPayloadParser(rawPayload)
 
     return payload
   }
@@ -870,9 +877,9 @@ export class PuppetPadchat extends Puppet {
 
     // let strangerV1
     // let strangerV2
-    // if (pfHelper.isStrangerV1(rawPayload.stranger)) {
+    // if (isStrangerV1(rawPayload.stranger)) {
     //   strangerV1 = rawPayload.stranger
-    // } else if (pfHelper.isStrangerV2(rawPayload.stranger)) {
+    // } else if (isStrangerV2(rawPayload.stranger)) {
     //   strangerV2 = rawPayload.stranger
     // } else {
     //   throw new Error('stranger neither v1 nor v2!')
@@ -921,7 +928,7 @@ export class PuppetPadchat extends Puppet {
   public async friendRequestRawPayloadParser(rawPayload: PadchatMessagePayload) : Promise<FriendRequestPayload> {
     log.verbose('PuppetPadchat', 'friendRequestRawPayloadParser({id=%s})', rawPayload.msg_id)
 
-    const payload: FriendRequestPayload = await pfHelper.friendRequestRawPayloadParser(rawPayload)
+    const payload: FriendRequestPayload = await friendRequestRawPayloadParser(rawPayload)
     return payload
   }
 

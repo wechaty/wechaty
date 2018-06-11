@@ -11,6 +11,7 @@ import {
 import {
   DelayQueueExector,
 }                         from 'rx-queue'
+import { FileBox }        from 'file-box'
 
 import Misc           from '../misc'
 
@@ -34,8 +35,10 @@ import {
 }                 from './padchat-rpc'
 
 import {
-  PadchatPureFunctionHelper as pfHelper,
-}                                           from './pure-function-helper'
+  fileBoxToQrcode,
+  isContactId,
+  isRoomId,
+}                   from './pure-function-helpers/'
 
 import {
   log,
@@ -116,7 +119,7 @@ export class Bridge extends PadchatRpc {
       os.homedir(),
       path.sep,
       '.wechaty',
-      'puppet-padchat-token-cache',
+      'puppet-padchat-token-cache', // FIXME: rename to a better name before beta
       path.sep,
       token,
       path.sep,
@@ -522,7 +525,8 @@ export class Bridge extends PadchatRpc {
       return await this.emitLoginQrcode()
     }
 
-    const qrcodeDecoded = await pfHelper.imageBase64ToQrcode(result.qr_code)
+    const fileBox = FileBox.fromBase64(result.qr_code, 'qrcode.jpg')
+    const qrcodeDecoded = await fileBoxToQrcode(fileBox)
 
     this.loginScanQrcode = qrcodeDecoded
     this.loginScanStatus = WXCheckQRCodeStatus.WaitScan
@@ -777,7 +781,7 @@ export class Bridge extends PadchatRpc {
         }
 
         if (syncContact.msg_type === PadchatContactMsgType.Contact) {
-          if (pfHelper.isRoomId(syncContact.user_name)) { // /@chatroom$/.test(syncContact.user_name)) {
+          if (isRoomId(syncContact.user_name)) { // /@chatroom$/.test(syncContact.user_name)) {
             /**
              * Room
              */
@@ -800,7 +804,7 @@ export class Bridge extends PadchatRpc {
             )
             log.silly('PuppetPadchatBridge', 'syncContactsAndRooms() added sync room(%s) task to delayQueueExecutor', roomId)
 
-          } else if (pfHelper.isContactId(syncContact.user_name)) {
+          } else if (isContactId(syncContact.user_name)) {
             /**
              * Contact
              */

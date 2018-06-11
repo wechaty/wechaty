@@ -63,8 +63,10 @@ import {
 }                             from './padchat-rpc.type'
 
 import {
-  PadchatPureFunctionHelper as pfHelper,
-}                                           from './pure-function-helper'
+  isContactId,
+  isRoomId,
+  padchatDecode,
+}                       from './pure-function-helpers/'
 
 import { log }          from '../config'
 
@@ -380,7 +382,7 @@ export class PadchatRpc extends EventEmitter {
       //   "userId": "test"
       // }
 
-      const tencentPayloadList: PadchatMessagePayload[] = pfHelper.padchatDecode(payload.data)
+      const tencentPayloadList: PadchatMessagePayload[] = padchatDecode(payload.data)
 
       if (!Array.isArray(tencentPayloadList)) {
         throw new Error('not array')
@@ -406,7 +408,7 @@ export class PadchatRpc extends EventEmitter {
     let result: any
 
     if (padchatPayload.data) {
-      result = pfHelper.padchatDecode(padchatPayload.data)
+      result = padchatDecode(padchatPayload.data)
     } else {
       log.silly('PadchatRpc', 'onServerMessagePadchat() discard empty payload.data for apiName: %s', padchatPayload.apiName)
       result = {}
@@ -636,7 +638,7 @@ export class PadchatRpc extends EventEmitter {
    * @param {any} id        user_name
    */
   public async WXGetContactPayload(id: string): Promise<PadchatContactPayload> {
-    if (!pfHelper.isContactId(id)) { // /@chatroom$/.test(id)) {
+    if (!isContactId(id)) { // /@chatroom$/.test(id)) {
       throw Error(`should use WXGetRoomPayload because get a room id :${id}`)
     }
     const result = await this.WXGetContact(id) as PadchatContactPayload
@@ -648,13 +650,13 @@ export class PadchatRpc extends EventEmitter {
    * @param {any} id        user_name
    */
   public async WXGetRoomPayload(id: string): Promise<PadchatRoomPayload> {
-    if (!pfHelper.isRoomId(id)) { // (/@chatroom$/.test(id))) {
+    if (!isRoomId(id)) { // (/@chatroom$/.test(id))) {
       throw Error(`should use WXGetContactPayload because get a contact id :${id}`)
     }
     const result = await this.WXGetContact(id)
 
     if (result.member) {
-      result.member = pfHelper.padchatDecode(result.member)
+      result.member = padchatDecode(result.member)
     }
 
     return result
@@ -679,7 +681,7 @@ export class PadchatRpc extends EventEmitter {
       // change '[{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/DpS0ZssJ5s8tEpSr9JuPTRxEUrCK0USrZcR3PjOMfUKDwpnZLxWXlD4Q38bJpcXBtwXWwevsul1lJqwsQzwItQ/0","chatroom_nick_name":"","invited_by":"wxid_7708837087612","nick_name":"李佳芮","small_head":"http://wx.qlogo.cn/mmhead/ver_1/DpS0ZssJ5s8tEpSr9JuPTRxEUrCK0USrZcR3PjOMfUKDwpnZLxWXlD4Q38bJpcXBtwXWwevsul1lJqwsQzwItQ/132","user_name":"qq512436430"},{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/kcBj3gSibfFd2I9vQ8PBFyQ77cpPIfqkFlpTdkFZzBicMT6P567yj9IO6xG68WsibhqdPuG82tjXsveFATSDiaXRjw/0","chatroom_nick_name":"","invited_by":"wxid_7708837087612","nick_name":"梦君君","small_head":"http://wx.qlogo.cn/mmhead/ver_1/kcBj3gSibfFd2I9vQ8PBFyQ77cpPIfqkFlpTdkFZzBicMT6P567yj9IO6xG68WsibhqdPuG82tjXsveFATSDiaXRjw/132","user_name":"mengjunjun001"},{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/3CsKibSktDV05eReoAicV0P8yfmuHSowfXAMvRuU7HEy8wMcQ2eibcaO1ccS95PskZchEWqZibeiap6Gpb9zqJB1WmNc6EdD6nzQiblSx7dC1eGtA/0","chatroom_nick_name":"","invited_by":"wxid_7708837087612","nick_name":"苏轼","small_head":"http://wx.qlogo.cn/mmhead/ver_1/3CsKibSktDV05eReoAicV0P8yfmuHSowfXAMvRuU7HEy8wMcQ2eibcaO1ccS95PskZchEWqZibeiap6Gpb9zqJB1WmNc6EdD6nzQiblSx7dC1eGtA/132","user_name":"wxid_zj2cahpwzgie12"},{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/piaHuicak41b6ibmcEVxoWKnnhgGDG5EbaD0hibwkrRvKeDs3gs7XQrkym3Q5MlUeSKY8vw2FRVVstialggUxf2zic2O8CvaEsicSJcghf41nibA940/0","chatroom_nick_name":"","invited_by":"wxid_zj2cahpwzgie12","nick_name":"王宁","small_head":"http://wx.qlogo.cn/mmhead/ver_1/piaHuicak41b6ibmcEVxoWKnnhgGDG5EbaD0hibwkrRvKeDs3gs7XQrkym3Q5MlUeSKY8vw2FRVVstialggUxf2zic2O8CvaEsicSJcghf41nibA940/132","user_name":"wxid_7708837087612"}]'
       // to Array (PadchatRoomRawMember[])
 
-      const tryMemberList: null | PadchatRoomMemberPayload[] = pfHelper.padchatDecode(result.member)
+      const tryMemberList: null | PadchatRoomMemberPayload[] = padchatDecode(result.member)
 
       if (Array.isArray(tryMemberList)) {
         result.member = tryMemberList

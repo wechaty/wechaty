@@ -24,7 +24,7 @@ import {
   log,
 }                 from '../config'
 import {
-  ScanPayload,
+  PuppetScanEvent,
 }                 from '../puppet/'
 
 import {
@@ -62,9 +62,9 @@ function onDing(
 
 async function onScan(
   this    : PuppetPuppeteer,
-  payload : ScanPayload,
+  payload : PuppetScanEvent,
 ): Promise<void> {
-  log.verbose('PuppetPuppeteerEvent', 'onScan({code: %d, url: %s})', payload.code, payload.url)
+  log.verbose('PuppetPuppeteerEvent', 'onScan({code: %d, url: %s})', payload.qrcode, payload.qrcode)
 
   // if (this.state.off()) {
   //   log.verbose('PuppetPuppeteerEvent', 'onScan(%s) state.off()=%s, NOOP',
@@ -92,9 +92,9 @@ async function onScan(
   this.emit('watchdog', food)
 
   // BREAKING CHANGE: Issue #1262
-  const qrCode = payload.url.replace(/\/qrcode\//, '/l/')
+  const qrcode = payload.qrcode.replace(/\/qrcode\//, '/l/')
 
-  this.emit('scan', qrCode, payload.code, payload.data)
+  this.emit('scan', qrcode, payload.status, payload.data)
 }
 
 function onLog(data: any): void {

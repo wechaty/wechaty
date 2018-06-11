@@ -90,7 +90,7 @@ import {
   RoomMemberPayload,
   // RoomQueryFilter,
 
-  ScanPayload,
+  PuppetScanEvent,
 }                           from '../puppet/'
 
 import {
@@ -109,7 +109,7 @@ export type ScanFoodType   = 'scan' | 'login' | 'logout'
 export class PuppetPuppeteer extends Puppet {
   public bridge       : Bridge
 
-  public scanPayload? : ScanPayload
+  public scanPayload? : PuppetScanEvent
 
   public scanWatchdog: Watchdog<ScanFoodType>
 

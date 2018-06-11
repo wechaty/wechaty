@@ -67,16 +67,12 @@ import {
   PuppetEventName,
   PuppetOptions,
   Receiver,
+
+  WATCHDOG_TIMEOUT,
 }                       from './schemas/puppet'
 
-/**
- * Watchdog timeout
- *  in seconds
- */
-export const WATCHDOG_TIMEOUT = Symbol('WATCHDOG_TIMEOUT')
 const DEFAULT_WATCHDOG_TIMEOUT = 60
-
-let PUPPET_COUNTER = 0
+let   PUPPET_COUNTER           = 0
 
 /**
  *
