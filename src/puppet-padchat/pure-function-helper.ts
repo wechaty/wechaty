@@ -391,7 +391,7 @@ export class PadchatPureFunctionHelper {
     let decodedText: string
 
     // it seems the different server API version (bond with different wechat accounts)
-    // will return URIEncoded / Plain JSON Text.
+    // is not consistent of the protocol: some time return URIEncoded, and some time return Plain JSON Text.
     try {
       // Server return data need decodeURIComponent
       decodedText = encodedText.replace(/\+/g, '%20')

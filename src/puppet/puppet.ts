@@ -505,14 +505,14 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async friendRequestRawPayloadParser(rawPayload: any)       : Promise<FriendRequestPayload>
 
   public friendRequestPayloadCache(friendRequestId: string): undefined | FriendRequestPayload {
-    log.silly('Puppet', 'friendRequestPayloadCache(id=%s) @ %s', friendRequestId, this)
+    // log.silly('Puppet', 'friendRequestPayloadCache(id=%s) @ %s', friendRequestId, this)
     if (!friendRequestId) {
       throw new Error('no id')
     }
     const cachedPayload = this.cacheFriendRequestPayload.get(friendRequestId)
 
     if (cachedPayload) {
-      log.silly('Puppet', 'friendRequestPayload(%s) cache HIT', friendRequestId)
+      // log.silly('Puppet', 'friendRequestPayload(%s) cache HIT', friendRequestId)
     } else {
       log.silly('Puppet', 'friendRequestPayload(%s) cache MISS', friendRequestId)
     }
@@ -570,13 +570,13 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async messageRawPayloadParser(rawPayload: any) : Promise<MessagePayload>
 
   public messagePayloadCache(messageId: string): undefined | MessagePayload {
-    log.silly('Puppet', 'messagePayloadCache(id=%s) @ %s', messageId, this)
+    // log.silly('Puppet', 'messagePayloadCache(id=%s) @ %s', messageId, this)
     if (!messageId) {
       throw new Error('no id')
     }
     const cachedPayload = this.cacheMessagePayload.get(messageId)
     if (cachedPayload) {
-      log.silly('Puppet', 'messagePayloadCache(%s) cache HIT', messageId)
+      // log.silly('Puppet', 'messagePayloadCache(%s) cache HIT', messageId)
     } else {
       log.silly('Puppet', 'messagePayloadCache(%s) cache MISS', messageId)
     }
@@ -775,13 +775,13 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   }
 
   public roomPayloadCache(roomId: string): undefined | RoomPayload {
-    log.silly('Puppet', 'roomPayloadCache(id=%s) @ %s', roomId, this)
+    // log.silly('Puppet', 'roomPayloadCache(id=%s) @ %s', roomId, this)
     if (!roomId) {
       throw new Error('no id')
     }
     const cachedPayload = this.cacheRoomPayload.get(roomId)
     if (cachedPayload) {
-      log.silly('Puppet', 'roomPayloadCache(%s) cache HIT', roomId)
+      // log.silly('Puppet', 'roomPayloadCache(%s) cache HIT', roomId)
     } else {
       log.silly('Puppet', 'roomPayloadCache(%s) cache MISS', roomId)
     }
@@ -843,7 +843,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     const cachedPayload = this.cacheRoomMemberPayload.get(cacheKey)
 
     if (cachedPayload) {
-      log.silly('Puppet', 'roomMemberPayloadCache(%s) cache HIT', roomId)
+      // log.silly('Puppet', 'roomMemberPayloadCache(%s) cache HIT', roomId)
     } else {
       log.silly('Puppet', 'roomMemberPayloadCache(%s) cache MISS', roomId)
     }
