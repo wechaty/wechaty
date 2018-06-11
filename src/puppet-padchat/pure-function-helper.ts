@@ -404,6 +404,25 @@ export class PadchatPureFunctionHelper {
     const decodedObject: T = JSON.parse(decodedText)
     return decodedObject
   }
+
+  public roomJoinMessageParser(rawPayload: PadchatMessagePayload): RoomJoinPayload {
+    const roomJoinPayload
+    = roomJoin.inviteeNameList
+          const inviterName     = roomJoin.inviterName
+          const roomId          = roomJoin.roomId
+  }
+  public roomLeaveMessageParser(rawPayload: PadchatMessagePayload): RoomLeavePayload {
+    const roomJoinPayload
+    roomLeave.leaverNameList
+          const removerName    = roomLeave.removerName
+          const roomId         = roomLeave.roomId
+  }
+  public roomTopicMessageParser(rawPayload: PadchatMessagePayload): RoomTopicPayload {
+    const roomJoinPayload
+    roomTopic.changerName
+    const newTopic    = roomTopic.topic
+    const roomId      = roomTopic.roomId
+  }
 }
 
 export default PadchatPureFunctionHelper

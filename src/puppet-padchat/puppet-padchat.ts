@@ -233,7 +233,7 @@ export class PuppetPadchat extends Puppet {
 
   }
 
-  protected onPadchatMessage(rawPayload: PadchatMessagePayload) {
+  protected async onPadchatMessage(rawPayload: PadchatMessagePayload): Promise<void> {
     log.verbose('PuppetPadchat', 'onPadchatMessage({id=%s, type=%s(%s)})',
                                 rawPayload.msg_id,
                                 PadchatMessageType[rawPayload.sub_type],
@@ -252,9 +252,48 @@ export class PuppetPadchat extends Puppet {
 
       case PadchatMessageType.Sys:
         console.log('sys message:', rawPayload)
-        // this.emit('room-join',   roomId, inviteeIdList,  inviterId)
-        // this.emit('room-leave',  roomId, leaverIdList, remover)
-        // this.emit('room-topic',  roomId, topic, oldTopic, changerId)
+
+        const roomJoin = pfHelper.roomJoinMessageParser(rawPayload)
+        if (roomJoin) {
+          const inviteeNameList = roomJoin.inviteeNameList
+          const inviterName     = roomJoin.inviterName
+          const roomId          = roomJoin.roomId
+
+          const inviteeIdList = await Promise.all(
+            inviteeNameList.map(inviteeName => this.roomMemberSearch(roomId, inviteeName))
+          )
+          const inviterId = await this.roomMemberSearch(roomId, inviterName)
+
+          this.emit('room-join',   roomId, inviteeIdList,  inviterId)
+        }
+
+        const roomLeave = pfHelper.roomLeaveMessageParser(rawPayload)
+        if (roomLeave) {
+          const leaverNameList = roomLeave.leaverNameList
+          const removerName    = roomLeave.removerName
+          const roomId         = roomLeave.roomId
+
+          const leaverIdList = await Promise.all(
+            leaverNameList.map(leaverName => this.roomMemberSearch(roomId, leaverName))
+          )
+          const removerId = await this.roomMemberSearch(roomId, removerName)
+
+          this.emit('room-leave',  roomId, leaverIdList, removerId)
+        }
+
+        const roomTopic = pfHelper.roomTopicMessageParser(rawPayload)
+        if (roomTopic) {
+          const changerName = roomTopic.changerName
+          const newTopic    = roomTopic.topic
+          const roomId      = roomTopic.roomId
+
+          const roomPayload = await this.roomPayload(roomId)
+          const oldTopic = roomPayload.topic
+
+          const changerId = await this.roomMemberSearch(roomId, changerName)
+
+          this.emit('room-topic',  roomId, newTopic, oldTopic, changerId)
+        }
 
         break
 

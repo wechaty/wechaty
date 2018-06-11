@@ -99,7 +99,8 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   /**
    * Watchdog Timeout in Seconds
-   *  if set this value, the parent Puppet class will use it to init watchdog
+   *  if set this value, the default timeout value will be overwrited,
+   *  and the parent Puppet class will use it to init watchdog
    */
   protected [WATCHDOG_TIMEOUT]?: number // Watchdog timeout, in seconds
 
@@ -186,17 +187,17 @@ export abstract class Puppet extends EventEmitter implements Sayable {
    *
    *
    */
-  public emit(event: 'error',       error: string)                                                      : boolean
-  public emit(event: 'friend',      requestId: string)                                                  : boolean
-  public emit(event: 'login',       contactId: string)                                                  : boolean
-  public emit(event: 'logout',      contactId: string)                                                  : boolean
-  public emit(event: 'message',     messageId: string)                                                  : boolean
-  public emit(event: 'room-join',   roomId: string, inviteeIdList: string[],  inviterId: string)        : boolean
-  public emit(event: 'room-leave',  roomId: string, leaverIdList: string[], remover?: string)           : boolean
-  public emit(event: 'room-topic',  roomId: string, topic: string, oldTopic: string, changerId: string) : boolean
-  public emit(event: 'scan',        qrcode: string, status: number, data?: string)                      : boolean
-  public emit(event: 'start')                                                                           : boolean
-  public emit(event: 'stop')                                                                            : boolean
+  public emit(event: 'error',       error: string)                                                         : boolean
+  public emit(event: 'friend',      requestId: string)                                                     : boolean
+  public emit(event: 'login',       contactId: string)                                                     : boolean
+  public emit(event: 'logout',      contactId: string)                                                     : boolean
+  public emit(event: 'message',     messageId: string)                                                     : boolean
+  public emit(event: 'room-join',   roomId: string, inviteeIdList: string[],  inviterId: string)           : boolean
+  public emit(event: 'room-leave',  roomId: string, leaverIdList: string[], remover?: string)              : boolean
+  public emit(event: 'room-topic',  roomId: string, newTopic: string, oldTopic: string, changerId: string) : boolean
+  public emit(event: 'scan',        qrcode: string, status: number, data?: string)                         : boolean
+  public emit(event: 'start')                                                                              : boolean
+  public emit(event: 'stop')                                                                               : boolean
   // Internal Usage: watchdog
   public emit(event: 'watchdog',    food: WatchdogFood) : boolean
 
@@ -216,17 +217,17 @@ export abstract class Puppet extends EventEmitter implements Sayable {
    *
    *
    */
-  public on(event: 'error',       listener: (error: string) => void)                                                      : this
-  public on(event: 'friend',      listener: (requestId: string) => void)                                                  : this
-  public on(event: 'login',       listener: (contactId: string) => void)                                                  : this
-  public on(event: 'logout',      listener: (contactId: string) => void)                                                  : this
-  public on(event: 'message',     listener: (messageId: string) => void)                                                  : this
-  public on(event: 'room-join',   listener: (roomId: string, inviteeIdList: string[], inviterId:  string) => void)        : this
-  public on(event: 'room-leave',  listener: (roomId: string, leaverIdList : string[], removerId?: string) => void)        : this
-  public on(event: 'room-topic',  listener: (roomId: string, topic: string, oldTopic: string, changerId: string) => void) : this
-  public on(event: 'scan',        listener: (qrcode: string, status: number, data?: string) => void)                      : this
-  public on(event: 'start',       listener: () => void)                                                                   : this
-  public on(event: 'stop',        listener: () => void)                                                                   : this
+  public on(event: 'error',       listener: (error: string) => void)                                                         : this
+  public on(event: 'friend',      listener: (requestId: string) => void)                                                     : this
+  public on(event: 'login',       listener: (contactId: string) => void)                                                     : this
+  public on(event: 'logout',      listener: (contactId: string) => void)                                                     : this
+  public on(event: 'message',     listener: (messageId: string) => void)                                                     : this
+  public on(event: 'room-join',   listener: (roomId: string, inviteeIdList: string[], inviterId:  string) => void)           : this
+  public on(event: 'room-leave',  listener: (roomId: string, leaverIdList : string[], removerId?: string) => void)           : this
+  public on(event: 'room-topic',  listener: (roomId: string, newTopic: string, oldTopic: string, changerId: string) => void) : this
+  public on(event: 'scan',        listener: (qrcode: string, status: number, data?: string) => void)                         : this
+  public on(event: 'start',       listener: () => void)                                                                      : this
+  public on(event: 'stop',        listener: () => void)                                                                      : this
   // Internal Usage: watchdog
   public on(event: 'watchdog',    listener: (data: WatchdogFood) => void) : this
 

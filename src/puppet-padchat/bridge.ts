@@ -795,10 +795,8 @@ export class Bridge extends PadchatRpc {
              *  add syncRoomMember task to the queue
              */
             this.delayQueueExecutor.execute(
-              () => {
-                this.syncRoomMember(roomId)
-              },
-              'syncRoomMember(' + roomId + ')',
+              () => this.syncRoomMember(roomId),
+              `syncRoomMember(${roomId})`,
             )
             log.silly('PuppetPadchatBridge', 'syncContactsAndRooms() added sync room(%s) task to delayQueueExecutor', roomId)
 

@@ -72,7 +72,8 @@ export interface MockRoomRawPayload {
 export class PuppetMock extends Puppet {
   /**
    * Watchdog Timeout in Seconds
-   *  if set this value, the parent Puppet class will use it to init watchdog
+   *  if set this value, the default timeout value will be overwrited,
+   *  and the parent Puppet class will use it to init watchdog
    */
   protected [WATCHDOG_TIMEOUT] = 30
 
