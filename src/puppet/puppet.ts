@@ -69,6 +69,13 @@ import {
   Receiver,
 }                       from './schemas/puppet'
 
+/**
+ * Watchdog timeout
+ *  in seconds
+ */
+export const WATCHDOG_TIMEOUT = Symbol('WATCHDOG_TIMEOUT')
+const DEFAULT_WATCHDOG_TIMEOUT = 60
+
 let PUPPET_COUNTER = 0
 
 /**
@@ -89,6 +96,11 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   protected readonly state    : StateSwitch
   protected readonly watchdog : Watchdog
   protected readonly counter  : number
+
+  /**
+   * Watchdog Timeout in Seconds
+   */
+  protected [WATCHDOG_TIMEOUT]?: number // Watchdog timeout, in seconds
 
   /**
    * childPkg stores the `package.json` that the NPM module who extends the `Puppet`
@@ -114,10 +126,10 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
     this.counter = PUPPET_COUNTER++
 
-    const WATCHDOG_TIMEOUT = 1 * 60 * 1000  // default 1 minute
-
     this.state    = new StateSwitch(this.constructor.name, log)
-    this.watchdog = new Watchdog(WATCHDOG_TIMEOUT, 'Puppet')
+
+    const timeout = this[WATCHDOG_TIMEOUT] || DEFAULT_WATCHDOG_TIMEOUT
+    this.watchdog = new Watchdog(1000 * timeout, 'Puppet')
 
     const lruOptions: LRU.Options = {
       max: 10000,

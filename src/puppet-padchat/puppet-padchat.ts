@@ -38,9 +38,13 @@ import {
 
   Puppet,
   PuppetOptions,
+
   Receiver,
+
   FriendRequestPayload,
   FriendRequestPayloadReceive,
+
+  WATCHDOG_TIMEOUT,
 }                                 from '../puppet/'
 
 import {
@@ -84,6 +88,9 @@ export type PuppetFoodType = 'scan' | 'ding'
 export type ScanFoodType   = 'scan' | 'login' | 'logout'
 
 export class PuppetPadchat extends Puppet {
+
+  // in seconds, 4 minute for padchat
+  protected [WATCHDOG_TIMEOUT] = 4 * 60
 
   // private readonly cachePadchatContactPayload       : LRU.Cache<string, PadchatContactRawPayload>
   private readonly cachePadchatFriendRequestPayload : LRU.Cache<string, PadchatMessagePayload>
