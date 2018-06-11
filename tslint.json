@@ -32,7 +32,6 @@
       180
     ],
   "callable-types": true,
-  "import-blacklist": [true, "rxjs"],
   "interface-over-type-literal": true,
   "no-empty-interface": true,
   "no-string-throw": true,

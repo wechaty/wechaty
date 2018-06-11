@@ -1,16 +1,16 @@
 import { EventEmitter } from 'events'
 
 // import cuid        from 'cuid'
-import WebSocket   from 'ws'
-
+import WebSocket        from 'ws'
+import { Subscription } from 'rxjs'
 import Peer, {
   parse,
-}           from 'json-rpc-peer'
+}                       from 'json-rpc-peer'
 
 import {
   ThrottleQueue,
   DebounceQueue,
-}                 from 'rx-queue'
+}                       from 'rx-queue'
 
 // , {
   // JsonRpcPayload,
@@ -74,9 +74,13 @@ export class PadchatRpc extends EventEmitter {
   private socket?          : WebSocket
   private readonly jsonRpc : any // Peer
 
-  private readonly throttleQueue: ThrottleQueue<string>
-  private readonly debounceQueue: DebounceQueue<string>
-  private readonly logoutThrottleQueue: ThrottleQueue<string>
+  private   readonly throttleQueue       : ThrottleQueue<string>
+  private   readonly debounceQueue       : DebounceQueue<string>
+  private   readonly logoutThrottleQueue : ThrottleQueue<string>
+
+  private throttleSubscription?       : Subscription
+  private debounceSubscription?       : Subscription
+  private logoutThrottleSubscription? : Subscription
 
   constructor(
     protected endpoint : string,
@@ -113,11 +117,7 @@ export class PadchatRpc extends EventEmitter {
     await this.init()
     await this.WXInitialize()
 
-    await this.initHearteat()
-
-    this.logoutThrottleQueue.subscribe(msg => {
-      this.destroy(msg)
-    })
+    this.startQueues()
   }
 
   protected async initJsonRpc(): Promise<void> {
@@ -220,10 +220,14 @@ export class PadchatRpc extends EventEmitter {
 
   }
 
-  private initHearteat(): void {
+  private initHeartbeat(): void {
     log.verbose('PadchatRpc', 'initHeartbeat()')
 
-    this.throttleQueue.subscribe(e => {
+    if (this.throttleSubscription || this.debounceSubscription) {
+      throw new Error('subscription exist when initHeartbeat')
+    }
+
+    this.throttleSubscription = this.throttleQueue.subscribe(e => {
       /**
        * This block will only be run once in a period,
        *  no matter than how many message the queue received.
@@ -232,7 +236,7 @@ export class PadchatRpc extends EventEmitter {
       this.emit('heartbeat', e)
     })
 
-    this.debounceQueue.subscribe(e => {
+    this.debounceSubscription = this.debounceQueue.subscribe(e => {
       /**
        * This block will be run when:
        *  the queue did not receive any message after a period.
@@ -264,6 +268,8 @@ export class PadchatRpc extends EventEmitter {
   public stop(): void {
     log.verbose('PadchatRpc', 'stop()')
 
+    this.stopQueues()
+
     this.jsonRpc.removeAllListeners()
     // TODO: use huan's version of JsonRpcPeer, to support end at here.
     // this.jsonRpc.end()
@@ -275,6 +281,40 @@ export class PadchatRpc extends EventEmitter {
       this.socket = undefined
     } else {
       log.warn('PadchatRpc', 'stop() no socket')
+    }
+  }
+
+  private startQueues() {
+    log.verbose('PadchatRpc', 'startQueues()')
+
+    this.initHeartbeat()
+
+    if (this.logoutThrottleSubscription) {
+      throw new Error('this.logoutThrottleSubscription exist')
+    } else {
+      this.logoutThrottleSubscription = this.logoutThrottleQueue.subscribe(msg => {
+        this.destroy(msg)
+      })
+    }
+  }
+
+  private stopQueues() {
+    log.verbose('PadchatRpc', 'stopQueues()')
+
+    if (   this.throttleSubscription
+      && this.debounceSubscription
+      && this.logoutThrottleSubscription
+    ) {
+      // Clean external subscriptions
+      this.debounceSubscription.unsubscribe()
+      this.logoutThrottleSubscription.unsubscribe()
+      this.throttleSubscription.unsubscribe()
+      // Clean internal subscriptions
+      this.debounceQueue.unsubscribe()
+      this.logoutThrottleQueue.unsubscribe()
+      this.throttleQueue.unsubscribe()
+    } else {
+      log.warn('PadchatRpc', 'stop() subscript not exist')
     }
   }
 

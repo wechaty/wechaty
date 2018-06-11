@@ -5,6 +5,12 @@ import fs     from 'fs-extra'
 import { MemoryCard }     from 'memory-card'
 import { StateSwitch }    from 'state-switch'
 import { FlashStoreSync } from 'flash-store'
+import {
+  Subscription,
+}                         from 'rxjs'
+import {
+  DelayQueueExector,
+}                         from 'rx-queue'
 
 import Misc           from '../misc'
 
@@ -54,42 +60,23 @@ export interface BridgeOptions {
 }
 
 export class Bridge extends PadchatRpc {
-  // private readonly padchatRpc : PadchatRpc
-  // private autoData            : AutoDataType
   private memorySlot: PadchatMemorySlot
 
   private loginScanQrcode? : string
   private loginScanStatus? : number
-
-  private loginTimer?: NodeJS.Timer
+  private loginTimer?      : NodeJS.Timer
 
   private selfId?   : string
-  // private selfName? : string
-  // private password? : string
-  // private nickname? : string
 
   private cacheRoomRawPayload?       : FlashStoreSync<string, PadchatRoomPayload>
   private cacheContactRawPayload?    : FlashStoreSync<string, PadchatContactPayload>
+  private cacheRoomMemberRawPayload? : FlashStoreSync<string, {
+    [contactId: string]: PadchatRoomMemberPayload,
+  }>
 
-  /**
-   * cacheRoomMemberRawPayload[roomId1] = {
-   *  contactId1: payload1,
-   *  contactId2: payload2
-   * }
-   *
-   * cacheRoomMemberRawPayload[roomId2] = {
-   *  contactId2: payload3,
-   *  contactId3: payload4,
-   * }
-   */
-  private cacheRoomMemberRawPayload? : FlashStoreSync<
-    string,
-    {
-      [contactId: string]: PadchatRoomMemberPayload,
-    }
-  >
-
-  private readonly state: StateSwitch
+  private readonly state                  : StateSwitch
+  private readonly delayQueueExecutor     : DelayQueueExector
+  private delayQueueExecutorSubscription? : Subscription
 
   constructor(
     public options: BridgeOptions,
@@ -103,6 +90,13 @@ export class Bridge extends PadchatRpc {
 
     // this.padchatRpc = new PadchatRpc(options.endpoint, options.token)
     this.state = new StateSwitch('PuppetPadchatBridge')
+
+    /**
+     * Executer Queue: execute one task at a time,
+     *  delay between them for 3 second
+     */
+    this.delayQueueExecutor = new DelayQueueExector(1000 * 3)
+
   }
 
   private async initCache(
@@ -176,6 +170,7 @@ export class Bridge extends PadchatRpc {
       this.cacheContactRawPayload    = undefined
       this.cacheRoomMemberRawPayload = undefined
       this.cacheRoomRawPayload       = undefined
+
     } else {
       log.warn('PuppetPadchatBridge', 'releaseCache() cache not exist.')
     }
@@ -190,6 +185,14 @@ export class Bridge extends PadchatRpc {
 
     this.state.on('pending')
 
+    if (this.delayQueueExecutorSubscription) {
+      throw new Error('this.delayExecutorSubscription exist')
+    } else {
+      this.delayQueueExecutorSubscription = this.delayQueueExecutor.subscribe(unit => {
+        log.verbose('PuppetPadchatBridge', 'startQueues() delayQueueExecutor.subscribe(%s) executed', unit.name)
+      })
+    }
+
     this.memorySlot = {
       ...this.memorySlot,
       ...await this.options.memory.get<PadchatMemorySlot>(MEMORY_SLOT_NAME),
@@ -197,15 +200,6 @@ export class Bridge extends PadchatRpc {
 
     // await this.padchatRpc.start()
     await super.start()
-
-    // this.padchatRpc.on('message', messageRawPayload => {
-    //   log.silly('PuppetPadchatBridge', 'start() padchatRpc.on(message)')
-    //   this.emit('message', messageRawPayload)
-    // })
-
-    // No need to call logout() in bridge, because PupetPadchat will call logout() when received the 'logout' event
-    // this.padchatRpc.on('logout', data => {
-    // this.on('logout', () => this.logout())
 
     await this.tryLoad62Data()
 
@@ -221,6 +215,13 @@ export class Bridge extends PadchatRpc {
     log.verbose('PuppetPadchatBridge', `stop()`)
 
     this.state.off('pending')
+
+    if (this.delayQueueExecutorSubscription) {
+      this.delayQueueExecutorSubscription.unsubscribe()
+      this.delayQueueExecutor.unsubscribe()
+    } else {
+      log.warn('PuppetPadchatBridge', 'stop() subscript not exist')
+    }
 
     this.stopCheckScan()
 
@@ -588,10 +589,13 @@ export class Bridge extends PadchatRpc {
       }
 
       return memorySlot
-    } else {
-      /**
-       * 4. New user login, generate 62data for it
-       */
+    }
+
+    /**
+     * 4. New user login, generate 62data for it
+     */
+    // Build a new code block to make tslint happy: no-shadow-variable
+    if (true) {
       log.verbose('PuppetPadchatBridge', 'refresh62Data() user switch detected: from "%s" to "%s"',
                                           memorySlot.currentUserId,
                                           userId,
@@ -742,7 +746,7 @@ export class Bridge extends PadchatRpc {
       // const syncContactList = await this.padchatRpc.WXSyncContact()
       const syncContactList = await this.WXSyncContact()
 
-      await new Promise(r => setTimeout(r, 1 * 1000))
+      await new Promise(r => setTimeout(r, 3 * 1000))
 
       // console.log('syncContactList:', syncContactList)
 
@@ -785,7 +789,15 @@ export class Bridge extends PadchatRpc {
             const roomPayload = syncContact as PadchatRoomPayload
 
             this.cacheRoomRawPayload.set(roomId, roomPayload)
-            await this.syncRoomMember(roomId)
+
+            /**
+             * Use delay queue executor to sync room:
+             *  add syncRoomMember task to the queue
+             */
+            this.delayQueueExecutor.execute(
+              () => this.syncRoomMember(roomId),
+              'syncRoomMember(' + roomId + ')',
+            )
 
           } else if (pfHelper.isContactId(syncContact.user_name)) {
             /**
