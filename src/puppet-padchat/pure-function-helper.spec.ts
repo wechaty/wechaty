@@ -7,6 +7,9 @@ import test  from 'blue-tape'
 
 import {
   PadchatPureFunctionHelper as pfHelper,
+  RoomJoinType,
+  RoomLeaveType,
+  RoomTopicType,
 }                                         from './pure-function-helper'
 
 import {
@@ -313,6 +316,60 @@ test('messageRawPayloadParser', async t => {
     const payload = pfHelper.messageRawPayloadParser(PADCHAT_MESSAGE_PAYLOAD_STATUS_NOTIFY)
     // console.log('payload:', payload)
     t.deepEqual(payload, EXPECTED_MESSAGE_PAYLOAD_STATUS_NOTIFY, 'should parse status notify message payload')
+  })
+
+  t.test('roomJoinMessageParser', async t => {
+    const PADCHAT_MESSAGE_PAYLOAD_ROOM_JOIN: PadchatMessagePayload = {
+      content: '"李卓桓"邀请"Huan LI++"加入了群聊',
+      continue: 1,
+      description: '',
+      from_user: '5354656522@chatroom',
+      msg_id: '1303222499352704462',
+      msg_source: '',
+      msg_type: 5,
+      status: 1,
+      sub_type: 10000,
+      timestamp: 1528657265,
+      to_user: 'wxid_a8d806dzznm822',
+      uin: 1211516682,
+    }
+
+    const EXPECTED_MESSAGE_PAYLOAD_ROOM_JOIN: RoomJoinType = {
+      inviteeNameList: ['Huan LI++'],
+      inviterName: '李卓桓',
+      roomId: '5354656522@chatroom',
+    }
+
+    const payload = pfHelper.roomJoinMessageParser(PADCHAT_MESSAGE_PAYLOAD_ROOM_JOIN)
+    // console.log('payload:', payload)
+    t.deepEqual(payload, EXPECTED_MESSAGE_PAYLOAD_ROOM_JOIN, 'should parse room join message payload')
+  })
+
+  t.test('roomLeaveMessageParser', async t => {
+    const PADCHAT_MESSAGE_PAYLOAD_ROOM_LEAVE: PadchatMessagePayload = {
+      content: '你将"Huan LI++"移出了群聊',
+      continue: 1,
+      description: '',
+      from_user: '5354656522@chatroom',
+      msg_id: '7593234909679768634',
+      msg_source: '',
+      msg_type: 5,
+      status: 1,
+      sub_type: 10000,
+      timestamp: 1528657235,
+      to_user: 'lizhuohuan',
+      uin: 4763975,
+    }
+
+    const EXPECTED_MESSAGE_PAYLOAD_ROOM_LEAVE: RoomLeaveType = {
+      leaverNameList: ['Huan LI++'],
+      removerName: '你',
+      roomId: '5354656522@chatroom',
+    }
+
+    const payload = pfHelper.roomJoinMessageParser(PADCHAT_MESSAGE_PAYLOAD_ROOM_LEAVE)
+    // console.log('payload:', payload)
+    t.deepEqual(payload, EXPECTED_MESSAGE_PAYLOAD_ROOM_LEAVE, 'should parse room leave message payload')
   })
 
 })
