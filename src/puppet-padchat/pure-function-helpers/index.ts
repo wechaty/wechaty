@@ -14,8 +14,8 @@
 
 export * from './contact-raw-payload-parser'
 export * from './file-box-to-qrcode'
-export * from './friend-request-event-message-parser'
-export * from './friend-request-raw-payload-parser'
+export * from './friendship-event-message-parser'
+export * from './friendship-raw-payload-parser'
 export * from './is-type'
 export * from './message-raw-payload-parser'
 export * from './padchat-decode'

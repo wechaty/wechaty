@@ -9,7 +9,7 @@ import {
   PadchatMessagePayload,
 }                             from '../padchat-schemas'
 
-import { friendRequestEventMessageParser } from './friend-request-event-message-parser'
+import { friendRequestEventMessageParser } from './friendship-event-message-parser'
 
 test('friendRequestEventMessageParser() EN-confirm-by-other', async t => {
   const MESSAGE_PAYLOAD: PadchatMessagePayload = {
