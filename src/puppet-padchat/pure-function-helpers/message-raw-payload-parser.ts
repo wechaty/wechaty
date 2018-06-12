@@ -83,14 +83,18 @@ export function messageRawPayloadParser(
     const parts = rawPayload.content.split(':\n')
     if (parts.length > 1) {
       /**
-       * there's from id in content.
+       * there's contact/room id in content.
        */
-      // update fromId to actual sender instead of the room
-      fromId = parts[0]
+      if (isRoomId(parts[0])) {
+        fromId = undefined  // message is send from room!
+      } else  {
+        fromId = parts[0]   // message is send from a contact.
+      }
+
       // update the text to actual text of the message
       payloadBase.text = parts[1]
-
     }
+
     if (!roomId && !fromId) {
       throw Error('empty roomId and empty fromId!')
     }
