@@ -265,6 +265,29 @@ export class PuppetPadchat extends Puppet {
         this.emit('friendship', rawPayload.msg_id)
         break
 
+      case PadchatMessageType.Recalled:
+        /**
+         * When someone joined the room invited by Bot,
+         * the bot will receive a `recall-able` message for room event
+         *
+         * { content: '12740017638@chatroom:\n<sysmsg type="delchatroommember">\n\t<delchatroommember>\n\t\t<plain>
+         *            <![CDATA[You invited 卓桓、Zhuohuan, 太阁_传话助手, 桔小秘 to the group chat.   ]]></plain>...,
+         *  continue: 1,
+         *  description: '',
+         *  from_user: '12740017638@chatroom',
+         *  msg_id: '232220931339852872',
+         *  msg_source: '',
+         *  msg_type: 5,
+         *  status: 1,
+         *  sub_type: 10002,
+         *  timestamp: 1528831349,
+         *  to_user: 'wxid_zj2cahpwzgie12',
+         *  uin: 324216852 }
+         */
+        await Promise.all([
+          this.onPadchatMessageRoomEvent(rawPayload),
+        ])
+        break
       case PadchatMessageType.Sys:
         await Promise.all([
           this.onPadchatMessageFriendshipEvent(rawPayload),
