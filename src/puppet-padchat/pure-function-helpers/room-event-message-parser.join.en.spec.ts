@@ -6,7 +6,6 @@ import test  from 'blue-tape'
 
 import {
   PuppetRoomJoinEvent,
-
   YOU,
 }                               from '../../puppet/'
 
