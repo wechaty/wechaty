@@ -18,8 +18,8 @@ import {
   // ContactPayloadFilterFactory,
 }                                 from '../puppet/schemas/contact'
 import {
-  FriendRequestPayload,
-}                                 from '../puppet/schemas/friend-request'
+  FriendshipPayload,
+}                                 from '../puppet/schemas/friendship'
 import {
   MessagePayload,
 }                                 from '../puppet/schemas/message'
@@ -65,14 +65,14 @@ class PuppetTest extends Puppet {
 
   /**
    *
-   * FriendRequest
+   * Friendship
    *
    */
-  public async friendRequestRawPayload(id: string)            : Promise<any> { return {id} as any }
-  public async friendRequestRawPayloadParser(rawPayload: any) : Promise<FriendRequestPayload> { return rawPayload }
+  public async friendshipRawPayload(id: string)            : Promise<any> { return {id} as any }
+  public async friendshipRawPayloadParser(rawPayload: any) : Promise<FriendshipPayload> { return rawPayload }
 
-  public async friendRequestSend(contactId: string, hello?: string) : Promise<void> { return {contactId, hello} as any }
-  public async friendRequestAccept(friendRequestId: string)         : Promise<void> { return {friendRequestId} as any }
+  public async friendshipVerify(contactId: string, hello?: string) : Promise<void> { return {contactId, hello} as any }
+  public async friendshipAccept(friendshipId: string)              : Promise<void> { return {friendshipId} as any }
 
   /**
    *

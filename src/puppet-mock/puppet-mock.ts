@@ -30,10 +30,12 @@ import {
   ContactType,
   ContactPayload,
 
-  FriendRequestPayload,
+  FriendshipPayload,
   RoomPayload,
   RoomMemberPayload,
   // RoomQueryFilter,
+
+  WATCHDOG_TIMEOUT,
 }                       from '../puppet/'
 import {
   Puppet,
@@ -68,6 +70,12 @@ export interface MockRoomRawPayload {
 }
 
 export class PuppetMock extends Puppet {
+  /**
+   * Watchdog Timeout in Seconds
+   *  if set this value, the default timeout value will be overwrited,
+   *  and the parent Puppet class will use it to init watchdog
+   */
+  protected [WATCHDOG_TIMEOUT] = 30
 
   constructor(
     public options: PuppetOptions,
@@ -394,27 +402,27 @@ export class PuppetMock extends Puppet {
 
   /**
    *
-   * FriendRequest
+   * Friendship
    *
    */
-  public async friendRequestRawPayload(id: string)            : Promise<any> {
+  public async friendshipRawPayload(id: string)            : Promise<any> {
     return {id} as any
   }
-  public async friendRequestRawPayloadParser(rawPayload: any) : Promise<FriendRequestPayload> {
+  public async friendshipRawPayloadParser(rawPayload: any) : Promise<FriendshipPayload> {
     return rawPayload
   }
 
-  public async friendRequestSend(
+  public async friendshipVerify(
     contactId : string,
     hello     : string,
   ): Promise<void> {
-    log.verbose('PuppetMock', 'friendRequestSend(%s, %s)', contactId, hello)
+    log.verbose('PuppetMock', 'friendshipVerify(%s, %s)', contactId, hello)
   }
 
-  public async friendRequestAccept(
-    friendRequestId : string,
+  public async friendshipAccept(
+    friendshipId : string,
   ): Promise<void> {
-    log.verbose('PuppetMock', 'friendRequestAccept(%s)', friendRequestId)
+    log.verbose('PuppetMock', 'friendshipAccept(%s)', friendshipId)
   }
 
   public ding(data?: any): Promise<string> {

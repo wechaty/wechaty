@@ -2,14 +2,49 @@ import {
   MemoryCard,
 }                       from 'memory-card'
 
-export interface ScanPayload {
-  code  : number,   // Code
-  data? : string,   // Image Data URL
-  url   : string,   // QR Code URL
+/**
+ * Watchdog timeout
+ *  in seconds
+ */
+export const WATCHDOG_TIMEOUT = Symbol('WATCHDOG_TIMEOUT')
+
+/**
+ * This is used internally to as a placeholder for the bot name.
+ *
+ * For example:
+ *  we should replace '你' and 'You' to YOU.
+ *
+ * See: https://github.com/Microsoft/TypeScript/issues/20898#issuecomment-354073352
+ */
+export const YOU = Symbol('You')
+export type YOU  = typeof YOU
+
+export interface PuppetScanEvent {
+  data?  : string,   // Other Data
+  qrcode : string,   // QR Code Data
+  status : number,   // Status Code
+}
+
+export interface PuppetRoomJoinEvent {
+  inviteeNameList : (string | YOU)[],
+  inviterName     : string | YOU,
+  roomId          : string,
+}
+
+export interface PuppetRoomLeaveEvent {
+  leaverNameList : (string | YOU)[],
+  removerName    : string | YOU,
+  roomId         : string,
+}
+
+export interface PuppetRoomTopicEvent {
+  changerName : string | YOU,
+  roomId      : string,
+  topic       : string,
 }
 
 export const CHAT_EVENT_DICT = {
-  friend      : 'document can be writen at here',
+  friendship  : 'document can be writen at here',
   login       : 'document can be writen at here',
   logout      : 'document can be writen at here',
   message     : 'document can be writen at here',

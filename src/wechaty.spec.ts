@@ -31,7 +31,7 @@ import {
 import {
   config,
   Contact,
-  FriendRequest,
+  Friendship,
   IoClient,
   Message,
   Room,
@@ -48,7 +48,7 @@ import { MemoryCard } from 'memory-card'
 
 test('Export of the Framework', async t => {
   t.ok(Contact        , 'should export Contact')
-  t.ok(FriendRequest  , 'should export FriendREquest')
+  t.ok(Friendship     , 'should export Friendship')
   t.ok(IoClient       , 'should export IoClient')
   t.ok(Message        , 'should export Message')
   t.ok(Puppet , 'should export Puppet')

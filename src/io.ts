@@ -24,7 +24,7 @@ import {
 }                 from './message'
 
 import {
-  ScanPayload,
+  PuppetScanEvent,
 }                 from './puppet/'
 
 import {
@@ -77,7 +77,7 @@ export class Io {
 
   private onMessage: undefined | Function
 
-  private scanPayload?: ScanPayload
+  private scanPayload?: PuppetScanEvent
 
   constructor(
     private options: IoOptions,
@@ -112,10 +112,10 @@ export class Io {
     try {
       await this.initEventHook()
       this.ws = this.initWebSocket()
-      this.options.wechaty.on('scan', (url, code) => {
+      this.options.wechaty.on('scan', (qrcode, status) => {
         this.scanPayload = Object.assign(this.scanPayload || {}, {
-          url,
-          code,
+          qrcode,
+          status,
         })
       })
       this.state.on(true)

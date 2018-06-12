@@ -35,10 +35,10 @@ import {
   ContactType,
   ContactPayload,
 
-  FriendRequestPayload,
-  FriendRequestPayloadReceive,
-  FriendRequestPayloadConfirm,
-  FriendRequestType,
+  FriendshipPayload,
+  FriendshipPayloadReceive,
+  FriendshipPayloadConfirm,
+  FriendshipType,
 
   RoomPayload,
   RoomMemberPayload,
@@ -232,12 +232,12 @@ export class PuppetWechat4u extends Puppet {
           break
 
         case WebMessageType.VERIFYMSG:
-          this.emit('friend', msg.MsgId)
+          this.emit('friendship', msg.MsgId)
           break
 
         case WebMessageType.SYS:
           if (this.isFriendConfirm(msg.Content)) {
-            this.emit('friend', msg.MsgId)
+            this.emit('friendship', msg.MsgId)
           }
           this.emit('message', msg.MsgId)
           break
@@ -878,29 +878,29 @@ export class PuppetWechat4u extends Puppet {
 
   /**
    *
-   * FriendRequest
+   * Friendship
    *
    */
-  public async friendRequestSend(
+  public async friendshipVerify(
     contactId : string,
     hello     : string,
   ): Promise<void> {
-    log.verbose('PuppetWechat4u', 'friendRequestSend(%s, %s)', contactId, hello)
+    log.verbose('PuppetWechat4u', 'friendshipVerify(%s, %s)', contactId, hello)
 
     await this.wechat4u.addFriend(contactId, hello)
   }
 
-  public async friendRequestAccept(
-    friendRequestId : string,
+  public async friendshipAccept(
+    friendshipId : string,
   ): Promise<void> {
-    log.verbose('PuppetWechat4u', 'friendRequestAccept(%s)', friendRequestId)
+    log.verbose('PuppetWechat4u', 'friendshipAccept(%s)', friendshipId)
 
-    const payload = await this.friendRequestPayload(friendRequestId) as FriendRequestPayloadReceive
+    const payload = await this.friendshipPayload(friendshipId) as FriendshipPayloadReceive
     await this.wechat4u.verifyUser(payload.contactId, payload.ticket)
   }
 
-  public async friendRequestRawPayload(id: string)            : Promise<any> {
-    log.verbose('PuppetWechat4u', 'friendRequestRawPayload(%s)', id)
+  public async friendshipRawPayload(id: string)            : Promise<any> {
+    log.verbose('PuppetWechat4u', 'friendshipRawPayload(%s)', id)
 
     const rawPayload = this.cacheMessageRawPayload.get(id)
     if (!rawPayload) {
@@ -910,8 +910,8 @@ export class PuppetWechat4u extends Puppet {
     return rawPayload
   }
 
-  public async friendRequestRawPayloadParser(rawPayload: any) : Promise<FriendRequestPayload> {
-    log.verbose('PuppetWechat4u', 'friendRequestRawPayloadParser(%s)', rawPayload)
+  public async friendshipRawPayloadParser(rawPayload: any) : Promise<FriendshipPayload> {
+    log.verbose('PuppetWechat4u', 'friendshipRawPayloadParser(%s)', rawPayload)
 
     switch (rawPayload.MsgType) {
       case WebMessageType.VERIFYMSG:
@@ -924,20 +924,20 @@ export class PuppetWechat4u extends Puppet {
           throw new Error('no recommendInfo')
         }
 
-        const payloadReceive: FriendRequestPayloadReceive = {
+        const payloadReceive: FriendshipPayloadReceive = {
           id        : rawPayload.MsgId,
           contactId : recommendInfo.UserName,
           hello     : recommendInfo.Content,
           ticket    : recommendInfo.Ticket,
-          type      : FriendRequestType.Receive,
+          type      : FriendshipType.Receive,
         }
         return payloadReceive
 
       case WebMessageType.SYS:
-        const payloadConfirm: FriendRequestPayloadConfirm = {
+        const payloadConfirm: FriendshipPayloadConfirm = {
           id        : rawPayload.MsgId,
           contactId : rawPayload.FromUserName,
-          type      : FriendRequestType.Confirm,
+          type      : FriendshipType.Confirm,
         }
         return payloadConfirm
 

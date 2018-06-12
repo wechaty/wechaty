@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.15.138",
+  "version": "0.15.145",
   "description": "Wechat for Bot(Personal Account)",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
@@ -94,6 +94,7 @@
     "node": ">= 8.5"
   },
   "dependencies": {
+    "array-flatten": "^2.1.1",
     "bl": "^2.0.0",
     "brolog": "^1.6.3",
     "clone-class": "^0.6.11",
@@ -122,7 +123,7 @@
     "watchdog": "^0.8.1",
     "wechat4u": "^0.7.6",
     "ws": "^5.2.0",
-    "xml2js": "^0.4.0"
+    "xml2json": "^0.11.2"
   },
   "devDependencies": {
     "@types/bl": "^0.8.32",
@@ -146,7 +147,7 @@
     "@types/semver": "^5.5.0",
     "@types/sinon": "^5.0.0",
     "@types/ws": "^5.1.0",
-    "@types/xml2js": "^0.4.0",
+    "@types/xml2json": "^0.10.0",
     "apiai": "^4.0.0",
     "babel-cli": "^6.26.0",
     "babel-eslint": "^8.0.0",
@@ -170,7 +171,7 @@
     "qrcode-terminal": "^0.12.0",
     "semver": "^5.5.0",
     "shx": "^0.3.0",
-    "sinon": "^5.0.2",
+    "sinon": "^6.0.0",
     "sinon-test": "^2.2.0",
     "sloc": "^0.2.0",
     "ts-node": "^6.0.5",

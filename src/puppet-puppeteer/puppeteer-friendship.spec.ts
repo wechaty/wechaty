@@ -34,8 +34,8 @@ import {
 }           from '../wechaty'
 
 import {
-  FriendRequestPayload,
-  FriendRequestType,
+  FriendshipPayload,
+  FriendshipType,
 }                         from '../puppet/'
 
 import {
@@ -63,7 +63,7 @@ class PuppetTest extends PuppetPuppeteer {
   }
 }
 
-test('PuppetPuppeteerFriendRequest.receive smoke testing', async t => {
+test('PuppetPuppeteerFriendship.receive smoke testing', async t => {
   const puppet  = new PuppetTest({ memory: new MemoryCard() })
   const wechaty = new WechatyTest({ puppet })
   wechaty.initPuppetAccessory(puppet)
@@ -79,9 +79,9 @@ test('PuppetPuppeteerFriendRequest.receive smoke testing', async t => {
   const hello   = info.Content
   const ticket  = info.Ticket
   const id      = 'id'
-  const type = FriendRequestType.Receive
+  const type = FriendshipType.Receive
 
-  const payload: FriendRequestPayload = {
+  const payload: FriendshipPayload = {
     id,
     type,
     contactId: contact.id,
@@ -90,20 +90,20 @@ test('PuppetPuppeteerFriendRequest.receive smoke testing', async t => {
   }
 
   const sandbox = sinon.createSandbox()
-  sandbox.stub(puppet, 'friendRequestPayload').resolves(payload)
-  sandbox.stub(puppet, 'friendRequestPayloadCache').returns(payload)
+  sandbox.stub(puppet, 'friendshipPayload').resolves(payload)
+  sandbox.stub(puppet, 'friendshipPayloadCache').returns(payload)
 
-  const fr = wechaty.FriendRequest.load(id)
+  const fr = wechaty.Friendship.load(id)
   await fr.ready()
 
   t.is(fr.hello(), '我是群聊"Wechaty"的李卓桓.PreAngel', 'should has right request message')
   t.true(fr.contact() instanceof Contact, 'should have a Contact instance')
-  t.is(fr.type(), wechaty.FriendRequest.Type.Receive, 'should be receive type')
+  t.is(fr.type(), wechaty.Friendship.Type.Receive, 'should be receive type')
 
   sandbox.restore()
 })
 
-test('PuppetPuppeteerFriendRequest.confirm smoke testing', async t => {
+test('PuppetPuppeteerFriendship.confirm smoke testing', async t => {
 
   const puppet  = new PuppetTest({ memory: new MemoryCard() })
   const wechaty = new WechatyTest({ puppet })
@@ -114,9 +114,9 @@ test('PuppetPuppeteerFriendRequest.confirm smoke testing', async t => {
     {"MsgId":"3382012679535022763","FromUserName":"@04a0fa314d0d8d50dc54e2ec908744ebf46b87404d143fd9a6692182dd90bd49","ToUserName":"@f7321198e0349f1b38c9f2ef158f70eb","MsgType":10000,"Content":"You have added 李卓桓.PreAngel as your WeChat contact. Start chatting!","Status":4,"ImgStatus":1,"CreateTime":1475569920,"VoiceLength":0,"PlayLength":0,"FileName":"","FileSize":"","MediaId":"","Url":"","AppMsgType":0,"StatusNotifyCode":0,"StatusNotifyUserName":"","RecommendInfo":{"UserName":"","NickName":"","QQNum":0,"Province":"","City":"","Content":"","Signature":"","Alias":"","Scene":0,"VerifyFlag":0,"AttrStatus":0,"Sex":0,"Ticket":"","OpCode":0},"ForwardFlag":0,"AppInfo":{"AppID":"","Type":0},"HasProductId":0,"Ticket":"","ImgHeight":0,"ImgWidth":0,"SubMsgType":0,"NewMsgId":3382012679535022600,"MMPeerUserName":"@04a0fa314d0d8d50dc54e2ec908744ebf46b87404d143fd9a6692182dd90bd49","MMDigest":"You have added 李卓桓.PreAngel as your WeChat contact. Start chatting!","MMIsSend":false,"MMIsChatRoom":false,"LocalID":"3382012679535022763","ClientMsgId":"3382012679535022763","MMActualContent":"You have added 李卓桓.PreAngel as your WeChat contact. Start chatting!","MMActualSender":"@04a0fa314d0d8d50dc54e2ec908744ebf46b87404d143fd9a6692182dd90bd49","MMDigestTime":"16:32","MMDisplayTime":1475569920,"MMTime":"16:32"}
   `)
 
-  const friendRequestPayload: FriendRequestPayload = {
+  const friendshipPayload: FriendshipPayload = {
     id        : 'id',
-    type      : FriendRequestType.Confirm,
+    type      : FriendshipType.Confirm,
     contactId : 'xxx',
   }
 
@@ -127,19 +127,19 @@ test('PuppetPuppeteerFriendRequest.confirm smoke testing', async t => {
   sandbox.stub(puppet, 'contactPayload')      .resolves({})
   sandbox.stub(puppet, 'contactPayloadCache') .returns({})
 
-  sandbox.stub(puppet, 'friendRequestPayload')      .resolves(friendRequestPayload)
-  sandbox.stub(puppet, 'friendRequestPayloadCache') .returns(friendRequestPayload)
+  sandbox.stub(puppet, 'friendshipPayload')      .resolves(friendshipPayload)
+  sandbox.stub(puppet, 'friendshipPayloadCache') .returns(friendshipPayload)
 
   const msg = wechaty.Message.create(rawMessagePayload.MsgId)
   await msg.ready()
 
   t.true(/^You have added (.+) as your WeChat contact. Start chatting!$/.test(msg.text()), 'should match confirm message')
 
-  const fr = wechaty.FriendRequest.load('xx')
+  const fr = wechaty.Friendship.load('xx')
   await fr.ready()
 
   t.true(fr.contact() instanceof Contact, 'should have a Contact instance')
-  t.is(fr.type(), wechaty.FriendRequest.Type.Confirm, 'should be confirm type')
+  t.is(fr.type(), wechaty.Friendship.Type.Confirm, 'should be confirm type')
 
   sandbox.restore()
 })

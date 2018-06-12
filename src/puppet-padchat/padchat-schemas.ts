@@ -437,7 +437,7 @@ export interface PadchatRoomMemberListPayload {
 //         sourcenickname: '' },
 //      brandlist: [ [Object] ] } }
 
-export interface PadchatFriendRequestPayload {
+export interface PadchatFriendshipPayload {
   fromusername    : string,   // 'lizhuohuan'
   encryptusername : string    // v1_xxx@stranger'
   content         : string,   // 'hello'

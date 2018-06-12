@@ -38,8 +38,8 @@ import {
 }                   from './misc'
 
 import {
-  FriendRequestPayload,
-  FriendRequestType,
+  FriendshipPayload,
+  FriendshipType,
 }                         from './puppet/'
 
 /**
@@ -51,18 +51,18 @@ import {
  *
  * [Examples/Friend-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/friend-bot.ts}
  */
-export class FriendRequest extends Accessory {
+export class Friendship extends Accessory {
 
   // tslint:disable-next-line:variable-name
-  public static Type = FriendRequestType
+  public static Type = FriendshipType
 
-  public static load<T extends typeof FriendRequest>(
+  public static load<T extends typeof Friendship>(
     this : T,
     id   : string,
   ): T['prototype'] {
-    const newFriendRequest = new (this as any)(id)
+    const newFriendship = new (this as any)(id)
     // newFriendRequest.payload = this.puppet.cacheFriendRequestPayload.get(id)
-    return newFriendRequest
+    return newFriendship
   }
 
   /**
@@ -74,17 +74,17 @@ export class FriendRequest extends Accessory {
     contact : Contact,
     hello   : string,
   ): Promise<void> {
-    log.verbose('FriendRequest', 'static send(%s, %s)',
+    log.verbose('Friendship', 'static send(%s, %s)',
                                   contact.id,
                                   hello,
                 )
-    await this.puppet.friendRequestSend(contact.id, hello)
+    await this.puppet.friendshipVerify(contact.id, hello)
   }
 
   // public static createConfirm(
   //   contactId: string,
   // ): FriendRequestPayload {
-  //   log.verbose('FriendRequest', 'createConfirm(%s)',
+  //   log.verbose('Friendship', 'createConfirm(%s)',
   //                                         contactId,
   //               )
 
@@ -101,7 +101,7 @@ export class FriendRequest extends Accessory {
   //   hello     : string,
   //   ticket    : string,
   // ): FriendRequestPayload {
-  //   log.verbose('FriendRequest', 'createReceive(%s, %s, %s)',
+  //   log.verbose('Friendship', 'createReceive(%s, %s, %s)',
   //                                         contactId,
   //                                         hello,
   //                                         ticket,
@@ -123,29 +123,29 @@ export class FriendRequest extends Accessory {
    *
    */
 
-  protected get payload(): undefined | FriendRequestPayload {
+  protected get payload(): undefined | FriendshipPayload {
     if (!this.id) {
       return undefined
     }
 
-    return this.puppet.friendRequestPayloadCache(this.id)
+    return this.puppet.friendshipPayloadCache(this.id)
   }
 
   constructor(
     public id: string,
   ) {
     super()
-    log.verbose('FriendRequest', 'constructor(id=%s)', id)
+    log.verbose('Friendship', 'constructor(id=%s)', id)
 
     // tslint:disable-next-line:variable-name
-    const MyClass = instanceToClass(this, FriendRequest)
+    const MyClass = instanceToClass(this, Friendship)
 
-    if (MyClass === FriendRequest) {
-      throw new Error('FriendRequest class can not be instanciated directly! See: https://github.com/Chatie/wechaty/issues/1217')
+    if (MyClass === Friendship) {
+      throw new Error('Friendship class can not be instanciated directly! See: https://github.com/Chatie/wechaty/issues/1217')
     }
 
     if (!this.puppet) {
-      throw new Error('FriendRequest class can not be instanciated without a puppet!')
+      throw new Error('Friendship class can not be instanciated without a puppet!')
     }
   }
 
@@ -154,8 +154,8 @@ export class FriendRequest extends Accessory {
       return this.constructor.name
     }
     return [
-      'FriendRequest#',
-      FriendRequestType[this.payload.type],
+      'Friendship#',
+      FriendshipType[this.payload.type],
       '<',
       this.payload.contactId,
       '>',
@@ -167,14 +167,14 @@ export class FriendRequest extends Accessory {
   }
 
   /**
-   * no `noCache` support because FriendRequest has no rawPayload(yet)
+   * no `noCache` support because Friendship has no rawPayload(yet)
    */
   public async ready(): Promise<void> {
     if (this.payload) {
       return
     }
 
-    await this.puppet.friendRequestPayload(this.id)
+    await this.puppet.friendshipPayload(this.id)
 
     if (!this.payload) {
       throw new Error('no payload')
@@ -182,35 +182,35 @@ export class FriendRequest extends Accessory {
   }
 
   public async accept(): Promise<void> {
-    log.verbose('FriendRequest', 'accept()')
+    log.verbose('Friendship', 'accept()')
 
     if (!this.payload) {
       throw new Error('no payload')
     }
 
-    if (this.payload.type !== FriendRequest.Type.Receive) {
-      throw new Error('accept() need type to be FriendRequestType.Receive, but it got a ' + FriendRequest.Type[this.payload.type!])
+    if (this.payload.type !== Friendship.Type.Receive) {
+      throw new Error('accept() need type to be FriendshipType.Receive, but it got a ' + Friendship.Type[this.payload.type!])
     }
 
-    log.silly('FriendRequest', 'accept() to %s', this.payload.contactId)
+    log.silly('Friendship', 'accept() to %s', this.payload.contactId)
 
-    await this.puppet.friendRequestAccept(this.id)
+    await this.puppet.friendshipAccept(this.id)
 
     const contact = this.contact()
 
     await Misc.retry(async (retry, attempt) => {
-      log.silly('FriendRequest', 'accept() retry() ready() attempt %d', attempt)
+      log.silly('Friendship', 'accept() retry() ready() attempt %d', attempt)
 
       await contact.ready()
 
       if (contact.isReady()) {
-        log.verbose('FriendRequest', 'accept() with contact %s ready()', contact.name())
+        log.verbose('Friendship', 'accept() with contact %s ready()', contact.name())
         return
       }
-      retry(new Error('FriendRequest.accept() content.ready() not ready'))
+      retry(new Error('Friendship.accept() content.ready() not ready'))
 
     }).catch((e: Error) => {
-      log.warn('FriendRequest', 'accept() contact %s not ready because of %s', contact, e && e.message || e)
+      log.warn('Friendship', 'accept() contact %s not ready because of %s', contact, e && e.message || e)
     })
 
   }
@@ -232,16 +232,16 @@ export class FriendRequest extends Accessory {
   }
 
   public async reject(): Promise<void> {
-    log.warn('FriendRequest', 'reject() not necessary, NOP.')
+    log.warn('Friendship', 'reject() not necessary, NOP.')
     return
   }
 
-  public type(): FriendRequestType {
+  public type(): FriendshipType {
     return this.payload
             ? this.payload.type
-            : FriendRequestType.Unknown
+            : FriendshipType.Unknown
   }
 
 }
 
-export default FriendRequest
+export default Friendship
