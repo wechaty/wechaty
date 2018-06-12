@@ -77,10 +77,10 @@ import {
   // ContactQueryFilter,
   ContactType,
 
-  FriendRequestPayload,
-  FriendRequestPayloadReceive,
-  FriendRequestPayloadConfirm,
-  FriendRequestType,
+  FriendshipPayload,
+  FriendshipPayloadReceive,
+  FriendshipPayloadConfirm,
+  FriendshipType,
 
   MessagePayload,
   MessageType,
@@ -90,7 +90,7 @@ import {
   RoomMemberPayload,
   // RoomQueryFilter,
 
-  ScanPayload,
+  PuppetScanEvent,
 }                           from '../puppet/'
 
 import {
@@ -109,7 +109,7 @@ export type ScanFoodType   = 'scan' | 'login' | 'logout'
 export class PuppetPuppeteer extends Puppet {
   public bridge       : Bridge
 
-  public scanPayload? : ScanPayload
+  public scanPayload? : PuppetScanEvent
 
   public scanWatchdog: Watchdog<ScanFoodType>
 
@@ -493,7 +493,7 @@ export class PuppetPuppeteer extends Puppet {
       /**
        * Treat those Types as TEXT
        *
-       * FriendRequest is a SYS message
+       * Friendship is a SYS message
        * FIXME: should we use better message type at here???
        */
       case WebMessageType.SYS:
@@ -1128,11 +1128,11 @@ export class PuppetPuppeteer extends Puppet {
 
   /**
    *
-   * FriendRequest
+   * Friendship
    *
    */
-  public async friendRequestRawPayload(id: string): Promise<WebMessageRawPayload> {
-    log.warn('PuppetPuppeteer', 'friendRequestRawPayload(%s)', id)
+  public async friendshipRawPayload(id: string): Promise<WebMessageRawPayload> {
+    log.warn('PuppetPuppeteer', 'friendshipRawPayload(%s)', id)
 
     const rawPayload = await this.bridge.getMessage(id)
     if (!rawPayload) {
@@ -1141,8 +1141,8 @@ export class PuppetPuppeteer extends Puppet {
     return rawPayload
   }
 
-  public async friendRequestRawPayloadParser(rawPayload: WebMessageRawPayload): Promise<FriendRequestPayload> {
-    log.warn('PuppetPuppeteer', 'friendRequestRawPayloadParser(%s)', rawPayload)
+  public async friendshipRawPayloadParser(rawPayload: WebMessageRawPayload): Promise<FriendshipPayload> {
+    log.warn('PuppetPuppeteer', 'friendshipRawPayloadParser(%s)', rawPayload)
 
     switch (rawPayload.MsgType) {
       case WebMessageType.VERIFYMSG:
@@ -1155,20 +1155,20 @@ export class PuppetPuppeteer extends Puppet {
           throw new Error('no recommendInfo')
         }
 
-        const payloadReceive: FriendRequestPayloadReceive = {
+        const payloadReceive: FriendshipPayloadReceive = {
           id        : rawPayload.MsgId,
           contactId : recommendInfo.UserName,
           hello     : recommendInfo.Content,
           ticket    : recommendInfo.Ticket,
-          type      : FriendRequestType.Receive,
+          type      : FriendshipType.Receive,
         }
         return payloadReceive
 
       case WebMessageType.SYS:
-        const payloadConfirm: FriendRequestPayloadConfirm = {
+        const payloadConfirm: FriendshipPayloadConfirm = {
           id        : rawPayload.MsgId,
           contactId : rawPayload.FromUserName,
-          type      : FriendRequestType.Confirm,
+          type      : FriendshipType.Confirm,
         }
         return payloadConfirm
       default:
@@ -1176,7 +1176,7 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async friendRequestSend(
+  public async friendshipVerify(
     contactId : string,
     hello     : string,
   ): Promise<void> {
@@ -1189,10 +1189,10 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async friendRequestAccept(
-    friendRequestId : string,
+  public async friendshipAccept(
+    friendshipId : string,
   ): Promise<void> {
-    const payload = await this.friendRequestPayload(friendRequestId) as FriendRequestPayloadReceive
+    const payload = await this.friendshipPayload(friendshipId) as FriendshipPayloadReceive
 
     try {
       await this.bridge.verifyUserOk(payload.contactId, payload.ticket)

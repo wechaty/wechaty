@@ -97,9 +97,8 @@ bot
     return
   }
 
-  const msgAge = Date.now() - msg.date().getTime()
-  if (msgAge > 1000 * 60) {
-    log.info('Bot', 'on(message) skip message older(%d) than 60 seconds: %s', Math.floor(msgAge / 1000), msg)
+  if (msg.age() > 60) {
+    log.info('Bot', 'on(message) skip message older(%d) than 60 seconds: %s', msg.age(), msg)
     return
   }
 

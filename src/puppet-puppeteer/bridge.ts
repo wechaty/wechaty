@@ -28,7 +28,8 @@ import {
   Page,
 }                       from 'puppeteer'
 import StateSwitch      from 'state-switch'
-import { parseString }  from 'xml2js'
+// import { parseString }  from 'xml2js'
+import { toJson }       from 'xml2json'
 
 import {
   MemoryCard,
@@ -763,44 +764,73 @@ export class Bridge extends EventEmitter {
     log.verbose('PuppetPuppeteerBridge', 'testBlockedMessage(%s)',
                                   textSnip)
 
-    // see unit test for detail
-    const tryXmlText = this.preHtmlToXml(text)
-
     interface BlockedMessage {
       error?: {
         ret     : number,
         message : string,
       }
     }
+    let obj: BlockedMessage
 
-    return new Promise<string | false>(resolve => {
-      parseString(tryXmlText, { explicitArray: false }, (err, obj: BlockedMessage) => {
-        if (err) {  // HTML can not be parsed to JSON
-          return resolve(false)
-        }
-        if (!obj) {
-          // FIXME: when will this happen?
-          log.warn('PuppetPuppeteerBridge', 'testBlockedMessage() parseString(%s) return empty obj', textSnip)
-          return resolve(false)
-        }
-        if (!obj.error) {
-          return resolve(false)
-        }
-        const ret     = +obj.error.ret
-        const message =  obj.error.message
+    try {
+      // see unit test for detail
+      const tryXmlText = this.preHtmlToXml(text)
+      obj = JSON.parse(toJson(tryXmlText))
+    } catch (e) {
+      log.warn('PuppetPuppeteerBridge', 'testBlockedMessage() toJson() exception: %s', e)
+      return false
+    }
 
-        log.warn('PuppetPuppeteerBridge', 'testBlockedMessage() error.ret=%s', ret)
+    if (!obj) {
+      // FIXME: when will this happen?
+      log.warn('PuppetPuppeteerBridge', 'testBlockedMessage() toJson(%s) return empty obj', textSnip)
+      return false
+    }
+    if (!obj.error) {
+      return false
+    }
+    const ret     = +obj.error.ret
+    const message =  obj.error.message
 
-        if (ret === 1203) {
-          // <error>
-          // <ret>1203</ret>
-          // <message>当前登录环境异常。为了你的帐号安全，暂时不能登录web微信。你可以通过手机客户端或者windows微信登录。</message>
-          // </error>
-          return resolve(message)
-        }
-        return resolve(message) // other error message
-      })
-    })
+    log.warn('PuppetPuppeteerBridge', 'testBlockedMessage() error.ret=%s', ret)
+
+    if (ret === 1203) {
+      // <error>
+      // <ret>1203</ret>
+      // <message>当前登录环境异常。为了你的帐号安全，暂时不能登录web微信。你可以通过手机客户端或者windows微信登录。</message>
+      // </error>
+      return message
+    }
+    return message // other error message
+
+    // return new Promise<string | false>(resolve => {
+    //   parseString(tryXmlText, { explicitArray: false }, (err, obj: BlockedMessage) => {
+    //     if (err) {  // HTML can not be parsed to JSON
+    //       return resolve(false)
+    //     }
+    //     if (!obj) {
+    //       // FIXME: when will this happen?
+    //       log.warn('PuppetPuppeteerBridge', 'testBlockedMessage() parseString(%s) return empty obj', textSnip)
+    //       return resolve(false)
+    //     }
+    //     if (!obj.error) {
+    //       return resolve(false)
+    //     }
+    //     const ret     = +obj.error.ret
+    //     const message =  obj.error.message
+
+    //     log.warn('PuppetPuppeteerBridge', 'testBlockedMessage() error.ret=%s', ret)
+
+    //     if (ret === 1203) {
+    //       // <error>
+    //       // <ret>1203</ret>
+    //       // <message>当前登录环境异常。为了你的帐号安全，暂时不能登录web微信。你可以通过手机客户端或者windows微信登录。</message>
+    //       // </error>
+    //       return resolve(message)
+    //     }
+    //     return resolve(message) // other error message
+    //   })
+    // })
   }
 
   public async clickSwitchAccount(page: Page): Promise<boolean> {

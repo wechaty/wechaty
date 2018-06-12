@@ -50,8 +50,8 @@ import {
   ContactPayloadFilterFunction,
 }                                 from './schemas/contact'
 import {
-  FriendRequestPayload,
-}                                 from './schemas/friend-request'
+  FriendshipPayload,
+}                                 from './schemas/friendship'
 import {
   MessagePayload,
 }                                 from './schemas/message'
@@ -67,9 +67,13 @@ import {
   PuppetEventName,
   PuppetOptions,
   Receiver,
+
+  WATCHDOG_TIMEOUT,
+  YOU,
 }                       from './schemas/puppet'
 
-let PUPPET_COUNTER = 0
+const DEFAULT_WATCHDOG_TIMEOUT = 60
+let   PUPPET_COUNTER           = 0
 
 /**
  *
@@ -81,7 +85,7 @@ let PUPPET_COUNTER = 0
 export abstract class Puppet extends EventEmitter implements Sayable {
 
   public readonly cacheContactPayload       : LRU.Cache<string, ContactPayload>
-  public readonly cacheFriendRequestPayload : LRU.Cache<string, FriendRequestPayload>
+  public readonly cacheFriendshipPayload : LRU.Cache<string, FriendshipPayload>
   public readonly cacheMessagePayload       : LRU.Cache<string, MessagePayload>
   public readonly cacheRoomPayload          : LRU.Cache<string, RoomPayload>
   public readonly cacheRoomMemberPayload    : LRU.Cache<string, RoomMemberPayload>
@@ -89,6 +93,13 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   protected readonly state    : StateSwitch
   protected readonly watchdog : Watchdog
   protected readonly counter  : number
+
+  /**
+   * Watchdog Timeout in Seconds
+   *  if set this value, the default timeout value will be overwrited,
+   *  and the parent Puppet class will use it to init watchdog
+   */
+  protected [WATCHDOG_TIMEOUT]?: number // Watchdog timeout, in seconds
 
   /**
    * childPkg stores the `package.json` that the NPM module who extends the `Puppet`
@@ -114,10 +125,10 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
     this.counter = PUPPET_COUNTER++
 
-    const WATCHDOG_TIMEOUT = 1 * 60 * 1000  // default 1 minute
-
     this.state    = new StateSwitch(this.constructor.name, log)
-    this.watchdog = new Watchdog(WATCHDOG_TIMEOUT, 'Puppet')
+
+    const timeout = this[WATCHDOG_TIMEOUT] || DEFAULT_WATCHDOG_TIMEOUT
+    this.watchdog = new Watchdog(1000 * timeout, 'Puppet')
 
     const lruOptions: LRU.Options = {
       max: 10000,
@@ -129,7 +140,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     }
 
     this.cacheContactPayload       = new LRU<string, ContactPayload>(lruOptions)
-    this.cacheFriendRequestPayload = new LRU<string, FriendRequestPayload>(lruOptions)
+    this.cacheFriendshipPayload = new LRU<string, FriendshipPayload>(lruOptions)
     this.cacheMessagePayload       = new LRU<string, MessagePayload>(lruOptions)
     this.cacheRoomPayload          = new LRU<string, RoomPayload>(lruOptions)
     this.cacheRoomMemberPayload    = new LRU<string, RoomMemberPayload>(lruOptions)
@@ -173,17 +184,17 @@ export abstract class Puppet extends EventEmitter implements Sayable {
    *
    *
    */
-  public emit(event: 'error',       error: string)                                                      : boolean
-  public emit(event: 'friend',      requestId: string)                                                  : boolean
-  public emit(event: 'login',       contactId: string)                                                  : boolean
-  public emit(event: 'logout',      contactId: string)                                                  : boolean
-  public emit(event: 'message',     messageId: string)                                                  : boolean
-  public emit(event: 'room-join',   roomId: string, inviteeIdList: string[],  inviterId: string)        : boolean
-  public emit(event: 'room-leave',  roomId: string, leaverIdList: string[], remover?: string)           : boolean
-  public emit(event: 'room-topic',  roomId: string, topic: string, oldTopic: string, changerId: string) : boolean
-  public emit(event: 'scan',        qrcode: string, status: number, data?: string)                      : boolean
-  public emit(event: 'start')                                                                           : boolean
-  public emit(event: 'stop')                                                                            : boolean
+  public emit(event: 'error',       error: string)                                                         : boolean
+  public emit(event: 'friendship',  friendshipId: string)                                                  : boolean
+  public emit(event: 'login',       contactId: string)                                                     : boolean
+  public emit(event: 'logout',      contactId: string)                                                     : boolean
+  public emit(event: 'message',     messageId: string)                                                     : boolean
+  public emit(event: 'room-join',   roomId: string, inviteeIdList: string[],  inviterId: string)           : boolean
+  public emit(event: 'room-leave',  roomId: string, leaverIdList: string[], remover?: string)              : boolean
+  public emit(event: 'room-topic',  roomId: string, newTopic: string, oldTopic: string, changerId: string) : boolean
+  public emit(event: 'scan',        qrcode: string, status: number, data?: string)                         : boolean
+  public emit(event: 'start')                                                                              : boolean
+  public emit(event: 'stop')                                                                               : boolean
   // Internal Usage: watchdog
   public emit(event: 'watchdog',    food: WatchdogFood) : boolean
 
@@ -203,17 +214,17 @@ export abstract class Puppet extends EventEmitter implements Sayable {
    *
    *
    */
-  public on(event: 'error',       listener: (error: string) => void)                                                      : this
-  public on(event: 'friend',      listener: (requestId: string) => void)                                                  : this
-  public on(event: 'login',       listener: (contactId: string) => void)                                                  : this
-  public on(event: 'logout',      listener: (contactId: string) => void)                                                  : this
-  public on(event: 'message',     listener: (messageId: string) => void)                                                  : this
-  public on(event: 'room-join',   listener: (roomId: string, inviteeIdList: string[], inviterId:  string) => void)        : this
-  public on(event: 'room-leave',  listener: (roomId: string, leaverIdList : string[], removerId?: string) => void)        : this
-  public on(event: 'room-topic',  listener: (roomId: string, topic: string, oldTopic: string, changerId: string) => void) : this
-  public on(event: 'scan',        listener: (qrcode: string, status: number, data?: string) => void)                      : this
-  public on(event: 'start',       listener: () => void)                                                                   : this
-  public on(event: 'stop',        listener: () => void)                                                                   : this
+  public on(event: 'error',       listener: (error: string) => void)                                                         : this
+  public on(event: 'friendship',  listener: (friendshipId: string) => void)                                                  : this
+  public on(event: 'login',       listener: (contactId: string) => void)                                                     : this
+  public on(event: 'logout',      listener: (contactId: string) => void)                                                     : this
+  public on(event: 'message',     listener: (messageId: string) => void)                                                     : this
+  public on(event: 'room-join',   listener: (roomId: string, inviteeIdList: string[], inviterId:  string) => void)           : this
+  public on(event: 'room-leave',  listener: (roomId: string, leaverIdList : string[], removerId?: string) => void)           : this
+  public on(event: 'room-topic',  listener: (roomId: string, newTopic: string, oldTopic: string, changerId: string) => void) : this
+  public on(event: 'scan',        listener: (qrcode: string, status: number, data?: string) => void)                         : this
+  public on(event: 'start',       listener: () => void)                                                                      : this
+  public on(event: 'stop',        listener: () => void)                                                                      : this
   // Internal Usage: watchdog
   public on(event: 'watchdog',    listener: (data: WatchdogFood) => void) : this
 
@@ -496,47 +507,47 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   /**
    *
-   * FriendRequest
+   * Friendship
    *
    */
-  public abstract async friendRequestSend(contactId: string, hello?: string) : Promise<void>
-  public abstract async friendRequestAccept(friendRequestId: string)         : Promise<void>
-  public abstract async friendRequestRawPayload(friendRequestId: string)     : Promise<any>
-  public abstract async friendRequestRawPayloadParser(rawPayload: any)       : Promise<FriendRequestPayload>
+  public abstract async friendshipVerify(contactId: string, hello?: string) : Promise<void>
+  public abstract async friendshipAccept(friendshipId: string)              : Promise<void>
+  public abstract async friendshipRawPayload(friendshipId: string)          : Promise<any>
+  public abstract async friendshipRawPayloadParser(rawPayload: any)         : Promise<FriendshipPayload>
 
-  public friendRequestPayloadCache(friendRequestId: string): undefined | FriendRequestPayload {
-    // log.silly('Puppet', 'friendRequestPayloadCache(id=%s) @ %s', friendRequestId, this)
-    if (!friendRequestId) {
+  public friendshipPayloadCache(friendshipId: string): undefined | FriendshipPayload {
+    // log.silly('Puppet', 'friendshipPayloadCache(id=%s) @ %s', friendshipId, this)
+    if (!friendshipId) {
       throw new Error('no id')
     }
-    const cachedPayload = this.cacheFriendRequestPayload.get(friendRequestId)
+    const cachedPayload = this.cacheFriendshipPayload.get(friendshipId)
 
     if (cachedPayload) {
-      // log.silly('Puppet', 'friendRequestPayload(%s) cache HIT', friendRequestId)
+      // log.silly('Puppet', 'friendshipPayloadCache(%s) cache HIT', friendshipId)
     } else {
-      log.silly('Puppet', 'friendRequestPayload(%s) cache MISS', friendRequestId)
+      log.silly('Puppet', 'friendshipPayloadCache(%s) cache MISS', friendshipId)
     }
 
     return cachedPayload
   }
 
-  public async friendRequestPayload(
-    friendRequestId: string,
+  public async friendshipPayload(
+    friendshipId: string,
     noCache = false,
-  ): Promise<FriendRequestPayload> {
-    log.verbose('Puppet', 'friendRequestPayload(id=%s, noCache=%s)', friendRequestId, noCache)
+  ): Promise<FriendshipPayload> {
+    log.verbose('Puppet', 'friendshipPayload(id=%s, noCache=%s)', friendshipId, noCache)
 
-    if (!friendRequestId) {
+    if (!friendshipId) {
       throw new Error('no id')
     }
 
     if (noCache) {
-      log.silly('Puppet', 'friendRequestPayload(%s) cache PURGE', friendRequestId)
+      log.silly('Puppet', 'friendshipPayload(%s) cache PURGE', friendshipId)
 
-      this.cacheFriendRequestPayload.del(friendRequestId)
+      this.cacheFriendshipPayload.del(friendshipId)
 
     } else {
-      const cachedPayload = this.friendRequestPayloadCache(friendRequestId)
+      const cachedPayload = this.friendshipPayloadCache(friendshipId)
       if (cachedPayload) {
 
         return cachedPayload
@@ -547,10 +558,10 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     /**
      * Cache not found
      */
-    const rawPayload = await this.friendRequestRawPayload(friendRequestId)
-    const payload    = await this.friendRequestRawPayloadParser(rawPayload)
+    const rawPayload = await this.friendshipRawPayload(friendshipId)
+    const payload    = await this.friendshipRawPayloadParser(rawPayload)
 
-    this.cacheFriendRequestPayload.set(friendRequestId, payload)
+    this.cacheFriendshipPayload.set(friendshipId, payload)
 
     return payload
   }
@@ -651,9 +662,20 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   public async roomMemberSearch(
     roomId : string,
-    query  : string | RoomMemberQueryFilter,
+    query  : (YOU | string) | RoomMemberQueryFilter,
   ): Promise<string[]> {
     log.verbose('Puppet', 'roomMemberSearch(%s, %s)', roomId, JSON.stringify(query))
+
+    if (!this.id) {
+      throw new Error('no puppet.id')
+    }
+
+    /**
+     * 0. for YOU: 'You', '你'
+     */
+    if (query === YOU) {
+      return [this.id]
+    }
 
     /**
      * 1. for Text Query
