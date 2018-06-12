@@ -1,7 +1,3 @@
-// import {
-//   YOU,
-// }         from '../../puppet/'
-
 import { PadchatMessagePayload } from '../padchat-schemas'
 
 export function friendshipConfirmEventMessageParser(rawPayload: PadchatMessagePayload): null | string {

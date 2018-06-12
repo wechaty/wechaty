@@ -13,8 +13,6 @@ import {
   isRoomId,
 }               from './is-type'
 
-import { log }          from '../../config'
-
 const REGEX_CONFIG = {
   roomJoinInvite: [
     /^"(.+?)"邀请"(.+)"加入了群聊$/,
@@ -59,10 +57,9 @@ const REGEX_CONFIG = {
  *  "李佳芮"邀请你加入了群聊，群聊参与人还有：小桔、桔小秘、小小桔、wuli舞哩客服、舒米
  *  "李卓桓"邀请你和"Huan LI++"加入了群聊
  */
-function parseRoomJoin(
-  content: string,
-): [string[], string] {
-  log.verbose('PuppetPadchatFirer', 'parseRoomJoin(%s)', content)
+export function roomJoinEventMessageParser(rawPayload: PadchatMessagePayload): null | PuppetRoomJoinEvent {
+  const roomId = rawPayload.from_user
+  const content = rawPayload.content
 
   const reListInvite = REGEX_CONFIG.roomJoinInvite
   // TODO:
@@ -84,7 +81,7 @@ function parseRoomJoin(
   /**
    * 李卓桓 invited you and Huan to the group chat
    */
-  let inviteeNameList: string[] = []
+  let inviteeNameList: (string | YOU)[] = []
   if (/^you and/.test(inviteeStr)) {
     inviteeNameList = inviteeStr.split(/ and /)
   } else {
@@ -99,14 +96,6 @@ function parseRoomJoin(
     inviteeNameList = ['你', invitee]
   }
 
-  return [inviteeNameList, inviterName] // put invitee at first place
-}
-
-export function roomJoinEventMessageParser(rawPayload: PadchatMessagePayload): null | PuppetRoomJoinEvent {
-  const roomId = rawPayload.from_user
-  const content = rawPayload.content
-  const [inviteeRawNameList, inviterName] = parseRoomJoin(content)
-  const inviteeNameList: (string | YOU)[] = inviteeRawNameList
   if (!isRoomId(roomId)) {
     return null
   }
@@ -132,9 +121,10 @@ export function roomJoinEventMessageParser(rawPayload: PadchatMessagePayload): n
  *  你将"Huan LI++"移出了群聊
  *  你被"李卓桓"移出群聊
  */
-function parseRoomLeave(
-  content: string,
-): [string, string] {
+export function roomLeaveEventMessageParser(rawPayload: PadchatMessagePayload): null | PuppetRoomLeaveEvent {
+  const roomId = rawPayload.from_user
+  const content = rawPayload.content
+
   let matchIKickOther: null | string[] = []
   REGEX_CONFIG.roomLeaveBotKickOther.some(
     regex => !!(
@@ -149,8 +139,8 @@ function parseRoomLeave(
     ),
   )
 
-  let leaverName  : undefined | string
-  let removerName : undefined | string
+  let leaverName  : undefined | string | YOU
+  let removerName : undefined | string | YOU
 
   if (matchIKickOther && matchIKickOther.length) {
     leaverName  = matchIKickOther[2]
@@ -162,24 +152,15 @@ function parseRoomLeave(
     throw new Error('no match')
   }
 
-  return [leaverName, removerName]
-}
-
-export function roomLeaveEventMessageParser(rawPayload: PadchatMessagePayload): null | PuppetRoomLeaveEvent {
-  const roomId = rawPayload.from_user
-  const content = rawPayload.content
-  const [leaverRawName, removerRawName] = parseRoomLeave(content)
-  let leaverName: string | YOU = leaverRawName
-  let removerName: string | YOU = removerRawName
   if (!isRoomId(roomId)) {
     return null
   }
 
-  if (leaverRawName === '你' || leaverRawName === 'You') {
+  if (leaverName === '你' || leaverName === 'You') {
     leaverName = YOU
   }
 
-  if (removerRawName === '你' || removerRawName === 'You') {
+  if (removerName === '你' || removerName === 'You') {
     removerName = YOU
   }
 
@@ -191,9 +172,10 @@ export function roomLeaveEventMessageParser(rawPayload: PadchatMessagePayload): 
   return roomLeaveEvent
 }
 
-function parseRoomTopic(
-  content: string,
-): [string, string] {
+export function roomTopicEventMessageParser(rawPayload: PadchatMessagePayload): null | PuppetRoomTopicEvent {
+  const roomId = rawPayload.from_user
+  const content = rawPayload.content
+
   const reList = REGEX_CONFIG.roomTopic
 
   let found: string[]|null = []
@@ -201,21 +183,17 @@ function parseRoomTopic(
   if (!found || !found.length) {
     throw new Error('checkRoomTopic() not found')
   }
-  const [, changer, topic] = found
-  return [topic, changer]
-}
 
-export function roomTopicEventMessageParser(rawPayload: PadchatMessagePayload): null | PuppetRoomTopicEvent {
-  const roomId = rawPayload.from_user
-  const content = rawPayload.content
-  const [topic, rawChangerName] = parseRoomTopic(content)
-  let changerName: string | YOU = rawChangerName
+  let changerName: undefined | string | YOU
+  let topic: string
+
+  [, changerName, topic] = found
 
   if (!isRoomId(roomId)) {
     return null
   }
 
-  if (rawChangerName === '你' || rawChangerName === 'You') {
+  if (changerName === '你' || changerName === 'You') {
     changerName = YOU
   }
 
