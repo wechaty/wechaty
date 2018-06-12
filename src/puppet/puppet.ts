@@ -69,6 +69,7 @@ import {
   Receiver,
 
   WATCHDOG_TIMEOUT,
+  YOU,
 }                       from './schemas/puppet'
 
 const DEFAULT_WATCHDOG_TIMEOUT = 60
@@ -661,9 +662,20 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   public async roomMemberSearch(
     roomId : string,
-    query  : string | RoomMemberQueryFilter,
+    query  : (YOU | string) | RoomMemberQueryFilter,
   ): Promise<string[]> {
     log.verbose('Puppet', 'roomMemberSearch(%s, %s)', roomId, JSON.stringify(query))
+
+    if (!this.id) {
+      throw new Error('no puppet.id')
+    }
+
+    /**
+     * 0. for YOU: 'You', '你'
+     */
+    if (query === YOU) {
+      return [this.id]
+    }
 
     /**
      * 1. for Text Query
