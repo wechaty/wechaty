@@ -1,31 +1,31 @@
-export enum FriendRequestType {
+export enum FriendshipType {
   Unknown = 0,
   Confirm,
   Receive,
   Verify,
 }
 
-export interface FriendRequestPayloadBase {
+export interface FriendshipPayloadBase {
   id        : string,
 
   contactId : string,
   hello?    : string,
 }
 
-export type FriendRequestPayloadConfirm = FriendRequestPayloadBase & {
-  type      : FriendRequestType.Confirm,
+export type FriendshipPayloadConfirm = FriendshipPayloadBase & {
+  type      : FriendshipType.Confirm,
 }
 
-export type FriendRequestPayloadReceive = FriendRequestPayloadBase & {
+export type FriendshipPayloadReceive = FriendshipPayloadBase & {
   stranger? : string,
   ticket    : string,
-  type      : FriendRequestType.Receive,
+  type      : FriendshipType.Receive,
 }
 
-export type FriendRequestPayloadVerify = FriendRequestPayloadBase & {
-  type      : FriendRequestType.Verify,
+export type FriendshipPayloadVerify = FriendshipPayloadBase & {
+  type      : FriendshipType.Verify,
 }
 
-export type FriendRequestPayload = FriendRequestPayloadConfirm
-                                  | FriendRequestPayloadReceive
-                                  | FriendRequestPayloadVerify
+export type FriendshipPayload = FriendshipPayloadConfirm
+                                  | FriendshipPayloadReceive
+                                  | FriendshipPayloadVerify

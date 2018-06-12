@@ -30,7 +30,7 @@ import {
   // Contact,
   log,
   Wechaty,
-  FriendRequest,
+  Friendship,
 }           from '../src/'
 
 const welcome = `
@@ -93,7 +93,7 @@ bot
        * when request is set, we can get verify message from `request.hello`,
        * and accept this request by `request.accept()`
        */
-      case FriendRequest.Type.Receive:
+      case Friendship.Type.Receive:
         if (request.hello() === 'ding') {
           logMsg = 'accepted automatically because verify messsage is "ding"'
           console.log('before accept')
@@ -110,7 +110,7 @@ bot
          * 2. Friend Ship Confirmed
          *
          */
-      case FriendRequest.Type.Confirm:
+      case Friendship.Type.Confirm:
         logMsg = 'friend ship confirmed with ' + request.contact().name()
         break
     }

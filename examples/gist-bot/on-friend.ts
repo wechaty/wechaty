@@ -23,19 +23,19 @@
  * when you are runing with Docker or NPM instead of Git Source.
  */
 import {
-  FriendRequest,
+  Friendship,
   Wechaty,
   // Room,
 }                 from '../../src/'
 
 export async function onFriend(
   this:     Wechaty,
-  request: FriendRequest,
+  request: Friendship,
 ): Promise<void> {
   try {
     const contact = request.contact()
 
-    if (request.type() === FriendRequest.Type.Confirm) {
+    if (request.type() === Friendship.Type.Confirm) {
       console.log('New friend ' + contact.name() + ' relationship confirmed!')
       return
     }

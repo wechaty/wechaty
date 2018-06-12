@@ -42,8 +42,8 @@ import {
 
   Receiver,
 
-  FriendRequestPayload,
-  FriendRequestPayloadReceive,
+  FriendshipPayload,
+  FriendshipPayloadReceive,
 
   WATCHDOG_TIMEOUT,
 }                                 from '../puppet/'
@@ -52,7 +52,7 @@ import {
   contactRawPayloadParser,
   fileBoxToQrcode,
   // friendRequestEventMessageParser,
-  friendRequestRawPayloadParser,
+  friendshipRawPayloadParser,
   messageRawPayloadParser,
   roomJoinEventMessageParser,
   roomLeaveEventMessageParser,
@@ -102,8 +102,8 @@ export class PuppetPadchat extends Puppet {
   protected [WATCHDOG_TIMEOUT] = 4 * 60
 
   // private readonly cachePadchatContactPayload       : LRU.Cache<string, PadchatContactRawPayload>
-  private readonly cachePadchatFriendRequestPayload : LRU.Cache<string, PadchatMessagePayload>
-  private readonly cachePadchatMessagePayload       : LRU.Cache<string, PadchatMessagePayload>
+  private readonly cachePadchatFriendshipPayload : LRU.Cache<string, PadchatMessagePayload>
+  private readonly cachePadchatMessagePayload    : LRU.Cache<string, PadchatMessagePayload>
   // private readonly cachePadchatRoomPayload          : LRU.Cache<string, PadchatRoomRawPayload>
 
   public bridge?:  PadchatManager
@@ -123,7 +123,7 @@ export class PuppetPadchat extends Puppet {
     }
 
     // this.cachePadchatContactPayload       = new LRU<string, PadchatContactRawPayload>(lruOptions)
-    this.cachePadchatFriendRequestPayload = new LRU<string, PadchatMessagePayload>(lruOptions)
+    this.cachePadchatFriendshipPayload = new LRU<string, PadchatMessagePayload>(lruOptions)
     this.cachePadchatMessagePayload       = new LRU<string, PadchatMessagePayload>(lruOptions)
     // this.cachePadchatRoomPayload          = new LRU<string, PadchatRoomRawPayload>(lruOptions)
   }
@@ -252,7 +252,7 @@ export class PuppetPadchat extends Puppet {
 
     switch (rawPayload.sub_type) {
       case PadchatMessageType.VerifyMsg:
-        this.cachePadchatFriendRequestPayload.set(
+        this.cachePadchatFriendshipPayload.set(
           rawPayload.msg_id,
           rawPayload,
         )
@@ -913,14 +913,14 @@ export class PuppetPadchat extends Puppet {
 
   /**
    *
-   * FriendRequest
+   * Friendship
    *
    */
-  public async friendRequestSend(
+  public async friendshipVerify(
     contactId : string,
     hello     : string,
   ): Promise<void> {
-    log.verbose('PuppetPadchat', 'friendRequestSend(%s, %s)', contactId, hello)
+    log.verbose('PuppetPadchat', 'friendshipVerify(%s, %s)', contactId, hello)
 
     const rawPayload = await this.contactRawPayload(contactId)
 
@@ -951,14 +951,14 @@ export class PuppetPadchat extends Puppet {
     )
   }
 
-  public async friendRequestAccept(
-    friendRequestId : string,
+  public async friendshipAccept(
+    friendshipId : string,
   ): Promise<void> {
-    log.verbose('PuppetPadchat', 'friendRequestAccept(%s)', friendRequestId)
+    log.verbose('PuppetPadchat', 'friendshipAccept(%s)', friendshipId)
 
-    const payload = await this.friendRequestPayload(friendRequestId) as FriendRequestPayloadReceive
+    const payload = await this.friendshipPayload(friendshipId) as FriendshipPayloadReceive
 
-    console.log('friendRequestAccept: ', payload)
+    console.log('friendshipAccept: ', payload)
 
     if (!payload.ticket) {
       throw new Error('no ticket')
@@ -977,19 +977,19 @@ export class PuppetPadchat extends Puppet {
     )
   }
 
-  public async friendRequestRawPayloadParser(rawPayload: PadchatMessagePayload) : Promise<FriendRequestPayload> {
-    log.verbose('PuppetPadchat', 'friendRequestRawPayloadParser({id=%s})', rawPayload.msg_id)
+  public async friendshipRawPayloadParser(rawPayload: PadchatMessagePayload) : Promise<FriendshipPayload> {
+    log.verbose('PuppetPadchat', 'friendshipRawPayloadParser({id=%s})', rawPayload.msg_id)
 
-    const payload: FriendRequestPayload = await friendRequestRawPayloadParser(rawPayload)
+    const payload: FriendshipPayload = await friendshipRawPayloadParser(rawPayload)
     return payload
   }
 
-  public async friendRequestRawPayload(friendRequestId: string): Promise<PadchatMessagePayload> {
-    log.verbose('PuppetPadchat', 'friendRequestRawPayload(%s)', friendRequestId)
+  public async friendshipRawPayload(friendshipId: string): Promise<PadchatMessagePayload> {
+    log.verbose('PuppetPadchat', 'friendshipRawPayload(%s)', friendshipId)
 
-    const rawPayload = this.cachePadchatFriendRequestPayload.get(friendRequestId)
+    const rawPayload = this.cachePadchatFriendshipPayload.get(friendshipId)
     if (!rawPayload) {
-      throw new Error('no rawPayload for id ' + friendRequestId)
+      throw new Error('no rawPayload for id ' + friendshipId)
     }
 
     return rawPayload

@@ -2,24 +2,24 @@
 import { toJson } from 'xml2json'
 
 import {
-  FriendRequestPayload,
-  FriendRequestType,
+  FriendshipPayload,
+  FriendshipType,
 }                       from '../../puppet/'
 
 import {
   PadchatMessagePayload,
-  PadchatFriendRequestPayload,
+  PadchatFriendshipPayload,
 }                                 from '../padchat-schemas'
 
-export async function friendRequestRawPayloadParser(
+export async function friendshipRawPayloadParser(
   rawPayload: PadchatMessagePayload,
-) : Promise<FriendRequestPayload> {
+) : Promise<FriendshipPayload> {
 
   let tryXmlText = rawPayload.content
   tryXmlText = tryXmlText.replace(/\+/g, ' ')
 
   interface XmlSchema {
-    msg?: PadchatFriendRequestPayload,
+    msg?: PadchatFriendshipPayload,
   }
 
   const obj: XmlSchema = JSON.parse(toJson(tryXmlText))
@@ -27,8 +27,8 @@ export async function friendRequestRawPayloadParser(
   if (!obj.msg) {
     throw new Error('no msg found')
   }
-  const padchatFriendRequestPayload: PadchatFriendRequestPayload = obj.msg
-  // const padchatFriendRequestPayload = await new Promise<PadchatFriendRequestPayload>((resolve, reject) => {
+  const padchatFriendshipPayload: PadchatFriendshipPayload = obj.msg
+  // const padchatFriendshipPayload = await new Promise<PadchatFriendshipPayload>((resolve, reject) => {
   //   parseString(tryXmlText, { explicitArray: false }, (err, obj: XmlSchema) => {
   //     if (err) {  // HTML can not be parsed to JSON
   //       return reject(err)
@@ -43,18 +43,18 @@ export async function friendRequestRawPayloadParser(
   //     return resolve(obj.msg.$)
   //   })
   // })
-  // console.log(padchatFriendRequestPayload)
+  // console.log(padchatFriendshipPayload)
 
-  const friendRequestPayload: FriendRequestPayload = {
+  const friendshipPayload: FriendshipPayload = {
     id        : rawPayload.msg_id,
-    contactId : padchatFriendRequestPayload.fromusername,
-    hello     : padchatFriendRequestPayload.content,
-    stranger  : padchatFriendRequestPayload.encryptusername,
-    ticket    : padchatFriendRequestPayload.ticket,
-    type      : FriendRequestType.Receive,
+    contactId : padchatFriendshipPayload.fromusername,
+    hello     : padchatFriendshipPayload.content,
+    stranger  : padchatFriendshipPayload.encryptusername,
+    ticket    : padchatFriendshipPayload.ticket,
+    type      : FriendshipType.Receive,
   }
 
-  return friendRequestPayload
+  return friendshipPayload
 
   // switch (rawPayload.sub_type) {
   //   case PadchatMessageType.VerifyMsg:
@@ -67,20 +67,20 @@ export async function friendRequestRawPayloadParser(
   //       throw new Error('no recommendInfo')
   //     }
 
-  //     const payloadReceive: FriendRequestPayloadReceive = {
+  //     const payloadReceive: FriendshipPayloadReceive = {
   //       id        : rawPayload.MsgId,
   //       contactId : recommendInfo.UserName,
   //       hello     : recommendInfo.Content,
   //       ticket    : recommendInfo.Ticket,
-  //       type      : FriendRequestType.Receive,
+  //       type      : FriendshipType.Receive,
   //     }
   //     return payloadReceive
 
   //   case PadchatMessageType.Sys:
-  //     const payloadConfirm: FriendRequestPayloadConfirm = {
+  //     const payloadConfirm: FriendshipPayloadConfirm = {
   //       id        : rawPayload.MsgId,
   //       contactId : rawPayload.FromUserName,
-  //       type      : FriendRequestType.Confirm,
+  //       type      : FriendshipType.Confirm,
   //     }
   //     return payloadConfirm
 

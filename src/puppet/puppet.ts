@@ -50,7 +50,7 @@ import {
   ContactPayloadFilterFunction,
 }                                 from './schemas/contact'
 import {
-  FriendRequestPayload,
+  FriendshipPayload,
 }                                 from './schemas/friendship'
 import {
   MessagePayload,
@@ -85,7 +85,7 @@ let   PUPPET_COUNTER           = 0
 export abstract class Puppet extends EventEmitter implements Sayable {
 
   public readonly cacheContactPayload       : LRU.Cache<string, ContactPayload>
-  public readonly cacheFriendRequestPayload : LRU.Cache<string, FriendRequestPayload>
+  public readonly cacheFriendshipPayload : LRU.Cache<string, FriendshipPayload>
   public readonly cacheMessagePayload       : LRU.Cache<string, MessagePayload>
   public readonly cacheRoomPayload          : LRU.Cache<string, RoomPayload>
   public readonly cacheRoomMemberPayload    : LRU.Cache<string, RoomMemberPayload>
@@ -140,7 +140,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     }
 
     this.cacheContactPayload       = new LRU<string, ContactPayload>(lruOptions)
-    this.cacheFriendRequestPayload = new LRU<string, FriendRequestPayload>(lruOptions)
+    this.cacheFriendshipPayload = new LRU<string, FriendshipPayload>(lruOptions)
     this.cacheMessagePayload       = new LRU<string, MessagePayload>(lruOptions)
     this.cacheRoomPayload          = new LRU<string, RoomPayload>(lruOptions)
     this.cacheRoomMemberPayload    = new LRU<string, RoomMemberPayload>(lruOptions)
@@ -507,47 +507,47 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   /**
    *
-   * FriendRequest
+   * Friendship
    *
    */
-  public abstract async friendRequestSend(contactId: string, hello?: string) : Promise<void>
-  public abstract async friendRequestAccept(friendRequestId: string)         : Promise<void>
-  public abstract async friendRequestRawPayload(friendRequestId: string)     : Promise<any>
-  public abstract async friendRequestRawPayloadParser(rawPayload: any)       : Promise<FriendRequestPayload>
+  public abstract async friendshipVerify(contactId: string, hello?: string) : Promise<void>
+  public abstract async friendshipAccept(friendshipId: string)              : Promise<void>
+  public abstract async friendshipRawPayload(friendshipId: string)          : Promise<any>
+  public abstract async friendshipRawPayloadParser(rawPayload: any)         : Promise<FriendshipPayload>
 
-  public friendRequestPayloadCache(friendRequestId: string): undefined | FriendRequestPayload {
-    // log.silly('Puppet', 'friendRequestPayloadCache(id=%s) @ %s', friendRequestId, this)
-    if (!friendRequestId) {
+  public friendshipPayloadCache(friendshipId: string): undefined | FriendshipPayload {
+    // log.silly('Puppet', 'friendshipPayloadCache(id=%s) @ %s', friendshipId, this)
+    if (!friendshipId) {
       throw new Error('no id')
     }
-    const cachedPayload = this.cacheFriendRequestPayload.get(friendRequestId)
+    const cachedPayload = this.cacheFriendshipPayload.get(friendshipId)
 
     if (cachedPayload) {
-      // log.silly('Puppet', 'friendRequestPayload(%s) cache HIT', friendRequestId)
+      // log.silly('Puppet', 'friendshipPayloadCache(%s) cache HIT', friendshipId)
     } else {
-      log.silly('Puppet', 'friendRequestPayload(%s) cache MISS', friendRequestId)
+      log.silly('Puppet', 'friendshipPayloadCache(%s) cache MISS', friendshipId)
     }
 
     return cachedPayload
   }
 
-  public async friendRequestPayload(
-    friendRequestId: string,
+  public async friendshipPayload(
+    friendshipId: string,
     noCache = false,
-  ): Promise<FriendRequestPayload> {
-    log.verbose('Puppet', 'friendRequestPayload(id=%s, noCache=%s)', friendRequestId, noCache)
+  ): Promise<FriendshipPayload> {
+    log.verbose('Puppet', 'friendshipPayload(id=%s, noCache=%s)', friendshipId, noCache)
 
-    if (!friendRequestId) {
+    if (!friendshipId) {
       throw new Error('no id')
     }
 
     if (noCache) {
-      log.silly('Puppet', 'friendRequestPayload(%s) cache PURGE', friendRequestId)
+      log.silly('Puppet', 'friendshipPayload(%s) cache PURGE', friendshipId)
 
-      this.cacheFriendRequestPayload.del(friendRequestId)
+      this.cacheFriendshipPayload.del(friendshipId)
 
     } else {
-      const cachedPayload = this.friendRequestPayloadCache(friendRequestId)
+      const cachedPayload = this.friendshipPayloadCache(friendshipId)
       if (cachedPayload) {
 
         return cachedPayload
@@ -558,10 +558,10 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     /**
      * Cache not found
      */
-    const rawPayload = await this.friendRequestRawPayload(friendRequestId)
-    const payload    = await this.friendRequestRawPayloadParser(rawPayload)
+    const rawPayload = await this.friendshipRawPayload(friendshipId)
+    const payload    = await this.friendshipRawPayloadParser(rawPayload)
 
-    this.cacheFriendRequestPayload.set(friendRequestId, payload)
+    this.cacheFriendshipPayload.set(friendshipId, payload)
 
     return payload
   }

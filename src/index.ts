@@ -22,7 +22,7 @@ export {
   Contact,
 }                         from './contact'
 export {
-  FriendRequest,
+  Friendship,
 }                         from './friendship'
 export {
   Message,
