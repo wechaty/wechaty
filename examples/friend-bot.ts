@@ -61,7 +61,18 @@ console.log(welcome)
 const bot = Wechaty.instance({ profile: config.default.DEFAULT_PROFILE })
 
 bot
-.on('login'	  , user => log.info('Bot', `${user.name()} logined`))
+.on('login'	  , user => {
+  log.info('Bot', `${user.name()} logined`)
+
+  setTimeout(async () => {
+    console.log('begin to send friendrequest to user')
+    // Should add wxid here
+    const contact = bot.Contact.load('xxx')
+    await bot.FriendRequest.send(contact, 'hello wechaty')
+    console.log('done send friend request to user')
+
+  }, 5 * 1000)
+})
 .on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
 .on('error'   , e => log.info('Bot', 'error: %s', e))
 .on('scan', (url, code) => {

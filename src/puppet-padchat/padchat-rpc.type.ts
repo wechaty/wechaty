@@ -125,3 +125,60 @@ export interface WXHeartBeatType {
   status  : number,   // 0
   message : string,   // ok
 }
+
+export enum WXSearchContactTypeStatus {
+  Searchable   = 0,
+  UnSearchable = -24,
+}
+
+// Difference with Contact Payload
+// see more in https://github.com/lijiarui/wechaty-puppet-padchat/issues/54
+export interface WXSearchContactType {
+  big_head : string,   // '',
+  city     : string,   // '',
+  country  : string,   // '',
+  // tslint:disable-next-line:max-line-length
+  message    : string,   // '\n�\u0002<e>\n<ShowType>1</ShowType>\n<Content><![CDATA[找不到相关帐号或内容]]></Content>\n<Url><![CDATA[]]></Url>\n<DispSec>30</DispSec>\n<Title><![CDATA[]]></Title>\n<Action>2</Action>\n<DelayConnSec>0</DelayConnSec>\n<Countdown>0</Countdown>\n<Ok><![CDATA[]]></Ok>\n<Cancel><![CDATA[]]></Cancel>\n</e>\n',
+  nick_name  : string,   // '',
+  provincia  : string,   // '',
+  py_initial : string,   // '',
+  quan_pin   : string,   // '',
+  sex        : number,   // 0,
+  signature  : string,   // '',
+  small_head : string,   // '',
+  // -24 represent raw wxid and cannot be searched, 0 represent can be search by wxid
+  status     : number,   // -24 | 0,
+  stranger   : string,   // '',
+  user_name  : string,   // ''
+}
+
+/**
+ * Raw type info:
+ * see more inhttps://ymiao.oss-cn-shanghai.aliyuncs.com/apifile.txt
+ * 2  - 通过搜索邮箱
+ * 3  - 通过微信号搜索
+ * 5  - 通过朋友验证消息
+ * 7  - 通过朋友验证消息(可回复)
+ * 12 - 通过QQ好友添加
+ * 14 - 通过群来源
+ * 15 - 通过搜索手机号
+ * 16 - 通过朋友验证消息
+ * 17 - 通过名片分享
+ * 22 - 通过摇一摇打招呼方式
+ * 25 - 通过漂流瓶
+ * 30 - 通过二维码方式
+ */
+export enum WXSearchContactTypeStatus {
+  EMAIL          = 2,    // search by email
+  WXID           = 3,    // search by wxid
+  VERIFY_NOREPLY = 5,    // search by friend verify without reply(朋友验证消息)
+  VERIFY_REPLY   = 7,    // search by friend verify(朋友验证消息，可回复)
+  QQ             = 12,   // search by qq friend
+  ROOM           = 14,   // search by room
+  MOBILE         = 15,   // search by mobile number
+  VERIFY         = 16,   // search friend verify
+  CONTACT        = 17,   // search by contact card
+  SHAKE          = 22,   // search by shake and shack
+  FLOAT          = 25,   // search by float bottle
+  QRCODE         = 30,   // search by scanning qrcode
+}

@@ -79,6 +79,10 @@ import {
   // PadchatPayloadType,
   // PadchatRoomRawMember,
 }                           from './padchat-schemas'
+import {
+  WXSearchContactType,
+  WXSearchContactTypeStatus,
+}                           from './padchat-rpc.type'
 
 export type PuppetFoodType = 'scan' | 'ding'
 export type ScanFoodType   = 'scan' | 'login' | 'logout'
@@ -817,31 +821,38 @@ export class PuppetPadchat extends Puppet {
   ): Promise<void> {
     log.verbose('PuppetPadchat', 'friendRequestSend(%s, %s)', contactId, hello)
 
-    const rawPayload = await this.contactRawPayload(contactId)
-
-    // XXX
-    console.log('rawPayload.stranger: ', rawPayload)
-
-    // let strangerV1
-    // let strangerV2
-    // if (pfHelper.isStrangerV1(rawPayload.stranger)) {
-    //   strangerV1 = rawPayload.stranger
-    // } else if (pfHelper.isStrangerV2(rawPayload.stranger)) {
-    //   strangerV2 = rawPayload.stranger
-    // } else {
-    //   throw new Error('stranger neither v1 nor v2!')
-    // }
-
     if (!this.bridge) {
       throw new Error('no bridge')
     }
 
-    // Issue #1252 : what's wrong here?
+    const rawSearchPayload: WXSearchContactType = await this.bridge.WXSearchContact(contactId)
+
+    /**
+     * If the contact is not stranger, than ussing WXSearchContact can get user_name
+     */
+    if (rawSearchPayload.user_name !== '' && !pfHelper.isStrangerV1(rawSearchPayload.user_name) && !pfHelper.isStrangerV2(rawSearchPayload.user_name)) {
+      log.warn('PuppetPadchat', 'friendRequestSend %s has been friend with bot, no need to send friend request!', contactId)
+      return
+    }
+
+    let strangerV1
+    let strangerV2
+    if (pfHelper.isStrangerV1(rawSearchPayload.stranger)) {
+      strangerV1 = rawSearchPayload.stranger
+      strangerV2 = rawSearchPayload.user_name
+    } else if (pfHelper.isStrangerV2(rawSearchPayload.stranger)) {
+      strangerV2 = rawSearchPayload.stranger
+      strangerV1 = rawSearchPayload.user_name
+    } else {
+      throw new Error('stranger neither v1 nor v2!')
+    }
+
+    // Issue #1252 : what's wrong here?, Trying to fix now...
 
     await this.bridge.WXAddUser(
-      rawPayload.stranger || '',
-      rawPayload.ticket   || '',
-      '14',
+      strangerV1 || '',
+      strangerV2 || '',
+      WXSearchContactTypeStatus.WXID, // default
       hello,
     )
   }
