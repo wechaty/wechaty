@@ -185,7 +185,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
    *
    */
   public emit(event: 'error',       error: string)                                                         : boolean
-  public emit(event: 'friend',      requestId: string)                                                     : boolean
+  public emit(event: 'friendship',  friendshipId: string)                                                  : boolean
   public emit(event: 'login',       contactId: string)                                                     : boolean
   public emit(event: 'logout',      contactId: string)                                                     : boolean
   public emit(event: 'message',     messageId: string)                                                     : boolean
@@ -215,7 +215,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
    *
    */
   public on(event: 'error',       listener: (error: string) => void)                                                         : this
-  public on(event: 'friend',      listener: (requestId: string) => void)                                                     : this
+  public on(event: 'friendship',  listener: (friendshipId: string) => void)                                                  : this
   public on(event: 'login',       listener: (contactId: string) => void)                                                     : this
   public on(event: 'logout',      listener: (contactId: string) => void)                                                     : this
   public on(event: 'message',     listener: (messageId: string) => void)                                                     : this

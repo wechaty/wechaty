@@ -156,7 +156,7 @@ export class Firer {
 
     // this.puppet.cacheFriendRequestPayload.set(id, payloadConfirm)
 
-    this.puppet.emit('friend', rawPayload.MsgId)
+    this.puppet.emit('friendship', rawPayload.MsgId)
   }
 
   public async checkRoomJoin(

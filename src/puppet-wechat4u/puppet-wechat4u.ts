@@ -232,12 +232,12 @@ export class PuppetWechat4u extends Puppet {
           break
 
         case WebMessageType.VERIFYMSG:
-          this.emit('friend', msg.MsgId)
+          this.emit('friendship', msg.MsgId)
           break
 
         case WebMessageType.SYS:
           if (this.isFriendConfirm(msg.Content)) {
-            this.emit('friend', msg.MsgId)
+            this.emit('friendship', msg.MsgId)
           }
           this.emit('message', msg.MsgId)
           break

@@ -28,7 +28,7 @@ import {
   // Room,
 }                 from '../../src/'
 
-export async function onFriend(
+export async function onFriendship(
   this:     Wechaty,
   request: Friendship,
 ): Promise<void> {

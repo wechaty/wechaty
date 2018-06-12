@@ -256,7 +256,7 @@ export class PuppetPadchat extends Puppet {
           rawPayload.msg_id,
           rawPayload,
         )
-        this.emit('friend', rawPayload.msg_id)
+        this.emit('friendship', rawPayload.msg_id)
         break
 
       case PadchatMessageType.Sys:

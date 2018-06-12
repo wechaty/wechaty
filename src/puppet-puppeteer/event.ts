@@ -199,7 +199,7 @@ async function onMessage(
   switch (rawPayload.MsgType) {
 
     case WebMessageType.VERIFYMSG:
-      this.emit('friend', rawPayload.MsgId)
+      this.emit('friendship', rawPayload.MsgId)
       // firer.checkFriendRequest(rawPayload)
       break
 

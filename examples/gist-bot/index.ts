@@ -28,9 +28,9 @@ import {
   log,
 }           from '../../src/'
 
-import { onMessage }  from './on-message'
-import { onFriend }   from './on-friend'
-import { onRoomJoin } from './on-room-join'
+import { onMessage }      from './on-message'
+import { onFriendship }   from './on-friend'
+import { onRoomJoin }     from './on-room-join'
 
 const welcome = `
 =============== Powered by Wechaty ===============
@@ -61,7 +61,7 @@ bot
 .on('error'   , error => log.info('Bot', 'error: %s', error))
 
 .on('message',    onMessage)
-.on('friend',     onFriend)
+.on('friendship', onFriendship)
 .on('room-join',  onRoomJoin)
 
 .start()

@@ -246,7 +246,7 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   public emit(event: 'error'      , error: Error)                                                     : boolean
-  public emit(event: 'friend'     , request: Friendship)                                           : boolean
+  public emit(event: 'friendship' , friendship: Friendship)                                           : boolean
   public emit(event: 'heartbeat'  , data: any)                                                        : boolean
   public emit(event: 'logout'     , user: ContactSelf)                                                : boolean
   public emit(event: 'login'      , user: ContactSelf)                                                : boolean
@@ -269,7 +269,7 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   public on(event: 'error'      , listener: string | ((this: Wechaty, error: Error) => void))                                                     : this
-  public on(event: 'friend'     , listener: string | ((this: Wechaty, request: Friendship) => void))                                           : this
+  public on(event: 'friendship' , listener: string | ((this: Wechaty, friendship: Friendship) => void))                                           : this
   public on(event: 'heartbeat'  , listener: string | ((this: Wechaty, data: any) => void))                                                        : this
   public on(event: 'logout'     , listener: string | ((this: Wechaty, user: ContactSelf) => void))                                                : this
   public on(event: 'login'      , listener: string | ((this: Wechaty, user: ContactSelf) => void))                                                : this
@@ -553,13 +553,17 @@ export class Wechaty extends Accessory implements Sayable {
         //   } )
         //   break
 
-        case 'friend':
-          puppet.removeAllListeners('friend')
-          puppet.on('friend', async requestId => {
-            const request = this.Friendship.load(requestId)
-            await request.ready()
-            this.emit('friend', request)
-            request.contact().emit('friend', request)
+        case 'friendship':
+          puppet.removeAllListeners('friendship')
+          puppet.on('friendship', async friendshipId => {
+            const friendship = this.Friendship.load(friendshipId)
+            await friendship.ready()
+            this.emit('friendship', friendship)
+            friendship.contact().emit('friendship', friendship)
+
+            // support deprecated event name: friend.
+            // Huan LI 201806
+            this.emit('friend' as any, friendship as any)
           })
           break
 

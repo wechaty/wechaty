@@ -76,16 +76,16 @@ bot
  * Wechaty Event: `friend`
  *
  */
-.on('friend', async request => {
+.on('friendship', async friendship => {
   let logMsg
   const fileHelper = bot.Contact.load('filehelper')
 
   try {
-    logMsg = 'received `friend` event from ' + request.contact().name()
+    logMsg = 'received `friend` event from ' + friendship.contact().name()
     fileHelper.say(logMsg)
     console.log(logMsg)
 
-    switch (request.type()) {
+    switch (friendship.type()) {
       /**
        *
        * 1. New Friend Request
@@ -94,14 +94,14 @@ bot
        * and accept this request by `request.accept()`
        */
       case Friendship.Type.Receive:
-        if (request.hello() === 'ding') {
+        if (friendship.hello() === 'ding') {
           logMsg = 'accepted automatically because verify messsage is "ding"'
           console.log('before accept')
-          await request.accept()
+          await friendship.accept()
           console.log('after accept')
 
         } else {
-          logMsg = 'not auto accepted, because verify message is: ' + request.hello()
+          logMsg = 'not auto accepted, because verify message is: ' + friendship.hello()
         }
         break
 
@@ -111,7 +111,7 @@ bot
          *
          */
       case Friendship.Type.Confirm:
-        logMsg = 'friend ship confirmed with ' + request.contact().name()
+        logMsg = 'friend ship confirmed with ' + friendship.contact().name()
         break
     }
   } catch (e) {

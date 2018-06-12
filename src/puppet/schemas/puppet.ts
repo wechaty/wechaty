@@ -44,7 +44,7 @@ export interface PuppetRoomTopicEvent {
 }
 
 export const CHAT_EVENT_DICT = {
-  friend      : 'document can be writen at here',
+  friendship  : 'document can be writen at here',
   login       : 'document can be writen at here',
   logout      : 'document can be writen at here',
   message     : 'document can be writen at here',
