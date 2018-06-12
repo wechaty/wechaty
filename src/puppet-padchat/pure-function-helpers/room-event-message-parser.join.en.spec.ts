@@ -91,7 +91,7 @@ test('roomJoinEventMessageParser() EN-other-invite-bot', async t => {
   t.deepEqual(event, EXPECTED_EVENT, 'should parse event')
 })
 
-test('roomJoinEventMessageParser() EN-other-invite-bot-with-others', async t => {
+test('roomJoinEventMessageParser() EN-other-invite-bot-with-2-others', async t => {
   const MESSAGE_PAYLOAD: PadchatMessagePayload = {
     content     : '李卓桓 invited you and Huan to the group chat',
     continue    : 1,

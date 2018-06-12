@@ -32,3 +32,13 @@ export function isStrangerV2(strangerId?: string): boolean {
   }
   return /^v2_/i.test(strangerId)
 }
+
+export function isPayload(payload: Object): boolean {
+  if (   payload
+      && typeof payload === 'object'
+      && Object.keys(payload).length > 0
+  ) {
+    return true
+  }
+  return false
+}
