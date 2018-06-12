@@ -17,6 +17,7 @@ import { messageRawPayloadParser } from './message-raw-payload-parser'
 
 test('messageRawPayloadParser', async t => {
 
+  t.skip('tbw')
   // t.test('text', async t => {
   //   const PADCHAT_MESSAGE_PAYLOAD_TEXT: PadchatMessagePayload = {
   //     content     : '1111',
@@ -140,5 +141,17 @@ test('room invitation created by bot', async t => {
      uin: 1928023446,
   }
 
-  // TODO: make sure the contactId/roomId is right
+  const EXPECTED_MESSAGE_PAYLOAD_ROOM_INVITATION: MessagePayload = {
+    id        : '4030118997146183783',
+    timestamp : 1528755135,
+    text      : '<sysmsg type="delchatroommember">\n\t<delchatroommember>\n\t\t<plain><![CDATA[You invited . 李 卓 桓 .呵呵 to the group chat.   ]]></plain>\n\t\t<text><![CDATA[You invited . 李 卓 桓 .呵呵 to the group chat.   ]]></text>\n\t\t<link>\n\t\t\t<scene>invite</scene>\n\t\t\t<text><![CDATA[  Revoke]]></text>\n\t\t\t<memberlist>\n\t\t\t\t<username><![CDATA[wxid_a8d806dzznm822]]></username>\n\t\t\t</memberlist>\n\t\t</link>\n\t</delchatroommember>\n</sysmsg>\n',
+    type      : 0,
+    fromId    : undefined,
+    toId      : 'wxid_5zj4i5htp9ih22',
+    roomId    : '3453262102@chatroom',
+  }
+
+  const payload = messageRawPayloadParser(MESSAGE_PAYLOAD)
+  // console.log('payload:', payload)
+  t.deepEqual(payload, EXPECTED_MESSAGE_PAYLOAD_ROOM_INVITATION, 'should parse room invitation message payload')
 })
