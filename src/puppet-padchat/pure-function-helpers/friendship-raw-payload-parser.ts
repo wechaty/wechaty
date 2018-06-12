@@ -1,4 +1,3 @@
-// import { parseString }  from 'xml2js'
 import { toJson } from 'xml2json'
 
 import {
@@ -22,28 +21,12 @@ export async function friendshipRawPayloadParser(
     msg?: PadchatFriendshipPayload,
   }
 
-  const obj: XmlSchema = JSON.parse(toJson(tryXmlText))
+  const jsonPayload: XmlSchema = JSON.parse(toJson(tryXmlText))
 
-  if (!obj.msg) {
+  if (!jsonPayload.msg) {
     throw new Error('no msg found')
   }
-  const padchatFriendshipPayload: PadchatFriendshipPayload = obj.msg
-  // const padchatFriendshipPayload = await new Promise<PadchatFriendshipPayload>((resolve, reject) => {
-  //   parseString(tryXmlText, { explicitArray: false }, (err, obj: XmlSchema) => {
-  //     if (err) {  // HTML can not be parsed to JSON
-  //       return reject(err)
-  //     }
-  //     if (!obj) {
-  //       // FIXME: when will this happen?
-  //       return reject(new Error('parseString() return empty obj'))
-  //     }
-  //     if (!obj.msg || !obj.msg.$) {
-  //       return reject(new Error('parseString() return unknown obj'))
-  //     }
-  //     return resolve(obj.msg.$)
-  //   })
-  // })
-  // console.log(padchatFriendshipPayload)
+  const padchatFriendshipPayload: PadchatFriendshipPayload = jsonPayload.msg
 
   const friendshipPayload: FriendshipPayload = {
     id        : rawPayload.msg_id,

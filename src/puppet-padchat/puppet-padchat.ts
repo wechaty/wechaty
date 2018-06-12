@@ -54,10 +54,16 @@ import {
   // friendRequestEventMessageParser,
   friendshipRawPayloadParser,
   messageRawPayloadParser,
+
+  roomRawPayloadParser,
+
   roomJoinEventMessageParser,
   roomLeaveEventMessageParser,
-  roomRawPayloadParser,
   roomTopicEventMessageParser,
+
+  friendshipConfirmEventMessageParser,
+  friendshipReceiveEventMessageParser,
+  friendshipVerifyEventMessageParser,
 }                                         from './pure-function-helpers'
 
 import {
@@ -260,7 +266,10 @@ export class PuppetPadchat extends Puppet {
         break
 
       case PadchatMessageType.Sys:
-        await this.onPadchatMessageSys(rawPayload)
+        await Promise.all([
+          this.onPadchatMessageFriendshipEvent(rawPayload),
+          this.onPadchatMessageRoomEvent(rawPayload),
+        ])
         break
 
       case PadchatMessageType.App:
@@ -281,8 +290,8 @@ export class PuppetPadchat extends Puppet {
     }
   }
 
-  protected async onPadchatMessageSys(rawPayload: PadchatMessagePayload) {
-    log.verbose('PuppetPadchat', 'onPadchatMessageSys({id=%s})')
+  protected async onPadchatMessageRoomEvent(rawPayload: PadchatMessagePayload): Promise<void> {
+    log.verbose('PuppetPadchat', 'onPadchatMessageRoomEvent({id=%s})')
     /**
      * 1. Look for room join event
      */
@@ -303,7 +312,7 @@ export class PuppetPadchat extends Puppet {
       if (inviterIdList.length < 1) {
         throw new Error('no inviterId found')
       } else if (inviterIdList.length > 1) {
-        log.warn('PuppetPadchat', 'onPadchatMessage() case PadchatMesssageSys: inviterId found more than 1, use the first one.')
+        log.warn('PuppetPadchat', 'onPadchatMessageRoomEvent() case PadchatMesssageSys: inviterId found more than 1, use the first one.')
       }
       const inviterId = inviterIdList[0]
 
@@ -357,13 +366,29 @@ export class PuppetPadchat extends Puppet {
 
       this.emit('room-topic',  roomId, newTopic, oldTopic, changerId)
     }
+  }
+
+  protected async onPadchatMessageFriendshipEvent(rawPayload: PadchatMessagePayload): Promise<void> {
+    log.verbose('PuppetPadchat', 'onPadchatMessageFriendshipEvent({id=%s})')
     /**
-     * 4. Look for friend request confirmation event
+     * 1. Look for friendship confirm event
      */
-    // const friendRequestConfirmation = friendRequestEventMessageParser(rawPayload)
-    // if (friendRequestConfirmation) {
-    //   this.emit('friend', )
-    // }
+    const friendshipConfirmContactId = friendshipConfirmEventMessageParser(rawPayload)
+    /**
+     * 2. Look for friendship receive event
+     */
+    const friendshipReceiveContactId = friendshipReceiveEventMessageParser(rawPayload)
+    /**
+     * 3. Look for friendship verify event
+     */
+    const friendshipVerifyContactId = friendshipVerifyEventMessageParser(rawPayload)
+
+    if (   friendshipConfirmContactId
+        || friendshipReceiveContactId
+        || friendshipVerifyContactId
+    ) {
+      this.emit('friendship', rawPayload.msg_id)
+    }
   }
 
   public async stop(): Promise<void> {
