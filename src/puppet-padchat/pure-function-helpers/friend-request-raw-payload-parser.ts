@@ -1,4 +1,5 @@
-import { parseString }  from 'xml2js'
+// import { parseString }  from 'xml2js'
+import { toJson } from 'xml2json'
 
 import {
   FriendRequestPayload,
@@ -18,27 +19,30 @@ export async function friendRequestRawPayloadParser(
   tryXmlText = tryXmlText.replace(/\+/g, ' ')
 
   interface XmlSchema {
-    msg?: {
-      $?: PadchatFriendRequestPayload,
-    }
+    msg?: PadchatFriendRequestPayload,
   }
 
-  const padchatFriendRequestPayload = await new Promise<PadchatFriendRequestPayload>((resolve, reject) => {
-    parseString(tryXmlText, { explicitArray: false }, (err, obj: XmlSchema) => {
-      if (err) {  // HTML can not be parsed to JSON
-        return reject(err)
-      }
-      if (!obj) {
-        // FIXME: when will this happen?
-        return reject(new Error('parseString() return empty obj'))
-      }
-      if (!obj.msg || !obj.msg.$) {
-        return reject(new Error('parseString() return unknown obj'))
-      }
-      return resolve(obj.msg.$)
-    })
-  })
+  const obj: XmlSchema = JSON.parse(toJson(tryXmlText))
 
+  if (!obj.msg) {
+    throw new Error('no msg found')
+  }
+  const padchatFriendRequestPayload: PadchatFriendRequestPayload = obj.msg
+  // const padchatFriendRequestPayload = await new Promise<PadchatFriendRequestPayload>((resolve, reject) => {
+  //   parseString(tryXmlText, { explicitArray: false }, (err, obj: XmlSchema) => {
+  //     if (err) {  // HTML can not be parsed to JSON
+  //       return reject(err)
+  //     }
+  //     if (!obj) {
+  //       // FIXME: when will this happen?
+  //       return reject(new Error('parseString() return empty obj'))
+  //     }
+  //     if (!obj.msg || !obj.msg.$) {
+  //       return reject(new Error('parseString() return unknown obj'))
+  //     }
+  //     return resolve(obj.msg.$)
+  //   })
+  // })
   // console.log(padchatFriendRequestPayload)
 
   const friendRequestPayload: FriendRequestPayload = {

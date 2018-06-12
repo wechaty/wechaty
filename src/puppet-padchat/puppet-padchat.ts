@@ -51,6 +51,7 @@ import {
 import {
   contactRawPayloadParser,
   fileBoxToQrcode,
+  // friendRequestEventMessageParser,
   friendRequestRawPayloadParser,
   messageRawPayloadParser,
   roomJoinEventMessageParser,
@@ -356,6 +357,13 @@ export class PuppetPadchat extends Puppet {
 
       this.emit('room-topic',  roomId, newTopic, oldTopic, changerId)
     }
+    /**
+     * 4. Look for friend request confirmation event
+     */
+    // const friendRequestConfirmation = friendRequestEventMessageParser(rawPayload)
+    // if (friendRequestConfirmation) {
+    //   this.emit('friend', )
+    // }
   }
 
   public async stop(): Promise<void> {

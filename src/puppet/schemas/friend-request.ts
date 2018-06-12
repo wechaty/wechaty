@@ -1,7 +1,8 @@
 export enum FriendRequestType {
   Unknown = 0,
-  Receive,
   Confirm,
+  Receive,
+  Verify,
 }
 
 export interface FriendRequestPayloadBase {
@@ -21,5 +22,10 @@ export type FriendRequestPayloadReceive = FriendRequestPayloadBase & {
   type      : FriendRequestType.Receive,
 }
 
-export type FriendRequestPayload = FriendRequestPayloadReceive
-                                  | FriendRequestPayloadConfirm
+export type FriendRequestPayloadVerify = FriendRequestPayloadBase & {
+  type      : FriendRequestType.Verify,
+}
+
+export type FriendRequestPayload = FriendRequestPayloadConfirm
+                                  | FriendRequestPayloadReceive
+                                  | FriendRequestPayloadVerify

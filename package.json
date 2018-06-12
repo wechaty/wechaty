@@ -123,7 +123,7 @@
     "watchdog": "^0.8.1",
     "wechat4u": "^0.7.6",
     "ws": "^5.2.0",
-    "xml2js": "^0.4.0"
+    "xml2json": "^0.11.2"
   },
   "devDependencies": {
     "@types/bl": "^0.8.32",
@@ -147,7 +147,7 @@
     "@types/semver": "^5.5.0",
     "@types/sinon": "^5.0.0",
     "@types/ws": "^5.1.0",
-    "@types/xml2js": "^0.4.0",
+    "@types/xml2json": "^0.10.0",
     "apiai": "^4.0.0",
     "babel-cli": "^6.26.0",
     "babel-eslint": "^8.0.0",

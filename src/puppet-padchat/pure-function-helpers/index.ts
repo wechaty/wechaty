@@ -12,9 +12,9 @@
  *
  */
 
-export * from './room-event-message-parser'
 export * from './contact-raw-payload-parser'
 export * from './file-box-to-qrcode'
+export * from './friend-request-event-message-parser'
 export * from './friend-request-raw-payload-parser'
 export * from './is-type'
 export * from './message-raw-payload-parser'
