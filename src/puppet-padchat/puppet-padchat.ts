@@ -69,10 +69,10 @@ import {
 }                                   from './config'
 
 import {
-  Bridge,
+  PadchatManager,
   // resolverDict,
   // AutoDataType,
-}                       from './bridge'
+}                       from './padchat-manager'
 
 import {
   // PadchatPayload,
@@ -104,7 +104,7 @@ export class PuppetPadchat extends Puppet {
   private readonly cachePadchatMessagePayload       : LRU.Cache<string, PadchatMessagePayload>
   // private readonly cachePadchatRoomPayload          : LRU.Cache<string, PadchatRoomRawPayload>
 
-  public bridge?:  Bridge
+  public bridge?:  PadchatManager
 
   constructor(
     public options: PuppetOptions,
@@ -187,7 +187,7 @@ export class PuppetPadchat extends Puppet {
      */
     this.state.on('pending')
 
-    const bridge = this.bridge = new Bridge({
+    const bridge = this.bridge = new PadchatManager({
       memory   : this.options.memory,
       token    : padchatToken(),
       endpoint : WECHATY_PUPPET_PADCHAT_ENDPOINT,
@@ -208,7 +208,7 @@ export class PuppetPadchat extends Puppet {
     this.bridge.syncContactsAndRooms()
   }
 
-  public async startBridge(bridge: Bridge): Promise<void> {
+  public async startBridge(bridge: PadchatManager): Promise<void> {
     log.verbose('PuppetPadchat', 'startBridge()')
 
     if (this.state.off()) {

@@ -56,13 +56,13 @@ export interface PadchatMemorySlot {
   currentUserId?: string,
 }
 
-export interface BridgeOptions {
+export interface ManagerOptions {
   memory   : MemoryCard,
   endpoint : string,
   token    : string,
 }
 
-export class Bridge extends PadchatRpc {
+export class PadchatManager extends PadchatRpc {
   private memorySlot: PadchatMemorySlot
 
   private loginScanQrcode? : string
@@ -71,28 +71,28 @@ export class Bridge extends PadchatRpc {
 
   private selfId?   : string
 
-  private cacheRoomRawPayload?       : FlashStoreSync<string, PadchatRoomPayload>
   private cacheContactRawPayload?    : FlashStoreSync<string, PadchatContactPayload>
   private cacheRoomMemberRawPayload? : FlashStoreSync<string, {
     [contactId: string]: PadchatRoomMemberPayload,
   }>
+  private cacheRoomRawPayload?       : FlashStoreSync<string, PadchatRoomPayload>
 
   private readonly state                  : StateSwitch
   private readonly delayQueueExecutor     : DelayQueueExector
   private delayQueueExecutorSubscription? : Subscription
 
   constructor(
-    public options: BridgeOptions,
+    public options: ManagerOptions,
   ) {
     super(options.endpoint, options.token)
-    log.verbose('PuppetPadchatBridge', 'constructor()')
+    log.verbose('PuppetPadchatManager', 'constructor()')
 
     this.memorySlot = {
       device: {},
     }
 
     // this.padchatRpc = new PadchatRpc(options.endpoint, options.token)
-    this.state = new StateSwitch('PuppetPadchatBridge')
+    this.state = new StateSwitch('PuppetPadchatManager')
 
     /**
      * Executer Queue: execute one task at a time,
@@ -102,15 +102,15 @@ export class Bridge extends PadchatRpc {
 
   }
 
-  private async initCache(
+  protected async initCache(
     token  : string,
     selfId : string,
   ): Promise<void> {
-    log.verbose('PuppetPadchatBridge', 'initCache(%s, %s)', token, selfId)
+    log.verbose('PuppetPadchatManager', 'initCache(%s, %s)', token, selfId)
 
-    if (   this.cacheRoomRawPayload
+    if (   this.cacheContactRawPayload
         || this.cacheRoomMemberRawPayload
-        || this.cacheContactRawPayload
+        || this.cacheRoomRawPayload
     ) {
       throw new Error('cache exists')
     }
@@ -119,7 +119,7 @@ export class Bridge extends PadchatRpc {
       os.homedir(),
       path.sep,
       '.wechaty',
-      'puppet-padchat-token-cache', // FIXME: rename to a better name before beta
+      'puppet-padchat-cache', // FIXME: rename to a better name before beta
       path.sep,
       token,
       path.sep,
@@ -133,8 +133,8 @@ export class Bridge extends PadchatRpc {
     }
 
     this.cacheContactRawPayload    = new FlashStoreSync(path.join(baseDir, 'contact-raw-payload'))
-    this.cacheRoomRawPayload       = new FlashStoreSync(path.join(baseDir, 'room-raw-payload'))
     this.cacheRoomMemberRawPayload = new FlashStoreSync(path.join(baseDir, 'room-member-raw-payload'))
+    this.cacheRoomRawPayload       = new FlashStoreSync(path.join(baseDir, 'room-raw-payload'))
 
     await Promise.all([
       this.cacheContactRawPayload.ready(),
@@ -149,20 +149,20 @@ export class Bridge extends PadchatRpc {
       0,
     )
 
-    log.verbose('PuppetPadchatBridge', 'initCache() inited %d Contacts, %d Rooms, %d RoomMembers, cachedir="%s"',
+    log.verbose('PuppetPadchatManager', 'initCache() inited %d Contacts, %d RoomMembers, %d Rooms, cachedir="%s"',
                                       this.cacheContactRawPayload.size,
-                                      this.cacheRoomRawPayload.size,
                                       roomMemberTotalNum,
+                                      this.cacheRoomRawPayload.size,
                                       baseDir,
               )
   }
 
-  private async releaseCache(): Promise<void> {
-    log.verbose('PuppetPadchatBridge', 'releaseCache()')
+  protected async releaseCache(): Promise<void> {
+    log.verbose('PuppetPadchatManager', 'releaseCache()')
 
-    if (   this.cacheRoomRawPayload
+    if (   this.cacheContactRawPayload
         && this.cacheRoomMemberRawPayload
-        && this.cacheContactRawPayload
+        && this.cacheRoomRawPayload
     ) {
       await Promise.all([
         this.cacheContactRawPayload.close(),
@@ -174,13 +174,14 @@ export class Bridge extends PadchatRpc {
       this.cacheRoomMemberRawPayload = undefined
       this.cacheRoomRawPayload       = undefined
 
+      log.silly('PuppetPadchatManager', 'releaseCache() cache closed.')
     } else {
-      log.warn('PuppetPadchatBridge', 'releaseCache() cache not exist.')
+      log.warn('PuppetPadchatManager', 'releaseCache() cache not exist.')
     }
   }
 
   public async start(): Promise<void> {
-    log.verbose('PuppetPadchatBridge', `start()`)
+    log.verbose('PuppetPadchatManager', `start()`)
 
     if (this.selfId) {
       throw new Error('selfId exist')
@@ -192,7 +193,7 @@ export class Bridge extends PadchatRpc {
       throw new Error('this.delayExecutorSubscription exist')
     } else {
       this.delayQueueExecutorSubscription = this.delayQueueExecutor.subscribe(unit => {
-        log.verbose('PuppetPadchatBridge', 'startQueues() delayQueueExecutor.subscribe(%s) executed', unit.name)
+        log.verbose('PuppetPadchatManager', 'startQueues() delayQueueExecutor.subscribe(%s) executed', unit.name)
       })
     }
 
@@ -215,7 +216,7 @@ export class Bridge extends PadchatRpc {
   }
 
   public async stop(): Promise<void> {
-    log.verbose('PuppetPadchatBridge', `stop()`)
+    log.verbose('PuppetPadchatManager', `stop()`)
 
     this.state.off('pending')
 
@@ -223,7 +224,7 @@ export class Bridge extends PadchatRpc {
       this.delayQueueExecutorSubscription.unsubscribe()
       this.delayQueueExecutor.unsubscribe()
     } else {
-      log.warn('PuppetPadchatBridge', 'stop() subscript not exist')
+      log.warn('PuppetPadchatManager', 'stop() subscript not exist')
     }
 
     this.stopCheckScan()
@@ -240,7 +241,7 @@ export class Bridge extends PadchatRpc {
   }
 
   protected async onLogin(userId: string): Promise<void> {
-    log.verbose('PuppetPadchatBridge', `login(%s)`, userId)
+    log.verbose('PuppetPadchatManager', `login(%s)`, userId)
 
     if (this.selfId) {
       throw new Error('userId exist')
@@ -271,11 +272,11 @@ export class Bridge extends PadchatRpc {
   }
 
   public async logout(): Promise<void> {
-    log.verbose('PuppetPadchatBridge', `logout()`)
+    log.verbose('PuppetPadchatManager', `logout()`)
 
     if (!this.selfId) {
       // throw new Error('no username')
-      log.warn('PuppetPadchatBridge', 'logout() selfId not exist, already logout-ed')
+      log.warn('PuppetPadchatManager', 'logout() selfId not exist, already logout-ed')
       return
     }
 
@@ -286,7 +287,7 @@ export class Bridge extends PadchatRpc {
   }
 
   protected async stopCheckScan(): Promise<void> {
-    log.verbose('PuppetPadchatBridge', `stopCheckScan()`)
+    log.verbose('PuppetPadchatManager', `stopCheckScan()`)
 
     if (this.loginTimer) {
       clearTimeout(this.loginTimer)
@@ -297,16 +298,16 @@ export class Bridge extends PadchatRpc {
   }
 
   protected async startCheckScan(): Promise<void> {
-    log.verbose('PuppetPadchatBridge', `startCheckScan()`)
+    log.verbose('PuppetPadchatManager', `startCheckScan()`)
 
     if (this.selfId) {
-      log.warn('PuppetPadchatBridge', 'startCheckScan() this.username exist.')
+      log.warn('PuppetPadchatManager', 'startCheckScan() this.username exist.')
       this.onLogin(this.selfId)
       return
     }
 
     if (this.loginTimer) {
-      log.warn('PuppetPadchatBridge', 'startCheckScan() this.scanTimer exist.')
+      log.warn('PuppetPadchatManager', 'startCheckScan() this.scanTimer exist.')
       return
     }
 
@@ -338,7 +339,7 @@ export class Bridge extends PadchatRpc {
 
       switch (result.status) {
         case WXCheckQRCodeStatus.WaitScan:
-          log.silly('PuppetPadchatBridge', 'checkQrcode: Please scan the Qrcode!')
+          log.silly('PuppetPadchatManager', 'checkQrcode: Please scan the Qrcode!')
           break
 
         case WXCheckQRCodeStatus.WaitConfirm:
@@ -351,14 +352,14 @@ export class Bridge extends PadchatRpc {
            *  "status": 1
            * }
            */
-          log.silly('PuppetPadchatBridge', 'checkQrcode: Had scan the Qrcode, but not Login!')
+          log.silly('PuppetPadchatManager', 'checkQrcode: Had scan the Qrcode, but not Login!')
           break
 
         case WXCheckQRCodeStatus.Confirmed:
-          log.silly('PuppetPadchatBridge', 'checkQrcode: Trying to login... please wait')
+          log.silly('PuppetPadchatManager', 'checkQrcode: Trying to login... please wait')
 
           if (!result.user_name || !result.password) {
-            throw Error('PuppetPadchatBridge, checkQrcode, cannot get username or password here, return!')
+            throw Error('PuppetPadchatManager, checkQrcode, cannot get username or password here, return!')
           }
 
           // const loginResult = await this.padchatRpc.WXQRCodeLogin(result.user_name, result.password)
@@ -371,21 +372,21 @@ export class Bridge extends PadchatRpc {
           return
 
         case WXCheckQRCodeStatus.Timeout:
-          log.silly('PuppetPadchatBridge', 'checkQrcode: Timeout')
+          log.silly('PuppetPadchatManager', 'checkQrcode: Timeout')
           this.loginScanQrcode = undefined
           this.loginScanStatus = undefined
           waitUserResponse = false
           break
 
         case WXCheckQRCodeStatus.Cancel:
-          log.silly('PuppetPadchatBridge', 'user cancel')
+          log.silly('PuppetPadchatManager', 'user cancel')
           this.loginScanQrcode = undefined
           this.loginScanStatus = undefined
           waitUserResponse = false
           break
 
         default:
-          log.warn('PadchatBridge', 'startCheckScan() unknown WXCheckQRCodeStatus: ' + result.status)
+          log.warn('PuppetPadchatManager', 'startCheckScan() unknown WXCheckQRCodeStatus: ' + result.status)
           this.loginScanQrcode = undefined
           this.loginScanStatus = undefined
           waitUserResponse = false
@@ -408,27 +409,27 @@ export class Bridge extends PadchatRpc {
    * emit qrcode or send login request to the user.
    */
   protected async tryAutoLogin(memorySlot: PadchatMemorySlot): Promise<boolean> {
-    log.verbose('PuppetPadchatBridge', `tryAutoLogin(%s)`, memorySlot.currentUserId)
+    log.verbose('PuppetPadchatManager', `tryAutoLogin(%s)`, memorySlot.currentUserId)
 
     const currentUserId = memorySlot.currentUserId
     if (!currentUserId) {
-      log.silly('PuppetPadchatBridge', 'tryAutoLogin() currentUserId not found in memorySlot')
+      log.silly('PuppetPadchatManager', 'tryAutoLogin() currentUserId not found in memorySlot')
       return false
     }
 
     const deviceInfo = memorySlot.device[currentUserId]
     if (!deviceInfo) {
-      log.silly('PuppetPadchatBridge', 'tryAutoLogin() deviceInfo not found for userId "%s"', currentUserId)
+      log.silly('PuppetPadchatManager', 'tryAutoLogin() deviceInfo not found for userId "%s"', currentUserId)
       return false
     }
 
     const token = deviceInfo.token
     if (!token) {
-      log.silly('PuppetPadchatBridge', 'tryAutoLogin() token not found for userId "%s"', currentUserId)
+      log.silly('PuppetPadchatManager', 'tryAutoLogin() token not found for userId "%s"', currentUserId)
       return false
     }
 
-    // log.silly('PuppetPadchatBridge', `initLogin() autoData.token exist for %s`,
+    // log.silly('PuppetPadchatManager', `initLogin() autoData.token exist for %s`,
     //                                 this.autoData.nick_name || 'no nick_name',
     //           )
 
@@ -508,7 +509,7 @@ export class Bridge extends PadchatRpc {
   }
 
   protected async emitLoginQrcode(): Promise<void> {
-    log.verbose('PuppetPadchatBridge', `emitLoginQrCode()`)
+    log.verbose('PuppetPadchatManager', `emitLoginQrCode()`)
 
     if (this.loginScanQrcode) {
       throw new Error('qrcode exist')
@@ -517,7 +518,7 @@ export class Bridge extends PadchatRpc {
     // const result = await this.padchatRpc.WXGetQRCode()
     const result = await this.WXGetQRCode()
     if (!result || !result.qr_code) {
-      log.verbose('PuppetPadchatBridge', `emitLoginQrCode() result not found. Call WXInitialize() and try again ...`)
+      log.verbose('PuppetPadchatManager', `emitLoginQrCode() result not found. Call WXInitialize() and try again ...`)
       // await this.padchatRpc.WXInitialize()
       await this.WXInitialize()
       // wait 1 second and try again
@@ -542,7 +543,7 @@ export class Bridge extends PadchatRpc {
     memorySlot: PadchatMemorySlot,
     userId   : string,
   ): Promise<PadchatMemorySlot> {
-    log.verbose('PuppetPadchatBridge', `refresh62Data(%s, %s)`, userId)
+    log.verbose('PuppetPadchatManager', `refresh62Data(%s, %s)`, userId)
 
     /**
      * must do a HeatBeat before WXGenerateWxData()
@@ -556,7 +557,7 @@ export class Bridge extends PadchatRpc {
      * 1. Empty memorySlot, init & return it
      */
     if (!memorySlot.currentUserId) {
-      log.silly('PuppetPadchatBridge', 'refresh62Data() memorySlot is empty, init & return it')
+      log.silly('PuppetPadchatManager', 'refresh62Data() memorySlot is empty, init & return it')
 
       const data  = await this.WXGenerateWxDat()
       const token = await this.WXGetLoginToken()
@@ -574,7 +575,7 @@ export class Bridge extends PadchatRpc {
      * 2. User account not changed between this and the last login session
      */
     if (memorySlot.currentUserId === userId) {
-      log.silly('PuppetPadchatBridge', 'refresh62Data() userId did not change since last login, keep the data as the same')
+      log.silly('PuppetPadchatManager', 'refresh62Data() userId did not change since last login, keep the data as the same')
       return memorySlot
     }
 
@@ -582,7 +583,7 @@ export class Bridge extends PadchatRpc {
      * 3. Current user is a user that had used this memorySlot, use the old data for it.
      */
     if (userId in memorySlot.device) {
-      log.silly('PuppetPadchatBridge', 'refresh62Data() current userId has existing device info, set %s as currentUserId and use old data for it',
+      log.silly('PuppetPadchatManager', 'refresh62Data() current userId has existing device info, set %s as currentUserId and use old data for it',
                                         userId,
                 )
       memorySlot.currentUserId = userId
@@ -600,7 +601,7 @@ export class Bridge extends PadchatRpc {
      */
     // Build a new code block to make tslint happy: no-shadow-variable
     if (true) {
-      log.verbose('PuppetPadchatBridge', 'refresh62Data() user switch detected: from "%s" to "%s"',
+      log.verbose('PuppetPadchatManager', 'refresh62Data() user switch detected: from "%s" to "%s"',
                                           memorySlot.currentUserId,
                                           userId,
                   )
@@ -619,7 +620,7 @@ export class Bridge extends PadchatRpc {
   }
 
   protected async tryLoad62Data(): Promise<void> {
-    log.verbose('PuppetPadchatBridge', `tryLoad62Data()`)
+    log.verbose('PuppetPadchatManager', `tryLoad62Data()`)
 
     const deviceUserId   = this.memorySlot.currentUserId
     const deviceInfoDict = this.memorySlot.device
@@ -632,35 +633,35 @@ export class Bridge extends PadchatRpc {
       if (!deviceInfo) {
         throw new Error('deviceInfo not found')
       }
-      log.silly('PuppetPadchatBridge', `tryLoad62Data() 62 data found: "%s"`, deviceInfo.data)
+      log.silly('PuppetPadchatManager', `tryLoad62Data() 62 data found: "%s"`, deviceInfo.data)
       await this.WXLoadWxDat(deviceInfo.data)
     } else {
-      log.silly('PuppetPadchatBridge', `tryLoad62Data() 62 data not found`)
+      log.silly('PuppetPadchatManager', `tryLoad62Data() 62 data not found`)
     }
   }
 
   public getContactIdList(): string[] {
-    log.verbose('PuppetPadchatBridge', 'getContactIdList()')
+    log.verbose('PuppetPadchatManager', 'getContactIdList()')
     if (!this.cacheContactRawPayload) {
       throw new Error('cache not inited' )
     }
     const contactIdList = [...this.cacheContactRawPayload.keys()]
-    log.silly('PuppetPadchatBridge', 'getContactIdList() = %d', contactIdList.length)
+    log.silly('PuppetPadchatManager', 'getContactIdList() = %d', contactIdList.length)
     return contactIdList
   }
 
   public getRoomIdList(): string[] {
-    log.verbose('PuppetPadchatBridge', 'getRoomIdList()')
+    log.verbose('PuppetPadchatManager', 'getRoomIdList()')
     if (!this.cacheRoomRawPayload) {
       throw new Error('cache not inited' )
     }
     const roomIdList = [...this.cacheRoomRawPayload.keys()]
-    log.verbose('PuppetPadchatBridge', 'getRoomIdList()=%d', roomIdList.length)
+    log.verbose('PuppetPadchatManager', 'getRoomIdList()=%d', roomIdList.length)
     return roomIdList
   }
 
   public async getRoomMemberIdList(roomId: string): Promise<string[]> {
-    log.verbose('PuppetPadchatBridge', 'getRoomMemberIdList(%d)', roomId)
+    log.verbose('PuppetPadchatManager', 'getRoomMemberIdList(%d)', roomId)
     if (!this.cacheRoomMemberRawPayload) {
       throw new Error('cache not inited' )
     }
@@ -675,12 +676,12 @@ export class Bridge extends PadchatRpc {
 
     const memberIdList = Object.keys(memberRawPayloadDict)
 
-    log.verbose('PuppetPadchatBridge', 'getRoomMemberIdList(%d) length=%d', roomId, memberIdList.length)
+    log.verbose('PuppetPadchatManager', 'getRoomMemberIdList(%d) length=%d', roomId, memberIdList.length)
     return memberIdList
   }
 
   public async roomMemberRawPayload(roomId: string, contactId: string): Promise<PadchatRoomMemberPayload> {
-    log.verbose('PuppetPadchatBridge', 'roomMemberRawPayload(%s)', roomId)
+    log.verbose('PuppetPadchatManager', 'roomMemberRawPayload(%s)', roomId)
 
     if (!this.cacheRoomMemberRawPayload) {
       throw new Error('cache not inited' )
@@ -704,7 +705,7 @@ export class Bridge extends PadchatRpc {
   public async syncRoomMember(
     roomId: string,
   ): Promise<{ [contactId: string]: PadchatRoomMemberPayload }> {
-    log.silly('PuppetPadchatBridge', 'syncRoomMember(%s)', roomId)
+    log.silly('PuppetPadchatManager', 'syncRoomMember(%s)', roomId)
 
     // const memberListPayload = await this.padchatRpc.WXGetChatRoomMember(roomId)
     const memberListPayload = await this.WXGetChatRoomMember(roomId)
@@ -714,7 +715,7 @@ export class Bridge extends PadchatRpc {
       throw new Error('no memberListPayload')
     }
 
-    log.silly('PuppetPadchatBridge', 'syncRoomMember(%s) total %d members',
+    log.silly('PuppetPadchatManager', 'syncRoomMember(%s) total %d members',
                                       roomId,
                                       Object.keys(memberListPayload).length,
               )
@@ -741,22 +742,22 @@ export class Bridge extends PadchatRpc {
   }
 
   public async syncContactsAndRooms(): Promise<void> {
-    log.verbose('PuppetPadchatBridge', `syncContactsAndRooms()`)
+    log.verbose('PuppetPadchatManager', `syncContactsAndRooms()`)
 
     let cont = true
     while (cont && this.state.on() && this.selfId) {
-      log.silly('PuppetPadchatBridge', `syncContactsAndRooms() while() syncing WXSyncContact ...`)
+      log.silly('PuppetPadchatManager', `syncContactsAndRooms() while() syncing WXSyncContact ...`)
 
       // const syncContactList = await this.padchatRpc.WXSyncContact()
       const syncContactList = await this.WXSyncContact()
 
-      await new Promise(r => setTimeout(r, 3 * 1000))
+      await new Promise(r => setTimeout(r, 10 * 1000))
 
       // console.log('syncContactList:', syncContactList)
 
       if (!Array.isArray(syncContactList) || syncContactList.length <= 0) {
         console.log('syncContactList:', syncContactList)
-        log.error('PuppetPadchatBridge', 'syncContactsAndRooms() cannot get array result!')
+        log.error('PuppetPadchatManager', 'syncContactsAndRooms() cannot get array result!')
         continue
       }
 
@@ -766,7 +767,7 @@ export class Bridge extends PadchatRpc {
         throw new Error('no cache')
       }
 
-      log.silly('PuppetPadchatBridge', 'syncContactsAndRooms() updating %d to Contact(%d) & Room(%d) ...',
+      log.silly('PuppetPadchatManager', 'syncContactsAndRooms() syncing %d out of Contact(%d) & Room(%d) ...',
                                           syncContactList.length,
                                           this.cacheContactRawPayload.size,
                                           this.cacheRoomRawPayload.size,
@@ -775,7 +776,7 @@ export class Bridge extends PadchatRpc {
       for (const syncContact of syncContactList) {
 
         if (syncContact.continue !== PadchatContinue.Go) {
-          log.verbose('PuppetPadchatBridge', 'syncContactsAndRooms() sync contact done!')
+          log.verbose('PuppetPadchatManager', 'syncContactsAndRooms() sync contact done!')
           cont = false
           break
         }
@@ -785,7 +786,7 @@ export class Bridge extends PadchatRpc {
             /**
              * Room
              */
-            log.silly('PuppetPadchatBridge', 'syncContactsAndRooms() updating Room %s(%s)',
+            log.silly('PuppetPadchatManager', 'syncContactsAndRooms() updating Room %s(%s)',
                         syncContact.nick_name,
                         syncContact.user_name,
             )
@@ -802,13 +803,13 @@ export class Bridge extends PadchatRpc {
               () => this.syncRoomMember(roomId),
               `syncRoomMember(${roomId})`,
             )
-            log.silly('PuppetPadchatBridge', 'syncContactsAndRooms() added sync room(%s) task to delayQueueExecutor', roomId)
+            log.silly('PuppetPadchatManager', 'syncContactsAndRooms() added sync room(%s) task to delayQueueExecutor', roomId)
 
           } else if (isContactId(syncContact.user_name)) {
             /**
              * Contact
              */
-            log.silly('PuppetPadchatBridge', 'syncContactsAndRooms() updating Contact %s(%s)',
+            log.silly('PuppetPadchatManager', 'syncContactsAndRooms() updating Contact %s(%s)',
                         syncContact.nick_name,
                         syncContact.user_name,
             )
@@ -829,7 +830,7 @@ export class Bridge extends PadchatRpc {
             // XXX: HeartBeat???
             // discard it in silent
           } else {
-            log.silly('PuppetPadchatBridge', `syncContactsAndRooms() skip for syncContact.msg_type=%s(%s) %s`,
+            log.silly('PuppetPadchatManager', `syncContactsAndRooms() skip for syncContact.msg_type=%s(%s) %s`,
               syncContact.msg_type && PadchatContactMsgType[syncContact.msg_type],
               syncContact.msg_type,
               JSON.stringify(syncContact),
@@ -841,10 +842,10 @@ export class Bridge extends PadchatRpc {
   }
 
   public async contactRawPayload(contactId: string): Promise<PadchatContactPayload> {
-    log.silly('PuppetPadchatBridge', 'contactRawPayload(%s)', contactId)
+    log.silly('PuppetPadchatManager', 'contactRawPayload(%s)', contactId)
 
     const rawPayload = await Misc.retry(async (retry, attempt) => {
-      log.silly('PuppetPadchatBridge', 'contactRawPayload(%s) retry() attempt=%d', contactId, attempt)
+      log.silly('PuppetPadchatManager', 'contactRawPayload(%s) retry() attempt=%d', contactId, attempt)
 
       if (!this.cacheContactRawPayload) {
         throw new Error('no cache')
@@ -870,10 +871,10 @@ export class Bridge extends PadchatRpc {
   }
 
   public async roomRawPayload(id: string): Promise<PadchatRoomPayload> {
-    log.verbose('PuppetPadchatBridge', 'roomRawPayload(%s)', id)
+    log.verbose('PuppetPadchatManager', 'roomRawPayload(%s)', id)
 
     const rawPayload = await Misc.retry(async (retry, attempt) => {
-      log.silly('PuppetPadchatBridge', 'roomRawPayload(%s) retry() attempt=%d', id, attempt)
+      log.silly('PuppetPadchatManager', 'roomRawPayload(%s) retry() attempt=%d', id, attempt)
 
       if (!this.cacheRoomRawPayload) {
         throw new Error('no cache')
@@ -905,4 +906,4 @@ export class Bridge extends PadchatRpc {
   }
 }
 
-export default Bridge
+export default PadchatManager
