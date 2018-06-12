@@ -18,20 +18,20 @@ import { roomJoinEventMessageParser, roomLeaveEventMessageParser }  from './room
 
 test('roomLeaveEventMessageParser() EN-bot-delete-other', async t => {
   const MESSAGE_PAYLOAD: PadchatMessagePayload = {
-    content: 'You removed "李卓桓" from the group chat',
-    continue: 1,
-    description: '',
-    from_user: '6061139518@chatroom',
-    msg_id: '4444372134867544747',
-    msg_source: '',
-    msg_type: 5,
-    status: 1,
-    sub_type: 10000,
-    timestamp: 1528751382,
-    to_user: 'wxid_5zj4i5htp9ih22',
-    uin: 1928023446,
+    content     : 'You removed "李卓桓" from the group chat',
+    continue    : 1,
+    description : '',
+    from_user   : '6061139518@chatroom',
+    msg_id      : '4444372134867544747',
+    msg_source  : '',
+    msg_type    : 5,
+    status      : 1,
+    sub_type    : 10000,
+    timestamp   : 1528751382,
+    to_user     : 'wxid_5zj4i5htp9ih22',
+    uin         : 1928023446,
   }
-  const EXPECTED_MESSAGE_PAYLOAD_ROOM_LEAVE: PuppetRoomLeaveEvent = {
+  const EXPECTED_EVENT: PuppetRoomLeaveEvent = {
     leaverNameList : ['李卓桓'],
     removerName    : YOU,
     roomId         : '6061139518@chatroom',
@@ -39,7 +39,7 @@ test('roomLeaveEventMessageParser() EN-bot-delete-other', async t => {
 
   const payload = roomJoinEventMessageParser(MESSAGE_PAYLOAD)
   // console.log('payload:', payload)
-  t.deepEqual(payload, EXPECTED_MESSAGE_PAYLOAD_ROOM_LEAVE, 'should parse room leave message payload')
+  t.deepEqual(payload, EXPECTED_EVENT, 'should parse room leave message payload')
 
 })
 

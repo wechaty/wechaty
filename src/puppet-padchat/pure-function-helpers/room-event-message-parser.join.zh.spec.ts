@@ -16,47 +16,55 @@ import {
 import { roomJoinEventMessageParser }  from './room-event-message-parser'
 
 test('roomJoinEventMessageParser() ZH-other-invite-other', async t => {
-  const PADCHAT_MESSAGE_PAYLOAD_ROOM_JOIN: PadchatMessagePayload = {
-    content: '"李卓桓"邀请"Huan LI++"加入了群聊',
-    continue: 1,
-    description: '',
-    from_user: '5354656522@chatroom',
-    msg_id: '1303222499352704462',
-    msg_source: '',
-    msg_type: 5,
-    status: 1,
-    sub_type: 10000,
-    timestamp: 1528657265,
-    to_user: 'wxid_a8d806dzznm822',
-    uin: 1211516682,
+  const MESSAGE_PAYLOAD: PadchatMessagePayload = {
+    content     : '"李卓桓"邀请"Huan LI++"加入了群聊',
+    continue    : 1,
+    description : '',
+    from_user   : '5354656522@chatroom',
+    msg_id      : '1303222499352704462',
+    msg_source  : '',
+    msg_type    : 5,
+    status      : 1,
+    sub_type    : 10000,
+    timestamp   : 1528657265,
+    to_user     : 'wxid_a8d806dzznm822',
+    uin         : 1211516682,
   }
 
-  const EXPECTED_MESSAGE_PAYLOAD_ROOM_JOIN: PuppetRoomJoinEvent = {
+  const EXPECTED_EVENT: PuppetRoomJoinEvent = {
     inviteeNameList: ['Huan LI++'],
     inviterName: '李卓桓',
     roomId: '5354656522@chatroom',
   }
 
-  const payload = roomJoinEventMessageParser(PADCHAT_MESSAGE_PAYLOAD_ROOM_JOIN)
-  console.log('payload:', payload)
-  t.deepEqual(payload, EXPECTED_MESSAGE_PAYLOAD_ROOM_JOIN, 'should parse room join message payload')
+  const event = roomJoinEventMessageParser(MESSAGE_PAYLOAD)
+  console.log('payload:', event)
+  t.deepEqual(event, EXPECTED_EVENT, 'should parse room join message payload')
 })
 
 test('roomJoinEventMessageParser() ZH-other-invite-others', async t => {
   const MESSAGE_PAYLOAD: PadchatMessagePayload = {
-    content: '李卓桓 invited 李佳芮, 李卓桓 to the group chat',
-    continue: 1,
-    description: '',
-    from_user: '5178377660@chatroom',
-    msg_id: '3318447775079396781',
-    msg_source: '',
-    msg_type: 5,
-    status: 1,
-    sub_type: 10000,
-    timestamp: 1528752402,
-    to_user: 'wxid_5zj4i5htp9ih22',
-    uin: 1928023446,
+    content     : '李卓桓 invited 李佳芮, 李卓桓2 to the group chat',
+    continue    : 1,
+    description : '',
+    from_user   : '5178377660@chatroom',
+    msg_id      : '3318447775079396781',
+    msg_source  : '',
+    msg_type    : 5,
+    status      : 1,
+    sub_type    : 10000,
+    timestamp   : 1528752402,
+    to_user     : 'wxid_5zj4i5htp9ih22',
+    uin         : 1928023446,
   }
+  const EXPECTED_EVENT: PuppetRoomJoinEvent = {
+    inviteeNameList : ['李佳芮', '李卓桓2'],
+    inviterName     : '李卓桓',
+    roomId          : '5178377660@chatroom',
+  }
+
+  const event = roomJoinEventMessageParser(MESSAGE_PAYLOAD)
+  t.deepEqual(event, EXPECTED_EVENT, 'should parse event')
 })
 
 test('roomJoinEventMessageParser() ZH-other-invite-bot', async t => {
@@ -75,15 +83,14 @@ test('roomJoinEventMessageParser() ZH-other-invite-bot', async t => {
     uin         : 324216852,
   }
 
-  const EXPECTED_MESSAGE_PAYLOAD_ROOM_JOIN: PuppetRoomJoinEvent = {
+  const EXPECTED_EVENT: PuppetRoomJoinEvent = {
     inviteeNameList : [YOU],
     inviterName     : '李佳芮',
     roomId          : '8083065140@chatroom',
   }
 
-  const payload = roomJoinEventMessageParser(MESSAGE_PAYLOAD)
-  console.log('payload:', payload)
-  t.deepEqual(payload, EXPECTED_MESSAGE_PAYLOAD_ROOM_JOIN, 'should parse room join message payload')
+  const event = roomJoinEventMessageParser(MESSAGE_PAYLOAD)
+  t.deepEqual(event, EXPECTED_EVENT, 'should parse event')
 })
 
 test('roomJoinEventMessageParser() ZH-other-invite-bot-with-others', async t => {
@@ -101,6 +108,14 @@ test('roomJoinEventMessageParser() ZH-other-invite-bot-with-others', async t => 
     to_user     : 'wxid_a8d806dzznm822',
     uin         : 1211516682,
   }
+  const EXPECTED_EVENT: PuppetRoomJoinEvent = {
+    inviteeNameList : [YOU, 'Huan LI++'],
+    inviterName     : '李卓桓',
+    roomId          : '5178377660@chatroom',
+  }
+
+  const event = roomJoinEventMessageParser(MESSAGE_PAYLOAD)
+  t.deepEqual(event, EXPECTED_EVENT, 'should parse event')
 })
 
 test('roomJoinEventMessageParser() ZH-bot-invite-other', async t => {
@@ -118,6 +133,14 @@ test('roomJoinEventMessageParser() ZH-bot-invite-other', async t => {
     to_user     : 'lizhuohuan',
     uin         : 4763975,
   }
+  const EXPECTED_EVENT: PuppetRoomJoinEvent = {
+    inviteeNameList : ['Huan LI++'],
+    inviterName     : YOU,
+    roomId          : '5354656522@chatroom',
+  }
+
+  const event = roomJoinEventMessageParser(MESSAGE_PAYLOAD)
+  t.deepEqual(event, EXPECTED_EVENT, 'should parse event')
 })
 
 test('roomJoinEventMessageParser() ZH-bot-invite-others', async t => {

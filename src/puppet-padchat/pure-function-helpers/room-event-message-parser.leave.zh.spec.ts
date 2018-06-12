@@ -17,7 +17,7 @@ import {
 import { roomLeaveEventMessageParser }  from './room-event-message-parser'
 
 test('roomLeaveEventMessageParser() ZH-bot-delete-other', async t => {
-  const PADCHAT_MESSAGE_PAYLOAD_ROOM_LEAVE: PadchatMessagePayload = {
+  const MESSAGE_PAYLOAD: PadchatMessagePayload = {
     content     : '你将"Huan LI++"移出了群聊',
     continue    : 1,
     description : '',
@@ -32,15 +32,15 @@ test('roomLeaveEventMessageParser() ZH-bot-delete-other', async t => {
     uin         : 4763975,
   }
 
-  const EXPECTED_MESSAGE_PAYLOAD_ROOM_LEAVE: PuppetRoomLeaveEvent = {
-    leaverNameList: ['Huan LI++'],
-    removerName: YOU,
-    roomId: '5354656522@chatroom',
+  const EXPECTED_EVENT: PuppetRoomLeaveEvent = {
+    leaverNameList : ['Huan LI++'],
+    removerName    : YOU,
+    roomId         : '5354656522@chatroom',
   }
 
-  const payload = roomLeaveEventMessageParser(PADCHAT_MESSAGE_PAYLOAD_ROOM_LEAVE)
+  const payload = roomLeaveEventMessageParser(MESSAGE_PAYLOAD)
   // console.log('payload:', payload)
-  t.deepEqual(payload, EXPECTED_MESSAGE_PAYLOAD_ROOM_LEAVE, 'should parse room leave message payload')
+  t.deepEqual(payload, EXPECTED_EVENT, 'should parse room leave message payload')
 })
 
 test('roomLeaveEventMessageParser() ZH-bot-delete-others', async t => {
@@ -49,20 +49,28 @@ test('roomLeaveEventMessageParser() ZH-bot-delete-others', async t => {
 
 test('roomLeaveEventMessageParser() ZH-other-delete-bot', async t => {
   const MESSAGE_PAYLOAD: PadchatMessagePayload = {
-    content: '你被"李卓桓"移出群聊',
-    continue: 1,
-    description: '',
-    from_user: '5178377660@chatroom',
-    msg_id: '78437822999859076',
-    msg_source: '',
-    msg_type: 5,
-    status: 1,
-    sub_type: 10000,
-    timestamp: 1528752134,
-    to_user: 'wxid_a8d806dzznm822',
-    uin: 1211516682,
+    content     : '你被"李卓桓"移出群聊',
+    continue    : 1,
+    description : '',
+    from_user   : '5178377660@chatroom',
+    msg_id      : '78437822999859076',
+    msg_source  : '',
+    msg_type    : 5,
+    status      : 1,
+    sub_type    : 10000,
+    timestamp   : 1528752134,
+    to_user     : 'wxid_a8d806dzznm822',
+    uin         : 1211516682,
   }
-  t.skip('tbw')
+  const EXPECTED_EVENT: PuppetRoomLeaveEvent = {
+    leaverNameList : [YOU],
+    removerName    : '李卓桓',
+    roomId         : '5178377660@chatroom',
+  }
+
+  const payload = roomLeaveEventMessageParser(MESSAGE_PAYLOAD)
+  // console.log('payload:', payload)
+  t.deepEqual(payload, EXPECTED_EVENT, 'should parse room leave message payload')
 })
 
 test('roomLeaveEventMessageParser() ZH-other-delete-other', async t => {
