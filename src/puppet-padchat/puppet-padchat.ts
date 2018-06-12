@@ -304,6 +304,14 @@ export class PuppetPadchat extends Puppet {
 
         break
 
+      case PadchatMessageType.App:
+      case PadchatMessageType.Emoticon:
+      case PadchatMessageType.Image:
+      case PadchatMessageType.MicroVideo:
+      case PadchatMessageType.Video:
+      case PadchatMessageType.Voice:
+         // TODO: the above types are filel type
+
       default:
         this.cachePadchatMessagePayload.set(
           rawPayload.msg_id,
