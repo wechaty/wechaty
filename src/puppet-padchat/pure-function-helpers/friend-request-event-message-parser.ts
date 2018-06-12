@@ -1,6 +1,7 @@
 import { PadchatMessagePayload } from '../padchat-schemas'
 
 export function friendRequestEventMessageParser(rawPayload: PadchatMessagePayload) {
+    return rawPayload
   // //   const reList = regexConfig.friendConfirm
   // //   let found = false
 

@@ -45,7 +45,7 @@ import {
   MessagePayload,
   MessageType,
 }                 from './puppet/'
-import { Agent } from 'http';
+
 /**
  * All wechat messages will be encapsulated as a Message.
  *

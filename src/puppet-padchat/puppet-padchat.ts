@@ -21,7 +21,8 @@ import path  from 'path'
 // import fs    from 'fs'
 // import cuid from 'cuid'
 
-import LRU from 'lru-cache'
+import LRU      from 'lru-cache'
+import flatten  from 'array-flatten'
 
 import {
   FileBox,
@@ -258,50 +259,7 @@ export class PuppetPadchat extends Puppet {
         break
 
       case PadchatMessageType.Sys:
-        console.log('sys message:', rawPayload)
-
-        const roomJoin = roomJoinEventMessageParser(rawPayload)
-        if (roomJoin) {
-          const inviteeNameList = roomJoin.inviteeNameList
-          const inviterName     = roomJoin.inviterName
-          const roomId          = roomJoin.roomId
-
-          const inviteeIdList = await Promise.all(
-            inviteeNameList.map(inviteeName => this.roomMemberSearch(roomId, inviteeName))
-          )
-          const inviterId = await this.roomMemberSearch(roomId, inviterName)
-
-          this.emit('room-join',   roomId, inviteeIdList,  inviterId)
-        }
-
-        const roomLeave = roomLeaveEventMessageParser(rawPayload)
-        if (roomLeave) {
-          const leaverNameList = roomLeave.leaverNameList
-          const removerName    = roomLeave.removerName
-          const roomId         = roomLeave.roomId
-
-          const leaverIdList = await Promise.all(
-            leaverNameList.map(leaverName => this.roomMemberSearch(roomId, leaverName))
-          )
-          const removerId = await this.roomMemberSearch(roomId, removerName)
-
-          this.emit('room-leave',  roomId, leaverIdList, removerId)
-        }
-
-        const roomTopic = roomTopicEventMessageParser(rawPayload)
-        if (roomTopic) {
-          const changerName = roomTopic.changerName
-          const newTopic    = roomTopic.topic
-          const roomId      = roomTopic.roomId
-
-          const roomPayload = await this.roomPayload(roomId)
-          const oldTopic = roomPayload.topic
-
-          const changerId = await this.roomMemberSearch(roomId, changerName)
-
-          this.emit('room-topic',  roomId, newTopic, oldTopic, changerId)
-        }
-
+        await this.onPadchatMessageSys(rawPayload)
         break
 
       case PadchatMessageType.App:
@@ -319,6 +277,84 @@ export class PuppetPadchat extends Puppet {
         )
         this.emit('message', rawPayload.msg_id)
         break
+    }
+  }
+
+  protected async onPadchatMessageSys(rawPayload: PadchatMessagePayload) {
+    log.verbose('PuppetPadchat', 'onPadchatMessageSys({id=%s})')
+    /**
+     * 1. Look for room join event
+     */
+    const roomJoin = roomJoinEventMessageParser(rawPayload)
+    if (roomJoin) {
+      const inviteeNameList = roomJoin.inviteeNameList
+      const inviterName     = roomJoin.inviterName
+      const roomId          = roomJoin.roomId
+
+      const inviteeIdList = flatten<string>(
+        await Promise.all(
+          inviteeNameList.map(
+            inviteeName => this.roomMemberSearch(roomId, inviteeName),
+          ),
+        ),
+      )
+      const inviterIdList = await this.roomMemberSearch(roomId, inviterName)
+      if (inviterIdList.length < 1) {
+        throw new Error('no inviterId found')
+      } else if (inviterIdList.length > 1) {
+        log.warn('PuppetPadchat', 'onPadchatMessage() case PadchatMesssageSys: inviterId found more than 1, use the first one.')
+      }
+      const inviterId = inviterIdList[0]
+
+      this.emit('room-join',   roomId, inviteeIdList,  inviterId)
+    }
+    /**
+     * 2. Look for room leave event
+     */
+    const roomLeave = roomLeaveEventMessageParser(rawPayload)
+    if (roomLeave) {
+      const leaverNameList = roomLeave.leaverNameList
+      const removerName    = roomLeave.removerName
+      const roomId         = roomLeave.roomId
+
+      const leaverIdList = flatten<string>(
+        await Promise.all(
+          leaverNameList.map(
+            leaverName => this.roomMemberSearch(roomId, leaverName),
+          ),
+        ),
+      )
+      const removerIdList = await this.roomMemberSearch(roomId, removerName)
+      if (removerIdList.length < 1) {
+        throw new Error('no removerId found')
+      } else if (removerIdList.length > 1) {
+        log.warn('PuppetPadchat', 'onPadchatMessage() case PadchatMesssageSys: removerId found more than 1, use the first one.')
+      }
+      const removerId = removerIdList[0]
+
+      this.emit('room-leave',  roomId, leaverIdList, removerId)
+    }
+    /**
+     * 3. Look for room topic event
+     */
+    const roomTopic = roomTopicEventMessageParser(rawPayload)
+    if (roomTopic) {
+      const changerName = roomTopic.changerName
+      const newTopic    = roomTopic.topic
+      const roomId      = roomTopic.roomId
+
+      const roomPayload = await this.roomPayload(roomId)
+      const oldTopic = roomPayload.topic
+
+      const changerIdList = await this.roomMemberSearch(roomId, changerName)
+      if (changerIdList.length < 1) {
+        throw new Error('no changerId found')
+      } else if (changerIdList.length > 1) {
+        log.warn('PuppetPadchat', 'onPadchatMessage() case PadchatMesssageSys: changerId found more than 1, use the first one.')
+      }
+      const changerId = changerIdList[0]
+
+      this.emit('room-topic',  roomId, newTopic, oldTopic, changerId)
     }
   }
 

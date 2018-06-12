@@ -5,4 +5,6 @@
 
 import test  from 'blue-tape'
 
-// test('xx)
+test('smoke testing', async t => {
+  t.skip('tbw')
+})

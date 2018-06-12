@@ -94,6 +94,7 @@
     "node": ">= 8.5"
   },
   "dependencies": {
+    "array-flatten": "^2.1.1",
     "bl": "^2.0.0",
     "brolog": "^1.6.3",
     "clone-class": "^0.6.11",
