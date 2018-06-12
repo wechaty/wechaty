@@ -19,7 +19,7 @@ import {
 }                                 from '../puppet/schemas/contact'
 import {
   FriendRequestPayload,
-}                                 from '../puppet/schemas/friend-request'
+}                                 from '../puppet/schemas/friendship'
 import {
   MessagePayload,
 }                                 from '../puppet/schemas/message'

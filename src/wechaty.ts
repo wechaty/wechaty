@@ -63,7 +63,7 @@ import {
 }                       from './contact'
 import {
   FriendRequest,
-}                       from './friend-request'
+}                       from './friendship'
 import {
   Message,
 }                       from './message'

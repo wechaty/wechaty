@@ -51,7 +51,7 @@ import {
 }                                 from './schemas/contact'
 import {
   FriendRequestPayload,
-}                                 from './schemas/friend-request'
+}                                 from './schemas/friendship'
 import {
   MessagePayload,
 }                                 from './schemas/message'

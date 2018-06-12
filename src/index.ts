@@ -23,7 +23,7 @@ export {
 }                         from './contact'
 export {
   FriendRequest,
-}                         from './friend-request'
+}                         from './friendship'
 export {
   Message,
 }                         from './message'
