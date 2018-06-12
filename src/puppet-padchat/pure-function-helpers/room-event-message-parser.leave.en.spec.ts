@@ -14,7 +14,7 @@ import {
   PadchatMessagePayload,
 }                                 from '../padchat-schemas'
 
-import { roomJoinEventMessageParser, roomLeaveEventMessageParser }  from './room-event-message-parser'
+import { roomLeaveEventMessageParser }  from './room-event-message-parser'
 
 test('roomLeaveEventMessageParser() EN-bot-delete-other', async t => {
   const MESSAGE_PAYLOAD: PadchatMessagePayload = {
@@ -37,7 +37,7 @@ test('roomLeaveEventMessageParser() EN-bot-delete-other', async t => {
     roomId         : '6061139518@chatroom',
   }
 
-  const payload = roomJoinEventMessageParser(MESSAGE_PAYLOAD)
+  const payload = roomLeaveEventMessageParser(MESSAGE_PAYLOAD)
   // console.log('payload:', payload)
   t.deepEqual(payload, EXPECTED_EVENT, 'should parse room leave message payload')
 
