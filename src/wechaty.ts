@@ -627,7 +627,7 @@ export class Wechaty extends Accessory implements Sayable {
             }
 
             this.emit('room-leave', room, leaverList, remover)
-            room.emit('leave', leaverList)
+            room.emit('leave', leaverList, remover)
           })
           break
 
