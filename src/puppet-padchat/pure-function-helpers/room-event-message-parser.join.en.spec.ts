@@ -116,31 +116,31 @@ test('roomJoinEventMessageParser() EN-other-invite-bot-with-others', async t => 
   t.deepEqual(event, EXPECTED_EVENT, 'should parse event')
 })
 
-// test('roomJoinEventMessageParser() EN-bot-invite-other', async t => {
-//   const MESSAGE_PAYLOAD: PadchatMessagePayload = {
-//     content     : '3453262102@chatroom:\n<sysmsg type="delchatroommember">\n\t<delchatroommember>\n\t\t<plain><![CDATA[You invited . 李 卓 桓 .呵呵 to the group chat.   ]]></plain>\n\t\t<text><![CDATA[You invited . 李 卓 桓 .呵呵 to the group chat.   ]]></text>\n\t\t<link>\n\t\t\t<scene>invite</scene>\n\t\t\t<text><![CDATA[  Revoke]]></text>\n\t\t\t<memberlist>\n\t\t\t\t<username><![CDATA[wxid_a8d806dzznm822]]></username>\n\t\t\t</memberlist>\n\t\t</link>\n\t</delchatroommember>\n</sysmsg>\n',
-//     continue    : 1,
-//     description : '',
-//     from_user   : '3453262102@chatroom',
-//     msg_id      : '4030118997146183783',
-//     msg_source  : '',
-//     msg_type    : 5,
-//     status      : 1,
-//     sub_type    : 10002,
-//     timestamp   : 1528755135,
-//     to_user     : 'wxid_5zj4i5htp9ih22',
-//     uin         : 1928023446,
-//   }
+test('roomJoinEventMessageParser() EN-bot-invite-one', async t => {
+  const MESSAGE_PAYLOAD: PadchatMessagePayload = {
+    content     : '3453262102@chatroom:\n<sysmsg type="delchatroommember">\n\t<delchatroommember>\n\t\t<plain><![CDATA[You invited . 李 卓 桓 .呵呵 to the group chat.   ]]></plain>\n\t\t<text><![CDATA[You invited . 李 卓 桓 .呵呵 to the group chat.   ]]></text>\n\t\t<link>\n\t\t\t<scene>invite</scene>\n\t\t\t<text><![CDATA[  Revoke]]></text>\n\t\t\t<memberlist>\n\t\t\t\t<username><![CDATA[wxid_a8d806dzznm822]]></username>\n\t\t\t</memberlist>\n\t\t</link>\n\t</delchatroommember>\n</sysmsg>\n',
+    continue    : 1,
+    description : '',
+    from_user   : '3453262102@chatroom',
+    msg_id      : '4030118997146183783',
+    msg_source  : '',
+    msg_type    : 5,
+    status      : 1,
+    sub_type    : 10002,
+    timestamp   : 1528755135,
+    to_user     : 'wxid_5zj4i5htp9ih22',
+    uin         : 1928023446,
+  }
 
-//   const EXPECTED_EVENT: PuppetRoomJoinEvent = {
-//     inviteeNameList : ['. 李 卓 桓 .呵呵'],
-//     inviterName     : YOU,
-//     roomId          : '3453262102@chatroom',
-//   }
+  const EXPECTED_EVENT: PuppetRoomJoinEvent = {
+    inviteeNameList : ['. 李 卓 桓 .呵呵'],
+    inviterName     : YOU,
+    roomId          : '3453262102@chatroom',
+  }
 
-//   const event = roomJoinEventMessageParser(MESSAGE_PAYLOAD)
-//   t.deepEqual(event, EXPECTED_EVENT, 'should parse event')
-// })
+  const event = roomJoinEventMessageParser(MESSAGE_PAYLOAD)
+  t.deepEqual(event, EXPECTED_EVENT, 'should parse event')
+})
 
 /**
  * See more in https://github.com/lijiarui/wechaty-puppet-padchat/issues/55
