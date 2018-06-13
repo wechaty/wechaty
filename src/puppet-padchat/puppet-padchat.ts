@@ -28,6 +28,8 @@ import {
   FileBox,
 }               from 'file-box'
 
+import Misc from '../misc'
+
 import {
   ContactPayload,
 
@@ -333,22 +335,48 @@ export class PuppetPadchat extends Puppet {
       const inviterName     = roomJoin.inviterName
       const roomId          = roomJoin.roomId
 
-      const inviteeIdList = flatten<string>(
-        await Promise.all(
-          inviteeNameList.map(
-            inviteeName => this.roomMemberSearch(roomId, inviteeName),
+      const inviteeIdList = await Misc.retry(async (retry, attempt) => {
+        log.verbose('PuppetPadchat', 'onPadchatMessageRoomEvent({id=%s}) roomJoin retry(attempt=%d)', attempt)
+
+        const tryIdList = flatten<string>(
+          await Promise.all(
+            inviteeNameList.map(
+              inviteeName => this.roomMemberSearch(roomId, inviteeName),
+            ),
           ),
-        ),
-      )
+        )
+
+        if (tryIdList.length) {
+          return tryIdList
+        }
+
+        if (!this.bridge) {
+          throw new Error('no manager')
+        }
+
+        /**
+         * PURGE Cache and Reload
+         */
+        await this.bridge.getRoomMemberIdList(roomId, true)
+
+        return retry(new Error('roomMemberSearch() not found'))
+
+      }).catch(e => {
+        log.warn('PuppetPadchat', 'onPadchatMessageRoomEvent({id=%s}) roomJoin retry() fail: %s', e.message)
+        return [] as string[]
+      })
+
       const inviterIdList = await this.roomMemberSearch(roomId, inviterName)
+
       if (inviterIdList.length < 1) {
         throw new Error('no inviterId found')
       } else if (inviterIdList.length > 1) {
         log.warn('PuppetPadchat', 'onPadchatMessageRoomEvent() case PadchatMesssageSys: inviterId found more than 1, use the first one.')
       }
+
       const inviterId = inviterIdList[0]
 
-      this.emit('room-join',   roomId, inviteeIdList,  inviterId)
+      this.emit('room-join', roomId, inviteeIdList,  inviterId)
     }
     /**
      * 2. Look for room leave event

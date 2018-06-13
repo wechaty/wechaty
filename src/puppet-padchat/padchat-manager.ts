@@ -660,10 +660,18 @@ export class PadchatManager extends PadchatRpc {
     return roomIdList
   }
 
-  public async getRoomMemberIdList(roomId: string): Promise<string[]> {
+  public async getRoomMemberIdList(
+    roomId: string,
+    noCache = false,
+  ): Promise<string[]> {
     log.verbose('PuppetPadchatManager', 'getRoomMemberIdList(%d)', roomId)
     if (!this.cacheRoomMemberRawPayload) {
       throw new Error('cache not inited' )
+    }
+
+    if (noCache) {
+      log.verbose('PuppetPadchatManager', 'getRoomMemberIdList(%d) cache PURGE', roomId)
+      this.cacheRoomMemberRawPayload.delete(roomId)
     }
 
     const memberRawPayloadDict = this.cacheRoomMemberRawPayload.get(roomId)

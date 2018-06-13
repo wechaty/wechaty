@@ -695,7 +695,6 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     /**
      * 2. for RoomMemberQueryFilter
      */
-    // const roomPayload = await this.roomPayload(roomId)
     const memberIdList = await this.roomMemberList(roomId)
 
     let idList: string[] = []
