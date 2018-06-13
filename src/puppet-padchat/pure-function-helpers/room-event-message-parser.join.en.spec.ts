@@ -210,7 +210,7 @@ test('roomJoinEventMessageParser() EN-other-invite-bot-and-two', async t => {
     uin         : 324216852,
   }
   const EXPECTED_EVENT: PuppetRoomJoinEvent = {
-    inviteeNameList : ['卓桓、Zhuohuan', '桔小秘', '桔小秘'],
+    inviteeNameList : [YOU],
     inviterName     : '李佳芮',
     roomId          : '12740017638@chatroom',
   }

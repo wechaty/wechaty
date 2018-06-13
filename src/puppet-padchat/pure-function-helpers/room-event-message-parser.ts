@@ -36,11 +36,12 @@ import {
 
 const ROOM_JOIN_BOT_INVITE_OTHER_REGEX_LIST_ZH = [
   /^你邀请"(.+)"加入了群聊/,
-  /^"(.+)"通过扫描你分享的二维码加入群聊/,
+  /^" ?(.+)"通过扫描你分享的二维码加入群聊/,
 ]
+
 const ROOM_JOIN_BOT_INVITE_OTHER_REGEX_LIST_EN = [
   /^You invited (.+) to the group chat/,
-  /^"(.+)" joined group chat via the QR code you shared/,
+  /^" ?(.+)" joined group chat via the QR code you shared/,
 ]
 
 ////////////////////////////////////////////////////
@@ -59,11 +60,20 @@ const ROOM_JOIN_OTHER_INVITE_BOT_REGEX_LIST_EN = [
 
 const ROOM_JOIN_OTHER_INVITE_OTHER_REGEX_LIST_ZH = [
   /^"(.+)"邀请"(.+)"加入了群聊/,
-
 ]
 
 const ROOM_JOIN_OTHER_INVITE_OTHER_REGEX_LIST_EN = [
   /^(.+?) invited (.+?) to (the|a) group chat/,
+]
+
+////////////////////////////////////////////////////
+
+const ROOM_JOIN_OTHER_INVITE_OTHER_QRCODE_REGEX_LIST_ZH = [
+  /^" (.+)"通过扫描"(.+)"分享的二维码加入群聊/,
+]
+
+const ROOM_JOIN_OTHER_INVITE_OTHER_QRCODE_REGEX_LIST_EN = [
+  /^"(.+)" joined the group chat via the QR Code shared by "(.+)"/,
 ]
 
 export function roomJoinEventMessageParser(
@@ -108,13 +118,15 @@ export function roomJoinEventMessageParser(
     content = jsonPayload.sysmsg.delchatroommember.plain
   }
 
-  let matchesForBotInviteOtherEn   = null as null | string[]
-  let matchesForOtherInviteBotEn   = null as null | string[]
-  let matchesForOtherInviteOtherEn = null as null | string[]
+  let matchesForBotInviteOtherEn         = null as null | string[]
+  let matchesForOtherInviteBotEn         = null as null | string[]
+  let matchesForOtherInviteOtherEn       = null as null | string[]
+  let matchesForOtherInviteOtherQrcodeEn = null as null | string[]
 
-  let matchesForBotInviteOtherZh   = null as null | string[]
-  let matchesForOtherInviteBotZh   = null as null | string[]
-  let matchesForOtherInviteOtherZh = null as null | string[]
+  let matchesForBotInviteOtherZh         = null as null | string[]
+  let matchesForOtherInviteBotZh         = null as null | string[]
+  let matchesForOtherInviteOtherZh       = null as null | string[]
+  let matchesForOtherInviteOtherQrcodeZh = null as null | string[]
 
   ROOM_JOIN_BOT_INVITE_OTHER_REGEX_LIST_EN.some(
     regex => !!(matchesForBotInviteOtherEn = content.match(regex)),
@@ -124,6 +136,9 @@ export function roomJoinEventMessageParser(
   )
   ROOM_JOIN_OTHER_INVITE_OTHER_REGEX_LIST_EN.some(
     regex => !!(matchesForOtherInviteOtherEn = content.match(regex)),
+  )
+  ROOM_JOIN_OTHER_INVITE_OTHER_QRCODE_REGEX_LIST_EN.some(
+    regex => !!(matchesForOtherInviteOtherQrcodeEn = content.match(regex)),
   )
 
   ROOM_JOIN_BOT_INVITE_OTHER_REGEX_LIST_ZH.some(
@@ -135,23 +150,44 @@ export function roomJoinEventMessageParser(
   ROOM_JOIN_OTHER_INVITE_OTHER_REGEX_LIST_ZH.some(
     regex => !!(matchesForOtherInviteOtherZh = content.match(regex)),
   )
+  ROOM_JOIN_OTHER_INVITE_OTHER_QRCODE_REGEX_LIST_ZH.some(
+    regex => !!(matchesForOtherInviteOtherQrcodeZh = content.match(regex)),
+  )
 
-  const matchesForBotInviteOther   = matchesForBotInviteOtherEn   || matchesForBotInviteOtherZh
-  const matchesForOtherInviteBot   = matchesForOtherInviteBotEn   || matchesForOtherInviteBotZh
-  const matchesForOtherInviteOther = matchesForOtherInviteOtherEn || matchesForOtherInviteOtherZh
+  const matchesForBotInviteOther         = matchesForBotInviteOtherEn         || matchesForBotInviteOtherZh
+  const matchesForOtherInviteBot         = matchesForOtherInviteBotEn         || matchesForOtherInviteBotZh
+  const matchesForOtherInviteOther       = matchesForOtherInviteOtherEn       || matchesForOtherInviteOtherZh
+  const matchesForOtherInviteOtherQrcode = matchesForOtherInviteOtherQrcodeEn || matchesForOtherInviteOtherQrcodeZh
 
-  const languageEn = matchesForBotInviteOtherEn || matchesForOtherInviteBotEn || matchesForOtherInviteOtherEn
-  const languageZh = matchesForBotInviteOtherZh || matchesForOtherInviteBotZh || matchesForOtherInviteOtherZh
+  const languageEn =   matchesForBotInviteOtherEn
+                    || matchesForOtherInviteBotEn
+                    || matchesForOtherInviteOtherEn
+                    || matchesForOtherInviteOtherQrcodeEn
 
-  const matches = matchesForBotInviteOther
-                || matchesForOtherInviteBot
-                || matchesForOtherInviteOther
+  const languageZh =   matchesForBotInviteOtherZh
+                    || matchesForOtherInviteBotZh
+                    || matchesForOtherInviteOtherZh
+                    || matchesForOtherInviteOtherQrcodeZh
+
+  const matches =    matchesForBotInviteOther
+                  || matchesForOtherInviteBot
+                  || matchesForOtherInviteOther
+                  || matchesForOtherInviteOtherQrcode
 
   if (!matches) {
     return null
   }
 
+  /**
+   *
+   * Parse all Names From the Event Text
+   *
+   */
   if (matchesForBotInviteOther) {
+    /**
+     * 1. Bot Invite Other to join the Room
+     *  (include invite via QrCode)
+     */
     const other = matches[1]
 
     let inviteeNameList
@@ -172,6 +208,9 @@ export function roomJoinEventMessageParser(
     return joinEvent
 
   } else if (matchesForOtherInviteBot) {
+    /**
+     * 2. Other Invite Bot to join the Room
+     */
     // /^"([^"]+?)"邀请你加入了群聊/,
     // /^"([^"]+?)"邀请你和"(.+?)"加入了群聊/,
     const inviterName = matches[1]
@@ -196,6 +235,10 @@ export function roomJoinEventMessageParser(
     return joinEvent
 
   } else if (matchesForOtherInviteOther) {
+    /**
+     * 3. Other Invite Other to a Room
+     *  (NOT include invite via Qrcode)
+     */
     // /^"([^"]+?)"邀请"([^"]+)"加入了群聊$/,
     // /^([^"]+?) invited ([^"]+?) to (the|a) group chat/,
     const inviterName = matches[1]
@@ -203,6 +246,32 @@ export function roomJoinEventMessageParser(
     let   inviteeNameList: string[]
 
     const other = matches[2]
+
+    if (languageEn) {
+      inviteeNameList = splitEnglishNameList(other)
+    } else if (languageZh) {
+      inviteeNameList = splitChineseNameList(other)
+    } else {
+      throw new Error('neither English nor Chinese')
+    }
+
+    const joinEvent: PuppetRoomJoinEvent = {
+      inviteeNameList,
+      inviterName,
+      roomId,
+    }
+    return joinEvent
+
+  } else if (matchesForOtherInviteOtherQrcode) {
+    /**
+     * 4. Other Invite Other via Qrcode to join a Room
+     *   /^" (.+)"通过扫描"(.+)"分享的二维码加入群聊/,
+     */
+    const inviterName = matches[2]
+
+    let   inviteeNameList: string[]
+
+    const other = matches[1]
 
     if (languageEn) {
       inviteeNameList = splitEnglishNameList(other)

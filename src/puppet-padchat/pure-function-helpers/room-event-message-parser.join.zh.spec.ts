@@ -166,7 +166,7 @@ test('roomJoinEventMessageParser() ZH-bot-invite-three-bot-is-not-owner', async 
     uin         : 324216852,
   }
   const EXPECTED_EVENT: PuppetRoomJoinEvent = {
-    inviteeNameList : ['卓桓、Zhuohuan', '太阁_传话助手', '桔小秘'],
+    inviteeNameList : ['卓桓', 'Zhuohuan', '太阁_传话助手', '桔小秘'],
     inviterName     : YOU,
     roomId          : '12740017638@chatroom',
   }
@@ -266,7 +266,7 @@ test('roomJoinEventMessageParser() ZH-scan-qrcode-shared-by-other-when-bot-no-ow
     uin         : 324216852,
   }
   const EXPECTED_EVENT: PuppetRoomJoinEvent = {
-    inviteeNameList : ['卓桓、Zhuohuan'],
+    inviteeNameList : ['卓桓', 'Zhuohuan'],
     inviterName     : '李佳芮',
     roomId          : '9967013206@chatroom',
   }
@@ -291,7 +291,7 @@ test('roomJoinEventMessageParser() ZH-scan-qrcode-shared-by-other-when-bot-is-ow
     uin         : 324216852,
   }
   const EXPECTED_EVENT: PuppetRoomJoinEvent = {
-    inviteeNameList : ['卓桓、Zhuohuan'],
+    inviteeNameList : ['卓桓', 'Zhuohuan'],
     inviterName     : '李佳芮',
     roomId          : '5616634434@chatroom',
   }
