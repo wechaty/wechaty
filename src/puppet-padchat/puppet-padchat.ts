@@ -724,7 +724,10 @@ export class PuppetPadchat extends Puppet {
     text     : string,
   ): Promise<void> {
     log.verbose('PuppetPadchat', 'messageSend(%s, %s)', JSON.stringify(receiver), text)
-    const id = receiver.contactId || receiver.roomId
+
+    // roomId first, contactId second.
+    const id = receiver.roomId || receiver.contactId
+
     if (!id) {
       throw Error('no id')
     }
@@ -740,7 +743,9 @@ export class PuppetPadchat extends Puppet {
   ): Promise<void> {
     log.verbose('PuppetPadchat', 'messageSend("%s", %s)', JSON.stringify(receiver), file)
 
-    const id = receiver.contactId || receiver.roomId
+    // roomId first, contactId second.
+    const id = receiver.roomId || receiver.contactId
+
     if (!id) {
       throw new Error('no id!')
     }
@@ -779,7 +784,9 @@ export class PuppetPadchat extends Puppet {
       throw new Error('no bridge')
     }
 
-    const id = receiver.contactId || receiver.roomId
+    // roomId first, contactId second.
+    const id = receiver.roomId || receiver.contactId
+
     if (!id) {
       throw Error('no id')
     }
