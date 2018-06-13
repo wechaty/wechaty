@@ -265,6 +265,14 @@ export class PuppetPadchat extends Puppet {
                                 PadchatMessageType[rawPayload.sub_type],
                                 rawPayload.msg_type,
               )
+    /**
+     * Sometimes will get several same message from rpc, drop the same message here.
+     */
+    if (this.cachePadchatMessagePayload.has(rawPayload.msg_id)) {
+      log.warn('PuppetPadchat', 'onPadchatMessage({id=%s, type=%s(%s)}) duplicate message')
+      return
+    }
+
     console.log('rawPayload:', rawPayload)
 
     switch (rawPayload.sub_type) {
@@ -296,6 +304,10 @@ export class PuppetPadchat extends Puppet {
         ])
         break
       case PadchatMessageType.Sys:
+        this.cachePadchatMessagePayload.set(
+          rawPayload.msg_id,
+          rawPayload,
+        )
         await Promise.all([
           this.onPadchatMessageFriendshipEvent(rawPayload),
           this.onPadchatMessageRoomEvent(rawPayload),
