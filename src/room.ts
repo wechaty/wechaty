@@ -345,10 +345,10 @@ export class Room extends Accessory implements Sayable {
     return super.emit(event, ...args)
   }
 
-  public on(event: 'leave', listener: (this: Room, leaver:      Contact,    remover?: Contact) => void)                 : this
-  public on(event: 'join' , listener: (this: Room, inviteeList: Contact[] , inviter:  Contact) => void)                 : this
-  public on(event: 'topic', listener: (this: Room, topic:       string,     oldTopic: string, changer: Contact) => void): this
-  public on(event: never,   ...args: never[]): never
+  public on(event: 'leave', listener: (this: Room, leaverList:  Contact[], remover?: Contact) => void)                  : this
+  public on(event: 'join' , listener: (this: Room, inviteeList: Contact[], inviter:  Contact) => void)                  : this
+  public on(event: 'topic', listener: (this: Room, topic:       string,    oldTopic: string, changer: Contact) => void) : this
+  public on(event: never,   ...args: never[])                                                                           : never
 
    /**
     * @desc       Room Class Event Type

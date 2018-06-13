@@ -286,8 +286,8 @@ async function manageDingRoom() {
     /**
      * Event: Leave
      */
-    room.on('leave', (leaver) => {
-      log.info('Bot', 'Room EVENT: leave - %s leave, byebye', leaver.name())
+    room.on('leave', (leaverList, remover) => {
+      log.info('Bot', 'Room EVENT: leave - %s leave(remover %s), byebye', leaverList.join(','), remover || 'unknown')
     })
 
     /**
