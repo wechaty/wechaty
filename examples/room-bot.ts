@@ -386,6 +386,7 @@ async function createDingRoom(contact: Contact): Promise<any> {
 
     if (!helperContact) {
       log.warn('Bot', 'getHelperContact() found nobody')
+      contact.say(`You don't have a friend called ${HELPER_CONTACT_NAME}, because create a new room at least need 3 contacts, please set [HELPER_CONTACT_NAME] in the code first!`)
       return
     }
 
