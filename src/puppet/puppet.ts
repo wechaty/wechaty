@@ -667,7 +667,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     log.verbose('Puppet', 'roomMemberSearch(%s, %s)', roomId, JSON.stringify(query))
 
     if (!this.id) {
-      throw new Error('no puppet.id')
+      throw new Error('no puppet.id. need puppet to be login-ed for a search')
     }
 
     /**

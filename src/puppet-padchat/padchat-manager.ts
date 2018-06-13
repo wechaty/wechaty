@@ -222,7 +222,7 @@ export class PadchatManager extends PadchatRpc {
 
     if (this.delayQueueExecutorSubscription) {
       this.delayQueueExecutorSubscription.unsubscribe()
-      this.delayQueueExecutor.unsubscribe()
+      this.delayQueueExecutorSubscription = undefined
     } else {
       log.warn('PuppetPadchatManager', 'stop() subscript not exist')
     }

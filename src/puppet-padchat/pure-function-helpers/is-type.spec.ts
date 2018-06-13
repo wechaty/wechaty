@@ -18,30 +18,27 @@ test('isRoomId()', async t => {
   const ROOM_ID     = 'xxx@chatroom'
   const NOT_ROOM_ID = 'xxxxxxx'
 
-  t.ok(isRoomId(ROOM_ID), 'should return true for ROOM_ID')
-  t.notOk(isRoomId(NOT_ROOM_ID), 'should return false for ROOM_ID')
-  t.throws(() => isRoomId(undefined), 'should throw exception for undifined')
-  t.doesNotThrow(() => isRoomId('test'), 'should not throw for string')
+  t.equal(isRoomId(ROOM_ID)     , true, 'should return true for ROOM_ID')
+  t.equal(isRoomId(NOT_ROOM_ID) , false, 'should return false for ROOM_ID')
+  t.equal(isRoomId(undefined)   , false, 'should return false for undifined')
 })
 
 test('isContactId()', async t => {
   const CONTACT_ID     = 'sxxfdsa'
   const NOT_CONTACT_ID = 'fdsafasd@chatroom'
 
-  t.ok(isContactId(CONTACT_ID), 'should return true for CONTACT_ID')
-  t.notOk(isContactId(NOT_CONTACT_ID), 'should return false for CONTACT_ID')
-  t.throws(() => isContactId(undefined), 'should throw exception for undifined')
-  t.doesNotThrow(() => isContactId('test'), 'should not throw for string')
+  t.equal(isContactId(CONTACT_ID)     , true, 'should return true for CONTACT_ID')
+  t.equal(isContactId(NOT_CONTACT_ID) , false, 'should return false for CONTACT_ID')
+  t.equal(isContactId(undefined)      , false , 'should return false for undifined')
 })
 
 test('isContactOfficialId()', async t => {
   const OFFICIAL_CONTACT_ID     = 'gh_sxxfdsa'
   const NOT_OFFICIAL_CONTACT_ID = 'fdsafasd@chatroom'
 
-  t.ok(isContactOfficialId(OFFICIAL_CONTACT_ID), 'should return true for OFFICIAL_CONTACT_ID')
-  t.notOk(isContactOfficialId(NOT_OFFICIAL_CONTACT_ID), 'should return false for NOT_OFFICIAL_CONTACT_ID')
-  t.throws(() => isContactOfficialId(undefined), 'should throw exception for undifined')
-  t.doesNotThrow(() => isContactOfficialId('test'), 'should not throw for string')
+  t.equal(isContactOfficialId(OFFICIAL_CONTACT_ID)    , true, 'should return true for OFFICIAL_CONTACT_ID')
+  t.equal(isContactOfficialId(NOT_OFFICIAL_CONTACT_ID), false, 'should return false for NOT_OFFICIAL_CONTACT_ID')
+  t.equal(isContactOfficialId(undefined)              , false, 'should return false for undifined')
 })
 
 test('isStrangerV1()', async t => {
