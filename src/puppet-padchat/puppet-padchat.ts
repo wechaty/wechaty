@@ -321,11 +321,12 @@ export class PuppetPadchat extends Puppet {
   protected async onPadchatMessageRoomEventJoin(rawPayload: PadchatMessagePayload): Promise<void> {
     log.verbose('PuppetPadchat', 'onPadchatMessageRoomEventJoin({id=%s})', rawPayload.msg_id)
 
-    const roomJoin = roomJoinEventMessageParser(rawPayload)
-    if (roomJoin) {
-      const inviteeNameList = roomJoin.inviteeNameList
-      const inviterName     = roomJoin.inviterName
-      const roomId          = roomJoin.roomId
+    const roomJoinEvent = roomJoinEventMessageParser(rawPayload)
+
+    if (roomJoinEvent) {
+      const inviteeNameList = roomJoinEvent.inviteeNameList
+      const inviterName     = roomJoinEvent.inviterName
+      const roomId          = roomJoinEvent.roomId
 
       const inviteeIdList = await Misc.retry(async (retry, attempt) => {
         log.verbose('PuppetPadchat', 'onPadchatMessageRoomEvent({id=%s}) roomJoin retry(attempt=%d)', attempt)
@@ -378,11 +379,12 @@ export class PuppetPadchat extends Puppet {
   protected async onPadchatMessageRoomEventLeave(rawPayload: PadchatMessagePayload): Promise<void> {
     log.verbose('PuppetPadchat', 'onPadchatMessageRoomEventLeave({id=%s})', rawPayload.msg_id)
 
-    const roomLeave = roomLeaveEventMessageParser(rawPayload)
-    if (roomLeave) {
-      const leaverNameList = roomLeave.leaverNameList
-      const removerName    = roomLeave.removerName
-      const roomId         = roomLeave.roomId
+    const roomLeaveEvent = roomLeaveEventMessageParser(rawPayload)
+
+    if (roomLeaveEvent) {
+      const leaverNameList = roomLeaveEvent.leaverNameList
+      const removerName    = roomLeaveEvent.removerName
+      const roomId         = roomLeaveEvent.roomId
 
       const leaverIdList = flatten<string>(
         await Promise.all(
@@ -419,11 +421,12 @@ export class PuppetPadchat extends Puppet {
   protected async onPadchatMessageRoomEventTopic(rawPayload: PadchatMessagePayload): Promise<void> {
     log.verbose('PuppetPadchat', 'onPadchatMessageRoomEventTopic({id=%s})', rawPayload.msg_id)
 
-    const roomTopic = roomTopicEventMessageParser(rawPayload)
-    if (roomTopic) {
-      const changerName = roomTopic.changerName
-      const newTopic    = roomTopic.topic
-      const roomId      = roomTopic.roomId
+    const roomTopicEvent = roomTopicEventMessageParser(rawPayload)
+
+    if (roomTopicEvent) {
+      const changerName = roomTopicEvent.changerName
+      const newTopic    = roomTopicEvent.topic
+      const roomId      = roomTopicEvent.roomId
 
       const roomPayload = await this.roomPayload(roomId)
       const oldTopic = roomPayload.topic
