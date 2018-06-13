@@ -635,9 +635,7 @@ export class PuppetPadchat extends Puppet {
    */
 
   public async messageFile(messageId: string): Promise<FileBox> {
-    log.warn('PuppetPadchat', 'messageFile(%s) not implemented yet', messageId)
-
-    // const rawPayload = await this.messageRawPayload(id)
+    log.warn('PuppetPadchat', 'messageFile(%s) not fully implemented yet, PR is welcome!', messageId)
 
     // TODO
 
@@ -648,7 +646,8 @@ export class PuppetPadchat extends Puppet {
     const rawPayload = await this.messageRawPayload(messageId)
     const payload    = await this.messagePayload(messageId)
 
-    const rawText = JSON.stringify(rawPayload)
+    const rawText        = JSON.stringify(rawPayload)
+    const attachmentName = payload.filename || payload.id
 
     let result
 
@@ -659,22 +658,22 @@ export class PuppetPadchat extends Puppet {
       case MessageType.Audio:
         result = await this.padchatManager.WXGetMsgVoice(rawText)
         console.log(result)
-        return FileBox.fromBase64(result.data.image, 'test.slk')
+        return FileBox.fromBase64(result.voice, `${attachmentName}.slk`)
 
       case MessageType.Emoticon:
         result = await this.padchatManager.WXGetMsgImage(rawText)
         console.log(result)
-        return FileBox.fromBase64(result.data.image, 'test.gif')
+        return FileBox.fromBase64(result.image, `${attachmentName}.gif`)
 
       case MessageType.Image:
         result = await this.padchatManager.WXGetMsgImage(rawText)
         console.log(result)
-        return FileBox.fromBase64(result.data.image, 'test.jpg')
+        return FileBox.fromBase64(result.image, `${attachmentName}.jpg`)
 
       case MessageType.Video:
         result = await this.padchatManager.WXGetMsgVideo(rawText)
         console.log(result)
-        return FileBox.fromBase64(result.data.image, 'test.mp4')
+        return FileBox.fromBase64(result.video, `${attachmentName}.mp4`)
 
       default:
         throw new Error('unsupport type: ' + PadchatMessageType[rawPayload.sub_type] + ':' + rawPayload.sub_type)
