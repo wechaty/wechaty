@@ -38,7 +38,7 @@ test('roomJoinEventMessageParser() ZH-other-invite-other', async t => {
   }
 
   const event = roomJoinEventMessageParser(MESSAGE_PAYLOAD)
-  console.log('payload:', event)
+  // console.log('payload:', event)
   t.deepEqual(event, EXPECTED_EVENT, 'should parse room join message payload')
 })
 
@@ -72,7 +72,7 @@ test('roomJoinEventMessageParser() ZH-other-invite-bot', async t => {
   t.deepEqual(event, EXPECTED_EVENT, 'should parse event')
 })
 
-test('roomJoinEventMessageParser() ZH-other-invite-bot-with-others', async t => {
+test('roomJoinEventMessageParser() ZH-other-invite-bot-with-other', async t => {
   const MESSAGE_PAYLOAD: PadchatMessagePayload = {
     content     : '"李卓桓"邀请你和"Huan LI++"加入了群聊',
     continue    : 1,
@@ -97,7 +97,7 @@ test('roomJoinEventMessageParser() ZH-other-invite-bot-with-others', async t => 
   t.deepEqual(event, EXPECTED_EVENT, 'should parse event')
 })
 
-test('roomJoinEventMessageParser() ZH-bot-invite-other', async t => {
+test('roomJoinEventMessageParser() ZH-bot-invite-one', async t => {
   const MESSAGE_PAYLOAD: PadchatMessagePayload = {
     content     : '5354656522@chatroom:\n<sysmsg type="delchatroommember">\n\t<delchatroommember>\n\t\t<plain><![CDATA[你邀请"Huan LI++"加入了群聊  ]]></plain>\n\t\t<text><![CDATA[你邀请"Huan LI++"加入了群聊  ]]></text>\n\t\t<link>\n\t\t\t<scene>invite</scene>\n\t\t\t<text><![CDATA[  撤销]]></text>\n\t\t\t<memberlist>\n\t\t\t\t<username><![CDATA[wxid_5zj4i5htp9ih22]]></username>\n\t\t\t</memberlist>\n\t\t</link>\n\t</delchatroommember>\n</sysmsg>\n',
     continue    : 1,
@@ -122,7 +122,7 @@ test('roomJoinEventMessageParser() ZH-bot-invite-other', async t => {
   t.deepEqual(event, EXPECTED_EVENT, 'should parse event')
 })
 
-test('roomJoinEventMessageParser() ZH-bot-invite-others', async t => {
+test('roomJoinEventMessageParser() ZH-bot-invite-three', async t => {
   t.skip('tbw')
 })
 

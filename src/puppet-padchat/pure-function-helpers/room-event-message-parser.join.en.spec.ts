@@ -141,8 +141,8 @@ test('roomJoinEventMessageParser() EN-bot-invite-other', async t => {
   t.deepEqual(event, EXPECTED_EVENT, 'should parse event')
 })
 
-test('roomJoinEventMessageParser() EN-bot-invite-others', async t => {
-  t.skip('should be the same as the bot-invite-other')
+test('roomJoinEventMessageParser() EN-bot-invite-many', async t => {
+  t.skip('should be the same as the bot-invite-many')
 })
 
 test('roomJoinEventMessageParser() EN-room-create', async t => {

@@ -85,11 +85,27 @@ export function roomJoinEventMessageParser(
    * when the message is a Recalled type, bot can undo the invitation
    */
   if (rawPayload.sub_type === PadchatMessageType.Recalled) {
+    /**
+     * content:
+     * ```
+     * 3453262102@chatroom:
+     * <sysmsg type="delchatroommember">
+     *   ...
+     * </sysmsg>
+     * ```
+     */
+    const tryXmlText = content.replace(/^[^\n]+\n/, '')
     interface XmlSchema {
-      plain: string,
+      sysmsg: {
+        type: string,
+        delchatroommember: {
+          plain: string,
+          text: string,
+        },
+      }
     }
-    const jsonPayload = toJson(content, { object: true }) as XmlSchema
-    content = jsonPayload.plain
+    const jsonPayload = toJson(tryXmlText, { object: true }) as XmlSchema
+    content = jsonPayload.sysmsg.delchatroommember.plain
   }
 
   let matchesForBotInviteOtherEn   = null as null | string[]
