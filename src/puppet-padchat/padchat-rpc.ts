@@ -60,6 +60,8 @@ import {
   StandardType,
   WXAddChatRoomMemberType,
   WXLogoutType,
+  WXSearchContactType,
+  WXSearchContactTypeStatus,
 }                             from './padchat-rpc.type'
 
 import {
@@ -322,7 +324,7 @@ export class PadchatRpc extends EventEmitter {
 
   private async rpcCall(
     apiName   : string,
-    ...params : string[]
+    ...params : (string | WXSearchContactTypeStatus)[]
   ): Promise<any> {
     log.silly('PadchatRpc', 'rpcCall(%s, %s)', apiName, JSON.stringify(params).substr(0, 500))
     return await this.jsonRpc.request(apiName, params)
@@ -848,24 +850,7 @@ export class PadchatRpc extends EventEmitter {
     return result
   }
 
-  // friendRequestSend
-  // type来源值：
-  // 2                 -通过搜索邮箱
-  // 3                  -通过微信号搜索
-  // 5                  -通过朋友验证消息
-  // 7                  -通过朋友验证消息(可回复)
-  // 12                -通过QQ好友添加
-  // 14                -通过群来源
-  // 15                -通过搜索手机号
-  // 16                -通过朋友验证消息
-  // 17                -通过名片分享
-  // 22                -通过摇一摇打招呼方式
-  // 25                -通过漂流瓶
-  // 30                -通过二维码方式
-  public async WXAddUser(strangerV1: string, strangerV2: string, type: string, verify: string): Promise<any> {
-    // TODO:
-    // type = '14'
-    // verify = 'hello'
+  public async WXAddUser(strangerV1: string, strangerV2: string, type: WXSearchContactTypeStatus, verify: string): Promise<any> {
     const result = await this.rpcCall('WXAddUser', strangerV1, strangerV2, type, verify)
     log.silly('PadchatRpc', 'WXAddUser result: %s', JSON.stringify(result))
     return result
@@ -906,13 +891,21 @@ export class PadchatRpc extends EventEmitter {
     return result
   }
 
-  // TODO: check any
-  // For add new friends by id
-  public async WXSearchContact(): Promise<any> {
-    const result = await this.rpcCall('WXSearchContact')
+  // This function is used for add new friends by id
+  public async WXSearchContact(id: string): Promise<WXSearchContactType> {
+    const result = await this.rpcCall('WXSearchContact', id)
     log.silly('PadchatRpc', 'WXSearchContact result: %s', JSON.stringify(result))
-    if (!result || result.status !== 0) {
+
+    if ((!result) && (result.status !== WXSearchContactTypeStatus.Searchable) && (result.status !== WXSearchContactTypeStatus.UnSearchable)) {
       throw Error('WXSearchContact error! canot get result from websocket server')
+    }
+
+    if (result.status === WXSearchContactTypeStatus.Searchable) {
+      log.info('PadchatRpc', 'WXSearchContact wxid: %s can be searched', id)
+    }
+
+    if (result.status === WXSearchContactTypeStatus.UnSearchable) {
+      log.info('PadchatRpc', 'WXSearchContact wxid: %s cannot be searched', id)
     }
     return result
   }
