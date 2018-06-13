@@ -1127,6 +1127,9 @@ export class PuppetPadchat extends Puppet {
   public async friendshipRawPayload(friendshipId: string): Promise<PadchatMessagePayload> {
     log.verbose('PuppetPadchat', 'friendshipRawPayload(%s)', friendshipId)
 
+    /**
+     * Friendship shares Cache with the Message RawPayload
+     */
     const rawPayload = this.cachePadchatMessagePayload.get(friendshipId)
     if (!rawPayload) {
       throw new Error('no rawPayload for id ' + friendshipId)
