@@ -115,7 +115,13 @@ export function roomJoinEventMessageParser(
       }
     }
     const jsonPayload = toJson(tryXmlText, { object: true }) as XmlSchema
-    content = jsonPayload.sysmsg.delchatroommember.plain
+    try {
+      content = jsonPayload.sysmsg.delchatroommember.plain
+    } catch (e) {
+      console.error(e)
+      console.log('jsonPayload:', jsonPayload)
+      throw e
+    }
   }
 
   let matchesForBotInviteOtherEn         = null as null | string[]
