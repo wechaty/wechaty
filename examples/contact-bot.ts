@@ -53,9 +53,9 @@ console.log(welcome)
 const bot = Wechaty.instance()
 
 bot
-.on('login'	  , function(this, user) {
+.on('login'	  , function(user) {
   log.info('Bot', `${user.name()} logined`)
-  this.say('wechaty contact-bot just logined')
+  user.say('wechaty contact-bot just logined')
 
   /**
    * Main Contact Bot start from here
