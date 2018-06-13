@@ -513,7 +513,10 @@ export class PuppetPadchat extends Puppet {
   public async contactAvatar(contactId: string, file: FileBox) : Promise<void>
 
   public async contactAvatar(contactId: string, file?: FileBox): Promise<void | FileBox> {
-    log.verbose('PuppetPadchat', 'contactAvatar(%s, %s)', contactId, file ? file.name : '')
+    log.verbose('PuppetPadchat', 'contactAvatar(%s%s)',
+                                  contactId,
+                                  file ? (', ' + file.name) : '',
+                )
 
     /**
      * 1. set avatar for user self

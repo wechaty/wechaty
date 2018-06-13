@@ -37,6 +37,7 @@ test('PadchatManager() cache should be release and can be re-init again.', async
     for (let i = 0; i < 3; i++) {
       await manager.initCache('fake-token', 'fake-self-id')
       await manager.releaseCache()
+      t.pass('init/release-ed at #' + i)
     }
     t.pass('PadchatManager() cache init/release/init successed.')
   } catch (e) {
@@ -44,7 +45,7 @@ test('PadchatManager() cache should be release and can be re-init again.', async
   }
 })
 
-test.only('PadchatManager() should can be restart() after a start()', async t => {
+test('PadchatManager() should can be able to restart() many times for one instance', async t => {
   const manager = new PadchatManager({
     memory   : new MemoryCard(),
     token    : 'mock token',
@@ -54,8 +55,9 @@ test.only('PadchatManager() should can be restart() after a start()', async t =>
     for (let i = 0; i < 3; i++) {
       await manager.start()
       await manager.stop()
+      t.pass('restarted at #' + i)
     }
-    t.pass('PadchatManager() start/restart successed.')
+    t.pass('PadchatManager() restart successed.')
   } catch (e) {
     console.error(e)
     t.fail(e)
