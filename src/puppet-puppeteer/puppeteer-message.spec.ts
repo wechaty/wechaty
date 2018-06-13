@@ -66,6 +66,10 @@ class PuppetTest extends PuppetPuppeteer {
   }
 }
 
+class PuppetPuppeteerTest extends PuppetPuppeteer {
+  public id?: string = undefined
+}
+
 test('constructor()', async t => {
   const puppet  = new PuppetTest({ memory: new MemoryCard() })
   const wechaty = new WechatyTest({ puppet })
@@ -369,7 +373,7 @@ test('mentioned()', async t => {
 
   const sandbox = sinon.createSandbox()
 
-  const puppet = new PuppetPuppeteer({ memory: new MemoryCard() })
+  const puppet = new PuppetPuppeteerTest({ memory: new MemoryCard() })
 
   const wechaty = new WechatyTest({ puppet })
   wechaty.initPuppetAccessory(puppet)
@@ -377,6 +381,7 @@ test('mentioned()', async t => {
   sandbox.stub(puppet, 'contactRawPayload').callsFake(mockContactRawPayload)
   sandbox.stub(puppet, 'roomRawPayload')   .callsFake(mockRoomRawPayload)
   sandbox.stub(puppet, 'messageRawPayload').callsFake(mockMessageRawPayload)
+  sandbox.stub(puppet, 'id').value('pretend-to-be-logined')
 
   const msg11 = wechaty.Message.create(rawPayload11.MsgId)
   await msg11.ready()
