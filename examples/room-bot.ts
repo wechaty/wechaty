@@ -121,28 +121,33 @@ bot
 /**
  * Global Event: room-join
  */
-.on('room-join', async function(this, room, inviteeList, inviter) {
+.on('room-join', async function(room, inviteeList, inviter) {
   log.info( 'Bot', 'EVENT: room-join - Room %s got new member %s, invited by %s',
             await room.topic(),
             inviteeList.map(c => c.name()).join(','),
             inviter.name(),
           )
+  const topic = await room.topic()
+  room.say(`welcome to ${topic}!`, inviteeList[0])
 })
 
 /**
  * Global Event: room-leave
  */
-.on('room-leave', async function(this, room, leaverList) {
+.on('room-leave', async function(room, leaverList) {
   log.info('Bot', 'EVENT: room-leave - Room %s lost member %s',
                   await room.topic(),
                   leaverList.map(c => c.name()).join(','),
               )
+  const topic = await room.topic()
+  const name  = leaverList[0] ? leaverList[0].name() : 'no contact!'
+  room.say(`kick off ${name} from ${topic}!` )
 })
 
 /**
  * Global Event: room-topic
  */
-.on('room-topic', function(this, room, topic, oldTopic, changer) {
+.on('room-topic', function(room, topic, oldTopic, changer) {
   try {
     log.info('Bot', 'EVENT: room-topic - Room %s change topic from %s to %s by member %s',
                     room,
@@ -150,6 +155,7 @@ bot
                     topic,
                     changer,
                 )
+    room.say(`room-topic - change topic from ${oldTopic} to ${topic} by member ${changer.name()}` )
   } catch (e) {
     log.error('Bot', 'room-topic event exception: %s', e.stack)
   }
