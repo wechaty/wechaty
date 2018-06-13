@@ -324,7 +324,7 @@ export class PadchatRpc extends EventEmitter {
 
   private async rpcCall(
     apiName   : string,
-    ...params : string[]
+    ...params : (number | string)[]
   ): Promise<any> {
     log.silly('PadchatRpc', 'rpcCall(%s, %s)', apiName, JSON.stringify(params).substr(0, 500))
     return await this.jsonRpc.request(apiName, params)
@@ -850,12 +850,17 @@ export class PadchatRpc extends EventEmitter {
     return result
   }
 
-  public async WXAddUser(strangerV1: string, strangerV2: string, type: WXSearchContactTypeStatus, verify: string): Promise<any> {
+  public async WXAddUser(
+    strangerV1 : string,
+    strangerV2 : string,
+    type       : WXSearchContactTypeStatus,
+    verify     : string,
+  ): Promise<any> {
     const result = await this.rpcCall(
       'WXAddUser',
       strangerV1,
       strangerV2,
-      String(type),
+      type,
       verify,
     )
     log.silly('PadchatRpc', 'WXAddUser result: %s', JSON.stringify(result))
