@@ -18,7 +18,6 @@ class PadchatManagerTest extends PadchatManager {
       selfId,
     )
   }
-
   public async releaseCache() {
     return super.releaseCache()
   }
@@ -35,10 +34,10 @@ test('PadchatManager() cache should be release and can be re-init again.', async
     endpoint : WECHATY_PUPPET_PADCHAT_ENDPOINT,
   })
   try {
-    await manager.initCache('fake-token', 'fake-self-id')
-    await manager.releaseCache()
-    await manager.initCache('fake-token', 'fake-self-id')
-    await manager.releaseCache()
+    for (let i = 0; i < 3; i++) {
+      await manager.initCache('fake-token', 'fake-self-id')
+      await manager.releaseCache()
+    }
     t.pass('PadchatManager() cache init/release/init successed.')
   } catch (e) {
     t.fail(e)
@@ -52,10 +51,10 @@ test.only('PadchatManager() should can be restart() after a start()', async t =>
     endpoint : WECHATY_PUPPET_PADCHAT_ENDPOINT,
   })
   try {
-    await manager.start()
-    await manager.stop()
-    await manager.start()
-    await manager.stop()
+    for (let i = 0; i < 3; i++) {
+      await manager.start()
+      await manager.stop()
+    }
     t.pass('PadchatManager() start/restart successed.')
   } catch (e) {
     console.error(e)
