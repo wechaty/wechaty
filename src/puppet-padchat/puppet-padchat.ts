@@ -119,7 +119,7 @@ export class PuppetPadchat extends Puppet {
   protected [WATCHDOG_TIMEOUT] = 4 * 60
 
   // private readonly cachePadchatContactPayload       : LRU.Cache<string, PadchatContactRawPayload>
-  private readonly cachePadchatFriendshipPayload : LRU.Cache<string, PadchatMessagePayload>
+  // private readonly cachePadchatFriendshipPayload : LRU.Cache<string, PadchatMessagePayload>
   private readonly cachePadchatMessagePayload    : LRU.Cache<string, PadchatMessagePayload>
   // private readonly cachePadchatRoomPayload          : LRU.Cache<string, PadchatRoomRawPayload>
 
@@ -140,7 +140,7 @@ export class PuppetPadchat extends Puppet {
     }
 
     // this.cachePadchatContactPayload       = new LRU<string, PadchatContactRawPayload>(lruOptions)
-    this.cachePadchatFriendshipPayload = new LRU<string, PadchatMessagePayload>(lruOptions)
+    // this.cachePadchatFriendshipPayload = new LRU<string, PadchatMessagePayload>(lruOptions)
     this.cachePadchatMessagePayload       = new LRU<string, PadchatMessagePayload>(lruOptions)
     // this.cachePadchatRoomPayload          = new LRU<string, PadchatRoomRawPayload>(lruOptions)
   }
@@ -269,10 +269,6 @@ export class PuppetPadchat extends Puppet {
 
     switch (rawPayload.sub_type) {
       case PadchatMessageType.VerifyMsg:
-        this.cachePadchatFriendshipPayload.set(
-          rawPayload.msg_id,
-          rawPayload,
-        )
         this.emit('friendship', rawPayload.msg_id)
         break
 
@@ -1126,7 +1122,7 @@ export class PuppetPadchat extends Puppet {
   public async friendshipRawPayload(friendshipId: string): Promise<PadchatMessagePayload> {
     log.verbose('PuppetPadchat', 'friendshipRawPayload(%s)', friendshipId)
 
-    const rawPayload = this.cachePadchatFriendshipPayload.get(friendshipId)
+    const rawPayload = this.cachePadchatMessagePayload.get(friendshipId)
     if (!rawPayload) {
       throw new Error('no rawPayload for id ' + friendshipId)
     }
