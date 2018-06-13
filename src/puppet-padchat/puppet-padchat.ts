@@ -357,7 +357,7 @@ export class PuppetPadchat extends Puppet {
         /**
          * PURGE Cache and Reload
          */
-        await this.padchatManager.getRoomMemberIdList(roomId, true)
+        this.padchatManager.purgeRoomMemberIdList(roomId)
 
         return retry(new Error('roomMemberSearch() not found'))
 
@@ -402,6 +402,16 @@ export class PuppetPadchat extends Puppet {
       }
       const removerId = removerIdList[0]
 
+      if (!this.padchatManager) {
+        throw new Error('no padchatManager')
+      }
+
+      /**
+       * Update L1 Cache & PURGE L2 Cache
+       */
+      this.cacheRoomMemberPayload.del(roomId)
+      this.padchatManager.purgeRoomMemberIdList(roomId)
+
       this.emit('room-leave',  roomId, leaverIdList, removerId)
     }
     /**
@@ -423,6 +433,17 @@ export class PuppetPadchat extends Puppet {
         log.warn('PuppetPadchat', 'onPadchatMessage() case PadchatMesssageSys: changerId found more than 1, use the first one.')
       }
       const changerId = changerIdList[0]
+
+      if (!this.padchatManager) {
+        throw new Error('no padchatManager')
+      }
+      /**
+       * Update Room Payload to new Topic
+       */
+      const updateRoomPayload = await this.roomPayload(roomId)
+      updateRoomPayload.topic = newTopic
+      this.cacheRoomPayload.set(roomId, updateRoomPayload)
+      this.padchatManager.purgeRoomMemberIdList(roomId)
 
       this.emit('room-topic',  roomId, newTopic, oldTopic, changerId)
     }
@@ -965,7 +986,6 @@ export class PuppetPadchat extends Puppet {
       throw new Error('no bridge')
     }
 
-    // FIXME:
     const roomId = await this.padchatManager.WXCreateChatRoom(contactIdList)
 
     const roomPayload = await Misc.retry(async (retry, attempt) => {
@@ -982,11 +1002,6 @@ export class PuppetPadchat extends Puppet {
         return retry(e)
       }
     })
-
-    // bridge.WXGetContact(roomId)
-
-    console.log('roomCreate returl:', roomId)
-    console.log('roomCreate roomPayload:', roomPayload)
 
     return roomId
   }

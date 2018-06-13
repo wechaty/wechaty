@@ -84,11 +84,11 @@ let   PUPPET_COUNTER           = 0
  */
 export abstract class Puppet extends EventEmitter implements Sayable {
 
-  public readonly cacheContactPayload       : LRU.Cache<string, ContactPayload>
+  public readonly cacheContactPayload    : LRU.Cache<string, ContactPayload>
   public readonly cacheFriendshipPayload : LRU.Cache<string, FriendshipPayload>
-  public readonly cacheMessagePayload       : LRU.Cache<string, MessagePayload>
-  public readonly cacheRoomPayload          : LRU.Cache<string, RoomPayload>
-  public readonly cacheRoomMemberPayload    : LRU.Cache<string, RoomMemberPayload>
+  public readonly cacheMessagePayload    : LRU.Cache<string, MessagePayload>
+  public readonly cacheRoomPayload       : LRU.Cache<string, RoomPayload>
+  public readonly cacheRoomMemberPayload : LRU.Cache<string, RoomMemberPayload>
 
   protected readonly state    : StateSwitch
   protected readonly watchdog : Watchdog
@@ -671,7 +671,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     }
 
     /**
-     * 0. for YOU: 'You', '你'
+     * 0. for YOU: 'You', '你' in sys message
      */
     if (query === YOU) {
       return [this.id]
@@ -683,9 +683,9 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     if (typeof query === 'string') {
       let contactIdList: string[] = []
       contactIdList = contactIdList.concat(
+        await this.roomMemberSearch(roomId, { roomAlias:     query }),
         await this.roomMemberSearch(roomId, { name:          query }),
         await this.roomMemberSearch(roomId, { contactAlias:  query }),
-        await this.roomMemberSearch(roomId, { roomAlias:     query }),
       )
       // Keep the unique id only
       // https://stackoverflow.com/a/14438954/1123955
@@ -721,9 +721,6 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
     if (query.roomAlias) {
       idList = idList.concat(
-        // Object.keys(roomPayload.aliasDict).filter(
-        //   id => roomPayload.aliasDict[id] === query.roomAlias,
-        // ),
         memberPayloadList.filter(
           payload => payload.roomAlias === query.roomAlias,
         ).map(payload => payload.id),

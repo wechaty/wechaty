@@ -69,7 +69,7 @@ export class PadchatManager extends PadchatRpc {
   private loginScanStatus? : number
   private loginTimer?      : NodeJS.Timer
 
-  private selfId?   : string
+  private selfId?: string
 
   private cacheContactRawPayload?    : FlashStoreSync<string, PadchatContactPayload>
   private cacheRoomMemberRawPayload? : FlashStoreSync<string, {
@@ -658,6 +658,16 @@ export class PadchatManager extends PadchatRpc {
     const roomIdList = [...this.cacheRoomRawPayload.keys()]
     log.verbose('PuppetPadchatManager', 'getRoomIdList()=%d', roomIdList.length)
     return roomIdList
+  }
+
+  public purgeRoomMemberIdList(
+    roomId: string,
+  ): void {
+    log.verbose('PuppetPadchatManager', 'purgeRoomMemberIdList(%d)', roomId)
+    if (!this.cacheRoomMemberRawPayload) {
+      throw new Error('cache not inited' )
+    }
+    this.cacheRoomMemberRawPayload.delete(roomId)
   }
 
   public async getRoomMemberIdList(
