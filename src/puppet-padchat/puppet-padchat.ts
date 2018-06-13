@@ -85,33 +85,20 @@ import {
 
 import {
   PadchatManager,
-  // resolverDict,
-  // AutoDataType,
 }                       from './padchat-manager'
 
 import {
-  // PadchatPayload,
   PadchatContactPayload,
   PadchatMessagePayload,
   PadchatRoomPayload,
-  // PadchatRoomMemberListPayload,
   PadchatRoomMemberPayload,
   PadchatMessageType,
-
-  // PadchatMessageType,
-  // PadchatContinue,
-  // PadchatMsgType,
-  // PadchatStatus,
-  // PadchatPayloadType,
-  // PadchatRoomRawMember,
 }                           from './padchat-schemas'
+
 import {
   WXSearchContactType,
   WXSearchContactTypeStatus,
 }                           from './padchat-rpc.type'
-
-export type PuppetFoodType = 'scan' | 'ding'
-export type ScanFoodType   = 'scan' | 'login' | 'logout'
 
 export class PuppetPadchat extends Puppet {
 
@@ -266,15 +253,26 @@ export class PuppetPadchat extends Puppet {
                                 rawPayload.msg_type,
               )
     /**
-     * Sometimes will get several same message from rpc, drop the same message here.
+     * 1. Sometimes will get duplicated same messages from rpc, drop the same message from here.
      */
     if (this.cachePadchatMessagePayload.has(rawPayload.msg_id)) {
       log.warn('PuppetPadchat', 'onPadchatMessage({id=%s, type=%s(%s)}) duplicate message')
       return
     }
 
+    /**
+     * 2. Save message for future usage
+     */
+    this.cachePadchatMessagePayload.set(
+      rawPayload.msg_id,
+      rawPayload,
+    )
+
     console.log('rawPayload:', rawPayload)
 
+    /**
+     * 3. Check for Different Message Types
+     */
     switch (rawPayload.sub_type) {
       case PadchatMessageType.VerifyMsg:
         this.emit('friendship', rawPayload.msg_id)
@@ -287,30 +285,19 @@ export class PuppetPadchat extends Puppet {
          *
          * { content: '12740017638@chatroom:\n<sysmsg type="delchatroommember">\n\t<delchatroommember>\n\t\t<plain>
          *            <![CDATA[You invited 卓桓、Zhuohuan, 太阁_传话助手, 桔小秘 to the group chat.   ]]></plain>...,
-         *  continue: 1,
-         *  description: '',
-         *  from_user: '12740017638@chatroom',
-         *  msg_id: '232220931339852872',
-         *  msg_source: '',
-         *  msg_type: 5,
-         *  status: 1,
-         *  sub_type: 10002,
-         *  timestamp: 1528831349,
-         *  to_user: 'wxid_zj2cahpwzgie12',
-         *  uin: 324216852 }
+         *  sub_type: 10002}
          */
         await Promise.all([
-          this.onPadchatMessageRoomEvent(rawPayload),
+          this.onPadchatMessageRoomEventJoin(rawPayload),
         ])
         break
       case PadchatMessageType.Sys:
-        this.cachePadchatMessagePayload.set(
-          rawPayload.msg_id,
-          rawPayload,
-        )
         await Promise.all([
           this.onPadchatMessageFriendshipEvent(rawPayload),
-          this.onPadchatMessageRoomEvent(rawPayload),
+          ////////////////////////////////////////////////
+          this.onPadchatMessageRoomEventJoin(rawPayload),
+          this.onPadchatMessageRoomEventLeave(rawPayload),
+          this.onPadchatMessageRoomEventTopic(rawPayload),
         ])
         break
 
@@ -320,23 +307,20 @@ export class PuppetPadchat extends Puppet {
       case PadchatMessageType.MicroVideo:
       case PadchatMessageType.Video:
       case PadchatMessageType.Voice:
-         // TODO: the above types are filel type
+        // TODO: the above types are filel type
 
       default:
-        this.cachePadchatMessagePayload.set(
-          rawPayload.msg_id,
-          rawPayload,
-        )
         this.emit('message', rawPayload.msg_id)
         break
     }
   }
 
-  protected async onPadchatMessageRoomEvent(rawPayload: PadchatMessagePayload): Promise<void> {
-    log.verbose('PuppetPadchat', 'onPadchatMessageRoomEvent({id=%s})', rawPayload.msg_id)
-    /**
-     * 1. Look for room join event
-     */
+  /**
+   * Look for room join event
+   */
+  protected async onPadchatMessageRoomEventJoin(rawPayload: PadchatMessagePayload): Promise<void> {
+    log.verbose('PuppetPadchat', 'onPadchatMessageRoomEventJoin({id=%s})', rawPayload.msg_id)
+
     const roomJoin = roomJoinEventMessageParser(rawPayload)
     if (roomJoin) {
       const inviteeNameList = roomJoin.inviteeNameList
@@ -386,9 +370,14 @@ export class PuppetPadchat extends Puppet {
 
       this.emit('room-join', roomId, inviteeIdList,  inviterId)
     }
-    /**
-     * 2. Look for room leave event
-     */
+  }
+
+  /**
+   * Look for room leave event
+   */
+  protected async onPadchatMessageRoomEventLeave(rawPayload: PadchatMessagePayload): Promise<void> {
+    log.verbose('PuppetPadchat', 'onPadchatMessageRoomEventLeave({id=%s})', rawPayload.msg_id)
+
     const roomLeave = roomLeaveEventMessageParser(rawPayload)
     if (roomLeave) {
       const leaverNameList = roomLeave.leaverNameList
@@ -422,9 +411,14 @@ export class PuppetPadchat extends Puppet {
 
       this.emit('room-leave',  roomId, leaverIdList, removerId)
     }
-    /**
-     * 3. Look for room topic event
-     */
+  }
+
+  /**
+   * Look for room topic event
+   */
+  protected async onPadchatMessageRoomEventTopic(rawPayload: PadchatMessagePayload): Promise<void> {
+    log.verbose('PuppetPadchat', 'onPadchatMessageRoomEventTopic({id=%s})', rawPayload.msg_id)
+
     const roomTopic = roomTopicEventMessageParser(rawPayload)
     if (roomTopic) {
       const changerName = roomTopic.changerName
