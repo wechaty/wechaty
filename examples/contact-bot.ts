@@ -17,7 +17,7 @@
  *
  */
 /* tslint:disable:variable-name */
-const QrcodeTerminal = require('qrcode-terminal')
+import QrcodeTerminal from 'qrcode-terminal'
 
 /**
  * Change `import { ... } from '../'`
@@ -65,12 +65,11 @@ bot
 })
 .on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
 .on('error'   , e => log.info('Bot', 'error: %s', e))
-.on('scan', (url, code) => {
-  if (!/201|200/.test(String(code))) {
-    const loginUrl = url.replace(/\/qrcode\//, '/l/')
-    QrcodeTerminal.generate(loginUrl)
+.on('scan', (qrcode, status) => {
+  if (!/201|200/.test(String(status))) {
+    QrcodeTerminal.generate(qrcode)
   }
-  console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
+  console.log(`${qrcode}\n[${status}] Scan QR Code in above url to login: `)
 })
 
 bot.start()
@@ -119,7 +118,7 @@ async function main() {
      */
     const file = await contact.avatar()
     const name = file.name
-    await file.toFile(name)
+    await file.toFile(name, true)
 
     log.info('Bot', 'Contact: "%s" with avatar file: "%s"',
                     contact.name(),
