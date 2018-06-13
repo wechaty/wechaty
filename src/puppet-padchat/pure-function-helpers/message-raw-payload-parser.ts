@@ -8,7 +8,10 @@ import {
   PadchatMessageType,
 }                         from '../padchat-schemas'
 
-import { isRoomId }   from './is-type'
+import {
+  isRoomId,
+  isContactId,
+}                         from './is-type'
 
 export function messageRawPayloadParser(
   rawPayload: PadchatMessagePayload,
@@ -66,8 +69,6 @@ export function messageRawPayloadParser(
   const payloadBase = {
     id        : rawPayload.msg_id,
     timestamp : rawPayload.timestamp,  // Padchat message timestamp is seconds
-    text      : rawPayload.content,
-    // toId      : rawPayload.to_user,
     type      : type,
   }
 
@@ -75,41 +76,87 @@ export function messageRawPayloadParser(
   let roomId: undefined | string = undefined
   let toId:   undefined | string = undefined
 
-  // Msg from room
-  if (isRoomId(rawPayload.from_user)) {
+  let text:   undefined | string = undefined
 
+  /**
+   * 1. Set Room Id
+   */
+  if (   isRoomId(rawPayload.from_user)
+      || isRoomId(rawPayload.to_user)
+  ) {
     roomId = rawPayload.from_user
-
-    const parts = rawPayload.content.split(':\n')
-    if (parts.length > 1) {
-      /**
-       * there's contact/room id in content.
-       */
-      if (isRoomId(parts[0])) {
-        fromId = undefined  // message is send from room!
-      } else  {
-        fromId = parts[0]   // message is send from a contact.
-      }
-
-      // update the text to actual text of the message
-      payloadBase.text = parts[1]
-    }
-
-    if (!roomId && !fromId) {
-      throw Error('empty roomId and empty fromId!')
-    }
   } else {
-    fromId = rawPayload.from_user
+    roomId = undefined
   }
 
-  // Msg to room
-  if (isRoomId(rawPayload.to_user)) {
-    roomId = rawPayload.to_user
+  /**
+   * 2. Set To Contact Id
+   */
+  if (isContactId(rawPayload.to_user)) {
 
+    toId = rawPayload.to_user
+
+  } else {
     // TODO: if the message @someone, the toId should set to the mentioned contact id(?)
     toId   = undefined
+  }
+
+  /**
+   * 3. Set From Contact Id
+   */
+  if (isContactId(rawPayload.from_user)) {
+
+    fromId = rawPayload.from_user
+
   } else {
-    toId = rawPayload.to_user
+    const parts = rawPayload.content.split(':\n')
+    if (parts && parts.length > 1) {
+      if (isContactId(parts[0])) {
+
+      fromId = parts[0]
+
+      }
+    } else {
+
+      fromId = undefined
+
+    }
+  }
+
+  /**
+   *
+   * 4. Set Text
+   */
+  if (isRoomId(rawPayload.from_user)) {
+
+    const parts = rawPayload.content.split(':\n')
+    if (parts && parts.length > 1) {
+
+      text = parts[1]
+
+    } else {
+
+      text = rawPayload.content
+
+    }
+
+  } else {
+
+    text = rawPayload.content
+
+  }
+
+  /**
+   * 5.1 Validate Room & From ID
+   */
+  if (!roomId && !fromId) {
+    throw Error('empty roomId and empty fromId!')
+  }
+  /**
+   * 5.1 Validate Room & To ID
+   */
+  if (!roomId && !toId) {
+    throw Error('empty roomId and empty toId!')
   }
 
   let payload: MessagePayload
@@ -120,15 +167,17 @@ export function messageRawPayloadParser(
     payload = {
       ...payloadBase,
       fromId,
-      toId,
       roomId,
+      toId,
+      text,
     }
   } else if (roomId) {
     payload = {
       ...payloadBase,
       fromId,
-      toId,
       roomId,
+      toId,
+      text,
     }
   } else {
     throw new Error('neither toId nor roomId')
