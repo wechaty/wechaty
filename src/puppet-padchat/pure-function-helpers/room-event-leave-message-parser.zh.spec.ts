@@ -14,7 +14,7 @@ import {
   PadchatMessagePayload,
 }                                 from '../padchat-schemas'
 
-import { roomLeaveEventMessageParser }  from './room-event-message-parser'
+import { roomLeaveEventMessageParser }  from './room-event-leave-message-parser'
 
 test('roomLeaveEventMessageParser() ZH-bot-delete-other', async t => {
   const MESSAGE_PAYLOAD: PadchatMessagePayload = {

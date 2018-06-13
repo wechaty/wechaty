@@ -13,7 +13,7 @@ import {
   PadchatMessagePayload,
 }                                 from '../padchat-schemas'
 
-import { roomJoinEventMessageParser }  from './room-event-message-parser'
+import { roomJoinEventMessageParser }  from './room-event-join-message-parser'
 
 test('roomJoinEventMessageParser() EN-other-invite-other', async t => {
   const MESSAGE_PAYLOAD: PadchatMessagePayload = {

@@ -81,10 +81,10 @@ export function messageRawPayloadParser(
   /**
    * 1. Set Room Id
    */
-  if (   isRoomId(rawPayload.from_user)
-      || isRoomId(rawPayload.to_user)
-  ) {
+  if (isRoomId(rawPayload.from_user)) {
     roomId = rawPayload.from_user
+  } else if (isRoomId(rawPayload.to_user)) {
+    roomId = rawPayload.to_user
   } else {
     roomId = undefined
   }
@@ -98,7 +98,9 @@ export function messageRawPayloadParser(
 
   } else {
     // TODO: if the message @someone, the toId should set to the mentioned contact id(?)
+
     toId   = undefined
+
   }
 
   /**

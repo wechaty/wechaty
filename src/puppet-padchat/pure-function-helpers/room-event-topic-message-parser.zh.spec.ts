@@ -14,7 +14,7 @@ import {
   PadchatMessagePayload,
 }                               from '../padchat-schemas'
 
-import { roomTopicEventMessageParser }  from './room-event-message-parser'
+import { roomTopicEventMessageParser }  from './room-event-topic-message-parser'
 
 test('roomTopicEventMessageParser() ZH-bot-modify-topic', async t => {
   const PADCHAT_MESSAGE_PAYLOAD_ROOM_TOPIC: PadchatMessagePayload = {

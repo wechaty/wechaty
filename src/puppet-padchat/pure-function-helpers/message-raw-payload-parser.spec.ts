@@ -156,7 +156,7 @@ test('room invitation created by bot', async t => {
   t.deepEqual(payload, EXPECTED_PAYLOAD, 'should parse room invitation message payload')
 })
 
-test('room owner transfer message', async t => {
+test('room ownership transfer message', async t => {
   const MESSAGE_PAYLOAD: PadchatMessagePayload = {
     content     : '你已成为新群主',
     continue    : 1,
@@ -184,4 +184,33 @@ test('room owner transfer message', async t => {
 
   const payload = messageRawPayloadParser(MESSAGE_PAYLOAD)
   t.deepEqual(payload, EXPECTED_PAYLOAD, 'should parse ower transfer message')
+})
+
+test('StatusNotify to roomId', async t => {
+  const MESSAGE_PAYLOAD = {
+    content: '<msg>\n<op id=\'5\'>\n<username>5367653125@chatroom</username>\n</op>\n</msg>',
+    continue: 1,
+    description: '',
+    from_user: 'wxid_5zj4i5htp9ih22',
+    msg_id: '179056144527271247',
+    msg_source: '',
+    msg_type: 5,
+    status: 1,
+    sub_type: 51,
+    timestamp: 1528920139,
+    to_user: '5367653125@chatroom',
+    uin: 1928023446,
+  }
+  const EXPECTED_PAYLOAD = {
+    id        : '179056144527271247',
+    timestamp : 1528920139,
+    type      : 0,
+    fromId    : 'wxid_5zj4i5htp9ih22',
+    roomId    : '5367653125@chatroom',
+    toId      : undefined,
+    text      : '<msg>\n<op id=\'5\'>\n<username>5367653125@chatroom</username>\n</op>\n</msg>',
+  }
+
+  const payload = messageRawPayloadParser(MESSAGE_PAYLOAD)
+  t.deepEqual(payload, EXPECTED_PAYLOAD, 'should parse status notify message to room id')
 })

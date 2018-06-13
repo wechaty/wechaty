@@ -2,19 +2,23 @@ import { toJson } from 'xml2json'
 
 import {
   PuppetRoomJoinEvent,
-  PuppetRoomLeaveEvent,
-  PuppetRoomTopicEvent,
   YOU,
 }                         from '../../puppet/'
 
 import {
-  PadchatMessagePayload, PadchatMessageType,
-}                             from '../padchat-schemas'
+  PadchatMessagePayload,
+  PadchatMessageType,
+}                         from '../padchat-schemas'
 
 import {
   isPayload,
   isRoomId,
 }               from './is-type'
+
+import {
+  splitChineseNameList,
+  splitEnglishNameList,
+}                         from './split-name'
 
 /**
  *
@@ -107,16 +111,28 @@ export function roomJoinEventMessageParser(
     const tryXmlText = content.replace(/^[^\n]+\n/, '')
     interface XmlSchema {
       sysmsg: {
-        type: string,
-        delchatroommember: {
-          plain: string,
-          text: string,
+        type: 'revokemsg' | 'delchatroommember',
+        delchatroommember?: {
+          plain : string,
+          text  : string,
+        },
+        revokemsg?: {
+          replacemsg : string,
+          msgid      : string,
+          newmsgid   : string,
+          session    : string,
         },
       }
     }
     const jsonPayload = toJson(tryXmlText, { object: true }) as XmlSchema
     try {
-      content = jsonPayload.sysmsg.delchatroommember.plain
+      if (jsonPayload.sysmsg.type === 'delchatroommember') {
+        content = jsonPayload.sysmsg.delchatroommember!.plain
+      } else if (jsonPayload.sysmsg.type === 'revokemsg') {
+        content = jsonPayload.sysmsg.revokemsg!.replacemsg
+      } else {
+        throw new Error('unknown jsonPayload sysmsg type: ' + jsonPayload.sysmsg.type)
+      }
     } catch (e) {
       console.error(e)
       console.log('jsonPayload:', jsonPayload)
@@ -297,152 +313,4 @@ export function roomJoinEventMessageParser(
   } else {
     throw new Error('who invite who?')
   }
-}
-
-/**
- *
- * 2. Room Leave Event
- *
- *
- * try to find 'leave' event for Room
- *
- * 1.
- *  You removed "李卓桓" from the group chat
- *  You were removed from the group chat by "李卓桓"
- * 2.
- *  你将"Huan LI++"移出了群聊
- *  你被"李卓桓"移出群聊
- */
-
-const ROOM_LEAVE_OTHER_REGEX_LIST = [
-  /^(You) removed "(.+)" from the group chat/,
-  /^(你)将"(.+)"移出了群聊/,
-]
-
-const ROOM_LEAVE_BOT_REGEX_LIST = [
-  /^(You) were removed from the group chat by "([^"]+)"/,
-  /^(你)被"([^"]+?)"移出群聊/,
-]
-
-export function roomLeaveEventMessageParser(
-  rawPayload: PadchatMessagePayload,
-): null | PuppetRoomLeaveEvent {
-
-  if (!isPayload(rawPayload)) {
-    return null
-  }
-
-  const roomId  = rawPayload.from_user
-  const content = rawPayload.content
-
-  if (!isRoomId(roomId)) {
-    return null
-  }
-
-  let matchesForOther: null | string[] = []
-  ROOM_LEAVE_OTHER_REGEX_LIST.some(
-    regex => !!(
-      matchesForOther = content.match(regex)
-    ),
-  )
-
-  let matchesForBot: null | string[] = []
-  ROOM_LEAVE_BOT_REGEX_LIST.some(
-    re => !!(
-      matchesForBot = content.match(re)
-    ),
-  )
-
-  const matches = matchesForOther || matchesForBot
-  if (!matches) {
-    return null
-  }
-
-  let leaverName  : undefined | string | YOU
-  let removerName : undefined | string | YOU
-
-  if (matchesForOther) {
-    removerName = YOU
-    leaverName  = matchesForOther[2]
-  } else if (matchesForBot) {
-    removerName = matchesForBot[2]
-    leaverName  = YOU
-  } else {
-    throw new Error('for typescript type checking, will never go here')
-  }
-
-  const roomLeaveEvent: PuppetRoomLeaveEvent = {
-    leaverNameList  : [leaverName],
-    removerName     : removerName,
-    roomId,
-  }
-  return roomLeaveEvent
-}
-
-/**
- *
- * 3. Room Topic Event
- *
- */
-
-const ROOM_TOPIC_OTHER_REGEX_LIST = [
-  /^"(.+)" changed the group name to "(.+)"$/,
-  /^"(.+)"修改群名为“(.+)”$/,
-]
-
-const ROOM_TOPIC_YOU_REGEX_LIST = [
-  /^(You) changed the group name to "(.+)"$/,
-  /^(你)修改群名为“(.+)”$/,
-]
-
-export function roomTopicEventMessageParser(
-  rawPayload: PadchatMessagePayload,
-): null | PuppetRoomTopicEvent {
-
-  if (!isPayload(rawPayload)) {
-    return null
-  }
-
-  const roomId  = rawPayload.from_user
-  const content = rawPayload.content
-
-  if (!isRoomId(roomId)) {
-    return null
-  }
-
-  let matchesForOther:  null | string[] = []
-  let matchesForYou:    null | string[] = []
-
-  ROOM_TOPIC_OTHER_REGEX_LIST .some(regex => !!(matchesForOther = content.match(regex)))
-  ROOM_TOPIC_YOU_REGEX_LIST   .some(regex => !!(matchesForYou   = content.match(regex)))
-
-  const matches: (string | YOU)[] = matchesForOther || matchesForYou
-  if (!matches) {
-    return null
-  }
-
-  let   changerName = matches[1]
-  const topic       = matches[2] as string
-
-  if (matchesForYou && changerName === '你' || changerName === 'You') {
-    changerName = YOU
-  }
-
-  const roomTopicEvent: PuppetRoomTopicEvent = {
-    changerName,
-    roomId,
-    topic,
-  }
-
-  return roomTopicEvent
-}
-
-export function splitChineseNameList(nameListText: string): string[] {
-  // 李卓桓、李佳芮、桔小秘
-  return nameListText.split('、')
-}
-
-export function splitEnglishNameList(nameListText: string): string[] {
-  // Zhuohuan, 太阁_传话助手, 桔小秘
-  return nameListText.split(', ')
 }
