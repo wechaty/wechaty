@@ -102,10 +102,11 @@ export class PadchatRpc extends EventEmitter {
     await this.initWebSocket()
     await this.initJsonRpc()
 
+    this.startQueues()
+
     await this.init()
     await this.WXInitialize()
 
-    this.startQueues()
   }
 
   protected async initJsonRpc(): Promise<void> {

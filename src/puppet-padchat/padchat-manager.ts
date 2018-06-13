@@ -176,7 +176,7 @@ export class PadchatManager extends PadchatRpc {
 
       log.silly('PuppetPadchatManager', 'releaseCache() cache closed.')
     } else {
-      log.warn('PuppetPadchatManager', 'releaseCache() cache not exist.')
+      log.verbose('PuppetPadchatManager', 'releaseCache() cache not exist.')
     }
   }
 
