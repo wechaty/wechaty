@@ -114,7 +114,7 @@ bot
       )
 
       let n = 0
-      await from.say(
+      await msg.say(
         topicList
           .map(topic => ++n + '. ' + topic)
           .join('\n'),
@@ -151,8 +151,12 @@ bot
 
     if (/^froom$/.test(text)) {
       console.log('begin to check msg forward room')
-      const room = bot.Room.load('6350854677@chatroom')
-      await msg.forward(room)
+      const dingRoom = await bot.Room.find({ topic: /^ding/i })
+      if (dingRoom) {
+        await msg.forward(dingRoom)
+      } else {
+        msg.say('Cannot find dingRoom, please create a ding room first!')
+      }
       return
     }
 
@@ -175,44 +179,6 @@ bot
       console.log('begin to check get contact avatar')
       const file = await from.avatar()
       from.say(file)
-      return
-    }
-
-    if (/^delroom$/.test(text)) {
-      console.log('begin to check roomDel')
-      const room = bot.Room.load('6350854677@chatroom')
-      const contact = bot.Contact.load('qq512436430')
-      await room.del(contact)
-      from.say('room.del: ' + room + ', ' + contact)
-      return
-    }
-
-    if (/^addroom$/.test(text)) {
-      console.log('begin to check roomAdd')
-      const room = bot.Room.load('6350854677@chatroom')
-      const contact = bot.Contact.load('qq512436430')
-      await room.add(contact)
-      from.say('room.add: ' + room + ', ' + contact)
-
-      return
-    }
-
-    if (/^topicroom$/.test(text)) {
-      console.log('begin to check roomTopic')
-      const room = bot.Room.load('6350854677@chatroom')
-      await room.topic('change-to-wechaty')
-      from.say('room.topic: ' + room)
-
-      return
-    }
-
-    if (/^quitroom$/.test(text)) {
-      console.log('begin to check roomQuit')
-      const room = bot.Room.load('6350854677@chatroom')
-      await room.quit()
-
-      from.say('room.quit: ' + room)
-
       return
     }
 
