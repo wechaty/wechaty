@@ -988,7 +988,7 @@ export class PuppetPadchat extends Puppet {
 
     const roomId = await this.padchatManager.WXCreateChatRoom(contactIdList)
 
-    const roomPayload = await Misc.retry(async (retry, attempt) => {
+    await Misc.retry(async (retry, attempt) => {
       log.verbose('PuppetPadchat', 'roomCreate() roomId=%s retry attempt=%d', roomId, attempt)
 
       try {
