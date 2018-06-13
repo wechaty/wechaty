@@ -2,6 +2,9 @@ import { toJson } from 'xml2json'
 
 import {
   FriendshipPayload,
+  FriendshipPayloadConfirm,
+  FriendshipPayloadReceive,
+  FriendshipPayloadVerify,
   FriendshipType,
 }                       from '../../puppet/'
 
@@ -10,25 +13,78 @@ import {
   PadchatFriendshipPayload,
 }                                 from '../padchat-schemas'
 
-export async function friendshipRawPayloadParser(
-  rawPayload: PadchatMessagePayload,
-) : Promise<FriendshipPayload> {
+import {
+  friendshipConfirmEventMessageParser,
+  friendshipVerifyEventMessageParser,
+  friendshipReceiveEventMessageParser,
+}                                         from './friendship-event-message-parser'
 
-  let tryXmlText = rawPayload.content
-  tryXmlText = tryXmlText.replace(/\+/g, ' ')
+export function friendshipRawPayloadParser(
+  rawPayload: PadchatMessagePayload,
+) : FriendshipPayload {
+
+  if (friendshipConfirmEventMessageParser(rawPayload)) {
+    /**
+     * 1. Confirm Event
+     */
+    return friendshipRawPayloadParserConfirm(rawPayload)
+
+  } else if (friendshipVerifyEventMessageParser(rawPayload)) {
+    /**
+     * 2. Verify Event
+     */
+    return friendshipRawPayloadParserVerify(rawPayload)
+
+  } else if (friendshipReceiveEventMessageParser(rawPayload)) {
+    /**
+     * 3. Receive Event
+     */
+    return friendshipRawPayloadParserReceive(rawPayload)
+
+  } else {
+    throw new Error('event type is neither confirm nor verify, and not receive')
+  }
+}
+
+function friendshipRawPayloadParserConfirm(
+  rawPayload: PadchatMessagePayload,
+): FriendshipPayload {
+  const payload: FriendshipPayloadConfirm = {
+    id        : rawPayload.msg_id,
+    contactId : rawPayload.from_user,
+    type      : FriendshipType.Confirm,
+  }
+  return payload
+}
+
+function friendshipRawPayloadParserVerify(
+  rawPayload: PadchatMessagePayload,
+): FriendshipPayload {
+  const payload: FriendshipPayloadVerify = {
+    id        : rawPayload.msg_id,
+    contactId : rawPayload.from_user,
+    type      : FriendshipType.Verify,
+  }
+  return payload
+}
+
+function friendshipRawPayloadParserReceive(
+  rawPayload: PadchatMessagePayload,
+) {
+  const tryXmlText = rawPayload.content
 
   interface XmlSchema {
     msg?: PadchatFriendshipPayload,
   }
 
-  const jsonPayload: XmlSchema = JSON.parse(toJson(tryXmlText))
+  const jsonPayload: XmlSchema = toJson(tryXmlText, { object: true })
 
   if (!jsonPayload.msg) {
     throw new Error('no msg found')
   }
   const padchatFriendshipPayload: PadchatFriendshipPayload = jsonPayload.msg
 
-  const friendshipPayload: FriendshipPayload = {
+  const friendshipPayload: FriendshipPayloadReceive = {
     id        : rawPayload.msg_id,
     contactId : padchatFriendshipPayload.fromusername,
     hello     : padchatFriendshipPayload.content,
@@ -38,36 +94,4 @@ export async function friendshipRawPayloadParser(
   }
 
   return friendshipPayload
-
-  // switch (rawPayload.sub_type) {
-  //   case PadchatMessageType.VerifyMsg:
-  //     if (!rawPayload.RecommendInfo) {
-  //       throw new Error('no RecommendInfo')
-  //     }
-  //     const recommendInfo: WebRecomendInfo = rawPayload.RecommendInfo
-
-  //     if (!recommendInfo) {
-  //       throw new Error('no recommendInfo')
-  //     }
-
-  //     const payloadReceive: FriendshipPayloadReceive = {
-  //       id        : rawPayload.MsgId,
-  //       contactId : recommendInfo.UserName,
-  //       hello     : recommendInfo.Content,
-  //       ticket    : recommendInfo.Ticket,
-  //       type      : FriendshipType.Receive,
-  //     }
-  //     return payloadReceive
-
-  //   case PadchatMessageType.Sys:
-  //     const payloadConfirm: FriendshipPayloadConfirm = {
-  //       id        : rawPayload.MsgId,
-  //       contactId : rawPayload.FromUserName,
-  //       type      : FriendshipType.Confirm,
-  //     }
-  //     return payloadConfirm
-
-  //   default:
-  //     throw new Error('not supported friend request message raw payload')
-  // }
 }

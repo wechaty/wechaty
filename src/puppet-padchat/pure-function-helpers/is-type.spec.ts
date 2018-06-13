@@ -9,6 +9,7 @@ import {
   isRoomId,
   isContactId,
   isContactOfficialId,
+  isPayload,
   isStrangerV1,
   isStrangerV2,
 }                             from './is-type'
@@ -57,4 +58,11 @@ test('isStrangerV2()', async t => {
 
   t.equal(isStrangerV2(STRANGER_V2),     true, 'should return true for STRANGER_V2')
   t.equal(isStrangerV2(NOT_STRANGER_V2), false, 'should return false for NOT_STRANGER_V2')
+})
+
+test('isPayload()', async t => {
+  t.equal(isPayload(undefined as any) , false, 'undefined is not payload')
+  t.equal(isPayload(null as any)      , false, 'null is not payload')
+  t.equal(isPayload({})               , false, '{} is not payload')
+  t.equal(isPayload({a: 42})          , true, 'valid payload')
 })
