@@ -74,3 +74,4 @@ examples/.config
 examples/.pki
 .config/
 log
+/*.jpg
