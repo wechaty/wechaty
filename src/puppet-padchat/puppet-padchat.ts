@@ -253,6 +253,14 @@ export class PuppetPadchat extends Puppet {
                                 rawPayload.msg_type,
               )
     /**
+     * 0. Discard messages when not logged in
+     */
+    if (!this.id) {
+      log.warn('PuppetPadchat', 'onPadchatMessage({id=%s, type=%s(%s)}) discarded message because puppet is not logged-in')
+      return
+    }
+
+    /**
      * 1. Sometimes will get duplicated same messages from rpc, drop the same message from here.
      */
     if (this.cachePadchatMessagePayload.has(rawPayload.msg_id)) {
