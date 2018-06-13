@@ -50,9 +50,14 @@ import {
 
 import {
   contactRawPayloadParser,
+
   fileBoxToQrcode,
   // friendRequestEventMessageParser,
   friendshipRawPayloadParser,
+
+  isStrangerV1,
+  isStrangerV2,
+
   messageRawPayloadParser,
 
   roomRawPayloadParser,
@@ -983,17 +988,17 @@ export class PuppetPadchat extends Puppet {
     /**
      * If the contact is not stranger, than ussing WXSearchContact can get user_name
      */
-    if (rawSearchPayload.user_name !== '' && !pfHelper.isStrangerV1(rawSearchPayload.user_name) && !pfHelper.isStrangerV2(rawSearchPayload.user_name)) {
+    if (rawSearchPayload.user_name !== '' && !isStrangerV1(rawSearchPayload.user_name) && !isStrangerV2(rawSearchPayload.user_name)) {
       log.warn('PuppetPadchat', 'friendRequestSend %s has been friend with bot, no need to send friend request!', contactId)
       return
     }
 
     let strangerV1
     let strangerV2
-    if (pfHelper.isStrangerV1(rawSearchPayload.stranger)) {
+    if (isStrangerV1(rawSearchPayload.stranger)) {
       strangerV1 = rawSearchPayload.stranger
       strangerV2 = rawSearchPayload.user_name
-    } else if (pfHelper.isStrangerV2(rawSearchPayload.stranger)) {
+    } else if (isStrangerV2(rawSearchPayload.stranger)) {
       strangerV2 = rawSearchPayload.stranger
       strangerV1 = rawSearchPayload.user_name
     } else {
