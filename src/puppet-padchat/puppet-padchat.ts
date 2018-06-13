@@ -123,7 +123,7 @@ export class PuppetPadchat extends Puppet {
   private readonly cachePadchatMessagePayload    : LRU.Cache<string, PadchatMessagePayload>
   // private readonly cachePadchatRoomPayload          : LRU.Cache<string, PadchatRoomRawPayload>
 
-  public bridge?:  PadchatManager
+  public padchatManager?:  PadchatManager
 
   constructor(
     public options: PuppetOptions,
@@ -156,7 +156,7 @@ export class PuppetPadchat extends Puppet {
   public startWatchdog(): void {
     log.verbose('PuppetPadchat', 'initWatchdogForPuppet()')
 
-    if (!this.bridge) {
+    if (!this.padchatManager) {
       throw new Error('no bridge')
     }
 
@@ -166,7 +166,7 @@ export class PuppetPadchat extends Puppet {
     /**
      * Use bridge's heartbeat to feed dog
      */
-    this.bridge.on('heartbeat', (data: string) => {
+    this.padchatManager.on('heartbeat', (data: string) => {
       log.silly('PuppetPadchat', 'startWatchdog() bridge.on(heartbeat)')
       this.watchdog.feed({
         data,
@@ -206,7 +206,7 @@ export class PuppetPadchat extends Puppet {
      */
     this.state.on('pending')
 
-    const bridge = this.bridge = new PadchatManager({
+    const bridge = this.padchatManager = new PadchatManager({
       memory   : this.options.memory,
       token    : padchatToken(),
       endpoint : WECHATY_PUPPET_PADCHAT_ENDPOINT,
@@ -220,11 +220,11 @@ export class PuppetPadchat extends Puppet {
   }
 
   protected async login(selfId: string): Promise<void> {
-    if (!this.bridge) {
+    if (!this.padchatManager) {
       throw new Error('no bridge')
     }
     await super.login(selfId)
-    this.bridge.syncContactsAndRooms()
+    this.padchatManager.syncContactsAndRooms()
   }
 
   public async startBridge(bridge: PadchatManager): Promise<void> {
@@ -350,14 +350,14 @@ export class PuppetPadchat extends Puppet {
           return tryIdList
         }
 
-        if (!this.bridge) {
+        if (!this.padchatManager) {
           throw new Error('no manager')
         }
 
         /**
          * PURGE Cache and Reload
          */
-        await this.bridge.getRoomMemberIdList(roomId, true)
+        await this.padchatManager.getRoomMemberIdList(roomId, true)
 
         return retry(new Error('roomMemberSearch() not found'))
 
@@ -454,7 +454,7 @@ export class PuppetPadchat extends Puppet {
   public async stop(): Promise<void> {
     log.verbose('PuppetPadchat', 'stop()')
 
-    if (!this.bridge) {
+    if (!this.padchatManager) {
       throw new Error('no bridge')
     }
 
@@ -469,8 +469,8 @@ export class PuppetPadchat extends Puppet {
     this.watchdog.sleep()
     await this.logout()
 
-    setImmediate(() => this.bridge && this.bridge.removeAllListeners())
-    await this.bridge.stop()
+    setImmediate(() => this.padchatManager && this.padchatManager.removeAllListeners())
+    await this.padchatManager.stop()
 
     // await some tasks...
     this.state.off(true)
@@ -486,7 +486,7 @@ export class PuppetPadchat extends Puppet {
       return
     }
 
-    if (!this.bridge) {
+    if (!this.padchatManager) {
       throw new Error('no bridge')
     }
 
@@ -497,7 +497,7 @@ export class PuppetPadchat extends Puppet {
     //   await this.bridge.WXLogout()
     // }
 
-    await this.bridge.logout()
+    await this.padchatManager.logout()
   }
 
   /**
@@ -516,11 +516,11 @@ export class PuppetPadchat extends Puppet {
       return payload.alias || ''
     }
 
-    if (!this.bridge) {
+    if (!this.padchatManager) {
       throw new Error('no bridge')
     }
 
-    await this.bridge.WXSetUserRemark(contactId, alias || '')
+    await this.padchatManager.WXSetUserRemark(contactId, alias || '')
 
     return
   }
@@ -528,11 +528,11 @@ export class PuppetPadchat extends Puppet {
   public async contactList(): Promise<string[]> {
     log.verbose('PuppetPadchat', 'contactList()')
 
-    if (!this.bridge) {
+    if (!this.padchatManager) {
       throw new Error('no bridge')
     }
 
-    const contactIdList = this.bridge.getContactIdList()
+    const contactIdList = this.padchatManager.getContactIdList()
 
     return contactIdList
   }
@@ -553,10 +553,10 @@ export class PuppetPadchat extends Puppet {
       if (contactId !== this.selfId()) {
         throw new Error('can not set avatar for others')
       }
-      if (!this.bridge) {
+      if (!this.padchatManager) {
         throw new Error('no bridge')
       }
-      await this.bridge.WXSetHeadImage(await file.toBase64())
+      await this.padchatManager.WXSetHeadImage(await file.toBase64())
       return
     }
 
@@ -577,10 +577,10 @@ export class PuppetPadchat extends Puppet {
     if (contactId !== this.selfId()) {
       throw new Error('can not set avatar for others')
     }
-    if (!this.bridge) {
+    if (!this.padchatManager) {
       throw new Error('no bridge')
     }
-    const base64 = await this.bridge.WXGetUserQRCode(contactId, 0)
+    const base64 = await this.padchatManager.WXGetUserQRCode(contactId, 0)
     const qrcode = await fileBoxToQrcode(base64)
     return qrcode
   }
@@ -588,10 +588,10 @@ export class PuppetPadchat extends Puppet {
   public async contactRawPayload(contactId: string): Promise<PadchatContactPayload> {
     log.silly('PuppetPadchat', 'contactRawPayload(%s)', contactId)
 
-    if (!this.bridge) {
+    if (!this.padchatManager) {
       throw new Error('no bridge')
     }
-    const rawPayload = await this.bridge.contactRawPayload(contactId)
+    const rawPayload = await this.padchatManager.contactRawPayload(contactId)
     return rawPayload
   }
 
@@ -615,7 +615,7 @@ export class PuppetPadchat extends Puppet {
 
     // TODO
 
-    if (!this.bridge) {
+    if (!this.padchatManager) {
       throw new Error('no bridge')
     }
 
@@ -631,22 +631,22 @@ export class PuppetPadchat extends Puppet {
         break
 
       case MessageType.Audio:
-        result = await this.bridge.WXGetMsgVoice(rawText)
+        result = await this.padchatManager.WXGetMsgVoice(rawText)
         console.log(result)
         return FileBox.fromBase64(result.data.image, 'test.slk')
 
       case MessageType.Emoticon:
-        result = await this.bridge.WXGetMsgImage(rawText)
+        result = await this.padchatManager.WXGetMsgImage(rawText)
         console.log(result)
         return FileBox.fromBase64(result.data.image, 'test.gif')
 
       case MessageType.Image:
-        result = await this.bridge.WXGetMsgImage(rawText)
+        result = await this.padchatManager.WXGetMsgImage(rawText)
         console.log(result)
         return FileBox.fromBase64(result.data.image, 'test.jpg')
 
       case MessageType.Video:
-        result = await this.bridge.WXGetMsgVideo(rawText)
+        result = await this.padchatManager.WXGetMsgVideo(rawText)
         console.log(result)
         return FileBox.fromBase64(result.data.image, 'test.mp4')
 
@@ -704,10 +704,10 @@ export class PuppetPadchat extends Puppet {
     if (!id) {
       throw Error('no id')
     }
-    if (!this.bridge) {
+    if (!this.padchatManager) {
       throw new Error('no bridge')
     }
-    await this.bridge.WXSendMsg(id, text)
+    await this.padchatManager.WXSendMsg(id, text)
   }
 
   public async messageSendFile(
@@ -721,7 +721,7 @@ export class PuppetPadchat extends Puppet {
       throw new Error('no id!')
     }
 
-    if (!this.bridge) {
+    if (!this.padchatManager) {
       throw new Error('no bridge')
     }
 
@@ -729,7 +729,7 @@ export class PuppetPadchat extends Puppet {
     switch (type) {
       case '.slk':
         // 发送语音消息(微信silk格式语音)
-        await this.bridge.WXSendVoice(
+        await this.padchatManager.WXSendVoice(
           id,
           await file.toBase64(),
           60,
@@ -737,7 +737,7 @@ export class PuppetPadchat extends Puppet {
         break
 
       default:
-        await this.bridge.WXSendImage(
+        await this.padchatManager.WXSendImage(
           id,
           await file.toBase64(),
         )
@@ -751,7 +751,7 @@ export class PuppetPadchat extends Puppet {
   ): Promise<void> {
     log.verbose('PuppetPadchat', 'messageSend("%s", %s)', JSON.stringify(receiver), contactId)
 
-    if (!this.bridge) {
+    if (!this.padchatManager) {
       throw new Error('no bridge')
     }
 
@@ -762,7 +762,7 @@ export class PuppetPadchat extends Puppet {
 
     const payload = await this.contactPayload(contactId)
     const title = payload.name + '名片'
-    await this.bridge.WXShareCard(id, contactId, title)
+    await this.padchatManager.WXShareCard(id, contactId, title)
   }
 
   public async messageForward(
@@ -802,11 +802,11 @@ export class PuppetPadchat extends Puppet {
   ): Promise<PadchatRoomMemberPayload> {
     log.silly('PuppetPadchat', 'roomMemberRawPayload(%s)', roomId)
 
-    if (!this.bridge) {
+    if (!this.padchatManager) {
       throw new Error('no bridge')
     }
 
-    const rawPayload = await this.bridge.roomMemberRawPayload(roomId, contactId)
+    const rawPayload = await this.padchatManager.roomMemberRawPayload(roomId, contactId)
     return rawPayload
   }
 
@@ -827,11 +827,11 @@ export class PuppetPadchat extends Puppet {
   public async roomRawPayload(roomId: string): Promise<PadchatRoomPayload> {
     log.verbose('PuppetPadchat', 'roomRawPayload(%s)', roomId)
 
-    if (!this.bridge) {
+    if (!this.padchatManager) {
       throw new Error('no bridge')
     }
 
-    const rawPayload = await this.bridge.roomRawPayload(roomId)
+    const rawPayload = await this.padchatManager.roomRawPayload(roomId)
     return rawPayload
   }
 
@@ -849,11 +849,11 @@ export class PuppetPadchat extends Puppet {
   public async roomMemberList(roomId: string): Promise<string[]> {
     log.verbose('PuppetPadchat', 'roomMemberList(%s)', roomId)
 
-    if (!this.bridge) {
+    if (!this.padchatManager) {
       throw new Error('no bridge')
     }
 
-    const memberIdList = await this.bridge.getRoomMemberIdList(roomId)
+    const memberIdList = await this.padchatManager.getRoomMemberIdList(roomId)
     log.silly('PuppetPadchat', 'roomMemberList()=%d', memberIdList.length)
 
     return memberIdList
@@ -862,11 +862,11 @@ export class PuppetPadchat extends Puppet {
   public async roomList(): Promise<string[]> {
     log.verbose('PuppetPadchat', 'roomList()')
 
-    if (!this.bridge) {
+    if (!this.padchatManager) {
       throw new Error('no bridge')
     }
 
-    const roomIdList = await this.bridge.getRoomIdList()
+    const roomIdList = await this.padchatManager.getRoomIdList()
     log.silly('PuppetPadchat', 'roomList()=%d', roomIdList.length)
 
     return roomIdList
@@ -878,12 +878,12 @@ export class PuppetPadchat extends Puppet {
   ): Promise<void> {
     log.verbose('PuppetPadchat', 'roomDel(%s, %s)', roomId, contactId)
 
-    if (!this.bridge) {
+    if (!this.padchatManager) {
       throw new Error('no bridge')
     }
 
     // Should check whether user is in the room. WXDeleteChatRoomMember won't check if user in the room automatically
-    await this.bridge.WXDeleteChatRoomMember(roomId, contactId)
+    await this.padchatManager.WXDeleteChatRoomMember(roomId, contactId)
   }
 
   public async roomQrcode(roomId: string): Promise<string> {
@@ -914,7 +914,7 @@ export class PuppetPadchat extends Puppet {
   ): Promise<void> {
     log.verbose('PuppetPadchat', 'roomAdd(%s, %s)', roomId, contactId)
 
-    if (!this.bridge) {
+    if (!this.padchatManager) {
       throw new Error('no bridge')
     }
 
@@ -922,13 +922,13 @@ export class PuppetPadchat extends Puppet {
     // if n <= 40 then add() else invite() ?
     try {
       log.verbose('PuppetPadchat', 'roomAdd(%s, %s) try to Add', roomId, contactId)
-      await this.bridge.WXAddChatRoomMember(roomId, contactId)
+      await this.padchatManager.WXAddChatRoomMember(roomId, contactId)
     } catch (e) {
       // FIXME
       console.error(e)
       log.warn('PuppetPadchat', 'roomAdd(%s, %s) Add exception: %s', e)
       log.verbose('PuppetPadchat', 'roomAdd(%s, %s) try to Invite', roomId, contactId)
-      await this.bridge.WXInviteChatRoomMember(roomId, contactId)
+      await this.padchatManager.WXInviteChatRoomMember(roomId, contactId)
     }
   }
 
@@ -946,11 +946,11 @@ export class PuppetPadchat extends Puppet {
       return payload.topic
     }
 
-    if (!this.bridge) {
+    if (!this.padchatManager) {
       throw new Error('no bridge')
     }
 
-    await this.bridge.WXSetChatroomName(roomId, topic)
+    await this.padchatManager.WXSetChatroomName(roomId, topic)
 
     return
   }
@@ -961,12 +961,12 @@ export class PuppetPadchat extends Puppet {
   ): Promise<string> {
     log.verbose('PuppetPadchat', 'roomCreate(%s, %s)', contactIdList, topic)
 
-    if (!this.bridge) {
+    if (!this.padchatManager) {
       throw new Error('no bridge')
     }
 
     // FIXME:
-    const roomId = await this.bridge.WXCreateChatRoom(contactIdList)
+    const roomId = await this.padchatManager.WXCreateChatRoom(contactIdList)
 
     const roomPayload = await Misc.retry(async (retry, attempt) => {
       log.verbose('PuppetPadchat', 'roomCreate() roomId=%s retry attempt=%d', roomId, attempt)
@@ -994,11 +994,11 @@ export class PuppetPadchat extends Puppet {
   public async roomQuit(roomId: string): Promise<void> {
     log.verbose('PuppetPadchat', 'roomQuit(%s)', roomId)
 
-    if (!this.bridge) {
+    if (!this.padchatManager) {
       throw new Error('no bridge')
     }
 
-    await this.bridge.WXQuitChatRoom(roomId)
+    await this.padchatManager.WXQuitChatRoom(roomId)
   }
 
   public async roomAnnounce(roomId: string)             : Promise<string>
@@ -1007,14 +1007,14 @@ export class PuppetPadchat extends Puppet {
   public async roomAnnounce(roomId: string, text?: string): Promise<void | string> {
     log.verbose('PuppetPadchat', 'roomAnnounce(%s, %s)', roomId, text ? text : '')
 
-    if (!this.bridge) {
+    if (!this.padchatManager) {
       throw new Error('no bridge')
     }
 
     if (text) {
-      await this.bridge.WXSetChatroomAnnouncement(roomId, text)
+      await this.padchatManager.WXSetChatroomAnnouncement(roomId, text)
     } else {
-      return await this.bridge.WXGetChatroomAnnouncement(roomId)
+      return await this.padchatManager.WXGetChatroomAnnouncement(roomId)
     }
   }
 
@@ -1029,11 +1029,11 @@ export class PuppetPadchat extends Puppet {
   ): Promise<void> {
     log.verbose('PuppetPadchat', 'friendshipVerify(%s, %s)', contactId, hello)
 
-    if (!this.bridge) {
+    if (!this.padchatManager) {
       throw new Error('no bridge')
     }
 
-    const rawSearchPayload: WXSearchContactType = await this.bridge.WXSearchContact(contactId)
+    const rawSearchPayload: WXSearchContactType = await this.padchatManager.WXSearchContact(contactId)
 
     /**
      * If the contact is not stranger, than ussing WXSearchContact can get user_name
@@ -1057,7 +1057,7 @@ export class PuppetPadchat extends Puppet {
 
     // Issue #1252 : what's wrong here?, Trying to fix now...
 
-    await this.bridge.WXAddUser(
+    await this.padchatManager.WXAddUser(
       strangerV1 || '',
       strangerV2 || '',
       WXSearchContactTypeStatus.WXID, // default
@@ -1081,11 +1081,11 @@ export class PuppetPadchat extends Puppet {
       throw new Error('no stranger')
     }
 
-    if (!this.bridge) {
+    if (!this.padchatManager) {
       throw new Error('no bridge')
     }
 
-    await this.bridge.WXAcceptUser(
+    await this.padchatManager.WXAcceptUser(
       payload.stranger,
       payload.ticket,
     )
