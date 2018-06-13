@@ -325,7 +325,7 @@ export class PuppetPadchat extends Puppet {
   }
 
   protected async onPadchatMessageRoomEvent(rawPayload: PadchatMessagePayload): Promise<void> {
-    log.verbose('PuppetPadchat', 'onPadchatMessageRoomEvent({id=%s})')
+    log.verbose('PuppetPadchat', 'onPadchatMessageRoomEvent({id=%s})', rawPayload.msg_id)
     /**
      * 1. Look for room join event
      */
@@ -429,7 +429,7 @@ export class PuppetPadchat extends Puppet {
   }
 
   protected async onPadchatMessageFriendshipEvent(rawPayload: PadchatMessagePayload): Promise<void> {
-    log.verbose('PuppetPadchat', 'onPadchatMessageFriendshipEvent({id=%s})')
+    log.verbose('PuppetPadchat', 'onPadchatMessageFriendshipEvent({id=%s})', rawPayload.msg_id)
     /**
      * 1. Look for friendship confirm event
      */
@@ -966,8 +966,27 @@ export class PuppetPadchat extends Puppet {
     }
 
     // FIXME:
-    const roomId = this.bridge.WXCreateChatRoom(contactIdList)
+    const roomId = await this.bridge.WXCreateChatRoom(contactIdList)
+
+    const roomPayload = await Misc.retry(async (retry, attempt) => {
+      log.verbose('PuppetPadchat', 'roomCreate() roomId=%s retry attempt=%d', roomId, attempt)
+
+      try {
+        const tryRoomPayload = await this.roomPayload(roomId)
+        if (tryRoomPayload) {
+          return tryRoomPayload
+        } else {
+          return retry(new Error('room create payload not ready'))
+        }
+      } catch (e) {
+        return retry(e)
+      }
+    })
+
+    // bridge.WXGetContact(roomId)
+
     console.log('roomCreate returl:', roomId)
+    console.log('roomCreate roomPayload:', roomPayload)
 
     return roomId
   }
