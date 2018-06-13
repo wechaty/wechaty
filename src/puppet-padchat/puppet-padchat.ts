@@ -50,9 +50,14 @@ import {
 
 import {
   contactRawPayloadParser,
+
   fileBoxToQrcode,
   // friendRequestEventMessageParser,
   friendshipRawPayloadParser,
+
+  isStrangerV1,
+  isStrangerV2,
+
   messageRawPayloadParser,
 
   roomRawPayloadParser,
@@ -269,6 +274,29 @@ export class PuppetPadchat extends Puppet {
         this.emit('friendship', rawPayload.msg_id)
         break
 
+      case PadchatMessageType.Recalled:
+        /**
+         * When someone joined the room invited by Bot,
+         * the bot will receive a `recall-able` message for room event
+         *
+         * { content: '12740017638@chatroom:\n<sysmsg type="delchatroommember">\n\t<delchatroommember>\n\t\t<plain>
+         *            <![CDATA[You invited 卓桓、Zhuohuan, 太阁_传话助手, 桔小秘 to the group chat.   ]]></plain>...,
+         *  continue: 1,
+         *  description: '',
+         *  from_user: '12740017638@chatroom',
+         *  msg_id: '232220931339852872',
+         *  msg_source: '',
+         *  msg_type: 5,
+         *  status: 1,
+         *  sub_type: 10002,
+         *  timestamp: 1528831349,
+         *  to_user: 'wxid_zj2cahpwzgie12',
+         *  uin: 324216852 }
+         */
+        await Promise.all([
+          this.onPadchatMessageRoomEvent(rawPayload),
+        ])
+        break
       case PadchatMessageType.Sys:
         await Promise.all([
           this.onPadchatMessageFriendshipEvent(rawPayload),
@@ -960,17 +988,17 @@ export class PuppetPadchat extends Puppet {
     /**
      * If the contact is not stranger, than ussing WXSearchContact can get user_name
      */
-    if (rawSearchPayload.user_name !== '' && !pfHelper.isStrangerV1(rawSearchPayload.user_name) && !pfHelper.isStrangerV2(rawSearchPayload.user_name)) {
+    if (rawSearchPayload.user_name !== '' && !isStrangerV1(rawSearchPayload.user_name) && !isStrangerV2(rawSearchPayload.user_name)) {
       log.warn('PuppetPadchat', 'friendRequestSend %s has been friend with bot, no need to send friend request!', contactId)
       return
     }
 
     let strangerV1
     let strangerV2
-    if (pfHelper.isStrangerV1(rawSearchPayload.stranger)) {
+    if (isStrangerV1(rawSearchPayload.stranger)) {
       strangerV1 = rawSearchPayload.stranger
       strangerV2 = rawSearchPayload.user_name
-    } else if (pfHelper.isStrangerV2(rawSearchPayload.stranger)) {
+    } else if (isStrangerV2(rawSearchPayload.stranger)) {
       strangerV2 = rawSearchPayload.stranger
       strangerV1 = rawSearchPayload.user_name
     } else {

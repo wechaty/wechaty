@@ -6,7 +6,6 @@ import test  from 'blue-tape'
 
 import {
   PuppetRoomJoinEvent,
-
   YOU,
 }                               from '../../puppet/'
 
@@ -91,7 +90,7 @@ test('roomJoinEventMessageParser() EN-other-invite-bot', async t => {
   t.deepEqual(event, EXPECTED_EVENT, 'should parse event')
 })
 
-test('roomJoinEventMessageParser() EN-other-invite-bot-with-others', async t => {
+test('roomJoinEventMessageParser() EN-other-invite-bot-with-2-others', async t => {
   const MESSAGE_PAYLOAD: PadchatMessagePayload = {
     content     : '李卓桓 invited you and Huan to the group chat',
     continue    : 1,
@@ -320,8 +319,8 @@ test('roomJoinEventMessageParser() EN-scan-qrcode-shared-by-other-when-bot-no-ow
   t.deepEqual(event, EXPECTED_EVENT, 'should parse event')
 })
 
-test('roomJoinEventMessageParser() EN-bot-invite-others', async t => {
-  t.skip('should be the same as the bot-invite-other')
+test('roomJoinEventMessageParser() EN-bot-invite-many', async t => {
+  t.skip('should be the same as the bot-invite-many')
 })
 
 test('roomJoinEventMessageParser() EN-room-create', async t => {

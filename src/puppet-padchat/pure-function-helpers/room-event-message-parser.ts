@@ -1,3 +1,5 @@
+import { toJson } from 'xml2json'
+
 import {
   PuppetRoomJoinEvent,
   PuppetRoomLeaveEvent,
@@ -6,46 +8,19 @@ import {
 }                         from '../../puppet/'
 
 import {
-  PadchatMessagePayload,
+  PadchatMessagePayload, PadchatMessageType,
 }                             from '../padchat-schemas'
 
 import {
+  isPayload,
   isRoomId,
 }               from './is-type'
 
-import { log }          from '../../config'
-
-const REGEX_CONFIG = {
-  roomJoinInvite: [
-    /^"(.+?)"邀请"(.+)"加入了群聊$/,
-    /^"(.+?)"邀请(.+?)加入了群聊，群聊参与人还有：/,
-    /^(.+?) invited (.+?) to the group chat$/,
-    /^(.+?) invited (.+?) to a group chat with $/,
-    /^"(.+?)"邀请你和"(.+?)"加入了群聊$/,
-  ],
-  roomJoinInviteYou: [
-    /^"(.+?)"邀请你和"(.+?)"加入了群聊$/,
-  ],
-
-  roomLeaveBotKickOther: [
-    /^(You) removed "(.+)" from the group chat$/,
-    /^(你)将"(.+)"移出了群聊$/,
-  ],
-
-  roomLeaveOtherKickMe: [
-    /^(You) were removed from the group chat by "(.+)"$/,
-    /^(你)被"(.+)"移出群聊$/,
-  ],
-
-  roomTopic: [
-    /^"(.+?)" changed the group name to "(.+)"$/,
-    /^"(.+?)"修改群名为“(.+)”$/,
-    /^(You) changed the group name to "(.+)"$/,
-    /^(你)修改群名为“(.+)”$/,
-  ],
-}
-
 /**
+ *
+ * 1. Room Join Event
+ *
+ *
  * try to find 'join' event for Room
  *
  * 1.
@@ -55,74 +30,205 @@ const REGEX_CONFIG = {
  *  李卓桓 invited you and Huan to the group chat
  * 2.
  *  "李卓桓"邀请"Huan LI++"加入了群聊
- *  李卓桓 invited 李佳芮, 李卓桓2 to the group chat
  *  "李佳芮"邀请你加入了群聊，群聊参与人还有：小桔、桔小秘、小小桔、wuli舞哩客服、舒米
  *  "李卓桓"邀请你和"Huan LI++"加入了群聊
  */
-function parseRoomJoin(
-  content: string,
-): [string[], string] {
-  log.verbose('PuppetPadchatFirer', 'parseRoomJoin(%s)', content)
 
-  const reListInvite = REGEX_CONFIG.roomJoinInvite
-  // TODO:
-  // const reListQrcode = REGEX_CONFIG.roomJoinQrcode
+const ROOM_JOIN_BOT_INVITE_OTHER_REGEX_LIST_ZH = [
+  /^你邀请"(.+)"加入了群聊/,
+  /^"(.+)"通过扫描你分享的二维码加入群聊/,
+]
+const ROOM_JOIN_BOT_INVITE_OTHER_REGEX_LIST_EN = [
+  /^You invited (.+) to the group chat/,
+  /^"(.+)" joined group chat via the QR code you shared/,
+]
 
-  let foundInvite: string[]|null = []
-  reListInvite.some(re => !!(foundInvite = content.match(re)))
-  // TODO:
-  // let foundQrcode: string[]|null = []
-  // reListQrcode.some(re => !!(foundQrcode = content.match(re)))
-  // if ((!foundInvite || !foundInvite.length) && (!foundQrcode || !foundQrcode.length)) {
-  if ((!foundInvite || !foundInvite.length)) {
-    throw new Error('parseRoomJoin() not found matched re of ' + content)
+////////////////////////////////////////////////////
+
+const ROOM_JOIN_OTHER_INVITE_BOT_REGEX_LIST_ZH = [
+  /^"([^"]+?)"邀请你加入了群聊/,
+  /^"([^"]+?)"邀请你和"(.+)"加入了群聊/,
+]
+
+const ROOM_JOIN_OTHER_INVITE_BOT_REGEX_LIST_EN = [
+  /^(.+) invited you to a group chat/,
+  /^(.+) invited you and (.+) to the group chat/,
+]
+
+////////////////////////////////////////////////////
+
+const ROOM_JOIN_OTHER_INVITE_OTHER_REGEX_LIST_ZH = [
+  /^"(.+)"邀请"(.+)"加入了群聊/,
+
+]
+
+const ROOM_JOIN_OTHER_INVITE_OTHER_REGEX_LIST_EN = [
+  /^(.+?) invited (.+?) to (the|a) group chat/,
+]
+
+export function roomJoinEventMessageParser(
+  rawPayload: PadchatMessagePayload,
+): null | PuppetRoomJoinEvent {
+
+  if (!isPayload(rawPayload)) {
+    return null
   }
 
-  // const [inviterName, inviteeStr] = foundInvite ? [ foundInvite[1], foundInvite[2] ] : [ foundQrcode[2], foundQrcode[1] ]
-  const [inviterName, inviteeStr] = [ foundInvite[1], foundInvite[2] ]
-
-  /**
-   * 李卓桓 invited you and Huan to the group chat
-   */
-  let inviteeNameList: string[] = []
-  if (/^you and/.test(inviteeStr)) {
-    inviteeNameList = inviteeStr.split(/ and /)
-  } else {
-    inviteeNameList = inviteeStr.split(/, /)
-  }
-
-  /**
-   * "李卓桓"邀请你和"Huan LI++"加入了群聊
-   */
-  if (REGEX_CONFIG.roomJoinInviteYou[0].test(content)) {
-    const invitee = inviteeNameList[0]
-    inviteeNameList = ['你', invitee]
-  }
-
-  return [inviteeNameList, inviterName] // put invitee at first place
-}
-
-export function roomJoinEventMessageParser(rawPayload: PadchatMessagePayload): null | PuppetRoomJoinEvent {
   const roomId = rawPayload.from_user
-  const content = rawPayload.content
-  const [inviteeRawNameList, inviterName] = parseRoomJoin(content)
-  const inviteeNameList: (string | YOU)[] = inviteeRawNameList
   if (!isRoomId(roomId)) {
     return null
   }
 
-  if (inviteeNameList[0] === '你' || inviteeNameList[0] === 'you') {
-    inviteeNameList[0] = YOU
+  let content = rawPayload.content
+
+  /**
+   * when the message is a Recalled type, bot can undo the invitation
+   */
+  if (rawPayload.sub_type === PadchatMessageType.Recalled) {
+    /**
+     * content:
+     * ```
+     * 3453262102@chatroom:
+     * <sysmsg type="delchatroommember">
+     *   ...
+     * </sysmsg>
+     * ```
+     */
+    const tryXmlText = content.replace(/^[^\n]+\n/, '')
+    interface XmlSchema {
+      sysmsg: {
+        type: string,
+        delchatroommember: {
+          plain: string,
+          text: string,
+        },
+      }
+    }
+    const jsonPayload = toJson(tryXmlText, { object: true }) as XmlSchema
+    content = jsonPayload.sysmsg.delchatroommember.plain
   }
-  const roomJoinEvent: PuppetRoomJoinEvent = {
-    inviteeNameList : inviteeNameList,
-    inviterName     : inviterName,
-    roomId,
+
+  let matchesForBotInviteOtherEn   = null as null | string[]
+  let matchesForOtherInviteBotEn   = null as null | string[]
+  let matchesForOtherInviteOtherEn = null as null | string[]
+
+  let matchesForBotInviteOtherZh   = null as null | string[]
+  let matchesForOtherInviteBotZh   = null as null | string[]
+  let matchesForOtherInviteOtherZh = null as null | string[]
+
+  ROOM_JOIN_BOT_INVITE_OTHER_REGEX_LIST_EN.some(
+    regex => !!(matchesForBotInviteOtherEn = content.match(regex)),
+  )
+  ROOM_JOIN_OTHER_INVITE_BOT_REGEX_LIST_EN.some(
+    regex => !!(matchesForOtherInviteBotEn = content.match(regex)),
+  )
+  ROOM_JOIN_OTHER_INVITE_OTHER_REGEX_LIST_EN.some(
+    regex => !!(matchesForOtherInviteOtherEn = content.match(regex)),
+  )
+
+  ROOM_JOIN_BOT_INVITE_OTHER_REGEX_LIST_ZH.some(
+    regex => !!(matchesForBotInviteOtherZh = content.match(regex)),
+  )
+  ROOM_JOIN_OTHER_INVITE_BOT_REGEX_LIST_ZH.some(
+    regex => !!(matchesForOtherInviteBotZh = content.match(regex)),
+  )
+  ROOM_JOIN_OTHER_INVITE_OTHER_REGEX_LIST_ZH.some(
+    regex => !!(matchesForOtherInviteOtherZh = content.match(regex)),
+  )
+
+  const matchesForBotInviteOther   = matchesForBotInviteOtherEn   || matchesForBotInviteOtherZh
+  const matchesForOtherInviteBot   = matchesForOtherInviteBotEn   || matchesForOtherInviteBotZh
+  const matchesForOtherInviteOther = matchesForOtherInviteOtherEn || matchesForOtherInviteOtherZh
+
+  const languageEn = matchesForBotInviteOtherEn || matchesForOtherInviteBotEn || matchesForOtherInviteOtherEn
+  const languageZh = matchesForBotInviteOtherZh || matchesForOtherInviteBotZh || matchesForOtherInviteOtherZh
+
+  const matches = matchesForBotInviteOther
+                || matchesForOtherInviteBot
+                || matchesForOtherInviteOther
+
+  if (!matches) {
+    return null
   }
-  return roomJoinEvent
+
+  if (matchesForBotInviteOther) {
+    const other = matches[1]
+
+    let inviteeNameList
+    if (languageEn) {
+      inviteeNameList = splitEnglishNameList(other)
+    } else if (languageZh) {
+      inviteeNameList = splitChineseNameList(other)
+    } else {
+      throw new Error('make typescript happy')
+    }
+
+    const inviterName: string | YOU = YOU
+    const joinEvent: PuppetRoomJoinEvent = {
+      inviteeNameList,
+      inviterName,
+      roomId,
+    }
+    return joinEvent
+
+  } else if (matchesForOtherInviteBot) {
+    // /^"([^"]+?)"邀请你加入了群聊/,
+    // /^"([^"]+?)"邀请你和"(.+?)"加入了群聊/,
+    const inviterName = matches[1]
+    let inviteeNameList: (YOU | string)[] = [YOU]
+    if (matches[2]) {
+      let nameList
+      if (languageEn) {
+        nameList = splitEnglishNameList(matches[2])
+      } else if (languageZh) {
+        nameList = splitChineseNameList(matches[2])
+      } else {
+        throw new Error('neither English nor Chinese')
+      }
+      inviteeNameList = inviteeNameList.concat(nameList)
+    }
+
+    const joinEvent: PuppetRoomJoinEvent = {
+      inviteeNameList,
+      inviterName,
+      roomId,
+    }
+    return joinEvent
+
+  } else if (matchesForOtherInviteOther) {
+    // /^"([^"]+?)"邀请"([^"]+)"加入了群聊$/,
+    // /^([^"]+?) invited ([^"]+?) to (the|a) group chat/,
+    const inviterName = matches[1]
+
+    let   inviteeNameList: string[]
+
+    const other = matches[2]
+
+    if (languageEn) {
+      inviteeNameList = splitEnglishNameList(other)
+    } else if (languageZh) {
+      inviteeNameList = splitChineseNameList(other)
+    } else {
+      throw new Error('neither English nor Chinese')
+    }
+
+    const joinEvent: PuppetRoomJoinEvent = {
+      inviteeNameList,
+      inviterName,
+      roomId,
+    }
+    return joinEvent
+
+  } else {
+    throw new Error('who invite who?')
+  }
 }
 
 /**
+ *
+ * 2. Room Leave Event
+ *
+ *
  * try to find 'leave' event for Room
  *
  * 1.
@@ -132,55 +238,62 @@ export function roomJoinEventMessageParser(rawPayload: PadchatMessagePayload): n
  *  你将"Huan LI++"移出了群聊
  *  你被"李卓桓"移出群聊
  */
-function parseRoomLeave(
-  content: string,
-): [string, string] {
-  let matchIKickOther: null | string[] = []
-  REGEX_CONFIG.roomLeaveBotKickOther.some(
-    regex => !!(
-      matchIKickOther = content.match(regex)
-    ),
-  )
 
-  let matchOtherKickMe: null | string[] = []
-  REGEX_CONFIG.roomLeaveOtherKickMe.some(
-    re => !!(
-      matchOtherKickMe = content.match(re)
-    ),
-  )
+const ROOM_LEAVE_OTHER_REGEX_LIST = [
+  /^(You) removed "(.+)" from the group chat/,
+  /^(你)将"(.+)"移出了群聊/,
+]
 
-  let leaverName  : undefined | string
-  let removerName : undefined | string
+const ROOM_LEAVE_BOT_REGEX_LIST = [
+  /^(You) were removed from the group chat by "([^"]+)"/,
+  /^(你)被"([^"]+?)"移出群聊/,
+]
 
-  if (matchIKickOther && matchIKickOther.length) {
-    leaverName  = matchIKickOther[2]
-    removerName = matchIKickOther[1]
-  } else if (matchOtherKickMe && matchOtherKickMe.length) {
-    leaverName  = matchOtherKickMe[1]
-    removerName = matchOtherKickMe[2]
-  } else {
-    throw new Error('no match')
+export function roomLeaveEventMessageParser(
+  rawPayload: PadchatMessagePayload,
+): null | PuppetRoomLeaveEvent {
+
+  if (!isPayload(rawPayload)) {
+    return null
   }
 
-  return [leaverName, removerName]
-}
-
-export function roomLeaveEventMessageParser(rawPayload: PadchatMessagePayload): null | PuppetRoomLeaveEvent {
-  const roomId = rawPayload.from_user
+  const roomId  = rawPayload.from_user
   const content = rawPayload.content
-  const [leaverRawName, removerRawName] = parseRoomLeave(content)
-  let leaverName: string | YOU = leaverRawName
-  let removerName: string | YOU = removerRawName
+
   if (!isRoomId(roomId)) {
     return null
   }
 
-  if (leaverRawName === '你' || leaverRawName === 'You') {
-    leaverName = YOU
+  let matchesForOther: null | string[] = []
+  ROOM_LEAVE_OTHER_REGEX_LIST.some(
+    regex => !!(
+      matchesForOther = content.match(regex)
+    ),
+  )
+
+  let matchesForBot: null | string[] = []
+  ROOM_LEAVE_BOT_REGEX_LIST.some(
+    re => !!(
+      matchesForBot = content.match(re)
+    ),
+  )
+
+  const matches = matchesForOther || matchesForBot
+  if (!matches) {
+    return null
   }
 
-  if (removerRawName === '你' || removerRawName === 'You') {
+  let leaverName  : undefined | string | YOU
+  let removerName : undefined | string | YOU
+
+  if (matchesForOther) {
     removerName = YOU
+    leaverName  = matchesForOther[2]
+  } else if (matchesForBot) {
+    removerName = matchesForBot[2]
+    leaverName  = YOU
+  } else {
+    throw new Error('for typescript type checking, will never go here')
   }
 
   const roomLeaveEvent: PuppetRoomLeaveEvent = {
@@ -191,38 +304,70 @@ export function roomLeaveEventMessageParser(rawPayload: PadchatMessagePayload): 
   return roomLeaveEvent
 }
 
-function parseRoomTopic(
-  content: string,
-): [string, string] {
-  const reList = REGEX_CONFIG.roomTopic
+/**
+ *
+ * 3. Room Topic Event
+ *
+ */
 
-  let found: string[]|null = []
-  reList.some(re => !!(found = content.match(re)))
-  if (!found || !found.length) {
-    throw new Error('checkRoomTopic() not found')
+const ROOM_TOPIC_OTHER_REGEX_LIST = [
+  /^"(.+)" changed the group name to "(.+)"$/,
+  /^"(.+)"修改群名为“(.+)”$/,
+]
+
+const ROOM_TOPIC_YOU_REGEX_LIST = [
+  /^(You) changed the group name to "(.+)"$/,
+  /^(你)修改群名为“(.+)”$/,
+]
+
+export function roomTopicEventMessageParser(
+  rawPayload: PadchatMessagePayload,
+): null | PuppetRoomTopicEvent {
+
+  if (!isPayload(rawPayload)) {
+    return null
   }
-  const [, changer, topic] = found
-  return [topic, changer]
-}
 
-export function roomTopicEventMessageParser(rawPayload: PadchatMessagePayload): null | PuppetRoomTopicEvent {
-  const roomId = rawPayload.from_user
+  const roomId  = rawPayload.from_user
   const content = rawPayload.content
-  const [topic, rawChangerName] = parseRoomTopic(content)
-  let changerName: string | YOU = rawChangerName
 
   if (!isRoomId(roomId)) {
     return null
   }
 
-  if (rawChangerName === '你' || rawChangerName === 'You') {
+  let matchesForOther:  null | string[] = []
+  let matchesForYou:    null | string[] = []
+
+  ROOM_TOPIC_OTHER_REGEX_LIST .some(regex => !!(matchesForOther = content.match(regex)))
+  ROOM_TOPIC_YOU_REGEX_LIST   .some(regex => !!(matchesForYou   = content.match(regex)))
+
+  const matches: (string | YOU)[] = matchesForOther || matchesForYou
+  if (!matches) {
+    return null
+  }
+
+  let   changerName = matches[1]
+  const topic       = matches[2] as string
+
+  if (matchesForYou && changerName === '你' || changerName === 'You') {
     changerName = YOU
   }
 
   const roomTopicEvent: PuppetRoomTopicEvent = {
-    changerName: changerName,
-    topic: topic,
+    changerName,
     roomId,
+    topic,
   }
+
   return roomTopicEvent
+}
+
+export function splitChineseNameList(nameListText: string): string[] {
+  // 李卓桓、李佳芮、桔小秘
+  return nameListText.split('、')
+}
+
+export function splitEnglishNameList(nameListText: string): string[] {
+  // Zhuohuan, 太阁_传话助手, 桔小秘
+  return nameListText.split(', ')
 }
