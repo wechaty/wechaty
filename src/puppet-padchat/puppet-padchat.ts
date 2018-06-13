@@ -590,7 +590,10 @@ export class PuppetPadchat extends Puppet {
       throw new Error('no avatar')
     }
 
-    const fileBox = FileBox.fromUrl(payload.avatar)
+    const fileBox = FileBox.fromUrl(
+      payload.avatar,
+      `wechaty-contact-avatar-${payload.name}.jpg`,
+    )
     return fileBox
   }
 
