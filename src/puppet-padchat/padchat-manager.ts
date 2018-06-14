@@ -164,11 +164,9 @@ export class PadchatManager extends PadchatRpc {
         && this.cacheRoomMemberRawPayload
         && this.cacheRoomRawPayload
     ) {
-      await Promise.all([
-        this.cacheContactRawPayload.close(),
-        this.cacheRoomMemberRawPayload.close(),
-        this.cacheRoomRawPayload.close(),
-      ])
+      await this.cacheContactRawPayload.close(),
+      await this.cacheRoomMemberRawPayload.close(),
+      await this.cacheRoomRawPayload.close(),
 
       this.cacheContactRawPayload    = undefined
       this.cacheRoomMemberRawPayload = undefined
@@ -485,6 +483,14 @@ export class PadchatManager extends PadchatRpc {
     const autoLoginResult = await this.WXAutoLogin(token)
     //  const autoLoginResult = await this.padchatRpc.WXAutoLogin(this.autoData.token)
     if (!autoLoginResult) {
+
+      /**
+       * 1.1 Delete token for prevent future useless auto login retry
+       */
+      delete deviceInfo.token
+      this.options.memory.set(MEMORY_SLOT_NAME, memorySlot)
+      await this.options.memory.save()
+
       await this.emitLoginQrcode()
       return false
     }
@@ -513,6 +519,14 @@ export class PadchatManager extends PadchatRpc {
      * 4 Send Login Request to user fail, emit QrCode for scan.
      */
     await this.emitLoginQrcode()
+
+    /**
+     * 5 Delete token for prevent future useless auto login retry
+     */
+    delete deviceInfo.token
+    this.options.memory.set(MEMORY_SLOT_NAME, memorySlot)
+    await this.options.memory.save()
+
     return false
   }
 
@@ -584,6 +598,10 @@ export class PadchatManager extends PadchatRpc {
      */
     if (memorySlot.currentUserId === userId) {
       log.silly('PuppetPadchatManager', 'refresh62Data() userId did not change since last login, keep the data as the same')
+
+      // Update Token
+      memorySlot.device[userId]!.token = await this.WXGetLoginToken()
+
       return memorySlot
     }
 

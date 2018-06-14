@@ -167,7 +167,7 @@ export class Friendship extends Accessory {
   }
 
   /**
-   * no `noCache` support because Friendship has no rawPayload(yet)
+   * no `dirty` support because Friendship has no rawPayload(yet)
    */
   public async ready(): Promise<void> {
     if (this.payload) {

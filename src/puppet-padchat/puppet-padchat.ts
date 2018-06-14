@@ -262,7 +262,7 @@ export class PuppetPadchat extends Puppet {
      * 1. Sometimes will get duplicated same messages from rpc, drop the same message from here.
      */
     if (this.cachePadchatMessagePayload.has(rawPayload.msg_id)) {
-      log.warn('PuppetPadchat', 'onPadchatMessage(id=%s) duplicate message: %s',
+      log.silly('PuppetPadchat', 'onPadchatMessage(id=%s) duplicate message: %s',
                                 rawPayload.msg_id,
                                 JSON.stringify(rawPayload).substr(0, 500),
               )
@@ -360,7 +360,7 @@ export class PuppetPadchat extends Puppet {
         /**
          * Dirty Cache
          */
-        this.roomMemberPayloadDirty(roomId)
+        await this.roomMemberPayloadDirty(roomId)
 
         return retry(new Error('roomMemberSearch() not found'))
 
@@ -419,7 +419,8 @@ export class PuppetPadchat extends Puppet {
       /**
        * Dirty Cache
        */
-      this.roomMemberPayloadDirty(roomId)
+      await this.roomMemberPayloadDirty(roomId)
+      await this.roomPayloadDirty(roomId)
 
       this.emit('room-leave',  roomId, leaverIdList, removerId)
     }
@@ -439,8 +440,8 @@ export class PuppetPadchat extends Puppet {
       const roomId      = roomTopicEvent.roomId
       log.silly('PuppetPadchat', 'onPadchatMessageRoomEventTopic() roomTopicEvent="%s"', JSON.stringify(roomTopicEvent))
 
-      const roomPayload = await this.roomPayload(roomId)
-      const oldTopic = roomPayload.topic
+      const roomOldPayload = await this.roomPayload(roomId)
+      const oldTopic       = roomOldPayload.topic
 
       const changerIdList = await this.roomMemberSearch(roomId, changerName)
       if (changerIdList.length < 1) {
@@ -456,11 +457,10 @@ export class PuppetPadchat extends Puppet {
       /**
        * Update Room Payload to new Topic
        */
-      const updateRoomPayload = await this.roomPayload(roomId)
-      updateRoomPayload.topic = newTopic
-      this.cacheRoomPayload.set(roomId, updateRoomPayload)
-
-      this.roomPayloadDirty(roomId)
+      // const updateRoomPayload = await this.roomPayload(roomId)
+      // updateRoomPayload.topic = newTopic
+      // this.cacheRoomPayload.set(roomId, updateRoomPayload)
+      await this.roomPayloadDirty(roomId)
 
       this.emit('room-topic',  roomId, newTopic, oldTopic, changerId)
     }
@@ -1176,7 +1176,7 @@ export class PuppetPadchat extends Puppet {
       // this.padchatManager.friendshipRawPayloadDirty(friendshipId)
     }
 
-    this.friendshipPayloadDirty(friendshipId)
+    await super.friendshipPayloadDirty(friendshipId)
   }
 
   public async friendshipRawPayload(friendshipId: string): Promise<PadchatMessagePayload> {

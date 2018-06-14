@@ -240,15 +240,15 @@ export class Room extends Accessory implements Sayable {
    * @private
    */
   public async ready(
-    noCache = false,
+    dirty = false,
   ): Promise<void> {
     log.verbose('Room', 'ready()')
 
-    if (!noCache && this.isReady()) {
+    if (!dirty && this.isReady()) {
       return
     }
 
-    await this.puppet.roomPayload(this.id, noCache)
+    await this.puppet.roomPayload(this.id, dirty)
 
     const memberIdList = await this.puppet.roomMemberList(this.id)
 
