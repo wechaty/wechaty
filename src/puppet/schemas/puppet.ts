@@ -3,12 +3,6 @@ import {
 }                       from 'memory-card'
 
 /**
- * Watchdog timeout
- *  in seconds
- */
-export const WATCHDOG_TIMEOUT = Symbol('WATCHDOG_TIMEOUT')
-
-/**
  * This is used internally to as a placeholder for the bot name.
  *
  * For example:

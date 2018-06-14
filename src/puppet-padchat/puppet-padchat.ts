@@ -46,8 +46,6 @@ import {
 
   FriendshipPayload,
   FriendshipPayloadReceive,
-
-  WATCHDOG_TIMEOUT,
 }                                 from '../puppet/'
 
 import {

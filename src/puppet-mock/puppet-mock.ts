@@ -25,7 +25,6 @@ import {
 import {
   MessagePayload,
 
-  // ContactQueryFilter,
   ContactGender,
   ContactType,
   ContactPayload,
@@ -33,9 +32,6 @@ import {
   FriendshipPayload,
   RoomPayload,
   RoomMemberPayload,
-  // RoomQueryFilter,
-
-  WATCHDOG_TIMEOUT,
 }                       from '../puppet/'
 import {
   Puppet,
@@ -70,12 +66,6 @@ export interface MockRoomRawPayload {
 }
 
 export class PuppetMock extends Puppet {
-  /**
-   * Watchdog Timeout in Seconds
-   *  if set this value, the default timeout value will be overwrited,
-   *  and the parent Puppet class will use it to init watchdog
-   */
-  protected [WATCHDOG_TIMEOUT] = 30
 
   constructor(
     public options: PuppetOptions,

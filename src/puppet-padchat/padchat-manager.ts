@@ -701,7 +701,7 @@ export class PadchatManager extends PadchatRpc {
 
     const memberIdList = Object.keys(memberRawPayloadDict)
 
-    console.log('memberRawPayloadDict:', memberRawPayloadDict)
+    // console.log('memberRawPayloadDict:', memberRawPayloadDict)
     log.verbose('PuppetPadchatManager', 'getRoomMemberIdList(%d) length=%d', roomId, memberIdList.length)
     return memberIdList
   }
@@ -747,7 +747,7 @@ export class PadchatManager extends PadchatRpc {
     const memberListPayload = await this.WXGetChatRoomMember(roomId)
 
     if (!memberListPayload || !('user_name' in memberListPayload)) { // check user_name too becasue the server might return {}
-      console.log('memberListPayload', memberListPayload)
+      // console.log('memberListPayload', memberListPayload)
       throw new Error('no memberListPayload')
     }
 
@@ -792,8 +792,7 @@ export class PadchatManager extends PadchatRpc {
       // console.log('syncContactList:', syncContactList)
 
       if (!Array.isArray(syncContactList) || syncContactList.length <= 0) {
-        console.log('syncContactList:', syncContactList)
-        log.error('PuppetPadchatManager', 'syncContactsAndRooms() cannot get array result!')
+        log.warn('PuppetPadchatManager', 'syncContactsAndRooms() cannot get array result: %s', JSON.stringify(syncContactList))
         continue
       }
 

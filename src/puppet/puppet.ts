@@ -68,7 +68,6 @@ import {
   PuppetOptions,
   Receiver,
 
-  WATCHDOG_TIMEOUT,
   YOU,
 }                       from './schemas/puppet'
 
