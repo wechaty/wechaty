@@ -3,12 +3,6 @@ import {
 }                       from 'memory-card'
 
 /**
- * Watchdog timeout
- *  in seconds
- */
-export const WATCHDOG_TIMEOUT = Symbol('WATCHDOG_TIMEOUT')
-
-/**
  * This is used internally to as a placeholder for the bot name.
  *
  * For example:
@@ -66,8 +60,12 @@ export const PUPPET_EVENT_DICT = {
 
 export type PuppetEventName = keyof typeof PUPPET_EVENT_DICT
 
+/**
+ * timeout: WatchDog Timeout in Seconds
+ */
 export interface PuppetOptions {
-  memory: MemoryCard,
+  memory   : MemoryCard,
+  timeout? : number,
 }
 
 export interface Receiver {
