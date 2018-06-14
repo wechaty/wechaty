@@ -14,8 +14,10 @@
 | tuling123-bot.ts    | Answer Any Question |
 | hot-import-bot      | Use hot-import for updating code without restarting program |
 | blessed-twins-bot/  | Multi-Instance Twins Bot Powered by Blessed |
+| busy-bot.ts         | Enter Auto Response Mode when you are BUSY |
 
 Learn more about Wechaty from:
+
 1. API Document: <https://github.com/Chatie/wechaty/wiki/API>
 1. Chatie Blog: <https://blog.chatie.io>
 

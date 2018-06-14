@@ -455,9 +455,6 @@ export class PuppetPadchat extends Puppet {
       /**
        * Update Room Payload to new Topic
        */
-      // const updateRoomPayload = await this.roomPayload(roomId)
-      // updateRoomPayload.topic = newTopic
-      // this.cacheRoomPayload.set(roomId, updateRoomPayload)
       await this.roomPayloadDirty(roomId)
 
       this.emit('room-topic',  roomId, newTopic, oldTopic, changerId)

@@ -1,6 +1,7 @@
-[![Wechaty](https://chatie.io/wechaty/images/wechaty-logo-en.png)](https://github.com/chatie/wechaty)
 
 # WECHATY
+
+[![Wechaty](https://chatie.io/wechaty/images/wechaty-logo-en.png)](https://github.com/chatie/wechaty)
 
 ## CONNECTING CHATBOTS
 
@@ -37,14 +38,16 @@ See more at [Wiki:VoiceOfDeveloper](https://github.com/Chatie/wechaty/wiki/Voice
 ## The World's Shortest ChatBot Code: 6 lines of JavaScript
 
 ```javascript
+
 const { Wechaty } = require('wechaty') // import { Wechaty } from 'wechaty'
 
-Wechaty.instance() // Singleton
-.on('scan', (url, code) => console.log(`Scan QR Code to login: ${code}\n${url}`))
-.on('login',       user => console.log(`User ${user} logined`))
-.on('message',  message => console.log(`Message: ${message}`))
+Wechaty.instance() // Global Instance
+.on('scan', (qrcode, status) => console.log(`Scan QR Code to login: ${status}\n${qrcode}`))
+.on('login',            user => console.log(`User ${user} logined`))
+.on('message',       message => console.log(`Message: ${message}`))
 .start()
 ```
+
 > **Notice: Wechaty requires Node.js version >= 8.5**
 
 This bot can log all messages to the console.
@@ -93,12 +96,14 @@ Get to know more about Wechaty Docker at [Wiki:Docker](https://github.com/chatie
 
 ```shell
 $ docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.js # for JavaScript
+...
 ```
 
 1. Run TypeScript
 
 ```shell
 $ docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.ts # for TypeScript
+...
 ```
 
 #### NPM
@@ -257,9 +262,3 @@ At last, It's built for my personal study purpose of Automatically Testing.
 
 [downloads-image]: http://img.shields.io/npm/dm/wechaty.svg?style=flat-square
 [downloads-url]: https://npmjs.org/package/wechaty
-
-## NOTES
-
-* github.com/chatie-oos: Open Open Source for Chatie Community.
-* wechaty-puppet Plugin Design: strong support wechaty.
-* list all donation sponsors on README, and create a wechat group for sponsors.
