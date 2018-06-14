@@ -102,9 +102,6 @@ import {
 
 export class PuppetPadchat extends Puppet {
 
-  // in seconds, 4 minute for padchat
-  protected [WATCHDOG_TIMEOUT] = 4 * 60
-
   // private readonly cachePadchatContactPayload       : LRU.Cache<string, PadchatContactRawPayload>
   // private readonly cachePadchatFriendshipPayload : LRU.Cache<string, PadchatMessagePayload>
   private readonly cachePadchatMessagePayload    : LRU.Cache<string, PadchatMessagePayload>
@@ -115,7 +112,10 @@ export class PuppetPadchat extends Puppet {
   constructor(
     public options: PuppetOptions,
   ) {
-    super(options)
+    super({
+      timeout: 60 * 4,  // Default set timeout to 4 minutes
+      ...options,
+    })
 
     const lruOptions: LRU.Options = {
       max: 1000,
@@ -141,7 +141,7 @@ export class PuppetPadchat extends Puppet {
   }
 
   public startWatchdog(): void {
-    log.verbose('PuppetPadchat', 'initWatchdogForPuppet()')
+    log.verbose('PuppetPadchat', 'startWatchdog()')
 
     if (!this.padchatManager) {
       throw new Error('no bridge')
@@ -264,7 +264,10 @@ export class PuppetPadchat extends Puppet {
      * 1. Sometimes will get duplicated same messages from rpc, drop the same message from here.
      */
     if (this.cachePadchatMessagePayload.has(rawPayload.msg_id)) {
-      log.warn('PuppetPadchat', 'onPadchatMessage({id=%s, type=%s(%s)}) duplicate message')
+      log.warn('PuppetPadchat', 'onPadchatMessage(id=%s) duplicate message: %s',
+                                rawPayload.msg_id,
+                                JSON.stringify(rawPayload).substr(0, 500),
+              )
       return
     }
 
@@ -335,6 +338,7 @@ export class PuppetPadchat extends Puppet {
       const inviteeNameList = roomJoinEvent.inviteeNameList
       const inviterName     = roomJoinEvent.inviterName
       const roomId          = roomJoinEvent.roomId
+      log.silly('PuppetPadchat', 'onPadchatMessageRoomEventJoin() roomJoinEvent="%s"', JSON.stringify(roomJoinEvent))
 
       const inviteeIdList = await Misc.retry(async (retry, attempt) => {
         log.verbose('PuppetPadchat', 'onPadchatMessageRoomEvent({id=%s}) roomJoin retry(attempt=%d)', attempt)
@@ -356,9 +360,9 @@ export class PuppetPadchat extends Puppet {
         }
 
         /**
-         * PURGE Cache and Reload
+         * Dirty Cache
          */
-        this.padchatManager.purgeRoomMemberIdList(roomId)
+        this.roomMemberPayloadDirty(roomId)
 
         return retry(new Error('roomMemberSearch() not found'))
 
@@ -393,6 +397,7 @@ export class PuppetPadchat extends Puppet {
       const leaverNameList = roomLeaveEvent.leaverNameList
       const removerName    = roomLeaveEvent.removerName
       const roomId         = roomLeaveEvent.roomId
+      log.silly('PuppetPadchat', 'onPadchatMessageRoomEventLeave() roomLeaveEvent="%s"', JSON.stringify(roomLeaveEvent))
 
       const leaverIdList = flatten<string>(
         await Promise.all(
@@ -414,10 +419,9 @@ export class PuppetPadchat extends Puppet {
       }
 
       /**
-       * Update L1 Cache & PURGE L2 Cache
+       * Dirty Cache
        */
-      this.cacheRoomMemberPayload.del(roomId)
-      this.padchatManager.purgeRoomMemberIdList(roomId)
+      this.roomMemberPayloadDirty(roomId)
 
       this.emit('room-leave',  roomId, leaverIdList, removerId)
     }
@@ -435,6 +439,7 @@ export class PuppetPadchat extends Puppet {
       const changerName = roomTopicEvent.changerName
       const newTopic    = roomTopicEvent.topic
       const roomId      = roomTopicEvent.roomId
+      log.silly('PuppetPadchat', 'onPadchatMessageRoomEventTopic() roomTopicEvent="%s"', JSON.stringify(roomTopicEvent))
 
       const roomPayload = await this.roomPayload(roomId)
       const oldTopic = roomPayload.topic
@@ -456,7 +461,8 @@ export class PuppetPadchat extends Puppet {
       const updateRoomPayload = await this.roomPayload(roomId)
       updateRoomPayload.topic = newTopic
       this.cacheRoomPayload.set(roomId, updateRoomPayload)
-      this.padchatManager.purgeRoomMemberIdList(roomId)
+
+      this.roomPayloadDirty(roomId)
 
       this.emit('room-topic',  roomId, newTopic, oldTopic, changerId)
     }
@@ -622,6 +628,16 @@ export class PuppetPadchat extends Puppet {
     return qrcode
   }
 
+  public async contactPayloadDirty(contactId: string): Promise<void> {
+    log.verbose('PuppetPadchat', 'contactPayloadDirty(%s)', contactId)
+
+    if (this.padchatManager) {
+      this.padchatManager.contactRawPayloadDirty(contactId)
+    }
+
+    super.contactPayloadDirty(contactId)
+  }
+
   public async contactRawPayload(contactId: string): Promise<PadchatContactPayload> {
     log.silly('PuppetPadchat', 'contactRawPayload(%s)', contactId)
 
@@ -699,6 +715,16 @@ export class PuppetPadchat extends Puppet {
     )
 
     return file
+  }
+
+  public async messagePayloadDirty(messageId: string): Promise<void> {
+    log.verbose('PuppetPadchat', 'messagePayloadDirty(%s)', messageId)
+
+    if (this.padchatManager) {
+      // this.padchatManager.messageRawPayloadDirty(messageId)
+    }
+
+    super.messagePayloadDirty(messageId)
   }
 
   public async messageRawPayload(id: string): Promise<PadchatMessagePayload> {
@@ -839,6 +865,16 @@ export class PuppetPadchat extends Puppet {
    * Room
    *
    */
+  public async roomMemberPayloadDirty(roomId: string) {
+    log.silly('PuppetPadchat', 'roomMemberRawPayloadDirty(%s)', roomId)
+
+    if (this.padchatManager) {
+      await this.padchatManager.roomMemberRawPayloadDirty(roomId)
+    }
+
+    super.roomMemberPayloadDirty(roomId)
+  }
+
   public async roomMemberRawPayload(
     roomId    : string,
     contactId : string,
@@ -849,8 +885,9 @@ export class PuppetPadchat extends Puppet {
       throw new Error('no bridge')
     }
 
-    const rawPayload = await this.padchatManager.roomMemberRawPayload(roomId, contactId)
-    return rawPayload
+    const memberDictRawPayload = await this.padchatManager.roomMemberRawPayload(roomId)
+
+    return memberDictRawPayload[contactId]
   }
 
   public async roomMemberRawPayloadParser(
@@ -865,6 +902,16 @@ export class PuppetPadchat extends Puppet {
     }
 
     return payload
+  }
+
+  public async roomPayloadDirty(roomId: string): Promise<void> {
+    log.verbose('PuppetPadchat', 'roomPayloadDirty(%s)', roomId)
+
+    if (this.padchatManager) {
+      this.padchatManager.roomRawPayloadDirty(roomId)
+    }
+
+    super.roomPayloadDirty(roomId)
   }
 
   public async roomRawPayload(
@@ -883,11 +930,7 @@ export class PuppetPadchat extends Puppet {
   public async roomRawPayloadParser(rawPayload: PadchatRoomPayload): Promise<RoomPayload> {
     log.verbose('PuppetPadchat', 'roomRawPayloadParser(rawPayload.user_name="%s")', rawPayload.user_name)
 
-    // const memberIdList = await this.bridge.getRoomMemberIdList()
-    //  WXGetChatRoomMember(rawPayload.user_name)
-
     const payload: RoomPayload = roomRawPayloadParser(rawPayload)
-
     return payload
   }
 
@@ -929,6 +972,7 @@ export class PuppetPadchat extends Puppet {
 
     // Should check whether user is in the room. WXDeleteChatRoomMember won't check if user in the room automatically
     await this.padchatManager.WXDeleteChatRoomMember(roomId, contactId)
+    await this.roomMemberPayloadDirty(roomId)
   }
 
   public async roomQrcode(roomId: string): Promise<string> {
@@ -975,6 +1019,7 @@ export class PuppetPadchat extends Puppet {
       log.verbose('PuppetPadchat', 'roomAdd(%s, %s) try to Invite', roomId, contactId)
       await this.padchatManager.WXInviteChatRoomMember(roomId, contactId)
     }
+    await this.roomMemberPayloadDirty(roomId)
   }
 
   public async roomTopic(roomId: string)                : Promise<string>
@@ -996,6 +1041,7 @@ export class PuppetPadchat extends Puppet {
     }
 
     await this.padchatManager.WXSetChatroomName(roomId, topic)
+    await this.roomPayloadDirty(roomId)
 
     return
   }
@@ -1123,6 +1169,16 @@ export class PuppetPadchat extends Puppet {
 
     const payload: FriendshipPayload = await friendshipRawPayloadParser(rawPayload)
     return payload
+  }
+
+  public async friendshipPayloadDirty(friendshipId: string): Promise<void> {
+    log.verbose('PuppetPadchat', 'friendshipPayloadDirty(%s)', friendshipId)
+
+    if (this.padchatManager) {
+      // this.padchatManager.friendshipRawPayloadDirty(friendshipId)
+    }
+
+    this.friendshipPayloadDirty(friendshipId)
   }
 
   public async friendshipRawPayload(friendshipId: string): Promise<PadchatMessagePayload> {

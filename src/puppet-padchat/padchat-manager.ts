@@ -668,10 +668,10 @@ export class PadchatManager extends PadchatRpc {
     return roomIdList
   }
 
-  public purgeRoomMemberIdList(
+  public roomMemberRawPayloadDirty(
     roomId: string,
   ): void {
-    log.verbose('PuppetPadchatManager', 'purgeRoomMemberIdList(%d)', roomId)
+    log.verbose('PuppetPadchatManager', 'roomMemberRawPayloadDirty(%d)', roomId)
     if (!this.cacheRoomMemberRawPayload) {
       throw new Error('cache not inited' )
     }
@@ -680,16 +680,15 @@ export class PadchatManager extends PadchatRpc {
 
   public async getRoomMemberIdList(
     roomId: string,
-    noCache = false,
+    dirty = false,
   ): Promise<string[]> {
     log.verbose('PuppetPadchatManager', 'getRoomMemberIdList(%d)', roomId)
     if (!this.cacheRoomMemberRawPayload) {
       throw new Error('cache not inited' )
     }
 
-    if (noCache) {
-      log.verbose('PuppetPadchatManager', 'getRoomMemberIdList(%d) cache PURGE', roomId)
-      this.cacheRoomMemberRawPayload.delete(roomId)
+    if (dirty) {
+      this.roomMemberRawPayloadDirty(roomId)
     }
 
     const memberRawPayloadDict = this.cacheRoomMemberRawPayload.get(roomId)
@@ -702,11 +701,22 @@ export class PadchatManager extends PadchatRpc {
 
     const memberIdList = Object.keys(memberRawPayloadDict)
 
+    console.log('memberRawPayloadDict:', memberRawPayloadDict)
     log.verbose('PuppetPadchatManager', 'getRoomMemberIdList(%d) length=%d', roomId, memberIdList.length)
     return memberIdList
   }
 
-  public async roomMemberRawPayload(roomId: string, contactId: string): Promise<PadchatRoomMemberPayload> {
+  public roomRawPayloadDirty(
+    roomId: string,
+  ): void {
+    log.verbose('PuppetPadchatManager', 'roomRawPayloadDirty(%d)', roomId)
+    if (!this.cacheRoomRawPayload) {
+      throw new Error('cache not inited' )
+    }
+    this.cacheRoomRawPayload.delete(roomId)
+  }
+
+  public async roomMemberRawPayload(roomId: string): Promise<{ [contactId: string]: PadchatRoomMemberPayload }> {
     log.verbose('PuppetPadchatManager', 'roomMemberRawPayload(%s)', roomId)
 
     if (!this.cacheRoomMemberRawPayload) {
@@ -720,12 +730,12 @@ export class PadchatManager extends PadchatRpc {
       throw new Error('roomId not found: ' + roomId)
     }
 
-    const memberRawPayload = memberRawPayloadDict[contactId]
-    if (!memberRawPayload) {
-      throw new Error('contactId not found in room member dict')
-    }
+    // const memberRawPayload = memberRawPayloadDict[contactId]
+    // if (!memberRawPayload) {
+    //   throw new Error('contactId not found in room member dict')
+    // }
 
-    return memberRawPayload
+    return memberRawPayloadDict
   }
 
   public async syncRoomMember(
@@ -865,6 +875,16 @@ export class PadchatManager extends PadchatRpc {
         }
       }
     }
+  }
+
+  public contactRawPayloadDirty(
+    contactId: string,
+  ): void {
+    log.verbose('PuppetPadchatManager', 'contactRawPayloadDirty(%d)', contactId)
+    if (!this.cacheContactRawPayload) {
+      throw new Error('cache not inited' )
+    }
+    this.cacheContactRawPayload.delete(contactId)
   }
 
   public async contactRawPayload(contactId: string): Promise<PadchatContactPayload> {
