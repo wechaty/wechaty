@@ -367,14 +367,6 @@ export class Message extends Accessory implements Sayable {
     return fileBox
   }
 
-  public async contact(): Promise<Contact> {
-    if (this.type() === Message.Type.Contact) {
-      throw new Error('message not Contact type')
-    }
-    const contact = this.wechaty.Contact.load(this.payload.contactId)
-    return contact
-  }
-
   /**
    * Get the type from the message.
    *

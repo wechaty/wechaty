@@ -1,4 +1,4 @@
-import { toJson } from 'xml2json'
+// import { toJson } from 'xml2json'
 
 import {
   MessagePayload,
@@ -8,7 +8,7 @@ import {
 import {
   PadchatMessagePayload,
   PadchatMessageType,
-  PadchatContactPayload,
+  // PadchatContactPayload,
 }                         from '../padchat-schemas'
 
 import {
@@ -174,24 +174,24 @@ export function messageRawPayloadParser(
   /**
    * 6. Set Contact for ShareCard
    */
-  if (type === MessageType.Contact) {
-    interface XmlSchema {
-      msg: {
-        username: string,
-        bigheadimgurl: string,
-        nickname: string,
-        province: string,
-        city: string,
-        sign: string,
-        sex: number,
-        antispamticket: string,
-      },
-      t: PadchatContactPayload,
-    }
-    const jsonPayload = JSON.parse(toJson(text)) as XmlSchema
+  // if (type === MessageType.Contact) {
+  //   interface XmlSchema {
+  //     msg: {
+  //       username: string,
+  //       bigheadimgurl: string,
+  //       nickname: string,
+  //       province: string,
+  //       city: string,
+  //       sign: string,
+  //       sex: number,
+  //       antispamticket: string,
+  //     },
+  //     t: PadchatContactPayload,
+  //   }
+  //   const jsonPayload = JSON.parse(toJson(text)) as XmlSchema
 
-    console.log('jsonPayload:', jsonPayload)
-  }
+  //   console.log('jsonPayload:', jsonPayload)
+  // }
 
   let payload: MessagePayload
 
