@@ -873,7 +873,6 @@ export class PadchatManager extends PadchatRpc {
         return this.cacheContactRawPayload.get(contactId)
       }
 
-      // const tryRawPayload =  await this.padchatRpc.WXGetContactPayload(contactid)
       const tryRawPayload =  await this.WXGetContactPayload(contactId)
       if (tryRawPayload && tryRawPayload.user_name) { // check user_name too becasue the server might return {}
         this.cacheContactRawPayload.set(contactId, tryRawPayload)
@@ -902,9 +901,10 @@ export class PadchatManager extends PadchatRpc {
         return this.cacheRoomRawPayload.get(id)
       }
 
-      // const tryRawPayload = await this.padchatRpc.WXGetRoomPayload(id)
       const tryRawPayload = await this.WXGetRoomPayload(id)
-      if (tryRawPayload && tryRawPayload.user_name) { // check user_name too becasue the server might return {}
+
+      // check user_name too becasue the server might return {}
+      if (tryRawPayload && tryRawPayload.user_name) {
         this.cacheRoomRawPayload.set(id, tryRawPayload)
         return tryRawPayload
       }
@@ -918,7 +918,6 @@ export class PadchatManager extends PadchatRpc {
   }
 
   public async ding(): Promise<string> {
-    // const result = await this.padchatRpc.WXHeartBeat()
     const result = await this.WXHeartBeat()
     return result.message
   }

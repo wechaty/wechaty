@@ -867,7 +867,9 @@ export class PuppetPadchat extends Puppet {
     return payload
   }
 
-  public async roomRawPayload(roomId: string): Promise<PadchatRoomPayload> {
+  public async roomRawPayload(
+    roomId: string,
+  ): Promise<PadchatRoomPayload> {
     log.verbose('PuppetPadchat', 'roomRawPayload(%s)', roomId)
 
     if (!this.padchatManager) {
@@ -1010,20 +1012,8 @@ export class PuppetPadchat extends Puppet {
 
     const roomId = await this.padchatManager.WXCreateChatRoom(contactIdList)
 
-    await Misc.retry(async (retry, attempt) => {
-      log.verbose('PuppetPadchat', 'roomCreate() roomId=%s retry attempt=%d', roomId, attempt)
-
-      try {
-        const tryRoomPayload = await this.roomPayload(roomId)
-        if (tryRoomPayload) {
-          return tryRoomPayload
-        } else {
-          return retry(new Error('room create payload not ready'))
-        }
-      } catch (e) {
-        return retry(e)
-      }
-    })
+    // Load new created room payload
+    await this.roomPayload(roomId)
 
     return roomId
   }

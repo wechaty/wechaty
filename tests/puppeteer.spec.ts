@@ -218,19 +218,19 @@ test('other demos', async t => {
     // page.click(selector[, options])
     // await page.injectFile(path.join(__dirname, 'wechaty-bro.js'))
     const cookieList = await page.cookies() as any as Cookie[]
-    t.ok(cookieList.length, 'should get cookies')
-    t.ok(cookieList[0].name, 'should get cookies with name')
+    t.ok(cookieList.length,   'should get cookies')
+    t.ok(cookieList[0].name,  'should get cookies with name')
 
     const cookie: Cookie = {
-      name:  'test-name',
-      value: 'test-value',
-      domain: 'qq.com',
-      path: '/',
-      expires: 1234324132,
-      httpOnly: false,
-      secure: false,
-      sameSite: 'Strict',
-      session: true,
+      name     : 'test-name',
+      value    : 'test-value',
+      domain   : 'qq.com',
+      path     : '/',
+      expires  : 1234324132,
+      httpOnly : false,
+      secure   : false,
+      sameSite : 'Strict',
+      session  : true,
     }
     await page.setCookie(cookie)
 
