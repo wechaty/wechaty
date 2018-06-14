@@ -214,3 +214,62 @@ test('StatusNotify to roomId', async t => {
   const payload = messageRawPayloadParser(MESSAGE_PAYLOAD)
   t.deepEqual(payload, EXPECTED_PAYLOAD, 'should parse status notify message to room id')
 })
+
+test('share card peer to peer', async t => {
+  const MESSAGE_PAYLOAD: PadchatMessagePayload = {
+    content     : '<?xml version="1.0"?>\n<msg bigheadimgurl="http://wx.qlogo.cn/mmhead/ver_1/27zgBIIcxGmtINOWjoXPZ7yIsvfuIzGepXbcWUFyUHSK2N8MA2x1VkTZLzk9iaQca6CtPR6ooUZWR52icTwnia51A/0" smallheadimgurl="http://wx.qlogo.cn/mmhead/ver_1/27zgBIIcxGmtINOWjoXPZ7yIsvfuIzGepXbcWUFyUHSK2N8MA2x1VkTZLzk9iaQca6CtPR6ooUZWR52icTwnia51A/132" username="v1_cebe1d0a6ff469f5d1bc136ffd69929605f8e90cbefc2a42a81f53b3c90ee264@stranger" nickname="李佳芮" fullpy="李佳芮" shortpy="LJR" alias="" imagestatus="0" scene="17" province="北京" city="海淀" sign="" sex="2" certflag="0" certinfo="" brandIconUrl="" brandHomeUrl="" brandSubscriptConfigUrl="" brandFlags="0" regionCode="CN_Beijing_Haidian" antispamticket="v2_93b56e18c355bdbec761e459231b7e6ded4b0c4861a88f3ead9b2c89bce028fa56f345d8e7cf5479dc94a6e13b5b42ec@stranger" />\n',
+    continue    : 1,
+    description : '李卓桓 : [Contact Card] 李佳芮',
+    from_user   : 'lizhuohuan',
+    msg_id      : '5911987709823889005',
+    msg_source  : '',
+    msg_type    : 5,
+    status      : 1,
+    sub_type    : 42,
+    timestamp   : 1528959169,
+    to_user     : 'wxid_5zj4i5htp9ih22',
+    uin         : 1928023446,
+  }
+  const EXPECTED_PAYLOAD: MessagePayload = {
+    id        : '5911987709823889005',
+    timestamp : 1528959169,
+    type      : 3,
+    fromId    : 'lizhuohuan',
+    roomId    : undefined,
+    toId      : 'wxid_5zj4i5htp9ih22',
+    text      : '<?xml version="1.0"?>\n<msg bigheadimgurl="http://wx.qlogo.cn/mmhead/ver_1/27zgBIIcxGmtINOWjoXPZ7yIsvfuIzGepXbcWUFyUHSK2N8MA2x1VkTZLzk9iaQca6CtPR6ooUZWR52icTwnia51A/0" smallheadimgurl="http://wx.qlogo.cn/mmhead/ver_1/27zgBIIcxGmtINOWjoXPZ7yIsvfuIzGepXbcWUFyUHSK2N8MA2x1VkTZLzk9iaQca6CtPR6ooUZWR52icTwnia51A/132" username="v1_cebe1d0a6ff469f5d1bc136ffd69929605f8e90cbefc2a42a81f53b3c90ee264@stranger" nickname="李佳芮" fullpy="李佳芮" shortpy="LJR" alias="" imagestatus="0" scene="17" province="北京" city="海淀" sign="" sex="2" certflag="0" certinfo="" brandIconUrl="" brandHomeUrl="" brandSubscriptConfigUrl="" brandFlags="0" regionCode="CN_Beijing_Haidian" antispamticket="v2_93b56e18c355bdbec761e459231b7e6ded4b0c4861a88f3ead9b2c89bce028fa56f345d8e7cf5479dc94a6e13b5b42ec@stranger" />\n',
+  }
+
+  const payload = messageRawPayloadParser(MESSAGE_PAYLOAD)
+  t.deepEqual(payload, EXPECTED_PAYLOAD, 'should parse share card message peer to peer')
+})
+
+test('share card in room', async t => {
+  const MESSAGE_PAYLOAD: PadchatMessagePayload = {
+    content     : 'lizhuohuan:\n<?xml version="1.0"?>\n<msg bigheadimgurl="http://wx.qlogo.cn/mmhead/ver_1/27zgBIIcxGmtINOWjoXPZ7yIsvfuIzGepXbcWUFyUHSK2N8MA2x1VkTZLzk9iaQca6CtPR6ooUZWR52icTwnia51A/0" smallheadimgurl="http://wx.qlogo.cn/mmhead/ver_1/27zgBIIcxGmtINOWjoXPZ7yIsvfuIzGepXbcWUFyUHSK2N8MA2x1VkTZLzk9iaQca6CtPR6ooUZWR52icTwnia51A/132" username="v1_cebe1d0a6ff469f5d1bc136ffd69929605f8e90cbefc2a42a81f53b3c90ee264@stranger" nickname="李佳芮" fullpy="李佳芮" shortpy="LJR" alias="" imagestatus="0" scene="17" province="北京" city="海淀" sign="" sex="2" certflag="0" certinfo="" brandIconUrl="" brandHomeUrl="" brandSubscriptConfigUrl="" brandFlags="0" regionCode="CN_Beijing_Haidian" antispamticket="v2_93b56e18c355bdbec761e459231b7e6db1ed42e77e0315ea11fb27d92b0641b586bd45a67c9c282b7a6c17430f15c0c3@stranger" />\n',
+    continue    : 1,
+    description : '李卓桓 : [Contact Card] 李佳芮',
+    from_user   : '3453262102@chatroom',
+    msg_id      : '7332176666514216982',
+    msg_source  : '<msgsource>\n\t<silence>0</silence>\n\t<membercount>3</membercount>\n</msgsource>\n',
+    msg_type    : 5,
+    status      : 1,
+    sub_type    : 42,
+    timestamp   : 1528961383,
+    to_user     : 'wxid_5zj4i5htp9ih22',
+    uin         : 1928023446,
+  }
+
+  const EXPECTED_PAYLOAD: MessagePayload = {
+    id        : '7332176666514216982',
+    timestamp : 1528961383,
+    type      : 3,
+    fromId    : 'lizhuohuan',
+    roomId    : '3453262102@chatroom',
+    toId      : 'wxid_5zj4i5htp9ih22',
+    text      : '<?xml version="1.0"?>\n<msg bigheadimgurl="http://wx.qlogo.cn/mmhead/ver_1/27zgBIIcxGmtINOWjoXPZ7yIsvfuIzGepXbcWUFyUHSK2N8MA2x1VkTZLzk9iaQca6CtPR6ooUZWR52icTwnia51A/0" smallheadimgurl="http://wx.qlogo.cn/mmhead/ver_1/27zgBIIcxGmtINOWjoXPZ7yIsvfuIzGepXbcWUFyUHSK2N8MA2x1VkTZLzk9iaQca6CtPR6ooUZWR52icTwnia51A/132" username="v1_cebe1d0a6ff469f5d1bc136ffd69929605f8e90cbefc2a42a81f53b3c90ee264@stranger" nickname="李佳芮" fullpy="李佳芮" shortpy="LJR" alias="" imagestatus="0" scene="17" province="北京" city="海淀" sign="" sex="2" certflag="0" certinfo="" brandIconUrl="" brandHomeUrl="" brandSubscriptConfigUrl="" brandFlags="0" regionCode="CN_Beijing_Haidian" antispamticket="v2_93b56e18c355bdbec761e459231b7e6db1ed42e77e0315ea11fb27d92b0641b586bd45a67c9c282b7a6c17430f15c0c3@stranger" />\n',
+  }
+
+  const payload = messageRawPayloadParser(MESSAGE_PAYLOAD)
+  t.deepEqual(payload, EXPECTED_PAYLOAD, 'should parse share card message peer to peer')
+})
