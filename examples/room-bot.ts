@@ -34,7 +34,7 @@
  *                           vvvvvvvvv
  *                           vvvvvvvvv
  */
-const HELPER_CONTACT_NAME = 'Bruce LEE'
+const HELPER_CONTACT_NAME = 'Huan LI'
 
 /**
  *                           ^^^^^^^^^
@@ -45,7 +45,7 @@ const HELPER_CONTACT_NAME = 'Bruce LEE'
  */
 
 /* tslint:disable:variable-name */
-const qrcodeTerminal = require('qrcode-terminal')
+import { generate } from 'qrcode-terminal'
 
 /**
  * Change `import { ... } from '../'`
@@ -89,12 +89,9 @@ console.log(welcome)
 const bot = Wechaty.instance({ profile: config.default.DEFAULT_PROFILE })
 
 bot
-.on('scan', (url, code) => {
-  if (!/201|200/.test(String(code))) {
-    const loginUrl = url.replace(/\/qrcode\//, '/l/')
-    qrcodeTerminal.generate(loginUrl)
-  }
-  console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
+.on('scan', (qrcode, status) => {
+  generate(qrcode, { small: true })
+  console.log(`${qrcode}\n[${status}] Scan QR Code in above url to login: `)
 })
 .on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
 .on('error'   , e => log.info('Bot', 'error: %s', e))

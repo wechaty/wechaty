@@ -70,12 +70,9 @@ Loading... please wait for QrCode Image Url and then scan to login.
 `)
 
 bot
-.on('scan', (url, code) => {
-  if (!/201|200/.test(String(code))) {
-    const loginUrl = url.replace(/\/qrcode\//, '/l/')
-    QrcodeTerminal.generate(loginUrl)
-  }
-  console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
+.on('scan', (qrcode, status) => {
+  QrcodeTerminal.generate(qrcode)
+  console.log(`${qrcode}\n[${status}] Scan QR Code in above url to login: `)
 })
 .on('login'  , user => log.info('Bot', `bot login: ${user}`))
 .on('logout' , user => log.info('Bot', 'bot %s logout.', user))

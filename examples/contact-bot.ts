@@ -66,9 +66,7 @@ bot
 .on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
 .on('error'   , e => log.info('Bot', 'error: %s', e))
 .on('scan', (qrcode, status) => {
-  if (!/201|200/.test(String(status))) {
-    QrcodeTerminal.generate(qrcode)
-  }
+  QrcodeTerminal.generate(qrcode)
   console.log(`${qrcode}\n[${status}] Scan QR Code in above url to login: `)
 })
 

@@ -30,12 +30,9 @@ import { Wechaty } from '../src/'
 const bot = Wechaty.instance()
 
 bot
-.on('scan', (url, code) => {
-  if (!/201|200/.test(String(code))) {
-    const loginUrl = url.replace(/\/qrcode\//, '/l/')
-    qrcodeTerminal.generate(loginUrl)
-  }
-  console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
+.on('scan', (qrcode, status) => {
+  qrcodeTerminal.generate(qrcode)
+  console.log(`${qrcode}\n[${status}] Scan QR Code in above url to login: `)
 })
 .on('message', async m => {
   if (m.self()) {

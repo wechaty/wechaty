@@ -5,7 +5,7 @@
 import * as blessed from 'blessed'
 import * as contrib from 'blessed-contrib'
 
-import * as qrcode from 'qrcode-terminal'
+import { generate } from 'qrcode-terminal'
 
 import {
   Wechaty,
@@ -314,18 +314,14 @@ function startBot(bot: Wechaty, logElement: any) {
     bot.say('Wechaty login').catch(console.error)
     logElement.setLabel(logElement._label.content + ' - ' + user.name())
   })
-  .on('scan', (url, code) => {
-    if (!/201|200/.test(String(code))) {
-      const loginUrl = url.replace(/\/qrcode\//, '/l/')
-      qrcode.generate(
-        loginUrl,
-        {
-          small: true,
-        },
-        (qrData: string) => logElement.setContent(qrData),
-      )
-    }
-    // logElement.log(`${url}\n[${code}] Scan QR Code above url to log in: `)
+  .on('scan', (qrcode) => {
+    generate(
+      qrcode,
+      {
+        small: true,
+      },
+      (asciiart: string) => logElement.setContent(asciiart),
+    )
   })
   .on('message', async m => {
     logElement.log(m.toString())

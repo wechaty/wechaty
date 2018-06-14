@@ -67,12 +67,9 @@ Loading...
 bot
 .on('login'  , user => log.info('Bot', `bot login: ${user}`))
 .on('logout' , user => log.info('Bot', 'bot %s logout.', user))
-.on('scan', (url, code) => {
-  if (!/201|200/.test(String(code))) {
-    const loginUrl = url.replace(/\/qrcode\//, '/l/')
-    qrcodeTerminal.generate(loginUrl)
-  }
-  console.log(`${url}\n[${code}] Scan QR Code in above url to login: `)
+.on('scan', (qrcode, status) => {
+  qrcodeTerminal.generate(qrcode)
+  console.log(`${qrcode}\n[${status}] Scan QR Code in above url to login: `)
 })
 .on('message', async msg => {
   // Skip message from self, or inside a room

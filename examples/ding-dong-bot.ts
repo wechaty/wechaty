@@ -20,9 +20,9 @@ import * as fs    from 'fs'
 import * as path  from 'path'
 
 /* tslint:disable:variable-name */
-import * as QrcodeTerminal  from 'qrcode-terminal'
-import finis                from 'finis'
-import { FileBox }          from 'file-box'
+import { generate } from 'qrcode-terminal'
+import { finis }    from 'finis'
+import { FileBox }  from 'file-box'
 
 /**
  * Change `import { ... } from '../'`
@@ -74,13 +74,11 @@ bot
   bot.say('Wechaty login').catch(console.error)
 })
 .on('scan', (qrcode, status, data) => {
-  QrcodeTerminal.generate(qrcode, { small: true }, (asciiArt: string) => {
-    console.log(asciiArt)
-    console.log(`[${status}] Scan QR Code above url to log in: `)
-    if (data) {
-      console.log(data)
-    }
-  })
+  generate(qrcode, { small: true })
+  if (data) {
+    console.log(data)
+  }
+  console.log(`[${status}] Scan QR Code above url to log in: `)
 })
 .on('message', async msg => {
   try {
