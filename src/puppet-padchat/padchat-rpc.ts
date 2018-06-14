@@ -709,10 +709,16 @@ export class PadchatRpc extends EventEmitter {
    * Get all member of a room by room id
    * @param {any} roomId        chatroom_id
    */
-  public async WXGetChatRoomMember(roomId: string): Promise<PadchatRoomMemberListPayload> {
+  public async WXGetChatRoomMember(roomId: string): Promise<null | PadchatRoomMemberListPayload> {
     const result = await this.rpcCall('WXGetChatRoomMember', roomId)
     if (!result) {
       throw Error('PadchatRpc, WXGetChatRoomMember, cannot get result from websocket server!')
+    }
+
+    // roomId not exist. (or no permision?)
+    // See: https://github.com/lijiarui/wechaty-puppet-padchat/issues/64#issuecomment-397319016
+    if (result.status === -19) {
+      return null
     }
 
     log.silly('PadchatRpc', 'WXGetChatRoomMember() result: %s', JSON.stringify(result).substr(0, 500))

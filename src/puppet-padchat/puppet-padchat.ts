@@ -18,8 +18,6 @@
  */
 
 import path  from 'path'
-// import fs    from 'fs'
-// import cuid from 'cuid'
 
 import LRU      from 'lru-cache'
 import flatten  from 'array-flatten'

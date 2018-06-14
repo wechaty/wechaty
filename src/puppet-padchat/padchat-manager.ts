@@ -766,7 +766,17 @@ export class PadchatManager extends PadchatRpc {
 
     if (!memberListPayload || !('user_name' in memberListPayload)) { // check user_name too becasue the server might return {}
       // console.log('memberListPayload', memberListPayload)
-      throw new Error('no memberListPayload')
+      // throw new Error('no memberListPayload')
+
+      /**
+       * Room Id not exist
+       * See: https://github.com/lijiarui/wechaty-puppet-padchat/issues/64#issuecomment-397319016
+       */
+      this.roomMemberRawPayloadDirty(roomId)
+      this.roomRawPayloadDirty(roomId)
+
+      return {}
+
     }
 
     log.silly('PuppetPadchatManager', 'syncRoomMember(%s) total %d members',
