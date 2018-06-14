@@ -68,6 +68,7 @@ import {
   isContactId,
   isRoomId,
   padchatDecode,
+  pureUserName,
 }                       from './pure-function-helpers/'
 
 import { log }          from '../config'
@@ -990,18 +991,13 @@ export class PadchatRpc extends EventEmitter {
     return result
   }
 
-  // {"message":"\n\u0010Everything is OK","status":0,"user_name":"\n\u00135907139882@chatroom"}
-  // BUG compitable: "\n\u00135907139882@chatroom" -> "5907139882@chatroom"
-  // https://github.com/lijiarui/wechaty-puppet-padchat/issues/62
   public async WXCreateChatRoom(userList: string[]): Promise<string> {
     const result = await this.rpcCall('WXCreateChatRoom', JSON.stringify(userList))
     log.silly('PadchatRpc', 'WXCreateChatRoom(userList.length=%d) = "%s"', userList.length, JSON.stringify(result))
     if (!result || result.status !== 0) {
       throw Error('WXCreateChatRoom , stranger,error! canot get result from websocket server')
     }
-    // BUG compitable: "\n\u00135907139882@chatroom" -> "5907139882@chatroom"
-    // BUG compitable: "\n\u001412558026334@chatroom" -> "12558026334@chatroom"
-    return result.user_name.replace(/^\n[\u0000-\uffff]/g, '')
+    return pureUserName(result.user_name)
   }
 
   // TODO: check any
