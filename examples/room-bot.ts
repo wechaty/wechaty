@@ -215,9 +215,9 @@ bot
           /**
            * room found
            */
-          log.info('Bot', 'onMessage: got dingRoom: %s', dingRoom.topic())
+          log.info('Bot', 'onMessage: got dingRoom: %s', await dingRoom.topic())
 
-          if (dingRoom.has(from)) {
+          if (await dingRoom.has(from)) {
             /**
              * speaker is already in room
              */

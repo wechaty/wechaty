@@ -606,7 +606,7 @@ export class Room extends Accessory implements Sayable {
    * const contact = await Contact.find({name: 'lijiarui'})   // change 'lijiarui' to any of contact in your wechat
    * const room = await Room.find({topic: 'wechaty'})         // change 'wechaty' to any of the room in your wechat
    * if (contact && room) {
-   *   if (room.has(contact)) {
+   *   if (await room.has(contact)) {
    *     console.log(`${contact.name()} is in the room ${room.topic()}!`)
    *   } else {
    *     console.log(`${contact.name()} is not in the room ${room.topic()} !`)
