@@ -268,6 +268,14 @@ export class PadchatManager extends PadchatRpc {
      */
     await this.initCache(this.options.token, this.selfId)
 
+    /**
+     * Refresh the login-ed user payload
+     */
+    if (this.cacheContactRawPayload) {
+      this.cacheContactRawPayload.delete(this.selfId)
+      await this.contactRawPayload(this.selfId)
+    }
+
     this.emit('login', this.selfId)
   }
 
