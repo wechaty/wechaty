@@ -56,7 +56,7 @@ export async function onMessage(this: Wechaty, message: Message): Promise<void> 
       const myRoom = await this.Room.find({ topic: 'ding' })
       if (!myRoom) return
 
-      if (myRoom.has(sender)) {
+      if (await myRoom.has(sender)) {
         await sender.say('no need to ding again, because you are already in ding room')
         return
       }

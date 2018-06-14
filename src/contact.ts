@@ -72,8 +72,8 @@ export class Contact extends Accessory implements Sayable {
    * About the Generic: https://stackoverflow.com/q/43003970/1123955
    */
   public static load<T extends typeof Contact>(
-    this     : T,
-    id       : string,
+    this : T,
+    id   : string,
   ): T['prototype'] {
     if (!this.pool) {
       log.verbose('Contact', 'load(%s) init pool', id)
