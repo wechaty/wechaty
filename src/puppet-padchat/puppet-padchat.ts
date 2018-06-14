@@ -672,7 +672,7 @@ export class PuppetPadchat extends Puppet {
         return FileBox.fromBase64(result.voice, `${attachmentName}.slk`)
 
       case MessageType.Emoticon:
-        result = await this.padchatManager.WXGetMsgImage(rawText)
+        result = await this.padchatManager.WXGetMsgEmoticon(rawText)
         console.log(result)
         return FileBox.fromBase64(result.image, `${attachmentName}.gif`)
 

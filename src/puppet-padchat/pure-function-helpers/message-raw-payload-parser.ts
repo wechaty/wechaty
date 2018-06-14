@@ -1,3 +1,5 @@
+import { toJson } from 'xml2json'
+
 import {
   MessagePayload,
   MessageType,
@@ -6,6 +8,7 @@ import {
 import {
   PadchatMessagePayload,
   PadchatMessageType,
+  PadchatContactPayload,
 }                         from '../padchat-schemas'
 
 import {
@@ -19,6 +22,9 @@ export function messageRawPayloadParser(
 
   // console.log('messageRawPayloadParser:', rawPayload)
 
+  /**
+   * 0. Set Message Type
+   */
   let type: MessageType
 
   switch (rawPayload.sub_type) {
@@ -54,6 +60,10 @@ export function messageRawPayloadParser(
 
     case PadchatMessageType.Sys:
       type = MessageType.Unknown
+      break
+
+    case PadchatMessageType.ShareCard:
+      type = MessageType.Contact
       break
 
     case PadchatMessageType.Recalled:
@@ -159,6 +169,28 @@ export function messageRawPayloadParser(
    */
   if (!roomId && !toId) {
     throw Error('empty roomId and empty toId!')
+  }
+
+  /**
+   * 6. Set Contact for ShareCard
+   */
+  if (type === MessageType.Contact) {
+    interface XmlSchema {
+      msg: {
+        username: string,
+        bigheadimgurl: string,
+        nickname: string,
+        province: string,
+        city: string,
+        sign: string,
+        sex: number,
+        antispamticket: string,
+      },
+      t: PadchatContactPayload,
+    }
+    const jsonPayload = JSON.parse(toJson(text)) as XmlSchema
+
+    console.log('jsonPayload:', jsonPayload)
   }
 
   let payload: MessagePayload

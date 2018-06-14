@@ -23,9 +23,9 @@ import {
 import {
   log,
 }                 from '../config'
-import {
-  PuppetScanEvent,
-}                 from '../puppet/'
+// import {
+//   PuppetScanEvent,
+// }                 from '../puppet/'
 
 import {
   Firer,
@@ -62,9 +62,12 @@ function onDing(
 
 async function onScan(
   this    : PuppetPuppeteer,
-  payload : PuppetScanEvent,
+  // Do not use PuppetScanPayload at here, use { code: number, url: string } instead,
+  //  because this is related with Browser Hook Code:
+  //    wechaty-bro.js
+  payloadFromBrowser : { code: number, url: string },
 ): Promise<void> {
-  log.verbose('PuppetPuppeteerEvent', 'onScan({code: %d, url: %s})', payload.qrcode, payload.qrcode)
+  log.verbose('PuppetPuppeteerEvent', 'onScan({code: %d, url: %s})', payloadFromBrowser.code, payloadFromBrowser.url)
 
   // if (this.state.off()) {
   //   log.verbose('PuppetPuppeteerEvent', 'onScan(%s) state.off()=%s, NOOP',
@@ -72,7 +75,10 @@ async function onScan(
   //   return
   // }
 
-  this.scanPayload = payload
+  this.scanPayload = {
+    qrcode: payloadFromBrowser.url,
+    status: payloadFromBrowser.code,
+  }
 
   /**
    * When wx.qq.com push a new QRCode to Scan, there will be cookie updates(?)
@@ -86,15 +92,15 @@ async function onScan(
 
   // feed watchDog a `scan` type of food
   const food: WatchdogFood = {
-    data: payload,
+    data: payloadFromBrowser,
     type: 'scan',
   }
   this.emit('watchdog', food)
 
-  // BREAKING CHANGE: Issue #1262
-  const qrcode = payload.qrcode.replace(/\/qrcode\//, '/l/')
+  const qrcode = payloadFromBrowser.url.replace(/\/qrcode\//, '/l/')
+  const status = payloadFromBrowser.code
 
-  this.emit('scan', qrcode, payload.status, payload.data)
+  this.emit('scan', qrcode, status)
 }
 
 function onLog(data: any): void {

@@ -1166,6 +1166,16 @@ export class PadchatRpc extends EventEmitter {
     return result
   }
 
+  // TODO: check if this WXGetMsgEmoticon exist in protocol, Huan LI 201806
+  public async WXGetMsgEmoticon(msg: string): Promise<any> {
+    const result = await this.rpcCall('WXGetMsgEmoticon', msg)
+    log.silly('PadchatRpc', 'WXGetMsgEmoticon(), result: %s', JSON.stringify(result))
+    if (!result || result.status !== 0) {
+      throw Error('WXGetMsgEmoticon error! canot get result from websocket server')
+    }
+    return result
+  }
+
   // TODO check any
   // 获取消息图片 （应该是查看原图）
   // msg			收到的整个图片消息

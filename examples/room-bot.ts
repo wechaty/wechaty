@@ -161,21 +161,21 @@ bot
 /**
  * Global Event: message
  */
-.on('message', async function(this: Wechaty, message) {
-  const room    = message.room()
-  const sender  = message.from()
-  const content = message.text()
+.on('message', async function(msg) {
+  const room = msg.room()
+  const from = msg.from()
+  const text = msg.text()
 
-  if (!sender) {
+  if (!from) {
     return
   }
 
   console.log((room ? '[' + await room.topic() + ']' : '')
-              + '<' + sender.name() + '>'
-              + ':' + message,
+              + '<' + from.name() + '>'
+              + ':' + msg,
   )
 
-  if (message.self()) {
+  if (msg.self()) {
     return // skip self
   }
   /**
@@ -183,7 +183,7 @@ bot
    *  1. say ding first time, will got a room invitation
    *  2. say ding in room, will be removed out
    */
-  if (/^ding$/i.test(content)) {
+  if (/^ding$/i.test(text)) {
 
     /**
      *  in-room message
@@ -193,7 +193,7 @@ bot
         /**
          * move contact out of room
          */
-        getOutRoom(sender, room)
+        getOutRoom(from, room)
       }
 
     /**
@@ -212,12 +212,12 @@ bot
            */
           log.info('Bot', 'onMessage: got dingRoom: %s', dingRoom.topic())
 
-          if (dingRoom.has(sender)) {
+          if (dingRoom.has(from)) {
             /**
              * speaker is already in room
              */
             log.info('Bot', 'onMessage: sender has already in dingRoom')
-            sender.say('no need to ding again, because you are already in ding room')
+            from.say('no need to ding again, because you are already in ding room')
             // sendMessage({
             //   content: 'no need to ding again, because you are already in ding room'
             //   , to: sender
@@ -227,9 +227,9 @@ bot
             /**
              * put speaker into room
              */
-            log.info('Bot', 'onMessage: add sender(%s) to dingRoom(%s)', sender.name(), dingRoom.topic())
-            sender.say('ok, I will put you in ding room!')
-            putInRoom(sender, dingRoom)
+            log.info('Bot', 'onMessage: add sender(%s) to dingRoom(%s)', from.name(), dingRoom.topic())
+            from.say('ok, I will put you in ding room!')
+            putInRoom(from, dingRoom)
           }
 
         } else {
@@ -240,7 +240,7 @@ bot
           /**
            * create the ding room
            */
-          await createDingRoom(sender)
+          await createDingRoom(from)
           /**
            * listen events from ding room
            */

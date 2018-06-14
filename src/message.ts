@@ -262,8 +262,9 @@ export class Message extends Accessory implements Sayable {
     return this.payload.text || ''
   }
 
-  public async say(text: string, mention?: Contact | Contact[]): Promise<void>
-  public async say(file: FileBox): Promise<void>
+  public async say(text:    string, mention?: Contact | Contact[]) : Promise<void>
+  public async say(contact: Contact)                               : Promise<void>
+  public async say(file:    FileBox)                               : Promise<void>
 
   /**
    * Reply a Text or Media File message to the sender.
@@ -366,6 +367,14 @@ export class Message extends Accessory implements Sayable {
     return fileBox
   }
 
+  public async contact(): Promise<Contact> {
+    if (this.type() === Message.Type.Contact) {
+      throw new Error('message not Contact type')
+    }
+    const contact = this.wechaty.Contact.load(this.payload.contactId)
+    return contact
+  }
+
   /**
    * Get the type from the message.
    *
@@ -379,65 +388,6 @@ export class Message extends Accessory implements Sayable {
     }
     return this.payload.type || MessageType.Unknown
   }
-
-  // public typeBak(): MessageType {
-  //   log.silly('Message', 'type() = %s', WebMsgType[this.payload.type])
-
-  //   /**
-  //    * 1. A message created with rawObj
-  //    */
-  //   if (this.payload.type) {
-  //     return this.payload.type
-  //   }
-
-  //   /**
-  //    * 2. A message created with TEXT
-  //    */
-  //   const ext = this.extFromFile()
-  //   if (!ext) {
-  //     return WebMsgType.TEXT
-  //   }
-
-  //   /**
-  //    * 3. A message created with local file
-  //    */
-  //   switch (ext.toLowerCase()) {
-  //     case '.bmp':
-  //     case '.jpg':
-  //     case '.jpeg':
-  //     case '.png':
-  //       return WebMsgType.IMAGE
-
-  //     case '.gif':
-  //       return  WebMsgType.EMOTICON
-
-  //     case '.mp4':
-  //       return WebMsgType.VIDEO
-
-  //     case '.mp3':
-  //       return WebMsgType.VOICE
-  //   }
-
-  //   throw new Error('unknown type: ' + ext)
-  // }
-
-  // /**
-  //  * Get the typeSub from the message.
-  //  *
-  //  * If message is a location message: `m.type() === MsgType.TEXT && m.typeSub() === MsgType.LOCATION`
-  //  *
-  //  * @see {@link MsgType}
-  //  * @returns {WebMsgType}
-  //  */
-  // public abstract typeSub(): WebMsgType
-
-  // /**
-  //  * Get the typeApp from the message.
-  //  *
-  //  * @returns {WebAppMsgType}
-  //  * @see {@link AppMsgType}
-  //  */
-  // public abstract typeApp(): WebAppMsgType
 
   /**
    * Check if a message is sent by self.
@@ -575,29 +525,6 @@ export class Message extends Accessory implements Sayable {
     }
   }
 
-  // public async readyMedia(): Promise<this> {
-  //   log.silly('PuppeteerMessage', 'readyMedia()')
-
-  //   const puppet = this.puppet
-
-  //   try {
-
-  //     let url: string | undefined
-  //     switch (this.type()) {
-  //       case WebMsgType.EMOTICON:
-  //         url = await puppet.bridge.getMsgEmoticon(this.id)
-  //         break
-  //       case WebMsgType.IMAGE:
-  //         url = await puppet.bridge.getMsgImg(this.id)
-  //         break
-  //       case WebMsgType.VIDEO:
-  //       case WebMsgType.MICROVIDEO:
-  //         url = await puppet.bridge.getMsgVideo(this.id)
-  //         break
-  //       case WebMsgType.VOICE:
-  //         url = await puppet.bridge.getMsgVoice(this.id)
-  //         break
-
   //       case WebMsgType.APP:
   //         if (!this.rawObj) {
   //           throw new Error('no rawObj')
@@ -633,87 +560,12 @@ export class Message extends Accessory implements Sayable {
   //         }
   //         break
 
-  //       default:
-  //         /**
-  //          * not a support media message, do nothing.
-  //          */
-  //         return this
-  //     }
-
-  //     if (!url) {
-  //       if (!this.payload.url) {
-  //         /**
-  //          * not a support media message, do nothing.
-  //          */
-  //         return this
-  //       }
-  //       url = this.payload.url
-  //     }
-
-  //     this.payload.url = url
-
-  //   } catch (e) {
-  //     log.warn('PuppeteerMessage', 'ready() exception: %s', e.message)
-  //     Raven.captureException(e)
-  //     throw e
-  //   }
-
-  //   return this
-  // }
-
-  /**
-   * Get the read stream for attachment file
-   */
-  // public abstract async readyStream(): Promise<Readable>
-
   /**
    * Forward the received message.
    *
-   * The types of messages that can be forwarded are as follows:
-   *
-   * The return value of {@link Message#type} matches one of the following types:
-   * ```
-   * MsgType {
-   *   TEXT                = 1,
-   *   IMAGE               = 3,
-   *   VIDEO               = 43,
-   *   EMOTICON            = 47,
-   *   LOCATION            = 48,
-   *   APP                 = 49,
-   *   MICROVIDEO          = 62,
-   * }
-   * ```
-   *
-   * When the return value of {@link Message#type} is `MsgType.APP`, the return value of {@link Message#typeApp} matches one of the following types:
-   * ```
-   * AppMsgType {
-   *   TEXT                     = 1,
-   *   IMG                      = 2,
-   *   VIDEO                    = 4,
-   *   ATTACH                   = 6,
-   *   EMOJI                    = 8,
-   * }
-   * ```
-   * It should be noted that when forwarding ATTACH type message, if the file size is greater than 25Mb, the forwarding will fail.
-   * The reason is that the server shields the web wx to download more than 25Mb files with a file size of 0.
-   *
-   * But if the file is uploaded by you using wechaty, you can forward it.
-   * You need to detect the following conditions in the message event, which can be forwarded if it is met.
-   *
-   * ```javasrcipt
-   * .on('message', async m => {
-   *   if (m.self() && m.rawObj && m.rawObj.Signature) {
-   *     // Filter the contacts you have forwarded
-   *     const msg = <MediaMessage> m
-   *     await msg.forward()
-   *   }
-   * })
-   * ```
-   *
    * @param {(Sayable | Sayable[])} to Room or Contact
    * The recipient of the message, the room, or the contact
-   * @returns {Promise<boolean>}
-   * @memberof MediaMessage
+   * @returns {Promise<void>}
    */
   public async forward(to: Room | Contact): Promise<void> {
     log.verbose('Message', 'forward(%s)', to)
@@ -722,10 +574,10 @@ export class Message extends Accessory implements Sayable {
 
     if (to instanceof Room) {
       roomId = to.id
-    }
-    if (to instanceof Contact) {
+    } else if (to instanceof Contact) {
       contactId = to.id
     }
+
     try {
       await this.puppet.messageForward(
         {

@@ -1,21 +1,21 @@
 export enum MessageType {
-  Unknown    = 0,
-  Attachment = 1,
-  Audio      = 2,
-  Emoticon   = 3,
-  Image      = 4,
-  Text       = 5,
-  Video      = 6,
+  Unknown = 0,
+  Attachment,
+  Audio,
+  Contact,
+  Emoticon,
+  Image,
+  Text,
+  Video,
 }
 
 export interface MessagePayloadBase {
-  id : string,
-
-  type : MessageType,
-
-  filename? : string,
-  text?     : string,
-  timestamp : number,   // unit timestamp, in seconds
+  id         : string,
+  contactId? : string,        // Contact ShareCard
+  filename?  : string,
+  text?      : string,
+  timestamp  : number,        // unit timestamp, in seconds
+  type       : MessageType,
 }
 
 export interface MessagePayloadRoom {
