@@ -34,7 +34,7 @@
  *                           vvvvvvvvv
  *                           vvvvvvvvv
  */
-const HELPER_CONTACT_NAME = 'Huan LI'
+const HELPER_CONTACT_NAME = '李佳芮'
 
 /**
  *                           ^^^^^^^^^
@@ -162,6 +162,11 @@ bot
  * Global Event: message
  */
 .on('message', async function(msg) {
+  if (msg.age() > 3 * 60) {
+    log.info('Bot', 'on(message) skip age(%d) > 3 * 60 seconds: %s', msg.age(), msg)
+    return
+  }
+
   const room = msg.room()
   const from = msg.from()
   const text = msg.text()
