@@ -216,8 +216,10 @@ bot
             /**
              * speaker is already in room
              */
+            const topic = await dingRoom.topic()
             log.info('Bot', 'onMessage: sender has already in dingRoom')
-            from.say('no need to ding again, because you are already in ding room')
+            dingRoom.say('no need to ding again, because you are already in ding room', from)
+            from.say(`I found you have joined in room ${topic}!`)
             // sendMessage({
             //   content: 'no need to ding again, because you are already in ding room'
             //   , to: sender
@@ -267,7 +269,7 @@ async function manageDingRoom() {
       log.warn('Bot', 'there is no room topic ding(yet)')
       return
     }
-    log.info('Bot', 'start monitor "ding" room join/leave event')
+    log.info('Bot', 'start monitor "ding" room join/leave/topic event')
 
     /**
      * Event: Join
