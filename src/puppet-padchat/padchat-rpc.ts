@@ -992,7 +992,11 @@ export class PadchatRpc extends EventEmitter {
       throw Error('WXCreateChatRoom , stranger,error! canot get result from websocket server')
     }
     // BUG compitable: "\n\u00135907139882@chatroom" -> "5907139882@chatroom"
-    return result.user_name.replace(/^\n\u0013/g, '')
+    // BUG compitable: "\n\u001412558026334@chatroom" -> "12558026334@chatroom"
+    if (/^\n\u/.test(result.user_name)) {
+      result.user_name.replace(/^\n\u\d{4}/g, '')
+    }
+    return result.user_name
   }
 
   // TODO: check any
