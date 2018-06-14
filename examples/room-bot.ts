@@ -394,6 +394,7 @@ async function createDingRoom(contact: Contact): Promise<any> {
     const contactList = [contact, helperContact]
     log.verbose('Bot', 'contactList: %s', contactList.join(','))
 
+    contact.say(`There isn't ding room. I'm trying to create a room with ${helperContact.name()} and you`)
     const room = await bot.Room.create(contactList, 'ding')
     log.info('Bot', 'createDingRoom() new ding room created: %s', room)
 
