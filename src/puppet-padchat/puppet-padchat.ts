@@ -1057,6 +1057,12 @@ export class PuppetPadchat extends Puppet {
 
     await this.padchatManager.WXSetChatroomName(roomId, topic)
     await this.roomPayloadDirty(roomId)
+    /**
+     * Give server some time to refresh the API payload
+     * when we have to make sure the data is the latest.
+     */
+    await new Promise(r => setTimeout(r, 1000))
+    await this.roomPayload(roomId)
 
     return
   }
