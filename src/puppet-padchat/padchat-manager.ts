@@ -67,9 +67,9 @@ export class PadchatManager extends PadchatRpc {
 
   private loginScanQrcode? : string
   private loginScanStatus? : number
-  private loginTimer?      : NodeJS.Timer
+  private loginScanTimer?  : NodeJS.Timer
 
-  private selfId?: string
+  private userId?: string
 
   private cacheContactRawPayload?    : FlashStoreSync<string, PadchatContactPayload>
   private cacheRoomMemberRawPayload? : FlashStoreSync<string, {
@@ -181,7 +181,7 @@ export class PadchatManager extends PadchatRpc {
   public async start(): Promise<void> {
     log.verbose('PuppetPadchatManager', `start()`)
 
-    if (this.selfId) {
+    if (this.userId) {
       throw new Error('selfId exist')
     }
 
@@ -246,7 +246,7 @@ export class PadchatManager extends PadchatRpc {
 
     await this.releaseCache()
 
-    this.selfId          = undefined
+    this.userId          = undefined
     this.loginScanQrcode = undefined
 
     this.state.off(true)
@@ -255,10 +255,10 @@ export class PadchatManager extends PadchatRpc {
   protected async onLogin(userId: string): Promise<void> {
     log.verbose('PuppetPadchatManager', `login(%s)`, userId)
 
-    if (this.selfId) {
+    if (this.userId) {
       throw new Error('userId exist')
     }
-    this.selfId = userId
+    this.userId = userId
     // if (userName) {
     //   this.selfName  = userName
     // }
@@ -278,29 +278,29 @@ export class PadchatManager extends PadchatRpc {
     /**
      * Init persistence cache
      */
-    await this.initCache(this.options.token, this.selfId)
+    await this.initCache(this.options.token, this.userId)
 
     /**
      * Refresh the login-ed user payload
      */
     if (this.cacheContactRawPayload) {
-      this.cacheContactRawPayload.delete(this.selfId)
-      await this.contactRawPayload(this.selfId)
+      this.cacheContactRawPayload.delete(this.userId)
+      await this.contactRawPayload(this.userId)
     }
 
-    this.emit('login', this.selfId)
+    this.emit('login', this.userId)
   }
 
   public async logout(): Promise<void> {
     log.verbose('PuppetPadchatManager', `logout()`)
 
-    if (!this.selfId) {
+    if (!this.userId) {
       // throw new Error('no username')
       log.warn('PuppetPadchatManager', 'logout() selfId not exist, already logout-ed')
       return
     }
 
-    this.selfId = undefined
+    this.userId = undefined
     await this.releaseCache()
 
     await this.startCheckScan()
@@ -309,9 +309,9 @@ export class PadchatManager extends PadchatRpc {
   protected async stopCheckScan(): Promise<void> {
     log.verbose('PuppetPadchatManager', `stopCheckScan()`)
 
-    if (this.loginTimer) {
-      clearTimeout(this.loginTimer)
-      this.loginTimer = undefined
+    if (this.loginScanTimer) {
+      clearTimeout(this.loginScanTimer)
+      this.loginScanTimer = undefined
     }
     this.loginScanQrcode = undefined
     this.loginScanStatus = undefined
@@ -320,108 +320,117 @@ export class PadchatManager extends PadchatRpc {
   protected async startCheckScan(): Promise<void> {
     log.verbose('PuppetPadchatManager', `startCheckScan()`)
 
-    if (this.selfId) {
-      log.warn('PuppetPadchatManager', 'startCheckScan() this.username exist.')
-      await this.onLogin(this.selfId)
+    if (this.userId) {
+      log.warn('PuppetPadchatManager', 'startCheckScan() this.userId exist.')
+      await this.onLogin(this.userId)
       return
     }
 
-    if (this.loginTimer) {
-      log.warn('PuppetPadchatManager', 'startCheckScan() this.scanTimer exist.')
+    if (this.loginScanTimer) {
+      log.warn('PuppetPadchatManager', 'startCheckScan() this.loginScanTimer exist.')
       return
     }
 
-    /**
-     * 2. Wait user response
-     */
-    let waitUserResponse = true
-    while (waitUserResponse) {
-      // const result = await this.padchatRpc.WXCheckQRCode()
-      const result = await this.WXCheckQRCode()
+    const checkScanInternalLoop = async () => {
+      /**
+       * While we want to Wait user response
+       */
+      let waitUserResponse = true
+      while (waitUserResponse) {
+        // const result = await this.padchatRpc.WXCheckQRCode()
+        const result = await this.WXCheckQRCode()
 
-      if (this.loginScanStatus !== result.status && this.loginScanQrcode) {
-        this.loginScanStatus = result.status
-        this.emit(
-          'scan',
-          this.loginScanQrcode,
-          this.loginScanStatus,
-        )
-      }
+        if (this.loginScanStatus !== result.status && this.loginScanQrcode) {
+          this.loginScanStatus = result.status
+          this.emit(
+            'scan',
+            this.loginScanQrcode,
+            this.loginScanStatus,
+          )
+        }
 
-      if (result.expired_time && result.expired_time < 10) {
-        // result.expire_time is second
-        // emit new qrcode before the old one expired
-        this.loginScanQrcode = undefined
-        this.loginScanStatus = undefined
-        waitUserResponse = false
-        continue
-      }
-
-      switch (result.status) {
-        case WXCheckQRCodeStatus.WaitScan:
-          log.silly('PuppetPadchatManager', 'checkQrcode: Please scan the Qrcode!')
-          break
-
-        case WXCheckQRCodeStatus.WaitConfirm:
-          /**
-           * WXCheckQRCode result:
-           * {
-           *  "expired_time": 236,
-           *  "head_url": "http://wx.qlogo.cn/mmhead/ver_1/5VaXXlAx53wb3M46gQpVtLiaVMd4ezhxOibJiaZXLf2ajTNPZloJI7QEpVxd4ibgpEnLF8gHVuLricaJesjJpsFiciaOw/0",
-           *  "nick_name": "李卓桓",
-           *  "status": 1
-           * }
-           */
-          log.silly('PuppetPadchatManager', 'checkQrcode: Had scan the Qrcode, but not Login!')
-          break
-
-        case WXCheckQRCodeStatus.Confirmed:
-          log.silly('PuppetPadchatManager', 'checkQrcode: Trying to login... please wait')
-
-          if (!result.user_name || !result.password) {
-            throw Error('PuppetPadchatManager, checkQrcode, cannot get username or password here, return!')
-          }
-
-          // const loginResult = await this.padchatRpc.WXQRCodeLogin(result.user_name, result.password)
-          const loginResult = await this.WXQRCodeLogin(result.user_name, result.password)
-
-          // this.autoData.nick_name = loginResult.nick_name
-          // this.autoData.user_name = loginResult.user_name
-
-          await this.onLogin(loginResult.user_name)
-          return
-
-        case WXCheckQRCodeStatus.Timeout:
-          log.silly('PuppetPadchatManager', 'checkQrcode: Timeout')
+        if (result.expired_time && result.expired_time < 10) {
+          // result.expire_time is second
+          // emit new qrcode before the old one expired
           this.loginScanQrcode = undefined
           this.loginScanStatus = undefined
           waitUserResponse = false
-          break
+          continue
+        }
 
-        case WXCheckQRCodeStatus.Cancel:
-          log.silly('PuppetPadchatManager', 'user cancel')
-          this.loginScanQrcode = undefined
-          this.loginScanStatus = undefined
-          waitUserResponse = false
-          break
+        switch (result.status) {
+          case WXCheckQRCodeStatus.WaitScan:
+            log.silly('PuppetPadchatManager', 'checkQrcode: Please scan the Qrcode!')
+            break
 
-        default:
-          log.warn('PuppetPadchatManager', 'startCheckScan() unknown WXCheckQRCodeStatus: ' + result.status)
-          this.loginScanQrcode = undefined
-          this.loginScanStatus = undefined
-          waitUserResponse = false
-          break
+          case WXCheckQRCodeStatus.WaitConfirm:
+            /**
+             * WXCheckQRCode result:
+             * {
+             *  "expired_time": 236,
+             *  "head_url": "http://wx.qlogo.cn/mmhead/ver_1/5VaXXlAx53wb3M46gQpVtLiaVMd4ezhxOibJiaZXLf2ajTNPZloJI7QEpVxd4ibgpEnLF8gHVuLricaJesjJpsFiciaOw/0",
+             *  "nick_name": "李卓桓",
+             *  "status": 1
+             * }
+             */
+            log.silly('PuppetPadchatManager', 'checkQrcode: Had scan the Qrcode, but not Login!')
+            break
+
+          case WXCheckQRCodeStatus.Confirmed:
+            log.silly('PuppetPadchatManager', 'checkQrcode: Trying to login... please wait')
+
+            if (!result.user_name || !result.password) {
+              throw Error('PuppetPadchatManager, checkQrcode, cannot get username or password here, return!')
+            }
+
+            // const loginResult = await this.padchatRpc.WXQRCodeLogin(result.user_name, result.password)
+            const loginResult = await this.WXQRCodeLogin(result.user_name, result.password)
+
+            // this.autoData.nick_name = loginResult.nick_name
+            // this.autoData.user_name = loginResult.user_name
+
+            await this.onLogin(loginResult.user_name)
+            return
+
+          case WXCheckQRCodeStatus.Timeout:
+            log.silly('PuppetPadchatManager', 'checkQrcode: Timeout')
+            this.loginScanQrcode = undefined
+            this.loginScanStatus = undefined
+            waitUserResponse = false
+            break
+
+          case WXCheckQRCodeStatus.Cancel:
+            log.silly('PuppetPadchatManager', 'user cancel')
+            this.loginScanQrcode = undefined
+            this.loginScanStatus = undefined
+            waitUserResponse = false
+            break
+
+          default:
+            log.warn('PuppetPadchatManager', 'startCheckScan() unknown WXCheckQRCodeStatus: ' + result.status)
+            this.loginScanQrcode = undefined
+            this.loginScanStatus = undefined
+            waitUserResponse = false
+            break
+        }
+
+        await new Promise(r => setTimeout(r, 1000))
       }
 
-      await new Promise(r => setTimeout(r, 1000))
+      await this.emitLoginQrcode()
+      this.loginScanTimer = setTimeout(async () => {
+        this.loginScanTimer = undefined
+        await checkScanInternalLoop()
+      }, 1000)
+
+      return
     }
 
-    await this.emitLoginQrcode()
-    this.loginTimer = setTimeout(async () => {
-      this.loginTimer = undefined
-      await this.startCheckScan()
-    }, 1000)
-    return
+    checkScanInternalLoop()
+    .catch(e => {
+      log.warn('PuppetPadchatManager', 'startCheckScan() checkScanLoop() exception: %s', e)
+      // TODO: emit 'reset' event?
+    })
   }
 
   /**
@@ -823,7 +832,7 @@ export class PadchatManager extends PadchatRpc {
     log.verbose('PuppetPadchatManager', `syncContactsAndRooms()`)
 
     let cont = true
-    while (cont && this.state.on() && this.selfId) {
+    while (cont && this.state.on() && this.userId) {
       log.silly('PuppetPadchatManager', `syncContactsAndRooms() while() syncing WXSyncContact ...`)
 
       // const syncContactList = await this.padchatRpc.WXSyncContact()
