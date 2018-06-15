@@ -328,9 +328,9 @@ function startBot(bot: Wechaty, logElement: any) {
   })
 
   bot.start()
-  .catch(e => {
+  .catch(async e => {
     logElement.log(`start() fail: ${e}`)
-    bot.stop()
+    await bot.stop()
     process.exit(-1)
   })
 

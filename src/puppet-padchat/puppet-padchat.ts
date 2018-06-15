@@ -207,7 +207,7 @@ export class PuppetPadchat extends Puppet {
       throw new Error('no padchat manager')
     }
     await super.login(selfId)
-    this.padchatManager.syncContactsAndRooms()
+    await this.padchatManager.syncContactsAndRooms()
   }
 
   public async startBridge(bridge: PadchatManager): Promise<void> {
@@ -226,9 +226,9 @@ export class PuppetPadchat extends Puppet {
     bridge.on('message', (rawPayload: PadchatMessagePayload)             => this.onPadchatMessage(rawPayload))
     bridge.on('logout',  ()                                              => this.logout())
 
-    bridge.on('destroy', reason => {
+    bridge.on('destroy', async reason => {
       log.warn('PuppetPadchat', 'startBridge() bridge.on(destroy) for %s. Restarting PuppetPadchat ... ', reason)
-      this.restart(reason)
+      await this.restart(reason)
     })
 
     await bridge.start()
@@ -628,7 +628,7 @@ export class PuppetPadchat extends Puppet {
       this.padchatManager.contactRawPayloadDirty(contactId)
     }
 
-    super.contactPayloadDirty(contactId)
+    await super.contactPayloadDirty(contactId)
   }
 
   public async contactRawPayload(contactId: string): Promise<PadchatContactPayload> {
@@ -717,7 +717,7 @@ export class PuppetPadchat extends Puppet {
       // this.padchatManager.messageRawPayloadDirty(messageId)
     }
 
-    super.messagePayloadDirty(messageId)
+    await super.messagePayloadDirty(messageId)
   }
 
   public async messageRawPayload(id: string): Promise<PadchatMessagePayload> {
@@ -865,7 +865,7 @@ export class PuppetPadchat extends Puppet {
       await this.padchatManager.roomMemberRawPayloadDirty(roomId)
     }
 
-    super.roomMemberPayloadDirty(roomId)
+    await super.roomMemberPayloadDirty(roomId)
   }
 
   public async roomMemberRawPayload(
@@ -904,7 +904,7 @@ export class PuppetPadchat extends Puppet {
       this.padchatManager.roomRawPayloadDirty(roomId)
     }
 
-    super.roomPayloadDirty(roomId)
+    await super.roomPayloadDirty(roomId)
   }
 
   public async roomRawPayload(

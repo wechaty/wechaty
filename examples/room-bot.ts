@@ -126,7 +126,7 @@ bot
           )
   console.log('bot room-join room id:', room.id)
   const topic = await room.topic()
-  room.say(`welcome to ${topic}!`, inviteeList[0])
+  await room.say(`welcome to ${topic}!`, inviteeList[0])
 })
 
 /**
@@ -139,13 +139,13 @@ bot
               )
   const topic = await room.topic()
   const name  = leaverList[0] ? leaverList[0].name() : 'no contact!'
-  room.say(`kick off ${name} from ${topic}!` )
+  await room.say(`kick off ${name} from ${topic}!` )
 })
 
 /**
  * Global Event: room-topic
  */
-.on('room-topic', function(room, topic, oldTopic, changer) {
+.on('room-topic', async function(room, topic, oldTopic, changer) {
   try {
     log.info('Bot', 'EVENT: room-topic - Room %s change topic from %s to %s by member %s',
                     room,
@@ -153,7 +153,7 @@ bot
                     topic,
                     changer,
                 )
-    room.say(`room-topic - change topic from ${oldTopic} to ${topic} by member ${changer.name()}` )
+    await room.say(`room-topic - change topic from ${oldTopic} to ${topic} by member ${changer.name()}` )
   } catch (e) {
     log.error('Bot', 'room-topic event exception: %s', e.stack)
   }
@@ -192,9 +192,9 @@ bot
   if (/^dong$/i.test(text)) {
     if (room) {
       await room.say('You said dong in the room, I will quit by myself!', from)
-      room.quit()
+      await room.quit()
     } else {
-      from.say('Nothint to do. If you say "dong" in a room, I will quit from the room.')
+      await from.say('Nothint to do. If you say "dong" in a room, I will quit from the room.')
     }
     return
   }
@@ -214,7 +214,7 @@ bot
         /**
          * move contact out of room
          */
-        getOutRoom(from, room)
+        await getOutRoom(from, room)
       }
 
     /**
@@ -238,7 +238,7 @@ bot
              * speaker is already in room
              */
             log.info('Bot', 'onMessage: sender has already in dingRoom')
-            from.say('no need to ding again, because you are already in ding room')
+            await from.say('no need to ding again, because you are already in ding room')
             // sendMessage({
             //   content: 'no need to ding again, because you are already in ding room'
             //   , to: sender
@@ -249,8 +249,8 @@ bot
              * put speaker into room
              */
             log.info('Bot', 'onMessage: add sender(%s) to dingRoom(%s)', from.name(), dingRoom.topic())
-            from.say('ok, I will put you in ding room!')
-            putInRoom(from, dingRoom)
+            await from.say('ok, I will put you in ding room!')
+            await putInRoom(from, dingRoom)
           }
 
         } else {
@@ -266,7 +266,7 @@ bot
           /**
            * listen events from ding room
            */
-          manageDingRoom()
+          await manageDingRoom()
         }
       } catch (e) {
         log.error(e)
@@ -406,7 +406,8 @@ async function createDingRoom(contact: Contact): Promise<any> {
 
     if (!helperContact) {
       log.warn('Bot', 'getHelperContact() found nobody')
-      contact.say(`You don't have a friend called ${HELPER_CONTACT_NAME}, because create a new room at least need 3 contacts, please set [HELPER_CONTACT_NAME] in the code first!`)
+      await contact.say(`You don't have a friend called ${HELPER_CONTACT_NAME},
+                         because create a new room at least need 3 contacts, please set [HELPER_CONTACT_NAME] in the code first!`)
       return
     }
 

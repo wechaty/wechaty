@@ -317,8 +317,8 @@ export class PadchatRpc extends EventEmitter {
     if (this.logoutThrottleSubscription) {
       throw new Error('this.logoutThrottleSubscription exist')
     } else {
-      this.logoutThrottleSubscription = this.logoutThrottleQueue.subscribe(msg => {
-        this.destroy(msg)
+      this.logoutThrottleSubscription = this.logoutThrottleQueue.subscribe(async msg => {
+        await this.destroy(msg)
       })
     }
   }
@@ -654,8 +654,8 @@ export class PadchatRpc extends EventEmitter {
    * @param {string} to     user_name
    * @param {string} data   image_data
    */
-  public WXSendImage(to: string, data: string): void {
-    this.rpcCall('WXSendImage', to, data)
+  public async WXSendImage(to: string, data: string): Promise<void> {
+    await this.rpcCall('WXSendImage', to, data)
   }
 
   /**

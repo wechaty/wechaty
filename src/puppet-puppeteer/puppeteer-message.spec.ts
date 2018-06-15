@@ -107,7 +107,7 @@ test('constructor()', async t => {
   sandbox.stub(puppet, 'messagePayload').callsFake(mockMessagePayload)
   sandbox.stub(puppet, 'messagePayloadCache').callsFake(mockMessagePayload)
 
-  puppet.login(MOCK_USER_ID)
+  await puppet.login(MOCK_USER_ID)
 
   await msg.ready()
 
@@ -214,7 +214,7 @@ test('find()', async t => {
   sandbox.stub(puppet, 'contactPayloadCache').returns({})
 
   const MOCK_USER_ID = 'TEST-USER-ID'
-  puppet.login(MOCK_USER_ID)
+  await puppet.login(MOCK_USER_ID)
 
   const msg = await wechaty.Message.find({
     id: 'xxx',
@@ -237,7 +237,7 @@ test('findAll()', async t => {
   sandbox.stub(puppet, 'contactPayloadCache').returns({})
 
   const MOCK_USER_ID = 'TEST-USER-ID'
-  puppet.login(MOCK_USER_ID)
+  await puppet.login(MOCK_USER_ID)
 
   const msgList = await wechaty.Message.findAll({
     from: 'yyy',
@@ -283,7 +283,7 @@ test('self()', async t => {
 
   const selfIdStub = sandbox.stub(puppet, 'selfId').returns(MOCK_CONTACT.id)
 
-  puppet.login(MOCK_USER_ID)
+  await puppet.login(MOCK_USER_ID)
 
   const selfMsg = wechaty.Message.create('xxx')
   await selfMsg.ready()

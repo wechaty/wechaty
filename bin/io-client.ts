@@ -64,11 +64,11 @@ client.init()
 client.initWeb()
     .catch(onError.bind(client))
 
-function onError(
+async function onError(
   this : IoClient,
   e    : Error,
 ) {
   log.error('Client', 'initWeb() fail: %s', e)
-  this.quit()
+  await this.quit()
   process.exit(-1)
 }
