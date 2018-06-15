@@ -184,6 +184,21 @@ bot
   if (msg.self()) {
     return // skip self
   }
+
+  /**
+   * `dong` will be the magic(toggle) word:
+   *  bot will quit current room by herself.
+   */
+  if (/^dong$/i.test(text)) {
+    if (room) {
+      await room.say('You said dong in the room, I will quit by myself!', from)
+      room.quit()
+    } else {
+      from.say('Nothint to do. If you say "dong" in a room, I will quit from the room.')
+    }
+    return
+  }
+
   /**
    * `ding` will be the magic(toggle) word:
    *  1. say ding first time, will got a room invitation
