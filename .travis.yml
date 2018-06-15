@@ -39,8 +39,7 @@ stages:
   - test
   - pack
   - name: deploy
-    if: branch =~ ^(master|v\d+\.\d+)
-        AND (type NOT IN (cron, pull_request))
+    if: (type = push) AND branch =~ ^(master|v\d+\.\d+)$
 
 jobs:
   include:
@@ -59,6 +58,8 @@ jobs:
         email: zixia@zixia.net
         api_key: "$NPM_TOKEN"
         skip_cleanup: true
+        on:
+          all_branches: true
 
 notifications:
   webhooks:

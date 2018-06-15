@@ -56,7 +56,7 @@ import {
 }                     from './schema'
 
 import * as request from 'request'
-import * as bl from 'bl'
+import bl = require('bl')
 
 export type PuppetFoodType = 'scan' | 'ding'
 export type ScanFoodType   = 'scan' | 'login' | 'logout'
@@ -367,7 +367,7 @@ export class PuppetWeb extends Puppet {
 
     const readStream = await mediaMessage.readyStream()
     const buffer = <Buffer>await new Promise((resolve, reject) => {
-      readStream.pipe(bl((err, data) => {
+      readStream.pipe(new bl((err, data) => {
         if (err) reject(err)
         else resolve(data)
       }))
