@@ -138,12 +138,18 @@ async function glob(pattern: string): Promise<string[]> {
   return promisify<string, string[]>(globCallback as any)(pattern)
 }
 
-async function main(): Promise<void> {
+async function main(): Promise<number> {
   const pattern = '{bin/**/*.ts,examples/**/*.{js,ts},scripts/**/*.{ts,js},src/**/*.{ts,js},tests/**/*.ts}'
   // const pattern = 't.ts'
   const srcFileList = await glob(pattern)
   const promiseList = srcFileList.map(updateLicense)
   await Promise.all(promiseList)
+  return 0
 }
 
 main()
+.then(process.exit)
+.catch(e => {
+  console.error(e)
+  process.exit(1)
+})

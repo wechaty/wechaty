@@ -10,12 +10,13 @@ export enum MessageType {
 }
 
 export interface MessagePayloadBase {
-  id         : string,
-  contactId? : string,        // Contact ShareCard
-  filename?  : string,
-  text?      : string,
-  timestamp  : number,        // unit timestamp, in seconds
-  type       : MessageType,
+  id            : string,
+  contactId?    : string,        // Contact ShareCard
+  filename?     : string,
+  mentionIdList : string[],      // Mentioned Contacts' Ids
+  text?         : string,
+  timestamp     : number,        // Unix Timestamp(in seconds)
+  type          : MessageType,
 }
 
 export interface MessagePayloadRoom {

@@ -361,12 +361,32 @@ export class Message extends Accessory implements Sayable {
     }
   }
 
+  /**
+   * @deprecated use toFile() instead
+   */
   public async file(): Promise<FileBox> {
+    log.warn('Message', 'file() DEPRECATED. use toFile() instead.')
+    return this.toFile()
+  }
+
+  public async toFile(): Promise<FileBox> {
     if (this.type() === Message.Type.Text) {
       throw new Error('text message no file')
     }
     const fileBox = await this.puppet.messageFile(this.id)
     return fileBox
+  }
+
+  public async toContact(): Promise<Contact> {
+    log.warn('Message', 'toContact() to be implemented')
+
+    if (this.type() === Message.Type.Contact) {
+      throw new Error('message not a ShareCard')
+    }
+
+    // TODO: return the ShareCard Contact
+    const contact = this.wechaty.userSelf()
+    return contact
   }
 
   /**
