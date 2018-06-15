@@ -722,6 +722,15 @@ export class PadchatRpc extends EventEmitter {
       return null
     }
 
+    /**
+     * Bot quit the room, no roomId
+     * See: https://github.com/lijiarui/wechaty-puppet-padchat/issues/38
+     * {"chatroom_id":0,"count":0,"member":"null\n","message":"","status":0,"user_name":""}
+     */
+    if (result.count === 0) {
+      return null
+    }
+
     log.silly('PadchatRpc', 'WXGetChatRoomMember() result: %s', JSON.stringify(result).substr(0, 500))
 
     // 00:40:44 SILL PadchatRpc WXGetChatRoomMember() result: {"chatroom_id":0,"count":0,"member":"null\n","message":"","status":0,"user_name":""}
