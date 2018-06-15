@@ -727,7 +727,7 @@ export class PadchatRpc extends EventEmitter {
      * See: https://github.com/lijiarui/wechaty-puppet-padchat/issues/38
      * {"chatroom_id":0,"count":0,"member":"null\n","message":"","status":0,"user_name":""}
      */
-    if (result.count === 0) {
+    if (result.count === 0 && result.status === 0 && result.chatroom_id === 0) {
       return null
     }
 
