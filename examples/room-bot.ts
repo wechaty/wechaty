@@ -34,7 +34,7 @@
  *                           vvvvvvvvv
  *                           vvvvvvvvv
  */
-const HELPER_CONTACT_NAME = '李佳芮'
+const HELPER_CONTACT_NAME = '李卓桓'
 
 /**
  *                           ^^^^^^^^^
@@ -93,7 +93,7 @@ bot
   generate(qrcode, { small: true })
   console.log(`${qrcode}\n[${status}] Scan QR Code in above url to login: `)
 })
-.on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
+.on('logout'	, user => log.info('Bot', `"${user.name()}" logouted`))
 .on('error'   , e => log.info('Bot', 'error: %s', e))
 
 /**
@@ -119,27 +119,27 @@ bot
  * Global Event: room-join
  */
 .on('room-join', async function(room, inviteeList, inviter) {
-  log.info( 'Bot', 'EVENT: room-join - Room %s got new member %s, invited by %s',
+  log.info( 'Bot', 'EVENT: room-join - Room "%s" got new member "%s", invited by "%s"',
             await room.topic(),
             inviteeList.map(c => c.name()).join(','),
             inviter.name(),
           )
   console.log('bot room-join room id:', room.id)
   const topic = await room.topic()
-  await room.say(`welcome to ${topic}!`, inviteeList[0])
+  await room.say(`welcome to "${topic}"!`, inviteeList[0])
 })
 
 /**
  * Global Event: room-leave
  */
 .on('room-leave', async function(room, leaverList) {
-  log.info('Bot', 'EVENT: room-leave - Room %s lost member %s',
+  log.info('Bot', 'EVENT: room-leave - Room "%s" lost member "%s"',
                   await room.topic(),
                   leaverList.map(c => c.name()).join(','),
               )
   const topic = await room.topic()
   const name  = leaverList[0] ? leaverList[0].name() : 'no contact!'
-  await room.say(`kick off ${name} from ${topic}!` )
+  await room.say(`kick off "${name}" from "${topic}"!` )
 })
 
 /**
@@ -147,13 +147,13 @@ bot
  */
 .on('room-topic', async function(room, topic, oldTopic, changer) {
   try {
-    log.info('Bot', 'EVENT: room-topic - Room %s change topic from %s to %s by member %s',
+    log.info('Bot', 'EVENT: room-topic - Room "%s" change topic from "%s" to "%s" by member "%s"',
                     room,
                     oldTopic,
                     topic,
                     changer,
                 )
-    await room.say(`room-topic - change topic from ${oldTopic} to ${topic} by member ${changer.name()}` )
+    await room.say(`room-topic - change topic from "${oldTopic}" to "${topic}" by member "${changer.name()}"` )
   } catch (e) {
     log.error('Bot', 'room-topic event exception: %s', e.stack)
   }
@@ -164,7 +164,7 @@ bot
  */
 .on('message', async function(msg) {
   if (msg.age() > 3 * 60) {
-    log.info('Bot', 'on(message) skip age(%d) > 3 * 60 seconds: %s', msg.age(), msg)
+    log.info('Bot', 'on(message) skip age("%d") > 3 * 60 seconds: "%s"', msg.age(), msg)
     return
   }
 
@@ -194,7 +194,7 @@ bot
       await room.say('You said dong in the room, I will quit by myself!', from)
       await room.quit()
     } else {
-      await from.say('Nothint to do. If you say "dong" in a room, I will quit from the room.')
+      await from.say('Nothing to do. If you say "dong" in a room, I will quit from the room.')
     }
     return
   }
@@ -231,7 +231,7 @@ bot
           /**
            * room found
            */
-          log.info('Bot', 'onMessage: got dingRoom: %s', await dingRoom.topic())
+          log.info('Bot', 'onMessage: got dingRoom: "%s"', await dingRoom.topic())
 
           if (await dingRoom.has(from)) {
             /**
@@ -250,7 +250,7 @@ bot
             /**
              * put speaker into room
              */
-            log.info('Bot', 'onMessage: add sender(%s) to dingRoom(%s)', from.name(), dingRoom.topic())
+            log.info('Bot', 'onMessage: add sender("%s") to dingRoom("%s")', from.name(), dingRoom.topic())
             await from.say('ok, I will put you in ding room!')
             await putInRoom(from, dingRoom)
           }
@@ -297,7 +297,7 @@ async function manageDingRoom() {
      * Event: Join
      */
     room.on('join', function(inviteeList, inviter) {
-      log.verbose('Bot', 'Room EVENT: join - %s, %s',
+      log.verbose('Bot', 'Room EVENT: join - "%s", "%s"',
                          inviteeList.map(c => c.name()).join(', '),
                          inviter.name(),
       )
@@ -309,26 +309,26 @@ async function manageDingRoom() {
      * Event: Leave
      */
     room.on('leave', (leaverList, remover) => {
-      log.info('Bot', 'Room EVENT: leave - %s leave(remover %s), byebye', leaverList.join(','), remover || 'unknown')
+      log.info('Bot', 'Room EVENT: leave - "%s" leave(remover "%s"), byebye', leaverList.join(','), remover || 'unknown')
     })
 
     /**
      * Event: Topic Change
      */
     room.on('topic', (topic, oldTopic, changer) => {
-      log.info('Bot', 'Room EVENT: topic - changed from %s to %s by member %s',
+      log.info('Bot', 'Room EVENT: topic - changed from "%s" to "%s" by member "%s"',
             oldTopic,
             topic,
             changer.name(),
         )
     })
   } catch (e) {
-    log.warn('Bot', 'Room.find rejected: %s', e.stack)
+    log.warn('Bot', 'Room.find rejected: "%s"', e.stack)
   }
 }
 
 async function checkRoomJoin(room: Room, inviteeList: Contact[], inviter: Contact) {
-  log.info('Bot', 'checkRoomJoin(%s, %s, %s)',
+  log.info('Bot', 'checkRoomJoin("%s", "%s", "%s")',
                   await room.topic(),
                   inviteeList.map(c => c.name()).join(','),
                   inviter.name(),
@@ -369,7 +369,7 @@ async function checkRoomJoin(room: Room, inviteeList: Contact[], inviter: Contac
 }
 
 async function putInRoom(contact: Contact, room: Room) {
-  log.info('Bot', 'putInRoom(%s, %s)', contact.name(), await room.topic())
+  log.info('Bot', 'putInRoom("%s", "%s")', contact.name(), await room.topic())
 
   try {
     await room.add(contact)
@@ -383,7 +383,7 @@ async function putInRoom(contact: Contact, room: Room) {
 }
 
 async function getOutRoom(contact: Contact, room: Room) {
-  log.info('Bot', 'getOutRoom(%s, %s)', contact, room)
+  log.info('Bot', 'getOutRoom("%s", "%s")', contact, room)
 
   try {
     await room.say('You said "ding" in my room, I will remove you out.')
@@ -401,26 +401,26 @@ function getHelperContact() {
 }
 
 async function createDingRoom(contact: Contact): Promise<any> {
-  log.info('Bot', 'createDingRoom(%s)', contact)
+  log.info('Bot', 'createDingRoom("%s")', contact)
 
   try {
     const helperContact = await getHelperContact()
 
     if (!helperContact) {
       log.warn('Bot', 'getHelperContact() found nobody')
-      await contact.say(`You don't have a friend called ${HELPER_CONTACT_NAME},
+      await contact.say(`You don't have a friend called "${HELPER_CONTACT_NAME}",
                          because create a new room at least need 3 contacts, please set [HELPER_CONTACT_NAME] in the code first!`)
       return
     }
 
-    log.info('Bot', 'getHelperContact() ok. got: %s', helperContact.name())
+    log.info('Bot', 'getHelperContact() ok. got: "%s"', helperContact.name())
 
     const contactList = [contact, helperContact]
-    log.verbose('Bot', 'contactList: %s', contactList.join(','))
+    log.verbose('Bot', 'contactList: "%s"', contactList.join(','))
 
-    contact.say(`There isn't ding room. I'm trying to create a room with ${helperContact.name()} and you`)
+    contact.say(`There isn't ding room. I'm trying to create a room with "${helperContact.name()}" and you`)
     const room = await bot.Room.create(contactList, 'ding')
-    log.info('Bot', 'createDingRoom() new ding room created: %s', room)
+    log.info('Bot', 'createDingRoom() new ding room created: "%s"', room)
 
     await room.topic('ding - created')
     await room.say('ding - created')
