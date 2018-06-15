@@ -124,6 +124,7 @@ bot
             inviteeList.map(c => c.name()).join(','),
             inviter.name(),
           )
+  console.log('bot room-join room id:', room.id)
   const topic = await room.topic()
   room.say(`welcome to ${topic}!`, inviteeList[0])
 })
@@ -245,7 +246,8 @@ bot
           /**
            * create the ding room
            */
-          await createDingRoom(from)
+          const newRoom = await createDingRoom(from)
+          console.log('createDingRoom id:', newRoom.id)
           /**
            * listen events from ding room
            */
@@ -282,6 +284,7 @@ async function manageDingRoom() {
                          inviteeList.map(c => c.name()).join(', '),
                          inviter.name(),
       )
+      console.log('room.on(join) id:', this.id)
       checkRoomJoin.call(this, room, inviteeList, inviter)
     })
 
