@@ -2,6 +2,7 @@
   "rulesDirectory": [
   ],
   "rules": {
+    "no-floating-promises": true,
     "align": [
       true,
       "parameters",

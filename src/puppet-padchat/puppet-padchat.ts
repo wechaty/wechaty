@@ -18,8 +18,6 @@
  */
 
 import path  from 'path'
-// import fs    from 'fs'
-// import cuid from 'cuid'
 
 import LRU      from 'lru-cache'
 import flatten  from 'array-flatten'
@@ -46,8 +44,6 @@ import {
 
   FriendshipPayload,
   FriendshipPayloadReceive,
-
-  WATCHDOG_TIMEOUT,
 }                                 from '../puppet/'
 
 import {
@@ -102,9 +98,6 @@ import {
 
 export class PuppetPadchat extends Puppet {
 
-  // in seconds, 4 minute for padchat
-  protected [WATCHDOG_TIMEOUT] = 4 * 60
-
   // private readonly cachePadchatContactPayload       : LRU.Cache<string, PadchatContactRawPayload>
   // private readonly cachePadchatFriendshipPayload : LRU.Cache<string, PadchatMessagePayload>
   private readonly cachePadchatMessagePayload    : LRU.Cache<string, PadchatMessagePayload>
@@ -115,7 +108,10 @@ export class PuppetPadchat extends Puppet {
   constructor(
     public options: PuppetOptions,
   ) {
-    super(options)
+    super({
+      timeout: 60 * 4,  // Default set timeout to 4 minutes
+      ...options,
+    })
 
     const lruOptions: LRU.Options = {
       max: 1000,
@@ -141,10 +137,10 @@ export class PuppetPadchat extends Puppet {
   }
 
   public startWatchdog(): void {
-    log.verbose('PuppetPadchat', 'initWatchdogForPuppet()')
+    log.verbose('PuppetPadchat', 'startWatchdog()')
 
     if (!this.padchatManager) {
-      throw new Error('no bridge')
+      throw new Error('no padchat manager')
     }
 
     // clean the dog because this could be re-inited
@@ -208,10 +204,10 @@ export class PuppetPadchat extends Puppet {
 
   protected async login(selfId: string): Promise<void> {
     if (!this.padchatManager) {
-      throw new Error('no bridge')
+      throw new Error('no padchat manager')
     }
     await super.login(selfId)
-    this.padchatManager.syncContactsAndRooms()
+    await this.padchatManager.syncContactsAndRooms()
   }
 
   public async startBridge(bridge: PadchatManager): Promise<void> {
@@ -230,9 +226,9 @@ export class PuppetPadchat extends Puppet {
     bridge.on('message', (rawPayload: PadchatMessagePayload)             => this.onPadchatMessage(rawPayload))
     bridge.on('logout',  ()                                              => this.logout())
 
-    bridge.on('destroy', reason => {
+    bridge.on('destroy', async reason => {
       log.warn('PuppetPadchat', 'startBridge() bridge.on(destroy) for %s. Restarting PuppetPadchat ... ', reason)
-      this.restart(reason)
+      await this.restart(reason)
     })
 
     await bridge.start()
@@ -264,7 +260,10 @@ export class PuppetPadchat extends Puppet {
      * 1. Sometimes will get duplicated same messages from rpc, drop the same message from here.
      */
     if (this.cachePadchatMessagePayload.has(rawPayload.msg_id)) {
-      log.warn('PuppetPadchat', 'onPadchatMessage({id=%s, type=%s(%s)}) duplicate message')
+      log.silly('PuppetPadchat', 'onPadchatMessage(id=%s) duplicate message: %s',
+                                rawPayload.msg_id,
+                                JSON.stringify(rawPayload).substr(0, 500),
+              )
       return
     }
 
@@ -335,6 +334,7 @@ export class PuppetPadchat extends Puppet {
       const inviteeNameList = roomJoinEvent.inviteeNameList
       const inviterName     = roomJoinEvent.inviterName
       const roomId          = roomJoinEvent.roomId
+      log.silly('PuppetPadchat', 'onPadchatMessageRoomEventJoin() roomJoinEvent="%s"', JSON.stringify(roomJoinEvent))
 
       const inviteeIdList = await Misc.retry(async (retry, attempt) => {
         log.verbose('PuppetPadchat', 'onPadchatMessageRoomEvent({id=%s}) roomJoin retry(attempt=%d)', attempt)
@@ -356,9 +356,9 @@ export class PuppetPadchat extends Puppet {
         }
 
         /**
-         * PURGE Cache and Reload
+         * Dirty Cache
          */
-        this.padchatManager.purgeRoomMemberIdList(roomId)
+        await this.roomMemberPayloadDirty(roomId)
 
         return retry(new Error('roomMemberSearch() not found'))
 
@@ -393,6 +393,7 @@ export class PuppetPadchat extends Puppet {
       const leaverNameList = roomLeaveEvent.leaverNameList
       const removerName    = roomLeaveEvent.removerName
       const roomId         = roomLeaveEvent.roomId
+      log.silly('PuppetPadchat', 'onPadchatMessageRoomEventLeave() roomLeaveEvent="%s"', JSON.stringify(roomLeaveEvent))
 
       const leaverIdList = flatten<string>(
         await Promise.all(
@@ -414,10 +415,10 @@ export class PuppetPadchat extends Puppet {
       }
 
       /**
-       * Update L1 Cache & PURGE L2 Cache
+       * Dirty Cache
        */
-      this.cacheRoomMemberPayload.del(roomId)
-      this.padchatManager.purgeRoomMemberIdList(roomId)
+      await this.roomMemberPayloadDirty(roomId)
+      await this.roomPayloadDirty(roomId)
 
       this.emit('room-leave',  roomId, leaverIdList, removerId)
     }
@@ -435,9 +436,10 @@ export class PuppetPadchat extends Puppet {
       const changerName = roomTopicEvent.changerName
       const newTopic    = roomTopicEvent.topic
       const roomId      = roomTopicEvent.roomId
+      log.silly('PuppetPadchat', 'onPadchatMessageRoomEventTopic() roomTopicEvent="%s"', JSON.stringify(roomTopicEvent))
 
-      const roomPayload = await this.roomPayload(roomId)
-      const oldTopic = roomPayload.topic
+      const roomOldPayload = await this.roomPayload(roomId)
+      const oldTopic       = roomOldPayload.topic
 
       const changerIdList = await this.roomMemberSearch(roomId, changerName)
       if (changerIdList.length < 1) {
@@ -453,10 +455,7 @@ export class PuppetPadchat extends Puppet {
       /**
        * Update Room Payload to new Topic
        */
-      const updateRoomPayload = await this.roomPayload(roomId)
-      updateRoomPayload.topic = newTopic
-      this.cacheRoomPayload.set(roomId, updateRoomPayload)
-      this.padchatManager.purgeRoomMemberIdList(roomId)
+      await this.roomPayloadDirty(roomId)
 
       this.emit('room-topic',  roomId, newTopic, oldTopic, changerId)
     }
@@ -489,7 +488,7 @@ export class PuppetPadchat extends Puppet {
     log.verbose('PuppetPadchat', 'stop()')
 
     if (!this.padchatManager) {
-      throw new Error('no bridge')
+      throw new Error('no padchat manager')
     }
 
     if (this.state.off()) {
@@ -521,7 +520,7 @@ export class PuppetPadchat extends Puppet {
     }
 
     if (!this.padchatManager) {
-      throw new Error('no bridge')
+      throw new Error('no padchat manager')
     }
 
     this.emit('logout', this.id) // becore we will throw above by logonoff() when this.user===undefined
@@ -551,7 +550,7 @@ export class PuppetPadchat extends Puppet {
     }
 
     if (!this.padchatManager) {
-      throw new Error('no bridge')
+      throw new Error('no padchat manager')
     }
 
     await this.padchatManager.WXSetUserRemark(contactId, alias || '')
@@ -563,7 +562,7 @@ export class PuppetPadchat extends Puppet {
     log.verbose('PuppetPadchat', 'contactList()')
 
     if (!this.padchatManager) {
-      throw new Error('no bridge')
+      throw new Error('no padchat manager')
     }
 
     const contactIdList = this.padchatManager.getContactIdList()
@@ -588,7 +587,7 @@ export class PuppetPadchat extends Puppet {
         throw new Error('can not set avatar for others')
       }
       if (!this.padchatManager) {
-        throw new Error('no bridge')
+        throw new Error('no padchat manager')
       }
       await this.padchatManager.WXSetHeadImage(await file.toBase64())
       return
@@ -615,18 +614,28 @@ export class PuppetPadchat extends Puppet {
       throw new Error('can not set avatar for others')
     }
     if (!this.padchatManager) {
-      throw new Error('no bridge')
+      throw new Error('no padchat manager')
     }
     const base64 = await this.padchatManager.WXGetUserQRCode(contactId, 0)
     const qrcode = await fileBoxToQrcode(base64)
     return qrcode
   }
 
+  public async contactPayloadDirty(contactId: string): Promise<void> {
+    log.verbose('PuppetPadchat', 'contactPayloadDirty(%s)', contactId)
+
+    if (this.padchatManager) {
+      this.padchatManager.contactRawPayloadDirty(contactId)
+    }
+
+    await super.contactPayloadDirty(contactId)
+  }
+
   public async contactRawPayload(contactId: string): Promise<PadchatContactPayload> {
     log.silly('PuppetPadchat', 'contactRawPayload(%s)', contactId)
 
     if (!this.padchatManager) {
-      throw new Error('no bridge')
+      throw new Error('no padchat manager')
     }
     const rawPayload = await this.padchatManager.contactRawPayload(contactId)
     return rawPayload
@@ -646,12 +655,10 @@ export class PuppetPadchat extends Puppet {
    */
 
   public async messageFile(messageId: string): Promise<FileBox> {
-    log.warn('PuppetPadchat', 'messageFile(%s) not fully implemented yet, PR is welcome!', messageId)
-
-    // TODO
+    log.warn('PuppetPadchat', 'messageFile(%s)', messageId)
 
     if (!this.padchatManager) {
-      throw new Error('no bridge')
+      throw new Error('no padchat manager')
     }
 
     const rawPayload = await this.messageRawPayload(messageId)
@@ -663,9 +670,6 @@ export class PuppetPadchat extends Puppet {
     let result
 
     switch (payload.type) {
-      case MessageType.Attachment:
-        break
-
       case MessageType.Audio:
         result = await this.padchatManager.WXGetMsgVoice(rawText)
         console.log(result)
@@ -686,19 +690,33 @@ export class PuppetPadchat extends Puppet {
         console.log(result)
         return FileBox.fromBase64(result.video, `${attachmentName}.mp4`)
 
+      case MessageType.Attachment:
       default:
-        throw new Error('unsupport type: ' + PadchatMessageType[rawPayload.sub_type] + ':' + rawPayload.sub_type)
+        log.warn('PuppetPadchat', 'messageFile(%s) unsupport type: %s(%s) because it is not fully implemented yet, PR is welcome.',
+                                  messageId,
+                                  PadchatMessageType[rawPayload.sub_type],
+                                  rawPayload.sub_type,
+                )
+        const base64 = 'Tm90IFN1cHBvcnRlZCBBdHRhY2htZW50IEZpbGUgVHlwZSBpbiBNZXNzYWdlLgpTZWU6IGh0dHBzOi8vZ2l0aHViLmNvbS9DaGF0aWUvd2VjaGF0eS9pc3N1ZXMvMTI0OQo='
+        const filename = 'wechaty-puppet-padchat-message-attachment-' + messageId + '.txt'
+
+        const file = FileBox.fromBase64(
+          base64,
+          filename,
+        )
+
+        return file
+    }
+  }
+
+  public async messagePayloadDirty(messageId: string): Promise<void> {
+    log.verbose('PuppetPadchat', 'messagePayloadDirty(%s)', messageId)
+
+    if (this.padchatManager) {
+      // this.padchatManager.messageRawPayloadDirty(messageId)
     }
 
-    const base64 = 'cRH9qeL3XyVnaXJkppBuH20tf5JlcG9uFX1lL2IvdHRRRS9kMMQxOPLKNYIzQQ=='
-    const filename = 'test-' + messageId + '.txt'
-
-    const file = FileBox.fromBase64(
-      base64,
-      filename,
-    )
-
-    return file
+    await super.messagePayloadDirty(messageId)
   }
 
   public async messageRawPayload(id: string): Promise<PadchatMessagePayload> {
@@ -744,7 +762,7 @@ export class PuppetPadchat extends Puppet {
       throw Error('no id')
     }
     if (!this.padchatManager) {
-      throw new Error('no bridge')
+      throw new Error('no padchat manager')
     }
     await this.padchatManager.WXSendMsg(id, text)
   }
@@ -763,7 +781,7 @@ export class PuppetPadchat extends Puppet {
     }
 
     if (!this.padchatManager) {
-      throw new Error('no bridge')
+      throw new Error('no padchat manager')
     }
 
     const type = file.mimeType || path.extname(file.name)
@@ -793,7 +811,7 @@ export class PuppetPadchat extends Puppet {
     log.verbose('PuppetPadchat', 'messageSend("%s", %s)', JSON.stringify(receiver), contactId)
 
     if (!this.padchatManager) {
-      throw new Error('no bridge')
+      throw new Error('no padchat manager')
     }
 
     // roomId first, contactId second.
@@ -839,6 +857,16 @@ export class PuppetPadchat extends Puppet {
    * Room
    *
    */
+  public async roomMemberPayloadDirty(roomId: string) {
+    log.silly('PuppetPadchat', 'roomMemberRawPayloadDirty(%s)', roomId)
+
+    if (this.padchatManager) {
+      await this.padchatManager.roomMemberRawPayloadDirty(roomId)
+    }
+
+    await super.roomMemberPayloadDirty(roomId)
+  }
+
   public async roomMemberRawPayload(
     roomId    : string,
     contactId : string,
@@ -846,11 +874,12 @@ export class PuppetPadchat extends Puppet {
     log.silly('PuppetPadchat', 'roomMemberRawPayload(%s)', roomId)
 
     if (!this.padchatManager) {
-      throw new Error('no bridge')
+      throw new Error('no padchat manager')
     }
 
-    const rawPayload = await this.padchatManager.roomMemberRawPayload(roomId, contactId)
-    return rawPayload
+    const memberDictRawPayload = await this.padchatManager.roomMemberRawPayload(roomId)
+
+    return memberDictRawPayload[contactId]
   }
 
   public async roomMemberRawPayloadParser(
@@ -867,13 +896,23 @@ export class PuppetPadchat extends Puppet {
     return payload
   }
 
+  public async roomPayloadDirty(roomId: string): Promise<void> {
+    log.verbose('PuppetPadchat', 'roomPayloadDirty(%s)', roomId)
+
+    if (this.padchatManager) {
+      this.padchatManager.roomRawPayloadDirty(roomId)
+    }
+
+    await super.roomPayloadDirty(roomId)
+  }
+
   public async roomRawPayload(
     roomId: string,
   ): Promise<PadchatRoomPayload> {
     log.verbose('PuppetPadchat', 'roomRawPayload(%s)', roomId)
 
     if (!this.padchatManager) {
-      throw new Error('no bridge')
+      throw new Error('no padchat manager')
     }
 
     const rawPayload = await this.padchatManager.roomRawPayload(roomId)
@@ -883,11 +922,7 @@ export class PuppetPadchat extends Puppet {
   public async roomRawPayloadParser(rawPayload: PadchatRoomPayload): Promise<RoomPayload> {
     log.verbose('PuppetPadchat', 'roomRawPayloadParser(rawPayload.user_name="%s")', rawPayload.user_name)
 
-    // const memberIdList = await this.bridge.getRoomMemberIdList()
-    //  WXGetChatRoomMember(rawPayload.user_name)
-
     const payload: RoomPayload = roomRawPayloadParser(rawPayload)
-
     return payload
   }
 
@@ -895,7 +930,7 @@ export class PuppetPadchat extends Puppet {
     log.verbose('PuppetPadchat', 'roomMemberList(%s)', roomId)
 
     if (!this.padchatManager) {
-      throw new Error('no bridge')
+      throw new Error('no padchat manager')
     }
 
     const memberIdList = await this.padchatManager.getRoomMemberIdList(roomId)
@@ -908,7 +943,7 @@ export class PuppetPadchat extends Puppet {
     log.verbose('PuppetPadchat', 'roomList()')
 
     if (!this.padchatManager) {
-      throw new Error('no bridge')
+      throw new Error('no padchat manager')
     }
 
     const roomIdList = await this.padchatManager.getRoomIdList()
@@ -924,11 +959,12 @@ export class PuppetPadchat extends Puppet {
     log.verbose('PuppetPadchat', 'roomDel(%s, %s)', roomId, contactId)
 
     if (!this.padchatManager) {
-      throw new Error('no bridge')
+      throw new Error('no padchat manager')
     }
 
     // Should check whether user is in the room. WXDeleteChatRoomMember won't check if user in the room automatically
     await this.padchatManager.WXDeleteChatRoomMember(roomId, contactId)
+    await this.roomMemberPayloadDirty(roomId)
   }
 
   public async roomQrcode(roomId: string): Promise<string> {
@@ -960,7 +996,7 @@ export class PuppetPadchat extends Puppet {
     log.verbose('PuppetPadchat', 'roomAdd(%s, %s)', roomId, contactId)
 
     if (!this.padchatManager) {
-      throw new Error('no bridge')
+      throw new Error('no padchat manager')
     }
 
     // XXX: did there need to calc the total number of the members in this room?
@@ -975,6 +1011,9 @@ export class PuppetPadchat extends Puppet {
       log.verbose('PuppetPadchat', 'roomAdd(%s, %s) try to Invite', roomId, contactId)
       await this.padchatManager.WXInviteChatRoomMember(roomId, contactId)
     }
+
+    await this.roomPayloadDirty(roomId)
+    await this.roomMemberPayloadDirty(roomId)
   }
 
   public async roomTopic(roomId: string)                : Promise<string>
@@ -992,10 +1031,11 @@ export class PuppetPadchat extends Puppet {
     }
 
     if (!this.padchatManager) {
-      throw new Error('no bridge')
+      throw new Error('no padchat manager')
     }
 
     await this.padchatManager.WXSetChatroomName(roomId, topic)
+    await this.roomPayloadDirty(roomId)
 
     return
   }
@@ -1007,7 +1047,7 @@ export class PuppetPadchat extends Puppet {
     log.verbose('PuppetPadchat', 'roomCreate(%s, %s)', contactIdList, topic)
 
     if (!this.padchatManager) {
-      throw new Error('no bridge')
+      throw new Error('no padchat manager')
     }
 
     const roomId = await this.padchatManager.WXCreateChatRoom(contactIdList)
@@ -1022,10 +1062,12 @@ export class PuppetPadchat extends Puppet {
     log.verbose('PuppetPadchat', 'roomQuit(%s)', roomId)
 
     if (!this.padchatManager) {
-      throw new Error('no bridge')
+      throw new Error('no padchat manager')
     }
 
     await this.padchatManager.WXQuitChatRoom(roomId)
+    await this.roomMemberPayloadDirty(roomId)
+    await this.roomPayloadDirty(roomId)
   }
 
   public async roomAnnounce(roomId: string)             : Promise<string>
@@ -1035,7 +1077,7 @@ export class PuppetPadchat extends Puppet {
     log.verbose('PuppetPadchat', 'roomAnnounce(%s, %s)', roomId, text ? text : '')
 
     if (!this.padchatManager) {
-      throw new Error('no bridge')
+      throw new Error('no padchat manager')
     }
 
     if (text) {
@@ -1057,7 +1099,7 @@ export class PuppetPadchat extends Puppet {
     log.verbose('PuppetPadchat', 'friendshipVerify(%s, %s)', contactId, hello)
 
     if (!this.padchatManager) {
-      throw new Error('no bridge')
+      throw new Error('no padchat manager')
     }
 
     const rawSearchPayload: WXSearchContactType = await this.padchatManager.WXSearchContact(contactId)
@@ -1109,7 +1151,7 @@ export class PuppetPadchat extends Puppet {
     }
 
     if (!this.padchatManager) {
-      throw new Error('no bridge')
+      throw new Error('no padchat manager')
     }
 
     await this.padchatManager.WXAcceptUser(
@@ -1123,6 +1165,16 @@ export class PuppetPadchat extends Puppet {
 
     const payload: FriendshipPayload = await friendshipRawPayloadParser(rawPayload)
     return payload
+  }
+
+  public async friendshipPayloadDirty(friendshipId: string): Promise<void> {
+    log.verbose('PuppetPadchat', 'friendshipPayloadDirty(%s)', friendshipId)
+
+    if (this.padchatManager) {
+      // this.padchatManager.friendshipRawPayloadDirty(friendshipId)
+    }
+
+    await super.friendshipPayloadDirty(friendshipId)
   }
 
   public async friendshipRawPayload(friendshipId: string): Promise<PadchatMessagePayload> {

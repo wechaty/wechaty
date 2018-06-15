@@ -290,9 +290,11 @@ export class Message extends Accessory implements Sayable {
     textOrContactOrFile : string | Contact | FileBox,
     mention?   : Contact | Contact[],
   ): Promise<void> {
-    log.verbose('Message', 'say(%s, %s)',
+    log.verbose('Message', 'say(%s%s)',
                             textOrContactOrFile.toString(),
-                            mention,
+                            mention
+                              ? ', ' + mention
+                              : '',
                 )
 
     // const user = this.puppet.userSelf()
@@ -359,12 +361,32 @@ export class Message extends Accessory implements Sayable {
     }
   }
 
+  /**
+   * @deprecated use toFile() instead
+   */
   public async file(): Promise<FileBox> {
+    log.warn('Message', 'file() DEPRECATED. use toFile() instead.')
+    return this.toFile()
+  }
+
+  public async toFile(): Promise<FileBox> {
     if (this.type() === Message.Type.Text) {
       throw new Error('text message no file')
     }
     const fileBox = await this.puppet.messageFile(this.id)
     return fileBox
+  }
+
+  public async toContact(): Promise<Contact> {
+    log.warn('Message', 'toContact() to be implemented')
+
+    if (this.type() === Message.Type.Contact) {
+      throw new Error('message not a ShareCard')
+    }
+
+    // TODO: return the ShareCard Contact
+    const contact = this.wechaty.userSelf()
+    return contact
   }
 
   /**
@@ -416,8 +438,8 @@ export class Message extends Accessory implements Sayable {
    * const contactList = message.mentioned()
    * console.log(contactList)
    */
-  public async mentioned(): Promise<Contact[]> {
-    log.verbose('Message', 'mentioned()')
+  public async mention(): Promise<Contact[]> {
+    log.verbose('Message', 'mention()')
 
     const room = this.room()
     if (this.type() !== MessageType.Text || !room ) {
@@ -432,7 +454,7 @@ export class Message extends Accessory implements Sayable {
     if (atList.length === 0) return []
 
     // Using `filter(e => e.indexOf('@') > -1)` to filter the string without `@`
-    const rawMentionedList = atList
+    const rawMentionList = atList
       .filter(str => str.includes('@'))
       .map(str => multipleAt(str))
 
@@ -455,11 +477,11 @@ export class Message extends Accessory implements Sayable {
     let mentionNameList: string[] = []
     // Flatten Array
     // see http://stackoverflow.com/a/10865042/1123955
-    mentionNameList = mentionNameList.concat.apply([], rawMentionedList)
+    mentionNameList = mentionNameList.concat.apply([], rawMentionList)
     // filter blank string
     mentionNameList = mentionNameList.filter(s => !!s)
 
-    log.verbose('Message', 'mentioned() text = "%s", mentionNameList = "%s"',
+    log.verbose('Message', 'mention() text = "%s", mentionNameList = "%s"',
                             this.text(),
                             JSON.stringify(mentionNameList),
                 )
@@ -474,9 +496,17 @@ export class Message extends Accessory implements Sayable {
     contactList = contactList.concat.apply([], contactListNested)
 
     if (contactList.length === 0) {
-      log.warn('Message', `message.mentioned() can not found member using room.member() from mentionList, metion string: ${JSON.stringify(mentionNameList)}`)
+      log.silly('Message', `message.mention() can not found member using room.member() from mentionList, metion string: ${JSON.stringify(mentionNameList)}`)
     }
     return contactList
+  }
+
+  /**
+   * @deprecated: use mention() instead
+   */
+  public async mentioned(): Promise<Contact[]> {
+    log.warn('Message', 'mentioned() DEPRECATED. use mention() instead.')
+    return this.mention()
   }
 
   /**

@@ -10,6 +10,5 @@ export {
   }                         from './puppet'
 
 export {
-  WATCHDOG_TIMEOUT,
   YOU,
 }                           from './schemas/puppet'

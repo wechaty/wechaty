@@ -347,7 +347,10 @@ export class Firer {
      */
     this.puppet.emit('room-leave', roomId , [leaverContactId], removerContactId)
 
-    setTimeout(_ => this.puppet.roomPayload(roomId, true), 10 * 1000) // reload the room data, especially for memberList
+    setTimeout(async _ => {
+      await this.puppet.roomPayloadDirty(roomId)
+      await this.puppet.roomPayload(roomId)
+    }, 10 * 1000) // reload the room data, especially for memberList
 
     return true
   }

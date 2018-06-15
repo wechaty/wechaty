@@ -72,8 +72,8 @@ export class Contact extends Accessory implements Sayable {
    * About the Generic: https://stackoverflow.com/q/43003970/1123955
    */
   public static load<T extends typeof Contact>(
-    this     : T,
-    id       : string,
+    this : T,
+    id   : string,
   ): T['prototype'] {
     if (!this.pool) {
       log.verbose('Contact', 'load(%s) init pool', id)
@@ -234,7 +234,7 @@ export class Contact extends Accessory implements Sayable {
     if (!this.payload) {
       return this.constructor.name
     }
-    const identity = this.alias() || this.name() || this.id
+    const identity = this.payload.alias || this.payload.name || this.id
     return `Contact<${identity || 'Unknown'}>`
   }
 
@@ -530,18 +530,13 @@ export class Contact extends Accessory implements Sayable {
    * await contact.sync()
    */
   public async sync(): Promise<void> {
-    // TODO: make sure the contact.* works when we are refreshing the data
-    // if (this.isReady()) {
-    //   this.dirtyObj = this.obj
-    // }
-    // this.payload = undefined
     await this.ready(true)
   }
 
   /**
    * @private
    */
-  public async ready(noCache = false): Promise<void> {
+  public async ready(dirty = false): Promise<void> {
     log.silly('Contact', 'ready() @ %s', this.puppet)
 
     if (this.isReady()) { // already ready
@@ -550,7 +545,10 @@ export class Contact extends Accessory implements Sayable {
     }
 
     try {
-      await this.puppet.contactPayload(this.id, noCache)
+      if (dirty) {
+        await this.puppet.contactPayloadDirty(this.id)
+      }
+      await this.puppet.contactPayload(this.id)
       // log.silly('Contact', `ready() this.puppet.contactPayload(%s) resolved`, this)
 
     } catch (e) {

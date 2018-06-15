@@ -12,6 +12,7 @@
  *
  */
 
+export * from './compatible-wei-bug'
 export * from './contact-raw-payload-parser'
 export * from './file-box-to-qrcode'
 export * from './friendship-event-message-parser'

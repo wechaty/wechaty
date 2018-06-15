@@ -240,15 +240,18 @@ export class Room extends Accessory implements Sayable {
    * @private
    */
   public async ready(
-    noCache = false,
+    dirty = false,
   ): Promise<void> {
     log.verbose('Room', 'ready()')
 
-    if (!noCache && this.isReady()) {
+    if (!dirty && this.isReady()) {
       return
     }
 
-    await this.puppet.roomPayload(this.id, noCache)
+    if (dirty) {
+      await this.puppet.roomPayloadDirty(this.id)
+    }
+    await this.puppet.roomPayload(this.id)
 
     const memberIdList = await this.puppet.roomMemberList(this.id)
 
@@ -598,7 +601,7 @@ export class Room extends Accessory implements Sayable {
   }
 
   /**
-   * Check if the room has member `contact`.
+   * Check if the room has member `contact`, the return is a Promise and must be `await`-ed
    *
    * @param {Contact} contact
    * @returns {boolean} Return `true` if has contact, else return `false`.
@@ -606,7 +609,7 @@ export class Room extends Accessory implements Sayable {
    * const contact = await Contact.find({name: 'lijiarui'})   // change 'lijiarui' to any of contact in your wechat
    * const room = await Room.find({topic: 'wechaty'})         // change 'wechaty' to any of the room in your wechat
    * if (contact && room) {
-   *   if (room.has(contact)) {
+   *   if (await room.has(contact)) {
    *     console.log(`${contact.name()} is in the room ${room.topic()}!`)
    *   } else {
    *     console.log(`${contact.name()} is not in the room ${room.topic()} !`)

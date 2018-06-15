@@ -68,7 +68,6 @@ import {
   PuppetOptions,
   Receiver,
 
-  WATCHDOG_TIMEOUT,
   YOU,
 }                       from './schemas/puppet'
 
@@ -95,13 +94,6 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   protected readonly counter  : number
 
   /**
-   * Watchdog Timeout in Seconds
-   *  if set this value, the default timeout value will be overwrited,
-   *  and the parent Puppet class will use it to init watchdog
-   */
-  protected [WATCHDOG_TIMEOUT]?: number // Watchdog timeout, in seconds
-
-  /**
    * childPkg stores the `package.json` that the NPM module who extends the `Puppet`
    */
   private readonly childPkg: undefined | normalize.Package
@@ -122,13 +114,16 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     public options: PuppetOptions,
   ) {
     super()
+    log.verbose('Puppet', 'constructor(%s)', JSON.stringify(options))
 
     this.counter = PUPPET_COUNTER++
 
     this.state    = new StateSwitch(this.constructor.name, log)
 
-    const timeout = this[WATCHDOG_TIMEOUT] || DEFAULT_WATCHDOG_TIMEOUT
-    this.watchdog = new Watchdog(1000 * timeout, 'Puppet')
+    this.options.timeout = this.options.timeout || DEFAULT_WATCHDOG_TIMEOUT
+
+    log.verbose('Puppet', 'constructor() watchdog timeout set to %d seconds', this.options.timeout)
+    this.watchdog = new Watchdog(1000 * this.options.timeout, 'Puppet')
 
     const lruOptions: LRU.Options = {
       max: 10000,
@@ -377,6 +372,11 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async contactRawPayload(contactId: string)     : Promise<any>
   public abstract async contactRawPayloadParser(rawPayload: any) : Promise<ContactPayload>
 
+  public async contactPayloadDirty(contactId: string): Promise<void> {
+    log.verbose('Puppet', 'contactPayloadDirty(%s)', contactId)
+    this.cacheContactPayload.del(contactId)
+  }
+
   public async contactSearch(
     query?        : ContactQueryFilter,
     searchIdList? : string[],
@@ -471,30 +471,23 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   public async contactPayload(
     contactId: string,
-    noCache = false,
   ): Promise<ContactPayload> {
-    // log.silly('Puppet', 'contactPayload(id=%s, noCache=%s) @ %s', contactId, noCache, this)
+    // log.silly('Puppet', 'contactPayload(id=%s) @ %s', contactId, this)
 
     if (!contactId) {
       throw new Error('no id')
     }
 
-    if (noCache) {
-      log.silly('Puppet', 'contactPayload(%s) cache PURGE', contactId)
-
-      this.cacheContactPayload.del(contactId)
-
-    } else {
-      const cachedPayload = this.contactPayloadCache(contactId)
-      if (cachedPayload) {
-
-        return cachedPayload
-
-      }
+    /**
+     * 1. Try to get from cache first
+     */
+    const cachedPayload = this.contactPayloadCache(contactId)
+    if (cachedPayload) {
+      return cachedPayload
     }
 
     /**
-     * Cache not found
+     * 2. Cache not found
      */
     const rawPayload = await this.contactRawPayload(contactId)
     const payload    = await this.contactRawPayloadParser(rawPayload)
@@ -512,8 +505,9 @@ export abstract class Puppet extends EventEmitter implements Sayable {
    */
   public abstract async friendshipVerify(contactId: string, hello?: string) : Promise<void>
   public abstract async friendshipAccept(friendshipId: string)              : Promise<void>
-  public abstract async friendshipRawPayload(friendshipId: string)          : Promise<any>
-  public abstract async friendshipRawPayloadParser(rawPayload: any)         : Promise<FriendshipPayload>
+
+  public abstract async friendshipRawPayload(friendshipId: string)   : Promise<any>
+  public abstract async friendshipRawPayloadParser(rawPayload: any)  : Promise<FriendshipPayload>
 
   public friendshipPayloadCache(friendshipId: string): undefined | FriendshipPayload {
     // log.silly('Puppet', 'friendshipPayloadCache(id=%s) @ %s', friendshipId, this)
@@ -531,32 +525,30 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     return cachedPayload
   }
 
+  public async friendshipPayloadDirty(friendshipId: string): Promise<void> {
+    log.verbose('Puppet', 'friendshipPayloadDirty(%s)', friendshipId)
+    this.cacheFriendshipPayload.del(friendshipId)
+  }
+
   public async friendshipPayload(
     friendshipId: string,
-    noCache = false,
   ): Promise<FriendshipPayload> {
-    log.verbose('Puppet', 'friendshipPayload(id=%s, noCache=%s)', friendshipId, noCache)
+    log.verbose('Puppet', 'friendshipPayload(%s)', friendshipId)
 
     if (!friendshipId) {
       throw new Error('no id')
     }
 
-    if (noCache) {
-      log.silly('Puppet', 'friendshipPayload(%s) cache PURGE', friendshipId)
-
-      this.cacheFriendshipPayload.del(friendshipId)
-
-    } else {
-      const cachedPayload = this.friendshipPayloadCache(friendshipId)
-      if (cachedPayload) {
-
-        return cachedPayload
-
-      }
+    /**
+     * 1. Try to get from cache first
+     */
+    const cachedPayload = this.friendshipPayloadCache(friendshipId)
+    if (cachedPayload) {
+      return cachedPayload
     }
 
     /**
-     * Cache not found
+     * 2. Cache not found
      */
     const rawPayload = await this.friendshipRawPayload(friendshipId)
     const payload    = await this.friendshipRawPayloadParser(rawPayload)
@@ -595,32 +587,30 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     return cachedPayload
   }
 
+  public async messagePayloadDirty(messageId: string): Promise<void> {
+    log.verbose('Puppet', 'messagePayloadDirty(%s)', messageId)
+    this.cacheMessagePayload.del(messageId)
+  }
+
   public async messagePayload(
     messageId: string,
-    noCache = false,
   ): Promise<MessagePayload> {
-    log.verbose('Puppet', 'messagePayload(id=%s, noCache=%s)', messageId, noCache)
+    log.verbose('Puppet', 'messagePayload(%s)', messageId)
 
     if (!messageId) {
       throw new Error('no id')
     }
 
-    if (noCache) {
-      log.silly('Puppet', 'messagePayload(%s) cache PURGE', messageId)
-
-      this.cacheMessagePayload.del(messageId)
-
-    } else {
-      const cachedPayload = this.messagePayloadCache(messageId)
-      if (cachedPayload) {
-
-        return cachedPayload
-
-      }
+    /**
+     * 1. Try to get from cache first
+     */
+    const cachedPayload = this.messagePayloadCache(messageId)
+    if (cachedPayload) {
+      return cachedPayload
     }
 
     /**
-     * Cache not found
+     * 2. Cache not found
      */
     const rawPayload = await this.messageRawPayload(messageId)
     const payload    = await this.messageRawPayloadParser(rawPayload)
@@ -668,6 +658,9 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
     if (!this.id) {
       throw new Error('no puppet.id. need puppet to be login-ed for a search')
+    }
+    if (!query) {
+      throw new Error('no query')
     }
 
     /**
@@ -807,32 +800,30 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     return cachedPayload
   }
 
+  public async roomPayloadDirty(roomId: string): Promise<void> {
+    log.verbose('Puppet', 'roomPayloadDirty(%s)', roomId)
+    this.cacheRoomPayload.del(roomId)
+  }
+
   public async roomPayload(
     roomId: string,
-    noCache = false,
   ): Promise<RoomPayload> {
-    log.verbose('Puppet', 'roomPayload(id=%s, noCache=%s)', roomId, noCache)
+    log.verbose('Puppet', 'roomPayload(%s%s)', roomId)
 
     if (!roomId) {
       throw new Error('no id')
     }
 
-    if (noCache) {
-      log.silly('Puppet', 'roomPayload(%s) cache PURGE', roomId)
-
-      this.cacheRoomPayload.del(roomId)
-
-    } else {
-      const cachedPayload = this.roomPayloadCache(roomId)
-      if (cachedPayload) {
-
-        return cachedPayload
-
-      }
+    /**
+     * 1. Try to get from cache first
+     */
+    const cachedPayload = this.roomPayloadCache(roomId)
+    if (cachedPayload) {
+      return cachedPayload
     }
 
     /**
-     * Cache not found
+     * 2. Cache not found
      */
     const rawPayload = await this.roomRawPayload(roomId)
     const payload    = await this.roomRawPayloadParser(rawPayload)
@@ -850,53 +841,43 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     return contactId + '@@@' + roomId
   }
 
-  public roomMemberPayloadCache(roomId: string, contactId: string): undefined | RoomMemberPayload {
-    log.silly('Puppet', 'roomMemberPayloadCache(id=%s) @ %s', roomId, this)
+  public async roomMemberPayloadDirty(roomId: string): Promise<void> {
+    log.verbose('Puppet', 'roomMemberPayloadDirty(%s)', roomId)
 
-    if (!roomId || !contactId) {
-      throw new Error('no id')
-    }
+    const contactIdList = await this.roomMemberList(roomId)
 
-    const cacheKey      = this.cacheKeyRoomMember(roomId, contactId)
-    const cachedPayload = this.cacheRoomMemberPayload.get(cacheKey)
-
-    if (cachedPayload) {
-      // log.silly('Puppet', 'roomMemberPayloadCache(%s) cache HIT', roomId)
-    } else {
-      log.silly('Puppet', 'roomMemberPayloadCache(%s) cache MISS', roomId)
-    }
-
-    return cachedPayload
+    let cacheKey
+    contactIdList.forEach(contactId => {
+      cacheKey = this.cacheKeyRoomMember(roomId, contactId)
+      this.cacheRoomMemberPayload.del(cacheKey)
+    })
   }
 
   public async roomMemberPayload(
     roomId    : string,
     contactId : string,
-    noCache = false,
   ): Promise<RoomMemberPayload> {
-    log.verbose('Puppet', 'roomMemberPayload(roomId=%s, contactId=%s noCache=%s)', roomId, contactId, noCache)
+    log.verbose('Puppet', 'roomMemberPayload(roomId=%s, contactId=%s)',
+                          roomId,
+                          contactId,
+                )
 
     if (!roomId || !contactId) {
       throw new Error('no id')
     }
 
-    const cacheKey = this.cacheKeyRoomMember(roomId, contactId)
+    /**
+     * 1. Try to get from cache
+     */
+    const cacheKey      = this.cacheKeyRoomMember(roomId, contactId)
+    const cachedPayload = this.cacheRoomMemberPayload.get(cacheKey)
 
-    if (noCache) {
-      log.silly('Puppet', 'roomMemberPayload(%s) cache PURGE', roomId)
-
-      this.cacheRoomMemberPayload.del(cacheKey)
-
-    } else {
-      const cachedPayload = this.roomMemberPayloadCache(roomId, contactId)
-
-      if (cachedPayload) {
-        return cachedPayload
-      }
+    if (cachedPayload) {
+      return cachedPayload
     }
 
     /**
-     * Cache not found
+     * 2. Cache not found
      */
     const rawPayload = await this.roomMemberRawPayload(roomId, contactId)
     const payload    = await this.roomMemberRawPayloadParser(rawPayload)

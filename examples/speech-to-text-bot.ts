@@ -70,9 +70,9 @@ bot
   console.log('VOICE TO TEXT: ' + text)
 
   if (msg.self()) {
-    this.say(text)  // send text to 'filehelper'
+    await this.say(text)  // send text to 'filehelper'
   } else {
-    msg.say(text)     // to original sender
+    await msg.say(text)     // to original sender
   }
 
 })

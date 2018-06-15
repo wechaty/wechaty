@@ -68,6 +68,7 @@ import {
   isContactId,
   isRoomId,
   padchatDecode,
+  stripBugChatroomId,
 }                       from './pure-function-helpers/'
 
 import { log }          from '../config'
@@ -316,8 +317,8 @@ export class PadchatRpc extends EventEmitter {
     if (this.logoutThrottleSubscription) {
       throw new Error('this.logoutThrottleSubscription exist')
     } else {
-      this.logoutThrottleSubscription = this.logoutThrottleQueue.subscribe(msg => {
-        this.destroy(msg)
+      this.logoutThrottleSubscription = this.logoutThrottleQueue.subscribe(async msg => {
+        await this.destroy(msg)
       })
     }
   }
@@ -653,8 +654,8 @@ export class PadchatRpc extends EventEmitter {
    * @param {string} to     user_name
    * @param {string} data   image_data
    */
-  public WXSendImage(to: string, data: string): void {
-    this.rpcCall('WXSendImage', to, data)
+  public async WXSendImage(to: string, data: string): Promise<void> {
+    await this.rpcCall('WXSendImage', to, data)
   }
 
   /**
@@ -709,10 +710,16 @@ export class PadchatRpc extends EventEmitter {
    * Get all member of a room by room id
    * @param {any} roomId        chatroom_id
    */
-  public async WXGetChatRoomMember(roomId: string): Promise<PadchatRoomMemberListPayload> {
+  public async WXGetChatRoomMember(roomId: string): Promise<null | PadchatRoomMemberListPayload> {
     const result = await this.rpcCall('WXGetChatRoomMember', roomId)
     if (!result) {
       throw Error('PadchatRpc, WXGetChatRoomMember, cannot get result from websocket server!')
+    }
+
+    // roomId not exist. (or no permision?)
+    // See: https://github.com/lijiarui/wechaty-puppet-padchat/issues/64#issuecomment-397319016
+    if (result.status === -19) {
+      return null
     }
 
     log.silly('PadchatRpc', 'WXGetChatRoomMember() result: %s', JSON.stringify(result).substr(0, 500))
@@ -984,15 +991,13 @@ export class PadchatRpc extends EventEmitter {
     return result
   }
 
-  // {"message":"\n\u0010Everything is OK","status":0,"user_name":"\n\u00135907139882@chatroom"}
-  public async WXCreateChatRoom(userList: string[]): Promise<any> {
+  public async WXCreateChatRoom(userList: string[]): Promise<string> {
     const result = await this.rpcCall('WXCreateChatRoom', JSON.stringify(userList))
     log.silly('PadchatRpc', 'WXCreateChatRoom(userList.length=%d) = "%s"', userList.length, JSON.stringify(result))
     if (!result || result.status !== 0) {
       throw Error('WXCreateChatRoom , stranger,error! canot get result from websocket server')
     }
-    // BUG compitable: "\n\u00135907139882@chatroom" -> "5907139882@chatroom"
-    return result.user_name.replace(/^\n\u0013/g, '')
+    return stripBugChatroomId(result.user_name)
   }
 
   // TODO: check any

@@ -20,9 +20,9 @@
 import path  from 'path'
 
 /* tslint:disable:variable-name */
-import QrcodeTerminal  from 'qrcode-terminal'
+import { generate }     from 'qrcode-terminal'
 // import finis                from 'finis'
-import { FileBox }          from 'file-box'
+import { FileBox }      from 'file-box'
 
 /**
  * Change `import { ... } from '../'`
@@ -75,14 +75,9 @@ bot
   log.info('Bot', `${user.name()} login`)
   bot.say('Wechaty login').catch(console.error)
 })
-.on('scan', (qrcode, status, data) => {
-  QrcodeTerminal.generate(qrcode, { small: true }, (asciiart: string) => {
-    console.log(asciiart)
-    console.log(`[${status}] Scan QR Code above url to log in: `)
-    if (data) {
-      console.log(data)
-    }
-  })
+.on('scan', (qrcode, status) => {
+  generate(qrcode, { small: true })
+  console.log(`${qrcode}\n[${status}] Scan QR Code in above url to login: `)
 })
 .on('message', async msg => {
   const from = msg.from()
@@ -155,22 +150,22 @@ bot
       if (dingRoom) {
         await msg.forward(dingRoom)
       } else {
-        msg.say('Cannot find dingRoom, please create a ding room first!')
+        await msg.say('Cannot find dingRoom, please create a ding room first!')
       }
       return
     }
 
     if (/^geta$/.test(text)) {
       console.log('begin to check get contact alias')
-      from.say(from.alias() || 'no alias')
+      await from.say(from.alias() || 'no alias')
       return
     }
 
     if (/^seta$/.test(text)) {
       console.log('begin to check set contact alias')
       await from.alias('wechaty-alias')
-      setTimeout(() => {
-        from.say(from.alias() || 'no alais')
+      setTimeout(async () => {
+        await from.say(from.alias() || 'no alais')
       }, 3 * 1000)
       return
     }
@@ -178,7 +173,7 @@ bot
     if (/^avatar$/.test(text)) {
       console.log('begin to check get contact avatar')
       const file = await from.avatar()
-      from.say(file)
+      await from.say(file)
       return
     }
 
@@ -187,7 +182,7 @@ bot
        * 1. reply 'dong'
        */
       log.info('Bot', 'REPLY: dong')
-      msg.say('dong')
+      await msg.say('dong')
 
       const joinWechaty =  `Join Wechaty Developers' Community\n\n` +
                             `Wechaty is used in many ChatBot projects by hundreds of developers.\n\n` +
@@ -239,9 +234,9 @@ bot.start()
     }
   }
 })
-.catch(e => {
+.catch(async e => {
   log.error('Bot', 'start() fail: %s', e)
-  bot.stop()
+  await bot.stop()
   process.exit(-1)
 })
 

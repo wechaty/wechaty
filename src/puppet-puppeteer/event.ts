@@ -164,7 +164,7 @@ async function onLogin(
     // fix issue #668
     await this.waitStable()
 
-    this.login(userId)
+    await this.login(userId)
 
   } catch (e) {
     log.error('PuppetPuppeteerEvent', 'onLogin() exception: %s', e)
@@ -222,7 +222,7 @@ async function onMessage(
           log.warn('PuppetPuppeteerEvent', `checkRoomSystem message: <${rawPayload.Content}> not found`)
         }
       } else {
-        firer.checkFriendConfirm(rawPayload)
+        await firer.checkFriendConfirm(rawPayload)
       }
       break
   }

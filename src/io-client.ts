@@ -137,7 +137,7 @@ export class IoClient {
     })
   }
 
-  private onMessage(m: Message) {
+  private async onMessage(m: Message) {
     // const from = m.from()
     // const to = m.to()
     // const content = m.toString()
@@ -150,7 +150,7 @@ export class IoClient {
     //         )
 
     if (/^wechaty|chatie|botie/i.test(m.text()) && !m.self()) {
-      m.say('https://www.chatie.io')
+      await m.say('https://www.chatie.io')
         .then(_ => log.info('Bot', 'REPLIED to magic word "chatie"'))
     }
   }
