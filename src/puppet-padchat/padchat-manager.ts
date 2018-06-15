@@ -200,8 +200,22 @@ export class PadchatManager extends PadchatRpc {
       ...await this.options.memory.get<PadchatMemorySlot>(MEMORY_SLOT_NAME),
     }
 
-    // await this.padchatRpc.start()
-    await super.start()
+    /**
+     * Sometimes the RPC WebSocket will failure on connect in super.start(),
+     *  if that's true then a Error will be throw out.
+     *  Try again in the following while loop until the state is not on('pending')
+     */
+    while (this.state.on() === 'pending') {
+      try {
+        await super.start()
+        break
+      } catch (e) {
+        log.warn('PuppetPadchatManager', 'start() super.start() exception: %s', e)
+        await super.stop()
+        await new Promise(r => setTimeout(r, 1000))
+        log.warn('PuppetPadchatManager', 'start() super.start() retry now ...')
+      }
+    }
 
     await this.tryLoad62Data()
 
