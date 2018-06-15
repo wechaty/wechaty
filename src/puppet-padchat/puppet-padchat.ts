@@ -655,9 +655,7 @@ export class PuppetPadchat extends Puppet {
    */
 
   public async messageFile(messageId: string): Promise<FileBox> {
-    log.warn('PuppetPadchat', 'messageFile(%s) not fully implemented yet, PR is welcome!', messageId)
-
-    // TODO
+    log.warn('PuppetPadchat', 'messageFile(%s)', messageId)
 
     if (!this.padchatManager) {
       throw new Error('no padchat manager')
@@ -672,9 +670,6 @@ export class PuppetPadchat extends Puppet {
     let result
 
     switch (payload.type) {
-      case MessageType.Attachment:
-        break
-
       case MessageType.Audio:
         result = await this.padchatManager.WXGetMsgVoice(rawText)
         console.log(result)
@@ -695,19 +690,23 @@ export class PuppetPadchat extends Puppet {
         console.log(result)
         return FileBox.fromBase64(result.video, `${attachmentName}.mp4`)
 
+      case MessageType.Attachment:
       default:
-        throw new Error('unsupport type: ' + PadchatMessageType[rawPayload.sub_type] + ':' + rawPayload.sub_type)
+        log.warn('PuppetPadchat', 'messageFile(%s) unsupport type: %s(%s) because it is not fully implemented yet, PR is welcome.',
+                                  messageId,
+                                  PadchatMessageType[rawPayload.sub_type],
+                                  rawPayload.sub_type,
+                )
+        const base64 = 'Tm90IFN1cHBvcnRlZCBBdHRhY2htZW50IEZpbGUgVHlwZSBpbiBNZXNzYWdlLgpTZWU6IGh0dHBzOi8vZ2l0aHViLmNvbS9DaGF0aWUvd2VjaGF0eS9pc3N1ZXMvMTI0OQo='
+        const filename = 'wechaty-puppet-padchat-message-attachment-' + messageId + '.txt'
+
+        const file = FileBox.fromBase64(
+          base64,
+          filename,
+        )
+
+        return file
     }
-
-    const base64 = 'cRH9qeL3XyVnaXJkppBuH20tf5JlcG9uFX1lL2IvdHRRRS9kMMQxOPLKNYIzQQ=='
-    const filename = 'test-' + messageId + '.txt'
-
-    const file = FileBox.fromBase64(
-      base64,
-      filename,
-    )
-
-    return file
   }
 
   public async messagePayloadDirty(messageId: string): Promise<void> {
