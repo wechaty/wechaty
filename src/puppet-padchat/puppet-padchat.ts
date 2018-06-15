@@ -1065,6 +1065,8 @@ export class PuppetPadchat extends Puppet {
     }
 
     await this.padchatManager.WXQuitChatRoom(roomId)
+    await this.roomMemberPayloadDirty(roomId)
+    await this.roomPayloadDirty(roomId)
   }
 
   public async roomAnnounce(roomId: string)             : Promise<string>
