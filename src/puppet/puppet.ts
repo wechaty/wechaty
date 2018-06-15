@@ -365,7 +365,8 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async contactAvatar(contactId: string)                : Promise<FileBox>
   public abstract async contactAvatar(contactId: string, file: FileBox) : Promise<void>
 
-  public abstract async contactList()                    : Promise<string[]>
+  public abstract async contactValid(contactId: string) : Promise<boolean>
+  public abstract async contactList()                   : Promise<string[]>
 
   public abstract async contactQrcode(contactId: string) : Promise<string>
 
@@ -630,6 +631,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async roomAvatar(roomId: string)                          : Promise<FileBox>
   public abstract async roomCreate(contactIdList: string[], topic?: string) : Promise<string>
   public abstract async roomDel(roomId: string, contactId: string)          : Promise<void>
+  public abstract async roomValid(roomId: string)                           : Promise<boolean>
   public abstract async roomQuit(roomId: string)                            : Promise<void>
 
   public abstract async roomTopic(roomId: string)                 : Promise<string>
@@ -808,7 +810,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public async roomPayload(
     roomId: string,
   ): Promise<RoomPayload> {
-    log.verbose('Puppet', 'roomPayload(%s%s)', roomId)
+    log.verbose('Puppet', 'roomPayload(%s)', roomId)
 
     if (!roomId) {
       throw new Error('no id')

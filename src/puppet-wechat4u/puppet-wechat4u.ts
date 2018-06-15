@@ -305,6 +305,11 @@ export class PuppetWechat4u extends Puppet {
     await this.wechat4u.updateRemarkName(contactId, alias)
   }
 
+  public async contactValid(contactId: string): Promise<boolean> {
+    log.verbose('PuppetWechat4u', 'contactValid(%s)', contactId)
+    return true
+  }
+
   public async contactList(): Promise<string[]> {
     log.verbose('PuppetWechat4u', 'contactList()')
 
@@ -749,6 +754,11 @@ export class PuppetWechat4u extends Puppet {
       // aliasDict,
     }
     return roomPayload
+  }
+
+  public async roomValid(roomId: string): Promise<boolean> {
+    log.verbose('PuppetWechat4u', 'roomValid(%s)', roomId)
+    return true
   }
 
   public async roomList(): Promise<string[]> {

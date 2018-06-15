@@ -149,12 +149,39 @@ export class Room extends Accessory implements Sayable {
     log.verbose('Room', 'find({ topic: %s })', query.topic)
 
     const roomList = await this.findAll(query)
-    if (!roomList || roomList.length < 1) {
+    if (!roomList) {
       return null
-    } else if (roomList.length > 1) {
-      log.warn('Room', 'find() got more than one result, return the 1st one.')
     }
-    return roomList[0]
+    if (roomList.length < 1) {
+      return null
+    }
+
+    if (roomList.length > 1) {
+      log.warn('Room', 'find() got more than one(%d) result', roomList.length)
+    }
+
+    let n = 0
+    for (n = 0; n < roomList.length; n++) {
+      const room = roomList[n]
+      // use puppet.roomValid() to confirm double confirm that this roomId is valid.
+      // https://github.com/lijiarui/wechaty-puppet-padchat/issues/64
+      // https://github.com/Chatie/wechaty/issues/1345
+      const valid = await this.puppet.roomValid(room.id)
+      if (valid) {
+        log.verbose('Room', 'find() confirm room[#%d] with id=%d is vlaid result, return it.',
+                            n,
+                            room.id,
+                  )
+        return room
+      } else {
+        log.verbose('Room', 'find() confirm room[#%d] with id=%d is INVALID result, try next',
+                            n,
+                            room.id,
+                    )
+      }
+    }
+    log.warn('Room', 'find() got %d rooms but no one is valid.', roomList.length)
+    return null
   }
 
   /**

@@ -858,6 +858,11 @@ export class PuppetPuppeteer extends Puppet {
   //   return filterFunction
   // }
 
+  public async contactValid(contactId: string): Promise<boolean> {
+    log.verbose('PuppetPuppeteer', 'contactValid(%s)', contactId)
+    return true
+  }
+
   public async contactList(): Promise<string[]> {
     const idList = await this.bridge.contactList()
     return idList
@@ -986,6 +991,11 @@ export class PuppetPuppeteer extends Puppet {
     }
     // console.log(roomPayload)
     return roomPayload
+  }
+
+  public async roomValid(roomId: string): Promise<boolean> {
+    log.verbose('PuppetPuppeteer', 'roomValid(%s)', roomId)
+    return true
   }
 
   public async roomList(): Promise<string[]> {

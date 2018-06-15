@@ -558,6 +558,11 @@ export class PuppetPadchat extends Puppet {
     return
   }
 
+  public async contactValid(contactId: string): Promise<boolean> {
+    log.verbose('PuppetPadchat', 'contactValid(%s)', contactId)
+    return true
+  }
+
   public async contactList(): Promise<string[]> {
     log.verbose('PuppetPadchat', 'contactList()')
 
@@ -939,6 +944,15 @@ export class PuppetPadchat extends Puppet {
     return memberIdList
   }
 
+  public async roomValid(roomId: string): Promise<boolean> {
+    log.verbose('PuppetPadchat', 'roomValid(%s)', roomId)
+    if (!this.padchatManager) {
+      throw new Error('no padchat manager')
+    }
+    const exist = await this.padchatManager.WXGetChatRoomMember(roomId)
+    return !!exist
+  }
+
   public async roomList(): Promise<string[]> {
     log.verbose('PuppetPadchat', 'roomList()')
 
@@ -969,6 +983,7 @@ export class PuppetPadchat extends Puppet {
      * Should not dirty payload at here,
      * because later we need to get the leaverId from the event.
      * We will dirty the payload when we process the leave event.
+     * Issue #1329 - https://github.com/Chatie/wechaty/issues/1329
      */
     // await this.roomMemberPayloadDirty(roomId)
   }
@@ -1072,6 +1087,8 @@ export class PuppetPadchat extends Puppet {
     }
 
     await this.padchatManager.WXQuitChatRoom(roomId)
+
+    // Clean Cache
     await this.roomMemberPayloadDirty(roomId)
     await this.roomPayloadDirty(roomId)
   }

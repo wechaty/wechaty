@@ -145,6 +145,11 @@ export class PuppetMock extends Puppet {
     return
   }
 
+  public async contactValid(contactId: string): Promise<boolean> {
+    log.verbose('PuppetMock', 'contactValid(%s)', contactId)
+    return true
+  }
+
   public async contactList(): Promise<string[]> {
     log.verbose('PuppetMock', 'contactList()')
 
@@ -296,6 +301,11 @@ export class PuppetMock extends Puppet {
     }
 
     return payload
+  }
+
+  public async roomValid(roomId: string): Promise<boolean> {
+    log.verbose('PuppetMock', 'roomValid(%s)', roomId)
+    return true
   }
 
   public async roomList(): Promise<string[]> {
