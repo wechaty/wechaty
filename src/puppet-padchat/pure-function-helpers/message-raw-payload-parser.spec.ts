@@ -274,7 +274,7 @@ test('share card in room', async t => {
   t.deepEqual(payload, EXPECTED_PAYLOAD, 'should parse share card message peer to peer')
 })
 
-test.only('attachment file with ext .xlsx', async t => {
+test.skip('attachment file with ext .xlsx', async t => {
   const MESSAGE_PAYLOAD: PadchatMessagePayload = {
     content     : '<msg><appmsg appid="" sdkver="0"><title>面试--运营助理.xlsx</title><des></des><action></action><type>6</type><showtype>0</showtype><mediatagname></mediatagname><messageaction></messageaction><content></content><url></url><lowurl></lowurl><dataurl></dataurl><lowdataurl></lowdataurl><appattach><totallen>29001</totallen><attachid>@cdn_304f0201000448304602010002040592f70202033d0af802046631feb602045b235b5f0421777869645f7a6a3263616870777a67696531323136365f313532393034333830370204010400050201000400_abee7526f03e4d598aee3f36a9f6cf87_1</attachid><emoticonmd5></emoticonmd5><fileext>xlsx</fileext><cdnattachurl>304f0201000448304602010002040592f70202033d0af802046631feb602045b235b5f0421777869645f7a6a3263616870777a67696531323136365f313532393034333830370204010400050201000400</cdnattachurl><aeskey>abee7526f03e4d598aee3f36a9f6cf87</aeskey><encryver>0</encryver></appattach><extinfo></extinfo><sourceusername></sourceusername><sourcedisplayname></sourcedisplayname><commenturl></commenturl><thumburl></thumburl><md5>73dd2e7c3ec58bbae471dc2d6374578a</md5></appmsg><fromusername>qq512436430</fromusername><scene>0</scene><appinfo><version>1</version><appname></appname></appinfo><commenturl></commenturl></msg>',
     continue    : 1,
