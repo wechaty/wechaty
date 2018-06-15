@@ -598,7 +598,7 @@ export class Room extends Accessory implements Sayable {
   }
 
   /**
-   * Check if the room has member `contact`.
+   * Check if the room has member `contact`, the return is a Promise and must be `await`-ed
    *
    * @param {Contact} contact
    * @returns {boolean} Return `true` if has contact, else return `false`.

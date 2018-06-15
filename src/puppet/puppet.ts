@@ -480,7 +480,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     }
 
     if (dirty) {
-      this.contactPayloadDirty(contactId)
+      await this.contactPayloadDirty(contactId)
 
     } else {
       const cachedPayload = this.contactPayloadCache(contactId)
@@ -546,7 +546,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     }
 
     if (dirty) {
-      this.friendshipPayloadDirty(friendshipId)
+      await this.friendshipPayloadDirty(friendshipId)
 
     } else {
       const cachedPayload = this.friendshipPayloadCache(friendshipId)
@@ -613,7 +613,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     }
 
     if (dirty) {
-      this.messagePayloadDirty(messageId)
+      await this.messagePayloadDirty(messageId)
 
     } else {
       const cachedPayload = this.messagePayloadCache(messageId)
@@ -831,7 +831,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     }
 
     if (dirty) {
-      this.roomPayloadDirty(roomId)
+      await this.roomPayloadDirty(roomId)
 
     } else {
       const cachedPayload = this.roomPayloadCache(roomId)
@@ -906,7 +906,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     const cacheKey = this.cacheKeyRoomMember(roomId, contactId)
 
     if (dirty) {
-      this.roomMemberPayloadDirty(roomId)
+      await this.roomMemberPayloadDirty(roomId)
     } else {
       const cachedPayload = this.roomMemberPayloadCache(roomId, contactId)
 

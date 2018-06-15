@@ -88,25 +88,25 @@ bot.on('message', async function(msg) {
 
   if (receiver.id === 'filehelper') {
     if (text === '#status') {
-      filehelper.say('in busy mode: ' + busyIndicator)
-      filehelper.say('auto reply: ' + busyAnnouncement)
+      await filehelper.say('in busy mode: ' + busyIndicator)
+      await filehelper.say('auto reply: ' + busyAnnouncement)
 
     } else if (text === '#free') {
       busyIndicator = false
-      filehelper.say('auto reply stopped.')
+      await filehelper.say('auto reply stopped.')
 
     } else if (/^#busy/i.test(text)) {
 
       busyIndicator = true
-      filehelper.say('in busy mode: ' + 'ON')
+      await filehelper.say('in busy mode: ' + 'ON')
 
       const matches = text.match(/^#busy (.+)$/i)
       if (!matches || !matches[1]) {
-        filehelper.say('auto reply message: "' + busyAnnouncement + '"')
+        await filehelper.say('auto reply message: "' + busyAnnouncement + '"')
 
       } else {
         busyAnnouncement = matches[1]
-        filehelper.say('set auto reply to: "' + busyAnnouncement + '"')
+        await filehelper.say('set auto reply to: "' + busyAnnouncement + '"')
 
       }
     }
