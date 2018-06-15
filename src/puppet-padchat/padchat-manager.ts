@@ -221,7 +221,7 @@ export class PadchatManager extends PadchatRpc {
 
     const succeed = await this.tryAutoLogin(this.memorySlot)
     if (!succeed) {
-      this.startCheckScan()
+      await this.startCheckScan()
     }
 
     this.state.on(true)
@@ -239,12 +239,12 @@ export class PadchatManager extends PadchatRpc {
       log.warn('PuppetPadchatManager', 'stop() subscript not exist')
     }
 
-    this.stopCheckScan()
+    await this.stopCheckScan()
 
     // await this.padchatRpc.stop()
     await super.stop()
 
-    this.releaseCache()
+    await this.releaseCache()
 
     this.selfId          = undefined
     this.loginScanQrcode = undefined
@@ -301,9 +301,9 @@ export class PadchatManager extends PadchatRpc {
     }
 
     this.selfId = undefined
-    this.releaseCache()
+    await this.releaseCache()
 
-    this.startCheckScan()
+    await this.startCheckScan()
   }
 
   protected async stopCheckScan(): Promise<void> {
@@ -322,7 +322,7 @@ export class PadchatManager extends PadchatRpc {
 
     if (this.selfId) {
       log.warn('PuppetPadchatManager', 'startCheckScan() this.username exist.')
-      this.onLogin(this.selfId)
+      await this.onLogin(this.selfId)
       return
     }
 
@@ -388,7 +388,7 @@ export class PadchatManager extends PadchatRpc {
           // this.autoData.nick_name = loginResult.nick_name
           // this.autoData.user_name = loginResult.user_name
 
-          this.onLogin(loginResult.user_name)
+          await this.onLogin(loginResult.user_name)
           return
 
         case WXCheckQRCodeStatus.Timeout:
@@ -417,9 +417,9 @@ export class PadchatManager extends PadchatRpc {
     }
 
     await this.emitLoginQrcode()
-    this.loginTimer = setTimeout(() => {
+    this.loginTimer = setTimeout(async () => {
       this.loginTimer = undefined
-      this.startCheckScan()
+      await this.startCheckScan()
     }, 1000)
     return
   }
@@ -513,7 +513,7 @@ export class PadchatManager extends PadchatRpc {
      * 2 Auto Login Success
      */
     if (autoLoginResult.status === 0) {
-      this.onLogin(autoLoginResult.user_name)
+      await this.onLogin(autoLoginResult.user_name)
       return true
 
     }

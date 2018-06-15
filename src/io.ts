@@ -221,7 +221,7 @@ export class Io {
     return ws
   }
 
-  private wsOnOpen(ws: WebSocket): void {
+  private async wsOnOpen(ws: WebSocket): Promise<void> {
     if (this.protocol !== ws.protocol) {
       log.error('Io', 'initWebSocket() require protocol[%s] failed', this.protocol)
       // XXX deal with error?
@@ -242,10 +242,10 @@ export class Io {
       name,
       payload,
     }
-    this.send(initEvent)
+    await this.send(initEvent)
   }
 
-  private wsOnMessage(data: WebSocket.Data) {
+  private async wsOnMessage(data: WebSocket.Data) {
     log.silly('Io', 'initWebSocket() ws.on(message): %s', data)
     // flags.binary will be set if a binary data is received.
     // flags.masked will be set if the data was masked.
@@ -289,7 +289,7 @@ export class Io {
 
       case 'reset':
         log.verbose('Io', 'on(reset): %s', ioEvent.payload)
-        this.options.wechaty.reset(ioEvent.payload)
+        await this.options.wechaty.reset(ioEvent.payload)
         break
 
       case 'shutdown':
@@ -310,7 +310,7 @@ export class Io {
               name: this.options.wechaty.Contact.load(userId).name(),
             },
           }
-          this.send(loginEvent)
+          await this.send(loginEvent)
         }
 
         if (this.scanPayload) {
@@ -318,7 +318,7 @@ export class Io {
             name:     'scan',
             payload:  this.scanPayload,
           }
-          this.send(scanEvent)
+          await this.send(scanEvent)
         }
 
         break
@@ -329,7 +329,7 @@ export class Io {
 
       case 'logout':
         log.info('Io', 'on(logout): %s', ioEvent.payload)
-        this.options.wechaty.logout()
+        await this.options.wechaty.logout()
         break
 
       default:

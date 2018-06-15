@@ -94,9 +94,9 @@ bot
 })
 
 bot.start()
-.catch(e => {
+.catch(async e => {
   log.error('Bot', 'init() fail:' + e)
-  bot.stop()
+  await bot.stop()
   process.exit(-1)
 })
 
@@ -146,10 +146,10 @@ class Talker extends EventEmitter {
     this.save(text)
     this.updateTimer()
   }
-  public say() {
+  public async say() {
     log.verbose('Talker', 'say()')
     const text  = this.load()
-    this.thinker(text)
+    await this.thinker(text)
     .then(reply => this.emit('say', reply))
     this.timer = undefined
   }

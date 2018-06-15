@@ -49,9 +49,9 @@ bot
   console.log(`${qrcode}\n[${status}] Scan QR Code in above url to login: `)
 })
 
-.on('login'	  , function (this, user) {
+.on('login'	  , async function (this, user) {
   log.info('Bot', `${user.name()} logined`)
-  this.say(`wechaty logined`)
+  await this.say(`wechaty logined`)
 })
 
 .on('logout'	, user => log.info('Bot', `${user.name()} logouted`))

@@ -130,7 +130,7 @@ bot.on('message', async function(msg) {
    * 1. Send busy anoncement to contact
    */
   if (!room) {
-    msg.say(busyAnnouncement)
+    await msg.say(busyAnnouncement)
     return
   }
 
@@ -141,7 +141,7 @@ bot.on('message', async function(msg) {
   const contactList = await msg.mention()
   const contactIdList = contactList.map(c => c.id)
   if (contactIdList.includes(this.userSelf().id)) {
-    msg.say(busyAnnouncement, sender)
+    await msg.say(busyAnnouncement, sender)
   }
 
 })
