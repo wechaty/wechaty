@@ -248,7 +248,10 @@ export class Room extends Accessory implements Sayable {
       return
     }
 
-    await this.puppet.roomPayload(this.id, dirty)
+    if (dirty) {
+      await this.puppet.roomPayloadDirty(this.id)
+    }
+    await this.puppet.roomPayload(this.id)
 
     const memberIdList = await this.puppet.roomMemberList(this.id)
 

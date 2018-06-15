@@ -372,7 +372,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async contactRawPayload(contactId: string)     : Promise<any>
   public abstract async contactRawPayloadParser(rawPayload: any) : Promise<ContactPayload>
 
-  protected async contactPayloadDirty(contactId: string): Promise<void> {
+  public async contactPayloadDirty(contactId: string): Promise<void> {
     log.verbose('Puppet', 'contactPayloadDirty(%s)', contactId)
     this.cacheContactPayload.del(contactId)
   }
@@ -525,7 +525,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     return cachedPayload
   }
 
-  protected async friendshipPayloadDirty(friendshipId: string): Promise<void> {
+  public async friendshipPayloadDirty(friendshipId: string): Promise<void> {
     log.verbose('Puppet', 'friendshipPayloadDirty(%s)', friendshipId)
     this.cacheFriendshipPayload.del(friendshipId)
   }
@@ -587,7 +587,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     return cachedPayload
   }
 
-  protected async messagePayloadDirty(messageId: string): Promise<void> {
+  public async messagePayloadDirty(messageId: string): Promise<void> {
     log.verbose('Puppet', 'messagePayloadDirty(%s)', messageId)
     this.cacheMessagePayload.del(messageId)
   }
@@ -800,7 +800,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     return cachedPayload
   }
 
-  protected async roomPayloadDirty(roomId: string): Promise<void> {
+  public async roomPayloadDirty(roomId: string): Promise<void> {
     log.verbose('Puppet', 'roomPayloadDirty(%s)', roomId)
     this.cacheRoomPayload.del(roomId)
   }
@@ -841,7 +841,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     return contactId + '@@@' + roomId
   }
 
-  protected async roomMemberPayloadDirty(roomId: string): Promise<void> {
+  public async roomMemberPayloadDirty(roomId: string): Promise<void> {
     log.verbose('Puppet', 'roomMemberPayloadDirty(%s)', roomId)
 
     const contactIdList = await this.roomMemberList(roomId)
