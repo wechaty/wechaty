@@ -2,7 +2,7 @@ import test  from 'blue-tape'
 
 import {
   stripBugChatroomId,
-}                             from './compatible-wei'
+}                             from './compatible-wei-bug'
 
 test('stripBugChatroomId()', async t => {
   const RAW_USER_NAME_1 = '\n\u00135907139882@chatroom'
