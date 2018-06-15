@@ -68,7 +68,7 @@ import {
   isContactId,
   isRoomId,
   padchatDecode,
-  pureUserName,
+  stripBugChatroomId,
 }                       from './pure-function-helpers/'
 
 import { log }          from '../config'
@@ -997,7 +997,7 @@ export class PadchatRpc extends EventEmitter {
     if (!result || result.status !== 0) {
       throw Error('WXCreateChatRoom , stranger,error! canot get result from websocket server')
     }
-    return pureUserName(result.user_name)
+    return stripBugChatroomId(result.user_name)
   }
 
   // TODO: check any

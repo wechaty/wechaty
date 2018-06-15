@@ -12,6 +12,7 @@
  *
  */
 
+export * from './compatible-wei'
 export * from './contact-raw-payload-parser'
 export * from './file-box-to-qrcode'
 export * from './friendship-event-message-parser'
@@ -24,4 +25,3 @@ export * from './room-event-leave-message-parser'
 export * from './room-event-topic-message-parser'
 export * from './room-raw-payload-parser'
 export * from './split-name'
-export * from './compatible-wei'
