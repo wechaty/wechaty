@@ -964,7 +964,13 @@ export class PuppetPadchat extends Puppet {
 
     // Should check whether user is in the room. WXDeleteChatRoomMember won't check if user in the room automatically
     await this.padchatManager.WXDeleteChatRoomMember(roomId, contactId)
-    await this.roomMemberPayloadDirty(roomId)
+
+    /**
+     * Should not dirty payload at here,
+     * because later we need to get the leaverId from the event.
+     * We will dirty the payload when we process the leave event.
+     */
+    // await this.roomMemberPayloadDirty(roomId)
   }
 
   public async roomQrcode(roomId: string): Promise<string> {
