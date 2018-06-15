@@ -234,7 +234,7 @@ export class Contact extends Accessory implements Sayable {
     if (!this.payload) {
       return this.constructor.name
     }
-    const identity = this.alias() || this.name() || this.id
+    const identity = this.payload.alias || this.payload.name || this.id
     return `Contact<${identity || 'Unknown'}>`
   }
 
