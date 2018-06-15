@@ -83,15 +83,15 @@ bot
                           reply,
                           msg.text(),
             )
-    msg.say(reply)
+    await msg.say(reply)
   } catch (e) {
     log.error('Bot', 'on message tuling.ask() exception: %s' , e && e.message || e)
   }
 })
 
 bot.start()
-.catch(e => {
+.catch(async e => {
   log.error('Bot', 'start() fail:' + e)
-  bot.stop()
+  await bot.stop()
   process.exit(-1)
 })

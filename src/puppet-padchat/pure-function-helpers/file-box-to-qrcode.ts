@@ -5,7 +5,7 @@ import { FileBox } from 'file-box'
 
 export async function fileBoxToQrcode(file: FileBox): Promise<string> {
   const future = new Promise<string>(async (resolve, reject) => {
-    Jimp.read(await file.toBuffer(), (err, image) => {
+    await Jimp.read(await file.toBuffer(), (err, image) => {
       if (err) {
         return reject(err)
       }

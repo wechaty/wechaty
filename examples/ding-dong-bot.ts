@@ -141,14 +141,14 @@ bot.start()
     }
   }
 })
-.catch(e => {
+.catch(async e => {
   log.error('Bot', 'start() fail: %s', e)
-  bot.stop()
+  await bot.stop()
   process.exit(-1)
 })
 
 let quiting = false
-finis((code, signal) => {
+finis(async (code, signal) => {
   log.info('Bot', 'finis(%s, %s)', code, signal)
 
   if (!bot.logonoff()) {
@@ -168,7 +168,7 @@ finis((code, signal) => {
   const exitMsg = `Wechaty will exit ${code} because of ${signal} `
 
   log.info('Bot', 'finis() broadcast quiting message for bot')
-  bot.say(exitMsg)
+  await bot.say(exitMsg)
       // .then(() => bot.stop())
       .catch(e => log.error('Bot', 'finis() catch rejection: %s', e))
       .then(() => done = true)

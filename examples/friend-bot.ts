@@ -79,7 +79,7 @@ bot
 
   try {
     logMsg = 'received `friend` event from ' + friendship.contact().name()
-    fileHelper.say(logMsg)
+    await fileHelper.say(logMsg)
     console.log(logMsg)
 
     switch (friendship.type()) {
@@ -116,13 +116,13 @@ bot
   }
 
   console.log(logMsg)
-  fileHelper.say(logMsg)
+  await fileHelper.say(logMsg)
 
 })
 
 bot.start()
-.catch(e => {
+.catch(async e => {
   log.error('Bot', 'init() fail: %s', e)
-  bot.stop()
+  await bot.stop()
   process.exit(-1)
 })

@@ -53,14 +53,14 @@ console.log(welcome)
 const bot = Wechaty.instance()
 
 bot
-.on('login'	  , function(this, user) {
+.on('login'	  , async function(this, user) {
   log.info('Bot', `${user.name()} logined`)
-  this.say('wechaty contact-bot just logined')
+  await this.say('wechaty contact-bot just logined')
 
   /**
    * Main Contact Bot start from here
    */
-  main()
+  await main()
 
 })
 .on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
@@ -71,9 +71,9 @@ bot
 })
 
 bot.start()
-.catch(e => {
+.catch(async e => {
   log.error('Bot', 'init() fail: %s', e)
-  bot.stop()
+  await bot.stop()
   process.exit(-1)
 })
 

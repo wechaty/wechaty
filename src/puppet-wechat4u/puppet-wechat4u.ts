@@ -182,7 +182,7 @@ export class PuppetWechat4u extends Puppet {
         this.emit('error', 'login event can not found selfId')
         return
       }
-      this.login(userId)
+      await this.login(userId)
       // 保存数据，将数据序列化之后保存到任意位置
       await this.options.memory.set(SYNC_DATA_SLOT, wechat4u.botData)
       await this.options.memory.save()
@@ -192,7 +192,7 @@ export class PuppetWechat4u extends Puppet {
      */
     wechat4u.on('logout', async () => {
       if (this.logonoff()) {
-        this.logout()
+        await this.logout()
       }
       // 清除数据
       await this.options.memory.delete(SYNC_DATA_SLOT)

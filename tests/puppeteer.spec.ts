@@ -196,13 +196,13 @@ test('other demos', async t => {
     })
 
     // await page.setRequestInterception(true)
-    page.on('request', interceptedRequest => {
+    page.on('request', async interceptedRequest => {
       if (interceptedRequest.url().endsWith('.png')
         || interceptedRequest.url().endsWith('.jpg')
       ) {
-        interceptedRequest.abort()
+        await interceptedRequest.abort()
       } else {
-        interceptedRequest.continue()
+        await interceptedRequest.continue()
       }
     })
 

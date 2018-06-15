@@ -13,7 +13,7 @@ export interface MessagePayloadBase {
   id            : string,
   contactId?    : string,        // Contact ShareCard
   filename?     : string,
-  mentionIdList : string[],      // Mentioned Contacts' Ids
+  mentionIdList?: string[],      // Mentioned Contacts' Ids
   text?         : string,
   timestamp     : number,        // Unix Timestamp(in seconds)
   type          : MessageType,
