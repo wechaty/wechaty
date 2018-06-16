@@ -365,7 +365,6 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async contactAvatar(contactId: string)                : Promise<FileBox>
   public abstract async contactAvatar(contactId: string, file: FileBox) : Promise<void>
 
-  public abstract async contactValid(contactId: string) : Promise<boolean>
   public abstract async contactList()                   : Promise<string[]>
 
   public abstract async contactQrcode(contactId: string) : Promise<string>
@@ -452,6 +451,15 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     }
 
     return filterFunction
+  }
+
+  /**
+   * Check a Contact Id if it's still valid.
+   *  For example: talk to the server, and see if it should be deleted in the local cache.
+   */
+  public async contactValidate(contactId: string) : Promise<boolean> {
+    log.silly('Puppet', 'contactValidate(%s) base class just return `true`', contactId)
+    return true
   }
 
   public contactPayloadCache(contactId: string): undefined | ContactPayload {
@@ -631,7 +639,6 @@ export abstract class Puppet extends EventEmitter implements Sayable {
   public abstract async roomAvatar(roomId: string)                          : Promise<FileBox>
   public abstract async roomCreate(contactIdList: string[], topic?: string) : Promise<string>
   public abstract async roomDel(roomId: string, contactId: string)          : Promise<void>
-  public abstract async roomValid(roomId: string)                           : Promise<boolean>
   public abstract async roomQuit(roomId: string)                            : Promise<void>
 
   public abstract async roomTopic(roomId: string)                 : Promise<string>
@@ -785,6 +792,15 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     }
 
     return filterFunction
+  }
+
+  /**
+   * Check a Room Id if it's still valid.
+   *  For example: talk to the server, and see if it should be deleted in the local cache.
+   */
+  public async roomValidate(roomId: string): Promise<boolean> {
+    log.silly('Puppet', 'roomValidate(%s) base class just return `true`', roomId)
+    return true
   }
 
   public roomPayloadCache(roomId: string): undefined | RoomPayload {

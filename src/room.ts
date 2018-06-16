@@ -163,10 +163,10 @@ export class Room extends Accessory implements Sayable {
     let n = 0
     for (n = 0; n < roomList.length; n++) {
       const room = roomList[n]
-      // use puppet.roomValid() to confirm double confirm that this roomId is valid.
+      // use puppet.roomValidate() to confirm double confirm that this roomId is valid.
       // https://github.com/lijiarui/wechaty-puppet-padchat/issues/64
       // https://github.com/Chatie/wechaty/issues/1345
-      const valid = await this.puppet.roomValid(room.id)
+      const valid = await this.puppet.roomValidate(room.id)
       if (valid) {
         log.verbose('Room', 'find() confirm room[#%d] with id=%d is vlaid result, return it.',
                             n,

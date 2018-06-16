@@ -558,7 +558,7 @@ export class PuppetPadchat extends Puppet {
     return
   }
 
-  public async contactValid(contactId: string): Promise<boolean> {
+  public async contactValidate(contactId: string): Promise<boolean> {
     log.verbose('PuppetPadchat', 'contactValid(%s)', contactId)
     return true
   }
@@ -944,7 +944,7 @@ export class PuppetPadchat extends Puppet {
     return memberIdList
   }
 
-  public async roomValid(roomId: string): Promise<boolean> {
+  public async roomValidate(roomId: string): Promise<boolean> {
     log.verbose('PuppetPadchat', 'roomValid(%s)', roomId)
     if (!this.padchatManager) {
       throw new Error('no padchat manager')

@@ -131,14 +131,40 @@ export class Contact extends Accessory implements Sayable {
     log.verbose('Contact', 'find(%s)', JSON.stringify(query))
 
     const contactList = await this.findAll(query)
-    if (!contactList || !contactList.length) {
+
+    if (!contactList) {
+      return null
+    }
+    if (contactList.length < 1) {
       return null
     }
 
     if (contactList.length > 1) {
-      log.warn('Contact', 'function find(%s) get %d contacts, use the first one by default', JSON.stringify(query), contactList.length)
+      log.warn('Contact', 'find() got more than one(%d) result', contactList.length)
     }
-    return contactList[0]
+
+    let n = 0
+    for (n = 0; n < contactList.length; n++) {
+      const contact = contactList[n]
+      // use puppet.contactValidate() to confirm double confirm that this contactId is valid.
+      // https://github.com/lijiarui/wechaty-puppet-padchat/issues/64
+      // https://github.com/Chatie/wechaty/issues/1345
+      const valid = await this.puppet.contactValidate(contact.id)
+      if (valid) {
+        log.verbose('Contact', 'find() confirm contact[#%d] with id=%d is vlaid result, return it.',
+                            n,
+                            contact.id,
+                  )
+        return contact
+      } else {
+        log.verbose('Contact', 'find() confirm contact[#%d] with id=%d is INVALID result, try next',
+                            n,
+                            contact.id,
+                    )
+      }
+    }
+    log.warn('Contact', 'find() got %d contacts but no one is valid.', contactList.length)
+    return null
   }
 
   /**
