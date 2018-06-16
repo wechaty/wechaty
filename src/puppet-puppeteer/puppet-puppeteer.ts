@@ -413,7 +413,7 @@ export class PuppetPuppeteer extends Puppet {
 
   public async messageFile(messageId: string): Promise<FileBox> {
     const rawPayload = await this.messageRawPayload(messageId)
-    const fileBox = await this.messageRawPayloadToFile(rawPayload)
+    const fileBox    = await this.messageRawPayloadToFile(rawPayload)
     return fileBox
   }
 
