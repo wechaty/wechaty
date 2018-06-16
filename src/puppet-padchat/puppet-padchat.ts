@@ -243,7 +243,7 @@ export class PuppetPadchat extends Puppet {
      * 0. Discard messages when not logged in
      */
     if (!this.id) {
-      log.warn('PuppetPadchat', 'onPadchatMessage({id=%s, type=%s(%s)}) discarded message because puppet is not logged-in')
+      log.warn('PuppetPadchat', 'onPadchatMessage(%s) discarded message because puppet is not logged-in', JSON.stringify(rawPayload))
       return
     }
 

@@ -126,8 +126,6 @@ export class PadchatRpc extends EventEmitter {
       const text = String(buffer)
       const payload = parse(text) // as JsonRpcPayloadRequest
 
-      // log.silly('PadchatRpc', 'initJsonRpc() jsonRpc.on(data) buffer="%s"', text)
-
       /**
        * A Gateway at here:
        *
@@ -262,15 +260,13 @@ export class PadchatRpc extends EventEmitter {
   private async reset(reason = 'unknown reason'): Promise<void> {
     log.verbose('PadchatRpc', 'reset(%s)', reason)
 
-    this.emit('reset', reason)
-
     try {
       this.stop()
     } catch (e) {
       // fall safe
     }
 
-    this.removeAllListeners()
+    this.emit('reset', reason)
   }
 
   public stop(): void {
@@ -371,8 +367,6 @@ export class PadchatRpc extends EventEmitter {
     // log.silly('PadchatRpc', 'onSocket(payload.length=%d)',
     //                           JSON.stringify(payload).length,
     //             )
-
-    // XXX
     // console.log('server payload:', payload)
 
     if (payload.type === PadchatPayloadType.Logout) {
@@ -441,12 +435,6 @@ export class PadchatRpc extends EventEmitter {
     //                                     padchatPayload.msgId,
     //             )
     // log.silly('PadchatRpc', 'onSocketPadchat(%s)', JSON.stringify(padchatPayload).substr(0, 500))
-
-    // if (padchatPayload.type === PadchatPayloadType.Logout) {
-    //   // this.emit('logout', this.selfId())
-    //   console.log('onSocketPadchat: ', JSON.stringify(padchatPayload))
-    //   this.emit('logout')
-    // }
 
     let result: any
 
@@ -517,23 +505,10 @@ export class PadchatRpc extends EventEmitter {
 
   protected async WXGetQRCode(): Promise<WXGetQRCodeType> {
     const result = await this.rpcCall('WXGetQRCode')
-    // if (!result || !(result.qr_code)) {
-    //   result = await this.WXGetQRCodeTwice()
-    // }
     return result
   }
 
-  // private async WXGetQRCodeTwice(): Promise<WXGetQRCodeType> {
-  //   await this.WXInitialize()
-  //   const resultTwice = await this.rpcCall('WXGetQRCode')
-  //   if (!resultTwice || !(resultTwice.qr_code)) {
-  //     throw Error('WXGetQRCodeTwice error! canot get result from websocket server when calling WXGetQRCode after WXInitialize')
-  //   }
-  //   return resultTwice
-  // }
-
   public async WXCheckQRCode(): Promise<WXCheckQRCodePayload> {
-    // this.checkQrcode()
     const result = await this.rpcCall('WXCheckQRCode')
     log.silly('PadchatRpc', 'WXCheckQRCode result: %s', JSON.stringify(result))
     if (!result) {
@@ -553,7 +528,7 @@ export class PadchatRpc extends EventEmitter {
 
   /**
    * Load all Contact and Room
-   * see issue https://github.com/lijiarui/test-ipad-puppet/issues/39
+   * see issue https://github.com/lijiarui/wechaty-puppet-padchat/issues/39
    * @returns {Promise<(PadchatRoomPayload | PadchatContactPayload)[]>}
    */
   public async WXSyncContact(): Promise<(PadchatRoomPayload | PadchatContactPayload)[]> {
@@ -576,7 +551,6 @@ export class PadchatRpc extends EventEmitter {
     if (!result || !(result.data) || result.status !== 0) {
       throw Error('WXGenerateWxDat error! canot get result from websocket server')
     }
-    // this.autoData.wxData = result.data
     return result.data
   }
 
@@ -598,7 +572,6 @@ export class PadchatRpc extends EventEmitter {
     if (!result || !result.token || result.status !== 0) {
       throw Error('WXGetLoginToken error! canot get result from websocket server')
     }
-    // this.autoData.token = result.token
     return result.token
   }
 
@@ -618,17 +591,8 @@ export class PadchatRpc extends EventEmitter {
    * @param {string} token    autoData.token
    */
   public async WXLoginRequest(token: string): Promise<undefined | WXLoginRequestType> {
-    // TODO: should show result here
     const result = await this.rpcCall('WXLoginRequest', token)
     log.silly('PadchatRpc', 'WXLoginRequest result: %s, type: %s', JSON.stringify(result), typeof result)
-    // if (!result || result.status !== 0) {
-    //   await this.WXGetQRCode()
-    //   return
-    // } else {
-    //   // check qrcode status
-    //   log.silly('PadchatRpc', 'WXLoginRequest begin to check whether user has clicked confirm login')
-    //   this.checkQrcode()
-    // }
     return result
   }
 
@@ -735,10 +699,6 @@ export class PadchatRpc extends EventEmitter {
     // 00:40:44 SILL PadchatRpc WXGetChatRoomMember() result: {"chatroom_id":0,"count":0,"member":"null\n","message":"","status":0,"user_name":""}
 
     try {
-      // tslint:disable-next-line:max-line-length
-      // change '[{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/DpS0ZssJ5s8tEpSr9JuPTRxEUrCK0USrZcR3PjOMfUKDwpnZLxWXlD4Q38bJpcXBtwXWwevsul1lJqwsQzwItQ/0","chatroom_nick_name":"","invited_by":"wxid_7708837087612","nick_name":"李佳芮","small_head":"http://wx.qlogo.cn/mmhead/ver_1/DpS0ZssJ5s8tEpSr9JuPTRxEUrCK0USrZcR3PjOMfUKDwpnZLxWXlD4Q38bJpcXBtwXWwevsul1lJqwsQzwItQ/132","user_name":"qq512436430"},{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/kcBj3gSibfFd2I9vQ8PBFyQ77cpPIfqkFlpTdkFZzBicMT6P567yj9IO6xG68WsibhqdPuG82tjXsveFATSDiaXRjw/0","chatroom_nick_name":"","invited_by":"wxid_7708837087612","nick_name":"梦君君","small_head":"http://wx.qlogo.cn/mmhead/ver_1/kcBj3gSibfFd2I9vQ8PBFyQ77cpPIfqkFlpTdkFZzBicMT6P567yj9IO6xG68WsibhqdPuG82tjXsveFATSDiaXRjw/132","user_name":"mengjunjun001"},{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/3CsKibSktDV05eReoAicV0P8yfmuHSowfXAMvRuU7HEy8wMcQ2eibcaO1ccS95PskZchEWqZibeiap6Gpb9zqJB1WmNc6EdD6nzQiblSx7dC1eGtA/0","chatroom_nick_name":"","invited_by":"wxid_7708837087612","nick_name":"苏轼","small_head":"http://wx.qlogo.cn/mmhead/ver_1/3CsKibSktDV05eReoAicV0P8yfmuHSowfXAMvRuU7HEy8wMcQ2eibcaO1ccS95PskZchEWqZibeiap6Gpb9zqJB1WmNc6EdD6nzQiblSx7dC1eGtA/132","user_name":"wxid_zj2cahpwzgie12"},{"big_head":"http://wx.qlogo.cn/mmhead/ver_1/piaHuicak41b6ibmcEVxoWKnnhgGDG5EbaD0hibwkrRvKeDs3gs7XQrkym3Q5MlUeSKY8vw2FRVVstialggUxf2zic2O8CvaEsicSJcghf41nibA940/0","chatroom_nick_name":"","invited_by":"wxid_zj2cahpwzgie12","nick_name":"王宁","small_head":"http://wx.qlogo.cn/mmhead/ver_1/piaHuicak41b6ibmcEVxoWKnnhgGDG5EbaD0hibwkrRvKeDs3gs7XQrkym3Q5MlUeSKY8vw2FRVVstialggUxf2zic2O8CvaEsicSJcghf41nibA940/132","user_name":"wxid_7708837087612"}]'
-      // to Array (PadchatRoomRawMember[])
-
       const tryMemberList: null | PadchatRoomMemberPayload[] = padchatDecode(result.member)
 
       if (Array.isArray(tryMemberList)) {
@@ -772,9 +732,6 @@ export class PadchatRpc extends EventEmitter {
 
     if (result.status === 0) {
       log.silly('PadchatRpc', 'WXQRCodeLogin, login successfully!')
-      // this.username = result.user_name
-      // this.nickname = result.nick_name
-      // this.loginSucceed = true
       return result
     }
 
@@ -783,66 +740,9 @@ export class PadchatRpc extends EventEmitter {
     } else if (result.status === -301) {
       log.warn('PadchatRpc', 'WXQRCodeLogin, redirect 301')
       return this.WXQRCodeLogin(username, password)
-      // if (!this.username || !this.password) {
-      //   throw Error('PadchatRpc, WXQRCodeLogin, redirect 301 and cannot get username or password here, return!')
-      // }
-      // this.WXQRCodeLogin(this.username, this.password)
     }
     throw Error('PadchatRpc, WXQRCodeLogin, unknown status: ' + result.status)
   }
-
-  // public async checkQrcode(): Promise<void> {
-  //   log.verbose('PadchatRpc', 'checkQrcode')
-  //   const result = await this.WXCheckQRCode()
-
-  //   if (result && result.status === WXCheckQRCodeStatus.WaitScan) {
-  //     log.verbose('PadchatRpc', 'checkQrcode: Please scan the Qrcode!')
-
-  //     setTimeout(() => {
-  //       this.checkQrcode()
-  //     }, 1000)
-
-  //     return
-  //   }
-
-  //   if (result && result.status === WXCheckQRCodeStatus.WaitConfirm) {
-  //     log.silly('PadchatRpc', 'checkQrcode: Had scan the Qrcode, but not Login!')
-
-  //     setTimeout(() => {
-  //       this.checkQrcode()
-  //     }, 1000)
-
-  //     return
-  //   }
-
-  //   if (result && result.status === WXCheckQRCodeStatus.Confirmed) {
-  //     log.silly('PadchatRpc', 'checkQrcode: Trying to login... please wait')
-
-  //     if (!result.user_name || !result.password) {
-  //       throw Error('PadchatRpc, checkQrcode, cannot get username or password here, return!')
-  //     }
-
-  //     // this.username = result.user_name
-  //     // this.nickname = result.nick_name
-  //     // this.password = result.password
-
-  //     // this.WXQRCodeLogin(this.username, this.password)
-  //     return
-  //   }
-
-  //   if (result && result.status === WXCheckQRCodeStatus.Timeout) {
-  //     log.silly('PadchatRpc', 'checkQrcode: Timeout')
-  //     return
-  //   }
-
-  //   if (result && result.status === WXCheckQRCodeStatus.Cancel) {
-  //     log.silly('PadchatRpc', 'checkQrcode: Cancel by user')
-  //     return
-  //   }
-
-  //   log.warn('PadchatRpc', 'checkQrcode: not know the reason, return data: %s', JSON.stringify(result))
-  //   return
-  // }
 
   public async WXSetUserRemark(id: string, remark: string): Promise<StandardType> {
     const result = await this.rpcCall('WXSetUserRemark', id, remark)
