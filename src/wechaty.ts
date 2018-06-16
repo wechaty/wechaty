@@ -124,13 +124,10 @@ export class Wechaty extends Accessory implements Sayable {
    */
   private static globalInstance: Wechaty
 
-  private memory: MemoryCard
+  private readonly memory : MemoryCard
+  private readonly state  : StateSwitch
 
-  /**
-   * the state
-   * @private
-   */
-  private state = new StateSwitch('Wechaty', log)
+  private lifeTimer?: NodeJS.Timer
 
   /**
    * the cuid
@@ -143,7 +140,7 @@ export class Wechaty extends Accessory implements Sayable {
   // tslint:disable-next-line:variable-name
   public readonly ContactSelf   : typeof ContactSelf
   // tslint:disable-next-line:variable-name
-  public readonly Friendship : typeof Friendship
+  public readonly Friendship    : typeof Friendship
   // tslint:disable-next-line:variable-name
   public readonly Message       : typeof Message
   // tslint:disable-next-line:variable-name
@@ -187,8 +184,8 @@ export class Wechaty extends Accessory implements Sayable {
                       : (options.profile || config.default.DEFAULT_PROFILE)
 
     this.memory = new MemoryCard(options.profile || undefined)
-
-    this.id = cuid()
+    this.state  = new StateSwitch('Wechaty', log)
+    this.id     = cuid()
 
     /**
      * Clone Classes for this bot and attach the `puppet` to the Class
@@ -710,6 +707,10 @@ export class Wechaty extends Accessory implements Sayable {
       return
     }
 
+    if (this.lifeTimer) {
+      throw new Error('start() lifeTimer exist')
+    }
+
     this.state.on('pending')
 
     try {
@@ -727,6 +728,10 @@ export class Wechaty extends Accessory implements Sayable {
     }
 
     this.on('heartbeat', () => this.memoryCheck())
+
+    this.lifeTimer = setInterval(() => {
+      log.silly('Wechaty', 'start() setInterval() this timer is to keep Wechaty running...')
+    }, 1000 * 60 * 60)
 
     this.state.on(true)
     this.emit('start')
@@ -754,20 +759,28 @@ export class Wechaty extends Accessory implements Sayable {
     this.state.off('pending')
     await this.memory.save()
 
+    if (this.lifeTimer) {
+      clearInterval(this.lifeTimer)
+      this.lifeTimer = undefined
+    }
+
     try {
       await this.puppet.stop()
     } catch (e) {
       log.error('Wechaty', 'stop() exception: %s', e.message)
       Raven.captureException(e)
-      throw e
-    } finally {
-      this.state.off(true)
-      this.emit('stop')
-
-      // MUST use setImmediate at here(the end of this function),
-      // because we need to run the micro task registered by the `emit` method
-      setImmediate(() => this.puppet.removeAllListeners())
+      this.emit('error', e)
     }
+
+    this.state.off(true)
+    this.emit('stop')
+
+    /**
+     * MUST use setImmediate at here(the end of this function),
+     * because we need to run the micro task registered by the `emit` method
+     */
+    setImmediate(() => this.puppet.removeAllListeners())
+
     return
   }
 

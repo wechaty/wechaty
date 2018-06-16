@@ -176,10 +176,6 @@ export class PuppetPadchat extends Puppet {
       return
     }
 
-    if (this.puppetLifetimeTimer) {
-      throw new Error('start() found this.puppetLifetimeTimer exist')
-    }
-
     /**
      * state has two main state: ON / OFF
      * ON (pending)
@@ -195,10 +191,6 @@ export class PuppetPadchat extends Puppet {
 
     await this.startManager(manager)
     await this.startWatchdog()
-
-    this.puppetLifetimeTimer = setInterval(() => {
-      log.silly('PuppetPadchat', 'start() setInterval() this timer is to keep puppet running...')
-    }, 1000 * 60 * 60)
 
     this.state.on(true)
     this.emit('start')
@@ -503,12 +495,16 @@ export class PuppetPadchat extends Puppet {
     await this.logout()
 
     await this.padchatManager.stop()
-    this.padchatManager.removeAllListeners()
 
-    if (this.puppetLifetimeTimer) {
-      clearInterval(this.puppetLifetimeTimer)
-      this.puppetLifetimeTimer = undefined
-    }
+    /**
+     * MUST use setImmediate at here(the end of this function),
+     * because we need to run the micro task registered by the `emit` method
+     */
+    setImmediate(() => {
+      if (this.padchatManager) {
+        this.padchatManager.removeAllListeners()
+      }
+    })
 
     this.state.off(true)
     this.emit('stop')
