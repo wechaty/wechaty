@@ -124,13 +124,10 @@ export class Wechaty extends Accessory implements Sayable {
    */
   private static globalInstance: Wechaty
 
-  private memory: MemoryCard
+  private readonly memory : MemoryCard
+  private readonly state  : StateSwitch
 
-  /**
-   * the state
-   * @private
-   */
-  private state = new StateSwitch('Wechaty', log)
+  private lifeTimer?: NodeJS.Timer
 
   /**
    * the cuid
@@ -143,7 +140,7 @@ export class Wechaty extends Accessory implements Sayable {
   // tslint:disable-next-line:variable-name
   public readonly ContactSelf   : typeof ContactSelf
   // tslint:disable-next-line:variable-name
-  public readonly Friendship : typeof Friendship
+  public readonly Friendship    : typeof Friendship
   // tslint:disable-next-line:variable-name
   public readonly Message       : typeof Message
   // tslint:disable-next-line:variable-name
@@ -187,8 +184,8 @@ export class Wechaty extends Accessory implements Sayable {
                       : (options.profile || config.default.DEFAULT_PROFILE)
 
     this.memory = new MemoryCard(options.profile || undefined)
-
-    this.id = cuid()
+    this.state  = new StateSwitch('Wechaty', log)
+    this.id     = cuid()
 
     /**
      * Clone Classes for this bot and attach the `puppet` to the Class
@@ -440,10 +437,23 @@ export class Wechaty extends Accessory implements Sayable {
   private initPuppet(): void {
     log.verbose('Wechaty', 'initPuppet(%s)', this.options.puppet)
 
+    let inited = false
+    try {
+      inited = !!this.puppet
+    } catch (e) {
+      inited = false
+    }
+
+    if (inited) {
+      log.verbose('Wechaty', 'initPuppet(%s) had already been inited, no need to init twice', this.options.puppet)
+      return
+    }
+
     const puppet = this.initPuppetResolver(this.options.puppet)
 
     this.initPuppetVersionSatisfy(puppet)
     this.initPuppetEventBridge(puppet)
+
     this.initPuppetAccessory(puppet)
   }
 
@@ -671,20 +681,20 @@ export class Wechaty extends Accessory implements Sayable {
     /**
      * 1. Set Wechaty
      */
-    this.Contact.wechaty       = this
-    this.ContactSelf.wechaty   = this
-    this.Friendship.wechaty = this
-    this.Message.wechaty       = this
-    this.Room.wechaty          = this
+    this.Contact.wechaty     = this
+    this.ContactSelf.wechaty = this
+    this.Friendship.wechaty  = this
+    this.Message.wechaty     = this
+    this.Room.wechaty        = this
 
     /**
      * 2. Set Puppet
      */
-    this.Contact.puppet       = puppet
-    this.ContactSelf.puppet   = puppet
-    this.Friendship.puppet = puppet
-    this.Message.puppet       = puppet
-    this.Room.puppet          = puppet
+    this.Contact.puppet     = puppet
+    this.ContactSelf.puppet = puppet
+    this.Friendship.puppet  = puppet
+    this.Message.puppet     = puppet
+    this.Room.puppet        = puppet
 
     this.puppet               = puppet
   }
@@ -698,7 +708,7 @@ export class Wechaty extends Accessory implements Sayable {
    * // do other stuff with bot here
    */
   public async start(): Promise<void> {
-    log.info('Wechaty', 'v%s starting...' , this.version())
+    log.info('Wechaty', 'start() v%s is starting...' , this.version())
     log.verbose('Wechaty', 'puppet: %s'   , this.options.puppet)
     log.verbose('Wechaty', 'profile: %s'  , this.options.profile)
     log.verbose('Wechaty', 'id: %s'       , this.id)
@@ -708,6 +718,10 @@ export class Wechaty extends Accessory implements Sayable {
       await this.state.ready('on')
       log.silly('Wechaty', 'start() state.ready() resolved')
       return
+    }
+
+    if (this.lifeTimer) {
+      throw new Error('start() lifeTimer exist')
     }
 
     this.state.on('pending')
@@ -723,10 +737,24 @@ export class Wechaty extends Accessory implements Sayable {
       console.error(e)
       log.error('Wechaty', 'start() exception: %s', e && e.message)
       Raven.captureException(e)
-      throw e
+      this.emit('error', e)
+
+      try {
+        await this.stop()
+      } catch (e) {
+        log.error('Wechaty', 'start() stop() exception: %s', e && e.message)
+        Raven.captureException(e)
+        this.emit('error', e)
+      } finally {
+        return
+      }
     }
 
     this.on('heartbeat', () => this.memoryCheck())
+
+    this.lifeTimer = setInterval(() => {
+      log.silly('Wechaty', 'start() setInterval() this timer is to keep Wechaty running...')
+    }, 1000 * 60 * 60)
 
     this.state.on(true)
     this.emit('start')
@@ -742,7 +770,7 @@ export class Wechaty extends Accessory implements Sayable {
    * await bot.stop()
    */
   public async stop(): Promise<void> {
-    log.verbose('Wechaty', 'stop()')
+    log.info('Wechaty', 'stop() v%s is stoping ...' , this.version())
 
     if (this.state.off()) {
       log.silly('Wechaty', 'stop() on an stopping/stopped instance')
@@ -754,20 +782,28 @@ export class Wechaty extends Accessory implements Sayable {
     this.state.off('pending')
     await this.memory.save()
 
+    if (this.lifeTimer) {
+      clearInterval(this.lifeTimer)
+      this.lifeTimer = undefined
+    }
+
     try {
       await this.puppet.stop()
     } catch (e) {
       log.error('Wechaty', 'stop() exception: %s', e.message)
       Raven.captureException(e)
-      throw e
-    } finally {
-      this.state.off(true)
-      this.emit('stop')
-
-      // MUST use setImmediate at here(the end of this function),
-      // because we need to run the micro task registered by the `emit` method
-      setImmediate(() => this.puppet.removeAllListeners())
+      this.emit('error', e)
     }
+
+    this.state.off(true)
+    this.emit('stop')
+
+    /**
+     * MUST use setImmediate at here(the end of this function),
+     * because we need to run the micro task registered by the `emit` method
+     */
+    setImmediate(() => this.puppet.removeAllListeners())
+
     return
   }
 

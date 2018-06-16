@@ -96,9 +96,9 @@ import {
 
 export class PuppetPadchat extends Puppet {
 
-  private readonly cachePadchatMessagePayload    : LRU.Cache<string, PadchatMessagePayload>
+  private readonly cachePadchatMessagePayload: LRU.Cache<string, PadchatMessagePayload>
 
-  public padchatManager?:  PadchatManager
+  private padchatManager?      : PadchatManager
 
   constructor(
     public options: PuppetOptions,
@@ -494,7 +494,16 @@ export class PuppetPadchat extends Puppet {
     await this.logout()
 
     await this.padchatManager.stop()
-    this.padchatManager.removeAllListeners()
+
+    /**
+     * MUST use setImmediate at here(the end of this function),
+     * because we need to run the micro task registered by the `emit` method
+     */
+    setImmediate(() => {
+      if (this.padchatManager) {
+        this.padchatManager.removeAllListeners()
+      }
+    })
 
     this.state.off(true)
     this.emit('stop')

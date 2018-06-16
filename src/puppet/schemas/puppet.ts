@@ -1,6 +1,4 @@
-import {
-  MemoryCard,
-}                       from 'memory-card'
+import { MemoryCard } from 'memory-card'
 
 /**
  * This is used internally to as a placeholder for the bot name.
@@ -52,7 +50,6 @@ export type ChatEventName = keyof typeof CHAT_EVENT_DICT
 export const PUPPET_EVENT_DICT = {
   ...CHAT_EVENT_DICT,
   error     : 'document can be writen at here',
-  // heartbeat : 'document can be writen at here',
   start     : 'document can be writen at here',
   stop      : 'document can be writen at here',
   watchdog  : 'document can be writen at here',
