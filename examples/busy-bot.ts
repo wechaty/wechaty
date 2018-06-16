@@ -22,7 +22,9 @@
 import { generate } from 'qrcode-terminal'
 
 import {
+  IoClient,
   Wechaty,
+  config,
   log,
 }             from '../src/'
 
@@ -43,6 +45,22 @@ Loading... please wait for QrCode Image Url and then scan to login.
 `)
 
 const bot = Wechaty.instance()
+
+const token = config.token
+if (token) {
+  log.info('Wechaty', 'TOKEN: %s', token)
+  const client = new IoClient({
+    token,
+    wechaty: bot,
+  })
+
+  client.init().catch(e => {
+    log.error('Wechaty', 'IoClient.init() exception: %s', e)
+    bot.emit('error', e)
+  })
+} else {
+  log.verbose('Wechaty', 'TOKEN: N/A')
+}
 
 bot
 .on('scan', (qrcode, status) => {
