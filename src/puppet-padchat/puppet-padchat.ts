@@ -98,7 +98,8 @@ export class PuppetPadchat extends Puppet {
 
   private readonly cachePadchatMessagePayload    : LRU.Cache<string, PadchatMessagePayload>
 
-  public padchatManager?:  PadchatManager
+  private padchatManager?      : PadchatManager
+  private puppetLifetimeTimer? : NodeJS.Timer
 
   constructor(
     public options: PuppetOptions,
@@ -175,6 +176,10 @@ export class PuppetPadchat extends Puppet {
       return
     }
 
+    if (this.puppetLifetimeTimer) {
+      throw new Error('start() found this.puppetLifetimeTimer exist')
+    }
+
     /**
      * state has two main state: ON / OFF
      * ON (pending)
@@ -190,6 +195,10 @@ export class PuppetPadchat extends Puppet {
 
     await this.startManager(manager)
     await this.startWatchdog()
+
+    this.puppetLifetimeTimer = setInterval(() => {
+      log.silly('PuppetPadchat', 'start() setInterval() this timer is to keep puppet running...')
+    }, 1000 * 60 * 60)
 
     this.state.on(true)
     this.emit('start')
@@ -495,6 +504,11 @@ export class PuppetPadchat extends Puppet {
 
     await this.padchatManager.stop()
     this.padchatManager.removeAllListeners()
+
+    if (this.puppetLifetimeTimer) {
+      clearInterval(this.puppetLifetimeTimer)
+      this.puppetLifetimeTimer = undefined
+    }
 
     this.state.off(true)
     this.emit('stop')
