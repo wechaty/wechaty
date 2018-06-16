@@ -67,6 +67,8 @@ export interface MockRoomRawPayload {
 
 export class PuppetMock extends Puppet {
 
+  private loopTimer?: NodeJS.Timer
+
   constructor(
     public options: PuppetOptions,
   ) {
@@ -94,7 +96,7 @@ export class PuppetMock extends Puppet {
       toId      : 'xxx',
     })
 
-    setInterval(() => {
+    this.loopTimer = setInterval(() => {
       log.verbose('PuppetMock', `start() setInterval() pretending received a new message: ${MOCK_MSG_ID}`)
       this.emit('message', MOCK_MSG_ID)
     }, 3000)
@@ -111,6 +113,11 @@ export class PuppetMock extends Puppet {
     }
 
     this.state.off('pending')
+
+    if (this.loopTimer) {
+      clearInterval(this.loopTimer)
+    }
+
     // await some tasks...
     this.state.off(true)
   }

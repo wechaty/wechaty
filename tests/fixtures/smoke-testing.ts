@@ -3,7 +3,9 @@
 import { Wechaty } from 'wechaty'
 
 async function main() {
-  const bot = Wechaty.instance()
+  const bot = Wechaty.instance({
+    puppet: 'mock',
+  })
   try {
     await bot.start()
     console.log(`Wechaty v${bot.version()} smoking test passed.`)
