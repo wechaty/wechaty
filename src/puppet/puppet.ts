@@ -36,11 +36,7 @@ import {
   WatchdogFood,
 }                       from 'watchdog'
 
-// import {
-//   PUPPET_EVENT_DICT,
-// }                       from './schemas/puppet'
 import {
-  Sayable,
   log,
 }                       from '../config'
 
@@ -81,7 +77,7 @@ let   PUPPET_COUNTER           = 0
  * See: https://github.com/Chatie/wechaty/wiki/Puppet
  *
  */
-export abstract class Puppet extends EventEmitter implements Sayable {
+export abstract class Puppet extends EventEmitter {
 
   public readonly cacheContactPayload    : LRU.Cache<string, ContactPayload>
   public readonly cacheFriendshipPayload : LRU.Cache<string, FriendshipPayload>
@@ -295,10 +291,17 @@ export abstract class Puppet extends EventEmitter implements Sayable {
 
   /**
    *
+   *
    * Misc
    *
+   *
    */
-  public abstract async ding(data?: any) : Promise<string>
+  /**
+   * Check whether the puppet is work property.
+   * @returns `false` if something went wrong
+   *          'dong' if everything is OK
+   */
+  public abstract async ding() : Promise<false | 'dong'>
 
   public version(): string {
     if (this.childPkg) {
@@ -335,23 +338,23 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     // return this.pkg.engines.wechaty
   }
 
-  public async say(textOrFile: string | FileBox) : Promise<void> {
-    if (!this.logonoff()) {
-      throw new Error('can not say before login')
-    }
+  // public async say(textOrFile: string | FileBox) : Promise<void> {
+  //   if (!this.logonoff()) {
+  //     throw new Error('can not say before login')
+  //   }
 
-    if (typeof textOrFile === 'string') {
-      await this.messageSendText({
-        contactId: this.selfId(),
-      }, textOrFile)
-    } else if (textOrFile instanceof FileBox) {
-      await this.messageSendFile({
-        contactId: this.selfId(),
-      }, textOrFile)
-    } else {
-      throw new Error('say() arg unknown')
-    }
-  }
+  //   if (typeof textOrFile === 'string') {
+  //     await this.messageSendText({
+  //       contactId: this.selfId(),
+  //     }, textOrFile)
+  //   } else if (textOrFile instanceof FileBox) {
+  //     await this.messageSendFile({
+  //       contactId: this.selfId(),
+  //     }, textOrFile)
+  //   } else {
+  //     throw new Error('say() arg unknown')
+  //   }
+  // }
 
   /**
    *
@@ -360,7 +363,6 @@ export abstract class Puppet extends EventEmitter implements Sayable {
    */
   public abstract async contactAlias(contactId: string)                       : Promise<string>
   public abstract async contactAlias(contactId: string, alias: string | null) : Promise<void>
-  // public abstract async contactAlias(contactId: string, alias?: string|null)  : Promise<string | void>
 
   public abstract async contactAvatar(contactId: string)                : Promise<FileBox>
   public abstract async contactAvatar(contactId: string, file: FileBox) : Promise<void>
@@ -852,6 +854,9 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     return payload
   }
 
+  /**
+   * Concat roomId & contactId to one string
+   */
   private cacheKeyRoomMember(
     roomId    : string,
     contactId : string,
@@ -887,8 +892,8 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     /**
      * 1. Try to get from cache
      */
-    const cacheKey      = this.cacheKeyRoomMember(roomId, contactId)
-    const cachedPayload = this.cacheRoomMemberPayload.get(cacheKey)
+    const CACHE_KEY     = this.cacheKeyRoomMember(roomId, contactId)
+    const cachedPayload = this.cacheRoomMemberPayload.get(CACHE_KEY)
 
     if (cachedPayload) {
       return cachedPayload
@@ -900,7 +905,7 @@ export abstract class Puppet extends EventEmitter implements Sayable {
     const rawPayload = await this.roomMemberRawPayload(roomId, contactId)
     const payload    = await this.roomMemberRawPayloadParser(rawPayload)
 
-    this.cacheRoomMemberPayload.set(cacheKey, payload)
+    this.cacheRoomMemberPayload.set(CACHE_KEY, payload)
     log.silly('Puppet', 'roomMemberPayload(%s) cache SET', roomId)
 
     return payload

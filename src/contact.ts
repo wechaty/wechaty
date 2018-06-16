@@ -290,28 +290,29 @@ export class Contact extends Accessory implements Sayable {
    *   console.error(e)
    * }
    */
-  public async say(file: FileBox): Promise<void>
+  public async say(file: FileBox)    : Promise<void>
+  public async say(contact: Contact) : Promise<void>
 
   public async say(textOrContactOrFile: string | Contact | FileBox): Promise<void> {
     log.verbose('Contact', 'say(%s)', textOrContactOrFile)
 
     if (typeof textOrContactOrFile === 'string') {
       /**
-       * Text
+       * 1. Text
        */
       await this.puppet.messageSendText({
         contactId: this.id,
       }, textOrContactOrFile)
     } else if (textOrContactOrFile instanceof Contact) {
       /**
-       * Contact
+       * 2. Contact
        */
       await this.puppet.messageSendContact({
         contactId: this.id,
       }, textOrContactOrFile.id)
     } else if (textOrContactOrFile instanceof FileBox) {
       /**
-       * File
+       * 3. File
        */
       await this.puppet.messageSendFile({
         contactId: this.id,

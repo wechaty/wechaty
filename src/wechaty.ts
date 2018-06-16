@@ -27,6 +27,9 @@ import {
   // instanceToClass,
 }                   from 'clone-class'
 import {
+  FileBox,
+}                   from 'file-box'
+import {
   callerResolve,
   hotImport,
 }                   from 'hot-import'
@@ -826,14 +829,24 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   /**
-   * Send message to filehelper
+   * Send message to userSelf
    *
-   * @param {string} text
+   * @param {string} textOrContactOrFile
    * @returns {Promise<boolean>}
    */
-  public async say(text: string): Promise<void> {
-    log.verbose('Wechaty', 'say(%s)', text)
-    await this.puppet.say(text)
+  public async say(textOrContactOrFile: string | Contact | FileBox): Promise<void> {
+    log.verbose('Wechaty', 'say(%s)', textOrContactOrFile)
+
+    // Make Typescript Happy:
+    if (typeof textOrContactOrFile === 'string') {
+      await this.userSelf().say(textOrContactOrFile)
+    } else if (textOrContactOrFile instanceof Contact) {
+      await this.userSelf().say(textOrContactOrFile)
+    } else if (textOrContactOrFile instanceof FileBox) {
+      await this.userSelf().say(textOrContactOrFile)
+    } else {
+      throw new Error('unsupported')
+    }
   }
 
   /**
@@ -848,13 +861,13 @@ export class Wechaty extends Accessory implements Sayable {
   /**
    * @private
    */
-  public async ding(): Promise<string> {
+  public async ding(): Promise<false | 'dong'> {
     try {
       return await this.puppet.ding() // should return 'dong'
     } catch (e) {
       log.error('Wechaty', 'ding() exception: %s', e.message)
       Raven.captureException(e)
-      throw e
+      return false
     }
   }
 

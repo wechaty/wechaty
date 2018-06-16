@@ -719,13 +719,14 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async ding(data?: any): Promise<string> {
+  public async ding(data?: any): Promise<false | 'dong'> {
     try {
-      return await this.bridge.ding(data)
+      await this.bridge.ding(data)
+      return 'dong'
     } catch (e) {
       log.warn('PuppetPuppeteer', 'ding(%s) rejected: %s', data, e.message)
       Raven.captureException(e)
-      throw e
+      return false
     }
   }
 

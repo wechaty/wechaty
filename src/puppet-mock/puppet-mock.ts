@@ -415,8 +415,8 @@ export class PuppetMock extends Puppet {
     log.verbose('PuppetMock', 'friendshipAccept(%s)', friendshipId)
   }
 
-  public ding(data?: any): Promise<string> {
-    return data
+  public async ding(): Promise<false | 'dong'> {
+    return 'dong'
   }
 
 }

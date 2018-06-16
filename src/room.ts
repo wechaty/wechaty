@@ -585,10 +585,13 @@ export class Room extends Accessory implements Sayable {
     }
   }
 
-  // TODO
+  /**
+   * Room QR Code
+   */
   public async qrcode(): Promise<string> {
     log.verbose('Room', 'qrcode()')
-    return 'qrcode url for entry room'
+    const qrcode = await this.puppet.roomQrcode(this.id)
+    return qrcode
   }
 
   /**
