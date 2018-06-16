@@ -96,10 +96,9 @@ import {
 
 export class PuppetPadchat extends Puppet {
 
-  private readonly cachePadchatMessagePayload    : LRU.Cache<string, PadchatMessagePayload>
+  private readonly cachePadchatMessagePayload: LRU.Cache<string, PadchatMessagePayload>
 
   private padchatManager?      : PadchatManager
-  private puppetLifetimeTimer? : NodeJS.Timer
 
   constructor(
     public options: PuppetOptions,
