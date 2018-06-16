@@ -300,17 +300,21 @@ export class Io {
       case 'update':
         log.verbose('Io', 'on(update): %s', ioEvent.payload)
 
-        const userId = this.options.wechaty.puppet.selfId()
+        try {
+          const userId = this.options.wechaty.puppet.selfId()
 
-        if (userId) {
-          const loginEvent: IoEvent = {
-            name    : 'login',
-            payload : {
-              id: userId,
-              name: this.options.wechaty.Contact.load(userId).name(),
-            },
+          if (userId) {
+            const loginEvent: IoEvent = {
+              name    : 'login',
+              payload : {
+                id: userId,
+                name: this.options.wechaty.Contact.load(userId).name(),
+              },
+            }
+            await this.send(loginEvent)
           }
-          await this.send(loginEvent)
+        } catch (e) {
+          // not login
         }
 
         if (this.scanPayload) {
