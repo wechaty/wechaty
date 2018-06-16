@@ -42,9 +42,15 @@ import {
 
 import {
   Puppet,
-}                 from './puppet/'
+}                     from './puppet/'
 import { PuppetMock } from './puppet-mock'
 import { MemoryCard } from 'memory-card'
+
+class WechatyTest extends Wechaty {
+  public initPuppetAccessoryTest(puppet: Puppet): void {
+    return this.initPuppetAccessory(puppet)
+  }
+}
 
 test('Export of the Framework', async t => {
   t.ok(Contact        , 'should export Contact')
@@ -150,11 +156,6 @@ test('on(event, Function)', async t => {
 })
 
 test('initPuppetAccessory()', async t => {
-  class WechatyTest extends Wechaty {
-    public initPuppetAccessoryTest(puppet: Puppet): void {
-      return this.initPuppetAccessory(puppet)
-    }
-  }
   const wechatyTest = new WechatyTest()
 
   const puppet = new PuppetMock({ memory: new MemoryCard() })
@@ -163,3 +164,21 @@ test('initPuppetAccessory()', async t => {
 })
 
 // TODO: add test for event args
+
+test.only('Wechaty restart for many times', async t => {
+  const wechaty = Wechaty.instance({
+    puppet: 'mock',
+  })
+
+  try {
+    for (let i = 0; i < 3; i++) {
+      await wechaty.start()
+      await wechaty.stop()
+      t.pass('start/stop-ed at #' + i)
+    }
+    t.pass('Wechaty start/restart successed.')
+  } catch (e) {
+    t.fail(e)
+  }
+
+})

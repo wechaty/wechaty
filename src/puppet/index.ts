@@ -6,9 +6,5 @@ export * from './schemas/room'
 export * from './schemas/puppet'
 
 export {
-    Puppet,
-  }                         from './puppet'
-
-export {
-  YOU,
-}                           from './schemas/puppet'
+  Puppet,
+}           from './puppet'
