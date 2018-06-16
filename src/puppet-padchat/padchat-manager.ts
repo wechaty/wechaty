@@ -91,7 +91,6 @@ export class PadchatManager extends PadchatRpc {
       device: {},
     }
 
-    // this.padchatRpc = new PadchatRpc(options.endpoint, options.token)
     this.state = new StateSwitch('PuppetPadchatManager')
 
     /**
@@ -104,9 +103,9 @@ export class PadchatManager extends PadchatRpc {
 
   protected async initCache(
     token  : string,
-    selfId : string,
+    userId : string,
   ): Promise<void> {
-    log.verbose('PuppetPadchatManager', 'initCache(%s, %s)', token, selfId)
+    log.verbose('PuppetPadchatManager', 'initCache(%s, %s)', token, userId)
 
     if (   this.cacheContactRawPayload
         || this.cacheRoomMemberRawPayload
@@ -119,11 +118,11 @@ export class PadchatManager extends PadchatRpc {
       os.homedir(),
       path.sep,
       '.wechaty',
-      'puppet-padchat-cache', // FIXME: rename to a better name before beta
+      'puppet-padchat-cache',
       path.sep,
       token,
       path.sep,
-      selfId,
+      userId,
     )
 
     const baseDirExist = await fs.pathExists(baseDir)
@@ -182,7 +181,7 @@ export class PadchatManager extends PadchatRpc {
     log.verbose('PuppetPadchatManager', `start()`)
 
     if (this.userId) {
-      throw new Error('selfId exist')
+      throw new Error('userId exist')
     }
 
     this.state.on('pending')
@@ -240,14 +239,12 @@ export class PadchatManager extends PadchatRpc {
     }
 
     await this.stopCheckScan()
-
-    // await this.padchatRpc.stop()
     await super.stop()
-
     await this.releaseCache()
 
     this.userId          = undefined
     this.loginScanQrcode = undefined
+    this.loginScanStatus = undefined
 
     this.state.off(true)
   }
@@ -259,16 +256,13 @@ export class PadchatManager extends PadchatRpc {
       throw new Error('userId exist')
     }
     this.userId = userId
-    // if (userName) {
-    //   this.selfName  = userName
-    // }
 
     await this.stopCheckScan()
 
     /**
      * Update Memory Slot
      */
-    this.memorySlot = await this.refresh62DataForMemory(
+    this.memorySlot = await this.refreshMemorySlotData(
       this.memorySlot,
       userId,
     )
@@ -295,8 +289,7 @@ export class PadchatManager extends PadchatRpc {
     log.verbose('PuppetPadchatManager', `logout()`)
 
     if (!this.userId) {
-      // throw new Error('no username')
-      log.warn('PuppetPadchatManager', 'logout() selfId not exist, already logout-ed')
+      log.warn('PuppetPadchatManager', 'logout() userId not exist, already logout-ed')
       return
     }
 
@@ -350,8 +343,10 @@ export class PadchatManager extends PadchatRpc {
         }
 
         if (result.expired_time && result.expired_time < 10) {
-          // result.expire_time is second
-          // emit new qrcode before the old one expired
+          /**
+           * result.expire_time is second
+           * emit new qrcode 10 seconds before the old one expired
+           */
           this.loginScanQrcode = undefined
           this.loginScanStatus = undefined
           waitUserResponse = false
@@ -383,11 +378,7 @@ export class PadchatManager extends PadchatRpc {
               throw Error('PuppetPadchatManager, checkQrcode, cannot get username or password here, return!')
             }
 
-            // const loginResult = await this.padchatRpc.WXQRCodeLogin(result.user_name, result.password)
             const loginResult = await this.WXQRCodeLogin(result.user_name, result.password)
-
-            // this.autoData.nick_name = loginResult.nick_name
-            // this.autoData.user_name = loginResult.user_name
 
             await this.onLogin(loginResult.user_name)
             return
@@ -429,7 +420,7 @@ export class PadchatManager extends PadchatRpc {
     checkScanInternalLoop()
     .catch(e => {
       log.warn('PuppetPadchatManager', 'startCheckScan() checkScanLoop() exception: %s', e)
-      // TODO: emit 'reset' event?
+      this.emit('reset', 'startCheckScan() checkScanLoop() exception')
     })
   }
 
@@ -457,10 +448,6 @@ export class PadchatManager extends PadchatRpc {
       log.silly('PuppetPadchatManager', 'tryAutoLogin() token not found for userId "%s"', currentUserId)
       return false
     }
-
-    // log.silly('PuppetPadchatManager', `initLogin() autoData.token exist for %s`,
-    //                                 this.autoData.nick_name || 'no nick_name',
-    //           )
 
     /**
      * PadchatRpc WXAutoLogin result:
@@ -504,7 +491,6 @@ export class PadchatManager extends PadchatRpc {
      * 1. Auto Login data invalid, emit QrCode for scan
      */
     const autoLoginResult = await this.WXAutoLogin(token)
-    //  const autoLoginResult = await this.padchatRpc.WXAutoLogin(this.autoData.token)
     if (!autoLoginResult) {
 
       /**
@@ -533,7 +519,6 @@ export class PadchatManager extends PadchatRpc {
      *  with a valid Login Request, wait user to confirm on the phone.
      */
     const loginRequestResult = await this.WXLoginRequest(token)
-    // const loginRequestResult = await this.padchatRpc.WXLoginRequest(this.autoData.token)
     if (loginRequestResult && loginRequestResult.status === 0) {
       return false
     }
@@ -560,12 +545,12 @@ export class PadchatManager extends PadchatRpc {
       throw new Error('qrcode exist')
     }
 
-    // const result = await this.padchatRpc.WXGetQRCode()
     const result = await this.WXGetQRCode()
     if (!result || !result.qr_code) {
       log.verbose('PuppetPadchatManager', `emitLoginQrCode() result not found. Call WXInitialize() and try again ...`)
-      // await this.padchatRpc.WXInitialize()
+
       await this.WXInitialize()
+
       // wait 1 second and try again
       await new Promise(r => setTimeout(r, 1000))
       return await this.emitLoginQrcode()
@@ -584,7 +569,7 @@ export class PadchatManager extends PadchatRpc {
     )
   }
 
-  protected async refresh62DataForMemory(
+  protected async refreshMemorySlotData(
     memorySlot: PadchatMemorySlot,
     userId   : string,
   ): Promise<PadchatMemorySlot> {
@@ -594,9 +579,6 @@ export class PadchatManager extends PadchatRpc {
      * must do a HeatBeat before WXGenerateWxData()
      */
     await this.WXHeartBeat()
-
-    // const deviceCurrentUserId = memorySlot.currentUserId
-    // const deviceInfoDict      = memorySlot.device
 
     /**
      * 1. Empty memorySlot, init & return it
@@ -771,11 +753,6 @@ export class PadchatManager extends PadchatRpc {
       throw new Error('roomId not found: ' + roomId)
     }
 
-    // const memberRawPayload = memberRawPayloadDict[contactId]
-    // if (!memberRawPayload) {
-    //   throw new Error('contactId not found in room member dict')
-    // }
-
     return memberRawPayloadDict
   }
 
@@ -784,13 +761,9 @@ export class PadchatManager extends PadchatRpc {
   ): Promise<{ [contactId: string]: PadchatRoomMemberPayload }> {
     log.silly('PuppetPadchatManager', 'syncRoomMember(%s)', roomId)
 
-    // const memberListPayload = await this.padchatRpc.WXGetChatRoomMember(roomId)
     const memberListPayload = await this.WXGetChatRoomMember(roomId)
 
     if (!memberListPayload || !('user_name' in memberListPayload)) { // check user_name too becasue the server might return {}
-      // console.log('memberListPayload', memberListPayload)
-      // throw new Error('no memberListPayload')
-
       /**
        * Room Id not exist
        * See: https://github.com/lijiarui/wechaty-puppet-padchat/issues/64#issuecomment-397319016
@@ -835,12 +808,9 @@ export class PadchatManager extends PadchatRpc {
     while (cont && this.state.on() && this.userId) {
       log.silly('PuppetPadchatManager', `syncContactsAndRooms() while() syncing WXSyncContact ...`)
 
-      // const syncContactList = await this.padchatRpc.WXSyncContact()
       const syncContactList = await this.WXSyncContact()
 
       await new Promise(r => setTimeout(r, 10 * 1000))
-
-      // console.log('syncContactList:', syncContactList)
 
       if (!Array.isArray(syncContactList) || syncContactList.length <= 0) {
         log.warn('PuppetPadchatManager', 'syncContactsAndRooms() cannot get array result: %s', JSON.stringify(syncContactList))
@@ -868,7 +838,7 @@ export class PadchatManager extends PadchatRpc {
         }
 
         if (syncContact.msg_type === PadchatContactMsgType.Contact) {
-          if (isRoomId(syncContact.user_name)) { // /@chatroom$/.test(syncContact.user_name)) {
+          if (isRoomId(syncContact.user_name)) {
             /**
              * Room
              */
@@ -913,8 +883,7 @@ export class PadchatManager extends PadchatRpc {
               && syncContact.msg_type === PadchatContactMsgType.N11_2048
               && typeof syncContact.uin !== 'undefined'
           ) {
-            // XXX: HeartBeat???
-            // discard it in silent
+            // HeartBeat??? discard it in silent
           } else {
             log.silly('PuppetPadchatManager', `syncContactsAndRooms() skip for syncContact.msg_type=%s(%s) %s`,
               syncContact.msg_type && PadchatContactMsgType[syncContact.msg_type],

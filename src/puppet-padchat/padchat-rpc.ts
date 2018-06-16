@@ -56,7 +56,6 @@ import {
   WXSendMsgType,
   WXLoadWxDatType,
   WXQRCodeLoginType,
-  // WXCheckQRCodeStatus,
   StandardType,
   WXAddChatRoomMemberType,
   WXLogoutType,
@@ -260,10 +259,10 @@ export class PadchatRpc extends EventEmitter {
 
   }
 
-  private async destroy(reason = 'unknown reason'): Promise<void> {
-    log.verbose('PadchatRpc', 'destroy(%s)', reason)
+  private async reset(reason = 'unknown reason'): Promise<void> {
+    log.verbose('PadchatRpc', 'reset(%s)', reason)
 
-    this.emit('destroy', reason)
+    this.emit('reset', reason)
 
     try {
       this.stop()
@@ -318,7 +317,7 @@ export class PadchatRpc extends EventEmitter {
       throw new Error('this.logoutThrottleSubscription exist')
     } else {
       this.logoutThrottleSubscription = this.logoutThrottleQueue.subscribe(async msg => {
-        await this.destroy(msg)
+        await this.reset(msg)
       })
     }
   }
@@ -1468,13 +1467,14 @@ export class PadchatRpc extends EventEmitter {
   // 获取用户二维码(自己或者已加入的群)
   // user			用户名
   // style			是否使用风格化二维码
-  public async WXGetUserQRCode(user: string, style: number): Promise<any> {
+  public async WXGetUserQRCode(user: string, style: number): Promise<string> {
     const result = await this.rpcCall('WXGetUserQRCode', user, style)
     log.silly('PadchatRpc', 'WXGetUserQRCode , stranger,result: %s', JSON.stringify(result))
     if (!result || result.status !== 0) {
-      throw Error('WXGetUserQRCode , stranger,error! canot get result from websocket server')
+      throw Error('WXGetUserQRCode, error: canot get result from websocket server')
     }
-    return result
+    console.log('WXGetUserQRCode result:', result)
+    return result.data
   }
 
   // TODO check any
@@ -1539,6 +1539,7 @@ export class PadchatRpc extends EventEmitter {
     if (!result || result.status !== 0) {
       throw Error('WXSetChatroomAnnouncement , stranger,error! canot get result from websocket server')
     }
+    console.log('WXSetChatroomAnnouncement result:', result)
     return result
   }
 
