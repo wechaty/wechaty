@@ -35,7 +35,7 @@ import {
 
 // import Wechaty from '../wechaty'
 
-import Contact from '../contact'
+import { Contact } from '../user'
 
 import PuppetPuppeteer  from './puppet-puppeteer'
 

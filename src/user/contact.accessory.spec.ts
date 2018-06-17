@@ -14,7 +14,7 @@ import {
 }                           from './contact'
 import {
   PuppetMock,
-}                           from './puppet-mock'
+}                           from '../puppet-mock'
 
 // tslint:disable-next-line:variable-name
 const Contact = cloneClass(GlobalContact)

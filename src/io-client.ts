@@ -24,7 +24,7 @@ import express from 'express'
 // import Brolog       from 'brolog'
 import StateSwitch  from 'state-switch'
 
-import { Message }      from './message'
+import { Message }      from './user'
 
 import {
   config,

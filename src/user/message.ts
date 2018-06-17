@@ -29,10 +29,10 @@ import {
 import {
   log,
   Sayable,
-}                 from './config'
+}                 from '../config'
 import {
   Accessory,
-}                 from './accessory'
+}                 from '../accessory'
 
 import {
   Contact,
@@ -44,7 +44,7 @@ import {
 import {
   MessagePayload,
   MessageType,
-}                 from './puppet/'
+}                 from '../puppet/'
 
 /**
  * All wechat messages will be encapsulated as a Message.
@@ -252,6 +252,14 @@ export class Message extends Accessory implements Sayable {
 
     const room = this.wechaty.Room.load(roomId)
     return room
+  }
+
+  /**
+   * @deprecated use text() instead
+   */
+  public content(): string {
+    log.warn('Message', 'content() DEPRECATED. use text() instead.')
+    return this.text()
   }
 
   /**

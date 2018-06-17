@@ -21,7 +21,7 @@ import { StateSwitch }  from 'state-switch'
 
 import {
   Message,
-}                 from './message'
+}                 from './user'
 
 import {
   PuppetScanEvent,

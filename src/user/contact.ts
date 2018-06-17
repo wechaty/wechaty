@@ -24,10 +24,10 @@ import {
   log,
   Raven,
   Sayable,
-}             from './config'
+}             from '../config'
 import {
   Accessory,
-}             from './accessory'
+}             from '../accessory'
 
 // import Message          from './message'
 
@@ -36,7 +36,7 @@ import {
   ContactPayload,
   ContactQueryFilter,
   ContactType,
-}                         from './puppet/'
+}                         from '../puppet/'
 
 export const POOL = Symbol('pool')
 

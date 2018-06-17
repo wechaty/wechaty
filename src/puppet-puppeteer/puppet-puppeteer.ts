@@ -93,16 +93,6 @@ import {
   PuppetScanEvent,
 }                           from '../puppet/'
 
-import {
-  // Contact,
-}                             from '../contact'
-import {
-  // Messageirection,
-}                             from '../message'
-import {
-  // Room,
-}                             from '../room'
-
 export type PuppetFoodType = 'scan' | 'ding'
 export type ScanFoodType   = 'scan' | 'login' | 'logout'
 
