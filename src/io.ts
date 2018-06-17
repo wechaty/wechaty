@@ -16,8 +16,8 @@
  *   limitations under the License.
  *
  */
-import WebSocket from 'ws'
-import StateSwitch    from 'state-switch'
+import WebSocket        from 'ws'
+import { StateSwitch }  from 'state-switch'
 
 import {
   Message,
@@ -43,26 +43,33 @@ export interface IoOptions {
 }
 
 export const IO_EVENT_DICT = {
-  botie: 'tbw',
-  error: 'tbw',
-  heartbeat: 'tbw',
-  login: 'tbw',
-  logout: 'tbw',
-  message: 'tbw',
-  update: 'tbw',
-  raw: 'tbw',
-  reset: 'tbw',
-  scan: 'tbw',
-  sys: 'tbw',
-  shutdown: 'tbw',
+  botie     : 'tbw',
+  error     : 'tbw',
+  heartbeat : 'tbw',
+  login     : 'tbw',
+  logout    : 'tbw',
+  message   : 'tbw',
+  update    : 'tbw',
+  raw       : 'tbw',
+  reset     : 'tbw',
+  scan      : 'tbw',
+  sys       : 'tbw',
+  shutdown  : 'tbw',
 }
 
 type IoEventName = keyof typeof IO_EVENT_DICT
 
-interface IoEvent {
+interface IoEventScan {
+  name: 'scan',
+  paylaod: PuppetScanEvent,
+}
+
+interface IoEventAny {
   name:     IoEventName,
   payload:  any,
 }
+
+type IoEvent = IoEventScan | IoEventAny
 
 export class Io {
   private readonly cuid     : string
@@ -113,10 +120,11 @@ export class Io {
       await this.initEventHook()
       this.ws = this.initWebSocket()
       this.options.wechaty.on('scan', (qrcode, status) => {
-        this.scanPayload = Object.assign(this.scanPayload || {}, {
+        this.scanPayload = {
+          ...this.scanPayload,
           qrcode,
           status,
-        })
+        }
       })
       this.state.on(true)
 
@@ -300,21 +308,16 @@ export class Io {
       case 'update':
         log.verbose('Io', 'on(update): %s', ioEvent.payload)
 
-        try {
-          const userId = this.options.wechaty.puppet.selfId()
-
-          if (userId) {
-            const loginEvent: IoEvent = {
-              name    : 'login',
-              payload : {
-                id: userId,
-                name: this.options.wechaty.Contact.load(userId).name(),
-              },
-            }
-            await this.send(loginEvent)
+        const wechaty = this.options.wechaty
+        if (wechaty.logonoff()) {
+          const loginEvent: IoEvent = {
+            name    : 'login',
+            payload : {
+              id   : wechaty.userSelf().id,
+              name : wechaty.userSelf().name(),
+            },
           }
-        } catch (e) {
-          // not login
+          await this.send(loginEvent)
         }
 
         if (this.scanPayload) {
@@ -406,7 +409,7 @@ export class Io {
     const ws = this.ws
 
     if (ioEvent) {
-      log.silly('Io', 'send(%s: %s)', ioEvent.name, ioEvent.payload)
+      log.silly('Io', 'send(%s)', JSON.stringify(ioEvent))
       this.eventBuffer.push(ioEvent)
     } else { log.silly('Io', 'send()') }
 

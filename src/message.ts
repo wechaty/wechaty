@@ -365,11 +365,11 @@ export class Message extends Accessory implements Sayable {
    * @deprecated use toFile() instead
    */
   public async file(): Promise<FileBox> {
-    log.warn('Message', 'file() DEPRECATED. use toFile() instead.')
-    return this.toFile()
+    log.warn('Message', 'file() DEPRECATED. use toFileBox() instead.')
+    return this.toFileBox()
   }
 
-  public async toFile(): Promise<FileBox> {
+  public async toFileBox(): Promise<FileBox> {
     if (this.type() === Message.Type.Text) {
       throw new Error('text message no file')
     }

@@ -218,7 +218,7 @@ export class PuppetPadchat extends Puppet {
     manager.on('logout',  ()                                              => this.logout())
 
     manager.on('reset', async reason => {
-      log.warn('PuppetPadchat', 'startManager() manager.on(destroy) for %s. Restarting PuppetPadchat ... ', reason)
+      log.warn('PuppetPadchat', 'startManager() manager.on(reset) for %s. Restarting PuppetPadchat ... ', reason)
       await this.reset(reason)
     })
 

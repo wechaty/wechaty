@@ -65,7 +65,7 @@ if (token) {
 bot
 .on('scan', (qrcode, status) => {
   generate(qrcode, { small: true })
-  console.log(`${status}\n[${qrcode}] Scan QR Code of the url to login:`)
+  console.log(`${status}: ${qrcode} - Scan QR Code of the url to login:`)
 })
 .on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
 .on('error'   , e => log.info('Bot', 'error: %s', e))
