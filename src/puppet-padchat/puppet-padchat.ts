@@ -559,7 +559,19 @@ export class PuppetPadchat extends Puppet {
 
   public async contactValidate(contactId: string): Promise<boolean> {
     log.verbose('PuppetPadchat', 'contactValid(%s)', contactId)
-    return true
+
+    if (!this.padchatManager) {
+      throw new Error('no padchat manager')
+    }
+
+    const rawPayload = await this.padchatManager.contactRawPayload(contactId)
+
+    if (rawPayload && rawPayload.user_name) {
+      // check user_name too becasue the server might return {}
+      return true
+    }
+
+    return false
   }
 
   public async contactList(): Promise<string[]> {

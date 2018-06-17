@@ -921,7 +921,10 @@ export class PadchatManager extends PadchatRpc {
       }
 
       const tryRawPayload =  await this.WXGetContactPayload(contactId)
-      if (tryRawPayload && tryRawPayload.user_name) { // check user_name too becasue the server might return {}
+
+      // check user_name too becasue the server might return {}
+      // See issue #1358 https://github.com/Chatie/wechaty/issues/1358
+      if (tryRawPayload /* && tryRawPayload.user_name */) {
         this.cacheContactRawPayload.set(contactId, tryRawPayload)
         return tryRawPayload
       }
@@ -951,7 +954,8 @@ export class PadchatManager extends PadchatRpc {
       const tryRawPayload = await this.WXGetRoomPayload(id)
 
       // check user_name too becasue the server might return {}
-      if (tryRawPayload && tryRawPayload.user_name) {
+      // See issue #1358 https://github.com/Chatie/wechaty/issues/1358
+      if (tryRawPayload /* && tryRawPayload.user_name */) {
         this.cacheRoomRawPayload.set(id, tryRawPayload)
         return tryRawPayload
       }
