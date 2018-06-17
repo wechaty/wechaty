@@ -422,9 +422,9 @@ export class Io {
     }
 
     log.warn('Io', 'reconnect() will reconnect after %d s', Math.floor(this.reconnectTimeout / 1000))
-    this.reconnectTimer = setTimeout(_ => {
+    this.reconnectTimer = setTimeout(async _ => {
       this.reconnectTimer = undefined
-      this.initWebSocket()
+      await this.initWebSocket()
     }, this.reconnectTimeout)// as any as NodeJS.Timer
   }
 
