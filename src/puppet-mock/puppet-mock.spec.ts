@@ -10,7 +10,7 @@ import { PuppetMock } from './puppet-mock'
 class PuppetMockTest extends PuppetMock {
 }
 
-test('PuppetMock() restart without problem', async t => {
+test('PuppetMock restart without problem', async t => {
   const puppet = new PuppetMockTest({
     memory   : new MemoryCard(),
   })

@@ -44,22 +44,26 @@ Send command to FileHelper to:
 Loading... please wait for QrCode Image Url and then scan to login.
 `)
 
-const bot = Wechaty.instance()
+let bot: Wechaty
 
 const token = config.token
+
 if (token) {
   log.info('Wechaty', 'TOKEN: %s', token)
-  const client = new IoClient({
+
+  bot = Wechaty.instance({ profile: token })
+  const ioClient = new IoClient({
     token,
     wechaty: bot,
   })
 
-  client.init().catch(e => {
+  ioClient.start().catch(e => {
     log.error('Wechaty', 'IoClient.init() exception: %s', e)
     bot.emit('error', e)
   })
 } else {
   log.verbose('Wechaty', 'TOKEN: N/A')
+  bot = Wechaty.instance()
 }
 
 bot

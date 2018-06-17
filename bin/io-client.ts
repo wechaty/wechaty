@@ -23,7 +23,8 @@ import {
   log,
 }               from '../src/config'
 
-import IoClient from '../src/io-client'
+import { IoClient } from '../src/io-client'
+import { Wechaty }  from '../src/wechaty'
 
 const welcome = `
 | __        __        _           _
@@ -56,9 +57,10 @@ log.info('Client', 'Starting for WECHATY_TOKEN: %s', token)
 
 const client = new IoClient({
   token,
+  wechaty: new Wechaty({ profile: token }),
 })
 
-client.init()
+client.start()
     .catch(onError.bind(client))
 
 client.initWeb()

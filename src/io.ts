@@ -111,8 +111,8 @@ export class Io {
     return this.ws && this.ws.readyState === WebSocket.OPEN
   }
 
-  public async init(): Promise<void> {
-    log.verbose('Io', 'init()')
+  public async start(): Promise<void> {
+    log.verbose('Io', 'start()')
 
     this.state.on('pending')
 
@@ -130,7 +130,7 @@ export class Io {
 
       return
     } catch (e) {
-      log.warn('Io', 'init() exception: %s', e.message)
+      log.warn('Io', 'start() exception: %s', e.message)
       this.state.off(true)
       throw e
     }
@@ -440,7 +440,9 @@ export class Io {
     }
   }
 
-  public async quit(): Promise<void> {
+  public async stop(): Promise<void> {
+    log.verbose('Io', 'stop()')
+
     if (!this.ws) {
       throw new Error('no ws')
     }
