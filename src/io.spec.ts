@@ -13,7 +13,7 @@ test('Io restart without problem', async t => {
   })
 
   try {
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 2; i++) {
       await io.start()
       await io.stop()
       t.pass('start/stop-ed at #' + i)

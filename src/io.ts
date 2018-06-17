@@ -60,8 +60,8 @@ export const IO_EVENT_DICT = {
 type IoEventName = keyof typeof IO_EVENT_DICT
 
 interface IoEventScan {
-  name: 'scan',
-  paylaod: PuppetScanEvent,
+  name    : 'scan',
+  payload : PuppetScanEvent,
 }
 
 interface IoEventAny {
@@ -81,6 +81,8 @@ export class Io {
 
   private reconnectTimer?   : NodeJS.Timer
   private reconnectTimeout? : number
+
+  private lifeTimer? : NodeJS.Timer
 
   private onMessage: undefined | Function
 
@@ -114,11 +116,17 @@ export class Io {
   public async start(): Promise<void> {
     log.verbose('Io', 'start()')
 
+    if (this.lifeTimer) {
+      throw new Error('lifeTimer exist')
+    }
+
     this.state.on('pending')
 
     try {
       await this.initEventHook()
-      this.ws = this.initWebSocket()
+
+      this.ws = await this.initWebSocket()
+
       this.options.wechaty.on('scan', (qrcode, status) => {
         this.scanPayload = {
           ...this.scanPayload,
@@ -126,6 +134,14 @@ export class Io {
           status,
         }
       })
+
+      this.lifeTimer = setInterval(() => {
+        if (this.ws && this.connected()) {
+          log.silly('Io', 'start() setInterval() ws.ping()')
+          this.ws.ping()
+        }
+      }, 1000 * 10)
+
       this.state.on(true)
 
       return
@@ -145,7 +161,10 @@ export class Io {
     wechaty.on('login',     user =>         this.send({ name: 'login',      payload: user }))
     wechaty.on('logout' ,   user =>         this.send({ name: 'logout',     payload: user }))
     wechaty.on('message',   message =>      this.ioMessage(message))
-    wechaty.on('scan',      (url, code) =>  this.send({ name: 'scan',       payload: { url, code } }))
+
+    // FIXME: payload schema need to be defined universal
+    // wechaty.on('scan',      (url, code) =>  this.send({ name: 'scan',       payload: { url, code } }))
+    wechaty.on('scan',      (qrcode, status) =>  this.send({ name: 'scan',  payload: { qrcode, status } } as IoEventScan ))
 
     // const hookEvents: WechatyEventName[] = [
     //   'scan'
@@ -200,7 +219,7 @@ export class Io {
     return
   }
 
-  private initWebSocket() {
+  private async initWebSocket(): Promise<WebSocket> {
     log.verbose('Io', 'initWebSocket()')
     // this.state.current('on', false)
 
@@ -225,6 +244,12 @@ export class Io {
     ws.on('message',  data => this.wsOnMessage(data))
     ws.on('error',    e => this.wsOnError(e))
     ws.on('close',    (code, reason) => this.wsOnClose(ws, code, reason))
+
+    await new Promise((resolve, reject) => {
+      ws.once('open', resolve)
+      ws.once('error', reject)
+      ws.once('close', reject)
+    })
 
     return ws
   }
@@ -321,7 +346,7 @@ export class Io {
         }
 
         if (this.scanPayload) {
-          const scanEvent: IoEvent = {
+          const scanEvent: IoEventScan = {
             name:     'scan',
             payload:  this.scanPayload,
           }
@@ -366,9 +391,11 @@ export class Io {
     code    : number,
     message : string,
   ): void {
-    log.warn('Io', 'initWebSocket() close event[%d: %s]', code, message)
-    ws.close()
-    this.reconnect()
+    if (this.state.on()) {
+      log.warn('Io', 'initWebSocket() close event[%d: %s]', code, message)
+      ws.close()
+      this.reconnect()
+    }
   }
 
   private reconnect() {
@@ -458,7 +485,20 @@ export class Io {
       this.reconnectTimer = undefined
     }
 
+    if (this.lifeTimer) {
+      clearInterval(this.lifeTimer)
+      this.lifeTimer = undefined
+    }
+
     this.ws.close()
+    await new Promise(r => {
+      if (this.ws) {
+        this.ws.once('close', r)
+      } else {
+        r()
+      }
+    })
+    this.ws = undefined
 
     this.state.off(true)
 
