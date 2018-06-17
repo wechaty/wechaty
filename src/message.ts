@@ -159,10 +159,15 @@ export class Message extends Accessory implements Sayable {
       'Message',
       `#${MessageType[this.type()]}`,
       '(',
-        this.room() ? (this.room() + '▲') : '',
-        this.from() || '',
-        '►',
-        this.to() || '',
+        this.room()
+          ? '👪' + this.room()
+          : '',
+        this.from()
+          ? '️️🗣️' + this.from()
+          : '',
+        this.to()
+          ? '📢' + this.to()
+          : '',
       ')',
     ]
     if (   this.type() === Message.Type.Text
