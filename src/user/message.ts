@@ -160,13 +160,13 @@ export class Message extends Accessory implements Sayable {
       `#${MessageType[this.type()]}`,
       '(',
         this.room()
-          ? '👪' + this.room()
+          ? '👥' + this.room()
           : '',
         this.from()
           ? '️️🗣️' + this.from()
           : '',
         this.to()
-          ? '📢' + this.to()
+          ? '👤' + this.to()
           : '',
       ')',
     ]
