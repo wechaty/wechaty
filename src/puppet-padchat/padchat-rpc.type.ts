@@ -1,6 +1,6 @@
 export interface PadchatRpcRequest {
   userId:   string,
-  msgId:    string,
+  msgId:    number | string,
   apiName:  string,
   param:    string[],
 }

@@ -140,7 +140,7 @@ export class PadchatRpc extends EventEmitter {
 
       const message: PadchatRpcRequest = {
         userId:   this.token,
-        msgId:    payload.id as string,
+        msgId:    payload.id,
         apiName:  payload.method,
         param:    encodedParam,
       }
@@ -172,7 +172,7 @@ export class PadchatRpc extends EventEmitter {
         const payload: PadchatPayload = JSON.parse(data)
         this.onSocket(payload)
       } catch (e) {
-        log.warn('PadchatRpc', 'startJsonRpc() ws.on(message) exception: %s', e)
+        log.warn('PadchatRpc', 'initWebSocket() ws.on(message) exception: %s', e)
         this.emit('error', e)
       }
     })
