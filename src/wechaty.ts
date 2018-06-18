@@ -389,11 +389,11 @@ export class Wechaty extends Accessory implements Sayable {
 
     // DEPRECATED for 'friend' event
     if (event as any === 'friend') {
-      log.warn('Wechaty', 'on(friend) is DEPRECATED. use on(friendship) instead')
+      log.warn('Wechaty', `on('friend', contact, friendRequest) is DEPRECATED. use on('friendship', friendship) instead`)
       if (typeof listener === 'function') {
         const oldListener = listener
         listener = (...args: any[]) => {
-          log.warn('Wechaty', 'on(friend) is DEPRECATED. use on(friendship) instead')
+          log.warn('Wechaty', `on('friend', contact, friendRequest) is DEPRECATED. use on('friendship', friendship) instead`)
           oldListener.apply(this, args)
         }
       }
