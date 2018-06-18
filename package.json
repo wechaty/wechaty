@@ -115,7 +115,7 @@
     "puppeteer": "^1.5.0",
     "qr-image": "^3.2.0",
     "raven": "^2.6.2",
-    "read-pkg-up": "^3.0.0",
+    "read-pkg-up": "^4.0.0",
     "request": "^2.87.0",
     "rx-queue": "^0.4.26",
     "rxjs": "^6.1.0",
