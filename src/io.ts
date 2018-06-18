@@ -16,12 +16,12 @@
  *   limitations under the License.
  *
  */
-import WebSocket from 'ws'
-import StateSwitch    from 'state-switch'
+import WebSocket        from 'ws'
+import { StateSwitch }  from 'state-switch'
 
 import {
   Message,
-}                 from './message'
+}                 from './user'
 
 import {
   PuppetScanEvent,
@@ -43,26 +43,33 @@ export interface IoOptions {
 }
 
 export const IO_EVENT_DICT = {
-  botie: 'tbw',
-  error: 'tbw',
-  heartbeat: 'tbw',
-  login: 'tbw',
-  logout: 'tbw',
-  message: 'tbw',
-  update: 'tbw',
-  raw: 'tbw',
-  reset: 'tbw',
-  scan: 'tbw',
-  sys: 'tbw',
-  shutdown: 'tbw',
+  botie     : 'tbw',
+  error     : 'tbw',
+  heartbeat : 'tbw',
+  login     : 'tbw',
+  logout    : 'tbw',
+  message   : 'tbw',
+  update    : 'tbw',
+  raw       : 'tbw',
+  reset     : 'tbw',
+  scan      : 'tbw',
+  sys       : 'tbw',
+  shutdown  : 'tbw',
 }
 
 type IoEventName = keyof typeof IO_EVENT_DICT
 
-interface IoEvent {
+interface IoEventScan {
+  name    : 'scan',
+  payload : PuppetScanEvent,
+}
+
+interface IoEventAny {
   name:     IoEventName,
   payload:  any,
 }
+
+type IoEvent = IoEventScan | IoEventAny
 
 export class Io {
   private readonly cuid     : string
@@ -74,6 +81,8 @@ export class Io {
 
   private reconnectTimer?   : NodeJS.Timer
   private reconnectTimeout? : number
+
+  private lifeTimer? : NodeJS.Timer
 
   private onMessage: undefined | Function
 
@@ -104,25 +113,40 @@ export class Io {
     return this.ws && this.ws.readyState === WebSocket.OPEN
   }
 
-  public async init(): Promise<void> {
-    log.verbose('Io', 'init()')
+  public async start(): Promise<void> {
+    log.verbose('Io', 'start()')
+
+    if (this.lifeTimer) {
+      throw new Error('lifeTimer exist')
+    }
 
     this.state.on('pending')
 
     try {
       await this.initEventHook()
-      this.ws = this.initWebSocket()
+
+      this.ws = await this.initWebSocket()
+
       this.options.wechaty.on('scan', (qrcode, status) => {
-        this.scanPayload = Object.assign(this.scanPayload || {}, {
+        this.scanPayload = {
+          ...this.scanPayload,
           qrcode,
           status,
-        })
+        }
       })
+
+      this.lifeTimer = setInterval(() => {
+        if (this.ws && this.connected()) {
+          log.silly('Io', 'start() setInterval() ws.ping()')
+          this.ws.ping()
+        }
+      }, 1000 * 10)
+
       this.state.on(true)
 
       return
     } catch (e) {
-      log.warn('Io', 'init() exception: %s', e.message)
+      log.warn('Io', 'start() exception: %s', e.message)
       this.state.off(true)
       throw e
     }
@@ -137,7 +161,10 @@ export class Io {
     wechaty.on('login',     user =>         this.send({ name: 'login',      payload: user }))
     wechaty.on('logout' ,   user =>         this.send({ name: 'logout',     payload: user }))
     wechaty.on('message',   message =>      this.ioMessage(message))
-    wechaty.on('scan',      (url, code) =>  this.send({ name: 'scan',       payload: { url, code } }))
+
+    // FIXME: payload schema need to be defined universal
+    // wechaty.on('scan',      (url, code) =>  this.send({ name: 'scan',       payload: { url, code } }))
+    wechaty.on('scan',      (qrcode, status) =>  this.send({ name: 'scan',  payload: { qrcode, status } } as IoEventScan ))
 
     // const hookEvents: WechatyEventName[] = [
     //   'scan'
@@ -192,7 +219,7 @@ export class Io {
     return
   }
 
-  private initWebSocket() {
+  private async initWebSocket(): Promise<WebSocket> {
     log.verbose('Io', 'initWebSocket()')
     // this.state.current('on', false)
 
@@ -217,6 +244,12 @@ export class Io {
     ws.on('message',  data => this.wsOnMessage(data))
     ws.on('error',    e => this.wsOnError(e))
     ws.on('close',    (code, reason) => this.wsOnClose(ws, code, reason))
+
+    await new Promise((resolve, reject) => {
+      ws.once('open', resolve)
+      ws.once('error', reject)
+      ws.once('close', reject)
+    })
 
     return ws
   }
@@ -300,21 +333,20 @@ export class Io {
       case 'update':
         log.verbose('Io', 'on(update): %s', ioEvent.payload)
 
-        const userId = this.options.wechaty.puppet.selfId()
-
-        if (userId) {
+        const wechaty = this.options.wechaty
+        if (wechaty.logonoff()) {
           const loginEvent: IoEvent = {
             name    : 'login',
             payload : {
-              id: userId,
-              name: this.options.wechaty.Contact.load(userId).name(),
+              id   : wechaty.userSelf().id,
+              name : wechaty.userSelf().name(),
             },
           }
           await this.send(loginEvent)
         }
 
         if (this.scanPayload) {
-          const scanEvent: IoEvent = {
+          const scanEvent: IoEventScan = {
             name:     'scan',
             payload:  this.scanPayload,
           }
@@ -359,9 +391,11 @@ export class Io {
     code    : number,
     message : string,
   ): void {
-    log.warn('Io', 'initWebSocket() close event[%d: %s]', code, message)
-    ws.close()
-    this.reconnect()
+    if (this.state.on()) {
+      log.warn('Io', 'initWebSocket() close event[%d: %s]', code, message)
+      ws.close()
+      this.reconnect()
+    }
   }
 
   private reconnect() {
@@ -388,9 +422,9 @@ export class Io {
     }
 
     log.warn('Io', 'reconnect() will reconnect after %d s', Math.floor(this.reconnectTimeout / 1000))
-    this.reconnectTimer = setTimeout(_ => {
+    this.reconnectTimer = setTimeout(async _ => {
       this.reconnectTimer = undefined
-      this.initWebSocket()
+      await this.initWebSocket()
     }, this.reconnectTimeout)// as any as NodeJS.Timer
   }
 
@@ -402,7 +436,7 @@ export class Io {
     const ws = this.ws
 
     if (ioEvent) {
-      log.silly('Io', 'send(%s: %s)', ioEvent.name, ioEvent.payload)
+      log.silly('Io', 'send(%s)', JSON.stringify(ioEvent))
       this.eventBuffer.push(ioEvent)
     } else { log.silly('Io', 'send()') }
 
@@ -433,7 +467,9 @@ export class Io {
     }
   }
 
-  public async quit(): Promise<void> {
+  public async stop(): Promise<void> {
+    log.verbose('Io', 'stop()')
+
     if (!this.ws) {
       throw new Error('no ws')
     }
@@ -449,7 +485,20 @@ export class Io {
       this.reconnectTimer = undefined
     }
 
+    if (this.lifeTimer) {
+      clearInterval(this.lifeTimer)
+      this.lifeTimer = undefined
+    }
+
     this.ws.close()
+    await new Promise(r => {
+      if (this.ws) {
+        this.ws.once('close', r)
+      } else {
+        r()
+      }
+    })
+    this.ws = undefined
 
     this.state.off(true)
 

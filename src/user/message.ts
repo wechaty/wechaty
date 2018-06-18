@@ -29,10 +29,10 @@ import {
 import {
   log,
   Sayable,
-}                 from './config'
+}                 from '../config'
 import {
   Accessory,
-}                 from './accessory'
+}                 from '../accessory'
 
 import {
   Contact,
@@ -44,7 +44,7 @@ import {
 import {
   MessagePayload,
   MessageType,
-}                 from './puppet/'
+}                 from '../puppet/'
 
 /**
  * All wechat messages will be encapsulated as a Message.
@@ -159,10 +159,15 @@ export class Message extends Accessory implements Sayable {
       'Message',
       `#${MessageType[this.type()]}`,
       '(',
-        this.room() ? (this.room() + '▲') : '',
-        this.from() || '',
-        '►',
-        this.to() || '',
+        this.room()
+          ? '👪' + this.room()
+          : '',
+        this.from()
+          ? '️️🗣️' + this.from()
+          : '',
+        this.to()
+          ? '📢' + this.to()
+          : '',
       ')',
     ]
     if (   this.type() === Message.Type.Text
@@ -247,6 +252,14 @@ export class Message extends Accessory implements Sayable {
 
     const room = this.wechaty.Room.load(roomId)
     return room
+  }
+
+  /**
+   * @deprecated use text() instead
+   */
+  public content(): string {
+    log.warn('Message', 'content() DEPRECATED. use text() instead.')
+    return this.text()
   }
 
   /**
@@ -365,11 +378,11 @@ export class Message extends Accessory implements Sayable {
    * @deprecated use toFile() instead
    */
   public async file(): Promise<FileBox> {
-    log.warn('Message', 'file() DEPRECATED. use toFile() instead.')
-    return this.toFile()
+    log.warn('Message', 'file() DEPRECATED. use toFileBox() instead.')
+    return this.toFileBox()
   }
 
-  public async toFile(): Promise<FileBox> {
+  public async toFileBox(): Promise<FileBox> {
     if (this.type() === Message.Type.Text) {
       throw new Error('text message no file')
     }

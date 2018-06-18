@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.15.194",
+  "version": "0.15.203",
   "description": "Wechat for Bot(Personal Account)",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
@@ -101,7 +101,7 @@
     "cuid": "^2.1.1",
     "express": "^4.16.3",
     "file-box": "^0.8.20",
-    "flash-store": "^0.4.4",
+    "flash-store": "^0.4.5",
     "fs-extra": "^6.0.1",
     "hot-import": "^0.2.1",
     "jimp": "^0.2.28",

@@ -28,7 +28,7 @@ import {
 
 import {
   Contact,
-}           from '../contact'
+}           from '../user'
 import {
   Wechaty,
 }           from '../wechaty'

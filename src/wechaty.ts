@@ -63,16 +63,10 @@ import {
 import {
   Contact,
   ContactSelf,
-}                       from './contact'
-import {
   Friendship,
-}                       from './friendship'
-import {
   Message,
-}                       from './message'
-import {
   Room,
-}                       from './room'
+}                       from './user/'
 
 import {
   CHAT_EVENT_DICT,

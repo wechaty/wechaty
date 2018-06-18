@@ -26,21 +26,22 @@ import {
 
 import {
   Accessory,
-}                   from './accessory'
-import {
-  Contact,
-}                   from './contact'
+}                   from '../accessory'
 import {
   log,
-}                   from './config'
+}                   from '../config'
 import {
   Misc,
-}                   from './misc'
+}                   from '../misc'
 
 import {
   FriendshipPayload,
   FriendshipType,
-}                         from './puppet/'
+}                         from '../puppet/'
+
+import {
+  Contact,
+}                   from './contact'
 
 /**
  * Send, receive friend request, and friend confirmation events.

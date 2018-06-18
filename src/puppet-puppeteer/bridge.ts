@@ -217,6 +217,12 @@ export class Bridge extends EventEmitter {
 
       const blockedMessage = await this.testBlockedMessage()
       if (blockedMessage) {  // Wechat Account Blocked
+        // TODO: advertise for puppet-padchat
+        log.info('PuppetPuppeteerBridge', `
+
+        Please see: Account Login Issue <https://github.com/Chatie/wechaty/issues/872>
+
+        `)
         throw new Error(blockedMessage)
       } else {
         throw e

@@ -93,16 +93,6 @@ import {
   PuppetScanEvent,
 }                           from '../puppet/'
 
-import {
-  // Contact,
-}                             from '../contact'
-import {
-  // Messageirection,
-}                             from '../message'
-import {
-  // Room,
-}                             from '../room'
-
 export type PuppetFoodType = 'scan' | 'ding'
 export type ScanFoodType   = 'scan' | 'login' | 'logout'
 
@@ -413,7 +403,7 @@ export class PuppetPuppeteer extends Puppet {
 
   public async messageFile(messageId: string): Promise<FileBox> {
     const rawPayload = await this.messageRawPayload(messageId)
-    const fileBox = await this.messageRawPayloadToFile(rawPayload)
+    const fileBox    = await this.messageRawPayloadToFile(rawPayload)
     return fileBox
   }
 

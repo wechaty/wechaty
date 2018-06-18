@@ -38,7 +38,7 @@ import {
 
 import {
   Message,
- }                  from '../message'
+ }                  from '../user'
 
 import {
   PuppetPuppeteer,

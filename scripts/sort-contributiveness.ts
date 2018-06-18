@@ -64,7 +64,7 @@ function outputContributorMd() {
   ].join('\n'))
 
   for (const contributor of activeContributorList) {
-    console.log(`1. @${contributor}: ${contributeMap[contributor].join(',')}`)
+    console.log(`1. @${contributor}: ${contributeMap[contributor].join(' ')}`)
   }
 
   console.log([
@@ -83,7 +83,7 @@ function outputContributorMd() {
       continue
     }
     if (!activeContributorList.includes(contributor)) {
-      console.log(`1. @${contributor}: ${contributeMap[contributor].join(',')}`)
+      console.log(`1. @${contributor}: ${contributeMap[contributor].join(' ')}`)
     }
   }
   console.log()

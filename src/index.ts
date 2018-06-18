@@ -20,16 +20,13 @@ import {
 
 export {
   Contact,
-}                         from './contact'
-export {
   Friendship,
-}                         from './friendship'
-export {
+  Favorite,
   Message,
-}                         from './message'
-export {
+  Moment,
+  Money,
   Room,
-}                         from './room'
+}                         from './user'
 
 export {
   MediaMessage,

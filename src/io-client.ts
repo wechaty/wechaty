@@ -24,7 +24,7 @@ import express from 'express'
 // import Brolog       from 'brolog'
 import StateSwitch  from 'state-switch'
 
-import { Message }      from './message'
+import { Message }      from './user'
 
 import {
   config,
@@ -32,38 +32,38 @@ import {
 }                       from './config'
 import { Io }           from './io'
 import { Wechaty }      from './wechaty'
+
 export interface IoClientOptions {
-  token    : string,
-  wechaty? : Wechaty,
+  token   : string,
+  wechaty : Wechaty,
 }
 
 export class IoClient {
 
   private io: Io // XXX keep io `null-able` or not? 20161026
 
-  private state = new StateSwitch('IoClient', log)
+  private state: StateSwitch
 
   constructor(
     public options: IoClientOptions,
   ) {
-    log.verbose('IoClient', 'constructor({ token = %s})', options.token)
+    log.verbose('IoClient', 'constructor(%s)', JSON.stringify(options))
 
-    options.token   = options.token   || config.token || config.default.DEFAULT_TOKEN
-    options.wechaty = options.wechaty || Wechaty.instance({ profile: this.options.token })
+    this.state = new StateSwitch('IoClient', log)
 
     this.io = new Io({
-      wechaty : this.options.wechaty as Wechaty,
       token   : this.options.token,
+      wechaty : this.options.wechaty,
     })
 
   }
 
-  public async init(): Promise<void> {
+  public async start(): Promise<void> {
     log.verbose('IoClient', 'init()')
 
     if (this.state.pending()) {
-      const e = new Error('state.pending(), skip init')
-      log.warn('IoClient', 'init() with %s', e.message)
+      log.warn('IoClient', 'start() with a pending state, not the time')
+      const e = new Error('state.pending() when start()')
       throw e
     }
 
@@ -71,7 +71,7 @@ export class IoClient {
 
     try {
       await this.initIo()
-      await this.hookWechaty(this.options.wechaty as Wechaty)
+      await this.hookWechaty(this.options.wechaty)
       this.state.on(true)
     } catch (e) {
       log.error('IoClient', 'init() exception: %s', e.message)
@@ -109,7 +109,7 @@ export class IoClient {
     }
 
     try {
-      await this.io.init()
+      await this.io.start()
     } catch (e) {
       log.verbose('IoClient', 'initIo() init fail: %s', e.message)
       throw e
@@ -155,31 +155,6 @@ export class IoClient {
     }
   }
 
-  public async start(): Promise<void> {
-    log.verbose('IoClient', 'start()')
-
-    // if (!this.options.wechaty) {
-    //   return this.init()
-    // }
-
-    if (this.state.pending()) {
-      log.warn('IoClient', 'start() with a pending state, not the time')
-      throw new Error('pending')
-    }
-
-    this.state.on('pending')
-
-    try {
-      await this.initIo()
-      this.state.on(true)
-    } catch (e) {
-      log.error('IoClient', 'start() exception: %s', e.message)
-      this.state.off(true)
-      throw e
-    }
-    return
-  }
-
   public async stop(): Promise<void> {
     log.verbose('IoClient', 'stop()')
 
@@ -188,14 +163,11 @@ export class IoClient {
     // XXX
     if (!this.io) {
       log.warn('IoClient', 'stop() without this.io')
-      // this.currentState('connected')
       this.state.off(true)
       return
     }
 
-    await this.io.quit()
-                    // .then(_ => this.currentState('disconnected'))
-                    // .then(_ => this.state.current('off'))
+    await this.io.stop()
     this.state.off(true)
 
     // XXX 20161026
@@ -233,7 +205,7 @@ export class IoClient {
       } else { log.warn('IoClient', 'quit() no this.wechaty') }
 
       if (this.io) {
-        await this.io.quit()
+        await this.io.stop()
         // this.io = null
       } else { log.warn('IoClient', 'quit() no this.io') }
 

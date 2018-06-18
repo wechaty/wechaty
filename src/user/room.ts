@@ -31,15 +31,14 @@ import {
   Raven,
   Sayable,
   log,
-}                       from './config'
+}                       from '../config'
 import {
   Accessory,
-}               from './accessory'
+}               from '../accessory'
 
 import {
   Contact,
 }               from './contact'
-// import Message          from './message'
 
 export const ROOM_EVENT_DICT = {
   join: 'tbw',
@@ -52,7 +51,7 @@ import {
   RoomMemberQueryFilter,
   RoomPayload,
   RoomQueryFilter,
-}                         from './puppet/'
+}                         from '../puppet/'
 
 /**
  * All wechat rooms(groups) will be encapsulated as a Room.
