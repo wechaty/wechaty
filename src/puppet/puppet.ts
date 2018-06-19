@@ -175,7 +175,8 @@ export abstract class Puppet extends EventEmitter {
    *
    *
    */
-  public emit(event: 'error',       error: string)                                                         : boolean
+  public emit(event: 'dong',        data?: string)                                                         : boolean
+  public emit(event: 'error',       error: Error)                                                          : boolean
   public emit(event: 'friendship',  friendshipId: string)                                                  : boolean
   public emit(event: 'login',       contactId: string)                                                     : boolean
   public emit(event: 'logout',      contactId: string)                                                     : boolean
@@ -205,6 +206,7 @@ export abstract class Puppet extends EventEmitter {
    *
    *
    */
+  public on(event: 'dong',        listener: (data?: string) => void)                                                         : this
   public on(event: 'error',       listener: (error: string) => void)                                                         : this
   public on(event: 'friendship',  listener: (friendshipId: string) => void)                                                  : this
   public on(event: 'login',       listener: (contactId: string) => void)                                                     : this
@@ -301,7 +303,7 @@ export abstract class Puppet extends EventEmitter {
    * @returns `false` if something went wrong
    *          'dong' if everything is OK
    */
-  public abstract async ding() : Promise<false | 'dong'>
+  public abstract ding(data?: string) : void
 
   public version(): string {
     if (this.childPkg) {

@@ -179,7 +179,7 @@ export class PuppetWechat4u extends Puppet {
       // FIXME: where's the logined user id?
       const userId = this.wechat4u.user.UserName
       if (!userId) {
-        this.emit('error', 'login event can not found selfId')
+        this.emit('error', new Error('login event can not found selfId'))
         return
       }
       await this.login(userId)
@@ -211,7 +211,7 @@ export class PuppetWechat4u extends Puppet {
      * 错误事件，参数一般为Error对象
      */
     wechat4u.on('error', (err: Error) => {
-      this.emit('error', err && err.message)
+      this.emit('error', err)
     })
 
     /**
@@ -946,8 +946,11 @@ export class PuppetWechat4u extends Puppet {
     }
   }
 
-  public async ding(): Promise<false | 'dong'> {
-    return 'dong'
+  public async ding(data?: string): Promise<void> {
+    log.silly('PuppetWechat4u', 'ding(%s)', data || '')
+
+    this.emit('dong', data)
+    return
   }
 
   private filename(

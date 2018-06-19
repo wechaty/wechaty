@@ -49,6 +49,7 @@ export type ChatEventName = keyof typeof CHAT_EVENT_DICT
 
 export const PUPPET_EVENT_DICT = {
   ...CHAT_EVENT_DICT,
+  dong      : 'document can be writen at here',
   error     : 'document can be writen at here',
   start     : 'document can be writen at here',
   stop      : 'document can be writen at here',

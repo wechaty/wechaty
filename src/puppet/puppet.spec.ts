@@ -41,7 +41,7 @@ class PuppetTest extends Puppet {
   public async start() : Promise<void> { return {} as any }
   public async stop()  : Promise<void> { return {} as any }
 
-  public async ding()   : Promise<false | 'dong'> { return 'dong' }
+  public async ding(data?: string)   : Promise<void> { return data as void }
   public async logout() : Promise<void> { return {} as any }
 
   /**

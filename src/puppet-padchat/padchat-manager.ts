@@ -968,9 +968,11 @@ export class PadchatManager extends PadchatRpc {
     return rawPayload
   }
 
-  public async ding(): Promise<string> {
-    const result = await this.WXHeartBeat()
-    return result.message
+  public ding(data?: string): void {
+    log.verbose('PuppetPadchatManager', 'ding(%s)', data || '')
+    // TODO: healthy check
+    this.emit('dong')
+    return
   }
 }
 

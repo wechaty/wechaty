@@ -306,7 +306,8 @@ export class PuppetPuppeteer extends Puppet {
       throw e
     }
 
-    this.bridge.on('ding'     , Event.onDing.bind(this))
+    this.bridge.on('dong'     , data => this.emit('dong', data))
+    // this.bridge.on('ding'     , Event.onDing.bind(this))
     this.bridge.on('error'    , e => this.emit('error', e))
     this.bridge.on('log'      , Event.onLog.bind(this))
     this.bridge.on('login'    , Event.onLogin.bind(this))
@@ -709,15 +710,9 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async ding(data?: any): Promise<false | 'dong'> {
-    try {
-      await this.bridge.ding(data)
-      return 'dong'
-    } catch (e) {
-      log.warn('PuppetPuppeteer', 'ding(%s) rejected: %s', data, e.message)
-      Raven.captureException(e)
-      return false
-    }
+  public ding(data?: string): void {
+    log.verbose('PuppetPuppeteer', 'ding(%s)', data || '')
+    this.bridge.ding(data)
   }
 
   public async contactAvatar(contactId: string)                : Promise<FileBox>

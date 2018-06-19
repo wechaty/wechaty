@@ -117,7 +117,7 @@ async function onLogin(
   const TTL_WAIT_MILLISECONDS = 1 * 1000
   if (ttl <= 0) {
     log.verbose('PuppetPuppeteerEvent', 'onLogin(%s) TTL expired')
-    this.emit('error', 'onLogin() TTL expired.')
+    this.emit('error', new Error('onLogin() TTL expired.'))
     return
   }
 

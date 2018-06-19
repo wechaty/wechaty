@@ -262,7 +262,9 @@ export class Bridge extends EventEmitter {
       }
 
       const SUCCESS_CIPHER = 'ding() OK!'
-      const r = await this.ding(SUCCESS_CIPHER)
+      const future = new Promise(resolve => this.once('dong', resolve))
+      this.ding(SUCCESS_CIPHER)
+      const r = await future
       if (r !== SUCCESS_CIPHER) {
         throw new Error('fail to get right return from call ding()')
       }
@@ -726,15 +728,17 @@ export class Bridge extends EventEmitter {
     }
   }
 
-  public async ding(data: any): Promise<any> {
-    log.verbose('PuppetPuppeteerBridge', 'ding(%s)', data)
+  public ding(data: any): void {
+    log.verbose('PuppetPuppeteerBridge', 'ding(%s)', data || '')
 
-    try {
-      return await this.proxyWechaty('ding', data)
-    } catch (e) {
+    this.proxyWechaty('ding', data)
+    .then(dongData => {
+      this.emit('dong', dongData)
+    })
+    .catch(e => {
       log.error('PuppetPuppeteerBridge', 'ding(%s) exception: %s', data, e.message)
-      throw e
-    }
+      this.emit('error', e)
+    })
   }
 
   public preHtmlToXml(text: string): string {

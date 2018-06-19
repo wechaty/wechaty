@@ -90,7 +90,6 @@ import {
 }                           from './padchat-schemas'
 
 import {
-  WXSearchContactType,
   WXSearchContactTypeStatus,
 }                           from './padchat-rpc.type'
 
@@ -124,9 +123,16 @@ export class PuppetPadchat extends Puppet {
     return `PuppetPadchat<${this.options.memory.name}>`
   }
 
-  public async ding(): Promise<false | 'dong'> {
+  public ding(data?: string): void {
+    log.verbose('PuppetPadchat', 'ding(%s)', data || '')
+
     // TODO: do some internal health check inside this.padchatManager
-    return 'dong'
+    if (!this.padchatManager) {
+      this.emit('error', new Error('no padchat Manager'))
+      return
+    }
+    this.padchatManager.ding(data)
+    return
   }
 
   public startWatchdog(): void {
@@ -216,6 +222,7 @@ export class PuppetPadchat extends Puppet {
     manager.on('login',   (userId: string)                                => this.login(userId))
     manager.on('message', (rawPayload: PadchatMessagePayload)             => this.onPadchatMessage(rawPayload))
     manager.on('logout',  ()                                              => this.logout())
+    manager.on('dong',  (data)                                            => this.emit('dong', data))
 
     manager.on('reset', async reason => {
       log.warn('PuppetPadchat', 'startManager() manager.on(reset) for %s. Restarting PuppetPadchat ... ', reason)
@@ -1144,7 +1151,7 @@ export class PuppetPadchat extends Puppet {
       throw new Error('no padchat manager')
     }
 
-    const rawSearchPayload: WXSearchContactType = await this.padchatManager.WXSearchContact(contactId)
+    const rawSearchPayload = await this.padchatManager.WXSearchContact(contactId)
 
     /**
      * If the contact is not stranger, than ussing WXSearchContact can get user_name

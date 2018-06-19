@@ -52,6 +52,9 @@ import {
 }                       from './config'
 
 import {
+  Io,
+}                       from './io'
+import {
   PUPPET_DICT,
   PuppetName,
 }                       from './puppet-config'
@@ -88,6 +91,7 @@ import {
 
 export const WECHATY_EVENT_DICT = {
   ...CHAT_EVENT_DICT,
+  dong      : 'tbw',
   error     : 'tbw',
   heartbeat : 'tbw',
   start     : 'tbw',
@@ -97,9 +101,10 @@ export const WECHATY_EVENT_DICT = {
 export type WechatyEventName  = keyof typeof WECHATY_EVENT_DICT
 
 export interface WechatyOptions {
-  profile?     : null | string,
-  puppet?      : PuppetName | Puppet,
-  puppetToken? : string,
+  profile?     : null | string,         // Wechaty Name
+  puppet?      : PuppetName | Puppet,   // Puppet name or instance
+  puppetToken? : string,                // Puppet TOKEN
+  ioToken?     : string,                // Io TOKEN
 }
 
 /**
@@ -124,7 +129,8 @@ export class Wechaty extends Accessory implements Sayable {
 
   private readonly memory : MemoryCard
 
-  private lifeTimer?: NodeJS.Timer
+  private lifeTimer? : NodeJS.Timer
+  private io?        : Io
 
   /**
    * the cuid
@@ -242,6 +248,7 @@ export class Wechaty extends Accessory implements Sayable {
     return Wechaty.version(forceNpm)
   }
 
+  public emit(event: 'dong'       , data?: string)                                                    : boolean
   public emit(event: 'error'      , error: Error)                                                     : boolean
   public emit(event: 'friendship' , friendship: Friendship)                                           : boolean
   public emit(event: 'heartbeat'  , data: any)                                                        : boolean
@@ -265,6 +272,7 @@ export class Wechaty extends Accessory implements Sayable {
     return super.emit(event, ...args)
   }
 
+  public on(event: 'dong'       , listener: string | ((this: Wechaty, data?: string) => void))                                                     : this
   public on(event: 'error'      , listener: string | ((this: Wechaty, error: Error) => void))                                                     : this
   public on(event: 'friendship' , listener: string | ((this: Wechaty, friendship: Friendship) => void))                                           : this
   public on(event: 'heartbeat'  , listener: string | ((this: Wechaty, data: any) => void))                                                        : this
@@ -740,8 +748,15 @@ export class Wechaty extends Accessory implements Sayable {
       await this.memory.load()
 
       this.initPuppet()
-
       await this.puppet.start()
+
+      if (this.options.ioToken) {
+        this.io = new Io({
+          token   : this.options.ioToken,
+          wechaty : this,
+        })
+        await this.io.start()
+      }
 
     } catch (e) {
       console.error(e)
@@ -799,6 +814,12 @@ export class Wechaty extends Accessory implements Sayable {
 
     try {
       await this.puppet.stop()
+
+      if (this.io) {
+        await this.io.stop()
+        this.io = undefined
+      }
+
     } catch (e) {
       log.error('Wechaty', 'stop() exception: %s', e.message)
       Raven.captureException(e)
@@ -907,13 +928,15 @@ export class Wechaty extends Accessory implements Sayable {
   /**
    * @private
    */
-  public async ding(): Promise<false | 'dong'> {
+  public ding(data?: string): void {
+    log.silly('Wechaty', 'ding(%s)', data || '')
+
     try {
-      return await this.puppet.ding() // should return 'dong'
+      this.puppet.ding(data)
     } catch (e) {
       log.error('Wechaty', 'ding() exception: %s', e.message)
       Raven.captureException(e)
-      return false
+      throw e
     }
   }
 
