@@ -184,7 +184,7 @@ export class PuppetPadchat extends Puppet {
 
     const manager = this.padchatManager = new PadchatManager({
       memory   : this.options.memory,
-      token    : padchatToken(),
+      token    : this.options.token || padchatToken(),
       endpoint : WECHATY_PUPPET_PADCHAT_ENDPOINT,
     })
 

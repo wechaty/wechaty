@@ -97,8 +97,9 @@ export const WECHATY_EVENT_DICT = {
 export type WechatyEventName  = keyof typeof WECHATY_EVENT_DICT
 
 export interface WechatyOptions {
-  puppet?  : PuppetName | Puppet,
-  profile? : null | string,
+  profile?     : null | string,
+  puppet?      : PuppetName | Puppet,
+  puppetToken? : string,
 }
 
 /**
@@ -503,6 +504,7 @@ export class Wechaty extends Accessory implements Sayable {
 
       const options: PuppetOptions = {
         memory : this.memory,
+        token  : this.options.puppetToken,
       }
 
       return new MyPuppet(options)

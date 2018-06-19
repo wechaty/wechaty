@@ -63,6 +63,7 @@ export type PuppetEventName = keyof typeof PUPPET_EVENT_DICT
 export interface PuppetOptions {
   memory   : MemoryCard,
   timeout? : number,
+  token?   : string,
 }
 
 export interface Receiver {
