@@ -539,12 +539,15 @@ export class Wechaty extends Accessory implements Sayable {
     const eventNameList: PuppetEventName[] = Object.keys(PUPPET_EVENT_DICT) as any
     for (const eventName of eventNameList) {
       log.verbose('Wechaty', 'initPuppetEventBridge() puppet.on(%s) registered', eventName)
-      // /// e as any ??? Maybe this is a bug of TypeScript v2.5.3
-      // puppet.on(event as any, (...args: any[]) => {
-      //   this.emit(event, ...args)
-      // })
 
       switch (eventName) {
+        case 'dong':
+          puppet.removeAllListeners('dong')
+          puppet.on('dong', data => {
+            this.emit('dong', data)
+          })
+          break
+
         case 'error':
           puppet.removeAllListeners('error')
           puppet.on('error', error => {

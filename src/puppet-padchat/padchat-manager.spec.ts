@@ -2,6 +2,7 @@
 
 // tslint:disable:no-shadowed-variable
 import test  from 'blue-tape'
+import sinon from 'sinon'
 
 import { MemoryCard } from 'memory-card'
 
@@ -11,6 +12,10 @@ import {
 }                                     from './config'
 
 class PadchatManagerTest extends PadchatManager {
+  public onSocket(payload: any) {
+    return super.onSocket(payload)
+  }
+
   public async initCache(token: string, selfId: string) {
     return super.initCache(
       token,
@@ -92,6 +97,8 @@ test('PadchatManager() stop many instances for the same time', async t => {
   const MAX_NUM = 3
   const managerList = [] as PadchatManagerTest[]
 
+  const sandbox = sinon.createSandbox()
+
   for (let i = 0; i < MAX_NUM; i++ ) {
     const manager = new PadchatManagerTest({
       memory   : new MemoryCard(),
@@ -103,18 +110,20 @@ test('PadchatManager() stop many instances for the same time', async t => {
     managerList.push(manager)
   }
 
-  const releaseFutureList = [] as Promise<void>[]
+  const stopFutureList = [] as Promise<void>[]
 
   for (let i = 0; i < MAX_NUM; i++) {
     const manager = managerList[i]
     const future = manager.stop()
-    releaseFutureList.push(future)
+    stopFutureList.push(future)
   }
 
   try {
-    await Promise.all(releaseFutureList)
+    await Promise.all(stopFutureList)
     t.pass('stop' + MAX_NUM + ' at the same time success')
   } catch (e) {
     t.fail(e)
   }
+
+  sandbox.restore()
 })

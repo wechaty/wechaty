@@ -116,6 +116,10 @@ export class PadchatRpc extends EventEmitter {
       throw new Error('socket had not been opened yet!')
     }
 
+    this.jsonRpc.on('error', () => {
+      // TypeError: Cannot read property 'resolve' of undefined
+      // https://github.com/JsCommunity/json-rpc-peer/issues/52
+    })
     this.jsonRpc.on('data', (buffer: string | Buffer) => {
       // log.silly('PadchatRpc', 'initJsonRpc() jsonRpc.on(data)')
 
