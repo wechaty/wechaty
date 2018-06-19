@@ -163,7 +163,7 @@ export class Message extends Accessory implements Sayable {
           ? '👥' + this.room()
           : '',
         this.from()
-          ? ' 🗣️' + this.from()
+          ? '🗣' + this.from()
           : '',
         this.to()
           ? '👤' + this.to()
