@@ -338,24 +338,6 @@ export abstract class Puppet extends EventEmitter {
     // return this.pkg.engines.wechaty
   }
 
-  // public async say(textOrFile: string | FileBox) : Promise<void> {
-  //   if (!this.logonoff()) {
-  //     throw new Error('can not say before login')
-  //   }
-
-  //   if (typeof textOrFile === 'string') {
-  //     await this.messageSendText({
-  //       contactId: this.selfId(),
-  //     }, textOrFile)
-  //   } else if (textOrFile instanceof FileBox) {
-  //     await this.messageSendFile({
-  //       contactId: this.selfId(),
-  //     }, textOrFile)
-  //   } else {
-  //     throw new Error('say() arg unknown')
-  //   }
-  // }
-
   /**
    *
    * Contact
