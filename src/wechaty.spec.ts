@@ -165,7 +165,7 @@ test('initPuppetAccessory()', async t => {
 
 // TODO: add test for event args
 
-test.only('Wechaty restart for many times', async t => {
+test('Wechaty restart for many times', async t => {
   const wechaty = Wechaty.instance({
     puppet: 'mock',
   })
