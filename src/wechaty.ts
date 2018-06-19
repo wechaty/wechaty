@@ -112,6 +112,9 @@ export interface WechatyOptions {
  *
  */
 export class Wechaty extends Accessory implements Sayable {
+
+  public readonly state  : StateSwitch
+
   /**
    * singleton globalInstance
    * @private
@@ -119,7 +122,6 @@ export class Wechaty extends Accessory implements Sayable {
   private static globalInstance: Wechaty
 
   private readonly memory : MemoryCard
-  private readonly state  : StateSwitch
 
   private lifeTimer?: NodeJS.Timer
 

@@ -380,7 +380,7 @@ export abstract class Puppet extends EventEmitter {
   }
 
   public async contactSearch(
-    query?        : ContactQueryFilter,
+    query?        : string | ContactQueryFilter,
     searchIdList? : string[],
   ): Promise<string[]> {
     log.verbose('Puppet', 'contactSearch(query=%s, %s)',
@@ -389,6 +389,12 @@ export abstract class Puppet extends EventEmitter {
                             ? `idList.length = ${searchIdList.length}`
                             : '',
                 )
+    if (typeof query === 'string') {
+      const nameIdList  = await this.contactSearch({ name: query })
+      const aliasIdList = await this.contactSearch({ alias: query })
+
+      return [...new Set([...nameIdList, ...aliasIdList])]
+    }
 
     if (!searchIdList) {
       searchIdList = await this.contactList()

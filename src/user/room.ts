@@ -17,8 +17,6 @@
  *
  *   @ignore
  */
-// import util from 'util'
-
 import {
   FileBox,
 }                   from 'file-box'
@@ -143,9 +141,13 @@ export class Room extends Accessory implements Sayable {
 
   public static async find<T extends typeof Room>(
     this  : T,
-    query : RoomQueryFilter,
+    query : string | RoomQueryFilter,
   ): Promise<T['prototype'] | null> {
-    log.verbose('Room', 'find({ topic: %s })', query.topic)
+    log.verbose('Room', 'find(%s)', JSON.stringify(query))
+
+    if (typeof query === 'string') {
+      query = { topic: query }
+    }
 
     const roomList = await this.findAll(query)
     if (!roomList) {
