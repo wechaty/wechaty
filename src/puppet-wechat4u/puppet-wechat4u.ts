@@ -48,7 +48,6 @@ import {
   Puppet,
   PuppetOptions,
   Receiver,
-  MessageType,
 }                       from '../puppet/'
 
 import {
@@ -57,7 +56,7 @@ import {
 }                       from '../config'
 
 import {
-  WebAppMsgType,
+  // WebAppMsgType,
 
   WebContactRawPayload,
   // WebMessageMediaPayload,
@@ -70,11 +69,11 @@ import {
   // WebRoomRawMember,
   WebRoomRawPayload,
   WebRoomRawMember,
-}                           from '../puppet-puppeteer/web-schemas'
+}                           from './web-schemas'
 
 import {
-  isRoomId,
-}                         from './misc'
+  messageRawPayloadParser,
+}                           from './pure-function-helpers'
 
 export type PuppetFoodType = 'scan' | 'ding'
 export type ScanFoodType   = 'scan' | 'login' | 'logout'
@@ -429,7 +428,10 @@ export class PuppetWechat4u extends Puppet {
   public async messageFile(id: string): Promise<FileBox> {
     log.verbose('PuppetWechat4u', 'messageFile(%s)', id)
 
+    const payload = await this.messagePayload(id)
     const rawPayload = await this.messageRawPayload(id)
+
+    const filename = payload.filename || 'unknown.txt'
 
     /**
      * 判断消息类型
@@ -452,7 +454,7 @@ export class PuppetWechat4u extends Puppet {
         // console.log('图片消息，保存到本地')
         return FileBox.fromStream(
           (await this.wechat4u.getMsgImg(rawPayload.MsgId)).data,
-          this.filename(rawPayload),
+          filename,
         )
 
       case this.wechat4u.CONF.MSGTYPE_VOICE:
@@ -462,7 +464,7 @@ export class PuppetWechat4u extends Puppet {
         // console.log('语音消息，保存到本地')
         return FileBox.fromStream(
           (await this.wechat4u.getVoice(rawPayload.MsgId)).data,
-          this.filename(rawPayload),
+          filename,
         )
 
       case this.wechat4u.CONF.MSGTYPE_VIDEO:
@@ -473,7 +475,7 @@ export class PuppetWechat4u extends Puppet {
         // console.log('视频消息，保存到本地')
         return FileBox.fromStream(
           (await this.wechat4u.getVideo(rawPayload.MsgId)).data,
-          this.filename(rawPayload),
+          filename,
         )
 
       case this.wechat4u.CONF.MSGTYPE_APP:
@@ -484,7 +486,7 @@ export class PuppetWechat4u extends Puppet {
           // console.log('文件消息，保存到本地')
           return FileBox.fromStream(
             (await this.wechat4u.getDoc(rawPayload.FromUserName, rawPayload.MediaId, rawPayload.FileName)).data,
-            this.filename(rawPayload),
+            filename,
           )
         }
         break
@@ -512,102 +514,7 @@ export class PuppetWechat4u extends Puppet {
     log.verbose('PuppetWechat4u', 'messageRawPayloadParser(%s) @ %s', rawPayload, this)
 
     // console.log(rawPayload)
-    const id                           = rawPayload.MsgId
-    const text: string                 = rawPayload.Content.replace(/^\n/, '')
-    const timestamp: number            = rawPayload.CreateTime
-    const filename: undefined | string = this.filename(rawPayload) || undefined
-
-    let fromId : string
-    let roomId : undefined | string
-    let toId   : undefined | string
-
-    /**
-     * Check for the ChatRoom
-     *
-     * { MsgId: '7445285040940022284',
-     *   FromUserName:
-     *   '@@2820dea1c91c9f65b25cead37cd81d4fcd15c1fef052e29668b2dc6897a8093f',
-     *   ToUserName:
-     *   '@06ddf0d988fcfe903207835cfb636356525231459b0361649813bebb2836d225',
-     *   MsgType: 1,
-     *   Content: '@c9af79da3582391bff5f291108d987e7:\n说的就是我',
-     *   Status: 3,
-     *   ...
-     * }
-     *
-     * { MsgId: '2311479263190931912',
-     *   FromUserName:
-     *   '@@b2829390b8a0f4613cee9763322274db18ad76498b5fe07dd1b3699e423e869a',
-     *   ToUserName:
-     *   '@06ddf0d988fcfe903207835cfb636356525231459b0361649813bebb2836d225',
-     *   MsgType: 1,
-     *   Content: '高阳:\n我是说错误上报的库',,
-     */
-    if (isRoomId(rawPayload.FromUserName)) {
-      // set room id
-      roomId = rawPayload.FromUserName
-
-      const header = rawPayload.Content.split('\n')[0]
-      const matches = header.match(/^(.+):$/)
-      if (!matches) {
-        throw new Error('no matches')
-      }
-
-      const idOrName = matches[1]
-      if (this.wechat4u.contacts[idOrName]) {
-        // set from id from contact id in the message content
-        fromId = matches[1]
-      } else {
-        const memberContactList = await this.roomMemberSearch(roomId, idOrName)
-        if (memberContactList.length <= 0) {
-          throw new Error('from not found')
-        }
-        if (memberContactList.length > 1) {
-          log.warn('PuppetWechat4u', 'messageRawPayloadParser() found more than one possible fromId, use the first one.')
-        }
-        // set from id from contact name in the message content
-        fromId = memberContactList[0]
-      }
-    } else {
-      fromId = rawPayload.FromUserName
-    }
-
-    if (isRoomId(rawPayload.ToUserName)) {
-      // The message is to room only, no specific receiver.
-      // TODO: if message is mention someone, toId should set to the mentioned contact(?)
-    } else {
-      toId = rawPayload.ToUserName
-    }
-
-    const type: MessageType = this.messageTypeFromWeb(rawPayload.MsgType)
-
-    const payloadBase = {
-      id,
-      type,
-      fromId,
-      filename,
-      text,
-      timestamp,
-    }
-
-    let payload: MessagePayload
-
-    if (toId) {
-      payload = {
-        ...payloadBase,
-        toId,
-        roomId,
-      }
-    } else if (roomId) {
-      payload = {
-        ...payloadBase,
-        toId,
-        roomId,
-      }
-    } else {
-      throw new Error('neither roomId nor toId')
-    }
-
+    const payload = messageRawPayloadParser(rawPayload)
     return payload
   }
 
@@ -951,124 +858,6 @@ export class PuppetWechat4u extends Puppet {
 
     this.emit('dong', data)
     return
-  }
-
-  private filename(
-    rawPayload: WebMessageRawPayload,
-  ): string {
-    log.verbose('PuppetWechat4u', 'filename()')
-
-    let filename = rawPayload.FileName || rawPayload.MediaId || rawPayload.MsgId
-
-    const re = /\.[a-z0-9]{1,7}$/i
-    if (!re.test(filename)) {
-      if (rawPayload.MMAppMsgFileExt) {
-        filename += '.' + rawPayload.MMAppMsgFileExt
-      } else {
-        filename += this.extname(rawPayload)
-      }
-    }
-
-    log.silly('PuppetWechat4u', 'filename()=%s, build from rawPayload', filename)
-    return filename
-  }
-
-  private extname(
-    rawPayload: WebMessageRawPayload,
-  ): string {
-    let ext: string
-
-    // const type = this.type()
-
-    switch (rawPayload.MsgType) {
-      case WebMessageType.EMOTICON:
-        ext = '.gif'
-        break
-
-      case WebMessageType.IMAGE:
-        ext = '.jpg'
-        break
-
-      case WebMessageType.VIDEO:
-      case WebMessageType.MICROVIDEO:
-        ext = '.mp4'
-        break
-
-      case WebMessageType.VOICE:
-        ext = '.mp3'
-        break
-
-      case WebMessageType.APP:
-        switch (rawPayload.AppMsgType) {
-          case WebAppMsgType.URL:
-            ext = '.url' // XXX
-            break
-          default:
-            ext = '.' + rawPayload.MsgType
-            break
-        }
-        break
-
-      case WebMessageType.TEXT:
-        if (rawPayload.SubMsgType === WebMessageType.LOCATION) {
-          ext = '.jpg'
-        }
-        ext = '.' + rawPayload.MsgType
-
-        break
-
-      default:
-        log.silly('PuppeteerMessage', `ext() got unknown type: ${rawPayload.MsgType}`)
-        ext = '.' + rawPayload.MsgType
-    }
-
-    return ext
-
-  }
-
-  private messageTypeFromWeb(webMsgType: WebMessageType): MessageType {
-    switch (webMsgType) {
-      case WebMessageType.TEXT:
-        return MessageType.Text
-
-      case WebMessageType.EMOTICON:
-      case WebMessageType.IMAGE:
-        return MessageType.Image
-
-      case WebMessageType.VOICE:
-        return MessageType.Audio
-
-      case WebMessageType.MICROVIDEO:
-      case WebMessageType.VIDEO:
-        return MessageType.Video
-
-      case WebMessageType.TEXT:
-        return MessageType.Text
-
-      /**
-       * Treat those Types as TEXT
-       *
-       * FriendRequest is a SYS message
-       * FIXME: should we use better message type at here???
-       */
-      case WebMessageType.SYS:
-      case WebMessageType.APP:
-        return MessageType.Text
-
-      // VERIFYMSG           = 37,
-      // POSSIBLEFRIEND_MSG  = 40,
-      // SHARECARD           = 42,
-      // LOCATION            = 48,
-      // VOIPMSG             = 50,
-      // STATUSNOTIFY        = 51,
-      // VOIPNOTIFY          = 52,
-      // VOIPINVITE          = 53,
-      // SYSNOTICE           = 9999,
-      // RECALLED            = 10002,
-      default:
-        log.warn('Wechat4uPuppeteer', 'messageTypeFromWeb(%d) un-supported WebMsgType, treat as TEXT', webMsgType)
-        return MessageType.Text
-    }
   }
 
   private isFriendConfirm(
