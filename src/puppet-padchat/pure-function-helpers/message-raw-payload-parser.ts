@@ -2,7 +2,7 @@
 
 import {
   MessagePayload,
-  // MessageType,
+  MessageType,
 }                         from '../../puppet/'
 
 import {
@@ -35,9 +35,21 @@ export function messageRawPayloadParser(
 
   const payloadBase = {
     id        : rawPayload.msg_id,
-    timestamp : rawPayload.timestamp,                     // Padchat message timestamp is seconds
+    timestamp : rawPayload.timestamp,   // Padchat message timestamp is seconds
     type      : type,
-    filename  : messageFileName(rawPayload) || undefined,
+  } as {
+    id        : string,
+    timestamp : number,
+    type      : MessageType,
+    filename? : string,
+  }
+
+  if (   type === MessageType.Image
+      || type === MessageType.Audio
+      || type === MessageType.Video
+      || type === MessageType.Attachment
+  ) {
+    payloadBase.filename = messageFileName(rawPayload) || undefined
   }
 
   let fromId: undefined | string = undefined

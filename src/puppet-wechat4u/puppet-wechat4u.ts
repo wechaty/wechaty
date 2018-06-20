@@ -22,7 +22,6 @@ import {
   FileBox,
 }             from 'file-box'
 
-// tslint:disable-next-line
 import Wechat4u from 'wechat4u'
 
 import { Misc } from '../misc'
@@ -96,7 +95,7 @@ export type ScanFoodType   = 'scan' | 'login' | 'logout'
 // }
 
 // MemoryCard Slot Name
-const SYNC_DATA_SLOT = 'wechat4u-sync-data'
+const MEMORY_SLOT_NAME = 'puppet-wechat4u'
 
 export class PuppetWechat4u extends Puppet {
 
@@ -111,7 +110,7 @@ export class PuppetWechat4u extends Puppet {
 
   private scanQrCode?: string
 
-  public readonly cacheMessageRawPayload       : LRU.Cache<string, WebMessageRawPayload>
+  public readonly cacheMessageRawPayload: LRU.Cache<string, WebMessageRawPayload>
 
   constructor(
     public options: PuppetOptions,
@@ -127,7 +126,7 @@ export class PuppetWechat4u extends Puppet {
       maxAge: 1000 * 60 * 60,
     }
 
-    this.cacheMessageRawPayload       = new LRU<string, WebMessageRawPayload>(lruOptions)
+    this.cacheMessageRawPayload = new LRU<string, WebMessageRawPayload>(lruOptions)
   }
 
   public async start(): Promise<void> {
@@ -135,7 +134,7 @@ export class PuppetWechat4u extends Puppet {
 
     this.state.on('pending')
 
-    const syncData = await this.options.memory.get(SYNC_DATA_SLOT)
+    const syncData = await this.options.memory.get(MEMORY_SLOT_NAME)
     if (syncData) {
       this.wechat4u = new Wechat4u(syncData)
     } else {
@@ -183,7 +182,7 @@ export class PuppetWechat4u extends Puppet {
       }
       await this.login(userId)
       // 保存数据，将数据序列化之后保存到任意位置
-      await this.options.memory.set(SYNC_DATA_SLOT, wechat4u.botData)
+      await this.options.memory.set(MEMORY_SLOT_NAME, wechat4u.botData)
       await this.options.memory.save()
     })
     /**
@@ -194,7 +193,7 @@ export class PuppetWechat4u extends Puppet {
         await this.logout()
       }
       // 清除数据
-      await this.options.memory.delete(SYNC_DATA_SLOT)
+      await this.options.memory.delete(MEMORY_SLOT_NAME)
       await this.options.memory.save()
     })
     /**
@@ -524,7 +523,8 @@ export class PuppetWechat4u extends Puppet {
   ): Promise<void> {
     log.verbose('PuppetWechat4u', 'messageSend(%s, %s)', receiver, text)
 
-    const id = receiver.contactId || receiver.roomId
+    // room first
+    const id = receiver.roomId || receiver.contactId
 
     if (!id) {
       throw new Error('no id')
@@ -547,6 +547,7 @@ export class PuppetWechat4u extends Puppet {
   ): Promise<void> {
     log.verbose('PuppetWechat4u', 'messageSend(%s, %s)', receiver, file)
 
+    // room first
     const id = receiver.roomId || receiver.contactId
 
     if (!id) {
@@ -597,7 +598,7 @@ export class PuppetWechat4u extends Puppet {
       throw new Error('no rawPayload')
     }
 
-    const id = receiver.contactId || receiver.roomId
+    const id = receiver.roomId || receiver.contactId
 
     if (!id) {
       throw new Error('no id')

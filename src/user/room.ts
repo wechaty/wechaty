@@ -29,6 +29,7 @@ import {
   Raven,
   Sayable,
   log,
+  FOUR_PER_EM_SPACE,
 }                       from '../config'
 import {
   Accessory,
@@ -341,7 +342,9 @@ export class Room extends Accessory implements Sayable {
     if (typeof textOrContactOrFile === 'string') {
 
       if (replyToList.length > 0) {
-        const AT_SEPRATOR = String.fromCharCode(8197)
+        // const AT_SEPRATOR = String.fromCharCode(8197)
+        const AT_SEPRATOR = FOUR_PER_EM_SPACE
+
         const mentionList = replyToList.map(c => '@' + c.name()).join(AT_SEPRATOR)
         text = mentionList + ' ' + textOrContactOrFile
       } else {

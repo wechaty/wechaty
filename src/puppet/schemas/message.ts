@@ -20,7 +20,7 @@ export interface MessagePayloadBase {
 
 export interface MessagePayloadRoom {
   fromId?        : string,
-  mentionIdList? : string[],   // Mentioned Contacts' Ids
+  // mentionIdList? : string[],   // Mentioned Contacts' Ids
   roomId         : string,
   toId?          : string,     // if to is not set, then room must be set
 }
