@@ -62,9 +62,10 @@ export type PuppetEventName = keyof typeof PUPPET_EVENT_DICT
  * timeout: WatchDog Timeout in Seconds
  */
 export interface PuppetOptions {
-  memory   : MemoryCard,
-  timeout? : number,
-  token?   : string,
+  endpoint? : string,
+  memory    : MemoryCard,
+  timeout?  : number,
+  token?    : string,
 }
 
 export interface Receiver {
