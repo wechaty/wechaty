@@ -30,9 +30,8 @@
 
 # Change Log
 
-## [Unreleased](https://github.com/chatie/wechaty/tree/HEAD)
-
-[Full Changelog](https://github.com/chatie/wechaty/compare/v0.14.0...HEAD)
+## [v0.16.0](https://github.com/chatie/wechaty/tree/v0.16.0) (2018-06-21)
+[Full Changelog](https://github.com/chatie/wechaty/compare/v0.14.0...v0.16.0)
 
 **Implemented enhancements:**
 
