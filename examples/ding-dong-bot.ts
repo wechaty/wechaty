@@ -32,7 +32,8 @@ import { FileBox }  from 'file-box'
 import {
   Wechaty,
   log,
-}               from '../src/'
+  qrcodeValueToImageUrl,
+}                         from '../src/'
 
 const BOT_QR_CODE_IMAGE_FILE = path.resolve(
   __dirname,
@@ -78,7 +79,9 @@ bot
   if (data) {
     console.log(data)
   }
-  console.log(`[${status}] Scan QR Code above url to log in: `)
+  console.log(qrcodeValueToImageUrl(qrcode))
+  console.log('^^^ Online QR Code Image URL ^^^ ')
+  console.log(`[${status}] ${qrcode} Scan QR Code above url to log in: `)
 })
 .on('message', async msg => {
   try {
