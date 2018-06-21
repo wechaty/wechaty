@@ -497,7 +497,7 @@ export class PadchatManager extends PadchatRpc {
        * 1.1 Delete token for prevent future useless auto login retry
        */
       delete deviceInfo.token
-      this.options.memory.set(MEMORY_SLOT_NAME, memorySlot)
+      await this.options.memory.set(MEMORY_SLOT_NAME, memorySlot)
       await this.options.memory.save()
 
       await this.emitLoginQrcode()
@@ -532,7 +532,7 @@ export class PadchatManager extends PadchatRpc {
      * 5 Delete token for prevent future useless auto login retry
      */
     delete deviceInfo.token
-    this.options.memory.set(MEMORY_SLOT_NAME, memorySlot)
+    await this.options.memory.set(MEMORY_SLOT_NAME, memorySlot)
     await this.options.memory.save()
 
     return false
@@ -855,7 +855,7 @@ export class PadchatManager extends PadchatRpc {
              * Use delay queue executor to sync room:
              *  add syncRoomMember task to the queue
              */
-            this.delayQueueExecutor.execute(
+            await this.delayQueueExecutor.execute(
               () => this.syncRoomMember(roomId),
               `syncRoomMember(${roomId})`,
             )
