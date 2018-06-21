@@ -1,19 +1,17 @@
-import { PuppetPuppeteer }  from './puppet-puppeteer/'
 import { PuppetMock }       from './puppet-mock/'
+import { PuppetPuppeteer }  from './puppet-puppeteer/'
 import { PuppetPadchat }    from './puppet-padchat'
-// import PuppetWechat4u   from './puppet-wechat4u/'
-// import { PuppetPadchat }    from './puppet-padchat'
-import {PuppetWechat4u}   from './puppet-wechat4u/'
+import { PuppetWechat4u }   from './puppet-wechat4u/'
 
 /**
  * Wechaty Official Puppet Plugins List
  */
 export const PUPPET_DICT = {
+  default:    PuppetWechat4u,
+  //////////////////////////
   mock:       PuppetMock,
-  puppeteer:  PuppetPuppeteer,
   padchat:    PuppetPadchat,
-  // wechat4u:   PuppetWechat4u,
-  // padchat:    PuppetPadchat,
+  puppeteer:  PuppetPuppeteer,
   wechat4u:   PuppetWechat4u,
 }
 
