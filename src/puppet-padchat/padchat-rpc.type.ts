@@ -131,6 +131,12 @@ export enum WXSearchContactTypeStatus {
   UnSearchable = -24,
 }
 
+export enum WXRoomAddTypeStatus {
+  Done          = 0,
+  NeedInvite    = -2012,
+  InviteConfirm = -2028,
+}
+
 // Difference with Contact Payload
 // see more in https://github.com/lijiarui/wechaty-puppet-padchat/issues/54
 export interface WXSearchContactType {
