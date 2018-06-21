@@ -61,6 +61,7 @@ import {
   WXLogoutType,
   WXSearchContactType,
   WXSearchContactTypeStatus,
+  WXRoomAddTypeStatus,
 }                             from './padchat-rpc.type'
 
 import {
@@ -774,7 +775,7 @@ export class PadchatRpc extends EventEmitter {
       throw Error('WXAddChatRoomMember error! canot get result from websocket server')
     }
 
-    if (result.status === 0) {
+    if (result.status === WXRoomAddTypeStatus.Done) {
       // see more in WXAddChatRoomMemberType
       if (/OK/i.test(result.message)) {
         return 0
@@ -788,12 +789,12 @@ export class PadchatRpc extends EventEmitter {
      * If room member more than 40
      * Need call `WXInviteChatRoomMember` instead `WXAddChatRoomMember`
      */
-    if (result.status === -2012) {
+    if (result.status === WXRoomAddTypeStatus.NeedInvite) {
       log.silly('PadchatRpc', 'WXAddChatRoomMember change to WXInviteChatRoomMember')
       return this.WXInviteChatRoomMember(roomId, contactId)
     }
 
-    if (result.status === -2028) {
+    if (result.status === WXRoomAddTypeStatus.InviteConfirm) {
       // result: {"message":"","status":-2028}
       // May be the owner has see not allow other people to join in the room (群聊邀请确认)
       log.warn('PadchatRpc', 'WXAddChatRoomMember failed! maybe owner open the should confirm first to invited others to join in the room.')
@@ -820,7 +821,7 @@ export class PadchatRpc extends EventEmitter {
       throw Error('WXInviteChatRoomMember error! canot get result from websocket server')
     }
 
-    if (result.status === 0) {
+    if (result.status === WXRoomAddTypeStatus.Done) {
       // see more in WXAddChatRoomMemberType
       if (/OK/i.test(result.message)) {
         return 0
@@ -831,7 +832,7 @@ export class PadchatRpc extends EventEmitter {
 
     // TODO
     // Should check later
-    if (result.status === -2028) {
+    if (result.status === -WXRoomAddTypeStatus.InviteConfirm) {
       // result: {"message":"","status":-2028}
       // May be the owner has see not allow other people to join in the room (群聊邀请确认)
       log.warn('PadchatRpc', 'WXInviteChatRoomMember failed! maybe owner open the should confirm first to invited others to join in the room.')
