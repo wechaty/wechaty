@@ -61,6 +61,7 @@ import {
   WXLogoutType,
   WXSearchContactType,
   WXSearchContactTypeStatus,
+  WXRoomAddTypeStatus,
 }                             from './padchat-rpc.type'
 
 import {
@@ -774,7 +775,7 @@ export class PadchatRpc extends EventEmitter {
       throw Error('WXAddChatRoomMember error! canot get result from websocket server')
     }
 
-    if (result.status === 0) {
+    if (result.status === WXRoomAddTypeStatus.Done) {
       // see more in WXAddChatRoomMemberType
       if (/OK/i.test(result.message)) {
         return 0
@@ -783,10 +784,58 @@ export class PadchatRpc extends EventEmitter {
       return -1
     }
 
-    if (result.status === -2028) {
+    /**
+     * see https://github.com/lijiarui/wechaty-puppet-padchat/issues/70
+     * If room member more than 40
+     * Need call `WXInviteChatRoomMember` instead `WXAddChatRoomMember`
+     */
+    if (result.status === WXRoomAddTypeStatus.NeedInvite) {
+      log.silly('PadchatRpc', 'WXAddChatRoomMember change to WXInviteChatRoomMember')
+      return this.WXInviteChatRoomMember(roomId, contactId)
+    }
+
+    if (result.status === WXRoomAddTypeStatus.InviteConfirm) {
       // result: {"message":"","status":-2028}
       // May be the owner has see not allow other people to join in the room (群聊邀请确认)
       log.warn('PadchatRpc', 'WXAddChatRoomMember failed! maybe owner open the should confirm first to invited others to join in the room.')
+    }
+
+    return result.status
+  }
+
+  /**
+   * When member more than 40, use WXInviteChatRoomMember
+   * When member less than 40, use WXAddChatRoomMember
+   *
+   * @param {string} roomId
+   * @param {string} contactId
+   * @returns {Promise<number>}
+   */
+  public async WXInviteChatRoomMember(roomId: string, contactId: string): Promise<number> {
+    // TODO:
+    // Change `WXAddChatRoomMemberType` to `WXInviteChatRoomMemberType`
+    const result: WXAddChatRoomMemberType = await this.rpcCall('WXInviteChatRoomMember', roomId, contactId)
+    log.silly('PadchatRpc', 'WXInviteChatRoomMember result: %s', JSON.stringify(result))
+
+    if (!result) {
+      throw Error('WXInviteChatRoomMember error! canot get result from websocket server')
+    }
+
+    if (result.status === WXRoomAddTypeStatus.Done) {
+      // see more in WXAddChatRoomMemberType
+      if (/OK/i.test(result.message)) {
+        return 0
+      }
+      log.warn('PadchatRpc', 'WXInviteChatRoomMember() status = 0 but message is not OK: ' + result.message)
+      return -1
+    }
+
+    // TODO
+    // Should check later
+    if (result.status === -WXRoomAddTypeStatus.InviteConfirm) {
+      // result: {"message":"","status":-2028}
+      // May be the owner has see not allow other people to join in the room (群聊邀请确认)
+      log.warn('PadchatRpc', 'WXInviteChatRoomMember failed! maybe owner open the should confirm first to invited others to join in the room.')
     }
 
     return result.status
@@ -910,17 +959,6 @@ export class PadchatRpc extends EventEmitter {
       throw Error('WXCreateChatRoom , stranger,error! canot get result from websocket server')
     }
     return stripBugChatroomId(result.user_name)
-  }
-
-  // TODO: check any
-  // TODO: don't know the difference between WXAddChatRoomMember
-  public async WXInviteChatRoomMember(roomId: string, contactId: string): Promise<any> {
-    const result = await this.rpcCall('WXInviteChatRoomMember', roomId, contactId)
-    log.silly('PadchatRpc', 'WXInviteChatRoomMember , stranger,result: %s', JSON.stringify(result))
-    if (!result || result.status !== 0) {
-      throw Error('WXInviteChatRoomMember , stranger,error! canot get result from websocket server')
-    }
-    return result
   }
 
   // TODO: check any
