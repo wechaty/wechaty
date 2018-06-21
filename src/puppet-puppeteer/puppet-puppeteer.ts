@@ -50,10 +50,6 @@ import {
 import Misc           from '../misc'
 
 import {
-  isRoomId,
-}                   from './misc'
-
-import {
   Bridge,
   Cookie,
 }                       from './bridge'
@@ -92,6 +88,11 @@ import {
 
   PuppetScanEvent,
 }                           from '../puppet/'
+
+import {
+  messageRawPayloadParser,
+  messageFilename,
+}                             from './pure-function-helpers'
 
 export type PuppetFoodType = 'scan' | 'ding'
 export type ScanFoodType   = 'scan' | 'login' | 'logout'
@@ -340,64 +341,7 @@ export class PuppetPuppeteer extends Puppet {
   ): Promise<MessagePayload> {
     log.verbose('PuppetPuppeteer', 'messageRawPayloadParser(%s) @ %s', rawPayload, this)
 
-    const id                           = rawPayload.MsgId
-    const fromId                       = rawPayload.MMActualSender               // MMPeerUserName
-    const text: string                 = rawPayload.MMActualContent              // Content has @id prefix added by wx
-    const timestamp: number            = rawPayload.MMDisplayTime                // Javascript timestamp of milliseconds
-    const filename: undefined | string = this.filename(rawPayload) || undefined
-
-    let roomId : undefined | string
-    let toId   : undefined | string
-
-    // FIXME: has there any better method to know the room ID?
-    if (rawPayload.MMIsChatRoom) {
-      if (isRoomId(rawPayload.FromUserName)) {
-        roomId = rawPayload.FromUserName // MMPeerUserName always eq FromUserName ?
-      } else if (isRoomId(rawPayload.ToUserName)) {
-        roomId = rawPayload.ToUserName
-      } else {
-        throw new Error('parse found a room message, but neither FromUserName nor ToUserName is a room(/^@@/)')
-      }
-
-      // console.log('rawPayload.FromUserName: ', rawPayload.FromUserName)
-      // console.log('rawPayload.ToUserName: ', rawPayload.ToUserName)
-      // console.log('rawPayload.MMPeerUserName: ', rawPayload.MMPeerUserName)
-    }
-
-    if (rawPayload.ToUserName) {
-      if (!isRoomId(rawPayload.ToUserName)) { // if a message in room without any specific receiver, then it will set to be `undefined`
-        toId = rawPayload.ToUserName
-      }
-    }
-
-    const type: MessageType = this.messageTypeFromWeb(rawPayload.MsgType)
-
-    const payloadBase = {
-      id,
-      type,
-      fromId,
-      filename,
-      text,
-      timestamp,
-    }
-
-    let payload: MessagePayload
-
-    if (toId) {
-      payload = {
-        ...payloadBase,
-        toId,
-        roomId,
-      }
-    } else if (roomId) {
-      payload = {
-        ...payloadBase,
-        toId,
-        roomId,
-      }
-    } else {
-      throw new Error('neither roomId nor toId')
-    }
+    const payload = messageRawPayloadParser(rawPayload)
 
     return payload
   }
@@ -420,9 +364,9 @@ export class PuppetPuppeteer extends Puppet {
     url = url.replace(/^https/i, 'http') // use http instead of https, because https will only success on the very first request!
     const parsedUrl = nodeUrl.parse(url)
 
-    const filename = this.filename(rawPayload)
+    const msgFileName = messageFilename(rawPayload)
 
-    if (!filename) {
+    if (!msgFileName) {
       throw new Error('no filename')
     }
 
@@ -457,54 +401,9 @@ export class PuppetPuppeteer extends Puppet {
       Cookie: cookies.map(c => `${c['name']}=${c['value']}`).join('; '),
     }
 
-    const fileBox = FileBox.fromUrl(url, filename, headers)
+    const fileBox = FileBox.fromUrl(url, msgFileName, headers)
 
     return fileBox
-  }
-
-  private messageTypeFromWeb(webMsgType: WebMessageType): MessageType {
-    switch (webMsgType) {
-      case WebMessageType.TEXT:
-        return MessageType.Text
-
-      case WebMessageType.EMOTICON:
-      case WebMessageType.IMAGE:
-        return MessageType.Image
-
-      case WebMessageType.VOICE:
-        return MessageType.Audio
-
-      case WebMessageType.MICROVIDEO:
-      case WebMessageType.VIDEO:
-        return MessageType.Video
-
-      case WebMessageType.TEXT:
-        return MessageType.Text
-
-      /**
-       * Treat those Types as TEXT
-       *
-       * Friendship is a SYS message
-       * FIXME: should we use better message type at here???
-       */
-      case WebMessageType.SYS:
-      case WebMessageType.APP:
-        return MessageType.Text
-
-      // VERIFYMSG           = 37,
-      // POSSIBLEFRIEND_MSG  = 40,
-      // SHARECARD           = 42,
-      // LOCATION            = 48,
-      // VOIPMSG             = 50,
-      // STATUSNOTIFY        = 51,
-      // VOIPNOTIFY          = 52,
-      // VOIPINVITE          = 53,
-      // SYSNOTICE           = 9999,
-      // RECALLED            = 10002,
-      default:
-        log.warn('PuppetPuppeteer', 'messageTypeFromWeb(%d) un-supported WebMsgType, treat as TEXT', webMsgType)
-        return MessageType.Text
-    }
   }
 
   /**
@@ -1354,79 +1253,6 @@ export class PuppetPuppeteer extends Puppet {
     }
 
     return url
-
-  }
-
-  private filename(
-    rawPayload: WebMessageRawPayload,
-  ): string {
-    log.verbose('PuppetPuppeteer', 'filename()')
-
-    let filename = rawPayload.FileName || rawPayload.MediaId || rawPayload.MsgId
-
-    const re = /\.[a-z0-9]{1,7}$/i
-    if (!re.test(filename)) {
-      if (rawPayload.MMAppMsgFileExt) {
-        filename += '.' + rawPayload.MMAppMsgFileExt
-      } else {
-        filename += this.extname(rawPayload)
-      }
-    }
-
-    log.silly('PuppetPuppeteer', 'filename()=%s, build from rawPayload', filename)
-    return filename
-  }
-
-  private extname(
-    rawPayload: WebMessageRawPayload,
-  ): string {
-    let ext: string
-
-    // const type = this.type()
-
-    switch (rawPayload.MsgType) {
-      case WebMessageType.EMOTICON:
-        ext = '.gif'
-        break
-
-      case WebMessageType.IMAGE:
-        ext = '.jpg'
-        break
-
-      case WebMessageType.VIDEO:
-      case WebMessageType.MICROVIDEO:
-        ext = '.mp4'
-        break
-
-      case WebMessageType.VOICE:
-        ext = '.mp3'
-        break
-
-      case WebMessageType.APP:
-        switch (rawPayload.AppMsgType) {
-          case WebAppMsgType.URL:
-            ext = '.url' // XXX
-            break
-          default:
-            ext = '.' + rawPayload.MsgType
-            break
-        }
-        break
-
-      case WebMessageType.TEXT:
-        if (rawPayload.SubMsgType === WebMessageType.LOCATION) {
-          ext = '.jpg'
-        }
-        ext = '.' + rawPayload.MsgType
-
-        break
-
-      default:
-        log.silly('PuppeteerMessage', `ext() got unknown type: ${rawPayload.MsgType}`)
-        ext = '.' + rawPayload.MsgType
-    }
-
-    return ext
 
   }
 

@@ -29,7 +29,8 @@ import {
 import {
   log,
   Sayable,
-}                 from '../config'
+  FOUR_PER_EM_SPACE,
+}                     from '../config'
 import {
   Accessory,
 }                 from '../accessory'
@@ -460,7 +461,8 @@ export class Message extends Accessory implements Sayable {
     }
 
     // define magic code `8197` to identify @xxx
-    const AT_SEPRATOR = String.fromCharCode(8197)
+    // const AT_SEPRATOR = String.fromCharCode(8197)
+    const AT_SEPRATOR = FOUR_PER_EM_SPACE
 
     const atList = this.text().split(AT_SEPRATOR)
     // console.log('atList: ', atList)

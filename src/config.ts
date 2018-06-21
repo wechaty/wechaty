@@ -214,6 +214,10 @@ export interface Sayable {
   say(text: string, replyTo?: any|any[]): Promise<void>
 }
 
+// http://jkorpela.fi/chars/spaces.html
+// String.fromCharCode(8197)
+export const FOUR_PER_EM_SPACE = String.fromCharCode(0x2005)
+
 export {
   log,
   Raven,

@@ -189,9 +189,9 @@ export class PuppetPadchat extends Puppet {
     this.state.on('pending')
 
     const manager = this.padchatManager = new PadchatManager({
+      endpoint : this.options.endpoint  || WECHATY_PUPPET_PADCHAT_ENDPOINT,
       memory   : this.options.memory,
-      token    : this.options.token || padchatToken(),
-      endpoint : WECHATY_PUPPET_PADCHAT_ENDPOINT,
+      token    : this.options.token     || padchatToken(),
     })
 
     await this.startManager(manager)

@@ -7,7 +7,7 @@ import {
 
 import {
   PadchatMessagePayload,
-  PadchatMessageType,
+  // PadchatMessageType,
   // PadchatContactPayload,
 }                         from '../padchat-schemas'
 
@@ -15,6 +15,12 @@ import {
   isRoomId,
   isContactId,
 }                         from './is-type'
+import {
+  messageType,
+}                         from './message-type'
+import {
+  messageFileName,
+}                         from './message-file-name'
 
 export function messageRawPayloadParser(
   rawPayload: PadchatMessagePayload,
@@ -25,61 +31,25 @@ export function messageRawPayloadParser(
   /**
    * 0. Set Message Type
    */
-  let type: MessageType
-
-  switch (rawPayload.sub_type) {
-
-    case PadchatMessageType.Text:
-      type = MessageType.Text
-      break
-
-    case PadchatMessageType.Image:
-      type = MessageType.Image
-      // console.log(rawPayload)
-      break
-
-    case PadchatMessageType.Voice:
-      type = MessageType.Audio
-      // console.log(rawPayload)
-      break
-
-    case PadchatMessageType.Emoticon:
-      type = MessageType.Emoticon
-      // console.log(rawPayload)
-      break
-
-    case PadchatMessageType.App:
-      type = MessageType.Attachment
-      // console.log(rawPayload)
-      break
-
-    case PadchatMessageType.Video:
-      type = MessageType.Video
-      // console.log(rawPayload)
-      break
-
-    case PadchatMessageType.Sys:
-      type = MessageType.Unknown
-      break
-
-    case PadchatMessageType.ShareCard:
-      type = MessageType.Contact
-      break
-
-    case PadchatMessageType.Recalled:
-    case PadchatMessageType.StatusNotify:
-    case PadchatMessageType.SysNotice:
-      type = MessageType.Unknown
-      break
-
-    default:
-      throw new Error('unsupported type: ' + PadchatMessageType[rawPayload.sub_type] + '(' + rawPayload.sub_type + ')')
-  }
+  const type = messageType(rawPayload.sub_type)
 
   const payloadBase = {
     id        : rawPayload.msg_id,
-    timestamp : rawPayload.timestamp,  // Padchat message timestamp is seconds
+    timestamp : rawPayload.timestamp,   // Padchat message timestamp is seconds
     type      : type,
+  } as {
+    id        : string,
+    timestamp : number,
+    type      : MessageType,
+    filename? : string,
+  }
+
+  if (   type === MessageType.Image
+      || type === MessageType.Audio
+      || type === MessageType.Video
+      || type === MessageType.Attachment
+  ) {
+    payloadBase.filename = messageFileName(rawPayload) || undefined
   }
 
   let fromId: undefined | string = undefined
