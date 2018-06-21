@@ -93,8 +93,11 @@ import {
   WXSearchContactTypeStatus,
 }                           from './padchat-rpc.type'
 
+let PADCHAT_COUNTER = 0 // PuppetPadchat Instance Counter
+
 export class PuppetPadchat extends Puppet {
 
+  private padchatCounter: number
   private readonly cachePadchatMessagePayload: LRU.Cache<string, PadchatMessagePayload>
 
   private padchatManager?      : PadchatManager
@@ -117,10 +120,22 @@ export class PuppetPadchat extends Puppet {
     }
 
     this.cachePadchatMessagePayload = new LRU<string, PadchatMessagePayload>(lruOptions)
+
+    this.padchatCounter = PADCHAT_COUNTER++
+
+    if (this.padchatCounter > 0) {
+      if (!this.options.token) {
+        throw new Error([
+          'You need to specify `token` when constructor PuppetPadchat becasue you have more than one instance. ',
+          'see: https://github.com/Chatie/wechaty/issues/1367',
+        ].join(''))
+      }
+    }
   }
 
   public toString() {
-    return `PuppetPadchat<${this.options.memory.name}>`
+    const text = super.toString()
+    return text + `/PuppetPadchat#${this.padchatCounter}`
   }
 
   public ding(data?: string): void {

@@ -24,7 +24,7 @@ import {
 }                 from './user'
 
 import {
-  PuppetScanEvent,
+  PuppetQrcodeScanEvent,
 }                 from './puppet/'
 
 import {
@@ -61,7 +61,7 @@ type IoEventName = keyof typeof IO_EVENT_DICT
 
 interface IoEventScan {
   name    : 'scan',
-  payload : PuppetScanEvent,
+  payload : PuppetQrcodeScanEvent,
 }
 
 interface IoEventAny {
@@ -86,7 +86,7 @@ export class Io {
 
   private onMessage: undefined | Function
 
-  private scanPayload?: PuppetScanEvent
+  private scanPayload?: PuppetQrcodeScanEvent
 
   constructor(
     private options: IoOptions,

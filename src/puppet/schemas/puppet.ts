@@ -11,7 +11,7 @@ import { MemoryCard } from 'memory-card'
 export const YOU = Symbol('You')
 export type YOU  = typeof YOU
 
-export interface PuppetScanEvent {
+export interface PuppetQrcodeScanEvent {
   data?  : string,   // Other Data
   qrcode : string,   // QR Code Data
   status : number,   // Status Code
