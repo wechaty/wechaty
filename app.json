@@ -5,16 +5,25 @@
   "logo": "https://raw.githubusercontent.com/chatie/wechaty/master/image/wechaty-icon.png",
   "keywords": ["wechaty", "wechat", "bot", "chatbot", "framework", "cloudbot"],
   "env": {
+    "WECHATY_LOG": {
+      "description": "Don't touch this. unless you know what this mean",
+      "value": "info"
+    },
+    "WECHATY_PUPPET": {
+      "description": "Puppet Name",
+      "value": "default"
+    },
     "WECHATY_TOKEN": {
       "description": "Cloud access token for Wechaty.io",
       "value": "wechaty"
     },
-    "WECHATY_LOG": {
-      "description": "Don't touch this. unless you know what this mean",
-      "value": "info"
-    }
   },
   "engines": {
-    "node": "7"
-  }
+    "node": "10"
+  },
+  "buildpacks": [
+    {
+      "url": "https://github.com/heroku/heroku-buildpack-google-chrome"
+    }
+  ]
 }
