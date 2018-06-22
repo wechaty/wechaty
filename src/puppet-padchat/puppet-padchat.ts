@@ -248,10 +248,16 @@ export class PuppetPadchat extends Puppet {
   }
 
   protected async reset(reason: string): Promise<void> {
-    log.verbose('PuppetPadchat', 'restart(%s)', reason)
+    log.verbose('PuppetPadchat', 'reset(%s)', reason)
 
-    await this.stop()
-    await this.start()
+    try {
+      await this.stop()
+      await this.start()
+    } catch (e) {
+      log.error('PuppetPadchat', 'reset() exception: %s', e.message)
+      this.emit('error', e)
+      throw e
+    }
 
   }
 

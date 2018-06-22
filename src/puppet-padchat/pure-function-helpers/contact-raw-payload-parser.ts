@@ -39,7 +39,7 @@ export function contactRawPayloadParser(
      *  user_name: '' }
      */
     // console.log(rawPayload)
-    throw Error('cannot get user_name for payload: ' + JSON.stringify(rawPayload))
+    throw Error('cannot get user_name from raw payload: ' + JSON.stringify(rawPayload))
   }
 
   if (isRoomId(rawPayload.user_name)) {
