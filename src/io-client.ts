@@ -137,7 +137,7 @@ export class IoClient {
     })
   }
 
-  private async onMessage(m: Message) {
+  private async onMessage(_: Message) {
     // const from = m.from()
     // const to = m.to()
     // const content = m.toString()
