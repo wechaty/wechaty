@@ -5,8 +5,9 @@ export {
 export {
   config,
   log,
+  qrcodeValueToImageUrl,
   VERSION,
-}                     from './config'
+}                         from './config'
 
 /**
  * We need to put `Wechaty` at the beginning of this file for import

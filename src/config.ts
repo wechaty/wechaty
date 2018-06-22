@@ -218,6 +218,14 @@ export interface Sayable {
 // String.fromCharCode(8197)
 export const FOUR_PER_EM_SPACE = String.fromCharCode(0x2005)
 
+export function qrcodeValueToImageUrl(qrcodeValue: string): string {
+  return [
+    'https://api.qrserver.com/v1/create-qr-code/?data=',
+    encodeURIComponent(qrcodeValue),
+    '&size=220x220&margin=0',
+  ].join('')
+}
+
 export {
   log,
   Raven,
