@@ -154,9 +154,9 @@ export class PadchatManager extends PadchatRpc {
     // )
 
     log.verbose('PuppetPadchatManager', 'initCache() inited %d Contacts, %d RoomMembers, %d Rooms, cachedir="%s"',
-                                      await this.storeContactRawPayload.size,
+                                      this.storeContactRawPayload.size,
                                       roomMemberTotalNum,
-                                      await this.storeRoomRawPayload.size,
+                                      this.storeRoomRawPayload.size,
                                       baseDir,
               )
   }
