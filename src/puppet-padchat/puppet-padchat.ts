@@ -602,7 +602,7 @@ export class PuppetPadchat extends Puppet {
       throw new Error('no padchat manager')
     }
 
-    const contactIdList = this.padchatManager.getContactIdList()
+    const contactIdList = await this.padchatManager.getContactIdList()
 
     return contactIdList
   }
@@ -671,7 +671,7 @@ export class PuppetPadchat extends Puppet {
     log.verbose('PuppetPadchat', 'contactPayloadDirty(%s)', contactId)
 
     if (this.padchatManager) {
-      this.padchatManager.contactRawPayloadDirty(contactId)
+      await this.padchatManager.contactRawPayloadDirty(contactId)
     }
 
     await super.contactPayloadDirty(contactId)
@@ -924,7 +924,7 @@ export class PuppetPadchat extends Puppet {
     log.verbose('PuppetPadchat', 'roomPayloadDirty(%s)', roomId)
 
     if (this.padchatManager) {
-      this.padchatManager.roomRawPayloadDirty(roomId)
+      await this.padchatManager.roomRawPayloadDirty(roomId)
     }
 
     await super.roomPayloadDirty(roomId)
