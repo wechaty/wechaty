@@ -523,15 +523,8 @@ export class PuppetPadchat extends Puppet {
 
     await this.padchatManager.stop()
 
-    /**
-     * MUST use setImmediate at here(the end of this function),
-     * because we need to run the micro task registered by the `emit` method
-     */
-    setImmediate(() => {
-      if (this.padchatManager) {
-        this.padchatManager.removeAllListeners()
-      }
-    })
+    this.padchatManager.removeAllListeners()
+    this.padchatManager = undefined
 
     this.state.off(true)
     this.emit('stop')
