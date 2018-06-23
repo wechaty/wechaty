@@ -833,7 +833,7 @@ export class PadchatManager extends PadchatRpc {
       if (   !this.storeContactRawPayload
           || !this.storeRoomRawPayload
       ) {
-        throw new Error('no cache')
+        throw new Error('no contact or room cache')
       }
 
       log.silly('PuppetPadchatManager', 'syncContactsAndRooms() syncing %d out of Contact(%d) & Room(%d) ...',
@@ -926,7 +926,7 @@ export class PadchatManager extends PadchatRpc {
       log.silly('PuppetPadchatManager', 'contactRawPayload(%s) retry() attempt=%d', contactId, attempt)
 
       if (!this.storeContactRawPayload) {
-        throw new Error('no cache')
+        throw new Error('no contact cache')
       }
 
       if (this.storeContactRawPayload.has(contactId)) {
@@ -945,7 +945,7 @@ export class PadchatManager extends PadchatRpc {
     })
 
     if (!rawPayload) {
-      throw new Error('no raw payload')
+      throw new Error('no contact raw payload')
     }
     return rawPayload
   }
@@ -959,7 +959,7 @@ export class PadchatManager extends PadchatRpc {
       log.silly('PuppetPadchatManager', 'roomRawPayload(%s) retry() attempt=%d', id, attempt)
 
       if (!this.storeRoomRawPayload) {
-        throw new Error('no cache')
+        throw new Error('no room cache')
       }
 
       if (await this.storeRoomRawPayload.has(id)) {
@@ -978,7 +978,7 @@ export class PadchatManager extends PadchatRpc {
     })
 
     if (!rawPayload) {
-      throw new Error('no raw payload')
+      throw new Error('no room raw payload')
     }
     return rawPayload
   }
