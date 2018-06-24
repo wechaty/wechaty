@@ -251,14 +251,18 @@ export class PuppetPadchat extends Puppet {
     log.verbose('PuppetPadchat', 'reset(%s)', reason)
 
     try {
+      log.silly('PuppetPadchat', 'reset() before stop')
       await this.stop()
+      log.silly('PuppetPadchat', 'reset() after stop')
       await this.start()
+      log.silly('PuppetPadchat', 'reset() after start')
     } catch (e) {
       log.error('PuppetPadchat', 'reset() exception: %s', e.message)
       this.emit('error', e)
       throw e
     }
 
+    log.silly('PuppetPadchat', 'reset() done')
   }
 
   protected async onPadchatMessage(rawPayload: PadchatMessagePayload): Promise<void> {
