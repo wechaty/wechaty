@@ -20,7 +20,7 @@
     "doc": "bash -x scripts/generate-docs.sh",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "changelog": "github_changelog_generator -u chatie -p wechaty && sed -i'.bak' /greenkeeper/d CHANGELOG.md && sed -i'.bak' '/An in-range update of/d' CHANGELOG.md && ts-node scripts/sort-contributiveness.ts < CHANGELOG.md > CHANGELOG.new.md 2>/dev/null && cat CHANGELOG.md >> CHANGELOG.new.md && mv CHANGELOG.new.md CHANGELOG.md",
-    "doctor": "npm run check-node-version && ts-node bin/doctor",
+    "doctor": "npm run check-node-version && npm run ts-node bin/doctor",
     "check-node-version": "check-node-version --node \">= 8.5\"",
     "lint": "npm run check-node-version && npm run lint:ts && npm run lint:es && npm run lint:sh",
     "lint:es": "eslint \"{bin,examples,scripts,src,tests}/**/*.js\" --ignore-pattern=\"tests/fixtures/**\"",
@@ -28,18 +28,18 @@
     "lint:ts": "tslint --project tsconfig.json && tsc --noEmit",
     "lint:sh": "bash -n bin/*.sh",
     "sloc": "sloc bin examples scripts src tests --details --format cli-table --keys total,source,comment && sloc bin examples scripts src tests",
-    "ts-node": "ts-node",
+    "ts-node": "TS_NODE_FILES=1 ts-node",
     "test": "npm run clean && npm run lint && npm run test:unit:retry && npm run test:shell && npm run sloc",
     "test:linux": "npm run pretest && parallel ts-node -- ./src/**/*.spec.ts ./tests/**/*.spec.ts && npm run posttest",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
     "test:shell": "shellcheck bin/*.sh",
-    "test:unit": "blue-tape -r ts-node/register \"src/**/*.spec.ts\" \"src/*.spec.ts\" \"tests/*.spec.ts\" \"tests/**/*.spec.ts\"",
-    "test:unit:retry": "ts-node scripts/retry-unit-tests",
+    "test:unit": "TS_NODE_FILES=1 blue-tape -r ts-node/register \"src/**/*.spec.ts\" \"src/*.spec.ts\" \"tests/*.spec.ts\" \"tests/**/*.spec.ts\"",
+    "test:unit:retry": "npm run ts-node scripts/retry-unit-tests",
     "test:win32": "npm run test:unit:retry",
     "test:debug": "blue-tape -r ts-node/register src/puppet-web/bridge.spec.ts",
     "typedoc": "bash scripts/typedoc.sh",
-    "io-client": "ts-node bin/io-client",
-    "demo": "ts-node examples/ding-dong-bot.ts",
+    "io-client": "npm run ts-node bin/io-client",
+    "demo": "npm run ts-node examples/ding-dong-bot.ts",
     "start": "npm run demo"
   },
   "repository": {
@@ -179,7 +179,7 @@
     "tslint-config-standard": "^7.0.0",
     "tuling123-client": "^0.0.2",
     "typedoc": "^0.11.1",
-    "typescript": "^2.9.0-dev.20180509"
+    "typescript": "^2.9.2"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [
