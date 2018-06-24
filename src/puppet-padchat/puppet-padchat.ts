@@ -1068,7 +1068,10 @@ export class PuppetPadchat extends Puppet {
 
     await this.roomPayloadDirty(roomId)
     await this.roomMemberPayloadDirty(roomId)
-    // XXX: Do we need to re-load payload at here?
+    // Reload room information here
+    await new Promise(r => setTimeout(r, 1000))
+    await this.roomPayload(roomId)
+    await this.roomMemberPayload(roomId, contactId)
   }
 
   public async roomTopic(roomId: string)                : Promise<string>
