@@ -422,11 +422,12 @@ export class PadchatManager extends PadchatRpc {
     }
 
     checkScanInternalLoop()
+    .then(() => {
+      log.silly('PuppetPadchatManager', `startCheckScan() checkScanInternalLoop() resolved`)
+    })
     .catch(e => {
       log.warn('PuppetPadchatManager', 'startCheckScan() checkScanLoop() exception: %s', e)
       this.emit('reset', 'startCheckScan() checkScanLoop() exception')
-    }).then(() => {
-      log.silly('PuppetPadchatManager', `startCheckScan() checkScanInternalLoop() resolved`)
     })
     log.silly('PuppetPadchatManager', `startCheckScan() checkScanInternalLoop() set`)
   }
