@@ -91,6 +91,7 @@ The **best practice** to use Wechaty is running with docker, because it's not on
 > Wechaty Docker supports both JavaScript and TypeScript. To use TypeScript just write in TypeScript and save with extension name `.ts`.
 
 Get to know more about Wechaty Docker at [Wiki:Docker](https://github.com/chatie/wechaty/wiki/Docker).
+Note: Be sure you clone the repo first, and then run docker under the clone Wechaty folder in order to read the src folder.
 
 1. Run JavaScript
 
