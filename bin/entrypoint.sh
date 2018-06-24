@@ -6,11 +6,11 @@
 #
 set -e
 
-HOME=/bot
-PATH=$PATH:/wechaty/bin:/wechaty/node_modules/.bin
+export HOME=/bot
+export PATH=$PATH:/wechaty/bin:/wechaty/node_modules/.bin
 
 # Issue #1383 for ts-node v7
-TS_NODE_FILES=1
+export TS_NODE_FILES=1
 
 function wechaty::banner() {
   echo
