@@ -17,15 +17,14 @@
  *   limitations under the License.
  *
  */
+import { generate } from 'qrcode-terminal'
+
 import {
   IoClient,
   Wechaty,
   config,
   log,
 }             from '../src/'
-
-
-import { generate } from 'qrcode-terminal'
 
 console.log(`
 =============== Powered by Wechaty ===============
