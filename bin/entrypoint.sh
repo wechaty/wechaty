@@ -9,9 +9,6 @@ set -e
 export HOME=/bot
 export PATH=$PATH:/wechaty/bin:/wechaty/node_modules/.bin
 
-# Issue #1383 for ts-node v7
-export TS_NODE_FILES=1
-
 function wechaty::banner() {
   echo
   figlet " Wechaty "

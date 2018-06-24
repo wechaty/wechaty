@@ -16,6 +16,8 @@
  *   limitations under the License.
  *
  */
+/// <reference path="./typings.d.ts" />
+
 import fs    from 'fs'
 import os    from 'os'
 import path  from 'path'
