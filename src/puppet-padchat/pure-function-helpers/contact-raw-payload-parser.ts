@@ -54,15 +54,15 @@ export function contactRawPayloadParser(
   }
 
   const payload: ContactPayload = {
-    id        : rawPayload.user_name,
-    gender    : rawPayload.sex,
-    type      : contactType,
     alias     : rawPayload.remark,
     avatar    : rawPayload.big_head,
     city      : rawPayload.city,
+    gender    : rawPayload.sex,
+    id        : rawPayload.user_name,
     name      : rawPayload.nick_name,
     province  : rawPayload.provincia,
-    signature : (rawPayload.signature).replace('+', ' '),   // Stay+Foolish
+    signature : (rawPayload.signature).replace('+', ' '),          // Stay+Foolish
+    type      : contactType,
   }
 
   return payload
