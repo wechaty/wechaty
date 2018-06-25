@@ -384,9 +384,7 @@ export abstract class Puppet extends EventEmitter {
       searchIdList = await this.contactList()
     }
 
-    if (!query) {
-      return searchIdList
-    }
+    log.silly('Puppet', 'contactSearch() searchIdList.length = %d', searchIdList.length)
 
     const searchContactPayloadList: ContactPayload[] = (
       await Promise.all(
@@ -398,12 +396,20 @@ export abstract class Puppet extends EventEmitter {
             } catch (e) {
               // compatible with {} payload, which means that
               // contact id is not friend with the current user
+              log.silly('Puppet', 'contactSearch() contactPayload exception: %s', e.message)
               return {} as any
             }
           },
         ),
       )
     ).filter(payload => Object.keys(payload).length > 0)
+
+    log.silly('Puppet', 'contactSearch() searchContactPayloadList.length = %d', searchContactPayloadList.length)
+
+    if (!query) {
+      const allIdList = searchContactPayloadList.map(payload => payload.id)
+      return allIdList
+    }
 
     const filterFuncion: ContactPayloadFilterFunction = this.contactQueryFilterFactory(query)
 
