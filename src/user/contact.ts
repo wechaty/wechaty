@@ -188,7 +188,7 @@ export class Contact extends Accessory implements Sayable {
     this  : T,
     query? : string | ContactQueryFilter,
   ): Promise<T['prototype'][]> {
-    log.verbose('Cotnact', 'findAll(%s)', JSON.stringify(query))
+    log.verbose('Contact', 'findAll(%s)', JSON.stringify(query))
 
     if (query && Object.keys(query).length !== 1) {
       throw new Error('query only support one key. multi key support is not availble now.')
@@ -209,7 +209,7 @@ export class Contact extends Accessory implements Sayable {
 
   // TODO
   public static async delete(contact: Contact): Promise<void> {
-    log.verbose('Cotnact', 'static delete(%s)', contact.id)
+    log.verbose('Contact', 'static delete(%s)', contact.id)
   }
 
   /**
