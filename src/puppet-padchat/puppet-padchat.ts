@@ -695,7 +695,29 @@ export class PuppetPadchat extends Puppet {
     log.silly('PuppetPadchat', 'contactRawPayloadParser({user_name="%s"})', rawPayload.user_name)
 
     const payload: ContactPayload = contactRawPayloadParser(rawPayload)
-    return payload
+
+    if (!this.padchatManager) {
+      throw new Error('no padchat manager')
+    }
+
+    const searchResult = await this.padchatManager.WXSearchContact(rawPayload.user_name)
+
+    let friend: undefined | boolean = undefined
+
+    if (searchResult) {
+      if (searchResult.status === -24 && !searchResult.user_name) {
+        friend = false
+      } else if (  isStrangerV1(searchResult.user_name)
+                || isStrangerV2(searchResult.user_name)
+      ) {
+        friend = false
+      }
+    }
+
+    return {
+      ...payload,
+      friend,
+    }
   }
 
   /**
