@@ -1070,11 +1070,9 @@ export class PuppetPadchat extends Puppet {
       await this.padchatManager.WXInviteChatRoomMember(roomId, contactId)
     }
 
-    await this.roomPayloadDirty(roomId)
-    await this.roomMemberPayloadDirty(roomId)
     // Reload room information here
     await new Promise(r => setTimeout(r, 1000))
-    await this.roomPayload(roomId)
+    await this.roomMemberPayloadDirty(roomId)
     await this.roomMemberPayload(roomId, contactId)
   }
 
@@ -1097,12 +1095,12 @@ export class PuppetPadchat extends Puppet {
     }
 
     await this.padchatManager.WXSetChatroomName(roomId, topic)
-    await this.roomPayloadDirty(roomId)
     /**
      * Give server some time to refresh the API payload
      * when we have to make sure the data is the latest.
      */
     await new Promise(r => setTimeout(r, 1000))
+    await this.roomPayloadDirty(roomId)
     await this.roomPayload(roomId)
 
     return
