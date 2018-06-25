@@ -122,7 +122,7 @@ export abstract class Puppet extends EventEmitter {
     this.watchdog = new Watchdog(1000 * this.options.timeout, 'Puppet')
 
     const lruOptions: LRU.Options = {
-      max: 10000,
+      max: 100 * 1000,
       // length: function (n) { return n * 2},
       dispose: function (key: string, val: Object) {
         log.silly('Puppet', 'constructor() lruOptions.dispose(%s, %s)', key, JSON.stringify(val))
@@ -130,11 +130,11 @@ export abstract class Puppet extends EventEmitter {
       maxAge: 1000 * 60 * 60,
     }
 
-    this.cacheContactPayload       = new LRU<string, ContactPayload>(lruOptions)
+    this.cacheContactPayload    = new LRU<string, ContactPayload>(lruOptions)
     this.cacheFriendshipPayload = new LRU<string, FriendshipPayload>(lruOptions)
-    this.cacheMessagePayload       = new LRU<string, MessagePayload>(lruOptions)
-    this.cacheRoomPayload          = new LRU<string, RoomPayload>(lruOptions)
-    this.cacheRoomMemberPayload    = new LRU<string, RoomMemberPayload>(lruOptions)
+    this.cacheMessagePayload    = new LRU<string, MessagePayload>(lruOptions)
+    this.cacheRoomPayload       = new LRU<string, RoomPayload>(lruOptions)
+    this.cacheRoomMemberPayload = new LRU<string, RoomMemberPayload>(lruOptions)
 
     /**
      * 2. Load the package.json for Puppet Plugin version range matching
