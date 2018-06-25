@@ -721,6 +721,13 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   /**
+   * @deprecated use start() instead
+   */
+  public async init(): Promise<void> {
+    log.warn('Wechaty', 'init() DEPRECATED. use start() instead.')
+    return this.start()
+  }
+  /**
    * Start the bot, return Promise.
    *
    * @returns {Promise<void>}
