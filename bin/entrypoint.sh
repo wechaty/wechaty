@@ -6,8 +6,8 @@
 #
 set -e
 
-HOME=/bot
-PATH=$PATH:/wechaty/bin:/wechaty/node_modules/.bin
+export HOME=/bot
+export PATH=$PATH:/wechaty/bin:/wechaty/node_modules/.bin
 
 function wechaty::banner() {
   echo

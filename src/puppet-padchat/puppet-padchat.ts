@@ -248,11 +248,21 @@ export class PuppetPadchat extends Puppet {
   }
 
   protected async reset(reason: string): Promise<void> {
-    log.verbose('PuppetPadchat', 'restart(%s)', reason)
+    log.verbose('PuppetPadchat', 'reset(%s)', reason)
 
-    await this.stop()
-    await this.start()
+    try {
+      log.silly('PuppetPadchat', 'reset() before stop')
+      await this.stop()
+      log.silly('PuppetPadchat', 'reset() after stop')
+      await this.start()
+      log.silly('PuppetPadchat', 'reset() after start')
+    } catch (e) {
+      log.error('PuppetPadchat', 'reset() exception: %s', e.message)
+      this.emit('error', e)
+      throw e
+    }
 
+    log.silly('PuppetPadchat', 'reset() done')
   }
 
   protected async onPadchatMessage(rawPayload: PadchatMessagePayload): Promise<void> {
@@ -517,15 +527,8 @@ export class PuppetPadchat extends Puppet {
 
     await this.padchatManager.stop()
 
-    /**
-     * MUST use setImmediate at here(the end of this function),
-     * because we need to run the micro task registered by the `emit` method
-     */
-    setImmediate(() => {
-      if (this.padchatManager) {
-        this.padchatManager.removeAllListeners()
-      }
-    })
+    this.padchatManager.removeAllListeners()
+    this.padchatManager = undefined
 
     this.state.off(true)
     this.emit('stop')
@@ -1069,7 +1072,10 @@ export class PuppetPadchat extends Puppet {
 
     await this.roomPayloadDirty(roomId)
     await this.roomMemberPayloadDirty(roomId)
-    // XXX: Do we need to re-load payload at here?
+    // Reload room information here
+    await new Promise(r => setTimeout(r, 1000))
+    await this.roomPayload(roomId)
+    await this.roomMemberPayload(roomId, contactId)
   }
 
   public async roomTopic(roomId: string)                : Promise<string>

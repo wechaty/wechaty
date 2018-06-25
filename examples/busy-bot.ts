@@ -17,8 +17,6 @@
  *   limitations under the License.
  *
  */
-
-/* tslint:disable:variable-name */
 import { generate } from 'qrcode-terminal'
 
 import {
@@ -74,7 +72,7 @@ bot
 .on('logout'	, user => log.info('Bot', `${user.name()} logouted`))
 .on('error'   , e => log.info('Bot', 'error: %s', e))
 
-.on('login', async function(this, user) {
+.on('login', async function(user) {
   const msg = `${user.name()} logined`
 
   log.info('Bot', msg)

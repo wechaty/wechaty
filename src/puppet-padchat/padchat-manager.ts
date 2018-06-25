@@ -163,6 +163,8 @@ export class PadchatManager extends PadchatRpc {
         && this.cacheRoomMemberRawPayload
         && this.cacheRoomRawPayload
     ) {
+      log.silly('PuppetPadchatManager', 'releaseCache() closing caches ...')
+
       await this.cacheContactRawPayload.close(),
       await this.cacheRoomMemberRawPayload.close(),
       await this.cacheRoomRawPayload.close(),
@@ -325,6 +327,8 @@ export class PadchatManager extends PadchatRpc {
     }
 
     const checkScanInternalLoop = async () => {
+      log.silly('PuppetPadchatManager', `startCheckScan() checkScanInternalLoop()`)
+
       /**
        * While we want to Wait user response
        */
@@ -418,10 +422,14 @@ export class PadchatManager extends PadchatRpc {
     }
 
     checkScanInternalLoop()
+    .then(() => {
+      log.silly('PuppetPadchatManager', `startCheckScan() checkScanInternalLoop() resolved`)
+    })
     .catch(e => {
       log.warn('PuppetPadchatManager', 'startCheckScan() checkScanLoop() exception: %s', e)
       this.emit('reset', 'startCheckScan() checkScanLoop() exception')
     })
+    log.silly('PuppetPadchatManager', `startCheckScan() checkScanInternalLoop() set`)
   }
 
   /**

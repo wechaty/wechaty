@@ -1287,7 +1287,7 @@ export class PuppetPuppeteer extends Puppet {
     }
 
     const buffer = await new Promise<Buffer>((resolve, reject) => {
-      file.pipe(bl((err: Error, data: Buffer) => {
+      file.pipe(new bl((err: Error, data: Buffer) => {
         if (err) reject(err)
         else resolve(data)
       }))

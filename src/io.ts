@@ -138,6 +138,7 @@ export class Io {
       this.lifeTimer = setInterval(() => {
         if (this.ws && this.connected()) {
           log.silly('Io', 'start() setInterval() ws.ping()')
+          // TODO: check 'pong' event on ws
           this.ws.ping()
         }
       }, 1000 * 10)

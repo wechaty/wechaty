@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.17.1",
+  "version": "0.17.17",
   "description": "Wechat for Bot(Personal Account)",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
@@ -159,7 +159,7 @@
     "cookie-parser": "^1.4.0",
     "coveralls": "^3.0.0",
     "cross-env": "^5.1.6",
-    "eslint": "^4.8.0",
+    "eslint": "^5.0.0",
     "finis": "^0.4.1",
     "fluent-ffmpeg": "^2.1.0",
     "git-scripts": "git+https://github.com/nkzawa/git-scripts.git",
@@ -174,12 +174,12 @@
     "sinon": "^6.0.0",
     "sinon-test": "^2.2.0",
     "sloc": "^0.2.0",
-    "ts-node": "^6.0.5",
+    "ts-node": "^7.0.0",
     "tslint": "^5.9.1",
     "tslint-config-standard": "^7.0.0",
     "tuling123-client": "^0.0.2",
     "typedoc": "^0.11.1",
-    "typescript": "^2.9.0-dev.20180509"
+    "typescript": "^2.9.2"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [

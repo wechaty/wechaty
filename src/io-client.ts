@@ -137,7 +137,7 @@ export class IoClient {
     })
   }
 
-  private async onMessage(m: Message) {
+  private async onMessage(_: Message) {
     // const from = m.from()
     // const to = m.to()
     // const content = m.toString()
@@ -149,10 +149,10 @@ export class IoClient {
     //               , m.toStringDigest()
     //         )
 
-    if (/^wechaty|chatie|botie/i.test(m.text()) && !m.self()) {
-      await m.say('https://www.chatie.io')
-        .then(_ => log.info('Bot', 'REPLIED to magic word "chatie"'))
-    }
+    // if (/^wechaty|chatie|botie/i.test(m.text()) && !m.self()) {
+    //   await m.say('https://www.chatie.io')
+    //     .then(_ => log.info('Bot', 'REPLIED to magic word "chatie"'))
+    // }
   }
 
   public async stop(): Promise<void> {
