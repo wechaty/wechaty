@@ -388,11 +388,22 @@ export abstract class Puppet extends EventEmitter {
       return searchIdList
     }
 
-    const searchContactPayloadList: ContactPayload[] = await Promise.all(
-      searchIdList.map(
-        id => this.contactPayload(id),
-      ),
-    )
+    const searchContactPayloadList: ContactPayload[] = (
+      await Promise.all(
+        searchIdList.map(
+          async id => {
+            try {
+              const payload = await this.contactPayload(id)
+              return payload
+            } catch (e) {
+              // compatible with {} payload, which means that
+              // contact id is not friend with the current user
+              return {} as any
+            }
+          },
+        ),
+      )
+    ).filter(payload => Object.keys(payload).length > 0)
 
     const filterFuncion: ContactPayloadFilterFunction = this.contactQueryFilterFactory(query)
 

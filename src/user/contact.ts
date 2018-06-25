@@ -186,11 +186,11 @@ export class Contact extends Accessory implements Sayable {
    */
   public static async findAll<T extends typeof Contact>(
     this  : T,
-    query : string | ContactQueryFilter = { name: /.*/ },
+    query? : string | ContactQueryFilter,
   ): Promise<T['prototype'][]> {
     log.verbose('Cotnact', 'findAll(%s)', JSON.stringify(query))
 
-    if (Object.keys(query).length !== 1) {
+    if (query && Object.keys(query).length !== 1) {
       throw new Error('query only support one key. multi key support is not availble now.')
     }
 
