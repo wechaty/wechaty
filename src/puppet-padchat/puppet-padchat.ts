@@ -696,28 +696,30 @@ export class PuppetPadchat extends Puppet {
 
     const payload: ContactPayload = contactRawPayloadParser(rawPayload)
 
-    if (!this.padchatManager) {
-      throw new Error('no padchat manager')
-    }
+    // if (!this.padchatManager) {
+    //   throw new Error('no padchat manager')
+    // }
 
-    const searchResult = await this.padchatManager.WXSearchContact(rawPayload.user_name)
+    // const searchResult = await this.padchatManager.WXSearchContact(rawPayload.user_name)
 
-    let friend: undefined | boolean = undefined
+    // let friend: undefined | boolean = undefined
 
-    if (searchResult) {
-      if (searchResult.status === -24 && !searchResult.user_name) {
-        friend = false
-      } else if (  isStrangerV1(searchResult.user_name)
-                || isStrangerV2(searchResult.user_name)
-      ) {
-        friend = false
-      }
-    }
+    // if (searchResult) {
+    //   if (searchResult.status === -24 && !searchResult.user_name) {
+    //     friend = false
+    //   } else if (  isStrangerV1(searchResult.user_name)
+    //             || isStrangerV2(searchResult.user_name)
+    //   ) {
+    //     friend = false
+    //   }
+    // }
 
-    return {
-      ...payload,
-      friend,
-    }
+    // return {
+    //   ...payload,
+    //   friend,
+    // }
+
+    return payload
   }
 
   /**
