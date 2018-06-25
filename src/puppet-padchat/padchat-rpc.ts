@@ -216,12 +216,13 @@ export class PadchatRpc extends EventEmitter {
       this.debounceQueue.next('ws.on(message)')
     })
     ws.on('pong', data => {
+      log.silly('PadchatRpc', 'initWebSocket() ws.on(pong)')
       if (!this.throttleQueue || !this.debounceQueue) {
         log.warn('PadchatRpc', 'initWebSocket() ws.on(pong) throttleQueue or debounceQueue not exist')
         return
       }
-      this.throttleQueue.next(data.toString())
-      this.debounceQueue.next(data.toString())
+      this.throttleQueue.next('pong: ' + data.toString())
+      this.debounceQueue.next('pong: ' + data.toString())
     })
 
   }
