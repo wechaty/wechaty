@@ -11,11 +11,12 @@
   "scripts": {
     "clean": "shx rm -fr dist/*",
     "dist": "npm run clean && tsc",
-    "pack": "npm pack dist/",
     "example:server": "nodemon --exec ts-node examples/server.ts",
     "example:client": "ts-node examples/client.ts",
+    "generate": "bash scripts/generate-stub.sh",
     "lint": "npm run lint:ts",
     "lint:ts": "tslint --project tsconfig.json --exclude \"tests/fixtures/**\" && tsc --noEmit",
+    "pack": "npm pack dist/",
     "test": "echo test",
     "test:pack": "bash -x scripts/npm-pack-testing.sh"
   },
@@ -39,7 +40,8 @@
   "homepage": "https://github.com/Chatie/grpc#readme",
   "dependencies": {
     "brolog": "^1.4.9",
-    "grpc": "^1.11.3",
+    "google-protobuf": "^3.6.0",
+    "grpc": "^1.12.4",
     "protobufjs": "^6.8.6"
   },
   "devDependencies": {
@@ -49,6 +51,7 @@
     "blue-tape": "^1.0.0",
     "git-scripts": "^0.2.1",
     "grpc-tools": "^1.6.6",
+    "grpc_tools_node_protoc_ts": "^2.3.0",
     "nodemon": "^1.17.4",
     "shx": "^0.2.2",
     "ts-node": "^6.0.2",
