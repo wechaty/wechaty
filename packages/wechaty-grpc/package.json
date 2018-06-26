@@ -13,7 +13,7 @@
     "dist": "npm run clean && tsc",
     "example:server": "nodemon --exec ts-node examples/server.ts",
     "example:client": "ts-node examples/client.ts",
-    "generate": "bash scripts/generate-stub.sh",
+    "generate": "bash -x scripts/generate-stub.sh",
     "lint": "npm run lint:ts",
     "lint:ts": "tslint --project tsconfig.json --exclude \"tests/fixtures/**\" && tsc --noEmit",
     "pack": "npm pack dist/",
