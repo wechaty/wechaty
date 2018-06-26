@@ -1,0 +1,28 @@
+syntax = 'proto3';
+
+package wechaty;
+
+service Puppet {
+  rpc selfId(Empty) returns (Id) {}
+  rpc start(Empty) returns (Empty) {}
+  rpc stop(Empty) returns (Empty) {}
+
+  rpc contactPayload (Id) returns (ContactPayload) {}
+  rpc contactList (Empty) returns (ContactList) {}
+}
+
+message Empty {}
+
+message Id {
+  string id = 1;
+}
+
+message ContactPayload {
+  string id   = 1;
+  string name = 2;
+  uint32 sex  = 3;
+}
+
+message ContactList {
+  repeated Id id_list = 1;
+}
