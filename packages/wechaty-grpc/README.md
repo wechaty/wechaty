@@ -12,10 +12,16 @@ $ npm install
 
 ## RESOURCES
 
+* [gRPC Basics - Node.js](https://grpc.io/docs/tutorials/basic/node.html)
 * [Building a gRPC service with Node.js](https://codelabs.developers.google.com/codelabs/cloud-grpc/)
 * [gRPC in 3 minutes (Node.js)](https://github.com/grpc/grpc/tree/master/examples/node)
 * [Listen gRPC and HTTP requests on the same port](https://medium.com/@drgarcia1986/listen-grpc-and-http-requests-on-the-same-port-263c40cb45ff)
 * [gRPC to JSON proxy generator following the gRPC HTTP spec](https://github.com/grpc-ecosystem/grpc-gateway)
+
+### Protocol Buffer
+
+* [Protocol Buffers Style Guide](https://developers.google.com/protocol-buffers/docs/style)
+* [Protocol Buffers for JavaScript (& TypeScript)](https://github.com/dcodeIO/protobuf.js)
 
 ### gRPC Web
 
@@ -32,6 +38,16 @@ $ npm install
 
 * [ZooKeeper - The King of Coordination](https://www.elastic.co/blog/found-zookeeper-king-of-coordination)
 
+### STUN
+
+* [How To TCP NAT Traversal using Node.js and a STUN Server](http://sogilis.com/blog/tcp-nat-traversal-nodejs-stun/)
+* [chownat, allows two peers behind two separate NATs to directly communicate with each other.](https://samy.pl/chownat/)
+* [What is STUN & TURN Server](https://stackoverflow.com/a/23307588/1123955)
+* [NPM Search for: NAT Traversal](https://www.npmjs.com/search?q=nat+traversal)
+* [NAT traversal by way of UPnP or NAT-PMP](https://github.com/tintfoundation/nat-traverse)
+
+TCP hole punching
+
 ## AUTHOR
 
 [Huan LI](http://linkedin.com/in/zixia) \<zixia@zixia.net\>
@@ -45,6 +61,3 @@ $ npm install
 * Code & Docs © 2016-2018 Huan LI \<zixia@zixia.net\>
 * Code released under the Apache-2.0 License
 * Docs released under Creative Commons
-
-[downloads-image]: http://img.shields.io/npm/dm/wechaty.svg?style=flat-square
-[downloads-url]: https://npmjs.org/package/wechaty
