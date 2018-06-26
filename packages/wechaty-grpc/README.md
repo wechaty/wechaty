@@ -4,6 +4,12 @@ gRPC Proto Buffers for Chatie
 
 ## INSTALL
 
+### Install Protocol Buffer 3 on Mac
+
+```shell
+$ brew install protoc
+```
+
 ```shell
 $ npm install
 ...
