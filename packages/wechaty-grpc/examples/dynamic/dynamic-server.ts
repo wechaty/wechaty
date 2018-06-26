@@ -2,7 +2,7 @@ import { EventEmitter } from 'events'
 import * as grpc from 'grpc'
 import * as path from 'path'
 
-const PROTO_FILE = path.resolve(__dirname, 'books.proto')
+const PROTO_FILE = path.resolve(__dirname, '../proto/books.proto')
 
 const bookStream = new EventEmitter()
 const booksProto = grpc.load(PROTO_FILE)
