@@ -122,6 +122,8 @@ export abstract class Puppet extends EventEmitter {
     this.watchdog = new Watchdog(1000 * this.options.timeout, 'Puppet')
 
     const lruOptions: LRU.Options = {
+      // Sometims a wechat account that join too many rooms
+      // will have over 100,000 Contact Payloads after sync
       max: 100 * 1000,
       // length: function (n) { return n * 2},
       dispose: function (key: string, val: Object) {
