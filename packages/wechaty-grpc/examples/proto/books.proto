@@ -8,13 +8,14 @@ service BookService {
   rpc Delete (BookIdRequest) returns (Empty) {}
   // add the watch method definition
   rpc Watch (Empty) returns (stream Book) {}
+  rpc test(Empty) returns (Empty) {}
 }
 
 message Empty {}
 
 message Book {
-  int32 id = 1;
-  string title = 2;
+  int32  id     = 1;
+  string title  = 2;
   string author = 3;
 }
 

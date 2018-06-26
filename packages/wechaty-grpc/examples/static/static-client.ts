@@ -31,7 +31,7 @@ function insertBook(id: string, title: string, author: string) {
   book.setId(parseInt(id))
   book.setTitle(title)
   book.setAuthor(author)
-  client.insert(book, function(error, _: Empty) {
+  client.insert(book, function(error, _) {
     printResponse(error, null)
   })
 }
@@ -47,7 +47,7 @@ function getBook(id: string) {
 function deleteBook(id: string) {
   const request = new BookIdRequest()
   request.setId(parseInt(id))
-  client.delete(request, function(error, _: Empty) {
+  client.delete(request, function(error, _) {
     printResponse(error, null)
   })
 }
