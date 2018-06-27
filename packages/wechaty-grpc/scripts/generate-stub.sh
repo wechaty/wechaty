@@ -9,45 +9,35 @@ OUT_DIR="./generated"
   mkdir ${OUT_DIR}
 }
 
-#
-#
-# 1. Generate Client Stubs
-#
-#
-protoc \
-  --proto_path=${PROTO_DIR} \
-  \
-  --js_out="import_style=commonjs,binary:${OUT_DIR}" \
-  \
-  --plugin="protoc-gen-ts=`which protoc-gen-ts`" \
-  --ts_out="service=true:${OUT_DIR}" \
-  \
-  ${PROTO_DIR}/*.proto
+PROTOC_CMD="protoc --proto_path=${PROTO_DIR} ${PROTO_DIR}/*.proto"
 
 #
+# 1. JS for Protocol Buffer
+#   - https://github.com/google/protobuf/releases/latest
 #
-# 2. Generate Server Stubs
-#
-#
-protoc \
-  --proto_path=${PROTO_DIR} \
-  \
-  --js_out="import_style=commonjs,binary:${OUT_DIR}" \
-  \
-  --grpc_out="${OUT_DIR}" \
-  --plugin=protoc-gen-grpc=`which grpc_tools_node_protoc_plugin` \
-  \
-  ${PROTO_DIR}/*.proto
+$PROTOC_CMD \
+  --js_out="import_style=commonjs,binary:${OUT_DIR}"
 
 #
+# 2. JS for gRPC Stubs
+#   - https://www.npmjs.com/package/grpc-tools
 #
-# 3. Generate Server Stubs Typing Defination
+$PROTOC_CMD \
+  --plugin="protoc-gen-grpc=`which grpc_tools_node_protoc_plugin`" \
+  --grpc_out="${OUT_DIR}"
+
 #
+# 3. TS for Protocol Buffer & gRPC Stubs
+#   - https://github.com/agreatfool/grpc_tools_node_protoc_ts
 #
-protoc \
-  --proto_path=${PROTO_DIR} \
-  \
-  --plugin="protoc-gen-ts=`which protoc-gen-ts`" \
-  --ts_out="${OUT_DIR}" \
-  \
-  ${PROTO_DIR}/*.proto
+$PROTOC_CMD \
+  --plugin="protoc-gen-grpc=node_modules/grpc_tools_node_protoc_ts/bin/protoc-gen-ts" \
+  --grpc_out="${OUT_DIR}"
+
+#
+# 4. JS & TS for gRPC Web
+#   - https://github.com/improbable-eng/ts-protoc-gen
+#
+$PROTOC_CMD \
+  --plugin="protoc-gen-ts=node_modules/ts-protoc-gen/bin/protoc-gen-ts" \
+  --ts_out="service=true:${OUT_DIR}"
