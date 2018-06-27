@@ -65,6 +65,8 @@ import {
   roomJoinEventMessageParser,
   roomLeaveEventMessageParser,
   roomTopicEventMessageParser,
+
+  generateFakeSelfBot,
 }                                         from './pure-function-helpers'
 
 import {
@@ -684,10 +686,19 @@ export class PuppetPadchat extends Puppet {
   public async contactRawPayload(contactId: string): Promise<PadchatContactPayload> {
     log.silly('PuppetPadchat', 'contactRawPayload(%s)', contactId)
 
+    if (!this.id) {
+      throw Error('bot not login!')
+    }
+
     if (!this.padchatManager) {
       throw new Error('no padchat manager')
     }
     const rawPayload = await this.padchatManager.contactRawPayload(contactId)
+
+    if (!rawPayload.user_name && contactId === this.id) {
+      return generateFakeSelfBot(contactId)
+    }
+
     return rawPayload
   }
 
