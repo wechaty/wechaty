@@ -40,29 +40,46 @@ function main(): void {
 function proxyWs(downStream: WebSocket): void {
 
   const weiId = cuid()
+  let buf: string[] = []
 
   const upStream = new WebSocket(
     ENDPOINT,
     { perMessageDeflate: true },
   )
 
-  upStream.on('open',     () => console.log('dstWs on(open)'))
+  upStream.on('open',     () => {
+    console.log('upStream on(open)')
+    let data
+    while (data = buf.pop()) {
+      console.log('upStream on(open) buf.pop(): ' + data)
+      upStream.send(data)
+    }
+  })
   upStream.on('error',    e => {
-    console.error('dstWs on(error) ' + e)
+    console.error('upStream on(error) ' + e)
     downStream.close()
   })
   upStream.on('close',    (code, reason) => {
-    console.log('dstWs on(close) ' + code + ' ' + reason)
+    console.log('upStream on(close) ' + code + ' ' + reason)
     downStream.close()
   })
-  upStream.on('message',  downStream.send)
+  upStream.on('message',  data => {
+    console.log('upStream.on(message) ' + data)
+    if (downStream.readyState === 1) {
+      downStream.send(data)
+    } else {
+      console.error('upStream.on(message) downStream not open, readyState: ' + downStream.readyState)
+      upStream.close()
+    }
+  })
 
   downStream.on('close', function () {
-    console.log('client connection closed')
+    console.log('downStream connection closed')
     upStream.close()
   })
 
   downStream.on('message', (clientData: string) => {
+    console.log('downStream message: ' + clientData)
     const payload: PadchatRpcRequest = JSON.parse(clientData)
 
     if (!validToken(payload.userId)) {
@@ -71,7 +88,17 @@ function proxyWs(downStream: WebSocket): void {
 
     payload.userId = weiId
 
-    upStream.send(JSON.stringify(payload))
+    const text = JSON.stringify(payload)
+
+    if (upStream.readyState === 1) {
+      if (buf.length > 0) {
+        buf.forEach(data => upStream.send(data))
+        buf = []
+      }
+      upStream.send(text)
+    } else {
+      buf.push(text)
+    }
   })
 }
 
@@ -79,6 +106,7 @@ const VALID_TOKEN_DICT = {
   'padchat-token-zixia'     : '@zixia',
   'padchat-token-zixia-c9'  : '@zixia',
   'padchat-token-zixia-mac' : '@zixia',
+  'padchat-token-zixia-mvp-zixia008': '@zixia',
 }
 
 function validToken(token: string) {
