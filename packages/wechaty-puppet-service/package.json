@@ -1,0 +1,34 @@
+{
+  "name": "wechaty-puppet-hostie",
+  "version": "0.0.1",
+  "description": "Puppet Hostie for Wechaty",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Chatie/wechaty-puppet-hostie.git"
+  },
+  "keywords": [
+    "chatie",
+    "wechaty",
+    "chatbot",
+    "bot",
+    "grpc",
+    "wechat",
+    "sdk"
+  ],
+  "author": "Huan LI <zixia@zixia.net>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/Chatie/wechaty-puppet-hostie/issues"
+  },
+  "homepage": "https://github.com/Chatie/wechaty-puppet-hostie#readme",
+  "devDependencies": {
+    "git-scripts": "^0.2.1"
+  }
+}
