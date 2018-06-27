@@ -83,7 +83,11 @@ function proxyWs(downStream: WebSocket): void {
     const payload: PadchatRpcRequest = JSON.parse(clientData)
 
     if (!validToken(payload.userId)) {
-      downStream.close()
+      setTimeout(() => {
+        downStream.close()
+        upStream.close()
+      }, 1000)
+      return
     }
 
     payload.userId = weiId
