@@ -121,7 +121,17 @@ export class Room extends Accessory implements Sayable {
     try {
       const roomIdList = await this.puppet.roomSearch(query)
       const roomList = roomIdList.map(id => this.load(id))
-      await Promise.all(roomList.map(room => room.ready()))
+      await Promise.all(
+        roomList.map(
+          room => {
+            try {
+              return room.ready()
+            } catch (e) {
+              return {} as any
+            }
+          },
+        ),
+      )
 
       return roomList
 
@@ -287,7 +297,12 @@ export class Room extends Accessory implements Sayable {
     await Promise.all(
       memberIdList
         .map(id => this.wechaty.Contact.load(id))
-        .map(contact => contact.ready()),
+        .map(contact => {
+          contact.ready()
+            .catch(() => {
+              //
+            })
+        }),
     )
   }
 
