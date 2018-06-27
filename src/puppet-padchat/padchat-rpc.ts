@@ -292,7 +292,7 @@ export class PadchatRpc extends EventEmitter {
 
   }
 
-  protected async reset(reason = 'unknown reason'): Promise<void> {
+  protected reset(reason = 'unknown reason'): void {
     log.verbose('PadchatRpc', 'reset(%s)', reason)
 
     // no need to stop() at here. the high layer will do this.
