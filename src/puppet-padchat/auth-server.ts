@@ -49,10 +49,10 @@ function proxyWs(downStream: WebSocket): void {
 
   upStream.on('open',     () => {
     console.log('upStream on(open)')
-    let data
-    while (data = buf.pop()) {
-      console.log('upStream on(open) buf.pop(): ' + data)
-      upStream.send(data)
+    if (buf.length > 0) {
+      console.log('upStream on(open) buf.length: ' + buf.length)
+      buf.forEach(data => upStream.send(data))
+      buf = []
     }
   })
   upStream.on('error',    e => {
