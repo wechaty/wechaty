@@ -81,6 +81,8 @@ export class PadchatManager extends PadchatRpc {
   private readonly delayQueueExecutor     : DelayQueueExector
   private delayQueueExecutorSubscription? : Subscription
 
+  private syncContactAndRoomTimer?: NodeJS.Timer
+
   constructor(
     public options: ManagerOptions,
   ) {
@@ -232,6 +234,11 @@ export class PadchatManager extends PadchatRpc {
     log.verbose('PuppetPadchatManager', `stop()`)
 
     this.state.off('pending')
+
+    if (this.syncContactAndRoomTimer) {
+      clearTimeout(this.syncContactAndRoomTimer)
+      this.syncContactAndRoomTimer = undefined
+    }
 
     if (this.delayQueueExecutorSubscription) {
       this.delayQueueExecutorSubscription.unsubscribe()
@@ -902,6 +909,11 @@ export class PadchatManager extends PadchatRpc {
         }
       }
     }
+
+    this.syncContactAndRoomTimer = setTimeout(async () => {
+      await this.syncContactsAndRooms()
+    }, 60 * 60 * 1000)
+
   }
 
   public contactRawPayloadDirty(
