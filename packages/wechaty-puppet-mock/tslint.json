@@ -1,0 +1,10 @@
+{
+  "extends": ["tslint:recommended", "tslint-config-standard"],
+  "rules": {
+    "interface-name": [true, "never-prefix"],
+    "trailing-comma": true,
+    "import-spacing": false,
+    "no-multi-spaces": false,
+    "typedef-whitespace": false
+  }
+}

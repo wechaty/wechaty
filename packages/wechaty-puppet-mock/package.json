@@ -1,0 +1,88 @@
+{
+  "name": "wechaty-puppet-mock",
+  "version": "0.0.1",
+  "description": "Puppet Mocker for Wechaty",
+  "directories": {
+    "test": "tests"
+  },
+  "main": "dist/src/index.js",
+  "typings": "dist/src/index.d.ts",
+  "scripts": {
+    "clean": "shx rm -fr dist/*",
+    "dist": "npm run clean && tsc",
+    "pack": "npm pack",
+    "lint": "npm run lint:ts && npm run lint:md",
+    "lint:md": "markdownlint README.md",
+    "lint:ts": "tslint --project tsconfig.json && tsc --noEmit",
+    "test": "npm run lint && npm run test:unit",
+    "test:pack": "bash -x scripts/npm-pack-testing.sh",
+    "test:unit": "blue-tape -r ts-node/register \"src/**/*.spec.ts\" \"src/*.spec.ts\" \"tests/*.spec.ts\" \"tests/**/*.spec.ts\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Chatie/wechaty-puppet-mock.git"
+  },
+  "keywords": [
+    "chatie",
+    "wechaty",
+    "chatbot",
+    "bot",
+    "wechat",
+    "sdk",
+    "puppet",
+    "mock"
+  ],
+  "author": "Huan LI <zixia@zixia.net>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/Chatie/wechaty-puppet-mock/issues"
+  },
+  "homepage": "https://github.com/Chatie/wechaty-puppet-mock#readme",
+  "devDependencies": {
+    "@types/blue-tape": "^0.1.31",
+    "@types/lru-cache": "^4.1.1",
+    "@types/node": "^10.3.6",
+    "@types/normalize-package-data": "^2.4.0",
+    "@types/qr-image": "^3.2.1",
+    "@types/read-pkg-up": "^3.0.1",
+    "@types/semver": "^5.5.0",
+    "blue-tape": "^1.0.0",
+    "brolog": "^1.6.5",
+    "file-box": "^0.8.22",
+    "git-scripts": "^0.2.1",
+    "hot-import": "^0.2.1",
+    "lru-cache": "^4.1.3",
+    "markdownlint-cli": "^0.10.0",
+    "memory-card": "^0.2.0",
+    "normalize-package-data": "^2.4.0",
+    "read-pkg-up": "^4.0.0",
+    "semver": "^5.5.0",
+    "shx": "^0.3.1",
+    "state-switch": "^0.6.2",
+    "ts-node": "^7.0.0",
+    "tslint": "^5.10.0",
+    "tslint-config-standard": "^7.1.0",
+    "typescript": "^2.9.2",
+    "watchdog": "^0.8.10",
+    "wechaty-puppet": "0.0.7"
+  },
+  "git": {
+    "scripts": {
+      "pre-push": "./scripts/pre-push.sh"
+    }
+  },
+  "peerDependencies": {
+    "brolog": "^1.6.5",
+    "file-box": "^0.8.22",
+    "hot-import": "^0.2.1",
+    "lru-cache": "^4.1.3",
+    "normalize-package-data": "^2.4.0",
+    "read-pkg-up": "^4.0.0",
+    "state-switch": "^0.6.2",
+    "watchdog": "^0.8.10",
+    "wechaty-puppet": "0.0.7"
+  },
+  "dependencies": {
+    "qr-image": "^3.2.0"
+  }
+}
