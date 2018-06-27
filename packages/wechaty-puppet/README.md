@@ -1,5 +1,10 @@
 # WECHATY PUPPET
 
+[![NPM Version](https://badge.fury.io/js/wechaty-puppet.svg)](https://badge.fury.io/js/wechaty-puppet)
+[![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
+[![Linux/Mac Build Status](https://travis-ci.com/Chatie/wechaty-puppet.svg?branch=master)](https://travis-ci.com/Chatie/wechaty-puppet)
+
+
 ![chatie puppet](https://chatie.io/wechaty-puppet/images/puppet-logo.jpg)
 
 > Picture Credit: <http://mamikins.lv/ru/latvijskoe-pravitelstvo-chrevoveshhaet/>
