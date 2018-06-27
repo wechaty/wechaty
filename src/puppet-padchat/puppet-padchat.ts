@@ -696,6 +696,12 @@ export class PuppetPadchat extends Puppet {
 
     const payload: ContactPayload = contactRawPayloadParser(rawPayload)
 
+    if (rawPayload.stranger && isStrangerV1(rawPayload.stranger)) {
+      payload.friend = true
+    } else {
+      payload.friend = false
+    }
+
     // if (!this.padchatManager) {
     //   throw new Error('no padchat manager')
     // }
