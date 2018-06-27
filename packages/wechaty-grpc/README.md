@@ -1,8 +1,8 @@
 # GRPC
 
-gRPC Proto Buffers for Chatie
-
 ![chatie grpc](https://chatie.io/grpc/images/grpc.png)
+
+gRPC for Chatie
 
 ## INSTALL
 
@@ -51,7 +51,7 @@ protoc \
 
 > <https://www.npmjs.com/package/grpc-tools>
 
-### 3. TS for Protocol Buffer & gRPC Stubs
+### 3. TypeScript Typing Definations for Protocol Buffer & gRPC Stubs
 
 ```shell
 protoc \

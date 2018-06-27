@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package wechaty;
+package Wechaty;
 
 service Puppet {
   rpc selfId(Empty) returns (Id) {}
@@ -24,5 +24,5 @@ message ContactPayload {
 }
 
 message ContactList {
-  repeated Id id_list = 1;
+  repeated Id id = 1;
 }
