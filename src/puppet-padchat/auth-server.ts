@@ -83,8 +83,10 @@ const VALID_TOKEN_DICT = {
 
 function validToken(token: string) {
   if (token in VALID_TOKEN_DICT) {
+    console.log('token valid: ' + token)
     return true
   }
+  console.log('token invalid: ' + token)
   return false
 }
 
