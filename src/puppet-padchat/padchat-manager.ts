@@ -188,19 +188,6 @@ export class PadchatManager extends PadchatRpc {
 
     this.state.on('pending')
 
-    if (this.delayQueueExecutorSubscription) {
-      throw new Error('this.delayExecutorSubscription exist')
-    } else {
-      this.delayQueueExecutorSubscription = this.delayQueueExecutor.subscribe(unit => {
-        log.verbose('PuppetPadchatManager', 'startQueues() delayQueueExecutor.subscribe(%s) executed', unit.name)
-      })
-    }
-
-    this.memorySlot = {
-      ...this.memorySlot,
-      ...await this.options.memory.get<PadchatMemorySlot>(MEMORY_SLOT_NAME),
-    }
-
     /**
      * Sometimes the RPC WebSocket will failure on connect in super.start(),
      *  if that's true then a Error will be throw out.
@@ -216,6 +203,19 @@ export class PadchatManager extends PadchatRpc {
         await new Promise(r => setTimeout(r, 1000))
         log.warn('PuppetPadchatManager', 'start() super.start() retry now ...')
       }
+    }
+
+    if (this.delayQueueExecutorSubscription) {
+      throw new Error('this.delayExecutorSubscription exist')
+    } else {
+      this.delayQueueExecutorSubscription = this.delayQueueExecutor.subscribe(unit => {
+        log.verbose('PuppetPadchatManager', 'startQueues() delayQueueExecutor.subscribe(%s) executed', unit.name)
+      })
+    }
+
+    this.memorySlot = {
+      ...this.memorySlot,
+      ...await this.options.memory.get<PadchatMemorySlot>(MEMORY_SLOT_NAME),
     }
 
     await this.tryLoad62Data()
@@ -427,7 +427,7 @@ export class PadchatManager extends PadchatRpc {
     })
     .catch(e => {
       log.warn('PuppetPadchatManager', 'startCheckScan() checkScanLoop() exception: %s', e)
-      this.emit('reset', 'startCheckScan() checkScanLoop() exception')
+      this.reset('startCheckScan() checkScanLoop() exception')
     })
     log.silly('PuppetPadchatManager', `startCheckScan() checkScanInternalLoop() set`)
   }
