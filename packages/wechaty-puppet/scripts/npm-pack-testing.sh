@@ -22,6 +22,8 @@ npm install *-*.*.*.tgz \
   --lib esnext \
   --noEmitOnError \
   --noImplicitAny \
+  --target es6 \
+  --module commonjs \
   smoke-testing.ts
 
 node smoke-testing.js
