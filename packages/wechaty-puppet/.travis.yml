@@ -10,15 +10,6 @@ cache:
   directories:
     - node_modules
 
-stages:
-  - test
-  - pack
-  - name: deploy
-    if: (type = push) AND branch =~ ^(master|v\d+\.\d+)$
-
-before_install:
-  - npm install -g npm
-
 script:
   - node --version
   - npm --version
@@ -26,9 +17,14 @@ script:
   - npm test
   - echo "Testing Finished."
 
+stages:
+  - test
+  - pack
+  - name: deploy
+    if: (type = push) AND branch =~ ^(master|v\d+\.\d+)$
+
 jobs:
   include:
-
     - stage: pack
       script:
         - echo "NPM Pack Testing Started ..."
