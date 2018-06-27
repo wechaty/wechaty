@@ -65,7 +65,6 @@
     }
   },
   "peerDependencies": {
-    "@types/lru-cache": "^4.1.1",
     "brolog": "^1.6.5",
     "file-box": "^0.8.22",
     "hot-import": "^0.2.1",
