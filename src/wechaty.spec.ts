@@ -167,7 +167,7 @@ test('initPuppetAccessory()', async t => {
 
 test('Wechaty restart for many times', async t => {
   const wechaty = new Wechaty({
-    puppet: 'mock',
+    puppet: new PuppetMock({ memory: new MemoryCard() }),
   })
 
   try {
