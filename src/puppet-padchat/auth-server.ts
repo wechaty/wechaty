@@ -107,10 +107,11 @@ function proxyWs(downStream: WebSocket): void {
 }
 
 const VALID_TOKEN_DICT = {
-  'padchat-token-zixia'     : '@zixia',
-  'padchat-token-zixia-c9'  : '@zixia',
-  'padchat-token-zixia-mac' : '@zixia',
-  'padchat-token-zixia-mvp-zixia008': '@zixia',
+  'padchat-token-zixia'              : '@zixia',
+  'padchat-token-zixia-c9'           : '@zixia',
+  'padchat-token-zixia-mac'          : '@zixia',
+  'padchat-token-zixia-mvp-zixia008' : '@zixia',
+  'padchat-token-lijiarui'           : '@lijiarui',
 }
 
 function validToken(token: string) {
