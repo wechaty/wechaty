@@ -40,6 +40,7 @@
     "@types/read-pkg-up": "^3.0.1",
     "@types/semver": "^5.5.0",
     "blue-tape": "^1.0.0",
+    "git-scripts": "^0.2.1",
     "markdownlint-cli": "^0.10.0",
     "memory-card": "^0.2.0",
     "semver": "^5.5.0",
