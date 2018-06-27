@@ -2,28 +2,74 @@
 
 gRPC Proto Buffers for Chatie
 
+![chatie grpc](https://chatie.io/grpc/images/grpc.png)
+
 ## INSTALL
 
 ```shell
-$ npm install
-...
+npm install
 ```
 
-Install Protocol Buffer
+### Install Protocol Buffer
 
-### Mac
+> <https://github.com/google/protobuf/releases/latest>
+
+#### Mac
 
 ```shell
-$ brew install protoc
-...
+brew install protoc
 ```
 
-### Linux
+#### Linux
 
 ```shell
-$ sudo apt install protobuf-compiler
-...
+sudo apt install protobuf-compiler
 ```
+
+## GENERATE STUBS
+
+```shell
+npm run generate
+```
+
+### 1. JS for Protocol Buffer
+
+```shell
+protoc \
+  --js_out="import_style=commonjs,binary:${OUT_DIR}"
+```
+
+> <https://github.com/google/protobuf/releases/latest>
+
+### 2. JS for gRPC Stubs
+
+```shell
+protoc \
+  --plugin="protoc-gen-grpc=`which grpc_tools_node_protoc_plugin`" \
+  --grpc_out="${OUT_DIR}"
+```
+
+> <https://www.npmjs.com/package/grpc-tools>
+
+### 3. TS for Protocol Buffer & gRPC Stubs
+
+```shell
+protoc \
+  --plugin="protoc-gen-grpc=node_modules/grpc_tools_node_protoc_ts/bin/protoc-gen-ts" \
+  --grpc_out="${OUT_DIR}"
+```
+
+> <https://github.com/agreatfool/grpc_tools_node_protoc_ts>
+
+### 4. JS & TS for gRPC Web
+
+```shell
+protoc \
+  --plugin="protoc-gen-ts=node_modules/ts-protoc-gen/bin/protoc-gen-ts" \
+  --ts_out="service=true:${OUT_DIR}"
+```
+
+> <https://github.com/improbable-eng/ts-protoc-gen>
 
 ## RESOURCES
 
