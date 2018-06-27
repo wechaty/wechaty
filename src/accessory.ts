@@ -5,7 +5,7 @@ import { instanceToClass }  from 'clone-class'
 import { log }  from './config'
 
 import { Wechaty } from './wechaty'
-import { Puppet } from './puppet/'
+import { Puppet } from 'wechaty-puppet'
 
 // use Symbol to prevent conflicting with the child class properties
 // This symbol must be exported (for now).

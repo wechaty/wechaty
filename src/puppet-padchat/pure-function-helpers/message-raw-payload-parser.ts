@@ -3,7 +3,7 @@
 import {
   MessagePayload,
   MessageType,
-}                         from '../../puppet/'
+}                         from 'wechaty-puppet'
 
 import {
   PadchatMessagePayload,

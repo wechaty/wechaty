@@ -1,6 +1,6 @@
 import {
   MessagePayload,
-}                           from '../../puppet'
+}                           from 'wechaty-puppet'
 
 import {
   WebMessageRawPayload,

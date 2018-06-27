@@ -36,7 +36,7 @@ import {
   ContactPayload,
   ContactQueryFilter,
   ContactType,
-}                         from '../puppet/'
+}                         from 'wechaty-puppet'
 
 export const POOL = Symbol('pool')
 

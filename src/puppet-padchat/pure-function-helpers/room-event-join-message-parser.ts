@@ -3,7 +3,7 @@ import { toJson } from 'xml2json'
 import {
   PuppetRoomJoinEvent,
   YOU,
-}                         from '../../puppet/'
+}                         from 'wechaty-puppet'
 
 import {
   PadchatMessagePayload,

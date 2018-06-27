@@ -29,7 +29,7 @@ import {
   Accessory,
 }                       from './accessory'
 
-import { Puppet }       from './puppet/'
+import { Puppet }       from 'wechaty-puppet'
 
 const EXPECTED_PUPPET1 = {p: 1} as any as Puppet
 const EXPECTED_PUPPET2 = {p: 2} as any as Puppet

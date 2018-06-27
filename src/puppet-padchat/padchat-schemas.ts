@@ -18,7 +18,7 @@
  */
 import {
   ContactGender,
-}                 from '../puppet/'
+}                 from 'wechaty-puppet'
 
 // 1 when use WXSyncContact, 0 when use WXGetContact
 export enum PadchatContactRoomStatus {

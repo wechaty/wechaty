@@ -1,7 +1,7 @@
 import {
   ContactPayload,
   ContactType,
-}                       from '../../puppet/'
+}                       from 'wechaty-puppet'
 
 import {
   PadchatContactPayload,

@@ -39,7 +39,7 @@ import {
   Puppet,
   PuppetOptions,
   Receiver,
-}                     from '../puppet/'
+}                     from 'wechaty-puppet'
 import {
   config,
   log,
@@ -87,7 +87,7 @@ import {
   // RoomQueryFilter,
 
   PuppetQrcodeScanEvent,
-}                           from '../puppet/'
+}                           from 'wechaty-puppet'
 
 import {
   messageRawPayloadParser,

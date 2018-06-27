@@ -44,7 +44,7 @@ import {
 
   FriendshipPayload,
   FriendshipPayloadReceive,
-}                                 from '../puppet/'
+}                                 from 'wechaty-puppet'
 
 import {
   contactRawPayloadParser,

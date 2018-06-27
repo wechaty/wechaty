@@ -4,7 +4,7 @@ import {
 
 import {
   MessageType,
-}                 from '../../puppet'
+}                 from 'wechaty-puppet'
 import {
   isRoomId,
 }                 from './is-type'
@@ -18,7 +18,7 @@ import {
 
 import {
   MessagePayload,
-}                         from '../../puppet'
+}                         from 'wechaty-puppet'
 
 export function messageRawPayloadParser(
   rawPayload: WebMessageRawPayload,

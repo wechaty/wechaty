@@ -17,8 +17,6 @@ import {
   Wechaty,
 }                     from './wechaty'
 
-// export * from './puppet/'
-
 export {
   Contact,
   Friendship,

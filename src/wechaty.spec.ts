@@ -42,7 +42,7 @@ import {
 
 import {
   Puppet,
-}                     from './puppet/'
+}                     from 'wechaty-puppet'
 import { PuppetMock } from './puppet-mock'
 import { MemoryCard } from 'memory-card'
 

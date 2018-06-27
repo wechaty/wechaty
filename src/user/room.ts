@@ -50,7 +50,7 @@ import {
   RoomMemberQueryFilter,
   RoomPayload,
   RoomQueryFilter,
-}                         from '../puppet/'
+}                         from 'wechaty-puppet'
 
 /**
  * All wechat rooms(groups) will be encapsulated as a Room.

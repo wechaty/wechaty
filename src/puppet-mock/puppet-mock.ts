@@ -32,13 +32,12 @@ import {
   FriendshipPayload,
   RoomPayload,
   RoomMemberPayload,
-}                       from '../puppet/'
-import {
+
   Puppet,
   PuppetOptions,
   Receiver,
   MessageType,
-}                       from '../puppet/'
+}                       from 'wechaty-puppet'
 
 import {
   log,
