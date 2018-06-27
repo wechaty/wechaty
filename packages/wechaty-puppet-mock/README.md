@@ -1,11 +1,19 @@
 # PUPPET-MOCK
 
-Mock Puppet for Wechaty
+[![NPM Version](https://badge.fury.io/js/wechaty-puppet-mock.svg)](https://badge.fury.io/js/wechaty-puppet-mock)
+[![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
+[![Linux/Mac Build Status](https://travis-ci.com/Chatie/wechaty-puppet-mock.svg?branch=master)](https://travis-ci.com/Chatie/wechaty-puppet-mock)
+
+![chatie puppet](https://chatie.io/wechaty-puppet-mock/images/mock.png)
+
+> Picture Credit: <https://softwareautotools.com/2017/03/01/mocking-explained-in-python/>
+
+Puppet Mocker & Starter for Wechaty
 
 ## USAGE
 
 ```ts
-import PuppetMock from '@chatie/wechaty-puppet-mock'
+import PuppetMock from 'wechaty-puppet-mock'
 
 const wechaty = new Wechaty()
 
