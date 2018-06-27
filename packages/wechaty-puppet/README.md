@@ -6,7 +6,9 @@
 
 Abstract(Base) Class of Wechaty Puppet Framework.
 
-This module is part of the [Wechaty](https://github.com/chatie/wechaty) SDK. Learn more at:
+This module is part of the [Wechaty](https://github.com/chatie/wechaty) SDK.
+
+Learn more at:
 
 1. Wiki: <https://github.com/Chatie/wechaty/wiki/Puppet>
 1. Issue: <https://github.com/Chatie/wechaty/issues/1167>
