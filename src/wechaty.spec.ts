@@ -23,6 +23,7 @@ import test  from 'blue-tape'
 import sinon from 'sinon'
 
 // import asyncHooks from 'async_hooks'
+import { PuppetMock } from 'wechaty-puppet-mock'
 
 import {
   Wechaty,
@@ -43,7 +44,6 @@ import {
 import {
   Puppet,
 }                     from 'wechaty-puppet'
-import { PuppetMock } from './puppet-mock'
 import { MemoryCard } from 'memory-card'
 
 class WechatyTest extends Wechaty {

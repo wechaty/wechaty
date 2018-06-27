@@ -1,4 +1,5 @@
-import { PuppetMock }       from './puppet-mock/'
+import { PuppetMock }       from 'wechaty-puppet-mock'
+
 import { PuppetPuppeteer }  from './puppet-puppeteer/'
 import { PuppetPadchat }    from './puppet-padchat'
 import { PuppetWechat4u }   from './puppet-wechat4u/'
