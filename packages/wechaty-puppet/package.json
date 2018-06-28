@@ -4,6 +4,9 @@
   "description": "Abstract Puppet for Wechaty",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
+  "engines": {
+    "wechaty": ">=0.17.46"
+  },
   "scripts": {
     "clean": "shx rm -fr dist/*",
     "dist": "npm run clean && tsc",
