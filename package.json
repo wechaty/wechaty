@@ -181,7 +181,7 @@
     "tuling123-client": "^0.0.2",
     "typedoc": "^0.11.1",
     "typescript": "^2.9.2",
-    "wechaty-puppet-mock": "^0.0.4"
+    "wechaty-puppet-mock": "^0.0.6"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [
