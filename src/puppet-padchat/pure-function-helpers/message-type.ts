@@ -1,6 +1,6 @@
 import {
   MessageType,
-}                         from '../../puppet/'
+}                         from 'wechaty-puppet'
 
 import {
   PadchatMessageType,

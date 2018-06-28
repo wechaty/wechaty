@@ -1,7 +1,7 @@
 import {
   PuppetRoomLeaveEvent,
   YOU,
-}                         from '../../puppet/'
+}                         from 'wechaty-puppet'
 
 import {
   PadchatMessagePayload,

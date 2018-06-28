@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.17.25",
+  "version": "0.17.46",
   "description": "Wechat for Bot(Personal Account)",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
@@ -101,7 +101,7 @@
     "cuid": "^2.1.1",
     "express": "^4.16.3",
     "file-box": "^0.8.20",
-    "flash-store": "^0.5.0",
+    "flash-store": "^0.5.8",
     "fs-extra": "^6.0.1",
     "hot-import": "^0.2.1",
     "jimp": "^0.2.28",
@@ -122,6 +122,7 @@
     "state-switch": "^0.6.2",
     "watchdog": "^0.8.1",
     "wechat4u": "^0.7.6",
+    "wechaty-puppet": "^0.0.7",
     "ws": "^5.2.0",
     "xml2json": "^0.11.2"
   },
@@ -179,7 +180,8 @@
     "tslint-config-standard": "^7.0.0",
     "tuling123-client": "^0.0.2",
     "typedoc": "^0.11.1",
-    "typescript": "^2.9.2"
+    "typescript": "^2.9.2",
+    "wechaty-puppet-mock": "^0.0.4"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [

@@ -15,7 +15,8 @@ npm install *-*.*.*.tgz \
   @types/node \
   rxjs \
   brolog \
-  typescript
+  typescript \
+  wechaty-puppet-mock \
 
 ./node_modules/.bin/tsc \
   --lib esnext \

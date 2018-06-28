@@ -44,7 +44,7 @@ import {
 
   FriendshipPayload,
   FriendshipPayloadReceive,
-}                                 from '../puppet/'
+}                                 from 'wechaty-puppet'
 
 import {
   contactRawPayloadParser,
@@ -65,6 +65,8 @@ import {
   roomJoinEventMessageParser,
   roomLeaveEventMessageParser,
   roomTopicEventMessageParser,
+
+  generateFakeSelfBot,
 }                                         from './pure-function-helpers'
 
 import {
@@ -684,10 +686,19 @@ export class PuppetPadchat extends Puppet {
   public async contactRawPayload(contactId: string): Promise<PadchatContactPayload> {
     log.silly('PuppetPadchat', 'contactRawPayload(%s)', contactId)
 
+    if (!this.id) {
+      throw Error('bot not login!')
+    }
+
     if (!this.padchatManager) {
       throw new Error('no padchat manager')
     }
     const rawPayload = await this.padchatManager.contactRawPayload(contactId)
+
+    if (!rawPayload.user_name && contactId === this.id) {
+      return generateFakeSelfBot(contactId)
+    }
+
     return rawPayload
   }
 
@@ -695,6 +706,12 @@ export class PuppetPadchat extends Puppet {
     log.silly('PuppetPadchat', 'contactRawPayloadParser({user_name="%s"})', rawPayload.user_name)
 
     const payload: ContactPayload = contactRawPayloadParser(rawPayload)
+
+    if (rawPayload.stranger && isStrangerV1(rawPayload.stranger)) {
+      payload.friend = true
+    } else {
+      payload.friend = false
+    }
 
     // if (!this.padchatManager) {
     //   throw new Error('no padchat manager')

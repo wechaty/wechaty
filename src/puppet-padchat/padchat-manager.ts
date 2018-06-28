@@ -81,6 +81,8 @@ export class PadchatManager extends PadchatRpc {
   private readonly delayQueueExecutor     : DelayQueueExector
   private delayQueueExecutorSubscription? : Subscription
 
+  private syncContactAndRoomTimer?: NodeJS.Timer
+
   constructor(
     public options: ManagerOptions,
   ) {
@@ -188,19 +190,6 @@ export class PadchatManager extends PadchatRpc {
 
     this.state.on('pending')
 
-    if (this.delayQueueExecutorSubscription) {
-      throw new Error('this.delayExecutorSubscription exist')
-    } else {
-      this.delayQueueExecutorSubscription = this.delayQueueExecutor.subscribe(unit => {
-        log.verbose('PuppetPadchatManager', 'startQueues() delayQueueExecutor.subscribe(%s) executed', unit.name)
-      })
-    }
-
-    this.memorySlot = {
-      ...this.memorySlot,
-      ...await this.options.memory.get<PadchatMemorySlot>(MEMORY_SLOT_NAME),
-    }
-
     /**
      * Sometimes the RPC WebSocket will failure on connect in super.start(),
      *  if that's true then a Error will be throw out.
@@ -218,6 +207,19 @@ export class PadchatManager extends PadchatRpc {
       }
     }
 
+    if (this.delayQueueExecutorSubscription) {
+      throw new Error('this.delayExecutorSubscription exist')
+    } else {
+      this.delayQueueExecutorSubscription = this.delayQueueExecutor.subscribe(unit => {
+        log.verbose('PuppetPadchatManager', 'startQueues() delayQueueExecutor.subscribe(%s) executed', unit.name)
+      })
+    }
+
+    this.memorySlot = {
+      ...this.memorySlot,
+      ...await this.options.memory.get<PadchatMemorySlot>(MEMORY_SLOT_NAME),
+    }
+
     await this.tryLoad62Data()
 
     const succeed = await this.tryAutoLogin(this.memorySlot)
@@ -232,6 +234,11 @@ export class PadchatManager extends PadchatRpc {
     log.verbose('PuppetPadchatManager', `stop()`)
 
     this.state.off('pending')
+
+    if (this.syncContactAndRoomTimer) {
+      clearTimeout(this.syncContactAndRoomTimer)
+      this.syncContactAndRoomTimer = undefined
+    }
 
     if (this.delayQueueExecutorSubscription) {
       this.delayQueueExecutorSubscription.unsubscribe()
@@ -427,7 +434,7 @@ export class PadchatManager extends PadchatRpc {
     })
     .catch(e => {
       log.warn('PuppetPadchatManager', 'startCheckScan() checkScanLoop() exception: %s', e)
-      this.emit('reset', 'startCheckScan() checkScanLoop() exception')
+      this.reset('startCheckScan() checkScanLoop() exception')
     })
     log.silly('PuppetPadchatManager', `startCheckScan() checkScanInternalLoop() set`)
   }
@@ -902,6 +909,11 @@ export class PadchatManager extends PadchatRpc {
         }
       }
     }
+
+    this.syncContactAndRoomTimer = setTimeout(async () => {
+      await this.syncContactsAndRooms()
+    }, 3 * 60 * 60 * 1000)
+
   }
 
   public contactRawPayloadDirty(

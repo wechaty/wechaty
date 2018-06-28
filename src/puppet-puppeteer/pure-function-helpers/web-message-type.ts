@@ -4,7 +4,7 @@ import {
 
 import {
   MessageType,
-}                 from '../../puppet'
+}                 from 'wechaty-puppet'
 
 export function webMessageType(webMsgType: WebMessageType): MessageType {
   switch (webMsgType) {

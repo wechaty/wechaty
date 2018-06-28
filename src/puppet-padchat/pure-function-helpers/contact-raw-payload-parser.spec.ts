@@ -9,7 +9,7 @@ import {
   ContactGender,
   ContactPayload,
   ContactType,
-}                       from '../../puppet/'
+}                       from 'wechaty-puppet'
 
 import {
   PadchatContactMsgType,

@@ -8,7 +8,7 @@ import test  from 'blue-tape'
 import {
   PuppetRoomTopicEvent,
   YOU,
-}                               from '../../puppet/'
+}                               from 'wechaty-puppet'
 
 import {
   PadchatMessagePayload,

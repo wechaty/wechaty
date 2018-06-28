@@ -34,7 +34,7 @@ import Wechaty    from '../wechaty'
 
 import {
   MessagePayload,
-}                 from '../puppet/'
+}                 from 'wechaty-puppet'
 
 import {
   Message,

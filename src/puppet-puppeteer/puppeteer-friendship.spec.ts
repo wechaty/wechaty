@@ -36,7 +36,7 @@ import {
 import {
   FriendshipPayload,
   FriendshipType,
-}                         from '../puppet/'
+}                         from 'wechaty-puppet'
 
 import {
   PuppetPuppeteer,

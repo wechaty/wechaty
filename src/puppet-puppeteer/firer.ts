@@ -36,7 +36,7 @@ import PuppetPuppeteer        from './puppet-puppeteer'
 //   FriendRequestType,
 //   FriendRequestPayloadReceive,
 //   FriendRequestPayloadConfirm,
-// }                               from '../puppet/'
+// }                               from 'wechaty-puppet'
 
 const REGEX_CONFIG = {
   friendConfirm: [

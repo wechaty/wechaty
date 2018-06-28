@@ -7,7 +7,7 @@ import test  from 'blue-tape'
 
 import {
   MessagePayload,
-}                       from '../../puppet/'
+}                       from 'wechaty-puppet'
 
 import {
   PadchatMessagePayload,

@@ -25,7 +25,6 @@ stages:
 
 before_install:
   - if [ "$TRAVIS_OS_NAME" == 'osx' ]; then ./scripts/prepare-osx.sh; fi
-  - npm install -g npm
 
 install:
   - npm install

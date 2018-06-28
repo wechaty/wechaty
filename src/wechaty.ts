@@ -41,6 +41,15 @@ import {
 }                   from 'memory-card'
 
 import {
+  Puppet,
+  PuppetOptions,
+
+  CHAT_EVENT_DICT,
+  PUPPET_EVENT_DICT,
+  PuppetEventName,
+}                       from 'wechaty-puppet'
+
+import {
   Accessory,
 }                       from './accessory'
 import {
@@ -58,10 +67,6 @@ import {
   PUPPET_DICT,
   PuppetName,
 }                       from './puppet-config'
-import {
-  Puppet,
-  PuppetOptions,
-}                       from './puppet/'
 
 import {
   Contact,
@@ -70,13 +75,6 @@ import {
   Message,
   Room,
 }                       from './user/'
-
-import {
-  CHAT_EVENT_DICT,
-  PUPPET_EVENT_DICT,
-  PuppetEventName,
-  // ChatEventName,
-}                       from './puppet/schemas/puppet'
 
 // export const WECHAT_EVENT_DICT = {
 //   friend      : 'tbw',

@@ -1,6 +1,6 @@
 import {
   RoomPayload,
-}                   from '../../puppet/'
+}                   from 'wechaty-puppet'
 
 import {
   PadchatRoomPayload,

@@ -25,7 +25,7 @@ import {
 }                 from '../config'
 // import {
 //   PuppetScanEvent,
-// }                 from '../puppet/'
+// }                 from 'wechaty-puppet'
 
 import {
   Firer,

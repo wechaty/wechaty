@@ -25,7 +25,7 @@ import {
 
 import {
   PuppetQrcodeScanEvent,
-}                 from './puppet/'
+}                 from 'wechaty-puppet'
 
 import {
   config,

@@ -1,10 +1,12 @@
 #!/usr/bin/env ts-node
 
 import { Wechaty } from 'wechaty'
+import { PuppetMock } from 'wechaty-puppet-mock'
+import { MemoryCard } from 'memory-card'
 
 async function main() {
   const bot = Wechaty.instance({
-    puppet: 'mock',
+    puppet: new PuppetMock({ memory: new MemoryCard }),
   })
   try {
     await bot.start()

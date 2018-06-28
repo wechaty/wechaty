@@ -42,12 +42,12 @@ import {
   RoomPayload,
   RoomMemberPayload,
   // RoomQueryFilter,
-}                       from '../puppet/'
+}                       from 'wechaty-puppet'
 import {
   Puppet,
   PuppetOptions,
   Receiver,
-}                       from '../puppet/'
+}                       from 'wechaty-puppet'
 
 import {
   log,

@@ -23,6 +23,7 @@ import test  from 'blue-tape'
 import sinon from 'sinon'
 
 // import asyncHooks from 'async_hooks'
+import { PuppetMock } from 'wechaty-puppet-mock'
 
 import {
   Wechaty,
@@ -42,8 +43,7 @@ import {
 
 import {
   Puppet,
-}                     from './puppet/'
-import { PuppetMock } from './puppet-mock'
+}                     from 'wechaty-puppet'
 import { MemoryCard } from 'memory-card'
 
 class WechatyTest extends Wechaty {
@@ -167,7 +167,7 @@ test('initPuppetAccessory()', async t => {
 
 test('Wechaty restart for many times', async t => {
   const wechaty = new Wechaty({
-    puppet: 'mock',
+    puppet: new PuppetMock({ memory: new MemoryCard() }),
   })
 
   try {

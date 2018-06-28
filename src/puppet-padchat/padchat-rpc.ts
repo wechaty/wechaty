@@ -142,10 +142,10 @@ export class PadchatRpc extends EventEmitter {
       const encodedParam = payload.params.map(encodeURIComponent)
 
       const message: PadchatRpcRequest = {
-        userId:   this.token,
-        msgId:    payload.id,
-        apiName:  payload.method,
-        param:    encodedParam,
+        userId  : this.token,
+        msgId   : payload.id,
+        apiName : payload.method,
+        param   : encodedParam,
       }
 
       // log.silly('PadchatRpc', 'initJsonRpc() jsonRpc.on(data) converted to padchat payload="%s"', JSON.stringify(message))
@@ -166,8 +166,10 @@ export class PadchatRpc extends EventEmitter {
       { perMessageDeflate: true },
     )
 
-    this.socket = ws
-
+    /**
+     * 1. Message
+     *  1.1. Deal with payload
+     */
     ws.on('message', (data: string) => {
 
       // log.silly('PadchatRpc', 'initWebSocket() ws.on(message)')
@@ -180,18 +182,29 @@ export class PadchatRpc extends EventEmitter {
       }
     })
 
-    ws.on('error', err => this.emit('error', err))
-
-    await new Promise((resolve, reject) => {
-      ws.once('open', resolve)
-
-      ws.once('error', reject)
-      ws.once('close', reject)
+    /**
+     * 1. Message
+     *  1.2. use websocket message as heartbeat source
+     */
+    ws.on('message', () => {
+      if (!this.throttleQueue || !this.debounceQueue) {
+        log.warn('PadchatRpc', 'initWebSocket() ws.on(message) throttleQueue or debounceQueue not exist')
+        return
+      }
+      this.throttleQueue.next('ws.on(message)')
+      this.debounceQueue.next('ws.on(message)')
     })
 
     /**
-     * emit reset to broadcast that it need to be reseted
-     * when the websocket is closed
+     * 2. Error
+     */
+    ws.on('error', e => {
+      log.warn('PadchatRpc', 'initWebSocket() ws.on(error) %s', e)
+      this.emit('error', e)
+    })
+
+    /**
+     * 3. Close
      */
     ws.on('close', e => {
       log.warn('PadchatRpc', 'initWebSocket() ws.on(close) %s', e)
@@ -205,16 +218,8 @@ export class PadchatRpc extends EventEmitter {
     })
 
     /**
-     * use websocket message as heartbeat source
+     * 4. Pong
      */
-    ws.on('message', () => {
-      if (!this.throttleQueue || !this.debounceQueue) {
-        log.warn('PadchatRpc', 'initWebSocket() ws.on(message) throttleQueue or debounceQueue not exist')
-        return
-      }
-      this.throttleQueue.next('ws.on(message)')
-      this.debounceQueue.next('ws.on(message)')
-    })
     ws.on('pong', data => {
       log.silly('PadchatRpc', 'initWebSocket() ws.on(pong)')
       if (!this.throttleQueue || !this.debounceQueue) {
@@ -224,6 +229,30 @@ export class PadchatRpc extends EventEmitter {
       this.throttleQueue.next('pong: ' + data.toString())
       this.debounceQueue.next('pong: ' + data.toString())
     })
+
+    /**
+     * 5. Wait the WebSocket to be connected
+     */
+    await new Promise((resolve, reject) => {
+      ws.once('open', () => {
+        log.silly('PadchatRpc', 'initWebSocket() Promise() ws.on(open)')
+        return resolve()
+      })
+
+      ws.once('error', (e) => {
+        log.silly('PadchatRpc', 'initWebSocket() Promise() ws.on(error) %s', e)
+        return reject()
+      })
+      ws.once('close', () => {
+        log.silly('PadchatRpc', 'initWebSocket() Promise() ws.on(close)')
+        return reject()
+      })
+    })
+
+    /**
+     * 6. Set socket to the new WebSocket instance
+     */
+    this.socket = ws
 
   }
 
@@ -263,14 +292,16 @@ export class PadchatRpc extends EventEmitter {
 
   }
 
-  private async reset(reason = 'unknown reason'): Promise<void> {
+  protected reset(reason = 'unknown reason'): void {
     log.verbose('PadchatRpc', 'reset(%s)', reason)
 
-    try {
-      this.stop()
-    } catch (e) {
-      // fall safe
-    }
+    // no need to stop() at here. the high layer will do this.
+    //
+    // try {
+    //   this.stop()
+    // } catch (e) {
+    //   // fall safe
+    // }
 
     this.emit('reset', reason)
   }

@@ -45,7 +45,7 @@ import {
 import {
   MessagePayload,
   MessageType,
-}                 from '../puppet/'
+}                 from 'wechaty-puppet'
 
 /**
  * All wechat messages will be encapsulated as a Message.

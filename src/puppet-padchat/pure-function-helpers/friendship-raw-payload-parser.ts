@@ -6,7 +6,7 @@ import {
   FriendshipPayloadReceive,
   FriendshipPayloadVerify,
   FriendshipType,
-}                       from '../../puppet/'
+}                       from 'wechaty-puppet'
 
 import {
   PadchatMessagePayload,
