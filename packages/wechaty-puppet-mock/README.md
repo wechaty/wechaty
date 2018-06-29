@@ -8,19 +8,21 @@
 
 > Picture Credit: <https://softwareautotools.com/2017/03/01/mocking-explained-in-python/>
 
-Puppet Mocker & Starter for Wechaty
+Puppet Mocker & Starter for Wechaty, it is very useful when you:
+
+1. Want to test the Wechaty framework with a mock puppet, or
+1. You want to write your own Puppet implenmentation.
+
+Then `PuppetMock` will helps you a lot.
 
 ## USAGE
 
 ```ts
-import PuppetMock from 'wechaty-puppet-mock'
+import { MemoryCard } from 'memory-card'
+import { PuppetMock } from 'wechaty-puppet-mock'
 
-const wechaty = new Wechaty()
-
-const puppet = new PuppetMock({
-  profile,
-  wechaty,
-})
+const puppet  = new PuppetMock({ memory: new MemoryCard() })
+const wechaty = new Wechaty({ puppet })
 ```
 
 ## HELPER UTILITIES
@@ -43,11 +45,11 @@ await this.state.ready('off')
 ```ts
 ```
 
-### Profile
+### MemoryCard
 
 ```ts
-await this.profile.set('config', { id: 1, key: 'xxx' })
-const config = await this.profile.get('config')
+await memory.set('config', { id: 1, key: 'xxx' })
+const config = await memory.get('config')
 console.log(config)
 // Output: { id: 1, key: 'xxx' }
 ```

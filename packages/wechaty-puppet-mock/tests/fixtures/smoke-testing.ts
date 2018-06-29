@@ -8,9 +8,6 @@
 // tslint:disable:no-console
 
 import {
-  FileBox,
-}                 from 'file-box'
-import {
   MemoryCard,
 }                 from 'memory-card'
 
