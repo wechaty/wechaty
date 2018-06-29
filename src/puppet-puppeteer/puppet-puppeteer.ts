@@ -23,6 +23,7 @@ import nodeUrl from 'url'
 import bl       from 'bl'
 import mime     from 'mime'
 import request  from 'request'
+import md5      from 'md5'
 
 import {
   FileBox,
@@ -1305,7 +1306,7 @@ export class PuppetPuppeteer extends Puppet {
       throw new Error(`Sending files is not allowed to exceed ${MAX_FILE_SIZE / 1024 / 1024}MB`)
     }
 
-    const md5 = Misc.md5(buffer)
+    const fileMd5 = md5(buffer)
 
     const baseRequest     = await this.getBaseRequest()
     const passTicket      = await this.bridge.getPassticket()
@@ -1330,7 +1331,7 @@ export class PuppetPuppeteer extends Puppet {
 
     const uploadMediaRequest = {
       BaseRequest:   baseRequest,
-      FileMd5:       md5,
+      FileMd5:       fileMd5,
       FromUserName:  fromUserName,
       ToUserName:    toUserName,
       UploadType:    2,
@@ -1349,7 +1350,7 @@ export class PuppetPuppeteer extends Puppet {
       ToUserName:   toUserName,
       FileName:     filename,
       FileSize:     size,
-      FileMd5:      md5,
+      FileMd5:      fileMd5,
       FileType:     7,              // If do not have this parameter, the api will fail
     }
 
@@ -1358,7 +1359,7 @@ export class PuppetPuppeteer extends Puppet {
       MediaId:    '',
       FileName:   filename,
       FileSize:   size,
-      FileMd5:    md5,
+      FileMd5:    fileMd5,
       MMFileExt:  ext,
     } as WebMessageMediaPayload
 
