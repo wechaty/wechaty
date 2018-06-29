@@ -693,10 +693,22 @@ export class PuppetPadchat extends Puppet {
     if (!this.padchatManager) {
       throw new Error('no padchat manager')
     }
-    const rawPayload = await this.padchatManager.contactRawPayload(contactId)
+    let rawPayload = await this.padchatManager.contactRawPayload(contactId)
 
     if (!rawPayload.user_name && contactId === this.id) {
       return generateFakeSelfBot(contactId)
+    }
+
+    if (!rawPayload || Object.keys(rawPayload).length <= 0) {
+      const roomList = await this.contactRoomList(contactId)
+      if (roomList.length > 0) {
+        const roomMemberPayload = await this.roomMemberPayload(roomList[0], contactId)
+        rawPayload = {
+          big_head: roomMemberPayload.avatar,
+          nick_name: roomMemberPayload.name,
+          user_name: roomMemberPayload.id,
+        } as any as PadchatContactPayload
+      }
     }
 
     return rawPayload
