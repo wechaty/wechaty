@@ -748,6 +748,14 @@ export class PuppetPadchat extends Puppet {
     contactId: string,
   ): Promise<ContactPayload> {
 
+    try {
+      const payload = await super.contactPayload(contactId)
+      return payload
+    } catch (e) {
+      log.silly('PuppetPadchat', 'contactPayload(%s) exception: %s', contactId, e.message)
+      log.silly('PuppetPadchat', 'contactPayload(%s) get failed for %s, try load from room member data source', contactId)
+    }
+
     const rawPayload = await this.contactRawPayload(contactId)
 
     /**
@@ -758,11 +766,16 @@ export class PuppetPadchat extends Puppet {
      * when it is not available directly
      */
     if (!rawPayload || Object.keys(rawPayload).length <= 0) {
+      log.silly('PuppetPadchat', 'contactPayload(%s) rawPayload not exist', contactId)
+
       const roomList = await this.contactRoomList(contactId)
+      log.silly('PuppetPadchat', 'contactPayload(%s) found %d rooms', contactId, roomList.length)
+
       if (roomList.length > 0) {
         const roomId = roomList[0]
         const roomMemberPayload = await this.roomMemberPayload(roomId, contactId)
         if (roomMemberPayload) {
+
           const payload: ContactPayload = {
             avatar : roomMemberPayload.avatar,
             name   : roomMemberPayload.name,
@@ -770,6 +783,10 @@ export class PuppetPadchat extends Puppet {
             gender : ContactGender.Unknown,
             type   : ContactType.Personal,
           }
+
+          this.cacheContactPayload.set(contactId, payload)
+          log.silly('PuppetPadchat', 'contactPayload(%s) cache SET', contactId)
+
           return payload
         }
       }
