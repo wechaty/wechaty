@@ -364,10 +364,28 @@ export abstract class Puppet extends EventEmitter {
 
   public abstract async contactList ()                   : Promise<string[]>
 
-  public abstract async contactQrcode (contactId: string) : Promise<string>
+  public abstract async contactQrcode (contactId: string) : Promise<string /*QR Code Value*/>
 
   public abstract async contactRawPayload (contactId: string)     : Promise<any>
   public abstract async contactRawPayloadParser (rawPayload: any) : Promise<ContactPayload>
+
+  public async contactRoomList (
+    contactId: string,
+  ): Promise<string /* roomId */[]> {
+    log.verbose('Puppet', 'contactRoomList(%s)', contactId)
+
+    const roomIdList = await this.roomList()
+    const roomPayloadList = await Promise.all(
+      roomIdList.map(
+        roomId => this.roomPayload(roomId)
+      )
+    )
+    const resultRoomIdList = roomPayloadList
+      .filter(roomPayload => roomPayload.memberIdList.includes(contactId))
+      .map(payload => payload.id)
+
+    return resultRoomIdList
+  }
 
   public async contactPayloadDirty (contactId: string): Promise<void> {
     log.verbose('Puppet', 'contactPayloadDirty(%s)', contactId)
