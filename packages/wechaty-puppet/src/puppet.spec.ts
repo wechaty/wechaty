@@ -235,20 +235,24 @@ test('roomQueryFilterFunction()', async t => {
 
   const PAYLOAD_LIST: RoomPayload[] = [
     {
-      id     : 'id1',
-      topic  : TEXT_TEXT,
+      id           : 'id1',
+      memberIdList : [],
+      topic        : TEXT_TEXT,
     },
     {
-      id     : 'id2',
-      topic  : TEXT_REGEX,
+      id           : 'id2',
+      memberIdList : [],
+      topic        : TEXT_REGEX,
     },
     {
-      id     : 'id3',
-      topic  : TEXT_TEXT,
+      id           : 'id3',
+      memberIdList : [],
+      topic        : TEXT_TEXT,
     },
     {
-      id     : 'id4',
-      topic  : TEXT_REGEX,
+      id           : 'id4',
+      memberIdList : [],
+      topic        : TEXT_REGEX,
     },
   ]
 
