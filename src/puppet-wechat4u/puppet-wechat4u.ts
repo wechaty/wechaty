@@ -29,8 +29,6 @@ import { Misc } from '../misc'
 import {
   MessagePayload,
 
-  // ContactQueryFilter,
-  // ContactGender,
   ContactType,
   ContactPayload,
 
@@ -41,7 +39,6 @@ import {
 
   RoomPayload,
   RoomMemberPayload,
-  // RoomQueryFilter,
 }                       from 'wechaty-puppet'
 import {
   Puppet,
@@ -55,17 +52,12 @@ import {
 }                       from '../config'
 
 import {
-  // WebAppMsgType,
-
   WebContactRawPayload,
-  // WebMessageMediaPayload,
   WebRecomendInfo,
 
   WebMessageRawPayload,
-  // WebMediaType,
   WebMessageType,
 
-  // WebRoomRawMember,
   WebRoomRawPayload,
   WebRoomRawMember,
 }                           from './web-schemas'
@@ -73,9 +65,6 @@ import {
 import {
   messageRawPayloadParser,
 }                           from './pure-function-helpers'
-
-export type PuppetFoodType = 'scan' | 'ding'
-export type ScanFoodType   = 'scan' | 'login' | 'logout'
 
 // export interface Wechat4uContactRawPayload {
 //   name : string,
@@ -95,7 +84,7 @@ export type ScanFoodType   = 'scan' | 'login' | 'logout'
 // }
 
 // MemoryCard Slot Name
-const MEMORY_SLOT_NAME = 'puppet-wechat4u'
+const MEMORY_SLOT_NAME = 'PUPPET-WECHAT4U'
 
 export class PuppetWechat4u extends Puppet {
 
@@ -121,7 +110,7 @@ export class PuppetWechat4u extends Puppet {
       max: 10000,
       // length: function (n) { return n * 2},
       dispose: function (key: string, val: Object) {
-        log.silly('Puppet', 'constructor() lruOptions.dispose(%s, %s)', key, JSON.stringify(val))
+        log.silly('PuppetWechat4u', 'constructor() lruOptions.dispose(%s, %s)', key, JSON.stringify(val))
       },
       maxAge: 1000 * 60 * 60,
     }
@@ -200,6 +189,7 @@ export class PuppetWechat4u extends Puppet {
      * 联系人更新事件，参数为被更新的联系人列表
      */
     wechat4u.on('contacts-updated', (contacts: WebContactRawPayload[]) => {
+      log.silly('PuppetWechat4u', 'initHookEvents() wechat4u.on(contacts-updated) contacts.length=%d', contacts.length)
       // Just for memory
       return contacts
       // console.log('contacts.length: ', contacts[0])
@@ -334,6 +324,9 @@ export class PuppetWechat4u extends Puppet {
     }
 
     const rawPayload = await this.contactRawPayload(contactId)
+    const payload    = await this.contactPayload(contactId)
+
+    const name = payload.name
 
     const res = await this.wechat4u.getHeadImg(rawPayload.HeadImgUrl)
     /**
@@ -341,7 +334,7 @@ export class PuppetWechat4u extends Puppet {
      */
     return FileBox.fromStream(
       res.data,
-      `${contactId}.jpg`, // FIXME
+      `wechaty-contact-avatar-${name}.jpg`, // FIXME
     )
   }
 
@@ -681,8 +674,8 @@ export class PuppetWechat4u extends Puppet {
     log.verbose('PuppetWechat4u', 'roomDel(%s, %s)', roomId, contactId)
 
     const type = 'delmember'
-    this.wechat4u.updateChatroom(roomId, [contactId], type)
-
+    // XXX: [contactId] or [{ UserName: id }, ...] ?
+    await this.wechat4u.updateChatroom(roomId, [contactId], type)
   }
 
   public async roomAvatar(roomId: string): Promise<FileBox> {
@@ -704,9 +697,17 @@ export class PuppetWechat4u extends Puppet {
   ): Promise<void> {
     log.verbose('PuppetWechat4u', 'roomAdd(%s, %s)', roomId, contactId)
 
+    const roomPayload = await this.roomPayload(roomId)
+
+    // TODO: if the room owner enabled "invite only?"
+    let type = 'addmember'  // invitemember ???
+    if (roomPayload.memberIdList.length > 40) {
+      type = 'invitemember'
+    }
+
     // https://github.com/nodeWechat/wechat4u/tree/46931e78bcb56899b8d2a42a37b919e7feaebbef#botupdatechatroomchatroomusername-memberlist-fun
-    const type = 'addmember'  // invitemember ???
-    this.wechat4u.updateChatroom(roomId, [contactId], type)
+    const ret = await this.wechat4u.updateChatroom(roomId, [contactId], type)
+    log.verbose('PuppetWechat4u', 'roomAdd(%s, %s) ret: %s', roomId, contactId, JSON.stringify(ret))
   }
 
   public async roomTopic(roomId: string)                : Promise<string>
@@ -718,10 +719,13 @@ export class PuppetWechat4u extends Puppet {
   ): Promise<void | string> {
     log.verbose('PuppetWechat4u', 'roomTopic(%s, %s)', roomId, topic)
 
+    const roomPayload = await this.roomPayload(roomId)
+
     if (typeof topic === 'undefined') {
-      return 'mock room topic'
+      return roomPayload.topic
     }
-    return
+
+    await this.wechat4u.updateChatRoomName(roomId, topic)
   }
 
   public async roomCreate(
@@ -730,7 +734,9 @@ export class PuppetWechat4u extends Puppet {
   ): Promise<string> {
     log.verbose('PuppetWechat4u', 'roomCreate(%s, %s)', contactIdList, topic)
 
-    const roomId = await this.wechat4u.createChatroom(topic, contactIdList)
+    const memberList = contactIdList.map(id => ({ UserName: id }))
+
+    const roomId = await this.wechat4u.createChatroom(topic, memberList)
     return roomId
   }
 
@@ -759,7 +765,7 @@ export class PuppetWechat4u extends Puppet {
     const rawPayload = await this.roomRawPayload(roomId)
 
     const memberIdList = (rawPayload.MemberList || [])
-                        .map(member => member.UserName)
+                          .map(member => member.UserName)
 
     return memberIdList
   }
@@ -795,11 +801,11 @@ export class PuppetWechat4u extends Puppet {
    * Friendship
    *
    */
-  public async friendshipVerify(
+  public async friendshipAdd(
     contactId : string,
     hello     : string,
   ): Promise<void> {
-    log.verbose('PuppetWechat4u', 'friendshipVerify(%s, %s)', contactId, hello)
+    log.verbose('PuppetWechat4u', 'friendshipAdd(%s, %s)', contactId, hello)
 
     await this.wechat4u.addFriend(contactId, hello)
   }

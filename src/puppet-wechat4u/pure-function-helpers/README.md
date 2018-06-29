@@ -13,4 +13,3 @@ Huan LI <zixia@zixia.net> https://github.com/zixia
 ## LICENSE
 
 Apache 2.0
-
