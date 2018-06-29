@@ -167,9 +167,11 @@ export class PadchatManager extends PadchatRpc {
     ) {
       log.silly('PuppetPadchatManager', 'releaseCache() closing caches ...')
 
-      await this.cacheContactRawPayload.close(),
-      await this.cacheRoomMemberRawPayload.close(),
-      await this.cacheRoomRawPayload.close(),
+      await Promise.all([
+        this.cacheContactRawPayload.close(),
+        this.cacheRoomMemberRawPayload.close(),
+        this.cacheRoomRawPayload.close(),
+      ])
 
       this.cacheContactRawPayload    = undefined
       this.cacheRoomMemberRawPayload = undefined
