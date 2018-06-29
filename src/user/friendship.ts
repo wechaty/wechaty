@@ -67,19 +67,33 @@ export class Friendship extends Accessory {
   }
 
   /**
+   * @deprecated use add() instead
+   */
+  public static async send(contact: Contact,  hello: string) {
+    log.warn('Friendship', 'static send() DEPRECATED， use add() instead.')
+    return this.add(contact, hello)
+  }
+  /**
    * Send a Friend Request to a `contact` with message `hello`.
    * @param contact
    * @param hello
    */
-  public static async send(
+  public static async add(
     contact : Contact,
     hello   : string,
   ): Promise<void> {
-    log.verbose('Friendship', 'static send(%s, %s)',
+    log.verbose('Friendship', 'static add(%s, %s)',
                                   contact.id,
                                   hello,
                 )
-    await this.puppet.friendshipVerify(contact.id, hello)
+    await this.puppet.friendshipAdd(contact.id, hello)
+  }
+
+  public static async del(
+    contact: Contact,
+  ): Promise<void> {
+    log.verbose('Friendship', 'static del(%s)', contact.id)
+    throw new Error('to be implemented')
   }
 
   // public static createConfirm(

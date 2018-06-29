@@ -1260,11 +1260,11 @@ export class PuppetPadchat extends Puppet {
    * Friendship
    *
    */
-  public async friendshipVerify(
+  public async friendshipAdd(
     contactId : string,
     hello     : string,
   ): Promise<void> {
-    log.verbose('PuppetPadchat', 'friendshipVerify(%s, %s)', contactId, hello)
+    log.verbose('PuppetPadchat', 'friendshipAdd(%s, %s)', contactId, hello)
 
     if (!this.padchatManager) {
       throw new Error('no padchat manager')
@@ -1276,7 +1276,7 @@ export class PuppetPadchat extends Puppet {
      * If the contact is not stranger, than ussing WXSearchContact can get user_name
      */
     if (rawSearchPayload.user_name !== '' && !isStrangerV1(rawSearchPayload.user_name) && !isStrangerV2(rawSearchPayload.user_name)) {
-      log.warn('PuppetPadchat', 'friendRequestSend %s has been friend with bot, no need to send friend request!', contactId)
+      log.warn('PuppetPadchat', 'friendshipAdd %s has been friend with bot, no need to send friend request!', contactId)
       return
     }
 

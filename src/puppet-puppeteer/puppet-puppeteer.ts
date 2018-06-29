@@ -1068,14 +1068,14 @@ export class PuppetPuppeteer extends Puppet {
     }
   }
 
-  public async friendshipVerify(
+  public async friendshipAdd(
     contactId : string,
     hello     : string,
   ): Promise<void> {
     try {
       await this.bridge.verifyUserRequest(contactId, hello)
     } catch (e) {
-      log.warn('PuppetPuppeteer', 'bridge.verifyUserRequest(%s, %s) rejected: %s', contactId, hello, e.message)
+      log.warn('PuppetPuppeteer', 'friendshipAdd() bridge.verifyUserRequest(%s, %s) rejected: %s', contactId, hello, e.message)
       Raven.captureException(e)
       throw e
     }
