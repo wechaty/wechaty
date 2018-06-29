@@ -197,8 +197,10 @@ export class PuppetMock extends Puppet {
     log.verbose('PuppetMock', 'contactRawPayloadParser(%s)', rawPayload)
 
     const payload: ContactPayload = {
+      avatar : '',
       gender : ContactGender.Unknown,
       id     : 'id',
+      name   : rawPayload.name,
       type   : ContactType.Unknown,
     }
     return payload
@@ -297,6 +299,7 @@ export class PuppetMock extends Puppet {
 
     const payload: RoomPayload = {
       id           : 'id',
+      memberIdList : [],
       topic        : 'mock topic',
     }
 
@@ -380,8 +383,10 @@ export class PuppetMock extends Puppet {
   public async roomMemberRawPayloadParser (rawPayload: any): Promise<RoomMemberPayload>  {
     log.verbose('PuppetMock', 'roomMemberRawPayloadParser(%s)', rawPayload)
     return {
-      id: 'xx',
-      roomAlias: 'yy',
+      avatar    : '',
+      id        : 'xx',
+      name      : 'zz',
+      roomAlias : 'yy',
     }
   }
 
