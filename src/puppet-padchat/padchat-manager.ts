@@ -823,13 +823,15 @@ export class PadchatManager extends PadchatRpc {
     while (cont && this.state.on() && this.userId) {
       log.silly('PuppetPadchatManager', `syncContactsAndRooms() while() syncing WXSyncContact ...`)
 
+      await new Promise(r => setTimeout(r, 10 * 1000))
       const syncContactList = await this.WXSyncContact()
 
-      await new Promise(r => setTimeout(r, 10 * 1000))
-
       if (!Array.isArray(syncContactList) || syncContactList.length <= 0) {
+        // {"apiName":"WXSyncContact","data":"%7B%22message%22%3A%22%E4%B8%8D%E6%94%AF%E6%8C%81%E7%9A%84%E8%AF%B7%E6%B1%82%22%2C%22status%22%3A-19%7D"}
+        // data => { message: '不支持的请求', status: -19 }
         log.warn('PuppetPadchatManager', 'syncContactsAndRooms() cannot get array result: %s', JSON.stringify(syncContactList))
-        continue
+        cont = false
+        return
       }
 
       if (   !this.cacheContactRawPayload

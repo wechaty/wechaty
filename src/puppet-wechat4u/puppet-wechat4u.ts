@@ -650,10 +650,14 @@ export class PuppetWechat4u extends Puppet {
     //   })
     // }
 
+    const memberIdList = rawPayload.MemberList
+                          ? rawPayload.MemberList.map(m => m.UserName)
+                          : []
+
     const roomPayload: RoomPayload = {
       id,
       topic:      rawPayload.NickName || '',
-      // memberIdList,
+      memberIdList,
       // aliasDict,
     }
     return roomPayload
@@ -780,6 +784,8 @@ export class PuppetWechat4u extends Puppet {
     const payload: RoomMemberPayload = {
       id        : rawPayload.UserName,
       roomAlias : rawPayload.DisplayName,
+      name      : rawPayload.NickName,
+      avatar    : rawPayload.HeadImgUrl,
     }
     return payload
   }

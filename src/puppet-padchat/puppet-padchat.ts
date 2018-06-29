@@ -44,6 +44,8 @@ import {
 
   FriendshipPayload,
   FriendshipPayloadReceive,
+  ContactType,
+  ContactGender,
 }                                 from 'wechaty-puppet'
 
 import {
@@ -740,6 +742,44 @@ export class PuppetPadchat extends Puppet {
   }
 
   /**
+   * Overwrite the Puppet.contactPayload()
+   */
+  public async contactPayload(
+    contactId: string,
+  ): Promise<ContactPayload> {
+
+    const rawPayload = await this.contactRawPayload(contactId)
+
+    /**
+     * Issue #1397
+     *  https://github.com/Chatie/wechaty/issues/1397#issuecomment-400962638
+     *
+     * Try to use the contact information from the room
+     * when it is not available directly
+     */
+    if (!rawPayload || Object.keys(rawPayload).length <= 0) {
+      const roomList = await this.contactRoomList(contactId)
+      if (roomList.length > 0) {
+        const roomId = roomList[0]
+        const roomMemberPayload = await this.roomMemberPayload(roomId, contactId)
+        if (roomMemberPayload) {
+          const payload: ContactPayload = {
+            avatar : roomMemberPayload.avatar,
+            name   : roomMemberPayload.name,
+            id     : roomMemberPayload.id,
+            gender : ContactGender.Unknown,
+            type   : ContactType.Personal,
+          }
+          return payload
+        }
+      }
+      throw new Error('no raw payload')
+    }
+
+    return await this.contactRawPayloadParser(rawPayload)
+  }
+
+  /**
    *
    * Message
    *
@@ -960,6 +1000,8 @@ export class PuppetPadchat extends Puppet {
       id        : rawPayload.user_name,
       inviterId : rawPayload.invited_by,
       roomAlias : rawPayload.chatroom_nick_name,
+      avatar    : rawPayload.big_head,
+      name      : rawPayload.nick_name,
     }
 
     return payload

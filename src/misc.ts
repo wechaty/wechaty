@@ -16,13 +16,9 @@
  *   limitations under the License.
  *
  */
-import crypto  from 'crypto'
 import https   from 'https'
 import http    from 'http'
 import net     from 'net'
-import {
-  Readable,
-}                   from 'stream'
 import url     from 'url'
 
 import cuid    from 'cuid'
@@ -113,7 +109,7 @@ export class Misc {
     )
   }
 
-  public static urlStream(href: string, cookies: any[]): Promise<Readable> {
+  public static urlStream(href: string, cookies: any[]): Promise<NodeJS.ReadableStream> {
     // const myurl = 'http://wx.qq.com/cgi-bin/mmwebwx-bin/webwxgetmsgimg?&MsgID=3080011908135131569&skey=%40crypt_c117402d_53a58f8fbb21978167a3fc7d3be7f8c9'
     href = href.replace(/^https/i, 'http') // use http instead of https, because https will only success on the very first request!
 
@@ -168,7 +164,7 @@ export class Misc {
     // log.verbose('Util', 'Cookie: %s', options.headers.Cookie)
 // console.log(options)
 
-    return new Promise<Readable>((resolve, reject) => {
+    return new Promise<NodeJS.ReadableStream>((resolve, reject) => {
       // const req = request(options, (res) => {
       const req = get(options, (res) => {
         // console.log(`STATUS: ${res.statusCode}`);
@@ -246,12 +242,6 @@ export class Misc {
       }
       return currentPort + n
     }
-  }
-
-  public static md5(buffer: Buffer): string {
-    const md5sum = crypto.createHash('md5')
-    md5sum.update(buffer)
-    return md5sum.digest('hex')
   }
 
   // public static mime(ext): string {
