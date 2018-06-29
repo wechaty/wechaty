@@ -13,13 +13,8 @@ export interface RoomPayload {
 
   topic        : string,
   avatar?      : string,
-  // memberIdList : string[],
+  memberIdList : string[],
   ownerId?     : string,
-  // aliasDict    : { [contactId: string]: undefined | string }  // room alias
-  // nameMap         : Map<string, string>,
-  // roomAliasMap    : Map<string, string>,
-  // contactAliasMap : Map<string, string>,
-  // [index: string]:  Map<string, string> | string | number | PuppeteerContact[],
 }
 
 export interface RoomMemberPayload {
