@@ -1,8 +1,8 @@
 // import { PuppetMock }       from 'wechaty-puppet-mock'
+import { PuppetWechat4u }   from 'wechaty-puppet-wechat4u'
 
 import { PuppetPuppeteer }  from './puppet-puppeteer/'
 import { PuppetPadchat }    from './puppet-padchat'
-import { PuppetWechat4u }   from './puppet-wechat4u/'
 
 /**
  * Wechaty Official Puppet Plugins List
