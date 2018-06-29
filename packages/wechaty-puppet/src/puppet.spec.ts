@@ -148,6 +148,7 @@ test('contactQueryFilterFunction()', async t => {
   const PAYLOAD_LIST: ContactPayload[] = [
     {
       alias  : TEXT_TEXT,
+      avatar : 'mock',
       gender : ContactGender.Unknown,
       id     : 'id1',
       name   : TEXT_REGEX,
@@ -155,6 +156,7 @@ test('contactQueryFilterFunction()', async t => {
     },
     {
       alias  : TEXT_REGEX,
+      avatar : 'mock',
       gender : ContactGender.Unknown,
       id     : 'id2',
       name   : TEXT_TEXT,
@@ -162,6 +164,7 @@ test('contactQueryFilterFunction()', async t => {
     },
     {
       alias  : TEXT_TEXT,
+      avatar : 'mock',
       gender : ContactGender.Unknown,
       id     : 'id3',
       name   : TEXT_REGEX,
@@ -169,6 +172,7 @@ test('contactQueryFilterFunction()', async t => {
     },
     {
       alias  : TEXT_REGEX,
+      avatar : 'mock',
       gender : ContactGender.Unknown,
       id     : 'id4',
       name   : TEXT_TEXT,
