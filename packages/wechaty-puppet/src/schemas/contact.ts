@@ -16,11 +16,11 @@ export interface ContactQueryFilter {
 }
 
 export interface ContactPayload {
-  id     : string,
-  gender : ContactGender,
-  type   : ContactType,
-  name   : string,
-  avatar : string,
+  id      : string,
+  gender  : ContactGender,
+  type    : ContactType,
+  name    : string,
+  avatar? : string,
 
   address?   : string,
   alias?     : string,
