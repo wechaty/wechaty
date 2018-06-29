@@ -1,7 +1,4 @@
-TODO
-----
+# TODO
 
-- puppet watchdog -> heartbeat
-- brain logout -> quit
-
-
+- [x] Puppet
+- [ ] PuppetHostie
