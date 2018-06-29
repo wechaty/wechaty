@@ -412,11 +412,11 @@ export class PuppetMock extends Puppet {
     return rawPayload
   }
 
-  public async friendshipVerify (
+  public async friendshipAdd (
     contactId : string,
     hello     : string,
   ): Promise<void> {
-    log.verbose('PuppetMock', 'friendshipVerify(%s, %s)', contactId, hello)
+    log.verbose('PuppetMock', 'friendshipAdd(%s, %s)', contactId, hello)
   }
 
   public async friendshipAccept (
