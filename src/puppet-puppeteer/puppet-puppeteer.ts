@@ -861,10 +861,14 @@ export class PuppetPuppeteer extends Puppet {
     //   // console.log(aliasDict)
     // }
 
+    const memberIdList = rawPayload.MemberList
+                          ? rawPayload.MemberList.map(m => m.UserName)
+                          : []
+
     const roomPayload: RoomPayload = {
       id,
-      topic:      Misc.plainText(rawPayload.NickName || ''),
-      // memberIdList,
+      topic: Misc.plainText(rawPayload.NickName || ''),
+      memberIdList,
       // aliasDict,
       // nameMap,
       // roomAliasMap,
@@ -1008,6 +1012,8 @@ export class PuppetPuppeteer extends Puppet {
     const payload: RoomMemberPayload = {
       id        : rawPayload.UserName,
       roomAlias : rawPayload.DisplayName,
+      name      : rawPayload.NickName,
+      avatar    : rawPayload.HeadImgUrl,
     }
     return payload
   }

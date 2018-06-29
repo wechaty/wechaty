@@ -279,9 +279,10 @@ export const enum WebMediaType {
 }
 
 export interface WebRoomRawMember {
-  UserName:     string,
-  NickName:     string,
-  DisplayName:  string,
+  UserName    : string,
+  NickName    : string,
+  DisplayName : string,
+  HeadImgUrl  : string,
 }
 
 export interface WebRoomRawPayload {
