@@ -6,7 +6,7 @@
 
 ![chatie puppet](https://chatie.io/wechaty-puppet/images/puppet-logo.jpg)
 
-> Picture Credit: <http://mamikins.lv/ru/latvijskoe-pravitelstvo-chrevoveshhaet/>
+> Picture Credit: [https://www.shareicon.net](https://www.shareicon.net/puppet-marionette-puppeteer-puppet-variant-marionette-variant-665400)
 
 Abstract(Base) Class of Wechaty Puppet Framework.
 
