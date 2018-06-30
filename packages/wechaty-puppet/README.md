@@ -21,6 +21,12 @@ Learn more at:
 
 PuppetMock: <https://github.com/chatie/wechaty-puppet-mock>
 
+## DEPENDENCIES
+
+### Peer Depedence
+
+`FileBox` (npm module `file-box`) must be a `peerDependencies`, becasue all the Wechaty Framework need to check `instanceof FileBox`, we must be sure all `FileBox` is the same version.
+
 ## Resources
 
 ### Pure Function
