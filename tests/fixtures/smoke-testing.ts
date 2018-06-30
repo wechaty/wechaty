@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 
-import { Wechaty } from 'wechaty'
+import { Wechaty }    from 'wechaty'
 import { PuppetMock } from 'wechaty-puppet-mock'
 import { MemoryCard } from 'memory-card'
 
