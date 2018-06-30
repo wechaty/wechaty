@@ -1,4 +1,8 @@
-# Wechaty v0.17.59 Documentation\n* https://blog.chatie.io\n
+# Wechaty v0.17.60 Documentation
+
+* <https://blog.chatie.io>
+
+
 ## Classes
 
 <dl>

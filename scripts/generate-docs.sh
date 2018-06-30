@@ -9,6 +9,6 @@ if [ "$1" != "dev" ] && ./scripts/development-release.ts; then
 else
   echo "Generating docs ..."
   npm run dist
-  echo '# Wechaty v'$(jq -r .version package.json)' Documentation\n* https://blog.chatie.io\n' > docs/index.md
+  echo -e '# Wechaty v'$(jq -r .version package.json)' Documentation\n\n* <https://blog.chatie.io>\n\n' > docs/index.md
   jsdoc2md dist/src/wechaty.js dist/src/user/{room,contact,friendship,message}.js >> docs/index.md
 fi
