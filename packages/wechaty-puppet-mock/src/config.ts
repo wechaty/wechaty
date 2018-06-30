@@ -11,7 +11,11 @@ export function qrCodeForChatie (): FileBox {
 }
 
 import {
-  Brolog,
+  // Brolog,
+  log,
 }                       from 'brolog'
 
-export const log = new Brolog()
+// export const log = new Brolog()
+export {
+  log,
+}
