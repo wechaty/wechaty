@@ -221,7 +221,7 @@ export class Room extends Accessory implements Sayable {
   }
 
   /**
-   *
+   * @private
    *
    * Instance Properties
    *
@@ -792,6 +792,7 @@ export class Room extends Accessory implements Sayable {
 
   /**
    * Force reload data for Room
+   * @private
    * @deprecated use sync() instead
    * @returns {Promise<void>}
    */

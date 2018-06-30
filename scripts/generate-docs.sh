@@ -3,7 +3,7 @@ set -e
 
 npm version
 
-if ./scripts/development-release.ts; then
+if [ "$1" != "dev" ] && ./scripts/development-release.ts; then
   echo "Current release is a development release, please only update the docs when there's a stable release."
   exit 1
 else

@@ -136,14 +136,33 @@ export class Wechaty extends Accessory implements Sayable {
    */
   public readonly id : string
 
+  /**
+   * @private
+   */
   // tslint:disable-next-line:variable-name
   public readonly Contact       : typeof Contact
+
+  /**
+   * @private
+   */
   // tslint:disable-next-line:variable-name
   public readonly ContactSelf   : typeof ContactSelf
+
+  /**
+   * @private
+   */
   // tslint:disable-next-line:variable-name
   public readonly Friendship    : typeof Friendship
+
+  /**
+   * @private
+   */
   // tslint:disable-next-line:variable-name
   public readonly Message       : typeof Message
+
+  /**
+   * @private
+   */
   // tslint:disable-next-line:variable-name
   public readonly Room          : typeof Room
 
@@ -491,6 +510,8 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   /**
+   * @private
+   *
    * Init the Puppet
    */
   private initPuppetResolver(puppet?: PuppetName | Puppet): Puppet {
@@ -523,6 +544,8 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   /**
+   * @private
+   *
    * Plugin Version Range Check
    */
   private initPuppetSemverSatisfy(versionRange: string) {
@@ -719,6 +742,7 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   /**
+   * @private
    * @deprecated use start() instead
    */
   public async init(): Promise<void> {
