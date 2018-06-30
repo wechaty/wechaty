@@ -215,11 +215,11 @@ export class Wechaty extends Accessory implements Sayable {
      *   https://github.com/Microsoft/TypeScript/issues/19197
      */
     // TODO: make Message & Room constructor private???
-    this.Contact        = cloneClass(Contact)
-    this.ContactSelf    = cloneClass(ContactSelf)
+    this.Contact     = cloneClass(Contact)
+    this.ContactSelf = cloneClass(ContactSelf)
     this.Friendship  = cloneClass(Friendship)
-    this.Message        = cloneClass(Message)
-    this.Room           = cloneClass(Room)
+    this.Message     = cloneClass(Message)
+    this.Room        = cloneClass(Room)
   }
 
   /**
@@ -340,7 +340,7 @@ export class Wechaty extends Accessory implements Sayable {
    * <li>408 waits for scan</li>
    * </ul>
    * @property   {Function} heartbeat       -(this: Wechaty, data: any) => void
-   * @property   {Function} friend          -(this: Wechaty, request?: Friendship) => void
+   * @property   {Function} friendship      -(this: Wechaty, friendship: Friendship) => void
    * @property   {Function} message         -(this: Wechaty, message: Message) => void
    * @property   {Function} room-join       -(this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void
    * @property   {Function} room-topic      -(this: Wechaty, room: Room, newTopic: string, oldTopic: string, changer: Contact) => void
@@ -375,17 +375,17 @@ export class Wechaty extends Accessory implements Sayable {
    *   console.log(`message ${message} received`)
    * })
    *
-   * @example <caption>Event:friend </caption>
-   * bot.on('friend', (request: Friendship) => {
-   *   if(request.type === Friendship.Type.RECEIVE){ // 1. receive new friend request from new contact
-   *     const contact = request.contact()
-   *     let result = await request.accept()
+   * @example <caption>Event:friendship </caption>
+   * bot.on('friendship', (friendship: Friendship) => {
+   *   if(friendship.type() === Friendship.Type.RECEIVE){ // 1. receive new friendship request from new contact
+   *     const contact = friendship.contact()
+   *     let result = await friendship.accept()
    *       if(result){
    *         console.log(`Request from ${contact.name()} is accept succesfully!`)
    *       } else{
    *         console.log(`Request from ${contact.name()} failed to accept!`)
    *       }
-   * 	  } else if (request.type === Friendship.Type.CONFIRM) { // 2. confirm friend ship
+   * 	  } else if (friendship.type() === Friendship.Type.CONFIRM) { // 2. confirm friendship
    *       console.log(`new friendship confirmed with ${contact.name()}`)
    *    }
    *  })
