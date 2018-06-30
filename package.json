@@ -95,7 +95,6 @@
   },
   "dependencies": {
     "array-flatten": "^2.1.1",
-    "bl": "^2.0.0",
     "brolog": "^1.6.3",
     "clone-class": "^0.6.11",
     "cuid": "^2.1.1",
@@ -111,22 +110,16 @@
     "md5": "^2.2.1",
     "memory-card": "0.2.0",
     "mime": "^2.2.0",
-    "normalize-package-data": "^2.4.0",
     "promise-retry": "^1.1.1",
-    "puppeteer": "^1.5.0",
     "qr-image": "^3.2.0",
     "raven": "^2.6.2",
-    "read-pkg-up": "^4.0.0",
-    "request": "^2.87.0",
     "rx-queue": "^0.4.26",
     "rxjs": "^6.1.0",
     "state-switch": "^0.6.2",
     "watchdog": "^0.8.1",
-    "wechat4u": "^0.7.6",
     "wechaty-puppet": "^0.2.3",
     "wechaty-puppet-wechat4u": "^0.2.6",
-    "ws": "^5.2.0",
-    "xml2json": "^0.11.2"
+    "ws": "^5.2.0"
   },
   "devDependencies": {
     "@types/bl": "^0.8.32",
@@ -184,8 +177,7 @@
     "tuling123-client": "^0.0.2",
     "typedoc": "^0.11.1",
     "typescript": "^2.9.2",
-    "wechaty-puppet-mock": "^0.2.1",
-    "wechaty-puppet-puppeteer": "^0.2.1"
+    "wechaty-puppet-mock": "^0.2.1"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [
