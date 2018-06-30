@@ -4,7 +4,3 @@
 
 /docs/                                @lijiarui @hczhcz @TingYinHelen @ax4
 /examples/                            @Gcaufy @hczhcz
-/src/puppet-puppeteer/bridge.*.ts     @mukaiu @xjchengo
-/src/puppet-puppeteer/event.ts        @binsee
-/src/puppet-puppeteer/firer.*.ts      @xinbenlv
-/src/puppet-puppeteer/wechaty-bro.js  @binsee @mukaiu @hczhcz @cherry-geqi @zhenyong

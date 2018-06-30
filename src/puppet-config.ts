@@ -1,7 +1,7 @@
 // import { PuppetMock }       from 'wechaty-puppet-mock'
 import { PuppetWechat4u }   from 'wechaty-puppet-wechat4u'
+// import { PuppetPuppeteer }  from 'wechaty-puppet-puppeteer'
 
-import { PuppetPuppeteer }  from './puppet-puppeteer/'
 import { PuppetPadchat }    from './puppet-padchat'
 
 /**
@@ -12,7 +12,7 @@ export const PUPPET_DICT = {
   //////////////////////////
   // mock:       PuppetMock,
   padchat:    PuppetPadchat,
-  puppeteer:  PuppetPuppeteer,
+  // puppeteer:  PuppetPuppeteer,
   wechat4u:   PuppetWechat4u,
 }
 

@@ -35,10 +35,6 @@ export { IoClient }   from './io-client'
 export { Misc }       from './misc'
 
 export {
-  PuppetPuppeteer,
-}                     from './puppet-puppeteer/'
-
-export {
   Wechaty,
 }
 export default Wechaty

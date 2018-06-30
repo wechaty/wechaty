@@ -7,7 +7,7 @@
   "wechaty": {
     "DEFAULT_HEAD": 0,
     "DEFAULT_PORT": 8080,
-    "DEFAULT_PUPPET": "puppeteer",
+    "DEFAULT_PUPPET": "wechat4u",
     "DEFAULT_PROFILE": "default",
     "DEFAULT_PROTOCOL": "io|0.0.1",
     "DEFAULT_TOKEN": "WECHATY_IO_TOKEN",
@@ -15,7 +15,7 @@
   },
   "scripts": {
     "clean": "shx rm -fr dist/*",
-    "dist": "npm run clean && tsc && shx cp src/puppet-puppeteer/*.js dist/src/puppet-puppeteer/",
+    "dist": "npm run clean && tsc",
     "pack": "npm pack",
     "doc": "bash -x scripts/generate-docs.sh",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
@@ -124,7 +124,7 @@
     "watchdog": "^0.8.1",
     "wechat4u": "^0.7.6",
     "wechaty-puppet": "^0.2.3",
-    "wechaty-puppet-wechat4u": "^0.2.2",
+    "wechaty-puppet-wechat4u": "^0.2.6",
     "ws": "^5.2.0",
     "xml2json": "^0.11.2"
   },
@@ -184,7 +184,8 @@
     "tuling123-client": "^0.0.2",
     "typedoc": "^0.11.1",
     "typescript": "^2.9.2",
-    "wechaty-puppet-mock": "^0.2.1"
+    "wechaty-puppet-mock": "^0.2.1",
+    "wechaty-puppet-puppeteer": "^0.2.1"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [
