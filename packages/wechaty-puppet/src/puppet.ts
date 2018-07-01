@@ -174,7 +174,9 @@ export abstract class Puppet extends EventEmitter {
       this.constructor.name,
       '>',
       '(',
-      this.options.memory.name,
+      this.options.memory
+        ? this.options.memory.name
+        : '',
       ')',
     ].join('')
   }
