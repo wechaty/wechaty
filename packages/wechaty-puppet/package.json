@@ -45,6 +45,7 @@
     "file-box": "^0.8.22",
     "git-scripts": "^0.2.1",
     "markdownlint-cli": "^0.10.0",
+    "memory-card": "^0.2.0",
     "shx": "^0.3.1",
     "sinon": "^6.0.1",
     "ts-node": "^7.0.0",
@@ -58,6 +59,7 @@
     }
   },
   "peerDependencies": {
+    "memory-card": "^0.2.0",
     "file-box": "^0.8.22"
   },
   "dependencies": {
@@ -67,7 +69,6 @@
     "watchdog": "^0.8.10",
     "hot-import": "^0.2.1",
     "lru-cache": "^4.1.3",
-    "memory-card": "^0.2.0",
     "normalize-package-data": "^2.4.0",
     "read-pkg-up": "^4.0.0"
   }

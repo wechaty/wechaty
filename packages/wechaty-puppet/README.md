@@ -35,6 +35,7 @@ The above puppet is for mocking, and also could be a good starter if you want to
 ### Peer Depedence
 
 `FileBox` (npm module `file-box`) must be a `peerDependencies`, becasue all the Wechaty Framework need to check `instanceof FileBox`, we must be sure all `FileBox` is the same version.
+`MemoryCard` (npm module `memory-card`) must be a `peerDependencies`, becasue all the Wechaty Framework need to check `instanceof MemoryCard`, we must be sure all `MemoryCard` is the same version.
 
 ## Resources
 
