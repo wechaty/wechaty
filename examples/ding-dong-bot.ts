@@ -20,7 +20,7 @@ import {
   Contact,
   Message,
   Wechaty,
-}           from '../' // from 'wechaty'
+}           from '../src/' // from 'wechaty'
 // import { PuppetPuppeteer }  from 'wechaty-puppet-puppeteer'
 
 import { FileBox }  from 'file-box'
