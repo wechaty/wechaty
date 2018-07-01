@@ -108,7 +108,7 @@ export class PuppetPadchat extends Puppet {
   private padchatManager?      : PadchatManager
 
   constructor(
-    public options: PuppetOptions,
+    public options: PuppetOptions = {},
   ) {
     super({
       timeout: 60 * 4,  // Default set timeout to 4 minutes for PuppetPadchat

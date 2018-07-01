@@ -534,6 +534,17 @@ export class Wechaty extends Accessory implements Sayable {
         ...this.options.puppetOptions,
       }
 
+      /**
+       * We will meet the following error:
+       *
+       *  [ts] Cannot use 'new' with an expression whose type lacks a call or construct signature.
+       *
+       * When we have different puppet with different `constructor()` args.
+       * For example: PuppetA allow `constructor()` but PuppetB requires `constructor(options)`
+       *
+       * SOLUTION: we enforce all the PuppetImplenmentation to have `options` and should not allow default parameter.
+       * Issue: https://github.com/Chatie/wechaty-puppet/issues/2
+       */
       return new MyPuppet(options)
 
     } else if (puppet instanceof Puppet) {
