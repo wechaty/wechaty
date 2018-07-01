@@ -349,7 +349,7 @@ test('contactRoomList()', async t => {
 })
 
 test('reset event throttle for reset()', async t => {
-  const puppet = new PuppetTest()
+  const puppet = new PuppetTest({})
 
   const sandbox = sinon.createSandbox()
 

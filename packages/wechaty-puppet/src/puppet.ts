@@ -121,7 +121,7 @@ export abstract class Puppet extends EventEmitter {
    *
    */
   constructor (
-    public options?: PuppetOptions,
+    public options: PuppetOptions,
   ) {
     super()
 
@@ -133,7 +133,7 @@ export abstract class Puppet extends EventEmitter {
     /**
      * 1. Setup Watchdog
      */
-    const timeout = this.options && this.options.timeout || DEFAULT_WATCHDOG_TIMEOUT
+    const timeout = this.options.timeout || DEFAULT_WATCHDOG_TIMEOUT
     log.verbose('Puppet', 'constructor() watchdog timeout set to %d seconds', timeout)
     this.watchdog = new Watchdog(1000 * timeout, 'Puppet')
     this.watchdog.on('reset', lastFood => {
