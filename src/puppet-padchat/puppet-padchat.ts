@@ -25,6 +25,7 @@ import flatten  from 'array-flatten'
 import {
   FileBox,
 }               from 'file-box'
+import { MemoryCard } from 'memory-card'
 
 import Misc from '../misc'
 
@@ -192,7 +193,7 @@ export class PuppetPadchat extends Puppet {
   }
 
   public async start(): Promise<void> {
-    log.verbose('PuppetPadchat', `start() with ${this.options.memory.name}`)
+    log.verbose('PuppetPadchat', `start()`)
 
     if (this.state.on()) {
       log.warn('PuppetPadchat', 'start() already on(pending)?')
@@ -209,7 +210,7 @@ export class PuppetPadchat extends Puppet {
 
     const manager = this.padchatManager = new PadchatManager({
       endpoint : this.options.endpoint  || WECHATY_PUPPET_PADCHAT_ENDPOINT,
-      memory   : this.options.memory,
+      memory   : this.options.memory    || new MemoryCard(),
       token    : this.options.token     || padchatToken(),
     })
 
