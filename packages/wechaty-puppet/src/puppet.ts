@@ -217,17 +217,13 @@ export abstract class Puppet extends EventEmitter {
   protected reset (reason: string): void {
     log.verbose('Puppet', 'reset(%s)', reason)
 
-    const doReset = async () => {
-      try {
-        await this.stop()
-        await this.start()
-      } catch (e) {
-        log.warn('Puppet', 'reset() exception: %s', e)
-        this.emit('error', e)
-      }
-    }
-
-    doReset()
+    Promise.resolve()
+    .then(() => this.stop())
+    .then(() => this.start())
+    .catch(e => {
+      log.warn('Puppet', 'reset() exception: %s', e)
+      this.emit('error', e)
+    })
   }
 
   /**
