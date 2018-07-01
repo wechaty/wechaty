@@ -121,7 +121,7 @@ export abstract class Puppet extends EventEmitter {
    *
    */
   constructor (
-    public options: PuppetOptions,
+    public options: PuppetOptions = {},
   ) {
     super()
 
