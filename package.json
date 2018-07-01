@@ -1,7 +1,7 @@
 {
   "name": "wechaty",
   "version": "0.17.66",
-  "description": "Wechat for Bot(Personal Account)",
+  "description": "Wechaty is a Bot SDK for Wechat Personal Account",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
   "wechaty": {
@@ -21,7 +21,7 @@
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "changelog": "github_changelog_generator -u chatie -p wechaty && sed -i'.bak' /greenkeeper/d CHANGELOG.md && sed -i'.bak' '/An in-range update of/d' CHANGELOG.md && ts-node scripts/sort-contributiveness.ts < CHANGELOG.md > CHANGELOG.new.md 2>/dev/null && cat CHANGELOG.md >> CHANGELOG.new.md && mv CHANGELOG.new.md CHANGELOG.md",
     "doctor": "npm run check-node-version && ts-node bin/doctor",
-    "check-node-version": "check-node-version --node \">= 8.5\"",
+    "check-node-version": "check-node-version --node \">= 10\"",
     "lint": "npm run check-node-version && npm run lint:ts && npm run lint:es && npm run lint:sh",
     "lint:es": "eslint \"{bin,examples,scripts,src,tests}/**/*.js\" --ignore-pattern=\"tests/fixtures/**\"",
     "lint:md": "markdownlint README.md",
@@ -75,21 +75,6 @@
     "url": "https://github.com/chatie/wechaty/issues"
   },
   "homepage": "https://github.com/chatie/wechaty#readme",
-  "eslintConfig": {
-    "env": {
-      "browser": true,
-      "node": true,
-      "es6": true
-    },
-    "parser": "babel-eslint",
-    "parserOptions": {
-      "ecmaVersion": 8,
-      "sourceType": "module",
-      "ecmaFeatures": {
-        "impliedStrict": true
-      }
-    }
-  },
   "engines": {
     "node": ">= 10"
   },
