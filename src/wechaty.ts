@@ -708,10 +708,11 @@ export class Wechaty extends Accessory implements Sayable {
           break
 
         case 'watchdog':
+        case 'reset':
           break
 
         default:
-          throw new Error('eventName ' + eventName + 'unsupported!')
+          throw new Error('eventName ' + eventName + ' unsupported!')
 
       }
     }
