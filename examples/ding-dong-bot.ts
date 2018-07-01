@@ -91,9 +91,11 @@ function onLogout (user: Contact) {
 
 function onError (e: Error) {
   console.error('Bot error:', e)
+  /*
   if (bot.logonoff()) {
     bot.say('Wechaty error: ' + e.message).catch(console.error)
   }
+  */
 }
 
 /**
