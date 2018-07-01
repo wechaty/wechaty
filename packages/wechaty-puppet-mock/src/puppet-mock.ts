@@ -74,7 +74,7 @@ export class PuppetMock extends Puppet {
   }
 
   public async start (): Promise<void> {
-    log.verbose('PuppetMock', `start() with ${this.options.memory.name}`)
+    log.verbose('PuppetMock', `start()`)
 
     this.state.on('pending')
     // await some tasks...
