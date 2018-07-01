@@ -104,7 +104,7 @@
     "watchdog": "^0.8.1",
     "wechaty-puppet": "^0.2.12",
     "wechaty-puppet-puppeteer": "^0.2.10",
-    "wechaty-puppet-wechat4u": "^0.2.11",
+    "wechaty-puppet-wechat4u": "^0.2.13",
     "ws": "^5.2.0",
     "xml2json": "^0.11.2"
   },
