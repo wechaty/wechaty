@@ -74,7 +74,7 @@ function onScan (qrcode: string, status: number) {
   const qrcodeImageUrl = [
     'https://api.qrserver.com/v1/create-qr-code/?data=',
     encodeURIComponent(qrcode),
-    '&size=220x220&margin=0',
+    '&size=220x220&margin=20',
   ].join('')
 
   console.log(`[${status}] ${qrcodeImageUrl}\nScan QR Code above to log in: `)
@@ -116,13 +116,13 @@ async function onMessage (msg: Message) {
   }
 
   /**
-   * 1. reply 'dong'
+   * 2.1. reply 'dong'
    */
   await msg.say('dong')
   console.log('REPLY: dong')
 
   /**
-   * 2. reply image(qrcode image)
+   * 2.2. reply image(qrcode image)
    */
   const fileBox = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
 
@@ -130,7 +130,7 @@ async function onMessage (msg: Message) {
   console.log('REPLY: %s', fileBox.toString())
 
   /**
-   * 3. reply 'scan now!'
+   * 2.3. reply 'scan now!'
    */
   await msg.say([
     'Join Wechaty Developers Community\n\n',

@@ -539,7 +539,7 @@ export class Wechaty extends Accessory implements Sayable {
     } else if (puppet instanceof Puppet) {
       return puppet
     } else {
-      throw new Error('unsupported options.puppet!')
+      throw new Error('unsupported options.puppet: ' + puppet)
     }
   }
 

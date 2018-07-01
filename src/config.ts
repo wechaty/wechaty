@@ -224,7 +224,7 @@ export function qrcodeValueToImageUrl(qrcodeValue: string): string {
   return [
     'https://api.qrserver.com/v1/create-qr-code/?data=',
     encodeURIComponent(qrcodeValue),
-    '&size=220x220&margin=0',
+    '&size=220x220&margin=20',
   ].join('')
 }
 
