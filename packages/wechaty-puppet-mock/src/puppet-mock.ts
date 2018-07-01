@@ -68,7 +68,7 @@ export class PuppetMock extends Puppet {
   private loopTimer?: NodeJS.Timer
 
   constructor (
-    public options: PuppetOptions,
+    public options: PuppetOptions = {},
   ) {
     super(options)
   }
