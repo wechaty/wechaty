@@ -25,6 +25,7 @@ import flatten  from 'array-flatten'
 import {
   FileBox,
 }               from 'file-box'
+import { MemoryCard } from 'memory-card'
 
 import Misc from '../misc'
 
@@ -107,7 +108,7 @@ export class PuppetPadchat extends Puppet {
   private padchatManager?      : PadchatManager
 
   constructor(
-    public options: PuppetOptions,
+    public options: PuppetOptions = {},
   ) {
     super({
       timeout: 60 * 4,  // Default set timeout to 4 minutes for PuppetPadchat
@@ -192,7 +193,7 @@ export class PuppetPadchat extends Puppet {
   }
 
   public async start(): Promise<void> {
-    log.verbose('PuppetPadchat', `start() with ${this.options.memory.name}`)
+    log.verbose('PuppetPadchat', `start()`)
 
     if (this.state.on()) {
       log.warn('PuppetPadchat', 'start() already on(pending)?')
@@ -209,7 +210,7 @@ export class PuppetPadchat extends Puppet {
 
     const manager = this.padchatManager = new PadchatManager({
       endpoint : this.options.endpoint  || WECHATY_PUPPET_PADCHAT_ENDPOINT,
-      memory   : this.options.memory,
+      memory   : this.options.memory    || new MemoryCard(),
       token    : this.options.token     || padchatToken(),
     })
 
@@ -748,6 +749,14 @@ export class PuppetPadchat extends Puppet {
     contactId: string,
   ): Promise<ContactPayload> {
 
+    try {
+      const payload = await super.contactPayload(contactId)
+      return payload
+    } catch (e) {
+      log.silly('PuppetPadchat', 'contactPayload(%s) exception: %s', contactId, e.message)
+      log.silly('PuppetPadchat', 'contactPayload(%s) get failed for %s, try load from room member data source', contactId)
+    }
+
     const rawPayload = await this.contactRawPayload(contactId)
 
     /**
@@ -758,11 +767,16 @@ export class PuppetPadchat extends Puppet {
      * when it is not available directly
      */
     if (!rawPayload || Object.keys(rawPayload).length <= 0) {
+      log.silly('PuppetPadchat', 'contactPayload(%s) rawPayload not exist', contactId)
+
       const roomList = await this.contactRoomList(contactId)
+      log.silly('PuppetPadchat', 'contactPayload(%s) found %d rooms', contactId, roomList.length)
+
       if (roomList.length > 0) {
         const roomId = roomList[0]
         const roomMemberPayload = await this.roomMemberPayload(roomId, contactId)
         if (roomMemberPayload) {
+
           const payload: ContactPayload = {
             avatar : roomMemberPayload.avatar,
             name   : roomMemberPayload.name,
@@ -770,6 +784,10 @@ export class PuppetPadchat extends Puppet {
             gender : ContactGender.Unknown,
             type   : ContactType.Personal,
           }
+
+          this.cacheContactPayload.set(contactId, payload)
+          log.silly('PuppetPadchat', 'contactPayload(%s) cache SET', contactId)
+
           return payload
         }
       }
@@ -1243,11 +1261,11 @@ export class PuppetPadchat extends Puppet {
    * Friendship
    *
    */
-  public async friendshipVerify(
+  public async friendshipAdd(
     contactId : string,
     hello     : string,
   ): Promise<void> {
-    log.verbose('PuppetPadchat', 'friendshipVerify(%s, %s)', contactId, hello)
+    log.verbose('PuppetPadchat', 'friendshipAdd(%s, %s)', contactId, hello)
 
     if (!this.padchatManager) {
       throw new Error('no padchat manager')
@@ -1259,7 +1277,7 @@ export class PuppetPadchat extends Puppet {
      * If the contact is not stranger, than ussing WXSearchContact can get user_name
      */
     if (rawSearchPayload.user_name !== '' && !isStrangerV1(rawSearchPayload.user_name) && !isStrangerV2(rawSearchPayload.user_name)) {
-      log.warn('PuppetPadchat', 'friendRequestSend %s has been friend with bot, no need to send friend request!', contactId)
+      log.warn('PuppetPadchat', 'friendshipAdd %s has been friend with bot, no need to send friend request!', contactId)
       return
     }
 

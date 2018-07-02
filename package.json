@@ -1,7 +1,7 @@
 {
   "name": "wechaty",
-  "version": "0.17.51",
-  "description": "Wechat for Bot(Personal Account)",
+  "version": "0.17.71",
+  "description": "Wechaty is a Bot SDK for Wechat Personal Account",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
   "wechaty": {
@@ -15,15 +15,14 @@
   },
   "scripts": {
     "clean": "shx rm -fr dist/*",
-    "dist": "npm run clean && tsc && shx cp src/puppet-puppeteer/*.js dist/src/puppet-puppeteer/",
+    "dist": "npm run clean && tsc",
     "pack": "npm pack",
     "doc": "bash -x scripts/generate-docs.sh",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "changelog": "github_changelog_generator -u chatie -p wechaty && sed -i'.bak' /greenkeeper/d CHANGELOG.md && sed -i'.bak' '/An in-range update of/d' CHANGELOG.md && ts-node scripts/sort-contributiveness.ts < CHANGELOG.md > CHANGELOG.new.md 2>/dev/null && cat CHANGELOG.md >> CHANGELOG.new.md && mv CHANGELOG.new.md CHANGELOG.md",
     "doctor": "npm run check-node-version && ts-node bin/doctor",
-    "check-node-version": "check-node-version --node \">= 8.5\"",
-    "lint": "npm run check-node-version && npm run lint:ts && npm run lint:es && npm run lint:sh",
-    "lint:es": "eslint \"{bin,examples,scripts,src,tests}/**/*.js\" --ignore-pattern=\"tests/fixtures/**\"",
+    "check-node-version": "check-node-version --node \">= 10\"",
+    "lint": "npm run check-node-version && npm run lint:ts && npm run lint:sh",
     "lint:md": "markdownlint README.md",
     "lint:ts": "tslint --project tsconfig.json && tsc --noEmit",
     "lint:sh": "bash -n bin/*.sh",
@@ -75,27 +74,11 @@
     "url": "https://github.com/chatie/wechaty/issues"
   },
   "homepage": "https://github.com/chatie/wechaty#readme",
-  "eslintConfig": {
-    "env": {
-      "browser": true,
-      "node": true,
-      "es6": true
-    },
-    "parser": "babel-eslint",
-    "parserOptions": {
-      "ecmaVersion": 8,
-      "sourceType": "module",
-      "ecmaFeatures": {
-        "impliedStrict": true
-      }
-    }
-  },
   "engines": {
     "node": ">= 10"
   },
   "dependencies": {
     "array-flatten": "^2.1.1",
-    "bl": "^2.0.0",
     "brolog": "^1.6.3",
     "clone-class": "^0.6.11",
     "cuid": "^2.1.1",
@@ -109,21 +92,19 @@
     "jsqr": "^1.0.4",
     "lru-cache": "^4.1.3",
     "md5": "^2.2.1",
-    "memory-card": "0.2.0",
+    "memory-card": "^0.4.1",
     "mime": "^2.2.0",
-    "normalize-package-data": "^2.4.0",
     "promise-retry": "^1.1.1",
-    "puppeteer": "^1.5.0",
     "qr-image": "^3.2.0",
     "raven": "^2.6.2",
     "read-pkg-up": "^4.0.0",
-    "request": "^2.87.0",
     "rx-queue": "^0.4.26",
     "rxjs": "^6.1.0",
     "state-switch": "^0.6.2",
     "watchdog": "^0.8.1",
-    "wechat4u": "^0.7.6",
-    "wechaty-puppet": "^0.2.0",
+    "wechaty-puppet": "^0.2.12",
+    "wechaty-puppet-puppeteer": "^0.2.10",
+    "wechaty-puppet-wechat4u": "^0.2.13",
     "ws": "^5.2.0",
     "xml2json": "^0.11.2"
   },
@@ -145,7 +126,7 @@
     "@types/puppeteer": "^1.3.4",
     "@types/qr-image": "^3.2.1",
     "@types/raven": "^2.1.0",
-    "@types/read-pkg-up": "^3.0.0",
+    "@types/read-pkg-up": "^3.0.1",
     "@types/request": "^2.0.0",
     "@types/semver": "^5.5.0",
     "@types/sinon": "^5.0.0",
@@ -153,7 +134,6 @@
     "@types/xml2json": "^0.10.0",
     "apiai": "^4.0.0",
     "babel-cli": "^6.26.0",
-    "babel-eslint": "^8.0.0",
     "babel-preset-env": "^1.6.0",
     "blessed": "^0.1.81",
     "blessed-contrib": "^4.8.5",
@@ -162,7 +142,6 @@
     "cookie-parser": "^1.4.0",
     "coveralls": "^3.0.0",
     "cross-env": "^5.1.6",
-    "eslint": "^5.0.0",
     "finis": "^0.4.1",
     "fluent-ffmpeg": "^2.1.0",
     "git-scripts": "git+https://github.com/nkzawa/git-scripts.git",
@@ -183,7 +162,7 @@
     "tuling123-client": "^0.0.2",
     "typedoc": "^0.11.1",
     "typescript": "^2.9.2",
-    "wechaty-puppet-mock": "^0.2.0"
+    "wechaty-puppet-mock": "^0.2.4"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [

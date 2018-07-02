@@ -30,6 +30,9 @@ export abstract class Accessory extends EventEmitter {
   private static _puppet?  : Puppet
   private static _wechaty? : Wechaty
 
+  /**
+   * @private
+   */
   public static set puppet(puppet: Puppet) {
     log.silly('Accessory', '<%s> static set puppet = "%s"',
                                   this.name,
@@ -42,6 +45,9 @@ export abstract class Accessory extends EventEmitter {
     this._puppet = puppet
   }
 
+  /**
+   * @private
+   */
   public static get puppet(): Puppet {
     // log.silly('Accessory', '<%s> static get puppet()',
     //                               this.name,
@@ -56,6 +62,9 @@ export abstract class Accessory extends EventEmitter {
                     )
   }
 
+  /**
+   * @private
+   */
   public static set wechaty(wechaty: Wechaty) {
     log.silly('Accessory', '<%s> static set wechaty = "%s"',
                                   this.name,
@@ -67,6 +76,9 @@ export abstract class Accessory extends EventEmitter {
     this._wechaty = wechaty
   }
 
+  /**
+   * @private
+   */
   public static get wechaty(): Wechaty {
     // log.silly('Accessory', '<%s> static get wechaty()',
     //                               this.name,
@@ -90,6 +102,9 @@ export abstract class Accessory extends EventEmitter {
    */
   private _puppet?  : Puppet
 
+  /**
+   * @private
+   */
   public set puppet(puppet: Puppet) {
     log.silly('Accessory', '<%s> set puppet = "%s"',
                                   this[SYMBOL_NAME] || this,
@@ -102,6 +117,8 @@ export abstract class Accessory extends EventEmitter {
   }
 
   /**
+   * @private
+   *
    * instance.puppet
    *
    * Needs to support different `puppet` between instances.
@@ -130,6 +147,8 @@ export abstract class Accessory extends EventEmitter {
   }
 
   /**
+   * @private
+   *
    * instance.wechaty is for:
    *  Contact.wechaty
    *  FriendRequest.wechaty

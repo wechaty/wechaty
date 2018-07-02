@@ -117,7 +117,7 @@ export class Config {
 
   public apihost = process.env['WECHATY_APIHOST']    || DEFAULT_SETTING.DEFAULT_APIHOST
   public head    = ('WECHATY_HEAD' in process.env) ? (!!process.env['WECHATY_HEAD']) : (!!(DEFAULT_SETTING.DEFAULT_HEAD))
-  public puppet  = (process.env['WECHATY_PUPPET']    || DEFAULT_SETTING.DEFAULT_PUPPET) as PuppetName
+  public puppet  = (process.env['WECHATY_PUPPET']    || DEFAULT_SETTING.DEFAULT_PUPPET).toLowerCase() as PuppetName
 
   public profile = process.env['WECHATY_PROFILE']    || null    // DO NOT set DEFAULT_PROFILE, because sometimes user do not want to save session
   public token   = process.env['WECHATY_TOKEN']      || null    // DO NOT set DEFAULT, because sometimes user do not want to connect to io cloud service
@@ -224,7 +224,7 @@ export function qrcodeValueToImageUrl(qrcodeValue: string): string {
   return [
     'https://api.qrserver.com/v1/create-qr-code/?data=',
     encodeURIComponent(qrcodeValue),
-    '&size=220x220&margin=0',
+    '&size=220x220&margin=20',
   ].join('')
 }
 

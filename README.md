@@ -47,7 +47,7 @@ Wechaty.instance() // Global Instance
 .start()
 ```
 
-> **Notice: Wechaty requires Node.js version >= 8.5**
+> **Notice: Wechaty requires Node.js version >= 10**
 
 This bot can log all messages to the console.
 
@@ -56,12 +56,11 @@ You can find more examples from [Wiki](https://github.com/chatie/wechaty/wiki/Ex
 ## GETTING STARTED
 
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800)](https://nodejs.org/)
-[![Repo Size](https://reposs.herokuapp.com/?path=Chatie/wechaty)](https://github.com/chatie/wechaty)
 
 ### A Great Live Coding Tutorial
 
 <div align="center">
-<a target="_blank" href="https://blog.chatie.io/guide/2017/01/01/getting-started-wechaty.html"><img src="http://blog.chatie.io/download/2017/lijiarui-wechaty-quick-start-guide-video.jpg" border=0 width="60%"></a>
+<a target="_blank" href="https://blog.chatie.io/getting-started-wechaty/"><img src="http://blog.chatie.io/download/2017/lijiarui-wechaty-quick-start-guide-video.jpg" border=0 width="60%"></a>
 </div>
 
 The above 15 minute video tutorial is a good start point if you are new to Wechaty.
