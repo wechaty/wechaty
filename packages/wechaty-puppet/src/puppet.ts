@@ -214,18 +214,6 @@ export abstract class Puppet extends EventEmitter {
     ].join('')
   }
 
-  protected reset (reason: string): void {
-    log.verbose('Puppet', 'reset(%s)', reason)
-
-    Promise.resolve()
-    .then(() => this.stop())
-    .then(() => this.start())
-    .catch(e => {
-      log.warn('Puppet', 'reset() exception: %s', e)
-      this.emit('error', e)
-    })
-  }
-
   /**
    *
    *
@@ -300,6 +288,24 @@ export abstract class Puppet extends EventEmitter {
    */
   public abstract async start () : Promise<void>
   public abstract async stop ()  : Promise<void>
+
+  /**
+   * reset() Should not be called directly.
+   * `protected` is for testing, not for the child class.
+   * should use `emit('reset', 'reason')` instead.
+   *  Huan, July 2018
+   */
+  protected reset (reason: string): void {
+    log.verbose('Puppet', 'reset(%s)', reason)
+
+    Promise.resolve()
+    .then(() => this.stop())
+    .then(() => this.start())
+    .catch(e => {
+      log.warn('Puppet', 'reset() exception: %s', e)
+      this.emit('error', e)
+    })
+  }
 
   /**
    *
