@@ -20,8 +20,6 @@
  */
 // tslint:disable:no-shadowed-variable
 import test  from 'blue-tape'
-// import sinon from 'sinon'
-// const sinonTest   = require('sinon-test')(sinon)
 
 test('Electron smoke testing', async t => {
   t.true(true, 'test')
