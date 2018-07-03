@@ -71,10 +71,11 @@ console.log(welcome)
 function onScan (qrcode: string, status: number) {
   generate(qrcode, { small: true })
 
+  // Generate a QR Code online via
+  // http://goqr.me/api/doc/create-qr-code/
   const qrcodeImageUrl = [
     'https://api.qrserver.com/v1/create-qr-code/?data=',
     encodeURIComponent(qrcode),
-    '&size=220x220&margin=20',
   ].join('')
 
   console.log(`[${status}] ${qrcodeImageUrl}\nScan QR Code above to log in: `)

@@ -9,6 +9,7 @@ Wechaty is a Bot SDK for Wechat **Personal** Account which can help you create a
 [![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty)
 [![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-blue.svg)](https://www.typescriptlang.org/)
+[![Greenkeeper badge](https://badges.greenkeeper.io/Chatie/wechaty.svg)](https://greenkeeper.io/)
 
 :octocat: <https://github.com/chatie/wechaty>  
 :beetle: <https://github.com/chatie/wechaty/issues>  
@@ -41,7 +42,7 @@ See more at [Wiki:VoiceOfDeveloper](https://github.com/Chatie/wechaty/wiki/Voice
 const { Wechaty } = require('wechaty') // import { Wechaty } from 'wechaty'
 
 Wechaty.instance() // Global Instance
-.on('scan', (qrcode, status) => console.log(`Scan QR Code to login: ${status}\n${qrcode}`))
+.on('scan', (qrcode, status) => console.log(`Scan QR Code to login: ${status}\nhttps://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrcode)}`))
 .on('login',            user => console.log(`User ${user} logined`))
 .on('message',       message => console.log(`Message: ${message}`))
 .start()
@@ -49,7 +50,7 @@ Wechaty.instance() // Global Instance
 
 > **Notice: Wechaty requires Node.js version >= 10**
 
-This bot can log all messages to the console.
+This bot can log all messages to the console after login by scan.
 
 You can find more examples from [Wiki](https://github.com/chatie/wechaty/wiki/Examples) and [Example Directory](https://github.com/chatie/wechaty/blob/master/examples/).
 
@@ -57,72 +58,52 @@ You can find more examples from [Wiki](https://github.com/chatie/wechaty/wiki/Ex
 
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800)](https://nodejs.org/)
 
-### A Great Live Coding Tutorial
+We have a Wechaty starter repository for beginners with the simplest setting. It will be **just works** after you `clone` & `npm install` & `npm start`.
 
-<div align="center">
-<a target="_blank" href="https://blog.chatie.io/getting-started-wechaty/"><img src="http://blog.chatie.io/download/2017/lijiarui-wechaty-quick-start-guide-video.jpg" border=0 width="60%"></a>
-</div>
+If you are new to Wechaty and want to try it the first time, we'd like to strong recommend you starting from this repository, and using it as your starter template for your project.
 
-The above 15 minute video tutorial is a good start point if you are new to Wechaty.
+* Wechaty Starter Repository - <https://github.com/lijiarui/wechaty-getting-started>
 
-> Source code in the video can be found at: [Wechaty Starter Repository](https://github.com/lijiarui/wechaty-getting-started)
+Otherwise, you can use either NPM or Docker to run Wechaty as you like.
 
-### Run
+Let's say, you have saved the above _The World's Shortest ChatBot Code: 6 lines of JavaScript_ example to `mybot.js`.
 
-Let's say, you have saved the above six line javascript example to `mybot.js`.
+### 1. NPM
 
-We have two options to run wechaty:
+[![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty)
+[![Downloads][downloads-image]][downloads-url]
 
-1. Docker
-1. NPM
+```shell
+npm init
+npm install wechaty
 
-Notice: The published versions have always passed the CI tests. We highly recommend running wechaty with the versions installed by docker or npm instead of the latest master branch unless you are prepared to deal with the broken code problems.
+# create your first mybot.js file, you can copy/paste from the above "The World's Shortest ChatBot Code: 6 lines of JavaScript"
+# then:
+node mybot.js
+```
 
-#### Docker
+### 2. Docker
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/zixia/wechaty.svg?maxAge=2592000)](https://hub.docker.com/r/zixia/wechaty/) 
 [![Docker Layers](https://images.microbadger.com/badges/image/zixia/wechaty.svg)](https://microbadger.com/#/images/zixia/wechaty)
 
-The **best practice** to use Wechaty is running with docker, because it's not only the most easy way to get started, but also protects you from the troubles of dependency problems. 
-
-> Wechaty Docker supports both JavaScript and TypeScript. To use TypeScript just write in TypeScript and save with extension name `.ts`.
-
-Get to know more about Wechaty Docker at [Wiki:Docker](https://github.com/chatie/wechaty/wiki/Docker).
+> Wechaty Docker supports both JavaScript and TypeScript. To use TypeScript just write in TypeScript and save with extension name `.ts`, no need to compile because we use `ts-node` to run it.
 
 1. Run JavaScript
 
 ```shell
-$ docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.js # for JavaScript
-...
+# for JavaScript
+docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.js
 ```
 
 1. Run TypeScript
 
 ```shell
-$ docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.ts # for TypeScript
-...
+# for TypeScript
+docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.ts
 ```
 
-#### NPM
-
-[![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty)
-[![Downloads][downloads-image]][downloads-url]
-[![Greenkeeper badge](https://badges.greenkeeper.io/Chatie/wechaty.svg)](https://greenkeeper.io/)
-
-```shell
-$ npm init
-$ npm install wechaty
-
-$ cat > mybot.js <<'_EOF_'
-const { Wechaty } = require('wechaty')
-const bot = Wechaty.instance()
-console.log(bot.version())
-_EOF_
-
-$ node mybot.js
-```
-
-Get to know more about NPM at [Wiki:NPM](https://github.com/chatie/wechaty/wiki/NPM)
+> Learn more about Wechaty Docker at [Wiki:Docker](https://github.com/chatie/wechaty/wiki/Docker).
 
 ## TEST
 
@@ -184,7 +165,6 @@ The following VPS providers are used by the Wechaty team, and they worked perfec
 | Singapore | $5    | 512MB   | Paypal            | [DigitalOcean](https://m.do.co/c/01a54778df5c) |
 | Japan     | $5    | 1GB     | Paypal            | [Linode](https://www.linode.com/?r=5fd2b713d711746bb5451111df0f2b6d863e9f63) |
 | Korea     | $10   | 1GB     | Alipay, Paypal    | [Netdedi](https://www.netdedi.com/?affid=35) |
-
 
 ## SEE ALSO
 
