@@ -1,7 +1,7 @@
 version: 2
 
 jobs:
-  build:
+  test:
     parallelism: 1
     docker:
       - image: scholzj/circleci-centos-golang
@@ -10,15 +10,14 @@ jobs:
       - checkout
       # - setup_remote_docker:
       #     docker_layer_caching: true
-      - run: curl --silent --location https://rpm.nodesource.com/setup_10.x > /tmp/node-install.sh
-      - run: sudo bash /tmp/node-install.sh
+      - run: curl --silent --location https://rpm.nodesource.com/setup_10.x | sudo bash -
       - run: sudo yum -y install nodejs
-      - run: sudo yum install gcc-c++ make
+      - run: sudo yum -y install gcc-c++ make
       - run: npm install
       - run: npm test
 
 workflows:
   version: 2
-  build-test:
+  test-flow:
     jobs:
-      - build
+      - test
