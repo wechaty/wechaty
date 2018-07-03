@@ -10,12 +10,9 @@ jobs:
       - checkout
       # - setup_remote_docker:
       #     docker_layer_caching: true
-      - run:
-        - name: Test
-        - command: |
-          curl --silent --location https://rpm.nodesource.com/setup_10.x > /tmp/node-install.sh
-          sudo bash /tmp/node-install.sh
-          sudo yum -y install nodejs
-          sudo yum install gcc-c++ make
-          npm install
-          npm test
+      - run: curl --silent --location https://rpm.nodesource.com/setup_10.x > /tmp/node-install.sh
+      - run: sudo bash /tmp/node-install.sh
+      - run: sudo yum -y install nodejs
+      - run: sudo yum install gcc-c++ make
+      - run: npm install
+      - run: npm test
