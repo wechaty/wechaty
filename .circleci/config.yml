@@ -16,8 +16,9 @@ jobs:
             curl --silent --location https://rpm.nodesource.com/setup_10.x | sudo bash -
             sudo yum -y install nodejs
             sudo yum -y install gcc-c++ make
+            lsb_release -a
             npm install
-            npm test
+            npm run test:unit:retry
 
 workflows:
   version: 2
