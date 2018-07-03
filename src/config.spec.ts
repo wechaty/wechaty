@@ -19,8 +19,6 @@
  */
 // tslint:disable:no-shadowed-variable
 import test  from 'blue-tape'
-// import sinon from 'sinon'
-// const sinonTest   = require('sinon-test')(sinon)
 
 import { config } from './config'
 // import { Puppet } from './puppet'

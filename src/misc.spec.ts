@@ -20,7 +20,6 @@
 // tslint:disable:no-shadowed-variable
 import test  from 'blue-tape'
 import sinon from 'sinon'
-// const sinonTest   = require('sinon-test')(sinon)
 
 import http      from 'http'
 import express   from 'express'
