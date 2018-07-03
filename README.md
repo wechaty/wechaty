@@ -87,14 +87,14 @@ node mybot.js
 
 > Wechaty Docker supports both JavaScript and TypeScript. To use TypeScript just write in TypeScript and save with extension name `.ts`, no need to compile because we use `ts-node` to run it.
 
-1. Run JavaScript
+2.1. Run JavaScript
 
 ```shell
 # for JavaScript
 docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.js
 ```
 
-1. Run TypeScript
+2.2. Run TypeScript
 
 ```shell
 # for TypeScript
