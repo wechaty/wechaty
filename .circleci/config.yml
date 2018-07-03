@@ -6,11 +6,11 @@ jobs:
     steps:
       - checkout
       - run:
-        curl --silent --location https://rpm.nodesource.com/setup_10.x | sudo bash -
-        sudo yum -y install nodejs
-        sudo yum install gcc-c++ make
-        npm install
-        npm test
+        - curl --silent --location https://rpm.nodesource.com/setup_10.x | sudo bash -
+        - sudo yum -y install nodejs
+        - sudo yum install gcc-c++ make
+        - npm install
+        - npm test
 
 workflows:
   version: 2
