@@ -1,7 +1,7 @@
 version: 2
 
 jobs:
-  test:
+  build:
     machine: true
     parallelism: 1
 
@@ -21,6 +21,6 @@ jobs:
 
 workflows:
   version: 2
-  test:
+  testflow:
     jobs:
-      - test
+      - build
