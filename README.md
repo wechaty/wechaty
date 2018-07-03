@@ -58,7 +58,7 @@ You can find more examples from [Wiki](https://github.com/chatie/wechaty/wiki/Ex
 
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800)](https://nodejs.org/)
 
-We have a Wechaty starter repository for beginners with the simplest setting. It will be **just work** after you `clone` & `npm install` & `npm start`.
+We have a Wechaty starter repository for beginners with the simplest setting. It will be **just work** out-of-the-box after you `clone` & `npm install` & `npm start`.
 
 If you are new to Wechaty and want to try it the first time, we'd like to strong recommend you starting from this repository, and using it as your starter template for your project.
 
