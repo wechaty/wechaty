@@ -11,14 +11,26 @@ jobs:
       # - setup_remote_docker:
       #     docker_layer_caching: true
       - run:
-          name: Unit Testing
+          name: Install Node.js
           command: |
             curl --silent --location https://rpm.nodesource.com/setup_10.x | sudo bash -
             sudo yum -y install nodejs
-            sudo yum -y install gcc-c++ make redhat-lsb
-            lsb_release -a
-            npm install
-            npm run test:unit:retry
+
+      - run:
+          name: Install RedHat Packages
+          command: sudo yum -y install gcc-c++ make redhat-lsb
+
+      - run:
+          name: NPM Install
+          command: npm install
+
+      - run:
+          name: Unit Testing
+          command: npm run test:unit:retry
+
+      - run:
+          name: Show CentOS Version
+          command: lsb_release -a
 
 workflows:
   version: 2
