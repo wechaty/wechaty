@@ -58,20 +58,18 @@ You can find more examples from [Wiki](https://github.com/chatie/wechaty/wiki/Ex
 
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800)](https://nodejs.org/)
 
-We have a Wechaty starter repository for beginners with the simplest setting. It will be **just works** after you `clone` & `npm install` & `npm start`.
+We have a Wechaty starter repository for beginners with the simplest setting. It will be **just work** after you `clone` & `npm install` & `npm start`.
 
 If you are new to Wechaty and want to try it the first time, we'd like to strong recommend you starting from this repository, and using it as your starter template for your project.
 
 * Wechaty Starter Repository - <https://github.com/lijiarui/wechaty-getting-started>
 
-Otherwise, you can use either NPM or Docker to run Wechaty as you like.
-
-Let's say, you have saved the above _The World's Shortest ChatBot Code: 6 lines of JavaScript_ example to `mybot.js`.
+Otherwise, please saved the above _The World's Shortest ChatBot Code: 6 lines of JavaScript_ example to a file named `mybot.js` before you can use either NPM or Docker to run it.
 
 ### 1. NPM
 
-[![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty)
-[![Downloads][downloads-image]][downloads-url]
+[![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://www.npmjs.com/package/wechaty)
+[![Downloads](http://img.shields.io/npm/dm/wechaty.svg?style=flat-square)](https://www.npmjs.com/package/wechaty)
 
 ```shell
 npm init
@@ -236,6 +234,3 @@ At last, It's built for my personal study purpose of Automatically Testing.
 * Code & Docs © 2016-2018 Huan LI \<zixia@zixia.net\>
 * Code released under the Apache-2.0 License
 * Docs released under Creative Commons
-
-[downloads-image]: http://img.shields.io/npm/dm/wechaty.svg?style=flat-square
-[downloads-url]: https://npmjs.org/package/wechaty
