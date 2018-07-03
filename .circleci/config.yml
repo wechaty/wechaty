@@ -4,13 +4,15 @@ jobs:
     docker:
       - image: scholzj/circleci-centos-golang
     steps:
-      - checkout
+      - test
       - run:
-        - curl --silent --location https://rpm.nodesource.com/setup_10.x | sudo bash -
-        - sudo yum -y install nodejs
-        - sudo yum install gcc-c++ make
-        - npm install
-        - npm test
+        - name: Test
+        - command: |
+          curl --silent --location https://rpm.nodesource.com/setup_10.x | sudo bash -
+          sudo yum -y install nodejs
+          sudo yum install gcc-c++ make
+          npm install
+          npm test
 
 workflows:
   version: 2
