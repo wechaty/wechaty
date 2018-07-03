@@ -2,9 +2,7 @@ version: 2
 
 jobs:
   build:
-    machine: true
     parallelism: 1
-
     docker:
       - image: scholzj/circleci-centos-golang
 
