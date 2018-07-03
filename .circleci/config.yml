@@ -1,42 +1,13 @@
 version: 2
-
 jobs:
-  build:
-    machine: true
-    parallelism: 1
-
+  test:
+    docker:
+      - image: scholzj/circleci-centos-golang
     steps:
       - checkout
-      # - setup_remote_docker:
-      #     docker_layer_caching: true
-      - run:
-          name: Environment Information
-          command: |
-            docker --version
-            docker info
-            whoami
-            pwd
-            ls -lr
-      - run:
-          name: Prepare Build
-          command: |
-            # apk update && apk add curl curl-dev bash
-            curl -sSL -o /tmp/bats_v0.4.0.tar.gz https://github.com/sstephenson/bats/archive/v0.4.0.tar.gz
-            tar -xf /tmp/bats_v0.4.0.tar.gz
-            sudo bats-0.4.0/install.sh /usr/local
-      - run:
-          name: Build Wechaty
-          command: |
-            docker run -ti -v "$(pwd)":/mnt nlknguyen/alpine-shellcheck bin/*.sh
-            NO_CACHE=1 ./scripts/docker.sh build
-      - run:
-          name: Testing
-          command: ./scripts/docker.sh test
-      - deploy:
-          name: Deploy Wechaty Image to Docker Hub
-          command: |
-            if [ "${CIRCLE_BRANCH}" == "master" ]; then
-              curl -X POST -d '{"from":"circleci"}' "$DOCKER_REBUILD_URL"
-            else
-              echo "Skipped for not master branch."
-            fi
+      - run: npm install && npm test
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - test

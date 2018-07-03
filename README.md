@@ -150,6 +150,8 @@ Get embed html/markdown code from [Wiki:PoweredByWechaty](https://github.com/cha
 1. [An interactive chat bot to manage a TODO list](https://github.com/coderbunker/candobot)
 1. [Forward WeChat messages to telegram](https://github.com/luosheng/Wegram)
 
+Pull Request is welcome to add yours!
+
 Learn more about Projects Using Wechaty at [Wiki:PoweredByWechaty](https://github.com/chatie/wechaty/wiki/PoweredByWechaty)
 
 ## FIND A GOOD SERVER
@@ -201,12 +203,6 @@ Wechaty is used in many ChatBot projects by hundreds of developers. If you want 
 ![Wechaty Developers' Home](https://chatie.io/wechaty/images/bot-qr-code.png)
 
 Scan now, because other Wechaty developers want to talk with you too! (secret code: _wechaty_)
-
-## FUTURE IMPROVEMENTS
-
-Wechaty is far from perfect. The following things should be addressed in the future:
-
-* [Create New Puppets for Wechaty #1167](https://github.com/Chatie/wechaty/issues/1167)
 
 ## AUTHOR
 
