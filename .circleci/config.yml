@@ -1,11 +1,13 @@
 version: 2
 
 jobs:
-  build:
+  test:
     machine: true
     parallelism: 1
+
     docker:
       - image: scholzj/circleci-centos-golang
+
     steps:
       - checkout
       # - setup_remote_docker:
@@ -16,3 +18,9 @@ jobs:
       - run: sudo yum install gcc-c++ make
       - run: npm install
       - run: npm test
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - test
