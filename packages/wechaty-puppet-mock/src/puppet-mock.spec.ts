@@ -11,9 +11,7 @@ class PuppetMockTest extends PuppetMock {
 }
 
 test('PuppetMock restart without problem', async (t) => {
-  const puppet = new PuppetMockTest({
-    memory   : new MemoryCard(),
-  })
+  const puppet = new PuppetMockTest()
   try {
     for (let i = 0; i < 3; i++) {
       await puppet.start()

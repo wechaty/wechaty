@@ -68,13 +68,13 @@ export class PuppetMock extends Puppet {
   private loopTimer?: NodeJS.Timer
 
   constructor (
-    public options: PuppetOptions,
+    public options: PuppetOptions = {},
   ) {
     super(options)
   }
 
   public async start (): Promise<void> {
-    log.verbose('PuppetMock', `start() with ${this.memory.name || 'empty'} memory`)
+    log.verbose('PuppetMock', `start()`)
 
     this.state.on('pending')
     // await some tasks...
@@ -197,10 +197,17 @@ export class PuppetMock extends Puppet {
     log.verbose('PuppetMock', 'contactRawPayloadParser(%s)', rawPayload)
 
     const payload: ContactPayload = {
+<<<<<<< HEAD
       avatar : 'mock-avatar-data',
       gender : ContactGender.Unknown,
       id     : 'id',
       name   : 'mock-name',
+=======
+      avatar : '',
+      gender : ContactGender.Unknown,
+      id     : 'id',
+      name   : rawPayload.name,
+>>>>>>> d727a6aad1d33d29c454b4b02879a884ef2c9ed3
       type   : ContactType.Unknown,
     }
     return payload
@@ -383,9 +390,15 @@ export class PuppetMock extends Puppet {
   public async roomMemberRawPayloadParser (rawPayload: any): Promise<RoomMemberPayload>  {
     log.verbose('PuppetMock', 'roomMemberRawPayloadParser(%s)', rawPayload)
     return {
+<<<<<<< HEAD
       avatar    : 'mock-avatar-data',
       id        : 'xx',
       name      : 'mock-name',
+=======
+      avatar    : '',
+      id        : 'xx',
+      name      : 'zz',
+>>>>>>> d727a6aad1d33d29c454b4b02879a884ef2c9ed3
       roomAlias : 'yy',
     }
   }
@@ -416,7 +429,7 @@ export class PuppetMock extends Puppet {
     contactId : string,
     hello     : string,
   ): Promise<void> {
-    log.verbose('PuppetMock', 'friendshipVerify(%s, %s)', contactId, hello)
+    log.verbose('PuppetMock', 'friendshipAdd(%s, %s)', contactId, hello)
   }
 
   public async friendshipAccept (

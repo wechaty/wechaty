@@ -8,9 +8,6 @@
 // tslint:disable:no-console
 
 import {
-  FileBox,
-}                 from 'file-box'
-import {
   MemoryCard,
 }                 from 'memory-card'
 
@@ -20,7 +17,7 @@ import {
 
 async function main () {
   const puppet = new PuppetMock({ memory: new MemoryCard() })
-  console.log(`Puppet v${puppet.version()} smoking test passed.`)
+  console.log(`Puppet v${puppet.version()} smoke testing passed.`)
   return 0
 }
 
