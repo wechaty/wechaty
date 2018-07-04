@@ -53,6 +53,7 @@ export const PUPPET_EVENT_DICT = {
   ...CHAT_EVENT_DICT,
   dong      : 'document can be writen at here',
   error     : 'document can be writen at here',
+  reset     : 'push to reset!',
   start     : 'document can be writen at here',
   stop      : 'document can be writen at here',
   watchdog  : 'document can be writen at here',
@@ -65,7 +66,7 @@ export type PuppetEventName = keyof typeof PUPPET_EVENT_DICT
  */
 export interface PuppetOptions {
   endpoint? : string,
-  memory    : MemoryCard,
+  memory?   : MemoryCard,
   timeout?  : number,
   token?    : string,
 }

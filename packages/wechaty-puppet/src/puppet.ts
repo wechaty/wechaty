@@ -35,6 +35,9 @@ import {
   callerResolve,
 }                       from 'hot-import'
 import {
+  ThrottleQueue,
+}                       from 'rx-queue'
+import {
   StateSwitch,
 }                       from 'state-switch'
 import {
@@ -106,6 +109,11 @@ export abstract class Puppet extends EventEmitter {
   private readonly childPkg: undefined | normalize.Package
 
   /**
+   * Throttle Reset Events
+   */
+  private resetThrottleQueue : ThrottleQueue<string>
+
+  /**
    *
    *
    * Constructor
@@ -113,20 +121,45 @@ export abstract class Puppet extends EventEmitter {
    *
    */
   constructor (
-    public options: PuppetOptions,
+    public options: PuppetOptions = {},
   ) {
     super()
-    log.verbose('Puppet', 'constructor(%s)', JSON.stringify(options))
 
     this.counter = PUPPET_COUNTER++
+    log.verbose('Puppet', 'constructor(%s) #%d', JSON.stringify(options), this.counter)
 
-    this.state    = new StateSwitch(this.constructor.name, log)
+    this.state = new StateSwitch(this.constructor.name, log)
 
-    this.options.timeout = this.options.timeout || DEFAULT_WATCHDOG_TIMEOUT
+    /**
+     * 1. Setup Watchdog
+     */
+    const timeout = this.options.timeout || DEFAULT_WATCHDOG_TIMEOUT
+    log.verbose('Puppet', 'constructor() watchdog timeout set to %d seconds', timeout)
+    this.watchdog = new Watchdog(1000 * timeout, 'Puppet')
+    this.watchdog.on('reset', lastFood => {
+      const reason = JSON.stringify(lastFood)
+      log.silly('Puppet', 'constructor() watchdog.on(reset) reason: %s', reason)
+      this.emit('reset', reason)
+    })
 
-    log.verbose('Puppet', 'constructor() watchdog timeout set to %d seconds', this.options.timeout)
-    this.watchdog = new Watchdog(1000 * this.options.timeout, 'Puppet')
+    /**
+     * 2. Setup `reset` Event via a 1 second Throttle Queue:
+     */
+    this.resetThrottleQueue = new ThrottleQueue<string>(1000)
+    // 2.2. handle all `reset` events via the resetThrottleQueue
+    this.on('reset', reason => {
+      log.silly('Puppet', 'constructor() this.on(reset) reason: %s', reason)
+      this.resetThrottleQueue.next(reason)
+    })
+    // 2.3. call reset() and then ignore the following `reset` event for 1 second
+    this.resetThrottleQueue.subscribe(reason => {
+      log.silly('Puppet', 'constructor() resetThrottleQueue.subscribe() reason: %s', reason)
+      this.reset(reason)
+    })
 
+    /**
+     * 3. Setup LRU Caches
+     */
     const lruOptions: LRU.Options = {
       dispose (key: string, val: object) {
         log.silly('Puppet', 'constructor() lruOptions.dispose(%s, %s)', key, JSON.stringify(val))
@@ -145,7 +178,7 @@ export abstract class Puppet extends EventEmitter {
     this.cacheRoomMemberPayload = new LRU<string, RoomMemberPayload>(lruOptions)
 
     /**
-     * 2. Load the package.json for Puppet Plugin version range matching
+     * 4. Load the package.json for Puppet Plugin version range matching
      *
      * For: dist/src/puppet/puppet.ts
      *  We need to up 3 times: ../../../package.json
@@ -174,7 +207,9 @@ export abstract class Puppet extends EventEmitter {
       this.constructor.name,
       '>',
       '(',
-      this.options.memory.name,
+      (this.options && this.options.memory)
+        ? this.options.memory.name
+        : '',
       ')',
     ].join('')
   }
@@ -186,18 +221,19 @@ export abstract class Puppet extends EventEmitter {
    *
    *
    */
-  public emit (event: 'dong',        data?: string)                                                         : boolean
-  public emit (event: 'error',       error: Error)                                                          : boolean
-  public emit (event: 'friendship',  friendshipId: string)                                                  : boolean
-  public emit (event: 'login',       contactId: string)                                                     : boolean
-  public emit (event: 'logout',      contactId: string)                                                     : boolean
-  public emit (event: 'message',     messageId: string)                                                     : boolean
-  public emit (event: 'room-join',   roomId: string, inviteeIdList: string[],  inviterId: string)           : boolean
-  public emit (event: 'room-leave',  roomId: string, leaverIdList: string[], remover?: string)              : boolean
-  public emit (event: 'room-topic',  roomId: string, newTopic: string, oldTopic: string, changerId: string) : boolean
-  public emit (event: 'scan',        qrcode: string, status: number, data?: string)                         : boolean
-  public emit (event: 'start')                                                                              : boolean
-  public emit (event: 'stop')                                                                               : boolean
+  public emit (event: 'dong',       data?: string)                                                         : boolean
+  public emit (event: 'error',      error: Error)                                                          : boolean
+  public emit (event: 'friendship', friendshipId: string)                                                  : boolean
+  public emit (event: 'login',      contactId: string)                                                     : boolean
+  public emit (event: 'logout',     contactId: string)                                                     : boolean
+  public emit (event: 'message',    messageId: string)                                                     : boolean
+  public emit (event: 'reset',      reason: string)                                                        : boolean
+  public emit (event: 'room-join',  roomId: string, inviteeIdList: string[],  inviterId: string)           : boolean
+  public emit (event: 'room-leave', roomId: string, leaverIdList: string[], remover?: string)              : boolean
+  public emit (event: 'room-topic', roomId: string, newTopic: string, oldTopic: string, changerId: string) : boolean
+  public emit (event: 'scan',       qrcode: string, status: number, data?: string)                         : boolean
+  public emit (event: 'start')                                                                             : boolean
+  public emit (event: 'stop')                                                                              : boolean
   // Internal Usage: watchdog
   public emit (event: 'watchdog',    food: WatchdogFood) : boolean
 
@@ -217,20 +253,21 @@ export abstract class Puppet extends EventEmitter {
    *
    *
    */
-  public on (event: 'dong',        listener: (data?: string) => void)                                                         : this
-  public on (event: 'error',       listener: (error: string) => void)                                                         : this
-  public on (event: 'friendship',  listener: (friendshipId: string) => void)                                                  : this
-  public on (event: 'login',       listener: (contactId: string) => void)                                                     : this
-  public on (event: 'logout',      listener: (contactId: string) => void)                                                     : this
-  public on (event: 'message',     listener: (messageId: string) => void)                                                     : this
-  public on (event: 'room-join',   listener: (roomId: string, inviteeIdList: string[], inviterId:  string) => void)           : this
-  public on (event: 'room-leave',  listener: (roomId: string, leaverIdList : string[], removerId?: string) => void)           : this
-  public on (event: 'room-topic',  listener: (roomId: string, newTopic: string, oldTopic: string, changerId: string) => void) : this
-  public on (event: 'scan',        listener: (qrcode: string, status: number, data?: string) => void)                         : this
-  public on (event: 'start',       listener: () => void)                                                                      : this
-  public on (event: 'stop',        listener: () => void)                                                                      : this
+  public on (event: 'dong',       listener: (data?: string) => void)                                                         : this
+  public on (event: 'error',      listener: (error: string) => void)                                                         : this
+  public on (event: 'friendship', listener: (friendshipId: string) => void)                                                  : this
+  public on (event: 'login',      listener: (contactId: string) => void)                                                     : this
+  public on (event: 'logout',     listener: (contactId: string) => void)                                                     : this
+  public on (event: 'message',    listener: (messageId: string) => void)                                                     : this
+  public on (event: 'reset',      listener: (reason: string) => void)                                                        : this
+  public on (event: 'room-join',  listener: (roomId: string, inviteeIdList: string[], inviterId:  string) => void)           : this
+  public on (event: 'room-leave', listener: (roomId: string, leaverIdList : string[], removerId?: string) => void)           : this
+  public on (event: 'room-topic', listener: (roomId: string, newTopic: string, oldTopic: string, changerId: string) => void) : this
+  public on (event: 'scan',       listener: (qrcode: string, status: number, data?: string) => void)                         : this
+  public on (event: 'start',      listener: () => void)                                                                      : this
+  public on (event: 'stop',       listener: () => void)                                                                      : this
   // Internal Usage: watchdog
-  public on (event: 'watchdog',    listener: (data: WatchdogFood) => void) : this
+  public on (event: 'watchdog',   listener: (data: WatchdogFood) => void) : this
 
   public on (event: never, listener: never): never
 
@@ -251,6 +288,24 @@ export abstract class Puppet extends EventEmitter {
    */
   public abstract async start () : Promise<void>
   public abstract async stop ()  : Promise<void>
+
+  /**
+   * reset() Should not be called directly.
+   * `protected` is for testing, not for the child class.
+   * should use `emit('reset', 'reason')` instead.
+   *  Huan, July 2018
+   */
+  protected reset (reason: string): void {
+    log.verbose('Puppet', 'reset(%s)', reason)
+
+    Promise.resolve()
+    .then(() => this.stop())
+    .then(() => this.start())
+    .catch(e => {
+      log.warn('Puppet', 'reset() exception: %s', e)
+      this.emit('error', e)
+    })
+  }
 
   /**
    *
@@ -364,10 +419,28 @@ export abstract class Puppet extends EventEmitter {
 
   public abstract async contactList ()                   : Promise<string[]>
 
-  public abstract async contactQrcode (contactId: string) : Promise<string>
+  public abstract async contactQrcode (contactId: string) : Promise<string /*QR Code Value*/>
 
   public abstract async contactRawPayload (contactId: string)     : Promise<any>
   public abstract async contactRawPayloadParser (rawPayload: any) : Promise<ContactPayload>
+
+  public async contactRoomList (
+    contactId: string,
+  ): Promise<string /* roomId */[]> {
+    log.verbose('Puppet', 'contactRoomList(%s)', contactId)
+
+    const roomIdList = await this.roomList()
+    const roomPayloadList = await Promise.all(
+      roomIdList.map(
+        roomId => this.roomPayload(roomId)
+      )
+    )
+    const resultRoomIdList = roomPayloadList
+      .filter(roomPayload => roomPayload.memberIdList.includes(contactId))
+      .map(payload => payload.id)
+
+    return resultRoomIdList
+  }
 
   public async contactPayloadDirty (contactId: string): Promise<void> {
     log.verbose('Puppet', 'contactPayloadDirty(%s)', contactId)
@@ -532,8 +605,8 @@ export abstract class Puppet extends EventEmitter {
    * Friendship
    *
    */
-  public abstract async friendshipVerify (contactId: string, hello?: string) : Promise<void>
-  public abstract async friendshipAccept (friendshipId: string)              : Promise<void>
+  public abstract async friendshipAdd (contactId: string, hello?: string) : Promise<void>
+  public abstract async friendshipAccept (friendshipId: string)           : Promise<void>
 
   public abstract async friendshipRawPayload (friendshipId: string)   : Promise<any>
   public abstract async friendshipRawPayloadParser (rawPayload: any)  : Promise<FriendshipPayload>

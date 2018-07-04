@@ -1,5 +1,9 @@
 import {
-  Brolog,
+  // Brolog,
+  log,
 }               from 'brolog'
 
-export const log = new Brolog()
+export {
+  log,
+}
+// export const log = new Brolog()

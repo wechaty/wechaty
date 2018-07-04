@@ -6,6 +6,7 @@
 // tslint:disable:no-shadowed-variable
 // tslint:disable:unified-signatures
 import test  from 'blue-tape'
+import sinon from 'sinon'
 
 import {
   FileBox,
@@ -76,8 +77,8 @@ class PuppetTest extends Puppet {
   public async friendshipRawPayload (id: string)            : Promise<any> { return { id } as any }
   public async friendshipRawPayloadParser (rawPayload: any) : Promise<FriendshipPayload> { return rawPayload }
 
-  public async friendshipVerify (contactId: string, hello?: string) : Promise<void> { return { contactId, hello } as any }
-  public async friendshipAccept (friendshipId: string)              : Promise<void> { return { friendshipId } as any }
+  public async friendshipAdd (contactId: string, hello?: string) : Promise<void> { return { contactId, hello } as any }
+  public async friendshipAccept (friendshipId: string)           : Promise<void> { return { friendshipId } as any }
 
   /**
    *
@@ -137,6 +138,9 @@ class PuppetTest extends Puppet {
     return super.contactQueryFilterFactory(query)
   }
 
+  public reset (reason: string): void {
+    return super.reset(reason)
+  }
 }
 
 test('contactQueryFilterFunction()', async t => {
@@ -147,6 +151,7 @@ test('contactQueryFilterFunction()', async t => {
   const PAYLOAD_LIST: ContactPayload[] = [
     {
       alias  : TEXT_TEXT,
+      avatar : 'mock',
       gender : ContactGender.Unknown,
       id     : 'id1',
       name   : TEXT_REGEX,
@@ -154,6 +159,7 @@ test('contactQueryFilterFunction()', async t => {
     },
     {
       alias  : TEXT_REGEX,
+      avatar : 'mock',
       gender : ContactGender.Unknown,
       id     : 'id2',
       name   : TEXT_TEXT,
@@ -161,6 +167,7 @@ test('contactQueryFilterFunction()', async t => {
     },
     {
       alias  : TEXT_TEXT,
+      avatar : 'mock',
       gender : ContactGender.Unknown,
       id     : 'id3',
       name   : TEXT_REGEX,
@@ -168,6 +175,7 @@ test('contactQueryFilterFunction()', async t => {
     },
     {
       alias  : TEXT_REGEX,
+      avatar : 'mock',
       gender : ContactGender.Unknown,
       id     : 'id4',
       name   : TEXT_TEXT,
@@ -235,20 +243,24 @@ test('roomQueryFilterFunction()', async t => {
 
   const PAYLOAD_LIST: RoomPayload[] = [
     {
-      id     : 'id1',
-      topic  : TEXT_TEXT,
+      id           : 'id1',
+      memberIdList : [],
+      topic        : TEXT_TEXT,
     },
     {
-      id     : 'id2',
-      topic  : TEXT_REGEX,
+      id           : 'id2',
+      memberIdList : [],
+      topic        : TEXT_REGEX,
     },
     {
-      id     : 'id3',
-      topic  : TEXT_TEXT,
+      id           : 'id3',
+      memberIdList : [],
+      topic        : TEXT_TEXT,
     },
     {
-      id     : 'id4',
-      topic  : TEXT_REGEX,
+      id           : 'id4',
+      memberIdList : [],
+      topic        : TEXT_REGEX,
     },
   ]
 
@@ -285,4 +297,75 @@ test('roomQueryFilterFunction()', async t => {
       topic: 'test',
     } as any), 'should throw')
   })
+})
+
+test('contactRoomList()', async t => {
+  const puppet = new PuppetTest({ memory: new MemoryCard() })
+
+  const sandbox = sinon.createSandbox()
+
+  const CONTACT_ID_1 = 'contact-id-1'
+  const CONTACT_ID_2 = 'contact-id-2'
+  const CONTACT_ID_3 = 'contact-id-3'
+
+  const ROOM_ID_1 = 'room-id-1'
+  const ROOM_ID_2 = 'room-id-2'
+
+  const ROOM_PAYLOAD_LIST: RoomPayload[] = [
+    {
+      id: ROOM_ID_1,
+      memberIdList: [
+        CONTACT_ID_1,
+        CONTACT_ID_2,
+      ],
+      topic: 'room-topic-1',
+    },
+    {
+      id: ROOM_ID_2,
+      memberIdList: [
+        CONTACT_ID_2,
+        CONTACT_ID_3,
+      ],
+      topic: 'room-topic-2',
+    },
+  ]
+  sandbox.stub(puppet, 'roomList').resolves(ROOM_PAYLOAD_LIST.map(payload => payload.id))
+  sandbox.stub(puppet, 'roomPayload').callsFake(roomId => {
+    for (const payload of ROOM_PAYLOAD_LIST) {
+      if (payload.id === roomId) {
+        return payload
+      }
+    }
+    throw new Error('no payload for room id ' + roomId)
+  })
+
+  const roomIdList1 = await puppet.contactRoomList(CONTACT_ID_1)
+  const roomIdList2 = await puppet.contactRoomList(CONTACT_ID_2)
+  const roomIdList3 = await puppet.contactRoomList(CONTACT_ID_3)
+
+  t.deepEqual(roomIdList1, [ROOM_ID_1], 'should get room 1 for contact 1')
+  t.deepEqual(roomIdList2, [ROOM_ID_1, ROOM_ID_2], 'should get room 1&2 for contact 2')
+  t.deepEqual(roomIdList3, [ROOM_ID_2], 'should get room 2 for contact 3')
+})
+
+test('reset event throttle for reset()', async t => {
+  const puppet = new PuppetTest({})
+
+  const sandbox = sinon.createSandbox()
+
+  const timer = sandbox.useFakeTimers()
+  const reset = sandbox.stub(puppet, 'reset')
+
+  puppet.emit('reset', 'testing')
+  t.equal(reset.callCount, 1, 'should call reset() immediately')
+
+  timer.tick(1000 - 1)
+  puppet.emit('reset', 'testing 2')
+  t.equal(reset.callCount, 1, 'should not call reset() again in the following 1 second')
+
+  timer.tick(1000 + 1)
+  puppet.emit('reset', 'testing 2')
+  t.equal(reset.callCount, 2, 'should call reset() again after 1 second')
+
+  sandbox.restore()
 })

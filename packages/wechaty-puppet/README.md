@@ -6,7 +6,7 @@
 
 ![chatie puppet](https://chatie.io/wechaty-puppet/images/puppet-logo.jpg)
 
-> Picture Credit: <http://mamikins.lv/ru/latvijskoe-pravitelstvo-chrevoveshhaet/>
+> Picture Credit: [https://www.shareicon.net](https://www.shareicon.net/puppet-marionette-puppeteer-puppet-variant-marionette-variant-665400)
 
 Abstract(Base) Class of Wechaty Puppet Framework.
 
@@ -20,6 +20,22 @@ Learn more at:
 ## EXAMPLE
 
 PuppetMock: <https://github.com/chatie/wechaty-puppet-mock>
+
+The above puppet is for mocking, and also could be a good starter if you want to implement a new puppet for yourself.
+
+### Implementations
+
+* [PuppetWechat4u](https://github.com/chatie/wechaty-puppet-wechat4u) Web API via HTTP, by Huan LI
+* [PuppetPuppeteer](https://github.com/chatie/wechaty-puppet-puppeteer) Web API via Browser, by Huan LI
+* [PuppetPadchat](https://github.com/lijiarui/wechaty-puppet-padchat) iPad API via Protocol Server, by Rui LI
+* [PuppetHostie](https://github.com/chatie/wechaty-puppet-hostie) gRPC Proxy via Chatie.io(PaaS - Puppets as a Service), by Huan LI
+
+## DEPENDENCIES
+
+### Peer Depedence
+
+`FileBox` (npm module `file-box`) must be a `peerDependencies`, becasue all the Wechaty Framework need to check `instanceof FileBox`, we must be sure all `FileBox` is the same version.
+`MemoryCard` (npm module `memory-card`) must be a `peerDependencies`, becasue all the Wechaty Framework need to check `instanceof MemoryCard`, we must be sure all `MemoryCard` is the same version.
 
 ## Resources
 

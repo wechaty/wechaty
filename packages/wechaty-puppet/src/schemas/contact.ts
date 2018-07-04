@@ -16,20 +16,20 @@ export interface ContactQueryFilter {
 }
 
 export interface ContactPayload {
-  id:         string,
-  gender:     ContactGender,
-  type:       ContactType,
+  id     : string,
+  gender : ContactGender,
+  type   : ContactType,
+  name   : string,
+  avatar : string,
 
-  address?:   string,
-  alias?:     string,
-  avatar?:    string,
-  city?:      string,
-  friend?:    boolean,
-  name?:      string,
-  province?:  string,
-  signature?: string,
-  star?:      boolean,
-  weixin?:    string,
+  address?   : string,
+  alias?     : string,
+  city?      : string,
+  friend?    : boolean,
+  province?  : string,
+  signature? : string,
+  star?      : boolean,
+  weixin?    : string,
 }
 
 export type ContactPayloadFilterFunction = (payload: ContactPayload) => boolean
