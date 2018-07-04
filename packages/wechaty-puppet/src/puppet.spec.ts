@@ -12,9 +12,6 @@ import {
   FileBox,
 }                 from 'file-box'
 import {
-  MemoryCard,
-}                       from 'memory-card'
-import {
   ContactGender,
   ContactPayload,
   ContactPayloadFilterFunction,
@@ -186,7 +183,7 @@ test('contactQueryFilterFunction()', async t => {
   const REGEX_VALUE = new RegExp(TEXT_REGEX)
   const TEXT_VALUE  = TEXT_TEXT
 
-  const puppet = new PuppetTest({ memory: new MemoryCard() })
+  const puppet = new PuppetTest()
 
   t.test('filter name by regex', async t => {
     const QUERY   = { name: REGEX_VALUE }
@@ -267,7 +264,7 @@ test('roomQueryFilterFunction()', async t => {
   const REGEX_VALUE = new RegExp(TEXT_REGEX)
   const TEXT_VALUE  = TEXT_TEXT
 
-  const puppet = new PuppetTest({ memory: new MemoryCard() })
+  const puppet = new PuppetTest()
 
   t.test('filter name by regex', async t => {
     const QUERY   = { topic: REGEX_VALUE }
@@ -300,7 +297,7 @@ test('roomQueryFilterFunction()', async t => {
 })
 
 test('contactRoomList()', async t => {
-  const puppet = new PuppetTest({ memory: new MemoryCard() })
+  const puppet = new PuppetTest()
 
   const sandbox = sinon.createSandbox()
 

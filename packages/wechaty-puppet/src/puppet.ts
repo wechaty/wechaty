@@ -35,6 +35,9 @@ import {
   callerResolve,
 }                       from 'hot-import'
 import {
+  MemoryCard,
+}                       from 'memory-card'
+import {
   ThrottleQueue,
 }                       from 'rx-queue'
 import {
@@ -97,6 +100,7 @@ export abstract class Puppet extends EventEmitter {
   protected readonly state    : StateSwitch
   protected readonly watchdog : Watchdog
   protected readonly counter  : number
+  protected memory: MemoryCard
 
   /**
    * Login-ed User ID
@@ -129,6 +133,7 @@ export abstract class Puppet extends EventEmitter {
     log.verbose('Puppet', 'constructor(%s) #%d', JSON.stringify(options), this.counter)
 
     this.state = new StateSwitch(this.constructor.name, log)
+    this.memory = new MemoryCard()  // dummy memory
 
     /**
      * 1. Setup Watchdog
@@ -207,11 +212,24 @@ export abstract class Puppet extends EventEmitter {
       this.constructor.name,
       '>',
       '(',
-      (this.options && this.options.memory)
-        ? this.options.memory.name
-        : '',
+      this.memory.name || '',
       ')',
     ].join('')
+  }
+
+  /**
+   * @private
+   *
+   * For used by Wechaty internal ONLY.
+   */
+  public setMemory (memory: MemoryCard): void {
+    log.verbose('Puppet', 'setMemory()')
+
+    if (this.memory.name) {
+      throw new Error('puppet has already had a memory with name set: ' + this.memory.name)
+    }
+
+    this.memory = memory
   }
 
   /**

@@ -1,7 +1,5 @@
 // tslint:disable:object-literal-key-quotes
 
-import { MemoryCard } from 'memory-card'
-
 /**
  * This is used internally to as a placeholder for the bot name.
  *
@@ -66,7 +64,6 @@ export type PuppetEventName = keyof typeof PUPPET_EVENT_DICT
  */
 export interface PuppetOptions {
   endpoint? : string,
-  memory?   : MemoryCard,
   timeout?  : number,
   token?    : string,
 }
