@@ -3,8 +3,6 @@
 // tslint:disable:no-shadowed-variable
 import test  from 'blue-tape'
 
-import { MemoryCard } from 'memory-card'
-
 import { PuppetMock } from './puppet-mock'
 
 class PuppetMockTest extends PuppetMock {
