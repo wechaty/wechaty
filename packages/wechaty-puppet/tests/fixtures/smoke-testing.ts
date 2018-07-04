@@ -132,7 +132,7 @@ class PuppetTest extends Puppet {
 }
 
 async function main () {
-  const puppet = new PuppetTest({ memory: new MemoryCard() })
+  const puppet = new PuppetTest()
   console.log(`Puppet v${puppet.version()} smoking test passed.`)
   return 0
 }
