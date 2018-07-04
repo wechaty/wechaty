@@ -226,7 +226,7 @@ bot
        * find room name start with "ding"
        */
       try {
-        const dingRoom = await this.Room.find({ topic: /^ding/i })
+        const dingRoom = await bot.Room.find({ topic: /^ding/i })
         if (dingRoom) {
           /**
            * room found
