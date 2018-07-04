@@ -12,6 +12,10 @@ import {
   FileBox,
 }                 from 'file-box'
 import {
+  MemoryCard,
+}                 from 'memory-card'
+
+import {
   ContactGender,
   ContactPayload,
   ContactPayloadFilterFunction,
@@ -39,7 +43,6 @@ import {
 import {
   Puppet,
 }                                 from './puppet'
-import { MemoryCard } from 'memory-card';
 
 class PuppetTest extends Puppet {
   public async start () : Promise<void> { return {} as any }
