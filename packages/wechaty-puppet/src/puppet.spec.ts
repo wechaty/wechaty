@@ -39,6 +39,7 @@ import {
 import {
   Puppet,
 }                                 from './puppet'
+import { MemoryCard } from 'memory-card';
 
 class PuppetTest extends Puppet {
   public async start () : Promise<void> { return {} as any }
@@ -365,4 +366,20 @@ test('reset event throttle for reset()', async t => {
   t.equal(reset.callCount, 2, 'should call reset() again after 1 second')
 
   sandbox.restore()
+})
+
+test('setMemory() memory without name', async t => {
+  const puppet = new PuppetTest()
+  const memory = new MemoryCard()
+
+  t.doesNotThrow(() => puppet.setMemory(memory), 'should not throw when set a no-name memory first time ')
+  t.doesNotThrow(() => puppet.setMemory(memory), 'should not throw when set a no-name memory second time')
+})
+
+test('setMemory() memory with a name', async t => {
+  const puppet = new PuppetTest()
+  const memory = new MemoryCard('name')
+
+  t.doesNotThrow(() => puppet.setMemory(memory), 'should not throw when set a named memory first time ')
+  t.throws(() => puppet.setMemory(memory), 'should throw when set a named memory second time')
 })
