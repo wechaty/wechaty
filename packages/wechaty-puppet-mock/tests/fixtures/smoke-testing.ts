@@ -8,15 +8,11 @@
 // tslint:disable:no-console
 
 import {
-  MemoryCard,
-}                 from 'memory-card'
-
-import {
   PuppetMock,
 }                 from 'wechaty-puppet-mock'
 
 async function main () {
-  const puppet = new PuppetMock({ memory: new MemoryCard() })
+  const puppet = new PuppetMock()
   console.log(`Puppet v${puppet.version()} smoke testing passed.`)
   return 0
 }
