@@ -76,6 +76,8 @@ export async function puppetResolver (puppet: PuppetName): Promise<typeof Puppet
   try {
     puppetModule = await import(puppetConfig.npm.name)
   } catch (e) {
+    log.silly('PuppetConfig', 'puppetResolver(%s) exception: %s', puppet, e.message)
+
     try {
       await installPuppet(
         puppetConfig.npm.name,
@@ -95,7 +97,7 @@ export async function puppetResolver (puppet: PuppetName): Promise<typeof Puppet
 
 async function installPuppet (
   puppetNpm: string,
-  puppetVersion = '@latest',
+  puppetVersion = 'latest',
 ): Promise<void> {
   log.info('PuppetConfig', 'installPuppet(%s, %s) installing ...', puppetNpm, puppetVersion)
   await npm.install(
