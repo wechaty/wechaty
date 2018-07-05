@@ -153,19 +153,22 @@ test('getPort() for an available socket port', async t => {
   const PORT = 8788
 
   let port = await Misc.getPort(PORT)
-  t.not(port, PORT, 'should not be same port even it is available(to provent conflict between concurrency tests in AVA)')
-
   let ttl = 17
+
+  const serverList = []
+
   while (ttl-- > 0) {
     try {
       const app = express()
-      const server = app.listen(PORT)
+      const server = app.listen(port)
       port = await Misc.getPort(PORT)
-      server.close()
+
+      serverList.push(server)
     } catch (e) {
       t.fail('should not exception: ' + e.message + ', ' + e.stack)
     }
   }
+  serverList.map(server => server.close())
   t.pass('should has no exception after loop test')
 })
 
