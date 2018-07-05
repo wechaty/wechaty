@@ -469,7 +469,7 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   private async initPuppet(): Promise<void> {
-    log.verbose('Wechaty', 'initPuppet(%s)', this.options.puppet)
+    log.verbose('Wechaty', 'initPuppet() %s', this.options.puppet || '')
 
     let inited = false
     try {

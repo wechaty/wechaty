@@ -2,10 +2,15 @@ import {
   Constructor,
 }                 from 'clone-class'
 import npm        from 'npm-programmatic'
+import pkgDir     from 'pkg-dir'
 
 import {
   Puppet,
 }                 from 'wechaty-puppet'
+
+import {
+  log,
+}                 from './config'
 
 export interface PuppetConfig {
   npm: string,
@@ -47,21 +52,33 @@ export type PuppetName = keyof typeof PUPPET_DICT
 // | 'web'
 // | 'win32'
 
-export async function puppetResolver (puppet: PuppetName): Promise<typeof Puppet & Constructor<typeof Puppet>> {
+export async function puppetResolver (puppet: PuppetName): Promise<typeof Puppet & Constructor<Puppet>> {
+  log.verbose('PuppetConfig', 'puppetResolver(%s)', puppet)
+
   const config = PUPPET_DICT[puppet]
   if (!config) {
     throw new Error('no such puppet: ' + puppet)
   }
 
   // tslint:disable-next-line:variable-name
-  let MyPuppet: typeof Puppet & Constructor<typeof Puppet>
+  let puppetModule
 
   try {
-    MyPuppet = await import(config.npm)
+    puppetModule = await import(config.npm)
   } catch (e) {
-    await npm.install(config.npm)
-    MyPuppet = await import(config.npm)
+    log.info('PuppetConfig', 'puppetResolver(%s) not installed, prepare to install it ...', puppet)
+    await npm.install(
+      config.npm,
+      {
+        cwd  : await pkgDir(__dirname),
+        save : false,
+      },
+    )
+    log.info('PuppetConfig', 'puppetResolver(%s) install success', puppet)
+    puppetModule = await import(config.npm)
   }
 
-  return MyPuppet
+  log.silly('PuppetConfig', 'puppetResolver(%s) import success.', puppet)
+
+  return puppetModule.default as typeof Puppet & Constructor<typeof Puppet>
 }
