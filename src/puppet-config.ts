@@ -13,22 +13,32 @@ import {
 }                 from './config'
 
 export interface PuppetConfig {
-  npm: string,
+  npm: {
+    name     : string,
+    version? : string,
+  },
 }
 
 /**
  * Wechaty Official Puppet Plugins List
  */
 const mock: PuppetConfig = {
-  npm: 'wechaty-puppet-mock',
+  npm: {
+    name: 'wechaty-puppet-mock',
+  },
 }
 
 const wechat4u: PuppetConfig = {
-  npm: 'wechaty-puppet-wechat4u',
+  npm: {
+    name: 'wechaty-puppet-wechat4u',
+  },
 }
 
 const padchat: PuppetConfig = {
-  npm: 'wechaty-puppet-padchat@^0.3.6',
+  npm: {
+    name    : 'wechaty-puppet-padchat',
+    version : '^0.3.6',
+  },
 }
 
 export const PUPPET_DICT = {
@@ -55,8 +65,8 @@ export type PuppetName = keyof typeof PUPPET_DICT
 export async function puppetResolver (puppet: PuppetName): Promise<typeof Puppet & Constructor<Puppet>> {
   log.verbose('PuppetConfig', 'puppetResolver(%s)', puppet)
 
-  const config = PUPPET_DICT[puppet]
-  if (!config) {
+  const puppetConfig = PUPPET_DICT[puppet]
+  if (!puppetConfig) {
     throw new Error('no such puppet: ' + puppet)
   }
 
@@ -64,11 +74,14 @@ export async function puppetResolver (puppet: PuppetName): Promise<typeof Puppet
   let puppetModule
 
   try {
-    puppetModule = await import(config.npm)
+    puppetModule = await import(puppetConfig.npm.name)
   } catch (e) {
     try {
-      await installPuppet(config.npm)
-      puppetModule = await import(config.npm)
+      await installPuppet(
+        puppetConfig.npm.name,
+        puppetConfig.npm.version,
+      )
+      puppetModule = await import(puppetConfig.npm.name)
     } catch (e) {
       log.error('PupptConfig', 'puppetResolver(%s) install fail: %s', puppet, e.message)
       throw e
@@ -80,10 +93,13 @@ export async function puppetResolver (puppet: PuppetName): Promise<typeof Puppet
   return puppetModule.default as typeof Puppet & Constructor<typeof Puppet>
 }
 
-async function installPuppet (puppetNpm: string): Promise<void> {
-  log.info('PuppetConfig', 'installPuppet(%s) installing ...', puppetNpm)
+async function installPuppet (
+  puppetNpm: string,
+  puppetVersion = '@latest',
+): Promise<void> {
+  log.info('PuppetConfig', 'installPuppet(%s, %s) installing ...', puppetNpm, puppetVersion)
   await npm.install(
-    puppetNpm,
+    `${puppetNpm}@${puppetVersion}`,
     {
       cwd    : await pkgDir(__dirname),
       output : true,
