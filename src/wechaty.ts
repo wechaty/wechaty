@@ -864,7 +864,11 @@ export class Wechaty extends Accessory implements Sayable {
 
     try {
       await this.puppet.stop()
+    } catch (e) {
+      log.warn('Wechaty', 'stop() puppet.stop() exception: %s', e.message)
+    }
 
+    try {
       if (this.io) {
         await this.io.stop()
         this.io = undefined

@@ -28,7 +28,7 @@ const wechat4u: PuppetConfig = {
 }
 
 const padchat: PuppetConfig = {
-  npm: 'wechaty-puppet-padchat',
+  npm: 'wechaty-puppet-padchat@^0.3.6',
 }
 
 export const PUPPET_DICT = {
