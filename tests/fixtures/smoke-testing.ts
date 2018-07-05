@@ -6,7 +6,7 @@ import { MemoryCard } from 'memory-card'
 
 async function main() {
   const bot = Wechaty.instance({
-    puppet: new PuppetMock({ memory: new MemoryCard }),
+    puppet: new PuppetMock(),
   })
   try {
     await bot.start()

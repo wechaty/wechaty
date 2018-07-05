@@ -44,7 +44,6 @@ import {
 import {
   Puppet,
 }                     from 'wechaty-puppet'
-import { MemoryCard } from 'memory-card'
 
 class WechatyTest extends Wechaty {
   public initPuppetAccessoryTest(puppet: Puppet): void {
@@ -158,7 +157,7 @@ test('on(event, Function)', async t => {
 test('initPuppetAccessory()', async t => {
   const wechatyTest = new WechatyTest()
 
-  const puppet = new PuppetMock({ memory: new MemoryCard() })
+  const puppet = new PuppetMock()
   t.doesNotThrow(() => wechatyTest.initPuppetAccessoryTest(puppet), 'should not throw for the 1st time init')
   t.throws(() => wechatyTest.initPuppetAccessoryTest(puppet),       'should throw for the 2nd time init')
 })
@@ -167,7 +166,7 @@ test('initPuppetAccessory()', async t => {
 
 test('Wechaty restart for many times', async t => {
   const wechaty = new Wechaty({
-    puppet: new PuppetMock({ memory: new MemoryCard() }),
+    puppet: new PuppetMock(),
   })
 
   try {

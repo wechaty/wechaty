@@ -64,8 +64,8 @@ import {
   Io,
 }                       from './io'
 import {
-  PUPPET_DICT,
   PuppetName,
+  puppetResolver,
 }                       from './puppet-config'
 
 import {
@@ -468,7 +468,7 @@ export class Wechaty extends Accessory implements Sayable {
     })
   }
 
-  private initPuppet(): void {
+  private async initPuppet(): Promise<void> {
     log.verbose('Wechaty', 'initPuppet(%s)', this.options.puppet)
 
     let inited = false
@@ -483,7 +483,7 @@ export class Wechaty extends Accessory implements Sayable {
       return
     }
 
-    const puppet = this.initPuppetResolver(this.options.puppet)
+    const puppet = await this.initPuppetResolver(this.options.puppet)
 
     this.initPuppetVersionSatisfy(puppet)
     this.initPuppetEventBridge(puppet)
@@ -514,7 +514,7 @@ export class Wechaty extends Accessory implements Sayable {
    *
    * Init the Puppet
    */
-  private initPuppetResolver(puppet?: PuppetName | Puppet): Puppet {
+  private async initPuppetResolver(puppet?: PuppetName | Puppet): Promise<Puppet> {
     log.verbose('Wechaty', 'initPuppetResolver(%s)', puppet)
 
     if (!puppet) {
@@ -522,15 +522,20 @@ export class Wechaty extends Accessory implements Sayable {
       puppet  = config.puppet
     }
 
+    let puppetName = puppet as string
+    if (typeof puppetName !== 'string') {
+      puppetName = puppet.toString()
+    }
+    const puppetMemory = this.memory.sub(puppetName)
+
     if (typeof puppet === 'string') {
       // tslint:disable-next-line:variable-name
-      const MyPuppet = PUPPET_DICT[puppet]
+      const MyPuppet = await puppetResolver(puppet)
       if (!MyPuppet) {
         throw new Error('no such puppet: ' + puppet)
       }
 
       const options: PuppetOptions = {
-        memory : this.memory,
         ...this.options.puppetOptions,
       }
 
@@ -548,6 +553,7 @@ export class Wechaty extends Accessory implements Sayable {
       return new MyPuppet(options)
 
     } else if (puppet instanceof Puppet) {
+      puppet.setMemory(puppetMemory)
       return puppet
     } else {
       throw new Error('unsupported options.puppet: ' + puppet)
@@ -791,7 +797,7 @@ export class Wechaty extends Accessory implements Sayable {
     try {
       await this.memory.load()
 
-      this.initPuppet()
+      await this.initPuppet()
       await this.puppet.start()
 
       if (this.options.ioToken) {
