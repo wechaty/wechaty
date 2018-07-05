@@ -66,19 +66,28 @@ export async function puppetResolver (puppet: PuppetName): Promise<typeof Puppet
   try {
     puppetModule = await import(config.npm)
   } catch (e) {
-    log.info('PuppetConfig', 'puppetResolver(%s) not installed, prepare to install it ...', puppet)
-    await npm.install(
-      config.npm,
-      {
-        cwd  : await pkgDir(__dirname),
-        save : false,
-      },
-    )
-    log.info('PuppetConfig', 'puppetResolver(%s) install success', puppet)
-    puppetModule = await import(config.npm)
+    try {
+      await installNpm(config.npm)
+      puppetModule = await import(config.npm)
+    } catch (e) {
+      log.error('PupptConfig', 'puppetResolver(%s) install fail: %s', puppet, e.message)
+      throw e
+    }
   }
 
   log.silly('PuppetConfig', 'puppetResolver(%s) import success.', puppet)
 
   return puppetModule.default as typeof Puppet & Constructor<typeof Puppet>
+}
+
+async function installNpm (npmModuleName: string): Promise<void> {
+  log.info('PuppetConfig', 'installNpm(%s) installing ...', npmModuleName)
+  await npm.install(
+    npmModuleName,
+    {
+      cwd  : await pkgDir(__dirname),
+      save : false,
+    },
+  )
+  log.info('PuppetConfig', 'installNpm(%s) done', npmModuleName)
 }
