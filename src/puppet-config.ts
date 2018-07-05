@@ -85,8 +85,9 @@ async function installPuppet (puppetNpm: string): Promise<void> {
   await npm.install(
     puppetNpm,
     {
-      cwd  : await pkgDir(__dirname),
-      save : false,
+      cwd    : await pkgDir(__dirname),
+      output : true,
+      save   : false,
     },
   )
   log.info('PuppetConfig', 'installPuppet(%s) done', puppetNpm)
