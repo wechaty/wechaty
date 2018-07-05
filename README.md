@@ -58,20 +58,18 @@ You can find more examples from [Wiki](https://github.com/chatie/wechaty/wiki/Ex
 
 [![node](https://img.shields.io/node/v/wechaty.svg?maxAge=604800)](https://nodejs.org/)
 
-We have a Wechaty starter repository for beginners with the simplest setting. It will be **just works** after you `clone` & `npm install` & `npm start`.
+We have a Wechaty starter repository for beginners with the simplest setting. It will be **just work** out-of-the-box after you `clone` & `npm install` & `npm start`.
 
 If you are new to Wechaty and want to try it the first time, we'd like to strong recommend you starting from this repository, and using it as your starter template for your project.
 
 * Wechaty Starter Repository - <https://github.com/lijiarui/wechaty-getting-started>
 
-Otherwise, you can use either NPM or Docker to run Wechaty as you like.
-
-Let's say, you have saved the above _The World's Shortest ChatBot Code: 6 lines of JavaScript_ example to `mybot.js`.
+Otherwise, please saved the above _The World's Shortest ChatBot Code: 6 lines of JavaScript_ example to a file named `mybot.js` before you can use either NPM or Docker to run it.
 
 ### 1. NPM
 
-[![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://badge.fury.io/js/wechaty)
-[![Downloads][downloads-image]][downloads-url]
+[![NPM Version](https://badge.fury.io/js/wechaty.svg)](https://www.npmjs.com/package/wechaty)
+[![Downloads](http://img.shields.io/npm/dm/wechaty.svg?style=flat-square)](https://www.npmjs.com/package/wechaty)
 
 ```shell
 npm init
@@ -89,14 +87,14 @@ node mybot.js
 
 > Wechaty Docker supports both JavaScript and TypeScript. To use TypeScript just write in TypeScript and save with extension name `.ts`, no need to compile because we use `ts-node` to run it.
 
-1. Run JavaScript
+2.1. Run JavaScript
 
 ```shell
 # for JavaScript
 docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.js
 ```
 
-1. Run TypeScript
+2.2. Run TypeScript
 
 ```shell
 # for TypeScript
@@ -107,7 +105,10 @@ docker run -ti --rm --volume="$(pwd)":/bot zixia/wechaty mybot.ts
 
 ## TEST
 
-[![Linux/Mac Build Status](https://travis-ci.com/Chatie/wechaty.svg?branch=master)](https://travis-ci.com/Chatie/wechaty)
+[![Ubuntu Linux/Mac Build Status](https://travis-ci.com/Chatie/wechaty.svg?branch=master)](https://travis-ci.com/Chatie/wechaty)
+[![Travis](https://img.shields.io/travis/Chatie/wechaty.svg?label=Ubuntu/OSX)](https://travis-ci.com/Chatie/wechaty)
+[![CentOS Linux Build Status](https://circleci.com/gh/Chatie/wechaty.svg?style=svg)](https://circleci.com/gh/Chatie/wechaty)
+[![CircleCI](https://img.shields.io/circleci/project/github/Chatie/wechaty.svg?label=CentOS)](https://circleci.com/gh/Chatie/wechaty)
 [![Windows Build Status](https://img.shields.io/appveyor/ci/chatie/wechaty/master.svg?label=Windows)](https://ci.appveyor.com/project/chatie/wechaty)
 [![Docker Build Status](https://img.shields.io/shippable/5aaf8667ec373f17004dcb66.svg?label=Docker&color=brightgreen)](https://app.shippable.com/github/Chatie/wechaty)
 
@@ -151,6 +152,8 @@ Get embed html/markdown code from [Wiki:PoweredByWechaty](https://github.com/cha
 1. [A chat bot managing the HaoShiYou wechat groups run by volunteers of haoshiyou.org](https://github.com/xinbenlv/haoshiyou-bot)
 1. [An interactive chat bot to manage a TODO list](https://github.com/coderbunker/candobot)
 1. [Forward WeChat messages to telegram](https://github.com/luosheng/Wegram)
+
+Pull Request is welcome to add yours!
 
 Learn more about Projects Using Wechaty at [Wiki:PoweredByWechaty](https://github.com/chatie/wechaty/wiki/PoweredByWechaty)
 
@@ -204,12 +207,6 @@ Wechaty is used in many ChatBot projects by hundreds of developers. If you want 
 
 Scan now, because other Wechaty developers want to talk with you too! (secret code: _wechaty_)
 
-## FUTURE IMPROVEMENTS
-
-Wechaty is far from perfect. The following things should be addressed in the future:
-
-* [Create New Puppets for Wechaty #1167](https://github.com/Chatie/wechaty/issues/1167)
-
 ## AUTHOR
 
 [Huan LI](http://linkedin.com/in/zixia) \<zixia@zixia.net\>
@@ -236,6 +233,3 @@ At last, It's built for my personal study purpose of Automatically Testing.
 * Code & Docs © 2016-2018 Huan LI \<zixia@zixia.net\>
 * Code released under the Apache-2.0 License
 * Docs released under Creative Commons
-
-[downloads-image]: http://img.shields.io/npm/dm/wechaty.svg?style=flat-square
-[downloads-url]: https://npmjs.org/package/wechaty

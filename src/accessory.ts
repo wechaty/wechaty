@@ -57,6 +57,8 @@ export abstract class Accessory extends EventEmitter {
       return this._puppet
     }
 
+    log.error('Accessory', 'static get puppet() please see issue #1217: https://github.com/Chatie/wechaty/issues/1217')
+
     throw new Error('static puppet not found for '
                       + this.name,
                     )

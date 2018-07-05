@@ -1,42 +1,39 @@
 version: 2
 
 jobs:
-  build:
-    machine: true
+  test:
     parallelism: 1
+    docker:
+      - image: scholzj/circleci-centos-golang
 
     steps:
       - checkout
       # - setup_remote_docker:
       #     docker_layer_caching: true
       - run:
-          name: Environment Information
+          name: Install Node.js
           command: |
-            docker --version
-            docker info
-            whoami
-            pwd
-            ls -lr
+            curl --silent --location https://rpm.nodesource.com/setup_10.x | sudo bash -
+            sudo yum -y install nodejs
+
       - run:
-          name: Prepare Build
-          command: |
-            # apk update && apk add curl curl-dev bash
-            curl -sSL -o /tmp/bats_v0.4.0.tar.gz https://github.com/sstephenson/bats/archive/v0.4.0.tar.gz
-            tar -xf /tmp/bats_v0.4.0.tar.gz
-            sudo bats-0.4.0/install.sh /usr/local
+          name: Install RedHat Packages
+          command: sudo yum -y install gcc-c++ make redhat-lsb
+
       - run:
-          name: Build Wechaty
-          command: |
-            docker run -ti -v "$(pwd)":/mnt nlknguyen/alpine-shellcheck bin/*.sh
-            NO_CACHE=1 ./scripts/docker.sh build
+          name: NPM Install
+          command: npm install
+
       - run:
-          name: Testing
-          command: ./scripts/docker.sh test
-      - deploy:
-          name: Deploy Wechaty Image to Docker Hub
-          command: |
-            if [ "${CIRCLE_BRANCH}" == "master" ]; then
-              curl -X POST -d '{"from":"circleci"}' "$DOCKER_REBUILD_URL"
-            else
-              echo "Skipped for not master branch."
-            fi
+          name: Unit Testing
+          command: npm run test:unit:retry
+
+      - run:
+          name: Show CentOS Version
+          command: lsb_release -a
+
+workflows:
+  version: 2
+  test-flow:
+    jobs:
+      - test
