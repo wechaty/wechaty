@@ -67,7 +67,7 @@
     "tslint-config-standard": "^7.1.0",
     "typescript": "^2.9.2",
     "watchdog": "^0.8.10",
-    "wechaty-puppet": "0.3.3"
+    "wechaty-puppet": "^0.4"
   },
   "git": {
     "scripts": {
@@ -83,7 +83,7 @@
     "read-pkg-up": "^4.0.0",
     "state-switch": "^0.6.2",
     "watchdog": "^0.8.10",
-    "wechaty-puppet": "^0.2.10"
+    "wechaty-puppet": "^0.4"
   },
   "dependencies": {
     "qr-image": "^3.2.0"
