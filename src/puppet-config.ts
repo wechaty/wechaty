@@ -30,7 +30,8 @@ const mock: PuppetConfig = {
 
 const wechat4u: PuppetConfig = {
   npm: {
-    name: 'wechaty-puppet-wechat4u',
+    name    : 'wechaty-puppet-wechat4u',
+    version : '^0.2.21',
   },
 }
 
@@ -41,13 +42,19 @@ const padchat: PuppetConfig = {
   },
 }
 
+const puppeteer: PuppetConfig = {
+  npm: {
+    name: 'wechaty-puppet-puppeteer',
+    version: '^0.4',
+  },
+}
 export const PUPPET_DICT = {
   default: wechat4u,
   //////////////////////////
   mock,
   padchat,
+  puppeteer,
   wechat4u,
-  // puppeteer:  PuppetPuppeteer,
 }
 
 export type PuppetName = keyof typeof PUPPET_DICT
