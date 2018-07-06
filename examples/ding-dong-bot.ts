@@ -20,51 +20,54 @@ import {
   Contact,
   Message,
   Wechaty,
+  config,
 }           from '../src/' // from 'wechaty'
-// import { PuppetPuppeteer }  from 'wechaty-puppet-puppeteer'
 
 import { FileBox }  from 'file-box'
 import { generate } from 'qrcode-terminal'
 
 /**
  *
- * 0. Declare your bot!
+ * 1. Declare your Bot!
  *
  */
 const bot = new Wechaty({
-  profile : 'padchat-demo',
-  // puppet  : new PuppetPupeteer(),
+  profile : config.default.DEFAULT_PROFILE,
 })
-
-const welcome = `
-| __        __        _           _
-| \\ \\      / /__  ___| |__   __ _| |_ _   _
-|  \\ \\ /\\ / / _ \\/ __| '_ \\ / _\` | __| | | |
-|   \\ V  V /  __/ (__| | | | (_| | |_| |_| |
-|    \\_/\\_/ \\___|\\___|_| |_|\\__,_|\\__|\\__, |
-|                                     |___/
-
-=============== Powered by Wechaty ===============
--------- https://github.com/chatie/wechaty --------
-          Version: ${bot.version(true)}
-
-I'm a bot, my superpower is talk in Wechat.
-
-If you send me a 'ding', I will reply you a 'dong'!
-__________________________________________________
-
-Hope you like it, and you are very welcome to
-upgrade me to more superpowers!
-
-Please wait... I'm trying to login in...
-
-`
-
-console.log(welcome)
 
 /**
  *
- * 1. Define Event Handler Functions for:
+ * 2. Register event handlers for Bot
+ *
+ */
+bot
+.on('logout', onLogout)
+.on('login',  onLogin)
+.on('scan',   onScan)
+.on('error',  onError)
+.on('message', onMessage)
+
+/**
+ *
+ * 3. Start the bot!
+ *
+ */
+bot.start()
+.catch(async e => {
+  console.error('Bot start() fail:', e)
+  await bot.stop()
+  process.exit(-1)
+})
+
+/**
+ *
+ * 4. You are all set. ;-]
+ *
+ */
+
+/**
+ *
+ * 5. Define Event Handler Functions for:
  *  `scan`, `login`, `logout`, `error`, and `message`
  *
  */
@@ -101,7 +104,7 @@ function onError (e: Error) {
 
 /**
  *
- * 2. The most important handler is for:
+ * 6. The most important handler is for:
  *    dealing with Messages.
  *
  */
@@ -122,13 +125,13 @@ async function onMessage (msg: Message) {
   }
 
   /**
-   * 2.1. reply 'dong'
+   * 1. reply 'dong'
    */
   await msg.say('dong')
   console.log('REPLY: dong')
 
   /**
-   * 2.2. reply image(qrcode image)
+   * 2. reply image(qrcode image)
    */
   const fileBox = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
 
@@ -136,7 +139,7 @@ async function onMessage (msg: Message) {
   console.log('REPLY: %s', fileBox.toString())
 
   /**
-   * 2.3. reply 'scan now!'
+   * 3. reply 'scan now!'
    */
   await msg.say([
     'Join Wechaty Developers Community\n\n',
@@ -147,31 +150,30 @@ async function onMessage (msg: Message) {
 
 /**
  *
- * 3. Register all event handlers
- *    that we had previous defined.
+ * 7. Output the Welcome Message
  *
  */
-bot
-.on('logout', onLogout)
-.on('login',  onLogin)
-.on('scan',   onScan)
-.on('error',  onError)
-.on('message', onMessage)
+const welcome = `
+| __        __        _           _
+| \\ \\      / /__  ___| |__   __ _| |_ _   _
+|  \\ \\ /\\ / / _ \\/ __| '_ \\ / _\` | __| | | |
+|   \\ V  V /  __/ (__| | | | (_| | |_| |_| |
+|    \\_/\\_/ \\___|\\___|_| |_|\\__,_|\\__|\\__, |
+|                                     |___/
 
-/**
- *
- * 4. Start the bot!
- *
- */
-bot.start()
-.catch(async e => {
-  console.error('Bot start() fail:', e)
-  await bot.stop()
-  process.exit(-1)
-})
+=============== Powered by Wechaty ===============
+-------- https://github.com/chatie/wechaty --------
+          Version: ${bot.version(true)}
 
-/**
- *
- * 5. You are all set. ;-]
- *
- */
+I'm a bot, my superpower is talk in Wechat.
+
+If you send me a 'ding', I will reply you a 'dong'!
+__________________________________________________
+
+Hope you like it, and you are very welcome to
+upgrade me to more superpowers!
+
+Please wait... I'm trying to login in...
+
+`
+console.log(welcome)
