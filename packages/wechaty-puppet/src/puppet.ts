@@ -255,8 +255,8 @@ export abstract class Puppet extends EventEmitter {
   public emit (event: 'room-leave', roomId: string, leaverIdList: string[], remover?: string)              : boolean
   public emit (event: 'room-topic', roomId: string, newTopic: string, oldTopic: string, changerId: string) : boolean
   public emit (event: 'scan',       qrcode: string, status: number, data?: string)                         : boolean
-  public emit (event: 'start')                                                                             : boolean
-  public emit (event: 'stop')                                                                              : boolean
+  // public emit (event: 'start')                                                                             : boolean
+  // public emit (event: 'stop')                                                                              : boolean
   // Internal Usage: watchdog
   public emit (event: 'watchdog',    food: WatchdogFood) : boolean
 
@@ -287,8 +287,8 @@ export abstract class Puppet extends EventEmitter {
   public on (event: 'room-leave', listener: (roomId: string, leaverIdList : string[], removerId?: string) => void)           : this
   public on (event: 'room-topic', listener: (roomId: string, newTopic: string, oldTopic: string, changerId: string) => void) : this
   public on (event: 'scan',       listener: (qrcode: string, status: number, data?: string) => void)                         : this
-  public on (event: 'start',      listener: () => void)                                                                      : this
-  public on (event: 'stop',       listener: () => void)                                                                      : this
+  // public on (event: 'start',      listener: () => void)                                                                      : this
+  // public on (event: 'stop',       listener: () => void)                                                                      : this
   // Internal Usage: watchdog
   public on (event: 'watchdog',   listener: (data: WatchdogFood) => void) : this
 
