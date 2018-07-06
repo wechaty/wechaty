@@ -499,6 +499,7 @@ export abstract class Puppet extends EventEmitter {
               // compatible with {} payload, which means that
               // contact id is not friend with the current user
               log.silly('Puppet', 'contactSearch() contactPayload exception: %s', e.message)
+              await this.contactPayloadDirty(id)
               return {} as any
             }
           },
@@ -861,6 +862,9 @@ export abstract class Puppet extends EventEmitter {
           } catch (e) {
             // compatible with {} payload
             log.silly('Puppet', 'roomSearch() roomPayload exception: %s', e.message)
+            // Remove invalid room id from cache to avoid getting invalid room payload again
+            await this.roomPayloadDirty(id)
+            await this.roomMemberPayloadDirty(id)
             return {} as any
           }
         }
