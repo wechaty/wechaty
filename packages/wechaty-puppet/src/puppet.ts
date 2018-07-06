@@ -855,7 +855,15 @@ export abstract class Puppet extends EventEmitter {
 
     const roomPayloadList = await Promise.all(
       allRoomIdList.map(
-        id => this.roomPayload(id),
+        async id => {
+          try {
+            return await this.roomPayload(id)
+          } catch (e) {
+            // compatible with {} payload
+            log.silly('Puppet', 'roomSearch() roomPayload exception: %s', e.message)
+            return {} as any
+          }
+        }
       ),
     )
 
