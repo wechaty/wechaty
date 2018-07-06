@@ -853,7 +853,7 @@ export abstract class Puppet extends EventEmitter {
       return allRoomIdList
     }
 
-    const roomPayloadList = await Promise.all(
+    const roomPayloadList: RoomPayload[] = (await Promise.all(
       allRoomIdList.map(
         async id => {
           try {
@@ -865,7 +865,7 @@ export abstract class Puppet extends EventEmitter {
           }
         }
       ),
-    )
+    )).filter(payload => Object.keys(payload).length > 0)
 
     const filterFunction = this.roomQueryFilterFactory(query)
 
