@@ -86,7 +86,7 @@
     "file-box": "^0.8.22",
     "fs-extra": "^6.0.1",
     "hot-import": "^0.2.1",
-    "memory-card": "^0.4.4",
+    "memory-card": "^0.4.5",
     "npm-programmatic": "0.0.10",
     "pkg-dir": "^3.0.0",
     "promise-retry": "^1.1.1",
@@ -149,7 +149,7 @@
     "tuling123-client": "^0.0.2",
     "typedoc": "^0.11.1",
     "typescript": "^2.9.2",
-    "wechaty-puppet-mock": "^0.2.10"
+    "wechaty-puppet-mock": "^0.2"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [
