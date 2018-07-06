@@ -528,15 +528,13 @@ export class Wechaty extends Accessory implements Sayable {
     }
     const puppetMemory = this.memory.sub(puppetName)
 
+    let puppetInstance: Puppet
+
     if (typeof puppet === 'string') {
       // tslint:disable-next-line:variable-name
       const MyPuppet = await puppetResolver(puppet)
       if (!MyPuppet) {
         throw new Error('no such puppet: ' + puppet)
-      }
-
-      const options: PuppetOptions = {
-        ...this.options.puppetOptions,
       }
 
       /**
@@ -550,14 +548,19 @@ export class Wechaty extends Accessory implements Sayable {
        * SOLUTION: we enforce all the PuppetImplenmentation to have `options` and should not allow default parameter.
        * Issue: https://github.com/Chatie/wechaty-puppet/issues/2
        */
-      return new MyPuppet(options)
+      puppetInstance = new MyPuppet(this.options.puppetOptions)
 
     } else if (puppet instanceof Puppet) {
-      puppet.setMemory(puppetMemory)
-      return puppet
+      puppetInstance = puppet
+
     } else {
       throw new Error('unsupported options.puppet: ' + puppet)
     }
+
+    // give puppet the memory
+    puppetInstance.setMemory(puppetMemory)
+
+    return puppetInstance
   }
 
   /**

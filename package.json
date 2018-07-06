@@ -86,7 +86,7 @@
     "file-box": "^0.8.22",
     "fs-extra": "^6.0.1",
     "hot-import": "^0.2.1",
-    "memory-card": "^0.4.5",
+    "memory-card": "^0.4.8",
     "npm-programmatic": "0.0.10",
     "pkg-dir": "^3.0.0",
     "promise-retry": "^1.1.1",

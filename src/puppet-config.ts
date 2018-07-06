@@ -99,7 +99,7 @@ async function installPuppet (
   puppetNpm: string,
   puppetVersion = 'latest',
 ): Promise<void> {
-  log.info('PuppetConfig', 'installPuppet(%s, %s) installing ...', puppetNpm, puppetVersion)
+  log.info('PuppetConfig', 'installPuppet(%s@%s) please wait ...', puppetNpm, puppetVersion)
   await npm.install(
     `${puppetNpm}@${puppetVersion}`,
     {
