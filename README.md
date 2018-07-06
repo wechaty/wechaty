@@ -143,7 +143,11 @@ See: [Official API Reference](https://chatie.github.io/wechaty/)
 
 ### Wechaty Badge
 
-Get embed html/markdown code from [Wiki:PoweredByWechaty](https://github.com/chatie/wechaty/wiki/PoweredByWechaty)
+```markdown
+[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-blue.svg)](https://github.com/chatie/wechaty)
+```
+
+Get more embed html/markdown code from [Wiki:PoweredByWechaty](https://github.com/chatie/wechaty/wiki/PoweredByWechaty)
 
 ### Projects Using Wechaty
 
