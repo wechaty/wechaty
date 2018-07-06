@@ -321,6 +321,12 @@ export abstract class Puppet extends EventEmitter {
   protected reset (reason: string): void {
     log.verbose('Puppet', 'reset(%s)', reason)
 
+    if (this.state.off()) {
+      log.verbose('Puppet', 'reset(%s) state is off(), do nothing.', reason)
+      this.watchdog.sleep()
+      return
+    }
+
     Promise.resolve()
     .then(() => this.stop())
     .then(() => this.start())
