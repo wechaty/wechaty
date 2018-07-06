@@ -98,7 +98,6 @@ export abstract class Puppet extends EventEmitter {
   public readonly cacheRoomMemberPayload : LRU.Cache<string, RoomMemberPayload>
 
   protected readonly state    : StateSwitch
-  protected readonly watchdog : Watchdog
   protected readonly counter  : number
   protected memory: MemoryCard
 
@@ -106,6 +105,8 @@ export abstract class Puppet extends EventEmitter {
    * Login-ed User ID
    */
   protected id?: string
+
+  private readonly watchdog : Watchdog
 
   /**
    * childPkg stores the `package.json` that the NPM module who extends the `Puppet`
@@ -137,10 +138,14 @@ export abstract class Puppet extends EventEmitter {
 
     /**
      * 1. Setup Watchdog
+     *  puppet implementation class only need to do one thing:
+     *  feed the watchdog by `this.emit('watchdog', ...)`
      */
     const timeout = this.options.timeout || DEFAULT_WATCHDOG_TIMEOUT
     log.verbose('Puppet', 'constructor() watchdog timeout set to %d seconds', timeout)
     this.watchdog = new Watchdog(1000 * timeout, 'Puppet')
+
+    this.on('watchdog', food => this.watchdog.feed(food))
     this.watchdog.on('reset', lastFood => {
       const reason = JSON.stringify(lastFood)
       log.silly('Puppet', 'constructor() watchdog.on(reset) reason: %s', reason)
