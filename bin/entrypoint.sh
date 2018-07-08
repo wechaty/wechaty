@@ -142,9 +142,9 @@ function wechaty::runBot() {
   case "$botFile" in
     *.js)
       if [ "$NODE_ENV" != "production" ]; then
-        echo "Executing babel-node --presets env $*"
+        echo "Executing babel-node --presets @babel/env $*"
         # https://stackoverflow.com/a/34025957/1123955
-        BABEL_DISABLE_CACHE=1 babel-node --presets env "$@" &
+        BABEL_DISABLE_CACHE=1 babel-node --presets @babel/env "$@" &
       else
         echo "Executing node $*"
         node "$@" &

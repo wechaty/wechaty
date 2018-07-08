@@ -64,8 +64,8 @@ import {
   Io,
 }                       from './io'
 import {
-  PUPPET_DICT,
   PuppetName,
+  puppetResolver,
 }                       from './puppet-config'
 
 import {
@@ -468,8 +468,8 @@ export class Wechaty extends Accessory implements Sayable {
     })
   }
 
-  private initPuppet(): void {
-    log.verbose('Wechaty', 'initPuppet(%s)', this.options.puppet)
+  private async initPuppet(): Promise<void> {
+    log.verbose('Wechaty', 'initPuppet() %s', this.options.puppet || '')
 
     let inited = false
     try {
@@ -483,7 +483,7 @@ export class Wechaty extends Accessory implements Sayable {
       return
     }
 
-    const puppet = this.initPuppetResolver(this.options.puppet)
+    const puppet = await this.initPuppetResolver(this.options.puppet)
 
     this.initPuppetVersionSatisfy(puppet)
     this.initPuppetEventBridge(puppet)
@@ -514,7 +514,7 @@ export class Wechaty extends Accessory implements Sayable {
    *
    * Init the Puppet
    */
-  private initPuppetResolver(puppet?: PuppetName | Puppet): Puppet {
+  private async initPuppetResolver(puppet?: PuppetName | Puppet): Promise<Puppet> {
     log.verbose('Wechaty', 'initPuppetResolver(%s)', puppet)
 
     if (!puppet) {
@@ -522,16 +522,19 @@ export class Wechaty extends Accessory implements Sayable {
       puppet  = config.puppet
     }
 
+    let puppetName = puppet as string
+    if (typeof puppetName !== 'string') {
+      puppetName = puppet.toString()
+    }
+    const puppetMemory = this.memory.sub(puppetName)
+
+    let puppetInstance: Puppet
+
     if (typeof puppet === 'string') {
       // tslint:disable-next-line:variable-name
-      const MyPuppet = PUPPET_DICT[puppet]
+      const MyPuppet = await puppetResolver(puppet)
       if (!MyPuppet) {
         throw new Error('no such puppet: ' + puppet)
-      }
-
-      const options: PuppetOptions = {
-        memory : this.memory,
-        ...this.options.puppetOptions,
       }
 
       /**
@@ -545,13 +548,19 @@ export class Wechaty extends Accessory implements Sayable {
        * SOLUTION: we enforce all the PuppetImplenmentation to have `options` and should not allow default parameter.
        * Issue: https://github.com/Chatie/wechaty-puppet/issues/2
        */
-      return new MyPuppet(options)
+      puppetInstance = new MyPuppet(this.options.puppetOptions)
 
     } else if (puppet instanceof Puppet) {
-      return puppet
+      puppetInstance = puppet
+
     } else {
       throw new Error('unsupported options.puppet: ' + puppet)
     }
+
+    // give puppet the memory
+    puppetInstance.setMemory(puppetMemory)
+
+    return puppetInstance
   }
 
   /**
@@ -791,7 +800,7 @@ export class Wechaty extends Accessory implements Sayable {
     try {
       await this.memory.load()
 
-      this.initPuppet()
+      await this.initPuppet()
       await this.puppet.start()
 
       if (this.options.ioToken) {
@@ -858,7 +867,11 @@ export class Wechaty extends Accessory implements Sayable {
 
     try {
       await this.puppet.stop()
+    } catch (e) {
+      log.warn('Wechaty', 'stop() puppet.stop() exception: %s', e.message)
+    }
 
+    try {
       if (this.io) {
         await this.io.stop()
         this.io = undefined

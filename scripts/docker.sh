@@ -5,7 +5,7 @@
 #
 set -e
 
-imageName='wechaty'
+imageName='wechaty:test'
 
 options='--rm'
 [ -n "$CIRCLECI" ] && options='--rm=false'

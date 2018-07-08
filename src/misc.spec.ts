@@ -21,7 +21,7 @@
 import test  from 'blue-tape'
 import sinon from 'sinon'
 
-import http      from 'http'
+// import http      from 'http'
 import express   from 'express'
 
 import promiseRetry = require('promise-retry')
@@ -116,56 +116,59 @@ test('stripEmoji()', async t => {
   t.is(empty, '', 'should return empty string for `undefined`')
 })
 
-test('downloadStream() for media', async t => {
-  const app = express()
-  app.use(require('cookie-parser')())
-  app.get('/ding', function(req, res) {
-    // console.log(req.cookies)
-    t.ok(req.cookies, 'should has cookies in req')
-    t.is(req.cookies.life, '42', 'should has a cookie named life value 42')
-    res.end('dong')
-  })
+// test('downloadStream() for media', async t => {
+//   const app = express()
+//   app.use(require('cookie-parser')())
+//   app.get('/ding', function(req, res) {
+//     // console.log(req.cookies)
+//     t.ok(req.cookies, 'should has cookies in req')
+//     t.is(req.cookies.life, '42', 'should has a cookie named life value 42')
+//     res.end('dong')
+//   })
 
-  const server = http.createServer(app)
-  server.on('clientError', (err, socket) => {
-    t.fail('server on clientError' + err)
-    socket.end('HTTP/1.1 400 Bad Request\r\n\r\n')
-  })
-  server.listen(65534)
+//   const server = http.createServer(app)
+//   server.on('clientError', (err, socket) => {
+//     t.fail('server on clientError' + err)
+//     socket.end('HTTP/1.1 400 Bad Request\r\n\r\n')
+//   })
+//   server.listen(65534)
 
-  try {
-    const s = await Misc.urlStream('http://127.0.0.1:65534/ding', [{name: 'life', value: 42}])
-    await new Promise((resolve, reject) => {
-      s.on('data', (chunk) => {
-        // console.log(`BODY: ${chunk}`)
-        t.is(chunk.toString(), 'dong', 'should success download dong from downloadStream()')
-        server.close()
-        resolve()
-      })
-      s.on('error', reject)
-    })
-  } catch (e) {
-    t.fail('downloadStream() exception: ' + e.message)
-  }
-})
+//   try {
+//     const s = await Misc.urlStream('http://127.0.0.1:65534/ding', [{name: 'life', value: 42}])
+//     await new Promise((resolve, reject) => {
+//       s.on('data', (chunk) => {
+//         // console.log(`BODY: ${chunk}`)
+//         t.is(chunk.toString(), 'dong', 'should success download dong from downloadStream()')
+//         server.close()
+//         resolve()
+//       })
+//       s.on('error', reject)
+//     })
+//   } catch (e) {
+//     t.fail('downloadStream() exception: ' + e.message)
+//   }
+// })
 
 test('getPort() for an available socket port', async t => {
   const PORT = 8788
 
   let port = await Misc.getPort(PORT)
-  t.not(port, PORT, 'should not be same port even it is available(to provent conflict between concurrency tests in AVA)')
-
   let ttl = 17
+
+  const serverList = []
+
   while (ttl-- > 0) {
     try {
       const app = express()
-      const server = app.listen(PORT)
+      const server = app.listen(port)
       port = await Misc.getPort(PORT)
-      server.close()
+
+      serverList.push(server)
     } catch (e) {
       t.fail('should not exception: ' + e.message + ', ' + e.stack)
     }
   }
+  serverList.map(server => server.close())
   t.pass('should has no exception after loop test')
 })
 

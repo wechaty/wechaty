@@ -5,9 +5,6 @@ import test  from 'blue-tape'
 import {
   cloneClass,
 }                           from 'clone-class'
-import {
-  MemoryCard,
-}                           from 'memory-card'
 
 import {
   Contact as GlobalContact,
@@ -53,7 +50,7 @@ test('should be able to instanciate through cloneClass with puppet', async t => 
   // tslint:disable-next-line:variable-name
   const MyContact = cloneClass(Contact)
 
-  MyContact.puppet = new PuppetMock({ memory: new MemoryCard })
+  MyContact.puppet = new PuppetMock()
 
   t.doesNotThrow(() => {
     const c = MyContact.load('xxx')
