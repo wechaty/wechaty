@@ -1,4 +1,4 @@
-# Wechaty v0.17.60 Documentation
+# Wechaty v0.17.116 Documentation
 
 * <https://blog.chatie.io>
 
@@ -169,18 +169,18 @@ wechaty.on('message', (message: Message) => {
   console.log(`message ${message} received`)
 })
 ```
-**Example** *(Event:friend )*  
+**Example** *(Event:friendship )*  
 ```js
-bot.on('friend', (request: Friendship) => {
-  if(request.type === Friendship.Type.RECEIVE){ // 1. receive new friend request from new contact
-    const contact = request.contact()
-    let result = await request.accept()
+bot.on('friendship', (friendship: Friendship) => {
+  if(friendship.type() === Friendship.Type.RECEIVE){ // 1. receive new friendship request from new contact
+    const contact = friendship.contact()
+    let result = await friendship.accept()
       if(result){
         console.log(`Request from ${contact.name()} is accept succesfully!`)
       } else{
         console.log(`Request from ${contact.name()} failed to accept!`)
       }
-	  } else if (request.type === Friendship.Type.CONFIRM) { // 2. confirm friend ship
+	  } else if (friendship.type() === Friendship.Type.CONFIRM) { // 2. confirm friendship
       console.log(`new friendship confirmed with ${contact.name()}`)
    }
  })
@@ -1229,7 +1229,7 @@ Wechaty Class Event Function
 | logout | <code>function</code> | (this: Wechaty, user: ContactSelf) => void |
 | scan | <code>function</code> | (this: Wechaty, url: string, code: number) => void <br> <ol> <li>URL: {String} the QR code image URL</li> <li>code: {Number} the scan status code. some known status of the code list here is:</li> </ol> <ul> <li>0 initial_</li> <li>200 login confirmed</li> <li>201 scaned, wait for confirm</li> <li>408 waits for scan</li> </ul> |
 | heartbeat | <code>function</code> | (this: Wechaty, data: any) => void |
-| friend | <code>function</code> | (this: Wechaty, request?: Friendship) => void |
+| friendship | <code>function</code> | (this: Wechaty, friendship: Friendship) => void |
 | message | <code>function</code> | (this: Wechaty, message: Message) => void |
 | room-join | <code>function</code> | (this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void |
 | room-topic | <code>function</code> | (this: Wechaty, room: Room, newTopic: string, oldTopic: string, changer: Contact) => void |
