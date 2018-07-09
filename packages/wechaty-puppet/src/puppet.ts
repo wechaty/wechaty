@@ -98,7 +98,6 @@ export abstract class Puppet extends EventEmitter {
   public readonly cacheRoomMemberPayload : LRU.Cache<string, RoomMemberPayload>
 
   protected readonly state    : StateSwitch
-  protected readonly watchdog : Watchdog
   protected readonly counter  : number
   protected memory: MemoryCard
 
@@ -106,6 +105,8 @@ export abstract class Puppet extends EventEmitter {
    * Login-ed User ID
    */
   protected id?: string
+
+  private readonly watchdog : Watchdog
 
   /**
    * childPkg stores the `package.json` that the NPM module who extends the `Puppet`
@@ -137,10 +138,14 @@ export abstract class Puppet extends EventEmitter {
 
     /**
      * 1. Setup Watchdog
+     *  puppet implementation class only need to do one thing:
+     *  feed the watchdog by `this.emit('watchdog', ...)`
      */
     const timeout = this.options.timeout || DEFAULT_WATCHDOG_TIMEOUT
     log.verbose('Puppet', 'constructor() watchdog timeout set to %d seconds', timeout)
     this.watchdog = new Watchdog(1000 * timeout, 'Puppet')
+
+    this.on('watchdog', food => this.watchdog.feed(food))
     this.watchdog.on('reset', lastFood => {
       const reason = JSON.stringify(lastFood)
       log.silly('Puppet', 'constructor() watchdog.on(reset) reason: %s', reason)
@@ -250,8 +255,8 @@ export abstract class Puppet extends EventEmitter {
   public emit (event: 'room-leave', roomId: string, leaverIdList: string[], remover?: string)              : boolean
   public emit (event: 'room-topic', roomId: string, newTopic: string, oldTopic: string, changerId: string) : boolean
   public emit (event: 'scan',       qrcode: string, status: number, data?: string)                         : boolean
-  public emit (event: 'start')                                                                             : boolean
-  public emit (event: 'stop')                                                                              : boolean
+  // public emit (event: 'start')                                                                             : boolean
+  // public emit (event: 'stop')                                                                              : boolean
   // Internal Usage: watchdog
   public emit (event: 'watchdog',    food: WatchdogFood) : boolean
 
@@ -282,8 +287,8 @@ export abstract class Puppet extends EventEmitter {
   public on (event: 'room-leave', listener: (roomId: string, leaverIdList : string[], removerId?: string) => void)           : this
   public on (event: 'room-topic', listener: (roomId: string, newTopic: string, oldTopic: string, changerId: string) => void) : this
   public on (event: 'scan',       listener: (qrcode: string, status: number, data?: string) => void)                         : this
-  public on (event: 'start',      listener: () => void)                                                                      : this
-  public on (event: 'stop',       listener: () => void)                                                                      : this
+  // public on (event: 'start',      listener: () => void)                                                                      : this
+  // public on (event: 'stop',       listener: () => void)                                                                      : this
   // Internal Usage: watchdog
   public on (event: 'watchdog',   listener: (data: WatchdogFood) => void) : this
 
@@ -315,6 +320,12 @@ export abstract class Puppet extends EventEmitter {
    */
   protected reset (reason: string): void {
     log.verbose('Puppet', 'reset(%s)', reason)
+
+    if (this.state.off()) {
+      log.verbose('Puppet', 'reset(%s) state is off(), do nothing.', reason)
+      this.watchdog.sleep()
+      return
+    }
 
     Promise.resolve()
     .then(() => this.stop())
@@ -499,6 +510,7 @@ export abstract class Puppet extends EventEmitter {
               // compatible with {} payload, which means that
               // contact id is not friend with the current user
               log.silly('Puppet', 'contactSearch() contactPayload exception: %s', e.message)
+              await this.contactPayloadDirty(id)
               return {} as any
             }
           },
@@ -853,11 +865,22 @@ export abstract class Puppet extends EventEmitter {
       return allRoomIdList
     }
 
-    const roomPayloadList = await Promise.all(
+    const roomPayloadList: RoomPayload[] = (await Promise.all(
       allRoomIdList.map(
-        id => this.roomPayload(id),
+        async id => {
+          try {
+            return await this.roomPayload(id)
+          } catch (e) {
+            // compatible with {} payload
+            log.silly('Puppet', 'roomSearch() roomPayload exception: %s', e.message)
+            // Remove invalid room id from cache to avoid getting invalid room payload again
+            await this.roomPayloadDirty(id)
+            await this.roomMemberPayloadDirty(id)
+            return {} as any
+          }
+        }
       ),
-    )
+    )).filter(payload => Object.keys(payload).length > 0)
 
     const filterFunction = this.roomQueryFilterFactory(query)
 
