@@ -37,6 +37,19 @@ The above puppet is for mocking, and also could be a good starter if you want to
 `FileBox` (npm module `file-box`) must be a `peerDependencies`, becasue all the Wechaty Framework need to check `instanceof FileBox`, we must be sure all `FileBox` is the same version.
 `MemoryCard` (npm module `memory-card`) must be a `peerDependencies`, becasue all the Wechaty Framework need to check `instanceof MemoryCard`, we must be sure all `MemoryCard` is the same version.
 
+## CODING WITH PUPPET
+
+### SwitchState
+
+You can get to know the puppet start/stop state from the `state` property:
+
+1. `puppet.state.on() === 'pending'` will be true when the puppet is starting
+1. `puppet.state.on() === true` will be true when the puppet is started
+1. `puppet.state.off() === 'pending'` will be true when the puppet is stoping
+1. `puppet.state.off() === true' will be true when the puppet is stopped
+
+Learn more about the puppet.state at <https://github.com/zixia/state-switch>
+
 ## Resources
 
 ### Pure Function
