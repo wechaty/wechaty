@@ -43,8 +43,7 @@ If you want to know how to get contact, see <a href="#Contact">Contact</a></p>
 </dd>
 <dt><a href="#Message">Message</a></dt>
 <dd><p>All wechat messages will be encapsulated as a Message.</p>
-<p><code>Message</code> is <code>Sayable</code>,
-<a href="https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts">Examples/Ding-Dong-Bot</a></p>
+<p><a href="https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts">Examples/Ding-Dong-Bot</a></p>
 </dd>
 </dl>
 
@@ -589,6 +588,7 @@ bot
     console.log(`room topic is : ${topic}`)
   }
 })
+.start()
 ```
 **Example** *(When you say anything in a room, it will change room topic. )*  
 ```js
@@ -602,6 +602,7 @@ bot
     console.log(`room topic change from ${oldTopic} to ${room.topic()}`)
   }
 })
+.start()
 ```
 <a name="Room+announce"></a>
 
@@ -626,6 +627,7 @@ bot
     console.log(`room announce is : ${announce}`)
   }
 })
+.start()
 ```
 **Example** *(When you say anything in a room, it will change room announce. )*  
 ```js
@@ -639,6 +641,7 @@ bot
     console.log(`room announce change from ${oldAnnounce} to ${room.announce()}`)
   }
 })
+.start()
 ```
 <a name="Room+qrcode"></a>
 
@@ -670,6 +673,7 @@ bot
     console.log(`${contact.name()} alias is ${alias}`)
   }
 })
+.start()
 ```
 <a name="Room+roomAlias"></a>
 
@@ -1244,45 +1248,50 @@ Send a Friend Request to a `contact` with message `hello`.
 ## Message
 All wechat messages will be encapsulated as a Message.
 
-`Message` is `Sayable`,
 [Examples/Ding-Dong-Bot](https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts)
 
 **Kind**: global class  
 
 * [Message](#Message)
-    * _instance_
-        * [.payload](#Message+payload)
-        * [.from()](#Message+from) ⇒ [<code>Contact</code>](#Contact)
-        * [.to()](#Message+to) ⇒ [<code>Contact</code>](#Contact) \| <code>null</code>
-        * [.room()](#Message+room) ⇒ [<code>Room</code>](#Room) \| <code>null</code>
-        * ~~[.content()](#Message+content)~~
-        * [.text()](#Message+text) ⇒ <code>string</code>
-        * [.say(textOrContactOrFile, [mention])](#Message+say) ⇒ <code>Promise.&lt;void&gt;</code>
-        * ~~[.file()](#Message+file)~~
-        * [.type()](#Message+type) ⇒ <code>WebMsgType</code>
-        * [.self()](#Message+self) ⇒ <code>boolean</code>
-        * [.mention()](#Message+mention) ⇒ [<code>Array.&lt;Contact&gt;</code>](#Contact)
-        * [.mentioned()](#Message+mentioned)
-        * [.forward(to)](#Message+forward) ⇒ <code>Promise.&lt;void&gt;</code>
-        * [.age()](#Message+age)
-    * _static_
-        * [.Type](#Message.Type)
-        * [.find()](#Message.find)
-        * [.findAll()](#Message.findAll)
-        * [.create()](#Message.create)
+    * [.from()](#Message+from) ⇒ [<code>Contact</code>](#Contact)
+    * [.to()](#Message+to) ⇒ [<code>Contact</code>](#Contact) \| <code>null</code>
+    * [.room()](#Message+room) ⇒ [<code>Room</code>](#Room) \| <code>null</code>
+    * ~~[.content()](#Message+content)~~
+    * [.text()](#Message+text) ⇒ <code>string</code>
+    * [.say(textOrContactOrFile, [mention])](#Message+say) ⇒ <code>Promise.&lt;void&gt;</code>
+    * [.type()](#Message+type) ⇒ <code>MessageType</code>
+    * [.self()](#Message+self) ⇒ <code>boolean</code>
+    * [.mention()](#Message+mention) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
+    * ~~[.mentioned()](#Message+mentioned)~~
+    * [.forward(to)](#Message+forward) ⇒ <code>Promise.&lt;void&gt;</code>
+    * [.age()](#Message+age) ⇒ <code>number</code>
+    * ~~[.file()](#Message+file)~~
+    * [.toFileBox()](#Message+toFileBox) ⇒ <code>Promise.&lt;FileBox&gt;</code>
+    * [.toContact()](#Message+toContact) ⇒ <code>Promise.&lt;FileBox&gt;</code>
 
-<a name="Message+payload"></a>
-
-### message.payload
-Instance Properties
-
-**Kind**: instance property of [<code>Message</code>](#Message)  
 <a name="Message+from"></a>
 
 ### message.from() ⇒ [<code>Contact</code>](#Contact)
 Get the sender from a message.
 
 **Kind**: instance method of [<code>Message</code>](#Message)  
+**Example**  
+```js
+const bot = new Wechaty()
+bot
+.on('message', async m => {
+  const contact = msg.from()
+  const text = msg.text()
+  const room = msg.room()
+  if (room) {
+    const topic = await room.topic()
+    console.log(`Room: ${topic} Contact: ${contact.name()} Text: ${text}`)
+  } else {
+    console.log(`Contact: ${contact.name()} Text: ${text}`)
+  }
+})
+.start()
+```
 <a name="Message+to"></a>
 
 ### message.to() ⇒ [<code>Contact</code>](#Contact) \| <code>null</code>
@@ -1297,10 +1306,29 @@ Get the room from the message.
 If the message is not in a room, then will return `null`
 
 **Kind**: instance method of [<code>Message</code>](#Message)  
+**Example**  
+```js
+const bot = new Wechaty()
+bot
+.on('message', async m => {
+  const contact = msg.from()
+  const text = msg.text()
+  const room = msg.room()
+  if (room) {
+    const topic = await room.topic()
+    console.log(`Room: ${topic} Contact: ${contact.name()} Text: ${text}`)
+  } else {
+    console.log(`Contact: ${contact.name()} Text: ${text}`)
+  }
+})
+.start()
+```
 <a name="Message+content"></a>
 
 ### ~~message.content()~~
 ***Deprecated***
+
+use [text](#Message+text) instead
 
 **Kind**: instance method of [<code>Message</code>](#Message)  
 <a name="Message+text"></a>
@@ -1309,6 +1337,23 @@ If the message is not in a room, then will return `null`
 Get the text content of the message
 
 **Kind**: instance method of [<code>Message</code>](#Message)  
+**Example**  
+```js
+const bot = new Wechaty()
+bot
+.on('message', async m => {
+  const contact = msg.from()
+  const text = msg.text()
+  const room = msg.room()
+  if (room) {
+    const topic = await room.topic()
+    console.log(`Room: ${topic} Contact: ${contact.name()} Text: ${text}`)
+  } else {
+    console.log(`Contact: ${contact.name()} Text: ${text}`)
+  }
+})
+.start()
+```
 <a name="Message+say"></a>
 
 ### message.say(textOrContactOrFile, [mention]) ⇒ <code>Promise.&lt;void&gt;</code>
@@ -1317,39 +1362,63 @@ Reply a Text or Media File message to the sender.
 **Kind**: instance method of [<code>Message</code>](#Message)  
 **See**: [Examples/ding-dong-bot](https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts)  
 
-| Param | Type |
-| --- | --- |
-| textOrContactOrFile | <code>string</code> \| <code>FileBox</code> | 
-| [mention] | [<code>Contact</code>](#Contact) \| [<code>Array.&lt;Contact&gt;</code>](#Contact) | 
+| Param | Type | Description |
+| --- | --- | --- |
+| textOrContactOrFile | <code>string</code> \| [<code>Contact</code>](#Contact) \| <code>FileBox</code> | send text, Contact, or file to bot. </br> You can use [FileBox](https://www.npmjs.com/package/file-box) to send file |
+| [mention] | [<code>Contact</code>](#Contact) \| [<code>Array.&lt;Contact&gt;</code>](#Contact) |  |
 
 **Example**  
 ```js
+import { FileBox }  from 'file-box'
 const bot = new Wechaty()
 bot
 .on('message', async m => {
+
+# 1. send Image
+
   if (/^ding$/i.test(m.text())) {
-    await m.say('hello world')
-    console.log('Bot REPLY: hello world')
-    await m.say(new bot.Message(__dirname + '/wechaty.png'))
-    console.log('Bot REPLY: Image')
+    const fileBox = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
+    await msg.say(fileBox)
   }
+
+# 2. send Text
+
+  if (/^dong$/i.test(m.text())) {
+    await msg.say('dingdingding')
+  }
+
+# 3. send Contact
+
+  if (/^lijiarui$/i.test(m.text())) {
+    const contactCard = await bot.Contact.find({name: 'lijiarui'})
+    await msg.say(contactCard)
+  }
+
 })
+.start()
 ```
-<a name="Message+file"></a>
-
-### ~~message.file()~~
-***Deprecated***
-
-**Kind**: instance method of [<code>Message</code>](#Message)  
 <a name="Message+type"></a>
 
-### message.type() ⇒ <code>WebMsgType</code>
+### message.type() ⇒ <code>MessageType</code>
 Get the type from the message.
-
-If type is equal to `MsgType.RECALLED`, [Message#id](Message#id) is the msgId of the recalled message.
+> Tips: MessageType is Enum here. </br>
+- MessageType.Unknown   = 0, </br>
+- MessageType.Attachment = 1, </br>
+- MessageType.Audio      = 2, </br>
+- MessageType.Contact    = 3, </br>
+- MessageType.Emoticon   = 4, </br>
+- MessageType.Image      = 5, </br>
+- MessageType.Text       = 6, </br>
+- MessageType.Video      = 7, </br>
 
 **Kind**: instance method of [<code>Message</code>](#Message)  
-**See**: [MsgType](MsgType)  
+**Example**  
+```js
+const bot = new Wechaty()
+if (message.type() === bot.Message.Type.Text) {
+  console.log('This is a text message')
+}
+```
 <a name="Message+self"></a>
 
 ### message.self() ⇒ <code>boolean</code>
@@ -1365,7 +1434,7 @@ if (message.self()) {
 ```
 <a name="Message+mention"></a>
 
-### message.mention() ⇒ [<code>Array.&lt;Contact&gt;</code>](#Contact)
+### message.mention() ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
 Get message mentioned contactList.
 
 Message event table as follows
@@ -1378,17 +1447,20 @@ Message event table as follows
 | Identify two contacts with the same roomAlias by [You were  mentioned] tip |  ✘   |        ✘       |     √      |       √         |
 
 **Kind**: instance method of [<code>Message</code>](#Message)  
-**Returns**: [<code>Array.&lt;Contact&gt;</code>](#Contact) - - Return message mentioned contactList  
+**Returns**: <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code> - - Return message mentioned contactList  
 **Example**  
 ```js
-const contactList = message.mentioned()
+const contactList = await message.mentioned()
 console.log(contactList)
 ```
 <a name="Message+mentioned"></a>
 
-### message.mentioned()
+### ~~message.mentioned()~~
+***Deprecated***
+
+should use [mention](#Message+mention) instead
+
 **Kind**: instance method of [<code>Message</code>](#Message)  
-**Deprecated:**: use mention() instead  
 <a name="Message+forward"></a>
 
 ### message.forward(to) ⇒ <code>Promise.&lt;void&gt;</code>
@@ -1400,44 +1472,48 @@ Forward the received message.
 | --- | --- | --- |
 | to | <code>Sayable</code> \| <code>Array.&lt;Sayable&gt;</code> | Room or Contact The recipient of the message, the room, or the contact |
 
+**Example**  
+```js
+const bot = new Wechaty()
+bot
+.on('message', async m => {
+  const room = await bot.Room.find({topic: 'wechaty'})
+  if (room) {
+    await m.forward(room)
+    console.log('forward this message to wechaty room!')
+  }
+})
+.start()
+```
 <a name="Message+age"></a>
 
-### message.age()
+### message.age() ⇒ <code>number</code>
 Message Age:
- in seconds.
+in seconds.
+TODO
 
 **Kind**: instance method of [<code>Message</code>](#Message)  
-<a name="Message.Type"></a>
+<a name="Message+file"></a>
 
-### Message.Type
-Static Properties
+### ~~message.file()~~
+***Deprecated***
 
-**Kind**: static property of [<code>Message</code>](#Message)  
-<a name="Message.find"></a>
+use [toFileBox](#Message+toFileBox) instead
 
-### Message.find()
-**Kind**: static method of [<code>Message</code>](#Message)  
-**Todo**
+**Kind**: instance method of [<code>Message</code>](#Message)  
+<a name="Message+toFileBox"></a>
 
-- [ ] add function
+### message.toFileBox() ⇒ <code>Promise.&lt;FileBox&gt;</code>
+Get Media File of the Message
 
-<a name="Message.findAll"></a>
+**Kind**: instance method of [<code>Message</code>](#Message)  
+<a name="Message+toContact"></a>
 
-### Message.findAll()
-**Kind**: static method of [<code>Message</code>](#Message)  
-**Todo**
+### message.toContact() ⇒ <code>Promise.&lt;FileBox&gt;</code>
+Get Share Card of the Message
+TODO
 
-- [ ] add function
-
-<a name="Message.create"></a>
-
-### Message.create()
-Create a Mobile Terminated Message
-
-"mobile originated" or "mobile terminated"
-https://www.tatango.com/resources/video-lessons/video-mo-mt-sms-messaging/
-
-**Kind**: static method of [<code>Message</code>](#Message)  
+**Kind**: instance method of [<code>Message</code>](#Message)  
 <a name="PuppetName"></a>
 
 ## PuppetName

@@ -591,6 +591,7 @@ export class Room extends Accessory implements Sayable {
    *     console.log(`room topic is : ${topic}`)
    *   }
    * })
+   * .start()
    *
    * @example <caption>When you say anything in a room, it will change room topic. </caption>
    * const bot = new Wechaty()
@@ -603,6 +604,7 @@ export class Room extends Accessory implements Sayable {
    *     console.log(`room topic change from ${oldTopic} to ${room.topic()}`)
    *   }
    * })
+   * .start()
    */
   public async topic(newTopic?: string): Promise<void | string> {
     log.verbose('Room', 'topic(%s)', newTopic ? newTopic : '')
@@ -660,6 +662,7 @@ export class Room extends Accessory implements Sayable {
    *     console.log(`room announce is : ${announce}`)
    *   }
    * })
+   * .start()
    *
    * @example <caption>When you say anything in a room, it will change room announce. </caption>
    * const bot = new Wechaty()
@@ -672,6 +675,7 @@ export class Room extends Accessory implements Sayable {
    *     console.log(`room announce change from ${oldAnnounce} to ${room.announce()}`)
    *   }
    * })
+   * .start()
    */
   public async announce(text?: string): Promise<void | string> {
     log.verbose('Room', 'announce(%s)', text ? text : '')
@@ -709,6 +713,7 @@ export class Room extends Accessory implements Sayable {
    *     console.log(`${contact.name()} alias is ${alias}`)
    *   }
    * })
+   * .start()
    */
   public async alias(contact: Contact): Promise<null | string> {
     return this.roomAlias(contact)
