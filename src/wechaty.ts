@@ -233,38 +233,20 @@ export class Wechaty extends Accessory implements Sayable {
    */
 
   /**
-   * @summary The option parameter to create a wechaty instance
+   * The option parameter to create a wechaty instance
    *
    * @typedef    WechatyOptions
-   * @property   {string}                 profile            -Wechaty Name.
+   * @property   {string}                 profile            -Wechaty Name. </br>
+   *          When you set this: </br>
+   *          `new Wechaty({profile: 'wechatyName'}) ` </br>
+   *          it will generate a file called `wechatyName.memory-card.json`. </br>
+   *          This file stores the bot's login information. </br>
+   *          If the file is valid, the bot can auto login so you don't need to scan the qrcode to login again. </br>
+   *          Also, you can set the environment variable for `WECHATY_PROFILE` to set this value when you start. </br>
+   *          eg:  `WECHATY_PROFILE="your-cute-bot-name" node bot.js`
    * @property   {PuppetName | Puppet}    puppet             -Puppet name or instance
    * @property   {Partial<PuppetOptions>} puppetOptions      -Puppet TOKEN
    * @property   {string}                 ioToken            -Io TOKEN
-   *
-   * @desc
-   * > Question: What is profile here means
-   *
-   * Answer: When you set profile `new Wechaty({profile: 'wechatyName'})` once you start your wechaty,
-   * it will generate a file called `wechatyName.memory-card.json`.
-   * This file stores the bot's login information, which can be used to save bot's personal information.
-   * So the bot can auto login to Wechat after the first time.
-   *
-   * > Question:If the default.memory-card.json stores my bot's personal information,
-   * what if I want to start multiple bots? Are they gonna share the same file?
-   *
-   * Answer: If you want to fire up multiple bots on one machine,
-   * you can setup the name for the memory-card, so you will have multiple `memory-card.json` files,
-   * To setup the name, you need to setup the `profile` for your bot, you have two options to do this:
-   * 1. Set the profile with option of the constructor, like this
-   * ```typescript
-   * const bot = Wechaty.instance({ profile: 'your-cute-bot-name' })
-   * ```
-   * 2. Set the environment variable for `WECHATY_PROFILE` during the start
-   * ```shell
-   * WECHATY_PROFILE="your-cute-bot-name" node bot.js
-   * ```
-   *
-   * Then you will see a file called `your-cute-bot-name.memory-card.json` file in the root folder.
    */
 
   /**
@@ -372,7 +354,8 @@ export class Wechaty extends Accessory implements Sayable {
    * @property   {string}  room-topic - Get topic event, emitted when someone change room topic.
    * @property   {string}  room-leave - Emit when anyone leave the room.<br>
    *                                    If someone leaves the room by themselves, wechat will not notice other people in the room, so the bot will never get the "leave" event.
-   * @property   {string}  scan       - A scan event will be emitted when the bot needs to show you a QR Code for scanning.
+   * @property   {string}  scan       - A scan event will be emitted when the bot needs to show you a QR Code for scanning. </br>
+   *                                    It is recommend to install qrcode-terminal(run `npm install qrcode-terminal`) in order to show qrcode in the terminal.
    */
 
   /**

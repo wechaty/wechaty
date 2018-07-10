@@ -63,29 +63,7 @@ The plugins are named XXXPuppet, for example:</p>
 </ul>
 </dd>
 <dt><a href="#WechatyOptions">WechatyOptions</a></dt>
-<dd><blockquote>
-<p>Question: What is profile here means</p>
-</blockquote>
-<p>Answer: When you set profile <code>new Wechaty({profile: &#39;wechatyName&#39;})</code> once you start your wechaty,
-it will generate a file called wechatyName.memory-card.json.
-This file stores the bot&#39;s login information, which can be used to save bot&#39;s personal information.
-So the bot can auto login to Wechat after the first time.</p>
-<blockquote>
-<p>Question:If the default.memory-card.json stores my bot&#39;s personal information,
-what if I want to start multiple bots? Are they gonna share the same file?</p>
-</blockquote>
-<p>Answer: If you want to fire up multiple bots on one machine,
-you can setup the name for the memory-card, so you will have multiple <code>memory-card.json</code> files,
-To setup the name, you need to setup the <code>profile</code> for your bot, you have two options to do this:</p>
-<ol>
-<li>Set the profile with option of the constructor, like this<pre><code class="lang-typescript">const bot = Wechaty.instance({ profile: &#39;your-cute-bot-name&#39; })
-</code></pre>
-</li>
-<li>Set the environment variable for <code>WECHATY_PROFILE</code> during the start<pre><code class="lang-shell">WECHATY_PROFILE=&quot;your-cute-bot-name&quot; node bot.js
-</code></pre>
-</li>
-</ol>
-<p>Then you will see a file called <code>your-cute-bot-name.memory-card.json</code> file in the root folder.</p>
+<dd><p>The option parameter to create a wechaty instance</p>
 </dd>
 <dt><a href="#WechatyEventName">WechatyEventName</a></dt>
 <dd><p>Wechaty Class Event Type</p>
@@ -1331,37 +1309,14 @@ The plugins are named XXXPuppet, for example:
 <a name="WechatyOptions"></a>
 
 ## WechatyOptions
-> Question: What is profile here means
-
-Answer: When you set profile `new Wechaty({profile: 'wechatyName'})` once you start your wechaty,
-it will generate a file called wechatyName.memory-card.json.
-This file stores the bot's login information, which can be used to save bot's personal information.
-So the bot can auto login to Wechat after the first time.
-
-> Question:If the default.memory-card.json stores my bot's personal information,
-what if I want to start multiple bots? Are they gonna share the same file?
-
-Answer: If you want to fire up multiple bots on one machine,
-you can setup the name for the memory-card, so you will have multiple `memory-card.json` files,
-To setup the name, you need to setup the `profile` for your bot, you have two options to do this:
-1. Set the profile with option of the constructor, like this
-```typescript
-const bot = Wechaty.instance({ profile: 'your-cute-bot-name' })
-```
-2. Set the environment variable for `WECHATY_PROFILE` during the start
-```shell
-WECHATY_PROFILE="your-cute-bot-name" node bot.js
-```
-
-Then you will see a file called `your-cute-bot-name.memory-card.json` file in the root folder.
+The option parameter to create a wechaty instance
 
 **Kind**: global typedef  
-**Summary**: The option parameter to create a wechaty instance  
 **Properties**
 
 | Name | Type | Description |
 | --- | --- | --- |
-| profile | <code>string</code> | Wechaty Name. |
+| profile | <code>string</code> | Wechaty Name.          When you set this </br>          `new Wechaty({profile: 'wechatyName'}) ` </br>          it will generate a file called `wechatyName.memory-card.json`. </br>          This file stores the bot's login information. </br>          If the file is valid, the bot can auto login so you don't need to scan the qrcode to login again. </br>          Also, you can set the environment variable for `WECHATY_PROFILE` to set this value when you start. </br>          eg:  `WECHATY_PROFILE="your-cute-bot-name" node bot.js` |
 | puppet | [<code>PuppetName</code>](#PuppetName) \| <code>Puppet</code> | Puppet name or instance |
 | puppetOptions | <code>Partial.&lt;PuppetOptions&gt;</code> | Puppet TOKEN |
 | ioToken | <code>string</code> | Io TOKEN |
@@ -1385,7 +1340,7 @@ Wechaty Class Event Type
 | room-join | <code>string</code> | Emit when anyone join any room. |
 | room-topic | <code>string</code> | Get topic event, emitted when someone change room topic. |
 | room-leave | <code>string</code> | Emit when anyone leave the room.<br>                                    If someone leaves the room by themselves, wechat will not notice other people in the room, so the bot will never get the "leave" event. |
-| scan | <code>string</code> | A scan event will be emitted when the bot needs to show you a QR Code for scanning. |
+| scan | <code>string</code> | A scan event will be emitted when the bot needs to show you a QR Code for scanning. </br>                                    It is recommend to install qrcode-terminal(run `npm install qrcode-terminal`) in order to show qrcode in the terminal. |
 
 <a name="WechatyEventFunction"></a>
 
