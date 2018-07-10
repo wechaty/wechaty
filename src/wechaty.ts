@@ -518,8 +518,8 @@ export class Wechaty extends Accessory implements Sayable {
     log.verbose('Wechaty', 'initPuppetResolver(%s)', puppet)
 
     if (!puppet) {
-      log.info('Wechaty', 'initPuppet() using puppet: %s', config.puppet)
-      puppet  = config.puppet
+      log.info('Wechaty', 'initPuppet() using puppet: %s', 'default')
+      puppet  = 'default'
     }
 
     let puppetName = puppet as string
@@ -559,6 +559,8 @@ export class Wechaty extends Accessory implements Sayable {
 
     // give puppet the memory
     puppetInstance.setMemory(puppetMemory)
+
+    log.info('Wechaty', 'initPuppet() inited puppet: %s', puppetInstance.toString())
 
     return puppetInstance
   }

@@ -24,12 +24,12 @@ import { config } from './config'
 // import { Puppet } from './puppet'
 
 test('important variables', async t => {
-  t.true('puppet'   in config, 'should exist `puppet` in Config')
+  // t.true('puppet'   in config, 'should exist `puppet` in Config')
   t.true('apihost'  in config, 'should exist `apihost` in Config')
   t.true('profile'  in config, 'should exist `profile` in Config')
   t.true('token'    in config, 'should exist `token` in Config')
 
-  t.ok(config.default.DEFAULT_PUPPET      , 'should export DEFAULT_PUPPET')
+  // t.ok(config.default.DEFAULT_PUPPET      , 'should export DEFAULT_PUPPET')
   t.ok(config.default.DEFAULT_PROFILE     , 'should export DEFAULT_PROFILE')
   t.ok(config.default.DEFAULT_PROTOCOL    , 'should export DEFAULT_PROTOCOL')
   t.ok(config.default.DEFAULT_APIHOST     , 'should export DEFAULT_APIHOST')
