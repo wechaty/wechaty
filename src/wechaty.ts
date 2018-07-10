@@ -1005,7 +1005,7 @@ export class Wechaty extends Accessory implements Sayable {
 
   /**
    * @description
-   * Should use {@link userSelf} instead
+   * Should use {@link Wechaty#userSelf} instead
    * @deprecated
    */
   public self(): Contact {
@@ -1038,19 +1038,19 @@ export class Wechaty extends Accessory implements Sayable {
    * const bot = new Wechaty()
    * await bot.start()
    *
-   * # send text to bot itself
+   * # 1. send text to bot itself
    * await bot.say('hello!')
    *
-   * # send Contact to bot itself
+   * # 2. send Contact to bot itself
    * const contact = bot.Contact.load('contactId')
    * await bot.say(contact)
    *
-   * # send Image to bot itself from remote url
+   * # 3. send Image to bot itself from remote url
    * import { FileBox }  from 'file-box'
    * const fileBox = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
    * await bot.say(fileBox)
    *
-   * # send Image to bot itself from local file
+   * # 4. send Image to bot itself from local file
    * import { FileBox }  from 'file-box'
    * const fileBox = FileBox.fromLocal('/tmp/text.jpg')
    * await bot.say(fileBox)

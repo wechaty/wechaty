@@ -31,8 +31,7 @@ If you want to know how to get contact, see <a href="#Contact">Contact</a></p>
 </dd>
 <dt><a href="#Contact">Contact</a></dt>
 <dd><p>All wechat contacts(friend) will be encapsulated as a Contact.</p>
-<p><code>Contact</code> is <code>Sayable</code>,
-<a href="https://github.com/Chatie/wechaty/blob/master/examples/contact-bot.ts">Examples/Contact-Bot</a></p>
+<p><a href="https://github.com/Chatie/wechaty/blob/master/examples/contact-bot.ts">Examples/Contact-Bot</a></p>
 </dd>
 <dt><a href="#Friendship">Friendship</a></dt>
 <dd><p>Send, receive friend request, and friend confirmation events.</p>
@@ -303,7 +302,7 @@ if (bot.logonoff()) {
 ### ~~wechaty.self()~~
 ***Deprecated***
 
-Should use [userSelf](userSelf) instead
+Should use [userSelf](#Wechaty+userSelf) instead
 
 **Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
 <a name="Wechaty+userSelf"></a>
@@ -333,19 +332,19 @@ Send message to userSelf, in other words, bot send message to itself.
 const bot = new Wechaty()
 await bot.start()
 
-# send text to bot itself
+# 1. send text to bot itself
 await bot.say('hello!')
 
-# send Contact to bot itself
+# 2. send Contact to bot itself
 const contact = bot.Contact.load('contactId')
 await bot.say(contact)
 
-# send Image to bot itself from remote url
+# 3. send Image to bot itself from remote url
 import { FileBox }  from 'file-box'
 const fileBox = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
 await bot.say(fileBox)
 
-# send Image to bot itself from local file
+# 4. send Image to bot itself from local file
 import { FileBox }  from 'file-box'
 const fileBox = FileBox.fromLocal('/tmp/text.jpg')
 await bot.say(fileBox)
@@ -757,39 +756,63 @@ Try to find a room by filter: {topic: string | RegExp}. If get many, return the 
 ## Contact
 All wechat contacts(friend) will be encapsulated as a Contact.
 
-`Contact` is `Sayable`,
 [Examples/Contact-Bot](https://github.com/Chatie/wechaty/blob/master/examples/contact-bot.ts)
 
 **Kind**: global class  
 
 * [Contact](#Contact)
     * _instance_
-        * [.payload](#Contact+payload)
+        * [.say(textOrContactOrFile)](#Contact+say) ⇒ <code>Promise.&lt;void&gt;</code>
         * [.name()](#Contact+name) ⇒ <code>string</code>
         * [.alias(newAlias)](#Contact+alias) ⇒ <code>string</code> \| <code>null</code> \| <code>Promise.&lt;boolean&gt;</code>
-        * ~~[.stranger()](#Contact+stranger) ⇒ <code>boolean</code> \| <code>null</code>~~
+        * ~~[.stranger()](#Contact+stranger)~~
         * [.friend()](#Contact+friend) ⇒ <code>boolean</code> \| <code>null</code>
-        * ~~[.official()](#Contact+official) ⇒ <code>boolean</code> \| <code>null</code>~~
-        * ~~[.personal()](#Contact+personal) ⇒ <code>boolean</code>~~
-        * [.type()](#Contact+type) ⇒
-        * [.star()](#Contact+star) ⇒ <code>boolean</code> \| <code>null</code>
-        * [.gender()](#Contact+gender) ⇒ <code>ContactGender.Male(2)</code> \| <code>Gender.Female(1)</code> \| <code>Gender.Unknown(0)</code>
+        * ~~[.official()](#Contact+official)~~
+        * ~~[.personal()](#Contact+personal)~~
+        * [.type()](#Contact+type) ⇒ <code>ContactType.Unknown</code> \| <code>ContactType.Personal</code> \| <code>ContactType.Official</code>
+        * [.gender()](#Contact+gender) ⇒ <code>ContactGender.Unknown</code> \| <code>ContactGender.Male</code> \| <code>ContactGender.Female</code>
         * [.province()](#Contact+province) ⇒ <code>string</code> \| <code>null</code>
         * [.city()](#Contact+city) ⇒ <code>string</code> \| <code>null</code>
         * [.avatar()](#Contact+avatar) ⇒ <code>Promise.&lt;FileBox&gt;</code>
-        * ~~[.refresh()](#Contact+refresh) ⇒ <code>Promise.&lt;this&gt;</code>~~
+        * ~~[.refresh()](#Contact+refresh)~~
         * [.sync()](#Contact+sync) ⇒ <code>Promise.&lt;this&gt;</code>
         * [.self()](#Contact+self) ⇒ <code>boolean</code>
     * _static_
         * [.find(query)](#Contact.find) ⇒ <code>Promise.&lt;(Contact\|null)&gt;</code>
         * [.findAll([queryArg])](#Contact.findAll) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
 
-<a name="Contact+payload"></a>
+<a name="Contact+say"></a>
 
-### contact.payload
-Instance properties
+### contact.say(textOrContactOrFile) ⇒ <code>Promise.&lt;void&gt;</code>
+**Kind**: instance method of [<code>Contact</code>](#Contact)  
 
-**Kind**: instance property of [<code>Contact</code>](#Contact)  
+| Param | Type | Description |
+| --- | --- | --- |
+| textOrContactOrFile | <code>string</code> \| [<code>Contact</code>](#Contact) \| <code>FileBox</code> | send text, Contact, or file to contact. </br> You can use [FileBox](https://www.npmjs.com/package/file-box) to send file |
+
+**Example**  
+```js
+const bot = new Wechaty()
+await bot.start()
+const contact = await bot.Contact.find({name: 'lijiarui'})  // change 'lijiarui' to any of your contact name in wechat
+
+# 1. send text to contact
+
+await contact.say('welcome to wechaty!')
+
+# 2. send media file to contact
+
+import { FileBox }  from 'file-box'
+const fileBox1 = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
+const fileBox2 = FileBox.fromLocal('/tmp/text.txt')
+await contact.say(fileBox1)
+await contact.say(fileBox2)
+
+# 3. send contact card to contact
+
+const contactCard = bot.Contact.load('contactId')
+await contact.say(contactCard)
+```
 <a name="Contact+name"></a>
 
 ### contact.name() ⇒ <code>string</code>
@@ -843,85 +866,64 @@ try {
 ```
 <a name="Contact+stranger"></a>
 
-### ~~contact.stranger() ⇒ <code>boolean</code> \| <code>null</code>~~
+### ~~contact.stranger()~~
 ***Deprecated***
 
-Check if contact is stranger
+Should use [friend](#Contact+friend) instead
 
 **Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Returns**: <code>boolean</code> \| <code>null</code> - - True for not friend of the bot, False for friend of the bot, null for unknown.  
-**Example**  
-```js
-const isStranger = contact.stranger()
-```
 <a name="Contact+friend"></a>
 
 ### contact.friend() ⇒ <code>boolean</code> \| <code>null</code>
 Check if contact is friend
 
 **Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Returns**: <code>boolean</code> \| <code>null</code> - - True for friend of the bot, False for not friend of the bot, null for unknown.  
+**Returns**: <code>boolean</code> \| <code>null</code> - <br>True for friend of the bot <br>
+False for not friend of the bot, null for unknown.  
 **Example**  
 ```js
 const isFriend = contact.friend()
 ```
 <a name="Contact+official"></a>
 
-### ~~contact.official() ⇒ <code>boolean</code> \| <code>null</code>~~
+### ~~contact.official()~~
 ***Deprecated***
 
-Check if it's a offical account
+Check if it's a offical account, should use [type](#Contact+type) instead
 
 **Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Returns**: <code>boolean</code> \| <code>null</code> - - True for official account, Flase for contact is not a official account, null for unknown  
-**See**
-
-- [webwxApp.js#L324](https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3243)
-- [Urinx/WeixinBot/README](https://github.com/Urinx/WeixinBot/blob/master/README.md)
-
-**Example**  
-```js
-const isOfficial = contact.official()
-```
 <a name="Contact+personal"></a>
 
-### ~~contact.personal() ⇒ <code>boolean</code>~~
+### ~~contact.personal()~~
 ***Deprecated***
 
-Check if it's a personal account
+Check if it's a personal account, should use [type](#Contact+type) instead
 
 **Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Returns**: <code>boolean</code> - - True for personal account, Flase for contact is not a personal account  
-**Example**  
-```js
-const isPersonal = contact.personal()
-```
 <a name="Contact+type"></a>
 
-### contact.type() ⇒
+### contact.type() ⇒ <code>ContactType.Unknown</code> \| <code>ContactType.Personal</code> \| <code>ContactType.Official</code>
 Return the type of the Contact
+> Tips: ContactType is enum here.</br>
+- ContactType.Unknown = 0</br>
+- ContactType.Personal = 1</br>
+- ContactType.Official = 2</br>
 
 **Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Returns**: ContactType - Contact.Type.PERSONAL for personal account, Contact.Type.OFFICIAL for official account  
 **Example**  
 ```js
-const isOfficial = contact.type() === Contact.Type.OFFICIAL
-```
-<a name="Contact+star"></a>
-
-### contact.star() ⇒ <code>boolean</code> \| <code>null</code>
-Check if the contact is star contact.
-
-**Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Returns**: <code>boolean</code> \| <code>null</code> - - True for star friend, False for no star friend.  
-**Example**  
-```js
-const isStar = contact.star()
+const bot = new Wechaty()
+await bot.start()
+const isOfficial = contact.type() === bot.Contact.Type.OFFICIAL
 ```
 <a name="Contact+gender"></a>
 
-### contact.gender() ⇒ <code>ContactGender.Male(2)</code> \| <code>Gender.Female(1)</code> \| <code>Gender.Unknown(0)</code>
+### contact.gender() ⇒ <code>ContactGender.Unknown</code> \| <code>ContactGender.Male</code> \| <code>ContactGender.Female</code>
 Contact gender
+> Tips: ContactGender is enum here. </br>
+- ContactGender.Unknown = 0</br>
+- ContactGender.Male = 1</br>
+- ContactGender.Female = 2</br>
 
 **Kind**: instance method of [<code>Contact</code>](#Contact)  
 **Example**  
@@ -956,28 +958,25 @@ Get avatar picture file stream
 **Kind**: instance method of [<code>Contact</code>](#Contact)  
 **Example**  
 ```js
-const avatarFileName = contact.name() + `.jpg`
-const fileBox = await contact.avatar()
-const avatarWriteStream = createWriteStream(avatarFileName)
-fileBox.pipe(avatarWriteStream)
-log.info('Bot', 'Contact: %s: %s with avatar file: %s', contact.weixin(), contact.name(), avatarFileName)
+# Save avatar to local file like `1-name.jpg`
+
+const file = await contact.avatar()
+const name = file.name
+await file.toFile(name, true)
+console.log(`Contact: ${contact.name()} with avatar file: ${name}`)
 ```
 <a name="Contact+refresh"></a>
 
-### ~~contact.refresh() ⇒ <code>Promise.&lt;this&gt;</code>~~
+### ~~contact.refresh()~~
 ***Deprecated***
 
-Force reload(re-ready()) data for Contact
+Force reload(re-ready()) data for Contact, use [sync](#Contact+sync) instead
 
 **Kind**: instance method of [<code>Contact</code>](#Contact)  
-**Example**  
-```js
-await contact.refresh()
-```
 <a name="Contact+sync"></a>
 
 ### contact.sync() ⇒ <code>Promise.&lt;this&gt;</code>
-sycc data for Contact
+Force reload(re-ready()) data for Contact,
 
 **Kind**: instance method of [<code>Contact</code>](#Contact)  
 **Example**  
@@ -1011,8 +1010,10 @@ Find contact by name or alias, if the result more than one, return the first one
 
 **Example**  
 ```js
-const contactFindByName = await Contact.find({ name:"ruirui"} )
-const contactFindByAlias = await Contact.find({ alias:"lijiarui"} )
+const bot = new Wechaty()
+await bot.start()
+const contactFindByName = await bot.Contact.find({ name:"ruirui"} )
+const contactFindByAlias = await bot.Contact.find({ alias:"lijiarui"} )
 ```
 <a name="Contact.findAll"></a>
 
@@ -1033,9 +1034,11 @@ If use Contact.findAll() get the contact list of the bot.
 
 **Example**  
 ```js
-const contactList = await Contact.findAll()                    // get the contact list of the bot
-const contactList = await Contact.findAll({name: 'ruirui'})    // find allof the contacts whose name is 'ruirui'
-const contactList = await Contact.findAll({alias: 'lijiarui'}) // find all of the contacts whose alias is 'lijiarui'
+const bot = new Wechaty()
+await bot.start()
+const contactList = await bot.Contact.findAll()                    // get the contact list of the bot
+const contactList = await bot.Contact.findAll({name: 'ruirui'})    // find allof the contacts whose name is 'ruirui'
+const contactList = await bot.Contact.findAll({alias: 'lijiarui'}) // find all of the contacts whose alias is 'lijiarui'
 ```
 <a name="Friendship"></a>
 
@@ -1316,7 +1319,7 @@ The option parameter to create a wechaty instance
 
 | Name | Type | Description |
 | --- | --- | --- |
-| profile | <code>string</code> | Wechaty Name.          When you set this </br>          `new Wechaty({profile: 'wechatyName'}) ` </br>          it will generate a file called `wechatyName.memory-card.json`. </br>          This file stores the bot's login information. </br>          If the file is valid, the bot can auto login so you don't need to scan the qrcode to login again. </br>          Also, you can set the environment variable for `WECHATY_PROFILE` to set this value when you start. </br>          eg:  `WECHATY_PROFILE="your-cute-bot-name" node bot.js` |
+| profile | <code>string</code> | Wechaty Name. </br>          When you set this: </br>          `new Wechaty({profile: 'wechatyName'}) ` </br>          it will generate a file called `wechatyName.memory-card.json`. </br>          This file stores the bot's login information. </br>          If the file is valid, the bot can auto login so you don't need to scan the qrcode to login again. </br>          Also, you can set the environment variable for `WECHATY_PROFILE` to set this value when you start. </br>          eg:  `WECHATY_PROFILE="your-cute-bot-name" node bot.js` |
 | puppet | [<code>PuppetName</code>](#PuppetName) \| <code>Puppet</code> | Puppet name or instance |
 | puppetOptions | <code>Partial.&lt;PuppetOptions&gt;</code> | Puppet TOKEN |
 | ioToken | <code>string</code> | Io TOKEN |
