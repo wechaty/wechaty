@@ -475,7 +475,7 @@ export class Contact extends Accessory implements Sayable {
   /**
    * Return the type of the Contact
    * > Tips: ContactType is enum here.</br>
-   * - ContactType.Unknown = 0</br>
+   * - ContactType.Unknown  = 0</br>
    * - ContactType.Personal = 1</br>
    * - ContactType.Official = 2</br>
    * @returns {ContactType.Unknown | ContactType.Personal | ContactType.Official}
