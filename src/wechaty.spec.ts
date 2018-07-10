@@ -72,7 +72,7 @@ test('Export of the Framework', async t => {
 
 test('Config setting', async t => {
   t.ok(config                         , 'should export Config')
-  t.ok(config.default.DEFAULT_PUPPET  , 'should has DEFAULT_PUPPET')
+  // t.ok(config.default.DEFAULT_PUPPET  , 'should has DEFAULT_PUPPET')
 })
 
 test('event:start/stop', async t => {
