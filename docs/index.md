@@ -8,8 +8,21 @@
 <dl>
 <dt><a href="#Wechaty">Wechaty</a></dt>
 <dd><p>Main bot class.</p>
-<p><a href="#wechatyinstance">The World&#39;s Shortest ChatBot Code: 6 lines of JavaScript</a></p>
-<p><a href="https://github.com/lijiarui/wechaty-getting-started">Wechaty Starter Project</a></p>
+<p>A <code>Bot</code> is a wechat client depends on which puppet you use.
+It may equals</p>
+<ul>
+<li>web-wechat, when you use: <a href="https://github.com/chatie/wechaty-puppet-puppeteer">puppet-puppeteer</a>/<a href="https://github.com/chatie/wechaty-puppet-wechat4u">puppet-wechat4u</a></li>
+<li>ipad-wechat, when you use: <a href="https://github.com/lijiarui/wechaty-puppet-padchat">puppet-padchat</a></li>
+<li>ios-wechat, when you use: puppet-ioscat</li>
+</ul>
+<p>See more:</p>
+<ul>
+<li><a href="https://github.com/Chatie/wechaty-getting-started/wiki/FAQ-EN#31-what-is-a-puppet-in-wechaty">What is a Puppet in Wechaty</a></li>
+</ul>
+<blockquote>
+<p>If you want to know how to send message, see <a href="#Message">Message</a>
+If you want to know how to get contact, see <a href="#Contact">Contact</a></p>
+</blockquote>
 </dd>
 <dt><a href="#Room">Room</a></dt>
 <dd><p>All wechat rooms(groups) will be encapsulated as a Room.</p>
@@ -40,6 +53,40 @@
 ## Typedefs
 
 <dl>
+<dt><a href="#PuppetName">PuppetName</a></dt>
+<dd><p>The term <a href="https://github.com/Chatie/wechaty/wiki/Puppet">Puppet</a> in Wechaty is an Abstract Class for implementing protocol plugins.
+The plugins are the component that helps Wechaty to control the Wechat(that&#39;s the reason we call it puppet).
+The plugins are named XXXPuppet, for example:</p>
+<ul>
+<li><a href="https://github.com/Chatie/wechaty-puppet-puppeteer">PuppetPuppeteer</a>:</li>
+<li><a href="https://github.com/lijiarui/wechaty-puppet-padchat">PuppetPadchat</a></li>
+</ul>
+</dd>
+<dt><a href="#WechatyOptions">WechatyOptions</a></dt>
+<dd><blockquote>
+<p>Question: What is profile here means</p>
+</blockquote>
+<p>Answer: When you set profile <code>new Wechaty({profile: &#39;wechatyName&#39;})</code> once you start your wechaty,
+it will generate a file called wechatyName.memory-card.json.
+This file stores the bot&#39;s login information, which can be used to save bot&#39;s personal information.
+So the bot can auto login to Wechat after the first time.</p>
+<blockquote>
+<p>Question:If the default.memory-card.json stores my bot&#39;s personal information,
+what if I want to start multiple bots? Are they gonna share the same file?</p>
+</blockquote>
+<p>Answer: If you want to fire up multiple bots on one machine,
+you can setup the name for the memory-card, so you will have multiple <code>memory-card.json</code> files,
+To setup the name, you need to setup the <code>profile</code> for your bot, you have two options to do this:</p>
+<ol>
+<li>Set the profile with option of the constructor, like this<pre><code class="lang-typescript">const bot = Wechaty.instance({ profile: &#39;your-cute-bot-name&#39; })
+</code></pre>
+</li>
+<li>Set the environment variable for <code>WECHATY_PROFILE</code> during the start<pre><code class="lang-shell">WECHATY_PROFILE=&quot;your-cute-bot-name&quot; node bot.js
+</code></pre>
+</li>
+</ol>
+<p>Then you will see a file called <code>your-cute-bot-name.memory-card.json</code> file in the root folder.</p>
+</dd>
 <dt><a href="#WechatyEventName">WechatyEventName</a></dt>
 <dd><p>Wechaty Class Event Type</p>
 </dd>
@@ -65,18 +112,23 @@
 ## Wechaty
 Main bot class.
 
-[The World's Shortest ChatBot Code: 6 lines of JavaScript](#wechatyinstance)
+A `Bot` is a wechat client depends on which puppet you use.
+It may equals
+- web-wechat, when you use: [puppet-puppeteer](https://github.com/chatie/wechaty-puppet-puppeteer)/[puppet-wechat4u](https://github.com/chatie/wechaty-puppet-wechat4u)
+- ipad-wechat, when you use: [puppet-padchat](https://github.com/lijiarui/wechaty-puppet-padchat)
+- ios-wechat, when you use: puppet-ioscat
 
-[Wechaty Starter Project](https://github.com/lijiarui/wechaty-getting-started)
+See more:
+- [What is a Puppet in Wechaty](https://github.com/Chatie/wechaty-getting-started/wiki/FAQ-EN#31-what-is-a-puppet-in-wechaty)
+
+> If you want to know how to send message, see [Message](#Message)
+> If you want to know how to get contact, see [Contact](#Contact)
 
 **Kind**: global class  
 
 * [Wechaty](#Wechaty)
+    * [new Wechaty([options])](#new_Wechaty_new)
     * _instance_
-        * [.Contact](#Wechaty+Contact)
-            * [.wechaty](#Wechaty+Contact.wechaty)
-            * [.puppet](#Wechaty+Contact.puppet)
-        * [.version([forceNpm])](#Wechaty+version) ⇒ <code>string</code>
         * [.on(event, listener)](#Wechaty+on) ⇒ [<code>Wechaty</code>](#Wechaty)
         * [.start()](#Wechaty+start) ⇒ <code>Promise.&lt;void&gt;</code>
         * [.stop()](#Wechaty+stop) ⇒ <code>Promise.&lt;void&gt;</code>
@@ -84,93 +136,97 @@ Main bot class.
         * [.logonoff()](#Wechaty+logonoff) ⇒ <code>boolean</code>
         * ~~[.self()](#Wechaty+self)~~
         * [.userSelf()](#Wechaty+userSelf) ⇒ [<code>Contact</code>](#Contact)
-        * [.say(textOrContactOrFile)](#Wechaty+say) ⇒ <code>Promise.&lt;boolean&gt;</code>
+        * [.say(textOrContactOrFile)](#Wechaty+say) ⇒ <code>Promise.&lt;void&gt;</code>
+        * [.version([forceNpm])](#Wechaty+version) ⇒ <code>string</code>
     * _static_
-        * [.instance()](#Wechaty.instance)
+        * [.instance([options])](#Wechaty.instance)
 
-<a name="Wechaty+Contact"></a>
+<a name="new_Wechaty_new"></a>
 
-### wechaty.Contact
-Clone Classes for this bot and attach the `puppet` to the Class
+### new Wechaty([options])
+Creates an instance of Wechaty.
 
-  https://stackoverflow.com/questions/36886082/abstract-constructor-type-in-typescript
-  https://github.com/Microsoft/TypeScript/issues/5843#issuecomment-290972055
-  https://github.com/Microsoft/TypeScript/issues/19197
 
-**Kind**: instance property of [<code>Wechaty</code>](#Wechaty)  
+| Param | Type | Default |
+| --- | --- | --- |
+| [options] | [<code>WechatyOptions</code>](#WechatyOptions) | <code>{}</code> | 
 
-* [.Contact](#Wechaty+Contact)
-    * [.wechaty](#Wechaty+Contact.wechaty)
-    * [.puppet](#Wechaty+Contact.puppet)
-
-<a name="Wechaty+Contact.wechaty"></a>
-
-#### Contact.wechaty
-1. Set Wechaty
-
-**Kind**: static property of [<code>Contact</code>](#Wechaty+Contact)  
-<a name="Wechaty+Contact.puppet"></a>
-
-#### Contact.puppet
-2. Set Puppet
-
-**Kind**: static property of [<code>Contact</code>](#Wechaty+Contact)  
-<a name="Wechaty+version"></a>
-
-### wechaty.version([forceNpm]) ⇒ <code>string</code>
-Return version of Wechaty
-
-**Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
-**Returns**: <code>string</code> - - the version number  
-
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| [forceNpm] | <code>boolean</code> | <code>false</code> | if set to true, will only return the version in package.json.                                      otherwise will return git commit hash if .git exists. |
-
-**Example**  
+**Example** *(The World&#x27;s Shortest ChatBot Code: 6 lines of JavaScript)*  
 ```js
-console.log(Wechaty.instance().version())       // return '#git[af39df]'
-console.log(Wechaty.instance().version(true))   // return '0.7.9'
+# 1 JavaScript
+const { Wechaty } = require('wechaty')
+const bot = new Wechaty()
+bot.on('scan',    (qrcode, status) => console.log(['https://api.qrserver.com/v1/create-qr-code/?data=',encodeURIComponent(qrcode),'&size=220x220&margin=20',].join('')))
+bot.on('login',   user => console.log(`User ${user} logined`))
+bot.on('message', message => console.log(`Message: ${message}`))
+bot.start()
+
+# 2 TypeScript
+import { Wechaty } from 'wechaty'
+const bot = new Wechaty()
+bot.on('scan',    (qrcode, status) => console.log(['https://api.qrserver.com/v1/create-qr-code/?data=',encodeURIComponent(qrcode),'&size=220x220&margin=20',].join('')))
+bot.on('login',   user => console.log(`User ${user} logined`))
+bot.on('message', message => console.log(`Message: ${message}`))
+bot.start()
 ```
 <a name="Wechaty+on"></a>
 
 ### wechaty.on(event, listener) ⇒ [<code>Wechaty</code>](#Wechaty)
-**Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
-**Returns**: [<code>Wechaty</code>](#Wechaty) - - this for chain
+When the bot get message, it will emit the following Event.
 
-More Example Gist: [Examples/Friend-Bot](https://github.com/Chatie/wechaty/blob/master/examples/friend-bot.ts)  
+You can do anything you want when in these events functions.
+The main Event name as follows:
+- **scan**: Emit when the bot needs to show you a QR Code for scanning. After scan the qrcode, you can login
+- **login**: Emit when bot login full successful.
+- **logout**: Emit when bot detected log out.
+- **message**: Emit when there's a new message.
+
+see more in [WechatyEventName](#WechatyEventName)
+
+**Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
+**Returns**: [<code>Wechaty</code>](#Wechaty) - - this for chain  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | event | [<code>WechatyEventName</code>](#WechatyEventName) | Emit WechatyEvent |
 | listener | [<code>WechatyEventFunction</code>](#WechatyEventFunction) | Depends on the WechatyEvent |
 
-**Example** *(Event:scan )*  
+**Example** *(Event:scan)*  
 ```js
-wechaty.on('scan', (url: string, code: number) => {
+# Scan Event will emit when the bot needs to show you a QR Code for scanning
+
+bot.on('scan', (url: string, code: number) => {
   console.log(`[${code}] Scan ${url} to login.` )
 })
 ```
 **Example** *(Event:login )*  
 ```js
+# Login Event will emit when bot login full successful.
+
 bot.on('login', (user: ContactSelf) => {
   console.log(`user ${user} login`)
 })
 ```
 **Example** *(Event:logout )*  
 ```js
+# Logout Event will emit when bot detected log out.
+
 bot.on('logout', (user: ContactSelf) => {
   console.log(`user ${user} logout`)
 })
 ```
 **Example** *(Event:message )*  
 ```js
+# Message Event will emit when there's a new message.
+
 wechaty.on('message', (message: Message) => {
   console.log(`message ${message} received`)
 })
 ```
 **Example** *(Event:friendship )*  
 ```js
+# Friendship Event will emit when got a new friend request, or friendship is confirmed.
+
 bot.on('friendship', (friendship: Friendship) => {
   if(friendship.type() === Friendship.Type.RECEIVE){ // 1. receive new friendship request from new contact
     const contact = friendship.contact()
@@ -187,6 +243,8 @@ bot.on('friendship', (friendship: Friendship) => {
 ```
 **Example** *(Event:room-join )*  
 ```js
+# room-join Event will emit when someone join the room.
+
 bot.on('room-join', (room: Room, inviteeList: Contact[], inviter: Contact) => {
   const nameList = inviteeList.map(c => c.name()).join(',')
   console.log(`Room ${room.topic()} got new member ${nameList}, invited by ${inviter}`)
@@ -194,6 +252,8 @@ bot.on('room-join', (room: Room, inviteeList: Contact[], inviter: Contact) => {
 ```
 **Example** *(Event:room-leave )*  
 ```js
+# room-leave Event will emit when someone leave the room.
+
 bot.on('room-leave', (room: Room, leaverList: Contact[]) => {
   const nameList = leaverList.map(c => c.name()).join(',')
   console.log(`Room ${room.topic()} lost member ${nameList}`)
@@ -201,14 +261,24 @@ bot.on('room-leave', (room: Room, leaverList: Contact[]) => {
 ```
 **Example** *(Event:room-topic )*  
 ```js
+# room-topic Event will emit when someone change the room's topic.
+
 bot.on('room-topic', (room: Room, topic: string, oldTopic: string, changer: Contact) => {
   console.log(`Room ${room.topic()} topic changed from ${oldTopic} to ${topic} by ${changer.name()}`)
+})
+```
+**Example** *(Event:error )*  
+```js
+# error Event will emit when there's an error occurred.
+
+bot.on('error', (error) => {
+  console.error(error)
 })
 ```
 <a name="Wechaty+start"></a>
 
 ### wechaty.start() ⇒ <code>Promise.&lt;void&gt;</code>
-Start the bot, return Promise.
+When you start the bot, bot will begin to login, need you wechat scan qrcode to login
 
 **Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
 **Example**  
@@ -255,6 +325,8 @@ if (bot.logonoff()) {
 ### ~~wechaty.self()~~
 ***Deprecated***
 
+Should use [userSelf](userSelf) instead
+
 **Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
 <a name="Wechaty+userSelf"></a>
 
@@ -269,21 +341,65 @@ console.log(`Bot is ${contact.name()}`)
 ```
 <a name="Wechaty+say"></a>
 
-### wechaty.say(textOrContactOrFile) ⇒ <code>Promise.&lt;boolean&gt;</code>
-Send message to userSelf
+### wechaty.say(textOrContactOrFile) ⇒ <code>Promise.&lt;void&gt;</code>
+Send message to userSelf, in other words, bot send message to itself.
 
 **Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
 
-| Param | Type |
-| --- | --- |
-| textOrContactOrFile | <code>string</code> | 
+| Param | Type | Description |
+| --- | --- | --- |
+| textOrContactOrFile | <code>string</code> \| [<code>Contact</code>](#Contact) \| <code>FileBox</code> | send text, Contact, or file to bot. </br> You can use [FileBox](https://www.npmjs.com/package/file-box) to send file |
 
+**Example**  
+```js
+const bot = new Wechaty()
+await bot.start()
+
+# send text to bot itself
+await bot.say('hello!')
+
+# send Contact to bot itself
+const contact = bot.Contact.load('contactId')
+await bot.say(contact)
+
+# send Image to bot itself from remote url
+import { FileBox }  from 'file-box'
+const fileBox = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
+await bot.say(fileBox)
+
+# send Image to bot itself from local file
+import { FileBox }  from 'file-box'
+const fileBox = FileBox.fromLocal('/tmp/text.jpg')
+await bot.say(fileBox)
+```
+<a name="Wechaty+version"></a>
+
+### wechaty.version([forceNpm]) ⇒ <code>string</code>
+Return version of Wechaty
+
+**Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
+**Returns**: <code>string</code> - - the version number  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| [forceNpm] | <code>boolean</code> | <code>false</code> | If set to true, will only return the version in package.json. </br>                                      Otherwise will return git commit hash if .git exists. |
+
+**Example**  
+```js
+console.log(Wechaty.instance().version())       // return '#git[af39df]'
+console.log(Wechaty.instance().version(true))   // return '0.7.9'
+```
 <a name="Wechaty.instance"></a>
 
-### Wechaty.instance()
+### Wechaty.instance([options])
 get the singleton instance of Wechaty
 
 **Kind**: static method of [<code>Wechaty</code>](#Wechaty)  
+
+| Param | Type | Default |
+| --- | --- | --- |
+| [options] | [<code>WechatyOptions</code>](#WechatyOptions) | <code>{}</code> | 
+
 **Example** *(The World&#x27;s Shortest ChatBot Code: 6 lines of JavaScript)*  
 ```js
 const { Wechaty } = require('wechaty')
@@ -1193,6 +1309,63 @@ Create a Mobile Terminated Message
 https://www.tatango.com/resources/video-lessons/video-mo-mt-sms-messaging/
 
 **Kind**: static method of [<code>Message</code>](#Message)  
+<a name="PuppetName"></a>
+
+## PuppetName
+The term [Puppet](https://github.com/Chatie/wechaty/wiki/Puppet) in Wechaty is an Abstract Class for implementing protocol plugins.
+The plugins are the component that helps Wechaty to control the Wechat(that's the reason we call it puppet).
+The plugins are named XXXPuppet, for example:
+- [PuppetPuppeteer](https://github.com/Chatie/wechaty-puppet-puppeteer):
+- [PuppetPadchat](https://github.com/lijiarui/wechaty-puppet-padchat)
+
+**Kind**: global typedef  
+**Properties**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| wechat4u | <code>string</code> | The default puppet, using the [wechat4u](https://github.com/nodeWechat/wechat4u) to control the [WeChat Web API](https://wx.qq.com/) via a chrome browser. |
+| padchat | <code>string</code> | - Using the WebSocket protocol to connect with a Protocol Server for controlling the iPad Wechat program. |
+| puppeteer | <code>string</code> | - Using the [google puppeteer](https://github.com/GoogleChrome/puppeteer) to control the [WeChat Web API](https://wx.qq.com/) via a chrome browser. |
+| mock | <code>string</code> | - Using the mock data to mock wechat operation, just for test. |
+
+<a name="WechatyOptions"></a>
+
+## WechatyOptions
+> Question: What is profile here means
+
+Answer: When you set profile `new Wechaty({profile: 'wechatyName'})` once you start your wechaty,
+it will generate a file called wechatyName.memory-card.json.
+This file stores the bot's login information, which can be used to save bot's personal information.
+So the bot can auto login to Wechat after the first time.
+
+> Question:If the default.memory-card.json stores my bot's personal information,
+what if I want to start multiple bots? Are they gonna share the same file?
+
+Answer: If you want to fire up multiple bots on one machine,
+you can setup the name for the memory-card, so you will have multiple `memory-card.json` files,
+To setup the name, you need to setup the `profile` for your bot, you have two options to do this:
+1. Set the profile with option of the constructor, like this
+```typescript
+const bot = Wechaty.instance({ profile: 'your-cute-bot-name' })
+```
+2. Set the environment variable for `WECHATY_PROFILE` during the start
+```shell
+WECHATY_PROFILE="your-cute-bot-name" node bot.js
+```
+
+Then you will see a file called `your-cute-bot-name.memory-card.json` file in the root folder.
+
+**Kind**: global typedef  
+**Summary**: The option parameter to create a wechaty instance  
+**Properties**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| profile | <code>string</code> | Wechaty Name. |
+| puppet | [<code>PuppetName</code>](#PuppetName) \| <code>Puppet</code> | Puppet name or instance |
+| puppetOptions | <code>Partial.&lt;PuppetOptions&gt;</code> | Puppet TOKEN |
+| ioToken | <code>string</code> | Io TOKEN |
+
 <a name="WechatyEventName"></a>
 
 ## WechatyEventName
