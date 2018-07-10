@@ -26,8 +26,7 @@ If you want to know how to get contact, see <a href="#Contact">Contact</a></p>
 </dd>
 <dt><a href="#Room">Room</a></dt>
 <dd><p>All wechat rooms(groups) will be encapsulated as a Room.</p>
-<p><code>Room</code> is <code>Sayable</code>,
-<a href="https://github.com/Chatie/wechaty/blob/master/examples/room-bot.ts">Examples/Room-Bot</a></p>
+<p><a href="https://github.com/Chatie/wechaty/blob/master/examples/room-bot.ts">Examples/Room-Bot</a></p>
 </dd>
 <dt><a href="#Contact">Contact</a></dt>
 <dd><p>All wechat contacts(friend) will be encapsulated as a Contact.</p>
@@ -70,13 +69,16 @@ The plugins are named XXXPuppet, for example:</p>
 <dt><a href="#WechatyEventFunction">WechatyEventFunction</a></dt>
 <dd><p>Wechaty Class Event Function</p>
 </dd>
+<dt><a href="#RoomQueryFilter">RoomQueryFilter</a></dt>
+<dd><p>The filter to find the room:  {topic: string | RegExp}</p>
+</dd>
 <dt><a href="#RoomEventName">RoomEventName</a></dt>
 <dd><p>Room Class Event Type</p>
 </dd>
 <dt><a href="#RoomEventFunction">RoomEventFunction</a></dt>
 <dd><p>Room Class Event Function</p>
 </dd>
-<dt><a href="#MemberQueryFilter">MemberQueryFilter</a></dt>
+<dt><a href="#RoomMemberQueryFilter">RoomMemberQueryFilter</a></dt>
 <dd><p>The way to search member by Room.member()</p>
 </dd>
 <dt><a href="#ContactQueryFilter">ContactQueryFilter</a></dt>
@@ -392,58 +394,70 @@ Wechaty.instance() // Singleton
 ## Room
 All wechat rooms(groups) will be encapsulated as a Room.
 
-`Room` is `Sayable`,
 [Examples/Room-Bot](https://github.com/Chatie/wechaty/blob/master/examples/room-bot.ts)
 
 **Kind**: global class  
 
 * [Room](#Room)
     * _instance_
-        * [.say(textOrContactOrFile, [replyTo])](#Room+say) ⇒ <code>Promise.&lt;boolean&gt;</code>
+        * [.say(textOrContactOrFile, [mention])](#Room+say) ⇒ <code>Promise.&lt;void&gt;</code>
         * [.on(event, listener)](#Room+on) ⇒ <code>this</code>
-        * [.add(contact)](#Room+add) ⇒ <code>Promise.&lt;number&gt;</code>
-        * [.del(contact)](#Room+del) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.add(contact)](#Room+add) ⇒ <code>Promise.&lt;void&gt;</code>
+        * [.del(contact)](#Room+del) ⇒ <code>Promise.&lt;void&gt;</code>
+        * [.quit()](#Room+quit) ⇒ <code>Promise.&lt;void&gt;</code>
         * [.topic([newTopic])](#Room+topic) ⇒ <code>Promise.&lt;(string\|void)&gt;</code>
-        * [.qrcode()](#Room+qrcode)
-        * [.alias(contact)](#Room+alias) ⇒ <code>string</code> \| <code>null</code>
-        * [.roomAlias(contact)](#Room+roomAlias) ⇒ <code>string</code> \| <code>null</code>
-        * [.has(contact)](#Room+has) ⇒ <code>boolean</code>
-        * [.memberAll(query)](#Room+memberAll) ⇒ [<code>Array.&lt;Contact&gt;</code>](#Contact)
-        * [.member(queryArg)](#Room+member) ⇒ [<code>Contact</code>](#Contact) \| <code>null</code>
-        * [.memberList()](#Room+memberList) ⇒ [<code>Array.&lt;Contact&gt;</code>](#Contact)
+        * [.announce([text])](#Room+announce) ⇒ <code>Promise.&lt;(void\|string)&gt;</code>
+        * [.qrcode()](#Room+qrcode) ⇒ <code>Promise.&lt;string&gt;</code>
+        * [.alias(contact)](#Room+alias) ⇒ <code>Promise.&lt;(string\|null)&gt;</code>
+        * [.roomAlias(contact)](#Room+roomAlias) ⇒ <code>Promise.&lt;(string\|null)&gt;</code>
+        * [.has(contact)](#Room+has) ⇒ <code>Promise.&lt;boolean&gt;</code>
+        * [.memberAll(query)](#Room+memberAll) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
+        * [.member(queryArg)](#Room+member) ⇒ <code>Promise.&lt;(null\|Contact)&gt;</code>
+        * [.memberList()](#Room+memberList) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
+        * ~~[.refresh()](#Room+refresh)~~
         * [.sync()](#Room+sync) ⇒ <code>Promise.&lt;void&gt;</code>
+        * [.owner()](#Room+owner) ⇒ [<code>Contact</code>](#Contact) \| <code>null</code>
     * _static_
         * [.create(contactList, [topic])](#Room.create) ⇒ [<code>Promise.&lt;Room&gt;</code>](#Room)
         * [.findAll([query])](#Room.findAll) ⇒ <code>Promise.&lt;Array.&lt;Room&gt;&gt;</code>
         * [.find(query)](#Room.find) ⇒ <code>Promise.&lt;(Room\|null)&gt;</code>
+        * [.load(id)](#Room.load) ⇒ [<code>Room</code>](#Room)
 
 <a name="Room+say"></a>
 
-### room.say(textOrContactOrFile, [replyTo]) ⇒ <code>Promise.&lt;boolean&gt;</code>
+### room.say(textOrContactOrFile, [mention]) ⇒ <code>Promise.&lt;void&gt;</code>
 Send message inside Room, if set [replyTo], wechaty will mention the contact as well.
 
 **Kind**: instance method of [<code>Room</code>](#Room)  
-**Returns**: <code>Promise.&lt;boolean&gt;</code> - If bot send message successfully, it will return true. If the bot failed to send for blocking or any other reason, it will return false  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| textOrContactOrFile | <code>string</code> \| <code>MediaMessage</code> | Send `text` or `media file` inside Room. |
-| [replyTo] | [<code>Contact</code>](#Contact) \| [<code>Array.&lt;Contact&gt;</code>](#Contact) | Optional parameter, send content inside Room, and mention @replyTo contact or contactList. |
+| textOrContactOrFile | <code>string</code> \| [<code>Contact</code>](#Contact) \| <code>FileBox</code> | Send `text` or `media file` inside Room. <br> You can use [FileBox](https://www.npmjs.com/package/file-box) to send file |
+| [mention] | [<code>Contact</code>](#Contact) \| [<code>Array.&lt;Contact&gt;</code>](#Contact) | Optional parameter, send content inside Room, and mention @replyTo contact or contactList. |
 
-**Example** *(Send text inside Room)*  
+**Example**  
 ```js
-const room = await Room.find({name: 'wechaty'})        // change 'wechaty' to any of your room in wechat
+const bot = new Wechaty()
+await bot.start()
+const room = await bot.Room.find({name: 'wechaty'})
+
+# 1. Send text inside Room
+
 await room.say('Hello world!')
-```
-**Example** *(Send media file inside Room)*  
-```js
-const room = await Room.find({name: 'wechaty'})        // change 'wechaty' to any of your room in wechat
-await room.say(new MediaMessage('/test.jpg'))          // put the filePath you want to send here
-```
-**Example** *(Send text inside Room, and mention @replyTo contact)*  
-```js
-const contact = await Contact.find({name: 'lijiarui'}) // change 'lijiarui' to any of the room member
-const room = await Room.find({name: 'wechaty'})        // change 'wechaty' to any of your room in wechat
+
+# 2. Send media file inside Room
+import { FileBox }  from 'file-box'
+const fileBox1 = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
+const fileBox2 = FileBox.fromLocal('/tmp/text.txt')
+await room.say(fileBox1)
+await room.say(fileBox2)
+
+# 3. Send Contact Card in a room
+const contactCard = await bot.Contact.find({name: 'lijiarui'}) // change 'lijiarui' to any of the room member
+await room.say(contactCard)
+
+# 4. Send text inside room and mention @mention contact
+const contact = await bot.Contact.find({name: 'lijiarui'}) // change 'lijiarui' to any of the room member
 await room.say('Hello world!', contact)
 ```
 <a name="Room+on"></a>
@@ -459,7 +473,9 @@ await room.say('Hello world!', contact)
 
 **Example** *(Event:join )*  
 ```js
-const room = await Room.find({topic: 'event-room'}) // change `event-room` to any room topic in your wechat
+const bot = new Wechaty()
+await bot.start()
+const room = await bot.Room.find({topic: 'event-room'}) // change `event-room` to any room topic in your wechat
 if (room) {
   room.on('join', (room: Room, inviteeList: Contact[], inviter: Contact) => {
     const nameList = inviteeList.map(c => c.name()).join(',')
@@ -469,7 +485,9 @@ if (room) {
 ```
 **Example** *(Event:leave )*  
 ```js
-const room = await Room.find({topic: 'event-room'}) // change `event-room` to any room topic in your wechat
+const bot = new Wechaty()
+await bot.start()
+const room = await bot.Room.find({topic: 'event-room'}) // change `event-room` to any room topic in your wechat
 if (room) {
   room.on('leave', (room: Room, leaverList: Contact[]) => {
     const nameList = leaverList.map(c => c.name()).join(',')
@@ -479,7 +497,9 @@ if (room) {
 ```
 **Example** *(Event:topic )*  
 ```js
-const room = await Room.find({topic: 'event-room'}) // change `event-room` to any room topic in your wechat
+const bot = new Wechaty()
+await bot.start()
+const room = await bot.Room.find({topic: 'event-room'}) // change `event-room` to any room topic in your wechat
 if (room) {
   room.on('topic', (room: Room, topic: string, oldTopic: string, changer: Contact) => {
     console.log(`Room ${room.topic()} topic changed from ${oldTopic} to ${topic} by ${changer.name()}`)
@@ -488,7 +508,7 @@ if (room) {
 ```
 <a name="Room+add"></a>
 
-### room.add(contact) ⇒ <code>Promise.&lt;number&gt;</code>
+### room.add(contact) ⇒ <code>Promise.&lt;void&gt;</code>
 Add contact in a room
 
 **Kind**: instance method of [<code>Room</code>](#Room)  
@@ -499,20 +519,21 @@ Add contact in a room
 
 **Example**  
 ```js
-const contact = await Contact.find({name: 'lijiarui'}) // change 'lijiarui' to any contact in your wechat
-const room = await Room.find({topic: 'wechat'})        // change 'wechat' to any room topic in your wechat
+const bot = new Wechaty()
+await bot.start()
+const contact = await bot.Contact.find({name: 'lijiarui'}) // change 'lijiarui' to any contact in your wechat
+const room = await bot.Room.find({topic: 'wechat'})        // change 'wechat' to any room topic in your wechat
 if (room) {
-  const result = await room.add(contact)
-  if (result) {
-    console.log(`add ${contact.name()} to ${room.topic()} successfully! `)
-  } else{
-    console.log(`failed to add ${contact.name()} to ${room.topic()}! `)
+  try {
+     await room.add(contact)
+  } catch(e) {
+     console.error(e)
   }
 }
 ```
 <a name="Room+del"></a>
 
-### room.del(contact) ⇒ <code>Promise.&lt;number&gt;</code>
+### room.del(contact) ⇒ <code>Promise.&lt;void&gt;</code>
 Delete a contact from the room
 It works only when the bot is the owner of the room
 
@@ -524,16 +545,27 @@ It works only when the bot is the owner of the room
 
 **Example**  
 ```js
-const room = await Room.find({topic: 'wechat'})          // change 'wechat' to any room topic in your wechat
-const contact = await Contact.find({name: 'lijiarui'})   // change 'lijiarui' to any room member in the room you just set
+const bot = new Wechaty()
+await bot.start()
+const room = await bot.Room.find({topic: 'wechat'})          // change 'wechat' to any room topic in your wechat
+const contact = await bot.Contact.find({name: 'lijiarui'})   // change 'lijiarui' to any room member in the room you just set
 if (room) {
-  const result = await room.del(contact)
-  if (result) {
-    console.log(`remove ${contact.name()} from ${room.topic()} successfully! `)
-  } else{
-    console.log(`failed to remove ${contact.name()} from ${room.topic()}! `)
+  try {
+     await room.del(contact)
+  } catch(e) {
+     console.error(e)
   }
 }
+```
+<a name="Room+quit"></a>
+
+### room.quit() ⇒ <code>Promise.&lt;void&gt;</code>
+Bot quit the room itself
+
+**Kind**: instance method of [<code>Room</code>](#Room)  
+**Example**  
+```js
+await room.quit()
 ```
 <a name="Room+topic"></a>
 
@@ -548,7 +580,7 @@ SET/GET topic from the room
 
 **Example** *(When you say anything in a room, it will get room topic. )*  
 ```js
-const bot = Wechaty.instance()
+const bot = new Wechaty()
 bot
 .on('message', async m => {
   const room = m.room()
@@ -560,30 +592,67 @@ bot
 ```
 **Example** *(When you say anything in a room, it will change room topic. )*  
 ```js
-const bot = Wechaty.instance()
+const bot = new Wechaty()
 bot
 .on('message', async m => {
   const room = m.room()
   if (room) {
-    const oldTopic = room.topic()
-    room.topic('change topic to wechaty!')
+    const oldTopic = await room.topic()
+    await room.topic('change topic to wechaty!')
     console.log(`room topic change from ${oldTopic} to ${room.topic()}`)
+  }
+})
+```
+<a name="Room+announce"></a>
+
+### room.announce([text]) ⇒ <code>Promise.&lt;(void\|string)&gt;</code>
+SET/GET announce from the room
+> Tips: It only works when bot is the owner of the room.
+
+**Kind**: instance method of [<code>Room</code>](#Room)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| [text] | <code>string</code> | If set this para, it will change room announce. |
+
+**Example** *(When you say anything in a room, it will get room announce. )*  
+```js
+const bot = new Wechaty()
+bot
+.on('message', async m => {
+  const room = m.room()
+  if (room) {
+    const announce = await room.announce()
+    console.log(`room announce is : ${announce}`)
+  }
+})
+```
+**Example** *(When you say anything in a room, it will change room announce. )*  
+```js
+const bot = new Wechaty()
+bot
+.on('message', async m => {
+  const room = m.room()
+  if (room) {
+    const oldAnnounce = await room.announce()
+    await room.announce('change announce to wechaty!')
+    console.log(`room announce change from ${oldAnnounce} to ${room.announce()}`)
   }
 })
 ```
 <a name="Room+qrcode"></a>
 
-### room.qrcode()
-Room QR Code
+### room.qrcode() ⇒ <code>Promise.&lt;string&gt;</code>
+Get Room QR Code
 
 **Kind**: instance method of [<code>Room</code>](#Room)  
 <a name="Room+alias"></a>
 
-### room.alias(contact) ⇒ <code>string</code> \| <code>null</code>
+### room.alias(contact) ⇒ <code>Promise.&lt;(string\|null)&gt;</code>
 Return contact's roomAlias in the room, the same as roomAlias
 
 **Kind**: instance method of [<code>Room</code>](#Room)  
-**Returns**: <code>string</code> \| <code>null</code> - - If a contact has an alias in room, return string, otherwise return null  
+**Returns**: <code>Promise.&lt;(string\|null)&gt;</code> - - If a contact has an alias in room, return string, otherwise return null  
 
 | Param | Type |
 | --- | --- |
@@ -591,20 +660,20 @@ Return contact's roomAlias in the room, the same as roomAlias
 
 **Example**  
 ```js
-const bot = Wechaty.instance()
+const bot = new Wechaty()
 bot
 .on('message', async m => {
   const room = m.room()
   const contact = m.from()
   if (room) {
-    const alias = room.alias(contact)
+    const alias = await room.alias(contact)
     console.log(`${contact.name()} alias is ${alias}`)
   }
 })
 ```
 <a name="Room+roomAlias"></a>
 
-### room.roomAlias(contact) ⇒ <code>string</code> \| <code>null</code>
+### room.roomAlias(contact) ⇒ <code>Promise.&lt;(string\|null)&gt;</code>
 Same as function alias
 
 **Kind**: instance method of [<code>Room</code>](#Room)  
@@ -615,11 +684,11 @@ Same as function alias
 
 <a name="Room+has"></a>
 
-### room.has(contact) ⇒ <code>boolean</code>
+### room.has(contact) ⇒ <code>Promise.&lt;boolean&gt;</code>
 Check if the room has member `contact`, the return is a Promise and must be `await`-ed
 
 **Kind**: instance method of [<code>Room</code>](#Room)  
-**Returns**: <code>boolean</code> - Return `true` if has contact, else return `false`.  
+**Returns**: <code>Promise.&lt;boolean&gt;</code> - Return `true` if has contact, else return `false`.  
 
 | Param | Type |
 | --- | --- |
@@ -627,19 +696,21 @@ Check if the room has member `contact`, the return is a Promise and must be `awa
 
 **Example** *(Check whether &#x27;lijiarui&#x27; is in the room &#x27;wechaty&#x27;)*  
 ```js
-const contact = await Contact.find({name: 'lijiarui'})   // change 'lijiarui' to any of contact in your wechat
-const room = await Room.find({topic: 'wechaty'})         // change 'wechaty' to any of the room in your wechat
+const bot = new Wechaty()
+await bot.start()
+const contact = await bot.Contact.find({name: 'lijiarui'})   // change 'lijiarui' to any of contact in your wechat
+const room = await bot.Room.find({topic: 'wechaty'})         // change 'wechaty' to any of the room in your wechat
 if (contact && room) {
   if (await room.has(contact)) {
-    console.log(`${contact.name()} is in the room ${room.topic()}!`)
+    console.log(`${contact.name()} is in the room wechaty!`)
   } else {
-    console.log(`${contact.name()} is not in the room ${room.topic()} !`)
+    console.log(`${contact.name()} is not in the room wechaty!`)
   }
 }
 ```
 <a name="Room+memberAll"></a>
 
-### room.memberAll(query) ⇒ [<code>Array.&lt;Contact&gt;</code>](#Contact)
+### room.memberAll(query) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
 Find all contacts in a room
 
 #### definition
@@ -651,55 +722,85 @@ Find all contacts in a room
 
 | Param | Type | Description |
 | --- | --- | --- |
-| query | <code>RoomMemberQueryFilter</code> \| <code>string</code> | When use memberAll(name:string), return all matched members, including name, roomAlias, contactAlias |
+| query | [<code>RoomMemberQueryFilter</code>](#RoomMemberQueryFilter) \| <code>string</code> | When use memberAll(name:string), return all matched members, including name, roomAlias, contactAlias |
 
 <a name="Room+member"></a>
 
-### room.member(queryArg) ⇒ [<code>Contact</code>](#Contact) \| <code>null</code>
+### room.member(queryArg) ⇒ <code>Promise.&lt;(null\|Contact)&gt;</code>
 Find all contacts in a room, if get many, return the first one.
 
 **Kind**: instance method of [<code>Room</code>](#Room)  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| queryArg | <code>RoomMemberQueryFilter</code> \| <code>string</code> | When use member(name:string), return all matched members, including name, roomAlias, contactAlias |
+| queryArg | [<code>RoomMemberQueryFilter</code>](#RoomMemberQueryFilter) \| <code>string</code> | When use member(name:string), return all matched members, including name, roomAlias, contactAlias |
 
 **Example** *(Find member by name)*  
 ```js
-const room = await Room.find({topic: 'wechaty'})           // change 'wechaty' to any room name in your wechat
+const bot = new Wechaty()
+await bot.start()
+const room = await bot.Room.find({topic: 'wechaty'})           // change 'wechaty' to any room name in your wechat
 if (room) {
-  const member = room.member('lijiarui')                   // change 'lijiarui' to any room member in your wechat
+  const member = await room.member('lijiarui')             // change 'lijiarui' to any room member in your wechat
   if (member) {
-    console.log(`${room.topic()} got the member: ${member.name()}`)
+    console.log(`wechaty room got the member: ${member.name()}`)
   } else {
-    console.log(`cannot get member in room: ${room.topic()}`)
+    console.log(`cannot get member in wechaty room!`)
   }
 }
 ```
 **Example** *(Find member by MemberQueryFilter)*  
 ```js
-const room = await Room.find({topic: 'wechaty'})          // change 'wechaty' to any room name in your wechat
+const bot = new Wechaty()
+await bot.start()
+const room = await bot.Room.find({topic: 'wechaty'})          // change 'wechaty' to any room name in your wechat
 if (room) {
-  const member = room.member({name: 'lijiarui'})          // change 'lijiarui' to any room member in your wechat
+  const member = await room.member({name: 'lijiarui'})        // change 'lijiarui' to any room member in your wechat
   if (member) {
-    console.log(`${room.topic()} got the member: ${member.name()}`)
+    console.log(`wechaty room got the member: ${member.name()}`)
   } else {
-    console.log(`cannot get member in room: ${room.topic()}`)
+    console.log(`cannot get member in wechaty room!`)
   }
 }
 ```
 <a name="Room+memberList"></a>
 
-### room.memberList() ⇒ [<code>Array.&lt;Contact&gt;</code>](#Contact)
+### room.memberList() ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
 Get all room member from the room
+
+**Kind**: instance method of [<code>Room</code>](#Room)  
+**Example**  
+```js
+await room.memberList()
+```
+<a name="Room+refresh"></a>
+
+### ~~room.refresh()~~
+***Deprecated***
+
+Force reload data for Room, use [sync](#Room+sync) instead
 
 **Kind**: instance method of [<code>Room</code>](#Room)  
 <a name="Room+sync"></a>
 
 ### room.sync() ⇒ <code>Promise.&lt;void&gt;</code>
-Sync data for Room
+Force reload data for Room, Sync data for Room
 
 **Kind**: instance method of [<code>Room</code>](#Room)  
+**Example**  
+```js
+await room.sync()
+```
+<a name="Room+owner"></a>
+
+### room.owner() ⇒ [<code>Contact</code>](#Contact) \| <code>null</code>
+Get room's owner from the room.
+
+**Kind**: instance method of [<code>Room</code>](#Room)  
+**Example**  
+```js
+const owner = room.owner()
+```
 <a name="Room.create"></a>
 
 ### Room.create(contactList, [topic]) ⇒ [<code>Promise.&lt;Room&gt;</code>](#Room)
@@ -726,18 +827,20 @@ await room.say('ding - created')
 <a name="Room.findAll"></a>
 
 ### Room.findAll([query]) ⇒ <code>Promise.&lt;Array.&lt;Room&gt;&gt;</code>
-Find room by topic, return all the matched room
+Find room by by filter: {topic: string | RegExp}, return all the matched room
 
 **Kind**: static method of [<code>Room</code>](#Room)  
 
 | Param | Type |
 | --- | --- |
-| [query] | <code>RoomQueryFilter</code> | 
+| [query] | [<code>RoomQueryFilter</code>](#RoomQueryFilter) | 
 
 **Example**  
 ```js
-const roomList = await Room.findAll()                    // get the room list of the bot
-const roomList = await Room.findAll({name: 'wechaty'})   // find all of the rooms with name 'wechaty'
+const bot = new Wechaty()
+await bot.start()
+const roomList = await bot.Room.findAll()                    // get the room list of the bot
+const roomList = await bot.Room.findAll({topic: 'wechaty'})  // find all of the rooms with name 'wechaty'
 ```
 <a name="Room.find"></a>
 
@@ -749,8 +852,35 @@ Try to find a room by filter: {topic: string | RegExp}. If get many, return the 
 
 | Param | Type |
 | --- | --- |
-| query | <code>RoomQueryFilter</code> | 
+| query | [<code>RoomQueryFilter</code>](#RoomQueryFilter) | 
 
+**Example**  
+```js
+const bot = new Wechaty()
+await bot.start()
+const roomList = await bot.Room.find()
+const roomList = await bot.Room.find({topic: 'wechaty'})
+```
+<a name="Room.load"></a>
+
+### Room.load(id) ⇒ [<code>Room</code>](#Room)
+Load room by topic. <br>
+> Tips: For Web solution, it cannot get the unique topic id,
+but for other solutions besides web,
+we can get unique and permanent topic id.
+
+**Kind**: static method of [<code>Room</code>](#Room)  
+
+| Param | Type |
+| --- | --- |
+| id | <code>string</code> | 
+
+**Example**  
+```js
+const bot = new Wechaty()
+await bot.start()
+const room = bot.Room.load('roomId')
+```
 <a name="Contact"></a>
 
 ## Contact
@@ -1384,6 +1514,18 @@ Wechaty Class Event Function
 | room-topic | <code>function</code> | (this: Wechaty, room: Room, newTopic: string, oldTopic: string, changer: Contact) => void |
 | room-leave | <code>function</code> | (this: Wechaty, room: Room, leaverList: Contact[]) => void |
 
+<a name="RoomQueryFilter"></a>
+
+## RoomQueryFilter
+The filter to find the room:  {topic: string | RegExp}
+
+**Kind**: global typedef  
+**Properties**
+
+| Name | Type |
+| --- | --- |
+| topic | <code>string</code> | 
+
 <a name="RoomEventName"></a>
 
 ## RoomEventName
@@ -1412,9 +1554,9 @@ Room Class Event Function
 | room-topic | <code>function</code> | (this: Room, topic: string, oldTopic: string, changer: Contact) => void |
 | room-leave | <code>function</code> | (this: Room, leaver: Contact) => void |
 
-<a name="MemberQueryFilter"></a>
+<a name="RoomMemberQueryFilter"></a>
 
-## MemberQueryFilter
+## RoomMemberQueryFilter
 The way to search member by Room.member()
 
 **Kind**: global typedef  
