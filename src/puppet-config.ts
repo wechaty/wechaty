@@ -38,7 +38,7 @@ const wechat4u: PuppetConfig = {
 const padchat: PuppetConfig = {
   npm: {
     name    : 'wechaty-puppet-padchat',
-    version : '^0.3.6',
+    version : '^0.4.4',
   },
 }
 
