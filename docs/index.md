@@ -778,6 +778,7 @@ All wechat contacts(friend) will be encapsulated as a Contact.
         * [.sync()](#Contact+sync) ⇒ <code>Promise.&lt;this&gt;</code>
         * [.self()](#Contact+self) ⇒ <code>boolean</code>
     * _static_
+        * [.load(id)](#Contact.load) ⇒ [<code>Contact</code>](#Contact)
         * [.find(query)](#Contact.find) ⇒ <code>Promise.&lt;(Contact\|null)&gt;</code>
         * [.findAll([queryArg])](#Contact.findAll) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
 
@@ -993,6 +994,23 @@ Check if contact is self
 **Example**  
 ```js
 const isSelf = contact.self()
+```
+<a name="Contact.load"></a>
+
+### Contact.load(id) ⇒ [<code>Contact</code>](#Contact)
+Get Contact by id
+
+**Kind**: static method of [<code>Contact</code>](#Contact)  
+
+| Param | Type |
+| --- | --- |
+| id | <code>string</code> | 
+
+**Example**  
+```js
+const bot = new Wechaty()
+await bot.start()
+const contact = bot.Contact.load('contactId')
 ```
 <a name="Contact.find"></a>
 

@@ -67,6 +67,10 @@ export class Contact extends Accessory implements Sayable {
   }
 
   /**
+   * @private
+   * About the Generic: https://stackoverflow.com/q/43003970/1123955
+   */
+  /**
    * Get Contact by id
    *
    * @static
@@ -76,11 +80,6 @@ export class Contact extends Accessory implements Sayable {
    * const bot = new Wechaty()
    * await bot.start()
    * const contact = bot.Contact.load('contactId')
-   */
-
-  /**
-   * @private
-   * About the Generic: https://stackoverflow.com/q/43003970/1123955
    */
   public static load<T extends typeof Contact>(
     this : T,
