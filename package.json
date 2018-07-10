@@ -1,13 +1,12 @@
 {
   "name": "wechaty",
-  "version": "0.17.116",
+  "version": "0.17.118",
   "description": "Wechaty is a Bot SDK for Wechat Personal Account",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
   "wechaty": {
     "DEFAULT_HEAD": 0,
     "DEFAULT_PORT": 8080,
-    "DEFAULT_PUPPET": "wechat4u",
     "DEFAULT_PROFILE": "default",
     "DEFAULT_PROTOCOL": "io|0.0.1",
     "DEFAULT_TOKEN": "WECHATY_IO_TOKEN",

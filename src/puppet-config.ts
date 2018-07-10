@@ -49,7 +49,7 @@ const puppeteer: PuppetConfig = {
   },
 }
 export const PUPPET_DICT = {
-  default: wechat4u,
+  default: puppeteer,
   //////////////////////////
   mock,
   padchat,
