@@ -26,6 +26,7 @@ export interface PuppetConfig {
 const mock: PuppetConfig = {
   npm: {
     name: 'wechaty-puppet-mock',
+    version: '^0.8.2',
   },
 }
 
