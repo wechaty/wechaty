@@ -360,7 +360,7 @@ export class Room extends Accessory implements Sayable {
    * const bot = new Wechaty()
    * await bot.start()
    * // after logged in...
-   * const room = await bot.Room.find({name: 'wechaty'})
+   * const room = await bot.Room.find({topic: 'wechaty'})
    *
    * # 1. Send text inside Room
    *
