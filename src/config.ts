@@ -31,6 +31,10 @@ import {
   FileBox,
 }                 from 'file-box'
 
+import {
+  PuppetName,
+}                 from './puppet-config'
+
 // https://github.com/Microsoft/TypeScript/issues/14151#issuecomment-280812617
 if (!Symbol.asyncIterator) {
   (<any>Symbol).asyncIterator = Symbol.for('Symbol.asyncIterator')
@@ -113,7 +117,12 @@ export class Config {
 
   public apihost = process.env['WECHATY_APIHOST']    || DEFAULT_SETTING.DEFAULT_APIHOST
   public head    = ('WECHATY_HEAD' in process.env) ? (!!process.env['WECHATY_HEAD']) : (!!(DEFAULT_SETTING.DEFAULT_HEAD))
-  // public puppet  = (process.env['WECHATY_PUPPET']    || DEFAULT_SETTING.DEFAULT_PUPPET).toLowerCase() as PuppetName
+
+  public systemPuppetName () {
+    return (
+      process.env['WECHATY_PUPPET'] || 'default'
+    ).toLowerCase() as PuppetName
+  }
 
   public profile = process.env['WECHATY_PROFILE']    || null    // DO NOT set DEFAULT_PROFILE, because sometimes user do not want to save session
   public token   = process.env['WECHATY_TOKEN']      || null    // DO NOT set DEFAULT, because sometimes user do not want to connect to io cloud service

@@ -518,8 +518,8 @@ export class Wechaty extends Accessory implements Sayable {
     log.verbose('Wechaty', 'initPuppetResolver(%s)', puppet)
 
     if (!puppet) {
-      log.info('Wechaty', 'initPuppet() using puppet: %s', 'default')
-      puppet  = 'default'
+      puppet = config.systemPuppetName()
+      log.info('Wechaty', 'initPuppet() using puppet: %s', puppet)
     }
 
     let puppetName = puppet as string
