@@ -198,7 +198,23 @@ export class Contact extends Accessory implements Sayable {
       const contactIdList: string[] = await this.puppet.contactSearch(query)
       const contactList = contactIdList.map(id => this.load(id))
 
-      await Promise.all(contactList.map(c => c.ready()))
+      const CHUNK_SIZE = 16
+      let   batchIndex = 0
+
+      while (batchIndex * CHUNK_SIZE < contactList.length) {
+        const contactListChunk = contactList.slice(
+          batchIndex * CHUNK_SIZE,
+          batchIndex * (CHUNK_SIZE + 1),
+        )
+        await Promise.all(
+          contactListChunk.map(
+            c => c.ready(),
+          ),
+        )
+
+        batchIndex++
+      }
+
       return contactList
 
     } catch (e) {
