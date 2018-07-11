@@ -131,16 +131,7 @@ Creates an instance of Wechaty.
 
 **Example** *(The World&#x27;s Shortest ChatBot Code: 6 lines of JavaScript)*  
 ```js
-# 1 JavaScript
 const { Wechaty } = require('wechaty')
-const bot = new Wechaty()
-bot.on('scan',    (qrcode, status) => console.log(['https://api.qrserver.com/v1/create-qr-code/?data=',encodeURIComponent(qrcode),'&size=220x220&margin=20',].join('')))
-bot.on('login',   user => console.log(`User ${user} logined`))
-bot.on('message', message => console.log(`Message: ${message}`))
-bot.start()
-
-# 2 TypeScript
-import { Wechaty } from 'wechaty'
 const bot = new Wechaty()
 bot.on('scan',    (qrcode, status) => console.log(['https://api.qrserver.com/v1/create-qr-code/?data=',encodeURIComponent(qrcode),'&size=220x220&margin=20',].join('')))
 bot.on('login',   user => console.log(`User ${user} logined`))
@@ -332,6 +323,7 @@ Send message to userSelf, in other words, bot send message to itself.
 ```js
 const bot = new Wechaty()
 await bot.start()
+// after logged in
 
 # 1. send text to bot itself
 await bot.say('hello!')
@@ -413,7 +405,6 @@ All wechat rooms(groups) will be encapsulated as a Room.
         * [.memberAll(query)](#Room+memberAll) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
         * [.member(queryArg)](#Room+member) ⇒ <code>Promise.&lt;(null\|Contact)&gt;</code>
         * [.memberList()](#Room+memberList) ⇒ <code>Promise.&lt;Array.&lt;Contact&gt;&gt;</code>
-        * ~~[.refresh()](#Room+refresh)~~
         * [.sync()](#Room+sync) ⇒ <code>Promise.&lt;void&gt;</code>
         * [.owner()](#Room+owner) ⇒ [<code>Contact</code>](#Contact) \| <code>null</code>
     * _static_
@@ -438,7 +429,8 @@ Send message inside Room, if set [replyTo], wechaty will mention the contact as 
 ```js
 const bot = new Wechaty()
 await bot.start()
-const room = await bot.Room.find({name: 'wechaty'})
+// after logged in...
+const room = await bot.Room.find({topic: 'wechaty'})
 
 # 1. Send text inside Room
 
@@ -474,11 +466,12 @@ await room.say('Hello world!', contact)
 ```js
 const bot = new Wechaty()
 await bot.start()
-const room = await bot.Room.find({topic: 'event-room'}) // change `event-room` to any room topic in your wechat
+// after logged in...
+const room = await bot.Room.find({topic: 'topic of your room'}) // change `event-room` to any room topic in your wechat
 if (room) {
   room.on('join', (room: Room, inviteeList: Contact[], inviter: Contact) => {
     const nameList = inviteeList.map(c => c.name()).join(',')
-    console.log(`Room ${room.topic()} got new member ${nameList}, invited by ${inviter}`)
+    console.log(`Room got new member ${nameList}, invited by ${inviter}`)
   })
 }
 ```
@@ -486,11 +479,12 @@ if (room) {
 ```js
 const bot = new Wechaty()
 await bot.start()
-const room = await bot.Room.find({topic: 'event-room'}) // change `event-room` to any room topic in your wechat
+// after logged in...
+const room = await bot.Room.find({topic: 'topic of your room'}) // change `event-room` to any room topic in your wechat
 if (room) {
   room.on('leave', (room: Room, leaverList: Contact[]) => {
     const nameList = leaverList.map(c => c.name()).join(',')
-    console.log(`Room ${room.topic()} lost member ${nameList}`)
+    console.log(`Room lost member ${nameList}`)
   })
 }
 ```
@@ -498,10 +492,11 @@ if (room) {
 ```js
 const bot = new Wechaty()
 await bot.start()
-const room = await bot.Room.find({topic: 'event-room'}) // change `event-room` to any room topic in your wechat
+// after logged in...
+const room = await bot.Room.find({topic: 'topic of your room'}) // change `event-room` to any room topic in your wechat
 if (room) {
   room.on('topic', (room: Room, topic: string, oldTopic: string, changer: Contact) => {
-    console.log(`Room ${room.topic()} topic changed from ${oldTopic} to ${topic} by ${changer.name()}`)
+    console.log(`Room topic changed from ${oldTopic} to ${topic} by ${changer.name()}`)
   })
 }
 ```
@@ -520,6 +515,7 @@ Add contact in a room
 ```js
 const bot = new Wechaty()
 await bot.start()
+// after logged in...
 const contact = await bot.Contact.find({name: 'lijiarui'}) // change 'lijiarui' to any contact in your wechat
 const room = await bot.Room.find({topic: 'wechat'})        // change 'wechat' to any room topic in your wechat
 if (room) {
@@ -546,6 +542,7 @@ It works only when the bot is the owner of the room
 ```js
 const bot = new Wechaty()
 await bot.start()
+// after logged in...
 const room = await bot.Room.find({topic: 'wechat'})          // change 'wechat' to any room topic in your wechat
 const contact = await bot.Contact.find({name: 'lijiarui'})   // change 'lijiarui' to any room member in the room you just set
 if (room) {
@@ -619,34 +616,26 @@ SET/GET announce from the room
 **Example** *(When you say anything in a room, it will get room announce. )*  
 ```js
 const bot = new Wechaty()
-bot
-.on('message', async m => {
-  const room = m.room()
-  if (room) {
-    const announce = await room.announce()
-    console.log(`room announce is : ${announce}`)
-  }
-})
-.start()
+await bot.start()
+// after logged in...
+const room = await bot.Room.find({topic: 'your room'})
+const announce = await room.announce()
+console.log(`room announce is : ${announce}`)
 ```
 **Example** *(When you say anything in a room, it will change room announce. )*  
 ```js
 const bot = new Wechaty()
-bot
-.on('message', async m => {
-  const room = m.room()
-  if (room) {
-    const oldAnnounce = await room.announce()
-    await room.announce('change announce to wechaty!')
-    console.log(`room announce change from ${oldAnnounce} to ${room.announce()}`)
-  }
-})
-.start()
+await bot.start()
+// after logged in...
+const room = await bot.Room.find({topic: 'your room'})
+const oldAnnounce = await room.announce()
+await room.announce('change announce to wechaty!')
+console.log(`room announce change from ${oldAnnounce} to ${room.announce()}`)
 ```
 <a name="Room+qrcode"></a>
 
 ### room.qrcode() ⇒ <code>Promise.&lt;string&gt;</code>
-Get Room QR Code
+Get QR Code of the Room from the room, which can be used as scan and join the room.
 
 **Kind**: instance method of [<code>Room</code>](#Room)  
 <a name="Room+alias"></a>
@@ -702,6 +691,7 @@ Check if the room has member `contact`, the return is a Promise and must be `awa
 ```js
 const bot = new Wechaty()
 await bot.start()
+// after logged in...
 const contact = await bot.Contact.find({name: 'lijiarui'})   // change 'lijiarui' to any of contact in your wechat
 const room = await bot.Room.find({topic: 'wechaty'})         // change 'wechaty' to any of the room in your wechat
 if (contact && room) {
@@ -743,6 +733,7 @@ Find all contacts in a room, if get many, return the first one.
 ```js
 const bot = new Wechaty()
 await bot.start()
+// after logged in...
 const room = await bot.Room.find({topic: 'wechaty'})           // change 'wechaty' to any room name in your wechat
 if (room) {
   const member = await room.member('lijiarui')             // change 'lijiarui' to any room member in your wechat
@@ -757,6 +748,7 @@ if (room) {
 ```js
 const bot = new Wechaty()
 await bot.start()
+// after logged in...
 const room = await bot.Room.find({topic: 'wechaty'})          // change 'wechaty' to any room name in your wechat
 if (room) {
   const member = await room.member({name: 'lijiarui'})        // change 'lijiarui' to any room member in your wechat
@@ -777,14 +769,6 @@ Get all room member from the room
 ```js
 await room.memberList()
 ```
-<a name="Room+refresh"></a>
-
-### ~~room.refresh()~~
-***Deprecated***
-
-Force reload data for Room, use [sync](#Room+sync) instead
-
-**Kind**: instance method of [<code>Room</code>](#Room)  
 <a name="Room+sync"></a>
 
 ### room.sync() ⇒ <code>Promise.&lt;void&gt;</code>
@@ -843,6 +827,7 @@ Find room by by filter: {topic: string | RegExp}, return all the matched room
 ```js
 const bot = new Wechaty()
 await bot.start()
+// after logged in
 const roomList = await bot.Room.findAll()                    // get the room list of the bot
 const roomList = await bot.Room.findAll({topic: 'wechaty'})  // find all of the rooms with name 'wechaty'
 ```
@@ -862,6 +847,7 @@ Try to find a room by filter: {topic: string | RegExp}. If get many, return the 
 ```js
 const bot = new Wechaty()
 await bot.start()
+// after logged in...
 const roomList = await bot.Room.find()
 const roomList = await bot.Room.find({topic: 'wechaty'})
 ```
@@ -883,6 +869,7 @@ we can get unique and permanent topic id.
 ```js
 const bot = new Wechaty()
 await bot.start()
+// after logged in...
 const room = bot.Room.load('roomId')
 ```
 <a name="Contact"></a>
@@ -1056,9 +1043,9 @@ const isOfficial = contact.type() === bot.Contact.Type.OFFICIAL
 ### contact.gender() ⇒ <code>ContactGender.Unknown</code> \| <code>ContactGender.Male</code> \| <code>ContactGender.Female</code>
 Contact gender
 > Tips: ContactGender is enum here. </br>
-- ContactGender.Unknown = 0</br>
-- ContactGender.Male = 1</br>
-- ContactGender.Female = 2</br>
+- ContactGender.Unknown </br>
+- ContactGender.Male    </br>
+- ContactGender.Female  </br>
 
 **Kind**: instance method of [<code>Contact</code>](#Contact)  
 **Example**  
@@ -1226,7 +1213,7 @@ Accept Friend Request
 const bot = new Wechaty()
 bot.on('friendship', async friendship => {
   try {
-    console.log(`received friend event from ${friendship.contact().name()}`)
+    console.log(`received friend event.`)
     switch (friendship.type()) {
 
     # 1. New Friend Request
@@ -1238,7 +1225,7 @@ bot.on('friendship', async friendship => {
     # 2. Friend Ship Confirmed
 
     case Friendship.Type.Confirm:
-      console.log(`friend ship confirmed with ${friendship.contact().name()}`)
+      console.log(`friend ship confirmed`)
       break
     }
   } catch (e) {
@@ -1278,7 +1265,9 @@ Get the contact from friendship
 ```js
 const bot = new Wechaty()
 bot.on('friendship', async friendship => {
-  console.log(`received friend event from ${friendship.contact().name()}`)
+  const contact = friendship.contact()
+  const name = contact.name()
+  console.log(`received friend event from ${name}`)
 }
 .start()
 ```
@@ -1287,10 +1276,10 @@ bot.on('friendship', async friendship => {
 ### friendship.type() ⇒ <code>FriendshipType</code>
 Return the Friendship Type
 > Tips: FriendshipType is enum here. </br>
-- FriendshipType.Unknown = 0 </br>
-- FriendshipType.Confirm = 1 </br>
-- FriendshipType.Receive = 2 </br>
-- FriendshipType.Verify  = 3 </br>
+- FriendshipType.Unknown  </br>
+- FriendshipType.Confirm  </br>
+- FriendshipType.Receive  </br>
+- FriendshipType.Verify   </br>
 
 **Kind**: instance method of [<code>Friendship</code>](#Friendship)  
 **Example** *(If request content is &#x60;ding&#x60;, then accept the friendship)*  
@@ -1485,6 +1474,10 @@ bot
 
   if (/^lijiarui$/i.test(m.text())) {
     const contactCard = await bot.Contact.find({name: 'lijiarui'})
+    if (!contactCard) {
+      console.log('not found')
+      return
+    }
     await msg.say(contactCard)
   }
 
@@ -1496,14 +1489,14 @@ bot
 ### message.type() ⇒ <code>MessageType</code>
 Get the type from the message.
 > Tips: MessageType is Enum here. </br>
-- MessageType.Unknown   = 0, </br>
-- MessageType.Attachment = 1, </br>
-- MessageType.Audio      = 2, </br>
-- MessageType.Contact    = 3, </br>
-- MessageType.Emoticon   = 4, </br>
-- MessageType.Image      = 5, </br>
-- MessageType.Text       = 6, </br>
-- MessageType.Video      = 7, </br>
+- MessageType.Unknown     </br>
+- MessageType.Attachment  </br>
+- MessageType.Audio       </br>
+- MessageType.Contact     </br>
+- MessageType.Emoticon    </br>
+- MessageType.Image       </br>
+- MessageType.Text        </br>
+- MessageType.Video       </br>
 
 **Kind**: instance method of [<code>Message</code>](#Message)  
 **Example**  
@@ -1582,9 +1575,11 @@ bot
 <a name="Message+age"></a>
 
 ### message.age() ⇒ <code>number</code>
-Message Age:
-in seconds.
-TODO
+Returns the message age in seconds. <br>
+
+For example, the message is sent at time 8:43:01,
+and when we received it in Wechaty, the time is 8:43:15,
+then the age() will return 8:43:15 - 8:43:01 = 14 (seconds)
 
 **Kind**: instance method of [<code>Message</code>](#Message)  
 <a name="Message+file"></a>
@@ -1598,7 +1593,7 @@ use [toFileBox](#Message+toFileBox) instead
 <a name="Message+toFileBox"></a>
 
 ### message.toFileBox() ⇒ <code>Promise.&lt;FileBox&gt;</code>
-Get Media File of the Message
+Extract the Media File from the Message, and put it into the FileBox.
 
 **Kind**: instance method of [<code>Message</code>](#Message)  
 <a name="Message+toContact"></a>
