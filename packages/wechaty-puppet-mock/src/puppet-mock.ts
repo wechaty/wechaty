@@ -80,6 +80,8 @@ export class PuppetMock extends Puppet {
     // await some tasks...
     this.state.on(true)
 
+    this.emit('scan', 'https://not-exist.com', 0)
+
     this.id = 'logined_user_id'
     // const user = this.Contact.load(this.id)
     this.emit('login', this.id)
