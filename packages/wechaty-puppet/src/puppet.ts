@@ -455,7 +455,7 @@ export abstract class Puppet extends EventEmitter {
 
   public async contactRoomList (
     contactId: string,
-  ): Promise<string /* roomId */[]> {
+  ): Promise<string[] /* roomId */> {
     log.verbose('Puppet', 'contactRoomList(%s)', contactId)
 
     const roomIdList = await this.roomList()
@@ -498,52 +498,58 @@ export abstract class Puppet extends EventEmitter {
     }
 
     if (typeof query === 'string') {
-      const nameIdList  = await this.contactSearch({ name: query })
-      const aliasIdList = await this.contactSearch({ alias: query })
+      const nameIdList  = await this.contactSearch({ name: query }  , searchIdList)
+      const aliasIdList = await this.contactSearch({ alias: query } , searchIdList)
 
       return [...new Set([...nameIdList, ...aliasIdList])]
     }
 
     const filterFuncion: ContactPayloadFilterFunction = this.contactQueryFilterFactory(query)
 
-    const searchContactPayloadList: ContactPayload[] = (
-      await Promise.all(
-        searchIdList.map(
-          async id => {
-            try {
+    const BATCH_SIZE = 16
+    let   batchIndex = 0
 
-              // const payload = await this.contactPayload(id)
+    const resultIdList: string[] = []
 
-              /**
-               * Do not update LRU cache at here
-               */
-              const rawPayload = await this.contactRawPayload(id)
-              const payload    = await this.contactRawPayloadParser(rawPayload)
+    const matchId = async (id: string) => {
+      try {
+        /**
+         * Does LRU cache matter at here?
+         */
+        // const rawPayload = await this.contactRawPayload(id)
+        // const payload    = await this.contactRawPayloadParser(rawPayload)
+        const payload = await this.contactPayload(id)
 
-              if (filterFuncion(payload)) {
-                return payload
-              } else {
-                return {} as any
-              }
+        if (filterFuncion(payload)) {
+          return id
+        }
 
-            } catch (e) {
-              // compatible with {} payload, which means that
-              // contact id is not friend with the current user
-              log.silly('Puppet', 'contactSearch() contactPayload exception: %s', e.message)
-              await this.contactPayloadDirty(id)
-              return {} as any
-            }
-          },
-        ),
+      } catch (e) {
+        log.silly('Puppet', 'contactSearch() contactPayload exception: %s', e.message)
+        await this.contactPayloadDirty(id)
+      }
+      return undefined
+    }
+
+    while (BATCH_SIZE * batchIndex < searchIdList.length) {
+      const batchSearchIdList  = searchIdList.slice(
+        BATCH_SIZE * batchIndex,
+        BATCH_SIZE * (batchIndex + 1),
       )
-    ).filter(payload => Object.keys(payload).length > 0)
 
-    log.silly('Puppet', 'contactSearch() searchContactPayloadList.length = %d', searchContactPayloadList.length)
+      const matchBatchIdFutureList = batchSearchIdList.map(matchId)
+      const matchBatchIdList       = await Promise.all(matchBatchIdFutureList)
 
-    const idList: string[] = searchContactPayloadList
-                    .map(payload => payload.id)
+      const batchSearchIdResultList: string[] = matchBatchIdList.filter(id => !!id) as string[]
 
-    return idList
+      resultIdList.push(...batchSearchIdResultList)
+
+      batchIndex ++
+    }
+
+    log.silly('Puppet', 'contactSearch() searchContactPayloadList.length = %d', resultIdList.length)
+
+    return resultIdList
   }
 
   protected contactQueryFilterFactory (
@@ -867,7 +873,9 @@ export abstract class Puppet extends EventEmitter {
     return idList
   }
 
-  public async roomSearch (query?: RoomQueryFilter): Promise<string[]> {
+  public async roomSearch (
+    query?: RoomQueryFilter,
+  ): Promise<string[] /* Room Id List*/> {
     log.verbose('Puppet', 'roomSearch(%s)', JSON.stringify(query))
 
     const allRoomIdList: string[] = await this.roomList()
