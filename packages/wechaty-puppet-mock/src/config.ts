@@ -10,19 +10,14 @@ export function qrCodeForChatie (): FileBox {
   const qrStream = qrImage.image(CHATIE_OFFICIAL_ACCOUNT_QRCODE, { type })
   return FileBox.fromStream(qrStream, name)
 }
-
 /**
  * VERSION
  */
-// tslint:disable:no-var-requires
-let VERSION: string = '0.0.0'
-try {
-  VERSION = require('../../package.json').version
-} catch (e) {
-  VERSION = require('../package.json').version
-}
+import readPkgUp from 'read-pkg-up'
+
+const pkg = readPkgUp.sync({ cwd: __dirname }).pkg
+export const VERSION = pkg.version
 
 export {
-  VERSION,
   log,
 }
