@@ -486,12 +486,6 @@ export abstract class Puppet extends EventEmitter {
                             ? `idList.length = ${searchIdList.length}`
                             : '',
                 )
-    if (typeof query === 'string') {
-      const nameIdList  = await this.contactSearch({ name: query })
-      const aliasIdList = await this.contactSearch({ alias: query })
-
-      return [...new Set([...nameIdList, ...aliasIdList])]
-    }
 
     if (!searchIdList) {
       searchIdList = await this.contactList()
@@ -499,13 +493,39 @@ export abstract class Puppet extends EventEmitter {
 
     log.silly('Puppet', 'contactSearch() searchIdList.length = %d', searchIdList.length)
 
+    if (!query) {
+      return searchIdList
+    }
+
+    if (typeof query === 'string') {
+      const nameIdList  = await this.contactSearch({ name: query })
+      const aliasIdList = await this.contactSearch({ alias: query })
+
+      return [...new Set([...nameIdList, ...aliasIdList])]
+    }
+
+    const filterFuncion: ContactPayloadFilterFunction = this.contactQueryFilterFactory(query)
+
     const searchContactPayloadList: ContactPayload[] = (
       await Promise.all(
         searchIdList.map(
           async id => {
             try {
-              const payload = await this.contactPayload(id)
-              return payload
+
+              // const payload = await this.contactPayload(id)
+
+              /**
+               * Do not update LRU cache at here
+               */
+              const rawPayload = await this.contactRawPayload(id)
+              const payload    = await this.contactRawPayloadParser(rawPayload)
+
+              if (filterFuncion(payload)) {
+                return payload
+              } else {
+                return {} as any
+              }
+
             } catch (e) {
               // compatible with {} payload, which means that
               // contact id is not friend with the current user
@@ -520,15 +540,7 @@ export abstract class Puppet extends EventEmitter {
 
     log.silly('Puppet', 'contactSearch() searchContactPayloadList.length = %d', searchContactPayloadList.length)
 
-    if (!query) {
-      const allIdList = searchContactPayloadList.map(payload => payload.id)
-      return allIdList
-    }
-
-    const filterFuncion: ContactPayloadFilterFunction = this.contactQueryFilterFactory(query)
-
     const idList: string[] = searchContactPayloadList
-                    .filter(filterFuncion)
                     .map(payload => payload.id)
 
     return idList
