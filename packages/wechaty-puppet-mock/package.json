@@ -70,7 +70,7 @@
   },
   "peerDependencies": {
     "file-box": "^0.8.22",
-    "wechaty-puppet": "^0.6"
+    "wechaty-puppet": "^0.8.1"
   },
   "dependencies": {
     "brolog": "^1.6.5",
