@@ -7,5 +7,5 @@ set -e
 
 brew install \
   moreutils \
-  jq
+  jq \
   shellcheck
