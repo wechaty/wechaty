@@ -125,9 +125,9 @@ function validatePuppetConfig () {
   let puppetName: PuppetName
   for (puppetName in PUPPET_DICT) {
     const puppetConfig = PUPPET_DICT[puppetName]
-    const version = puppetConfig.npm.version
+    const version = puppetConfig.npm.version || '*'
 
-    if (!version || !semver.valid(version)) {
+    if (!version || !semver.validRange(version)) {
       throw new Error(`puppet config version ${version} not valid for ${puppetName}`)
     }
   }
