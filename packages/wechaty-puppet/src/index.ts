@@ -5,7 +5,11 @@ export * from './schemas/room'
 
 export * from './schemas/puppet'
 
-export { log } from './config'
+export {
+  VERSION,
+  log,
+}           from './config'
+
 export {
   Puppet,
 }           from './puppet'

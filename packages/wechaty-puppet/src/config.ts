@@ -1,7 +1,6 @@
 // tslint:disable:no-var-requires
 
 import {
-  // Brolog,
   log,
 }               from 'brolog'
 
@@ -22,4 +21,3 @@ export {
   VERSION,
   log,
 }
-// export const log = new Brolog()
