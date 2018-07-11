@@ -121,16 +121,7 @@ export interface WechatyOptions {
  * > If you want to know how to get contact, see [Contact](#Contact)
  *
  * @example <caption>The World's Shortest ChatBot Code: 6 lines of JavaScript</caption>
- * # 1 JavaScript
  * const { Wechaty } = require('wechaty')
- * const bot = new Wechaty()
- * bot.on('scan',    (qrcode, status) => console.log(['https://api.qrserver.com/v1/create-qr-code/?data=',encodeURIComponent(qrcode),'&size=220x220&margin=20',].join('')))
- * bot.on('login',   user => console.log(`User ${user} logined`))
- * bot.on('message', message => console.log(`Message: ${message}`))
- * bot.start()
- *
- * # 2 TypeScript
- * import { Wechaty } from 'wechaty'
  * const bot = new Wechaty()
  * bot.on('scan',    (qrcode, status) => console.log(['https://api.qrserver.com/v1/create-qr-code/?data=',encodeURIComponent(qrcode),'&size=220x220&margin=20',].join('')))
  * bot.on('login',   user => console.log(`User ${user} logined`))
@@ -1037,6 +1028,7 @@ export class Wechaty extends Accessory implements Sayable {
    * @example
    * const bot = new Wechaty()
    * await bot.start()
+   * // after logged in
    *
    * # 1. send text to bot itself
    * await bot.say('hello!')

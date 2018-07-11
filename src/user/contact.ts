@@ -510,9 +510,9 @@ export class Contact extends Accessory implements Sayable {
   /**
    * Contact gender
    * > Tips: ContactGender is enum here. </br>
-   * - ContactGender.Unknown = 0</br>
-   * - ContactGender.Male = 1</br>
-   * - ContactGender.Female = 2</br>
+   * - ContactGender.Unknown </br>
+   * - ContactGender.Male    </br>
+   * - ContactGender.Female  </br>
    *
    * @returns {ContactGender.Unknown | ContactGender.Male | ContactGender.Female}
    * @example

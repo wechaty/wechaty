@@ -366,6 +366,10 @@ export class Message extends Accessory implements Sayable {
    *
    *   if (/^lijiarui$/i.test(m.text())) {
    *     const contactCard = await bot.Contact.find({name: 'lijiarui'})
+   *     if (!contactCard) {
+   *       console.log('not found')
+   *       return
+   *     }
    *     await msg.say(contactCard)
    *   }
    *
@@ -450,14 +454,14 @@ export class Message extends Accessory implements Sayable {
   /**
    * Get the type from the message.
    * > Tips: MessageType is Enum here. </br>
-   * - MessageType.Unknown   = 0, </br>
-   * - MessageType.Attachment = 1, </br>
-   * - MessageType.Audio      = 2, </br>
-   * - MessageType.Contact    = 3, </br>
-   * - MessageType.Emoticon   = 4, </br>
-   * - MessageType.Image      = 5, </br>
-   * - MessageType.Text       = 6, </br>
-   * - MessageType.Video      = 7, </br>
+   * - MessageType.Unknown     </br>
+   * - MessageType.Attachment  </br>
+   * - MessageType.Audio       </br>
+   * - MessageType.Contact     </br>
+   * - MessageType.Emoticon    </br>
+   * - MessageType.Image       </br>
+   * - MessageType.Text        </br>
+   * - MessageType.Video       </br>
    * @returns {MessageType}
    *
    * @example
@@ -712,9 +716,11 @@ export class Message extends Accessory implements Sayable {
   }
 
   /**
-   * Message Age:
-   * in seconds.
-   * TODO
+   * Returns the message age in seconds. <br>
+   *
+   * For example, the message is sent at time 8:43:01,
+   * and when we received it in Wechaty, the time is 8:43:15,
+   * then the age() will return 8:43:15 - 8:43:01 = 14 (seconds)
    * @returns {number}
    */
   public age(): number {
@@ -734,7 +740,7 @@ export class Message extends Accessory implements Sayable {
   }
 
   /**
-   * Get Media File of the Message
+   * Extract the Media File from the Message, and put it into the FileBox.
    *
    * @returns {Promise<FileBox>}
    */
