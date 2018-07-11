@@ -172,7 +172,7 @@ export abstract class Puppet extends EventEmitter {
      */
     const lruOptions: LRU.Options = {
       dispose (key: string, val: object) {
-        log.silly('Puppet', 'constructor() lruOptions.dispose(%s, %s)', key, JSON.stringify(val))
+        log.silly('Puppet', 'constructor() lruOptions.dispose(%s, %s)', key, JSON.stringify(val).substr(0, 140))
       },
       // Sometims a wechat account that join too many rooms
       // will have over 100,000 Contact Payloads after sync
@@ -843,6 +843,10 @@ export abstract class Puppet extends EventEmitter {
     let idList: string[] = []
 
     if (query.contactAlias || query.name) {
+      /**
+       * We will only have `alias` or `name` set at here.
+       * One is set, the other will be `undefined`
+       */
       const contactQueryFilter: ContactQueryFilter = {
         alias : query.contactAlias,
         name  : query.name,
