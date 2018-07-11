@@ -780,7 +780,10 @@ export class Wechaty extends Accessory implements Sayable {
    * // do other stuff with bot here
    */
   public async start(): Promise<void> {
-    log.info('Wechaty', '<%s> start() v%s is starting...' , this.puppet, this.version())
+    log.info('Wechaty', '<%s> start() v%s is starting...' ,
+                        this.options.puppet || config.systemPuppetName(),
+                        this.version(),
+            )
     log.verbose('Wechaty', 'puppet: %s'   , this.options.puppet)
     log.verbose('Wechaty', 'profile: %s'  , this.options.profile)
     log.verbose('Wechaty', 'id: %s'       , this.id)
@@ -849,7 +852,10 @@ export class Wechaty extends Accessory implements Sayable {
    * await bot.stop()
    */
   public async stop(): Promise<void> {
-    log.info('Wechaty', '<%s> stop() v%s is stoping ...' , this.puppet, this.version())
+    log.info('Wechaty', '<%s> stop() v%s is stoping ...' ,
+                        this.options.puppet || config.systemPuppetName(),
+                        this.version(),
+            )
 
     if (this.state.off()) {
       log.silly('Wechaty', 'stop() on an stopping/stopped instance')
