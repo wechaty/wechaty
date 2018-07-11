@@ -1,5 +1,3 @@
-// tslint:disable:no-var-requires
-
 import {
   log,
 }               from 'brolog'
@@ -7,17 +5,14 @@ import {
 /**
  * VERSION
  */
-let VERSION: string = '0.0.0'
-try {
-  VERSION = require('../../package.json').version
-} catch (e) {
-  VERSION = require('../package.json').version
-}
+import readPkgUp from 'read-pkg-up'
+
+const pkg = readPkgUp.sync({ cwd: __dirname }).pkg
+export const VERSION = pkg.version
 
 /**
  * exports
  */
 export {
-  VERSION,
   log,
 }
