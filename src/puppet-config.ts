@@ -3,6 +3,7 @@ import {
 }                 from 'clone-class'
 import npm        from 'npm-programmatic'
 import pkgDir     from 'pkg-dir'
+import semver     from 'semver'
 
 import {
   Puppet,
@@ -45,7 +46,7 @@ const padchat: PuppetConfig = {
 const puppeteer: PuppetConfig = {
   npm: {
     name: 'wechaty-puppet-puppeteer',
-    version: '^0.4',
+    version: '^0.4.2',
   },
 }
 export const PUPPET_DICT = {
@@ -71,6 +72,8 @@ export type PuppetName = keyof typeof PUPPET_DICT
 
 export async function puppetResolver (puppet: PuppetName): Promise<typeof Puppet & Constructor<Puppet>> {
   log.verbose('PuppetConfig', 'puppetResolver(%s)', puppet)
+
+  validatePuppetConfig()
 
   const puppetConfig = PUPPET_DICT[puppet]
   if (!puppetConfig) {
@@ -116,4 +119,16 @@ async function installPuppet (
     },
   )
   log.info('PuppetConfig', 'installPuppet(%s) done', puppetNpm)
+}
+
+function validatePuppetConfig () {
+  let puppetName: PuppetName
+  for (puppetName in PUPPET_DICT) {
+    const puppetConfig = PUPPET_DICT[puppetName]
+    const version = puppetConfig.npm.version
+
+    if (!version || !semver.valid(version)) {
+      throw new Error(`puppet config version ${version} not valid for ${puppetName}`)
+    }
+  }
 }
