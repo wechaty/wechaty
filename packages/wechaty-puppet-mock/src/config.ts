@@ -1,3 +1,4 @@
+import { log }      from 'brolog'
 import { FileBox }  from 'file-box'
 import qrImage      from 'qr-image'
 
@@ -10,12 +11,18 @@ export function qrCodeForChatie (): FileBox {
   return FileBox.fromStream(qrStream, name)
 }
 
-import {
-  // Brolog,
-  log,
-}                       from 'brolog'
+/**
+ * VERSION
+ */
+// tslint:disable:no-var-requires
+let VERSION: string = '0.0.0'
+try {
+  VERSION = require('../../package.json').version
+} catch (e) {
+  VERSION = require('../package.json').version
+}
 
-// export const log = new Brolog()
 export {
+  VERSION,
   log,
 }
