@@ -33,21 +33,21 @@ const mock: PuppetConfig = {
 const wechat4u: PuppetConfig = {
   npm: {
     name    : 'wechaty-puppet-wechat4u',
-    version : '^0.2.21',
+    version : '^0.8.1',
   },
 }
 
 const padchat: PuppetConfig = {
   npm: {
     name    : 'wechaty-puppet-padchat',
-    version : '^0.4.4',
+    version : '^0.8.1',
   },
 }
 
 const puppeteer: PuppetConfig = {
   npm: {
     name: 'wechaty-puppet-puppeteer',
-    version: '^0.4.2',
+    version: '^0.8.2',
   },
 }
 export const PUPPET_DICT = {
