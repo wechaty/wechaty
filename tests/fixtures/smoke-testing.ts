@@ -6,7 +6,7 @@ function getBotList() {
   return [
     new Wechaty({ puppet: 'mock' }),
     new Wechaty({ puppet: 'wechat4u' }),
-    new Wechaty({ puppet: 'puppeteer' }),
+    // new Wechaty({ puppet: 'puppeteer' }),
     new Wechaty({
       puppet: 'padchat',
       puppetOptions: {
