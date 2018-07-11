@@ -202,12 +202,12 @@ export class Contact extends Accessory implements Sayable {
       let   batchIndex = 0
 
       while (batchIndex * CHUNK_SIZE < contactList.length) {
-        const contactListChunk = contactList.slice(
-          batchIndex * CHUNK_SIZE,
-          batchIndex * (CHUNK_SIZE + 1),
+        const batchContactList = contactList.slice(
+          CHUNK_SIZE * batchIndex,
+          CHUNK_SIZE * (batchIndex + 1),
         )
         await Promise.all(
-          contactListChunk.map(
+          batchContactList.map(
             c => c.ready(),
           ),
         )
