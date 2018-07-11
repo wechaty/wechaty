@@ -5,7 +5,7 @@ set -e
 # brew cleanup
 # brew cask cleanup
 
-brew install \
-  moreutils \
-  jq \
-  shellcheck
+# brew install \
+  # moreutils \
+  # jq
+  # shellcheck
