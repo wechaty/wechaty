@@ -61,7 +61,7 @@
     "tslint": "^5.10.0",
     "tslint-config-standard": "^7.1.0",
     "typescript": "^2.9.2",
-    "wechaty-puppet": "^0.6.4"
+    "wechaty-puppet": "^0.8.1"
   },
   "git": {
     "scripts": {
