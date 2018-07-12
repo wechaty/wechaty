@@ -1017,12 +1017,12 @@ export class Wechaty extends Accessory implements Sayable {
   /**
    * Get current user
    *
-   * @returns {Contact}
+   * @returns {ContactSelf}
    * @example
    * const contact = bot.userSelf()
    * console.log(`Bot is ${contact.name()}`)
    */
-  public userSelf(): Contact {
+  public userSelf(): ContactSelf {
     const userId = this.puppet.selfId()
     const user = this.ContactSelf.load(userId)
     return user
