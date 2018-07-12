@@ -826,7 +826,9 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   /**
-   * @deprecated use start() instead
+   * @desc
+   * use {@link Wechaty#start} instead
+   * @deprecated
    */
   public async init(): Promise<void> {
     log.warn('Wechaty', 'init() DEPRECATED. use start() instead.')
