@@ -75,6 +75,6 @@
     "rxjs": "^6.2.1",
     "semver": "^5.5.0",
     "state-switch": "^0.6.2",
-    "watchdog": "^0.8.10"
+    "watchdog": "^0.8.12"
   }
 }
