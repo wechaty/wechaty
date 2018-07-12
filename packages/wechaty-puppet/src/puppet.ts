@@ -50,6 +50,7 @@ import {
 
 import {
   log,
+  VERSION,
 }                       from './config'
 
 import {
@@ -90,6 +91,11 @@ let   PUPPET_COUNTER           = 0
  *
  */
 export abstract class Puppet extends EventEmitter {
+
+  /**
+   * Must overwrite by child class to identify their version
+   */
+  public static readonly VERSION = '0.0.0'
 
   public readonly cacheContactPayload    : LRU.Cache<string, ContactPayload>
   public readonly cacheFriendshipPayload : LRU.Cache<string, FriendshipPayload>
