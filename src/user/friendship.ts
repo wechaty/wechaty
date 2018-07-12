@@ -89,7 +89,7 @@ export class Friendship extends Accessory {
    * @example
    * const memberList = await room.memberList()
    * for (let i = 0; i < memberList.length; i++) {
-   *   await bot.Friendship.send(member, 'Nice to meet you! I am wechaty bot!')
+   *   await bot.Friendship.add(member, 'Nice to meet you! I am wechaty bot!')
    * }
    */
   public static async add(
