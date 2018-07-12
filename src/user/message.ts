@@ -341,6 +341,7 @@ export class Message extends Accessory implements Sayable {
    * send text, Contact, or file to bot. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
    * @param {(Contact|Contact[])} [mention]
+   * If this is a room message, when you set mention param, you can `@` Contact in the room.
    * @returns {Promise<void>}
    *
    * @example
@@ -754,8 +755,8 @@ export class Message extends Accessory implements Sayable {
 
   /**
    * Get Share Card of the Message
-   * TODO
-   * @returns {Promise<FileBox>}
+   * Extract the Contact Card from the Message, and encapsulate it into Contact class
+   * @returns {Promise<Contact>}
    */
   public async toContact(): Promise<Contact> {
     log.warn('Message', 'toContact() to be implemented')
