@@ -117,7 +117,7 @@ export interface WechatyOptions {
  * See more:
  * - [What is a Puppet in Wechaty](https://github.com/Chatie/wechaty-getting-started/wiki/FAQ-EN#31-what-is-a-puppet-in-wechaty)
  *
- * > If you want to know how to send message, see [Message](#Message)
+ * > If you want to know how to send message, see [Message](#Message) <br>
  * > If you want to know how to get contact, see [Contact](#Contact)
  *
  * @example <caption>The World's Shortest ChatBot Code: 6 lines of JavaScript</caption>
