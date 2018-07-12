@@ -82,3 +82,16 @@ test('validApiHost()', async t => {
 
 //   config.puppetInstance(bak)
 // })
+
+test('systemPuppetName ()', async t => {
+  const WECHATY_PUPPET_ORIG = process.env['WECHATY_PUPPET']
+
+  delete process.env['WECHATY_PUPPET']
+  t.equal(config.systemPuppetName(), 'default', 'should get default as pupet name')
+
+  process.env['WECHATY_PUPPET'] = 'mock'
+  t.equal(config.systemPuppetName(), 'mock', 'should get pupet name from process.env')
+
+  // restore the original value
+  process.env['WECHATY_PUPPET'] = WECHATY_PUPPET_ORIG
+})

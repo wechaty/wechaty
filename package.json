@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.17.119",
+  "version": "0.19.4",
   "description": "Wechaty is a Bot SDK for Wechat Personal Account",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
@@ -27,13 +27,11 @@
     "lint:sh": "bash -n bin/*.sh",
     "sloc": "sloc bin examples scripts src tests --details --format cli-table --keys total,source,comment && sloc bin examples scripts src tests",
     "ts-node": "ts-node",
-    "test": "npm run clean && npm run lint && npm run test:unit && npm run test:shell && npm run sloc",
-    "test:linux": "npm run pretest && parallel ts-node -- ./src/**/*.spec.ts ./tests/**/*.spec.ts && npm run posttest",
+    "test": "npm run lint && npm run test:unit && npm run test:shell && npm run sloc",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
     "test:shell": "shellcheck bin/*.sh",
     "test:unit": "blue-tape -r ts-node/register \"src/**/*.spec.ts\" \"src/*.spec.ts\" \"tests/*.spec.ts\" \"tests/**/*.spec.ts\"",
     "test:unit:retry": "ts-node scripts/retry-unit-tests",
-    "test:win32": "npm run test:unit:retry",
     "test:debug": "blue-tape -r ts-node/register src/puppet-web/bridge.spec.ts",
     "typedoc": "bash scripts/typedoc.sh",
     "io-client": "ts-node bin/io-client",
@@ -78,7 +76,7 @@
   },
   "dependencies": {
     "array-flatten": "^2.1.1",
-    "brolog": "^1.6.3",
+    "brolog": "^1.8.1",
     "clone-class": "^0.6.11",
     "cuid": "^2.1.1",
     "express": "^4.16.3",
@@ -96,7 +94,7 @@
     "rxjs": "^6.1.0",
     "state-switch": "^0.6.2",
     "watchdog": "^0.8.1",
-    "wechaty-puppet": "^0.6",
+    "wechaty-puppet": "^0.8.2",
     "ws": "^5.2.0"
   },
   "devDependencies": {
@@ -148,7 +146,7 @@
     "tuling123-client": "^0.0.2",
     "typedoc": "^0.11.1",
     "typescript": "^2.9.2",
-    "wechaty-puppet-mock": "^0.4"
+    "wechaty-puppet-mock": "^0.8.1"
   },
   "files_comment__whitelist_npm_publish": "http://stackoverflow.com/a/8617868/1123955",
   "files": [

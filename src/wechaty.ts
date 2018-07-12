@@ -99,10 +99,10 @@ export const WECHATY_EVENT_DICT = {
 export type WechatyEventName  = keyof typeof WECHATY_EVENT_DICT
 
 export interface WechatyOptions {
-  profile?       : null | string,            // Wechaty Name
-  puppet?        : PuppetName | Puppet,      // Puppet name or instance
-  puppetOptions? : Partial<PuppetOptions>,   // Puppet TOKEN
-  ioToken?       : string,                   // Io TOKEN
+  profile?       : null | string,           // Wechaty Name
+  puppet?        : PuppetName | Puppet,     // Puppet name or instance
+  puppetOptions? : PuppetOptions,           // Puppet TOKEN
+  ioToken?       : string,                  // Io TOKEN
 }
 
 /**
@@ -518,8 +518,8 @@ export class Wechaty extends Accessory implements Sayable {
     log.verbose('Wechaty', 'initPuppetResolver(%s)', puppet)
 
     if (!puppet) {
-      log.info('Wechaty', 'initPuppet() using puppet: %s', 'default')
-      puppet  = 'default'
+      puppet = config.systemPuppetName()
+      log.info('Wechaty', 'initPuppet() using puppet: %s', puppet)
     }
 
     let puppetName = puppet as string
@@ -765,7 +765,6 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   /**
-   * @private
    * @deprecated use start() instead
    */
   public async init(): Promise<void> {
@@ -781,7 +780,10 @@ export class Wechaty extends Accessory implements Sayable {
    * // do other stuff with bot here
    */
   public async start(): Promise<void> {
-    log.info('Wechaty', 'start() v%s is starting...' , this.version())
+    log.info('Wechaty', '<%s> start() v%s is starting...' ,
+                        this.options.puppet || config.systemPuppetName(),
+                        this.version(),
+            )
     log.verbose('Wechaty', 'puppet: %s'   , this.options.puppet)
     log.verbose('Wechaty', 'profile: %s'  , this.options.profile)
     log.verbose('Wechaty', 'id: %s'       , this.id)
@@ -850,7 +852,10 @@ export class Wechaty extends Accessory implements Sayable {
    * await bot.stop()
    */
   public async stop(): Promise<void> {
-    log.info('Wechaty', 'stop() v%s is stoping ...' , this.version())
+    log.info('Wechaty', '<%s> stop() v%s is stoping ...' ,
+                        this.options.puppet || config.systemPuppetName(),
+                        this.version(),
+            )
 
     if (this.state.off()) {
       log.silly('Wechaty', 'stop() on an stopping/stopped instance')

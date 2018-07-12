@@ -3,6 +3,7 @@ import {
 }                 from 'clone-class'
 import npm        from 'npm-programmatic'
 import pkgDir     from 'pkg-dir'
+import semver     from 'semver'
 
 import {
   Puppet,
@@ -25,27 +26,28 @@ export interface PuppetConfig {
 const mock: PuppetConfig = {
   npm: {
     name: 'wechaty-puppet-mock',
+    version: '^0.8.2',
   },
 }
 
 const wechat4u: PuppetConfig = {
   npm: {
     name    : 'wechaty-puppet-wechat4u',
-    version : '^0.2.21',
+    version : '^0.8.1',
   },
 }
 
 const padchat: PuppetConfig = {
   npm: {
     name    : 'wechaty-puppet-padchat',
-    version : '^0.4.4',
+    version : '^0.8.1',
   },
 }
 
 const puppeteer: PuppetConfig = {
   npm: {
     name: 'wechaty-puppet-puppeteer',
-    version: '^0.4',
+    version: '^0.8.2',
   },
 }
 export const PUPPET_DICT = {
@@ -71,6 +73,8 @@ export type PuppetName = keyof typeof PUPPET_DICT
 
 export async function puppetResolver (puppet: PuppetName): Promise<typeof Puppet & Constructor<Puppet>> {
   log.verbose('PuppetConfig', 'puppetResolver(%s)', puppet)
+
+  validatePuppetConfig()
 
   const puppetConfig = PUPPET_DICT[puppet]
   if (!puppetConfig) {
@@ -116,4 +120,16 @@ async function installPuppet (
     },
   )
   log.info('PuppetConfig', 'installPuppet(%s) done', puppetNpm)
+}
+
+function validatePuppetConfig () {
+  let puppetName: PuppetName
+  for (puppetName in PUPPET_DICT) {
+    const puppetConfig = PUPPET_DICT[puppetName]
+    const version = puppetConfig.npm.version || '*'
+
+    if (!version || !semver.validRange(version)) {
+      throw new Error(`puppet config version ${version} not valid for ${puppetName}`)
+    }
+  }
 }
