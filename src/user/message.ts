@@ -509,7 +509,7 @@ export class Message extends Accessory implements Sayable {
    * @returns {Promise<Contact[]>} - Return message mentioned contactList
    *
    * @example
-   * const contactList = await message.mentioned()
+   * const contactList = await message.mention()
    * console.log(contactList)
    */
   public async mention(): Promise<Contact[]> {
