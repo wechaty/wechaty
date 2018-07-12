@@ -50,7 +50,6 @@ import {
 
 import {
   log,
-  VERSION,
 }                       from './config'
 
 import {
