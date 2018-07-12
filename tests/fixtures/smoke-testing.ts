@@ -2,17 +2,37 @@
 
 import { Wechaty }    from 'wechaty'
 
+function getBotList() {
+  return [
+    new Wechaty({ puppet: 'mock' }),
+    new Wechaty({ puppet: 'wechat4u' }),
+    // new Wechaty({ puppet: 'puppeteer' }),
+    new Wechaty({
+      puppet: 'padchat',
+      puppetOptions: {
+        token: 'smoke-testing-token',
+      },
+    }),
+  ]
+}
+
 async function main() {
-  const bot = Wechaty.instance({ puppet: 'mock' })
+  const botList = getBotList()
   try {
-    await bot.start()
-    console.log(`Wechaty v${bot.version()} smoking test passed.`)
+    await Promise.all(
+      botList.map(bot => bot.start()),
+    )
+    botList.forEach(
+      bot => console.log(`Wechaty v${bot.version()} smoking test passed.`),
+    )
   } catch (e) {
     console.error(e)
     // Error!
     return 1
   } finally {
-    await bot.stop()
+    await Promise.all(
+      botList.map(bot => bot.stop()),
+    )
   }
   return 0
 }

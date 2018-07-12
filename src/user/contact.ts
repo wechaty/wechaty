@@ -212,8 +212,32 @@ export class Contact extends Accessory implements Sayable {
       const contactIdList: string[] = await this.puppet.contactSearch(query)
       const contactList = contactIdList.map(id => this.load(id))
 
-      await Promise.all(contactList.map(c => c.ready()))
-      return contactList
+      const BATCH_SIZE = 16
+      let   batchIndex = 0
+
+      const invalidContactId: string[] = []
+
+      while (batchIndex * BATCH_SIZE < contactList.length) {
+        const batchContactList = contactList.slice(
+          BATCH_SIZE * batchIndex,
+          BATCH_SIZE * (batchIndex + 1),
+        )
+        await Promise.all(
+          batchContactList.map(
+            c => {
+              c.ready()
+              .catch(e => {
+                log.error('Contact', 'findAll() ready() exception: %s', e.message)
+                invalidContactId.push(c.id)
+              })
+            },
+          ),
+        )
+
+        batchIndex++
+      }
+
+      return contactList.filter(contact => !(contact.id in invalidContactId))
 
     } catch (e) {
       log.error('Contact', 'this.puppet.contactFindAll() rejected: %s', e.message)
@@ -267,11 +291,10 @@ export class Contact extends Accessory implements Sayable {
    * @private
    */
   public toString(): string {
-    if (!this.payload) {
-      return this.constructor.name
-    }
-    const identity = this.payload.alias || this.payload.name || this.id
-    return `Contact<${identity || 'Unknown'}>`
+    const identity = this.payload
+      ? this.payload.alias || this.payload.name || this.id
+      : this.id
+    return `Contact<${identity}>`
   }
 
   public async say(text: string): Promise<void>

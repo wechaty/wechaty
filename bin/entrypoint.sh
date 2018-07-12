@@ -50,7 +50,13 @@ function wechaty::errorBotNotFound() {
 TROUBLESHOOTING
 }
 
-function wechaty::errorCtrlC() {
+function wechaty::printEnv () {
+  num=$(env | grep -c WECHATY)
+  echo "$num WECHATY Environment Variables:"
+  env | grep WECHATY
+}
+
+function wechaty::errorCtrlC () {
   # http://www.tldp.org/LDP/abs/html/exitcodes.html
   # 130 Script terminated by Control-C  Ctl-C Control-C is fatal error signal 2, (130 = 128 + 2, see above)
   echo ' Script terminated by Control-C '
@@ -220,6 +226,8 @@ function main() {
   wechaty::banner
   figlet Connecting
   figlet ChatBots
+
+  wechaty::printEnv
 
   VERSION=$(WECHATY_LOG=WARN wechaty-version 2>/dev/null || echo '0.0.0(unknown)')
 

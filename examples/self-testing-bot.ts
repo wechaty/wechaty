@@ -108,25 +108,39 @@ bot
         roomList.map(async room => await room.topic()),
       )
 
-      let n = 0
-      await msg.say(
-        topicList
-          .map(topic => ++n + '. ' + topic)
-          .join('\n'),
-      )
+      const totalNum = roomList.length
+      let   n        = 0
+
+      const replyText = [
+        `Total room number: ${totalNum}`,
+        ...topicList
+            .slice(0, 17)
+            .map(topic => ++n + '. ' + topic),
+      ].join('\n')
+
+      await msg.say(replyText)
+
       return
     }
 
     // Contact.findAll()
     if (/^testContact$/i.test(text)) {
       const contactList = await bot.Contact.findAll()
+      console.log('bot.Contact.findAll() done.')
+
+      const totalNum = contactList.length
       let n = 0
-      await from.say(
+
+      const replyText = [
+        `Total contact number: ${totalNum}`,
         contactList
+          .slice(0, 17)
           .map(contact => contact.name())
-          .map(name => ++n + '. ' + name)
-          .join('\n'),
-      )
+          .map(name => ++n + '. ' + name),
+      ].join('\n')
+
+      await from.say(replyText)
+
       return
     }
 

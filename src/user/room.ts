@@ -631,7 +631,7 @@ export class Room extends Accessory implements Sayable {
                             .filter(id => id !== this.puppet.selfId())
                             .map(id => this.wechaty.Contact.load(id))
 
-        let defaultTopic = memberList[0].name()
+        let defaultTopic = memberList[0] && memberList[0].name() || ''
         for (let i = 1; i < 3 && memberList[i]; i++) {
           defaultTopic += ',' + memberList[i].name()
         }
