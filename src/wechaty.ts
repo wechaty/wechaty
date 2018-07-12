@@ -379,7 +379,8 @@ export class Wechaty extends Accessory implements Sayable {
    * @param   {WechatyEventName}      event      - Emit WechatyEvent
    * @param   {WechatyEventFunction}  listener   - Depends on the WechatyEvent
    *
-   * @return  {Wechaty}
+   * @return  {Wechaty}                          - this for chaining,
+   * see advanced {@link https://github.com/Chatie/wechaty-getting-started/wiki/FAQ-EN#36-why-wechatyonevent-listener-return-wechaty|chaining usage}
    *
    * @desc
    * When the bot get message, it will emit the following Event.
