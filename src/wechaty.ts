@@ -180,14 +180,14 @@ export class Wechaty extends Accessory implements Sayable {
   public readonly Room          : typeof Room
 
   /**
-   * get the singleton instance of Wechaty
+   * Get the global instance of Wechaty
    *
    * @param {WechatyOptions} [options={}]
    *
    * @example <caption>The World's Shortest ChatBot Code: 6 lines of JavaScript</caption>
    * const { Wechaty } = require('wechaty')
    *
-   * Wechaty.instance() // Singleton
+   * Wechaty.instance() // Global instance
    * .on('scan', (url, code) => console.log(`Scan QR Code to login: ${code}\n${url}`))
    * .on('login',       user => console.log(`User ${user} logined`))
    * .on('message',  message => console.log(`Message: ${message}`))
@@ -1007,7 +1007,7 @@ export class Wechaty extends Accessory implements Sayable {
   /**
    * @description
    * Should use {@link Wechaty#userSelf} instead
-   * @deprecated
+   * @deprecated Use `userSelf()` instead
    */
   public self(): Contact {
     log.warn('Wechaty', 'self() DEPRECATED. use userSelf() instead.')
@@ -1086,6 +1086,7 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
  /**
+  * @private
   * Return version of Wechaty
   *
   * @param {boolean} [forceNpm=false]  - If set to true, will only return the version in package.json. </br>
