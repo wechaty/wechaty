@@ -44,6 +44,7 @@ import {
 import {
   log,
   qrCodeForChatie,
+  VERSION,
 }                   from './config'
 
 export interface MockContactRawPayload {
@@ -64,6 +65,8 @@ export interface MockRoomRawPayload {
 }
 
 export class PuppetMock extends Puppet {
+
+  public static readonly VERSION = VERSION
 
   private loopTimer?: NodeJS.Timer
 
