@@ -50,7 +50,6 @@ import {
 /**
  * All wechat messages will be encapsulated as a Message.
  *
- * `Message` is `Sayable`,
  * [Examples/Ding-Dong-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts}
  */
 export class Message extends Accessory implements Sayable {
@@ -61,10 +60,14 @@ export class Message extends Accessory implements Sayable {
    *
    */
 
+  /**
+   * @private
+   */
   // tslint:disable-next-line:variable-name
   public static readonly Type = MessageType
 
   /**
+   * @ignore
    * @todo add function
    */
   public static async find<T extends typeof Message>(
@@ -75,6 +78,7 @@ export class Message extends Accessory implements Sayable {
   }
 
   /**
+   * @ignore
    * @todo add function
    */
   public static async findAll<T extends typeof Message>(
@@ -90,7 +94,7 @@ export class Message extends Accessory implements Sayable {
 
  /**
   * Create a Mobile Terminated Message
-  *
+  * @ignore
   * "mobile originated" or "mobile terminated"
   * https://www.tatango.com/resources/video-lessons/video-mo-mt-sms-messaging/
   */
@@ -114,6 +118,7 @@ export class Message extends Accessory implements Sayable {
   /**
    *
    * Instance Properties
+   * @private
    *
    */
   private get payload(): undefined | MessagePayload {
@@ -197,6 +202,21 @@ export class Message extends Accessory implements Sayable {
   /**
    * Get the sender from a message.
    * @returns {Contact}
+   * @example
+   * const bot = new Wechaty()
+   * bot
+   * .on('message', async m => {
+   *   const contact = msg.from()
+   *   const text = msg.text()
+   *   const room = msg.room()
+   *   if (room) {
+   *     const topic = await room.topic()
+   *     console.log(`Room: ${topic} Contact: ${contact.name()} Text: ${text}`)
+   *   } else {
+   *     console.log(`Contact: ${contact.name()} Text: ${text}`)
+   *   }
+   * })
+   * .start()
    */
   public from(): null | Contact {
     if (!this.payload) {
@@ -241,6 +261,21 @@ export class Message extends Accessory implements Sayable {
    * If the message is not in a room, then will return `null`
    *
    * @returns {(Room | null)}
+   * @example
+   * const bot = new Wechaty()
+   * bot
+   * .on('message', async m => {
+   *   const contact = msg.from()
+   *   const text = msg.text()
+   *   const room = msg.room()
+   *   if (room) {
+   *     const topic = await room.topic()
+   *     console.log(`Room: ${topic} Contact: ${contact.name()} Text: ${text}`)
+   *   } else {
+   *     console.log(`Contact: ${contact.name()} Text: ${text}`)
+   *   }
+   * })
+   * .start()
    */
   public room(): null | Room {
     if (!this.payload) {
@@ -256,7 +291,10 @@ export class Message extends Accessory implements Sayable {
   }
 
   /**
-   * @deprecated use text() instead
+   * @description
+   * use {@link Message#text} instead
+   *
+   * @deprecated
    */
   public content(): string {
     log.warn('Message', 'content() DEPRECATED. use text() instead.')
@@ -267,6 +305,21 @@ export class Message extends Accessory implements Sayable {
    * Get the text content of the message
    *
    * @returns {string}
+   * @example
+   * const bot = new Wechaty()
+   * bot
+   * .on('message', async m => {
+   *   const contact = msg.from()
+   *   const text = msg.text()
+   *   const room = msg.room()
+   *   if (room) {
+   *     const topic = await room.topic()
+   *     console.log(`Room: ${topic} Contact: ${contact.name()} Text: ${text}`)
+   *   } else {
+   *     console.log(`Contact: ${contact.name()} Text: ${text}`)
+   *   }
+   * })
+   * .start()
    */
   public text(): string {
     if (!this.payload) {
@@ -284,21 +337,45 @@ export class Message extends Accessory implements Sayable {
    * Reply a Text or Media File message to the sender.
    *
    * @see {@link https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts|Examples/ding-dong-bot}
-   * @param {(string | FileBox)} textOrContactOrFile
+   * @param {(string | Contact | FileBox)} textOrContactOrFile
+   * send text, Contact, or file to bot. </br>
+   * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
    * @param {(Contact|Contact[])} [mention]
+   * If this is a room message, when you set mention param, you can `@` Contact in the room.
    * @returns {Promise<void>}
    *
    * @example
+   * import { FileBox }  from 'file-box'
    * const bot = new Wechaty()
    * bot
    * .on('message', async m => {
+   *
+   * # 1. send Image
+   *
    *   if (/^ding$/i.test(m.text())) {
-   *     await m.say('hello world')
-   *     console.log('Bot REPLY: hello world')
-   *     await m.say(new bot.Message(__dirname + '/wechaty.png'))
-   *     console.log('Bot REPLY: Image')
+   *     const fileBox = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
+   *     await msg.say(fileBox)
    *   }
+   *
+   * # 2. send Text
+   *
+   *   if (/^dong$/i.test(m.text())) {
+   *     await msg.say('dingdingding')
+   *   }
+   *
+   * # 3. send Contact
+   *
+   *   if (/^lijiarui$/i.test(m.text())) {
+   *     const contactCard = await bot.Contact.find({name: 'lijiarui'})
+   *     if (!contactCard) {
+   *       console.log('not found')
+   *       return
+   *     }
+   *     await msg.say(contactCard)
+   *   }
+   *
    * })
+   * .start()
    */
   public async say(
     textOrContactOrFile : string | Contact | FileBox,
@@ -376,39 +453,23 @@ export class Message extends Accessory implements Sayable {
   }
 
   /**
-   * @deprecated use toFile() instead
-   */
-  public async file(): Promise<FileBox> {
-    log.warn('Message', 'file() DEPRECATED. use toFileBox() instead.')
-    return this.toFileBox()
-  }
-
-  public async toFileBox(): Promise<FileBox> {
-    if (this.type() === Message.Type.Text) {
-      throw new Error('text message no file')
-    }
-    const fileBox = await this.puppet.messageFile(this.id)
-    return fileBox
-  }
-
-  public async toContact(): Promise<Contact> {
-    log.warn('Message', 'toContact() to be implemented')
-
-    if (this.type() === Message.Type.Contact) {
-      throw new Error('message not a ShareCard')
-    }
-
-    // TODO: return the ShareCard Contact
-    const contact = this.wechaty.userSelf()
-    return contact
-  }
-
-  /**
    * Get the type from the message.
+   * > Tips: MessageType is Enum here. </br>
+   * - MessageType.Unknown     </br>
+   * - MessageType.Attachment  </br>
+   * - MessageType.Audio       </br>
+   * - MessageType.Contact     </br>
+   * - MessageType.Emoticon    </br>
+   * - MessageType.Image       </br>
+   * - MessageType.Text        </br>
+   * - MessageType.Video       </br>
+   * @returns {MessageType}
    *
-   * If type is equal to `MsgType.RECALLED`, {@link Message#id} is the msgId of the recalled message.
-   * @see {@link MsgType}
-   * @returns {WebMsgType}
+   * @example
+   * const bot = new Wechaty()
+   * if (message.type() === bot.Message.Type.Text) {
+   *   console.log('This is a text message')
+   * }
    */
   public type(): MessageType {
     if (!this.payload) {
@@ -446,10 +507,10 @@ export class Message extends Accessory implements Sayable {
    * | Identify magic code (8197) by programming                                  |  ✘   |        ✘       |     ✘      |       ✘         |
    * | Identify two contacts with the same roomAlias by [You were  mentioned] tip |  ✘   |        ✘       |     √      |       √         |
    *
-   * @returns {Contact[]} - Return message mentioned contactList
+   * @returns {Promise<Contact[]>} - Return message mentioned contactList
    *
    * @example
-   * const contactList = message.mentioned()
+   * const contactList = await message.mention()
    * console.log(contactList)
    */
   public async mention(): Promise<Contact[]> {
@@ -517,7 +578,9 @@ export class Message extends Accessory implements Sayable {
   }
 
   /**
-   * @deprecated: use mention() instead
+   * @description
+   * should use {@link Message#mention} instead
+   * @deprecated
    */
   public async mentioned(): Promise<Contact[]> {
     log.warn('Message', 'mentioned() DEPRECATED. use mention() instead.')
@@ -603,6 +666,17 @@ export class Message extends Accessory implements Sayable {
    * @param {(Sayable | Sayable[])} to Room or Contact
    * The recipient of the message, the room, or the contact
    * @returns {Promise<void>}
+   * @example
+   * const bot = new Wechaty()
+   * bot
+   * .on('message', async m => {
+   *   const room = await bot.Room.find({topic: 'wechaty'})
+   *   if (room) {
+   *     await m.forward(room)
+   *     console.log('forward this message to wechaty room!')
+   *   }
+   * })
+   * .start()
    */
   public async forward(to: Room | Contact): Promise<void> {
     log.verbose('Message', 'forward(%s)', to)
@@ -629,6 +703,9 @@ export class Message extends Accessory implements Sayable {
     }
   }
 
+  /**
+   * @private
+   */
   public date(): Date {
     if (!this.payload) {
       throw new Error('no payload')
@@ -640,13 +717,57 @@ export class Message extends Accessory implements Sayable {
   }
 
   /**
-   * Message Age:
-   *  in seconds.
+   * Returns the message age in seconds. <br>
+   *
+   * For example, the message is sent at time `8:43:01`,
+   * and when we received it in Wechaty, the time is `8:43:15`,
+   * then the age() will return `8:43:15 - 8:43:01 = 14 (seconds)`
+   * @returns {number}
    */
   public age(): number {
     const ageMilliseconds = Date.now() - this.date().getTime()
     const ageSeconds = Math.floor(ageMilliseconds / 1000)
     return ageSeconds
+  }
+
+  /**
+   * @description
+   * use {@link Message#toFileBox} instead
+   * @deprecated
+   */
+  public async file(): Promise<FileBox> {
+    log.warn('Message', 'file() DEPRECATED. use toFileBox() instead.')
+    return this.toFileBox()
+  }
+
+  /**
+   * Extract the Media File from the Message, and put it into the FileBox.
+   *
+   * @returns {Promise<FileBox>}
+   */
+  public async toFileBox(): Promise<FileBox> {
+    if (this.type() === Message.Type.Text) {
+      throw new Error('text message no file')
+    }
+    const fileBox = await this.puppet.messageFile(this.id)
+    return fileBox
+  }
+
+  /**
+   * Get Share Card of the Message
+   * Extract the Contact Card from the Message, and encapsulate it into Contact class
+   * @returns {Promise<Contact>}
+   */
+  public async toContact(): Promise<Contact> {
+    log.warn('Message', 'toContact() to be implemented')
+
+    if (this.type() === Message.Type.Contact) {
+      throw new Error('message not a ShareCard')
+    }
+
+    // TODO: return the ShareCard Contact
+    const contact = this.wechaty.userSelf()
+    return contact
   }
 
 }

@@ -108,12 +108,25 @@ export interface WechatyOptions {
 /**
  * Main bot class.
  *
- * [The World's Shortest ChatBot Code: 6 lines of JavaScript]{@link #wechatyinstance}
+ * A `Bot` is a wechat client depends on which puppet you use.
+ * It may equals
+ * - web-wechat, when you use: [puppet-puppeteer](https://github.com/chatie/wechaty-puppet-puppeteer)/[puppet-wechat4u](https://github.com/chatie/wechaty-puppet-wechat4u)
+ * - ipad-wechat, when you use: [puppet-padchat](https://github.com/lijiarui/wechaty-puppet-padchat)
+ * - ios-wechat, when you use: puppet-ioscat
  *
- * [Wechaty Starter Project]{@link https://github.com/lijiarui/wechaty-getting-started}
- * @example
- * import { Wechaty } from 'wechaty'
+ * See more:
+ * - [What is a Puppet in Wechaty](https://github.com/Chatie/wechaty-getting-started/wiki/FAQ-EN#31-what-is-a-puppet-in-wechaty)
  *
+ * > If you want to know how to send message, see [Message](#Message) <br>
+ * > If you want to know how to get contact, see [Contact](#Contact)
+ *
+ * @example <caption>The World's Shortest ChatBot Code: 6 lines of JavaScript</caption>
+ * const { Wechaty } = require('wechaty')
+ * const bot = new Wechaty()
+ * bot.on('scan',    (qrcode, status) => console.log(['https://api.qrserver.com/v1/create-qr-code/?data=',encodeURIComponent(qrcode),'&size=220x220&margin=20',].join('')))
+ * bot.on('login',   user => console.log(`User ${user} logined`))
+ * bot.on('message', message => console.log(`Message: ${message}`))
+ * bot.start()
  */
 export class Wechaty extends Accessory implements Sayable {
 
@@ -169,6 +182,8 @@ export class Wechaty extends Accessory implements Sayable {
   /**
    * get the singleton instance of Wechaty
    *
+   * @param {WechatyOptions} [options={}]
+   *
    * @example <caption>The World's Shortest ChatBot Code: 6 lines of JavaScript</caption>
    * const { Wechaty } = require('wechaty')
    *
@@ -176,7 +191,7 @@ export class Wechaty extends Accessory implements Sayable {
    * .on('scan', (url, code) => console.log(`Scan QR Code to login: ${code}\n${url}`))
    * .on('login',       user => console.log(`User ${user} logined`))
    * .on('message',  message => console.log(`Message: ${message}`))
-   * .init()
+   * .start()
    */
   public static instance(
     options?: WechatyOptions,
@@ -191,7 +206,44 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   /**
-   * @public
+   * The term [Puppet](https://github.com/Chatie/wechaty/wiki/Puppet) in Wechaty is an Abstract Class for implementing protocol plugins.
+   * The plugins are the component that helps Wechaty to control the Wechat(that's the reason we call it puppet).
+   * The plugins are named XXXPuppet, for example:
+   * - [PuppetPuppeteer](https://github.com/Chatie/wechaty-puppet-puppeteer):
+   * - [PuppetPadchat](https://github.com/lijiarui/wechaty-puppet-padchat)
+   *
+   * @typedef    PuppetName
+   * @property   {string}  wechat4u
+   * The default puppet, using the [wechat4u](https://github.com/nodeWechat/wechat4u) to control the [WeChat Web API](https://wx.qq.com/) via a chrome browser.
+   * @property   {string}  padchat
+   * - Using the WebSocket protocol to connect with a Protocol Server for controlling the iPad Wechat program.
+   * @property   {string}  puppeteer
+   * - Using the [google puppeteer](https://github.com/GoogleChrome/puppeteer) to control the [WeChat Web API](https://wx.qq.com/) via a chrome browser.
+   * @property   {string}  mock
+   * - Using the mock data to mock wechat operation, just for test.
+   */
+
+  /**
+   * The option parameter to create a wechaty instance
+   *
+   * @typedef    WechatyOptions
+   * @property   {string}                 profile            -Wechaty Name. </br>
+   *          When you set this: </br>
+   *          `new Wechaty({profile: 'wechatyName'}) ` </br>
+   *          it will generate a file called `wechatyName.memory-card.json`. </br>
+   *          This file stores the bot's login information. </br>
+   *          If the file is valid, the bot can auto login so you don't need to scan the qrcode to login again. </br>
+   *          Also, you can set the environment variable for `WECHATY_PROFILE` to set this value when you start. </br>
+   *          eg:  `WECHATY_PROFILE="your-cute-bot-name" node bot.js`
+   * @property   {PuppetName | Puppet}    puppet             -Puppet name or instance
+   * @property   {Partial<PuppetOptions>} puppetOptions      -Puppet TOKEN
+   * @property   {string}                 ioToken            -Io TOKEN
+   */
+
+  /**
+   * Creates an instance of Wechaty.
+   * @param {WechatyOptions} [options={}]
+   *
    */
   constructor(
     private options: WechatyOptions = {},
@@ -208,6 +260,7 @@ export class Wechaty extends Accessory implements Sayable {
     this.id     = cuid()
 
     /**
+     * @ignore
      * Clone Classes for this bot and attach the `puppet` to the Class
      *
      *   https://stackoverflow.com/questions/36886082/abstract-constructor-type-in-typescript
@@ -236,33 +289,6 @@ export class Wechaty extends Accessory implements Sayable {
       `<${this.options && this.options.puppet || ''}>`,
       `(${this.memory  && this.memory.name    || ''})`,
     ].join('')
-  }
-
-  /**
-   * @private
-   */
-  public static version(forceNpm = false): string {
-    if (!forceNpm) {
-      const revision = config.gitRevision()
-      if (revision) {
-        return `#git[${revision}]`
-      }
-    }
-    return VERSION
-  }
-
- /**
-  * Return version of Wechaty
-  *
-  * @param {boolean} [forceNpm=false]  - if set to true, will only return the version in package.json.
-  *                                      otherwise will return git commit hash if .git exists.
-  * @returns {string}                  - the version number
-  * @example
-  * console.log(Wechaty.instance().version())       // return '#git[af39df]'
-  * console.log(Wechaty.instance().version(true))   // return '0.7.9'
-  */
-  public version(forceNpm = false): string {
-    return Wechaty.version(forceNpm)
   }
 
   public emit(event: 'dong'       , data?: string)                                                    : boolean
@@ -319,7 +345,8 @@ export class Wechaty extends Accessory implements Sayable {
    * @property   {string}  room-topic - Get topic event, emitted when someone change room topic.
    * @property   {string}  room-leave - Emit when anyone leave the room.<br>
    *                                    If someone leaves the room by themselves, wechat will not notice other people in the room, so the bot will never get the "leave" event.
-   * @property   {string}  scan       - A scan event will be emitted when the bot needs to show you a QR Code for scanning.
+   * @property   {string}  scan       - A scan event will be emitted when the bot needs to show you a QR Code for scanning. </br>
+   *                                    It is recommend to install qrcode-terminal(run `npm install qrcode-terminal`) in order to show qrcode in the terminal.
    */
 
   /**
@@ -351,31 +378,53 @@ export class Wechaty extends Accessory implements Sayable {
    * @listens Wechaty
    * @param   {WechatyEventName}      event      - Emit WechatyEvent
    * @param   {WechatyEventFunction}  listener   - Depends on the WechatyEvent
-   * @return  {Wechaty}                          - this for chain
    *
-   * More Example Gist: [Examples/Friend-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/friend-bot.ts}
+   * @return  {Wechaty}                          - this for chaining,
+   * see advanced {@link https://github.com/Chatie/wechaty-getting-started/wiki/FAQ-EN#36-why-wechatyonevent-listener-return-wechaty|chaining usage}
    *
-   * @example <caption>Event:scan </caption>
-   * wechaty.on('scan', (url: string, code: number) => {
+   * @desc
+   * When the bot get message, it will emit the following Event.
+   *
+   * You can do anything you want when in these events functions.
+   * The main Event name as follows:
+   * - **scan**: Emit when the bot needs to show you a QR Code for scanning. After scan the qrcode, you can login
+   * - **login**: Emit when bot login full successful.
+   * - **logout**: Emit when bot detected log out.
+   * - **message**: Emit when there's a new message.
+   *
+   * see more in {@link WechatyEventName}
+   *
+   * @example <caption>Event:scan</caption>
+   * # Scan Event will emit when the bot needs to show you a QR Code for scanning
+   *
+   * bot.on('scan', (url: string, code: number) => {
    *   console.log(`[${code}] Scan ${url} to login.` )
    * })
    *
    * @example <caption>Event:login </caption>
+   * # Login Event will emit when bot login full successful.
+   *
    * bot.on('login', (user: ContactSelf) => {
    *   console.log(`user ${user} login`)
    * })
    *
    * @example <caption>Event:logout </caption>
+   * # Logout Event will emit when bot detected log out.
+   *
    * bot.on('logout', (user: ContactSelf) => {
    *   console.log(`user ${user} logout`)
    * })
    *
    * @example <caption>Event:message </caption>
+   * # Message Event will emit when there's a new message.
+   *
    * wechaty.on('message', (message: Message) => {
    *   console.log(`message ${message} received`)
    * })
    *
    * @example <caption>Event:friendship </caption>
+   * # Friendship Event will emit when got a new friend request, or friendship is confirmed.
+   *
    * bot.on('friendship', (friendship: Friendship) => {
    *   if(friendship.type() === Friendship.Type.RECEIVE){ // 1. receive new friendship request from new contact
    *     const contact = friendship.contact()
@@ -391,20 +440,33 @@ export class Wechaty extends Accessory implements Sayable {
    *  })
    *
    * @example <caption>Event:room-join </caption>
+   * # room-join Event will emit when someone join the room.
+   *
    * bot.on('room-join', (room: Room, inviteeList: Contact[], inviter: Contact) => {
    *   const nameList = inviteeList.map(c => c.name()).join(',')
    *   console.log(`Room ${room.topic()} got new member ${nameList}, invited by ${inviter}`)
    * })
    *
    * @example <caption>Event:room-leave </caption>
+   * # room-leave Event will emit when someone leave the room.
+   *
    * bot.on('room-leave', (room: Room, leaverList: Contact[]) => {
    *   const nameList = leaverList.map(c => c.name()).join(',')
    *   console.log(`Room ${room.topic()} lost member ${nameList}`)
    * })
    *
    * @example <caption>Event:room-topic </caption>
+   * # room-topic Event will emit when someone change the room's topic.
+   *
    * bot.on('room-topic', (room: Room, topic: string, oldTopic: string, changer: Contact) => {
    *   console.log(`Room ${room.topic()} topic changed from ${oldTopic} to ${topic} by ${changer.name()}`)
+   * })
+   *
+   * @example <caption>Event:error </caption>
+   * # error Event will emit when there's an error occurred.
+   *
+   * bot.on('error', (error) => {
+   *   console.error(error)
    * })
    */
   public on(event: WechatyEventName, listener: string | ((...args: any[]) => any)): this {
@@ -765,7 +827,9 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   /**
-   * @deprecated use start() instead
+   * @desc
+   * use {@link Wechaty#start} instead
+   * @deprecated
    */
   public async init(): Promise<void> {
     log.warn('Wechaty', 'init() DEPRECATED. use start() instead.')
@@ -775,6 +839,9 @@ export class Wechaty extends Accessory implements Sayable {
    * Start the bot, return Promise.
    *
    * @returns {Promise<void>}
+   * @description
+   * When you start the bot, bot will begin to login, need you wechat scan qrcode to login
+   * > Tips: All the bot operation needs to be triggered after start() is done
    * @example
    * await bot.start()
    * // do other stuff with bot here
@@ -938,6 +1005,8 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   /**
+   * @description
+   * Should use {@link Wechaty#userSelf} instead
    * @deprecated
    */
   public self(): Contact {
@@ -948,22 +1017,45 @@ export class Wechaty extends Accessory implements Sayable {
   /**
    * Get current user
    *
-   * @returns {Contact}
+   * @returns {ContactSelf}
    * @example
    * const contact = bot.userSelf()
    * console.log(`Bot is ${contact.name()}`)
    */
-  public userSelf(): Contact {
+  public userSelf(): ContactSelf {
     const userId = this.puppet.selfId()
     const user = this.ContactSelf.load(userId)
     return user
   }
 
   /**
-   * Send message to userSelf
+   * Send message to userSelf, in other words, bot send message to itself.
+   * @param {(string | Contact | FileBox)} textOrContactOrFile
+   * send text, Contact, or file to bot. </br>
+   * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
+   * @returns {Promise<void>}
    *
-   * @param {string} textOrContactOrFile
-   * @returns {Promise<boolean>}
+   * @example
+   * const bot = new Wechaty()
+   * await bot.start()
+   * // after logged in
+   *
+   * # 1. send text to bot itself
+   * await bot.say('hello!')
+   *
+   * # 2. send Contact to bot itself
+   * const contact = bot.Contact.load('contactId')
+   * await bot.say(contact)
+   *
+   * # 3. send Image to bot itself from remote url
+   * import { FileBox }  from 'file-box'
+   * const fileBox = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
+   * await bot.say(fileBox)
+   *
+   * # 4. send Image to bot itself from local file
+   * import { FileBox }  from 'file-box'
+   * const fileBox = FileBox.fromLocal('/tmp/text.jpg')
+   * await bot.say(fileBox)
    */
   public async say(textOrContactOrFile: string | Contact | FileBox): Promise<void> {
     log.verbose('Wechaty', 'say(%s)', textOrContactOrFile)
@@ -978,6 +1070,33 @@ export class Wechaty extends Accessory implements Sayable {
     } else {
       throw new Error('unsupported')
     }
+  }
+
+  /**
+   * @private
+   */
+  public static version(forceNpm = false): string {
+    if (!forceNpm) {
+      const revision = config.gitRevision()
+      if (revision) {
+        return `#git[${revision}]`
+      }
+    }
+    return VERSION
+  }
+
+ /**
+  * Return version of Wechaty
+  *
+  * @param {boolean} [forceNpm=false]  - If set to true, will only return the version in package.json. </br>
+  *                                      Otherwise will return git commit hash if .git exists.
+  * @returns {string}                  - the version number
+  * @example
+  * console.log(Wechaty.instance().version())       // return '#git[af39df]'
+  * console.log(Wechaty.instance().version(true))   // return '0.7.9'
+  */
+  public version(forceNpm = false): string {
+    return Wechaty.version(forceNpm)
   }
 
   /**
