@@ -191,7 +191,7 @@ export class Wechaty extends Accessory implements Sayable {
    * .on('scan', (url, code) => console.log(`Scan QR Code to login: ${code}\n${url}`))
    * .on('login',       user => console.log(`User ${user} logined`))
    * .on('message',  message => console.log(`Message: ${message}`))
-   * .init()
+   * .start()
    */
   public static instance(
     options?: WechatyOptions,
@@ -379,7 +379,7 @@ export class Wechaty extends Accessory implements Sayable {
    * @param   {WechatyEventName}      event      - Emit WechatyEvent
    * @param   {WechatyEventFunction}  listener   - Depends on the WechatyEvent
    *
-   * @return  {Wechaty}                          - this for chain
+   * @return  {Wechaty}
    *
    * @desc
    * When the bot get message, it will emit the following Event.
@@ -840,7 +840,7 @@ export class Wechaty extends Accessory implements Sayable {
    * @returns {Promise<void>}
    * @description
    * When you start the bot, bot will begin to login, need you wechat scan qrcode to login
-   *
+   * > Tips: All the bot operation needs to be triggered after start() is done
    * @example
    * await bot.start()
    * // do other stuff with bot here
