@@ -43,7 +43,6 @@ export const POOL = Symbol('pool')
 /**
  * All wechat contacts(friend) will be encapsulated as a Contact.
  *
- * `Contact` is `Sayable`,
  * [Examples/Contact-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/contact-bot.ts}
  */
 export class Contact extends Accessory implements Sayable {
@@ -70,6 +69,17 @@ export class Contact extends Accessory implements Sayable {
   /**
    * @private
    * About the Generic: https://stackoverflow.com/q/43003970/1123955
+   */
+  /**
+   * Get Contact by id
+   *
+   * @static
+   * @param {string} id
+   * @returns {Contact}
+   * @example
+   * const bot = new Wechaty()
+   * await bot.start()
+   * const contact = bot.Contact.load('contactId')
    */
   public static load<T extends typeof Contact>(
     this : T,
@@ -121,8 +131,10 @@ export class Contact extends Accessory implements Sayable {
    * @param {ContactQueryFilter} query
    * @returns {(Promise<Contact | null>)} If can find the contact, return Contact, or return null
    * @example
-   * const contactFindByName = await Contact.find({ name:"ruirui"} )
-   * const contactFindByAlias = await Contact.find({ alias:"lijiarui"} )
+   * const bot = new Wechaty()
+   * await bot.start()
+   * const contactFindByName = await bot.Contact.find({ name:"ruirui"} )
+   * const contactFindByAlias = await bot.Contact.find({ alias:"lijiarui"} )
    */
   public static async find<T extends typeof Contact>(
     this  : T,
@@ -180,9 +192,11 @@ export class Contact extends Accessory implements Sayable {
    * @param {ContactQueryFilter} [queryArg]
    * @returns {Promise<Contact[]>}
    * @example
-   * const contactList = await Contact.findAll()                    // get the contact list of the bot
-   * const contactList = await Contact.findAll({name: 'ruirui'})    // find allof the contacts whose name is 'ruirui'
-   * const contactList = await Contact.findAll({alias: 'lijiarui'}) // find all of the contacts whose alias is 'lijiarui'
+   * const bot = new Wechaty()
+   * await bot.start()
+   * const contactList = await bot.Contact.findAll()                    // get the contact list of the bot
+   * const contactList = await bot.Contact.findAll({name: 'ruirui'})    // find allof the contacts whose name is 'ruirui'
+   * const contactList = await bot.Contact.findAll({alias: 'lijiarui'}) // find all of the contacts whose alias is 'lijiarui'
    */
   public static async findAll<T extends typeof Contact>(
     this  : T,
@@ -239,6 +253,7 @@ export class Contact extends Accessory implements Sayable {
   /**
    *
    * Instance properties
+   * @private
    *
    */
   protected get payload(): undefined | ContactPayload {
@@ -282,35 +297,37 @@ export class Contact extends Accessory implements Sayable {
     return `Contact<${identity}>`
   }
 
-  /**
-   * Sent Text to contact
-   *
-   * @param {string} text
-   * @example
-   * const contact = await Contact.find({name: 'lijiarui'})         // change 'lijiarui' to any of your contact name in wechat
-   * try {
-   *   await contact.say('welcome to wechaty!')
-   * } catch (e) {
-   *   console.error(e)
-   * }
-   */
   public async say(text: string): Promise<void>
-
-  /**
-   * Send Media File to Contact
-   *
-   * @param {Message} Message
-   * @example
-   * const contact = await Contact.find({name: 'lijiarui'})         // change 'lijiarui' to any of your contact name in wechat
-   * try {
-   *   await contact.say(bot.Message.create(__dirname + '/wechaty.png') // put the filePath you want to send here
-   * } catch (e) {
-   *   console.error(e)
-   * }
-   */
   public async say(file: FileBox)    : Promise<void>
   public async say(contact: Contact) : Promise<void>
 
+  /**
+   * @param {(string | Contact | FileBox)} textOrContactOrFile
+   * send text, Contact, or file to contact. </br>
+   * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
+   * @returns {Promise<void>}
+   * @example
+   * const bot = new Wechaty()
+   * await bot.start()
+   * const contact = await bot.Contact.find({name: 'lijiarui'})  // change 'lijiarui' to any of your contact name in wechat
+   *
+   * # 1. send text to contact
+   *
+   * await contact.say('welcome to wechaty!')
+   *
+   * # 2. send media file to contact
+   *
+   * import { FileBox }  from 'file-box'
+   * const fileBox1 = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
+   * const fileBox2 = FileBox.fromLocal('/tmp/text.txt')
+   * await contact.say(fileBox1)
+   * await contact.say(fileBox2)
+   *
+   * # 3. send contact card to contact
+   *
+   * const contactCard = bot.Contact.load('contactId')
+   * await contact.say(contactCard)
+   */
   public async say(textOrContactOrFile: string | Contact | FileBox): Promise<void> {
     log.verbose('Contact', 'say(%s)', textOrContactOrFile)
 
@@ -414,13 +431,11 @@ export class Contact extends Accessory implements Sayable {
   }
 
   /**
-   * Check if contact is stranger
    *
-   * @deprecated use friend() instead
+   * @description
+   * Should use {@link Contact#friend} instead
    *
-   * @returns {boolean | null} - True for not friend of the bot, False for friend of the bot, null for unknown.
-   * @example
-   * const isStranger = contact.stranger()
+   * @deprecated
    */
   public stranger(): null | boolean {
     log.warn('Contact', 'stranger() DEPRECATED. use friend() instead.')
@@ -431,7 +446,10 @@ export class Contact extends Accessory implements Sayable {
   /**
    * Check if contact is friend
    *
-   * @returns {boolean | null} - True for friend of the bot, False for not friend of the bot, null for unknown.
+   * @returns {boolean | null}
+   *
+   * <br>True for friend of the bot <br>
+   * False for not friend of the bot, null for unknown.
    * @example
    * const isFriend = contact.friend()
    */
@@ -444,15 +462,15 @@ export class Contact extends Accessory implements Sayable {
   }
 
   /**
-   * Check if it's a offical account
-   *
-   * @deprecated use type() instead
-   *
-   * @returns {boolean | null} - True for official account, Flase for contact is not a official account, null for unknown
+   * @ignore
    * @see {@link https://github.com/Chatie/webwx-app-tracker/blob/7c59d35c6ea0cff38426a4c5c912a086c4c512b2/formatted/webwxApp.js#L3243|webwxApp.js#L324}
    * @see {@link https://github.com/Urinx/WeixinBot/blob/master/README.md|Urinx/WeixinBot/README}
-   * @example
-   * const isOfficial = contact.official()
+   */
+  /**
+   * @description
+   * Check if it's a offical account, should use {@link Contact#type} instead
+   * @deprecated
+   *
    */
   public official(): boolean {
     log.warn('Contact', 'official() DEPRECATED. use type() instead')
@@ -460,13 +478,9 @@ export class Contact extends Accessory implements Sayable {
   }
 
   /**
-   * Check if it's a personal account
-   *
-   * @deprecated use type() instead
-   *
-   * @returns {boolean} - True for personal account, Flase for contact is not a personal account
-   * @example
-   * const isPersonal = contact.personal()
+   * @description
+   * Check if it's a personal account, should use {@link Contact#type} instead
+   * @deprecated
    */
   public personal(): boolean {
     log.warn('Contact', 'personal() DEPRECATED. use type() instead')
@@ -474,17 +488,30 @@ export class Contact extends Accessory implements Sayable {
   }
 
   /**
+   * Enum for ContactType
+   * @enum {number}
+   * @property {number} Unknown    - ContactType.Unknown    (0) for Unknown
+   * @property {number} Personal   - ContactType.Personal   (1) for Personal
+   * @property {number} Official   - ContactType.Official   (2) for Official
+   */
+
+  /**
    * Return the type of the Contact
+   * > Tips: ContactType is enum here.</br>
+   * @returns {ContactType.Unknown | ContactType.Personal | ContactType.Official}
    *
-   * @returns ContactType - Contact.Type.PERSONAL for personal account, Contact.Type.OFFICIAL for official account
    * @example
-   * const isOfficial = contact.type() === Contact.Type.OFFICIAL
+   * const bot = new Wechaty()
+   * await bot.start()
+   * const isOfficial = contact.type() === bot.Contact.Type.Official
    */
   public type(): ContactType {
     return this.payload!.type
   }
 
   /**
+   * @private
+   * TODO
    * Check if the contact is star contact.
    *
    * @returns {boolean | null} - True for star friend, False for no star friend.
@@ -502,10 +529,11 @@ export class Contact extends Accessory implements Sayable {
 
   /**
    * Contact gender
+   * > Tips: ContactGender is enum here. </br>
    *
-   * @returns {ContactGender.Male(2)|Gender.Female(1)|Gender.Unknown(0)}
+   * @returns {ContactGender.Unknown | ContactGender.Male | ContactGender.Female}
    * @example
-   * const gender = contact.gender()
+   * const gender = contact.gender() === bot.Contact.Gender.Male
    */
   public gender(): ContactGender {
     return this.payload
@@ -540,13 +568,13 @@ export class Contact extends Accessory implements Sayable {
    *
    * @returns {Promise<FileBox>}
    * @example
-   * const avatarFileName = contact.name() + `.jpg`
-   * const fileBox = await contact.avatar()
-   * const avatarWriteStream = createWriteStream(avatarFileName)
-   * fileBox.pipe(avatarWriteStream)
-   * log.info('Bot', 'Contact: %s: %s with avatar file: %s', contact.weixin(), contact.name(), avatarFileName)
+   * # Save avatar to local file like `1-name.jpg`
+   *
+   * const file = await contact.avatar()
+   * const name = file.name
+   * await file.toFile(name, true)
+   * console.log(`Contact: ${contact.name()} with avatar file: ${name}`)
    */
-  // TODO: use File to replace ReadableStream
   public async avatar(): Promise<FileBox> {
     log.verbose('Contact', 'avatar()')
 
@@ -554,13 +582,10 @@ export class Contact extends Accessory implements Sayable {
   }
 
   /**
-   * Force reload(re-ready()) data for Contact
+   * @description
+   * Force reload(re-ready()) data for Contact, use {@link Contact#sync} instead
    *
-   * @deprecated use sync() instead
-   *
-   * @returns {Promise<this>}
-   * @example
-   * await contact.refresh()
+   * @deprecated
    */
   public refresh(): Promise<void> {
     log.warn('Contact', 'refresh() DEPRECATED. use sync() instead.')
@@ -568,7 +593,7 @@ export class Contact extends Accessory implements Sayable {
   }
 
   /**
-   * sycc data for Contact
+   * Force reload(re-ready()) data for Contact,
    *
    * @returns {Promise<this>}
    * @example
