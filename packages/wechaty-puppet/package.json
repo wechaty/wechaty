@@ -47,7 +47,7 @@
     "blue-tape": "^1.0.0",
     "file-box": "^0.8.22",
     "git-scripts": "^0.2.1",
-    "markdownlint-cli": "^0.10.0",
+    "markdownlint-cli": "^0.11.0",
     "memory-card": "^0.4.5",
     "shx": "^0.3.1",
     "sinon": "^6.0.1",
