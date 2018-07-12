@@ -506,7 +506,7 @@ export class Contact extends Accessory implements Sayable {
    * @example
    * const bot = new Wechaty()
    * await bot.start()
-   * const isOfficial = contact.type() === bot.Contact.Type.OFFICIAL
+   * const isOfficial = contact.type() === bot.Contact.Type.Official
    */
   public type(): ContactType {
     return this.payload!.type
