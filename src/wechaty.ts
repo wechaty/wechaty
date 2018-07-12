@@ -76,17 +76,6 @@ import {
   Room,
 }                       from './user/'
 
-// export const WECHAT_EVENT_DICT = {
-//   friend      : 'tbw',
-//   login       : 'tbw',
-//   logout      : 'tbw',
-//   message     : 'tbw',
-//   'room-join' : 'tbw',
-//   'room-leave': 'tbw',
-//   'room-topic': 'tbw',
-//   scan        : 'tbw',
-// }
-
 export const WECHATY_EVENT_DICT = {
   ...CHAT_EVENT_DICT,
   dong      : 'tbw',
@@ -1149,7 +1138,13 @@ export class Wechaty extends Accessory implements Sayable {
   }
 
   public unref(): void {
-    log.warn('Wechaty', 'unref() To Be Implemented. See: https://github.com/Chatie/wechaty/issues/1197')
+    log.verbose('Wechaty', 'unref()')
+
+    if (this.lifeTimer) {
+      this.lifeTimer.unref()
+    }
+
+    this.puppet.unref()
   }
 }
 
