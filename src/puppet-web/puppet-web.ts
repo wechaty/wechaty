@@ -240,7 +240,7 @@ export class PuppetWeb extends Puppet {
     try {
       await this.bridge.quit()
       // register the removeListeners micro task at then end of the task queue
-      setImmediate(() => this.bridge.removeAllListeners())
+      // setImmediate(() => this.bridge.removeAllListeners())
     } catch (e) {
       log.error('PuppetWeb', 'quit() exception: %s', e.message)
       Raven.captureException(e)
