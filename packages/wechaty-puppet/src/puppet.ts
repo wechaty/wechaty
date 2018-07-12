@@ -138,8 +138,8 @@ export abstract class Puppet extends EventEmitter {
     this.counter = PUPPET_COUNTER++
     log.verbose('Puppet', 'constructor(%s) #%d', JSON.stringify(options), this.counter)
 
-    this.state = new StateSwitch(this.constructor.name, log)
-    this.memory = new MemoryCard()  // dummy memory
+    this.state  = new StateSwitch(this.constructor.name, log)
+    this.memory = new MemoryCard()                             // dummy memory
 
     /**
      * 1. Setup Watchdog
@@ -225,6 +225,14 @@ export abstract class Puppet extends EventEmitter {
       this.memory.name || '',
       ')',
     ].join('')
+  }
+
+  /**
+   * @private
+   */
+  public unref (): void {
+    log.verbose('Puppet', 'unref()')
+    this.watchdog.unref()
   }
 
   /**
