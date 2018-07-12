@@ -436,6 +436,13 @@ export class PuppetMock extends Puppet {
     return
   }
 
+  public unref (): void {
+    log.verbose('PuppetMock', 'unref()')
+    super.unref()
+    if (this.loopTimer) {
+      this.loopTimer.unref()
+    }
+  }
 }
 
 export default PuppetMock
