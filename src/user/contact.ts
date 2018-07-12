@@ -498,9 +498,6 @@ export class Contact extends Accessory implements Sayable {
   /**
    * Return the type of the Contact
    * > Tips: ContactType is enum here.</br>
-   * - ContactType.Unknown  = 0</br>
-   * - ContactType.Personal = 1</br>
-   * - ContactType.Official = 2</br>
    * @returns {ContactType.Unknown | ContactType.Personal | ContactType.Official}
    *
    * @example
@@ -533,13 +530,10 @@ export class Contact extends Accessory implements Sayable {
   /**
    * Contact gender
    * > Tips: ContactGender is enum here. </br>
-   * - ContactGender.Unknown </br>
-   * - ContactGender.Male    </br>
-   * - ContactGender.Female  </br>
    *
    * @returns {ContactGender.Unknown | ContactGender.Male | ContactGender.Female}
    * @example
-   * const gender = contact.gender()
+   * const gender = contact.gender() === bot.Contact.Gender.Male
    */
   public gender(): ContactGender {
     return this.payload
