@@ -1,5 +1,7 @@
 # GRPC
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/Chatie/grpc.svg)](https://greenkeeper.io/)
+
 ![chatie grpc](https://chatie.io/grpc/images/grpc.png)
 
 gRPC for Chatie
