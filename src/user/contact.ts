@@ -44,7 +44,7 @@ export const POOL = Symbol('pool')
 /**
  * All wechat contacts(friend) will be encapsulated as a Contact.
  *
- * [Examples/Contact-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/contact-bot.ts}
+ * [Examples/Contact-Bot]{@link https://github.com/Chatie/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/contact-bot.ts}
  */
 export class Contact extends Accessory implements Sayable {
 

@@ -55,7 +55,7 @@ import {
 /**
  * All wechat rooms(groups) will be encapsulated as a Room.
  *
- * [Examples/Room-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/room-bot.ts}
+ * [Examples/Room-Bot]{@link https://github.com/Chatie/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/room-bot.ts}
  */
 export class Room extends Accessory implements Sayable {
 

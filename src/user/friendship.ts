@@ -50,7 +50,7 @@ import {
  * 2. receive request(in friend event)
  * 3. confirmation friendship(friend event)
  *
- * [Examples/Friend-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/friend-bot.ts}
+ * [Examples/Friend-Bot]{@link https://github.com/Chatie/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/friend-bot.ts}
  */
 export class Friendship extends Accessory {
 
