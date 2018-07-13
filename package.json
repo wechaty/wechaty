@@ -70,7 +70,7 @@
   "bugs": {
     "url": "https://github.com/chatie/wechaty/issues"
   },
-  "homepage": "https://github.com/chatie/wechaty#readme",
+  "homepage": "https://chatie.io/wechaty/",
   "engines": {
     "node": ">= 10"
   },
