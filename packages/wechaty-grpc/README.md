@@ -1,5 +1,7 @@
 # GRPC
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/Chatie/grpc.svg)](https://greenkeeper.io/)
+
 ![chatie grpc](https://chatie.io/grpc/images/grpc.png)
 
 gRPC for Chatie
@@ -73,6 +75,7 @@ protoc \
 
 ## RESOURCES
 
+* [探讨gRPC的Node技术生态及实现工具](https://xenojoshua.com/2018/02/grpc-node-ecosystem/)
 * [gRPC Basics - Node.js](https://grpc.io/docs/tutorials/basic/node.html)
 * [Building a gRPC service with Node.js](https://codelabs.developers.google.com/codelabs/cloud-grpc/)
 * [gRPC in 3 minutes (Node.js)](https://github.com/grpc/grpc/tree/master/examples/node)
