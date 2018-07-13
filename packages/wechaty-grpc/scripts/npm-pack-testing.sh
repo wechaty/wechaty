@@ -13,12 +13,12 @@ cd $TMPDIR
 npm init -y
 npm install *-*.*.*.tgz \
   @types/node \
+  google-protobuf \
   typescript \
 
 ./node_modules/.bin/tsc \
-  --lib esnext,dom \
+  --lib esnext \
   --noEmitOnError \
-  --noImplicitAny \
   smoke-testing.ts
 
 node smoke-testing.js

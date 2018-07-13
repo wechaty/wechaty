@@ -24,11 +24,21 @@ async function main () {
     }
     console.log('contactList:', response.getIdList().map(pbId => pbId.getId()))
   })
+
+  client.selfId(empty, (err, response) => {
+    if (err) {
+      console.error(err)
+      return
+    }
+    console.log('selfId:', response.getId())
+  })
+
+  return 0
 }
 
 main()
-// .then(process.exit)
-// .catch(e => {
-//   console.error(e)
-//   process.exit(1)
-// })
+.then(process.exit)
+.catch(e => {
+  console.error(e)
+  process.exit(1)
+})

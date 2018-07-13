@@ -1,4 +1,8 @@
 #!/usr/bin/env ts-node
+
+// tslint:disable:no-console
+// tslint:disable:no-var-requires
+
 import * as fs    from 'fs'
 import * as path  from 'path'
 
@@ -11,7 +15,6 @@ pkg.publishConfig = {
   ...pkg.publishConfig,
   tag: 'next',
 }
-
 
 fs.writeFileSync(PACKAGE_JSON, JSON.stringify(pkg, null, 2))
 // console.log(JSON.stringify(pkg, null, 2))

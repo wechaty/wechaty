@@ -1,19 +1,16 @@
 #!/usr/bin/env ts-node
 
-import { Grpc } from '@chatie/grpc'
+// tslint:disable:no-console
 
-async function main() {
-  const bot = Wechaty.instance()
-  try {
-    await bot.start()
-    console.log(`Wechaty v${bot.version()} smoking test passed.`)
-  } catch (e) {
-    console.error(e)
-    // Error!
-    return 1
-  } finally {
-    await bot.stop()
-  }
+import {
+  Id,
+  VERSION,
+}           from '@chatie/grpc'
+
+async function main () {
+  const pbId = new Id()
+  pbId.setId('id')
+  console.log(`@chatie/grpc v${VERSION} smoking test passed.`)
   return 0
 }
 

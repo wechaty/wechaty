@@ -1,6 +1,6 @@
 {
   "name": "@chatie/grpc",
-  "version": "0.0.1",
+  "version": "0.2.1",
   "description": "gRPC for Chatie",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.js",
@@ -9,15 +9,15 @@
     "test": "tests"
   },
   "scripts": {
-    "clean": "shx rm -fr dist/*",
-    "dist": "npm run clean && tsc",
+    "clean": "shx rm -fr dist/* generated/*",
+    "dist": "npm run clean && npm run generate && tsc && shx mv generated dist/",
     "example:server": "nodemon --exec ts-node examples/server.ts",
     "example:client": "ts-node examples/client.ts",
     "generate": "bash -x scripts/generate-stub.sh",
     "lint": "npm run lint:ts",
     "lint:ts": "tslint --project tsconfig.json --exclude \"tests/fixtures/**\" && tsc --noEmit",
-    "pack": "npm pack dist/",
-    "test": "echo test",
+    "pack": "npm pack",
+    "test": "npm run lint",
     "test:pack": "bash -x scripts/npm-pack-testing.sh"
   },
   "repository": {
@@ -39,22 +39,21 @@
   },
   "homepage": "https://github.com/Chatie/grpc#readme",
   "dependencies": {
-    "brolog": "^1.4.9",
-    "google-protobuf": "^3.6.0",
-    "grpc": "^1.12.4",
-    "protobufjs": "^6.8.6",
+    "grpc": "^1.13.0",
     "read-pkg-up": "^4.0.0"
   },
   "devDependencies": {
     "@types/blue-tape": "^0.1.31",
+    "@types/google-protobuf": "^3.2.7",
     "@types/node": "^10.0.4",
-    "@types/protobufjs": "^6.0.0",
     "@types/read-pkg-up": "^3.0.1",
+    "@types/semver": "^5.5.0",
     "blue-tape": "^1.0.0",
     "git-scripts": "^0.2.1",
     "grpc-tools": "^1.6.6",
     "grpc_tools_node_protoc_ts": "^2.3.0",
     "nodemon": "^1.17.4",
+    "semver": "^5.5.0",
     "shx": "^0.3.2",
     "ts-node": "^7.0.0",
     "ts-protoc-gen": "^0.7.3",

@@ -1,7 +1,11 @@
 #!/usr/bin/env ts-node
+
+// tslint:disable:no-console
+// tslint:disable:no-var-requires
+
 import { minor } from 'semver'
 
-const version: string = require('../package.json').version
+const { version } = require('../package.json')
 
 if (minor(version) % 2 === 0) { // production release
   console.log(`${version} is production release`)

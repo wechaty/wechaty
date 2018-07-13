@@ -10,6 +10,7 @@
     , "esModuleInterop": true
     , "lib": [
         "esnext"
+      , "dom"
     ]
   }
   , "exclude": [

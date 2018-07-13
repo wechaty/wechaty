@@ -1,6 +1,6 @@
 language: node_js
 node_js:
-  - "10"
+  - 10
 
 os:
   - linux
@@ -15,9 +15,6 @@ stages:
   - pack
   - name: deploy
     if: (type = push) AND branch =~ ^(master|v\d+\.\d+)$
-
-before_install:
-  - npm install -g npm
 
 script:
   - node --version
