@@ -2,9 +2,14 @@
 set -e
 
 typedoc \
-  --includeDeclarations \
+  --exclude \"src/*.spec.ts\" \
+  --excludeExternals \
+  --excludePrivate \
+  --excludeProtected \
   --externalPattern **/lib/** \
-  --mode file \
+  --mode modules \
+  --module commonjs \
+  --target ES6 \
   --name "Wechaty Documentation" \
   --out dist/docs/ \
   src/
