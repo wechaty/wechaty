@@ -6,6 +6,11 @@ os:
   - linux
   - osx
 
+addons:
+  apt:
+    packages:
+      - protobuf-compiler
+
 cache:
   directories:
     - node_modules
