@@ -1,3 +1,6 @@
-import { Brolog } from 'brolog'
+import readPkgUp  from 'read-pkg-up'
 
-export const log = new Brolog()
+const pkg = readPkgUp.sync({ cwd: __dirname }).pkg
+export const VERSION = pkg.version
+
+export { log } from 'brolog'

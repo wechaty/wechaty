@@ -42,12 +42,14 @@
     "brolog": "^1.4.9",
     "google-protobuf": "^3.6.0",
     "grpc": "^1.12.4",
-    "protobufjs": "^6.8.6"
+    "protobufjs": "^6.8.6",
+    "read-pkg-up": "^4.0.0"
   },
   "devDependencies": {
     "@types/blue-tape": "^0.1.31",
     "@types/node": "^10.0.4",
     "@types/protobufjs": "^6.0.0",
+    "@types/read-pkg-up": "^3.0.1",
     "blue-tape": "^1.0.0",
     "git-scripts": "^0.2.1",
     "grpc-tools": "^1.6.6",
@@ -65,6 +67,9 @@
     "scripts": {
       "pre-push": "./scripts/pre-push.sh"
     }
+  },
+  "engines": {
+    "node": ">= 10"
   },
   "publishConfig": {
     "access": "public",
