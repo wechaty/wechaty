@@ -312,11 +312,11 @@ export class Contact extends Accessory implements Sayable {
    * await bot.start()
    * const contact = await bot.Contact.find({name: 'lijiarui'})  // change 'lijiarui' to any of your contact name in wechat
    *
-   * # 1. send text to contact
+   * // 1. send text to contact
    *
    * await contact.say('welcome to wechaty!')
    *
-   * # 2. send media file to contact
+   * // 2. send media file to contact
    *
    * import { FileBox }  from 'file-box'
    * const fileBox1 = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
@@ -324,7 +324,7 @@ export class Contact extends Accessory implements Sayable {
    * await contact.say(fileBox1)
    * await contact.say(fileBox2)
    *
-   * # 3. send contact card to contact
+   * // 3. send contact card to contact
    *
    * const contactCard = bot.Contact.load('contactId')
    * await contact.say(contactCard)
@@ -569,7 +569,7 @@ export class Contact extends Accessory implements Sayable {
    *
    * @returns {Promise<FileBox>}
    * @example
-   * # Save avatar to local file like `1-name.jpg`
+   * // Save avatar to local file like `1-name.jpg`
    *
    * const file = await contact.avatar()
    * const name = file.name

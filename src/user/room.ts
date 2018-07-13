@@ -362,22 +362,22 @@ export class Room extends Accessory implements Sayable {
    * // after logged in...
    * const room = await bot.Room.find({topic: 'wechaty'})
    *
-   * # 1. Send text inside Room
+   * // 1. Send text inside Room
    *
    * await room.say('Hello world!')
    *
-   * # 2. Send media file inside Room
+   * // 2. Send media file inside Room
    * import { FileBox }  from 'file-box'
    * const fileBox1 = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
    * const fileBox2 = FileBox.fromLocal('/tmp/text.txt')
    * await room.say(fileBox1)
    * await room.say(fileBox2)
    *
-   * # 3. Send Contact Card in a room
+   * // 3. Send Contact Card in a room
    * const contactCard = await bot.Contact.find({name: 'lijiarui'}) // change 'lijiarui' to any of the room member
    * await room.say(contactCard)
    *
-   * # 4. Send text inside room and mention @mention contact
+   * // 4. Send text inside room and mention @mention contact
    * const contact = await bot.Contact.find({name: 'lijiarui'}) // change 'lijiarui' to any of the room member
    * await room.say('Hello world!', contact)
    */

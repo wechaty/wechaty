@@ -226,13 +226,13 @@ export class Friendship extends Accessory {
    *     console.log(`received friend event.`)
    *     switch (friendship.type()) {
    *
-   *     # 1. New Friend Request
+   *     // 1. New Friend Request
    *
    *     case Friendship.Type.Receive:
    *       await friendship.accept()
    *       break
    *
-   *     # 2. Friend Ship Confirmed
+   *     // 2. Friend Ship Confirmed
    *
    *     case Friendship.Type.Confirm:
    *       console.log(`friend ship confirmed`)

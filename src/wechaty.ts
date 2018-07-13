@@ -384,35 +384,35 @@ export class Wechaty extends Accessory implements Sayable {
    * see more in {@link WechatyEventName}
    *
    * @example <caption>Event:scan</caption>
-   * # Scan Event will emit when the bot needs to show you a QR Code for scanning
+   * // Scan Event will emit when the bot needs to show you a QR Code for scanning
    *
    * bot.on('scan', (url: string, code: number) => {
    *   console.log(`[${code}] Scan ${url} to login.` )
    * })
    *
    * @example <caption>Event:login </caption>
-   * # Login Event will emit when bot login full successful.
+   * // Login Event will emit when bot login full successful.
    *
    * bot.on('login', (user: ContactSelf) => {
    *   console.log(`user ${user} login`)
    * })
    *
    * @example <caption>Event:logout </caption>
-   * # Logout Event will emit when bot detected log out.
+   * // Logout Event will emit when bot detected log out.
    *
    * bot.on('logout', (user: ContactSelf) => {
    *   console.log(`user ${user} logout`)
    * })
    *
    * @example <caption>Event:message </caption>
-   * # Message Event will emit when there's a new message.
+   * // Message Event will emit when there's a new message.
    *
    * wechaty.on('message', (message: Message) => {
    *   console.log(`message ${message} received`)
    * })
    *
    * @example <caption>Event:friendship </caption>
-   * # Friendship Event will emit when got a new friend request, or friendship is confirmed.
+   * // Friendship Event will emit when got a new friend request, or friendship is confirmed.
    *
    * bot.on('friendship', (friendship: Friendship) => {
    *   if(friendship.type() === Friendship.Type.RECEIVE){ // 1. receive new friendship request from new contact
@@ -429,7 +429,7 @@ export class Wechaty extends Accessory implements Sayable {
    *  })
    *
    * @example <caption>Event:room-join </caption>
-   * # room-join Event will emit when someone join the room.
+   * // room-join Event will emit when someone join the room.
    *
    * bot.on('room-join', (room: Room, inviteeList: Contact[], inviter: Contact) => {
    *   const nameList = inviteeList.map(c => c.name()).join(',')
@@ -437,7 +437,7 @@ export class Wechaty extends Accessory implements Sayable {
    * })
    *
    * @example <caption>Event:room-leave </caption>
-   * # room-leave Event will emit when someone leave the room.
+   * // room-leave Event will emit when someone leave the room.
    *
    * bot.on('room-leave', (room: Room, leaverList: Contact[]) => {
    *   const nameList = leaverList.map(c => c.name()).join(',')
@@ -445,14 +445,14 @@ export class Wechaty extends Accessory implements Sayable {
    * })
    *
    * @example <caption>Event:room-topic </caption>
-   * # room-topic Event will emit when someone change the room's topic.
+   * // room-topic Event will emit when someone change the room's topic.
    *
    * bot.on('room-topic', (room: Room, topic: string, oldTopic: string, changer: Contact) => {
    *   console.log(`Room ${room.topic()} topic changed from ${oldTopic} to ${topic} by ${changer.name()}`)
    * })
    *
    * @example <caption>Event:error </caption>
-   * # error Event will emit when there's an error occurred.
+   * // error Event will emit when there's an error occurred.
    *
    * bot.on('error', (error) => {
    *   console.error(error)
@@ -1029,19 +1029,19 @@ export class Wechaty extends Accessory implements Sayable {
    * await bot.start()
    * // after logged in
    *
-   * # 1. send text to bot itself
+   * // 1. send text to bot itself
    * await bot.say('hello!')
    *
-   * # 2. send Contact to bot itself
+   * // 2. send Contact to bot itself
    * const contact = bot.Contact.load('contactId')
    * await bot.say(contact)
    *
-   * # 3. send Image to bot itself from remote url
+   * // 3. send Image to bot itself from remote url
    * import { FileBox }  from 'file-box'
    * const fileBox = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
    * await bot.say(fileBox)
    *
-   * # 4. send Image to bot itself from local file
+   * // 4. send Image to bot itself from local file
    * import { FileBox }  from 'file-box'
    * const fileBox = FileBox.fromLocal('/tmp/text.jpg')
    * await bot.say(fileBox)

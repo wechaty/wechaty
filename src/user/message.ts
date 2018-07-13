@@ -350,20 +350,20 @@ export class Message extends Accessory implements Sayable {
    * bot
    * .on('message', async m => {
    *
-   * # 1. send Image
+   * // 1. send Image
    *
    *   if (/^ding$/i.test(m.text())) {
    *     const fileBox = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
    *     await msg.say(fileBox)
    *   }
    *
-   * # 2. send Text
+   * // 2. send Text
    *
    *   if (/^dong$/i.test(m.text())) {
    *     await msg.say('dingdingding')
    *   }
    *
-   * # 3. send Contact
+   * // 3. send Contact
    *
    *   if (/^lijiarui$/i.test(m.text())) {
    *     const contactCard = await bot.Contact.find({name: 'lijiarui'})
