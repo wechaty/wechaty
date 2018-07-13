@@ -24,7 +24,8 @@ import {
   log,
   Raven,
   Sayable,
-}             from '../config'
+  qrCodeForChatie,
+}                   from '../config'
 import {
   Accessory,
 }             from '../accessory'
@@ -578,7 +579,13 @@ export class Contact extends Accessory implements Sayable {
   public async avatar(): Promise<FileBox> {
     log.verbose('Contact', 'avatar()')
 
-    return this.puppet.contactAvatar(this.id)
+    try {
+      const fileBox = await this.puppet.contactAvatar(this.id)
+      return fileBox
+    } catch (e) {
+      log.error('Contact', 'avatar() exception: %s', e.message)
+      return qrCodeForChatie()
+    }
   }
 
   /**
