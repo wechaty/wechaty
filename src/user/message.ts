@@ -50,7 +50,7 @@ import {
 /**
  * All wechat messages will be encapsulated as a Message.
  *
- * [Examples/Ding-Dong-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts}
+ * [Examples/Ding-Dong-Bot]{@link https://github.com/Chatie/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/ding-dong-bot.ts}
  */
 export class Message extends Accessory implements Sayable {
 
@@ -336,7 +336,7 @@ export class Message extends Accessory implements Sayable {
   /**
    * Reply a Text or Media File message to the sender.
    *
-   * @see {@link https://github.com/Chatie/wechaty/blob/master/examples/ding-dong-bot.ts|Examples/ding-dong-bot}
+   * @see {@link https://github.com/Chatie/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/ding-dong-bot.ts|Examples/ding-dong-bot}
    * @param {(string | Contact | FileBox)} textOrContactOrFile
    * send text, Contact, or file to bot. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
@@ -350,20 +350,20 @@ export class Message extends Accessory implements Sayable {
    * bot
    * .on('message', async m => {
    *
-   * # 1. send Image
+   * // 1. send Image
    *
    *   if (/^ding$/i.test(m.text())) {
    *     const fileBox = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
    *     await msg.say(fileBox)
    *   }
    *
-   * # 2. send Text
+   * // 2. send Text
    *
    *   if (/^dong$/i.test(m.text())) {
    *     await msg.say('dingdingding')
    *   }
    *
-   * # 3. send Contact
+   * // 3. send Contact
    *
    *   if (/^lijiarui$/i.test(m.text())) {
    *     const contactCard = await bot.Contact.find({name: 'lijiarui'})
