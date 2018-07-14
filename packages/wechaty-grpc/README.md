@@ -1,5 +1,7 @@
 # GRPC
 
+[![NPM Version](https://badge.fury.io/js/%40chatie%2Fgrpc.svg)](https://www.npmjs.com/package/@chatie/grpc)
+[![Build Status](https://travis-ci.com/Chatie/grpc.svg?branch=master)](https://travis-ci.com/Chatie/grpc)
 [![Greenkeeper badge](https://badges.greenkeeper.io/Chatie/grpc.svg)](https://greenkeeper.io/)
 
 ![chatie grpc](https://chatie.io/grpc/images/grpc.png)
