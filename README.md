@@ -63,7 +63,7 @@ We have a Wechaty starter repository for beginners with the simplest setting. It
 
 If you are new to Wechaty and want to try it the first time, we'd like to strong recommend you starting from this repository, and using it as your starter template for your project.
 
-* Wechaty Starter Repository - <https://github.com/lijiarui/wechaty-getting-started>
+* Wechaty Starter Repository - <https://github.com/Chatie/wechaty-getting-started>
 
 Otherwise, please saved the above _The World's Shortest ChatBot Code: 6 lines of JavaScript_ example to a file named `mybot.js` before you can use either NPM or Docker to run it.
 
