@@ -68,11 +68,7 @@ RUN npm run dist
 # If it is not found there, then it moves to the parent directory, and so on, until the root of the file system is reached.
 RUN sudo mkdir /bot \
     && npm link \
-    && sudo ln -s /wechaty /node_modules/wechaty \
-    && sudo ln -s /wechaty/node_modules/* /node_modules/ \
-    && sudo ln -s /wechaty/node_modules/.bin/* /usr/local/bin/ \
     && sudo ln -s /wechaty/tsconfig.json / \
-    && echo "export * from 'wechaty'" | sudo tee /index.ts \
     && echo 'Linked Wechaty to Global'
 
 ENTRYPOINT  [ "/wechaty/bin/entrypoint.sh" ]
