@@ -1,9 +1,10 @@
 import {
   Constructor,
-}                 from 'clone-class'
-import npm        from 'npm-programmatic'
-import pkgDir     from 'pkg-dir'
-import semver     from 'semver'
+}                   from 'clone-class'
+import clearModule  from 'clear-module'
+import npm          from 'npm-programmatic'
+import pkgDir       from 'pkg-dir'
+import semver       from 'semver'
 
 import {
   Puppet,
@@ -15,8 +16,8 @@ import {
 
 export interface PuppetConfig {
   npm: {
-    name     : string,
-    version? : string,
+    name    : string,
+    version : string,
   },
 }
 
@@ -33,7 +34,7 @@ const mock: PuppetConfig = {
 const wechat4u: PuppetConfig = {
   npm: {
     name    : 'wechaty-puppet-wechat4u',
-    version : '^0.8.1',
+    version : '^0.8.3',
   },
 }
 
@@ -61,16 +62,6 @@ export const PUPPET_DICT = {
 
 export type PuppetName = keyof typeof PUPPET_DICT
 
-//   'android-pad'
-// | 'android-phone'
-// | 'cat-king'
-// | 'hostie'
-// | 'ios-app-phone'
-// | 'ios-app-pad'
-// | 'mock'
-// | 'web'
-// | 'win32'
-
 export async function puppetResolver (puppet: PuppetName): Promise<typeof Puppet & Constructor<Puppet>> {
   log.verbose('PuppetConfig', 'puppetResolver(%s)', puppet)
 
@@ -82,10 +73,30 @@ export async function puppetResolver (puppet: PuppetName): Promise<typeof Puppet
   }
 
   // tslint:disable-next-line:variable-name
-  let puppetModule
+  let puppetModule: {
+    VERSION: string,
+    default: typeof Puppet,
+  }
 
   try {
     puppetModule = await import(puppetConfig.npm.name)
+
+    const version = puppetModule.VERSION
+
+    if (semver.satisfies(
+      version,
+      puppetConfig.npm.version,
+    )) {
+      log.silly('PuppetConfig', 'puppetResolver() installed version %s satisfies required version %s for %s',
+                                version,
+                                puppetConfig.npm.version,
+                                puppetConfig.npm.name,
+                )
+    } else {
+      clearModule(puppetConfig.npm.name)
+      throw new Error(`installed puppet version ${puppetModule.VERSION} is not satisfies config version ${puppetConfig.npm.version}`)
+    }
+
   } catch (e) {
     log.silly('PuppetConfig', 'puppetResolver(%s) exception: %s', puppet, e.message)
 

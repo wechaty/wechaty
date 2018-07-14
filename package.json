@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.19.6",
+  "version": "0.19.10",
   "description": "Wechaty is a Bot SDK for Wechat Personal Account",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
@@ -70,13 +70,14 @@
   "bugs": {
     "url": "https://github.com/chatie/wechaty/issues"
   },
-  "homepage": "https://github.com/chatie/wechaty#readme",
+  "homepage": "https://chatie.io/wechaty/",
   "engines": {
     "node": ">= 10"
   },
   "dependencies": {
     "array-flatten": "^2.1.1",
     "brolog": "^1.8.1",
+    "clear-module": "^3.0.0",
     "clone-class": "^0.6.11",
     "cuid": "^2.1.1",
     "express": "^4.16.3",
@@ -94,7 +95,7 @@
     "rxjs": "^6.1.0",
     "state-switch": "^0.6.2",
     "watchdog": "^0.8.1",
-    "wechaty-puppet": "^0.8.2",
+    "wechaty-puppet": "^0.8.5",
     "ws": "^5.2.0"
   },
   "devDependencies": {
