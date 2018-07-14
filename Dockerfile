@@ -50,10 +50,8 @@ RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key
     && rm -rf /tmp/* /var/lib/apt/lists/* \
     && rm -rf /usr/bin/google-chrome* /opt/google/chrome-unstable
 
-RUN mkdir /wechaty \
-    && mkdir /node_modules
-
-WORKDIR /wechaty
+RUN mkdir /wechaty
+WORKDIR   /wechaty
 
 COPY package.json .
 RUN npm install \
