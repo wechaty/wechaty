@@ -6,6 +6,8 @@ os:
   - linux
   - osx
 
+sudo: true
+
 cache:
   directories:
     - node_modules
