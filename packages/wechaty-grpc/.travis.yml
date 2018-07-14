@@ -6,20 +6,12 @@ os:
   - linux
   - osx
 
-addons:
-  apt:
-    packages:
-      - protobuf-compiler
-
 cache:
   directories:
     - node_modules
 
-stages:
-  - test
-  - pack
-  - name: deploy
-    if: (type = push) AND branch =~ ^(master|v\d+\.\d+)$
+before_install:
+  - bash -x scripts/install-protoc.sh
 
 script:
   - node --version
@@ -28,6 +20,12 @@ script:
   - npm run generate
   - npm test
   - echo "Testing Finished."
+
+stages:
+  - test
+  - pack
+  - name: deploy
+    if: (type = push) AND branch =~ ^(master|v\d+\.\d+)$
 
 jobs:
   include:
