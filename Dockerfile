@@ -50,7 +50,7 @@ RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key
     && rm -rf /tmp/* /var/lib/apt/lists/* \
     && rm -rf /usr/bin/google-chrome* /opt/google/chrome-unstable
 
-RUN mkdir /wechaty
+RUN mkdir /wechaty /node_modules
 WORKDIR   /wechaty
 
 COPY package.json .
@@ -66,9 +66,9 @@ RUN npm run dist
 # If it is not found there, then it moves to the parent directory, and so on, until the root of the file system is reached.
 RUN sudo mkdir /bot \
     && npm link \
-    && sudo ln -s /usr/lib/node_modules/ / \
-    && sudo ln -s /wechaty/node_modules/@babel /node_modules \
-    && sudo ln -s /wechaty/tsconfig.json / \
+    && sudo ln -sfv /usr/lib/node_modules/* /node_modules/ \
+    && sudo ln -sfv /wechaty/node_modules/* /node_modules/ \
+    && sudo ln -sfv /wechaty/tsconfig.json / \
     && echo 'Linked Wechaty to Global'
 
 ENTRYPOINT  [ "/wechaty/bin/entrypoint.sh" ]

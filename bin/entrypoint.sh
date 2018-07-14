@@ -8,7 +8,6 @@ set -e
 
 export HOME=/bot
 export PATH=$PATH:/wechaty/bin:/wechaty/node_modules/.bin
-export NODE_PATH=/wechaty/node_modules:/bot/node_modules
 
 function wechaty::banner() {
   echo
@@ -137,6 +136,20 @@ function wechaty::runBot() {
     echo "Please make sure you had installed all the NPM modules which is depended on your bot script."
     # yarn < /dev/null || return $? # yarn will close stdin??? cause `read` command fail after yarn
 
+    cwd=$(pwd)
+    for module in node_modules/*; do
+      [ -e "$module" ] || continue
+
+      module=${module//node_modules\//}
+
+      globalModule="/node_modules/$module"
+
+      if [ ! -e "$globalModule" ]; then
+        ln -sfv "$cwd/node_modules/$module" /node_modules/
+      else
+        echo "$globalModule exists"
+      fi
+    done
   }
 
   # echo -n "Linking Wechaty module to bot ... "
