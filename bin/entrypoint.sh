@@ -8,6 +8,7 @@ set -e
 
 export HOME=/bot
 export PATH=$PATH:/wechaty/bin:/wechaty/node_modules/.bin
+export NODE_PATH=/wechaty/node_modules:/bot/node_modules
 
 function wechaty::banner() {
   echo
@@ -52,7 +53,7 @@ TROUBLESHOOTING
 
 function wechaty::printEnv () {
   num=$(env | grep -c WECHATY)
-  echo "$num WECHATY Environment Variables:"
+  echo "WECHATY Environment Variables: $num"
   env | grep WECHATY
 }
 
