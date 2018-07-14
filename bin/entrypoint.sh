@@ -204,8 +204,8 @@ function wechaty::help() {
   Run a JavaScript/TypeScript <Bot File>, or a <Wechaty Command>.
 
   <Bot File>:
-    mybot.js: a JavaScript program for your bot. will run by Node.js v7
-    mybot.ts: a TypeScript program for your bot. will run by ts-node/TypeScript v2
+    mybot.js: a JavaScript program for your bot.
+    mybot.ts: a TypeScript program for your bot.
 
   <Commands>:
     demo    Run Wechaty DEMO
@@ -233,7 +233,7 @@ function main() {
   VERSION=$(WECHATY_LOG=WARN wechaty-version 2>/dev/null || echo '0.0.0(unknown)')
 
   echo
-  echo -n "Starting Wechaty v$VERSION with "
+  echo -n "Starting Docker Container for Wechaty v$VERSION with "
   echo -n "Node.js $(node --version) ..."
   echo
 

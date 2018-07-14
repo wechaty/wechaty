@@ -68,6 +68,8 @@ RUN npm run dist
 # If it is not found there, then it moves to the parent directory, and so on, until the root of the file system is reached.
 RUN sudo mkdir /bot \
     && npm link \
+    && sudo ln -s /usr/lib/node_modules/ / \
+    && sudo ln -s /wechaty/node_modules/@babel /node_modules \
     && sudo ln -s /wechaty/tsconfig.json / \
     && echo 'Linked Wechaty to Global'
 
