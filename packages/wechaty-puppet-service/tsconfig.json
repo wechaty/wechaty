@@ -7,6 +7,8 @@
     , "sourceMap": true
     , "strict": true
     , "traceResolution": false
+    , "esModuleInterop" : true
+    , "resolveJsonModule": true
     , "lib": [
         "esnext"
     ]

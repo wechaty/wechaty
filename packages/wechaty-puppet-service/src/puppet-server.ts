@@ -2,22 +2,21 @@ import * as grpc from 'grpc'
 
 import {
   Puppet,
-}             from '../../wechaty/src/puppet/'
+}             from 'wechaty-puppet'
 
 import {
   PuppetService,
   IPuppetServer,
-}                     from '../generated/wechaty-puppet_grpc_pb'
 
-import {
   ContactList,
   ContactPayload,
   Empty,
   Id,
-}                     from '../generated/wechaty-puppet_pb'
+}                     from '@chatie/grpc'
 
 import {
   log,
+  VERSION,
 }             from './config'
 
 export class GrpcPuppetServer implements IPuppetServer {

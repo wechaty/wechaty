@@ -29,6 +29,24 @@
   },
   "homepage": "https://github.com/Chatie/wechaty-puppet-hostie#readme",
   "devDependencies": {
-    "git-scripts": "^0.2.1"
+    "@types/blue-tape": "^0.1.32",
+    "@types/node": "^10.5.2",
+    "@types/read-pkg-up": "^3.0.1",
+    "blue-tape": "^1.0.0",
+    "file-box": "^0.8.22",
+    "git-scripts": "^0.2.1",
+    "memory-card": "^0.4.9",
+    "tslint": "^5.10.0",
+    "tslint-config-standard": "^7.1.0",
+    "typescript": "^2.9.2",
+    "wechaty-puppet": "^0.8.5"
+  },
+  "peerDependencies": {
+    "file-box": "^0.8.22",
+    "wechaty-puppet": "^0.8.5"
+  },
+  "dependencies": {
+    "@chatie/grpc": "^0.2.4",
+    "read-pkg-up": "^4.0.0"
   }
 }
