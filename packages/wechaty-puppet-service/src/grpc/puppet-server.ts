@@ -1,27 +1,14 @@
-import * as grpc from 'grpc'
-
 import {
-  Puppet,
-}             from 'wechaty-puppet'
-
-import {
-  PuppetService,
   IPuppetServer,
-
-  ContactList,
-  ContactPayload,
-  Empty,
-  Id,
+  PuppetService,
 }                     from '@chatie/grpc'
 
 import {
   log,
-  VERSION,
-}             from './config'
+}         from '../config'
 
 export class GrpcPuppetServer implements IPuppetServer {
   constructor (
-    private puppet: Puppet,
   ) {
     log.verbose('GrpcPuppetServer')
   }
@@ -122,17 +109,14 @@ export class GrpcPuppetServer implements IPuppetServer {
   // };
 }
 
-function startServer() {
-  const server = new grpc.Server();
+const server = new grpc.Server()
 
-  server.addService(BookServiceService, new ServerImpl());
-  server.bind("127.0.0.1:50051", grpc.ServerCredentials.createInsecure());
-  server.start();
+server.addService(BookServiceService, new ServerImpl())
+server.bind("127.0.0.1:50051", grpc.ServerCredentials.createInsecure())
+server.start()
 
-  log("Server started, listening: 127.0.0.1:50051");
-}
+this.puppetServer = server
 
-startServer();
 
 process.on("uncaughtException", (err) => {
   log(`process on uncaughtException error: ${err}`);

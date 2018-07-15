@@ -1,13 +1,12 @@
 export {
   log,
   VERSION,
-}           from './config'
+}             from './config'
 
 export {
-
-}           from './puppet-client'
+  PuppetHostie,
+}                       from './puppet-hostie'
 
 export {
-
-}           from './puppet-server'
-
+  PuppetHostieServer,
+}                       from './puppet-hostie-server'

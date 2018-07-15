@@ -22,13 +22,6 @@ import {
 }                       from 'wechaty-puppet'
 
 import {
-  ContactList,
-  Empty,
-  Id,
-  PuppetClient,
-}                     from '@chatie/grpc'
-
-import {
   FileBox,
 }             from 'file-box'
 
@@ -36,8 +29,6 @@ import {
   log,
   VERSION,
 }                   from './config'
-
-const EMPTY = new Empty()
 
 export class PuppetHostie extends Puppet {
 
