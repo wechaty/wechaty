@@ -1,4 +1,4 @@
-# Wechaty v0.19.4 Documentation
+# Wechaty v0.19.5 Documentation
 
 * <https://blog.chatie.io>
 
@@ -116,7 +116,6 @@ See more:
         * ~~[.self()](#Wechaty+self)~~
         * [.userSelf()](#Wechaty+userSelf) ⇒ <code>ContactSelf</code>
         * [.say(textOrContactOrFile)](#Wechaty+say) ⇒ <code>Promise.&lt;void&gt;</code>
-        * [.version([forceNpm])](#Wechaty+version) ⇒ <code>string</code>
     * _static_
         * [.instance([options])](#Wechaty.instance)
 
@@ -352,23 +351,6 @@ await bot.say(fileBox)
 import { FileBox }  from 'file-box'
 const fileBox = FileBox.fromLocal('/tmp/text.jpg')
 await bot.say(fileBox)
-```
-<a name="Wechaty+version"></a>
-
-### wechaty.version([forceNpm]) ⇒ <code>string</code>
-Return version of Wechaty
-
-**Kind**: instance method of [<code>Wechaty</code>](#Wechaty)  
-**Returns**: <code>string</code> - - the version number  
-
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| [forceNpm] | <code>boolean</code> | <code>false</code> | If set to true, will only return the version in package.json. </br>                                      Otherwise will return git commit hash if .git exists. |
-
-**Example**  
-```js
-console.log(Wechaty.instance().version())       // return '#git[af39df]'
-console.log(Wechaty.instance().version(true))   // return '0.7.9'
 ```
 <a name="Wechaty.instance"></a>
 

@@ -52,7 +52,7 @@ TROUBLESHOOTING
 
 function wechaty::printEnv () {
   num=$(env | grep -c WECHATY)
-  echo "$num WECHATY Environment Variables:"
+  echo "WECHATY Environment Variables: $num"
   env | grep WECHATY
 }
 
@@ -136,6 +136,20 @@ function wechaty::runBot() {
     echo "Please make sure you had installed all the NPM modules which is depended on your bot script."
     # yarn < /dev/null || return $? # yarn will close stdin??? cause `read` command fail after yarn
 
+    cwd=$(pwd)
+    for module in node_modules/*; do
+      [ -e "$module" ] || continue
+
+      module=${module//node_modules\//}
+
+      globalModule="/node_modules/$module"
+
+      if [ ! -e "$globalModule" ]; then
+        ln -sfv "$cwd/node_modules/$module" /node_modules/
+      else
+        echo "$globalModule exists"
+      fi
+    done
   }
 
   # echo -n "Linking Wechaty module to bot ... "
@@ -203,8 +217,8 @@ function wechaty::help() {
   Run a JavaScript/TypeScript <Bot File>, or a <Wechaty Command>.
 
   <Bot File>:
-    mybot.js: a JavaScript program for your bot. will run by Node.js v7
-    mybot.ts: a TypeScript program for your bot. will run by ts-node/TypeScript v2
+    mybot.js: a JavaScript program for your bot.
+    mybot.ts: a TypeScript program for your bot.
 
   <Commands>:
     demo    Run Wechaty DEMO
@@ -232,7 +246,7 @@ function main() {
   VERSION=$(WECHATY_LOG=WARN wechaty-version 2>/dev/null || echo '0.0.0(unknown)')
 
   echo
-  echo -n "Starting Wechaty v$VERSION with "
+  echo -n "Starting Docker Container for Wechaty v$VERSION with "
   echo -n "Node.js $(node --version) ..."
   echo
 
