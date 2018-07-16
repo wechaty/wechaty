@@ -55,6 +55,7 @@ import {
 import {
   VERSION,
   config,
+  isProduction,
   log,
   Raven,
   Sayable,
@@ -488,7 +489,8 @@ export class Wechaty extends Accessory implements Sayable {
 
   private addListenerModuleFile(event: WechatyEventName, modulePath: string): void {
     const absoluteFilename = callerResolve(modulePath, __filename)
-    log.verbose('Wechaty', 'onModulePath() hotImpor(%s)', absoluteFilename)
+    log.verbose('Wechaty', 'onModulePath() hotImport(%s)', absoluteFilename)
+
     hotImport(absoluteFilename)
       .then((func: Function) => super.on(event, (...args: any[]) => {
         try {
@@ -504,6 +506,11 @@ export class Wechaty extends Accessory implements Sayable {
                               event, modulePath, e)
         this.emit('error', e)
       })
+
+    if (isProduction()) {
+      log.silly('Wechaty', 'addListenerModuleFile() disable watch for hotImport because NODE_ENV is production.')
+      hotImport(absoluteFilename, false)
+    }
   }
 
   private addListenerFunction(event: WechatyEventName, listener: Function): void {

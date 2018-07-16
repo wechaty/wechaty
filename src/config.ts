@@ -50,7 +50,7 @@ Raven.disableConsoleAlerts()
 
 Raven
 .config(
-  process.env.NODE_ENV === 'production'
+  isProduction()
     && 'https://f6770399ee65459a82af82650231b22c:d8d11b283deb441e807079b8bb2c45cd@sentry.io/179672',
   {
     release: VERSION,
@@ -231,6 +231,11 @@ export function qrcodeValueToImageUrl(qrcodeValue: string): string {
     encodeURIComponent(qrcodeValue),
     '&size=220x220&margin=20',
   ].join('')
+}
+
+export function isProduction(): boolean {
+  return process.env.NODE_ENV === 'production'
+      || process.env.NODE_ENV === 'prod'
 }
 
 export {
