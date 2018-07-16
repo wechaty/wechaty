@@ -219,6 +219,10 @@ export class Room extends Accessory implements Sayable {
    * > Tips: For Web solution, it cannot get the unique topic id,
    * but for other solutions besides web,
    * we can get unique and permanent topic id.
+   * >
+   * - [wechat4u](https://github.com/chatie/wechaty-puppet-wechat4u) and [puppeteer](https://github.com/chatie/wechaty-puppet-puppeteer) cannot get permanent unique id.
+   * There id will not keep consistent across Web Sessions.
+   * - [padchat](https://github.com/lijiarui/wechaty-puppet-padchat) can get permanent unique id across sessions, you can use this here.
    *
    * @static
    * @param {string} id
@@ -350,6 +354,9 @@ export class Room extends Accessory implements Sayable {
 
   /**
    * Send message inside Room, if set [replyTo], wechaty will mention the contact as well.
+   * > Tips:
+   * - [wechat4u](https://github.com/chatie/wechaty-puppet-wechat4u) and [puppeteer](https://github.com/chatie/wechaty-puppet-puppeteer) not support `Room.say(Contact)`
+   * - [padchat](https://github.com/lijiarui/wechaty-puppet-padchat) support `Room.say(Contact)`
    *
    * @param {(string | Contact | FileBox)} textOrContactOrFile - Send `text` or `media file` inside Room. <br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
@@ -509,6 +516,12 @@ export class Room extends Accessory implements Sayable {
   /**
    * Add contact in a room
    *
+   * > Tips:
+   * - [wechat4u](https://github.com/chatie/wechaty-puppet-wechat4u) and [puppeteer](https://github.com/chatie/wechaty-puppet-puppeteer) not support `Room.add(Contact)`
+   * - [padchat](https://github.com/lijiarui/wechaty-puppet-padchat) support `Room.add(Contact)`
+   * >
+   * > see {@link https://github.com/Chatie/wechaty/issues/1441|Web version of WeChat closed group interface}
+   *
    * @param {Contact} contact
    * @returns {Promise<void>}
    * @example
@@ -533,6 +546,13 @@ export class Room extends Accessory implements Sayable {
   /**
    * Delete a contact from the room
    * It works only when the bot is the owner of the room
+   *
+   * > Tips:
+   * - [wechat4u](https://github.com/chatie/wechaty-puppet-wechat4u) and [puppeteer](https://github.com/chatie/wechaty-puppet-puppeteer) not support `Room.del(Contact)`
+   * - [padchat](https://github.com/lijiarui/wechaty-puppet-padchat) support `Room.del(Contact)`
+   * >
+   * > see {@link https://github.com/Chatie/wechaty/issues/1441|Web version of WeChat closed group interface}
+   *
    * @param {Contact} contact
    * @returns {Promise<void>}
    * @example
@@ -571,6 +591,10 @@ export class Room extends Accessory implements Sayable {
 
   /**
    * Bot quit the room itself
+   *
+   * > Tips:
+   * - [wechat4u](https://github.com/chatie/wechaty-puppet-wechat4u) and [puppeteer](https://github.com/chatie/wechaty-puppet-puppeteer) not support `Room.quit()`
+   * - [padchat](https://github.com/lijiarui/wechaty-puppet-padchat) support `Room.quit()`
    *
    * @returns {Promise<void>}
    * @example
@@ -657,6 +681,9 @@ export class Room extends Accessory implements Sayable {
   /**
    * SET/GET announce from the room
    * > Tips: It only works when bot is the owner of the room.
+   * >
+   * - [wechat4u](https://github.com/chatie/wechaty-puppet-wechat4u) and [puppeteer](https://github.com/chatie/wechaty-puppet-puppeteer) not support `Room.announce([text])`
+   * - [padchat](https://github.com/lijiarui/wechaty-puppet-padchat) support `Room.announce([text])`
    *
    * @param {string} [text] If set this para, it will change room announce.
    * @returns {(Promise<void | string>)}
@@ -690,7 +717,9 @@ export class Room extends Accessory implements Sayable {
 
   /**
    * Get QR Code of the Room from the room, which can be used as scan and join the room.
-   *
+   * > Tips
+   * - [wechat4u](https://github.com/chatie/wechaty-puppet-wechat4u) and [puppeteer](https://github.com/chatie/wechaty-puppet-puppeteer) not support `Room.qrcode()`
+   * - [padchat](https://github.com/lijiarui/wechaty-puppet-padchat) support `Room.qrcode()`
    * @returns {Promise<string>}
    */
   public async qrcode(): Promise<string> {
@@ -907,7 +936,10 @@ export class Room extends Accessory implements Sayable {
 
   /**
    * Get room's owner from the room.
-   *
+   * > Tips
+   * - [wechat4u](https://github.com/chatie/wechaty-puppet-wechat4u) and [puppeteer](https://github.com/chatie/wechaty-puppet-puppeteer) not support `Room.owner()`
+   * This function will return null
+   * - [padchat](https://github.com/lijiarui/wechaty-puppet-padchat) support `Room.owner()`
    * @returns {(Contact | null)}
    * @example
    * const owner = room.owner()

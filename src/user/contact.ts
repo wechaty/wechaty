@@ -73,6 +73,10 @@ export class Contact extends Accessory implements Sayable {
    */
   /**
    * Get Contact by id
+   * > Tips:
+   * - [wechat4u](https://github.com/chatie/wechaty-puppet-wechat4u) and [puppeteer](https://github.com/chatie/wechaty-puppet-puppeteer) cannot get permanent unique id.
+   * There id will not keep consistent across Web Sessions.
+   * - [padchat](https://github.com/lijiarui/wechaty-puppet-padchat) can get permanent unique id across sessions, you can use this here.
    *
    * @static
    * @param {string} id
@@ -303,6 +307,10 @@ export class Contact extends Accessory implements Sayable {
   public async say(contact: Contact) : Promise<void>
 
   /**
+   * > Tips:
+   * - [wechat4u](https://github.com/chatie/wechaty-puppet-wechat4u) and [puppeteer](https://github.com/chatie/wechaty-puppet-puppeteer) not support `Contact.say(Contact)`
+   * - [padchat](https://github.com/lijiarui/wechaty-puppet-padchat) support `Contact.say(Contact)`
+   *
    * @param {(string | Contact | FileBox)} textOrContactOrFile
    * send text, Contact, or file to contact. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
@@ -446,6 +454,10 @@ export class Contact extends Accessory implements Sayable {
 
   /**
    * Check if contact is friend
+   *
+   * > Tips:
+   * - [wechat4u](https://github.com/chatie/wechaty-puppet-wechat4u) and [puppeteer](https://github.com/chatie/wechaty-puppet-puppeteer) not support `Contact.friend()`
+   * - [padchat](https://github.com/lijiarui/wechaty-puppet-padchat) support `Contact.friend()`
    *
    * @returns {boolean | null}
    *
