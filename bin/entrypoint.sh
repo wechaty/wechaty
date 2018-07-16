@@ -145,9 +145,9 @@ function wechaty::runBot() {
       globalModule="/node_modules/$module"
 
       if [ ! -e "$globalModule" ]; then
-        ln -sfv "$cwd/node_modules/$module" /node_modules/
-      else
-        echo "$globalModule exists"
+        ln -sf "$cwd/node_modules/$module" /node_modules/
+      # else
+        # echo "$globalModule exists"
       fi
     done
   }
