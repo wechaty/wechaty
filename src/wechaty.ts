@@ -1023,6 +1023,14 @@ export class Wechaty extends Accessory implements Sayable {
    * - [wechat4u](https://github.com/chatie/wechaty-puppet-wechat4u) and [puppeteer](https://github.com/chatie/wechaty-puppet-puppeteer) not support `Wechaty.say(Contact)`
    * - [padchat](https://github.com/lijiarui/wechaty-puppet-padchat) support `Wechaty.say(Contact)`
    *
+   * ##### Puppet Compatible Table
+   *
+   * puppet | supportOrNot
+   * ---- | :----:
+   * [wechat4u](https://github.com/chatie/wechaty-puppet-wechat4u) | No
+   * [puppeteer](https://github.com/chatie/wechaty-puppet-puppeteer) | No
+   * [padchat](https://github.com/lijiarui/wechaty-puppet-padchat) |  Yes
+   *
    * @param {(string | Contact | FileBox)} textOrContactOrFile
    * send text, Contact, or file to bot. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
