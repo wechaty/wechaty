@@ -667,27 +667,6 @@ export class Wechaty extends Accessory implements Sayable {
           })
           break
 
-        case 'start':
-        case 'stop':
-          // do not emit 'start'/'stop' again for wechaty:
-          // because both puppet & wechaty should have their own
-          // `start`/`stop` event seprately
-          break
-
-        // case 'start':
-        //   puppet.removeAllListeners('start')
-        //   puppet.on('start', () => {
-        //     this.emit('start')
-        //   } )
-        //   break
-
-        // case 'stop':
-        //   puppet.removeAllListeners('stop')
-        //   puppet.on('stop', () => {
-        //     this.emit('stop')
-        //   } )
-        //   break
-
         case 'friendship':
           puppet.removeAllListeners('friendship')
           puppet.on('friendship', async friendshipId => {
