@@ -1,6 +1,6 @@
 {
   "name": "wechaty",
-  "version": "0.19.4",
+  "version": "0.19.21",
   "description": "Wechaty is a Bot SDK for Wechat Personal Account",
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
@@ -70,21 +70,22 @@
   "bugs": {
     "url": "https://github.com/chatie/wechaty/issues"
   },
-  "homepage": "https://github.com/chatie/wechaty#readme",
+  "homepage": "https://chatie.io/wechaty/",
   "engines": {
     "node": ">= 10"
   },
   "dependencies": {
     "array-flatten": "^2.1.1",
     "brolog": "^1.8.1",
+    "clear-module": "^3.0.0",
     "clone-class": "^0.6.11",
     "cuid": "^2.1.1",
     "express": "^4.16.3",
     "file-box": "^0.8.22",
-    "fs-extra": "^6.0.1",
+    "fs-extra": "^7.0.0",
     "hot-import": "^0.2.1",
     "memory-card": "^0.4.9",
-    "npm-programmatic": "0.0.10",
+    "npm-programmatic": "0.0.11",
     "pkg-dir": "^3.0.0",
     "promise-retry": "^1.1.1",
     "qr-image": "^3.2.0",
@@ -94,7 +95,7 @@
     "rxjs": "^6.1.0",
     "state-switch": "^0.6.2",
     "watchdog": "^0.8.1",
-    "wechaty-puppet": "^0.8.2",
+    "wechaty-puppet": "^0.8.6",
     "ws": "^5.2.0"
   },
   "devDependencies": {
@@ -132,7 +133,7 @@
     "gl-matrix": "^2.6.1",
     "glob": "^7.1.0",
     "jsdoc-to-markdown": "^4.0.0",
-    "markdownlint-cli": "^0.10.0",
+    "markdownlint-cli": "^0.11.0",
     "nyc": "^12.0.1",
     "qrcode-terminal": "^0.12.0",
     "request": "^2.87.0",

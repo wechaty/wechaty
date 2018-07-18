@@ -50,7 +50,7 @@ import {
  * 2. receive request(in friend event)
  * 3. confirmation friendship(friend event)
  *
- * [Examples/Friend-Bot]{@link https://github.com/Chatie/wechaty/blob/master/examples/friend-bot.ts}
+ * [Examples/Friend-Bot]{@link https://github.com/Chatie/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/friend-bot.ts}
  */
 export class Friendship extends Accessory {
 
@@ -67,16 +67,30 @@ export class Friendship extends Accessory {
   }
 
   /**
-   * @deprecated use add() instead
+   * @description
+   * use {@link Friendship#add} instead
+   * @deprecated
    */
   public static async send(contact: Contact,  hello: string) {
     log.warn('Friendship', 'static send() DEPRECATED， use add() instead.')
     return this.add(contact, hello)
   }
+
   /**
    * Send a Friend Request to a `contact` with message `hello`.
-   * @param contact
-   * @param hello
+   *
+   * The best practice is to send friend request once per minute.
+   * Remeber not to do this too frequently, or your account may be blocked.
+   *
+   * @param {Contact} contact - Send friend request to contact
+   * @param {string} hello    - The friend request content
+   * @returns {Promise<void>}
+   *
+   * @example
+   * const memberList = await room.memberList()
+   * for (let i = 0; i < memberList.length; i++) {
+   *   await bot.Friendship.add(member, 'Nice to meet you! I am wechaty bot!')
+   * }
    */
   public static async add(
     contact : Contact,
@@ -138,6 +152,9 @@ export class Friendship extends Accessory {
    *
    */
 
+  /**
+   * @ignore
+   */
   protected get payload(): undefined | FriendshipPayload {
     if (!this.id) {
       return undefined
@@ -183,6 +200,7 @@ export class Friendship extends Accessory {
 
   /**
    * no `dirty` support because Friendship has no rawPayload(yet)
+   * @ignore
    */
   public async ready(): Promise<void> {
     if (this.payload) {
@@ -196,6 +214,36 @@ export class Friendship extends Accessory {
     }
   }
 
+  /**
+   * Accept Friend Request
+   *
+   * @returns {Promise<void>}
+   *
+   * @example
+   * const bot = new Wechaty()
+   * bot.on('friendship', async friendship => {
+   *   try {
+   *     console.log(`received friend event.`)
+   *     switch (friendship.type()) {
+   *
+   *     // 1. New Friend Request
+   *
+   *     case Friendship.Type.Receive:
+   *       await friendship.accept()
+   *       break
+   *
+   *     // 2. Friend Ship Confirmed
+   *
+   *     case Friendship.Type.Confirm:
+   *       console.log(`friend ship confirmed`)
+   *       break
+   *     }
+   *   } catch (e) {
+   *     console.error(e)
+   *   }
+   * }
+   * .start()
+   */
   public async accept(): Promise<void> {
     log.verbose('Friendship', 'accept()')
 
@@ -230,6 +278,24 @@ export class Friendship extends Accessory {
 
   }
 
+  /**
+   * Get verify message from
+   *
+   * @returns {string}
+   * @example <caption>If request content is `ding`, then accept the friendship</caption>
+   * const bot = new Wechaty()
+   * bot.on('friendship', async friendship => {
+   *   try {
+   *     console.log(`received friend event from ${friendship.contact().name()}`)
+   *     if (friendship.type() === Friendship.Type.Receive && friendship.hello() === 'ding') {
+   *       await friendship.accept()
+   *     }
+   *   } catch (e) {
+   *     console.error(e)
+   *   }
+   * }
+   * .start()
+   */
   public hello(): string {
     if (!this.payload) {
       throw new Error('no payload')
@@ -237,6 +303,19 @@ export class Friendship extends Accessory {
     return this.payload.hello || ''
   }
 
+  /**
+   * Get the contact from friendship
+   *
+   * @returns {Contact}
+   * @example
+   * const bot = new Wechaty()
+   * bot.on('friendship', async friendship => {
+   *   const contact = friendship.contact()
+   *   const name = contact.name()
+   *   console.log(`received friend event from ${name}`)
+   * }
+   * .start()
+   */
   public contact(): Contact {
     if (!this.payload) {
       throw new Error('no payload')
@@ -246,11 +325,37 @@ export class Friendship extends Accessory {
     return contact
   }
 
+  /**
+   * @ignore
+   */
   public async reject(): Promise<void> {
     log.warn('Friendship', 'reject() not necessary, NOP.')
     return
   }
 
+  /**
+   * Return the Friendship Type
+   * > Tips: FriendshipType is enum here. </br>
+   * - FriendshipType.Unknown  </br>
+   * - FriendshipType.Confirm  </br>
+   * - FriendshipType.Receive  </br>
+   * - FriendshipType.Verify   </br>
+   *
+   * @returns {FriendshipType}
+   *
+   * @example <caption>If request content is `ding`, then accept the friendship</caption>
+   * const bot = new Wechaty()
+   * bot.on('friendship', async friendship => {
+   *   try {
+   *     if (friendship.type() === Friendship.Type.Receive && friendship.hello() === 'ding') {
+   *       await friendship.accept()
+   *     }
+   *   } catch (e) {
+   *     console.error(e)
+   *   }
+   * }
+   * .start()
+   */
   public type(): FriendshipType {
     return this.payload
             ? this.payload.type

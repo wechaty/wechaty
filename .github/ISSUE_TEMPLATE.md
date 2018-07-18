@@ -17,7 +17,7 @@
 
 ### Steps to reproduce the behavior (and fixes, if any)
 
-
+> If you know c9 IDE, please goto https://ide.c9.io/zixia/wechaty-bug-reproducer to apply a write access for the workspace so that you can put your reproduceable code over there. If you did that, your issue will be classified with HIGH priority and we will deal with the high priority issues first.
 
 ### Full Output Logs
 
