@@ -52,8 +52,6 @@ export const PUPPET_EVENT_DICT = {
   dong      : 'document can be writen at here',
   error     : 'document can be writen at here',
   reset     : 'push to reset!',
-  start     : 'document can be writen at here',
-  stop      : 'document can be writen at here',
   watchdog  : 'document can be writen at here',
 }
 
