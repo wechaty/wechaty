@@ -336,8 +336,8 @@ export class Message extends Accessory implements Sayable {
   /**
    * Reply a Text or Media File message to the sender.
    * > Tips:
-   * - [wechat4u](https://github.com/chatie/wechaty-puppet-wechat4u) and [puppeteer](https://github.com/chatie/wechaty-puppet-puppeteer) not support `Message.say(Contact)`
-   * - [padchat](https://github.com/lijiarui/wechaty-puppet-padchat) support `Message.say(Contact)`
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   *
    * @see {@link https://github.com/Chatie/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/ding-dong-bot.ts|Examples/ding-dong-bot}
    * @param {(string | Contact | FileBox)} textOrContactOrFile
    * send text, Contact, or file to bot. </br>
@@ -744,6 +744,8 @@ export class Message extends Accessory implements Sayable {
 
   /**
    * Extract the Media File from the Message, and put it into the FileBox.
+   * > Tips:
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
    * @returns {Promise<FileBox>}
    */
@@ -758,11 +760,8 @@ export class Message extends Accessory implements Sayable {
   /**
    * Get Share Card of the Message
    * Extract the Contact Card from the Message, and encapsulate it into Contact class
-   *
    * > Tips:
-   * - [wechat4u](https://github.com/chatie/wechaty-puppet-wechat4u) and [puppeteer](https://github.com/chatie/wechaty-puppet-puppeteer) not support `Message.toContact()`
-   * - [padchat](https://github.com/lijiarui/wechaty-puppet-padchat) support `Message.toContact()`
-   *
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    * @returns {Promise<Contact>}
    */
   public async toContact(): Promise<Contact> {

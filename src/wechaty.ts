@@ -1008,16 +1008,7 @@ export class Wechaty extends Accessory implements Sayable {
   /**
    * Send message to userSelf, in other words, bot send message to itself.
    * > Tips:
-   * - [wechat4u](https://github.com/chatie/wechaty-puppet-wechat4u) and [puppeteer](https://github.com/chatie/wechaty-puppet-puppeteer) not support `Wechaty.say(Contact)`
-   * - [padchat](https://github.com/lijiarui/wechaty-puppet-padchat) support `Wechaty.say(Contact)`
-   *
-   * ##### Puppet Compatible Table
-   *
-   * puppet | supportOrNot
-   * ---- | :----:
-   * [wechat4u](https://github.com/chatie/wechaty-puppet-wechat4u) | No
-   * [puppeteer](https://github.com/chatie/wechaty-puppet-puppeteer) | No
-   * [padchat](https://github.com/lijiarui/wechaty-puppet-padchat) |  Yes
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
    * @param {(string | Contact | FileBox)} textOrContactOrFile
    * send text, Contact, or file to bot. </br>

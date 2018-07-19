@@ -74,9 +74,7 @@ export class Contact extends Accessory implements Sayable {
   /**
    * Get Contact by id
    * > Tips:
-   * - [wechat4u](https://github.com/chatie/wechaty-puppet-wechat4u) and [puppeteer](https://github.com/chatie/wechaty-puppet-puppeteer) cannot get permanent unique id.
-   * There id will not keep consistent across Web Sessions.
-   * - [padchat](https://github.com/lijiarui/wechaty-puppet-padchat) can get permanent unique id across sessions, you can use this here.
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
    * @static
    * @param {string} id
@@ -308,8 +306,7 @@ export class Contact extends Accessory implements Sayable {
 
   /**
    * > Tips:
-   * - [wechat4u](https://github.com/chatie/wechaty-puppet-wechat4u) and [puppeteer](https://github.com/chatie/wechaty-puppet-puppeteer) not support `Contact.say(Contact)`
-   * - [padchat](https://github.com/lijiarui/wechaty-puppet-padchat) support `Contact.say(Contact)`
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
    * @param {(string | Contact | FileBox)} textOrContactOrFile
    * send text, Contact, or file to contact. </br>
