@@ -136,20 +136,11 @@ function wechaty::runBot() {
     echo "Please make sure you had installed all the NPM modules which is depended on your bot script."
     # yarn < /dev/null || return $? # yarn will close stdin??? cause `read` command fail after yarn
 
-    cwd=$(pwd)
-    for module in node_modules/*; do
-      [ -e "$module" ] || continue
-
-      module=${module//node_modules\//}
-
-      globalModule="/node_modules/$module"
-
-      if [ ! -e "$globalModule" ]; then
-        ln -sfv "$cwd/node_modules/$module" /node_modules/
-      else
-        echo "$globalModule exists"
-      fi
-    done
+    #
+    # Issue https://github.com/Chatie/wechaty/issues/1478
+    #   As a conclusion: we should better not to link the local node_modules to the Docker global.
+    #
+    # wechaty::linkBotNodeModules
   }
 
   # echo -n "Linking Wechaty module to bot ... "
@@ -194,6 +185,24 @@ function wechaty::runBot() {
   esac
 
   return "$ret"
+}
+
+# Issue https://github.com/Chatie/wechaty/issues/1478
+# To Be Tested:
+function wechaty::linkBotNodeModules() {
+  for localModule in /bot/node_modules/*; do
+    [ -e "$localModule" ] || continue
+
+    module=${localModule//\/bot\/node_modules\//}
+
+    globalModule="/node_modules/$module"
+
+    if [ ! -e "$globalModule" ]; then
+      ln -sf "$localModule" /node_modules/
+    # else
+      # echo "$globalModule exists"
+    fi
+  done
 }
 
 function wechaty::io-client() {

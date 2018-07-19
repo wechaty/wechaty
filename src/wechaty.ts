@@ -55,6 +55,7 @@ import {
 import {
   VERSION,
   config,
+  isProduction,
   log,
   Raven,
   Sayable,
@@ -118,6 +119,8 @@ export interface WechatyOptions {
  * bot.start()
  */
 export class Wechaty extends Accessory implements Sayable {
+
+  public readonly VERSION = VERSION
 
   public readonly state  : StateSwitch
 
@@ -488,7 +491,8 @@ export class Wechaty extends Accessory implements Sayable {
 
   private addListenerModuleFile(event: WechatyEventName, modulePath: string): void {
     const absoluteFilename = callerResolve(modulePath, __filename)
-    log.verbose('Wechaty', 'onModulePath() hotImpor(%s)', absoluteFilename)
+    log.verbose('Wechaty', 'onModulePath() hotImport(%s)', absoluteFilename)
+
     hotImport(absoluteFilename)
       .then((func: Function) => super.on(event, (...args: any[]) => {
         try {
@@ -504,6 +508,11 @@ export class Wechaty extends Accessory implements Sayable {
                               event, modulePath, e)
         this.emit('error', e)
       })
+
+    if (isProduction()) {
+      log.silly('Wechaty', 'addListenerModuleFile() disable watch for hotImport because NODE_ENV is production.')
+      hotImport(absoluteFilename, false)
+    }
   }
 
   private addListenerFunction(event: WechatyEventName, listener: Function): void {
@@ -659,27 +668,6 @@ export class Wechaty extends Accessory implements Sayable {
             this.emit('heartbeat', data)
           })
           break
-
-        case 'start':
-        case 'stop':
-          // do not emit 'start'/'stop' again for wechaty:
-          // because both puppet & wechaty should have their own
-          // `start`/`stop` event seprately
-          break
-
-        // case 'start':
-        //   puppet.removeAllListeners('start')
-        //   puppet.on('start', () => {
-        //     this.emit('start')
-        //   } )
-        //   break
-
-        // case 'stop':
-        //   puppet.removeAllListeners('stop')
-        //   puppet.on('stop', () => {
-        //     this.emit('stop')
-        //   } )
-        //   break
 
         case 'friendship':
           puppet.removeAllListeners('friendship')
