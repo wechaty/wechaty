@@ -120,6 +120,8 @@ export interface WechatyOptions {
  */
 export class Wechaty extends Accessory implements Sayable {
 
+  public readonly VERSION = VERSION
+
   public readonly state  : StateSwitch
 
   /**
