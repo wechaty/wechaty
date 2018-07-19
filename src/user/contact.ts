@@ -453,8 +453,7 @@ export class Contact extends Accessory implements Sayable {
    * Check if contact is friend
    *
    * > Tips:
-   * - [wechat4u](https://github.com/chatie/wechaty-puppet-wechat4u) and [puppeteer](https://github.com/chatie/wechaty-puppet-puppeteer) not support `Contact.friend()`
-   * - [padchat](https://github.com/lijiarui/wechaty-puppet-padchat) support `Contact.friend()`
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
    * @returns {boolean | null}
    *
