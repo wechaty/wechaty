@@ -64,6 +64,7 @@ import {
   MessagePayload,
 }                                 from './schemas/message'
 import {
+  RoomInvitation,
   RoomMemberPayload,
   RoomMemberQueryFilter,
   RoomPayload,
@@ -257,17 +258,18 @@ export abstract class Puppet extends EventEmitter {
    *
    *
    */
-  public emit (event: 'dong',       data?: string)                                                         : boolean
-  public emit (event: 'error',      error: Error)                                                          : boolean
-  public emit (event: 'friendship', friendshipId: string)                                                  : boolean
-  public emit (event: 'login',      contactId: string)                                                     : boolean
-  public emit (event: 'logout',     contactId: string)                                                     : boolean
-  public emit (event: 'message',    messageId: string)                                                     : boolean
-  public emit (event: 'reset',      reason: string)                                                        : boolean
-  public emit (event: 'room-join',  roomId: string, inviteeIdList: string[],  inviterId: string)           : boolean
-  public emit (event: 'room-leave', roomId: string, leaverIdList: string[], remover?: string)              : boolean
-  public emit (event: 'room-topic', roomId: string, newTopic: string, oldTopic: string, changerId: string) : boolean
-  public emit (event: 'scan',       qrcode: string, status: number, data?: string)                         : boolean
+  public emit (event: 'dong',        data?: string)                                                         : boolean
+  public emit (event: 'error',       error: Error)                                                          : boolean
+  public emit (event: 'friendship',  friendshipId: string)                                                  : boolean
+  public emit (event: 'login',       contactId: string)                                                     : boolean
+  public emit (event: 'logout',      contactId: string)                                                     : boolean
+  public emit (event: 'message',     messageId: string)                                                     : boolean
+  public emit (event: 'reset',       reason: string)                                                        : boolean
+  public emit (event: 'room-join',   roomId: string, inviteeIdList: string[],  inviterId: string)           : boolean
+  public emit (event: 'room-leave',  roomId: string, leaverIdList: string[], remover?: string)              : boolean
+  public emit (event: 'room-topic',  roomId: string, newTopic: string, oldTopic: string, changerId: string) : boolean
+  public emit (event: 'room-invite', roomInvitation: RoomInvitation)                                        : boolean
+  public emit (event: 'scan',        qrcode: string, status: number, data?: string)                         : boolean
   // public emit (event: 'start')                                                                             : boolean
   // public emit (event: 'stop')                                                                              : boolean
   // Internal Usage: watchdog
@@ -289,21 +291,22 @@ export abstract class Puppet extends EventEmitter {
    *
    *
    */
-  public on (event: 'dong',       listener: (data?: string) => void)                                                         : this
-  public on (event: 'error',      listener: (error: string) => void)                                                         : this
-  public on (event: 'friendship', listener: (friendshipId: string) => void)                                                  : this
-  public on (event: 'login',      listener: (contactId: string) => void)                                                     : this
-  public on (event: 'logout',     listener: (contactId: string) => void)                                                     : this
-  public on (event: 'message',    listener: (messageId: string) => void)                                                     : this
-  public on (event: 'reset',      listener: (reason: string) => void)                                                        : this
-  public on (event: 'room-join',  listener: (roomId: string, inviteeIdList: string[], inviterId:  string) => void)           : this
-  public on (event: 'room-leave', listener: (roomId: string, leaverIdList : string[], removerId?: string) => void)           : this
-  public on (event: 'room-topic', listener: (roomId: string, newTopic: string, oldTopic: string, changerId: string) => void) : this
-  public on (event: 'scan',       listener: (qrcode: string, status: number, data?: string) => void)                         : this
+  public on (event: 'dong',         listener: (data?: string) => void)                                                         : this
+  public on (event: 'error',        listener: (error: string) => void)                                                         : this
+  public on (event: 'friendship',   listener: (friendshipId: string) => void)                                                  : this
+  public on (event: 'login',        listener: (contactId: string) => void)                                                     : this
+  public on (event: 'logout',       listener: (contactId: string) => void)                                                     : this
+  public on (event: 'message',      listener: (messageId: string) => void)                                                     : this
+  public on (event: 'reset',        listener: (reason: string) => void)                                                        : this
+  public on (event: 'room-join',    listener: (roomId: string, inviteeIdList: string[], inviterId:  string) => void)           : this
+  public on (event: 'room-leave',   listener: (roomId: string, leaverIdList : string[], removerId?: string) => void)           : this
+  public on (event: 'room-topic',   listener: (roomId: string, newTopic: string, oldTopic: string, changerId: string) => void) : this
+  public on (event: 'room-invite',  listener: (roomInvitation: RoomInvitation) => void)                                        : this
+  public on (event: 'scan',         listener: (qrcode: string, status: number, data?: string) => void)                         : this
   // public on (event: 'start',      listener: () => void)                                                                      : this
   // public on (event: 'stop',       listener: () => void)                                                                      : this
   // Internal Usage: watchdog
-  public on (event: 'watchdog',   listener: (data: WatchdogFood) => void) : this
+  public on (event: 'watchdog',     listener: (data: WatchdogFood) => void)                                                    : this
 
   public on (event: never, listener: never): never
 

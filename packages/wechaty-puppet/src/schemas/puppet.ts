@@ -17,6 +17,11 @@ export interface PuppetQrcodeScanEvent {
   status : number,   // Status Code
 }
 
+export interface PuppetRoomInviteEvent {
+  roomName: string,
+  url: string,
+}
+
 export interface PuppetRoomJoinEvent {
   inviteeNameList : Array<(string | YOU)>,
   inviterName     : string | YOU,
@@ -36,23 +41,24 @@ export interface PuppetRoomTopicEvent {
 }
 
 export const CHAT_EVENT_DICT = {
-  friendship  : 'document can be writen at here',
-  login       : 'document can be writen at here',
-  logout      : 'document can be writen at here',
-  message     : 'document can be writen at here',
-  'room-join' : 'document can be writen at here',
-  'room-leave': 'document can be writen at here',
-  'room-topic': 'document can be writen at here',
-  scan        : 'document can be writen at here',
+  friendship   : 'document can be written at here',
+  login        : 'document can be written at here',
+  logout       : 'document can be written at here',
+  message      : 'document can be written at here',
+  'room-invite': 'document can be written at here',
+  'room-join'  : 'document can be written at here',
+  'room-leave' : 'document can be written at here',
+  'room-topic' : 'document can be written at here',
+  scan         : 'document can be written at here',
 }
 export type ChatEventName = keyof typeof CHAT_EVENT_DICT
 
 export const PUPPET_EVENT_DICT = {
   ...CHAT_EVENT_DICT,
-  dong      : 'document can be writen at here',
-  error     : 'document can be writen at here',
+  dong      : 'document can be written at here',
+  error     : 'document can be written at here',
   reset     : 'push to reset!',
-  watchdog  : 'document can be writen at here',
+  watchdog  : 'document can be written at here',
 }
 
 export type PuppetEventName = keyof typeof PUPPET_EVENT_DICT
