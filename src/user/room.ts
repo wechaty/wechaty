@@ -56,6 +56,9 @@ import {
  * All wechat rooms(groups) will be encapsulated as a Room.
  *
  * [Examples/Room-Bot]{@link https://github.com/Chatie/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/room-bot.ts}
+ *
+ * @property {string}  id               - Get Room id.
+ * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
  */
 export class Room extends Accessory implements Sayable {
 
@@ -220,6 +223,7 @@ export class Room extends Accessory implements Sayable {
    * but for other solutions besides web,
    * we can get unique and permanent topic id.
    *
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    * @static
    * @param {string} id
    * @returns {Room}
@@ -354,6 +358,8 @@ export class Room extends Accessory implements Sayable {
 
   /**
    * Send message inside Room, if set [replyTo], wechaty will mention the contact as well.
+   * > Tips:
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
    * @param {(string | Contact | FileBox)} textOrContactOrFile - Send `text` or `media file` inside Room. <br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
@@ -513,6 +519,11 @@ export class Room extends Accessory implements Sayable {
   /**
    * Add contact in a room
    *
+   * > Tips:
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   * >
+   * > see {@link https://github.com/Chatie/wechaty/issues/1441|Web version of WeChat closed group interface}
+   *
    * @param {Contact} contact
    * @returns {Promise<void>}
    * @example
@@ -537,6 +548,12 @@ export class Room extends Accessory implements Sayable {
   /**
    * Delete a contact from the room
    * It works only when the bot is the owner of the room
+   *
+   * > Tips:
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   * >
+   * > see {@link https://github.com/Chatie/wechaty/issues/1441|Web version of WeChat closed group interface}
+   *
    * @param {Contact} contact
    * @returns {Promise<void>}
    * @example
@@ -575,6 +592,9 @@ export class Room extends Accessory implements Sayable {
 
   /**
    * Bot quit the room itself
+   *
+   * > Tips:
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
    * @returns {Promise<void>}
    * @example
@@ -661,6 +681,8 @@ export class Room extends Accessory implements Sayable {
   /**
    * SET/GET announce from the room
    * > Tips: It only works when bot is the owner of the room.
+   * >
+   * > This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
    * @param {string} [text] If set this para, it will change room announce.
    * @returns {(Promise<void | string>)}
@@ -694,7 +716,8 @@ export class Room extends Accessory implements Sayable {
 
   /**
    * Get QR Code of the Room from the room, which can be used as scan and join the room.
-   *
+   * > Tips:
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    * @returns {Promise<string>}
    */
   public async qrcode(): Promise<string> {
@@ -911,7 +934,8 @@ export class Room extends Accessory implements Sayable {
 
   /**
    * Get room's owner from the room.
-   *
+   * > Tips:
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    * @returns {(Contact | null)}
    * @example
    * const owner = room.owner()

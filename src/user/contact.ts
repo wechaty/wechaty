@@ -43,8 +43,10 @@ export const POOL = Symbol('pool')
 
 /**
  * All wechat contacts(friend) will be encapsulated as a Contact.
- *
  * [Examples/Contact-Bot]{@link https://github.com/Chatie/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/contact-bot.ts}
+ *
+ * @property {string}  id               - Get Contact id.
+ * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
  */
 export class Contact extends Accessory implements Sayable {
 
@@ -73,6 +75,8 @@ export class Contact extends Accessory implements Sayable {
    */
   /**
    * Get Contact by id
+   * > Tips:
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
    * @static
    * @param {string} id
@@ -307,6 +311,9 @@ export class Contact extends Accessory implements Sayable {
   public async say(contact: Contact) : Promise<void>
 
   /**
+   * > Tips:
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   *
    * @param {(string | Contact | FileBox)} textOrContactOrFile
    * send text, Contact, or file to contact. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
@@ -450,6 +457,9 @@ export class Contact extends Accessory implements Sayable {
 
   /**
    * Check if contact is friend
+   *
+   * > Tips:
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
    * @returns {boolean | null}
    *
