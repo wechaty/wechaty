@@ -56,6 +56,9 @@ import {
  * All wechat rooms(groups) will be encapsulated as a Room.
  *
  * [Examples/Room-Bot]{@link https://github.com/Chatie/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/room-bot.ts}
+ *
+ * @property {string}  id               - Get Room id.
+ * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
  */
 export class Room extends Accessory implements Sayable {
 
