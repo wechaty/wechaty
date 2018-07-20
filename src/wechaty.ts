@@ -512,6 +512,7 @@ export class Wechaty extends Accessory implements Sayable {
     if (isProduction()) {
       log.silly('Wechaty', 'addListenerModuleFile() disable watch for hotImport because NODE_ENV is production.')
       hotImport(absoluteFilename, false)
+        .catch(e => log.error('Wechaty', 'addListenerModuleFile() hotImport() rejection: %s', e))
     }
   }
 

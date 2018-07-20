@@ -266,14 +266,18 @@ export class Room extends Accessory implements Sayable {
     return readyPayload
   }
 
+  public readonly id: string  // Room Id
+
   /**
    * @private
    */
   constructor(
-    public readonly id: string,
+    id: string,
   ) {
     super()
     log.silly('Room', `constructor(${id})`)
+
+    this.id = id
 
     // tslint:disable-next-line:variable-name
     const MyClass = instanceToClass(this, Room)

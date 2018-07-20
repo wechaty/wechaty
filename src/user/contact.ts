@@ -266,14 +266,18 @@ export class Contact extends Accessory implements Sayable {
     return this.puppet.contactPayloadCache(this.id)
   }
 
+  public readonly id: string // Contact Id
+
   /**
    * @private
    */
   constructor(
-    public readonly id: string,
+    id: string,
   ) {
     super()
     log.silly('Contact', `constructor(${id})`)
+
+    this.id = id
 
     // tslint:disable-next-line:variable-name
     const MyClass = instanceToClass(this, Contact)
