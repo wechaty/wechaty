@@ -31,8 +31,8 @@ import {
   log,
 }                   from '../config'
 import {
-  Misc,
-}                   from '../misc'
+  tryWait,
+}                   from '../helper-functions'
 
 import {
   FriendshipPayload,
@@ -261,7 +261,7 @@ export class Friendship extends Accessory {
 
     const contact = this.contact()
 
-    await Misc.retry(async (retry, attempt) => {
+    await tryWait(async (retry, attempt) => {
       log.silly('Friendship', 'accept() retry() ready() attempt %d', attempt)
 
       await contact.ready()
