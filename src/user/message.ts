@@ -780,5 +780,3 @@ export class Message extends Accessory implements Sayable {
   }
 
 }
-
-export default Message

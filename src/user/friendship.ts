@@ -40,6 +40,10 @@ import {
 }                         from 'wechaty-puppet'
 
 import {
+  Acceptable,
+}                   from '../types'
+
+import {
   Contact,
 }                   from './contact'
 
@@ -52,7 +56,7 @@ import {
  *
  * [Examples/Friend-Bot]{@link https://github.com/Chatie/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/friend-bot.ts}
  */
-export class Friendship extends Accessory {
+export class Friendship extends Accessory implements Acceptable {
 
   // tslint:disable-next-line:variable-name
   public static Type = FriendshipType
@@ -326,14 +330,6 @@ export class Friendship extends Accessory {
   }
 
   /**
-   * @ignore
-   */
-  public async reject (): Promise<void> {
-    log.warn('Friendship', 'reject() not necessary, NOP.')
-    return
-  }
-
-  /**
    * Return the Friendship Type
    * > Tips: FriendshipType is enum here. </br>
    * - FriendshipType.Unknown  </br>
@@ -363,5 +359,3 @@ export class Friendship extends Accessory {
   }
 
 }
-
-export default Friendship

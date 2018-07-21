@@ -190,5 +190,3 @@ export abstract class Accessory extends EventEmitter {
   }
 
 }
-
-export default Accessory

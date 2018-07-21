@@ -1136,5 +1136,3 @@ export class Wechaty extends Accessory implements Sayable {
     this.puppet.unref()
   }
 }
-
-export default Wechaty

@@ -3,5 +3,3 @@ export class Money {
     //
   }
 }
-
-export default Money

@@ -524,5 +524,3 @@ export class Io {
   }
 
 }
-
-export default Io

@@ -735,5 +735,3 @@ export class ContactSelf extends Contact {
   }
 
 }
-
-export default Contact

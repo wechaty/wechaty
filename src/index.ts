@@ -36,4 +36,3 @@ export { IoClient }   from './io-client'
 export {
   Wechaty,
 }
-export default Wechaty

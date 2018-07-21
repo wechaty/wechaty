@@ -962,5 +962,3 @@ export class Room extends Accessory implements Sayable {
   }
 
 }
-
-export default Room

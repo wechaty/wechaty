@@ -87,5 +87,3 @@ export class Doctor {
     })
   }
 }
-
-export default Doctor

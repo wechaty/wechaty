@@ -220,5 +220,3 @@ export class IoClient {
 
   }
 }
-
-export default IoClient

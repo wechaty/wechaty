@@ -5,10 +5,12 @@ import {
 export type AnyFunction = (...args: any[]) => any
 
 export interface Sayable {
-  say (text: string, replyTo?: Contact | Contact[]): Promise<void>
+  say (
+    text     : string,
+    replyTo? : Contact | Contact[]
+  ): Promise<void>
 }
 
-export interface Invitation {
+export interface Acceptable {
   accept: () => Promise<void>
-  reject: () => Promise<void>
 }

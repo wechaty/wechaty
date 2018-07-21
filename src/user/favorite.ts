@@ -13,5 +13,3 @@ export class Favorite {
   }
 
 }
-
-export default Favorite
