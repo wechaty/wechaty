@@ -41,11 +41,11 @@ class LicenseTransformer extends Transform {
   private updating  = false
   private updated   = false
 
-  constructor(options?: TransformOptions) {
+  constructor (options?: TransformOptions) {
     super(options)
   }
 
-  public _transform(chunk: any, _: string /* encoding: string */, done: Function) {
+  public _transform (chunk: any, _: string /* encoding: string */, done: () => void) {
     if (this.updated) {
       this.push(chunk)
     } else {
@@ -56,7 +56,7 @@ class LicenseTransformer extends Transform {
     done()
   }
 
-  private updateChunk(chunk: any): string {
+  private updateChunk (chunk: any): string {
     const buffer  = this.lineBuf + chunk.toString()
     this.lineBuf    = ''
 
@@ -106,7 +106,7 @@ class LicenseTransformer extends Transform {
     return updatedLineList.join('\n')
   }
 
-  public _flush(done: Function) {
+  public _flush (done: () => void) {
     if (this.lineBuf) {
       this.push(this.lineBuf)
       this.lineBuf = ''
@@ -115,7 +115,7 @@ class LicenseTransformer extends Transform {
   }
 }
 
-async function updateLicense(file: string): Promise<void> {
+async function updateLicense (file: string): Promise<void> {
   const tmpFile = file + `.${process.pid}.tmp`
   const readStream  = createReadStream(file)
   const writeStream = createWriteStream(tmpFile)
@@ -134,11 +134,11 @@ async function updateLicense(file: string): Promise<void> {
   await promisify(unlinkCallback)(tmpFile)
 }
 
-async function glob(pattern: string): Promise<string[]> {
+async function glob (pattern: string): Promise<string[]> {
   return promisify<string, string[]>(globCallback as any)(pattern)
 }
 
-async function main(): Promise<number> {
+async function main (): Promise<number> {
   const pattern = '{bin/**/*.ts,examples/**/*.{js,ts},scripts/**/*.{ts,js},src/**/*.{ts,js},tests/**/*.ts}'
   // const pattern = 't.ts'
   const srcFileList = await glob(pattern)

@@ -18,24 +18,24 @@
  *   @ignore
  */
 import {
-  FileBox,
-}                   from 'file-box'
-import {
   instanceToClass,
 }                   from 'clone-class'
+import {
+  FileBox,
+}                   from 'file-box'
 
 import {
+  Accessory,
+}               from '../accessory'
+import {
   // config,
-  Raven,
-  log,
   FOUR_PER_EM_SPACE,
+  log,
+  Raven,
 }                       from '../config'
 import {
   Sayable,
 }             from '../types'
-import {
-  Accessory,
-}               from '../accessory'
 
 import {
   Contact,
@@ -83,7 +83,7 @@ export class Room extends Accessory implements Sayable {
    * await room.topic('ding - created')
    * await room.say('ding - created')
    */
-  public static async create(contactList: Contact[], topic?: string): Promise<Room> {
+  public static async create (contactList: Contact[], topic?: string): Promise<Room> {
     log.verbose('Room', 'create(%s, %s)', contactList.join(','), topic)
 
     if (!contactList || !Array.isArray(contactList)) {
@@ -121,7 +121,7 @@ export class Room extends Accessory implements Sayable {
    * const roomList = await bot.Room.findAll()                    // get the room list of the bot
    * const roomList = await bot.Room.findAll({topic: 'wechaty'})  // find all of the rooms with name 'wechaty'
    */
-  public static async findAll<T extends typeof Room>(
+  public static async findAll<T extends typeof Room> (
     this  : T,
     query : RoomQueryFilter = { topic: /.*/ },
   ): Promise<Array<T['prototype']>> {
@@ -169,7 +169,7 @@ export class Room extends Accessory implements Sayable {
    * const roomList = await bot.Room.find({topic: 'wechaty'})
    */
 
-  public static async find<T extends typeof Room>(
+  public static async find<T extends typeof Room> (
     this  : T,
     query : string | RoomQueryFilter,
   ): Promise<T['prototype'] | null> {
@@ -235,7 +235,7 @@ export class Room extends Accessory implements Sayable {
    * // after logged in...
    * const room = bot.Room.load('roomId')
    */
-  public static load<T extends typeof Room>(
+  public static load<T extends typeof Room> (
     this : T,
     id   : string,
   ): T['prototype'] {
@@ -262,7 +262,7 @@ export class Room extends Accessory implements Sayable {
    *
    *
    */
-  protected get payload(): undefined | RoomPayload {
+  protected get payload (): undefined | RoomPayload {
     if (!this.id) {
       return undefined
     }
@@ -276,7 +276,7 @@ export class Room extends Accessory implements Sayable {
   /**
    * @private
    */
-  constructor(
+  constructor (
     id: string,
   ) {
     super()
@@ -300,14 +300,14 @@ export class Room extends Accessory implements Sayable {
   /**
    * @private
    */
-  public toString() {
+  public toString () {
     if (this.payload && this.payload.topic) {
       return `Room<${this.payload.topic}>`
     }
     return `Room<${this.id || ''}>`
   }
 
-  public async *[Symbol.asyncIterator](): AsyncIterableIterator<Contact> {
+  public async *[Symbol.asyncIterator] (): AsyncIterableIterator<Contact> {
     const memberList = await this.memberList()
     for (const contact of memberList) {
       yield contact
@@ -317,7 +317,7 @@ export class Room extends Accessory implements Sayable {
   /**
    * @private
    */
-  public async ready(
+  public async ready (
     dirty = false,
   ): Promise<void> {
     log.verbose('Room', 'ready()')
@@ -348,15 +348,15 @@ export class Room extends Accessory implements Sayable {
   /**
    * @private
    */
-  public isReady(): boolean {
+  public isReady (): boolean {
     return !!(this.payload)
   }
 
-  public say(text: string)                     : Promise<void>
-  public say(text: string, mention: Contact)   : Promise<void>
-  public say(text: string, mention: Contact[]) : Promise<void>
-  public say(file: FileBox)                    : Promise<void>
-  public say(text: never, ...args: never[])    : never
+  public say (text: string)                     : Promise<void>
+  public say (text: string, mention: Contact)   : Promise<void>
+  public say (text: string, mention: Contact[]) : Promise<void>
+  public say (file: FileBox)                    : Promise<void>
+  public say (text: never, ...args: never[])    : never
 
   /**
    * Send message inside Room, if set [replyTo], wechaty will mention the contact as well.
@@ -393,7 +393,7 @@ export class Room extends Accessory implements Sayable {
    * const contact = await bot.Contact.find({name: 'lijiarui'}) // change 'lijiarui' to any of the room member
    * await room.say('Hello world!', contact)
    */
-  public async say(
+  public async say (
     textOrContactOrFile : string | Contact | FileBox,
     mention?            : Contact | Contact[],
   ): Promise<void> {
@@ -419,8 +419,8 @@ export class Room extends Accessory implements Sayable {
         text = textOrContactOrFile
       }
       await this.puppet.messageSendText({
-        roomId    : this.id,
         contactId : replyToList.length && replyToList[0].id || undefined,
+        roomId    : this.id,
       }, text)
     } else if (textOrContactOrFile instanceof FileBox) {
       await this.puppet.messageSendFile({
@@ -435,22 +435,22 @@ export class Room extends Accessory implements Sayable {
     }
   }
 
-  public emit(event: 'leave', leaverList:   Contact[],  remover?: Contact)                    : boolean
-  public emit(event: 'join' , inviteeList:  Contact[] , inviter:  Contact)                    : boolean
-  public emit(event: 'topic', topic:        string,     oldTopic: string,   changer: Contact) : boolean
-  public emit(event: never, ...args: never[]): never
+  public emit (event: 'leave', leaverList:   Contact[],  remover?: Contact)                    : boolean
+  public emit (event: 'join' , inviteeList:  Contact[] , inviter:  Contact)                    : boolean
+  public emit (event: 'topic', topic:        string,     oldTopic: string,   changer: Contact) : boolean
+  public emit (event: never, ...args: never[]): never
 
-  public emit(
+  public emit (
     event:   RoomEventName,
     ...args: any[]
   ): boolean {
     return super.emit(event, ...args)
   }
 
-  public on(event: 'leave', listener: (this: Room, leaverList:  Contact[], remover?: Contact) => void)                  : this
-  public on(event: 'join' , listener: (this: Room, inviteeList: Contact[], inviter:  Contact) => void)                  : this
-  public on(event: 'topic', listener: (this: Room, topic:       string,    oldTopic: string, changer: Contact) => void) : this
-  public on(event: never,   ...args: never[])                                                                           : never
+  public on (event: 'leave', listener: (this: Room, leaverList:  Contact[], remover?: Contact) => void)                  : this
+  public on (event: 'join' , listener: (this: Room, inviteeList: Contact[], inviter:  Contact) => void)                  : this
+  public on (event: 'topic', listener: (this: Room, topic:       string,    oldTopic: string, changer: Contact) => void) : this
+  public on (event: never,   ...args: never[])                                                                           : never
 
    /**
     * @desc       Room Class Event Type
@@ -511,7 +511,7 @@ export class Room extends Accessory implements Sayable {
    * }
    *
    */
-  public on(event: RoomEventName, listener: (...args: any[]) => any): this {
+  public on (event: RoomEventName, listener: (...args: any[]) => any): this {
     log.verbose('Room', 'on(%s, %s)', event, typeof listener)
 
     super.on(event, listener) // Room is `Sayable`
@@ -542,7 +542,7 @@ export class Room extends Accessory implements Sayable {
    *   }
    * }
    */
-  public async add(contact: Contact): Promise<void> {
+  public async add (contact: Contact): Promise<void> {
     log.verbose('Room', 'add(%s)', contact)
     await this.puppet.roomAdd(this.id, contact.id)
   }
@@ -572,7 +572,7 @@ export class Room extends Accessory implements Sayable {
    *   }
    * }
    */
-  public async del(contact: Contact): Promise<void> {
+  public async del (contact: Contact): Promise<void> {
     log.verbose('Room', 'del(%s)', contact)
     await this.puppet.roomDel(this.id, contact.id)
     // this.delLocal(contact)
@@ -602,13 +602,13 @@ export class Room extends Accessory implements Sayable {
    * @example
    * await room.quit()
    */
-  public async quit(): Promise<void> {
+  public async quit (): Promise<void> {
     log.verbose('Room', 'quit() %s', this)
     await this.puppet.roomQuit(this.id)
   }
 
-  public async topic()                : Promise<string>
-  public async topic(newTopic: string): Promise<void>
+  public async topic ()                : Promise<string>
+  public async topic (newTopic: string): Promise<void>
 
   /**
    * SET/GET topic from the room
@@ -641,7 +641,7 @@ export class Room extends Accessory implements Sayable {
    * })
    * .start()
    */
-  public async topic(newTopic?: string): Promise<void | string> {
+  public async topic (newTopic?: string): Promise<void | string> {
     log.verbose('Room', 'topic(%s)', newTopic ? newTopic : '')
     if (!this.isReady()) {
       log.warn('Room', 'topic() room not ready')
@@ -677,8 +677,8 @@ export class Room extends Accessory implements Sayable {
     return future
   }
 
-  public async announce()             : Promise<string>
-  public async announce(text: string) : Promise<void>
+  public async announce ()             : Promise<string>
+  public async announce (text: string) : Promise<void>
 
   /**
    * SET/GET announce from the room
@@ -706,7 +706,7 @@ export class Room extends Accessory implements Sayable {
    * await room.announce('change announce to wechaty!')
    * console.log(`room announce change from ${oldAnnounce} to ${room.announce()}`)
    */
-  public async announce(text?: string): Promise<void | string> {
+  public async announce (text?: string): Promise<void | string> {
     log.verbose('Room', 'announce(%s)', text ? text : '')
 
     if (text) {
@@ -723,7 +723,7 @@ export class Room extends Accessory implements Sayable {
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    * @returns {Promise<string>}
    */
-  public async qrcode(): Promise<string> {
+  public async qrcode (): Promise<string> {
     log.verbose('Room', 'qrcode()')
     const qrcode = await this.puppet.roomQrcode(this.id)
     return qrcode
@@ -746,7 +746,7 @@ export class Room extends Accessory implements Sayable {
    * })
    * .start()
    */
-  public async alias(contact: Contact): Promise<null | string> {
+  public async alias (contact: Contact): Promise<null | string> {
     return this.roomAlias(contact)
   }
 
@@ -755,7 +755,7 @@ export class Room extends Accessory implements Sayable {
    * @param {Contact} contact
    * @returns {Promise<string | null>}
    */
-  public async roomAlias(contact: Contact): Promise<null | string> {
+  public async roomAlias (contact: Contact): Promise<null | string> {
 
     const memberPayload = await this.puppet.roomMemberPayload(this.id, contact.id)
 
@@ -785,7 +785,7 @@ export class Room extends Accessory implements Sayable {
    *   }
    * }
    */
-  public async has(contact: Contact): Promise<boolean> {
+  public async has (contact: Contact): Promise<boolean> {
     const memberIdList = await this.puppet.roomMemberList(this.id)
 
     if (!memberIdList) {
@@ -797,8 +797,8 @@ export class Room extends Accessory implements Sayable {
             .length > 0
   }
 
-  public async memberAll(name: string)                  : Promise<Contact[]>
-  public async memberAll(filter: RoomMemberQueryFilter) : Promise<Contact[]>
+  public async memberAll (name: string)                  : Promise<Contact[]>
+  public async memberAll (filter: RoomMemberQueryFilter) : Promise<Contact[]>
 
   /**
    * The way to search member by Room.member()
@@ -820,7 +820,7 @@ export class Room extends Accessory implements Sayable {
    * @param {(RoomMemberQueryFilter | string)} query -When use memberAll(name:string), return all matched members, including name, roomAlias, contactAlias
    * @returns {Promise<Contact[]>}
    */
-  public async memberAll(
+  public async memberAll (
     query: string | RoomMemberQueryFilter,
   ): Promise<Contact[]> {
     log.silly('Room', 'memberAll(%s)',
@@ -833,8 +833,8 @@ export class Room extends Accessory implements Sayable {
     return contactList
   }
 
-  public async member(name  : string)               : Promise<null | Contact>
-  public async member(filter: RoomMemberQueryFilter): Promise<null | Contact>
+  public async member (name  : string)               : Promise<null | Contact>
+  public async member (filter: RoomMemberQueryFilter): Promise<null | Contact>
 
   /**
    * Find all contacts in a room, if get many, return the first one.
@@ -870,7 +870,7 @@ export class Room extends Accessory implements Sayable {
    *   }
    * }
    */
-  public async member(
+  public async member (
     queryArg: string | RoomMemberQueryFilter,
   ): Promise<null | Contact> {
     log.verbose('Room', 'member(%s)', JSON.stringify(queryArg))
@@ -901,7 +901,7 @@ export class Room extends Accessory implements Sayable {
    * @example
    * await room.memberList()
    */
-  public async memberList(): Promise<Contact[]> {
+  public async memberList (): Promise<Contact[]> {
     log.verbose('Room', 'memberList()')
 
     const memberIdList = await this.puppet.roomMemberList(this.id)
@@ -920,7 +920,7 @@ export class Room extends Accessory implements Sayable {
   /**
    * @ignore
    */
-  public async refresh(): Promise<void> {
+  public async refresh (): Promise<void> {
     return this.sync()
   }
 
@@ -931,7 +931,7 @@ export class Room extends Accessory implements Sayable {
    * @example
    * await room.sync()
    */
-  public async sync(): Promise<void> {
+  public async sync (): Promise<void> {
     await this.ready(true)
   }
 
@@ -943,7 +943,7 @@ export class Room extends Accessory implements Sayable {
    * @example
    * const owner = room.owner()
    */
-  public owner(): Contact | null {
+  public owner (): Contact | null {
     log.info('Room', 'owner()')
 
     const ownerId = this.payload && this.payload.ownerId
@@ -955,7 +955,7 @@ export class Room extends Accessory implements Sayable {
     return owner
   }
 
-  public async avatar(): Promise<FileBox> {
+  public async avatar (): Promise<FileBox> {
     log.verbose('Room', 'avatar()')
 
     return this.puppet.roomAvatar(this.id)

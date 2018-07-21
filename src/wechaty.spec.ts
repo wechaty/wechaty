@@ -34,10 +34,10 @@ import {
   Contact,
   Friendship,
   IoClient,
-  Message,
-  Room,
-
   log,
+  Message,
+
+  Room,
   VERSION,
 }                 from './'
 
@@ -46,7 +46,7 @@ import {
 }                     from 'wechaty-puppet'
 
 class WechatyTest extends Wechaty {
-  public initPuppetAccessoryTest(puppet: Puppet): void {
+  public initPuppetAccessoryTest (puppet: Puppet): void {
     return this.initPuppetAccessory(puppet)
   }
 }

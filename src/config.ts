@@ -23,9 +23,9 @@ import fs    from 'fs'
 import os    from 'os'
 import path  from 'path'
 
-import readPkgUp from 'read-pkg-up'
-import Raven     from 'raven'
 import qrImage   from 'qr-image'
+import Raven     from 'raven'
+import readPkgUp from 'read-pkg-up'
 
 import { log }    from 'brolog'
 import {
@@ -134,7 +134,7 @@ export class Config {
 
   // private _puppetInstance: Puppet | null = null
 
-  constructor() {
+  constructor () {
     log.verbose('Config', 'constructor()')
     this.validApiHost(this.apihost)
   }
@@ -166,7 +166,7 @@ export class Config {
 
   // }
 
-  public gitRevision(): string | null {
+  public gitRevision (): string | null {
     const dotGitPath  = path.join(__dirname, '..', '.git') // only for ts-node, not for dist
     // const gitLogArgs  = ['log', '--oneline', '-1']
     // TODO: use git rev-parse HEAD ?
@@ -199,7 +199,7 @@ export class Config {
     }
   }
 
-  public validApiHost(apihost: string): boolean {
+  public validApiHost (apihost: string): boolean {
     if (/^[a-zA-Z0-9\.\-\_]+:?[0-9]*$/.test(apihost)) {
       return true
     }
@@ -209,7 +209,7 @@ export class Config {
 
 export const CHATIE_OFFICIAL_ACCOUNT_ID = 'gh_051c89260e5d'
 
-export function qrCodeForChatie(): FileBox {
+export function qrCodeForChatie (): FileBox {
   const CHATIE_OFFICIAL_ACCOUNT_QRCODE = 'http://weixin.qq.com/r/qymXj7DEO_1ErfTs93y5'
   const name                           = 'qrcode-for-chatie.png'
   const type                           = 'png'
@@ -222,7 +222,7 @@ export function qrCodeForChatie(): FileBox {
 // String.fromCharCode(8197)
 export const FOUR_PER_EM_SPACE = String.fromCharCode(0x2005)
 
-export function qrcodeValueToImageUrl(qrcodeValue: string): string {
+export function qrcodeValueToImageUrl (qrcodeValue: string): string {
   return [
     'https://api.qrserver.com/v1/create-qr-code/?data=',
     encodeURIComponent(qrcodeValue),
@@ -230,7 +230,7 @@ export function qrcodeValueToImageUrl(qrcodeValue: string): string {
   ].join('')
 }
 
-export function isProduction(): boolean {
+export function isProduction (): boolean {
   return process.env.NODE_ENV === 'production'
       || process.env.NODE_ENV === 'prod'
 }

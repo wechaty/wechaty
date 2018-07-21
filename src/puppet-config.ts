@@ -1,7 +1,7 @@
+import clearModule  from 'clear-module'
 import {
   Constructor,
 }                   from 'clone-class'
-import clearModule  from 'clear-module'
 import npm          from 'npm-programmatic'
 import pkgDir       from 'pkg-dir'
 import semver       from 'semver'

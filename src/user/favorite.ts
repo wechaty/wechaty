@@ -1,14 +1,14 @@
 export class Favorite {
 
-  public static list(): Favorite[] {
+  public static list (): Favorite[] {
     return []
   }
 
-  constructor() {
+  constructor () {
     //
   }
 
-  public tag() {
+  public tag () {
     //
   }
 

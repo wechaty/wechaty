@@ -1,10 +1,11 @@
 #!/usr/bin/env ts-node
 import * as fs    from 'fs'
 import * as path  from 'path'
+import readPkgUp  from 'read-pkg-up'
 
 const PACKAGE_JSON = path.join(__dirname, '../package.json')
 
-const pkg = require(PACKAGE_JSON)
+const pkg = readPkgUp.sync({ cwd: __dirname }).pkg
 
 // pkg.publishConfig.tag = 'next'
 pkg.publishConfig = {

@@ -4,15 +4,17 @@
  * https://github.com/zixia
  * License: Apache-2.0
  */
+import readPkgUp from 'read-pkg-up'
 import { minor } from 'semver'
 
-const version: string = require('../package.json').version
+const pkg = readPkgUp.sync({ cwd: __dirname }).pkg
+export const VERSION = pkg.version
 
-if (minor(version) % 2 === 0) { // production release
-  console.log(`${version} is production release`)
+if (minor(VERSION) % 2 === 0) { // production release
+  console.log(`${VERSION} is production release`)
   process.exit(1) // exit 1 for not development
 }
 
 // development release
-console.log(`${version} is development release`)
+console.log(`${VERSION} is development release`)
 process.exit(0)

@@ -75,7 +75,7 @@ test('digestEmoji()', async t => {
 })
 
 test('unifyEmoji()', async t => {
-  const ORIGNAL_XML_LIST: [string[], string][] = [
+  const ORIGNAL_XML_LIST: Array<[string[], string]> = [
     [
       [
         '<img class="emoji emoji1f602" text="_web" src="/zh_CN/htmledition/v2/images/spacer.gif" />',

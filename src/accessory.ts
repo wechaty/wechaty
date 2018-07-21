@@ -4,8 +4,8 @@ import { instanceToClass }  from 'clone-class'
 
 import { log }  from './config'
 
-import { Wechaty } from './wechaty'
 import { Puppet } from 'wechaty-puppet'
+import { Wechaty } from './wechaty'
 
 // use Symbol to prevent conflicting with the child class properties
 // This symbol must be exported (for now).
@@ -33,7 +33,7 @@ export abstract class Accessory extends EventEmitter {
   /**
    * @private
    */
-  public static set puppet(puppet: Puppet) {
+  public static set puppet (puppet: Puppet) {
     log.silly('Accessory', '<%s> static set puppet = "%s"',
                                   this.name,
                                   puppet,
@@ -48,7 +48,7 @@ export abstract class Accessory extends EventEmitter {
   /**
    * @private
    */
-  public static get puppet(): Puppet {
+  public static get puppet (): Puppet {
     // log.silly('Accessory', '<%s> static get puppet()',
     //                               this.name,
     //           )
@@ -68,7 +68,7 @@ export abstract class Accessory extends EventEmitter {
   /**
    * @private
    */
-  public static set wechaty(wechaty: Wechaty) {
+  public static set wechaty (wechaty: Wechaty) {
     log.silly('Accessory', '<%s> static set wechaty = "%s"',
                                   this.name,
                                   wechaty,
@@ -82,7 +82,7 @@ export abstract class Accessory extends EventEmitter {
   /**
    * @private
    */
-  public static get wechaty(): Wechaty {
+  public static get wechaty (): Wechaty {
     // log.silly('Accessory', '<%s> static get wechaty()',
     //                               this.name,
     //           )
@@ -108,7 +108,7 @@ export abstract class Accessory extends EventEmitter {
   /**
    * @private
    */
-  public set puppet(puppet: Puppet) {
+  public set puppet (puppet: Puppet) {
     log.silly('Accessory', '<%s> set puppet = "%s"',
                                   this[SYMBOL_NAME] || this,
                                   puppet,
@@ -131,7 +131,7 @@ export abstract class Accessory extends EventEmitter {
    * So: that's the reason that there's no `private _wechaty: Wechaty` for the instance.
    *
    */
-  public get puppet(): Puppet {
+  public get puppet (): Puppet {
     // log.silly('Accessory', '#%d<%s> get puppet()',
     //                               this[SYMBOL_COUNTER],
     //                               this[SYMBOL_NAME] || this,
@@ -160,7 +160,7 @@ export abstract class Accessory extends EventEmitter {
    *
    * So it only need one `wechaty` for all the instances
    */
-  public get wechaty(): Wechaty {
+  public get wechaty (): Wechaty {
     // log.silly('Accessory', '#%d<%s> get wechaty()',
     //                               this[SYMBOL_COUNTER],
     //                               this[SYMBOL_NAME] || this,
@@ -174,7 +174,7 @@ export abstract class Accessory extends EventEmitter {
     return instanceToClass(this, Accessory).wechaty
   }
 
-  constructor(
+  constructor (
     name?: string,
   ) {
     super()

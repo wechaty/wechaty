@@ -28,9 +28,9 @@ test('promiseRetry()', async t => {
   const EXPECTED_RESOLVE = 'Okey'
   const EXPECTED_REJECT  = 'NotTheTime'
 
-  function delayedFactory(timeout: number) {
+  function delayedFactory (timeout: number) {
     const startTime = Date.now()
-    return function() {
+    return () => {
       const nowTime = Date.now()
       if (nowTime - startTime > timeout) {
         return Promise.resolve(EXPECTED_RESOLVE)
@@ -47,7 +47,7 @@ test('promiseRetry()', async t => {
       minTimeout : 1,
       retries    : 1,
     },
-    function(retry) {
+    (retry) => {
       return delay500().catch(retry)
     },
   ).catch((e: any) => {
@@ -62,7 +62,7 @@ test('promiseRetry()', async t => {
       minTimeout: 1,
       retries: 100,
     },
-    function(retry, _) {
+    (retry, _) => {
       return anotherDelay50().catch(retry)
     },
   )
@@ -76,9 +76,9 @@ test('retry()', async t => {
   const EXPECTED_RESOLVE = 'Okey'
   const EXPECTED_REJECT  = 'NotTheTime'
 
-  function delayedFactory(timeout: number) {
+  function delayedFactory (timeout: number) {
     const startTime = Date.now()
-    return function() {
+    return () => {
       const nowTime = Date.now()
       if (nowTime - startTime > timeout) {
         return Promise.resolve(EXPECTED_RESOLVE)
@@ -91,7 +91,7 @@ test('retry()', async t => {
 
   const anotherDelay50 = delayedFactory(50)
   await tryWait(
-    function(retry, _) {
+    (retry, _) => {
       return anotherDelay50().catch(retry)
     },
   )

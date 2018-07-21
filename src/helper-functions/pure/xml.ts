@@ -1,11 +1,11 @@
-export function stripHtml(html?: string): string {
+export function stripHtml (html?: string): string {
   if (!html) {
     return ''
   }
   return html.replace(/(<([^>]+)>)/ig, '')
 }
 
-export function unescapeHtml(str?: string): string {
+export function unescapeHtml (str?: string): string {
   if (!str) {
     return ''
   }
@@ -17,7 +17,7 @@ export function unescapeHtml(str?: string): string {
   .replace(/&amp;/g, '&')
 }
 
-export function digestEmoji(html?: string): string {
+export function digestEmoji (html?: string): string {
   if (!html) {
     return ''
   }
@@ -37,7 +37,7 @@ export function digestEmoji(html?: string): string {
  *  to:   <span class=\"emoji emoji1f602\"></span>
  *
  */
-export function unifyEmoji(html?: string): string {
+export function unifyEmoji (html?: string): string {
   if (!html) {
     return ''
   }
@@ -50,7 +50,7 @@ export function unifyEmoji(html?: string): string {
                ) // '<span class="emoji emoji1f334"></span>'
 }
 
-export function stripEmoji(html?: string): string {
+export function stripEmoji (html?: string): string {
   if (!html) {
     return ''
   }
@@ -63,7 +63,7 @@ export function stripEmoji(html?: string): string {
                ) // '<span class="emoji emoji1f334"></span>'
 }
 
-export function plainText(html?: string): string {
+export function plainText (html?: string): string {
   if (!html) {
     return ''
   }

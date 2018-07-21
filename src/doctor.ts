@@ -26,11 +26,11 @@ import {
 }                   from './config'
 
 export class Doctor {
-  constructor() {
+  constructor () {
     log.verbose('Doctor', 'constructor()')
   }
 
-  public chromedriverVersion(): string {
+  public chromedriverVersion (): string {
     const spawn = require( 'child_process' ).spawnSync
     let version: string
     try {
@@ -45,7 +45,7 @@ export class Doctor {
   /**
    * https://gist.github.com/tedmiston/5935757
    */
-  public testTcp(): Promise<boolean> {
+  public testTcp (): Promise<boolean> {
     log.verbose('Doctor', 'testTcp()')
 
     return new Promise<boolean>(async (resolve, reject) => {
@@ -69,7 +69,7 @@ export class Doctor {
           client.write('ding')
         })
 
-        client.on('data', function() {
+        client.on('data', () => {
           /**
            * Promise Resolve
            */

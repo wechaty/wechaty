@@ -7,11 +7,11 @@ import {
 }                           from 'clone-class'
 
 import {
-  Contact as GlobalContact,
-}                           from './contact'
-import {
   PuppetMock,
 }                           from 'wechaty-puppet-mock'
+import {
+  Contact as GlobalContact,
+}                           from './contact'
 
 // tslint:disable-next-line:variable-name
 const Contact = cloneClass(GlobalContact)

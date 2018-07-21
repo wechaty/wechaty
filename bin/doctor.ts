@@ -27,7 +27,7 @@ import { Wechaty }  from '../src/wechaty'
 const wechaty = Wechaty.instance()
 const doctor = new Doctor()
 
-async function main() {
+async function main () {
   let ipcTestResult: string
   try {
     await doctor.testTcp()

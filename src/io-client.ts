@@ -44,7 +44,7 @@ export class IoClient {
 
   private state: StateSwitch
 
-  constructor(
+  constructor (
     public options: IoClientOptions,
   ) {
     log.verbose('IoClient', 'constructor(%s)', JSON.stringify(options))
@@ -58,7 +58,7 @@ export class IoClient {
 
   }
 
-  public async start(): Promise<void> {
+  public async start (): Promise<void> {
     log.verbose('IoClient', 'init()')
 
     if (this.state.pending()) {
@@ -81,7 +81,7 @@ export class IoClient {
     return
   }
 
-  private async hookWechaty(wechaty: Wechaty): Promise<void> {
+  private async hookWechaty (wechaty: Wechaty): Promise<void> {
     log.verbose('IoClient', 'initWechaty()')
 
     if (this.state.off()) {
@@ -99,7 +99,7 @@ export class IoClient {
     return
   }
 
-  private async initIo(): Promise<void> {
+  private async initIo (): Promise<void> {
     log.verbose('IoClient', 'initIo() with token %s', this.options.token)
 
     if (this.state.off()) {
@@ -118,7 +118,7 @@ export class IoClient {
     return
   }
 
-  public initWeb(port = config.httpPort) {
+  public initWeb (port = config.httpPort) {
 //    if (process.env.DYNO) {
 //    }
     const app = express()
@@ -137,7 +137,7 @@ export class IoClient {
     })
   }
 
-  private async onMessage(_: Message) {
+  private async onMessage (_: Message) {
     // const from = m.from()
     // const to = m.to()
     // const content = m.toString()
@@ -155,7 +155,7 @@ export class IoClient {
     // }
   }
 
-  public async stop(): Promise<void> {
+  public async stop (): Promise<void> {
     log.verbose('IoClient', 'stop()')
 
     this.state.off('pending')
@@ -175,7 +175,7 @@ export class IoClient {
     return
   }
 
-  public async restart(): Promise<void> {
+  public async restart (): Promise<void> {
     log.verbose('IoClient', 'restart()')
 
     try {
@@ -188,7 +188,7 @@ export class IoClient {
     return
   }
 
-  public async quit(): Promise<void> {
+  public async quit (): Promise<void> {
     log.verbose('IoClient', 'quit()')
 
     if (this.state.off() === 'pending') {

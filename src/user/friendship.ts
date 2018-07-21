@@ -57,7 +57,7 @@ export class Friendship extends Accessory {
   // tslint:disable-next-line:variable-name
   public static Type = FriendshipType
 
-  public static load<T extends typeof Friendship>(
+  public static load<T extends typeof Friendship> (
     this : T,
     id   : string,
   ): T['prototype'] {
@@ -71,7 +71,7 @@ export class Friendship extends Accessory {
    * use {@link Friendship#add} instead
    * @deprecated
    */
-  public static async send(contact: Contact,  hello: string) {
+  public static async send (contact: Contact,  hello: string) {
     log.warn('Friendship', 'static send() DEPRECATED， use add() instead.')
     return this.add(contact, hello)
   }
@@ -92,7 +92,7 @@ export class Friendship extends Accessory {
    *   await bot.Friendship.add(member, 'Nice to meet you! I am wechaty bot!')
    * }
    */
-  public static async add(
+  public static async add (
     contact : Contact,
     hello   : string,
   ): Promise<void> {
@@ -103,7 +103,7 @@ export class Friendship extends Accessory {
     await this.puppet.friendshipAdd(contact.id, hello)
   }
 
-  public static async del(
+  public static async del (
     contact: Contact,
   ): Promise<void> {
     log.verbose('Friendship', 'static del(%s)', contact.id)
@@ -155,7 +155,7 @@ export class Friendship extends Accessory {
   /**
    * @ignore
    */
-  protected get payload(): undefined | FriendshipPayload {
+  protected get payload (): undefined | FriendshipPayload {
     if (!this.id) {
       return undefined
     }
@@ -163,7 +163,7 @@ export class Friendship extends Accessory {
     return this.puppet.friendshipPayloadCache(this.id)
   }
 
-  constructor(
+  constructor (
     public id: string,
   ) {
     super()
@@ -181,7 +181,7 @@ export class Friendship extends Accessory {
     }
   }
 
-  public toString() {
+  public toString () {
     if (!this.payload) {
       return this.constructor.name
     }
@@ -194,7 +194,7 @@ export class Friendship extends Accessory {
     ].join('')
   }
 
-  public isReady(): boolean {
+  public isReady (): boolean {
     return !!this.payload && (Object.keys(this.payload).length > 0)
   }
 
@@ -202,7 +202,7 @@ export class Friendship extends Accessory {
    * no `dirty` support because Friendship has no rawPayload(yet)
    * @ignore
    */
-  public async ready(): Promise<void> {
+  public async ready (): Promise<void> {
     if (this.payload) {
       return
     }
@@ -244,7 +244,7 @@ export class Friendship extends Accessory {
    * }
    * .start()
    */
-  public async accept(): Promise<void> {
+  public async accept (): Promise<void> {
     log.verbose('Friendship', 'accept()')
 
     if (!this.payload) {
@@ -252,7 +252,7 @@ export class Friendship extends Accessory {
     }
 
     if (this.payload.type !== Friendship.Type.Receive) {
-      throw new Error('accept() need type to be FriendshipType.Receive, but it got a ' + Friendship.Type[this.payload.type!])
+      throw new Error('accept() need type to be FriendshipType.Receive, but it got a ' + Friendship.Type[this.payload.type])
     }
 
     log.silly('Friendship', 'accept() to %s', this.payload.contactId)
@@ -296,7 +296,7 @@ export class Friendship extends Accessory {
    * }
    * .start()
    */
-  public hello(): string {
+  public hello (): string {
     if (!this.payload) {
       throw new Error('no payload')
     }
@@ -316,7 +316,7 @@ export class Friendship extends Accessory {
    * }
    * .start()
    */
-  public contact(): Contact {
+  public contact (): Contact {
     if (!this.payload) {
       throw new Error('no payload')
     }
@@ -328,7 +328,7 @@ export class Friendship extends Accessory {
   /**
    * @ignore
    */
-  public async reject(): Promise<void> {
+  public async reject (): Promise<void> {
     log.warn('Friendship', 'reject() not necessary, NOP.')
     return
   }
@@ -356,7 +356,7 @@ export class Friendship extends Accessory {
    * }
    * .start()
    */
-  public type(): FriendshipType {
+  public type (): FriendshipType {
     return this.payload
             ? this.payload.type
             : FriendshipType.Unknown

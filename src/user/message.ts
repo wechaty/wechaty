@@ -20,22 +20,22 @@
 // import cuid from 'cuid'
 
 import {
-  FileBox,
-}                     from 'file-box'
-import {
   instanceToClass,
 }                     from 'clone-class'
+import {
+  FileBox,
+}                     from 'file-box'
 
 import {
-  log,
+  Accessory,
+}                 from '../accessory'
+import {
   FOUR_PER_EM_SPACE,
+  log,
 }                     from '../config'
 import {
   Sayable,
 }             from '../types'
-import {
-  Accessory,
-}                 from '../accessory'
 
 import {
   Contact,
@@ -72,7 +72,7 @@ export class Message extends Accessory implements Sayable {
    * @ignore
    * @todo add function
    */
-  public static async find<T extends typeof Message>(
+  public static async find<T extends typeof Message> (
     this: T,
     query: any,
   ): Promise<T['prototype'] | null> {
@@ -83,10 +83,10 @@ export class Message extends Accessory implements Sayable {
    * @ignore
    * @todo add function
    */
-  public static async findAll<T extends typeof Message>(
+  public static async findAll<T extends typeof Message> (
     this: T,
     query: any,
-  ): Promise<T['prototype'][]> {
+  ): Promise<Array<T['prototype']>> {
     log.verbose('Message', 'findAll(%s)', query)
     return [
       new (this as any)({ MsgId: 'id1' }),
@@ -101,7 +101,7 @@ export class Message extends Accessory implements Sayable {
   * https://www.tatango.com/resources/video-lessons/video-mo-mt-sms-messaging/
   */
   // TODO: rename create to load ??? Huan 201806
-  public static create(id: string): Message {
+  public static create (id: string): Message {
     log.verbose('Message', 'static create(%s)', id)
 
     /**
@@ -123,7 +123,7 @@ export class Message extends Accessory implements Sayable {
    * @private
    *
    */
-  private get payload(): undefined | MessagePayload {
+  private get payload (): undefined | MessagePayload {
     if (!this.id) {
       return undefined
     }
@@ -134,7 +134,7 @@ export class Message extends Accessory implements Sayable {
   /**
    * @private
    */
-  constructor(
+  constructor (
     public readonly id: string,
   ) {
     super()
@@ -158,7 +158,7 @@ export class Message extends Accessory implements Sayable {
   /**
    * @private
    */
-  public toString() {
+  public toString () {
     if (!this.isReady()) {
       return this.constructor.name
     }
@@ -220,7 +220,7 @@ export class Message extends Accessory implements Sayable {
    * })
    * .start()
    */
-  public from(): null | Contact {
+  public from (): null | Contact {
     if (!this.payload) {
       throw new Error('no payload')
     }
@@ -244,7 +244,7 @@ export class Message extends Accessory implements Sayable {
    * Message.to() will return null if a message is in a room, use Message.room() to get the room.
    * @returns {(Contact|null)}
    */
-  public to(): null | Contact {
+  public to (): null | Contact {
     if (!this.payload) {
       throw new Error('no payload')
     }
@@ -279,7 +279,7 @@ export class Message extends Accessory implements Sayable {
    * })
    * .start()
    */
-  public room(): null | Room {
+  public room (): null | Room {
     if (!this.payload) {
       throw new Error('no payload')
     }
@@ -298,7 +298,7 @@ export class Message extends Accessory implements Sayable {
    *
    * @deprecated
    */
-  public content(): string {
+  public content (): string {
     log.warn('Message', 'content() DEPRECATED. use text() instead.')
     return this.text()
   }
@@ -323,7 +323,7 @@ export class Message extends Accessory implements Sayable {
    * })
    * .start()
    */
-  public text(): string {
+  public text (): string {
     if (!this.payload) {
       throw new Error('no payload')
     }
@@ -331,9 +331,9 @@ export class Message extends Accessory implements Sayable {
     return this.payload.text || ''
   }
 
-  public async say(text:    string, mention?: Contact | Contact[]) : Promise<void>
-  public async say(contact: Contact)                               : Promise<void>
-  public async say(file:    FileBox)                               : Promise<void>
+  public async say (text:    string, mention?: Contact | Contact[]) : Promise<void>
+  public async say (contact: Contact)                               : Promise<void>
+  public async say (file:    FileBox)                               : Promise<void>
 
   /**
    * Reply a Text or Media File message to the sender.
@@ -381,7 +381,7 @@ export class Message extends Accessory implements Sayable {
    * })
    * .start()
    */
-  public async say(
+  public async say (
     textOrContactOrFile : string | Contact | FileBox,
     mention?   : Contact | Contact[],
   ): Promise<void> {
@@ -415,21 +415,21 @@ export class Message extends Accessory implements Sayable {
        * Contact Card
        */
       await this.puppet.messageSendContact({
-        roomId    : room && room.id || undefined,
         contactId : from && from.id || undefined,
+        roomId    : room && room.id || undefined,
       }, textOrContactOrFile.id)
     } else {
       /**
        * File Message
        */
       await this.puppet.messageSendFile({
-        roomId    : room && room.id || undefined,
         contactId : from && from.id || undefined,
+        roomId    : room && room.id || undefined,
       }, textOrContactOrFile)
     }
   }
 
-  private async sayText(
+  private async sayText (
     text         : string,
     to?          : Contact,
     room?        : Room,
@@ -475,7 +475,7 @@ export class Message extends Accessory implements Sayable {
    *   console.log('This is a text message')
    * }
    */
-  public type(): MessageType {
+  public type (): MessageType {
     if (!this.payload) {
       throw new Error('no payload')
     }
@@ -491,7 +491,7 @@ export class Message extends Accessory implements Sayable {
    *  console.log('this message is sent by myself!')
    * }
    */
-  public self(): boolean {
+  public self (): boolean {
     const userId = this.puppet.selfId()
     const from = this.from()
 
@@ -517,7 +517,7 @@ export class Message extends Accessory implements Sayable {
    * const contactList = await message.mention()
    * console.log(contactList)
    */
-  public async mention(): Promise<Contact[]> {
+  public async mention (): Promise<Contact[]> {
     log.verbose('Message', 'mention()')
 
     const room = this.room()
@@ -539,7 +539,7 @@ export class Message extends Accessory implements Sayable {
       .map(str => multipleAt(str))
 
     // convert 'hello@a@b@c' to [ 'c', 'b@c', 'a@b@c' ]
-    function multipleAt(str: string) {
+    function multipleAt (str: string) {
       str = str.replace(/^.*?@/, '@')
       let name = ''
       const nameList: string[] = []
@@ -586,7 +586,7 @@ export class Message extends Accessory implements Sayable {
    * should use {@link Message#mention} instead
    * @deprecated
    */
-  public async mentioned(): Promise<Contact[]> {
+  public async mentioned (): Promise<Contact[]> {
     log.warn('Message', 'mentioned() DEPRECATED. use mention() instead.')
     return this.mention()
   }
@@ -594,14 +594,14 @@ export class Message extends Accessory implements Sayable {
   /**
    * @private
    */
-  public isReady(): boolean {
+  public isReady (): boolean {
     return !!this.payload
   }
 
   /**
    * @private
    */
-  public async ready(): Promise<void> {
+  public async ready (): Promise<void> {
     log.verbose('Message', 'ready()')
 
     if (this.isReady()) {
@@ -682,7 +682,7 @@ export class Message extends Accessory implements Sayable {
    * })
    * .start()
    */
-  public async forward(to: Room | Contact): Promise<void> {
+  public async forward (to: Room | Contact): Promise<void> {
     log.verbose('Message', 'forward(%s)', to)
 
     let roomId
@@ -711,7 +711,7 @@ export class Message extends Accessory implements Sayable {
   /**
    * @private
    */
-  public date(): Date {
+  public date (): Date {
     if (!this.payload) {
       throw new Error('no payload')
     }
@@ -729,7 +729,7 @@ export class Message extends Accessory implements Sayable {
    * then the age() will return `8:43:15 - 8:43:01 = 14 (seconds)`
    * @returns {number}
    */
-  public age(): number {
+  public age (): number {
     const ageMilliseconds = Date.now() - this.date().getTime()
     const ageSeconds = Math.floor(ageMilliseconds / 1000)
     return ageSeconds
@@ -740,7 +740,7 @@ export class Message extends Accessory implements Sayable {
    * use {@link Message#toFileBox} instead
    * @deprecated
    */
-  public async file(): Promise<FileBox> {
+  public async file (): Promise<FileBox> {
     log.warn('Message', 'file() DEPRECATED. use toFileBox() instead.')
     return this.toFileBox()
   }
@@ -752,7 +752,7 @@ export class Message extends Accessory implements Sayable {
    *
    * @returns {Promise<FileBox>}
    */
-  public async toFileBox(): Promise<FileBox> {
+  public async toFileBox (): Promise<FileBox> {
     if (this.type() === Message.Type.Text) {
       throw new Error('text message no file')
     }
@@ -767,7 +767,7 @@ export class Message extends Accessory implements Sayable {
    * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    * @returns {Promise<Contact>}
    */
-  public async toContact(): Promise<Contact> {
+  public async toContact (): Promise<Contact> {
     log.warn('Message', 'toContact() to be implemented')
 
     if (this.type() === Message.Type.Contact) {

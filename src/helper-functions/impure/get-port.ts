@@ -11,21 +11,21 @@ import net     from 'net'
  * const DEFAULT_IANA_RANGE = {min: 49152, max: 65535}
  *
  */
-export function getPort(port: number): Promise<number> {
+export function getPort (port: number): Promise<number> {
   let tryPort = nextPort(port || 38788)
 
   return new Promise(resolve => {
     // https://gist.github.com/mikeal/1840641
-    function _getPort(cb: (port: number) => void) {
+    function _getPort (cb: (port: number) => void) {
       const server = net.createServer()
-      server.on('error', function(err) {
+      server.on('error', (err) => {
         if (err) {/* fail safe */ }
         tryPort = nextPort(port)
         _getPort(cb)
       })
-      server.listen(tryPort, function(err: any) {
+      server.listen(tryPort, (err: any) => {
         if (err) {/* fail safe */}
-        server.once('close', function() {
+        server.once('close', () => {
           cb(tryPort)
         })
         server.close()
@@ -36,7 +36,7 @@ export function getPort(port: number): Promise<number> {
     })
   })
 
-  function nextPort(currentPort: number): number {
+  function nextPort (currentPort: number): number {
     const RANGE = 1733
     // do not use Math.random() here, because AVA will fork, then here will get the same random number, cause a race condition for socket listen
     // const n = Math.floor(Math.random() * BETWEEN_RANGE)
