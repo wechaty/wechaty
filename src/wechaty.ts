@@ -58,8 +58,12 @@ import {
   isProduction,
   log,
   Raven,
-  Sayable,
 }                       from './config'
+
+import {
+  AnyFunction,
+  Sayable,
+}                       from './types'
 
 import {
   Io,
@@ -287,15 +291,13 @@ export class Wechaty extends Accessory implements Sayable {
   public emit(event: 'error'      , error: Error)                                                     : boolean
   public emit(event: 'friendship' , friendship: Friendship)                                           : boolean
   public emit(event: 'heartbeat'  , data: any)                                                        : boolean
-  public emit(event: 'logout'     , user: ContactSelf)                                                : boolean
-  public emit(event: 'login'      , user: ContactSelf)                                                : boolean
+  public emit(event: 'login' | 'logout', user: ContactSelf)                                           : boolean
   public emit(event: 'message'    , message: Message)                                                 : boolean
   public emit(event: 'room-join'  , room: Room, inviteeList : Contact[], inviter  : Contact)          : boolean
   public emit(event: 'room-leave' , room: Room, leaverList  : Contact[], remover? : Contact)          : boolean
   public emit(event: 'room-topic' , room: Room, newTopic: string, oldTopic: string, changer: Contact) : boolean
   public emit(event: 'scan'       , qrcode: string, status: number, data?: string)                    : boolean
-  public emit(event: 'start')                                                                         : boolean
-  public emit(event: 'stop')                                                                          : boolean
+  public emit(event: 'start' | 'stop')                                                                         : boolean
 
   // guard for the above event: make sure it includes all the possible values
   public emit(event: never, listener: never): never
@@ -311,15 +313,13 @@ export class Wechaty extends Accessory implements Sayable {
   public on(event: 'error'      , listener: string | ((this: Wechaty, error: Error) => void))                                                     : this
   public on(event: 'friendship' , listener: string | ((this: Wechaty, friendship: Friendship) => void))                                           : this
   public on(event: 'heartbeat'  , listener: string | ((this: Wechaty, data: any) => void))                                                        : this
-  public on(event: 'logout'     , listener: string | ((this: Wechaty, user: ContactSelf) => void))                                                : this
-  public on(event: 'login'      , listener: string | ((this: Wechaty, user: ContactSelf) => void))                                                : this
+  public on(event: 'login' | 'logout'     , listener: string | ((this: Wechaty, user: ContactSelf) => void))                                                : this
   public on(event: 'message'    , listener: string | ((this: Wechaty, message: Message) => void))                                                 : this
   public on(event: 'room-join'  , listener: string | ((this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void))            : this
   public on(event: 'room-leave' , listener: string | ((this: Wechaty, room: Room, leaverList: Contact[], remover?: Contact) => void))             : this
   public on(event: 'room-topic' , listener: string | ((this: Wechaty, room: Room, newTopic: string, oldTopic: string, changer: Contact) => void)) : this
   public on(event: 'scan'       , listener: string | ((this: Wechaty, qrcode: string, status: number, data?: string) => void))                    : this
-  public on(event: 'start'      , listener: string | ((this: Wechaty) => void))                                                                   : this
-  public on(event: 'stop'       , listener: string | ((this: Wechaty) => void))                                                                   : this
+  public on(event: 'start' | 'stop'      , listener: string | ((this: Wechaty) => void))                                                                   : this
 
   // guard for the above event: make sure it includes all the possible values
   public on(event: never, listener: never): never
@@ -494,7 +494,7 @@ export class Wechaty extends Accessory implements Sayable {
     log.verbose('Wechaty', 'onModulePath() hotImport(%s)', absoluteFilename)
 
     hotImport(absoluteFilename)
-      .then((func: Function) => super.on(event, (...args: any[]) => {
+      .then((func: AnyFunction) => super.on(event, (...args: any[]) => {
         try {
           func.apply(this, args)
         } catch (e) {
@@ -516,7 +516,7 @@ export class Wechaty extends Accessory implements Sayable {
     }
   }
 
-  private addListenerFunction(event: WechatyEventName, listener: Function): void {
+  private addListenerFunction(event: WechatyEventName, listener: AnyFunction): void {
     log.verbose('Wechaty', 'onFunction(%s)', event)
 
     super.on(event, (...args: any[]) => {
@@ -737,7 +737,7 @@ export class Wechaty extends Accessory implements Sayable {
             const leaverList = leaverIdList.map(id => this.Contact.load(id))
             await Promise.all(leaverList.map(c => c.ready()))
 
-            let remover: undefined | Contact = undefined
+            let remover: undefined | Contact
             if (removerId) {
               remover = this.Contact.load(removerId)
               await remover.ready()
@@ -872,9 +872,8 @@ export class Wechaty extends Accessory implements Sayable {
         log.error('Wechaty', 'start() stop() exception: %s', e && e.message)
         Raven.captureException(e)
         this.emit('error', e)
-      } finally {
-        return
       }
+      return
     }
 
     this.on('heartbeat', () => this.memoryCheck())
@@ -978,7 +977,7 @@ export class Wechaty extends Accessory implements Sayable {
    *   console.log('Bot not logined')
    * }
    */
-  public logonoff(): Boolean {
+  public logonoff(): boolean {
     return this.puppet.logonoff()
   }
 

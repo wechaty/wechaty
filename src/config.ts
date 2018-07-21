@@ -16,6 +16,7 @@
  *   limitations under the License.
  *
  */
+// tslint:disable-next-line:no-reference
 /// <reference path="./typings.d.ts" />
 
 import fs    from 'fs'
@@ -36,9 +37,9 @@ import {
 }                 from './puppet-config'
 
 // https://github.com/Microsoft/TypeScript/issues/14151#issuecomment-280812617
-if (!Symbol.asyncIterator) {
-  (<any>Symbol).asyncIterator = Symbol.for('Symbol.asyncIterator')
-}
+// if (!Symbol.asyncIterator) {
+//   (Symbol as any).asyncIterator = Symbol.for('Symbol.asyncIterator')
+// }
 
 const pkg = readPkgUp.sync({ cwd: __dirname }).pkg
 export const VERSION = pkg.version
@@ -56,9 +57,9 @@ Raven
     release: VERSION,
     tags: {
       git_commit: '',
-      platform:   !!process.env['WECHATY_DOCKER']
-                  ? 'docker'
-                  : os.platform(),
+      platform: process.env.WECHATY_DOCKER
+                ? 'docker'
+                : os.platform(),
     },
   },
 )
@@ -76,7 +77,7 @@ Raven.context(function () {
 })
  */
 
-const logLevel = process.env['WECHATY_LOG']
+const logLevel = process.env.WECHATY_LOG
 if (logLevel) {
   log.level(logLevel.toLowerCase() as any)
   log.silly('Config', 'WECHATY_LOG set level to %s', logLevel)
@@ -115,21 +116,21 @@ const DEFAULT_SETTING = pkg.wechaty as DefaultSetting
 export class Config {
   public default = DEFAULT_SETTING
 
-  public apihost = process.env['WECHATY_APIHOST']    || DEFAULT_SETTING.DEFAULT_APIHOST
-  public head    = ('WECHATY_HEAD' in process.env) ? (!!process.env['WECHATY_HEAD']) : (!!(DEFAULT_SETTING.DEFAULT_HEAD))
+  public apihost = process.env.WECHATY_APIHOST    || DEFAULT_SETTING.DEFAULT_APIHOST
+  public head    = ('WECHATY_HEAD' in process.env) ? (!!process.env.WECHATY_HEAD) : (!!(DEFAULT_SETTING.DEFAULT_HEAD))
 
   public systemPuppetName () {
     return (
-      process.env['WECHATY_PUPPET'] || 'default'
+      process.env.WECHATY_PUPPET || 'default'
     ).toLowerCase() as PuppetName
   }
 
-  public profile = process.env['WECHATY_PROFILE']    || null    // DO NOT set DEFAULT_PROFILE, because sometimes user do not want to save session
-  public token   = process.env['WECHATY_TOKEN']      || null    // DO NOT set DEFAULT, because sometimes user do not want to connect to io cloud service
-  public debug   = !!(process.env['WECHATY_DEBUG'])
+  public profile = process.env.WECHATY_PROFILE    || null    // DO NOT set DEFAULT_PROFILE, because sometimes user do not want to save session
+  public token   = process.env.WECHATY_TOKEN      || null    // DO NOT set DEFAULT, because sometimes user do not want to connect to io cloud service
+  public debug   = !!(process.env.WECHATY_DEBUG)
 
-  public httpPort = process.env['PORT'] || process.env['WECHATY_PORT'] || DEFAULT_SETTING.DEFAULT_PORT
-  public docker = !!(process.env['WECHATY_DOCKER'])
+  public httpPort = process.env.PORT || process.env.WECHATY_PORT || DEFAULT_SETTING.DEFAULT_PORT
+  public docker = !!(process.env.WECHATY_DOCKER)
 
   // private _puppetInstance: Puppet | null = null
 
@@ -215,10 +216,6 @@ export function qrCodeForChatie(): FileBox {
 
   const qrStream = qrImage.image(CHATIE_OFFICIAL_ACCOUNT_QRCODE, { type })
   return FileBox.fromStream(qrStream, name)
-}
-
-export interface Sayable {
-  say(text: string, replyTo?: any|any[]): Promise<void>
 }
 
 // http://jkorpela.fi/chars/spaces.html

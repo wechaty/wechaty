@@ -16,8 +16,8 @@
  *   limitations under the License.
  *
  */
-import WebSocket        from 'ws'
 import { StateSwitch }  from 'state-switch'
+import WebSocket        from 'ws'
 
 import {
   Message,
@@ -31,6 +31,9 @@ import {
   config,
   log,
 }                 from './config'
+import {
+  AnyFunction,
+}                 from './types'
 import {
   Wechaty,
 }                 from './wechaty'
@@ -84,7 +87,7 @@ export class Io {
 
   private lifeTimer? : NodeJS.Timer
 
-  private onMessage: undefined | Function
+  private onMessage: undefined | AnyFunction
 
   private scanPayload?: PuppetQrcodeScanEvent
 
@@ -226,7 +229,7 @@ export class Io {
 
     // const auth = 'Basic ' + new Buffer(this.setting.token + ':X').toString('base64')
     const auth = 'Token ' + this.options.token
-    const headers = { 'Authorization': auth }
+    const headers = { Authorization: auth }
 
     if (!this.options.apihost) {
       throw new Error('no apihost')
@@ -446,15 +449,18 @@ export class Io {
       return
     }
 
-    const list: Promise<any>[] = []
+    const list: Array<Promise<any>> = []
     while (this.eventBuffer.length) {
       const p = new Promise((resolve, reject) => ws.send(
         JSON.stringify(
           this.eventBuffer.shift(),
         ),
         (err: Error) => {
-          if (err)  { reject(err) }
-          else      { resolve()   }
+          if (err)  {
+            reject(err)
+          } else {
+            resolve()
+          }
         },
       ))
       list.push(p)

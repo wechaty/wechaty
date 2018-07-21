@@ -135,7 +135,7 @@ async function installPuppet (
 
 function validatePuppetConfig () {
   let puppetName: PuppetName
-  for (puppetName in PUPPET_DICT) {
+  for (puppetName of Object.keys(PUPPET_DICT) as PuppetName[]) {
     const puppetConfig = PUPPET_DICT[puppetName]
     const version = puppetConfig.npm.version || '*'
 

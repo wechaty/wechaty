@@ -23,14 +23,14 @@ import { instanceToClass } from 'clone-class'
 import {
   log,
   Raven,
-  Sayable,
   qrCodeForChatie,
 }                   from '../config'
 import {
   Accessory,
 }             from '../accessory'
-
-// import Message          from './message'
+import {
+  Sayable,
+}             from '../types'
 
 import {
   ContactGender,
@@ -206,7 +206,7 @@ export class Contact extends Accessory implements Sayable {
   public static async findAll<T extends typeof Contact>(
     this  : T,
     query? : string | ContactQueryFilter,
-  ): Promise<T['prototype'][]> {
+  ): Promise<Array<T['prototype']>> {
     log.verbose('Contact', 'findAll(%s)', JSON.stringify(query))
 
     if (query && Object.keys(query).length !== 1) {
@@ -691,6 +691,8 @@ export class Contact extends Accessory implements Sayable {
   }
 }
 
+// tslint:disable:max-classes-per-file
+
 export class ContactSelf extends Contact {
   constructor(
     id: string,
@@ -705,7 +707,8 @@ export class ContactSelf extends Contact {
     log.verbose('Contact', 'avatar(%s)', file ? file.name : '')
 
     if (!file) {
-      return await super.avatar()
+      const filebox = await super.avatar()
+      return filebox
     }
 
     if (this.id !== this.puppet.selfId()) {
@@ -722,7 +725,8 @@ export class ContactSelf extends Contact {
       throw new Error('only can get qrcode for the login userself')
     }
 
-    return await this.puppet.contactQrcode(this.id)
+    const qrcodeData = await this.puppet.contactQrcode(this.id)
+    return qrcodeData
   }
 
 }

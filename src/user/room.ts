@@ -27,10 +27,12 @@ import {
 import {
   // config,
   Raven,
-  Sayable,
   log,
   FOUR_PER_EM_SPACE,
 }                       from '../config'
+import {
+  Sayable,
+}             from '../types'
 import {
   Accessory,
 }               from '../accessory'
@@ -122,7 +124,7 @@ export class Room extends Accessory implements Sayable {
   public static async findAll<T extends typeof Room>(
     this  : T,
     query : RoomQueryFilter = { topic: /.*/ },
-  ): Promise<T['prototype'][]> {
+  ): Promise<Array<T['prototype']>> {
     log.verbose('Room', 'findAll()', JSON.stringify(query))
 
     if (!query.topic) {
@@ -710,7 +712,8 @@ export class Room extends Accessory implements Sayable {
     if (text) {
       await this.puppet.roomAnnounce(this.id, text)
     } else {
-      return await this.puppet.roomAnnounce(this.id)
+      const announcement = await this.puppet.roomAnnounce(this.id)
+      return announcement
     }
   }
 

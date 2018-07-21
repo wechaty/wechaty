@@ -28,9 +28,11 @@ import {
 
 import {
   log,
-  Sayable,
   FOUR_PER_EM_SPACE,
 }                     from '../config'
+import {
+  Sayable,
+}             from '../types'
 import {
   Accessory,
 }                 from '../accessory'
@@ -683,7 +685,8 @@ export class Message extends Accessory implements Sayable {
   public async forward(to: Room | Contact): Promise<void> {
     log.verbose('Message', 'forward(%s)', to)
 
-    let roomId, contactId
+    let roomId
+    let contactId
 
     if (to instanceof Room) {
       roomId = to.id
