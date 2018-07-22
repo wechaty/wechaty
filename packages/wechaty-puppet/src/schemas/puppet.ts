@@ -41,15 +41,15 @@ export interface PuppetRoomTopicEvent {
 }
 
 export const CHAT_EVENT_DICT = {
-  friendship   : 'document can be written at here',
-  login        : 'document can be written at here',
-  logout       : 'document can be written at here',
-  message      : 'document can be written at here',
+  friendship  : 'document can be written at here',
+  login       : 'document can be written at here',
+  logout      : 'document can be written at here',
+  message     : 'document can be written at here',
   'room-invite': 'document can be written at here',
-  'room-join'  : 'document can be written at here',
-  'room-leave' : 'document can be written at here',
-  'room-topic' : 'document can be written at here',
-  scan         : 'document can be written at here',
+  'room-join' : 'document can be written at here',
+  'room-leave': 'document can be written at here',
+  'room-topic': 'document can be written at here',
+  scan        : 'document can be written at here',
 }
 export type ChatEventName = keyof typeof CHAT_EVENT_DICT
 
