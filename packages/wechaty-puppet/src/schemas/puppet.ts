@@ -55,10 +55,10 @@ export type ChatEventName = keyof typeof CHAT_EVENT_DICT
 
 export const PUPPET_EVENT_DICT = {
   ...CHAT_EVENT_DICT,
-  dong      : 'document can be written at here',
-  error     : 'document can be written at here',
+  dong      : 'document can be writen at here',
+  error     : 'document can be writen at here',
   reset     : 'push to reset!',
-  watchdog  : 'document can be written at here',
+  watchdog  : 'document can be writen at here',
 }
 
 export type PuppetEventName = keyof typeof PUPPET_EVENT_DICT
