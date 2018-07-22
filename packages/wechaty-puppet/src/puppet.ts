@@ -102,11 +102,11 @@ export abstract class Puppet extends EventEmitter {
    */
   public static readonly VERSION = '0.0.0'
 
-  protected readonly cacheContactPayload    : LRU.Cache<string, ContactPayload>
-  protected readonly cacheFriendshipPayload : LRU.Cache<string, FriendshipPayload>
-  protected readonly cacheMessagePayload    : LRU.Cache<string, MessagePayload>
-  protected readonly cacheRoomPayload       : LRU.Cache<string, RoomPayload>
-  protected readonly cacheRoomMemberPayload : LRU.Cache<string, RoomMemberPayload>
+  public readonly cacheContactPayload    : LRU.Cache<string, ContactPayload>
+  public readonly cacheFriendshipPayload : LRU.Cache<string, FriendshipPayload>
+  public readonly cacheMessagePayload    : LRU.Cache<string, MessagePayload>
+  public readonly cacheRoomPayload       : LRU.Cache<string, RoomPayload>
+  public readonly cacheRoomMemberPayload : LRU.Cache<string, RoomMemberPayload>
 
   protected readonly state   : StateSwitch
   protected readonly counter : number
@@ -491,7 +491,7 @@ export abstract class Puppet extends EventEmitter {
     return resultRoomIdList
   }
 
-  protected async contactPayloadDirty (contactId: string): Promise<void> {
+  public async contactPayloadDirty (contactId: string): Promise<void> {
     log.verbose('Puppet', 'contactPayloadDirty(%s)', contactId)
     this.cacheContactPayload.del(contactId)
   }
@@ -628,7 +628,7 @@ export abstract class Puppet extends EventEmitter {
     return true
   }
 
-  protected contactPayloadCache (contactId: string): undefined | ContactPayload {
+  public contactPayloadCache (contactId: string): undefined | ContactPayload {
     // log.silly('Puppet', 'contactPayloadCache(id=%s) @ %s', contactId, this)
     if (!contactId) {
       throw new Error('no id')
@@ -684,7 +684,7 @@ export abstract class Puppet extends EventEmitter {
   protected abstract async friendshipRawPayload (friendshipId: string)   : Promise<any>
   protected abstract async friendshipRawPayloadParser (rawPayload: any)  : Promise<FriendshipPayload>
 
-  protected friendshipPayloadCache (friendshipId: string): undefined | FriendshipPayload {
+  public friendshipPayloadCache (friendshipId: string): undefined | FriendshipPayload {
     // log.silly('Puppet', 'friendshipPayloadCache(id=%s) @ %s', friendshipId, this)
     if (!friendshipId) {
       throw new Error('no id')
@@ -747,7 +747,7 @@ export abstract class Puppet extends EventEmitter {
   protected abstract async messageRawPayload (messageId: string)     : Promise<any>
   protected abstract async messageRawPayloadParser (rawPayload: any) : Promise<MessagePayload>
 
-  protected messagePayloadCache (messageId: string): undefined | MessagePayload {
+  public messagePayloadCache (messageId: string): undefined | MessagePayload {
     // log.silly('Puppet', 'messagePayloadCache(id=%s) @ %s', messageId, this)
     if (!messageId) {
       throw new Error('no id')
@@ -1004,7 +1004,7 @@ export abstract class Puppet extends EventEmitter {
     return true
   }
 
-  protected roomPayloadCache (roomId: string): undefined | RoomPayload {
+  public roomPayloadCache (roomId: string): undefined | RoomPayload {
     // log.silly('Puppet', 'roomPayloadCache(id=%s) @ %s', roomId, this)
     if (!roomId) {
       throw new Error('no id')
@@ -1019,7 +1019,7 @@ export abstract class Puppet extends EventEmitter {
     return cachedPayload
   }
 
-  protected async roomPayloadDirty (roomId: string): Promise<void> {
+  public async roomPayloadDirty (roomId: string): Promise<void> {
     log.verbose('Puppet', 'roomPayloadDirty(%s)', roomId)
     this.cacheRoomPayload.del(roomId)
   }
