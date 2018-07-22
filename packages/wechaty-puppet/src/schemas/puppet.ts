@@ -17,6 +17,11 @@ export interface PuppetQrcodeScanEvent {
   status : number,   // Status Code
 }
 
+export interface PuppetRoomInviteEvent {
+  inviterId : string,
+  roomId    : string,
+}
+
 export interface PuppetRoomJoinEvent {
   inviteeNameList : Array<(string | YOU)>,
   inviterName     : string | YOU,
@@ -40,6 +45,7 @@ export const CHAT_EVENT_DICT = {
   login       : 'document can be writen at here',
   logout      : 'document can be writen at here',
   message     : 'document can be writen at here',
+  'room-invite': 'document can be writen at here',
   'room-join' : 'document can be writen at here',
   'room-leave': 'document can be writen at here',
   'room-topic': 'document can be writen at here',

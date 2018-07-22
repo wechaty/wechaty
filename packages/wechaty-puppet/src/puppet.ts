@@ -70,6 +70,9 @@ import {
   RoomPayloadFilterFunction,
   RoomQueryFilter,
 }                                 from './schemas/room'
+import {
+  RoomInvitationPayload,
+}                                 from './schemas/room-invitation'
 
 import {
   PuppetEventName,
@@ -267,6 +270,7 @@ export abstract class Puppet extends EventEmitter {
   public emit (event: 'room-join',  roomId: string, inviteeIdList: string[],  inviterId: string)           : boolean
   public emit (event: 'room-leave', roomId: string, leaverIdList: string[], remover?: string)              : boolean
   public emit (event: 'room-topic', roomId: string, newTopic: string, oldTopic: string, changerId: string) : boolean
+  public emit (event: 'room-invite',roomInvitationId: string)                                              : boolean
   public emit (event: 'scan',       qrcode: string, status: number, data?: string)                         : boolean
   // public emit (event: 'start')                                                                             : boolean
   // public emit (event: 'stop')                                                                              : boolean
@@ -299,11 +303,12 @@ export abstract class Puppet extends EventEmitter {
   public on (event: 'room-join',  listener: (roomId: string, inviteeIdList: string[], inviterId:  string) => void)           : this
   public on (event: 'room-leave', listener: (roomId: string, leaverIdList : string[], removerId?: string) => void)           : this
   public on (event: 'room-topic', listener: (roomId: string, newTopic: string, oldTopic: string, changerId: string) => void) : this
+  public on (event: 'room-invite',listener: (roomInvitationId: string) => void)                                              : this
   public on (event: 'scan',       listener: (qrcode: string, status: number, data?: string) => void)                         : this
   // public on (event: 'start',      listener: () => void)                                                                      : this
   // public on (event: 'stop',       listener: () => void)                                                                      : this
   // Internal Usage: watchdog
-  public on (event: 'watchdog',   listener: (data: WatchdogFood) => void) : this
+  public on (event: 'watchdog',   listener: (data: WatchdogFood) => void)                                                    : this
 
   public on (event: never, listener: never): never
 
@@ -781,6 +786,24 @@ export abstract class Puppet extends EventEmitter {
     this.cacheMessagePayload.set(messageId, payload)
     log.silly('Puppet', 'messagePayload(%s) cache SET', messageId)
 
+    return payload
+  }
+
+  /**
+   *
+   * Room Invitation
+   *
+   *
+   */
+  public abstract async roomInvitationAccept (roomInvitationId: string): Promise<void>
+
+  public abstract async roomInvitationRawPayload (roomInvitationId: string) : Promise<any>
+  public abstract async roomInvitationRawPayloadParser (rawPayload: any)    : Promise<RoomInvitationPayload>
+
+  public async roomInvitationPayload (roomInvitationId: string): Promise<RoomInvitationPayload> {
+    log.verbose('Puppet', 'roomInvitationPayload(%s)', roomInvitationId)
+    const rawPayload = await this.roomInvitationRawPayload(roomInvitationId)
+    const payload = await this.roomInvitationRawPayloadParser(rawPayload)
     return payload
   }
 
