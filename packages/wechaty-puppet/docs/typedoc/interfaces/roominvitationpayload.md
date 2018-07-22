@@ -1,4 +1,4 @@
-[Wechaty Puppet v0.9.8 Interface](../README.md) > [RoomInvitationPayload](../interfaces/roominvitationpayload.md)
+[Wechaty Puppet v0.9.12 Interface](../README.md) > [RoomInvitationPayload](../interfaces/roominvitationpayload.md)
 
 # Interface: RoomInvitationPayload
 
@@ -25,7 +25,7 @@
 
 **● id**: *`string`*
 
-*Defined in [schemas/room-invitation.ts:2](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/schemas/room-invitation.ts#L2)*
+*Defined in [src/schemas/room-invitation.ts:2](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/room-invitation.ts#L2)*
 
 ___
 <a id="inviterid"></a>
@@ -34,7 +34,7 @@ ___
 
 **● inviterId**: *`string`*
 
-*Defined in [schemas/room-invitation.ts:3](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/schemas/room-invitation.ts#L3)*
+*Defined in [src/schemas/room-invitation.ts:3](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/room-invitation.ts#L3)*
 
 ___
 <a id="roomid"></a>
@@ -43,7 +43,7 @@ ___
 
 **● roomId**: *`string`*
 
-*Defined in [schemas/room-invitation.ts:4](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/schemas/room-invitation.ts#L4)*
+*Defined in [src/schemas/room-invitation.ts:4](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/room-invitation.ts#L4)*
 
 ___
 <a id="timestamp"></a>
@@ -52,7 +52,7 @@ ___
 
 **● timestamp**: *`number`*
 
-*Defined in [schemas/room-invitation.ts:5](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/schemas/room-invitation.ts#L5)*
+*Defined in [src/schemas/room-invitation.ts:5](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/room-invitation.ts#L5)*
 
 ___
 

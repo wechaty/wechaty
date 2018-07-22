@@ -1,4 +1,4 @@
-[Wechaty Puppet v0.9.8 Interface](../README.md) > [PuppetOptions](../interfaces/puppetoptions.md)
+[Wechaty Puppet v0.9.12 Interface](../README.md) > [PuppetOptions](../interfaces/puppetoptions.md)
 
 # Interface: PuppetOptions
 
@@ -27,7 +27,7 @@ timeout: WatchDog Timeout in Seconds
 **● endpoint**: * `undefined` &#124; `string`
 *
 
-*Defined in [schemas/puppet.ts:70](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/schemas/puppet.ts#L70)*
+*Defined in [src/schemas/puppet.ts:72](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L72)*
 
 ___
 <a id="timeout"></a>
@@ -37,7 +37,7 @@ ___
 **● timeout**: * `undefined` &#124; `number`
 *
 
-*Defined in [schemas/puppet.ts:71](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/schemas/puppet.ts#L71)*
+*Defined in [src/schemas/puppet.ts:73](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L73)*
 
 ___
 <a id="token"></a>
@@ -47,7 +47,7 @@ ___
 **● token**: * `undefined` &#124; `string`
 *
 
-*Defined in [schemas/puppet.ts:72](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/schemas/puppet.ts#L72)*
+*Defined in [src/schemas/puppet.ts:74](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L74)*
 
 ___
 

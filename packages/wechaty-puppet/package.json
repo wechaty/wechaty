@@ -46,6 +46,7 @@
     "@types/semver": "^5.5.0",
     "@types/sinon": "^5.0.1",
     "blue-tape": "^1.0.0",
+    "clone-class": "^0.6.19",
     "file-box": "^0.8.22",
     "git-scripts": "^0.2.1",
     "markdownlint-cli": "^0.11.0",

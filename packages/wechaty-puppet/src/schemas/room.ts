@@ -25,5 +25,8 @@ export interface RoomMemberPayload {
   name       : string,
 }
 
+/** @hidden */
 export type RoomPayloadFilterFunction = (payload: RoomPayload)    => boolean
+
+/** @hidden */
 export type RoomPayloadFilterFactory  = (query: RoomQueryFilter)  => RoomPayloadFilterFunction

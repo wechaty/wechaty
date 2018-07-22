@@ -21,7 +21,6 @@ import {
   ContactPayloadFilterFunction,
   ContactQueryFilter,
   ContactType,
-  // ContactPayloadFilterFactory,
 }                                 from './schemas/contact'
 import {
   FriendshipPayload,

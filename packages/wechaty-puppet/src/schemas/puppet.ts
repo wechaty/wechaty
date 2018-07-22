@@ -40,6 +40,7 @@ export interface PuppetRoomTopicEvent {
   topic       : string,
 }
 
+/** @hidden */
 export const CHAT_EVENT_DICT = {
   friendship    : 'todo: explain what this event is',
   login         : 'todo: explain what this event is',
@@ -53,6 +54,7 @@ export const CHAT_EVENT_DICT = {
 }
 export type ChatEventName = keyof typeof CHAT_EVENT_DICT
 
+/** @hidden */
 export const PUPPET_EVENT_DICT = {
   ...CHAT_EVENT_DICT,
   dong      : 'todo: explain what this event is',

@@ -8,10 +8,12 @@ VERSION=$(jq -r .version package.json)
 typedoc \
   --exclude "src/**/*.spec.ts" \
   --excludeExternals \
-  --externalPattern "**/node_modules/**" \
+  --externalPattern node_modules/@types/node/*.d.ts \
   --excludeNotExported \
   --excludePrivate \
   --excludeProtected \
+  --includeDeclarations \
+  --listInvalidSymbolLinks \
   --mode file \
   --module commonjs \
   --name "Wechaty Puppet v${VERSION:-0.0.0} Interface" \

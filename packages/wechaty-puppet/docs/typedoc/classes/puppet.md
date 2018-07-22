@@ -1,4 +1,4 @@
-[Wechaty Puppet v0.9.8 Interface](../README.md) > [Puppet](../classes/puppet.md)
+[Wechaty Puppet v0.9.12 Interface](../README.md) > [Puppet](../classes/puppet.md)
 
 # Class: Puppet
 
@@ -96,7 +96,7 @@ See: [https://github.com/Chatie/wechaty/wiki/Puppet](https://github.com/Chatie/w
 
 ⊕ **new Puppet**(options?: *[PuppetOptions](../interfaces/puppetoptions.md)*): [Puppet](puppet.md)
 
-*Defined in [puppet.ts:127](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L127)*
+*Defined in [src/puppet.ts:127](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L127)*
 
 Constructor
 
@@ -118,7 +118,7 @@ ___
 
 **● VERSION**: *"0.0.0"* = "0.0.0"
 
-*Defined in [puppet.ts:100](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L100)*
+*Defined in [src/puppet.ts:100](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L100)*
 
 Must overwrite by child class to identify their version
 
@@ -131,7 +131,7 @@ ___
 
 *Inherited from EventEmitter.defaultMaxListeners*
 
-*Defined in /home/zixia/chatie/wechaty-puppet/node_modules/@types/node/index.d.ts:1022*
+*Defined in node_modules/@types/node/index.d.ts:1022*
 
 ___
 
@@ -147,7 +147,7 @@ ___
 
 *Overrides EventEmitter.addListener*
 
-*Defined in /home/zixia/chatie/wechaty-puppet/node_modules/@types/node/index.d.ts:1024*
+*Defined in node_modules/@types/node/index.d.ts:1024*
 
 **Parameters:**
 
@@ -167,7 +167,7 @@ ___
 
 ▸ **contactAlias**(contactId: *`string`*, alias: * `string` &#124; `null`*): `Promise`<`void`>
 
-*Defined in [puppet.ts:460](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L460)*
+*Defined in [src/puppet.ts:460](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L460)*
 
 Contact
 
@@ -179,7 +179,7 @@ Contact
 
 **Returns:** `Promise`<`string`>
 
-*Defined in [puppet.ts:461](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L461)*
+*Defined in [src/puppet.ts:461](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L461)*
 
 **Parameters:**
 
@@ -199,7 +199,7 @@ ___
 
 ▸ **contactAvatar**(contactId: *`string`*, file: *`FileBox`*): `Promise`<`void`>
 
-*Defined in [puppet.ts:463](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L463)*
+*Defined in [src/puppet.ts:463](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L463)*
 
 **Parameters:**
 
@@ -209,7 +209,7 @@ ___
 
 **Returns:** `Promise`<`FileBox`>
 
-*Defined in [puppet.ts:464](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L464)*
+*Defined in [src/puppet.ts:464](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L464)*
 
 **Parameters:**
 
@@ -227,7 +227,7 @@ ___
 
 ▸ **contactList**(): `Promise`<`string`[]>
 
-*Defined in [puppet.ts:466](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L466)*
+*Defined in [src/puppet.ts:466](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L466)*
 
 **Returns:** `Promise`<`string`[]>
 
@@ -238,7 +238,7 @@ ___
 
 ▸ **contactPayload**(contactId: *`string`*): `Promise`<[ContactPayload](../interfaces/contactpayload.md)>
 
-*Defined in [puppet.ts:639](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L639)*
+*Defined in [src/puppet.ts:644](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L644)*
 
 **Parameters:**
 
@@ -255,7 +255,7 @@ ___
 
 ▸ **contactQrcode**(contactId: *`string`*): `Promise`<`string`>
 
-*Defined in [puppet.ts:468](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L468)*
+*Defined in [src/puppet.ts:468](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L468)*
 
 **Parameters:**
 
@@ -272,7 +272,7 @@ ___
 
 ▸ **contactRoomList**(contactId: *`string`*): `Promise`<`string`[]>
 
-*Defined in [puppet.ts:473](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L473)*
+*Defined in [src/puppet.ts:473](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L473)*
 
 **Parameters:**
 
@@ -289,7 +289,7 @@ ___
 
 ▸ **contactSearch**(query?: * `string` &#124; [ContactQueryFilter](../interfaces/contactqueryfilter.md)*, searchIdList?: *`string`[]*): `Promise`<`string`[]>
 
-*Defined in [puppet.ts:496](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L496)*
+*Defined in [src/puppet.ts:496](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L496)*
 
 **Parameters:**
 
@@ -307,7 +307,7 @@ ___
 
 ▸ **contactValidate**(contactId: *`string`*): `Promise`<`boolean`>
 
-*Defined in [puppet.ts:618](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L618)*
+*Defined in [src/puppet.ts:623](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L623)*
 
 Check a Contact Id if it's still valid. For example: talk to the server, and see if it should be deleted in the local cache.
 
@@ -326,7 +326,7 @@ ___
 
 ▸ **ding**(data?: * `undefined` &#124; `string`*): `void`
 
-*Defined in [puppet.ts:415](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L415)*
+*Defined in [src/puppet.ts:415](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L415)*
 
 Check whether the puppet is work property.
 
@@ -375,7 +375,7 @@ ___
 
 *Overrides EventEmitter.emit*
 
-*Defined in [puppet.ts:263](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L263)*
+*Defined in [src/puppet.ts:263](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L263)*
 
 Events
 
@@ -390,7 +390,7 @@ Events
 
 *Overrides EventEmitter.emit*
 
-*Defined in [puppet.ts:264](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L264)*
+*Defined in [src/puppet.ts:264](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L264)*
 
 **Parameters:**
 
@@ -403,7 +403,7 @@ Events
 
 *Overrides EventEmitter.emit*
 
-*Defined in [puppet.ts:265](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L265)*
+*Defined in [src/puppet.ts:265](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L265)*
 
 **Parameters:**
 
@@ -416,7 +416,7 @@ Events
 
 *Overrides EventEmitter.emit*
 
-*Defined in [puppet.ts:266](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L266)*
+*Defined in [src/puppet.ts:266](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L266)*
 
 **Parameters:**
 
@@ -429,7 +429,7 @@ Events
 
 *Overrides EventEmitter.emit*
 
-*Defined in [puppet.ts:267](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L267)*
+*Defined in [src/puppet.ts:267](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L267)*
 
 **Parameters:**
 
@@ -442,7 +442,7 @@ Events
 
 *Overrides EventEmitter.emit*
 
-*Defined in [puppet.ts:268](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L268)*
+*Defined in [src/puppet.ts:268](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L268)*
 
 **Parameters:**
 
@@ -455,7 +455,7 @@ Events
 
 *Overrides EventEmitter.emit*
 
-*Defined in [puppet.ts:269](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L269)*
+*Defined in [src/puppet.ts:269](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L269)*
 
 **Parameters:**
 
@@ -468,7 +468,7 @@ Events
 
 *Overrides EventEmitter.emit*
 
-*Defined in [puppet.ts:270](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L270)*
+*Defined in [src/puppet.ts:270](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L270)*
 
 **Parameters:**
 
@@ -483,7 +483,7 @@ Events
 
 *Overrides EventEmitter.emit*
 
-*Defined in [puppet.ts:271](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L271)*
+*Defined in [src/puppet.ts:271](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L271)*
 
 **Parameters:**
 
@@ -498,7 +498,7 @@ Events
 
 *Overrides EventEmitter.emit*
 
-*Defined in [puppet.ts:272](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L272)*
+*Defined in [src/puppet.ts:272](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L272)*
 
 **Parameters:**
 
@@ -514,7 +514,7 @@ Events
 
 *Overrides EventEmitter.emit*
 
-*Defined in [puppet.ts:273](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L273)*
+*Defined in [src/puppet.ts:273](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L273)*
 
 **Parameters:**
 
@@ -527,7 +527,7 @@ Events
 
 *Overrides EventEmitter.emit*
 
-*Defined in [puppet.ts:274](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L274)*
+*Defined in [src/puppet.ts:274](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L274)*
 
 **Parameters:**
 
@@ -542,7 +542,7 @@ Events
 
 *Overrides EventEmitter.emit*
 
-*Defined in [puppet.ts:276](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L276)*
+*Defined in [src/puppet.ts:276](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L276)*
 
 **Parameters:**
 
@@ -555,7 +555,7 @@ Events
 
 *Overrides EventEmitter.emit*
 
-*Defined in [puppet.ts:278](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L278)*
+*Defined in [src/puppet.ts:278](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L278)*
 
 **Parameters:**
 
@@ -577,7 +577,7 @@ ___
 
 *Overrides EventEmitter.eventNames*
 
-*Defined in /home/zixia/chatie/wechaty-puppet/node_modules/@types/node/index.d.ts:1037*
+*Defined in node_modules/@types/node/index.d.ts:1037*
 
 **Returns:** `Array`< `string` &#124; `symbol`>
 
@@ -588,7 +588,7 @@ ___
 
 ▸ **friendshipAccept**(friendshipId: *`string`*): `Promise`<`void`>
 
-*Defined in [puppet.ts:674](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L674)*
+*Defined in [src/puppet.ts:679](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L679)*
 
 **Parameters:**
 
@@ -605,7 +605,7 @@ ___
 
 ▸ **friendshipAdd**(contactId: *`string`*, hello?: * `undefined` &#124; `string`*): `Promise`<`void`>
 
-*Defined in [puppet.ts:673](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L673)*
+*Defined in [src/puppet.ts:678](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L678)*
 
 Friendship
 
@@ -625,7 +625,7 @@ ___
 
 ▸ **friendshipPayload**(friendshipId: *`string`*): `Promise`<[FriendshipPayload](../#friendshippayload)>
 
-*Defined in [puppet.ts:700](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L700)*
+*Defined in [src/puppet.ts:705](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L705)*
 
 **Parameters:**
 
@@ -646,7 +646,7 @@ ___
 
 *Overrides EventEmitter.getMaxListeners*
 
-*Defined in /home/zixia/chatie/wechaty-puppet/node_modules/@types/node/index.d.ts:1033*
+*Defined in node_modules/@types/node/index.d.ts:1033*
 
 **Returns:** `number`
 
@@ -661,7 +661,7 @@ ___
 
 *Overrides EventEmitter.listenerCount*
 
-*Defined in /home/zixia/chatie/wechaty-puppet/node_modules/@types/node/index.d.ts:1038*
+*Defined in node_modules/@types/node/index.d.ts:1038*
 
 **Parameters:**
 
@@ -682,7 +682,7 @@ ___
 
 *Overrides EventEmitter.listeners*
 
-*Defined in /home/zixia/chatie/wechaty-puppet/node_modules/@types/node/index.d.ts:1034*
+*Defined in node_modules/@types/node/index.d.ts:1034*
 
 **Parameters:**
 
@@ -699,7 +699,7 @@ ___
 
 ▸ **logonoff**(): `boolean`
 
-*Defined in [puppet.ts:395](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L395)*
+*Defined in [src/puppet.ts:395](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L395)*
 
 **Returns:** `boolean`
 
@@ -710,7 +710,7 @@ ___
 
 ▸ **logout**(): `Promise`<`void`>
 
-*Defined in [puppet.ts:383](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L383)*
+*Defined in [src/puppet.ts:383](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L383)*
 
 Need to be called internaly/externaly when the puppet need to be logouted this method will emit a `logout` event,
 
@@ -725,7 +725,7 @@ ___
 
 ▸ **messageFile**(messageId: *`string`*): `Promise`<`FileBox`>
 
-*Defined in [puppet.ts:733](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L733)*
+*Defined in [src/puppet.ts:738](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L738)*
 
 Message
 
@@ -744,7 +744,7 @@ ___
 
 ▸ **messageForward**(receiver: *[Receiver](../interfaces/receiver.md)*, messageId: *`string`*): `Promise`<`void`>
 
-*Defined in [puppet.ts:734](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L734)*
+*Defined in [src/puppet.ts:739](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L739)*
 
 **Parameters:**
 
@@ -762,7 +762,7 @@ ___
 
 ▸ **messagePayload**(messageId: *`string`*): `Promise`<[MessagePayload](../#messagepayload)>
 
-*Defined in [puppet.ts:762](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L762)*
+*Defined in [src/puppet.ts:767](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L767)*
 
 **Parameters:**
 
@@ -779,7 +779,7 @@ ___
 
 ▸ **messageSendContact**(receiver: *[Receiver](../interfaces/receiver.md)*, contactId: *`string`*): `Promise`<`void`>
 
-*Defined in [puppet.ts:736](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L736)*
+*Defined in [src/puppet.ts:741](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L741)*
 
 **Parameters:**
 
@@ -797,7 +797,7 @@ ___
 
 ▸ **messageSendFile**(receiver: *[Receiver](../interfaces/receiver.md)*, file: *`FileBox`*): `Promise`<`void`>
 
-*Defined in [puppet.ts:737](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L737)*
+*Defined in [src/puppet.ts:742](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L742)*
 
 **Parameters:**
 
@@ -815,7 +815,7 @@ ___
 
 ▸ **messageSendText**(receiver: *[Receiver](../interfaces/receiver.md)*, text: *`string`*): `Promise`<`void`>
 
-*Defined in [puppet.ts:735](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L735)*
+*Defined in [src/puppet.ts:740](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L740)*
 
 **Parameters:**
 
@@ -837,7 +837,7 @@ ___
 
 *Overrides EventEmitter.off*
 
-*Defined in /home/zixia/chatie/wechaty-puppet/node_modules/@types/node/index.d.ts:1030*
+*Defined in node_modules/@types/node/index.d.ts:1030*
 
 **Parameters:**
 
@@ -883,7 +883,7 @@ ___
 
 *Overrides EventEmitter.on*
 
-*Defined in [puppet.ts:294](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L294)*
+*Defined in [src/puppet.ts:294](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L294)*
 
 Listeners
 
@@ -898,7 +898,7 @@ Listeners
 
 *Overrides EventEmitter.on*
 
-*Defined in [puppet.ts:295](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L295)*
+*Defined in [src/puppet.ts:295](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L295)*
 
 **Parameters:**
 
@@ -911,7 +911,7 @@ Listeners
 
 *Overrides EventEmitter.on*
 
-*Defined in [puppet.ts:296](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L296)*
+*Defined in [src/puppet.ts:296](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L296)*
 
 **Parameters:**
 
@@ -924,7 +924,7 @@ Listeners
 
 *Overrides EventEmitter.on*
 
-*Defined in [puppet.ts:297](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L297)*
+*Defined in [src/puppet.ts:297](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L297)*
 
 **Parameters:**
 
@@ -937,7 +937,7 @@ Listeners
 
 *Overrides EventEmitter.on*
 
-*Defined in [puppet.ts:298](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L298)*
+*Defined in [src/puppet.ts:298](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L298)*
 
 **Parameters:**
 
@@ -950,7 +950,7 @@ Listeners
 
 *Overrides EventEmitter.on*
 
-*Defined in [puppet.ts:299](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L299)*
+*Defined in [src/puppet.ts:299](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L299)*
 
 **Parameters:**
 
@@ -963,7 +963,7 @@ Listeners
 
 *Overrides EventEmitter.on*
 
-*Defined in [puppet.ts:300](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L300)*
+*Defined in [src/puppet.ts:300](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L300)*
 
 **Parameters:**
 
@@ -976,7 +976,7 @@ Listeners
 
 *Overrides EventEmitter.on*
 
-*Defined in [puppet.ts:301](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L301)*
+*Defined in [src/puppet.ts:301](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L301)*
 
 **Parameters:**
 
@@ -989,7 +989,7 @@ Listeners
 
 *Overrides EventEmitter.on*
 
-*Defined in [puppet.ts:302](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L302)*
+*Defined in [src/puppet.ts:302](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L302)*
 
 **Parameters:**
 
@@ -1002,7 +1002,7 @@ Listeners
 
 *Overrides EventEmitter.on*
 
-*Defined in [puppet.ts:303](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L303)*
+*Defined in [src/puppet.ts:303](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L303)*
 
 **Parameters:**
 
@@ -1015,7 +1015,7 @@ Listeners
 
 *Overrides EventEmitter.on*
 
-*Defined in [puppet.ts:304](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L304)*
+*Defined in [src/puppet.ts:304](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L304)*
 
 **Parameters:**
 
@@ -1028,7 +1028,7 @@ Listeners
 
 *Overrides EventEmitter.on*
 
-*Defined in [puppet.ts:305](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L305)*
+*Defined in [src/puppet.ts:305](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L305)*
 
 **Parameters:**
 
@@ -1041,7 +1041,7 @@ Listeners
 
 *Overrides EventEmitter.on*
 
-*Defined in [puppet.ts:307](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L307)*
+*Defined in [src/puppet.ts:307](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L307)*
 
 **Parameters:**
 
@@ -1054,7 +1054,7 @@ Listeners
 
 *Overrides EventEmitter.on*
 
-*Defined in [puppet.ts:309](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L309)*
+*Defined in [src/puppet.ts:309](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L309)*
 
 **Parameters:**
 
@@ -1076,7 +1076,7 @@ ___
 
 *Overrides EventEmitter.once*
 
-*Defined in /home/zixia/chatie/wechaty-puppet/node_modules/@types/node/index.d.ts:1026*
+*Defined in node_modules/@types/node/index.d.ts:1026*
 
 **Parameters:**
 
@@ -1098,7 +1098,7 @@ ___
 
 *Overrides EventEmitter.prependListener*
 
-*Defined in /home/zixia/chatie/wechaty-puppet/node_modules/@types/node/index.d.ts:1027*
+*Defined in node_modules/@types/node/index.d.ts:1027*
 
 **Parameters:**
 
@@ -1120,7 +1120,7 @@ ___
 
 *Overrides EventEmitter.prependOnceListener*
 
-*Defined in /home/zixia/chatie/wechaty-puppet/node_modules/@types/node/index.d.ts:1028*
+*Defined in node_modules/@types/node/index.d.ts:1028*
 
 **Parameters:**
 
@@ -1142,7 +1142,7 @@ ___
 
 *Overrides EventEmitter.rawListeners*
 
-*Defined in /home/zixia/chatie/wechaty-puppet/node_modules/@types/node/index.d.ts:1035*
+*Defined in node_modules/@types/node/index.d.ts:1035*
 
 **Parameters:**
 
@@ -1163,7 +1163,7 @@ ___
 
 *Overrides EventEmitter.removeAllListeners*
 
-*Defined in /home/zixia/chatie/wechaty-puppet/node_modules/@types/node/index.d.ts:1031*
+*Defined in node_modules/@types/node/index.d.ts:1031*
 
 **Parameters:**
 
@@ -1184,7 +1184,7 @@ ___
 
 *Overrides EventEmitter.removeListener*
 
-*Defined in /home/zixia/chatie/wechaty-puppet/node_modules/@types/node/index.d.ts:1029*
+*Defined in node_modules/@types/node/index.d.ts:1029*
 
 **Parameters:**
 
@@ -1202,7 +1202,7 @@ ___
 
 ▸ **roomAdd**(roomId: *`string`*, contactId: *`string`*): `Promise`<`void`>
 
-*Defined in [puppet.ts:813](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L813)*
+*Defined in [src/puppet.ts:818](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L818)*
 
 Room
 
@@ -1224,7 +1224,7 @@ ___
 
 ▸ **roomAnnounce**(roomId: *`string`*, text: *`string`*): `Promise`<`void`>
 
-*Defined in [puppet.ts:834](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L834)*
+*Defined in [src/puppet.ts:839](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L839)*
 
 **Parameters:**
 
@@ -1234,7 +1234,7 @@ ___
 
 **Returns:** `Promise`<`string`>
 
-*Defined in [puppet.ts:835](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L835)*
+*Defined in [src/puppet.ts:840](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L840)*
 
 **Parameters:**
 
@@ -1252,7 +1252,7 @@ ___
 
 ▸ **roomAvatar**(roomId: *`string`*): `Promise`<`FileBox`>
 
-*Defined in [puppet.ts:814](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L814)*
+*Defined in [src/puppet.ts:819](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L819)*
 
 **Parameters:**
 
@@ -1269,7 +1269,7 @@ ___
 
 ▸ **roomCreate**(contactIdList: *`string`[]*, topic?: * `undefined` &#124; `string`*): `Promise`<`string`>
 
-*Defined in [puppet.ts:815](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L815)*
+*Defined in [src/puppet.ts:820](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L820)*
 
 **Parameters:**
 
@@ -1287,7 +1287,7 @@ ___
 
 ▸ **roomDel**(roomId: *`string`*, contactId: *`string`*): `Promise`<`void`>
 
-*Defined in [puppet.ts:816](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L816)*
+*Defined in [src/puppet.ts:821](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L821)*
 
 **Parameters:**
 
@@ -1305,7 +1305,7 @@ ___
 
 ▸ **roomInvitationAccept**(roomInvitationId: *`string`*): `Promise`<`void`>
 
-*Defined in [puppet.ts:796](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L796)*
+*Defined in [src/puppet.ts:801](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L801)*
 
 Room Invitation
 
@@ -1324,7 +1324,7 @@ ___
 
 ▸ **roomInvitationPayload**(roomInvitationId: *`string`*): `Promise`<[RoomInvitationPayload](../interfaces/roominvitationpayload.md)>
 
-*Defined in [puppet.ts:801](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L801)*
+*Defined in [src/puppet.ts:806](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L806)*
 
 **Parameters:**
 
@@ -1341,7 +1341,7 @@ ___
 
 ▸ **roomList**(): `Promise`<`string`[]>
 
-*Defined in [puppet.ts:825](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L825)*
+*Defined in [src/puppet.ts:830](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L830)*
 
 **Returns:** `Promise`<`string`[]>
 
@@ -1352,7 +1352,7 @@ ___
 
 ▸ **roomMemberList**(roomId: *`string`*): `Promise`<`string`[]>
 
-*Defined in [puppet.ts:826](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L826)*
+*Defined in [src/puppet.ts:831](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L831)*
 
 **Parameters:**
 
@@ -1369,7 +1369,7 @@ ___
 
 ▸ **roomMemberPayload**(roomId: *`string`*, contactId: *`string`*): `Promise`<[RoomMemberPayload](../interfaces/roommemberpayload.md)>
 
-*Defined in [puppet.ts:1067](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L1067)*
+*Defined in [src/puppet.ts:1075](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L1075)*
 
 **Parameters:**
 
@@ -1387,7 +1387,7 @@ ___
 
 ▸ **roomMemberSearch**(roomId: *`string`*, query: *  `string` &#124; `unique symbol`&#124; [RoomMemberQueryFilter](../interfaces/roommemberqueryfilter.md)*): `Promise`<`string`[]>
 
-*Defined in [puppet.ts:837](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L837)*
+*Defined in [src/puppet.ts:842](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L842)*
 
 **Parameters:**
 
@@ -1405,7 +1405,7 @@ ___
 
 ▸ **roomPayload**(roomId: *`string`*): `Promise`<[RoomPayload](../interfaces/roompayload.md)>
 
-*Defined in [puppet.ts:1016](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L1016)*
+*Defined in [src/puppet.ts:1024](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L1024)*
 
 **Parameters:**
 
@@ -1422,7 +1422,7 @@ ___
 
 ▸ **roomQrcode**(roomId: *`string`*): `Promise`<`string`>
 
-*Defined in [puppet.ts:823](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L823)*
+*Defined in [src/puppet.ts:828](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L828)*
 
 **Parameters:**
 
@@ -1439,7 +1439,7 @@ ___
 
 ▸ **roomQuit**(roomId: *`string`*): `Promise`<`void`>
 
-*Defined in [puppet.ts:817](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L817)*
+*Defined in [src/puppet.ts:822](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L822)*
 
 **Parameters:**
 
@@ -1456,7 +1456,7 @@ ___
 
 ▸ **roomSearch**(query?: *[RoomQueryFilter](../interfaces/roomqueryfilter.md)*): `Promise`<`string`[]>
 
-*Defined in [puppet.ts:914](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L914)*
+*Defined in [src/puppet.ts:922](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L922)*
 
 **Parameters:**
 
@@ -1477,7 +1477,7 @@ ___
 
 ▸ **roomTopic**(roomId: *`string`*, topic?: * `undefined` &#124; `string`*): `Promise`< `string` &#124; `void`>
 
-*Defined in [puppet.ts:819](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L819)*
+*Defined in [src/puppet.ts:824](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L824)*
 
 **Parameters:**
 
@@ -1487,7 +1487,7 @@ ___
 
 **Returns:** `Promise`<`string`>
 
-*Defined in [puppet.ts:820](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L820)*
+*Defined in [src/puppet.ts:825](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L825)*
 
 **Parameters:**
 
@@ -1498,7 +1498,7 @@ ___
 
 **Returns:** `Promise`<`void`>
 
-*Defined in [puppet.ts:821](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L821)*
+*Defined in [src/puppet.ts:826](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L826)*
 
 **Parameters:**
 
@@ -1516,7 +1516,7 @@ ___
 
 ▸ **roomValidate**(roomId: *`string`*): `Promise`<`boolean`>
 
-*Defined in [puppet.ts:991](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L991)*
+*Defined in [src/puppet.ts:999](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L999)*
 
 Check a Room Id if it's still valid. For example: talk to the server, and see if it should be deleted in the local cache.
 
@@ -1535,7 +1535,7 @@ ___
 
 ▸ **selfId**(): `string`
 
-*Defined in [puppet.ts:385](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L385)*
+*Defined in [src/puppet.ts:385](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L385)*
 
 **Returns:** `string`
 
@@ -1550,7 +1550,7 @@ ___
 
 *Overrides EventEmitter.setMaxListeners*
 
-*Defined in /home/zixia/chatie/wechaty-puppet/node_modules/@types/node/index.d.ts:1032*
+*Defined in node_modules/@types/node/index.d.ts:1032*
 
 **Parameters:**
 
@@ -1567,7 +1567,7 @@ ___
 
 ▸ **setMemory**(memory: *`MemoryCard`*): `void`
 
-*Defined in [puppet.ts:246](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L246)*
+*Defined in [src/puppet.ts:246](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L246)*
 
 **Parameters:**
 
@@ -1584,7 +1584,7 @@ ___
 
 ▸ **start**(): `Promise`<`void`>
 
-*Defined in [puppet.ts:326](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L326)*
+*Defined in [src/puppet.ts:326](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L326)*
 
 Start / Stop
 
@@ -1597,7 +1597,7 @@ ___
 
 ▸ **stop**(): `Promise`<`void`>
 
-*Defined in [puppet.ts:327](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L327)*
+*Defined in [src/puppet.ts:327](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L327)*
 
 **Returns:** `Promise`<`void`>
 
@@ -1608,7 +1608,7 @@ ___
 
 ▸ **toString**(): `string`
 
-*Defined in [puppet.ts:220](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L220)*
+*Defined in [src/puppet.ts:220](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L220)*
 
 **Returns:** `string`
 
@@ -1619,7 +1619,7 @@ ___
 
 ▸ **unref**(): `void`
 
-*Defined in [puppet.ts:236](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L236)*
+*Defined in [src/puppet.ts:236](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L236)*
 
 Unref
 
@@ -1632,7 +1632,7 @@ ___
 
 ▸ **version**(): `string`
 
-*Defined in [puppet.ts:420](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L420)*
+*Defined in [src/puppet.ts:420](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L420)*
 
 Get version from the Puppet Implementation
 
@@ -1645,7 +1645,7 @@ ___
 
 ▸ **wechatyVersionRange**(strict?: *`boolean`*): `string`
 
-*Defined in [puppet.ts:430](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/puppet.ts#L430)*
+*Defined in [src/puppet.ts:430](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/puppet.ts#L430)*
 
 will be used by semver.satisfied(version, range)
 
@@ -1666,7 +1666,7 @@ ___
 
 *Inherited from EventEmitter.listenerCount*
 
-*Defined in /home/zixia/chatie/wechaty-puppet/node_modules/@types/node/index.d.ts:1021*
+*Defined in node_modules/@types/node/index.d.ts:1021*
 
 *__deprecated__*: since v4.0.0
 

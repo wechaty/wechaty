@@ -41,4 +41,5 @@ export {
 
 export {
   Puppet,
-}           from './puppet'
+  PuppetImplementation,
+}                         from './puppet'

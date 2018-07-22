@@ -1,4 +1,4 @@
-[Wechaty Puppet v0.9.8 Interface](../README.md) > [ContactType](../enums/contacttype.md)
+[Wechaty Puppet v0.9.12 Interface](../README.md) > [ContactType](../enums/contacttype.md)
 
 # Enumeration: ContactType
 
@@ -20,7 +20,7 @@
 
 **Official**: 
 
-*Defined in [schemas/contact.ts:10](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/schemas/contact.ts#L10)*
+*Defined in [src/schemas/contact.ts:10](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L10)*
 
 ___
 <a id="personal"></a>
@@ -29,7 +29,7 @@ ___
 
 **Personal**: 
 
-*Defined in [schemas/contact.ts:9](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/schemas/contact.ts#L9)*
+*Defined in [src/schemas/contact.ts:9](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L9)*
 
 ___
 <a id="unknown"></a>
@@ -38,7 +38,7 @@ ___
 
 **Unknown**:  = 0
 
-*Defined in [schemas/contact.ts:8](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/schemas/contact.ts#L8)*
+*Defined in [src/schemas/contact.ts:8](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L8)*
 
 ___
 

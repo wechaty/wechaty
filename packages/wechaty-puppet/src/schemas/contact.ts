@@ -32,5 +32,8 @@ export interface ContactPayload {
   weixin?    : string,
 }
 
+/** @hidden */
 export type ContactPayloadFilterFunction = (payload: ContactPayload) => boolean
+
+/** @hidden */
 export type ContactPayloadFilterFactory  = (query: ContactQueryFilter) => ContactPayloadFilterFunction

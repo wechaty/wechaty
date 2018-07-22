@@ -5,6 +5,7 @@ export enum FriendshipType {
   Verify,
 }
 
+/** @hidden */
 export interface FriendshipPayloadBase {
   id        : string,
 
@@ -12,16 +13,19 @@ export interface FriendshipPayloadBase {
   hello?    : string,
 }
 
+/** @hidden */
 export type FriendshipPayloadConfirm = FriendshipPayloadBase & {
   type      : FriendshipType.Confirm,
 }
 
+/** @hidden */
 export type FriendshipPayloadReceive = FriendshipPayloadBase & {
   stranger? : string,
   ticket    : string,
   type      : FriendshipType.Receive,
 }
 
+/** @hidden */
 export type FriendshipPayloadVerify = FriendshipPayloadBase & {
   type      : FriendshipType.Verify,
 }

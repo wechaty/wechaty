@@ -1,4 +1,4 @@
-[Wechaty Puppet v0.9.8 Interface](../README.md) > [PuppetQrcodeScanEvent](../interfaces/puppetqrcodescanevent.md)
+[Wechaty Puppet v0.9.12 Interface](../README.md) > [PuppetQrcodeScanEvent](../interfaces/puppetqrcodescanevent.md)
 
 # Interface: PuppetQrcodeScanEvent
 
@@ -25,7 +25,7 @@
 **● data**: * `undefined` &#124; `string`
 *
 
-*Defined in [schemas/puppet.ts:15](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/schemas/puppet.ts#L15)*
+*Defined in [src/schemas/puppet.ts:15](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L15)*
 
 ___
 <a id="qrcode"></a>
@@ -34,7 +34,7 @@ ___
 
 **● qrcode**: *`string`*
 
-*Defined in [schemas/puppet.ts:16](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/schemas/puppet.ts#L16)*
+*Defined in [src/schemas/puppet.ts:16](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L16)*
 
 ___
 <a id="status"></a>
@@ -43,7 +43,7 @@ ___
 
 **● status**: *`number`*
 
-*Defined in [schemas/puppet.ts:17](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/schemas/puppet.ts#L17)*
+*Defined in [src/schemas/puppet.ts:17](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/puppet.ts#L17)*
 
 ___
 

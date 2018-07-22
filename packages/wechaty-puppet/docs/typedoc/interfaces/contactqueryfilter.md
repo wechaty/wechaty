@@ -1,4 +1,4 @@
-[Wechaty Puppet v0.9.8 Interface](../README.md) > [ContactQueryFilter](../interfaces/contactqueryfilter.md)
+[Wechaty Puppet v0.9.12 Interface](../README.md) > [ContactQueryFilter](../interfaces/contactqueryfilter.md)
 
 # Interface: ContactQueryFilter
 
@@ -24,7 +24,7 @@
 **● alias**: * `string` &#124; `RegExp`
 *
 
-*Defined in [schemas/contact.ts:15](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/schemas/contact.ts#L15)*
+*Defined in [src/schemas/contact.ts:15](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L15)*
 
 ___
 <a id="name"></a>
@@ -34,7 +34,7 @@ ___
 **● name**: * `string` &#124; `RegExp`
 *
 
-*Defined in [schemas/contact.ts:14](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/schemas/contact.ts#L14)*
+*Defined in [src/schemas/contact.ts:14](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/contact.ts#L14)*
 
 ___
 

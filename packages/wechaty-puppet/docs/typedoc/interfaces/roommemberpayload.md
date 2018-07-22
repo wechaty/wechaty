@@ -1,4 +1,4 @@
-[Wechaty Puppet v0.9.8 Interface](../README.md) > [RoomMemberPayload](../interfaces/roommemberpayload.md)
+[Wechaty Puppet v0.9.12 Interface](../README.md) > [RoomMemberPayload](../interfaces/roommemberpayload.md)
 
 # Interface: RoomMemberPayload
 
@@ -26,7 +26,7 @@
 
 **● avatar**: *`string`*
 
-*Defined in [schemas/room.ts:24](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/schemas/room.ts#L24)*
+*Defined in [src/schemas/room.ts:24](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/room.ts#L24)*
 
 ___
 <a id="id"></a>
@@ -35,7 +35,7 @@ ___
 
 **● id**: *`string`*
 
-*Defined in [schemas/room.ts:21](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/schemas/room.ts#L21)*
+*Defined in [src/schemas/room.ts:21](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/room.ts#L21)*
 
 ___
 <a id="inviterid"></a>
@@ -45,7 +45,7 @@ ___
 **● inviterId**: * `undefined` &#124; `string`
 *
 
-*Defined in [schemas/room.ts:23](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/schemas/room.ts#L23)*
+*Defined in [src/schemas/room.ts:23](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/room.ts#L23)*
 
 ___
 <a id="name"></a>
@@ -54,7 +54,7 @@ ___
 
 **● name**: *`string`*
 
-*Defined in [schemas/room.ts:25](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/schemas/room.ts#L25)*
+*Defined in [src/schemas/room.ts:25](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/room.ts#L25)*
 
 ___
 <a id="roomalias"></a>
@@ -64,7 +64,7 @@ ___
 **● roomAlias**: * `undefined` &#124; `string`
 *
 
-*Defined in [schemas/room.ts:22](https://github.com/Chatie/wechaty-puppet/blob/e056248/src/schemas/room.ts#L22)*
+*Defined in [src/schemas/room.ts:22](https://github.com/Chatie/wechaty-puppet/blob/53150e3/src/schemas/room.ts#L22)*
 
 ___
 

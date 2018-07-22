@@ -9,6 +9,7 @@ export enum MessageType {
   Video,
 }
 
+/** @hidden */
 export interface MessagePayloadBase {
   id            : string,
   contactId?    : string,        // Contact ShareCard
@@ -18,6 +19,7 @@ export interface MessagePayloadBase {
   type          : MessageType,
 }
 
+/** @hidden */
 export interface MessagePayloadRoom {
   fromId?        : string,
   // mentionIdList? : string[],   // Mentioned Contacts' Ids
@@ -25,6 +27,7 @@ export interface MessagePayloadRoom {
   toId?          : string,     // if to is not set, then room must be set
 }
 
+/** @hidden */
 export interface MessagePayloadTo {
   fromId  : string,
   roomId? : string,

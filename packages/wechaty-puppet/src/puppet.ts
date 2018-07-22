@@ -29,6 +29,9 @@ import normalize   from 'normalize-package-data'
 import readPkgUp   from 'read-pkg-up'
 
 import {
+  Constructor,
+}                       from 'clone-class'
+import {
   FileBox,
 }                       from 'file-box'
 import {
@@ -1108,5 +1111,7 @@ export abstract class Puppet extends EventEmitter {
   }
 
 }
+
+export type PuppetImplementation = typeof Puppet & Constructor<Puppet>
 
 export default Puppet
