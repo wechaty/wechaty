@@ -6,11 +6,6 @@ node_js:
 os:
   - linux
 
-addons:
-  apt:
-    packages:
-      - jq
-
 cache:
   directories:
     - node_modules
@@ -25,9 +20,7 @@ script:
 stages:
   - test
   - pack
-  - name: deploy-npm
-    if: (type = push) AND branch =~ ^(master|v\d+\.\d+)$
-  - name: deploy-docs
+  - name: deploy
     if: (type = push) AND branch =~ ^(master|v\d+\.\d+)$
 
 jobs:
@@ -39,7 +32,7 @@ jobs:
         - npm run test:pack
         - echo "NPM Pack Testing Finished."
 
-    - stage: deploy-npm
+    - stage: deploy
       script:
         - echo "NPM Deploying Started ..."
         - npm version
@@ -51,22 +44,6 @@ jobs:
         provider: npm
         email: zixia@zixia.net
         api_key: "$NPM_TOKEN"
-        skip_cleanup: true
-        on:
-          all_branches: true
-
-    - stage: deploy-docs
-      script:
-        - echo "Building Web Pages ..."
-        - rm -fr node_modules/typedoc/node_modules/typescript
-        - npm run typedoc
-        - echo 'wechaty-puppet.surge.sh' | tee dist/docs/CNAME
-        - echo "Deploying to Surge.sh ..."
-
-      deploy:
-        provider: surge
-        project: dist/docs/
-        domain: wechaty-puppet.surge.sh
         skip_cleanup: true
         on:
           all_branches: true

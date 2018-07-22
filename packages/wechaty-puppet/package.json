@@ -56,6 +56,7 @@
     "tslint": "^5.10.0",
     "tslint-config-standard": "^7.1.0",
     "typedoc": "^0.11.1",
+    "typedoc-plugin-markdown": "^1.1.13",
     "typescript": "^2.9.2"
   },
   "git": {

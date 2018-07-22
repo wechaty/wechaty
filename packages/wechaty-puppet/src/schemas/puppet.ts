@@ -41,24 +41,24 @@ export interface PuppetRoomTopicEvent {
 }
 
 export const CHAT_EVENT_DICT = {
-  friendship  : 'document can be writen at here',
-  login       : 'document can be writen at here',
-  logout      : 'document can be writen at here',
-  message     : 'document can be writen at here',
-  'room-invite': 'document can be writen at here',
-  'room-join' : 'document can be writen at here',
-  'room-leave': 'document can be writen at here',
-  'room-topic': 'document can be writen at here',
-  scan        : 'document can be writen at here',
+  friendship    : 'todo: explain what this event is',
+  login         : 'todo: explain what this event is',
+  logout        : 'todo: explain what this event is',
+  message       : 'todo: explain what this event is',
+  'room-invite' : 'todo: explain what this event is',
+  'room-join'   : 'todo: explain what this event is',
+  'room-leave'  : 'todo: explain what this event is',
+  'room-topic'  : 'todo: explain what this event is',
+  scan          : 'todo: explain what this event is',
 }
 export type ChatEventName = keyof typeof CHAT_EVENT_DICT
 
 export const PUPPET_EVENT_DICT = {
   ...CHAT_EVENT_DICT,
-  dong      : 'document can be writen at here',
-  error     : 'document can be writen at here',
+  dong      : 'todo: explain what this event is',
+  error     : 'todo: explain what this event is',
   reset     : 'push to reset!',
-  watchdog  : 'document can be writen at here',
+  watchdog  : 'todo: explain what this event is',
 }
 
 export type PuppetEventName = keyof typeof PUPPET_EVENT_DICT
