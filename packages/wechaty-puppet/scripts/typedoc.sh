@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
+rm -fr node_modules/typedoc/node_modules/typescript
+
 VERSION=$(jq -r .version package.json)
 
 typedoc \
