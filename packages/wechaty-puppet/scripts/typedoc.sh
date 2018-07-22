@@ -11,6 +11,6 @@ typedoc \
   --mode file \
   --module commonjs \
   --target ES6 \
-  --name "Wechaty Puppet Interface" \
+  --name "Wechaty Puppet v`jq -r .version package.json` Interface" \
   --out dist/docs/ \
   src/

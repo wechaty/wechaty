@@ -6,6 +6,11 @@ node_js:
 os:
   - linux
 
+addons:
+  apt:
+    packages:
+      - jq
+
 cache:
   directories:
     - node_modules
