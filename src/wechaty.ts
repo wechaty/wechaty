@@ -19,7 +19,6 @@
  */
 import cuid    from 'cuid'
 import os      from 'os'
-import semver  from 'semver'
 
 import {
   // Constructor,
@@ -70,8 +69,10 @@ import {
 }                       from './io'
 import {
   PuppetName,
-  puppetResolver,
 }                       from './puppet-config'
+import {
+  PuppetManager,
+}                       from './puppet-manager'
 
 import {
   Contact,
@@ -229,9 +230,9 @@ export class Wechaty extends Accessory implements Sayable {
                       ? null
                       : (options.profile || config.default.DEFAULT_PROFILE)
 
+    this.id     = cuid()
     this.memory = new MemoryCard(options.profile || undefined)
     this.state  = new StateSwitch('Wechaty', log)
-    this.id     = cuid()
 
     /**
      * @ignore
@@ -242,11 +243,11 @@ export class Wechaty extends Accessory implements Sayable {
      *   https://github.com/Microsoft/TypeScript/issues/19197
      */
     // TODO: make Message & Room constructor private???
-    this.Contact     = cloneClass(Contact)
-    this.ContactSelf = cloneClass(ContactSelf)
-    this.Friendship  = cloneClass(Friendship)
-    this.Message     = cloneClass(Message)
-    this.Room        = cloneClass(Room)
+    this.Contact        = cloneClass(Contact)
+    this.ContactSelf    = cloneClass(ContactSelf)
+    this.Friendship     = cloneClass(Friendship)
+    this.Message        = cloneClass(Message)
+    this.Room           = cloneClass(Room)
     this.RoomInvitation = cloneClass(RoomInvitation)
   }
 
@@ -525,95 +526,22 @@ export class Wechaty extends Accessory implements Sayable {
       return
     }
 
-    const puppet = await this.initPuppetResolver(this.options.puppet)
-
-    this.initPuppetVersionSatisfy(puppet)
-    this.initPuppetEventBridge(puppet)
-
-    this.initPuppetAccessory(puppet)
-  }
-
-  /**
-   * @private
-   */
-  private initPuppetVersionSatisfy (puppet: Puppet): void {
-    log.verbose('Wechaty', 'initPuppetVersionSatisfy(%s)', puppet)
-
-    if (this.initPuppetSemverSatisfy(
-      puppet.wechatyVersionRange(),
-    )) {
-      return
-    }
-
-    throw new Error(`The Puppet Plugin(${puppet.constructor.name}) `
-      + `requires a version range(${puppet.wechatyVersionRange()}) `
-      + `that is not satisfying the Wechaty version: ${this.version()}.`,
-    )
-  }
-
-  /**
-   * @private
-   *
-   * Init the Puppet
-   */
-  private async initPuppetResolver (puppet?: PuppetName | Puppet): Promise<Puppet> {
-    log.verbose('Wechaty', 'initPuppetResolver(%s)', puppet)
-
-    if (!puppet) {
-      puppet = config.systemPuppetName()
-      log.info('Wechaty', 'initPuppet() using puppet: %s', puppet)
-    }
-
+    const puppet       = this.options.puppet || config.systemPuppetName()
     const puppetMemory = this.memory.sub(puppet.toString())
 
-    let puppetInstance: Puppet
+    const puppetInstance = await PuppetManager.resolve({
+      puppet,
+      puppetOptions : this.options.puppetOptions,
+      wechaty       : this,
+    })
 
-    if (typeof puppet === 'string') {
-      // tslint:disable-next-line:variable-name
-      const MyPuppet = await puppetResolver(puppet)
-      if (!MyPuppet) {
-        throw new Error('no such puppet: ' + puppet)
-      }
-
-      /**
-       * We will meet the following error:
-       *
-       *  [ts] Cannot use 'new' with an expression whose type lacks a call or construct signature.
-       *
-       * When we have different puppet with different `constructor()` args.
-       * For example: PuppetA allow `constructor()` but PuppetB requires `constructor(options)`
-       *
-       * SOLUTION: we enforce all the PuppetImplenmentation to have `options` and should not allow default parameter.
-       * Issue: https://github.com/Chatie/wechaty-puppet/issues/2
-       */
-      puppetInstance = new MyPuppet(this.options.puppetOptions)
-
-    } else if (puppet instanceof Puppet) {
-      puppetInstance = puppet
-
-    } else {
-      throw new Error('unsupported options.puppet: ' + puppet)
-    }
-
-    // give puppet the memory
+    /**
+     * Plug the Memory Card to Puppet
+     */
     puppetInstance.setMemory(puppetMemory)
 
-    log.info('Wechaty', 'initPuppet() inited puppet: %s', puppetInstance.toString())
-
-    return puppetInstance
-  }
-
-  /**
-   * @private
-   *
-   * Plugin Version Range Check
-   */
-  private initPuppetSemverSatisfy (versionRange: string) {
-    log.verbose('Wechaty', 'initPuppetSemverSatisfy(%s)', versionRange)
-    return semver.satisfies(
-      this.version(true),
-      versionRange,
-    )
+    this.initPuppetEventBridge(puppetInstance)
+    this.initPuppetAccessory(puppetInstance)
   }
 
   protected initPuppetEventBridge (puppet: Puppet) {
@@ -767,24 +695,24 @@ export class Wechaty extends Accessory implements Sayable {
     /**
      * 1. Set Wechaty
      */
-    this.Contact.wechaty     = this
-    this.ContactSelf.wechaty = this
-    this.Friendship.wechaty  = this
-    this.Message.wechaty     = this
-    this.Room.wechaty        = this
+    this.Contact.wechaty        = this
+    this.ContactSelf.wechaty    = this
+    this.Friendship.wechaty     = this
+    this.Message.wechaty        = this
+    this.Room.wechaty           = this
     this.RoomInvitation.wechaty = this
 
     /**
      * 2. Set Puppet
      */
-    this.Contact.puppet     = puppet
-    this.ContactSelf.puppet = puppet
-    this.Friendship.puppet  = puppet
-    this.Message.puppet     = puppet
-    this.Room.puppet        = puppet
+    this.Contact.puppet        = puppet
+    this.ContactSelf.puppet    = puppet
+    this.Friendship.puppet     = puppet
+    this.Message.puppet        = puppet
+    this.Room.puppet           = puppet
     this.RoomInvitation.puppet = puppet
 
-    this.puppet               = puppet
+    this.puppet = puppet
   }
 
   /**

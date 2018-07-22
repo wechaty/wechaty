@@ -119,7 +119,7 @@ export class Config {
   public apihost = process.env.WECHATY_APIHOST    || DEFAULT_SETTING.DEFAULT_APIHOST
   public head    = ('WECHATY_HEAD' in process.env) ? (!!process.env.WECHATY_HEAD) : (!!(DEFAULT_SETTING.DEFAULT_HEAD))
 
-  public systemPuppetName () {
+  public systemPuppetName (): PuppetName {
     return (
       process.env.WECHATY_PUPPET || 'default'
     ).toLowerCase() as PuppetName

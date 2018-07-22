@@ -325,7 +325,7 @@ export class Room extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * @hidden
    */
   public async ready (
     dirty = false,
@@ -356,7 +356,7 @@ export class Room extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * @hidden
    */
   public isReady (): boolean {
     return !!(this.payload)

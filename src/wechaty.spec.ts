@@ -76,7 +76,7 @@ test('Config setting', async t => {
 })
 
 test('event:start/stop', async t => {
-  const wechaty = new Wechaty({ puppet: 'mock' })
+  const wechaty = new Wechaty({ puppet: 'wechaty-puppet-mock' })
 
   const startSpy = sinon.spy()
   const stopSpy  = sinon.spy()
