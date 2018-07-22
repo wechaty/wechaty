@@ -27,15 +27,3 @@ export interface RoomMemberPayload {
 
 export type RoomPayloadFilterFunction = (payload: RoomPayload)    => boolean
 export type RoomPayloadFilterFactory  = (query: RoomQueryFilter)  => RoomPayloadFilterFunction
-
-export interface RoomInvitationResult {
-  succeed: boolean,
-  message: string
-}
-
-export interface RoomInvitation {
-  roomName    : string,
-  fromUser    : string,
-  timestamp   : number,
-  accept      : () => Promise<RoomInvitationResult>
-}

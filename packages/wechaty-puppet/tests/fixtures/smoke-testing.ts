@@ -21,10 +21,13 @@ import {
 
   Receiver,
 
+  RoomInvitationPayload,
+
   RoomMemberPayload,
   RoomPayload,
   RoomPayloadFilterFunction,
   RoomQueryFilter,
+
 }                             from 'wechaty-puppet'
 
 import {
@@ -84,6 +87,16 @@ class PuppetTest extends Puppet {
 
   public async messageRawPayload (id: string)            : Promise<any> { return { id } as any }
   public async messageRawPayloadParser (rawPayload: any) : Promise<MessagePayload> { return { rawPayload } as any }
+
+  /**
+   *
+   * Room Invitation
+   *
+   */
+  public async roomInvitationAccept (roomInvitationId: string): Promise<void> { return }
+
+  public async roomInvitationRawPayload (roomInvitationId: string) : Promise<any> { return { roomInvitationId } as any }
+  public async roomInvitationRawPayloadParser (rawPayload: any)    : Promise<RoomInvitationPayload> { return rawPayload }
 
   /**
    *

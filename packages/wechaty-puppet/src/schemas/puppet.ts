@@ -18,8 +18,8 @@ export interface PuppetQrcodeScanEvent {
 }
 
 export interface PuppetRoomInviteEvent {
-  roomName: string,
-  url: string,
+  inviterId : string,
+  roomId    : string,
 }
 
 export interface PuppetRoomJoinEvent {
