@@ -31,6 +31,10 @@ export {
   PuppetRoomLeaveEvent,
   PuppetRoomTopicEvent,
   Receiver,
+
+  CHAT_EVENT_DICT,
+  PUPPET_EVENT_DICT,
+
   YOU,
 }                         from './schemas/puppet'
 
