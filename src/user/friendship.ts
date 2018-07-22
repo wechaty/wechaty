@@ -18,8 +18,6 @@
  *
  */
 
- /* tslint:disable:no-var-requires */
-// const retryPromise  = require('retry-promise').default
 import {
   instanceToClass,
 }                   from 'clone-class'
@@ -198,6 +196,19 @@ export class Friendship extends Accessory implements Acceptable {
     ].join('')
   }
 
+  public async toStringAsync (): Promise<string> {
+    if (!this.payload) {
+      return this.constructor.name
+    }
+    return [
+      'Friendship#',
+      FriendshipType[this.payload.type],
+      '<',
+      this.payload.contactId,
+      '>',
+    ].join('')
+  }
+
   public isReady (): boolean {
     return !!this.payload && (Object.keys(this.payload).length > 0)
   }
@@ -357,5 +368,4 @@ export class Friendship extends Accessory implements Acceptable {
             ? this.payload.type
             : FriendshipType.Unknown
   }
-
 }

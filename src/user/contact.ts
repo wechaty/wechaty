@@ -306,6 +306,16 @@ export class Contact extends Accessory implements Sayable {
     return `Contact<${identity}>`
   }
 
+  /**
+   * @private
+   */
+  public async toStringAsync (): Promise<string> {
+    const identity = this.payload
+      ? this.payload.alias || this.payload.name || this.id
+      : this.id
+    return `Contact<${identity}>`
+  }
+
   public async say (text: string): Promise<void>
   public async say (file: FileBox)    : Promise<void>
   public async say (contact: Contact) : Promise<void>
@@ -694,44 +704,4 @@ export class Contact extends Accessory implements Sayable {
   public weixin (): null | string {
     return this.payload && this.payload.weixin || null
   }
-}
-
-// tslint:disable:max-classes-per-file
-
-export class ContactSelf extends Contact {
-  constructor (
-    id: string,
-  ) {
-    super(id)
-  }
-
-  public async avatar ()              : Promise<FileBox>
-  public async avatar (file: FileBox) : Promise<void>
-
-  public async avatar (file?: FileBox): Promise<void | FileBox> {
-    log.verbose('Contact', 'avatar(%s)', file ? file.name : '')
-
-    if (!file) {
-      const filebox = await super.avatar()
-      return filebox
-    }
-
-    if (this.id !== this.puppet.selfId()) {
-      throw new Error('set avatar only available for user self')
-    }
-
-    await this.puppet.contactAvatar(this.id, file)
-  }
-
-  public async qrcode (): Promise<string> {
-    log.verbose('Contact', 'qrcode()')
-
-    if (this.id !== this.puppet.selfId()) {
-      throw new Error('only can get qrcode for the login userself')
-    }
-
-    const qrcodeData = await this.puppet.contactQrcode(this.id)
-    return qrcodeData
-  }
-
 }

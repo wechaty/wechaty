@@ -79,6 +79,7 @@ import {
   Friendship,
   Message,
   Room,
+  RoomInvitation,
 }                       from './user/'
 
 export const WECHATY_EVENT_DICT = {
@@ -145,34 +146,11 @@ export class Wechaty extends Accessory implements Sayable {
    */
   public readonly id : string
 
-  /**
-   * @private
-   */
-  // tslint:disable-next-line:variable-name
   public readonly Contact       : typeof Contact
-
-  /**
-   * @private
-   */
-  // tslint:disable-next-line:variable-name
   public readonly ContactSelf   : typeof ContactSelf
-
-  /**
-   * @private
-   */
-  // tslint:disable-next-line:variable-name
   public readonly Friendship    : typeof Friendship
-
-  /**
-   * @private
-   */
-  // tslint:disable-next-line:variable-name
   public readonly Message       : typeof Message
-
-  /**
-   * @private
-   */
-  // tslint:disable-next-line:variable-name
+  public readonly RoomInvitation: typeof RoomInvitation
   public readonly Room          : typeof Room
 
   /**
@@ -269,6 +247,7 @@ export class Wechaty extends Accessory implements Sayable {
     this.Friendship  = cloneClass(Friendship)
     this.Message     = cloneClass(Message)
     this.Room        = cloneClass(Room)
+    this.RoomInvitation = cloneClass(RoomInvitation)
   }
 
   /**
@@ -293,6 +272,7 @@ export class Wechaty extends Accessory implements Sayable {
   public emit (event: 'heartbeat'  , data: any)                                                        : boolean
   public emit (event: 'login' | 'logout', user: ContactSelf)                                           : boolean
   public emit (event: 'message'    , message: Message)                                                 : boolean
+  public emit (event: 'room-invite', room: Room, inviter: Contact, roomInvitation: RoomInvitation)    : boolean
   public emit (event: 'room-join'  , room: Room, inviteeList : Contact[], inviter  : Contact)          : boolean
   public emit (event: 'room-leave' , room: Room, leaverList  : Contact[], remover? : Contact)          : boolean
   public emit (event: 'room-topic' , room: Room, newTopic: string, oldTopic: string, changer: Contact) : boolean
@@ -309,17 +289,18 @@ export class Wechaty extends Accessory implements Sayable {
     return super.emit(event, ...args)
   }
 
-  public on (event: 'dong'       , listener: string | ((this: Wechaty, data?: string) => void))                                                     : this
+  public on (event: 'dong'       , listener: string | ((this: Wechaty, data?: string) => void))                                                    : this
   public on (event: 'error'      , listener: string | ((this: Wechaty, error: Error) => void))                                                     : this
   public on (event: 'friendship' , listener: string | ((this: Wechaty, friendship: Friendship) => void))                                           : this
   public on (event: 'heartbeat'  , listener: string | ((this: Wechaty, data: any) => void))                                                        : this
-  public on (event: 'login' | 'logout'     , listener: string | ((this: Wechaty, user: ContactSelf) => void))                                                : this
+  public on (event: 'login' | 'logout', listener: string | ((this: Wechaty, user: ContactSelf) => void))                                           : this
   public on (event: 'message'    , listener: string | ((this: Wechaty, message: Message) => void))                                                 : this
+  public on (event: 'room-invite', listener: string | ((this: Wechaty, room: Room, inviter: Contact,  roomInvitation: RoomInvitation) => void))    : this
   public on (event: 'room-join'  , listener: string | ((this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void))            : this
   public on (event: 'room-leave' , listener: string | ((this: Wechaty, room: Room, leaverList: Contact[], remover?: Contact) => void))             : this
   public on (event: 'room-topic' , listener: string | ((this: Wechaty, room: Room, newTopic: string, oldTopic: string, changer: Contact) => void)) : this
   public on (event: 'scan'       , listener: string | ((this: Wechaty, qrcode: string, status: number, data?: string) => void))                    : this
-  public on (event: 'start' | 'stop'      , listener: string | ((this: Wechaty) => void))                                                                   : this
+  public on (event: 'start' | 'stop', listener: string | ((this: Wechaty) => void))                                                                : this
 
   // guard for the above event: make sure it includes all the possible values
   public on (event: never, listener: never): never
@@ -642,21 +623,18 @@ export class Wechaty extends Accessory implements Sayable {
 
       switch (eventName) {
         case 'dong':
-          puppet.removeAllListeners('dong')
           puppet.on('dong', data => {
             this.emit('dong', data)
           })
           break
 
         case 'error':
-          puppet.removeAllListeners('error')
           puppet.on('error', error => {
             this.emit('error', new Error(error))
           })
           break
 
         case 'watchdog':
-          puppet.removeAllListeners('heartbeat')
           puppet.on('watchdog', data => {
             /**
              * Use `watchdog` event from Puppet to `heartbeat` Wechaty.
@@ -667,7 +645,6 @@ export class Wechaty extends Accessory implements Sayable {
           break
 
         case 'friendship':
-          puppet.removeAllListeners('friendship')
           puppet.on('friendship', async friendshipId => {
             const friendship = this.Friendship.load(friendshipId)
             await friendship.ready()
@@ -681,7 +658,6 @@ export class Wechaty extends Accessory implements Sayable {
           break
 
         case 'login':
-          puppet.removeAllListeners('login')
           puppet.on('login', async contactId => {
             const contact = this.ContactSelf.load(contactId)
             await contact.ready()
@@ -690,7 +666,6 @@ export class Wechaty extends Accessory implements Sayable {
           break
 
         case 'logout':
-          puppet.removeAllListeners('logout')
           puppet.on('logout', async contactId => {
             const contact = this.ContactSelf.load(contactId)
             await contact.ready()
@@ -699,7 +674,6 @@ export class Wechaty extends Accessory implements Sayable {
           break
 
         case 'message':
-          puppet.removeAllListeners('message')
           puppet.on('message', async messageId => {
             const msg = this.Message.create(messageId)
             await msg.ready()
@@ -707,8 +681,22 @@ export class Wechaty extends Accessory implements Sayable {
           })
           break
 
+        case 'room-invite':
+          puppet.on('room-invite', async roomInvitationId => {
+            const roomInvitation = this.RoomInvitation.load(roomInvitationId)
+
+            const room = await roomInvitation.room()
+            await room.ready()
+
+            const inviter = await roomInvitation.inviter()
+            await inviter.ready()
+
+            this.emit('room-invite', room,  inviter, roomInvitation)
+            room.emit('invite',             inviter, roomInvitation)
+          })
+          break
+
         case 'room-join':
-          puppet.removeAllListeners('room-join')
           puppet.on('room-join', async (roomId, inviteeIdList, inviterId) => {
             const room = this.Room.load(roomId)
             await room.ready()
@@ -725,7 +713,6 @@ export class Wechaty extends Accessory implements Sayable {
           break
 
         case 'room-leave':
-          puppet.removeAllListeners('room-leave')
           puppet.on('room-leave', async (roomId, leaverIdList, removerId) => {
             const room = this.Room.load(roomId)
             await room.ready()
@@ -745,7 +732,6 @@ export class Wechaty extends Accessory implements Sayable {
           break
 
         case 'room-topic':
-          puppet.removeAllListeners('room-topic')
           puppet.on('room-topic', async (roomId, newTopic, oldTopic, changerId) => {
             const room = this.Room.load(roomId)
             await room.ready()
@@ -759,7 +745,6 @@ export class Wechaty extends Accessory implements Sayable {
           break
 
         case 'scan':
-          puppet.removeAllListeners('scan')
           puppet.on('scan', async (qrcode, status, data) => {
             this.emit('scan', qrcode, status, data)
           })
@@ -787,6 +772,7 @@ export class Wechaty extends Accessory implements Sayable {
     this.Friendship.wechaty  = this
     this.Message.wechaty     = this
     this.Room.wechaty        = this
+    this.RoomInvitation.wechaty = this
 
     /**
      * 2. Set Puppet
@@ -796,6 +782,7 @@ export class Wechaty extends Accessory implements Sayable {
     this.Friendship.puppet  = puppet
     this.Message.puppet     = puppet
     this.Room.puppet        = puppet
+    this.RoomInvitation.puppet = puppet
 
     this.puppet               = puppet
   }

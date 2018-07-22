@@ -37,11 +37,11 @@ import {
   Sayable,
 }             from '../types'
 
-import {
-  Contact,
-}               from './contact'
+import { Contact }        from './contact'
+import { RoomInvitation } from './room-invitation'
 
 export const ROOM_EVENT_DICT = {
+  invite: 'tbw',
   join: 'tbw',
   leave: 'tbw',
   topic: 'tbw',
@@ -307,6 +307,16 @@ export class Room extends Accessory implements Sayable {
     return `Room<${this.id || ''}>`
   }
 
+  /**
+   * @private
+   */
+  public async toStringAsync (): Promise<string> {
+    if (this.payload && this.payload.topic) {
+      return `Room<${this.payload.topic}>`
+    }
+    return `Room<${this.id || ''}>`
+  }
+
   public async *[Symbol.asyncIterator] (): AsyncIterableIterator<Contact> {
     const memberList = await this.memberList()
     for (const contact of memberList) {
@@ -435,6 +445,7 @@ export class Room extends Accessory implements Sayable {
     }
   }
 
+  public emit (event: 'invite',inviter: Contact, invitation: RoomInvitation)                 : boolean
   public emit (event: 'leave', leaverList:   Contact[],  remover?: Contact)                    : boolean
   public emit (event: 'join' , inviteeList:  Contact[] , inviter:  Contact)                    : boolean
   public emit (event: 'topic', topic:        string,     oldTopic: string,   changer: Contact) : boolean
@@ -447,6 +458,7 @@ export class Room extends Accessory implements Sayable {
     return super.emit(event, ...args)
   }
 
+  public on (event: 'invite', listener: (this: Room, inviter: Contact, invitation: RoomInvitation) => void)              : this
   public on (event: 'leave', listener: (this: Room, leaverList:  Contact[], remover?: Contact) => void)                  : this
   public on (event: 'join' , listener: (this: Room, inviteeList: Contact[], inviter:  Contact) => void)                  : this
   public on (event: 'topic', listener: (this: Room, topic:       string,    oldTopic: string, changer: Contact) => void) : this
