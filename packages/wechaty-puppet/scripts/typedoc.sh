@@ -7,7 +7,7 @@ typedoc \
   --excludeNotExported \
   --excludePrivate \
   --excludeProtected \
-  --externalPattern **/lib/** \
+  --externalPattern "**/node_modules/**" \
   --mode file \
   --module commonjs \
   --target ES6 \
