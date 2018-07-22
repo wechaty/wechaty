@@ -16,7 +16,8 @@
     "lint:ts": "tslint --project tsconfig.json && tsc --noEmit",
     "test": "npm run lint && npm run test:unit",
     "test:pack": "bash -x scripts/npm-pack-testing.sh",
-    "test:unit": "blue-tape -r ts-node/register \"src/**/*.spec.ts\" \"src/*.spec.ts\" \"tests/*.spec.ts\" \"tests/**/*.spec.ts\""
+    "test:unit": "blue-tape -r ts-node/register \"src/**/*.spec.ts\" \"src/*.spec.ts\" \"tests/*.spec.ts\" \"tests/**/*.spec.ts\"",
+    "typedoc": "bash scripts/typedoc.sh"
   },
   "repository": {
     "type": "git",
@@ -54,6 +55,7 @@
     "ts-node": "^7.0.0",
     "tslint": "^5.10.0",
     "tslint-config-standard": "^7.1.0",
+    "typedoc": "^0.11.1",
     "typescript": "^2.9.2"
   },
   "git": {

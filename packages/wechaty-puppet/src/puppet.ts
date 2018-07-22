@@ -99,15 +99,15 @@ export abstract class Puppet extends EventEmitter {
    */
   public static readonly VERSION = '0.0.0'
 
-  public readonly cacheContactPayload    : LRU.Cache<string, ContactPayload>
-  public readonly cacheFriendshipPayload : LRU.Cache<string, FriendshipPayload>
-  public readonly cacheMessagePayload    : LRU.Cache<string, MessagePayload>
-  public readonly cacheRoomPayload       : LRU.Cache<string, RoomPayload>
-  public readonly cacheRoomMemberPayload : LRU.Cache<string, RoomMemberPayload>
+  protected readonly cacheContactPayload    : LRU.Cache<string, ContactPayload>
+  protected readonly cacheFriendshipPayload : LRU.Cache<string, FriendshipPayload>
+  protected readonly cacheMessagePayload    : LRU.Cache<string, MessagePayload>
+  protected readonly cacheRoomPayload       : LRU.Cache<string, RoomPayload>
+  protected readonly cacheRoomMemberPayload : LRU.Cache<string, RoomMemberPayload>
 
-  protected readonly state    : StateSwitch
-  protected readonly counter  : number
-  protected memory: MemoryCard
+  protected readonly state   : StateSwitch
+  protected readonly counter : number
+  protected memory           : MemoryCard
 
   /**
    * Login-ed User ID
@@ -134,7 +134,7 @@ export abstract class Puppet extends EventEmitter {
    *
    */
   constructor (
-    public options: PuppetOptions = {},
+    protected options: PuppetOptions = {},
   ) {
     super()
 
@@ -231,7 +231,7 @@ export abstract class Puppet extends EventEmitter {
   }
 
   /**
-   * @private
+   * Unref
    */
   public unref (): void {
     log.verbose('Puppet', 'unref()')
@@ -260,22 +260,20 @@ export abstract class Puppet extends EventEmitter {
    *
    *
    */
-  public emit (event: 'dong',       data?: string)                                                         : boolean
-  public emit (event: 'error',      error: Error)                                                          : boolean
-  public emit (event: 'friendship', friendshipId: string)                                                  : boolean
-  public emit (event: 'login',      contactId: string)                                                     : boolean
-  public emit (event: 'logout',     contactId: string)                                                     : boolean
-  public emit (event: 'message',    messageId: string)                                                     : boolean
-  public emit (event: 'reset',      reason: string)                                                        : boolean
-  public emit (event: 'room-join',  roomId: string, inviteeIdList: string[],  inviterId: string)           : boolean
-  public emit (event: 'room-leave', roomId: string, leaverIdList: string[], remover?: string)              : boolean
-  public emit (event: 'room-topic', roomId: string, newTopic: string, oldTopic: string, changerId: string) : boolean
-  public emit (event: 'room-invite',roomInvitationId: string)                                              : boolean
-  public emit (event: 'scan',       qrcode: string, status: number, data?: string)                         : boolean
-  // public emit (event: 'start')                                                                             : boolean
-  // public emit (event: 'stop')                                                                              : boolean
+  public emit (event: 'dong',         data?: string)                                                                 : boolean
+  public emit (event: 'error',        error: Error)                                                                  : boolean
+  public emit (event: 'friendship',   friendshipId: string)                                                          : boolean
+  public emit (event: 'login',        contactId: string)                                                             : boolean
+  public emit (event: 'logout',       contactId: string)                                                             : boolean
+  public emit (event: 'message',      messageId: string)                                                             : boolean
+  public emit (event: 'reset',        reason: string)                                                                : boolean
+  public emit (event: 'room-join',    roomId: string, inviteeIdList:  string[], inviterId: string)                   : boolean
+  public emit (event: 'room-leave',   roomId: string, leaverIdList:   string[], remover?: string)                    : boolean
+  public emit (event: 'room-topic',   roomId: string, newTopic:       string,   oldTopic: string, changerId: string) : boolean
+  public emit (event: 'room-invite',  roomInvitationId: string)                                                      : boolean
+  public emit (event: 'scan',         qrcode: string, status: number, data?: string)                                 : boolean
   // Internal Usage: watchdog
-  public emit (event: 'watchdog',    food: WatchdogFood) : boolean
+  public emit (event: 'watchdog',     food: WatchdogFood) : boolean
 
   public emit (event: never, ...args: never[]): never
 
@@ -293,28 +291,26 @@ export abstract class Puppet extends EventEmitter {
    *
    *
    */
-  public on (event: 'dong',       listener: (data?: string) => void)                                                         : this
-  public on (event: 'error',      listener: (error: string) => void)                                                         : this
-  public on (event: 'friendship', listener: (friendshipId: string) => void)                                                  : this
-  public on (event: 'login',      listener: (contactId: string) => void)                                                     : this
-  public on (event: 'logout',     listener: (contactId: string) => void)                                                     : this
-  public on (event: 'message',    listener: (messageId: string) => void)                                                     : this
-  public on (event: 'reset',      listener: (reason: string) => void)                                                        : this
-  public on (event: 'room-join',  listener: (roomId: string, inviteeIdList: string[], inviterId:  string) => void)           : this
-  public on (event: 'room-leave', listener: (roomId: string, leaverIdList : string[], removerId?: string) => void)           : this
-  public on (event: 'room-topic', listener: (roomId: string, newTopic: string, oldTopic: string, changerId: string) => void) : this
-  public on (event: 'room-invite',listener: (roomInvitationId: string) => void)                                              : this
-  public on (event: 'scan',       listener: (qrcode: string, status: number, data?: string) => void)                         : this
-  // public on (event: 'start',      listener: () => void)                                                                      : this
-  // public on (event: 'stop',       listener: () => void)                                                                      : this
+  public on (event: 'dong',         listener: (data?: string) => void)                                                                  : this
+  public on (event: 'error',        listener: (error: string) => void)                                                                  : this
+  public on (event: 'friendship',   listener: (friendshipId: string) => void)                                                           : this
+  public on (event: 'login',        listener: (contactId: string) => void)                                                              : this
+  public on (event: 'logout',       listener: (contactId: string) => void)                                                              : this
+  public on (event: 'message',      listener: (messageId: string) => void)                                                              : this
+  public on (event: 'reset',        listener: (reason: string) => void)                                                                 : this
+  public on (event: 'room-join',    listener: (roomId: string, inviteeIdList: string[], inviterId:  string) => void)                    : this
+  public on (event: 'room-leave',   listener: (roomId: string, leaverIdList:  string[], removerId?: string) => void)                    : this
+  public on (event: 'room-topic',   listener: (roomId: string, newTopic:      string,   oldTopic:   string, changerId: string) => void) : this
+  public on (event: 'room-invite',  listener: (roomInvitationId: string) => void)                                                       : this
+  public on (event: 'scan',         listener: (qrcode: string, status: number, data?: string) => void)                                  : this
   // Internal Usage: watchdog
-  public on (event: 'watchdog',   listener: (data: WatchdogFood) => void)                                                    : this
+  public on (event: 'watchdog',     listener: (data: WatchdogFood) => void)                                                    : this
 
   public on (event: never, listener: never): never
 
   public on (
-    event:    PuppetEventName,
-    listener: (...args: any[]) => void,
+    event    : PuppetEventName,
+    listener : (...args: any[]) => void,
   ): this {
     super.on(event, listener)
     return this
@@ -418,6 +414,9 @@ export abstract class Puppet extends EventEmitter {
    */
   public abstract ding (data?: string) : void
 
+  /**
+   * Get version from the Puppet Implementation
+   */
   public version (): string {
     if (this.childPkg) {
       return this.childPkg.version
@@ -468,8 +467,8 @@ export abstract class Puppet extends EventEmitter {
 
   public abstract async contactQrcode (contactId: string) : Promise<string /*QR Code Value*/>
 
-  public abstract async contactRawPayload (contactId: string)     : Promise<any>
-  public abstract async contactRawPayloadParser (rawPayload: any) : Promise<ContactPayload>
+  protected abstract async contactRawPayload (contactId: string)     : Promise<any>
+  protected abstract async contactRawPayloadParser (rawPayload: any) : Promise<ContactPayload>
 
   public async contactRoomList (
     contactId: string,
@@ -489,7 +488,7 @@ export abstract class Puppet extends EventEmitter {
     return resultRoomIdList
   }
 
-  public async contactPayloadDirty (contactId: string): Promise<void> {
+  protected async contactPayloadDirty (contactId: string): Promise<void> {
     log.verbose('Puppet', 'contactPayloadDirty(%s)', contactId)
     this.cacheContactPayload.del(contactId)
   }
@@ -621,7 +620,7 @@ export abstract class Puppet extends EventEmitter {
     return true
   }
 
-  public contactPayloadCache (contactId: string): undefined | ContactPayload {
+  protected contactPayloadCache (contactId: string): undefined | ContactPayload {
     // log.silly('Puppet', 'contactPayloadCache(id=%s) @ %s', contactId, this)
     if (!contactId) {
       throw new Error('no id')
@@ -674,10 +673,10 @@ export abstract class Puppet extends EventEmitter {
   public abstract async friendshipAdd (contactId: string, hello?: string) : Promise<void>
   public abstract async friendshipAccept (friendshipId: string)           : Promise<void>
 
-  public abstract async friendshipRawPayload (friendshipId: string)   : Promise<any>
-  public abstract async friendshipRawPayloadParser (rawPayload: any)  : Promise<FriendshipPayload>
+  protected abstract async friendshipRawPayload (friendshipId: string)   : Promise<any>
+  protected abstract async friendshipRawPayloadParser (rawPayload: any)  : Promise<FriendshipPayload>
 
-  public friendshipPayloadCache (friendshipId: string): undefined | FriendshipPayload {
+  protected friendshipPayloadCache (friendshipId: string): undefined | FriendshipPayload {
     // log.silly('Puppet', 'friendshipPayloadCache(id=%s) @ %s', friendshipId, this)
     if (!friendshipId) {
       throw new Error('no id')
@@ -693,7 +692,7 @@ export abstract class Puppet extends EventEmitter {
     return cachedPayload
   }
 
-  public async friendshipPayloadDirty (friendshipId: string): Promise<void> {
+  protected async friendshipPayloadDirty (friendshipId: string): Promise<void> {
     log.verbose('Puppet', 'friendshipPayloadDirty(%s)', friendshipId)
     this.cacheFriendshipPayload.del(friendshipId)
   }
@@ -737,10 +736,10 @@ export abstract class Puppet extends EventEmitter {
   public abstract async messageSendContact (receiver: Receiver, contactId: string) : Promise<void>
   public abstract async messageSendFile (receiver: Receiver, file: FileBox)        : Promise<void>
 
-  public abstract async messageRawPayload (messageId: string)     : Promise<any>
-  public abstract async messageRawPayloadParser (rawPayload: any) : Promise<MessagePayload>
+  protected abstract async messageRawPayload (messageId: string)     : Promise<any>
+  protected abstract async messageRawPayloadParser (rawPayload: any) : Promise<MessagePayload>
 
-  public messagePayloadCache (messageId: string): undefined | MessagePayload {
+  protected messagePayloadCache (messageId: string): undefined | MessagePayload {
     // log.silly('Puppet', 'messagePayloadCache(id=%s) @ %s', messageId, this)
     if (!messageId) {
       throw new Error('no id')
@@ -755,7 +754,7 @@ export abstract class Puppet extends EventEmitter {
     return cachedPayload
   }
 
-  public async messagePayloadDirty (messageId: string): Promise<void> {
+  protected async messagePayloadDirty (messageId: string): Promise<void> {
     log.verbose('Puppet', 'messagePayloadDirty(%s)', messageId)
     this.cacheMessagePayload.del(messageId)
   }
@@ -793,12 +792,11 @@ export abstract class Puppet extends EventEmitter {
    *
    * Room Invitation
    *
-   *
    */
   public abstract async roomInvitationAccept (roomInvitationId: string): Promise<void>
 
-  public abstract async roomInvitationRawPayload (roomInvitationId: string) : Promise<any>
-  public abstract async roomInvitationRawPayloadParser (rawPayload: any)    : Promise<RoomInvitationPayload>
+  protected abstract async roomInvitationRawPayload (roomInvitationId: string) : Promise<any>
+  protected abstract async roomInvitationRawPayloadParser (rawPayload: any)    : Promise<RoomInvitationPayload>
 
   public async roomInvitationPayload (roomInvitationId: string): Promise<RoomInvitationPayload> {
     log.verbose('Puppet', 'roomInvitationPayload(%s)', roomInvitationId)
@@ -827,11 +825,11 @@ export abstract class Puppet extends EventEmitter {
   public abstract async roomList ()                     : Promise<string[]>
   public abstract async roomMemberList (roomId: string) : Promise<string[]>
 
-  public abstract async roomRawPayload (roomId: string)        : Promise<any>
-  public abstract async roomRawPayloadParser (rawPayload: any) : Promise<RoomPayload>
+  protected abstract async roomRawPayload (roomId: string)        : Promise<any>
+  protected abstract async roomRawPayloadParser (rawPayload: any) : Promise<RoomPayload>
 
-  public abstract async roomMemberRawPayload (roomId: string, contactId: string) : Promise<any>
-  public abstract async roomMemberRawPayloadParser (rawPayload: any)             : Promise<RoomMemberPayload>
+  protected abstract async roomMemberRawPayload (roomId: string, contactId: string) : Promise<any>
+  protected abstract async roomMemberRawPayloadParser (rawPayload: any)             : Promise<RoomMemberPayload>
 
   public abstract async roomAnnounce (roomId: string)               : Promise<string>
   public abstract async roomAnnounce (roomId: string, text: string) : Promise<void>
@@ -995,7 +993,7 @@ export abstract class Puppet extends EventEmitter {
     return true
   }
 
-  public roomPayloadCache (roomId: string): undefined | RoomPayload {
+  protected roomPayloadCache (roomId: string): undefined | RoomPayload {
     // log.silly('Puppet', 'roomPayloadCache(id=%s) @ %s', roomId, this)
     if (!roomId) {
       throw new Error('no id')
@@ -1010,7 +1008,7 @@ export abstract class Puppet extends EventEmitter {
     return cachedPayload
   }
 
-  public async roomPayloadDirty (roomId: string): Promise<void> {
+  protected async roomPayloadDirty (roomId: string): Promise<void> {
     log.verbose('Puppet', 'roomPayloadDirty(%s)', roomId)
     this.cacheRoomPayload.del(roomId)
   }
@@ -1054,7 +1052,7 @@ export abstract class Puppet extends EventEmitter {
     return contactId + '@@@' + roomId
   }
 
-  public async roomMemberPayloadDirty (roomId: string): Promise<void> {
+  protected async roomMemberPayloadDirty (roomId: string): Promise<void> {
     log.verbose('Puppet', 'roomMemberPayloadDirty(%s)', roomId)
 
     const contactIdList = await this.roomMemberList(roomId)
