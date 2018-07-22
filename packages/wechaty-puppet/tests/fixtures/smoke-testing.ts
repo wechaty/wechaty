@@ -10,7 +10,6 @@
 import {
   ContactGender,
   ContactPayload,
-  ContactPayloadFilterFunction,
   ContactQueryFilter,
   ContactType,
 
@@ -25,7 +24,6 @@ import {
 
   RoomMemberPayload,
   RoomPayload,
-  RoomPayloadFilterFunction,
   RoomQueryFilter,
 
 }                             from 'wechaty-puppet'
@@ -132,13 +130,13 @@ class PuppetTest extends Puppet {
    */
   public roomQueryFilterFactory (
     query: RoomQueryFilter,
-  ): RoomPayloadFilterFunction {
+  ): any {
     return super.roomQueryFilterFactory(query)
   }
 
   public contactQueryFilterFactory (
     query: ContactQueryFilter,
-  ): ContactPayloadFilterFunction {
+  ): any {
     return super.contactQueryFilterFactory(query)
   }
 

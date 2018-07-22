@@ -1,10 +1,38 @@
-export * from './schemas/contact'
-export * from './schemas/friendship'
-export * from './schemas/message'
-export * from './schemas/room'
-export * from './schemas/room-invitation'
+export {
+  ContactGender,
+  ContactType,
+  ContactPayload,
+  ContactQueryFilter
+}                         from './schemas/contact'
+export {
+  FriendshipPayload,
+  FriendshipType,
+}                         from './schemas/friendship'
+export {
+  MessagePayload,
+  MessageType,
+}                         from './schemas/message'
+export {
+  RoomPayload,
+  RoomQueryFilter,
+  RoomMemberPayload,
+  RoomMemberQueryFilter,
+}                         from './schemas/room'
+export {
+  RoomInvitationPayload,
+}                         from './schemas/room-invitation'
 
-export * from './schemas/puppet'
+export {
+  PuppetOptions,
+  PuppetEventName,
+  PuppetQrcodeScanEvent,
+  PuppetRoomInviteEvent,
+  PuppetRoomJoinEvent,
+  PuppetRoomLeaveEvent,
+  PuppetRoomTopicEvent,
+  Receiver,
+  YOU,
+}                         from './schemas/puppet'
 
 export {
   VERSION,
