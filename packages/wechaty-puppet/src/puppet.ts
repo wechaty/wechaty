@@ -518,7 +518,12 @@ export abstract class Puppet extends EventEmitter {
       const nameIdList  = await this.contactSearch({ name: query }  , searchIdList)
       const aliasIdList = await this.contactSearch({ alias: query } , searchIdList)
 
-      return [...new Set([...nameIdList, ...aliasIdList])]
+      return Array.from(
+        new Set([
+          ...nameIdList,
+          ...aliasIdList,
+        ])
+      )
     }
 
     const filterFuncion: ContactPayloadFilterFunction = this.contactQueryFilterFactory(query)
@@ -866,7 +871,10 @@ export abstract class Puppet extends EventEmitter {
       )
       // Keep the unique id only
       // https://stackoverflow.com/a/14438954/1123955
-      return [...new Set(contactIdList)]
+      // return [...new Set(contactIdList)]
+      return Array.from(
+        new Set(contactIdList),
+      )
     }
 
     /**
