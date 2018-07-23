@@ -1,5 +1,4 @@
 #!/usr/bin/env ts-node
-
 /**
  *   Wechaty - https://github.com/chatie/wechaty
  *
@@ -21,31 +20,30 @@
 // tslint:disable:no-shadowed-variable
 import test  from 'blue-tape'
 
-// import { log }  from '../src/config'
+// import http      from 'http'
+import express   from 'express'
 
-import { spy } from 'sinon'
+import { getPort } from './get-port'
 
-test('Node.js function params destructuring behaviour test', async t => {
-  const DEFAULT_N = 1
-  const DEFAULT_S = 't'
+test('getPort() for an available socket port', async t => {
+  const PORT = 8788
 
-  const paramSpy = spy()
-  function paramTest ({
-    n = DEFAULT_N,
-    s = DEFAULT_S,
-  } = {}) {
-    paramSpy(n, s)
+  let port = await getPort(PORT)
+  let ttl = 17
+
+  const serverList = []
+
+  while (ttl-- > 0) {
+    try {
+      const app = express()
+      const server = app.listen(port)
+      port = await getPort(PORT)
+
+      serverList.push(server)
+    } catch (e) {
+      t.fail('should not exception: ' + e.message + ', ' + e.stack)
+    }
   }
-
-  paramSpy.resetHistory()
-  paramTest()
-  t.deepEqual(paramSpy.args[0], [DEFAULT_N, DEFAULT_S], 'should be equal to default args')
-
-  paramSpy.resetHistory()
-  paramTest({ n: 42 })
-  t.deepEqual(paramSpy.args[0], [42, DEFAULT_S], 'should be equal to default s args')
-
-  paramSpy.resetHistory()
-  paramTest({ s: 'life' })
-  t.deepEqual(paramSpy.args[0], [DEFAULT_N, 'life'], 'should be equal to default n args')
+  serverList.map(server => server.close())
+  t.pass('should has no exception after loop test')
 })

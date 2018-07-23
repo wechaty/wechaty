@@ -32,9 +32,7 @@ export {
 }                     from './deprecated'
 
 export { IoClient }   from './io-client'
-export { Misc }       from './misc'
 
 export {
   Wechaty,
 }
-export default Wechaty

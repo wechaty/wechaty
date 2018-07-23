@@ -6,7 +6,7 @@ const contributeMap: {
   [contributor: string]: string[],
 } = {}
 
-function parseLine(line: string): string[] | null {
+function parseLine (line: string): string[] | null {
   // [\#264](https://github.com/Chatie/wechaty/pull/264) ([lijiarui](https://github.com/lijiarui))
   // const regex = /(\[\\#\d+\]\([^\)]+\))\s+(\(\[[^]]+\]\([^)]+\)))/i
   const regex = /(\[\\#\d+\])(\([^\)]+\))\s+\((\[[^\]]+\]\([^\)]+\))/
@@ -21,7 +21,7 @@ function parseLine(line: string): string[] | null {
   return matches
 }
 
-function processLine(line: string): void {
+function processLine (line: string): void {
   const matches = parseLine(line)
   if (matches) {
     // console.log('match:', line)
@@ -40,9 +40,9 @@ function processLine(line: string): void {
   }
 }
 
-function outputContributorMd() {
+function outputContributorMd () {
   const MIN_MAINTAINER_COMMIT_NUM = 2
-  function isMaintainer(committer: string): boolean {
+  function isMaintainer (committer: string): boolean {
     return contributeMap[committer].length >= MIN_MAINTAINER_COMMIT_NUM
   }
 
@@ -50,7 +50,7 @@ function outputContributorMd() {
                                       .filter(isMaintainer)
                                       .sort(desc)
 
-  function desc(committerA: string, committerB: string): number {
+  function desc (committerA: string, committerB: string): number {
     return contributeMap[committerB].length - contributeMap[committerA].length
   }
 
@@ -90,7 +90,7 @@ function outputContributorMd() {
 
 }
 
-async function main() {
+async function main () {
   // https://stackoverflow.com/a/20087094/1123955
   const rl = readline.createInterface({
     input:    process.stdin,

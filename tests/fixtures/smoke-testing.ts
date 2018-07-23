@@ -4,11 +4,11 @@ import { Wechaty }    from 'wechaty'
 
 function getBotList() {
   return [
-    new Wechaty({ puppet: 'mock' }),
-    new Wechaty({ puppet: 'wechat4u' }),
-    // new Wechaty({ puppet: 'puppeteer' }),
+    new Wechaty({ puppet: 'wechaty-puppet-mock' }),
+    new Wechaty({ puppet: 'wechaty-puppet-wechat4u' }),
+    // new Wechaty({ puppet: 'wechaty-puppet-puppeteer' }),
     new Wechaty({
-      puppet: 'padchat',
+      puppet: 'wechaty-puppet-padchat',
       puppetOptions: {
         token: 'smoke-testing-token',
       },

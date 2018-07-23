@@ -17,20 +17,20 @@
  *
  *   @ignore
  */
-import { FileBox } from 'file-box'
 import { instanceToClass } from 'clone-class'
+import { FileBox } from 'file-box'
 
-import {
-  log,
-  Raven,
-  Sayable,
-  qrCodeForChatie,
-}                   from '../config'
 import {
   Accessory,
 }             from '../accessory'
-
-// import Message          from './message'
+import {
+  log,
+  qrCodeForChatie,
+  Raven,
+}                   from '../config'
+import {
+  Sayable,
+}             from '../types'
 
 import {
   ContactGender,
@@ -43,8 +43,10 @@ export const POOL = Symbol('pool')
 
 /**
  * All wechat contacts(friend) will be encapsulated as a Contact.
- *
  * [Examples/Contact-Bot]{@link https://github.com/Chatie/wechaty/blob/1523c5e02be46ebe2cc172a744b2fbe53351540e/examples/contact-bot.ts}
+ *
+ * @property {string}  id               - Get Contact id.
+ * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
  */
 export class Contact extends Accessory implements Sayable {
 
@@ -54,10 +56,10 @@ export class Contact extends Accessory implements Sayable {
   public static Gender = ContactGender
 
   protected static [POOL]: Map<string, Contact>
-  protected static get pool() {
+  protected static get pool () {
     return this[POOL]
   }
-  protected static set pool(newPool: Map<string, Contact>) {
+  protected static set pool (newPool: Map<string, Contact>) {
     if (this === Contact) {
       throw new Error(
         'The global Contact class can not be used directly!'
@@ -73,6 +75,8 @@ export class Contact extends Accessory implements Sayable {
    */
   /**
    * Get Contact by id
+   * > Tips:
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
    *
    * @static
    * @param {string} id
@@ -82,7 +86,7 @@ export class Contact extends Accessory implements Sayable {
    * await bot.start()
    * const contact = bot.Contact.load('contactId')
    */
-  public static load<T extends typeof Contact>(
+  public static load<T extends typeof Contact> (
     this : T,
     id   : string,
   ): T['prototype'] {
@@ -137,7 +141,7 @@ export class Contact extends Accessory implements Sayable {
    * const contactFindByName = await bot.Contact.find({ name:"ruirui"} )
    * const contactFindByAlias = await bot.Contact.find({ alias:"lijiarui"} )
    */
-  public static async find<T extends typeof Contact>(
+  public static async find<T extends typeof Contact> (
     this  : T,
     query : string | ContactQueryFilter,
   ): Promise<T['prototype'] | null> {
@@ -199,10 +203,10 @@ export class Contact extends Accessory implements Sayable {
    * const contactList = await bot.Contact.findAll({name: 'ruirui'})    // find allof the contacts whose name is 'ruirui'
    * const contactList = await bot.Contact.findAll({alias: 'lijiarui'}) // find all of the contacts whose alias is 'lijiarui'
    */
-  public static async findAll<T extends typeof Contact>(
+  public static async findAll<T extends typeof Contact> (
     this  : T,
     query? : string | ContactQueryFilter,
-  ): Promise<T['prototype'][]> {
+  ): Promise<Array<T['prototype']>> {
     log.verbose('Contact', 'findAll(%s)', JSON.stringify(query))
 
     if (query && Object.keys(query).length !== 1) {
@@ -247,7 +251,7 @@ export class Contact extends Accessory implements Sayable {
   }
 
   // TODO
-  public static async delete(contact: Contact): Promise<void> {
+  public static async delete (contact: Contact): Promise<void> {
     log.verbose('Contact', 'static delete(%s)', contact.id)
   }
 
@@ -257,7 +261,7 @@ export class Contact extends Accessory implements Sayable {
    * @private
    *
    */
-  protected get payload(): undefined | ContactPayload {
+  protected get payload (): undefined | ContactPayload {
     if (!this.id) {
       return undefined
     }
@@ -269,7 +273,7 @@ export class Contact extends Accessory implements Sayable {
   /**
    * @private
    */
-  constructor(
+  constructor (
     id: string,
   ) {
     super()
@@ -295,18 +299,31 @@ export class Contact extends Accessory implements Sayable {
   /**
    * @private
    */
-  public toString(): string {
+  public toString (): string {
     const identity = this.payload
       ? this.payload.alias || this.payload.name || this.id
       : this.id
     return `Contact<${identity}>`
   }
 
-  public async say(text: string): Promise<void>
-  public async say(file: FileBox)    : Promise<void>
-  public async say(contact: Contact) : Promise<void>
+  /**
+   * @private
+   */
+  public async toStringAsync (): Promise<string> {
+    const identity = this.payload
+      ? this.payload.alias || this.payload.name || this.id
+      : this.id
+    return `Contact<${identity}>`
+  }
+
+  public async say (text: string): Promise<void>
+  public async say (file: FileBox)    : Promise<void>
+  public async say (contact: Contact) : Promise<void>
 
   /**
+   * > Tips:
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   *
    * @param {(string | Contact | FileBox)} textOrContactOrFile
    * send text, Contact, or file to contact. </br>
    * You can use {@link https://www.npmjs.com/package/file-box|FileBox} to send file
@@ -333,7 +350,7 @@ export class Contact extends Accessory implements Sayable {
    * const contactCard = bot.Contact.load('contactId')
    * await contact.say(contactCard)
    */
-  public async say(textOrContactOrFile: string | Contact | FileBox): Promise<void> {
+  public async say (textOrContactOrFile: string | Contact | FileBox): Promise<void> {
     log.verbose('Contact', 'say(%s)', textOrContactOrFile)
 
     if (typeof textOrContactOrFile === 'string') {
@@ -369,13 +386,13 @@ export class Contact extends Accessory implements Sayable {
    * @example
    * const name = contact.name()
    */
-  public name(): string {
+  public name (): string {
     return this.payload && this.payload.name || ''
   }
 
-  public alias()                  : null | string
-  public alias(newAlias:  string) : Promise<void>
-  public alias(empty:     null)   : Promise<void>
+  public alias ()                  : null | string
+  public alias (newAlias:  string) : Promise<void>
+  public alias (empty:     null)   : Promise<void>
 
   /**
    * GET / SET / DELETE the alias for a contact
@@ -408,7 +425,7 @@ export class Contact extends Accessory implements Sayable {
    *   console.log(`failed to delete ${contact.name()}'s alias!`)
    * }
    */
-  public alias(newAlias?: null | string): null | string | Promise<void> {
+  public alias (newAlias?: null | string): null | string | Promise<void> {
     log.silly('Contact', 'alias(%s)',
                             newAlias === undefined
                               ? ''
@@ -425,8 +442,10 @@ export class Contact extends Accessory implements Sayable {
 
     const future = this.puppet.contactAlias(this.id, newAlias)
 
+    const payload = this.payload
+
     future
-      .then(() => this.payload!.alias = (newAlias || undefined))
+      .then(() => payload.alias = (newAlias || undefined))
       .catch(e => {
         log.error('Contact', 'alias(%s) rejected: %s', newAlias, e.message)
         Raven.captureException(e)
@@ -442,7 +461,7 @@ export class Contact extends Accessory implements Sayable {
    *
    * @deprecated
    */
-  public stranger(): null | boolean {
+  public stranger (): null | boolean {
     log.warn('Contact', 'stranger() DEPRECATED. use friend() instead.')
     if (!this.payload) return null
     return !this.friend()
@@ -451,6 +470,9 @@ export class Contact extends Accessory implements Sayable {
   /**
    * Check if contact is friend
    *
+   * > Tips:
+   * This function is depending on the Puppet Implementation, see [puppet-compatible-table](https://github.com/Chatie/wechaty/wiki/Puppet#3-puppet-compatible-table)
+   *
    * @returns {boolean | null}
    *
    * <br>True for friend of the bot <br>
@@ -458,7 +480,7 @@ export class Contact extends Accessory implements Sayable {
    * @example
    * const isFriend = contact.friend()
    */
-  public friend(): null | boolean {
+  public friend (): null | boolean {
     log.verbose('Contact', 'friend()')
     if (!this.payload) {
       return null
@@ -477,7 +499,7 @@ export class Contact extends Accessory implements Sayable {
    * @deprecated
    *
    */
-  public official(): boolean {
+  public official (): boolean {
     log.warn('Contact', 'official() DEPRECATED. use type() instead')
     return !!this.payload && this.payload.type === ContactType.Official
   }
@@ -487,9 +509,9 @@ export class Contact extends Accessory implements Sayable {
    * Check if it's a personal account, should use {@link Contact#type} instead
    * @deprecated
    */
-  public personal(): boolean {
+  public personal (): boolean {
     log.warn('Contact', 'personal() DEPRECATED. use type() instead')
-    return !this.official()
+    return !!this.payload && this.payload.type === ContactType.Personal
   }
 
   /**
@@ -510,8 +532,11 @@ export class Contact extends Accessory implements Sayable {
    * await bot.start()
    * const isOfficial = contact.type() === bot.Contact.Type.Official
    */
-  public type(): ContactType {
-    return this.payload!.type
+  public type (): ContactType {
+    if (!this.payload) {
+      throw new Error('no payload')
+    }
+    return this.payload.type
   }
 
   /**
@@ -523,7 +548,7 @@ export class Contact extends Accessory implements Sayable {
    * @example
    * const isStar = contact.star()
    */
-  public star(): null | boolean {
+  public star (): null | boolean {
     if (!this.payload) {
       return null
     }
@@ -540,7 +565,7 @@ export class Contact extends Accessory implements Sayable {
    * @example
    * const gender = contact.gender() === bot.Contact.Gender.Male
    */
-  public gender(): ContactGender {
+  public gender (): ContactGender {
     return this.payload
       ? this.payload.gender
       : ContactGender.Unknown
@@ -553,7 +578,7 @@ export class Contact extends Accessory implements Sayable {
    * @example
    * const province = contact.province()
    */
-  public province(): null | string {
+  public province (): null | string {
     return this.payload && this.payload.province || null
   }
 
@@ -564,7 +589,7 @@ export class Contact extends Accessory implements Sayable {
    * @example
    * const city = contact.city()
    */
-  public city(): null | string {
+  public city (): null | string {
     return this.payload && this.payload.city || null
   }
 
@@ -580,7 +605,7 @@ export class Contact extends Accessory implements Sayable {
    * await file.toFile(name, true)
    * console.log(`Contact: ${contact.name()} with avatar file: ${name}`)
    */
-  public async avatar(): Promise<FileBox> {
+  public async avatar (): Promise<FileBox> {
     log.verbose('Contact', 'avatar()')
 
     try {
@@ -598,7 +623,7 @@ export class Contact extends Accessory implements Sayable {
    *
    * @deprecated
    */
-  public refresh(): Promise<void> {
+  public refresh (): Promise<void> {
     log.warn('Contact', 'refresh() DEPRECATED. use sync() instead.')
     return this.sync()
   }
@@ -610,14 +635,14 @@ export class Contact extends Accessory implements Sayable {
    * @example
    * await contact.sync()
    */
-  public async sync(): Promise<void> {
+  public async sync (): Promise<void> {
     await this.ready(true)
   }
 
   /**
    * @private
    */
-  public async ready(dirty = false): Promise<void> {
+  public async ready (dirty = false): Promise<void> {
     log.silly('Contact', 'ready() @ %s', this.puppet)
 
     if (this.isReady()) { // already ready
@@ -645,7 +670,7 @@ export class Contact extends Accessory implements Sayable {
   /**
    * @private
    */
-  public isReady(): boolean {
+  public isReady (): boolean {
     return !!(this.payload && this.payload.name)
   }
 
@@ -656,7 +681,7 @@ export class Contact extends Accessory implements Sayable {
    * @example
    * const isSelf = contact.self()
    */
-  public self(): boolean {
+  public self (): boolean {
     const userId = this.puppet.selfId()
 
     if (!userId) {
@@ -676,45 +701,7 @@ export class Contact extends Accessory implements Sayable {
    * @example
    * const weixin = contact.weixin()
    */
-  public weixin(): null | string {
+  public weixin (): null | string {
     return this.payload && this.payload.weixin || null
   }
 }
-
-export class ContactSelf extends Contact {
-  constructor(
-    id: string,
-  ) {
-    super(id)
-  }
-
-  public async avatar()              : Promise<FileBox>
-  public async avatar(file: FileBox) : Promise<void>
-
-  public async avatar(file?: FileBox): Promise<void | FileBox> {
-    log.verbose('Contact', 'avatar(%s)', file ? file.name : '')
-
-    if (!file) {
-      return await super.avatar()
-    }
-
-    if (this.id !== this.puppet.selfId()) {
-      throw new Error('set avatar only available for user self')
-    }
-
-    await this.puppet.contactAvatar(this.id, file)
-  }
-
-  public async qrcode(): Promise<string> {
-    log.verbose('Contact', 'qrcode()')
-
-    if (this.id !== this.puppet.selfId()) {
-      throw new Error('only can get qrcode for the login userself')
-    }
-
-    return await this.puppet.contactQrcode(this.id)
-  }
-
-}
-
-export default Contact

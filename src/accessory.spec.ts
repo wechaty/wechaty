@@ -18,6 +18,8 @@
  *
  */
 // tslint:disable:no-shadowed-variable
+// tslint:disable:max-classes-per-file
+
 import test  from 'blue-tape'
 // import sinon from 'sinon'
 
@@ -31,8 +33,8 @@ import {
 
 import { Puppet }       from 'wechaty-puppet'
 
-const EXPECTED_PUPPET1 = {p: 1} as any as Puppet
-const EXPECTED_PUPPET2 = {p: 2} as any as Puppet
+const EXPECTED_PUPPET1 = { p: 1 } as any as Puppet
+const EXPECTED_PUPPET2 = { p: 2 } as any as Puppet
 
 test('Accessory smoke testing', async t => {
 

@@ -16,8 +16,8 @@
  *   limitations under the License.
  *
  */
-import WebSocket        from 'ws'
 import { StateSwitch }  from 'state-switch'
+import WebSocket        from 'ws'
 
 import {
   Message,
@@ -31,6 +31,9 @@ import {
   config,
   log,
 }                 from './config'
+import {
+  AnyFunction,
+}                 from './types'
 import {
   Wechaty,
 }                 from './wechaty'
@@ -49,12 +52,12 @@ export const IO_EVENT_DICT = {
   login     : 'tbw',
   logout    : 'tbw',
   message   : 'tbw',
-  update    : 'tbw',
   raw       : 'tbw',
   reset     : 'tbw',
   scan      : 'tbw',
-  sys       : 'tbw',
   shutdown  : 'tbw',
+  sys       : 'tbw',
+  update    : 'tbw',
 }
 
 type IoEventName = keyof typeof IO_EVENT_DICT
@@ -84,11 +87,11 @@ export class Io {
 
   private lifeTimer? : NodeJS.Timer
 
-  private onMessage: undefined | Function
+  private onMessage: undefined | AnyFunction
 
   private scanPayload?: PuppetQrcodeScanEvent
 
-  constructor(
+  constructor (
     private options: IoOptions,
   ) {
     options.apihost   = options.apihost   || config.apihost
@@ -105,15 +108,15 @@ export class Io {
               )
   }
 
-  public toString() {
+  public toString () {
     return `Io<${this.options.token}>`
   }
 
-  private connected() {
+  private connected () {
     return this.ws && this.ws.readyState === WebSocket.OPEN
   }
 
-  public async start(): Promise<void> {
+  public async start (): Promise<void> {
     log.verbose('Io', 'start()')
 
     if (this.lifeTimer) {
@@ -123,7 +126,7 @@ export class Io {
     this.state.on('pending')
 
     try {
-      await this.initEventHook()
+      this.initEventHook()
 
       this.ws = await this.initWebSocket()
 
@@ -153,7 +156,7 @@ export class Io {
     }
   }
 
-  private initEventHook() {
+  private initEventHook () {
     log.verbose('Io', 'initEventHook()')
     const wechaty = this.options.wechaty
 
@@ -220,13 +223,13 @@ export class Io {
     return
   }
 
-  private async initWebSocket(): Promise<WebSocket> {
+  private async initWebSocket (): Promise<WebSocket> {
     log.verbose('Io', 'initWebSocket()')
     // this.state.current('on', false)
 
     // const auth = 'Basic ' + new Buffer(this.setting.token + ':X').toString('base64')
     const auth = 'Token ' + this.options.token
-    const headers = { 'Authorization': auth }
+    const headers = { Authorization: auth }
 
     if (!this.options.apihost) {
       throw new Error('no apihost')
@@ -255,7 +258,7 @@ export class Io {
     return ws
   }
 
-  private async wsOnOpen(ws: WebSocket): Promise<void> {
+  private async wsOnOpen (ws: WebSocket): Promise<void> {
     if (this.protocol !== ws.protocol) {
       log.error('Io', 'initWebSocket() require protocol[%s] failed', this.protocol)
       // XXX deal with error?
@@ -279,7 +282,7 @@ export class Io {
     await this.send(initEvent)
   }
 
-  private async wsOnMessage(data: WebSocket.Data) {
+  private async wsOnMessage (data: WebSocket.Data) {
     log.silly('Io', 'initWebSocket() ws.on(message): %s', data)
     // flags.binary will be set if a binary data is received.
     // flags.masked will be set if the data was masked.
@@ -373,7 +376,7 @@ export class Io {
 
   // FIXME: it seems the parameter `e` might be `undefined`.
   // @types/ws might has bug for `ws.on('error',    e => this.wsOnError(e))`
-  private wsOnError(e?: Error) {
+  private wsOnError (e?: Error) {
     log.warn('Io', 'initWebSocket() error event[%s]', e && e.message)
     if (!e) {
       return
@@ -387,7 +390,7 @@ export class Io {
     // this.reconnect()
   }
 
-  private wsOnClose(
+  private wsOnClose (
     ws      : WebSocket,
     code    : number,
     message : string,
@@ -399,7 +402,7 @@ export class Io {
     }
   }
 
-  private reconnect() {
+  private reconnect () {
     log.verbose('Io', 'reconnect()')
 
     if (this.state.off()) {
@@ -429,7 +432,7 @@ export class Io {
     }, this.reconnectTimeout)// as any as NodeJS.Timer
   }
 
-  private async send(ioEvent?: IoEvent): Promise<void> {
+  private async send (ioEvent?: IoEvent): Promise<void> {
     if (!this.ws) {
       throw new Error('no ws')
     }
@@ -446,15 +449,18 @@ export class Io {
       return
     }
 
-    const list: Promise<any>[] = []
+    const list: Array<Promise<any>> = []
     while (this.eventBuffer.length) {
       const p = new Promise((resolve, reject) => ws.send(
         JSON.stringify(
           this.eventBuffer.shift(),
         ),
         (err: Error) => {
-          if (err)  { reject(err) }
-          else      { resolve()   }
+          if (err)  {
+            reject(err)
+          } else {
+            resolve()
+          }
         },
       ))
       list.push(p)
@@ -468,7 +474,7 @@ export class Io {
     }
   }
 
-  public async stop(): Promise<void> {
+  public async stop (): Promise<void> {
     log.verbose('Io', 'stop()')
 
     if (!this.ws) {
@@ -510,7 +516,7 @@ export class Io {
    * Prepare to be overwriten by server setting
    *
    */
-  private async ioMessage(m: Message): Promise<void> {
+  private async ioMessage (m: Message): Promise<void> {
     log.silly('Io', 'ioMessage() is a nop function before be overwriten from cloud')
     if (typeof this.onMessage === 'function') {
       await this.onMessage(m)
@@ -518,5 +524,3 @@ export class Io {
   }
 
 }
-
-export default Io

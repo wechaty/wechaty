@@ -66,7 +66,7 @@ client.start()
 client.initWeb()
     .catch(onError.bind(client))
 
-async function onError(
+async function onError (
   this : IoClient,
   e    : Error,
 ) {

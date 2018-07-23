@@ -10,7 +10,7 @@ import { spawn } from 'child_process'
 
 const MAX_RETRY_NUM = 3
 
-async function main(): Promise<number> {
+async function main (): Promise<number> {
   console.log('Safe Test: starting...')
 
   let round = 0
@@ -26,7 +26,7 @@ async function main(): Promise<number> {
   return 1  // fail finally :(
 }
 
-async function unitTest() {
+async function unitTest () {
   const child = spawn(
     'npm',
     [
@@ -34,8 +34,8 @@ async function unitTest() {
       'test:unit',
     ],
     {
-      stdio: 'inherit',
       shell: true,  // https://stackoverflow.com/a/39682805/1123955
+      stdio: 'inherit',
     },
   )
   return new Promise<boolean>((resolve, reject) => {

@@ -1,11 +1,11 @@
 import { Contact } from './contact'
 
 export class Moment {
-  public static post() {
+  public static post () {
     // post new moment
   }
 
-  public static timeline(contact: Contact): Moment[] {
+  public static timeline (contact: Contact): Moment[] {
     // list all moment
     if (contact) {
       //
@@ -13,7 +13,7 @@ export class Moment {
     return []
   }
 
-  constructor() {
+  constructor () {
     //
   }
 }

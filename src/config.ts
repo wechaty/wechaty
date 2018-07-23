@@ -16,15 +16,16 @@
  *   limitations under the License.
  *
  */
+// tslint:disable-next-line:no-reference
 /// <reference path="./typings.d.ts" />
 
 import fs    from 'fs'
 import os    from 'os'
 import path  from 'path'
 
-import readPkgUp from 'read-pkg-up'
-import Raven     from 'raven'
 import qrImage   from 'qr-image'
+import Raven     from 'raven'
+import readPkgUp from 'read-pkg-up'
 
 import { log }    from 'brolog'
 import {
@@ -36,9 +37,9 @@ import {
 }                 from './puppet-config'
 
 // https://github.com/Microsoft/TypeScript/issues/14151#issuecomment-280812617
-if (!Symbol.asyncIterator) {
-  (<any>Symbol).asyncIterator = Symbol.for('Symbol.asyncIterator')
-}
+// if (!Symbol.asyncIterator) {
+//   (Symbol as any).asyncIterator = Symbol.for('Symbol.asyncIterator')
+// }
 
 const pkg = readPkgUp.sync({ cwd: __dirname }).pkg
 export const VERSION = pkg.version
@@ -56,9 +57,9 @@ Raven
     release: VERSION,
     tags: {
       git_commit: '',
-      platform:   !!process.env['WECHATY_DOCKER']
-                  ? 'docker'
-                  : os.platform(),
+      platform: process.env.WECHATY_DOCKER
+                ? 'docker'
+                : os.platform(),
     },
   },
 )
@@ -76,7 +77,7 @@ Raven.context(function () {
 })
  */
 
-const logLevel = process.env['WECHATY_LOG']
+const logLevel = process.env.WECHATY_LOG
 if (logLevel) {
   log.level(logLevel.toLowerCase() as any)
   log.silly('Config', 'WECHATY_LOG set level to %s', logLevel)
@@ -115,25 +116,25 @@ const DEFAULT_SETTING = pkg.wechaty as DefaultSetting
 export class Config {
   public default = DEFAULT_SETTING
 
-  public apihost = process.env['WECHATY_APIHOST']    || DEFAULT_SETTING.DEFAULT_APIHOST
-  public head    = ('WECHATY_HEAD' in process.env) ? (!!process.env['WECHATY_HEAD']) : (!!(DEFAULT_SETTING.DEFAULT_HEAD))
+  public apihost = process.env.WECHATY_APIHOST    || DEFAULT_SETTING.DEFAULT_APIHOST
+  public head    = ('WECHATY_HEAD' in process.env) ? (!!process.env.WECHATY_HEAD) : (!!(DEFAULT_SETTING.DEFAULT_HEAD))
 
-  public systemPuppetName () {
+  public systemPuppetName (): PuppetName {
     return (
-      process.env['WECHATY_PUPPET'] || 'default'
+      process.env.WECHATY_PUPPET || 'default'
     ).toLowerCase() as PuppetName
   }
 
-  public profile = process.env['WECHATY_PROFILE']    || null    // DO NOT set DEFAULT_PROFILE, because sometimes user do not want to save session
-  public token   = process.env['WECHATY_TOKEN']      || null    // DO NOT set DEFAULT, because sometimes user do not want to connect to io cloud service
-  public debug   = !!(process.env['WECHATY_DEBUG'])
+  public profile = process.env.WECHATY_PROFILE    || null    // DO NOT set DEFAULT_PROFILE, because sometimes user do not want to save session
+  public token   = process.env.WECHATY_TOKEN      || null    // DO NOT set DEFAULT, because sometimes user do not want to connect to io cloud service
+  public debug   = !!(process.env.WECHATY_DEBUG)
 
-  public httpPort = process.env['PORT'] || process.env['WECHATY_PORT'] || DEFAULT_SETTING.DEFAULT_PORT
-  public docker = !!(process.env['WECHATY_DOCKER'])
+  public httpPort = process.env.PORT || process.env.WECHATY_PORT || DEFAULT_SETTING.DEFAULT_PORT
+  public docker = !!(process.env.WECHATY_DOCKER)
 
   // private _puppetInstance: Puppet | null = null
 
-  constructor() {
+  constructor () {
     log.verbose('Config', 'constructor()')
     this.validApiHost(this.apihost)
   }
@@ -165,7 +166,7 @@ export class Config {
 
   // }
 
-  public gitRevision(): string | null {
+  public gitRevision (): string | null {
     const dotGitPath  = path.join(__dirname, '..', '.git') // only for ts-node, not for dist
     // const gitLogArgs  = ['log', '--oneline', '-1']
     // TODO: use git rev-parse HEAD ?
@@ -198,7 +199,7 @@ export class Config {
     }
   }
 
-  public validApiHost(apihost: string): boolean {
+  public validApiHost (apihost: string): boolean {
     if (/^[a-zA-Z0-9\.\-\_]+:?[0-9]*$/.test(apihost)) {
       return true
     }
@@ -208,7 +209,7 @@ export class Config {
 
 export const CHATIE_OFFICIAL_ACCOUNT_ID = 'gh_051c89260e5d'
 
-export function qrCodeForChatie(): FileBox {
+export function qrCodeForChatie (): FileBox {
   const CHATIE_OFFICIAL_ACCOUNT_QRCODE = 'http://weixin.qq.com/r/qymXj7DEO_1ErfTs93y5'
   const name                           = 'qrcode-for-chatie.png'
   const type                           = 'png'
@@ -217,15 +218,11 @@ export function qrCodeForChatie(): FileBox {
   return FileBox.fromStream(qrStream, name)
 }
 
-export interface Sayable {
-  say(text: string, replyTo?: any|any[]): Promise<void>
-}
-
 // http://jkorpela.fi/chars/spaces.html
 // String.fromCharCode(8197)
 export const FOUR_PER_EM_SPACE = String.fromCharCode(0x2005)
 
-export function qrcodeValueToImageUrl(qrcodeValue: string): string {
+export function qrcodeValueToImageUrl (qrcodeValue: string): string {
   return [
     'https://api.qrserver.com/v1/create-qr-code/?data=',
     encodeURIComponent(qrcodeValue),
@@ -233,7 +230,7 @@ export function qrcodeValueToImageUrl(qrcodeValue: string): string {
   ].join('')
 }
 
-export function isProduction(): boolean {
+export function isProduction (): boolean {
   return process.env.NODE_ENV === 'production'
       || process.env.NODE_ENV === 'prod'
 }
@@ -244,4 +241,3 @@ export {
 }
 
 export const config = new Config()
-export default config

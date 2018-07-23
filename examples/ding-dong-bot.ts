@@ -17,10 +17,10 @@
  *
  */
 import {
+  config,
   Contact,
   Message,
   Wechaty,
-  config,
 }           from '../src/' // from 'wechaty'
 
 import { FileBox }  from 'file-box'
