@@ -34,9 +34,6 @@ import {
 import {
   Contact,
 }               from './contact'
-import {
-  Room,
-}               from './room'
 
 export class RoomInvitation extends Accessory implements Acceptable {
 
@@ -84,7 +81,8 @@ export class RoomInvitation extends Accessory implements Acceptable {
       'RoomInvitation#',
       this.id,
       '<',
-      payload.roomId,
+      payload.roomTopic,
+      ',',
       payload.inviterId,
       '>',
     ].join('')
@@ -112,20 +110,22 @@ export class RoomInvitation extends Accessory implements Acceptable {
 
     await this.puppet.roomInvitationAccept(this.id)
 
-    const room    = await this.room()
     const inviter = await this.inviter()
+    const topic   = await this.roomTopic()
 
     try {
-      await room.ready()
       await inviter.ready()
 
       log.verbose('RoomInvitation', 'accept() with room(%s) & inviter(%s) ready()',
-                                    await room.toStringAsync(),
+                                    topic,
                                     await inviter.toStringAsync(),
                   )
       return
     } catch (e) {
-      log.warn('RoomInvitation', 'accept() room(%s) or inviter(%s) is not ready because of %s', room, inviter, e && e.message || e)
+      log.warn('RoomInvitation', 'accept() inviter(%s) is not ready because of %s',
+                                  inviter,
+                                  e && e.message || e,
+              )
     }
   }
 
@@ -143,31 +143,61 @@ export class RoomInvitation extends Accessory implements Acceptable {
    * .start()
    */
   public async inviter (): Promise<Contact> {
+    log.verbose('RoomInvitation', 'inviter()')
+
     const payload = await this.puppet.roomInvitationPayload(this.id)
     const inviter = this.wechaty.Contact.load(payload.inviterId)
     return inviter
   }
 
   /**
-   * Get the room from room invitation
+   * Get the room topic from room invitation
    *
    * @returns {Contact}
    * @example
    * const bot = new Wechaty()
    * bot.on('room-invite', async roomInvitation => {
-   *   const room = await roomInvitation.room()
-   *   const topic = await room.topic()
+   *   const topic = await roomInvitation.roomTopic()
    *   console.log(`received room invitation event from room ${topic}`)
    * }
    * .start()
    */
-  public async room (): Promise<Room> {
+  public async roomTopic (): Promise<string> {
     const payload = await this.puppet.roomInvitationPayload(this.id)
-    const room = this.wechaty.Room.load(payload.roomId)
-    return room
+    return payload.roomTopic
+  }
+
+  public async roomMemberCount (): Promise<number> {
+    log.verbose('RoomInvitation', 'roomMemberCount()')
+
+    const payload = await this.puppet.roomInvitationPayload(this.id)
+    return payload.roomMemberCount
+  }
+
+  /**
+   * List of Room Members that you known(is friend)
+   */
+  public async roomMemberList (): Promise<Contact[]> {
+    log.verbose('RoomInvitation', 'roomMemberList()')
+
+    const payload = await this.puppet.roomInvitationPayload(this.id)
+    const contactIdList = payload.roomMemberIdList
+
+    const contactList = contactIdList.map(
+      id => this.wechaty.Contact.load(id),
+    )
+    await Promise.all(
+      contactList.map(
+        c => c.ready(),
+      ),
+    )
+
+    return contactList
   }
 
   public async date (): Promise<Date> {
+    log.verbose('RoomInvitation', 'date()')
+
     const payload = await this.puppet.roomInvitationPayload(this.id)
     // convert the unit timestamp to milliseconds
     // (from seconds to milliseconds)
