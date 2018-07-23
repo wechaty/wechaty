@@ -1,6 +1,8 @@
 export interface RoomInvitationPayload {
-  id        : string,
-  inviterId : string,
-  roomId    : string,
-  timestamp : number, // Unix Timestamp, in seconds
+  id               : string,
+  inviterId        : string,
+  roomName         : string,
+  roomMemberCount  : number,
+  roomMemberIdList : string[],   // Friends' Contact Id List of the Room
+  timestamp        : number,     // Unix Timestamp, in seconds
 }
