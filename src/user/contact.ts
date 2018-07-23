@@ -341,7 +341,7 @@ export class Contact extends Accessory implements Sayable {
    *
    * import { FileBox }  from 'file-box'
    * const fileBox1 = FileBox.fromUrl('https://chatie.io/wechaty/images/bot-qr-code.png')
-   * const fileBox2 = FileBox.fromLocal('/tmp/text.txt')
+   * const fileBox2 = FileBox.fromFile('/tmp/text.txt')
    * await contact.say(fileBox1)
    * await contact.say(fileBox2)
    *
