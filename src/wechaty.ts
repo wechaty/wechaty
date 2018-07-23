@@ -47,7 +47,6 @@ import {
   CHAT_EVENT_DICT,
   PUPPET_EVENT_DICT,
   PuppetEventName,
-  RoomInvitation
 }                       from 'wechaty-puppet'
 
 import {
@@ -291,7 +290,6 @@ export class Wechaty extends Accessory implements Sayable {
   public emit(event: 'logout'     , user: ContactSelf)                                                : boolean
   public emit(event: 'login'      , user: ContactSelf)                                                : boolean
   public emit(event: 'message'    , message: Message)                                                 : boolean
-  public emit(event: 'room-invite', roomInvitation: RoomInvitation)                                   : boolean
   public emit(event: 'room-join'  , room: Room, inviteeList : Contact[], inviter  : Contact)          : boolean
   public emit(event: 'room-leave' , room: Room, leaverList  : Contact[], remover? : Contact)          : boolean
   public emit(event: 'room-topic' , room: Room, newTopic: string, oldTopic: string, changer: Contact) : boolean
@@ -316,7 +314,6 @@ export class Wechaty extends Accessory implements Sayable {
   public on(event: 'logout'     , listener: string | ((this: Wechaty, user: ContactSelf) => void))                                                : this
   public on(event: 'login'      , listener: string | ((this: Wechaty, user: ContactSelf) => void))                                                : this
   public on(event: 'message'    , listener: string | ((this: Wechaty, message: Message) => void))                                                 : this
-  public on(event: 'room-invite', listener: string | ((this: Wechaty, roomInvitation: RoomInvitation) => void))                                   : this
   public on(event: 'room-join'  , listener: string | ((this: Wechaty, room: Room, inviteeList: Contact[],  inviter: Contact) => void))            : this
   public on(event: 'room-leave' , listener: string | ((this: Wechaty, room: Room, leaverList: Contact[], remover?: Contact) => void))             : this
   public on(event: 'room-topic' , listener: string | ((this: Wechaty, room: Room, newTopic: string, oldTopic: string, changer: Contact) => void)) : this
@@ -762,13 +759,6 @@ export class Wechaty extends Accessory implements Sayable {
 
             this.emit('room-topic', room, newTopic, oldTopic, changer)
             room.emit('topic', newTopic, oldTopic, changer)
-          })
-          break
-
-        case 'room-invite':
-          puppet.removeAllListeners('room-invite')
-          puppet.on('room-invite', async (roomInvitation) => {
-            this.emit('room-invite', roomInvitation)
           })
           break
 
