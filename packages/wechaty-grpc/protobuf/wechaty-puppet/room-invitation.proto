@@ -1,0 +1,14 @@
+syntax = "proto3";
+package wechaty.puppet;
+
+message RoomInvitationPayloadRequest {
+  string id = 1;
+}
+message RoomInvitationPayloadResponse {
+  string   id                  = 1;
+  string   inviterId           = 2;
+  string   roomTopic           = 3;
+  uint32   roomMemberCount     = 4;
+  repeated string roomMemberId = 5;
+  uint32   timestamp           = 6;
+}

@@ -1,9 +1,8 @@
 import {
+  ContactListRequest,
   PuppetClient,
-}                 from '../generated/wechaty-puppet_grpc_pb'
-import {
-  Empty,
-}                 from '../generated/wechaty-puppet_pb'
+  SelfIdRequest,
+}                     from '../src/'
 
 import grpc from 'grpc'
 
@@ -15,17 +14,17 @@ async function main () {
     grpc.credentials.createInsecure()
   )
 
-  const empty = new Empty()
-
-  client.contactList(empty, (err, response) => {
+  const contactListRequest = new ContactListRequest()
+  client.contactList(contactListRequest, (err, response) => {
     if (err) {
       console.error(err)
       return
     }
-    console.log('contactList:', response.getIdList().map(pbId => pbId.getId()))
+    console.log('contactList:', response.getIdList())
   })
 
-  client.selfId(empty, (err, response) => {
+  const selfIdRequest = new SelfIdRequest()
+  client.selfId(selfIdRequest, (err, response) => {
     if (err) {
       console.error(err)
       return

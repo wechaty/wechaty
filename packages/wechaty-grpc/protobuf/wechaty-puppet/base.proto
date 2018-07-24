@@ -1,0 +1,31 @@
+syntax = "proto3";
+package wechaty.puppet;
+
+message StartRequest {}
+message StartResponse {}
+
+message StopRequest {}
+message StopResponse {}
+
+message VersionRequest {}
+message VersionResponse {
+  string version = 1;
+}
+
+message SelfIdRequest {}
+message SelfIdResponse {
+  string id = 1;
+}
+
+message LogoutRequest {}
+message LogoutResponse {}
+
+message LogonoffRequest {}
+message LogonoffResponse {
+  bool state = 1;
+}
+
+message DingRequest {
+  string data = 1;
+}
+message DingResponse {}

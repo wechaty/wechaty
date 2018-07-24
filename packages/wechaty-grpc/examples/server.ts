@@ -1,13 +1,11 @@
+import grpc from 'grpc'
+
 import {
+  ContactListResponse,
   IPuppetServer,
   PuppetService,
-}                 from '../generated/wechaty-puppet_grpc_pb'
-import {
-  ContactList,
-  Id,
-}                 from '../generated/wechaty-puppet_pb'
-
-import grpc from 'grpc'
+  SelfIdResponse,
+}                       from '../src/'
 
 // tslint:disable:no-console
 
@@ -16,25 +14,18 @@ import grpc from 'grpc'
  */
 const puppetServerImpl: IPuppetServer = {
   contactList: (call, callback) => {
-    const pbContactList = new ContactList()
+    const contactListResponse = new ContactListResponse()
 
     const idList = ['a', 'b', 'c']
+    contactListResponse.setIdList(idList)
 
-    pbContactList.setIdList(
-      idList.map(id => {
-        const pbId = new Id()
-        pbId.setId(id)
-        return pbId
-      })
-    )
-
-    callback(null, pbContactList)
+    callback(null, contactListResponse)
   },
 
   selfId: (call, callback) => {
-    const pbId = new Id()
-    pbId.setId('lizhuohuan')
-    callback(null, pbId)
+    const selfIdResponse = new SelfIdResponse()
+    selfIdResponse.setId('lizhuohuan')
+    callback(null, selfIdResponse)
     // grpc.handleUnaryCall<wechaty_puppet_pb.Empty, wechaty_puppet_pb.Id>;
   },
 
@@ -46,9 +37,45 @@ const puppetServerImpl: IPuppetServer = {
     // grpc.handleUnaryCall<wechaty_puppet_pb.Empty, wechaty_puppet_pb.Empty>;
   },
 
+  logout: (call, callback) => {
+    // grpc.handleUnaryCall<wechaty_puppet_pb.Empty, wechaty_puppet_pb.Empty>;
+  },
+
+  logonoff: (call, callback) => {
+    // grpc.handleUnaryCall<wechaty_puppet_pb.Empty, wechaty_puppet_pb.Empty>;
+  },
+
+  ding: (call, callback) => {
+    // grpc.handleUnaryCall<wechaty_puppet_pb.Empty, wechaty_puppet_pb.Empty>;
+  },
+
+  version: (call, callback) => {
+    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
+  },
+
   contactPayload: (call, callback) => {
     // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
   },
+
+  friendshipPayload: (call, callback) => {
+    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
+  },
+
+  roomList: (call, callback) => {
+    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
+  },
+  roomPayload: (call, callback) => {
+    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
+  },
+
+  roomInvitationPayload: (call, callback) => {
+    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
+  },
+
+  messagePayload: (call, callback) => {
+    // grpc.handleUnaryCall<wechaty_puppet_pb.Id, wechaty_puppet_pb.ContactPayload>;
+  },
+
 }
 
 /**

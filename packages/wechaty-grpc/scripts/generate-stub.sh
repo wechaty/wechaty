@@ -9,7 +9,7 @@ OUT_DIR="./generated"
   mkdir ${OUT_DIR}
 }
 
-PROTOC_CMD="protoc --proto_path=${PROTO_DIR} ${PROTO_DIR}/*.proto"
+PROTOC_CMD="protoc --descriptor_set_out ${OUT_DIR}/descriptor.proto --include_imports --proto_path=${PROTO_DIR} ${PROTO_DIR}/**/*.proto"
 
 #
 # 1. JS for Protocol Buffer

@@ -1,0 +1,28 @@
+syntax = "proto3";
+package wechaty.puppet;
+
+enum MessageType {
+  MessageTypeUnknown = 0;
+  Attachment         = 1;
+  Audio              = 2;
+  Contact            = 3;
+  Emoticon           = 4;
+  Image              = 5;
+  Text               = 6;
+  Video              = 7;
+}
+
+message MessagePayloadRequest {
+  string id = 1;
+}
+message MessagePayloadResponse {
+  string      id        = 1;
+  string      contactId = 2;
+  string      filename  = 3;
+  string      text      = 4;
+  uint32      timestamp = 5;
+  MessageType type      = 6;
+  string      fromId    = 7;
+  string      roomId    = 8;
+  string      toId      = 9;
+}

@@ -1,28 +1,73 @@
+/**
+ *
+ * Wechaty Puppet gRPC Protocol Buffers
+ *  https://github.com/chatie/grpc/
+ *  Huan LI <zixia@zixia.net>
+ *  Apr 2018
+ *  License: Apache-2.0
+ *
+ */
 syntax = "proto3";
 
-package Wechaty;
+package wechaty.puppet;
+
+import public "wechaty-puppet/base.proto";
+import public "wechaty-puppet/contact.proto";
+import public "wechaty-puppet/friendship.proto";
+import public "wechaty-puppet/message.proto";
+import public "wechaty-puppet/room.proto";
+import public "wechaty-puppet/room-invitation.proto";
 
 service Puppet {
-  rpc selfId(Empty) returns (Id) {}
-  rpc start(Empty) returns (Empty) {}
-  rpc stop(Empty) returns (Empty) {}
+  /**
+   *
+   * Base
+   *
+   */
+  rpc Start (StartRequest)  returns (StartResponse) {}
+  rpc Stop (StopRequest)    returns (StopResponse) {}
 
-  rpc contactPayload (Id) returns (ContactPayload) {}
-  rpc contactList (Empty) returns (ContactList) {}
-}
+  rpc SelfId (SelfIdRequest)      returns (SelfIdResponse) {}
+  rpc Logout (LogoutRequest)      returns (LogoutResponse) {}
+  rpc Logonoff (LogonoffRequest)  returns (LogonoffResponse) {}
+  rpc Ding (DingRequest)          returns (DingResponse) {}
+  rpc Version (VersionRequest)    returns (VersionResponse) {}
 
-message Empty {}
+  /**
+   *
+   * Contact
+   *
+   */
+  rpc ContactPayload (ContactPayloadRequest)  returns (ContactPayloadResponse) {}
+  rpc ContactList (ContactListRequest)        returns (ContactListResponse) {}
 
-message Id {
-  string id = 1;
-}
+  /**
+   *
+   * Room
+   *
+   */
+  rpc RoomPayload (RoomPayloadRequest)  returns (RoomPayloadResponse) {}
+  rpc RoomList (RoomListRequest)        returns (RoomListResponse) {}
 
-message ContactPayload {
-  string id   = 1;
-  string name = 2;
-  uint32 sex  = 3;
-}
+  /**
+   *
+   * Room Invitation
+   *
+   */
+  rpc RoomInvitationPayload (RoomInvitationPayloadRequest)  returns (RoomInvitationPayloadResponse) {}
 
-message ContactList {
-  repeated Id id = 1;
+  /**
+   *
+   * Message
+   *
+   */
+   rpc MessagePayload (MessagePayloadRequest)  returns (MessagePayloadResponse) {}
+
+  /**
+   *
+   * Friendship
+   *
+   */
+   rpc FriendshipPayload (FriendshipPayloadRequest)  returns (FriendshipPayloadResponse) {}
+
 }

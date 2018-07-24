@@ -62,6 +62,11 @@ protoc \
 
 > <https://github.com/improbable-eng/ts-protoc-gen>
 
+## DOCUMENTATION
+
+* [Google Protocol Buffers Style Guide](https://developers.google.com/protocol-buffers/docs/style)
+
+
 ## RESOURCES
 
 * [探讨gRPC的Node技术生态及实现工具](https://xenojoshua.com/2018/02/grpc-node-ecosystem/)
@@ -73,7 +78,6 @@ protoc \
 
 ### Protocol Buffer
 
-* [Protocol Buffers Style Guide](https://developers.google.com/protocol-buffers/docs/style)
 * [Protocol Buffers for JavaScript (& TypeScript)](https://github.com/dcodeIO/protobuf.js)
 
 ### gRPC Web
