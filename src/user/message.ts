@@ -112,24 +112,16 @@ export class Message extends Accessory implements Sayable {
      */
     const msg = new this(id)
 
-    // msg.payload = this.puppet.cacheMessagePayload.get(id)
-
     return msg
   }
 
   /**
    *
    * Instance Properties
-   * @private
+   * @hidden
    *
    */
-  private get payload (): undefined | MessagePayload {
-    if (!this.id) {
-      return undefined
-    }
-
-    return this.puppet.messagePayloadCache(this.id)
-  }
+  protected payload?: MessagePayload
 
   /**
    * @private
@@ -159,53 +151,6 @@ export class Message extends Accessory implements Sayable {
    * @private
    */
   public toString () {
-    if (!this.isReady()) {
-      return this.constructor.name
-    }
-
-    const msgStrList = [
-      'Message',
-      `#${MessageType[this.type()]}`,
-      '(',
-        this.room()
-          ? '👥' + this.room()
-          : '',
-        this.from()
-          ? '🗣' + this.from()
-          : '',
-        this.to()
-          ? '👤' + this.to()
-          : '',
-      ')',
-    ]
-    if (   this.type() === Message.Type.Text
-        || this.type() === Message.Type.Unknown
-    ) {
-      msgStrList.push(`<${this.text().substr(0, 70)}>`)
-    } else {
-      log.silly('Message', 'toString() for message type: %s(%s)', Message.Type[this.type()], this.type())
-
-      if (!this.payload) {
-        throw new Error('no payload')
-      }
-      const filename = this.payload.filename
-      // if (!filename) {
-      //   throw new Error(
-      //     'no file for message id: ' + this.id
-      //     + ' with type: ' + Message.Type[this.payload.type]
-      //     + '(' + this.payload.type + ')',
-      //   )
-      // }
-      msgStrList.push(`<${filename || 'unknown file name'}>`)
-    }
-
-    return msgStrList.join('')
-  }
-
-  /**
-   * @private
-   */
-  public async toStringAsync (): Promise<string> {
     if (!this.isReady()) {
       return this.constructor.name
     }
@@ -656,7 +601,7 @@ export class Message extends Accessory implements Sayable {
       return
     }
 
-    await this.puppet.messagePayload(this.id)
+    this.payload = await this.puppet.messagePayload(this.id)
 
     if (!this.payload) {
       throw new Error('no payload')

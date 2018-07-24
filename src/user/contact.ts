@@ -111,7 +111,6 @@ export class Contact extends Accessory implements Sayable {
     // when we call `load()`, `this` should already be extend-ed a child class.
     // so we force `this as any` at here to make the call.
     const newContact = new (this as any)(id) as Contact
-    // newContact.payload = this.puppet.cacheContactPayload.get(id)
 
     this.pool.set(id, newContact)
 
@@ -261,12 +260,7 @@ export class Contact extends Accessory implements Sayable {
    * @private
    *
    */
-  protected get payload (): undefined | ContactPayload {
-    if (!this.id) {
-      return undefined
-    }
-    return this.puppet.contactPayloadCache(this.id)
-  }
+  protected payload?: ContactPayload
 
   public readonly id: string // Contact Id
 
@@ -297,21 +291,11 @@ export class Contact extends Accessory implements Sayable {
   }
 
   /**
-   * @private
+   * @hidden
    */
   public toString (): string {
     const identity = this.payload
-      ? this.payload.alias || this.payload.name || this.id
-      : this.id
-    return `Contact<${identity}>`
-  }
-
-  /**
-   * @private
-   */
-  public async toStringAsync (): Promise<string> {
-    const identity = this.payload
-      ? this.payload.alias || this.payload.name || this.id
+      ? this.payload && (this.payload.alias || this.payload.name) || this.id
       : this.id
     return `Contact<${identity}>`
   }
@@ -390,18 +374,18 @@ export class Contact extends Accessory implements Sayable {
     return this.payload && this.payload.name || ''
   }
 
-  public alias ()                  : null | string
-  public alias (newAlias:  string) : Promise<void>
-  public alias (empty:     null)   : Promise<void>
+  public async alias ()                  : Promise<null | string>
+  public async alias (newAlias:  string) : Promise<void>
+  public async alias (empty:     null)   : Promise<void>
 
   /**
    * GET / SET / DELETE the alias for a contact
    *
    * Tests show it will failed if set alias too frequently(60 times in one minute).
    * @param {(none | string | null)} newAlias
-   * @returns {(string | null | Promise<boolean>)}
-   * @example <caption> GET the alias for a contact, return {(string | null)}</caption>
-   * const alias = contact.alias()
+   * @returns {(Promise<null | string | void>)}
+   * @example <caption> GET the alias for a contact, return {(Promise<string | null>)}</caption>
+   * const alias = await contact.alias()
    * if (alias === null) {
    *   console.log('You have not yet set any alias for contact ' + contact.name())
    * } else {
@@ -425,33 +409,26 @@ export class Contact extends Accessory implements Sayable {
    *   console.log(`failed to delete ${contact.name()}'s alias!`)
    * }
    */
-  public alias (newAlias?: null | string): null | string | Promise<void> {
+  public async alias (newAlias?: null | string): Promise<null | string | void> {
     log.silly('Contact', 'alias(%s)',
                             newAlias === undefined
                               ? ''
                               : newAlias,
                 )
 
-    if (!this.payload) {
-      throw new Error('no payload')
-    }
-
     if (typeof newAlias === 'undefined') {
-      return this.payload && this.payload.alias || null
+      if (!this.payload) {
+        throw new Error('no payload')
+      }
+      return this.payload.alias || null
     }
 
-    const future = this.puppet.contactAlias(this.id, newAlias)
-
-    const payload = this.payload
-
-    future
-      .then(() => payload.alias = (newAlias || undefined))
-      .catch(e => {
-        log.error('Contact', 'alias(%s) rejected: %s', newAlias, e.message)
-        Raven.captureException(e)
-      })
-
-    return future
+    try {
+      await this.puppet.contactAlias(this.id, newAlias)
+    } catch (e) {
+      log.error('Contact', 'alias(%s) rejected: %s', newAlias, e.message)
+      Raven.captureException(e)
+    }
   }
 
   /**
@@ -501,7 +478,7 @@ export class Contact extends Accessory implements Sayable {
    */
   public official (): boolean {
     log.warn('Contact', 'official() DEPRECATED. use type() instead')
-    return !!this.payload && this.payload.type === ContactType.Official
+    return !!this.payload && (this.payload.type === ContactType.Official)
   }
 
   /**
@@ -642,7 +619,7 @@ export class Contact extends Accessory implements Sayable {
   /**
    * @private
    */
-  public async ready (dirty = false): Promise<void> {
+  public async ready (noCache = false): Promise<void> {
     log.silly('Contact', 'ready() @ %s', this.puppet)
 
     if (this.isReady()) { // already ready
@@ -651,10 +628,10 @@ export class Contact extends Accessory implements Sayable {
     }
 
     try {
-      if (dirty) {
+      if (noCache) {
         await this.puppet.contactPayloadDirty(this.id)
       }
-      await this.puppet.contactPayload(this.id)
+      this.payload = await this.puppet.contactPayload(this.id)
       // log.silly('Contact', `ready() this.puppet.contactPayload(%s) resolved`, this)
 
     } catch (e) {

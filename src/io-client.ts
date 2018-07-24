@@ -16,7 +16,6 @@
  *   limitations under the License.
  *
  */
-import express from 'express'
 /**
  * DO NOT use `require('../')` here!
  * because it will casue a LOOP require ERROR
@@ -27,7 +26,6 @@ import StateSwitch  from 'state-switch'
 import { Message }      from './user'
 
 import {
-  config,
   log,
 }                       from './config'
 import { Io }           from './io'
@@ -118,24 +116,24 @@ export class IoClient {
     return
   }
 
-  public initWeb (port = config.httpPort) {
-//    if (process.env.DYNO) {
-//    }
-    const app = express()
+//   public initWeb (port = config.httpPort) {
+// //    if (process.env.DYNO) {
+// //    }
+//     const app = express()
 
-    app.get('/', (_ /* req */, res) => {
-      res.send('Wechaty IO Bot Alive!')
-    })
+//     app.get('/', (_ /* req */, res) => {
+//       res.send('Wechaty IO Bot Alive!')
+//     })
 
-    return new Promise((resolve) => {
-      app.listen(port, () => {
-        log.verbose('IoClient', 'initWeb() Wechaty IO Bot listening on port ' + port + '!')
+//     return new Promise((resolve) => {
+//       app.listen(port, () => {
+//         log.verbose('IoClient', 'initWeb() Wechaty IO Bot listening on port ' + port + '!')
 
-        return resolve(this)
+//         return resolve(this)
 
-      })
-    })
-  }
+//       })
+//     })
+//   }
 
   private async onMessage (_: Message) {
     // const from = m.from()
