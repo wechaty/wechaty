@@ -42,6 +42,10 @@ export class PuppetManager {
 
     if (!options.puppet || options.puppet === 'default') {
       options.puppet = PUPPET_DEFAULT
+    } else if (options.puppet === 'padchat') {
+      // issue #1496 https://github.com/Chatie/wechaty/issues/1496
+      // compatible old settings for padchat
+      options.puppet = 'wechaty-puppet-padchat'
     }
 
     let puppetInstance: Puppet
