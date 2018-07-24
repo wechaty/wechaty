@@ -90,6 +90,7 @@ export const WECHATY_EVENT_DICT = {
   heartbeat : 'tbw',
   start     : 'tbw',
   stop      : 'tbw',
+  'data-ready': 'tbw',
 }
 
 export type WechatyEventName  = keyof typeof WECHATY_EVENT_DICT
@@ -279,6 +280,7 @@ export class Wechaty extends Accessory implements Sayable {
   public emit (event: 'room-topic' , room: Room, newTopic: string, oldTopic: string, changer: Contact) : boolean
   public emit (event: 'scan'       , qrcode: string, status: number, data?: string)                    : boolean
   public emit (event: 'start' | 'stop')                                                                : boolean
+  public emit (event: 'data-ready') : boolean
 
   // guard for the above event: make sure it includes all the possible values
   public emit (event: never, listener: never): never
@@ -302,6 +304,7 @@ export class Wechaty extends Accessory implements Sayable {
   public on (event: 'room-topic' , listener: string | ((this: Wechaty, room: Room, newTopic: string, oldTopic: string, changer: Contact) => void)) : this
   public on (event: 'scan'       , listener: string | ((this: Wechaty, qrcode: string, status: number, data?: string) => void))                    : this
   public on (event: 'start' | 'stop', listener: string | ((this: Wechaty) => void))                                                                : this
+  public on (event: 'data-ready', listener: string | ((this: Wechaty) => void)) : this
 
   // guard for the above event: make sure it includes all the possible values
   public on (event: never, listener: never): never
@@ -667,6 +670,11 @@ export class Wechaty extends Accessory implements Sayable {
         case 'scan':
           puppet.on('scan', async (qrcode, status, data) => {
             this.emit('scan', qrcode, status, data)
+          })
+          break
+        case 'data-ready':
+          puppet.on('data-ready', () => {
+            this.emit('data-ready')
           })
           break
 
